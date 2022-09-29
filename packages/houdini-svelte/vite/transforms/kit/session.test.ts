@@ -1,6 +1,5 @@
+import { test_transform_js, test_transform_svelte } from 'houdini/vite/tests'
 import { test, expect } from 'vitest'
-
-import { test_transform_js, test_transform_svelte } from '../../tests'
 
 test('modifies root +layout.svelte with data prop', async function () {
 	// run the test
@@ -66,11 +65,11 @@ test('modifies existing load +layout.server.js', async function () {
 		'src/routes/+layout.server.js',
 		`
 			export async function load() {
-				"some random stuff that's valid javascript" 
-				return { 
+				"some random stuff that's valid javascript"
+				return {
 					hello: "world",
 				}
-				
+
 			}
 		`
 	)
@@ -97,7 +96,7 @@ test('modifies existing load +layout.server.js - no return', async function () {
 		'src/routes/+layout.server.js',
 		`
 			export async function load() {
-				"some random stuff that's valid javascript" 
+				"some random stuff that's valid javascript"
 			}
 		`
 	)
@@ -123,7 +122,7 @@ test('modifies existing load +layout.server.js - rest params', async function ()
 		`
 			export async function load({ foo, bar, ...baz }) {
 				console.log(foo)
-				return { 
+				return {
 					some: 'value'
 				}
 			}
@@ -160,7 +159,7 @@ test('modifies existing load +layout.server.js - const arrow function', async fu
 		`
 			export const load = ({ foo, bar, ...baz }) => {
 				console.log(foo)
-				return { 
+				return {
 					some: 'value'
 				}
 			}
@@ -197,7 +196,7 @@ test('modifies existing load +layout.server.js - const function', async function
 		`
 			export const load = function({ foo, bar, ...baz }) {
 				console.log(foo)
-				return { 
+				return {
 					some: 'value'
 				}
 			}

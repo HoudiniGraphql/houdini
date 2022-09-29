@@ -1,11 +1,6 @@
-import { IdentifierKind } from 'ast-types/gen/kinds'
-import { StatementKind } from 'ast-types/gen/kinds'
-import { namedTypes } from 'ast-types/gen/namedTypes'
-import * as graphql from 'graphql'
-import * as recast from 'recast'
+import { Config } from 'houdini/common'
+import { TransformPage } from 'houdini/vite/plugin'
 
-import { Config } from '../../../../../common'
-import { TransformPage } from '../../../../../vite/plugin'
 import init from './init'
 import load from './load'
 import session from './session'

@@ -1,7 +1,7 @@
 import path from 'path'
 import { Plugin } from 'vite'
 
-import generate from '../codegen/generate'
+import generate from '../codegen'
 import { Config, formatErrors, getConfig, HoudiniRouteScript, Script } from '../common'
 
 export default function HoudiniPlugin(configFile?: string): Plugin {
@@ -61,7 +61,7 @@ export default function HoudiniPlugin(configFile?: string): Plugin {
 			}
 
 			// run the plugin pipeline
-			// const result = await apply_transforms(config, ctx, code)
+			const result = await apply_transforms(config, ctx, code)
 
 			return null
 		},

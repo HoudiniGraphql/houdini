@@ -1,11 +1,7 @@
-import { load } from 'mock-fs'
-import path from 'path'
-import { resourceUsage } from 'process'
+import { find_exported_fn, find_insert_index } from 'houdini/vite/ast'
+import { ensure_imports } from 'houdini/vite/imports'
+import { TransformPage } from 'houdini/vite/plugin'
 import * as recast from 'recast'
-
-import { find_exported_fn, find_exported_id, find_insert_index } from '../../ast'
-import { ensure_imports } from '../../imports'
-import { TransformPage } from '../../plugin'
 
 const AST = recast.types.builders
 

@@ -1,4 +1,3 @@
-import * as graphql from 'graphql'
 import path from 'path'
 
 import { ConfigFile } from '../../houdini-svelte/runtime'

@@ -1,9 +1,8 @@
+import { runPipeline } from 'houdini/codegen'
+import { parseJS, testConfig } from 'houdini/common'
+import * as fs from 'houdini/common/fs'
 import path from 'path'
 import { test, expect } from 'vitest'
-
-import { parseJS, testConfig } from '../../../common'
-import * as fs from '../../../common/fs'
-import { runPipeline } from '../../generate'
 
 const config = testConfig()
 
@@ -54,8 +53,8 @@ test('generates types for page queries', async function () {
 		[config.routesDir]: {
 			myProfile: {
 				'+page.gql': `
-query MyPageQuery { 
-    viewer { 
+query MyPageQuery {
+    viewer {
         id
     }
 }
@@ -97,14 +96,14 @@ test('generates types for after load', async function () {
 				'+page.js': `
                     import { graphql } from '$houdini'
 
-                    const store1 = graphql\`query MyPageLoad1Query($id: ID!) { 
-                        viewer(id: $id) { 
+                    const store1 = graphql\`query MyPageLoad1Query($id: ID!) {
+                        viewer(id: $id) {
                             id
                         }
                     }\`
 
-                    const store2 = graphql\`query MyPageLoad2Query { 
-                        viewer { 
+                    const store2 = graphql\`query MyPageLoad2Query {
+                        viewer {
                             id
                         }
                     }\`
@@ -112,7 +111,7 @@ test('generates types for after load', async function () {
                     export const houdini_load = [ store1, store2 ]
 
                     export function afterLoad() {
-                        return { 
+                        return {
                             hello: 'world'
                         }
                     }
@@ -173,14 +172,14 @@ test('generates types for onError', async function () {
 				'+page.js': `
                     import { graphql } from '$houdini'
 
-                    const store1 = graphql\`query MyPageLoad1Query($id: ID!) { 
-                        viewer(id: $id) { 
+                    const store1 = graphql\`query MyPageLoad1Query($id: ID!) {
+                        viewer(id: $id) {
                             id
                         }
                     }\`
 
-                    const store2 = graphql\`query MyPageLoad2Query { 
-                        viewer { 
+                    const store2 = graphql\`query MyPageLoad2Query {
+                        viewer {
                             id
                         }
                     }\`
@@ -188,7 +187,7 @@ test('generates types for onError', async function () {
                     export const houdini_load = [ store1, store2 ]
 
                     export function onError() {
-                        return { 
+                        return {
                             hello: 'world'
                         }
                     }

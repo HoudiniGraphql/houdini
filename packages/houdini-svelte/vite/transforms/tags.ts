@@ -1,9 +1,7 @@
-import * as graphql from 'graphql'
+import { Config, walkGraphQLTags } from 'houdini/common'
+import { store_import } from 'houdini/vite/imports'
+import { TransformPage } from 'houdini/vite/plugin'
 import * as recast from 'recast'
-
-import { Config, walkGraphQLTags } from '../../../../common'
-import { store_import } from '../../../../vite/imports'
-import { TransformPage } from '../../../../vite/plugin'
 
 const AST = recast.types.builders
 

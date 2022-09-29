@@ -1,5 +1,7 @@
-import base from '../../../core/vite'
+import base from 'houdini/vite'
 
-const SvelteVitePlugin = base({})
+const SvelteVitePlugin = base({
+	after_generate() {},
+})
 
 export default SvelteVitePlugin

@@ -4,9 +4,9 @@ import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { test, expect, describe } from 'vitest'
 
+import { runPipeline } from '../../../codegen'
 import { readFile, testConfig } from '../../../common'
 import * as fs from '../../../common/fs'
-import { runPipeline } from '../../generate'
 import { mockCollectedDoc } from '../../testUtils'
 import { CollectedGraphQLDocument } from '../../types'
 
@@ -2302,8 +2302,8 @@ describe('mutation artifacts', function () {
 			mockCollectedDoc(
 				`query TestQuery {
 					usersByCursor(first: 10) @paginate(name: "All_Users") {
-						edges { 
-							node { 
+						edges {
+							node {
 								firstName
 							}
 						}

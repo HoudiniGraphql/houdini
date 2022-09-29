@@ -402,7 +402,7 @@ function logStyled(
 ) {
 	if (stat.length > 0) {
 		// Let's prepare the one liner in the plugin mode, of a bit more in other lol level.
-		const msg = []
+		const msg: string[] = []
 
 		// in plugin mode, it will be very short, let's put a hat first.
 		if (plugin) {

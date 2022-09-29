@@ -4,7 +4,7 @@ import type { Plugin } from 'vite'
 import watch_and_run from 'vite-plugin-watch-and-run'
 
 import { ConfigFile } from '../../houdini-svelte/runtime'
-import generate from '../codegen/generate'
+import generate from '../codegen'
 import { formatErrors, getConfig } from '../common'
 import fs_patch from './fsPatch'
 import houdini from './plugin'
@@ -13,7 +13,10 @@ import schema from './schema'
 export default function ({
 	configPath,
 	...extraConfig
-}: { configPath?: string } & Partial<ConfigFile> = {}): Plugin[] {
+}: {
+	configPath?: string
+	generate: (config: ConfigFile) => Promise<void>
+} & Partial<ConfigFile>): Plugin[] {
 	// we need some way for the graphql tag to detect that we are running on the server
 	// so we don't get an error when importing.
 	process.env.HOUDINI_PLUGIN = 'true'

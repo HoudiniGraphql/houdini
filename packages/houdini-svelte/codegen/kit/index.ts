@@ -1,9 +1,8 @@
 import { OperationDefinitionNode } from 'graphql'
+import { CollectedGraphQLDocument } from 'houdini/codegen/types'
+import { Config } from 'houdini/common'
+import * as fs from 'houdini/common/fs'
 import path from 'path'
-
-import { Config } from '../../../common'
-import * as fs from '../../../common/fs'
-import { CollectedGraphQLDocument } from '../../types'
 
 export default async function svelteKitGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	// if we're not in a sveltekit project, don't do anything
@@ -160,7 +159,7 @@ export type PageData = {
 		.join(', \n')}
 } ${afterLoad ? '& AfterLoadReturn ' : ''} ${beforeLoad ? '& BeforeLoadReturn ' : ''} ${
 				onError ? '& OnErrorReturn ' : ''
-			} 
+			}
 
 `
 

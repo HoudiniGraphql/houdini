@@ -1,7 +1,6 @@
+import { ensure_imports } from 'houdini/vite/imports'
+import { TransformPage } from 'houdini/vite/plugin'
 import * as recast from 'recast'
-
-import { ensure_imports } from '../../imports'
-import { TransformPage } from '../../plugin'
 
 const AST = recast.types.builders
 

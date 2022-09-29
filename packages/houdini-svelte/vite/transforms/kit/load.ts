@@ -2,8 +2,6 @@ import { IdentifierKind } from 'ast-types/gen/kinds'
 import { StatementKind } from 'ast-types/gen/kinds'
 import { namedTypes } from 'ast-types/gen/namedTypes'
 import * as graphql from 'graphql'
-import * as recast from 'recast'
-
 import {
 	formatErrors,
 	operation_requires_variables,
@@ -11,10 +9,12 @@ import {
 	HoudiniRouteScript,
 	readFile,
 	stat,
-} from '../../../../../common'
-import { find_insert_index } from '../../../../../vite/ast'
-import { ensure_imports, store_import } from '../../../../../vite/imports'
-import { TransformPage } from '../../../../../vite/plugin'
+} from 'houdini/common'
+import { find_insert_index } from 'houdini/vite/ast'
+import { ensure_imports, store_import } from 'houdini/vite/imports'
+import { TransformPage } from 'houdini/vite/plugin'
+import * as recast from 'recast'
+
 import { LoadTarget, find_inline_queries, query_variable_fn } from '../query'
 
 const AST = recast.types.builders

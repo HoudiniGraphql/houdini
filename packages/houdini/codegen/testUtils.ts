@@ -1,9 +1,9 @@
 import * as graphql from 'graphql'
 import { test } from 'vitest'
 
+import { runPipeline } from '.'
 import { ArtifactKind } from '../../houdini-svelte/runtime/lib/types'
 import { testConfig } from '../common'
-import { runPipeline } from './generate'
 import { CollectedGraphQLDocument } from './types'
 
 export function pipelineTest(
@@ -32,7 +32,7 @@ export function pipelineTest(
 
 		// if we shouldn't pass but we did, we failed the test
 		if (!shouldPass && error.length === 0) {
-			fail('did not fail test')
+			throw 'did not fail test'
 			return
 		}
 

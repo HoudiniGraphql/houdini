@@ -1,14 +1,7 @@
+import { parseJS, runPipeline, ParsedFile, parseSvelte, formatErrors } from 'houdini/common'
+import { TransformPage } from 'houdini/vite/plugin'
 import * as recast from 'recast'
 
-import {
-	Config,
-	parseJS,
-	runPipeline,
-	ParsedFile,
-	parseSvelte,
-	formatErrors,
-} from '../../../../common'
-import { TransformPage } from '../../../../vite/plugin'
 import kit from './kit'
 import query from './query'
 import reactive from './reactive'
@@ -21,7 +14,6 @@ import tags from './tags'
 const pipeline = [reactive, kit, query, tags]
 
 export default async function apply_transforms(
-	config: Config,
 	page: Omit<TransformPage, 'script'>,
 	content: string
 ): Promise<{ code: string }> {
@@ -62,7 +54,7 @@ export default async function apply_transforms(
 
 	// send the scripts through the pipeline
 	try {
-		await runPipeline(config, pipeline, result)
+		await runPipeline(page.config, pipeline, result)
 	} catch (e) {
 		formatErrors({ message: (e as Error).message, filepath: page.filepath })
 		return { code: content }

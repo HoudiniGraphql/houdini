@@ -1,6 +1,5 @@
+import { component_test } from 'houdini/vite/tests'
 import { test, expect } from 'vitest'
-
-import { component_test } from '../tests'
 
 test('no variables', async function () {
 	const route = await component_test(
@@ -44,7 +43,7 @@ test('with variables', async function () {
                     hello: 'world'
                 }
             }
-            
+
             export let prop1 = 'hello'
             export const prop2 = 'goodbye'
             export let prop3, prop4

@@ -1,6 +1,6 @@
 import { logGreen } from '@kitql/helper'
+import { getConfig } from 'houdini/common'
 
-import { getConfig } from '../../../core/common'
 import { ConfigFile } from '../runtime'
 import { transform } from '../vite'
 

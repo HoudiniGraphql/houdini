@@ -1,8 +1,7 @@
 import { walk } from 'estree-walker'
+import { Config } from 'houdini/common'
+import { TransformPage } from 'houdini/vite/plugin'
 import * as recast from 'recast'
-
-import { Config } from '../../../../common'
-import { TransformPage } from '../../../../vite/plugin'
 
 const AST = recast.types.builders
 

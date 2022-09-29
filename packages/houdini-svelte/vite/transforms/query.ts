@@ -1,17 +1,17 @@
 import { ExpressionKind, StatementKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
+import { Config, operation_requires_variables, Script, walkGraphQLTags } from 'houdini/common'
+import { find_exported_fn, find_insert_index } from 'houdini/vite/ast'
+import { ensure_imports } from 'houdini/vite/imports'
+import { TransformPage } from 'houdini/vite/plugin'
 import * as recast from 'recast'
-
-import { Config, operation_requires_variables, Script, walkGraphQLTags } from '../../../../common'
-import { find_exported_fn, find_insert_index } from '../../../../vite/ast'
-import { ensure_imports } from '../../../../vite/imports'
-import { TransformPage } from '../../../../vite/plugin'
 
 const AST = recast.types.builders
 
 type ExportNamedDeclaration = recast.types.namedTypes.ExportNamedDeclaration
 type VariableDeclaration = recast.types.namedTypes.VariableDeclaration
 type Identifier = recast.types.namedTypes.Identifier
+type Statement = recast.types.namedTypes.Statement
 
 export default async function QueryProcessor(config: Config, page: TransformPage) {
 	// only consider consider components in this processor
@@ -87,7 +87,7 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 	// define some things we'll need when fetching
 	page.script.body.push(
 		// a variable to hold the query input
-		...queries.flatMap<StatementKind>((query) => {
+		...queries.flatMap((query) => {
 			// if the query does not have variables, just define something local
 			const variable_fn = query_variable_fn(query.name)
 			const has_variables = find_exported_fn(page.script.body, variable_fn)
@@ -181,7 +181,7 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 export async function find_inline_queries(
 	page: TransformPage,
 	parsed: Script | null,
-	store_id: (name: string) => ExpressionKind
+	store_id: (name: string) => Identifier
 ): Promise<LoadTarget[]> {
 	// if there's nothing to parse, we're done
 	if (!parsed) {
@@ -250,7 +250,7 @@ export function query_variable_fn(name: string) {
 }
 
 export type LoadTarget = {
-	store_id: ExpressionKind
+	store_id: Statement
 	name: string
 	variables: boolean
 }

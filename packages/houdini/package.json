@@ -1,0 +1,44 @@
+{
+	"name": "houdini",
+	"version": "0.16.6",
+	"description": "The disappearing graphql client for SvelteKit",
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./build/cmd/index.d.ts"
+		},
+		"./vite": {
+			"import": "./build/vite-esm/index.js",
+			"require": "./build/vite-cjs/index.js"
+		}
+	},
+	"typesVersions": {
+		"*": {
+			"vite": [
+				"build/vite/index.d.ts"
+			]
+		}
+	},
+	"types": "./build/cmd/index.d.ts",
+	"scripts": {
+		"tests": "vitest",
+		"build": "echo build houdini"
+	},
+	"devDependencies": {
+		"@types/node": "^18.7.23",
+		"vitest": "^0.23.4"
+	},
+	"dependencies": {
+		"ast-types": "^0.14.2",
+		"glob": "^8.0.3",
+		"graphql": "^16.6.0",
+		"houdini": "workspace:^",
+		"minimatch": "^5.1.0",
+		"recast": "^0.21.5",
+		"vite": "^3.1.4",
+		"vite-plugin-watch-and-run": "^1.0.3"
+	},
+	"peerDependencies": {
+		"graphql": "^0.13.0 || ^14.0.0 || ^15.0.0"
+	}
+}
