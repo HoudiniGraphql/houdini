@@ -10,7 +10,7 @@ Houdini's support for user sessions comes in 2 parts. First, you need to add a `
 session for that user:
 
 ```typescript
-/// src/hooks.js
+/// src/hooks.server.js
 
 import houdiniClient from './lib/client'
 
