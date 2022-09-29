@@ -2,6 +2,7 @@ import { mergeSchemas } from '@graphql-tools/schema'
 import { glob } from 'glob'
 import * as graphql from 'graphql'
 import minimatch from 'minimatch'
+import { npxImport } from 'npx-import'
 import os from 'os'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -12,13 +13,12 @@ import {
 	ConfigFile,
 	defaultConfigValues,
 	keyFieldsForType,
-} from '../../houdini-svelte/runtime/lib'
-import { CachePolicy, GraphQLTagResult } from '../../houdini-svelte/runtime/lib/types'
+} from '../../houdini-svelte/src/runtime'
+import { CachePolicy, GraphQLTagResult } from '../../houdini-svelte/src/runtime/lib/types'
 import { pullSchema } from '../codegen/utils'
 import { HoudiniError } from './error'
 import { extractLoadFunction } from './extractLoadFunction'
 import * as fs from './fs'
-import { parseSvelte } from './parse'
 import { walkGraphQLTags } from './walk'
 
 // @ts-ignore
@@ -33,7 +33,6 @@ export class Config {
 	apiUrl?: string
 	schemaPath?: string
 	persistedQueryPath?: string
-	include: string
 	exclude?: string
 	scalars?: ConfigFile['scalars']
 	framework: 'kit' | 'svelte' = 'kit'
@@ -58,6 +57,7 @@ export class Config {
 	client: string
 	globalStorePrefix: string
 	quietQueryErrors: boolean
+	plugins: HoudiniPlugin[] = []
 
 	constructor({
 		filepath,
@@ -71,7 +71,7 @@ export class Config {
 			schema,
 			schemaPath = './schema.graphql',
 			sourceGlob,
-			include = `src/**/*.{svelte,graphql,gql,ts,js}`,
+			include,
 			exclude,
 			apiUrl,
 			framework = 'kit',
@@ -138,7 +138,6 @@ ${
 		this.schemaPath = schemaPath
 		this.apiUrl = apiUrl
 		this.filepath = filepath
-		this.include = include
 		this.exclude = exclude
 		this.framework = framework
 		this.module = module
@@ -181,6 +180,21 @@ ${
 				description: `Here, both gives: ${this.storeName({ name: 'QueryName' })}`,
 			})
 		}
+	}
+
+	get include() {
+		// if the config file has one, use it
+		if (this.configFile.include) {
+			return this.configFile.include
+		}
+
+		// we have to figure out a reasonable default so start with the normal extensions
+		const extensions = ['graphql', 'gql', 'ts', 'js'].concat(
+			this.plugins.flatMap((plugin) => plugin.extensions ?? [])
+		)
+
+		// any file of a valid extension in src is good enough
+		return `src/**/*.{${extensions.join(',')}}`
 	}
 
 	// compute if a path points to a component query or not
@@ -306,7 +320,7 @@ ${
 
 		// previousLocation is nothing
 		let previousLocation = ''
-		const backFolder = []
+		const backFolder: string[] = []
 
 		// if previousLocation !== locationFound that mean that we can go upper
 		// if the directory doesn't exist, let's go upper.
@@ -997,8 +1011,16 @@ This will prevent your schema from being pulled (potentially resulting in errors
 		throw e
 	}
 
-	resolve(_config)
+	// now that we have the config, we need to load any necessary plugins
 
+	// load the svelte plugin if necessary
+	if (['kit', 'svelte'].includes(_config.framework)) {
+		const dependency = await npxImport<{ default: HoudiniPlugin }>('houdini-svelte')
+		_config.plugins.push(dependency.default)
+	}
+
+	// we're done and have a valid config
+	resolve(_config)
 	return _config
 }
 
@@ -1039,3 +1061,7 @@ const routeQueryError = (filepath: string) => ({
 	filepath,
 	message: 'route query error',
 })
+
+export type HoudiniPlugin = {
+	extensions: string[]
+}

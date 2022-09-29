@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
 
-import { ArtifactKind } from '../../../houdini-svelte/runtime/lib/types'
+import { ArtifactKind } from '../../../houdini-svelte/src/runtime/lib/types'
 import { Config, HoudiniError } from '../../common'
 import { CollectedGraphQLDocument } from '../types'
 import { murmurHash } from '../utils'
@@ -53,7 +53,7 @@ export default async function fragmentVariables(
 	// once we've handled every fragment in every document we need to add any
 	// new fragment definitions to the list of collected docs so they can be picked up
 	const doc: graphql.DocumentNode = {
-		kind: 'Document',
+		kind: graphql.Kind.DOCUMENT,
 		definitions: Object.values(generatedFragments),
 	}
 
@@ -245,7 +245,7 @@ export function inlineFragmentArgs({
 	if (newName) {
 		// the new name for the document
 		result.name = {
-			kind: 'Name',
+			kind: graphql.Kind.NAME,
 			value: newName,
 		}
 	}

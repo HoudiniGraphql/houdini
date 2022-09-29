@@ -3,14 +3,12 @@ import * as graphql from 'graphql'
 import minimatch from 'minimatch'
 import path from 'path'
 import * as recast from 'recast'
-import * as svelte from 'svelte/compiler'
 import { promisify } from 'util'
 
-import { siteURL } from '../../houdini-svelte/runtime/lib/constants'
+import { siteURL } from '../../houdini-svelte/src/runtime/lib/constants'
 import {
 	Config,
 	runPipeline as run,
-	parseSvelte,
 	ParsedFile,
 	LogLevel,
 	walkGraphQLTags,
@@ -245,7 +243,7 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 	)
 }
 
-type DiscoveredDoc = {
+export type DiscoveredDoc = {
 	filepath: string
 	document: string
 }
@@ -272,52 +270,6 @@ async function processJSFile(
 			documents.push({ document: tag.tagContent, filepath })
 		},
 	})
-
-	// we found every document in the file
-	return documents
-}
-
-async function processSvelteFile(filepath: string, contents: string): Promise<DiscoveredDoc[]> {
-	const documents: DiscoveredDoc[] = []
-
-	let parsedFile: ParsedFile
-	try {
-		parsedFile = await parseSvelte(contents)
-	} catch (e) {
-		const err = e as Error
-
-		// add the filepath to the error message
-		throw new HoudiniError({
-			message: `Encountered error parsing ${filepath}`,
-			description: err.message,
-		})
-	}
-
-	// we need to look for multiple script tags to support sveltekit
-	const scripts = [parsedFile]
-
-	await Promise.all(
-		scripts.map(async (jsContent) => {
-			// @ts-ignore
-			// look for any template tag literals in the script body
-			svelte.walk(jsContent, {
-				enter(node) {
-					// if we are looking at the graphql template tag
-					if (
-						node.type === 'TaggedTemplateExpression' &&
-						// @ts-ignore
-						node.tag.name === 'graphql'
-					) {
-						// @ts-ignore
-						// parse the tag contents to get the info we need
-						const printedDoc = node.quasi.quasis[0].value.raw
-
-						documents.push({ document: printedDoc, filepath })
-					}
-				},
-			})
-		})
-	)
 
 	// we found every document in the file
 	return documents

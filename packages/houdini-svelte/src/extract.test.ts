@@ -1,6 +1,6 @@
 import { test, expect, describe } from 'vitest'
 
-import { parseSvelte } from './parse'
+import { parseSvelte } from './extract'
 
 describe('parser tests', () => {
 	test('happy path - separate module and instance script', async () => {
