@@ -1,7 +1,7 @@
 import * as graphql from 'graphql'
 
-import { Config, HoudiniError, parentTypeFromAncestors } from '../../../common'
-import { MutationOperation } from '../../../runtime/lib'
+import { Config, HoudiniError, parentTypeFromAncestors } from '../../../../lib'
+import { MutationOperation } from '../../../../runtime/lib'
 import { convertValue } from './utils'
 
 // return the list of operations that are part of a mutation

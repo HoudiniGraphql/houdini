@@ -1,4 +1,4 @@
-import { Config, writeFile } from '../../../common'
+import { Config, writeFile } from '../../../../lib'
 import enums from './enums'
 
 // schemaGenerator updates the schema file to contain all of the generated

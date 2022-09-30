@@ -1,4 +1,4 @@
-import { component_test } from 'houdini/vite/tests'
+import { component_test } from 'houdini/vite'
 import { test, expect } from 'vitest'
 
 test('no variables', async function () {

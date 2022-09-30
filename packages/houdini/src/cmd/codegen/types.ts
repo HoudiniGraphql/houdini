@@ -1,6 +1,6 @@
 import type * as graphql from 'graphql'
 
-import { ArtifactKind, BaseCompiledDocument } from '../runtime/lib'
+import { ArtifactKind, BaseCompiledDocument } from '../../runtime/lib'
 
 // the result of collecting documents from source code
 export type CollectedGraphQLDocument = {

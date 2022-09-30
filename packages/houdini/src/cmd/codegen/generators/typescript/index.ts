@@ -4,7 +4,7 @@ import * as graphql from 'graphql'
 import path from 'path'
 import * as recast from 'recast'
 
-import { Config, HoudiniError, siteURL, writeFile } from '../../../common'
+import { Config, HoudiniError, siteURL, writeFile } from '../../../../lib'
 import { CollectedGraphQLDocument } from '../../types'
 import { flattenSelections } from '../../utils'
 import { addReferencedInputTypes } from './addReferencedInputTypes'

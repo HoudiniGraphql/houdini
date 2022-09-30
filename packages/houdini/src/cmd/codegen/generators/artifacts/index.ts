@@ -9,8 +9,8 @@ import {
 	parentTypeFromAncestors,
 	readFile,
 	writeFile,
-} from '../../../common'
-import { ArtifactKind } from '../../../runtime/lib'
+} from '../../../../lib'
+import { ArtifactKind } from '../../../../runtime/lib'
 import { CollectedGraphQLDocument } from '../../types'
 import { moduleExport } from '../../utils'
 import { cleanupFiles } from '../../utils/cleanupFiles'

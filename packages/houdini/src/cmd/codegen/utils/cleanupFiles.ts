@@ -1,6 +1,6 @@
 import path from 'path'
 
-import { readdir, remove } from '../../common/fs'
+import { readdir, remove } from '../../../lib/fs'
 
 export async function cleanupFiles(pathFolder: string, listOfObj: string[]): Promise<string[]> {
 	const listFile = await readdir(pathFolder)

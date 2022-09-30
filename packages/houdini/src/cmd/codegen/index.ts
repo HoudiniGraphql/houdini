@@ -15,8 +15,8 @@ import {
 	HoudiniError,
 	HoudiniPlugin,
 	siteURL,
-} from '../common'
-import { ArtifactKind } from '../runtime/lib'
+} from '../../lib'
+import { ArtifactKind } from '../../runtime/lib'
 import * as generators from './generators'
 import * as transforms from './transforms'
 import { CollectedGraphQLDocument } from './types'

@@ -2,8 +2,8 @@
 import path from 'path'
 
 // locals
-import { Config } from '../../../common'
-import * as fs from '../../../common/fs'
+import { Config } from '../../../../lib'
+import * as fs from '../../../../lib/fs'
 import { CollectedGraphQLDocument } from '../../types'
 import { cjsIndexFilePreamble, exportStarFrom, exportDefaultFrom } from '../../utils'
 

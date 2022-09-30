@@ -7,7 +7,7 @@ import {
 	parentTypeFromAncestors,
 	HoudiniError,
 	siteURL,
-} from '../../common'
+} from '../../../lib'
 import {
 	FragmentArgument,
 	fragmentArguments as collectFragmentArguments,

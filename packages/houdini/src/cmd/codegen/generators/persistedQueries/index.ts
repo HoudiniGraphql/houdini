@@ -2,7 +2,7 @@
 import * as graphql from 'graphql'
 
 // internals
-import { Config, hashDocument, writeFile } from '../../../common'
+import { Config, hashDocument, writeFile } from '../../../../lib'
 import { CollectedGraphQLDocument } from '../../types'
 
 // the persist output generator is responsible for generating a queryMap.json

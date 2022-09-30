@@ -2,7 +2,7 @@ import { TSTypeKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import { Config } from '../../../common'
+import { Config } from '../../../../lib'
 
 const AST = recast.types.builders
 

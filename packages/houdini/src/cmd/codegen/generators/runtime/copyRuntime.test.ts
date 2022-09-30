@@ -5,7 +5,7 @@ import * as typeScriptParser from 'recast/parsers/typescript'
 import { test, expect } from 'vitest'
 
 import { runPipeline } from '../..'
-import { readFile, testConfig } from '../../../common'
+import { readFile, testConfig } from '../../../../lib'
 
 test('cache index runtime imports config file - commonjs', async function () {
 	const config = testConfig({ module: 'commonjs' })

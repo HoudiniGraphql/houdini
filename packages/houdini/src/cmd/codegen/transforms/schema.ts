@@ -1,9 +1,8 @@
-import { mergeSchemas } from '@graphql-tools/schema'
 import * as graphql from 'graphql'
 
-import { siteURL } from '../../../houdini-svelte/runtime/lib/constants'
-import { CachePolicy } from '../../../houdini-svelte/runtime/lib/types'
-import { Config } from '../../common'
+import { Config } from '../../../lib'
+import { siteURL } from '../../../runtime/lib/constants'
+import { CachePolicy } from '../../../runtime/lib/types'
 import { CollectedGraphQLDocument } from '../types'
 
 // graphqlExtensions adds a few different things to the graphql schema

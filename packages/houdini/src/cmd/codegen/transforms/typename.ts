@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
 
-import { Config, parentTypeFromAncestors } from '../../common'
+import { Config, parentTypeFromAncestors } from '../../../lib'
 import { CollectedGraphQLDocument } from '../types'
 import { unwrapType } from '../utils'
 
@@ -40,9 +40,9 @@ export default async function addTypename(
 							selections: [
 								...node.selectionSet.selections,
 								{
-									kind: 'Field',
+									kind: graphql.Kind.FIELD,
 									name: {
-										kind: 'Name',
+										kind: graphql.Kind.NAME,
 										value: '__typename',
 									},
 								},

@@ -8,10 +8,10 @@ import {
 	HoudiniRouteScript,
 	readFile,
 	stat,
-} from 'houdini/src/common'
-import { find_insert_index } from 'houdini/src/vite/ast'
-import { ensure_imports, store_import } from 'houdini/src/vite/imports'
-import { TransformPage } from 'houdini/src/vite/plugin'
+} from 'houdini'
+import { find_insert_index } from 'houdini/vite'
+import { ensure_imports, store_import } from 'houdini/vite'
+import { TransformPage } from 'houdini/vite'
 import * as recast from 'recast'
 
 import { parseSvelte } from '../../extract'

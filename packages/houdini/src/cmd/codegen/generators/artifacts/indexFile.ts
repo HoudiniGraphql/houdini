@@ -1,6 +1,6 @@
 import path from 'path'
 
-import { Config, writeFile } from '../../../common'
+import { Config, writeFile } from '../../../../lib'
 import { CollectedGraphQLDocument } from '../../types'
 import { cjsIndexFilePreamble, exportDefaultFrom } from '../../utils'
 

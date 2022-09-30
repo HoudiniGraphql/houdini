@@ -1,9 +1,9 @@
 import { logGreen } from '@kitql/helper'
-import { getConfig } from 'houdini/src/common'
+import { getConfig } from 'houdini'
 import { ConfigFile } from 'houdini/src/runtime/lib'
-import { TransformPage } from 'houdini/src/vite/plugin'
+import { TransformPage } from 'houdini/vite'
 
-import transform from '../transforms'
+import transform from '../plugin/transforms'
 
 /**
  * The houdini processor automates a lot of boilerplate to make inline documents

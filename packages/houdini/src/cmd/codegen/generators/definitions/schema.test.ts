@@ -3,7 +3,7 @@ import * as graphql from 'graphql'
 import { test, expect } from 'vitest'
 
 import { runPipeline } from '../..'
-import { readFile, testConfig } from '../../../common'
+import { readFile, testConfig } from '../../../../lib'
 import { mockCollectedDoc } from '../../testUtils'
 import { CollectedGraphQLDocument } from '../../types'
 

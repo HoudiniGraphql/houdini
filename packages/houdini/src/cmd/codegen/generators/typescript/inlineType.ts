@@ -2,7 +2,7 @@ import { TSTypeKind, StatementKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import { Config, ensureImports, HoudiniError } from '../../../common'
+import { Config, ensureImports, HoudiniError } from '../../../../lib'
 import { TypeWrapper, unwrapType } from '../../utils'
 import { nullableField, readonlyProperty, scalarPropertyValue } from './types'
 

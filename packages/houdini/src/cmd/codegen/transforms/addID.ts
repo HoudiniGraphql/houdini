@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
 
-import { Config, parentTypeFromAncestors } from '../../common'
+import { Config, parentTypeFromAncestors } from '../../../lib'
 import { CollectedGraphQLDocument } from '../types'
 import { unwrapType } from '../utils'
 

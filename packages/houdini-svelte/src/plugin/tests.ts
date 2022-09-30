@@ -1,4 +1,4 @@
-import { ConfigFile, mkdirp, parseJS, Script, testConfig, writeFile } from 'houdini/src/common'
+import { ConfigFile, mkdirp, parseJS, Script, testConfig, writeFile } from 'houdini'
 import path from 'path'
 
 import { parseSvelte } from './extract'

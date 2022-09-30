@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
 
-import { Config } from '../../common'
+import { Config } from '../../../lib'
 
 export function unwrapType(
 	config: Config,

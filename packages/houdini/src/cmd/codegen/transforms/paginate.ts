@@ -1,7 +1,7 @@
 import * as graphql from 'graphql'
 
-import { Config, HoudiniError, parentTypeFromAncestors } from '../../common'
-import { ArtifactKind, RefetchUpdateMode } from '../../runtime/lib/types'
+import { Config, HoudiniError, parentTypeFromAncestors } from '../../../lib'
+import { ArtifactKind, RefetchUpdateMode } from '../../../runtime/lib/types'
 import { CollectedGraphQLDocument } from '../types'
 import { unwrapType, wrapType } from '../utils'
 

@@ -1,6 +1,6 @@
 import { Command } from 'commander'
 
-import { formatErrors, getConfig, LogLevel, Config } from '../common'
+import { formatErrors, getConfig, LogLevel, Config } from '../lib'
 import { ConfigFile } from '../runtime/lib'
 import generate from './codegen'
 import init from './init'

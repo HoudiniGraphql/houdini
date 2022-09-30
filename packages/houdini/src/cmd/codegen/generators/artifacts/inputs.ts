@@ -1,8 +1,8 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import { Config } from '../../../common'
-import { InputObject } from '../../../runtime/lib'
+import { Config } from '../../../../lib'
+import { InputObject } from '../../../../runtime/lib'
 import { unwrapType } from '../../utils'
 
 const AST = recast.types.builders

@@ -1,4 +1,4 @@
-import { Config, HoudiniError } from '../../common'
+import { Config, HoudiniError } from '../../../lib'
 import { CollectedGraphQLDocument } from '../types'
 
 // uniqueDocumentNames verifies that the documents all have unique names
