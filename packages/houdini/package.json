@@ -30,8 +30,11 @@
 		"vitest": "^0.23.4"
 	},
 	"dependencies": {
+		"@babel/parser": "^7.19.3",
 		"@graphql-tools/schema": "^9.0.4",
 		"ast-types": "^0.14.2",
+		"commander": "^9.4.0",
+		"estree-walker": "^3.0.1",
 		"glob": "^8.0.3",
 		"graphql": "^16.6.0",
 		"houdini": "workspace:^",

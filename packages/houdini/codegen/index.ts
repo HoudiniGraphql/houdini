@@ -9,13 +9,13 @@ import { siteURL } from '../../houdini-svelte/src/runtime/lib/constants'
 import {
 	Config,
 	runPipeline as run,
-	ParsedFile,
 	LogLevel,
 	walkGraphQLTags,
 	readFile,
 	parseJS,
 	HoudiniError,
 	ArtifactKind,
+	HoudiniPlugin,
 } from '../common'
 import * as generators from './generators'
 import * as transforms from './transforms'
@@ -77,6 +77,9 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 		} catch {}
 	}
 
+	// collect any plugins that need to do something after generating
+	const afterGenerate = config.plugins.filter((plugin) => plugin.generate_end)
+
 	// generate the runtime if the version changed, if its a new project, or they changed their client path
 	const generateRuntime = newTimestamp || newClientPath || !previousVersion
 
@@ -114,10 +117,10 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 				generators.typescript,
 				generators.persistOutput,
 				generators.definitions,
-				generators.stores,
 
 				// this has to go after runtime and artifacts
-				generators.kit,
+				generators.stores,
+				...afterGenerate.map((plugin) => plugin.generate_end!),
 			],
 			docs
 		)
@@ -207,6 +210,17 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 	// the list of documents we found
 	const documents: DiscoveredDoc[] = []
 
+	// a config's set of plugins defines a priority list of ways to extract a document from a file
+	// build up a mapping from extension to a list functions that extract documents
+	const extractors: Record<string, HoudiniPlugin['extract_documents'][]> = {}
+	for (const plugin of config.plugins) {
+		if (plugin.extensions && plugin.extract_documents) {
+			for (const extension of plugin.extensions) {
+				extractors[extension] = [...(extractors[extension] || []), plugin.extract_documents]
+			}
+		}
+	}
+
 	// wait for every file to be processed
 	await Promise.all(
 		sourceFiles.map(async (filepath) => {
@@ -216,10 +230,30 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 				return
 			}
 
+			// look for extractors for the given extension
+			const extension = path.extname(filepath)
+
+			// if we don't recognize the extension but were told to include it as a
+			// source file, there is likely something wrong. maybe a missing plugin?
+			if (!extractors[extension]) {
+				throw new HoudiniError({
+					filepath,
+					message:
+						'Encountered a file extension that could not be processed: ' + extension,
+					description: 'Please verify you are not missing a plugin.',
+				})
+			}
+
 			// if the file ends with .svelte, we need to look for graphql template tags
-			if (filepath.endsWith('.svelte')) {
-				documents.push(...(await processSvelteFile(filepath, contents)))
-			} else if (filepath.endsWith('.graphql') || filepath.endsWith('.gql')) {
+			for (const extractor of extractors[extension]) {
+				const found = await extractor(filepath, contents)
+				if (found.length > 0) {
+					documents.push(...found.map((document) => ({ filepath, document })))
+				}
+			}
+
+			// QUESTION: make these plugins?
+			if (filepath.endsWith('.graphql') || filepath.endsWith('.gql')) {
 				documents.push({
 					filepath,
 					document: contents,

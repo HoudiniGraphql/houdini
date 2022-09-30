@@ -1,11 +1,10 @@
-import { DiscoveredDoc } from 'houdini/codegen'
 import { HoudiniError, parseJS } from 'houdini/common'
 import type { Maybe, Script } from 'houdini/common/types'
 import * as svelte from 'svelte/compiler'
 
 export type ParsedFile = Maybe<{ script: Script; start: number; end: number }>
-export default async function (filepath: string, contents: string): Promise<DiscoveredDoc[]> {
-	const documents: DiscoveredDoc[] = []
+export default async function (filepath: string, contents: string): Promise<string[]> {
+	const documents: string[] = []
 
 	let parsedFile: ParsedFile
 	try {
@@ -39,7 +38,7 @@ export default async function (filepath: string, contents: string): Promise<Disc
 						// parse the tag contents to get the info we need
 						const printedDoc = node.quasi.quasis[0].value.raw
 
-						documents.push({ document: printedDoc, filepath })
+						documents.push(printedDoc)
 					}
 				},
 			})

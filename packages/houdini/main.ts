@@ -1,6 +1,6 @@
 import { Command } from 'commander'
 
-import { ConfigFile } from '../houdini-svelte/runtime'
+import { ConfigFile } from '../houdini-svelte/src/runtime'
 import generate from './codegen'
 import { formatErrors, getConfig, LogLevel, Config } from './common'
 import init from './init'

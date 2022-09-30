@@ -53,24 +53,30 @@ export default function HoudiniPlugin(configFile?: string): Plugin {
 			}
 
 			// bundle up the contextual stuff
-			const ctx = {
-				parse: this.parse,
+			const ctx: TransformPage = {
+				content: code,
 				watch_file: this.addWatchFile,
 				config: config,
 				filepath,
 			}
 
-			// run the plugin pipeline
-			const result = await apply_transforms(config, ctx, code)
+			// grab any transforms from plugins
+			const plugins = config.plugins.filter((plugin) => plugin.transform_file)
 
-			return null
+			// run the plugin pipeline
+			for (const plugin of plugins) {
+				const { code } = await plugin.transform_file!(ctx)
+				ctx.content = code
+			}
+
+			return { code: ctx.content }
 		},
 	}
 }
 
 export interface TransformPage {
 	config: Config
-	script: Script
+	content: string
 	filepath: string
 	watch_file: (path: string) => void
 	mock_page_info?: HoudiniRouteScript

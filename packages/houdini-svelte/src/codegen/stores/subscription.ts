@@ -1,8 +1,6 @@
-import * as graphql from 'graphql'
+import { CollectedGraphQLDocument } from 'houdini/codegen/types'
+import { Config, writeFile } from 'houdini/common'
 import path from 'path'
-
-import { Config, writeFile } from '../../../common'
-import { CollectedGraphQLDocument } from '../../types'
 
 export async function generateSubscriptionStore(config: Config, doc: CollectedGraphQLDocument) {
 	const fileName = doc.name

@@ -2,9 +2,10 @@ import { HoudiniPlugin } from 'houdini/common'
 
 import generate from './codegen'
 import extract from './extract'
+import fs_patch from './fsPatch'
 import apply_transforms from './transforms'
 
-export default async (): Promise<HoudiniPlugin> => ({
+const HoudiniSveltePlugin: HoudiniPlugin = async ({ configFile } = {}) => ({
 	extensions: ['.svelte'],
 
 	// custom logic to pull a graphql document out of a svelte file
@@ -14,5 +15,12 @@ export default async (): Promise<HoudiniPlugin> => ({
 	transform_file: apply_transforms,
 
 	// when we're done generating, we need to write the svelte specific runtime
-	after_generate: generate,
+	generate_end: generate,
+
+	// add custom vite config
+	vite: {
+		...fs_patch(configFile),
+	},
 })
+
+export default HoudiniSveltePlugin

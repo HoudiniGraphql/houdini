@@ -1,8 +1,7 @@
 import * as graphql from 'graphql'
+import { CollectedGraphQLDocument } from 'houdini/codegen/types'
+import { Config, operation_requires_variables, writeFile } from 'houdini/common'
 import path from 'path'
-
-import { Config, operation_requires_variables, writeFile } from '../../../common'
-import { CollectedGraphQLDocument } from '../../types'
 
 export async function generateIndividualStoreQuery(config: Config, doc: CollectedGraphQLDocument) {
 	const fileName = doc.name

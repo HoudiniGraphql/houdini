@@ -1,7 +1,8 @@
-import { parseJS, runPipeline, ParsedFile, parseSvelte, formatErrors } from 'houdini/common'
+import { parseJS, runPipeline, ParsedFile, formatErrors } from 'houdini/common'
 import { TransformPage } from 'houdini/vite/plugin'
 import * as recast from 'recast'
 
+import { parseSvelte } from '../extract'
 import kit from './kit'
 import query from './query'
 import reactive from './reactive'
@@ -13,10 +14,7 @@ import tags from './tags'
 // are destroyed by the sveltekit and query processors
 const pipeline = [reactive, kit, query, tags]
 
-export default async function apply_transforms(
-	page: Omit<TransformPage, 'script'>,
-	content: string
-): Promise<{ code: string }> {
+export default async function apply_transforms(page: TransformPage): Promise<{ code: string }> {
 	// a single transform might need to do different things to the module and
 	// instance scripts so we're going to pull them out, push them through separately,
 	// and then join them back together
@@ -24,12 +22,12 @@ export default async function apply_transforms(
 
 	try {
 		if (page.filepath.endsWith('.svelte')) {
-			script = await parseSvelte(content)
+			script = await parseSvelte(page.content)
 		} else {
-			script = await parseJS(content)
+			script = await parseJS(page.content)
 		}
 	} catch (e) {
-		return { code: content }
+		return { code: page.content }
 	}
 
 	// if the route script is nill we can just use an empty program
@@ -43,7 +41,7 @@ export default async function apply_transforms(
 
 	// if we didn't get a script out of this, there's nothing to do
 	if (!script) {
-		return { code: content }
+		return { code: page.content }
 	}
 
 	// wrap everything up in an object we'll thread through the transforms
@@ -57,22 +55,14 @@ export default async function apply_transforms(
 		await runPipeline(page.config, pipeline, result)
 	} catch (e) {
 		formatErrors({ message: (e as Error).message, filepath: page.filepath })
-		return { code: content }
+		return { code: page.content }
 	}
-
-	// if we dont have anything to render, we're done
-	if (!result.script) {
-		return { code: content }
-	}
-
-	// print the result
-	const printedScript = recast.print(result.script).code
 
 	return {
 		// if we're transforming a svelte file, we need to replace the script's inner contents
 		code: !page.filepath.endsWith('.svelte')
-			? printedScript
-			: replace_tag_content(content, script.start, script.end, printedScript),
+			? result.content
+			: replace_tag_content(page.content, script.start, script.end, result.content),
 	}
 }
 

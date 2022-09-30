@@ -2,7 +2,7 @@ import { logGreen } from '@kitql/helper'
 import { getConfig } from 'houdini/common'
 
 import { ConfigFile } from '../runtime'
-import { transform } from '../vite'
+import transform from '../transforms'
 
 /**
  * The houdini processor automates a lot of boilerplate to make inline documents
@@ -47,7 +47,7 @@ export default config;
 			}
 
 			// apply the transform pipeline
-			return await transform(config, page, content)
+			return await transform(page, content)
 		},
 	}
 }

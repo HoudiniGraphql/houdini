@@ -9,7 +9,7 @@ import {
 	CompiledMutationKind,
 	CompiledQueryKind,
 	CompiledSubscriptionKind,
-} from '../../houdini-svelte/runtime/lib/types'
+} from '../../houdini-svelte/src/runtime/lib/types'
 
 export type EmbeddedGraphqlDocument = {
 	parsedDocument: graphql.DocumentNode

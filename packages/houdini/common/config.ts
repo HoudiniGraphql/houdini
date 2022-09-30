@@ -7,6 +7,7 @@ import os from 'os'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { promisify } from 'util'
+import { Plugin } from 'vite'
 
 import {
 	computeID,
@@ -14,8 +15,10 @@ import {
 	defaultConfigValues,
 	keyFieldsForType,
 } from '../../houdini-svelte/src/runtime'
-import { CachePolicy, GraphQLTagResult } from '../../houdini-svelte/src/runtime/lib/types'
+import { CachePolicy } from '../../houdini-svelte/src/runtime/lib/types'
+import { CollectedGraphQLDocument } from '../codegen/types'
 import { pullSchema } from '../codegen/utils'
+import { TransformPage } from '../vite/plugin'
 import { HoudiniError } from './error'
 import { extractLoadFunction } from './extractLoadFunction'
 import * as fs from './fs'
@@ -57,7 +60,7 @@ export class Config {
 	client: string
 	globalStorePrefix: string
 	quietQueryErrors: boolean
-	plugins: HoudiniPlugin[] = []
+	plugins: Awaited<ReturnType<HoudiniPlugin>>[] = []
 
 	constructor({
 		filepath,
@@ -1015,8 +1018,10 @@ This will prevent your schema from being pulled (potentially resulting in errors
 
 	// load the svelte plugin if necessary
 	if (['kit', 'svelte'].includes(_config.framework)) {
-		const dependency = await npxImport<{ default: HoudiniPlugin }>('houdini-svelte')
-		_config.plugins.push(dependency.default)
+		const dependency = await npxImport<{
+			default: HoudiniPlugin
+		}>('houdini-svelte')
+		_config.plugins.push(await dependency.default({ configFile }))
 	}
 
 	// we're done and have a valid config
@@ -1047,11 +1052,6 @@ export type RouteVisitor = {
 
 type RouteVisitorHandler<_Payload> = (value: _Payload, filepath: string) => Promise<void> | void
 
-type RawHoudiniRouteScript = {
-	houdini_load?: (string | GraphQLTagResult) | (string | GraphQLTagResult)[]
-	[key: string]: any
-}
-
 export type HoudiniRouteScript = {
 	houdini_load?: graphql.OperationDefinitionNode[]
 	exports: string[]
@@ -1062,6 +1062,10 @@ const routeQueryError = (filepath: string) => ({
 	message: 'route query error',
 })
 
-export type HoudiniPlugin = {
-	extensions: string[]
-}
+export type HoudiniPlugin = (args?: { configFile?: string }) => Promise<{
+	extensions?: string[]
+	extract_documents?: (filepath: string, content: string) => Promise<string[]>
+	generate_end?: (config: Config, docs: CollectedGraphQLDocument[]) => Promise<void>
+	transform_file?: (page: TransformPage) => Promise<{ code: string }>
+	vite?: Omit<Plugin, 'name'>
+}>

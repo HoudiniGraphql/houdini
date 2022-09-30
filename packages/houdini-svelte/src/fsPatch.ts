@@ -2,16 +2,14 @@ import filesystem, { Dirent, PathLike } from 'fs'
 import path from 'path'
 import type { Plugin } from 'vite'
 
-import { Config } from '../common'
-import { getConfig, readFile } from '../common'
+import { Config } from '../../houdini/common'
+import { getConfig, readFile } from '../../houdini/common'
 
 let config: Config
 
 // this plugin is responsible for faking `+page.js` existence in the eyes of sveltekit
-export default function HoudiniFsPatch(configFile?: string): Plugin {
+export default function HoudiniFsPatch(configFile?: string): Omit<Plugin, 'name'> {
 	return {
-		name: 'houdini-fs-patch',
-
 		async configResolved() {
 			config = await getConfig({ configFile })
 		},

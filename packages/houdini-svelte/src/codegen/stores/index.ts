@@ -1,8 +1,9 @@
+import { CollectedGraphQLDocument } from 'houdini/codegen/types'
+import { cleanupFiles } from 'houdini/codegen/utils/cleanupFiles'
+import { Config, writeFile } from 'houdini/common'
 import path from 'path'
 
-import { Config, writeFile, ArtifactKind } from '../../../common'
-import { CollectedGraphQLDocument } from '../../types'
-import { cleanupFiles } from '../../utils/cleanupFiles'
+import { ArtifactKind } from '../../runtime'
 import { generateFragmentStore } from './fragment'
 import { generateIndividualStoreMutation } from './mutation'
 import { generateIndividualStoreQuery } from './query'

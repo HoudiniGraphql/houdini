@@ -3,10 +3,10 @@ import path from 'path'
 import type { Plugin } from 'vite'
 import watch_and_run from 'vite-plugin-watch-and-run'
 
-import { ConfigFile } from '../../houdini-svelte/runtime'
+import { ConfigFile } from '../../houdini-svelte/src/runtime'
 import generate from '../codegen'
 import { formatErrors, getConfig } from '../common'
-import fs_patch from './fsPatch'
+import vite_adapter from './adpter'
 import houdini from './plugin'
 import schema from './schema'
 
@@ -24,7 +24,7 @@ export default function ({
 	return [
 		houdini(configPath),
 		schema({ configFile: configPath, ...extraConfig }),
-		fs_patch(configPath),
+		vite_adapter(configPath),
 		watch_and_run([
 			{
 				name: 'Houdini',

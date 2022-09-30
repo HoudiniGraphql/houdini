@@ -3,7 +3,7 @@ import glob from 'glob'
 import path from 'path'
 import { Plugin } from 'vite'
 
-import { ConfigFile } from '../../houdini-svelte/runtime'
+import { ConfigFile } from '../../houdini-svelte/src/runtime'
 import { pullSchema } from '../codegen/utils'
 import { formatErrors, getConfig } from '../common'
 
