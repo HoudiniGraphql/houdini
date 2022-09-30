@@ -1,6 +1,6 @@
 import filesystem, { Dirent, PathLike } from 'fs'
-import { Config } from 'houdini/src/common'
-import { getConfig, readFile } from 'houdini/src/common'
+import { Config } from 'houdini'
+import { getConfig, readFile } from 'houdini'
 import path from 'path'
 import type { Plugin } from 'vite'
 

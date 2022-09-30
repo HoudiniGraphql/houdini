@@ -7,8 +7,6 @@ import path from 'path'
 // the relevant directories
 const build_dir = path.join(process.cwd(), 'build')
 const src_dir = path.join(process.cwd(), 'src')
-const plugin_dir = path.join(src_dir, 'plugin')
-const runtime_dir = path.join(src_dir, 'runtime')
 
 // the function to build a project assuming the directory layout
 export default async function () {
@@ -21,6 +19,7 @@ export default async function () {
 	packageJSON.typesVersions = { '*': {} }
 	delete packageJSON['main']
 	delete packageJSON['bin']
+	delete packageJSON['types']
 
 	// look at every directory in the source
 	for (const dirname of await fs.readdir(src_dir)) {
@@ -54,7 +53,7 @@ export default async function () {
 		}
 		// runtimes can't be bundled
 		else if (dirname === 'runtime') {
-			// await build(dir, false)
+			await build(dir, false)
 		}
 		// cmd needs to be bundled and set as the project's bin
 		else if (dirname === 'cmd') {
@@ -82,7 +81,11 @@ export default async function () {
 // create esm and cjs builds of the source
 async function build(source, bundle = true) {
 	// if we aren't bundling, look up the entrypoints once
-	const children = bundle ? [] : await glob(path.join(source, '**/**/*'))
+	const children = bundle
+		? []
+		: await glob(path.join(source, '**/**/*'), {
+				nodir: true,
+		  })
 
 	// do the same thing for esm and cjs
 	await Promise.all(
@@ -93,12 +96,8 @@ async function build(source, bundle = true) {
 			// the esbuild config
 			const config = {
 				bundle,
-				plugins: [
-					alias({
-						houdini: path.resolve(process.cwd(), '..', 'houdini'),
-					}),
-				],
 				platform: 'node',
+				format: which,
 				external: bundle
 					? [
 							'os',
@@ -124,6 +123,12 @@ async function build(source, bundle = true) {
 			}
 
 			await esbuild.build(config)
+
+			await fs.writeFile(
+				path.join(target_dir, 'package.json'),
+				JSON.stringify({ type: which === 'cjs' ? 'commonjs' : 'module' }),
+				'utf-8'
+			)
 		})
 	)
 }

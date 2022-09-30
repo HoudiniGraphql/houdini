@@ -23,5 +23,31 @@
 	},
 	"peerDependencies": {
 		"graphql": "^0.13.0 || ^14.0.0 || ^15.0.0"
-	}
+	},
+	"exports": {
+		".": {
+			"import": "./build/plugin-esm/index.js",
+			"require": "./build/plugin-cjs/index.js"
+		},
+		"./plugin": {
+			"import": "./build/plugin-esm/index.js",
+			"require": "./build/plugin-cjs/index.js"
+		},
+		"./preprocess": {
+			"import": "./build/preprocess-esm/index.js",
+			"require": "./build/preprocess-cjs/index.js"
+		}
+	},
+	"typesVersions": {
+		"*": {
+			"plugin": [
+				"build/plugin/index.d.ts"
+			],
+			"preprocess": [
+				"build/preprocess/index.d.ts"
+			]
+		}
+	},
+	"main": "./build/plugin-cjs/index.js",
+	"types": "./build/plugin/index.d.ts"
 }

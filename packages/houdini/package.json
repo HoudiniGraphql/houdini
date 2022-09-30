@@ -3,7 +3,6 @@
 	"version": "0.16.6",
 	"description": "The disappearing graphql client for SvelteKit",
 	"type": "module",
-	"types": "./build/plugin/index.d.ts",
 	"scripts": {
 		"tests": "vitest",
 		"build": "scripts build"
@@ -22,7 +21,6 @@
 		"estree-walker": "^3.0.1",
 		"glob": "^8.0.3",
 		"graphql": "^16.6.0",
-		"houdini": "workspace:^",
 		"minimatch": "^5.1.0",
 		"node-fetch": "^3.2.10",
 		"npx-import": "^1.1.3",
@@ -52,5 +50,6 @@
 		}
 	},
 	"bin": "./build/cmd-esm/index.js",
-	"main": "./build/lib-cjs/index.js"
+	"main": "./build/lib-cjs/index.js",
+	"types": "./build/plugin/index.d.ts"
 }

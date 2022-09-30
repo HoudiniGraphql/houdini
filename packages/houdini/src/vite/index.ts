@@ -10,6 +10,11 @@ import vite_adapter from './adapter'
 import houdini from './plugin'
 import schema from './schema'
 
+export * from './ast'
+export * from './imports'
+export * from './schema'
+export * from './plugin'
+
 export default function ({
 	configPath,
 	...extraConfig
