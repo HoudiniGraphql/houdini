@@ -4,22 +4,6 @@
 	"description": "The disappearing graphql client for SvelteKit",
 	"type": "module",
 	"bin": "./build/main.js",
-	"exports": {
-		".": {
-			"types": "./build/cmd/index.d.ts"
-		},
-		"./vite": {
-			"import": "./build/vite-esm/index.js",
-			"require": "./build/vite-cjs/index.js"
-		}
-	},
-	"typesVersions": {
-		"*": {
-			"vite": [
-				"build/vite/index.d.ts"
-			]
-		}
-	},
 	"types": "./build/cmd/index.d.ts",
 	"scripts": {
 		"tests": "vitest",

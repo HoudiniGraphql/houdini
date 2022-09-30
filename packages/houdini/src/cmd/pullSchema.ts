@@ -1,7 +1,7 @@
 import path from 'path'
 
+import { getConfig } from '../common'
 import { pullSchema } from './codegen/utils'
-import { getConfig } from './common'
 
 export default async function (args: { headers: string[] }) {
 	const config = await getConfig()

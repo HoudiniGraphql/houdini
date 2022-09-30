@@ -1,9 +1,8 @@
 import filesystem, { Dirent, PathLike } from 'fs'
+import { Config } from 'houdini/src/common'
+import { getConfig, readFile } from 'houdini/src/common'
 import path from 'path'
 import type { Plugin } from 'vite'
-
-import { Config } from '../../houdini/common'
-import { getConfig, readFile } from '../../houdini/common'
 
 let config: Config
 

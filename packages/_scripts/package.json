@@ -1,0 +1,19 @@
+{
+	"name": "scripts",
+	"private": true,
+	"version": "1.0.0",
+	"description": "",
+	"bin": "./main.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"type": "module",
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"commander": "^9.4.0",
+		"esbuild": "^0.15.10",
+		"esbuild-plugin-alias": "^0.2.1"
+	}
+}

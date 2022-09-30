@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
 
-import { Config, HoudiniError } from '../../common'
+import { Config, HoudiniError } from '../../../common'
 
 export function flattenSelections({
 	config,
