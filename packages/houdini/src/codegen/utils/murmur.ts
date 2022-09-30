@@ -1,5 +1,5 @@
 /**
- * Based on implementations by Gary Court and Austin Appleby, 2011, MIT.
+ * Based on implementations by Gary Court and Austin Appleby, 2011, MIT. Copied from https://github.com/facebook/relay
  * @preserve-header
  */
 

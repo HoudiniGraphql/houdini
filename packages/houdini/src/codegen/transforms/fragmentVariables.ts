@@ -1,7 +1,7 @@
 import * as graphql from 'graphql'
 
-import { ArtifactKind } from '../../../houdini-svelte/src/runtime/lib/types'
 import { Config, HoudiniError } from '../../common'
+import { ArtifactKind } from '../../runtime/lib'
 import { CollectedGraphQLDocument } from '../types'
 import { murmurHash } from '../utils'
 import { collectFragments, FragmentDependency } from './composeQueries'
@@ -243,6 +243,7 @@ export function inlineFragmentArgs({
 	// if we computed a new name for the fragment (because we got here as part of analyzing a fragment
 	// spread with @with), we need to change the name of the fragment
 	if (newName) {
+		// @ts-ignore
 		// the new name for the document
 		result.name = {
 			kind: graphql.Kind.NAME,

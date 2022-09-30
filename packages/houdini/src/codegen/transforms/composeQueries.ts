@@ -84,7 +84,7 @@ function findRequiredFragments(selectionSet: graphql.SelectionSetNode): Array<st
 	}
 
 	// build up a list of referenced fragments in this selection
-	const referencedFragments = []
+	const referencedFragments: string[] = []
 	for (const selection of selectionSet.selections) {
 		// if this selection is a fragment spread
 		if (selection.kind === GraphqlKinds.FRAGMENT_SPREAD) {

@@ -64,9 +64,9 @@ export default async function addID(
 
 						// add a selection for the field to the selection set
 						selections.push({
-							kind: 'Field',
+							kind: graphql.Kind.FIELD,
 							name: {
-								kind: 'Name',
+								kind: graphql.Kind.NAME,
 								value: keyField,
 							},
 						})

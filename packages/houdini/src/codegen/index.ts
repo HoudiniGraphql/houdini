@@ -5,7 +5,6 @@ import path from 'path'
 import * as recast from 'recast'
 import { promisify } from 'util'
 
-import { siteURL } from '../../houdini-svelte/src/runtime/lib/constants'
 import {
 	Config,
 	runPipeline as run,
@@ -14,9 +13,10 @@ import {
 	readFile,
 	parseJS,
 	HoudiniError,
-	ArtifactKind,
 	HoudiniPlugin,
+	siteURL,
 } from '../common'
+import { ArtifactKind } from '../runtime/lib'
 import * as generators from './generators'
 import * as transforms from './transforms'
 import { CollectedGraphQLDocument } from './types'
@@ -119,7 +119,6 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 				generators.definitions,
 
 				// this has to go after runtime and artifacts
-				generators.stores,
 				...afterGenerate.map((plugin) => plugin.generate_end!),
 			],
 			docs
@@ -212,7 +211,7 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 
 	// a config's set of plugins defines a priority list of ways to extract a document from a file
 	// build up a mapping from extension to a list functions that extract documents
-	const extractors: Record<string, HoudiniPlugin['extract_documents'][]> = {}
+	const extractors: Record<string, Awaited<ReturnType<HoudiniPlugin>>['extract_documents'][]> = {}
 	for (const plugin of config.plugins) {
 		if (plugin.extensions && plugin.extract_documents) {
 			for (const extension of plugin.extensions) {
@@ -246,6 +245,10 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 
 			// if the file ends with .svelte, we need to look for graphql template tags
 			for (const extractor of extractors[extension]) {
+				if (!extractor) {
+					continue
+				}
+
 				const found = await extractor(filepath, contents)
 				if (found.length > 0) {
 					documents.push(...found.map((document) => ({ filepath, document })))

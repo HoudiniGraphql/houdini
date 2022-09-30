@@ -4,8 +4,8 @@ import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { test, expect } from 'vitest'
 
+import { runPipeline } from '../../codegen'
 import { readFile, testConfig } from '../../common'
-import { runPipeline } from '../generate'
 import { mockCollectedDoc } from '../testUtils'
 
 test('pass argument values to generated fragments', async function () {

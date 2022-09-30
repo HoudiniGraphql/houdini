@@ -1,11 +1,10 @@
 import { logCyan, logGreen } from '@kitql/helper'
 import { StatementKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
-import { siteURL } from 'houdini/common'
 import path from 'path'
 import * as recast from 'recast'
 
-import { Config, HoudiniError, writeFile } from '../../../common'
+import { Config, HoudiniError, siteURL, writeFile } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
 import { flattenSelections } from '../../utils'
 import { addReferencedInputTypes } from './addReferencedInputTypes'

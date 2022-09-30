@@ -1,7 +1,6 @@
-import { test, expect, describe, afterEach, beforeEach } from 'vitest'
+import { test, expect, describe, beforeEach } from 'vitest'
 
 import { testConfigFile } from '../../common'
-import { RequestContext } from './network'
 import { marshalSelection, unmarshalSelection } from './scalars'
 import { setMockConfig } from './test'
 import { ArtifactKind, QueryArtifact } from './types'

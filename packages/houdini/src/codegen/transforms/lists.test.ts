@@ -1,7 +1,7 @@
 import { test, expect } from 'vitest'
 
+import { runPipeline } from '../../codegen'
 import { testConfig } from '../../common'
-import { runPipeline } from '../generate'
 import { mockCollectedDoc } from '../testUtils'
 
 test('insert fragments on query selection set', async function () {

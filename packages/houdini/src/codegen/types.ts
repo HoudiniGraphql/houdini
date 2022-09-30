@@ -1,6 +1,6 @@
 import type * as graphql from 'graphql'
 
-import { BaseCompiledDocument, ArtifactKind } from '../../houdini-svelte/runtime/lib/types'
+import { ArtifactKind, BaseCompiledDocument } from '../runtime/lib'
 
 // the result of collecting documents from source code
 export type CollectedGraphQLDocument = {

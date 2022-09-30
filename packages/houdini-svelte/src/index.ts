@@ -1,4 +1,4 @@
-import { HoudiniPlugin } from 'houdini/common'
+import { HoudiniPlugin } from 'houdini/src/common'
 import path from 'path'
 
 import generate from './codegen'
@@ -18,7 +18,7 @@ const HoudiniSveltePlugin: HoudiniPlugin = async ({ configFile } = {}) => ({
 	// when we're done generating, we need to write the svelte specific runtime
 	generate_end: generate,
 
-	// we need to add the exports to the index files
+	// we need to add the exports to the index files (this one file processes index.js and index.d.ts)
 	index_file({ config, content, export_star_from }) {
 		const storesDir =
 			'./' + path.relative(config.rootDir, config.storesDirectory).split(path.sep).join('/')
