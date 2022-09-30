@@ -1,4 +1,3 @@
-import minimatch from 'minimatch'
 import path from 'path'
 import type { Plugin } from 'vite'
 import watch_and_run from 'vite-plugin-watch-and-run'
@@ -14,6 +13,8 @@ export * from './ast'
 export * from './imports'
 export * from './schema'
 export * from './plugin'
+
+const minimatch = () => true
 
 export default function ({
 	configPath,

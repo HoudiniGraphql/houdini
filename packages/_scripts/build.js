@@ -105,6 +105,7 @@ async function build(source, bundle = true) {
 							'vite',
 							'fs',
 							'path',
+							'util',
 							'HOUDINI_CONFIG_PATH',
 							'HOUDINI_CLIENT_PATH',
 					  ]

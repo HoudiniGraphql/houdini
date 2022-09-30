@@ -1,5 +1,5 @@
 import { HoudiniError, parseJS } from 'houdini'
-import type { Maybe, Script } from 'houdini/types'
+import type { Maybe, Script } from 'houdini'
 import * as svelte from 'svelte/compiler'
 
 export type ParsedFile = Maybe<{ script: Script; start: number; end: number }>
@@ -14,6 +14,7 @@ export default async function (filepath: string, contents: string): Promise<stri
 
 		// add the filepath to the error message
 		throw new HoudiniError({
+			filepath,
 			message: `Encountered error parsing ${filepath}`,
 			description: err.message,
 		})
