@@ -160,7 +160,7 @@ async function processScript(
 	}
 
 	// if we found a load function while we were processing things, we should have all the information
-	// we need in order to recreat the final list
+	// we need in order to recreate the final list
 	const load: string[] = []
 	if (houdiniLoad) {
 		const elements =

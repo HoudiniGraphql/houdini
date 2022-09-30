@@ -4,8 +4,8 @@ import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { test, expect } from 'vitest'
 
+import { runPipeline } from '../..'
 import { readFile, testConfig } from '../../../common'
-import { runPipeline } from '../../generate'
 import { mockCollectedDoc } from '../../testUtils'
 import { CollectedGraphQLDocument } from '../../types'
 
@@ -18,7 +18,7 @@ const docs: CollectedGraphQLDocument[] = [
 	mockCollectedDoc(`fragment TestFragment on User { firstName }`),
 ]
 
-test('generates runtime defintions for each enum', async function () {
+test('generates runtime definitions for each enum', async function () {
 	// execute the generator
 	await runPipeline(config, [])
 

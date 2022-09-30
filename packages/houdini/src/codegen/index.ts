@@ -366,7 +366,7 @@ async function processGraphQLDocument(
 			operations[0].kind === 'OperationDefinition' &&
 			operations[0].operation === 'subscription'
 		) {
-			kind = ArtifactKind.Subcription
+			kind = ArtifactKind.Subscription
 		}
 	}
 

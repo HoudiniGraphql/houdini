@@ -26,7 +26,7 @@ export function addReferencedInputTypes(
 		return
 	}
 
-	// if we have already processed this type, dont do anything
+	// if we have already processed this type, don't do anything
 	if (visitedTypes.has(type.name)) {
 		return
 	}
@@ -61,7 +61,7 @@ export function addReferencedInputTypes(
 		// walk down the referenced fields and build stuff back up
 		addReferencedInputTypes(config, filepath, body, visitedTypes, missingScalars, field.type)
 
-		// check if the type is optional so we can label the value as omitable
+		// check if the type is optional so we can label the value as optional
 
 		members.push(
 			AST.tsPropertySignature(

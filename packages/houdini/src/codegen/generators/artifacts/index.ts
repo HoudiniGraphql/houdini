@@ -43,7 +43,7 @@ export default function artifactGenerator(stats: {
 						return
 					}
 
-					// get the name of thelist
+					// get the name of the list
 					const nameArg = node.arguments?.find(
 						(arg) => arg.name.value === config.listNameArg
 					)
@@ -66,7 +66,7 @@ export default function artifactGenerator(stats: {
 						return
 					}
 
-					// look up the parent's type so we can ask about the field marked as alist
+					// look up the parent's type so we can ask about the field marked as a list
 					const parentType = parentTypeFromAncestors(config.schema, doc.filename, [
 						...ancestors.slice(0, -1),
 					]) as graphql.GraphQLObjectType

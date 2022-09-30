@@ -70,7 +70,7 @@ export function inlineType({
 		// - an inline fragment
 		// - a fragment spread
 
-		// an inline fragment can refer to an interface that's not refered in another
+		// an inline fragment can refer to an interface that's not referred in another
 		// fragment so we need to break down all fragments into their concrete versions
 		// discriminated by __typename
 

@@ -1,11 +1,8 @@
 import * as graphql from 'graphql'
-import * as recast from 'recast'
 
 import { Config, HoudiniError, parentTypeFromAncestors } from '../../../common'
 import { MutationOperation } from '../../../runtime/lib'
 import { convertValue } from './utils'
-
-const AST = recast.types.builders
 
 // return the list of operations that are part of a mutation
 export function operationsByPath(

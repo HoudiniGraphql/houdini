@@ -4,10 +4,15 @@ importers:
     .:
         specifiers:
             '@trivago/prettier-plugin-sort-imports': ^3.3.0
+            fs-extra: ^10.1.0
+            memfs: ^3.4.7
             prettier: ^2.5.1
             turbo: ^1.5.4
             vite: ^3.1.4
             vitest: ^0.23.4
+        dependencies:
+            fs-extra: 10.1.0
+            memfs: 3.4.7
         devDependencies:
             '@trivago/prettier-plugin-sort-imports': 3.3.0_prettier@2.7.1
             prettier: 2.7.1
@@ -3598,6 +3603,18 @@ packages:
         dependencies:
             fetch-blob: 3.2.0
 
+    /fs-extra/10.1.0:
+        resolution:
+            {
+                integrity: sha512-oRXApq54ETRj4eMiFzGnHWGy+zo5raudjuxN0b8H7s/RU2oW0Wvsx9O0ACRN/kRq9E8Vu/ReskGB5o3ji+FzHQ==,
+            }
+        engines: { node: '>=12' }
+        dependencies:
+            graceful-fs: 4.2.10
+            jsonfile: 6.1.0
+            universalify: 2.0.0
+        dev: false
+
     /fs-minipass/2.1.0:
         resolution:
             {
@@ -3606,6 +3623,13 @@ packages:
         engines: { node: '>= 8' }
         dependencies:
             minipass: 3.3.4
+
+    /fs-monkey/1.0.3:
+        resolution:
+            {
+                integrity: sha512-cybjIfiiE+pTWicSCLFHSrXZ6EilF30oh91FDP9S2B051prEa7QWfrVTQm10/dDpswBDXZugPa1Ogu8Yh+HV0Q==,
+            }
+        dev: false
 
     /fs.realpath/1.0.0:
         resolution:
@@ -4377,6 +4401,17 @@ packages:
         engines: { node: '>= 8' }
         dev: true
 
+    /jsonfile/6.1.0:
+        resolution:
+            {
+                integrity: sha512-5dgndWOriYSm5cnYaJNhalLNDKOqFwyDB/rr1E9ZsGciGvKPs8R2xYGCacuf3z6K1YKDz182fd+fY3cn3pMqXQ==,
+            }
+        dependencies:
+            universalify: 2.0.0
+        optionalDependencies:
+            graceful-fs: 4.2.10
+        dev: false
+
     /kleur/3.0.3:
         resolution:
             {
@@ -4569,6 +4604,16 @@ packages:
             prismjs: 1.29.0
             svelte: 3.49.0
             vfile-message: 2.0.4
+        dev: false
+
+    /memfs/3.4.7:
+        resolution:
+            {
+                integrity: sha512-ygaiUSNalBX85388uskeCyhSAoOSgzBbtVCr9jA2RROssFL9Q19/ZXFqS+2Th2sr1ewNIWgFdLzLC3Yl1Zv+lw==,
+            }
+        engines: { node: '>= 4.0.0' }
+        dependencies:
+            fs-monkey: 1.0.3
         dev: false
 
     /merge-stream/2.0.0:
@@ -6400,6 +6445,14 @@ packages:
             '@types/unist': 2.0.6
             unist-util-is: 5.1.1
             unist-util-visit-parents: 5.1.1
+        dev: false
+
+    /universalify/2.0.0:
+        resolution:
+            {
+                integrity: sha512-hAZsKq7Yy11Zu1DE0OzWjw7nnLZmJZYTDZZyEFHZdUhV8FkH5MCfoU1XMaxXovpyW5nq5scPqq0ZDP9Zyl04oQ==,
+            }
+        engines: { node: '>= 10.0.0' }
         dev: false
 
     /update-browserslist-db/1.0.9_browserslist@4.21.4:

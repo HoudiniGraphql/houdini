@@ -25,5 +25,9 @@
 		"turbo": "^1.5.4",
 		"vite": "^3.1.4",
 		"vitest": "^0.23.4"
+	},
+	"dependencies": {
+		"fs-extra": "^10.1.0",
+		"memfs": "^3.4.7"
 	}
 }

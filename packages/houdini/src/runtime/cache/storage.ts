@@ -87,7 +87,7 @@ export class InMemoryStorage {
 		}
 
 		// the list of layers we used to build up the value
-		const layerIDs = []
+		const layerIDs: number[] = []
 
 		// go through the list of layers in reverse
 		for (let i = this.data.length - 1; i >= 0; i--) {
@@ -188,7 +188,7 @@ export class InMemoryStorage {
 	}
 
 	resolveLayer(id: number): void {
-		let startingIndex = null
+		let startingIndex: number | null = null
 
 		// find the layer with the matching id
 		for (const [index, layer] of this.data.entries()) {

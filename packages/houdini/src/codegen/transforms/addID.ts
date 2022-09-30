@@ -31,7 +31,7 @@ export default async function addID(
 				// look up the field in the parent
 				const fieldType = unwrapType(config, field.type).type
 
-				// if there is no selection set, dont worry about it
+				// if there is no selection set, don't worry about it
 				if (node.selectionSet?.selections.length > 0) {
 					// if the type does not have an id field ignore it
 					if (!graphql.isObjectType(fieldType) && !graphql.isInterfaceType(fieldType)) {

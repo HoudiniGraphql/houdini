@@ -1,12 +1,12 @@
 import * as graphql from 'graphql'
 
-import { siteURL } from '../../../houdini-svelte/runtime/lib/constants'
 import {
 	Config,
 	definitionFromAncestors,
 	LogLevel,
 	parentTypeFromAncestors,
 	HoudiniError,
+	siteURL,
 } from '../../common'
 import {
 	FragmentArgument,
@@ -140,8 +140,8 @@ export default async function typeCheck(
 					}
 
 					// if we have a non-null type, unwrap it
-					if (graphql.isNonNullType(rootType)) {
-						rootType = rootType.ofType
+					if (graphql.isNonNullType(rootType) && 'ofType' in rootType) {
+						rootType = rootType.ofType as graphql.GraphQLNamedType
 					}
 
 					// if we hit a scalar
@@ -153,7 +153,7 @@ export default async function typeCheck(
 					// @ts-ignore
 					// look at the next entry for a list or something else that would make us
 					// require a parent ID
-					// if [parent.name.value] doesnt't exist, the document is not valid and it will be catch later
+					// if [parent.name.value] doesn't exist, the document is not valid and it will be catch later
 					rootType = rootType?.getFields()[parent.name.value]?.type
 				}
 
@@ -592,7 +592,7 @@ function validateFragmentArguments(
 				}
 			},
 			FragmentSpread(targetFragment, _, __, ___, ancestors) {
-				// if we dont recognize the fragment, this validator should ignore it. someone else
+				// if we don't recognize the fragment, this validator should ignore it. someone else
 				// will handle the error message
 				if (!fragments[targetFragment.name.value]) {
 					return
@@ -734,7 +734,7 @@ function paginateArgs(config: Config, filepath: string) {
 					definition as graphql.FragmentDefinitionNode
 				)
 
-				// a fragment marked for pagination can't have requried args
+				// a fragment marked for pagination can't have required args
 				const hasRequiredArgs = definitionArgs.find((arg) => arg.required)
 				if (hasRequiredArgs) {
 					ctx.reportError(
@@ -890,7 +890,7 @@ function nodeDirectives(config: Config, directives: string[]) {
 		// if there is no node
 		return {
 			Directive(node, _, __, ___, ancestors) {
-				// only look at the rarget directives
+				// only look at the target directives
 				if (!directives.includes(node.name.value)) {
 					return
 				}

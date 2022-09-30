@@ -7,9 +7,6 @@ import { unwrapType } from '../../utils'
 
 const AST = recast.types.builders
 
-type ObjectProperty = recast.types.namedTypes.ObjectProperty
-type ObjectExpression = recast.types.namedTypes.ObjectExpression
-
 export function inputObject(
 	config: Config,
 	inputs: readonly graphql.VariableDefinitionNode[]

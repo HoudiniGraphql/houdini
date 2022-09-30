@@ -27,7 +27,7 @@ function colorize(message: string): string[] {
 	}
 
 	let final = message.replaceAll(/\$HOUDINI\$(\w*\$)?/g, '%c')
-	let colors = []
+	let colors: string[] = []
 
 	// ever match with a color, adds something to the list. the others add an empty string (a reset)
 	for (const match of matches) {

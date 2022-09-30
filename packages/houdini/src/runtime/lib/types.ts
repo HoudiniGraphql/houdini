@@ -27,7 +27,7 @@ export type DocumentArtifact =
 
 export enum ArtifactKind {
 	Query = 'HoudiniQuery',
-	Subcription = 'HoudiniSubscription',
+	Subscription = 'HoudiniSubscription',
 	Mutation = 'HoudiniMutation',
 	Fragment = 'HoudiniFragment',
 }
@@ -35,7 +35,7 @@ export enum ArtifactKind {
 export const CompiledFragmentKind = ArtifactKind.Fragment
 export const CompiledMutationKind = ArtifactKind.Mutation
 export const CompiledQueryKind = ArtifactKind.Query
-export const CompiledSubscriptionKind = ArtifactKind.Subcription
+export const CompiledSubscriptionKind = ArtifactKind.Subscription
 
 export type CompiledDocumentKind = ArtifactKind
 
@@ -54,7 +54,7 @@ export type FragmentArtifact = BaseCompiledDocument & {
 }
 
 export type SubscriptionArtifact = BaseCompiledDocument & {
-	kind: ArtifactKind.Subcription
+	kind: ArtifactKind.Subscription
 }
 
 export enum RefetchUpdateMode {

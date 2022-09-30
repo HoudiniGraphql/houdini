@@ -1,7 +1,7 @@
 import { test, expect } from 'vitest'
 
+import { runPipeline } from '../..'
 import { readFile, testConfig } from '../../../common'
-import { runPipeline } from '../../generate'
 
 test('generates runtime meta data file', async function () {
 	const config = testConfig()

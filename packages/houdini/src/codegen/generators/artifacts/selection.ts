@@ -1,5 +1,4 @@
 import * as graphql from 'graphql'
-import * as recast from 'recast'
 
 import { Config, getRootType, HoudiniError } from '../../../common'
 import type { MutationOperation, SubscriptionSelection } from '../../../runtime/lib'
@@ -7,8 +6,6 @@ import { connectionSelection } from '../../transforms/list'
 import { CollectedGraphQLDocument } from '../../types'
 import fieldKey from './fieldKey'
 import { convertValue, deepMerge } from './utils'
-
-const AST = recast.types.builders
 
 export default function selection({
 	config,

@@ -53,7 +53,7 @@ export default async function addListFragments(
 							errors.push(error)
 						}
 
-						// regardless, we dont need to process this node any more
+						// regardless, we don't need to process this node any more
 						return
 					}
 

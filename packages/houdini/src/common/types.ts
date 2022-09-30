@@ -14,4 +14,4 @@ export type TransformDocument = {
 	dependencies: string[]
 	filename: string
 }
-export * from '../../houdini-svelte/runtime/lib/types'
+export * from '../runtime/lib/types'

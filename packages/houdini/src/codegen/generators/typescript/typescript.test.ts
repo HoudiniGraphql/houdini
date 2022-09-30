@@ -2,8 +2,8 @@ import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { test, expect, describe } from 'vitest'
 
+import { runPipeline } from '../..'
 import { readFile, testConfig } from '../../../common'
-import { runPipeline } from '../../generate'
 import { mockCollectedDoc } from '../../testUtils'
 
 // the config to use in tests

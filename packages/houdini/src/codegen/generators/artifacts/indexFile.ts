@@ -1,5 +1,4 @@
 import path from 'path'
-import * as recast from 'recast'
 
 import { Config, writeFile } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'

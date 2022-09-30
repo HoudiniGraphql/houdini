@@ -1,13 +1,6 @@
 import { mergeSchemas } from '@graphql-tools/schema'
 import { glob } from 'glob'
 import * as graphql from 'graphql'
-import {
-	computeID,
-	ConfigFile,
-	defaultConfigValues,
-	keyFieldsForType,
-} from 'houdini-svelte/src/runtime'
-import { CachePolicy } from 'houdini-svelte/src/runtime/lib/types'
 import minimatch from 'minimatch'
 import { npxImport } from 'npx-import'
 import os from 'os'
@@ -18,6 +11,8 @@ import { Plugin } from 'vite'
 
 import { CollectedGraphQLDocument } from '../codegen/types'
 import { pullSchema } from '../codegen/utils'
+import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/lib'
+import { CachePolicy } from '../runtime/lib/types'
 import { TransformPage } from '../vite/plugin'
 import { HoudiniError } from './error'
 import { extractLoadFunction } from './extractLoadFunction'

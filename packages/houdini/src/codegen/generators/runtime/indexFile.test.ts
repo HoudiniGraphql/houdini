@@ -4,9 +4,9 @@ import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { test, expect } from 'vitest'
 
+import { runPipeline } from '../..'
 import { testConfig } from '../../../common'
 import * as fs from '../../../common/fs'
-import { runPipeline } from '../../generate'
 import { mockCollectedDoc } from '../../testUtils'
 import { CollectedGraphQLDocument } from '../../types'
 
