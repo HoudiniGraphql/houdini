@@ -1,9 +1,9 @@
 import path from 'path'
 
-import { Config } from '../../../common'
+import generateAdapter from '../../../../houdini-svelte/src/codegen/runtime/adapter'
+import { Config, siteURL } from '../../../common'
 import * as fs from '../../../common/fs'
 import { CollectedGraphQLDocument } from '../../types'
-import generateAdapter from './adapter'
 
 export default async function runtimeGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	// copy the compiled source code to the target directory
@@ -15,6 +15,7 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 		generateAdapter(config),
 		addClientImport(config),
 		addConfigImport(config),
+		addSiteURL(config),
 		meta(config),
 	])
 }
@@ -99,6 +100,21 @@ async function addConfigImport(config: Config) {
 	}
 
 	await fs.writeFile(configFilePath, contents.replace('HOUDINI_CONFIG_PATH', relativePath))
+}
+
+async function addSiteURL(config: Config) {
+	// all we need to do is replace the string value with the library constant
+
+	// the path to the config file
+	const target = path.join(config.runtimeDirectory, 'lib', 'constants.js')
+
+	// read the file, replace the string, update the file
+	const contents = await fs.readFile(target)
+	if (!contents) {
+		return
+	}
+
+	await fs.writeFile(target, contents.replace('SITE_URL', siteURL))
 }
 
 async function meta(config: Config) {

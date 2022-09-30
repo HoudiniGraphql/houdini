@@ -1,6 +1,13 @@
 import { mergeSchemas } from '@graphql-tools/schema'
 import { glob } from 'glob'
 import * as graphql from 'graphql'
+import {
+	computeID,
+	ConfigFile,
+	defaultConfigValues,
+	keyFieldsForType,
+} from 'houdini-svelte/src/runtime'
+import { CachePolicy } from 'houdini-svelte/src/runtime/lib/types'
 import minimatch from 'minimatch'
 import { npxImport } from 'npx-import'
 import os from 'os'
@@ -9,13 +16,6 @@ import { fileURLToPath } from 'url'
 import { promisify } from 'util'
 import { Plugin } from 'vite'
 
-import {
-	computeID,
-	ConfigFile,
-	defaultConfigValues,
-	keyFieldsForType,
-} from '../../houdini-svelte/src/runtime'
-import { CachePolicy } from '../../houdini-svelte/src/runtime/lib/types'
 import { CollectedGraphQLDocument } from '../codegen/types'
 import { pullSchema } from '../codegen/utils'
 import { TransformPage } from '../vite/plugin'
@@ -1067,5 +1067,13 @@ export type HoudiniPlugin = (args?: { configFile?: string }) => Promise<{
 	extract_documents?: (filepath: string, content: string) => Promise<string[]>
 	generate_end?: (config: Config, docs: CollectedGraphQLDocument[]) => Promise<void>
 	transform_file?: (page: TransformPage) => Promise<{ code: string }>
+	index_file?: ModuleIndexTransform
 	vite?: Omit<Plugin, 'name'>
 }>
+
+type ModuleIndexTransform = (arg: {
+	config: Config
+	content: string
+	export_default_as(args: { module: string; as: string }): string
+	export_star_from(args: { module: string }): string
+}) => string

@@ -1,10 +1,10 @@
 import { logCyan, logGreen } from '@kitql/helper'
 import { StatementKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
+import { siteURL } from 'houdini/common'
 import path from 'path'
 import * as recast from 'recast'
 
-import { siteURL } from '../../../../houdini-svelte/runtime/lib/constants'
 import { Config, HoudiniError, writeFile } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
 import { flattenSelections } from '../../utils'
@@ -122,8 +122,22 @@ export default async function typescriptGenerator(
 			])
 	)
 
+	// stringify the value so we can push it through the plugins
+	let indexContent = recast.print(typeIndex).code
+	for (const plugin of config.plugins) {
+		if (!plugin.index_file) {
+			continue
+		}
+		indexContent = plugin.index_file({
+			config,
+			content: indexContent,
+			export_default_as: ({ module, as }) => `export { default as ${as} } from ${module}`,
+			export_star_from: ({ module }) => `export * from ${module}`,
+		})
+	}
+
 	// write the contents
-	await writeFile(config.typeIndexPath, recast.print(typeIndex).code)
+	await writeFile(config.typeIndexPath, indexContent)
 
 	// if we were missing scalars, we need to warn the user and tell them
 	if (missingScalars.size > 0) {

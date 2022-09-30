@@ -8,6 +8,7 @@ export * from './tests'
 export * from './error'
 export * from './fs'
 export * from './types'
+export * from './constants'
 
 export * from './walk'
 export type { EmbeddedGraphqlDocument } from './walk'

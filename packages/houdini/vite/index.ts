@@ -6,7 +6,7 @@ import watch_and_run from 'vite-plugin-watch-and-run'
 import { ConfigFile } from '../../houdini-svelte/src/runtime'
 import generate from '../codegen'
 import { formatErrors, getConfig } from '../common'
-import vite_adapter from './adpter'
+import vite_adapter from './adapter'
 import houdini from './plugin'
 import schema from './schema'
 

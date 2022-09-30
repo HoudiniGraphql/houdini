@@ -1,6 +1,5 @@
+import { Config, writeFile } from 'houdini/common'
 import path from 'path'
-
-import { Config, writeFile } from '../../../common'
 
 export default async function generateAdapter(config: Config) {
 	// we only need to generate an adapter for kit (the default one is fine for vanilla svelte)
