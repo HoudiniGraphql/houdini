@@ -1,5 +1,5 @@
-import { parseJS, runPipeline, ParsedFile, formatErrors } from 'houdini/common'
-import { TransformPage } from 'houdini/vite/plugin'
+import { parseJS, runPipeline, ParsedFile, formatErrors } from 'houdini/src/common'
+import { TransformPage } from 'houdini/src/vite/plugin'
 import * as recast from 'recast'
 
 import { parseSvelte } from '../extract'

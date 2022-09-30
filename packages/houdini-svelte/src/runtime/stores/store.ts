@@ -1,13 +1,13 @@
-import cache from '../cache'
-import { getCurrentConfig } from '../lib/config'
-import { ConfigFile } from '../lib/types'
+import { getCache } from 'houdini/src/runtime'
+import { getCurrentConfig } from 'houdini/src/runtime/lib/config'
+import { ConfigFile } from 'houdini/src/runtime/lib/types'
 
 export class BaseStore {
 	async getConfig(): Promise<ConfigFile> {
 		const config = await getCurrentConfig()
 
 		// make sure the cache gets the reference
-		cache.setConfig(config)
+		getCache().setConfig(config)
 
 		return config
 	}

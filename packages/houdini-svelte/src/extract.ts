@@ -1,5 +1,5 @@
-import { HoudiniError, parseJS } from 'houdini/common'
-import type { Maybe, Script } from 'houdini/common/types'
+import { HoudiniError, parseJS } from 'houdini/src/common'
+import type { Maybe, Script } from 'houdini/src/common/types'
 import * as svelte from 'svelte/compiler'
 
 export type ParsedFile = Maybe<{ script: Script; start: number; end: number }>

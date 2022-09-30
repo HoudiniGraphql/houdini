@@ -1,17 +1,21 @@
 import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
+import { getCache } from 'houdini/src/runtime'
+import type { ConfigFile, QueryArtifact } from 'houdini/src/runtime/lib'
+import { deepEquals } from 'houdini/src/runtime/lib/deepEquals'
+import * as log from 'houdini/src/runtime/lib/log'
+import { fetchQuery } from 'houdini/src/runtime/lib/network'
+import { FetchContext, getSession } from 'houdini/src/runtime/lib/network'
+import { marshalInputs, unmarshalSelection } from 'houdini/src/runtime/lib/scalars'
+// internals
+import { CachePolicy, DataSource, GraphQLObject } from 'houdini/src/runtime/lib/types'
+import {
+	SubscriptionSpec,
+	CompiledQueryKind,
+	HoudiniFetchContext,
+} from 'houdini/src/runtime/lib/types'
 import { get, Readable, Writable, writable } from 'svelte/store'
 
 import { clientStarted, isBrowser, error } from '../adapter'
-import cache from '../cache'
-import type { ConfigFile, QueryArtifact } from '../lib'
-import { deepEquals } from '../lib/deepEquals'
-import * as log from '../lib/log'
-import { fetchQuery } from '../lib/network'
-import { FetchContext, getSession } from '../lib/network'
-import { marshalInputs, unmarshalSelection } from '../lib/scalars'
-// internals
-import { CachePolicy, DataSource, GraphQLObject } from '../lib/types'
-import { SubscriptionSpec, CompiledQueryKind, HoudiniFetchContext } from '../lib/types'
 import { BaseStore } from './store'
 
 export class QueryStore<
@@ -67,7 +71,7 @@ export class QueryStore<
 	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
 		const config = await this.getConfig()
 		// set the cache's config
-		cache.setConfig(config)
+		getCache().setConfig(config)
 
 		// validate and prepare the request context for the current environment (client vs server)
 		const { policy, params, context } = await fetchParams(this.artifact, this.storeName, args)
@@ -181,7 +185,7 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 			if (this.subscriberCount <= 0) {
 				// clean up any cache subscriptions
 				if (isBrowser && this.subscriptionSpec) {
-					cache.unsubscribe(this.subscriptionSpec, this.lastVariables || {})
+					getCache().unsubscribe(this.subscriptionSpec, this.lastVariables || {})
 				}
 
 				// clear the active subscription
@@ -231,7 +235,7 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 
 		if (result.data && source !== DataSource.Cache) {
 			// update the cache with the data that we just ran into
-			cache.write({
+			getCache().write({
 				selection: artifact.selection,
 				data: result.data,
 				variables: variables || {},
@@ -309,6 +313,7 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 
 	// a method to update the store's cache subscriptions
 	private refreshSubscription(newVariables: _Input) {
+		const cache = getCache()
 		// if the variables changed we need to unsubscribe from the old fields and
 		// listen to the new ones
 		if (this.subscriptionSpec) {
@@ -414,7 +419,7 @@ export async function fetchParams<_Data extends GraphQLObject, _Input>(
 
 	return {
 		context: {
-			fetch: fetchFn,
+			fetch: fetchFn!,
 			metadata: params?.metadata ?? {},
 			session,
 		},
@@ -511,12 +516,3 @@ export type QueryStoreFetchParams<_Data extends GraphQLObject, _Input> =
 export type QueryStoreLoadParams<_Data extends GraphQLObject, _Input> =
 	| LoadEventFetchParams<_Data, _Input>
 	| RequestEventFetchParams<_Data, _Input>
-
-export type QueryResult<_Data, _Input, _Extra = {}> = {
-	data: _Data | null
-	errors: { message: string }[] | null
-	isFetching: boolean
-	partial: boolean
-	source: DataSource | null
-	variables: _Input
-} & _Extra

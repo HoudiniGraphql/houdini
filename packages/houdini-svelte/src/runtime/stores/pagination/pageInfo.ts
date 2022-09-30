@@ -1,6 +1,5 @@
-import { GraphQLObject } from '../../lib'
-import { siteURL } from '../../lib/constants'
-import * as log from '../../lib/log'
+import { GraphQLObject } from 'houdini/src/runtime/lib'
+import { siteURL } from 'houdini/src/runtime/lib/constants'
 
 export function nullPageInfo(): PageInfo {
 	return { startCursor: null, endCursor: null, hasNextPage: false, hasPreviousPage: false }

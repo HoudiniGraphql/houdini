@@ -1,8 +1,5 @@
 // the actual contents of this file will get overwritten by the runtime generator
 // this file just exists for type checking
-import type { Page } from '@sveltejs/kit'
-import type { Readable, Writable } from 'svelte/store'
-
 export async function goTo(
 	href: string,
 	opts?: { replaceState?: boolean; noscroll?: boolean; keepfocus?: boolean; state?: any }

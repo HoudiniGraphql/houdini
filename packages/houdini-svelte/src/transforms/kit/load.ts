@@ -5,16 +5,16 @@ import * as graphql from 'graphql'
 import {
 	formatErrors,
 	operation_requires_variables,
-	parseSvelte,
 	HoudiniRouteScript,
 	readFile,
 	stat,
-} from 'houdini/common'
-import { find_insert_index } from 'houdini/vite/ast'
-import { ensure_imports, store_import } from 'houdini/vite/imports'
-import { TransformPage } from 'houdini/vite/plugin'
+} from 'houdini/src/common'
+import { find_insert_index } from 'houdini/src/vite/ast'
+import { ensure_imports, store_import } from 'houdini/src/vite/imports'
+import { TransformPage } from 'houdini/src/vite/plugin'
 import * as recast from 'recast'
 
+import { parseSvelte } from '../../extract'
 import { LoadTarget, find_inline_queries, query_variable_fn } from '../query'
 
 const AST = recast.types.builders

@@ -1,14 +1,14 @@
-import { derived, get, readable, Readable, Subscriber, Writable, writable } from 'svelte/store'
-
-import { keyFieldsForType, getCurrentConfig } from '../../lib/config'
-import { siteURL } from '../../lib/constants'
+import { keyFieldsForType, getCurrentConfig } from 'houdini/src/runtime/lib/config'
+import { siteURL } from 'houdini/src/runtime/lib/constants'
 import {
 	GraphQLObject,
 	FragmentArtifact,
 	QueryArtifact,
 	HoudiniFetchContext,
 	CompiledFragmentKind,
-} from '../../lib/types'
+} from 'houdini/src/runtime/lib/types'
+import { derived, get, Readable, Subscriber, Writable, writable } from 'svelte/store'
+
 import { StoreConfig } from '../query'
 import { BaseStore } from '../store'
 import { cursorHandlers, CursorHandlers } from './cursor'
@@ -53,6 +53,7 @@ class BasePaginatedFragmentStore<_Data extends GraphQLObject, _Input> extends Ba
 		let idVariables = {}
 		const value = get(store).data
 		if (typeConfig.resolve?.arguments) {
+			// @ts-ignore
 			idVariables = (typeConfig.resolve!.arguments?.(value) || {}) as _Input
 		} else {
 			const keys = keyFieldsForType(config, targetType || '')

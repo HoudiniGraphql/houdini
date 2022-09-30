@@ -1,11 +1,15 @@
+import { getCache } from 'houdini/src/runtime'
+import type { SubscriptionSpec, MutationArtifact } from 'houdini/src/runtime/lib'
+import { executeQuery, getSession } from 'houdini/src/runtime/lib/network'
+import {
+	marshalInputs,
+	marshalSelection,
+	unmarshalSelection,
+} from 'houdini/src/runtime/lib/scalars'
+import { GraphQLObject } from 'houdini/src/runtime/lib/types'
 import { Readable } from 'svelte/store'
 import { Writable, writable } from 'svelte/store'
 
-import cache from '../cache'
-import type { SubscriptionSpec, MutationArtifact } from '../lib'
-import { executeQuery, getSession } from '../lib/network'
-import { marshalInputs, marshalSelection, unmarshalSelection } from '../lib/scalars'
-import { GraphQLObject } from '../lib/types'
 import { BaseStore } from './store'
 
 export class MutationStore<
@@ -36,6 +40,7 @@ export class MutationStore<
 			fetch?: typeof globalThis.fetch
 		} & MutationConfig<_Data, _Input, _Optimistic> = {}
 	): Promise<_Data> {
+		const cache = getCache()
 		const config = await this.getConfig()
 
 		this.store.update((c) => {

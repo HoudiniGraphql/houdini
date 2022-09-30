@@ -1,6 +1,6 @@
+import { GraphQLObject, QueryArtifact } from 'houdini/src/runtime/lib'
 import { derived, get, Subscriber } from 'svelte/store'
 
-import { GraphQLObject, QueryArtifact } from '../../lib'
 import {
 	QueryStore,
 	StoreConfig,
@@ -15,7 +15,7 @@ import { offsetHandlers, OffsetHandlers } from './offset'
 import { nullPageInfo, PageInfo } from './pageInfo'
 
 // both cursor paginated stores add a page info to their subscribe
-class CursorPaginatedStore<_Data extends GraphQLObject, _Input> extends QueryStore<
+class CursorPaginatedStore<_Data extends GraphQLObject, _Input extends {}> extends QueryStore<
 	_Data,
 	_Input,
 	{ pageInfo: PageInfo }
@@ -61,6 +61,7 @@ class CursorPaginatedStore<_Data extends GraphQLObject, _Input> extends QuerySto
 		const combined = derived(
 			[{ subscribe: super.subscribe.bind(this) }, this.handlers.pageInfo],
 			([$parent, $pageInfo]) => ({
+				// @ts-ignore
 				...$parent,
 				pageInfo: $pageInfo,
 			})
@@ -73,7 +74,7 @@ class CursorPaginatedStore<_Data extends GraphQLObject, _Input> extends QuerySto
 // QueryStoreForwardCursor adds loadNextPage to CursorPaginatedQueryStore
 export class QueryStoreForwardCursor<
 	_Data extends GraphQLObject,
-	_Input
+	_Input extends {}
 > extends CursorPaginatedStore<_Data, _Input> {
 	async loadNextPage(args?: Parameters<CursorHandlers<_Data, _Input>['loadNextPage']>[0]) {
 		return this.handlers.loadNextPage(args)
@@ -83,7 +84,7 @@ export class QueryStoreForwardCursor<
 // QueryStoreBackwardCursor adds loadPreviousPage to CursorPaginatedQueryStore
 export class QueryStoreBackwardCursor<
 	_Data extends GraphQLObject,
-	_Input
+	_Input extends {}
 > extends CursorPaginatedStore<_Data, _Input> {
 	async loadPreviousPage(
 		args?: Parameters<Required<CursorHandlers<_Data, _Input>>['loadPreviousPage']>[0]
@@ -92,7 +93,7 @@ export class QueryStoreBackwardCursor<
 	}
 }
 
-export class QueryStoreOffset<_Data extends GraphQLObject, _Input> extends QueryStore<
+export class QueryStoreOffset<_Data extends GraphQLObject, _Input extends {}> extends QueryStore<
 	_Data,
 	_Input
 > {

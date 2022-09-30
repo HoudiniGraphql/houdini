@@ -1,9 +1,9 @@
 import { ExpressionKind, StatementKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
-import { Config, operation_requires_variables, Script, walkGraphQLTags } from 'houdini/common'
-import { find_exported_fn, find_insert_index } from 'houdini/vite/ast'
-import { ensure_imports } from 'houdini/vite/imports'
-import { TransformPage } from 'houdini/vite/plugin'
+import { Config, operation_requires_variables, Script, walkGraphQLTags } from 'houdini/src/common'
+import { find_exported_fn, find_insert_index } from 'houdini/src/vite/ast'
+import { ensure_imports } from 'houdini/src/vite/imports'
+import { TransformPage } from 'houdini/src/vite/plugin'
 import * as recast from 'recast'
 
 const AST = recast.types.builders

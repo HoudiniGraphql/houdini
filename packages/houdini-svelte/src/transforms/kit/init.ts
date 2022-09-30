@@ -1,5 +1,5 @@
-import { ensure_imports } from 'houdini/vite/imports'
-import { TransformPage } from 'houdini/vite/plugin'
+import { ensure_imports } from 'houdini/src/vite/imports'
+import { TransformPage } from 'houdini/src/vite/plugin'
 import * as recast from 'recast'
 
 const AST = recast.types.builders
@@ -26,7 +26,7 @@ export default async function kit_init(page: TransformPage) {
 	const [extract_session, set_session] = ensure_imports({
 		page,
 		sourceModule: '$houdini/runtime/lib/network',
-		import: ['extractSession', 'setSession'],
+		import: ['extractSession', 'setEventSession'],
 	}).ids
 
 	// add the onMount at the end of the component

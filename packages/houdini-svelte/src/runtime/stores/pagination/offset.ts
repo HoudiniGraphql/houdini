@@ -1,8 +1,9 @@
-import { deepEquals } from '../..'
-import cache from '../../cache'
-import { ConfigFile } from '../../lib/config'
-import { executeQuery, getSession } from '../../lib/network'
-import { GraphQLObject, QueryArtifact } from '../../lib/types'
+import { getCache } from 'houdini/src/runtime'
+import { deepEquals } from 'houdini/src/runtime/lib'
+import { ConfigFile } from 'houdini/src/runtime/lib/config'
+import { executeQuery, getSession } from 'houdini/src/runtime/lib/network'
+import { GraphQLObject, QueryArtifact } from 'houdini/src/runtime/lib/types'
+
 import { QueryResult, QueryStoreFetchParams } from '../query'
 import { fetchParams } from '../query'
 import { FetchFn } from './fetch'
@@ -81,7 +82,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 			})
 
 			// update cache with the result
-			cache.write({
+			getCache().write({
 				selection: artifact.selection,
 				data: result.data,
 				variables: queryVariables,

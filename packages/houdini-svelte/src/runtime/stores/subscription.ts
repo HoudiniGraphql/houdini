@@ -1,11 +1,11 @@
+import { getCache } from 'houdini/src/runtime'
+import { deepEquals } from 'houdini/src/runtime/lib/deepEquals'
+import { getCurrentClient } from 'houdini/src/runtime/lib/network'
+import { marshalInputs, unmarshalSelection } from 'houdini/src/runtime/lib/scalars'
+import { CompiledSubscriptionKind, SubscriptionArtifact } from 'houdini/src/runtime/lib/types'
 import { writable, Writable } from 'svelte/store'
 
 import { isBrowser } from '../adapter'
-import cache from '../cache'
-import { deepEquals } from '../lib/deepEquals'
-import { getCurrentClient } from '../lib/network'
-import { marshalInputs, unmarshalSelection } from '../lib/scalars'
-import { CompiledSubscriptionKind, SubscriptionArtifact } from '../lib/types'
 import { BaseStore } from './store'
 
 export class SubscriptionStore<_Data, _Input extends {}> extends BaseStore {
@@ -81,7 +81,7 @@ export class SubscriptionStore<_Data, _Input extends {}> extends BaseStore {
 					// if we got a result
 					if (data) {
 						// update the cache with the result
-						cache.write({
+						getCache().write({
 							selection,
 							data,
 							variables: marshaledVariables,

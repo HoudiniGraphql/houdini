@@ -1,4 +1,4 @@
-lockfileVersion: 5.4
+lockfileVersion: 5.3
 
 importers:
     .:
@@ -122,7 +122,9 @@ importers:
             graphql: ^16.6.0
             houdini: workspace:^
             minimatch: ^5.1.0
+            node-fetch: ^3.2.10
             npx-import: ^1.1.3
+            prompts: ^2.4.2
             recast: ^0.21.5
             vite: ^3.1.4
             vite-plugin-watch-and-run: ^1.0.3
@@ -137,7 +139,9 @@ importers:
             graphql: 16.6.0
             houdini: 'link:'
             minimatch: 5.1.0
+            node-fetch: 3.2.10
             npx-import: 1.1.3
+            prompts: 2.4.2
             recast: 0.21.5
             vite: 3.1.4
             vite-plugin-watch-and-run: 1.0.3
@@ -159,7 +163,7 @@ importers:
             vitest: ^0.23.4
         dependencies:
             '@kitql/helper': 0.5.0
-            '@sveltejs/kit': 1.0.0-next.505_svelte@3.50.1
+            '@sveltejs/kit': 1.0.0-next.505_svelte@3.50.1+vite@3.1.4
             ast-types: 0.15.2
             estree-walker: 3.0.1
             graphql: 16.6.0
@@ -1251,7 +1255,7 @@ packages:
             - supports-color
         dev: true
 
-    /@sveltejs/kit/1.0.0-next.505_svelte@3.50.1:
+    /@sveltejs/kit/1.0.0-next.505_svelte@3.50.1+vite@3.1.4:
         resolution:
             {
                 integrity: sha512-vg2WvWiUB7useJZOKbdM8WOXv10WD7SVDER74IXd1t/TWb/uXHzwMQ/ZAsXZFdxQsz1cDGFub3iC76PW+j58Pg==,
@@ -1263,7 +1267,7 @@ packages:
             svelte: ^3.44.0
             vite: ^3.1.0
         dependencies:
-            '@sveltejs/vite-plugin-svelte': 1.0.8_svelte@3.50.1
+            '@sveltejs/vite-plugin-svelte': 1.0.8_svelte@3.50.1+vite@3.1.4
             '@types/cookie': 0.5.1
             cookie: 0.5.0
             devalue: 3.1.3
@@ -1277,6 +1281,7 @@ packages:
             svelte: 3.50.1
             tiny-glob: 0.2.9
             undici: 5.10.0
+            vite: 3.1.4
         transitivePeerDependencies:
             - diff-match-patch
             - supports-color
@@ -1333,7 +1338,7 @@ packages:
             - supports-color
         dev: true
 
-    /@sveltejs/vite-plugin-svelte/1.0.8_svelte@3.50.1:
+    /@sveltejs/vite-plugin-svelte/1.0.8_svelte@3.50.1+vite@3.1.4:
         resolution:
             {
                 integrity: sha512-1xkVTB4pm6zuign858FzVYE9Fdw9MQBOlxrdd85STV0NvTDmcofcRpcrK+zcIyT8SZ2dseHLu8hvDwzssF6RfA==,
@@ -1354,6 +1359,7 @@ packages:
             magic-string: 0.26.4
             svelte: 3.50.1
             svelte-hmr: 0.15.0_svelte@3.50.1
+            vite: 3.1.4
         transitivePeerDependencies:
             - supports-color
         dev: false
@@ -3886,6 +3892,7 @@ packages:
                 integrity: sha512-OmaM7y0kaK31NKG31q4YbD2beNYa6jBBKtMFT6gLYJljHLJr42IqJ8KX08u3Li/0ifzTU5HjmoOOrwa5BRLeDA==,
             }
         engines: { node: '>= 10.x' }
+        dev: true
 
     /graphql/16.6.0:
         resolution:
@@ -4370,6 +4377,14 @@ packages:
             }
         engines: { node: '>= 8' }
         dev: true
+
+    /kleur/3.0.3:
+        resolution:
+            {
+                integrity: sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w==,
+            }
+        engines: { node: '>=6' }
+        dev: false
 
     /kleur/4.1.5:
         resolution:
@@ -5102,6 +5117,17 @@ packages:
         engines: { node: '>=6' }
         dev: false
 
+    /prompts/2.4.2:
+        resolution:
+            {
+                integrity: sha512-NxNv/kLguCA7p3jE8oL2aEBsrJWgAakBpgmgK6lpPWV+WuOmY6r2/zbAVnP+T8bQlA0nzHXSJSJW0Hq7ylaD2Q==,
+            }
+        engines: { node: '>= 6' }
+        dependencies:
+            kleur: 3.0.3
+            sisteransi: 1.0.5
+        dev: false
+
     /punycode/2.1.1:
         resolution:
             {
@@ -5302,6 +5328,7 @@ packages:
         hasBin: true
         optionalDependencies:
             fsevents: 2.3.2
+        dev: true
 
     /rollup/2.78.1:
         resolution:
@@ -5446,6 +5473,13 @@ packages:
             '@polka/url': 1.0.0-next.21
             mrmime: 1.0.1
             totalist: 3.0.0
+
+    /sisteransi/1.0.5:
+        resolution:
+            {
+                integrity: sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==,
+            }
+        dev: false
 
     /slash/3.0.0:
         resolution:
@@ -5978,6 +6012,7 @@ packages:
                 integrity: sha512-+lmjic1pApJWDfPCpUUTc1m8azDqYCG1JN9YEngrx/hUyIcFJo6VZhj0A1Ai0wqoHcEIuQy+e9tk+4uDgdtsFA==,
             }
         engines: { node: '>= 8' }
+        dev: true
 
     /svelte/3.50.1:
         resolution:
@@ -6253,6 +6288,7 @@ packages:
             }
         engines: { node: '>=4.2.0' }
         hasBin: true
+        dev: true
 
     /typescript/4.6.4:
         resolution:
@@ -6494,6 +6530,7 @@ packages:
             rollup: 2.77.3
         optionalDependencies:
             fsevents: 2.3.2
+        dev: true
 
     /vite/3.1.4:
         resolution:

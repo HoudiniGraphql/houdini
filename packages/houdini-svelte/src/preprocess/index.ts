@@ -47,7 +47,7 @@ export default config;
 			}
 
 			// apply the transform pipeline
-			return await transform(page, content)
+			return await transform(page)
 		},
 	}
 }
