@@ -1,4 +1,4 @@
-import { GraphQLObject, QueryArtifact } from 'houdini/src/runtime/lib'
+import { GraphQLObject, QueryArtifact, QueryResult } from 'houdini/src/runtime/lib'
 import { derived, get, Subscriber } from 'svelte/store'
 
 import {
@@ -8,7 +8,6 @@ import {
 	RequestEventFetchParams,
 	QueryStoreFetchParams,
 	ClientFetchParams,
-	QueryResult,
 } from '../query'
 import { CursorHandlers, cursorHandlers } from './cursor'
 import { offsetHandlers, OffsetHandlers } from './offset'

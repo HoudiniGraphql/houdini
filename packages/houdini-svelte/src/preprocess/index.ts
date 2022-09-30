@@ -1,7 +1,8 @@
 import { logGreen } from '@kitql/helper'
-import { getConfig } from 'houdini/common'
+import { getConfig } from 'houdini/src/common'
+import { ConfigFile } from 'houdini/src/runtime/lib'
+import { TransformPage } from 'houdini/src/vite/plugin'
 
-import { ConfigFile } from '../runtime'
 import transform from '../transforms'
 
 /**
@@ -39,11 +40,11 @@ export default config;
 			}
 
 			// build up the necessary context to run the vite transform
-			const page = {
+			const page: TransformPage = {
+				content,
 				config,
 				filepath: filename,
 				watch_file: () => {},
-				load: async (fp: string) => await import(fp),
 			}
 
 			// apply the transform pipeline

@@ -49,8 +49,12 @@ export function scalarPropertyValue(
 		}
 		default: {
 			// if we're looking at a non-null type
-			if (graphql.isNonNullType(target)) {
-				return scalarPropertyValue(config, missingScalars, target.ofType)
+			if (graphql.isNonNullType(target) && 'ofType' in target) {
+				return scalarPropertyValue(
+					config,
+					missingScalars,
+					target.ofType as graphql.GraphQLNamedType
+				)
 			}
 
 			// the type could be a custom scalar we know about

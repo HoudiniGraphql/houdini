@@ -113,7 +113,7 @@ export default async function addListFragments(
 								{
 									kind: 'Argument',
 									name: {
-										kind: 'Name',
+										kind: graphql.Kind.NAME,
 										value: 'connection',
 									},
 									value: {
@@ -246,16 +246,16 @@ export default async function addListFragments(
 						{
 							name: {
 								value: config.listInsertFragment(name),
-								kind: 'Name',
+								kind: graphql.Kind.NAME,
 							},
 							kind: graphql.Kind.FRAGMENT_DEFINITION,
 							// in order to insert an item into this list, it must
 							// have the same selection as the field
 							selectionSet: fragmentSelection,
 							typeCondition: {
-								kind: 'NamedType',
+								kind: graphql.Kind.NAMED_TYPE,
 								name: {
-									kind: 'Name',
+									kind: graphql.Kind.NAME,
 									value: type.name,
 								},
 							},
@@ -264,7 +264,7 @@ export default async function addListFragments(
 						{
 							name: {
 								value: config.listToggleFragment(name),
-								kind: 'Name',
+								kind: graphql.Kind.NAME,
 							},
 							kind: graphql.Kind.FRAGMENT_DEFINITION,
 							// in order to insert an item into this list, it must
@@ -274,18 +274,18 @@ export default async function addListFragments(
 								selections: [
 									...fragmentSelection.selections,
 									{
-										kind: 'Field',
+										kind: graphql.Kind.FIELD,
 										name: {
-											kind: 'Name',
+											kind: graphql.Kind.NAME,
 											value: 'id',
 										},
 									},
 								],
 							},
 							typeCondition: {
-								kind: 'NamedType',
+								kind: graphql.Kind.NAMED_TYPE,
 								name: {
-									kind: 'Name',
+									kind: graphql.Kind.NAME,
 									value: type.name,
 								},
 							},
@@ -295,25 +295,25 @@ export default async function addListFragments(
 							kind: graphql.Kind.FRAGMENT_DEFINITION,
 							name: {
 								value: config.listRemoveFragment(name),
-								kind: 'Name',
+								kind: graphql.Kind.NAME,
 							},
 							// deleting an entity just takes its id and the parent
 							selectionSet: {
-								kind: 'SelectionSet',
+								kind: graphql.Kind.SELECTION_SET,
 								selections: [
 									{
-										kind: 'Field',
+										kind: graphql.Kind.FIELD,
 										name: {
-											kind: 'Name',
+											kind: graphql.Kind.NAME,
 											value: 'id',
 										},
 									},
 								],
 							},
 							typeCondition: {
-								kind: 'NamedType',
+								kind: graphql.Kind.NAMED_TYPE,
 								name: {
-									kind: 'Name',
+									kind: graphql.Kind.NAME,
 									value: type.name,
 								},
 							},
