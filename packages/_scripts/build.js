@@ -98,18 +98,7 @@ async function build(source, bundle = true) {
 				bundle,
 				platform: 'node',
 				format: which,
-				external: bundle
-					? [
-							'os',
-							'assert',
-							'vite',
-							'fs',
-							'path',
-							'util',
-							'HOUDINI_CONFIG_PATH',
-							'HOUDINI_CLIENT_PATH',
-					  ]
-					: [],
+				external: bundle ? ['vite', 'HOUDINI_CONFIG_PATH', 'HOUDINI_CLIENT_PATH'] : [],
 			}
 
 			// if we are building, turn the source into a single file
