@@ -119,11 +119,14 @@ importers:
             commander: ^9.4.0
             esbuild: ^0.15.10
             esbuild-plugin-alias: ^0.2.1
+            glob: ^8.0.3
+            glob-promise: ^5.0.0
         dependencies:
             commander: 9.4.0
-        devDependencies:
             esbuild: 0.15.10
             esbuild-plugin-alias: 0.2.1
+            glob: 8.0.3
+            glob-promise: 5.0.0_glob@8.0.3
 
     packages/houdini:
         specifiers:
@@ -633,7 +636,7 @@ packages:
         cpu: [arm]
         os: [android]
         requiresBuild: true
-        dev: true
+        dev: false
         optional: true
 
     /@esbuild/android-arm/0.15.9:
@@ -667,7 +670,7 @@ packages:
         cpu: [loong64]
         os: [linux]
         requiresBuild: true
-        dev: true
+        dev: false
         optional: true
 
     /@esbuild/linux-loong64/0.15.9:
@@ -1458,6 +1461,16 @@ packages:
             }
         dev: false
 
+    /@types/glob/7.2.0:
+        resolution:
+            {
+                integrity: sha512-ZUxbzKl0IfJILTS6t7ip5fQQM/J3TJYubDm3nMbgubNNYS62eXeUpoLUC8/7fJNiFYHTrGPQn7hspDUzIHX3UA==,
+            }
+        dependencies:
+            '@types/minimatch': 5.1.2
+            '@types/node': 18.7.23
+        dev: false
+
     /@types/hast/2.3.4:
         resolution:
             {
@@ -1474,12 +1487,18 @@ packages:
             }
         dev: true
 
+    /@types/minimatch/5.1.2:
+        resolution:
+            {
+                integrity: sha512-K0VQKziLUWkVKiRVrx4a40iPaxTUefQmjtkQofBkYRcoaaL/8rhwDWww9qWbrgicNOgnpIsMxyNIUM4+n6dUIA==,
+            }
+        dev: false
+
     /@types/node/18.7.23:
         resolution:
             {
                 integrity: sha512-DWNcCHolDq0ZKGizjx2DZjR/PqsYwAcYUJmfMWqtVU2MBMG5Mo+xFZrhGId5r/O5HOuMPyQEcM6KUBp5lBZZBg==,
             }
-        dev: true
 
     /@types/node/18.7.6:
         resolution:
@@ -2722,7 +2741,7 @@ packages:
         cpu: [x64]
         os: [android]
         requiresBuild: true
-        dev: true
+        dev: false
         optional: true
 
     /esbuild-android-64/0.15.9:
@@ -2756,7 +2775,7 @@ packages:
         cpu: [arm64]
         os: [android]
         requiresBuild: true
-        dev: true
+        dev: false
         optional: true
 
     /esbuild-android-arm64/0.15.9:
@@ -2790,7 +2809,7 @@ packages:
         cpu: [x64]
         os: [darwin]
         requiresBuild: true
-        dev: true
+        dev: false
         optional: true
 
     /esbuild-darwin-64/0.15.9:
@@ -2824,7 +2843,7 @@ packages:
         cpu: [arm64]
         os: [darwin]
         requiresBuild: true
-        dev: true
+        dev: false
         optional: true
 
     /esbuild-darwin-arm64/0.15.9:
@@ -2858,7 +2877,7 @@ packages:
         cpu: [x64]
         os: [freebsd]
         requiresBuild: true
-        dev: true
+        dev: false
         optional: true
 
     /esbuild-freebsd-64/0.15.9:
@@ -2892,7 +2911,7 @@ packages:
         cpu: [arm64]
         os: [freebsd]
         requiresBuild: true
-        dev: true
+        dev: false
         optional: true
 
     /esbuild-freebsd-arm64/0.15.9:
@@ -2926,7 +2945,7 @@ packages:
         cpu: [ia32]
         os: [linux]
         requiresBuild: true
-        dev: true
+        dev: false
         optional: true
 
     /esbuild-linux-32/0.15.9:
@@ -2960,7 +2979,7 @@ packages:
         cpu: [x64]
         os: [linux]
         requiresBuild: true
-        dev: true
+        dev: false
         optional: true
 
     /esbuild-linux-64/0.15.9:
@@ -2994,7 +3013,7 @@ packages:
         cpu: [arm]
         os: [linux]
         requiresBuild: true
-        dev: true
+        dev: false
         optional: true
 
     /esbuild-linux-arm/0.15.9:
@@ -3028,7 +3047,7 @@ packages:
         cpu: [arm64]
         os: [linux]
         requiresBuild: true
-        dev: true
+        dev: false
         optional: true
 
     /esbuild-linux-arm64/0.15.9:
@@ -3062,7 +3081,7 @@ packages:
         cpu: [mips64el]
         os: [linux]
         requiresBuild: true
-        dev: true
+        dev: false
         optional: true
 
     /esbuild-linux-mips64le/0.15.9:
@@ -3096,7 +3115,7 @@ packages:
         cpu: [ppc64]
         os: [linux]
         requiresBuild: true
-        dev: true
+        dev: false
         optional: true
 
     /esbuild-linux-ppc64le/0.15.9:
@@ -3130,7 +3149,7 @@ packages:
         cpu: [riscv64]
         os: [linux]
         requiresBuild: true
-        dev: true
+        dev: false
         optional: true
 
     /esbuild-linux-riscv64/0.15.9:
@@ -3164,7 +3183,7 @@ packages:
         cpu: [s390x]
         os: [linux]
         requiresBuild: true
-        dev: true
+        dev: false
         optional: true
 
     /esbuild-linux-s390x/0.15.9:
@@ -3198,7 +3217,7 @@ packages:
         cpu: [x64]
         os: [netbsd]
         requiresBuild: true
-        dev: true
+        dev: false
         optional: true
 
     /esbuild-netbsd-64/0.15.9:
@@ -3232,7 +3251,7 @@ packages:
         cpu: [x64]
         os: [openbsd]
         requiresBuild: true
-        dev: true
+        dev: false
         optional: true
 
     /esbuild-openbsd-64/0.15.9:
@@ -3251,7 +3270,7 @@ packages:
             {
                 integrity: sha512-jyfL/pwPqaFXyKnj8lP8iLk6Z0m099uXR45aSN8Av1XD4vhvQutxxPzgA2bTcAwQpa1zCXDcWOlhFgyP3GKqhQ==,
             }
-        dev: true
+        dev: false
 
     /esbuild-sunos-64/0.14.54:
         resolution:
@@ -3273,7 +3292,7 @@ packages:
         cpu: [x64]
         os: [sunos]
         requiresBuild: true
-        dev: true
+        dev: false
         optional: true
 
     /esbuild-sunos-64/0.15.9:
@@ -3307,7 +3326,7 @@ packages:
         cpu: [ia32]
         os: [win32]
         requiresBuild: true
-        dev: true
+        dev: false
         optional: true
 
     /esbuild-windows-32/0.15.9:
@@ -3341,7 +3360,7 @@ packages:
         cpu: [x64]
         os: [win32]
         requiresBuild: true
-        dev: true
+        dev: false
         optional: true
 
     /esbuild-windows-64/0.15.9:
@@ -3375,7 +3394,7 @@ packages:
         cpu: [arm64]
         os: [win32]
         requiresBuild: true
-        dev: true
+        dev: false
         optional: true
 
     /esbuild-windows-arm64/0.15.9:
@@ -3451,7 +3470,7 @@ packages:
             esbuild-windows-32: 0.15.10
             esbuild-windows-64: 0.15.10
             esbuild-windows-arm64: 0.15.10
-        dev: true
+        dev: false
 
     /esbuild/0.15.9:
         resolution:
@@ -4091,6 +4110,19 @@ packages:
         dependencies:
             is-glob: 4.0.3
         dev: true
+
+    /glob-promise/5.0.0_glob@8.0.3:
+        resolution:
+            {
+                integrity: sha512-YQ7+beqmmQ3yUzybHoxnj7XMImztIdusIFate36/aB1gEWugR1qZI9a2u1A5mt6gYRqYldipZ7NB9s1UEq3vzw==,
+            }
+        engines: { node: '>=12' }
+        peerDependencies:
+            glob: ^8.0.3
+        dependencies:
+            '@types/glob': 7.2.0
+            glob: 8.0.3
+        dev: false
 
     /glob/7.2.3:
         resolution:

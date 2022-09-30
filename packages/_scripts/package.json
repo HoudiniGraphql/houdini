@@ -14,6 +14,8 @@
 	"dependencies": {
 		"commander": "^9.4.0",
 		"esbuild": "^0.15.10",
-		"esbuild-plugin-alias": "^0.2.1"
+		"esbuild-plugin-alias": "^0.2.1",
+		"glob": "^8.0.3",
+		"glob-promise": "^5.0.0"
 	}
 }
