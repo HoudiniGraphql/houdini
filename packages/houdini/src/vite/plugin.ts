@@ -1,8 +1,8 @@
 import path from 'path'
 import { Plugin } from 'vite'
 
-import generate from '../codegen'
-import { Config, formatErrors, getConfig, HoudiniRouteScript, Script } from '../common'
+import generate from '../cmd/codegen'
+import { Config, formatErrors, getConfig, HoudiniRouteScript, Script } from '../lib'
 
 export default function HoudiniPlugin(configFile?: string): Plugin {
 	return {

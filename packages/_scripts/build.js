@@ -41,6 +41,17 @@ export default async function () {
 			}
 			packageJSON.types = './build/plugin/index.d.ts'
 		}
+		// lib defines the main entry point
+		if (dirname === 'lib') {
+			await build(dir)
+			// when there's a plugin directory, that is the main entry point
+			packageJSON.main = `./build/${dirname}-cjs/index.js`
+			packageJSON.exports[`.`] = {
+				import: `./build/${dirname}-esm/index.js`,
+				require: `./build/${dirname}-cjs/index.js`,
+			}
+			packageJSON.types = './build/plugin/index.d.ts'
+		}
 		// runtimes can't be bundled
 		else if (dirname === 'runtime') {
 			// await build(dir, false)
@@ -48,19 +59,23 @@ export default async function () {
 		// cmd needs to be bundled and set as the project's bin
 		else if (dirname === 'cmd') {
 			packageJSON.bin = './build/cmd-esm/index.js'
+			await build(dir)
 		}
 
 		// its not a special directory, treat it as a sub module
 		else {
-			// await build(dir, true)
-			// packageJSON.exports["./"+dirname] = {
-			// 	"import": `./build/${dirname}-esm/index.js`,
-			// 	"require": `./build/${dirname}-cjs/index.j`
-			// }
-			// packageJSON.typesVersions["*"][dirname] = [
-			// 	`build/${dirname}/index.d.ts`
-			// ]
+			await build(dir)
+			packageJSON.exports['./' + dirname] = {
+				import: `./build/${dirname}-esm/index.js`,
+				require: `./build/${dirname}-cjs/index.js`,
+			}
+			packageJSON.typesVersions['*'][dirname] = [`build/${dirname}/index.d.ts`]
 		}
+
+		await fs.writeFile(
+			path.join(process.cwd(), 'package.json'),
+			JSON.stringify(packageJSON, null, 4)
+		)
 	}
 }
 

@@ -3,7 +3,7 @@
 	"version": "0.16.6",
 	"description": "The disappearing graphql client for SvelteKit",
 	"type": "module",
-	"types": "./build/cmd/index.d.ts",
+	"types": "./build/plugin/index.d.ts",
 	"scripts": {
 		"tests": "vitest",
 		"build": "scripts build"
@@ -33,5 +33,24 @@
 	},
 	"peerDependencies": {
 		"graphql": "^0.13.0 || ^14.0.0 || ^15.0.0"
-	}
+	},
+	"exports": {
+		".": {
+			"import": "./build/lib-esm/index.js",
+			"require": "./build/lib-cjs/index.js"
+		},
+		"./vite": {
+			"import": "./build/vite-esm/index.js",
+			"require": "./build/vite-cjs/index.js"
+		}
+	},
+	"typesVersions": {
+		"*": {
+			"vite": [
+				"build/vite/index.d.ts"
+			]
+		}
+	},
+	"bin": "./build/cmd-esm/index.js",
+	"main": "./build/lib-cjs/index.js"
 }

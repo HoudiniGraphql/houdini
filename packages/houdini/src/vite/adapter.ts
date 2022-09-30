@@ -1,6 +1,6 @@
 import { Plugin } from 'vite'
 
-import { Config, getConfig } from '../common'
+import { Config, getConfig } from '../lib'
 
 let config: Config
 

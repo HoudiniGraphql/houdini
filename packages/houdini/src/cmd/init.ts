@@ -3,10 +3,10 @@ import fetch from 'node-fetch'
 import path from 'path'
 import prompts from 'prompts'
 
+import { ConfigFile } from '../runtime/lib'
+import { readFile, writeFile } from './../lib'
+import * as fs from './../lib/fs'
 import { pullSchema } from './codegen/utils/introspection'
-import { readFile, writeFile } from './common'
-import * as fs from './common/fs'
-import { ConfigFile } from './runtime/lib'
 
 // the init command is responsible for scaffolding a few files
 // as well as pulling down the initial schema representation

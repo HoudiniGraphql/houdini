@@ -1,6 +1,6 @@
 import path from 'path'
 
-import { getConfig } from '../common'
+import { getConfig } from '../lib'
 import { pullSchema } from './codegen/utils'
 
 export default async function (args: { headers: string[] }) {

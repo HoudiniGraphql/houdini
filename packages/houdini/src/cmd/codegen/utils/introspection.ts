@@ -1,7 +1,7 @@
 import * as graphql from 'graphql'
 import fetch from 'node-fetch'
 
-import { writeFile } from '../../../common/fs'
+import { writeFile } from '../../../lib/fs'
 
 export async function pullSchema(
 	url: string,
