@@ -18,8 +18,7 @@ export default function ({
 	...extraConfig
 }: {
 	configPath?: string
-	generate: (config: ConfigFile) => Promise<void>
-} & Partial<ConfigFile>): Plugin[] {
+} & Partial<ConfigFile> = {}): Plugin[] {
 	// we need some way for the graphql tag to detect that we are running on the server
 	// so we don't get an error when importing.
 	process.env.HOUDINI_PLUGIN = 'true'

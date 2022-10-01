@@ -1,7 +1,8 @@
 import { mergeSchemas } from '@graphql-tools/schema'
-// import { glob } from 'glob' -> tiny-glob
+import { glob } from 'glob'
 import * as graphql from 'graphql'
-// import minimatch from 'minimatch'
+import houdiniSvelte from 'houdini-svelte'
+import minimatch from 'minimatch'
 import os from 'os'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -1012,10 +1013,7 @@ This will prevent your schema from being pulled (potentially resulting in errors
 
 	// load the svelte plugin if necessary
 	if (['kit', 'svelte'].includes(_config.framework)) {
-		const dependency = await npxImport<{
-			default: HoudiniPlugin
-		}>('houdini-svelte')
-		_config.plugins.push(await dependency.default({ configFile }))
+		_config.plugins.push(houdiniSvelte)
 	}
 
 	// we're done and have a valid config

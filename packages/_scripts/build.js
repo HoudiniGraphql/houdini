@@ -100,7 +100,7 @@ async function build(source, bundle = true) {
 				format: which,
 				external: bundle ? ['vite', 'HOUDINI_CONFIG_PATH', 'HOUDINI_CLIENT_PATH'] : [],
 				banner: {
-					js: `import { createRequire } from 'module';const require = createRequire(import.meta.url);`,
+					js: `const require = createRequire(import.meta.url);`,
 				},
 			}
 
