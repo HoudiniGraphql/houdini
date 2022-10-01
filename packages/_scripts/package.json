@@ -12,10 +12,13 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
+		"@esbuild-plugins/node-globals-polyfill": "^0.1.1",
+		"@hyrious/esbuild-plugin-commonjs": "^0.2.1",
 		"commander": "^9.4.0",
 		"esbuild": "^0.15.10",
 		"esbuild-plugin-alias": "^0.2.1",
 		"glob": "^8.0.3",
-		"glob-promise": "^5.0.0"
+		"glob-promise": "^5.0.0",
+		"rollup": "^2.79.1"
 	}
 }

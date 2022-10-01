@@ -1,8 +1,6 @@
 import * as graphql from 'graphql'
-import { Config, operation_requires_variables, Script, walkGraphQLTags } from 'houdini'
-import { find_exported_fn, find_insert_index } from 'houdini/vite'
-import { ensure_imports } from 'houdini/vite'
-import { TransformPage } from 'houdini/vite'
+import { Config, operation_requires_variables, walkGraphQLTags, Script } from 'houdini'
+import { find_exported_fn, find_insert_index, ensure_imports, TransformPage } from 'houdini/vite'
 import * as recast from 'recast'
 
 const AST = recast.types.builders

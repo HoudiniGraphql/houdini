@@ -1,8 +1,7 @@
-import esbuild from 'esbuild'
-import alias from 'esbuild-plugin-alias'
 import fs from 'fs/promises'
 import glob from 'glob-promise'
 import path from 'path'
+import { rollup } from 'rollup'
 
 // the relevant directories
 const build_dir = path.join(process.cwd(), 'build')
@@ -112,7 +111,7 @@ async function build(source, bundle = true) {
 				config.outdir = target_dir
 			}
 
-			await esbuild.build(config)
+			await rollup(config)
 
 			await fs.writeFile(
 				path.join(target_dir, 'package.json'),

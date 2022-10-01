@@ -1,13 +1,12 @@
 import { mergeSchemas } from '@graphql-tools/schema'
-import { glob } from 'glob'
+// import { glob } from 'glob' -> tiny-glob
 import * as graphql from 'graphql'
-import minimatch from 'minimatch'
-import { npxImport } from 'npx-import'
+// import minimatch from 'minimatch'
 import os from 'os'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { promisify } from 'util'
-import { Plugin } from 'vite'
+import type { Plugin } from 'vite'
 
 import { CollectedGraphQLDocument } from '../cmd/codegen/types'
 import { pullSchema } from '../cmd/codegen/utils'

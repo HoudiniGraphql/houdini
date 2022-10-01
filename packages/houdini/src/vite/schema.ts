@@ -1,11 +1,11 @@
 import { sleep } from '@kitql/helper'
 import glob from 'glob'
 import path from 'path'
-import { Plugin } from 'vite'
+import type { Plugin } from 'vite'
 
-import { pullSchema } from '../cmd/codegen/utils'
-import { formatErrors, getConfig } from '../lib'
-import { ConfigFile } from '../runtime/lib'
+import { pullSchema } from '../cmd/codegen/utils/index.js'
+import { formatErrors, getConfig } from '../lib/index.js'
+import { ConfigFile } from '../runtime/lib/index.js'
 
 export default function HoudiniWatchSchemaPlugin({
 	configFile,

@@ -1,5 +1,5 @@
 import path from 'path'
-import { Plugin } from 'vite'
+import type { Plugin } from 'vite'
 
 import generate from '../cmd/codegen'
 import { Config, formatErrors, getConfig, HoudiniRouteScript, Script } from '../lib'

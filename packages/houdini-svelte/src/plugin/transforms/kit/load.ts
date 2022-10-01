@@ -1,6 +1,6 @@
-import { IdentifierKind } from 'ast-types/gen/kinds'
-import { StatementKind } from 'ast-types/gen/kinds'
-import { namedTypes } from 'ast-types/gen/namedTypes'
+import type { IdentifierKind } from 'ast-types/gen/kinds'
+import type { StatementKind } from 'ast-types/gen/kinds'
+import type { namedTypes } from 'ast-types/gen/namedTypes'
 import * as graphql from 'graphql'
 import {
 	formatErrors,

@@ -116,17 +116,23 @@ importers:
 
     packages/_scripts:
         specifiers:
+            '@esbuild-plugins/node-globals-polyfill': ^0.1.1
+            '@hyrious/esbuild-plugin-commonjs': ^0.2.1
             commander: ^9.4.0
             esbuild: ^0.15.10
             esbuild-plugin-alias: ^0.2.1
             glob: ^8.0.3
             glob-promise: ^5.0.0
+            rollup: ^2.79.1
         dependencies:
+            '@esbuild-plugins/node-globals-polyfill': 0.1.1_esbuild@0.15.10
+            '@hyrious/esbuild-plugin-commonjs': 0.2.1_esbuild@0.15.10
             commander: 9.4.0
             esbuild: 0.15.10
             esbuild-plugin-alias: 0.2.1
             glob: 8.0.3
             glob-promise: 5.0.0_glob@8.0.3
+            rollup: 2.79.1
 
     packages/houdini:
         specifiers:
@@ -139,7 +145,6 @@ importers:
             estree-walker: ^3.0.1
             glob: ^8.0.3
             graphql: ^16.6.0
-            houdini: workspace:^
             minimatch: ^5.1.0
             node-fetch: ^3.2.10
             npx-import: ^1.1.3
@@ -157,7 +162,6 @@ importers:
             estree-walker: 3.0.1
             glob: 8.0.3
             graphql: 16.6.0
-            houdini: 'link:'
             minimatch: 5.1.0
             node-fetch: 3.2.10
             npx-import: 1.1.3
@@ -629,6 +633,17 @@ packages:
             graphql: 15.5.0
             lru-cache: 6.0.0
 
+    /@esbuild-plugins/node-globals-polyfill/0.1.1_esbuild@0.15.10:
+        resolution:
+            {
+                integrity: sha512-MR0oAA+mlnJWrt1RQVQ+4VYuRJW/P2YmRTv1AsplObyvuBMnPHiizUF95HHYiSsMGLhyGtWufaq2XQg6+iurBg==,
+            }
+        peerDependencies:
+            esbuild: '*'
+        dependencies:
+            esbuild: 0.15.10
+        dev: false
+
     /@esbuild/android-arm/0.15.10:
         resolution:
             {
@@ -888,6 +903,22 @@ packages:
                 integrity: sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==,
             }
         dev: true
+
+    /@hyrious/esbuild-plugin-commonjs/0.2.1_esbuild@0.15.10:
+        resolution:
+            {
+                integrity: sha512-Aq7dD4+ClofgAt9Ed6HM9B+NV0YJMqdnOycc2d/Iv+VgX23IcuHJWBbq9s3IFCNlJL6T/3ZbMAoU77dQrk509g==,
+            }
+        engines: { node: '>=14' }
+        peerDependencies:
+            cjs-module-lexer: '*'
+            esbuild: '*'
+        peerDependenciesMeta:
+            cjs-module-lexer:
+                optional: true
+        dependencies:
+            esbuild: 0.15.10
+        dev: false
 
     /@iarna/toml/2.2.5:
         resolution:
@@ -5734,6 +5765,17 @@ packages:
         hasBin: true
         optionalDependencies:
             fsevents: 2.3.2
+
+    /rollup/2.79.1:
+        resolution:
+            {
+                integrity: sha512-uKxbd0IhMZOhjAiD5oAFp7BqvkA4Dv47qpOCtaNvng4HBwdbWtdOh8f5nZNuk2rp51PMGk3bzfWu5oayNEuYnw==,
+            }
+        engines: { node: '>=10.0.0' }
+        hasBin: true
+        optionalDependencies:
+            fsevents: 2.3.2
+        dev: false
 
     /run-parallel/1.2.0:
         resolution:

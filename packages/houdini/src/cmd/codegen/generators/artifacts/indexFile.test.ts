@@ -1,4 +1,4 @@
-import { ProgramKind } from 'ast-types/gen/kinds'
+import type { ProgramKind } from 'ast-types/gen/kinds'
 import path from 'path'
 import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
