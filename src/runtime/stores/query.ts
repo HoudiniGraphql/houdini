@@ -22,7 +22,7 @@ export class QueryStore<
 	// the underlying artifact
 	artifact: QueryArtifact
 
-	// wether the store requires variables for input
+	// whether the store requires variables for input
 	variables: boolean
 
 	// identify it as a query store
@@ -431,7 +431,7 @@ Please remember to pass event to fetch like so:
 import type { LoadEvent } from '@sveltejs/kit';
 
 export async function load(${log.yellow('event')}: LoadEvent) {
-	return { 
+	return {
 		...load_MyQuery({ ${log.yellow('event')}, variables: { ... } })
 	};
 }
@@ -462,7 +462,7 @@ type FetchGlobalParams<_Data extends GraphQLObject, _Input> = {
 	blocking?: boolean
 
 	/**
-	 * A function to call after the fetch happens (wether fake or not)
+	 * A function to call after the fetch happens (whether fake or not)
 	 */
 	then?: (val: _Data | null) => void | Promise<void>
 }
