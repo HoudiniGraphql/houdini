@@ -6,7 +6,7 @@ import { CollectedGraphQLDocument } from '../../types'
 
 export default async function runtimeGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	// copy the compiled source code to the target directory
-	await recursiveCopy(config, config.runtimeSource, config.runtimeDirectory)
+	await fs.recursiveCopy(config, config.runtimeSource, config.runtimeDirectory)
 
 	// generate the adapter to normalize interactions with the framework
 	// update the generated runtime to point to the client
@@ -16,49 +16,6 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 		addSiteURL(config),
 		meta(config),
 	])
-}
-
-async function recursiveCopy(config: Config, source: string, target: string, notRoot?: boolean) {
-	// if the folder containing the target doesn't exist, then we need to create it
-	let parentDir = path.join(target, path.basename(source))
-	// if we are at the root, then go up one
-	if (!notRoot) {
-		parentDir = path.join(parentDir, '..')
-	}
-	try {
-		await fs.access(parentDir)
-		// the parent directory does not exist
-	} catch (e) {
-		await fs.mkdir(parentDir)
-	}
-
-	// check if we are copying a directory
-	if ((await fs.stat(source)).isDirectory()) {
-		// look in the contents of the source directory
-		await Promise.all(
-			(
-				await fs.readdir(source)
-			).map(async (child) => {
-				// figure out the full path of the source
-				const childPath = path.join(source, child)
-
-				// if the child is a directory
-				if ((await fs.stat(childPath)).isDirectory()) {
-					// keep walking down
-					await recursiveCopy(config, childPath, parentDir, true)
-				}
-				// the child is a file, copy it to the parent directory
-				else {
-					const targetPath = path.join(parentDir, child)
-					// Do not write `/runtime/adapter.js` file. It will be generated later depending on the framework.
-					if (targetPath.endsWith('/runtime/adapter.js')) {
-						return
-					}
-					await fs.writeFile(targetPath, (await fs.readFile(childPath)) || '')
-				}
-			})
-		)
-	}
 }
 
 async function addClientImport(config: Config) {

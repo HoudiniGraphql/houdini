@@ -1012,7 +1012,13 @@ This will prevent your schema from being pulled (potentially resulting in errors
 
 	// load the svelte plugin if necessary
 	if (['kit', 'svelte'].includes(_config.framework)) {
-		_config.plugins.push(await (await import('houdini-svelte')).default())
+		try {
+			_config.plugins.push(await (await import('houdini-svelte')).default())
+		} catch {
+			throw new Error(
+				'Looks like you are missing the houdini-svelte plugin. Please install it and try again.'
+			)
+		}
 	}
 
 	// we're done and have a valid config
