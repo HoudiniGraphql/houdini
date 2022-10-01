@@ -94,7 +94,7 @@ export type ConfigFile = {
 	defaultCachePolicy?: CachePolicy
 
 	/**
-	 * Specifies wether or not the cache should always use partial data. For more information: https://www.houdinigraphql.com/guides/caching-data#partial-data
+	 * Specifies whether or not the cache should always use partial data. For more information: https://www.houdinigraphql.com/guides/caching-data#partial-data
 	 */
 	defaultPartial?: boolean
 

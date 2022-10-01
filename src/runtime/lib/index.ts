@@ -19,7 +19,7 @@ export async function loadAll(
 	// we need to collect all of the promises in a single list that we will await in promise.all and then build up
 	const promises: LoadResult[] = []
 
-	// the question we have to answer is wether entry is a promise or an object of promises
+	// the question we have to answer is whether entry is a promise or an object of promises
 	const isPromise = (val: LoadAllInput): val is LoadResult =>
 		'then' in val && 'finally' in val && 'catch' in val
 

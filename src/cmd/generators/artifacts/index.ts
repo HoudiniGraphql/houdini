@@ -319,7 +319,7 @@ export default function artifactGenerator(stats: {
 						stats.changed.push(artifact.name)
 					}
 
-					// regardless of wether it was changed or not, we need to track the total list of artifacts
+					// regardless of whether it was changed or not, we need to track the total list of artifacts
 					stats.total.push(artifact.name)
 				})
 			)
