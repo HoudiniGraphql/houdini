@@ -1,5 +1,5 @@
 import type { LoadEvent } from '@sveltejs/kit'
-import { FetchQueryResult, RequestPayload } from 'houdini/src/runtime/lib'
+import { FetchQueryResult } from 'houdini/src/runtime/lib'
 
 export type QueryInputs<_Data> = FetchQueryResult<_Data> & { variables: { [key: string]: any } }
 
