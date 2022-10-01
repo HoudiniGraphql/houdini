@@ -4,9 +4,6 @@
 	"version": "1.0.0",
 	"description": "",
 	"bin": "./main.js",
-	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1"
-	},
 	"type": "module",
 	"keywords": [],
 	"author": "",
@@ -14,11 +11,17 @@
 	"dependencies": {
 		"@esbuild-plugins/node-globals-polyfill": "^0.1.1",
 		"@hyrious/esbuild-plugin-commonjs": "^0.2.1",
+		"@rollup/plugin-commonjs": "^22.0.2",
+		"@rollup/plugin-json": "^4.1.0",
+		"@rollup/plugin-node-resolve": "^14.1.0",
+		"@rollup/plugin-replace": "^4.0.0",
+		"@rollup/plugin-typescript": "^8.5.0",
 		"commander": "^9.4.0",
 		"esbuild": "^0.15.10",
 		"esbuild-plugin-alias": "^0.2.1",
 		"glob": "^8.0.3",
 		"glob-promise": "^5.0.0",
-		"rollup": "^2.79.1"
+		"rollup": "^2.79.1",
+		"rollup-plugin-typescript2": "^0.34.0"
 	}
 }

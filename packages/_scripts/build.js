@@ -1,7 +1,8 @@
+import esbuild from 'esbuild'
+import alias from 'esbuild-plugin-alias'
 import fs from 'fs/promises'
 import glob from 'glob-promise'
 import path from 'path'
-import { rollup } from 'rollup'
 
 // the relevant directories
 const build_dir = path.join(process.cwd(), 'build')
@@ -98,6 +99,9 @@ async function build(source, bundle = true) {
 				platform: 'node',
 				format: which,
 				external: bundle ? ['vite', 'HOUDINI_CONFIG_PATH', 'HOUDINI_CLIENT_PATH'] : [],
+				banner: {
+					js: `import { createRequire } from 'module';const require = createRequire(import.meta.url);`,
+				},
 			}
 
 			// if we are building, turn the source into a single file
@@ -111,7 +115,7 @@ async function build(source, bundle = true) {
 				config.outdir = target_dir
 			}
 
-			await rollup(config)
+			await esbuild.build(config)
 
 			await fs.writeFile(
 				path.join(target_dir, 'package.json'),
