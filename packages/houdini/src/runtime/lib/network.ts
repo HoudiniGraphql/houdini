@@ -1,3 +1,4 @@
+/// <reference path = "../../../../../houdini.d.ts" />
 import cache from '../cache'
 import type { ConfigFile } from './config'
 import * as log from './log'
@@ -41,7 +42,7 @@ export class HoudiniClient {
 			},
 			...params,
 			metadata: ctx.metadata,
-			session: ctx.session,
+			session: ctx.session || {},
 		})
 
 		// return the result
@@ -85,7 +86,7 @@ export type FetchParams = {
 }
 
 export type FetchContext = {
-	fetch: (info: RequestInfo, init?: RequestInit) => Promise<Response>
+	fetch: typeof window.fetch
 	// @ts-ignore
 	metadata?: App.Metadata | null
 	// @ts-ignore

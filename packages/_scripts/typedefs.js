@@ -1,21 +1,23 @@
+import fs from 'fs'
 import glob from 'glob-promise'
+import path from 'path'
 import ts from 'typescript'
+
+const { ModuleResolutionKind } = ts
+const tsConfig = JSON.parse(fs.readFileSync('../../tsconfig.json'))
 
 // we'll generate the types for every file in the package in one go
 export default async function generateTypedefs() {
-	const files = await glob('./src/**/*.ts', { nodir: true })
+	const files = (await glob('./src/**/*.ts', { nodir: true })).filter(
+		(path) => !path.endsWith('.test.ts')
+	)
 
 	compile(files, {
-		outdir: './build',
-		strict: true,
-		esModuleInterop: true,
-		lib: ['esnext', 'dom', 'ES2021.String'],
-		skipLibCheck: true,
-		downlevelIteration: true,
-		target: 'es2020',
-		sourceMap: true,
-		declaration: false,
-		module: 'es2020',
+		...tsConfig.compilerOptions,
+		moduleResolution: ModuleResolutionKind.Node,
+		outDir: 'build',
+		project: path.join(process.cwd(), '..', '..'),
+		lib: ['lib.es2021.d.ts', 'lib.dom.d.ts', 'lib.es2021.string.d.ts'],
 	})
 }
 

@@ -837,8 +837,8 @@ function noUnusedFragmentArguments(config: Config) {
 
 		return {
 			// when we first see a fragment definition
-			enter: {
-				FragmentDefinition(node) {
+			enter(node) {
+				if (node.kind === graphql.Kind.FRAGMENT_DEFINITION) {
 					const definitionArguments = node.directives
 						?.filter((directive) => directive.name.value === config.argumentsDirective)
 						.flatMap((directive) => directive.arguments!)
@@ -846,14 +846,13 @@ function noUnusedFragmentArguments(config: Config) {
 					for (const arg of definitionArguments?.map((arg) => arg?.name.value) || []) {
 						args.add(arg)
 					}
-				},
-				Variable(node) {
+				} else if (node.kind === graphql.Kind.VARIABLE) {
 					args.delete(node.name.value)
-				},
+				}
 			},
-			leave: {
+			leave(node) {
 				// once we're done with the definition make sure we used everything
-				FragmentDefinition(node) {
+				if (node.kind === graphql.Kind.FRAGMENT_DEFINITION) {
 					if (args.size > 0) {
 						ctx.reportError(
 							new graphql.GraphQLError(
@@ -861,7 +860,7 @@ function noUnusedFragmentArguments(config: Config) {
 							)
 						)
 					}
-				},
+				}
 			},
 		}
 	}

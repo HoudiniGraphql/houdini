@@ -22,9 +22,9 @@ export default async function writeIndexFile(config: Config, docs: CollectedGrap
 	let body = cjs ? cjsIndexFilePreamble : ''
 
 	// create the export functions
-	const export_star_from = ({ module }) =>
+	const export_star_from = ({ module }: { module: string }) =>
 		cjs ? exportStarFrom(module) : `export * from "${module}"`
-	const export_default_as = ({ module, as }) =>
+	const export_default_as = ({ module, as }: { module: string; as: string }) =>
 		cjs ? exportDefaultFrom(module, as) : `export { default as ${as} } from "${module}"`
 
 	// add the standard exports
