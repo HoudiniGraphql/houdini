@@ -1,5 +1,6 @@
 import * as recast from 'recast'
 
+import { Config, Script } from '../lib'
 import { TransformPage } from './plugin'
 
 const AST = recast.types.builders
@@ -8,27 +9,31 @@ type Identifier = recast.types.namedTypes.Identifier
 type ImportDeclaration = recast.types.namedTypes.ImportDeclaration
 
 export function ensure_imports(args: {
-	page: TransformPage
+	config: Config
+	script: Script
 	import?: string
 	as?: never
 	sourceModule: string
 	importKind?: 'value' | 'type'
 }): { ids: Identifier; added: number }
 export function ensure_imports(args: {
-	page: TransformPage
+	config: Config
+	script: Script
 	import?: string[]
 	as?: string[]
 	sourceModule: string
 	importKind?: 'value' | 'type'
 }): { ids: Identifier[]; added: number }
 export function ensure_imports({
-	page,
+	config,
+	script,
 	import: importID,
 	sourceModule,
 	importKind,
 	as,
 }: {
-	page: TransformPage
+	config: Config
+	script: Script
 	import?: string[] | string
 	as?: string[]
 	sourceModule: string
@@ -37,12 +42,12 @@ export function ensure_imports({
 	// if there is no import, we can simplify the logic, just look for something with a matching source
 	if (!importID) {
 		// look for an import from the source module
-		const has_import = page.script.body.find(
+		const has_import = script.body.find(
 			(statement) =>
 				statement.type === 'ImportDeclaration' && statement.source.value === sourceModule
 		)
 		if (!has_import) {
-			page.script.body.unshift({
+			script.body.unshift({
 				type: 'ImportDeclaration',
 				source: AST.stringLiteral(sourceModule),
 				importKind,
@@ -57,7 +62,7 @@ export function ensure_imports({
 	// figure out the list of things to import
 	const toImport = idList.filter(
 		(identifier) =>
-			!page.script.body.find(
+			!script.body.find(
 				(statement) =>
 					statement.type === 'ImportDeclaration' &&
 					(statement as unknown as ImportDeclaration).specifiers?.find(
@@ -76,7 +81,7 @@ export function ensure_imports({
 
 	// add the import if it doesn't exist, add it
 	if (toImport.length > 0) {
-		page.script.body.unshift({
+		script.body.unshift({
 			type: 'ImportDeclaration',
 			source: AST.stringLiteral(sourceModule),
 			specifiers: toImport.map((identifier, i) =>
@@ -102,17 +107,20 @@ export function ensure_imports({
 }
 
 export function store_import({
-	page,
+	config,
+	script,
 	artifact,
 	local,
 }: {
-	page: TransformPage
+	config: Config
+	script: Script
 	artifact: { name: string }
 	local?: string
 }): { id: Identifier; added: number } {
 	const { ids, added } = ensure_imports({
-		page,
-		sourceModule: page.config.storeImportPath(artifact.name),
+		config,
+		script,
+		sourceModule: config.storeImportPath(artifact.name),
 		import: `GQL_${artifact.name}`,
 	})
 
@@ -120,17 +128,21 @@ export function store_import({
 }
 
 export function artifact_import({
-	page,
+	config,
+	script,
 	artifact,
 	local,
 }: {
 	page: TransformPage
+	config: Config
+	script: Script
 	artifact: { name: string }
 	local?: string
 }) {
 	const { ids, added } = ensure_imports({
-		page,
-		sourceModule: page.config.artifactImportPath(artifact.name),
+		config,
+		script,
+		sourceModule: config.artifactImportPath(artifact.name),
 		import: local || `_${artifact.name}Artifact`,
 	})
 	return { id: ids, added }
