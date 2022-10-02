@@ -65,8 +65,6 @@ export class Config {
 		let {
 			schema,
 			schemaPath = './schema.graphql',
-			sourceGlob,
-			include,
 			exclude,
 			apiUrl,
 			framework = 'kit',
@@ -103,20 +101,6 @@ export class Config {
 			this.schema = graphql.buildSchema(schema)
 		} else {
 			this.schema = schema!
-		}
-
-		if (sourceGlob) {
-			const hasDefault = sourceGlob === 'src/**/*.{svelte,gql,graphql}'
-
-			console.warn(`⚠️ config value \`sourceGlob\` has been renamed to \`include\`.
-Please update your config file. Keep in mind, the new config parameter is optional and has a default of "src/**/*.{svelte,graphql,gql,ts,js}".
-${
-	hasDefault
-		? 'You might prefer to remove the config value all together since you are using the old default value.'
-		: 'Consider removing this config value and using `exclude` to filter out the files that match this default pattern that you want to avoid.'
-}
-`)
-			include = sourceGlob
 		}
 
 		// validate the log level value
@@ -190,22 +174,6 @@ ${
 
 		// any file of a valid extension in src is good enough
 		return `src/**/*.{${extensions.join(',')}}`
-	}
-
-	// compute if a path points to a component query or not
-	isRoute(filepath: string): boolean {
-		// a vanilla svelte app is never considered in a route
-		if (this.framework === 'svelte') {
-			return false
-		}
-
-		// only consider filepaths in src/routes
-		if (!posixify(filepath).startsWith(posixify(this.routesDir))) {
-			return false
-		}
-
-		// only consider layouts and pages as routes
-		return ['+layout.svelte', '+page.svelte'].includes(path.parse(filepath).base)
 	}
 
 	get pullHeaders() {
@@ -361,7 +329,6 @@ ${
 	// the location of the artifact generated corresponding to the provided documents
 	artifactPath(document: graphql.DocumentNode): string {
 		// use the operation name for the artifact
-		// make sure to mark artifacts as .js in sveltekit
 		return path.join(this.artifactDirectory, this.documentName(document) + '.js')
 	}
 
@@ -458,11 +425,11 @@ ${
 		let included = false
 		// plugins might define custom include logic
 		for (const plugin of this.plugins) {
-			if (!plugin.include_file) {
+			if (!plugin.include) {
 				continue
 			}
 
-			if (plugin.include_file(this, filepath)) {
+			if (plugin.include(this, filepath)) {
 				included = true
 				break
 			}
@@ -878,8 +845,6 @@ export enum LogLevel {
 	Quiet = 'quiet',
 }
 
-const posixify = (str: string) => str.replace(/\\/g, '/')
-
 export type HoudiniPlugin = (args?: { configFile?: string }) => Promise<{
 	extensions?: string[]
 	extract_documents?: (filepath: string, content: string) => Promise<string[]>
@@ -887,7 +852,7 @@ export type HoudiniPlugin = (args?: { configFile?: string }) => Promise<{
 	transform_file?: (page: TransformPage) => Promise<{ code: string }>
 	index_file?: ModuleIndexTransform
 	vite?: Omit<Plugin, 'name'>
-	include_file?: (config: Config, filepath: string) => boolean | null
+	include?: (config: Config, filepath: string) => boolean | null
 }>
 
 type ModuleIndexTransform = (arg: {

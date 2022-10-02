@@ -9,7 +9,7 @@ import {
 	Config,
 	runPipeline as run,
 	LogLevel,
-	walkGraphQLDocuments,
+	find_graphql,
 	readFile,
 	parseJS,
 	HoudiniError,
@@ -302,7 +302,7 @@ async function processJSFile(
 	}
 
 	// look for a graphql template tag
-	await walkGraphQLDocuments(config, program, {
+	await find_graphql(config, program, {
 		tag(tag) {
 			documents.push({ document: tag.tagContent, filepath })
 		},

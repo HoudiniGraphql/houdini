@@ -1,9 +1,25 @@
 import graphql from 'graphql'
-import { Config, fs, walkGraphQLDocuments } from 'houdini'
+import { Config, fs, find_graphql } from 'houdini'
 import path from 'path'
 
 import { parseSvelte } from '../plugin/extract'
 import { extractLoadFunction } from './extractLoadFunction'
+
+// compute if a path points to a component query or not
+export function is_route(config: Config, filepath: string): boolean {
+	// a vanilla svelte app is never considered in a route
+	if (config.framework === 'svelte') {
+		return false
+	}
+
+	// only consider filepaths in src/routes
+	if (!posixify(filepath).startsWith(posixify(config.routesDir))) {
+		return false
+	}
+
+	// only consider layouts and pages as routes
+	return ['+layout.svelte', '+page.svelte'].includes(path.parse(filepath).base)
+}
 
 export function route_data_path(config: Config, filename: string) {
 	// replace the .svelte with .js
@@ -137,7 +153,7 @@ export async function walk_routes(
 			}
 
 			// look for any graphql tags and invoke the walker's handler
-			await walkGraphQLDocuments(config, parsed.script, {
+			await find_graphql(config, parsed.script, {
 				where: (tag) => {
 					try {
 						return !!config.extractQueryDefinition(tag)
@@ -200,4 +216,5 @@ const routeQueryError = (filepath: string) => ({
 	filepath,
 	message: 'route query error',
 })
-extract_load_function
+
+const posixify = (str: string) => str.replace(/\\/g, '/')

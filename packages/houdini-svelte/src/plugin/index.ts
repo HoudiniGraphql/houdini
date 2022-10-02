@@ -28,7 +28,7 @@ const HoudiniSveltePlugin: HoudiniPlugin = async () => ({
 		return content + export_star_from({ module: storesDir })
 	},
 
-	include_file(config, filepath) {
+	include(config, filepath) {
 		// deal with any relative imports from compiled assets
 		filepath = resolve_relative(config, filepath)
 
