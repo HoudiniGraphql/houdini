@@ -1,4 +1,4 @@
-import { HoudiniPlugin } from 'houdini/src/common'
+import { HoudiniPlugin } from 'houdini'
 import path from 'path'
 
 import generate from './codegen'

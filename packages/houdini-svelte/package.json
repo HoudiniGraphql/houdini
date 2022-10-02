@@ -5,7 +5,8 @@
 	"type": "module",
 	"scripts": {
 		"tests": "vitest",
-		"build": "scripts build"
+		"build": "scripts build",
+		"typedefs": "scripts typedefs"
 	},
 	"dependencies": {
 		"@kitql/helper": "^0.5.0",

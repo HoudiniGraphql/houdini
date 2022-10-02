@@ -1,8 +1,5 @@
-import path from 'path'
 import type { Plugin } from 'vite'
 
-import generate from '../cmd/codegen'
-import { formatErrors, getConfig } from '../lib'
 import { ConfigFile } from '../runtime/lib'
 import vite_adapter from './adapter'
 import houdini from './plugin'
