@@ -1,4 +1,4 @@
-import { HoudiniPlugin, Config } from 'houdini'
+import { HoudiniPlugin } from 'houdini'
 import minimatch from 'minimatch'
 import path from 'path'
 
