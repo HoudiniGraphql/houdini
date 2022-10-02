@@ -1,4 +1,4 @@
-import { parseJS, runPipeline, formatErrors } from 'houdini'
+import { parseJS, runPipeline, formatErrors, Script } from 'houdini'
 import { TransformPage } from 'houdini/vite'
 import * as recast from 'recast'
 
@@ -45,7 +45,7 @@ export default async function apply_transforms(page: TransformPage): Promise<{ c
 	}
 
 	// wrap everything up in an object we'll thread through the transforms
-	const result: TransformPage = {
+	const result: SvelteTransformPage = {
 		...page,
 		...script,
 	}
@@ -79,3 +79,7 @@ function replace_tag_content(source: string, start: number, end: number, insert:
 
 const replace_between = (origin: string, startIndex: number, endIndex: number, insertion: string) =>
 	origin.substring(0, startIndex) + insertion + origin.substring(endIndex)
+
+export type SvelteTransformPage = TransformPage & {
+	script: Script
+}

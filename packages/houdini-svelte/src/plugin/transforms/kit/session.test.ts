@@ -1,5 +1,6 @@
-import { test_transform_js, test_transform_svelte } from 'houdini/vite'
 import { test, expect } from 'vitest'
+
+import { test_transform_js, test_transform_svelte } from '../../../plugin/tests'
 
 test('modifies root +layout.svelte with data prop', async function () {
 	// run the test

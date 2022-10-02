@@ -1,7 +1,6 @@
-import { CollectedGraphQLDocument, cleanupFiles, Config, fs } from 'houdini'
+import { CollectedGraphQLDocument, cleanupFiles, Config, fs, ArtifactKind } from 'houdini'
 import path from 'path'
 
-import { ArtifactKind } from '../../runtime'
 import { generateFragmentStore } from './fragment'
 import { generateIndividualStoreMutation } from './mutation'
 import { generateIndividualStoreQuery } from './query'
@@ -21,7 +20,7 @@ export default async function storesGenerator(config: Config, docs: CollectedGra
 				listOfStores.push(await generateIndividualStoreQuery(config, doc))
 			} else if (doc.kind === ArtifactKind.Mutation) {
 				listOfStores.push(await generateIndividualStoreMutation(config, doc))
-			} else if (doc.kind === ArtifactKind.Subcription) {
+			} else if (doc.kind === ArtifactKind.Subscription) {
 				listOfStores.push(await generateSubscriptionStore(config, doc))
 			} else if (doc.kind === ArtifactKind.Fragment) {
 				listOfStores.push(await generateFragmentStore(config, doc))

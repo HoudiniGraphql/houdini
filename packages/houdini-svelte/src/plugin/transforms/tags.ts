@@ -2,9 +2,11 @@ import { Config, find_graphql } from 'houdini'
 import { TransformPage, store_import } from 'houdini/vite'
 import * as recast from 'recast'
 
+import { SvelteTransformPage } from '.'
+
 const AST = recast.types.builders
 
-export default async function GraphQLTagProcessor(config: Config, page: TransformPage) {
+export default async function GraphQLTagProcessor(config: Config, page: SvelteTransformPage) {
 	// all graphql template tags need to be turned into a reference to the appropriate store
 	await find_graphql(config, page.script, {
 		dependency: page.watch_file,
@@ -17,7 +19,7 @@ export default async function GraphQLTagProcessor(config: Config, page: Transfor
 			// store
 			node.replaceWith(
 				store_import({
-					script,
+					script: page.script,
 					config: config,
 					artifact: { name: operation.name!.value },
 				}).id

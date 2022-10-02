@@ -1,8 +1,8 @@
 import { find_exported_fn, find_insert_index } from 'houdini/vite'
 import { ensure_imports } from 'houdini/vite'
-import { TransformPage } from 'houdini/vite'
 import * as recast from 'recast'
 
+import { SvelteTransformPage } from '..'
 import { is_root_layout_script, is_root_layout_server } from '../../kit'
 
 const AST = recast.types.builders
@@ -12,7 +12,7 @@ type BlockStatement = recast.types.namedTypes.BlockStatement
 type Identifier = recast.types.namedTypes.Identifier
 type ObjectExpression = recast.types.namedTypes.ObjectExpression
 
-export default function (page: TransformPage) {
+export default function (page: SvelteTransformPage) {
 	if (is_root_layout_server(page.config, page.filepath)) {
 		process_root_layout_server(page)
 	} else if (is_root_layout_script(page.config, page.filepath)) {
@@ -26,9 +26,9 @@ export default function (page: TransformPage) {
 // - define a load if there isn't one
 // - set the current return value to some internal name
 // - add a new return statement that includes the session data from event.locals
-function process_root_layout_server(page: TransformPage) {
+function process_root_layout_server(page: SvelteTransformPage) {
 	const build_session_object = ensure_imports({
-		script,
+		script: page.script,
 		config: page.config,
 		import: ['buildSessionObject'],
 		sourceModule: '$houdini/runtime/lib/network',
@@ -41,14 +41,14 @@ function process_root_layout_server(page: TransformPage) {
 
 // all we need to do is make sure the session gets passed down by
 // threading the value through the return
-function process_root_layout_script(page: TransformPage) {
+function process_root_layout_script(page: SvelteTransformPage) {
 	add_load_return(page, (event_id) => [
 		AST.spreadElement(AST.memberExpression(event_id, AST.identifier('data'))),
 	])
 }
 
 function add_load_return(
-	page: TransformPage,
+	page: SvelteTransformPage,
 	properties: (id: Identifier) => ObjectExpression['properties']
 ) {
 	modify_load(page, (body, event_id) => {
@@ -89,7 +89,7 @@ function add_load_return(
 }
 
 function modify_load(
-	page: TransformPage,
+	page: SvelteTransformPage,
 	cb: (body: BlockStatement, event_id: Identifier) => void
 ) {
 	// before we do anything, we need to find the load function

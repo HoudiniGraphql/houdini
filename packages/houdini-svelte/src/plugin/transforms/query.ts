@@ -4,6 +4,7 @@ import { Config, operation_requires_variables, find_graphql, Script } from 'houd
 import { find_exported_fn, find_insert_index, ensure_imports, TransformPage } from 'houdini/vite'
 import * as recast from 'recast'
 
+import { SvelteTransformPage } from '.'
 import { is_component } from '../kit'
 
 const AST = recast.types.builders
@@ -13,7 +14,7 @@ type VariableDeclaration = recast.types.namedTypes.VariableDeclaration
 type Identifier = recast.types.namedTypes.Identifier
 type Statement = recast.types.namedTypes.Statement
 
-export default async function QueryProcessor(config: Config, page: TransformPage) {
+export default async function QueryProcessor(config: Config, page: SvelteTransformPage) {
 	// only consider consider components in this processor
 	if (!is_component(config, page.filepath)) {
 		return
@@ -50,14 +51,14 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 
 	ensure_imports({
 		config: page.config,
-		script,
+		script: page.script,
 		import: ['marshalInputs'],
 		sourceModule: '$houdini/runtime/lib/scalars',
 	})
 
 	ensure_imports({
 		config: page.config,
-		script,
+		script: page.script,
 		import: ['RequestContext'],
 		sourceModule: '$houdini/runtime/lib/network',
 	})
@@ -65,7 +66,7 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 	// import the browser check
 	ensure_imports({
 		config: page.config,
-		script,
+		script: page.script,
 		import: ['isBrowser'],
 		sourceModule: '$houdini/runtime/adapter',
 	})
@@ -73,7 +74,7 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 	// define the store values at the top of the file
 	for (const query of queries) {
 		const factory = ensure_imports({
-			script,
+			script: page.script,
 			config: page.config,
 			import: [`${query.name}Store`],
 			sourceModule: config.storeImportPath(query.name),

@@ -1,11 +1,11 @@
 import { Config } from 'houdini'
-import { TransformPage } from 'houdini/vite'
 
+import { SvelteTransformPage } from '..'
 import init from './init'
 import load from './load'
 import session from './session'
 
-export default async function SvelteKitProcessor(config: Config, page: TransformPage) {
+export default async function SvelteKitProcessor(config: Config, page: SvelteTransformPage) {
 	// if we aren't running on a kit project, don't do anything
 	if (page.config.framework !== 'kit') {
 		return

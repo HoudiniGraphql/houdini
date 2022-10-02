@@ -3,6 +3,7 @@ import { Config } from 'houdini'
 import { TransformPage } from 'houdini/vite'
 import * as recast from 'recast'
 
+import { SvelteTransformPage } from '.'
 import { is_component, is_route } from '../kit'
 
 const AST = recast.types.builders
@@ -12,7 +13,7 @@ type VariableDeclarator = recast.types.namedTypes.VariableDeclarator
 type CallExpression = recast.types.namedTypes.CallExpression
 type TaggedTemplateExpression = recast.types.namedTypes.TaggedTemplateExpression
 
-export default async function ReactiveProcessor(config: Config, page: TransformPage) {
+export default async function ReactiveProcessor(config: Config, page: SvelteTransformPage) {
 	// if a file imports graphql from $houdini then they might have an inline document
 	// that needs to be transformed into a reactive statement.
 	// in order to avoid situations where graphql`` is passed around to functions we are going to

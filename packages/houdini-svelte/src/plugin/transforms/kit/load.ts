@@ -5,9 +5,9 @@ import * as graphql from 'graphql'
 import { formatErrors, operation_requires_variables, fs } from 'houdini'
 import { find_insert_index } from 'houdini/vite'
 import { ensure_imports, store_import } from 'houdini/vite'
-import { TransformPage } from 'houdini/vite'
 import * as recast from 'recast'
 
+import { SvelteTransformPage } from '..'
 import { parseSvelte } from '../../extract'
 import {
 	extract_load_function,
@@ -24,7 +24,7 @@ const AST = recast.types.builders
 
 type ExportNamedDeclaration = ReturnType<typeof recast.types.builders['exportNamedDeclaration']>
 
-export default async function kit_load_generator(page: TransformPage) {
+export default async function kit_load_generator(page: SvelteTransformPage) {
 	// if this isn't a route, move on
 	const route = is_route(page.config, page.filepath)
 	const script = is_route_script(page.config, page.filepath)
@@ -38,7 +38,7 @@ export default async function kit_load_generator(page: TransformPage) {
 			? AST.memberExpression(AST.identifier('data'), AST.identifier(name))
 			: store_import({
 					config: page.config,
-					script,
+					script: page.script,
 					artifact: { name },
 			  }).id
 
@@ -124,7 +124,7 @@ function add_load({
 	page_info,
 }: {
 	queries: LoadTarget[]
-	page: TransformPage
+	page: SvelteTransformPage
 	page_info: HoudiniRouteScript
 }) {
 	// if there is already a load function defined, don't do anything
@@ -154,13 +154,13 @@ function add_load({
 
 	// make sure we have RequestContext imported
 	ensure_imports({
-		script,
+		script: page.script,
 		config: page.config,
 		import: ['RequestContext'],
 		sourceModule: '$houdini/runtime/lib/network',
 	})
 	ensure_imports({
-		script,
+		script: page.script,
 		config: page.config,
 		import: ['getCurrentConfig'],
 		sourceModule: '$houdini/runtime/lib/config',
@@ -235,7 +235,7 @@ function add_load({
 	// every query that we found needs to be triggered in this function
 	for (const query of queries) {
 		const { ids } = ensure_imports({
-			script,
+			script: page.script,
 			config: page.config,
 			import: [`load_${query.name}`],
 			sourceModule: page.config.storeImportPath(query.name),
@@ -261,7 +261,7 @@ function add_load({
 									AST.literal('artifact'),
 									AST.memberExpression(
 										store_import({
-											script,
+											script: page.script,
 											config: page.config,
 											artifact: query,
 										}).id,
@@ -404,7 +404,7 @@ function add_load({
 	}
 }
 
-async function find_page_query(page: TransformPage): Promise<LoadTarget | null> {
+async function find_page_query(page: SvelteTransformPage): Promise<LoadTarget | null> {
 	// figure out the filepath for the page query
 	const query_path = page_query_path(page.config, page.filepath)
 
@@ -429,7 +429,7 @@ async function find_page_query(page: TransformPage): Promise<LoadTarget | null> 
 
 	// generate an import for the store
 	const { id } = store_import({
-		script,
+		script: page.script,
 		config: page.config,
 		artifact: { name: definition.name!.value },
 	})
@@ -472,7 +472,7 @@ function load_hook_statements(
 	)
 }
 
-async function find_page_info(page: TransformPage): Promise<HoudiniRouteScript> {
+async function find_page_info(page: SvelteTransformPage): Promise<HoudiniRouteScript> {
 	if (!is_route_script(page.config, page.filepath) && !is_route(page.config, page.filepath)) {
 		return { houdini_load: [], exports: [] }
 	}
