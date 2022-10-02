@@ -98,9 +98,14 @@ async function build(source, bundle = true) {
 				bundle,
 				platform: 'node',
 				format: which,
-				external: bundle ? ['vite', 'HOUDINI_CONFIG_PATH', 'HOUDINI_CLIENT_PATH'] : [],
+				external: bundle
+					? ['vite', 'vitest', 'HOUDINI_CONFIG_PATH', 'HOUDINI_CLIENT_PATH']
+					: [],
 				banner: {
-					js: `const require = createRequire(import.meta.url);`,
+					js:
+						which === 'esm'
+							? `import { createRequire } from 'module'; const require = createRequire(import.meta.url);`
+							: '',
 				},
 			}
 

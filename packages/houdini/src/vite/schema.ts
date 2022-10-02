@@ -3,9 +3,8 @@ import glob from 'glob'
 import path from 'path'
 import type { Plugin } from 'vite'
 
-import { pullSchema } from '../cmd/codegen/utils/index.js'
-import { formatErrors, getConfig } from '../lib/index.js'
-import { ConfigFile } from '../runtime/lib/index.js'
+import { formatErrors, getConfig, pullSchema } from '../lib'
+import { ConfigFile } from '../runtime/lib'
 
 export default function HoudiniWatchSchemaPlugin({
 	configFile,

@@ -7,6 +7,7 @@
 		"tests": "vitest",
 		"build": "turbo build",
 		"test": "turbo run test",
+		"typedefs": "turbo run typedefs",
 		"lint": "turbo run lint",
 		"build:typeModule": "node ./typeModule",
 		"format": "prettier \"packages/**/*.ts\"",

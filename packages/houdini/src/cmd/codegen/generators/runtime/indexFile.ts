@@ -2,9 +2,8 @@
 import path from 'path'
 
 // locals
-import { Config } from '../../../../lib'
+import { Config, CollectedGraphQLDocument } from '../../../../lib'
 import * as fs from '../../../../lib/fs'
-import { CollectedGraphQLDocument } from '../../types'
 import { cjsIndexFilePreamble, exportStarFrom, exportDefaultFrom } from '../../utils'
 
 // every document in the application should be re-exported from the root. this allows the user to balance

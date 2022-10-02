@@ -1,7 +1,6 @@
+import fs from 'fs/promises'
 import * as graphql from 'graphql'
 import fetch from 'node-fetch'
-
-import { writeFile } from '../../../lib/fs'
 
 export async function pullSchema(
 	url: string,
@@ -26,9 +25,9 @@ export async function pullSchema(
 		// Otherwise write the json/introspection
 		if (schemaPath!.endsWith('gql') || schemaPath!.endsWith('graphql')) {
 			const schemaAsString = graphql.printSchema(graphql.lexicographicSortSchema(schema))
-			await writeFile(schemaPath, schemaAsString)
+			await fs.writeFile(schemaPath, schemaAsString, 'utf-8')
 		} else {
-			await writeFile(schemaPath, JSON.stringify(jsonSchema))
+			await fs.writeFile(schemaPath, JSON.stringify(jsonSchema), 'utf-8')
 		}
 
 		return true

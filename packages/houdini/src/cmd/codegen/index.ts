@@ -15,11 +15,11 @@ import {
 	HoudiniPlugin,
 	siteURL,
 	fs,
+	CollectedGraphQLDocument,
 } from '../../lib'
-import { ArtifactKind } from '../../runtime/lib'
+import { ArtifactKind } from '../../runtime/lib/types'
 import * as generators from './generators'
 import * as transforms from './transforms'
-import { CollectedGraphQLDocument } from './types'
 import * as validators from './validators'
 
 type Program = recast.types.namedTypes.Program

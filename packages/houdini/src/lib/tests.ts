@@ -1,8 +1,8 @@
 import path from 'path'
 
-import { Config } from '.'
 import { ConfigFile } from '../runtime/lib'
 import { testConfigFile } from '../runtime/lib/test'
+import { Config } from './config'
 
 export function testConfig(config: Partial<ConfigFile> = {}) {
 	return new Config({

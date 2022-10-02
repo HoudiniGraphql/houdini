@@ -75,6 +75,7 @@ importers:
             graphql-tag: ^2.12.6
             graphql-ws: ^5.8.2
             houdini: workspace:^
+            houdini-svelte: workspace:^
             mdsvex: ^0.10.5
             prettier: ^2.5.1
             prettier-plugin-svelte: ^2.5.0
@@ -107,6 +108,7 @@ importers:
             eslint-plugin-svelte3: 4.0.0_snydkosur25h6rjxszquwacaua
             graphql: 16.6.0
             houdini: link:../../packages/houdini
+            houdini-svelte: link:../../packages/houdini-svelte
             prettier: 2.7.1
             prettier-plugin-svelte: 2.7.1_nk6d2fkgcllkkdynqbuearcure
             svelte: 3.50.1
@@ -2647,7 +2649,7 @@ packages:
             }
         engines: { node: '>= 6.0.0' }
         dependencies:
-            debug: 4.3.3
+            debug: 4.3.4
         transitivePeerDependencies:
             - supports-color
 
@@ -3340,6 +3342,7 @@ packages:
                 optional: true
         dependencies:
             ms: 2.1.2
+        dev: true
 
     /debug/4.3.4:
         resolution:

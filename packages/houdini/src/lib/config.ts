@@ -8,13 +8,13 @@ import { fileURLToPath } from 'url'
 import { promisify } from 'util'
 import type { Plugin } from 'vite'
 
-import { CollectedGraphQLDocument } from '../cmd/codegen/types'
-import { pullSchema } from '../cmd/codegen/utils'
 import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/lib'
 import { CachePolicy } from '../runtime/lib/types'
 import { TransformPage } from '../vite/plugin'
 import { HoudiniError } from './error'
 import * as fs from './fs'
+import { pullSchema } from './introspection'
+import { CollectedGraphQLDocument } from './types'
 
 // @ts-ignore
 const currentDir = global.__dirname || path.dirname(fileURLToPath(import.meta.url))

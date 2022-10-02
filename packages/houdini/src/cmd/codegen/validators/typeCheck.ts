@@ -7,6 +7,7 @@ import {
 	parentTypeFromAncestors,
 	HoudiniError,
 	siteURL,
+	CollectedGraphQLDocument,
 } from '../../../lib'
 import {
 	FragmentArgument,
@@ -14,7 +15,6 @@ import {
 	withArguments,
 } from '../transforms/fragmentVariables'
 import { connectionSelection } from '../transforms/list'
-import { CollectedGraphQLDocument } from '../types'
 import { unwrapType } from '../utils'
 
 // typeCheck verifies that the documents are valid instead of waiting

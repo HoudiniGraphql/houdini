@@ -1,9 +1,8 @@
 import * as graphql from 'graphql'
 
-import { Config, getRootType, HoudiniError } from '../../../../lib'
+import { Config, getRootType, HoudiniError, CollectedGraphQLDocument } from '../../../../lib'
 import type { MutationOperation, SubscriptionSelection } from '../../../../runtime/lib'
 import { connectionSelection } from '../../transforms/list'
-import { CollectedGraphQLDocument } from '../../types'
 import fieldKey from './fieldKey'
 import { convertValue, deepMerge } from './utils'
 

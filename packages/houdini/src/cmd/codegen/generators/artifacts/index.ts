@@ -8,11 +8,11 @@ import {
 	HoudiniError,
 	parentTypeFromAncestors,
 	fs,
+	CollectedGraphQLDocument,
+	cleanupFiles,
 } from '../../../../lib'
 import { ArtifactKind } from '../../../../runtime/lib'
-import { CollectedGraphQLDocument } from '../../types'
 import { moduleExport } from '../../utils'
-import { cleanupFiles } from '../../utils/cleanupFiles'
 import writeIndexFile from './indexFile'
 import { inputObject } from './inputs'
 import { operationsByPath, FilterMap } from './operations'

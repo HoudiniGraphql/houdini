@@ -2,7 +2,7 @@ import path from 'path'
 import type { Plugin } from 'vite'
 
 import generate from '../cmd/codegen'
-import { Config, formatErrors, getConfig, Script } from '../lib'
+import { Config, getConfig, formatErrors } from '../lib'
 
 export default function HoudiniPlugin(configFile?: string): Plugin {
 	return {

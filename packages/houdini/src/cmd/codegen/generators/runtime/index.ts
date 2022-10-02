@@ -1,5 +1,4 @@
-import { Config } from '../../../../lib'
-import { CollectedGraphQLDocument } from '../../types'
+import { Config, CollectedGraphQLDocument } from '../../../../lib'
 import copyRuntime from './copyRuntime'
 import writeIndexFile from './indexFile'
 

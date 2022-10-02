@@ -1,8 +1,6 @@
 import path from 'path'
 
-import { Config, siteURL } from '../../../../lib'
-import * as fs from '../../../../lib/fs'
-import { CollectedGraphQLDocument } from '../../types'
+import { Config, siteURL, CollectedGraphQLDocument, fs } from '../../../../lib'
 
 export default async function runtimeGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	// copy the compiled source code to the target directory
