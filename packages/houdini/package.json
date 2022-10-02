@@ -57,5 +57,5 @@
 	},
 	"bin": "./build/cmd-esm/index.js",
 	"main": "./build/lib-cjs/index.js",
-	"types": "./build/plugin/index.d.ts"
+	"types": "./build/lib/index.d.ts"
 }

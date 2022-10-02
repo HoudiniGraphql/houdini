@@ -1,6 +1,6 @@
 import path from 'path'
 
-import { Config, writeFile } from '../../../../lib'
+import { Config, fs } from '../../../../lib'
 import { CollectedGraphQLDocument } from '../../types'
 import { cjsIndexFilePreamble, exportDefaultFrom } from '../../utils'
 
@@ -23,5 +23,5 @@ export default async function writeIndexFile(config: Config, docs: CollectedGrap
 			  )
 
 	// write the result to the artifact path we're configured to write to
-	await writeFile(path.join(config.artifactDirectory, 'index.js'), body)
+	await fs.writeFile(path.join(config.artifactDirectory, 'index.js'), body)
 }

@@ -4,7 +4,6 @@ import path from 'path'
 import prompts from 'prompts'
 
 import { ConfigFile } from '../runtime/lib'
-import { readFile, writeFile } from './../lib'
 import * as fs from './../lib/fs'
 import { pullSchema } from './codegen/utils/introspection'
 
@@ -141,7 +140,7 @@ export default async function init(
 		url,
 		houdiniClientImport,
 	})
-	await writeFile(houdiniClientPath, networkFile(url, typescript))
+	await fs.writeFile(houdiniClientPath, networkFile(url, typescript))
 	await graphqlRCFile(targetPath)
 	await gitIgnore(targetPath)
 
@@ -271,7 +270,7 @@ async function tjsConfig(targetPath: string, framework: 'kit' | 'svelte') {
 
 	// check if the tsconfig.json file exists
 	try {
-		const tjsConfigFile = await readFile(configFile)
+		const tjsConfigFile = await fs.readFile(configFile)
 		if (tjsConfigFile) {
 			var tjsConfig = JSON.parse(tjsConfigFile)
 		}
@@ -294,7 +293,7 @@ async function tjsConfig(targetPath: string, framework: 'kit' | 'svelte') {
 			}
 		}
 
-		await writeFile(configFile, JSON.stringify(tjsConfig, null, 4))
+		await fs.writeFile(configFile, JSON.stringify(tjsConfig, null, 4))
 	} catch {}
 
 	return false
@@ -508,7 +507,7 @@ async function updatePackageJSON(targetPath: string) {
 	let packageJSON: Record<string, any> = {}
 
 	const packagePath = path.join(targetPath, 'package.json')
-	const packageFile = await readFile(packagePath)
+	const packageFile = await fs.readFile(packagePath)
 	if (packageFile) {
 		packageJSON = JSON.parse(packageFile)
 	}
@@ -520,7 +519,7 @@ async function updatePackageJSON(targetPath: string) {
 		graphql: '^15.5.0',
 	}
 
-	await writeFile(packagePath, JSON.stringify(packageJSON, null, 4))
+	await fs.writeFile(packagePath, JSON.stringify(packageJSON, null, 4))
 }
 
 async function graphqlRCFile(targetPath: string) {
@@ -546,8 +545,8 @@ async function graphqlRCFile(targetPath: string) {
 
 async function gitIgnore(targetPath: string) {
 	const filepath = path.join(targetPath, '.gitignore')
-	const existing = (await readFile(filepath)) || ''
-	await writeFile(filepath, existing + '\n$houdini\n')
+	const existing = (await fs.readFile(filepath)) || ''
+	await fs.writeFile(filepath, existing + '\n$houdini\n')
 }
 
 type DetectedTools = {
@@ -559,7 +558,7 @@ type DetectedTools = {
 async function detectTools(cwd: string): Promise<DetectedTools> {
 	// if there's no package.json then there's nothing we can detect
 	try {
-		const packageJSONFile = await readFile(path.join(cwd, 'package.json'))
+		const packageJSONFile = await fs.readFile(path.join(cwd, 'package.json'))
 		if (packageJSONFile) {
 			var packageJSON = JSON.parse(packageJSONFile)
 		}
@@ -604,7 +603,7 @@ async function updateFile({
 	content: string
 }) {
 	// look up the file contents
-	const existingContents = await readFile(filepath)
+	const existingContents = await fs.readFile(filepath)
 
 	// compare the existing contents to the approved overwrite list
 	if (existingContents && !old.includes(existingContents)) {
@@ -630,5 +629,5 @@ ${content}`)
 	}
 
 	// if we got this far we are safe to write the file
-	await writeFile(filepath, content)
+	await fs.writeFile(filepath, content)
 }

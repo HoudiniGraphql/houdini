@@ -6,7 +6,7 @@ export * from './parse'
 export * from './imports'
 export * from './tests'
 export * from './error'
-export * from './fs'
+export * as fs from './fs'
 export * from './types'
 export * from './constants'
 

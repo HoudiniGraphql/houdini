@@ -2,7 +2,7 @@ import * as graphql from 'graphql'
 import path from 'path'
 import * as recast from 'recast'
 
-import { Config, writeFile } from '../../../../lib'
+import { Config, fs } from '../../../../lib'
 import { moduleExport } from '../../utils'
 
 const AST = recast.types.builders
@@ -61,9 +61,9 @@ export * from './enums.js'
 
 	// write the typedefinition to disk
 	await Promise.all([
-		writeFile(config.enumTypesDefinitionsPath, typeDefinitions),
-		writeFile(config.enumRuntimeDefinitionsPath, runtimeDefinitions),
-		writeFile(path.join(config.definitionsDirectory, 'index.js'), definitionsIndex),
-		writeFile(path.join(config.definitionsDirectory, 'index.d.ts'), definitionsIndex),
+		fs.writeFile(config.enumTypesDefinitionsPath, typeDefinitions),
+		fs.writeFile(config.enumRuntimeDefinitionsPath, runtimeDefinitions),
+		fs.writeFile(path.join(config.definitionsDirectory, 'index.js'), definitionsIndex),
+		fs.writeFile(path.join(config.definitionsDirectory, 'index.d.ts'), definitionsIndex),
 	])
 }

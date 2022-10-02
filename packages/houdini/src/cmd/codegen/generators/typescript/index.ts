@@ -4,7 +4,7 @@ import * as graphql from 'graphql'
 import path from 'path'
 import * as recast from 'recast'
 
-import { Config, HoudiniError, siteURL, writeFile } from '../../../../lib'
+import { Config, HoudiniError, siteURL, fs } from '../../../../lib'
 import { CollectedGraphQLDocument } from '../../types'
 import { flattenSelections } from '../../utils'
 import { addReferencedInputTypes } from './addReferencedInputTypes'
@@ -92,7 +92,7 @@ export default async function typescriptGenerator(
 			}
 
 			// write the file contents
-			await writeFile(typeDefPath, recast.print(program).code)
+			await fs.writeFile(typeDefPath, recast.print(program).code)
 
 			typePaths.push(typeDefPath)
 		})
@@ -136,7 +136,7 @@ export default async function typescriptGenerator(
 	}
 
 	// write the contents
-	await writeFile(config.typeIndexPath, indexContent)
+	await fs.writeFile(config.typeIndexPath, indexContent)
 
 	// if we were missing scalars, we need to warn the user and tell them
 	if (missingScalars.size > 0) {

@@ -49,7 +49,7 @@ export default async function () {
 				import: `./build/${dirname}-esm/index.js`,
 				require: `./build/${dirname}-cjs/index.js`,
 			}
-			packageJSON.types = './build/plugin/index.d.ts'
+			packageJSON.types = `./build/${dirname}/index.d.ts`
 		}
 		// runtimes can't be bundled
 		else if (dirname === 'runtime') {

@@ -852,7 +852,7 @@ export type HoudiniPlugin = (args?: { configFile?: string }) => Promise<{
 	transform_file?: (page: TransformPage) => Promise<{ code: string }>
 	index_file?: ModuleIndexTransform
 	vite?: Omit<Plugin, 'name'>
-	include?: (config: Config, filepath: string) => boolean | null
+	include?: (config: Config, filepath: string) => boolean | null | undefined
 }>
 
 type ModuleIndexTransform = (arg: {

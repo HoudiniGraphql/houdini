@@ -10,11 +10,11 @@ import {
 	runPipeline as run,
 	LogLevel,
 	find_graphql,
-	readFile,
 	parseJS,
 	HoudiniError,
 	HoudiniPlugin,
 	siteURL,
+	fs,
 } from '../../lib'
 import { ArtifactKind } from '../../runtime/lib'
 import * as generators from './generators'
@@ -59,7 +59,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 	let previousVersion = ''
 	let newClientPath = false
 	let newTimestamp = false
-	const content = await readFile(config.metaFilePath)
+	const content = await fs.readFile(config.metaFilePath)
 	if (content) {
 		try {
 			const parsed = JSON.parse(content)
@@ -67,7 +67,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 			newClientPath = parsed.client !== config.client
 
 			// look up the source metadata (so we can figure out if the version actually changed)
-			const sourceMeta = await readFile(path.join(config.runtimeSource, 'meta.json'))
+			const sourceMeta = await fs.readFile(path.join(config.runtimeSource, 'meta.json'))
 			if (!sourceMeta) {
 				throw new Error('skip')
 			}
@@ -224,7 +224,7 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 	await Promise.all(
 		sourceFiles.map(async (filepath) => {
 			// read the file
-			const contents = await readFile(filepath)
+			const contents = await fs.readFile(filepath)
 			if (!contents) {
 				return
 			}

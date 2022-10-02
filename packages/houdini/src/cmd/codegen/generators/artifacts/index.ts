@@ -7,8 +7,7 @@ import {
 	hashDocument,
 	HoudiniError,
 	parentTypeFromAncestors,
-	readFile,
-	writeFile,
+	fs,
 } from '../../../../lib'
 import { ArtifactKind } from '../../../../runtime/lib'
 import { CollectedGraphQLDocument } from '../../types'
@@ -298,7 +297,7 @@ export default function artifactGenerator(stats: {
 					const countDocument = doc.generateStore
 
 					// check if the file exists (indicating a new document)
-					let existingArtifact = await readFile(artifactPath)
+					let existingArtifact = await fs.readFile(artifactPath)
 					if (existingArtifact === null) {
 						if (countDocument) {
 							stats.new.push(artifact.name)
@@ -306,7 +305,7 @@ export default function artifactGenerator(stats: {
 					}
 
 					// write the result to the artifact path we're configured to write to
-					await writeFile(artifactPath, recast.print(file).code)
+					await fs.writeFile(artifactPath, recast.print(file).code)
 					listOfArtifacts.push(config.documentName(document))
 
 					if (!countDocument) {
