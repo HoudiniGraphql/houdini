@@ -3,6 +3,8 @@ import { ensure_imports } from 'houdini/vite'
 import { TransformPage } from 'houdini/vite'
 import * as recast from 'recast'
 
+import { is_root_layout_script, is_root_layout_server } from '../../kit'
+
 const AST = recast.types.builders
 
 type ReturnStatement = recast.types.namedTypes.ReturnStatement
@@ -11,9 +13,9 @@ type Identifier = recast.types.namedTypes.Identifier
 type ObjectExpression = recast.types.namedTypes.ObjectExpression
 
 export default function (page: TransformPage) {
-	if (page.config.isRootLayoutServer(page.filepath)) {
+	if (is_root_layout_server(page.config, page.filepath)) {
 		process_root_layout_server(page)
-	} else if (page.config.isRootLayoutScript(page.filepath)) {
+	} else if (is_root_layout_script(page.config, page.filepath)) {
 		process_root_layout_script(page)
 	}
 }
@@ -26,7 +28,8 @@ export default function (page: TransformPage) {
 // - add a new return statement that includes the session data from event.locals
 function process_root_layout_server(page: TransformPage) {
 	const build_session_object = ensure_imports({
-		page,
+		script,
+		config: page.config,
 		import: ['buildSessionObject'],
 		sourceModule: '$houdini/runtime/lib/network',
 	}).ids[0]

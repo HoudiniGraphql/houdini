@@ -1,4 +1,4 @@
-import { Config, writeFile } from 'houdini/common'
+import { Config, fs } from 'houdini'
 import path from 'path'
 
 export default async function generateAdapter(config: Config) {
@@ -16,7 +16,7 @@ export default async function generateAdapter(config: Config) {
 	}[config.framework]
 
 	// write the index file that exports the runtime
-	await writeFile(adapterLocation, adapter)
+	await fs.writeFile(adapterLocation, adapter)
 }
 
 const sveltekitAdapter = `import { goto as go } from '$app/navigation'

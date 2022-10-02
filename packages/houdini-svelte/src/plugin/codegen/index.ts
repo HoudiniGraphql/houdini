@@ -1,5 +1,4 @@
-import { CollectedGraphQLDocument } from 'houdini/src/codegen/types'
-import { Config } from 'houdini/src/common'
+import { Config, CollectedGraphQLDocument } from 'houdini'
 
 export default async function houdiniSvelteCodegen(
 	config: Config,

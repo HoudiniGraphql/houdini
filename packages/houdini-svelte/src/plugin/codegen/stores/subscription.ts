@@ -1,5 +1,4 @@
-import { CollectedGraphQLDocument } from 'houdini/codegen/types'
-import { Config, writeFile } from 'houdini/common'
+import { CollectedGraphQLDocument, Config, fs } from 'houdini'
 import path from 'path'
 
 export async function generateSubscriptionStore(config: Config, doc: CollectedGraphQLDocument) {
@@ -45,8 +44,8 @@ export default ${storeName}
 
 	// write the store contents to disk
 	await Promise.all([
-		writeFile(path.join(config.storesDirectory, `${fileName}.d.ts`), typeDefs),
-		writeFile(path.join(config.storesDirectory, `${fileName}.js`), storeContent),
+		fs.writeFile(path.join(config.storesDirectory, `${fileName}.d.ts`), typeDefs),
+		fs.writeFile(path.join(config.storesDirectory, `${fileName}.js`), storeContent),
 	])
 
 	// return the store name to the generator so the index file can be created

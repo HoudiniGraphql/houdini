@@ -17,7 +17,8 @@ export default async function GraphQLTagProcessor(config: Config, page: Transfor
 			// store
 			node.replaceWith(
 				store_import({
-					page,
+					script,
+					config: config,
 					artifact: { name: operation.name!.value },
 				}).id
 			)

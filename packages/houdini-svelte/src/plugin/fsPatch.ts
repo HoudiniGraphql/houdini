@@ -1,8 +1,10 @@
 import filesystem, { Dirent, PathLike } from 'fs'
 import { Config } from 'houdini'
-import { getConfig, readFile } from 'houdini'
+import { getConfig, fs } from 'houdini'
 import path from 'path'
 import type { Plugin } from 'vite'
+
+import { is_root_layout, is_root_layout_server, is_route_script } from './kit'
 
 let config: Config
 
@@ -16,9 +18,9 @@ export default function HoudiniFsPatch(): Omit<Plugin, 'name'> {
 		resolveId(id, _, { ssr }) {
 			// if we are resolving any of the files we need to generate
 			if (
-				config.isRouteScript(id) ||
-				config.isRootLayout(id) ||
-				config.isRootLayoutServer(id)
+				is_route_script(config, id) ||
+				is_root_layout(config, id) ||
+				is_root_layout_server(config, id)
 			) {
 				return {
 					id,
@@ -30,15 +32,15 @@ export default function HoudiniFsPatch(): Omit<Plugin, 'name'> {
 
 		async load(filepath) {
 			// if we are processing a route script or the root layout, we should always return _something_
-			if (config.isRouteScript(filepath) || config.isRootLayoutServer(filepath)) {
+			if (is_route_script(config, filepath) || is_root_layout_server(config, filepath)) {
 				return {
-					code: (await readFile(filepath)) || '',
+					code: (await fs.readFile(filepath)) || '',
 				}
 			}
 
-			if (config.isRootLayout(filepath)) {
+			if (is_root_layout(config, filepath)) {
 				return {
-					code: (await readFile(filepath)) || empty_root_layout,
+					code: (await fs.readFile(filepath)) || empty_root_layout,
 				}
 			}
 

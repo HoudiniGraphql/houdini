@@ -2,19 +2,22 @@ import type { IdentifierKind } from 'ast-types/gen/kinds'
 import type { StatementKind } from 'ast-types/gen/kinds'
 import type { namedTypes } from 'ast-types/gen/namedTypes'
 import * as graphql from 'graphql'
-import {
-	formatErrors,
-	operation_requires_variables,
-	HoudiniRouteScript,
-	readFile,
-	stat,
-} from 'houdini'
+import { formatErrors, operation_requires_variables, fs } from 'houdini'
 import { find_insert_index } from 'houdini/vite'
 import { ensure_imports, store_import } from 'houdini/vite'
 import { TransformPage } from 'houdini/vite'
 import * as recast from 'recast'
 
 import { parseSvelte } from '../../extract'
+import {
+	extract_load_function,
+	HoudiniRouteScript,
+	is_route,
+	is_route_script,
+	page_query_path,
+	route_data_path,
+	route_page_path,
+} from '../../kit'
 import { LoadTarget, find_inline_queries, query_variable_fn } from '../query'
 
 const AST = recast.types.builders
@@ -23,18 +26,19 @@ type ExportNamedDeclaration = ReturnType<typeof recast.types.builders['exportNam
 
 export default async function kit_load_generator(page: TransformPage) {
 	// if this isn't a route, move on
-	const is_route = page.config.isRoute(page.filepath)
-	const is_route_script = page.config.isRouteScript(page.filepath)
-	if (!is_route && !is_route_script) {
+	const route = is_route(page.config, page.filepath)
+	const script = is_route_script(page.config, page.filepath)
+	if (!route && !script) {
 		return
 	}
 
 	// the name to use for inline query documents
 	const inline_query_store = (name: string) =>
-		is_route
+		route
 			? AST.memberExpression(AST.identifier('data'), AST.identifier(name))
 			: store_import({
-					page,
+					config: page.config,
+					script,
 					artifact: { name },
 			  }).id
 
@@ -44,11 +48,11 @@ export default async function kit_load_generator(page: TransformPage) {
 		find_inline_queries(
 			page,
 			// if we are currently on the route file, there's nothing to parse
-			is_route
+			route
 				? page.script
 				: (
 						await parseSvelte(
-							(await readFile(page.config.routePagePath(page.filepath))) || ''
+							(await fs.readFile(route_page_path(page.config, page.filepath))) || ''
 						)
 				  )?.script ?? null,
 			inline_query_store
@@ -66,7 +70,7 @@ export default async function kit_load_generator(page: TransformPage) {
 	}
 
 	// if we are processing a route config file (+page.ts)
-	if (is_route_script) {
+	if (script) {
 		// add the load function to the query file
 		add_load({
 			page,
@@ -76,7 +80,7 @@ export default async function kit_load_generator(page: TransformPage) {
 	}
 
 	// we need this to happen last so it that the context always gets injected first
-	if (is_route && queries.length > 0) {
+	if (route && queries.length > 0) {
 		// we need to check if there is a declared data prop
 		const has_data = page.script.body.find(
 			(statement) =>
@@ -150,12 +154,14 @@ function add_load({
 
 	// make sure we have RequestContext imported
 	ensure_imports({
-		page,
+		script,
+		config: page.config,
 		import: ['RequestContext'],
 		sourceModule: '$houdini/runtime/lib/network',
 	})
 	ensure_imports({
-		page,
+		script,
+		config: page.config,
 		import: ['getCurrentConfig'],
 		sourceModule: '$houdini/runtime/lib/config',
 	})
@@ -229,7 +235,8 @@ function add_load({
 	// every query that we found needs to be triggered in this function
 	for (const query of queries) {
 		const { ids } = ensure_imports({
-			page,
+			script,
+			config: page.config,
 			import: [`load_${query.name}`],
 			sourceModule: page.config.storeImportPath(query.name),
 		})
@@ -254,7 +261,8 @@ function add_load({
 									AST.literal('artifact'),
 									AST.memberExpression(
 										store_import({
-											page,
+											script,
+											config: page.config,
 											artifact: query,
 										}).id,
 										AST.identifier('artifact')
@@ -398,10 +406,10 @@ function add_load({
 
 async function find_page_query(page: TransformPage): Promise<LoadTarget | null> {
 	// figure out the filepath for the page query
-	const page_query_path = page.config.pageQueryPath(page.filepath)
+	const query_path = page_query_path(page.config, page.filepath)
 
 	// if the file doesn't exist, we're done
-	const contents = await readFile(page_query_path)
+	const contents = await fs.readFile(query_path)
 	if (!contents) {
 		return null
 	}
@@ -421,7 +429,8 @@ async function find_page_query(page: TransformPage): Promise<LoadTarget | null> 
 
 	// generate an import for the store
 	const { id } = store_import({
-		page,
+		script,
+		config: page.config,
 		artifact: { name: definition.name!.value },
 	})
 
@@ -464,19 +473,19 @@ function load_hook_statements(
 }
 
 async function find_page_info(page: TransformPage): Promise<HoudiniRouteScript> {
-	if (!page.config.isRouteScript(page.filepath) && !page.config.isRoute(page.filepath)) {
+	if (!is_route_script(page.config, page.filepath) && !is_route(page.config, page.filepath)) {
 		return { houdini_load: [], exports: [] }
 	}
 
 	// make sure we consider the typescript path first (so if it fails we resort to the .js one)
-	let route_path = page.config.routeDataPath(page.filepath)
+	let route_path = route_data_path(page.config, page.filepath)
 	try {
-		await stat(route_path)
+		await fs.stat(route_path)
 	} catch {
 		route_path = route_path.replace('.js', '.ts')
 	}
 
-	return await page.config.extractLoadFunction(route_path)
+	return await extract_load_function(page.config, route_path)
 }
 
 function unexported_data_error(filepath: string) {

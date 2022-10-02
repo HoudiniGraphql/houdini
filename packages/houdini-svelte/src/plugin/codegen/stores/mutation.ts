@@ -1,5 +1,4 @@
-import { CollectedGraphQLDocument } from 'houdini/codegen/types'
-import { Config, writeFile } from 'houdini/common'
+import { CollectedGraphQLDocument, Config, fs } from 'houdini'
 import path from 'path'
 
 export async function generateIndividualStoreMutation(
@@ -48,8 +47,8 @@ export default ${storeName}
   `
 
 	await Promise.all([
-		writeFile(path.join(config.storesDirectory, `${fileName}.js`), storeData),
-		writeFile(path.join(config.storesDirectory, `${fileName}.d.ts`), typeDefs),
+		fs.writeFile(path.join(config.storesDirectory, `${fileName}.js`), storeData),
+		fs.writeFile(path.join(config.storesDirectory, `${fileName}.d.ts`), typeDefs),
 	])
 
 	return fileName

@@ -1,7 +1,10 @@
+import { ExpressionKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
 import { Config, operation_requires_variables, find_graphql, Script } from 'houdini'
 import { find_exported_fn, find_insert_index, ensure_imports, TransformPage } from 'houdini/vite'
 import * as recast from 'recast'
+
+import { is_component } from '../kit'
 
 const AST = recast.types.builders
 
@@ -12,7 +15,7 @@ type Statement = recast.types.namedTypes.Statement
 
 export default async function QueryProcessor(config: Config, page: TransformPage) {
 	// only consider consider components in this processor
-	if (!config.isComponent(page.filepath)) {
+	if (!is_component(config, page.filepath)) {
 		return
 	}
 
@@ -46,20 +49,23 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 	)
 
 	ensure_imports({
-		page,
+		config: page.config,
+		script,
 		import: ['marshalInputs'],
 		sourceModule: '$houdini/runtime/lib/scalars',
 	})
 
 	ensure_imports({
-		page,
+		config: page.config,
+		script,
 		import: ['RequestContext'],
 		sourceModule: '$houdini/runtime/lib/network',
 	})
 
 	// import the browser check
 	ensure_imports({
-		page,
+		config: page.config,
+		script,
 		import: ['isBrowser'],
 		sourceModule: '$houdini/runtime/adapter',
 	})
@@ -67,7 +73,8 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 	// define the store values at the top of the file
 	for (const query of queries) {
 		const factory = ensure_imports({
-			page,
+			script,
+			config: page.config,
 			import: [`${query.name}Store`],
 			sourceModule: config.storeImportPath(query.name),
 		}).ids[0]
@@ -178,7 +185,7 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 export async function find_inline_queries(
 	page: TransformPage,
 	parsed: Script | null,
-	store_id: (name: string) => Identifier
+	store_id: (name: string) => ExpressionKind
 ): Promise<LoadTarget[]> {
 	// if there's nothing to parse, we're done
 	if (!parsed) {

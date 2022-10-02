@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
-import { CollectedGraphQLDocument } from 'houdini/src/cmd/codegen/types'
-import { Config, operation_requires_variables, writeFile } from 'houdini/src/common'
+import { CollectedGraphQLDocument } from 'houdini'
+import { Config, operation_requires_variables, fs } from 'houdini'
 import path from 'path'
 
 export async function generateIndividualStoreQuery(config: Config, doc: CollectedGraphQLDocument) {
@@ -85,8 +85,8 @@ export default ${storeName}
 `
 
 	await Promise.all([
-		writeFile(path.join(config.storesDirectory, `${fileName}.js`), storeData),
-		writeFile(path.join(config.storesDirectory, `${fileName}.d.ts`), typeDefs),
+		fs.writeFile(path.join(config.storesDirectory, `${fileName}.js`), storeData),
+		fs.writeFile(path.join(config.storesDirectory, `${fileName}.d.ts`), typeDefs),
 	])
 
 	return fileName

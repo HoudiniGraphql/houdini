@@ -3,6 +3,8 @@ import { Config } from 'houdini'
 import { TransformPage } from 'houdini/vite'
 import * as recast from 'recast'
 
+import { is_component, is_route } from '../kit'
+
 const AST = recast.types.builders
 
 type VariableDeclaration = recast.types.namedTypes.VariableDeclaration
@@ -22,7 +24,7 @@ export default async function ReactiveProcessor(config: Config, page: TransformP
 	// const value = graphql`` -> $: value = query(graphql``)
 	// const { value } = graphql`` -> $: { value } = query(graphql``)
 	//
-	if (!page.config.isComponent(page.filepath) && !page.config.isRoute(page.filepath)) {
+	if (!is_component(config, page.filepath) && !is_route(config, page.filepath)) {
 		return
 	}
 

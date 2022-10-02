@@ -1,6 +1,7 @@
-import { ConfigFile, mkdirp, parseJS, Script, testConfig, writeFile } from 'houdini'
+import { ConfigFile, fs, parseJS, Script, testConfig } from 'houdini'
 import path from 'path'
 
+import { page_query_path, route_data_path } from '../plugin/kit'
 import { parseSvelte } from './extract'
 import runTransforms from './transforms'
 
@@ -44,17 +45,17 @@ export async function route_test({
 	// scripts live in src/routes/+page.svelte
 	const filepath = path.join(process.cwd(), 'src/routes', '+page.svelte')
 	const layout_path = path.join(process.cwd(), 'src/routes', '+layout.svelte')
-	const layout_script_path = config.routeDataPath(layout_path)
+	const layout_script_path = route_data_path(config, layout_path)
 
-	await mkdirp(path.dirname(filepath))
+	await fs.mkdirp(path.dirname(filepath))
 
 	// write the content
 	await Promise.all([
-		writeFile(filepath, component),
-		writeFile(config.routeDataPath(filepath), script),
-		writeFile(config.pageQueryPath(filepath), query),
-		writeFile(layout_path, layout),
-		writeFile(layout_script_path, layout_script),
+		fs.writeFile(filepath, component),
+		fs.writeFile(route_data_path(config, filepath), script),
+		fs.writeFile(page_query_path(config, filepath), query),
+		fs.writeFile(layout_path, layout),
+		fs.writeFile(layout_script_path, layout_script),
 	])
 
 	// we want to run the transformer on both the component and script paths
@@ -68,7 +69,7 @@ export async function route_test({
 			}),
 			runTransforms({
 				config,
-				filepath: config.routeDataPath(filepath),
+				filepath: route_data_path(config, filepath),
 				watch_file: () => {},
 				content: script,
 			}),
@@ -106,8 +107,8 @@ export async function component_test(
 	const filepath = path.join(process.cwd(), 'src/lib', 'component.svelte')
 
 	// write the content
-	await mkdirp(path.dirname(filepath))
-	await writeFile(filepath, `<script>${content}</script>`)
+	await fs.mkdirp(path.dirname(filepath))
+	await fs.writeFile(filepath, `<script>${content}</script>`)
 
 	// we want to run the transformer on both the component and script paths
 	const result = await runTransforms({
@@ -127,8 +128,8 @@ export async function test_transform_svelte(filepath: string, content: string) {
 
 	// write the content
 	filepath = path.join(config.projectRoot, filepath)
-	await mkdirp(path.dirname(filepath))
-	await writeFile(filepath, content)
+	await fs.mkdirp(path.dirname(filepath))
+	await fs.writeFile(filepath, content)
 
 	// we want to run the transformer on both the component and script paths
 	const result = await runTransforms({
@@ -148,8 +149,8 @@ export async function test_transform_js(filepath: string, content: string) {
 
 	// write the content
 	filepath = path.join(config.projectRoot, filepath)
-	await mkdirp(path.dirname(filepath))
-	await writeFile(filepath, content)
+	await fs.mkdirp(path.dirname(filepath))
+	await fs.writeFile(filepath, content)
 
 	// we want to run the transformer on both the component and script paths
 	const result = await runTransforms({

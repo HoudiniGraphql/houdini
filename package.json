@@ -1,7 +1,7 @@
 {
-	"name": "houdini",
+	"name": "houdini-root",
 	"version": "0.16.6",
-	"description": "The disappearing graphql client for SvelteKit",
+	"description": "The monorepo for Houdini, the disappearing graphql client",
 	"type": "module",
 	"scripts": {
 		"tests": "vitest",

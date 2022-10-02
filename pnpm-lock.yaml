@@ -47,7 +47,7 @@ importers:
             '@sveltejs/kit': 1.0.0-next.445_svelte@3.50.1+vite@3.1.4
             concurrently: 6.5.1
             graphql: 15.5.1
-            houdini: link:..
+            houdini: link:../packages/houdini
             svelte: 3.50.1
             svelte-preprocess: 4.10.7_l6wots2l5s2wjzdc4hh2utpmhq
             tslib: 2.4.0
@@ -106,7 +106,7 @@ importers:
             eslint-config-prettier: 8.5.0_eslint@8.24.0
             eslint-plugin-svelte3: 4.0.0_snydkosur25h6rjxszquwacaua
             graphql: 16.6.0
-            houdini: link:../..
+            houdini: link:../../packages/houdini
             prettier: 2.7.1
             prettier-plugin-svelte: 2.7.1_nk6d2fkgcllkkdynqbuearcure
             svelte: 3.50.1
@@ -215,7 +215,7 @@ importers:
             ast-types: 0.15.2
             estree-walker: 3.0.1
             graphql: 16.6.0
-            houdini: link:../..
+            houdini: link:../houdini
             minimatch: 5.1.0
             recast: 0.21.5
             svelte: 3.50.1
@@ -4448,7 +4448,7 @@ packages:
         engines: { node: '>= 10.17.0' }
         hasBin: true
         dependencies:
-            debug: 4.3.3
+            debug: 4.3.4
             get-stream: 5.2.0
             yauzl: 2.10.0
         optionalDependencies:
@@ -5137,7 +5137,7 @@ packages:
         engines: { node: '>= 6' }
         dependencies:
             agent-base: 6.0.2
-            debug: 4.3.3
+            debug: 4.3.4
         transitivePeerDependencies:
             - supports-color
         dev: true
@@ -7092,7 +7092,7 @@ packages:
         engines: { node: '>= 10' }
         dependencies:
             agent-base: 6.0.2
-            debug: 4.3.3
+            debug: 4.3.4
             socks: 2.7.1
         transitivePeerDependencies:
             - supports-color

@@ -1,6 +1,4 @@
-import { CollectedGraphQLDocument } from 'houdini/codegen/types'
-import { cleanupFiles } from 'houdini/codegen/utils/cleanupFiles'
-import { Config, writeFile } from 'houdini/common'
+import { CollectedGraphQLDocument, cleanupFiles, Config, fs } from 'houdini'
 import path from 'path'
 
 import { ArtifactKind } from '../../runtime'
@@ -35,7 +33,7 @@ export default async function storesGenerator(config: Config, docs: CollectedGra
 		.filter((c) => c !== null)
 		.sort((a, b) => (a + '').localeCompare(b + '')) as string[]
 	const dataIndex = listOfStoresOrdered.map((c) => `export * from './${c}'`).join(`\n`)
-	await writeFile(path.join(config.rootDir, 'stores', `index.js`), dataIndex)
+	await fs.writeFile(path.join(config.rootDir, 'stores', `index.js`), dataIndex)
 
 	const dataIndexDTs = `import type { DataSource } from '$houdini/runtime'
 
@@ -49,7 +47,7 @@ export type Result<DataType> = {
 
 	const storePath = path.join(config.rootDir, 'stores')
 
-	await writeFile(path.join(storePath, `index.d.ts`), dataIndexDTs + `\n` + dataIndex)
+	await fs.writeFile(path.join(storePath, `index.d.ts`), dataIndexDTs + `\n` + dataIndex)
 
 	// cleanup files that are no more necessary!
 	await cleanupFiles(storePath, listOfStoresOrdered)

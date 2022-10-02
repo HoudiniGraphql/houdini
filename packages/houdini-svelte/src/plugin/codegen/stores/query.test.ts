@@ -1,13 +1,11 @@
+import { testConfig, fs, mockCollectedDoc, CollectedGraphQLDocument } from 'houdini'
 import path from 'path'
 import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { test, expect } from 'vitest'
 
-import { Config, testConfig } from '../../../common'
-import * as fs from '../../../common/fs'
-import { runPipeline } from '../../generate'
-import { mockCollectedDoc } from '../../testUtils'
-import { CollectedGraphQLDocument } from '../../types'
+import '../../'
+import runPipeline from '../../codegen'
 
 // the config to use in tests
 const config = testConfig()

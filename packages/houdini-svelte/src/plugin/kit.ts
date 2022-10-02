@@ -65,8 +65,8 @@ export function is_component(config: Config, filename: string) {
 	return (
 		config.framework === 'svelte' ||
 		(filename.endsWith('.svelte') &&
-			!config.isRouteScript(filename) &&
-			!config.isRoute(filename))
+			!is_route_script(config, filename) &&
+			!is_route(config, filename))
 	)
 }
 
@@ -104,11 +104,11 @@ export async function walk_routes(
 		const childPath = path.join(dirpath, child)
 		// if we run into another directory, keep walking down
 		if ((await fs.stat(childPath)).isDirectory()) {
-			await config.walkRouteDir(visitor, childPath)
+			await walk_routes(config, visitor, childPath)
 		}
 
 		// route scripts
-		else if (config.isRouteScript(child)) {
+		else if (is_route_script(config, child)) {
 			isRoute = true
 			routeScript = childPath
 			if (!visitor.routeScript) {
@@ -141,7 +141,7 @@ export async function walk_routes(
 		}
 
 		// inline queries
-		else if (config.isComponent(child)) {
+		else if (is_component(config, child)) {
 			// load the contents and parse it
 			const contents = await fs.readFile(childPath)
 			if (!contents) {
@@ -218,3 +218,7 @@ const routeQueryError = (filepath: string) => ({
 })
 
 const posixify = (str: string) => str.replace(/\\/g, '/')
+
+export function route_page_path(config: Config, filename: string) {
+	return resolve_relative(config, filename).replace('.js', '.svelte').replace('.ts', '.svelte')
+}

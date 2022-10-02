@@ -1,8 +1,8 @@
 import { OperationDefinitionNode } from 'graphql'
-import { CollectedGraphQLDocument } from 'houdini/codegen/types'
-import { Config } from 'houdini/common'
-import * as fs from 'houdini/common/fs'
+import { CollectedGraphQLDocument, Config, fs } from 'houdini'
 import path from 'path'
+
+import { extract_load_function, walk_routes } from '../../kit'
 
 export default async function svelteKitGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	// if we're not in a sveltekit project, don't do anything
@@ -11,7 +11,7 @@ export default async function svelteKitGenerator(config: Config, docs: Collected
 	}
 
 	// we need to walk down their route directory and create any variable definitions we need
-	await config.walkRouteDir({
+	await walk_routes(config, {
 		async route({ dirpath, inlineQueries, routeQuery, routeScript }) {
 			// in order to create the variable definition we need to know every query that is being
 			// used in a specific route so we can generate versions of the variable functions with
@@ -26,7 +26,7 @@ export default async function svelteKitGenerator(config: Config, docs: Collected
 			// and what's inside.
 			if (routeScript) {
 				// import the houdini_load function
-				const { houdini_load, exports } = await config.extractLoadFunction(routeScript)
+				const { houdini_load, exports } = await extract_load_function(config, routeScript)
 
 				// add every load to the list
 				queries.push(...(houdini_load ?? []))
