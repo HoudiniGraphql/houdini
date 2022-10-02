@@ -7,10 +7,10 @@ import type { Plugin } from 'vite'
 let config: Config
 
 // this plugin is responsible for faking `+page.js` existence in the eyes of sveltekit
-export default function HoudiniFsPatch(configFile?: string): Omit<Plugin, 'name'> {
+export default function HoudiniFsPatch(): Omit<Plugin, 'name'> {
 	return {
 		async configResolved() {
-			config = await getConfig({ configFile })
+			config = await getConfig()
 		},
 
 		resolveId(id, _, { ssr }) {

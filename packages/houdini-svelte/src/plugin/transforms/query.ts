@@ -1,5 +1,5 @@
 import * as graphql from 'graphql'
-import { Config, operation_requires_variables, walkGraphQLTags, Script } from 'houdini'
+import { Config, operation_requires_variables, walkGraphQLDocuments, Script } from 'houdini'
 import { find_exported_fn, find_insert_index, ensure_imports, TransformPage } from 'houdini/vite'
 import * as recast from 'recast'
 
@@ -192,7 +192,7 @@ export async function find_inline_queries(
 	}[] = []
 
 	// look for inline queries
-	await walkGraphQLTags(page.config, parsed, {
+	await walkGraphQLDocuments(page.config, parsed, {
 		where(tag) {
 			// only consider query documents
 			const definition = tag.definitions.find((defn) => defn.kind === 'OperationDefinition')

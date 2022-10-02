@@ -1,12 +1,9 @@
 import type { ExpressionKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
+import { Config, HoudiniRouteScript, fs, parseJS } from 'houdini'
 import path from 'path'
 import * as recast from 'recast'
 import { transformWithEsbuild } from 'vite'
-
-import { Config, HoudiniRouteScript } from './config'
-import * as fs from './fs'
-import { parseJS } from './parse'
 
 type Program = recast.types.namedTypes.Program
 type VariableDeclaration = recast.types.namedTypes.VariableDeclaration

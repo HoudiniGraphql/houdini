@@ -32,7 +32,7 @@ type GraphqlTagWalker = {
 }
 
 // yield the tagged graphql documents contained within the provided AST
-export async function walkGraphQLTags(
+export async function walkGraphQLDocuments(
 	config: Config,
 	parsedScript: Script,
 	walker: GraphqlTagWalker

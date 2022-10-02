@@ -1,8 +1,7 @@
+import { testConfig, fs } from 'houdini'
 import { test, describe, expect } from 'vitest'
 
-import * as fs from '../common/fs'
 import { extractLoadFunction } from './extractLoadFunction'
-import { testConfig } from './tests'
 
 describe('extractLoadFunction', function () {
 	const table: {
@@ -18,7 +17,7 @@ describe('extractLoadFunction', function () {
 
                 export const houdini_load = graphql\`
                     query Foo {
-                        viewer { 
+                        viewer {
                             id
                         }
                     }
@@ -36,7 +35,7 @@ describe('extractLoadFunction', function () {
 
                 const store = graphql\`
                     query Foo {
-                        viewer { 
+                        viewer {
                             id
                         }
                     }
@@ -215,7 +214,7 @@ describe('extractLoadFunction', function () {
                 }
 
                 export function beforeLoad() {
-                    
+
                 }
             `,
 			expected: {

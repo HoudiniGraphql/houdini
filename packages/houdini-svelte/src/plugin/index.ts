@@ -1,12 +1,14 @@
-import { HoudiniPlugin } from 'houdini'
+import { HoudiniPlugin, Config } from 'houdini'
+import minimatch from 'minimatch'
 import path from 'path'
 
 import generate from './codegen'
 import extract from './extract'
 import fs_patch from './fsPatch'
+import { resolve_relative } from './kit'
 import apply_transforms from './transforms'
 
-const HoudiniSveltePlugin: HoudiniPlugin = async ({ configFile } = {}) => ({
+const HoudiniSveltePlugin: HoudiniPlugin = async () => ({
 	extensions: ['.svelte'],
 
 	// custom logic to pull a graphql document out of a svelte file
@@ -26,9 +28,19 @@ const HoudiniSveltePlugin: HoudiniPlugin = async ({ configFile } = {}) => ({
 		return content + export_star_from({ module: storesDir })
 	},
 
+	include_file(config, filepath) {
+		// deal with any relative imports from compiled assets
+		filepath = resolve_relative(config, filepath)
+
+		// if the filepath doesn't match the include we're done
+		if (!minimatch(filepath, path.join(config.projectRoot, config.include))) {
+			return false
+		}
+	},
+
 	// add custom vite config
 	vite: {
-		...fs_patch(configFile),
+		...fs_patch(),
 	},
 })
 

@@ -14,9 +14,7 @@ import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '..
 import { CachePolicy } from '../runtime/lib/types'
 import { TransformPage } from '../vite/plugin'
 import { HoudiniError } from './error'
-import { extractLoadFunction } from './extractLoadFunction'
 import * as fs from './fs'
-import { walkGraphQLTags } from './walk'
 
 // @ts-ignore
 const currentDir = global.__dirname || path.dirname(fileURLToPath(import.meta.url))
@@ -457,11 +455,21 @@ ${
 	}
 
 	includeFile(filepath: string) {
-		// deal with any relative imports from compiled assets
-		filepath = this.resolveRelative(filepath)
+		let included = false
+		// plugins might define custom include logic
+		for (const plugin of this.plugins) {
+			if (!plugin.include_file) {
+				continue
+			}
+
+			if (plugin.include_file(this, filepath)) {
+				included = true
+				break
+			}
+		}
 
 		// if the filepath doesn't match the include we're done
-		if (!minimatch(filepath, path.join(this.projectRoot, this.include))) {
+		if (!included && !minimatch(filepath, path.join(this.projectRoot, this.include))) {
 			return false
 		}
 
@@ -668,173 +676,6 @@ ${
 		throw new Error('Could not find list name from fragment: ' + fragmentName)
 	}
 
-	//// sveltekit conventions
-
-	routeDataPath(filename: string) {
-		// replace the .svelte with .js
-		return this.resolveRelative(filename).replace('.svelte', '.js')
-	}
-
-	routePagePath(filename: string) {
-		return this.resolveRelative(filename).replace('.js', '.svelte').replace('.ts', '.svelte')
-	}
-
-	isRouteScript(filename: string) {
-		return (
-			this.framework === 'kit' &&
-			(filename.endsWith('+page.js') ||
-				filename.endsWith('+page.ts') ||
-				filename.endsWith('+layout.js') ||
-				filename.endsWith('+layout.ts'))
-		)
-	}
-
-	isRootLayout(filename: string) {
-		return (
-			this.resolveRelative(filename).replace(this.projectRoot, '') ===
-			path.sep + path.join('src', 'routes', '+layout.svelte')
-		)
-	}
-
-	isRootLayoutServer(filename: string) {
-		return (
-			this.resolveRelative(filename).replace(this.projectRoot, '').replace('.ts', '.js') ===
-			path.sep + path.join('src', 'routes', '+layout.server.js')
-		)
-	}
-
-	isRootLayoutScript(filename: string) {
-		return (
-			this.resolveRelative(filename).replace(this.projectRoot, '').replace('.ts', '.js') ===
-			path.sep + path.join('src', 'routes', '+layout.js')
-		)
-	}
-
-	isComponent(filename: string) {
-		return (
-			this.framework === 'svelte' ||
-			(filename.endsWith('.svelte') &&
-				!this.isRouteScript(filename) &&
-				!this.isRoute(filename))
-		)
-	}
-
-	pageQueryPath(filename: string) {
-		return path.join(path.dirname(this.resolveRelative(filename)), this.pageQueryFilename)
-	}
-
-	resolveRelative(filename: string) {
-		// kit generates relative import for our generated files. we need to fix that so that
-		// vites importer can find the file.
-		const match = filename.match('^((../)+)src/routes')
-		if (match) {
-			filename = path.join(this.projectRoot, filename.substring(match[1].length))
-		}
-
-		return filename
-	}
-
-	async walkRouteDir(visitor: RouteVisitor, dirpath = this.routesDir) {
-		// if we run into any child with a query, we have a route
-		let isRoute = false
-
-		// we need to collect the important values from each special child
-		// for the visitor.route handler
-		let routeQuery: graphql.OperationDefinitionNode | null = null
-		const inlineQueries: graphql.OperationDefinitionNode[] = []
-		let routeScript: string | null = null
-
-		// process the children
-		for (const child of await fs.readdir(dirpath)) {
-			const childPath = path.join(dirpath, child)
-			// if we run into another directory, keep walking down
-			if ((await fs.stat(childPath)).isDirectory()) {
-				await this.walkRouteDir(visitor, childPath)
-			}
-
-			// route scripts
-			else if (this.isRouteScript(child)) {
-				isRoute = true
-				routeScript = childPath
-				if (!visitor.routeScript) {
-					continue
-				}
-				await visitor.routeScript(childPath, childPath)
-			}
-
-			// route queries
-			else if (child === this.pageQueryFilename) {
-				isRoute = true
-
-				// load the contents
-				const contents = await fs.readFile(childPath)
-				if (!contents) {
-					continue
-				}
-
-				// invoke the visitor
-				try {
-					routeQuery = this.extractQueryDefinition(graphql.parse(contents))
-				} catch (e) {
-					throw routeQueryError(childPath)
-				}
-
-				if (!visitor.routeQuery) {
-					continue
-				}
-				await visitor.routeQuery(routeQuery, childPath)
-			}
-
-			// inline queries
-			else if (this.isComponent(child)) {
-				// load the contents and parse it
-				const contents = await fs.readFile(childPath)
-				if (!contents) {
-					continue
-				}
-				const parsed = await parseSvelte(contents)
-				if (!parsed) {
-					continue
-				}
-
-				// look for any graphql tags and invoke the walker's handler
-				await walkGraphQLTags(this, parsed.script, {
-					where: (tag) => {
-						try {
-							return !!this.extractQueryDefinition(tag)
-						} catch {
-							return false
-						}
-					},
-					tag: async ({ parsedDocument }) => {
-						isRoute = true
-
-						let definition = this.extractQueryDefinition(parsedDocument)
-						await visitor.inlineQuery?.(definition, childPath)
-						inlineQueries.push(definition)
-					},
-				})
-			}
-		}
-
-		// if this path is a route, invoke the handler
-		if (visitor.route && isRoute) {
-			await visitor.route(
-				{
-					dirpath,
-					routeQuery,
-					inlineQueries,
-					routeScript,
-				},
-				dirpath
-			)
-		}
-	}
-
-	async extractLoadFunction(filepath: string): Promise<HoudiniRouteScript> {
-		return await extractLoadFunction(this, filepath)
-	}
-
 	extractDefinition(document: graphql.DocumentNode): graphql.ExecutableDefinitionNode {
 		// make sure there's only one definition
 		if (document.definitions.length !== 1) {
@@ -1039,30 +880,6 @@ export enum LogLevel {
 
 const posixify = (str: string) => str.replace(/\\/g, '/')
 
-export type RouteVisitor = {
-	routeQuery?: RouteVisitorHandler<graphql.OperationDefinitionNode>
-	inlineQuery?: RouteVisitorHandler<graphql.OperationDefinitionNode>
-	routeScript?: RouteVisitorHandler<string>
-	route?: RouteVisitorHandler<{
-		dirpath: string
-		routeScript: string | null
-		routeQuery: graphql.OperationDefinitionNode | null
-		inlineQueries: graphql.OperationDefinitionNode[]
-	}>
-}
-
-type RouteVisitorHandler<_Payload> = (value: _Payload, filepath: string) => Promise<void> | void
-
-export type HoudiniRouteScript = {
-	houdini_load?: graphql.OperationDefinitionNode[]
-	exports: string[]
-}
-
-const routeQueryError = (filepath: string) => ({
-	filepath,
-	message: 'route query error',
-})
-
 export type HoudiniPlugin = (args?: { configFile?: string }) => Promise<{
 	extensions?: string[]
 	extract_documents?: (filepath: string, content: string) => Promise<string[]>
@@ -1070,6 +887,7 @@ export type HoudiniPlugin = (args?: { configFile?: string }) => Promise<{
 	transform_file?: (page: TransformPage) => Promise<{ code: string }>
 	index_file?: ModuleIndexTransform
 	vite?: Omit<Plugin, 'name'>
+	include_file?: (config: Config, filepath: string) => boolean | null
 }>
 
 type ModuleIndexTransform = (arg: {

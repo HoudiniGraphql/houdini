@@ -213,10 +213,12 @@ importers:
         specifiers:
             '@kitql/helper': ^0.5.0
             '@sveltejs/kit': 1.0.0-next.505
+            '@types/minimatch': ^5.1.2
             ast-types: ^0.15.1
             estree-walker: ^3.0.1
             graphql: ^16.6.0
             houdini: workspace:^
+            minimatch: ^5.1.0
             recast: ^0.21.5
             scripts: workspace:^
             svelte: ^3.50.1
@@ -228,9 +230,11 @@ importers:
             estree-walker: 3.0.1
             graphql: 16.6.0
             houdini: link:../houdini
+            minimatch: 5.1.0
             recast: 0.21.5
             svelte: 3.50.1
         devDependencies:
+            '@types/minimatch': 5.1.2
             scripts: link:../_scripts
             vitest: 0.23.4
 

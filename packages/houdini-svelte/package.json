@@ -15,12 +15,14 @@
 		"estree-walker": "^3.0.1",
 		"graphql": "^16.6.0",
 		"houdini": "workspace:^",
+		"minimatch": "^5.1.0",
 		"recast": "^0.21.5",
 		"svelte": "^3.50.1"
 	},
 	"devDependencies": {
-		"vitest": "^0.23.4",
-		"scripts": "workspace:^"
+		"@types/minimatch": "^5.1.2",
+		"scripts": "workspace:^",
+		"vitest": "^0.23.4"
 	},
 	"peerDependencies": {
 		"graphql": "^0.13.0 || ^14.0.0 || ^15.0.0"

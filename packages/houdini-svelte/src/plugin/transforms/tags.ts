@@ -1,4 +1,4 @@
-import { Config, walkGraphQLTags } from 'houdini'
+import { Config, walkGraphQLDocuments } from 'houdini'
 import { TransformPage, store_import } from 'houdini/vite'
 import * as recast from 'recast'
 
@@ -6,7 +6,7 @@ const AST = recast.types.builders
 
 export default async function GraphQLTagProcessor(config: Config, page: TransformPage) {
 	// all graphql template tags need to be turned into a reference to the appropriate store
-	await walkGraphQLTags(config, page.script, {
+	await walkGraphQLDocuments(config, page.script, {
 		dependency: page.watch_file,
 		tag(tag) {
 			// pull out what we need
