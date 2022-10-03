@@ -4,6 +4,7 @@ import type { Plugin } from 'vite'
 
 import { Config } from '../common'
 import { getConfig, readFile } from '../common'
+import { ConfigFile } from '../runtime'
 
 let config: Config
 

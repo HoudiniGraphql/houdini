@@ -3,6 +3,7 @@ import { Plugin } from 'vite'
 
 import generate from '../cmd/generate'
 import { Config, formatErrors, getConfig, HoudiniRouteScript, Script } from '../common'
+import { ConfigFile } from '../runtime'
 import apply_transforms from './transforms'
 
 export default function HoudiniPlugin({
