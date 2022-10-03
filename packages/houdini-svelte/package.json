@@ -5,7 +5,7 @@
 	"type": "module",
 	"scripts": {
 		"tests": "vitest",
-		"build": "scripts build",
+		"build": "scripts build --plugin",
 		"typedefs": "scripts typedefs"
 	},
 	"dependencies": {

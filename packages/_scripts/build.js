@@ -9,9 +9,7 @@ const build_dir = path.join(process.cwd(), 'build')
 const src_dir = path.join(process.cwd(), 'src')
 
 // the function to build a project assuming the directory layout
-export default async function () {
-	// other directories can be bundled
-
+export default async function ({ plugin }) {
 	// this script will also modify the package.json so that it exports esm and cjs versions
 	// correctly
 	const packageJSON = JSON.parse(await fs.readFile(path.join(process.cwd(), 'package.json')))
@@ -31,7 +29,7 @@ export default async function () {
 
 		// plugins get bundled
 		if (dirname === 'plugin') {
-			await build(dir)
+			await build({ source: dir, plugin })
 			// when there's a plugin directory, that is the main entry point
 			packageJSON.main = './build/plugin-cjs/index.js'
 			packageJSON.exports['.'] = {
@@ -42,7 +40,7 @@ export default async function () {
 		}
 		// lib defines the main entry point
 		else if (dirname === 'lib') {
-			await build(dir)
+			await build({ source: dir, plugin })
 			// when there's a plugin directory, that is the main entry point
 			packageJSON.main = `./build/${dirname}-cjs/index.js`
 			packageJSON.exports[`.`] = {
@@ -53,17 +51,17 @@ export default async function () {
 		}
 		// runtimes can't be bundled
 		else if (dirname === 'runtime') {
-			await build(dir, false)
+			await build({ source: dir, bundle: false, plugin })
 		}
 		// cmd needs to be bundled and set as the project's bin
 		else if (dirname === 'cmd') {
 			packageJSON.bin = './build/cmd-esm/index.js'
-			await build(dir)
+			await build({ source: dir, plugin })
 		}
 
 		// its not a special directory, treat it as a sub module
 		else {
-			await build(dir)
+			await build({ source: dir, plugin })
 			packageJSON.exports['./' + dirname] = {
 				import: `./build/${dirname}-esm/index.js`,
 				require: `./build/${dirname}-cjs/index.js`,
@@ -79,7 +77,7 @@ export default async function () {
 }
 
 // create esm and cjs builds of the source
-async function build(source, bundle = true) {
+async function build({ source, bundle = true, plugin }) {
 	// if we aren't bundling, look up the entrypoints once
 	const children = bundle
 		? []
@@ -93,6 +91,15 @@ async function build(source, bundle = true) {
 			// where we will put everything
 			const target_dir = path.join(build_dir, `${path.basename(source)}-${which}`)
 
+			let header = ''
+			if (which === 'esm') {
+				if (plugin) {
+					header = `const require = conflict_free(import.meta.url);`
+				} else {
+					header = `import { createRequire as conflict_free } from 'module'; const require = conflict_free(import.meta.url);`
+				}
+			}
+
 			// the esbuild config
 			const config = {
 				bundle,
@@ -100,10 +107,7 @@ async function build(source, bundle = true) {
 				format: which,
 				external: bundle ? ['vite', 'HOUDINI_CONFIG_PATH', 'HOUDINI_CLIENT_PATH'] : [],
 				banner: {
-					js:
-						which === 'esm'
-							? `import { createRequire } from 'module'; const require = createRequire(import.meta.url);`
-							: '',
+					js: header,
 				},
 			}
 
