@@ -32,10 +32,6 @@
 			"import": "./build/plugin-esm/index.js",
 			"require": "./build/plugin-cjs/index.js"
 		},
-		"./plugin": {
-			"import": "./build/plugin-esm/index.js",
-			"require": "./build/plugin-cjs/index.js"
-		},
 		"./preprocess": {
 			"import": "./build/preprocess-esm/index.js",
 			"require": "./build/preprocess-cjs/index.js"
@@ -43,9 +39,6 @@
 	},
 	"typesVersions": {
 		"*": {
-			"plugin": [
-				"build/plugin/index.d.ts"
-			],
 			"preprocess": [
 				"build/preprocess/index.d.ts"
 			]

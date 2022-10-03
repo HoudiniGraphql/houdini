@@ -41,7 +41,7 @@ export default async function () {
 			packageJSON.types = './build/plugin/index.d.ts'
 		}
 		// lib defines the main entry point
-		if (dirname === 'lib') {
+		else if (dirname === 'lib') {
 			await build(dir)
 			// when there's a plugin directory, that is the main entry point
 			packageJSON.main = `./build/${dirname}-cjs/index.js`
@@ -98,9 +98,7 @@ async function build(source, bundle = true) {
 				bundle,
 				platform: 'node',
 				format: which,
-				external: bundle
-					? ['vite', 'vitest', 'HOUDINI_CONFIG_PATH', 'HOUDINI_CLIENT_PATH']
-					: [],
+				external: bundle ? ['vite', 'HOUDINI_CONFIG_PATH', 'HOUDINI_CLIENT_PATH'] : [],
 				banner: {
 					js:
 						which === 'esm'

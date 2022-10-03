@@ -4,7 +4,7 @@ import * as graphql from 'graphql'
 import minimatch from 'minimatch'
 import os from 'os'
 import path from 'path'
-import { fileURLToPath } from 'url'
+import { fileURLToPath, pathToFileURL } from 'url'
 import { promisify } from 'util'
 import type { Plugin } from 'vite'
 
@@ -275,8 +275,11 @@ export class Config {
 		return '$houdini.d.ts'
 	}
 
-	private findNodeModulesHoudini(currentLocation: string) {
-		const pathEndingBy = ['node_modules', 'houdini']
+	findModule(
+		pkg: string = 'houdini',
+		currentLocation: string = path.join(path.dirname(this.filepath))
+	) {
+		const pathEndingBy = ['node_modules', pkg]
 
 		// Build the first possible location
 		let locationFound = path.join(currentLocation, ...pathEndingBy)
@@ -311,7 +314,7 @@ export class Config {
 		const relative = process.env.TEST
 			? path.join(currentDir, '../../')
 			: // start here and go to parent until we find the node_modules/houdini folder
-			  this.findNodeModulesHoudini(path.join(path.dirname(this.filepath)))
+			  this.findModule()
 
 		// we want to copy the typescript source code for the templates and then compile the files according
 		// to the requirements of the platform
@@ -821,12 +824,14 @@ This will prevent your schema from being pulled (potentially resulting in errors
 	// load the svelte plugin if necessary
 	if (['kit', 'svelte'].includes(_config.framework)) {
 		try {
+			// look for the houdini-svelte module
+			const sveltePluginDir = _config.findModule('houdini-svelte')
 			const { default: sveltePlugin }: { default: HoudiniPlugin } = await import(
-				// @ts-ignore
-				'houdini-svelte'
+				pathToFileURL(sveltePluginDir).toString() + '/build/plugin-esm/index.js'
 			)
 			_config.plugins.push(await sveltePlugin())
-		} catch {
+		} catch (e) {
+			console.log(e)
 			throw new Error(
 				'Looks like you are missing the houdini-svelte plugin. Please install it and try again.'
 			)
