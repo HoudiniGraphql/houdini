@@ -39,6 +39,10 @@
 		"recast": "^0.21.5"
 	},
 	"exports": {
+		"./codegen": {
+			"import": "./build/codegen-esm/index.js",
+			"require": "./build/codegen-cjs/index.js"
+		},
 		".": {
 			"import": "./build/lib-esm/index.js",
 			"require": "./build/lib-cjs/index.js"
@@ -50,6 +54,9 @@
 	},
 	"typesVersions": {
 		"*": {
+			"codegen": [
+				"build/codegen/index.d.ts"
+			],
 			"vite": [
 				"build/vite/index.d.ts"
 			]
