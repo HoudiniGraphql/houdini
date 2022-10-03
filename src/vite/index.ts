@@ -19,9 +19,9 @@ export default function ({
 	process.env.HOUDINI_PLUGIN = 'true'
 
 	return [
-		houdini(configPath),
+		houdini({ configFile: configPath, ...extraConfig }),
 		schema({ configFile: configPath, ...extraConfig }),
-		fs_patch(configPath),
+		fs_patch({ configFile: configPath, ...extraConfig }),
 		watch_and_run([
 			{
 				name: 'Houdini',
