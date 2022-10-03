@@ -2,8 +2,8 @@ import * as graphql from 'graphql'
 import { test } from 'vitest'
 
 import { runPipeline } from '.'
-import { testConfig, CollectedGraphQLDocument } from '../../lib'
-import { ArtifactKind } from '../../runtime/lib'
+import { testConfig, CollectedGraphQLDocument } from '../lib'
+import { ArtifactKind } from '../runtime/lib'
 
 export function pipelineTest(
 	title: string,

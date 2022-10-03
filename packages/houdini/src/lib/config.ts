@@ -4,9 +4,15 @@ import * as graphql from 'graphql'
 import minimatch from 'minimatch'
 import os from 'os'
 import path from 'path'
+import type {
+	CustomPluginOptions,
+	LoadResult,
+	ObjectHook,
+	PluginContext,
+	ResolveIdResult,
+} from 'rollup'
 import { fileURLToPath, pathToFileURL } from 'url'
 import { promisify } from 'util'
-import type { Plugin } from 'vite'
 
 import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/lib'
 import { CachePolicy } from '../runtime/lib/types'
@@ -52,7 +58,7 @@ export class Config {
 	client: string
 	globalStorePrefix: string
 	quietQueryErrors: boolean
-	plugins: Awaited<ReturnType<HoudiniPlugin>>[] = []
+	plugins: HoudiniPlugin[] = []
 
 	constructor({
 		filepath,
@@ -826,7 +832,7 @@ This will prevent your schema from being pulled (potentially resulting in errors
 		try {
 			// look for the houdini-svelte module
 			const sveltePluginDir = _config.findModule('houdini-svelte')
-			const { default: sveltePlugin }: { default: HoudiniPlugin } = await import(
+			const { default: sveltePlugin }: { default: HoudiniPluginFactory } = await import(
 				pathToFileURL(sveltePluginDir).toString() + '/build/plugin-esm/index.js'
 			)
 			_config.plugins.push(await sveltePlugin())
@@ -850,15 +856,44 @@ export enum LogLevel {
 	Quiet = 'quiet',
 }
 
-export type HoudiniPlugin = (args?: { configFile?: string }) => Promise<{
+export type HoudiniPluginFactory = (args?: { configFile?: string }) => Promise<HoudiniPlugin>
+
+export type HoudiniPlugin = {
 	extensions?: string[]
 	extract_documents?: (filepath: string, content: string) => Promise<string[]>
 	generate_end?: (config: Config, docs: CollectedGraphQLDocument[]) => Promise<void>
 	transform_file?: (page: TransformPage) => Promise<{ code: string }>
 	index_file?: ModuleIndexTransform
-	vite?: Omit<Plugin, 'name'>
+	vite?: {
+		// these type definitions are copy and pasted from the vite ones
+		// with config added to the appropriate options object
+		resolveId?: ObjectHook<
+			(
+				this: PluginContext,
+				source: string,
+				importer: string | undefined,
+				options: {
+					config: Config
+					custom?: CustomPluginOptions
+					ssr?: boolean
+					/* Excluded from this release type: scan */
+					isEntry: boolean
+				}
+			) => Promise<ResolveIdResult> | ResolveIdResult
+		>
+		load?: ObjectHook<
+			(
+				this: PluginContext,
+				id: string,
+				options: {
+					config: Config
+					ssr?: boolean
+				}
+			) => Promise<LoadResult> | LoadResult
+		>
+	}
 	include?: (config: Config, filepath: string) => boolean | null | undefined
-}>
+}
 
 type ModuleIndexTransform = (arg: {
 	config: Config

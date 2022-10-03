@@ -1,15 +1,11 @@
 import filesystem, { Dirent, PathLike } from 'fs'
-import { Config } from 'houdini'
-import { getConfig, fs } from 'houdini'
+import { fs, HoudiniPlugin } from 'houdini'
 import path from 'path'
-import type { Plugin } from 'vite'
 
 import { is_root_layout, is_root_layout_server, is_route_script } from './kit'
 
-let config: Config
-
 // this plugin is responsible for faking `+page.js` existence in the eyes of sveltekit
-export default function HoudiniFsPatch(): Omit<Plugin, 'name'> {
+export default function HoudiniFsPatch(): HoudiniPlugin['vite'] {
 	return {
 		resolveId(id, _, { config }) {
 			// if we are resolving any of the files we need to generate

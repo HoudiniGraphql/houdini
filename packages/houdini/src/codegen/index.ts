@@ -211,7 +211,7 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 
 	// a config's set of plugins defines a priority list of ways to extract a document from a file
 	// build up a mapping from extension to a list functions that extract documents
-	const extractors: Record<string, Awaited<ReturnType<HoudiniPlugin>>['extract_documents'][]> = {
+	const extractors: Record<string, HoudiniPlugin['extract_documents'][]> = {
 		'.graphql': [],
 		'.gql': [],
 		'.js': [],

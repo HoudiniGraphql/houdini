@@ -1,4 +1,4 @@
-import { HoudiniPlugin } from 'houdini'
+import { HoudiniPluginFactory } from 'houdini'
 import minimatch from 'minimatch'
 import path from 'path'
 
@@ -8,7 +8,7 @@ import fs_patch from './fsPatch'
 import { resolve_relative } from './kit'
 import apply_transforms from './transforms'
 
-const HoudiniSveltePlugin: HoudiniPlugin = async () => ({
+const HoudiniSveltePlugin: HoudiniPluginFactory = async () => ({
 	extensions: ['.svelte'],
 
 	// custom logic to pull a graphql document out of a svelte file

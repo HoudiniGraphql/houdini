@@ -1,4 +1,4 @@
-lockfileVersion: 5.4
+lockfileVersion: 5.3
 
 importers:
     .:
@@ -163,6 +163,7 @@ importers:
             prettier: ^2.5.1
             prompts: ^2.4.2
             recast: ^0.21.5
+            rollup: ^2.79.1
             scripts: workspace:^
             turbo: ^1.5.4
             vite: ^3.1.4
@@ -192,6 +193,7 @@ importers:
             '@types/minimatch': 5.1.2
             '@types/node': 18.7.23
             prettier: 2.7.1
+            rollup: 2.79.1
             scripts: link:../_scripts
             turbo: 1.5.5
             vite: 3.1.4
@@ -4712,6 +4714,7 @@ packages:
             {
                 integrity: sha512-yIovAzMX49sF8Yl58fSCWJ5svSLuaibPxXQJFLmBObTuCr0Mf1KiPopGM9NiFjiYBCbfaa2Fh6breQ6ANVTI0A==,
             }
+        dev: true
 
     /function.prototype.name/1.1.5:
         resolution:
@@ -5016,6 +5019,7 @@ packages:
                 integrity: sha512-FeTRX67T3LoE3LWAxxOlW2K3Bz+rMYAC18rRguK4wgXaTZMiJwSUwDmPFo3UadAKbzirKIg5Qy+sNJXbpPRnQw==,
             }
         engines: { node: '>= 10.x' }
+        dev: true
 
     /graphql/16.6.0:
         resolution:
@@ -5088,6 +5092,7 @@ packages:
         engines: { node: '>= 0.4.0' }
         dependencies:
             function-bind: 1.1.1
+        dev: true
 
     /hast-util-has-property/2.0.0:
         resolution:
@@ -5303,6 +5308,7 @@ packages:
             }
         dependencies:
             has: 1.0.3
+        dev: true
 
     /is-date-object/1.0.5:
         resolution:
@@ -6017,6 +6023,7 @@ packages:
             }
         engines: { node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1 }
         hasBin: true
+        dev: true
 
     /natural-compare/1.4.0:
         resolution:
@@ -6365,6 +6372,7 @@ packages:
             {
                 integrity: sha512-LDJzPVEEEPR+y48z93A0Ed0yXb8pAByGWo/k5YYdYgpY2/2EsOsksJrq7lOHxryrVOn1ejG6oAp8ahvOIQD8sw==,
             }
+        dev: true
 
     /path-type/4.0.0:
         resolution:
@@ -6393,6 +6401,7 @@ packages:
             {
                 integrity: sha512-1fygroTLlHu66zi26VoTDv8yRgm0Fccecssto+MhsZ0D/DGW2sm8E8AjW7NU5VVTRt5GxbeZ5qBuJr+HyLYkjQ==,
             }
+        dev: true
 
     /picomatch/2.3.1:
         resolution:
@@ -6504,6 +6513,7 @@ packages:
             nanoid: 3.3.4
             picocolors: 1.0.0
             source-map-js: 1.0.2
+        dev: true
 
     /prelude-ls/1.2.1:
         resolution:
@@ -6785,6 +6795,7 @@ packages:
             is-core-module: 2.10.0
             path-parse: 1.0.7
             supports-preserve-symlinks-flag: 1.0.0
+        dev: true
 
     /restore-cursor/3.1.0:
         resolution:
@@ -6872,6 +6883,7 @@ packages:
         hasBin: true
         optionalDependencies:
             fsevents: 2.3.2
+        dev: true
 
     /rollup/2.79.1:
         resolution:
@@ -6882,7 +6894,6 @@ packages:
         hasBin: true
         optionalDependencies:
             fsevents: 2.3.2
-        dev: false
 
     /run-parallel/1.2.0:
         resolution:
@@ -7130,6 +7141,7 @@ packages:
                 integrity: sha512-R0XvVJ9WusLiqTCEiGCmICCMplcCkIwwR11mOSD9CR5u+IXYdiseeEuXCVAjS54zqwkLcPNnmU4OeJ6tUrWhDw==,
             }
         engines: { node: '>=0.10.0' }
+        dev: true
 
     /source-map-support/0.4.18:
         resolution:
@@ -7375,6 +7387,7 @@ packages:
                 integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==,
             }
         engines: { node: '>= 0.4' }
+        dev: true
 
     /svelte-check/2.9.1_svelte@3.50.1:
         resolution:
@@ -7916,6 +7929,7 @@ packages:
             }
         engines: { node: '>=4.2.0' }
         hasBin: true
+        dev: true
 
     /typescript/4.6.4:
         resolution:
@@ -8164,6 +8178,7 @@ packages:
             rollup: 2.78.1
         optionalDependencies:
             fsevents: 2.3.2
+        dev: true
 
     /vitest/0.23.4:
         resolution:
