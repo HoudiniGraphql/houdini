@@ -45,7 +45,10 @@ export default async function svelteKitGenerator(config: Config, docs: Collected
 			const target = path.join(config.typeRouteDir, relativePath, config.typeRootFile)
 
 			// we can't import from $houdini so we need to compute the relative path from the import
-			const houdiniRelative = path.relative(target, config.typeRootDir)
+			const houdiniRelative = path
+				.relative(target, config.typeRootDir)
+				// Windows management
+				.replaceAll('\\', '/')
 
 			// the unique set of query names
 			const queryNames: string[] = []
