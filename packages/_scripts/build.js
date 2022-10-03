@@ -1,5 +1,4 @@
 import esbuild from 'esbuild'
-import alias from 'esbuild-plugin-alias'
 import fs from 'fs/promises'
 import glob from 'glob-promise'
 import path from 'path'
@@ -12,12 +11,14 @@ const src_dir = path.join(process.cwd(), 'src')
 export default async function ({ plugin }) {
 	// this script will also modify the package.json so that it exports esm and cjs versions
 	// correctly
-	const packageJSON = JSON.parse(await fs.readFile(path.join(process.cwd(), 'package.json')))
-	packageJSON.exports = {}
-	packageJSON.typesVersions = { '*': {} }
-	delete packageJSON['main']
-	delete packageJSON['bin']
-	delete packageJSON['types']
+	const package_json = JSON.parse(
+		await fs.readFile(path.join(process.cwd(), 'package.json'), 'utf-8')
+	)
+	package_json.exports = {}
+	package_json.typesVersions = { '*': {} }
+	delete package_json['main']
+	delete package_json['bin']
+	delete package_json['types']
 
 	// look at every directory in the source
 	for (const dirname of await fs.readdir(src_dir)) {
@@ -31,23 +32,23 @@ export default async function ({ plugin }) {
 		if (dirname === 'plugin') {
 			await build({ source: dir, plugin })
 			// when there's a plugin directory, that is the main entry point
-			packageJSON.main = './build/plugin-cjs/index.js'
-			packageJSON.exports['.'] = {
+			package_json.main = './build/plugin-cjs/index.js'
+			package_json.exports['.'] = {
 				import: './build/plugin-esm/index.js',
 				require: './build/plugin-cjs/index.js',
 			}
-			packageJSON.types = './build/plugin/index.d.ts'
+			package_json.types = './build/plugin/index.d.ts'
 		}
 		// lib defines the main entry point
 		else if (dirname === 'lib') {
 			await build({ source: dir, plugin })
 			// when there's a plugin directory, that is the main entry point
-			packageJSON.main = `./build/${dirname}-cjs/index.js`
-			packageJSON.exports[`.`] = {
+			package_json.main = `./build/${dirname}-cjs/index.js`
+			package_json.exports[`.`] = {
 				import: `./build/${dirname}-esm/index.js`,
 				require: `./build/${dirname}-cjs/index.js`,
 			}
-			packageJSON.types = `./build/${dirname}/index.d.ts`
+			package_json.types = `./build/${dirname}/index.d.ts`
 		}
 		// runtimes can't be bundled
 		else if (dirname === 'runtime') {
@@ -55,23 +56,23 @@ export default async function ({ plugin }) {
 		}
 		// cmd needs to be bundled and set as the project's bin
 		else if (dirname === 'cmd') {
-			packageJSON.bin = './build/cmd-esm/index.js'
+			package_json.bin = './build/cmd-esm/index.js'
 			await build({ source: dir, plugin })
 		}
 
 		// its not a special directory, treat it as a sub module
 		else {
 			await build({ source: dir, plugin })
-			packageJSON.exports['./' + dirname] = {
+			package_json.exports['./' + dirname] = {
 				import: `./build/${dirname}-esm/index.js`,
 				require: `./build/${dirname}-cjs/index.js`,
 			}
-			packageJSON.typesVersions['*'][dirname] = [`build/${dirname}/index.d.ts`]
+			package_json.typesVersions['*'][dirname] = [`build/${dirname}/index.d.ts`]
 		}
 
 		await fs.writeFile(
 			path.join(process.cwd(), 'package.json'),
-			JSON.stringify(packageJSON, null, 4)
+			JSON.stringify(package_json, null, 4)
 		)
 	}
 }
@@ -92,7 +93,7 @@ async function build({ source, bundle = true, plugin }) {
 			const target_dir = path.join(build_dir, `${path.basename(source)}-${which}`)
 
 			let header = ''
-			if (which === 'esm') {
+			if (bundle) {
 				if (plugin) {
 					header = `const require = conflict_free(import.meta.url);`
 				} else {

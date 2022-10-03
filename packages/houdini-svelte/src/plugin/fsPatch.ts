@@ -5,42 +5,40 @@ import path from 'path'
 import { is_root_layout, is_root_layout_server, is_route_script } from './kit'
 
 // this plugin is responsible for faking `+page.js` existence in the eyes of sveltekit
-export default function HoudiniFsPatch(): HoudiniPlugin['vite'] {
-	return {
-		resolveId(id, _, { config }) {
-			// if we are resolving any of the files we need to generate
-			if (
-				is_route_script(config, id) ||
-				is_root_layout(config, id) ||
-				is_root_layout_server(config, id)
-			) {
-				return {
-					id,
-				}
+export default {
+	resolveId(id, _, { config }) {
+		// if we are resolving any of the files we need to generate
+		if (
+			is_route_script(config, id) ||
+			is_root_layout(config, id) ||
+			is_root_layout_server(config, id)
+		) {
+			return {
+				id,
 			}
+		}
 
-			return null
-		},
+		return null
+	},
 
-		load: async (filepath: string, { config }) => {
-			// if we are processing a route script or the root layout, we should always return _something_
-			if (is_route_script(config, filepath) || is_root_layout_server(config, filepath)) {
-				return {
-					code: (await fs.readFile(filepath)) || '',
-				}
+	load: async (filepath, { config }) => {
+		// if we are processing a route script or the root layout, we should always return _something_
+		if (is_route_script(config, filepath) || is_root_layout_server(config, filepath)) {
+			return {
+				code: (await fs.readFile(filepath)) || '',
 			}
+		}
 
-			if (is_root_layout(config, filepath)) {
-				return {
-					code: (await fs.readFile(filepath)) || empty_root_layout,
-				}
+		if (is_root_layout(config, filepath)) {
+			return {
+				code: (await fs.readFile(filepath)) || empty_root_layout,
 			}
+		}
 
-			// do the normal thing
-			return null
-		},
-	}
-}
+		// do the normal thing
+		return null
+	},
+} as HoudiniPlugin['vite']
 
 const _readDirSync = filesystem.readdirSync
 const _statSync = filesystem.statSync

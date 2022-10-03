@@ -39,9 +39,7 @@ const HoudiniSveltePlugin: HoudiniPluginFactory = async () => ({
 	},
 
 	// add custom vite config
-	vite: {
-		...fs_patch(),
-	},
+	vite: fs_patch,
 })
 
 export default HoudiniSveltePlugin

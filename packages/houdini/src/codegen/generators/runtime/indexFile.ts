@@ -22,16 +22,17 @@ export default async function writeIndexFile(config: Config, docs: CollectedGrap
 
 	// create the export functions
 	const export_star_from = ({ module }: { module: string }) =>
-		cjs ? exportStarFrom(module) : `export * from "${module}"`
+		'\n' + (cjs ? exportStarFrom(module) : `export * from "${module}"`)
 	const export_default_as = ({ module, as }: { module: string; as: string }) =>
-		cjs ? exportDefaultFrom(module, as) : `export { default as ${as} } from "${module}"`
+		'\n' +
+		(cjs ? exportDefaultFrom(module, as) : `export { default as ${as} } from "${module}"`)
 
 	// add the standard exports
 	body += [
 		export_star_from({ module: runtimeDir }),
 		export_star_from({ module: artifactDir }),
 		export_star_from({ module: definitionsDir }),
-	].join('\n')
+	].join('')
 
 	// let any plugins add their own
 	for (const plugin of config.plugins) {
