@@ -8,12 +8,10 @@ import { getConfig, readFile } from '../common'
 let config: Config
 
 // this plugin is responsible for faking `+page.js` existence in the eyes of sveltekit
-export default function HoudiniFsPatch(
-	{
+export default function HoudiniFsPatch({
 	configFile,
 	...extraConfig
-}: { configFile?: string } & Partial<ConfigFile> = {}
-): Plugin {
+}: { configFile?: string } & Partial<ConfigFile> = {}): Plugin {
 	return {
 		name: 'houdini-fs-patch',
 

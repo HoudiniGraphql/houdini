@@ -5,12 +5,10 @@ import generate from '../cmd/generate'
 import { Config, formatErrors, getConfig, HoudiniRouteScript, Script } from '../common'
 import apply_transforms from './transforms'
 
-export default function HoudiniPlugin(
-	{
+export default function HoudiniPlugin({
 	configFile,
 	...extraConfig
-}: { configFile?: string } & Partial<ConfigFile> = {}
-): Plugin {
+}: { configFile?: string } & Partial<ConfigFile> = {}): Plugin {
 	return {
 		name: 'houdini',
 
@@ -43,7 +41,7 @@ export default function HoudiniPlugin(
 		async transform(code, filepath) {
 			let config: Config
 			try {
-				config = await getConfig({ configFile, ...extraConfig})
+				config = await getConfig({ configFile, ...extraConfig })
 			} catch (e) {
 				formatErrors(e)
 				return
