@@ -50,7 +50,11 @@ const HoudiniSveltePlugin: HoudiniPluginFactory = async () => ({
 		filepath = resolve_relative(config, filepath)
 
 		// if the filepath doesn't match the include we're done
-		if (!minimatch(filepath, path.join(config.projectRoot, config.include))) {
+		if (
+			!config.include.some((include) =>
+				minimatch(filepath, path.join(config.projectRoot, include))
+			)
+		) {
 			return false
 		}
 	},
