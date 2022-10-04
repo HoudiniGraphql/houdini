@@ -1,6 +1,6 @@
 import path from 'path'
 
-import { Config, siteURL, CollectedGraphQLDocument, fs } from '../../../lib'
+import { Config, siteURL, CollectedGraphQLDocument, fs, HoudiniError } from '../../../lib'
 
 export default async function runtimeGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	// copy the compiled source code to the target directory
@@ -9,11 +9,37 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 	// generate the adapter to normalize interactions with the framework
 	// update the generated runtime to point to the client
 	await Promise.all([
+		...config.plugins
+			.filter((plugin) => plugin.include_runtime)
+			.map((plugin) => generatePluginRuntime(config, plugin.name)),
 		addClientImport(config),
 		addConfigImport(config),
 		addSiteURL(config),
 		meta(config),
 	])
+}
+
+async function generatePluginRuntime(config: Config, name: string) {
+	// a plugin with a generated runtime has something at <dir>/build/runtime-{esm,cjs}
+
+	// find the location of the plugin
+	const pluginPath = config.findModule(name)
+	const source = path.join(
+		pluginPath,
+		'build',
+		'runtime-' + (config.module === 'esm' ? 'esm' : 'cjs')
+	)
+	try {
+		await fs.stat(source)
+	} catch {
+		throw new HoudiniError({
+			message: name + ' does not have a runtime to generate',
+			description: 'please use the houdini-scripts command to bundle your plugin',
+		})
+	}
+
+	// copy the runtime
+	await fs.recursiveCopy(config, source, config.pluginRuntimeDirectory(name))
 }
 
 async function addClientImport(config: Config) {

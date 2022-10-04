@@ -13,14 +13,13 @@ export class Cache {
 	// label accomplishes this but would not prevent someone using vanilla js
 	_internal_unstable: CacheInternal
 
-	constructor(config: ConfigFile) {
+	constructor() {
 		this._internal_unstable = new CacheInternal({
 			cache: this,
-			config: defaultConfigValues(config),
 			storage: new InMemoryStorage(),
 			subscriptions: new InMemorySubscriptions(this),
 			lists: new ListManager(this, rootID),
-			lifetimes: new GarbageCollector(this, config.cacheBufferSize),
+			lifetimes: new GarbageCollector(this),
 		})
 	}
 
@@ -143,7 +142,7 @@ class CacheInternal {
 	// for server-side requests we need to be able to flag the cache as disabled so we dont write to it
 	private _disabled = false
 
-	config: ConfigFile
+	config: ConfigFile = defaultConfigValues({ client: '' })
 	storage: InMemoryStorage
 	subscriptions: InMemorySubscriptions
 	lists: ListManager
@@ -151,7 +150,6 @@ class CacheInternal {
 	lifetimes: GarbageCollector
 
 	constructor({
-		config,
 		storage,
 		subscriptions,
 		lists,
@@ -159,13 +157,11 @@ class CacheInternal {
 		lifetimes,
 	}: {
 		storage: InMemoryStorage
-		config: ConfigFile
 		subscriptions: InMemorySubscriptions
 		lists: ListManager
 		cache: Cache
 		lifetimes: GarbageCollector
 	}) {
-		this.config = config
 		this.storage = storage
 		this.subscriptions = subscriptions
 		this.lists = lists
@@ -709,7 +705,7 @@ class CacheInternal {
 			// if the field is a scalar
 			else if (!fields) {
 				// is the type a custom scalar with a specified unmarshal function
-				const fnUnmarshal = this.config.scalars?.[type]?.unmarshal
+				const fnUnmarshal = this.config?.scalars?.[type]?.unmarshal
 				if (fnUnmarshal) {
 					// pass the primitive value to the unmarshal function
 					target[attributeName] = fnUnmarshal(value) as GraphQLValue

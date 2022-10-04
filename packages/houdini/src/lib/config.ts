@@ -58,7 +58,7 @@ export class Config {
 	client: string
 	globalStorePrefix: string
 	quietQueryErrors: boolean
-	plugins: HoudiniPlugin[] = []
+	plugins: (HoudiniPlugin & { name: string; include_runtime: boolean })[] = []
 
 	constructor({
 		filepath,
@@ -155,16 +155,6 @@ export class Config {
 				...types,
 			}
 		}
-
-		// Check that storeName & globalStoreName are not overlapping.
-		// Not possible today, but maybe in the future if storeName starts to be configurable.
-		if (this.storeName({ name: 'QueryName' }) === this.globalStoreName({ name: 'QueryName' })) {
-			throw new HoudiniError({
-				filepath,
-				message: 'Invalid config file: "globalStoreName" and "storeName" are overlapping',
-				description: `Here, both gives: ${this.storeName({ name: 'QueryName' })}`,
-			})
-		}
 	}
 
 	get include() {
@@ -174,12 +164,12 @@ export class Config {
 		}
 
 		// we have to figure out a reasonable default so start with the normal extensions
-		const extensions = ['graphql', 'gql', 'ts', 'js'].concat(
+		const extensions = ['.graphql', '.gql', '.ts', '.js'].concat(
 			this.plugins.flatMap((plugin) => plugin.extensions ?? [])
 		)
 
 		// any file of a valid extension in src is good enough
-		return `src/**/*.{${extensions.join(',')}}`
+		return `src/**/*{${extensions.join(',')}}`
 	}
 
 	get pullHeaders() {
@@ -224,17 +214,8 @@ export class Config {
 		return this.artifactDirectory
 	}
 
-	// the directory where we put all of the stores
-	get storesDirectory() {
-		return path.join(this.rootDir, this.storesDirectoryName)
-	}
-
 	get metaFilePath() {
 		return path.join(this.rootDir, 'meta.json')
-	}
-
-	get storesDirectoryName() {
-		return 'stores'
 	}
 
 	// where we will place the runtime
@@ -271,10 +252,6 @@ export class Config {
 
 	get typeRootDir() {
 		return path.join(this.rootDir, 'types')
-	}
-
-	get typeRouteDir() {
-		return path.join(this.typeRootDir, 'src', 'routes')
 	}
 
 	get typeRootFile() {
@@ -346,24 +323,6 @@ export class Config {
 		return `$houdini/${this.artifactDirectoryName}/${name}`
 	}
 
-	// the path that the runtime can use to import a store
-	storeImportPath(name: string): string {
-		return `$houdini/${this.storesDirectoryName}/${name}`
-	}
-
-	get storeSuffix() {
-		// if this changes, we might have more forbiddenNames to add in the validator
-		return 'Store'
-	}
-
-	storeName({ name }: { name: string }) {
-		return name + this.storeSuffix
-	}
-
-	globalStoreName({ name }: { name: string }) {
-		return this.globalStorePrefix + name
-	}
-
 	keyFieldsForType(type: string) {
 		return keyFieldsForType(this.configFile, type)
 	}
@@ -413,9 +372,7 @@ export class Config {
 			fs.mkdirp(this.artifactDirectory),
 			fs.mkdirp(this.artifactTypeDirectory),
 			fs.mkdirp(this.runtimeDirectory),
-			fs.mkdirp(this.storesDirectory),
 			fs.mkdirp(this.definitionsDirectory),
-			fs.mkdirp(this.typeRouteDir),
 		])
 	}
 
@@ -451,6 +408,14 @@ export class Config {
 
 		// if there is an exclude, make sure the path doesn't match
 		return !this.exclude ? true : !minimatch(filepath, this.exclude)
+	}
+
+	pluginRuntimeDirectory(name: string) {
+		return path.join(this.runtimesDirectory, name)
+	}
+
+	get runtimesDirectory() {
+		return path.join(this.rootDir, 'runtimes')
 	}
 
 	/*
@@ -835,7 +800,17 @@ This will prevent your schema from being pulled (potentially resulting in errors
 			const { default: sveltePlugin }: { default: HoudiniPluginFactory } = await import(
 				pathToFileURL(sveltePluginDir).toString() + '/build/plugin-esm/index.js'
 			)
-			_config.plugins.push(await sveltePlugin())
+			let include_runtime = false
+			try {
+				await fs.stat(path.join(sveltePluginDir, 'build', 'runtime-esm'))
+				include_runtime = true
+			} catch {}
+
+			_config.plugins.push({
+				...(await sveltePlugin()),
+				name: 'houdini-svelte',
+				include_runtime,
+			})
 		} catch (e) {
 			console.log(e)
 			throw new Error(
@@ -843,6 +818,11 @@ This will prevent your schema from being pulled (potentially resulting in errors
 			)
 		}
 	}
+
+	// look for any plugins with a loaded hook
+	await Promise.all(
+		_config.plugins.map(async (plugin) => (plugin.load ? plugin.load(_config) : null))
+	)
 
 	// we're done and have a valid config
 	resolve(_config)
@@ -860,9 +840,10 @@ export type HoudiniPluginFactory = (args?: { configFile?: string }) => Promise<H
 
 export type HoudiniPlugin = {
 	extensions?: string[]
-	extract_documents?: (filepath: string, content: string) => Promise<string[]>
-	generate_end?: (config: Config, docs: CollectedGraphQLDocument[]) => Promise<void>
-	transform_file?: (page: TransformPage) => Promise<{ code: string }>
+	load: (config: Config) => Promise<void> | void
+	extract_documents?: (filepath: string, content: string) => Promise<string[]> | string[]
+	generate?: HoudiniGenerateHook
+	transform_file?: (page: TransformPage) => Promise<{ code: string }> | { code: string }
 	index_file?: ModuleIndexTransform
 	vite?: {
 		// these type definitions are copy and pasted from the vite ones
@@ -901,3 +882,10 @@ type ModuleIndexTransform = (arg: {
 	export_default_as(args: { module: string; as: string }): string
 	export_star_from(args: { module: string }): string
 }) => string
+
+export type HoudiniGenerateHook = (args: HoudiniGenerateHookInput) => Promise<void> | void
+
+export type HoudiniGenerateHookInput = {
+	config: Config
+	documents: CollectedGraphQLDocument[]
+}

@@ -6,11 +6,12 @@ export class GarbageCollector {
 	private lifetimes: Map<string, Map<string, number>> = new Map()
 
 	// the number of ticks of the garbage collector that a piece of data will
-	readonly cacheBufferSize: number
+	get cacheBufferSize() {
+		return this.cache._internal_unstable.config.cacheBufferSize ?? 10
+	}
 
-	constructor(cache: Cache, bufferSize: number = 10) {
+	constructor(cache: Cache) {
 		this.cache = cache
-		this.cacheBufferSize = bufferSize
 	}
 
 	resetLifetime(id: string, field: string) {

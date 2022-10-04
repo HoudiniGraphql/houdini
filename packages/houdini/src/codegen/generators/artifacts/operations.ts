@@ -11,6 +11,10 @@ export function operationsByPath(
 	definition: graphql.OperationDefinitionNode,
 	filterTypes: FilterMap
 ): { [path: string]: MutationOperation[] } {
+	if (!definition) {
+		return {}
+	}
+
 	// map the path in the response to the list of operations that treat it as the source
 	const pathOperations: { [path: string]: MutationOperation[] } = {}
 

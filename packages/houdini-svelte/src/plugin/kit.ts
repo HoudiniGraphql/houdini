@@ -222,3 +222,34 @@ const posixify = (str: string) => str.replace(/\\/g, '/')
 export function route_page_path(config: Config, filename: string) {
 	return resolve_relative(config, filename).replace('.js', '.svelte').replace('.ts', '.svelte')
 }
+
+export function stores_directory_name() {
+	return 'stores'
+}
+
+// the directory where we put all of the stores
+export function stores_directory(config: Config) {
+	return path.join(config.rootDir, config.storesDirectoryName)
+}
+
+export function type_route_dir(config: Config) {
+	return path.join(config.typeRootDir, 'src', 'routes')
+}
+
+// the path that the runtime can use to import a store
+export function store_import_path(config: Config, name: string): string {
+	return `$houdini/${config.storesDirectoryName}/${name}`
+}
+
+export function store_suffix(config: Config) {
+	// if config changes, we might have more forbiddenNames to add in the validator
+	return 'Store'
+}
+
+export function store_name({ config, name }: { config: Config; name: string }) {
+	return name + store_suffix(config)
+}
+
+export function global_store_name({ config, name }: { config: Config; name: string }) {
+	return config.globalStorePrefix + name
+}

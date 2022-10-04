@@ -78,7 +78,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 	}
 
 	// collect any plugins that need to do something after generating
-	const afterGenerate = config.plugins.filter((plugin) => plugin.generate_end)
+	const generatePlugins = config.plugins.filter((plugin) => plugin.generate)
 
 	// generate the runtime if the version changed, if its a new project, or they changed their client path
 	const generateRuntime = newTimestamp || newClientPath || !previousVersion
@@ -110,6 +110,14 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 
 				// generators
 
+				...generatePlugins.map(
+					(plugin) => async (config: Config, docs: CollectedGraphQLDocument[]) =>
+						await plugin.generate!({
+							config,
+							documents: docs,
+						})
+				),
+
 				// the runtime is a static thing most of the time. It only needs to be regenerated if
 				// the user is upgrading versions or the client path changed
 				generateRuntime ? generators.runtime : null,
@@ -117,9 +125,6 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 				generators.typescript,
 				generators.persistOutput,
 				generators.definitions,
-
-				// this has to go after runtime and artifacts
-				...afterGenerate.map((plugin) => plugin.generate_end!),
 			],
 			docs
 		)
