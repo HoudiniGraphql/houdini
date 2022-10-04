@@ -131,8 +131,8 @@ export default async function typescriptGenerator(
 		indexContent = plugin.index_file({
 			config,
 			content: indexContent,
-			export_default_as: ({ module, as }) => `\nexport { default as ${as} } from ${module}`,
-			export_star_from: ({ module }) => `\nexport * from ${module}`,
+			export_default_as: ({ module, as }) => `\nexport { default as ${as} } from ${module}\n`,
+			export_star_from: ({ module }) => `\nexport * from ${module}\n`,
 		})
 	}
 
