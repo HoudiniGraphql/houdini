@@ -505,7 +505,7 @@ class CacheInternal {
 				// we have to notify the subscribers if a few things happen:
 				// either the data changed (ie we got new content for the same list)
 				// or we got content for a new list which could already be known. If we just look at
-				// wether the IDs are the same, situations where we have old data that
+				// whether the IDs are the same, situations where we have old data that
 				// is still valid would not be triggered
 				const contentChanged = !deepEquals(linkedIDs, oldIDs)
 

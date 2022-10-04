@@ -13,8 +13,8 @@ All configuration for your houdini application is defined in a single file that 
 It can contain the following values:
 
 - `client`: a relative path (from houdini.config.js) to a file that exports your houdini client as its default.
-- `include` (optional, default: `"src/**/*.{svelte,graphql,gql,ts,js}"`): a pattern to identify source code files
-- `exclude` (optional): a pattern that filters out files that match the include pattern
+- `include` (optional, default: `"src/**/*.{svelte,graphql,gql,ts,js}"`): a pattern (or list of patterns) to identify source code files.
+- `exclude` (optional): a pattern (or list of patterns) that filters out files that match the include pattern
 - `projectDir` (optional, default: `process.cwd()`): an absolute path pointing to your SvelteKit project (useful for monorepos)
 - `schemaPath` (optional, default: `"./schema.graphql"`): the path to the static representation of your schema, can be a glob pointing to multiple files. One of `schema` or `schemaPath` is required
 - `apiUrl` (optional): A url to use to pull the schema. If you don't pass an `apiUrl`, the kit plugin will not poll for schema changes. For more information see the [pull-schema command docs](/api/cli#pull-schema).
@@ -24,7 +24,7 @@ It can contain the following values:
 - `scalars` (optional): An object describing custom scalars for your project (see below).
 - `cacheBufferSize` (optional, default: `10`): The number of queries that must occur before a value is removed from the cache. For more information, see the [Caching Guide](/guides/caching-data).
 - `defaultCachePolicy` (optional, default: `"CacheOrNetwork"`): The default cache policy to use for queries. For a list of the policies or other information see the [Caching Guide](/guides/caching-data).
-- `defaultPartial` (optional, default: `false`): specifies wether or not the cache should always use partial data. For more information, check out the [Partial Data guide](/guides/caching-data#partial-data).
+- `defaultPartial` (optional, default: `false`): specifies whether or not the cache should always use partial data. For more information, check out the [Partial Data guide](/guides/caching-data#partial-data).
 - `defaultKeys` (optional, default: `["id"]`): A list of fields to use when computing a record's id. The default value is `['id']`. For more information see the [Caching Guide](/guides/caching-data#custom-ids).
 - `types` (optional): an object that customizes the resolution behavior for a specific type. For more information see the [Caching Guide](/guides/caching-data#custom-ids).
 - `logLevel` (optional, default: `"summary"`): Specifies the style of logging houdini will use when generating your file. One of "quiet", "full", "summary", or "short-summary".

@@ -4,8 +4,12 @@ import type { Plugin } from 'vite'
 import generate from '../codegen'
 import { Config, getConfig } from '../lib/config'
 import { formatErrors } from '../lib/graphql'
+import { ConfigFile } from '../lib/types'
 
-export default function HoudiniPlugin(configFile?: string): Plugin {
+export default function HoudiniPlugin({
+	configFile,
+	...extraConfig
+}: { configFile?: string } & Partial<ConfigFile> = {}): Plugin {
 	return {
 		name: 'houdini',
 
@@ -28,7 +32,7 @@ export default function HoudiniPlugin(configFile?: string): Plugin {
 		// when the build starts, we need to make sure to generate
 		async buildStart() {
 			try {
-				await generate(await getConfig({ configFile }))
+				await generate(await getConfig({ configFile, ...extraConfig }))
 			} catch (e) {
 				formatErrors(e)
 			}
@@ -38,7 +42,7 @@ export default function HoudiniPlugin(configFile?: string): Plugin {
 		async transform(code, filepath) {
 			let config: Config
 			try {
-				config = await getConfig({ configFile })
+				config = await getConfig({ configFile, ...extraConfig })
 			} catch (e) {
 				formatErrors(e)
 				return

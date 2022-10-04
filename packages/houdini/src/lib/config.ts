@@ -34,7 +34,7 @@ export class Config {
 	apiUrl?: string
 	schemaPath?: string
 	persistedQueryPath?: string
-	exclude?: string
+	exclude: string[]
 	scalars?: ConfigFile['scalars']
 	framework: 'kit' | 'svelte' = 'kit'
 	module: 'commonjs' | 'esm' = 'esm'
@@ -71,7 +71,7 @@ export class Config {
 		let {
 			schema,
 			schemaPath = './schema.graphql',
-			exclude,
+			exclude = [],
 			apiUrl,
 			framework = 'kit',
 			module = 'esm',
@@ -123,7 +123,7 @@ export class Config {
 		this.schemaPath = schemaPath
 		this.apiUrl = apiUrl
 		this.filepath = filepath
-		this.exclude = exclude
+		this.exclude = Array.isArray(exclude) ? exclude : [exclude]
 		this.framework = framework
 		this.module = module
 		this.projectRoot = path.dirname(
@@ -160,7 +160,9 @@ export class Config {
 	get include() {
 		// if the config file has one, use it
 		if (this.configFile.include) {
-			return this.configFile.include
+			return Array.isArray(this.configFile.include)
+				? this.configFile.include
+				: [this.configFile.include]
 		}
 
 		// we have to figure out a reasonable default so start with the normal extensions
@@ -169,7 +171,7 @@ export class Config {
 		)
 
 		// any file of a valid extension in src is good enough
-		return `src/**/*{${extensions.join(',')}}`
+		return [`src/**/*{${extensions.join(',')}}`]
 	}
 
 	get pullHeaders() {
@@ -387,7 +389,7 @@ export class Config {
 		)
 	}
 
-	includeFile(filepath: string) {
+	includeFile(filepath: string, root: string = this.projectRoot) {
 		let included = false
 		// plugins might define custom include logic
 		for (const plugin of this.plugins) {
@@ -402,12 +404,19 @@ export class Config {
 		}
 
 		// if the filepath doesn't match the include we're done
-		if (!included && !minimatch(filepath, path.join(this.projectRoot, this.include))) {
+		if (
+			!included &&
+			!this.include.some((pattern) => minimatch(filepath, path.join(root, pattern)))
+		) {
 			return false
 		}
 
-		// if there is an exclude, make sure the path doesn't match
-		return !this.exclude ? true : !minimatch(filepath, this.exclude)
+		// if there is an exclude, make sure the path doesn't match any of the exclude patterns
+		return (
+			!this.exclude ||
+			this.exclude.length === 0 ||
+			!this.exclude.some((pattern) => minimatch(filepath, pattern))
+		)
 	}
 
 	pluginRuntimeDirectory(name: string) {

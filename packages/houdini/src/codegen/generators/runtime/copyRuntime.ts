@@ -49,10 +49,10 @@ async function addClientImport(config: Config) {
 	// the path to the network file
 	const networkFilePath = path.join(config.runtimeDirectory, 'lib', 'network.js')
 	// the relative path
-	const relativePath = path.relative(
-		path.dirname(networkFilePath),
-		path.join(config.projectRoot, config.client)
-	)
+	const relativePath = path
+		.relative(path.dirname(networkFilePath), path.join(config.projectRoot, config.client))
+		// Windows management
+		.replaceAll('\\', '/')
 
 	// read the file, replace the string, update the file
 	const contents = await fs.readFile(networkFilePath)
@@ -70,7 +70,10 @@ async function addConfigImport(config: Config) {
 	// the path to the config file
 	const configFilePath = path.join(config.runtimeDirectory, 'lib', 'config.js')
 	// the relative path
-	const relativePath = path.relative(path.dirname(configFilePath), config.filepath)
+	const relativePath = path
+		.relative(path.dirname(configFilePath), config.filepath)
+		// Windows management
+		.replaceAll('\\', '/')
 
 	// read the file, replace the string, update the file
 	const contents = await fs.readFile(configFilePath)

@@ -212,12 +212,12 @@ export type ConfigFile = {
 	 * for inline queries to work
 	 * @default `src/** /*.{svelte,graphql,gql,ts,js}`
 	 */
-	include?: string
+	include?: string | string[]
 
 	/**
 	 * A pattern used to remove matches from files that satisfy the include value
 	 */
-	exclude?: string
+	exclude?: string | string[]
 
 	/**
 	 * A static representation of your schema
@@ -275,7 +275,7 @@ export type ConfigFile = {
 	defaultCachePolicy?: CachePolicy
 
 	/**
-	 * Specifies wether or not the cache should always use partial data. For more information: https://www.houdinigraphql.com/guides/caching-data#partial-data
+	 * Specifies whether or not the cache should always use partial data. For more information: https://www.houdinigraphql.com/guides/caching-data#partial-data
 	 */
 	defaultPartial?: boolean
 
