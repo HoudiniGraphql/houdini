@@ -105,3 +105,34 @@ Quick answer is when SvelteKit gets to `1.0`. Until then, we want to be able to 
 ### Does Houdini support Framework X?
 
 At the moment, Houdini only support SvelteKit and vanilla Svelte projects. If you are interested in integrating Houdini into another framework, please reach out! We are very interested in adding support for additional frameworks, we just don't have an abundance of time 😅
+
+### Can I use .env files for pre-processing?
+
+Yes you can! The vite plugin supports passing additional config during the pre-processing stage. Any config present in the [houdini config](/api/config#fields) is a valid input.
+
+```typescript
+import { sveltekit } from '@sveltejs/kit/vite';
+import houdini from 'houdini/vite';
+import type { UserConfigExport } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
+
+const config: UserConfigExport = defineConfig(({ mode }) => {
+        // loads env files
+        // supports the use of seperate .env, .env.production, and .env.development files
+      	const env = loadEnv(mode, process.cwd());
+
+        return {
+                plugins: [
+                        houdini({
+                        				apiUrl: env.VITE_SECRET_ENDPOINT
+                                schemaPollHeaders: {
+                                        'X-Header': env.VITE_CUSTOM_HEADER
+                                }
+                        }),
+                        sveltekit()
+                ]
+        };
+});
+
+export default config;
+```
