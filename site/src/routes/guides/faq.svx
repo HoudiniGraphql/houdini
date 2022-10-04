@@ -88,12 +88,6 @@ If you haven't seen Houdini's document stores before, please check out the [Work
 You should use the `metadata` parameter in the document store to pass arbitrary information into your client's network function. For more information,
 please visit [the query store docs](/api/query#passing-metadata).
 
-### What is this `Generated an empty chunk...` warning from vite?
-
-If you have a route directory that does not contain a `+page.js` file and does not have an inline query in your `+page.svelte`, the
-plugin will generate an empty `+page.js` file that is never used. This confuses vite hence the warning. Don't worry - since this empty
-file is never imported there are no performance implications.
-
 ### Can I use .env files for pre-processing?
 
 Yes you can! The vite plugin supports passing additional config during the pre-processing stage. Any config present in the [houdini config](/api/config#fields) is a valid input.
@@ -112,7 +106,7 @@ const config: UserConfigExport = defineConfig(({ mode }) => {
         return {
                 plugins: [
                         houdini({
-                        apiUrl: env.VITE_SECRET_ENDPOINT,
+                        				apiUrl: env.VITE_SECRET_ENDPOINT,
                                 schemaPollHeaders: {
                                         'X-Header': env.VITE_CUSTOM_HEADER
                                 }
@@ -124,6 +118,12 @@ const config: UserConfigExport = defineConfig(({ mode }) => {
 
 export default config;
 ```
+
+### What is this `Generated an empty chunk...` warning from vite?
+
+If you have a route directory that does not contain a `+page.js` file and does not have an inline query in your `+page.svelte`, the
+plugin will generate an empty `+page.js` file that is never used. This confuses vite hence the warning. Don't worry - since this empty
+file is never imported there are no performance implications.
 
 ### My IDE is complaining that the internal directives and fragments don't exist.
 
