@@ -112,7 +112,7 @@ const config: UserConfigExport = defineConfig(({ mode }) => {
         return {
                 plugins: [
                         houdini({
-                        				apiUrl: env.VITE_SECRET_ENDPOINT
+                        apiUrl: env.VITE_SECRET_ENDPOINT,
                                 schemaPollHeaders: {
                                         'X-Header': env.VITE_CUSTOM_HEADER
                                 }
