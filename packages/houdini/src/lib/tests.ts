@@ -1,4 +1,5 @@
 import * as graphql from 'graphql'
+import { fs as memfs, vol } from 'memfs'
 import path from 'path'
 import { test } from 'vitest'
 
@@ -102,4 +103,15 @@ export function mockCollectedDoc(query: string): CollectedGraphQLDocument {
 		generateStore: true,
 		originalString: query,
 	}
+}
+
+export async function clearMock() {
+	const config = testConfig()
+
+	vol.reset()
+	await Promise.all([
+		config.createDirectories(),
+		memfs.mkdirpSync(path.join(process.cwd(), 'src', 'routes')),
+		memfs.mkdirpSync(path.join(process.cwd(), 'src', 'lib')),
+	])
 }

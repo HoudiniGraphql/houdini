@@ -1,9 +1,7 @@
 import fsExtra from 'fs-extra'
 import fs from 'fs/promises'
-import { fs as memfs, vol } from 'memfs'
+import { fs as memfs } from 'memfs'
 import path from 'path'
-
-// import { testConfig } from './tests'
 
 export async function readFile(filepath: string): Promise<string | null> {
 	if (process.env.NODE_ENV === 'test') {
@@ -38,17 +36,6 @@ export async function writeFile(filepath: string, data: string) {
 	}
 
 	return await fs.writeFile(filepath, data, 'utf8')
-}
-
-export async function clearMock() {
-	const config = testConfig()
-
-	vol.reset()
-	await Promise.all([
-		config.createDirectories(),
-		memfs.mkdirpSync(path.join(process.cwd(), 'src', 'routes')),
-		memfs.mkdirpSync(path.join(process.cwd(), 'src', 'lib')),
-	])
 }
 
 export async function access(filepath: string) {
