@@ -845,6 +845,10 @@ export type HoudiniPlugin = {
 	generate?: HoudiniGenerateHook
 	transform_file?: (page: TransformPage) => Promise<{ code: string }> | { code: string }
 	index_file?: ModuleIndexTransform
+	validate?: (args: {
+		config: Config
+		documents: CollectedGraphQLDocument[]
+	}) => Promise<void> | void
 	vite?: {
 		// these type definitions are copy and pasted from the vite ones
 		// with config added to the appropriate options object

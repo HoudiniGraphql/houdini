@@ -1,4 +1,6 @@
-import { Config, HoudiniError, CollectedGraphQLDocument } from '../../lib'
+import { Config, HoudiniError, CollectedGraphQLDocument } from 'houdini'
+
+import { store_name } from '../plugin/kit'
 
 // uniqueDocumentNames verifies that the documents all have unique names
 export default async function forbiddenNames(
@@ -18,14 +20,15 @@ export default async function forbiddenNames(
 
 	for (let i = 0; i < docs.length; i++) {
 		const doc = docs[i]
-		if (forbiddenNames.includes(config.storeName(doc))) {
+		if (forbiddenNames.includes(store_name({ config, name: doc.name }))) {
 			errors.push(
 				new HoudiniError({
 					filepath: doc.filename,
-					message: `Operation name "${
-						doc.name
-					}" forbidden (as Houdini uses "${config.storeName(
-						doc
+					message: `Operation name "${doc.name}" forbidden (as Houdini uses "${store_name(
+						{
+							config,
+							name: doc.name,
+						}
 					)}" internally), please change it to something else.`,
 				})
 			)

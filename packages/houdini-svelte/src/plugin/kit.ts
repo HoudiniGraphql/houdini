@@ -229,7 +229,7 @@ export function stores_directory_name() {
 
 // the directory where we put all of the stores
 export function stores_directory(config: Config) {
-	return path.join(config.rootDir, config.storesDirectoryName)
+	return path.join(config.rootDir, stores_directory_name())
 }
 
 export function type_route_dir(config: Config) {
@@ -238,7 +238,7 @@ export function type_route_dir(config: Config) {
 
 // the path that the runtime can use to import a store
 export function store_import_path(config: Config, name: string): string {
-	return `$houdini/${config.storesDirectoryName}/${name}`
+	return `$houdini/${stores_directory_name()}/${name}`
 }
 
 export function store_suffix(config: Config) {

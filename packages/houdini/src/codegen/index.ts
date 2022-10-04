@@ -93,7 +93,6 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 				validators.typeCheck,
 				validators.uniqueNames,
 				validators.noIDAlias,
-				validators.forbiddenNames,
 
 				// transforms
 				transforms.internalSchema,

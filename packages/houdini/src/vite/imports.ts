@@ -106,27 +106,6 @@ export function ensure_imports({
 	}
 }
 
-export function store_import({
-	config,
-	script,
-	artifact,
-	local,
-}: {
-	config: Config
-	script: Script
-	artifact: { name: string }
-	local?: string
-}): { id: Identifier; added: number } {
-	const { ids, added } = ensure_imports({
-		config,
-		script,
-		sourceModule: config.storeImportPath(artifact.name),
-		import: `GQL_${artifact.name}`,
-	})
-
-	return { id: ids, added }
-}
-
 export function artifact_import({
 	config,
 	script,

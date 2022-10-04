@@ -7,42 +7,6 @@ const AST = recast.types.builders
 type Statement = recast.types.namedTypes.Statement
 type ImportDeclaration = recast.types.namedTypes.ImportDeclaration
 
-export function ensureStoreImport({
-	config,
-	artifact,
-	body,
-	local,
-}: {
-	config: Config
-	artifact: { name: string }
-	body: Statement[]
-	local?: string
-}) {
-	return ensureImports({
-		config,
-		body,
-		sourceModule: config.storeImportPath(artifact.name),
-		import: local || `_${artifact.name}Store`,
-	})
-}
-
-export function ensureStoreFactoryImport({
-	config,
-	artifact,
-	body,
-}: {
-	config: Config
-	artifact: { name: string }
-	body: Statement[]
-}) {
-	return ensureImports({
-		config,
-		body,
-		sourceModule: config.storeImportPath(artifact.name),
-		import: [`${artifact.name}Store`],
-	})
-}
-
 export function ensureArtifactImport({
 	config,
 	artifact,

@@ -1,5 +1,4 @@
-import { pipelineTest } from '../testUtils'
-import { CollectedGraphQLDocument } from '../types'
+import { pipelineTest, CollectedGraphQLDocument } from '../../lib'
 
 const table: Row[] = [
 	{
