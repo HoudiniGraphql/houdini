@@ -1,6 +1,5 @@
 import glob from 'glob'
 import * as graphql from 'graphql'
-import minimatch from 'minimatch'
 import path from 'path'
 import * as recast from 'recast'
 import * as svelte from 'svelte/compiler'
@@ -200,15 +199,19 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 
 async function collectDocuments(config: Config): Promise<CollectedGraphQLDocument[]> {
 	// the first step we have to do is grab a list of every file in the source tree
-	let sourceFiles = (
-		await Promise.all(
-			config.include.map((filepath) =>
-				promisify(glob)(path.join(config.projectRoot, filepath))
+	let sourceFiles = [
+		...new Set(
+			(
+				await Promise.all(
+					config.include.map((filepath) =>
+						promisify(glob)(path.join(config.projectRoot, filepath))
+					)
+				)
 			)
-		)
-	)
-		.flat()
-		.filter((filepath) => config.includeFile(filepath))
+				.flat()
+				.filter((filepath) => config.includeFile(filepath))
+		),
+	]
 
 	// the list of documents we found
 	const documents: DiscoveredDoc[] = []
@@ -406,7 +409,7 @@ function logStyled(
 ) {
 	if (stat.length > 0) {
 		// Let's prepare the one liner in the plugin mode, of a bit more in other lol level.
-		const msg = []
+		const msg: string[] = []
 
 		// in plugin mode, it will be very short, let's put a hat first.
 		if (plugin) {
