@@ -88,6 +88,37 @@ If you haven't seen Houdini's document stores before, please check out the [Work
 You should use the `metadata` parameter in the document store to pass arbitrary information into your client's network function. For more information,
 please visit [the query store docs](/api/query#passing-metadata).
 
+### Can I use .env files for pre-processing?
+
+Yes you can! You can pass any [valid configuration value](/api/config#fields) to the vite plugin to use your environment variable:
+
+```typescript
+import { sveltekit } from '@sveltejs/kit/vite';
+import houdini from 'houdini/vite';
+import type { UserConfigExport } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
+
+const config: UserConfigExport = defineConfig(({ mode }) => {
+        // loads env files
+        // supports the use of seperate .env, .env.production, and .env.development files
+      	const env = loadEnv(mode, process.cwd());
+
+        return {
+                plugins: [
+                        houdini({
+                        	apiUrl: env.VITE_SECRET_ENDPOINT,
+                                schemaPollHeaders: {
+                                        'X-Header': env.VITE_CUSTOM_HEADER
+                                }
+                        }),
+                        sveltekit()
+                ]
+        };
+});
+
+export default config;
+```
+
 ### What is this `Generated an empty chunk...` warning from vite?
 
 If you have a route directory that does not contain a `+page.js` file and does not have an inline query in your `+page.svelte`, the
