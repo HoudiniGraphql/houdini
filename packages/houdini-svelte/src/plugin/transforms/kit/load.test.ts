@@ -1,6 +1,6 @@
 import { test, expect, describe } from 'vitest'
 
-import { route_test } from '../../tests'
+import { route_test } from '../../../test'
 
 describe('kit route processor', function () {
 	test('inline store', async function () {

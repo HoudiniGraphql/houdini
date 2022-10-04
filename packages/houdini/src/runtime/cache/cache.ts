@@ -1,6 +1,12 @@
-import { computeID, ConfigFile, keyFieldsForType, deepEquals } from '../lib'
-import { defaultConfigValues } from '../lib/config'
-import { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '../lib/types'
+import { defaultConfigValues, computeID, keyFieldsForType } from '../lib/config'
+import { deepEquals } from '../lib/deepEquals'
+import {
+	GraphQLObject,
+	GraphQLValue,
+	SubscriptionSelection,
+	SubscriptionSpec,
+	ConfigFile,
+} from '../lib/types'
 import { GarbageCollector } from './gc'
 import { ListCollection, ListManager } from './lists'
 import { InMemoryStorage, Layer, LayerID } from './storage'
@@ -318,7 +324,7 @@ class CacheInternal {
 					).length > 0
 
 				// figure out the new target of the object link
-				let linkedID = null
+				let linkedID: string | null = null
 				if (value !== null) {
 					linkedID = !embedded ? this.id(linkedType, value) : `${parent}.${key}`
 				}
@@ -822,7 +828,7 @@ class CacheInternal {
 		// the linked list could be a deeply nested thing, we need to call getData for each record
 		// we can't mutate the lists because that would change the id references in the listLinks map
 		// to the corresponding record. can't have that now, can we?
-		const result = []
+		const result: LinkedList<GraphQLValue> = []
 		let partialData = false
 		let hasValues = false
 
@@ -901,7 +907,7 @@ class CacheInternal {
 	}): { nestedIDs: LinkedList; newIDs: (string | null)[] } {
 		// build up the two lists
 		const nestedIDs: LinkedList = []
-		const newIDs = []
+		const newIDs: (string | null)[] = []
 
 		for (const [i, entry] of value.entries()) {
 			// if we found another list

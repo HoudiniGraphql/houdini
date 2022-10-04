@@ -1,6 +1,6 @@
 import { test, expect } from 'vitest'
 
-import { test_transform_svelte } from '../../../plugin/tests'
+import { test_transform_svelte } from '../../../test'
 
 test('modifies root +layout.svelte to import adapter', async function () {
 	// run the test

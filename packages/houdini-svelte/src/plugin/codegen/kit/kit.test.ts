@@ -1,8 +1,10 @@
-import { runPipeline } from 'houdini/codegen'
-import { parseJS, testConfig } from 'houdini/common'
-import * as fs from 'houdini/common/fs'
+import { parseJS, fs } from 'houdini'
+import { testConfig } from 'houdini/test'
 import path from 'path'
 import { test, expect } from 'vitest'
+
+import generate from '..'
+import { type_route_dir } from '../../kit'
 
 const config = testConfig()
 
@@ -23,11 +25,11 @@ test('generates types for inline queries', async function () {
 	})
 
 	// execute the generator
-	await runPipeline(config, [])
+	await generate({ config, documents: [] })
 
 	// load the contents of the file
 	const queryContents = await fs.readFile(
-		path.join(path.join(config.typeRouteDir, 'myProfile', '$houdini.d.ts'))
+		path.join(path.join(type_route_dir(config), 'myProfile', '$houdini.d.ts'))
 	)
 	expect(queryContents).toBeTruthy()
 
@@ -64,11 +66,11 @@ query MyPageQuery {
 	})
 
 	// execute the generator
-	await runPipeline(config, [])
+	await generate({ config, documents: [] })
 
 	// load the contents of the file
 	const queryContents = await fs.readFile(
-		path.join(path.join(config.typeRouteDir, 'myProfile', '$houdini.d.ts'))
+		path.join(path.join(type_route_dir(config), 'myProfile', '$houdini.d.ts'))
 	)
 	expect(queryContents).toBeTruthy()
 
@@ -121,11 +123,11 @@ test('generates types for after load', async function () {
 	})
 
 	// execute the generator
-	await runPipeline(config, [])
+	await generate({ config, documents: [] })
 
 	// load the contents of the file
 	const queryContents = await fs.readFile(
-		path.join(config.typeRouteDir, 'myProfile', '$houdini.d.ts')
+		path.join(type_route_dir(config), 'myProfile', '$houdini.d.ts')
 	)
 	expect(queryContents).toBeTruthy()
 
@@ -197,11 +199,11 @@ test('generates types for onError', async function () {
 	})
 
 	// execute the generator
-	await runPipeline(config, [])
+	await generate({ config, documents: [] })
 
 	// load the contents of the file
 	const queryContents = await fs.readFile(
-		path.join(config.typeRouteDir, 'myProfile', '$houdini.d.ts')
+		path.join(type_route_dir(config), 'myProfile', '$houdini.d.ts')
 	)
 	expect(queryContents).toBeTruthy()
 

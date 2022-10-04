@@ -1,6 +1,6 @@
 import { test, expect } from 'vitest'
 
-import { test_transform_js, test_transform_svelte } from '../../../plugin/tests'
+import { test_transform_js, test_transform_svelte } from '../../../test'
 
 test('modifies root +layout.svelte with data prop', async function () {
 	// run the test

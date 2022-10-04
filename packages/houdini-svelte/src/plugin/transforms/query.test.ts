@@ -1,5 +1,6 @@
-import { component_test } from 'houdini/vite'
 import { test, expect } from 'vitest'
+
+import { component_test } from '../../test'
 
 test('no variables', async function () {
 	const route = await component_test(

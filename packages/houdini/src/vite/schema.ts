@@ -4,7 +4,7 @@ import path from 'path'
 import type { Plugin } from 'vite'
 
 import { formatErrors, getConfig, pullSchema } from '../lib'
-import { ConfigFile } from '../runtime/lib'
+import { ConfigFile } from '../runtime/lib/types'
 
 export default function HoudiniWatchSchemaPlugin({
 	configFile,

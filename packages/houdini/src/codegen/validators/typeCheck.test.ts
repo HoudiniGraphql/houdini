@@ -1,6 +1,7 @@
 import { test, expect, describe } from 'vitest'
 
-import { pipelineTest, CollectedGraphQLDocument } from '../../lib'
+import { CollectedGraphQLDocument } from '../../lib/types'
+import { pipelineTest } from '../../test'
 
 // since generation will catch a lot of these errors for us, the goal of these tests is to make sure
 // errors are caught __before__ we get to the generation stage. This means that our failure tests

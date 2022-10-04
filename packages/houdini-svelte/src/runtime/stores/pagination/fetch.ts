@@ -1,4 +1,4 @@
-import { GraphQLObject, QueryResult } from 'houdini/src/runtime/lib'
+import { GraphQLObject, QueryResult } from 'houdini/src/runtime/lib/types'
 
 import { QueryStoreFetchParams } from '../query'
 

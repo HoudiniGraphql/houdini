@@ -1,11 +1,11 @@
 import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
 import { getCache } from 'houdini/src/runtime'
-import type { ConfigFile, QueryArtifact } from 'houdini/src/runtime/lib'
 import { deepEquals } from 'houdini/src/runtime/lib/deepEquals'
 import * as log from 'houdini/src/runtime/lib/log'
 import { fetchQuery } from 'houdini/src/runtime/lib/network'
 import { FetchContext } from 'houdini/src/runtime/lib/network'
 import { marshalInputs, unmarshalSelection } from 'houdini/src/runtime/lib/scalars'
+import type { ConfigFile, QueryArtifact } from 'houdini/src/runtime/lib/types'
 // internals
 import { CachePolicy, DataSource, GraphQLObject, QueryResult } from 'houdini/src/runtime/lib/types'
 import {

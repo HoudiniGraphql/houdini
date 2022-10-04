@@ -1,7 +1,7 @@
 import graphql from 'graphql'
 import * as recast from 'recast'
 
-import { ArtifactKind, BaseCompiledDocument } from '../runtime/lib'
+import { ArtifactKind, BaseCompiledDocument } from '../runtime/lib/types'
 import type { Config } from './config'
 
 type Program = recast.types.namedTypes.Program

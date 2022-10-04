@@ -1,9 +1,10 @@
-import { testConfig, fs } from 'houdini'
+import { fs } from 'houdini'
+import { testConfig } from 'houdini/test'
 import { test, describe, expect } from 'vitest'
 
-import { extractLoadFunction } from './extractLoadFunction'
+import { extract_load_function } from './extractLoadFunction'
 
-describe('extractLoadFunction', function () {
+describe('extract_load_function', function () {
 	const table: {
 		title: string
 		source: string
@@ -234,7 +235,7 @@ describe('extractLoadFunction', function () {
 				Object.entries(row.artifacts ?? {}).map(([key, value]) => [key, { raw: value }])
 			)
 
-			const extracted = await extractLoadFunction(config, targetPath, artifacts)
+			const extracted = await extract_load_function(config, targetPath, artifacts)
 
 			expect(extracted.exports).toEqual(row.expected.exports)
 			expect(extracted.houdini_load?.map((operation) => operation.name!.value)).toEqual(

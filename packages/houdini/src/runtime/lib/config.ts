@@ -1,5 +1,14 @@
-import { getMockConfig } from '../../test'
 import { ConfigFile } from './types'
+
+let mockConfig: ConfigFile | null = null
+
+export function getMockConfig() {
+	return mockConfig
+}
+
+export function setMockConfig(config: ConfigFile | null) {
+	mockConfig = config
+}
 
 export function defaultConfigValues(file: ConfigFile): ConfigFile {
 	return {

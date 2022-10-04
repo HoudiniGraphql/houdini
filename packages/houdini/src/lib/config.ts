@@ -14,8 +14,8 @@ import type {
 import { fileURLToPath, pathToFileURL } from 'url'
 import { promisify } from 'util'
 
-import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/lib/config'
-import { CachePolicy } from '../runtime/lib/types'
+import { computeID, defaultConfigValues, keyFieldsForType } from '../runtime/lib/config'
+import { ConfigFile, CachePolicy } from '../runtime/lib/types'
 import { TransformPage } from '../vite/plugin'
 import { HoudiniError } from './error'
 import * as fs from './fs'

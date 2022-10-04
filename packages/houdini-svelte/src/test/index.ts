@@ -1,9 +1,10 @@
-import { ConfigFile, fs, parseJS, Script, testConfig } from 'houdini'
+import { ConfigFile, fs, parseJS, Script } from 'houdini'
+import { testConfig } from 'houdini/test'
 import path from 'path'
 
+import { parseSvelte } from '../plugin/extract'
 import { page_query_path, route_data_path } from '../plugin/kit'
-import { parseSvelte } from './extract'
-import runTransforms from './transforms'
+import runTransforms from '../plugin/transforms'
 
 const schema = `
 	type User {
