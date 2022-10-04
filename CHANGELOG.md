@@ -1,5 +1,17 @@
 # houdini
 
+## 0.16.7
+
+### 🐛 Fixes
+
+-   [#585](https://github.com/HoudiniGraphql/houdini/pull/585) [`29a8fcd`](https://github.com/HoudiniGraphql/houdini/commit/29a8fcd31da3d80d8fa4386010591ba051c0f6e9) Thanks [@jycouet](https://github.com/jycouet)! - fix - windows paths correctly import things now
+
+### ✨ Features
+
+-   [#584](https://github.com/HoudiniGraphql/houdini/pull/584) [`2b19fe5`](https://github.com/HoudiniGraphql/houdini/commit/2b19fe578bca749ca975787709cfcc8325dec68a) Thanks [@sjcobb2022](https://github.com/sjcobb2022)! - Added further config to vite plugin
+
+-   [#559](https://github.com/HoudiniGraphql/houdini/pull/559) [`fd570de`](https://github.com/HoudiniGraphql/houdini/commit/fd570debffde942220bed024676574af8d4d5372) Thanks [@DanielHritcu](https://github.com/DanielHritcu)! - Config.include and exclude can now be arrays
+
 ## 0.16.6
 
 ### 🐛 Fixes
