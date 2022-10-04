@@ -94,7 +94,6 @@ If you have a route directory that does not contain a `+page.js` file and does n
 plugin will generate an empty `+page.js` file that is never used. This confuses vite hence the warning. Don't worry - since this empty
 file is never imported there are no performance implications.
 
-
 ### Can I use .env files for pre-processing?
 
 Yes you can! The vite plugin supports passing additional config during the pre-processing stage. Any config present in the [houdini config](/api/config#fields) is a valid input.
@@ -137,4 +136,3 @@ Quick answer is when SvelteKit gets to `1.0`. Until then, we want to be able to 
 ### Does Houdini support Framework X?
 
 At the moment, Houdini only support SvelteKit and vanilla Svelte projects. If you are interested in integrating Houdini into another framework, please reach out! We are very interested in adding support for additional frameworks, we just don't have an abundance of time 😅
-
