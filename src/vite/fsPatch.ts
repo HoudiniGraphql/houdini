@@ -4,16 +4,20 @@ import type { Plugin } from 'vite'
 
 import { Config } from '../common'
 import { getConfig, readFile } from '../common'
+import { ConfigFile } from '../runtime'
 
 let config: Config
 
 // this plugin is responsible for faking `+page.js` existence in the eyes of sveltekit
-export default function HoudiniFsPatch(configFile?: string): Plugin {
+export default function HoudiniFsPatch({
+	configFile,
+	...extraConfig
+}: { configFile?: string } & Partial<ConfigFile> = {}): Plugin {
 	return {
 		name: 'houdini-fs-patch',
 
 		async configResolved() {
-			config = await getConfig({ configFile })
+			config = await getConfig({ configFile, ...extraConfig })
 		},
 
 		resolveId(id, _, { ssr }) {
