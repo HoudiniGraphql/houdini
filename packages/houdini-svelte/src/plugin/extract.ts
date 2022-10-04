@@ -3,22 +3,10 @@ import type { Maybe, Script } from 'houdini'
 import * as svelte from 'svelte/compiler'
 
 export type ParsedFile = Maybe<{ script: Script; start: number; end: number }>
-export default async function (filepath: string, contents: string): Promise<string[]> {
+export default async function (contents: string): Promise<string[]> {
 	const documents: string[] = []
 
-	let parsedFile: ParsedFile
-	try {
-		parsedFile = await parseSvelte(contents)
-	} catch (e) {
-		const err = e as Error
-
-		// add the filepath to the error message
-		throw new HoudiniError({
-			filepath,
-			message: `Encountered error parsing ${filepath}`,
-			description: err.message,
-		})
-	}
+	let parsedFile = await parseSvelte(contents)
 
 	// we need to look for multiple script tags to support sveltekit
 	const scripts = [parsedFile]

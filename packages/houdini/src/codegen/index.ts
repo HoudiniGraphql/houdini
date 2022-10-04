@@ -109,6 +109,16 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 
 				// generators
 
+				// the runtime is a static thing most of the time. It only needs to be regenerated if
+				// the user is upgrading versions or the client path changed
+				generateRuntime ? generators.runtime : null,
+				generators.indexFile,
+				generators.artifacts(artifactStats),
+				generators.typescript,
+				generators.persistOutput,
+				generators.definitions,
+
+				// these have to go after the artifacts so that plugins can import them
 				...generatePlugins.map(
 					(plugin) => async (config: Config, docs: CollectedGraphQLDocument[]) =>
 						await plugin.generate!({
@@ -116,14 +126,6 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 							documents: docs,
 						})
 				),
-
-				// the runtime is a static thing most of the time. It only needs to be regenerated if
-				// the user is upgrading versions or the client path changed
-				generateRuntime ? generators.runtime : null,
-				generators.artifacts(artifactStats),
-				generators.typescript,
-				generators.persistOutput,
-				generators.definitions,
 			],
 			docs
 		)
@@ -222,14 +224,15 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 	// the list of documents we found
 	const documents: DiscoveredDoc[] = []
 
-	// a config's set of plugins defines a priority list of ways to extract a document from a file
-	// build up a mapping from extension to a list functions that extract documents
 	const extractors: Record<string, HoudiniPlugin['extract_documents'][]> = {
 		'.graphql': [],
 		'.gql': [],
 		'.js': [],
 		'.ts': [],
 	}
+
+	// a config's set of plugins defines a priority list of ways to extract a document from a file
+	// build up a mapping from extension to a list functions that extract documents
 	for (const plugin of config.plugins) {
 		if (plugin.extensions && plugin.extract_documents) {
 			for (const extension of plugin.extensions) {
@@ -237,6 +240,14 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 			}
 		}
 	}
+
+	// add the default extractors at the end of the appropriate lists
+	const graphql_extractor = (content: string) => [content]
+	const javascript_extractor = (contents: string) => processJSFile(config, contents)
+	extractors['.ts'].push(javascript_extractor)
+	extractors['.js'].push(javascript_extractor)
+	extractors['.graphql'].push(graphql_extractor)
+	extractors['.gql'].push(graphql_extractor)
 
 	// wait for every file to be processed
 	await Promise.all(
@@ -261,28 +272,22 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 				})
 			}
 
-			// if the file ends with .svelte, we need to look for graphql template tags
-			for (const extractor of extractors[extension]) {
-				if (!extractor) {
-					continue
-				}
+			// make sure any errors include the filepath
+			try {
+				// if the file ends with .svelte, we need to look for graphql template tags
+				for (const extractor of extractors[extension]) {
+					if (!extractor) {
+						continue
+					}
 
-				const found = await extractor(filepath, contents)
-				if (found.length > 0) {
-					documents.push(...found.map((document) => ({ filepath, document })))
+					const found = await extractor(contents)
+					if (found.length > 0) {
+						documents.push(...found.map((document) => ({ filepath, document })))
+					}
 				}
-			}
-
-			// QUESTION: make these plugins?
-			if (filepath.endsWith('.graphql') || filepath.endsWith('.gql')) {
-				documents.push({
-					filepath,
-					document: contents,
-				})
-			}
-			// otherwise just treat the file as a javascript file
-			else {
-				documents.push(...(await processJSFile(config, filepath, contents)))
+			} catch (err) {
+				console.log(err)
+				throw new HoudiniError({ ...(err as HoudiniError), filepath })
 			}
 		})
 	)
@@ -303,26 +308,16 @@ export type DiscoveredDoc = {
 	document: string
 }
 
-async function processJSFile(
-	config: Config,
-	filepath: string,
-	contents: string
-): Promise<DiscoveredDoc[]> {
-	const documents: DiscoveredDoc[] = []
+async function processJSFile(config: Config, contents: string): Promise<string[]> {
+	const documents: string[] = []
 
 	// parse the contents as js
-	let program: Program
-	try {
-		program = (await parseJS(contents))!.script
-	} catch (e) {
-		// add the filepath to the error message
-		throw new HoudiniError({ filepath, message: (e as Error).message })
-	}
+	let program = (await parseJS(contents))!.script
 
 	// look for a graphql template tag
 	await find_graphql(config, program, {
-		tag(tag) {
-			documents.push({ document: tag.tagContent, filepath })
+		tag({ tagContent }) {
+			documents.push(tagContent)
 		},
 	})
 

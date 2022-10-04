@@ -850,7 +850,7 @@ export type HoudiniPluginFactory = (args?: { configFile?: string }) => Promise<H
 export type HoudiniPlugin = {
 	extensions?: string[]
 	load: (config: Config) => Promise<void> | void
-	extract_documents?: (filepath: string, content: string) => Promise<string[]> | string[]
+	extract_documents?: (content: string) => Promise<string[]> | string[]
 	generate?: HoudiniGenerateHook
 	transform_file?: (page: TransformPage) => Promise<{ code: string }> | { code: string }
 	index_file?: ModuleIndexTransform

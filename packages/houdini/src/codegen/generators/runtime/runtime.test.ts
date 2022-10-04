@@ -5,7 +5,8 @@ import * as typeScriptParser from 'recast/parsers/typescript'
 import { test, expect } from 'vitest'
 
 import { runPipeline } from '../..'
-import { readFile, testConfig } from '../../../../lib'
+import { fs } from '../../../lib'
+import { testConfig } from '../../../test'
 
 test('cache index runtime imports config file - commonjs', async function () {
 	const config = testConfig({ module: 'commonjs' })
@@ -13,7 +14,7 @@ test('cache index runtime imports config file - commonjs', async function () {
 	await runPipeline(config, [])
 
 	// open up the index file
-	const fileContents = await readFile(path.join(config.runtimeDirectory, 'cache', 'index.js'))
+	const fileContents = await fs.readFile(path.join(config.runtimeDirectory, 'cache', 'index.js'))
 
 	expect(fileContents).toBeTruthy()
 	// parse the contents
@@ -44,7 +45,7 @@ test('cache index runtime imports config file - esm', async function () {
 	await runPipeline(config, [])
 
 	// open up the index file
-	const fileContents = await readFile(path.join(config.runtimeDirectory, 'cache', 'index.js'))
+	const fileContents = await fs.readFile(path.join(config.runtimeDirectory, 'cache', 'index.js'))
 	expect(fileContents).toBeTruthy()
 	// parse the contents
 	const parsedQuery: ProgramKind = recast.parse(fileContents!, {
@@ -72,7 +73,7 @@ test('updates the network file with the client path', async function () {
 	await runPipeline(config, [])
 
 	// open up the index file
-	const fileContents = await readFile(path.join(config.runtimeDirectory, 'lib', 'network.js'))
+	const fileContents = await fs.readFile(path.join(config.runtimeDirectory, 'lib', 'network.js'))
 	expect(fileContents).toBeTruthy()
 	// parse the contents
 	const parsedQuery: ProgramKind = recast.parse(fileContents!, {
@@ -89,7 +90,7 @@ test('updates the config file with import path', async function () {
 	await runPipeline(config, [])
 
 	// open up the index file
-	const fileContents = await readFile(path.join(config.runtimeDirectory, 'lib', 'config.js'))
+	const fileContents = await fs.readFile(path.join(config.runtimeDirectory, 'lib', 'config.js'))
 	expect(fileContents).toBeTruthy()
 	// parse the contents
 	const parsedQuery: ProgramKind = recast.parse(fileContents!, {
