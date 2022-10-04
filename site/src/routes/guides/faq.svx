@@ -90,7 +90,7 @@ please visit [the query store docs](/api/query#passing-metadata).
 
 ### Can I use .env files for pre-processing?
 
-Yes you can! The vite plugin supports passing additional config during the pre-processing stage. Any config present in the [houdini config](/api/config#fields) is a valid input.
+Yes you can! You can pass any [valid configuration value](/api/config#fields) to the vite plugin to use your environment variable:
 
 ```typescript
 import { sveltekit } from '@sveltejs/kit/vite';
