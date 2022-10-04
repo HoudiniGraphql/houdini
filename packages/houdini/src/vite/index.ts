@@ -6,24 +6,18 @@ import watch_and_run from 'vite-plugin-watch-and-run'
 import generate from '../codegen'
 import { getConfig, PluginConfig } from '../lib/config'
 import { formatErrors } from '../lib/graphql'
-import vite_adapter from './adapter'
-import houdini from './plugin'
-import schema from './schema'
+import houdini_vite from './houdini'
+import watch_remote_schema from './schema'
 
 export * from './ast'
 export * from './imports'
 export * from './schema'
-export * from './plugin'
+export * from './houdini'
 
 export default function (opts: PluginConfig): Plugin[] {
-	// we need some way for the graphql tag to detect that we are running on the server
-	// so we don't get an error when importing.
-	process.env.HOUDINI_PLUGIN = 'true'
-
 	return [
-		houdini(opts),
-		schema(opts),
-		vite_adapter(opts),
+		houdini_vite(opts),
+		watch_remote_schema(opts),
 		watch_and_run([
 			{
 				name: 'Houdini',

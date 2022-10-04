@@ -16,7 +16,7 @@ import { promisify } from 'util'
 
 import { computeID, defaultConfigValues, keyFieldsForType } from '../runtime/lib/config'
 import { ConfigFile, CachePolicy } from '../runtime/lib/types'
-import { TransformPage } from '../vite/plugin'
+import { TransformPage } from '../vite/houdini'
 import { HoudiniError } from './error'
 import * as fs from './fs'
 import { pullSchema } from './introspection'
@@ -420,11 +420,11 @@ export class Config {
 	}
 
 	pluginRuntimeDirectory(name: string) {
-		return path.join(this.pluginsDirectory, name)
+		return path.join(this.pluginDirectory(name), 'runtime')
 	}
 
-	get pluginsDirectory() {
-		return path.join(this.rootDir, 'plugins')
+	pluginDirectory(name: string) {
+		return path.join(this.rootDir, 'plugins', name)
 	}
 
 	/*
@@ -845,7 +845,7 @@ export type PluginFactory = (args?: PluginConfig) => Promise<Plugin>
 export type Plugin = {
 	extensions?: string[]
 	after_load?: (config: Config) => Promise<void> | void
-	extract_documents?: (content: string) => Promise<string[]> | string[]
+	extract_documents?: (filepath: string, content: string) => Promise<string[]> | string[]
 	generate?: GenerateHook
 	transform_file?: (page: TransformPage) => Promise<{ code: string }> | { code: string }
 	index_file?: ModuleIndexTransform
@@ -896,6 +896,7 @@ export type GenerateHook = (args: GenerateHookInput) => Promise<void> | void
 export type GenerateHookInput = {
 	config: Config
 	documents: CollectedGraphQLDocument[]
+	plugin_root: string
 }
 
 export type PluginConfig = { configPath?: string } & Partial<ConfigFile>

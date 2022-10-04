@@ -21,8 +21,6 @@ import * as generators from './generators'
 import * as transforms from './transforms'
 import * as validators from './validators'
 
-type Program = recast.types.namedTypes.Program
-
 // the main entry point of the compile script
 export default async function compile(config: Config) {
 	// grab the graphql documents
@@ -124,6 +122,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 						await plugin.generate!({
 							config,
 							documents: docs,
+							plugin_root: config.pluginRuntimeDirectory(plugin.name),
 						})
 				),
 			],
@@ -242,8 +241,9 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 	}
 
 	// add the default extractors at the end of the appropriate lists
-	const graphql_extractor = (content: string) => [content]
-	const javascript_extractor = (contents: string) => processJSFile(config, contents)
+	const graphql_extractor = (filepath: string, content: string) => [content]
+	const javascript_extractor = (filepath: string, content: string) =>
+		processJSFile(config, content)
 	extractors['.ts'].push(javascript_extractor)
 	extractors['.js'].push(javascript_extractor)
 	extractors['.graphql'].push(graphql_extractor)
@@ -280,7 +280,7 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 						continue
 					}
 
-					const found = await extractor(contents)
+					const found = await extractor(filepath, contents)
 					if (found.length > 0) {
 						documents.push(...found.map((document) => ({ filepath, document })))
 					}
@@ -312,7 +312,12 @@ async function processJSFile(config: Config, contents: string): Promise<string[]
 	const documents: string[] = []
 
 	// parse the contents as js
-	let program = (await parseJS(contents))!.script
+	try {
+		var program = (await parseJS(contents))!.script
+	} catch (e) {
+		console.log(contents)
+		throw e
+	}
 
 	// look for a graphql template tag
 	await find_graphql(config, program, {

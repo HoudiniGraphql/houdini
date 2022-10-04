@@ -1,9 +1,7 @@
-import { HoudiniError, parseJS } from 'houdini'
-import type { Maybe, Script } from 'houdini'
+import { parseJS, type Maybe, type Script } from 'houdini'
 import * as svelte from 'svelte/compiler'
 
-export type ParsedFile = Maybe<{ script: Script; start: number; end: number }>
-export default async function (contents: string): Promise<string[]> {
+export default async function (filepath: string, contents: string): Promise<string[]> {
 	const documents: string[] = []
 
 	let parsedFile = await parseSvelte(contents)
@@ -125,3 +123,5 @@ function findScriptInnerBounds({
 
 	return [greaterThanIndex + 1, lessThanIndex]
 }
+
+export type ParsedFile = Maybe<{ script: Script; start: number; end: number }>

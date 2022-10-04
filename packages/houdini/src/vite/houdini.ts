@@ -5,6 +5,8 @@ import generate from '../codegen'
 import { Config, getConfig, PluginConfig } from '../lib/config'
 import { formatErrors } from '../lib/graphql'
 
+let config: Config
+
 export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 	return {
 		name: 'houdini',
@@ -12,6 +14,10 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		// houdini will always act as a "meta framework" and process the user's code before it
 		// is processed by the user's library-specific plugins.
 		enforce: 'pre',
+
+		async configResolved() {
+			config = await getConfig(opts)
+		},
 
 		// add watch-and-run to their vite config
 		async config(viteConfig) {
@@ -29,7 +35,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		// when the build starts, we need to make sure to generate
 		async buildStart() {
 			try {
-				await generate(await getConfig(opts))
+				await generate(config)
 			} catch (e) {
 				formatErrors(e)
 			}
@@ -37,14 +43,6 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 
 		// transform the user's code
 		async transform(code, filepath) {
-			let config: Config
-			try {
-				config = await getConfig(opts)
-			} catch (e) {
-				formatErrors(e)
-				return
-			}
-
 			if (filepath.startsWith('/src/')) {
 				filepath = path.join(process.cwd(), filepath)
 			}
@@ -72,6 +70,38 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			}
 
 			return { code: ctx.content }
+		},
+
+		async load(id, opts, ...rest) {
+			for (const plugin of config.plugins) {
+				if (typeof plugin.vite?.load !== 'function') {
+					continue
+				}
+
+				const result = await plugin.vite!.load.call(this, id, { ...opts, config }, ...rest)
+				if (result) {
+					return result
+				}
+			}
+		},
+
+		async resolveId(id, two, opts, ...rest) {
+			for (const plugin of config.plugins) {
+				if (typeof plugin.vite?.resolveId !== 'function') {
+					continue
+				}
+
+				const result = await plugin.vite!.resolveId.call(
+					this,
+					id,
+					two,
+					{ ...opts, config },
+					...rest
+				)
+				if (result) {
+					return result
+				}
+			}
 		},
 	}
 }
