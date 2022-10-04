@@ -17,6 +17,11 @@
 		"checkJs": true,
 		"strict": true,
 		"downlevelIteration": true,
-		"emitDeclarationOnly": true
+		"emitDeclarationOnly": true,
+		"baseUrl": "./packages/houdini",
+		"paths": {
+			"$houdini": ["../houdini/src"],
+			"$houdini/*": ["../houdini/src/*"]
+		}
 	}
 }

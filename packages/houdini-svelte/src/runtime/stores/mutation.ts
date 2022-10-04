@@ -1,12 +1,8 @@
-import { getCache } from 'houdini/src/runtime'
-import { executeQuery } from 'houdini/src/runtime/lib/network'
-import {
-	marshalInputs,
-	marshalSelection,
-	unmarshalSelection,
-} from 'houdini/src/runtime/lib/scalars'
-import type { SubscriptionSpec, MutationArtifact } from 'houdini/src/runtime/lib/types'
-import { GraphQLObject } from 'houdini/src/runtime/lib/types'
+import { getCache } from '$houdini/runtime'
+import { executeQuery } from '$houdini/runtime/lib/network'
+import { marshalInputs, marshalSelection, unmarshalSelection } from '$houdini/runtime/lib/scalars'
+import type { SubscriptionSpec, MutationArtifact } from '$houdini/runtime/lib/types'
+import { GraphQLObject } from '$houdini/runtime/lib/types'
 import { Readable } from 'svelte/store'
 import { Writable, writable } from 'svelte/store'
 

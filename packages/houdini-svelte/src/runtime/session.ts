@@ -1,12 +1,12 @@
-import { error, LoadEvent, redirect, RequestEvent } from '@sveltejs/kit'
-import { GraphQLError } from 'graphql'
-import { marshalInputs } from 'houdini/src/runtime/lib/scalars'
+import { marshalInputs } from '$houdini/runtime/lib/scalars'
 import {
 	MutationArtifact,
 	QueryArtifact,
 	QueryResult,
 	SubscriptionArtifact,
-} from 'houdini/src/runtime/lib/types'
+} from '$houdini/runtime/lib/types'
+import { error, LoadEvent, redirect, RequestEvent } from '@sveltejs/kit'
+import { GraphQLError } from 'graphql'
 import { get } from 'svelte/store'
 
 import { AfterLoadArgs, BeforeLoadArgs, OnErrorArgs } from './types'

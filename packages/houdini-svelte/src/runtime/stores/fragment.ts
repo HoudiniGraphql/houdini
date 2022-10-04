@@ -3,7 +3,7 @@ import {
 	GraphQLObject,
 	FragmentArtifact,
 	HoudiniFetchContext,
-} from 'houdini/src/runtime/lib/types'
+} from '$houdini/runtime/lib/types'
 import { Writable, writable } from 'svelte/store'
 import type { Readable } from 'svelte/store'
 

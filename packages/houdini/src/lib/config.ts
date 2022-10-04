@@ -420,11 +420,11 @@ export class Config {
 	}
 
 	pluginRuntimeDirectory(name: string) {
-		return path.join(this.runtimesDirectory, name)
+		return path.join(this.pluginsDirectory, name)
 	}
 
-	get runtimesDirectory() {
-		return path.join(this.rootDir, 'runtimes')
+	get pluginsDirectory() {
+		return path.join(this.rootDir, 'plugins')
 	}
 
 	/*

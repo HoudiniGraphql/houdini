@@ -1,5 +1,5 @@
-import { siteURL } from 'houdini/src/runtime/lib/constants'
-import { GraphQLObject } from 'houdini/src/runtime/lib/types'
+import { siteURL } from '$houdini/runtime/lib/constants'
+import { GraphQLObject } from '$houdini/runtime/lib/types'
 
 export function nullPageInfo(): PageInfo {
 	return { startCursor: null, endCursor: null, hasNextPage: false, hasPreviousPage: false }

@@ -1,4 +1,4 @@
-import { GraphQLObject, QueryArtifact, QueryResult } from 'houdini/src/runtime/lib/types'
+import { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
 import { derived, get, Subscriber } from 'svelte/store'
 
 import {

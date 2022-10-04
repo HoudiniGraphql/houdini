@@ -20,6 +20,7 @@ export default async function generate_typedefs() {
 		moduleResolution: ModuleResolutionKind.NodeJs,
 		outDir: 'build',
 		project: path.join(process.cwd(), '..', '..'),
+		baseUrl: process.cwd(),
 		lib: ['lib.es2021.d.ts', 'lib.dom.d.ts', 'lib.es2021.string.d.ts'],
 	})
 

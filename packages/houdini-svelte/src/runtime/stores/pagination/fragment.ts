@@ -1,12 +1,12 @@
-import { keyFieldsForType, getCurrentConfig } from 'houdini/src/runtime/lib/config'
-import { siteURL } from 'houdini/src/runtime/lib/constants'
+import { keyFieldsForType, getCurrentConfig } from '$houdini/runtime/lib/config'
+import { siteURL } from '$houdini/runtime/lib/constants'
 import {
 	GraphQLObject,
 	FragmentArtifact,
 	QueryArtifact,
 	HoudiniFetchContext,
 	CompiledFragmentKind,
-} from 'houdini/src/runtime/lib/types'
+} from '$houdini/runtime/lib/types'
 import { derived, get, Readable, Subscriber, Writable, writable } from 'svelte/store'
 
 import { StoreConfig } from '../query'

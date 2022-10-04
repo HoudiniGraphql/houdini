@@ -1,8 +1,8 @@
-import { getCache } from 'houdini/src/runtime'
-import { deepEquals } from 'houdini/src/runtime/lib/deepEquals'
-import { getCurrentClient } from 'houdini/src/runtime/lib/network'
-import { marshalInputs, unmarshalSelection } from 'houdini/src/runtime/lib/scalars'
-import { CompiledSubscriptionKind, SubscriptionArtifact } from 'houdini/src/runtime/lib/types'
+import { getCache } from '$houdini/runtime'
+import { deepEquals } from '$houdini/runtime/lib/deepEquals'
+import { getCurrentClient } from '$houdini/runtime/lib/network'
+import { marshalInputs, unmarshalSelection } from '$houdini/runtime/lib/scalars'
+import { CompiledSubscriptionKind, SubscriptionArtifact } from '$houdini/runtime/lib/types'
 import { writable, Writable } from 'svelte/store'
 
 import { isBrowser } from '../adapter'

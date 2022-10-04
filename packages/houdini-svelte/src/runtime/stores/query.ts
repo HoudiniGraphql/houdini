@@ -1,18 +1,18 @@
-import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
-import { getCache } from 'houdini/src/runtime'
-import { deepEquals } from 'houdini/src/runtime/lib/deepEquals'
-import * as log from 'houdini/src/runtime/lib/log'
-import { fetchQuery } from 'houdini/src/runtime/lib/network'
-import { FetchContext } from 'houdini/src/runtime/lib/network'
-import { marshalInputs, unmarshalSelection } from 'houdini/src/runtime/lib/scalars'
-import type { ConfigFile, QueryArtifact } from 'houdini/src/runtime/lib/types'
+import { getCache } from '$houdini/runtime'
+import { deepEquals } from '$houdini/runtime/lib/deepEquals'
+import * as log from '$houdini/runtime/lib/log'
+import { fetchQuery } from '$houdini/runtime/lib/network'
+import { FetchContext } from '$houdini/runtime/lib/network'
+import { marshalInputs, unmarshalSelection } from '$houdini/runtime/lib/scalars'
+import type { ConfigFile, QueryArtifact } from '$houdini/runtime/lib/types'
 // internals
-import { CachePolicy, DataSource, GraphQLObject, QueryResult } from 'houdini/src/runtime/lib/types'
+import { CachePolicy, DataSource, GraphQLObject, QueryResult } from '$houdini/runtime/lib/types'
 import {
 	SubscriptionSpec,
 	CompiledQueryKind,
 	HoudiniFetchContext,
-} from 'houdini/src/runtime/lib/types'
+} from '$houdini/runtime/lib/types'
+import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
 import { get, Readable, Writable, writable } from 'svelte/store'
 
 import { clientStarted, isBrowser, error } from '../adapter'

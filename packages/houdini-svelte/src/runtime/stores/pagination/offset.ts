@@ -1,8 +1,8 @@
-import { getCache } from 'houdini/src/runtime'
-import { deepEquals } from 'houdini/src/runtime/lib/deepEquals'
-import { executeQuery } from 'houdini/src/runtime/lib/network'
-import { ConfigFile } from 'houdini/src/runtime/lib/types'
-import { GraphQLObject, QueryArtifact, QueryResult } from 'houdini/src/runtime/lib/types'
+import { getCache } from '$houdini/runtime'
+import { deepEquals } from '$houdini/runtime/lib/deepEquals'
+import { executeQuery } from '$houdini/runtime/lib/network'
+import { ConfigFile } from '$houdini/runtime/lib/types'
+import { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
 
 import { getSession } from '../../session'
 import { QueryStoreFetchParams } from '../query'
