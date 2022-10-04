@@ -7,6 +7,7 @@ import extract from './extract'
 import fs_patch from './fsPatch'
 import { global_store_name, resolve_relative, stores_directory, store_name } from './kit'
 import apply_transforms from './transforms'
+import validate from './validate'
 
 const HoudiniSveltePlugin: HoudiniPluginFactory = async () => ({
 	extensions: ['.svelte'],
@@ -43,6 +44,7 @@ const HoudiniSveltePlugin: HoudiniPluginFactory = async () => ({
 		return content + export_star_from({ module: storesDir })
 	},
 
+	// the files we generate contain some crazy relative paths that we need to make sure we include for transformations
 	include(config, filepath) {
 		// deal with any relative imports from compiled assets
 		filepath = resolve_relative(config, filepath)
@@ -52,6 +54,9 @@ const HoudiniSveltePlugin: HoudiniPluginFactory = async () => ({
 			return false
 		}
 	},
+
+	// we have some custom document validation logic
+	validate,
 
 	// add custom vite config
 	vite: fs_patch,

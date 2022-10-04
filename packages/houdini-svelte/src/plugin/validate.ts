@@ -3,10 +3,13 @@ import { Config, HoudiniError, CollectedGraphQLDocument } from 'houdini'
 import { store_name } from '../plugin/kit'
 
 // uniqueDocumentNames verifies that the documents all have unique names
-export default async function forbiddenNames(
-	config: Config,
-	docs: CollectedGraphQLDocument[]
-): Promise<void> {
+export default async function validateDocuments({
+	config,
+	documents,
+}: {
+	config: Config
+	documents: CollectedGraphQLDocument[]
+}): Promise<void> {
 	// all forbiddenNames
 	const forbiddenNames = [
 		'QueryStore',
@@ -18,8 +21,8 @@ export default async function forbiddenNames(
 
 	const errors: HoudiniError[] = []
 
-	for (let i = 0; i < docs.length; i++) {
-		const doc = docs[i]
+	for (let i = 0; i < documents.length; i++) {
+		const doc = documents[i]
 		if (forbiddenNames.includes(store_name({ config, name: doc.name }))) {
 			errors.push(
 				new HoudiniError({

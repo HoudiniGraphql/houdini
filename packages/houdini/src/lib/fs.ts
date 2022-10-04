@@ -3,8 +3,7 @@ import fs from 'fs/promises'
 import { fs as memfs, vol } from 'memfs'
 import path from 'path'
 
-import { Config } from './config'
-import { testConfig } from './tests'
+// import { testConfig } from './tests'
 
 export async function readFile(filepath: string): Promise<string | null> {
 	if (process.env.NODE_ENV === 'test') {
@@ -164,12 +163,7 @@ export async function mock(target: MockFilesystem[string], filepath: string = ''
 	)
 }
 
-export async function recursiveCopy(
-	config: Config,
-	source: string,
-	target: string,
-	notRoot?: boolean
-) {
+export async function recursiveCopy(source: string, target: string, notRoot?: boolean) {
 	// if the folder containing the target doesn't exist, then we need to create it
 	let parentDir = path.join(target, path.basename(source))
 	// if we are at the root, then go up one
@@ -196,7 +190,7 @@ export async function recursiveCopy(
 				// if the child is a directory
 				if ((await fs.stat(childPath)).isDirectory()) {
 					// keep walking down
-					await recursiveCopy(config, childPath, parentDir, true)
+					await recursiveCopy(childPath, parentDir, true)
 				}
 				// the child is a file, copy it to the parent directory
 				else {

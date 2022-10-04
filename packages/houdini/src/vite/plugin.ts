@@ -2,7 +2,8 @@ import path from 'path'
 import type { Plugin } from 'vite'
 
 import generate from '../codegen'
-import { Config, getConfig, formatErrors } from '../lib'
+import { Config, getConfig } from '../lib/config'
+import { formatErrors } from '../lib/graphql'
 
 export default function HoudiniPlugin(configFile?: string): Plugin {
 	return {

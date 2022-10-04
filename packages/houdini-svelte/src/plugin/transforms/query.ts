@@ -4,8 +4,8 @@ import { Config, operation_requires_variables, find_graphql, Script } from 'houd
 import { find_exported_fn, find_insert_index, ensure_imports, TransformPage } from 'houdini/vite'
 import * as recast from 'recast'
 
-import { SvelteTransformPage } from '.'
-import { is_component } from '../kit'
+import { is_component, store_import_path } from '../kit'
+import { SvelteTransformPage } from './types'
 
 const AST = recast.types.builders
 
@@ -77,7 +77,7 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 			script: page.script,
 			config: page.config,
 			import: [`${query.name}Store`],
-			sourceModule: config.storeImportPath(query.name),
+			sourceModule: store_import_path({ config, name: query.name }),
 		}).ids[0]
 
 		page.script.body.splice(

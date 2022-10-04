@@ -2,7 +2,8 @@ import { OperationDefinitionNode } from 'graphql'
 import { CollectedGraphQLDocument, Config, fs } from 'houdini'
 import path from 'path'
 
-import { extract_load_function, walk_routes } from '../../kit'
+import { extract_load_function } from '../../extractLoadFunction'
+import { type_route_dir, walk_routes, stores_directory_name, store_suffix } from '../../kit'
 
 export default async function svelteKitGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	// if we're not in a sveltekit project, don't do anything
@@ -41,7 +42,7 @@ export default async function svelteKitGenerator(config: Config, docs: Collected
 			// we need to write the type defs to the same route path relative to the type root
 			// const targetPath = path.join(config.typeRouteDir,
 			const relativePath = path.relative(config.routesDir, dirpath)
-			const target = path.join(config.typeRouteDir, relativePath, config.typeRootFile)
+			const target = path.join(type_route_dir(config), relativePath, config.typeRootFile)
 
 			// we can't import from $houdini so we need to compute the relative path from the import
 			const houdiniRelative = path.relative(target, config.typeRootDir)
@@ -69,8 +70,10 @@ ${uniqueQueries
 	.map((query) => {
 		const name = query.name!.value
 
-		return `import { ${name}$result, ${name}$input } from '${houdiniRelative}/${config.artifactDirectoryName}/${name}'
-import { ${name}Store } from '${houdiniRelative}/${config.storesDirectoryName}/${name}'`
+		return `import { ${name}$result, ${name}$input } from '${houdiniRelative}/${
+			config.artifactDirectoryName
+		}/${name}'
+import { ${name}Store } from '${houdiniRelative}/${stores_directory_name()}/${name}'`
 	})
 	.join('\n')}
 
@@ -154,7 +157,7 @@ export type PageData = {
 		.map((query) => {
 			const name = query.name!.value
 
-			return [name, name + config.storeSuffix].join(': ')
+			return [name, name + store_suffix(config)].join(': ')
 		})
 		.join(', \n')}
 } ${afterLoad ? '& AfterLoadReturn ' : ''} ${beforeLoad ? '& BeforeLoadReturn ' : ''} ${

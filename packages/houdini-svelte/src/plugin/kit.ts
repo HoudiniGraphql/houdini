@@ -1,9 +1,13 @@
 import graphql from 'graphql'
 import { Config, fs, find_graphql } from 'houdini'
+import { ensure_imports } from 'houdini/vite'
 import path from 'path'
+import recast from 'recast'
 
 import { parseSvelte } from '../plugin/extract'
-import { extractLoadFunction } from './extractLoadFunction'
+import { SvelteTransformPage } from './transforms/types'
+
+type Identifier = recast.types.namedTypes.Identifier
 
 // compute if a path points to a component query or not
 export function is_route(config: Config, filepath: string): boolean {
@@ -186,13 +190,6 @@ export async function walk_routes(
 	}
 }
 
-export async function extract_load_function(
-	config: Config,
-	filepath: string
-): Promise<HoudiniRouteScript> {
-	return await extractLoadFunction(config, filepath)
-}
-
 export type RouteVisitor = {
 	routeQuery?: RouteVisitorHandler<graphql.OperationDefinitionNode>
 	inlineQuery?: RouteVisitorHandler<graphql.OperationDefinitionNode>
@@ -237,7 +234,7 @@ export function type_route_dir(config: Config) {
 }
 
 // the path that the runtime can use to import a store
-export function store_import_path(config: Config, name: string): string {
+export function store_import_path({ config, name }: { config: Config; name: string }): string {
 	return `$houdini/${stores_directory_name()}/${name}`
 }
 
@@ -252,4 +249,23 @@ export function store_name({ config, name }: { config: Config; name: string }) {
 
 export function global_store_name({ config, name }: { config: Config; name: string }) {
 	return config.globalStorePrefix + name
+}
+
+export function store_import({
+	page,
+	artifact,
+	local,
+}: {
+	page: SvelteTransformPage
+	artifact: { name: string }
+	local?: string
+}): { id: Identifier; added: number } {
+	const { ids, added } = ensure_imports({
+		config: page.config,
+		script: page.script,
+		sourceModule: store_import_path({ config: page.config, name: artifact.name }),
+		import: `GQL_${artifact.name}`,
+	})
+
+	return { id: ids, added }
 }

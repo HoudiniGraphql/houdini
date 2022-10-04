@@ -4,21 +4,23 @@ import type { namedTypes } from 'ast-types/gen/namedTypes'
 import * as graphql from 'graphql'
 import { formatErrors, operation_requires_variables, fs } from 'houdini'
 import { find_insert_index } from 'houdini/vite'
-import { ensure_imports, store_import } from 'houdini/vite'
+import { ensure_imports } from 'houdini/vite'
 import * as recast from 'recast'
 
-import { SvelteTransformPage } from '..'
 import { parseSvelte } from '../../extract'
+import { extract_load_function } from '../../extractLoadFunction'
 import {
-	extract_load_function,
 	HoudiniRouteScript,
 	is_route,
 	is_route_script,
 	page_query_path,
 	route_data_path,
 	route_page_path,
+	store_import,
+	store_import_path,
 } from '../../kit'
 import { LoadTarget, find_inline_queries, query_variable_fn } from '../query'
+import { SvelteTransformPage } from '../types'
 
 const AST = recast.types.builders
 
@@ -37,8 +39,7 @@ export default async function kit_load_generator(page: SvelteTransformPage) {
 		route
 			? AST.memberExpression(AST.identifier('data'), AST.identifier(name))
 			: store_import({
-					config: page.config,
-					script: page.script,
+					page,
 					artifact: { name },
 			  }).id
 
@@ -238,7 +239,7 @@ function add_load({
 			script: page.script,
 			config: page.config,
 			import: [`load_${query.name}`],
-			sourceModule: page.config.storeImportPath(query.name),
+			sourceModule: store_import_path({ config: page.config, name: query.name }),
 		})
 
 		const load_fn = ids[0]
@@ -261,8 +262,7 @@ function add_load({
 									AST.literal('artifact'),
 									AST.memberExpression(
 										store_import({
-											script: page.script,
-											config: page.config,
+											page,
 											artifact: query,
 										}).id,
 										AST.identifier('artifact')
@@ -429,8 +429,7 @@ async function find_page_query(page: SvelteTransformPage): Promise<LoadTarget | 
 
 	// generate an import for the store
 	const { id } = store_import({
-		script: page.script,
-		config: page.config,
+		page,
 		artifact: { name: definition.name!.value },
 	})
 

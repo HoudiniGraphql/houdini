@@ -3,11 +3,10 @@ import path from 'path'
 import { test } from 'vitest'
 
 import { runPipeline } from '../codegen'
-import { CollectedGraphQLDocument } from '../lib'
-import { ConfigFile } from '../runtime/lib'
-import { ArtifactKind } from '../runtime/lib'
+import { ConfigFile, ArtifactKind } from '../runtime/lib'
 import { testConfigFile } from '../runtime/lib/test'
 import { Config } from './config'
+import { CollectedGraphQLDocument } from './types'
 
 export function testConfig(config: Partial<ConfigFile> = {}) {
 	return new Config({

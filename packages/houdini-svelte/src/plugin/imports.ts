@@ -20,7 +20,7 @@ export function store_import({
 	const { ids, added } = ensure_imports({
 		config,
 		script,
-		sourceModule: store_import_path(config, artifact.name),
+		sourceModule: store_import_path({ config, name: artifact.name }),
 		import: `GQL_${artifact.name}`,
 	})
 

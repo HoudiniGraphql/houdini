@@ -5,12 +5,12 @@ import path from 'path'
 import * as recast from 'recast'
 import { transformWithEsbuild } from 'vite'
 
-import { HoudiniRouteScript } from './kit'
+import { HoudiniRouteScript, stores_directory_name, store_suffix } from './kit'
 
 type Program = recast.types.namedTypes.Program
 type VariableDeclaration = recast.types.namedTypes.VariableDeclaration
 
-export async function extractLoadFunction(
+export async function extract_load_function(
 	config: Config,
 	filepath: string,
 	mockArtifacts?: Record<string, { raw: string }>
@@ -88,17 +88,17 @@ async function processScript(
 				}
 
 				// if we are importing a store factory
-				else if (name.endsWith(config.storeSuffix)) {
-					query = name.substring(0, name.length - config.storeSuffix.length)
+				else if (name.endsWith(store_suffix(config))) {
+					query = name.substring(0, name.length - store_suffix(config).length)
 				}
 
 				// if we are import directly from a store path
 				else if (
-					source.startsWith('$houdini/' + config.storesDirectoryName) &&
+					source.startsWith('$houdini/' + stores_directory_name()) &&
 					specifier.type === 'ImportDefaultSpecifier'
 				) {
 					// the local version points to the store
-					query = source.substring(`$houdini/${config.storesDirectoryName}`.length - 1)
+					query = source.substring(`$houdini/${stores_directory_name()}`.length - 1)
 				}
 
 				// look up the query content if we found a match

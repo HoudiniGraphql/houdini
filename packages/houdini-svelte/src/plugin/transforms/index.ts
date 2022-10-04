@@ -7,6 +7,7 @@ import kit from './kit'
 import query from './query'
 import reactive from './reactive'
 import tags from './tags'
+import { SvelteTransformPage } from './types'
 
 // tags must be processed last so we don't lose the graphql tags we look for
 // context must go last since it looks for GQL_ imports
@@ -79,7 +80,3 @@ function replace_tag_content(source: string, start: number, end: number, insert:
 
 const replace_between = (origin: string, startIndex: number, endIndex: number, insertion: string) =>
 	origin.substring(0, startIndex) + insertion + origin.substring(endIndex)
-
-export type SvelteTransformPage = TransformPage & {
-	script: Script
-}
