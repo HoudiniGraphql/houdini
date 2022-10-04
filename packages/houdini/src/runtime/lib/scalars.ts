@@ -1,9 +1,10 @@
-import { ConfigFile, getCurrentConfig } from './config'
+import { getCurrentConfig } from './config'
 import {
 	MutationArtifact,
 	QueryArtifact,
 	SubscriptionArtifact,
 	SubscriptionSelection,
+	ConfigFile,
 } from './types'
 
 export async function marshalSelection({

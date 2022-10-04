@@ -1,7 +1,7 @@
 /// <reference path = "../../../../../houdini.d.ts" />
 import cache from '../cache'
-import type { ConfigFile } from './config'
 import * as log from './log'
+import type { ConfigFile } from './types'
 import {
 	CachePolicy,
 	DataSource,

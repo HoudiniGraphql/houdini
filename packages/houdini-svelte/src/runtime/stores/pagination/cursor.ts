@@ -1,8 +1,8 @@
 import { getCache } from 'houdini/src/runtime'
-import { ConfigFile } from 'houdini/src/runtime/lib/config'
 import { siteURL } from 'houdini/src/runtime/lib/constants'
 import { deepEquals } from 'houdini/src/runtime/lib/deepEquals'
 import { executeQuery } from 'houdini/src/runtime/lib/network'
+import { ConfigFile } from 'houdini/src/runtime/lib/types'
 import { GraphQLObject, QueryArtifact, QueryResult } from 'houdini/src/runtime/lib/types'
 import { Writable, writable } from 'svelte/store'
 

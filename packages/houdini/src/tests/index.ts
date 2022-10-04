@@ -1,4 +1,4 @@
-import { ConfigFile } from './types'
+import { ConfigFile } from '../lib'
 
 let mockConfig: ConfigFile | null = null
 

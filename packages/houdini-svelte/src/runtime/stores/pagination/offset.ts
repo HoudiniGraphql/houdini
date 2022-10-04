@@ -1,7 +1,7 @@
 import { getCache } from 'houdini/src/runtime'
-import { deepEquals } from 'houdini/src/runtime/lib'
-import { ConfigFile } from 'houdini/src/runtime/lib/config'
+import { deepEquals } from 'houdini/src/runtime/lib/deepEquals'
 import { executeQuery } from 'houdini/src/runtime/lib/network'
+import { ConfigFile } from 'houdini/src/runtime/lib/types'
 import { GraphQLObject, QueryArtifact, QueryResult } from 'houdini/src/runtime/lib/types'
 
 import { getSession } from '../../session'

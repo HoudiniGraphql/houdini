@@ -4,7 +4,7 @@ import { Config, siteURL, CollectedGraphQLDocument, fs, HoudiniError } from '../
 
 export default async function runtimeGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	// copy the compiled source code to the target directory
-	await fs.recursiveCopy(config, config.runtimeSource, config.runtimeDirectory)
+	await fs.recursiveCopy(config.runtimeSource, config.runtimeDirectory)
 
 	// generate the adapter to normalize interactions with the framework
 	// update the generated runtime to point to the client
@@ -39,7 +39,7 @@ async function generatePluginRuntime(config: Config, name: string) {
 	}
 
 	// copy the runtime
-	await fs.recursiveCopy(config, source, config.pluginRuntimeDirectory(name))
+	await fs.recursiveCopy(source, config.pluginRuntimeDirectory(name))
 }
 
 async function addClientImport(config: Config) {
