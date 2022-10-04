@@ -58,7 +58,7 @@ export class Config {
 	client: string
 	globalStorePrefix: string
 	quietQueryErrors: boolean
-	plugins: (HoudiniPlugin & { name: string; include_runtime: boolean })[] = []
+	plugins: (Plugin & { name: string; include_runtime: boolean })[] = []
 
 	constructor({
 		filepath,
@@ -740,9 +740,9 @@ let pendingConfigPromise: Promise<Config> | null = null
 
 // get the project's current configuration
 export async function getConfig({
-	configFile,
+	configPath = DEFAULT_CONFIG_PATH,
 	...extraConfig
-}: { configFile?: string } & Partial<ConfigFile> = {}): Promise<Config> {
+}: PluginConfig = {}): Promise<Config> {
 	if (_config) {
 		return _config
 	}
@@ -759,9 +759,6 @@ export async function getConfig({
 		resolve = res
 		reject = rej
 	})
-
-	// add the filepath and save the result
-	const configPath = configFile || DEFAULT_CONFIG_PATH
 
 	try {
 		_config = new Config({
@@ -806,7 +803,7 @@ This will prevent your schema from being pulled (potentially resulting in errors
 		try {
 			// look for the houdini-svelte module
 			const sveltePluginDir = _config.findModule('houdini-svelte')
-			const { default: sveltePlugin }: { default: HoudiniPluginFactory } = await import(
+			const { default: sveltePlugin }: { default: PluginFactory } = await import(
 				pathToFileURL(sveltePluginDir).toString() + '/build/plugin-esm/index.js'
 			)
 			let include_runtime = false
@@ -829,9 +826,7 @@ This will prevent your schema from being pulled (potentially resulting in errors
 	}
 
 	// look for any plugins with a loaded hook
-	await Promise.all(
-		_config.plugins.map(async (plugin) => (plugin.load ? plugin.load(_config) : null))
-	)
+	await Promise.all(_config.plugins.map((plugin) => plugin.after_load?.(_config)))
 
 	// we're done and have a valid config
 	resolve(_config)
@@ -845,13 +840,13 @@ export enum LogLevel {
 	Quiet = 'quiet',
 }
 
-export type HoudiniPluginFactory = (args?: { configFile?: string }) => Promise<HoudiniPlugin>
+export type PluginFactory = (args?: PluginConfig) => Promise<Plugin>
 
-export type HoudiniPlugin = {
+export type Plugin = {
 	extensions?: string[]
-	load: (config: Config) => Promise<void> | void
+	after_load?: (config: Config) => Promise<void> | void
 	extract_documents?: (content: string) => Promise<string[]> | string[]
-	generate?: HoudiniGenerateHook
+	generate?: GenerateHook
 	transform_file?: (page: TransformPage) => Promise<{ code: string }> | { code: string }
 	index_file?: ModuleIndexTransform
 	validate?: (args: {
@@ -896,9 +891,11 @@ type ModuleIndexTransform = (arg: {
 	export_star_from(args: { module: string }): string
 }) => string
 
-export type HoudiniGenerateHook = (args: HoudiniGenerateHookInput) => Promise<void> | void
+export type GenerateHook = (args: GenerateHookInput) => Promise<void> | void
 
-export type HoudiniGenerateHookInput = {
+export type GenerateHookInput = {
 	config: Config
 	documents: CollectedGraphQLDocument[]
 }
+
+export type PluginConfig = { configPath?: string } & Partial<ConfigFile>

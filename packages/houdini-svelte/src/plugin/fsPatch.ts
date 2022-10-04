@@ -1,5 +1,5 @@
 import filesystem, { Dirent, PathLike } from 'fs'
-import { fs, HoudiniPlugin } from 'houdini'
+import { fs, Plugin } from 'houdini'
 import path from 'path'
 
 import { is_root_layout, is_root_layout_server, is_route_script } from './kit'
@@ -38,7 +38,7 @@ export default {
 		// do the normal thing
 		return null
 	},
-} as HoudiniPlugin['vite']
+} as Plugin['vite']
 
 const _readDirSync = filesystem.readdirSync
 const _statSync = filesystem.statSync

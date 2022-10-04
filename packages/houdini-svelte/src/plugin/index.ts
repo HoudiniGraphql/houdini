@@ -1,4 +1,4 @@
-import { HoudiniError, HoudiniPluginFactory } from 'houdini'
+import { HoudiniError, PluginFactory } from 'houdini'
 import minimatch from 'minimatch'
 import path from 'path'
 
@@ -9,29 +9,18 @@ import { global_store_name, resolve_relative, stores_directory, store_name } fro
 import apply_transforms from './transforms'
 import validate from './validate'
 
-const HoudiniSveltePlugin: HoudiniPluginFactory = async () => ({
-	extensions: ['.svelte'],
+const HoudiniSveltePlugin: PluginFactory = async () => ({
+	/**
+	 * Generate
+	 */
 
-	async load(config) {
-		// Check that storeName & globalStoreName are not overlapping.
-		// Not possible today, but maybe in the future if storeName starts to be configurable.
-		if (
-			store_name({ config, name: 'QueryName' }) ===
-			global_store_name({ config, name: 'QueryName' })
-		) {
-			throw new HoudiniError({
-				filepath: config.filepath,
-				message: 'Invalid config file: "globalStoreName" and "storeName" are overlapping',
-				description: `Here, both gives: ${store_name({ config, name: 'QueryName' })}`,
-			})
-		}
-	},
+	extensions: ['.svelte'],
 
 	// custom logic to pull a graphql document out of a svelte file
 	extract_documents: extract,
 
-	// transform a file's contents. changes here aren't seen by extract_documents
-	transform_file: apply_transforms,
+	// we have some custom document validation logic
+	validate,
 
 	// we need to write the svelte specific runtime
 	generate,
@@ -43,6 +32,13 @@ const HoudiniSveltePlugin: HoudiniPluginFactory = async () => ({
 
 		return content + export_star_from({ module: storesDir })
 	},
+
+	/**
+	 * Transform
+	 */
+
+	// transform a file's contents. changes here aren't seen by extract_documents
+	transform_file: apply_transforms,
 
 	// the files we generate contain some crazy relative paths that we need to make sure we include for transformations
 	include(config, filepath) {
@@ -59,12 +55,28 @@ const HoudiniSveltePlugin: HoudiniPluginFactory = async () => ({
 		}
 	},
 
-	// we have some custom document validation logic
-	validate,
-
 	// add custom vite config
 	vite: {
 		...fs_patch,
+	},
+
+	/**
+	 * Setup
+	 */
+
+	// Check that storeName & globalStoreName are not overlapping.
+	// Not possible today, but maybe in the future if storeName starts to be configurable.
+	async after_load(config) {
+		if (
+			store_name({ config, name: 'QueryName' }) ===
+			global_store_name({ config, name: 'QueryName' })
+		) {
+			throw new HoudiniError({
+				filepath: config.filepath,
+				message: 'Invalid config file: "globalStoreName" and "storeName" are overlapping',
+				description: `Here, both gives: ${store_name({ config, name: 'QueryName' })}`,
+			})
+		}
 	},
 })
 

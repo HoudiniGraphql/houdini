@@ -1,14 +1,14 @@
-import type { Plugin } from 'vite'
+import { Plugin as VitePlugin } from 'vite'
 
-import { Config, getConfig } from '../lib/config'
+import { Config, getConfig, PluginConfig } from '../lib/config'
 
 let config: Config
 
-export default function HoudiniPlugin(configFile?: string): Plugin {
+export default function Plugin(opts: PluginConfig): VitePlugin {
 	return {
 		name: 'houdini-vite-adapter',
 		async configResolved() {
-			config = await getConfig({ configFile })
+			config = await getConfig(opts)
 		},
 		async resolveId(id, two, opts, ...rest) {
 			for (const plugin of config.plugins) {

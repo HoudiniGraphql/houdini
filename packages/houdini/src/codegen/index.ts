@@ -11,7 +11,7 @@ import {
 	find_graphql,
 	parseJS,
 	HoudiniError,
-	HoudiniPlugin,
+	Plugin,
 	siteURL,
 	fs,
 	CollectedGraphQLDocument,
@@ -224,7 +224,7 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 	// the list of documents we found
 	const documents: DiscoveredDoc[] = []
 
-	const extractors: Record<string, HoudiniPlugin['extract_documents'][]> = {
+	const extractors: Record<string, Plugin['extract_documents'][]> = {
 		'.graphql': [],
 		'.gql': [],
 		'.js': [],

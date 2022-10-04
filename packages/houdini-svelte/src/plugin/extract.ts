@@ -7,32 +7,27 @@ export default async function (contents: string): Promise<string[]> {
 	const documents: string[] = []
 
 	let parsedFile = await parseSvelte(contents)
+	if (!parsedFile) {
+		return documents
+	}
 
-	// we need to look for multiple script tags to support sveltekit
-	const scripts = [parsedFile]
+	// look for any template tag literals in the script body
+	svelte.walk(parsedFile.script, {
+		enter(node) {
+			// if we are looking at the graphql template tag
+			if (
+				node.type === 'TaggedTemplateExpression' &&
+				// @ts-ignore
+				node.tag.name === 'graphql'
+			) {
+				// @ts-ignore
+				// parse the tag contents to get the info we need
+				const printedDoc = node.quasi.quasis[0].value.raw
 
-	await Promise.all(
-		scripts.map(async (jsContent) => {
-			// @ts-ignore
-			// look for any template tag literals in the script body
-			svelte.walk(jsContent, {
-				enter(node) {
-					// if we are looking at the graphql template tag
-					if (
-						node.type === 'TaggedTemplateExpression' &&
-						// @ts-ignore
-						node.tag.name === 'graphql'
-					) {
-						// @ts-ignore
-						// parse the tag contents to get the info we need
-						const printedDoc = node.quasi.quasis[0].value.raw
-
-						documents.push(printedDoc)
-					}
-				},
-			})
-		})
-	)
+				documents.push(printedDoc)
+			}
+		},
+	})
 
 	// we found every document in the file
 	return documents

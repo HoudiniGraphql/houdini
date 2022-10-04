@@ -3,20 +3,16 @@ import glob from 'glob'
 import path from 'path'
 import type { Plugin } from 'vite'
 
-import { formatErrors, getConfig, pullSchema } from '../lib'
-import { ConfigFile } from '../runtime/lib/types'
+import { formatErrors, getConfig, pullSchema, PluginConfig } from '../lib'
 
-export default function HoudiniWatchSchemaPlugin({
-	configFile,
-	...extraConfig
-}: { configFile?: string } & Partial<ConfigFile> = {}): Plugin {
+export default function HoudiniWatchSchemaPlugin(opts: PluginConfig = {}): Plugin {
 	let go = true
 
 	return {
 		name: 'houdini-watch-schema',
 		apply: 'serve',
 		async buildStart() {
-			const config = await getConfig({ configFile, ...extraConfig })
+			const config = await getConfig(opts)
 			let nbPullError = 0
 
 			// validate the config

@@ -1,19 +1,16 @@
 import path from 'path'
-import type { Plugin } from 'vite'
+import type { Plugin as VitePlugin } from 'vite'
 
 import generate from '../codegen'
-import { Config, getConfig } from '../lib/config'
+import { Config, getConfig, PluginConfig } from '../lib/config'
 import { formatErrors } from '../lib/graphql'
-import { ConfigFile } from '../lib/types'
 
-export default function HoudiniPlugin({
-	configFile,
-	...extraConfig
-}: { configFile?: string } & Partial<ConfigFile> = {}): Plugin {
+export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 	return {
 		name: 'houdini',
 
-		// make sure our resolver runs before vite internal resolver to resolve svelte field correctly
+		// houdini will always act as a "meta framework" and process the user's code before it
+		// is processed by the user's library-specific plugins.
 		enforce: 'pre',
 
 		// add watch-and-run to their vite config
@@ -32,7 +29,7 @@ export default function HoudiniPlugin({
 		// when the build starts, we need to make sure to generate
 		async buildStart() {
 			try {
-				await generate(await getConfig({ configFile, ...extraConfig }))
+				await generate(await getConfig(opts))
 			} catch (e) {
 				formatErrors(e)
 			}
@@ -42,7 +39,7 @@ export default function HoudiniPlugin({
 		async transform(code, filepath) {
 			let config: Config
 			try {
-				config = await getConfig({ configFile, ...extraConfig })
+				config = await getConfig(opts)
 			} catch (e) {
 				formatErrors(e)
 				return
@@ -65,12 +62,12 @@ export default function HoudiniPlugin({
 				filepath,
 			}
 
-			// grab any transforms from plugins
-			const plugins = config.plugins.filter((plugin) => plugin.transform_file)
-
 			// run the plugin pipeline
-			for (const plugin of plugins) {
-				const { code } = await plugin.transform_file!(ctx)
+			for (const plugin of config.plugins) {
+				if (!plugin.transform_file) {
+					continue
+				}
+				const { code } = await plugin.transform_file(ctx)
 				ctx.content = code
 			}
 
