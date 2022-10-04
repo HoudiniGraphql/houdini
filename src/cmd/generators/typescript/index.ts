@@ -109,6 +109,8 @@ export default async function typescriptGenerator(
 						'./' +
 							path
 								.relative(path.resolve(config.typeIndexPath, '..'), typePath)
+								// Windows management
+								.replaceAll('\\', '/')
 								// remove the .d.ts from the end of the path
 								.replace(/\.[^/.]+\.[^/.]+$/, '')
 					),
