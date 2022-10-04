@@ -28,8 +28,8 @@ export class Config {
 	apiUrl?: string
 	schemaPath?: string
 	persistedQueryPath?: string
-	include: string
-	exclude?: string
+	include: string[]
+	exclude: string[]
 	scalars?: ConfigFile['scalars']
 	framework: 'kit' | 'svelte' = 'kit'
 	module: 'commonjs' | 'esm' = 'esm'
@@ -67,7 +67,7 @@ export class Config {
 			schemaPath = './schema.graphql',
 			sourceGlob,
 			include = `src/**/*.{svelte,graphql,gql,ts,js}`,
-			exclude,
+			exclude = [],
 			apiUrl,
 			framework = 'kit',
 			module = 'esm',
@@ -133,8 +133,8 @@ ${
 		this.schemaPath = schemaPath
 		this.apiUrl = apiUrl
 		this.filepath = filepath
-		this.include = include
-		this.exclude = exclude
+		this.include = Array.isArray(include) ? include : [include]
+		this.exclude = Array.isArray(exclude) ? exclude : [exclude]
 		this.framework = framework
 		this.module = module
 		this.projectRoot = path.dirname(
@@ -440,17 +440,21 @@ ${
 		)
 	}
 
-	includeFile(filepath: string) {
+	includeFile(filepath: string, root: string = this.projectRoot) {
 		// deal with any relative imports from compiled assets
 		filepath = this.resolveRelative(filepath)
 
 		// if the filepath doesn't match the include we're done
-		if (!minimatch(filepath, path.join(this.projectRoot, this.include))) {
+		if (!this.include.some((pattern) => minimatch(filepath, path.join(root, pattern)))) {
 			return false
 		}
 
-		// if there is an exclude, make sure the path doesn't match
-		return !this.exclude ? true : !minimatch(filepath, this.exclude)
+		// if there is an exclude, make sure the path doesn't match any of the exclude patterns
+		return (
+			!this.exclude ||
+			this.exclude.length === 0 ||
+			!this.exclude.some((pattern) => minimatch(filepath, pattern))
+		)
 	}
 
 	/*
