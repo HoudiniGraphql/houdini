@@ -11,7 +11,7 @@ import type {
 	PluginContext,
 	ResolveIdResult,
 } from 'rollup'
-import { fileURLToPath } from 'url'
+import { fileURLToPath, pathToFileURL } from 'url'
 import { promisify } from 'util'
 
 import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/lib'
@@ -793,31 +793,31 @@ This will prevent your schema from being pulled (potentially resulting in errors
 	// now that we have the config, we need to load any necessary plugins
 
 	// load the svelte plugin if necessary
-	// if (['kit', 'svelte'].includes(_config.framework)) {
-	// 	try {
-	// 		// look for the houdini-svelte module
-	// 		const sveltePluginDir = _config.findModule('houdini-svelte')
-	// 		const { default: sveltePlugin }: { default: HoudiniPluginFactory } = await import(
-	// 			pathToFileURL(sveltePluginDir).toString() + '/build/plugin-esm/index.js'
-	// 		)
-	// 		let include_runtime = false
-	// 		try {
-	// 			await fs.stat(path.join(sveltePluginDir, 'build', 'runtime-esm'))
-	// 			include_runtime = true
-	// 		} catch {}
+	if (['kit', 'svelte'].includes(_config.framework)) {
+		try {
+			// look for the houdini-svelte module
+			const sveltePluginDir = _config.findModule('houdini-svelte')
+			const { default: sveltePlugin }: { default: HoudiniPluginFactory } = await import(
+				pathToFileURL(sveltePluginDir).toString() + '/build/plugin-esm/index.js'
+			)
+			let include_runtime = false
+			try {
+				await fs.stat(path.join(sveltePluginDir, 'build', 'runtime-esm'))
+				include_runtime = true
+			} catch {}
 
-	// 		_config.plugins.push({
-	// 			...(await sveltePlugin()),
-	// 			name: 'houdini-svelte',
-	// 			include_runtime,
-	// 		})
-	// 	} catch (e) {
-	// 		console.log(e)
-	// 		throw new Error(
-	// 			'Looks like you are missing the houdini-svelte plugin. Please install it and try again.'
-	// 		)
-	// 	}
-	// }
+			_config.plugins.push({
+				...(await sveltePlugin()),
+				name: 'houdini-svelte',
+				include_runtime,
+			})
+		} catch (e) {
+			console.log(e)
+			throw new Error(
+				'Looks like you are missing the houdini-svelte plugin. Please install it and try again.'
+			)
+		}
+	}
 
 	// look for any plugins with a loaded hook
 	await Promise.all(

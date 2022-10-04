@@ -1,4 +1,4 @@
-import { parseJS, runPipeline, formatErrors, Script } from 'houdini'
+import { parseJS, runPipeline, formatErrors } from 'houdini'
 import { TransformPage } from 'houdini/vite'
 import * as recast from 'recast'
 
@@ -59,11 +59,14 @@ export default async function apply_transforms(page: TransformPage): Promise<{ c
 		return { code: page.content }
 	}
 
+	// print the result
+	const printedScript = recast.print(result.script).code
+
 	return {
 		// if we're transforming a svelte file, we need to replace the script's inner contents
 		code: !page.filepath.endsWith('.svelte')
 			? result.content
-			: replace_tag_content(page.content, script.start, script.end, result.content),
+			: replace_tag_content(page.content, script.start, script.end, printedScript),
 	}
 }
 
