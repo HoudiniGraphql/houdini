@@ -1,7 +1,7 @@
 import * as graphql from 'graphql'
 
 import { Config, HoudiniError, CollectedGraphQLDocument } from '../../lib'
-import { ArtifactKind } from '../../runtime/lib'
+import { ArtifactKind } from '../../lib'
 import { murmurHash } from '../utils'
 import { collectFragments, FragmentDependency } from './composeQueries'
 

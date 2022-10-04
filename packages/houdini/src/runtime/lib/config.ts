@@ -1,4 +1,4 @@
-import { getMockConfig } from './test'
+import { getMockConfig } from '../../test'
 import { ConfigFile } from './types'
 
 export function defaultConfigValues(file: ConfigFile): ConfigFile {

@@ -51,6 +51,10 @@
 			"import": "./build/lib-esm/index.js",
 			"require": "./build/lib-cjs/index.js"
 		},
+		"./test": {
+			"import": "./build/test-esm/index.js",
+			"require": "./build/test-cjs/index.js"
+		},
 		"./vite": {
 			"import": "./build/vite-esm/index.js",
 			"require": "./build/vite-cjs/index.js"
@@ -60,6 +64,9 @@
 		"*": {
 			"codegen": [
 				"build/codegen/index.d.ts"
+			],
+			"test": [
+				"build/test/index.d.ts"
 			],
 			"vite": [
 				"build/vite/index.d.ts"

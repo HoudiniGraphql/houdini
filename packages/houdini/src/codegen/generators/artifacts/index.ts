@@ -11,7 +11,7 @@ import {
 	CollectedGraphQLDocument,
 	cleanupFiles,
 } from '../../../lib'
-import { ArtifactKind } from '../../../runtime/lib'
+import { ArtifactKind } from '../../../lib'
 import { moduleExport } from '../../utils'
 import writeIndexFile from './indexFile'
 import { inputObject } from './inputs'
