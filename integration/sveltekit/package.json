@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "web": "cross-env TZ=utc vite dev",
+    "web": "cross-env TZ=utc vite dev --host 0.0.0.0",
     "api": "cross-env TZ=utc node api/server.mjs",
     "dev": "concurrently \"pnpm run web\" \"pnpm run api\" -n \"web,api\" -c \"green,magenta\"",
     "build": "vite build",

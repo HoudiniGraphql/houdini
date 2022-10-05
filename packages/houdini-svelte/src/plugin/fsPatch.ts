@@ -2,19 +2,19 @@ import filesystem, { Dirent, PathLike } from 'fs'
 import { fs, Plugin } from 'houdini'
 import path from 'path'
 
-import { is_root_layout, is_root_layout_server, is_route_script } from './kit'
+import { is_root_layout, is_root_layout_server, is_route_script, resolve_relative } from './kit'
 
 // this plugin is responsible for faking `+page.js` existence in the eyes of sveltekit
 export default {
-	resolveId(id, _, { config }) {
+	resolveId(filepath, _, { config }) {
 		// if we are resolving any of the files we need to generate
 		if (
-			is_route_script(config, id) ||
-			is_root_layout(config, id) ||
-			is_root_layout_server(config, id)
+			is_route_script(config, filepath) ||
+			is_root_layout(config, filepath) ||
+			is_root_layout_server(config, filepath)
 		) {
 			return {
-				id,
+				id: filepath,
 			}
 		}
 
@@ -25,13 +25,19 @@ export default {
 		// if we are processing a route script or the root layout, we should always return _something_
 		if (is_route_script(config, filepath) || is_root_layout_server(config, filepath)) {
 			return {
-				code: (await fs.readFile(filepath)) || '',
+				code:
+					(await fs.readFile(filepath)) ||
+					(await fs.readFile(path.join(config.projectRoot, filepath))) ||
+					'',
 			}
 		}
 
 		if (is_root_layout(config, filepath)) {
 			return {
-				code: (await fs.readFile(filepath)) || empty_root_layout,
+				code:
+					(await fs.readFile(filepath)) ||
+					(await fs.readFile(path.join(config.projectRoot, filepath))) ||
+					empty_root_layout,
 			}
 		}
 

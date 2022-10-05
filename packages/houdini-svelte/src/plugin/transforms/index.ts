@@ -65,7 +65,7 @@ export default async function apply_transforms(page: TransformPage): Promise<{ c
 	return {
 		// if we're transforming a svelte file, we need to replace the script's inner contents
 		code: !page.filepath.endsWith('.svelte')
-			? result.content
+			? printedScript
 			: replace_tag_content(page.content, script.start, script.end, printedScript),
 	}
 }
