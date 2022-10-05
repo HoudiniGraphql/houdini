@@ -38,7 +38,7 @@ specified by the first argument to the handler. The second argument to the resul
 can be used to configure its behavior. The following values can be provided:
 
 - `optimisticResponse` specifies a value to use instead of waiting for the server to return a value.
-For more information, see the [optimistic responses](#optimistic-responses) section.
+  For more information, see the [optimistic responses](#optimistic-responses) section.
 
 ### Notes
 
@@ -143,7 +143,7 @@ and provide an "optimistic response" for the mutation with the second argument t
 					}
 				}
 			}
-		}s)
+		})
 	}
 </script>
 
