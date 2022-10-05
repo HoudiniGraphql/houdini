@@ -6,7 +6,11 @@ import { generateIndividualStoreMutation } from './mutation'
 import { generateIndividualStoreQuery } from './query'
 import { generateSubscriptionStore } from './subscription'
 
-export default async function storesGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
+export default async function storesGenerator(
+	config: Config,
+	plugin_root: string,
+	docs: CollectedGraphQLDocument[]
+) {
 	const listOfStores: (string | null)[] = []
 
 	await Promise.all(
@@ -17,13 +21,13 @@ export default async function storesGenerator(config: Config, docs: CollectedGra
 			}
 
 			if (doc.kind === ArtifactKind.Query) {
-				listOfStores.push(await generateIndividualStoreQuery(config, doc))
+				listOfStores.push(await generateIndividualStoreQuery(config, plugin_root, doc))
 			} else if (doc.kind === ArtifactKind.Mutation) {
-				listOfStores.push(await generateIndividualStoreMutation(config, doc))
+				listOfStores.push(await generateIndividualStoreMutation(config, plugin_root, doc))
 			} else if (doc.kind === ArtifactKind.Subscription) {
-				listOfStores.push(await generateSubscriptionStore(config, doc))
+				listOfStores.push(await generateSubscriptionStore(config, plugin_root, doc))
 			} else if (doc.kind === ArtifactKind.Fragment) {
-				listOfStores.push(await generateFragmentStore(config, doc))
+				listOfStores.push(await generateFragmentStore(config, plugin_root, doc))
 			}
 		})
 	)

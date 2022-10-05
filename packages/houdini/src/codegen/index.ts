@@ -122,7 +122,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 						await plugin.generate!({
 							config,
 							documents: docs,
-							plugin_root: config.pluginRuntimeDirectory(plugin.name),
+							plugin_root: config.pluginDirectory(plugin.name),
 						})
 				),
 			],

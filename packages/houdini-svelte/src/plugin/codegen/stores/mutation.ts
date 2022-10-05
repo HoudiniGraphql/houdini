@@ -5,6 +5,7 @@ import { global_store_name, stores_directory, store_name } from '../../kit'
 
 export async function generateIndividualStoreMutation(
 	config: Config,
+	plugin_root: string,
 	doc: CollectedGraphQLDocument
 ) {
 	const fileName = doc.name
@@ -49,8 +50,8 @@ export default ${storeName}
   `
 
 	await Promise.all([
-		fs.writeFile(path.join(stores_directory(config), `${fileName}.js`), storeData),
-		fs.writeFile(path.join(stores_directory(config), `${fileName}.d.ts`), typeDefs),
+		fs.writeFile(path.join(stores_directory(plugin_root), `${fileName}.js`), storeData),
+		fs.writeFile(path.join(stores_directory(plugin_root), `${fileName}.d.ts`), typeDefs),
 	])
 
 	return fileName

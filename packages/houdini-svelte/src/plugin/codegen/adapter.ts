@@ -1,14 +1,14 @@
 import { Config, fs } from 'houdini'
 import path from 'path'
 
-export default async function generateAdapter(config: Config) {
+export default async function generateAdapter(config: Config, plugin_root: string) {
 	// we only need to generate an adapter for kit (the default one is fine for vanilla svelte)
 	if (config.framework !== 'kit') {
 		return
 	}
 
 	// the location of the adapter
-	const adapterLocation = path.join(config.runtimeDirectory, 'adapter.js')
+	const adapterLocation = path.join(plugin_root, 'adapter.js')
 
 	// figure out which adapter we need to lay down
 	const adapter = {

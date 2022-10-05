@@ -225,8 +225,8 @@ export function stores_directory_name() {
 }
 
 // the directory where we put all of the stores
-export function stores_directory(config: Config) {
-	return path.join(config.rootDir, stores_directory_name())
+export function stores_directory(root_dir: string) {
+	return path.join(root_dir, stores_directory_name())
 }
 
 export function type_route_dir(config: Config) {

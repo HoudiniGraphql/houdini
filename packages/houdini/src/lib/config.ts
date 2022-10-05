@@ -889,6 +889,7 @@ type ModuleIndexTransform = (arg: {
 	content: string
 	export_default_as(args: { module: string; as: string }): string
 	export_star_from(args: { module: string }): string
+	plugin_root: string
 }) => string
 
 export type GenerateHook = (args: GenerateHookInput) => Promise<void> | void

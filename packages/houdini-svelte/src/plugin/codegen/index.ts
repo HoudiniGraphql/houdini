@@ -5,10 +5,14 @@ import adapter from './adapter'
 import kit from './kit'
 import stores from './stores'
 
-export default async function ({ config, documents }: GenerateHookInput) {
+export default async function ({ config, documents, plugin_root }: GenerateHookInput) {
 	// create the static directories
-	await Promise.all([fs.mkdirp(type_route_dir(config)), fs.mkdirp(stores_directory(config))])
+	await Promise.all([fs.mkdirp(type_route_dir(config)), fs.mkdirp(stores_directory(plugin_root))])
 
 	// generate the files
-	await Promise.all([adapter(config), kit(config, documents), stores(config, documents)])
+	await Promise.all([
+		adapter(config, plugin_root),
+		kit(config, documents),
+		stores(config, plugin_root, documents),
+	])
 }

@@ -3,7 +3,11 @@ import path from 'path'
 
 import { global_store_name, stores_directory, store_name } from '../../kit'
 
-export async function generateFragmentStore(config: Config, doc: CollectedGraphQLDocument) {
+export async function generateFragmentStore(
+	config: Config,
+	plugin_root: string,
+	doc: CollectedGraphQLDocument
+) {
 	const fileName = doc.name
 	const artifactName = `${doc.name}`
 	const storeName = store_name({ config, name: doc.name })
@@ -72,8 +76,8 @@ export default ${storeName}
 
 	// write the store contents to disk
 	await Promise.all([
-		fs.writeFile(path.join(stores_directory(config), `${fileName}.d.ts`), typeDefs),
-		fs.writeFile(path.join(stores_directory(config), `${fileName}.js`), storeContent),
+		fs.writeFile(path.join(stores_directory(plugin_root), `${fileName}.d.ts`), typeDefs),
+		fs.writeFile(path.join(stores_directory(plugin_root), `${fileName}.js`), storeContent),
 	])
 
 	// return the store name to the generator so the index file can be created
