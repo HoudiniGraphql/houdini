@@ -1,5 +1,5 @@
 import * as log from '$houdini/runtime/lib/log'
-import { ArtifactKind, Fragment, GraphQLTagResult } from '$houdini/runtime/lib/types'
+import { ArtifactKind, Fragment } from '$houdini/runtime/lib/types'
 import { Readable } from 'svelte/store'
 
 import { FragmentStore } from './stores'
@@ -11,19 +11,19 @@ let hasWarned = false
 // if the reference type was nullable
 export function fragment<_Fragment extends Fragment<any>>(
 	ref: _Fragment,
-	fragment: GraphQLTagResult
+	fragment: FragmentStore<_Fragment['shape']>
 ): Readable<NonNullable<_Fragment['shape']>> & {
 	data: Readable<_Fragment>
 }
 export function fragment<_Fragment extends Fragment<any>>(
 	ref: _Fragment | null,
-	fragment: GraphQLTagResult
+	fragment: FragmentStore<_Fragment['shape']>
 ): Readable<NonNullable<_Fragment['shape']> | null> & {
 	data: Readable<_Fragment | null>
 }
 export function fragment<_Fragment extends Fragment<any>>(
 	ref: _Fragment | null,
-	store: GraphQLTagResult
+	store: FragmentStore<_Fragment['shape']>
 ): Readable<NonNullable<_Fragment['shape']>> & {
 	data: Readable<_Fragment | null>
 } {
@@ -58,17 +58,17 @@ $: data = fragment(prop, graphql\`...\`)
 
 export function paginatedFragment<_Fragment extends Fragment<any>>(
 	initialValue: _Fragment | null,
-	document: GraphQLTagResult
+	document: FragmentStore<_Fragment['shape']>
 ): FragmentStorePaginated<_Fragment['shape'], {}>
 
 export function paginatedFragment<_Fragment extends Fragment<any>>(
 	initialValue: _Fragment,
-	document: GraphQLTagResult
+	document: FragmentStore<_Fragment['shape']>
 ): FragmentStorePaginated<_Fragment['shape'], {}>
 
 export function paginatedFragment<_Fragment extends Fragment<any>>(
 	initialValue: _Fragment | null,
-	store: GraphQLTagResult
+	store: FragmentStore<_Fragment['shape']>
 ): FragmentStorePaginated<_Fragment['shape'], {}> {
 	// make sure we got a query document
 	if (store.kind !== 'HoudiniFragment') {
