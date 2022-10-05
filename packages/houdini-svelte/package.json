@@ -35,19 +35,12 @@
 		"./preprocess": {
 			"import": "./build/preprocess-esm/index.js",
 			"require": "./build/preprocess-cjs/index.js"
-		},
-		"./test": {
-			"import": "./build/test-esm/index.js",
-			"require": "./build/test-cjs/index.js"
 		}
 	},
 	"typesVersions": {
 		"*": {
 			"preprocess": [
 				"build/preprocess/index.d.ts"
-			],
-			"test": [
-				"build/test/index.d.ts"
 			]
 		}
 	},
