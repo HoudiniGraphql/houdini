@@ -141,7 +141,9 @@ export default async function typescriptGenerator(
 		// if the plugin generated a runtime
 		if (plugin.include_runtime) {
 			indexContent += export_star_from({
-				module: path.relative(config.rootDir, config.pluginRuntimeDirectory(plugin.name)),
+				module:
+					'./' +
+					path.relative(config.rootDir, config.pluginRuntimeDirectory(plugin.name)),
 			})
 		}
 	}

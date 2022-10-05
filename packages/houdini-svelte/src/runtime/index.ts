@@ -3,6 +3,7 @@ import { QueryStore } from './stores'
 export * from './adapter'
 export * from './stores'
 export * from './fragments'
+export * from './session'
 
 type LoadResult = Promise<{ [key: string]: QueryStore<any, {}> }>
 type LoadAllInput = LoadResult | Record<string, LoadResult>

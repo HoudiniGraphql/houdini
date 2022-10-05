@@ -15,6 +15,10 @@ export * from './schema'
 export * from './houdini'
 
 export default function (opts: PluginConfig): Plugin[] {
+	// we need some way for the graphql tag to detect that we are running on the server
+	// so we don't get an error when importing.
+	process.env.HOUDINI_PLUGIN = 'true'
+
 	return [
 		houdini_vite(opts),
 		watch_remote_schema(opts),

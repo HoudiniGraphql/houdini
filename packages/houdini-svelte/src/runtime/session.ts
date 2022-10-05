@@ -137,14 +137,14 @@ export function buildSessionObject(event: RequestEvent) {
 	}
 }
 
-export function setSession(
+export function setClientSession(
 	// @ts-ignore
 	val: App.Session
 ) {
 	session = val
 }
 
-export function setEventSession(
+export function setSession(
 	event: RequestEvent,
 	session: // @ts-ignore
 	App.Session

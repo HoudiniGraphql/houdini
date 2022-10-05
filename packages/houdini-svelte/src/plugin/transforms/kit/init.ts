@@ -31,7 +31,7 @@ export default async function kit_init(page: SvelteTransformPage) {
 		script: page.script,
 		config: page.config,
 		sourceModule: '$houdini/plugins/houdini-svelte/runtime/session',
-		import: ['extractSession', 'setEventSession'],
+		import: ['extractSession', 'setClientSession'],
 	}).ids
 
 	// add the onMount at the end of the component
