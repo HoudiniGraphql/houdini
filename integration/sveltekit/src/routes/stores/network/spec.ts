@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
-import { routes } from '../../../lib/utils/routes.js';
-import { goto, goto_expect_n_gql } from '../../../lib/utils/testsHelper.js';
+import { routes } from '../../../lib/utils/routes';
+import { goto, goto_expect_n_gql } from '../../../lib/utils/testsHelper';
 
 test.describe('NETWORK Page', () => {
   test('we have no li element(s) in <ul></ul> (no data from SSR)', async ({ page }) => {

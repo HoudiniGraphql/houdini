@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
-import { routes } from '../../../lib/utils/routes.js';
-import { expect_0_gql, goto_expect_n_gql, navSelector } from '../../../lib/utils/testsHelper.js';
+import { routes } from '../../../lib/utils/routes';
+import { expect_0_gql, goto_expect_n_gql, navSelector } from '../../../lib/utils/testsHelper';
 
 test.describe('Layout & comp', () => {
   test('From page 2 to index the store should still be filled', async ({ page }) => {

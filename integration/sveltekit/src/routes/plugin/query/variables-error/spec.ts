@@ -1,5 +1,5 @@
-import { routes } from '../../../../lib/utils/routes.js';
-import { expectToBe, goto } from '../../../../lib/utils/testsHelper.js';
+import { routes } from '../../../../lib/utils/routes';
+import { expectToBe, goto } from '../../../../lib/utils/testsHelper';
 import { test } from '@playwright/test';
 
 test.describe('query preprocessor', () => {

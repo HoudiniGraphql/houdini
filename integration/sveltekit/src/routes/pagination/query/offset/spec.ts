@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
-import { routes } from '../../../../lib/utils/routes.js';
-import { expect_1_gql, expectToBe, goto } from '../../../../lib/utils/testsHelper.js';
+import { routes } from '../../../../lib/utils/routes';
+import { expect_1_gql, expectToBe, goto } from '../../../../lib/utils/testsHelper';
 
 test.describe('offset paginatedQuery', () => {
   test('loadNextPage', async ({ page }) => {

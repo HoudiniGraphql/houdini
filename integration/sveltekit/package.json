@@ -2,6 +2,7 @@
   "name": "integration",
   "version": "0.0.1",
   "private": true,
+  "type": "module",
   "scripts": {
     "web": "cross-env TZ=utc vite dev --host 0.0.0.0",
     "api": "cross-env TZ=utc node api/server.mjs",
@@ -22,7 +23,7 @@
     "@playwright/test": "1.25.0",
     "@replayio/playwright": "0.2.23",
     "@sveltejs/adapter-auto": "1.0.0-next.66",
-    "@sveltejs/kit": "1.0.0-next.481",
+    "@sveltejs/kit": "1.0.0-next.510",
     "@typescript-eslint/eslint-plugin": "^5.10.1",
     "@typescript-eslint/parser": "^5.10.1",
     "concurrently": "7.1.0",
@@ -50,6 +51,5 @@
     "graphql-ws": "^5.8.2",
     "mdsvex": "^0.10.5",
     "ws": "^8.8.1"
-  },
-  "type": "module"
+  }
 }

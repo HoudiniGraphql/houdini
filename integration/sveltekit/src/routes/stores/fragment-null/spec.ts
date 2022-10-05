@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
-import { routes } from '../../../lib/utils/routes.js';
-import { expectToBe, goto } from '../../../lib/utils/testsHelper.js';
+import { routes } from '../../../lib/utils/routes';
+import { expectToBe, goto } from '../../../lib/utils/testsHelper';
 
 test.describe('fragment store', function () {
   test('accepts and returns null values', async function ({ page }) {

@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
-import { routes } from '../../../lib/utils/routes.js';
-import { expectToBe, goto } from '../../../lib/utils/testsHelper.js';
+import { routes } from '../../../lib/utils/routes';
+import { expectToBe, goto } from '../../../lib/utils/testsHelper';
 
 test.describe('ssr-one-store-multivariables Page', () => {
   test('Getting the right data in a network mode (CSR)', async ({ page }) => {

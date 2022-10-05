@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
-import { routes } from '../../../../lib/utils/routes.js';
-import { clientSideNavigation, expectToBe, goto } from '../../../../lib/utils/testsHelper.js';
+import { routes } from '../../../../lib/utils/routes';
+import { clientSideNavigation, expectToBe, goto } from '../../../../lib/utils/testsHelper';
 
 test.describe('query preprocessor', () => {
   test('onError hook', async ({ page }) => {

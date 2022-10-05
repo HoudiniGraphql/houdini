@@ -1,4 +1,4 @@
-import { routes } from './routes.js';
+import { routes } from './routes';
 import { sleep, stry } from '@kitql/helper';
 import type { Page, Response } from '@playwright/test';
 import { expect } from '@playwright/test';

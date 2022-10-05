@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
-import { routes } from '../../../../lib/utils/routes.js';
-import { expectToBe, goto } from '../../../../lib/utils/testsHelper.js';
+import { routes } from '../../../../lib/utils/routes';
+import { expectToBe, goto } from '../../../../lib/utils/testsHelper';
 
 test.describe('query preprocessor', () => {
   test('happy path query - SRR', async ({ page }) => {
