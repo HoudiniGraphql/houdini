@@ -3,6 +3,8 @@
 import cache from './cache'
 import type { Cache } from './cache/cache'
 
+export * from './lib'
+
 // ideally we would be able to parse the input for values but typescript does not yet support that kind of matches in template args
 export function graphql(str: TemplateStringsArray): any {
 	// if we are executing this function as part of the plugin, we need to return

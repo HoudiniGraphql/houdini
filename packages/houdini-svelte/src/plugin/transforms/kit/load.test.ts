@@ -15,7 +15,7 @@ describe('kit route processor', function () {
 						}
 					\`
 
-					
+
 				</script>
 			`,
 		})
@@ -303,7 +303,7 @@ describe('kit route processor', function () {
 		// make sure we added the right stuff
 		expect(route.component).toMatchInlineSnapshot(`
 			import { TestQueryStore } from "$houdini/stores/TestQuery";
-			import { isBrowser } from "$houdini/runtime/adapter";
+			import { isBrowser } from "$houdini/plugins/houdini-svelte/runtime/adapter";
 			import { RequestContext } from "$houdini/runtime/lib/network";
 			import { marshalInputs } from "$houdini/runtime/lib/scalars";
 			const _houdini_TestQuery = new TestQueryStore();
@@ -1020,7 +1020,7 @@ test('layout loads', async function () {
 		import { page } from "$app/stores";
 		import { extractSession, setSession } from "$houdini/runtime/lib/network";
 		import { onMount } from "svelte";
-		import { setClientStarted } from "$houdini/runtime/adapter";
+		import { setClientStarted } from "$houdini/plugins/houdini-svelte/runtime/adapter";
 		export let data;
 		onMount(() => setClientStarted());
 
@@ -1049,7 +1049,7 @@ test('layout inline query', async function () {
 		import { page } from "$app/stores";
 		import { extractSession, setSession } from "$houdini/runtime/lib/network";
 		import { onMount } from "svelte";
-		import { setClientStarted } from "$houdini/runtime/adapter";
+		import { setClientStarted } from "$houdini/plugins/houdini-svelte/runtime/adapter";
 		export let data;
 
 		$:
