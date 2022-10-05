@@ -27,7 +27,7 @@ export async function generateFragmentStore(
 
 	// store definition
 	const storeContent = `import { ${queryClass} } from '../runtime/stores'
-import artifact from '../artifacts/${artifactName}'
+import artifact from '$houdini/artifacts/${artifactName}'
 ${
 	paginationMethod
 		? `import _PaginationArtifact from '${config.artifactImportPath(

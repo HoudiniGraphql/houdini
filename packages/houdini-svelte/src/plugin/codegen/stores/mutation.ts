@@ -13,7 +13,7 @@ export async function generateIndividualStoreMutation(
 	const artifactName = `${doc.name}`
 
 	// store content
-	const storeData = `import artifact from '../artifacts/${artifactName}'
+	const storeData = `import artifact from '$houdini/artifacts/${artifactName}'
 import { MutationStore } from '../runtime/stores'
 
 export class ${storeName} extends MutationStore {

@@ -47,7 +47,7 @@ export type Result<DataType> = {
 	error?: Error | null
 }`
 
-	const storePath = path.join(stores_directory(input.plugin_root), 'stores')
+	const storePath = stores_directory(input.plugin_root)
 
 	await fs.writeFile(path.join(storePath, `index.d.ts`), dataIndexDTs + `\n` + dataIndex)
 

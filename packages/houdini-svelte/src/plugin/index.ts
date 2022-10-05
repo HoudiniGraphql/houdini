@@ -29,10 +29,7 @@ const HoudiniSveltePlugin: PluginFactory = async () => ({
 	index_file({ config, content, export_star_from, plugin_root }) {
 		const storesDir =
 			'./' +
-			path
-				.relative(config.rootDir, stores_directory(config.rootDir))
-				.split(path.sep)
-				.join('/')
+			path.relative(config.rootDir, stores_directory(plugin_root)).split(path.sep).join('/')
 
 		return content + export_star_from({ module: storesDir })
 	},

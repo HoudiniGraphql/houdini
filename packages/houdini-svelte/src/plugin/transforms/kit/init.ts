@@ -30,7 +30,7 @@ export default async function kit_init(page: SvelteTransformPage) {
 	const [extract_session, set_session] = ensure_imports({
 		script: page.script,
 		config: page.config,
-		sourceModule: '$houdini/runtime/lib/network',
+		sourceModule: '$houdini/plugins/houdini-svelte/runtime/session',
 		import: ['extractSession', 'setEventSession'],
 	}).ids
 

@@ -78,7 +78,8 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 	const generatePlugins = config.plugins.filter((plugin) => plugin.generate)
 
 	// generate the runtime if the version changed, if its a new project, or they changed their client path
-	const generateRuntime = newTimestamp || newClientPath || !previousVersion
+	// const generateRuntime = newTimestamp || newClientPath || !previousVersion
+	const generateRuntime = true
 
 	// run the generate command before we print "🎩 Generating runtime..." because we don't know upfront artifactStats.
 	let error: Error | null = null

@@ -40,7 +40,7 @@ export async function generateIndividualStoreQuery(
 
 	// store definition
 	const storeData = `import { ${queryClass} } from '../runtime/stores'
-import artifact from '../artifacts/${artifactName}'
+import artifact from '$houdini/artifacts/${artifactName}'
 
 // create the query store
 
