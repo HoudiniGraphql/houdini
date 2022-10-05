@@ -225,8 +225,8 @@ export function stores_directory_name() {
 }
 
 // the directory where we put all of the stores
-export function stores_directory(root_dir: string) {
-	return path.join(root_dir, stores_directory_name())
+export function stores_directory(plugin_root: string) {
+	return path.join(plugin_root, stores_directory_name())
 }
 
 export function type_route_dir(config: Config) {
@@ -235,7 +235,7 @@ export function type_route_dir(config: Config) {
 
 // the path that the runtime can use to import a store
 export function store_import_path({ config, name }: { config: Config; name: string }): string {
-	return `$houdini/${stores_directory_name()}/${name}`
+	return `$houdini/plugins/houdini-svelte/${stores_directory_name()}/${name}`
 }
 
 export function store_suffix(config: Config) {

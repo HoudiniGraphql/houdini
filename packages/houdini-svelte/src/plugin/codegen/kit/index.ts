@@ -1,11 +1,11 @@
 import { OperationDefinitionNode } from 'graphql'
-import { CollectedGraphQLDocument, Config, fs } from 'houdini'
+import { fs, GenerateHookInput } from 'houdini'
 import path from 'path'
 
 import { extract_load_function } from '../../extractLoadFunction'
 import { type_route_dir, walk_routes, stores_directory_name, store_suffix } from '../../kit'
 
-export default async function svelteKitGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
+export default async function svelteKitGenerator({ config }: GenerateHookInput) {
 	// if we're not in a sveltekit project, don't do anything
 	if (config.framework !== 'kit') {
 		return

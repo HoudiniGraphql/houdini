@@ -1,13 +1,12 @@
 import * as graphql from 'graphql'
-import { CollectedGraphQLDocument } from 'houdini'
-import { Config, operation_requires_variables, fs } from 'houdini'
+import { CollectedGraphQLDocument, GenerateHookInput } from 'houdini'
+import { operation_requires_variables, fs } from 'houdini'
 import path from 'path'
 
 import { global_store_name, stores_directory, store_name } from '../../kit'
 
 export async function generateIndividualStoreQuery(
-	config: Config,
-	plugin_root: string,
+	{ config, plugin_root }: GenerateHookInput,
 	doc: CollectedGraphQLDocument
 ) {
 	const fileName = doc.name

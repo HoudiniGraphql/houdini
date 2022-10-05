@@ -117,12 +117,14 @@ export default async function typescriptGenerator(
 			})
 			.concat([
 				AST.exportAllDeclaration(AST.literal('./runtime'), null),
-				AST.exportAllDeclaration(AST.literal('./stores'), null),
 				AST.exportAllDeclaration(AST.literal('./graphql'), null),
 			])
 	)
 
 	// stringify the value so we can push it through the plugins
+	const export_default_as = ({ module, as }: { module: string; as: string }) =>
+		`\nexport { default as ${as} } from "${module}"\n`
+	const export_star_from = ({ module }: { module: string }) => `\nexport * from "${module}"\n`
 	let indexContent = recast.print(typeIndex).code
 	for (const plugin of config.plugins) {
 		if (!plugin.index_file) {
@@ -131,10 +133,17 @@ export default async function typescriptGenerator(
 		indexContent = plugin.index_file({
 			config,
 			content: indexContent,
-			export_default_as: ({ module, as }) => `\nexport { default as ${as} } from ${module}\n`,
-			export_star_from: ({ module }) => `\nexport * from ${module}\n`,
+			export_default_as,
+			export_star_from,
 			plugin_root: config.pluginDirectory(plugin.name),
 		})
+
+		// if the plugin generated a runtime
+		if (plugin.include_runtime) {
+			indexContent += export_star_from({
+				module: path.relative(config.rootDir, config.pluginRuntimeDirectory(plugin.name)),
+			})
+		}
 	}
 
 	// write the contents

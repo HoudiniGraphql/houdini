@@ -1,11 +1,10 @@
-import { CollectedGraphQLDocument, Config, fs } from 'houdini'
+import { CollectedGraphQLDocument, fs, GenerateHookInput } from 'houdini'
 import path from 'path'
 
 import { global_store_name, stores_directory, store_name } from '../../kit'
 
 export async function generateSubscriptionStore(
-	config: Config,
-	plugin_root: string,
+	{ config, plugin_root }: GenerateHookInput,
 	doc: CollectedGraphQLDocument
 ) {
 	const fileName = doc.name

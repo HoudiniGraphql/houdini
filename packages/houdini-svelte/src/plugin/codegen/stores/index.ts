@@ -1,33 +1,32 @@
-import { CollectedGraphQLDocument, cleanupFiles, Config, fs, ArtifactKind } from 'houdini'
+import { cleanupFiles, fs, ArtifactKind, GenerateHookInput } from 'houdini'
 import path from 'path'
 
+import { stores_directory } from '../../kit'
 import { generateFragmentStore } from './fragment'
 import { generateIndividualStoreMutation } from './mutation'
 import { generateIndividualStoreQuery } from './query'
 import { generateSubscriptionStore } from './subscription'
 
-export default async function storesGenerator(
-	config: Config,
-	plugin_root: string,
-	docs: CollectedGraphQLDocument[]
-) {
+export default async function storesGenerator(input: GenerateHookInput) {
+	const { config, documents } = input
+
 	const listOfStores: (string | null)[] = []
 
 	await Promise.all(
-		docs.map(async (doc) => {
+		documents.map(async (doc) => {
 			// if the doc is not meant to be generated, skip it
 			if (!doc.generateStore) {
 				return
 			}
 
 			if (doc.kind === ArtifactKind.Query) {
-				listOfStores.push(await generateIndividualStoreQuery(config, plugin_root, doc))
+				listOfStores.push(await generateIndividualStoreQuery(input, doc))
 			} else if (doc.kind === ArtifactKind.Mutation) {
-				listOfStores.push(await generateIndividualStoreMutation(config, plugin_root, doc))
+				listOfStores.push(await generateIndividualStoreMutation(input, doc))
 			} else if (doc.kind === ArtifactKind.Subscription) {
-				listOfStores.push(await generateSubscriptionStore(config, plugin_root, doc))
+				listOfStores.push(await generateSubscriptionStore(input, doc))
 			} else if (doc.kind === ArtifactKind.Fragment) {
-				listOfStores.push(await generateFragmentStore(config, plugin_root, doc))
+				listOfStores.push(await generateFragmentStore(input, doc))
 			}
 		})
 	)
@@ -36,7 +35,7 @@ export default async function storesGenerator(
 		.filter((c) => c !== null)
 		.sort((a, b) => (a + '').localeCompare(b + '')) as string[]
 	const dataIndex = listOfStoresOrdered.map((c) => `export * from './${c}'`).join(`\n`)
-	await fs.writeFile(path.join(config.rootDir, 'stores', `index.js`), dataIndex)
+	await fs.writeFile(path.join(stores_directory(input.plugin_root), `index.js`), dataIndex)
 
 	const dataIndexDTs = `import type { DataSource } from '$houdini/runtime'
 
@@ -48,7 +47,7 @@ export type Result<DataType> = {
 	error?: Error | null
 }`
 
-	const storePath = path.join(config.rootDir, 'stores')
+	const storePath = path.join(stores_directory(input.plugin_root), 'stores')
 
 	await fs.writeFile(path.join(storePath, `index.d.ts`), dataIndexDTs + `\n` + dataIndex)
 
