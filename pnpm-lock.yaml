@@ -20,42 +20,7 @@ importers:
             vite: 3.1.4
             vitest: 0.23.4
 
-    example:
-        specifiers:
-            '@graphql-yoga/node': 2.8.0
-            '@kitql/vite-plugin-watch-and-run': ^0.4.0
-            '@sveltejs/kit': 1.0.0-next.445
-            concurrently: ^6.2.1
-            graphql: 15.5.0
-            graphql-relay: 0.8.0
-            graphql-tag: 2.12.6
-            graphql-ws: 5.8.2
-            houdini: workspace:^
-            svelte: ^3.38.2
-            svelte-preprocess: ^4.0.0
-            tslib: ^2.2.0
-            typescript: ^4.0.0
-            vite: ^3.0.0
-            ws: ^8.8.1
-        dependencies:
-            graphql-relay: 0.8.0_graphql@15.5.0
-            graphql-tag: 2.12.6_graphql@15.5.0
-            graphql-ws: 5.8.2_graphql@15.5.0
-        devDependencies:
-            '@graphql-yoga/node': 2.8.0_graphql@15.5.0
-            '@kitql/vite-plugin-watch-and-run': 0.4.2
-            '@sveltejs/kit': 1.0.0-next.445_svelte@3.49.0+vite@3.0.9
-            concurrently: 6.5.1
-            graphql: 15.5.0
-            houdini: link:../packages/houdini
-            svelte: 3.49.0
-            svelte-preprocess: 4.10.7_svelte@3.49.0+typescript@4.7.4
-            tslib: 2.4.0
-            typescript: 4.7.4
-            vite: 3.0.9
-            ws: 8.8.1
-
-    integration/sveltekit:
+    e2e/sveltekit:
         specifiers:
             '@graphql-yoga/node': ^2.13.13
             '@kitql/helper': ^0.5.0
@@ -117,6 +82,41 @@ importers:
             tslib: 2.4.0
             typescript: 4.6.4
             vite: 3.1.4
+
+    example:
+        specifiers:
+            '@graphql-yoga/node': 2.8.0
+            '@kitql/vite-plugin-watch-and-run': ^0.4.0
+            '@sveltejs/kit': 1.0.0-next.445
+            concurrently: ^6.2.1
+            graphql: 15.5.0
+            graphql-relay: 0.8.0
+            graphql-tag: 2.12.6
+            graphql-ws: 5.8.2
+            houdini: workspace:^
+            svelte: ^3.38.2
+            svelte-preprocess: ^4.0.0
+            tslib: ^2.2.0
+            typescript: ^4.0.0
+            vite: ^3.0.0
+            ws: ^8.8.1
+        dependencies:
+            graphql-relay: 0.8.0_graphql@15.5.0
+            graphql-tag: 2.12.6_graphql@15.5.0
+            graphql-ws: 5.8.2_graphql@15.5.0
+        devDependencies:
+            '@graphql-yoga/node': 2.8.0_graphql@15.5.0
+            '@kitql/vite-plugin-watch-and-run': 0.4.2
+            '@sveltejs/kit': 1.0.0-next.445_svelte@3.49.0+vite@3.0.9
+            concurrently: 6.5.1
+            graphql: 15.5.0
+            houdini: link:../packages/houdini
+            svelte: 3.49.0
+            svelte-preprocess: 4.10.7_svelte@3.49.0+typescript@4.7.4
+            tslib: 2.4.0
+            typescript: 4.7.4
+            vite: 3.0.9
+            ws: 8.8.1
 
     packages/_scripts:
         specifiers:

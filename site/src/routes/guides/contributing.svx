@@ -187,11 +187,11 @@ For a general introduction to normalized caching for GraphQL queries, check out 
 [urql page on Normalized Caching](https://formidable.com/open-source/urql/docs/graphcache/normalized-caching/),
 which gives a very good overview of the task, even if some of the actual implementation details differ from houdini's.
 
-## Integration tests
+## End-to-End tests
 
 The best way to ensure that your feature works is to create a test that simulates the user's experience. We do this
-using a suite of integration tests that verify some of the more complex behaviors. You can find these tests in the dedicated
-[integration folder](https://github.com/HoudiniGraphql/houdini/tree/main/integration) at the root of Houdini's repository.
+using a suite of end-to-end tests that verify some of the more complex behaviors. You can find these tests in the dedicated
+[e2e folder](https://github.com/HoudiniGraphql/houdini/tree/main/e2e) at the root of Houdini's repository.
 
 The general idea is to create specific routes in a SvelteKit application that showcase a single behavior and then
 use (Playwright)[https://playwright.dev/] to simulate a user interacting with the UI and verify that things are working as expected.

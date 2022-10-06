@@ -86,8 +86,8 @@ jobs:
             - name: Tests
               run: pnpm run tests
 
-    integration:
-        name: Integration Tests
+    e2e:
+        name: End-to-End Tests
         runs-on: ubuntu-latest
 
         steps:
@@ -139,10 +139,10 @@ jobs:
               run: npx playwright install --with-deps
 
             - name: SvelteKit Sync
-              run: cd integration && npx svelte-kit sync
+              run: cd e2e && npx svelte-kit sync
 
-            - name: Integration Tests
-              run: pnpm --filter integration tests
+            - name: End-to-End Tests
+              run: pnpm --filter e2e tests
               env:
                   RECORD_REPLAY_TEST_RUN_ID: ${{ env.GITHUB_SHA }}
 
@@ -153,8 +153,8 @@ jobs:
                   api-key: ${{ secrets.RECORD_REPLAY_API_KEY }}
                   filter: ${{ 'function($v) { $v.metadata.test.result = "failed" and $v.status = "onDisk" }' }}
 
-    integration_linter:
-        name: Integration Linter
+    e2e_linter:
+        name: End-to-End Linter
         runs-on: ubuntu-latest
 
         steps:
@@ -194,14 +194,14 @@ jobs:
               run: pnpm run build
 
             - name: SvelteKit Sync
-              run: cd integration && npx svelte-kit sync
+              run: cd e2e && npx svelte-kit sync
 
             - name: Build kit assets
-              run: pnpm --filter integration run build
+              run: pnpm --filter e2e run build
 
             # needs to run after build & houdini generate
-            - name: Integration lint
-              run: pnpm --filter integration run lint
+            - name: End-to-End lint
+              run: pnpm --filter e2e run lint
 
-            - name: Integration check
-              run: pnpm --filter integration run check
+            - name: End-to-End check
+              run: pnpm --filter e2e run check
