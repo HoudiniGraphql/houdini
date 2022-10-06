@@ -42,7 +42,7 @@ export default {
 				code:
 					(await fs.readFile(filepath)) ||
 					(await fs.readFile(path.join(config.projectRoot, filepath))) ||
-					empty_root_layout,
+					empty_layout,
 			}
 		}
 
@@ -77,8 +77,8 @@ filesystem.readFileSync = function (fp, options) {
 			return _readFileSync(filepath, options)
 		} catch {
 			return typeof options === 'string' || options?.encoding
-				? empty_root_layout
-				: Buffer.from(empty_root_layout)
+				? empty_layout
+				: Buffer.from(empty_layout)
 		}
 	}
 	return _readFileSync(filepath, options)
@@ -166,7 +166,6 @@ filesystem.readdirSync = function (
 
 	// if there is a layout file but no layout.js, we need to make one
 	if (contains('+layout.svelte') && !contains('+layout.ts', '+layout.js')) {
-		console.log('adding layout.js', filepath)
 		result.push(virtual_file('+layout.js', options))
 	}
 
@@ -219,4 +218,4 @@ function is_root_route(filepath: PathLike): boolean {
 	)
 }
 
-const empty_root_layout = '<slot />'
+const empty_layout = '<slot />'

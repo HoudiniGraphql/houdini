@@ -1,9 +1,15 @@
-import { load_Hello, load_usersList } from '$houdini';
+import { usersListStore, HelloStore, loadAll } from '$houdini';
 import type { LoadEvent } from '@sveltejs/kit';
 
 export async function load(event: LoadEvent) {
+  const usersList = new usersListStore();
+  const Hello = new HelloStore();
+
+  await Promise.all([usersList.fetch({ event }), Hello.fetch({ event })]);
+
   return {
-    ...(await load_usersList({ event })),
-    ...(await load_Hello({ event }))
+    test: 'hello',
+    usersList,
+    Hello
   };
 }
