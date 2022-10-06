@@ -33,5 +33,5 @@
 </nav>
 
 <div id="layout-session">
-  {$info.data.session}
+  {$info.data?.session}
 </div>

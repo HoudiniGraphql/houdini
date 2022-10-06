@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { GQL_UpdateUser, graphql } from '$houdini';
+  import { GQL_UpdateUser } from '$houdini';
   import { stry } from '@kitql/helper';
   import type { PageData } from './$types';
 

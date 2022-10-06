@@ -1,5 +1,4 @@
 import { HoudiniError, PluginFactory } from 'houdini'
-import minimatch from 'minimatch'
 import path from 'path'
 
 import generate from './codegen'
@@ -41,19 +40,10 @@ const HoudiniSveltePlugin: PluginFactory = async () => ({
 	// transform a file's contents. changes here aren't seen by extract_documents
 	transform_file: apply_transforms,
 
-	// the files we generate contain some crazy relative paths that we need to make sure we include for transformations
 	include(config, filepath) {
-		// deal with any relative imports from compiled assets
-		filepath = resolve_relative(config, filepath)
-
-		// if the filepath doesn't match the include we're done
-		if (
-			!config.include.some((include) =>
-				minimatch(filepath, path.join(config.projectRoot, include))
-			)
-		) {
-			return false
-		}
+		// the files we generate contain some crazy relative paths that we need to make sure we include for transformations
+		// fix the include path and try again
+		return config.includeFile(resolve_relative(config, filepath), { ignore_plugins: true })
 	},
 
 	// add custom vite config

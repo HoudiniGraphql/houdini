@@ -2,12 +2,7 @@ import filesystem, { Dirent, PathLike } from 'fs'
 import { fs, Plugin } from 'houdini'
 import path from 'path'
 
-import {
-	is_root_layout,
-	is_root_layout_script,
-	is_root_layout_server,
-	is_route_script,
-} from './kit'
+import { is_root_layout, is_root_layout_server, is_route_script, resolve_relative } from './kit'
 
 // this plugin is responsible for faking `+page.js` existence in the eyes of sveltekit
 export default {
@@ -29,6 +24,7 @@ export default {
 	load: async (filepath, { config }) => {
 		// if we are processing a route script or the root layout, we should always return _something_
 		if (is_route_script(config, filepath) || is_root_layout_server(config, filepath)) {
+			filepath = resolve_relative(config, filepath)
 			return {
 				code:
 					(await fs.readFile(filepath)) ||
@@ -38,6 +34,7 @@ export default {
 		}
 
 		if (is_root_layout(config, filepath)) {
+			filepath = resolve_relative(config, filepath)
 			return {
 				code:
 					(await fs.readFile(filepath)) ||
@@ -76,6 +73,7 @@ filesystem.readFileSync = function (fp, options) {
 		try {
 			return _readFileSync(filepath, options)
 		} catch {
+			console.log('mocking', filepath, empty_layout)
 			return typeof options === 'string' || options?.encoding
 				? empty_layout
 				: Buffer.from(empty_layout)

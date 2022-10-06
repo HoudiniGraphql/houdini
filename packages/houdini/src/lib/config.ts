@@ -389,10 +389,16 @@ export class Config {
 		)
 	}
 
-	includeFile(filepath: string, root: string = this.projectRoot) {
+	includeFile(
+		filepath: string,
+		{
+			root = this.projectRoot,
+			ignore_plugins = false,
+		}: { root?: string; ignore_plugins?: boolean } = {}
+	) {
 		let included = false
 		// plugins might define custom include logic
-		for (const plugin of this.plugins) {
+		for (const plugin of ignore_plugins ? [] : this.plugins) {
 			if (!plugin.include) {
 				continue
 			}

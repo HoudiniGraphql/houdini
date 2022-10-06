@@ -62,17 +62,6 @@ export default async function apply_transforms(page: TransformPage): Promise<{ c
 	// print the result
 	const printedScript = recast.print(result.script).code
 
-	if (page.filepath.endsWith('stores/ssr/+page.ts')) {
-		console.log('\n==--==')
-		console.log(
-			page.filepath,
-			'\n',
-			!page.filepath.endsWith('.svelte')
-				? printedScript
-				: replace_tag_content(page.content, script.start, script.end, printedScript)
-		)
-	}
-
 	return {
 		// if we're transforming a svelte file, we need to replace the script's inner contents
 		code: !page.filepath.endsWith('.svelte')

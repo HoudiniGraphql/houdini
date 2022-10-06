@@ -2,8 +2,7 @@
   import type { PageData } from './$types';
 
   export let data: PageData;
-  $: ({ usersList, Hello, ...rest } = data);
-  $: console.log(rest);
+  $: ({ usersList, Hello } = data);
 </script>
 
 <h1>SSR</h1>
