@@ -15,12 +15,10 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		// is processed by the user's library-specific plugins.
 		enforce: 'pre',
 
-		async configResolved() {
-			config = await getConfig(opts)
-		},
-
 		// add watch-and-run to their vite config
 		async config(viteConfig) {
+			config = await getConfig(opts)
+
 			return {
 				server: {
 					...viteConfig.server,

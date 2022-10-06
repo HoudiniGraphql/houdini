@@ -2,7 +2,12 @@ import filesystem, { Dirent, PathLike } from 'fs'
 import { fs, Plugin } from 'houdini'
 import path from 'path'
 
-import { is_root_layout, is_root_layout_server, is_route_script, resolve_relative } from './kit'
+import {
+	is_root_layout,
+	is_root_layout_script,
+	is_root_layout_server,
+	is_route_script,
+} from './kit'
 
 // this plugin is responsible for faking `+page.js` existence in the eyes of sveltekit
 export default {
@@ -81,13 +86,44 @@ filesystem.readFileSync = function (fp, options) {
 
 // @ts-ignore
 filesystem.statSync = function (filepath: string, options: Parameters<filesystem.StatSyncFn>[1]) {
-	if (!filepath.includes('routes') || !path.basename(filepath).startsWith('+'))
+	if (!filepath.includes('routes') || !path.basename(filepath).startsWith('+')) {
 		return _statSync(filepath, options)
+	}
+
 	try {
 		const result = _statSync(filepath, options)
 		return result
 	} catch (error) {
-		return virtual_file(path.basename(filepath), { withFileTypes: true })
+		const mock = virtual_file(path.basename(filepath), { withFileTypes: true })
+
+		// always fake the root +layout.server.js and +layout.svelte
+		if (
+			filepath.endsWith('routes/+layout.svelte') ||
+			filepath.endsWith(path.join('routes', '+layout.svelte')) ||
+			filepath.endsWith('routes/+layout.server.js') ||
+			filepath.endsWith(path.join('routes', '+layout.server.js'))
+		) {
+			return mock
+		}
+
+		// we want to fake +layout.js if there is a +layout.svelte
+		else if (filepath.endsWith('+layout.js')) {
+			try {
+				_statSync(filepath.replace('+layout.js', '+layout.svelte'))
+				return mock
+			} catch (e) {}
+		}
+
+		// we want to fake +page.js if there is a +page.svelte
+		else if (filepath.endsWith('+page.js')) {
+			try {
+				_statSync(filepath.replace('+page.js', '+page.svelte'))
+				return mock
+			} catch (e) {}
+		}
+
+		// if we got this far we didn't fake the file
+		throw error
 	}
 }
 
@@ -130,6 +166,7 @@ filesystem.readdirSync = function (
 
 	// if there is a layout file but no layout.js, we need to make one
 	if (contains('+layout.svelte') && !contains('+layout.ts', '+layout.js')) {
+		console.log('adding layout.js', filepath)
 		result.push(virtual_file('+layout.js', options))
 	}
 
