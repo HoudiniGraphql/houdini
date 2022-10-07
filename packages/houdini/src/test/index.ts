@@ -284,10 +284,8 @@ export function mockCollectedDoc(query: string): CollectedGraphQLDocument {
 export async function clearMock() {
 	const config = testConfig()
 
+	memfs.mkdirpSync(path.join(process.cwd(), 'src', 'routes'))
+	memfs.mkdirpSync(path.join(process.cwd(), 'src', 'lib'))
 	vol.reset()
-	await Promise.all([
-		config.createDirectories(),
-		memfs.mkdirpSync(path.join(process.cwd(), 'src', 'routes')),
-		memfs.mkdirpSync(path.join(process.cwd(), 'src', 'lib')),
-	])
+	await config.createDirectories()
 }

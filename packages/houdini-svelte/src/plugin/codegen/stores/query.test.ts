@@ -1,4 +1,5 @@
-import { testConfig, fs, mockCollectedDoc, CollectedGraphQLDocument } from 'houdini'
+import { fs, CollectedGraphQLDocument } from 'houdini'
+import { testConfig, mockCollectedDoc } from 'houdini/test'
 import path from 'path'
 import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
@@ -6,9 +7,11 @@ import { test, expect } from 'vitest'
 
 import runPipeline from '..'
 import '../..'
+import { stores_directory } from '../../kit'
 
 // the config to use in tests
 const config = testConfig()
+const plugin_root = config.pluginDirectory('test-plugin')
 
 test('generates a store for every query', async function () {
 	// the documents to test
@@ -18,10 +21,10 @@ test('generates a store for every query', async function () {
 	]
 
 	// execute the generator
-	await runPipeline(config, docs)
+	await runPipeline({ config, documents: docs, plugin_root })
 
 	// look up the files in the artifact directory
-	const files = await fs.readdir(config.storesDirectory)
+	const files = await fs.readdir(stores_directory(plugin_root))
 
 	// and they have the right names
 	expect(files).toEqual(expect.arrayContaining(['TestQuery1.js', 'TestQuery2.js']))
@@ -33,9 +36,9 @@ test('basic store', async function () {
 	const docs = [mockCollectedDoc(`query TestQuery { version }`)]
 
 	// run the generator
-	await runPipeline(config, docs)
+	await runPipeline({ config, documents: docs, plugin_root })
 
-	const contents = await fs.readFile(path.join(config.storesDirectory, 'TestQuery.js'))
+	const contents = await fs.readFile(path.join(stores_directory(plugin_root), 'TestQuery.js'))
 
 	// parse the contents
 	const parsed = recast.parse(contents!, {
@@ -81,9 +84,9 @@ test('change globalStorePrefix to "yop___"', async function () {
 	let configTweaked = testConfig()
 	configTweaked.globalStorePrefix = 'yop___'
 	// run the generator
-	await runPipeline(configTweaked, docs)
+	await runPipeline({ config: configTweaked, documents: docs, plugin_root })
 
-	const contents = await fs.readFile(path.join(config.storesDirectory, 'TestQuery.js'))
+	const contents = await fs.readFile(path.join(stores_directory(plugin_root), 'TestQuery.js'))
 
 	// parse the contents
 	const parsed = recast.parse(contents!, {
@@ -129,9 +132,9 @@ test('change globalStorePrefix to ""', async function () {
 	let configTweaked = testConfig()
 	configTweaked.globalStorePrefix = ''
 	// run the generator
-	await runPipeline(configTweaked, docs)
+	await runPipeline({ config: configTweaked, documents: docs, plugin_root })
 
-	const contents = await fs.readFile(path.join(config.storesDirectory, 'TestQuery.js'))
+	const contents = await fs.readFile(path.join(stores_directory(plugin_root), 'TestQuery.js'))
 
 	// parse the contents
 	const parsed = recast.parse(contents!, {
@@ -179,9 +182,9 @@ test('store with required variables', async function () {
 	]
 
 	// run the generator
-	await runPipeline(config, docs)
+	await runPipeline({ config, documents: docs, plugin_root })
 
-	const contents = await fs.readFile(path.join(config.storesDirectory, 'TestQuery.js'))
+	const contents = await fs.readFile(path.join(stores_directory(plugin_root), 'TestQuery.js'))
 
 	// parse the contents
 	const parsed = recast.parse(contents!, {
@@ -229,9 +232,9 @@ test('store with nullable variables', async function () {
 	]
 
 	// run the generator
-	await runPipeline(config, docs)
+	await runPipeline({ config, documents: docs, plugin_root })
 
-	const contents = await fs.readFile(path.join(config.storesDirectory, 'TestQuery.js'))
+	const contents = await fs.readFile(path.join(stores_directory(plugin_root), 'TestQuery.js'))
 
 	// parse the contents
 	const parsed = recast.parse(contents!, {
@@ -279,9 +282,9 @@ test('store with non-null variables with default value', async function () {
 	]
 
 	// run the generator
-	await runPipeline(config, docs)
+	await runPipeline({ config, documents: docs, plugin_root })
 
-	const contents = await fs.readFile(path.join(config.storesDirectory, 'TestQuery.js'))
+	const contents = await fs.readFile(path.join(stores_directory(plugin_root), 'TestQuery.js'))
 
 	// parse the contents
 	const parsed = recast.parse(contents!, {
@@ -335,9 +338,9 @@ test('forward cursor pagination', async function () {
 	]
 
 	// run the generator
-	await runPipeline(config, docs)
+	await runPipeline({ config, documents: docs, plugin_root })
 
-	const contents = await fs.readFile(path.join(config.storesDirectory, 'TestQuery.js'))
+	const contents = await fs.readFile(path.join(stores_directory(plugin_root), 'TestQuery.js'))
 
 	// parse the contents
 	const parsed = recast.parse(contents!, {
@@ -391,9 +394,9 @@ test('backwards cursor pagination', async function () {
 	]
 
 	// run the generator
-	await runPipeline(config, docs)
+	await runPipeline({ config, documents: docs, plugin_root })
 
-	const contents = await fs.readFile(path.join(config.storesDirectory, 'TestQuery.js'))
+	const contents = await fs.readFile(path.join(stores_directory(plugin_root), 'TestQuery.js'))
 
 	// parse the contents
 	const parsed = recast.parse(contents!, {
@@ -443,9 +446,9 @@ test('offset pagination', async function () {
 	]
 
 	// run the generator
-	await runPipeline(config, docs)
+	await runPipeline({ config, documents: docs, plugin_root })
 
-	const contents = await fs.readFile(path.join(config.storesDirectory, 'TestQuery.js'))
+	const contents = await fs.readFile(path.join(stores_directory(plugin_root), 'TestQuery.js'))
 
 	// parse the contents
 	const parsed = recast.parse(contents!, {
@@ -499,9 +502,14 @@ test('does not generate pagination store', async function () {
 	]
 
 	// run the generator
-	await runPipeline(config, docs)
+	await runPipeline({ config, documents: docs, plugin_root })
 
 	await expect(
-		fs.stat(path.join(config.storesDirectory, config.paginationQueryName('TestQuery') + '.js'))
+		fs.stat(
+			path.join(
+				stores_directory(plugin_root),
+				config.paginationQueryName('TestQuery') + '.js'
+			)
+		)
 	).rejects.toBeTruthy()
 })

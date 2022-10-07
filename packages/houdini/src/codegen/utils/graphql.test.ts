@@ -1,7 +1,7 @@
 import * as graphql from 'graphql'
 import { test, expect, describe } from 'vitest'
 
-import { testConfig } from '../../common'
+import { testConfig } from '../../test'
 import { TypeWrapper, unwrapType } from './graphql'
 
 describe('unwrapType', () => {

@@ -19,6 +19,7 @@ export default async function generateAdapter({ config }: GenerateHookInput) {
 	}[config.framework]
 
 	// write the index file that exports the runtime
+	await fs.mkdirp(path.dirname(adapterLocation))
 	await fs.writeFile(adapterLocation, adapter)
 }
 

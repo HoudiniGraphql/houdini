@@ -297,7 +297,7 @@ export class Config {
 		// when running in the real world, scripts are nested in a sub directory of build, in tests they aren't nested
 		// under /src so we need to figure out how far up to go to find the appropriately compiled runtime
 		const relative = process.env.TEST
-			? path.join(currentDir, '../../')
+			? path.join(currentDir, '..')
 			: // start here and go to parent until we find the node_modules/houdini folder
 			  this.findModule()
 
@@ -430,7 +430,9 @@ export class Config {
 	}
 
 	pluginDirectory(name: string) {
-		return path.join(this.rootDir, 'plugins', name)
+		return process.env.TEST
+			? path.resolve('../../../', name)
+			: path.join(this.rootDir, 'plugins', name)
 	}
 
 	/*

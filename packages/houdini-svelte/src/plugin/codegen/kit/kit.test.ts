@@ -7,6 +7,7 @@ import generate from '..'
 import { type_route_dir } from '../../kit'
 
 const config = testConfig()
+const plugin_root = config.pluginDirectory('test-plugin')
 
 test('generates types for inline queries', async function () {
 	// create the mock filesystem
@@ -25,7 +26,7 @@ test('generates types for inline queries', async function () {
 	})
 
 	// execute the generator
-	await generate({ config, documents: [] })
+	await generate({ config, documents: [], plugin_root })
 
 	// load the contents of the file
 	const queryContents = await fs.readFile(
@@ -66,7 +67,7 @@ query MyPageQuery {
 	})
 
 	// execute the generator
-	await generate({ config, documents: [] })
+	await generate({ config, documents: [], plugin_root })
 
 	// load the contents of the file
 	const queryContents = await fs.readFile(
@@ -123,7 +124,7 @@ test('generates types for after load', async function () {
 	})
 
 	// execute the generator
-	await generate({ config, documents: [] })
+	await generate({ config, documents: [], plugin_root })
 
 	// load the contents of the file
 	const queryContents = await fs.readFile(
@@ -199,7 +200,7 @@ test('generates types for onError', async function () {
 	})
 
 	// execute the generator
-	await generate({ config, documents: [] })
+	await generate({ config, documents: [], plugin_root })
 
 	// load the contents of the file
 	const queryContents = await fs.readFile(

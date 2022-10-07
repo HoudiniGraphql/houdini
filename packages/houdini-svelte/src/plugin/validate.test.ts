@@ -1,4 +1,6 @@
-import { CollectedGraphQLDocument, pipelineTest } from 'houdini'
+import { CollectedGraphQLDocument } from 'houdini'
+import { pipelineTest } from 'houdini/test'
+import { describe } from 'vitest'
 
 const table: Row[] = [
 	{
@@ -83,8 +85,10 @@ type Row =
 			check?: (result: Error | Error[]) => void
 	  }
 
-// run the tests
-for (const { title, pass, documents, check } of table) {
-	// run the pipeline over the documents
-	pipelineTest(title, documents, pass, check)
-}
+describe('validate checks', function () {
+	// run the tests
+	for (const { title, pass, documents, check } of table) {
+		// run the pipeline over the documents
+		pipelineTest(title, documents, pass, check)
+	}
+})

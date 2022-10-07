@@ -29,7 +29,7 @@ export class Cache {
 		})
 
 		if (config) {
-			this.setConfig(config)
+			this.setConfig(defaultConfigValues(config))
 		}
 	}
 

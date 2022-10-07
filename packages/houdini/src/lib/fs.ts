@@ -110,6 +110,7 @@ export function existsSync(dirPath: string) {
 }
 
 export async function readdir(filepath: string): Promise<string[]> {
+	console.log(process.env.NODE_ENV)
 	// no mock in production
 	if (process.env.NODE_ENV !== 'test') {
 		return await fs.readdir(filepath)

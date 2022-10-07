@@ -3,7 +3,7 @@ import { toMatchInlineSnapshot } from 'jest-snapshot'
 import path from 'path'
 import * as recast from 'recast'
 import typeScriptParser from 'recast/parsers/typescript'
-import { expect, afterEach } from 'vitest'
+import { expect, afterEach, beforeEach } from 'vitest'
 
 import { parseJS, fs } from './packages/houdini/src/lib'
 import { clearMock, testConfig } from './packages/houdini/src/test'

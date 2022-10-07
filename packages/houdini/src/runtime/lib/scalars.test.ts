@@ -1,8 +1,8 @@
 import { test, expect, describe, beforeEach } from 'vitest'
 
-import { testConfigFile } from '../../common'
+import { testConfigFile } from '../../test'
+import { setMockConfig } from './config'
 import { marshalSelection, unmarshalSelection } from './scalars'
-import { setMockConfig } from './test'
 import { ArtifactKind, QueryArtifact } from './types'
 
 beforeEach(() =>
