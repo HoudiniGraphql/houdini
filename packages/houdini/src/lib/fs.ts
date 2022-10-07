@@ -7,8 +7,7 @@ import { promisify } from 'util'
 export async function readFile(filepath: string): Promise<string | null> {
 	if (process.env.NODE_ENV === 'test') {
 		try {
-			const buildDir = path.join(process.cwd(), 'build')
-			if (filepath.startsWith(buildDir)) {
+			if (filepath.includes('build/runtime')) {
 				return await fs.readFile(filepath, 'utf-8')
 			}
 
@@ -28,8 +27,7 @@ export async function readFile(filepath: string): Promise<string | null> {
 export function readFileSync(filepath: string): string | null {
 	if (process.env.NODE_ENV === 'test') {
 		try {
-			const buildDir = path.join(process.cwd(), 'build')
-			if (filepath.startsWith(buildDir)) {
+			if (filepath.includes('build/runtime')) {
 				return fsExtra.readFileSync(filepath, 'utf-8')
 			}
 
@@ -215,6 +213,7 @@ export async function recursiveCopy(source: string, target: string, notRoot?: bo
 					if (targetPath.endsWith('/runtime/adapter.js')) {
 						return
 					}
+
 					await writeFile(targetPath, (await readFile(childPath)) || '')
 				}
 			})

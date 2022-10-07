@@ -6,11 +6,11 @@
 	"type": "module",
 	"scripts": {
 		"tests": "vitest",
+		"test": "pnpm run tests",
 		"build:all": "turbo build",
 		"build": "turbo build --filter=\"./packages/*\"",
 		"compile:all": "turbo compile",
 		"compile": "turbo compile --filter=\"./packages/*\"",
-		"test": "turbo run test",
 		"typedefs:all": "turbo run typedefs",
 		"typedefs": "turbo run typedefs --filter=\"./packages/*\"",
 		"lint": "turbo run lint",
