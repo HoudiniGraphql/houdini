@@ -1211,6 +1211,7 @@ packages:
             tslib: 2.4.0
         transitivePeerDependencies:
             - encoding
+        dev: false
 
     /@graphql-yoga/subscription/2.2.3:
         resolution:
