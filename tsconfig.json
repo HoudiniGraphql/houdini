@@ -1,7 +1,7 @@
 {
-	"exclude": ["node_modules", "**/*.test.ts"],
+	"exclude": ["node_modules"],
+	"include": ["packages/**/*.ts"],
 	"compilerOptions": {
-		"outDir": "build/runtime-esm",
 		"moduleResolution": "node",
 		"module": "es2020",
 		"lib": ["ES2021", "DOM", "ES2021.String"],

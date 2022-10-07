@@ -1,3 +1,5 @@
+import { test } from 'vitest'
+
 import { CollectedGraphQLDocument } from '../../lib/types'
 import { pipelineTest } from '../../test'
 
@@ -53,5 +55,5 @@ type Row =
 // run the tests
 for (const { title, pass, documents, check } of table) {
 	// run the pipeline over the documents
-	pipelineTest(title, documents, pass, check)
+	test(title, pipelineTest(documents, pass, check))
 }

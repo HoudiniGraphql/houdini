@@ -884,17 +884,18 @@ type Row =
 // run the tests
 for (const { title, pass, documents, check } of table) {
 	describe('type check', function () {
-		// run the pipeline over the documents
-		pipelineTest(
+		test(
 			title,
-			documents,
-			pass,
-			pass
-				? undefined
-				: check ||
-						function (e: Error | Error[]) {
-							expect(e).toHaveLength(2)
-						}
+			pipelineTest(
+				documents,
+				pass,
+				pass
+					? undefined
+					: check ||
+							function (e: Error | Error[]) {
+								expect(e).toHaveLength(2)
+							}
+			)
 		)
 	})
 }

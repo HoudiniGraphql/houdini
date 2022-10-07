@@ -1,4 +1,4 @@
-import { describe } from 'vitest'
+import { describe, test } from 'vitest'
 
 import { pipelineTest } from '../../test'
 
@@ -131,6 +131,6 @@ describe('schema transform', function () {
 	]
 
 	for (const row of table) {
-		pipelineTest(row.title, row.documents, row.pass)
+		test(row.title, pipelineTest(row.documents, row.pass))
 	}
 })

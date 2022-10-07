@@ -4,7 +4,7 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
 	test: {
-		include: [path.resolve('packages', '*', 'src', '**', '*.test.ts')],
+		include: ['./packages/*/src/**/*.test.{ts,js}'],
 		setupFiles: [path.resolve('./vitest.setup.ts')],
 		alias: {
 			$houdini: './packages/houdini/src/runtime',
