@@ -5,15 +5,14 @@ import * as recast from 'recast'
 import typeScriptParser from 'recast/parsers/typescript'
 import { expect, afterEach } from 'vitest'
 
-import { parseJS, testConfig } from './src/common'
-import { clearMock } from './src/common/fs'
-import * as fs from './src/common/fs'
+import { parseJS, fs } from './packages/houdini/src/lib'
+import { clearMock, testConfig } from './packages/houdini/src/test'
 
 process.env.TEST = 'true'
 
 clearMock()
 
-afterEach(fs.clearMock)
+afterEach(clearMock)
 
 const config = testConfig()
 
