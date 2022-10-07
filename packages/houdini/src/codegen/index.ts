@@ -36,7 +36,7 @@ export default async function compile(config: Config) {
 // - write the corresponding artifacts to disk
 export async function runPipeline(config: Config, docs: CollectedGraphQLDocument[]) {
 	// we need to create the runtime folder structure
-	await config.createDirectories()
+	config.createDirectories()
 
 	// reset the newSchema accumulator
 	config.newSchema = ''

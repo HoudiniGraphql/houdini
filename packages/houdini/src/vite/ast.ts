@@ -64,7 +64,6 @@ export function find_exported_fn(
 			) {
 				return declaration.init
 			}
-			console.log(declaration.id)
 		}
 		// it wasn't something we care about, move along
 		else {

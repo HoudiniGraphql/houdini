@@ -3,7 +3,7 @@ import { toMatchInlineSnapshot } from 'jest-snapshot'
 import path from 'path'
 import * as recast from 'recast'
 import typeScriptParser from 'recast/parsers/typescript'
-import { expect, afterEach, beforeEach } from 'vitest'
+import { expect, afterEach } from 'vitest'
 
 import { parseJS, fs } from './packages/houdini/src/lib'
 import { clearMock, testConfig } from './packages/houdini/src/test'
@@ -16,6 +16,28 @@ afterEach(clearMock)
 
 const config = testConfig()
 
+// serialize artifact references
+expect.addSnapshotSerializer({
+	test: (val) => val.document && fs.existsSync(config.artifactPath(val.document)),
+	serialize(value) {
+		// assuming that the value we were given is a collected document, figure
+		// out the path holding the artifact
+		const artifactPath = path.join('$houdini/artifacts', documentName(value.document) + '.js')
+
+		const artifactContents = fs.readFileSync(artifactPath)
+		expect(artifactContents).toBeTruthy()
+
+		// parse the contents
+		const parsed = recast.parse(artifactContents!, {
+			parser: typeScriptParser,
+		}).program
+
+		// @ts-ignore
+		return recast.print(parsed).code.replaceAll(config.projectRoot, 'PROJECT_ROOT')
+	},
+})
+
+// serialize javascript ASTs
 expect.addSnapshotSerializer({
 	test: (val) => val && Object.keys(recast.types.namedTypes).includes(val.type),
 	serialize: (val) => {
@@ -23,6 +45,7 @@ expect.addSnapshotSerializer({
 	},
 })
 
+// serialize
 expect.addSnapshotSerializer({
 	test: (val) => val && Object.values(graphql.Kind).includes(val.kind),
 	serialize: (val) => graphql.print(val),
@@ -32,41 +55,10 @@ expect.addSnapshotSerializer({
 	test: (val) =>
 		val &&
 		!Object.values(graphql.Kind).includes(val.kind) &&
-		!Object.keys(recast.types.namedTypes).includes(val.type),
+		!Object.keys(recast.types.namedTypes).includes(val.type) &&
+		!val.document,
 	serialize: (val) => {
 		return JSON.stringify(val, null, 4)
-	},
-})
-
-expect.extend({
-	async toMatchArtifactSnapshot(value, ...rest) {
-		// The error (and its stacktrace) must be created before any `await`
-		this.error = new Error()
-
-		// assuming that the value we were given is a collected document, figure
-		// out the path holding the artifact
-		const artifactPath = path.join('$houdini/artifacts', documentName(value.document) + '.js')
-
-		const artifactContents = await fs.readFile(artifactPath)
-		expect(artifactContents).toBeTruthy()
-
-		// parse the contents
-		const parsed = recast.parse(artifactContents!, {
-			parser: typeScriptParser,
-		}).program
-
-		// @ts-ignore
-		return toMatchInlineSnapshot.call(this, parsed, ...rest)
-	},
-	async toMatchJavascriptSnapshot(value, ...rest) {
-		// The error (and its stacktrace) must be created before any `await`
-		this.error = new Error()
-
-		// parse the contents
-		const parsed = await parseJS(value)
-
-		// @ts-ignore
-		return toMatchInlineSnapshot.call(this, parsed?.script, ...rest)
 	},
 })
 

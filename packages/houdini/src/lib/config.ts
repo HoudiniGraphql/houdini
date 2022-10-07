@@ -297,7 +297,7 @@ export class Config {
 		// when running in the real world, scripts are nested in a sub directory of build, in tests they aren't nested
 		// under /src so we need to figure out how far up to go to find the appropriately compiled runtime
 		const relative = process.env.TEST
-			? path.join(currentDir, '..')
+			? path.join(currentDir, '..', '..')
 			: // start here and go to parent until we find the node_modules/houdini folder
 			  this.findModule()
 
@@ -369,13 +369,11 @@ export class Config {
 			.includes(type)
 	}
 
-	async createDirectories(): Promise<void> {
-		await Promise.all([
-			fs.mkdirp(this.artifactDirectory),
-			fs.mkdirp(this.artifactTypeDirectory),
-			fs.mkdirp(this.runtimeDirectory),
-			fs.mkdirp(this.definitionsDirectory),
-		])
+	createDirectories() {
+		fs.mkdirpSync(this.artifactDirectory)
+		fs.mkdirpSync(this.artifactTypeDirectory)
+		fs.mkdirpSync(this.runtimeDirectory)
+		fs.mkdirpSync(this.definitionsDirectory)
 	}
 
 	get compiledAssetsDir() {

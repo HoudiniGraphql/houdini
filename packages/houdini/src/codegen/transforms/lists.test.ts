@@ -177,8 +177,8 @@ test('delete node from connection', async function () {
 			`
 				fragment AllUsers  on User{
 					friendsByCursor @list(name:"User_Friends") {
-							edges { 
-								node { 
+							edges {
+								node {
 								firstName
 								id
 							}
@@ -225,8 +225,8 @@ test('list fragments must be unique', async function () {
 
 test("fragment with list doesn't clutter its definition", async function () {
 	const docs = [
-		mockCollectedDoc(`fragment Friends on User  { 
-			friends @list(name:"Friends") {  
+		mockCollectedDoc(`fragment Friends on User  {
+			friends @list(name:"Friends") {
 				id
 			}
 		}`),
@@ -295,11 +295,11 @@ test('connections marked with list directive get cursor information', async func
 			`
 			fragment AllUsers  on User{
 				friendsByCursor @list(name:"User_Friends") {
-					edges { 
-						node { 
+					edges {
+						node {
 							id
 							firstName
-							friends { 
+							friends {
 								id
 							}
 						}
@@ -359,11 +359,11 @@ test('includes node selection on connection', async function () {
 			`
 			fragment AllUsers  on User{
 				friendsByCursor @list(name:"User_Friends") {
-					edges { 
-						node { 
+					edges {
+						node {
 							id
 							firstName
-							friends { 
+							friends {
 								id
 							}
 						}
@@ -403,11 +403,11 @@ test('list flags connections', async function () {
 			`
 			fragment AllUsers on User {
 				friendsByCursor @list(name:"User_Friends") {
-					edges { 
-						node { 
+					edges {
+						node {
 							id
 							firstName
-							friends { 
+							friends {
 								id
 							}
 						}
@@ -489,11 +489,11 @@ test('paginate with name also gets treated as a list', async function () {
 			`
 			fragment AllUsers  on User{
 				friendsByCursor(first: 10) @paginate(name:"User_Friends") {
-					edges { 
-						node { 
+					edges {
+						node {
 							id
 							firstName
-							friends { 
+							friends {
 								id
 							}
 						}

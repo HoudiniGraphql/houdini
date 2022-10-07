@@ -44,11 +44,11 @@ test('runtime index file - sapper', async function () {
 		    return (mod && mod.__esModule) ? mod : { "default": mod };
 		};
 		Object.defineProperty(exports, "__esModule", { value: true });
-
 		__exportStar(require("./runtime"), exports);
+
 		__exportStar(require("./artifacts"), exports);
+
 		__exportStar(require("./graphql"), exports);
-		__exportStar(require("./stores"), exports);
 	`)
 })
 
@@ -67,8 +67,9 @@ test('runtime index file - kit', async function () {
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		export * from "./runtime"
+
 		export * from "./artifacts"
-		export * from "./stores"
+
 		export * from "./graphql"
 	`)
 })

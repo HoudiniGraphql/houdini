@@ -73,7 +73,6 @@ filesystem.readFileSync = function (fp, options) {
 		try {
 			return _readFileSync(filepath, options)
 		} catch {
-			console.log('mocking', filepath, empty_layout)
 			return typeof options === 'string' || options?.encoding
 				? empty_layout
 				: Buffer.from(empty_layout)

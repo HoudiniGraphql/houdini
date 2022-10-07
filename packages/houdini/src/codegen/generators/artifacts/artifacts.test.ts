@@ -43,12 +43,11 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		export default {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "8e483259f3d69f416c01b6106c0440fa0f916abb4cadb75273f8226a1ff0a5e2",
+		    hash: "24015ccbaa62e80c1a1364e01cf181591c9fbb03da6a9b32da97fb23f820ff78",
 
 		    raw: \`query TestQuery {
 		  version
-		}
-		\`,
+		}\`,
 
 		    rootType: "Query",
 
@@ -77,12 +76,11 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		export default {
 		    name: "TestFragment",
 		    kind: "HoudiniFragment",
-		    hash: "29c40b5d9f6b0cd77fc3fb46fc1338be4960369a01651d5149c2442a33b48686",
+		    hash: "1601897db7841afcc051462fff699137005a30d9153fc307566e12cff4fbcd96",
 
 		    raw: \`fragment TestFragment on User {
 		  firstName
-		}
-		\`,
+		}\`,
 
 		    rootType: "User",
 
@@ -123,7 +121,7 @@ test('selection includes fragments', async function () {
 		export default {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "2d52c61126b6514cd0f51584ae220d583c1df1db1090d2b44da83b7f59a4022c",
+		    hash: "af52f6fa5ffb304a1089a06b83adbc0cede1b6f39f4667673a23c6c6d84e5dcf",
 
 		    raw: \`query TestQuery {
 		  user {
@@ -134,8 +132,7 @@ test('selection includes fragments', async function () {
 
 		fragment TestFragment on User {
 		  firstName
-		}
-		\`,
+		}\`,
 
 		    rootType: "Query",
 
@@ -176,12 +173,11 @@ test('selection includes fragments', async function () {
 		export default {
 		    name: "TestFragment",
 		    kind: "HoudiniFragment",
-		    hash: "29c40b5d9f6b0cd77fc3fb46fc1338be4960369a01651d5149c2442a33b48686",
+		    hash: "1601897db7841afcc051462fff699137005a30d9153fc307566e12cff4fbcd96",
 
 		    raw: \`fragment TestFragment on User {
 		  firstName
-		}
-		\`,
+		}\`,
 
 		    rootType: "User",
 
@@ -216,7 +212,7 @@ test('internal directives are scrubbed', async function () {
 		export default {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "d602ba63b61c244225db2524918578e52cc0c1b06a512b56064deb7d176f8e30",
+		    hash: "d05076c7672586bb050a6683cd1b443cf4db3b85c43e96045f34764ff4c28ba9",
 
 		    raw: \`query TestQuery {
 		  user {
@@ -227,8 +223,7 @@ test('internal directives are scrubbed', async function () {
 
 		fragment A on User {
 		  firstName
-		}
-		\`,
+		}\`,
 
 		    rootType: "Query",
 
@@ -284,7 +279,7 @@ test('variables only used by internal directives are scrubbed', async function (
 		export default {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "d602ba63b61c244225db2524918578e52cc0c1b06a512b56064deb7d176f8e30",
+		    hash: "d05076c7672586bb050a6683cd1b443cf4db3b85c43e96045f34764ff4c28ba9",
 
 		    raw: \`query TestQuery {
 		  user {
@@ -295,8 +290,7 @@ test('variables only used by internal directives are scrubbed', async function (
 
 		fragment A on User {
 		  firstName
-		}
-		\`,
+		}\`,
 
 		    rootType: "Query",
 
@@ -354,7 +348,7 @@ test('overlapping query and fragment selection', async function () {
 		export default {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "89ff86b7807db8c5395ab994977ca62e2af6a50b78add45f306d6730faa17cdf",
+		    hash: "5eba2a30868f5a15aebf5ba65450524dff4665947a047c3508b5b73c4eb4d76e",
 
 		    raw: \`query TestQuery {
 		  user {
@@ -366,8 +360,7 @@ test('overlapping query and fragment selection', async function () {
 
 		fragment A on User {
 		  firstName
-		}
-		\`,
+		}\`,
 
 		    rootType: "Query",
 
@@ -417,7 +410,7 @@ test('overlapping query and fragment nested selection', async function () {
 		export default {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "58b9fbe10de1dedb58d303b2e492b01192c69daceafd1060e433f40f9b4d6eb0",
+		    hash: "72805989e04837346588c4e906cabb2688cb13d5343e128e198b0d10035f534c",
 
 		    raw: \`query TestQuery {
 		  user {
@@ -434,8 +427,7 @@ test('overlapping query and fragment nested selection', async function () {
 		  friends {
 		    id
 		  }
-		}
-		\`,
+		}\`,
 
 		    rootType: "Query",
 
@@ -513,7 +505,7 @@ test('selections with interfaces', async function () {
 		export default {
 		    name: "Friends",
 		    kind: "HoudiniQuery",
-		    hash: "359c4d6ceae8e5a5411fa160c2ffaf61e714d7c82a0f1816244f8a83291a2863",
+		    hash: "784915b5c4c9e2b0e4e302f875d05f287e0a7eed45f2a8fec4dbbf8cf78152b9",
 
 		    raw: \`query Friends {
 		  friends {
@@ -529,8 +521,7 @@ test('selections with interfaces', async function () {
 		    }
 		    __typename
 		  }
-		}
-		\`,
+		}\`,
 
 		    rootType: "Query",
 
@@ -620,7 +611,7 @@ test('selections with unions', async function () {
 		export default {
 		    name: "Friends",
 		    kind: "HoudiniQuery",
-		    hash: "512c81f0e5ea88525b407c9978620c931d4e8bc41317d9bd6eeaf3338fe40c6c",
+		    hash: "e9b09eeffb613db51bacad8b5f29be92e3d835b886e39b09309bad9b62eb854e",
 
 		    raw: \`query Friends {
 		  entities {
@@ -636,8 +627,7 @@ test('selections with unions', async function () {
 		    }
 		    __typename
 		  }
-		}
-		\`,
+		}\`,
 
 		    rootType: "Query",
 
@@ -729,52 +719,51 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		export default {
-		    name: "B",
-		    kind: "HoudiniMutation",
-		    hash: "38005b47351eb4e6e14e3c13a8d0d206dac09bf80d6fa3c103a060a3990edd37",
+			export default {
+			    name: "B",
+			    kind: "HoudiniMutation",
+			    hash: "d825b44300f0058240504d3b2fba7601dd64077c58219ddb5189faae2033857f",
 
-		    raw: \`mutation B {
-		  addFriend {
-		    friend {
-		      firstName
-		      id
-		    }
-		  }
-		}
-		\`,
+			    raw: \`mutation B {
+			  addFriend {
+			    friend {
+			      firstName
+			      id
+			    }
+			  }
+			}\`,
 
-		    rootType: "Mutation",
+			    rootType: "Mutation",
 
-		    selection: {
-		        addFriend: {
-		            type: "AddFriendOutput",
-		            keyRaw: "addFriend",
+			    selection: {
+			        addFriend: {
+			            type: "AddFriendOutput",
+			            keyRaw: "addFriend",
 
-		            fields: {
-		                friend: {
-		                    type: "User",
-		                    keyRaw: "friend",
+			            fields: {
+			                friend: {
+			                    type: "User",
+			                    keyRaw: "friend",
 
-		                    fields: {
-		                        firstName: {
-		                            type: "String",
-		                            keyRaw: "firstName"
-		                        },
+			                    fields: {
+			                        firstName: {
+			                            type: "String",
+			                            keyRaw: "firstName"
+			                        },
 
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
-		                        }
-		                    }
-		                }
-		            }
-		        }
-		    }
-		};
+			                        id: {
+			                            type: "ID",
+			                            keyRaw: "id"
+			                        }
+			                    }
+			                }
+			            }
+			        }
+			    }
+			};
 
-		"HoudiniHash=2203fdd50e58f77227a36975144992028bedf3cb08264335f5b3af73913f0b2f";
-	`)
+			"HoudiniHash=2203fdd50e58f77227a36975144992028bedf3cb08264335f5b3af73913f0b2f";
+		`)
 	})
 
 	test('insert operation', async function () {
@@ -811,63 +800,62 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		export default {
-		    name: "A",
-		    kind: "HoudiniMutation",
-		    hash: "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+			export default {
+			    name: "A",
+			    kind: "HoudiniMutation",
+			    hash: "d5fae982f620e0988514a4a6e933773a3353743fc94e160c7215bb65f6f89403",
 
-		    raw: \`mutation A {
-		  addFriend {
-		    friend {
-		      ...All_Users_insert
-		      id
-		    }
-		  }
-		}
+			    raw: \`mutation A {
+			  addFriend {
+			    friend {
+			      ...All_Users_insert
+			      id
+			    }
+			  }
+			}
 
-		fragment All_Users_insert on User {
-		  firstName
-		  id
-		}
-		\`,
+			fragment All_Users_insert on User {
+			  firstName
+			  id
+			}\`,
 
-		    rootType: "Mutation",
+			    rootType: "Mutation",
 
-		    selection: {
-		        addFriend: {
-		            type: "AddFriendOutput",
-		            keyRaw: "addFriend",
+			    selection: {
+			        addFriend: {
+			            type: "AddFriendOutput",
+			            keyRaw: "addFriend",
 
-		            fields: {
-		                friend: {
-		                    type: "User",
-		                    keyRaw: "friend",
+			            fields: {
+			                friend: {
+			                    type: "User",
+			                    keyRaw: "friend",
 
-		                    operations: [{
-		                        action: "insert",
-		                        list: "All_Users",
-		                        position: "last"
-		                    }],
+			                    operations: [{
+			                        action: "insert",
+			                        list: "All_Users",
+			                        position: "last"
+			                    }],
 
-		                    fields: {
-		                        firstName: {
-		                            type: "String",
-		                            keyRaw: "firstName"
-		                        },
+			                    fields: {
+			                        firstName: {
+			                            type: "String",
+			                            keyRaw: "firstName"
+			                        },
 
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
-		                        }
-		                    }
-		                }
-		            }
-		        }
-		    }
-		};
+			                        id: {
+			                            type: "ID",
+			                            keyRaw: "id"
+			                        }
+			                    }
+			                }
+			            }
+			        }
+			    }
+			};
 
-		"HoudiniHash=c2cee63cc2dfd5eabad47ed394b64c91f6e19378bbf018b80c6e3391c3a56e5b";
-	`)
+			"HoudiniHash=c2cee63cc2dfd5eabad47ed394b64c91f6e19378bbf018b80c6e3391c3a56e5b";
+		`)
 	})
 
 	test('toggle operation', async function () {
@@ -904,64 +892,63 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		export default {
-		    name: "A",
-		    kind: "HoudiniMutation",
-		    hash: "2a821dc72c7f92a67ff9fcef569c4cadaf9852662035b32d015c4af67e57aca3",
+			export default {
+			    name: "A",
+			    kind: "HoudiniMutation",
+			    hash: "585351b54afef4b1e564d96a408335431fc466da12cbfc45e1e5d871109ff83e",
 
-		    raw: \`mutation A {
-		  addFriend {
-		    friend {
-		      ...All_Users_toggle
-		      id
-		    }
-		  }
-		}
+			    raw: \`mutation A {
+			  addFriend {
+			    friend {
+			      ...All_Users_toggle
+			      id
+			    }
+			  }
+			}
 
-		fragment All_Users_toggle on User {
-		  firstName
-		  id
-		  id
-		}
-		\`,
+			fragment All_Users_toggle on User {
+			  firstName
+			  id
+			  id
+			}\`,
 
-		    rootType: "Mutation",
+			    rootType: "Mutation",
 
-		    selection: {
-		        addFriend: {
-		            type: "AddFriendOutput",
-		            keyRaw: "addFriend",
+			    selection: {
+			        addFriend: {
+			            type: "AddFriendOutput",
+			            keyRaw: "addFriend",
 
-		            fields: {
-		                friend: {
-		                    type: "User",
-		                    keyRaw: "friend",
+			            fields: {
+			                friend: {
+			                    type: "User",
+			                    keyRaw: "friend",
 
-		                    operations: [{
-		                        action: "toggle",
-		                        list: "All_Users",
-		                        position: "first"
-		                    }],
+			                    operations: [{
+			                        action: "toggle",
+			                        list: "All_Users",
+			                        position: "first"
+			                    }],
 
-		                    fields: {
-		                        firstName: {
-		                            type: "String",
-		                            keyRaw: "firstName"
-		                        },
+			                    fields: {
+			                        firstName: {
+			                            type: "String",
+			                            keyRaw: "firstName"
+			                        },
 
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
-		                        }
-		                    }
-		                }
-		            }
-		        }
-		    }
-		};
+			                        id: {
+			                            type: "ID",
+			                            keyRaw: "id"
+			                        }
+			                    }
+			                }
+			            }
+			        }
+			    }
+			};
 
-		"HoudiniHash=cc9a6fb32e9b6a79e2a3c46885d07b11078f84dcb8c52555fb96e3ff6f87f8b2";
-	`)
+			"HoudiniHash=cc9a6fb32e9b6a79e2a3c46885d07b11078f84dcb8c52555fb96e3ff6f87f8b2";
+		`)
 	})
 
 	test('remove operation', async function () {
@@ -998,56 +985,55 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		export default {
-		    name: "A",
-		    kind: "HoudiniMutation",
-		    hash: "9dc41329a7176f813b623958a68c2752d391151a4f3b1f9b8198f6c487e931a4",
+			export default {
+			    name: "A",
+			    kind: "HoudiniMutation",
+			    hash: "dc1971d8bc597d27220fc2c19d491dc470fd06fedd1308d2130df5c3ffe2f827",
 
-		    raw: \`mutation A {
-		  addFriend {
-		    friend {
-		      ...All_Users_remove
-		      id
-		    }
-		  }
-		}
+			    raw: \`mutation A {
+			  addFriend {
+			    friend {
+			      ...All_Users_remove
+			      id
+			    }
+			  }
+			}
 
-		fragment All_Users_remove on User {
-		  id
-		}
-		\`,
+			fragment All_Users_remove on User {
+			  id
+			}\`,
 
-		    rootType: "Mutation",
+			    rootType: "Mutation",
 
-		    selection: {
-		        addFriend: {
-		            type: "AddFriendOutput",
-		            keyRaw: "addFriend",
+			    selection: {
+			        addFriend: {
+			            type: "AddFriendOutput",
+			            keyRaw: "addFriend",
 
-		            fields: {
-		                friend: {
-		                    type: "User",
-		                    keyRaw: "friend",
+			            fields: {
+			                friend: {
+			                    type: "User",
+			                    keyRaw: "friend",
 
-		                    operations: [{
-		                        action: "remove",
-		                        list: "All_Users"
-		                    }],
+			                    operations: [{
+			                        action: "remove",
+			                        list: "All_Users"
+			                    }],
 
-		                    fields: {
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
-		                        }
-		                    }
-		                }
-		            }
-		        }
-		    }
-		};
+			                    fields: {
+			                        id: {
+			                            type: "ID",
+			                            keyRaw: "id"
+			                        }
+			                    }
+			                }
+			            }
+			        }
+			    }
+			};
 
-		"HoudiniHash=a33810e6e3850879918dc77009577f72a2cab24664911bb0a1e57b47c6b7d104";
-	`)
+			"HoudiniHash=a33810e6e3850879918dc77009577f72a2cab24664911bb0a1e57b47c6b7d104";
+		`)
 	})
 
 	test('delete operation', async function () {
@@ -1082,42 +1068,41 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		export default {
-		    name: "A",
-		    kind: "HoudiniMutation",
-		    hash: "b9e1e926be309c06c868dc2472c082b6829f93ae55e000317a1066378590a85d",
+			export default {
+			    name: "A",
+			    kind: "HoudiniMutation",
+			    hash: "9384d744819f00a9d6ecdcfaba723e90f94dbec1e768bb9a2dd4d11f1d38cab2",
 
-		    raw: \`mutation A {
-		  deleteUser(id: "1234") {
-		    userID
-		  }
-		}
-		\`,
+			    raw: \`mutation A {
+			  deleteUser(id: "1234") {
+			    userID
+			  }
+			}\`,
 
-		    rootType: "Mutation",
+			    rootType: "Mutation",
 
-		    selection: {
-		        deleteUser: {
-		            type: "DeleteUserOutput",
-		            keyRaw: "deleteUser(id: \\"1234\\")",
+			    selection: {
+			        deleteUser: {
+			            type: "DeleteUserOutput",
+			            keyRaw: "deleteUser(id: \\"1234\\")",
 
-		            fields: {
-		                userID: {
-		                    type: "ID",
-		                    keyRaw: "userID",
+			            fields: {
+			                userID: {
+			                    type: "ID",
+			                    keyRaw: "userID",
 
-		                    operations: [{
-		                        action: "delete",
-		                        type: "User"
-		                    }]
-		                }
-		            }
-		        }
-		    }
-		};
+			                    operations: [{
+			                        action: "delete",
+			                        type: "User"
+			                    }]
+			                }
+			            }
+			        }
+			    }
+			};
 
-		"HoudiniHash=02916c12509a82eb42926c996cc383fde93bc550a72887cd6cf259a1164543da";
-	`)
+			"HoudiniHash=02916c12509a82eb42926c996cc383fde93bc550a72887cd6cf259a1164543da";
+		`)
 	})
 
 	test('delete operation with condition', async function () {
@@ -1152,48 +1137,47 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		export default {
-		    name: "A",
-		    kind: "HoudiniMutation",
-		    hash: "b9e1e926be309c06c868dc2472c082b6829f93ae55e000317a1066378590a85d",
+			export default {
+			    name: "A",
+			    kind: "HoudiniMutation",
+			    hash: "9384d744819f00a9d6ecdcfaba723e90f94dbec1e768bb9a2dd4d11f1d38cab2",
 
-		    raw: \`mutation A {
-		  deleteUser(id: "1234") {
-		    userID
-		  }
-		}
-		\`,
+			    raw: \`mutation A {
+			  deleteUser(id: "1234") {
+			    userID
+			  }
+			}\`,
 
-		    rootType: "Mutation",
+			    rootType: "Mutation",
 
-		    selection: {
-		        deleteUser: {
-		            type: "DeleteUserOutput",
-		            keyRaw: "deleteUser(id: \\"1234\\")",
+			    selection: {
+			        deleteUser: {
+			            type: "DeleteUserOutput",
+			            keyRaw: "deleteUser(id: \\"1234\\")",
 
-		            fields: {
-		                userID: {
-		                    type: "ID",
-		                    keyRaw: "userID",
+			            fields: {
+			                userID: {
+			                    type: "ID",
+			                    keyRaw: "userID",
 
-		                    operations: [{
-		                        action: "delete",
-		                        type: "User",
+			                    operations: [{
+			                        action: "delete",
+			                        type: "User",
 
-		                        when: {
-		                            must: {
-		                                stringValue: "foo"
-		                            }
-		                        }
-		                    }]
-		                }
-		            }
-		        }
-		    }
-		};
+			                        when: {
+			                            must: {
+			                                stringValue: "foo"
+			                            }
+			                        }
+			                    }]
+			                }
+			            }
+			        }
+			    }
+			};
 
-		"HoudiniHash=da85d1acef7d12c0a3185f625a7f77a22a4d2ec90fc91d1a919aefd9209db113";
-	`)
+			"HoudiniHash=da85d1acef7d12c0a3185f625a7f77a22a4d2ec90fc91d1a919aefd9209db113";
+		`)
 	})
 
 	test('parentID - prepend', async function () {
@@ -1230,68 +1214,67 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		export default {
-		    name: "A",
-		    kind: "HoudiniMutation",
-		    hash: "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+			export default {
+			    name: "A",
+			    kind: "HoudiniMutation",
+			    hash: "d5fae982f620e0988514a4a6e933773a3353743fc94e160c7215bb65f6f89403",
 
-		    raw: \`mutation A {
-		  addFriend {
-		    friend {
-		      ...All_Users_insert
-		      id
-		    }
-		  }
-		}
+			    raw: \`mutation A {
+			  addFriend {
+			    friend {
+			      ...All_Users_insert
+			      id
+			    }
+			  }
+			}
 
-		fragment All_Users_insert on User {
-		  firstName
-		  id
-		}
-		\`,
+			fragment All_Users_insert on User {
+			  firstName
+			  id
+			}\`,
 
-		    rootType: "Mutation",
+			    rootType: "Mutation",
 
-		    selection: {
-		        addFriend: {
-		            type: "AddFriendOutput",
-		            keyRaw: "addFriend",
+			    selection: {
+			        addFriend: {
+			            type: "AddFriendOutput",
+			            keyRaw: "addFriend",
 
-		            fields: {
-		                friend: {
-		                    type: "User",
-		                    keyRaw: "friend",
+			            fields: {
+			                friend: {
+			                    type: "User",
+			                    keyRaw: "friend",
 
-		                    operations: [{
-		                        action: "insert",
-		                        list: "All_Users",
-		                        position: "first",
+			                    operations: [{
+			                        action: "insert",
+			                        list: "All_Users",
+			                        position: "first",
 
-		                        parentID: {
-		                            kind: "String",
-		                            value: "1234"
-		                        }
-		                    }],
+			                        parentID: {
+			                            kind: "String",
+			                            value: "1234"
+			                        }
+			                    }],
 
-		                    fields: {
-		                        firstName: {
-		                            type: "String",
-		                            keyRaw: "firstName"
-		                        },
+			                    fields: {
+			                        firstName: {
+			                            type: "String",
+			                            keyRaw: "firstName"
+			                        },
 
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
-		                        }
-		                    }
-		                }
-		            }
-		        }
-		    }
-		};
+			                        id: {
+			                            type: "ID",
+			                            keyRaw: "id"
+			                        }
+			                    }
+			                }
+			            }
+			        }
+			    }
+			};
 
-		"HoudiniHash=75b2d544c45b48e48203138c3a204afdaa382c1673acaba9db9511ee6c929553";
-	`)
+			"HoudiniHash=75b2d544c45b48e48203138c3a204afdaa382c1673acaba9db9511ee6c929553";
+		`)
 	})
 
 	test('parentID - append', async function () {
@@ -1328,68 +1311,67 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		export default {
-		    name: "A",
-		    kind: "HoudiniMutation",
-		    hash: "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+			export default {
+			    name: "A",
+			    kind: "HoudiniMutation",
+			    hash: "d5fae982f620e0988514a4a6e933773a3353743fc94e160c7215bb65f6f89403",
 
-		    raw: \`mutation A {
-		  addFriend {
-		    friend {
-		      ...All_Users_insert
-		      id
-		    }
-		  }
-		}
+			    raw: \`mutation A {
+			  addFriend {
+			    friend {
+			      ...All_Users_insert
+			      id
+			    }
+			  }
+			}
 
-		fragment All_Users_insert on User {
-		  firstName
-		  id
-		}
-		\`,
+			fragment All_Users_insert on User {
+			  firstName
+			  id
+			}\`,
 
-		    rootType: "Mutation",
+			    rootType: "Mutation",
 
-		    selection: {
-		        addFriend: {
-		            type: "AddFriendOutput",
-		            keyRaw: "addFriend",
+			    selection: {
+			        addFriend: {
+			            type: "AddFriendOutput",
+			            keyRaw: "addFriend",
 
-		            fields: {
-		                friend: {
-		                    type: "User",
-		                    keyRaw: "friend",
+			            fields: {
+			                friend: {
+			                    type: "User",
+			                    keyRaw: "friend",
 
-		                    operations: [{
-		                        action: "insert",
-		                        list: "All_Users",
-		                        position: "last",
+			                    operations: [{
+			                        action: "insert",
+			                        list: "All_Users",
+			                        position: "last",
 
-		                        parentID: {
-		                            kind: "String",
-		                            value: "1234"
-		                        }
-		                    }],
+			                        parentID: {
+			                            kind: "String",
+			                            value: "1234"
+			                        }
+			                    }],
 
-		                    fields: {
-		                        firstName: {
-		                            type: "String",
-		                            keyRaw: "firstName"
-		                        },
+			                    fields: {
+			                        firstName: {
+			                            type: "String",
+			                            keyRaw: "firstName"
+			                        },
 
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
-		                        }
-		                    }
-		                }
-		            }
-		        }
-		    }
-		};
+			                        id: {
+			                            type: "ID",
+			                            keyRaw: "id"
+			                        }
+			                    }
+			                }
+			            }
+			        }
+			    }
+			};
 
-		"HoudiniHash=d585c80adc7fbc932f9cda5a3053b922baf1affa035b7c0b239cc38f65e6e4ed";
-	`)
+			"HoudiniHash=d585c80adc7fbc932f9cda5a3053b922baf1affa035b7c0b239cc38f65e6e4ed";
+		`)
 	})
 
 	test('parentID - parentID directive', async function () {
@@ -1426,68 +1408,67 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		export default {
-		    name: "A",
-		    kind: "HoudiniMutation",
-		    hash: "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+			export default {
+			    name: "A",
+			    kind: "HoudiniMutation",
+			    hash: "d5fae982f620e0988514a4a6e933773a3353743fc94e160c7215bb65f6f89403",
 
-		    raw: \`mutation A {
-		  addFriend {
-		    friend {
-		      ...All_Users_insert
-		      id
-		    }
-		  }
-		}
+			    raw: \`mutation A {
+			  addFriend {
+			    friend {
+			      ...All_Users_insert
+			      id
+			    }
+			  }
+			}
 
-		fragment All_Users_insert on User {
-		  firstName
-		  id
-		}
-		\`,
+			fragment All_Users_insert on User {
+			  firstName
+			  id
+			}\`,
 
-		    rootType: "Mutation",
+			    rootType: "Mutation",
 
-		    selection: {
-		        addFriend: {
-		            type: "AddFriendOutput",
-		            keyRaw: "addFriend",
+			    selection: {
+			        addFriend: {
+			            type: "AddFriendOutput",
+			            keyRaw: "addFriend",
 
-		            fields: {
-		                friend: {
-		                    type: "User",
-		                    keyRaw: "friend",
+			            fields: {
+			                friend: {
+			                    type: "User",
+			                    keyRaw: "friend",
 
-		                    operations: [{
-		                        action: "insert",
-		                        list: "All_Users",
-		                        position: "last",
+			                    operations: [{
+			                        action: "insert",
+			                        list: "All_Users",
+			                        position: "last",
 
-		                        parentID: {
-		                            kind: "String",
-		                            value: "1234"
-		                        }
-		                    }],
+			                        parentID: {
+			                            kind: "String",
+			                            value: "1234"
+			                        }
+			                    }],
 
-		                    fields: {
-		                        firstName: {
-		                            type: "String",
-		                            keyRaw: "firstName"
-		                        },
+			                    fields: {
+			                        firstName: {
+			                            type: "String",
+			                            keyRaw: "firstName"
+			                        },
 
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
-		                        }
-		                    }
-		                }
-		            }
-		        }
-		    }
-		};
+			                        id: {
+			                            type: "ID",
+			                            keyRaw: "id"
+			                        }
+			                    }
+			                }
+			            }
+			        }
+			    }
+			};
 
-		"HoudiniHash=269dd0acb58d7a44b0df6d6a53ed1beaeb5aca5cc216d8011b29425d2eed6584";
-	`)
+			"HoudiniHash=269dd0acb58d7a44b0df6d6a53ed1beaeb5aca5cc216d8011b29425d2eed6584";
+		`)
 	})
 
 	test('must - prepend', async function () {
@@ -1524,69 +1505,68 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		export default {
-		    name: "A",
-		    kind: "HoudiniMutation",
-		    hash: "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+			export default {
+			    name: "A",
+			    kind: "HoudiniMutation",
+			    hash: "d5fae982f620e0988514a4a6e933773a3353743fc94e160c7215bb65f6f89403",
 
-		    raw: \`mutation A {
-		  addFriend {
-		    friend {
-		      ...All_Users_insert
-		      id
-		    }
-		  }
-		}
+			    raw: \`mutation A {
+			  addFriend {
+			    friend {
+			      ...All_Users_insert
+			      id
+			    }
+			  }
+			}
 
-		fragment All_Users_insert on User {
-		  firstName
-		  id
-		}
-		\`,
+			fragment All_Users_insert on User {
+			  firstName
+			  id
+			}\`,
 
-		    rootType: "Mutation",
+			    rootType: "Mutation",
 
-		    selection: {
-		        addFriend: {
-		            type: "AddFriendOutput",
-		            keyRaw: "addFriend",
+			    selection: {
+			        addFriend: {
+			            type: "AddFriendOutput",
+			            keyRaw: "addFriend",
 
-		            fields: {
-		                friend: {
-		                    type: "User",
-		                    keyRaw: "friend",
+			            fields: {
+			                friend: {
+			                    type: "User",
+			                    keyRaw: "friend",
 
-		                    operations: [{
-		                        action: "insert",
-		                        list: "All_Users",
-		                        position: "first",
+			                    operations: [{
+			                        action: "insert",
+			                        list: "All_Users",
+			                        position: "first",
 
-		                        when: {
-		                            must: {
-		                                stringValue: "foo"
-		                            }
-		                        }
-		                    }],
+			                        when: {
+			                            must: {
+			                                stringValue: "foo"
+			                            }
+			                        }
+			                    }],
 
-		                    fields: {
-		                        firstName: {
-		                            type: "String",
-		                            keyRaw: "firstName"
-		                        },
+			                    fields: {
+			                        firstName: {
+			                            type: "String",
+			                            keyRaw: "firstName"
+			                        },
 
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
-		                        }
-		                    }
-		                }
-		            }
-		        }
-		    }
-		};
+			                        id: {
+			                            type: "ID",
+			                            keyRaw: "id"
+			                        }
+			                    }
+			                }
+			            }
+			        }
+			    }
+			};
 
-		"HoudiniHash=5bbd672c18c5febf61cf8335145d6f837b1e711ec3f1a1d5b81241767444c8ed";
-	`)
+			"HoudiniHash=5bbd672c18c5febf61cf8335145d6f837b1e711ec3f1a1d5b81241767444c8ed";
+		`)
 	})
 
 	test('must - append', async function () {
@@ -1623,69 +1603,68 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		export default {
-		    name: "A",
-		    kind: "HoudiniMutation",
-		    hash: "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+			export default {
+			    name: "A",
+			    kind: "HoudiniMutation",
+			    hash: "d5fae982f620e0988514a4a6e933773a3353743fc94e160c7215bb65f6f89403",
 
-		    raw: \`mutation A {
-		  addFriend {
-		    friend {
-		      ...All_Users_insert
-		      id
-		    }
-		  }
-		}
+			    raw: \`mutation A {
+			  addFriend {
+			    friend {
+			      ...All_Users_insert
+			      id
+			    }
+			  }
+			}
 
-		fragment All_Users_insert on User {
-		  firstName
-		  id
-		}
-		\`,
+			fragment All_Users_insert on User {
+			  firstName
+			  id
+			}\`,
 
-		    rootType: "Mutation",
+			    rootType: "Mutation",
 
-		    selection: {
-		        addFriend: {
-		            type: "AddFriendOutput",
-		            keyRaw: "addFriend",
+			    selection: {
+			        addFriend: {
+			            type: "AddFriendOutput",
+			            keyRaw: "addFriend",
 
-		            fields: {
-		                friend: {
-		                    type: "User",
-		                    keyRaw: "friend",
+			            fields: {
+			                friend: {
+			                    type: "User",
+			                    keyRaw: "friend",
 
-		                    operations: [{
-		                        action: "insert",
-		                        list: "All_Users",
-		                        position: "last",
+			                    operations: [{
+			                        action: "insert",
+			                        list: "All_Users",
+			                        position: "last",
 
-		                        when: {
-		                            must: {
-		                                stringValue: "true"
-		                            }
-		                        }
-		                    }],
+			                        when: {
+			                            must: {
+			                                stringValue: "true"
+			                            }
+			                        }
+			                    }],
 
-		                    fields: {
-		                        firstName: {
-		                            type: "String",
-		                            keyRaw: "firstName"
-		                        },
+			                    fields: {
+			                        firstName: {
+			                            type: "String",
+			                            keyRaw: "firstName"
+			                        },
 
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
-		                        }
-		                    }
-		                }
-		            }
-		        }
-		    }
-		};
+			                        id: {
+			                            type: "ID",
+			                            keyRaw: "id"
+			                        }
+			                    }
+			                }
+			            }
+			        }
+			    }
+			};
 
-		"HoudiniHash=8b57b4d6231aeadc73661b6096f815d1f59fa9bb44e62b363d72c7dfcd78048f";
-	`)
+			"HoudiniHash=8b57b4d6231aeadc73661b6096f815d1f59fa9bb44e62b363d72c7dfcd78048f";
+		`)
 	})
 
 	test('must - directive', async function () {
@@ -1722,69 +1701,68 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		export default {
-		    name: "A",
-		    kind: "HoudiniMutation",
-		    hash: "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+			export default {
+			    name: "A",
+			    kind: "HoudiniMutation",
+			    hash: "d5fae982f620e0988514a4a6e933773a3353743fc94e160c7215bb65f6f89403",
 
-		    raw: \`mutation A {
-		  addFriend {
-		    friend {
-		      ...All_Users_insert
-		      id
-		    }
-		  }
-		}
+			    raw: \`mutation A {
+			  addFriend {
+			    friend {
+			      ...All_Users_insert
+			      id
+			    }
+			  }
+			}
 
-		fragment All_Users_insert on User {
-		  firstName
-		  id
-		}
-		\`,
+			fragment All_Users_insert on User {
+			  firstName
+			  id
+			}\`,
 
-		    rootType: "Mutation",
+			    rootType: "Mutation",
 
-		    selection: {
-		        addFriend: {
-		            type: "AddFriendOutput",
-		            keyRaw: "addFriend",
+			    selection: {
+			        addFriend: {
+			            type: "AddFriendOutput",
+			            keyRaw: "addFriend",
 
-		            fields: {
-		                friend: {
-		                    type: "User",
-		                    keyRaw: "friend",
+			            fields: {
+			                friend: {
+			                    type: "User",
+			                    keyRaw: "friend",
 
-		                    operations: [{
-		                        action: "insert",
-		                        list: "All_Users",
-		                        position: "last",
+			                    operations: [{
+			                        action: "insert",
+			                        list: "All_Users",
+			                        position: "last",
 
-		                        when: {
-		                            must: {
-		                                stringValue: "true"
-		                            }
-		                        }
-		                    }],
+			                        when: {
+			                            must: {
+			                                stringValue: "true"
+			                            }
+			                        }
+			                    }],
 
-		                    fields: {
-		                        firstName: {
-		                            type: "String",
-		                            keyRaw: "firstName"
-		                        },
+			                    fields: {
+			                        firstName: {
+			                            type: "String",
+			                            keyRaw: "firstName"
+			                        },
 
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
-		                        }
-		                    }
-		                }
-		            }
-		        }
-		    }
-		};
+			                        id: {
+			                            type: "ID",
+			                            keyRaw: "id"
+			                        }
+			                    }
+			                }
+			            }
+			        }
+			    }
+			};
 
-		"HoudiniHash=c6990945263aa9f52111e9cc0d89b6ccad2a258ca5356f6cf23a7e9424354aa7";
-	`)
+			"HoudiniHash=c6990945263aa9f52111e9cc0d89b6ccad2a258ca5356f6cf23a7e9424354aa7";
+		`)
 	})
 
 	test('must_not - prepend', async function () {
@@ -1821,69 +1799,68 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		export default {
-		    name: "A",
-		    kind: "HoudiniMutation",
-		    hash: "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+			export default {
+			    name: "A",
+			    kind: "HoudiniMutation",
+			    hash: "d5fae982f620e0988514a4a6e933773a3353743fc94e160c7215bb65f6f89403",
 
-		    raw: \`mutation A {
-		  addFriend {
-		    friend {
-		      ...All_Users_insert
-		      id
-		    }
-		  }
-		}
+			    raw: \`mutation A {
+			  addFriend {
+			    friend {
+			      ...All_Users_insert
+			      id
+			    }
+			  }
+			}
 
-		fragment All_Users_insert on User {
-		  firstName
-		  id
-		}
-		\`,
+			fragment All_Users_insert on User {
+			  firstName
+			  id
+			}\`,
 
-		    rootType: "Mutation",
+			    rootType: "Mutation",
 
-		    selection: {
-		        addFriend: {
-		            type: "AddFriendOutput",
-		            keyRaw: "addFriend",
+			    selection: {
+			        addFriend: {
+			            type: "AddFriendOutput",
+			            keyRaw: "addFriend",
 
-		            fields: {
-		                friend: {
-		                    type: "User",
-		                    keyRaw: "friend",
+			            fields: {
+			                friend: {
+			                    type: "User",
+			                    keyRaw: "friend",
 
-		                    operations: [{
-		                        action: "insert",
-		                        list: "All_Users",
-		                        position: "first",
+			                    operations: [{
+			                        action: "insert",
+			                        list: "All_Users",
+			                        position: "first",
 
-		                        when: {
-		                            must_not: {
-		                                stringValue: "true"
-		                            }
-		                        }
-		                    }],
+			                        when: {
+			                            must_not: {
+			                                stringValue: "true"
+			                            }
+			                        }
+			                    }],
 
-		                    fields: {
-		                        firstName: {
-		                            type: "String",
-		                            keyRaw: "firstName"
-		                        },
+			                    fields: {
+			                        firstName: {
+			                            type: "String",
+			                            keyRaw: "firstName"
+			                        },
 
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
-		                        }
-		                    }
-		                }
-		            }
-		        }
-		    }
-		};
+			                        id: {
+			                            type: "ID",
+			                            keyRaw: "id"
+			                        }
+			                    }
+			                }
+			            }
+			        }
+			    }
+			};
 
-		"HoudiniHash=d7fca173168e1a7c842115c468d62ff9d347724c0a8fa20a3408771eef5c7cf9";
-	`)
+			"HoudiniHash=d7fca173168e1a7c842115c468d62ff9d347724c0a8fa20a3408771eef5c7cf9";
+		`)
 	})
 
 	test('must_not - append', async function () {
@@ -1920,69 +1897,68 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		export default {
-		    name: "A",
-		    kind: "HoudiniMutation",
-		    hash: "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+			export default {
+			    name: "A",
+			    kind: "HoudiniMutation",
+			    hash: "d5fae982f620e0988514a4a6e933773a3353743fc94e160c7215bb65f6f89403",
 
-		    raw: \`mutation A {
-		  addFriend {
-		    friend {
-		      ...All_Users_insert
-		      id
-		    }
-		  }
-		}
+			    raw: \`mutation A {
+			  addFriend {
+			    friend {
+			      ...All_Users_insert
+			      id
+			    }
+			  }
+			}
 
-		fragment All_Users_insert on User {
-		  firstName
-		  id
-		}
-		\`,
+			fragment All_Users_insert on User {
+			  firstName
+			  id
+			}\`,
 
-		    rootType: "Mutation",
+			    rootType: "Mutation",
 
-		    selection: {
-		        addFriend: {
-		            type: "AddFriendOutput",
-		            keyRaw: "addFriend",
+			    selection: {
+			        addFriend: {
+			            type: "AddFriendOutput",
+			            keyRaw: "addFriend",
 
-		            fields: {
-		                friend: {
-		                    type: "User",
-		                    keyRaw: "friend",
+			            fields: {
+			                friend: {
+			                    type: "User",
+			                    keyRaw: "friend",
 
-		                    operations: [{
-		                        action: "insert",
-		                        list: "All_Users",
-		                        position: "last",
+			                    operations: [{
+			                        action: "insert",
+			                        list: "All_Users",
+			                        position: "last",
 
-		                        when: {
-		                            must_not: {
-		                                stringValue: "true"
-		                            }
-		                        }
-		                    }],
+			                        when: {
+			                            must_not: {
+			                                stringValue: "true"
+			                            }
+			                        }
+			                    }],
 
-		                    fields: {
-		                        firstName: {
-		                            type: "String",
-		                            keyRaw: "firstName"
-		                        },
+			                    fields: {
+			                        firstName: {
+			                            type: "String",
+			                            keyRaw: "firstName"
+			                        },
 
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
-		                        }
-		                    }
-		                }
-		            }
-		        }
-		    }
-		};
+			                        id: {
+			                            type: "ID",
+			                            keyRaw: "id"
+			                        }
+			                    }
+			                }
+			            }
+			        }
+			    }
+			};
 
-		"HoudiniHash=cc5ca165e8418fe5ac352c3067402d6aca3c1e76c25efdad5d076dbf294e2554";
-	`)
+			"HoudiniHash=cc5ca165e8418fe5ac352c3067402d6aca3c1e76c25efdad5d076dbf294e2554";
+		`)
 	})
 
 	test('list filters', async function () {
@@ -2024,82 +2000,81 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		export default {
-		    name: "TestQuery",
-		    kind: "HoudiniQuery",
-		    hash: "d773bead4120baa620dc05347fba277faaa5bb555e10943507a393eaa3399c52",
+			export default {
+			    name: "TestQuery",
+			    kind: "HoudiniQuery",
+			    hash: "9213bfe3e00205983f14587d49ffda87d7ca30c44371c8e6aa0f38f399d84f37",
 
-		    raw: \`query TestQuery($value: String!) {
-		  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
-		    firstName
-		    id
-		  }
-		}
-		\`,
+			    raw: \`query TestQuery($value: String!) {
+			  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
+			    firstName
+			    id
+			  }
+			}\`,
 
-		    rootType: "Query",
+			    rootType: "Query",
 
-		    selection: {
-		        users: {
-		            type: "User",
-		            keyRaw: "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
+			    selection: {
+			        users: {
+			            type: "User",
+			            keyRaw: "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
 
-		            list: {
-		                name: "All_Users",
-		                connection: false,
-		                type: "User"
-		            },
+			            list: {
+			                name: "All_Users",
+			                connection: false,
+			                type: "User"
+			            },
 
-		            fields: {
-		                firstName: {
-		                    type: "String",
-		                    keyRaw: "firstName"
-		                },
+			            fields: {
+			                firstName: {
+			                    type: "String",
+			                    keyRaw: "firstName"
+			                },
 
-		                id: {
-		                    type: "ID",
-		                    keyRaw: "id"
-		                }
-		            },
+			                id: {
+			                    type: "ID",
+			                    keyRaw: "id"
+			                }
+			            },
 
-		            filters: {
-		                stringValue: {
-		                    kind: "Variable",
-		                    value: "value"
-		                },
+			            filters: {
+			                stringValue: {
+			                    kind: "Variable",
+			                    value: "value"
+			                },
 
-		                boolValue: {
-		                    kind: "Boolean",
-		                    value: true
-		                },
+			                boolValue: {
+			                    kind: "Boolean",
+			                    value: true
+			                },
 
-		                floatValue: {
-		                    kind: "Float",
-		                    value: 1.2
-		                },
+			                floatValue: {
+			                    kind: "Float",
+			                    value: 1.2
+			                },
 
-		                intValue: {
-		                    kind: "Int",
-		                    value: 1
-		                }
-		            }
-		        }
-		    },
+			                intValue: {
+			                    kind: "Int",
+			                    value: 1
+			                }
+			            }
+			        }
+			    },
 
-		    input: {
-		        fields: {
-		            value: "String"
-		        },
+			    input: {
+			        fields: {
+			            value: "String"
+			        },
 
-		        types: {}
-		    },
+			        types: {}
+			    },
 
-		    policy: "CacheOrNetwork",
-		    partial: false
-		};
+			    policy: "CacheOrNetwork",
+			    partial: false
+			};
 
-		"HoudiniHash=f0b0082b38e66bc9fcefcd11741b874cacb74a1a939221c1618b499df139b356";
-	`)
+			"HoudiniHash=f0b0082b38e66bc9fcefcd11741b874cacb74a1a939221c1618b499df139b356";
+		`)
 	})
 
 	test('must_not - directive', async function () {
@@ -2136,69 +2111,68 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		export default {
-		    name: "A",
-		    kind: "HoudiniMutation",
-		    hash: "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+			export default {
+			    name: "A",
+			    kind: "HoudiniMutation",
+			    hash: "d5fae982f620e0988514a4a6e933773a3353743fc94e160c7215bb65f6f89403",
 
-		    raw: \`mutation A {
-		  addFriend {
-		    friend {
-		      ...All_Users_insert
-		      id
-		    }
-		  }
-		}
+			    raw: \`mutation A {
+			  addFriend {
+			    friend {
+			      ...All_Users_insert
+			      id
+			    }
+			  }
+			}
 
-		fragment All_Users_insert on User {
-		  firstName
-		  id
-		}
-		\`,
+			fragment All_Users_insert on User {
+			  firstName
+			  id
+			}\`,
 
-		    rootType: "Mutation",
+			    rootType: "Mutation",
 
-		    selection: {
-		        addFriend: {
-		            type: "AddFriendOutput",
-		            keyRaw: "addFriend",
+			    selection: {
+			        addFriend: {
+			            type: "AddFriendOutput",
+			            keyRaw: "addFriend",
 
-		            fields: {
-		                friend: {
-		                    type: "User",
-		                    keyRaw: "friend",
+			            fields: {
+			                friend: {
+			                    type: "User",
+			                    keyRaw: "friend",
 
-		                    operations: [{
-		                        action: "insert",
-		                        list: "All_Users",
-		                        position: "last",
+			                    operations: [{
+			                        action: "insert",
+			                        list: "All_Users",
+			                        position: "last",
 
-		                        when: {
-		                            must_not: {
-		                                boolValue: true
-		                            }
-		                        }
-		                    }],
+			                        when: {
+			                            must_not: {
+			                                boolValue: true
+			                            }
+			                        }
+			                    }],
 
-		                    fields: {
-		                        firstName: {
-		                            type: "String",
-		                            keyRaw: "firstName"
-		                        },
+			                    fields: {
+			                        firstName: {
+			                            type: "String",
+			                            keyRaw: "firstName"
+			                        },
 
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
-		                        }
-		                    }
-		                }
-		            }
-		        }
-		    }
-		};
+			                        id: {
+			                            type: "ID",
+			                            keyRaw: "id"
+			                        }
+			                    }
+			                }
+			            }
+			        }
+			    }
+			};
 
-		"HoudiniHash=a29794de026215f4e9266358741cf0ab3876640e1230e3dc190907d5cc7c1c37";
-	`)
+			"HoudiniHash=a29794de026215f4e9266358741cf0ab3876640e1230e3dc190907d5cc7c1c37";
+		`)
 	})
 
 	test('tracks list name', async function () {
@@ -2235,59 +2209,58 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		export default {
-		    name: "TestQuery",
-		    kind: "HoudiniQuery",
-		    hash: "2997353b3d1f04e02b9d211bb4f4069b63f8536b7f1eb686fc74fd8b3dab8dbd",
+			export default {
+			    name: "TestQuery",
+			    kind: "HoudiniQuery",
+			    hash: "a3b6fe4ebea2be126d176bfea5fc42b306ed0d9e663da6fb8d9617efd3125a2b",
 
-		    raw: \`query TestQuery {
-		  users(stringValue: "foo") {
-		    firstName
-		    id
-		  }
-		}
-		\`,
+			    raw: \`query TestQuery {
+			  users(stringValue: "foo") {
+			    firstName
+			    id
+			  }
+			}\`,
 
-		    rootType: "Query",
+			    rootType: "Query",
 
-		    selection: {
-		        users: {
-		            type: "User",
-		            keyRaw: "users(stringValue: \\"foo\\")",
+			    selection: {
+			        users: {
+			            type: "User",
+			            keyRaw: "users(stringValue: \\"foo\\")",
 
-		            list: {
-		                name: "All_Users",
-		                connection: false,
-		                type: "User"
-		            },
+			            list: {
+			                name: "All_Users",
+			                connection: false,
+			                type: "User"
+			            },
 
-		            fields: {
-		                firstName: {
-		                    type: "String",
-		                    keyRaw: "firstName"
-		                },
+			            fields: {
+			                firstName: {
+			                    type: "String",
+			                    keyRaw: "firstName"
+			                },
 
-		                id: {
-		                    type: "ID",
-		                    keyRaw: "id"
-		                }
-		            },
+			                id: {
+			                    type: "ID",
+			                    keyRaw: "id"
+			                }
+			            },
 
-		            filters: {
-		                stringValue: {
-		                    kind: "String",
-		                    value: "foo"
-		                }
-		            }
-		        }
-		    },
+			            filters: {
+			                stringValue: {
+			                    kind: "String",
+			                    value: "foo"
+			                }
+			            }
+			        }
+			    },
 
-		    policy: "CacheOrNetwork",
-		    partial: false
-		};
+			    policy: "CacheOrNetwork",
+			    partial: false
+			};
 
-		"HoudiniHash=85351c80364eb41f7eae70628dd67dedfc2057a39ef3967c9e9b739e568b0f42";
-	`)
+			"HoudiniHash=85351c80364eb41f7eae70628dd67dedfc2057a39ef3967c9e9b739e568b0f42";
+		`)
 	})
 
 	test('tracks paginate name', async function () {
@@ -2328,154 +2301,153 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		export default {
-		    name: "TestQuery",
-		    kind: "HoudiniQuery",
-		    hash: "ae03169e8d96702d39c54183ece747c31f4b5d1e3abf54cf3fc0706abfd597b9",
+			export default {
+			    name: "TestQuery",
+			    kind: "HoudiniQuery",
+			    hash: "7262aaa5e063c5470dbe606edd1c2aa963dfa7df052bb34a5fc98bae9cb334e4",
 
-		    refetch: {
-		        update: "append",
-		        path: ["usersByCursor"],
-		        method: "cursor",
-		        pageSize: 10,
-		        embedded: false,
-		        targetType: "Query",
-		        paginated: true,
-		        direction: "forward"
-		    },
+			    refetch: {
+			        update: "append",
+			        path: ["usersByCursor"],
+			        method: "cursor",
+			        pageSize: 10,
+			        embedded: false,
+			        targetType: "Query",
+			        paginated: true,
+			        direction: "forward"
+			    },
 
-		    raw: \`query TestQuery($first: Int = 10, $after: String) {
-		  usersByCursor(first: $first, after: $after) {
-		    edges {
-		      node {
-		        firstName
-		        id
-		      }
-		    }
-		    edges {
-		      cursor
-		      node {
-		        __typename
-		      }
-		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
-		  }
-		}
-		\`,
+			    raw: \`query TestQuery($first: Int = 10, $after: String) {
+			  usersByCursor(first: $first, after: $after) {
+			    edges {
+			      node {
+			        firstName
+			        id
+			      }
+			    }
+			    edges {
+			      cursor
+			      node {
+			        __typename
+			      }
+			    }
+			    pageInfo {
+			      hasPreviousPage
+			      hasNextPage
+			      startCursor
+			      endCursor
+			    }
+			  }
+			}\`,
 
-		    rootType: "Query",
+			    rootType: "Query",
 
-		    selection: {
-		        usersByCursor: {
-		            type: "UserConnection",
-		            keyRaw: "usersByCursor::paginated",
+			    selection: {
+			        usersByCursor: {
+			            type: "UserConnection",
+			            keyRaw: "usersByCursor::paginated",
 
-		            list: {
-		                name: "All_Users",
-		                connection: true,
-		                type: "User"
-		            },
+			            list: {
+			                name: "All_Users",
+			                connection: true,
+			                type: "User"
+			            },
 
-		            fields: {
-		                edges: {
-		                    type: "UserEdge",
-		                    keyRaw: "edges",
+			            fields: {
+			                edges: {
+			                    type: "UserEdge",
+			                    keyRaw: "edges",
 
-		                    fields: {
-		                        cursor: {
-		                            type: "String",
-		                            keyRaw: "cursor"
-		                        },
+			                    fields: {
+			                        cursor: {
+			                            type: "String",
+			                            keyRaw: "cursor"
+			                        },
 
-		                        node: {
-		                            type: "User",
-		                            keyRaw: "node",
-		                            nullable: true,
+			                        node: {
+			                            type: "User",
+			                            keyRaw: "node",
+			                            nullable: true,
 
-		                            fields: {
-		                                __typename: {
-		                                    type: "String",
-		                                    keyRaw: "__typename"
-		                                },
+			                            fields: {
+			                                __typename: {
+			                                    type: "String",
+			                                    keyRaw: "__typename"
+			                                },
 
-		                                firstName: {
-		                                    type: "String",
-		                                    keyRaw: "firstName"
-		                                },
+			                                firstName: {
+			                                    type: "String",
+			                                    keyRaw: "firstName"
+			                                },
 
-		                                id: {
-		                                    type: "ID",
-		                                    keyRaw: "id"
-		                                }
-		                            }
-		                        }
-		                    },
+			                                id: {
+			                                    type: "ID",
+			                                    keyRaw: "id"
+			                                }
+			                            }
+			                        }
+			                    },
 
-		                    update: "append"
-		                },
+			                    update: "append"
+			                },
 
-		                pageInfo: {
-		                    type: "PageInfo",
-		                    keyRaw: "pageInfo",
+			                pageInfo: {
+			                    type: "PageInfo",
+			                    keyRaw: "pageInfo",
 
-		                    fields: {
-		                        hasPreviousPage: {
-		                            type: "Boolean",
-		                            keyRaw: "hasPreviousPage"
-		                        },
+			                    fields: {
+			                        hasPreviousPage: {
+			                            type: "Boolean",
+			                            keyRaw: "hasPreviousPage"
+			                        },
 
-		                        hasNextPage: {
-		                            type: "Boolean",
-		                            keyRaw: "hasNextPage"
-		                        },
+			                        hasNextPage: {
+			                            type: "Boolean",
+			                            keyRaw: "hasNextPage"
+			                        },
 
-		                        startCursor: {
-		                            type: "String",
-		                            keyRaw: "startCursor"
-		                        },
+			                        startCursor: {
+			                            type: "String",
+			                            keyRaw: "startCursor"
+			                        },
 
-		                        endCursor: {
-		                            type: "String",
-		                            keyRaw: "endCursor"
-		                        }
-		                    }
-		                }
-		            },
+			                        endCursor: {
+			                            type: "String",
+			                            keyRaw: "endCursor"
+			                        }
+			                    }
+			                }
+			            },
 
-		            filters: {
-		                first: {
-		                    kind: "Variable",
-		                    value: "first"
-		                },
+			            filters: {
+			                first: {
+			                    kind: "Variable",
+			                    value: "first"
+			                },
 
-		                after: {
-		                    kind: "Variable",
-		                    value: "after"
-		                }
-		            }
-		        }
-		    },
+			                after: {
+			                    kind: "Variable",
+			                    value: "after"
+			                }
+			            }
+			        }
+			    },
 
-		    input: {
-		        fields: {
-		            first: "Int",
-		            after: "String"
-		        },
+			    input: {
+			        fields: {
+			            first: "Int",
+			            after: "String"
+			        },
 
-		        types: {}
-		    },
+			        types: {}
+			    },
 
-		    policy: "CacheOrNetwork",
-		    partial: false
-		};
+			    policy: "CacheOrNetwork",
+			    partial: false
+			};
 
-		"HoudiniHash=9f93f422fad4d3be52e00128e09b425948d22b929653b5768fa743ed5fda78ba";
-	`)
+			"HoudiniHash=9aec53bb0325a811ba8adfc41b04524f0ed859aa1b0f9d5e04d4bc02f639e52f";
+		`)
 	})
 
 	test('field args', async function () {
@@ -2508,82 +2480,81 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		export default {
-		    name: "TestQuery",
-		    kind: "HoudiniQuery",
-		    hash: "d773bead4120baa620dc05347fba277faaa5bb555e10943507a393eaa3399c52",
+			export default {
+			    name: "TestQuery",
+			    kind: "HoudiniQuery",
+			    hash: "9213bfe3e00205983f14587d49ffda87d7ca30c44371c8e6aa0f38f399d84f37",
 
-		    raw: \`query TestQuery($value: String!) {
-		  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
-		    firstName
-		    id
-		  }
-		}
-		\`,
+			    raw: \`query TestQuery($value: String!) {
+			  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
+			    firstName
+			    id
+			  }
+			}\`,
 
-		    rootType: "Query",
+			    rootType: "Query",
 
-		    selection: {
-		        users: {
-		            type: "User",
-		            keyRaw: "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
+			    selection: {
+			        users: {
+			            type: "User",
+			            keyRaw: "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
 
-		            list: {
-		                name: "All_Users",
-		                connection: false,
-		                type: "User"
-		            },
+			            list: {
+			                name: "All_Users",
+			                connection: false,
+			                type: "User"
+			            },
 
-		            fields: {
-		                firstName: {
-		                    type: "String",
-		                    keyRaw: "firstName"
-		                },
+			            fields: {
+			                firstName: {
+			                    type: "String",
+			                    keyRaw: "firstName"
+			                },
 
-		                id: {
-		                    type: "ID",
-		                    keyRaw: "id"
-		                }
-		            },
+			                id: {
+			                    type: "ID",
+			                    keyRaw: "id"
+			                }
+			            },
 
-		            filters: {
-		                stringValue: {
-		                    kind: "Variable",
-		                    value: "value"
-		                },
+			            filters: {
+			                stringValue: {
+			                    kind: "Variable",
+			                    value: "value"
+			                },
 
-		                boolValue: {
-		                    kind: "Boolean",
-		                    value: true
-		                },
+			                boolValue: {
+			                    kind: "Boolean",
+			                    value: true
+			                },
 
-		                floatValue: {
-		                    kind: "Float",
-		                    value: 1.2
-		                },
+			                floatValue: {
+			                    kind: "Float",
+			                    value: 1.2
+			                },
 
-		                intValue: {
-		                    kind: "Int",
-		                    value: 1
-		                }
-		            }
-		        }
-		    },
+			                intValue: {
+			                    kind: "Int",
+			                    value: 1
+			                }
+			            }
+			        }
+			    },
 
-		    input: {
-		        fields: {
-		            value: "String"
-		        },
+			    input: {
+			        fields: {
+			            value: "String"
+			        },
 
-		        types: {}
-		    },
+			        types: {}
+			    },
 
-		    policy: "CacheOrNetwork",
-		    partial: false
-		};
+			    policy: "CacheOrNetwork",
+			    partial: false
+			};
 
-		"HoudiniHash=f0b0082b38e66bc9fcefcd11741b874cacb74a1a939221c1618b499df139b356";
-	`)
+			"HoudiniHash=f0b0082b38e66bc9fcefcd11741b874cacb74a1a939221c1618b499df139b356";
+		`)
 	})
 
 	test('sveltekit', async function () {
@@ -2618,82 +2589,81 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		export default {
-		    name: "TestQuery",
-		    kind: "HoudiniQuery",
-		    hash: "d773bead4120baa620dc05347fba277faaa5bb555e10943507a393eaa3399c52",
+			export default {
+			    name: "TestQuery",
+			    kind: "HoudiniQuery",
+			    hash: "9213bfe3e00205983f14587d49ffda87d7ca30c44371c8e6aa0f38f399d84f37",
 
-		    raw: \`query TestQuery($value: String!) {
-		  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
-		    firstName
-		    id
-		  }
-		}
-		\`,
+			    raw: \`query TestQuery($value: String!) {
+			  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
+			    firstName
+			    id
+			  }
+			}\`,
 
-		    rootType: "Query",
+			    rootType: "Query",
 
-		    selection: {
-		        users: {
-		            type: "User",
-		            keyRaw: "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
+			    selection: {
+			        users: {
+			            type: "User",
+			            keyRaw: "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
 
-		            list: {
-		                name: "All_Users",
-		                connection: false,
-		                type: "User"
-		            },
+			            list: {
+			                name: "All_Users",
+			                connection: false,
+			                type: "User"
+			            },
 
-		            fields: {
-		                firstName: {
-		                    type: "String",
-		                    keyRaw: "firstName"
-		                },
+			            fields: {
+			                firstName: {
+			                    type: "String",
+			                    keyRaw: "firstName"
+			                },
 
-		                id: {
-		                    type: "ID",
-		                    keyRaw: "id"
-		                }
-		            },
+			                id: {
+			                    type: "ID",
+			                    keyRaw: "id"
+			                }
+			            },
 
-		            filters: {
-		                stringValue: {
-		                    kind: "Variable",
-		                    value: "value"
-		                },
+			            filters: {
+			                stringValue: {
+			                    kind: "Variable",
+			                    value: "value"
+			                },
 
-		                boolValue: {
-		                    kind: "Boolean",
-		                    value: true
-		                },
+			                boolValue: {
+			                    kind: "Boolean",
+			                    value: true
+			                },
 
-		                floatValue: {
-		                    kind: "Float",
-		                    value: 1.2
-		                },
+			                floatValue: {
+			                    kind: "Float",
+			                    value: 1.2
+			                },
 
-		                intValue: {
-		                    kind: "Int",
-		                    value: 1
-		                }
-		            }
-		        }
-		    },
+			                intValue: {
+			                    kind: "Int",
+			                    value: 1
+			                }
+			            }
+			        }
+			    },
 
-		    input: {
-		        fields: {
-		            value: "String"
-		        },
+			    input: {
+			        fields: {
+			            value: "String"
+			        },
 
-		        types: {}
-		    },
+			        types: {}
+			    },
 
-		    policy: "CacheOrNetwork",
-		    partial: false
-		};
+			    policy: "CacheOrNetwork",
+			    partial: false
+			};
 
-		"HoudiniHash=f0b0082b38e66bc9fcefcd11741b874cacb74a1a939221c1618b499df139b356";
-	`)
+			"HoudiniHash=f0b0082b38e66bc9fcefcd11741b874cacb74a1a939221c1618b499df139b356";
+		`)
 	})
 })
 
@@ -2738,14 +2708,13 @@ test('custom scalar shows up in artifact', async function () {
 		export default {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "b8314df1f7d924f76e6dfe6e7e3c8efd593db931c67c892311e97a9ec1d429b4",
+		    hash: "6d3b1197489ec6ad1bacd3dc77ab79b1f075d373c8923be2f2e96b27ab8a7dce",
 
 		    raw: \`query TestQuery {
 		  allItems {
 		    createdAt
 		  }
-		}
-		\`,
+		}\`,
 
 		    rootType: "Query",
 
@@ -2840,14 +2809,13 @@ test('operation inputs', async function () {
 		export default {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "f39d9c24c97c9c3cdcd916272e7ffb9d79cb4ad08ec294c829d647d4238c7e6b",
+		    hash: "014c7791d749b2fce0a8d6d30d191fac3b37d4bbbf4b075322cb5ca9dbe09ba1",
 
 		    raw: \`query TestQuery($id: ID, $filter: UserFilter, $filterList: [UserFilter!], $enumArg: MyEnum) {
 		  user(id: $id, filter: $filter, filterList: $filterList, enumArg: $enumArg) {
 		    id
 		  }
-		}
-		\`,
+		}\`,
 
 		    rootType: "Query",
 
@@ -2929,51 +2897,50 @@ describe('subscription artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		export default {
-		    name: "B",
-		    kind: "HoudiniSubscription",
-		    hash: "755fb65bebc83835db68921b7e193809246fb6f9ee2e37cc66d7314b91a501e7",
+			export default {
+			    name: "B",
+			    kind: "HoudiniSubscription",
+			    hash: "421342a4a75c97ffbfb125e3dcf06cec1cea593be1bf1c774e1038c3ed363d91",
 
-		    raw: \`subscription B {
-		  newUser {
-		    user {
-		      firstName
-		      id
-		    }
-		  }
-		}
-		\`,
+			    raw: \`subscription B {
+			  newUser {
+			    user {
+			      firstName
+			      id
+			    }
+			  }
+			}\`,
 
-		    rootType: "Subscription",
+			    rootType: "Subscription",
 
-		    selection: {
-		        newUser: {
-		            type: "NewUserResult",
-		            keyRaw: "newUser",
+			    selection: {
+			        newUser: {
+			            type: "NewUserResult",
+			            keyRaw: "newUser",
 
-		            fields: {
-		                user: {
-		                    type: "User",
-		                    keyRaw: "user",
+			            fields: {
+			                user: {
+			                    type: "User",
+			                    keyRaw: "user",
 
-		                    fields: {
-		                        firstName: {
-		                            type: "String",
-		                            keyRaw: "firstName"
-		                        },
+			                    fields: {
+			                        firstName: {
+			                            type: "String",
+			                            keyRaw: "firstName"
+			                        },
 
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
-		                        }
-		                    }
-		                }
-		            }
-		        }
-		    }
-		};
+			                        id: {
+			                            type: "ID",
+			                            keyRaw: "id"
+			                        }
+			                    }
+			                }
+			            }
+			        }
+			    }
+			};
 
-		"HoudiniHash=df5bc6be33a8a16e9353ff30c07e45d5e54531ab53157208255fdfec52c7b168";
-	`)
+			"HoudiniHash=df5bc6be33a8a16e9353ff30c07e45d5e54531ab53157208255fdfec52c7b168";
+		`)
 	})
 })

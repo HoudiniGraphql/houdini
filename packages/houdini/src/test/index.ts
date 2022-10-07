@@ -1,11 +1,9 @@
 import * as graphql from 'graphql'
-import { fs as memfs, vol } from 'memfs'
+import { vol } from 'memfs'
 import path from 'path'
-import { test } from 'vitest'
 
 import { runPipeline } from '../codegen'
-import { Config } from '../lib/config'
-import { CollectedGraphQLDocument } from '../lib/types'
+import { Config, fs, CollectedGraphQLDocument } from '../lib'
 import { ConfigFile, ArtifactKind } from '../runtime/lib/types'
 
 export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
@@ -280,11 +278,11 @@ export function mockCollectedDoc(query: string): CollectedGraphQLDocument {
 	}
 }
 
-export async function clearMock() {
+export function clearMock() {
 	const config = testConfig()
 
-	memfs.mkdirpSync(path.join(process.cwd(), 'src', 'routes'))
-	memfs.mkdirpSync(path.join(process.cwd(), 'src', 'lib'))
 	vol.reset()
-	await config.createDirectories()
+	fs.mkdirpSync(path.join(process.cwd(), 'src', 'routes'))
+	fs.mkdirpSync(path.join(process.cwd(), 'src', 'lib'))
+	config.createDirectories()
 }

@@ -12,7 +12,7 @@ test('pagination arguments stripped from key', async function () {
 			`
             fragment PaginatedFragment on User {
                 friendsByCursor(first:10, filter: "hello") @paginate {
-                    edges { 
+                    edges {
                         node {
                             id
                         }
@@ -26,119 +26,118 @@ test('pagination arguments stripped from key', async function () {
 	await runPipeline(config, docs)
 
 	// look at the artifact for the generated pagination query
-	await expect(docs[0]).toMatchArtifactSnapshot(`
-					export default {
-					    name: "PaginatedFragment",
-					    kind: "HoudiniFragment",
-					    hash: "d655188329bfa82826d0e09c9b56fb90c276ed5b3b155784c3358db3cac30c87",
+	await expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    name: "PaginatedFragment",
+		    kind: "HoudiniFragment",
+		    hash: "45e5807e0714c312a701dce3a5156f70da61878dc419fb3f1e78914fca36d091",
 
-					    refetch: {
-					        update: "append",
-					        path: ["friendsByCursor"],
-					        method: "cursor",
-					        pageSize: 10,
-					        embedded: true,
-					        targetType: "Node",
-					        paginated: true,
-					        direction: "forward"
-					    },
+		    refetch: {
+		        update: "append",
+		        path: ["friendsByCursor"],
+		        method: "cursor",
+		        pageSize: 10,
+		        embedded: true,
+		        targetType: "Node",
+		        paginated: true,
+		        direction: "forward"
+		    },
 
-					    raw: \`fragment PaginatedFragment on User {
-					  friendsByCursor(first: $first, filter: "hello", after: $after) {
-					    edges {
-					      node {
-					        id
-					      }
-					    }
-					    edges {
-					      cursor
-					      node {
-					        __typename
-					      }
-					    }
-					    pageInfo {
-					      hasPreviousPage
-					      hasNextPage
-					      startCursor
-					      endCursor
-					    }
-					  }
-					}
-					\`,
+		    raw: \`fragment PaginatedFragment on User {
+		  friendsByCursor(first: $first, filter: "hello", after: $after) {
+		    edges {
+		      node {
+		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
+		        __typename
+		      }
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
+		}\`,
 
-					    rootType: "User",
+		    rootType: "User",
 
-					    selection: {
-					        friendsByCursor: {
-					            type: "UserConnection",
-					            keyRaw: "friendsByCursor(filter: \\"hello\\")::paginated",
+		    selection: {
+		        friendsByCursor: {
+		            type: "UserConnection",
+		            keyRaw: "friendsByCursor(filter: \\"hello\\")::paginated",
 
-					            fields: {
-					                edges: {
-					                    type: "UserEdge",
-					                    keyRaw: "edges",
+		            fields: {
+		                edges: {
+		                    type: "UserEdge",
+		                    keyRaw: "edges",
 
-					                    fields: {
-					                        cursor: {
-					                            type: "String",
-					                            keyRaw: "cursor"
-					                        },
+		                    fields: {
+		                        cursor: {
+		                            type: "String",
+		                            keyRaw: "cursor"
+		                        },
 
-					                        node: {
-					                            type: "User",
-					                            keyRaw: "node",
-					                            nullable: true,
+		                        node: {
+		                            type: "User",
+		                            keyRaw: "node",
+		                            nullable: true,
 
-					                            fields: {
-					                                __typename: {
-					                                    type: "String",
-					                                    keyRaw: "__typename"
-					                                },
+		                            fields: {
+		                                __typename: {
+		                                    type: "String",
+		                                    keyRaw: "__typename"
+		                                },
 
-					                                id: {
-					                                    type: "ID",
-					                                    keyRaw: "id"
-					                                }
-					                            }
-					                        }
-					                    },
+		                                id: {
+		                                    type: "ID",
+		                                    keyRaw: "id"
+		                                }
+		                            }
+		                        }
+		                    },
 
-					                    update: "append"
-					                },
+		                    update: "append"
+		                },
 
-					                pageInfo: {
-					                    type: "PageInfo",
-					                    keyRaw: "pageInfo",
+		                pageInfo: {
+		                    type: "PageInfo",
+		                    keyRaw: "pageInfo",
 
-					                    fields: {
-					                        hasPreviousPage: {
-					                            type: "Boolean",
-					                            keyRaw: "hasPreviousPage"
-					                        },
+		                    fields: {
+		                        hasPreviousPage: {
+		                            type: "Boolean",
+		                            keyRaw: "hasPreviousPage"
+		                        },
 
-					                        hasNextPage: {
-					                            type: "Boolean",
-					                            keyRaw: "hasNextPage"
-					                        },
+		                        hasNextPage: {
+		                            type: "Boolean",
+		                            keyRaw: "hasNextPage"
+		                        },
 
-					                        startCursor: {
-					                            type: "String",
-					                            keyRaw: "startCursor"
-					                        },
+		                        startCursor: {
+		                            type: "String",
+		                            keyRaw: "startCursor"
+		                        },
 
-					                        endCursor: {
-					                            type: "String",
-					                            keyRaw: "endCursor"
-					                        }
-					                    }
-					                }
-					            }
-					        }
-					    }
-					};
+		                        endCursor: {
+		                            type: "String",
+		                            keyRaw: "endCursor"
+		                        }
+		                    }
+		                }
+		            }
+		        }
+		    }
+		};
 
-					"HoudiniHash=07f77134a0c1b4f15f75077d133a91a35472ac050e799e9ad652c8b4dfb93ef9";
-				`)
+		"HoudiniHash=2d5c4759a3afcc9c400670d48e718bd99a5063d53c50dab779f51455e5b2f566";
+	`)
 })
 
 test('offset based pagination marks appropriate field', async function () {
@@ -157,50 +156,49 @@ test('offset based pagination marks appropriate field', async function () {
 	await runPipeline(config, docs)
 
 	// look at the artifact for the generated pagination query
-	await expect(docs[0]).toMatchArtifactSnapshot(`
-					export default {
-					    name: "PaginatedFragment",
-					    kind: "HoudiniFragment",
-					    hash: "61656f834b4f2afccdd42328b499f288fc9776befbef14154133565e0ac7e8b6",
+	await expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    name: "PaginatedFragment",
+		    kind: "HoudiniFragment",
+		    hash: "751f4becce0eaf199249b367d1badabaa9c1b8638bc2579dd546d968326c0b36",
 
-					    refetch: {
-					        update: "append",
-					        path: ["friendsByOffset"],
-					        method: "offset",
-					        pageSize: 10,
-					        embedded: true,
-					        targetType: "Node",
-					        paginated: true,
-					        direction: "forward"
-					    },
+		    refetch: {
+		        update: "append",
+		        path: ["friendsByOffset"],
+		        method: "offset",
+		        pageSize: 10,
+		        embedded: true,
+		        targetType: "Node",
+		        paginated: true,
+		        direction: "forward"
+		    },
 
-					    raw: \`fragment PaginatedFragment on User {
-					  friendsByOffset(limit: $limit, filter: "hello", offset: $offset) {
-					    id
-					  }
-					}
-					\`,
+		    raw: \`fragment PaginatedFragment on User {
+		  friendsByOffset(limit: $limit, filter: "hello", offset: $offset) {
+		    id
+		  }
+		}\`,
 
-					    rootType: "User",
+		    rootType: "User",
 
-					    selection: {
-					        friendsByOffset: {
-					            type: "User",
-					            keyRaw: "friendsByOffset(filter: \\"hello\\")::paginated",
-					            update: "append",
+		    selection: {
+		        friendsByOffset: {
+		            type: "User",
+		            keyRaw: "friendsByOffset(filter: \\"hello\\")::paginated",
+		            update: "append",
 
-					            fields: {
-					                id: {
-					                    type: "ID",
-					                    keyRaw: "id"
-					                }
-					            }
-					        }
-					    }
-					};
+		            fields: {
+		                id: {
+		                    type: "ID",
+		                    keyRaw: "id"
+		                }
+		            }
+		        }
+		    }
+		};
 
-					"HoudiniHash=80c97a259c558a65e1998f7e817c6e433b2c3b5d6cad4c2ae2803324fe8e5f58";
-				`)
+		"HoudiniHash=80c97a259c558a65e1998f7e817c6e433b2c3b5d6cad4c2ae2803324fe8e5f58";
+	`)
 })
 
 test('cursor as scalar gets the right pagination query argument types', async function () {
@@ -208,13 +206,13 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		mockCollectedDoc(
 			`
             query ScalarPagination {
-				user { 
+				user {
 					friendsByCursorScalar(first:10, filter: "hello") @paginate {
-						edges { 
+						edges {
 							node {
-								friendsByCursor { 
-									edges { 
-										node { 
+								friendsByCursor {
+									edges {
+										node {
 											id
 										}
 									}
@@ -231,180 +229,179 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 	await runPipeline(config, docs)
 
 	// look at the artifact for the generated pagination query
-	await expect(docs[0]).toMatchArtifactSnapshot(`
-					export default {
-					    name: "ScalarPagination",
-					    kind: "HoudiniQuery",
-					    hash: "09863f3b665ef14816cc6b9cc965f12bb68ea569345d3f346415ba7a8b8af71c",
+	await expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    name: "ScalarPagination",
+		    kind: "HoudiniQuery",
+		    hash: "89f423f499065b03185c8b3f84fdec84dd0ddc1f26911a1bfa8550001b457623",
 
-					    refetch: {
-					        update: "append",
-					        path: ["user", "friendsByCursorScalar"],
-					        method: "cursor",
-					        pageSize: 10,
-					        embedded: false,
-					        targetType: "Query",
-					        paginated: true,
-					        direction: "forward"
-					    },
+		    refetch: {
+		        update: "append",
+		        path: ["user", "friendsByCursorScalar"],
+		        method: "cursor",
+		        pageSize: 10,
+		        embedded: false,
+		        targetType: "Query",
+		        paginated: true,
+		        direction: "forward"
+		    },
 
-					    raw: \`query ScalarPagination($first: Int = 10, $after: Cursor) {
-					  user {
-					    friendsByCursorScalar(first: $first, filter: "hello", after: $after) {
-					      edges {
-					        node {
-					          friendsByCursor {
-					            edges {
-					              node {
-					                id
-					              }
-					            }
-					          }
-					          id
-					        }
-					      }
-					      edges {
-					        cursor
-					        node {
-					          __typename
-					        }
-					      }
-					      pageInfo {
-					        hasPreviousPage
-					        hasNextPage
-					        startCursor
-					        endCursor
-					      }
-					    }
-					    id
-					  }
-					}
-					\`,
+		    raw: \`query ScalarPagination($first: Int = 10, $after: Cursor) {
+		  user {
+		    friendsByCursorScalar(first: $first, filter: "hello", after: $after) {
+		      edges {
+		        node {
+		          friendsByCursor {
+		            edges {
+		              node {
+		                id
+		              }
+		            }
+		          }
+		          id
+		        }
+		      }
+		      edges {
+		        cursor
+		        node {
+		          __typename
+		        }
+		      }
+		      pageInfo {
+		        hasPreviousPage
+		        hasNextPage
+		        startCursor
+		        endCursor
+		      }
+		    }
+		    id
+		  }
+		}\`,
 
-					    rootType: "Query",
+		    rootType: "Query",
 
-					    selection: {
-					        user: {
-					            type: "User",
-					            keyRaw: "user",
+		    selection: {
+		        user: {
+		            type: "User",
+		            keyRaw: "user",
 
-					            fields: {
-					                friendsByCursorScalar: {
-					                    type: "UserConnection",
-					                    keyRaw: "friendsByCursorScalar(filter: \\"hello\\")::paginated",
+		            fields: {
+		                friendsByCursorScalar: {
+		                    type: "UserConnection",
+		                    keyRaw: "friendsByCursorScalar(filter: \\"hello\\")::paginated",
 
-					                    fields: {
-					                        edges: {
-					                            type: "UserEdge",
-					                            keyRaw: "edges",
+		                    fields: {
+		                        edges: {
+		                            type: "UserEdge",
+		                            keyRaw: "edges",
 
-					                            fields: {
-					                                cursor: {
-					                                    type: "String",
-					                                    keyRaw: "cursor"
-					                                },
+		                            fields: {
+		                                cursor: {
+		                                    type: "String",
+		                                    keyRaw: "cursor"
+		                                },
 
-					                                node: {
-					                                    type: "User",
-					                                    keyRaw: "node",
-					                                    nullable: true,
+		                                node: {
+		                                    type: "User",
+		                                    keyRaw: "node",
+		                                    nullable: true,
 
-					                                    fields: {
-					                                        __typename: {
-					                                            type: "String",
-					                                            keyRaw: "__typename"
-					                                        },
+		                                    fields: {
+		                                        __typename: {
+		                                            type: "String",
+		                                            keyRaw: "__typename"
+		                                        },
 
-					                                        friendsByCursor: {
-					                                            type: "UserConnection",
-					                                            keyRaw: "friendsByCursor",
+		                                        friendsByCursor: {
+		                                            type: "UserConnection",
+		                                            keyRaw: "friendsByCursor",
 
-					                                            fields: {
-					                                                edges: {
-					                                                    type: "UserEdge",
-					                                                    keyRaw: "edges",
+		                                            fields: {
+		                                                edges: {
+		                                                    type: "UserEdge",
+		                                                    keyRaw: "edges",
 
-					                                                    fields: {
-					                                                        node: {
-					                                                            type: "User",
-					                                                            keyRaw: "node",
-					                                                            nullable: true,
+		                                                    fields: {
+		                                                        node: {
+		                                                            type: "User",
+		                                                            keyRaw: "node",
+		                                                            nullable: true,
 
-					                                                            fields: {
-					                                                                id: {
-					                                                                    type: "ID",
-					                                                                    keyRaw: "id"
-					                                                                }
-					                                                            }
-					                                                        }
-					                                                    }
-					                                                }
-					                                            }
-					                                        },
+		                                                            fields: {
+		                                                                id: {
+		                                                                    type: "ID",
+		                                                                    keyRaw: "id"
+		                                                                }
+		                                                            }
+		                                                        }
+		                                                    }
+		                                                }
+		                                            }
+		                                        },
 
-					                                        id: {
-					                                            type: "ID",
-					                                            keyRaw: "id"
-					                                        }
-					                                    }
-					                                }
-					                            },
+		                                        id: {
+		                                            type: "ID",
+		                                            keyRaw: "id"
+		                                        }
+		                                    }
+		                                }
+		                            },
 
-					                            update: "append"
-					                        },
+		                            update: "append"
+		                        },
 
-					                        pageInfo: {
-					                            type: "PageInfo",
-					                            keyRaw: "pageInfo",
+		                        pageInfo: {
+		                            type: "PageInfo",
+		                            keyRaw: "pageInfo",
 
-					                            fields: {
-					                                hasPreviousPage: {
-					                                    type: "Boolean",
-					                                    keyRaw: "hasPreviousPage"
-					                                },
+		                            fields: {
+		                                hasPreviousPage: {
+		                                    type: "Boolean",
+		                                    keyRaw: "hasPreviousPage"
+		                                },
 
-					                                hasNextPage: {
-					                                    type: "Boolean",
-					                                    keyRaw: "hasNextPage"
-					                                },
+		                                hasNextPage: {
+		                                    type: "Boolean",
+		                                    keyRaw: "hasNextPage"
+		                                },
 
-					                                startCursor: {
-					                                    type: "String",
-					                                    keyRaw: "startCursor"
-					                                },
+		                                startCursor: {
+		                                    type: "String",
+		                                    keyRaw: "startCursor"
+		                                },
 
-					                                endCursor: {
-					                                    type: "String",
-					                                    keyRaw: "endCursor"
-					                                }
-					                            }
-					                        }
-					                    }
-					                },
+		                                endCursor: {
+		                                    type: "String",
+		                                    keyRaw: "endCursor"
+		                                }
+		                            }
+		                        }
+		                    }
+		                },
 
-					                id: {
-					                    type: "ID",
-					                    keyRaw: "id"
-					                }
-					            }
-					        }
-					    },
+		                id: {
+		                    type: "ID",
+		                    keyRaw: "id"
+		                }
+		            }
+		        }
+		    },
 
-					    input: {
-					        fields: {
-					            first: "Int",
-					            after: "Cursor"
-					        },
+		    input: {
+		        fields: {
+		            first: "Int",
+		            after: "Cursor"
+		        },
 
-					        types: {}
-					    },
+		        types: {}
+		    },
 
-					    policy: "CacheOrNetwork",
-					    partial: false
-					};
+		    policy: "CacheOrNetwork",
+		    partial: false
+		};
 
-					"HoudiniHash=684d0ec8284ab9f26c70d00f8e6f6824d7b8e35fb67c3724af409e643d573ccd";
-				`)
+		"HoudiniHash=9e2c500b01d31185266042250d637f928613b87afe976f04d02975d00b843a21";
+	`)
 })
 
 test("sibling aliases don't get marked", async function () {
@@ -413,11 +410,11 @@ test("sibling aliases don't get marked", async function () {
 			`
             fragment PaginatedFragment on User {
                 friendsByCursor(first:10, filter: "hello") @paginate {
-                    edges { 
+                    edges {
                         node {
-							friendsByCursor { 
-								edges { 
-									node { 
+							friendsByCursor {
+								edges {
+									node {
 										id
 									}
 								}
@@ -426,11 +423,11 @@ test("sibling aliases don't get marked", async function () {
                     }
                 }
                 friends: friendsByCursor(first:10, filter: "hello") {
-                    edges { 
+                    edges {
                         node {
-							friendsByCursor { 
-								edges { 
-									node { 
+							friendsByCursor {
+								edges {
+									node {
 										id
 									}
 								}
@@ -446,219 +443,218 @@ test("sibling aliases don't get marked", async function () {
 	await runPipeline(config, docs)
 
 	// look at the artifact for the generated pagination query
-	await expect(docs[0]).toMatchArtifactSnapshot(`
-					export default {
-					    name: "PaginatedFragment",
-					    kind: "HoudiniFragment",
-					    hash: "1a2d87a1d79e0241ab3ebda1cd43296a631d99973bb06e4fc66becd42c4a67be",
+	await expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    name: "PaginatedFragment",
+		    kind: "HoudiniFragment",
+		    hash: "04390d1e6cb284c67d7ee091adbecb9e4e72a82e73300dc663715f1c9a965455",
 
-					    refetch: {
-					        update: "append",
-					        path: ["friendsByCursor"],
-					        method: "cursor",
-					        pageSize: 10,
-					        embedded: true,
-					        targetType: "Node",
-					        paginated: true,
-					        direction: "forward"
-					    },
+		    refetch: {
+		        update: "append",
+		        path: ["friendsByCursor"],
+		        method: "cursor",
+		        pageSize: 10,
+		        embedded: true,
+		        targetType: "Node",
+		        paginated: true,
+		        direction: "forward"
+		    },
 
-					    raw: \`fragment PaginatedFragment on User {
-					  friendsByCursor(first: $first, filter: "hello", after: $after) {
-					    edges {
-					      node {
-					        friendsByCursor {
-					          edges {
-					            node {
-					              id
-					            }
-					          }
-					        }
-					        id
-					      }
-					    }
-					    edges {
-					      cursor
-					      node {
-					        __typename
-					      }
-					    }
-					    pageInfo {
-					      hasPreviousPage
-					      hasNextPage
-					      startCursor
-					      endCursor
-					    }
-					  }
-					  friends: friendsByCursor(first: 10, filter: "hello") {
-					    edges {
-					      node {
-					        friendsByCursor {
-					          edges {
-					            node {
-					              id
-					            }
-					          }
-					        }
-					        id
-					      }
-					    }
-					  }
-					}
-					\`,
+		    raw: \`fragment PaginatedFragment on User {
+		  friendsByCursor(first: $first, filter: "hello", after: $after) {
+		    edges {
+		      node {
+		        friendsByCursor {
+		          edges {
+		            node {
+		              id
+		            }
+		          }
+		        }
+		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
+		        __typename
+		      }
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
+		  friends: friendsByCursor(first: 10, filter: "hello") {
+		    edges {
+		      node {
+		        friendsByCursor {
+		          edges {
+		            node {
+		              id
+		            }
+		          }
+		        }
+		        id
+		      }
+		    }
+		  }
+		}\`,
 
-					    rootType: "User",
+		    rootType: "User",
 
-					    selection: {
-					        friendsByCursor: {
-					            type: "UserConnection",
-					            keyRaw: "friendsByCursor(filter: \\"hello\\")::paginated",
+		    selection: {
+		        friendsByCursor: {
+		            type: "UserConnection",
+		            keyRaw: "friendsByCursor(filter: \\"hello\\")::paginated",
 
-					            fields: {
-					                edges: {
-					                    type: "UserEdge",
-					                    keyRaw: "edges",
+		            fields: {
+		                edges: {
+		                    type: "UserEdge",
+		                    keyRaw: "edges",
 
-					                    fields: {
-					                        cursor: {
-					                            type: "String",
-					                            keyRaw: "cursor"
-					                        },
+		                    fields: {
+		                        cursor: {
+		                            type: "String",
+		                            keyRaw: "cursor"
+		                        },
 
-					                        node: {
-					                            type: "User",
-					                            keyRaw: "node",
-					                            nullable: true,
+		                        node: {
+		                            type: "User",
+		                            keyRaw: "node",
+		                            nullable: true,
 
-					                            fields: {
-					                                __typename: {
-					                                    type: "String",
-					                                    keyRaw: "__typename"
-					                                },
+		                            fields: {
+		                                __typename: {
+		                                    type: "String",
+		                                    keyRaw: "__typename"
+		                                },
 
-					                                friendsByCursor: {
-					                                    type: "UserConnection",
-					                                    keyRaw: "friendsByCursor",
+		                                friendsByCursor: {
+		                                    type: "UserConnection",
+		                                    keyRaw: "friendsByCursor",
 
-					                                    fields: {
-					                                        edges: {
-					                                            type: "UserEdge",
-					                                            keyRaw: "edges",
+		                                    fields: {
+		                                        edges: {
+		                                            type: "UserEdge",
+		                                            keyRaw: "edges",
 
-					                                            fields: {
-					                                                node: {
-					                                                    type: "User",
-					                                                    keyRaw: "node",
-					                                                    nullable: true,
+		                                            fields: {
+		                                                node: {
+		                                                    type: "User",
+		                                                    keyRaw: "node",
+		                                                    nullable: true,
 
-					                                                    fields: {
-					                                                        id: {
-					                                                            type: "ID",
-					                                                            keyRaw: "id"
-					                                                        }
-					                                                    }
-					                                                }
-					                                            }
-					                                        }
-					                                    }
-					                                },
+		                                                    fields: {
+		                                                        id: {
+		                                                            type: "ID",
+		                                                            keyRaw: "id"
+		                                                        }
+		                                                    }
+		                                                }
+		                                            }
+		                                        }
+		                                    }
+		                                },
 
-					                                id: {
-					                                    type: "ID",
-					                                    keyRaw: "id"
-					                                }
-					                            }
-					                        }
-					                    },
+		                                id: {
+		                                    type: "ID",
+		                                    keyRaw: "id"
+		                                }
+		                            }
+		                        }
+		                    },
 
-					                    update: "append"
-					                },
+		                    update: "append"
+		                },
 
-					                pageInfo: {
-					                    type: "PageInfo",
-					                    keyRaw: "pageInfo",
+		                pageInfo: {
+		                    type: "PageInfo",
+		                    keyRaw: "pageInfo",
 
-					                    fields: {
-					                        hasPreviousPage: {
-					                            type: "Boolean",
-					                            keyRaw: "hasPreviousPage"
-					                        },
+		                    fields: {
+		                        hasPreviousPage: {
+		                            type: "Boolean",
+		                            keyRaw: "hasPreviousPage"
+		                        },
 
-					                        hasNextPage: {
-					                            type: "Boolean",
-					                            keyRaw: "hasNextPage"
-					                        },
+		                        hasNextPage: {
+		                            type: "Boolean",
+		                            keyRaw: "hasNextPage"
+		                        },
 
-					                        startCursor: {
-					                            type: "String",
-					                            keyRaw: "startCursor"
-					                        },
+		                        startCursor: {
+		                            type: "String",
+		                            keyRaw: "startCursor"
+		                        },
 
-					                        endCursor: {
-					                            type: "String",
-					                            keyRaw: "endCursor"
-					                        }
-					                    }
-					                }
-					            }
-					        },
+		                        endCursor: {
+		                            type: "String",
+		                            keyRaw: "endCursor"
+		                        }
+		                    }
+		                }
+		            }
+		        },
 
-					        friends: {
-					            type: "UserConnection",
-					            keyRaw: "friends(first: 10, filter: \\"hello\\")",
+		        friends: {
+		            type: "UserConnection",
+		            keyRaw: "friends(first: 10, filter: \\"hello\\")",
 
-					            fields: {
-					                edges: {
-					                    type: "UserEdge",
-					                    keyRaw: "edges",
+		            fields: {
+		                edges: {
+		                    type: "UserEdge",
+		                    keyRaw: "edges",
 
-					                    fields: {
-					                        node: {
-					                            type: "User",
-					                            keyRaw: "node",
-					                            nullable: true,
+		                    fields: {
+		                        node: {
+		                            type: "User",
+		                            keyRaw: "node",
+		                            nullable: true,
 
-					                            fields: {
-					                                friendsByCursor: {
-					                                    type: "UserConnection",
-					                                    keyRaw: "friendsByCursor",
+		                            fields: {
+		                                friendsByCursor: {
+		                                    type: "UserConnection",
+		                                    keyRaw: "friendsByCursor",
 
-					                                    fields: {
-					                                        edges: {
-					                                            type: "UserEdge",
-					                                            keyRaw: "edges",
+		                                    fields: {
+		                                        edges: {
+		                                            type: "UserEdge",
+		                                            keyRaw: "edges",
 
-					                                            fields: {
-					                                                node: {
-					                                                    type: "User",
-					                                                    keyRaw: "node",
-					                                                    nullable: true,
+		                                            fields: {
+		                                                node: {
+		                                                    type: "User",
+		                                                    keyRaw: "node",
+		                                                    nullable: true,
 
-					                                                    fields: {
-					                                                        id: {
-					                                                            type: "ID",
-					                                                            keyRaw: "id"
-					                                                        }
-					                                                    }
-					                                                }
-					                                            }
-					                                        }
-					                                    }
-					                                },
+		                                                    fields: {
+		                                                        id: {
+		                                                            type: "ID",
+		                                                            keyRaw: "id"
+		                                                        }
+		                                                    }
+		                                                }
+		                                            }
+		                                        }
+		                                    }
+		                                },
 
-					                                id: {
-					                                    type: "ID",
-					                                    keyRaw: "id"
-					                                }
-					                            }
-					                        }
-					                    }
-					                }
-					            }
-					        }
-					    }
-					};
+		                                id: {
+		                                    type: "ID",
+		                                    keyRaw: "id"
+		                                }
+		                            }
+		                        }
+		                    }
+		                }
+		            }
+		        }
+		    }
+		};
 
-					"HoudiniHash=e891a137778914d25c73bc1919ff2943a9ba2cf0ee35c7566bf0694939a189cf";
-				`)
+		"HoudiniHash=7f9e237a0da97d7d704cde79d32f61fe252451fb96c89e19cb21e3f447d5e40d";
+	`)
 })
