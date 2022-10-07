@@ -17,7 +17,7 @@ test('modifies root +layout.svelte with data prop', async function () {
 		import { page } from "$app/stores";
 		import { extractSession, setClientSession } from "$houdini/runtime/lib/network";
 		import { onMount } from "svelte";
-		import { setClientStarted } from "$houdini/plugins/houdini-svelte/runtime/adapter";
+		import { setClientStarted } from "$houdini/plugins/houdini-plugin-svelte/runtime/adapter";
 		export let data;
 		onMount(() => setClientStarted());
 
@@ -35,7 +35,7 @@ test('modifies root +layout.svelte without data prop', async function () {
 		import { page } from "$app/stores";
 		import { extractSession, setClientSession } from "$houdini/runtime/lib/network";
 		import { onMount } from "svelte";
-		import { setClientStarted } from "$houdini/plugins/houdini-svelte/runtime/adapter";
+		import { setClientStarted } from "$houdini/plugins/houdini-plugin-svelte/runtime/adapter";
 		onMount(() => setClientStarted());
 
 		page.subscribe(val => {

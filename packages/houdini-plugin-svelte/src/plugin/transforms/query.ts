@@ -60,7 +60,7 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 		config: page.config,
 		script: page.script,
 		import: ['RequestContext'],
-		sourceModule: '$houdini/plugins/houdini-svelte/runtime/session',
+		sourceModule: '$houdini/plugins/houdini-plugin-svelte/runtime/session',
 	})
 
 	// import the browser check
@@ -68,7 +68,7 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 		config: page.config,
 		script: page.script,
 		import: ['isBrowser'],
-		sourceModule: '$houdini/plugins/houdini-svelte/runtime/adapter',
+		sourceModule: '$houdini/plugins/houdini-plugin-svelte/runtime/adapter',
 	})
 
 	// define the store values at the top of the file

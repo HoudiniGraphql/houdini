@@ -31,7 +31,7 @@ function process_root_layout_server(page: SvelteTransformPage) {
 		script: page.script,
 		config: page.config,
 		import: ['buildSessionObject'],
-		sourceModule: '$houdini/plugins/houdini-svelte/runtime/session',
+		sourceModule: '$houdini/plugins/houdini-plugin-svelte/runtime/session',
 	}).ids[0]
 
 	add_load_return(page, (event_id) => [

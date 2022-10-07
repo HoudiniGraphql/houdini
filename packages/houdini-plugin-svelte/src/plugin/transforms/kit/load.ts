@@ -158,7 +158,7 @@ function add_load({
 		script: page.script,
 		config: page.config,
 		import: ['RequestContext'],
-		sourceModule: '$houdini/plugins/houdini-svelte/runtime/session',
+		sourceModule: '$houdini/plugins/houdini-plugin-svelte/runtime/session',
 	})
 	ensure_imports({
 		script: page.script,
