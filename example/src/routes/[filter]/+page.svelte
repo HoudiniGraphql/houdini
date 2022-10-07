@@ -62,7 +62,6 @@
 	}
 </script>
 
-s
 <header class="header">
 	<a href="/">
 		<h1>todos</h1>
