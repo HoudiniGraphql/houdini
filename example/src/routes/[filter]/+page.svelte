@@ -1,32 +1,15 @@
 <script lang="ts">
 	import { page } from '$app/stores'
-	import { graphql, type AddItemStore, type AllItemsStore, type NewItemStore } from '$houdini'
+	import { graphql } from '$houdini'
+	import type { AddItemStore, NewItemStore } from '$houdini'
 	import ItemEntry from '$lib/ItemEntry.svelte'
 	import { derived } from 'svelte/store'
 
-	// load the items
-	const items: AllItemsStore = graphql`
-		query AllItems($completed: Boolean) @cache(policy: CacheOrNetwork) {
-			filteredItems: items(completed: $completed, first: 2)
-				@paginate(name: "Filtered_Items") {
-				edges {
-					node {
-						id
-						completed
-						...ItemEntry_item
-					}
-				}
-			}
-			allItems: items @list(name: "All_Items") {
-				edges {
-					node {
-						id
-						completed
-					}
-				}
-			}
-		}
-	`
+	import type { PageData } from './$houdini'
+
+	export let data: PageData
+	let { AllItems } = data
+	$: ({ AllItems } = data)
 
 	// state and handler for the new item input
 	const addItem: AddItemStore = graphql`
@@ -52,8 +35,10 @@
 
 	$: subscription.listen()
 
-	$: numberOfItems = $items.data?.allItems.edges.length || 0
-	$: itemsLeft = $items.data?.allItems.edges.filter(({ node: item }) => !item?.completed).length
+	$: numberOfItems = $AllItems.data?.allItems.edges.length || 0
+	$: itemsLeft = $AllItems.data?.allItems.edges.filter(
+		({ node: item }) => !item?.completed
+	).length
 
 	// figure out the current page
 	const currentPage = derived(page, ($page) => {
@@ -69,7 +54,7 @@
 	async function onBlur() {
 		if (inputValue) {
 			// trigger the mutation
-			await addItem({ input: { text: inputValue } })
+			await addItem.mutate({ input: { text: inputValue } })
 
 			// clear the input
 			inputValue = ''
@@ -82,9 +67,9 @@ s
 	<a href="/">
 		<h1>todos</h1>
 	</a>
-	{#if $pageInfo.hasNextPage}
+	{#if $AllItems.pageInfo.hasNextPage}
 		<nav>
-			<button on:click={() => loadNextPage()}>load more</button>
+			<button on:click={() => AllItems.loadNextPage()}>load more</button>
 		</nav>
 	{/if}
 	<input
@@ -98,7 +83,7 @@ s
 	<input id="toggle-all" class="toggle-all" type="checkbox" />
 	<label for="toggle-all">Mark all as complete</label>
 	<ul class="todo-list">
-		{#each $data?.filteredItems.edges ?? [] as edge (edge.node?.id)}
+		{#each $AllItems.data?.filteredItems.edges ?? [] as edge (edge.node?.id)}
 			<ItemEntry item={edge.node} />
 		{/each}
 	</ul>

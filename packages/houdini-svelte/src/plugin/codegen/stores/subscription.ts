@@ -13,7 +13,7 @@ export async function generateSubscriptionStore(
 	const artifactName = `${doc.name}`
 
 	// the content of the store
-	const storeContent = `import artifact from '../artifacts/${artifactName}'
+	const storeContent = `import artifact from '$houdini/artifacts/${artifactName}'
 import { SubscriptionStore } from '../runtime/stores'
 
 export class ${storeName} extends SubscriptionStore {
