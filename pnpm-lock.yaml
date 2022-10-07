@@ -131,6 +131,7 @@ importers:
             commander: ^9.4.0
             esbuild: ^0.15.10
             esbuild-plugin-alias: ^0.2.1
+            esbuild-plugin-replace: ^1.2.0
             glob: ^8.0.3
             glob-promise: ^5.0.0
             rollup: ^2.79.1
@@ -140,6 +141,7 @@ importers:
             commander: 9.4.0
             esbuild: 0.15.10
             esbuild-plugin-alias: 0.2.1
+            esbuild-plugin-replace: 1.2.0
             glob: 8.0.3
             glob-promise: 5.0.0_glob@8.0.3
             rollup: 2.79.1
@@ -3752,6 +3754,15 @@ packages:
             {
                 integrity: sha512-jyfL/pwPqaFXyKnj8lP8iLk6Z0m099uXR45aSN8Av1XD4vhvQutxxPzgA2bTcAwQpa1zCXDcWOlhFgyP3GKqhQ==,
             }
+        dev: false
+
+    /esbuild-plugin-replace/1.2.0:
+        resolution:
+            {
+                integrity: sha512-dYlDwjcKKgAi8fqsvLwDvO+03asnp1qyG4VU/qbvg061CIMfecF/qwkjr4QRetQP9Os2nJuNO95Y0rUUXhFAwg==,
+            }
+        dependencies:
+            magic-string: 0.25.9
         dev: false
 
     /esbuild-sunos-64/0.14.54:

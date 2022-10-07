@@ -1,7 +1,6 @@
 import glob from 'glob'
 import * as graphql from 'graphql'
 import path from 'path'
-import * as recast from 'recast'
 import { promisify } from 'util'
 
 import {
@@ -12,7 +11,6 @@ import {
 	parseJS,
 	HoudiniError,
 	Plugin,
-	siteURL,
 	fs,
 	CollectedGraphQLDocument,
 } from '../lib'
@@ -52,34 +50,8 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 		deleted: [],
 	}
 
-	// the last version the runtime was generated with
-	let previousVersion = ''
-	let newClientPath = false
-	let newTimestamp = false
-	const content = await fs.readFile(config.metaFilePath)
-	if (content) {
-		try {
-			const parsed = JSON.parse(content)
-			previousVersion = parsed.version + parsed.createdOn
-			newClientPath = parsed.client !== config.client
-
-			// look up the source metadata (so we can figure out if the version actually changed)
-			const sourceMeta = await fs.readFile(path.join(config.runtimeSource, 'meta.json'))
-			if (!sourceMeta) {
-				throw new Error('skip')
-			}
-
-			// if the two timestamps are not the same, we have a new version
-			newTimestamp = JSON.parse(sourceMeta).timestamp !== parsed.timestamp
-		} catch {}
-	}
-
 	// collect any plugins that need to do something after generating
 	const generatePlugins = config.plugins.filter((plugin) => plugin.generate)
-
-	// generate the runtime if the version changed, if its a new project, or they changed their client path
-	// const generateRuntime = newTimestamp || newClientPath || !previousVersion
-	const generateRuntime = true
 
 	// run the generate command before we print "🎩 Generating runtime..." because we don't know upfront artifactStats.
 	let error: Error | null = null
@@ -110,7 +82,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 
 				// the runtime is a static thing most of the time. It only needs to be regenerated if
 				// the user is upgrading versions or the client path changed
-				generateRuntime ? generators.runtime : null,
+				generators.runtime,
 				generators.indexFile,
 				generators.artifacts(artifactStats),
 				generators.typescript,
@@ -159,20 +131,8 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 		throw error
 	}
 
-	// if we detected a version change, we're nuking everything so don't bother with a summary
-	if (newTimestamp) {
-		console.log('💣 Detected new version of Houdini. Regenerating all documents...')
-		console.log('🎉 Welcome to HOUDINI_VERSION!')
-		// if the user is coming from a version pre-15, point them to the migration guide
-		const major = parseInt(previousVersion.split('.')[1])
-		if (major < 16) {
-			console.log(
-				`❓ For a description of what's changed, visit this guide: ${siteURL}/guides/release-notes`
-			)
-		}
-	}
 	// print a line showing that the process is finished (wo document)
-	else if (artifactStats.total.length === 0) {
+	if (artifactStats.total.length === 0) {
 		console.log(`💡 No operation found. If that's unexpected, please check your config.`)
 	}
 	// print summaries of the changes

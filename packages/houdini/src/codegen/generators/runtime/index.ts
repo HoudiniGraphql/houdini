@@ -15,7 +15,6 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 		addClientImport(config),
 		addConfigImport(config),
 		addSiteURL(config),
-		meta(config),
 	])
 }
 
@@ -103,20 +102,4 @@ async function addSiteURL(config: Config) {
 	}
 
 	await fs.writeFile(target, contents.replace('SITE_URL', siteURL))
-}
-
-async function meta(config: Config) {
-	// the path to the network file
-	const staticMeta = await fs.readFile(path.join(config.runtimeSource, 'meta.json'))
-	if (!staticMeta) {
-		return
-	}
-
-	await fs.writeFile(
-		config.metaFilePath,
-		JSON.stringify({
-			...JSON.parse(staticMeta),
-			client: config.client,
-		})
-	)
 }

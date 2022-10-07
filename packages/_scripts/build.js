@@ -1,4 +1,5 @@
 import esbuild from 'esbuild'
+import { replace } from 'esbuild-plugin-replace'
 import fs from 'fs/promises'
 import glob from 'glob-promise'
 import path from 'path'
@@ -6,6 +7,8 @@ import path from 'path'
 // the relevant directories
 const build_dir = path.join(process.cwd(), 'build')
 const src_dir = path.join(process.cwd(), 'src')
+
+const HOUDINI_VERSION = new Date().getDate().toString()
 
 // the function to build a project assuming the directory layout
 export default async function ({ plugin }) {
@@ -110,6 +113,11 @@ async function build({ source, bundle = true, plugin }) {
 				banner: {
 					js: header,
 				},
+				plugins: [
+					replace({
+						HOUDINI_VERSION,
+					}),
+				],
 			}
 
 			// if we are building, turn the source into a single file
