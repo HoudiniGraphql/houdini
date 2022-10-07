@@ -7,13 +7,13 @@ import { test, expect } from 'vitest'
 
 import runPipeline from '..'
 import '../..'
+import { pipeline_test, test_config } from '../../../test'
 import { stores_directory } from '../../kit'
 
-// the config to use in tests
-const config = testConfig()
-const plugin_root = config.pluginDirectory('test-plugin')
-
 test('generates a store for every query', async function () {
+	const config = await test_config()
+	const plugin_root = config.pluginDirectory('test-plugin')
+
 	// the documents to test
 	const docs: CollectedGraphQLDocument[] = [
 		mockCollectedDoc(`query TestQuery1 { version }`),
@@ -33,10 +33,9 @@ test('generates a store for every query', async function () {
 })
 
 test('basic store', async function () {
-	const docs = [mockCollectedDoc(`query TestQuery { version }`)]
+	const docs = [`query TestQuery { version }`]
 
-	// run the generator
-	await runPipeline({ config, documents: docs, plugin_root })
+	const { plugin_root } = await pipeline_test(docs)
 
 	const contents = await fs.readFile(path.join(stores_directory(plugin_root), 'TestQuery.js'))
 
@@ -48,7 +47,7 @@ test('basic store', async function () {
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
 		import { QueryStore } from '../runtime/stores'
-		import artifact from '../artifacts/TestQuery'
+		import artifact from '$houdini/artifacts/TestQuery'
 
 		// create the query store
 
@@ -79,12 +78,11 @@ test('basic store', async function () {
 })
 
 test('change globalStorePrefix to "yop___"', async function () {
-	const docs = [mockCollectedDoc(`query TestQuery { version }`)]
+	const docs = [`query TestQuery { version }`]
 
-	let configTweaked = testConfig()
-	configTweaked.globalStorePrefix = 'yop___'
-	// run the generator
-	await runPipeline({ config: configTweaked, documents: docs, plugin_root })
+	const { plugin_root } = await pipeline_test(docs, {
+		globalStorePrefix: 'yop___',
+	})
 
 	const contents = await fs.readFile(path.join(stores_directory(plugin_root), 'TestQuery.js'))
 
@@ -96,7 +94,7 @@ test('change globalStorePrefix to "yop___"', async function () {
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
 		import { QueryStore } from '../runtime/stores'
-		import artifact from '../artifacts/TestQuery'
+		import artifact from '$houdini/artifacts/TestQuery'
 
 		// create the query store
 
@@ -127,12 +125,11 @@ test('change globalStorePrefix to "yop___"', async function () {
 })
 
 test('change globalStorePrefix to ""', async function () {
-	const docs = [mockCollectedDoc(`query TestQuery { version }`)]
+	const docs = [`query TestQuery { version }`]
 
-	let configTweaked = testConfig()
-	configTweaked.globalStorePrefix = ''
-	// run the generator
-	await runPipeline({ config: configTweaked, documents: docs, plugin_root })
+	const { plugin_root } = await pipeline_test(docs, {
+		globalStorePrefix: '',
+	})
 
 	const contents = await fs.readFile(path.join(stores_directory(plugin_root), 'TestQuery.js'))
 
@@ -144,7 +141,7 @@ test('change globalStorePrefix to ""', async function () {
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
 		import { QueryStore } from '../runtime/stores'
-		import artifact from '../artifacts/TestQuery'
+		import artifact from '$houdini/artifacts/TestQuery'
 
 		// create the query store
 
@@ -175,14 +172,9 @@ test('change globalStorePrefix to ""', async function () {
 })
 
 test('store with required variables', async function () {
-	const docs = [
-		mockCollectedDoc(
-			`query TestQuery($intValue: Int!) { usersByOffset(offset: $intValue) { id }  }`
-		),
-	]
+	const docs = [`query TestQuery($intValue: Int!) { usersByOffset(offset: $intValue) { id }  }`]
 
-	// run the generator
-	await runPipeline({ config, documents: docs, plugin_root })
+	const { plugin_root } = await pipeline_test(docs)
 
 	const contents = await fs.readFile(path.join(stores_directory(plugin_root), 'TestQuery.js'))
 
@@ -194,7 +186,7 @@ test('store with required variables', async function () {
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
 		import { QueryStore } from '../runtime/stores'
-		import artifact from '../artifacts/TestQuery'
+		import artifact from '$houdini/artifacts/TestQuery'
 
 		// create the query store
 
@@ -225,14 +217,9 @@ test('store with required variables', async function () {
 })
 
 test('store with nullable variables', async function () {
-	const docs = [
-		mockCollectedDoc(
-			`query TestQuery($intValue: Int) { usersByOffset(offset: $intValue) { id }  }`
-		),
-	]
+	const docs = [`query TestQuery($intValue: Int) { usersByOffset(offset: $intValue) { id }  }`]
 
-	// run the generator
-	await runPipeline({ config, documents: docs, plugin_root })
+	const { plugin_root } = await pipeline_test(docs)
 
 	const contents = await fs.readFile(path.join(stores_directory(plugin_root), 'TestQuery.js'))
 
@@ -244,7 +231,7 @@ test('store with nullable variables', async function () {
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
 		import { QueryStore } from '../runtime/stores'
-		import artifact from '../artifacts/TestQuery'
+		import artifact from '$houdini/artifacts/TestQuery'
 
 		// create the query store
 
@@ -276,13 +263,10 @@ test('store with nullable variables', async function () {
 
 test('store with non-null variables with default value', async function () {
 	const docs = [
-		mockCollectedDoc(
-			`query TestQuery($intValue: Int = 2) { usersByOffset(offset: $intValue) { id }  }`
-		),
+		`query TestQuery($intValue: Int = 2) { usersByOffset(offset: $intValue) { id }  }`,
 	]
 
-	// run the generator
-	await runPipeline({ config, documents: docs, plugin_root })
+	const { plugin_root } = await pipeline_test(docs)
 
 	const contents = await fs.readFile(path.join(stores_directory(plugin_root), 'TestQuery.js'))
 
@@ -294,7 +278,7 @@ test('store with non-null variables with default value', async function () {
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
 		import { QueryStore } from '../runtime/stores'
-		import artifact from '../artifacts/TestQuery'
+		import artifact from '$houdini/artifacts/TestQuery'
 
 		// create the query store
 
@@ -326,7 +310,7 @@ test('store with non-null variables with default value', async function () {
 
 test('forward cursor pagination', async function () {
 	const docs = [
-		mockCollectedDoc(`query TestQuery {
+		`query TestQuery {
 		usersByForwardsCursor(first: 10) @paginate {
 			edges {
 				node {
@@ -334,11 +318,10 @@ test('forward cursor pagination', async function () {
 				}
 			}
 		}
-	}`),
+	}`,
 	]
 
-	// run the generator
-	await runPipeline({ config, documents: docs, plugin_root })
+	const { plugin_root } = await pipeline_test(docs)
 
 	const contents = await fs.readFile(path.join(stores_directory(plugin_root), 'TestQuery.js'))
 
@@ -350,7 +333,7 @@ test('forward cursor pagination', async function () {
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
 		import { QueryStoreForwardCursor } from '../runtime/stores'
-		import artifact from '../artifacts/TestQuery'
+		import artifact from '$houdini/artifacts/TestQuery'
 
 		// create the query store
 
@@ -382,7 +365,7 @@ test('forward cursor pagination', async function () {
 
 test('backwards cursor pagination', async function () {
 	const docs = [
-		mockCollectedDoc(`query TestQuery {
+		`query TestQuery {
 		usersByBackwardsCursor(last: 10) @paginate {
 			edges {
 				node {
@@ -390,11 +373,10 @@ test('backwards cursor pagination', async function () {
 				}
 			}
 		}
-	}`),
+	}`,
 	]
 
-	// run the generator
-	await runPipeline({ config, documents: docs, plugin_root })
+	const { plugin_root } = await pipeline_test(docs)
 
 	const contents = await fs.readFile(path.join(stores_directory(plugin_root), 'TestQuery.js'))
 
@@ -406,7 +388,7 @@ test('backwards cursor pagination', async function () {
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
 		import { QueryStoreBackwardCursor } from '../runtime/stores'
-		import artifact from '../artifacts/TestQuery'
+		import artifact from '$houdini/artifacts/TestQuery'
 
 		// create the query store
 
@@ -438,15 +420,14 @@ test('backwards cursor pagination', async function () {
 
 test('offset pagination', async function () {
 	const docs = [
-		mockCollectedDoc(`query TestQuery {
-		usersByOffset(limit: 10) @paginate {
-			id
-		}
-	}`),
+		`query TestQuery {
+			usersByOffset(limit: 10) @paginate {
+				id
+			}
+		}`,
 	]
 
-	// run the generator
-	await runPipeline({ config, documents: docs, plugin_root })
+	const { plugin_root } = await pipeline_test(docs)
 
 	const contents = await fs.readFile(path.join(stores_directory(plugin_root), 'TestQuery.js'))
 
@@ -458,7 +439,7 @@ test('offset pagination', async function () {
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
 		import { QueryStoreOffset } from '../runtime/stores'
-		import artifact from '../artifacts/TestQuery'
+		import artifact from '$houdini/artifacts/TestQuery'
 
 		// create the query store
 
@@ -490,7 +471,7 @@ test('offset pagination', async function () {
 
 test('does not generate pagination store', async function () {
 	const docs = [
-		mockCollectedDoc(`query TestQuery {
+		`query TestQuery {
 		usersByBackwardsCursor(last: 10) @paginate {
 			edges {
 				node {
@@ -498,11 +479,10 @@ test('does not generate pagination store', async function () {
 				}
 			}
 		}
-	}`),
+	}`,
 	]
 
-	// run the generator
-	await runPipeline({ config, documents: docs, plugin_root })
+	const { plugin_root, config } = await pipeline_test(docs)
 
 	await expect(
 		fs.stat(

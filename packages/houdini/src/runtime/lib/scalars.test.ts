@@ -2,7 +2,7 @@ import { test, expect, describe, beforeEach } from 'vitest'
 
 import { testConfigFile } from '../../test'
 import { setMockConfig } from './config'
-import { marshalSelection, unmarshalSelection } from './scalars'
+import { marshalInputs, marshalSelection, unmarshalSelection } from './scalars'
 import { ArtifactKind, QueryArtifact } from './types'
 
 beforeEach(() =>
@@ -21,13 +21,6 @@ beforeEach(() =>
 		},
 	})
 )
-
-// @ts-ignore
-// a mock request context
-const ctx = new RequestContext({
-	fetch: (() => {}) as unknown as (input: RequestInfo, init?: RequestInit) => Promise<any>,
-	params: {},
-})
 
 // the test artifact
 const artifact: QueryArtifact = {
@@ -101,23 +94,21 @@ describe('marshal inputs', function () {
 		const date3 = new Date(2)
 
 		// compute the inputs
-		const inputs = await ctx.computeInput({
+		const inputs = await marshalInputs({
 			artifact,
-			variableFunction() {
-				return {
-					date: [
-						{
-							date: date1,
+			input: {
+				date: [
+					{
+						date: date1,
+						nested: {
+							date: date2,
 							nested: {
-								date: date2,
-								nested: {
-									date: date3,
-									enumValue: 'asdf',
-								},
+								date: date3,
+								enumValue: 'asdf',
 							},
 						},
-					],
-				}
+					},
+				],
 			},
 		})
 
@@ -144,16 +135,15 @@ describe('marshal inputs', function () {
 		const date2 = new Date(1)
 
 		// compute the inputs
-		const inputs = await ctx.computeInput({
+
+		const inputs = await marshalInputs({
 			artifact,
-			variableFunction() {
-				return {
-					date: [
-						{
-							dates: [date1, date2],
-						},
-					],
-				}
+			input: {
+				date: [
+					{
+						dates: [date1, date2],
+					},
+				],
 			},
 		})
 
@@ -169,16 +159,15 @@ describe('marshal inputs', function () {
 
 	test('empty list of scalars', async function () {
 		// compute the inputs
-		const inputs = await ctx.computeInput({
+
+		const inputs = await marshalInputs({
 			artifact,
-			variableFunction() {
-				return {
-					date: [
-						{
-							dates: [],
-						},
-					],
-				}
+			input: {
+				date: [
+					{
+						dates: [],
+					},
+				],
 			},
 		})
 
@@ -194,12 +183,11 @@ describe('marshal inputs', function () {
 
 	test('root fields', async function () {
 		// compute the inputs
-		const inputs = await ctx.computeInput({
+
+		const inputs = await marshalInputs({
 			artifact,
-			variableFunction() {
-				return {
-					booleanValue: true,
-				}
+			input: {
+				booleanValue: true,
 			},
 		})
 
@@ -211,14 +199,13 @@ describe('marshal inputs', function () {
 
 	test('non-custom scalar fields of objects', async function () {
 		// compute the inputs
-		const inputs = await ctx.computeInput({
+
+		const inputs = await marshalInputs({
 			artifact,
-			variableFunction() {
-				return {
-					date: {
-						name: 'hello',
-					},
-				}
+			input: {
+				date: {
+					name: 'hello',
+				},
 			},
 		})
 
@@ -232,16 +219,15 @@ describe('marshal inputs', function () {
 
 	test('non-custom scalar fields of lists', async function () {
 		// compute the inputs
-		const inputs = await ctx.computeInput({
+
+		const inputs = await marshalInputs({
 			artifact,
-			variableFunction() {
-				return {
-					date: [
-						{
-							name: 'hello',
-						},
-					],
-				}
+			input: {
+				date: [
+					{
+						name: 'hello',
+					},
+				],
 			},
 		})
 
@@ -257,12 +243,11 @@ describe('marshal inputs', function () {
 
 	test('null', async function () {
 		// compute the inputs
-		const inputs = await ctx.computeInput({
+
+		const inputs = await marshalInputs({
 			artifact,
-			variableFunction() {
-				return {
-					date: null,
-				}
+			input: {
+				date: null,
 			},
 		})
 
@@ -274,12 +259,11 @@ describe('marshal inputs', function () {
 
 	test('undefined', async function () {
 		// compute the inputs
-		const inputs = await ctx.computeInput({
+
+		const inputs = await marshalInputs({
 			artifact,
-			variableFunction() {
-				return {
-					date: undefined,
-				}
+			input: {
+				date: undefined,
 			},
 		})
 
@@ -291,12 +275,11 @@ describe('marshal inputs', function () {
 
 	test('enums', async function () {
 		// compute the inputs
-		const inputs = await ctx.computeInput({
+
+		const inputs = await marshalInputs({
 			artifact,
-			variableFunction() {
-				return {
-					enumValue: 'ValueA',
-				}
+			input: {
+				enumValue: 'ValueA',
 			},
 		})
 
@@ -308,12 +291,11 @@ describe('marshal inputs', function () {
 
 	test('list of enums', async function () {
 		// compute the inputs
-		const inputs = await ctx.computeInput({
+
+		const inputs = await marshalInputs({
 			artifact,
-			variableFunction() {
-				return {
-					enumValue: ['ValueA', 'ValueB'],
-				}
+			input: {
+				enumValue: ['ValueA', 'ValueB'],
 			},
 		})
 

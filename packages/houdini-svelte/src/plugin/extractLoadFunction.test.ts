@@ -1,7 +1,8 @@
 import { fs } from 'houdini'
-import { testConfig } from 'houdini/test'
+import path from 'path'
 import { test, describe, expect } from 'vitest'
 
+import { test_config } from '../test'
 import { extract_load_function } from './extractLoadFunction'
 
 describe('extract_load_function', function () {
@@ -224,11 +225,12 @@ describe('extract_load_function', function () {
 		},
 	]
 
-	const config = testConfig()
-
 	for (const row of table) {
 		test(row.title, async function () {
+			const config = await test_config()
+
 			const targetPath = 'src/routes/foo'
+			await fs.mkdirp(path.dirname(targetPath))
 			await fs.writeFile(targetPath, row.source)
 
 			const artifacts = Object.fromEntries(

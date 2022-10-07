@@ -146,7 +146,7 @@ test('generates types for after load', async function () {
 		type AfterLoadReturn = ReturnType<typeof import("./+page").afterLoad>;
 
 		type AfterLoadData = {
-		    MyPageLoad1Query: MyPageLoad1Query$result,
+		    MyPageLoad1Query: MyPageLoad1Query$result
 		    MyPageLoad2Query: MyPageLoad2Query$result
 		};
 
@@ -155,13 +155,13 @@ test('generates types for after load', async function () {
 		};
 
 		export type AfterLoadEvent = {
-		    event: PageLoadEvent,
-		    data: AfterLoadData,
+		    event: PageLoadEvent
+		    data: AfterLoadData
 		    input: LoadInput
 		};
 
 		export type PageData = {
-		    MyPageLoad1Query: MyPageLoad1QueryStore,
+		    MyPageLoad1Query: MyPageLoad1QueryStore
 		    MyPageLoad2Query: MyPageLoad2QueryStore
 		} & AfterLoadReturn;
 	`)
@@ -221,15 +221,15 @@ test('generates types for onError', async function () {
 		export type MyPageLoad1QueryVariables = VariableFunction<Params, MyPageLoad1Query$input>;
 
 		export type OnErrorEvent = {
-		    event: LoadEvent,
-		    input: LoadInput,
+		    event: LoadEvent
+		    input: LoadInput
 		    error: Error | Error[]
 		};
 
 		type OnErrorReturn = ReturnType<typeof import("./+page").onError>;
 
 		export type PageData = {
-		    MyPageLoad1Query: MyPageLoad1QueryStore,
+		    MyPageLoad1Query: MyPageLoad1QueryStore
 		    MyPageLoad2Query: MyPageLoad2QueryStore
 		} & OnErrorReturn;
 	`)

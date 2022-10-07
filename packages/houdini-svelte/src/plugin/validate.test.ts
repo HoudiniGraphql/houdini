@@ -2,6 +2,8 @@ import { CollectedGraphQLDocument } from 'houdini'
 import { pipelineTest } from 'houdini/test'
 import { describe, test } from 'vitest'
 
+import { test_config } from '../test'
+
 const table: Row[] = [
 	{
 		title: 'QueryStore',
@@ -85,10 +87,9 @@ type Row =
 			check?: (result: Error | Error[]) => void
 	  }
 
-describe('validate checks', function () {
+describe('validate checks', async function () {
 	// run the tests
 	for (const { title, pass, documents, check } of table) {
-		test(title, pipelineTest(documents, pass, check))
-		// run the pipeline over the documents
+		test(title, pipelineTest(await test_config(), documents, pass, check))
 	}
 })

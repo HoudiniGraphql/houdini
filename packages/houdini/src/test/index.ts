@@ -196,6 +196,7 @@ type Partial<T> = {
 }
 
 export function pipelineTest(
+	config: Config,
 	documents: string[],
 	shouldPass: boolean,
 	testBody?: ((result: Error | Error[]) => void) | ((docs: CollectedGraphQLDocument[]) => void)
@@ -209,7 +210,7 @@ export function pipelineTest(
 
 		try {
 			// apply the transforms
-			await runPipeline(testConfig(), docs)
+			await runPipeline(config, docs)
 		} catch (e) {
 			// only bubble the error up if we're supposed to pass the test
 			if (shouldPass) {
@@ -279,9 +280,10 @@ export function mockCollectedDoc(query: string): CollectedGraphQLDocument {
 }
 
 export function clearMock() {
+	vol.reset()
+
 	const config = testConfig()
 
-	vol.reset()
 	fs.mkdirpSync(path.join(process.cwd(), 'src', 'routes'))
 	fs.mkdirpSync(path.join(process.cwd(), 'src', 'lib'))
 	config.createDirectories()

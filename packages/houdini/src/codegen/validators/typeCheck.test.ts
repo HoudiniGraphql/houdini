@@ -1,7 +1,7 @@
 import { test, expect, describe } from 'vitest'
 
 import { CollectedGraphQLDocument } from '../../lib/types'
-import { pipelineTest } from '../../test'
+import { pipelineTest, testConfig } from '../../test'
 
 // since generation will catch a lot of these errors for us, the goal of these tests is to make sure
 // errors are caught __before__ we get to the generation stage. This means that our failure tests
@@ -887,6 +887,7 @@ for (const { title, pass, documents, check } of table) {
 		test(
 			title,
 			pipelineTest(
+				testConfig(),
 				documents,
 				pass,
 				pass

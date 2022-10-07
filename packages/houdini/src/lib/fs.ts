@@ -1,7 +1,8 @@
 import fsExtra from 'fs-extra'
 import fs from 'fs/promises'
-import { fs as memfs } from 'memfs'
+import { fs as memfs, vol } from 'memfs'
 import path from 'path'
+import { promisify } from 'util'
 
 export async function readFile(filepath: string): Promise<string | null> {
 	if (process.env.NODE_ENV === 'test') {
@@ -109,9 +110,7 @@ export async function rmdir(filepath: string) {
 		})
 	}
 
-	return memfs.rmSync(filepath, {
-		recursive: true,
-	})
+	return await promisify(memfs.rmdir)(filepath)
 }
 
 export async function stat(filepath: string) {
@@ -146,7 +145,11 @@ export async function readdir(filepath: string): Promise<string[]> {
 		return await fs.readdir(filepath)
 	}
 
-	return memfs.readdirSync(filepath) as string[]
+	try {
+		return memfs.readdirSync(filepath) as string[]
+	} catch {
+		return []
+	}
 }
 
 export async function remove(filepath: string) {
@@ -155,7 +158,7 @@ export async function remove(filepath: string) {
 		return await fs.rm(filepath)
 	}
 
-	return memfs.rmSync(filepath)
+	return vol.rmSync(filepath)
 }
 
 type MockFilesystem = { [key: string]: string | MockFilesystem }

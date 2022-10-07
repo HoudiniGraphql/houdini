@@ -20,6 +20,10 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 }
 
 async function generatePluginRuntime(config: Config, name: string) {
+	if (process.env.TEST) {
+		return
+	}
+
 	// a plugin with a generated runtime has something at <dir>/build/runtime-{esm,cjs}
 
 	// find the location of the plugin

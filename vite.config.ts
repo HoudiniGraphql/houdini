@@ -7,9 +7,11 @@ export default defineConfig({
 		include: ['./packages/*/src/**/*.test.{ts,js}'],
 		setupFiles: [path.resolve('./vitest.setup.ts')],
 		alias: {
-			$houdini: path.resolve('./packages/houdini/src/runtime'),
-			houdini: './packages/houdini/src/lib',
-			'houdini/*': './packages/houdini/src/*',
+			$houdini: path.resolve('./packages/houdini/src'),
+			'houdini/test': path.resolve('./packages/houdini/src/test'),
+			'houdini/vite': path.resolve('./packages/houdini/src/vite'),
+			'houdini/codegen': path.resolve('./packages/houdini/src/codegen'),
+			houdini: path.resolve('./packages/houdini/src/lib'),
 		},
 	},
 })

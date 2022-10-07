@@ -1,24 +1,21 @@
 import * as graphql from 'graphql'
-import { toMatchInlineSnapshot } from 'jest-snapshot'
 import path from 'path'
 import * as recast from 'recast'
 import typeScriptParser from 'recast/parsers/typescript'
-import { expect, afterEach } from 'vitest'
+import { expect, afterEach, beforeEach } from 'vitest'
 
-import { parseJS, fs } from './packages/houdini/src/lib'
+import { fs } from './packages/houdini/src/lib'
 import { clearMock, testConfig } from './packages/houdini/src/test'
 
 process.env.TEST = 'true'
 
-clearMock()
-
-afterEach(clearMock)
+beforeEach(clearMock)
 
 const config = testConfig()
 
 // serialize artifact references
 expect.addSnapshotSerializer({
-	test: (val) => val.document && fs.existsSync(config.artifactPath(val.document)),
+	test: (val) => val?.document && fs.existsSync(config.artifactPath(val.document)),
 	serialize(value) {
 		// assuming that the value we were given is a collected document, figure
 		// out the path holding the artifact

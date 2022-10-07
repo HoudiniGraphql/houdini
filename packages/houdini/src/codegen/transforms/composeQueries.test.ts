@@ -2,7 +2,7 @@ import * as graphql from 'graphql'
 import { expect, test } from 'vitest'
 
 import { CollectedGraphQLDocument } from '../../lib'
-import { pipelineTest } from '../../test'
+import { pipelineTest, testConfig } from '../../test'
 
 const start = [
 	`
@@ -26,7 +26,7 @@ const start = [
 
 test(
 	'include fragment definitions',
-	pipelineTest(start, true, function (docs: CollectedGraphQLDocument[]) {
+	pipelineTest(testConfig(), start, true, function (docs: CollectedGraphQLDocument[]) {
 		// we only care about the Foo document
 		const fooDoc = docs.find((doc) => doc.name === 'Foo')!
 

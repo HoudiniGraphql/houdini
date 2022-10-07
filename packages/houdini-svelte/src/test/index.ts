@@ -1,7 +1,9 @@
-import { ConfigFile, fs, parseJS, Script } from 'houdini'
-import { testConfig } from 'houdini/test'
+import { CollectedGraphQLDocument, Config, ConfigFile, fs, parseJS, Script } from 'houdini'
+import { runPipeline } from 'houdini/codegen'
+import { mockCollectedDoc, testConfig } from 'houdini/test'
 import path from 'path'
 
+import plugin from '../plugin'
 import { parseSvelte } from '../plugin/extract'
 import { page_query_path, route_data_path } from '../plugin/kit'
 import runTransforms from '../plugin/transforms'
@@ -19,6 +21,40 @@ const schema = `
 		addUser: User
 	}
 `
+
+export async function test_config(extraConfig: Partial<ConfigFile> = {}) {
+	const config = testConfig(extraConfig)
+	const svelte_plugin = await plugin()
+	config.plugins.push({
+		...svelte_plugin,
+		include_runtime: true,
+		name: 'houdini-svelte',
+	})
+	return config
+}
+
+export async function pipeline_test(
+	documents: string[],
+	extra_config?: Partial<ConfigFile>
+): Promise<{
+	plugin_root: string
+	docs: CollectedGraphQLDocument[]
+	config: Config
+}> {
+	const config = await test_config(extra_config)
+
+	// the first thing to do is to create the list of collected documents
+	const docs: CollectedGraphQLDocument[] = documents.map(mockCollectedDoc)
+
+	// apply the transforms
+	await runPipeline(config, docs)
+
+	return {
+		plugin_root: config.pluginDirectory('houdini-svelte'),
+		docs,
+		config,
+	}
+}
 
 export async function route_test({
 	component = '',
@@ -41,7 +77,7 @@ export async function route_test({
 	layout_script: Script | null
 }> {
 	// build up the document we'll pass to the processor
-	const config = testConfig({ schema, ...extra })
+	const config = await test_config({ schema, ...extra })
 
 	// scripts live in src/routes/+page.svelte
 	const filepath = path.join(process.cwd(), 'src/routes', '+page.svelte')
@@ -102,7 +138,7 @@ export async function component_test(
 	extra?: Partial<ConfigFile>
 ): Promise<Script | null> {
 	// build up the document we'll pass to the processor
-	const config = testConfig({ schema, ...extra })
+	const config = await test_config({ schema, ...extra })
 
 	// routes live in src/routes/+page.svelte
 	const filepath = path.join(process.cwd(), 'src/lib', 'component.svelte')
@@ -125,7 +161,7 @@ export async function component_test(
 
 export async function test_transform_svelte(filepath: string, content: string) {
 	// build up the document we'll pass to the processor
-	const config = testConfig({ schema })
+	const config = await test_config({ schema })
 
 	// write the content
 	filepath = path.join(config.projectRoot, filepath)
@@ -146,7 +182,7 @@ export async function test_transform_svelte(filepath: string, content: string) {
 
 export async function test_transform_js(filepath: string, content: string) {
 	// build up the document we'll pass to the processor
-	const config = testConfig({ schema })
+	const config = await test_config({ schema })
 
 	// write the content
 	filepath = path.join(config.projectRoot, filepath)

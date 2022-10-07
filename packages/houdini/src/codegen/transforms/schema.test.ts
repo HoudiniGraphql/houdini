@@ -1,6 +1,6 @@
 import { describe, test } from 'vitest'
 
-import { pipelineTest } from '../../test'
+import { pipelineTest, testConfig } from '../../test'
 
 describe('schema transform', function () {
 	// we'll test the schema additions by pushing some documents through
@@ -131,6 +131,6 @@ describe('schema transform', function () {
 	]
 
 	for (const row of table) {
-		test(row.title, pipelineTest(row.documents, row.pass))
+		test(row.title, pipelineTest(testConfig(), row.documents, row.pass))
 	}
 })
