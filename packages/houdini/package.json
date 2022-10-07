@@ -4,7 +4,7 @@
     "description": "The svelte plugin for houdini",
     "type": "module",
     "scripts": {
-        "build": "scripts build",
+        "compile": "scripts build",
         "typedefs": "scripts typedefs"
     },
     "devDependencies": {
