@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
-import { routes } from '../../../lib/utils/routes';
-import { expect_1_gql, goto } from '../../../lib/utils/testsHelper';
+import { routes } from '../../../lib/utils/routes.js';
+import { expect_1_gql, goto } from '../../../lib/utils/testsHelper.js';
 
 test.describe('Mutation Update Page', () => {
   test('Right Data, mutation, list update, revet', async ({ page }) => {

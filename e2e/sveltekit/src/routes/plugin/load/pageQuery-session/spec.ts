@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
-import { routes } from '../../../../lib/utils/routes';
-import { expectToBe, expect_0_gql } from '../../../../lib/utils/testsHelper';
+import { routes } from '../../../../lib/utils/routes.js';
+import { expectToBe, expect_0_gql } from '../../../../lib/utils/testsHelper.js';
 
 test.describe('Page Query with Session', () => {
   test('No GraphQL request & Should display the session token', async ({ page }) => {

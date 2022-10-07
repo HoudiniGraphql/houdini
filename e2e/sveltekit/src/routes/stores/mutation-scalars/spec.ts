@@ -1,5 +1,5 @@
-import { routes } from '../../../lib/utils/routes';
-import { expect_1_gql, goto, expectToBe } from '../../../lib/utils/testsHelper';
+import { routes } from '../../../lib/utils/routes.js';
+import { expect_1_gql, goto, expectToBe } from '../../../lib/utils/testsHelper.js';
 import { test } from '@playwright/test';
 
 test.describe('mutation store', function () {

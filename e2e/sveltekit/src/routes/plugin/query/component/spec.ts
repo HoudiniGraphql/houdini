@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
-import { routes } from '../../../../lib/utils/routes';
-import { expectToBe, goto_expect_n_gql } from '../../../../lib/utils/testsHelper';
+import { routes } from '../../../../lib/utils/routes.js';
+import { expectToBe, goto_expect_n_gql } from '../../../../lib/utils/testsHelper.js';
 
 test.describe('query preprocessor', () => {
   test('component queries', async ({ page }) => {

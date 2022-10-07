@@ -1,12 +1,12 @@
 import { test } from '@playwright/test';
-import { routes } from '../../../../lib/utils/routes';
+import { routes } from '../../../../lib/utils/routes.js';
 import {
   expect_1_gql,
   expect_0_gql,
   expectToBe,
   expectToContain,
   goto
-} from '../../../../lib/utils/testsHelper';
+} from '../../../../lib/utils/testsHelper.js';
 
 test.describe('forwards cursor paginatedFragment', () => {
   test('loadNextPage', async ({ page }) => {

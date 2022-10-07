@@ -1,5 +1,5 @@
 import { load_User } from '$houdini';
-import { routes } from '$lib/utils/routes';
+import { routes } from '$lib/utils/routes.js';
 import { redirect } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 

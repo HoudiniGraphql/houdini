@@ -1,10 +1,10 @@
-import { routes } from '../../../../lib/utils/routes';
+import { routes } from '../../../../lib/utils/routes.js';
 import {
   clientSideNavigation,
   expectToBe,
   goto,
   locator_click
-} from '../../../../lib/utils/testsHelper';
+} from '../../../../lib/utils/testsHelper.js';
 import { sleep } from '@kitql/helper';
 import { test } from '@playwright/test';
 

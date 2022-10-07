@@ -2,7 +2,7 @@
   import { browser } from '$app/environment';
   import { graphql } from '$houdini';
   import cache from '$houdini/runtime/cache';
-  import { routes } from '$lib/utils/routes';
+  import { routes } from '$lib/utils/routes.js';
 
   if (browser) {
     // @ts-ignore

@@ -1,12 +1,12 @@
 import { expect, test } from '@playwright/test';
-import { routes } from '../../../lib/utils/routes';
+import { routes } from '../../../lib/utils/routes.js';
 import {
   expect_n_gql,
   expect_0_gql,
   expectToBe,
   goto,
   navSelector
-} from '../../../lib/utils/testsHelper';
+} from '../../../lib/utils/testsHelper.js';
 
 test.describe('SSR Page', () => {
   test('No GraphQL request & response happen (SSR)', async ({ page }) => {

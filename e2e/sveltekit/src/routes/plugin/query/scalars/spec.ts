@@ -1,11 +1,11 @@
-import { routes } from '../../../../lib/utils/routes';
+import { routes } from '../../../../lib/utils/routes.js';
 import {
   expectToBe,
   goto,
   navSelector,
   clientSideNavigation,
   expect_0_gql
-} from '../../../../lib/utils/testsHelper';
+} from '../../../../lib/utils/testsHelper.js';
 import { test } from '@playwright/test';
 
 test.describe('query preprocessor variables', () => {
