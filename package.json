@@ -23,13 +23,15 @@
 	},
 	"devDependencies": {
 		"@trivago/prettier-plugin-sort-imports": "^3.3.0",
+		"@vitest/ui": "^0.23.4",
 		"prettier": "^2.5.1",
 		"turbo": "^1.5.4",
 		"vite": "^3.1.4",
-		"vitest": "^0.23.4"
-	},
-	"dependencies": {
+		"vitest": "0.23.2",
 		"fs-extra": "^10.1.0",
-		"memfs": "^3.4.7"
+		"graphql": "^16.6.0",
+		"jest-snapshot": "^29.1.2",
+		"memfs": "^3.4.7",
+		"recast": "^0.21.5"
 	}
 }
