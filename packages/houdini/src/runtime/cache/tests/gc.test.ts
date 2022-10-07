@@ -1,6 +1,6 @@
 import { test, vi, expect } from 'vitest'
 
-import { testConfigFile } from '../../../common'
+import { testConfigFile } from '../../../test'
 import { Cache } from '../cache'
 
 const config = testConfigFile()

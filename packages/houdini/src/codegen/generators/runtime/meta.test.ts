@@ -1,7 +1,8 @@
 import { test, expect } from 'vitest'
 
 import { runPipeline } from '../..'
-import { readFile, testConfig } from '../../../../lib'
+import { fs } from '../../../lib'
+import { testConfig } from '../../../test'
 
 test('generates runtime meta data file', async function () {
 	const config = testConfig()
@@ -9,7 +10,7 @@ test('generates runtime meta data file', async function () {
 	await runPipeline(config, [])
 
 	// open up the index file
-	const fileContents = await readFile(config.metaFilePath)
+	const fileContents = await fs.readFile(config.metaFilePath)
 
 	expect(fileContents).toBeTruthy()
 	// verify contents

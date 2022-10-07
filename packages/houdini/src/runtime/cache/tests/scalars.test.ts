@@ -1,6 +1,6 @@
 import { test, expect } from 'vitest'
 
-import { testConfigFile } from '../../../common'
+import { testConfigFile } from '../../../test'
 import { SubscriptionSelection } from '../../lib/types'
 import { Cache, rootID } from '../cache'
 

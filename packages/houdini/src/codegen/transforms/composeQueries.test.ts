@@ -1,8 +1,8 @@
 import * as graphql from 'graphql'
 import { expect } from 'vitest'
 
-import { pipelineTest } from '../testUtils'
-import { CollectedGraphQLDocument } from '../types'
+import { CollectedGraphQLDocument } from '../../lib'
+import { pipelineTest } from '../../test'
 
 const start = [
 	`

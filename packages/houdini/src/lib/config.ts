@@ -807,8 +807,8 @@ This will prevent your schema from being pulled (potentially resulting in errors
 	// load the svelte plugin if necessary
 	if (['kit', 'svelte'].includes(_config.framework)) {
 		try {
-			// look for the houdini-plugin-svelte module
-			const sveltePluginDir = _config.findModule('houdini-plugin-svelte')
+			// look for the houdini-svelte module
+			const sveltePluginDir = _config.findModule('houdini-svelte')
 			const { default: sveltePlugin }: { default: PluginFactory } = await import(
 				pathToFileURL(sveltePluginDir).toString() + '/build/plugin-esm/index.js'
 			)
@@ -820,13 +820,13 @@ This will prevent your schema from being pulled (potentially resulting in errors
 
 			_config.plugins.push({
 				...(await sveltePlugin()),
-				name: 'houdini-plugin-svelte',
+				name: 'houdini-svelte',
 				include_runtime,
 			})
 		} catch (e) {
 			console.log(e)
 			throw new Error(
-				'Looks like you are missing the houdini-plugin-svelte plugin. Please install it and try again.'
+				'Looks like you are missing the houdini-svelte plugin. Please install it and try again.'
 			)
 		}
 	}

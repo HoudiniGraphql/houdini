@@ -5,9 +5,8 @@ import * as typeScriptParser from 'recast/parsers/typescript'
 import { test, expect } from 'vitest'
 
 import { runPipeline } from '../..'
-import { readFile, testConfig } from '../../../../lib'
-import { mockCollectedDoc } from '../../testUtils'
-import { CollectedGraphQLDocument } from '../../types'
+import { fs, CollectedGraphQLDocument } from '../../../lib'
+import { mockCollectedDoc, testConfig } from '../../../test'
 
 // the config to use in tests
 const config = testConfig()
@@ -23,7 +22,7 @@ test('generates runtime definitions for each enum', async function () {
 	await runPipeline(config, [])
 
 	// load the contents of the type definitions file
-	let fileContents = await readFile(path.join(config.enumTypesDefinitionsPath))
+	let fileContents = await fs.readFile(path.join(config.enumTypesDefinitionsPath))
 	expect(fileContents).toBeTruthy()
 	let parsedQuery: ProgramKind = recast.parse(fileContents!.toString(), {
 		parser: typeScriptParser,
@@ -42,7 +41,7 @@ test('generates runtime definitions for each enum', async function () {
 	`)
 
 	// load the contents of the type definitions file
-	fileContents = await readFile(path.join(config.enumRuntimeDefinitionsPath))
+	fileContents = await fs.readFile(path.join(config.enumRuntimeDefinitionsPath))
 
 	expect(fileContents).toBeTruthy()
 	parsedQuery = recast.parse(fileContents!.toString(), {

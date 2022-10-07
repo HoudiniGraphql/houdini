@@ -1,6 +1,6 @@
 import { Config, HoudiniError, CollectedGraphQLDocument } from 'houdini'
 
-import { store_name } from '../plugin/kit'
+import { store_name } from './kit'
 
 // uniqueDocumentNames verifies that the documents all have unique names
 export default async function validateDocuments({

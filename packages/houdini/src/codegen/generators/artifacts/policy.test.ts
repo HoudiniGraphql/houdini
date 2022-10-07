@@ -1,9 +1,8 @@
 import { test, expect } from 'vitest'
 
 import { runPipeline } from '../..'
-import { testConfig } from '../../../../lib'
-import { CachePolicy } from '../../../../runtime/lib'
-import { mockCollectedDoc } from '../../testUtils'
+import { CachePolicy } from '../../../runtime/lib'
+import { testConfig, mockCollectedDoc } from '../../../test'
 
 // the config to use in tests
 const config = testConfig()

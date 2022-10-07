@@ -4,7 +4,7 @@ import { ensure_imports } from 'houdini/vite'
 import path from 'path'
 import recast from 'recast'
 
-import { parseSvelte } from '../plugin/extract'
+import { parseSvelte } from './extract'
 import { SvelteTransformPage } from './transforms/types'
 
 type Identifier = recast.types.namedTypes.Identifier

@@ -4,9 +4,9 @@ import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { test, expect } from 'vitest'
 
-import { readFile, testConfig } from '../../../lib'
 import { runPipeline } from '../../codegen'
-import { mockCollectedDoc } from '../testUtils'
+import { fs } from '../../lib'
+import { testConfig, mockCollectedDoc } from '../../test'
 
 test('pass argument values to generated fragments', async function () {
 	const docs = [
@@ -33,7 +33,7 @@ test('pass argument values to generated fragments', async function () {
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	const queryContents = await readFile(path.join(config.artifactPath(docs[0].document)))
+	const queryContents = await fs.readFile(path.join(config.artifactPath(docs[0].document)))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
 	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
@@ -106,7 +106,7 @@ test("nullable arguments with no values don't show up in the query", async funct
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	const queryContents = await readFile(path.join(config.artifactPath(docs[0].document)))
+	const queryContents = await fs.readFile(path.join(config.artifactPath(docs[0].document)))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
 	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
@@ -179,7 +179,7 @@ test("fragment arguments with default values don't rename the fragment", async f
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	const queryContents = await readFile(path.join(config.artifactPath(docs[0].document)))
+	const queryContents = await fs.readFile(path.join(config.artifactPath(docs[0].document)))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
 	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
@@ -260,7 +260,7 @@ test('thread query variables to inner fragments', async function () {
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	const queryContents = await readFile(path.join(config.artifactPath(docs[0].document)))
+	const queryContents = await fs.readFile(path.join(config.artifactPath(docs[0].document)))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
 	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
@@ -353,7 +353,7 @@ test('inner fragment with intermediate default value', async function () {
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	const queryContents = await readFile(path.join(config.artifactPath(docs[0].document)))
+	const queryContents = await fs.readFile(path.join(config.artifactPath(docs[0].document)))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
 	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
@@ -438,7 +438,7 @@ test("default values don't overwrite unless explicitly passed", async function (
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	const queryContents = await readFile(path.join(config.artifactPath(docs[0].document)))
+	const queryContents = await fs.readFile(path.join(config.artifactPath(docs[0].document)))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
 	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
@@ -515,7 +515,7 @@ test('default arguments', async function () {
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	const queryContents = await readFile(path.join(config.artifactPath(docs[0].document)))
+	const queryContents = await fs.readFile(path.join(config.artifactPath(docs[0].document)))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
 	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
@@ -588,7 +588,7 @@ test('multiple with directives - no overlap', async function () {
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	const queryContents = await readFile(path.join(config.artifactPath(docs[0].document)))
+	const queryContents = await fs.readFile(path.join(config.artifactPath(docs[0].document)))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
 	const parsedQuery: ProgramKind = recast.parse(queryContents!, {

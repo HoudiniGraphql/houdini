@@ -3,8 +3,8 @@ import * as typeScriptParser from 'recast/parsers/typescript'
 import { test, expect, describe } from 'vitest'
 
 import { runPipeline } from '../..'
-import { readFile, testConfig } from '../../../../lib'
-import { mockCollectedDoc } from '../../testUtils'
+import { fs } from '../../../lib'
+import { testConfig, mockCollectedDoc } from '../../../test'
 
 // the config to use in tests
 const config = testConfig({
@@ -102,7 +102,7 @@ describe('typescript', function () {
 		await runPipeline(config, [doc])
 
 		// look up the files in the artifact directory
-		const fileContents = await readFile(config.artifactTypePath(doc.document))
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document))
 
 		// make sure they match what we expect
 		expect(
@@ -137,7 +137,7 @@ describe('typescript', function () {
 		await runPipeline(config, [doc])
 
 		// look up the files in the artifact directory
-		const fileContents = await readFile(config.artifactTypePath(doc.document))
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document))
 
 		// make sure they match what we expect
 		expect(
@@ -171,7 +171,7 @@ describe('typescript', function () {
 		await runPipeline(config, [doc])
 
 		// look up the files in the artifact directory
-		const fileContents = await readFile(config.artifactTypePath(doc.document))
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document))
 
 		// make sure they match what we expect
 		expect(
@@ -206,7 +206,7 @@ describe('typescript', function () {
 		await runPipeline(config, [doc])
 
 		// look up the files in the artifact directory
-		const fileContents = await readFile(config.artifactTypePath(doc.document))
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document))
 
 		// make sure they match what we expect
 		expect(
@@ -238,7 +238,7 @@ describe('typescript', function () {
 		await runPipeline(config, [doc])
 
 		// look up the files in the artifact directory
-		const fileContents = await readFile(config.artifactTypePath(doc.document))
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document))
 
 		// make sure they match what we expect
 		expect(
@@ -274,7 +274,7 @@ describe('typescript', function () {
 		await runPipeline(config, [queryDoc])
 
 		// look up the files in the artifact directory
-		const fileContents = await readFile(config.artifactTypePath(queryDoc.document))
+		const fileContents = await fs.readFile(config.artifactTypePath(queryDoc.document))
 
 		// make sure they match what we expect
 		expect(
@@ -307,7 +307,7 @@ describe('typescript', function () {
 		await runPipeline(config, [doc])
 
 		// look up the files in the artifact directory
-		const fileContents = await readFile(config.artifactTypePath(doc.document))
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document))
 
 		// make sure they match what we expect
 		expect(
@@ -351,7 +351,7 @@ describe('typescript', function () {
 		await runPipeline(config, [doc])
 
 		// look up the files in the artifact directory
-		const fileContents = await readFile(config.artifactTypePath(doc.document))
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document))
 
 		// make sure they match what we expect
 		expect(
@@ -407,7 +407,7 @@ describe('typescript', function () {
 		await runPipeline(config, [doc])
 
 		// look up the files in the artifact directory
-		const fileContents = await readFile(config.artifactTypePath(doc.document))
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document))
 
 		// make sure they match what we expect
 		expect(
@@ -488,7 +488,7 @@ describe('typescript', function () {
 		await runPipeline(config, docs)
 
 		// look up the files in the artifact directory
-		const fileContents = await readFile(config.artifactTypePath(docs[0].document))
+		const fileContents = await fs.readFile(config.artifactTypePath(docs[0].document))
 
 		// make sure they match what we expect
 		expect(
@@ -530,7 +530,7 @@ describe('typescript', function () {
 		await runPipeline(config, [doc])
 
 		// look up the files in the artifact directory
-		const fileContents = await readFile(config.artifactTypePath(doc.document))
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document))
 
 		// make sure they match what we expect
 		expect(
@@ -583,7 +583,7 @@ describe('typescript', function () {
 		await runPipeline(config, [doc])
 
 		// read the type index file
-		const fileContents = await readFile(config.typeIndexPath)
+		const fileContents = await fs.readFile(config.typeIndexPath)
 
 		expect(
 			recast.parse(fileContents!, {
@@ -608,7 +608,7 @@ describe('typescript', function () {
 		await runPipeline(config, [query, fragment])
 
 		// look up the files in the artifact directory
-		const fileContents = await readFile(config.artifactTypePath(query.document))
+		const fileContents = await fs.readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
@@ -646,7 +646,7 @@ describe('typescript', function () {
 		await runPipeline(withoutMasking, [query, fragment])
 
 		// look up the files in the artifact directory
-		const fileContents = await readFile(config.artifactTypePath(query.document))
+		const fileContents = await fs.readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
@@ -693,7 +693,7 @@ describe('typescript', function () {
 		await runPipeline(config, [query])
 
 		// look up the files in the artifact directory
-		const fileContents = await readFile(config.artifactTypePath(query.document))
+		const fileContents = await fs.readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
@@ -741,7 +741,7 @@ describe('typescript', function () {
 		await runPipeline(config, [query])
 
 		// look up the files in the artifact directory
-		const fileContents = await readFile(config.artifactTypePath(query.document))
+		const fileContents = await fs.readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
@@ -790,7 +790,7 @@ describe('typescript', function () {
 		await runPipeline(config, [query])
 
 		// look up the files in the artifact directory
-		const fileContents = await readFile(config.artifactTypePath(query.document))
+		const fileContents = await fs.readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
@@ -843,7 +843,7 @@ describe('typescript', function () {
 		await runPipeline(config, [query])
 
 		// look up the files in the artifact directory
-		const fileContents = await readFile(config.artifactTypePath(query.document))
+		const fileContents = await fs.readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
@@ -906,7 +906,7 @@ describe('typescript', function () {
 		await runPipeline(localConfig, [query])
 
 		// look up the files in the artifact directory
-		const fileContents = await readFile(config.artifactTypePath(query.document))
+		const fileContents = await fs.readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
@@ -966,7 +966,7 @@ describe('typescript', function () {
 		await runPipeline(localConfig, [query])
 
 		// look up the files in the artifact directory
-		const fileContents = await readFile(config.artifactTypePath(query.document))
+		const fileContents = await fs.readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
@@ -1008,7 +1008,7 @@ describe('typescript', function () {
 		await runPipeline(config, [query])
 
 		// look up the files in the artifact directory
-		const fileContents = await readFile(config.artifactTypePath(query.document))
+		const fileContents = await fs.readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
@@ -1050,7 +1050,7 @@ describe('typescript', function () {
 		await runPipeline(config, [query])
 
 		// look up the files in the artifact directory
-		const fileContents = await readFile(config.artifactTypePath(query.document))
+		const fileContents = await fs.readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
@@ -1118,7 +1118,7 @@ describe('typescript', function () {
 		await runPipeline(unmaskedConfig, docs)
 
 		// look up the files in the artifact directory
-		const fileContents = await readFile(config.artifactTypePath(docs[1].document))
+		const fileContents = await fs.readFile(config.artifactTypePath(docs[1].document))
 
 		// make sure they match what we expect
 		expect(
@@ -1211,7 +1211,9 @@ describe('typescript', function () {
 		await runPipeline(configWithoutMasking, docs)
 
 		// look up the files in the artifact directory
-		const fileContents = await readFile(configWithoutMasking.artifactTypePath(docs[0].document))
+		const fileContents = await fs.readFile(
+			configWithoutMasking.artifactTypePath(docs[0].document)
+		)
 
 		// make sure they match what we expect
 		expect(
@@ -1281,8 +1283,8 @@ describe('typescript', function () {
 
 		// look up the files in the artifact directory
 		const [queryFileContents, fragmentFileContents] = await Promise.all([
-			readFile(configWithMasking.artifactTypePath(docs[0].document)),
-			readFile(configWithMasking.artifactTypePath(docs[2].document)),
+			fs.readFile(configWithMasking.artifactTypePath(docs[0].document)),
+			fs.readFile(configWithMasking.artifactTypePath(docs[2].document)),
 		])
 
 		// make sure they match what we expect
@@ -1367,8 +1369,8 @@ describe('typescript', function () {
 
 		// look up the files in the artifact directory
 		const [queryFileContents, fragmentFileContents] = await Promise.all([
-			readFile(configWithoutMasking.artifactTypePath(docs[0].document)),
-			readFile(configWithoutMasking.artifactTypePath(docs[2].document)),
+			fs.readFile(configWithoutMasking.artifactTypePath(docs[0].document)),
+			fs.readFile(configWithoutMasking.artifactTypePath(docs[2].document)),
 		])
 
 		// make sure they match what we expect

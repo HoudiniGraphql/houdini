@@ -1,8 +1,7 @@
 import { test, expect } from 'vitest'
 
 import { runPipeline } from '../..'
-import { testConfig } from '../../../../lib'
-import { mockCollectedDoc } from '../../testUtils'
+import { testConfig, mockCollectedDoc } from '../../../test'
 
 // the config to use in tests
 const config = testConfig()

@@ -1,6 +1,6 @@
 import { describe } from 'vitest'
 
-import { pipelineTest } from '../testUtils'
+import { pipelineTest } from '../../test'
 
 describe('schema transform', function () {
 	// we'll test the schema additions by pushing some documents through

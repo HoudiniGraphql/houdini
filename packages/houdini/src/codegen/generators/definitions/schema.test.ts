@@ -3,9 +3,8 @@ import * as graphql from 'graphql'
 import { test, expect } from 'vitest'
 
 import { runPipeline } from '../..'
-import { readFile, testConfig } from '../../../../lib'
-import { mockCollectedDoc } from '../../testUtils'
-import { CollectedGraphQLDocument } from '../../types'
+import { CollectedGraphQLDocument, fs } from '../../../lib'
+import { mockCollectedDoc, testConfig } from '../../../test'
 
 const config = testConfig()
 
@@ -19,7 +18,8 @@ test('adds internal documents to schema', async function () {
 	await runPipeline(config, docs)
 
 	// read the schema file and make sure it got the internal documents
-	expect(graphql.parse((await readFile(config.definitionsSchemaPath))!)).toMatchInlineSnapshot(`
+	expect(graphql.parse((await fs.readFile(config.definitionsSchemaPath))!))
+		.toMatchInlineSnapshot(`
 		enum CachePolicy {
 		  CacheAndNetwork
 		  CacheOnly
@@ -85,7 +85,8 @@ test('list operations are included', async function () {
 	await runPipeline(config, docs)
 
 	// read the schema file
-	expect(graphql.parse((await readFile(config.definitionsSchemaPath))!)).toMatchInlineSnapshot(`
+	expect(graphql.parse((await fs.readFile(config.definitionsSchemaPath))!))
+		.toMatchInlineSnapshot(`
 		enum CachePolicy {
 		  CacheAndNetwork
 		  CacheOnly
@@ -141,7 +142,7 @@ test('list operations are included', async function () {
 	`)
 
 	// read the documents file
-	expect(graphql.parse((await readFile(config.definitionsDocumentsPath))!))
+	expect(graphql.parse((await fs.readFile(config.definitionsDocumentsPath))!))
 		.toMatchInlineSnapshot(`
 		fragment Friends_insert on User {
 		  id
@@ -170,7 +171,8 @@ test("writing twice doesn't duplicate definitions", async function () {
 	await runPipeline(config, docs)
 
 	// read the schema file and make sure it got the internal documents
-	expect(graphql.parse((await readFile(config.definitionsSchemaPath))!)).toMatchInlineSnapshot(`
+	expect(graphql.parse((await fs.readFile(config.definitionsSchemaPath))!))
+		.toMatchInlineSnapshot(`
 		enum CachePolicy {
 		  CacheAndNetwork
 		  CacheOnly

@@ -4,10 +4,9 @@ import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { test, expect, describe } from 'vitest'
 
-import { fs, testConfig } from '../../../../lib'
 import { runPipeline } from '../../../codegen'
-import { mockCollectedDoc } from '../../testUtils'
-import { CollectedGraphQLDocument } from '../../types'
+import { fs, CollectedGraphQLDocument } from '../../../lib'
+import { mockCollectedDoc, testConfig } from '../../../test'
 
 // the config to use in tests
 const config = testConfig()

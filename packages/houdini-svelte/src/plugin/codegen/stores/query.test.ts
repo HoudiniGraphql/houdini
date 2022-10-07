@@ -4,8 +4,8 @@ import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { test, expect } from 'vitest'
 
-import '../../'
-import runPipeline from '../../codegen'
+import runPipeline from '..'
+import '../..'
 
 // the config to use in tests
 const config = testConfig()

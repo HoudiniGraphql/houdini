@@ -1,5 +1,5 @@
 {
-	"name": "houdini-plugin-svelte",
+	"name": "houdini-svelte",
 	"version": "0.16.6",
 	"description": "The disappearing graphql client for SvelteKit",
 	"type": "module",

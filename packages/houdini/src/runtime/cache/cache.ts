@@ -19,7 +19,7 @@ export class Cache {
 	// label accomplishes this but would not prevent someone using vanilla js
 	_internal_unstable: CacheInternal
 
-	constructor() {
+	constructor(config?: ConfigFile) {
 		this._internal_unstable = new CacheInternal({
 			cache: this,
 			storage: new InMemoryStorage(),
@@ -27,6 +27,10 @@ export class Cache {
 			lists: new ListManager(this, rootID),
 			lifetimes: new GarbageCollector(this),
 		})
+
+		if (config) {
+			this.setConfig(config)
+		}
 	}
 
 	// walk down the selection and save the values that we encounter.
