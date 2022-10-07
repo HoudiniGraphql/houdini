@@ -1,3 +1,4 @@
 **/build/**
 README.md
 .github/**
+packages/*/package.json

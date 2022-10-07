@@ -40,7 +40,7 @@ importers:
             graphql-tag: ^2.12.6
             graphql-ws: ^5.8.2
             houdini: workspace:^
-            houdini-plugin-svelte: workspace:^
+            houdini-svelte: workspace:^
             mdsvex: ^0.10.5
             prettier: ^2.5.1
             prettier-plugin-svelte: ^2.5.0
@@ -73,7 +73,7 @@ importers:
             eslint-plugin-svelte3: 4.0.0_eslint@8.23.0+svelte@3.50.1
             graphql: 15.8.0
             houdini: link:../../packages/houdini
-            houdini-plugin-svelte: link:../../packages/houdini-plugin-svelte
+            houdini-svelte: link:../../packages/houdini-svelte
             prettier: 2.7.1
             prettier-plugin-svelte: 2.7.0_prettier@2.7.1+svelte@3.50.1
             svelte: 3.50.1
@@ -94,7 +94,7 @@ importers:
             graphql-tag: 2.12.6
             graphql-ws: ^5.11.2
             houdini: workspace:^
-            houdini-plugin-svelte: workspace:^
+            houdini-svelte: workspace:^
             svelte: ^3.50.0
             svelte-preprocess: ^4.10.1
             tslib: ^2.3.1
@@ -112,7 +112,7 @@ importers:
             concurrently: 6.5.1
             graphql: 15.5.0
             houdini: link:../packages/houdini
-            houdini-plugin-svelte: link:../packages/houdini-plugin-svelte
+            houdini-svelte: link:../packages/houdini-svelte
             svelte: 3.50.1
             svelte-preprocess: 4.10.7_svelte@3.50.1+typescript@4.8.4
             tslib: 2.4.0
@@ -207,7 +207,7 @@ importers:
             vite: 3.1.4
             vitest: 0.23.4
 
-    packages/houdini-plugin-svelte:
+    packages/houdini-svelte:
         specifiers:
             '@kitql/helper': ^0.5.0
             '@sveltejs/kit': 1.0.0-next.505
@@ -230,10 +230,10 @@ importers:
             houdini: link:../houdini
             minimatch: 5.1.0
             recast: 0.21.5
+            scripts: link:../_scripts
             svelte: 3.50.1
         devDependencies:
             '@types/minimatch': 5.1.2
-            scripts: link:../_scripts
             vitest: 0.23.4
 
     site:

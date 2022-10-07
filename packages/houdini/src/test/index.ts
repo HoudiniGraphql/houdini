@@ -198,12 +198,11 @@ type Partial<T> = {
 }
 
 export function pipelineTest(
-	title: string,
 	documents: string[],
 	shouldPass: boolean,
 	testBody?: ((result: Error | Error[]) => void) | ((docs: CollectedGraphQLDocument[]) => void)
 ) {
-	test(title, async function () {
+	return async () => {
 		// the first thing to do is to create the list of collected documents
 		const docs: CollectedGraphQLDocument[] = documents.map(mockCollectedDoc)
 
@@ -233,7 +232,7 @@ export function pipelineTest(
 			// invoke the test body with the error instead of the documents
 			testBody(shouldPass ? docs : error)
 		}
-	})
+	}
 }
 
 export function mockCollectedDoc(query: string): CollectedGraphQLDocument {

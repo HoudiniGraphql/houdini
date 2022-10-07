@@ -7,8 +7,10 @@
 	"scripts": {
 		"tests": "vitest",
 		"build": "turbo build",
+		"build:pkg": "pnpm run build -- --filter=./packages/* ",
 		"test": "turbo run test",
 		"typedefs": "turbo run typedefs",
+		"typedefs:pkg": "pnpm run typedefs -- --filter=./packages/* ",
 		"lint": "turbo run lint",
 		"build:typeModule": "node ./typeModule",
 		"format": "prettier \"packages/**/*.ts\"",

@@ -36,7 +36,7 @@ export default function (opts?: PluginConfig): Plugin[] {
 						return true
 					}
 
-					return config.includeFile(filepath, process.cwd())
+					return config.includeFile(filepath, { root: process.cwd() })
 				},
 				async run() {
 					// load the config file
