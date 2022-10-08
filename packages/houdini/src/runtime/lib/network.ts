@@ -86,9 +86,7 @@ export type FetchParams = {
 
 export type FetchContext = {
 	fetch: typeof window.fetch
-	// @ts-ignore
 	metadata?: App.Metadata | null
-	// @ts-ignore
 	session: App.Session | null
 }
 
@@ -240,4 +238,9 @@ export async function fetchQuery<_Data extends GraphQLObject, _Input extends {}>
 		source: result.ssr ? DataSource.Ssr : DataSource.Network,
 		partial: false,
 	}
+}
+
+declare namespace App {
+	type Session = {}
+	type Metadata = {}
 }
