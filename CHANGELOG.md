@@ -1,5 +1,13 @@
 # houdini
 
+## 0.16.8
+
+### Patch Changes
+
+-   [#595](https://github.com/HoudiniGraphql/houdini/pull/595) [`3421404`](https://github.com/HoudiniGraphql/houdini/commit/3421404e58697bc8e066d3f0b2d9c74c77c0318a) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Don't consider the schema path as an source for generation
+
+*   [#594](https://github.com/HoudiniGraphql/houdini/pull/594) [`4ee9db3`](https://github.com/HoudiniGraphql/houdini/commit/4ee9db312c8ef9db3244bcd2f10f877d596e6f8d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix bug prevent documents from being discovered on windows
+
 ## 0.16.7
 
 ### 🐛 Fixes
