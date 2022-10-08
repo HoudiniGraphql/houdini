@@ -139,7 +139,7 @@ jobs:
               run: npx playwright install --with-deps
 
             - name: End-to-End Tests
-              run: cd e2e && pnpm run build && pnpm run tests
+              run: cd e2e && pnpm run --filter e2e build && pnpm --filter e2e tests
               env:
                   RECORD_REPLAY_TEST_RUN_ID: ${{ env.GITHUB_SHA }}
 
