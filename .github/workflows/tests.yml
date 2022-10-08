@@ -138,11 +138,8 @@ jobs:
               if: steps.playwright-cache.outputs.cache-hit != 'true'
               run: npx playwright install --with-deps
 
-            - name: SvelteKit Sync
-              run: cd e2e && npx svelte-kit sync
-
             - name: End-to-End Tests
-              run: pnpm --filter e2e tests
+              run: cd e2e && pnpm --filter e2e tests
               env:
                   RECORD_REPLAY_TEST_RUN_ID: ${{ env.GITHUB_SHA }}
 
@@ -193,11 +190,8 @@ jobs:
             - name: Build Package
               run: pnpm run build
 
-            - name: SvelteKit Sync
-              run: cd e2e && npx svelte-kit sync
-
             - name: Build kit assets
-              run: pnpm --filter e2e run build
+              run: cd e2e && pnpm --filter e2e run build
 
             # needs to run after build & houdini generate
             - name: End-to-End lint
