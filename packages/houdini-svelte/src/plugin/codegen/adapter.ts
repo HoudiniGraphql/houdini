@@ -8,10 +8,7 @@ export default async function generateAdapter({ config }: GenerateHookInput) {
 	}
 
 	// the location of the adapter
-	const adapterLocation = path.join(
-		config.pluginRuntimeDirectory('houdini-plugin-svelte'),
-		'adapter.js'
-	)
+	const adapterLocation = path.join(config.pluginRuntimeDirectory('houdini-svelte'), 'adapter.js')
 
 	// figure out which adapter we need to lay down
 	const adapter = {
