@@ -719,7 +719,7 @@ ${
 			filename = path.join(this.projectRoot, filename.substring(match[1].length))
 		}
 
-		return filename
+		return posixify(filename)
 	}
 
 	async walkRouteDir(visitor: RouteVisitor, dirpath = this.routesDir) {
