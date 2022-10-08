@@ -212,7 +212,7 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 				.flat()
 				.filter((filepath) => config.includeFile(filepath))
 				// don't include the schema path as a source file
-				.filter((filepath) => !config.schemaPath || minimatch(filepath, config.schemaPath))
+				.filter((filepath) => !config.schemaPath || !minimatch(filepath, config.schemaPath))
 		),
 	]
 
