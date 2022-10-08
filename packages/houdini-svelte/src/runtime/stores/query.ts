@@ -16,7 +16,7 @@ import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
 import { get, Readable, Writable, writable } from 'svelte/store'
 
 import { clientStarted, isBrowser, error } from '../adapter'
-import { getSession } from '../session'
+import { getClientSession, getSession } from '../session'
 import { BaseStore } from './store'
 
 export class QueryStore<
@@ -414,7 +414,6 @@ export async function fetchParams<_Data extends GraphQLObject, _Input>(
 		session = await getSession()
 	} else {
 		log.error(contextError(storeName))
-
 		throw new Error('Error, check above logs for help.')
 	}
 

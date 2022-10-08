@@ -14,6 +14,8 @@
     );
   }
 
+  // there's nothing passing the session there to this fetch so the result is undefined
+
   $: browser &&
     GQL_Session.fetch({
       metadata: { logResult: true },

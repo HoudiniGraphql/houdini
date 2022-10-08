@@ -9,6 +9,7 @@ import { error, LoadEvent, redirect, RequestEvent } from '@sveltejs/kit'
 import { GraphQLError } from 'graphql'
 import { get } from 'svelte/store'
 
+import { isBrowser } from './adapter'
 import { AfterLoadArgs, BeforeLoadArgs, OnErrorArgs } from './types'
 
 const sessionKeyName = '__houdini__session__'
@@ -141,7 +142,16 @@ export function setClientSession(
 	// @ts-ignore
 	val: App.Session
 ) {
+	if (!isBrowser) {
+		return
+	}
+
 	session = val
+}
+
+// @ts-ignore
+export function getClientSession(): App.Session {
+	return session
 }
 
 export function setSession(

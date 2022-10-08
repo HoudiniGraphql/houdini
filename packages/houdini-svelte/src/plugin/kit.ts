@@ -235,7 +235,7 @@ export function type_route_dir(config: Config) {
 
 // the path that the runtime can use to import a store
 export function store_import_path({ config, name }: { config: Config; name: string }): string {
-	return `$houdini/plugins/houdini-plugin-svelte/${stores_directory_name()}/${name}`
+	return `$houdini/plugins/houdini-svelte/${stores_directory_name()}/${name}`
 }
 
 export function store_suffix(config: Config) {

@@ -15,9 +15,9 @@ test('modifies root +layout.svelte with data prop', async function () {
 
 	expect(result).toMatchInlineSnapshot(`
 		import { page } from "$app/stores";
-		import { extractSession, setClientSession } from "$houdini/plugins/houdini-plugin-svelte/runtime/session";
+		import { extractSession, setClientSession } from "$houdini/plugins/houdini-svelte/runtime/session";
 		import { onMount } from "svelte";
-		import { setClientStarted } from "$houdini/plugins/houdini-plugin-svelte/runtime/adapter";
+		import { setClientStarted } from "$houdini/plugins/houdini-svelte/runtime/adapter";
 		export let data;
 		onMount(() => setClientStarted());
 
@@ -33,9 +33,9 @@ test('modifies root +layout.svelte without data prop', async function () {
 
 	expect(result).toMatchInlineSnapshot(`
 		import { page } from "$app/stores";
-		import { extractSession, setClientSession } from "$houdini/plugins/houdini-plugin-svelte/runtime/session";
+		import { extractSession, setClientSession } from "$houdini/plugins/houdini-svelte/runtime/session";
 		import { onMount } from "svelte";
-		import { setClientStarted } from "$houdini/plugins/houdini-plugin-svelte/runtime/adapter";
+		import { setClientStarted } from "$houdini/plugins/houdini-svelte/runtime/adapter";
 		onMount(() => setClientStarted());
 
 		page.subscribe(val => {
@@ -48,7 +48,7 @@ test('adds load to +layout.server.js', async function () {
 	const result = await test_transform_js('src/routes/+layout.server.js', ``)
 
 	expect(result).toMatchInlineSnapshot(`
-		import { buildSessionObject } from "$houdini/plugins/houdini-plugin-svelte/runtime/session";
+		import { buildSessionObject } from "$houdini/plugins/houdini-svelte/runtime/session";
 
 		export async function load(event) {
 		    const __houdini__vite__plugin__return__value__ = {};
@@ -76,7 +76,7 @@ test('modifies existing load +layout.server.js', async function () {
 	)
 
 	expect(result).toMatchInlineSnapshot(`
-		import { buildSessionObject } from "$houdini/plugins/houdini-plugin-svelte/runtime/session";
+		import { buildSessionObject } from "$houdini/plugins/houdini-svelte/runtime/session";
 
 		export async function load(event) {
 		    "some random stuff that's valid javascript";
@@ -103,7 +103,7 @@ test('modifies existing load +layout.server.js - no return', async function () {
 	)
 
 	expect(result).toMatchInlineSnapshot(`
-		import { buildSessionObject } from "$houdini/plugins/houdini-plugin-svelte/runtime/session";
+		import { buildSessionObject } from "$houdini/plugins/houdini-svelte/runtime/session";
 
 		export async function load(event) {
 		    "some random stuff that's valid javascript";
@@ -131,7 +131,7 @@ test('modifies existing load +layout.server.js - rest params', async function ()
 	)
 
 	expect(result).toMatchInlineSnapshot(`
-		import { buildSessionObject } from "$houdini/plugins/houdini-plugin-svelte/runtime/session";
+		import { buildSessionObject } from "$houdini/plugins/houdini-svelte/runtime/session";
 
 		export async function load(event) {
 		    let {
@@ -168,7 +168,7 @@ test('modifies existing load +layout.server.js - const arrow function', async fu
 	)
 
 	expect(result).toMatchInlineSnapshot(`
-		import { buildSessionObject } from "$houdini/plugins/houdini-plugin-svelte/runtime/session";
+		import { buildSessionObject } from "$houdini/plugins/houdini-svelte/runtime/session";
 
 		export const load = event => {
 		    let {
@@ -205,7 +205,7 @@ test('modifies existing load +layout.server.js - const function', async function
 	)
 
 	expect(result).toMatchInlineSnapshot(`
-		import { buildSessionObject } from "$houdini/plugins/houdini-plugin-svelte/runtime/session";
+		import { buildSessionObject } from "$houdini/plugins/houdini-svelte/runtime/session";
 
 		export const load = function(event) {
 		    let {
@@ -237,7 +237,7 @@ test('modifies existing load +layout.server.js - implicit return', async functio
 	)
 
 	expect(result).toMatchInlineSnapshot(`
-		import { buildSessionObject } from "$houdini/plugins/houdini-plugin-svelte/runtime/session";
+		import { buildSessionObject } from "$houdini/plugins/houdini-svelte/runtime/session";
 
 		export const load = event => {
 		    const __houdini__vite__plugin__return__value__ = ({

@@ -17,9 +17,9 @@ test('no variables', async function () {
 
 	// make sure we added the right stuff
 	expect(route).toMatchInlineSnapshot(`
-		import { TestQueryStore } from "$houdini/plugins/houdini-plugin-svelte/stores/TestQuery";
-		import { isBrowser } from "$houdini/plugins/houdini-plugin-svelte/runtime/adapter";
-		import { RequestContext } from "$houdini/plugins/houdini-plugin-svelte/runtime/session";
+		import { TestQueryStore } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
+		import { isBrowser } from "$houdini/plugins/houdini-svelte/runtime/adapter";
+		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
 		import { marshalInputs } from "$houdini/runtime/lib/scalars";
 		const _houdini_TestQuery = new TestQueryStore();
 
@@ -61,9 +61,9 @@ test('with variables', async function () {
 
 	// make sure we added the right stuff
 	expect(route).toMatchInlineSnapshot(`
-		import { TestQueryStore } from "$houdini/plugins/houdini-plugin-svelte/stores/TestQuery";
-		import { isBrowser } from "$houdini/plugins/houdini-plugin-svelte/runtime/adapter";
-		import { RequestContext } from "$houdini/plugins/houdini-plugin-svelte/runtime/session";
+		import { TestQueryStore } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
+		import { isBrowser } from "$houdini/plugins/houdini-svelte/runtime/adapter";
+		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
 		import { marshalInputs } from "$houdini/runtime/lib/scalars";
 		const _houdini_TestQuery = new TestQueryStore();
 

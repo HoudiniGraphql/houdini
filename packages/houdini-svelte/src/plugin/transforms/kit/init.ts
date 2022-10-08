@@ -18,7 +18,7 @@ export default async function kit_init(page: SvelteTransformPage) {
 	const set_client_started = ensure_imports({
 		script: page.script,
 		config: page.config,
-		sourceModule: '$houdini/plugins/houdini-plugin-svelte/runtime/adapter',
+		sourceModule: '$houdini/plugins/houdini-svelte/runtime/adapter',
 		import: ['setClientStarted'],
 	}).ids[0]
 	const on_mount = ensure_imports({
@@ -30,7 +30,7 @@ export default async function kit_init(page: SvelteTransformPage) {
 	const [extract_session, set_session] = ensure_imports({
 		script: page.script,
 		config: page.config,
-		sourceModule: '$houdini/plugins/houdini-plugin-svelte/runtime/session',
+		sourceModule: '$houdini/plugins/houdini-svelte/runtime/session',
 		import: ['extractSession', 'setClientSession'],
 	}).ids
 

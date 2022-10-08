@@ -3,7 +3,7 @@ import { routes } from '../../../lib/utils/routes.js';
 import { expect_1_gql, goto_expect_n_gql } from '../../../lib/utils/testsHelper.js';
 
 test.describe('Metadata Page', () => {
-  test('Mutation => Should display the raw result in the console as info', async ({ page }) => {
+  test('Mutation => Should pass metadata', async ({ page }) => {
     // Listen to the console
     let displayed = '';
     page.on('console', (msg) => {
