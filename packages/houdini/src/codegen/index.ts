@@ -1,5 +1,6 @@
 import glob from 'glob'
 import * as graphql from 'graphql'
+import minimatch from 'minimatch'
 import path from 'path'
 import { promisify } from 'util'
 
@@ -178,6 +179,19 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 			)
 				.flat()
 				.filter((filepath) => config.includeFile(filepath))
+				// don't include the schema path as a source file
+				.filter((filepath) => {
+					const prefix = config.schemaPath?.startsWith('./') ? './' : ''
+
+					return (
+						!config.schemaPath ||
+						!minimatch(
+							prefix +
+								path.relative(config.projectRoot, filepath).replaceAll('\\', '/'),
+							config.schemaPath
+						)
+					)
+				})
 		),
 	]
 
