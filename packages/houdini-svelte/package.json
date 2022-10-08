@@ -6,7 +6,7 @@
     "scripts": {
         "tests": "vitest",
         "compile": "scripts build --plugin",
-        "typedefs": "scripts typedefs"
+        "typedefs": "scripts typedefs --plugin"
     },
     "dependencies": {
         "@kitql/helper": "^0.5.0",
