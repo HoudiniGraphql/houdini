@@ -13,7 +13,7 @@
 		"compile": "turbo compile --filter=\"./packages/*\"",
 		"typedefs:all": "turbo run typedefs",
 		"typedefs": "turbo run typedefs --filter=\"./packages/*\"",
-		"lint": "turbo run lint",
+		"lint": "eslint --ignore-path .prettierignore \"./packages/*/src/**/*.ts\"",
 		"format": "prettier \"packages/**/*.ts\"",
 		"format:write": "npm run format -- -w",
 		"format:check": "npm run format -- --check",
@@ -25,6 +25,7 @@
 		"postpack": "pinst --enable"
 	},
 	"devDependencies": {
+		"@theguild/eslint-config": "^0.1.0",
 		"@trivago/prettier-plugin-sort-imports": "^3.3.0",
 		"graphql": "*",
 		"prettier": "^2.5.1",

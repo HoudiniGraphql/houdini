@@ -57,4 +57,8 @@ function compile(fileNames, options) {
 			console.log(ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'))
 		}
 	})
+
+	if (allDiagnostics.length > 0) {
+		process.exit(1)
+	}
 }

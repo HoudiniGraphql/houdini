@@ -131,13 +131,17 @@ async function build({ source, bundle = true, plugin }) {
 				config.outdir = target_dir
 			}
 
-			await esbuild.build(config)
+			try {
+				await esbuild.build(config)
 
-			await fs.writeFile(
-				path.join(target_dir, 'package.json'),
-				JSON.stringify({ type: which === 'cjs' ? 'commonjs' : 'module' }),
-				'utf-8'
-			)
+				await fs.writeFile(
+					path.join(target_dir, 'package.json'),
+					JSON.stringify({ type: which === 'cjs' ? 'commonjs' : 'module' }),
+					'utf-8'
+				)
+			} catch (e) {
+				process.exit(1)
+			}
 		})
 	)
 }

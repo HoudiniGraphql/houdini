@@ -1,4 +1,3 @@
-/// <reference path = "../../../../../houdini.d.ts" />
 import cache from '../cache'
 import * as log from './log'
 import type { ConfigFile } from './types'

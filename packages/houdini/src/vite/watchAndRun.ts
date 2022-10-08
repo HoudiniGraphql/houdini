@@ -88,7 +88,6 @@ async function checkConf(params: Options[]) {
 			formatErrors: paramRow.formatErrors,
 		}
 
-		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		// @ts-ignore (because the config is in a js file, and people maybe didn't update their config.)
 		if (['ADD', 'CHANGE', 'DELETE'].includes(param.kind || '')) {
 			throw new Error(
