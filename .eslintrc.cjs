@@ -2,6 +2,7 @@ module.exports = {
 	root: true,
 	extends: '@theguild',
 	rules: {
+		'@typescript-eslint/triple-slash-reference': 'off',
 		'@typescript-eslint/no-namespace': 'off',
 		'@typescript-eslint/no-unused-vars': 'off',
 		'@typescript-eslint/ban-ts-comment': 'off',
