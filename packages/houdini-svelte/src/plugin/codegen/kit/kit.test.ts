@@ -38,7 +38,7 @@ test('generates types for inline queries', async function () {
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		import type * as Kit from "@sveltejs/kit";
-		import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction } from "../../../../runtime/lib/types";
+		import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction } from "../../../../plugins/houdini-svelte/runtime/types";
 		import type { PageLoadEvent, PageData as KitPageData } from "./$types";
 		import { MyInlineQuery$result, MyInlineQuery$input } from "../../../../artifacts/MyInlineQuery";
 		import { MyInlineQueryStore } from "../../../../stores/MyInlineQuery";
@@ -79,7 +79,7 @@ query MyPageQuery {
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		import type * as Kit from "@sveltejs/kit";
-		import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction } from "../../../../runtime/lib/types";
+		import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction } from "../../../../plugins/houdini-svelte/runtime/types";
 		import type { PageLoadEvent, PageData as KitPageData } from "./$types";
 		import { MyPageQuery$result, MyPageQuery$input } from "../../../../artifacts/MyPageQuery";
 		import { MyPageQueryStore } from "../../../../stores/MyPageQuery";
@@ -135,7 +135,7 @@ test('generates types for after load', async function () {
 	// verify contents
 	expect((await parseJS(queryContents!))?.script).toMatchInlineSnapshot(`
 		import type * as Kit from "@sveltejs/kit";
-		import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction } from "../../../../runtime/lib/types";
+		import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction } from "../../../../plugins/houdini-svelte/runtime/types";
 		import type { PageLoadEvent, PageData as KitPageData } from "./$types";
 		import { MyPageLoad1Query$result, MyPageLoad1Query$input } from "../../../../artifacts/MyPageLoad1Query";
 		import { MyPageLoad1QueryStore } from "../../../../stores/MyPageLoad1Query";
@@ -211,7 +211,7 @@ test('generates types for onError', async function () {
 	// verify contents
 	expect((await parseJS(queryContents!))?.script).toMatchInlineSnapshot(`
 		import type * as Kit from "@sveltejs/kit";
-		import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction } from "../../../../runtime/lib/types";
+		import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction } from "../../../../plugins/houdini-svelte/runtime/types";
 		import type { PageLoadEvent, PageData as KitPageData } from "./$types";
 		import { MyPageLoad1Query$result, MyPageLoad1Query$input } from "../../../../artifacts/MyPageLoad1Query";
 		import { MyPageLoad1QueryStore } from "../../../../stores/MyPageLoad1Query";

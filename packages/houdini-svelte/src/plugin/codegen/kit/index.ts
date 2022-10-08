@@ -66,7 +66,7 @@ export default async function svelteKitGenerator({ config }: GenerateHookInput) 
 
 			// we need to create a typescript file that has a definition of the variable and hook functions
 			const typeDefs = `import type * as Kit from '@sveltejs/kit';
-import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction }  from '${houdiniRelative}/runtime/lib/types'
+import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction }  from '${houdiniRelative}/plugins/houdini-svelte/runtime/types'
 import type { PageLoadEvent, PageData as KitPageData } from './$types'
 
 ${uniqueQueries

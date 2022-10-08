@@ -1,3 +1,4 @@
+/// <reference path="../../../../../houdini.d.ts" />
 import cache from '../cache'
 import * as log from './log'
 import type { ConfigFile } from './types'
@@ -238,9 +239,4 @@ export async function fetchQuery<_Data extends GraphQLObject, _Input extends {}>
 		source: result.ssr ? DataSource.Ssr : DataSource.Network,
 		partial: false,
 	}
-}
-
-declare namespace App {
-	type Session = {}
-	type Metadata = {}
 }

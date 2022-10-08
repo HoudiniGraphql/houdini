@@ -1,4 +1,4 @@
-import { usersListStore, HelloStore, loadAll } from '$houdini';
+import { usersListStore, HelloStore } from '$houdini';
 import type { LoadEvent } from '@sveltejs/kit';
 
 export async function load(event: LoadEvent) {
