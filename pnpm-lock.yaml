@@ -288,7 +288,9 @@ importers:
             prismjs: 1.29.0
             rehype-autolink-headings: 6.1.1
             rehype-slug: 5.0.1
+            svelte: 3.49.0
             svelte-preprocess: 4.10.7_vg3dtoa6m5cwrgayrz5b3xtqh4
+            vite: 3.0.9
             vite-plugin-replace: 0.1.1_vite@3.0.9
         devDependencies:
             '@typescript-eslint/eslint-plugin': 5.35.1_g3wrzbfakvdwv6vgag3aagn4si
@@ -300,12 +302,10 @@ importers:
             lint-staged: 12.5.0
             prettier: 2.7.1
             prettier-plugin-svelte: 2.7.0_o3ioganyptcsrh6x4hnxvjkpqi
-            svelte: 3.49.0
             svelte-check: 2.8.1_svelte@3.49.0
             svelte-kit-cookie-session: 3.0.6
             tslib: 2.4.0
             typescript: 4.5.4
-            vite: 3.0.9
 
 packages:
     /@ampproject/remapping/2.2.0:
@@ -7867,6 +7867,7 @@ packages:
         hasBin: true
         optionalDependencies:
             fsevents: 2.3.2
+        dev: false
 
     /rollup/2.78.1:
         resolution:
@@ -9460,6 +9461,7 @@ packages:
             rollup: 2.77.3
         optionalDependencies:
             fsevents: 2.3.2
+        dev: false
 
     /vite/3.1.4:
         resolution:
