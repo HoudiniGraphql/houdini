@@ -1,4 +1,4 @@
-import '../../../../../houdini'
+/// <reference path="../../../../../houdini.d.ts" />
 
 export * from './config'
 export * from './constants'
