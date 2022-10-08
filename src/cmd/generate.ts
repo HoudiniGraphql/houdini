@@ -1,5 +1,6 @@
 import glob from 'glob'
 import * as graphql from 'graphql'
+import minimatch from 'minimatch'
 import path from 'path'
 import * as recast from 'recast'
 import * as svelte from 'svelte/compiler'
@@ -210,6 +211,8 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 			)
 				.flat()
 				.filter((filepath) => config.includeFile(filepath))
+				// don't include the schema path as a source file
+				.filter((filepath) => !config.schemaPath || minimatch(filepath, config.schemaPath))
 		),
 	]
 
