@@ -347,7 +347,7 @@ export type ConfigFile = {
 	/**
 	 * An object describing the plugins enabled for the project
 	 */
-	plugins?: PluginConfig
+	plugins?: { [pluginName: string]: {} }
 }
 
 type ScalarMap = { [typeName: string]: ScalarSpec }
@@ -370,5 +370,3 @@ export type ScalarSpec = {
 	// the function to call that turns the API's response into _ClientType
 	unmarshal?: (val: any) => any
 }
-
-export type PluginConfig = { [pluginName: string]: {} }
