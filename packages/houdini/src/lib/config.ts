@@ -72,7 +72,6 @@ export class Config {
 			schemaPath = './schema.graphql',
 			exclude = [],
 			apiUrl,
-			framework = 'kit',
 			module = 'esm',
 			scalars,
 			cacheBufferSize,
@@ -768,7 +767,7 @@ export async function getConfig({
 	const configFile = await readConfigFile(configPath)
 
 	// if there is a framework specified, tell them they need to change things
-	if (configFile.framework) {
+	if (!configFile.plugins) {
 		throw new HoudiniError({
 			message: 'framework config value has been removed. ',
 			description:
