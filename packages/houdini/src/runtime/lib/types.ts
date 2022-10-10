@@ -343,6 +343,11 @@ export type ConfigFile = {
 	 * error state in your route components or by hand in your load (or the onError hook)
 	 */
 	quietQueryErrors?: boolean
+
+	/**
+	 * An object describing the plugins enabled for the project
+	 */
+	plugins?: PluginConfig
 }
 
 type ScalarMap = { [typeName: string]: ScalarSpec }
@@ -365,3 +370,5 @@ export type ScalarSpec = {
 	// the function to call that turns the API's response into _ClientType
 	unmarshal?: (val: any) => any
 }
+
+export type PluginConfig = { [pluginName: string]: {} }

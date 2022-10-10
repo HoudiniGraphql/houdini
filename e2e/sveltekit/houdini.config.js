@@ -16,6 +16,9 @@ const config = {
         return val.getTime();
       }
     }
+  },
+  plugins: {
+    'houdini-svelte': {}
   }
 };
 

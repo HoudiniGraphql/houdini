@@ -764,9 +764,21 @@ export async function getConfig({
 		reject = rej
 	})
 
+	// look up the current config file
+	const configFile = await readConfigFile(configPath)
+
+	// if there is a framework specified, tell them they need to change things
+	if (configFile.framework) {
+		throw new HoudiniError({
+			message: 'framework config value has been removed. ',
+			description:
+				'Please visit the release notes here: http://www.houdinigraphql.com/guide/release-notes#0170',
+		})
+	}
+
 	try {
 		_config = new Config({
-			...(await readConfigFile(configPath)),
+			...configFile,
 			...extraConfig,
 			filepath: configPath,
 		})
@@ -800,13 +812,11 @@ This will prevent your schema from being pulled (potentially resulting in errors
 		throw e
 	}
 
-	// now that we have the config, we need to load any necessary plugins
-
-	// load the svelte plugin if necessary
-	if (['kit', 'svelte'].includes(_config.framework)) {
+	// load the specified plugins
+	for (const [pluginName, pluginConfig] of Object.entries(_config.configFile.plugins ?? {})) {
 		try {
 			// look for the houdini-svelte module
-			const sveltePluginDir = _config.findModule('houdini-svelte')
+			const sveltePluginDir = _config.findModule(pluginName)
 			const { default: sveltePlugin }: { default: PluginFactory } = await import(
 				pathToFileURL(sveltePluginDir).toString() + '/build/plugin-esm/index.js'
 			)
@@ -817,8 +827,8 @@ This will prevent your schema from being pulled (potentially resulting in errors
 			} catch {}
 
 			_config.plugins.push({
-				...(await sveltePlugin()),
-				name: 'houdini-svelte',
+				...(await sveltePlugin(pluginConfig)),
+				name: pluginName,
 				include_runtime,
 			})
 		} catch (e) {

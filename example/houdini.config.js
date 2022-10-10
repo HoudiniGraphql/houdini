@@ -13,6 +13,9 @@ const config = {
 			},
 		},
 	},
+	plugins: {
+		'houdini-svelte': {},
+	},
 }
 
 export default config
