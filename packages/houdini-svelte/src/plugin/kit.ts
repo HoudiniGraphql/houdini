@@ -1,5 +1,5 @@
 import * as graphql from 'graphql'
-import { Config, fs, find_graphql } from 'houdini'
+import { fs, find_graphql, Config } from 'houdini'
 import { ensure_imports } from 'houdini/vite'
 import path from 'path'
 import recast from 'recast'
@@ -10,9 +10,9 @@ import { SvelteTransformPage } from './transforms/types'
 type Identifier = recast.types.namedTypes.Identifier
 
 // compute if a path points to a component query or not
-export function is_route(config: Config, filepath: string): boolean {
+export function is_route(config: Config, framework: Framework, filepath: string): boolean {
 	// a vanilla svelte app is never considered in a route
-	if (config.framework === 'svelte') {
+	if (framework === 'svelte') {
 		return false
 	}
 
@@ -34,9 +34,9 @@ export function routePagePath(config: Config, filename: string) {
 	return resolve_relative(config, filename).replace('.js', '.svelte').replace('.ts', '.svelte')
 }
 
-export function is_route_script(config: Config, filename: string) {
+export function is_route_script(framework: Framework, filename: string) {
 	return (
-		config.framework === 'kit' &&
+		framework === 'kit' &&
 		(filename.endsWith('+page.js') ||
 			filename.endsWith('+page.ts') ||
 			filename.endsWith('+layout.js') ||
@@ -65,12 +65,12 @@ export function is_root_layout_script(config: Config, filename: string) {
 	)
 }
 
-export function is_component(config: Config, filename: string) {
+export function is_component(config: Config, framework: Framework, filename: string) {
 	return (
-		config.framework === 'svelte' ||
+		framework === 'svelte' ||
 		(filename.endsWith('.svelte') &&
-			!is_route_script(config, filename) &&
-			!is_route(config, filename))
+			!is_route_script(framework, filename) &&
+			!is_route(config, framework, filename))
 	)
 }
 
@@ -91,6 +91,7 @@ export function resolve_relative(config: Config, filename: string) {
 
 export async function walk_routes(
 	config: Config,
+	framework: Framework,
 	visitor: RouteVisitor,
 	dirpath = config.routesDir
 ) {
@@ -108,11 +109,11 @@ export async function walk_routes(
 		const childPath = path.join(dirpath, child)
 		// if we run into another directory, keep walking down
 		if ((await fs.stat(childPath)).isDirectory()) {
-			await walk_routes(config, visitor, childPath)
+			await walk_routes(config, framework, visitor, childPath)
 		}
 
 		// route scripts
-		else if (is_route_script(config, child)) {
+		else if (is_route_script(framework, child)) {
 			isRoute = true
 			routeScript = childPath
 			if (!visitor.routeScript) {
@@ -145,7 +146,7 @@ export async function walk_routes(
 		}
 
 		// inline queries
-		else if (is_component(config, child)) {
+		else if (is_component(config, framework, child)) {
 			// load the contents and parse it
 			const contents = await fs.readFile(childPath)
 			if (!contents) {
@@ -269,3 +270,5 @@ export function store_import({
 
 	return { id: ids, added }
 }
+
+export type Framework = 'kit' | 'svelte'

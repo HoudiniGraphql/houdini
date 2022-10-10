@@ -36,7 +36,6 @@ export class Config {
 	persistedQueryPath?: string
 	exclude: string[]
 	scalars?: ConfigFile['scalars']
-	framework: 'kit' | 'svelte' = 'kit'
 	module: 'commonjs' | 'esm' = 'esm'
 	cacheBufferSize?: number
 	defaultCachePolicy: CachePolicy
@@ -124,7 +123,6 @@ export class Config {
 		this.apiUrl = apiUrl
 		this.filepath = filepath
 		this.exclude = Array.isArray(exclude) ? exclude : [exclude]
-		this.framework = framework
 		this.module = module
 		this.projectRoot = path.dirname(
 			projectDir ? path.join(process.cwd(), projectDir) : filepath

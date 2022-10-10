@@ -19,25 +19,6 @@ export default function houdiniPreprocessor(
 			// grab the config
 			const config = await getConfig(extraConfig)
 
-			// if we detected a kit project using the preprocessor, tell them they need to update
-			if (config.framework === 'kit') {
-				throw new Error(`⚠️ houdini/preprocess has been replaced by houdini/vite.
-Please remove the preprocessor from your svelte.config.js and update your vite.config.js to look like the following 👇
-
-Order for plugins is important. Make sure houdini comes before sveltekit.
-
-import { sveltekit } from '@sveltejs/kit/vite';
-${logGreen("import 'houdini' from 'houdini/vite';")}
-
-/** @type {import('vite').UserConfig} */
-const config = {
-  plugins: [${logGreen('houdini()')}, sveltekit()]
-};
-
-export default config;
-`)
-			}
-
 			// build up the necessary context to run the vite transform
 			const page: TransformPage = {
 				content,
@@ -47,7 +28,7 @@ export default config;
 			}
 
 			// apply the transform pipeline
-			return await transform(page)
+			return await transform('svelte', page)
 		},
 	}
 }

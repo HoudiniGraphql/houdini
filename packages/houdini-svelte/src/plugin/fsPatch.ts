@@ -2,51 +2,61 @@ import filesystem, { Dirent, PathLike } from 'fs'
 import { fs, Plugin } from 'houdini'
 import path from 'path'
 
-import { is_root_layout, is_root_layout_server, is_route_script, resolve_relative } from './kit'
+import {
+	Framework,
+	is_root_layout,
+	is_root_layout_server,
+	is_route_script,
+	resolve_relative,
+} from './kit'
 
 // this plugin is responsible for faking `+page.js` existence in the eyes of sveltekit
-export default {
-	resolveId(filepath, _, { config }) {
-		// if we are resolving any of the files we need to generate
-		if (
-			is_route_script(config, filepath) ||
-			is_root_layout(config, filepath) ||
-			is_root_layout_server(config, filepath)
-		) {
-			return {
-				id: filepath,
+export default (getFramwork: () => Framework) =>
+	({
+		resolveId(filepath, _, { config }) {
+			// if we are resolving any of the files we need to generate
+			if (
+				is_route_script(getFramwork(), filepath) ||
+				is_root_layout(config, filepath) ||
+				is_root_layout_server(config, filepath)
+			) {
+				return {
+					id: filepath,
+				}
 			}
-		}
 
-		return null
-	},
+			return null
+		},
 
-	load: async (filepath, { config }) => {
-		// if we are processing a route script or the root layout, we should always return _something_
-		if (is_route_script(config, filepath) || is_root_layout_server(config, filepath)) {
-			filepath = resolve_relative(config, filepath)
-			return {
-				code:
-					(await fs.readFile(filepath)) ||
-					(await fs.readFile(path.join(config.projectRoot, filepath))) ||
-					'',
+		load: async (filepath, { config }) => {
+			// if we are processing a route script or the root layout, we should always return _something_
+			if (
+				is_route_script(getFramwork(), filepath) ||
+				is_root_layout_server(config, filepath)
+			) {
+				filepath = resolve_relative(config, filepath)
+				return {
+					code:
+						(await fs.readFile(filepath)) ||
+						(await fs.readFile(path.join(config.projectRoot, filepath))) ||
+						'',
+				}
 			}
-		}
 
-		if (is_root_layout(config, filepath)) {
-			filepath = resolve_relative(config, filepath)
-			return {
-				code:
-					(await fs.readFile(filepath)) ||
-					(await fs.readFile(path.join(config.projectRoot, filepath))) ||
-					empty_layout,
+			if (is_root_layout(config, filepath)) {
+				filepath = resolve_relative(config, filepath)
+				return {
+					code:
+						(await fs.readFile(filepath)) ||
+						(await fs.readFile(path.join(config.projectRoot, filepath))) ||
+						empty_layout,
+				}
 			}
-		}
 
-		// do the normal thing
-		return null
-	},
-} as Plugin['vite']
+			// do the normal thing
+			return null
+		},
+	} as Plugin['vite'])
 
 const _readDirSync = filesystem.readdirSync
 const _statSync = filesystem.statSync

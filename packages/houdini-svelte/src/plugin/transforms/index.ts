@@ -3,6 +3,7 @@ import { TransformPage } from 'houdini/vite'
 import * as recast from 'recast'
 
 import { ParsedFile, parseSvelte } from '../extract'
+import { Framework } from '../kit'
 import kit from './kit'
 import query from './query'
 import reactive from './reactive'
@@ -15,7 +16,10 @@ import { SvelteTransformPage } from './types'
 // are destroyed by the sveltekit and query processors
 const pipeline = [reactive, kit, query, tags]
 
-export default async function apply_transforms(page: TransformPage): Promise<{ code: string }> {
+export default async function apply_transforms(
+	framework: Framework,
+	page: TransformPage
+): Promise<{ code: string }> {
 	// a single transform might need to do different things to the module and
 	// instance scripts so we're going to pull them out, push them through separately,
 	// and then join them back together
@@ -48,6 +52,7 @@ export default async function apply_transforms(page: TransformPage): Promise<{ c
 	// wrap everything up in an object we'll thread through the transforms
 	const result: SvelteTransformPage = {
 		...page,
+		framework,
 		...script,
 	}
 

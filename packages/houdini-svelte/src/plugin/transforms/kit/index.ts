@@ -7,7 +7,7 @@ import session from './session'
 
 export default async function SvelteKitProcessor(config: Config, page: SvelteTransformPage) {
 	// if we aren't running on a kit project, don't do anything
-	if (page.config.framework !== 'kit') {
+	if (page.framework !== 'kit') {
 		return
 	}
 

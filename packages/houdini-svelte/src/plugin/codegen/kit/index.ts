@@ -3,16 +3,25 @@ import { fs, GenerateHookInput } from 'houdini'
 import path from 'path'
 
 import { extract_load_function } from '../../extractLoadFunction'
-import { type_route_dir, walk_routes, stores_directory_name, store_suffix } from '../../kit'
+import {
+	type_route_dir,
+	walk_routes,
+	stores_directory_name,
+	store_suffix,
+	Framework,
+} from '../../kit'
 
-export default async function svelteKitGenerator({ config }: GenerateHookInput) {
+export default async function svelteKitGenerator(
+	framework: Framework,
+	{ config }: GenerateHookInput
+) {
 	// if we're not in a sveltekit project, don't do anything
-	if (config.framework !== 'kit') {
+	if (framework !== 'kit') {
 		return
 	}
 
 	// we need to walk down their route directory and create any variable definitions we need
-	await walk_routes(config, {
+	await walk_routes(config, framework, {
 		async route({ dirpath, inlineQueries, routeQuery, routeScript }) {
 			// in order to create the variable definition we need to know every query that is being
 			// used in a specific route so we can generate versions of the variable functions with

@@ -24,7 +24,10 @@ export default async function ReactiveProcessor(config: Config, page: SvelteTran
 	// const value = graphql`` -> $: value = query(graphql``)
 	// const { value } = graphql`` -> $: { value } = query(graphql``)
 	//
-	if (!is_component(config, page.filepath) && !is_route(config, page.filepath)) {
+	if (
+		!is_component(config, page.framework, page.filepath) &&
+		!is_route(config, page.framework, page.filepath)
+	) {
 		return
 	}
 

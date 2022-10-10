@@ -28,8 +28,8 @@ type ExportNamedDeclaration = ReturnType<typeof recast.types.builders['exportNam
 
 export default async function kit_load_generator(page: SvelteTransformPage) {
 	// if this isn't a route, move on
-	const route = is_route(page.config, page.filepath)
-	const script = is_route_script(page.config, page.filepath)
+	const route = is_route(page.config, page.framework, page.filepath)
+	const script = is_route_script(page.framework, page.filepath)
 	if (!route && !script) {
 		return
 	}
@@ -472,7 +472,10 @@ function load_hook_statements(
 }
 
 async function find_page_info(page: SvelteTransformPage): Promise<HoudiniRouteScript> {
-	if (!is_route_script(page.config, page.filepath) && !is_route(page.config, page.filepath)) {
+	if (
+		!is_route_script(page.framework, page.filepath) &&
+		!is_route(page.config, page.framework, page.filepath)
+	) {
 		return { houdini_load: [], exports: [] }
 	}
 

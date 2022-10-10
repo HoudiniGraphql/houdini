@@ -1,9 +1,11 @@
-import { fs, GenerateHookInput } from 'houdini'
+import { fs } from 'houdini'
 import path from 'path'
 
-export default async function generateAdapter({ config }: GenerateHookInput) {
+import { PluginGenerateInput } from '.'
+
+export default async function generateAdapter({ config, framework }: PluginGenerateInput) {
 	// we only need to generate an adapter for kit (the default one is fine for vanilla svelte)
-	if (config.framework !== 'kit') {
+	if (framework !== 'kit') {
 		return
 	}
 
@@ -13,7 +15,7 @@ export default async function generateAdapter({ config }: GenerateHookInput) {
 	// figure out which adapter we need to lay down
 	const adapter = {
 		kit: sveltekitAdapter,
-	}[config.framework]
+	}[framework]
 
 	// write the index file that exports the runtime
 	await fs.mkdirp(path.dirname(adapterLocation))

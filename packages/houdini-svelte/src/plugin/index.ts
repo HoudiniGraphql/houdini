@@ -4,9 +4,17 @@ import path from 'path'
 import generate from './codegen'
 import extract from './extract'
 import fs_patch from './fsPatch'
-import { global_store_name, resolve_relative, stores_directory, store_name } from './kit'
+import {
+	global_store_name,
+	resolve_relative,
+	stores_directory,
+	store_name,
+	type Framework,
+} from './kit'
 import apply_transforms from './transforms'
 import validate from './validate'
+
+let framework: Framework = 'svelte'
 
 const HoudiniSveltePlugin: PluginFactory = async () => ({
 	/**
@@ -22,7 +30,12 @@ const HoudiniSveltePlugin: PluginFactory = async () => ({
 	validate,
 
 	// we need to write the svelte specific runtime
-	generate,
+	generate(input) {
+		return generate({
+			...input,
+			framework,
+		})
+	},
 
 	// we need to add the exports to the index files (this one file processes index.js and index.d.ts)
 	index_file({ config, content, export_star_from, plugin_root }) {
@@ -38,7 +51,9 @@ const HoudiniSveltePlugin: PluginFactory = async () => ({
 	 */
 
 	// transform a file's contents. changes here aren't seen by extract_documents
-	transform_file: apply_transforms,
+	transform_file(page) {
+		return apply_transforms(framework, page)
+	},
 
 	include(config, filepath) {
 		// the files we generate contain some crazy relative paths that we need to make sure we include for transformations
@@ -48,7 +63,7 @@ const HoudiniSveltePlugin: PluginFactory = async () => ({
 
 	// add custom vite config
 	vite: {
-		...fs_patch,
+		...fs_patch(() => framework),
 	},
 
 	/**
@@ -57,17 +72,23 @@ const HoudiniSveltePlugin: PluginFactory = async () => ({
 
 	// Check that storeName & globalStoreName are not overlapping.
 	// Not possible today, but maybe in the future if storeName starts to be configurable.
-	async after_load(config) {
+	async after_load(cfg) {
 		if (
-			store_name({ config, name: 'QueryName' }) ===
-			global_store_name({ config, name: 'QueryName' })
+			store_name({ config: cfg, name: 'QueryName' }) ===
+			global_store_name({ config: cfg, name: 'QueryName' })
 		) {
 			throw new HoudiniError({
-				filepath: config.filepath,
-				message: 'Invalid config file: "globalStoreName" and "storeName" are overlapping',
-				description: `Here, both gives: ${store_name({ config, name: 'QueryName' })}`,
+				filepath: cfg.filepath,
+				message: 'Invalid cfg file: "globalStoreName" and "storeName" are overlapping',
+				description: `Here, both gives: ${store_name({ config: cfg, name: 'QueryName' })}`,
 			})
 		}
+
+		// try to import the kit module
+		try {
+			await import('@sveltejs/kit')
+			framework = 'kit'
+		} catch {}
 	},
 })
 

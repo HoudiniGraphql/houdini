@@ -16,7 +16,7 @@ type Statement = recast.types.namedTypes.Statement
 
 export default async function QueryProcessor(config: Config, page: SvelteTransformPage) {
 	// only consider consider components in this processor
-	if (!is_component(config, page.filepath)) {
+	if (!is_component(config, page.framework, page.filepath)) {
 		return
 	}
 

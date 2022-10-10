@@ -98,25 +98,25 @@ export async function route_test({
 	// we want to run the transformer on both the component and script paths
 	const [component_result, script_result, layout_result, layout_script_result] =
 		await Promise.all([
-			runTransforms({
+			runTransforms('kit', {
 				content: component,
 				config,
 				filepath,
 				watch_file: () => {},
 			}),
-			runTransforms({
+			runTransforms('kit', {
 				config,
 				filepath: route_data_path(config, filepath),
 				watch_file: () => {},
 				content: script,
 			}),
-			runTransforms({
+			runTransforms('kit', {
 				config,
 				filepath: layout_path,
 				watch_file: () => {},
 				content: layout,
 			}),
-			runTransforms({
+			runTransforms('kit', {
 				config,
 				filepath: layout_script_path,
 				watch_file: () => {},
@@ -148,7 +148,7 @@ export async function component_test(
 	await fs.writeFile(filepath, `<script>${content}</script>`)
 
 	// we want to run the transformer on both the component and script paths
-	const result = await runTransforms({
+	const result = await runTransforms('kit', {
 		config,
 		filepath,
 		watch_file: () => {},
@@ -169,7 +169,7 @@ export async function test_transform_svelte(filepath: string, content: string) {
 	await fs.writeFile(filepath, content)
 
 	// we want to run the transformer on both the component and script paths
-	const result = await runTransforms({
+	const result = await runTransforms('kit', {
 		config,
 		filepath,
 		watch_file: () => {},
@@ -190,7 +190,7 @@ export async function test_transform_js(filepath: string, content: string) {
 	await fs.writeFile(filepath, content)
 
 	// we want to run the transformer on both the component and script paths
-	const result = await runTransforms({
+	const result = await runTransforms('kit', {
 		config,
 		filepath,
 		watch_file: () => {},

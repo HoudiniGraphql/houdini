@@ -256,6 +256,7 @@ export type ConfigFile = {
 
 	/**
 	 * One of "kit" or "svelte". Used to tell the preprocessor what kind of loading paradigm to generate for you. (default: kit)
+	 * @deprecated please follow the steps here: http://www.houdinigraphql.com/guides/release-notes#0170
 	 */
 	framework?: 'kit' | 'svelte'
 
