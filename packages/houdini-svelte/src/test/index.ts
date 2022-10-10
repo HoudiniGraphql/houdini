@@ -5,7 +5,7 @@ import path from 'path'
 
 import plugin from '../plugin'
 import { parseSvelte } from '../plugin/extract'
-import { page_query_path, route_data_path } from '../plugin/kit'
+import { Framework, page_query_path, route_data_path } from '../plugin/kit'
 import runTransforms from '../plugin/transforms'
 
 const schema = `
@@ -63,6 +63,7 @@ export async function route_test({
 	layout = '',
 	layout_script = '',
 	config: extra,
+	framework = 'kit',
 }: {
 	component?: string
 	script?: string
@@ -70,6 +71,7 @@ export async function route_test({
 	layout?: string
 	layout_script?: string
 	config?: Partial<ConfigFile>
+	framework?: Framework
 }): Promise<{
 	component: Script | null
 	script: Script | null
@@ -98,25 +100,25 @@ export async function route_test({
 	// we want to run the transformer on both the component and script paths
 	const [component_result, script_result, layout_result, layout_script_result] =
 		await Promise.all([
-			runTransforms('kit', {
+			runTransforms(framework, {
 				content: component,
 				config,
 				filepath,
 				watch_file: () => {},
 			}),
-			runTransforms('kit', {
+			runTransforms(framework, {
 				config,
 				filepath: route_data_path(config, filepath),
 				watch_file: () => {},
 				content: script,
 			}),
-			runTransforms('kit', {
+			runTransforms(framework, {
 				config,
 				filepath: layout_path,
 				watch_file: () => {},
 				content: layout,
 			}),
-			runTransforms('kit', {
+			runTransforms(framework, {
 				config,
 				filepath: layout_script_path,
 				watch_file: () => {},

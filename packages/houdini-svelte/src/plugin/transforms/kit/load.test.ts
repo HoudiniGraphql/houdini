@@ -295,9 +295,7 @@ describe('kit route processor', function () {
 						\`
 					</script>
 				`,
-			config: {
-				framework: 'svelte',
-			},
+			framework: 'svelte',
 		})
 
 		// make sure we added the right stuff
