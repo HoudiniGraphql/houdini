@@ -26,7 +26,7 @@ test('generates types for inline queries', async function () {
 	})
 
 	// execute the generator
-	await generate({ config, documents: [], plugin_root })
+	await generate({ config, documents: [], framework: 'kit', plugin_root })
 
 	// load the contents of the file
 	const queryContents = await fs.readFile(
@@ -67,7 +67,7 @@ query MyPageQuery {
 	})
 
 	// execute the generator
-	await generate({ config, documents: [], plugin_root })
+	await generate({ config, documents: [], framework: 'kit', plugin_root })
 
 	// load the contents of the file
 	const queryContents = await fs.readFile(
@@ -124,7 +124,7 @@ test('generates types for after load', async function () {
 	})
 
 	// execute the generator
-	await generate({ config, documents: [], plugin_root })
+	await generate({ config, documents: [], framework: 'kit', plugin_root })
 
 	// load the contents of the file
 	const queryContents = await fs.readFile(
@@ -200,7 +200,7 @@ test('generates types for onError', async function () {
 	})
 
 	// execute the generator
-	await generate({ config, documents: [], plugin_root })
+	await generate({ config, documents: [], framework: 'kit', plugin_root })
 
 	// load the contents of the file
 	const queryContents = await fs.readFile(

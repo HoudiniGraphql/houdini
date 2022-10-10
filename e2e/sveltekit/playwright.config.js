@@ -7,13 +7,13 @@ const with_replayio = false;
 const use = with_replayio
   ? {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ...(replayDevices['Replay Chromium'] as any),
+      ...replayDevices['Replay Chromium'],
       screenshot: 'only-on-failure'
     }
   : { screenshot: 'only-on-failure' };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const reporter: any[] = [['list']];
+const reporter = [['list']];
 if (process.env.CI) {
   reporter.push(['html', { open: 'never' }]);
   reporter.push(['github']);
@@ -22,7 +22,7 @@ if (with_replayio) {
   reporter.push(['@replayio/playwright/reporter']);
 }
 
-const config: PlaywrightTestConfig = {
+const config = {
   // retries: 2,
   workers: 5,
   reporter,
