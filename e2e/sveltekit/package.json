@@ -2,6 +2,7 @@
   "name": "e2e",
   "version": "0.0.1",
   "private": true,
+  "type": "module",
   "scripts": {
     "web": "cross-env TZ=utc vite dev --host 0.0.0.0",
     "api": "cross-env TZ=utc node api/server.mjs",
