@@ -122,6 +122,12 @@ export type HoudiniVitePluginConfig = {
 	pageQueryFilename?: string
 
 	/**
+	 * The name of the file used to define layout queries.
+	 * @default +layout.gql
+	 */
+	layoutQueryFilename?: string
+
+	/**
 	 * The default prefix of your global stores.
 	 *
 	 * _Note: it's nice to have a prefix so that your editor finds all your stores by just typings this prefix_
