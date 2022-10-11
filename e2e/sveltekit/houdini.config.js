@@ -2,7 +2,6 @@
 
 /** @type {import('houdini').ConfigFile} */
 const config = {
-  client: './src/lib/graphql/houdiniClient',
   schemaPath: './api/*.graphql',
   defaultCachePolicy: 'CacheOrNetwork',
   defaultPartial: true,
@@ -20,7 +19,9 @@ const config = {
     }
   },
   plugins: {
-    'houdini-svelte': {}
+    'houdini-svelte': {
+      client: './src/lib/graphql/houdiniClient'
+    }
   }
 };
 

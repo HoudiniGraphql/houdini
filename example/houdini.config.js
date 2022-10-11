@@ -1,6 +1,5 @@
 /** @type {import('houdini').ConfigFile} */
 const config = {
-	client: './src/client.ts',
 	apiUrl: 'http://localhost:4000/graphql',
 	scalars: {
 		DateTime: {
@@ -14,7 +13,9 @@ const config = {
 		},
 	},
 	plugins: {
-		'houdini-svelte': {},
+		'houdini-svelte': {
+			client: './src/client.ts',
+		},
 	},
 }
 
