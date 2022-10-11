@@ -267,7 +267,7 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 			// don't go any further
 			if (
 				// @ts-ignore
-				config.plugins?.['houdini-svelte']?.quietQueryErrors
+				!config.plugins?.['houdini-svelte']?.quietQueryErrors
 			) {
 				throw error(500, result.errors.map((error) => error.message).join('. ') + '.')
 			}
