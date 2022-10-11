@@ -28,10 +28,8 @@
 <a class:active={isPageActive('2', $page)} href={TabLinkKeepingContext('2', $page.url)}>user-2</a>
 <a class:active={isPageActive('3', $page)} href={TabLinkKeepingContext('3', $page.url)}>user-3</a>
 
-<div>
-  {JSON.stringify($Layout_User)}
-</div>
-<!-- <h3>Page: <UserName user={$Page_User.data?.user} /></h3> -->
+<!-- <h3>Page: <UserName user={$Layout_User.data?.user} /></h3> -->
+<h3>Page: ???</h3>
 
 <div class="ml">
   <a class:active={isTabActive('birth', $page.url)} href="./birth">Birth</a>
