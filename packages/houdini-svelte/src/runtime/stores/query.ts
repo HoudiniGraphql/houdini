@@ -1,10 +1,11 @@
 import { getCache } from '$houdini/runtime'
+import type { ConfigFile } from '$houdini/runtime/lib/config'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import * as log from '$houdini/runtime/lib/log'
 import { fetchQuery } from '$houdini/runtime/lib/network'
 import { FetchContext } from '$houdini/runtime/lib/network'
 import { marshalInputs, unmarshalSelection } from '$houdini/runtime/lib/scalars'
-import type { ConfigFile, QueryArtifact } from '$houdini/runtime/lib/types'
+import type { QueryArtifact } from '$houdini/runtime/lib/types'
 // internals
 import { CachePolicy, DataSource, GraphQLObject, QueryResult } from '$houdini/runtime/lib/types'
 import {

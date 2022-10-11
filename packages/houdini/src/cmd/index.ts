@@ -2,7 +2,7 @@ import { Command } from 'commander'
 
 import generate from '../codegen'
 import { formatErrors, getConfig, LogLevel, Config } from '../lib'
-import { ConfigFile } from '../runtime/lib/types'
+import { ConfigFile } from '../runtime/lib/config'
 import init from './init'
 import pullSchema from './pullSchema'
 

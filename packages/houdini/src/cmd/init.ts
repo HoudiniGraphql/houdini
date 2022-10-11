@@ -4,7 +4,7 @@ import path from 'path'
 import prompts from 'prompts'
 
 import { pullSchema } from '../lib'
-import { ConfigFile } from '../runtime/lib/types'
+import { ConfigFile } from '../runtime/lib/config'
 import * as fs from './../lib/fs'
 
 // the init command is responsible for scaffolding a few files

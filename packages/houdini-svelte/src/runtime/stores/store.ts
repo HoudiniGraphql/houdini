@@ -1,6 +1,5 @@
 import { getCache } from '$houdini/runtime'
-import { getCurrentConfig } from '$houdini/runtime/lib/config'
-import { ConfigFile } from '$houdini/runtime/lib/types'
+import { getCurrentConfig, ConfigFile } from '$houdini/runtime/lib/config'
 
 export class BaseStore {
 	async getConfig(): Promise<ConfigFile> {

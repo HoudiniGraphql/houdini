@@ -93,3 +93,11 @@ const HoudiniSveltePlugin: PluginFactory = async () => ({
 })
 
 export default HoudiniSveltePlugin
+
+declare module 'houdini' {
+	interface HoudiniPluginConfig {
+		'houdini-svelte'?: HoudiniVitePluginConfig
+	}
+}
+
+type HoudiniVitePluginConfig = {}
