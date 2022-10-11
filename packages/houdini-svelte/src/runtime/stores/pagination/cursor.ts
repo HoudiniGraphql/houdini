@@ -6,6 +6,7 @@ import { executeQuery } from '$houdini/runtime/lib/network'
 import { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
 import { Writable, writable } from 'svelte/store'
 
+import { getCurrentClient } from '../../network'
 import { getSession } from '../../session'
 import { QueryStoreFetchParams } from '../query'
 import { fetchParams } from '../query'
@@ -46,6 +47,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 		fetch?: typeof globalThis.fetch
 	}) => {
 		const config = await getConfig()
+		const client = await getCurrentClient()
 
 		// set the loading state to true
 		setFetching(true)
@@ -63,6 +65,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 
 		// send the query
 		const { result } = await executeQuery<GraphQLObject, {}>({
+			client,
 			artifact,
 			variables: loadVariables,
 			session: await getSession(),

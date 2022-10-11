@@ -114,6 +114,7 @@ export type RequestHandler<_Data> = (args: RequestHandlerArgs) => Promise<Reques
 // This function is responsible for simulating the fetch context and executing the query with fetchQuery.
 // It is mainly used for mutations, refetch and possible other client side operations in the future.
 export async function executeQuery<_Data extends GraphQLObject, _Input extends {}>({
+	client,
 	artifact,
 	variables,
 	session,
@@ -121,6 +122,7 @@ export async function executeQuery<_Data extends GraphQLObject, _Input extends {
 	fetch,
 	metadata,
 }: {
+	client: HoudiniClient
 	artifact: QueryArtifact | MutationArtifact
 	variables: _Input
 	session: any
@@ -130,6 +132,7 @@ export async function executeQuery<_Data extends GraphQLObject, _Input extends {
 	metadata?: {}
 }): Promise<{ result: RequestPayload; partial: boolean }> {
 	const { result: res, partial } = await fetchQuery<_Data, _Input>({
+		client,
 		context: {
 			fetch: fetch ?? globalThis.fetch.bind(globalThis),
 			metadata,
@@ -151,26 +154,21 @@ export async function executeQuery<_Data extends GraphQLObject, _Input extends {
 	return { result: res, partial }
 }
 
-export async function getCurrentClient(): Promise<HoudiniClient> {
-	// @ts-ignore
-	return (await import('HOUDINI_CLIENT_PATH')).default
-}
-
 export async function fetchQuery<_Data extends GraphQLObject, _Input extends {}>({
+	client,
 	artifact,
 	variables,
 	cached = true,
 	policy,
 	context,
 }: {
+	client: HoudiniClient
 	context: FetchContext
 	artifact: QueryArtifact | MutationArtifact
 	variables: _Input
 	cached?: boolean
 	policy?: CachePolicy
 }): Promise<FetchQueryResult<_Data>> {
-	const client = await getCurrentClient()
-
 	// if there is no environment
 	if (!client) {
 		throw new Error('could not find houdini environment')

@@ -4,6 +4,7 @@ import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import { executeQuery } from '$houdini/runtime/lib/network'
 import { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
 
+import { getCurrentClient } from '../../network'
 import { getSession } from '../../session'
 import { QueryStoreFetchParams } from '../query'
 import { fetchParams } from '../query'
@@ -73,6 +74,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 
 			// send the query
 			const { result } = await executeQuery<GraphQLObject, {}>({
+				client: await getCurrentClient(),
 				artifact,
 				variables: queryVariables,
 				session: await getSession(),

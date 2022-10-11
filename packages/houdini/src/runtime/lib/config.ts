@@ -58,16 +58,6 @@ export async function getCurrentConfig(): Promise<ConfigFile> {
 // the values we can take in from the config file
 export type ConfigFile = {
 	/**
-	 * A relative path from your houdini.config.js to the file that exports your client as its default value
-	 */
-	client: string
-
-	/**
-	 * @deprecated use include instead. although you might not need it at all, check the default value.
-	 */
-	sourceGlob?: string
-
-	/**
 	 * A glob pointing to all files that houdini should consider. Note, this must include .js files
 	 * for inline queries to work
 	 * @default `src/** /*.{svelte,graphql,gql,ts,js}`
@@ -98,11 +88,6 @@ export type ConfigFile = {
 	 * A url to use to pull the schema. For more information: https://www.houdinigraphql.com/api/cli#generate
 	 */
 	apiUrl?: string
-
-	/**
-	 * A boolean that tells the preprocessor to treat every component as a non-route. This is useful for projects built with the static-adapter
-	 */
-	static?: boolean
 
 	/**
 	 * An object describing custom scalars for your project. For more information: https://www.houdinigraphql.com/api/config#custom-scalars
@@ -179,35 +164,15 @@ export type ConfigFile = {
 	schemaPollHeaders?: Record<string, string | ((env: NodeJS.ProcessEnv) => string)>
 
 	/**
-	 * The name of the file used to define page queries.
-	 * @default +page.gql
-	 */
-	pageQueryFilename?: string
-
-	/**
-	 * The absolute path pointing to your SvelteKit project.
-	 * @default process.cwd()
-	 */
-	projectDir?: string
-
-	/**
-	 * The default prefix of your global stores.
-	 *
-	 * _Note: it's nice to have a prefix so that your editor finds all your stores by just typings this prefix_
-	 * @default GQL_
-	 */
-	globalStorePrefix?: string
-
-	/**
-	 * With this enabled, errors in your query will not be thrown as exceptions. You will have to handle
-	 * error state in your route components or by hand in your load (or the onError hook)
-	 */
-	quietQueryErrors?: boolean
-
-	/**
 	 * An object describing the plugins enabled for the project
 	 */
 	plugins?: HoudiniPluginConfig
+
+	/**
+	 * The relative path from your houdini config file pointing to your application.
+	 * @default process.cwd()
+	 */
+	projectDir?: string
 }
 
 type ScalarMap = { [typeName: string]: ScalarSpec }

@@ -1,11 +1,11 @@
 import { getCache } from '$houdini/runtime'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
-import { getCurrentClient } from '$houdini/runtime/lib/network'
 import { marshalInputs, unmarshalSelection } from '$houdini/runtime/lib/scalars'
 import { CompiledSubscriptionKind, SubscriptionArtifact } from '$houdini/runtime/lib/types'
 import { writable, Writable } from 'svelte/store'
 
 import { isBrowser } from '../adapter'
+import { getCurrentClient } from '../network'
 import { BaseStore } from './store'
 
 export class SubscriptionStore<_Data, _Input extends {}> extends BaseStore {

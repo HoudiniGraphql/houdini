@@ -147,7 +147,13 @@ class CacheInternal {
 	// for server-side requests we need to be able to flag the cache as disabled so we dont write to it
 	private _disabled = false
 
-	config: ConfigFile = defaultConfigValues({ client: '' })
+	config: ConfigFile = defaultConfigValues({
+		plugins: {
+			'houdini-svelte': {
+				client: '',
+			},
+		},
+	})
 	storage: InMemoryStorage
 	subscriptions: InMemorySubscriptions
 	lists: ListManager

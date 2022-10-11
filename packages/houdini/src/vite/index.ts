@@ -43,7 +43,7 @@ export default function (opts?: PluginConfig): Plugin[] {
 					const config = await getConfig(opts)
 
 					// make sure we behave as if we're generating from inside the plugin (changes logging behavior)
-					config.plugin = true
+					config.pluginMode = true
 
 					// generate the runtime
 					await generate(config)

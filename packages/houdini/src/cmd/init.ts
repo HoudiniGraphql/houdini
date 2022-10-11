@@ -211,7 +211,11 @@ const writeConfigFile = async ({
 	houdiniClientImport: string
 }): Promise<boolean> => {
 	const config: ConfigFile = {
-		client: houdiniClientImport,
+		plugins: {
+			'houdini-svelte': {
+				client: houdiniClientImport,
+			},
+		},
 		apiUrl: url,
 	}
 

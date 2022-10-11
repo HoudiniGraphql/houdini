@@ -180,7 +180,11 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 			},
 		},
 		logLevel: 'quiet',
-		client: './my/client/path',
+		plugins: {
+			'houdini-svelte': {
+				client: './my/client/path',
+			},
+		},
 		...config,
 	}
 }

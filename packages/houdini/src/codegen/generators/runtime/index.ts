@@ -12,7 +12,6 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 		...config.plugins
 			.filter((plugin) => plugin.include_runtime)
 			.map((plugin) => generatePluginRuntime(config, plugin.name)),
-		addClientImport(config),
 		addConfigImport(config),
 		addSiteURL(config),
 	])
@@ -45,27 +44,6 @@ async function generatePluginRuntime(config: Config, name: string) {
 	const pluginDir = config.pluginRuntimeDirectory(name)
 	await fs.mkdirp(pluginDir)
 	await fs.recursiveCopy(source, pluginDir)
-}
-
-async function addClientImport(config: Config) {
-	// all we need to do is compute the relative path from the generated network file
-	// to the client in the config file and replace HOUDINI_CLIENT_PATH with the value
-
-	// the path to the network file
-	const networkFilePath = path.join(config.runtimeDirectory, 'lib', 'network.js')
-	// the relative path
-	const relativePath = path
-		.relative(path.dirname(networkFilePath), path.join(config.projectRoot, config.client))
-		// Windows management
-		.replaceAll('\\', '/')
-
-	// read the file, replace the string, update the file
-	const contents = await fs.readFile(networkFilePath)
-	if (!contents) {
-		return
-	}
-
-	await fs.writeFile(networkFilePath, contents.replace('HOUDINI_CLIENT_PATH', relativePath))
 }
 
 async function addConfigImport(config: Config) {
