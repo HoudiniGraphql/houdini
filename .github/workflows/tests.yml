@@ -86,7 +86,7 @@ jobs:
             - name: Tests
               run: pnpm run tests
 
-    e2e:
+    e2e_sveltekit:
         name: End-to-End Tests
         runs-on: ubuntu-latest
 
@@ -138,8 +138,8 @@ jobs:
               if: steps.playwright-cache.outputs.cache-hit != 'true'
               run: npx playwright install --with-deps
 
-            - name: End-to-End Tests
-              run: cd e2e && pnpm run --filter e2e build && pnpm --filter e2e tests
+            - name: End-to-End Tests sveltekit
+              run: pnpm run --filter sveltekit build && pnpm --filter sveltekit tests
               env:
                   RECORD_REPLAY_TEST_RUN_ID: ${{ env.GITHUB_SHA }}
 
@@ -150,7 +150,7 @@ jobs:
                   api-key: ${{ secrets.RECORD_REPLAY_API_KEY }}
                   filter: ${{ 'function($v) { $v.metadata.test.result = "failed" and $v.status = "onDisk" }' }}
 
-    e2e_linter:
+    e2e_sveltekit_linter:
         name: End-to-End Linter
         runs-on: ubuntu-latest
 
@@ -191,11 +191,11 @@ jobs:
               run: pnpm run build
 
             - name: Build kit assets
-              run: cd e2e && pnpm --filter e2e run build
+              run: pnpm --filter sveltekit run build
 
             # needs to run after build & houdini generate
             - name: End-to-End lint
-              run: pnpm --filter e2e run lint
+              run: pnpm --filter sveltekit run lint
 
             - name: End-to-End check
-              run: pnpm --filter e2e run check
+              run: pnpm --filter sveltekit run check
