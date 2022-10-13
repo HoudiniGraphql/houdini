@@ -17,7 +17,6 @@
 		"format": "prettier \"packages/**/*.ts\"",
 		"format:write": "npm run format -- -w",
 		"format:check": "npm run format -- --check",
-		"changeset": "changeset",
 		"version": "changeset version",
 		"release": "turbo run publish --filter=\"./packages/*\" & changeset publish",
 		"postinstall": "node -e \"try { require('husky').install(); console.log('ran prepack') } catch (e) {if (e.code !== 'MODULE_NOT_FOUND') throw e}\"",
@@ -25,6 +24,9 @@
 		"postpack": "pinst --enable"
 	},
 	"devDependencies": {
+		"@changesets/changelog-git": "^0.1.13",
+		"@changesets/changelog-github": "^0.4.7",
+		"@changesets/cli": "^2.25.0",
 		"@theguild/eslint-config": "^0.1.0",
 		"@trivago/prettier-plugin-sort-imports": "^3.3.0",
 		"graphql": "*",
