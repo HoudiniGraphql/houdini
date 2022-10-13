@@ -456,6 +456,10 @@ You can now define a `+page.svelte` file that looks like the following and your 
 
 Keep in mind, if you want to define variable functions or hooks, those will go in `+page.js`.
 
+### Layout Queries
+
+Very similar to page queries, you can create a file `+layout.gql` that will fill the prop `data` in your `layout.svelte` file.
+
 ## That's all for now!
 
 Thanks for making it this far. Hopefully you have some idea for how you want to structure your application. If not, head to the
