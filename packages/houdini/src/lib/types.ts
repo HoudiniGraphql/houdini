@@ -31,3 +31,4 @@ export type CollectedGraphQLDocument = {
 }
 
 export * from '../runtime/lib/types'
+export * from '../runtime/lib/config'

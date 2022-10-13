@@ -4,7 +4,8 @@ import path from 'path'
 
 import { runPipeline } from '../codegen'
 import { Config, fs, CollectedGraphQLDocument } from '../lib'
-import { ConfigFile, ArtifactKind } from '../runtime/lib/types'
+import { ConfigFile } from '../runtime/lib/config'
+import { ArtifactKind } from '../runtime/lib/types'
 
 export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 	return {
@@ -179,7 +180,11 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 			},
 		},
 		logLevel: 'quiet',
-		client: './my/client/path',
+		plugins: {
+			'houdini-svelte': {
+				client: './my/client/path',
+			},
+		},
 		...config,
 	}
 }

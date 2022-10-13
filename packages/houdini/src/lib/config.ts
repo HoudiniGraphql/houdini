@@ -14,6 +14,7 @@ import type {
 import { fileURLToPath, pathToFileURL } from 'url'
 import { promisify } from 'util'
 
+import { ConfigFile, CachePolicy } from '../runtime/lib'
 import { computeID, defaultConfigValues, keyFieldsForType } from '../runtime/lib/config'
 import { CachePolicy, ConfigFile } from '../runtime/lib/types'
 import { TransformPage } from '../vite/houdini'
@@ -53,11 +54,7 @@ export class Config {
 	routesDir: string
 	schemaPollInterval: number | null
 	schemaPollHeaders: Record<string, string | ((env: any) => string)>
-	pageQueryFilename: string
-	plugin: boolean = false
-	client: string
-	globalStorePrefix: string
-	quietQueryErrors: boolean
+	pluginMode: boolean = false
 	plugins: (Plugin & { name: string; include_runtime: boolean })[] = []
 
 	constructor({
@@ -85,21 +82,8 @@ export class Config {
 			disableMasking = false,
 			schemaPollInterval = 2000,
 			schemaPollHeaders = {},
-			pageQueryFilename = '+page.gql',
 			projectDir,
-			client,
-			globalStorePrefix = 'GQL_',
-			quietQueryErrors,
 		} = this.configFile
-
-		if (!client) {
-			throw new HoudiniError({
-				filepath,
-				message: 'Invalid config file: missing client value.',
-				description:
-					'Please set it to the relative path (from houdini.config.js) to your client file. The file must have a default export with an instance of HoudiniClient.',
-			})
-		}
 
 		// if we're given a schema string
 		if (typeof schema === 'string') {
@@ -138,10 +122,6 @@ export class Config {
 		this.schemaPollInterval = schemaPollInterval
 		this.schemaPollHeaders = schemaPollHeaders
 		this.rootDir = path.join(this.projectRoot, '$houdini')
-		this.pageQueryFilename = pageQueryFilename
-		this.client = client
-		this.globalStorePrefix = globalStorePrefix
-		this.quietQueryErrors = quietQueryErrors || false
 
 		// hold onto the key config
 		if (defaultKeys) {
@@ -170,6 +150,11 @@ export class Config {
 
 		// any file of a valid extension in src is good enough
 		return [`src/**/*{${extensions.join(',')}}`]
+	}
+
+	pluginConfig<ConfigType extends {}>(name: string): ConfigType {
+		// @ts-ignore
+		return this.configFile.plugins?.[name] ?? {}
 	}
 
 	get pullHeaders() {

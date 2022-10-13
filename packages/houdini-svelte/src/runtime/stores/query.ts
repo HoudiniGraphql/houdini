@@ -1,10 +1,11 @@
 import { getCache } from '$houdini/runtime'
+import type { ConfigFile } from '$houdini/runtime/lib/config'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import * as log from '$houdini/runtime/lib/log'
 import { fetchQuery } from '$houdini/runtime/lib/network'
 import { FetchContext } from '$houdini/runtime/lib/network'
 import { marshalInputs, unmarshalSelection } from '$houdini/runtime/lib/scalars'
-import type { ConfigFile, QueryArtifact } from '$houdini/runtime/lib/types'
+import type { QueryArtifact } from '$houdini/runtime/lib/types'
 // internals
 import { CachePolicy, DataSource, GraphQLObject, QueryResult } from '$houdini/runtime/lib/types'
 import {
@@ -16,6 +17,7 @@ import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
 import { get, Readable, Writable, writable } from 'svelte/store'
 
 import { clientStarted, isBrowser, error } from '../adapter'
+import { getCurrentClient } from '../network'
 import { getClientSession, getSession } from '../session'
 import { BaseStore } from './store'
 
@@ -223,6 +225,7 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 	}) {
 		const request = await fetchQuery<_Data, _Input>({
 			...context,
+			client: await getCurrentClient(),
 			artifact,
 			variables,
 			cached,
@@ -262,7 +265,10 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 			}))
 
 			// don't go any further
-			if (!config.quietQueryErrors) {
+			if (
+				// @ts-ignore
+				!config.plugins?.['houdini-svelte']?.quietQueryErrors
+			) {
 				throw error(500, result.errors.map((error) => error.message).join('. ') + '.')
 			}
 		} else {

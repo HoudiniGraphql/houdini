@@ -1,4 +1,3 @@
-import { logGreen } from '@kitql/helper'
 import { getConfig, ConfigFile } from 'houdini'
 import { TransformPage } from 'houdini/vite'
 

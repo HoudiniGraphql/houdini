@@ -1,13 +1,13 @@
 import minimatch from 'minimatch'
 import path from 'path'
 import type { Plugin } from 'vite'
+import watch_and_run from 'vite-plugin-watch-and-run'
 
 import generate from '../codegen'
 import { getConfig, PluginConfig } from '../lib/config'
 import { formatErrors } from '../lib/graphql'
 import houdini_vite from './houdini'
 import watch_remote_schema from './schema'
-import watch_and_run from './watchAndRun'
 
 export * from './ast'
 export * from './imports'
@@ -43,7 +43,7 @@ export default function (opts?: PluginConfig): Plugin[] {
 					const config = await getConfig(opts)
 
 					// make sure we behave as if we're generating from inside the plugin (changes logging behavior)
-					config.plugin = true
+					config.pluginMode = true
 
 					// generate the runtime
 					await generate(config)

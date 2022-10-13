@@ -10,9 +10,6 @@
 		"build": {
 			"dependsOn": ["typedefs", "compile"]
 		},
-		"lint": {
-			"outputs": []
-		},
 		"publish": {
 			"dependsOn": ["build", "test", "lint"]
 		}

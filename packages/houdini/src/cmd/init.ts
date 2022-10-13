@@ -4,7 +4,7 @@ import path from 'path'
 import prompts from 'prompts'
 
 import { pullSchema } from '../lib'
-import { ConfigFile } from '../runtime/lib/types'
+import { ConfigFile } from '../runtime/lib/config'
 import * as fs from './../lib/fs'
 
 // the init command is responsible for scaffolding a few files
@@ -211,7 +211,11 @@ const writeConfigFile = async ({
 	houdiniClientImport: string
 }): Promise<boolean> => {
 	const config: ConfigFile = {
-		client: houdiniClientImport,
+		plugins: {
+			'houdini-svelte': {
+				client: houdiniClientImport,
+			},
+		},
 		apiUrl: url,
 	}
 
@@ -516,6 +520,7 @@ async function updatePackageJSON(targetPath: string) {
 	packageJSON.devDependencies = {
 		...packageJSON.devDependencies,
 		houdini: '^HOUDINI_VERSION',
+		'houdini-svelte': '^HOUDINI_VERSION',
 		graphql: '^15.5.0',
 	}
 

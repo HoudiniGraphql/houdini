@@ -115,7 +115,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 		artifactStats.deleted.length
 
 	// If triggered from the plugin, we show logs ONLY if there are changes.
-	const printMessage = !config.plugin || unchanged !== artifactStats.total.length
+	const printMessage = !config.pluginMode || unchanged !== artifactStats.total.length
 	if (!printMessage || config.logLevel === LogLevel.Quiet) {
 		if (error) {
 			throw error
@@ -123,7 +123,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 		return
 	}
 
-	if (!config.plugin) {
+	if (!config.pluginMode) {
 		console.log('🎩 Generating runtime...')
 	}
 
@@ -138,13 +138,13 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 	// print summaries of the changes
 	else if ([LogLevel.Summary, LogLevel.ShortSummary].includes(config.logLevel)) {
 		// if we have any unchanged artifacts
-		if (unchanged > 0 && printMessage && !config.plugin) {
+		if (unchanged > 0 && printMessage && !config.pluginMode) {
 			console.log(`📃 Unchanged: ${unchanged}`)
 		}
 
-		logStyled('CREATED', artifactStats.new, config.logLevel, config.plugin)
-		logStyled('UPDATED', artifactStats.changed, config.logLevel, config.plugin)
-		logStyled('DELETED', artifactStats.deleted, config.logLevel, config.plugin)
+		logStyled('CREATED', artifactStats.new, config.logLevel, config.pluginMode)
+		logStyled('UPDATED', artifactStats.changed, config.logLevel, config.pluginMode)
+		logStyled('DELETED', artifactStats.deleted, config.logLevel, config.pluginMode)
 	}
 	// print the status of every file
 	else if (config.logLevel === LogLevel.Full) {

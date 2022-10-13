@@ -1,12 +1,7 @@
 import { defaultConfigValues, computeID, keyFieldsForType } from '../lib/config'
+import { ConfigFile } from '../lib/config'
 import { deepEquals } from '../lib/deepEquals'
-import {
-	GraphQLObject,
-	GraphQLValue,
-	SubscriptionSelection,
-	SubscriptionSpec,
-	ConfigFile,
-} from '../lib/types'
+import { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '../lib/types'
 import { GarbageCollector } from './gc'
 import { ListCollection, ListManager } from './lists'
 import { InMemoryStorage, Layer, LayerID } from './storage'
@@ -152,7 +147,13 @@ class CacheInternal {
 	// for server-side requests we need to be able to flag the cache as disabled so we dont write to it
 	private _disabled = false
 
-	config: ConfigFile = defaultConfigValues({ client: '' })
+	config: ConfigFile = defaultConfigValues({
+		plugins: {
+			'houdini-svelte': {
+				client: '',
+			},
+		},
+	})
 	storage: InMemoryStorage
 	subscriptions: InMemorySubscriptions
 	lists: ListManager

@@ -84,6 +84,15 @@ const HoudiniSveltePlugin: PluginFactory = async () => ({
 			})
 		}
 
+		if (!cfg.configFile.plugins?.['houdini-svelte'].client) {
+			throw new HoudiniError({
+				filepath: cfg.filepath,
+				message: 'Invalid config file: missing client value.',
+				description:
+					'Please set it to the relative path (from houdini.config.js) to your client file. The file must have a default export with an instance of HoudiniClient.',
+			})
+		}
+
 		// try to import the kit module
 		try {
 			await import('@sveltejs/kit')
@@ -93,3 +102,41 @@ const HoudiniSveltePlugin: PluginFactory = async () => ({
 })
 
 export default HoudiniSveltePlugin
+
+declare module 'houdini' {
+	interface HoudiniPluginConfig {
+		'houdini-svelte': HoudiniVitePluginConfig
+	}
+}
+
+export type HoudiniVitePluginConfig = {
+	/**
+	 * A relative path from your houdini.config.js to the file that exports your client as its default value
+	 */
+	client: string
+
+	/**
+	 * The name of the file used to define page queries.
+	 * @default +page.gql
+	 */
+	pageQueryFilename?: string
+
+	/**
+	 * The default prefix of your global stores.
+	 *
+	 * _Note: it's nice to have a prefix so that your editor finds all your stores by just typings this prefix_
+	 * @default GQL_
+	 */
+	globalStorePrefix?: string
+
+	/**
+	 * With this enabled, errors in your query will not be thrown as exceptions. You will have to handle
+	 * error state in your route components or by hand in your load (or the onError hook)
+	 */
+	quietQueryErrors?: boolean
+
+	/**
+	 * A flag to treat every component as a non-route. This is useful for projects built with the static-adapter
+	 */
+	static?: boolean
+}

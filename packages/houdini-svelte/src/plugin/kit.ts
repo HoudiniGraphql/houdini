@@ -4,6 +4,7 @@ import { ensure_imports } from 'houdini/vite'
 import path from 'path'
 import recast from 'recast'
 
+import { HoudiniVitePluginConfig } from '.'
 import { parseSvelte } from './extract'
 import { SvelteTransformPage } from './transforms/types'
 
@@ -75,7 +76,10 @@ export function is_component(config: Config, framework: Framework, filename: str
 }
 
 export function page_query_path(config: Config, filename: string) {
-	return path.join(path.dirname(resolve_relative(config, filename)), config.pageQueryFilename)
+	return path.join(
+		path.dirname(resolve_relative(config, filename)),
+		plugin_config(config).pageQueryFilename
+	)
 }
 
 export function resolve_relative(config: Config, filename: string) {
@@ -123,7 +127,7 @@ export async function walk_routes(
 		}
 
 		// route queries
-		else if (child === config.pageQueryFilename) {
+		else if (child === plugin_config(config).pageQueryFilename) {
 			isRoute = true
 
 			// load the contents
@@ -249,7 +253,19 @@ export function store_name({ config, name }: { config: Config; name: string }) {
 }
 
 export function global_store_name({ config, name }: { config: Config; name: string }) {
-	return config.globalStorePrefix + name
+	return plugin_config(config).globalStorePrefix + name
+}
+
+export function plugin_config(config: Config): Required<HoudiniVitePluginConfig> {
+	const cfg = config.pluginConfig<HoudiniVitePluginConfig>('houdini-svelte')
+
+	return {
+		globalStorePrefix: 'GQL_',
+		pageQueryFilename: '+page.gql',
+		quietQueryErrors: false,
+		static: false,
+		...cfg,
+	}
 }
 
 export function store_import({

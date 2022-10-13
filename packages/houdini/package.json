@@ -1,7 +1,7 @@
 {
     "name": "houdini",
     "version": "0.16.6",
-    "description": "The svelte plugin for houdini",
+    "description": "The disappearing GraphQL clients",
     "type": "module",
     "scripts": {
         "compile": "scripts build",
@@ -16,7 +16,7 @@
         "rollup": "^2.79.1",
         "scripts": "workspace:^",
         "turbo": "^1.5.4",
-        "vite": "^3.1.4",
+        "vite": "^3.1.6",
         "vitest": "^0.23.4"
     },
     "dependencies": {

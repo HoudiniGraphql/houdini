@@ -6,6 +6,7 @@ import { GraphQLObject } from '$houdini/runtime/lib/types'
 import { Readable } from 'svelte/store'
 import { Writable, writable } from 'svelte/store'
 
+import { getCurrentClient } from '../network'
 import { getSession } from '../session'
 import { BaseStore } from './store'
 
@@ -79,6 +80,7 @@ export class MutationStore<
 		try {
 			// trigger the mutation
 			const { result } = await executeQuery({
+				client: await getCurrentClient(),
 				config,
 				artifact: this.artifact,
 				variables: newVariables,

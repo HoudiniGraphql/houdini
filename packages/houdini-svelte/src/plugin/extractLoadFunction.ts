@@ -5,7 +5,7 @@ import * as recast from 'recast'
 import { h_join } from 'src/lib/hPath'
 import { transformWithEsbuild } from 'vite'
 
-import { HoudiniRouteScript, stores_directory_name, store_suffix } from './kit'
+import { HoudiniRouteScript, plugin_config, stores_directory_name, store_suffix } from './kit'
 
 type Program = recast.types.namedTypes.Program
 type VariableDeclaration = recast.types.namedTypes.VariableDeclaration
@@ -81,10 +81,11 @@ async function processScript(
 				let name = specifier.local?.name || ''
 				let query = ''
 
+				const store_prefix = plugin_config(config).globalStorePrefix
 				// if we are importing a prefixed store
-				if (name.startsWith(config.globalStorePrefix)) {
+				if (store_prefix && name.startsWith(store_prefix)) {
 					// the name of the query is the parts after the prefix
-					query = name.substring(config.globalStorePrefix.length)
+					query = name.substring(store_prefix.length)
 				}
 
 				// if we are importing a store factory
