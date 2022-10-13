@@ -430,10 +430,10 @@ describe('kit route processor', function () {
 		`)
 	})
 
-	test('route with page query', async function () {
+	test('route with +page.gql query', async function () {
 		const route = await route_test({
 			query: `
-				query TestQuery {
+				query TestPageQuery {
 					viewer {
 						id
 					}
@@ -442,24 +442,24 @@ describe('kit route processor', function () {
 		})
 
 		expect(route.component).toMatchInlineSnapshot(`
-			import GQL_TestQuery from "$houdini/plugins/houdini-svelte/stores/TestQuery";
+			import GQL_TestPageQuery from "$houdini/plugins/houdini-svelte/stores/TestPageQuery";
 			export let data;
 		`)
 		expect(route.script).toMatchInlineSnapshot(`
-			import { load_TestQuery } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
+			import { load_TestPageQuery } from "$houdini/plugins/houdini-svelte/stores/TestPageQuery";
 			import { getCurrentConfig } from "$houdini/runtime/lib/config";
 			import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
-			import GQL_TestQuery from "$houdini/plugins/houdini-svelte/stores/TestQuery";
+			import GQL_TestPageQuery from "$houdini/plugins/houdini-svelte/stores/TestPageQuery";
 
 			export async function load(context) {
 			    const houdini_context = new RequestContext(context);
 			    const houdiniConfig = await getCurrentConfig();
 			    const promises = [];
 			    const inputs = {};
-			    inputs["TestQuery"] = {};
+			    inputs["TestPageQuery"] = {};
 
-			    promises.push(load_TestQuery({
-			        "variables": inputs["TestQuery"],
+			    promises.push(load_TestPageQuery({
+			        "variables": inputs["TestPageQuery"],
 			        "event": context,
 			        "blocking": false
 			    }));

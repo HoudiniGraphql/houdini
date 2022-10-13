@@ -13,6 +13,7 @@ import {
 	HoudiniRouteScript,
 	is_route,
 	is_route_script,
+	layout_query_path,
 	page_query_path,
 	route_data_path,
 	route_page_path,
@@ -44,8 +45,9 @@ export default async function kit_load_generator(page: SvelteTransformPage) {
 			  }).id
 
 	// we need to collect all of the various queries associated with the query file
-	const [page_query, inline_queries, page_info] = await Promise.all([
-		find_page_query(page),
+	const [page_query, layout_query, inline_queries, page_info] = await Promise.all([
+		find_special_query('Page', page),
+		find_special_query('Layout', page),
 		find_inline_queries(
 			page,
 			// if we are currently on the route file, there's nothing to parse
@@ -61,7 +63,7 @@ export default async function kit_load_generator(page: SvelteTransformPage) {
 		find_page_info(page),
 	])
 
-	const queries = inline_queries.concat(page_query ?? [])
+	const queries = inline_queries.concat(layout_query ?? []).concat(page_query ?? [])
 	for (const [i, target] of (page_info.houdini_load ?? []).entries()) {
 		queries.push({
 			name: target.name!.value,
@@ -404,9 +406,15 @@ function add_load({
 	}
 }
 
-async function find_page_query(page: SvelteTransformPage): Promise<LoadTarget | null> {
+async function find_special_query(
+	type: `Page` | `Layout`,
+	page: SvelteTransformPage
+): Promise<LoadTarget | null> {
 	// figure out the filepath for the page query
-	const query_path = page_query_path(page.config, page.filepath)
+	const query_path =
+		type === 'Page'
+			? page_query_path(page.config, page.filepath)
+			: layout_query_path(page.config, page.filepath)
 
 	// if the file doesn't exist, we're done
 	const contents = await fs.readFile(query_path)
@@ -423,7 +431,7 @@ async function find_page_query(page: SvelteTransformPage): Promise<LoadTarget | 
 	) as graphql.OperationDefinitionNode
 	// if it doesn't exist, there is an error, but no discovered query either
 	if (!definition) {
-		formatErrors({ message: 'page.gql must contain a query.', filepath: page_query_path })
+		formatErrors({ message: 'gql file must contain a query.', filepath: page_query_path })
 		return null
 	}
 
