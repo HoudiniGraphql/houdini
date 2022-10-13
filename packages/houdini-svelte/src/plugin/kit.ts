@@ -36,12 +36,16 @@ export function routePagePath(config: Config, filename: string) {
 }
 
 export function is_route_script(framework: Framework, filename: string) {
+	return is_page_script(framework, filename) || is_layout_script(framework, filename)
+}
+
+export function is_page_script(framework: Framework, filename: string) {
+	return framework === 'kit' && (filename.endsWith('+page.js') || filename.endsWith('+page.ts'))
+}
+
+export function is_layout_script(framework: Framework, filename: string) {
 	return (
-		framework === 'kit' &&
-		(filename.endsWith('+page.js') ||
-			filename.endsWith('+page.ts') ||
-			filename.endsWith('+layout.js') ||
-			filename.endsWith('+layout.ts'))
+		framework === 'kit' && (filename.endsWith('+layout.js') || filename.endsWith('+layout.ts'))
 	)
 }
 
@@ -66,6 +70,13 @@ export function is_root_layout_script(config: Config, filename: string) {
 	)
 }
 
+export function is_layout_component(config: Config, filename: string) {
+	return (
+		resolve_relative(config, filename).replace(config.projectRoot, '').replace('.ts', '.js') ===
+		path.sep + path.join('src', 'routes', '+layout.svelte')
+	)
+}
+
 export function is_component(config: Config, framework: Framework, filename: string) {
 	return (
 		framework === 'svelte' ||
@@ -79,6 +90,13 @@ export function page_query_path(config: Config, filename: string) {
 	return path.join(
 		path.dirname(resolve_relative(config, filename)),
 		plugin_config(config).pageQueryFilename
+	)
+}
+
+export function layout_query_path(config: Config, filename: string) {
+	return path.join(
+		path.dirname(resolve_relative(config, filename)),
+		plugin_config(config).layoutQueryFilename
 	)
 }
 
@@ -104,9 +122,12 @@ export async function walk_routes(
 
 	// we need to collect the important values from each special child
 	// for the visitor.route handler
-	let routeQuery: graphql.OperationDefinitionNode | null = null
+	let pageScript: string | null = null
+	let layoutScript: string | null = null
+	let routePageQuery: graphql.OperationDefinitionNode | null = null
+	let routeLayoutQuery: graphql.OperationDefinitionNode | null = null
+	const inlineLayoutQueries: graphql.OperationDefinitionNode[] = []
 	const inlineQueries: graphql.OperationDefinitionNode[] = []
-	let routeScript: string | null = null
 
 	// process the children
 	for (const child of await fs.readdir(dirpath)) {
@@ -116,17 +137,27 @@ export async function walk_routes(
 			await walk_routes(config, framework, visitor, childPath)
 		}
 
-		// route scripts
-		else if (is_route_script(framework, child)) {
+		// page scripts
+		else if (is_page_script(framework, child)) {
 			isRoute = true
-			routeScript = childPath
-			if (!visitor.routeScript) {
+			pageScript = childPath
+			if (!visitor.pageScript) {
 				continue
 			}
-			await visitor.routeScript(childPath, childPath)
+			await visitor.pageScript(childPath, childPath)
 		}
 
-		// route queries
+		// layout scripts
+		else if (is_layout_script(framework, child)) {
+			isRoute = true
+			layoutScript = childPath
+			if (!visitor.layoutScript) {
+				continue
+			}
+			await visitor.layoutScript(childPath, childPath)
+		}
+
+		// page queries
 		else if (child === plugin_config(config).pageQueryFilename) {
 			isRoute = true
 
@@ -138,15 +169,69 @@ export async function walk_routes(
 
 			// invoke the visitor
 			try {
-				routeQuery = config.extractQueryDefinition(graphql.parse(contents))
+				routePageQuery = config.extractQueryDefinition(graphql.parse(contents))
 			} catch (e) {
 				throw routeQueryError(childPath)
 			}
 
-			if (!visitor.routeQuery || !routeQuery) {
+			if (!visitor.routePageQuery || !routePageQuery) {
 				continue
 			}
-			await visitor.routeQuery(routeQuery, childPath)
+			await visitor.routePageQuery(routePageQuery, childPath)
+		}
+
+		// layout queries
+		else if (child === plugin_config(config).layoutQueryFilename) {
+			isRoute = true
+
+			// load the contents
+			const contents = await fs.readFile(childPath)
+			if (!contents) {
+				continue
+			}
+
+			// invoke the visitor
+			try {
+				routeLayoutQuery = config.extractQueryDefinition(graphql.parse(contents))
+			} catch (e) {
+				throw routeQueryError(childPath)
+			}
+
+			if (!visitor.routeLayoutQuery || !routeLayoutQuery) {
+				continue
+			}
+			await visitor.routeLayoutQuery(routeLayoutQuery, childPath)
+		}
+
+		// inline layout queries
+		else if (is_layout_component(config, child)) {
+			// load the contents and parse it
+			const contents = await fs.readFile(childPath)
+			if (!contents) {
+				continue
+			}
+			const parsed = await parseSvelte(contents)
+			if (!parsed) {
+				continue
+			}
+
+			// look for any graphql tags and invoke the walker's handler
+			await find_graphql(config, parsed.script, {
+				where: (tag) => {
+					try {
+						return !!config.extractQueryDefinition(tag)
+					} catch {
+						return false
+					}
+				},
+				tag: async ({ parsedDocument }) => {
+					isRoute = true
+
+					let definition = config.extractQueryDefinition(parsedDocument)
+					await visitor.inlineLayoutQueries?.(definition, childPath)
+					inlineLayoutQueries.push(definition)
+				},
+			})
 		}
 
 		// inline queries
@@ -174,7 +259,7 @@ export async function walk_routes(
 					isRoute = true
 
 					let definition = config.extractQueryDefinition(parsedDocument)
-					await visitor.inlineQuery?.(definition, childPath)
+					await visitor.inlineQueries?.(definition, childPath)
 					inlineQueries.push(definition)
 				},
 			})
@@ -186,9 +271,12 @@ export async function walk_routes(
 		await visitor.route(
 			{
 				dirpath,
-				routeQuery,
+				pageScript,
+				layoutScript,
+				routePageQuery,
+				routeLayoutQuery,
+				inlineLayoutQueries,
 				inlineQueries,
-				routeScript,
 			},
 			dirpath
 		)
@@ -196,13 +284,19 @@ export async function walk_routes(
 }
 
 export type RouteVisitor = {
-	routeQuery?: RouteVisitorHandler<graphql.OperationDefinitionNode>
-	inlineQuery?: RouteVisitorHandler<graphql.OperationDefinitionNode>
-	routeScript?: RouteVisitorHandler<string>
+	pageScript?: RouteVisitorHandler<string>
+	layoutScript?: RouteVisitorHandler<string>
+	routePageQuery?: RouteVisitorHandler<graphql.OperationDefinitionNode>
+	routeLayoutQuery?: RouteVisitorHandler<graphql.OperationDefinitionNode>
+	inlineLayoutQueries?: RouteVisitorHandler<graphql.OperationDefinitionNode>
+	inlineQueries?: RouteVisitorHandler<graphql.OperationDefinitionNode>
 	route?: RouteVisitorHandler<{
 		dirpath: string
-		routeScript: string | null
-		routeQuery: graphql.OperationDefinitionNode | null
+		pageScript: string | null
+		layoutScript: string | null
+		routePageQuery: graphql.OperationDefinitionNode | null
+		routeLayoutQuery: graphql.OperationDefinitionNode | null
+		inlineLayoutQueries: graphql.OperationDefinitionNode[]
 		inlineQueries: graphql.OperationDefinitionNode[]
 	}>
 }
@@ -262,6 +356,7 @@ export function plugin_config(config: Config): Required<HoudiniVitePluginConfig>
 	return {
 		globalStorePrefix: 'GQL_',
 		pageQueryFilename: '+page.gql',
+		layoutQueryFilename: '+layout.gql',
 		quietQueryErrors: false,
 		static: false,
 		...cfg,
