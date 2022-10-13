@@ -1,5 +1,5 @@
 import { fs, CollectedGraphQLDocument } from 'houdini'
-import { testConfig, mockCollectedDoc } from 'houdini/test'
+import { mockCollectedDoc } from 'houdini/test'
 import path from 'path'
 import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
@@ -21,7 +21,7 @@ test('generates a store for every query', async function () {
 	]
 
 	// execute the generator
-	await runPipeline({ config, documents: docs, plugin_root })
+	await runPipeline({ config, documents: docs, plugin_root, framework: 'kit' })
 
 	// look up the files in the artifact directory
 	const files = await fs.readdir(stores_directory(plugin_root))
@@ -81,7 +81,12 @@ test('change globalStorePrefix to "yop___"', async function () {
 	const docs = [`query TestQuery { version }`]
 
 	const { plugin_root } = await pipeline_test(docs, {
-		globalStorePrefix: 'yop___',
+		plugins: {
+			'houdini-svelte': {
+				client: '',
+				globalStorePrefix: 'yop___',
+			},
+		},
 	})
 
 	const contents = await fs.readFile(path.join(stores_directory(plugin_root), 'TestQuery.js'))
@@ -128,7 +133,12 @@ test('change globalStorePrefix to ""', async function () {
 	const docs = [`query TestQuery { version }`]
 
 	const { plugin_root } = await pipeline_test(docs, {
-		globalStorePrefix: '',
+		plugins: {
+			'houdini-svelte': {
+				client: '',
+				globalStorePrefix: '',
+			},
+		},
 	})
 
 	const contents = await fs.readFile(path.join(stores_directory(plugin_root), 'TestQuery.js'))

@@ -520,6 +520,7 @@ async function updatePackageJSON(targetPath: string) {
 	packageJSON.devDependencies = {
 		...packageJSON.devDependencies,
 		houdini: '^HOUDINI_VERSION',
+		'houdini-svelte': '^HOUDINI_VERSION',
 		graphql: '^15.5.0',
 	}
 

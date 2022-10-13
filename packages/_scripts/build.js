@@ -8,8 +8,6 @@ import path from 'path'
 const build_dir = path.join(process.cwd(), 'build')
 const src_dir = path.join(process.cwd(), 'src')
 
-const HOUDINI_VERSION = new Date().getDate().toString()
-
 // the function to build a project assuming the directory layout
 export default async function ({ plugin }) {
 	// this script will also modify the package.json so that it exports esm and cjs versions
@@ -33,7 +31,7 @@ export default async function ({ plugin }) {
 
 		// plugins get bundled
 		if (dirname === 'plugin') {
-			await build({ source: dir, plugin })
+			await build({ package_json, source: dir, plugin })
 			// when there's a plugin directory, that is the main entry point
 			package_json.main = './build/plugin-cjs/index.js'
 			package_json.exports['.'] = {
@@ -44,7 +42,7 @@ export default async function ({ plugin }) {
 		}
 		// lib defines the main entry point
 		else if (dirname === 'lib') {
-			await build({ source: dir, plugin })
+			await build({ package_json, source: dir, plugin })
 			// when there's a plugin directory, that is the main entry point
 			package_json.main = `./build/${dirname}-cjs/index.js`
 			package_json.exports[`.`] = {
@@ -55,17 +53,17 @@ export default async function ({ plugin }) {
 		}
 		// runtimes can't be bundled
 		else if (dirname === 'runtime') {
-			await build({ source: dir, bundle: false, plugin })
+			await build({ package_json, source: dir, bundle: false, plugin })
 		}
 		// cmd needs to be bundled and set as the project's bin
 		else if (dirname === 'cmd') {
 			package_json.bin = './build/cmd-esm/index.js'
-			await build({ source: dir, plugin })
+			await build({ package_json, source: dir, plugin })
 		}
 
 		// its not a special directory, treat it as a sub module
 		else {
-			await build({ source: dir, plugin })
+			await build({ package_json, source: dir, plugin })
 			package_json.exports['./' + dirname] = {
 				import: `./build/${dirname}-esm/index.js`,
 				require: `./build/${dirname}-cjs/index.js`,
@@ -81,7 +79,7 @@ export default async function ({ plugin }) {
 }
 
 // create esm and cjs builds of the source
-async function build({ source, bundle = true, plugin }) {
+async function build({ package_json, source, bundle = true, plugin }) {
 	// if we aren't bundling, look up the entrypoints once
 	const children = bundle
 		? []
@@ -115,7 +113,7 @@ async function build({ source, bundle = true, plugin }) {
 				},
 				plugins: [
 					replace({
-						HOUDINI_VERSION,
+						HOUDINI_VERSION: package_json.version,
 					}),
 				],
 			}

@@ -12,6 +12,7 @@
     "previewWeb": "cross-env TZ=utc vite preview --port 3007",
     "preview": "concurrently \"pnpm run previewWeb\" \"pnpm run api\" -n \"web,api\" -c \"green,magenta\"",
     "tests": "playwright test ",
+    "test": "npm run tests",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "pnpm run check -- --watch",
     "lint": "prettier --ignore-path .gitignore --check --plugin-search-dir=. . && eslint --ignore-path .gitignore .",

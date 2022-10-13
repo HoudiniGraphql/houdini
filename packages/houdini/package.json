@@ -1,7 +1,7 @@
 {
     "name": "houdini",
     "version": "0.16.6",
-    "description": "The svelte plugin for houdini",
+    "description": "The disappearing GraphQL clients",
     "type": "module",
     "scripts": {
         "compile": "scripts build",
