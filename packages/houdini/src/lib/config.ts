@@ -15,10 +15,11 @@ import { fileURLToPath, pathToFileURL } from 'url'
 import { promisify } from 'util'
 
 import { computeID, defaultConfigValues, keyFieldsForType } from '../runtime/lib/config'
-import { ConfigFile, CachePolicy } from '../runtime/lib/types'
+import { CachePolicy, ConfigFile } from '../runtime/lib/types'
 import { TransformPage } from '../vite/houdini'
 import { HoudiniError } from './error'
 import * as fs from './fs'
+import { hasMagic } from './hPath'
 import { pullSchema } from './introspection'
 import { CollectedGraphQLDocument } from './types'
 
@@ -706,8 +707,9 @@ async function loadSchemaFile(schemaPath: string): Promise<graphql.GraphQLSchema
 	}
 
 	// if the path is a glob, load each file
-	if (glob.hasMagic(schemaPath)) {
+	if (hasMagic(schemaPath)) {
 		// the first step we have to do is grab a list of every file in the source tree
+		// TODO WINDOWS: replaced by => all_files_under? and remove the glob dependency
 		const sourceFiles = await promisify(glob)(schemaPath)
 
 		return mergeSchemas({

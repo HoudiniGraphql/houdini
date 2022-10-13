@@ -1,19 +1,18 @@
-import glob from 'glob'
 import * as graphql from 'graphql'
 import minimatch from 'minimatch'
 import path from 'path'
-import { promisify } from 'util'
+import { all_files_under_matching } from 'src/lib/hPath'
 
 import {
-	Config,
-	runPipeline as run,
-	LogLevel,
-	find_graphql,
-	parseJS,
-	HoudiniError,
-	Plugin,
-	fs,
 	CollectedGraphQLDocument,
+	Config,
+	find_graphql,
+	fs,
+	HoudiniError,
+	LogLevel,
+	parseJS,
+	Plugin,
+	runPipeline as run,
 } from '../lib'
 import { ArtifactKind } from '../runtime/lib/types'
 import * as generators from './generators'
@@ -172,9 +171,9 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 		...new Set(
 			(
 				await Promise.all(
-					config.include.map((filepath) =>
-						promisify(glob)(path.join(config.projectRoot, filepath))
-					)
+					config.include.map(async (filepath) => {
+						return all_files_under_matching(config.projectRoot, filepath)
+					})
 				)
 			)
 				.flat()

@@ -1,9 +1,9 @@
 import { sleep } from '@kitql/helper'
-import glob from 'glob'
 import path from 'path'
+import { hasMagic } from 'src/lib/hPath'
 import type { Plugin } from 'vite'
 
-import { formatErrors, getConfig, pullSchema, PluginConfig } from '../lib'
+import { formatErrors, getConfig, PluginConfig, pullSchema } from '../lib'
 
 export default function HoudiniWatchSchemaPlugin(opts: PluginConfig = {}): Plugin {
 	let go = true
@@ -23,7 +23,7 @@ export default function HoudiniWatchSchemaPlugin(opts: PluginConfig = {}): Plugi
 			}
 
 			// if the schema path is a glob, there's no reason to poll (the schema is already local)
-			if (config.schemaPath && glob.hasMagic(config.schemaPath)) {
+			if (config.schemaPath && hasMagic(config.schemaPath)) {
 				return
 			}
 

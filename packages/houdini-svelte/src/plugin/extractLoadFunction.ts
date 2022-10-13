@@ -1,9 +1,8 @@
 import type { ExpressionKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
 import { Config, fs, parseJS } from 'houdini'
-import path from 'path'
 import * as recast from 'recast'
-import { hJoin } from 'src/lib/hPath'
+import { h_join } from 'src/lib/hPath'
 import { transformWithEsbuild } from 'vite'
 
 import { HoudiniRouteScript, stores_directory_name, store_suffix } from './kit'
@@ -107,7 +106,7 @@ async function processScript(
 					// compute the artifact path
 					const artifact =
 						mockArtifacts?.[query] ||
-						(await import(hJoin(config.artifactDirectory, query + '.js'))).default
+						(await import(h_join(config.artifactDirectory, query + '.js'))).default
 
 					// save the query
 					globalImports[name] = artifact.raw
