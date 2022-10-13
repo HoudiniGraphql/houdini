@@ -8,8 +8,6 @@
   export let data: LayoutData;
   $: ({ Layout_User } = data);
 
-  // TODO: For what ever reason, sometimes in client side navigation, I get 2 Page_User query... But not always!
-
   function TabLinkKeepingContext(id: string, url: URL) {
     const parts = url.pathname.split('/');
     return `../user-${id}/${parts[parts.length - 1]}?${url.searchParams.toString()}`;
@@ -28,8 +26,7 @@
 <a class:active={isPageActive('2', $page)} href={TabLinkKeepingContext('2', $page.url)}>user-2</a>
 <a class:active={isPageActive('3', $page)} href={TabLinkKeepingContext('3', $page.url)}>user-3</a>
 
-<!-- <h3>Page: <UserName user={$Layout_User.data?.user} /></h3> -->
-<h3>Page: ???</h3>
+<h3>Page: <UserName user={$Layout_User.data?.user} /></h3>
 
 <div class="ml">
   <a class:active={isTabActive('birth', $page.url)} href="./birth">Birth</a>
