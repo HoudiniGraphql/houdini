@@ -85,7 +85,7 @@ async function build({ source, bundle = true, plugin }) {
 	// if we aren't bundling, look up the entrypoints once
 	const children = bundle
 		? []
-		: await glob(path.join(source, '**/**/*'), {
+		: await glob(path.join(source, '**/**/*').replaceAll('\\', '/'), {
 				nodir: true,
 		  })
 
@@ -140,6 +140,7 @@ async function build({ source, bundle = true, plugin }) {
 					'utf-8'
 				)
 			} catch (e) {
+				console.log(e)
 				process.exit(1)
 			}
 		})
