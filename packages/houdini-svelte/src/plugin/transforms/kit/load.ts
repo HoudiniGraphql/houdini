@@ -431,7 +431,7 @@ async function find_special_query(
 	) as graphql.OperationDefinitionNode
 	// if it doesn't exist, there is an error, but no discovered query either
 	if (!definition) {
-		formatErrors({ message: 'gql file must contain a query.', filepath: page_query_path })
+		formatErrors({ message: 'gql file must contain a query.', filepath: query_path })
 		return null
 	}
 
