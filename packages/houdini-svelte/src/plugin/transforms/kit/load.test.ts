@@ -432,7 +432,7 @@ describe('kit route processor', function () {
 
 	test('route with +page.gql query', async function () {
 		const route = await route_test({
-			query: `
+			page_query: `
 				query TestPageQuery {
 					viewer {
 						id
@@ -475,6 +475,61 @@ describe('kit route processor', function () {
 			    return {
 			        ...houdini_context.returnValue,
 			        ...result
+			    };
+			}
+		`)
+	})
+
+	test('route with +layout.gql query', async function () {
+		const route = await route_test({
+			layout_query: `
+				query TestLayoutQuery {
+					viewer {
+						id
+					}
+				}
+			`,
+		})
+
+		expect(route.component).toMatchInlineSnapshot(`
+			import GQL_TestLayoutQuery from "$houdini/plugins/houdini-svelte/stores/TestLayoutQuery";
+			export let data;
+		`)
+		expect(route.layout_script).toMatchInlineSnapshot(`
+			import { load_TestLayoutQuery } from "$houdini/plugins/houdini-svelte/stores/TestLayoutQuery";
+			import { getCurrentConfig } from "$houdini/runtime/lib/config";
+			import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
+			import GQL_TestLayoutQuery from "$houdini/plugins/houdini-svelte/stores/TestLayoutQuery";
+
+			export async function load(context) {
+			    const houdini_context = new RequestContext(context);
+			    const houdiniConfig = await getCurrentConfig();
+			    const promises = [];
+			    const inputs = {};
+			    inputs["TestLayoutQuery"] = {};
+
+			    promises.push(load_TestLayoutQuery({
+			        "variables": inputs["TestLayoutQuery"],
+			        "event": context,
+			        "blocking": false
+			    }));
+
+			    let result = {};
+
+			    try {
+			        result = Object.assign({}, ...(await Promise.all(promises)));
+			    } catch (err) {
+			        throw err;
+			    }
+
+			    const __houdini__vite__plugin__return__value__ = {
+			        ...houdini_context.returnValue,
+			        ...result
+			    };
+
+			    return {
+			        ...context.data,
+			        ...__houdini__vite__plugin__return__value__
 			    };
 			}
 		`)

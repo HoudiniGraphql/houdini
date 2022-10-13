@@ -5,7 +5,7 @@ import path from 'path'
 
 import plugin from '../plugin'
 import { parseSvelte } from '../plugin/extract'
-import { Framework, page_query_path, route_data_path } from '../plugin/kit'
+import { Framework, layout_query_path, page_query_path, route_data_path } from '../plugin/kit'
 import runTransforms from '../plugin/transforms'
 
 const schema = `
@@ -59,7 +59,8 @@ export async function pipeline_test(
 export async function route_test({
 	component = '',
 	script = '',
-	query = '',
+	page_query = '',
+	layout_query = '',
 	layout = '',
 	layout_script = '',
 	config: extra,
@@ -67,7 +68,8 @@ export async function route_test({
 }: {
 	component?: string
 	script?: string
-	query?: string
+	page_query?: string
+	layout_query?: string
 	layout?: string
 	layout_script?: string
 	config?: Partial<ConfigFile>
@@ -82,17 +84,18 @@ export async function route_test({
 	const config = await test_config({ schema, ...extra })
 
 	// scripts live in src/routes/+page.svelte
-	const filepath = path.join(process.cwd(), 'src/routes', '+page.svelte')
+	const page_path = path.join(process.cwd(), 'src/routes', '+page.svelte')
 	const layout_path = path.join(process.cwd(), 'src/routes', '+layout.svelte')
 	const layout_script_path = route_data_path(config, layout_path)
 
-	await fs.mkdirp(path.dirname(filepath))
+	await fs.mkdirp(path.dirname(page_path))
 
 	// write the content
 	await Promise.all([
-		fs.writeFile(filepath, component),
-		fs.writeFile(route_data_path(config, filepath), script),
-		fs.writeFile(page_query_path(config, filepath), query),
+		fs.writeFile(page_path, component),
+		fs.writeFile(route_data_path(config, page_path), script),
+		fs.writeFile(page_query_path(config, page_path), page_query),
+		fs.writeFile(layout_query_path(config, page_path), layout_query),
 		fs.writeFile(layout_path, layout),
 		fs.writeFile(layout_script_path, layout_script),
 	])
@@ -103,12 +106,12 @@ export async function route_test({
 			runTransforms(framework, {
 				content: component,
 				config,
-				filepath,
+				filepath: page_path,
 				watch_file: () => {},
 			}),
 			runTransforms(framework, {
 				config,
-				filepath: route_data_path(config, filepath),
+				filepath: route_data_path(config, page_path),
 				watch_file: () => {},
 				content: script,
 			}),
