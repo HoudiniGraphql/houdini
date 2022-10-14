@@ -43,6 +43,25 @@ The example below shows every config value that needs to be moved:
   export default config;
 ```
 
+You'll also have to slightly modify your `hooks.server.js` file:
+
+```diff
+- import houdiniClient from './client'
++ import { setSession } from '$houdini'
+
+  export async function handle({ event, resolve }) {
+  	// get the user information however you want
+  	const user = await authenticateUser(event)
+
+  	// set the session information for this event
+- 	houdiniClient.setSession(event, { user })
++ 	setSession(event, { user })
+
+  	// pass the event onto the default handle
+  	return await resolve(event)
+  }
+```
+
 And that's it! Everything should be working as it was previously. If there are
 _any_ changes, please reach out on GitHub.
 
