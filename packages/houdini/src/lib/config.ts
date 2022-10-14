@@ -285,11 +285,7 @@ export class Config {
 
 		// we want to copy the typescript source code for the templates and then compile the files according
 		// to the requirements of the platform
-		return path.resolve(
-			relative,
-			'build',
-			this.module === 'esm' ? 'runtime-esm' : 'runtime-cjs'
-		)
+		return path.resolve(relative, 'build', `runtime-${this.module}`)
 	}
 
 	artifactTypePath(document: graphql.DocumentNode) {

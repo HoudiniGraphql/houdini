@@ -1,29 +1,35 @@
 import path from 'path'
 
-import {
-	Config,
-	siteURL as SITE_URL,
-	CollectedGraphQLDocument,
-	fs,
-	HoudiniError,
-} from '../../../lib'
+import { Config, siteURL as SITE_URL, fs, HoudiniError } from '../../../lib'
 
-export default async function runtimeGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
-	// copy the compiled source code to the target directory
-	await fs.recursiveCopy(config.runtimeSource, config.runtimeDirectory)
-
+export default async function runtimeGenerator(config: Config) {
 	// generate the adapter to normalize interactions with the framework
 	// update the generated runtime to point to the client
 	await Promise.all([
+		fs.recursiveCopy(config.runtimeSource, config.runtimeDirectory, {
+			// transform the files while we are copying so we don't trigger unnecessary changes
+			[path.join(config.runtimeSource, 'lib', 'config.js')]: (content) => {
+				// the path to the config file
+				const configFilePath = path.join(config.runtimeDirectory, 'lib', 'config.js')
+				// the relative path
+				const relativePath = path
+					.relative(path.dirname(configFilePath), config.filepath)
+					// Windows management
+					.replaceAll('\\', '/')
+
+				return content.replace('HOUDINI_CONFIG_PATH', relativePath)
+			},
+			[path.join(config.runtimeSource, 'lib', 'constants.js')]: (content) => {
+				return content.replace('SITE_URL', SITE_URL)
+			},
+		}),
 		...config.plugins
 			.filter((plugin) => plugin.include_runtime)
-			.map((plugin) => generatePluginRuntime(config, plugin.name)),
-		configImport(config),
-		siteURL(config),
+			.map((plugin) => generatePluginRuntime(config, plugin)),
 	])
 }
 
-async function generatePluginRuntime(config: Config, name: string) {
+async function generatePluginRuntime(config: Config, plugin: Config['plugins'][number]) {
 	if (process.env.TEST) {
 		return
 	}
@@ -31,9 +37,8 @@ async function generatePluginRuntime(config: Config, name: string) {
 	// a plugin with a generated runtime has something at <dir>/build/runtime-{esm,cjs}
 
 	// find the location of the plugin
-	const pluginPath = config.findModule(name)
 	const source = path.join(
-		pluginPath,
+		plugin.directory,
 		'build',
 		'runtime-' + (config.module === 'esm' ? 'esm' : 'cjs')
 	)
@@ -47,43 +52,16 @@ async function generatePluginRuntime(config: Config, name: string) {
 	}
 
 	// copy the runtime
-	const pluginDir = config.pluginRuntimeDirectory(name)
+	const pluginDir = config.pluginRuntimeDirectory(plugin.name)
 	await fs.mkdirp(pluginDir)
-	await fs.recursiveCopy(source, pluginDir)
-}
-
-async function configImport(config: Config) {
-	// all we need to do is compute the relative path from the generated config file
-	// to the config in the config file and replace HOUDINI_config_PATH with the value
-
-	// the path to the config file
-	const configFilePath = path.join(config.runtimeDirectory, 'lib', 'config.js')
-	// the relative path
-	const relativePath = path
-		.relative(path.dirname(configFilePath), config.filepath)
-		// Windows management
-		.replaceAll('\\', '/')
-
-	// read the file, replace the string, update the file
-	const contents = await fs.readFile(configFilePath)
-	if (!contents) {
-		return
-	}
-
-	await fs.writeFile(configFilePath, contents.replace('HOUDINI_CONFIG_PATH', relativePath))
-}
-
-async function siteURL(config: Config) {
-	// all we need to do is replace the string value with the library constant
-
-	// the path to the config file
-	const target = path.join(config.runtimeDirectory, 'lib', 'constants.js')
-
-	// read the file, replace the string, update the file
-	const contents = await fs.readFile(target)
-	if (!contents) {
-		return
-	}
-
-	await fs.writeFile(target, contents.replace('SITE_URL', SITE_URL))
+	await fs.recursiveCopy(
+		source,
+		pluginDir,
+		Object.fromEntries(
+			Object.entries(plugin.transform_runtime ?? {}).map(([key, value]) => [
+				path.join(plugin.directory, 'build', `runtime-${config.module}`, key),
+				(content) => value({ config, content }),
+			])
+		)
+	)
 }

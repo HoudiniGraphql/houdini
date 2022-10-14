@@ -178,7 +178,12 @@ export async function mock(target: MockFilesystem[string], filepath: string = ''
 	)
 }
 
-export async function recursiveCopy(source: string, target: string, notRoot?: boolean) {
+export async function recursiveCopy(
+	source: string,
+	target: string,
+	transforms?: Record<string, (content: string) => string>,
+	notRoot?: boolean
+) {
 	// if the folder containing the target doesn't exist, then we need to create it
 	let parentDir = path.join(target, path.basename(source))
 	// if we are at the root, then go up one
@@ -204,17 +209,19 @@ export async function recursiveCopy(source: string, target: string, notRoot?: bo
 				// if the child is a directory
 				if ((await stat(childPath)).isDirectory()) {
 					// keep walking down
-					await recursiveCopy(childPath, parentDir, true)
+					await recursiveCopy(childPath, parentDir, transforms, true)
 				}
 				// the child is a file, copy it to the parent directory
 				else {
 					const targetPath = path.join(parentDir, child)
-					// Do not write `/runtime/adapter.js` file. It will be generated later depending on the framework.
-					if (targetPath.endsWith('/runtime/adapter.js')) {
-						return
+
+					// we might have to transform the value before copying it
+					let original = (await readFile(childPath)) || ''
+					if (transforms?.[childPath]) {
+						original = transforms[childPath](original)
 					}
 
-					await writeFile(targetPath, (await readFile(childPath)) || '')
+					await writeFile(targetPath, original)
 				}
 			})
 		)
