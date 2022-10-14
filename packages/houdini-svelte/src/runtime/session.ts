@@ -68,7 +68,7 @@ export class RequestContext {
 			hookCall = (hookFn as KitBeforeLoad).call(this, this.loadEvent as BeforeLoadArgs)
 		} else if (variant === 'after') {
 			// we have to assign input and data onto load so that we don't read values that
-			// are deprecated
+			// are deprecated and generate warnings when read
 			hookCall = (hookFn as KitAfterLoad).call(this, {
 				event: this.loadEvent,
 				input,
