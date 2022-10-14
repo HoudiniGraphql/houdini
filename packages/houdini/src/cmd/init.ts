@@ -519,8 +519,8 @@ async function updatePackageJSON(targetPath: string) {
 	// houdini & graphql should be a dev dependencies
 	packageJSON.devDependencies = {
 		...packageJSON.devDependencies,
-		houdini: '^HOUDINI_VERSION',
-		'houdini-svelte': '^HOUDINI_VERSION',
+		houdini: '^PACKAGE_VERSION',
+		'houdini-svelte': '^PACKAGE_VERSION',
 		graphql: '^15.5.0',
 	}
 

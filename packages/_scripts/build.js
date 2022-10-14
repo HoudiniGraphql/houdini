@@ -15,7 +15,9 @@ export default async function ({ plugin }) {
 	const package_json = JSON.parse(
 		await fs.readFile(path.join(process.cwd(), 'package.json'), 'utf-8')
 	)
-	package_json.exports = {}
+	package_json.exports = {
+		'./package.json': './package.json',
+	}
 	package_json.typesVersions = { '*': {} }
 	delete package_json['main']
 	delete package_json['bin']
@@ -113,7 +115,7 @@ async function build({ package_json, source, bundle = true, plugin }) {
 				},
 				plugins: [
 					replace({
-						HOUDINI_VERSION: package_json.version,
+						PACKAGE_VERSION: package_json.version,
 					}),
 				],
 			}

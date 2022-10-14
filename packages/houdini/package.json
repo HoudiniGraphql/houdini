@@ -43,6 +43,7 @@
         "vite-plugin-watch-and-run": "^1.0.3"
     },
     "exports": {
+        "./package.json": "./package.json",
         "./codegen": {
             "import": "./build/codegen-esm/index.js",
             "require": "./build/codegen-cjs/index.js"

@@ -28,6 +28,7 @@
         "graphql": "^0.13.0 || ^14.0.0 || ^15.0.0"
     },
     "exports": {
+        "./package.json": "./package.json",
         ".": {
             "import": "./build/plugin-esm/index.js",
             "require": "./build/plugin-cjs/index.js"
