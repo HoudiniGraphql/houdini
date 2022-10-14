@@ -1,9 +1,8 @@
 import { sleep } from '@kitql/helper'
 import path from 'path'
-import { hasMagic } from 'src/lib/hPath'
 import type { Plugin } from 'vite'
 
-import { formatErrors, getConfig, PluginConfig, pullSchema } from '../lib'
+import { formatErrors, getConfig, PluginConfig, pullSchema, hasMagic } from '../lib'
 
 export default function HoudiniWatchSchemaPlugin(opts: PluginConfig = {}): Plugin {
 	let go = true

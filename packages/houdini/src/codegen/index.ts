@@ -1,9 +1,9 @@
 import * as graphql from 'graphql'
 import minimatch from 'minimatch'
 import path from 'path'
-import { all_files_under_matching } from 'src/lib/hPath'
 
 import {
+	all_files_under_matching,
 	CollectedGraphQLDocument,
 	Config,
 	find_graphql,
