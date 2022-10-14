@@ -10,6 +10,7 @@ export * from './types'
 export * from './constants'
 export * from './introspection'
 export * from './cleanupFiles'
+export * from './hPath'
 
 export * from './walk'
 export type { EmbeddedGraphqlDocument } from './walk'

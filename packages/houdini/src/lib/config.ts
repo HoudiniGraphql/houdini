@@ -16,11 +16,10 @@ import { promisify } from 'util'
 
 import { ConfigFile, CachePolicy } from '../runtime/lib'
 import { computeID, defaultConfigValues, keyFieldsForType } from '../runtime/lib/config'
-import { CachePolicy, ConfigFile } from '../runtime/lib/types'
 import { TransformPage } from '../vite/houdini'
 import { HoudiniError } from './error'
 import * as fs from './fs'
-import { hasMagic } from './hPath'
+import { hasMagic, h_join } from './hPath'
 import { pullSchema } from './introspection'
 import { CollectedGraphQLDocument } from './types'
 
@@ -393,7 +392,7 @@ export class Config {
 		// if the filepath doesn't match the include we're done
 		if (
 			!included &&
-			!this.include.some((pattern) => minimatch(filepath, path.join(root, pattern)))
+			!this.include.some((pattern) => minimatch(h_join(filepath), h_join(root, pattern)))
 		) {
 			return false
 		}

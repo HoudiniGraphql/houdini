@@ -172,7 +172,7 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 			(
 				await Promise.all(
 					config.include.map(async (filepath) => {
-						return all_files_under_matching(config.projectRoot, filepath)
+						return await all_files_under_matching(config.projectRoot, filepath)
 					})
 				)
 			)

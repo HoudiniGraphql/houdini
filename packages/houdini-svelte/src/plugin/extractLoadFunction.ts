@@ -1,8 +1,7 @@
 import type { ExpressionKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
-import { Config, fs, parseJS } from 'houdini'
+import { Config, fs, parseJS, h_join } from 'houdini'
 import * as recast from 'recast'
-import { h_join } from 'src/lib/hPath'
 import { transformWithEsbuild } from 'vite'
 
 import { HoudiniRouteScript, plugin_config, stores_directory_name, store_suffix } from './kit'
