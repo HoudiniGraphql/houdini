@@ -1,5 +1,5 @@
 import filesystem, { Dirent, PathLike } from 'fs'
-import { fs, Plugin } from 'houdini'
+import { fs, Plugin, h_join } from 'houdini'
 import path from 'path'
 
 import {
@@ -38,7 +38,7 @@ export default (getFramwork: () => Framework) =>
 				return {
 					code:
 						(await fs.readFile(filepath)) ||
-						(await fs.readFile(path.join(config.projectRoot, filepath))) ||
+						(await fs.readFile(h_join(config.projectRoot, filepath))) ||
 						'',
 				}
 			}
@@ -48,7 +48,7 @@ export default (getFramwork: () => Framework) =>
 				return {
 					code:
 						(await fs.readFile(filepath)) ||
-						(await fs.readFile(path.join(config.projectRoot, filepath))) ||
+						(await fs.readFile(h_join(config.projectRoot, filepath))) ||
 						empty_layout,
 				}
 			}
@@ -79,7 +79,7 @@ filesystem.readFileSync = function (fp, options) {
 		}
 	}
 
-	if (filepath.endsWith(path.join('src', 'routes', '+layout.svelte'))) {
+	if (filepath.endsWith(h_join('src', 'routes', '+layout.svelte'))) {
 		try {
 			return _readFileSync(filepath, options)
 		} catch {
@@ -106,9 +106,9 @@ filesystem.statSync = function (filepath: string, options: Parameters<filesystem
 		// always fake the root +layout.server.js and +layout.svelte
 		if (
 			filepath.endsWith('routes/+layout.svelte') ||
-			filepath.endsWith(path.join('routes', '+layout.svelte')) ||
+			filepath.endsWith(h_join('routes', '+layout.svelte')) ||
 			filepath.endsWith('routes/+layout.server.js') ||
-			filepath.endsWith(path.join('routes', '+layout.server.js'))
+			filepath.endsWith(h_join('routes', '+layout.server.js'))
 		) {
 			return mock
 		}
@@ -219,9 +219,9 @@ function virtual_file(name: string, options: Parameters<typeof filesystem.readdi
 
 function is_root_route(filepath: PathLike): boolean {
 	return (
-		filepath.toString().endsWith(path.join('src', 'routes')) &&
+		filepath.toString().endsWith(h_join('src', 'routes')) &&
 		// ignore the src/routes that exists in the
-		!filepath.toString().includes(path.join('.svelte-kit', 'types'))
+		!filepath.toString().includes(h_join('.svelte-kit', 'types'))
 	)
 }
 
