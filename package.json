@@ -9,6 +9,7 @@
 		"test": "pnpm run tests",
 		"build:all": "turbo build",
 		"build": "turbo build --filter=\"./packages/*\"",
+		"dev": "turbo dev --filter=\"./packages/*\"",
 		"compile:all": "turbo compile",
 		"compile": "turbo compile --filter=\"./packages/*\"",
 		"typedefs:all": "turbo run typedefs",

@@ -53,7 +53,12 @@ export class Config {
 	schemaPollInterval: number | null
 	schemaPollHeaders: Record<string, string | ((env: any) => string)>
 	pluginMode: boolean = false
-	plugins: (Plugin & { name: string; include_runtime: boolean })[] = []
+	plugins: (Plugin & {
+		name: string
+		include_runtime: boolean
+		version: string
+		directory: string
+	})[] = []
 
 	constructor({
 		filepath,
@@ -195,10 +200,6 @@ export class Config {
 	// the directory where artifact types live
 	get artifactTypeDirectory() {
 		return this.artifactDirectory
-	}
-
-	get metaFilePath() {
-		return path.join(this.rootDir, 'meta.json')
 	}
 
 	// where we will place the runtime
@@ -796,28 +797,41 @@ This will prevent your schema from being pulled.`
 	}
 
 	// load the specified plugins
-	for (const [pluginName, pluginConfig] of Object.entries(_config.configFile.plugins ?? {})) {
+	for (const [pluginName, plugin_config] of Object.entries(_config.configFile.plugins ?? {})) {
 		try {
 			// look for the houdini-svelte module
-			const sveltePluginDir = _config.findModule(pluginName)
+			const pluginDirectory = _config.findModule(pluginName)
 			const { default: sveltePlugin }: { default: PluginFactory } = await import(
-				pathToFileURL(sveltePluginDir).toString() + '/build/plugin-esm/index.js'
+				pathToFileURL(pluginDirectory).toString() + '/build/plugin-esm/index.js'
 			)
 			let include_runtime = false
 			try {
-				await fs.stat(path.join(sveltePluginDir, 'build', 'runtime-esm'))
+				await fs.stat(path.join(pluginDirectory, 'build', 'runtime-esm'))
 				include_runtime = true
 			} catch {}
 
+			// figure out the current version
+			let version = ''
+			try {
+				const packageJsonSrc = await fs.readFile(path.join(pluginDirectory, 'package.json'))
+				if (!packageJsonSrc) {
+					throw new Error('skip')
+				}
+				const packageJSON = JSON.parse(packageJsonSrc)
+				version = packageJSON.version
+			} catch {}
+
+			// add the plugin to the list
 			_config.plugins.push({
-				...(await sveltePlugin(pluginConfig)),
+				...(await sveltePlugin(plugin_config)),
 				name: pluginName,
 				include_runtime,
+				version,
+				directory: pluginDirectory,
 			})
 		} catch (e) {
-			console.log(e)
 			throw new Error(
-				'Looks like you are missing the houdini-svelte plugin. Please install it and try again.'
+				`Could not find plugin: ${pluginName}. Are you sure its installed? If so, please open a ticket on GitHub.`
 			)
 		}
 	}
@@ -841,6 +855,7 @@ export type PluginFactory = (args?: PluginConfig) => Promise<Plugin>
 
 export type Plugin = {
 	extensions?: string[]
+	transform_runtime?: Record<string, (args: { config: Config; content: string }) => string>
 	after_load?: (config: Config) => Promise<void> | void
 	extract_documents?: (filepath: string, content: string) => Promise<string[]> | string[]
 	generate?: GenerateHook

@@ -29,6 +29,8 @@ export async function test_config(extraConfig: Partial<ConfigFile> = {}) {
 		...svelte_plugin,
 		include_runtime: true,
 		name: 'houdini-svelte',
+		version: 'test',
+		directory: process.cwd(),
 	})
 	return config
 }

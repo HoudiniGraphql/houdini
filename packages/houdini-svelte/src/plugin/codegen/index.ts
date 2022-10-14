@@ -2,7 +2,6 @@ import { GenerateHookInput, fs, Config } from 'houdini'
 
 import { stores_directory, type_route_dir } from '../kit'
 import adapter from './adapter'
-import addClientImport from './addClientImport'
 import kit from './kit'
 import stores from './stores'
 
@@ -14,12 +13,7 @@ export default async function (input: PluginGenerateInput) {
 	])
 
 	// generate the files
-	await Promise.all([
-		adapter(input),
-		kit(input.framework, input),
-		stores(input),
-		addClientImport(input.config),
-	])
+	await Promise.all([adapter(input), kit(input.framework, input), stores(input)])
 }
 
 export type PluginGenerateInput = Omit<GenerateHookInput, 'config'> & {

@@ -1,6 +1,12 @@
 import path from 'path'
 
-import { Config, siteURL, CollectedGraphQLDocument, fs, HoudiniError } from '../../../lib'
+import {
+	Config,
+	siteURL as SITE_URL,
+	CollectedGraphQLDocument,
+	fs,
+	HoudiniError,
+} from '../../../lib'
 
 export default async function runtimeGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	// copy the compiled source code to the target directory
@@ -12,8 +18,8 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 		...config.plugins
 			.filter((plugin) => plugin.include_runtime)
 			.map((plugin) => generatePluginRuntime(config, plugin.name)),
-		addConfigImport(config),
-		addSiteURL(config),
+		configImport(config),
+		siteURL(config),
 	])
 }
 
@@ -46,7 +52,7 @@ async function generatePluginRuntime(config: Config, name: string) {
 	await fs.recursiveCopy(source, pluginDir)
 }
 
-async function addConfigImport(config: Config) {
+async function configImport(config: Config) {
 	// all we need to do is compute the relative path from the generated config file
 	// to the config in the config file and replace HOUDINI_config_PATH with the value
 
@@ -67,7 +73,7 @@ async function addConfigImport(config: Config) {
 	await fs.writeFile(configFilePath, contents.replace('HOUDINI_CONFIG_PATH', relativePath))
 }
 
-async function addSiteURL(config: Config) {
+async function siteURL(config: Config) {
 	// all we need to do is replace the string value with the library constant
 
 	// the path to the config file
@@ -79,5 +85,5 @@ async function addSiteURL(config: Config) {
 		return
 	}
 
-	await fs.writeFile(target, contents.replace('SITE_URL', siteURL))
+	await fs.writeFile(target, contents.replace('SITE_URL', SITE_URL))
 }

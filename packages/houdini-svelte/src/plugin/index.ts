@@ -6,6 +6,7 @@ import extract from './extract'
 import fs_patch from './fsPatch'
 import {
 	global_store_name,
+	plugin_config,
 	resolve_relative,
 	stores_directory,
 	store_name,
@@ -22,6 +23,26 @@ const HoudiniSveltePlugin: PluginFactory = async () => ({
 	 */
 
 	extensions: ['.svelte'],
+
+	transform_runtime: {
+		'network.js': ({ config, content }) => {
+			// the path to the network file
+			const networkFilePath = path.join(
+				config.pluginRuntimeDirectory('houdini-svelte'),
+				'network.js'
+			)
+			// the relative path
+			const relativePath = path
+				.relative(
+					path.dirname(networkFilePath),
+					path.join(config.projectRoot, plugin_config(config).client)
+				)
+				// Windows management
+				.replaceAll('\\', '/')
+
+			return content.replace('HOUDINI_CLIENT_PATH', relativePath)
+		},
+	},
 
 	// custom logic to pull a graphql document out of a svelte file
 	extract_documents: extract,
