@@ -45,7 +45,7 @@ export function afterLoad({ data }: AfterLoadEvent) {
 }
 ```
 
-Your `PageData` component will also come from `./$houdini` since SvelteKit's generated type definitions don't know about the generated load:
+Your `PageData` type will also come from `./$houdini` since SvelteKit's generated type definitions don't know about the generated load:
 
 ```svelte
 <!-- src/routes/myProfile/+page.svelte -->

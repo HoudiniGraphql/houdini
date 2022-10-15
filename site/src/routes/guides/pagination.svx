@@ -114,7 +114,7 @@ const userWithFriends = paginatedFragment(
 ```
 
 In order to look up the next page for the user's friend. We need a way to query the specific user
-that this fragment has been spread into. In order to pull this off, houdini relies on the generic `Node`
+that this fragment has been spread into. In order to pull this off, houdini will try to use a generic `Node`
 interface and corresponding query:
 
 ```graphql
@@ -127,7 +127,7 @@ type Query {
 }
 ```
 
-In short, this means that any paginated fragment must be of a type that implements the Node interface
+In short, this means that, by default, any paginated fragment must be of a type that implements the Node interface
 (so it can be looked up in the api). You can read more information about the `Node` interface in
 [this section](https://graphql.org/learn/global-object-identification/) of the graphql community website.
 This is only a requirement for paginated fragments. If your application only uses paginated queries,
