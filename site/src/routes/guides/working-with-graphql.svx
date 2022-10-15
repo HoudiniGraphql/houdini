@@ -305,8 +305,7 @@ export async function load(event) {
 }
 ```
 
-If even _that_ is too much magic for you, rest assured all it's doing is instantiating a store and calling `.fetch`. You can check out the definition yourself
-inside of the `$houdini/stores/MyStore.js`. If you still want to do something custom, you are free to structure things however you want
+If even _that_ is too much magic for you, rest assured all it's doing is instantiating a store and calling `.fetch`. You can check out the definition yourself, its defined in `$houdini/plugins/houdini-svelte/stores/MyStore.js`. If you still want to do something custom, you are free to structure things however you want
 just make sure that you instantiate stores inside of `load` and pass them to your route's `.svelte` file as props.
 
 <Warning>

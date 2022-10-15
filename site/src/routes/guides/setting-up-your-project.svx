@@ -77,9 +77,6 @@ export default {
 
 ### Svelte
 
-If you are building a vanilla svelte project, you will have to configure the compiler and preprocessor to generate the correct logic by setting the `framework`
-field in your config file to `"svelte"`.
-
 If you are using vite, you should use the `houdini/vite` plugin even if
 you aren't using kit. Update your `vite.config.js` file to look like this:
 
