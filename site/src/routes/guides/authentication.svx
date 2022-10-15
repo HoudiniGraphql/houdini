@@ -12,14 +12,14 @@ session for that user:
 ```typescript
 /// src/hooks.server.js
 
-import houdiniClient from './lib/client'
+import { setSession } from '$houdini'
 
 export async function handle({ event, resolve }) {
 	// get the user information however you want
 	const user = await authenticateUser(event)
 
 	// set the session information for this event
-	houdiniClient.setSession(event, { user })
+	setSession(event, { user })
 
 	// pass the event onto the default handle
 	return await resolve(event)

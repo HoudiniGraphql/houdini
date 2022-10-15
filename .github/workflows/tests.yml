@@ -81,13 +81,13 @@ jobs:
               run: pnpm install
 
             - name: Build packages
-              run: pnpm run build
+              run: pnpm run compile
 
             - name: Tests
               run: pnpm run tests
 
-    integration:
-        name: Integration Tests
+    e2e_sveltekit:
+        name: End-to-End Tests
         runs-on: ubuntu-latest
 
         steps:
@@ -132,17 +132,14 @@ jobs:
                   key: cache-playwright-linux-1.25.0
 
             - name: Build packages
-              run: pnpm run build
+              run: pnpm run compile
 
             - name: Install Playwright
               if: steps.playwright-cache.outputs.cache-hit != 'true'
               run: npx playwright install --with-deps
 
-            - name: SvelteKit Sync
-              run: cd integration && npx svelte-kit sync
-
-            - name: Integration Tests
-              run: pnpm --filter integration tests
+            - name: End-to-End Tests sveltekit
+              run: pnpm run --filter sveltekit build && pnpm --filter sveltekit tests
               env:
                   RECORD_REPLAY_TEST_RUN_ID: ${{ env.GITHUB_SHA }}
 
@@ -153,8 +150,8 @@ jobs:
                   api-key: ${{ secrets.RECORD_REPLAY_API_KEY }}
                   filter: ${{ 'function($v) { $v.metadata.test.result = "failed" and $v.status = "onDisk" }' }}
 
-    integration_linter:
-        name: Integration Linter
+    e2e_sveltekit_linter:
+        name: End-to-End Linter
         runs-on: ubuntu-latest
 
         steps:
@@ -193,15 +190,12 @@ jobs:
             - name: Build Package
               run: pnpm run build
 
-            - name: SvelteKit Sync
-              run: cd integration && npx svelte-kit sync
-
             - name: Build kit assets
-              run: pnpm --filter integration run build
+              run: pnpm --filter sveltekit run build
 
             # needs to run after build & houdini generate
-            - name: Integration lint
-              run: pnpm --filter integration run lint
+            - name: End-to-End lint
+              run: pnpm --filter sveltekit run lint
 
-            - name: Integration check
-              run: pnpm --filter integration run check
+            - name: End-to-End check
+              run: pnpm --filter sveltekit run check

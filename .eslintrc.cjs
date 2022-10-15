@@ -2,6 +2,9 @@ module.exports = {
 	root: true,
 	extends: '@theguild',
 	rules: {
+		'@typescript-eslint/triple-slash-reference': 'off',
+		'@typescript-eslint/no-empty-interface': 'off',
+		'@typescript-eslint/no-namespace': 'off',
 		'@typescript-eslint/no-unused-vars': 'off',
 		'@typescript-eslint/ban-ts-comment': 'off',
 		'@typescript-eslint/no-non-null-assertion': 'off',
@@ -28,7 +31,7 @@ module.exports = {
 		'object-shorthand': 'off',
 		// 'no-console': ['error', { allow: ['info', 'warn', 'error', 'time', 'timeEnd'] }],
 	},
-	ignorePatterns: ['integration', 'example', 'site'],
+	ignorePatterns: ['e2e', 'example', 'site'],
 	parserOptions: {
 		sourceType: 'module',
 		ecmaVersion: 2020,

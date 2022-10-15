@@ -4,9 +4,8 @@
 		"strictNullChecks": true,
 		"paths": {
 			"$lib": ["src/lib"],
-			"$lib/*": ["src/lib/*"],
-			"$houdini": ["$houdini"],
-			"$houdini/*": ["$houdini/*"]
-		}
+			"$lib/*": ["src/lib/*"]
+		},
+		"typeRoots": [".", "./svelte-kit/types/", "./$houdini/types"]
 	}
 }

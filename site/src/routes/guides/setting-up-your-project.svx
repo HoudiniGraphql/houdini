@@ -9,11 +9,6 @@ description: A guide for setting up your Houdini project
 This guide should walk you through all of the steps necessary to add Houdini to an existing
 project.
 
-What we'll cover:
-
-- Where to get Houdini from
-- How to add the necessary configuration files for each supported platform (SvelteKit or Svelte)
-
 ## Installation
 
 houdini is available on npm and should be installed as a dev dependency:
@@ -82,9 +77,6 @@ export default {
 
 ### Svelte
 
-If you are building a vanilla svelte project, you will have to configure the compiler and preprocessor to generate the correct logic by setting the `framework`
-field in your config file to `"svelte"`.
-
 If you are using vite, you should use the `houdini/vite` plugin even if
 you aren't using kit. Update your `vite.config.js` file to look like this:
 
@@ -106,7 +98,7 @@ need to make sure that the `$houdini` alias resolves to the directory in the roo
 
 ```javascript
 // svelte.config.js
-import houdini from 'houdini/preprocess'
+import houdini from 'houdini-svelte/preprocess'
 
 export default {
 	preprocess: [houdini()]

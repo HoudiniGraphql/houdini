@@ -6,11 +6,10 @@ description: A guide to all things caching in Houdini
 
 # Caching Data
 
-By default, Houdini will only try to load queries against its local cache when you indicate it is safe to do so.
-This can be done with the `@cache` directive:
+Houdini's cache behavior can be customized with the `@cache` directive:
 
 ```graphql
-query AllItems @cache(policy: CacheOrNetwork) {
+query AllItems @cache(policy: CacheAndNetwork) {
 	items {
 		id
 		text
@@ -29,11 +28,11 @@ The default cache policy as well as other parameters can be changed in your [con
 
 ## Optimistic Responses
 
-A lot of the time we know the value that a mutation will trigger assuming everything goes right. For example, a `toggleItem` mutation in a todo list will invert the value of the `checked` field of a particular item. In these situations, we don't have to wait for a mutation to resolve in order to apply the update to the cache. Instead, we can assume that it will succeed and provide an "optimistic response" for the mutation with the second argument to a mutation handler:
+A lot of the time we know the side effects of a mutation assuming everything goes right. For example, a `toggleItem` mutation in a todo list will invert the value of the `checked` field of a particular item. In these situations, we don't have to wait for a mutation to resolve in order to apply the update to the cache. Instead, we can assume that it will succeed and provide an "optimistic response" for the mutation with the second argument to a mutation handler:
 
 ```svelte
 <script>
-	import ToggleItem  from '$houdini/stores/ToggleItem'
+	import { GQL_ToggleItem }  from '$houdini'
 
 	export let itemID
 </script>
@@ -71,12 +70,12 @@ there would be a nasty error when the runtime tries to look up the schema inform
 so the generated types are trying to guide you towards a safer practice.
 
 There's no harm in duplicating a field that is part of a fragment so if you are going to
-provide an optimistic value, you should add those fields to the explicit selection
+provide an optimistic value, you should explicitly add those fields to the selection
 set of the mutation.
 
 ## Partial Data
 
-As your users navigate through your application, their cache will build up with the data that they encounter. This means that a lot of the times, they will have already seen the data that a new view wants. Houdini's cache can be told to render a view if only some of the necessary data is present using the `@cache` directive:
+As your users navigate through your application, their cache will build up with the data that they encounter. This means that a lot of the times, they will have already seen at least _some_ the data that a new view wants. Houdini can be told to render a view even if we have only seen a subset of the necessary data using the `@cache` directive:
 
 ```graphql
 query AllItems @cache(partial: true) {
@@ -87,7 +86,7 @@ query AllItems @cache(partial: true) {
 }
 ```
 
-This means that you will have to deal with a lot of `null` states in order to accommodate the missing data but it can result in a much snappier interface for your users. Keep in mind that Houdini tries its hardest to keep your data "correct". This means that if a value is missing that isn't allowed to be null according to your project's schema it will turn an entire object `null`. This behavior is described by the [GraphQL spec](http://spec.graphql.org/June2018/#sec-Errors-and-Non-Nullability).
+This means that you will have to deal with a lot of `null` states in order to accommodate the missing data but it can result in a much snappier interface for your users. Keep in mind that Houdini tries its hardest to keep your data "correct". This means that if a value is missing that isn't allowed to be null according to your project's schema it will turn the entire object `null` (assuming that's valid). This behavior is described by the [GraphQL spec](http://spec.graphql.org/June2018/#sec-Errors-and-Non-Nullability).
 
 The default partial state can be configured with the `defaultPartial` value in your config file:
 
@@ -96,7 +95,11 @@ The default partial state can be configured with the `defaultPartial` value in y
 
 export default {
 	// ...
-	defaultPartial: true
+	plugins: {
+		'houdini-svelte': {
+			defaultPartial: true
+		}
+	}
 }
 ```
 
@@ -127,8 +130,8 @@ If all you need to do is change the way that Houdini resolves a particular type,
 
 ```javascript
 export default {
-	// ...
-	defaultPartial: true
+    // ...
+    defaultPartial: true
     types: {
         User: {
             resolve: {
@@ -143,8 +146,8 @@ This tells Houdini that in order to resolve a particular `User`, it needs to use
 
 ```javascript
 export default {
-	// ...
-	defaultPartial: true
+    // ...
+    defaultPartial: true
     types: {
         User: {
             resolve: {
@@ -164,8 +167,8 @@ If you want to configure Houdini to use a different key for computing your recor
 
 ```javascript
 export default {
-	// ...
-	defaultPartial: true
+    // ...
+    defaultPartial: true
     types: {
         User: {
             keys: ['firstName', 'lastName'],
@@ -181,8 +184,8 @@ Remember, Houdini will take every key for an object and pass it as an argument t
 
 ```javascript
 export default {
-	// ...
-	defaultPartial: true
+    // ...
+    defaultPartial: true
     types: {
         User: {
             keys: ['firstName', 'lastName' ],

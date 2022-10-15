@@ -6,6 +6,7 @@
 
 	// get the information we need about the item
 	const data = fragment(
+		item,
 		graphql`
 			fragment ItemEntry_item on TodoItem {
 				id
@@ -13,8 +14,7 @@
 				completed
 				createdAt
 			}
-		`,
-		item
+		`
 	)
 
 	// create the functions we'll invoke to check, uncheck, and delete the item

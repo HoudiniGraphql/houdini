@@ -1,16 +1,27 @@
 {
-	"exclude": ["**/*.test.ts"],
+	"exclude": ["node_modules"],
+	"include": ["packages/**/*.ts"],
 	"compilerOptions": {
-		"strict": true,
-		"esModuleInterop": true,
-		"lib": ["esnext", "dom", "ES2021.String"],
-		"skipLibCheck": true,
-		"downlevelIteration": true,
-		"target": "es2020",
-		"sourceMap": true,
-		"declaration": false,
 		"moduleResolution": "node",
-		"module": "es2020"
-	},
-	"typeRoots": ["./node_modules/@types", "./jest.d.ts"]
+		"module": "es2020",
+		"lib": ["ES2021", "DOM", "ES2021.String"],
+		"target": "ESNext",
+		"isolatedModules": true,
+		"resolveJsonModule": true,
+		"sourceMap": false,
+		"declaration": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"allowJs": true,
+		"checkJs": true,
+		"strict": true,
+		"downlevelIteration": true,
+		"emitDeclarationOnly": true,
+		"baseUrl": "./packages/houdini",
+		"paths": {
+			"$houdini": ["../houdini/src"],
+			"$houdini/*": ["../houdini/src/*"]
+		}
+	}
 }

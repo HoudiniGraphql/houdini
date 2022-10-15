@@ -11,23 +11,24 @@
 		"start": "vite preview"
 	},
 	"devDependencies": {
-		"@graphql-yoga/node": "2.8.0",
+		"@graphql-yoga/node": "^2.8.0",
 		"@kitql/vite-plugin-watch-and-run": "^0.4.0",
-		"@sveltejs/kit": "1.0.0-next.445",
+		"@sveltejs/kit": "1.0.0-next.510",
 		"concurrently": "^6.2.1",
 		"graphql": "15.5.0",
 		"houdini": "workspace:^",
-		"svelte": "^3.38.2",
-		"svelte-preprocess": "^4.0.0",
-		"tslib": "^2.2.0",
-		"typescript": "^4.0.0",
-		"vite": "^3.0.0",
+		"houdini-svelte": "workspace:^",
+		"svelte": "^3.50.0",
+		"svelte-preprocess": "^4.10.1",
+		"tslib": "^2.3.1",
+		"typescript": "^4.8.4",
+		"vite": "^3.1.0",
 		"ws": "^8.8.1"
 	},
 	"dependencies": {
-		"graphql-relay": "0.8.0",
+		"graphql-relay": "0.10.0",
 		"graphql-tag": "2.12.6",
-		"graphql-ws": "5.8.2"
+		"graphql-ws": "^5.11.2"
 	},
 	"type": "module"
 }

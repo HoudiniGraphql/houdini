@@ -6,6 +6,65 @@ description: A guide to migrating your application to each breaking version of h
 
 # Release Notes
 
+## 0.17.0
+
+`v0.17.0` is mostly an internal refactor but it _does_ require you to install a new dependency and
+update your config file. First, install `houdini-svelte` which is a new plugin to the core houdini
+package you've been using:
+
+```bash
+npm i --save-dev houdini-svelte
+```
+
+And finally, update your `houdini.config.js` to include the plugin and move your svelte-specific config.
+The example below shows every config value that needs to be moved:
+
+```diff
++ /// <references types="houdini-svelte">
+
+  /** @type {import('houdini').ConfigFile} */
+  const config = {
+-   client: './src/client.ts'
+-   pageQueryFilename: '+myQuery.gql'
+-   globalStorePrefix: "G_",
+-   quietQueryErrors: true,
+-   static: true,
++   plugins: {
++     'houdini-svelte': {
++       client: './src/client.ts',
++       pageQueryFilename: '+myQuery.gql',
++       globalStorePrefix: "G_",
++       quietQueryErrors: true,
++       static: true,
++     }
++   }
+  };
+
+  export default config;
+```
+
+You'll also have to slightly modify your `hooks.server.js` file:
+
+```diff
+- import houdiniClient from './client'
++ import { setSession } from '$houdini'
+
+  export async function handle({ event, resolve }) {
+  	// get the user information however you want
+  	const user = await authenticateUser(event)
+
+  	// set the session information for this event
+- 	houdiniClient.setSession(event, { user })
++ 	setSession(event, { user })
+
+  	// pass the event onto the default handle
+  	return await resolve(event)
+  }
+```
+
+And that's it! Everything should be working as it was previously. If there are
+_any_ changes, please reach out on GitHub.
+
 ## 0.16.0
 
 `v0.16.0` updates houdini's APIs to be compatible with the updates to SvelteKit as described in [@sveltejs/kit#5774](https://github.com/sveltejs/kit/discussions/5774). While this is a very exciting change for the community, we were forced to dramatically change a few things in order to adapt to the new world.

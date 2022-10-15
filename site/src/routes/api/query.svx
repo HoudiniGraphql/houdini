@@ -352,7 +352,10 @@ import { loadAll, load_MyQuery, load_MyOtherQuery } from '$houdini'
 
 export async function load(event) {
 	return {
-		...(await loadAll(load_MyQuery({ event }), load_MyOtherQuery({ event })))
+		...(await loadAll(
+			load_MyQuery({ event }), 
+			load_MyOtherQuery({ event })
+		))
 	}
 }
 ```
@@ -409,7 +412,7 @@ export async function load(event) {
 ## Components Queries
 
 Not every query will be inside of a route. In this situations, you can either work with your
-query stores directly, or use the same `query` function to instruct the plugin to generate a client-side
+query stores directly, or use the same graphql tag to instruct the plugin to generate a client-side
 equivalent of the load function.
 
 ```svelte
@@ -420,13 +423,13 @@ equivalent of the load function.
 	return { id: props.id }
  }
 
- const store = query(graphql`
+ const store = graphql`
 	query MyComponentQuery($id: ID!) {
 		user(id: $id) {
 			id
 		}
 	}
- `)
+ `
 </script>
 
 {$store.data.value}
