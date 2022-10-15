@@ -51,6 +51,8 @@ async function generatePluginRuntime(config: Config, plugin: Config['plugins'][n
 		})
 	}
 
+	const which = config.module === 'esm' ? 'esm' : 'cjs'
+
 	// copy the runtime
 	const pluginDir = config.pluginRuntimeDirectory(plugin.name)
 	await fs.mkdirp(pluginDir)
@@ -59,7 +61,7 @@ async function generatePluginRuntime(config: Config, plugin: Config['plugins'][n
 		pluginDir,
 		Object.fromEntries(
 			Object.entries(plugin.transform_runtime ?? {}).map(([key, value]) => [
-				path.join(plugin.directory, 'build', `runtime-${config.module}`, key),
+				path.join(plugin.directory, 'build', `runtime-${which}`, key),
 				(content) => value({ config, content }),
 			])
 		)

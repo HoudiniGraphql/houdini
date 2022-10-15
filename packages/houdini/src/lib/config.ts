@@ -283,9 +283,11 @@ export class Config {
 			: // start here and go to parent until we find the node_modules/houdini folder
 			  this.findModule()
 
+		const which = this.module === 'esm' ? 'esm' : 'cjs'
+
 		// we want to copy the typescript source code for the templates and then compile the files according
 		// to the requirements of the platform
-		return path.resolve(relative, 'build', `runtime-${this.module}`)
+		return path.resolve(relative, 'build', `runtime-${which}`)
 	}
 
 	artifactTypePath(document: graphql.DocumentNode) {
