@@ -219,15 +219,15 @@ function append_afterLoad(
 	return afterLoad
 		? `
 	type AfterLoadReturn = ReturnType<typeof import('./+${type.toLowerCase()}').afterLoad>;
-	
+
 	type AfterLoadData = {
 		${internal_append_afterLoad(queries)}
 	}
-	
+
 	type LoadInput = {
 		${internal_append_afterLoadInput(queries)}
 	}
-	
+
 	export type AfterLoadEvent = {
 		event: PageLoadEvent
 		data: AfterLoadData
