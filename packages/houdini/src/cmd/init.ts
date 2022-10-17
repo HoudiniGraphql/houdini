@@ -36,6 +36,7 @@ export default async function init(
 				message: 'Is your GraphQL API running?',
 				name: 'running',
 				type: 'confirm',
+				initial: true,
 			})
 		).running
 	}
@@ -44,12 +45,19 @@ export default async function init(
 		return
 	}
 
-	let { url } = await prompts({
-		message: "What's the URL for your api?",
-		name: 'url',
-		type: 'text',
-		initial: 'http://localhost:3000/api/graphql',
-	})
+	let { url } = await prompts(
+		{
+			message: "What's the URL for your api?",
+			name: 'url',
+			type: 'text',
+			initial: 'http://localhost:4000/api/graphql',
+		},
+		{
+			onCancel() {
+				process.exit(1)
+			},
+		}
+	)
 
 	try {
 		// verify we can send graphql queries to the server
@@ -566,6 +574,8 @@ async function detectTools(cwd: string): Promise<DetectedTools> {
 		const packageJSONFile = await fs.readFile(path.join(cwd, 'package.json'))
 		if (packageJSONFile) {
 			var packageJSON = JSON.parse(packageJSONFile)
+		} else {
+			throw new Error('not found')
 		}
 	} catch {
 		throw new Error(
@@ -622,11 +632,18 @@ async function updateFile({
 ${content}`)
 
 		// ask the user if we should continue
-		const { done } = await prompts({
-			name: 'done',
-			type: 'confirm',
-			message: 'Should we overwrite the file? If not, please update it manually.',
-		})
+		const { done } = await prompts(
+			{
+				name: 'done',
+				type: 'confirm',
+				message: 'Should we overwrite the file? If not, please update it manually.',
+			},
+			{
+				onCancel() {
+					process.exit(1)
+				},
+			}
+		)
 
 		if (!done) {
 			return
