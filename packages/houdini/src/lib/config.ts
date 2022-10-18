@@ -182,6 +182,35 @@ export class Config {
 		)
 	}
 
+	async sourceFiles() {
+		return [
+			...new Set(
+				(
+					await Promise.all(
+						this.include.map((filepath) =>
+							promisify(glob)(path.join(this.projectRoot, filepath))
+						)
+					)
+				)
+					.flat()
+					.filter((filepath) => this.includeFile(filepath))
+					// don't include the schema path as a source file
+					.filter((filepath) => {
+						const prefix = this.schemaPath?.startsWith('./') ? './' : ''
+
+						return (
+							!this.schemaPath ||
+							!minimatch(
+								prefix +
+									path.relative(this.projectRoot, filepath).replaceAll('\\', '/'),
+								this.schemaPath
+							)
+						)
+					})
+			),
+		]
+	}
+
 	/*
 
 		Directory structure
@@ -900,6 +929,8 @@ type ModuleIndexTransform = (arg: {
 	export_default_as(args: { module: string; as: string }): string
 	export_star_from(args: { module: string }): string
 	plugin_root: string
+	typedef: boolean
+	documents: CollectedGraphQLDocument[]
 }) => string
 
 export type GenerateHook = (args: GenerateHookInput) => Promise<void> | void

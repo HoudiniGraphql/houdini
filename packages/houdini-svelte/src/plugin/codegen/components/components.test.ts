@@ -4,13 +4,12 @@ import path from 'path'
 import { test, expect } from 'vitest'
 
 import generate from '..'
-import { type_route_dir } from '../../kit'
 
 const config = testConfig()
 const plugin_root = config.pluginDirectory('test-plugin')
 
 test('generates type defintions for non-route components in their local ./$houdini', async function () {
-	const component_dir = path.join(process.cwd(), 'src', 'routes', 'foo.svelte')
+	const component_dir = path.join(process.cwd(), 'src', 'lib', 'foo.svelte')
 
 	await fs.mock({
 		[component_dir]: `
@@ -27,7 +26,7 @@ test('generates type defintions for non-route components in their local ./$houdi
 
 	// load the contents of the file
 	const typedef = await fs.readFile(
-		path.join(path.join(config.typeRootDir, 'src', 'routes', '$houdini.d.ts'))
+		path.join(path.join(config.typeRootDir, 'src', 'lib', '$houdini.d.ts'))
 	)
 	expect(typedef).toBeTruthy()
 
@@ -43,6 +42,6 @@ test('generates type defintions for non-route components in their local ./$houdi
 
 		export type PageData = {
 		    MyInlineQuery2: MyInlineQuery2Store
-		};
+		};a
 	`)
 })

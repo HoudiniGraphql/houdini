@@ -168,32 +168,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 
 async function collectDocuments(config: Config): Promise<CollectedGraphQLDocument[]> {
 	// the first step we have to do is grab a list of every file in the source tree
-	let sourceFiles = [
-		...new Set(
-			(
-				await Promise.all(
-					config.include.map((filepath) =>
-						promisify(glob)(path.join(config.projectRoot, filepath))
-					)
-				)
-			)
-				.flat()
-				.filter((filepath) => config.includeFile(filepath))
-				// don't include the schema path as a source file
-				.filter((filepath) => {
-					const prefix = config.schemaPath?.startsWith('./') ? './' : ''
-
-					return (
-						!config.schemaPath ||
-						!minimatch(
-							prefix +
-								path.relative(config.projectRoot, filepath).replaceAll('\\', '/'),
-							config.schemaPath
-						)
-					)
-				})
-		),
-	]
+	let sourceFiles = await config.sourceFiles()
 
 	// the list of documents we found
 	const documents: DiscoveredDoc[] = []
