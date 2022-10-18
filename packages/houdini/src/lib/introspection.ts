@@ -9,7 +9,6 @@ export async function pullSchema(
 	headers?: Record<string, string>
 ): Promise<boolean> {
 	try {
-		console.log('pulling schema', headers)
 		// send the request
 		const resp = await fetch(url, {
 			method: 'POST',

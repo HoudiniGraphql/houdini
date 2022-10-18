@@ -136,7 +136,7 @@ import type { ${query.name}$input } from '${path
 				`
 export type ${config.variableFunctionName(
 					query.name
-				)} = (args: { props: ${prop_type} }) => FragmentQueryVars$input
+				)} = <_Props = ${prop_type}>(args: { props: _Props }) => FragmentQueryVars$input
         `
 		}
 	}
