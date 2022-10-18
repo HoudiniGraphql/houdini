@@ -15,7 +15,8 @@ export default async function svelteKitGenerator(
 	framework: Framework,
 	{ config }: GenerateHookInput
 ) {
-	// if we're not in a sveltekit project, don't do anything
+	// this generator creates the locally imported type definitions.
+	// the component type generator will handle
 	if (framework !== 'kit') {
 		return
 	}

@@ -18,7 +18,7 @@
         "scripts": "workspace:^",
         "minimatch": "^5.1.0",
         "recast": "^0.21.5",
-        "svelte": "^3.50.1"
+        "svelte": "^3.52.0"
     },
     "devDependencies": {
         "@types/minimatch": "^5.1.2",
