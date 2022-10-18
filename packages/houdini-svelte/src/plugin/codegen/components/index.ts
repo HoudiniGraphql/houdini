@@ -20,17 +20,43 @@ export default async function componentTypesGenerator(
 	}
 
 	// group the files by directory
-	const files: { [filename: string]: { queries: string[]; props: {} } } = {}
+	const files: ProjectDirs = {
+		dirs: {},
+		files: [],
+	}
 
 	// put every file we found in the right place
 	for (const file of matches) {
 		// walk down the path
 		let target = files
-		const parts = file.split('/')
-		for (const [i, path] of parts.entries()) {
-			// if we are
-			if (!target[path]) {
+		const parts = file.substring(1).split('/')
+		for (const [i, part] of parts.entries()) {
+			// if we are at the end of the path, we are looking at a file
+			if (i === parts.length - 1) {
+				target.files.push(part)
+				continue
 			}
+
+			// we are on a file
+			if (!target.dirs[part]) {
+				target.dirs[part] = {
+					dirs: {},
+					files: [],
+				}
+			}
+
+			// there is garunteed to be an entry for this particular filepath part
+			// focus on it and move onto the next one
+			target = target.dirs[part]
 		}
 	}
+
+	// walk down the structure for any directories with files that match the glob
+
+	console.log(JSON.stringify(files))
+}
+
+type ProjectDirs = {
+	dirs: Record<string, ProjectDirs>
+	files: string[]
 }
