@@ -1,11 +1,10 @@
 import type { ProgramKind } from 'ast-types/gen/kinds'
-import path from 'path'
 import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { test, expect } from 'vitest'
 
 import { runPipeline } from '../..'
-import * as fs from '../../../lib/fs'
+import { fs, path } from '../../../lib'
 import { CollectedGraphQLDocument } from '../../../lib/types'
 import { testConfig, mockCollectedDoc } from '../../../test'
 

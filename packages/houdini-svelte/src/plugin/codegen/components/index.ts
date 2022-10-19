@@ -1,5 +1,4 @@
-import { ArtifactKind, Config, fs, GenerateHookInput } from 'houdini'
-import path from 'path'
+import { ArtifactKind, Config, fs, GenerateHookInput, path } from 'houdini'
 import * as recast from 'recast'
 
 import { parseSvelte } from '../../extract'

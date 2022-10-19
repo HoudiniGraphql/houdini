@@ -1,8 +1,7 @@
 import * as graphql from 'graphql'
-import path from 'path'
 import * as recast from 'recast'
 
-import { Config, fs } from '../../../lib'
+import { Config, fs, path } from '../../../lib'
 import { moduleExport } from '../../utils'
 
 const AST = recast.types.builders

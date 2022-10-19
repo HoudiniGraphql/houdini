@@ -1,5 +1,4 @@
-import { HoudiniError, PluginFactory } from 'houdini'
-import path from 'path'
+import { HoudiniError, PluginFactory, path } from 'houdini'
 
 import generate from './codegen'
 import extract from './extract'
@@ -32,13 +31,10 @@ const HoudiniSveltePlugin: PluginFactory = async () => ({
 				'network.js'
 			)
 			// the relative path
-			const relativePath = path
-				.relative(
-					path.dirname(networkFilePath),
-					path.join(config.projectRoot, plugin_config(config).client)
-				)
-				// Windows management
-				.replaceAll('\\', '/')
+			const relativePath = path.relative(
+				path.dirname(networkFilePath),
+				path.join(config.projectRoot, plugin_config(config).client)
+			)
 
 			return content.replace('HOUDINI_CLIENT_PATH', relativePath)
 		},

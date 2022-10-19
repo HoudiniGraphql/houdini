@@ -3,7 +3,6 @@ import { glob } from 'glob'
 import * as graphql from 'graphql'
 import minimatch from 'minimatch'
 import os from 'os'
-import path from 'path'
 import type {
 	CustomPluginOptions,
 	LoadResult,
@@ -20,6 +19,7 @@ import { TransformPage } from '../vite/houdini'
 import { HoudiniError } from './error'
 import * as fs from './fs'
 import { pullSchema } from './introspection'
+import * as path from './path'
 import { CollectedGraphQLDocument } from './types'
 
 // @ts-ignore

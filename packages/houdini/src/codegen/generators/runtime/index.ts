@@ -1,6 +1,4 @@
-import path from 'path'
-
-import { Config, siteURL as SITE_URL, fs, HoudiniError } from '../../../lib'
+import { Config, siteURL as SITE_URL, fs, HoudiniError, path } from '../../../lib'
 
 export default async function runtimeGenerator(config: Config) {
 	// generate the adapter to normalize interactions with the framework
@@ -12,10 +10,7 @@ export default async function runtimeGenerator(config: Config) {
 				// the path to the config file
 				const configFilePath = path.join(config.runtimeDirectory, 'lib', 'config.js')
 				// the relative path
-				const relativePath = path
-					.relative(path.dirname(configFilePath), config.filepath)
-					// Windows management
-					.replaceAll('\\', '/')
+				const relativePath = path.relative(path.dirname(configFilePath), config.filepath)
 
 				return content.replace('HOUDINI_CONFIG_PATH', relativePath)
 			},

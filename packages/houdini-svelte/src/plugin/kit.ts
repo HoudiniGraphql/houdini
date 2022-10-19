@@ -1,7 +1,6 @@
 import * as graphql from 'graphql'
-import { fs, find_graphql, Config } from 'houdini'
+import { fs, find_graphql, Config, path } from 'houdini'
 import { ensure_imports } from 'houdini/vite'
-import path from 'path'
 import recast from 'recast'
 
 import { HoudiniVitePluginConfig } from '.'
@@ -18,7 +17,7 @@ export function is_route(config: Config, framework: Framework, filepath: string)
 	}
 
 	// only consider filepaths in src/routes
-	if (!posixify(filepath).startsWith(posixify(config.routesDir))) {
+	if (!path.posixify(filepath).startsWith(path.posixify(config.routesDir))) {
 		return false
 	}
 
@@ -312,8 +311,6 @@ const routeQueryError = (filepath: string) => ({
 	filepath,
 	message: 'route query error',
 })
-
-const posixify = (str: string) => str.replace(/\\/g, '/')
 
 export function route_page_path(config: Config, filename: string) {
 	return resolve_relative(config, filename).replace('.js', '.svelte').replace('.ts', '.svelte')

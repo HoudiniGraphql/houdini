@@ -1,11 +1,9 @@
 import { getIntrospectionQuery } from 'graphql'
 import fetch from 'node-fetch'
-import path from 'path'
 import prompts from 'prompts'
 
-import { pullSchema } from '../lib'
+import { fs, path, pullSchema } from '../lib'
 import { ConfigFile } from '../runtime/lib/config'
-import * as fs from './../lib/fs'
 
 // the init command is responsible for scaffolding a few files
 // as well as pulling down the initial schema representation

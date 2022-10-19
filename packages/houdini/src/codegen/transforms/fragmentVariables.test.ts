@@ -1,11 +1,10 @@
 import type { ProgramKind } from 'ast-types/gen/kinds'
-import path from 'path'
 import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { test, expect } from 'vitest'
 
 import { runPipeline } from '../../codegen'
-import { fs } from '../../lib'
+import { fs, path } from '../../lib'
 import { testConfig, mockCollectedDoc } from '../../test'
 
 test('pass argument values to generated fragments', async function () {
