@@ -136,6 +136,8 @@ export default async function typescriptGenerator(
 			export_default_as,
 			export_star_from,
 			plugin_root: config.pluginDirectory(plugin.name),
+			typedef: true,
+			documents: docs,
 		})
 
 		// if the plugin generated a runtime

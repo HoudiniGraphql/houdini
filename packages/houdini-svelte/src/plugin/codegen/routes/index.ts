@@ -15,7 +15,8 @@ export default async function svelteKitGenerator(
 	framework: Framework,
 	{ config }: GenerateHookInput
 ) {
-	// if we're not in a sveltekit project, don't do anything
+	// this generator creates the locally imported type definitions.
+	// the component type generator will handle
 	if (framework !== 'kit') {
 		return
 	}
@@ -219,15 +220,15 @@ function append_afterLoad(
 	return afterLoad
 		? `
 	type AfterLoadReturn = ReturnType<typeof import('./+${type.toLowerCase()}').afterLoad>;
-	
+
 	type AfterLoadData = {
 		${internal_append_afterLoad(queries)}
 	}
-	
+
 	type LoadInput = {
 		${internal_append_afterLoadInput(queries)}
 	}
-	
+
 	export type AfterLoadEvent = {
 		event: PageLoadEvent
 		data: AfterLoadData
