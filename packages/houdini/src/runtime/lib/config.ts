@@ -1,5 +1,4 @@
 import { GraphQLSchema } from 'graphql'
-import os from 'os'
 
 import { CachePolicy } from './types'
 
@@ -52,11 +51,8 @@ export async function getCurrentConfig(): Promise<ConfigFile> {
 		return mockConfig
 	}
 
-	let target = 'HOUDINI_CONFIG_PATH'
-	target = ['win32', 'win64'].includes(os.platform()) ? 'file:///' + target : target
-
 	// @ts-ignore
-	return defaultConfigValues((await import(target)).default)
+	return defaultConfigValues((await import('HOUDINI_CONFIG_PATH')).default)
 }
 
 // the values we can take in from the config file
