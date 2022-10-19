@@ -680,10 +680,7 @@ export async function readConfigFile(
 ): Promise<ConfigFile> {
 	// on windows, we need to prepend the right protocol before we
 	// can import from an absolute path
-	let importPath = configPath
-	if (os.platform() === 'win32') {
-		importPath = 'file:///' + importPath
-	}
+	let importPath = path.importPath(configPath)
 
 	let imported: any
 	try {

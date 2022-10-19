@@ -106,7 +106,11 @@ async function processScript(
 					// compute the artifact path
 					const artifact =
 						mockArtifacts?.[query] ||
-						(await import(path.join(config.artifactDirectory, query + '.js'))).default
+						(
+							await import(
+								path.importPath(path.join(config.artifactDirectory, query + '.js'))
+							)
+						).default
 
 					// save the query
 					globalImports[name] = artifact.raw
