@@ -90,7 +90,7 @@ jobs:
         name: End-to-End Tests
         strategy:
             matrix:
-                os: [ubuntu-latest, macos-latest, windows-latest]
+                os: [ubuntu-latest, windows-latest]
         runs-on: ${{ matrix.os }}
 
         steps:
