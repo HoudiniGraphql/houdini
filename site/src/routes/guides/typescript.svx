@@ -20,9 +20,9 @@ In order to setup your project to take full advantage of Houdini's generated typ
 }
 ```
 
-## SvelteKit Routes
+## Queries
 
-When working with Houdini's [generated load functions](/api/query#automatic-loading), you can import type definition for your variable functions and hooks from `./$houdini` (a relative import):
+When working with Houdini's [generated load functions](/api/query#automatic-loading) (whether in a route or component), you can import type definition for your variable functions and hooks from `./$houdini` (a relative import):
 
 ```typescript
 /// src/routes/myProifle/+page.ts
