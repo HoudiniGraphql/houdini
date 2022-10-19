@@ -1,6 +1,15 @@
 import os from 'os'
 import path from 'path'
 
+// this package is meant to enforce posix conventions whenever
+// performing path-related tasks since in general we don't actually
+// want to consider the windows conventions. Those situations that _do_
+// care will have the necessary logic to turn the posix path into one
+// thats appropriate for windows
+
+// sep is always the posix one given ^
+export const sep = '/'
+
 export function resolve(...parts: string[]): string {
 	return posixify(path.resolve(...parts))
 }
@@ -24,8 +33,6 @@ export function basename(target: string): string {
 export function dirname(target: string): string {
 	return path.dirname(target)
 }
-
-export const sep = path.sep
 
 export function isAbsolute(target: string): boolean {
 	return path.isAbsolute(target)
