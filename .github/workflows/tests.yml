@@ -88,8 +88,9 @@ jobs:
 
     e2e_sveltekit:
         name: End-to-End Tests
-        matrix:
-            os: [ubuntu-latest, windows-latest]
+        strategy:
+            matrix:
+                os: [ubuntu-latest, macos-latest, windows-latest]
         runs-on: ${{ matrix.os }}
 
         steps:
