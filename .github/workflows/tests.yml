@@ -88,7 +88,8 @@ jobs:
 
     e2e_sveltekit:
         name: End-to-End Tests
-        runs-on: ubuntu-latest
+        matrix:
+            os: [ubuntu-latest, windows-latest]
 
         steps:
             - name: Checkout source
