@@ -139,6 +139,8 @@ async function build({ package_json, source, bundle = true, plugin }) {
 					JSON.stringify({ type: which === 'cjs' ? 'commonjs' : 'module' }),
 					'utf-8'
 				)
+
+				console.log('after write', target_dir)
 			} catch (e) {
 				console.log(e)
 				process.exit(1)
