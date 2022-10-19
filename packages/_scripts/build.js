@@ -140,6 +140,7 @@ async function build({ package_json, source, bundle = true, plugin }) {
 					'utf-8'
 				)
 			} catch (e) {
+				console.log(e)
 				process.exit(1)
 			}
 		})
