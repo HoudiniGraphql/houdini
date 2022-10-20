@@ -134,7 +134,10 @@ async function build({ package_json, source, bundle = true, plugin }) {
 			try {
 				await esbuild.build(config)
 
-				console.log('after build', await fs.readdir(config.outdir))
+				if (config.outdir) {
+					console.log('after build', await fs.readdir(config.outdir))
+				}
+
 				await fs.writeFile(
 					path.join(target_dir, 'package.json'),
 					JSON.stringify({ type: which === 'cjs' ? 'commonjs' : 'module' }),
