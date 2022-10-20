@@ -1,11 +1,10 @@
 import type { ProgramKind } from 'ast-types/gen/kinds'
-import path from 'path'
 import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { test, expect } from 'vitest'
 
 import { runPipeline } from '../..'
-import { fs, CollectedGraphQLDocument } from '../../../lib'
+import { fs, CollectedGraphQLDocument, path } from '../../../lib'
 import { mockCollectedDoc, testConfig } from '../../../test'
 
 // the config to use in tests

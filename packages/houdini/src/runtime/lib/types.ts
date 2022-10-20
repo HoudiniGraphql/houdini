@@ -1,5 +1,3 @@
-import { GraphQLSchema } from 'graphql'
-
 export enum CachePolicy {
 	CacheOrNetwork = 'CacheOrNetwork',
 	CacheOnly = 'CacheOnly',

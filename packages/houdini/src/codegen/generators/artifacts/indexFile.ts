@@ -1,6 +1,4 @@
-import path from 'path'
-
-import { Config, fs, CollectedGraphQLDocument } from '../../../lib'
+import { Config, fs, CollectedGraphQLDocument, path } from '../../../lib'
 import { cjsIndexFilePreamble, exportDefaultFrom } from '../../utils'
 
 export default async function writeIndexFile(config: Config, docs: CollectedGraphQLDocument[]) {

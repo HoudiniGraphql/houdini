@@ -6,8 +6,10 @@ importers:
             '@changesets/changelog-git': ^0.1.13
             '@changesets/changelog-github': ^0.4.7
             '@changesets/cli': ^2.25.0
+            '@playwright/test': 1.25.0
             '@theguild/eslint-config': ^0.1.0
             '@trivago/prettier-plugin-sort-imports': ^3.3.0
+            eslint-plugin-unused-imports: ^2.0.0
             fs-extra: ^10.1.0
             graphql: '*'
             jest-snapshot: ^29.1.2
@@ -26,8 +28,10 @@ importers:
             '@changesets/changelog-git': 0.1.13
             '@changesets/changelog-github': 0.4.7
             '@changesets/cli': 2.25.0
+            '@playwright/test': 1.25.0
             '@theguild/eslint-config': 0.1.0_nwctkcr5uyxf47tw7zkgamxmfq
             '@trivago/prettier-plugin-sort-imports': 3.3.0_prettier@2.7.1
+            eslint-plugin-unused-imports: 2.0.0_eslint@8.23.0
             graphql: 16.6.0
             prettier: 2.7.1
             turbo: 1.5.5
@@ -141,7 +145,6 @@ importers:
             esbuild-plugin-alias: ^0.2.1
             esbuild-plugin-replace: ^1.2.0
             glob: ^8.0.3
-            glob-promise: ^5.0.0
             rollup: ^2.79.1
             rollup-plugin-typescript2: ^0.34.0
             typescript: ^4.8.4
@@ -151,7 +154,6 @@ importers:
             esbuild-plugin-alias: 0.2.1
             esbuild-plugin-replace: 1.2.0
             glob: 8.0.3
-            glob-promise: 5.0.0_glob@8.0.3
             rollup: 2.79.1
             rollup-plugin-typescript2: 0.34.1_gypgyaqhine6mwjfvh7icfhviq
             typescript: 4.8.4
@@ -2451,16 +2453,6 @@ packages:
             '@types/node': 18.8.1
         dev: false
 
-    /@types/glob/7.2.0:
-        resolution:
-            {
-                integrity: sha512-ZUxbzKl0IfJILTS6t7ip5fQQM/J3TJYubDm3nMbgubNNYS62eXeUpoLUC8/7fJNiFYHTrGPQn7hspDUzIHX3UA==,
-            }
-        dependencies:
-            '@types/minimatch': 5.1.2
-            '@types/node': 18.8.1
-        dev: false
-
     /@types/glob/8.0.0:
         resolution:
             {
@@ -2561,6 +2553,7 @@ packages:
             {
                 integrity: sha512-K0VQKziLUWkVKiRVrx4a40iPaxTUefQmjtkQofBkYRcoaaL/8rhwDWww9qWbrgicNOgnpIsMxyNIUM4+n6dUIA==,
             }
+        dev: true
 
     /@types/minimist/1.2.2:
         resolution:
@@ -5365,6 +5358,31 @@ packages:
             strip-indent: 3.0.0
         dev: true
 
+    /eslint-plugin-unused-imports/2.0.0_eslint@8.23.0:
+        resolution:
+            {
+                integrity: sha512-3APeS/tQlTrFa167ThtP0Zm0vctjr4M44HMpeg1P4bK6wItarumq0Ma82xorMKdFsWpphQBlRPzw/pxiVELX1A==,
+            }
+        engines: { node: ^12.22.0 || ^14.17.0 || >=16.0.0 }
+        peerDependencies:
+            '@typescript-eslint/eslint-plugin': ^5.0.0
+            eslint: ^8.0.0
+        peerDependenciesMeta:
+            '@typescript-eslint/eslint-plugin':
+                optional: true
+        dependencies:
+            eslint: 8.23.0
+            eslint-rule-composer: 0.3.0
+        dev: true
+
+    /eslint-rule-composer/0.3.0:
+        resolution:
+            {
+                integrity: sha512-bt+Sh8CtDmn2OajxvNO+BX7Wn4CIWMpTRm3MaiKPCQcnnlm0CS2mhui6QaoeQugs+3Kj2ESKEEGJUdVafwhiCg==,
+            }
+        engines: { node: '>=4.0.0' }
+        dev: true
+
     /eslint-scope/5.1.1:
         resolution:
             {
@@ -6032,19 +6050,6 @@ packages:
         dependencies:
             is-glob: 4.0.3
         dev: true
-
-    /glob-promise/5.0.0_glob@8.0.3:
-        resolution:
-            {
-                integrity: sha512-YQ7+beqmmQ3yUzybHoxnj7XMImztIdusIFate36/aB1gEWugR1qZI9a2u1A5mt6gYRqYldipZ7NB9s1UEq3vzw==,
-            }
-        engines: { node: '>=12' }
-        peerDependencies:
-            glob: ^8.0.3
-        dependencies:
-            '@types/glob': 7.2.0
-            glob: 8.0.3
-        dev: false
 
     /glob/7.2.3:
         resolution:

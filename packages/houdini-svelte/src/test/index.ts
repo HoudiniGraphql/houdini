@@ -1,7 +1,6 @@
-import { CollectedGraphQLDocument, Config, ConfigFile, fs, parseJS, Script } from 'houdini'
+import { CollectedGraphQLDocument, Config, ConfigFile, fs, parseJS, Script, path } from 'houdini'
 import { runPipeline } from 'houdini/codegen'
 import { mockCollectedDoc, testConfig } from 'houdini/test'
-import path from 'path'
 
 import plugin from '../plugin'
 import { parseSvelte } from '../plugin/extract'

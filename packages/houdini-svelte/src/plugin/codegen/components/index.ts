@@ -1,12 +1,6 @@
-import { ArtifactKind, Config, fs, GenerateHookInput } from 'houdini'
-import path from 'path'
-import * as recast from 'recast'
+import { ArtifactKind, Config, fs, GenerateHookInput, path } from 'houdini'
 
-import { parseSvelte } from '../../extract'
 import { Framework } from '../../kit'
-
-type ExportNamedDeclaration = recast.types.namedTypes.ExportNamedDeclaration
-type VariableDeclaration = recast.types.namedTypes.VariableDeclaration
 
 export default async function componentTypesGenerator(
 	framework: Framework,

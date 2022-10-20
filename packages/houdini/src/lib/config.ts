@@ -1,9 +1,6 @@
 import { mergeSchemas } from '@graphql-tools/schema'
-import { glob } from 'glob'
 import * as graphql from 'graphql'
 import minimatch from 'minimatch'
-import os from 'os'
-import path from 'path'
 import type {
 	CustomPluginOptions,
 	LoadResult,
@@ -12,7 +9,6 @@ import type {
 	ResolveIdResult,
 } from 'rollup'
 import { fileURLToPath, pathToFileURL } from 'url'
-import { promisify } from 'util'
 
 import { ConfigFile, CachePolicy } from '../runtime/lib'
 import { computeID, defaultConfigValues, keyFieldsForType } from '../runtime/lib/config'
@@ -20,6 +16,7 @@ import { TransformPage } from '../vite/houdini'
 import { HoudiniError } from './error'
 import * as fs from './fs'
 import { pullSchema } from './introspection'
+import * as path from './path'
 import { CollectedGraphQLDocument } from './types'
 
 // @ts-ignore
@@ -188,7 +185,7 @@ export class Config {
 				(
 					await Promise.all(
 						this.include.map((filepath) =>
-							promisify(glob)(path.join(this.projectRoot, filepath))
+							fs.glob(path.join(this.projectRoot, filepath))
 						)
 					)
 				)
@@ -680,10 +677,7 @@ export async function readConfigFile(
 ): Promise<ConfigFile> {
 	// on windows, we need to prepend the right protocol before we
 	// can import from an absolute path
-	let importPath = configPath
-	if (os.platform() === 'win32') {
-		importPath = 'file:///' + importPath
-	}
+	let importPath = path.importPath(configPath)
 
 	let imported: any
 	try {
@@ -718,9 +712,9 @@ async function loadSchemaFile(schemaPath: string): Promise<graphql.GraphQLSchema
 	}
 
 	// if the path is a glob, load each file
-	if (glob.hasMagic(schemaPath)) {
+	if (fs.glob.hasMagic(schemaPath)) {
 		// the first step we have to do is grab a list of every file in the source tree
-		const sourceFiles = await promisify(glob)(schemaPath)
+		const sourceFiles = await fs.glob(schemaPath)
 
 		return mergeSchemas({
 			typeDefs: await Promise.all(
@@ -800,7 +794,7 @@ export async function getConfig({
 			// we might have to pull the schema first
 			if (_config.apiUrl) {
 				// make sure we don't have a pattern pointing to multiple files and a remove URL
-				if (glob.hasMagic(_config.schemaPath)) {
+				if (fs.glob.hasMagic(_config.schemaPath)) {
 					console.log(
 						`⚠️  Your houdini configuration contains an apiUrl and a path pointing to multiple files.
 This will prevent your schema from being pulled.`

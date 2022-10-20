@@ -18,7 +18,7 @@ import { get, Readable, Writable, writable } from 'svelte/store'
 
 import { clientStarted, isBrowser, error } from '../adapter'
 import { getCurrentClient } from '../network'
-import { getClientSession, getSession } from '../session'
+import { getSession } from '../session'
 import { BaseStore } from './store'
 
 export class QueryStore<

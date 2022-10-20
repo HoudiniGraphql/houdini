@@ -126,7 +126,11 @@
 		<a href="/intro/welcome" class="nav-link" sveltekit:prefetch>Get Started</a>
 		<a href="/guides/faq" class="nav-link small-hidden" sveltekit:prefetch>Guides</a>
 		<a href="/api/welcome" class="nav-link small-hidden" sveltekit:prefetch>API</a>
-		<a href="https://opencollective.com/houdini" class="nav-link small-hidden" target="_blank">
+		<a
+			href="https://github.com/sponsors/HoudiniGraphql"
+			class="nav-link small-hidden"
+			target="_blank"
+		>
 			Sponsor
 		</a>
 		<a

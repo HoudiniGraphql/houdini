@@ -1,9 +1,7 @@
-import path from 'path'
 import type { Plugin as VitePlugin } from 'vite'
 
 import generate from '../codegen'
-import { Config, getConfig, PluginConfig } from '../lib/config'
-import { formatErrors } from '../lib/graphql'
+import { path, Config, getConfig, PluginConfig, formatErrors } from '../lib'
 
 let config: Config
 
@@ -41,6 +39,9 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 
 		// transform the user's code
 		async transform(code, filepath) {
+			// everything internal to houdini should assume posix paths
+			filepath = path.posixify(filepath)
+
 			if (filepath.startsWith('/src/')) {
 				filepath = path.join(process.cwd(), filepath)
 			}

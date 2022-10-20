@@ -1,7 +1,6 @@
 import type { ExpressionKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
-import { Config, fs, parseJS } from 'houdini'
-import path from 'path'
+import { Config, fs, parseJS, path } from 'houdini'
 import * as recast from 'recast'
 import { transformWithEsbuild } from 'vite'
 
@@ -107,7 +106,11 @@ async function processScript(
 					// compute the artifact path
 					const artifact =
 						mockArtifacts?.[query] ||
-						(await import(path.join(config.artifactDirectory, query + '.js'))).default
+						(
+							await import(
+								path.importPath(path.join(config.artifactDirectory, query + '.js'))
+							)
+						).default
 
 					// save the query
 					globalImports[name] = artifact.raw

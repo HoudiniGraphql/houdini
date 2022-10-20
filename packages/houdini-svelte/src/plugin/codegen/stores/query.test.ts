@@ -1,6 +1,5 @@
-import { fs, CollectedGraphQLDocument } from 'houdini'
+import { fs, CollectedGraphQLDocument, path } from 'houdini'
 import { mockCollectedDoc } from 'houdini/test'
-import path from 'path'
 import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { test, expect } from 'vitest'

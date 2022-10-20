@@ -1,6 +1,5 @@
-import { parseJS, fs } from 'houdini'
+import { parseJS, fs, path } from 'houdini'
 import { testConfig } from 'houdini/test'
-import path from 'path'
 import { test, expect } from 'vitest'
 
 import generate from '..'
