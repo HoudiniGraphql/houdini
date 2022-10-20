@@ -16,8 +16,6 @@ test('updates the config file with import path', async function () {
 	const fileContents = await fs.readFile(path.join(config.runtimeDirectory, 'lib', 'config.js'))
 	expect(fileContents).toBeTruthy()
 
-	console.log(fileContents)
-
 	// parse the contents
 	const parsedQuery: ProgramKind = recast.parse(fileContents!, {
 		parser: typeScriptParser,

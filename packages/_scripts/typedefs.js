@@ -1,7 +1,6 @@
 import fsSync from 'fs'
 import fs_extra from 'fs-extra'
 import fs from 'fs/promises'
-import glob from 'glob-promise'
 import path from 'path'
 import ts from 'typescript'
 
@@ -15,7 +14,7 @@ export default async function generate_typedefs({ plugin }) {
 	)
 
 	// grab any non-tests file
-	const files = (await glob('./src/**/*.ts', { nodir: true })).filter(
+	const files = (await fs.glob('./src/**/*.ts', { nodir: true })).filter(
 		(path) => !path.endsWith('.test.ts')
 	)
 

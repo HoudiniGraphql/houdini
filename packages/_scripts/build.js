@@ -1,8 +1,9 @@
 import esbuild from 'esbuild'
 import { replace } from 'esbuild-plugin-replace'
 import fs from 'fs/promises'
-import glob from 'glob-promise'
+import { glob } from 'glob'
 import path from 'path'
+import { promisify } from 'util'
 
 // the relevant directories
 const build_dir = path.join(process.cwd(), 'build')
@@ -85,7 +86,7 @@ async function build({ package_json, source, bundle = true, plugin }) {
 	// if we aren't bundling, look up the entrypoints once
 	const children = bundle
 		? []
-		: await glob(path.join(source, '**/**/*').replaceAll('\\', '/'), {
+		: await promisify(glob)(path.join(source, '**/**/*').replaceAll('\\', '/'), {
 				nodir: true,
 		  })
 
