@@ -127,7 +127,6 @@ async function build({ package_json, source, bundle = true, plugin }) {
 			}
 			// we aren't bundling so we need an entry point of every file to be written to a directory
 			else {
-				await fs.mkdir(target_dir)
 				config.entryPoints = children
 				config.outdir = target_dir
 			}

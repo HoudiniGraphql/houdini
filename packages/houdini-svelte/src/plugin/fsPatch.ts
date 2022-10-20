@@ -13,6 +13,9 @@ import {
 export default (getFramwork: () => Framework) =>
 	({
 		resolveId(filepath, _, { config }) {
+			// everything internal to houdini should assume posix paths
+			filepath = path.posixify(filepath.toString())
+
 			// if we are resolving any of the files we need to generate
 			if (
 				is_route_script(getFramwork(), filepath) ||
@@ -28,6 +31,9 @@ export default (getFramwork: () => Framework) =>
 		},
 
 		load: async (filepath, { config }) => {
+			// everything internal to houdini should assume posix paths
+			filepath = path.posixify(filepath.toString())
+
 			// if we are processing a route script or the root layout, we should always return _something_
 			if (
 				is_route_script(getFramwork(), filepath) ||
@@ -100,13 +106,16 @@ filesystem.statSync = function (filepath: string, options: Parameters<filesystem
 		const result = _statSync(filepath, options)
 		return result
 	} catch (error) {
+		// everything internal to houdini should assume posix paths
+		filepath = path.posixify(filepath.toString())
+
 		const mock = virtual_file(path.basename(filepath), { withFileTypes: true })
 
 		// always fake the root +layout.server.js and +layout.svelte
 		if (
-			filepath.endsWith('routes/+layout.svelte') ||
 			filepath.endsWith(path.join('routes', '+layout.svelte')) ||
-			filepath.endsWith('routes/+layout.server.js') ||
+			filepath.endsWith(path.join('routes', '+layout.svelte')) ||
+			filepath.endsWith(path.join('routes', '+layout.server.js')) ||
 			filepath.endsWith(path.join('routes', '+layout.server.js'))
 		) {
 			return mock
@@ -175,19 +184,21 @@ filesystem.readdirSync = function (
 		result.push(virtual_file('+layout.js', options))
 	}
 
+	const posix_filepath = path.posixify(filepath.toString())
+
 	// if we are in looking inside of src/routes and there's no +layout.svelte file
 	// we need to create one
-	if (is_root_route(filepath) && !contains('+layout.svelte')) {
+	if (is_root_route(posix_filepath) && !contains('+layout.svelte')) {
 		result.push(virtual_file('+layout.svelte', options))
 	}
 	// if we are in looking inside of src/routes and there's no +layout.server.js file
 	// we need to create one
-	if (is_root_route(filepath) && !contains('+layout.server.js', '+layout.server.ts')) {
+	if (is_root_route(posix_filepath) && !contains('+layout.server.js', '+layout.server.ts')) {
 		result.push(virtual_file('+layout.server.js', options))
 	}
 
 	// there needs to always be a root load function that passes the session down
-	if (is_root_route(filepath) && !contains('+layout.js', '+layout.ts')) {
+	if (is_root_route(posix_filepath) && !contains('+layout.js', '+layout.ts')) {
 		result.push(virtual_file('+layout.js', options))
 	}
 

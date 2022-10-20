@@ -17,7 +17,7 @@ export function is_route(config: Config, framework: Framework, filepath: string)
 	}
 
 	// only consider filepaths in src/routes
-	if (!path.posixify(filepath).startsWith(path.posixify(config.routesDir))) {
+	if (!filepath.startsWith(config.routesDir)) {
 		return false
 	}
 

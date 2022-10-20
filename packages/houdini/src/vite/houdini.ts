@@ -39,6 +39,9 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 
 		// transform the user's code
 		async transform(code, filepath) {
+			// everything internal to houdini should assume posix paths
+			filepath = path.posixify(filepath)
+
 			if (filepath.startsWith('/src/')) {
 				filepath = path.join(process.cwd(), filepath)
 			}
