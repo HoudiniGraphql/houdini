@@ -85,7 +85,7 @@ async function build({ package_json, source, bundle = true, plugin }) {
 	// if we aren't bundling, look up the entrypoints once
 	const children = bundle
 		? []
-		: await glob(path.join(source, '**/**/*'), {
+		: await glob(path.join(source, '**/**/*').replaceAll('\\', '/'), {
 				nodir: true,
 		  })
 
@@ -133,22 +133,13 @@ async function build({ package_json, source, bundle = true, plugin }) {
 			}
 
 			try {
-				if (!bundle) {
-					console.log('before build', config)
-				}
 				await esbuild.build(config)
-
-				if (!bundle) {
-					console.log('after build', await fs.readdir(config.outdir))
-				}
 
 				await fs.writeFile(
 					path.join(target_dir, 'package.json'),
 					JSON.stringify({ type: which === 'cjs' ? 'commonjs' : 'module' }),
 					'utf-8'
 				)
-
-				console.log('after write', target_dir)
 			} catch (e) {
 				console.log(e)
 				process.exit(1)
