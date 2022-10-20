@@ -441,10 +441,9 @@ describe('kit route processor', function () {
 			`,
 		})
 
-		expect(route.component).toMatchInlineSnapshot(`
-			import GQL_TestPageQuery from "$houdini/plugins/houdini-svelte/stores/TestPageQuery";
-			export let data;
-		`)
+		expect(route.component).toMatchInlineSnapshot(
+			'import GQL_TestPageQuery from "$houdini/plugins/houdini-svelte/stores/TestPageQuery";'
+		)
 		expect(route.script).toMatchInlineSnapshot(`
 			import { load_TestPageQuery } from "$houdini/plugins/houdini-svelte/stores/TestPageQuery";
 			import { getCurrentConfig } from "$houdini/runtime/lib/config";
@@ -491,10 +490,9 @@ describe('kit route processor', function () {
 			`,
 		})
 
-		expect(route.component).toMatchInlineSnapshot(`
-			import GQL_TestLayoutQuery from "$houdini/plugins/houdini-svelte/stores/TestLayoutQuery";
-			export let data;
-		`)
+		expect(route.component).toMatchInlineSnapshot(
+			'import GQL_TestLayoutQuery from "$houdini/plugins/houdini-svelte/stores/TestLayoutQuery";'
+		)
 		expect(route.layout_script).toMatchInlineSnapshot(`
 			import { load_TestLayoutQuery } from "$houdini/plugins/houdini-svelte/stores/TestLayoutQuery";
 			import { getCurrentConfig } from "$houdini/runtime/lib/config";
@@ -1074,7 +1072,6 @@ test('layout loads', async function () {
 		import { extractSession, setClientSession } from "$houdini/plugins/houdini-svelte/runtime/session";
 		import { onMount } from "svelte";
 		import { setClientStarted } from "$houdini/plugins/houdini-svelte/runtime/adapter";
-		export let data;
 		onMount(() => setClientStarted());
 
 		page.subscribe(val => {
