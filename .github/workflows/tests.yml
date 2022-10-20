@@ -138,6 +138,7 @@ jobs:
               run: pnpm run compile
 
             - name: Install Playwright
+              if: steps.playwright-cache.outputs.cache-hit != 'true'
               run: pnpm playwright install --with-deps
 
             - name: End-to-End Tests sveltekit
