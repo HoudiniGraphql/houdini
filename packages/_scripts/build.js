@@ -132,6 +132,7 @@ async function build({ package_json, source, bundle = true, plugin }) {
 			}
 
 			try {
+				console.log('before build', config)
 				await esbuild.build(config)
 
 				await fs.writeFile(
