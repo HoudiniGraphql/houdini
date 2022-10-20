@@ -134,7 +134,7 @@ async function build({ package_json, source, bundle = true, plugin }) {
 			try {
 				await esbuild.build(config)
 
-				if (config.outdir) {
+				if (bundle) {
 					console.log('after build', await fs.readdir(config.outdir))
 				}
 
