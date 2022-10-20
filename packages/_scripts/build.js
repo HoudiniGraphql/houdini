@@ -1,7 +1,7 @@
 import esbuild from 'esbuild'
 import { replace } from 'esbuild-plugin-replace'
 import fs from 'fs/promises'
-import { glob } from 'glob'
+import glob from 'glob'
 import path from 'path'
 import { promisify } from 'util'
 
