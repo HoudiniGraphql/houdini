@@ -9,7 +9,6 @@ import type {
 	ResolveIdResult,
 } from 'rollup'
 import { fileURLToPath, pathToFileURL } from 'url'
-import { promisify } from 'util'
 
 import { ConfigFile, CachePolicy } from '../runtime/lib'
 import { computeID, defaultConfigValues, keyFieldsForType } from '../runtime/lib/config'
