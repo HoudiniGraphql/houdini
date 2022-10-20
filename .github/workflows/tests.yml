@@ -110,48 +110,38 @@ jobs:
               with:
                 version: 7
                 
-            - name: Get pnpm store directory
-              id: pnpm-cache
-              run: |
-                echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
+            # - name: Get pnpm store directory
+            #   id: pnpm-cache
+            #   run: |
+            #     echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
 
-            - uses: actions/cache@v3
-              name: Setup pnpm cache
-              with:
-                path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
-                key: ${{ matrix.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                restore-keys: |
-                  ${{ matrix.os }}-pnpm-store-
+            # - uses: actions/cache@v3
+            #   name: Setup pnpm cache
+            #   with:
+            #     path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+            #     key: ${{ matrix.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+            #     restore-keys: |
+            #       ${{ matrix.os }}-pnpm-store-
 
             - name: Install dependencies
               run: pnpm install
               
-            - name: Cache playwright binaries
-              uses: actions/cache@v2
-              id: playwright-cache
-              with:
-                  path: |
-                      ~/.cache/ms-playwright
-                  key: cache-playwright-${{ matrix.os }}-1.25.0
+            # - name: Cache playwright binaries
+            #   uses: actions/cache@v2
+            #   id: playwright-cache
+            #   with:
+            #       path: |
+            #           ~/.cache/ms-playwright
+            #       key: cache-playwright-${{ matrix.os }}-1.25.0
 
             - name: Build packages
               run: pnpm run compile
 
             - name: Install Playwright
-              if: steps.playwright-cache.outputs.cache-hit != 'true'
               run: npx playwright install --with-deps
 
             - name: End-to-End Tests sveltekit
               run: pnpm run --filter sveltekit build && pnpm --filter sveltekit tests
-              env:
-                  RECORD_REPLAY_TEST_RUN_ID: ${{ env.GITHUB_SHA }}
-
-            - name: Upload videos
-              uses: replayio/action-upload@v0.4.1
-              if: ${{ always() }}
-              with:
-                  api-key: ${{ secrets.RECORD_REPLAY_API_KEY }}
-                  filter: ${{ 'function($v) { $v.metadata.test.result = "failed" and $v.status = "onDisk" }' }}
 
     e2e_sveltekit_linter:
         name: End-to-End Linter
