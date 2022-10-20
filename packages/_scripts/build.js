@@ -132,6 +132,9 @@ async function build({ package_json, source, bundle = true, plugin }) {
 			}
 
 			try {
+				if (!bundle) {
+					console.log('before build', config)
+				}
 				await esbuild.build(config)
 
 				if (!bundle) {
