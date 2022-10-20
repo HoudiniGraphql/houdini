@@ -138,7 +138,7 @@ jobs:
               run: pnpm run compile
 
             - name: Install Playwright
-              run: npx playwright install --with-deps
+              run: pnpm playwright install --with-deps
 
             - name: End-to-End Tests sveltekit
               run: pnpm run --filter sveltekit build && pnpm --filter sveltekit tests
