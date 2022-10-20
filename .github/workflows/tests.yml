@@ -132,7 +132,7 @@ jobs:
               with:
                   path: |
                       ~/.cache/ms-playwright
-                  key: cache-playwright-linux-1.25.0
+                  key: cache-playwright-${{ matrix.os }}-1.25.0
 
             - name: Build packages
               run: pnpm run compile
