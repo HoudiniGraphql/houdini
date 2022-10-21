@@ -1,5 +1,23 @@
 # houdini
 
+## 0.17.0
+
+### Minor Changes
+
+-   [#593](https://github.com/HoudiniGraphql/houdini/pull/593) [`c1363fe`](https://github.com/HoudiniGraphql/houdini/commit/c1363fe938ab94281272cad8939b892fd705a803) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Split houdini into two packages: `houdini` and `houdini-svelte`
+
+### Patch Changes
+
+-   [#616](https://github.com/HoudiniGraphql/houdini/pull/616) [`addda88`](https://github.com/HoudiniGraphql/houdini/commit/addda88d164359b185088315f9498be818e7f042) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - build before release
+
+-   [#612](https://github.com/HoudiniGraphql/houdini/pull/612) [`6a0999f`](https://github.com/HoudiniGraphql/houdini/commit/6a0999ff0fd175a190e156c54b37c4a70e402dbc) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix windows compatability
+
+-   [#622](https://github.com/HoudiniGraphql/houdini/pull/622) [`e355c75`](https://github.com/HoudiniGraphql/houdini/commit/e355c75b3ae938269b6d08dc8d9012432603145f) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix link and tweak init
+
+-   [#618](https://github.com/HoudiniGraphql/houdini/pull/618) [`b34948d`](https://github.com/HoudiniGraphql/houdini/commit/b34948dcabd6ee5f550fc0cd4aa755ee64fbec24) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix release script
+
+-   [#620](https://github.com/HoudiniGraphql/houdini/pull/620) [`b742d75`](https://github.com/HoudiniGraphql/houdini/commit/b742d7541bffdacb400c5ee479c6e106e98e408d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - update templates
+
 ## 0.17.0-next.4
 
 ### Patch Changes
