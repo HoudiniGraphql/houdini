@@ -332,7 +332,7 @@ import { MyQueryStore } from '$houdini'
 export async function load(event) {
 	const MyQuery = new MyQueryStore()
 
-	const result = await MyQuery.fetch(event)
+	const result = await MyQuery.fetch({ event })
 
 	console.log('do something with', result)
 
@@ -352,10 +352,7 @@ import { loadAll, load_MyQuery, load_MyOtherQuery } from '$houdini'
 
 export async function load(event) {
 	return {
-		...(await loadAll(
-			load_MyQuery({ event }), 
-			load_MyOtherQuery({ event })
-		))
+		...(await loadAll(load_MyQuery({ event }), load_MyOtherQuery({ event })))
 	}
 }
 ```
