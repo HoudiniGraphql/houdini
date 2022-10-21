@@ -7,8 +7,7 @@ description: An overview of the various ways Houdini applications can leverage G
 <script>
     import { Transformation, DeepDive, Highlight, Warning } from '~/components'
 
-    const storeSource = `# Operation defined in a .gql or .graphql file
-query ViewerProfile {
+    const storeSource = `query ViewerProfile {
     viewer {
         firstName
     }
@@ -22,7 +21,7 @@ type ViewerProfileStore = {
 
     const inlineMutation = `import { mutation, graphql } from '$houdini'
 
-const mutate = mutation(graphql\`
+const UpdateUser = graphql\`
     mutation UpdateUser($input: UpdateUserInput!) {
         updateUser(input: $input) {
             user {
@@ -30,7 +29,7 @@ const mutate = mutation(graphql\`
             }
         }
     }
-\`)`
+\``
 
     const externalMutationGraphQL = `
 # src/lib/graphql/UpdateUser.gql

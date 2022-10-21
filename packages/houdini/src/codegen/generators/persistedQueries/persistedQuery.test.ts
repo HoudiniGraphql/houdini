@@ -1,8 +1,7 @@
-import path from 'path'
 import { test, expect } from 'vitest'
 
 import { runPipeline } from '../../../codegen'
-import { CollectedGraphQLDocument, fs } from '../../../lib'
+import { CollectedGraphQLDocument, fs, path } from '../../../lib'
 import { mockCollectedDoc, testConfig } from '../../../test'
 
 test('generates an artifact for every document', async function () {

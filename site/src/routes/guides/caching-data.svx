@@ -17,7 +17,7 @@ query AllItems @cache(policy: CacheAndNetwork) {
 }
 ```
 
-There are 3 different policies that can be specified:
+There are a few different policies that can be specified:
 
 - `CacheOrNetwork` will first check if a query can be resolved from the cache. If it can, it will return the cached value and only send a network request if data was missing. If you have opted into partial data with `@cache(partial: true)` and the result contains partial data (some but not all of the data is available in the cache), you will get the partial data first and then a network request will trigger - almost like it behaves like `CacheAndNetwork`.
 - `CacheAndNetwork` will use cached data if it exists and always send a network request after the component has mounted to retrieve the latest data from the server. The cached portion of this might contain partial data if you opt-in.

@@ -1,6 +1,5 @@
 import { OperationDefinitionNode } from 'graphql'
-import { Config, fs, GenerateHookInput } from 'houdini'
-import path from 'path'
+import { Config, fs, GenerateHookInput, path } from 'houdini'
 
 import { extract_load_function } from '../../extractLoadFunction'
 import {
@@ -121,10 +120,7 @@ export default async function svelteKitGenerator(
 			const target = path.join(type_route_dir(config), relativePath, config.typeRootFile)
 
 			// we can't import from $houdini so we need to compute the relative path from the import
-			const houdiniRelative = path
-				.relative(target, config.typeRootDir)
-				// Windows management
-				.replaceAll('\\', '/')
+			const houdiniRelative = path.relative(target, config.typeRootDir)
 
 			// the unique set of query names
 			const queryNames: string[] = []

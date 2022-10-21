@@ -1,7 +1,7 @@
 import fsExtra from 'fs-extra'
 import fs from 'fs/promises'
+import { glob as G } from 'glob'
 import { fs as memfs, vol } from 'memfs'
-import path from 'path'
 import { promisify } from 'util'
 
 export async function copySync(srcDir: string, destDir: string, overwrite: boolean = false) {
@@ -21,6 +21,7 @@ export async function rename(oldname: string, newname: string) {
 		console.log(e)
 	}
 }
+import * as path from './path'
 
 export async function readFile(filepath: string): Promise<string | null> {
 	if (process.env.NODE_ENV === 'test') {
@@ -245,3 +246,10 @@ export async function recursiveCopy(
 		)
 	}
 }
+
+// wrap glob in a promise and enforce that the paths are always posix-style
+export async function glob(pattern: string) {
+	return await promisify(G)(path.posixify(pattern))
+}
+
+glob.hasMagic = G.hasMagic

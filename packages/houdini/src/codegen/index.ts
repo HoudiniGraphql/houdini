@@ -1,8 +1,4 @@
-import glob from 'glob'
 import * as graphql from 'graphql'
-import minimatch from 'minimatch'
-import path from 'path'
-import { promisify } from 'util'
 
 import {
 	Config,
@@ -14,6 +10,7 @@ import {
 	Plugin,
 	fs,
 	CollectedGraphQLDocument,
+	path,
 } from '../lib'
 import { ArtifactKind } from '../runtime/lib/types'
 import * as generators from './generators'

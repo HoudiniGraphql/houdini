@@ -1,6 +1,4 @@
-import path from 'path'
-
-import { getConfig, pullSchema } from '../lib'
+import { getConfig, pullSchema, path } from '../lib'
 
 export default async function (args: { headers: string[] }) {
 	const config = await getConfig()

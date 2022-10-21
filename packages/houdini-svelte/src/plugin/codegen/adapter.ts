@@ -1,5 +1,4 @@
-import { fs } from 'houdini'
-import path from 'path'
+import { fs, path } from 'houdini'
 
 import { PluginGenerateInput } from '.'
 

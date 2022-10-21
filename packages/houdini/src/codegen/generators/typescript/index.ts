@@ -1,10 +1,9 @@
 import { logCyan, logGreen } from '@kitql/helper'
 import type { StatementKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
-import path from 'path'
 import * as recast from 'recast'
 
-import { Config, HoudiniError, siteURL, fs, CollectedGraphQLDocument } from '../../../lib'
+import { Config, HoudiniError, siteURL, fs, CollectedGraphQLDocument, path } from '../../../lib'
 import { flattenSelections } from '../../utils'
 import { addReferencedInputTypes } from './addReferencedInputTypes'
 import { fragmentKey, inlineType } from './inlineType'
@@ -107,8 +106,6 @@ export default async function typescriptGenerator(
 						'./' +
 							path
 								.relative(path.resolve(config.typeIndexPath, '..'), typePath)
-								// Windows management
-								.replaceAll('\\', '/')
 								// remove the .d.ts from the end of the path
 								.replace(/\.[^/.]+\.[^/.]+$/, '')
 					),

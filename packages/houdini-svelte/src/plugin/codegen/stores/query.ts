@@ -1,7 +1,6 @@
 import * as graphql from 'graphql'
-import { CollectedGraphQLDocument, GenerateHookInput } from 'houdini'
+import { CollectedGraphQLDocument, GenerateHookInput, path } from 'houdini'
 import { operation_requires_variables, fs } from 'houdini'
-import path from 'path'
 
 import { global_store_name, stores_directory, store_name } from '../../kit'
 

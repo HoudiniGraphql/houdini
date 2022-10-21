@@ -1,8 +1,8 @@
 import crypto from 'crypto'
 import * as graphql from 'graphql'
-import path from 'path'
 
 import { HoudiniError } from './error'
+import * as path from './path'
 
 export function getRootType(type: graphql.GraphQLType): graphql.GraphQLType {
 	// if the type is non-null, unwrap and go again

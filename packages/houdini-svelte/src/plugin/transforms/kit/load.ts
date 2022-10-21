@@ -82,8 +82,7 @@ export default async function kit_load_generator(page: SvelteTransformPage) {
 		})
 	}
 
-	// we need this to happen last so it that the context always gets injected first
-	if (route && queries.length > 0) {
+	if (route && inline_queries.length > 0) {
 		// we need to check if there is a declared data prop
 		const has_data = page.script.body.find(
 			(statement) =>

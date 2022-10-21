@@ -1,5 +1,4 @@
-import { cleanupFiles, fs, ArtifactKind, GenerateHookInput } from 'houdini'
-import path from 'path'
+import { cleanupFiles, fs, ArtifactKind, GenerateHookInput, path } from 'houdini'
 
 import { stores_directory } from '../../kit'
 import { generateFragmentStore } from './fragment'

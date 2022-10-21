@@ -29,6 +29,7 @@ module.exports = {
 		'no-var': 'off',
 		'no-undef': 'off',
 		'object-shorthand': 'off',
+		'unused-imports/no-unused-imports': 'error',
 		// 'no-console': ['error', { allow: ['info', 'warn', 'error', 'time', 'timeEnd'] }],
 	},
 	ignorePatterns: ['e2e', 'example', 'site'],
@@ -36,4 +37,5 @@ module.exports = {
 		sourceType: 'module',
 		ecmaVersion: 2020,
 	},
+	plugins: ['unused-imports'],
 }

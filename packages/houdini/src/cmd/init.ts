@@ -1,11 +1,9 @@
 import { getIntrospectionQuery } from 'graphql'
 import fetch from 'node-fetch'
-import path from 'path'
 import prompts from 'prompts'
 
-import { pullSchema } from '../lib'
+import { fs, path, pullSchema } from '../lib'
 import { ConfigFile } from '../runtime/lib/config'
-import * as fs from './../lib/fs'
 
 // the init command is responsible for scaffolding a few files
 // as well as pulling down the initial schema representation
@@ -14,6 +12,15 @@ export default async function init(
 	args: { headers?: string[]; yes: boolean },
 	withRunningCheck = true
 ): Promise<void> {
+	// before we start anything, let's make sure they have initialized their project
+	try {
+		await fs.stat(path.resolve('./src'))
+	} catch {
+		throw new Error(
+			'Please initialize your project first before running init. For svelte projects, you should follow the instructions here: https://kit.svelte.dev/'
+		)
+	}
+
 	let headers = {}
 	if ((args.headers ?? []).length > 0) {
 		headers = args.headers!.reduce((total, header) => {
@@ -50,7 +57,7 @@ export default async function init(
 			message: "What's the URL for your api?",
 			name: 'url',
 			type: 'text',
-			initial: 'http://localhost:4000/api/graphql',
+			initial: 'http://localhost:4000/graphql',
 		},
 		{
 			onCancel() {
@@ -77,6 +84,9 @@ export default async function init(
 			console.log('❌ That URL is not accepting GraphQL queries. Please try again.')
 			return await init(_path, args, false)
 		}
+
+		// make sure we can parse the response as json
+		await response.json()
 	} catch (e) {
 		console.log('❌ Something went wrong: ' + (e as Error).message)
 		return await init(_path, args, false)
@@ -219,11 +229,6 @@ const writeConfigFile = async ({
 	houdiniClientImport: string
 }): Promise<boolean> => {
 	const config: ConfigFile = {
-		plugins: {
-			'houdini-svelte': {
-				client: houdiniClientImport,
-			},
-		},
 		apiUrl: url,
 	}
 
@@ -234,8 +239,12 @@ const writeConfigFile = async ({
 	if (module !== 'esm') {
 		config.module = module
 	}
-	if (framework !== 'kit') {
-		config.framework = framework
+
+	// put plugins at the bottom
+	config.plugins = {
+		'houdini-svelte': {
+			client: houdiniClientImport,
+		},
 	}
 
 	// the actual config contents
@@ -336,7 +345,6 @@ const config: UserConfig = {
 };
 
 export default config;
-
 `
 
 	const viteConfigKit = `import { sveltekit } from '@sveltejs/kit/vite';
@@ -395,14 +403,6 @@ export default config;
 	} else {
 		throw new Error('Unknown updateViteConfig()')
 	}
-
-	// write the vite config file
-	await updateFile({
-		projectPath: targetPath,
-		filepath: viteConfigPath,
-		content,
-		old: [oldViteConfig1, oldViteConfig2],
-	})
 
 	if (typescript) {
 		await updateFile({

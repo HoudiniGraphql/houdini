@@ -1,5 +1,4 @@
-import { fs } from 'houdini'
-import path from 'path'
+import { fs, path } from 'houdini'
 import { test, describe, expect } from 'vitest'
 
 import { test_config } from '../test'
