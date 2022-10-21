@@ -346,7 +346,6 @@ const config: UserConfig = {
 };
 
 export default config;
-
 `
 
 	const viteConfigKit = `import { sveltekit } from '@sveltejs/kit/vite';
@@ -405,14 +404,6 @@ export default config;
 	} else {
 		throw new Error('Unknown updateViteConfig()')
 	}
-
-	// write the vite config file
-	await updateFile({
-		projectPath: targetPath,
-		filepath: viteConfigPath,
-		content,
-		old: [oldViteConfig1, oldViteConfig2],
-	})
 
 	if (typescript) {
 		await updateFile({
