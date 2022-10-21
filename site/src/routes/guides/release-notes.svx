@@ -24,24 +24,26 @@ The example below shows every config value that needs to be moved:
 
   /** @type {import('houdini').ConfigFile} */
   const config = {
+		apiUrl: 'http://localhost:4000/graphql'
+
 -   client: './src/client.ts'
--   pageQueryFilename: '+myQuery.gql'
--   globalStorePrefix: "G_",
--   quietQueryErrors: true,
 -   static: true,
 +   plugins: {
 +     'houdini-svelte': {
 +       client: './src/client.ts',
-+       pageQueryFilename: '+myQuery.gql',
-+       globalStorePrefix: "G_",
-+       quietQueryErrors: true,
 +       static: true,
 +     }
-+   }
++   },
+
+	  scalars: {
+			// your existing scalars
+		},
   };
 
   export default config;
 ```
+
+For the complete list of config structure, you can check [here](/api/config)
 
 You'll also have to slightly modify your `hooks.server.js` file:
 
