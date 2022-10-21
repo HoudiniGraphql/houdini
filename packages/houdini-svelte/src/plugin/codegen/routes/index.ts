@@ -21,6 +21,52 @@ export default async function svelteKitGenerator(
 		return
 	}
 
+	console.log(config)
+
+	async function walk_types(dirpath: string, visitor: any) {
+		for (const child of await fs.readdir(dirpath)) {
+			const childPath = path.join(dirpath, child)
+			// if we run into another directory, keep walking down
+			if ((await fs.stat(childPath)).isDirectory()) {
+				await walk_types(childPath, visitor)
+			}
+
+			await visitor.route(childPath)
+		}
+	}
+
+	//assumes that .sveltekit will be at project root. This is true unless
+	const skt_path = path.normalize(config.projectRoot + '/.svelte-kit/types')
+	const new_path = path.normalize(config.rootDir + '/types/testing/')
+	await fs.copySync(skt_path, new_path)
+
+	await walk_types(new_path, {
+		async route(route_path: string) {
+			//if not a type file return
+			if (!route_path.endsWith('$types.d.ts')) {
+				return
+			}
+			
+			//get renamed path, this is the path that we will use for the rest of the loop
+			const h_path = route_path.replace(/\$types.d.ts/, '$houdini.d.ts');
+			
+			// rename file 
+			fs.rename(route_path, h_path);
+
+			//match all values after src so we can access the project/src directory
+			const root_path_reg = /src(.*)/;
+
+
+			// get the project root dir so we can search it for files
+			const root_path = path.dirname(h_path).match(root_path_reg)?.[0] ?? ''; 
+
+			const path_in_project = path.join(config.projectRoot, root_path);
+
+
+
+		},
+	})
+
 	// we need to walk down their route directory and create any variable definitions we need
 	await walk_routes(config, framework, {
 		async route({

@@ -4,6 +4,24 @@ import { fs as memfs, vol } from 'memfs'
 import path from 'path'
 import { promisify } from 'util'
 
+export async function copySync(srcDir: string, destDir: string, overwrite: boolean = false) {
+	try {
+		fsExtra.copySync(srcDir, destDir, { overwrite: overwrite })
+		console.log('success! copied dir')
+	} catch (err) {
+		console.error(err)
+	}
+}
+
+export async function rename(oldname: string, newname: string) {
+	// fsExtra.rename(oldname, newname)
+	try {
+		fsExtra.renameSync(oldname, newname)
+	} catch (e) {
+		console.log(e)
+	}
+}
+
 export async function readFile(filepath: string): Promise<string | null> {
 	if (process.env.NODE_ENV === 'test') {
 		try {
