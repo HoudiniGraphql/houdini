@@ -1,5 +1,21 @@
 # houdini-svelte
 
+## 0.17.0-next.4
+
+### Patch Changes
+
+-   [#620](https://github.com/HoudiniGraphql/houdini/pull/620) [`b742d75`](https://github.com/HoudiniGraphql/houdini/commit/b742d7541bffdacb400c5ee479c6e106e98e408d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - update templates
+
+-   Updated dependencies [[`b742d75`](https://github.com/HoudiniGraphql/houdini/commit/b742d7541bffdacb400c5ee479c6e106e98e408d)]:
+    -   houdini@0.17.0-next.4
+
+## 0.17.0-next.3
+
+### Patch Changes
+
+-   Updated dependencies [[`b34948d`](https://github.com/HoudiniGraphql/houdini/commit/b34948dcabd6ee5f550fc0cd4aa755ee64fbec24)]:
+    -   houdini@0.17.0-next.3
+
 ## 0.17.0-next.2
 
 ### Patch Changes
