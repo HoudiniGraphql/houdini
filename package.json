@@ -19,7 +19,7 @@
 		"format:write": "npm run format -- -w",
 		"format:check": "npm run format -- --check",
 		"version": "changeset version",
-		"release": "turbo run build --filter=\"./packages/*\" & changeset publish",
+		"release": "pnpm run build && changeset publish",
 		"postinstall": "node -e \"try { require('husky').install(); console.log('ran prepack') } catch (e) {if (e.code !== 'MODULE_NOT_FOUND') throw e}\"",
 		"prepack": "pinst --disable",
 		"postpack": "pinst --enable"
