@@ -12,6 +12,15 @@ export default async function init(
 	args: { headers?: string[]; yes: boolean },
 	withRunningCheck = true
 ): Promise<void> {
+	// before we start anything, let's make sure they have initialized their project
+	try {
+		await fs.stat(path.resolve('./src'))
+	} catch {
+		throw new Error(
+			'Please initialize your project first before running init. For svelte projects, you should follow the instructions here: https://kit.svelte.dev/'
+		)
+	}
+
 	let headers = {}
 	if ((args.headers ?? []).length > 0) {
 		headers = args.headers!.reduce((total, header) => {
@@ -48,7 +57,7 @@ export default async function init(
 			message: "What's the URL for your api?",
 			name: 'url',
 			type: 'text',
-			initial: 'http://localhost:4000/api/graphql',
+			initial: 'http://localhost:4000/graphql',
 		},
 		{
 			onCancel() {
@@ -75,6 +84,9 @@ export default async function init(
 			console.log('❌ That URL is not accepting GraphQL queries. Please try again.')
 			return await init(_path, args, false)
 		}
+
+		// make sure we can parse the response as json
+		await response.json()
 	} catch (e) {
 		console.log('❌ Something went wrong: ' + (e as Error).message)
 		return await init(_path, args, false)
