@@ -1,5 +1,14 @@
 # houdini-svelte
 
+## 0.17.0-next.1
+
+### Patch Changes
+
+-   [#614](https://github.com/HoudiniGraphql/houdini/pull/614) [`123de70`](https://github.com/HoudiniGraphql/houdini/commit/123de70dd44c38032b75d87254cd30a66602e86a) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Make scripts a dev dep
+
+-   Updated dependencies []:
+    -   houdini@0.17.0-next.1
+
 ## 0.17.0-next.0
 
 ### ⚠️ Breaking Changes
