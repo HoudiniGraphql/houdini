@@ -775,9 +775,8 @@ export async function getConfig({
 	// if there is a framework specified, tell them they need to change things
 	if (!configFile.plugins) {
 		throw new HoudiniError({
-			message: 'framework config value has been removed.',
-			description:
-				'Please visit the release notes here: http://www.houdinigraphql.com/guide/release-notes#0170',
+			message:
+				'Welcome to 0.17.0! Please following the migration guide here: http://www.houdinigraphql.com/guide/release-notes#0170',
 		})
 	}
 
