@@ -123,18 +123,12 @@ filesystem.statSync = function (filepath: string, options: Parameters<filesystem
 
 		// we want to fake +layout.js if there is a +layout.svelte
 		else if (filepath.endsWith('+layout.js')) {
-			try {
-				_statSync(filepath.replace('+layout.js', '+layout.svelte'))
-				return mock
-			} catch (e) {}
+			return mock
 		}
 
 		// we want to fake +page.js if there is a +page.svelte
 		else if (filepath.endsWith('+page.js')) {
-			try {
-				_statSync(filepath.replace('+page.js', '+page.svelte'))
-				return mock
-			} catch (e) {}
+			return mock
 		}
 
 		// if we got this far we didn't fake the file
