@@ -229,11 +229,6 @@ const writeConfigFile = async ({
 	houdiniClientImport: string
 }): Promise<boolean> => {
 	const config: ConfigFile = {
-		plugins: {
-			'houdini-svelte': {
-				client: houdiniClientImport,
-			},
-		},
 		apiUrl: url,
 	}
 
@@ -244,8 +239,12 @@ const writeConfigFile = async ({
 	if (module !== 'esm') {
 		config.module = module
 	}
-	if (framework !== 'kit') {
-		config.framework = framework
+
+	// put plugins at the bottom
+	config.plugins = {
+		'houdini-svelte': {
+			client: houdiniClientImport,
+		},
 	}
 
 	// the actual config contents
