@@ -776,7 +776,7 @@ export async function getConfig({
 	if (!configFile.plugins) {
 		throw new HoudiniError({
 			message:
-				'Welcome to 0.17.0! Please following the migration guide here: http://www.houdinigraphql.com/guide/release-notes#0170',
+				'Welcome to 0.17.0! Please following the migration guide here: http://www.houdinigraphql.com/guides/release-notes#0170',
 		})
 	}
 

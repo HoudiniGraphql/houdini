@@ -229,11 +229,6 @@ const writeConfigFile = async ({
 	houdiniClientImport: string
 }): Promise<boolean> => {
 	const config: ConfigFile = {
-		plugins: {
-			'houdini-svelte': {
-				client: houdiniClientImport,
-			},
-		},
 		apiUrl: url,
 	}
 
@@ -244,8 +239,12 @@ const writeConfigFile = async ({
 	if (module !== 'esm') {
 		config.module = module
 	}
-	if (framework !== 'kit') {
-		config.framework = framework
+
+	// put plugins at the bottom
+	config.plugins = {
+		'houdini-svelte': {
+			client: houdiniClientImport,
+		},
 	}
 
 	// the actual config contents
@@ -346,7 +345,6 @@ const config: UserConfig = {
 };
 
 export default config;
-
 `
 
 	const viteConfigKit = `import { sveltekit } from '@sveltejs/kit/vite';
@@ -405,14 +403,6 @@ export default config;
 	} else {
 		throw new Error('Unknown updateViteConfig()')
 	}
-
-	// write the vite config file
-	await updateFile({
-		projectPath: targetPath,
-		filepath: viteConfigPath,
-		content,
-		old: [oldViteConfig1, oldViteConfig2],
-	})
 
 	if (typescript) {
 		await updateFile({
