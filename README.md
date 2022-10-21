@@ -37,7 +37,6 @@
 -   Normalized cache with declarative updates
 -   Generated types
 -   Subscriptions
--   Support for SvelteKit
 -   Pagination (cursors **and** offsets)
 
 At its core, houdini seeks to enable a high quality developer experience
