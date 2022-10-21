@@ -248,10 +248,10 @@ importers:
             houdini: link:../houdini
             minimatch: 5.1.0
             recast: 0.21.5
-            scripts: link:../_scripts
             svelte: 3.52.0
         devDependencies:
             '@types/minimatch': 5.1.2
+            scripts: link:../_scripts
             vitest: 0.23.4
 
     site:
