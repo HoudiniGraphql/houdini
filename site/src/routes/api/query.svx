@@ -352,7 +352,10 @@ import { loadAll, load_MyQuery, load_MyOtherQuery } from '$houdini'
 
 export async function load(event) {
 	return {
-		...(await loadAll(load_MyQuery({ event }), load_MyOtherQuery({ event })))
+		...(await loadAll(
+			load_MyQuery({ event }), 
+			load_MyOtherQuery({ event })
+		))
 	}
 }
 ```
