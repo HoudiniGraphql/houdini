@@ -2,13 +2,13 @@
 
 ## 0.17.0-next.0
 
-### Minor Changes
+### ⚠️ Breaking Changes
 
--   [#593](https://github.com/HoudiniGraphql/houdini/pull/593) [`c1363fe`](https://github.com/HoudiniGraphql/houdini/commit/c1363fe938ab94281272cad8939b892fd705a803) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Split houdini into two packages: `houdini` and `houdini-svelte`
+-   [#593](https://github.com/HoudiniGraphql/houdini/pull/593) [`c1363fe`](https://github.com/HoudiniGraphql/houdini/commit/c1363fe938ab94281272cad8939b892fd705a803) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Split houdini into two packages: `houdini` and `houdini-svelte`. For more information on migrating your project, please visit the [release notes](https://www.houdinigraphql.com/guides/release-notes).
 
-### Patch Changes
+### 🐛 Fixes
 
--   [#612](https://github.com/HoudiniGraphql/houdini/pull/612) [`6a0999f`](https://github.com/HoudiniGraphql/houdini/commit/6a0999ff0fd175a190e156c54b37c4a70e402dbc) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix windows compatability
+-   [#612](https://github.com/HoudiniGraphql/houdini/pull/612) [`6a0999f`](https://github.com/HoudiniGraphql/houdini/commit/6a0999ff0fd175a190e156c54b37c4a70e402dbc) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix windows compatibility
 
 ## 0.16.8
 
