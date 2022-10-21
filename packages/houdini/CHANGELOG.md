@@ -1,5 +1,11 @@
 # houdini
 
+## 0.17.0-next.2
+
+### Patch Changes
+
+-   [#616](https://github.com/HoudiniGraphql/houdini/pull/616) [`addda88`](https://github.com/HoudiniGraphql/houdini/commit/addda88d164359b185088315f9498be818e7f042) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - build before release
+
 ## 0.17.0-next.1
 
 ## 0.17.0-next.0
