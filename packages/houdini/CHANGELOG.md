@@ -1,26 +1,6 @@
 # houdini
 
-## 0.17.0-next.4
-
-### Patch Changes
-
--   [#620](https://github.com/HoudiniGraphql/houdini/pull/620) [`b742d75`](https://github.com/HoudiniGraphql/houdini/commit/b742d7541bffdacb400c5ee479c6e106e98e408d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - update templates
-
-## 0.17.0-next.3
-
-### Patch Changes
-
--   [#618](https://github.com/HoudiniGraphql/houdini/pull/618) [`b34948d`](https://github.com/HoudiniGraphql/houdini/commit/b34948dcabd6ee5f550fc0cd4aa755ee64fbec24) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix release script
-
-## 0.17.0-next.2
-
-### Patch Changes
-
--   [#616](https://github.com/HoudiniGraphql/houdini/pull/616) [`addda88`](https://github.com/HoudiniGraphql/houdini/commit/addda88d164359b185088315f9498be818e7f042) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - build before release
-
-## 0.17.0-next.1
-
-## 0.17.0-next.0
+## 0.17.0
 
 ### ⚠️ Breaking Changes
 

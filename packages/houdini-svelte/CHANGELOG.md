@@ -1,38 +1,6 @@
 # houdini-svelte
 
-## 0.17.0-next.4
-
-### Patch Changes
-
--   [#620](https://github.com/HoudiniGraphql/houdini/pull/620) [`b742d75`](https://github.com/HoudiniGraphql/houdini/commit/b742d7541bffdacb400c5ee479c6e106e98e408d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - update templates
-
--   Updated dependencies [[`b742d75`](https://github.com/HoudiniGraphql/houdini/commit/b742d7541bffdacb400c5ee479c6e106e98e408d)]:
-    -   houdini@0.17.0-next.4
-
-## 0.17.0-next.3
-
-### Patch Changes
-
--   Updated dependencies [[`b34948d`](https://github.com/HoudiniGraphql/houdini/commit/b34948dcabd6ee5f550fc0cd4aa755ee64fbec24)]:
-    -   houdini@0.17.0-next.3
-
-## 0.17.0-next.2
-
-### Patch Changes
-
--   Updated dependencies [[`addda88`](https://github.com/HoudiniGraphql/houdini/commit/addda88d164359b185088315f9498be818e7f042)]:
-    -   houdini@0.17.0-next.2
-
-## 0.17.0-next.1
-
-### Patch Changes
-
--   [#614](https://github.com/HoudiniGraphql/houdini/pull/614) [`123de70`](https://github.com/HoudiniGraphql/houdini/commit/123de70dd44c38032b75d87254cd30a66602e86a) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Make scripts a dev dep
-
--   Updated dependencies []:
-    -   houdini@0.17.0-next.1
-
-## 0.17.0-next.0
+## 0.17.0
 
 ### ⚠️ Breaking Changes
 
