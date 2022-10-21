@@ -24,7 +24,7 @@ The example below shows every config value that needs to be moved:
 
   /** @type {import('houdini').ConfigFile} */
   const config = {
-		apiUrl: 'http://localhost:4000/graphql'
+    apiUrl: 'http://localhost:4000/graphql'
 
 -   client: './src/client.ts'
 -   static: true,
@@ -35,9 +35,9 @@ The example below shows every config value that needs to be moved:
 +     }
 +   },
 
-	  scalars: {
-			// your existing scalars
-		},
+    scalars: {
+      // your existing scalars
+    },
   };
 
   export default config;
@@ -52,15 +52,15 @@ You'll also have to slightly modify your `hooks.server.js` file:
 + import { setSession } from '$houdini'
 
   export async function handle({ event, resolve }) {
-  	// get the user information however you want
-  	const user = await authenticateUser(event)
+    // get the user information however you want
+    const user = await authenticateUser(event)
 
-  	// set the session information for this event
-- 	houdiniClient.setSession(event, { user })
-+ 	setSession(event, { user })
+    // set the session information for this event
+-   houdiniClient.setSession(event, { user })
++   setSession(event, { user })
 
-  	// pass the event onto the default handle
-  	return await resolve(event)
+    // pass the event onto the default handle
+    return await resolve(event)
   }
 ```
 
