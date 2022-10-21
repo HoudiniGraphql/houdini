@@ -84,6 +84,9 @@ export default async function init(
 			console.log('❌ That URL is not accepting GraphQL queries. Please try again.')
 			return await init(_path, args, false)
 		}
+
+		// make sure we can parse the response as json
+		await response.json()
 	} catch (e) {
 		console.log('❌ Something went wrong: ' + (e as Error).message)
 		return await init(_path, args, false)
