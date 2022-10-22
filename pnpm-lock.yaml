@@ -38,6 +38,22 @@ importers:
             vite: 3.1.6
             vitest: 0.23.4
 
+    e2e/_api:
+        specifiers:
+            '@graphql-yoga/node': ^2.13.13
+            '@kitql/helper': ^0.5.0
+            graphql: ^15.5.0
+            graphql-relay: ^0.10.0
+            graphql-ws: ^5.8.2
+            ws: ^8.8.1
+        dependencies:
+            '@graphql-yoga/node': 2.13.13_graphql@15.8.0
+            '@kitql/helper': 0.5.0
+            graphql: 15.8.0
+            graphql-relay: 0.10.0_graphql@15.8.0
+            graphql-ws: 5.11.2_graphql@15.8.0
+            ws: 8.8.1
+
     e2e/react:
         specifiers:
             '@types/react': ^18.0.17
@@ -59,8 +75,6 @@ importers:
 
     e2e/sveltekit:
         specifiers:
-            '@graphql-yoga/node': ^2.13.13
-            '@kitql/helper': ^0.5.0
             '@playwright/test': 1.25.0
             '@replayio/playwright': 0.2.23
             '@sveltejs/adapter-auto': 1.0.0-next.66
@@ -69,13 +83,10 @@ importers:
             '@typescript-eslint/parser': ^5.10.1
             concurrently: 7.1.0
             cross-env: ^7.0.3
+            e2e-api: workspace:^
             eslint: ^8.12.0
             eslint-config-prettier: ^8.3.0
             eslint-plugin-svelte3: ^4.0.0
-            graphql: ^15.5.0
-            graphql-relay: ^0.10.0
-            graphql-tag: ^2.12.6
-            graphql-ws: ^5.8.2
             houdini: workspace:^
             houdini-svelte: workspace:^
             mdsvex: ^0.10.5
@@ -87,15 +98,8 @@ importers:
             tslib: ^2.3.1
             typescript: ~4.6.2
             vite: ^3.1.0
-            ws: ^8.8.1
         dependencies:
-            '@graphql-yoga/node': 2.13.13_graphql@15.8.0
-            '@kitql/helper': 0.5.0
-            graphql-relay: 0.10.0_graphql@15.8.0
-            graphql-tag: 2.12.6_graphql@15.8.0
-            graphql-ws: 5.8.2_graphql@15.8.0
             mdsvex: 0.10.6_svelte@3.52.0
-            ws: 8.8.1
         devDependencies:
             '@playwright/test': 1.25.0
             '@replayio/playwright': 0.2.23_@playwright+test@1.25.0
@@ -105,10 +109,10 @@ importers:
             '@typescript-eslint/parser': 5.35.1_pyvvhc3zqdua4akflcggygkl44
             concurrently: 7.1.0
             cross-env: 7.0.3
+            e2e-api: link:../_api
             eslint: 8.23.0
             eslint-config-prettier: 8.5.0_eslint@8.23.0
             eslint-plugin-svelte3: 4.0.0_frfkdjwsrgdj4v6yq5by2hqlde
-            graphql: 15.8.0
             houdini: link:../../packages/houdini
             houdini-svelte: link:../../packages/houdini-svelte
             prettier: 2.7.1
@@ -6399,19 +6403,6 @@ packages:
             tslib: 2.4.0
         dev: false
 
-    /graphql-tag/2.12.6_graphql@15.8.0:
-        resolution:
-            {
-                integrity: sha512-FdSNcu2QQcWnM2VNvSCCDCVS5PpPqpzgFT8+GXzqJuoDd0CBncxCY278u4mhRO7tMgo2JjgJA5aZ+nWSQ/Z+xg==,
-            }
-        engines: { node: '>=10' }
-        peerDependencies:
-            graphql: ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
-        dependencies:
-            graphql: 15.8.0
-            tslib: 2.4.0
-        dev: false
-
     /graphql-ws/5.11.2_graphql@15.5.0:
         resolution:
             {
@@ -6424,10 +6415,10 @@ packages:
             graphql: 15.5.0
         dev: false
 
-    /graphql-ws/5.8.2_graphql@15.8.0:
+    /graphql-ws/5.11.2_graphql@15.8.0:
         resolution:
             {
-                integrity: sha512-hYo8kTGzxePFJtMGC7Y4cbypwifMphIJJ7n4TDcVUAfviRwQBnmZAbfZlC+XFwWDUaR7raEDQPxWctpccmE0JQ==,
+                integrity: sha512-4EiZ3/UXYcjm+xFGP544/yW1+DVI8ZpKASFbzrV5EDTFWJp0ZvLl4Dy2fSZAzz9imKp5pZMIcjB0x/H69Pv/6w==,
             }
         engines: { node: '>=10' }
         peerDependencies:
@@ -6449,6 +6440,7 @@ packages:
                 integrity: sha512-5gghUc24tP9HRznNpV2+FIoq3xKkj5dTQqf4v0CpdPbFVwFkWoxOM+o+2OC9ZSvjEMTjfmG9QT+gcvggTwW1zw==,
             }
         engines: { node: '>= 10.x' }
+        dev: false
 
     /graphql/16.6.0:
         resolution:

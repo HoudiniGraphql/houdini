@@ -9,9 +9,9 @@ bin
 .pnp.*
 __tests__
 
-example/.svelte-kit
-example/functions
-example/$houdini
+.svelte-kit
+functions
+$houdini
 
 /playground.js
 
