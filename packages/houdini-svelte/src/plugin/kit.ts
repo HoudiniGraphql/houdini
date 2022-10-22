@@ -76,6 +76,16 @@ export function is_layout_component(config: Config, filename: string) {
 	)
 }
 
+export function is_layout_something(config: Config, filename: string) {
+	return (
+		is_layout_script('kit', filename) ||
+		is_root_layout(config, filename) ||
+		is_root_layout_server(config, filename) ||
+		is_root_layout_script(config, filename) ||
+		is_layout_component(config, filename)
+	)
+}
+
 export function is_component(config: Config, framework: Framework, filename: string) {
 	return (
 		framework === 'svelte' ||

@@ -11,6 +11,7 @@ import { parseSvelte } from '../../extract'
 import { extract_load_function } from '../../extractLoadFunction'
 import {
 	HoudiniRouteScript,
+	is_layout_something,
 	is_route,
 	is_route_script,
 	layout_query_path,
@@ -63,21 +64,30 @@ export default async function kit_load_generator(page: SvelteTransformPage) {
 		find_page_info(page),
 	])
 
-	const queries = inline_queries.concat(layout_query ?? []).concat(page_query ?? [])
+	const houdini_load_queries = []
 	for (const [i, target] of (page_info.houdini_load ?? []).entries()) {
-		queries.push({
+		houdini_load_queries.push({
 			name: target.name!.value,
 			variables: operation_requires_variables(target),
 			store_id: AST.memberExpression(AST.identifier('houdini_load'), AST.literal(i)),
 		})
 	}
 
-	// if we are processing a route config file (+page.ts)
+	// add the load functions
 	if (script) {
-		// add the load function to the query file
+		const queries_that_needs_a_load = [...houdini_load_queries, ...inline_queries]
+		// Add special queries files to the list only if we are in the good context
+		const isLayout = is_layout_something(page.config, page.filepath)
+		if (isLayout && layout_query) {
+			queries_that_needs_a_load.push(layout_query)
+		}
+		if (!isLayout && page_query) {
+			queries_that_needs_a_load.push(page_query)
+		}
+
 		add_load({
 			page,
-			queries,
+			queries: queries_that_needs_a_load,
 			page_info,
 		})
 	}
