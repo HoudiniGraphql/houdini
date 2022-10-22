@@ -12,13 +12,15 @@ import {
 // this plugin is responsible for faking `+page.js` existence in the eyes of sveltekit
 export default (getFramwork: () => Framework) =>
 	({
-		async resolveId(filepath, _, { config, ssr, isEntry }) {
+		async resolveId(filepath, _, { config, isEntry }) {
+			// without this check, the block underneath breaks relative imports from root layout
 			if (!isEntry) {
+				// make sure there is no
 				const match = filepath.match('^((../)+)src/routes')
 				if (match) {
 					return path.join(config.projectRoot, filepath.substring(match[1].length))
 				}
-
+				// if there is no deep relative import, do the default thing
 				return
 			}
 
