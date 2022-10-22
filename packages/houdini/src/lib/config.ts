@@ -724,8 +724,11 @@ async function loadSchemaFile(schemaPath: string): Promise<graphql.GraphQLSchema
 	}
 
 	// the path has no glob magic, make sure its a real file
-	if (!fs.stat(schemaPath)) {
-		throw new Error(`Schema file does not exist! Create it using houdini generate -p`)
+	try {
+		await fs.stat(schemaPath)
+		console.log('exists?')
+	} catch {
+		throw new Error(`Schema file does not exist! Create it using houdini pull-schema`)
 	}
 
 	const contents = (await fs.readFile(schemaPath))!
@@ -770,15 +773,10 @@ export async function getConfig({
 	})
 
 	// look up the current config file
-	const configFile = await readConfigFile(configPath)
-
-	// if there is a framework specified, tell them they need to change things
-	if (!configFile.plugins) {
-		throw new HoudiniError({
-			message:
-				'Welcome to 0.17.0! Please following the migration guide here: http://www.houdinigraphql.com/guides/release-notes#0170',
-		})
-	}
+	let configFile: ConfigFile = {}
+	try {
+		configFile = await readConfigFile(configPath)
+	} catch {}
 
 	try {
 		_config = new Config({
