@@ -3,6 +3,7 @@
   import { graphql } from '$houdini';
   import cache from '$houdini/runtime/cache';
   import { routes } from '$lib/utils/routes.js';
+  import Test from './Test.svelte';
 
   if (browser) {
     // @ts-ignore
@@ -22,7 +23,7 @@
 
 <slot />
 
-<hr />
+<Test />
 
 <nav>
   {#each routesKvp as { key, value }}
