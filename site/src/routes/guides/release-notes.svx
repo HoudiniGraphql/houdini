@@ -16,8 +16,10 @@ package you've been using:
 npm i --save-dev houdini-svelte
 ```
 
-And finally, update your `houdini.config.js` to include the plugin and move your svelte-specific config.
-The example below shows every config value that needs to be moved:
+And finally, update your `houdini.config.js` to include the plugin and move your svelte-specific config. 
+This includes: `client`, `projectDir`, `pageQueryFilename`, `layoutQueryFilename`, `globalStorePrefix`, `quietQueryErrors`, and `static`. You can look at descriptions [here](/api/config#svelte-plugin).
+
+The example below shows an example of what needs to be moved:
 
 ```diff
 + /// <references types="houdini-svelte">
@@ -27,11 +29,9 @@ The example below shows every config value that needs to be moved:
     apiUrl: 'http://localhost:4000/graphql'
 
 -   client: './src/client.ts'
--   static: true,
 +   plugins: {
 +     'houdini-svelte': {
 +       client: './src/client.ts',
-+       static: true,
 +     }
 +   },
 
@@ -42,8 +42,6 @@ The example below shows every config value that needs to be moved:
 
   export default config;
 ```
-
-For the complete list of config structure, you can check [here](/api/config)
 
 You'll also have to slightly modify your `hooks.server.js` file:
 
