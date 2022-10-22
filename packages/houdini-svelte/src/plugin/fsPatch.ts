@@ -12,12 +12,28 @@ import {
 // this plugin is responsible for faking `+page.js` existence in the eyes of sveltekit
 export default (getFramwork: () => Framework) =>
 	({
-		// kit generates relative import for our generated files. we need to fix that so that
-		// vites importer can find the file.
-		resolveId(filepath, _, { config }) {
-			const match = filepath.match('^((../)+)src/routes')
-			if (match) {
-				return path.join(config.projectRoot, filepath.substring(match[1].length))
+		async resolveId(filepath, _, { config, ssr, isEntry }) {
+			if (!isEntry) {
+				const match = filepath.match('^((../)+)src/routes')
+				if (match) {
+					return path.join(config.projectRoot, filepath.substring(match[1].length))
+				}
+
+				return
+			}
+
+			// everything internal to houdini should assume posix paths
+			filepath = path.posixify(filepath.toString())
+
+			// if we are resolving any of the files we need to generate
+			if (
+				is_route_script(getFramwork(), filepath) ||
+				is_root_layout(config, filepath) ||
+				is_root_layout_server(config, filepath)
+			) {
+				return {
+					id: resolve_relative(config, filepath),
+				}
 			}
 		},
 
