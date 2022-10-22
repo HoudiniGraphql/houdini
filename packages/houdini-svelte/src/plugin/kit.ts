@@ -76,9 +76,9 @@ export function is_layout_component(config: Config, filename: string) {
 	)
 }
 
-export function is_layout_something(config: Config, filename: string) {
+export function is_layout_something(framework: Framework, config: Config, filename: string) {
 	return (
-		is_layout_script('kit', filename) ||
+		is_layout_script(framework, filename) ||
 		is_root_layout(config, filename) ||
 		is_root_layout_server(config, filename) ||
 		is_root_layout_script(config, filename) ||

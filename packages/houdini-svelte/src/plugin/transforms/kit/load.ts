@@ -77,7 +77,7 @@ export default async function kit_load_generator(page: SvelteTransformPage) {
 	if (script) {
 		const queries_that_needs_a_load = [...houdini_load_queries, ...inline_queries]
 		// Add special queries files to the list only if we are in the good context
-		const isLayout = is_layout_something(page.config, page.filepath)
+		const isLayout = is_layout_something(page.framework, page.config, page.filepath)
 		if (isLayout && layout_query) {
 			queries_that_needs_a_load.push(layout_query)
 		}
