@@ -233,7 +233,6 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 					}
 				}
 			} catch (err) {
-				console.log(err)
 				throw new HoudiniError({ ...(err as HoudiniError), filepath })
 			}
 		})

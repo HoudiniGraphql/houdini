@@ -1,6 +1,6 @@
 import { Command } from 'commander'
 
-import { LogLevel } from '../lib'
+import { LogLevel, HoudiniError } from '../lib'
 import { generate } from './generate'
 import init from './init'
 import pullSchema from './pullSchema'
@@ -50,3 +50,11 @@ program
 
 // start the command
 program.parse()
+
+// silence unhandled houdini errors
+process.on('unhandledRejection', (error: HoudiniError) => {
+	if ('description' in error) {
+	} else {
+		console.log(error)
+	}
+})

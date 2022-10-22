@@ -727,7 +727,9 @@ async function loadSchemaFile(schemaPath: string): Promise<graphql.GraphQLSchema
 	try {
 		await fs.stat(schemaPath)
 	} catch {
-		throw new Error(`Schema file does not exist! Create it using houdini pull-schema`)
+		throw new HoudiniError({
+			message: `Schema file does not exist! Create it using houdini pull-schema`,
+		})
 	}
 
 	const contents = (await fs.readFile(schemaPath))!
