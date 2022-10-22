@@ -1,7 +1,7 @@
 import { getConfig, pullSchema, path } from '../lib'
 
 export default async function (args: { headers: string[] }) {
-	const config = await getConfig()
+	const config = await getConfig({ noSchema: true })
 
 	// Check if apiUrl is set in config
 	if (!config.apiUrl) {
