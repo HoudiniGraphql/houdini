@@ -30,11 +30,12 @@ function magicParams(
   searchParams: URLSearchParams,
   inputs_params: input[] = []
 ) {
-  let inputs: Record<string, any> = {};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const inputs: Record<string, any> = {};
 
   inputs_params.forEach((param) => {
     // Prio params, then searchParams if nothing in params
-    let raw = params[param.name] ?? searchParams.get(param.name);
+    const raw = params[param.name] ?? searchParams.get(param.name);
     if (!param.nullable && raw === undefined) {
       throw new Error(
         `${param} is required if you want autimatic query inferd from url. 
