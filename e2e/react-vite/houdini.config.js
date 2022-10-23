@@ -1,3 +1,3 @@
 export default {
-	schemaPath: '../api/*.graphql',
+	schemaPath: '../_api/*.graphql',
 }
