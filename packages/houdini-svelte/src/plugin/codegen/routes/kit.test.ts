@@ -40,7 +40,7 @@ test('generates types for inline queries', async function () {
 		import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction } from "../../../../plugins/houdini-svelte/runtime/types";
 		import type { PageLoadEvent, PageData as KitPageData } from "./$types";
 		import { MyInlineQuery$result, MyInlineQuery$input } from "../../../../artifacts/MyInlineQuery";
-		import { MyInlineQueryStore } from "../../../../stores/MyInlineQuery";
+		import { MyInlineQueryStore } from "../../../../plugins/houdini-svelte/stores/MyInlineQuery";
 		type PageParams = PageLoadEvent["params"];
 
 		export type PageData = {
@@ -81,7 +81,7 @@ query MyPageQuery {
 		import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction } from "../../../../plugins/houdini-svelte/runtime/types";
 		import type { PageLoadEvent, PageData as KitPageData } from "./$types";
 		import { MyPageQuery$result, MyPageQuery$input } from "../../../../artifacts/MyPageQuery";
-		import { MyPageQueryStore } from "../../../../stores/MyPageQuery";
+		import { MyPageQueryStore } from "../../../../plugins/houdini-svelte/stores/MyPageQuery";
 		type PageParams = PageLoadEvent["params"];
 
 		export type PageData = {
@@ -122,7 +122,7 @@ query MyLayoutQuery {
 		import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction } from "../../../../plugins/houdini-svelte/runtime/types";
 		import type { LayoutLoadEvent, LayoutData as KitPageData } from "./$types";
 		import { MyLayoutQuery$result, MyLayoutQuery$input } from "../../../../artifacts/MyLayoutQuery";
-		import { MyLayoutQueryStore } from "../../../../stores/MyLayoutQuery";
+		import { MyLayoutQueryStore } from "../../../../plugins/houdini-svelte/stores/MyLayoutQuery";
 		type LayoutParams = LayoutLoadEvent["params"];
 
 		export type LayoutData = {
@@ -178,9 +178,9 @@ test('generates types for after load', async function () {
 		import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction } from "../../../../plugins/houdini-svelte/runtime/types";
 		import type { PageLoadEvent, PageData as KitPageData } from "./$types";
 		import { MyPageLoad1Query$result, MyPageLoad1Query$input } from "../../../../artifacts/MyPageLoad1Query";
-		import { MyPageLoad1QueryStore } from "../../../../stores/MyPageLoad1Query";
+		import { MyPageLoad1QueryStore } from "../../../../plugins/houdini-svelte/stores/MyPageLoad1Query";
 		import { MyPageLoad2Query$result, MyPageLoad2Query$input } from "../../../../artifacts/MyPageLoad2Query";
-		import { MyPageLoad2QueryStore } from "../../../../stores/MyPageLoad2Query";
+		import { MyPageLoad2QueryStore } from "../../../../plugins/houdini-svelte/stores/MyPageLoad2Query";
 		type PageParams = PageLoadEvent["params"];
 		export type MyPageLoad1QueryVariables = VariableFunction<PageParams, MyPageLoad1Query$input>;
 		type AfterLoadReturn = ReturnType<typeof import("./+page").afterLoad>;
@@ -254,9 +254,9 @@ test('generates types for onError', async function () {
 		import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction } from "../../../../plugins/houdini-svelte/runtime/types";
 		import type { PageLoadEvent, PageData as KitPageData } from "./$types";
 		import { MyPageLoad1Query$result, MyPageLoad1Query$input } from "../../../../artifacts/MyPageLoad1Query";
-		import { MyPageLoad1QueryStore } from "../../../../stores/MyPageLoad1Query";
+		import { MyPageLoad1QueryStore } from "../../../../plugins/houdini-svelte/stores/MyPageLoad1Query";
 		import { MyPageLoad2Query$result, MyPageLoad2Query$input } from "../../../../artifacts/MyPageLoad2Query";
-		import { MyPageLoad2QueryStore } from "../../../../stores/MyPageLoad2Query";
+		import { MyPageLoad2QueryStore } from "../../../../plugins/houdini-svelte/stores/MyPageLoad2Query";
 		type PageParams = PageLoadEvent["params"];
 		export type MyPageLoad1QueryVariables = VariableFunction<PageParams, MyPageLoad1Query$input>;
 
