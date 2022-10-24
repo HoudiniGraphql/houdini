@@ -291,8 +291,13 @@ async function tjsConfig(targetPath: string, framework: 'kit' | 'svelte') {
 
 	// check if the tsconfig.json file exists
 	try {
-		const tjsConfigFile = await fs.readFile(configFile)
+		let tjsConfigFile = await fs.readFile(configFile)
 		if (tjsConfigFile) {
+			// remove all comments to be able to parse the file, and add stuff to it.
+			tjsConfigFile = tjsConfigFile.replace(
+				/\\"|"(?:\\"|[^"])*"|(\/\/.*|\/\*[\s\S]*?\*\/)/g,
+				(m, g) => (g ? '' : m)
+			)
 			var tjsConfig = JSON.parse(tjsConfigFile)
 		}
 
