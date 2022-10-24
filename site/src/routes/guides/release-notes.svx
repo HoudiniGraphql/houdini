@@ -183,7 +183,7 @@ In order to make this work, you have to change your tsconfig file to look like t
 ```json
 {
 	"compilerOptions": {
-		"rootDirs": [".", "./.svelte-kit/types", "./.$houdini/types"]
+		"rootDirs": [".", "./.svelte-kit/types", "./$houdini/types"]
 	}
 }
 ```

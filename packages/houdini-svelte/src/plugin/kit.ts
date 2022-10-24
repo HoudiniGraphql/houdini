@@ -69,11 +69,12 @@ export function is_root_layout_script(config: Config, filename: string) {
 	)
 }
 
-export function is_layout_component(config: Config, filename: string) {
-	return (
-		resolve_relative(config, filename).replace(config.projectRoot, '').replace('.ts', '.js') ===
-		path.sep + path.join('src', 'routes', '+layout.svelte')
-	)
+export function is_layout_component(framework: Framework, filename: string) {
+	return framework === 'kit' && filename.endsWith('+layout.svelte')
+}
+
+export function is_layout(framework: Framework, filename: string) {
+	return is_layout_script(framework, filename) || is_layout_component(framework, filename)
 }
 
 export function is_component(config: Config, framework: Framework, filename: string) {
@@ -203,7 +204,7 @@ export async function walk_routes(
 		}
 
 		// inline layout queries
-		else if (is_layout_component(config, child)) {
+		else if (is_layout_component(framework, child)) {
 			// load the contents and parse it
 			const contents = await fs.readFile(childPath)
 			if (!contents) {
