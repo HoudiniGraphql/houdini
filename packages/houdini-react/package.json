@@ -1,0 +1,28 @@
+{
+    "name": "houdini-react",
+    "version": "0.17.3",
+    "description": "The disappearing GraphQL clients",
+    "type": "module",
+    "scripts": {
+        "compile": "scripts build",
+        "typedefs": "scripts typedefs"
+    },
+    "devDependencies": {
+        "next": "^13.0.0",
+        "scripts": "workspace:^"
+    },
+    "exports": {
+        "./package.json": "./package.json",
+        "./next": {
+            "import": "./build/next-esm/index.js",
+            "require": "./build/next-cjs/index.js"
+        }
+    },
+    "typesVersions": {
+        "*": {
+            "next": [
+                "build/next/index.d.ts"
+            ]
+        }
+    }
+}
