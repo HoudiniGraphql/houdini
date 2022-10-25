@@ -194,7 +194,7 @@ async function fetchQuery({
 	variables = {},
 	metadata
 }${typescript ? ': RequestHandlerArgs' : ''}) {
-	const url = import.meta.env.VITE_GRAPHQL_ENDPOINT || '${url}';
+	const url = '${url}';
 	const result = await fetch(url, {
 		method: 'POST',
 		headers: {
