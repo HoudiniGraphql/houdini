@@ -26,18 +26,12 @@ export async function generate(
 		extraConfig.logLevel = args.log
 	}
 
-	// load config
-	config = await getConfig(extraConfig)
-	if (args.output) {
-		config.persistedQueryPath = args.output
-	}
-	// backwards compat
-	if (args.persistOutput) {
-		console.log('⚠️ --persist-output has been replaced by --output (abbreviated -o)')
-		config.persistedQueryPath = args.persistOutput
-	}
-
 	try {
+		// load config
+		config = await getConfig(extraConfig)
+		if (args.output) {
+			config.persistedQueryPath = args.output
+		}
 		// Pull the newest schema if the flag is set
 		if (args.pullSchema && config.apiUrl) {
 			// backwards compat
@@ -51,10 +45,7 @@ export async function generate(
 
 		await codegen(config)
 	} catch (e) {
-		// we need an array of errors to loop through
-		const errors = (Array.isArray(e) ? e : [e]) as Error[]
-
-		formatErrors(errors, function (error) {
+		formatErrors(e, function (error) {
 			if (args.verbose && 'stack' in error && error.stack) {
 				console.error(error.stack.split('\n').slice(1).join('\n'))
 			}
