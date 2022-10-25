@@ -1,5 +1,6 @@
 import { OperationDefinitionNode } from 'graphql'
-import { Config, fs, GenerateHookInput, path } from 'houdini'
+import { Config, fs, GenerateHookInput } from 'houdini'
+import path from 'path'
 
 import { extract_load_function } from '../../extractLoadFunction'
 import {
@@ -55,11 +56,10 @@ export default async function svelteKitGenerator(
 			//match all values after src so we can access the project/src directory
 			const root_path_reg = /src(.*)/;
 
-
 			// get the project root dir so we can search it for files
-			const root_path = path.dirname(h_path).match(root_path_reg)?.[0] ?? ''; 
+			const src_path = path.dirname(h_path).match(root_path_reg)?.[0] ?? ''; 
 
-			const path_in_project = path.join(config.projectRoot, root_path);
+			const path_in_project = path.join(config.projectRoot, src_path);
 
 
 
@@ -120,7 +120,10 @@ export default async function svelteKitGenerator(
 			const target = path.join(type_route_dir(config), relativePath, config.typeRootFile)
 
 			// we can't import from $houdini so we need to compute the relative path from the import
-			const houdiniRelative = path.relative(target, config.typeRootDir)
+			const houdiniRelative = path
+				.relative(target, config.typeRootDir)
+				// Windows management
+				.replaceAll('\\', '/')
 
 			// the unique set of query names
 			const queryNames: string[] = []
