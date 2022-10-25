@@ -2,7 +2,7 @@ import { getIntrospectionQuery } from 'graphql'
 import fetch from 'node-fetch'
 import prompts from 'prompts'
 
-import { fs, path, pullSchema } from '../lib'
+import { fs, parseJSON, path, pullSchema } from '../lib'
 import { ConfigFile } from '../runtime/lib/config'
 
 // the init command is responsible for scaffolding a few files
@@ -194,7 +194,7 @@ async function fetchQuery({
 	variables = {},
 	metadata
 }${typescript ? ': RequestHandlerArgs' : ''}) {
-	const url = import.meta.env.VITE_GRAPHQL_ENDPOINT || '${url}';
+	const url = '${url}';
 	const result = await fetch(url, {
 		method: 'POST',
 		headers: {
@@ -291,9 +291,9 @@ async function tjsConfig(targetPath: string, framework: 'kit' | 'svelte') {
 
 	// check if the tsconfig.json file exists
 	try {
-		const tjsConfigFile = await fs.readFile(configFile)
+		let tjsConfigFile = await fs.readFile(configFile)
 		if (tjsConfigFile) {
-			var tjsConfig = JSON.parse(tjsConfigFile)
+			var tjsConfig = parseJSON(tjsConfigFile)
 		}
 
 		// new rootDirs (will overwrite the one in "extends": "./.svelte-kit/tsconfig.json")
