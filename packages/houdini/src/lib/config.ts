@@ -775,10 +775,7 @@ export async function getConfig({
 	})
 
 	// look up the current config file
-	let configFile: ConfigFile = {}
-	try {
-		configFile = await readConfigFile(configPath)
-	} catch {}
+	let configFile = await readConfigFile(configPath)
 
 	// if there is a framework specified, tell them they need to change things
 	if (!configFile.plugins) {
