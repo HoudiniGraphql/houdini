@@ -2,7 +2,7 @@ import { getIntrospectionQuery } from 'graphql'
 import fetch from 'node-fetch'
 import prompts from 'prompts'
 
-import { fs, path, pullSchema } from '../lib'
+import { fs, parseJSON, path, pullSchema } from '../lib'
 import { ConfigFile } from '../runtime/lib/config'
 
 // the init command is responsible for scaffolding a few files
@@ -293,12 +293,7 @@ async function tjsConfig(targetPath: string, framework: 'kit' | 'svelte') {
 	try {
 		let tjsConfigFile = await fs.readFile(configFile)
 		if (tjsConfigFile) {
-			// remove all comments to be able to parse the file, and add stuff to it.
-			tjsConfigFile = tjsConfigFile.replace(
-				/\\"|"(?:\\"|[^"])*"|(\/\/.*|\/\*[\s\S]*?\*\/)/g,
-				(m, g) => (g ? '' : m)
-			)
-			var tjsConfig = JSON.parse(tjsConfigFile)
+			var tjsConfig = parseJSON(tjsConfigFile)
 		}
 
 		// new rootDirs (will overwrite the one in "extends": "./.svelte-kit/tsconfig.json")
