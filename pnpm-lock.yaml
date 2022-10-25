@@ -56,6 +56,7 @@ importers:
 
     e2e/sveltekit:
         specifiers:
+            '@kitql/helper': ^0.5.0
             '@playwright/test': 1.25.0
             '@replayio/playwright': 0.2.23
             '@sveltejs/adapter-auto': 1.0.0-next.66
@@ -79,6 +80,7 @@ importers:
             typescript: ~4.6.2
             vite: ^3.1.0
         devDependencies:
+            '@kitql/helper': 0.5.0
             '@playwright/test': 1.25.0
             '@replayio/playwright': 0.2.23_@playwright+test@1.25.0
             '@sveltejs/adapter-auto': 1.0.0-next.66
@@ -1858,7 +1860,6 @@ packages:
             {
                 integrity: sha512-qTDsv8qmbvSyZLb75hE9N4AnmZHtCi8JxgHYAj4dbgViEjs6HVYJKqHabGR7rZCAVQj7LwWu+cTfh52QhlNMcg==,
             }
-        dev: false
 
     /@kitql/vite-plugin-watch-and-run/0.4.2:
         resolution:
