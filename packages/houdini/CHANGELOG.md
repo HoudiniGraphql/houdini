@@ -1,5 +1,11 @@
 # houdini
 
+## 0.17.4
+
+### Patch Changes
+
+-   [#649](https://github.com/HoudiniGraphql/houdini/pull/649) [`13e6ea8`](https://github.com/HoudiniGraphql/houdini/commit/13e6ea87c23d1a3f99ce1a0c1054ebcec30ce83f) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Update init cmd to accomodate new kit template
+
 ## 0.17.3
 
 ## 0.17.2
