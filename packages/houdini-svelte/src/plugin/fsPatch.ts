@@ -237,8 +237,9 @@ function is_root_route(filepath: PathLike): boolean {
 
 	return (
 		filepath.endsWith(path.join('src', 'routes')) &&
-		// ignore the src/routes that exists in the
-		!filepath.includes(path.join('.svelte-kit', 'types'))
+		// ignore the src/routes that exists in the type roots
+		!filepath.includes('.svelte-kit') &&
+		!filepath.includes('$houdini')
 	)
 }
 
