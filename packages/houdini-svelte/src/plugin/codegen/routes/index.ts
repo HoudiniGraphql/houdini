@@ -9,6 +9,7 @@ import {
 	stores_directory_name,
 	store_suffix,
 	Framework,
+	RouteVisitor,
 } from '../../kit'
 
 export default async function svelteKitGenerator(
@@ -21,7 +22,7 @@ export default async function svelteKitGenerator(
 		return
 	}
 
-	console.log(config)
+	// console.log(config)
 
 	async function walk_types(dirpath: string, visitor: any) {
 		for (const child of await fs.readdir(dirpath)) {
@@ -31,13 +32,16 @@ export default async function svelteKitGenerator(
 				await walk_types(childPath, visitor)
 			}
 
-			await visitor.route(childPath)
+			await visitor.route(childPath, )
+
+			// console.log('child', child)
+			// console.log('childpath', childPath)
 		}
 	}
 
 	//assumes that .sveltekit will be at project root. This is true unless
-	const skt_path = path.normalize(config.projectRoot + '/.svelte-kit/types')
-	const new_path = path.normalize(config.rootDir + '/types/testing/')
+	const skt_path = path.join(config.projectRoot, '.svelte-kit/types')
+	const new_path = path.join(config.typeRootDir, 'testing')
 	await fs.copySync(skt_path, new_path)
 
 	await walk_types(new_path, {
@@ -46,23 +50,38 @@ export default async function svelteKitGenerator(
 			if (!route_path.endsWith('$types.d.ts')) {
 				return
 			}
-			
+
 			//get renamed path, this is the path that we will use for the rest of the loop
-			const h_path = route_path.replace(/\$types.d.ts/, '$houdini.d.ts');
-			
-			// rename file 
-			fs.rename(route_path, h_path);
+			const h_path = route_path.replace(/\$types.d.ts/, '$houdini.d.ts')
+
+			// rename file
+			fs.rename(route_path, h_path)
 
 			//match all values after src so we can access the project/src directory
-			const root_path_reg = /src(.*)/;
+			const root_path_reg = /src(.*)/
 
 			// get the project root dir so we can search it for files
-			const src_path = path.dirname(h_path).match(root_path_reg)?.[0] ?? ''; 
+			const src_path = path.dirname(h_path).match(root_path_reg)?.[0] ?? ''
 
-			const path_in_project = path.join(config.projectRoot, src_path);
+			const path_in_project = path.join(config.projectRoot, src_path)
 
+			// has_page_script
+			//  if has page script, extract_load_function
+			// has_layout_script
+			//  if has layout script, extract_load_function
+			// has_layout_svelte
+			// 	if has layout, read and extract
+			// has_page_svelte
+			//  if has page, read and extract
 
-
+			//TODO:
+			// - Search for Page scripts (js or ts)
+			//  - Generate types for page scripts
+			// - Search for Layout scripts
+			//  - ''
+			// - Search for Inline Page Queries
+			// 	- ''
+			// - Generate Final types.
 		},
 	})
 
@@ -185,16 +204,14 @@ function getTypeDefs(
 
 	return `import type * as Kit from '@sveltejs/kit';
 import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction }  from '${houdiniRelative}/plugins/houdini-svelte/runtime/types'
-${
-	pageQueries.length > 0
-		? `import type { PageLoadEvent, PageData as KitPageData } from './$types'`
-		: ``
-}
-${
-	layoutQueries.length > 0
-		? `import type { LayoutLoadEvent, LayoutData as KitPageData } from './$types'`
-		: ``
-}
+${pageQueries.length > 0
+			? `import type { PageLoadEvent, PageData as KitPageData } from './$types'`
+			: ``
+		}
+${layoutQueries.length > 0
+			? `import type { LayoutLoadEvent, LayoutData as KitPageData } from './$types'`
+			: ``
+		}
 
 ${append_Store(houdiniRelative, config, uniqueQueries)}
 ${append_Store(houdiniRelative, config, uniqueLayoutQueries)}
@@ -213,13 +230,13 @@ ${append_beforeLoad(beforeLayoutLoad)}
 ${append_onError(onLayoutError)}
 
 ${append_TypeData(
-	config,
-	layoutQueries,
-	'Layout',
-	beforeLayoutLoad,
-	afterLayoutLoad,
-	onLayoutError
-)}
+			config,
+			layoutQueries,
+			'Layout',
+			beforeLayoutLoad,
+			afterLayoutLoad,
+			onLayoutError
+		)}
 ${append_TypeData(config, pageQueries, 'Page', beforePageLoad, afterPageLoad, onPageError)}
 `
 }
@@ -229,9 +246,8 @@ function append_Store(houdiniRelative: string, config: Config, queries: Operatio
 		.map((query) => {
 			const name = query.name!.value
 
-			return `import { ${name}$result, ${name}$input } from '${houdiniRelative}/${
-				config.artifactDirectoryName
-			}/${name}'
+			return `import { ${name}$result, ${name}$input } from '${houdiniRelative}/${config.artifactDirectoryName
+				}/${name}'
 	import { ${name}Store } from '${houdiniRelative}/plugins/houdini-svelte/${stores_directory_name()}/${name}'`
 		})
 		.join('\n')
@@ -350,7 +366,6 @@ function append_TypeData(
 }
 
 function internal_append_TypeDataExtra(beforeLoad: boolean, afterLoad: boolean, onError: boolean) {
-	return `${beforeLoad ? '& BeforeLoadReturn ' : ''} ${afterLoad ? '& AfterLoadReturn ' : ''}  ${
-		onError ? '& OnErrorReturn ' : ''
-	}`
+	return `${beforeLoad ? '& BeforeLoadReturn ' : ''} ${afterLoad ? '& AfterLoadReturn ' : ''}  ${onError ? '& OnErrorReturn ' : ''
+		}`
 }
