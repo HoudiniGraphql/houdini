@@ -1,4 +1,3 @@
-import type { PlaywrightTestConfig } from '@playwright/test';
 import { devices as replayDevices } from '@replayio/playwright';
 
 // manual switch for now until replayio is fixed (currently breaking our tests)

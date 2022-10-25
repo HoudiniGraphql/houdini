@@ -298,9 +298,9 @@ async function tjsConfig(targetPath: string, framework: 'kit' | 'svelte') {
 
 		// new rootDirs (will overwrite the one in "extends": "./.svelte-kit/tsconfig.json")
 		if (framework === 'kit') {
-			tjsConfig.compilerOptions.rootDirs = ['.', './.svelte-kit/types', './.$houdini/types']
+			tjsConfig.compilerOptions.rootDirs = ['.', './.svelte-kit/types', './$houdini/types']
 		} else {
-			tjsConfig.compilerOptions.rootDirs = ['.', './.$houdini/types']
+			tjsConfig.compilerOptions.rootDirs = ['.', './$houdini/types']
 		}
 
 		// In kit, no need to add manually the path. Why? Because:

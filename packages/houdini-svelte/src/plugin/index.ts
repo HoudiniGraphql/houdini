@@ -38,6 +38,34 @@ const HoudiniSveltePlugin: PluginFactory = async () => ({
 
 			return content.replace('HOUDINI_CLIENT_PATH', relativePath)
 		},
+
+		'adapter.js': ({ content }) => {
+			// dedicated sveltekit adapter.
+			const sveltekit_adapter = `import { goto as go } from '$app/navigation'
+import { get } from 'svelte/store';
+import { browser, prerendering } from '$app/environment'
+import { page } from '$app/stores'
+import { error as svelteKitError } from '@sveltejs/kit'
+
+export function goTo(location, options) {
+		go(location, options)
+}
+
+export const isBrowser = browser
+
+export let clientStarted = false;
+
+export function setClientStarted() {
+	clientStarted = true
+}
+
+export const isPrerender = prerendering
+
+export const error = svelteKitError
+`
+
+			return framework === 'kit' ? sveltekit_adapter : content
+		},
 	},
 
 	// custom logic to pull a graphql document out of a svelte file

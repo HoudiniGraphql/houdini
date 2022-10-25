@@ -61,7 +61,7 @@ export default async function ({ plugin }) {
 		// cmd needs to be bundled and set as the project's bin
 		else if (dirname === 'cmd') {
 			package_json.bin = './build/cmd-esm/index.js'
-			await build({ package_json, source: dir, plugin })
+			await build({ package_json, source: dir, plugin, cmd: true })
 		}
 
 		// its not a special directory, treat it as a sub module
@@ -82,7 +82,7 @@ export default async function ({ plugin }) {
 }
 
 // create esm and cjs builds of the source
-async function build({ package_json, source, bundle = true, plugin }) {
+async function build({ package_json, source, bundle = true, plugin, cmd }) {
 	// if we aren't bundling, look up the entrypoints once
 	const children = bundle
 		? []
@@ -96,12 +96,12 @@ async function build({ package_json, source, bundle = true, plugin }) {
 			// where we will put everything
 			const target_dir = path.join(build_dir, `${path.basename(source)}-${which}`)
 
-			let header = ''
+			let header = cmd ? '#!/usr/bin/env node\n' : ''
 			if (bundle) {
 				if (plugin) {
-					header = `const require = conflict_free(import.meta.url);`
+					header += `const require = conflict_free(import.meta.url);`
 				} else {
-					header = `import { createRequire as conflict_free } from 'module'; const require = conflict_free(import.meta.url);`
+					header += `import { createRequire as conflict_free } from 'module'; const require = conflict_free(import.meta.url);`
 				}
 			}
 

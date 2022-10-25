@@ -15,7 +15,7 @@ In order to setup your project to take full advantage of Houdini's generated typ
 ```json
 {
 	"compilerOptions": {
-		"rootDirs": [".", "./.svelte-kit/types", "./.$houdini/types"]
+		"rootDirs": [".", "./.svelte-kit/types", "./$houdini/types"]
 	}
 }
 ```
