@@ -1,5 +1,14 @@
 # houdini-svelte
 
+## 0.17.3
+
+### Patch Changes
+
+-   [#643](https://github.com/HoudiniGraphql/houdini/pull/643) [`35b189f`](https://github.com/HoudiniGraphql/houdini/commit/35b189f8cc494ce4f80d54c00736e9dd8d3c69e7) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix error preventing session in certain node versions
+
+-   Updated dependencies []:
+    -   houdini@0.17.3
+
 ## 0.17.2
 
 ### Patch Changes
