@@ -45,6 +45,10 @@ export async function generate(
 
 		await codegen(config)
 	} catch (e) {
-		formatErrors(e, function (error) {})
+		formatErrors(e, function (error) {
+			if (args.verbose && 'stack' in error && error.stack) {
+				console.error(error.stack.split('\n').slice(1).join('\n'))
+			}
+		})
 	}
 }
