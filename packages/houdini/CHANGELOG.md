@@ -1,5 +1,15 @@
 # houdini
 
+## 0.17.3
+
+## 0.17.2
+
+## 0.17.1
+
+### Patch Changes
+
+-   [#630](https://github.com/HoudiniGraphql/houdini/pull/630) [`02d8fc4`](https://github.com/HoudiniGraphql/houdini/commit/02d8fc47f71980bd2b6492162b8e57808447bdbc) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add shebang to executable
+
 ## 0.17.0
 
 ### ⚠️ Breaking Changes

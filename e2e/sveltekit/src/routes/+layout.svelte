@@ -4,6 +4,10 @@
   import cache from '$houdini/runtime/cache';
   import { routes } from '$lib/utils/routes.js';
 
+  // leave this in to make sure we don't break relative imports from
+  // the root layout. see: https://github.com/HoudiniGraphql/houdini/issues/629
+  import Test from './Test.svelte';
+
   if (browser) {
     // @ts-ignore
     window.cache = cache;
@@ -22,7 +26,7 @@
 
 <slot />
 
-<hr />
+<Test />
 
 <nav>
   {#each routesKvp as { key, value }}

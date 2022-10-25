@@ -12,7 +12,18 @@ import {
 // this plugin is responsible for faking `+page.js` existence in the eyes of sveltekit
 export default (getFramwork: () => Framework) =>
 	({
-		resolveId(filepath, _, { config }) {
+		async resolveId(filepath, _, { config, isEntry }) {
+			// without this check, the block underneath breaks relative imports from root layout
+			if (!isEntry) {
+				// make sure there is no
+				const match = filepath.match('^((../)+)src/routes')
+				if (match) {
+					return path.join(config.projectRoot, filepath.substring(match[1].length))
+				}
+				// if there is no deep relative import, do the default thing
+				return
+			}
+
 			// everything internal to houdini should assume posix paths
 			filepath = path.posixify(filepath.toString())
 
@@ -23,11 +34,9 @@ export default (getFramwork: () => Framework) =>
 				is_root_layout_server(config, filepath)
 			) {
 				return {
-					id: filepath,
+					id: resolve_relative(config, filepath),
 				}
 			}
-
-			return null
 		},
 
 		load: async (filepath, { config }) => {
@@ -57,9 +66,6 @@ export default (getFramwork: () => Framework) =>
 						empty_layout,
 				}
 			}
-
-			// do the normal thing
-			return null
 		},
 	} as Plugin['vite'])
 
@@ -222,10 +228,18 @@ function virtual_file(name: string, options: Parameters<typeof filesystem.readdi
 }
 
 function is_root_route(filepath: PathLike): boolean {
+	filepath = filepath.toString()
+
+	// if the filepath ends with / we need to strip that away
+	if (filepath.toString().endsWith('/')) {
+		filepath = filepath.slice(0, -1)
+	}
+
 	return (
-		filepath.toString().endsWith(path.join('src', 'routes')) &&
-		// ignore the src/routes that exists in the
-		!filepath.toString().includes(path.join('.svelte-kit', 'types'))
+		filepath.endsWith(path.join('src', 'routes')) &&
+		// ignore the src/routes that exists in the type roots
+		!filepath.includes('.svelte-kit') &&
+		!filepath.includes('$houdini')
 	)
 }
 

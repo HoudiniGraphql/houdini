@@ -229,7 +229,7 @@ function append_Store(houdiniRelative: string, config: Config, queries: Operatio
 			return `import { ${name}$result, ${name}$input } from '${houdiniRelative}/${
 				config.artifactDirectoryName
 			}/${name}'
-	import { ${name}Store } from '${houdiniRelative}/${stores_directory_name()}/${name}'`
+	import { ${name}Store } from '${houdiniRelative}/plugins/houdini-svelte/${stores_directory_name()}/${name}'`
 		})
 		.join('\n')
 }
