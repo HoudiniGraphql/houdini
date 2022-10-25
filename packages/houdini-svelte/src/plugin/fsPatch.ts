@@ -228,10 +228,18 @@ function virtual_file(name: string, options: Parameters<typeof filesystem.readdi
 }
 
 function is_root_route(filepath: PathLike): boolean {
+	filepath = filepath.toString()
+
+	// if the filepath ends with / we need to strip that away
+	if (filepath.toString().endsWith('/')) {
+		filepath = filepath.slice(0, -1)
+	}
+
 	return (
-		filepath.toString().endsWith(path.join('src', 'routes')) &&
-		// ignore the src/routes that exists in the
-		!filepath.toString().includes(path.join('.svelte-kit', 'types'))
+		filepath.endsWith(path.join('src', 'routes')) &&
+		// ignore the src/routes that exists in the type roots
+		!filepath.includes('.svelte-kit') &&
+		!filepath.includes('$houdini')
 	)
 }
 
