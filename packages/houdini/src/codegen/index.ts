@@ -200,8 +200,8 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 	await Promise.all(
 		sourceFiles.map(async (filepath) => {
 			// read the file
-			const contents = await fs.readFile(filepath)
-			if (!contents) {
+			const content = await fs.readFile(filepath)
+			if (!content) {
 				return
 			}
 
@@ -227,13 +227,17 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 						continue
 					}
 
-					const found = await extractor(filepath, contents)
+					const found = await extractor(filepath, content)
 					if (found.length > 0) {
 						documents.push(...found.map((document) => ({ filepath, document })))
 					}
 				}
-			} catch (err) {
-				throw new HoudiniError({ ...(err as HoudiniError), filepath })
+			} catch (e) {
+				const err = e as Error
+				throw new HoudiniError({
+					message: err.message,
+					filepath,
+				})
 			}
 		})
 	)
@@ -254,14 +258,14 @@ export type DiscoveredDoc = {
 	document: string
 }
 
-async function processJSFile(config: Config, contents: string): Promise<string[]> {
+async function processJSFile(config: Config, content: string): Promise<string[]> {
 	const documents: string[] = []
 
-	// parse the contents as js
+	// parse the content as js
 	try {
-		var program = (await parseJS(contents))!.script
+		var program = (await parseJS(content))!.script
 	} catch (e) {
-		console.log(contents)
+		console.log(content)
 		throw e
 	}
 

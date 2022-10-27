@@ -2,7 +2,15 @@ import { graphql } from '$houdini'
 import React, { use } from 'react'
 
 export default function Home() {
-	console.log('hello?')
+	const [data] = use(
+		graphql(`
+			query MyData {
+				user(id: "1", snapshot: "hello-react") {
+					name
+				}
+			}
+		`)
+	)
 
-	return <div>hello!</div>
+	return <div>{data.user.name}</div>
 }

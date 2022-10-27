@@ -32,6 +32,7 @@
         }
     },
     "dependencies": {
+        "@babel/parser": "^7.19.3",
         "estraverse": "^5.3.0",
         "estree-walker": "^3.0.1",
         "recast": "^0.21.5"

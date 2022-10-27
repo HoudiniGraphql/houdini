@@ -270,6 +270,7 @@ importers:
 
     packages/houdini-react:
         specifiers:
+            '@babel/parser': ^7.19.3
             '@types/estraverse': ^5.1.2
             estraverse: ^5.3.0
             estree-walker: ^3.0.1
@@ -278,6 +279,7 @@ importers:
             recast: ^0.21.5
             scripts: workspace:^
         dependencies:
+            '@babel/parser': 7.19.6
             estraverse: 5.3.0
             estree-walker: 3.0.1
             recast: 0.21.5
