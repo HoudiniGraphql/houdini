@@ -9,9 +9,15 @@
     },
     "devDependencies": {
         "@types/estraverse": "^5.1.2",
-        "houdini": "workspace:^",
         "next": "^13.0.0",
         "scripts": "workspace:^"
+    },
+    "dependencies": {
+        "houdini": "workspace:^",
+        "@babel/parser": "^7.19.3",
+        "estraverse": "^5.3.0",
+        "estree-walker": "^3.0.1",
+        "recast": "^0.21.5"
     },
     "exports": {
         "./package.json": "./package.json",
@@ -30,12 +36,6 @@
                 "build/next/index.d.ts"
             ]
         }
-    },
-    "dependencies": {
-        "@babel/parser": "^7.19.3",
-        "estraverse": "^5.3.0",
-        "estree-walker": "^3.0.1",
-        "recast": "^0.21.5"
     },
     "main": "./build/plugin-cjs/index.js",
     "types": "./build/plugin/index.d.ts"

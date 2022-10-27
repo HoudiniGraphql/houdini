@@ -59,6 +59,10 @@
         "./vite": {
             "import": "./build/vite-esm/index.js",
             "require": "./build/vite-cjs/index.js"
+        },
+        "./webpack": {
+            "import": "./build/webpack-esm/index.js",
+            "require": "./build/webpack-cjs/index.js"
         }
     },
     "typesVersions": {
@@ -71,6 +75,9 @@
             ],
             "vite": [
                 "build/vite/index.d.ts"
+            ],
+            "webpack": [
+                "build/webpack/index.d.ts"
             ]
         }
     },

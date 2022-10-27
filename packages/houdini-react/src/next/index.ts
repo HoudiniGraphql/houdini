@@ -10,7 +10,7 @@ export function withHoudini(nextConfig?: NextConfig): NextConfig {
 				use: [
 					options.defaultLoaders.babel,
 					{
-						loader: path.resolve(__dirname, 'loader.js'),
+						loader: 'houdini/webpack',
 					},
 				],
 			})
