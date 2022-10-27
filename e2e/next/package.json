@@ -6,9 +6,11 @@
 		"dev": "next dev",
 		"build": "next build",
 		"start": "next start",
-		"lint": "next lint"
+		"lint": "next lint",
+		"api": "cross-env e2e-api"
 	},
 	"dependencies": {
+		"cross-env": "^7.0.3",
 		"eslint-config-next": "^13.0.0",
 		"next": "^13.0.0",
 		"react": "^18.2.0",
@@ -17,6 +19,8 @@
 	"devDependencies": {
 		"eslint": "^8.12.0",
 		"eslint-config-next": "13.0.0",
-		"houdini-react": "workspace:^"
+		"houdini": "workspace:^",
+		"houdini-react": "workspace:^",
+		"e2e-api": "workspace:^"
 	}
 }

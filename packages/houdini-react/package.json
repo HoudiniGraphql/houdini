@@ -8,6 +8,8 @@
         "typedefs": "scripts typedefs"
     },
     "devDependencies": {
+        "@types/estraverse": "^5.1.2",
+        "houdini": "workspace:^",
         "next": "^13.0.0",
         "scripts": "workspace:^"
     },
@@ -24,5 +26,10 @@
                 "build/next/index.d.ts"
             ]
         }
+    },
+    "dependencies": {
+        "estraverse": "^5.3.0",
+        "estree-walker": "^3.0.1",
+        "recast": "^0.21.5"
     }
 }

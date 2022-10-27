@@ -66,7 +66,8 @@ export default async function ({ plugin }) {
 
 		// its not a special directory, treat it as a sub module
 		else {
-			await build({ package_json, source: dir, plugin })
+			// don't bundle a webpack loader but _do_ add it to the exports
+			await build({ package_json, source: dir, plugin, bundle: dirname !== 'next' })
 			package_json.exports['./' + dirname] = {
 				import: `./build/${dirname}-esm/index.js`,
 				require: `./build/${dirname}-cjs/index.js`,

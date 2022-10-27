@@ -29,7 +29,6 @@ export default function (page: SvelteTransformPage) {
 function process_root_layout_server(page: SvelteTransformPage) {
 	const build_session_object = ensure_imports({
 		script: page.script,
-		config: page.config,
 		import: ['buildSessionObject'],
 		sourceModule: '$houdini/plugins/houdini-svelte/runtime/session',
 	}).ids[0]

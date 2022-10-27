@@ -50,14 +50,12 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 	)
 
 	ensure_imports({
-		config: page.config,
 		script: page.script,
 		import: ['marshalInputs'],
 		sourceModule: '$houdini/runtime/lib/scalars',
 	})
 
 	ensure_imports({
-		config: page.config,
 		script: page.script,
 		import: ['RequestContext'],
 		sourceModule: '$houdini/plugins/houdini-svelte/runtime/session',
@@ -65,7 +63,6 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 
 	// import the browser check
 	ensure_imports({
-		config: page.config,
 		script: page.script,
 		import: ['isBrowser'],
 		sourceModule: '$houdini/plugins/houdini-svelte/runtime/adapter',
@@ -75,7 +72,6 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 	for (const query of queries) {
 		const factory = ensure_imports({
 			script: page.script,
-			config: page.config,
 			import: [`${query.name}Store`],
 			sourceModule: store_import_path({ config, name: query.name }),
 		}).ids[0]

@@ -1,7 +1,8 @@
+import { graphql } from '$houdini'
 import React, { use } from 'react'
 
 export default function Home() {
-	const foo = use(
+	const [data] = use(
 		graphql(`
 			query MyQuery {
 				viewer {
@@ -11,5 +12,5 @@ export default function Home() {
 		`)
 	)
 
-	return <div>{foo.name}</div>
+	return <div>{data.name}</div>
 }

@@ -167,13 +167,11 @@ function add_load({
 	// make sure we have RequestContext imported
 	ensure_imports({
 		script: page.script,
-		config: page.config,
 		import: ['RequestContext'],
 		sourceModule: '$houdini/plugins/houdini-svelte/runtime/session',
 	})
 	ensure_imports({
 		script: page.script,
-		config: page.config,
 		import: ['getCurrentConfig'],
 		sourceModule: '$houdini/runtime/lib/config',
 	})

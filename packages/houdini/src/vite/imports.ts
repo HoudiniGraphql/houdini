@@ -10,7 +10,6 @@ type Identifier = recast.types.namedTypes.Identifier
 type ImportDeclaration = recast.types.namedTypes.ImportDeclaration
 
 export function ensure_imports(args: {
-	config: Config
 	script: Script
 	import?: string
 	as?: never
@@ -18,7 +17,6 @@ export function ensure_imports(args: {
 	importKind?: 'value' | 'type'
 }): { ids: Identifier; added: number }
 export function ensure_imports(args: {
-	config: Config
 	script: Script
 	import?: string[]
 	as?: string[]
@@ -26,14 +24,12 @@ export function ensure_imports(args: {
 	importKind?: 'value' | 'type'
 }): { ids: Identifier[]; added: number }
 export function ensure_imports({
-	config,
 	script,
 	import: importID,
 	sourceModule,
 	importKind,
 	as,
 }: {
-	config: Config
 	script: Script
 	import?: string[] | string
 	as?: string[]
@@ -120,7 +116,6 @@ export function artifact_import({
 	local?: string
 }) {
 	const { ids, added } = ensure_imports({
-		config,
 		script,
 		sourceModule: config.artifactImportPath(artifact.name),
 		import: local || `_${artifact.name}Artifact`,
