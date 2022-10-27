@@ -3,7 +3,10 @@ import * as recast from 'recast'
 import { getConfig } from '../lib'
 import { TransformPage } from '../vite'
 
-export default async function houdiniLoader(content: string): Promise<string> {
+export default async function houdiniLoader(
+	this: { resourcePath: string },
+	content: string
+): Promise<string> {
 	// if there is no $houdini import, ignore it
 	if (!content.includes('$houdini')) {
 		return content
@@ -17,7 +20,7 @@ export default async function houdiniLoader(content: string): Promise<string> {
 		content,
 		watch_file: () => {},
 		config: config,
-		filepath: '',
+		filepath: this.resourcePath,
 	}
 
 	// run the plugin pipeline
