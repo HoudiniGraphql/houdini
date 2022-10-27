@@ -43,7 +43,6 @@ export default async function kit_init(page: SvelteTransformPage) {
 	// we need to track updates in the page store as the client-side session
 	const store_id = ensure_imports({
 		script: page.script,
-		config: page.config,
 		sourceModule: '$app/stores',
 		import: ['page'],
 	}).ids[0]

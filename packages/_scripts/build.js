@@ -118,6 +118,11 @@ async function build({ package_json, source, bundle = true, plugin, cmd }) {
 				plugins: [
 					replace({
 						PACKAGE_VERSION: package_json.version,
+						// if we are building for esm then use import.meta instead of dirname
+						'global.__dirname':
+							which === 'cjs'
+								? 'global.__dirname'
+								: 'path.dirname(fileURLToPath(import.meta.url))',
 					}),
 				],
 			}

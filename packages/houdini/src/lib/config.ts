@@ -19,8 +19,8 @@ import { pullSchema } from './introspection'
 import * as path from './path'
 import { CollectedGraphQLDocument } from './types'
 
-// @ts-ignore
-const currentDir = global.__dirname || path.dirname(fileURLToPath(import.meta.url))
+// this will be removed when we build for real
+const currentDir = global.__dirname
 
 // a place to hold conventions and magic strings
 export class Config {
@@ -850,6 +850,7 @@ This will prevent your schema from being pulled.`
 				directory: pluginDirectory,
 			})
 		} catch (e) {
+			console.log(e)
 			throw new Error(
 				`Could not find plugin: ${pluginName}. Are you sure its installed? If so, please open a ticket on GitHub.`
 			)

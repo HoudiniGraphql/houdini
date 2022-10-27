@@ -246,7 +246,6 @@ function add_load({
 	for (const query of queries) {
 		const { ids } = ensure_imports({
 			script: page.script,
-			config: page.config,
 			import: [`load_${query.name}`],
 			sourceModule: store_import_path({ config: page.config, name: query.name }),
 		})

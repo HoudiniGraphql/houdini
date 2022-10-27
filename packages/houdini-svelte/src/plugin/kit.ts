@@ -371,7 +371,6 @@ export function store_import({
 	local?: string
 }): { id: Identifier; added: number } {
 	const { ids, added } = ensure_imports({
-		config: page.config,
 		script: page.script,
 		sourceModule: store_import_path({ config: page.config, name: artifact.name }),
 		import: `GQL_${artifact.name}`,

@@ -1,5 +1,5 @@
+import { ensure_imports } from 'houdini/vite'
 import * as recast from 'recast'
-import { ensure_imports } from 'src/vite'
 
 const AST = recast.types.builders
 
@@ -12,8 +12,9 @@ export default async function houdiniLoader(source: string): Promise<string> {
 	}
 
 	// we know the file is something we care about. parse the string
-	const parsed = recast.parse(source)
+	const parsed = recast.parse(source).program
 
+	console.log(source)
 	// print the result and move on
 	return recast.print(processQueries(parsed)).code
 }
@@ -35,7 +36,6 @@ function processQueries(source: Program): Program {
 				return this.traverse(node)
 			}
 
-			// replace it with a string
 			node.replace(
 				AST.objectExpression([
 					AST.objectProperty(AST.identifier('name'), AST.stringLiteral('value')),
