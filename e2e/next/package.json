@@ -7,7 +7,7 @@
 		"build": "next build",
 		"start": "next start",
 		"lint": "next lint",
-		"api": "cross-env e2e-api"
+		"api": "e2e-api"
 	},
 	"dependencies": {
 		"cross-env": "^7.0.3",

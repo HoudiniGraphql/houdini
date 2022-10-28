@@ -1,5 +1,4 @@
 import type { NextConfig } from 'next'
-import path from 'path'
 
 export function withHoudini(nextConfig?: NextConfig): NextConfig {
 	return {

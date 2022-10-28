@@ -1,1 +1,1 @@
-export * from './network'
+export function hello() {}
