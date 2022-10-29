@@ -14,7 +14,7 @@ importers:
             graphql: '*'
             jest-snapshot: ^29.1.2
             memfs: ^3.4.7
-            prettier: ^2.5.1
+            prettier: ^2.7.0
             recast: ^0.21.5
             turbo: ^1.5.4
             vite: ^3.1.6
