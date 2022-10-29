@@ -43,6 +43,7 @@ export class HoudiniClient {
 		if (files.size) {
 			let headers: Record<string, string> = {}
 
+			// filters `content-type: application/json` if received by client.ts
 			if (req?.headers) {
 				const filtered = Object.entries(req?.headers).filter(([key, value]) => {
 					return !(
