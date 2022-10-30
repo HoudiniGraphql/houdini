@@ -775,10 +775,15 @@ export async function getConfig({
 	})
 
 	// look up the current config file
-	let configFile: ConfigFile = {}
-	try {
-		configFile = await readConfigFile(configPath)
-	} catch {}
+	let configFile = await readConfigFile(configPath)
+
+	// if there is a framework specified, tell them they need to change things
+	if (!configFile.plugins) {
+		throw new HoudiniError({
+			message:
+				'Welcome to 0.17.0! Please following the migration guide here: http://www.houdinigraphql.com/guides/release-notes#0170',
+		})
+	}
 
 	try {
 		_config = new Config({

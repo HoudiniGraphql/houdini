@@ -11,7 +11,7 @@ async function fetchQuery({
   session
 }: RequestHandlerArgs) {
   // Prepare the request
-  const url = import.meta.env.VITE_GRAPHQL_ENDPOINT || 'http://localhost:4000/graphql';
+  const url = 'http://localhost:4000/graphql';
 
   // regular fetch (Server & Client)
   const result = await fetch(url, {

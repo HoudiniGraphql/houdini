@@ -1,12 +1,14 @@
 # houdini
 
-## 0.17.3
+## 0.17.4
 
-## 0.17.2
+### 🐛 Fixes
+
+-   [#649](https://github.com/HoudiniGraphql/houdini/pull/649) [`13e6ea8`](https://github.com/HoudiniGraphql/houdini/commit/13e6ea87c23d1a3f99ce1a0c1054ebcec30ce83f) Thanks [@jycouet](https://github.com/jycouet)! - Update init cmd to accomodate new kit template
 
 ## 0.17.1
 
-### Patch Changes
+### 🐛 Fixes
 
 -   [#630](https://github.com/HoudiniGraphql/houdini/pull/630) [`02d8fc4`](https://github.com/HoudiniGraphql/houdini/commit/02d8fc47f71980bd2b6492162b8e57808447bdbc) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add shebang to executable
 

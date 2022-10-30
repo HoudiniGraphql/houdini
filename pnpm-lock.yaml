@@ -83,27 +83,9 @@ importers:
             houdini-react: link:../../packages/houdini-react
             typescript: 4.8.4
 
-    e2e/react-vite:
-        specifiers:
-            '@types/react': ^18.0.17
-            '@types/react-dom': ^18.0.6
-            '@vitejs/plugin-react': ^2.1.0
-            houdini: workspace:^
-            react: ^18.2.0
-            react-dom: ^18.2.0
-            vite: ^3.1.0
-        dependencies:
-            react: 18.2.0
-            react-dom: 18.2.0_react@18.2.0
-        devDependencies:
-            '@types/react': 18.0.21
-            '@types/react-dom': 18.0.6
-            '@vitejs/plugin-react': 2.1.0_vite@3.1.6
-            houdini: link:../../packages/houdini
-            vite: 3.1.6
-
     e2e/sveltekit:
         specifiers:
+            '@kitql/helper': ^0.5.0
             '@playwright/test': 1.25.0
             '@replayio/playwright': 0.2.23
             '@sveltejs/adapter-auto': 1.0.0-next.66
@@ -127,6 +109,7 @@ importers:
             typescript: ~4.6.2
             vite: ^3.1.0
         devDependencies:
+            '@kitql/helper': 0.5.0
             '@playwright/test': 1.25.0
             '@replayio/playwright': 0.2.23_@playwright+test@1.25.0
             '@sveltejs/adapter-auto': 1.0.0-next.66
@@ -491,6 +474,7 @@ packages:
             semver: 6.3.0
         transitivePeerDependencies:
             - supports-color
+        dev: false
 
     /@babel/generator/7.17.7:
         resolution:
@@ -527,16 +511,6 @@ packages:
             '@jridgewell/gen-mapping': 0.3.2
             jsesc: 2.5.2
 
-    /@babel/helper-annotate-as-pure/7.18.6:
-        resolution:
-            {
-                integrity: sha512-duORpUiYrEpzKIop6iNbjnwKLAKnJ47csTyRACyEmWj0QdUrm5aqNJGHSSEQSUAvNW0ojX0dOmK9dZduvkfeXA==,
-            }
-        engines: { node: '>=6.9.0' }
-        dependencies:
-            '@babel/types': 7.19.4
-        dev: true
-
     /@babel/helper-compilation-targets/7.19.3_@babel+core@7.17.8:
         resolution:
             {
@@ -566,6 +540,7 @@ packages:
             '@babel/helper-validator-option': 7.18.6
             browserslist: 4.21.3
             semver: 6.3.0
+        dev: false
 
     /@babel/helper-environment-visitor/7.18.9:
         resolution:
@@ -831,19 +806,6 @@ packages:
             '@babel/helper-plugin-utils': 7.19.0
         dev: false
 
-    /@babel/plugin-syntax-jsx/7.18.6_@babel+core@7.19.6:
-        resolution:
-            {
-                integrity: sha512-6mmljtAedFGTWu2p/8WIORGwy+61PLgOMPOdazc7YoJ9ZCWUyFy3A6CpPkRKLKD1ToAesxX8KGEViAiLo9N+7Q==,
-            }
-        engines: { node: '>=6.9.0' }
-        peerDependencies:
-            '@babel/core': ^7.0.0-0
-        dependencies:
-            '@babel/core': 7.19.6
-            '@babel/helper-plugin-utils': 7.19.0
-        dev: true
-
     /@babel/plugin-syntax-logical-assignment-operators/7.10.4_@babel+core@7.17.8:
         resolution:
             {
@@ -968,62 +930,6 @@ packages:
             '@babel/helper-plugin-utils': 7.19.0
         dev: true
         optional: true
-
-    /@babel/plugin-transform-react-jsx-development/7.18.6_@babel+core@7.19.6:
-        resolution:
-            {
-                integrity: sha512-SA6HEjwYFKF7WDjWcMcMGUimmw/nhNRDWxr+KaLSCrkD/LMDBvWRmHAYgE1HDeF8KUuI8OAu+RT6EOtKxSW2qA==,
-            }
-        engines: { node: '>=6.9.0' }
-        peerDependencies:
-            '@babel/core': ^7.0.0-0
-        dependencies:
-            '@babel/core': 7.19.6
-            '@babel/plugin-transform-react-jsx': 7.19.0_@babel+core@7.19.6
-        dev: true
-
-    /@babel/plugin-transform-react-jsx-self/7.18.6_@babel+core@7.19.6:
-        resolution:
-            {
-                integrity: sha512-A0LQGx4+4Jv7u/tWzoJF7alZwnBDQd6cGLh9P+Ttk4dpiL+J5p7NSNv/9tlEFFJDq3kjxOavWmbm6t0Gk+A3Ig==,
-            }
-        engines: { node: '>=6.9.0' }
-        peerDependencies:
-            '@babel/core': ^7.0.0-0
-        dependencies:
-            '@babel/core': 7.19.6
-            '@babel/helper-plugin-utils': 7.19.0
-        dev: true
-
-    /@babel/plugin-transform-react-jsx-source/7.19.6_@babel+core@7.19.6:
-        resolution:
-            {
-                integrity: sha512-RpAi004QyMNisst/pvSanoRdJ4q+jMCWyk9zdw/CyLB9j8RXEahodR6l2GyttDRyEVWZtbN+TpLiHJ3t34LbsQ==,
-            }
-        engines: { node: '>=6.9.0' }
-        peerDependencies:
-            '@babel/core': ^7.0.0-0
-        dependencies:
-            '@babel/core': 7.19.6
-            '@babel/helper-plugin-utils': 7.19.0
-        dev: true
-
-    /@babel/plugin-transform-react-jsx/7.19.0_@babel+core@7.19.6:
-        resolution:
-            {
-                integrity: sha512-UVEvX3tXie3Szm3emi1+G63jyw1w5IcMY0FSKM+CRnKRI5Mr1YbCNgsSTwoTwKphQEG9P+QqmuRFneJPZuHNhg==,
-            }
-        engines: { node: '>=6.9.0' }
-        peerDependencies:
-            '@babel/core': ^7.0.0-0
-        dependencies:
-            '@babel/core': 7.19.6
-            '@babel/helper-annotate-as-pure': 7.18.6
-            '@babel/helper-module-imports': 7.18.6
-            '@babel/helper-plugin-utils': 7.19.0
-            '@babel/plugin-syntax-jsx': 7.18.6_@babel+core@7.19.6
-            '@babel/types': 7.19.4
-        dev: true
 
     /@babel/runtime-corejs3/7.19.1:
         resolution:
@@ -1998,7 +1904,6 @@ packages:
             {
                 integrity: sha512-qTDsv8qmbvSyZLb75hE9N4AnmZHtCi8JxgHYAj4dbgViEjs6HVYJKqHabGR7rZCAVQj7LwWu+cTfh52QhlNMcg==,
             }
-        dev: false
 
     /@kitql/vite-plugin-watch-and-run/0.4.2:
         resolution:
@@ -2992,15 +2897,6 @@ packages:
                 integrity: sha512-SnHmG9wN1UVmagJOnyo/qkk0Z7gejYxOYYmaAwr5u2yFYfsupN3sg10kyzN8Hep/2zbHxCnsumxOoRIRMBwKCg==,
             }
 
-    /@types/react-dom/18.0.6:
-        resolution:
-            {
-                integrity: sha512-/5OFZgfIPSwy+YuIBP/FgJnQnsxhZhjjrnxudMddeblOouIodEQ75X14Rr4wGSG/bknL+Omy9iWlLo1u/9GzAA==,
-            }
-        dependencies:
-            '@types/react': 18.0.21
-        dev: true
-
     /@types/react/18.0.21:
         resolution:
             {
@@ -3499,27 +3395,6 @@ packages:
         transitivePeerDependencies:
             - encoding
             - supports-color
-
-    /@vitejs/plugin-react/2.1.0_vite@3.1.6:
-        resolution:
-            {
-                integrity: sha512-am6rPyyU3LzUYne3Gd9oj9c4Rzbq5hQnuGXSMT6Gujq45Il/+bunwq3lrB7wghLkiF45ygMwft37vgJ/NE8IAA==,
-            }
-        engines: { node: ^14.18.0 || >=16.0.0 }
-        peerDependencies:
-            vite: ^3.0.0
-        dependencies:
-            '@babel/core': 7.19.6
-            '@babel/plugin-transform-react-jsx': 7.19.0_@babel+core@7.19.6
-            '@babel/plugin-transform-react-jsx-development': 7.18.6_@babel+core@7.19.6
-            '@babel/plugin-transform-react-jsx-self': 7.18.6_@babel+core@7.19.6
-            '@babel/plugin-transform-react-jsx-source': 7.19.6_@babel+core@7.19.6
-            magic-string: 0.26.3
-            react-refresh: 0.14.0
-            vite: 3.1.6
-        transitivePeerDependencies:
-            - supports-color
-        dev: true
 
     /@whatwg-node/fetch/0.3.2:
         resolution:
@@ -8852,14 +8727,6 @@ packages:
                 integrity: sha512-xWGDIW6x921xtzPkhiULtthJHoJvBbF3q26fzloPCK0hsvxtPVelvftw3zjbHWSkR2km9Z+4uxbDDK/6Zw9B8w==,
             }
         dev: false
-
-    /react-refresh/0.14.0:
-        resolution:
-            {
-                integrity: sha512-wViHqhAd8OHeLS/IRMJjTSDHF3U9eWi62F/MledQGPdJGDhodXJ9PBLNGr6WWL7qlH12Mt3TyTpbS+hGXMjCzQ==,
-            }
-        engines: { node: '>=0.10.0' }
-        dev: true
 
     /react/18.2.0:
         resolution:
