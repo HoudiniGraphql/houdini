@@ -1,0 +1,58 @@
+"""Date custom scalar type"""
+scalar DateTime
+
+type Mutation {
+  addUser(birthDate: DateTime!, delay: Int, enumValue: MyEnum, name: String!, snapshot: String!, types: [TypeOfUser!]): User!
+  updateUser(birthDate: DateTime, delay: Int, id: ID!, name: String, snapshot: String!): User!
+}
+
+enum MyEnum {
+  Value1
+  Value2
+}
+
+interface Node {
+  id: ID!
+}
+
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  avgYearsBirthDate: Float!
+  hello: String!
+  node(id: ID!): Node
+  session: String
+  user(delay: Int, forceNullDate: Boolean, id: ID!, snapshot: String!, tmp: Boolean): User!
+  usersConnection(after: String, before: String, first: Int, last: Int, snapshot: String!): UserConnection!
+  usersList(limit: Int = 4, offset: Int, snapshot: String!): [User!]!
+}
+
+enum TypeOfUser {
+  COOL
+  NICE
+}
+
+type User implements Node {
+  birthDate: DateTime
+  enumValue: MyEnum
+  friendsConnection(after: String, before: String, first: Int, last: Int): UserConnection!
+  friendsList(limit: Int, offset: Int): [User!]!
+  id: ID!
+  name: String!
+  types: [TypeOfUser!]!
+}
+
+type UserConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+}
+
+type UserEdge {
+  cursor: String
+  node: User
+}
