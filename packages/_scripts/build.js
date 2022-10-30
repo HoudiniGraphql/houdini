@@ -66,8 +66,7 @@ export default async function ({ plugin }) {
 
 		// its not a special directory, treat it as a sub module
 		else {
-			// don't bundle a webpack loader but _do_ add it to the exports
-			await build({ package_json, source: dir, plugin, bundle: dirname !== 'next' })
+			await build({ package_json, source: dir, plugin })
 			package_json.exports['./' + dirname] = {
 				import: `./build/${dirname}-esm/index.js`,
 				require: `./build/${dirname}-cjs/index.js`,
@@ -98,12 +97,12 @@ async function build({ package_json, source, bundle = true, plugin, cmd }) {
 			const target_dir = path.join(build_dir, `${path.basename(source)}-${which}`)
 
 			let header = cmd ? '#!/usr/bin/env node\n' : ''
-			if (bundle && which === 'esm') {
+			if (bundle) {
 				if (plugin) {
 					header += `const require = conflict_free(import.meta.url);`
+				} else {
+					header += `import { createRequire as conflict_free } from 'module'; const require = conflict_free(import.meta.url);`
 				}
-
-				header += `import { createRequire as conflict_free } from 'module'; const require = conflict_free(import.meta.url);`
 			}
 
 			// the esbuild config
@@ -118,11 +117,6 @@ async function build({ package_json, source, bundle = true, plugin, cmd }) {
 				plugins: [
 					replace({
 						PACKAGE_VERSION: package_json.version,
-						// if we are building for esm then use import.meta instead of dirname
-						'global.__dirname':
-							which === 'cjs'
-								? 'global.__dirname'
-								: 'path.dirname(fileURLToPath(import.meta.url))',
 					}),
 				],
 			}

@@ -1,5 +1,3 @@
-import * as recast from 'recast'
-
 import { getConfig } from '../lib'
 import { TransformPage } from '../vite'
 

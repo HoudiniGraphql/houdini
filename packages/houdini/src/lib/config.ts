@@ -8,7 +8,7 @@ import type {
 	PluginContext,
 	ResolveIdResult,
 } from 'rollup'
-import { fileURLToPath, pathToFileURL } from 'url'
+import { pathToFileURL } from 'url'
 
 import { ConfigFile, CachePolicy } from '../runtime/lib'
 import { computeID, defaultConfigValues, keyFieldsForType } from '../runtime/lib/config'
