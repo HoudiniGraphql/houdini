@@ -20,8 +20,8 @@
   },
   "devDependencies": {
     "@kitql/helper": "^0.5.0",
-    "@playwright/test": "1.25.0",
-    "@replayio/playwright": "0.2.23",
+    "@playwright/test": "1.27.1",
+    "@replayio/playwright": "0.3.0",
     "@sveltejs/adapter-auto": "1.0.0-next.66",
     "@sveltejs/kit": "1.0.0-next.510",
     "@typescript-eslint/eslint-plugin": "^5.10.1",

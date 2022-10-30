@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
 	import { graphql, type SimpleStore } from '$houdini';
 
 	export function SimpleVariables() {
@@ -13,8 +12,6 @@
 			}
 		}
 	`;
-
-	// $: browser && store.fetch({ variables: { id: '1' } });
 </script>
 
 <h2>Simple</h2>
