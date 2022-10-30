@@ -1,5 +1,5 @@
 import { parse } from '@babel/parser'
-import recast from 'recast'
+import * as recast from 'recast'
 
 export function extract_documents(filepath: string, content: string) {
 	// the documents  we've found
@@ -15,7 +15,7 @@ export function extract_documents(filepath: string, content: string) {
 		visitCallExpression(node) {
 			const { value } = node
 			// we only care about invocations of the graphql function
-			if (value.callee.type === 'Identifier' && value.callee.name !== 'graphql') {
+			if (value.callee.type === 'Identifier' && value.callee.name !== 'query') {
 				return this.traverse(node)
 			}
 

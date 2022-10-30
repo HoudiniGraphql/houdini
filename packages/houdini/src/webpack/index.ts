@@ -26,6 +26,7 @@ export default async function houdiniLoader(
 	// run the plugin pipeline
 	for (const plugin of config.plugins) {
 		if (!plugin.transform_file) {
+			console.log('skipping!', plugin.name)
 			continue
 		}
 		const { code } = await plugin.transform_file(ctx)

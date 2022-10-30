@@ -1,5 +1,5 @@
 import type { QueryArtifact } from 'houdini'
 
-export function useQuery(query: QueryArtifact, variables?: any) {
-	return [{ result: 'foo' }]
+export async function query(artifact: QueryArtifact, variables?: any) {
+	return [{ result: artifact.name }]
 }

@@ -2,7 +2,6 @@
     "name": "houdini-react",
     "version": "0.17.3",
     "description": "The disappearing GraphQL clients",
-    "type": "module",
     "scripts": {
         "compile": "scripts build --plugin",
         "typedefs": "scripts typedefs --plugin"
