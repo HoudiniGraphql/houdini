@@ -19,8 +19,8 @@ import { pullSchema } from './introspection'
 import * as path from './path'
 import { CollectedGraphQLDocument } from './types'
 
-// this will be removed when we build for real
-const currentDir = global.__dirname
+// @ts-ignore
+const currentDir = global.__dirname || path.dirname(fileURLToPath(import.meta.url))
 
 // a place to hold conventions and magic strings
 export class Config {
