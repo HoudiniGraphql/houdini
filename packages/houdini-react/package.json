@@ -1,6 +1,7 @@
 {
     "name": "houdini-react",
     "version": "0.17.3",
+    "private": true,
     "description": "The disappearing GraphQL clients",
     "scripts": {
         "compile": "scripts build --plugin",
