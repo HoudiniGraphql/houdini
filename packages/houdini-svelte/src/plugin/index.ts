@@ -141,7 +141,7 @@ export const error = svelteKitError
 		// try to import the kit module
 		try {
 			await import('@sveltejs/kit')
-			framework = 'kit'
+			framework = plugin_config(cfg).static ? 'svelte' : 'kit'
 		} catch {}
 	},
 })
