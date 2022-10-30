@@ -1,5 +1,5 @@
 /// <reference path="../../../../../houdini.d.ts" />
-import cache from '../cache'
+import c from '../cache'
 import type { ConfigFile } from './config'
 import * as log from './log'
 import {
@@ -12,6 +12,9 @@ import {
 	RequestPayload,
 	RequestPayloadMagic,
 } from './types'
+
+// @ts-ignore: cjs interop
+let cache = c.default || c
 
 export class HoudiniClient {
 	private fetchFn: RequestHandler<any>
@@ -189,7 +192,11 @@ export async function fetchQuery<_Data extends GraphQLObject, _Input extends {}>
 		// if the cache policy allows for cached data, look at the caches value first
 		if (policy !== CachePolicy.NetworkOnly) {
 			// look up the current value in the cache
-			const value = cache.read({ selection: artifact.selection, variables })
+			// @ts-ignore
+			const value = cache.read({
+				selection: artifact.selection,
+				variables,
+			})
 
 			// if the result is partial and we dont allow it, dont return the value
 			const allowed = !value.partial || artifact.partial
