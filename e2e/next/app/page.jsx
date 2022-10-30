@@ -1,8 +1,8 @@
-import { graphql } from '$houdini'
-import React, { use } from 'react'
+import { graphql, useQuery } from '$houdini'
+import React from 'react'
 
 export default function Home() {
-	const data = use(
+	const [data] = useQuery(
 		graphql(`
 			query MyData {
 				user(id: "1", snapshot: "hello-react") {

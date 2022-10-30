@@ -2,7 +2,7 @@ import * as graphql from 'graphql'
 import * as recast from 'recast'
 
 import { Config, fs, path } from '../../../lib'
-import { moduleExport } from '../../utils'
+import { exportStarFrom, moduleExport } from '../../utils'
 
 const AST = recast.types.builders
 
@@ -54,9 +54,12 @@ ${definition.values?.map((value) => `    ${value.name.value} = "${value.name.val
 		.join('')
 
 	// the index file for the definitions directory
-	const definitionsIndex = `
+	const definitionsIndex =
+		config.module === 'esm'
+			? `
 export * from './enums.js'
 	`
+			: `${exportStarFrom('./enums')}`
 
 	// write the typedefinition to disk
 	await Promise.all([

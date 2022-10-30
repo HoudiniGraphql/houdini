@@ -98,12 +98,12 @@ async function build({ package_json, source, bundle = true, plugin, cmd }) {
 			const target_dir = path.join(build_dir, `${path.basename(source)}-${which}`)
 
 			let header = cmd ? '#!/usr/bin/env node\n' : ''
-			if (bundle) {
+			if (bundle && which === 'esm') {
 				if (plugin) {
 					header += `const require = conflict_free(import.meta.url);`
-				} else if (which === 'esm') {
-					header += `import { createRequire as conflict_free } from 'module'; const require = conflict_free(import.meta.url);`
 				}
+
+				header += `import { createRequire as conflict_free } from 'module'; const require = conflict_free(import.meta.url);`
 			}
 
 			// the esbuild config

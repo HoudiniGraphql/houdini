@@ -819,11 +819,16 @@ This will prevent your schema from being pulled.`
 	// load the specified plugins
 	for (const [pluginName, plugin_config] of Object.entries(_config.configFile.plugins ?? {})) {
 		try {
-			// look for the houdini-svelte module
+			// look for the module
 			const pluginDirectory = _config.findModule(pluginName)
-			const { default: sveltePlugin }: { default: PluginFactory } = await import(
-				pathToFileURL(pluginDirectory).toString() + '/build/plugin-esm/index.js'
-			)
+
+			let source = pathToFileURL(pluginDirectory).toString() + '/build/plugin-esm/index.js'
+			// the react plugin needs to be imported as commonjs
+			if (pluginName === 'houdini-react') {
+				source = pathToFileURL(pluginDirectory).toString() + '/build/plugin-cjs/index.js'
+			}
+
+			const { default: plugin }: { default: PluginFactory } = await import(source)
 			let include_runtime = false
 			try {
 				await fs.stat(path.join(pluginDirectory, 'build', 'runtime-esm'))
@@ -843,7 +848,8 @@ This will prevent your schema from being pulled.`
 
 			// add the plugin to the list
 			_config.plugins.push({
-				...(await sveltePlugin(plugin_config)),
+				// @ts-ignore
+				...(await (plugin.default || plugin)(plugin_config)),
 				name: pluginName,
 				include_runtime,
 				version,

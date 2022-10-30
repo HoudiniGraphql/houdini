@@ -1,5 +1,5 @@
 import { parse } from '@babel/parser'
-import * as recast from 'recast'
+import recast from 'recast'
 
 export function extract_documents(filepath: string, content: string) {
 	// the documents  we've found
