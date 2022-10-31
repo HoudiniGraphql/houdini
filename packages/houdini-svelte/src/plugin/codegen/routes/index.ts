@@ -1,7 +1,8 @@
-import { OperationDefinitionNode } from 'graphql'
-import { Config, fs, GenerateHookInput } from 'houdini'
+import { OperationDefinitionNode, parse } from 'graphql'
+import { Config, find_graphql, fs, GenerateHookInput } from 'houdini'
 import path from 'path'
 
+import { parseSvelte } from '../../extract'
 import { extract_load_function } from '../../extractLoadFunction'
 import {
 	type_route_dir,
@@ -9,8 +10,18 @@ import {
 	stores_directory_name,
 	store_suffix,
 	Framework,
-	RouteVisitor,
+	is_layout_script,
+	is_page_script,
+	is_layout_component,
+	is_component,
+	plugin_config,
 } from '../../kit'
+
+//move this at some point
+const routeQueryError = (filepath: string) => ({
+	filepath,
+	message: 'route query error',
+})
 
 export default async function svelteKitGenerator(
 	framework: Framework,
@@ -22,68 +33,218 @@ export default async function svelteKitGenerator(
 		return
 	}
 
-	// console.log(config)
+	async function walk_types(dirpath: string) {
+		//since we are parsing on a directory level, whether a file is a component or a script doesn't really matter, we can just parse the file and push it to Layout or Page
+		let pageExports: string[] = []
+		let layoutExports: string[] = []
+		let pageQueries: OperationDefinitionNode[] = []
+		let layoutQueries: OperationDefinitionNode[] = []
 
-	async function walk_types(dirpath: string, visitor: any) {
 		for (const child of await fs.readdir(dirpath)) {
 			const childPath = path.join(dirpath, child)
 			// if we run into another directory, keep walking down
 			if ((await fs.stat(childPath)).isDirectory()) {
-				await walk_types(childPath, visitor)
+				await walk_types(childPath)
+				continue //ensure that directories are not passed to route func
 			}
 
-			await visitor.route(childPath, )
+			if (is_layout_script(framework, childPath)) {
+				//maybe turn into switch case
 
-			// console.log('child', child)
-			// console.log('childpath', childPath)
+				const { houdini_load, exports } = await extract_load_function(config, childPath)
+
+				// add every load to the list
+				layoutQueries.push(...(houdini_load ?? []))
+
+				layoutExports.push(...exports)
+			} else if (is_page_script(framework, childPath)) {
+				const { houdini_load, exports } = await extract_load_function(config, childPath)
+
+				// add every load to the list
+				pageQueries.push(...(houdini_load ?? []))
+				pageExports.push(...exports)
+			} else if (is_layout_component(framework, childPath)) {
+				const contents = await fs.readFile(childPath)
+				if (!contents) {
+					continue
+				}
+				const parsed = await parseSvelte(contents)
+				if (!parsed) {
+					continue
+				}
+
+				await find_graphql(config, parsed.script, {
+					where: (tag) => {
+						try {
+							return !!config.extractQueryDefinition(tag)
+						} catch {
+							return false
+						}
+					},
+					tag: async ({ parsedDocument }) => {
+						let definition = config.extractQueryDefinition(parsedDocument)
+
+						// might need this in future. unsure. used to apply transformations?
+						// await visitor.inlineLayoutQueries?.(definition, childPath)
+						layoutQueries.push(definition)
+					},
+				})
+			} else if (is_component(config, framework, childPath)) {
+				const contents = await fs.readFile(childPath)
+				if (!contents) {
+					continue
+				}
+				const parsed = await parseSvelte(contents)
+				if (!parsed) {
+					continue
+				}
+
+				// look for any graphql tags and invoke the walker's handler
+				await find_graphql(config, parsed.script, {
+					where: (tag) => {
+						try {
+							return !!config.extractQueryDefinition(tag)
+						} catch {
+							return false
+						}
+					},
+					tag: async ({ parsedDocument }) => {
+						let definition = config.extractQueryDefinition(parsedDocument)
+						// might need this in future. unsure.
+						// await visitor.inlineQueries?.(definition, childPath)
+						pageQueries.push(definition)
+					},
+				})
+			} else if (child === plugin_config(config).layoutQueryFilename) {
+				const contents = await fs.readFile(childPath)
+				if (!contents) {
+					continue
+				}
+				//parse content
+				try {
+					layoutQueries.push(config.extractQueryDefinition(parse(contents)))
+				} catch (e) {
+					throw routeQueryError(childPath)
+				}
+			} else if (child === plugin_config(config).pageQueryFilename) {
+				const contents = await fs.readFile(childPath)
+				if (!contents) {
+					continue
+				}
+
+				try {
+					pageQueries.push(config.extractQueryDefinition(parse(contents)))
+				} catch (e) {
+					throw routeQueryError(childPath)
+				}
+			} else {
+				continue
+			}
 		}
+
+		if (
+			pageQueries.length == 0 &&
+			layoutQueries.length == 0 &&
+			pageExports.length == 0 &&
+			layoutExports.length == 0
+		) {
+			return
+		} else {
+			const relative_path_regex = /src(.*)/
+			//remove testing later
+			const typePath = path.join(
+				config.typeRootDir,
+				'testing',
+				dirpath.match(relative_path_regex)?.[0] ?? ''
+			)
+
+			const skTypeFile = path.join(
+				config.projectRoot,
+				'.svelte-kit/types',
+				dirpath.match(relative_path_regex)?.[0] ?? '',
+				'$types.d.ts'
+			)
+
+			if (fs.existsSync(skTypeFile)) {
+				const queryNames: string[] = []
+				const uniquePageQueries: OperationDefinitionNode[] = []
+				for (const query of pageQueries) {
+					if (!queryNames.includes(query.name!.value)) {
+						queryNames.push(query.name!.value)
+						uniquePageQueries.push(query)
+					}
+				}
+
+				const layoutNames: string[] = []
+				const uniqueLayoutQueries: OperationDefinitionNode[] = []
+				for (const layout of layoutQueries) {
+					if (!layoutNames.includes(layout.name!.value)) {
+						layoutNames.push(layout.name!.value)
+						uniqueLayoutQueries.push(layout)
+					}
+				}
+
+				let skTypeString = fs.readFileSync(skTypeFile)
+
+				if (!!skTypeString) {
+					const relativePath = path.relative(config.routesDir, dirpath)
+					const target = path.join(
+						type_route_dir(config),
+						relativePath,
+						config.typeRootFile
+					)
+
+					const houdiniRelative = path
+						.relative(target, config.typeRootDir)
+						// Windows management
+						.replaceAll('\\', '/')
+
+					const pageTypeImports = getTypeImports(
+						houdiniRelative,
+						config,
+						uniquePageQueries
+					) //trimming ensures no trailing lines
+					const layoutTypeImports = getTypeImports(
+						houdiniRelative,
+						config,
+						uniqueLayoutQueries
+					)
+
+					console.log(
+						skTypeString.replace(
+							/(import type \* as Kit from '@sveltejs\/kit';)/,
+							`$1\n`
+								.concat(
+									`import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction }  from '${houdiniRelative}/plugins/houdini-svelte/runtime/types'\n`
+								)
+								.concat(`${pageTypeImports}\n`)
+								.concat(`${layoutTypeImports}`)
+						)
+					)
+
+				}
+			} else {
+				throw Error(`SvelteKit types do not exist at route: ${skTypeFile}`)
+			}
+
+		}
+
+		// 		const src_path = path.dirname(h_path).match(root_path_reg)?.[0] ?? ''
+
+		// console.log("pageQueries",pageQueries)
+		// console.log("layoutQueries", layoutQueries)
+		// console.log("pageExport", pageExports)
+		// console.log("layoutExport", layoutExports)
+		// console.log("*********************************")
 	}
 
-	//assumes that .sveltekit will be at project root. This is true unless
-	const skt_path = path.join(config.projectRoot, '.svelte-kit/types')
-	const new_path = path.join(config.typeRootDir, 'testing')
-	await fs.copySync(skt_path, new_path)
+	//assumes that .sveltekit will be at project root. This (should) always be true.
+	// const skt_path = path.join(config.projectRoot, '.svelte-kit/types')
+	// const new_path = path.join(config.typeRootDir, 'testing')
+	// await fs.copySync(skt_path, new_path)
 
-	await walk_types(new_path, {
-		async route(route_path: string) {
-			//if not a type file return
-			if (!route_path.endsWith('$types.d.ts')) {
-				return
-			}
-
-			//get renamed path, this is the path that we will use for the rest of the loop
-			const h_path = route_path.replace(/\$types.d.ts/, '$houdini.d.ts')
-
-			// rename file
-			fs.rename(route_path, h_path)
-
-			//match all values after src so we can access the project/src directory
-			const root_path_reg = /src(.*)/
-
-			// get the project root dir so we can search it for files
-			const src_path = path.dirname(h_path).match(root_path_reg)?.[0] ?? ''
-
-			const path_in_project = path.join(config.projectRoot, src_path)
-
-			// has_page_script
-			//  if has page script, extract_load_function
-			// has_layout_script
-			//  if has layout script, extract_load_function
-			// has_layout_svelte
-			// 	if has layout, read and extract
-			// has_page_svelte
-			//  if has page, read and extract
-
-			//TODO:
-			// - Search for Page scripts (js or ts)
-			//  - Generate types for page scripts
-			// - Search for Layout scripts
-			//  - ''
-			// - Search for Inline Page Queries
-			// 	- ''
-			// - Generate Final types.
-		},
-	})
+	//only operating on routes.
+	await walk_types(path.join(config.projectRoot, 'src/routes'))
 
 	// we need to walk down their route directory and create any variable definitions we need
 	await walk_routes(config, framework, {
@@ -184,6 +345,23 @@ export default async function svelteKitGenerator(
 	})
 }
 
+function getTypeImports(
+	houdiniRelative: string,
+	config: Config,
+	queries: OperationDefinitionNode[]
+) {
+	return queries
+		.map((query) => {
+			const name = query.name!.value
+			return `import { ${name}$result, ${name}$input } from '${houdiniRelative}/${
+				config.artifactDirectoryName
+			}/${name}'\nimport { ${name}Store } from '${houdiniRelative}/plugins/houdini-svelte/${stores_directory_name()}/${name}'`
+		})
+		.join('\n')
+}
+
+// function
+
 function getTypeDefs(
 	houdiniRelative: string,
 	config: Config,
@@ -204,14 +382,16 @@ function getTypeDefs(
 
 	return `import type * as Kit from '@sveltejs/kit';
 import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction }  from '${houdiniRelative}/plugins/houdini-svelte/runtime/types'
-${pageQueries.length > 0
-			? `import type { PageLoadEvent, PageData as KitPageData } from './$types'`
-			: ``
-		}
-${layoutQueries.length > 0
-			? `import type { LayoutLoadEvent, LayoutData as KitPageData } from './$types'`
-			: ``
-		}
+${
+	pageQueries.length > 0
+		? `import type { PageLoadEvent, PageData as KitPageData } from './$types'`
+		: ``
+}
+${
+	layoutQueries.length > 0
+		? `import type { LayoutLoadEvent, LayoutData as KitPageData } from './$types'`
+		: ``
+}
 
 ${append_Store(houdiniRelative, config, uniqueQueries)}
 ${append_Store(houdiniRelative, config, uniqueLayoutQueries)}
@@ -230,13 +410,13 @@ ${append_beforeLoad(beforeLayoutLoad)}
 ${append_onError(onLayoutError)}
 
 ${append_TypeData(
-			config,
-			layoutQueries,
-			'Layout',
-			beforeLayoutLoad,
-			afterLayoutLoad,
-			onLayoutError
-		)}
+	config,
+	layoutQueries,
+	'Layout',
+	beforeLayoutLoad,
+	afterLayoutLoad,
+	onLayoutError
+)}
 ${append_TypeData(config, pageQueries, 'Page', beforePageLoad, afterPageLoad, onPageError)}
 `
 }
@@ -246,8 +426,9 @@ function append_Store(houdiniRelative: string, config: Config, queries: Operatio
 		.map((query) => {
 			const name = query.name!.value
 
-			return `import { ${name}$result, ${name}$input } from '${houdiniRelative}/${config.artifactDirectoryName
-				}/${name}'
+			return `import { ${name}$result, ${name}$input } from '${houdiniRelative}/${
+				config.artifactDirectoryName
+			}/${name}'
 	import { ${name}Store } from '${houdiniRelative}/plugins/houdini-svelte/${stores_directory_name()}/${name}'`
 		})
 		.join('\n')
@@ -366,6 +547,7 @@ function append_TypeData(
 }
 
 function internal_append_TypeDataExtra(beforeLoad: boolean, afterLoad: boolean, onError: boolean) {
-	return `${beforeLoad ? '& BeforeLoadReturn ' : ''} ${afterLoad ? '& AfterLoadReturn ' : ''}  ${onError ? '& OnErrorReturn ' : ''
-		}`
+	return `${beforeLoad ? '& BeforeLoadReturn ' : ''} ${afterLoad ? '& AfterLoadReturn ' : ''}  ${
+		onError ? '& OnErrorReturn ' : ''
+	}`
 }
