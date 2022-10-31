@@ -3,7 +3,7 @@ import { expect_1_gql, goto, expectToBe } from '../../../lib/utils/testsHelper.j
 import { test } from '@playwright/test';
 
 test.describe('mutation store upload', function () {
-  test('multi files', async function ({ page }) {
+  test('single files', async function ({ page }) {
     await goto(page, routes.Stores_Mutation_Scalar_Single_Upload);
 
     // trigger the mutation and wait for a response
