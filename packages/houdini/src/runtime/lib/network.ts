@@ -1,6 +1,4 @@
 /// <reference path="../../../../../houdini.d.ts" />
-// this dependency is only necessary to allow uploading in SSR mode (if required)
-//import { FormData } from 'formdata-node'
 import cache from '../cache'
 import type { ConfigFile } from './config'
 import * as log from './log'
