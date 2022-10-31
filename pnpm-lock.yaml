@@ -43,7 +43,6 @@ importers:
     specifiers:
       '@graphql-yoga/node': ^2.13.13
       '@kitql/helper': ^0.5.0
-      cross-env: ^7.0.3
       graphql: ^15.5.0
       graphql-relay: ^0.10.0
       graphql-ws: ^5.8.2
@@ -51,7 +50,6 @@ importers:
     dependencies:
       '@graphql-yoga/node': 2.13.13_graphql@15.8.0
       '@kitql/helper': 0.5.0
-      cross-env: 7.0.3
       graphql: 15.8.0
       graphql-relay: 0.10.0_graphql@15.8.0
       graphql-ws: 5.11.2_graphql@15.8.0
@@ -3165,6 +3163,7 @@ packages:
     hasBin: true
     dependencies:
       cross-spawn: 7.0.3
+    dev: true
 
   /cross-spawn/5.1.0:
     resolution: {integrity: sha512-pTgQJ5KC0d2hcY8eyL1IzlBPYjTkyH72XRZPnLyKus2mBfNjQs3klqbJU2VILqZryAZUt9JOb3h/mWMy23/f5A==}
