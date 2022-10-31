@@ -400,7 +400,7 @@ export default async function paginate(
 							kind: graphql.Kind.NAME,
 							value: refetchQueryName,
 						},
-						operation: graphql.OperationTypeNode.QUERY,
+						operation: 'query',
 						variableDefinitions: paginationArgs
 							.map(
 								(arg) =>
@@ -637,7 +637,7 @@ function objectNode([type, defaultValue]: [
 	number | string | undefined
 ]): graphql.ObjectValueNode {
 	const node = {
-		kind: graphql.Kind.OBJECT as const,
+		kind: graphql.Kind.OBJECT,
 		fields: [
 			{
 				kind: graphql.Kind.OBJECT_FIELD,
