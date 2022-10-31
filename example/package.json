@@ -15,7 +15,7 @@
 		"@kitql/vite-plugin-watch-and-run": "^0.4.0",
 		"@sveltejs/kit": "1.0.0-next.510",
 		"concurrently": "^6.2.1",
-		"graphql": "15.5.0",
+		"graphql": "^15.8.0",
 		"houdini": "workspace:^",
 		"houdini-svelte": "workspace:^",
 		"svelte": "^3.50.0",
