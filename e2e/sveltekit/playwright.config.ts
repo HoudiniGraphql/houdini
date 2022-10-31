@@ -1,5 +1,3 @@
-import { devices as replayDevices } from '@replayio/playwright';
-
 // manual switch for now until replayio is fixed (currently breaking our tests)
 const with_replayio = false;
 
@@ -16,9 +14,6 @@ const reporter = [['list']];
 if (process.env.CI) {
   reporter.push(['html', { open: 'never' }]);
   reporter.push(['github']);
-}
-if (with_replayio) {
-  reporter.push(['@replayio/playwright/reporter']);
 }
 
 const config = {

@@ -724,8 +724,12 @@ async function loadSchemaFile(schemaPath: string): Promise<graphql.GraphQLSchema
 	}
 
 	// the path has no glob magic, make sure its a real file
-	if (!fs.stat(schemaPath)) {
-		throw new Error(`Schema file does not exist! Create it using houdini generate -p`)
+	try {
+		await fs.stat(schemaPath)
+	} catch {
+		throw new HoudiniError({
+			message: `Schema file does not exist! Create it using houdini pull-schema`,
+		})
 	}
 
 	const contents = (await fs.readFile(schemaPath))!
@@ -750,8 +754,9 @@ let pendingConfigPromise: Promise<Config> | null = null
 // get the project's current configuration
 export async function getConfig({
 	configPath = DEFAULT_CONFIG_PATH,
+	noSchema,
 	...extraConfig
-}: PluginConfig = {}): Promise<Config> {
+}: PluginConfig & { noSchema?: boolean } = {}): Promise<Config> {
 	if (_config) {
 		return _config
 	}
@@ -770,7 +775,7 @@ export async function getConfig({
 	})
 
 	// look up the current config file
-	const configFile = await readConfigFile(configPath)
+	let configFile = await readConfigFile(configPath)
 
 	// if there is a framework specified, tell them they need to change things
 	if (!configFile.plugins) {
@@ -807,7 +812,7 @@ This will prevent your schema from being pulled.`
 			}
 
 			// the schema is safe to load
-			if (schemaOk) {
+			if (schemaOk && !noSchema) {
 				_config.schema = await loadSchemaFile(_config.schemaPath)
 			}
 		}

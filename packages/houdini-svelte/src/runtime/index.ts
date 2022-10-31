@@ -8,6 +8,29 @@ export * from './session'
 type LoadResult = Promise<{ [key: string]: QueryStore<any, {}> }>
 type LoadAllInput = LoadResult | Record<string, LoadResult>
 
+// gets all the values from an object
+type ValueOf<T extends Record<PropertyKey, unknown>> = T[keyof T]
+
+// transforms `A | B | C | ...` to `A & B & C & ...`
+type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void
+	? I
+	: never;
+
+// transforms `LoadResult` into its awaited type
+// transforms `{a: LoadResult}` and replaces the key of the load result with `a`
+type InferLoadResult<T extends LoadAllInput> = T extends Record<infer Key, infer Res extends LoadResult> ? {
+	[K in Key]: ValueOf<Awaited<Res>>
+} : T extends LoadResult ? Awaited<T> : never
+
+export async function loadAll<
+	// generic to narrow the array correctly
+	L extends LoadAllInput,
+	// generic to get all of the inputs otherwise it fails on the `...`
+	Loads extends L[]>(
+		...loads: Loads
+	): Promise<UnionToIntersection<{
+		[K in keyof Loads]: InferLoadResult<Loads[K]>
+	}[number]>>
 // putting this here was the only way i could find to reliably avoid import issues
 // its really the only thing from lib that users should import so it makes sense to have it here....
 export async function loadAll(
