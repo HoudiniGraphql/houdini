@@ -2,3 +2,5 @@
 README.md
 .github/**
 packages/*/package.json
+
+packages/houdini-svelte/src/runtime/index.ts
