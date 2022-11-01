@@ -1,5 +1,11 @@
 # houdini-svelte
 
+## 0.17.5
+
+### 🐛 Fixes
+
+-   [#659](https://github.com/HoudiniGraphql/houdini/pull/659) [`579fb0b`](https://github.com/HoudiniGraphql/houdini/commit/579fb0bd4ccc5ee6e9aad0cc6278b0a9bfa972d1) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Improve typing for loadAll
+
 ## 0.17.3
 
 ### 🐛 Fixes

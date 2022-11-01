@@ -1,5 +1,11 @@
 # houdini
 
+## 0.17.5
+
+### ✨ Features
+
+-   [#660](https://github.com/HoudiniGraphql/houdini/pull/660) [`08b3d10`](https://github.com/HoudiniGraphql/houdini/commit/08b3d10c5305c43d457b11f288509e90459c2d0c) Thanks [@524c](https://github.com/524c)! - Add support for multipart file uploads
+
 ## 0.17.4
 
 ### 🐛 Fixes

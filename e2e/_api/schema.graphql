@@ -2,6 +2,7 @@
 Date custom scalar type
 """
 scalar DateTime
+scalar File
 
 enum MyEnum {
 	Value1
@@ -23,6 +24,8 @@ type Mutation {
 		types: [TypeOfUser!]
 	): User!
 	updateUser(id: ID!, name: String, snapshot: String!, birthDate: DateTime, delay: Int): User!
+	singleUpload(file: File!): String!
+	multipleUpload(files: [File!]!): [String!]!
 }
 
 interface Node {

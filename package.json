@@ -33,7 +33,7 @@
 		"@theguild/eslint-config": "^0.1.0",
 		"@trivago/prettier-plugin-sort-imports": "^3.3.0",
 		"eslint-plugin-unused-imports": "^2.0.0",
-		"graphql": "*",
+		"graphql": "^15.8.0",
 		"prettier": "^2.7.0",
 		"turbo": "^1.5.4",
 		"vite": "^3.1.6",

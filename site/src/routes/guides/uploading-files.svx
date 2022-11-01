@@ -1,0 +1,39 @@
+---
+title: Uploading Files
+index: 10
+description: A guide for handling file uploads in Houdini
+---
+
+# Uploading Files
+
+Handling file uploads begins with your schema. First, define a scalar (we'll call it `File`) and
+define your mutation to receive a file as an input:
+
+```graphql
+scalar File
+
+type Mutation {
+    uploadImage(file: File): UploadImageResult
+}
+```
+
+With that defined, the only thing that's left is to have the user select a file with an `<input type="file"/>`
+element and pass it to the mutation:
+
+```svelte
+<script>
+    import { graphql } from '$houdini'
+
+    const UploadFile = graphql`
+        mutation UploadFile($file: File!) {
+            uploadImage(file: File)
+        }
+    `
+</script>
+
+<input type="file" on:change={files => UploadFile.mutate({file: files[0]})} />
+```
+
+As long as your server understands the [GraphQL multipart request specification](https://github.com/jaydenseric/graphql-multipart-request-spec),
+you're done. Your mutation's resolver will receive an instance of a file that you can use however you want.
+For a list of servers that support this spec, you can visit [this link](https://github.com/jaydenseric/graphql-multipart-request-spec#implementations).

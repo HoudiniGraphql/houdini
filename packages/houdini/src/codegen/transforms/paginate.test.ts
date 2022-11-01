@@ -450,7 +450,7 @@ test('embeds node pagination query as a separate document', async function () {
 		export default {
 		    name: "UserFriends_Pagination_Query",
 		    kind: "HoudiniQuery",
-		    hash: "c93f41015e8e748dd6a1b23a3053cd608c6fc86feeb99fb82d784a8f875836c9",
+		    hash: "bb5131f921805b85c17e7b882f4ad66a9dad452d0f66534a1c8b8f9942adec48",
 
 		    refetch: {
 		        update: "append",
@@ -491,7 +491,8 @@ test('embeds node pagination query as a separate document', async function () {
 		      endCursor
 		    }
 		  }
-		}\`,
+		}
+		\`,
 
 		    rootType: "Query",
 
@@ -640,7 +641,7 @@ test('embeds custom pagination query as a separate document', async function () 
 		export default {
 		    name: "UserGhost_Pagination_Query",
 		    kind: "HoudiniQuery",
-		    hash: "9fe4fdcb7b5688f1c817afcf77a1ab683ff4f627a787c0f8530ef63b24a19d97",
+		    hash: "55c27b299d485bf73adfaa418b77ac03d918e2ce579730d328208318c6af0da5",
 
 		    refetch: {
 		        update: "append",
@@ -683,7 +684,8 @@ test('embeds custom pagination query as a separate document', async function () 
 		      endCursor
 		    }
 		  }
-		}\`,
+		}
+		\`,
 
 		    rootType: "Query",
 
@@ -1283,7 +1285,7 @@ test('generated query has same refetch spec', async function () {
 		export default {
 		    name: "UserFriends_Pagination_Query",
 		    kind: "HoudiniQuery",
-		    hash: "d4e23bbfa5ec61d6682d9e6a99ba50b97300b29f343fb28060a4c0669bf882eb",
+		    hash: "5aeb471edf15c5b3e709ddccc6014f073d2dfdc1259d04b7ee26887ea81ef23b",
 
 		    refetch: {
 		        update: "append",
@@ -1321,7 +1323,8 @@ test('generated query has same refetch spec', async function () {
 		      endCursor
 		    }
 		  }
-		}\`,
+		}
+		\`,
 
 		    rootType: "Query",
 

@@ -35,6 +35,16 @@ function getSnapshot(snapshot) {
 	return snapshots[snapshot]
 }
 
+async function processFile(file) {
+	const fileStream = file.stream()
+	const filename = path.join('./', file.name)
+	await fs.promises.writeFile(filename, fileStream)
+	return await fs.promises.readFile(filename, 'utf8').then(async (data) => {
+		await fs.promises.unlink(filename)
+		return data
+	})
+}
+
 export const resolvers = {
 	Query: {
 		hello: () => {
@@ -134,6 +144,25 @@ export const resolvers = {
 				list[userIndex].name = args.name
 			}
 			return list[userIndex]
+		},
+		singleUpload: async (_, { file }) => {
+			try {
+				let data = await processFile(file)
+				return data
+			} catch (e) {}
+			throw new GraphQLYogaError('ERROR', { code: 500 })
+		},
+		multipleUpload: async (_, { files }) => {
+			let res = []
+			for (let i in files) {
+				try {
+					let data = await processFile(files[i])
+					res.push(data)
+				} catch (e) {
+					throw new GraphQLYogaError('ERROR', { code: 500 })
+				}
+			}
+			return res
 		},
 	},
 

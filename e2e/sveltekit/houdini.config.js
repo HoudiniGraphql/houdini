@@ -16,6 +16,9 @@ const config = {
       marshal(val) {
         return val.getTime();
       }
+    },
+    File: {
+      type: 'File'
     }
   },
   plugins: {

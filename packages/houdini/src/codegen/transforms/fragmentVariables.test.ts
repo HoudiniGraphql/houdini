@@ -43,7 +43,7 @@ test('pass argument values to generated fragments', async function () {
 		export default {
 		    name: "AllUsers",
 		    kind: "HoudiniQuery",
-		    hash: "1e1735126b2b1cc305ad7477fdd7e670e53f2bf58b2861b904ff2c076e9545ba",
+		    hash: "c346b9eaafaa74d18a267a74706e193e8080b9533d994d6e8489d7e5b534ee41",
 
 		    raw: \`query AllUsers {
 		  ...QueryFragment_10b3uv
@@ -53,7 +53,8 @@ test('pass argument values to generated fragments', async function () {
 		  users(stringValue: "Hello") {
 		    id
 		  }
-		}\`,
+		}
+		\`,
 
 		    rootType: "Query",
 
@@ -115,7 +116,7 @@ test("nullable arguments with no values don't show up in the query", async funct
 		export default {
 		    name: "AllUsers",
 		    kind: "HoudiniQuery",
-		    hash: "f09634eff790efeeeac358898927bb3de4f6e9d399ef2edce6b676bdd6990a34",
+		    hash: "19b6a6cc9d06ab798cbf4b0a9530e07a3473b78e7d964cc9d6557d8240ed9012",
 
 		    raw: \`query AllUsers {
 		  ...QueryFragment
@@ -125,7 +126,8 @@ test("nullable arguments with no values don't show up in the query", async funct
 		  users {
 		    id
 		  }
-		}\`,
+		}
+		\`,
 
 		    rootType: "Query",
 
@@ -187,7 +189,7 @@ test("fragment arguments with default values don't rename the fragment", async f
 		export default {
 		    name: "AllUsers",
 		    kind: "HoudiniQuery",
-		    hash: "075b137c07d965a6314f2e26317caaaf46b4a9dad4028aed011ab1bc08984848",
+		    hash: "3835ee68277547d738cc8fd5051fe98799b5bd470516146906fa0f134a2b3891",
 
 		    raw: \`query AllUsers {
 		  ...QueryFragment
@@ -197,7 +199,8 @@ test("fragment arguments with default values don't rename the fragment", async f
 		  users(stringValue: "Hello") {
 		    id
 		  }
-		}\`,
+		}
+		\`,
 
 		    rootType: "Query",
 
@@ -267,7 +270,7 @@ test('thread query variables to inner fragments', async function () {
 		export default {
 		    name: "AllUsers",
 		    kind: "HoudiniQuery",
-		    hash: "1b7f099e8c65dc28bbe8b2f1fbb40560a48cc556a16e379bd3c538f41c53a2ed",
+		    hash: "8fa4273ab75455c901e7de893f72a28af4c001afbf204ceca2fd7ab30b7ff372",
 
 		    raw: \`query AllUsers($name: String!) {
 		  ...QueryFragment_VDHGm
@@ -281,7 +284,8 @@ test('thread query variables to inner fragments', async function () {
 		  users(stringValue: $name) {
 		    id
 		  }
-		}\`,
+		}
+		\`,
 
 		    rootType: "Query",
 
@@ -359,7 +363,7 @@ test('inner fragment with intermediate default value', async function () {
 		export default {
 		    name: "AllUsers",
 		    kind: "HoudiniQuery",
-		    hash: "90f7cd2265f1a788dd7c2a8e4a6a43daf1f606fc7f37fd4ddd8157bb28c799f0",
+		    hash: "d5753a3cae56b8133c72527cdccdd0c001effb48104b98806ac62dd9afeeb259",
 
 		    raw: \`query AllUsers {
 		  ...QueryFragment
@@ -373,7 +377,8 @@ test('inner fragment with intermediate default value', async function () {
 		  users(stringValue: "Hello", intValue: 2) {
 		    id
 		  }
-		}\`,
+		}
+		\`,
 
 		    rootType: "Query",
 
@@ -443,7 +448,7 @@ test("default values don't overwrite unless explicitly passed", async function (
 		export default {
 		    name: "AllUsers",
 		    kind: "HoudiniQuery",
-		    hash: "d2a76fb293043d9d6fb2264237a5468bee7d974d93af7495a2cb7225cc952b8b",
+		    hash: "b155b401cdbdfe0f63dd47575fbcfb2aa90678e7530b93476c4efe559405cf4f",
 
 		    raw: \`query AllUsers {
 		  ...QueryFragment
@@ -457,7 +462,8 @@ test("default values don't overwrite unless explicitly passed", async function (
 		  users(stringValue: "Goodbye", intValue: 10) {
 		    id
 		  }
-		}\`,
+		}
+		\`,
 
 		    rootType: "Query",
 
@@ -519,7 +525,7 @@ test('default arguments', async function () {
 		export default {
 		    name: "AllUsers",
 		    kind: "HoudiniQuery",
-		    hash: "59f8191d32aebd9a49c3ea3d7c209f6ba63e905b91b5ac7b4ef6a02b8ff7e7af",
+		    hash: "5c4a8d1fe2e117286ecdfbd273bf1beb2f71a0a3fd9ea6bc84fe97c394c1a836",
 
 		    raw: \`query AllUsers {
 		  ...QueryFragment
@@ -529,7 +535,8 @@ test('default arguments', async function () {
 		  users(boolValue: true, stringValue: "Hello") {
 		    id
 		  }
-		}\`,
+		}
+		\`,
 
 		    rootType: "Query",
 
@@ -591,7 +598,7 @@ test('multiple with directives - no overlap', async function () {
 		export default {
 		    name: "AllUsers",
 		    kind: "HoudiniQuery",
-		    hash: "b78aef48c431b5b61fde1ddc8be635b07b1972d1f1454d53c80ac80c4bbbc36b",
+		    hash: "7327e6f7f6c8339feebb640b995c3e25efe1b25de29b1f43cb55c2a0566f713f",
 
 		    raw: \`query AllUsers {
 		  ...QueryFragment_2prn0K
@@ -601,7 +608,8 @@ test('multiple with directives - no overlap', async function () {
 		  users(boolValue: false, stringValue: "Goodbye") {
 		    id
 		  }
-		}\`,
+		}
+		\`,
 
 		    rootType: "Query",
 
