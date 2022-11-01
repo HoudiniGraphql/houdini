@@ -23,10 +23,10 @@ export class HoudiniClient {
 		this.socket = subscriptionHandler
 	}
 
-	async handleMultipart(
+	handleMultipart(
 		params: FetchParams,
 		args: Parameters<FetchContext['fetch']>
-	): Promise<Parameters<FetchContext['fetch']> | undefined> {
+	): Parameters<FetchContext['fetch']> | undefined {
 		const [url, req] = args
 
 		// process any files that could be included
@@ -86,8 +86,10 @@ export class HoudiniClient {
 			// wrap the user's fetch function so we can identify SSR by checking
 			// the response.url
 			fetch: async (...args: Parameters<FetchContext['fetch']>) => {
-				const newArgs = await this.handleMultipart(params, args)
+				// figure out if we need to do something special for multipart uploads
+				const newArgs = this.handleMultipart(params, args)
 
+				// use the new args if they exist, otherwise the old ones are good
 				const response = await ctx.fetch(...(newArgs || args))
 				if (response.url) {
 					url = response.url
