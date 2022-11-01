@@ -2,6 +2,7 @@
 import cache from '../cache'
 import type { ConfigFile } from './config'
 import * as log from './log'
+import { extractFiles } from './networkUtils'
 import {
 	CachePolicy,
 	DataSource,
@@ -22,6 +23,58 @@ export class HoudiniClient {
 		this.socket = subscriptionHandler
 	}
 
+	handleMultipart(
+		params: FetchParams,
+		args: Parameters<FetchContext['fetch']>
+	): Parameters<FetchContext['fetch']> | undefined {
+		const [url, req] = args
+
+		// process any files that could be included
+		const { clone, files } = extractFiles({
+			query: params.text,
+			variables: params.variables,
+		})
+
+		const operationJSON = JSON.stringify(clone)
+
+		// if there are files in the request
+		if (files.size) {
+			let headers: Record<string, string> = {}
+
+			// filters `content-type: application/json` if received by client.ts
+			if (req?.headers) {
+				const filtered = Object.entries(req?.headers).filter(([key, value]) => {
+					return !(
+						key.toLowerCase() == 'content-type' &&
+						value.toLowerCase() == 'application/json'
+					)
+				})
+				headers = Object.fromEntries(filtered)
+			}
+
+			// See the GraphQL multipart request spec:
+			// https://github.com/jaydenseric/graphql-multipart-request-spec
+			const form = new FormData()
+
+			form.set('operations', operationJSON)
+
+			const map: Record<string, Array<string>> = {}
+
+			let i = 0
+			files.forEach((paths) => {
+				map[++i] = paths
+			})
+			form.set('map', JSON.stringify(map))
+
+			i = 0
+			files.forEach((paths, file) => {
+				form.set(`${++i}`, file as Blob, (file as File).name)
+			})
+
+			return [url, { ...req, headers, body: form as any }]
+		}
+	}
+
 	async sendRequest<_Data>(
 		ctx: FetchContext,
 		params: FetchParams
@@ -33,7 +86,11 @@ export class HoudiniClient {
 			// wrap the user's fetch function so we can identify SSR by checking
 			// the response.url
 			fetch: async (...args: Parameters<FetchContext['fetch']>) => {
-				const response = await ctx.fetch(...args)
+				// figure out if we need to do something special for multipart uploads
+				const newArgs = this.handleMultipart(params, args)
+
+				// use the new args if they exist, otherwise the old ones are good
+				const response = await ctx.fetch(...(newArgs || args))
 				if (response.url) {
 					url = response.url
 				}

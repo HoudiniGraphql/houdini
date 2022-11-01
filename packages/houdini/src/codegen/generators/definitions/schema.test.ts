@@ -39,14 +39,10 @@ test('adds internal documents to schema', async function () {
 			"""
 			directive @paginate(name: String) on FIELD
 
-			"""
-			@prepend is used to tell the runtime to add the result to the end of the list
-			"""
+			"""@prepend is used to tell the runtime to add the result to the end of the list"""
 			directive @prepend(parentID: ID) on FRAGMENT_SPREAD
 
-			"""
-			@append is used to tell the runtime to add the result to the start of the list
-			"""
+			"""@append is used to tell the runtime to add the result to the start of the list"""
 			directive @append(parentID: ID) on FRAGMENT_SPREAD
 
 			"""
@@ -55,14 +51,10 @@ test('adds internal documents to schema', async function () {
 			"""
 			directive @parentID(value: ID!) on FRAGMENT_SPREAD
 
-			"""
-			@when is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
-			"""
+			"""@when is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)"""
 			directive @when on FRAGMENT_SPREAD
 
-			"""
-			@when_not is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
-			"""
+			"""@when_not is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)"""
 			directive @when_not on FRAGMENT_SPREAD
 
 			"""@arguments is used to define the arguments of a fragment"""
@@ -114,14 +106,10 @@ test('list operations are included', async function () {
 			"""
 			directive @paginate(name: String) on FIELD
 
-			"""
-			@prepend is used to tell the runtime to add the result to the end of the list
-			"""
+			"""@prepend is used to tell the runtime to add the result to the end of the list"""
 			directive @prepend(parentID: ID) on FRAGMENT_SPREAD
 
-			"""
-			@append is used to tell the runtime to add the result to the start of the list
-			"""
+			"""@append is used to tell the runtime to add the result to the start of the list"""
 			directive @append(parentID: ID) on FRAGMENT_SPREAD
 
 			"""
@@ -130,14 +118,10 @@ test('list operations are included', async function () {
 			"""
 			directive @parentID(value: ID!) on FRAGMENT_SPREAD
 
-			"""
-			@when is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
-			"""
+			"""@when is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)"""
 			directive @when on FRAGMENT_SPREAD
 
-			"""
-			@when_not is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
-			"""
+			"""@when_not is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)"""
 			directive @when_not on FRAGMENT_SPREAD
 
 			"""@arguments is used to define the arguments of a fragment"""
@@ -208,14 +192,10 @@ test("writing twice doesn't duplicate definitions", async function () {
 			"""
 			directive @paginate(name: String) on FIELD
 
-			"""
-			@prepend is used to tell the runtime to add the result to the end of the list
-			"""
+			"""@prepend is used to tell the runtime to add the result to the end of the list"""
 			directive @prepend(parentID: ID) on FRAGMENT_SPREAD
 
-			"""
-			@append is used to tell the runtime to add the result to the start of the list
-			"""
+			"""@append is used to tell the runtime to add the result to the start of the list"""
 			directive @append(parentID: ID) on FRAGMENT_SPREAD
 
 			"""
@@ -224,14 +204,10 @@ test("writing twice doesn't duplicate definitions", async function () {
 			"""
 			directive @parentID(value: ID!) on FRAGMENT_SPREAD
 
-			"""
-			@when is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
-			"""
+			"""@when is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)"""
 			directive @when on FRAGMENT_SPREAD
 
-			"""
-			@when_not is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
-			"""
+			"""@when_not is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)"""
 			directive @when_not on FRAGMENT_SPREAD
 
 			"""@arguments is used to define the arguments of a fragment"""

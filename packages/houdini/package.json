@@ -1,6 +1,6 @@
 {
     "name": "houdini",
-    "version": "0.17.4",
+    "version": "0.17.5",
     "description": "The disappearing GraphQL clients",
     "type": "module",
     "scripts": {
@@ -32,7 +32,7 @@
         "estree-walker": "^3.0.1",
         "fs-extra": "^10.1.0",
         "glob": "^8.0.3",
-        "graphql": "^16.6.0",
+        "graphql": "^15.8.0",
         "memfs": "^3.4.7",
         "micromatch": "^4.0.5",
         "minimatch": "^5.1.0",
