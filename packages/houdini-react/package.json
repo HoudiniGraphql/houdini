@@ -9,7 +9,8 @@
     },
     "devDependencies": {
         "@types/estraverse": "^5.1.2",
-        "next": "^0.1.0",
+        "@types/next": "^9.0.0",
+		"next": "^13.0.0",
         "scripts": "workspace:^"
     },
     "dependencies": {
