@@ -150,14 +150,16 @@ export default async function svelteKitGenerator(
 		) {
 			return
 		} else {
-			const relative_path_regex = /src(.*)/
 			//remove testing later
-			const typePath = path.join(
-				config.typeRootDir,
-				'testing',
-				dirpath.match(relative_path_regex)?.[0] ?? ''
-			)
+			const relativePath = path.relative(config.routesDir, dirpath)
+			const target = path.join(type_route_dir(config), relativePath, config.typeRootFile)
 
+			const houdiniRelative = path
+				.relative(target, config.typeRootDir)
+				// Windows management
+				.replaceAll('\\', '/')
+
+			const relative_path_regex = /src(.*)/
 			const skTypeFile = path.join(
 				config.projectRoot,
 				'.svelte-kit/types',
@@ -187,18 +189,6 @@ export default async function svelteKitGenerator(
 				let skTypeString = fs.readFileSync(skTypeFile)
 
 				if (!!skTypeString) {
-					const relativePath = path.relative(config.routesDir, dirpath)
-					const target = path.join(
-						type_route_dir(config),
-						relativePath,
-						config.typeRootFile
-					)
-
-					const houdiniRelative = path
-						.relative(target, config.typeRootDir)
-						// Windows management
-						.replaceAll('\\', '/')
-
 					const pageTypeImports = getTypeImports(
 						houdiniRelative,
 						config,
@@ -211,22 +201,83 @@ export default async function svelteKitGenerator(
 					)
 
 					console.log(
-						skTypeString.replace(
-							/(import type \* as Kit from '@sveltejs\/kit';)/,
-							`$1\n`
-								.concat(
-									`import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction }  from '${houdiniRelative}/plugins/houdini-svelte/runtime/types'\n`
+						skTypeString
+							.replace(
+								/(import type \* as Kit from '@sveltejs\/kit';)/,
+								`$1\n`
+									.concat(
+										`import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction }  from '${houdiniRelative}/plugins/houdini-svelte/runtime/types'\n`
+									)
+									.concat(`${pageTypeImports}\n`)
+									.concat(`${layoutTypeImports}`)
+							)
+							.replace(
+								/(?<=LayoutData = )([\s\S]*?)(?=;)/,
+								`Expand<$1 & { `.concat(
+									`${layoutQueries
+										.map((query) => {
+											const name = query.name!.value
+
+											return [name, name + store_suffix(config)].join(': ')
+										})
+										.join('; ')} }>`
 								)
-								.concat(`${pageTypeImports}\n`)
-								.concat(`${layoutTypeImports}`)
-						)
+							)
+							.replace(
+								/(?<=PageData = )([\s\S]*?)(?=;)/,
+								`Expand<$1 & { `.concat(
+									`${pageQueries
+										.map((query) => {
+											const name = query.name!.value
+
+											return [name, name + store_suffix(config)].join(': ')
+										})
+										.join('; ')}}>`
+								)
+							)
+							.concat(
+								`\n${
+									layoutQueries.length > 0 &&
+									!skTypeString.includes('LayoutParams')
+										? "type LayoutParams = LayoutLoadEvent['params']"
+										: ''
+								}`
+							)
+							.concat(
+								`\n${
+									pageQueries.length > 0 && !skTypeString.includes('PageParams')
+										? "type PageParams = PageLoadEvent['params']"
+										: ''
+								}`
+							).concat("this should add to last file")
+
+						// .concat(
+						// 	`${
+						// 		pageQueries.length > 0 && !skTypeString.includes('PageParams')
+						// 			? `type PageParams = PageLoadEvent['params']`
+						// 			: ``
+						// 	}`
+						// )
+						// .concat(
+						// 	`${
+						// 		layoutQueries.length > 0 &&
+						// 		!skTypeString.includes('LayoutParams')
+						// 			? `type LayoutParams = LayoutLoadEvent['params']`
+						// 			: ``
+						// 	}`
+						// )
 					)
 
+					// console.log(target);
+
+					await fs.mkdirp(path.dirname(target))
+
+					// write the file
+					await fs.writeFile(target, 'test1234')
 				}
 			} else {
 				throw Error(`SvelteKit types do not exist at route: ${skTypeFile}`)
 			}
-
 		}
 
 		// 		const src_path = path.dirname(h_path).match(root_path_reg)?.[0] ?? ''
@@ -247,102 +298,102 @@ export default async function svelteKitGenerator(
 	await walk_types(path.join(config.projectRoot, 'src/routes'))
 
 	// we need to walk down their route directory and create any variable definitions we need
-	await walk_routes(config, framework, {
-		async route({
-			dirpath,
-			pageScript,
-			layoutScript,
-			routePageQuery,
-			routeLayoutQuery,
-			inlineLayoutQueries,
-			inlineQueries,
-		}) {
-			// in order to create the variable definition we need to know every query that is being
-			// used in a specific route so we can generate versions of the variable functions with
-			// the Params type from './$types' provided by the sveltekit rootDir
-
-			let scriptPageExports: string[] = []
-			let scriptLayoutExports: string[] = []
-
-			const pageQueries = inlineQueries.concat(routePageQuery ?? [])
-			const layoutQueries = inlineLayoutQueries.concat(routeLayoutQuery ?? [])
-
-			// pageScript need to be imported so we can figure out if there is a houdini_load
-			// and what's inside.
-			if (pageScript) {
-				// import the houdini_load function
-				const { houdini_load, exports } = await extract_load_function(config, pageScript)
-
-				// add every load to the list
-				pageQueries.push(...(houdini_load ?? []))
-				scriptPageExports = exports
-			}
-
-			// pageScript need to be imported so we can figure out if there is a houdini_load
-			// and what's inside.
-			if (layoutScript) {
-				// import the houdini_load function
-				const { houdini_load, exports } = await extract_load_function(config, layoutScript)
-
-				// add every load to the list
-				layoutQueries.push(...(houdini_load ?? []))
-				scriptLayoutExports = exports
-			}
-
-			// if we have no queries, there's nothing to do
-			if (pageQueries.length === 0 && layoutQueries.length === 0) {
-				return
-			}
-
-			// we need to write the type defs to the same route path relative to the type root
-			// const targetPath = path.join(config.typeRouteDir,
-			const relativePath = path.relative(config.routesDir, dirpath)
-			const target = path.join(type_route_dir(config), relativePath, config.typeRootFile)
-
-			// we can't import from $houdini so we need to compute the relative path from the import
-			const houdiniRelative = path
-				.relative(target, config.typeRootDir)
-				// Windows management
-				.replaceAll('\\', '/')
-
-			// the unique set of query names
-			const queryNames: string[] = []
-			const uniqueQueries: OperationDefinitionNode[] = []
-			for (const query of pageQueries) {
-				if (!queryNames.includes(query.name!.value)) {
-					queryNames.push(query.name!.value)
-					uniqueQueries.push(query)
-				}
-			}
-
-			const layoutNames: string[] = []
-			const uniqueLayoutQueries: OperationDefinitionNode[] = []
-			for (const layout of layoutQueries) {
-				if (!layoutNames.includes(layout.name!.value)) {
-					layoutNames.push(layout.name!.value)
-					uniqueLayoutQueries.push(layout)
-				}
-			}
-
-			// we need to create a typescript file that has a definition of the variable and hook functions
-			const typeDefs = getTypeDefs(
-				houdiniRelative,
-				config,
-				uniqueQueries,
-				pageQueries,
-				uniqueLayoutQueries,
-				layoutQueries,
-				scriptPageExports,
-				scriptLayoutExports
-			)
-
-			// make sure we have a home for the directory
-			await fs.mkdirp(path.dirname(target))
-
-			// write the file
-			await fs.writeFile(target, typeDefs)
-		},
-	})
+	// await walk_routes(config, framework, {
+	// 	async route({
+	// 		dirpath,
+	// 		pageScript,
+	// 		layoutScript,
+	// 		routePageQuery,
+	// 		routeLayoutQuery,
+	// 		inlineLayoutQueries,
+	// 		inlineQueries,
+	// 	}) {
+	// 		// in order to create the variable definition we need to know every query that is being
+	// 		// used in a specific route so we can generate versions of the variable functions with
+	// 		// the Params type from './$types' provided by the sveltekit rootDir
+	//
+	// 		let scriptPageExports: string[] = []
+	// 		let scriptLayoutExports: string[] = []
+	//
+	// 		const pageQueries = inlineQueries.concat(routePageQuery ?? [])
+	// 		const layoutQueries = inlineLayoutQueries.concat(routeLayoutQuery ?? [])
+	//
+	// 		// pageScript need to be imported so we can figure out if there is a houdini_load
+	// 		// and what's inside.
+	// 		if (pageScript) {
+	// 			// import the houdini_load function
+	// 			const { houdini_load, exports } = await extract_load_function(config, pageScript)
+	//
+	// 			// add every load to the list
+	// 			pageQueries.push(...(houdini_load ?? []))
+	// 			scriptPageExports = exports
+	// 		}
+	//
+	// 		// pageScript need to be imported so we can figure out if there is a houdini_load
+	// 		// and what's inside.
+	// 		if (layoutScript) {
+	// 			// import the houdini_load function
+	// 			const { houdini_load, exports } = await extract_load_function(config, layoutScript)
+	//
+	// 			// add every load to the list
+	// 			layoutQueries.push(...(houdini_load ?? []))
+	// 			scriptLayoutExports = exports
+	// 		}
+	//
+	// 		// if we have no queries, there's nothing to do
+	// 		if (pageQueries.length === 0 && layoutQueries.length === 0) {
+	// 			return
+	// 		}
+	//
+	// 		// we need to write the type defs to the same route path relative to the type root
+	// 		// const targetPath = path.join(config.typeRouteDir,
+	// 		const relativePath = path.relative(config.routesDir, dirpath)
+	// 		const target = path.join(type_route_dir(config), relativePath, config.typeRootFile)
+	//
+	// 		// we can't import from $houdini so we need to compute the relative path from the import
+	// 		const houdiniRelative = path
+	// 			.relative(target, config.typeRootDir)
+	// 			// Windows management
+	// 			.replaceAll('\\', '/')
+	//
+	// 		// the unique set of query names
+	// 		const queryNames: string[] = []
+	// 		const uniqueQueries: OperationDefinitionNode[] = []
+	// 		for (const query of pageQueries) {
+	// 			if (!queryNames.includes(query.name!.value)) {
+	// 				queryNames.push(query.name!.value)
+	// 				uniqueQueries.push(query)
+	// 			}
+	// 		}
+	//
+	// 		const layoutNames: string[] = []
+	// 		const uniqueLayoutQueries: OperationDefinitionNode[] = []
+	// 		for (const layout of layoutQueries) {
+	// 			if (!layoutNames.includes(layout.name!.value)) {
+	// 				layoutNames.push(layout.name!.value)
+	// 				uniqueLayoutQueries.push(layout)
+	// 			}
+	// 		}
+	//
+	// 		// we need to create a typescript file that has a definition of the variable and hook functions
+	// 		const typeDefs = getTypeDefs(
+	// 			houdiniRelative,
+	// 			config,
+	// 			uniqueQueries,
+	// 			pageQueries,
+	// 			uniqueLayoutQueries,
+	// 			layoutQueries,
+	// 			scriptPageExports,
+	// 			scriptLayoutExports
+	// 		)
+	//
+	// 		// make sure we have a home for the directory
+	// 		await fs.mkdirp(path.dirname(target))
+	//
+	// 		// write the file
+	// 		await fs.writeFile(target, typeDefs)
+	// 	},
+	// })
 }
 
 function getTypeImports(
