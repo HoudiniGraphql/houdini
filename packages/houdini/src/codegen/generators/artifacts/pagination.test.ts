@@ -30,7 +30,7 @@ test('pagination arguments stripped from key', async function () {
 		export default {
 		    name: "PaginatedFragment",
 		    kind: "HoudiniFragment",
-		    hash: "45e5807e0714c312a701dce3a5156f70da61878dc419fb3f1e78914fca36d091",
+		    hash: "d655188329bfa82826d0e09c9b56fb90c276ed5b3b155784c3358db3cac30c87",
 
 		    refetch: {
 		        update: "append",
@@ -63,7 +63,8 @@ test('pagination arguments stripped from key', async function () {
 		      endCursor
 		    }
 		  }
-		}\`,
+		}
+		\`,
 
 		    rootType: "User",
 
@@ -160,7 +161,7 @@ test('offset based pagination marks appropriate field', async function () {
 		export default {
 		    name: "PaginatedFragment",
 		    kind: "HoudiniFragment",
-		    hash: "751f4becce0eaf199249b367d1badabaa9c1b8638bc2579dd546d968326c0b36",
+		    hash: "61656f834b4f2afccdd42328b499f288fc9776befbef14154133565e0ac7e8b6",
 
 		    refetch: {
 		        update: "append",
@@ -177,7 +178,8 @@ test('offset based pagination marks appropriate field', async function () {
 		  friendsByOffset(limit: $limit, filter: "hello", offset: $offset) {
 		    id
 		  }
-		}\`,
+		}
+		\`,
 
 		    rootType: "User",
 
@@ -233,7 +235,7 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		export default {
 		    name: "ScalarPagination",
 		    kind: "HoudiniQuery",
-		    hash: "89f423f499065b03185c8b3f84fdec84dd0ddc1f26911a1bfa8550001b457623",
+		    hash: "09863f3b665ef14816cc6b9cc965f12bb68ea569345d3f346415ba7a8b8af71c",
 
 		    refetch: {
 		        update: "append",
@@ -276,7 +278,8 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		    }
 		    id
 		  }
-		}\`,
+		}
+		\`,
 
 		    rootType: "Query",
 
@@ -447,7 +450,7 @@ test("sibling aliases don't get marked", async function () {
 		export default {
 		    name: "PaginatedFragment",
 		    kind: "HoudiniFragment",
-		    hash: "04390d1e6cb284c67d7ee091adbecb9e4e72a82e73300dc663715f1c9a965455",
+		    hash: "1a2d87a1d79e0241ab3ebda1cd43296a631d99973bb06e4fc66becd42c4a67be",
 
 		    refetch: {
 		        update: "append",
@@ -501,7 +504,8 @@ test("sibling aliases don't get marked", async function () {
 		      }
 		    }
 		  }
-		}\`,
+		}
+		\`,
 
 		    rootType: "User",
 
