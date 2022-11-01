@@ -93,13 +93,12 @@ export default async function svelteKitGenerator(
 				if (!contents) {
 					continue
 				}
-				// console.log(contents)
 				const parsed = await parseSvelte(contents)
 				if (!parsed) {
 					continue
 				}
 
-				// look for any graphql tags and invoke the walker's handler
+				// look for any graphql tags and push into queries.
 				await find_graphql(config, parsed.script, {
 					where: (tag) => {
 						try {
@@ -208,8 +207,8 @@ export default async function svelteKitGenerator(
 					const beforeLayoutLoad = layoutExports.includes('beforeLoad')
 					const onLayoutError = layoutExports.includes('onError')
 
+					//check if either page or layout has variables exported.
 					const pageVariableLoad = pageExports.some((x) => x.endsWith('Variables'))
-
 					const layoutVariableLoad = layoutExports.some((x) => x.endsWith('Variables'))
 
 					const splitString = skTypeString.split('\n\n')
@@ -218,6 +217,7 @@ export default async function svelteKitGenerator(
 					let utilityTypes = splitString[1]
 					let typeExports = splitString[2]
 
+					// lots of comparisons but helpful to prevent unnecessary imports
 					const functionImports = `${
 						afterPageLoad ||
 						beforePageLoad ||
@@ -239,9 +239,6 @@ export default async function svelteKitGenerator(
 						.concat(functionImports)
 						.concat(layoutTypeImports)
 						.concat(pageTypeImports)
-					// .replaceAll(/\$types\.js/gm, '$houdini.d.ts')
-
-					// console.log(typeImports)
 
 					// verify if necessary. might not be.
 					const layoutParams = `${
@@ -260,8 +257,10 @@ export default async function svelteKitGenerator(
 					utilityTypes = utilityTypes
 						.concat(layoutParams)
 						.concat(pageParams)
+						//replace all instances of $types.js with $houdini to ensure type inheritence
 						.replaceAll(/\$types\.js/gm, '$houdini')
 
+					// main bulk of the work done here.
 					typeExports = typeExports
 						.concat(append_afterLoad('Page', afterPageLoad, pageQueries))
 						.concat(append_beforeLoad(beforePageLoad))
@@ -279,9 +278,10 @@ export default async function svelteKitGenerator(
 								pageQueries.filter((x) => x.variableDefinitions?.length).length > 0
 							)
 						)
-						.concat(append_VariablesFunction('Page', config, uniquePageQueries))
+						//do layout first because page should always take priority.
 						.concat(append_VariablesFunction('Layout', config, uniqueLayoutQueries))
-						//match all between 'LayoutData =' and ; and then wrap in Expand<> with extra types
+						.concat(append_VariablesFunction('Page', config, uniquePageQueries))
+							//match all between 'LayoutData =' and ';' and combine additional types
 						.replace(
 							/(?<=LayoutData = )([\s\S]*?)(?=;)/,
 							`Expand<$1 & { ${layoutQueries
@@ -297,6 +297,7 @@ export default async function svelteKitGenerator(
 							)}>`
 						)
 						.replace(
+							//match all between 'PageData =' and ';' and combine additional types
 							/(?<=PageData = )([\s\S]*?)(?=;)/,
 							`Expand<$1 & { ${pageQueries
 								.map((query) => {
@@ -310,6 +311,8 @@ export default async function svelteKitGenerator(
 								onPageError
 							)}>`
 						)
+						//convert to relative path (e.g. '../../../+page.js' => './+page') in order to preserve type when imported
+						.replaceAll(/(?<=')([^']*?(\+layout|\+page)\.(js|ts))(?=')/g, './$2')
 
 					await fs.mkdirp(path.dirname(target))
 					// write the file
@@ -356,7 +359,7 @@ function append_VariablesFunction(
 				return ''
 			}
 
-			return `export type ${config.variableFunctionName(
+			return `\nexport type ${config.variableFunctionName(
 				name
 			)} = VariableFunction<${type}Params, ${name}$input>;`
 		})
