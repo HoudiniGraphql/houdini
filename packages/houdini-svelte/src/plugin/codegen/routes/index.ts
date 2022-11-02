@@ -187,7 +187,11 @@ export default async function svelteKitGenerator(
 
 				let skTypeString = fs.readFileSync(skTypeFile)
 
+<<<<<<< HEAD
 				if (skTypeString) {
+=======
+				if (!!skTypeString) {
+>>>>>>> 0217e5cead30e8518c58b78b966e971978b25b5d
 					const pageTypeImports = getTypeImports(
 						houdiniRelative,
 						config,
@@ -218,6 +222,7 @@ export default async function svelteKitGenerator(
 					let typeExports = splitString[2]
 
 					// lots of comparisons but helpful to prevent unnecessary imports
+<<<<<<< HEAD
 					const functionImports = `${afterPageLoad ||
 							beforePageLoad ||
 							afterLayoutLoad ||
@@ -231,6 +236,24 @@ export default async function svelteKitGenerator(
 							}} from '${houdiniRelative}/plugins/houdini-svelte/runtime/types';`
 							: ''
 						}`
+=======
+					const functionImports = `${
+						afterPageLoad ||
+						beforePageLoad ||
+						afterLayoutLoad ||
+						beforeLayoutLoad ||
+						pageVariableLoad ||
+						layoutVariableLoad
+							? `\nimport type { ${
+									layoutVariableLoad || pageVariableLoad
+										? 'VariableFunction, '
+										: ''
+							  }${afterLayoutLoad || afterPageLoad ? 'AfterLoadFunction, ' : ''}${
+									beforeLayoutLoad || beforePageLoad ? 'BeforeLoadFunction ' : ''
+							  }} from '${houdiniRelative}/plugins/houdini-svelte/runtime/types';`
+							: ''
+					}`
+>>>>>>> 0217e5cead30e8518c58b78b966e971978b25b5d
 
 					typeImports = typeImports
 						.concat(functionImports)
@@ -238,6 +261,7 @@ export default async function svelteKitGenerator(
 						.concat(pageTypeImports)
 
 					// verify if necessary. might not be.
+<<<<<<< HEAD
 					const layoutParams = `${layoutQueries.length > 0 && !utilityTypes.includes('LayoutParams')
 							? "\ntype LayoutParams = LayoutLoadEvent['params'];"
 							: ''
@@ -248,6 +272,20 @@ export default async function svelteKitGenerator(
 							? "\ntype PageParams = PageLoadEvent['params'];"
 							: ''
 						}`
+=======
+					const layoutParams = `${
+						layoutQueries.length > 0 && !utilityTypes.includes('LayoutParams')
+							? "\ntype LayoutParams = LayoutLoadEvent['params'];"
+							: ''
+					}`
+
+					//page params are necessary though.
+					const pageParams = `${
+						pageQueries.length > 0 && !utilityTypes.includes('PageParams')
+							? "\ntype PageParams = PageLoadEvent['params'];"
+							: ''
+					}`
+>>>>>>> 0217e5cead30e8518c58b78b966e971978b25b5d
 
 					utilityTypes = utilityTypes
 						.concat(layoutParams)
@@ -257,8 +295,11 @@ export default async function svelteKitGenerator(
 
 					// main bulk of the work done here.
 					typeExports = typeExports
+<<<<<<< HEAD
 						.concat(append_loadInput(pageQueries))
 						.concat(append_loadInput(layoutQueries))
+=======
+>>>>>>> 0217e5cead30e8518c58b78b966e971978b25b5d
 						.concat(append_afterLoad('Page', afterPageLoad, pageQueries))
 						.concat(append_beforeLoad(beforePageLoad))
 						.concat(
@@ -278,7 +319,11 @@ export default async function svelteKitGenerator(
 						//do layout first because page should always take priority.
 						.concat(append_VariablesFunction('Layout', config, uniqueLayoutQueries))
 						.concat(append_VariablesFunction('Page', config, uniquePageQueries))
+<<<<<<< HEAD
 						//match all between 'LayoutData =' and ';' and combine additional types
+=======
+							//match all between 'LayoutData =' and ';' and combine additional types
+>>>>>>> 0217e5cead30e8518c58b78b966e971978b25b5d
 						.replace(
 							/(?<=LayoutData = )([\s\S]*?)(?=;)/,
 							`Expand<$1 & { ${layoutQueries
@@ -288,10 +333,17 @@ export default async function svelteKitGenerator(
 									return [name, name + store_suffix(config)].join(': ')
 								})
 								.join('; ')} }${internal_append_TypeDataExtra(
+<<<<<<< HEAD
 									beforeLayoutLoad,
 									afterLayoutLoad,
 									onLayoutError
 								)}>`
+=======
+								beforeLayoutLoad,
+								afterLayoutLoad,
+								onLayoutError
+							)}>`
+>>>>>>> 0217e5cead30e8518c58b78b966e971978b25b5d
 						)
 						.replace(
 							//match all between 'PageData =' and ';' and combine additional types
@@ -303,10 +355,17 @@ export default async function svelteKitGenerator(
 									return [name, name + store_suffix(config)].join(': ')
 								})
 								.join('; ')} }${internal_append_TypeDataExtra(
+<<<<<<< HEAD
 									beforePageLoad,
 									afterPageLoad,
 									onPageError
 								)}>`
+=======
+								beforePageLoad,
+								afterPageLoad,
+								onPageError
+							)}>`
+>>>>>>> 0217e5cead30e8518c58b78b966e971978b25b5d
 						)
 						//convert to relative path (e.g. '../../../+page.js' => './+page') in order to preserve type when imported
 						.replaceAll(/(?<=')([^']*?(\+layout|\+page)\.(js|ts))(?=')/g, './$2')
@@ -336,8 +395,14 @@ function getTypeImports(
 	return queries
 		.map((query) => {
 			const name = query.name!.value
+<<<<<<< HEAD
 			return `\nimport { ${name}$result, ${name}$input } from '${houdiniRelative}/${config.artifactDirectoryName
 				}/${name}';\nimport { ${name}Store } from '${houdiniRelative}/plugins/houdini-svelte/${stores_directory_name()}/${name}';`
+=======
+			return `\nimport { ${name}$result, ${name}$input } from '${houdiniRelative}/${
+				config.artifactDirectoryName
+			}/${name}';\nimport { ${name}Store } from '${houdiniRelative}/plugins/houdini-svelte/${stores_directory_name()}/${name}';`
+>>>>>>> 0217e5cead30e8518c58b78b966e971978b25b5d
 		})
 		.join('\n')
 }
@@ -388,11 +453,21 @@ type AfterLoadReturn = ReturnType<typeof import('./+${type.toLowerCase()}').afte
 type AfterLoadData = {
 	${internal_append_afterLoad(queries)}
 };
+<<<<<<< HEAD
 
 export type AfterLoadEvent = {
 	event: PageLoadEvent
 	data: AfterLoadData
 	input: ${queries.filter((q) => q.variableDefinitions?.length).length ? 'LoadInput' : '{}'}
+=======
+type LoadInput = {
+	${internal_append_afterLoadInput(queries)}
+};
+export type AfterLoadEvent = {
+	event: PageLoadEvent
+	data: AfterLoadData
+	input: LoadInput
+>>>>>>> 0217e5cead30e8518c58b78b966e971978b25b5d
 };
 `
 		: ''
@@ -406,7 +481,24 @@ function internal_append_afterLoad(queries: OperationDefinitionNode[]) {
 
 			return [name, name + '$result'].join(': ')
 		})
+<<<<<<< HEAD
 		.join(';\n\t')}`
+=======
+		.join(', \n')}`
+}
+
+function internal_append_afterLoadInput(queries: OperationDefinitionNode[]) {
+	// console.log(queries)AfterLoadFunction
+	return `${queries
+		.filter((query) => query.variableDefinitions?.length)
+		.map((query) => {
+			// if the query does not have any variables, don't include anything
+			const name = query.name!.value
+
+			return [name, name + '$input'].join(': ')
+		})
+		.join(', \n')}`
+>>>>>>> 0217e5cead30e8518c58b78b966e971978b25b5d
 }
 
 function append_beforeLoad(beforeLoad: boolean) {
@@ -422,13 +514,25 @@ function append_onError(onError: boolean, hasLoadInput: boolean) {
 	return onError
 		? `
 type OnErrorReturn = ReturnType<typeof import('./+page').onError>;
+<<<<<<< HEAD
 export type OnErrorEvent =  { event: Kit.LoadEvent, input: ${hasLoadInput ? 'LoadInput' : '{}'
 		}, error: Error | Error[] };
+=======
+export type OnErrorEvent =  { event: Kit.LoadEvent, input: ${
+				hasLoadInput ? 'LoadInput' : '{}'
+		  }, error: Error | Error[] };
+>>>>>>> 0217e5cead30e8518c58b78b966e971978b25b5d
 `
 		: ''
 }
 
 function internal_append_TypeDataExtra(beforeLoad: boolean, afterLoad: boolean, onError: boolean) {
+<<<<<<< HEAD
 	return `${beforeLoad ? ' & BeforeLoadReturn' : ''}${afterLoad ? ' & AfterLoadReturn' : ''}${onError ? ' & OnErrorReturn' : ''
 		}`
+=======
+	return `${beforeLoad ? ' & BeforeLoadReturn' : ''}${afterLoad ? ' & AfterLoadReturn' : ''}${
+		onError ? ' & OnErrorReturn' : ''
+	}`
+>>>>>>> 0217e5cead30e8518c58b78b966e971978b25b5d
 }
