@@ -371,7 +371,7 @@ function append_VariablesFunction(
 function append_loadInput(queries: OperationDefinitionNode[]) {
 	return `${
 		queries.filter((q) => q.variableDefinitions?.length).length
-			? `\ntype LoadInput = {${queries
+			? `\ntype LoadInput = { ${queries
 					.filter((query) => query.variableDefinitions?.length)
 					.map((query) => {
 						// if the query does not have any variables, don't include anything
@@ -379,7 +379,7 @@ function append_loadInput(queries: OperationDefinitionNode[]) {
 
 						return [name, name + '$input'].join(': ')
 					})
-					.join('; ')}};`
+					.join('; ')} };`
 			: ''
 	}`
 }
