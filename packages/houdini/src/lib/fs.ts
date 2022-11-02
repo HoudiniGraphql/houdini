@@ -6,6 +6,19 @@ import { promisify } from 'util'
 
 import * as path from './path'
 
+export async function copySync(srcDir: string, destDir: string, overwrite: boolean = false) {
+	fsExtra.copySync(srcDir, destDir, { overwrite: overwrite })
+}
+
+export async function rename(oldname: string, newname: string) {
+	// fsExtra.rename(oldname, newname)
+	try {
+		fsExtra.renameSync(oldname, newname)
+	} catch (e) {
+		console.log(e)
+	}
+}
+
 export async function readFile(filepath: string): Promise<string | null> {
 	if (process.env.NODE_ENV === 'test') {
 		try {
