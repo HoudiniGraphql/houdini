@@ -218,19 +218,22 @@ export default async function svelteKitGenerator(
 					let typeExports = splitString[2]
 
 					// lots of comparisons but helpful to prevent unnecessary imports
-					const functionImports = `${afterPageLoad ||
-							beforePageLoad ||
-							afterLayoutLoad ||
-							beforeLayoutLoad ||
-							pageVariableLoad ||
-							layoutVariableLoad
-							? `\nimport type { ${layoutVariableLoad || pageVariableLoad
-								? 'VariableFunction, '
-								: ''
-							}${afterLayoutLoad || afterPageLoad ? 'AfterLoadFunction, ' : ''}${beforeLayoutLoad || beforePageLoad ? 'BeforeLoadFunction ' : ''
-							}} from '${houdiniRelative}/plugins/houdini-svelte/runtime/types';`
+					const functionImports = `${
+						afterPageLoad ||
+						beforePageLoad ||
+						afterLayoutLoad ||
+						beforeLayoutLoad ||
+						pageVariableLoad ||
+						layoutVariableLoad
+							? `\nimport type { ${
+									layoutVariableLoad || pageVariableLoad
+										? 'VariableFunction, '
+										: ''
+							  }${afterLayoutLoad || afterPageLoad ? 'AfterLoadFunction, ' : ''}${
+									beforeLayoutLoad || beforePageLoad ? 'BeforeLoadFunction ' : ''
+							  }} from '${houdiniRelative}/plugins/houdini-svelte/runtime/types';`
 							: ''
-						}`
+					}`
 
 					typeImports = typeImports
 						.concat(functionImports)
@@ -238,16 +241,18 @@ export default async function svelteKitGenerator(
 						.concat(pageTypeImports)
 
 					// verify if necessary. might not be.
-					const layoutParams = `${layoutQueries.length > 0 && !utilityTypes.includes('LayoutParams')
+					const layoutParams = `${
+						layoutQueries.length > 0 && !utilityTypes.includes('LayoutParams')
 							? "\ntype LayoutParams = LayoutLoadEvent['params'];"
 							: ''
-						}`
+					}`
 
 					//page params are necessary though.
-					const pageParams = `${pageQueries.length > 0 && !utilityTypes.includes('PageParams')
+					const pageParams = `${
+						pageQueries.length > 0 && !utilityTypes.includes('PageParams')
 							? "\ntype PageParams = PageLoadEvent['params'];"
 							: ''
-						}`
+					}`
 
 					utilityTypes = utilityTypes
 						.concat(layoutParams)
@@ -288,10 +293,10 @@ export default async function svelteKitGenerator(
 									return [name, name + store_suffix(config)].join(': ')
 								})
 								.join('; ')} }${internal_append_TypeDataExtra(
-									beforeLayoutLoad,
-									afterLayoutLoad,
-									onLayoutError
-								)}>`
+								beforeLayoutLoad,
+								afterLayoutLoad,
+								onLayoutError
+							)}>`
 						)
 						.replace(
 							//match all between 'PageData =' and ';' and combine additional types
@@ -303,10 +308,10 @@ export default async function svelteKitGenerator(
 									return [name, name + store_suffix(config)].join(': ')
 								})
 								.join('; ')} }${internal_append_TypeDataExtra(
-									beforePageLoad,
-									afterPageLoad,
-									onPageError
-								)}>`
+								beforePageLoad,
+								afterPageLoad,
+								onPageError
+							)}>`
 						)
 						//convert to relative path (e.g. '../../../+page.js' => './+page') in order to preserve type when imported
 						.replaceAll(/(?<=')([^']*?(\+layout|\+page)\.(js|ts))(?=')/g, './$2')
@@ -336,8 +341,9 @@ function getTypeImports(
 	return queries
 		.map((query) => {
 			const name = query.name!.value
-			return `\nimport { ${name}$result, ${name}$input } from '${houdiniRelative}/${config.artifactDirectoryName
-				}/${name}';\nimport { ${name}Store } from '${houdiniRelative}/plugins/houdini-svelte/${stores_directory_name()}/${name}';`
+			return `\nimport { ${name}$result, ${name}$input } from '${houdiniRelative}/${
+				config.artifactDirectoryName
+			}/${name}';\nimport { ${name}Store } from '${houdiniRelative}/plugins/houdini-svelte/${stores_directory_name()}/${name}';`
 		})
 		.join('\n')
 }
@@ -363,18 +369,19 @@ function append_VariablesFunction(
 }
 
 function append_loadInput(queries: OperationDefinitionNode[]) {
-	return `${queries.filter((q) => q.variableDefinitions?.length).length
+	return `${
+		queries.filter((q) => q.variableDefinitions?.length).length
 			? `\ntype LoadInput = {${queries
-				.filter((query) => query.variableDefinitions?.length)
-				.map((query) => {
-					// if the query does not have any variables, don't include anything
-					const name = query.name!.value
+					.filter((query) => query.variableDefinitions?.length)
+					.map((query) => {
+						// if the query does not have any variables, don't include anything
+						const name = query.name!.value
 
-					return [name, name + '$input'].join(': ')
-				})
-				.join('; ')}};`
+						return [name, name + '$input'].join(': ')
+					})
+					.join('; ')}};`
 			: ''
-		}`
+	}`
 }
 
 function append_afterLoad(
@@ -422,13 +429,15 @@ function append_onError(onError: boolean, hasLoadInput: boolean) {
 	return onError
 		? `
 type OnErrorReturn = ReturnType<typeof import('./+page').onError>;
-export type OnErrorEvent =  { event: Kit.LoadEvent, input: ${hasLoadInput ? 'LoadInput' : '{}'
-		}, error: Error | Error[] };
+export type OnErrorEvent =  { event: Kit.LoadEvent, input: ${
+				hasLoadInput ? 'LoadInput' : '{}'
+		  }, error: Error | Error[] };
 `
 		: ''
 }
 
 function internal_append_TypeDataExtra(beforeLoad: boolean, afterLoad: boolean, onError: boolean) {
-	return `${beforeLoad ? ' & BeforeLoadReturn' : ''}${afterLoad ? ' & AfterLoadReturn' : ''}${onError ? ' & OnErrorReturn' : ''
-		}`
+	return `${beforeLoad ? ' & BeforeLoadReturn' : ''}${afterLoad ? ' & AfterLoadReturn' : ''}${
+		onError ? ' & OnErrorReturn' : ''
+	}`
 }

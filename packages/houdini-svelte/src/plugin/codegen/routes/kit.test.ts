@@ -8,7 +8,7 @@ import { type_route_dir } from '../../kit'
 const config = testConfig()
 const plugin_root = config.pluginDirectory('test-plugin')
 
-test('generates types for inline queries', async function() {
+test('generates types for inline queries', async function () {
 	// create the mock filesystem
 	await fs.mock({
 		[config.routesDir]: {
@@ -98,7 +98,7 @@ export type PageData = Expand<Expand<PageParentData> & {
 }>;`)
 })
 
-test('generates types for page queries', async function() {
+test('generates types for page queries', async function () {
 	// create the mock filesystem
 	await fs.mock({
 		[config.routesDir]: {
@@ -186,7 +186,7 @@ export type PageData = Expand<Expand<PageParentData> & {
 }>;`)
 })
 
-test('generates types for layout queries', async function() {
+test('generates types for layout queries', async function () {
 	// create the mock filesystem
 	await fs.mock({
 		[config.routesDir]: {
@@ -275,7 +275,7 @@ export type LayoutData = Expand<Expand<LayoutParentData> & {
 `)
 })
 
-test('generates types for after load', async function() {
+test('generates types for after load', async function () {
 	// create the mock filesystem
 	await fs.mock({
 		[config.routesDir]: {
@@ -407,7 +407,7 @@ export type MyPageLoad1QueryVariables = VariableFunction<PageParams, MyPageLoad1
 `)
 })
 
-test('generates types for onError', async function() {
+test('generates types for onError', async function () {
 	// create the mock filesystem
 	await fs.mock({
 		[config.routesDir]: {
@@ -476,7 +476,6 @@ export type PageData = Expand<Omit<PageParentData, keyof PageParentData & Ensure
 		path.join(type_route_dir(config), 'myProfile', '$houdini.d.ts')
 	)
 	expect(queryContents).toBeTruthy()
-	console.log(queryContents)
 
 	const parsedQuery = (await parseJS(queryContents!))?.script
 
