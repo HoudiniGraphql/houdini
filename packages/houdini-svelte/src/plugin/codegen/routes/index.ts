@@ -287,9 +287,11 @@ export default async function svelteKitGenerator(
 						//we define the loadInput, checks if any queries have imports
 						.concat(append_loadInput(layoutQueries))
 						.concat(append_loadInput(pageQueries))
-						//define before and afterLoad types for page
-						.concat(append_afterLoad('Page', afterPageLoad, pageQueries))
+						//define beforeLoad and afterLoad types layout always first
+						.concat(append_beforeLoad(beforeLayoutLoad))
 						.concat(append_beforeLoad(beforePageLoad))
+						.concat(append_afterLoad('Layout', afterLayoutLoad, layoutQueries))
+						.concat(append_afterLoad('Page', afterPageLoad, pageQueries))
 						.concat(
 							append_onError(
 								onPageError,
@@ -297,9 +299,6 @@ export default async function svelteKitGenerator(
 								pageQueries.filter((x) => x.variableDefinitions?.length).length > 0
 							)
 						)
-						//generate before and afterload for layout
-						.concat(append_afterLoad('Layout', afterLayoutLoad, layoutQueries))
-						.concat(append_beforeLoad(beforeLayoutLoad))
 						.concat(
 							append_onError(
 								onLayoutError,
@@ -307,7 +306,6 @@ export default async function svelteKitGenerator(
 								pageQueries.filter((x) => x.variableDefinitions?.length).length > 0
 							)
 						)
-						//do layout first because page should always take priority.
 						.concat(append_VariablesFunction('Layout', config, uniqueLayoutQueries))
 						.concat(append_VariablesFunction('Page', config, uniquePageQueries))
 						//match all between 'LayoutData =' and ';' and combine additional types
