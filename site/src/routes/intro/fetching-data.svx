@@ -10,7 +10,7 @@ description: The first part of the Houdini intro focusing on how to fetch data
 
 # Fetching Data
 
-Before we do anything _too_ complicated, lets get something on the screen. Open up `src/routes/+page.svelte` and fill it with the following content
+Before we do anything _too_ complicated, lets look at what we are starting with:
 
 ```svelte
 <!-- src/routes/+page.svelte -->
