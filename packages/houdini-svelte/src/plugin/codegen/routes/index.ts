@@ -39,6 +39,7 @@ export default async function svelteKitGenerator(
 		let pageQueries: OperationDefinitionNode[] = []
 		let layoutQueries: OperationDefinitionNode[] = []
 
+		//parse all files and push contents into page/layoutExports, page/layoutQueries
 		for (const child of await fs.readdir(dirpath)) {
 			const childPath = path.join(dirpath, child)
 			// if we run into another directory, keep walking down
@@ -159,14 +160,20 @@ export default async function svelteKitGenerator(
 				.replaceAll('\\', '/')
 
 			const relative_path_regex = /src(.*)/
+
+			// here we define the location of the correspoding sveltekit type file
 			const skTypeFile = path.join(
 				config.projectRoot,
 				'.svelte-kit/types',
 				dirpath.match(relative_path_regex)?.[0] ?? '',
 				'$types.d.ts'
 			)
-
+			
+			// if corresponding type file exists, we can generate types. Otherwise we error
 			if (fs.existsSync(skTypeFile)) {
+
+				// get all unique queries for page and layout, used for defining imports and variable functions
+
 				const queryNames: string[] = []
 				const uniquePageQueries: OperationDefinitionNode[] = []
 				for (const query of pageQueries) {
@@ -185,9 +192,14 @@ export default async function svelteKitGenerator(
 					}
 				}
 
+				// read the svelte-kit $types.d.ts file into a string
 				let skTypeString = fs.readFileSync(skTypeFile)
 
-				if (skTypeString) {
+				//if the file is truthy (not empty)
+				if (!!skTypeString) {
+
+					//get the type imports for file
+
 					const pageTypeImports = getTypeImports(
 						houdiniRelative,
 						config,
@@ -199,6 +211,7 @@ export default async function svelteKitGenerator(
 						uniqueLayoutQueries
 					)
 
+					// Util bools for ensuring no unnecessary types
 					const afterPageLoad = pageExports.includes('afterLoad')
 					const beforePageLoad = pageExports.includes('beforeLoad')
 					const onPageError = pageExports.includes('onError')
@@ -211,13 +224,17 @@ export default async function svelteKitGenerator(
 					const pageVariableLoad = pageExports.some((x) => x.endsWith('Variables'))
 					const layoutVariableLoad = layoutExports.some((x) => x.endsWith('Variables'))
 
+					//default sktype string is defined as imports \n\n utility \n\n exports
 					const splitString = skTypeString.split('\n\n')
 
+					//name our sections
 					let typeImports = splitString[0]
 					let utilityTypes = splitString[1]
 					let typeExports = splitString[2]
 
 					// lots of comparisons but helpful to prevent unnecessary imports
+					// define function imports e.g. import {VariableFunction, AferLoadFunction, BeforeLoadFunction} from 'relativePath'
+					// will not include unnecessary imports.
 					const functionImports = `${
 						afterPageLoad ||
 						beforePageLoad ||
@@ -235,10 +252,13 @@ export default async function svelteKitGenerator(
 							: ''
 					}`
 
+					// mutate typeImports with our functionImports, layout/pageStores, $result, $input, 
 					typeImports = typeImports
 						.concat(functionImports)
 						.concat(layoutTypeImports)
 						.concat(pageTypeImports)
+
+					// if we need Page/LayoutParams, generate this type.
 
 					// verify if necessary. might not be.
 					const layoutParams = `${
@@ -254,29 +274,36 @@ export default async function svelteKitGenerator(
 							: ''
 					}`
 
+					// mutate utilityTypes with our layoutParams, pageParams. 
 					utilityTypes = utilityTypes
 						.concat(layoutParams)
 						.concat(pageParams)
-						//replace all instances of $types.js with $houdini to ensure type inheritence
+						//replace all instances of $types.js with $houdini to ensure type inheritence.
+						//any type imports will always be in the utilityTypes block
 						.replaceAll(/\$types\.js/gm, '$houdini')
 
 					// main bulk of the work done here.
 					typeExports = typeExports
-						.concat(append_loadInput(pageQueries))
+						//we define the loadInput, checks if any queries have imports
 						.concat(append_loadInput(layoutQueries))
+						.concat(append_loadInput(pageQueries))
+						//define before and afterLoad types for page
 						.concat(append_afterLoad('Page', afterPageLoad, pageQueries))
 						.concat(append_beforeLoad(beforePageLoad))
 						.concat(
 							append_onError(
 								onPageError,
+								//if there are not inputs to any query, we won't define a LoadInput in our error type
 								pageQueries.filter((x) => x.variableDefinitions?.length).length > 0
 							)
 						)
+						//generate before and afterload for layout
 						.concat(append_afterLoad('Layout', afterLayoutLoad, layoutQueries))
 						.concat(append_beforeLoad(beforeLayoutLoad))
 						.concat(
 							append_onError(
 								onLayoutError,
+								//if there are not inputs to any query, we won't define a LoadInput in our error type
 								pageQueries.filter((x) => x.variableDefinitions?.length).length > 0
 							)
 						)
@@ -285,6 +312,8 @@ export default async function svelteKitGenerator(
 						.concat(append_VariablesFunction('Page', config, uniquePageQueries))
 						//match all between 'LayoutData =' and ';' and combine additional types
 						.replace(
+							//regex to append our generated stores to the existing 
+							//match all between 'LayoutData =' and ';' and combine additional types
 							/(?<=LayoutData = )([\s\S]*?)(?=;)/,
 							`Expand<$1 & { ${layoutQueries
 								.map((query) => {
@@ -299,6 +328,7 @@ export default async function svelteKitGenerator(
 							)}>`
 						)
 						.replace(
+							//regex to append our generated stores to the existing 
 							//match all between 'PageData =' and ';' and combine additional types
 							/(?<=PageData = )([\s\S]*?)(?=;)/,
 							`Expand<$1 & { ${pageQueries
@@ -316,6 +346,7 @@ export default async function svelteKitGenerator(
 						//convert to relative path (e.g. '../../../+page.js' => './+page') in order to preserve type when imported
 						.replaceAll(/(?<=')([^']*?(\+layout|\+page)\.(js|ts))(?=')/g, './$2')
 
+					//make dir of target if not exist
 					await fs.mkdirp(path.dirname(target))
 					// write the file
 					await fs.writeFile(
@@ -324,6 +355,7 @@ export default async function svelteKitGenerator(
 					)
 				}
 			} else {
+				//we need svelte-kit types.
 				throw Error(`SvelteKit types do not exist at route: ${skTypeFile}`)
 			}
 		}
