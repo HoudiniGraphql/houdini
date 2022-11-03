@@ -168,10 +168,9 @@ export default async function svelteKitGenerator(
 				dirpath.match(relative_path_regex)?.[0] ?? '',
 				'$types.d.ts'
 			)
-			
+
 			// if corresponding type file exists, we can generate types. Otherwise we error
 			if (fs.existsSync(skTypeFile)) {
-
 				// get all unique queries for page and layout, used for defining imports and variable functions
 
 				const queryNames: string[] = []
@@ -197,7 +196,6 @@ export default async function svelteKitGenerator(
 
 				//if the file is truthy (not empty)
 				if (!!skTypeString) {
-
 					//get the type imports for file
 
 					const pageTypeImports = getTypeImports(
@@ -252,7 +250,7 @@ export default async function svelteKitGenerator(
 							: ''
 					}`
 
-					// mutate typeImports with our functionImports, layout/pageStores, $result, $input, 
+					// mutate typeImports with our functionImports, layout/pageStores, $result, $input,
 					typeImports = typeImports
 						.concat(functionImports)
 						.concat(layoutTypeImports)
@@ -274,7 +272,7 @@ export default async function svelteKitGenerator(
 							: ''
 					}`
 
-					// mutate utilityTypes with our layoutParams, pageParams. 
+					// mutate utilityTypes with our layoutParams, pageParams.
 					utilityTypes = utilityTypes
 						.concat(layoutParams)
 						.concat(pageParams)
@@ -310,7 +308,7 @@ export default async function svelteKitGenerator(
 						.concat(append_VariablesFunction('Page', config, uniquePageQueries))
 						//match all between 'LayoutData =' and ';' and combine additional types
 						.replace(
-							//regex to append our generated stores to the existing 
+							//regex to append our generated stores to the existing
 							//match all between 'LayoutData =' and ';' and combine additional types
 							/(?<=LayoutData = )([\s\S]*?)(?=;)/,
 							`Expand<$1 & { ${layoutQueries
@@ -326,7 +324,7 @@ export default async function svelteKitGenerator(
 							)}>`
 						)
 						.replace(
-							//regex to append our generated stores to the existing 
+							//regex to append our generated stores to the existing
 							//match all between 'PageData =' and ';' and combine additional types
 							/(?<=PageData = )([\s\S]*?)(?=;)/,
 							`Expand<$1 & { ${pageQueries
