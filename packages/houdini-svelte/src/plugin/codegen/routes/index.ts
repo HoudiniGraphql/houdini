@@ -195,7 +195,7 @@ export default async function svelteKitGenerator(
 				let skTypeString = fs.readFileSync(skTypeFile)
 
 				//if the file is truthy (not empty)
-				if (!!skTypeString) {
+				if (skTypeString) {
 					//get the type imports for file
 
 					const pageTypeImports = getTypeImports(
