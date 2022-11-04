@@ -1,4 +1,4 @@
-import { HoudiniError, PluginFactory, path, CollectedGraphQLDocument } from 'houdini'
+import { HoudiniError, PluginFactory, path } from 'houdini'
 
 import generate from './codegen'
 import extract from './extract'
