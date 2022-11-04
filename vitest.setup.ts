@@ -2,12 +2,12 @@ import * as graphql from 'graphql'
 import path from 'path'
 import * as recast from 'recast'
 import typeScriptParser from 'recast/parsers/typescript'
-import { expect, afterEach, beforeEach } from 'vitest'
+import { beforeEach, expect } from 'vitest'
 
 import { fs } from './packages/houdini/src/lib'
 import { clearMock, testConfig } from './packages/houdini/src/test'
 
-process.env.TEST = 'true'
+process.env.HOUDINI_TEST = 'true'
 
 beforeEach(clearMock)
 
