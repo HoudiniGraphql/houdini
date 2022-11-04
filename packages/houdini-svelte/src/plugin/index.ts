@@ -1,4 +1,4 @@
-import { HoudiniError, PluginFactory, path } from 'houdini'
+import { HoudiniError, PluginFactory, path, CollectedGraphQLDocument } from 'houdini'
 
 import generate from './codegen'
 import extract from './extract'
@@ -190,4 +190,21 @@ export type HoudiniVitePluginConfig = {
 	 * A flag to treat every component as a non-route. This is useful for projects built with the static-adapter
 	 */
 	static?: boolean
+
+	/**
+	 * Override the classes used when building stores for documents. Values should take the form package.export
+	 * For example, if you have a store exported from $lib/stores you should set the value to "$lib/stores.CustomStore".
+	 */
+	customStores?: {
+		query?: string
+		mutation?: string
+		subscription?: string
+		fragment?: string
+		queryForwardsCursor?: string
+		queryBackwardsCursor?: string
+		queryOffset?: string
+		fragmentForwardsCursor?: string
+		fragmentBackwardsCursor?: string
+		fragmentOffset?: string
+	}
 }
