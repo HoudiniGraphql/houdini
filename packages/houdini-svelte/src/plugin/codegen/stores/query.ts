@@ -2,9 +2,11 @@ import * as graphql from 'graphql'
 import { CollectedGraphQLDocument, GenerateHookInput, path } from 'houdini'
 import { operation_requires_variables, fs } from 'houdini'
 
+import type { HoudiniVitePluginConfig } from '../..'
 import { global_store_name, stores_directory, store_name } from '../../kit'
+import { store_import } from './custom'
 
-export async function generateIndividualStoreQuery(
+export async function queryStore(
 	{ config, plugin_root }: GenerateHookInput,
 	doc: CollectedGraphQLDocument
 ) {
@@ -27,23 +29,22 @@ export async function generateIndividualStoreQuery(
 	const paginationMethod = doc.refetch?.paginated && doc.refetch.method
 
 	// in order to build the store, we need to know what class we're going to import from
-	let queryClass = 'QueryStore'
+	let which: keyof Required<HoudiniVitePluginConfig>['customStores'] = 'query'
 	if (paginationMethod === 'cursor') {
-		queryClass =
-			doc.refetch?.direction === 'forward'
-				? 'QueryStoreForwardCursor'
-				: 'QueryStoreBackwardCursor'
+		which =
+			doc.refetch?.direction === 'forward' ? 'queryForwardsCursor' : 'queryBackwardsCursor'
 	} else if (paginationMethod === 'offset') {
-		queryClass = 'QueryStoreOffset'
+		which = 'queryOffset'
 	}
 
 	// store definition
-	const storeData = `import { ${queryClass} } from '../runtime/stores'
+	const { store_class, statement } = store_import(config, which)
+	const storeData = `${statement}
 import artifact from '$houdini/artifacts/${artifactName}'
 
 // create the query store
 
-export class ${storeName} extends ${queryClass} {
+export class ${storeName} extends ${store_class} {
 	constructor() {
 		super({
 			artifact,
@@ -72,9 +73,9 @@ export default ${globalStoreName}
 	const _data = `${artifactName}$result`
 
 	// the type definitions for the store
-	const typeDefs = `import type { ${_input}, ${_data}, ${queryClass}, QueryStoreFetchParams} from '$houdini'
+	const typeDefs = `import type { ${_input}, ${_data}, ${store_class}, QueryStoreFetchParams} from '$houdini'
 
-export declare class ${storeName} extends ${queryClass}<${_data}, ${_input}> {
+export declare class ${storeName} extends ${store_class}<${_data}, ${_input}> {
 	constructor() {
 		// @ts-ignore
 		super({})
