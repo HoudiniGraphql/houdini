@@ -61,7 +61,7 @@ Once you've added the field, add an import for `Icon` from the component directo
     <Icon
         name="star"
         id="favorite-star"
-        fill={$data.species.favorite ? "gold" :"lightgrey"}
+        fill={$info.data.species.favorite ? "gold" :"lightgrey"}
     />
 </button>
 ```
@@ -88,7 +88,7 @@ With that in place we can now define a function that will invoke the `toggleFavo
 A mutation store provides a `mutate` method to trigger your mutation. It takes an object with fields to match the mutation's input and returns a promise that will resolve with the response from the mutation. With that in place, we can now configure the button we added earlier to call this function:
 
 ```svelte
-<button on:click={() => toggleFavorite.mutate({id: $data.species.id})}>
+<button on:click={() => toggleFavorite.mutate({id: $info.data.species.id})}>
 ```
 
 Now, try clicking on the grey star for any species. It should flip between gold and grey every time you click it.

@@ -107,7 +107,7 @@ To understand how this works, consider this query:
 <script>
 	import { query, graphql } from '$houdini'
 
-	const { data } = query(graphql`
+	const SpeciesInfo = graphql`
 		query SpeciesInfo {
 			species(id: 1) {
 				name
@@ -121,7 +121,7 @@ To understand how this works, consider this query:
 </script>
 
 <div>
-	{$data.species.name}
+	{$info.data.species.name}
 </div>
 ```
 
@@ -134,9 +134,8 @@ file into these two:
 	// the store gets passed to us as a prop
 	export let data
 
+   let { SpeciesInfo } = data
 	$: ({ SpeciesInfo } = data)
-
-	const { data } = query($SpeciesInfo)
 </script>
 ```
 
