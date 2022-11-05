@@ -118,155 +118,6 @@ export async function walk_routes(
 	visitor: RouteVisitor,
 	dirpath = config.routesDir
 ) {
-	// // if we run into any child with a query, we have a route
-	// let isRoute = false
-	//
-	// // we need to collect the important values from each special child
-	// // for the visitor.route handler
-	// let pageScript: string | null = null
-	// let layoutScript: string | null = null
-	// let routePageQuery: graphql.OperationDefinitionNode | null = null
-	// let routeLayoutQuery: graphql.OperationDefinitionNode | null = null
-	// const inlineLayoutQueries: graphql.OperationDefinitionNode[] = []
-	// const inlineQueries: graphql.OperationDefinitionNode[] = []
-	//
-	// // process the children
-	// for (const child of await fs.readdir(dirpath)) {
-	// 	const childPath = path.join(dirpath, child)
-	// 	// if we run into another directory, keep walking down
-	// 	if ((await fs.stat(childPath)).isDirectory()) {
-	// 		await walk_routes(config, framework, visitor, childPath)
-	// 	}
-	//
-	// 	// page scripts
-	// 	else if (is_page_script(framework, child)) {
-	// 		isRoute = true
-	// 		pageScript = childPath
-	// 		if (!visitor.pageScript) {
-	// 			continue
-	// 		}
-	// 		await visitor.pageScript(childPath, childPath)
-	// 	}
-	//
-	// 	// layout scripts
-	// 	else if (is_layout_script(framework, child)) {
-	// 		isRoute = true
-	// 		layoutScript = childPath
-	// 		if (!visitor.layoutScript) {
-	// 			continue
-	// 		}
-	// 		await visitor.layoutScript(childPath, childPath)
-	// 	}
-	//
-	// 	// page queries
-	// 	else if (child === plugin_config(config).pageQueryFilename) {
-	// 		isRoute = true
-	//
-	// 		// load the contents
-	// 		const contents = await fs.readFile(childPath)
-	// 		if (!contents) {
-	// 			continue
-	// 		}
-	//
-	// 		// invoke the visitor
-	// 		try {
-	// 			routePageQuery = config.extractQueryDefinition(graphql.parse(contents))
-	// 		} catch (e) {
-	// 			throw routeQueryError(childPath)
-	// 		}
-	//
-	// 		if (!visitor.routePageQuery || !routePageQuery) {
-	// 			continue
-	// 		}
-	// 		await visitor.routePageQuery(routePageQuery, childPath)
-	// 	}
-	//
-	// 	// layout queries
-	// 	else if (child === plugin_config(config).layoutQueryFilename) {
-	// 		isRoute = true
-	//
-	// 		// load the contents
-	// 		const contents = await fs.readFile(childPath)
-	// 		if (!contents) {
-	// 			continue
-	// 		}
-	//
-	// 		// invoke the visitor
-	// 		try {
-	// 			routeLayoutQuery = config.extractQueryDefinition(graphql.parse(contents))
-	// 		} catch (e) {
-	// 			throw routeQueryError(childPath)
-	// 		}
-	//
-	// 		if (!visitor.routeLayoutQuery || !routeLayoutQuery) {
-	// 			continue
-	// 		}
-	// 		await visitor.routeLayoutQuery(routeLayoutQuery, childPath)
-	// 	}
-	//
-	// 	// inline layout queries
-	// 	else if (is_layout_component(framework, child)) {
-	// 		// load the contents and parse it
-	// 		const contents = await fs.readFile(childPath)
-	// 		if (!contents) {
-	// 			continue
-	// 		}
-	// 		const parsed = await parseSvelte(contents)
-	// 		if (!parsed) {
-	// 			continue
-	// 		}
-	//
-	// 		// look for any graphql tags and invoke the walker's handler
-	// 		await find_graphql(config, parsed.script, {
-	// 			where: (tag) => {
-	// 				try {
-	// 					return !!config.extractQueryDefinition(tag)
-	// 				} catch {
-	// 					return false
-	// 				}
-	// 			},
-	// 			tag: async ({ parsedDocument }) => {
-	// 				isRoute = true
-	//
-	// 				let definition = config.extractQueryDefinition(parsedDocument)
-	// 				await visitor.inlineLayoutQueries?.(definition, childPath)
-	// 				inlineLayoutQueries.push(definition)
-	// 			},
-	// 		})
-	// 	}
-	//
-	// 	// inline queries
-	// 	else if (is_component(config, framework, child)) {
-	// 		// load the contents and parse it
-	// 		const contents = await fs.readFile(childPath)
-	// 		if (!contents) {
-	// 			continue
-	// 		}
-	// 		const parsed = await parseSvelte(contents)
-	// 		if (!parsed) {
-	// 			continue
-	// 		}
-	//
-	// 		// look for any graphql tags and invoke the walker's handler
-	// 		await find_graphql(config, parsed.script, {
-	// 			where: (tag) => {
-	// 				try {
-	// 					return !!config.extractQueryDefinition(tag)
-	// 				} catch {
-	// 					return false
-	// 				}
-	// 			},
-	// 			tag: async ({ parsedDocument }) => {
-	// 				isRoute = true
-	//
-	// 				let definition = config.extractQueryDefinition(parsedDocument)
-	// 				await visitor.inlineQueries?.(definition, childPath)
-	// 				inlineQueries.push(definition)
-	// 			},
-	// 		})
-	// 	}
-	// }
-
 	let pageExports: string[] = []
 	let layoutExports: string[] = []
 	let pageQueries: graphql.OperationDefinitionNode[] = []
@@ -407,7 +258,7 @@ export async function walk_routes(
 			layoutExports.length > 0)
 	) {
 		//NOTE: Define sveltekitTypeFilePath here so that we ensure route is valid
-	
+
 		const relative_path_regex = /src(.*)/
 
 		// here we define the location of the correspoding sveltekit type file
@@ -419,7 +270,7 @@ export async function walk_routes(
 			'$types.d.ts'
 		)
 
-		// if type does not exists we error. 
+		// if type does not exists we error.
 		if (!fs.existsSync(svelteTypeFilePath)) {
 			throw Error(`SvelteKit types do not exist at route: ${svelteTypeFilePath}`)
 		}
