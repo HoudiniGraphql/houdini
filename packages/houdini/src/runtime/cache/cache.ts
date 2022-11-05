@@ -181,7 +181,7 @@ class CacheInternal {
 
 		// the cache should always be disabled on the server, unless we're testing
 		try {
-			this._disabled = process.env.TEST !== 'true'
+			this._disabled = process.env.HOUDINI_TEST !== 'true'
 		} catch {
 			this._disabled = typeof globalThis.window === 'undefined'
 		}
