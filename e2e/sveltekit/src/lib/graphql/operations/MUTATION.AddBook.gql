@@ -1,0 +1,6 @@
+mutation AddBook($library: ID!, $title: String!) {
+  addBook(library: $library, title: $title) {
+    id
+    ...Book_List_insert @append(parentID: $library)
+  }
+}

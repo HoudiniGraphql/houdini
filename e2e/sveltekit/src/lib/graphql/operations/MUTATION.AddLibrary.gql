@@ -1,0 +1,6 @@
+mutation AddLibrary($city: ID!, $name: String!) {
+  addLibrary(city: $city, name: $name) {
+    id
+    ...Library_List_insert @append(parentID: $city)
+  }
+}
