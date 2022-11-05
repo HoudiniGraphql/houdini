@@ -89,7 +89,7 @@ query MyProfileInfo {
 ```
 
 ```svelte
-<!-- src/routes/myRoute/+page.js -->
+<!-- src/routes/myRoute/+page.svelte -->
 
 <script>
 	export let data
@@ -98,7 +98,7 @@ query MyProfileInfo {
 	$: ({ MyProfileInfo } = data)
 </script>
 
-{$MyProfileInfo.data.viewerProfile.firstName}
+{$MyProfileInfo.data.viewer.firstName}
 ```
 
 This example takes advantage of Houdini's powerful [load generator](#generating-loaders) and
@@ -353,7 +353,7 @@ import { loadAll, load_MyQuery, load_MyOtherQuery } from '$houdini'
 export async function load(event) {
 	return {
 		...(await loadAll(
-			load_MyQuery({ event }), 
+			load_MyQuery({ event }),
 			load_MyOtherQuery({ event })
 		))
 	}

@@ -10,7 +10,7 @@ description: The first part of the Houdini intro focusing on how to fetch data
 
 # Fetching Data
 
-Before we do anything _too_ complicated, lets get something on the screen. Open up `src/routes/+page.svelte` and fill it with the following content
+Before we do anything _too_ complicated, lets look at what we are starting with:
 
 ```svelte
 <!-- src/routes/+page.svelte -->
@@ -199,7 +199,7 @@ Once that's done, you should be able to navigate to `/6` to see Charizard's info
 
 Note: the name of the function that returns the values for a query's variables must follow a very specific format. It must be called `{QueryName}Variables`. If you look at the query we are working with, you'll see its named `SpeciesInfo` which is why this function is named `SpeciesInfoVariables`.
 
-For completeness, let's quickly add some buttons to navigate between the different species. Copy and paste this block of code as the last child of the `Container` component:
+For completeness, let's quickly add some buttons to navigate between the different species. Copy and paste this block of code as the last child of the `Container` component. Don't worry if you see an error when you click on them, we'll fix that next.
 
 ```svelte
 <Panel slot="right">
@@ -212,6 +212,20 @@ For completeness, let's quickly add some buttons to navigate between the differe
         </a>
     </nav>
 </Panel>
+```
+
+## Loading State
+
+If you've already clicked on those links you probably saw a scary message about accessing a value on `null`. The reason for this is because we haven't done anything
+to handle the loading state for our view. Let's just do something quick and dirty:
+
+```svelte
+
+{#if $info.isFetching}
+	<Container/>
+{:else}
+	<!-- what we had before -->
+{/if}
 ```
 
 ## Error Handling

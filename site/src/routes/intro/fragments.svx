@@ -146,7 +146,7 @@ Before we add anything to our route, let's update the component defined in `src/
 	export let species
 	export let number
 
-	const preview = fragment(species, graphql`
+	$: preview = fragment(species, graphql`
 		fragment SpeciesPreview on Species {
 			name
 			id
