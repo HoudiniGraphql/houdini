@@ -27,18 +27,15 @@ export class HoudiniClient {
 		params: FetchParams,
 		args: Parameters<FetchContext['fetch']>
 	): Parameters<FetchContext['fetch']> | undefined {
-		const [url, req] = args
-
 		// process any files that could be included
 		const { clone, files } = extractFiles({
 			query: params.text,
 			variables: params.variables,
 		})
 
-		const operationJSON = JSON.stringify(clone)
-
 		// if there are files in the request
 		if (files.size) {
+			const [url, req] = args
 			let headers: Record<string, string> = {}
 
 			// filters `content-type: application/json` if received by client.ts
@@ -55,6 +52,7 @@ export class HoudiniClient {
 			// See the GraphQL multipart request spec:
 			// https://github.com/jaydenseric/graphql-multipart-request-spec
 			const form = new FormData()
+			const operationJSON = JSON.stringify(clone)
 
 			form.set('operations', operationJSON)
 
