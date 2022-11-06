@@ -1637,6 +1637,562 @@ test('clearing a display layer updates subscribers', function () {
 	})
 })
 
+test('nested list receiving update from adding item to inner list', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection = {
+		cities: {
+			type: 'City',
+			keyRaw: 'cities',
+			list: {
+				name: 'City_List',
+				connection: false,
+				type: 'City',
+			},
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				name: {
+					type: 'String',
+					keyRaw: 'name',
+				},
+				libraries: {
+					type: 'Library',
+					keyRaw: 'libraries',
+					list: {
+						name: 'Library_List',
+						connection: false,
+						type: 'Library',
+					},
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						name: {
+							type: 'String',
+							keyRaw: 'name',
+						},
+						books: {
+							type: 'Book',
+							keyRaw: 'books',
+							list: {
+								name: 'Book_List',
+								connection: false,
+								type: 'Book',
+							},
+							fields: {
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								title: {
+									type: 'String',
+									keyRaw: 'title',
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	const data = {
+		cities: [
+			{
+				id: '1',
+				name: 'Alexandria',
+				libraries: [
+					{
+						id: '1',
+						name: 'The Library of Alexandria',
+						books: [
+							{
+								id: '1',
+								title: 'Callimachus Pinakes',
+							},
+							{
+								id: '2',
+								title: 'Kutubkhana-i-lskandriyya',
+							},
+						],
+					},
+					{
+						id: '2',
+						name: 'Bibliotheca Alexandrina',
+						books: [
+							{
+								id: '3',
+								title: 'Analyze your own personality',
+							},
+						],
+					},
+				],
+			},
+			{
+				id: '2',
+				name: 'Istanbul',
+				libraries: [
+					{
+						id: '3',
+						name: 'The Imperial Library of Constantinople',
+						books: [
+							{
+								id: '4',
+								title: 'Homer',
+							},
+							{
+								id: '5',
+								title: 'The Hellenistic History',
+							},
+						],
+					},
+				],
+			},
+		],
+	}
+
+	// write the database
+	cache.write({ selection, data })
+
+	// add city
+	cache.write({
+		selection: {
+			addCity: {
+				type: 'City',
+				keyRaw: 'addCity(name: $name)',
+				operations: [
+					{
+						action: 'insert',
+						list: 'City_List',
+						position: 'last',
+					},
+				],
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+					name: {
+						type: 'String',
+						keyRaw: 'name',
+					},
+					libraries: {
+						type: 'Library',
+						keyRaw: 'libraries',
+						list: {
+							name: 'Library_List',
+							connection: false,
+							type: 'Library',
+						},
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+							name: {
+								type: 'String',
+								keyRaw: 'name',
+							},
+							books: {
+								type: 'Book',
+								keyRaw: 'books',
+								list: {
+									name: 'Book_List',
+									connection: false,
+									type: 'Book',
+								},
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									title: {
+										type: 'String',
+										keyRaw: 'title',
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		data: {
+			addCity: {
+				id: '3',
+				name: 'Aalborg',
+				libraries: [],
+			},
+		},
+		variables: {
+			name: 'Aalborg',
+		},
+		forceNotify: true,
+	})
+	cache.write({
+		selection: {
+			newEntries: {
+				keyRaw: 'cities',
+				type: 'City',
+				update: 'append',
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+					name: {
+						type: 'String',
+						keyRaw: 'name',
+					},
+					libraries: {
+						type: 'Library',
+						keyRaw: 'libraries',
+						list: {
+							name: 'Library_List',
+							connection: false,
+							type: 'Library',
+						},
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+							name: {
+								type: 'String',
+								keyRaw: 'name',
+							},
+							books: {
+								type: 'Book',
+								keyRaw: 'books',
+								list: {
+									name: 'Book_List',
+									connection: false,
+									type: 'Book',
+								},
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									title: {
+										type: 'String',
+										keyRaw: 'title',
+									},
+								},
+							},
+						},
+					},
+					__typename: {
+						keyRaw: '__typename',
+						type: 'String',
+					},
+				},
+			},
+		},
+		data: {
+			newEntries: [
+				{
+					id: '3',
+					name: 'Aalborg',
+					libraries: [],
+					__typename: 'City',
+				},
+			],
+		},
+		variables: {
+			name: 'Aalborg',
+		},
+		applyUpdates: true,
+	})
+
+	// add library
+	cache.write({
+		selection: {
+			addLibrary: {
+				type: 'Library',
+				keyRaw: 'addLibrary(city: $city, name: $name)',
+				operations: [
+					{
+						action: 'insert',
+						list: 'Library_List',
+						position: 'last',
+						parentID: {
+							kind: 'Variable',
+							value: 'city',
+						},
+					},
+				],
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+					name: {
+						type: 'String',
+						keyRaw: 'name',
+					},
+					books: {
+						type: 'Book',
+						keyRaw: 'books',
+						list: {
+							name: 'Book_List',
+							connection: false,
+							type: 'Book',
+						},
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+							title: {
+								type: 'String',
+								keyRaw: 'title',
+							},
+						},
+					},
+				},
+			},
+		},
+		data: {
+			addLibrary: {
+				id: '4',
+				name: 'Aalborg Bibliotekerne',
+				books: [],
+			},
+		},
+		variables: {
+			city: '3',
+			name: 'Aalborg Bibliotekerne',
+		},
+		forceNotify: true,
+	})
+	cache.write({
+		selection: {
+			newEntries: {
+				keyRaw: 'libraries',
+				type: 'Library',
+				update: 'append',
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+					name: {
+						type: 'String',
+						keyRaw: 'name',
+					},
+					books: {
+						type: 'Book',
+						keyRaw: 'books',
+						list: {
+							name: 'Book_List',
+							connection: false,
+							type: 'Book',
+						},
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+							title: {
+								type: 'String',
+								keyRaw: 'title',
+							},
+						},
+					},
+					__typename: {
+						keyRaw: '__typename',
+						type: 'String',
+					},
+				},
+			},
+		},
+		data: {
+			newEntries: [
+				{
+					id: '4',
+					name: 'Aalborg Bibliotekerne',
+					books: [],
+					__typename: 'Library',
+				},
+			],
+		},
+		variables: {
+			city: '3',
+			name: 'Aalborg Bibliotekerne',
+		},
+		parent: 'City:3',
+		applyUpdates: true,
+	})
+
+	// a function to spy on that will play the role of set
+	const set = vi.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		selection,
+		set,
+	})
+
+	// add book
+	cache.write({
+		selection: {
+			addBook: {
+				type: 'Book',
+				keyRaw: 'addBook(library: $library, title: $title)',
+				operations: [
+					{
+						action: 'insert',
+						list: 'Book_List',
+						position: 'last',
+						parentID: {
+							kind: 'Variable',
+							value: 'library',
+						},
+					},
+				],
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+					title: {
+						type: 'String',
+						keyRaw: 'title',
+					},
+				},
+			},
+		},
+		data: {
+			addBook: {
+				id: '6',
+				title: 'Stone Blind',
+			},
+		},
+		variables: {
+			library: '4',
+			title: 'Stone Blind',
+		},
+		forceNotify: true,
+	})
+	cache.write({
+		selection: {
+			newEntries: {
+				keyRaw: 'books',
+				type: 'Book',
+				update: 'append',
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+					title: {
+						type: 'String',
+						keyRaw: 'title',
+					},
+					__typename: {
+						keyRaw: '__typename',
+						type: 'String',
+					},
+				},
+			},
+		},
+		data: {
+			newEntries: [
+				{
+					id: '6',
+					title: 'Stone Blind',
+					__typename: 'Book',
+				},
+			],
+		},
+		variables: {
+			library: '4',
+			title: 'Stone Blind',
+		},
+		parent: 'Parent:4',
+		applyUpdates: true,
+	})
+
+	// make sure that set got called with the full response containing new city, library, and book
+	expect(set).toHaveBeenCalledWith({
+		cities: [
+			{
+				id: '1',
+				name: 'Alexandria',
+				libraries: [
+					{
+						id: '1',
+						name: 'The Library of Alexandria',
+						books: [
+							{
+								id: '1',
+								title: 'Callimachus Pinakes',
+							},
+							{
+								id: '2',
+								title: 'Kutubkhana-i-lskandriyya',
+							},
+						],
+					},
+					{
+						id: '2',
+						name: 'Bibliotheca Alexandrina',
+						books: [
+							{
+								id: '3',
+								title: 'Analyze your own personality',
+							},
+						],
+					},
+				],
+			},
+			{
+				id: '2',
+				name: 'Istanbul',
+				libraries: [
+					{
+						id: '3',
+						name: 'The Imperial Library of Constantinople',
+						books: [
+							{
+								id: '4',
+								title: 'Homer',
+							},
+							{
+								id: '5',
+								title: 'The Hellenistic History',
+							},
+						],
+					},
+				],
+			},
+			{
+				id: '3',
+				name: 'Aalborg',
+				libraries: [
+					{
+						id: '4',
+						name: 'Aalborg Bibliotekerne',
+						books: [
+							{
+								id: '6',
+								title: 'Stone Blind',
+							},
+						],
+					},
+				],
+			},
+		],
+	})
+})
+
 test.todo('can write to and resolve layers')
 
 test.todo("resolving a layer with the same value as the most recent doesn't notify subscribers")
