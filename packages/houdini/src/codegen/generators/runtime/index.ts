@@ -1,4 +1,4 @@
-import { Config, siteURL as SITE_URL, fs, HoudiniError, path } from '../../../lib'
+import { Config, siteURL as SITE_URL, fs, HoudiniError, path, houdini_mode } from '../../../lib'
 
 export default async function runtimeGenerator(config: Config) {
 	// generate the adapter to normalize interactions with the framework
@@ -25,7 +25,7 @@ export default async function runtimeGenerator(config: Config) {
 }
 
 async function generatePluginRuntime(config: Config, plugin: Config['plugins'][number]) {
-	if (process.env.TEST) {
+	if (houdini_mode.is_testing) {
 		return
 	}
 

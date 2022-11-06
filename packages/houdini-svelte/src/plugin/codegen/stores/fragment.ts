@@ -1,8 +1,10 @@
 import { CollectedGraphQLDocument, fs, GenerateHookInput, path } from 'houdini'
 
+import { HoudiniVitePluginConfig } from '../..'
 import { global_store_name, stores_directory, store_name } from '../../kit'
+import { store_import } from './custom'
 
-export async function generateFragmentStore(
+export async function fragmentStore(
 	{ config, plugin_root }: GenerateHookInput,
 	doc: CollectedGraphQLDocument
 ) {
@@ -14,18 +16,19 @@ export async function generateFragmentStore(
 	const paginationMethod = doc.refetch?.method
 
 	// in order to build the store, we need to know what class we're going to import from
-	let queryClass = 'FragmentStore'
+	let which: keyof Required<HoudiniVitePluginConfig>['customStores'] = 'fragment'
 	if (paginationMethod === 'cursor') {
-		queryClass =
+		which =
 			doc.refetch?.direction === 'forward'
-				? 'FragmentStoreForwardCursor'
-				: 'FragmentStoreBackwardCursor'
+				? 'fragmentForwardsCursor'
+				: 'fragmentBackwardsCursor'
 	} else if (paginationMethod === 'offset') {
-		queryClass = 'FragmentStoreOffset'
+		which = 'fragmentOffset'
 	}
+	const { statement, store_class } = store_import(config, which)
 
 	// store definition
-	const storeContent = `import { ${queryClass} } from '../runtime/stores'
+	const storeContent = `${statement}
 import artifact from '$houdini/artifacts/${artifactName}'
 ${
 	paginationMethod
@@ -37,7 +40,7 @@ ${
 
 // create the query store
 
-export class ${storeName} extends ${queryClass} {
+export class ${storeName} extends ${store_class} {
     constructor() {
         super({
 			artifact,
@@ -56,9 +59,9 @@ export default ${globalStoreName}
 	const _data = `${artifactName}$data`
 
 	// the type definitions for the store
-	const typeDefs = `import type { ${_data}, ${queryClass}, QueryStoreFetchParams} from '$houdini'
+	const typeDefs = `import type { ${_data}, ${store_class}, QueryStoreFetchParams} from '$houdini'
 
-export declare class ${storeName} extends ${queryClass}<${_data}, {}> {
+export declare class ${storeName} extends ${store_class}<${_data}, {}> {
 	constructor() {
 		// @ts-ignore
 		super({})

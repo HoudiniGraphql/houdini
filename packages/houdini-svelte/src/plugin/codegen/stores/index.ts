@@ -1,10 +1,10 @@
 import { cleanupFiles, fs, ArtifactKind, GenerateHookInput, path } from 'houdini'
 
 import { stores_directory } from '../../kit'
-import { generateFragmentStore } from './fragment'
-import { generateIndividualStoreMutation } from './mutation'
-import { generateIndividualStoreQuery } from './query'
-import { generateSubscriptionStore } from './subscription'
+import { fragmentStore } from './fragment'
+import { mutationStore } from './mutation'
+import { queryStore } from './query'
+import { subscriptionStore } from './subscription'
 
 export default async function storesGenerator(input: GenerateHookInput) {
 	const { config, documents } = input
@@ -19,13 +19,13 @@ export default async function storesGenerator(input: GenerateHookInput) {
 			}
 
 			if (doc.kind === ArtifactKind.Query) {
-				listOfStores.push(await generateIndividualStoreQuery(input, doc))
+				listOfStores.push(await queryStore(input, doc))
 			} else if (doc.kind === ArtifactKind.Mutation) {
-				listOfStores.push(await generateIndividualStoreMutation(input, doc))
+				listOfStores.push(await mutationStore(input, doc))
 			} else if (doc.kind === ArtifactKind.Subscription) {
-				listOfStores.push(await generateSubscriptionStore(input, doc))
+				listOfStores.push(await subscriptionStore(input, doc))
 			} else if (doc.kind === ArtifactKind.Fragment) {
-				listOfStores.push(await generateFragmentStore(input, doc))
+				listOfStores.push(await fragmentStore(input, doc))
 			}
 		})
 	)
