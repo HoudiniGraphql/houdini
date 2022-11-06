@@ -1,8 +1,9 @@
 import { CollectedGraphQLDocument, fs, path, GenerateHookInput } from 'houdini'
 
 import { global_store_name, stores_directory, store_name } from '../../kit'
+import { store_import } from './custom'
 
-export async function generateIndividualStoreMutation(
+export async function mutationStore(
 	{ config, plugin_root }: GenerateHookInput,
 	doc: CollectedGraphQLDocument
 ) {
@@ -10,12 +11,13 @@ export async function generateIndividualStoreMutation(
 	const storeName = store_name({ config, name: doc.name })
 	const globalStoreName = global_store_name({ config, name: doc.name })
 	const artifactName = `${doc.name}`
+	const { statement, store_class } = store_import(config, 'mutation')
 
 	// store content
 	const storeData = `import artifact from '$houdini/artifacts/${artifactName}'
-import { MutationStore } from '../runtime/stores'
+${statement}
 
-export class ${storeName} extends MutationStore {
+export class ${storeName} extends ${store_class} {
 	constructor() {
 		super({
 			artifact,
@@ -33,9 +35,9 @@ export default ${globalStoreName}
 	const _optimistic = `${artifactName}$optimistic`
 
 	// the type definitions for the store
-	const typeDefs = `import type { ${_input}, ${_data}, ${_optimistic}, MutationStore } from '$houdini'
+	const typeDefs = `import type { ${_input}, ${_data}, ${_optimistic}, ${store_class} } from '$houdini'
 
-export declare class ${storeName} extends MutationStore<${_data} | undefined, ${_input}, ${_optimistic}>{
+export declare class ${storeName} extends ${store_class}<${_data} | undefined, ${_input}, ${_optimistic}>{
 	constructor() {
 		// @ts-ignore
 		super({})

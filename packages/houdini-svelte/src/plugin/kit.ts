@@ -365,6 +365,23 @@ export function plugin_config(config: Config): Required<HoudiniVitePluginConfig>
 		layoutQueryFilename: '+layout.gql',
 		quietQueryErrors: false,
 		static: false,
+		customStores: {
+			query: '$houdini/plugins/houdini-svelte/runtime/stores.QueryStore',
+			mutation: '$houdini/plugins/houdini-svelte/runtime/stores.MutationStore',
+			fragment: '$houdini/plugins/houdini-svelte/runtime/stores.FragmentStore',
+			subscription: '$houdini/plugins/houdini-svelte/runtime/stores.SubscriptionStore',
+			queryForwardsCursor:
+				'$houdini/plugins/houdini-svelte/runtime/stores.QueryStoreForwardCursor',
+			queryBackwardsCursor:
+				'$houdini/plugins/houdini-svelte/runtime/stores.QueryStoreBackwardCursor',
+			queryOffset: '$houdini/plugins/houdini-svelte/runtime/stores.QueryStoreOffset',
+			fragmentForwardsCursor:
+				'$houdini/plugins/houdini-svelte/runtime/stores.FragmentStoreForwardCursor',
+			fragmentBackwardsCursor:
+				'$houdini/plugins/houdini-svelte/runtime/stores.FragmentStoreBackwardCursor',
+			fragmentOffset: '$houdini/plugins/houdini-svelte/runtime/stores.FragmentStoreOffset',
+			...cfg?.customStores,
+		},
 		...cfg,
 	}
 }
