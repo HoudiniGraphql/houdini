@@ -1727,52 +1727,17 @@ test('ensure parent type is properly passed for nested lists', function () {
 						{
 							id: '1',
 							name: 'The Library of Alexandria',
-							books: [
-								{
-									id: '1',
-									title: 'Callimachus Pinakes',
-								},
-								{
-									id: '2',
-									title: 'Kutubkhana-i-lskandriyya',
-								},
-							],
+							books: [],
 						},
 						{
 							id: '2',
 							name: 'Bibliotheca Alexandrina',
-							books: [
-								{
-									id: '3',
-									title: 'Analyze your own personality',
-								},
-							],
+							books: [],
 						},
 					],
 				},
 				{
 					id: '2',
-					name: 'Istanbul',
-					libraries: [
-						{
-							id: '3',
-							name: 'The Imperial Library of Constantinople',
-							books: [
-								{
-									id: '4',
-									title: 'Homer',
-								},
-								{
-									id: '5',
-									title: 'The Hellenistic History',
-								},
-							],
-						},
-					],
-				},
-
-				{
-					id: '3',
 					name: 'Aalborg',
 					libraries: [],
 				},
@@ -1782,7 +1747,7 @@ test('ensure parent type is properly passed for nested lists', function () {
 
 	// since there are multiple lists inside of City_List, we need to
 	// specify the parentID of the city in order to add a library to City:3
-	expect(() => cache.list('Library_List', '3')).not.toThrow()
+	expect(() => cache.list('Library_List', '2')).not.toThrow()
 	// same with Books_List for Library:2
 	expect(() => cache.list('Book_List', '2')).not.toThrow()
 })
