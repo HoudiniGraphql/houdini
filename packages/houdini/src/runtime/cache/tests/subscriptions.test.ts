@@ -1,7 +1,7 @@
-import { SubscriptionSelection } from 'houdini'
 import { test, expect, vi } from 'vitest'
 
 import { testConfigFile } from '../../../test'
+import { RefetchUpdateMode, SubscriptionSelection } from '../../lib'
 import { Cache } from '../cache'
 
 const config = testConfigFile()
@@ -1651,7 +1651,7 @@ test('ensure parent type is properly passed for nested lists', function () {
 				connection: false,
 				type: 'City',
 			},
-			update: 'append',
+			update: RefetchUpdateMode.append,
 			fields: {
 				id: {
 					type: 'ID',
@@ -1664,7 +1664,7 @@ test('ensure parent type is properly passed for nested lists', function () {
 				libraries: {
 					type: 'Library',
 					keyRaw: 'libraries',
-					update: 'append',
+					update: RefetchUpdateMode.append,
 					list: {
 						name: 'Library_List',
 						connection: false,
