@@ -204,18 +204,17 @@ export default async function svelteKitGenerator(
 				await fs.mkdirp(path.dirname(target))
 				// write the file
 				await fs.writeFile(target, [typeImports, utilityTypes, typeExports].join('\n\n'))
-				
-				if(typeExports.includes('proxy')){
-					const proxyDir = path.dirname(svelteTypeFilePath) 
+
+				if (typeExports.includes('proxy')) {
+					const proxyDir = path.dirname(svelteTypeFilePath)
 					const proxyDirContent = await fs.readdir(proxyDir)
 					const proxyFiles = proxyDirContent.filter((name) => name.includes('proxy'))
-					for(const element of proxyFiles){
+					for (const element of proxyFiles) {
 						const src = path.join(proxyDir, element)
 						const dest = path.join(path.dirname(target), element)
 						fs.copyFileSync(src, dest)
 					}
 				}
-
 			}
 		},
 	})
