@@ -118,7 +118,6 @@ export default async function svelteKitGenerator(
 					.concat(pageTypeImports)
 
 				// if we need Page/LayoutParams, generate this type.
-
 				// verify if necessary. might not be.
 				const layoutParams = `${
 					layoutQueries.length > 0 && !utilityTypes.includes('LayoutParams')
@@ -200,13 +199,23 @@ export default async function svelteKitGenerator(
 							onPageError
 						)}>`
 					)
-					//convert to relative path (e.g. '../../../+page.js' => './+page') in order to preserve type when imported
-					.replaceAll(/(?<=')([^']*?(\+layout|\+page)\.(js|ts))(?=')/g, './$2')
 
 				//make dir of target if not exist
 				await fs.mkdirp(path.dirname(target))
 				// write the file
 				await fs.writeFile(target, [typeImports, utilityTypes, typeExports].join('\n\n'))
+				
+				if(typeExports.includes('proxy')){
+					const proxyDir = path.dirname(svelteTypeFilePath) 
+					const proxyDirContent = await fs.readdir(proxyDir)
+					const proxyFiles = proxyDirContent.filter((name) => name.includes('proxy'))
+					for(const element of proxyFiles){
+						const src = path.join(proxyDir, element)
+						const dest = path.join(path.dirname(target), element)
+						fs.copyFileSync(src, dest)
+					}
+				}
+
 			}
 		},
 	})

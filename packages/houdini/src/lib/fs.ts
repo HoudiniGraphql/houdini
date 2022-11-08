@@ -7,6 +7,26 @@ import { promisify } from 'util'
 import { houdini_mode } from './constants'
 import * as path from './path'
 
+// memfs.cop
+export function copyFileSync(src: string, dest: string): void | null {
+	if (houdini_mode.is_testing) {
+		try {
+			if (src.includes('build/runtime') || dest.includes('build/runtime')) {
+				fsExtra.copyFileSync(src, dest)
+			}
+
+			memfs.copyFileSync(src, dest)
+		} catch (e) {
+			return null
+		}
+	}
+	try {
+		fsExtra.copyFileSync(src, dest)
+	} catch (e) {}
+
+	return null
+}
+
 export async function readFile(filepath: string): Promise<string | null> {
 	if (houdini_mode.is_testing) {
 		try {

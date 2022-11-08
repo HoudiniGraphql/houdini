@@ -1,6 +1,6 @@
 <script lang="ts">
   import { MultiUserStore } from '$houdini';
-  import type { PageData } from './$types';
+  import type { PageData } from './$houdini';
 
   export let data: PageData;
 
