@@ -357,6 +357,7 @@ class CacheInternal {
 						selection: fields,
 						subscribers: currentSubscribers,
 						variables,
+						parentType: linkedType,
 					})
 
 					toNotify.push(...currentSubscribers)
@@ -545,6 +546,7 @@ class CacheInternal {
 						selection: fields,
 						subscribers: currentSubscribers,
 						variables,
+						parentType: linkedType,
 					})
 				}
 			}

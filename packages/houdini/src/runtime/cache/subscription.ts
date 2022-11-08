@@ -156,16 +156,17 @@ export class InMemorySubscriptions {
 		selection,
 		variables,
 		subscribers,
+		parentType,
 	}: {
 		parent: string
 		selection: SubscriptionSelection
 		variables: {}
 		subscribers: SubscriptionSpec[]
+		parentType: string
 	}) {
 		// look at every field in the selection and add the subscribers
 		for (const fieldSelection of Object.values(selection)) {
-			const { keyRaw, fields } = fieldSelection
-
+			const { type: linkedType, keyRaw, fields } = fieldSelection
 			const key = evaluateKey(keyRaw, variables)
 
 			// add the subscriber to the
@@ -175,7 +176,7 @@ export class InMemorySubscriptions {
 					key,
 					selection: fieldSelection,
 					spec,
-					parentType: 'asdf',
+					parentType,
 					variables,
 				})
 			}
@@ -183,6 +184,7 @@ export class InMemorySubscriptions {
 			// if there are fields under this
 			if (fields) {
 				const { value: link } = this.cache._internal_unstable.storage.get(parent, key)
+
 				// figure out who else needs subscribers
 				const children = !Array.isArray(link)
 					? ([link] as string[])
@@ -192,13 +194,13 @@ export class InMemorySubscriptions {
 					if (!linkedRecord) {
 						continue
 					}
-
 					// insert the subscriber
 					this.addMany({
 						parent: linkedRecord,
 						selection: fields,
 						variables,
 						subscribers,
+						parentType: linkedType,
 					})
 				}
 			}

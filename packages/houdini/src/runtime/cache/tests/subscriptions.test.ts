@@ -1,6 +1,7 @@
 import { test, expect, vi } from 'vitest'
 
 import { testConfigFile } from '../../../test'
+import { RefetchUpdateMode, SubscriptionSelection } from '../../lib'
 import { Cache } from '../cache'
 
 const config = testConfigFile()
@@ -1635,6 +1636,120 @@ test('clearing a display layer updates subscribers', function () {
 			id: '1',
 		},
 	})
+})
+
+test('ensure parent type is properly passed for nested lists', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		cities: {
+			type: 'City',
+			keyRaw: 'cities',
+			list: {
+				name: 'City_List',
+				connection: false,
+				type: 'City',
+			},
+			update: RefetchUpdateMode.append,
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				name: {
+					type: 'String',
+					keyRaw: 'name',
+				},
+				libraries: {
+					type: 'Library',
+					keyRaw: 'libraries',
+					update: RefetchUpdateMode.append,
+					list: {
+						name: 'Library_List',
+						connection: false,
+						type: 'Library',
+					},
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						name: {
+							type: 'String',
+							keyRaw: 'name',
+						},
+						books: {
+							type: 'Book',
+							keyRaw: 'books',
+							list: {
+								name: 'Book_List',
+								connection: false,
+								type: 'Book',
+							},
+							fields: {
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								title: {
+									type: 'String',
+									keyRaw: 'title',
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// a function to spy on that will play the role of set
+	const set = vi.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		selection,
+		set,
+	})
+
+	// add a city to the list by hand since using the list util adds type information
+
+	cache.write({
+		selection,
+		data: {
+			cities: [
+				{
+					id: '1',
+					name: 'Alexandria',
+					libraries: [
+						{
+							id: '1',
+							name: 'The Library of Alexandria',
+							books: [],
+						},
+						{
+							id: '2',
+							name: 'Bibliotheca Alexandrina',
+							books: [],
+						},
+					],
+				},
+				{
+					id: '2',
+					name: 'Aalborg',
+					libraries: [],
+				},
+			],
+		},
+	})
+
+	// since there are multiple lists inside of City_List, we need to
+	// specify the parentID of the city in order to add a library to City:3
+	expect(() => cache.list('Library_List', '2')).not.toThrow()
+	// same with Books_List for Library:2
+	expect(() => cache.list('Book_List', '2')).not.toThrow()
 })
 
 test.todo('can write to and resolve layers')
