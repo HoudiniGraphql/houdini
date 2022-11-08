@@ -2,4 +2,4 @@
 'houdini': patch
 ---
 
-Provide parentType to addMany subscriptions
+Fix bug when updating deeply nested lists with @parentID
