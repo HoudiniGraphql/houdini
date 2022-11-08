@@ -176,7 +176,7 @@ export class InMemorySubscriptions {
 					key,
 					selection: fieldSelection,
 					spec,
-					parentType: parentType,
+					parentType,
 					variables,
 				})
 			}
