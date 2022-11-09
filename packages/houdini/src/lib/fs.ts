@@ -13,15 +13,18 @@ export function copyFileSync(src: string, dest: string): void | null {
 		try {
 			if (src.includes('build/runtime') || dest.includes('build/runtime')) {
 				fsExtra.copyFileSync(src, dest)
+				return
 			}
 
 			memfs.copyFileSync(src, dest)
+			return
 		} catch (e) {
 			return null
 		}
 	}
 	try {
 		fsExtra.copyFileSync(src, dest)
+		return
 	} catch (e) {}
 
 	return null
