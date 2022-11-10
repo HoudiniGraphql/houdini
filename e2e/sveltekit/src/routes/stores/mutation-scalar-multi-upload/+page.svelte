@@ -6,7 +6,7 @@
       type: 'text/plain'
     });
 
-    GQL_multipleUpload.mutate({ files: [file, file] });
+    await GQL_multipleUpload.mutate({ files: [file, file] });
   }
 </script>
 
