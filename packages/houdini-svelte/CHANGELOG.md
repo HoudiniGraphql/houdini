@@ -2,8 +2,6 @@
 
 ## 0.17.6
 
-### Patch Changes
-
 ### 🐛 Fixes
 
 -   [#686](https://github.com/HoudiniGraphql/houdini/pull/686) [`f138bff`](https://github.com/HoudiniGraphql/houdini/commit/f138bff8854181da63b545f54462b198794e2bbc) Thanks [@jycouet](https://github.com/jycouet)! - isFetching will switch only when a network call is happening (and starts at true for queries)
