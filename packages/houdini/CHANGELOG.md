@@ -1,5 +1,17 @@
 # houdini
 
+## 0.17.6
+
+### 🐛 Fixes
+
+-   [#682](https://github.com/HoudiniGraphql/houdini/pull/682) [`57577ee`](https://github.com/HoudiniGraphql/houdini/commit/57577ee9144d17a5b357bf47abaecdf96a6176f8) Thanks [@Joklost](https://github.com/Joklost)! - Fix bug when updating deeply nested lists with @parentID
+
+-   [#677](https://github.com/HoudiniGraphql/houdini/pull/677) [`927146d`](https://github.com/HoudiniGraphql/houdini/commit/927146dd02c239a9e29e5de92271d4c4de16d7e2) Thanks [@jycouet](https://github.com/jycouet)! - fix - env.TEST is not used internally anymore
+
+### ✨ Features
+
+-   [#687](https://github.com/HoudiniGraphql/houdini/pull/687) [`dc659ef`](https://github.com/HoudiniGraphql/houdini/commit/dc659efe1bc04a6ff98166b4803a50b8761771bb) Thanks [@jycouet](https://github.com/jycouet)! - update init cmd to manage remote endpoint and local files
+
 ## 0.17.5
 
 ### ✨ Features
