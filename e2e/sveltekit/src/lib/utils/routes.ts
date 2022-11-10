@@ -4,6 +4,8 @@ export const routes = {
 
   // features
   Query_param: '/query-param',
+  isFetching_with_load: '/isFetching/with_load',
+  isFetching_without_load: '/isFetching/without_load',
 
   Stores_SSR: '/stores/ssr',
   Stores_Network: '/stores/network',

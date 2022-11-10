@@ -20,10 +20,14 @@ export class MutationStore<
 
 	private store: Writable<MutationResult<_Data, _Input>>
 
+	protected setFetching(isFetching: boolean) {
+		this.store?.update((s) => ({ ...s, isFetching }))
+	}
+
 	constructor({ artifact }: { artifact: MutationArtifact }) {
 		super()
 		this.artifact = artifact
-		this.store = writable(this.nullState)
+		this.store = writable(this.initialState)
 	}
 
 	async mutate(
@@ -85,6 +89,7 @@ export class MutationStore<
 				artifact: this.artifact,
 				variables: newVariables,
 				session: await getSession(),
+				setFetching: (val) => this.setFetching(val),
 				cached: false,
 				metadata,
 				fetch,
@@ -161,7 +166,7 @@ export class MutationStore<
 		return this.store.subscribe(...args)
 	}
 
-	private get nullState() {
+	private get initialState() {
 		return {
 			data: null as _Data | null,
 			errors: null,

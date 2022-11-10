@@ -69,9 +69,6 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 				throw missingPageSizeError('loadNextPage')
 			}
 
-			// set the loading state to true
-			setFetching(true)
-
 			// send the query
 			const { result } = await executeQuery<GraphQLObject, {}>({
 				client: await getCurrentClient(),
@@ -80,6 +77,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 				session: await getSession(),
 				cached: false,
 				config,
+				setFetching,
 				fetch,
 				metadata,
 			})
@@ -126,9 +124,6 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 			if (!artifact.refetch!.pageSize || count > artifact.refetch!.pageSize) {
 				queryVariables.limit = count
 			}
-
-			// set the loading state to true
-			setFetching(true)
 
 			// send the query
 			const result = await fetch.call(this, {

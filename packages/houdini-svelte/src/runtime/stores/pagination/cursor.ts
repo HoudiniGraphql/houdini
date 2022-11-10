@@ -49,9 +49,6 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 		const config = await getConfig()
 		const client = await getCurrentClient()
 
-		// set the loading state to true
-		setFetching(true)
-
 		// build up the variables to pass to the query
 		const loadVariables: Record<string, any> = {
 			...(await extraVariables?.()),
@@ -69,6 +66,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 			artifact,
 			variables: loadVariables,
 			session: await getSession(),
+			setFetching,
 			cached: false,
 			config,
 			fetch,
@@ -217,9 +215,6 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 				// reverse cursors need the last entries in the list
 				queryVariables[artifact.refetch!.update === 'prepend' ? 'last' : 'first'] = count
 			}
-
-			// set the loading state to true
-			setFetching(true)
 
 			// send the query
 			const result = await fetch({

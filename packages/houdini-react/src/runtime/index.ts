@@ -14,6 +14,9 @@ export async function query(artifact: QueryArtifact, variables?: any) {
 			session: {},
 			metadata: {},
 		},
+		setFetching: () => {
+			console.log('fetching...')
+		},
 	})
 
 	return [result.result]

@@ -173,6 +173,7 @@ export async function executeQuery<_Data extends GraphQLObject, _Input extends {
 	artifact,
 	variables,
 	session,
+	setFetching,
 	cached,
 	fetch,
 	metadata,
@@ -181,6 +182,7 @@ export async function executeQuery<_Data extends GraphQLObject, _Input extends {
 	artifact: QueryArtifact | MutationArtifact
 	variables: _Input
 	session: any
+	setFetching: (fetching: boolean) => void
 	cached: boolean
 	config: ConfigFile
 	fetch?: typeof globalThis.fetch
@@ -194,6 +196,7 @@ export async function executeQuery<_Data extends GraphQLObject, _Input extends {
 			session,
 		},
 		artifact,
+		setFetching,
 		variables,
 		cached,
 	})
@@ -211,16 +214,18 @@ export async function executeQuery<_Data extends GraphQLObject, _Input extends {
 
 export async function fetchQuery<_Data extends GraphQLObject, _Input extends {}>({
 	client,
+	context,
 	artifact,
 	variables,
+	setFetching,
 	cached = true,
 	policy,
-	context,
 }: {
 	client: HoudiniClient
 	context: FetchContext
 	artifact: QueryArtifact | MutationArtifact
 	variables: _Input
+	setFetching: (fetching: boolean) => void
 	cached?: boolean
 	policy?: CachePolicy
 }): Promise<FetchQueryResult<_Data>> {
@@ -279,6 +284,9 @@ export async function fetchQuery<_Data extends GraphQLObject, _Input extends {}>
 	setTimeout(() => {
 		cache._internal_unstable.collectGarbage()
 	}, 0)
+
+	// tell everyone that we are fetching if the function is defined
+	setFetching(true)
 
 	// the request must be resolved against the network
 	const result = await client.sendRequest<_Data>(context, {
