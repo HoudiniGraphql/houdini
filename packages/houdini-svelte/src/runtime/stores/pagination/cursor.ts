@@ -99,6 +99,9 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 			variables: loadVariables,
 			applyUpdates: true,
 		})
+
+		// we're not loading any more
+		setFetching(false)
 	}
 
 	return {
@@ -221,6 +224,9 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 
 			// keep the page info store up to date
 			pageInfo.set(extractPageInfo(result.data, artifact.refetch!.path))
+
+			// we're not loading any more
+			setFetching(false)
 
 			return {
 				data: result.data,

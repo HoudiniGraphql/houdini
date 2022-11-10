@@ -93,6 +93,9 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 			// add the page size to the offset so we load the next page next time
 			const pageSize = queryVariables.limit || artifact.refetch!.pageSize
 			currentOffset = offset + pageSize
+
+			// we're not loading any more
+			setFetching(false)
 		},
 		async fetch(
 			args?: QueryStoreFetchParams<_Data, _Input>
@@ -127,6 +130,9 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 				...params,
 				variables: queryVariables as _Input,
 			})
+
+			// we're not loading any more
+			setFetching(false)
 
 			return {
 				data: result.data,
