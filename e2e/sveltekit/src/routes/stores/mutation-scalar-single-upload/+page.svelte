@@ -6,7 +6,7 @@
       type: 'text/plain'
     });
 
-    GQL_singleUpload.mutate({ file: file });
+    await GQL_singleUpload.mutate({ file: file });
   }
 </script>
 
