@@ -35,7 +35,7 @@ export class QueryStore<
 	// identify it as a query store
 	kind = CompiledQueryKind
 
-	// at its core, a query store is a writable store with extra methods{
+	// at its core, a query store is a writable store with extra methods
 	protected store: Writable<StoreState<_Data, _Input, _ExtraFields>>
 
 	// we will be reading and write the last known variables often, avoid frequent gets and updates
@@ -53,6 +53,14 @@ export class QueryStore<
 
 	// the string identifying the store
 	protected storeName: string
+
+	protected setFetching(isFetching: boolean) {
+		this.store?.update((s) => ({ ...s, isFetching }))
+	}
+
+	protected async currentVariables() {
+		return get(this.store).variables
+	}
 
 	constructor({ artifact, storeName, variables }: StoreConfig<_Data, _Input, QueryArtifact>) {
 		super()
@@ -126,8 +134,6 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 		// we might not want to wait for the fetch to resolve
 		const fakeAwait = clientStarted && isBrowser && !params?.blocking
 
-		this.setFetching(true)
-
 		// perform the network request
 		const request = this.fetchAndCache({
 			config,
@@ -157,10 +163,6 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 
 	get name() {
 		return this.artifact.name
-	}
-
-	protected async currentVariables() {
-		return get(this.store).variables
 	}
 
 	subscribe(
@@ -224,6 +226,7 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 		const request = await fetchQuery<_Data, _Input>({
 			...context,
 			client: await getCurrentClient(),
+			setFetching: (val) => this.setFetching(val),
 			artifact,
 			variables,
 			cached,
@@ -340,15 +343,11 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 		this.lastVariables = newVariables
 	}
 
-	protected setFetching(isFetching: boolean) {
-		this.store?.update((s) => ({ ...s, isFetching }))
-	}
-
 	private get initialState(): QueryResult<_Data, _Input> & _ExtraFields {
 		return {
 			data: null,
 			errors: null,
-			isFetching: false,
+			isFetching: true,
 			partial: false,
 			source: null,
 			variables: {} as _Input,
@@ -441,7 +440,7 @@ import type { LoadEvent } from '@sveltejs/kit';
 
 export async function load(${log.yellow('event')}: LoadEvent) {
 	return {
-		...load_MyQuery({ ${log.yellow('event')}, variables: { ... } })
+		...load_${storeName}({ ${log.yellow('event')}, variables: { ... } })
 	};
 }
 `
