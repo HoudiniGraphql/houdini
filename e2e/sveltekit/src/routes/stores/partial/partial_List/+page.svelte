@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { PageData } from './$types';
+  import type { PageData } from './$houdini';
   export let data: PageData;
 
   $: ({ Partial_List } = data);

@@ -2,7 +2,7 @@
   import { CachePolicy } from '$houdini';
   import { page } from '$app/stores';
   import { stry } from '@kitql/helper';
-  import type { PageData } from './$types';
+  import type { PageData } from './$houdini';
 
   export let data: PageData;
 

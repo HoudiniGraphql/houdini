@@ -5,6 +5,7 @@ import recast from 'recast'
 
 import { HoudiniVitePluginConfig } from '.'
 import { parseSvelte } from './extract'
+import { extract_load_function } from './extractLoadFunction'
 import { SvelteTransformPage } from './transforms/types'
 
 type Identifier = recast.types.namedTypes.Identifier
@@ -117,95 +118,47 @@ export async function walk_routes(
 	visitor: RouteVisitor,
 	dirpath = config.routesDir
 ) {
-	// if we run into any child with a query, we have a route
-	let isRoute = false
+	let pageExports: string[] = []
+	let layoutExports: string[] = []
+	let pageQueries: graphql.OperationDefinitionNode[] = []
+	let layoutQueries: graphql.OperationDefinitionNode[] = []
 
-	// we need to collect the important values from each special child
-	// for the visitor.route handler
-	let pageScript: string | null = null
-	let layoutScript: string | null = null
-	let routePageQuery: graphql.OperationDefinitionNode | null = null
-	let routeLayoutQuery: graphql.OperationDefinitionNode | null = null
-	const inlineLayoutQueries: graphql.OperationDefinitionNode[] = []
-	const inlineQueries: graphql.OperationDefinitionNode[] = []
-
-	// process the children
+	//parse all files and push contents into page/layoutExports, page/layoutQueries
 	for (const child of await fs.readdir(dirpath)) {
 		const childPath = path.join(dirpath, child)
 		// if we run into another directory, keep walking down
 		if ((await fs.stat(childPath)).isDirectory()) {
 			await walk_routes(config, framework, visitor, childPath)
+			//ensure that directories are not passed to route func, pass directory and then skip to next file
+			continue
 		}
 
-		// page scripts
-		else if (is_page_script(framework, child)) {
-			isRoute = true
-			pageScript = childPath
-			if (!visitor.pageScript) {
-				continue
-			}
-			await visitor.pageScript(childPath, childPath)
-		}
+		//maybe turn into switch-case statement?
+		if (is_layout_script(framework, childPath)) {
+			const { houdini_load, exports } = await extract_load_function(config, childPath)
 
-		// layout scripts
-		else if (is_layout_script(framework, child)) {
-			isRoute = true
-			layoutScript = childPath
-			if (!visitor.layoutScript) {
-				continue
-			}
-			await visitor.layoutScript(childPath, childPath)
-		}
+			// mutate with optional layoutQueries. Takes in array of OperationDefinitionNodes
+			await visitor.layoutQueries?.(houdini_load ?? [], childPath)
+			// push all queries to our layoutQueries
+			layoutQueries.push(...(houdini_load ?? []))
 
-		// page queries
-		else if (child === plugin_config(config).pageQueryFilename) {
-			isRoute = true
+			// mutate with optional layoutExports. Takes in array of strings
+			await visitor.layoutExports?.(exports, childPath)
+			// push all exports to our layoutExports
+			layoutExports.push(...exports)
+		} else if (is_page_script(framework, childPath)) {
+			const { houdini_load, exports } = await extract_load_function(config, childPath)
 
-			// load the contents
-			const contents = await fs.readFile(childPath)
-			if (!contents) {
-				continue
-			}
+			// mutate with optional pageQueries. Takes in array of OperationDefinitionNodes
+			await visitor.pageQueries?.(houdini_load ?? [], childPath)
+			// push all queries to our pageQueries
+			pageQueries.push(...(houdini_load ?? []))
 
-			// invoke the visitor
-			try {
-				routePageQuery = config.extractQueryDefinition(graphql.parse(contents))
-			} catch (e) {
-				throw routeQueryError(childPath)
-			}
-
-			if (!visitor.routePageQuery || !routePageQuery) {
-				continue
-			}
-			await visitor.routePageQuery(routePageQuery, childPath)
-		}
-
-		// layout queries
-		else if (child === plugin_config(config).layoutQueryFilename) {
-			isRoute = true
-
-			// load the contents
-			const contents = await fs.readFile(childPath)
-			if (!contents) {
-				continue
-			}
-
-			// invoke the visitor
-			try {
-				routeLayoutQuery = config.extractQueryDefinition(graphql.parse(contents))
-			} catch (e) {
-				throw routeQueryError(childPath)
-			}
-
-			if (!visitor.routeLayoutQuery || !routeLayoutQuery) {
-				continue
-			}
-			await visitor.routeLayoutQuery(routeLayoutQuery, childPath)
-		}
-
-		// inline layout queries
-		else if (is_layout_component(framework, child)) {
-			// load the contents and parse it
+			// mutate with optional pageExports. Takes in array of strings
+			await visitor.pageExports?.(exports, childPath)
+			// push all exports to our pageExports
+			pageExports.push(...exports)
+		} else if (is_layout_component(framework, childPath)) {
 			const contents = await fs.readFile(childPath)
 			if (!contents) {
 				continue
@@ -215,7 +168,6 @@ export async function walk_routes(
 				continue
 			}
 
-			// look for any graphql tags and invoke the walker's handler
 			await find_graphql(config, parsed.script, {
 				where: (tag) => {
 					try {
@@ -225,18 +177,15 @@ export async function walk_routes(
 					}
 				},
 				tag: async ({ parsedDocument }) => {
-					isRoute = true
-
 					let definition = config.extractQueryDefinition(parsedDocument)
+
+					// mutate with optional inlineLayoutQuery. Takes an OperationDefinitionNode
 					await visitor.inlineLayoutQueries?.(definition, childPath)
-					inlineLayoutQueries.push(definition)
+					// We push this to layoutQueries since it will be the same in the type file anyway
+					layoutQueries.push(definition)
 				},
 			})
-		}
-
-		// inline queries
-		else if (is_component(config, framework, child)) {
-			// load the contents and parse it
+		} else if (is_component(config, framework, child)) {
 			const contents = await fs.readFile(childPath)
 			if (!contents) {
 				continue
@@ -246,7 +195,7 @@ export async function walk_routes(
 				continue
 			}
 
-			// look for any graphql tags and invoke the walker's handler
+			// look for any graphql tags and push into queries.
 			await find_graphql(config, parsed.script, {
 				where: (tag) => {
 					try {
@@ -256,27 +205,85 @@ export async function walk_routes(
 					}
 				},
 				tag: async ({ parsedDocument }) => {
-					isRoute = true
-
 					let definition = config.extractQueryDefinition(parsedDocument)
-					await visitor.inlineQueries?.(definition, childPath)
-					inlineQueries.push(definition)
+					// mutate with optional inlinePageQuery. Takes an OperationDefinitionNode
+					await visitor.inlinePageQueries?.(definition, childPath)
+					// We push this to pageQueries since it will be the same in the type file anyway
+					pageQueries.push(definition)
 				},
 			})
+		} else if (child === plugin_config(config).layoutQueryFilename) {
+			const contents = await fs.readFile(childPath)
+			if (!contents) {
+				continue
+			}
+			//parse content
+			try {
+				const query = config.extractQueryDefinition(graphql.parse(contents))
+				// mutate with optional routeLayoutQuery. Takes an OperationDefinitionNode
+				await visitor.routeLayoutQuery?.(query, childPath)
+				// push to layoutQueries since once again adding to same file anyway
+				layoutQueries.push(query)
+			} catch (e) {
+				throw routeQueryError(childPath)
+			}
+		} else if (child === plugin_config(config).pageQueryFilename) {
+			const contents = await fs.readFile(childPath)
+			if (!contents) {
+				continue
+			}
+
+			try {
+				const query = config.extractQueryDefinition(graphql.parse(contents))
+				// mutate with optional routePageQuery. Takes an OperationDefinitionNode
+				await visitor.routePageQuery?.(query, childPath)
+				// push to pageQueries since once again adding to same file anyway
+				pageQueries.push(query)
+			} catch (e) {
+				throw routeQueryError(childPath)
+			}
+		} else {
+			continue
 		}
 	}
 
-	// if config path is a route, invoke the handler
-	if (visitor.route && isRoute) {
+	// if length of any field is greater than 0, we run our route.
+	// pageExports can be defined where queries aren't
+	// e.g. QueryVariables but uses parent dirs layoutQuery (probably a bad idea)
+	if (
+		visitor.route &&
+		(pageQueries.length > 0 ||
+			layoutQueries.length > 0 ||
+			pageExports.length > 0 ||
+			layoutExports.length > 0)
+	) {
+		//NOTE: Define sveltekitTypeFilePath here so that we ensure route is valid
+
+		const relative_path_regex = /src(.*)/
+
+		// here we define the location of the correspoding sveltekit type file
+		const svelteTypeFilePath = path.join(
+			config.projectRoot,
+			'.svelte-kit',
+			'types',
+			dirpath.match(relative_path_regex)?.[0] ?? '',
+			'$types.d.ts'
+		)
+
+		// if type does not exists we error.
+		if (!fs.existsSync(svelteTypeFilePath)) {
+			throw Error(`SvelteKit types do not exist at route: ${svelteTypeFilePath}`)
+		}
+
+		// only runs once per directory
 		await visitor.route(
 			{
 				dirpath,
-				pageScript,
-				layoutScript,
-				routePageQuery,
-				routeLayoutQuery,
-				inlineLayoutQueries,
-				inlineQueries,
+				svelteTypeFilePath,
+				layoutQueries,
+				pageQueries,
+				layoutExports,
+				pageExports,
 			},
 			dirpath
 		)
@@ -284,20 +291,21 @@ export async function walk_routes(
 }
 
 export type RouteVisitor = {
-	pageScript?: RouteVisitorHandler<string>
-	layoutScript?: RouteVisitorHandler<string>
+	inlinePageQueries?: RouteVisitorHandler<graphql.OperationDefinitionNode>
+	inlineLayoutQueries?: RouteVisitorHandler<graphql.OperationDefinitionNode>
 	routePageQuery?: RouteVisitorHandler<graphql.OperationDefinitionNode>
 	routeLayoutQuery?: RouteVisitorHandler<graphql.OperationDefinitionNode>
-	inlineLayoutQueries?: RouteVisitorHandler<graphql.OperationDefinitionNode>
-	inlineQueries?: RouteVisitorHandler<graphql.OperationDefinitionNode>
+	layoutQueries?: RouteVisitorHandler<graphql.OperationDefinitionNode[]>
+	pageQueries?: RouteVisitorHandler<graphql.OperationDefinitionNode[]>
+	layoutExports?: RouteVisitorHandler<string[]>
+	pageExports?: RouteVisitorHandler<string[]>
 	route?: RouteVisitorHandler<{
 		dirpath: string
-		pageScript: string | null
-		layoutScript: string | null
-		routePageQuery: graphql.OperationDefinitionNode | null
-		routeLayoutQuery: graphql.OperationDefinitionNode | null
-		inlineLayoutQueries: graphql.OperationDefinitionNode[]
-		inlineQueries: graphql.OperationDefinitionNode[]
+		svelteTypeFilePath: string
+		layoutQueries: graphql.OperationDefinitionNode[]
+		pageQueries: graphql.OperationDefinitionNode[]
+		layoutExports: string[]
+		pageExports: string[]
 	}>
 }
 
