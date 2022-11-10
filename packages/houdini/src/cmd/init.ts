@@ -14,7 +14,7 @@ export default async function init(
 	args: { headers?: string[]; force_remote_endpoint?: boolean }
 ): Promise<void> {
 	const force_remote_endpoint = args.force_remote_endpoint || false
-	console.log('🚀 Initializing Houdini', force_remote_endpoint)
+
 	// before we start anything, let's make sure they have initialized their project
 	try {
 		await fs.stat(path.resolve('./src'))
@@ -58,18 +58,18 @@ export default async function init(
 				const message =
 					'Your git working directory is dirty — we recommend committing your changes before running this migration.\n'
 				console.error(message)
+
+				const { confirm } = await prompts({
+					message: 'Continue anyway?',
+					name: 'confirm',
+					type: 'confirm',
+					initial: false,
+				})
+
+				if (!confirm) {
+					process.exit(1)
+				}
 			}
-		}
-
-		const { confirm } = await prompts({
-			message: 'Continue?',
-			name: 'confirm',
-			type: 'confirm',
-			initial: false,
-		})
-
-		if (!confirm) {
-			process.exit(1)
 		}
 	}
 
