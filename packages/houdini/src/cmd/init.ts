@@ -77,12 +77,21 @@ export default async function init(
 	let url = 'http://localhost:5173/api/graphql'
 	const { is_remote_endpoint } = force_remote_endpoint
 		? { is_remote_endpoint: true }
-		: await prompts({
-				message: 'Will you use a remote GraphQL API?',
-				name: 'is_remote_endpoint',
-				type: 'confirm',
-				initial: true,
-		  })
+		: await prompts(
+				{
+					message: 'Will you use a remote GraphQL API?',
+					name: 'is_remote_endpoint',
+					type: 'confirm',
+					initial: true,
+				},
+				{
+					onCancel() {
+						process.exit(1)
+					},
+				}
+		  )
+
+	let schemaPath = is_remote_endpoint ? './schema.graphql' : 'path/to/src/lib/**/*.graphql'
 
 	if (is_remote_endpoint) {
 		const { url_remote } = await prompts(
@@ -126,6 +135,23 @@ export default async function init(
 			console.log('❌ Something went wrong: ' + (e as Error).message)
 			return await init(_path, { ...args, force_remote_endpoint: true })
 		}
+	} else {
+		// the schema is local so ask them for the path
+		const answers = await prompts(
+			{
+				message: 'Where is your schema located?',
+				name: 'schema_path',
+				type: 'text',
+				initial: schemaPath,
+			},
+			{
+				onCancel() {
+					process.exit(1)
+				},
+			}
+		)
+
+		schemaPath = answers.schema_path
 	}
 
 	// try to detect which tools they are using
@@ -165,9 +191,6 @@ export default async function init(
 		)
 		process.exit(1)
 	}
-
-	// the location for the schema
-	const schemaPath = is_remote_endpoint ? './schema.graphql' : '**/*.graphql'
 
 	// the source directory
 	const sourceDir = path.join(targetPath, 'src')
