@@ -73,8 +73,6 @@ export class QueryStore<
 	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
 		const config = await this.getConfig()
-		// set the cache's config
-		getCache().setConfig(config)
 
 		// validate and prepare the request context for the current environment (client vs server)
 		const { policy, params, context } = await fetchParams(this.artifact, this.storeName, args)
