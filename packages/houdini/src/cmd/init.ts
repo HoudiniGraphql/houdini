@@ -543,7 +543,10 @@ async function graphqlRCFile(targetPath: string) {
 async function gitIgnore(targetPath: string) {
 	const filepath = path.join(targetPath, '.gitignore')
 	const existing = (await fs.readFile(filepath)) || ''
-	await fs.writeFile(filepath, existing + '\n$houdini\n')
+
+	if (!existing.includes('\n$houdini\n')) {
+		await fs.writeFile(filepath, existing + '\n$houdini\n')
+	}
 }
 
 type DetectedTools = {
