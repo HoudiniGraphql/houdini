@@ -1,6 +1,5 @@
 import { OperationDefinitionNode } from 'graphql'
-import { Config, fs, GenerateHookInput } from 'houdini'
-import path from 'path'
+import { Config, fs, GenerateHookInput, path } from 'houdini'
 
 import {
 	type_route_dir,
@@ -9,8 +8,6 @@ import {
 	Framework,
 	walk_routes,
 } from '../../kit'
-
-//move this at some point
 
 export default async function svelteKitGenerator(
 	framework: Framework,
@@ -35,10 +32,7 @@ export default async function svelteKitGenerator(
 			const relativePath = path.relative(config.routesDir, dirpath)
 			const target = path.join(type_route_dir(config), relativePath, config.typeRootFile)
 
-			const houdiniRelative = path
-				.relative(target, config.typeRootDir)
-				// Windows management
-				.replaceAll('\\', '/')
+			const houdiniRelative = path.relative(target, config.typeRootDir)
 
 			const queryNames: string[] = []
 			const uniquePageQueries: OperationDefinitionNode[] = []
@@ -59,7 +53,7 @@ export default async function svelteKitGenerator(
 			}
 
 			// read the svelte-kit $types.d.ts file into a string
-			let skTypeString = fs.readFileSync(svelteTypeFilePath)
+			let skTypeString = await fs.readFile(svelteTypeFilePath)
 
 			//if the file is truthy (not empty)
 			if (skTypeString) {
@@ -212,7 +206,7 @@ export default async function svelteKitGenerator(
 					for (const element of proxyFiles) {
 						const src = path.join(proxyDir, element)
 						const dest = path.join(path.dirname(target), element)
-						fs.copyFileSync(src, dest)
+						await fs.copyFile(src, dest)
 					}
 				}
 			}
