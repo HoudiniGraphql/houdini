@@ -1,3 +1,5 @@
+import { logGreen } from '@kitql/helper'
+import { execSync } from 'child_process'
 import { getIntrospectionQuery } from 'graphql'
 import fetch from 'node-fetch'
 import prompts from 'prompts'
@@ -9,9 +11,10 @@ import { ConfigFile } from '../runtime/lib/config'
 // as well as pulling down the initial schema representation
 export default async function init(
 	_path: string | undefined,
-	args: { headers?: string[]; yes: boolean },
-	withRunningCheck = true
+	args: { headers?: string[]; force_remote_endpoint?: boolean }
 ): Promise<void> {
+	const force_remote_endpoint = args.force_remote_endpoint || false
+	console.log('🚀 Initializing Houdini', force_remote_endpoint)
 	// before we start anything, let's make sure they have initialized their project
 	try {
 		await fs.stat(path.resolve('./src'))
@@ -35,69 +38,102 @@ export default async function init(
 	// if no path was given, we	'll use cwd
 	const targetPath = _path ? path.resolve(_path) : process.cwd()
 
-	// make sure its running
-	let running = true
-	if (withRunningCheck) {
-		running = (
-			await prompts({
-				message: 'Is your GraphQL API running?',
-				name: 'running',
-				type: 'confirm',
-				initial: true,
-			})
-		).running
-	}
-	if (!running) {
-		console.log('❌ Your API must be running order to continue')
-		return
-	}
+	// git check
+	if (!force_remote_endpoint) {
+		// from https://github.com/sveltejs/kit/blob/master/packages/migrate/migrations/routes/index.js#L60
+		let use_git = false
 
-	let { url } = await prompts(
-		{
-			message: "What's the URL for your api?",
-			name: 'url',
-			type: 'text',
-			initial: 'http://localhost:4000/graphql',
-		},
-		{
-			onCancel() {
-				process.exit(1)
-			},
+		let dir = targetPath
+		do {
+			if (fs.existsSync(path.join(dir, '.git'))) {
+				use_git = true
+				break
+			}
+		} while (dir !== (dir = path.dirname(dir)))
+
+		if (use_git) {
+			const status = execSync('git status --porcelain', { stdio: 'pipe' }).toString()
+
+			if (status) {
+				const message =
+					'Your git working directory is dirty — we recommend committing your changes before running this migration.\n'
+				console.error(message)
+			}
 		}
-	)
 
-	try {
-		// verify we can send graphql queries to the server
-		const response = await fetch(url, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				...headers,
-			},
-			body: JSON.stringify({
-				query: getIntrospectionQuery(),
-			}),
+		const { confirm } = await prompts({
+			message: 'Continue?',
+			name: 'confirm',
+			type: 'confirm',
+			initial: false,
 		})
 
-		// if the response was not a 200, we have a problem
-		if (response.status !== 200) {
-			console.log('❌ That URL is not accepting GraphQL queries. Please try again.')
-			return await init(_path, args, false)
+		if (!confirm) {
+			process.exit(1)
 		}
+	}
 
-		// make sure we can parse the response as json
-		await response.json()
-	} catch (e) {
-		console.log('❌ Something went wrong: ' + (e as Error).message)
-		return await init(_path, args, false)
+	// Questions...
+	let url = 'http://localhost:5173/api/graphql'
+	const { is_remote_endpoint } = force_remote_endpoint
+		? { is_remote_endpoint: true }
+		: await prompts({
+				message: 'Will you use a remote GraphQL API?',
+				name: 'is_remote_endpoint',
+				type: 'confirm',
+				initial: true,
+		  })
+
+	if (is_remote_endpoint) {
+		const { url_remote } = await prompts(
+			{
+				message: "What's the URL for your api?",
+				name: 'url_remote',
+				type: 'text',
+				initial: 'http://localhost:4000/graphql',
+			},
+			{
+				onCancel() {
+					process.exit(1)
+				},
+			}
+		)
+
+		// set the url for later
+		url = url_remote
+		try {
+			// verify we can send graphql queries to the server
+			const response = await fetch(url, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					...headers,
+				},
+				body: JSON.stringify({
+					query: getIntrospectionQuery(),
+				}),
+			})
+
+			// if the response was not a 200, we have a problem
+			if (response.status !== 200) {
+				console.log('❌ That URL is not accepting GraphQL queries. Please try again.')
+				return await init(_path, { ...args, force_remote_endpoint: true })
+			}
+
+			// make sure we can parse the response as json
+			await response.json()
+		} catch (e) {
+			console.log('❌ Something went wrong: ' + (e as Error).message)
+			return await init(_path, { ...args, force_remote_endpoint: true })
+		}
 	}
 
 	// try to detect which tools they are using
-	const { framework, typescript, module } = await detectTools(targetPath)
+	const { framework, typescript, module, package_manager } = await detectTools(targetPath)
 
 	// notify the users of what we detected
 	console.log()
-	console.log('🔎 Heres what we found:')
+	console.log("🔎 Here's what we found:")
 
 	// framework
 	if (framework === 'kit') {
@@ -131,7 +167,7 @@ export default async function init(
 	}
 
 	// the location for the schema
-	const schemaPath = './schema.graphql'
+	const schemaPath = is_remote_endpoint ? './schema.graphql' : '**/*.graphql'
 
 	// the source directory
 	const sourceDir = path.join(targetPath, 'src')
@@ -148,14 +184,16 @@ export default async function init(
 
 	await updatePackageJSON(targetPath)
 
-	await pullSchema(url, path.join(targetPath, schemaPath), headers)
+	// let's pull the schema only when we are using a remote endpoint
+	if (is_remote_endpoint) {
+		await pullSchema(url, path.join(targetPath, schemaPath), headers)
+	}
+
 	await writeConfigFile({
-		targetPath,
 		configPath,
 		schemaPath,
-		framework,
 		module,
-		url,
+		url: is_remote_endpoint ? url : null,
 		houdiniClientImport,
 	})
 	await fs.writeFile(houdiniClientPath, networkFile(url, typescript))
@@ -177,10 +215,19 @@ export default async function init(
 	// we're done!
 	console.log()
 	console.log('🎩 Welcome to Houdini!')
+	let cmd_install = 'npm i'
+	let cmd_run = 'npm run dev'
+	if (package_manager === 'pnpm') {
+		cmd_install = 'pnpm i'
+		cmd_run = 'pnpm dev'
+	} else if (package_manager === 'yarn') {
+		cmd_install = 'yarn'
+		cmd_run = 'yarn dev'
+	}
 	console.log(`
 👉 Next Steps
-1️⃣  Finalize your installation: npm/yarn/pnpm install
-2️⃣  Start your application: npm run dev
+1️⃣  Finalize your installation: ${logGreen(cmd_install)}
+2️⃣  Start your application:     ${logGreen(cmd_run)}
 `)
 }
 
@@ -212,30 +259,31 @@ export default new HoudiniClient(fetchQuery);
 `
 
 const writeConfigFile = async ({
-	targetPath,
 	configPath,
 	schemaPath,
-	framework,
 	module,
 	url,
 	houdiniClientImport,
 }: {
-	targetPath: string
 	configPath: string
 	schemaPath: string
-	framework: 'kit' | 'svelte'
 	module: 'esm' | 'commonjs'
-	url: string
+	url: string | null
 	houdiniClientImport: string
 }): Promise<boolean> => {
-	const config: ConfigFile = {
-		apiUrl: url,
+	const config: ConfigFile = {}
+
+	// if we have no url, we are using a local schema
+	if (url !== null) {
+		config.apiUrl = url
 	}
 
 	// if it's different for defaults, write it down
 	if (schemaPath !== './schema.graphql') {
 		config.schemaPath = schemaPath
 	}
+
+	// if it's different for defaults, write it down
 	if (module !== 'esm') {
 		config.module = module
 	}
@@ -249,23 +297,25 @@ const writeConfigFile = async ({
 
 	// the actual config contents
 	const configObj = JSON.stringify(config, null, 4)
+	const content_base = `/// <references types="houdini-svelte">
+
+/** @type {import('houdini').ConfigFile} */
+const config = ${configObj}`
+
 	const content =
 		module === 'esm'
 			? // ESM default config
-			  `/** @type {import('houdini').ConfigFile} */
-const config = ${configObj}
+			  `${content_base}
 
 export default config
 `
 			: // CommonJS default config
-			  `/** @type {import('houdini').ConfigFile} */
-const config = ${configObj}
+			  `${content_base}}
 
 module.exports = config
 `
 
 	await updateFile({
-		projectPath: targetPath,
 		filepath: configPath,
 		content,
 	})
@@ -327,26 +377,6 @@ async function updateViteConfig(
 ) {
 	const viteConfigPath = path.join(targetPath, `vite.config${typescript ? '.ts' : '.js'}`)
 
-	const oldViteConfig1 = `import { sveltekit } from '@sveltejs/kit/vite';
-
-/** @type {import('vite').UserConfig} */
-const config = {
-	plugins: [sveltekit()]
-};
-
-export default config;
-`
-
-	const oldViteConfig2 = `import { sveltekit } from '@sveltejs/kit/vite';
-import type { UserConfig } from 'vite';
-
-const config: UserConfig = {
-	plugins: [sveltekit()]
-};
-
-export default config;
-`
-
 	const viteConfigKit = `import { sveltekit } from '@sveltejs/kit/vite';
 import houdini from 'houdini/vite';
 
@@ -406,17 +436,13 @@ export default config;
 
 	if (typescript) {
 		await updateFile({
-			projectPath: targetPath,
 			filepath: viteConfigPath,
 			content: framework === 'kit' ? viteConfigKitTs : viteConfigSvelteTs,
-			old: [oldViteConfig1, oldViteConfig2],
 		})
 	} else {
 		await updateFile({
-			projectPath: targetPath,
 			filepath: viteConfigPath,
 			content: framework === 'kit' ? viteConfigKit : viteConfigSvelte,
-			old: [oldViteConfig1, oldViteConfig2],
 		})
 	}
 }
@@ -444,40 +470,10 @@ const config = {
 export default config;
 `
 
-	const oldSvelteConfig1 = `import adapter from '@sveltejs/adapter-auto';
-import preprocess from 'svelte-preprocess';
-
-/** @type {import('@sveltejs/kit').Config} */
-const config = {
-	// Consult https://github.com/sveltejs/svelte-preprocess
-	// for more information about preprocessors
-	preprocess: preprocess(),
-
-	kit: {
-		adapter: adapter()
-	}
-};
-
-export default config;
-`
-	const oldSvelteConfig2 = `import adapter from '@sveltejs/adapter-auto';
-
-/** @type {import('@sveltejs/kit').Config} */
-const config = {
-	kit: {
-		adapter: adapter()
-	}
-};
-
-export default config;
-`
-
 	// write the svelte config file
 	await updateFile({
-		projectPath: targetPath,
 		filepath: svelteConfigPath,
 		content: newContent,
-		old: [oldSvelteConfig1, oldSvelteConfig2],
 	})
 }
 
@@ -487,6 +483,7 @@ async function updateSvelteMainJs(targetPath: string) {
 	const newContent = `import client from "../client";
 import './app.css'
 import App from './App.svelte'
+import { logGreen } from '@kitql/helper'
 
 client.init();
 
@@ -497,21 +494,9 @@ const app = new App({
 export default app
 `
 
-	const oldContent = `import './app.css'
-import App from './App.svelte'
-
-const app = new App({
-	target: document.getElementById('app')
-})
-
-export default app
-`
-
 	await updateFile({
-		projectPath: targetPath,
 		filepath: svelteMainJsPath,
 		content: newContent,
-		old: [oldContent],
 	})
 }
 
@@ -529,7 +514,7 @@ async function updatePackageJSON(targetPath: string) {
 		...packageJSON.devDependencies,
 		houdini: '^PACKAGE_VERSION',
 		'houdini-svelte': '^PACKAGE_VERSION',
-		graphql: '^15.5.0',
+		graphql: '^15.8.0',
 	}
 
 	await fs.writeFile(packagePath, JSON.stringify(packageJSON, null, 4))
@@ -550,7 +535,6 @@ async function graphqlRCFile(targetPath: string) {
 `
 
 	await updateFile({
-		projectPath: targetPath,
 		filepath: target,
 		content,
 	})
@@ -566,6 +550,7 @@ type DetectedTools = {
 	typescript: boolean
 	framework: 'kit' | 'sapper' | 'svelte'
 	module: 'esm' | 'commonjs'
+	package_manager: 'npm' | 'yarn' | 'pnpm'
 }
 
 async function detectTools(cwd: string): Promise<DetectedTools> {
@@ -599,57 +584,28 @@ async function detectTools(cwd: string): Promise<DetectedTools> {
 		typescript = true
 	} catch {}
 
+	// package manager?
+	let package_manager: 'npm' | 'yarn' | 'pnpm' = 'npm'
+	let dir = cwd
+	do {
+		if (fs.existsSync(path.join(dir, 'pnpm-lock.yaml'))) {
+			package_manager = 'pnpm'
+			break
+		}
+		if (fs.existsSync(path.join(dir, 'yarn.lock'))) {
+			package_manager = 'yarn'
+			break
+		}
+	} while (dir !== (dir = path.dirname(dir)))
+
 	return {
 		typescript,
 		framework,
 		module: packageJSON['type'] === 'module' ? 'esm' : 'commonjs',
+		package_manager,
 	}
 }
 
-async function updateFile({
-	projectPath,
-	filepath,
-	old = [],
-	content,
-}: {
-	projectPath: string
-	filepath: string
-	old?: string[]
-	content: string
-}) {
-	// look up the file contents
-	const existingContents = await fs.readFile(filepath)
-
-	// compare the existing contents to the approved overwrite list
-	if (existingContents && !old.includes(existingContents)) {
-		// show the filepath relative to the project path
-		const relPath = path.relative(projectPath, filepath)
-
-		// show a message before we prompt their response
-		console.log()
-		console.log(`⚠️  ${relPath} already exists. We'd like to replace it with:
-
-${content}`)
-
-		// ask the user if we should continue
-		const { done } = await prompts(
-			{
-				name: 'done',
-				type: 'confirm',
-				message: 'Should we overwrite the file? If not, please update it manually.',
-			},
-			{
-				onCancel() {
-					process.exit(1)
-				},
-			}
-		)
-
-		if (!done) {
-			return
-		}
-	}
-
-	// if we got this far we are safe to write the file
+async function updateFile({ filepath, content }: { filepath: string; content: string }) {
 	await fs.writeFile(filepath, content)
 }
