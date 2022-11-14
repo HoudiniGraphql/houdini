@@ -21,7 +21,12 @@ import { unwrapType, wrapType } from '../utils'
 // - generate the query with the fragment embedded using @with to pass query variables through
 
 type PaginationFlags = {
-	[fieldName: string]: { enabled: boolean; type: string; defaultValue?: any }
+	[fieldName: string]: {
+		enabled: boolean
+		type: string
+		defaultValue?: any
+		variableName?: string
+	}
 }
 
 // paginate transform adds the necessary fields for a paginated field
@@ -199,13 +204,18 @@ export default async function paginate(
 					let newVariables: Record<string, graphql.VariableDefinitionNode> =
 						Object.fromEntries(
 							Object.entries(flags)
-								.filter(([, spec]) => spec.enabled)
+								.filter(
+									([, spec]) =>
+										// let's tale the spec enabled AND where we don't have a dedicated variable for it
+										spec.enabled && spec.variableName === undefined
+								)
 								.map(([fieldName, spec]) => [
 									fieldName,
 									staticVariableDefinition(
 										fieldName,
 										spec.type,
-										spec.defaultValue
+										spec.defaultValue,
+										spec.variableName
 									),
 								])
 						)
@@ -543,10 +553,15 @@ function replaceArgumentsWithVariables(
 			flags[arg.name.value].defaultValue = spec.type === 'Int' ? parseInt(oldValue) : oldValue
 		}
 
+		// if we have a variable
+		if (arg.value.kind === 'Variable') {
+			flags[arg.name.value].variableName = arg.value.name.value
+		}
+
 		seenArgs[arg.name.value] = true
 
 		// turn the field into a variable
-		return variableAsArgument(arg.name.value)
+		return variableAsArgument(arg.name.value, flags[arg.name.value].variableName)
 	})
 
 	// any fields that are enabled but don't have values need to have variable references add
@@ -575,7 +590,7 @@ function replaceArgumentsWithVariables(
 	return newArgs
 }
 
-function variableAsArgument(name: string): graphql.ArgumentNode {
+function variableAsArgument(name: string, variable?: string): graphql.ArgumentNode {
 	return {
 		kind: graphql.Kind.ARGUMENT,
 		name: {
@@ -586,13 +601,18 @@ function variableAsArgument(name: string): graphql.ArgumentNode {
 			kind: graphql.Kind.VARIABLE,
 			name: {
 				kind: graphql.Kind.NAME,
-				value: name,
+				value: variable ?? name,
 			},
 		},
 	}
 }
 
-function staticVariableDefinition(name: string, type: string, defaultValue?: string) {
+function staticVariableDefinition(
+	name: string,
+	type: string,
+	defaultValue?: string,
+	variableName?: string
+) {
 	return {
 		kind: graphql.Kind.VARIABLE_DEFINITION,
 		type: {
@@ -606,7 +626,7 @@ function staticVariableDefinition(name: string, type: string, defaultValue?: str
 			kind: graphql.Kind.VARIABLE,
 			name: {
 				kind: graphql.Kind.NAME,
-				value: name,
+				value: variableName ?? name,
 			},
 		},
 		defaultValue: !defaultValue
