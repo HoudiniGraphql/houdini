@@ -17,7 +17,6 @@ export async function subscriptionStore(
 
 	// the content of the store
 	const storeContent = `${statement}
-import { SubscriptionStore } from '../runtime/stores'
 
 export class ${storeName} extends ${store_class} {
 	constructor() {
