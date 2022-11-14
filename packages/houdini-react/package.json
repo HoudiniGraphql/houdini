@@ -1,6 +1,6 @@
 {
     "name": "houdini-react",
-    "version": "0.17.7",
+    "version": "0.17.8",
     "private": true,
     "description": "The disappearing GraphQL clients",
     "scripts": {
