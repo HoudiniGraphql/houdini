@@ -2,12 +2,9 @@
 
 ## 0.17.7
 
-### Patch Changes
+### 🐛 Fixes
 
 -   [#689](https://github.com/HoudiniGraphql/houdini/pull/689) [`db67e82`](https://github.com/HoudiniGraphql/houdini/commit/db67e822fcec2362538bda548d058fa7e3397ffa) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix duplicate import for generated subscription stores
-
--   Updated dependencies []:
-    -   houdini@0.17.7
 
 ## 0.17.6
 
