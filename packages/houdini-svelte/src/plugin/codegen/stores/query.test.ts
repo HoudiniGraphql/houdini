@@ -9,7 +9,7 @@ import '../..'
 import { pipeline_test, test_config } from '../../../test'
 import { stores_directory } from '../../kit'
 
-test('generates a store for every query', async function () {
+test('generates a query store for every query', async function () {
 	const config = await test_config()
 	const plugin_root = config.pluginDirectory('test-plugin')
 
