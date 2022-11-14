@@ -26,26 +26,12 @@ type Mutation {
 	updateUser(id: ID!, name: String, snapshot: String!, birthDate: DateTime, delay: Int): User!
 	singleUpload(file: File!): String!
 	multipleUpload(files: [File!]!): [String!]!
-	addCity(
-		name: String!
-	): City!
-	addLibrary(
-		city: ID!
-		name: String!
-	): Library!
-	addBook(
-		library: ID!
-		title: String!
-	): Book!
-	deleteCity(
-		city: ID!
-	): City!
-	deleteLibrary(
-		library: ID!
-	): Library!
-	deleteBook(
-		book: ID!
-	): Book!
+	addCity(name: String!): City!
+	addLibrary(city: ID!, name: String!): Library!
+	addBook(library: ID!, title: String!): Book!
+	deleteCity(city: ID!): City!
+	deleteLibrary(library: ID!): Library!
+	deleteBook(book: ID!): Book!
 }
 
 interface Node {
@@ -75,6 +61,10 @@ type Query {
 	cities: [City]!
 }
 
+type Subscription {
+	userUpdate(id: ID!, snapshot: String): User
+}
+
 type User implements Node {
 	birthDate: DateTime
 	friendsConnection(after: String, before: String, first: Int, last: Int): UserConnection!
@@ -94,7 +84,6 @@ type UserEdge {
 	cursor: String
 	node: User
 }
-
 
 type Book {
 	id: ID!

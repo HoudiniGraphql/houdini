@@ -16,7 +16,8 @@ export async function subscriptionStore(
 	const { store_class, statement } = store_import(config, 'subscription')
 
 	// the content of the store
-	const storeContent = `${statement}
+	const storeContent = `import artifact from '$houdini/artifacts/${artifactName}'
+${statement}
 
 export class ${storeName} extends ${store_class} {
 	constructor() {
