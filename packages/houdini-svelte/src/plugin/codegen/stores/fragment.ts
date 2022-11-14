@@ -38,7 +38,7 @@ ${
 		: ''
 }
 
-// create the query store
+// create the fragment store
 
 export class ${storeName} extends ${store_class} {
     constructor() {
