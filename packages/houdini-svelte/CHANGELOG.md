@@ -2,7 +2,7 @@
 
 ## 0.17.8
 
-### Patch Changes
+### 🐛 Fixes
 
 -   [#691](https://github.com/HoudiniGraphql/houdini/pull/691) [`e707fbe`](https://github.com/HoudiniGraphql/houdini/commit/e707fbec36c223ad549c31df6bfa68ae312ffa9a) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Added artifact import to subscription stores
 
