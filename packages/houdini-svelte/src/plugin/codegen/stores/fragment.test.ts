@@ -41,7 +41,7 @@ test('generates a store for every query', async function () {
 		import artifact from '$houdini/artifacts/TestFragment1'
 
 
-		// create the query store
+		// create the fragment store
 
 		export class TestFragment1Store extends FragmentStore {
 		    constructor() {
