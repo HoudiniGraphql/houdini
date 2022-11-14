@@ -40,6 +40,8 @@ export const routes = {
   Plugin_query_onError: '/plugin/query/onError',
   Plugin_query_layout: '/plugin/query/layout',
 
+  Plugin_subscription_renders: '/plugin/subscription/renders',
+
   Plugin_mutation_mutation: '/plugin/mutation/mutation',
   Plugin_fragment_update: '/plugin/fragment/update',
 

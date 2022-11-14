@@ -9,7 +9,7 @@ import '../..'
 import { test_config } from '../../../test'
 import { stores_directory } from '../../kit'
 
-test('generates a store for every query', async function () {
+test('generates a store for every subscription', async function () {
 	const config = await test_config()
 	const plugin_root = config.pluginDirectory('test-plugin')
 
@@ -41,6 +41,7 @@ test('generates a store for every query', async function () {
 
 	await expect(parsed).toMatchInlineSnapshot(
 		`
+		import artifact from '$houdini/artifacts/TestSubscription1'
 		import { SubscriptionStore } from '$houdini/plugins/houdini-svelte/runtime/stores'
 
 		export class TestSubscription1Store extends SubscriptionStore {
