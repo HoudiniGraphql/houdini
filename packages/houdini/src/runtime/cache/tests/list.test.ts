@@ -1624,10 +1624,6 @@ test('append operation', function () {
 					{
 						action: 'insert',
 						list: 'All_Users',
-						parentID: {
-							kind: 'String',
-							value: '1',
-						},
 					},
 				],
 				fields: {
@@ -1716,10 +1712,6 @@ test('append from list', function () {
 					{
 						action: 'insert',
 						list: 'All_Users',
-						parentID: {
-							kind: 'String',
-							value: '1',
-						},
 					},
 				],
 				fields: {
@@ -1823,10 +1815,6 @@ test('toggle list', function () {
 				{
 					action: 'toggle',
 					list: 'All_Users',
-					parentID: {
-						kind: 'String',
-						value: '1',
-					},
 				},
 			],
 			fields: {
@@ -1925,10 +1913,6 @@ test('append when operation', function () {
 					{
 						action: 'insert',
 						list: 'All_Users',
-						parentID: {
-							kind: 'String',
-							value: '1',
-						},
 						when: {
 							must: {
 								value: 'not-foo',
@@ -2028,10 +2012,6 @@ test('prepend when operation', function () {
 					{
 						action: 'insert',
 						list: 'All_Users',
-						parentID: {
-							kind: 'String',
-							value: '1',
-						},
 						position: 'first',
 						when: {
 							must: {
@@ -2146,10 +2126,6 @@ test('prepend operation', function () {
 					{
 						action: 'insert',
 						list: 'All_Users',
-						parentID: {
-							kind: 'String',
-							value: '1',
-						},
 						position: 'first',
 					},
 				],
@@ -2254,10 +2230,6 @@ test('remove operation', function () {
 					{
 						action: 'remove',
 						list: 'All_Users',
-						parentID: {
-							kind: 'String',
-							value: '1',
-						},
 					},
 				],
 				fields: {
@@ -2364,10 +2336,6 @@ test('remove operation from list', function () {
 					{
 						action: 'remove',
 						list: 'All_Users',
-						parentID: {
-							kind: 'String',
-							value: '1',
-						},
 					},
 				],
 				fields: {
@@ -3214,10 +3182,6 @@ test('list operations fail silently', function () {
 						{
 							action: 'insert',
 							list: 'All_Users',
-							parentID: {
-								kind: 'String',
-								value: cache._internal_unstable.id('User', '1')!,
-							},
 						},
 					],
 					fields: {
