@@ -27,7 +27,6 @@ export default async function addListFragments(
 	} = {}
 
 	const errors: Error[] = []
-
 	// look at every document
 	for (const doc of documents) {
 		doc.document = graphql.visit(doc.document, {

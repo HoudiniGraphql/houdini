@@ -110,8 +110,8 @@ export class Cache {
 	}
 
 	// return the list handler to mutate a named list in the cache
-	list(name: string, parentID?: string | {}): ListCollection {
-		const handler = this._internal_unstable.lists.get(name, parentID)
+	list(name: string, parentID?: string, allList?: boolean): ListCollection {
+		const handler = this._internal_unstable.lists.get(name, parentID, allList)
 		if (!handler) {
 			throw new Error(
 				`Cannot find list with name: ${name}${
@@ -585,7 +585,7 @@ class CacheInternal {
 						operation.list
 					) {
 						this.cache
-							.list(operation.list, parentID)
+							.list(operation.list, parentID, operation.allList)
 							.when(operation.when)
 							.addToList(fields, target, variables, operation.position || 'last')
 					}
@@ -598,7 +598,7 @@ class CacheInternal {
 						operation.list
 					) {
 						this.cache
-							.list(operation.list, parentID)
+							.list(operation.list, parentID, operation.allList)
 							.when(operation.when)
 							.remove(target, variables)
 					}
@@ -624,7 +624,7 @@ class CacheInternal {
 						operation.list
 					) {
 						this.cache
-							.list(operation.list, parentID)
+							.list(operation.list, parentID, operation.allList)
 							.when(operation.when)
 							.toggleElement(fields, target, variables, operation.position || 'last')
 					}

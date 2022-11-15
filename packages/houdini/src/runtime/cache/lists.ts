@@ -16,12 +16,21 @@ export class ListManager {
 
 	private listsByField: Map<string, Map<string, List[]>> = new Map()
 
-	get(listName: string, id?: string | {}) {
+	get(listName: string, id?: string, allList?: boolean) {
 		const matches = this.lists.get(listName)
 
 		// if we don't have a list by that name, we're done
 		if (!matches || matches.size === 0) {
 			return null
+		}
+
+		// if we want to update all list, return all matches
+		if (allList) {
+			return new ListCollection(
+				Object.keys(matches)
+					.map((key) => matches.get(key)?.lists ?? [])
+					.flat()
+			)
 		}
 
 		const head = [...matches.values()][0]
@@ -36,7 +45,7 @@ export class ListManager {
 		// it would have been caught in the size === 1 check above since
 		// root's ID is fixed
 		if (!id) {
-			throw new Error(
+			console.error(
 				`Found multiple instances of "${listName}". Please provide a ` +
 					`parentID that corresponds to the object containing the field marked with @list or @paginate.`
 			)
