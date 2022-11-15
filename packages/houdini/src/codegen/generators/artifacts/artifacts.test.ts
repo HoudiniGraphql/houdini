@@ -869,13 +869,85 @@ describe('mutation artifacts', function () {
 		`)
 	})
 
+	test('insert operation append && prepend', async function () {
+		const mutationDocs = [
+			mockCollectedDoc(
+				`mutation A {
+					addFriend {
+						friend {
+							...All_Users_insert @append @prepend
+						}
+					}
+				}`
+			),
+			mockCollectedDoc(
+				`query TestQuery {
+					users(stringValue: "foo") @list(name: "All_Users") {
+						firstName
+					}
+				}`
+			),
+		]
+
+		let errorState = ''
+		try {
+			await runPipeline(config, mutationDocs)
+			errorState = 'no error!'
+		} catch (error: any) {
+			expect(error[0].message).toMatchInlineSnapshot(
+				'"You can\'t apply both @prepend && @append at the same time"'
+			)
+		}
+
+		// If we didn't had an error then the test failed!
+		if (errorState !== '') {
+			expect(errorState).toBe('')
+		}
+	})
+
+	test('insert operation parentID && allLists', async function () {
+		const mutationDocs = [
+			mockCollectedDoc(
+				`mutation A {
+					addFriend {
+						friend {
+							...All_Users_insert @parentID @allLists
+						}
+					}
+				}`
+			),
+			mockCollectedDoc(
+				`query TestQuery {
+					users(stringValue: "foo") @list(name: "All_Users") {
+						firstName
+					}
+				}`
+			),
+		]
+
+		let errorState = ''
+		try {
+			await runPipeline(config, mutationDocs)
+			errorState = 'no error!'
+		} catch (error: any) {
+			expect(error[0].message).toMatchInlineSnapshot(
+				'"You can\'t apply both @parentID && @allLists at the same time"'
+			)
+		}
+
+		// If we didn't had an error then the test failed!
+		if (errorState !== '') {
+			expect(errorState).toBe('')
+		}
+	})
+
 	test('insert operation allList', async function () {
 		const mutationDocs = [
 			mockCollectedDoc(
 				`mutation A {
 					addFriend {
 						friend {
-							...All_Users_insert @allList
+							...All_Users_insert @allLists
 						}
 					}
 				}`
@@ -891,7 +963,6 @@ describe('mutation artifacts', function () {
 
 		// execute the generator
 		await runPipeline(config, mutationDocs)
-
 
 		expect(mutationDocs[0]).toMatchInlineSnapshot(`
 			export default {
@@ -930,7 +1001,7 @@ describe('mutation artifacts', function () {
 			                        action: "insert",
 			                        list: "All_Users",
 			                        position: "last",
-			                        allList: true
+			                        allLists: true
 			                    }],
 
 			                    fields: {
@@ -950,7 +1021,7 @@ describe('mutation artifacts', function () {
 			    }
 			};
 
-			"HoudiniHash=dd34a608ccdc6dfa1f0f76c3b6fd3629f7d5410658d96387d7e80491563e28f4";
+			"HoudiniHash=90d93ca64a69bec0880925b8af471b0da1cf76964df0b6b6c3af30b6fd877217";
 		`)
 	})
 
@@ -975,22 +1046,13 @@ describe('mutation artifacts', function () {
 		]
 
 		let configUpdate = testConfig()
-		configUpdate.defaultListAllList = true
+		configUpdate.defaultListAllLists = true
 
 		// execute the generator
 		await runPipeline(configUpdate, mutationDocs)
 
-		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(configUpdate.artifactPath(mutationDocs[0].document))
-		)
-		expect(queryContents).toBeTruthy()
-		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-			parser: typeScriptParser,
-		}).program
 		// verify contents
-		expect(parsedQuery).toMatchInlineSnapshot(`
+		expect(mutationDocs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -1027,7 +1089,7 @@ describe('mutation artifacts', function () {
 			                        action: "insert",
 			                        list: "All_Users",
 			                        position: "last",
-			                        allList: true
+			                        allLists: true
 			                    }],
 
 			                    fields: {

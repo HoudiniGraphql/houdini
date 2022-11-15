@@ -114,18 +114,13 @@ function operationObject({
 		const append = internalDirectives.find(
 			({ name }) => name.value === config.listAppendDirective
 		)
-		// if both are applied, there's a problem
-		if (append && prepend) {
-			throw new HoudiniError({
-				filepath,
-				message: `You can't apply both @${config.listPrependDirective} && @${config.listAppendDirective} at the same time`,
-			})
+
+		// if both are applied, there's a problem, this should never happen has it's checked in validation step
+		if (append) {
+			position = 'last'
 		}
 		if (prepend) {
 			position = 'first'
-		}
-		if (append) {
-			position = 'last'
 		}
 
 		// is allLists applied?
@@ -137,13 +132,8 @@ function operationObject({
 		let parent = internalDirectives.find(
 			({ name }) => name.value === config.listParentDirective
 		)
-		// if both are applied, there's a problem
-		if (allListsDirective && parent) {
-			throw new HoudiniError({
-				filepath,
-				message: `You can't apply both @${config.listAllListsDirective} && @${config.listParentDirective} at the same time`,
-			})
-		}
+
+		// if both are applied, there's a problem, this should never happen has it's checked in validation step
 		allLists = allListsDirective ? true : false
 
 		// is when applied?

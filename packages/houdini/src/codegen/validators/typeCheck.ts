@@ -320,6 +320,8 @@ export default async function typeCheck(
 					listTypes,
 					fragments,
 				}),
+				// checkMutationOperation
+				checkMutationOperation(config),
 				// pagination directive can only show up on nodes or the query type
 				nodeDirectives(config, [config.paginateDirective]),
 				// this replaces KnownArgumentNamesRule
@@ -919,6 +921,45 @@ function nodeDirectives(config: Config, directives: string[]) {
 					ctx.reportError(
 						new graphql.GraphQLError(paginateOnNonNodeMessage(config, node.name.value))
 					)
+				}
+			},
+		}
+	}
+}
+
+function checkMutationOperation(config: Config) {
+	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
+		return {
+			FragmentSpread(node, _, __, ___, ancestors) {
+				const append = node.directives?.find(
+					(c) => c.name.value === config.listAppendDirective
+				)
+
+				const prepend = node.directives?.find(
+					(c) => c.name.value === config.listPrependDirective
+				)
+				if (append && prepend) {
+					ctx.reportError(
+						new graphql.GraphQLError(
+							`You can't apply both @${config.listPrependDirective} && @${config.listAppendDirective} at the same time`
+						)
+					)
+					return
+				}
+
+				const parentId = node.directives?.find(
+					(c) => c.name.value === config.listParentDirective
+				)
+				const allLists = node.directives?.find(
+					(c) => c.name.value === config.listAllListsDirective
+				)
+				if (parentId && allLists) {
+					ctx.reportError(
+						new graphql.GraphQLError(
+							`You can't apply both @${config.listParentDirective} && @${config.listAllListsDirective} at the same time`
+						)
+					)
+					return
 				}
 			},
 		}
