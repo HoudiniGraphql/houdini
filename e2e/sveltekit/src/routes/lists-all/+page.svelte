@@ -16,7 +16,7 @@
     $page.url.searchParams.set('limit', limit.toString());
     const newUrl = $page.url.href;
     await invalidate(newUrl);
-    await goto(newUrl, { replaceState: true, keepfocus: true });
+    await goto(newUrl, { replaceState: true, keepFocus: true });
   }
 
   const add = async () => {
