@@ -140,6 +140,54 @@ const table: Row[] = [
 		],
 	},
 	{
+		title: '@prepend & @append on _insert',
+		pass: false,
+		documents: [
+			`
+                query TestQuery {
+					user {
+						friends {
+							friends @list(name: "Friends") {
+								id
+							}
+						}
+					}
+                }
+            `,
+			`
+                mutation MutationM {
+					addFriend {
+						...Friends_insert @prepend @append
+					}
+                }
+            `,
+		],
+	},
+	{
+		title: '@parentID @allLists on _insert',
+		pass: false,
+		documents: [
+			`
+                query TestQuery {
+					user {
+						friends {
+							friends @list(name: "Friends") {
+								id
+							}
+						}
+					}
+                }
+            `,
+			`
+                mutation MutationM {
+					addFriend {
+						...Friends_insert @parentID @allLists
+					}
+                }
+            `,
+		],
+	},
+	{
 		title: '@list name must be unique',
 		pass: false,
 		documents: [

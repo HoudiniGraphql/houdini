@@ -450,7 +450,7 @@ const validateLists = ({
 
 				ctx.reportError(
 					new graphql.GraphQLError(
-						'For this list fragment, you need to add or @parentID or @allLists directive to specify the behavior'
+						`For this list fragment, you need to add or @${config.listParentDirective} or @${config.listAllListsDirective} directive to specify the behavior`
 					)
 				)
 				return
@@ -955,7 +955,7 @@ function checkMutationOperation(config: Config) {
 				if (append && prepend) {
 					ctx.reportError(
 						new graphql.GraphQLError(
-							`You can't apply both @${config.listPrependDirective} && @${config.listAppendDirective} at the same time`
+							`You can't apply both @${config.listPrependDirective} and @${config.listAppendDirective} at the same time`
 						)
 					)
 					return
@@ -970,7 +970,7 @@ function checkMutationOperation(config: Config) {
 				if (parentId && allLists) {
 					ctx.reportError(
 						new graphql.GraphQLError(
-							`You can't apply both @${config.listParentDirective} && @${config.listAllListsDirective} at the same time`
+							`You can't apply both @${config.listParentDirective} and @${config.listAllListsDirective} at the same time`
 						)
 					)
 					return
