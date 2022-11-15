@@ -33,9 +33,20 @@ export class ListManager {
 
 		const head = [...matches.values()][0]
 
+		// the provided id won't match the cache's ID so we have to compute the internal ID, using
+		// one of the matches to figure out the type of the list element
+		const { recordType } = head.lists[0]
+		const parentID = id ? this.cache._internal_unstable.id(recordType || '', id)! : this.rootID
+
 		// if there is only one list with that name, return it
 		if (matches?.size === 1) {
-			return head
+			// if there is no provided id, just use the first one
+			if (!id) {
+				return head
+			}
+
+			// otherwise we're only safe to use the head if it matches the parentID
+			return parentID === Array.from(matches.keys())[0] ? head : null
 		}
 
 		// there are multiple versions of the list so the user must
@@ -44,15 +55,10 @@ export class ListManager {
 		// root's ID is fixed
 		if (!id) {
 			console.error(
-				`Found multiple instances of "${listName}". Please provide @allLists directive to add to all directives, ` +
-					`or provide @parentID directive to specify the object containing the field marked with @list or @paginate.`
+				`Found multiple instances of "${listName}". Please provide one of @parentID or @allLists directives to` +
+					`help identify which list you want modify. For more information, visit this guide: https://www.houdinigraphql.com/api/graphql#parentidvalue-string `
 			)
 		}
-
-		// the provided id won't match the cache's ID so we have to compute the internal ID, using
-		// one of the matches to figure out the type of the list element
-		const { recordType } = head.lists[0]
-		const parentID = id ? this.cache._internal_unstable.id(recordType || '', id)! : this.rootID
 
 		// return the list pointing to the correct parent
 		return this.lists.get(listName)?.get(parentID)
