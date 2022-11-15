@@ -44,9 +44,9 @@ directive @${config.listPrependDirective}(
 directive @${config.listAppendDirective}(${config.listDirectiveParentIDArg}: ID) on FRAGMENT_SPREAD
 
 """
-	@${config.listAllListDirective} is used to tell the runtime to add the result to all list
+	@${config.listAllListsDirective} is used to tell the runtime to add the result to all list
 """
-directive @${config.listAllListDirective} on FRAGMENT_SPREAD
+directive @${config.listAllListsDirective} on FRAGMENT_SPREAD
 
 """
 	@${

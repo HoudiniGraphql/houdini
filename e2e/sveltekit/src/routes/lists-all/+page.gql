@@ -1,0 +1,17 @@
+query ListAll($limit: Int!) {
+  usersConnection(first: $limit, snapshot: "List_All") @paginate(name: "test") {
+    edges {
+      node @list(name: "List_All") {
+        id
+        name
+      }
+    }
+  }
+}
+
+# query ListAll($limit: Int!) {
+#   usersList(limit: $limit, snapshot: "lists-all") @list(name: "List_All") {
+#     id
+#     name
+#   }
+# }

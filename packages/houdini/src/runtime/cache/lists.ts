@@ -16,7 +16,7 @@ export class ListManager {
 
 	private listsByField: Map<string, Map<string, List[]>> = new Map()
 
-	get(listName: string, id?: string, allList?: boolean) {
+	get(listName: string, id?: string, allLists?: boolean) {
 		const matches = this.lists.get(listName)
 
 		// if we don't have a list by that name, we're done
@@ -25,7 +25,7 @@ export class ListManager {
 		}
 
 		// if we want to update all list, return all matches
-		if (allList) {
+		if (allLists) {
 			return new ListCollection(
 				Object.keys(matches)
 					.map((key) => matches.get(key)?.lists ?? [])

@@ -1,0 +1,13 @@
+mutation ListAll_AddUser {
+  addUser(name: "JYC", birthDate: 531747620000, snapshot: "List_All") {
+    id
+    name
+    # ...List_All_insert
+  }
+}
+
+# mutation ListAll_AddUser {
+#   addUser(name: "JYC", birthDate: 531747620000, snapshot: "lists-all") {
+#     ...List_All_insert
+#   }
+# }

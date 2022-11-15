@@ -133,7 +133,7 @@ export type ConfigFile = {
 	/**
 	 * Specifies whether mutation should apply to all list (default: `false`)
 	 */
-	defaultListAllList?: boolean
+	defaultListAllLists?: boolean
 
 	/**
 	 * A list of fields to use when computing a record’s id. The default value is ['id']. For more information: https://www.houdinigraphql.com/guides/caching-data#custom-ids

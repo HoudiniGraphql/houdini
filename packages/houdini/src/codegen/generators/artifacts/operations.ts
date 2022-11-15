@@ -99,7 +99,7 @@ function operationObject({
 	let parentKind: 'Variable' | 'String' = 'String'
 
 	let position: MutationOperation['position'] = config.internalListPosition
-	let allList: MutationOperation['allList'] = config.defaultListAllList
+	let allLists: MutationOperation['allLists'] = config.defaultListAllLists
 	let operationWhen: MutationOperation['when'] | undefined
 
 	const internalDirectives = selection.directives?.filter((directive) =>
@@ -128,9 +128,9 @@ function operationObject({
 			position = 'last'
 		}
 
-		// is allList applied?
-		const allListDirective = internalDirectives.find(
-			({ name }) => name.value === config.listAllListDirective
+		// is allLists applied?
+		const allListsDirective = internalDirectives.find(
+			({ name }) => name.value === config.listAllListsDirective
 		)
 
 		// look for the parentID directive
@@ -138,13 +138,13 @@ function operationObject({
 			({ name }) => name.value === config.listParentDirective
 		)
 		// if both are applied, there's a problem
-		if (allListDirective && parent) {
+		if (allListsDirective && parent) {
 			throw new HoudiniError({
 				filepath,
-				message: `You can't apply both @${config.listAllListDirective} && @${config.listParentDirective} at the same time`,
+				message: `You can't apply both @${config.listAllListsDirective} && @${config.listParentDirective} at the same time`,
 			})
 		}
-		allList = allListDirective ? true : false
+		allLists = allListsDirective ? true : false
 
 		// is when applied?
 		const when = internalDirectives.find(({ name }) => name.value === 'when')
@@ -249,8 +249,8 @@ function operationObject({
 	}
 
 	// only add the position argument if we are inserting something
-	if (operationKind === 'insert' && allList) {
-		operation.allList = allList
+	if (operationKind === 'insert' && allLists) {
+		operation.allLists = allLists
 	}
 
 	// if there is a parent id

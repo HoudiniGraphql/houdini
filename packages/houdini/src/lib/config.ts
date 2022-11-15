@@ -39,7 +39,7 @@ export class Config {
 	defaultCachePolicy: CachePolicy
 	defaultPartial: boolean
 	internalListPosition: 'first' | 'last'
-	defaultListAllList: boolean = false
+	defaultListAllLists: boolean = false
 	definitionsFolder?: string
 	newSchema: string = ''
 	newDocuments: string = ''
@@ -80,7 +80,7 @@ export class Config {
 			defaultCachePolicy = CachePolicy.CacheOrNetwork,
 			defaultPartial = false,
 			defaultListPosition = 'append',
-			defaultListAllList = false,
+			defaultListAllLists = false,
 			defaultKeys,
 			types = {},
 			logLevel,
@@ -121,7 +121,7 @@ export class Config {
 		this.defaultCachePolicy = defaultCachePolicy
 		this.defaultPartial = defaultPartial
 		this.internalListPosition = defaultListPosition === 'append' ? 'last' : 'first'
-		this.defaultListAllList == defaultListAllList
+		this.defaultListAllLists == defaultListAllLists
 		this.definitionsFolder = definitionsPath
 		this.logLevel = ((logLevel as LogLevel) || LogLevel.Summary).toLowerCase() as LogLevel
 		this.disableMasking = disableMasking
@@ -476,8 +476,8 @@ export class Config {
 		return 'parentID'
 	}
 
-	get listAllListDirective() {
-		return 'allList'
+	get listAllListsDirective() {
+		return 'allLists'
 	}
 
 	get listNameArg() {
@@ -588,7 +588,7 @@ export class Config {
 				this.listPrependDirective,
 				this.listAppendDirective,
 				this.listDirectiveParentIDArg,
-				this.listAllListDirective,
+				this.listAllListsDirective,
 				this.whenDirective,
 				this.whenNotDirective,
 				this.argumentsDirective,
