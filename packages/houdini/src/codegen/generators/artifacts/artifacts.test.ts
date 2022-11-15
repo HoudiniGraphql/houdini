@@ -892,17 +892,8 @@ describe('mutation artifacts', function () {
 		// execute the generator
 		await runPipeline(config, mutationDocs)
 
-		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document))
-		)
-		expect(queryContents).toBeTruthy()
-		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-			parser: typeScriptParser,
-		}).program
-		// verify contents
-		expect(parsedQuery).toMatchInlineSnapshot(`
+
+		expect(mutationDocs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
