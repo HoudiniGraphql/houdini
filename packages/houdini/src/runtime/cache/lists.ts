@@ -55,9 +55,10 @@ export class ListManager {
 		// root's ID is fixed
 		if (!id) {
 			console.error(
-				`Found multiple instances of "${listName}". Please provide one of @parentID or @allLists directives to` +
+				`Found multiple instances of "${listName}". Please provide one of @parentID or @allLists directives to ` +
 					`help identify which list you want modify. For more information, visit this guide: https://www.houdinigraphql.com/api/graphql#parentidvalue-string `
 			)
+			return null
 		}
 
 		// return the list pointing to the correct parent

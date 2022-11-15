@@ -3352,7 +3352,7 @@ test('parentID must be passed if there are multiple instances of a list handler'
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	const friendsSelection = {
+	const friendsSelection: SubscriptionSelection = {
 		friends: {
 			type: 'User',
 			keyRaw: 'friends',
@@ -3424,11 +3424,73 @@ test('parentID must be passed if there are multiple instances of a list handler'
 		{}
 	)
 
-	// looking up the list without a parent id should fail
-	expect(() => cache.list('All_Users')).toThrow()
-	expect(cache.list('All_Users', '1')!.lists[0].recordID).toEqual(
-		cache._internal_unstable.id('User', '1')
-	)
+	// append a value to the store
+	const writeSelectionNoParentID: SubscriptionSelection = {
+		user: {
+			type: 'User',
+			keyRaw: 'user',
+			operations: [
+				{
+					action: 'insert',
+					list: 'All_Users',
+				},
+			],
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+			},
+		},
+	}
+	const writeSelectionWithParentID: SubscriptionSelection = {
+		user: {
+			type: 'User',
+			keyRaw: 'user',
+			operations: [
+				{
+					action: 'insert',
+					list: 'All_Users',
+					parentID: {
+						kind: 'String',
+						value: '1',
+					},
+				},
+			],
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+			},
+		},
+	}
+
+	// write the value without a parent ID
+	cache.write({
+		selection: writeSelectionNoParentID,
+		data: { user: { id: '2', firstName: 'test' } },
+	})
+	// make sure we didn't modify the lists
+	expect([...cache.list('All_Users', '1')]).toHaveLength(1)
+	expect([...cache.list('All_Users', '2')]).toHaveLength(0)
+
+	// write the value with a parent ID
+	cache.write({
+		selection: writeSelectionWithParentID,
+		data: { user: { id: '2', firstName: 'test' } },
+	})
+	// make sure we modified the correct list
+	expect([...cache.list('All_Users', '1')]).toHaveLength(2)
+	expect([...cache.list('All_Users', '2')]).toHaveLength(0)
 })
 
 test('append in abstract list', function () {
