@@ -417,29 +417,43 @@ const validateLists = ({
 					return
 				}
 
+				// Do we have the parentId another way?
+				let parentIdFound = false
 				// look for one of the list directives
 				directive = node.directives?.find(({ name }) => [
 					[config.listPrependDirective, config.listAppendDirective].includes(name.value),
 				])
-				// if there is no directive
-				if (!directive) {
-					ctx.reportError(
-						new graphql.GraphQLError('parentID is required for this list fragment')
+				if (directive) {
+					// find the argument holding the parent ID
+					let parentArg = directive.arguments?.find(
+						(arg) => arg.name.value === config.listDirectiveParentIDArg
 					)
+					if (parentArg) {
+						parentIdFound = true
+					}
+				}
+
+				if (parentIdFound) {
+					// parentId was found, so we're good to go
 					return
 				}
 
-				// find the argument holding the parent ID
-				let parentArg = directive.arguments?.find(
-					(arg) => arg.name.value === config.listDirectiveParentIDArg
+				// look for allLists directive
+				const allLists = node.directives?.find(
+					({ name }) => config.listAllListsDirective === name.value
 				)
 
-				if (!parentArg) {
-					ctx.reportError(
-						new graphql.GraphQLError('parentID is required for this list fragment')
-					)
+				// if there is the directive or it's
+				if (allLists || config.defaultListTarget === 'all') {
 					return
 				}
+
+				ctx.reportError(
+					new graphql.GraphQLError(
+						'For this list fragment, you need to add or @parentID or @allLists directive to specify the behavior'
+					)
+				)
+				return
 			},
 			// if we run into a directive that points to a list, make sure that list exists
 			Directive(node) {

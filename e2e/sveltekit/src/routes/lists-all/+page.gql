@@ -1,5 +1,5 @@
 query ListAll($limit: Int!) {
-  usersConnection(first: $limit, snapshot: "List_All") @paginate(name: "test") {
+  usersConnection(first: $limit, snapshot: "List_All") {
     edges {
       node @list(name: "List_All") {
         id

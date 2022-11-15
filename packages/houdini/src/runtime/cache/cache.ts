@@ -570,7 +570,10 @@ class CacheInternal {
 				}
 
 				// if the necessary list doesn't exist, don't do anything
-				if (operation.list && !this.lists.get(operation.list, parentID)) {
+				if (
+					operation.list &&
+					!this.lists.get(operation.list, parentID, operation.target === 'all')
+				) {
 					continue
 				}
 
@@ -585,7 +588,7 @@ class CacheInternal {
 						operation.list
 					) {
 						this.cache
-							.list(operation.list, parentID, operation.allLists)
+							.list(operation.list, parentID, operation.target === 'all')
 							.when(operation.when)
 							.addToList(fields, target, variables, operation.position || 'last')
 					}
@@ -598,7 +601,7 @@ class CacheInternal {
 						operation.list
 					) {
 						this.cache
-							.list(operation.list, parentID, operation.allLists)
+							.list(operation.list, parentID, operation.target === 'all')
 							.when(operation.when)
 							.remove(target, variables)
 					}
@@ -624,7 +627,7 @@ class CacheInternal {
 						operation.list
 					) {
 						this.cache
-							.list(operation.list, parentID, operation.allLists)
+							.list(operation.list, parentID, operation.target === 'all')
 							.when(operation.when)
 							.toggleElement(fields, target, variables, operation.position || 'last')
 					}

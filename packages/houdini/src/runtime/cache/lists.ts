@@ -46,8 +46,8 @@ export class ListManager {
 		// root's ID is fixed
 		if (!id) {
 			console.error(
-				`Found multiple instances of "${listName}". Please provide a ` +
-					`parentID that corresponds to the object containing the field marked with @list or @paginate.`
+				`Found multiple instances of "${listName}". Please provide @allLists directive to add to all directives, ` +
+					`or provide @parentID directive to specify the object containing the field marked with @list or @paginate.`
 			)
 		}
 

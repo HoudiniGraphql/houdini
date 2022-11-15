@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
 
-import { Config, HoudiniError, parentTypeFromAncestors } from '../../../lib'
+import { Config, parentTypeFromAncestors } from '../../../lib'
 import { MutationOperation } from '../../../runtime/lib/types'
 import { convertValue } from './utils'
 
