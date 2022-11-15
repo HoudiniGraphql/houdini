@@ -1001,7 +1001,7 @@ describe('mutation artifacts', function () {
 			                        action: "insert",
 			                        list: "All_Users",
 			                        position: "last",
-			                        allLists: true
+			                        target: "all"
 			                    }],
 
 			                    fields: {
@@ -1046,7 +1046,7 @@ describe('mutation artifacts', function () {
 		]
 
 		let configUpdate = testConfig()
-		configUpdate.defaultListAllLists = true
+		configUpdate.defaultListTarget = 'all'
 
 		// execute the generator
 		await runPipeline(configUpdate, mutationDocs)
@@ -1089,7 +1089,7 @@ describe('mutation artifacts', function () {
 			                        action: "insert",
 			                        list: "All_Users",
 			                        position: "last",
-			                        allLists: true
+			                        target: "all"
 			                    }],
 
 			                    fields: {

@@ -121,7 +121,7 @@ export type MutationOperation = {
 		value: string
 	}
 	position?: 'first' | 'last'
-	allLists?: boolean
+	target?: 'all'
 	when?: ListWhen
 }
 

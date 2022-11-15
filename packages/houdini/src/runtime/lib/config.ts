@@ -131,9 +131,9 @@ export type ConfigFile = {
 	defaultListPosition?: 'append' | 'prepend'
 
 	/**
-	 * Specifies whether mutation should apply to all list (default: `false`)
+	 * Specifies whether mutation should apply a specific target list. When you set `all`, it's like adding the directive `@allLists` to all _insert fragment (default: `null`)
 	 */
-	defaultListAllLists?: boolean
+	defaultListTarget?: 'all' | null
 
 	/**
 	 * A list of fields to use when computing a record’s id. The default value is ['id']. For more information: https://www.houdinigraphql.com/guides/caching-data#custom-ids
