@@ -57,6 +57,7 @@ type Query {
 		snapshot: String!
 	): UserConnection!
 	usersList(limit: Int = 4, offset: Int, snapshot: String!): [User!]!
+	userNodes(limit: Int = 4, offset: Int, snapshot: String!): UserNodes!
 	session: String
 	cities: [City]!
 }
@@ -83,6 +84,11 @@ type UserConnection {
 type UserEdge {
 	cursor: String
 	node: User
+}
+
+type UserNodes {
+	totalCount: Int
+	nodes: [User!]!
 }
 
 type Book {

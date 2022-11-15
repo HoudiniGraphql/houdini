@@ -96,6 +96,13 @@ export const resolvers = {
 		usersList: (_, args) => {
 			return [...getSnapshot(args.snapshot)].splice(args.offset || 0, args.limit)
 		},
+		userNodes: (_, args) => {
+			const allData = [...getSnapshot(args.snapshot)]
+			return {
+				totalCount: allData.length,
+				nodes: allData.splice(args.offset || 0, args.limit),
+			}
+		},
 		session: (_, args, info) => {
 			let token = null
 			info.request.headers.forEach((value, key) => {

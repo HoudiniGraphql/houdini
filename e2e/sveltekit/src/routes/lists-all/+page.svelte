@@ -30,12 +30,8 @@
 <button on:click={add}>Add User</button>
 
 <h2>List</h2>
-{#each $ListAll.data?.usersConnection.edges ?? [] as user}
-  <div>{user.node?.name}</div>
-{/each}
-
-<!-- {#each $ListAll.data?.usersList ?? [] as user}
-  <div>{user.id} {user.name}</div>
-{/each} -->
-
-<!-- {JSON.stringify($ListAll, null, 2)} -->
+<div id="result">
+  {#each $ListAll.data?.userNodes.nodes ?? [] as user}
+    <div>{user?.name}</div>
+  {/each}
+</div>

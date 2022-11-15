@@ -1,11 +1,5 @@
 mutation ListAll_AddUser {
-  addUser(name: "JYC", birthDate: 531747620000, snapshot: "List_All") {
-    ...List_All_insert @allLists
+  addUser(name: "Omar Sy", birthDate: 254143016000, snapshot: "List_All") {
+    ...List_All_insert @allLists @prepend
   }
 }
-
-# mutation ListAll_AddUser {
-#   addUser(name: "JYC", birthDate: 531747620000, snapshot: "lists-all") {
-#     ...List_All_insert
-#   }
-# }

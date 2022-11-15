@@ -27,9 +27,7 @@ export class ListManager {
 		// if we want to update all list, return all matches
 		if (allLists) {
 			return new ListCollection(
-				Object.keys(matches)
-					.map((key) => matches.get(key)?.lists ?? [])
-					.flat()
+				Array.from(matches, ([key, value]) => [...value.lists]).flat()
 			)
 		}
 
