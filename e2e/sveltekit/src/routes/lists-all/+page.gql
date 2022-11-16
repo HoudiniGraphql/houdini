@@ -1,0 +1,9 @@
+query ListAll($limit: Int!) {
+  userNodes(limit: $limit, snapshot: "lists-all") {
+    totalCount
+    nodes @list(name: "List_All") {
+      id
+      name
+    }
+  }
+}

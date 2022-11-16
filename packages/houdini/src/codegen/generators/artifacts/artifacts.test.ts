@@ -869,6 +869,274 @@ describe('mutation artifacts', function () {
 		`)
 	})
 
+	test('insert operation allList', async function () {
+		const mutationDocs = [
+			mockCollectedDoc(
+				`mutation A {
+					addFriend {
+						friend {
+							...All_Users_insert @allLists
+						}
+					}
+				}`
+			),
+			mockCollectedDoc(
+				`query TestQuery {
+					users(stringValue: "foo") @list(name: "All_Users") {
+						firstName
+					}
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, mutationDocs)
+
+		expect(mutationDocs[0]).toMatchInlineSnapshot(`
+			export default {
+			    name: "A",
+			    kind: "HoudiniMutation",
+			    hash: "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+
+			    raw: \`mutation A {
+			  addFriend {
+			    friend {
+			      ...All_Users_insert
+			      id
+			    }
+			  }
+			}
+
+			fragment All_Users_insert on User {
+			  firstName
+			  id
+			}
+			\`,
+
+			    rootType: "Mutation",
+
+			    selection: {
+			        addFriend: {
+			            type: "AddFriendOutput",
+			            keyRaw: "addFriend",
+
+			            fields: {
+			                friend: {
+			                    type: "User",
+			                    keyRaw: "friend",
+
+			                    operations: [{
+			                        action: "insert",
+			                        list: "All_Users",
+			                        position: "last",
+			                        target: "all"
+			                    }],
+
+			                    fields: {
+			                        firstName: {
+			                            type: "String",
+			                            keyRaw: "firstName"
+			                        },
+
+			                        id: {
+			                            type: "ID",
+			                            keyRaw: "id"
+			                        }
+			                    }
+			                }
+			            }
+			        }
+			    }
+			};
+
+			"HoudiniHash=90d93ca64a69bec0880925b8af471b0da1cf76964df0b6b6c3af30b6fd877217";
+		`)
+	})
+
+	test('insert operation allList by default in config', async function () {
+		const mutationDocs = [
+			mockCollectedDoc(
+				`mutation A {
+					addFriend {
+						friend {
+							...All_Users_insert
+						}
+					}
+				}`
+			),
+			mockCollectedDoc(
+				`query TestQuery {
+					users(stringValue: "foo") @list(name: "All_Users") {
+						firstName
+					}
+				}`
+			),
+		]
+
+		let configUpdate = testConfig()
+		configUpdate.defaultListTarget = 'all'
+
+		// execute the generator
+		await runPipeline(configUpdate, mutationDocs)
+
+		// verify contents
+		expect(mutationDocs[0]).toMatchInlineSnapshot(`
+			export default {
+			    name: "A",
+			    kind: "HoudiniMutation",
+			    hash: "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+
+			    raw: \`mutation A {
+			  addFriend {
+			    friend {
+			      ...All_Users_insert
+			      id
+			    }
+			  }
+			}
+
+			fragment All_Users_insert on User {
+			  firstName
+			  id
+			}
+			\`,
+
+			    rootType: "Mutation",
+
+			    selection: {
+			        addFriend: {
+			            type: "AddFriendOutput",
+			            keyRaw: "addFriend",
+
+			            fields: {
+			                friend: {
+			                    type: "User",
+			                    keyRaw: "friend",
+
+			                    operations: [{
+			                        action: "insert",
+			                        list: "All_Users",
+			                        position: "last",
+			                        target: "all"
+			                    }],
+
+			                    fields: {
+			                        firstName: {
+			                            type: "String",
+			                            keyRaw: "firstName"
+			                        },
+
+			                        id: {
+			                            type: "ID",
+			                            keyRaw: "id"
+			                        }
+			                    }
+			                }
+			            }
+			        }
+			    }
+			};
+
+			"HoudiniHash=c2cee63cc2dfd5eabad47ed394b64c91f6e19378bbf018b80c6e3391c3a56e5b";
+		`)
+	})
+
+	test('insert operation cosition first by default in config', async function () {
+		const mutationDocs = [
+			mockCollectedDoc(
+				`mutation A {
+					addFriend {
+						friend {
+							...All_Users_insert
+						}
+					}
+				}`
+			),
+			mockCollectedDoc(
+				`query TestQuery {
+					users(stringValue: "foo") @list(name: "All_Users") {
+						firstName
+					}
+				}`
+			),
+		]
+
+		let configUpdate = testConfig()
+		configUpdate.internalListPosition = 'first'
+
+		// execute the generator
+		await runPipeline(configUpdate, mutationDocs)
+
+		// load the contents of the file
+		const queryContents = await fs.readFile(
+			path.join(configUpdate.artifactPath(mutationDocs[0].document))
+		)
+		expect(queryContents).toBeTruthy()
+		// parse the contents
+		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
+			parser: typeScriptParser,
+		}).program
+		// verify contents
+		expect(parsedQuery).toMatchInlineSnapshot(`
+			export default {
+			    name: "A",
+			    kind: "HoudiniMutation",
+			    hash: "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+
+			    raw: \`mutation A {
+			  addFriend {
+			    friend {
+			      ...All_Users_insert
+			      id
+			    }
+			  }
+			}
+
+			fragment All_Users_insert on User {
+			  firstName
+			  id
+			}
+			\`,
+
+			    rootType: "Mutation",
+
+			    selection: {
+			        addFriend: {
+			            type: "AddFriendOutput",
+			            keyRaw: "addFriend",
+
+			            fields: {
+			                friend: {
+			                    type: "User",
+			                    keyRaw: "friend",
+
+			                    operations: [{
+			                        action: "insert",
+			                        list: "All_Users",
+			                        position: "first"
+			                    }],
+
+			                    fields: {
+			                        firstName: {
+			                            type: "String",
+			                            keyRaw: "firstName"
+			                        },
+
+			                        id: {
+			                            type: "ID",
+			                            keyRaw: "id"
+			                        }
+			                    }
+			                }
+			            }
+			        }
+			    }
+			};
+
+			"HoudiniHash=c2cee63cc2dfd5eabad47ed394b64c91f6e19378bbf018b80c6e3391c3a56e5b";
+		`)
+	})
+
 	test('toggle operation', async function () {
 		const mutationDocs = [
 			mockCollectedDoc(

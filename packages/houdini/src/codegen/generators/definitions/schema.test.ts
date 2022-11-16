@@ -45,6 +45,9 @@ test('adds internal documents to schema', async function () {
 			"""@append is used to tell the runtime to add the result to the start of the list"""
 			directive @append(parentID: ID) on FRAGMENT_SPREAD
 
+			"""@allLists is used to tell the runtime to add the result to all list"""
+			directive @allLists on FRAGMENT_SPREAD
+
 			"""
 			@parentID is used to provide a parentID without specifying position or in situations
 			where it doesn't make sense (eg when deleting a node.)
@@ -111,6 +114,9 @@ test('list operations are included', async function () {
 
 			"""@append is used to tell the runtime to add the result to the start of the list"""
 			directive @append(parentID: ID) on FRAGMENT_SPREAD
+
+			"""@allLists is used to tell the runtime to add the result to all list"""
+			directive @allLists on FRAGMENT_SPREAD
 
 			"""
 			@parentID is used to provide a parentID without specifying position or in situations
@@ -197,6 +203,9 @@ test("writing twice doesn't duplicate definitions", async function () {
 
 			"""@append is used to tell the runtime to add the result to the start of the list"""
 			directive @append(parentID: ID) on FRAGMENT_SPREAD
+
+			"""@allLists is used to tell the runtime to add the result to all list"""
+			directive @allLists on FRAGMENT_SPREAD
 
 			"""
 			@parentID is used to provide a parentID without specifying position or in situations

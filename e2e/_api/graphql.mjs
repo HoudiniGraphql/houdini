@@ -12,38 +12,46 @@ export const typeDefs = sourceFiles.map((filepath) =>
 
 // Example Cities/Libraries/Books data
 // Assume a traditional relational database for storage - each table with unique ID.
-let cityId = 1;
-let libraryId = 1;
-let bookId = 1;
+let cityId = 1
+let libraryId = 1
+let bookId = 1
 
 // Allow the "database" to be persistent and mutable
 let cities = [
 	{
-		id: cityId++, name: 'Alexandria', libraries: [
+		id: cityId++,
+		name: 'Alexandria',
+		libraries: [
 			{
-				id: libraryId++, name: 'The Library of Alexandria', books: [
+				id: libraryId++,
+				name: 'The Library of Alexandria',
+				books: [
 					{ id: bookId++, title: 'Callimachus Pinakes' },
 					{ id: bookId++, title: 'Kutubkhana-i-lskandriyya' },
-				]
+				],
 			},
 			{
-				id: libraryId++, name: 'Bibliotheca Alexandrina', books: [
-					{ id: bookId++, title: 'Analyze your own personality' },
-				]
+				id: libraryId++,
+				name: 'Bibliotheca Alexandrina',
+				books: [{ id: bookId++, title: 'Analyze your own personality' }],
 			},
-		]
+		],
 	},
 	{
-		id: cityId++, name: 'Istanbul', libraries: [
+		id: cityId++,
+		name: 'Istanbul',
+		libraries: [
 			{
-				id: libraryId++, name: 'The Imperial Library of Constantinople', books: [
+				id: libraryId++,
+				name: 'The Imperial Library of Constantinople',
+				books: [
 					{ id: bookId++, title: 'Homer' },
 					{ id: bookId++, title: 'The Hellenistic History' },
-				]
+				],
 			},
-		]
+		],
 	},
-];
+]
 
 // example data
 const data = [
@@ -87,6 +95,13 @@ export const resolvers = {
 		},
 		usersList: (_, args) => {
 			return [...getSnapshot(args.snapshot)].splice(args.offset || 0, args.limit)
+		},
+		userNodes: (_, args) => {
+			const allData = [...getSnapshot(args.snapshot)]
+			return {
+				totalCount: allData.length,
+				nodes: allData.splice(args.offset || 0, args.limit),
+			}
 		},
 		session: (_, args, info) => {
 			let token = null
@@ -136,7 +151,7 @@ export const resolvers = {
 			}
 		},
 		cities: () => {
-			return cities;
+			return cities
 		},
 	},
 
@@ -156,7 +171,7 @@ export const resolvers = {
 				await sleep(args.delay)
 			}
 			const user = {
-				id: (list.length + 1).toString(),
+				id: `${args.snapshot}:${list.length + 1}`,
 				name: args.name,
 				birthDate: args.birthDate,
 				enumValue: args.enumValue,
@@ -187,7 +202,7 @@ export const resolvers = {
 			try {
 				let data = await processFile(file)
 				return data
-			} catch (e) { }
+			} catch (e) {}
 			throw new GraphQLYogaError('ERROR', { code: 500 })
 		},
 		multipleUpload: async (_, { files }) => {
@@ -209,12 +224,12 @@ export const resolvers = {
 				libraries: [],
 			}
 
-			cities.push(city);
-			return city;
+			cities.push(city)
+			return city
 		},
 		addLibrary: (_, args) => {
-			const cityId = Number.parseInt(args.city);
-			const city = cities.find((city) => city.id === cityId);
+			const cityId = Number.parseInt(args.city)
+			const city = cities.find((city) => city.id === cityId)
 			if (!city) {
 				throw new GraphQLYogaError('City not found', { code: 404 })
 			}
@@ -224,50 +239,58 @@ export const resolvers = {
 				name: args.name,
 				books: [],
 			}
-			city.libraries.push(library);
-			return library;
+			city.libraries.push(library)
+			return library
 		},
 		addBook: (_, args) => {
-			const libraryId = Number.parseInt(args.library);
-			const city = cities.find((city) => city.libraries.find((library) => library.id === libraryId));
+			const libraryId = Number.parseInt(args.library)
+			const city = cities.find((city) =>
+				city.libraries.find((library) => library.id === libraryId)
+			)
 			if (!city) {
 				throw new GraphQLYogaError('City/Library not found', { code: 404 })
 			}
-			const library = city.libraries.find((library) => library.id === libraryId);
-			
+			const library = city.libraries.find((library) => library.id === libraryId)
+
 			const book = {
 				id: bookId++,
 				title: args.title,
 			}
-			library.books.push(book);
-			return book;
+			library.books.push(book)
+			return book
 		},
 		deleteCity: (_, args) => {
-			const cityId = Number.parseInt(args.city);
-			const city = cities.find((city) => city.id === cityId);
-			cities = cities.filter((city) => city.id !== cityId);
-			return city;
+			const cityId = Number.parseInt(args.city)
+			const city = cities.find((city) => city.id === cityId)
+			cities = cities.filter((city) => city.id !== cityId)
+			return city
 		},
 		deleteLibrary: (_, args) => {
-			const libraryId = Number.parseInt(args.library);
-			const city = cities.find((city) => city.libraries.find((library) => library.id === libraryId));
+			const libraryId = Number.parseInt(args.library)
+			const city = cities.find((city) =>
+				city.libraries.find((library) => library.id === libraryId)
+			)
 			if (!city) {
 				throw new GraphQLYogaError('City/Library not found', { code: 404 })
 			}
-			const library = city.libraries.find((library) => library.id === libraryId);
-			city.libraries = city.libraries.filter((library) => library.id !== libraryId);
-			return library;
+			const library = city.libraries.find((library) => library.id === libraryId)
+			city.libraries = city.libraries.filter((library) => library.id !== libraryId)
+			return library
 		},
 		deleteBook: (_, args) => {
-			const bookId = Number.parseInt(args.book);
-			const city = cities.find((city) => city.libraries.find((library) => library.books.find((book) => book.id === bookId)));
+			const bookId = Number.parseInt(args.book)
+			const city = cities.find((city) =>
+				city.libraries.find((library) => library.books.find((book) => book.id === bookId))
+			)
 			if (!city) {
 				throw new GraphQLYogaError('City/Library/Book not found', { code: 404 })
 			}
-			const library = city.libraries.find((library) => library.books.find((book) => book.id === bookId));
-			const book = library.books.find((book) => book.id === bookId);
-			library.books = library.books.filter((book) => book.id !== bookId);
-			return book;
+			const library = city.libraries.find((library) =>
+				library.books.find((book) => book.id === bookId)
+			)
+			const book = library.books.find((book) => book.id === bookId)
+			library.books = library.books.filter((book) => book.id !== bookId)
+			return book
 		},
 	},
 

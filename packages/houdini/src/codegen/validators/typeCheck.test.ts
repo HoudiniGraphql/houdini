@@ -140,6 +140,56 @@ const table: Row[] = [
 		],
 	},
 	{
+		title: '@prepend & @append on _insert',
+		pass: false,
+		documents: [
+			`query TestQuery {
+					user {						
+						friends {
+							friends @list(name: "Friends") {
+								id
+							}
+						}
+					}
+      }`,
+			`mutation MutationM1 {
+					addFriend {
+						...Friends_insert @prepend @append @allLists
+					}
+      }`,
+			`mutation MutationM2 {
+				addFriend {
+					...Friends_insert @prepend @append @allLists
+				}
+		}`,
+		],
+	},
+	{
+		title: '@parentID @allLists on _insert',
+		pass: false,
+		documents: [
+			`query TestQuery {
+					user {
+						friends {
+							friends @list(name: "Friends") {
+								id
+							}
+						}
+					}
+			}`,
+			`mutation MutationM1 {
+				addFriend {
+					...Friends_insert @parentID @allLists
+				}
+			}`,
+			`mutation MutationM2 {
+				addFriend {
+					...Friends_insert @parentID @allLists
+				}
+			}`,
+		],
+	},
+	{
 		title: '@list name must be unique',
 		pass: false,
 		documents: [
@@ -894,6 +944,12 @@ for (const { title, pass, documents, check } of table) {
 					? undefined
 					: check ||
 							function (e: Error | Error[]) {
+								if (title === '@prepend & @append on _insert') {
+									console.log(`e`, e)
+								}
+
+								// We want to check that all errors are grouped into 1 throw
+								// having an array or errors.
 								expect(e).toHaveLength(2)
 							}
 			)

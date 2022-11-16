@@ -27,7 +27,7 @@ export class RequestContext {
 		throw error(status, typeof message === 'string' ? message : message.message)
 	}
 
-	redirect(status: number, location: string): any {
+	redirect(status: 300 | 301 | 302 | 303 | 304 | 305 | 306 | 307 | 308, location: string): any {
 		throw redirect(status, location)
 	}
 

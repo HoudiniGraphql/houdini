@@ -851,6 +851,53 @@ test('query with forwards cursor paginate', async function () {
 	`)
 })
 
+test('query with custom first args', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+                query Users ($limit: Int!){
+                    usersByForwardsCursor(first: $limit) @paginate {
+                        edges {
+                            node {
+                                id
+                            }
+                        }
+                    }
+                }
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	// load the contents of the file
+	expect(docs[0]?.document).toMatchInlineSnapshot(`
+		query Users($limit: Int!, $after: String) {
+		  usersByForwardsCursor(first: $limit, after: $after) @paginate {
+		    edges {
+		      node {
+		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
+		        __typename
+		      }
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
+		}
+	`)
+})
+
 test('query with backwards cursor paginate', async function () {
 	const docs = [
 		mockCollectedDoc(

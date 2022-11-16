@@ -41,6 +41,10 @@ For more information on using these fragments, head over to the [mutation docs](
 
 `@append` is used in conjunction with the [list operation fragments](#list-operations) to tell the runtime to add the element at the end of the list. Can be used with both `_insert` and `_toggle` fragments. If the list is a member of a fragment, you will have to pass a value for the `parentID` so the correct list can be updated, otherwise the argument should be omitted.
 
+### `@allLists`
+
+`@allLists` is used in conjunction with the [list operation fragments](#list-operations) to tell the runtime to add the element to all lists. Can be used with both `_insert` and `_toggle` fragments. You can't have `parentID` at the same time.
+
 ### `@when`
 
 `@when` provides a conditional under which the [list operation](#list-operations) should be executed. It takes arguments that match the arguments of the field tagged with `@list` or `@paginate`. For more information, check out the [mutation docs](/api/mutation#lists).

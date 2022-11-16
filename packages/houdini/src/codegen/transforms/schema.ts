@@ -44,6 +44,11 @@ directive @${config.listPrependDirective}(
 directive @${config.listAppendDirective}(${config.listDirectiveParentIDArg}: ID) on FRAGMENT_SPREAD
 
 """
+	@${config.listAllListsDirective} is used to tell the runtime to add the result to all list
+"""
+directive @${config.listAllListsDirective} on FRAGMENT_SPREAD
+
+"""
 	@${
 		config.listParentDirective
 	} is used to provide a parentID without specifying position or in situations

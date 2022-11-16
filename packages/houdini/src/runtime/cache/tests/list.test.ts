@@ -1624,10 +1624,6 @@ test('append operation', function () {
 					{
 						action: 'insert',
 						list: 'All_Users',
-						parentID: {
-							kind: 'String',
-							value: cache._internal_unstable.id('User', '1')!,
-						},
 					},
 				],
 				fields: {
@@ -1646,7 +1642,7 @@ test('append operation', function () {
 	})
 
 	// make sure we just added to the list
-	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toHaveLength(1)
+	expect([...cache.list('All_Users', '1')]).toHaveLength(1)
 })
 
 test('append from list', function () {
@@ -1716,10 +1712,6 @@ test('append from list', function () {
 					{
 						action: 'insert',
 						list: 'All_Users',
-						parentID: {
-							kind: 'String',
-							value: cache._internal_unstable.id('User', '1')!,
-						},
 					},
 				],
 				fields: {
@@ -1736,7 +1728,7 @@ test('append from list', function () {
 	})
 
 	// make sure we just added to the list
-	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toHaveLength(2)
+	expect([...cache.list('All_Users', '1')]).toHaveLength(2)
 })
 
 test('toggle list', function () {
@@ -1823,10 +1815,6 @@ test('toggle list', function () {
 				{
 					action: 'toggle',
 					list: 'All_Users',
-					parentID: {
-						kind: 'String',
-						value: cache._internal_unstable.id('User', '1')!,
-					},
 				},
 			],
 			fields: {
@@ -1841,23 +1829,15 @@ test('toggle list', function () {
 	// write some data to a different location with a new user
 	// that should be added to the list
 	cache.write({ selection: toggleSelection, data: { newUser: { id: '3' } } })
-	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toEqual([
-		'User:5',
-		'User:3',
-	])
+	expect([...cache.list('All_Users', '1')]).toEqual(['User:5', 'User:3'])
 
 	// toggle the user again to remove the user
 	cache.write({ selection: toggleSelection, data: { newUser: { id: '3' } } })
-	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toEqual([
-		'User:5',
-	])
+	expect([...cache.list('All_Users', '1')]).toEqual(['User:5'])
 
 	// toggle the user again to add the user back
 	cache.write({ selection: toggleSelection, data: { newUser: { id: '3' } } })
-	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toEqual([
-		'User:5',
-		'User:3',
-	])
+	expect([...cache.list('All_Users', '1')]).toEqual(['User:5', 'User:3'])
 })
 
 test('append when operation', function () {
@@ -1933,10 +1913,6 @@ test('append when operation', function () {
 					{
 						action: 'insert',
 						list: 'All_Users',
-						parentID: {
-							kind: 'String',
-							value: cache._internal_unstable.id('User', '1')!,
-						},
 						when: {
 							must: {
 								value: 'not-foo',
@@ -1960,7 +1936,7 @@ test('append when operation', function () {
 	})
 
 	// make sure we just added to the list
-	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toHaveLength(0)
+	expect([...cache.list('All_Users', '1')]).toHaveLength(0)
 })
 
 test('prepend when operation', function () {
@@ -2036,10 +2012,6 @@ test('prepend when operation', function () {
 					{
 						action: 'insert',
 						list: 'All_Users',
-						parentID: {
-							kind: 'String',
-							value: cache._internal_unstable.id('User', '1')!,
-						},
 						position: 'first',
 						when: {
 							must: {
@@ -2064,7 +2036,7 @@ test('prepend when operation', function () {
 	})
 
 	// make sure we just added to the list
-	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toHaveLength(0)
+	expect([...cache.list('All_Users', '1')]).toHaveLength(0)
 })
 
 test('prepend operation', function () {
@@ -2154,10 +2126,6 @@ test('prepend operation', function () {
 					{
 						action: 'insert',
 						list: 'All_Users',
-						parentID: {
-							kind: 'String',
-							value: cache._internal_unstable.id('User', '1')!,
-						},
 						position: 'first',
 					},
 				],
@@ -2177,10 +2145,7 @@ test('prepend operation', function () {
 	})
 
 	// make sure we just added to the list
-	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toEqual([
-		'User:3',
-		'User:2',
-	])
+	expect([...cache.list('All_Users', '1')]).toEqual(['User:3', 'User:2'])
 })
 
 test('remove operation', function () {
@@ -2265,10 +2230,6 @@ test('remove operation', function () {
 					{
 						action: 'remove',
 						list: 'All_Users',
-						parentID: {
-							kind: 'String',
-							value: cache._internal_unstable.id('User', '1')!,
-						},
 					},
 				],
 				fields: {
@@ -2287,7 +2248,7 @@ test('remove operation', function () {
 	})
 
 	// make sure we removed the element from the list
-	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toHaveLength(0)
+	expect([...cache.list('All_Users', '1')]).toHaveLength(0)
 })
 
 test('remove operation from list', function () {
@@ -2375,10 +2336,6 @@ test('remove operation from list', function () {
 					{
 						action: 'remove',
 						list: 'All_Users',
-						parentID: {
-							kind: 'String',
-							value: cache._internal_unstable.id('User', '1')!,
-						},
 					},
 				],
 				fields: {
@@ -2395,7 +2352,7 @@ test('remove operation from list', function () {
 	})
 
 	// make sure we removed the element from the list
-	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toHaveLength(0)
+	expect([...cache.list('All_Users', '1')]).toHaveLength(0)
 })
 
 test('delete operation', function () {
@@ -2498,7 +2455,7 @@ test('delete operation', function () {
 	})
 
 	// make sure we removed the element from the list
-	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toHaveLength(0)
+	expect([...cache.list('All_Users', '1')]).toHaveLength(0)
 
 	expect(cache._internal_unstable.storage.topLayer.operations['User:2'].deleted).toBeTruthy()
 })
@@ -2606,7 +2563,7 @@ test('delete operation from list', function () {
 	})
 
 	// make sure we removed the element from the list
-	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toHaveLength(0)
+	expect([...cache.list('All_Users', '1')]).toHaveLength(0)
 
 	expect(cache._internal_unstable.storage.topLayer.operations['User:2'].deleted).toBeTruthy()
 	expect(cache._internal_unstable.storage.topLayer.operations['User:3'].deleted).toBeTruthy()
@@ -2753,7 +2710,7 @@ test('delete operation from connection', function () {
 	})
 
 	// make sure we removed the element from the list
-	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toHaveLength(0)
+	expect([...cache.list('All_Users', '1')]).toHaveLength(0)
 	expect(cache._internal_unstable.storage.topLayer.operations['User:2'].deleted).toBeTruthy()
 })
 
@@ -3225,10 +3182,6 @@ test('list operations fail silently', function () {
 						{
 							action: 'insert',
 							list: 'All_Users',
-							parentID: {
-								kind: 'String',
-								value: cache._internal_unstable.id('User', '1')!,
-							},
 						},
 					],
 					fields: {
@@ -3399,7 +3352,7 @@ test('parentID must be passed if there are multiple instances of a list handler'
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	const friendsSelection = {
+	const friendsSelection: SubscriptionSelection = {
 		friends: {
 			type: 'User',
 			keyRaw: 'friends',
@@ -3471,11 +3424,73 @@ test('parentID must be passed if there are multiple instances of a list handler'
 		{}
 	)
 
-	// looking up the list without a parent id should fail
-	expect(() => cache.list('All_Users')).toThrow()
-	expect(cache.list('All_Users', '1')!.lists[0].recordID).toEqual(
-		cache._internal_unstable.id('User', '1')
-	)
+	// append a value to the store
+	const writeSelectionNoParentID: SubscriptionSelection = {
+		user: {
+			type: 'User',
+			keyRaw: 'user',
+			operations: [
+				{
+					action: 'insert',
+					list: 'All_Users',
+				},
+			],
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+			},
+		},
+	}
+	const writeSelectionWithParentID: SubscriptionSelection = {
+		user: {
+			type: 'User',
+			keyRaw: 'user',
+			operations: [
+				{
+					action: 'insert',
+					list: 'All_Users',
+					parentID: {
+						kind: 'String',
+						value: '1',
+					},
+				},
+			],
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+			},
+		},
+	}
+
+	// write the value without a parent ID
+	cache.write({
+		selection: writeSelectionNoParentID,
+		data: { user: { id: '2', firstName: 'test' } },
+	})
+	// make sure we didn't modify the lists
+	expect([...cache.list('All_Users', '1')]).toHaveLength(1)
+	expect([...cache.list('All_Users', '2')]).toHaveLength(0)
+
+	// write the value with a parent ID
+	cache.write({
+		selection: writeSelectionWithParentID,
+		data: { user: { id: '2', firstName: 'test' } },
+	})
+	// make sure we modified the correct list
+	expect([...cache.list('All_Users', '1')]).toHaveLength(2)
+	expect([...cache.list('All_Users', '2')]).toHaveLength(0)
 })
 
 test('append in abstract list', function () {
@@ -3744,4 +3759,96 @@ test('list operations on interface fields without a well defined parent update t
 			],
 		},
 	})
+})
+
+test("parentID ignores single lists that don't match", function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	// create a list we will add to
+	cache.write({
+		selection: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+				},
+			},
+		},
+		data: {
+			viewer: {
+				id: '1',
+			},
+		},
+	})
+
+	// subscribe to the data to register the list
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: {
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+			parentID: cache._internal_unstable.id('User', '1')!,
+			set: vi.fn(),
+		},
+		{}
+	)
+
+	// write some data to a different location with a new user
+	// that should be added to the list
+	cache.write({
+		selection: {
+			newUser: {
+				type: 'User',
+				keyRaw: 'newUser',
+				operations: [
+					{
+						action: 'insert',
+						list: 'All_Users',
+						parentID: {
+							kind: 'String',
+							value: '2',
+						},
+					},
+				],
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+				},
+			},
+		},
+		data: {
+			newUser: {
+				id: '3',
+			},
+		},
+	})
+
+	// make sure we just added to the list
+	expect([...cache.list('All_Users', '1')]).toHaveLength(0)
 })

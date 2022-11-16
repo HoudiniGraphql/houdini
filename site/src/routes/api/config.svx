@@ -38,6 +38,8 @@ By default, your config file can contain the following values:
 - `disableMasking` (optional, default: `false`): A boolean indicating whether fields from referenced fragments should be included in a document's selection set (can be overridden individually)
 - `schemaPollHeaders` (optional): An object specifying the headers to use when pulling your schema. Keys of the object are header names and its values can be either a strings or a function that takes the current `process.env` and returns the the value to use. If you want to access an environment variable, prefix your string with `env:`, ie `env:API_KEY`.
 - `schemaPollInterval` (optional, default: `2000`): Configures the schema polling behavior for the kit plugin. If its value is greater than `0`, the plugin will poll the set number of milliseconds. If set to `0`, the plugin will only pull the schema when you first run `dev`. If you set to `null`, the plugin will never look for schema changes. You can see use the [pull-schema command](/api/cli#pull-schema) to get updates.
+- `defaultListTarget` (optional): Can be set to `all` for all list operations to ignore parent ID and affect all lists with the name.
+- `defaultListPosition` (optional, default: "first"): One of `"first"` or `"last"` to indicate the default location for list operations.
 - `plugins` (optional): An object containing the set of plugins you want to add to your houdini application. The keys are plugin names, the values are plugin-specific configuration. The actual plugin API is undocumented and considered unstable while we try out various things internally. For an overview of your framework plugin's specific configuration, see below.
 
 ## Svelte Plugin

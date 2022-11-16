@@ -100,13 +100,13 @@ export type ConfigFile = {
 	definitionsPath?: string
 
 	/**
-	 * One of "kit" or "svelte". Used to tell the preprocessor what kind of loading paradigm to generate for you. (default: kit)
+	 * One of "kit" or "svelte". Used to tell the preprocessor what kind of loading paradigm to generate for you. (default: `kit`)
 	 * @deprecated please follow the steps here: http://www.houdinigraphql.com/guides/release-notes#0170
 	 */
 	framework?: 'kit' | 'svelte'
 
 	/**
-	 * One of "esm" or "commonjs". Tells the artifact generator what kind of modules to create. (default: esm)
+	 * One of "esm" or "commonjs". Tells the artifact generator what kind of modules to create. (default: `esm`)
 	 */
 	module?: 'esm' | 'commonjs'
 
@@ -124,6 +124,16 @@ export type ConfigFile = {
 	 * Specifies whether or not the cache should always use partial data. For more information: https://www.houdinigraphql.com/guides/caching-data#partial-data
 	 */
 	defaultPartial?: boolean
+
+	/**
+	 * Specifies whether mutations should append or prepend list. For more information: https://www.houdinigraphql.com/api/graphql (default: `append`)
+	 */
+	defaultListPosition?: 'append' | 'prepend'
+
+	/**
+	 * Specifies whether mutation should apply a specific target list. When you set `all`, it's like adding the directive `@allLists` to all _insert fragment (default: `null`)
+	 */
+	defaultListTarget?: 'all' | null
 
 	/**
 	 * A list of fields to use when computing a record’s id. The default value is ['id']. For more information: https://www.houdinigraphql.com/guides/caching-data#custom-ids

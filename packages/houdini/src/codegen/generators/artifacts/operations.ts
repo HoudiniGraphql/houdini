@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
 
-import { Config, HoudiniError, parentTypeFromAncestors } from '../../../lib'
+import { Config, parentTypeFromAncestors } from '../../../lib'
 import { MutationOperation } from '../../../runtime/lib/types'
 import { convertValue } from './utils'
 
@@ -98,7 +98,8 @@ function operationObject({
 	let parentID
 	let parentKind: 'Variable' | 'String' = 'String'
 
-	let position: MutationOperation['position'] = 'last'
+	let position: MutationOperation['position'] = config.internalListPosition
+	let allLists: MutationOperation['target'] = config.defaultListTarget ?? undefined
 	let operationWhen: MutationOperation['when'] | undefined
 
 	const internalDirectives = selection.directives?.filter((directive) =>
@@ -113,20 +114,32 @@ function operationObject({
 		const append = internalDirectives.find(
 			({ name }) => name.value === config.listAppendDirective
 		)
-		// is when applied?
-		const when = internalDirectives.find(({ name }) => name.value === 'when')
-		// is when_not applied?
-		const when_not = internalDirectives.find(({ name }) => name.value === 'when_not')
+
+		// if both are applied, there's a problem, this should never happen has it's checked in validation step
+		if (append) {
+			position = 'last'
+		}
+		if (prepend) {
+			position = 'first'
+		}
+
+		// is allLists applied?
+		const allListsDirective = internalDirectives.find(
+			({ name }) => name.value === config.listAllListsDirective
+		)
+
 		// look for the parentID directive
 		let parent = internalDirectives.find(
 			({ name }) => name.value === config.listParentDirective
 		)
 
-		// if both are applied, there's a problem
-		if (append && prepend) {
-			throw new HoudiniError({ filepath, message: 'you have both applied' })
-		}
-		position = prepend ? 'first' : 'last'
+		// if both are applied, there's a problem, this should never happen has it's checked in validation step
+		allLists = allListsDirective ? 'all' : undefined
+
+		// is when applied?
+		const when = internalDirectives.find(({ name }) => name.value === 'when')
+		// is when_not applied?
+		const when_not = internalDirectives.find(({ name }) => name.value === 'when_not')
 
 		// the parent ID can be provided a few ways, either as an argument to the prepend
 		// and append directives or with the parentID directive.
@@ -220,9 +233,14 @@ function operationObject({
 		operation.type = type
 	}
 
-	// only add the position argument if we are inserting something
+	// only add the position argument if we are inserting or toggling something
 	if (operationKind === 'insert' || operationKind === 'toggle') {
-		operation.position = position || 'last'
+		operation.position = position
+	}
+
+	// only add the position argument if we are inserting something
+	if (operationKind === 'insert' && allLists) {
+		operation.target = 'all'
 	}
 
 	// if there is a parent id
