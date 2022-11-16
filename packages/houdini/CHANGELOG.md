@@ -1,5 +1,11 @@
 # houdini
 
+## 0.17.9
+
+### Patch Changes
+
+-   [#693](https://github.com/HoudiniGraphql/houdini/pull/693) [`6e36775`](https://github.com/HoudiniGraphql/houdini/commit/6e367755d902eca3242519b4c609c0d5bc76f4ff) Thanks [@jycouet](https://github.com/jycouet)! - Adding a new directive @allLists to update all lists after a mutation
+
 ## 0.17.6
 
 ### 🐛 Fixes

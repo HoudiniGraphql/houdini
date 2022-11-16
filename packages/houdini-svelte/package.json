@@ -1,6 +1,6 @@
 {
     "name": "houdini-svelte",
-    "version": "0.17.8",
+    "version": "0.17.9",
     "description": "The svelte plugin for houdini",
     "type": "module",
     "scripts": {
