@@ -1,6 +1,6 @@
 {
     "name": "houdini",
-    "version": "0.17.8",
+    "version": "0.17.9",
     "description": "The disappearing GraphQL clients",
     "type": "module",
     "scripts": {
