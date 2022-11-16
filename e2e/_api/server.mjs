@@ -6,6 +6,7 @@ import { resolvers, typeDefs } from './graphql.mjs'
 
 async function main() {
 	const yogaApp = createServer({
+		hostname: "::",
 		logging: true,
 		schema: {
 			typeDefs,
