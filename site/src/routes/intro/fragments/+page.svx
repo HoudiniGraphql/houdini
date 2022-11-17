@@ -140,8 +140,8 @@ Before we add anything to our route, let's update the component defined in `src/
 ```svelte
 <script>
 	import { graphql, fragment } from '$houdini'
-	import { Sprite, Display } from '..'
-	import Number from '../SpeciesPreviewNumber.svelte'
+	import { Sprite, Display } from '.'
+	import Number from './SpeciesPreviewNumber.svelte'
 
 	export let species
 	export let number
