@@ -118,6 +118,8 @@ If you were looking carefully, you might have noticed that we didn't define a `l
 <!-- src/routes/myRoute/+page.svelte -->
 
 <script>
+	throw new Error("@migration task: Add data prop (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292707)");
+
 	// the store gets passed to us as a prop
 	export let data
 

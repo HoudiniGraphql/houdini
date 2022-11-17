@@ -55,6 +55,8 @@ Take for example, an `TodoItemRow` component:
 
 ```svelte
 <script lang="ts">
+	throw new Error("@migration task: Add data prop (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292707)");
+
 	import {
 		fragment,
 		graphql,
@@ -118,6 +120,8 @@ and provide an "optimistic response" for the mutation with the second argument t
 
 ```svelte
 <script>
+	throw new Error("@migration task: Add data prop (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292707)");
+
 	import { ToggleItemStore, graphql } from '$houdini'
 
 	export let itemID

@@ -92,6 +92,8 @@ query MyProfileInfo {
 <!-- src/routes/myRoute/+page.svelte -->
 
 <script>
+	throw new Error("@migration task: Add data prop (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292707)");
+
 	export let data
 
 	// pull the store reference from the route props
@@ -303,6 +305,8 @@ Anyway, with this in place, your route will recieve props for each of the stores
 
 ```svelte
 <script>
+	throw new Error("@migration task: Add data prop (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292707)");
+
 	export let data
 
 	$: ({ MyQuery } = data)
@@ -417,6 +421,8 @@ equivalent of the load function.
 
 ```svelte
 <script>
+	throw new Error("@migration task: Add data prop (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292707)");
+
   import { query, graphql } from '$houdini'
 
  export function MyComponentQueryVariables({ props }) {
@@ -461,12 +467,16 @@ Whatever the case may be, you can pass a `metadata` parameter to fetch:
 
 ```svelte
 <script context="module">
-  import { browser } from '$app/env'
-  import MyQueryStore from '$houdini/stores/MyQuery'
+  throw new Error("@migration task: Check code was safely removed (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292722)");
+
+  // import { browser } from '$app/env'
+  // import MyQueryStore from '$houdini/stores/MyQuery'
 
 </script>
 
 <script>
+  throw new Error("@migration task: Add data prop (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292707)");
+
   export let variables
 
   $: browser && MyQueryStore.fetch({ variables, metadata: { ... } })

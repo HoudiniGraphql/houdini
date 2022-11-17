@@ -10,6 +10,8 @@ Specify the data requirements for a Svelte component.
 
 ```svelte
 <script>
+	throw new Error("@migration task: Add data prop (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292707)");
+
 	import { fragment, graphql } from '$houdini'
 
 	// the reference will get passed as a prop
@@ -44,6 +46,8 @@ Fragments stores can be created from your external documents by using the `.get`
 
 ```svelte
 <script>
+	throw new Error("@migration task: Add data prop (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292707)");
+
 	import { GQL_UserAvatar } from '$houdini'
 
 	// the reference will get passed as a prop
@@ -99,6 +103,8 @@ Fragments may also contain a paginated field, similar to queries. A paginated fr
 
 ```svelte
 <script>
+	throw new Error("@migration task: Add data prop (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292707)");
+
 	import { paginatedFragment, graphql } from '$houdini'
 
 	// the reference will get passed as a prop

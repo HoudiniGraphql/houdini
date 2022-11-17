@@ -105,9 +105,6 @@
 {/each}`
 		}
 	]
-
-	// @ts-ignore
-	const files = REPLACE_WITH_OUTLINE.inline
 </script>
 
 <svelte:head>

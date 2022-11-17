@@ -88,6 +88,8 @@ query MyProfile {
 ```svelte
 <!--  src/routes/myProfile/+page.svelte -->
 <script>
+    throw new Error("@migration task: Add data prop (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292707)");
+
     export let data
 
     $: ({ MyProfile } = data)
@@ -111,6 +113,8 @@ Fragments should be defined inside of your `.svelte` components using the inline
 <!-- src/lib/components/UserAvatar.svelte -->
 
 <script>
+    throw new Error("@migration task: Add data prop (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292707)");
+
     import { fragment, graphql } from '$houdini'
 
     export let user
@@ -275,6 +279,8 @@ Once you have your store, the next step is to start using it. Usually, your rout
 ```svelte
 <!-- src/routes/myProfile/+page.svelte -->
 <script>
+    throw new Error("@migration task: Add data prop (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292707)");
+
     export let data
 
     $: ({ UserProfile } = data)
@@ -346,6 +352,8 @@ With that in place, your route will be passed two props, named after the queries
 ```svelte
 <!-- src/routes/myProfile/+page.svelte -->
 <script>
+    throw new Error("@migration task: Add data prop (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292707)");
+
     export let data
 
     $: ({ ProjectList, UserInfo } = data)
@@ -444,6 +452,8 @@ You can now define a `+page.svelte` file that looks like the following and your 
 ```svelte
 <!-- src/routes/myProfile/+page.svelte -->
 <script>
+    throw new Error("@migration task: Add data prop (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292707)");
+
     export let data
 
     $: ({ UserInfo } = data)

@@ -77,6 +77,8 @@ Defining a fragment inside of your component looks a lot like the query from bef
 ```svelte
 <!-- src/components/Sprite.svelte -->
 <script>
+	throw new Error("@migration task: Add data prop (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292707)");
+
 	import { fragment, graphql } from '$houdini'
 
 	export let species
@@ -139,9 +141,11 @@ Before we add anything to our route, let's update the component defined in `src/
 
 ```svelte
 <script>
+	throw new Error("@migration task: Add data prop (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292707)");
+
 	import { graphql, fragment } from '$houdini'
-	import { Sprite, Display } from '.'
-	import Number from './SpeciesPreviewNumber.svelte'
+	import { Sprite, Display } from '..'
+	import Number from '../SpeciesPreviewNumber.svelte'
 
 	export let species
 	export let number
