@@ -16,7 +16,7 @@ package you've been using:
 npm i --save-dev houdini-svelte
 ```
 
-And finally, update your `houdini.config.js` to include the plugin and move your svelte-specific config. 
+And finally, update your `houdini.config.js` to include the plugin and move your svelte-specific config.
 This includes: `client`, `projectDir`, `pageQueryFilename`, `layoutQueryFilename`, `globalStorePrefix`, `quietQueryErrors`, and `static`. You can look at descriptions [here](/api/config#svelte-plugin).
 
 The example below shows an example of what needs to be moved:

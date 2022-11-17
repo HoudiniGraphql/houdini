@@ -17,7 +17,7 @@ if (process.env.CI) {
 }
 
 const config = {
-  // retries: 2,
+  retries: 3,
   workers: 5,
   reporter,
   use,

@@ -16,8 +16,8 @@ const config = {
 	preprocess: [
 		mdsvex({
 			layout: {
-				blank: path.resolve('./src/routes/_blank.svelte'),
-				_: path.resolve('./src/routes/_page.svelte')
+				blank: path.resolve('./src/layouts/_blank.svelte'),
+				_: path.resolve('./src/layouts/_page.svelte')
 			},
 			rehypePlugins: [rehypeSlug, rehypeAutolinkHeadings]
 		}),
@@ -25,8 +25,7 @@ const config = {
 	],
 
 	kit: {
-		adapter: adapter(),
-		routes: (route) => !route.startsWith('_') || route === '_content.js'
+		adapter: adapter()
 	}
 }
 

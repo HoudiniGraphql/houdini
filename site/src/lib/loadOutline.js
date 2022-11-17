@@ -25,6 +25,9 @@ export async function loadOutline() {
 					if (!(await fs.lstat(categoryDir)).isDirectory()) {
 						return null
 					}
+					if (category.startsWith('_')) {
+						return null
+					}
 
 					/** @type {{ length: number; [key: number]: any }} */
 					const list = { length: 0 }
@@ -32,10 +35,7 @@ export async function loadOutline() {
 					// look at every file in the category directory
 					for (let file of await fs.readdir(categoryDir)) {
 						// the file's path
-						let filepath = path.join(categoryDir, file)
-						if (file.startsWith('_')) {
-							continue
-						}
+						let filepath = path.join(categoryDir, file, '+page.svx')
 
 						// open the contents of the file so we can extract the frontmatter
 						const contents = await fs.readFile(filepath, 'utf-8')
@@ -60,11 +60,9 @@ export async function loadOutline() {
 							}))
 							.filter((subcat) => !subcat.text.toLowerCase().endsWith('s next?'))
 
-						const fileName = file.split('.').slice(0, -1).join('.')
-
 						list[metadata.index] = {
 							title: metadata.title,
-							slug: `/${category}/${fileName}`,
+							slug: `/${category}/${file}`,
 							filepath,
 							subcategories
 						}
