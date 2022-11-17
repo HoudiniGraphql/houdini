@@ -12,6 +12,7 @@
 		"format": "prettier --ignore-path .gitignore --write --plugin-search-dir=. ."
 	},
 	"devDependencies": {
+		"@sveltejs/adapter-vercel": "1.0.0-next.81",
 		"@typescript-eslint/eslint-plugin": "^5.10.1",
 		"@typescript-eslint/parser": "^5.10.1",
 		"eslint": "^8.12.0",
@@ -42,7 +43,6 @@
 		"rehype-autolink-headings": "^6.1.1",
 		"rehype-slug": "^5.0.1",
 		"@sveltejs/adapter-auto": "1.0.0-next.88",
-		"@sveltejs/adapter-vercel": "1.0.0-next.81",
 		"@sveltejs/kit": "1.0.0-next.551",
 		"svelte": "^3.47.0",
 		"svelte-preprocess": "^4.10.1",
