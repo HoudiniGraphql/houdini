@@ -124,7 +124,6 @@ export async function walk_routes(
 	let layoutQueries: graphql.OperationDefinitionNode[] = []
 
 	let validRoute = false
-	let validRouteQuery = false
 
 	//parse all files and push contents into page/layoutExports, page/layoutQueries
 	for (const child of await fs.readdir(dirpath)) {
@@ -220,7 +219,7 @@ export async function walk_routes(
 				},
 			})
 		} else if (child === plugin_config(config).layoutQueryFilename) {
-			validRouteQuery = true
+			validRoute = true
 			const contents = await fs.readFile(childPath)
 			if (!contents) {
 				continue
@@ -236,7 +235,7 @@ export async function walk_routes(
 				throw routeQueryError(childPath)
 			}
 		} else if (child === plugin_config(config).pageQueryFilename) {
-			validRouteQuery = true
+			validRoute = true
 			const contents = await fs.readFile(childPath)
 			if (!contents) {
 				continue
@@ -290,8 +289,6 @@ export async function walk_routes(
 			},
 			dirpath
 		)
-	} else if (validRouteQuery) {
-		console.log(`Ignoring route +page/+layout.gql query in ${dirpath} since it is not utlised`)
 	}
 }
 

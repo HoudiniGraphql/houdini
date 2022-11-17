@@ -63,7 +63,7 @@ export default (getFramwork: () => Framework) =>
 					code:
 						(await fs.readFile(filepath)) ||
 						(await fs.readFile(path.join(config.projectRoot, filepath))) ||
-						empty_layout,
+						empty_layout, // we need to create one
 				}
 			}
 		},
@@ -132,8 +132,18 @@ filesystem.statSync = function (filepath: string, options: Parameters<filesystem
 			return mock
 		}
 
+		// we also want to fake +layout.js if there is a +layout.gql
+		else if (filepath.endsWith('+layout.gql')) {
+			return mock
+		}
+
 		// we want to fake +page.js if there is a +page.svelte
 		else if (filepath.endsWith('+page.js')) {
+			return mock
+		}
+
+		// we also want to fake +page.js if there is a +page.gql
+		else if (filepath.endsWith('+page.gql')) {
 			return mock
 		}
 
@@ -173,14 +183,14 @@ filesystem.readdirSync = function (
 
 	// if there is a route component but no script, add the script
 	if (
-		contains('+page.svelte') &&
+		contains('+page.svelte', '+page.gql') &&
 		!contains('+page.js', '+page.ts', '+page.server.js', '+page.server.ts')
 	) {
 		result.push(virtual_file('+page.js', options))
 	}
 
 	// if there is a layout file but no layout.js, we need to make one
-	if (contains('+layout.svelte') && !contains('+layout.ts', '+layout.js')) {
+	if (contains('+layout.svelte', '+layout.gql') && !contains('+layout.ts', '+layout.js')) {
 		result.push(virtual_file('+layout.js', options))
 	}
 

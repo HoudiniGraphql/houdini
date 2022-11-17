@@ -1,0 +1,5 @@
+query StubLayoutQuery {
+  user(id: "1", snapshot: "layout-query") {
+    id
+  }
+}
