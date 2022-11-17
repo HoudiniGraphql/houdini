@@ -60,11 +60,9 @@ export async function loadOutline() {
 							}))
 							.filter((subcat) => !subcat.text.toLowerCase().endsWith('s next?'))
 
-						const fileName = file.split('.').slice(0, -1).join('.')
-
 						list[metadata.index] = {
 							title: metadata.title,
-							slug: `/${category}/${fileName}`,
+							slug: `/${category}/${file}`,
 							filepath,
 							subcategories
 						}
