@@ -2,6 +2,20 @@
     "name": "houdini-svelte",
     "version": "0.17.9",
     "description": "The svelte plugin for houdini",
+    "keywords": [
+        "typescript",
+        "svelte",
+        "sveltekit",
+        "graphql",
+        "graphql-client"
+    ],
+    "homepage": "https://github.com/HoudiniGraphql/houdini",
+    "funding": "https://github.com/sponsors/HoudiniGraphql",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/HoudiniGraphql/houdini.git"
+    },
+    "license": "MIT",
     "type": "module",
     "scripts": {
         "tests": "vitest",
@@ -27,6 +41,9 @@
     "peerDependencies": {
         "graphql": "^14.0.0 || ^15.0.0"
     },
+    "files": [
+        "build"
+    ],
     "exports": {
         "./package.json": "./package.json",
         ".": {

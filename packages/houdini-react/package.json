@@ -2,7 +2,20 @@
     "name": "houdini-react",
     "version": "0.17.9",
     "private": true,
-    "description": "The disappearing GraphQL clients",
+    "description": "The React plugin for houdini",
+    "keywords": [
+        "typescript",
+        "react",
+        "graphql",
+        "graphql-client"
+    ],
+    "homepage": "https://github.com/HoudiniGraphql/houdini",
+    "funding": "https://github.com/sponsors/HoudiniGraphql",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/HoudiniGraphql/houdini.git"
+    },
+    "license": "MIT",
     "scripts": {
         "compile": "scripts build --plugin",
         "typedefs": "scripts typedefs --plugin"
@@ -21,6 +34,9 @@
         "houdini": "workspace:^",
         "recast": "^0.21.5"
     },
+    "files": [
+        "build"
+    ],
     "exports": {
         "./package.json": "./package.json",
         "./next": {
