@@ -41,15 +41,8 @@ const HoudiniSveltePlugin: PluginFactory = async () => ({
 
 		'adapter.js': ({ content }) => {
 			// dedicated sveltekit adapter.
-			const sveltekit_adapter = `import { goto as go } from '$app/navigation'
-import { get } from 'svelte/store';
-import { browser, prerendering } from '$app/environment'
-import { page } from '$app/stores'
+			const sveltekit_adapter = `import { browser, prerendering } from '$app/environment'
 import { error as svelteKitError } from '@sveltejs/kit'
-
-export function goTo(location, options) {
-		go(location, options)
-}
 
 export const isBrowser = browser
 

@@ -1773,10 +1773,10 @@ packages:
             read-yaml-file: 1.1.0
         dev: true
 
-    /@mapbox/node-pre-gyp/1.0.9:
+    /@mapbox/node-pre-gyp/1.0.10:
         resolution:
             {
-                integrity: sha512-aDF3S3rK9Q2gey/WAttUlISduDItz5BU3306M9Eyv6/oS40aMprnopshtlKTykxRNIBEZuRMaZAnbrQ4QtKGyw==,
+                integrity: sha512-4ySo4CjzStuprMwk35H5pPbkymjv1SF3jGLj6rAHp/xT/RF7TL7bd9CTm1xDY49K2qF7jmR/g7k+SkLETP6opA==,
             }
         hasBin: true
         dependencies:
@@ -1788,7 +1788,7 @@ packages:
             npmlog: 5.0.1
             rimraf: 3.0.2
             semver: 7.3.7
-            tar: 6.1.11
+            tar: 6.1.12
         transitivePeerDependencies:
             - encoding
             - supports-color
@@ -3102,7 +3102,7 @@ packages:
             }
         hasBin: true
         dependencies:
-            '@mapbox/node-pre-gyp': 1.0.9
+            '@mapbox/node-pre-gyp': 1.0.10
             acorn: 8.8.0
             async-sema: 3.1.1
             bindings: 1.5.0
@@ -3957,7 +3957,10 @@ packages:
         dev: false
 
     /concat-map/0.0.1:
-        resolution: { integrity: sha1-2Klr13/Wjfd5OnMDajug1UBdR3s= }
+        resolution:
+            {
+                integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==,
+            }
 
     /concurrently/6.5.1:
         resolution:
@@ -10103,12 +10106,12 @@ packages:
         dev: true
         optional: true
 
-    /tar/6.1.11:
+    /tar/6.1.12:
         resolution:
             {
-                integrity: sha512-an/KZQzQUkZCkuoAA64hM92X0Urb6VpRhAFllDzz44U2mcD5scmT3zBc4VgVpkugF580+DQn8eAFSyoQt0tznA==,
+                integrity: sha512-jU4TdemS31uABHd+Lt5WEYJuzn+TJTCBLljvIAHZOz6M9Os5pJ4dD+vRFLxPa/n3T0iEFzpi+0x1UfuDZYbRMw==,
             }
-        engines: { node: '>= 10' }
+        engines: { node: '>=10' }
         dependencies:
             chownr: 2.0.0
             fs-minipass: 2.1.0

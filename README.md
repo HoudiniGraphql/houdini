@@ -9,8 +9,24 @@
   </strong>
   <br />
   <br />
+  <a href="https://npmjs.org/package/houdini">
+    <img src="https://img.shields.io/npm/v/houdini.svg" alt="version" />
+  </a>
+  <a href="https://github.com/HoudiniGraphql/houdini/actions">
+    <img src="https://github.com/HoudiniGraphql/houdini/actions/workflows/tests.yml/badge.svg" alt="CI Tests" />
+  </a>
+  <a href="https://github.com/HoudiniGraphql/houdini">
+    <img src="https://img.shields.io/github/stars/HoudiniGraphql/houdini.svg?label=stars" alt="github stars" />
+  </a>
+  <a href="https://npmjs.org/package/houdini">
+    <img src="https://img.shields.io/npm/dm/houdini.svg" alt="downloads" />
+  </a>
+  <a href="https://github.com/HoudiniGraphql/houdini/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/HoudiniGraphql/houdini.svg?maxAge=2592000" alt="license" />
+  </a>
 </div>
 
+----
 
 ```svelte
 <script>
