@@ -25,8 +25,7 @@ const config = {
 	],
 
 	kit: {
-		adapter: adapter(),
-		routes: (route) => !route.startsWith('_') || route === '_content.js'
+		adapter: adapter()
 	}
 }
 

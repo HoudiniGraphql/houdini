@@ -92,8 +92,6 @@ query MyProfileInfo {
 <!-- src/routes/myRoute/+page.svelte -->
 
 <script>
-	throw new Error("@migration task: Add data prop (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292707)");
-
 	export let data
 
 	// pull the store reference from the route props
@@ -305,8 +303,6 @@ Anyway, with this in place, your route will recieve props for each of the stores
 
 ```svelte
 <script>
-	throw new Error("@migration task: Add data prop (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292707)");
-
 	export let data
 
 	$: ({ MyQuery } = data)
@@ -356,10 +352,7 @@ import { loadAll, load_MyQuery, load_MyOtherQuery } from '$houdini'
 
 export async function load(event) {
 	return {
-		...(await loadAll(
-			load_MyQuery({ event }),
-			load_MyOtherQuery({ event })
-		))
+		...(await loadAll(load_MyQuery({ event }), load_MyOtherQuery({ event })))
 	}
 }
 ```
@@ -421,24 +414,22 @@ equivalent of the load function.
 
 ```svelte
 <script>
-	throw new Error("@migration task: Add data prop (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292707)");
+	import { query, graphql } from '$houdini'
 
-  import { query, graphql } from '$houdini'
-
- export function MyComponentQueryVariables({ props }) {
-	return { id: props.id }
- }
-
- const store = graphql`
-	query MyComponentQuery($id: ID!) {
-		user(id: $id) {
-			id
-		}
+	export function MyComponentQueryVariables({ props }) {
+		return { id: props.id }
 	}
- `
-</script>
 
-{$store.data.value}
+	const store = graphql`
+		query MyComponentQuery($id: ID!) {
+			user(id: $id) {
+				id
+			}
+		}
+	`
+	</script>
+
+	{$store.data.value}
 ```
 
 ## Endpoints
@@ -465,22 +456,13 @@ export async function get(event) {
 Sometimes you need to do something very custom for a specific route. Maybe you need special headers or some other contextual information.
 Whatever the case may be, you can pass a `metadata` parameter to fetch:
 
-```svelte
-<script context="module">
-  throw new Error("@migration task: Check code was safely removed (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292722)");
+```javascript
 
-  // import { browser } from '$app/env'
-  // import MyQueryStore from '$houdini/stores/MyQuery'
-
-</script>
-
-<script>
-  throw new Error("@migration task: Add data prop (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292707)");
-
-  export let variables
-
-  $: browser && MyQueryStore.fetch({ variables, metadata: { ... } })
-</script>
+export async function load(event) {
+	return {
+		...(await load_MyStore({event, metadata: { ... }}))
+	}
+}
 ```
 
 This value will get forwarded to the network function in your client definition, usually found in `src/client.js`:

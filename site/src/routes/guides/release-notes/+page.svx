@@ -16,7 +16,7 @@ package you've been using:
 npm i --save-dev houdini-svelte
 ```
 
-And finally, update your `houdini.config.js` to include the plugin and move your svelte-specific config. 
+And finally, update your `houdini.config.js` to include the plugin and move your svelte-specific config.
 This includes: `client`, `projectDir`, `pageQueryFilename`, `layoutQueryFilename`, `globalStorePrefix`, `quietQueryErrors`, and `static`. You can look at descriptions [here](/api/config#svelte-plugin).
 
 The example below shows an example of what needs to be moved:
@@ -125,8 +125,6 @@ The core of this change is that instead of using stores that you import, your co
 
 ```svelte
 <script>
-	throw new Error("@migration task: Add data prop (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292707)");
-
 	/** @type {import('./$types').Data */
 	export let data: Data
 

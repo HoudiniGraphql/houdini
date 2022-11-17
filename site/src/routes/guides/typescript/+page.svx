@@ -51,8 +51,6 @@ Your `PageData` type will also come from `./$houdini` since SvelteKit's generate
 <!-- src/routes/myProfile/+page.svelte -->
 
 <script>
-	throw new Error("@migration task: Add data prop (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292707)");
-
 	import { PageData } from '../$houdini'
 
 	export let data: PageData

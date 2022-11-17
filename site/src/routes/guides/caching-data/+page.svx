@@ -32,8 +32,6 @@ A lot of the time we know the side effects of a mutation assuming everything goe
 
 ```svelte
 <script>
-	throw new Error("@migration task: Add data prop (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292707)");
-
 	import { GQL_ToggleItem }  from '$houdini'
 
 	export let itemID
