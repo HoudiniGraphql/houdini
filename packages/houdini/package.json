@@ -2,6 +2,18 @@
     "name": "houdini",
     "version": "0.17.9",
     "description": "The disappearing GraphQL clients",
+    "keywords": [
+        "typescript",
+        "graphql",
+        "graphql-client"
+    ],
+    "homepage": "https://github.com/HoudiniGraphql/houdini",
+    "funding": "https://github.com/sponsors/HoudiniGraphql",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/HoudiniGraphql/houdini.git"
+    },
+    "license": "MIT",
     "type": "module",
     "scripts": {
         "compile": "scripts build",
@@ -42,6 +54,9 @@
         "recast": "^0.21.5",
         "vite-plugin-watch-and-run": "^1.0.3"
     },
+    "files": [
+        "build"
+    ],
     "exports": {
         "./package.json": "./package.json",
         "./codegen": {
