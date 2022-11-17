@@ -63,7 +63,7 @@ export default (getFramwork: () => Framework) =>
 					code:
 						(await fs.readFile(filepath)) ||
 						(await fs.readFile(path.join(config.projectRoot, filepath))) ||
-						empty_layout, // we need to create one
+						empty_layout,
 				}
 			}
 		},
