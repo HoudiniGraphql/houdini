@@ -132,18 +132,8 @@ filesystem.statSync = function (filepath: string, options: Parameters<filesystem
 			return mock
 		}
 
-		// we also want to fake +layout.js if there is a +layout.gql
-		else if (filepath.endsWith('+layout.gql')) {
-			return mock
-		}
-
 		// we want to fake +page.js if there is a +page.svelte
 		else if (filepath.endsWith('+page.js')) {
-			return mock
-		}
-
-		// we also want to fake +page.js if there is a +page.gql
-		else if (filepath.endsWith('+page.gql')) {
 			return mock
 		}
 
