@@ -18,7 +18,7 @@ importers:
             playwright-core: 1.25.0
             prettier: ^2.7.0
             recast: ^0.21.5
-            turbo: ^1.5.4
+            turbo: ^1.5.5
             vite: ^3.1.6
             vitest: ^0.23.4
         dependencies:
