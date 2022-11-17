@@ -132,7 +132,12 @@ type OptionalUnion<U extends Record<string, any>, A extends keyof U = U extends 
 type PageParentData = EnsureDefined<import('../$types.js').LayoutData>;
 
 export type PageServerData = null;
-export type PageData = Expand<PageParentData>;
+export type PageLoad<OutputData extends OutputDataShape<PageParentData> = OutputDataShape<PageParentData>> = Kit.Load<RouteParams, PageServerData, PageParentData, OutputData>;
+export type PageLoadEvent = Parameters<PageLoad>[0];
+
+export type PageData = Expand<Expand<Omit<PageParentData, keyof PageParentData & EnsureDefined<PageServerData>> & OptionalUnion<EnsureDefined<PageParentData & EnsureDefined<PageServerData>>>> & {
+    MyPageQuery: MyPageQueryStore
+}>;"
 `,
 						},
 					},
@@ -180,10 +185,9 @@ type OptionalUnion<U extends Record<string, any>, A extends keyof U = U extends 
 type PageParentData = EnsureDefined<import("../$houdini").LayoutData>;
 type PageParams = PageLoadEvent["params"];
 export type PageServerData = null;
-
-export type PageData = Expand<Expand<PageParentData> & {
-    MyPageQuery: MyPageQueryStore
-}>;`)
+export type PageLoad<OutputData extends OutputDataShape<PageParentData> = OutputDataShape<PageParentData>> = Kit.Load<RouteParams, PageServerData, PageParentData, OutputData>;
+export type PageLoadEvent = Parameters<PageLoad>[0];
+`)
 })
 
 test('generates types for layout queries', async function () {
@@ -221,7 +225,9 @@ type LayoutParams = RouteParams & {  }
 type LayoutParentData = EnsureDefined<{}>;
 
 export type LayoutServerData = null;
-export type LayoutData = Expand<LayoutParentData>;
+export type LayoutLoad<OutputData extends OutputDataShape<LayoutParentData> = OutputDataShape<LayoutParentData>> = Kit.Load<LayoutParams, LayoutServerData, LayoutParentData, OutputData>;
+export type LayoutLoadEvent = Parameters<LayoutLoad>[0];
+export type LayoutData = Expand<Omit<LayoutParentData, keyof LayoutParentData & EnsureDefined<LayoutServerData>> & OptionalUnion<EnsureDefined<LayoutParentData & EnsureDefined<LayoutServerData>>>>;
 `,
 						},
 					},
@@ -268,8 +274,10 @@ type OptionalUnion<U extends Record<string, any>, A extends keyof U = U extends 
 type LayoutParams = RouteParams & {};
 type LayoutParentData = EnsureDefined<{}>;
 export type LayoutServerData = null;
+export type LayoutLoad<OutputData extends OutputDataShape<LayoutParentData> = OutputDataShape<LayoutParentData>> = Kit.Load<LayoutParams, LayoutServerData, LayoutParentData, OutputData>;
+export type LayoutLoadEvent = Parameters<LayoutLoad>[0];
 
-export type LayoutData = Expand<Expand<LayoutParentData> & {
+export type LayoutData = Expand<Expand<Omit<LayoutParentData, keyof LayoutParentData & EnsureDefined<LayoutServerData>> & OptionalUnion<EnsureDefined<LayoutParentData & EnsureDefined<LayoutServerData>>>> & {
     MyLayoutQuery: MyLayoutQueryStore
 }>;
 `)

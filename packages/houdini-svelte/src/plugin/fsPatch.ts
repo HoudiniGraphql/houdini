@@ -173,14 +173,14 @@ filesystem.readdirSync = function (
 
 	// if there is a route component but no script, add the script
 	if (
-		contains('+page.svelte') &&
+		contains('+page.svelte', '+page.gql') &&
 		!contains('+page.js', '+page.ts', '+page.server.js', '+page.server.ts')
 	) {
 		result.push(virtual_file('+page.js', options))
 	}
 
 	// if there is a layout file but no layout.js, we need to make one
-	if (contains('+layout.svelte') && !contains('+layout.ts', '+layout.js')) {
+	if (contains('+layout.svelte', '+layout.gql') && !contains('+layout.ts', '+layout.js')) {
 		result.push(virtual_file('+layout.js', options))
 	}
 
