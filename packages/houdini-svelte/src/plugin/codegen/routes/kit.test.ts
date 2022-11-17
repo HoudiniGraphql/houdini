@@ -114,6 +114,16 @@ query MyPageQuery {
 		},
 	})
 
+	// generate empty page to ensure that types are generated.
+	// see https://github.com/HoudiniGraphql/houdini/pull/702#issuecomment-1318298323
+	await fs.mock({
+		[config.routesDir]: {
+			myProfile: {
+				'+page.ts': ``,
+			},
+		},
+	})
+
 	await fs.mock({
 		[path.join(config.projectRoot, '.svelte-kit')]: {
 			types: {
@@ -198,6 +208,16 @@ query MyLayoutQuery {
     }
 }
 `,
+			},
+		},
+	})
+
+	// generate empty layout to ensure that types are generated
+	// see https://github.com/HoudiniGraphql/houdini/pull/702#issuecomment-1318298323
+	await fs.mock({
+		[config.routesDir]: {
+			myProfile: {
+				'+layout.ts': ``,
 			},
 		},
 	})
