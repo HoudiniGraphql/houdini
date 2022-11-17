@@ -291,7 +291,7 @@ export async function walk_routes(
 			dirpath
 		)
 	} else if (validRouteQuery) {
-		console.log(`Ignoring route +page/+layout.gql query in ${dirpath} since it is not utlised`)
+		console.log(`Ignoring route +page/+layout.gql query in ${dirpath} since it is not utilised`)
 	}
 }
 
