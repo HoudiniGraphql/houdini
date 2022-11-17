@@ -123,7 +123,8 @@ export async function walk_routes(
 	let pageQueries: graphql.OperationDefinitionNode[] = []
 	let layoutQueries: graphql.OperationDefinitionNode[] = []
 
-	let validFile = false
+	let validRoute = false
+	let validRouteQuery = false
 
 	//parse all files and push contents into page/layoutExports, page/layoutQueries
 	for (const child of await fs.readdir(dirpath)) {
@@ -137,7 +138,7 @@ export async function walk_routes(
 
 		//maybe turn into switch-case statement?
 		if (is_layout_script(framework, childPath)) {
-			validFile = true
+			validRoute = true
 			const { houdini_load, exports } = await extract_load_function(config, childPath)
 
 			// mutate with optional layoutQueries. Takes in array of OperationDefinitionNodes
@@ -150,7 +151,7 @@ export async function walk_routes(
 			// push all exports to our layoutExports
 			layoutExports.push(...exports)
 		} else if (is_page_script(framework, childPath)) {
-			validFile = true
+			validRoute = true
 			const { houdini_load, exports } = await extract_load_function(config, childPath)
 
 			// mutate with optional pageQueries. Takes in array of OperationDefinitionNodes
@@ -163,7 +164,7 @@ export async function walk_routes(
 			// push all exports to our pageExports
 			pageExports.push(...exports)
 		} else if (is_layout_component(framework, childPath)) {
-			validFile = true
+			validRoute = true
 			const contents = await fs.readFile(childPath)
 			if (!contents) {
 				continue
@@ -191,7 +192,7 @@ export async function walk_routes(
 				},
 			})
 		} else if (is_component(config, framework, child)) {
-			validFile = true
+			validRoute = true
 			const contents = await fs.readFile(childPath)
 			if (!contents) {
 				continue
@@ -219,7 +220,7 @@ export async function walk_routes(
 				},
 			})
 		} else if (child === plugin_config(config).layoutQueryFilename) {
-			validFile = true
+			validRouteQuery = true
 			const contents = await fs.readFile(childPath)
 			if (!contents) {
 				continue
@@ -235,7 +236,7 @@ export async function walk_routes(
 				throw routeQueryError(childPath)
 			}
 		} else if (child === plugin_config(config).pageQueryFilename) {
-			validFile = true
+			validRouteQuery = true
 			const contents = await fs.readFile(childPath)
 			if (!contents) {
 				continue
@@ -258,7 +259,7 @@ export async function walk_routes(
 	// if length of any field is greater than 0, we run our route.
 	// pageExports can be defined where queries aren't
 	// e.g. QueryVariables but uses parent dirs layoutQuery (probably a bad idea)
-	if (visitor.route && validFile) {
+	if (visitor.route && validRoute) {
 		//NOTE: Define sveltekitTypeFilePath here so that we ensure route is valid
 
 		const relative_path_regex = /src(.*)/
@@ -289,6 +290,8 @@ export async function walk_routes(
 			},
 			dirpath
 		)
+	} else if (validRouteQuery) {
+		console.log(`Ignoring route +page/+layout.gql query in ${dirpath} since it is not utlised`)
 	}
 }
 
