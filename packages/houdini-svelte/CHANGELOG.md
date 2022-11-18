@@ -1,5 +1,14 @@
 # houdini-svelte
 
+## 0.17.11
+
+### Patch Changes
+
+-   [#708](https://github.com/HoudiniGraphql/houdini/pull/708) [`197bff7`](https://github.com/HoudiniGraphql/houdini/commit/197bff7d94c2600187b5ab76ed3168957b4a8f31) Thanks [@jycouet](https://github.com/jycouet)! - import VariableFunction type when a function type is defined
+
+-   Updated dependencies []:
+    -   houdini@0.17.11
+
 ## 0.17.10
 
 ### 🐛 Fixes
