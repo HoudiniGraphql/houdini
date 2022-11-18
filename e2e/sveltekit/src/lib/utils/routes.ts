@@ -6,6 +6,7 @@ export const routes = {
   Query_param: '/query-param',
   isFetching_with_load: '/isFetching/with_load',
   isFetching_without_load: '/isFetching/without_load',
+  isFetching_route_1: '/isFetching/route_1',
   lists_all: '/lists-all?limit=15',
 
   Stores_SSR: '/stores/ssr',

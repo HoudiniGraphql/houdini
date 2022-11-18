@@ -57,4 +57,19 @@ test.describe('isFetching', () => {
     ]);
     expect(msg4.text()).toBe('without_load - isFetching: false');
   });
+
+  test('loading the same store somewhere else', async ({ page }) => {
+    await goto(page, routes.isFetching_route_1);
+
+    // Switch page and check the first console log
+    const [msg] = await Promise.all([
+      page.waitForEvent('console'),
+      clientSideNavigation(page, './route_2')
+    ]);
+
+    // Here we load the same query with load_isFetching_route_1, but
+    // 1/ we get the values from the cache directly!
+    // 2/ we never go to isFetching! no more flickering.
+    expect(msg.text()).toBe('isFetching_route_2 - isFetching: false');
+  });
 });
