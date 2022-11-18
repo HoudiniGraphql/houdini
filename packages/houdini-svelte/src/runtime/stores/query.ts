@@ -2,7 +2,7 @@ import { getCache } from '$houdini/runtime'
 import type { ConfigFile } from '$houdini/runtime/lib/config'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import * as log from '$houdini/runtime/lib/log'
-import { fetchQuery } from '$houdini/runtime/lib/network'
+import { fetchCache, fetchQuery } from '$houdini/runtime/lib/network'
 import { FetchContext } from '$houdini/runtime/lib/network'
 import { marshalInputs, unmarshalSelection } from '$houdini/runtime/lib/scalars'
 import type { QueryArtifact } from '$houdini/runtime/lib/types'
@@ -36,6 +36,9 @@ export class QueryStore<
 	kind = CompiledQueryKind
 
 	// at its core, a query store is a writable store with extra methods
+	// either we call the constructor without optionnal params, either we call it with all params,
+	// and we know that we need to call await init() after the constructor if we set tentativeInitFromCache to `true`
+	// @ts-ignore
 	protected store: Writable<StoreState<_Data, _Input, _ExtraFields>>
 
 	// we will be reading and write the last known variables often, avoid frequent gets and updates
@@ -62,14 +65,46 @@ export class QueryStore<
 		return get(this.store).variables
 	}
 
-	constructor({ artifact, storeName, variables }: StoreConfig<_Data, _Input, QueryArtifact>) {
+	constructor({
+		artifact,
+		storeName,
+		variables,
+		tentativeInitFromCache,
+	}: StoreConfig<_Data, _Input, QueryArtifact>) {
 		super()
 
-		// set the initial state
-		this.store = writable(this.initialState)
+		// set the initial state only if withoutInitialData is not set
+		if (tentativeInitFromCache) {
+			// we will call just after the constructor `await init()` to get the initial store state (maybe with cached data!)
+		} else {
+			this.store = writable(this.initialState)
+		}
 		this.artifact = artifact
 		this.storeName = storeName
 		this.variables = variables
+	}
+
+	async init(args: QueryStoreFetchParams<_Data, _Input>) {
+		// validate and prepare the request context for the current environment (client vs server)
+		const { policy, params } = await fetchParams(this.artifact, this.storeName, args)
+
+		// compute the variables we need to use for the query
+		const newVariables = await this.fetchVariables(params)
+		const cachedStore = await fetchCache<_Data, _Input>({
+			artifact: this.artifact,
+			variables: newVariables,
+			policy,
+		})
+
+		this.store = writable(
+			cachedStore
+				? {
+						...this.initialState,
+						data: cachedStore.result.data,
+						isFetching: false,
+				  }
+				: this.initialState
+		)
 	}
 
 	/**
@@ -85,19 +120,12 @@ export class QueryStore<
 		// validate and prepare the request context for the current environment (client vs server)
 		const { policy, params, context } = await fetchParams(this.artifact, this.storeName, args)
 
+		// compute the variables we need to use for the query
+		const newVariables = await this.fetchVariables(params)
+
 		// identify if this is a CSF or load
 		const isLoadFetch = Boolean('event' in params && params.event)
 		const isComponentFetch = !isLoadFetch
-
-		// compute the variables we need to use for the query
-		const input = ((await marshalInputs({
-			artifact: this.artifact,
-			input: params?.variables,
-		})) || {}) as _Input
-		const newVariables = {
-			...this.lastVariables,
-			...input,
-		}
 
 		// check if the variables are different from the last time we saw them
 		let variableChange = !deepEquals(this.lastVariables, newVariables)
@@ -159,6 +187,18 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 
 		// the store will have been updated already since we waited for the response
 		return get(this.store)
+	}
+
+	private async fetchVariables(params: QueryStoreFetchParams<_Data, _Input>) {
+		const input = ((await marshalInputs({
+			artifact: this.artifact,
+			input: params?.variables,
+		})) || {}) as _Input
+		const newVariables = {
+			...this.lastVariables,
+			...input,
+		}
+		return newVariables
 	}
 
 	get name() {
@@ -365,6 +405,7 @@ export type StoreConfig<_Data extends GraphQLObject, _Input, _Artifact> = {
 	artifact: _Artifact
 	storeName: string
 	variables: boolean
+	tentativeInitFromCache?: boolean
 }
 
 type StoreState<_Data, _Input, _Extra = {}> = QueryResult<_Data, _Input> & _Extra

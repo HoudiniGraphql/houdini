@@ -42,20 +42,22 @@ export async function queryStore(
 	const storeData = `${statement}
 import artifact from '$houdini/artifacts/${artifactName}'
 
-// create the query store
-
 export class ${storeName} extends ${store_class} {
-	constructor() {
+	constructor(tentativeInitFromCache) {
+		console.log('${storeName}', tentativeInitFromCache)
 		super({
 			artifact,
 			storeName: ${JSON.stringify(storeName)},
 			variables: ${JSON.stringify(variables)},
+			tentativeInitFromCache
 		})
 	}
 }
 
 export async function load_${artifactName}(params) {
-	const store = new ${storeName}()
+	const store = new ${storeName}(true)
+	
+	await store.init(params);
 
 	await store.fetch(params)
 
@@ -76,15 +78,61 @@ export default ${globalStoreName}
 	const typeDefs = `import type { ${_input}, ${_data}, ${store_class}, QueryStoreFetchParams} from '$houdini'
 
 export declare class ${storeName} extends ${store_class}<${_data}, ${_input}> {
-	constructor() {
+	/**
+	 * The best practice to use a store _manually_ is to do the following:
+	 * 
+	 * \`\`\`js
+	 * const store = new ${storeName}Store(true)
+	 * await store.init({ variables })
+	 * 
+	 * $: browser && store.fetch({ variables });
+	 * \`\`\`
+	 */
+	constructor(tentativeInitFromCache?: boolean) {
 		// @ts-ignore
 		super({})
 	}
 }
 
-export const ${globalStoreName}: ${storeName}
-
+/**
+ * ## Default usage
+ * Usually your load function will look like this:
+ * 
+ * \`\`\`js
+ * import { load_${artifactName} } from '$houdini';
+ * import type { PageLoad } from './$types';
+ * 
+ * export const load: PageLoad = async (event) => {
+ *   const variables = {
+ *     id: // Something like: event.url.searchParams.get('id')
+ *   };
+ * 
+ *   return await load_ListAll({ event, variables });
+ * }; 
+ * \`\`\`
+ * 
+ * ## Multiple stores to load
+ * You can trigger them in parallel with \`loadAll\` function
+ * 
+ * \`\`\`js
+ * import { loadAll, load_${artifactName} } from '$houdini';
+ * import type { PageLoad } from './$types';
+ * 
+ * export const load: PageLoad = async (event) => {
+ *   const variables = {
+ *     id: // Something like: event.url.searchParams.get('id')
+ *   };
+ * 
+ *   return await await loadAll(
+ *     load_ListAll({ event, variables }),
+ *     // load_ANOTHER_STORE
+ *   );
+ * }; 
+ * \`\`\`
+ */
 export declare const load_${artifactName}: (params: QueryStoreFetchParams<${_data}, ${_input}>) => Promise<{${artifactName}: ${storeName}}>
+
+export const ${globalStoreName}: ${storeName}
 
 export default ${storeName}
 `

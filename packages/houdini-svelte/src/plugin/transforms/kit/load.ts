@@ -3,7 +3,7 @@ import type { StatementKind } from 'ast-types/gen/kinds'
 import type { namedTypes } from 'ast-types/gen/namedTypes'
 import * as graphql from 'graphql'
 import { formatErrors, operation_requires_variables, fs } from 'houdini'
-import { find_insert_index } from 'houdini/vite'
+import { artifact_import, find_insert_index } from 'houdini/vite'
 import { ensure_imports } from 'houdini/vite'
 import * as recast from 'recast'
 
@@ -271,13 +271,12 @@ function add_load({
 								),
 								AST.objectProperty(
 									AST.literal('artifact'),
-									AST.memberExpression(
-										store_import({
-											page,
-											artifact: query,
-										}).id,
-										AST.identifier('artifact')
-									)
+									artifact_import({
+										page,
+										config: page.config,
+										script: page.script,
+										artifact: { name: query.name },
+									}).id
 								),
 							]),
 						]

@@ -48,20 +48,22 @@ test('basic store', async function () {
 		import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores'
 		import artifact from '$houdini/artifacts/TestQuery'
 
-		// create the query store
-
 		export class TestQueryStore extends QueryStore {
-			constructor() {
+			constructor(tentativeInitFromCache) {
+				console.log('TestQueryStore', tentativeInitFromCache)
 				super({
 					artifact,
 					storeName: "TestQueryStore",
 					variables: false,
+					tentativeInitFromCache
 				})
 			}
 		}
 
 		export async function load_TestQuery(params) {
-			const store = new TestQueryStore()
+			const store = new TestQueryStore(true)
+			
+			await store.init(params);
 
 			await store.fetch(params)
 
@@ -100,20 +102,22 @@ test('change globalStorePrefix to "yop___"', async function () {
 		import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores'
 		import artifact from '$houdini/artifacts/TestQuery'
 
-		// create the query store
-
 		export class TestQueryStore extends QueryStore {
-			constructor() {
+			constructor(tentativeInitFromCache) {
+				console.log('TestQueryStore', tentativeInitFromCache)
 				super({
 					artifact,
 					storeName: "TestQueryStore",
 					variables: false,
+					tentativeInitFromCache
 				})
 			}
 		}
 
 		export async function load_TestQuery(params) {
-			const store = new TestQueryStore()
+			const store = new TestQueryStore(true)
+			
+			await store.init(params);
 
 			await store.fetch(params)
 
@@ -152,20 +156,22 @@ test('change globalStorePrefix to ""', async function () {
 		import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores'
 		import artifact from '$houdini/artifacts/TestQuery'
 
-		// create the query store
-
 		export class TestQueryStore extends QueryStore {
-			constructor() {
+			constructor(tentativeInitFromCache) {
+				console.log('TestQueryStore', tentativeInitFromCache)
 				super({
 					artifact,
 					storeName: "TestQueryStore",
 					variables: false,
+					tentativeInitFromCache
 				})
 			}
 		}
 
 		export async function load_TestQuery(params) {
-			const store = new TestQueryStore()
+			const store = new TestQueryStore(true)
+			
+			await store.init(params);
 
 			await store.fetch(params)
 
@@ -197,20 +203,22 @@ test('store with required variables', async function () {
 		import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores'
 		import artifact from '$houdini/artifacts/TestQuery'
 
-		// create the query store
-
 		export class TestQueryStore extends QueryStore {
-			constructor() {
+			constructor(tentativeInitFromCache) {
+				console.log('TestQueryStore', tentativeInitFromCache)
 				super({
 					artifact,
 					storeName: "TestQueryStore",
 					variables: true,
+					tentativeInitFromCache
 				})
 			}
 		}
 
 		export async function load_TestQuery(params) {
-			const store = new TestQueryStore()
+			const store = new TestQueryStore(true)
+			
+			await store.init(params);
 
 			await store.fetch(params)
 
@@ -242,20 +250,22 @@ test('store with nullable variables', async function () {
 		import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores'
 		import artifact from '$houdini/artifacts/TestQuery'
 
-		// create the query store
-
 		export class TestQueryStore extends QueryStore {
-			constructor() {
+			constructor(tentativeInitFromCache) {
+				console.log('TestQueryStore', tentativeInitFromCache)
 				super({
 					artifact,
 					storeName: "TestQueryStore",
 					variables: false,
+					tentativeInitFromCache
 				})
 			}
 		}
 
 		export async function load_TestQuery(params) {
-			const store = new TestQueryStore()
+			const store = new TestQueryStore(true)
+			
+			await store.init(params);
 
 			await store.fetch(params)
 
@@ -289,20 +299,22 @@ test('store with non-null variables with default value', async function () {
 		import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores'
 		import artifact from '$houdini/artifacts/TestQuery'
 
-		// create the query store
-
 		export class TestQueryStore extends QueryStore {
-			constructor() {
+			constructor(tentativeInitFromCache) {
+				console.log('TestQueryStore', tentativeInitFromCache)
 				super({
 					artifact,
 					storeName: "TestQueryStore",
 					variables: false,
+					tentativeInitFromCache
 				})
 			}
 		}
 
 		export async function load_TestQuery(params) {
-			const store = new TestQueryStore()
+			const store = new TestQueryStore(true)
+			
+			await store.init(params);
 
 			await store.fetch(params)
 
@@ -344,20 +356,22 @@ test('forward cursor pagination', async function () {
 		import { QueryStoreForwardCursor } from '$houdini/plugins/houdini-svelte/runtime/stores'
 		import artifact from '$houdini/artifacts/TestQuery'
 
-		// create the query store
-
 		export class TestQueryStore extends QueryStoreForwardCursor {
-			constructor() {
+			constructor(tentativeInitFromCache) {
+				console.log('TestQueryStore', tentativeInitFromCache)
 				super({
 					artifact,
 					storeName: "TestQueryStore",
 					variables: false,
+					tentativeInitFromCache
 				})
 			}
 		}
 
 		export async function load_TestQuery(params) {
-			const store = new TestQueryStore()
+			const store = new TestQueryStore(true)
+			
+			await store.init(params);
 
 			await store.fetch(params)
 
@@ -399,20 +413,22 @@ test('backwards cursor pagination', async function () {
 		import { QueryStoreBackwardCursor } from '$houdini/plugins/houdini-svelte/runtime/stores'
 		import artifact from '$houdini/artifacts/TestQuery'
 
-		// create the query store
-
 		export class TestQueryStore extends QueryStoreBackwardCursor {
-			constructor() {
+			constructor(tentativeInitFromCache) {
+				console.log('TestQueryStore', tentativeInitFromCache)
 				super({
 					artifact,
 					storeName: "TestQueryStore",
 					variables: false,
+					tentativeInitFromCache
 				})
 			}
 		}
 
 		export async function load_TestQuery(params) {
-			const store = new TestQueryStore()
+			const store = new TestQueryStore(true)
+			
+			await store.init(params);
 
 			await store.fetch(params)
 
@@ -450,20 +466,22 @@ test('offset pagination', async function () {
 		import { QueryStoreOffset } from '$houdini/plugins/houdini-svelte/runtime/stores'
 		import artifact from '$houdini/artifacts/TestQuery'
 
-		// create the query store
-
 		export class TestQueryStore extends QueryStoreOffset {
-			constructor() {
+			constructor(tentativeInitFromCache) {
+				console.log('TestQueryStore', tentativeInitFromCache)
 				super({
 					artifact,
 					storeName: "TestQueryStore",
 					variables: false,
+					tentativeInitFromCache
 				})
 			}
 		}
 
 		export async function load_TestQuery(params) {
-			const store = new TestQueryStore()
+			const store = new TestQueryStore(true)
+			
+			await store.init(params);
 
 			await store.fetch(params)
 
