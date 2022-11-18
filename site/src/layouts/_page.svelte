@@ -136,7 +136,7 @@
 					<a
 						href={categories[category].index.slug}
 						class:current={currentCategory === category}
-						sveltekit:prefetch
+						data-sveltekit-prefetch
 					>
 						{categories[category].name}
 					</a>
@@ -151,7 +151,7 @@
 					role="listitem"
 					class:current={!currentSubCategory && $page.url.pathname.endsWith(file.slug)}
 					href={file.slug}
-					sveltekit:prefetch>{file.title}</a
+					data-sveltekit-prefetch>{file.title}</a
 				>
 				<!-- render the subcategories for the selected category  -->
 				{#if $page.url.pathname.endsWith(file.slug)}
@@ -178,7 +178,7 @@
 		</article>
 		<footer class:blur={$searching}>
 			{#if previous}
-				<a id="previous-page" class="pagination" href={previous.slug} sveltekit:prefetch>
+				<a id="previous-page" class="pagination" href={previous.slug} data-sveltekit-prefetch>
 					<Icon name="chevron-left" class="icon" width="20px" height="20px" />
 					<div>
 						<h4>Previous</h4>
@@ -191,7 +191,7 @@
 				<div id="previous-page" />
 			{/if}
 			{#if next}
-				<a id="next-page" class="pagination" href={next.slug} sveltekit:prefetch>
+				<a id="next-page" class="pagination" href={next.slug} data-sveltekit-prefetch>
 					<Icon name="chevron-right" class="icon" width="20px" height="20px" />
 					<div>
 						<h4>Next</h4>
