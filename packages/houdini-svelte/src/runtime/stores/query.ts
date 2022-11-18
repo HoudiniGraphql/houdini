@@ -84,7 +84,12 @@ export class QueryStore<
 		this.variables = variables
 	}
 
-	async init(args: QueryStoreFetchParams<_Data, _Input>) {
+	async init(args?: QueryStoreFetchParams<_Data, _Input>) {
+		if (!args) {
+			this.store = writable(this.initialState)
+			return
+		}
+
 		// validate and prepare the request context for the current environment (client vs server)
 		const { policy, params } = await fetchParams(this.artifact, this.storeName, args)
 

@@ -44,7 +44,7 @@ import artifact from '$houdini/artifacts/${artifactName}'
 
 export class ${storeName} extends ${store_class} {
 	constructor(tentativeInitFromCache) {
-		console.log('${storeName}', tentativeInitFromCache)
+		// JYC TO REMOVE console.log('${storeName}', tentativeInitFromCache)
 		super({
 			artifact,
 			storeName: ${JSON.stringify(storeName)},
@@ -79,6 +79,7 @@ export default ${globalStoreName}
 
 export declare class ${storeName} extends ${store_class}<${_data}, ${_input}> {
 	/**
+	 * ## Default usage
 	 * The best practice to use a store _manually_ is to do the following:
 	 * 
 	 * \`\`\`js
@@ -87,6 +88,11 @@ export declare class ${storeName} extends ${store_class}<${_data}, ${_input}> {
 	 * 
 	 * $: browser && store.fetch({ variables });
 	 * \`\`\`
+	 * 
+	 * ### Side node
+	 * It's still possible to do only \`const store = new ${storeName}Store()\`
+	 * and avoid the \`await store.init({ variables })\` line.
+	 * However, without init, isFetching can be wrong and will cause a small flash in the ui.
 	 */
 	constructor(tentativeInitFromCache?: boolean) {
 		// @ts-ignore

@@ -25,7 +25,7 @@ class CursorPaginatedStore<_Data extends GraphQLObject, _Input extends {}> exten
 	protected handlers: CursorHandlers<_Data, _Input>
 
 	constructor(config: StoreConfig<_Data, _Input, QueryArtifact>) {
-		super(config)
+		super({ ...config, tentativeInitFromCache: false })
 		this.handlers = cursorHandlers<_Data, _Input>({
 			artifact: this.artifact,
 			fetch: super.fetch.bind(this),
@@ -102,7 +102,7 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input extends {}> ex
 	protected handlers: OffsetHandlers<_Data, _Input, QueryResult<_Data, _Input>>
 
 	constructor(config: StoreConfig<_Data, _Input, QueryArtifact>) {
-		super(config)
+		super({ ...config, tentativeInitFromCache: false })
 		this.handlers = offsetHandlers<_Data, _Input>({
 			artifact: this.artifact,
 			fetch: super.fetch,
