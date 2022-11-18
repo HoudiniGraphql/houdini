@@ -86,6 +86,29 @@ export default async function svelteKitGenerator(
 					uniquePageQueries
 				)
 
+				const layout_append_beforeLoad = append_beforeLoad(beforeLayoutLoad, 'Layout')
+				const page_append_beforeLoad = append_beforeLoad(beforePageLoad, 'Page')
+
+				const layout_append_afterLoad = append_afterLoad(
+					afterLayoutLoad,
+					'Layout',
+					layoutQueries
+				)
+				const page_append_afterLoad = append_afterLoad(afterPageLoad, 'Page', pageQueries)
+
+				const layout_append_onError = append_onError(
+					onLayoutError,
+					'Layout',
+					//if there are not inputs to any query, we won't define a LoadInput in our error type
+					layoutQueries.filter((x) => x.variableDefinitions?.length).length > 0
+				)
+				const page_append_onError = append_onError(
+					onPageError,
+					'Page',
+					//if there are not inputs to any query, we won't define a LoadInput in our error type
+					pageQueries.filter((x) => x.variableDefinitions?.length).length > 0
+				)
+
 				//default sktype string is defined as imports \n\n utility \n\n exports
 				const splitString = skTypeString.split('\n\n')
 
@@ -153,24 +176,12 @@ export default async function svelteKitGenerator(
 					.concat(append_loadInput(layoutQueries))
 					.concat(append_loadInput(pageQueries))
 					//define beforeLoad and afterLoad types layout always first
-					.concat(append_beforeLoad(beforeLayoutLoad))
-					.concat(append_beforeLoad(beforePageLoad))
-					.concat(append_afterLoad('Layout', afterLayoutLoad, layoutQueries))
-					.concat(append_afterLoad('Page', afterPageLoad, pageQueries))
-					.concat(
-						append_onError(
-							onPageError,
-							//if there are not inputs to any query, we won't define a LoadInput in our error type
-							pageQueries.filter((x) => x.variableDefinitions?.length).length > 0
-						)
-					)
-					.concat(
-						append_onError(
-							onLayoutError,
-							//if there are not inputs to any query, we won't define a LoadInput in our error type
-							pageQueries.filter((x) => x.variableDefinitions?.length).length > 0
-						)
-					)
+					.concat(layout_append_beforeLoad)
+					.concat(page_append_beforeLoad)
+					.concat(layout_append_afterLoad)
+					.concat(page_append_afterLoad)
+					.concat(layout_append_onError)
+					.concat(page_append_onError)
 					.concat(layout_append_VariablesFunction)
 					.concat(page_append_VariablesFunction)
 					//match all between 'LayoutData =' and ';' and combine additional types
@@ -279,8 +290,8 @@ function append_loadInput(queries: OperationDefinitionNode[]) {
 }
 
 function append_afterLoad(
-	type: `Page` | `Layout`,
 	afterLoad: boolean,
+	type: `Page` | `Layout`,
 	queries: OperationDefinitionNode[]
 ) {
 	return afterLoad
@@ -310,19 +321,19 @@ function internal_append_afterLoad(queries: OperationDefinitionNode[]) {
 		.join(';\n\t')}`
 }
 
-function append_beforeLoad(beforeLoad: boolean) {
+function append_beforeLoad(beforeLoad: boolean, type: 'Layout' | 'Page') {
 	return beforeLoad
 		? `
 export type BeforeLoadEvent = PageLoadEvent;
-type BeforeLoadReturn = ReturnType<typeof import('./+page').beforeLoad>;
+type BeforeLoadReturn = ReturnType<typeof import('./+${type.toLowerCase()}').beforeLoad>;
 `
 		: ''
 }
 
-function append_onError(onError: boolean, hasLoadInput: boolean) {
+function append_onError(onError: boolean, type: 'Layout' | 'Page', hasLoadInput: boolean) {
 	return onError
 		? `
-type OnErrorReturn = ReturnType<typeof import('./+page').onError>;
+type OnErrorReturn = ReturnType<typeof import('./+${type.toLowerCase()}').onError>;
 export type OnErrorEvent =  { event: Kit.LoadEvent, input: ${
 				hasLoadInput ? 'LoadInput' : '{}'
 		  }, error: Error | Error[] };
