@@ -107,7 +107,7 @@ export declare class ${storeName} extends ${store_class}<${_data}, ${_input}> {
  *     id: // Something like: event.url.searchParams.get('id')
  *   };
  * 
- *   return await load_ListAll({ event, variables });
+ *   return await load_${artifactName}({ event, variables });
  * }; 
  * \`\`\`
  * 
@@ -124,7 +124,7 @@ export declare class ${storeName} extends ${store_class}<${_data}, ${_input}> {
  *   };
  * 
  *   return await await loadAll(
- *     load_ListAll({ event, variables }),
+ *     load_${artifactName}({ event, variables }),
  *     // load_ANOTHER_STORE
  *   );
  * }; 
