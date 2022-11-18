@@ -75,9 +75,16 @@ export default async function svelteKitGenerator(
 				const beforeLayoutLoad = layoutExports.includes('beforeLoad')
 				const onLayoutError = layoutExports.includes('onError')
 
-				//check if either page or layout has variables exported.
-				const pageVariableLoad = pageExports.some((x) => x.endsWith('Variables'))
-				const layoutVariableLoad = layoutExports.some((x) => x.endsWith('Variables'))
+				const layout_append_VariablesFunction = append_VariablesFunction(
+					'Layout',
+					config,
+					uniqueLayoutQueries
+				)
+				const page_append_VariablesFunction = append_VariablesFunction(
+					'Page',
+					config,
+					uniquePageQueries
+				)
 
 				//default sktype string is defined as imports \n\n utility \n\n exports
 				const splitString = skTypeString.split('\n\n')
@@ -88,22 +95,28 @@ export default async function svelteKitGenerator(
 				let typeExports = splitString[2]
 
 				// lots of comparisons but helpful to prevent unnecessary imports
-				// define function imports e.g. import {VariableFunction, AferLoadFunction, BeforeLoadFunction} from 'relativePath'
+				// define function imports e.g. import { VariableFunction, AfterLoadFunction, BeforeLoadFunction } from 'relativePath'
 				// will not include unnecessary imports.
-				const functionImports = `${
-					afterPageLoad ||
-					beforePageLoad ||
-					afterLayoutLoad ||
-					beforeLayoutLoad ||
-					pageVariableLoad ||
-					layoutVariableLoad
-						? `\nimport type { ${
-								layoutVariableLoad || pageVariableLoad ? 'VariableFunction, ' : ''
-						  }${afterLayoutLoad || afterPageLoad ? 'AfterLoadFunction, ' : ''}${
-								beforeLayoutLoad || beforePageLoad ? 'BeforeLoadFunction ' : ''
-						  }} from '${houdiniRelative}/plugins/houdini-svelte/runtime/types';`
+				const functionImportsToBring = []
+				if (
+					layout_append_VariablesFunction !== '' ||
+					page_append_VariablesFunction !== ''
+				) {
+					functionImportsToBring.push('VariableFunction')
+				}
+				if (afterLayoutLoad || afterPageLoad) {
+					functionImportsToBring.push('AfterLoadFunction')
+				}
+				if (beforeLayoutLoad || beforePageLoad) {
+					functionImportsToBring.push('BeforeLoadFunction')
+				}
+
+				const functionImports =
+					functionImportsToBring.length > 0
+						? `\nimport type { ${functionImportsToBring.join(
+								', '
+						  )} } from '${houdiniRelative}/plugins/houdini-svelte/runtime/types';`
 						: ''
-				}`
 
 				// mutate typeImports with our functionImports, layout/pageStores, $result, $input,
 				typeImports = typeImports
@@ -158,8 +171,8 @@ export default async function svelteKitGenerator(
 							pageQueries.filter((x) => x.variableDefinitions?.length).length > 0
 						)
 					)
-					.concat(append_VariablesFunction('Layout', config, uniqueLayoutQueries))
-					.concat(append_VariablesFunction('Page', config, uniquePageQueries))
+					.concat(layout_append_VariablesFunction)
+					.concat(page_append_VariablesFunction)
 					//match all between 'LayoutData =' and ';' and combine additional types
 					.replace(
 						//regex to append our generated stores to the existing
