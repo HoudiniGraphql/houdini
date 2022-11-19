@@ -69,8 +69,8 @@ export class QueryStore<
 	constructor({ artifact, storeName, variables }: StoreConfig<_Data, _Input, QueryArtifact>) {
 		super()
 
+		// set the initial state
 		this.store = writable(this.initialState)
-
 		this.artifact = artifact
 		this.storeName = storeName
 		this.variables = variables
@@ -89,12 +89,19 @@ export class QueryStore<
 		// validate and prepare the request context for the current environment (client vs server)
 		const { policy, params, context } = await fetchParams(this.artifact, this.storeName, args)
 
-		// compute the variables we need to use for the query
-		const newVariables = await this.fetchVariables(params)
-
 		// identify if this is a CSF or load
 		const isLoadFetch = Boolean('event' in params && params.event)
 		const isComponentFetch = !isLoadFetch
+
+		// compute the variables we need to use for the query
+		const input = ((await marshalInputs({
+			artifact: this.artifact,
+			input: params?.variables,
+		})) || {}) as _Input
+		const newVariables = {
+			...this.lastVariables,
+			...input,
+		}
 
 		// check if the variables are different from the last time we saw them
 		let variableChange = !deepEquals(this.lastVariables, newVariables)
@@ -171,18 +178,6 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 
 		// the store will have been updated already since we waited for the response
 		return get(this.store)
-	}
-
-	private async fetchVariables(params: QueryStoreFetchParams<_Data, _Input>) {
-		const input = ((await marshalInputs({
-			artifact: this.artifact,
-			input: params?.variables,
-		})) || {}) as _Input
-		const newVariables = {
-			...this.lastVariables,
-			...input,
-		}
-		return newVariables
 	}
 
 	get name() {

@@ -1,10 +1,8 @@
-import type { IdentifierKind } from 'ast-types/gen/kinds'
-import type { StatementKind } from 'ast-types/gen/kinds'
+import type { IdentifierKind, StatementKind } from 'ast-types/gen/kinds'
 import type { namedTypes } from 'ast-types/gen/namedTypes'
 import * as graphql from 'graphql'
-import { formatErrors, operation_requires_variables, fs } from 'houdini'
-import { artifact_import, find_insert_index } from 'houdini/vite'
-import { ensure_imports } from 'houdini/vite'
+import { formatErrors, fs, operation_requires_variables } from 'houdini'
+import { ensure_imports, find_insert_index } from 'houdini/vite'
 import * as recast from 'recast'
 
 import { parseSvelte } from '../../extract'
@@ -21,7 +19,7 @@ import {
 	store_import,
 	store_import_path,
 } from '../../kit'
-import { LoadTarget, find_inline_queries, query_variable_fn } from '../query'
+import { find_inline_queries, LoadTarget, query_variable_fn } from '../query'
 import { SvelteTransformPage } from '../types'
 
 const AST = recast.types.builders
