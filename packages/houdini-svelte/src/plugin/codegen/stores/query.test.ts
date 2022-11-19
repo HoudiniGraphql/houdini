@@ -53,7 +53,7 @@ test('basic store', async function () {
 				super({
 					artifact,
 					storeName: "TestQueryStore",
-					variables: false
+					variables: false,
 				})
 			}
 		}
@@ -103,7 +103,7 @@ test('change globalStorePrefix to "yop___"', async function () {
 				super({
 					artifact,
 					storeName: "TestQueryStore",
-					variables: false
+					variables: false,
 				})
 			}
 		}
@@ -153,7 +153,7 @@ test('change globalStorePrefix to ""', async function () {
 				super({
 					artifact,
 					storeName: "TestQueryStore",
-					variables: false
+					variables: false,
 				})
 			}
 		}
@@ -196,7 +196,7 @@ test('store with required variables', async function () {
 				super({
 					artifact,
 					storeName: "TestQueryStore",
-					variables: true
+					variables: true,
 				})
 			}
 		}
@@ -239,7 +239,7 @@ test('store with nullable variables', async function () {
 				super({
 					artifact,
 					storeName: "TestQueryStore",
-					variables: false
+					variables: false,
 				})
 			}
 		}
@@ -284,7 +284,7 @@ test('store with non-null variables with default value', async function () {
 				super({
 					artifact,
 					storeName: "TestQueryStore",
-					variables: false
+					variables: false,
 				})
 			}
 		}
@@ -337,7 +337,7 @@ test('forward cursor pagination', async function () {
 				super({
 					artifact,
 					storeName: "TestQueryStore",
-					variables: false
+					variables: false,
 				})
 			}
 		}
@@ -390,7 +390,7 @@ test('backwards cursor pagination', async function () {
 				super({
 					artifact,
 					storeName: "TestQueryStore",
-					variables: false
+					variables: false,
 				})
 			}
 		}
@@ -439,7 +439,7 @@ test('offset pagination', async function () {
 				super({
 					artifact,
 					storeName: "TestQueryStore",
-					variables: false
+					variables: false,
 				})
 			}
 		}

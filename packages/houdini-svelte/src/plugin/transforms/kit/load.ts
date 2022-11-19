@@ -271,12 +271,13 @@ function add_load({
 								),
 								AST.objectProperty(
 									AST.literal('artifact'),
-									artifact_import({
-										page,
-										config: page.config,
-										script: page.script,
-										artifact: { name: query.name },
-									}).id
+									AST.memberExpression(
+										store_import({
+											page,
+											artifact: query,
+										}).id,
+										AST.identifier('artifact')
+									)
 								),
 							]),
 						]

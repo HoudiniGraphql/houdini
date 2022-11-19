@@ -47,7 +47,7 @@ export class ${storeName} extends ${store_class} {
 		super({
 			artifact,
 			storeName: ${JSON.stringify(storeName)},
-			variables: ${JSON.stringify(variables)}
+			variables: ${JSON.stringify(variables)},
 		})
 	}
 }
