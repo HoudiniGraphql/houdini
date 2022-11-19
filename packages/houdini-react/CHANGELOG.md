@@ -1,5 +1,12 @@
 # houdini-react
 
+## 0.17.12
+
+### Patch Changes
+
+-   Updated dependencies []:
+    -   houdini@0.17.12
+
 ## 0.17.11
 
 ### Patch Changes
