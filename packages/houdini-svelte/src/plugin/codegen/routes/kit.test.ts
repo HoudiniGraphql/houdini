@@ -8,6 +8,40 @@ import { type_route_dir } from '../../kit'
 const config = testConfig()
 const plugin_root = config.pluginDirectory('test-plugin')
 
+const default_layout_types = `import type * as Kit from '@sveltejs/kit';
+
+type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
+type RouteParams = {  }
+type MaybeWithVoid<T> = {} extends T ? T | void : T;
+export type RequiredKeys<T> = { [K in keyof T]-?: {} extends { [P in K]: T[K] } ? never : K; }[keyof T];
+type OutputDataShape<T> = MaybeWithVoid<Omit<App.PageData, RequiredKeys<T>> & Partial<Pick<App.PageData, keyof T & keyof App.PageData>> & Record<string, any>>
+type EnsureDefined<T> = T extends null | undefined ? {} : T;
+type OptionalUnion<U extends Record<string, any>, A extends keyof U = U extends U ? keyof U : never> = U extends unknown ? { [P in Exclude<A, keyof U>]?: never } & U : never;
+type LayoutParams = RouteParams & {  }
+type LayoutParentData = EnsureDefined<{}>;
+
+export type LayoutServerData = null;
+export type LayoutLoad<OutputData extends OutputDataShape<LayoutParentData> = OutputDataShape<LayoutParentData>> = Kit.Load<LayoutParams, LayoutServerData, LayoutParentData, OutputData>;
+export type LayoutLoadEvent = Parameters<LayoutLoad>[0];
+export type LayoutData = Expand<Omit<LayoutParentData, keyof LayoutParentData & EnsureDefined<LayoutServerData>> & OptionalUnion<EnsureDefined<LayoutParentData & EnsureDefined<LayoutServerData>>>>;
+`
+const default_page_types = `import type * as Kit from '@sveltejs/kit';
+
+type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
+type RouteParams = {  }
+type MaybeWithVoid<T> = {} extends T ? T | void : T;
+export type RequiredKeys<T> = { [K in keyof T]-?: {} extends { [P in K]: T[K] } ? never : K; }[keyof T];
+type OutputDataShape<T> = MaybeWithVoid<Omit<App.PageData, RequiredKeys<T>> & Partial<Pick<App.PageData, keyof T & keyof App.PageData>> & Record<string, any>>
+type EnsureDefined<T> = T extends null | undefined ? {} : T;
+type OptionalUnion<U extends Record<string, any>, A extends keyof U = U extends U ? keyof U : never> = U extends unknown ? { [P in Exclude<A, keyof U>]?: never } & U : never;
+type PageParentData = EnsureDefined<import('../$types.js').LayoutData>;
+
+export type PageServerData = null;
+export type PageLoad<OutputData extends OutputDataShape<PageParentData> = OutputDataShape<PageParentData>> = Kit.Load<RouteParams, PageServerData, PageParentData, OutputData>;
+export type PageLoadEvent = Parameters<PageLoad>[0];
+export type PageData = Expand<Omit<PageParentData, keyof PageParentData & EnsureDefined<PageServerData>> & OptionalUnion<EnsureDefined<PageParentData & EnsureDefined<PageServerData>>>>;
+`
+
 test('generates types for inline layout queries', async function () {
 	// create the mock filesystem
 	await fs.mock({
@@ -30,23 +64,7 @@ test('generates types for inline layout queries', async function () {
 				src: {
 					routes: {
 						myProfile: {
-							'$types.d.ts': `import type * as Kit from '@sveltejs/kit';
-
-type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
-type RouteParams = {  }
-type MaybeWithVoid<T> = {} extends T ? T | void : T;
-export type RequiredKeys<T> = { [K in keyof T]-?: {} extends { [P in K]: T[K] } ? never : K; }[keyof T];
-type OutputDataShape<T> = MaybeWithVoid<Omit<App.PageData, RequiredKeys<T>> & Partial<Pick<App.PageData, keyof T & keyof App.PageData>> & Record<string, any>>
-type EnsureDefined<T> = T extends null | undefined ? {} : T;
-type OptionalUnion<U extends Record<string, any>, A extends keyof U = U extends U ? keyof U : never> = U extends unknown ? { [P in Exclude<A, keyof U>]?: never } & U : never;
-type LayoutParams = RouteParams & {  }
-type LayoutParentData = EnsureDefined<{}>;
-
-export type LayoutServerData = null;
-export type LayoutLoad<OutputData extends OutputDataShape<LayoutParentData> = OutputDataShape<LayoutParentData>> = Kit.Load<LayoutParams, LayoutServerData, LayoutParentData, OutputData>;
-export type LayoutLoadEvent = Parameters<LayoutLoad>[0];
-export type LayoutData = Expand<Omit<LayoutParentData, keyof LayoutParentData & EnsureDefined<LayoutServerData>> & OptionalUnion<EnsureDefined<LayoutParentData & EnsureDefined<LayoutServerData>>>>;
-`,
+							'$types.d.ts': default_layout_types,
 						},
 					},
 				},
@@ -125,20 +143,7 @@ test('generates types for inline page queries', async function () {
 				src: {
 					routes: {
 						myProfile: {
-							'$types.d.ts': `import type * as Kit from '@sveltejs/kit';
-
-type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
-type RouteParams = {  }
-type MaybeWithVoid<T> = {} extends T ? T | void : T;
-export type RequiredKeys<T> = { [K in keyof T]-?: {} extends { [P in K]: T[K] } ? never : K; }[keyof T];
-type OutputDataShape<T> = MaybeWithVoid<Omit<App.PageData, RequiredKeys<T>> & Partial<Pick<App.PageData, keyof T & keyof App.PageData>> & Record<string, any>>
-type EnsureDefined<T> = T extends null | undefined ? {} : T;
-type OptionalUnion<U extends Record<string, any>, A extends keyof U = U extends U ? keyof U : never> = U extends unknown ? { [P in Exclude<A, keyof U>]?: never } & U : never;
-type PageParentData = EnsureDefined<import('../$types.js').LayoutData>;
-
-export type PageServerData = null;
-export type PageData = Expand<PageParentData>;
-`,
+							'$types.d.ts': default_page_types,
 						},
 					},
 				},
@@ -187,8 +192,10 @@ type OptionalUnion<U extends Record<string, any>, A extends keyof U = U extends 
 type PageParentData = EnsureDefined<import("../$houdini").LayoutData>;
 type PageParams = PageLoadEvent["params"];
 export type PageServerData = null;
+export type PageLoad<OutputData extends OutputDataShape<PageParentData> = OutputDataShape<PageParentData>> = Kit.Load<RouteParams, PageServerData, PageParentData, OutputData>;
+export type PageLoadEvent = Parameters<PageLoad>[0];
 
-export type PageData = Expand<Expand<PageParentData> & {
+export type PageData = Expand<Expand<Omit<PageParentData, keyof PageParentData & EnsureDefined<PageServerData>> & OptionalUnion<EnsureDefined<PageParentData & EnsureDefined<PageServerData>>>> & {
     MyInlineQuery: MyInlineQueryStore
 }>;`)
 })
@@ -215,23 +222,7 @@ query MyLayoutQuery {
 				src: {
 					routes: {
 						myProfile: {
-							'$types.d.ts': `import type * as Kit from '@sveltejs/kit';
-
-type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
-type RouteParams = {  }
-type MaybeWithVoid<T> = {} extends T ? T | void : T;
-export type RequiredKeys<T> = { [K in keyof T]-?: {} extends { [P in K]: T[K] } ? never : K; }[keyof T];
-type OutputDataShape<T> = MaybeWithVoid<Omit<App.PageData, RequiredKeys<T>> & Partial<Pick<App.PageData, keyof T & keyof App.PageData>> & Record<string, any>>
-type EnsureDefined<T> = T extends null | undefined ? {} : T;
-type OptionalUnion<U extends Record<string, any>, A extends keyof U = U extends U ? keyof U : never> = U extends unknown ? { [P in Exclude<A, keyof U>]?: never } & U : never;
-type LayoutParams = RouteParams & {  }
-type LayoutParentData = EnsureDefined<{}>;
-
-export type LayoutServerData = null;
-export type LayoutLoad<OutputData extends OutputDataShape<LayoutParentData> = OutputDataShape<LayoutParentData>> = Kit.Load<LayoutParams, LayoutServerData, LayoutParentData, OutputData>;
-export type LayoutLoadEvent = Parameters<LayoutLoad>[0];
-export type LayoutData = Expand<Omit<LayoutParentData, keyof LayoutParentData & EnsureDefined<LayoutServerData>> & OptionalUnion<EnsureDefined<LayoutParentData & EnsureDefined<LayoutServerData>>>>;
-`,
+							'$types.d.ts': default_layout_types,
 						},
 					},
 				},
@@ -308,22 +299,7 @@ query MyPageQuery {
 				src: {
 					routes: {
 						myProfile: {
-							'$types.d.ts': `import type * as Kit from '@sveltejs/kit';
-
-type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
-type RouteParams = {  }
-type MaybeWithVoid<T> = {} extends T ? T | void : T;
-export type RequiredKeys<T> = { [K in keyof T]-?: {} extends { [P in K]: T[K] } ? never : K; }[keyof T];
-type OutputDataShape<T> = MaybeWithVoid<Omit<App.PageData, RequiredKeys<T>> & Partial<Pick<App.PageData, keyof T & keyof App.PageData>> & Record<string, any>>
-type EnsureDefined<T> = T extends null | undefined ? {} : T;
-type OptionalUnion<U extends Record<string, any>, A extends keyof U = U extends U ? keyof U : never> = U extends unknown ? { [P in Exclude<A, keyof U>]?: never } & U : never;
-type PageParentData = EnsureDefined<import('../$types.js').LayoutData>;
-
-export type PageServerData = null;
-export type PageLoad<OutputData extends OutputDataShape<PageParentData> = OutputDataShape<PageParentData>> = Kit.Load<RouteParams, PageServerData, PageParentData, OutputData>;
-export type PageLoadEvent = Parameters<PageLoad>[0];
-export type PageData = Expand<Omit<PageParentData, keyof PageParentData & EnsureDefined<PageServerData>> & OptionalUnion<EnsureDefined<PageParentData & EnsureDefined<PageServerData>>>>;
-`,
+							'$types.d.ts': default_page_types,
 						},
 					},
 				},
@@ -417,23 +393,7 @@ test('generates types for layout onError', async function () {
 				src: {
 					routes: {
 						myProfile: {
-							'$types.d.ts': `import type * as Kit from '@sveltejs/kit';
-
-type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
-type RouteParams = {  }
-type MaybeWithVoid<T> = {} extends T ? T | void : T;
-export type RequiredKeys<T> = { [K in keyof T]-?: {} extends { [P in K]: T[K] } ? never : K; }[keyof T];
-type OutputDataShape<T> = MaybeWithVoid<Omit<App.PageData, RequiredKeys<T>> & Partial<Pick<App.PageData, keyof T & keyof App.PageData>> & Record<string, any>>
-type EnsureDefined<T> = T extends null | undefined ? {} : T;
-type OptionalUnion<U extends Record<string, any>, A extends keyof U = U extends U ? keyof U : never> = U extends unknown ? { [P in Exclude<A, keyof U>]?: never } & U : never;
-type LayoutParams = RouteParams & {  }
-type LayoutParentData = EnsureDefined<{}>;
-
-export type LayoutServerData = null;
-export type LayoutLoad<OutputData extends OutputDataShape<LayoutParentData> = OutputDataShape<LayoutParentData>> = Kit.Load<LayoutParams, LayoutServerData, LayoutParentData, OutputData>;
-export type LayoutLoadEvent = Parameters<LayoutLoad>[0];
-export type LayoutData = Expand<Omit<LayoutParentData, keyof LayoutParentData & EnsureDefined<LayoutServerData>> & OptionalUnion<EnsureDefined<LayoutParentData & EnsureDefined<LayoutServerData>>>>;
-`,
+							'$types.d.ts': default_layout_types,
 						},
 					},
 				},
@@ -544,22 +504,7 @@ test('generates types for page onError', async function () {
 				src: {
 					routes: {
 						myProfile: {
-							'$types.d.ts': `import type * as Kit from '@sveltejs/kit';
-
-type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
-type RouteParams = {  }
-type MaybeWithVoid<T> = {} extends T ? T | void : T;
-export type RequiredKeys<T> = { [K in keyof T]-?: {} extends { [P in K]: T[K] } ? never : K; }[keyof T];
-type OutputDataShape<T> = MaybeWithVoid<Omit<App.PageData, RequiredKeys<T>> & Partial<Pick<App.PageData, keyof T & keyof App.PageData>> & Record<string, any>>
-type EnsureDefined<T> = T extends null | undefined ? {} : T;
-type OptionalUnion<U extends Record<string, any>, A extends keyof U = U extends U ? keyof U : never> = U extends unknown ? { [P in Exclude<A, keyof U>]?: never } & U : never;
-type PageParentData = EnsureDefined<import('../$types.js').LayoutData>;
-
-export type PageServerData = null;
-export type PageLoad<OutputData extends OutputDataShape<PageParentData> = OutputDataShape<PageParentData>> = Kit.Load<RouteParams, PageServerData, PageParentData, OutputData>;
-export type PageLoadEvent = Parameters<PageLoad>[0];
-export type PageData = Expand<Omit<PageParentData, keyof PageParentData & EnsureDefined<PageServerData>> & OptionalUnion<EnsureDefined<PageParentData & EnsureDefined<PageServerData>>>>;
-`,
+							'$types.d.ts': default_page_types,
 						},
 					},
 				},
@@ -672,23 +617,7 @@ test('generates types for layout beforeLoad', async function () {
 				src: {
 					routes: {
 						myProfile: {
-							'$types.d.ts': `import type * as Kit from '@sveltejs/kit';
-
-type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
-type RouteParams = {  }
-type MaybeWithVoid<T> = {} extends T ? T | void : T;
-export type RequiredKeys<T> = { [K in keyof T]-?: {} extends { [P in K]: T[K] } ? never : K; }[keyof T];
-type OutputDataShape<T> = MaybeWithVoid<Omit<App.PageData, RequiredKeys<T>> & Partial<Pick<App.PageData, keyof T & keyof App.PageData>> & Record<string, any>>
-type EnsureDefined<T> = T extends null | undefined ? {} : T;
-type OptionalUnion<U extends Record<string, any>, A extends keyof U = U extends U ? keyof U : never> = U extends unknown ? { [P in Exclude<A, keyof U>]?: never } & U : never;
-type LayoutParams = RouteParams & {  }
-type LayoutParentData = EnsureDefined<{}>;
-
-export type LayoutServerData = null;
-export type LayoutLoad<OutputData extends OutputDataShape<LayoutParentData> = OutputDataShape<LayoutParentData>> = Kit.Load<LayoutParams, LayoutServerData, LayoutParentData, OutputData>;
-export type LayoutLoadEvent = Parameters<LayoutLoad>[0];
-export type LayoutData = Expand<Omit<LayoutParentData, keyof LayoutParentData & EnsureDefined<LayoutServerData>> & OptionalUnion<EnsureDefined<LayoutParentData & EnsureDefined<LayoutServerData>>>>;
-`,
+							'$types.d.ts': default_layout_types,
 						},
 					},
 				},
@@ -750,7 +679,7 @@ type LoadInput = {
     MyPageLoad1Query: MyPageLoad1Query$input
 };
 
-export type BeforeLoadEvent = PageLoadEvent;
+export type BeforeLoadEvent = LayoutLoadEvent;
 type BeforeLoadReturn = Awaited<ReturnType<typeof import("./+layout").beforeLoad>>;
 export type MyPageLoad1QueryVariables = VariableFunction<LayoutParams, MyPageLoad1Query$input>;
 `)
@@ -794,22 +723,7 @@ test('generates types for page beforeLoad', async function () {
 				src: {
 					routes: {
 						myProfile: {
-							'$types.d.ts': `import type * as Kit from '@sveltejs/kit';
-
-type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
-type RouteParams = {  }
-type MaybeWithVoid<T> = {} extends T ? T | void : T;
-export type RequiredKeys<T> = { [K in keyof T]-?: {} extends { [P in K]: T[K] } ? never : K; }[keyof T];
-type OutputDataShape<T> = MaybeWithVoid<Omit<App.PageData, RequiredKeys<T>> & Partial<Pick<App.PageData, keyof T & keyof App.PageData>> & Record<string, any>>
-type EnsureDefined<T> = T extends null | undefined ? {} : T;
-type OptionalUnion<U extends Record<string, any>, A extends keyof U = U extends U ? keyof U : never> = U extends unknown ? { [P in Exclude<A, keyof U>]?: never } & U : never;
-type PageParentData = EnsureDefined<import('../$types.js').LayoutData>;
-
-export type PageServerData = null;
-export type PageLoad<OutputData extends OutputDataShape<PageParentData> = OutputDataShape<PageParentData>> = Kit.Load<RouteParams, PageServerData, PageParentData, OutputData>;
-export type PageLoadEvent = Parameters<PageLoad>[0];
-export type PageData = Expand<Omit<PageParentData, keyof PageParentData & EnsureDefined<PageServerData>> & OptionalUnion<EnsureDefined<PageParentData & EnsureDefined<PageServerData>>>>;
-`,
+							'$types.d.ts': default_page_types,
 						},
 					},
 				},
@@ -916,23 +830,7 @@ test('generates types for layout afterLoad', async function () {
 				src: {
 					routes: {
 						myProfile: {
-							'$types.d.ts': `import type * as Kit from '@sveltejs/kit';
-
-type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
-type RouteParams = {  }
-type MaybeWithVoid<T> = {} extends T ? T | void : T;
-export type RequiredKeys<T> = { [K in keyof T]-?: {} extends { [P in K]: T[K] } ? never : K; }[keyof T];
-type OutputDataShape<T> = MaybeWithVoid<Omit<App.PageData, RequiredKeys<T>> & Partial<Pick<App.PageData, keyof T & keyof App.PageData>> & Record<string, any>>
-type EnsureDefined<T> = T extends null | undefined ? {} : T;
-type OptionalUnion<U extends Record<string, any>, A extends keyof U = U extends U ? keyof U : never> = U extends unknown ? { [P in Exclude<A, keyof U>]?: never } & U : never;
-type LayoutParams = RouteParams & {  }
-type LayoutParentData = EnsureDefined<{}>;
-
-export type LayoutServerData = null;
-export type LayoutLoad<OutputData extends OutputDataShape<LayoutParentData> = OutputDataShape<LayoutParentData>> = Kit.Load<LayoutParams, LayoutServerData, LayoutParentData, OutputData>;
-export type LayoutLoadEvent = Parameters<LayoutLoad>[0];
-export type LayoutData = Expand<Omit<LayoutParentData, keyof LayoutParentData & EnsureDefined<LayoutServerData>> & OptionalUnion<EnsureDefined<LayoutParentData & EnsureDefined<LayoutServerData>>>>;
-`,
+							'$types.d.ts': default_layout_types,
 						},
 					},
 				},
@@ -1003,7 +901,7 @@ type AfterLoadData = {
 };
 
 export type AfterLoadEvent = {
-    event: PageLoadEvent
+    event: LayoutLoadEvent
     data: AfterLoadData
     input: LoadInput
 };
@@ -1050,22 +948,7 @@ test('generates types for page afterLoad', async function () {
 				src: {
 					routes: {
 						myProfile: {
-							'$types.d.ts': `import type * as Kit from '@sveltejs/kit';
-
-type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
-type RouteParams = {  }
-type MaybeWithVoid<T> = {} extends T ? T | void : T;
-export type RequiredKeys<T> = { [K in keyof T]-?: {} extends { [P in K]: T[K] } ? never : K; }[keyof T];
-type OutputDataShape<T> = MaybeWithVoid<Omit<App.PageData, RequiredKeys<T>> & Partial<Pick<App.PageData, keyof T & keyof App.PageData>> & Record<string, any>>
-type EnsureDefined<T> = T extends null | undefined ? {} : T;
-type OptionalUnion<U extends Record<string, any>, A extends keyof U = U extends U ? keyof U : never> = U extends unknown ? { [P in Exclude<A, keyof U>]?: never } & U : never;
-type PageParentData = EnsureDefined<import('../$types.js').LayoutData>;
-
-export type PageServerData = null;
-export type PageLoad<OutputData extends OutputDataShape<PageParentData> = OutputDataShape<PageParentData>> = Kit.Load<RouteParams, PageServerData, PageParentData, OutputData>;
-export type PageLoadEvent = Parameters<PageLoad>[0];
-export type PageData = Expand<Omit<PageParentData, keyof PageParentData & EnsureDefined<PageServerData>> & OptionalUnion<EnsureDefined<PageParentData & EnsureDefined<PageServerData>>>>;
-`,
+							'$types.d.ts': default_page_types,
 						},
 					},
 				},
