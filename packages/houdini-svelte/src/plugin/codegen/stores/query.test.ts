@@ -49,19 +49,17 @@ test('basic store', async function () {
 		import artifact from '$houdini/artifacts/TestQuery'
 
 		export class TestQueryStore extends QueryStore {
-			constructor(tentativeInitFromCache) {
+			constructor() {
 				super({
 					artifact,
 					storeName: "TestQueryStore",
-					variables: false,
-					tentativeInitFromCache
+					variables: false
 				})
 			}
 		}
 
 		export async function load_TestQuery(params) {
-			const store = new TestQueryStore(true)
-			await store.init(params);
+			const store = new TestQueryStore()
 
 			await store.fetch(params)
 
@@ -101,19 +99,17 @@ test('change globalStorePrefix to "yop___"', async function () {
 		import artifact from '$houdini/artifacts/TestQuery'
 
 		export class TestQueryStore extends QueryStore {
-			constructor(tentativeInitFromCache) {
+			constructor() {
 				super({
 					artifact,
 					storeName: "TestQueryStore",
-					variables: false,
-					tentativeInitFromCache
+					variables: false
 				})
 			}
 		}
 
 		export async function load_TestQuery(params) {
-			const store = new TestQueryStore(true)
-			await store.init(params);
+			const store = new TestQueryStore()
 
 			await store.fetch(params)
 
@@ -153,19 +149,17 @@ test('change globalStorePrefix to ""', async function () {
 		import artifact from '$houdini/artifacts/TestQuery'
 
 		export class TestQueryStore extends QueryStore {
-			constructor(tentativeInitFromCache) {
+			constructor() {
 				super({
 					artifact,
 					storeName: "TestQueryStore",
-					variables: false,
-					tentativeInitFromCache
+					variables: false
 				})
 			}
 		}
 
 		export async function load_TestQuery(params) {
-			const store = new TestQueryStore(true)
-			await store.init(params);
+			const store = new TestQueryStore()
 
 			await store.fetch(params)
 
@@ -198,19 +192,17 @@ test('store with required variables', async function () {
 		import artifact from '$houdini/artifacts/TestQuery'
 
 		export class TestQueryStore extends QueryStore {
-			constructor(tentativeInitFromCache) {
+			constructor() {
 				super({
 					artifact,
 					storeName: "TestQueryStore",
-					variables: true,
-					tentativeInitFromCache
+					variables: true
 				})
 			}
 		}
 
 		export async function load_TestQuery(params) {
-			const store = new TestQueryStore(true)
-			await store.init(params);
+			const store = new TestQueryStore()
 
 			await store.fetch(params)
 
@@ -243,19 +235,17 @@ test('store with nullable variables', async function () {
 		import artifact from '$houdini/artifacts/TestQuery'
 
 		export class TestQueryStore extends QueryStore {
-			constructor(tentativeInitFromCache) {
+			constructor() {
 				super({
 					artifact,
 					storeName: "TestQueryStore",
-					variables: false,
-					tentativeInitFromCache
+					variables: false
 				})
 			}
 		}
 
 		export async function load_TestQuery(params) {
-			const store = new TestQueryStore(true)
-			await store.init(params);
+			const store = new TestQueryStore()
 
 			await store.fetch(params)
 
@@ -290,19 +280,17 @@ test('store with non-null variables with default value', async function () {
 		import artifact from '$houdini/artifacts/TestQuery'
 
 		export class TestQueryStore extends QueryStore {
-			constructor(tentativeInitFromCache) {
+			constructor() {
 				super({
 					artifact,
 					storeName: "TestQueryStore",
-					variables: false,
-					tentativeInitFromCache
+					variables: false
 				})
 			}
 		}
 
 		export async function load_TestQuery(params) {
-			const store = new TestQueryStore(true)
-			await store.init(params);
+			const store = new TestQueryStore()
 
 			await store.fetch(params)
 
@@ -345,19 +333,17 @@ test('forward cursor pagination', async function () {
 		import artifact from '$houdini/artifacts/TestQuery'
 
 		export class TestQueryStore extends QueryStoreForwardCursor {
-			constructor(tentativeInitFromCache) {
+			constructor() {
 				super({
 					artifact,
 					storeName: "TestQueryStore",
-					variables: false,
-					tentativeInitFromCache
+					variables: false
 				})
 			}
 		}
 
 		export async function load_TestQuery(params) {
-			const store = new TestQueryStore(true)
-			await store.init(params);
+			const store = new TestQueryStore()
 
 			await store.fetch(params)
 
@@ -400,19 +386,17 @@ test('backwards cursor pagination', async function () {
 		import artifact from '$houdini/artifacts/TestQuery'
 
 		export class TestQueryStore extends QueryStoreBackwardCursor {
-			constructor(tentativeInitFromCache) {
+			constructor() {
 				super({
 					artifact,
 					storeName: "TestQueryStore",
-					variables: false,
-					tentativeInitFromCache
+					variables: false
 				})
 			}
 		}
 
 		export async function load_TestQuery(params) {
-			const store = new TestQueryStore(true)
-			await store.init(params);
+			const store = new TestQueryStore()
 
 			await store.fetch(params)
 
@@ -451,19 +435,17 @@ test('offset pagination', async function () {
 		import artifact from '$houdini/artifacts/TestQuery'
 
 		export class TestQueryStore extends QueryStoreOffset {
-			constructor(tentativeInitFromCache) {
+			constructor() {
 				super({
 					artifact,
 					storeName: "TestQueryStore",
-					variables: false,
-					tentativeInitFromCache
+					variables: false
 				})
 			}
 		}
 
 		export async function load_TestQuery(params) {
-			const store = new TestQueryStore(true)
-			await store.init(params);
+			const store = new TestQueryStore()
 
 			await store.fetch(params)
 

@@ -2,21 +2,23 @@ import { getCache } from '$houdini/runtime'
 import type { ConfigFile } from '$houdini/runtime/lib/config'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import * as log from '$houdini/runtime/lib/log'
-import { fetchCache, fetchQuery } from '$houdini/runtime/lib/network'
-import { FetchContext } from '$houdini/runtime/lib/network'
+import { fetchCache, FetchContext, fetchQuery } from '$houdini/runtime/lib/network'
 import { marshalInputs, unmarshalSelection } from '$houdini/runtime/lib/scalars'
 import type { QueryArtifact } from '$houdini/runtime/lib/types'
 // internals
-import { CachePolicy, DataSource, GraphQLObject, QueryResult } from '$houdini/runtime/lib/types'
 import {
-	SubscriptionSpec,
+	CachePolicy,
 	CompiledQueryKind,
+	DataSource,
+	GraphQLObject,
 	HoudiniFetchContext,
+	QueryResult,
+	SubscriptionSpec,
 } from '$houdini/runtime/lib/types'
 import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
 import { get, Readable, Writable, writable } from 'svelte/store'
 
-import { clientStarted, isBrowser, error } from '../adapter'
+import { clientStarted, error, isBrowser } from '../adapter'
 import { getCurrentClient } from '../network'
 import { getSession } from '../session'
 import { BaseStore } from './store'
@@ -36,8 +38,7 @@ export class QueryStore<
 	kind = CompiledQueryKind
 
 	// at its core, a query store is a writable store with extra methods
-	// either we call the constructor without optionnal params, either we call it with all params,
-	// and we know that we need to call await init() after the constructor if we set tentativeInitFromCache to `true`
+	// if we want the store to exist without any network call, call fetch with `CacheOnly` policy.
 	// @ts-ignore
 	protected store: Writable<StoreState<_Data, _Input, _ExtraFields>>
 
@@ -65,51 +66,14 @@ export class QueryStore<
 		return get(this.store).variables
 	}
 
-	constructor({
-		artifact,
-		storeName,
-		variables,
-		tentativeInitFromCache,
-	}: StoreConfig<_Data, _Input, QueryArtifact>) {
+	constructor({ artifact, storeName, variables }: StoreConfig<_Data, _Input, QueryArtifact>) {
 		super()
 
-		// set the initial state only if withoutInitialData is not set
-		if (tentativeInitFromCache) {
-			// we will call just after the constructor `await init()` to get the initial store state (maybe with cached data!)
-		} else {
-			this.store = writable(this.initialState)
-		}
+		this.store = writable(this.initialState)
+
 		this.artifact = artifact
 		this.storeName = storeName
 		this.variables = variables
-	}
-
-	async init(args?: QueryStoreFetchParams<_Data, _Input>) {
-		if (!args) {
-			this.store = writable(this.initialState)
-			return
-		}
-
-		// validate and prepare the request context for the current environment (client vs server)
-		const { policy, params } = await fetchParams(this.artifact, this.storeName, args)
-
-		// compute the variables we need to use for the query
-		const newVariables = await this.fetchVariables(params)
-		const cachedStore = await fetchCache<_Data, _Input>({
-			artifact: this.artifact,
-			variables: newVariables,
-			policy,
-		})
-
-		this.store = writable(
-			cachedStore
-				? {
-						...this.initialState,
-						data: cachedStore.result.data,
-						isFetching: false,
-				  }
-				: this.initialState
-		)
 	}
 
 	/**
@@ -121,16 +85,6 @@ export class QueryStore<
 	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
 		const config = await this.getConfig()
-
-		// check if the store is well defined (it should be!)
-		if (get(this.store) === undefined) {
-			log.error(
-				`⚠️ You didn't initiallized your store "${this.storeName}" properly.\n` +
-					`You should do something like: \`await store.init({ variables })\` to fix it.`
-			)
-			// we do it now, but we keep the log has it's a user mistake that should be fixed
-			this.store = writable(this.initialState)
-		}
 
 		// validate and prepare the request context for the current environment (client vs server)
 		const { policy, params, context } = await fetchParams(this.artifact, this.storeName, args)
@@ -198,6 +152,21 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 		// if the await isn't fake, await it
 		if (!fakeAwait) {
 			await request
+		} else {
+			// We are in a fake await,
+			// let's not wait for the request to resolve to set the store with cached values
+			const cachedStore = await fetchCache<_Data, _Input>({
+				artifact: this.artifact,
+				variables: newVariables,
+				policy,
+			})
+			if (cachedStore) {
+				this.store.update((s) => ({
+					...s,
+					data: cachedStore?.result.data,
+					isFetching: false,
+				}))
+			}
 		}
 
 		// the store will have been updated already since we waited for the response
@@ -420,7 +389,6 @@ export type StoreConfig<_Data extends GraphQLObject, _Input, _Artifact> = {
 	artifact: _Artifact
 	storeName: string
 	variables: boolean
-	tentativeInitFromCache?: boolean
 }
 
 type StoreState<_Data, _Input, _Extra = {}> = QueryResult<_Data, _Input> & _Extra

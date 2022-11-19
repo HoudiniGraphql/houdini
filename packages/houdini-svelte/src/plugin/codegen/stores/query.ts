@@ -43,19 +43,17 @@ export async function queryStore(
 import artifact from '$houdini/artifacts/${artifactName}'
 
 export class ${storeName} extends ${store_class} {
-	constructor(tentativeInitFromCache) {
+	constructor() {
 		super({
 			artifact,
 			storeName: ${JSON.stringify(storeName)},
-			variables: ${JSON.stringify(variables)},
-			tentativeInitFromCache
+			variables: ${JSON.stringify(variables)}
 		})
 	}
 }
 
 export async function load_${artifactName}(params) {
-	const store = new ${storeName}(true)
-	await store.init(params);
+	const store = new ${storeName}()
 
 	await store.fetch(params)
 
@@ -81,13 +79,12 @@ export declare class ${storeName} extends ${store_class}<${_data}, ${_input}> {
 	 * The best practice to use a store _manually_ is to do the following:
 	 * 
 	 * \`\`\`js
-	 * const store = new ${storeName}Store(true)
-	 * await store.init({ variables })
+	 * const store = new ${storeName}Store()
 	 * 
 	 * $: browser && store.fetch({ variables });
 	 * \`\`\`
 	 */
-	constructor(tentativeInitFromCache?: boolean) {
+	constructor() {
 		// @ts-ignore
 		super({})
 	}
@@ -131,21 +128,6 @@ export declare class ${storeName} extends ${store_class}<${_data}, ${_input}> {
  */
 export declare const load_${artifactName}: (params: QueryStoreFetchParams<${_data}, ${_input}>) => Promise<{${artifactName}: ${storeName}}>
 
-/**
- * @deprecated
- * 
- * ### Move to "load_"
- * use \`load_${artifactName}(params)\` in your sveltekit load function. 
- * 
- * ### Move to manual store
- * With something like
- * \`\`\`js
- * const store = new ${storeName}(true)
- * await store.init({ variables })
- * 
- * $: browser && store.fetch({ variables });
- * \`\`\`
- */ 
 export const ${globalStoreName}: ${storeName}
 
 export default ${storeName}

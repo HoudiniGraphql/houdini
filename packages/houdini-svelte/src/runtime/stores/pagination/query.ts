@@ -2,12 +2,12 @@ import { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/
 import { derived, get, Subscriber } from 'svelte/store'
 
 import {
-	QueryStore,
-	StoreConfig,
-	LoadEventFetchParams,
-	RequestEventFetchParams,
-	QueryStoreFetchParams,
 	ClientFetchParams,
+	LoadEventFetchParams,
+	QueryStore,
+	QueryStoreFetchParams,
+	RequestEventFetchParams,
+	StoreConfig,
 } from '../query'
 import { CursorHandlers, cursorHandlers } from './cursor'
 import { offsetHandlers, OffsetHandlers } from './offset'
@@ -25,7 +25,7 @@ class CursorPaginatedStore<_Data extends GraphQLObject, _Input extends {}> exten
 	protected handlers: CursorHandlers<_Data, _Input>
 
 	constructor(config: StoreConfig<_Data, _Input, QueryArtifact>) {
-		super({ ...config, tentativeInitFromCache: false })
+		super(config)
 		this.handlers = cursorHandlers<_Data, _Input>({
 			artifact: this.artifact,
 			fetch: super.fetch.bind(this),
@@ -102,7 +102,7 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input extends {}> ex
 	protected handlers: OffsetHandlers<_Data, _Input, QueryResult<_Data, _Input>>
 
 	constructor(config: StoreConfig<_Data, _Input, QueryArtifact>) {
-		super({ ...config, tentativeInitFromCache: false })
+		super(config)
 		this.handlers = offsetHandlers<_Data, _Input>({
 			artifact: this.artifact,
 			fetch: super.fetch,
