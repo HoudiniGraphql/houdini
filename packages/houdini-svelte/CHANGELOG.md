@@ -1,5 +1,14 @@
 # houdini-svelte
 
+## 0.17.12
+
+### Patch Changes
+
+-   [#715](https://github.com/HoudiniGraphql/houdini/pull/715) [`493606a`](https://github.com/HoudiniGraphql/houdini/commit/493606aa06b00e7a588a556830c835ac94d1fb64) Thanks [@sjcobb2022](https://github.com/sjcobb2022)! - Fix onError and beforeLoad types
+
+-   Updated dependencies []:
+    -   houdini@0.17.12
+
 ## 0.17.11
 
 ### 🐛 Fixes
