@@ -122,6 +122,16 @@ export class QueryStore<
 	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
 		const config = await this.getConfig()
 
+		// check if the store is well defined (it should be!)
+		if (get(this.store) === undefined) {
+			log.error(
+				`⚠️ You didn't initiallized your store "${this.storeName}" properly.\n` +
+					`You should do something like: \`await store.init({ variables })\` to fix it.`
+			)
+			// we do it now, but we keep the log has it's a user mistake that should be fixed
+			this.store = writable(this.initialState)
+		}
+
 		// validate and prepare the request context for the current environment (client vs server)
 		const { policy, params, context } = await fetchParams(this.artifact, this.storeName, args)
 

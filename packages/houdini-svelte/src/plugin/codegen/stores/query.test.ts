@@ -61,7 +61,6 @@ test('basic store', async function () {
 
 		export async function load_TestQuery(params) {
 			const store = new TestQueryStore(true)
-			
 			await store.init(params);
 
 			await store.fetch(params)
@@ -114,7 +113,6 @@ test('change globalStorePrefix to "yop___"', async function () {
 
 		export async function load_TestQuery(params) {
 			const store = new TestQueryStore(true)
-			
 			await store.init(params);
 
 			await store.fetch(params)
@@ -167,7 +165,6 @@ test('change globalStorePrefix to ""', async function () {
 
 		export async function load_TestQuery(params) {
 			const store = new TestQueryStore(true)
-			
 			await store.init(params);
 
 			await store.fetch(params)
@@ -213,7 +210,6 @@ test('store with required variables', async function () {
 
 		export async function load_TestQuery(params) {
 			const store = new TestQueryStore(true)
-			
 			await store.init(params);
 
 			await store.fetch(params)
@@ -259,7 +255,6 @@ test('store with nullable variables', async function () {
 
 		export async function load_TestQuery(params) {
 			const store = new TestQueryStore(true)
-			
 			await store.init(params);
 
 			await store.fetch(params)
@@ -307,7 +302,6 @@ test('store with non-null variables with default value', async function () {
 
 		export async function load_TestQuery(params) {
 			const store = new TestQueryStore(true)
-			
 			await store.init(params);
 
 			await store.fetch(params)
@@ -363,7 +357,6 @@ test('forward cursor pagination', async function () {
 
 		export async function load_TestQuery(params) {
 			const store = new TestQueryStore(true)
-			
 			await store.init(params);
 
 			await store.fetch(params)
@@ -419,7 +412,6 @@ test('backwards cursor pagination', async function () {
 
 		export async function load_TestQuery(params) {
 			const store = new TestQueryStore(true)
-			
 			await store.init(params);
 
 			await store.fetch(params)
@@ -471,7 +463,6 @@ test('offset pagination', async function () {
 
 		export async function load_TestQuery(params) {
 			const store = new TestQueryStore(true)
-			
 			await store.init(params);
 
 			await store.fetch(params)

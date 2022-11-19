@@ -55,7 +55,6 @@ export class ${storeName} extends ${store_class} {
 
 export async function load_${artifactName}(params) {
 	const store = new ${storeName}(true)
-	
 	await store.init(params);
 
 	await store.fetch(params)
@@ -78,7 +77,7 @@ export default ${globalStoreName}
 
 export declare class ${storeName} extends ${store_class}<${_data}, ${_input}> {
 	/**
-	 * ## Default usage
+	 * ### Default usage
 	 * The best practice to use a store _manually_ is to do the following:
 	 * 
 	 * \`\`\`js
@@ -87,11 +86,6 @@ export declare class ${storeName} extends ${store_class}<${_data}, ${_input}> {
 	 * 
 	 * $: browser && store.fetch({ variables });
 	 * \`\`\`
-	 * 
-	 * ### Side node
-	 * It's still possible to do only \`const store = new ${storeName}Store()\`
-	 * and avoid the \`await store.init({ variables })\` line.
-	 * However, without init, isFetching can be wrong and will cause a small flash in the ui.
 	 */
 	constructor(tentativeInitFromCache?: boolean) {
 		// @ts-ignore
@@ -100,7 +94,7 @@ export declare class ${storeName} extends ${store_class}<${_data}, ${_input}> {
 }
 
 /**
- * ## Default usage
+ * ### Default usage
  * Usually your load function will look like this:
  * 
  * \`\`\`js
@@ -116,7 +110,7 @@ export declare class ${storeName} extends ${store_class}<${_data}, ${_input}> {
  * }; 
  * \`\`\`
  * 
- * ## Multiple stores to load
+ * ### Multiple stores to load
  * You can trigger them in parallel with \`loadAll\` function
  * 
  * \`\`\`js
@@ -137,6 +131,21 @@ export declare class ${storeName} extends ${store_class}<${_data}, ${_input}> {
  */
 export declare const load_${artifactName}: (params: QueryStoreFetchParams<${_data}, ${_input}>) => Promise<{${artifactName}: ${storeName}}>
 
+/**
+ * @deprecated
+ * 
+ * ### Move to "load_"
+ * use \`load_${artifactName}(params)\` in your sveltekit load function. 
+ * 
+ * ### Move to manual store
+ * With something like
+ * \`\`\`js
+ * const store = new ${storeName}(true)
+ * await store.init({ variables })
+ * 
+ * $: browser && store.fetch({ variables });
+ * \`\`\`
+ */ 
 export const ${globalStoreName}: ${storeName}
 
 export default ${storeName}
