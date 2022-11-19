@@ -44,7 +44,6 @@ import artifact from '$houdini/artifacts/${artifactName}'
 
 export class ${storeName} extends ${store_class} {
 	constructor(tentativeInitFromCache) {
-		// JYC TO REMOVE console.log('${storeName}', tentativeInitFromCache)
 		super({
 			artifact,
 			storeName: ${JSON.stringify(storeName)},

@@ -50,7 +50,6 @@ test('basic store', async function () {
 
 		export class TestQueryStore extends QueryStore {
 			constructor(tentativeInitFromCache) {
-				// JYC TO REMOVE console.log('TestQueryStore', tentativeInitFromCache)
 				super({
 					artifact,
 					storeName: "TestQueryStore",
@@ -104,7 +103,6 @@ test('change globalStorePrefix to "yop___"', async function () {
 
 		export class TestQueryStore extends QueryStore {
 			constructor(tentativeInitFromCache) {
-				// JYC TO REMOVE console.log('TestQueryStore', tentativeInitFromCache)
 				super({
 					artifact,
 					storeName: "TestQueryStore",
@@ -158,7 +156,6 @@ test('change globalStorePrefix to ""', async function () {
 
 		export class TestQueryStore extends QueryStore {
 			constructor(tentativeInitFromCache) {
-				// JYC TO REMOVE console.log('TestQueryStore', tentativeInitFromCache)
 				super({
 					artifact,
 					storeName: "TestQueryStore",
@@ -205,7 +202,6 @@ test('store with required variables', async function () {
 
 		export class TestQueryStore extends QueryStore {
 			constructor(tentativeInitFromCache) {
-				// JYC TO REMOVE console.log('TestQueryStore', tentativeInitFromCache)
 				super({
 					artifact,
 					storeName: "TestQueryStore",
@@ -252,7 +248,6 @@ test('store with nullable variables', async function () {
 
 		export class TestQueryStore extends QueryStore {
 			constructor(tentativeInitFromCache) {
-				// JYC TO REMOVE console.log('TestQueryStore', tentativeInitFromCache)
 				super({
 					artifact,
 					storeName: "TestQueryStore",
@@ -301,7 +296,6 @@ test('store with non-null variables with default value', async function () {
 
 		export class TestQueryStore extends QueryStore {
 			constructor(tentativeInitFromCache) {
-				// JYC TO REMOVE console.log('TestQueryStore', tentativeInitFromCache)
 				super({
 					artifact,
 					storeName: "TestQueryStore",
@@ -358,7 +352,6 @@ test('forward cursor pagination', async function () {
 
 		export class TestQueryStore extends QueryStoreForwardCursor {
 			constructor(tentativeInitFromCache) {
-				// JYC TO REMOVE console.log('TestQueryStore', tentativeInitFromCache)
 				super({
 					artifact,
 					storeName: "TestQueryStore",
@@ -415,7 +408,6 @@ test('backwards cursor pagination', async function () {
 
 		export class TestQueryStore extends QueryStoreBackwardCursor {
 			constructor(tentativeInitFromCache) {
-				// JYC TO REMOVE console.log('TestQueryStore', tentativeInitFromCache)
 				super({
 					artifact,
 					storeName: "TestQueryStore",
@@ -468,7 +460,6 @@ test('offset pagination', async function () {
 
 		export class TestQueryStore extends QueryStoreOffset {
 			constructor(tentativeInitFromCache) {
-				// JYC TO REMOVE console.log('TestQueryStore', tentativeInitFromCache)
 				super({
 					artifact,
 					storeName: "TestQueryStore",
