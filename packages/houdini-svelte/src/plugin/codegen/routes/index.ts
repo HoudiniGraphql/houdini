@@ -296,7 +296,7 @@ function append_afterLoad(
 ) {
 	return afterLoad
 		? `
-type AfterLoadReturn = ReturnType<typeof import('./+${type.toLowerCase()}').afterLoad>;
+type AfterLoadReturn = Awaited<ReturnType<typeof import('./+${type.toLowerCase()}').afterLoad>>;
 type AfterLoadData = {
 	${internal_append_afterLoad(queries)}
 };
@@ -325,7 +325,7 @@ function append_beforeLoad(beforeLoad: boolean, type: 'Layout' | 'Page') {
 	return beforeLoad
 		? `
 export type BeforeLoadEvent = PageLoadEvent;
-type BeforeLoadReturn = ReturnType<typeof import('./+${type.toLowerCase()}').beforeLoad>;
+type BeforeLoadReturn = Awaited<ReturnType<typeof import('./+${type.toLowerCase()}').beforeLoad>>;
 `
 		: ''
 }
@@ -333,7 +333,7 @@ type BeforeLoadReturn = ReturnType<typeof import('./+${type.toLowerCase()}').bef
 function append_onError(onError: boolean, type: 'Layout' | 'Page', hasLoadInput: boolean) {
 	return onError
 		? `
-type OnErrorReturn = ReturnType<typeof import('./+${type.toLowerCase()}').onError>;
+type OnErrorReturn = Awaited<ReturnType<typeof import('./+${type.toLowerCase()}').onError>>;
 export type OnErrorEvent =  { event: Kit.LoadEvent, input: ${
 				hasLoadInput ? 'LoadInput' : '{}'
 		  }, error: Error | Error[] };

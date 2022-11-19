@@ -494,7 +494,7 @@ type LoadInput = {
     MyPageLoad1Query: MyPageLoad1Query$input
 };
 
-type OnErrorReturn = ReturnType<typeof import("./+layout").onError>;
+type OnErrorReturn = Awaited<ReturnType<typeof import("./+layout").onError>>;
 
 export type OnErrorEvent = {
     event: Kit.LoadEvent
@@ -622,7 +622,7 @@ export type PageData = Expand<Omit<PageParentData, keyof PageParentData & Ensure
 		    MyPageLoad1Query: MyPageLoad1Query$input
 		};
 
-		type OnErrorReturn = ReturnType<typeof import("./+page").onError>;
+		type OnErrorReturn = Awaited<ReturnType<typeof import("./+page").onError>>;
 
 		export type OnErrorEvent = {
 		    event: Kit.LoadEvent
@@ -751,7 +751,7 @@ export type PageData = Expand<Omit<PageParentData, keyof PageParentData & Ensure
 		};
 
 		export type BeforeLoadEvent = PageLoadEvent;
-		type BeforeLoadReturn = ReturnType<typeof import("./+page").beforeLoad>;
+		type BeforeLoadReturn = Awaited<ReturnType<typeof import("./+page").beforeLoad>>;
 		export type MyPageLoad1QueryVariables = VariableFunction<PageParams, MyPageLoad1Query$input>;
 	`)
 })
@@ -873,7 +873,7 @@ type LoadInput = {
 };
 
 export type BeforeLoadEvent = PageLoadEvent;
-type BeforeLoadReturn = ReturnType<typeof import("./+layout").beforeLoad>;
+type BeforeLoadReturn = Awaited<ReturnType<typeof import("./+layout").beforeLoad>>;
 export type MyPageLoad1QueryVariables = VariableFunction<LayoutParams, MyPageLoad1Query$input>;
 `)
 })
@@ -994,7 +994,7 @@ type LoadInput = {
     MyPageLoad1Query: MyPageLoad1Query$input
 };
 
-type AfterLoadReturn = ReturnType<typeof import("./+page").afterLoad>;
+type AfterLoadReturn = Awaited<ReturnType<typeof import("./+page").afterLoad>>;
 
 type AfterLoadData = {
     MyPageLoad1Query: MyPageLoad1Query$result
@@ -1128,7 +1128,7 @@ type LoadInput = {
     MyPageLoad1Query: MyPageLoad1Query$input
 };
 
-type AfterLoadReturn = ReturnType<typeof import("./+layout").afterLoad>;
+type AfterLoadReturn = Awaited<ReturnType<typeof import("./+layout").afterLoad>>;
 
 type AfterLoadData = {
     MyPageLoad1Query: MyPageLoad1Query$result
