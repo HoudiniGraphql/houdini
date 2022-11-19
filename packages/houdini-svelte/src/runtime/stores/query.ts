@@ -38,8 +38,6 @@ export class QueryStore<
 	kind = CompiledQueryKind
 
 	// at its core, a query store is a writable store with extra methods
-	// if we want the store to exist without any network call, call fetch with `CacheOnly` policy.
-	// @ts-ignore
 	protected store: Writable<StoreState<_Data, _Input, _ExtraFields>>
 
 	// we will be reading and write the last known variables often, avoid frequent gets and updates
