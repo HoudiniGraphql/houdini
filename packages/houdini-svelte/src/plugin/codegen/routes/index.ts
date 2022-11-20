@@ -302,7 +302,7 @@ type AfterLoadData = {
 };
 
 export type AfterLoadEvent = {
-	event: PageLoadEvent
+	event: ${type}LoadEvent
 	data: AfterLoadData
 	input: ${queries.filter((q) => q.variableDefinitions?.length).length ? 'LoadInput' : '{}'}
 };
@@ -324,7 +324,7 @@ function internal_append_afterLoad(queries: OperationDefinitionNode[]) {
 function append_beforeLoad(beforeLoad: boolean, type: 'Layout' | 'Page') {
 	return beforeLoad
 		? `
-export type BeforeLoadEvent = PageLoadEvent;
+export type BeforeLoadEvent = ${type}LoadEvent;
 type BeforeLoadReturn = Awaited<ReturnType<typeof import('./+${type.toLowerCase()}').beforeLoad>>;
 `
 		: ''
