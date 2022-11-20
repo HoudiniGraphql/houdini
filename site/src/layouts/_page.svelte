@@ -4,6 +4,7 @@
 	import { onMount } from 'svelte'
 	import throttle from 'lodash/throttle.js'
 	import { browser } from '$app/environment'
+	import ThemeSwitcher from '~/components/ThemeSwitcher.svelte'
 
 	export let title = ''
 	export let link = ''
@@ -16,6 +17,7 @@
 
 	// @ts-ignore
 	let categoryNames = Object.keys(categories)
+	let ui_theme = 'light'
 
 	// some state to control the menu
 	let menuOpen = false
@@ -96,13 +98,39 @@
 
 <svelte:head>
 	<meta name="theme-color" content="#161b22" />
+
+	{#if ui_theme === 'dark'}
+		<style>
+			:root {
+				--hue: #161b22;
+				--contrast: #f9fbff;
+				--discreet: #303a48;
+				--discreet2: #475465;
+				--saturated: #ff3e00;
+				--external: #8d005f;
+				--text_highlight: #a1c5f8;
+			}
+		</style>
+	{:else}
+		<style>
+			:root {
+				--hue: #f9fbff;
+				--contrast: #161b22;
+				--discreet: #ebeef5;
+				--discreet2: #d3d6dc;
+				--saturated: #ff3e00;
+				--external: #8d005f;
+				--text_highlight: hsl(207, 82%, 66%);
+			}
+		</style>
+	{/if}
 </svelte:head>
 
 <SEO {title} url={`https://www.houdinigraphql.com${link}`} {description} />
 
 <SearchDialog />
 
-<main>
+<main class:theme-light={ui_theme === 'light'}>
 	<aside class:open={menuOpen} class:blur={$searching}>
 		<div class="aside-head">
 			<h1>
@@ -114,13 +142,14 @@
 					on:click={toggleMenu}
 				>
 					{#if menuOpen}
-						<Icon name="x" width="20px" stroke="#ff3e00" />
+						<Icon name="x" width="20px" stroke="var(--saturated)" />
 					{:else}
 						<Icon name="menu" width="20px" />
 					{/if}
 				</buton>
 				<a href="/">Houdini</a>
 				<SearchInput id="nav-search-input" />
+				<ThemeSwitcher bind:ui_theme />
 			</h1>
 			<nav class:hidden={!menuOpen}>
 				{#each categoryNames as category}
@@ -211,8 +240,8 @@
 	main {
 		display: flex;
 		flex-direction: column;
-		background: #161b22;
-		color: white;
+		background: var(--hue);
+		color: var(--contrast);
 		min-height: 100vh;
 	}
 
@@ -228,7 +257,7 @@
 		flex-shrink: 0;
 		top: 0;
 		position: fixed;
-		background-color: #161b22;
+		background-color: var(--hue);
 		z-index: 10;
 		bottom: 0;
 		overflow-y: auto;
@@ -254,7 +283,7 @@
 	.aside-head {
 		position: sticky;
 		top: 0;
-		background: #161b22;
+		/*		background:  var(--hue);*/
 	}
 
 	nav button:nth-child(1) {
@@ -266,14 +295,14 @@
 		font-family: 'Hind', sans-serif;
 		margin-top: 14px;
 		margin-bottom: 14px;
-		color: white;
+		color: var(--contrast);
 		height: 45px;
 		gap: 20px;
 	}
 
 	a,
 	a:visited {
-		color: white;
+		color: var(--contrast);
 		text-decoration: none;
 		cursor: pointer;
 	}
@@ -283,7 +312,7 @@
 		background: none;
 		border: none;
 		padding-bottom: 10px;
-		color: white;
+		color: var(--contrast);
 		font-size: 18px;
 		font-family: 'Hind', sans-serif;
 		padding-left: 10px;
@@ -315,12 +344,12 @@
 
 	nav a:hover,
 	nav button:hover {
-		color: #ff3e00;
+		color: var(--saturated);
 	}
 
 	nav a.current,
 	nav button.current {
-		border-bottom: 3px solid #ff3e00;
+		border-bottom: 3px solid var(--saturated);
 	}
 
 	a.nav {
@@ -336,7 +365,7 @@
 	}
 
 	a.nav:hover {
-		background: #28303a;
+		background: var(--discreet);
 		border-top-right-radius: 10px;
 		border-bottom-right-radius: 10px;
 	}
@@ -356,7 +385,7 @@
 	}
 
 	a.nav.current {
-		background: #475465;
+		background: var(--discreet2);
 		border-top-right-radius: 10px;
 		border-bottom-right-radius: 10px;
 	}
@@ -420,12 +449,12 @@
 		font-weight: 500;
 		text-decoration: none;
 		justify-content: center;
-		color: white;
+		color: var(--contrast);
 		gap: 12px;
 	}
 
 	.pagination:hover {
-		color: #ff3e00;
+		color: var(--saturated);
 	}
 
 	.pagination h4 {
@@ -434,7 +463,7 @@
 	}
 
 	.pagination p {
-		color: #ff3e00;
+		color: var(--saturated);
 	}
 
 	.blur {
@@ -488,6 +517,7 @@
 			box-sizing: border-box;
 			margin-right: 0px;
 			position: sticky;
+			overflow-y: unset;
 		}
 
 		.subcategory {

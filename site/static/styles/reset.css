@@ -136,7 +136,7 @@ table {
 /* Works on Firefox */
 * {
 	scrollbar-width: thick;
-	scrollbar-color: #101318 #272e38;
+	scrollbar-color: var(--discreet2) var(--discreet);
 }
 
 /* Works on Chrome, Edge, and Safari */
@@ -145,17 +145,17 @@ table {
 }
 
 *::-webkit-scrollbar-track {
-	background: #272e38;
+	background: var(--discreet);
 }
 
 *::-webkit-scrollbar-thumb {
-	background-color: #101318;
-	border: 2px solid #272e38;
+	background-color: var(--hue);
+	border: 2px solid var(--discreet);
 }
 
 /* Buttons */
 ::-webkit-scrollbar-button:single-button {
-	background-color: #272e38;
+	background-color: var(--discreet);
 
 	display: block;
 	background-size: 10px;

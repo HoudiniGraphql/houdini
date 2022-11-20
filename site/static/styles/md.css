@@ -84,7 +84,7 @@ h4 > code {
 	padding-bottom: 1px;
 	font-family: 'Roboto Mono', monospace;
 	white-space: nowrap;
-	color: #a1c5f8;
+	color: var(--text_highlight);
 }
 
 .message > p > code {
@@ -119,7 +119,7 @@ h3 > code {
 }
 
 #doc-content blockquote {
-	border-left: 15px solid #475465;
+	border-left: 15px solid var(--saturate);
 	padding-left: 40px;
 	margin-bottom: 30px;
 }
