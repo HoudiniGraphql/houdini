@@ -10,7 +10,7 @@
     }
   `;
 
-  $: console.log(`with_load - isFetching: ${$store.isFetching}`);
+  $: console.info(`with_load - isFetching: ${$store.isFetching}`);
 </script>
 
 <pre>{JSON.stringify($store, null, 2)}</pre>

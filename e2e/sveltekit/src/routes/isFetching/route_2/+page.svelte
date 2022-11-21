@@ -5,7 +5,7 @@
 
   $: ({ isFetching_route_1 } = data);
 
-  $: console.log(`isFetching_route_2 - isFetching: ${$isFetching_route_1.isFetching}`);
+  $: console.info(`isFetching_route_2 - isFetching: ${$isFetching_route_1.isFetching}`);
 </script>
 
 <pre>{JSON.stringify($isFetching_route_1, null, 2)}</pre>

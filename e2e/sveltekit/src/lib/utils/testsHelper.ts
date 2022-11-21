@@ -201,3 +201,7 @@ export async function expectToContain(page: Page, toBe: string, selector = 'div[
   const result = await page.locator(selector).textContent({ timeout: 2998 });
   expect(result, `element "${selector}" must CONTAIN 👇`).toContain(toBe);
 }
+
+export async function waitForConsoleInfo(page: Page) {
+  return page.waitForEvent('console', { predicate: (msg) => msg.type() === 'info' });
+}
