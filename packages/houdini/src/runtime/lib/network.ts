@@ -234,52 +234,8 @@ export async function fetchQuery<_Data extends GraphQLObject, _Input extends {}>
 		throw new Error('could not find houdini environment')
 	}
 
-	if (cached) {
-		const cachedStore = await fetchCache<_Data, _Input>({
-			artifact,
-			variables,
-			policy,
-		})
-
-		// We found cached data, and we are able to use it, let's return it directly
-		if (cachedStore) {
-			return cachedStore
-		}
-	}
-
-	// tick the garbage collector asynchronously
-	setTimeout(() => {
-		cache._internal_unstable.collectGarbage()
-	}, 0)
-
-	// tell everyone that we are fetching if the function is defined
-	setFetching(true)
-
-	// the request must be resolved against the network
-	const result = await client.sendRequest<_Data>(context, {
-		text: artifact.raw,
-		hash: artifact.hash,
-		variables,
-	})
-
-	return {
-		result: result.body,
-		source: result.ssr ? DataSource.Ssr : DataSource.Network,
-		partial: false,
-	}
-}
-
-export async function fetchCache<_Data extends GraphQLObject, _Input extends {}>({
-	artifact,
-	variables,
-	policy,
-}: {
-	artifact: QueryArtifact | MutationArtifact
-	variables: _Input
-	policy?: CachePolicy
-}): Promise<FetchQueryResult<_Data> | null> {
 	// enforce cache policies for queries
-	if (artifact.kind === 'HoudiniQuery') {
+	if (cached && artifact.kind === 'HoudiniQuery') {
 		// if the user didn't specify a policy, use the artifacts
 		if (!policy) {
 			policy = artifact.policy
@@ -324,5 +280,24 @@ export async function fetchCache<_Data extends GraphQLObject, _Input extends {}>
 		}
 	}
 
-	return null
+	// tick the garbage collector asynchronously
+	setTimeout(() => {
+		cache._internal_unstable.collectGarbage()
+	}, 0)
+
+	// tell everyone that we are fetching if the function is defined
+	setFetching(true)
+
+	// the request must be resolved against the network
+	const result = await client.sendRequest<_Data>(context, {
+		text: artifact.raw,
+		hash: artifact.hash,
+		variables,
+	})
+
+	return {
+		result: result.body,
+		source: result.ssr ? DataSource.Ssr : DataSource.Network,
+		partial: false,
+	}
 }

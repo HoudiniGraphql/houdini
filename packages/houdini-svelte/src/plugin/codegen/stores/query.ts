@@ -75,8 +75,24 @@ export default ${globalStoreName}
 
 export declare class ${storeName} extends ${store_class}<${_data}, ${_input}> {
 	/**
-	 * ### Default usage
-	 * The best practice to use a store _manually_ is to do the following:
+	 * ### Route Loads
+	 * In a route's load function, manually instantiating a store can be used to look at the result:
+	 * 
+	 * \`\`\`js
+	 * export async function load(event) {
+	 * 	const store = new ${storeName}Store()
+	 * 	const { data } = await store.fetch({event})
+	 *  console.log('do something with', data)
+	 * 
+	 * 	return { 
+	 * 		${storeName}: store,
+	 * 	}
+	 * }
+	 * 
+	 * \`\`\`
+	 * 
+	 * ### Client Side Loading
+	 * When performing a client-side only fetch, the best practice to use a store _manually_ is to do the following:
 	 * 
 	 * \`\`\`js
 	 * const store = new ${storeName}Store()
@@ -91,7 +107,7 @@ export declare class ${storeName} extends ${store_class}<${_data}, ${_input}> {
 }
 
 /**
- * ### Default usage
+ * ### Manual Loads
  * Usually your load function will look like this:
  * 
  * \`\`\`js

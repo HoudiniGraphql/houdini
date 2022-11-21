@@ -2,7 +2,7 @@ import { getCache } from '$houdini/runtime'
 import type { ConfigFile } from '$houdini/runtime/lib/config'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import * as log from '$houdini/runtime/lib/log'
-import { fetchCache, FetchContext, fetchQuery } from '$houdini/runtime/lib/network'
+import { FetchContext, fetchQuery } from '$houdini/runtime/lib/network'
 import { marshalInputs, unmarshalSelection } from '$houdini/runtime/lib/scalars'
 import type { QueryArtifact } from '$houdini/runtime/lib/types'
 // internals
@@ -116,9 +116,7 @@ export class QueryStore<
 		// if there is a pending load, don't do anything
 		if (this.loadPending && isComponentFetch) {
 			log.error(`⚠️ Encountered fetch from your component while ${this.storeName}.load was running.
-This will result in duplicate queries. If you are trying to ensure there is always a good value, please a CachePolicy instead.
-If this is leftovers from old versions of houdini, you can safely remove this \`${this.storeName}\`.fetch() from your component.
-`)
+This will result in duplicate queries. If you are trying to ensure there is always a good value, please a CachePolicy instead.`)
 
 			return get(this.store)
 		}
@@ -133,11 +131,8 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 			this.loadPending = true
 		}
 
-		// we might not want to wait for the fetch to resolve
-		const fakeAwait = clientStarted && isBrowser && !params?.blocking
-
-		// perform the network request
-		const request = this.fetchAndCache({
+		// its time to fetch the query, build up the necessary arguments
+		const fetchArgs: Parameters<QueryStore<_Data, _Input>['fetchAndCache']>[0] = {
 			config,
 			context,
 			artifact: this.artifact,
@@ -148,30 +143,29 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 				this.loadPending = val
 				this.setFetching(val)
 			},
-		})
+		}
+
+		// if the cache does not have the network only policy, then
+		// we are safe to try to load it from the cache before we worry about
+		// performing a network request. This makes sure the cache gets a cached
+		// value during client side navigation (fake awaits)
+		if (policy !== CachePolicy.NetworkOnly) {
+			await this.fetchAndCache({
+				...fetchArgs,
+				policy: CachePolicy.CacheOnly,
+			})
+		}
+
+		// send the full request with the correct policy
+		const request = this.fetchAndCache(fetchArgs)
 		if (params.then) {
 			// eslint-disable-next-line promise/no-nesting
 			request.then((val) => params.then?.(val.result.data))
 		}
-
-		// if the await isn't fake, await it
+		// we might not want to actually wait for the fetch to resolve
+		const fakeAwait = clientStarted && isBrowser && !params?.blocking
 		if (!fakeAwait) {
 			await request
-		} else {
-			// We are in a fake await,
-			// let's not wait for the request to resolve to set the store with cached values
-			const cachedStore = await fetchCache<_Data, _Input>({
-				artifact: this.artifact,
-				variables: newVariables,
-				policy,
-			})
-			if (cachedStore) {
-				this.store.update((s) => ({
-					...s,
-					data: cachedStore?.result.data,
-					isFetching: false,
-				}))
-			}
 		}
 
 		// the store will have been updated already since we waited for the response
