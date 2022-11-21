@@ -132,7 +132,7 @@
 
 <SearchDialog />
 
-<main class:theme-light={ui_theme === 'light'}>
+<main>
 	<aside class:open={menuOpen} class:blur={$searching}>
 		<div class="aside-head">
 			<h1>
