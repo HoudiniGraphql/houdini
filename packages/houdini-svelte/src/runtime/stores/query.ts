@@ -152,6 +152,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 		if (policy !== CachePolicy.NetworkOnly) {
 			await this.fetchAndCache({
 				...fetchArgs,
+				updateFetching: false,
 				policy: CachePolicy.CacheOnly,
 			})
 		}
@@ -223,6 +224,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 		setLoadPending,
 		policy,
 		context,
+		updateFetching = true,
 	}: {
 		config: ConfigFile
 		artifact: QueryArtifact
@@ -233,11 +235,12 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 		setLoadPending: (pending: boolean) => void
 		policy?: CachePolicy
 		context: FetchContext
+		updateFetching?: boolean
 	}) {
 		const request = await fetchQuery<_Data, _Input>({
 			...context,
 			client: await getCurrentClient(),
-			setFetching: (val) => this.setFetching(val),
+			setFetching: (val) => (updateFetching ? this.setFetching(val) : null),
 			artifact,
 			variables,
 			cached,
@@ -269,7 +272,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 			store.update((s) => ({
 				...s,
 				errors: result.errors,
-				isFetching: false,
+				isFetching: updateFetching ? false : s.isFetching,
 				partial: false,
 				data: unmarshaled as _Data,
 				source,
@@ -284,14 +287,15 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 				throw error(500, result.errors.map((error) => error.message).join('. ') + '.')
 			}
 		} else {
-			store.set({
+			store.update((s) => ({
+				...s,
 				data: (unmarshaled || {}) as _Data,
 				variables: variables || ({} as _Input),
 				errors: null,
-				isFetching: false,
+				isFetching: updateFetching ? false : s.isFetching,
 				partial: request.partial,
 				source: request.source,
-			})
+			}))
 		}
 
 		if (!ignoreFollowup) {
@@ -308,6 +312,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 					ignoreFollowup: true,
 					setLoadPending,
 					policy,
+					updateFetching,
 				})
 			}
 			// if we have a partial result and we can load the rest of the data
@@ -323,6 +328,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 					ignoreFollowup: true,
 					setLoadPending,
 					policy,
+					updateFetching,
 				})
 			}
 		}
