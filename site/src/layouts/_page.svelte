@@ -285,7 +285,6 @@
 	.aside-head {
 		position: sticky;
 		top: 0;
-		/*		background:  var(--hue);*/
 	}
 
 	nav button:nth-child(1) {
