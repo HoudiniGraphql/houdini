@@ -145,16 +145,29 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 			},
 		}
 
-		// if the cache does not have the network only policy, then
-		// we are safe to try to load it from the cache before we worry about
+		// we might not want to actually wait for the fetch to resolve
+		const fakeAwait = clientStarted && isBrowser && !params?.blocking
+
+		// if a) the cache does not have the network only policy,
+		// AND b) we are in a fakeAwait scenario (in a real await,
+		// we will wait for the real fetch to happen anyway and fill the store)
+		// then, we are safe to try to load it from the cache before we worry about
 		// performing a network request. This makes sure the cache gets a cached
 		// value during client side navigation (fake awaits)
-		if (policy !== CachePolicy.NetworkOnly) {
-			await this.fetchAndCache({
+		if (policy !== CachePolicy.NetworkOnly && fakeAwait) {
+			const cachedStore = await this.fetchAndCache({
 				...fetchArgs,
-				updateFetching: false,
-				policy: CachePolicy.CacheOnly,
+				rawCacheOnlyResult: true,
 			})
+			if (cachedStore && cachedStore?.result.data) {
+				// update only what matters at this stage (data & isFetching),
+				// not all the store. The complete store will be filled later.
+				this.store.update((s) => ({
+					...s,
+					data: cachedStore?.result.data,
+					isFetching: false,
+				}))
+			}
 		}
 
 		// send the full request with the correct policy
@@ -163,8 +176,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 			// eslint-disable-next-line promise/no-nesting
 			request.then((val) => params.then?.(val.result.data))
 		}
-		// we might not want to actually wait for the fetch to resolve
-		const fakeAwait = clientStarted && isBrowser && !params?.blocking
+
 		if (!fakeAwait) {
 			await request
 		}
@@ -224,7 +236,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 		setLoadPending,
 		policy,
 		context,
-		updateFetching = true,
+		rawCacheOnlyResult = false,
 	}: {
 		config: ConfigFile
 		artifact: QueryArtifact
@@ -235,19 +247,25 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 		setLoadPending: (pending: boolean) => void
 		policy?: CachePolicy
 		context: FetchContext
-		updateFetching?: boolean
+		rawCacheOnlyResult?: boolean
 	}) {
 		const request = await fetchQuery<_Data, _Input>({
 			...context,
 			client: await getCurrentClient(),
-			setFetching: (val) => (updateFetching ? this.setFetching(val) : null),
+			setFetching: (val) => this.setFetching(val),
 			artifact,
 			variables,
 			cached,
-			policy,
+			policy: rawCacheOnlyResult ? CachePolicy.CacheOnly : policy,
 			context,
 		})
 		const { result, source, partial } = request
+
+		// if we want only the raw CacheOnly result,
+		// return it directly
+		if (rawCacheOnlyResult) {
+			return request
+		}
 
 		// we're done
 		setLoadPending(false)
@@ -272,7 +290,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 			store.update((s) => ({
 				...s,
 				errors: result.errors,
-				isFetching: updateFetching ? false : s.isFetching,
+				isFetching: false,
 				partial: false,
 				data: unmarshaled as _Data,
 				source,
@@ -287,15 +305,14 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 				throw error(500, result.errors.map((error) => error.message).join('. ') + '.')
 			}
 		} else {
-			store.update((s) => ({
-				...s,
+			store.set({
 				data: (unmarshaled || {}) as _Data,
 				variables: variables || ({} as _Input),
 				errors: null,
-				isFetching: updateFetching ? false : s.isFetching,
+				isFetching: false,
 				partial: request.partial,
 				source: request.source,
-			}))
+			})
 		}
 
 		if (!ignoreFollowup) {
@@ -312,7 +329,6 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 					ignoreFollowup: true,
 					setLoadPending,
 					policy,
-					updateFetching,
 				})
 			}
 			// if we have a partial result and we can load the rest of the data
@@ -328,7 +344,6 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 					ignoreFollowup: true,
 					setLoadPending,
 					policy,
-					updateFetching,
 				})
 			}
 		}
