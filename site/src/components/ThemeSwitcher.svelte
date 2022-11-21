@@ -59,7 +59,6 @@
 	.theme-switcher {
 		margin-left: auto;
 		position: relative;
-		z-index: 8888;
 	}
 
 	button.menu {
