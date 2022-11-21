@@ -17,7 +17,9 @@
 
 	// @ts-ignore
 	let categoryNames = Object.keys(categories)
-	let ui_theme = 'light'
+
+	// @ts-ignore
+	let ui_theme
 
 	// some state to control the menu
 	let menuOpen = false
@@ -99,19 +101,7 @@
 <svelte:head>
 	<meta name="theme-color" content="#161b22" />
 
-	{#if ui_theme === 'dark'}
-		<style>
-			:root {
-				--hue: #161b22;
-				--contrast: #f9fbff;
-				--discreet: #303a48;
-				--discreet2: #475465;
-				--saturated: #ff3e00;
-				--external: #8d005f;
-				--text_highlight: #a1c5f8;
-			}
-		</style>
-	{:else}
+	{#if ui_theme === 'light'}
 		<style>
 			:root {
 				--hue: #f9fbff;
@@ -121,6 +111,18 @@
 				--saturated: #ff3e00;
 				--external: #8d005f;
 				--text_highlight: hsl(207, 82%, 66%);
+			}
+		</style>
+	{:else}
+		<style>
+			:root {
+				--hue: #161b22;
+				--contrast: #f9fbff;
+				--discreet: #303a48;
+				--discreet2: #475465;
+				--saturated: #ff3e00;
+				--external: #8d005f;
+				--text_highlight: #a1c5f8;
 			}
 		</style>
 	{/if}

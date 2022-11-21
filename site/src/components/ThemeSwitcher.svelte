@@ -1,7 +1,7 @@
 <script>
 	import { Icon } from '~/components'
 
-	export let ui_theme
+	export let ui_theme = 'light'
 
 	const themes = {
 		dark: {
