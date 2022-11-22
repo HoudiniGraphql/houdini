@@ -48,8 +48,6 @@ test('basic store', async function () {
 		import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores'
 		import artifact from '$houdini/artifacts/TestQuery'
 
-		// create the query store
-
 		export class TestQueryStore extends QueryStore {
 			constructor() {
 				super({
@@ -99,8 +97,6 @@ test('change globalStorePrefix to "yop___"', async function () {
 	await expect(parsed).toMatchInlineSnapshot(`
 		import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores'
 		import artifact from '$houdini/artifacts/TestQuery'
-
-		// create the query store
 
 		export class TestQueryStore extends QueryStore {
 			constructor() {
@@ -152,8 +148,6 @@ test('change globalStorePrefix to ""', async function () {
 		import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores'
 		import artifact from '$houdini/artifacts/TestQuery'
 
-		// create the query store
-
 		export class TestQueryStore extends QueryStore {
 			constructor() {
 				super({
@@ -197,8 +191,6 @@ test('store with required variables', async function () {
 		import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores'
 		import artifact from '$houdini/artifacts/TestQuery'
 
-		// create the query store
-
 		export class TestQueryStore extends QueryStore {
 			constructor() {
 				super({
@@ -241,8 +233,6 @@ test('store with nullable variables', async function () {
 	await expect(parsed).toMatchInlineSnapshot(`
 		import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores'
 		import artifact from '$houdini/artifacts/TestQuery'
-
-		// create the query store
 
 		export class TestQueryStore extends QueryStore {
 			constructor() {
@@ -288,8 +278,6 @@ test('store with non-null variables with default value', async function () {
 	await expect(parsed).toMatchInlineSnapshot(`
 		import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores'
 		import artifact from '$houdini/artifacts/TestQuery'
-
-		// create the query store
 
 		export class TestQueryStore extends QueryStore {
 			constructor() {
@@ -344,8 +332,6 @@ test('forward cursor pagination', async function () {
 		import { QueryStoreForwardCursor } from '$houdini/plugins/houdini-svelte/runtime/stores'
 		import artifact from '$houdini/artifacts/TestQuery'
 
-		// create the query store
-
 		export class TestQueryStore extends QueryStoreForwardCursor {
 			constructor() {
 				super({
@@ -399,8 +385,6 @@ test('backwards cursor pagination', async function () {
 		import { QueryStoreBackwardCursor } from '$houdini/plugins/houdini-svelte/runtime/stores'
 		import artifact from '$houdini/artifacts/TestQuery'
 
-		// create the query store
-
 		export class TestQueryStore extends QueryStoreBackwardCursor {
 			constructor() {
 				super({
@@ -449,8 +433,6 @@ test('offset pagination', async function () {
 	await expect(parsed).toMatchInlineSnapshot(`
 		import { QueryStoreOffset } from '$houdini/plugins/houdini-svelte/runtime/stores'
 		import artifact from '$houdini/artifacts/TestQuery'
-
-		// create the query store
 
 		export class TestQueryStore extends QueryStoreOffset {
 			constructor() {
