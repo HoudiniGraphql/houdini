@@ -49,7 +49,7 @@ Consider this query:
 </script>
 
 <div>
-	{$data.info..species.name}
+	{$SpeciesInfo.data.info..species.name}
 </div>
 ```
 
