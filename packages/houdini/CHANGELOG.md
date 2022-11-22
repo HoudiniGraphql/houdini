@@ -1,5 +1,11 @@
 # houdini
 
+## 0.17.13
+
+### Patch Changes
+
+-   [#717](https://github.com/HoudiniGraphql/houdini/pull/717) [`e4c9896`](https://github.com/HoudiniGraphql/houdini/commit/e4c9896350661029945abb8bb5c4308a90cd6adf) Thanks [@jycouet](https://github.com/jycouet)! - beeing able to fetch the cache from the outside
+
 ## 0.17.12
 
 ## 0.17.11
