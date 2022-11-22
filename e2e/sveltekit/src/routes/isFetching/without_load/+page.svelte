@@ -14,7 +14,7 @@
     store.fetch();
   };
 
-  $: console.log(`without_load - isFetching: ${$store.isFetching}`);
+  $: console.info(`without_load - isFetching: ${$store.isFetching}`);
 </script>
 
 <button on:click={getData}>Fetch</button>

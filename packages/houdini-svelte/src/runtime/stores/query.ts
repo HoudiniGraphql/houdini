@@ -2,21 +2,23 @@ import { getCache } from '$houdini/runtime'
 import type { ConfigFile } from '$houdini/runtime/lib/config'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import * as log from '$houdini/runtime/lib/log'
-import { fetchQuery } from '$houdini/runtime/lib/network'
-import { FetchContext } from '$houdini/runtime/lib/network'
+import { FetchContext, fetchQuery } from '$houdini/runtime/lib/network'
 import { marshalInputs, unmarshalSelection } from '$houdini/runtime/lib/scalars'
 import type { QueryArtifact } from '$houdini/runtime/lib/types'
 // internals
-import { CachePolicy, DataSource, GraphQLObject, QueryResult } from '$houdini/runtime/lib/types'
 import {
-	SubscriptionSpec,
+	CachePolicy,
 	CompiledQueryKind,
+	DataSource,
+	GraphQLObject,
 	HoudiniFetchContext,
+	QueryResult,
+	SubscriptionSpec,
 } from '$houdini/runtime/lib/types'
 import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
 import { get, Readable, Writable, writable } from 'svelte/store'
 
-import { clientStarted, isBrowser, error } from '../adapter'
+import { clientStarted, error, isBrowser } from '../adapter'
 import { getCurrentClient } from '../network'
 import { getSession } from '../session'
 import { BaseStore } from './store'
@@ -114,9 +116,7 @@ export class QueryStore<
 		// if there is a pending load, don't do anything
 		if (this.loadPending && isComponentFetch) {
 			log.error(`⚠️ Encountered fetch from your component while ${this.storeName}.load was running.
-This will result in duplicate queries. If you are trying to ensure there is always a good value, please a CachePolicy instead.
-If this is leftovers from old versions of houdini, you can safely remove this \`${this.storeName}\`.fetch() from your component.
-`)
+This will result in duplicate queries. If you are trying to ensure there is always a good value, please a CachePolicy instead.`)
 
 			return get(this.store)
 		}
@@ -131,11 +131,8 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 			this.loadPending = true
 		}
 
-		// we might not want to wait for the fetch to resolve
-		const fakeAwait = clientStarted && isBrowser && !params?.blocking
-
-		// perform the network request
-		const request = this.fetchAndCache({
+		// its time to fetch the query, build up the necessary arguments
+		const fetchArgs: Parameters<QueryStore<_Data, _Input>['fetchAndCache']>[0] = {
 			config,
 			context,
 			artifact: this.artifact,
@@ -146,13 +143,40 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 				this.loadPending = val
 				this.setFetching(val)
 			},
-		})
+		}
+
+		// we might not want to actually wait for the fetch to resolve
+		const fakeAwait = clientStarted && isBrowser && !params?.blocking
+
+		// if a) the cache does not have the network only policy,
+		// AND b) we are in a fakeAwait scenario (in a real await,
+		// we will wait for the real fetch to happen anyway and fill the store)
+		// then, we are safe to try to load it from the cache before we worry about
+		// performing a network request. This makes sure the cache gets a cached
+		// value during client side navigation (fake awaits)
+		if (policy !== CachePolicy.NetworkOnly && fakeAwait) {
+			const cachedStore = await this.fetchAndCache({
+				...fetchArgs,
+				rawCacheOnlyResult: true,
+			})
+			if (cachedStore && cachedStore?.result.data) {
+				// update only what matters at this stage (data & isFetching),
+				// not all the store. The complete store will be filled later.
+				this.store.update((s) => ({
+					...s,
+					data: cachedStore?.result.data,
+					isFetching: false,
+				}))
+			}
+		}
+
+		// send the full request with the correct policy
+		const request = this.fetchAndCache(fetchArgs)
 		if (params.then) {
 			// eslint-disable-next-line promise/no-nesting
 			request.then((val) => params.then?.(val.result.data))
 		}
 
-		// if the await isn't fake, await it
 		if (!fakeAwait) {
 			await request
 		}
@@ -212,6 +236,7 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 		setLoadPending,
 		policy,
 		context,
+		rawCacheOnlyResult = false,
 	}: {
 		config: ConfigFile
 		artifact: QueryArtifact
@@ -222,6 +247,7 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 		setLoadPending: (pending: boolean) => void
 		policy?: CachePolicy
 		context: FetchContext
+		rawCacheOnlyResult?: boolean
 	}) {
 		const request = await fetchQuery<_Data, _Input>({
 			...context,
@@ -230,10 +256,16 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 			artifact,
 			variables,
 			cached,
-			policy,
+			policy: rawCacheOnlyResult ? CachePolicy.CacheOnly : policy,
 			context,
 		})
 		const { result, source, partial } = request
+
+		// if we want only the raw CacheOnly result,
+		// return it directly
+		if (rawCacheOnlyResult) {
+			return request
+		}
 
 		// we're done
 		setLoadPending(false)
