@@ -13,7 +13,7 @@
 	"devDependencies": {
 		"@graphql-yoga/node": "^2.8.0",
 		"@kitql/vite-plugin-watch-and-run": "^0.4.0",
-		"@sveltejs/kit": "1.0.0-next.547",
+		"@sveltejs/kit": "1.0.0-next.560",
 		"concurrently": "^6.2.1",
 		"graphql": "^15.8.0",
 		"houdini": "workspace:^",
