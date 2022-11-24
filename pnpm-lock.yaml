@@ -112,7 +112,7 @@ importers:
       tslib: ^2.3.1
       typescript: ~4.6.2
       vite: ^3.2.0
-      vite-plugin-lib-reporter: ^0.0.4
+      vite-plugin-lib-reporter: ^0.0.6
     devDependencies:
       '@kitql/helper': 0.5.0
       '@playwright/test': 1.25.0
@@ -136,7 +136,7 @@ importers:
       tslib: 2.4.0
       typescript: 4.6.4
       vite: 3.2.4
-      vite-plugin-lib-reporter: 0.0.4
+      vite-plugin-lib-reporter: 0.0.6
 
   example:
     specifiers:
@@ -7226,8 +7226,8 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
-  /terser/5.15.1:
-    resolution: {integrity: sha512-K1faMUvpm/FBxjBXud0LWVAGxmvoPbZbfTCYbSgaaYQaIXI3/TdI7a7ZGA73Zrou6Q8Zmz3oeUTsp/dj+ag2Xw==}
+  /terser/5.16.0:
+    resolution: {integrity: sha512-KjTV81QKStSfwbNiwlBXfcgMcOloyuRdb62/iLFPGBcVNF4EXjhdYBhYHmbJpiBrVxZhDvltE11j+LBQUxEEJg==}
     engines: {node: '>=10'}
     hasBin: true
     dependencies:
@@ -7715,11 +7715,12 @@ packages:
       vfile-message: 3.1.2
     dev: false
 
-  /vite-plugin-lib-reporter/0.0.4:
-    resolution: {integrity: sha512-RCspoKwDxgyZ9/Vcnr1SDVGt16VSIp+Wy1DsE3YrqTYUl/ezoZFHhlSF6RSSnZZno05wAEZrETr04TLh+qr8vw==}
+  /vite-plugin-lib-reporter/0.0.6:
+    resolution: {integrity: sha512-gB8wrRf6gGU6w5Dtv9dmqK8Pp7Xl0zMmUme+mUOqZcbdpG9fs3NfOeJp6WBynwr5w/xbfV/EBql+qFr63UHxRg==}
+    hasBin: true
     dependencies:
       '@kitql/helper': 0.6.0
-      terser: 5.15.1
+      terser: 5.16.0
     dev: true
 
   /vite-plugin-replace/0.1.1_vite@3.2.4:
