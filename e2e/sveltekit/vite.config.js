@@ -14,32 +14,17 @@ const config = {
       {
         name: 'houdini',
         includes: ['$houdini/runtime', 'houdini.config.js'],
-        excludes: ['vite/preload-helper'],
-        limit: {
-          treeshaked: {
-            compressed_max: 11.5
-          }
-        }
+        excludes: ['vite/preload-helper']
       },
       {
         name: 'houdini-svelte',
         includes: ['$houdini/plugins/houdini-svelte/runtime', 'src/lib/graphql/houdiniClient.ts'],
-        excludes: ['vite/preload-helper', '$houdini/runtime', '$houdini/index.js', 'svelte'],
-        limit: {
-          treeshaked: {
-            compressed_max: 8
-          }
-        }
+        excludes: ['vite/preload-helper', '$houdini/runtime', '$houdini/index.js', 'svelte']
       },
       {
         name: 'houdini-full-e2e',
         includes: ['$houdini', 'src/lib/graphql/houdiniClient.ts', 'houdini.config.js'],
-        excludes: ['vite/preload-helper', 'svelte'],
-        limit: {
-          treeshaked: {
-            compressed_max: 60
-          }
-        }
+        excludes: ['vite/preload-helper', 'svelte']
       }
     ])
   ]
