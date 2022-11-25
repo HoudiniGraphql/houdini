@@ -1,6 +1,5 @@
 import type { RequestHandlerArgs } from '$houdini';
 import { HoudiniClient } from '$houdini';
-import { stry } from '@kitql/helper';
 
 // For Query & Mutation
 async function fetchQuery({
@@ -31,7 +30,7 @@ async function fetchQuery({
 
   // metadata usage example
   if (metadata?.logResult === true) {
-    console.info(stry(json, 0));
+    console.info(JSON.stringify(json));
   }
 
   return json;

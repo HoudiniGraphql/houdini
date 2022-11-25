@@ -77,3 +77,29 @@ const store: AllItemsStore = graphql`
 	}
 `
 ```
+
+## Fragments
+
+To use inline fragments inside your components, you need to receive the parent query as a prop.
+Remember to set the type of your fragment by importing it.
+
+```typescript
+import { fragment, graphql, type PostContent } from '$houdini';
+
+export let post: PostContent;
+
+$: data = fragment(
+	post,
+	graphql`
+		fragment PostContent on Post {
+			content
+			tags {
+				nodes {
+					name
+				}
+			}
+		}
+	`
+);
+```
+
