@@ -1,5 +1,14 @@
 # houdini-svelte
 
+## 0.17.14
+
+### Patch Changes
+
+-   [#725](https://github.com/HoudiniGraphql/houdini/pull/725) [`257e2ee`](https://github.com/HoudiniGraphql/houdini/commit/257e2eeeb64b0bb26236d637adc696068932cab3) Thanks [@jycouet](https://github.com/jycouet)! - following kit next.560 [breaking] Rename prerendering to building
+
+-   Updated dependencies []:
+    -   houdini@0.17.14
+
 ## 0.17.13
 
 ### 🐛 Fixes
