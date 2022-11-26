@@ -1,0 +1,6 @@
+query TwoOperationsUser($id: ID!) {
+  user(snapshot: "twoOperationsAllUsers", id: $id) {
+    id
+    name
+  }
+}
