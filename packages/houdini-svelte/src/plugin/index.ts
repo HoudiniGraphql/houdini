@@ -41,7 +41,7 @@ const HoudiniSveltePlugin: PluginFactory = async () => ({
 
 		'adapter.js': ({ content }) => {
 			// dedicated sveltekit adapter.
-			const sveltekit_adapter = `import { browser, prerendering } from '$app/environment'
+			const sveltekit_adapter = `import { browser, building } from '$app/environment'
 import { error as svelteKitError } from '@sveltejs/kit'
 
 export const isBrowser = browser
@@ -52,7 +52,7 @@ export function setClientStarted() {
 	clientStarted = true
 }
 
-export const isPrerender = prerendering
+export const isPrerender = building
 
 export const error = svelteKitError
 `
