@@ -1,0 +1,11 @@
+query UserResult($id: ID!, $forceMessage: Boolean!) {
+  userResult(snapshot: "union-result", forceMessage: $forceMessage, id: $id) {
+    ... on User {
+      id
+      name
+    }
+    ... on Message1 {
+      message
+    }
+  }
+}

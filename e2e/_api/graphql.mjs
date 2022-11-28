@@ -153,6 +153,34 @@ export const resolvers = {
 		cities: () => {
 			return cities
 		},
+		userNodesResult: async (_, args) => {
+			if (args.forceMessage) {
+				return {
+					message: `snapshot:${args.snapshot}`,
+					__typename: 'Message1',
+				}
+			}
+
+			const allData = [...getSnapshot(args.snapshot)]
+			return {
+				totalCount: allData.length,
+				nodes: allData.splice(args.offset || 0, args.limit || 10),
+				__typename: 'UserNodes',
+			}
+		},
+		userResult: async (_, args) => {
+			if (args.forceMessage) {
+				return {
+					message: `snapshot:${args.snapshot}`,
+					__typename: 'Message1',
+				}
+			}
+
+			const user = getSnapshot(args.snapshot).find(
+				(c) => c.id === `${args.snapshot}:${args.id}`
+			)
+			return { ...user, __typename: 'User' }
+		},
 	},
 
 	User: {

@@ -1,6 +1,0 @@
-query TwoOperationsAllUsers @cache(policy: NetworkOnly) {
-  usersList(snapshot: "twoOperationsAllUsers") {
-    id
-    name
-  }
-}
