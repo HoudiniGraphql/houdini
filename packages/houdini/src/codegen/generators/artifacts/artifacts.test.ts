@@ -46,9 +46,11 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        version: {
-		            type: "Int",
-		            keyRaw: "version"
+		        fields: {
+		            version: {
+		                type: "Int",
+		                keyRaw: "version"
+		            }
 		        }
 		    },
 
@@ -73,9 +75,11 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		    rootType: "User",
 
 		    selection: {
-		        firstName: {
-		            type: "String",
-		            keyRaw: "firstName"
+		        fields: {
+		            firstName: {
+		                type: "String",
+		                keyRaw: "firstName"
+		            }
 		        }
 		    }
 		};
@@ -116,19 +120,21 @@ test('selection includes fragments', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        user: {
-		            type: "User",
-		            keyRaw: "user",
+		        fields: {
+		            user: {
+		                type: "User",
+		                keyRaw: "user",
 
-		            fields: {
-		                firstName: {
-		                    type: "String",
-		                    keyRaw: "firstName"
-		                },
+		                fields: {
+		                    id: {
+		                        type: "ID",
+		                        keyRaw: "id"
+		                    },
 
-		                id: {
-		                    type: "ID",
-		                    keyRaw: "id"
+		                    firstName: {
+		                        type: "String",
+		                        keyRaw: "firstName"
+		                    }
 		                }
 		            }
 		        }
@@ -155,9 +161,11 @@ test('selection includes fragments', async function () {
 		    rootType: "User",
 
 		    selection: {
-		        firstName: {
-		            type: "String",
-		            keyRaw: "firstName"
+		        fields: {
+		            firstName: {
+		                type: "String",
+		                keyRaw: "firstName"
+		            }
 		        }
 		    }
 		};
@@ -195,19 +203,21 @@ test('internal directives are scrubbed', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        user: {
-		            type: "User",
-		            keyRaw: "user",
+		        fields: {
+		            user: {
+		                type: "User",
+		                keyRaw: "user",
 
-		            fields: {
-		                firstName: {
-		                    type: "String",
-		                    keyRaw: "firstName"
-		                },
+		                fields: {
+		                    id: {
+		                        type: "ID",
+		                        keyRaw: "id"
+		                    },
 
-		                id: {
-		                    type: "ID",
-		                    keyRaw: "id"
+		                    firstName: {
+		                        type: "String",
+		                        keyRaw: "firstName"
+		                    }
 		                }
 		            }
 		        }
@@ -256,19 +266,21 @@ test('variables only used by internal directives are scrubbed', async function (
 		    rootType: "Query",
 
 		    selection: {
-		        user: {
-		            type: "User",
-		            keyRaw: "user",
+		        fields: {
+		            user: {
+		                type: "User",
+		                keyRaw: "user",
 
-		            fields: {
-		                firstName: {
-		                    type: "String",
-		                    keyRaw: "firstName"
-		                },
+		                fields: {
+		                    id: {
+		                        type: "ID",
+		                        keyRaw: "id"
+		                    },
 
-		                id: {
-		                    type: "ID",
-		                    keyRaw: "id"
+		                    firstName: {
+		                        type: "String",
+		                        keyRaw: "firstName"
+		                    }
 		                }
 		            }
 		        }
@@ -320,19 +332,21 @@ test('overlapping query and fragment selection', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        user: {
-		            type: "User",
-		            keyRaw: "user",
+		        fields: {
+		            user: {
+		                type: "User",
+		                keyRaw: "user",
 
-		            fields: {
-		                firstName: {
-		                    type: "String",
-		                    keyRaw: "firstName"
-		                },
+		                fields: {
+		                    firstName: {
+		                        type: "String",
+		                        keyRaw: "firstName"
+		                    },
 
-		                id: {
-		                    type: "ID",
-		                    keyRaw: "id"
+		                    id: {
+		                        type: "ID",
+		                        keyRaw: "id"
+		                    }
 		                }
 		            }
 		        }
@@ -381,31 +395,33 @@ test('overlapping query and fragment nested selection', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        user: {
-		            type: "User",
-		            keyRaw: "user",
+		        fields: {
+		            user: {
+		                type: "User",
+		                keyRaw: "user",
 
-		            fields: {
-		                friends: {
-		                    type: "User",
-		                    keyRaw: "friends",
+		                fields: {
+		                    friends: {
+		                        type: "User",
+		                        keyRaw: "friends",
 
-		                    fields: {
-		                        firstName: {
-		                            type: "String",
-		                            keyRaw: "firstName"
-		                        },
+		                        fields: {
+		                            firstName: {
+		                                type: "String",
+		                                keyRaw: "firstName"
+		                            },
 
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
+		                            id: {
+		                                type: "ID",
+		                                keyRaw: "id"
+		                            }
 		                        }
-		                    }
-		                },
+		                    },
 
-		                id: {
-		                    type: "ID",
-		                    keyRaw: "id"
+		                    id: {
+		                        type: "ID",
+		                        keyRaw: "id"
+		                    }
 		                }
 		            }
 		        }
@@ -421,7 +437,7 @@ test('overlapping query and fragment nested selection', async function () {
 
 test('selections with interfaces', async function () {
 	const cfg = testConfig({ module: 'esm' })
-	const mutationDocs = [
+	const docs = [
 		mockCollectedDoc(
 			`query Friends {
 					friends {
@@ -440,10 +456,10 @@ test('selections with interfaces', async function () {
 	]
 
 	// execute the generator
-	await runPipeline(cfg, mutationDocs)
+	await runPipeline(cfg, docs)
 
 	// load the contents of the file
-	expect(mutationDocs[0]).toMatchInlineSnapshot(`
+	expect(docs[0]).toMatchInlineSnapshot(`
 		export default {
 		    name: "Friends",
 		    kind: "HoudiniQuery",
@@ -469,45 +485,55 @@ test('selections with interfaces', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        friends: {
-		            type: "Friend",
-		            keyRaw: "friends",
+		        fields: {
+		            friends: {
+		                type: "Friend",
+		                keyRaw: "friends",
 
-		            fields: {
-		                id: {
-		                    type: "ID",
-		                    keyRaw: "id"
-		                },
+		                abstractFields: {
+		                    Cat: {
+		                        fields: {
+		                            id: {
+		                                type: "ID",
+		                                keyRaw: "id"
+		                            },
 
-		                owner: {
-		                    type: "User",
-		                    keyRaw: "owner",
+		                            owner: {
+		                                type: "User",
+		                                keyRaw: "owner",
 
-		                    fields: {
-		                        firstName: {
-		                            type: "String",
-		                            keyRaw: "firstName"
-		                        },
+		                                fields: {
+		                                    firstName: {
+		                                        type: "String",
+		                                        keyRaw: "firstName"
+		                                    },
 
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
+		                                    id: {
+		                                        type: "ID",
+		                                        keyRaw: "id"
+		                                    }
+		                                }
+		                            }
+		                        }
+		                    },
+
+		                    Ghost: {
+		                        fields: {
+		                            name: {
+		                                type: "String",
+		                                keyRaw: "name"
+		                            }
 		                        }
 		                    }
 		                },
 
-		                name: {
-		                    type: "String",
-		                    keyRaw: "name"
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
+		                fields: {
+		                    __typename: {
+		                        type: "String",
+		                        keyRaw: "__typename"
+		                    }
 		                }
-		            },
-
-		            abstract: true
+		            }
 		        }
 		    },
 
@@ -521,7 +547,7 @@ test('selections with interfaces', async function () {
 
 test('selections with unions', async function () {
 	const cfg = testConfig({ module: 'esm' })
-	const mutationDocs = [
+	const docs = [
 		mockCollectedDoc(
 			`query Friends {
 					entities {
@@ -540,10 +566,10 @@ test('selections with unions', async function () {
 	]
 
 	// execute the generator
-	await runPipeline(cfg, mutationDocs)
+	await runPipeline(cfg, docs)
 
 	// verify contents
-	expect(mutationDocs[0]).toMatchInlineSnapshot(`
+	expect(docs[0]).toMatchInlineSnapshot(`
 		export default {
 		    name: "Friends",
 		    kind: "HoudiniQuery",
@@ -569,45 +595,55 @@ test('selections with unions', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        entities: {
-		            type: "Entity",
-		            keyRaw: "entities",
+		        fields: {
+		            entities: {
+		                type: "Entity",
+		                keyRaw: "entities",
 
-		            fields: {
-		                id: {
-		                    type: "ID",
-		                    keyRaw: "id"
-		                },
+		                abstractFields: {
+		                    Cat: {
+		                        fields: {
+		                            id: {
+		                                type: "ID",
+		                                keyRaw: "id"
+		                            },
 
-		                owner: {
-		                    type: "User",
-		                    keyRaw: "owner",
+		                            owner: {
+		                                type: "User",
+		                                keyRaw: "owner",
 
-		                    fields: {
-		                        firstName: {
-		                            type: "String",
-		                            keyRaw: "firstName"
-		                        },
+		                                fields: {
+		                                    firstName: {
+		                                        type: "String",
+		                                        keyRaw: "firstName"
+		                                    },
 
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
+		                                    id: {
+		                                        type: "ID",
+		                                        keyRaw: "id"
+		                                    }
+		                                }
+		                            }
+		                        }
+		                    },
+
+		                    Ghost: {
+		                        fields: {
+		                            name: {
+		                                type: "String",
+		                                keyRaw: "name"
+		                            }
 		                        }
 		                    }
 		                },
 
-		                name: {
-		                    type: "String",
-		                    keyRaw: "name"
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
+		                fields: {
+		                    __typename: {
+		                        type: "String",
+		                        keyRaw: "__typename"
+		                    }
 		                }
-		            },
-
-		            abstract: true
+		            }
 		        }
 		    },
 
@@ -623,7 +659,7 @@ describe('mutation artifacts', function () {
 	test('empty operation list', async function () {
 		const cfg = testConfig({ module: 'esm' })
 
-		const mutationDocs = [
+		const docs = [
 			mockCollectedDoc(
 				`mutation B {
 					addFriend {
@@ -643,10 +679,10 @@ describe('mutation artifacts', function () {
 		]
 
 		// execute the generator
-		await runPipeline(cfg, mutationDocs)
+		await runPipeline(cfg, docs)
 
 		// load the contents of the file
-		expect(mutationDocs[0]).toMatchInlineSnapshot(`
+		expect(docs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "B",
 			    kind: "HoudiniMutation",
@@ -665,24 +701,26 @@ describe('mutation artifacts', function () {
 			    rootType: "Mutation",
 
 			    selection: {
-			        addFriend: {
-			            type: "AddFriendOutput",
-			            keyRaw: "addFriend",
+			        fields: {
+			            addFriend: {
+			                type: "AddFriendOutput",
+			                keyRaw: "addFriend",
 
-			            fields: {
-			                friend: {
-			                    type: "User",
-			                    keyRaw: "friend",
+			                fields: {
+			                    friend: {
+			                        type: "User",
+			                        keyRaw: "friend",
 
-			                    fields: {
-			                        firstName: {
-			                            type: "String",
-			                            keyRaw: "firstName"
-			                        },
+			                        fields: {
+			                            firstName: {
+			                                type: "String",
+			                                keyRaw: "firstName"
+			                            },
 
-			                        id: {
-			                            type: "ID",
-			                            keyRaw: "id"
+			                            id: {
+			                                type: "ID",
+			                                keyRaw: "id"
+			                            }
 			                        }
 			                    }
 			                }
@@ -696,7 +734,7 @@ describe('mutation artifacts', function () {
 	})
 
 	test('insert operation', async function () {
-		const mutationDocs = [
+		const docs = [
 			mockCollectedDoc(
 				`mutation A {
 					addFriend {
@@ -716,10 +754,10 @@ describe('mutation artifacts', function () {
 		]
 
 		// execute the generator
-		await runPipeline(config, mutationDocs)
+		await runPipeline(config, docs)
 
 		// load the contents of the file
-		expect(mutationDocs[0]).toMatchInlineSnapshot(`
+		expect(docs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -743,30 +781,32 @@ describe('mutation artifacts', function () {
 			    rootType: "Mutation",
 
 			    selection: {
-			        addFriend: {
-			            type: "AddFriendOutput",
-			            keyRaw: "addFriend",
+			        fields: {
+			            addFriend: {
+			                type: "AddFriendOutput",
+			                keyRaw: "addFriend",
 
-			            fields: {
-			                friend: {
-			                    type: "User",
-			                    keyRaw: "friend",
+			                fields: {
+			                    friend: {
+			                        type: "User",
+			                        keyRaw: "friend",
 
-			                    operations: [{
-			                        action: "insert",
-			                        list: "All_Users",
-			                        position: "last"
-			                    }],
+			                        operations: [{
+			                            action: "insert",
+			                            list: "All_Users",
+			                            position: "last"
+			                        }],
 
-			                    fields: {
-			                        firstName: {
-			                            type: "String",
-			                            keyRaw: "firstName"
-			                        },
+			                        fields: {
+			                            id: {
+			                                type: "ID",
+			                                keyRaw: "id"
+			                            },
 
-			                        id: {
-			                            type: "ID",
-			                            keyRaw: "id"
+			                            firstName: {
+			                                type: "String",
+			                                keyRaw: "firstName"
+			                            }
 			                        }
 			                    }
 			                }
@@ -780,7 +820,7 @@ describe('mutation artifacts', function () {
 	})
 
 	test('insert operation allList', async function () {
-		const mutationDocs = [
+		const docs = [
 			mockCollectedDoc(
 				`mutation A {
 					addFriend {
@@ -800,9 +840,9 @@ describe('mutation artifacts', function () {
 		]
 
 		// execute the generator
-		await runPipeline(config, mutationDocs)
+		await runPipeline(config, docs)
 
-		expect(mutationDocs[0]).toMatchInlineSnapshot(`
+		expect(docs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -826,31 +866,33 @@ describe('mutation artifacts', function () {
 			    rootType: "Mutation",
 
 			    selection: {
-			        addFriend: {
-			            type: "AddFriendOutput",
-			            keyRaw: "addFriend",
+			        fields: {
+			            addFriend: {
+			                type: "AddFriendOutput",
+			                keyRaw: "addFriend",
 
-			            fields: {
-			                friend: {
-			                    type: "User",
-			                    keyRaw: "friend",
+			                fields: {
+			                    friend: {
+			                        type: "User",
+			                        keyRaw: "friend",
 
-			                    operations: [{
-			                        action: "insert",
-			                        list: "All_Users",
-			                        position: "last",
-			                        target: "all"
-			                    }],
+			                        operations: [{
+			                            action: "insert",
+			                            list: "All_Users",
+			                            position: "last",
+			                            target: "all"
+			                        }],
 
-			                    fields: {
-			                        firstName: {
-			                            type: "String",
-			                            keyRaw: "firstName"
-			                        },
+			                        fields: {
+			                            id: {
+			                                type: "ID",
+			                                keyRaw: "id"
+			                            },
 
-			                        id: {
-			                            type: "ID",
-			                            keyRaw: "id"
+			                            firstName: {
+			                                type: "String",
+			                                keyRaw: "firstName"
+			                            }
 			                        }
 			                    }
 			                }
@@ -864,7 +906,7 @@ describe('mutation artifacts', function () {
 	})
 
 	test('insert operation allList by default in config', async function () {
-		const mutationDocs = [
+		const docs = [
 			mockCollectedDoc(
 				`mutation A {
 					addFriend {
@@ -887,10 +929,10 @@ describe('mutation artifacts', function () {
 		configUpdate.defaultListTarget = 'all'
 
 		// execute the generator
-		await runPipeline(configUpdate, mutationDocs)
+		await runPipeline(configUpdate, docs)
 
 		// verify contents
-		expect(mutationDocs[0]).toMatchInlineSnapshot(`
+		expect(docs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -914,31 +956,33 @@ describe('mutation artifacts', function () {
 			    rootType: "Mutation",
 
 			    selection: {
-			        addFriend: {
-			            type: "AddFriendOutput",
-			            keyRaw: "addFriend",
+			        fields: {
+			            addFriend: {
+			                type: "AddFriendOutput",
+			                keyRaw: "addFriend",
 
-			            fields: {
-			                friend: {
-			                    type: "User",
-			                    keyRaw: "friend",
+			                fields: {
+			                    friend: {
+			                        type: "User",
+			                        keyRaw: "friend",
 
-			                    operations: [{
-			                        action: "insert",
-			                        list: "All_Users",
-			                        position: "last",
-			                        target: "all"
-			                    }],
+			                        operations: [{
+			                            action: "insert",
+			                            list: "All_Users",
+			                            position: "last",
+			                            target: "all"
+			                        }],
 
-			                    fields: {
-			                        firstName: {
-			                            type: "String",
-			                            keyRaw: "firstName"
-			                        },
+			                        fields: {
+			                            id: {
+			                                type: "ID",
+			                                keyRaw: "id"
+			                            },
 
-			                        id: {
-			                            type: "ID",
-			                            keyRaw: "id"
+			                            firstName: {
+			                                type: "String",
+			                                keyRaw: "firstName"
+			                            }
 			                        }
 			                    }
 			                }
@@ -952,7 +996,7 @@ describe('mutation artifacts', function () {
 	})
 
 	test('insert operation cosition first by default in config', async function () {
-		const mutationDocs = [
+		const docs = [
 			mockCollectedDoc(
 				`mutation A {
 					addFriend {
@@ -975,10 +1019,10 @@ describe('mutation artifacts', function () {
 		configUpdate.internalListPosition = 'first'
 
 		// execute the generator
-		await runPipeline(configUpdate, mutationDocs)
+		await runPipeline(configUpdate, docs)
 
 		// load the contents of the file
-		expect(mutationDocs[0]).toMatchInlineSnapshot(`
+		expect(docs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -1002,30 +1046,32 @@ describe('mutation artifacts', function () {
 			    rootType: "Mutation",
 
 			    selection: {
-			        addFriend: {
-			            type: "AddFriendOutput",
-			            keyRaw: "addFriend",
+			        fields: {
+			            addFriend: {
+			                type: "AddFriendOutput",
+			                keyRaw: "addFriend",
 
-			            fields: {
-			                friend: {
-			                    type: "User",
-			                    keyRaw: "friend",
+			                fields: {
+			                    friend: {
+			                        type: "User",
+			                        keyRaw: "friend",
 
-			                    operations: [{
-			                        action: "insert",
-			                        list: "All_Users",
-			                        position: "first"
-			                    }],
+			                        operations: [{
+			                            action: "insert",
+			                            list: "All_Users",
+			                            position: "first"
+			                        }],
 
-			                    fields: {
-			                        firstName: {
-			                            type: "String",
-			                            keyRaw: "firstName"
-			                        },
+			                        fields: {
+			                            id: {
+			                                type: "ID",
+			                                keyRaw: "id"
+			                            },
 
-			                        id: {
-			                            type: "ID",
-			                            keyRaw: "id"
+			                            firstName: {
+			                                type: "String",
+			                                keyRaw: "firstName"
+			                            }
 			                        }
 			                    }
 			                }
@@ -1039,7 +1085,7 @@ describe('mutation artifacts', function () {
 	})
 
 	test('toggle operation', async function () {
-		const mutationDocs = [
+		const docs = [
 			mockCollectedDoc(
 				`mutation A {
 					addFriend {
@@ -1059,10 +1105,10 @@ describe('mutation artifacts', function () {
 		]
 
 		// execute the generator
-		await runPipeline(config, mutationDocs)
+		await runPipeline(config, docs)
 
 		// load the contents of the file
-		expect(mutationDocs[0]).toMatchInlineSnapshot(`
+		expect(docs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -1087,30 +1133,32 @@ describe('mutation artifacts', function () {
 			    rootType: "Mutation",
 
 			    selection: {
-			        addFriend: {
-			            type: "AddFriendOutput",
-			            keyRaw: "addFriend",
+			        fields: {
+			            addFriend: {
+			                type: "AddFriendOutput",
+			                keyRaw: "addFriend",
 
-			            fields: {
-			                friend: {
-			                    type: "User",
-			                    keyRaw: "friend",
+			                fields: {
+			                    friend: {
+			                        type: "User",
+			                        keyRaw: "friend",
 
-			                    operations: [{
-			                        action: "toggle",
-			                        list: "All_Users",
-			                        position: "first"
-			                    }],
+			                        operations: [{
+			                            action: "toggle",
+			                            list: "All_Users",
+			                            position: "first"
+			                        }],
 
-			                    fields: {
-			                        firstName: {
-			                            type: "String",
-			                            keyRaw: "firstName"
-			                        },
+			                        fields: {
+			                            id: {
+			                                type: "ID",
+			                                keyRaw: "id"
+			                            },
 
-			                        id: {
-			                            type: "ID",
-			                            keyRaw: "id"
+			                            firstName: {
+			                                type: "String",
+			                                keyRaw: "firstName"
+			                            }
 			                        }
 			                    }
 			                }
@@ -1124,7 +1172,7 @@ describe('mutation artifacts', function () {
 	})
 
 	test('remove operation', async function () {
-		const mutationDocs = [
+		const docs = [
 			mockCollectedDoc(
 				`mutation A {
 					addFriend {
@@ -1144,10 +1192,10 @@ describe('mutation artifacts', function () {
 		]
 
 		// execute the generator
-		await runPipeline(config, mutationDocs)
+		await runPipeline(config, docs)
 
 		// load the contents of the file
-		expect(mutationDocs[0]).toMatchInlineSnapshot(`
+		expect(docs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -1170,24 +1218,26 @@ describe('mutation artifacts', function () {
 			    rootType: "Mutation",
 
 			    selection: {
-			        addFriend: {
-			            type: "AddFriendOutput",
-			            keyRaw: "addFriend",
+			        fields: {
+			            addFriend: {
+			                type: "AddFriendOutput",
+			                keyRaw: "addFriend",
 
-			            fields: {
-			                friend: {
-			                    type: "User",
-			                    keyRaw: "friend",
+			                fields: {
+			                    friend: {
+			                        type: "User",
+			                        keyRaw: "friend",
 
-			                    operations: [{
-			                        action: "remove",
-			                        list: "All_Users"
-			                    }],
+			                        operations: [{
+			                            action: "remove",
+			                            list: "All_Users"
+			                        }],
 
-			                    fields: {
-			                        id: {
-			                            type: "ID",
-			                            keyRaw: "id"
+			                        fields: {
+			                            id: {
+			                                type: "ID",
+			                                keyRaw: "id"
+			                            }
 			                        }
 			                    }
 			                }
@@ -1201,7 +1251,7 @@ describe('mutation artifacts', function () {
 	})
 
 	test('delete operation', async function () {
-		const mutationDocs = [
+		const docs = [
 			mockCollectedDoc(
 				`mutation A {
 					deleteUser(id: "1234") {
@@ -1219,10 +1269,10 @@ describe('mutation artifacts', function () {
 		]
 
 		// execute the generator
-		await runPipeline(config, mutationDocs)
+		await runPipeline(config, docs)
 
 		// load the contents of the file
-		expect(mutationDocs[0]).toMatchInlineSnapshot(`
+		expect(docs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -1238,19 +1288,21 @@ describe('mutation artifacts', function () {
 			    rootType: "Mutation",
 
 			    selection: {
-			        deleteUser: {
-			            type: "DeleteUserOutput",
-			            keyRaw: "deleteUser(id: \\"1234\\")",
+			        fields: {
+			            deleteUser: {
+			                type: "DeleteUserOutput",
+			                keyRaw: "deleteUser(id: \\"1234\\")",
 
-			            fields: {
-			                userID: {
-			                    type: "ID",
-			                    keyRaw: "userID",
+			                fields: {
+			                    userID: {
+			                        type: "ID",
+			                        keyRaw: "userID",
 
-			                    operations: [{
-			                        action: "delete",
-			                        type: "User"
-			                    }]
+			                        operations: [{
+			                            action: "delete",
+			                            type: "User"
+			                        }]
+			                    }
 			                }
 			            }
 			        }
@@ -1262,7 +1314,7 @@ describe('mutation artifacts', function () {
 	})
 
 	test('delete operation with condition', async function () {
-		const mutationDocs = [
+		const docs = [
 			mockCollectedDoc(
 				`mutation A {
 					deleteUser(id: "1234") {
@@ -1280,10 +1332,10 @@ describe('mutation artifacts', function () {
 		]
 
 		// execute the generator
-		await runPipeline(config, mutationDocs)
+		await runPipeline(config, docs)
 
 		// load the contents of the file
-		expect(mutationDocs[0]).toMatchInlineSnapshot(`
+		expect(docs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -1299,25 +1351,27 @@ describe('mutation artifacts', function () {
 			    rootType: "Mutation",
 
 			    selection: {
-			        deleteUser: {
-			            type: "DeleteUserOutput",
-			            keyRaw: "deleteUser(id: \\"1234\\")",
+			        fields: {
+			            deleteUser: {
+			                type: "DeleteUserOutput",
+			                keyRaw: "deleteUser(id: \\"1234\\")",
 
-			            fields: {
-			                userID: {
-			                    type: "ID",
-			                    keyRaw: "userID",
+			                fields: {
+			                    userID: {
+			                        type: "ID",
+			                        keyRaw: "userID",
 
-			                    operations: [{
-			                        action: "delete",
-			                        type: "User",
+			                        operations: [{
+			                            action: "delete",
+			                            type: "User",
 
-			                        when: {
-			                            must: {
-			                                stringValue: "foo"
+			                            when: {
+			                                must: {
+			                                    stringValue: "foo"
+			                                }
 			                            }
-			                        }
-			                    }]
+			                        }]
+			                    }
 			                }
 			            }
 			        }
@@ -1329,7 +1383,7 @@ describe('mutation artifacts', function () {
 	})
 
 	test('parentID - prepend', async function () {
-		const mutationDocs = [
+		const docs = [
 			mockCollectedDoc(
 				`mutation A {
 					addFriend {
@@ -1349,10 +1403,10 @@ describe('mutation artifacts', function () {
 		]
 
 		// execute the generator
-		await runPipeline(config, mutationDocs)
+		await runPipeline(config, docs)
 
 		// load the contents of the file
-		expect(mutationDocs[0]).toMatchInlineSnapshot(`
+		expect(docs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -1376,35 +1430,37 @@ describe('mutation artifacts', function () {
 			    rootType: "Mutation",
 
 			    selection: {
-			        addFriend: {
-			            type: "AddFriendOutput",
-			            keyRaw: "addFriend",
+			        fields: {
+			            addFriend: {
+			                type: "AddFriendOutput",
+			                keyRaw: "addFriend",
 
-			            fields: {
-			                friend: {
-			                    type: "User",
-			                    keyRaw: "friend",
+			                fields: {
+			                    friend: {
+			                        type: "User",
+			                        keyRaw: "friend",
 
-			                    operations: [{
-			                        action: "insert",
-			                        list: "All_Users",
-			                        position: "first",
+			                        operations: [{
+			                            action: "insert",
+			                            list: "All_Users",
+			                            position: "first",
 
-			                        parentID: {
-			                            kind: "String",
-			                            value: "1234"
-			                        }
-			                    }],
+			                            parentID: {
+			                                kind: "String",
+			                                value: "1234"
+			                            }
+			                        }],
 
-			                    fields: {
-			                        firstName: {
-			                            type: "String",
-			                            keyRaw: "firstName"
-			                        },
+			                        fields: {
+			                            id: {
+			                                type: "ID",
+			                                keyRaw: "id"
+			                            },
 
-			                        id: {
-			                            type: "ID",
-			                            keyRaw: "id"
+			                            firstName: {
+			                                type: "String",
+			                                keyRaw: "firstName"
+			                            }
 			                        }
 			                    }
 			                }
@@ -1418,7 +1474,7 @@ describe('mutation artifacts', function () {
 	})
 
 	test('parentID - append', async function () {
-		const mutationDocs = [
+		const docs = [
 			mockCollectedDoc(
 				`mutation A {
 					addFriend {
@@ -1438,10 +1494,10 @@ describe('mutation artifacts', function () {
 		]
 
 		// execute the generator
-		await runPipeline(config, mutationDocs)
+		await runPipeline(config, docs)
 
 		// load the contents of the file
-		expect(mutationDocs[0]).toMatchInlineSnapshot(`
+		expect(docs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -1465,35 +1521,37 @@ describe('mutation artifacts', function () {
 			    rootType: "Mutation",
 
 			    selection: {
-			        addFriend: {
-			            type: "AddFriendOutput",
-			            keyRaw: "addFriend",
+			        fields: {
+			            addFriend: {
+			                type: "AddFriendOutput",
+			                keyRaw: "addFriend",
 
-			            fields: {
-			                friend: {
-			                    type: "User",
-			                    keyRaw: "friend",
+			                fields: {
+			                    friend: {
+			                        type: "User",
+			                        keyRaw: "friend",
 
-			                    operations: [{
-			                        action: "insert",
-			                        list: "All_Users",
-			                        position: "last",
+			                        operations: [{
+			                            action: "insert",
+			                            list: "All_Users",
+			                            position: "last",
 
-			                        parentID: {
-			                            kind: "String",
-			                            value: "1234"
-			                        }
-			                    }],
+			                            parentID: {
+			                                kind: "String",
+			                                value: "1234"
+			                            }
+			                        }],
 
-			                    fields: {
-			                        firstName: {
-			                            type: "String",
-			                            keyRaw: "firstName"
-			                        },
+			                        fields: {
+			                            id: {
+			                                type: "ID",
+			                                keyRaw: "id"
+			                            },
 
-			                        id: {
-			                            type: "ID",
-			                            keyRaw: "id"
+			                            firstName: {
+			                                type: "String",
+			                                keyRaw: "firstName"
+			                            }
 			                        }
 			                    }
 			                }
@@ -1507,7 +1565,7 @@ describe('mutation artifacts', function () {
 	})
 
 	test('parentID - parentID directive', async function () {
-		const mutationDocs = [
+		const docs = [
 			mockCollectedDoc(
 				`mutation A {
 					addFriend {
@@ -1527,10 +1585,10 @@ describe('mutation artifacts', function () {
 		]
 
 		// execute the generator
-		await runPipeline(config, mutationDocs)
+		await runPipeline(config, docs)
 
 		// load the contents of the file
-		expect(mutationDocs[0]).toMatchInlineSnapshot(`
+		expect(docs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -1554,35 +1612,37 @@ describe('mutation artifacts', function () {
 			    rootType: "Mutation",
 
 			    selection: {
-			        addFriend: {
-			            type: "AddFriendOutput",
-			            keyRaw: "addFriend",
+			        fields: {
+			            addFriend: {
+			                type: "AddFriendOutput",
+			                keyRaw: "addFriend",
 
-			            fields: {
-			                friend: {
-			                    type: "User",
-			                    keyRaw: "friend",
+			                fields: {
+			                    friend: {
+			                        type: "User",
+			                        keyRaw: "friend",
 
-			                    operations: [{
-			                        action: "insert",
-			                        list: "All_Users",
-			                        position: "last",
+			                        operations: [{
+			                            action: "insert",
+			                            list: "All_Users",
+			                            position: "last",
 
-			                        parentID: {
-			                            kind: "String",
-			                            value: "1234"
-			                        }
-			                    }],
+			                            parentID: {
+			                                kind: "String",
+			                                value: "1234"
+			                            }
+			                        }],
 
-			                    fields: {
-			                        firstName: {
-			                            type: "String",
-			                            keyRaw: "firstName"
-			                        },
+			                        fields: {
+			                            id: {
+			                                type: "ID",
+			                                keyRaw: "id"
+			                            },
 
-			                        id: {
-			                            type: "ID",
-			                            keyRaw: "id"
+			                            firstName: {
+			                                type: "String",
+			                                keyRaw: "firstName"
+			                            }
 			                        }
 			                    }
 			                }
@@ -1596,7 +1656,7 @@ describe('mutation artifacts', function () {
 	})
 
 	test('must - prepend', async function () {
-		const mutationDocs = [
+		const docs = [
 			mockCollectedDoc(
 				`mutation A {
 					addFriend {
@@ -1616,10 +1676,10 @@ describe('mutation artifacts', function () {
 		]
 
 		// execute the generator
-		await runPipeline(config, mutationDocs)
+		await runPipeline(config, docs)
 
 		// load the contents of the file
-		expect(mutationDocs[0]).toMatchInlineSnapshot(`
+		expect(docs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -1643,36 +1703,38 @@ describe('mutation artifacts', function () {
 			    rootType: "Mutation",
 
 			    selection: {
-			        addFriend: {
-			            type: "AddFriendOutput",
-			            keyRaw: "addFriend",
+			        fields: {
+			            addFriend: {
+			                type: "AddFriendOutput",
+			                keyRaw: "addFriend",
 
-			            fields: {
-			                friend: {
-			                    type: "User",
-			                    keyRaw: "friend",
+			                fields: {
+			                    friend: {
+			                        type: "User",
+			                        keyRaw: "friend",
 
-			                    operations: [{
-			                        action: "insert",
-			                        list: "All_Users",
-			                        position: "first",
+			                        operations: [{
+			                            action: "insert",
+			                            list: "All_Users",
+			                            position: "first",
 
-			                        when: {
-			                            must: {
-			                                stringValue: "foo"
+			                            when: {
+			                                must: {
+			                                    stringValue: "foo"
+			                                }
 			                            }
-			                        }
-			                    }],
+			                        }],
 
-			                    fields: {
-			                        firstName: {
-			                            type: "String",
-			                            keyRaw: "firstName"
-			                        },
+			                        fields: {
+			                            id: {
+			                                type: "ID",
+			                                keyRaw: "id"
+			                            },
 
-			                        id: {
-			                            type: "ID",
-			                            keyRaw: "id"
+			                            firstName: {
+			                                type: "String",
+			                                keyRaw: "firstName"
+			                            }
 			                        }
 			                    }
 			                }
@@ -1686,7 +1748,7 @@ describe('mutation artifacts', function () {
 	})
 
 	test('must - append', async function () {
-		const mutationDocs = [
+		const docs = [
 			mockCollectedDoc(
 				`mutation A {
 					addFriend {
@@ -1706,10 +1768,10 @@ describe('mutation artifacts', function () {
 		]
 
 		// execute the generator
-		await runPipeline(config, mutationDocs)
+		await runPipeline(config, docs)
 
 		// load the contents of the file
-		expect(mutationDocs[0]).toMatchInlineSnapshot(`
+		expect(docs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -1733,36 +1795,38 @@ describe('mutation artifacts', function () {
 			    rootType: "Mutation",
 
 			    selection: {
-			        addFriend: {
-			            type: "AddFriendOutput",
-			            keyRaw: "addFriend",
+			        fields: {
+			            addFriend: {
+			                type: "AddFriendOutput",
+			                keyRaw: "addFriend",
 
-			            fields: {
-			                friend: {
-			                    type: "User",
-			                    keyRaw: "friend",
+			                fields: {
+			                    friend: {
+			                        type: "User",
+			                        keyRaw: "friend",
 
-			                    operations: [{
-			                        action: "insert",
-			                        list: "All_Users",
-			                        position: "last",
+			                        operations: [{
+			                            action: "insert",
+			                            list: "All_Users",
+			                            position: "last",
 
-			                        when: {
-			                            must: {
-			                                stringValue: "true"
+			                            when: {
+			                                must: {
+			                                    stringValue: "true"
+			                                }
 			                            }
-			                        }
-			                    }],
+			                        }],
 
-			                    fields: {
-			                        firstName: {
-			                            type: "String",
-			                            keyRaw: "firstName"
-			                        },
+			                        fields: {
+			                            id: {
+			                                type: "ID",
+			                                keyRaw: "id"
+			                            },
 
-			                        id: {
-			                            type: "ID",
-			                            keyRaw: "id"
+			                            firstName: {
+			                                type: "String",
+			                                keyRaw: "firstName"
+			                            }
 			                        }
 			                    }
 			                }
@@ -1776,7 +1840,7 @@ describe('mutation artifacts', function () {
 	})
 
 	test('must - directive', async function () {
-		const mutationDocs = [
+		const docs = [
 			mockCollectedDoc(
 				`mutation A {
 					addFriend {
@@ -1796,10 +1860,10 @@ describe('mutation artifacts', function () {
 		]
 
 		// execute the generator
-		await runPipeline(config, mutationDocs)
+		await runPipeline(config, docs)
 
 		// load the contents of the file
-		expect(mutationDocs[0]).toMatchInlineSnapshot(`
+		expect(docs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -1823,36 +1887,38 @@ describe('mutation artifacts', function () {
 			    rootType: "Mutation",
 
 			    selection: {
-			        addFriend: {
-			            type: "AddFriendOutput",
-			            keyRaw: "addFriend",
+			        fields: {
+			            addFriend: {
+			                type: "AddFriendOutput",
+			                keyRaw: "addFriend",
 
-			            fields: {
-			                friend: {
-			                    type: "User",
-			                    keyRaw: "friend",
+			                fields: {
+			                    friend: {
+			                        type: "User",
+			                        keyRaw: "friend",
 
-			                    operations: [{
-			                        action: "insert",
-			                        list: "All_Users",
-			                        position: "last",
+			                        operations: [{
+			                            action: "insert",
+			                            list: "All_Users",
+			                            position: "last",
 
-			                        when: {
-			                            must: {
-			                                stringValue: "true"
+			                            when: {
+			                                must: {
+			                                    stringValue: "true"
+			                                }
 			                            }
-			                        }
-			                    }],
+			                        }],
 
-			                    fields: {
-			                        firstName: {
-			                            type: "String",
-			                            keyRaw: "firstName"
-			                        },
+			                        fields: {
+			                            id: {
+			                                type: "ID",
+			                                keyRaw: "id"
+			                            },
 
-			                        id: {
-			                            type: "ID",
-			                            keyRaw: "id"
+			                            firstName: {
+			                                type: "String",
+			                                keyRaw: "firstName"
+			                            }
 			                        }
 			                    }
 			                }
@@ -1866,7 +1932,7 @@ describe('mutation artifacts', function () {
 	})
 
 	test('must_not - prepend', async function () {
-		const mutationDocs = [
+		const docs = [
 			mockCollectedDoc(
 				`mutation A {
 					addFriend {
@@ -1886,10 +1952,10 @@ describe('mutation artifacts', function () {
 		]
 
 		// execute the generator
-		await runPipeline(config, mutationDocs)
+		await runPipeline(config, docs)
 
 		// load the contents of the file
-		expect(mutationDocs[0]).toMatchInlineSnapshot(`
+		expect(docs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -1913,36 +1979,38 @@ describe('mutation artifacts', function () {
 			    rootType: "Mutation",
 
 			    selection: {
-			        addFriend: {
-			            type: "AddFriendOutput",
-			            keyRaw: "addFriend",
+			        fields: {
+			            addFriend: {
+			                type: "AddFriendOutput",
+			                keyRaw: "addFriend",
 
-			            fields: {
-			                friend: {
-			                    type: "User",
-			                    keyRaw: "friend",
+			                fields: {
+			                    friend: {
+			                        type: "User",
+			                        keyRaw: "friend",
 
-			                    operations: [{
-			                        action: "insert",
-			                        list: "All_Users",
-			                        position: "first",
+			                        operations: [{
+			                            action: "insert",
+			                            list: "All_Users",
+			                            position: "first",
 
-			                        when: {
-			                            must_not: {
-			                                stringValue: "true"
+			                            when: {
+			                                must_not: {
+			                                    stringValue: "true"
+			                                }
 			                            }
-			                        }
-			                    }],
+			                        }],
 
-			                    fields: {
-			                        firstName: {
-			                            type: "String",
-			                            keyRaw: "firstName"
-			                        },
+			                        fields: {
+			                            id: {
+			                                type: "ID",
+			                                keyRaw: "id"
+			                            },
 
-			                        id: {
-			                            type: "ID",
-			                            keyRaw: "id"
+			                            firstName: {
+			                                type: "String",
+			                                keyRaw: "firstName"
+			                            }
 			                        }
 			                    }
 			                }
@@ -1956,7 +2024,7 @@ describe('mutation artifacts', function () {
 	})
 
 	test('must_not - append', async function () {
-		const mutationDocs = [
+		const docs = [
 			mockCollectedDoc(
 				`mutation A {
 					addFriend {
@@ -1976,10 +2044,10 @@ describe('mutation artifacts', function () {
 		]
 
 		// execute the generator
-		await runPipeline(config, mutationDocs)
+		await runPipeline(config, docs)
 
 		// load the contents of the file
-		expect(mutationDocs[0]).toMatchInlineSnapshot(`
+		expect(docs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -2003,36 +2071,38 @@ describe('mutation artifacts', function () {
 			    rootType: "Mutation",
 
 			    selection: {
-			        addFriend: {
-			            type: "AddFriendOutput",
-			            keyRaw: "addFriend",
+			        fields: {
+			            addFriend: {
+			                type: "AddFriendOutput",
+			                keyRaw: "addFriend",
 
-			            fields: {
-			                friend: {
-			                    type: "User",
-			                    keyRaw: "friend",
+			                fields: {
+			                    friend: {
+			                        type: "User",
+			                        keyRaw: "friend",
 
-			                    operations: [{
-			                        action: "insert",
-			                        list: "All_Users",
-			                        position: "last",
+			                        operations: [{
+			                            action: "insert",
+			                            list: "All_Users",
+			                            position: "last",
 
-			                        when: {
-			                            must_not: {
-			                                stringValue: "true"
+			                            when: {
+			                                must_not: {
+			                                    stringValue: "true"
+			                                }
 			                            }
-			                        }
-			                    }],
+			                        }],
 
-			                    fields: {
-			                        firstName: {
-			                            type: "String",
-			                            keyRaw: "firstName"
-			                        },
+			                        fields: {
+			                            id: {
+			                                type: "ID",
+			                                keyRaw: "id"
+			                            },
 
-			                        id: {
-			                            type: "ID",
-			                            keyRaw: "id"
+			                            firstName: {
+			                                type: "String",
+			                                keyRaw: "firstName"
+			                            }
 			                        }
 			                    }
 			                }
@@ -2046,7 +2116,7 @@ describe('mutation artifacts', function () {
 	})
 
 	test('list filters', async function () {
-		const mutationDocs = [
+		const docs = [
 			mockCollectedDoc(
 				`mutation A {
 					addFriend {
@@ -2071,10 +2141,10 @@ describe('mutation artifacts', function () {
 		]
 
 		// execute the generator
-		await runPipeline(config, mutationDocs)
+		await runPipeline(config, docs)
 
 		// load the contents of the file
-		expect(mutationDocs[1]).toMatchInlineSnapshot(`
+		expect(docs[1]).toMatchInlineSnapshot(`
 			export default {
 			    name: "TestQuery",
 			    kind: "HoudiniQuery",
@@ -2091,47 +2161,49 @@ describe('mutation artifacts', function () {
 			    rootType: "Query",
 
 			    selection: {
-			        users: {
-			            type: "User",
-			            keyRaw: "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
+			        fields: {
+			            users: {
+			                type: "User",
+			                keyRaw: "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
 
-			            list: {
-			                name: "All_Users",
-			                connection: false,
-			                type: "User"
-			            },
-
-			            fields: {
-			                firstName: {
-			                    type: "String",
-			                    keyRaw: "firstName"
+			                list: {
+			                    name: "All_Users",
+			                    connection: false,
+			                    type: "User"
 			                },
 
-			                id: {
-			                    type: "ID",
-			                    keyRaw: "id"
-			                }
-			            },
+			                fields: {
+			                    firstName: {
+			                        type: "String",
+			                        keyRaw: "firstName"
+			                    },
 
-			            filters: {
-			                stringValue: {
-			                    kind: "Variable",
-			                    value: "value"
+			                    id: {
+			                        type: "ID",
+			                        keyRaw: "id"
+			                    }
 			                },
 
-			                boolValue: {
-			                    kind: "Boolean",
-			                    value: true
-			                },
+			                filters: {
+			                    stringValue: {
+			                        kind: "Variable",
+			                        value: "value"
+			                    },
 
-			                floatValue: {
-			                    kind: "Float",
-			                    value: 1.2
-			                },
+			                    boolValue: {
+			                        kind: "Boolean",
+			                        value: true
+			                    },
 
-			                intValue: {
-			                    kind: "Int",
-			                    value: 1
+			                    floatValue: {
+			                        kind: "Float",
+			                        value: 1.2
+			                    },
+
+			                    intValue: {
+			                        kind: "Int",
+			                        value: 1
+			                    }
 			                }
 			            }
 			        }
@@ -2154,7 +2226,7 @@ describe('mutation artifacts', function () {
 	})
 
 	test('must_not - directive', async function () {
-		const mutationDocs = [
+		const docs = [
 			mockCollectedDoc(
 				`mutation A {
 					addFriend {
@@ -2174,10 +2246,10 @@ describe('mutation artifacts', function () {
 		]
 
 		// execute the generator
-		await runPipeline(config, mutationDocs)
+		await runPipeline(config, docs)
 
 		// load the contents of the file
-		expect(mutationDocs[0]).toMatchInlineSnapshot(`
+		expect(docs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -2201,36 +2273,38 @@ describe('mutation artifacts', function () {
 			    rootType: "Mutation",
 
 			    selection: {
-			        addFriend: {
-			            type: "AddFriendOutput",
-			            keyRaw: "addFriend",
+			        fields: {
+			            addFriend: {
+			                type: "AddFriendOutput",
+			                keyRaw: "addFriend",
 
-			            fields: {
-			                friend: {
-			                    type: "User",
-			                    keyRaw: "friend",
+			                fields: {
+			                    friend: {
+			                        type: "User",
+			                        keyRaw: "friend",
 
-			                    operations: [{
-			                        action: "insert",
-			                        list: "All_Users",
-			                        position: "last",
+			                        operations: [{
+			                            action: "insert",
+			                            list: "All_Users",
+			                            position: "last",
 
-			                        when: {
-			                            must_not: {
-			                                boolValue: true
+			                            when: {
+			                                must_not: {
+			                                    boolValue: true
+			                                }
 			                            }
-			                        }
-			                    }],
+			                        }],
 
-			                    fields: {
-			                        firstName: {
-			                            type: "String",
-			                            keyRaw: "firstName"
-			                        },
+			                        fields: {
+			                            id: {
+			                                type: "ID",
+			                                keyRaw: "id"
+			                            },
 
-			                        id: {
-			                            type: "ID",
-			                            keyRaw: "id"
+			                            firstName: {
+			                                type: "String",
+			                                keyRaw: "firstName"
+			                            }
 			                        }
 			                    }
 			                }
@@ -2244,7 +2318,7 @@ describe('mutation artifacts', function () {
 	})
 
 	test('tracks list name', async function () {
-		const mutationDocs = [
+		const docs = [
 			mockCollectedDoc(
 				`mutation A {
 					addFriend {
@@ -2264,10 +2338,10 @@ describe('mutation artifacts', function () {
 		]
 
 		// execute the generator
-		await runPipeline(config, mutationDocs)
+		await runPipeline(config, docs)
 
 		// load the contents of the file
-		expect(mutationDocs[1]).toMatchInlineSnapshot(`
+		expect(docs[1]).toMatchInlineSnapshot(`
 			export default {
 			    name: "TestQuery",
 			    kind: "HoudiniQuery",
@@ -2284,32 +2358,34 @@ describe('mutation artifacts', function () {
 			    rootType: "Query",
 
 			    selection: {
-			        users: {
-			            type: "User",
-			            keyRaw: "users(stringValue: \\"foo\\")",
+			        fields: {
+			            users: {
+			                type: "User",
+			                keyRaw: "users(stringValue: \\"foo\\")",
 
-			            list: {
-			                name: "All_Users",
-			                connection: false,
-			                type: "User"
-			            },
-
-			            fields: {
-			                firstName: {
-			                    type: "String",
-			                    keyRaw: "firstName"
+			                list: {
+			                    name: "All_Users",
+			                    connection: false,
+			                    type: "User"
 			                },
 
-			                id: {
-			                    type: "ID",
-			                    keyRaw: "id"
-			                }
-			            },
+			                fields: {
+			                    firstName: {
+			                        type: "String",
+			                        keyRaw: "firstName"
+			                    },
 
-			            filters: {
-			                stringValue: {
-			                    kind: "String",
-			                    value: "foo"
+			                    id: {
+			                        type: "ID",
+			                        keyRaw: "id"
+			                    }
+			                },
+
+			                filters: {
+			                    stringValue: {
+			                        kind: "String",
+			                        value: "foo"
+			                    }
 			                }
 			            }
 			        }
@@ -2324,7 +2400,7 @@ describe('mutation artifacts', function () {
 	})
 
 	test('tracks paginate name', async function () {
-		const mutationDocs = [
+		const docs = [
 			mockCollectedDoc(
 				`mutation A {
 					addFriend {
@@ -2348,10 +2424,10 @@ describe('mutation artifacts', function () {
 		]
 
 		// execute the generator
-		await runPipeline(config, mutationDocs)
+		await runPipeline(config, docs)
 
 		// load the contents of the file
-		expect(mutationDocs[1]).toMatchInlineSnapshot(`
+		expect(docs[1]).toMatchInlineSnapshot(`
 			export default {
 			    name: "TestQuery",
 			    kind: "HoudiniQuery",
@@ -2395,91 +2471,92 @@ describe('mutation artifacts', function () {
 			    rootType: "Query",
 
 			    selection: {
-			        usersByCursor: {
-			            type: "UserConnection",
-			            keyRaw: "usersByCursor::paginated",
+			        fields: {
+			            usersByCursor: {
+			                type: "UserConnection",
+			                keyRaw: "usersByCursor::paginated",
 
-			            list: {
-			                name: "All_Users",
-			                connection: true,
-			                type: "User"
-			            },
+			                list: {
+			                    name: "All_Users",
+			                    connection: true,
+			                    type: "User"
+			                },
 
-			            fields: {
-			                edges: {
-			                    type: "UserEdge",
-			                    keyRaw: "edges",
+			                fields: {
+			                    edges: {
+			                        type: "UserEdge",
+			                        keyRaw: "edges",
+			                        update: "append",
 
-			                    fields: {
-			                        cursor: {
-			                            type: "String",
-			                            keyRaw: "cursor"
-			                        },
+			                        fields: {
+			                            node: {
+			                                type: "User",
+			                                keyRaw: "node",
+			                                nullable: true,
 
-			                        node: {
-			                            type: "User",
-			                            keyRaw: "node",
-			                            nullable: true,
+			                                fields: {
+			                                    firstName: {
+			                                        type: "String",
+			                                        keyRaw: "firstName"
+			                                    },
 
-			                            fields: {
-			                                __typename: {
-			                                    type: "String",
-			                                    keyRaw: "__typename"
-			                                },
+			                                    id: {
+			                                        type: "ID",
+			                                        keyRaw: "id"
+			                                    },
 
-			                                firstName: {
-			                                    type: "String",
-			                                    keyRaw: "firstName"
-			                                },
-
-			                                id: {
-			                                    type: "ID",
-			                                    keyRaw: "id"
+			                                    __typename: {
+			                                        type: "String",
+			                                        keyRaw: "__typename"
+			                                    }
 			                                }
+			                            },
+
+			                            cursor: {
+			                                type: "String",
+			                                keyRaw: "cursor"
 			                            }
 			                        }
 			                    },
 
-			                    update: "append"
-			                },
+			                    pageInfo: {
+			                        type: "PageInfo",
+			                        keyRaw: "pageInfo",
 
-			                pageInfo: {
-			                    type: "PageInfo",
-			                    keyRaw: "pageInfo",
+			                        fields: {
+			                            hasPreviousPage: {
+			                                type: "Boolean",
+			                                keyRaw: "hasPreviousPage"
+			                            },
 
-			                    fields: {
-			                        hasPreviousPage: {
-			                            type: "Boolean",
-			                            keyRaw: "hasPreviousPage"
-			                        },
+			                            hasNextPage: {
+			                                type: "Boolean",
+			                                keyRaw: "hasNextPage"
+			                            },
 
-			                        hasNextPage: {
-			                            type: "Boolean",
-			                            keyRaw: "hasNextPage"
-			                        },
+			                            startCursor: {
+			                                type: "String",
+			                                keyRaw: "startCursor"
+			                            },
 
-			                        startCursor: {
-			                            type: "String",
-			                            keyRaw: "startCursor"
-			                        },
-
-			                        endCursor: {
-			                            type: "String",
-			                            keyRaw: "endCursor"
+			                            endCursor: {
+			                                type: "String",
+			                                keyRaw: "endCursor"
+			                            }
 			                        }
 			                    }
-			                }
-			            },
-
-			            filters: {
-			                first: {
-			                    kind: "Variable",
-			                    value: "first"
 			                },
 
-			                after: {
-			                    kind: "Variable",
-			                    value: "after"
+			                filters: {
+			                    first: {
+			                        kind: "Variable",
+			                        value: "first"
+			                    },
+
+			                    after: {
+			                        kind: "Variable",
+			                        value: "after"
+			                    }
 			                }
 			            }
 			        }
@@ -2503,7 +2580,7 @@ describe('mutation artifacts', function () {
 	})
 
 	test('field args', async function () {
-		const mutationDocs = [
+		const docs = [
 			mockCollectedDoc(
 				`query TestQuery($value: String!) {
 					users(
@@ -2519,10 +2596,10 @@ describe('mutation artifacts', function () {
 		]
 
 		// execute the generator
-		await runPipeline(config, mutationDocs)
+		await runPipeline(config, docs)
 
 		// load the contents of the file
-		expect(mutationDocs[0]).toMatchInlineSnapshot(`
+		expect(docs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "TestQuery",
 			    kind: "HoudiniQuery",
@@ -2539,47 +2616,49 @@ describe('mutation artifacts', function () {
 			    rootType: "Query",
 
 			    selection: {
-			        users: {
-			            type: "User",
-			            keyRaw: "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
+			        fields: {
+			            users: {
+			                type: "User",
+			                keyRaw: "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
 
-			            list: {
-			                name: "All_Users",
-			                connection: false,
-			                type: "User"
-			            },
-
-			            fields: {
-			                firstName: {
-			                    type: "String",
-			                    keyRaw: "firstName"
+			                list: {
+			                    name: "All_Users",
+			                    connection: false,
+			                    type: "User"
 			                },
 
-			                id: {
-			                    type: "ID",
-			                    keyRaw: "id"
-			                }
-			            },
+			                fields: {
+			                    firstName: {
+			                        type: "String",
+			                        keyRaw: "firstName"
+			                    },
 
-			            filters: {
-			                stringValue: {
-			                    kind: "Variable",
-			                    value: "value"
+			                    id: {
+			                        type: "ID",
+			                        keyRaw: "id"
+			                    }
 			                },
 
-			                boolValue: {
-			                    kind: "Boolean",
-			                    value: true
-			                },
+			                filters: {
+			                    stringValue: {
+			                        kind: "Variable",
+			                        value: "value"
+			                    },
 
-			                floatValue: {
-			                    kind: "Float",
-			                    value: 1.2
-			                },
+			                    boolValue: {
+			                        kind: "Boolean",
+			                        value: true
+			                    },
 
-			                intValue: {
-			                    kind: "Int",
-			                    value: 1
+			                    floatValue: {
+			                        kind: "Float",
+			                        value: 1.2
+			                    },
+
+			                    intValue: {
+			                        kind: "Int",
+			                        value: 1
+			                    }
 			                }
 			            }
 			        }
@@ -2604,7 +2683,7 @@ describe('mutation artifacts', function () {
 	test('sveltekit', async function () {
 		const cfg = testConfig({ module: 'esm' })
 
-		const mutationDocs = [
+		const docs = [
 			mockCollectedDoc(
 				`query TestQuery($value: String!) {
 					users(
@@ -2620,10 +2699,10 @@ describe('mutation artifacts', function () {
 		]
 
 		// execute the generator
-		await runPipeline(cfg, mutationDocs)
+		await runPipeline(cfg, docs)
 
 		// load the contents of the file
-		expect(mutationDocs[0]).toMatchInlineSnapshot(`
+		expect(docs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "TestQuery",
 			    kind: "HoudiniQuery",
@@ -2640,47 +2719,49 @@ describe('mutation artifacts', function () {
 			    rootType: "Query",
 
 			    selection: {
-			        users: {
-			            type: "User",
-			            keyRaw: "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
+			        fields: {
+			            users: {
+			                type: "User",
+			                keyRaw: "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
 
-			            list: {
-			                name: "All_Users",
-			                connection: false,
-			                type: "User"
-			            },
-
-			            fields: {
-			                firstName: {
-			                    type: "String",
-			                    keyRaw: "firstName"
+			                list: {
+			                    name: "All_Users",
+			                    connection: false,
+			                    type: "User"
 			                },
 
-			                id: {
-			                    type: "ID",
-			                    keyRaw: "id"
-			                }
-			            },
+			                fields: {
+			                    firstName: {
+			                        type: "String",
+			                        keyRaw: "firstName"
+			                    },
 
-			            filters: {
-			                stringValue: {
-			                    kind: "Variable",
-			                    value: "value"
+			                    id: {
+			                        type: "ID",
+			                        keyRaw: "id"
+			                    }
 			                },
 
-			                boolValue: {
-			                    kind: "Boolean",
-			                    value: true
-			                },
+			                filters: {
+			                    stringValue: {
+			                        kind: "Variable",
+			                        value: "value"
+			                    },
 
-			                floatValue: {
-			                    kind: "Float",
-			                    value: 1.2
-			                },
+			                    boolValue: {
+			                        kind: "Boolean",
+			                        value: true
+			                    },
 
-			                intValue: {
-			                    kind: "Int",
-			                    value: 1
+			                    floatValue: {
+			                        kind: "Float",
+			                        value: 1.2
+			                    },
+
+			                    intValue: {
+			                        kind: "Int",
+			                        value: 1
+			                    }
 			                }
 			            }
 			        }
@@ -2749,14 +2830,16 @@ test('custom scalar shows up in artifact', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        allItems: {
-		            type: "TodoItem",
-		            keyRaw: "allItems",
+		        fields: {
+		            allItems: {
+		                type: "TodoItem",
+		                keyRaw: "allItems",
 
-		            fields: {
-		                createdAt: {
-		                    type: "DateTime",
-		                    keyRaw: "createdAt"
+		                fields: {
+		                    createdAt: {
+		                        type: "DateTime",
+		                        keyRaw: "createdAt"
+		                    }
 		                }
 		            }
 		        }
@@ -2844,15 +2927,17 @@ test('operation inputs', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        user: {
-		            type: "User",
-		            keyRaw: "user(id: $id, filter: $filter, filterList: $filterList, enumArg: $enumArg)",
-		            nullable: true,
+		        fields: {
+		            user: {
+		                type: "User",
+		                keyRaw: "user(id: $id, filter: $filter, filterList: $filterList, enumArg: $enumArg)",
+		                nullable: true,
 
-		            fields: {
-		                id: {
-		                    type: "ID",
-		                    keyRaw: "id"
+		                fields: {
+		                    id: {
+		                        type: "ID",
+		                        keyRaw: "id"
+		                    }
 		                }
 		            }
 		        }
@@ -2895,7 +2980,7 @@ test('operation inputs', async function () {
 
 describe('subscription artifacts', function () {
 	test('happy path', async function () {
-		const mutationDocs = [
+		const docs = [
 			mockCollectedDoc(
 				`subscription B {
 					newUser {
@@ -2908,10 +2993,10 @@ describe('subscription artifacts', function () {
 		]
 
 		// execute the generator
-		await runPipeline(config, mutationDocs)
+		await runPipeline(config, docs)
 
 		// load the contents of the file
-		expect(mutationDocs[0]).toMatchInlineSnapshot(`
+		expect(docs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "B",
 			    kind: "HoudiniSubscription",
@@ -2930,24 +3015,26 @@ describe('subscription artifacts', function () {
 			    rootType: "Subscription",
 
 			    selection: {
-			        newUser: {
-			            type: "NewUserResult",
-			            keyRaw: "newUser",
+			        fields: {
+			            newUser: {
+			                type: "NewUserResult",
+			                keyRaw: "newUser",
 
-			            fields: {
-			                user: {
-			                    type: "User",
-			                    keyRaw: "user",
+			                fields: {
+			                    user: {
+			                        type: "User",
+			                        keyRaw: "user",
 
-			                    fields: {
-			                        firstName: {
-			                            type: "String",
-			                            keyRaw: "firstName"
-			                        },
+			                        fields: {
+			                            firstName: {
+			                                type: "String",
+			                                keyRaw: "firstName"
+			                            },
 
-			                        id: {
-			                            type: "ID",
-			                            keyRaw: "id"
+			                            id: {
+			                                type: "ID",
+			                                keyRaw: "id"
+			                            }
 			                        }
 			                    }
 			                }

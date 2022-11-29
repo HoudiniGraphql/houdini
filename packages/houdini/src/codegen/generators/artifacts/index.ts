@@ -12,7 +12,7 @@ import {
 	cleanupFiles,
 } from '../../../lib'
 import { ArtifactKind } from '../../../lib'
-import { moduleExport } from '../../utils'
+import { flattenSelections, moduleExport } from '../../utils'
 import writeIndexFile from './indexFile'
 import { inputObject } from './inputs'
 import { operationsByPath, FilterMap } from './operations'
@@ -214,6 +214,25 @@ export default function artifactGenerator(stats: {
 					// if there are inputs to the operation
 					const inputs = operations[0]?.variableDefinitions
 
+					// in order to simplify the selection generation, we want to merge fragments together
+					const mergedSelection = flattenSelections({
+						config,
+						filepath: doc.filename,
+						selections: selectionSet.selections,
+						fragmentDefinitions: doc.document.definitions
+							.filter<graphql.FragmentDefinitionNode>(
+								(definition): definition is graphql.FragmentDefinitionNode =>
+									definition.kind === 'FragmentDefinition'
+							)
+							.reduce(
+								(prev, definition) => ({
+									...prev,
+									[definition.name.value]: definition,
+								}),
+								{}
+							),
+					})
+
 					// generate a hash of the document that we can use to detect changes
 					// start building up the artifact
 					const artifact: Record<string, any> = {
@@ -227,7 +246,7 @@ export default function artifactGenerator(stats: {
 							config,
 							filepath: doc.filename,
 							rootType,
-							selections: selectionSet.selections,
+							selections: mergedSelection,
 							operations: operationsByPath(
 								config,
 								doc.filename,

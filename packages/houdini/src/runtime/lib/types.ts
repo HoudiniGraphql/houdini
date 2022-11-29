@@ -137,26 +137,28 @@ export type GraphQLValue =
 	| undefined
 
 export type SubscriptionSelection = {
-	[field: string]: {
-		type: string
-		nullable?: boolean
-		keyRaw: string
-		operations?: MutationOperation[]
-		list?: {
-			name: string
-			connection: boolean
+	fields?: {
+		[fieldName: string]: {
 			type: string
-		}
-		update?: RefetchUpdateMode
-		filters?: {
-			[key: string]: {
-				kind: 'Boolean' | 'String' | 'Float' | 'Int' | 'Variable'
-				value: string | number | boolean
+			nullable?: boolean
+			keyRaw: string
+			operations?: MutationOperation[]
+			list?: {
+				name: string
+				connection: boolean
+				type: string
 			}
+			update?: RefetchUpdateMode
+			filters?: {
+				[key: string]: {
+					kind: 'Boolean' | 'String' | 'Float' | 'Int' | 'Variable'
+					value: string | number | boolean
+				}
+			}
+			fields?: SubscriptionSelection
 		}
-		fields?: SubscriptionSelection
-		abstract?: boolean
 	}
+	abstractFields?: { [typeName: string]: SubscriptionSelection }
 }
 
 export type SubscriptionSpec = {

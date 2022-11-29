@@ -63,20 +63,42 @@ export default function selection({
 		}
 		// inline fragments should be merged with the parent
 		else if (field.kind === 'InlineFragment') {
-			object = deepMerge(
-				filepath,
-				object,
-				selection({
-					config,
+			// if the type condition doesn't exist or matches the parent type,
+			// just merge it
+			if (!field.typeCondition || field.typeCondition.name.value === rootType) {
+				// we need to deep merge to remove the inline fragment
+				object.fields = deepMerge(
 					filepath,
-					rootType: field.typeCondition?.name.value || rootType,
-					operations,
-					selections: field.selectionSet.selections,
-					path,
-					includeFragments,
-					document,
-				})
-			)
+					object.fields || {},
+					selection({
+						config,
+						filepath,
+						rootType: field.typeCondition?.name.value || rootType,
+						operations,
+						selections: field.selectionSet.selections,
+						path,
+						includeFragments,
+						document,
+					})
+				)
+			}
+			// we have an inline fragment that changes the type, in order to support unions/interfaces
+			// we need to embed the field in a type-dependent way
+			else {
+				object.abstractFields = {
+					...object.abstractFields,
+					[field.typeCondition.name.value]: selection({
+						config,
+						filepath,
+						rootType: field.typeCondition?.name.value || rootType,
+						operations,
+						selections: field.selectionSet.selections,
+						path,
+						includeFragments,
+						document,
+					}),
+				}
+			}
 		}
 		// fields need their own entry
 		else if (field.kind === 'Field') {
@@ -103,7 +125,7 @@ export default function selection({
 			const pathSoFar = path.concat(attributeName)
 
 			// the object holding data for this field
-			const fieldObj: SubscriptionSelection['field'] = {
+			const fieldObj: Required<SubscriptionSelection>['fields']['field'] = {
 				type: typeName,
 				keyRaw: fieldKey(config, field),
 			}
@@ -167,17 +189,20 @@ export default function selection({
 						? document.refetch.update
 						: markEdges
 
-				fieldObj.fields = selection({
-					config,
-					filepath,
-					rootType: typeName,
-					selections: field.selectionSet.selections,
-					operations,
-					path: pathSoFar,
-					includeFragments,
-					document,
-					markEdges: edgesMark,
-				})
+				Object.assign(
+					fieldObj,
+					selection({
+						config,
+						filepath,
+						rootType: typeName,
+						selections: field.selectionSet.selections,
+						operations,
+						path: pathSoFar,
+						includeFragments,
+						document,
+						markEdges: edgesMark,
+					})
+				)
 			}
 
 			// any arguments on the list field can act as a filter
@@ -190,17 +215,12 @@ export default function selection({
 					{}
 				)
 			}
-			// if we are looking at an interface
-			if (graphql.isInterfaceType(fieldType) || graphql.isUnionType(fieldType)) {
-				fieldObj.abstract = true
-			}
 
 			// add the field data we computed
-			object[attributeName] = deepMerge(
-				filepath,
-				fieldObj,
-				object[attributeName] || {}
-			) as SubscriptionSelection['field']
+			object.fields = {
+				...object.fields,
+				[attributeName]: fieldObj,
+			}
 		}
 	}
 
