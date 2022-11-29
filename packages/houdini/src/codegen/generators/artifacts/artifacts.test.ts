@@ -32,13 +32,7 @@ test('adds kind, name, and raw, response, and selection', async function () {
 	await runPipeline(config, docs)
 
 	// load the contents of the file
-	const queryContents = await fs.readFile(path.join(config.artifactPath(docs[0].document)))
-	expect(queryContents).toBeTruthy()
-	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-		parser: typeScriptParser,
-	}).program
-	// verify contents
-	expect(parsedQuery).toMatchInlineSnapshot(`
+	expect(docs[0]).toMatchInlineSnapshot(`
 		export default {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
@@ -65,14 +59,7 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		"HoudiniHash=4e7afee5e8aa689ee7f58f61f60955769c29fe630b05a32ca2a5d8f61620afe3";
 	`)
 
-	const fragmentContents = await fs.readFile(path.join(config.artifactPath(docs[1].document)))
-	expect(fragmentContents).toBeTruthy()
-	// parse the contents
-	const parsedFragment: ProgramKind = recast.parse(fragmentContents!, {
-		parser: typeScriptParser,
-	}).program
-	// and verify their content
-	expect(parsedFragment).toMatchInlineSnapshot(`
+	expect(docs[1]).toMatchInlineSnapshot(`
 		export default {
 		    name: "TestFragment",
 		    kind: "HoudiniFragment",
@@ -107,18 +94,8 @@ test('selection includes fragments', async function () {
 	// execute the generator
 	await runPipeline(config, selectionDocs)
 
-	//
 	// load the contents of the file
-	const queryContents = await fs.readFile(
-		path.join(config.artifactPath(selectionDocs[0].document))
-	)
-	expect(queryContents).toBeTruthy()
-	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-		parser: typeScriptParser,
-	}).program
-	// verify contents
-	expect(parsedQuery).toMatchInlineSnapshot(`
+	expect(selectionDocs[0]).toMatchInlineSnapshot(`
 		export default {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
@@ -164,14 +141,7 @@ test('selection includes fragments', async function () {
 		"HoudiniHash=c8c8290bb733a727894c836300cd22e8ece993f2b7c2108998f1d63a595e6b5f";
 	`)
 
-	const fragmentContents = await fs.readFile(path.join(config.artifactPath(docs[1].document)))
-	expect(fragmentContents).toBeTruthy()
-	// parse the contents
-	const parsedFragment: ProgramKind = recast.parse(fragmentContents!, {
-		parser: typeScriptParser,
-	}).program
-	// and verify their content
-	expect(parsedFragment).toMatchInlineSnapshot(`
+	expect(docs[1]).toMatchInlineSnapshot(`
 		export default {
 		    name: "TestFragment",
 		    kind: "HoudiniFragment",
@@ -204,14 +174,7 @@ test('internal directives are scrubbed', async function () {
 	])
 
 	// load the contents of the file
-	const queryContents = await fs.readFile(path.join(config.artifactPath(docs[0].document)))
-	expect(queryContents).toBeTruthy()
-	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-		parser: typeScriptParser,
-	}).program
-	// verify contents
-	expect(parsedQuery).toMatchInlineSnapshot(`
+	expect(docs[0]).toMatchInlineSnapshot(`
 		export default {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
@@ -272,14 +235,7 @@ test('variables only used by internal directives are scrubbed', async function (
 	])
 
 	// load the contents of the file
-	const queryContents = await fs.readFile(path.join(config.artifactPath(docs[0].document)))
-	expect(queryContents).toBeTruthy()
-	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-		parser: typeScriptParser,
-	}).program
-
-	expect(parsedQuery).toMatchInlineSnapshot(`
+	expect(docs[0]).toMatchInlineSnapshot(`
 		export default {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
@@ -342,14 +298,7 @@ test('overlapping query and fragment selection', async function () {
 	])
 
 	// load the contents of the file
-	const queryContents = await fs.readFile(path.join(config.artifactPath(docs[0].document)))
-	expect(queryContents).toBeTruthy()
-	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-		parser: typeScriptParser,
-	}).program
-	// verify contents
-	expect(parsedQuery).toMatchInlineSnapshot(`
+	expect(docs[0]).toMatchInlineSnapshot(`
 		export default {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
@@ -405,14 +354,7 @@ test('overlapping query and fragment nested selection', async function () {
 	])
 
 	// load the contents of the file
-	const queryContents = await fs.readFile(path.join(config.artifactPath(docs[0].document)))
-	expect(queryContents).toBeTruthy()
-	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-		parser: typeScriptParser,
-	}).program
-	// verify contents
-	expect(parsedQuery).toMatchInlineSnapshot(`
+	expect(docs[0]).toMatchInlineSnapshot(`
 		export default {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
@@ -501,14 +443,7 @@ test('selections with interfaces', async function () {
 	await runPipeline(cfg, mutationDocs)
 
 	// load the contents of the file
-	const queryContents = await fs.readFile(path.join(cfg.artifactPath(mutationDocs[0].document)))
-	expect(queryContents).toBeTruthy()
-	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-		parser: typeScriptParser,
-	}).program
-	// verify contents
-	expect(parsedQuery).toMatchInlineSnapshot(`
+	expect(mutationDocs[0]).toMatchInlineSnapshot(`
 		export default {
 		    name: "Friends",
 		    kind: "HoudiniQuery",
@@ -607,15 +542,8 @@ test('selections with unions', async function () {
 	// execute the generator
 	await runPipeline(cfg, mutationDocs)
 
-	// load the contents of the file
-	const queryContents = await fs.readFile(path.join(cfg.artifactPath(mutationDocs[0].document)))
-	expect(queryContents).toBeTruthy()
-	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-		parser: typeScriptParser,
-	}).program
 	// verify contents
-	expect(parsedQuery).toMatchInlineSnapshot(`
+	expect(mutationDocs[0]).toMatchInlineSnapshot(`
 		export default {
 		    name: "Friends",
 		    kind: "HoudiniQuery",
@@ -718,16 +646,7 @@ describe('mutation artifacts', function () {
 		await runPipeline(cfg, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(cfg.artifactPath(mutationDocs[0].document))
-		)
-		expect(queryContents).toBeTruthy()
-		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-			parser: typeScriptParser,
-		}).program
-		// verify contents
-		expect(parsedQuery).toMatchInlineSnapshot(`
+		expect(mutationDocs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "B",
 			    kind: "HoudiniMutation",
@@ -800,16 +719,7 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document))
-		)
-		expect(queryContents).toBeTruthy()
-		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-			parser: typeScriptParser,
-		}).program
-		// verify contents
-		expect(parsedQuery).toMatchInlineSnapshot(`
+		expect(mutationDocs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -1068,16 +978,7 @@ describe('mutation artifacts', function () {
 		await runPipeline(configUpdate, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(configUpdate.artifactPath(mutationDocs[0].document))
-		)
-		expect(queryContents).toBeTruthy()
-		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-			parser: typeScriptParser,
-		}).program
-		// verify contents
-		expect(parsedQuery).toMatchInlineSnapshot(`
+		expect(mutationDocs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -1161,16 +1062,7 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document))
-		)
-		expect(queryContents).toBeTruthy()
-		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-			parser: typeScriptParser,
-		}).program
-		// verify contents
-		expect(parsedQuery).toMatchInlineSnapshot(`
+		expect(mutationDocs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -1255,16 +1147,7 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document))
-		)
-		expect(queryContents).toBeTruthy()
-		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-			parser: typeScriptParser,
-		}).program
-		// verify contents
-		expect(parsedQuery).toMatchInlineSnapshot(`
+		expect(mutationDocs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -1339,16 +1222,7 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document))
-		)
-		expect(queryContents).toBeTruthy()
-		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-			parser: typeScriptParser,
-		}).program
-		// verify contents
-		expect(parsedQuery).toMatchInlineSnapshot(`
+		expect(mutationDocs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -1409,16 +1283,7 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document))
-		)
-		expect(queryContents).toBeTruthy()
-		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-			parser: typeScriptParser,
-		}).program
-		// verify contents
-		expect(parsedQuery).toMatchInlineSnapshot(`
+		expect(mutationDocs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -1487,16 +1352,7 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document))
-		)
-		expect(queryContents).toBeTruthy()
-		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-			parser: typeScriptParser,
-		}).program
-		// verify contents
-		expect(parsedQuery).toMatchInlineSnapshot(`
+		expect(mutationDocs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -1585,16 +1441,7 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document))
-		)
-		expect(queryContents).toBeTruthy()
-		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-			parser: typeScriptParser,
-		}).program
-		// verify contents
-		expect(parsedQuery).toMatchInlineSnapshot(`
+		expect(mutationDocs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -1683,16 +1530,7 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document))
-		)
-		expect(queryContents).toBeTruthy()
-		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-			parser: typeScriptParser,
-		}).program
-		// verify contents
-		expect(parsedQuery).toMatchInlineSnapshot(`
+		expect(mutationDocs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -1781,16 +1619,7 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document))
-		)
-		expect(queryContents).toBeTruthy()
-		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-			parser: typeScriptParser,
-		}).program
-		// verify contents
-		expect(parsedQuery).toMatchInlineSnapshot(`
+		expect(mutationDocs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -1880,16 +1709,7 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document))
-		)
-		expect(queryContents).toBeTruthy()
-		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-			parser: typeScriptParser,
-		}).program
-		// verify contents
-		expect(parsedQuery).toMatchInlineSnapshot(`
+		expect(mutationDocs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -1979,16 +1799,7 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document))
-		)
-		expect(queryContents).toBeTruthy()
-		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-			parser: typeScriptParser,
-		}).program
-		// verify contents
-		expect(parsedQuery).toMatchInlineSnapshot(`
+		expect(mutationDocs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -2078,16 +1889,7 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document))
-		)
-		expect(queryContents).toBeTruthy()
-		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-			parser: typeScriptParser,
-		}).program
-		// verify contents
-		expect(parsedQuery).toMatchInlineSnapshot(`
+		expect(mutationDocs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -2177,16 +1979,7 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document))
-		)
-		expect(queryContents).toBeTruthy()
-		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-			parser: typeScriptParser,
-		}).program
-		// verify contents
-		expect(parsedQuery).toMatchInlineSnapshot(`
+		expect(mutationDocs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -2281,16 +2074,7 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[1].document))
-		)
-		expect(queryContents).toBeTruthy()
-		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-			parser: typeScriptParser,
-		}).program
-		// verify contents
-		expect(parsedQuery).toMatchInlineSnapshot(`
+		expect(mutationDocs[1]).toMatchInlineSnapshot(`
 			export default {
 			    name: "TestQuery",
 			    kind: "HoudiniQuery",
@@ -2393,16 +2177,7 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document))
-		)
-		expect(queryContents).toBeTruthy()
-		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-			parser: typeScriptParser,
-		}).program
-		// verify contents
-		expect(parsedQuery).toMatchInlineSnapshot(`
+		expect(mutationDocs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
@@ -2492,16 +2267,7 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[1].document))
-		)
-		expect(queryContents).toBeTruthy()
-		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-			parser: typeScriptParser,
-		}).program
-		// verify contents
-		expect(parsedQuery).toMatchInlineSnapshot(`
+		expect(mutationDocs[1]).toMatchInlineSnapshot(`
 			export default {
 			    name: "TestQuery",
 			    kind: "HoudiniQuery",
@@ -2585,16 +2351,7 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[1].document))
-		)
-		expect(queryContents).toBeTruthy()
-		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-			parser: typeScriptParser,
-		}).program
-		// verify contents
-		expect(parsedQuery).toMatchInlineSnapshot(`
+		expect(mutationDocs[1]).toMatchInlineSnapshot(`
 			export default {
 			    name: "TestQuery",
 			    kind: "HoudiniQuery",
@@ -2765,16 +2522,7 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document))
-		)
-		expect(queryContents).toBeTruthy()
-		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-			parser: typeScriptParser,
-		}).program
-		// verify contents
-		expect(parsedQuery).toMatchInlineSnapshot(`
+		expect(mutationDocs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "TestQuery",
 			    kind: "HoudiniQuery",
@@ -2875,16 +2623,7 @@ describe('mutation artifacts', function () {
 		await runPipeline(cfg, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(cfg.artifactPath(mutationDocs[0].document))
-		)
-		expect(queryContents).toBeTruthy()
-		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-			parser: typeScriptParser,
-		}).program
-		// verify contents
-		expect(parsedQuery).toMatchInlineSnapshot(`
+		expect(mutationDocs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "TestQuery",
 			    kind: "HoudiniQuery",
@@ -2994,14 +2733,7 @@ test('custom scalar shows up in artifact', async function () {
 	await runPipeline(localConfig, [mockCollectedDoc(`query TestQuery { allItems { createdAt } }`)])
 
 	// load the contents of the file
-	const queryContents = await fs.readFile(path.join(config.artifactPath(docs[0].document)))
-	expect(queryContents).toBeTruthy()
-	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-		parser: typeScriptParser,
-	}).program
-	// verify contents
-	expect(parsedQuery).toMatchInlineSnapshot(`
+	expect(docs[0]).toMatchInlineSnapshot(`
 		export default {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
@@ -3096,14 +2828,7 @@ test('operation inputs', async function () {
 	])
 
 	// load the contents of the file
-	const queryContents = await fs.readFile(path.join(config.artifactPath(docs[0].document)))
-	expect(queryContents).toBeTruthy()
-	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-		parser: typeScriptParser,
-	}).program
-	// verify contents
-	expect(parsedQuery).toMatchInlineSnapshot(`
+	expect(docs[0]).toMatchInlineSnapshot(`
 		export default {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
@@ -3186,16 +2911,7 @@ describe('subscription artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document))
-		)
-		expect(queryContents).toBeTruthy()
-		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
-			parser: typeScriptParser,
-		}).program
-		// verify contents
-		expect(parsedQuery).toMatchInlineSnapshot(`
+		expect(mutationDocs[0]).toMatchInlineSnapshot(`
 			export default {
 			    name: "B",
 			    kind: "HoudiniSubscription",
