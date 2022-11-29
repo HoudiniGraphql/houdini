@@ -189,20 +189,17 @@ export default function selection({
 						? document.refetch.update
 						: markEdges
 
-				Object.assign(
-					fieldObj,
-					selection({
-						config,
-						filepath,
-						rootType: typeName,
-						selections: field.selectionSet.selections,
-						operations,
-						path: pathSoFar,
-						includeFragments,
-						document,
-						markEdges: edgesMark,
-					})
-				)
+				fieldObj.selection = selection({
+					config,
+					filepath,
+					rootType: typeName,
+					selections: field.selectionSet.selections,
+					operations,
+					path: pathSoFar,
+					includeFragments,
+					document,
+					markEdges: edgesMark,
+				})
 			}
 
 			// any arguments on the list field can act as a filter
@@ -214,6 +211,11 @@ export default function selection({
 					}),
 					{}
 				)
+			}
+
+			// if we are looking at an interface
+			if (graphql.isInterfaceType(fieldType) || graphql.isUnionType(fieldType)) {
+				fieldObj.abstract = true
 			}
 
 			// add the field data we computed

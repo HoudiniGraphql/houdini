@@ -23,18 +23,22 @@ test('extracting data with custom scalars unmarshals the value', () => {
 	const cache = new Cache(config)
 
 	// the selection we are gonna write
-	const selection = {
-		node: {
-			type: 'Node',
-			keyRaw: 'node',
-			fields: {
-				date: {
-					type: 'DateTime',
-					keyRaw: 'date',
-				},
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
+	const selection: SubscriptionSelection = {
+		fields: {
+			node: {
+				type: 'Node',
+				keyRaw: 'node',
+				selection: {
+					fields: {
+						date: {
+							type: 'DateTime',
+							keyRaw: 'date',
+						},
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+					},
 				},
 			},
 		},
@@ -64,18 +68,22 @@ test('can store and retrieve lists of lists of scalars', function () {
 	// instantiate the cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				strings: {
-					type: 'String',
-					keyRaw: 'strings',
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						strings: {
+							type: 'String',
+							keyRaw: 'strings',
+						},
+					},
 				},
 			},
 		},
@@ -105,22 +113,26 @@ test('can write list of scalars', function () {
 	// instantiate the cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				firstName: {
-					type: 'String',
-					keyRaw: 'firstName',
-				},
-				friends: {
-					type: 'Int',
-					keyRaw: 'friends',
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+						friends: {
+							type: 'Int',
+							keyRaw: 'friends',
+						},
+					},
 				},
 			},
 		},
@@ -152,7 +164,7 @@ test('writing a scalar marked with replace', function () {
 	// instantiate the cache
 	const cache = new Cache(config)
 
-	const selection = {
+	const selection: SubscriptionSelection = {
 		viewer: {
 			type: 'User',
 			keyRaw: 'viewer',
