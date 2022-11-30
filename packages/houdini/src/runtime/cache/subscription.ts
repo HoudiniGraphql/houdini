@@ -243,7 +243,7 @@ export class InMemorySubscriptions {
 			this.removeSubscribers(id, key, targets)
 
 			// if there is no subselection it doesn't point to a link, move on
-			if (!selection.fields) {
+			if (!fieldSelection.selection?.fields) {
 				continue
 			}
 
@@ -256,7 +256,7 @@ export class InMemorySubscriptions {
 
 			for (const link of links) {
 				if (link !== null) {
-					linkedIDs.push([link, selection.fields])
+					linkedIDs.push([link, fieldSelection.selection || {}])
 				}
 			}
 		}
@@ -281,7 +281,6 @@ export class InMemorySubscriptions {
 
 			// decrement the reference of every field
 			counts.set(spec.set, newVal)
-
 			// if that was the last reference we knew of
 			if (newVal <= 0) {
 				targets.push(spec.set)
