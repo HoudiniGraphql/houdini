@@ -1,7 +1,7 @@
 import { test, expect } from 'vitest'
 
 import { testConfigFile } from '../../../test'
-import { SubscriptionSelection } from '../../lib/types'
+import { RefetchUpdateMode, SubscriptionSelection } from '../../lib/types'
 import { Cache, rootID } from '../cache'
 
 const config = testConfigFile({
@@ -165,26 +165,30 @@ test('writing a scalar marked with replace', function () {
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				firstName: {
-					type: 'String',
-					keyRaw: 'firstName',
-				},
-				friends: {
-					type: 'Int',
-					keyRaw: 'friends',
-					update: 'append',
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+						friends: {
+							type: 'Int',
+							keyRaw: 'friends',
+							update: RefetchUpdateMode.append,
+						},
+					},
 				},
 			},
 		},
-	} as SubscriptionSelection
+	}
 
 	// add some data to the cache
 	cache.write({

@@ -372,7 +372,7 @@ export class List {
 			targetID,
 			// if we are unsubscribing from a connection, the fields we care about
 			// are tucked away under edges
-			this.connection ? this.selection.fields!.edges.selection!.fields! : this.selection,
+			this.connection ? this.selection.fields!.edges.selection! : this.selection,
 			subscribers,
 			variables
 		)
