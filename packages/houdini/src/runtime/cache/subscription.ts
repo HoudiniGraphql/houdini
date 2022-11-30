@@ -30,8 +30,20 @@ export class InMemorySubscriptions {
 		selection: SubscriptionSelection
 		variables: { [key: string]: GraphQLValue }
 	}) {
-		for (const fieldSelection of Object.values(selection)) {
-			const { keyRaw, fields, type } = fieldSelection
+		// collect all of the fields that we need to read
+		const fieldEntries = Object.entries(selection.fields || {})
+		const fieldMap = fieldEntries.reduce<
+			Record<string, Required<SubscriptionSelection>['fields'][string]>
+		>(
+			(prev, [field, value]) => ({
+				...prev,
+				[field]: value,
+			}),
+			{}
+		)
+
+		for (const fieldSelection of Object.values(fieldMap)) {
+			const { keyRaw, selection: innerSelection, type } = fieldSelection
 
 			const key = evaluateKey(keyRaw, variables)
 
@@ -39,7 +51,7 @@ export class InMemorySubscriptions {
 			this.addFieldSubscription({
 				id: parent,
 				key,
-				selection: fieldSelection,
+				field: fieldSelection,
 				spec,
 				parentType: parentType || spec.rootType,
 				variables,
@@ -47,7 +59,7 @@ export class InMemorySubscriptions {
 
 			// if the field points to a link, we need to subscribe to any fields of that
 			// linked record
-			if (fields) {
+			if (innerSelection) {
 				// if the link points to a record then we just have to add it to the one
 				const { value: linkedRecord } = this.cache._internal_unstable.storage.get(
 					parent,
@@ -67,7 +79,7 @@ export class InMemorySubscriptions {
 					this.add({
 						parent: child as string,
 						spec,
-						selection: fields,
+						selection: innerSelection,
 						variables,
 						parentType: type,
 					})
@@ -79,14 +91,14 @@ export class InMemorySubscriptions {
 	addFieldSubscription({
 		id,
 		key,
-		selection,
+		field,
 		spec,
 		parentType,
 		variables,
 	}: {
 		id: string
 		key: string
-		selection: SubscriptionSelection[string]
+		field: Required<SubscriptionSelection>['fields'][string]
 		spec: SubscriptionSpec
 		parentType: string
 		variables: GraphQLObject
@@ -128,8 +140,8 @@ export class InMemorySubscriptions {
 
 		// if this field is marked as a list, register it. this will overwrite existing list handlers
 		// so that they can get up to date filters
-		const { fields, list, filters } = selection
-		if (fields && list) {
+		const { selection, list, filters } = field
+		if (selection && list) {
 			this.cache._internal_unstable.lists.add({
 				name: list.name,
 				connection: list.connection,
@@ -139,7 +151,7 @@ export class InMemorySubscriptions {
 						?.value as string) || parentType,
 				listType: list.type,
 				key,
-				selection: fields,
+				selection,
 				filters: Object.entries(filters || {}).reduce((acc, [key, { kind, value }]) => {
 					return {
 						...acc,
@@ -165,8 +177,8 @@ export class InMemorySubscriptions {
 		parentType: string
 	}) {
 		// look at every field in the selection and add the subscribers
-		for (const fieldSelection of Object.values(selection)) {
-			const { type: linkedType, keyRaw, fields } = fieldSelection
+		for (const fieldSelection of Object.values(selection.fields || {})) {
+			const { type: linkedType, keyRaw, selection: innerSelection } = fieldSelection
 			const key = evaluateKey(keyRaw, variables)
 
 			// add the subscriber to the
@@ -174,7 +186,7 @@ export class InMemorySubscriptions {
 				this.addFieldSubscription({
 					id: parent,
 					key,
-					selection: fieldSelection,
+					field: fieldSelection,
 					spec,
 					parentType,
 					variables,
@@ -182,7 +194,7 @@ export class InMemorySubscriptions {
 			}
 
 			// if there are fields under this
-			if (fields) {
+			if (innerSelection) {
 				const { value: link } = this.cache._internal_unstable.storage.get(parent, key)
 
 				// figure out who else needs subscribers
@@ -197,7 +209,7 @@ export class InMemorySubscriptions {
 					// insert the subscriber
 					this.addMany({
 						parent: linkedRecord,
-						selection: fields,
+						selection: innerSelection,
 						variables,
 						subscribers,
 						parentType: linkedType,
@@ -213,7 +225,7 @@ export class InMemorySubscriptions {
 
 	remove(
 		id: string,
-		fields: SubscriptionSelection,
+		selection: SubscriptionSelection,
 		targets: SubscriptionSpec[],
 		variables: {},
 		visited: string[] = []
@@ -224,8 +236,8 @@ export class InMemorySubscriptions {
 		const linkedIDs: [string, SubscriptionSelection][] = []
 
 		// look at the fields for ones corresponding to links
-		for (const selection of Object.values(fields)) {
-			const key = evaluateKey(selection.keyRaw, variables)
+		for (const fieldSelection of Object.values(selection.fields || {})) {
+			const key = evaluateKey(fieldSelection.keyRaw, variables)
 
 			// remove the subscribers for the field
 			this.removeSubscribers(id, key, targets)
@@ -233,10 +245,6 @@ export class InMemorySubscriptions {
 			// if there is no subselection it doesn't point to a link, move on
 			if (!selection.fields) {
 				continue
-			}
-
-			// if there is a link associated with this field we need to destroy the handler
-			if (selection.list) {
 			}
 
 			const { value: previousValue } = this.cache._internal_unstable.storage.get(id, key)

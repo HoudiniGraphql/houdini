@@ -225,23 +225,36 @@ export class List {
 		// if we are wrapping a connection, we have to embed the data under edges > node
 		if (this.connection) {
 			insertSelection = {
-				newEntry: {
-					keyRaw: this.key,
-					type: 'Connection',
-					fields: {
-						edges: {
-							keyRaw: 'edges',
-							type: 'ConnectionEdge',
-							update: (where === 'first' ? 'prepend' : 'append') as RefetchUpdateMode,
+				fields: {
+					newEntry: {
+						keyRaw: this.key,
+						type: 'Connection',
+						selection: {
 							fields: {
-								node: {
-									type: listType,
-									keyRaw: 'node',
-									fields: {
-										...selection,
-										__typename: {
-											keyRaw: '__typename',
-											type: 'String',
+								edges: {
+									keyRaw: 'edges',
+									type: 'ConnectionEdge',
+									update: (where === 'first'
+										? 'prepend'
+										: 'append') as RefetchUpdateMode,
+									selection: {
+										fields: {
+											node: {
+												type: listType,
+												keyRaw: 'node',
+												selection: {
+													fields: {
+														...selection.fields,
+														__typename: {
+															keyRaw: '__typename',
+															type: 'String',
+														},
+													},
+													abstractFields: {
+														...selection.abstractFields,
+													},
+												},
+											},
 										},
 									},
 								},
@@ -257,15 +270,22 @@ export class List {
 			}
 		} else {
 			insertSelection = {
-				newEntries: {
-					keyRaw: this.key,
-					type: listType,
-					update: (where === 'first' ? 'prepend' : 'append') as RefetchUpdateMode,
-					fields: {
-						...selection,
-						__typename: {
-							keyRaw: '__typename',
-							type: 'String',
+				fields: {
+					newEntries: {
+						keyRaw: this.key,
+						type: listType,
+						update: (where === 'first' ? 'prepend' : 'append') as RefetchUpdateMode,
+						selection: {
+							fields: {
+								...selection.fields,
+								__typename: {
+									keyRaw: '__typename',
+									type: 'String',
+								},
+							},
+							abstractFields: {
+								...selection.abstractFields,
+							},
 						},
 					},
 				},
@@ -352,7 +372,7 @@ export class List {
 			targetID,
 			// if we are unsubscribing from a connection, the fields we care about
 			// are tucked away under edges
-			this.connection ? this.selection.edges.fields! : this.selection,
+			this.connection ? this.selection.fields!.edges.selection!.fields! : this.selection,
 			subscribers,
 			variables
 		)
