@@ -231,6 +231,7 @@ export default function artifactGenerator(stats: {
 								}),
 								{}
 							),
+						applyFragments: docKind !== 'HoudiniFragment',
 					})
 
 					// generate a hash of the document that we can use to detect changes

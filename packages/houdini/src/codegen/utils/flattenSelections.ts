@@ -7,11 +7,13 @@ export function flattenSelections({
 	filepath,
 	selections,
 	fragmentDefinitions,
+	applyFragments,
 }: {
 	config: Config
 	filepath: string
 	selections: readonly graphql.SelectionNode[]
 	fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode }
+	applyFragments: boolean
 }): readonly graphql.SelectionNode[] {
 	// collect all of the fields together
 	const fields = new FieldCollection({
@@ -19,6 +21,7 @@ export function flattenSelections({
 		filepath,
 		selections,
 		fragmentDefinitions,
+		applyFragments,
 	})
 
 	// convert the flat fields into a selection set
@@ -33,15 +36,18 @@ class FieldCollection {
 	fields: { [name: string]: Field<graphql.FieldNode> }
 	inlineFragments: { [typeName: string]: Field<graphql.InlineFragmentNode> }
 	fragmentSpreads: { [fragmentName: string]: graphql.FragmentSpreadNode }
+	applyFragments: boolean
 
 	constructor(args: {
 		config: Config
 		filepath: string
 		selections: readonly graphql.SelectionNode[]
 		fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode }
+		applyFragments: boolean
 	}) {
 		this.config = args.config
 		this.fragmentDefinitions = args.fragmentDefinitions
+		this.applyFragments = args.applyFragments
 
 		this.fields = {}
 		this.inlineFragments = {}
@@ -128,10 +134,9 @@ class FieldCollection {
 			}
 
 			// we're finished if we're not supposed to include fragments in the selection
-			if (!includeFragments) {
+			if (!includeFragments || !this.applyFragments) {
 				return
 			}
-
 			const definition = this.fragmentDefinitions[selection.name.value]
 			if (!definition) {
 				throw new HoudiniError({
@@ -172,6 +177,7 @@ class FieldCollection {
 			fragmentDefinitions: this.fragmentDefinitions,
 			selections: [],
 			filepath: this.filepath,
+			applyFragments: this.applyFragments,
 		})
 	}
 }
