@@ -55,6 +55,146 @@ test('write selection to root', function () {
 	})
 })
 
+test('write abstract fields of matching type', function () {
+	// instantiate a cache we'll test against
+	const cache = new Cache(config)
+
+	// save the data
+	const data = {
+		viewer: {
+			__typename: 'User',
+			id: '1',
+			firstName: 'bob',
+		},
+	}
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'Node',
+				keyRaw: 'viewer',
+				abstract: true,
+				selection: {
+					fields: {
+						__typename: {
+							type: 'String',
+							keyRaw: '__typename',
+						},
+					},
+					abstractFields: {
+						User: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+							firstName: {
+								type: 'String',
+								keyRaw: 'firstName',
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	cache.write({
+		selection,
+		data,
+	})
+
+	// make sure we can get back what we wrote
+	expect(
+		cache.read({
+			selection,
+		}).data
+	).toEqual({
+		viewer: {
+			id: '1',
+			firstName: 'bob',
+		},
+	})
+})
+
+test('ignore abstract fields of unmatched type', function () {
+	// instantiate a cache we'll test against
+	const cache = new Cache(config)
+
+	// save the data
+	const data = {
+		viewer: {
+			__typename: 'NotUser',
+			id: '1',
+			lastName: 'bob',
+		},
+	}
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'Node',
+				keyRaw: 'viewer',
+				abstract: true,
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						__typename: {
+							type: 'String',
+							keyRaw: '__typename',
+						},
+					},
+					abstractFields: {
+						User: {
+							firstName: {
+								type: 'String',
+								keyRaw: 'firstName',
+							},
+						},
+						NotUser: {
+							lastName: {
+								type: 'String',
+								keyRaw: 'firstName',
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	cache.write({
+		selection,
+		data,
+	})
+
+	// make sure we can get back what we wrote
+	expect(
+		cache.read({
+			selection: {
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+					__typename: {
+						type: 'String',
+						keyRaw: '__typename',
+					},
+					firstName: {
+						type: 'String',
+						keyRaw: 'firstName',
+						nullable: true,
+					},
+				},
+			},
+		}).data
+	).toEqual({
+		viewer: {
+			id: '1',
+			firstName: null,
+		},
+	})
+})
+
 test('linked records with updates', function () {
 	// instantiate a cache we'll test against
 	const cache = new Cache(config)

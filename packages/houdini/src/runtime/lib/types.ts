@@ -159,7 +159,7 @@ export type SubscriptionSelection = {
 			abstract?: boolean
 		}
 	}
-	abstractFields?: { [typeName: string]: SubscriptionSelection }
+	abstractFields?: { [typeName: string]: SubscriptionSelection['fields'] }
 }
 
 export type SubscriptionSpec = {
