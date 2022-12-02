@@ -108,6 +108,7 @@ test('write abstract fields of matching type', function () {
 		}).data
 	).toEqual({
 		viewer: {
+			__typename: 'User',
 			id: '1',
 			firstName: 'bob',
 		},
@@ -153,7 +154,7 @@ test('ignore abstract fields of unmatched type', function () {
 						NotUser: {
 							lastName: {
 								type: 'String',
-								keyRaw: 'firstName',
+								keyRaw: 'lastName',
 							},
 						},
 					},
@@ -171,18 +172,23 @@ test('ignore abstract fields of unmatched type', function () {
 		cache.read({
 			selection: {
 				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
-					},
-					__typename: {
-						type: 'String',
-						keyRaw: '__typename',
-					},
-					firstName: {
-						type: 'String',
-						keyRaw: 'firstName',
-						nullable: true,
+					viewer: {
+						type: 'Node',
+						keyRaw: 'viewer',
+						abstract: true,
+						selection: {
+							fields: {
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									keyRaw: 'firstName',
+									nullable: true,
+								},
+							},
+						},
 					},
 				},
 			},

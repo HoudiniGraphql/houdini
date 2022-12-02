@@ -217,22 +217,24 @@ class CacheInternal {
 			return []
 		}
 
+		// we'll use the selection as the guide so that we can walk down the normal and abstract fields
+		// independently. Eventually, we might want to merge these so that the walk is faster. This will
+		// increase the size of the artifact since the non-abstract fields will be duplicated
+		// but it might be worth it
+
 		// collect all of the fields that we need to write
-		const fieldEntries = Object.entries(selection.fields || {})
-		const fieldMap = fieldEntries.reduce<
-			Record<string, Required<SubscriptionSelection>['fields'][string]>
-		>(
-			(prev, [field, value]) => ({
-				...prev,
-				[field]: value,
-			}),
-			{}
-		)
+		let selectionEntries = Object.entries(selection.fields || {})
+		// if we have abstract fields, grab the __typename and include them in the list
+		if (selection.abstractFields && data && '__typename' in data) {
+			selectionEntries = selectionEntries.concat(
+				Object.entries(selection.abstractFields[data['__typename'] as string] || {})
+			)
+		}
 
 		// data is an object with fields that we need to write to the store
-		for (const [field, value] of Object.entries(data)) {
+		for (const [field, sel] of selectionEntries) {
 			// grab the selection info we care about
-			if (!selection || !fieldMap[field]) {
+			if (!selection || (!data[field] && data[field] !== null)) {
 				throw new Error(
 					'Could not find field listing in selection for ' +
 						field +
@@ -250,8 +252,11 @@ class CacheInternal {
 				operations,
 				abstract: isAbstract,
 				update,
-			} = fieldMap[field]
+			} = sel
 			const key = evaluateKey(keyRaw, variables)
+
+			//  the current value
+			const value = data[field]
 
 			// the current set of subscribers
 			const currentSubscribers = this.subscriptions.get(parent, key)
@@ -701,11 +706,21 @@ class CacheInternal {
 			{}
 		)
 
+		// collect all of the fields that we need to write
+		let selectionEntries = Object.entries(selection.fields || {})
+		// if we have abstract fields, grab the __typename and include them in the list
+		const typename = this.storage.get(parent, '__typename').value as string
+		if (selection.abstractFields && typename) {
+			selectionEntries = selectionEntries.concat(
+				Object.entries(selection.abstractFields[typename] || {})
+			)
+		}
+
 		// look at every field in the parentFields
 		for (const [
 			attributeName,
 			{ type, keyRaw, selection: fieldSelection, nullable, list },
-		] of Object.entries(fieldMap)) {
+		] of selectionEntries) {
 			const key = evaluateKey(keyRaw, variables)
 
 			// look up the value in our store
