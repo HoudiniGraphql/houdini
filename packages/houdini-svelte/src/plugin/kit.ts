@@ -1,5 +1,5 @@
 import * as graphql from 'graphql'
-import { Config, find_graphql, fs, HoudiniError, path } from 'houdini'
+import { Config, find_graphql, fs, path } from 'houdini'
 import { ensure_imports } from 'houdini/vite'
 import recast from 'recast'
 
