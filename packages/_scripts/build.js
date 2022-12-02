@@ -86,7 +86,7 @@ async function build({ package_json, source, bundle = true, plugin, cmd }) {
 	// if we aren't bundling, look up the entrypoints once
 	const children = bundle
 		? []
-		: await promisify(glob)(path.join(source, '**/**/*').replaceAll('\\', '/'), {
+		: await promisify(glob)(path.join(source, '**/**/!(*.test)*').replaceAll('\\', '/'), {
 				nodir: true,
 		  })
 
