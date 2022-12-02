@@ -1,5 +1,5 @@
 import * as graphql from 'graphql'
-import { fs, find_graphql, Config, path } from 'houdini'
+import { Config, find_graphql, fs, HoudiniError, path } from 'houdini'
 import { ensure_imports } from 'houdini/vite'
 import recast from 'recast'
 
@@ -362,6 +362,7 @@ export function plugin_config(config: Config): Required<HoudiniVitePluginConfig>
 	const cfg = config.pluginConfig<HoudiniVitePluginConfig>('houdini-svelte')
 
 	return {
+		client: './src/client',
 		globalStorePrefix: 'GQL_',
 		pageQueryFilename: '+page.gql',
 		layoutQueryFilename: '+layout.gql',
