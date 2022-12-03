@@ -30,26 +30,13 @@ export class InMemorySubscriptions {
 		selection: SubscriptionSelection
 		variables: { [key: string]: GraphQLValue }
 	}) {
-		// look up the known type in the cache
+		// figure out the correct selection
 		const __typename = this.cache._internal_unstable.storage.get(parent, '__typename')
 			.value as string
-
-		// figure out the correct selection
 		const targetSelection = selection.abstractFields?.[__typename] || selection.fields
 
-		// collect all of the fields that we need to read
-		const fieldEntries = Object.entries(targetSelection || {})
-		const fieldMap = fieldEntries.reduce<
-			Record<string, Required<SubscriptionSelection>['fields'][string]>
-		>(
-			(prev, [field, value]) => ({
-				...prev,
-				[field]: value,
-			}),
-			{}
-		)
-
-		for (const fieldSelection of Object.values(fieldMap)) {
+		// walk down the selection
+		for (const fieldSelection of Object.values(targetSelection || {})) {
 			const { keyRaw, selection: innerSelection, type } = fieldSelection
 
 			const key = evaluateKey(keyRaw, variables)
