@@ -1876,6 +1876,104 @@ test('ensure parent type is properly passed for nested lists', function () {
 	expect(() => cache.list('Book_List', '2')).not.toThrow()
 })
 
+test('subscribe to abstract fields of matching type', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'Node',
+				keyRaw: 'viewer',
+				abstract: true,
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+						__typename: {
+							type: 'String',
+							keyRaw: '__typename',
+						},
+					},
+					abstractFields: {
+						User: {
+							__typename: {
+								type: 'String',
+								keyRaw: '__typename',
+							},
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+							firstName: {
+								type: 'String',
+								keyRaw: 'firstName',
+							},
+							favoriteColors: {
+								type: 'String',
+								keyRaw: 'favoriteColors',
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// write some data
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				__typename: 'User',
+				id: '1',
+				firstName: 'bob',
+				favoriteColors: [],
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = vi.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		selection,
+		set,
+	})
+
+	// somehow write a user to the cache with the same id, but a different name
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				__typename: 'User',
+				id: '1',
+				favoriteColors: ['red', 'green', 'blue'],
+			},
+		},
+	})
+
+	// make sure that set got called with the full response
+	expect(set).toHaveBeenCalledWith({
+		viewer: {
+			__typename: 'User',
+			firstName: 'bob',
+			favoriteColors: ['red', 'green', 'blue'],
+			id: '1',
+		},
+	})
+})
+
+test('new __typename moves subscribers', function () {})
+
 test.todo('can write to and resolve layers')
 
 test.todo("resolving a layer with the same value as the most recent doesn't notify subscribers")

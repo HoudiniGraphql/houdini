@@ -282,6 +282,7 @@ export default async function typeCheck(
 
 	// if we got errors
 	if (errors.length > 0) {
+		console.log(errors)
 		throw errors
 	}
 
@@ -348,6 +349,7 @@ export default async function typeCheck(
 
 	// if we got errors
 	if (errors.length > 0) {
+		console.log(errors)
 		throw errors
 	}
 

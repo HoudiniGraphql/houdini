@@ -30,8 +30,15 @@ export class InMemorySubscriptions {
 		selection: SubscriptionSelection
 		variables: { [key: string]: GraphQLValue }
 	}) {
+		// look up the known type in the cache
+		const __typename = this.cache._internal_unstable.storage.get(parent, '__typename')
+			.value as string
+
+		// figure out the correct selection
+		const targetSelection = selection.abstractFields?.[__typename] || selection.fields
+
 		// collect all of the fields that we need to read
-		const fieldEntries = Object.entries(selection.fields || {})
+		const fieldEntries = Object.entries(targetSelection || {})
 		const fieldMap = fieldEntries.reduce<
 			Record<string, Required<SubscriptionSelection>['fields'][string]>
 		>(
@@ -176,8 +183,12 @@ export class InMemorySubscriptions {
 		subscribers: SubscriptionSpec[]
 		parentType: string
 	}) {
+		// if there is an abstract selection for the type, use that, otherwise
+		// the standard selection is good
+		let targetSelection = selection.abstractFields?.[parentType] || selection.fields || {}
+
 		// look at every field in the selection and add the subscribers
-		for (const fieldSelection of Object.values(selection.fields || {})) {
+		for (const fieldSelection of Object.values(targetSelection)) {
 			const { type: linkedType, keyRaw, selection: innerSelection } = fieldSelection
 			const key = evaluateKey(keyRaw, variables)
 

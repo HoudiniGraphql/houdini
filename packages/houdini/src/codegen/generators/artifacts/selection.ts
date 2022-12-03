@@ -226,5 +226,16 @@ export default function selection({
 		}
 	}
 
+	// if the field has fields and abstract fields, we need to merge them
+	if (
+		Object.keys(object.fields || {}).length > 0 &&
+		Object.keys(object.abstractFields || {}).length > 0
+	) {
+		// merge the fields into the abstract  fields
+		for (const [type, selection] of Object.entries(object.abstractFields || {})) {
+			object.abstractFields![type] = deepMerge(filepath, selection || {}, object.fields!)
+		}
+	}
+
 	return object
 }

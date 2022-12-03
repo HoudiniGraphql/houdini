@@ -1,5 +1,6 @@
 import * as graphql from 'graphql'
 import { vol } from 'memfs'
+import { parse } from 'path'
 
 import { runPipeline } from '../codegen'
 import { Config, fs, path, CollectedGraphQLDocument } from '../lib'
@@ -12,10 +13,11 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 			scalar Cursor
 
 
-			type User implements Node {
+			type User implements Node & Friend {
 				id: ID!
+				name: String!
 				firstName: String!
-				friends: [User!]!
+				friends: [Friend!]!
 				friendsByCursor(first: Int, after: String, last: Int, before: String, filter: String): UserConnection!
 				friendsByCursorScalar(first: Int, after: Cursor, last: Int, before: Cursor, filter: String): UserConnection!
 				friendsByBackwardsCursor(last: Int, before: String, filter: String): UserConnectionScalar!

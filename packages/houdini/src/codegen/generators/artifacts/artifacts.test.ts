@@ -371,8 +371,10 @@ test('overlapping query and fragment selection', async function () {
 test('overlapping query and fragment nested selection', async function () {
 	// execute the generator
 	await runPipeline(config, [
-		mockCollectedDoc(`fragment A on User { friends { id } }`),
-		mockCollectedDoc(`query TestQuery { user { friends { firstName } ...A @prepend } }`),
+		mockCollectedDoc(`fragment A on User { friends { ... on User { id } } }`),
+		mockCollectedDoc(
+			`query TestQuery { user { friends {... on User { firstName } } ...A @prepend } }`
+		),
 	])
 
 	// load the contents of the file
@@ -380,13 +382,15 @@ test('overlapping query and fragment nested selection', async function () {
 		export default {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "58b9fbe10de1dedb58d303b2e492b01192c69daceafd1060e433f40f9b4d6eb0",
+		    hash: "b812cda9076300472a1ffe15d0b373971d76f5b7fa5273a370dc7bb4ddef94ef",
 
 		    raw: \`query TestQuery {
 		  user {
 		    friends {
-		      firstName
-		      id
+		      ... on User {
+		        firstName
+		      }
+		      __typename
 		    }
 		    ...A
 		    id
@@ -395,7 +399,10 @@ test('overlapping query and fragment nested selection', async function () {
 
 		fragment A on User {
 		  friends {
-		    id
+		    ... on User {
+		      id
+		    }
+		    __typename
 		  }
 		}
 		\`,
@@ -411,22 +418,40 @@ test('overlapping query and fragment nested selection', async function () {
 		                selection: {
 		                    fields: {
 		                        friends: {
-		                            type: "User",
+		                            type: "Friend",
 		                            keyRaw: "friends",
 
 		                            selection: {
-		                                fields: {
-		                                    firstName: {
-		                                        type: "String",
-		                                        keyRaw: "firstName"
-		                                    },
+		                                abstractFields: {
+		                                    User: {
+		                                        fields: {
+		                                            firstName: {
+		                                                type: "String",
+		                                                keyRaw: "firstName"
+		                                            },
 
-		                                    id: {
-		                                        type: "ID",
-		                                        keyRaw: "id"
+		                                            id: {
+		                                                type: "ID",
+		                                                keyRaw: "id"
+		                                            }
+		                                        },
+
+		                                        __typename: {
+		                                            type: "String",
+		                                            keyRaw: "__typename"
+		                                        }
+		                                    }
+		                                },
+
+		                                fields: {
+		                                    __typename: {
+		                                        type: "String",
+		                                        keyRaw: "__typename"
 		                                    }
 		                                }
-		                            }
+		                            },
+
+		                            abstract: true
 		                        },
 
 		                        id: {
@@ -443,7 +468,7 @@ test('overlapping query and fragment nested selection', async function () {
 		    partial: false
 		};
 
-		"HoudiniHash=a7f167e15c06d8c7ea633e038190ebf0a27242880451f59b4bd30adba4ac5139";
+		"HoudiniHash=52c0a6e1929b31d82504cc47b56027c0bd86f489ef6aabcb14e7fd4282b4f5e7";
 	`)
 })
 
@@ -529,6 +554,11 @@ test('selections with interfaces', async function () {
 		                                        }
 		                                    }
 		                                }
+		                            },
+
+		                            __typename: {
+		                                type: "String",
+		                                keyRaw: "__typename"
 		                            }
 		                        },
 
@@ -538,6 +568,11 @@ test('selections with interfaces', async function () {
 		                                    type: "String",
 		                                    keyRaw: "name"
 		                                }
+		                            },
+
+		                            __typename: {
+		                                type: "String",
+		                                keyRaw: "__typename"
 		                            }
 		                        }
 		                    },
@@ -645,6 +680,11 @@ test('selections with unions', async function () {
 		                                        }
 		                                    }
 		                                }
+		                            },
+
+		                            __typename: {
+		                                type: "String",
+		                                keyRaw: "__typename"
 		                            }
 		                        },
 
@@ -654,6 +694,11 @@ test('selections with unions', async function () {
 		                                    type: "String",
 		                                    keyRaw: "name"
 		                                }
+		                            },
+
+		                            __typename: {
+		                                type: "String",
+		                                keyRaw: "__typename"
 		                            }
 		                        }
 		                    },
@@ -676,6 +721,149 @@ test('selections with unions', async function () {
 		};
 
 		"HoudiniHash=f11d375eb2ec0b5373b2e717f97a1464c3c2ec470f9b17ad5693c1ff98c9c121";
+	`)
+})
+
+test('selections with overlapping unions', async function () {
+	const cfg = testConfig({ module: 'esm' })
+	const docs = [
+		mockCollectedDoc(
+			`query Friends {
+					friends {
+						name
+                        ... on Cat {
+                            id
+							owner {
+								firstName
+							}
+                        }
+                        ... on Ghost {
+                            name
+                        }
+					}
+				}`
+		),
+	]
+
+	// execute the generator
+	await runPipeline(cfg, docs)
+
+	// verify contents
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    name: "Friends",
+		    kind: "HoudiniQuery",
+		    hash: "894976dc2741930d9138b88a86b5ba55fd0d0041efd8a9157a239a322dd8438d",
+
+		    raw: \`query Friends {
+		  friends {
+		    name
+		    ... on Cat {
+		      id
+		      owner {
+		        firstName
+		        id
+		      }
+		    }
+		    ... on Ghost {
+		      name
+		    }
+		    __typename
+		  }
+		}
+		\`,
+
+		    rootType: "Query",
+
+		    selection: {
+		        fields: {
+		            friends: {
+		                type: "Friend",
+		                keyRaw: "friends",
+
+		                selection: {
+		                    abstractFields: {
+		                        Cat: {
+		                            fields: {
+		                                id: {
+		                                    type: "ID",
+		                                    keyRaw: "id"
+		                                },
+
+		                                owner: {
+		                                    type: "User",
+		                                    keyRaw: "owner",
+
+		                                    selection: {
+		                                        fields: {
+		                                            firstName: {
+		                                                type: "String",
+		                                                keyRaw: "firstName"
+		                                            },
+
+		                                            id: {
+		                                                type: "ID",
+		                                                keyRaw: "id"
+		                                            }
+		                                        }
+		                                    }
+		                                }
+		                            },
+
+		                            name: {
+		                                type: "String",
+		                                keyRaw: "name"
+		                            },
+
+		                            __typename: {
+		                                type: "String",
+		                                keyRaw: "__typename"
+		                            }
+		                        },
+
+		                        Ghost: {
+		                            fields: {
+		                                name: {
+		                                    type: "String",
+		                                    keyRaw: "name"
+		                                }
+		                            },
+
+		                            name: {
+		                                type: "String",
+		                                keyRaw: "name"
+		                            },
+
+		                            __typename: {
+		                                type: "String",
+		                                keyRaw: "__typename"
+		                            }
+		                        }
+		                    },
+
+		                    fields: {
+		                        name: {
+		                            type: "String",
+		                            keyRaw: "name"
+		                        },
+
+		                        __typename: {
+		                            type: "String",
+		                            keyRaw: "__typename"
+		                        }
+		                    }
+		                },
+
+		                abstract: true
+		            }
+		        }
+		    },
+
+		    policy: "CacheOrNetwork",
+		    partial: false
+		};
+
+		"HoudiniHash=945820a74a8893f4e526f32809f73f5a1a8cd00e971f9f7ad8c628fa448d1013";
 	`)
 })
 

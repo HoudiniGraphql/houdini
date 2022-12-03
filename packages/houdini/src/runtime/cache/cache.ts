@@ -217,24 +217,24 @@ class CacheInternal {
 			return []
 		}
 
-		// we'll use the selection as the guide so that we can walk down the normal and abstract fields
-		// independently. Eventually, we might want to merge these so that the walk is faster. This will
-		// increase the size of the artifact since the non-abstract fields will be duplicated
-		// but it might be worth it
+		// which selection we need to walk down depends on the type of the data
+		// if we dont have a matching abstract selection then we should just use the
+		// normal field one
 
 		// collect all of the fields that we need to write
-		let selectionEntries = Object.entries(selection.fields || {})
+		let targetSelection = selection.fields || {}
 		// if we have abstract fields, grab the __typename and include them in the list
 		if (selection.abstractFields && data && '__typename' in data) {
-			selectionEntries = selectionEntries.concat(
-				Object.entries(selection.abstractFields[data['__typename'] as string] || {})
-			)
+			const __typename = data['__typename'] as string
+			if (selection.abstractFields[__typename]) {
+				targetSelection = selection.abstractFields[__typename] || {}
+			}
 		}
 
 		// data is an object with fields that we need to write to the store
-		for (const [field, sel] of selectionEntries) {
+		for (const [field, value] of Object.entries(data)) {
 			// grab the selection info we care about
-			if (!selection || (!data[field] && data[field] !== null)) {
+			if (!selection || !targetSelection[field]) {
 				throw new Error(
 					'Could not find field listing in selection for ' +
 						field +
@@ -252,11 +252,8 @@ class CacheInternal {
 				operations,
 				abstract: isAbstract,
 				update,
-			} = sel
+			} = targetSelection[field]
 			const key = evaluateKey(keyRaw, variables)
-
-			//  the current value
-			const value = data[field]
 
 			// the current set of subscribers
 			const currentSubscribers = this.subscriptions.get(parent, key)
@@ -392,7 +389,7 @@ class CacheInternal {
 						toNotify,
 						applyUpdates,
 						layer,
-						forceNotify: true,
+						forceNotify,
 					})
 				}
 			}
@@ -694,33 +691,21 @@ class CacheInternal {
 		// that happens after we process every field to determine if its a partial null
 		let cascadeNull = false
 
-		// collect all of the fields that we need to read
-		const fieldEntries = Object.entries(selection.fields || {})
-		const fieldMap = fieldEntries.reduce<
-			Record<string, Required<SubscriptionSelection>['fields'][string]>
-		>(
-			(prev, [field, value]) => ({
-				...prev,
-				[field]: value,
-			}),
-			{}
-		)
-
-		// collect all of the fields that we need to write
-		let selectionEntries = Object.entries(selection.fields || {})
+		let targetSelection = selection.fields || {}
 		// if we have abstract fields, grab the __typename and include them in the list
 		const typename = this.storage.get(parent, '__typename').value as string
+		// if we have abstract fields, grab the __typename and include them in the list
 		if (selection.abstractFields && typename) {
-			selectionEntries = selectionEntries.concat(
-				Object.entries(selection.abstractFields[typename] || {})
-			)
+			if (selection.abstractFields[typename]) {
+				targetSelection = selection.abstractFields[typename] || {}
+			}
 		}
 
 		// look at every field in the parentFields
 		for (const [
 			attributeName,
 			{ type, keyRaw, selection: fieldSelection, nullable, list },
-		] of selectionEntries) {
+		] of Object.entries(targetSelection)) {
 			const key = evaluateKey(keyRaw, variables)
 
 			// look up the value in our store
