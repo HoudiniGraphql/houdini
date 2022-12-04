@@ -126,7 +126,7 @@ export class Config {
 		this.defaultCachePolicy = defaultCachePolicy
 		this.defaultPartial = defaultPartial
 		this.internalListPosition = defaultListPosition === 'append' ? 'last' : 'first'
-		this.defaultListTarget == defaultListTarget
+		this.defaultListTarget = defaultListTarget
 		this.definitionsFolder = definitionsPath
 		this.logLevel = ((logLevel as LogLevel) || LogLevel.Summary).toLowerCase() as LogLevel
 		this.disableMasking = disableMasking
