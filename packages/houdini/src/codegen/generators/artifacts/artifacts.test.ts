@@ -265,7 +265,7 @@ test('variables only used by internal directives are scrubbed', async function (
 		mockCollectedDoc(
 			`query TestQuery($parentID: ID!) {
 				user {
-					...A @prepend(parentID: $parentID)
+					...A @prepend @parentID(value: $parentID)
 				}
 			}`
 		),
@@ -330,7 +330,7 @@ test('variables only used by internal directives are scrubbed', async function (
 		    partial: false
 		};
 
-		"HoudiniHash=efafd620e8ee6999336778e8467eb5184c1d92e71393723cc857f4235d2a66b0";
+		"HoudiniHash=718f5256e7eb831d556ed5b26e0afdccb6db8e63715b04f60314483808d3b697";
 	`)
 })
 
@@ -1469,7 +1469,7 @@ describe('mutation artifacts', function () {
 				`mutation A {
 					addFriend {
 						friend {
-							...All_Users_insert @prepend(parentID: "1234")
+							...All_Users_insert @prepend @parentID(value: "1234")
 						}
 					}
 				}`
@@ -1557,7 +1557,7 @@ describe('mutation artifacts', function () {
 			    }
 			};
 
-			"HoudiniHash=75b2d544c45b48e48203138c3a204afdaa382c1673acaba9db9511ee6c929553";
+			"HoudiniHash=3bea2bec5d5cac795d941051dbacf5941a18716579f1f63aefb7b898372252d5";
 		`)
 	})
 
@@ -1567,7 +1567,7 @@ describe('mutation artifacts', function () {
 				`mutation A {
 					addFriend {
 						friend {
-							...All_Users_insert @append(parentID: "1234")
+							...All_Users_insert @append @parentID(value: "1234")
 						}
 					}
 				}`
@@ -1655,7 +1655,7 @@ describe('mutation artifacts', function () {
 			    }
 			};
 
-			"HoudiniHash=d585c80adc7fbc932f9cda5a3053b922baf1affa035b7c0b239cc38f65e6e4ed";
+			"HoudiniHash=db83e4480bab1a728042e1da417a3bb1c3acdbe52658847b508d00cf88aa7065";
 		`)
 	})
 
@@ -2474,7 +2474,7 @@ describe('mutation artifacts', function () {
 				`mutation A {
 					addFriend {
 						friend {
-							...All_Users_insert @prepend(parentID: "1234")
+							...All_Users_insert @prepend @parentID(value: "1234")
 						}
 					}
 				}`
@@ -2563,7 +2563,7 @@ describe('mutation artifacts', function () {
 				`mutation A {
 					addFriend {
 						friend {
-							...All_Users_insert @prepend(parentID: "1234")
+							...All_Users_insert @prepend @parentID(value: "1234")
 						}
 					}
 				}`

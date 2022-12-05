@@ -210,8 +210,7 @@ const table: Row[] = [
 		title: '@list with parentID as variable on query',
 		pass: true,
 		documents: [
-			`
-                query TestQuery {
+			`query TestQuery {
 					user {
 						friends {
 							friends @list(name: "Friends") {
@@ -219,16 +218,46 @@ const table: Row[] = [
 							}
 						}
 					}
-                }
+        }
             `,
-			`
-                mutation MutationM($parentID: ID!) {
+			`mutation MutationM1($parentID: ID!) {
+					addFriend {
+						...Friends_insert @prepend @parentID(value: $parentID)
+					}
+				}`,
+			`mutation MutationM2($parentID: ID!) {
+					addFriend {
+						...Friends_insert @prepend @parentID(value: $parentID)
+					}
+				}`,
+		],
+	},
+	{
+		title: 'deprecated usage of parentID in append and prepend',
+		pass: false,
+		documents: [
+			`query TestQuery {
+					user {
+						friends {
+							friends @list(name: "Friends") {
+								id
+							}
+						}
+					}
+        }
+            `,
+			`mutation MutationM1($parentID: ID!) {
+					addFriend {
+						...Friends_insert @append(parentID: $parentID)
+					}
+				}`,
+			`mutation MutationM2($parentID: ID!) {
 					addFriend {
 						...Friends_insert @prepend(parentID: $parentID)
 					}
-                }
-            `,
+				}`,
 		],
+		nb_of_fail: 4,
 	},
 	{
 		title: '@list without parentID on fragment',
@@ -902,6 +931,7 @@ type Row =
 			documents: string[]
 			check?: (docs: CollectedGraphQLDocument[]) => void
 			partial_config?: Partial<Config>
+			nb_of_fail?: number
 	  }
 	| {
 			title: string
@@ -909,10 +939,11 @@ type Row =
 			documents: string[]
 			check?: (result: Error | Error[]) => void
 			partial_config?: Partial<Config>
+			nb_of_fail?: number
 	  }
 
 // run the tests
-for (const { title, pass, documents, check, partial_config } of table) {
+for (const { title, pass, documents, check, partial_config, nb_of_fail } of table) {
 	describe('type check', function () {
 		test(
 			title,
@@ -924,9 +955,14 @@ for (const { title, pass, documents, check, partial_config } of table) {
 					? undefined
 					: check ||
 							function (e: Error | Error[]) {
+								const nb_of_fail_to_use = nb_of_fail || 2
+
+								// We should always have at least 2 fail tests!
+								expect(nb_of_fail_to_use).toBeGreaterThanOrEqual(2)
+
 								// We want to check that all errors are grouped into 1 throw
-								// having an array with 2 errors
-								expect(e).toHaveLength(2)
+								// having an array with at least 2 errors
+								expect(e).toHaveLength(nb_of_fail_to_use)
 							}
 			)
 		)

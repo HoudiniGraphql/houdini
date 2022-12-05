@@ -426,10 +426,14 @@ const validateLists = ({
 				if (directive) {
 					// find the argument holding the parent ID
 					let parentArg = directive.arguments?.find(
-						(arg) => arg.name.value === config.listDirectiveParentIDArg
+						(arg) => arg.name.value === config.deprecatedlistDirectiveParentIDArg
 					)
 					if (parentArg) {
-						parentIdFound = true
+						ctx.reportError(
+							new graphql.GraphQLError(
+								`@${config.deprecatedlistDirectiveParentIDArg} should be defined only in it's own directive now`
+							)
+						)
 					}
 				}
 

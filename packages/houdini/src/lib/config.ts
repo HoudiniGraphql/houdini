@@ -469,10 +469,10 @@ export class Config {
 	}
 
 	get listParentDirective() {
-		return this.listDirectiveParentIDArg
+		return 'parentID'
 	}
 
-	get listDirectiveParentIDArg() {
+	get deprecatedlistDirectiveParentIDArg() {
 		return 'parentID'
 	}
 
@@ -587,7 +587,7 @@ export class Config {
 				this.listDirective,
 				this.listPrependDirective,
 				this.listAppendDirective,
-				this.listDirectiveParentIDArg,
+				this.listParentDirective,
 				this.listAllListsDirective,
 				this.whenDirective,
 				this.whenNotDirective,

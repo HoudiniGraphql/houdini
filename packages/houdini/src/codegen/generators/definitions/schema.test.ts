@@ -40,10 +40,10 @@ test('adds internal documents to schema', async function () {
 			directive @paginate(name: String) on FIELD
 
 			"""@prepend is used to tell the runtime to add the result to the end of the list"""
-			directive @prepend(parentID: ID) on FRAGMENT_SPREAD
+			directive @prepend on FRAGMENT_SPREAD
 
 			"""@append is used to tell the runtime to add the result to the start of the list"""
-			directive @append(parentID: ID) on FRAGMENT_SPREAD
+			directive @append on FRAGMENT_SPREAD
 
 			"""@allLists is used to tell the runtime to add the result to all list"""
 			directive @allLists on FRAGMENT_SPREAD
@@ -110,10 +110,10 @@ test('list operations are included', async function () {
 			directive @paginate(name: String) on FIELD
 
 			"""@prepend is used to tell the runtime to add the result to the end of the list"""
-			directive @prepend(parentID: ID) on FRAGMENT_SPREAD
+			directive @prepend on FRAGMENT_SPREAD
 
 			"""@append is used to tell the runtime to add the result to the start of the list"""
-			directive @append(parentID: ID) on FRAGMENT_SPREAD
+			directive @append on FRAGMENT_SPREAD
 
 			"""@allLists is used to tell the runtime to add the result to all list"""
 			directive @allLists on FRAGMENT_SPREAD
@@ -199,10 +199,10 @@ test("writing twice doesn't duplicate definitions", async function () {
 			directive @paginate(name: String) on FIELD
 
 			"""@prepend is used to tell the runtime to add the result to the end of the list"""
-			directive @prepend(parentID: ID) on FRAGMENT_SPREAD
+			directive @prepend on FRAGMENT_SPREAD
 
 			"""@append is used to tell the runtime to add the result to the start of the list"""
-			directive @append(parentID: ID) on FRAGMENT_SPREAD
+			directive @append on FRAGMENT_SPREAD
 
 			"""@allLists is used to tell the runtime to add the result to all list"""
 			directive @allLists on FRAGMENT_SPREAD

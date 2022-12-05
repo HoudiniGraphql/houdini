@@ -32,16 +32,14 @@ directive @${config.paginateDirective}(${config.paginateNameArg}: String) on FIE
 """
 	@${config.listPrependDirective} is used to tell the runtime to add the result to the end of the list
 """
-directive @${config.listPrependDirective}(
-	${config.listDirectiveParentIDArg}: ID
-) on FRAGMENT_SPREAD
+directive @${config.listPrependDirective} on FRAGMENT_SPREAD
 
 """
 	@${
 		config.listAppendDirective
 	} is used to tell the runtime to add the result to the start of the list
 """
-directive @${config.listAppendDirective}(${config.listDirectiveParentIDArg}: ID) on FRAGMENT_SPREAD
+directive @${config.listAppendDirective} on FRAGMENT_SPREAD
 
 """
 	@${config.listAllListsDirective} is used to tell the runtime to add the result to all list
