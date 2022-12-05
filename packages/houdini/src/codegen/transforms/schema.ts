@@ -81,18 +81,20 @@ directive @${config.cacheDirective}(${config.cachePolicyArg}: CachePolicy, ${
 	}: Boolean) on QUERY
 
 """
-	@${config.houdiniDirective} is used to configure houdini's internal behavior
+	@${
+		config.pauseDirective
+	} is used to disable the automatic fetch (no load, no auto fetch), you will have to do it manually.
 """
-directive @${config.houdiniDirective}(
-	"""
-	Opt-in to an automatic load function (only valid when used at queries)
-	"""
-	load: Boolean! = true
-	"""
-	Mask fragment fields (only valid when used at a fragment spread)
-	"""
-	mask: Boolean! = ${config.disableMasking ? 'false' : 'true'}
-) on QUERY | FRAGMENT_SPREAD
+directive @${config.pauseDirective} on QUERY
+
+"""
+	@${
+		config.maskDirective
+	} to specify at fragment level the masking behavior (overwriting the global conf)
+"""
+directive @${config.maskDirective}(on: Boolean! = ${
+		config.disableMasking ? 'false' : 'true'
+	}) on FRAGMENT_SPREAD
 `
 
 	// if the config does not have the cache directive, then we need to add it

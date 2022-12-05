@@ -451,9 +451,12 @@ export class Config {
 		GraphqQL conventions
 
 	*/
+	get pauseDirective() {
+		return 'pause'
+	}
 
-	get houdiniDirective() {
-		return 'houdini'
+	get maskDirective() {
+		return 'mask'
 	}
 
 	get listDirective() {
@@ -472,6 +475,9 @@ export class Config {
 		return 'parentID'
 	}
 
+	/**
+	 * @deprecated
+	 */
 	get deprecatedlistDirectiveParentIDArg() {
 		return 'parentID'
 	}
@@ -595,7 +601,8 @@ export class Config {
 				this.withDirective,
 				this.paginateDirective,
 				this.cacheDirective,
-				this.houdiniDirective,
+				this.pauseDirective,
+				this.maskDirective,
 			].includes(name.value) || this.isDeleteDirective(name.value)
 		)
 	}

@@ -145,7 +145,7 @@ You can override this default behavior with the config option `disableMasking` f
 query CurrentUser {
 	me {
 		uuid
-		...UserProfile @houdini(mask: false)
+		...UserProfile @mask(on: false)
 		...UserMeta
 	}
 }

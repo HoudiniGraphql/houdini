@@ -1257,7 +1257,7 @@ describe('typescript', function () {
 			mockCollectedDoc(`
 				query MyQuery {
 					user {
-						...UserBase @houdini(mask: false)
+						...UserBase @mask(on: false)
 						...UserMore
 					}
 				}
@@ -1343,7 +1343,7 @@ describe('typescript', function () {
 			mockCollectedDoc(`
 				query MyQuery {
 					user {
-						...UserBase @houdini(mask: true)
+						...UserBase @mask(on: true)
 						...UserMore
 					}
 				}

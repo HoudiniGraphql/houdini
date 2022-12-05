@@ -66,13 +66,11 @@ test('adds internal documents to schema', async function () {
 			"""@cache is used to specify cache rules for a query"""
 			directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
-			"""@houdini is used to configure houdini's internal behavior"""
-			directive @houdini(
-			  """Opt-in to an automatic load function (only valid when used at queries)"""
-			  load: Boolean! = true
-			  """Mask fragment fields (only valid when used at a fragment spread)"""
-			  mask: Boolean! = true
-			) on QUERY | FRAGMENT_SPREAD
+			"""@pause is used to disable the automatic fetch (no load, no auto fetch), you will have to do it manually."""
+			directive @pause on QUERY
+
+			"""@mask to specify at fragment level the masking behavior (overwriting the global conf)"""
+			directive @mask(on: Boolean! = true) on FRAGMENT_SPREAD
 		`)
 })
 
@@ -136,13 +134,11 @@ test('list operations are included', async function () {
 			"""@cache is used to specify cache rules for a query"""
 			directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
-			"""@houdini is used to configure houdini's internal behavior"""
-			directive @houdini(
-			  """Opt-in to an automatic load function (only valid when used at queries)"""
-			  load: Boolean! = true
-			  """Mask fragment fields (only valid when used at a fragment spread)"""
-			  mask: Boolean! = true
-			) on QUERY | FRAGMENT_SPREAD
+			"""@pause is used to disable the automatic fetch (no load, no auto fetch), you will have to do it manually."""
+			directive @pause on QUERY
+
+			"""@mask to specify at fragment level the masking behavior (overwriting the global conf)"""
+			directive @mask(on: Boolean! = true) on FRAGMENT_SPREAD
 
 			directive @User_delete repeatable on FIELD
 		`)
@@ -225,12 +221,10 @@ test("writing twice doesn't duplicate definitions", async function () {
 			"""@cache is used to specify cache rules for a query"""
 			directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
-			"""@houdini is used to configure houdini's internal behavior"""
-			directive @houdini(
-			  """Opt-in to an automatic load function (only valid when used at queries)"""
-			  load: Boolean! = true
-			  """Mask fragment fields (only valid when used at a fragment spread)"""
-			  mask: Boolean! = true
-			) on QUERY | FRAGMENT_SPREAD
+			"""@pause is used to disable the automatic fetch (no load, no auto fetch), you will have to do it manually."""
+			directive @pause on QUERY
+
+			"""@mask to specify at fragment level the masking behavior (overwriting the global conf)"""
+			directive @mask(on: Boolean! = true) on FRAGMENT_SPREAD
 		`)
 })
