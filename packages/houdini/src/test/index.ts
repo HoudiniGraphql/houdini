@@ -195,7 +195,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 	})
 }
 
-type Partial<T> = {
+export type Partial<T> = {
 	[P in keyof T]?: T[P]
 }
 
@@ -218,15 +218,16 @@ export function pipelineTest(
 		} catch (e) {
 			// only bubble the error up if we're supposed to pass the test
 			if (shouldPass) {
-				throw e
+				// console.error(docs)
+				console.error(e)
+				throw 'pipeline failed when it should have passed'
 			}
 			error = e as Error[]
 		}
 
 		// if we shouldn't pass but we did, we failed the test
 		if (!shouldPass && error.length === 0) {
-			throw 'did not fail test'
-			return
+			throw "pipeline shouldn't have passed!"
 		}
 
 		// run the rest of the test

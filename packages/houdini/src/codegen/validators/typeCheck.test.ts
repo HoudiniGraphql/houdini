@@ -1,5 +1,6 @@
 import { test, expect, describe } from 'vitest'
 
+import { Config } from '../../lib'
 import { CollectedGraphQLDocument } from '../../lib/types'
 import { pipelineTest, testConfig } from '../../test'
 
@@ -116,32 +117,8 @@ const table: Row[] = [
 		},
 	},
 	{
-		title: '@list with parentID on query',
+		title: 'no @parentID @allLists on _insert, but defaultListTarget',
 		pass: true,
-		documents: [
-			`
-                query TestQuery {
-					user {
-						friends {
-							friends @list(name: "Friends") {
-								id
-							}
-						}
-					}
-                }
-            `,
-			`
-                mutation MutationM {
-					addFriend {
-						...Friends_insert @prepend(parentID: "1234")
-					}
-                }
-            `,
-		],
-	},
-	{
-		title: '@prepend & @append on _insert',
-		pass: false,
 		documents: [
 			`query TestQuery {
 					user {						
@@ -154,15 +131,16 @@ const table: Row[] = [
       }`,
 			`mutation MutationM1 {
 					addFriend {
-						...Friends_insert @prepend @append @allLists
+						...Friends_insert
 					}
       }`,
 			`mutation MutationM2 {
 				addFriend {
-					...Friends_insert @prepend @append @allLists
+					...Friends_insert
 				}
 		}`,
 		],
+		partial_config: { defaultListTarget: 'all' },
 	},
 	{
 		title: '@parentID @allLists on _insert',
@@ -923,33 +901,31 @@ type Row =
 			pass: true
 			documents: string[]
 			check?: (docs: CollectedGraphQLDocument[]) => void
+			partial_config?: Partial<Config>
 	  }
 	| {
 			title: string
 			pass: false
 			documents: string[]
 			check?: (result: Error | Error[]) => void
+			partial_config?: Partial<Config>
 	  }
 
 // run the tests
-for (const { title, pass, documents, check } of table) {
+for (const { title, pass, documents, check, partial_config } of table) {
 	describe('type check', function () {
 		test(
 			title,
 			pipelineTest(
-				testConfig(),
+				testConfig(partial_config),
 				documents,
 				pass,
 				pass
 					? undefined
 					: check ||
 							function (e: Error | Error[]) {
-								if (title === '@prepend & @append on _insert') {
-									console.log(`e`, e)
-								}
-
 								// We want to check that all errors are grouped into 1 throw
-								// having an array or errors.
+								// having an array with 2 errors
 								expect(e).toHaveLength(2)
 							}
 			)
