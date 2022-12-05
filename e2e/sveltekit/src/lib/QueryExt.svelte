@@ -1,6 +1,6 @@
 <script lang="ts">
   import { browser } from '$app/environment';
-  import { GQL_usersListComp } from '$houdini';
+  import { GQL_usersListComp, graphql } from '$houdini';
 
   $: browser && GQL_usersListComp.fetch();
 </script>
