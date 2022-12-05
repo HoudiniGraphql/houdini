@@ -372,9 +372,7 @@ test('overlapping query and fragment nested selection', async function () {
 	// execute the generator
 	await runPipeline(config, [
 		mockCollectedDoc(`fragment A on User { friends { ... on User { id } } }`),
-		mockCollectedDoc(
-			`query TestQuery { user { friends {... on User { firstName } } ...A @prepend } }`
-		),
+		mockCollectedDoc(`query TestQuery {  friends {... on User { firstName } ...A @prepend } }`),
 	])
 
 	// load the contents of the file
@@ -382,18 +380,15 @@ test('overlapping query and fragment nested selection', async function () {
 		export default {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "b812cda9076300472a1ffe15d0b373971d76f5b7fa5273a370dc7bb4ddef94ef",
+		    hash: "a1ca3fe91bf6c0261f2a5036090c045c9393ecdb35553d2ee9859a4840ead59b",
 
 		    raw: \`query TestQuery {
-		  user {
-		    friends {
-		      ... on User {
-		        firstName
-		      }
-		      __typename
+		  friends {
+		    ... on User {
+		      firstName
 		    }
 		    ...A
-		    id
+		    __typename
 		  }
 		}
 
@@ -402,7 +397,7 @@ test('overlapping query and fragment nested selection', async function () {
 		    ... on User {
 		      id
 		    }
-		    __typename
+		    id
 		  }
 		}
 		\`,
@@ -411,55 +406,76 @@ test('overlapping query and fragment nested selection', async function () {
 
 		    selection: {
 		        fields: {
-		            user: {
-		                type: "User",
-		                keyRaw: "user",
+		            friends: {
+		                type: "Friend",
+		                keyRaw: "friends",
 
 		                selection: {
-		                    fields: {
-		                        friends: {
-		                            type: "Friend",
-		                            keyRaw: "friends",
+		                    abstractFields: {
+		                        User: {
+		                            firstName: {
+		                                type: "String",
+		                                keyRaw: "firstName"
+		                            },
 
-		                            selection: {
-		                                abstractFields: {
-		                                    User: {
+		                            __typename: {
+		                                type: "String",
+		                                keyRaw: "__typename"
+		                            },
+
+		                            friends: {
+		                                type: "User",
+		                                keyRaw: "friends",
+
+		                                selection: {
+		                                    fields: {
 		                                        fields: {
-		                                            firstName: {
-		                                                type: "String",
-		                                                keyRaw: "firstName"
-		                                            },
-
 		                                            id: {
 		                                                type: "ID",
 		                                                keyRaw: "id"
 		                                            }
 		                                        },
 
-		                                        __typename: {
-		                                            type: "String",
-		                                            keyRaw: "__typename"
+		                                        id: {
+		                                            type: "ID",
+		                                            keyRaw: "id"
 		                                        }
 		                                    }
-		                                },
-
-		                                fields: {
-		                                    __typename: {
-		                                        type: "String",
-		                                        keyRaw: "__typename"
-		                                    }
 		                                }
-		                            },
+		                            }
+		                        }
+		                    },
 
-		                            abstract: true
+		                    fields: {
+		                        __typename: {
+		                            type: "String",
+		                            keyRaw: "__typename"
 		                        },
 
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
+		                        friends: {
+		                            type: "User",
+		                            keyRaw: "friends",
+
+		                            selection: {
+		                                fields: {
+		                                    fields: {
+		                                        id: {
+		                                            type: "ID",
+		                                            keyRaw: "id"
+		                                        }
+		                                    },
+
+		                                    id: {
+		                                        type: "ID",
+		                                        keyRaw: "id"
+		                                    }
+		                                }
+		                            }
 		                        }
 		                    }
-		                }
+		                },
+
+		                abstract: true
 		            }
 		        }
 		    },
@@ -468,7 +484,7 @@ test('overlapping query and fragment nested selection', async function () {
 		    partial: false
 		};
 
-		"HoudiniHash=52c0a6e1929b31d82504cc47b56027c0bd86f489ef6aabcb14e7fd4282b4f5e7";
+		"HoudiniHash=a113625cc6bf3d5421dc494d07095ea185f1f089c20ede8dfae7fd7e9c37ad4c";
 	`)
 })
 
@@ -530,27 +546,25 @@ test('selections with interfaces', async function () {
 		                selection: {
 		                    abstractFields: {
 		                        Cat: {
-		                            fields: {
-		                                id: {
-		                                    type: "ID",
-		                                    keyRaw: "id"
-		                                },
+		                            id: {
+		                                type: "ID",
+		                                keyRaw: "id"
+		                            },
 
-		                                owner: {
-		                                    type: "User",
-		                                    keyRaw: "owner",
+		                            owner: {
+		                                type: "User",
+		                                keyRaw: "owner",
 
-		                                    selection: {
-		                                        fields: {
-		                                            firstName: {
-		                                                type: "String",
-		                                                keyRaw: "firstName"
-		                                            },
+		                                selection: {
+		                                    fields: {
+		                                        firstName: {
+		                                            type: "String",
+		                                            keyRaw: "firstName"
+		                                        },
 
-		                                            id: {
-		                                                type: "ID",
-		                                                keyRaw: "id"
-		                                            }
+		                                        id: {
+		                                            type: "ID",
+		                                            keyRaw: "id"
 		                                        }
 		                                    }
 		                                }
@@ -563,11 +577,9 @@ test('selections with interfaces', async function () {
 		                        },
 
 		                        Ghost: {
-		                            fields: {
-		                                name: {
-		                                    type: "String",
-		                                    keyRaw: "name"
-		                                }
+		                            name: {
+		                                type: "String",
+		                                keyRaw: "name"
 		                            },
 
 		                            __typename: {
@@ -656,27 +668,25 @@ test('selections with unions', async function () {
 		                selection: {
 		                    abstractFields: {
 		                        Cat: {
-		                            fields: {
-		                                id: {
-		                                    type: "ID",
-		                                    keyRaw: "id"
-		                                },
+		                            id: {
+		                                type: "ID",
+		                                keyRaw: "id"
+		                            },
 
-		                                owner: {
-		                                    type: "User",
-		                                    keyRaw: "owner",
+		                            owner: {
+		                                type: "User",
+		                                keyRaw: "owner",
 
-		                                    selection: {
-		                                        fields: {
-		                                            firstName: {
-		                                                type: "String",
-		                                                keyRaw: "firstName"
-		                                            },
+		                                selection: {
+		                                    fields: {
+		                                        firstName: {
+		                                            type: "String",
+		                                            keyRaw: "firstName"
+		                                        },
 
-		                                            id: {
-		                                                type: "ID",
-		                                                keyRaw: "id"
-		                                            }
+		                                        id: {
+		                                            type: "ID",
+		                                            keyRaw: "id"
 		                                        }
 		                                    }
 		                                }
@@ -689,11 +699,9 @@ test('selections with unions', async function () {
 		                        },
 
 		                        Ghost: {
-		                            fields: {
-		                                name: {
-		                                    type: "String",
-		                                    keyRaw: "name"
-		                                }
+		                            name: {
+		                                type: "String",
+		                                keyRaw: "name"
 		                            },
 
 		                            __typename: {
@@ -784,27 +792,25 @@ test('selections with overlapping unions', async function () {
 		                selection: {
 		                    abstractFields: {
 		                        Cat: {
-		                            fields: {
-		                                id: {
-		                                    type: "ID",
-		                                    keyRaw: "id"
-		                                },
+		                            id: {
+		                                type: "ID",
+		                                keyRaw: "id"
+		                            },
 
-		                                owner: {
-		                                    type: "User",
-		                                    keyRaw: "owner",
+		                            owner: {
+		                                type: "User",
+		                                keyRaw: "owner",
 
-		                                    selection: {
-		                                        fields: {
-		                                            firstName: {
-		                                                type: "String",
-		                                                keyRaw: "firstName"
-		                                            },
+		                                selection: {
+		                                    fields: {
+		                                        firstName: {
+		                                            type: "String",
+		                                            keyRaw: "firstName"
+		                                        },
 
-		                                            id: {
-		                                                type: "ID",
-		                                                keyRaw: "id"
-		                                            }
+		                                        id: {
+		                                            type: "ID",
+		                                            keyRaw: "id"
 		                                        }
 		                                    }
 		                                }
@@ -822,13 +828,6 @@ test('selections with overlapping unions', async function () {
 		                        },
 
 		                        Ghost: {
-		                            fields: {
-		                                name: {
-		                                    type: "String",
-		                                    keyRaw: "name"
-		                                }
-		                            },
-
 		                            name: {
 		                                type: "String",
 		                                keyRaw: "name"

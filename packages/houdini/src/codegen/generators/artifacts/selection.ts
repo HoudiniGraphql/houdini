@@ -96,7 +96,7 @@ export default function selection({
 						path,
 						includeFragments,
 						document,
-					}),
+					}).fields,
 				}
 			}
 		}

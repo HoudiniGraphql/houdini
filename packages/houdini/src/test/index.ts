@@ -17,7 +17,7 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				id: ID!
 				name: String!
 				firstName: String!
-				friends: [Friend!]!
+				friends: [User!]!
 				friendsByCursor(first: Int, after: String, last: Int, before: String, filter: String): UserConnection!
 				friendsByCursorScalar(first: Int, after: Cursor, last: Int, before: Cursor, filter: String): UserConnection!
 				friendsByBackwardsCursor(last: Int, before: String, filter: String): UserConnectionScalar!
