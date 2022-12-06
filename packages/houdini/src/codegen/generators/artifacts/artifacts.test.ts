@@ -429,13 +429,6 @@ test('overlapping query and fragment nested selection', async function () {
 
 		                                selection: {
 		                                    fields: {
-		                                        fields: {
-		                                            id: {
-		                                                type: "ID",
-		                                                keyRaw: "id"
-		                                            }
-		                                        },
-
 		                                        id: {
 		                                            type: "ID",
 		                                            keyRaw: "id"
@@ -458,13 +451,6 @@ test('overlapping query and fragment nested selection', async function () {
 
 		                            selection: {
 		                                fields: {
-		                                    fields: {
-		                                        id: {
-		                                            type: "ID",
-		                                            keyRaw: "id"
-		                                        }
-		                                    },
-
 		                                    id: {
 		                                        type: "ID",
 		                                        keyRaw: "id"
@@ -863,6 +849,141 @@ test('selections with overlapping unions', async function () {
 		};
 
 		"HoudiniHash=945820a74a8893f4e526f32809f73f5a1a8cd00e971f9f7ad8c628fa448d1013";
+	`)
+})
+
+test('selections with unions of abstract types', async function () {
+	const cfg = testConfig({ module: 'esm' })
+	const docs = [
+		mockCollectedDoc(
+			`query Friends {
+					friends {
+						... on Node { 
+							id
+
+							... on Cat {
+								owner {
+									firstName
+								}
+							}
+						}
+						... on Ghost {
+							name
+						}
+					}
+				}`
+		),
+	]
+
+	// execute the generator
+	await runPipeline(cfg, docs)
+
+	// verify contents
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    name: "Friends",
+		    kind: "HoudiniQuery",
+		    hash: "d366177caa0b71276d02cc9e8c1ce9acc88d29587e3c25af6340df116c779b39",
+
+		    raw: \`query Friends {
+		  friends {
+		    ... on Node {
+		      id
+		      ... on Cat {
+		        owner {
+		          firstName
+		          id
+		        }
+		      }
+		    }
+		    ... on Ghost {
+		      name
+		    }
+		    __typename
+		  }
+		}
+		\`,
+
+		    rootType: "Query",
+
+		    selection: {
+		        fields: {
+		            friends: {
+		                type: "Friend",
+		                keyRaw: "friends",
+
+		                selection: {
+		                    abstractFields: {
+								vvvvv this can't be here!
+		                        Node: {
+		                            id: {
+		                                type: "ID",
+		                                keyRaw: "id"
+		                            },
+
+		                            __typename: {
+		                                type: "String",
+		                                keyRaw: "__typename"
+		                            }
+		                        },
+
+		                        Cat: {
+		                            owner: {
+		                                type: "User",
+		                                keyRaw: "owner",
+
+		                                selection: {
+		                                    fields: {
+		                                        firstName: {
+		                                            type: "String",
+		                                            keyRaw: "firstName"
+		                                        },
+
+		                                        id: {
+		                                            type: "ID",
+		                                            keyRaw: "id"
+		                                        }
+		                                    }
+		                                }
+		                            },
+
+		                            __typename: {
+		                                type: "String",
+		                                keyRaw: "__typename"
+		                            }
+		                        },
+
+		                        Ghost: {
+		                            name: {
+		                                type: "String",
+		                                keyRaw: "name"
+		                            },
+
+		                            __typename: {
+		                                type: "String",
+		                                keyRaw: "__typename"
+		                            }
+		                        }
+		                    },
+
+		                    fields: {
+		                        __typename: {
+		                            type: "String",
+		                            keyRaw: "__typename"
+		                        }
+		                    }
+		                },
+
+		                abstract: true
+		            }
+		        }
+		    },
+
+		    policy: "CacheOrNetwork",
+		    partial: false
+		};
+
+		"HoudiniHash=cd3e4bfabdb874699b1092c9ee25d6f584937108737e18dc86729f38f32311ba";
 	`)
 })
 

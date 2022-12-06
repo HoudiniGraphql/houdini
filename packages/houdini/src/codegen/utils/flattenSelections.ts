@@ -94,22 +94,10 @@ class FieldCollection {
 		// we could run into an inline fragment. the application has been validated already
 		// so we just need to add it to the inline fragment for the appropriate type
 		if (selection.kind === 'InlineFragment' && selection.typeCondition) {
-			// figure out the key of the field
-			const key = selection.typeCondition.name.value
-
-			// if we don't already have an inline fragment of that type
-			if (!this.inlineFragments[key]) {
-				// create an entry for the selection field
-				this.inlineFragments[key] = {
-					astNode: selection,
-					selection: this.empty(),
-				}
-			}
-
-			// its safe to all this fields selections if they exist
-			for (const subselect of selection.selectionSet?.selections || []) {
-				this.inlineFragments[key].selection.add(subselect)
-			}
+			// we need to look at the selection set flatten all of the nested
+			// inline fragments that could appear. every time we run into a new
+			// inline fragment we need to create a new key in the object to add fields to
+			this.walkInlineFragment(selection)
 
 			// we're done
 			return
@@ -169,6 +157,34 @@ class FieldCollection {
 				})
 			)
 			.concat(Object.values(this.fragmentSpreads))
+	}
+
+	walkInlineFragment(selection: graphql.InlineFragmentNode) {
+		// figure out the key of the field
+		const key = selection.typeCondition!.name.value
+
+		// if we don't already have an inline fragment of that type
+		if (!this.inlineFragments[key]) {
+			// create an entry for the selection field
+			this.inlineFragments[key] = {
+				astNode: selection,
+				selection: this.empty(),
+			}
+		}
+
+		// its safe to all this fields selections if they exist
+		for (const subselect of selection.selectionSet?.selections || []) {
+			// the only thing we need to treat specially is inline fragments with type conditions,
+			// otherwise just add it like normal to the inline fragment
+			if (subselect.kind !== 'InlineFragment' || !subselect.typeCondition) {
+				this.inlineFragments[key].selection.add(subselect)
+				continue
+			}
+
+			// we know the selection is an inline fragment with a type condition so
+			// flatten the selection into this one
+			this.walkInlineFragment(subselect)
+		}
 	}
 
 	empty() {

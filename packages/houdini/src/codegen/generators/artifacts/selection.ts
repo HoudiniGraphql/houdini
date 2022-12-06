@@ -79,7 +79,7 @@ export default function selection({
 						path,
 						includeFragments,
 						document,
-					})
+					}).fields || {}
 				)
 			}
 			// we have an inline fragment that changes the type, in order to support unions/interfaces
@@ -232,8 +232,8 @@ export default function selection({
 		Object.keys(object.abstractFields || {}).length > 0
 	) {
 		// merge the fields into the abstract  fields
-		for (const [type, selection] of Object.entries(object.abstractFields || {})) {
-			object.abstractFields![type] = deepMerge(filepath, selection || {}, object.fields!)
+		for (const [type, sel] of Object.entries(object.abstractFields || {})) {
+			object.abstractFields![type] = deepMerge(filepath, sel || {}, object.fields!)
 		}
 	}
 
