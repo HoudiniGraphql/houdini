@@ -81,18 +81,21 @@ test('write abstract fields of matching type', function () {
 						},
 					},
 					abstractFields: {
-						User: {
-							__typename: {
-								type: 'String',
-								keyRaw: '__typename',
-							},
-							id: {
-								type: 'ID',
-								keyRaw: 'id',
-							},
-							firstName: {
-								type: 'String',
-								keyRaw: 'firstName',
+						typeMap: {},
+						fields: {
+							User: {
+								__typename: {
+									type: 'String',
+									keyRaw: '__typename',
+								},
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									keyRaw: 'firstName',
+								},
 							},
 						},
 					},
@@ -150,32 +153,35 @@ test('ignore abstract fields of unmatched type', function () {
 						},
 					},
 					abstractFields: {
-						User: {
-							id: {
-								type: 'ID',
-								keyRaw: 'id',
+						typeMap: {},
+						fields: {
+							User: {
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								__typename: {
+									type: 'String',
+									keyRaw: '__typename',
+								},
+								firstName: {
+									type: 'String',
+									keyRaw: 'firstName',
+								},
 							},
-							__typename: {
-								type: 'String',
-								keyRaw: '__typename',
-							},
-							firstName: {
-								type: 'String',
-								keyRaw: 'firstName',
-							},
-						},
-						NotUser: {
-							id: {
-								type: 'ID',
-								keyRaw: 'id',
-							},
-							__typename: {
-								type: 'String',
-								keyRaw: '__typename',
-							},
-							lastName: {
-								type: 'String',
-								keyRaw: 'lastName',
+							NotUser: {
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								__typename: {
+									type: 'String',
+									keyRaw: '__typename',
+								},
+								lastName: {
+									type: 'String',
+									keyRaw: 'lastName',
+								},
 							},
 						},
 					},

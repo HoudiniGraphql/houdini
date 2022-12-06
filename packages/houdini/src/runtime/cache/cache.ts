@@ -226,8 +226,8 @@ class CacheInternal {
 		// if we have abstract fields, grab the __typename and include them in the list
 		if (selection.abstractFields && data && '__typename' in data) {
 			const __typename = data['__typename'] as string
-			if (selection.abstractFields[__typename]) {
-				targetSelection = selection.abstractFields[__typename] || {}
+			if (selection.abstractFields?.fields[__typename]) {
+				targetSelection = selection.abstractFields.fields[__typename] || {}
 			}
 		}
 
@@ -696,8 +696,8 @@ class CacheInternal {
 		const typename = this.storage.get(parent, '__typename').value as string
 		// if we have abstract fields, grab the __typename and include them in the list
 		if (selection.abstractFields && typename) {
-			if (selection.abstractFields[typename]) {
-				targetSelection = selection.abstractFields[typename] || {}
+			if (selection.abstractFields?.fields[typename]) {
+				targetSelection = selection.abstractFields.fields[typename] || {}
 			}
 		}
 

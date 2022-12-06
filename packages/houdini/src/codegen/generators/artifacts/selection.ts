@@ -85,8 +85,66 @@ export default function selection({
 			// we have an inline fragment that changes the type, in order to support unions/interfaces
 			// we need to embed the field in a type-dependent way
 			else {
-				object.abstractFields = {
-					...object.abstractFields,
+				if (!object.abstractFields) {
+					object.abstractFields = {
+						fields: {},
+						typeMap: {},
+					}
+				}
+
+				// in order to map the concrete __typename to the inline fragment
+				// we need to look for the intersection between the parent type and the
+				// type condition on the fragment
+				const parentType = config.schema.getType(rootType)!
+				const typeConditionName = field.typeCondition!.name.value
+				const typeCondition = config.schema.getType(typeConditionName)!
+
+				// build up the list of types that we need to map to the typecondition's abstract selection
+				const possibleTypes: string[] = []
+
+				// if the type condition is not an interface or union then there's no need to map
+				// to an abstract type. The __typename will always match
+				if (!graphql.isAbstractType(typeCondition)) {
+					// don't do anything
+				}
+				// if the both the parent type and the type condition are abstract, we need to
+				// compute the intersection to map the concrete __typename to
+				else if (graphql.isAbstractType(parentType)) {
+					// get the possible types that the parent could be
+					const possibleParentTypes = config.schema
+						.getPossibleTypes(parentType)
+						.map((type) => type.name)
+
+					// we need to make sure that every possible match has an entry in the typeMap
+					// that maps the concrete __typename to the abstract selection
+					for (const possible of config.schema.getPossibleTypes(typeCondition)) {
+						if (possibleParentTypes.includes(possible.name)) {
+							possibleTypes.push(possible.name)
+						}
+					}
+				}
+				// the parent type is always an instance of the type condition so we don't need to do
+				// anything fancy. just add an entry in the type map that points the parent to the
+				// abstract version
+				else {
+					possibleTypes.push(rootType)
+				}
+
+				// if we have to map parent type to abstract selection
+				if (possibleTypes.length > 0) {
+					for (const type of possibleTypes) {
+						const existing = object.abstractFields.typeMap[rootType]
+						if (!existing || !existing.includes(type)) {
+							console.log(existing)
+							object.abstractFields.typeMap[type] = [typeConditionName].concat(
+								existing || []
+							)
+						}
+					}
+				}
+
+				object.abstractFields.fields = {
+					...object.abstractFields.fields,
 					[field.typeCondition.name.value]: selection({
 						config,
 						filepath,
@@ -232,8 +290,8 @@ export default function selection({
 		Object.keys(object.abstractFields || {}).length > 0
 	) {
 		// merge the fields into the abstract  fields
-		for (const [type, sel] of Object.entries(object.abstractFields || {})) {
-			object.abstractFields![type] = deepMerge(filepath, sel || {}, object.fields!)
+		for (const [type, sel] of Object.entries(object.abstractFields?.fields || {})) {
+			object.abstractFields!.fields[type] = deepMerge(filepath, sel || {}, object.fields!)
 		}
 	}
 

@@ -33,7 +33,7 @@ export class InMemorySubscriptions {
 		// figure out the correct selection
 		const __typename = this.cache._internal_unstable.storage.get(parent, '__typename')
 			.value as string
-		const targetSelection = selection.abstractFields?.[__typename] || selection.fields
+		const targetSelection = selection.abstractFields?.fields[__typename] || selection.fields
 
 		// walk down the selection
 		for (const fieldSelection of Object.values(targetSelection || {})) {
@@ -172,7 +172,7 @@ export class InMemorySubscriptions {
 	}) {
 		// if there is an abstract selection for the type, use that, otherwise
 		// the standard selection is good
-		let targetSelection = selection.abstractFields?.[parentType] || selection.fields || {}
+		let targetSelection = selection.abstractFields?.fields[parentType] || selection.fields || {}
 
 		// look at every field in the selection and add the subscribers
 		for (const fieldSelection of Object.values(targetSelection)) {

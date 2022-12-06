@@ -159,7 +159,15 @@ export type SubscriptionSelection = {
 			abstract?: boolean
 		}
 	}
-	abstractFields?: { [typeName: string]: SubscriptionSelection['fields'] }
+	abstractFields?: {
+		fields: {
+			[typeName: string]: SubscriptionSelection['fields']
+		}
+		// a mapping of __typenames to abstract types that might appear in the selection
+		typeMap: {
+			[typeName: string]: string[]
+		}
+	}
 }
 
 export type SubscriptionSpec = {

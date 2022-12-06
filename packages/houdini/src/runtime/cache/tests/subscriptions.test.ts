@@ -1902,22 +1902,25 @@ test('subscribe to abstract fields of matching type', function () {
 						},
 					},
 					abstractFields: {
-						User: {
-							__typename: {
-								type: 'String',
-								keyRaw: '__typename',
-							},
-							id: {
-								type: 'ID',
-								keyRaw: 'id',
-							},
-							firstName: {
-								type: 'String',
-								keyRaw: 'firstName',
-							},
-							favoriteColors: {
-								type: 'String',
-								keyRaw: 'favoriteColors',
+						typeMap: {},
+						fields: {
+							User: {
+								__typename: {
+									type: 'String',
+									keyRaw: '__typename',
+								},
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									keyRaw: 'firstName',
+								},
+								favoriteColors: {
+									type: 'String',
+									keyRaw: 'favoriteColors',
+								},
 							},
 						},
 					},
