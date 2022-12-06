@@ -274,7 +274,8 @@ export async function walk_routes(
 
 		// if type does not exists we error.
 		if (!fs.existsSync(svelteTypeFilePath)) {
-			throw Error(`SvelteKit types do not exist at route: ${svelteTypeFilePath}`)
+			console.warn(`⚠️  Route ignored as sveltekit types missing from: ${svelteTypeFilePath}`)
+			return
 		}
 
 		// only runs once per directory
