@@ -13,7 +13,7 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 			scalar Cursor
 
 
-			type User implements Node & Friend {
+			type User implements Node & Friend & CatOwner {
 				id: ID!
 				name: String!
 				firstName: String!
@@ -30,13 +30,14 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				field(filter: String): String
 			}
 
-			type Ghost implements Friend {
+			type Ghost implements Friend & CatOwner {
 				name: String!
 				aka: String!
 				believers: [User!]!
 				friends: [Ghost!]!
 				friendsConnection(first: Int, after: String): GhostConnection!
 				legends: [Legend!]!
+				cats: [Cat!]!
 			}
 
 			type Legend {
@@ -104,6 +105,10 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 
 			interface Friend {
 				name: String!
+			}
+
+			interface CatOwner { 
+				cats: [Cat!]!
 			}
 
 			union Entity = User | Cat | Ghost

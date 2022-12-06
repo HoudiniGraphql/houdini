@@ -123,6 +123,76 @@ test('write abstract fields of matching type', function () {
 	})
 })
 
+test('use abstract type map when it applies', function () {
+	// instantiate a cache we'll test against
+	const cache = new Cache(config)
+
+	// save the data
+	const data = {
+		viewer: {
+			__typename: 'User',
+			id: '1',
+			firstName: 'bob',
+		},
+	}
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'Node',
+				keyRaw: 'viewer',
+				abstract: true,
+				selection: {
+					fields: {
+						__typename: {
+							type: 'String',
+							keyRaw: '__typename',
+						},
+					},
+					abstractFields: {
+						typeMap: {
+							User: 'Node',
+						},
+						fields: {
+							Node: {
+								__typename: {
+									type: 'String',
+									keyRaw: '__typename',
+								},
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									keyRaw: 'firstName',
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	cache.write({
+		selection,
+		data,
+	})
+
+	// make sure we can get back what we wrote
+	expect(
+		cache.read({
+			selection,
+		}).data
+	).toEqual({
+		viewer: {
+			__typename: 'User',
+			id: '1',
+			firstName: 'bob',
+		},
+	})
+})
+
 test('ignore abstract fields of unmatched type', function () {
 	// instantiate a cache we'll test against
 	const cache = new Cache(config)

@@ -165,7 +165,7 @@ export type SubscriptionSelection = {
 		}
 		// a mapping of __typenames to abstract types that might appear in the selection
 		typeMap: {
-			[typeName: string]: string[]
+			[typeName: string]: string
 		}
 	}
 }

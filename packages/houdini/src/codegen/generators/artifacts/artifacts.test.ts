@@ -963,6 +963,11 @@ test('selections with unions of abstract types', async function () {
 		                                    }
 		                                },
 
+		                                id: {
+		                                    type: "ID",
+		                                    keyRaw: "id"
+		                                },
+
 		                                __typename: {
 		                                    type: "String",
 		                                    keyRaw: "__typename"
@@ -983,8 +988,7 @@ test('selections with unions of abstract types', async function () {
 		                        },
 
 		                        typeMap: {
-		                            User: ["Node"],
-		                            Cat: ["Node"]
+		                            User: "Node"
 		                        }
 		                    },
 
@@ -1006,6 +1010,169 @@ test('selections with unions of abstract types', async function () {
 		};
 
 		"HoudiniHash=daf4a2fbe33e071852aacd6ea63ad993878f478158884f756cddf6964c97f1dc";
+	`)
+})
+
+test('selections with concrete types matching multiple abstract types', async function () {
+	const cfg = testConfig({ module: 'esm' })
+	const docs = [
+		mockCollectedDoc(
+			`query Friends {
+				friends {
+					... on CatOwner { 
+						cats { 
+							name
+						}
+					}
+					... on Node { 
+						id
+					}
+					... on Ghost { 
+						aka
+					}
+				}
+			}`
+		),
+	]
+
+	// execute the generator
+	await runPipeline(cfg, docs)
+
+	// verify contents
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    name: "Friends",
+		    kind: "HoudiniQuery",
+		    hash: "cb2649f407c51a76f03a222c15a6c16e36cc96dabf48465765a6c58d7d3345cb",
+
+		    raw: \`query Friends {
+		  friends {
+		    ... on CatOwner {
+		      cats {
+		        name
+		        id
+		      }
+		    }
+		    ... on Node {
+		      id
+		    }
+		    ... on Ghost {
+		      aka
+		    }
+		    __typename
+		  }
+		}
+		\`,
+
+		    rootType: "Query",
+
+		    selection: {
+		        fields: {
+		            friends: {
+		                type: "Friend",
+		                keyRaw: "friends",
+
+		                selection: {
+		                    abstractFields: {
+		                        fields: {
+		                            Node: {
+		                                id: {
+		                                    type: "ID",
+		                                    keyRaw: "id"
+		                                },
+
+		                                __typename: {
+		                                    type: "String",
+		                                    keyRaw: "__typename"
+		                                }
+		                            },
+
+		                            Ghost: {
+		                                aka: {
+		                                    type: "String",
+		                                    keyRaw: "aka"
+		                                },
+
+		                                cats: {
+		                                    type: "Cat",
+		                                    keyRaw: "cats",
+
+		                                    selection: {
+		                                        fields: {
+		                                            name: {
+		                                                type: "String",
+		                                                keyRaw: "name"
+		                                            },
+
+		                                            id: {
+		                                                type: "ID",
+		                                                keyRaw: "id"
+		                                            }
+		                                        }
+		                                    }
+		                                },
+
+		                                __typename: {
+		                                    type: "String",
+		                                    keyRaw: "__typename"
+		                                }
+		                            },
+
+		                            User: {
+		                                id: {
+		                                    type: "ID",
+		                                    keyRaw: "id"
+		                                },
+
+		                                cats: {
+		                                    type: "Cat",
+		                                    keyRaw: "cats",
+
+		                                    selection: {
+		                                        fields: {
+		                                            name: {
+		                                                type: "String",
+		                                                keyRaw: "name"
+		                                            },
+
+		                                            id: {
+		                                                type: "ID",
+		                                                keyRaw: "id"
+		                                            }
+		                                        }
+		                                    }
+		                                },
+
+		                                __typename: {
+		                                    type: "String",
+		                                    keyRaw: "__typename"
+		                                }
+		                            }
+		                        },
+
+		                        typeMap: {
+		                            Cat: "Node"
+		                        }
+		                    },
+
+		                    fields: {
+		                        __typename: {
+		                            type: "String",
+		                            keyRaw: "__typename"
+		                        }
+		                    }
+		                },
+
+		                abstract: true
+		            }
+		        }
+		    },
+
+		    policy: "CacheOrNetwork",
+		    partial: false
+		};
+
+		"HoudiniHash=b17accd28f9b0ef878aa20cf80a62a36184126a37262c6c1ec9a210d90c70be8";
 	`)
 })
 

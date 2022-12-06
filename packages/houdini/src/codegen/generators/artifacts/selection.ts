@@ -30,6 +30,12 @@ export default function selection({
 	// we need to build up an object that contains every field in the selection
 	let object: SubscriptionSelection = {}
 
+	// build up a type map of parent to abstract types
+	const typeMap: Record<string, string[]> = {}
+	// in order to clean up the abstract selection we need to track
+	// the abstract types that end up as keys in the typeMap
+	const abstractTypes: string[] = []
+
 	for (const field of selections) {
 		// ignore fragment spreads
 		if (field.kind === 'FragmentSpread' && includeFragments) {
@@ -133,12 +139,12 @@ export default function selection({
 				// if we have to map parent type to abstract selection
 				if (possibleTypes.length > 0) {
 					for (const type of possibleTypes) {
-						const existing = object.abstractFields.typeMap[rootType]
+						const existing = typeMap[type]
 						if (!existing || !existing.includes(type)) {
-							console.log(existing)
-							object.abstractFields.typeMap[type] = [typeConditionName].concat(
-								existing || []
-							)
+							typeMap[type] = [typeConditionName].concat(existing || [])
+						}
+						if (!abstractTypes.includes(typeConditionName)) {
+							abstractTypes.push(typeConditionName)
 						}
 					}
 				}
@@ -289,11 +295,70 @@ export default function selection({
 	// if the field has fields and abstract fields, we need to merge them
 	if (
 		Object.keys(object.fields || {}).length > 0 &&
-		Object.keys(object.abstractFields || {}).length > 0
+		object.abstractFields &&
+		Object.keys(object.abstractFields.fields).length > 0
 	) {
-		// merge the fields into the abstract  fields
+		// the goal here is to make sure there is a single, well defined selection for
+		// every type so the runtime doesn't have to do any kind of merges. this means
+		// that there shouldn't be any overlap between abstract types.
+
+		// if there _is_ overlap, we need to merge them so there's only one selection
+		// to walk down
+		for (const [typeName, possibles] of Object.entries(typeMap)) {
+			// if there is an overlap, we want to delete the entry in the typemap
+			let overlap = false
+
+			// if the typeName in the map also has its own abstract selection then
+			// we need to merge every mapped type into the abstract selection
+			for (const possible of possibles) {
+				if (object.abstractFields.fields[typeName]) {
+					object.abstractFields!.fields[typeName] = deepMerge(
+						filepath,
+						object.abstractFields.fields[typeName] || {},
+						object.abstractFields.fields[possible]!
+					)
+
+					// there was in fact overlap between the mapped type and another abstract selection
+					overlap = true
+				}
+			}
+
+			// delete the overlapping key if there was overlap
+			if (overlap) {
+				delete typeMap[typeName]
+			}
+		}
+
+		// if there is more than one selection for the concrete type, and we got this far,
+		// we need to create a new entry in the abstract selection that merges them together
+		for (const [type, options] of Object.entries(typeMap)) {
+			if (options.length > 1) {
+				object.abstractFields!.fields[type] = deepMerge(
+					filepath,
+					...options.map((opt) => object.abstractFields!.fields[opt] || {})
+				)
+
+				delete typeMap[type]
+			}
+		}
+
+		// make sure that every abstract type is also processing the concrete selection
 		for (const [type, sel] of Object.entries(object.abstractFields?.fields || {})) {
 			object.abstractFields!.fields[type] = deepMerge(filepath, sel || {}, object.fields!)
+		}
+
+		// if we got this far, the typeMap should only have elements pointing to lists of one
+		for (const [type, options] of Object.entries(typeMap)) {
+			object.abstractFields.typeMap[type] = options[0]
+		}
+
+		// clean up the abstract types that got merged away
+		const usedTypes = Object.values(object.abstractFields.typeMap)
+		for (const type of [...abstractTypes]) {
+			// if there is no entry in the type map for them, it can be delete
+			if (!usedTypes.includes(type)) {
+				delete object.abstractFields.fields[type]
+			}
 		}
 	}
 

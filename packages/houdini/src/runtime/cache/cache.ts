@@ -1,6 +1,7 @@
 import { defaultConfigValues, computeID, keyFieldsForType } from '../lib/config'
 import { ConfigFile } from '../lib/config'
 import { deepEquals } from '../lib/deepEquals'
+import { getFieldsForType } from '../lib/selection'
 import { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '../lib/types'
 import { GarbageCollector } from './gc'
 import { ListCollection, ListManager } from './lists'
@@ -222,14 +223,7 @@ class CacheInternal {
 		// normal field one
 
 		// collect all of the fields that we need to write
-		let targetSelection = selection.fields || {}
-		// if we have abstract fields, grab the __typename and include them in the list
-		if (selection.abstractFields && data && '__typename' in data) {
-			const __typename = data['__typename'] as string
-			if (selection.abstractFields?.fields[__typename]) {
-				targetSelection = selection.abstractFields.fields[__typename] || {}
-			}
-		}
+		let targetSelection = getFieldsForType(selection, data['__typename'] as string | undefined)
 
 		// data is an object with fields that we need to write to the store
 		for (const [field, value] of Object.entries(data)) {
@@ -691,15 +685,10 @@ class CacheInternal {
 		// that happens after we process every field to determine if its a partial null
 		let cascadeNull = false
 
-		let targetSelection = selection.fields || {}
 		// if we have abstract fields, grab the __typename and include them in the list
 		const typename = this.storage.get(parent, '__typename').value as string
-		// if we have abstract fields, grab the __typename and include them in the list
-		if (selection.abstractFields && typename) {
-			if (selection.abstractFields?.fields[typename]) {
-				targetSelection = selection.abstractFields.fields[typename] || {}
-			}
-		}
+		// collect all of the fields that we need to write
+		let targetSelection = getFieldsForType(selection, typename)
 
 		// look at every field in the parentFields
 		for (const [
