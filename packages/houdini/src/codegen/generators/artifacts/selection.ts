@@ -143,6 +143,8 @@ export default function selection({
 					}
 				}
 
+				// add the type specific selection to the abstract collection so the runtime
+				// can compare its concrete __typename
 				object.abstractFields.fields = {
 					...object.abstractFields.fields,
 					[field.typeCondition.name.value]: selection({
