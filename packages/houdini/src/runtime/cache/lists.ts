@@ -243,19 +243,12 @@ export class List {
 												type: listType,
 												keyRaw: 'node',
 												selection: {
+													...selection,
 													fields: {
 														...selection.fields,
 														__typename: {
 															keyRaw: '__typename',
 															type: 'String',
-														},
-													},
-													abstractFields: {
-														fields: {
-															...selection.abstractFields?.fields,
-														},
-														typeMap: {
-															...selection.abstractFields?.typeMap,
 														},
 													},
 												},
@@ -281,19 +274,12 @@ export class List {
 						type: listType,
 						update: (where === 'first' ? 'prepend' : 'append') as RefetchUpdateMode,
 						selection: {
+							...selection,
 							fields: {
 								...selection.fields,
 								__typename: {
 									keyRaw: '__typename',
 									type: 'String',
-								},
-							},
-							abstractFields: {
-								fields: {
-									...selection.abstractFields?.fields,
-								},
-								typeMap: {
-									...selection.abstractFields?.typeMap,
 								},
 							},
 						},
