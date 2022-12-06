@@ -251,7 +251,12 @@ export class List {
 														},
 													},
 													abstractFields: {
-														...selection.abstractFields,
+														fields: {
+															...selection.abstractFields?.fields,
+														},
+														typeMap: {
+															...selection.abstractFields?.typeMap,
+														},
 													},
 												},
 											},
@@ -284,7 +289,12 @@ export class List {
 								},
 							},
 							abstractFields: {
-								...selection.abstractFields,
+								fields: {
+									...selection.abstractFields?.fields,
+								},
+								typeMap: {
+									...selection.abstractFields?.typeMap,
+								},
 							},
 						},
 					},
