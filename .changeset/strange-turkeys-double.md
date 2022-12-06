@@ -2,4 +2,4 @@
 'houdini-svelte': patch
 ---
 
-We will only visite valid routes for Svelte
+Only generate route types if there are page files present
