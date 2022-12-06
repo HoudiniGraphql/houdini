@@ -1,6 +1,6 @@
 {
     "name": "houdini-svelte",
-    "version": "0.17.12",
+    "version": "0.17.14",
     "description": "The svelte plugin for houdini",
     "keywords": [
         "typescript",
@@ -24,7 +24,7 @@
     },
     "dependencies": {
         "@kitql/helper": "^0.5.0",
-        "@sveltejs/kit": "1.0.0-next.547",
+        "@sveltejs/kit": "1.0.0-next.561",
         "ast-types": "^0.15.1",
         "estree-walker": "^3.0.1",
         "graphql": "^15.8.0",

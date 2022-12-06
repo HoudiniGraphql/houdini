@@ -67,11 +67,15 @@ export default function HoudiniWatchSchemaPlugin(opts: PluginConfig = {}): Plugi
 				return
 			}
 
-			// wait once before starting the loop
-			await sleep(interval)
+			async function sleepAndStartPullLoop(interval: number) {
+				// wait once before starting the loop
+				await sleep(interval)
 
-			// start listening
-			await pull(true)
+				// start listening
+				await pull(true)
+			}
+
+			sleepAndStartPullLoop(interval)
 		},
 		buildEnd() {
 			go = false
