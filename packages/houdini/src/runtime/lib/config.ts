@@ -183,6 +183,12 @@ export type ConfigFile = {
 	 * @default process.cwd()
 	 */
 	projectDir?: string
+
+	/**
+	 * For now, the cache's imperative API is considered unstable. In order to suppress the warning,
+	 * you must enable this flag.
+	 */
+	acceptImperativeInstability?: boolean
 }
 
 type ScalarMap = { [typeName: string]: ScalarSpec }

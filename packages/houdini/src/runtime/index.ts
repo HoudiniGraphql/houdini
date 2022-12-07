@@ -1,7 +1,8 @@
 // this template tag gets removed by the preprocessor so it should never be invoked.
 // this function must return any so that we can assign it a type in a variable declaration (ie an inline store)
-import cache from './cache'
-import type { Cache } from './cache/cache'
+import _cache from './cache'
+import { Cache } from './cache/cache'
+import { CacheProxy } from './cache/publicWrapper'
 
 export * from './lib'
 
@@ -24,6 +25,8 @@ Please make sure you have the appropriate plugin/preprocessor enabled. For more 
 `)
 }
 
+export const cache = new CacheProxy(_cache)
+
 export function getCache(): Cache {
-	return cache
+	return _cache
 }
