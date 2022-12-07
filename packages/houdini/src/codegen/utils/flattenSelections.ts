@@ -8,12 +8,14 @@ export function flattenSelections({
 	selections,
 	fragmentDefinitions,
 	applyFragments,
+	ignoreMaskDisable,
 }: {
 	config: Config
 	filepath: string
 	selections: readonly graphql.SelectionNode[]
 	fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode }
 	applyFragments: boolean
+	ignoreMaskDisable?: boolean
 }): readonly graphql.SelectionNode[] {
 	// collect all of the fields together
 	const fields = new FieldCollection({
@@ -22,6 +24,7 @@ export function flattenSelections({
 		selections,
 		fragmentDefinitions,
 		applyFragments,
+		ignoreMaskDisable: ignoreMaskDisable!!,
 	})
 
 	// convert the flat fields into a selection set
@@ -37,6 +40,7 @@ class FieldCollection {
 	inlineFragments: { [typeName: string]: Field<graphql.InlineFragmentNode> }
 	fragmentSpreads: { [fragmentName: string]: graphql.FragmentSpreadNode }
 	applyFragments: boolean
+	ignoreMaskDisable: boolean
 
 	constructor(args: {
 		config: Config
@@ -44,10 +48,12 @@ class FieldCollection {
 		selections: readonly graphql.SelectionNode[]
 		fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode }
 		applyFragments: boolean
+		ignoreMaskDisable: boolean
 	}) {
 		this.config = args.config
 		this.fragmentDefinitions = args.fragmentDefinitions
 		this.applyFragments = args.applyFragments
+		this.ignoreMaskDisable = args.ignoreMaskDisable
 
 		this.fields = {}
 		this.inlineFragments = {}
@@ -119,6 +125,9 @@ class FieldCollection {
 			let includeFragments = this.config.disableMasking
 			if (maskArgument?.value.kind === 'BooleanValue') {
 				includeFragments = !maskArgument.value.value
+			}
+			if (this.ignoreMaskDisable) {
+				includeFragments = true
 			}
 
 			// we're finished if we're not supposed to include fragments in the selection
@@ -207,6 +216,7 @@ class FieldCollection {
 			selections: [],
 			filepath: this.filepath,
 			applyFragments: this.applyFragments,
+			ignoreMaskDisable: this.ignoreMaskDisable,
 		})
 	}
 }
