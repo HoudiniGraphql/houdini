@@ -354,7 +354,7 @@ export default function selection({
 
 		// clean up the abstract types that got merged away
 		const usedTypes = Object.values(object.abstractFields.typeMap)
-		for (const type of [...abstractTypes]) {
+		for (const type of abstractTypes) {
 			// if there is no entry in the type map for them, it can be delete
 			if (!usedTypes.includes(type)) {
 				delete object.abstractFields.fields[type]

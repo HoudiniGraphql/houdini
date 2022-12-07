@@ -1,6 +1,3 @@
-import type { ProgramKind } from 'ast-types/gen/kinds'
-import * as recast from 'recast'
-import * as typeScriptParser from 'recast/parsers/typescript'
 import { test, expect, describe } from 'vitest'
 
 import { runPipeline } from '../../../codegen'

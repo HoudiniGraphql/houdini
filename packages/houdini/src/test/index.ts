@@ -1,6 +1,5 @@
 import * as graphql from 'graphql'
 import { vol } from 'memfs'
-import { parse } from 'path'
 
 import { runPipeline } from '../codegen'
 import { Config, fs, path, CollectedGraphQLDocument } from '../lib'
