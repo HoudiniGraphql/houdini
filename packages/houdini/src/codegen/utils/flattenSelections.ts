@@ -24,7 +24,7 @@ export function flattenSelections({
 		selections,
 		fragmentDefinitions,
 		applyFragments,
-		ignoreMaskDisable: ignoreMaskDisable!!,
+		ignoreMaskDisable: !!ignoreMaskDisable,
 	})
 
 	// convert the flat fields into a selection set

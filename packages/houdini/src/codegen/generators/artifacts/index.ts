@@ -231,7 +231,7 @@ export default function artifactGenerator(stats: {
 								}),
 								{}
 							),
-						ignoreMaskDisable: true,
+						ignoreMaskDisable: docKind === 'HoudiniQuery',
 						applyFragments: docKind !== 'HoudiniFragment',
 					})
 

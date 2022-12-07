@@ -465,6 +465,97 @@ test('embeds node pagination query as a separate document', async function () {
 		                nullable: true,
 
 		                selection: {
+		                    abstractFields: {
+		                        fields: {
+		                            User: {
+		                                friendsByForwardsCursor: {
+		                                    type: "UserConnection",
+		                                    keyRaw: "friendsByForwardsCursor::paginated",
+
+		                                    selection: {
+		                                        fields: {
+		                                            edges: {
+		                                                type: "UserEdge",
+		                                                keyRaw: "edges",
+		                                                update: "append",
+
+		                                                selection: {
+		                                                    fields: {
+		                                                        node: {
+		                                                            type: "User",
+		                                                            keyRaw: "node",
+		                                                            nullable: true,
+
+		                                                            selection: {
+		                                                                fields: {
+		                                                                    id: {
+		                                                                        type: "ID",
+		                                                                        keyRaw: "id"
+		                                                                    },
+
+		                                                                    __typename: {
+		                                                                        type: "String",
+		                                                                        keyRaw: "__typename"
+		                                                                    }
+		                                                                }
+		                                                            }
+		                                                        },
+
+		                                                        cursor: {
+		                                                            type: "String",
+		                                                            keyRaw: "cursor"
+		                                                        }
+		                                                    }
+		                                                }
+		                                            },
+
+		                                            pageInfo: {
+		                                                type: "PageInfo",
+		                                                keyRaw: "pageInfo",
+
+		                                                selection: {
+		                                                    fields: {
+		                                                        hasPreviousPage: {
+		                                                            type: "Boolean",
+		                                                            keyRaw: "hasPreviousPage"
+		                                                        },
+
+		                                                        hasNextPage: {
+		                                                            type: "Boolean",
+		                                                            keyRaw: "hasNextPage"
+		                                                        },
+
+		                                                        startCursor: {
+		                                                            type: "String",
+		                                                            keyRaw: "startCursor"
+		                                                        },
+
+		                                                        endCursor: {
+		                                                            type: "String",
+		                                                            keyRaw: "endCursor"
+		                                                        }
+		                                                    }
+		                                                }
+		                                            }
+		                                        }
+		                                    }
+		                                },
+
+		                                __typename: {
+		                                    type: "String",
+		                                    keyRaw: "__typename"
+		                                },
+
+		                                id: {
+		                                    type: "ID",
+		                                    keyRaw: "id"
+		                                }
+		                            }
+		                        },
+
+		                        typeMap: {}
+		                    },
+
 		                    fields: {
 		                        __typename: {
 		                            type: "String",
@@ -665,21 +756,6 @@ test('embeds custom pagination query as a separate document', async function () 
 
 		                selection: {
 		                    fields: {
-		                        __typename: {
-		                            type: "String",
-		                            keyRaw: "__typename"
-		                        },
-
-		                        name: {
-		                            type: "String",
-		                            keyRaw: "name"
-		                        },
-
-		                        aka: {
-		                            type: "String",
-		                            keyRaw: "aka"
-		                        },
-
 		                        friendsConnection: {
 		                            type: "GhostConnection",
 		                            keyRaw: "friendsConnection::paginated",
@@ -756,6 +832,21 @@ test('embeds custom pagination query as a separate document', async function () 
 		                                    }
 		                                }
 		                            }
+		                        },
+
+		                        __typename: {
+		                            type: "String",
+		                            keyRaw: "__typename"
+		                        },
+
+		                        name: {
+		                            type: "String",
+		                            keyRaw: "name"
+		                        },
+
+		                        aka: {
+		                            type: "String",
+		                            keyRaw: "aka"
 		                        }
 		                    }
 		                }
