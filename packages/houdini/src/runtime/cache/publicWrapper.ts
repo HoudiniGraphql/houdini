@@ -1,4 +1,4 @@
-import { Cache } from './cache'
+import { Cache, rootID } from './cache'
 import { SchemaManager } from './schema'
 
 export class CacheProxy {
@@ -24,12 +24,30 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 		this.validateInstabilityWarning()
 		this.cache._internal_unstable.schema.setFieldType(...args)
 	}
+
+	// return the root record
+	get root(): RecordProxy {
+		this.validateInstabilityWarning()
+		return new RecordProxy(this, rootID)
+	}
+
+	// return the record proxy for the given type/id combo
+	get(type: string, data: any) {
+		this.validateInstabilityWarning()
+		return new RecordProxy(this, this.cache._internal_unstable.computeID(type, data))
+	}
 }
 
 export class RecordProxy {
 	id: string
+	cache: CacheProxy
 
-	constructor(id: string) {
+	constructor(cache: CacheProxy, id: string) {
+		this.cache = cache
 		this.id = id
+	}
+
+	set({ field, args, value }: { field: string; args: any; value: any }) {
+		this.cache.validateInstabilityWarning()
 	}
 }
