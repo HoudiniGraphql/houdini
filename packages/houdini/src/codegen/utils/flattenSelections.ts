@@ -134,9 +134,22 @@ class FieldCollection {
 				})
 			}
 
-			for (const subselect of definition.selectionSet.selections) {
-				this.add(subselect)
-			}
+			// instead of adding the field on directly, let's turn the external fragment into an inline fragment
+
+			this.add({
+				kind: 'InlineFragment',
+				typeCondition: {
+					kind: 'NamedType',
+					name: {
+						kind: 'Name',
+						value: definition.typeCondition.name.value,
+					},
+				},
+				selectionSet: {
+					kind: 'SelectionSet',
+					selections: [...definition.selectionSet.selections],
+				},
+			})
 		}
 	}
 
@@ -173,7 +186,7 @@ class FieldCollection {
 		}
 
 		// its safe to all this fields selections if they exist
-		for (const subselect of selection.selectionSet?.selections || []) {
+		for (const subselect of selection.selectionSet.selections || []) {
 			// the only thing we need to treat specially is inline fragments with type conditions,
 			// otherwise just add it like normal to the inline fragment
 			if (subselect.kind !== 'InlineFragment' || !subselect.typeCondition) {

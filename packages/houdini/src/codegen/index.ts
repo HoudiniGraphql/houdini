@@ -261,7 +261,6 @@ async function processJSFile(config: Config, contents: string): Promise<string[]
 	try {
 		var program = (await parseJS(contents))!.script
 	} catch (e) {
-		console.log(contents)
 		throw e
 	}
 

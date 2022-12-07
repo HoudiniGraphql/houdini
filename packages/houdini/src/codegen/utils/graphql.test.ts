@@ -85,7 +85,9 @@ describe('flattenSelection', function () {
 		).toMatchInlineSnapshot(`
 			{
 			  user {
-			    id
+			    ... on User {
+			      id
+			    }
 			    ...Foo
 			  }
 			}
