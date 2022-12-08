@@ -208,3 +208,7 @@ test('can read and write linked records', function () {
 		},
 	})
 })
+
+test.todo('writing a field should reset its lifetime')
+
+test.todo('complex keys')

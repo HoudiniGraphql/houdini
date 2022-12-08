@@ -29,7 +29,12 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 	// return the root record
 	get root(): RecordProxy {
 		this.validateInstabilityWarning()
-		return new RecordProxy(this, 'Query', rootID)
+		return new RecordProxy({
+			cache: this,
+			type: 'Query',
+			id: rootID,
+			idFields: {},
+		})
 	}
 
 	// return the record proxy for the given type/id combo
@@ -39,7 +44,7 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 		if (!recordID) {
 			throw new Error('todo')
 		}
-		return new RecordProxy(this, type, recordID)
+		return new RecordProxy({ cache: this, type, id: recordID, idFields: data })
 	}
 
 	get config() {
@@ -51,11 +56,23 @@ export class RecordProxy {
 	private id: string
 	private type: string
 	private cache: CacheProxy
+	private idFields: {}
 
-	constructor(cache: CacheProxy, type: string, id: string) {
+	constructor({
+		cache,
+		type,
+		id,
+		idFields,
+	}: {
+		cache: CacheProxy
+		type: string
+		idFields: {}
+		id: string
+	}) {
 		this.cache = cache
 		this.id = id
 		this.type = type
+		this.idFields = idFields
 	}
 
 	set({ field, args, value }: { field: string; args?: any; value: any }): any {
@@ -64,12 +81,41 @@ export class RecordProxy {
 		// compute the key for the field/args combo
 		const key = this._computeKey({ field, args })
 		// look up the type information for the field
-		const typeInfo = this._typeInfo(field)
+		const typeInfo: Partial<SubscriptionSelection[string]> & TypeInfo = this._typeInfo(field)
 
-		// if the type has a special marshal function we need to call it
-		const fnMarshal = this.cache.config.scalars?.[typeInfo.type]?.marshal
-		if (fnMarshal) {
-			value = fnMarshal(value)
+		// if we are writing a scalar we need to look for a special marshal function
+		if (!typeInfo.link) {
+			// if the type has a special marshal function we need to call it
+			const fnMarshal = this.cache.config.scalars?.[typeInfo.type]?.marshal
+			if (fnMarshal) {
+				value = fnMarshal(value)
+			}
+		}
+		// we are writing a link so we need to add some information to the selection
+		// as well as use the id fields for the value
+		else if (value instanceof RecordProxy) {
+			// look up the necessary fields to compute the key
+			const keys = keyFieldsForType(this.cache.config, typeInfo.type)
+
+			// add the
+			typeInfo.fields = keys.reduce<{ [field: string]: { type: string; keyRaw: string } }>(
+				(acc, key) => {
+					// look up the type information for the key
+					const keyInfo = this._typeInfo(key, typeInfo.type)
+
+					return {
+						...acc,
+						[key]: {
+							type: keyInfo.type,
+							keyRaw: key,
+						},
+					}
+				},
+				{}
+			)
+
+			// use the id fields as the value
+			value = value.idFields
 		}
 
 		// write the value to the cache by constructing the correct selection
@@ -93,7 +139,7 @@ export class RecordProxy {
 		// compute the key for the field/args combo
 		const key = this._computeKey({ field, args })
 		// look up the type information for the field
-		const typeInfo: Partial<SubscriptionSelection[string]> & TypeInfo = this._typeInfo(key)
+		const typeInfo: Partial<SubscriptionSelection[string]> & TypeInfo = this._typeInfo(field)
 
 		// if the field is a link we need to look up all of the fields necessary to compute the id
 		if (typeInfo.link) {
@@ -135,16 +181,22 @@ export class RecordProxy {
 		}
 
 		// they asked for a link so we need to return a proxy to that record
+		const idFields = result.data?.[field] || {}
 		const linkedID = this.cache._internal_unstable._internal_unstable.id(
 			typeInfo.type,
-			result.data?.[field] || {}
+			idFields
 		)
 		if (!linkedID) {
 			throw new Error('todo')
 		}
 
 		// return the proxy
-		return new RecordProxy(this.cache, typeInfo.type, linkedID)
+		return new RecordProxy({
+			cache: this.cache,
+			type: typeInfo.type,
+			id: linkedID,
+			idFields,
+		})
 	}
 
 	private _typeInfo(field: string, type: string = this.type): TypeInfo {
