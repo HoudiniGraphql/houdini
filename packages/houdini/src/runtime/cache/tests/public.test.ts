@@ -126,3 +126,85 @@ test('can read custom scalar value', function () {
 	// read the cached value
 	expect(cache.root.get({ field: 'test' })).toEqual(targetDate)
 })
+
+test('can read and write linked records', function () {
+	const cache = testCache()
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				parent: {
+					type: 'User',
+					keyRaw: 'parent',
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// write the data as a deeply nested object
+	cache._internal_unstable.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				parent: {
+					id: '2',
+					firstName: 'jane',
+				},
+			},
+		},
+	})
+
+	// look up the linked record
+	const viewer = cache.get('User', { id: '1' })
+
+	// get the linked parent
+	const parent = viewer.get({ field: 'parent' })
+
+	// make sure we got the correct record proxy out
+	expect(parent.get({ field: 'id' })).toEqual('2')
+
+	// get another user record
+	const otherUser = cache.get('User', { id: '3' })
+	otherUser.set({ field: 'firstName', value: 'Jacob' })
+
+	// assign the new link
+	viewer.set({ field: 'parent', value: otherUser })
+
+	// read from the cache and make sure we get the right values
+	expect(
+		cache._internal_unstable.read({
+			selection,
+		}).data
+	).toEqual({
+		viewer: {
+			id: '1',
+			firstName: 'bob',
+			parent: {
+				id: '3',
+				firstName: 'Jacob',
+			},
+		},
+	})
+})
