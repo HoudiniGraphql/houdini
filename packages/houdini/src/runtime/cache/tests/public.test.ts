@@ -212,3 +212,7 @@ test('can read and write linked records', function () {
 test.todo('writing a field should reset its lifetime')
 
 test.todo('complex keys')
+
+test.todo('scalar subscriptions')
+
+test.todo('linked record subscriptions')
