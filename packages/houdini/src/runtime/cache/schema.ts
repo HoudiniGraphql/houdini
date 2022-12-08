@@ -1,12 +1,14 @@
 import { ConfigFile } from '../lib'
 import { Cache, rootID } from './cache'
 
+export type TypeInfo = { type: string; nullable: boolean }
+
 export class SchemaManager {
 	cache: Cache
 
 	// fundamentally the schema manager is responsible for tracking
 	// the type information of every field for a given type in the schema
-	fieldTypes: Record<string, Record<string, { type: string; nullable: boolean }>> = {}
+	fieldTypes: Record<string, Record<string, TypeInfo>> = {}
 
 	constructor(cache: Cache) {
 		this.cache = cache
@@ -46,6 +48,10 @@ export class SchemaManager {
 			type,
 			nullable,
 		}
+	}
+
+	fieldType(type: string, field: string) {
+		return this.fieldTypes[type]?.[field] || null
 	}
 
 	get config(): ConfigFile {
