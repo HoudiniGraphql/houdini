@@ -41,15 +41,18 @@ test('writing a selection loads the schema information', function () {
 			viewer: {
 				type: 'User',
 				nullable: false,
+				link: true,
 			},
 		},
 		User: {
 			id: {
 				type: 'ID',
 				nullable: false,
+				link: false,
 			},
 			firstName: {
 				type: 'String',
+				link: false,
 				nullable: false,
 			},
 		},
