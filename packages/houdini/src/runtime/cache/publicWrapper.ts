@@ -1,3 +1,4 @@
+import { keyFieldsForType, SubscriptionSelection } from '../lib'
 import { Cache, rootID } from './cache'
 import { SchemaManager, TypeInfo } from './schema'
 
@@ -34,11 +35,11 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 	// return the record proxy for the given type/id combo
 	get(type: string, data: any) {
 		this.validateInstabilityWarning()
-		return new RecordProxy(
-			this,
-			type,
-			this._internal_unstable._internal_unstable.computeID(type, data)
-		)
+		let recordID = this._internal_unstable._internal_unstable.id(type, data)
+		if (!recordID) {
+			throw new Error('todo')
+		}
+		return new RecordProxy(this, type, recordID)
 	}
 
 	get config() {
@@ -57,7 +58,7 @@ export class RecordProxy {
 		this.type = type
 	}
 
-	set({ field, args, value }: { field: string; args?: any; value: any }) {
+	set({ field, args, value }: { field: string; args?: any; value: any }): any {
 		this.cache.validateInstabilityWarning()
 
 		// compute the key for the field/args combo
@@ -86,13 +87,36 @@ export class RecordProxy {
 		})
 	}
 
-	get({ field, args }: { field: string; args?: any }) {
+	get({ field, args }: { field: string; args?: any }): any {
 		this.cache.validateInstabilityWarning()
 
-		// look up the type information for the field
-		const typeInfo = this._typeInfo(field)
 		// compute the key for the field/args combo
 		const key = this._computeKey({ field, args })
+		// look up the type information for the field
+		const typeInfo: Partial<SubscriptionSelection[string]> & TypeInfo = this._typeInfo(key)
+
+		// if the field is a link we need to look up all of the fields necessary to compute the id
+		if (typeInfo.link) {
+			// look up the necessary fields to compute the key
+			const keys = keyFieldsForType(this.cache.config, typeInfo.type)
+
+			// add the keys to the selection
+			typeInfo.fields = keys.reduce<{ [field: string]: { type: string; keyRaw: string } }>(
+				(acc, key) => {
+					// look up the type information for the key
+					const keyInfo = this._typeInfo(key, typeInfo.type)
+
+					return {
+						...acc,
+						[key]: {
+							type: keyInfo.type,
+							keyRaw: key,
+						},
+					}
+				},
+				{}
+			)
+		}
 
 		// get the value from the cache
 		const result = this.cache._internal_unstable.read({
@@ -105,14 +129,26 @@ export class RecordProxy {
 			},
 		})
 
-		return result.data?.[field]
+		// if they asked for a scalar, just return the value
+		if (!typeInfo.link) {
+			return result.data?.[field]
+		}
+
+		// they asked for a link so we need to return a proxy to that record
+		const linkedID = this.cache._internal_unstable._internal_unstable.id(
+			typeInfo.type,
+			result.data?.[field] || {}
+		)
+		if (!linkedID) {
+			throw new Error('todo')
+		}
+
+		// return the proxy
+		return new RecordProxy(this.cache, typeInfo.type, linkedID)
 	}
 
-	private _typeInfo(field: string): TypeInfo {
-		const info = this.cache._internal_unstable._internal_unstable.schema.fieldType(
-			this.type,
-			field
-		)
+	private _typeInfo(field: string, type: string = this.type): TypeInfo {
+		const info = this.cache._internal_unstable._internal_unstable.schema.fieldType(type, field)
 
 		if (!info) {
 			throw new Error(
@@ -124,6 +160,7 @@ export class RecordProxy {
 	}
 
 	private _computeKey({ field, args }: { field: string; args?: {} }) {
+		// TODO: the actual key logic uses graphql.print to properly serialize complex values
 		return args && Object.values(args).length > 0
 			? `${field}(${Object.entries(args)
 					.map((entries) => entries.join(': '))

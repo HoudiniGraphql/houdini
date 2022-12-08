@@ -1,7 +1,11 @@
 import { ConfigFile } from '../lib'
 import { Cache, rootID } from './cache'
 
-export type TypeInfo = { type: string; nullable: boolean }
+export type TypeInfo = {
+	type: string
+	nullable: boolean
+	link: boolean
+}
 
 export class SchemaManager {
 	cache: Cache
@@ -19,11 +23,13 @@ export class SchemaManager {
 		key,
 		type,
 		nullable = false,
+		link,
 	}: {
 		parent: string
 		key: string
 		type: string
 		nullable?: boolean
+		link?: boolean
 	}) {
 		// convert the key into the field name
 		let parensIndex = key.indexOf('(')
@@ -47,6 +53,7 @@ export class SchemaManager {
 		this.fieldTypes[parent][key] = {
 			type,
 			nullable,
+			link: !!link,
 		}
 	}
 
