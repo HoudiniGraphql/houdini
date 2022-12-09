@@ -141,7 +141,7 @@ modified example [from the source repository](https://github.com/HoudiniGraphql/
 ```javascript
 // src/routes/[filter]/+page.ts
 
-export const houdini_load = graphql`
+export const _houdini_load = graphql`
 	query AllItems($completed: Boolean) {
 		items(completed: $completed) {
 			id
@@ -178,7 +178,7 @@ arguments as SvelteKit's [`load`](https://kit.svelte.dev/docs#loading) function.
 ```javascript
 // src/routes/myRoute/+page.js
 
-export const houdini_load = graphql`
+export const _houdini_load = graphql`
 	query AllItems($completed: Boolean) {
 		items(completed: $completed) {
 			id
@@ -212,7 +212,7 @@ docs.
 ```javascript
 // src/routes/myRoute/+page.js
 
-export const houdini_load = graphql`
+export const _houdini_load = graphql`
 	query MyProfile($id: ID!) {
 		profile(id: $id) {
 			name
@@ -251,7 +251,7 @@ docs.
 ```javascript
 // src/routes/myRoute/+page.js
 
-export const houdini_load = graphql`
+export const _houdini_load = graphql`
 	query MyProfile {
 		profile {
 			name

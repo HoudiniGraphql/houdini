@@ -338,7 +338,7 @@ const userInfo = graphql`
 	}
 `
 
-export const houdini_load = [GQL_ProjectList, userInfo]
+export const _houdini_load = [GQL_ProjectList, userInfo]
 ```
 
 With that in place, your route will be passed two props, named after the queries: `ProjectList` and `UserInfo`:
@@ -364,7 +364,7 @@ Keep in mind that `houdini_load` can also take a single store, which allows for 
 
 import { graphql } from '$houdini'
 
-export const houdini_load = graphql`
+export const _houdini_load = graphql`
 	query UserInfo {
 		viewer {
 			firstName
@@ -381,7 +381,7 @@ hooks for a particular query since it allows all of that logic to be co-located:
 
 import { graphql } from '$houdini'
 
-export const houdini_load = graphql`
+export const _houdini_load = graphql`
 	query UserInfo($id: ID!) {
 		user(id: $id) {
 			firstName
