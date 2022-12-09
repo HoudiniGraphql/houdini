@@ -106,7 +106,7 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				name: String!
 			}
 
-			interface CatOwner { 
+			interface CatOwner {
 				cats: [Cat!]!
 			}
 
@@ -168,9 +168,6 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 			DateTime: {
 				type: 'Date',
 				unmarshal(val: number): Date {
-					if (typeof val !== 'number') {
-						throw new Error('unmarshaling not a number')
-					}
 					return new Date(val)
 				},
 				marshal(date: Date): number {
@@ -193,7 +190,6 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				client: './my/client/path',
 			},
 		},
-		acceptImperativeInstability: true,
 		...config,
 	}
 }

@@ -96,8 +96,7 @@ export class RecordProxy {
 		// compute the key for the field/args combo
 		const key = this._computeKey({ field, args })
 		// look up the type information for the field
-		const typeInfo: Partial<Required<SubscriptionSelection>['fields'][string]> & TypeInfo =
-			this._typeInfo(field)
+		const typeInfo: TypeInfoWithSelection = this._typeInfo(field)
 
 		// if we are writing a scalar we need to look for a special marshal function
 		if (!typeInfo.link) {
@@ -138,6 +137,9 @@ export class RecordProxy {
 			throw new Error('Value must be a RecordProxy if the field is a link to another record')
 		}
 
+		// reset the garbage collection status
+		this.cache._internal_unstable._internal_unstable.lifetimes.resetLifetime(this.id, key)
+
 		// write the value to the cache by constructing the correct selection
 		this.cache._internal_unstable.write({
 			parent: this.id,
@@ -161,8 +163,7 @@ export class RecordProxy {
 		// compute the key for the field/args combo
 		const key = this._computeKey({ field, args })
 		// look up the type information for the field
-		const typeInfo: Partial<Required<SubscriptionSelection>['fields'][string]> & TypeInfo =
-			this._typeInfo(field)
+		const typeInfo: TypeInfoWithSelection = this._typeInfo(field)
 
 		// if the field is a link we need to look up all of the fields necessary to compute the id
 		if (typeInfo.link) {
@@ -204,7 +205,7 @@ export class RecordProxy {
 
 		// if they asked for a scalar, just return the value
 		if (!typeInfo.link) {
-			return result.data?.[field]
+			return result.data?.[field] ?? null
 		}
 
 		// they asked for a link so we need to return a proxy to that record
@@ -247,3 +248,5 @@ export class RecordProxy {
 			: field
 	}
 }
+
+type TypeInfoWithSelection = Partial<Required<SubscriptionSelection>['fields'][string]> & TypeInfo

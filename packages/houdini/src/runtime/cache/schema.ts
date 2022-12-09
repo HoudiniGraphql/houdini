@@ -40,7 +40,7 @@ export class SchemaManager {
 		// convert the id into a type
 		if (parent === rootID) {
 			parent = 'Query'
-		} else {
+		} else if (parent.includes(':')) {
 			parent = parent.substring(0, parent.indexOf(':'))
 		}
 

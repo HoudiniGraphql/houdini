@@ -225,7 +225,52 @@ test('record proxies need every field to compute the id', function () {
 	expect(() => new RecordProxy({ cache, id: '1', type: 'User', idFields: {} })).toThrowError()
 })
 
-test.todo('writing a field should reset its lifetime')
+test("writing a field that isn't in the display layer still gets grabage collected", function () {
+	const cache = testCache()
+
+	const user = cache.get('User', { id: '1' })
+	cache.setFieldType({
+		parent: 'User',
+		key: 'firstName',
+		type: 'String',
+	})
+	user.set({ field: 'firstName', value: 'John' })
+
+	// tick the garbage collector enough times to fill up the buffer size
+	for (const _ of Array.from({ length: 10 })) {
+		cache._internal_unstable._internal_unstable.collectGarbage()
+		expect(user.get({ field: 'firstName' })).toEqual('John')
+	}
+
+	// collecting garbage one more time should remove the record from the cache
+	cache._internal_unstable._internal_unstable.collectGarbage()
+	expect(user.get({ field: 'firstName' })).toEqual(null)
+})
+
+test('writing a field resets field life time', function () {
+	const cache = testCache()
+
+	const user = cache.get('User', { id: '1' })
+	cache.setFieldType({
+		parent: 'User',
+		key: 'firstName',
+		type: 'String',
+	})
+	user.set({ field: 'firstName', value: 'John' })
+
+	// tick the garbage collector enough times to fill up the buffer size
+	for (const _ of Array.from({ length: 10 })) {
+		cache._internal_unstable._internal_unstable.collectGarbage()
+		expect(user.get({ field: 'firstName' })).toEqual('John')
+	}
+
+	// update the value one
+	user.set({ field: 'firstName', value: 'John' })
+
+	// collecting garbage one more time shouldn't remove the record from the cache
+	cache._internal_unstable._internal_unstable.collectGarbage()
+	expect(user.get({ field: 'firstName' })).toEqual('John')
+})
 
 test.todo('complex keys')
 
