@@ -364,6 +364,103 @@ test('overlapping query and fragment selection', async function () {
 		"HoudiniHash=234b7407fd0adcee65c73e0a206119449dee083c784bddff5bf4a9ef726a1dba";
 	`)
 })
+test('interface to interface inline fragment', async function () {
+	const docs = [
+		mockCollectedDoc(`query MyQuery($id: ID!) {
+			node(id: $id) {
+				... on Friend {
+					name
+				}
+			}
+		}`),
+	]
+	// execute the generator
+	await runPipeline(config, docs)
+
+	// load the contents of the file
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    name: "MyQuery",
+		    kind: "HoudiniQuery",
+		    hash: "5999d91dbe8f009194a342e0dba409658a75eb93e007063125406464ac13a729",
+
+		    raw: \`query MyQuery($id: ID!) {
+		  node(id: $id) {
+		    ... on User {
+		      firstName
+		    }
+		    id
+		    __typename
+		  }
+		}
+		\`,
+
+		    rootType: "Query",
+
+		    selection: {
+		        fields: {
+		            node: {
+		                type: "Node",
+		                keyRaw: "node(id: $id)",
+		                nullable: true,
+
+		                selection: {
+		                    abstractFields: {
+		                        fields: {
+		                            User: {
+		                                firstName: {
+		                                    type: "String",
+		                                    keyRaw: "firstName"
+		                                },
+
+		                                id: {
+		                                    type: "ID",
+		                                    keyRaw: "id"
+		                                },
+
+		                                __typename: {
+		                                    type: "String",
+		                                    keyRaw: "__typename"
+		                                }
+		                            }
+		                        },
+
+		                        typeMap: {}
+		                    },
+
+		                    fields: {
+		                        id: {
+		                            type: "ID",
+		                            keyRaw: "id"
+		                        },
+
+		                        __typename: {
+		                            type: "String",
+		                            keyRaw: "__typename"
+		                        }
+		                    }
+		                },
+
+		                abstract: true
+		            }
+		        }
+		    },
+
+		    input: {
+		        fields: {
+		            id: "ID"
+		        },
+
+		        types: {}
+		    },
+
+		    policy: "CacheOrNetwork",
+		    partial: false
+		};
+
+		"HoudiniHash=7e14819f84b7cb14f3abd348e2266d68ac5017cd8d3c7e5702730a248f52974a";
+	`)
+})
 
 test('overlapping query and fragment nested selection', async function () {
 	// execute the generator
@@ -871,7 +968,7 @@ test('selections with unions of abstract types', async function () {
 		mockCollectedDoc(
 			`query Friends {
 				friends {
-					... on Node { 
+					... on Node {
 						id
 
 						... on Cat {
@@ -1016,15 +1113,15 @@ test('selections with concrete types matching multiple abstract types', async fu
 		mockCollectedDoc(
 			`query Friends {
 				friends {
-					... on CatOwner { 
-						cats { 
+					... on CatOwner {
+						cats {
 							name
 						}
 					}
-					... on Node { 
+					... on Node {
 						id
 					}
-					... on Ghost { 
+					... on Ghost {
 						aka
 					}
 				}
