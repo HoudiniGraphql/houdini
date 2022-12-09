@@ -377,7 +377,7 @@ test('generates types for layout onError', async function () {
 
                     export const _houdini_load = [ store1, store2 ]
 
-                    export function onError() {
+                    export function _houdini_onError() {
                         return {
                             hello: 'world'
                         }
@@ -449,10 +449,18 @@ test('generates types for layout onError', async function () {
 		export type LayoutData = Expand<Expand<Omit<LayoutParentData, keyof LayoutParentData & EnsureDefined<LayoutServerData>> & OptionalUnion<EnsureDefined<LayoutParentData & EnsureDefined<LayoutServerData>>>> & {
 		    MyPageLoad1Query: MyPageLoad1QueryStore
 		    MyPageLoad2Query: MyPageLoad2QueryStore
-		}>;
+		} & OnErrorReturn>;
 
 		type LoadInput = {
 		    MyPageLoad1Query: MyPageLoad1Query$input
+		};
+
+		type OnErrorReturn = Awaited<ReturnType<typeof import("./+layout").onError>>;
+
+		export type OnErrorEvent = {
+		    event: Kit.LoadEvent
+		    input: LoadInput
+		    error: Error | Error[]
 		};
 
 		export type MyPageLoad1QueryVariables = VariableFunction<LayoutParams, MyPageLoad1Query$input>;
@@ -481,7 +489,7 @@ test('generates types for page onError', async function () {
 
                     export const _houdini_load = [ store1, store2 ]
 
-                    export function onError() {
+                    export function _houdini_onError() {
                         return {
                             hello: 'world'
                         }
@@ -554,10 +562,18 @@ test('generates types for page onError', async function () {
 		export type PageData = Expand<Expand<Omit<PageParentData, keyof PageParentData & EnsureDefined<PageServerData>> & OptionalUnion<EnsureDefined<PageParentData & EnsureDefined<PageServerData>>>> & {
 		    MyPageLoad1Query: MyPageLoad1QueryStore
 		    MyPageLoad2Query: MyPageLoad2QueryStore
-		}>;
+		} & OnErrorReturn>;
 
 		type LoadInput = {
 		    MyPageLoad1Query: MyPageLoad1Query$input
+		};
+
+		type OnErrorReturn = Awaited<ReturnType<typeof import("./+page").onError>>;
+
+		export type OnErrorEvent = {
+		    event: Kit.LoadEvent
+		    input: LoadInput
+		    error: Error | Error[]
 		};
 
 		export type MyPageLoad1QueryVariables = VariableFunction<PageParams, MyPageLoad1Query$input>;
@@ -586,7 +602,7 @@ test('generates types for layout beforeLoad', async function () {
 
                     export const _houdini_load = [ store1, store2 ]
 
-                    export function beforeLoad() {
+                    export function _houdini_beforeLoad() {
                         return {
                             hello: 'world'
                         }
@@ -624,7 +640,7 @@ test('generates types for layout beforeLoad', async function () {
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		import type * as Kit from "@sveltejs/kit";
-		import type { VariableFunction } from "../../../../plugins/houdini-svelte/runtime/types";
+		import type { VariableFunction, BeforeLoadFunction } from "../../../../plugins/houdini-svelte/runtime/types";
 		import { MyPageLoad1Query$result, MyPageLoad1Query$input } from "../../../../artifacts/MyPageLoad1Query";
 		import { MyPageLoad1QueryStore } from "../../../../plugins/houdini-svelte/stores/MyPageLoad1Query";
 		import { MyPageLoad2Query$result, MyPageLoad2Query$input } from "../../../../artifacts/MyPageLoad2Query";
@@ -659,12 +675,14 @@ test('generates types for layout beforeLoad', async function () {
 		export type LayoutData = Expand<Expand<Omit<LayoutParentData, keyof LayoutParentData & EnsureDefined<LayoutServerData>> & OptionalUnion<EnsureDefined<LayoutParentData & EnsureDefined<LayoutServerData>>>> & {
 		    MyPageLoad1Query: MyPageLoad1QueryStore
 		    MyPageLoad2Query: MyPageLoad2QueryStore
-		}>;
+		} & BeforeLoadReturn>;
 
 		type LoadInput = {
 		    MyPageLoad1Query: MyPageLoad1Query$input
 		};
 
+		export type BeforeLoadEvent = LayoutLoadEvent;
+		type BeforeLoadReturn = Awaited<ReturnType<typeof import("./+layout").beforeLoad>>;
 		export type MyPageLoad1QueryVariables = VariableFunction<LayoutParams, MyPageLoad1Query$input>;
 	`)
 })
@@ -691,7 +709,7 @@ test('generates types for page beforeLoad', async function () {
 
                     export const _houdini_load = [ store1, store2 ]
 
-                    export function beforeLoad() {
+                    export function _houdini_beforeLoad() {
                         return {
                             hello: 'world'
                         }
@@ -729,7 +747,7 @@ test('generates types for page beforeLoad', async function () {
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		import type * as Kit from "@sveltejs/kit";
-		import type { VariableFunction } from "../../../../plugins/houdini-svelte/runtime/types";
+		import type { VariableFunction, BeforeLoadFunction } from "../../../../plugins/houdini-svelte/runtime/types";
 		import { MyPageLoad1Query$result, MyPageLoad1Query$input } from "../../../../artifacts/MyPageLoad1Query";
 		import { MyPageLoad1QueryStore } from "../../../../plugins/houdini-svelte/stores/MyPageLoad1Query";
 		import { MyPageLoad2Query$result, MyPageLoad2Query$input } from "../../../../artifacts/MyPageLoad2Query";
@@ -764,12 +782,14 @@ test('generates types for page beforeLoad', async function () {
 		export type PageData = Expand<Expand<Omit<PageParentData, keyof PageParentData & EnsureDefined<PageServerData>> & OptionalUnion<EnsureDefined<PageParentData & EnsureDefined<PageServerData>>>> & {
 		    MyPageLoad1Query: MyPageLoad1QueryStore
 		    MyPageLoad2Query: MyPageLoad2QueryStore
-		}>;
+		} & BeforeLoadReturn>;
 
 		type LoadInput = {
 		    MyPageLoad1Query: MyPageLoad1Query$input
 		};
 
+		export type BeforeLoadEvent = PageLoadEvent;
+		type BeforeLoadReturn = Awaited<ReturnType<typeof import("./+page").beforeLoad>>;
 		export type MyPageLoad1QueryVariables = VariableFunction<PageParams, MyPageLoad1Query$input>;
 	`)
 })
@@ -796,7 +816,7 @@ test('generates types for layout afterLoad', async function () {
 
                     export const _houdini_load = [ store1, store2 ]
 
-                    export function afterLoad(event) {
+                    export function _houdini_afterLoad(event) {
                         return {
                             hello: 'world'
                         }
@@ -834,7 +854,7 @@ test('generates types for layout afterLoad', async function () {
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		import type * as Kit from "@sveltejs/kit";
-		import type { VariableFunction } from "../../../../plugins/houdini-svelte/runtime/types";
+		import type { VariableFunction, AfterLoadFunction } from "../../../../plugins/houdini-svelte/runtime/types";
 		import { MyPageLoad1Query$result, MyPageLoad1Query$input } from "../../../../artifacts/MyPageLoad1Query";
 		import { MyPageLoad1QueryStore } from "../../../../plugins/houdini-svelte/stores/MyPageLoad1Query";
 		import { MyPageLoad2Query$result, MyPageLoad2Query$input } from "../../../../artifacts/MyPageLoad2Query";
@@ -869,10 +889,23 @@ test('generates types for layout afterLoad', async function () {
 		export type LayoutData = Expand<Expand<Omit<LayoutParentData, keyof LayoutParentData & EnsureDefined<LayoutServerData>> & OptionalUnion<EnsureDefined<LayoutParentData & EnsureDefined<LayoutServerData>>>> & {
 		    MyPageLoad1Query: MyPageLoad1QueryStore
 		    MyPageLoad2Query: MyPageLoad2QueryStore
-		}>;
+		} & AfterLoadReturn>;
 
 		type LoadInput = {
 		    MyPageLoad1Query: MyPageLoad1Query$input
+		};
+
+		type AfterLoadReturn = Awaited<ReturnType<typeof import("./+layout").afterLoad>>;
+
+		type AfterLoadData = {
+		    MyPageLoad1Query: MyPageLoad1Query$result
+		    MyPageLoad2Query: MyPageLoad2Query$result
+		};
+
+		export type AfterLoadEvent = {
+		    event: LayoutLoadEvent
+		    data: AfterLoadData
+		    input: LoadInput
 		};
 
 		export type MyPageLoad1QueryVariables = VariableFunction<LayoutParams, MyPageLoad1Query$input>;
@@ -901,7 +934,7 @@ test('generates types for page afterLoad', async function () {
 
                     export const _houdini_load = [ store1, store2 ]
 
-                    export function afterLoad(event) {
+                    export function _houdini_afterLoad(event) {
                         return {
                             hello: 'world'
                         }
@@ -939,7 +972,7 @@ test('generates types for page afterLoad', async function () {
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		import type * as Kit from "@sveltejs/kit";
-		import type { VariableFunction } from "../../../../plugins/houdini-svelte/runtime/types";
+		import type { VariableFunction, AfterLoadFunction } from "../../../../plugins/houdini-svelte/runtime/types";
 		import { MyPageLoad1Query$result, MyPageLoad1Query$input } from "../../../../artifacts/MyPageLoad1Query";
 		import { MyPageLoad1QueryStore } from "../../../../plugins/houdini-svelte/stores/MyPageLoad1Query";
 		import { MyPageLoad2Query$result, MyPageLoad2Query$input } from "../../../../artifacts/MyPageLoad2Query";
@@ -974,10 +1007,23 @@ test('generates types for page afterLoad', async function () {
 		export type PageData = Expand<Expand<Omit<PageParentData, keyof PageParentData & EnsureDefined<PageServerData>> & OptionalUnion<EnsureDefined<PageParentData & EnsureDefined<PageServerData>>>> & {
 		    MyPageLoad1Query: MyPageLoad1QueryStore
 		    MyPageLoad2Query: MyPageLoad2QueryStore
-		}>;
+		} & AfterLoadReturn>;
 
 		type LoadInput = {
 		    MyPageLoad1Query: MyPageLoad1Query$input
+		};
+
+		type AfterLoadReturn = Awaited<ReturnType<typeof import("./+page").afterLoad>>;
+
+		type AfterLoadData = {
+		    MyPageLoad1Query: MyPageLoad1Query$result
+		    MyPageLoad2Query: MyPageLoad2Query$result
+		};
+
+		export type AfterLoadEvent = {
+		    event: PageLoadEvent
+		    data: AfterLoadData
+		    input: LoadInput
 		};
 
 		export type MyPageLoad1QueryVariables = VariableFunction<PageParams, MyPageLoad1Query$input>;
