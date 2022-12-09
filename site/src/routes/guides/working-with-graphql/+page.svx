@@ -324,7 +324,7 @@ On the other hand, maybe you are the kind of person who gets really tired of typ
 features that dramatically reduce the amount of boilerplate that you are responsible for. As you'll see there are a few different ways to get houdini to generate a load for you
 but they all behave the exact same and can be [customized the same way](/api/query#automatic-loading).
 
-The first way to tell houdini to generate a load for you is by exporting a `houdini_load` value from `+page.js` that contains one or more query stores that you want to use in your route:
+The first way to tell houdini to generate a load for you is by exporting a `_houdini_load` value from `+page.js` that contains one or more query stores that you want to use in your route:
 
 ```javascript
 //  src/routes/myProfile/+page.js
@@ -357,7 +357,7 @@ With that in place, your route will be passed two props, named after the queries
 {firstName} can see {length} projects
 ```
 
-Keep in mind that `houdini_load` can also take a single store, which allows for something interesting:
+Keep in mind that `_houdini_load` can also take a single store, which allows for something interesting:
 
 ```javascript
 // src/routes/myProfile/+page.js

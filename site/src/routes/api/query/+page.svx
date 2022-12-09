@@ -125,7 +125,7 @@ A query store has the following methods that invoked without the $, ie `store.fe
 As described in the [Working with GraphQL guide](/guides/working-with-graphql), there are 3 things that you can do to
 get houdini to create a load function for your route:
 
-- export `houdini_load` from your `+page.js` file
+- export `_houdini_load` from your `+page.js` file
 - an inline query in `+page.svelte`
 - `+page.gql` file in your route directory
 
@@ -170,7 +170,7 @@ Sometimes you will need to add additional logic to a component's query. For exam
 check if the current session is valid before a query is sent to the server. In order to support this,
 Houdini will look for hook functions defined in your `+page.js` files.
 
-#### `beforeLoad`
+#### `_houdini_beforeLoad`
 
 Called before Houdini executes load queries against the server. You can expect the same
 arguments as SvelteKit's [`load`](https://kit.svelte.dev/docs#loading) function.
@@ -189,7 +189,7 @@ export const _houdini_load = graphql`
 
 // It has access to the same arguments,
 // this.error, and this.redirect as the variable functions
-export function beforeLoad({ page, session }) {
+export function _houdini_beforeLoad({ page, session }) {
 	if (!session.authenticated) {
 		return this.redirect(302, '/login')
 	}
@@ -200,7 +200,7 @@ export function beforeLoad({ page, session }) {
 }
 ```
 
-#### `afterLoad`
+#### `_houdini_afterLoad`
 
 Called after Houdini executes load queries against the server. You can expect the same
 arguments as SvelteKit's [`load`](https://kit.svelte.dev/docs#loading) function, plus an additional
@@ -220,7 +220,7 @@ export const _houdini_load = graphql`
 	}
 `
 
-export function MyProfileVariables({
+export function _MyProfileVariables({
 	page: {
 		params: { id }
 	}
@@ -228,7 +228,7 @@ export function MyProfileVariables({
 	return { id }
 }
 
-export function afterLoad({ data }) {
+export function _houdini_afterLoad({ data }) {
 	if (!data.MyProfile) {
 		return this.error(404)
 	}
@@ -239,7 +239,7 @@ export function afterLoad({ data }) {
 }
 ```
 
-#### `onError`
+#### `_houdini_onError`
 
 If defined, the load function will invoked this function instead of throwing an error when an error is received.
 It receives three inputs: the load event, the inputs for each query, and the error that was encountered. Just like
@@ -259,7 +259,7 @@ export const _houdini_load = graphql`
 	}
 `
 
-export function onError({ error }) {
+export function _houdini_onError({ error }) {
 	throw this.redirect(307, '/login')
 }
 ```
