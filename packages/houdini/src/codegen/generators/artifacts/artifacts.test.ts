@@ -382,12 +382,12 @@ test('interface to interface inline fragment', async function () {
 		export default {
 		    name: "MyQuery",
 		    kind: "HoudiniQuery",
-		    hash: "5999d91dbe8f009194a342e0dba409658a75eb93e007063125406464ac13a729",
+		    hash: "1523b7370764395a57e1a2434ea2e40290ac99d80a27c92438f8f053c0055998",
 
 		    raw: \`query MyQuery($id: ID!) {
 		  node(id: $id) {
-		    ... on User {
-		      firstName
+		    ... on Friend {
+		      name
 		    }
 		    id
 		    __typename
@@ -407,10 +407,10 @@ test('interface to interface inline fragment', async function () {
 		                selection: {
 		                    abstractFields: {
 		                        fields: {
-		                            User: {
-		                                firstName: {
+		                            Friend: {
+		                                name: {
 		                                    type: "String",
-		                                    keyRaw: "firstName"
+		                                    keyRaw: "name"
 		                                },
 
 		                                id: {
@@ -425,7 +425,10 @@ test('interface to interface inline fragment', async function () {
 		                            }
 		                        },
 
-		                        typeMap: {}
+		                        typeMap: {
+		                            User: "Friend",
+		                            Cat: "Friend"
+		                        }
 		                    },
 
 		                    fields: {
@@ -458,7 +461,7 @@ test('interface to interface inline fragment', async function () {
 		    partial: false
 		};
 
-		"HoudiniHash=7e14819f84b7cb14f3abd348e2266d68ac5017cd8d3c7e5702730a248f52974a";
+		"HoudiniHash=cdea6608b2807ec242d9a2deb5fbde0f907ab04a23b8f3f8bbf5ced2ec6c70c6";
 	`)
 })
 
@@ -1103,7 +1106,7 @@ test('selections with unions of abstract types', async function () {
 		    partial: false
 		};
 
-		"HoudiniHash=daf4a2fbe33e071852aacd6ea63ad993878f478158884f756cddf6964c97f1dc";
+		"HoudiniHash=80fbad4ae54c0751df3f4036149ac742a7ea00f1a75e3dba813e002de8929902";
 	`)
 })
 
@@ -1266,7 +1269,7 @@ test('selections with concrete types matching multiple abstract types', async fu
 		    partial: false
 		};
 
-		"HoudiniHash=b17accd28f9b0ef878aa20cf80a62a36184126a37262c6c1ec9a210d90c70be8";
+		"HoudiniHash=290263aea02506fe45d2723cf759797c873acb2a577fc1073170f6257b88ad75";
 	`)
 })
 
