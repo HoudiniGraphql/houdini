@@ -28,28 +28,9 @@ export function defaultConfigValues(file: ConfigFile): ConfigFile {
 		},
 	}
 }
-export function keyFieldsForType(
-	configFile: ConfigFile,
-	type: string,
-	includeDefault: false
-): string[] | undefined
-export function keyFieldsForType(configFile: ConfigFile, type: string): string[]
-export function keyFieldsForType(
-	configFile: ConfigFile,
-	type: string,
-	includeDefault: true
-): string[]
-export function keyFieldsForType(
-	configFile: ConfigFile,
-	type: string,
-	includeDefault: boolean = true
-) {
-	const configuredValue = configFile.types?.[type]?.keys
-	if (!includeDefault) {
-		return configuredValue
-	}
 
-	return configuredValue || configFile.defaultKeys!
+export function keyFieldsForType(configFile: ConfigFile, type: string) {
+	return configFile.types?.[type]?.keys || configFile.defaultKeys!
 }
 
 export function computeID(configFile: ConfigFile, type: string, data: any): string {

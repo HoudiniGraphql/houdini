@@ -343,9 +343,8 @@ export class Config {
 		return `$houdini/${this.artifactDirectoryName}/${name}`
 	}
 
-	keyFieldsForType(type: string, includeDefault: boolean = true) {
-		// @ts-ignore
-		return keyFieldsForType(this.configFile, type, includeDefault)
+	keyFieldsForType(type: string) {
+		return keyFieldsForType(this.configFile, type)
 	}
 
 	computeID(type: string, data: any): string {

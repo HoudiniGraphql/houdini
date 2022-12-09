@@ -29,7 +29,7 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				field(filter: String): String
 			}
 
-			type Ghost implements Friend & CatOwner {
+			type Ghost implements Friend & CatOwner & IsGhost {
 				name: String!
 				aka: String!
 				believers: [User!]!
@@ -63,6 +63,7 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				usersByForwardsCursor(first: Int, after: String): UserConnection!
 				usersByOffset(offset: Int, limit: Int): [User!]!
 				friendsByCursor(first: Int, after: String, last: Int, before: String): FriendConnection!
+				ghostsByCursor(first: Int, after: String, last: Int, before: String): IsGhostConnection!
 				entitiesByCursor(first: Int, after: String, last: Int, before: String): EntityConnection!
 				node(id: ID!): Node
 			}
@@ -124,12 +125,26 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				edges: [EntityEdge!]!
 			}
 
+			type IsGhostEdge {
+				cursor: String!
+				node: IsGhost
+			}
+
+			type IsGhostConnection {
+				pageInfo: PageInfo!
+				edges: [IsGhostEdge!]!
+			}
+
 			interface Friend {
 				name: String!
 			}
 
 			interface CatOwner {
 				cats: [Cat!]!
+			}
+
+			interface IsGhost { 
+				aka: String!
 			}
 
 			union Entity = User | Cat | Ghost
