@@ -6,7 +6,7 @@ description: A guide to migrating your application to each breaking version of h
 
 # Release Notes
 
-## 0.17.15
+## 0.18.0
 
 Since SvelteKit `1.0.0-next.573`, we are not allowed to export non-Kit functions from `+page.js`, or it has to start with "`_`".
 Please find here new function names to be used:
