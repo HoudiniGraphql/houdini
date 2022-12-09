@@ -39,7 +39,7 @@ test('no variables', async function () {
 test('with variables', async function () {
 	const route = await component_test(
 		`
-            export function TestQueryVariables() {
+            export function _TestQueryVariables() {
                 return {
                     hello: 'world'
                 }
@@ -67,7 +67,7 @@ test('with variables', async function () {
 		import { marshalInputs } from "$houdini/runtime/lib/scalars";
 		const _houdini_TestQuery = new TestQueryStore();
 
-		export function TestQueryVariables() {
+		export function _TestQueryVariables() {
 		    return {
 		        hello: "world"
 		    };
@@ -83,7 +83,15 @@ test('with variables', async function () {
 		$:
 		marshalInputs({
 		    artifact: _houdini_TestQuery.artifact,
-		    input: {}
+
+		    input: _TestQueryVariables.call(new RequestContext(), {
+		        props: {
+		            prop1: prop1,
+		            prop2: prop2,
+		            prop3: prop3,
+		            prop4: prop4
+		        }
+		    })
 		}).then(_TestQuery_Input => isBrowser && _houdini_TestQuery.fetch({
 		    variables: _TestQuery_Input
 		}));
