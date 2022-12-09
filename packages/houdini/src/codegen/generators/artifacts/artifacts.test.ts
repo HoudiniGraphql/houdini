@@ -481,10 +481,13 @@ test('paginate over unions', async function () {
 	const docs = [
 		mockCollectedDoc(
 			`query TestQuery {
-				friendsByCursor(first: 10) @paginate(name: "All_Users") {
+				entitiesByCursor(first: 10) @paginate(name: "All_Users") {
 					edges {
 						node {
-							firstName
+							name
+							... on User {
+								firstName
+							}
 						}
 					}
 				}

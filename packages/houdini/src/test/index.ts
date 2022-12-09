@@ -59,10 +59,11 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				users(boolValue: Boolean, intValue: Int, floatValue: Float, stringValue: String!): [User!]!
 				entities: [Entity!]!
 				usersByCursor(first: Int, after: String, last: Int, before: String): UserConnection!
-				friendsByCursor(first: Int, after: String, last: Int, before: String): FriendConnection!
 				usersByBackwardsCursor(last: Int, before: String): UserConnection!
 				usersByForwardsCursor(first: Int, after: String): UserConnection!
 				usersByOffset(offset: Int, limit: Int): [User!]!
+				friendsByCursor(first: Int, after: String, last: Int, before: String): FriendConnection!
+				entitiesByCursor(first: Int, after: String, last: Int, before: String): EntityConnection!
 				node(id: ID!): Node
 			}
 
@@ -111,6 +112,16 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 			type GhostConnection {
 				pageInfo: PageInfo!
 				edges: [GhostEdge!]!
+			}
+
+			type EntityEdge {
+				cursor: String!
+				node: Entity
+			}
+
+			type EntityConnection {
+				pageInfo: PageInfo!
+				edges: [EntityEdge!]!
 			}
 
 			interface Friend {
