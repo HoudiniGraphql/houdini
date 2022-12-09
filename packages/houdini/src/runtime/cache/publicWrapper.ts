@@ -40,10 +40,16 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 	// return the record proxy for the given type/id combo
 	get(type: string, data: any) {
 		this.validateInstabilityWarning()
+
+		// verify that
+
+		// compute the id for the record
 		let recordID = this._internal_unstable._internal_unstable.id(type, data)
 		if (!recordID) {
 			throw new Error('todo')
 		}
+
+		// return the proxy
 		return new RecordProxy({ cache: this, type, id: recordID, idFields: data })
 	}
 
@@ -73,6 +79,15 @@ export class RecordProxy {
 		this.id = id
 		this.type = type
 		this.idFields = idFields
+
+		// make sure that we have all of the necessary fields for the id
+		if (id !== rootID) {
+			for (const key of keyFieldsForType(this.cache.config, type)) {
+				if (!(key in idFields)) {
+					throw new Error('Missing key in idFields: ' + key)
+				}
+			}
+		}
 	}
 
 	set({ field, args, value }: { field: string; args?: any; value: any }): any {
@@ -116,6 +131,8 @@ export class RecordProxy {
 
 			// use the id fields as the value
 			value = value.idFields
+		} else {
+			throw new Error('Value must be a RecordProxy if the field is a link to another record')
 		}
 
 		// write the value to the cache by constructing the correct selection

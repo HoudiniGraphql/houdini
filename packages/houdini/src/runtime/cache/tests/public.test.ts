@@ -2,7 +2,7 @@ import { test, expect } from 'vitest'
 
 import { testConfigFile } from '../../../test'
 import { Cache, rootID } from '../cache'
-import { CacheProxy } from '../publicWrapper'
+import { CacheProxy, RecordProxy } from '../publicWrapper'
 
 const testCache = () => new CacheProxy(new Cache(testConfigFile()))
 
@@ -209,6 +209,11 @@ test('can read and write linked records', function () {
 	})
 })
 
+test('record proxies need every field to compute the id', function () {
+	const cache = testCache()
+	expect(() => new RecordProxy({ cache, id: '1', type: 'User', idFields: {} })).toThrowError()
+})
+
 test.todo('writing a field should reset its lifetime')
 
 test.todo('complex keys')
@@ -216,3 +221,7 @@ test.todo('complex keys')
 test.todo('scalar subscriptions')
 
 test.todo('linked record subscriptions')
+
+test.todo('set list of linked values - flat list')
+
+test.todo('set list of linked values - connection')
