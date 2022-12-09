@@ -8,7 +8,7 @@ export const _houdini_load = graphql`
   }
 `;
 
-export const _onError = () => {
+export const _houdini_onError = () => {
   return {
     fancyMessage: 'hello'
   };

@@ -1,4 +1,4 @@
-import { test, expect } from 'vitest'
+import { test, expect, vi } from 'vitest'
 
 import { component_test } from '../../test'
 
@@ -83,17 +83,43 @@ test('with variables', async function () {
 		$:
 		marshalInputs({
 		    artifact: _houdini_TestQuery.artifact,
-
-		    input: TestQueryVariables.call(new RequestContext(), {
-		        props: {
-		            prop1: prop1,
-		            prop2: prop2,
-		            prop3: prop3,
-		            prop4: prop4
-		        }
-		    })
+		    input: {}
 		}).then(_TestQuery_Input => isBrowser && _houdini_TestQuery.fetch({
 		    variables: _TestQuery_Input
 		}));
 	`)
+})
+
+test('missing variables', async function () {
+	vi.spyOn(console, 'error')
+
+	await component_test(
+		`
+            export let prop1 = 'hello'
+            export const prop2 = 'goodbye'
+            export let prop3, prop4
+
+            const result = graphql\`
+                query TestQuery($test: String!) {
+                    users(stringValue: $test) {
+                        id
+                    }
+                }
+            \`
+		`
+	)
+	expect(console.error).toHaveBeenCalled()
+	// @ts-ignore
+	expect(console.error.mock.calls).toMatchInlineSnapshot(
+		`
+		[
+		    [
+		        "❌ Encountered error in src/lib/component.svelte"
+		    ],
+		    [
+		        "Could not find required variable function: \\u001b[33m_TestQueryVariables\\u001b[37m\\u001b[0m. maybe its not exported? "
+		    ]
+		]
+	`
+	)
 })
