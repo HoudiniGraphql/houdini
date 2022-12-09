@@ -484,7 +484,6 @@ test('paginate over unions', async function () {
 				entitiesByCursor(first: 10) @paginate(name: "All_Users") {
 					edges {
 						node {
-							name
 							... on User {
 								firstName
 							}
@@ -498,7 +497,176 @@ test('paginate over unions', async function () {
 	await runPipeline(config, docs)
 
 	// load the contents of the file
-	expect(docs[0]).toMatchInlineSnapshot()
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    name: "TestQuery",
+		    kind: "HoudiniQuery",
+		    hash: "e51aa476e50a6550a2597054599ac958070848f0b5cb0301774e6b16d5ce629d",
+
+		    refetch: {
+		        update: "append",
+		        path: ["entitiesByCursor"],
+		        method: "cursor",
+		        pageSize: 10,
+		        embedded: false,
+		        targetType: "Query",
+		        paginated: true,
+		        direction: "forward"
+		    },
+
+		    raw: \`query TestQuery($first: Int = 10, $after: String) {
+		  entitiesByCursor(first: $first, after: $after) {
+		    edges {
+		      node {
+		        ... on User {
+		          firstName
+		        }
+		        __typename
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
+		        __typename
+		      }
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
+		}
+		\`,
+
+		    rootType: "Query",
+
+		    selection: {
+		        fields: {
+		            entitiesByCursor: {
+		                type: "EntityConnection",
+		                keyRaw: "entitiesByCursor::paginated",
+
+		                list: {
+		                    name: "All_Users",
+		                    connection: true,
+		                    type: "Entity"
+		                },
+
+		                selection: {
+		                    fields: {
+		                        edges: {
+		                            type: "EntityEdge",
+		                            keyRaw: "edges",
+		                            update: "append",
+
+		                            selection: {
+		                                fields: {
+		                                    node: {
+		                                        type: "Entity",
+		                                        keyRaw: "node",
+		                                        nullable: true,
+
+		                                        selection: {
+		                                            abstractFields: {
+		                                                fields: {
+		                                                    User: {
+		                                                        firstName: {
+		                                                            type: "String",
+		                                                            keyRaw: "firstName"
+		                                                        },
+
+		                                                        __typename: {
+		                                                            type: "String",
+		                                                            keyRaw: "__typename"
+		                                                        }
+		                                                    }
+		                                                },
+
+		                                                typeMap: {}
+		                                            },
+
+		                                            fields: {
+		                                                __typename: {
+		                                                    type: "String",
+		                                                    keyRaw: "__typename"
+		                                                }
+		                                            }
+		                                        },
+
+		                                        abstract: true
+		                                    },
+
+		                                    cursor: {
+		                                        type: "String",
+		                                        keyRaw: "cursor"
+		                                    }
+		                                }
+		                            }
+		                        },
+
+		                        pageInfo: {
+		                            type: "PageInfo",
+		                            keyRaw: "pageInfo",
+
+		                            selection: {
+		                                fields: {
+		                                    hasPreviousPage: {
+		                                        type: "Boolean",
+		                                        keyRaw: "hasPreviousPage"
+		                                    },
+
+		                                    hasNextPage: {
+		                                        type: "Boolean",
+		                                        keyRaw: "hasNextPage"
+		                                    },
+
+		                                    startCursor: {
+		                                        type: "String",
+		                                        keyRaw: "startCursor"
+		                                    },
+
+		                                    endCursor: {
+		                                        type: "String",
+		                                        keyRaw: "endCursor"
+		                                    }
+		                                }
+		                            }
+		                        }
+		                    }
+		                },
+
+		                filters: {
+		                    first: {
+		                        kind: "Variable",
+		                        value: "first"
+		                    },
+
+		                    after: {
+		                        kind: "Variable",
+		                        value: "after"
+		                    }
+		                }
+		            }
+		        }
+		    },
+
+		    input: {
+		        fields: {
+		            first: "Int",
+		            after: "String"
+		        },
+
+		        types: {}
+		    },
+
+		    policy: "CacheOrNetwork",
+		    partial: false
+		};
+
+		"HoudiniHash=98c1fdc2506e4a951db5819b1c2a712c376e5190ec86b3cc3020babcbf667a63";
+	`)
 })
 
 test('overlapping query and fragment nested selection', async function () {
