@@ -59,6 +59,7 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				users(boolValue: Boolean, intValue: Int, floatValue: Float, stringValue: String!): [User!]!
 				entities: [Entity!]!
 				usersByCursor(first: Int, after: String, last: Int, before: String): UserConnection!
+				friendsByCursor(first: Int, after: String, last: Int, before: String): FriendConnection!
 				usersByBackwardsCursor(last: Int, before: String): UserConnection!
 				usersByForwardsCursor(first: Int, after: String): UserConnection!
 				usersByOffset(offset: Int, limit: Int): [User!]!
@@ -77,14 +78,24 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				node: User
 			}
 
-			type UserEdgeScalar {
-				cursor: Cursor!
-				node: User
-			}
-
 			type UserConnection {
 				pageInfo: PageInfo!
 				edges: [UserEdge!]!
+			}
+
+			type FriendEdge {
+				cursor: String!
+				node: Friend
+			}
+
+			type FriendConnection {
+				pageInfo: PageInfo!
+				edges: [FriendEdge!]!
+			}
+
+			type UserEdgeScalar {
+				cursor: Cursor!
+				node: User
 			}
 
 			type UserConnectionScalar {
@@ -106,7 +117,7 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				name: String!
 			}
 
-			interface CatOwner { 
+			interface CatOwner {
 				cats: [Cat!]!
 			}
 

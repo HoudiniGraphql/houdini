@@ -7,13 +7,13 @@ import { mockCollectedDoc, testConfig } from '../../../test'
 // the config to use in tests
 const config = testConfig()
 
-// the documents to test
-const docs: CollectedGraphQLDocument[] = [
-	mockCollectedDoc(`query TestQuery { version }`),
-	mockCollectedDoc(`fragment TestFragment on User { firstName }`),
-]
-
 test('generates an artifact for every document', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		mockCollectedDoc(`query TestQuery { version }`),
+		mockCollectedDoc(`fragment TestFragment on User { firstName }`),
+	]
+
 	// execute the generator
 	await runPipeline(config, docs)
 
@@ -25,6 +25,12 @@ test('generates an artifact for every document', async function () {
 })
 
 test('adds kind, name, and raw, response, and selection', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		mockCollectedDoc(`query TestQuery { version }`),
+		mockCollectedDoc(`fragment TestFragment on User { firstName }`),
+	]
+
 	// execute the generator
 	await runPipeline(config, docs)
 
@@ -146,7 +152,7 @@ test('selection includes fragments', async function () {
 		"HoudiniHash=c8c8290bb733a727894c836300cd22e8ece993f2b7c2108998f1d63a595e6b5f";
 	`)
 
-	expect(docs[1]).toMatchInlineSnapshot(`
+	expect(selectionDocs[1]).toMatchInlineSnapshot(`
 		export default {
 		    name: "TestFragment",
 		    kind: "HoudiniFragment",
@@ -174,14 +180,16 @@ test('selection includes fragments', async function () {
 })
 
 test('internal directives are scrubbed', async function () {
-	// execute the generator
-	await runPipeline(config, [
+	const docs = [
 		mockCollectedDoc(`fragment A on User { firstName }`),
 		mockCollectedDoc(`query TestQuery { user { ...A @prepend } }`),
-	])
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
 
 	// load the contents of the file
-	expect(docs[0]).toMatchInlineSnapshot(`
+	expect(docs[1]).toMatchInlineSnapshot(`
 		export default {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
@@ -233,8 +241,7 @@ test('internal directives are scrubbed', async function () {
 })
 
 test('variables only used by internal directives are scrubbed', async function () {
-	// execute the generator
-	await runPipeline(config, [
+	const docs = [
 		mockCollectedDoc(`fragment A on User { firstName }`),
 		mockCollectedDoc(
 			`query TestQuery($parentID: ID!) {
@@ -243,10 +250,13 @@ test('variables only used by internal directives are scrubbed', async function (
 				}
 			}`
 		),
-	])
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
 
 	// load the contents of the file
-	expect(docs[0]).toMatchInlineSnapshot(`
+	expect(docs[1]).toMatchInlineSnapshot(`
 		export default {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
@@ -306,14 +316,16 @@ test('variables only used by internal directives are scrubbed', async function (
 })
 
 test('overlapping query and fragment selection', async function () {
-	// execute the generator
-	await runPipeline(config, [
+	const docs = [
 		mockCollectedDoc(`fragment A on User { firstName }`),
 		mockCollectedDoc(`query TestQuery { user { firstName ...A @prepend } }`),
-	])
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
 
 	// load the contents of the file
-	expect(docs[0]).toMatchInlineSnapshot(`
+	expect(docs[1]).toMatchInlineSnapshot(`
 		export default {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
@@ -465,15 +477,38 @@ test('interface to interface inline fragment', async function () {
 	`)
 })
 
-test('overlapping query and fragment nested selection', async function () {
+test('paginate over unions', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`query TestQuery {
+				friendsByCursor(first: 10) @paginate(name: "All_Users") {
+					edges {
+						node {
+							firstName
+						}
+					}
+				}
+			}`
+		),
+	]
 	// execute the generator
-	await runPipeline(config, [
-		mockCollectedDoc(`fragment A on User { friends { ... on User { id } } }`),
-		mockCollectedDoc(`query TestQuery {  friends {... on User { firstName } ...A @prepend } }`),
-	])
+	await runPipeline(config, docs)
 
 	// load the contents of the file
-	expect(docs[0]).toMatchInlineSnapshot(`
+	expect(docs[0]).toMatchInlineSnapshot()
+})
+
+test('overlapping query and fragment nested selection', async function () {
+	const docs = [
+		mockCollectedDoc(`fragment A on User { friends { ... on User { id } } }`),
+		mockCollectedDoc(`query TestQuery {  friends {... on User { firstName } ...A @prepend } }`),
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
+
+	// load the contents of the file
+	expect(docs[1]).toMatchInlineSnapshot(`
 		export default {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
@@ -3487,6 +3522,12 @@ describe('mutation artifacts', function () {
 })
 
 test('custom scalar shows up in artifact', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		mockCollectedDoc(`query TestQuery { version }`),
+		mockCollectedDoc(`fragment TestFragment on User { firstName }`),
+	]
+
 	// define a config with a custom scalar
 	const localConfig = testConfig({
 		schema: `
@@ -3558,6 +3599,12 @@ test('custom scalar shows up in artifact', async function () {
 })
 
 test('operation inputs', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		mockCollectedDoc(`query TestQuery { version }`),
+		mockCollectedDoc(`fragment TestFragment on User { firstName }`),
+	]
+
 	// the config to use in tests
 	const localConfig = testConfig({
 		schema: `
