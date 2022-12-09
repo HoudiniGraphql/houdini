@@ -96,7 +96,8 @@ export class RecordProxy {
 		// compute the key for the field/args combo
 		const key = this._computeKey({ field, args })
 		// look up the type information for the field
-		const typeInfo: Partial<SubscriptionSelection[string]> & TypeInfo = this._typeInfo(field)
+		const typeInfo: Partial<Required<SubscriptionSelection>['fields'][string]> & TypeInfo =
+			this._typeInfo(field)
 
 		// if we are writing a scalar we need to look for a special marshal function
 		if (!typeInfo.link) {
@@ -113,21 +114,23 @@ export class RecordProxy {
 			const keys = keyFieldsForType(this.cache.config, typeInfo.type)
 
 			// add the
-			typeInfo.fields = keys.reduce<{ [field: string]: { type: string; keyRaw: string } }>(
-				(acc, key) => {
-					// look up the type information for the key
-					const keyInfo = this._typeInfo(key, typeInfo.type)
+			typeInfo.selection = {
+				fields: keys.reduce<{ [field: string]: { type: string; keyRaw: string } }>(
+					(acc, key) => {
+						// look up the type information for the key
+						const keyInfo = this._typeInfo(key, typeInfo.type)
 
-					return {
-						...acc,
-						[key]: {
-							type: keyInfo.type,
-							keyRaw: key,
-						},
-					}
-				},
-				{}
-			)
+						return {
+							...acc,
+							[key]: {
+								type: keyInfo.type,
+								keyRaw: key,
+							},
+						}
+					},
+					{}
+				),
+			}
 
 			// use the id fields as the value
 			value = value.idFields
@@ -156,7 +159,8 @@ export class RecordProxy {
 		// compute the key for the field/args combo
 		const key = this._computeKey({ field, args })
 		// look up the type information for the field
-		const typeInfo: Partial<SubscriptionSelection[string]> & TypeInfo = this._typeInfo(field)
+		const typeInfo: Partial<Required<SubscriptionSelection>['fields'][string]> & TypeInfo =
+			this._typeInfo(field)
 
 		// if the field is a link we need to look up all of the fields necessary to compute the id
 		if (typeInfo.link) {
@@ -164,21 +168,23 @@ export class RecordProxy {
 			const keys = keyFieldsForType(this.cache.config, typeInfo.type)
 
 			// add the keys to the selection
-			typeInfo.fields = keys.reduce<{ [field: string]: { type: string; keyRaw: string } }>(
-				(acc, key) => {
-					// look up the type information for the key
-					const keyInfo = this._typeInfo(key, typeInfo.type)
+			typeInfo.selection = {
+				fields: keys.reduce<{ [field: string]: { type: string; keyRaw: string } }>(
+					(acc, key) => {
+						// look up the type information for the key
+						const keyInfo = this._typeInfo(key, typeInfo.type)
 
-					return {
-						...acc,
-						[key]: {
-							type: keyInfo.type,
-							keyRaw: key,
-						},
-					}
-				},
-				{}
-			)
+						return {
+							...acc,
+							[key]: {
+								type: keyInfo.type,
+								keyRaw: key,
+							},
+						}
+					},
+					{}
+				),
+			}
 		}
 
 		// get the value from the cache

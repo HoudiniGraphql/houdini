@@ -261,7 +261,7 @@ class CacheInternal {
 				key: keyRaw,
 				type: linkedType,
 				nullable,
-				link: !!fields,
+				link: !!fieldSelection,
 			})
 
 			// the current set of subscribers
