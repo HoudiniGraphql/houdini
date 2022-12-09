@@ -190,6 +190,7 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				client: './my/client/path',
 			},
 		},
+		acceptImperativeInstability: true,
 		...config,
 	}
 }

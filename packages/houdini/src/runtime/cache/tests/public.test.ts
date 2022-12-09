@@ -264,7 +264,7 @@ test('writing a field resets field life time', function () {
 		expect(user.get({ field: 'firstName' })).toEqual('John')
 	}
 
-	// update the value one
+	// update the value one more time
 	user.set({ field: 'firstName', value: 'John' })
 
 	// collecting garbage one more time shouldn't remove the record from the cache
@@ -273,10 +273,6 @@ test('writing a field resets field life time', function () {
 })
 
 test.todo('complex keys')
-
-test.todo('scalar subscriptions')
-
-test.todo('linked record subscriptions')
 
 test.todo('set list of linked values - flat list')
 
