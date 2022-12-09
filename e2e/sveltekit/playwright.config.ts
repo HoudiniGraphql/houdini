@@ -23,7 +23,8 @@ const config = {
   use,
   webServer: {
     command: 'npm run build && npm run preview',
-    port: 3007
+    port: 3007,
+    timeout: 120 * 1000
   }
 };
 
