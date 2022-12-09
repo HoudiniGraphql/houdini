@@ -1,4 +1,4 @@
-export const beforeLoad = () => {
+export const _beforeLoad = () => {
   return {
     message: 'hello'
   };

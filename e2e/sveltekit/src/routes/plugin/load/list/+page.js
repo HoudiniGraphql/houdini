@@ -1,6 +1,6 @@
 import { graphql } from '$houdini';
 
-export const houdini_load = [
+export const _houdini_load = [
   graphql`
     query ListLoadQuery1 {
       user(id: "1", snapshot: "list-load-query") {
