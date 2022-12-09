@@ -241,9 +241,16 @@ export default async function typeCheck(
 				)
 
 				// we need to validate that we have id configs for the target of the list
-				// for unions, this means checking multiple types
 				let targetTypes: readonly graphql.GraphQLObjectType<any, any>[] = [type]
-				if (graphql.isUnionType(type)) {
+
+				if (
+					// a union doesn't have fields itself so every possible type needs to have a valid key
+					graphql.isUnionType(type) ||
+					// if the type is an abstract type, there are 2 options:
+					// - either the user has configured a custom type for the interface ([type] is the right thing)
+					// - the user has configured key fields for every constituent (use every possible type)
+					(graphql.isInterfaceType(type) && !config.keyFieldsForType(type.name, false))
+				) {
 					targetTypes = config.schema.getPossibleTypes(type)
 				}
 
