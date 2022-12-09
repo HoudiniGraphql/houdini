@@ -112,6 +112,26 @@ export function inlineType({
 
 				const possibleParents = config.schema.getPossibleTypes(type).map((t) => t.name)
 
+				// before we can just blindly give the selection to every possible parent, we need to
+				// group the selection into fields that are directly on the fragment (and therefor apply to)
+				// every subclass of the interface) and then fields on specific possible parents
+				const freeSelections: graphql.SelectionNode[] = []
+				const typeSpecificSelections: Record<string, readonly graphql.SelectionNode[]> = {}
+
+				for (const node of selection.selectionSet.selections) {
+					// if the selection type is not an inline fragment, consider it applicable everywhere
+					if (node.kind !== 'InlineFragment') {
+						freeSelections.push(node)
+					}
+					// the selection is an inline fragment so we can only add the selection if the types match
+					else if (node.typeCondition) {
+						typeSpecificSelections[node.typeCondition.name.value] =
+							node.selectionSet.selections
+					} else {
+						freeSelections.push(...node.selectionSet.selections)
+					}
+				}
+
 				// the fragment type is an interface or union and is getting mixed into an interface or union
 				// which means every possible type of fragment type needs to be mixed into the discriminated
 				// portion for the particular type
@@ -127,7 +147,13 @@ export function inlineType({
 					}
 
 					// add the selection to the discriminated object of the intersecting type
-					inlineFragments[possibleType.name].push(...selection.selectionSet.selections)
+					inlineFragments[possibleType.name].push(...freeSelections)
+					// if we have a type specific selection, add it too
+					if (typeSpecificSelections[possibleType.name]) {
+						inlineFragments[possibleType.name].push(
+							...typeSpecificSelections[possibleType.name]
+						)
+					}
 				}
 			}
 			// an inline fragment without a selection is just a fancy way of asking for fields
@@ -149,12 +175,7 @@ export function inlineType({
 				) as graphql.FieldNode[]
 			).map((selection) => {
 				// grab the type info for the selection
-				const { type, field } = selectionTypeInfo(
-					config.schema,
-					filepath,
-					rootObj,
-					selection
-				)
+				const { field } = selectionTypeInfo(config.schema, filepath, rootObj, selection)
 
 				// figure out the response name
 				const attributeName = selection.alias?.value || selection.name.value

@@ -1,0 +1,14 @@
+query UserNodesResult($forceMessage: Boolean!) {
+  userNodesResult(snapshot: "union-result", forceMessage: $forceMessage) {
+    ... on UserNodes {
+      totalCount
+      nodes {
+        id
+        name
+      }
+    }
+    ... on Message1 {
+      message
+    }
+  }
+}

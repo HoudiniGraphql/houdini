@@ -258,12 +258,7 @@ async function processJSFile(config: Config, contents: string): Promise<string[]
 	const documents: string[] = []
 
 	// parse the contents as js
-	try {
-		var program = (await parseJS(contents))!.script
-	} catch (e) {
-		console.log(contents)
-		throw e
-	}
+	var program = (await parseJS(contents))!.script
 
 	// look for a graphql template tag
 	await find_graphql(config, program, {

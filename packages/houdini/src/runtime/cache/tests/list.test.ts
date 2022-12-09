@@ -10,23 +10,12 @@ test('prepend linked lists update', function () {
 	// instantiate the cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				firstName: {
-					type: 'String',
-					keyRaw: 'firstName',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					update: 'prepend',
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
@@ -36,11 +25,28 @@ test('prepend linked lists update', function () {
 							type: 'String',
 							keyRaw: 'firstName',
 						},
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							update: RefetchUpdateMode.prepend,
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+								},
+							},
+						},
 					},
 				},
 			},
 		},
-	} as SubscriptionSelection
+	}
 
 	// add some data to the cache
 	cache.write({
@@ -68,18 +74,22 @@ test('prepend linked lists update', function () {
 	expect(
 		cache.read({
 			selection: {
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					update: RefetchUpdateMode.prepend,
-					fields: {
-						id: {
-							type: 'ID',
-							keyRaw: 'id',
-						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+				fields: {
+					friends: {
+						type: 'User',
+						keyRaw: 'friends',
+						update: RefetchUpdateMode.prepend,
+						selection: {
+							fields: {
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									keyRaw: 'firstName',
+								},
+							},
 						},
 					},
 				},
@@ -124,18 +134,22 @@ test('prepend linked lists update', function () {
 	expect(
 		cache.read({
 			selection: {
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					update: RefetchUpdateMode.prepend,
-					fields: {
-						id: {
-							type: 'ID',
-							keyRaw: 'id',
-						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+				fields: {
+					friends: {
+						type: 'User',
+						keyRaw: 'friends',
+						update: RefetchUpdateMode.prepend,
+						selection: {
+							fields: {
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									keyRaw: 'firstName',
+								},
+							},
 						},
 					},
 				},
@@ -168,31 +182,37 @@ test('append in list', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: false,
-						type: 'User',
-					},
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
 							keyRaw: 'id',
 						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: false,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+								},
+							},
 						},
 					},
 				},
@@ -228,7 +248,12 @@ test('append in list', function () {
 
 	// insert an element into the list (no parent ID)
 	cache.list('All_Users').append(
-		{ id: { type: 'ID', keyRaw: 'id' }, firstName: { type: 'String', keyRaw: 'firstName' } },
+		{
+			fields: {
+				id: { type: 'ID', keyRaw: 'id' },
+				firstName: { type: 'String', keyRaw: 'firstName' },
+			},
+		},
 		{
 			id: '3',
 			firstName: 'mary',
@@ -257,31 +282,37 @@ test('prepend in list', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: false,
-						type: 'User',
-					},
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
 							keyRaw: 'id',
 						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: false,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+								},
+							},
 						},
 					},
 				},
@@ -317,7 +348,12 @@ test('prepend in list', function () {
 
 	// insert an element into the list (no parent ID)
 	cache.list('All_Users').prepend(
-		{ id: { type: 'ID', keyRaw: 'id' }, firstName: { type: 'String', keyRaw: 'firstName' } },
+		{
+			fields: {
+				id: { type: 'ID', keyRaw: 'id' },
+				firstName: { type: 'String', keyRaw: 'firstName' },
+			},
+		},
 		{
 			id: '3',
 			firstName: 'mary',
@@ -347,43 +383,53 @@ test('remove from connection', function () {
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: true,
-						type: 'User',
-					},
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
-						edges: {
-							type: 'UserEdge',
-							keyRaw: 'edges',
-							fields: {
-								node: {
-									type: 'Node',
-									keyRaw: 'node',
-									abstract: true,
-									fields: {
-										__typename: {
-											type: 'String',
-											keyRaw: '__typename',
-										},
-										id: {
-											type: 'ID',
-											keyRaw: 'id',
-										},
-										firstName: {
-											type: 'String',
-											keyRaw: 'firstName',
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: true,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									edges: {
+										type: 'UserEdge',
+										keyRaw: 'edges',
+										selection: {
+											fields: {
+												node: {
+													type: 'Node',
+													keyRaw: 'node',
+													abstract: true,
+													selection: {
+														fields: {
+															__typename: {
+																type: 'String',
+																keyRaw: '__typename',
+															},
+															id: {
+																type: 'ID',
+																keyRaw: 'id',
+															},
+															firstName: {
+																type: 'String',
+																keyRaw: 'firstName',
+															},
+														},
+													},
+												},
+											},
 										},
 									},
 								},
@@ -468,43 +514,53 @@ test('element removed from list can be added back', function () {
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: true,
-						type: 'User',
-					},
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
-						edges: {
-							type: 'UserEdge',
-							keyRaw: 'edges',
-							fields: {
-								node: {
-									type: 'Node',
-									keyRaw: 'node',
-									abstract: true,
-									fields: {
-										__typename: {
-											type: 'String',
-											keyRaw: '__typename',
-										},
-										id: {
-											type: 'ID',
-											keyRaw: 'id',
-										},
-										firstName: {
-											type: 'String',
-											keyRaw: 'firstName',
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: true,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									edges: {
+										type: 'UserEdge',
+										keyRaw: 'edges',
+										selection: {
+											fields: {
+												node: {
+													type: 'Node',
+													keyRaw: 'node',
+													abstract: true,
+													selection: {
+														fields: {
+															__typename: {
+																type: 'String',
+																keyRaw: '__typename',
+															},
+															id: {
+																type: 'ID',
+																keyRaw: 'id',
+															},
+															firstName: {
+																type: 'String',
+																keyRaw: 'firstName',
+															},
+														},
+													},
+												},
+											},
 										},
 									},
 								},
@@ -561,13 +617,15 @@ test('element removed from list can be added back', function () {
 
 	cache.list('All_Users').append(
 		{
-			id: {
-				keyRaw: 'id',
-				type: 'String',
-			},
-			firstName: {
-				keyRaw: 'firstName',
-				type: 'String',
+			fields: {
+				id: {
+					keyRaw: 'id',
+					type: 'String',
+				},
+				firstName: {
+					keyRaw: 'firstName',
+					type: 'String',
+				},
 			},
 		},
 		{
@@ -608,43 +666,53 @@ test('append in connection', function () {
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: true,
-						type: 'User',
-					},
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
-						edges: {
-							type: 'UserEdge',
-							keyRaw: 'edges',
-							fields: {
-								node: {
-									type: 'Node',
-									keyRaw: 'node',
-									abstract: true,
-									fields: {
-										__typename: {
-											type: 'String',
-											keyRaw: '__typename',
-										},
-										id: {
-											type: 'ID',
-											keyRaw: 'id',
-										},
-										firstName: {
-											type: 'String',
-											keyRaw: 'firstName',
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: true,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									edges: {
+										type: 'UserEdge',
+										keyRaw: 'edges',
+										selection: {
+											fields: {
+												node: {
+													type: 'Node',
+													keyRaw: 'node',
+													abstract: true,
+													selection: {
+														fields: {
+															__typename: {
+																type: 'String',
+																keyRaw: '__typename',
+															},
+															id: {
+																type: 'ID',
+																keyRaw: 'id',
+															},
+															firstName: {
+																type: 'String',
+																keyRaw: 'firstName',
+															},
+														},
+													},
+												},
+											},
 										},
 									},
 								},
@@ -689,7 +757,12 @@ test('append in connection', function () {
 
 	// insert an element into the list (no parent ID)
 	cache.list('All_Users').append(
-		{ id: { type: 'ID', keyRaw: 'id' }, firstName: { type: 'String', keyRaw: 'firstName' } },
+		{
+			fields: {
+				id: { type: 'ID', keyRaw: 'id' },
+				firstName: { type: 'String', keyRaw: 'firstName' },
+			},
+		},
 		{
 			id: '3',
 			firstName: 'mary',
@@ -727,43 +800,53 @@ test('inserting data with an update overwrites a record inserted with list.appen
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: true,
-						type: 'User',
-					},
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
-						edges: {
-							type: 'UserEdge',
-							keyRaw: 'edges',
-							fields: {
-								node: {
-									type: 'Node',
-									keyRaw: 'node',
-									abstract: true,
-									fields: {
-										__typename: {
-											type: 'String',
-											keyRaw: '__typename',
-										},
-										id: {
-											type: 'ID',
-											keyRaw: 'id',
-										},
-										firstName: {
-											type: 'String',
-											keyRaw: 'firstName',
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: true,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									edges: {
+										type: 'UserEdge',
+										keyRaw: 'edges',
+										selection: {
+											fields: {
+												node: {
+													type: 'Node',
+													keyRaw: 'node',
+													abstract: true,
+													selection: {
+														fields: {
+															__typename: {
+																type: 'String',
+																keyRaw: '__typename',
+															},
+															id: {
+																type: 'ID',
+																keyRaw: 'id',
+															},
+															firstName: {
+																type: 'String',
+																keyRaw: 'firstName',
+															},
+														},
+													},
+												},
+											},
 										},
 									},
 								},
@@ -808,7 +891,12 @@ test('inserting data with an update overwrites a record inserted with list.appen
 
 	// insert an element into the list (no parent ID)
 	cache.list('All_Users').append(
-		{ id: { type: 'ID', keyRaw: 'id' }, firstName: { type: 'String', keyRaw: 'firstName' } },
+		{
+			fields: {
+				id: { type: 'ID', keyRaw: 'id' },
+				firstName: { type: 'String', keyRaw: 'firstName' },
+			},
+		},
 		{
 			id: '3',
 			firstName: 'mary',
@@ -837,46 +925,56 @@ test('inserting data with an update overwrites a record inserted with list.appen
 			},
 		},
 		selection: {
-			viewer: {
-				type: 'User',
-				keyRaw: 'viewer',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
-					},
-					firstName: {
-						type: 'String',
-						keyRaw: 'firstName',
-					},
-					friends: {
-						type: 'User',
-						keyRaw: 'friends',
+			fields: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					selection: {
 						fields: {
-							edges: {
-								type: 'UserEdge',
-								keyRaw: 'edges',
-								update: 'append',
-								fields: {
-									cursor: {
-										type: 'String',
-										keyRaw: 'cursor',
-									},
-									node: {
-										type: 'User',
-										keyRaw: 'node',
-										fields: {
-											__typename: {
-												type: 'String',
-												keyRaw: '__typename',
-											},
-											id: {
-												type: 'ID',
-												keyRaw: 'id',
-											},
-											firstName: {
-												type: 'String',
-												keyRaw: 'firstName',
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+							firstName: {
+								type: 'String',
+								keyRaw: 'firstName',
+							},
+							friends: {
+								type: 'User',
+								keyRaw: 'friends',
+								selection: {
+									fields: {
+										edges: {
+											type: 'UserEdge',
+											keyRaw: 'edges',
+											update: RefetchUpdateMode.append,
+											selection: {
+												fields: {
+													cursor: {
+														type: 'String',
+														keyRaw: 'cursor',
+													},
+													node: {
+														type: 'User',
+														keyRaw: 'node',
+														selection: {
+															fields: {
+																__typename: {
+																	type: 'String',
+																	keyRaw: '__typename',
+																},
+																id: {
+																	type: 'ID',
+																	keyRaw: 'id',
+																},
+																firstName: {
+																	type: 'String',
+																	keyRaw: 'firstName',
+																},
+															},
+														},
+													},
+												},
 											},
 										},
 									},
@@ -886,7 +984,7 @@ test('inserting data with an update overwrites a record inserted with list.appen
 					},
 				},
 			},
-		} as SubscriptionSelection,
+		},
 	})
 
 	// make sure the duplicate has been removed
@@ -920,36 +1018,42 @@ test('list filter - must_not positive', function () {
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: false,
-						type: 'User',
-					},
-					filters: {
-						foo: {
-							kind: 'String',
-							value: 'bar',
-						},
-					},
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
 							keyRaw: 'id',
 						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: false,
+								type: 'User',
+							},
+							filters: {
+								foo: {
+									kind: 'String',
+									value: 'bar',
+								},
+							},
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+								},
+							},
 						},
 					},
 				},
@@ -989,8 +1093,10 @@ test('list filter - must_not positive', function () {
 		.when({ must_not: { foo: 'not-bar' } })
 		.prepend(
 			{
-				id: { type: 'ID', keyRaw: 'id' },
-				firstName: { type: 'String', keyRaw: 'firstName' },
+				fields: {
+					id: { type: 'ID', keyRaw: 'id' },
+					firstName: { type: 'String', keyRaw: 'firstName' },
+				},
 			},
 			{
 				id: '3',
@@ -1021,36 +1127,42 @@ test('list filter - must_not negative', function () {
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: false,
-						type: 'User',
-					},
-					filters: {
-						foo: {
-							kind: 'String',
-							value: 'bar',
-						},
-					},
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
 							keyRaw: 'id',
 						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: false,
+								type: 'User',
+							},
+							filters: {
+								foo: {
+									kind: 'String',
+									value: 'bar',
+								},
+							},
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+								},
+							},
 						},
 					},
 				},
@@ -1090,8 +1202,10 @@ test('list filter - must_not negative', function () {
 		.when({ must_not: { foo: 'bar' } })
 		.prepend(
 			{
-				id: { type: 'ID', keyRaw: 'id' },
-				firstName: { type: 'String', keyRaw: 'firstName' },
+				fields: {
+					id: { type: 'ID', keyRaw: 'id' },
+					firstName: { type: 'String', keyRaw: 'firstName' },
+				},
 			},
 			{
 				id: '3',
@@ -1108,36 +1222,42 @@ test('list filter - must positive', function () {
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: false,
-						type: 'User',
-					},
-					filters: {
-						foo: {
-							kind: 'String',
-							value: 'bar',
-						},
-					},
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
 							keyRaw: 'id',
 						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: false,
+								type: 'User',
+							},
+							filters: {
+								foo: {
+									kind: 'String',
+									value: 'bar',
+								},
+							},
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+								},
+							},
 						},
 					},
 				},
@@ -1177,8 +1297,10 @@ test('list filter - must positive', function () {
 		.when({ must: { foo: 'bar' } })
 		.prepend(
 			{
-				id: { type: 'ID', keyRaw: 'id' },
-				firstName: { type: 'String', keyRaw: 'firstName' },
+				fields: {
+					id: { type: 'ID', keyRaw: 'id' },
+					firstName: { type: 'String', keyRaw: 'firstName' },
+				},
 			},
 			{
 				id: '3',
@@ -1209,36 +1331,42 @@ test('list filter - must negative', function () {
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: false,
-						type: 'User',
-					},
-					filters: {
-						foo: {
-							kind: 'String',
-							value: 'bar',
-						},
-					},
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
 							keyRaw: 'id',
 						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: false,
+								type: 'User',
+							},
+							filters: {
+								foo: {
+									kind: 'String',
+									value: 'bar',
+								},
+							},
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+								},
+							},
 						},
 					},
 				},
@@ -1278,8 +1406,10 @@ test('list filter - must negative', function () {
 		.when({ must: { foo: 'not-bar' } })
 		.prepend(
 			{
-				id: { type: 'ID', keyRaw: 'id' },
-				firstName: { type: 'String', keyRaw: 'firstName' },
+				fields: {
+					id: { type: 'ID', keyRaw: 'id' },
+					firstName: { type: 'String', keyRaw: 'firstName' },
+				},
 			},
 			{
 				id: '3',
@@ -1295,31 +1425,37 @@ test('remove from list', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: false,
-						type: 'User',
-					},
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
 							keyRaw: 'id',
 						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: false,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+								},
+							},
 						},
 					},
 				},
@@ -1375,31 +1511,37 @@ test('delete node', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: false,
-						type: 'User',
-					},
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
 							keyRaw: 'id',
 						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: false,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+								},
+							},
 						},
 					},
 				},
@@ -1457,43 +1599,53 @@ test('delete node from connection', function () {
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: true,
-						type: 'User',
-					},
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
-						edges: {
-							type: 'UserEdge',
-							keyRaw: 'edges',
-							fields: {
-								node: {
-									type: 'Node',
-									keyRaw: 'node',
-									abstract: true,
-									fields: {
-										__typename: {
-											type: 'String',
-											keyRaw: '__typename',
-										},
-										id: {
-											type: 'ID',
-											keyRaw: 'id',
-										},
-										firstName: {
-											type: 'String',
-											keyRaw: 'firstName',
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: true,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									edges: {
+										type: 'UserEdge',
+										keyRaw: 'edges',
+										selection: {
+											fields: {
+												node: {
+													type: 'Node',
+													keyRaw: 'node',
+													abstract: true,
+													selection: {
+														fields: {
+															__typename: {
+																type: 'String',
+																keyRaw: '__typename',
+															},
+															id: {
+																type: 'ID',
+																keyRaw: 'id',
+															},
+															firstName: {
+																type: 'String',
+																keyRaw: 'firstName',
+															},
+														},
+													},
+												},
+											},
 										},
 									},
 								},
@@ -1564,13 +1716,17 @@ test('append operation', function () {
 	// create a list we will add to
 	cache.write({
 		selection: {
-			viewer: {
-				type: 'User',
-				keyRaw: 'viewer',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
+			fields: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+						},
 					},
 				},
 			},
@@ -1587,22 +1743,26 @@ test('append operation', function () {
 		{
 			rootType: 'User',
 			selection: {
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: false,
+				fields: {
+					friends: {
 						type: 'User',
-					},
-					fields: {
-						id: {
-							type: 'ID',
-							keyRaw: 'id',
+						keyRaw: 'friends',
+						list: {
+							name: 'All_Users',
+							connection: false,
+							type: 'User',
 						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+						selection: {
+							fields: {
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									keyRaw: 'firstName',
+								},
+							},
 						},
 					},
 				},
@@ -1617,19 +1777,23 @@ test('append operation', function () {
 	// that should be added to the list
 	cache.write({
 		selection: {
-			newUser: {
-				type: 'User',
-				keyRaw: 'newUser',
-				operations: [
-					{
-						action: 'insert',
-						list: 'All_Users',
-					},
-				],
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
+			fields: {
+				newUser: {
+					type: 'User',
+					keyRaw: 'newUser',
+					operations: [
+						{
+							action: 'insert',
+							list: 'All_Users',
+						},
+					],
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+						},
 					},
 				},
 			},
@@ -1652,13 +1816,17 @@ test('append from list', function () {
 	// create a list we will add to
 	cache.write({
 		selection: {
-			viewer: {
-				type: 'User',
-				keyRaw: 'viewer',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
+			fields: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+						},
 					},
 				},
 			},
@@ -1675,22 +1843,26 @@ test('append from list', function () {
 		{
 			rootType: 'User',
 			selection: {
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: false,
+				fields: {
+					friends: {
 						type: 'User',
-					},
-					fields: {
-						id: {
-							type: 'ID',
-							keyRaw: 'id',
+						keyRaw: 'friends',
+						list: {
+							name: 'All_Users',
+							connection: false,
+							type: 'User',
 						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+						selection: {
+							fields: {
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									keyRaw: 'firstName',
+								},
+							},
 						},
 					},
 				},
@@ -1705,19 +1877,23 @@ test('append from list', function () {
 	// that should be added to the list
 	cache.write({
 		selection: {
-			newUser: {
-				type: 'User',
-				keyRaw: 'newUser',
-				operations: [
-					{
-						action: 'insert',
-						list: 'All_Users',
-					},
-				],
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
+			fields: {
+				newUser: {
+					type: 'User',
+					keyRaw: 'newUser',
+					operations: [
+						{
+							action: 'insert',
+							list: 'All_Users',
+						},
+					],
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+						},
 					},
 				},
 			},
@@ -1738,30 +1914,36 @@ test('toggle list', function () {
 	// create a list we will add to
 	cache.write({
 		selection: {
-			viewer: {
-				type: 'User',
-				keyRaw: 'viewer',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
-					},
-					friends: {
-						type: 'User',
-						keyRaw: 'friends',
-						list: {
-							name: 'All_Users',
-							connection: false,
-							type: 'User',
-						},
+			fields: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					selection: {
 						fields: {
 							id: {
 								type: 'ID',
 								keyRaw: 'id',
 							},
-							firstName: {
-								type: 'String',
-								keyRaw: 'firstName',
+							friends: {
+								type: 'User',
+								keyRaw: 'friends',
+								list: {
+									name: 'All_Users',
+									connection: false,
+									type: 'User',
+								},
+								selection: {
+									fields: {
+										id: {
+											type: 'ID',
+											keyRaw: 'id',
+										},
+										firstName: {
+											type: 'String',
+											keyRaw: 'firstName',
+										},
+									},
+								},
 							},
 						},
 					},
@@ -1781,22 +1963,26 @@ test('toggle list', function () {
 		{
 			rootType: 'User',
 			selection: {
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: false,
+				fields: {
+					friends: {
 						type: 'User',
-					},
-					fields: {
-						id: {
-							type: 'ID',
-							keyRaw: 'id',
+						keyRaw: 'friends',
+						list: {
+							name: 'All_Users',
+							connection: false,
+							type: 'User',
 						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+						selection: {
+							fields: {
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									keyRaw: 'firstName',
+								},
+							},
 						},
 					},
 				},
@@ -1808,19 +1994,23 @@ test('toggle list', function () {
 	)
 
 	const toggleSelection: SubscriptionSelection = {
-		newUser: {
-			type: 'User',
-			keyRaw: 'newUser',
-			operations: [
-				{
-					action: 'toggle',
-					list: 'All_Users',
-				},
-			],
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
+		fields: {
+			newUser: {
+				type: 'User',
+				keyRaw: 'newUser',
+				operations: [
+					{
+						action: 'toggle',
+						list: 'All_Users',
+					},
+				],
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+					},
 				},
 			},
 		},
@@ -1847,13 +2037,17 @@ test('append when operation', function () {
 	// create a list we will add to
 	cache.write({
 		selection: {
-			viewer: {
-				type: 'User',
-				keyRaw: 'viewer',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
+			fields: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+						},
 					},
 				},
 			},
@@ -1870,28 +2064,32 @@ test('append when operation', function () {
 		{
 			rootType: 'User',
 			selection: {
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: false,
+				fields: {
+					friends: {
 						type: 'User',
-					},
-					filters: {
-						value: {
-							kind: 'String',
-							value: 'foo',
+						keyRaw: 'friends',
+						list: {
+							name: 'All_Users',
+							connection: false,
+							type: 'User',
 						},
-					},
-					fields: {
-						id: {
-							type: 'ID',
-							keyRaw: 'id',
+						filters: {
+							value: {
+								kind: 'String',
+								value: 'foo',
+							},
 						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+						selection: {
+							fields: {
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									keyRaw: 'firstName',
+								},
+							},
 						},
 					},
 				},
@@ -1906,24 +2104,28 @@ test('append when operation', function () {
 	// that should be added to the list
 	cache.write({
 		selection: {
-			newUser: {
-				type: 'User',
-				keyRaw: 'newUser',
-				operations: [
-					{
-						action: 'insert',
-						list: 'All_Users',
-						when: {
-							must: {
-								value: 'not-foo',
+			fields: {
+				newUser: {
+					type: 'User',
+					keyRaw: 'newUser',
+					operations: [
+						{
+							action: 'insert',
+							list: 'All_Users',
+							when: {
+								must: {
+									value: 'not-foo',
+								},
 							},
 						},
-					},
-				],
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
+					],
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+						},
 					},
 				},
 			},
@@ -1946,13 +2148,17 @@ test('prepend when operation', function () {
 	// create a list we will add to
 	cache.write({
 		selection: {
-			viewer: {
-				type: 'User',
-				keyRaw: 'viewer',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
+			fields: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+						},
 					},
 				},
 			},
@@ -1969,28 +2175,32 @@ test('prepend when operation', function () {
 		{
 			rootType: 'User',
 			selection: {
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: false,
+				fields: {
+					friends: {
 						type: 'User',
-					},
-					filters: {
-						value: {
-							kind: 'String',
-							value: 'foo',
+						keyRaw: 'friends',
+						list: {
+							name: 'All_Users',
+							connection: false,
+							type: 'User',
 						},
-					},
-					fields: {
-						id: {
-							type: 'ID',
-							keyRaw: 'id',
+						filters: {
+							value: {
+								kind: 'String',
+								value: 'foo',
+							},
 						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+						selection: {
+							fields: {
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									keyRaw: 'firstName',
+								},
+							},
 						},
 					},
 				},
@@ -2005,25 +2215,29 @@ test('prepend when operation', function () {
 	// that should be added to the list
 	cache.write({
 		selection: {
-			newUser: {
-				type: 'User',
-				keyRaw: 'newUser',
-				operations: [
-					{
-						action: 'insert',
-						list: 'All_Users',
-						position: 'first',
-						when: {
-							must: {
-								value: 'not-foo',
+			fields: {
+				newUser: {
+					type: 'User',
+					keyRaw: 'newUser',
+					operations: [
+						{
+							action: 'insert',
+							list: 'All_Users',
+							position: 'first',
+							when: {
+								must: {
+									value: 'not-foo',
+								},
 							},
 						},
-					},
-				],
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
+					],
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+						},
 					},
 				},
 			},
@@ -2046,25 +2260,31 @@ test('prepend operation', function () {
 	// create a list we will add to
 	cache.write({
 		selection: {
-			viewer: {
-				type: 'User',
-				keyRaw: 'viewer',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
-					},
-					friends: {
-						type: 'User',
-						keyRaw: 'friends',
+			fields: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					selection: {
 						fields: {
 							id: {
-								type: 'String',
+								type: 'ID',
 								keyRaw: 'id',
 							},
-							firstName: {
-								type: 'String',
-								keyRaw: 'firstName',
+							friends: {
+								type: 'User',
+								keyRaw: 'friends',
+								selection: {
+									fields: {
+										id: {
+											type: 'String',
+											keyRaw: 'id',
+										},
+										firstName: {
+											type: 'String',
+											keyRaw: 'firstName',
+										},
+									},
+								},
 							},
 						},
 					},
@@ -2089,22 +2309,26 @@ test('prepend operation', function () {
 		{
 			rootType: 'User',
 			selection: {
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: false,
+				fields: {
+					friends: {
 						type: 'User',
-					},
-					fields: {
-						id: {
-							type: 'ID',
-							keyRaw: 'id',
+						keyRaw: 'friends',
+						list: {
+							name: 'All_Users',
+							connection: false,
+							type: 'User',
 						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+						selection: {
+							fields: {
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									keyRaw: 'firstName',
+								},
+							},
 						},
 					},
 				},
@@ -2119,20 +2343,24 @@ test('prepend operation', function () {
 	// that should be added to the list
 	cache.write({
 		selection: {
-			newUser: {
-				type: 'User',
-				keyRaw: 'newUser',
-				operations: [
-					{
-						action: 'insert',
-						list: 'All_Users',
-						position: 'first',
-					},
-				],
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
+			fields: {
+				newUser: {
+					type: 'User',
+					keyRaw: 'newUser',
+					operations: [
+						{
+							action: 'insert',
+							list: 'All_Users',
+							position: 'first',
+						},
+					],
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+						},
 					},
 				},
 			},
@@ -2155,25 +2383,31 @@ test('remove operation', function () {
 	// create a list we will add to
 	cache.write({
 		selection: {
-			viewer: {
-				type: 'User',
-				keyRaw: 'viewer',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
-					},
-					friends: {
-						type: 'User',
-						keyRaw: 'friends',
+			fields: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					selection: {
 						fields: {
 							id: {
 								type: 'ID',
 								keyRaw: 'id',
 							},
-							firstName: {
-								type: 'String',
-								keyRaw: 'firstName',
+							friends: {
+								type: 'User',
+								keyRaw: 'friends',
+								selection: {
+									fields: {
+										id: {
+											type: 'ID',
+											keyRaw: 'id',
+										},
+										firstName: {
+											type: 'String',
+											keyRaw: 'firstName',
+										},
+									},
+								},
 							},
 						},
 					},
@@ -2193,22 +2427,26 @@ test('remove operation', function () {
 		{
 			rootType: 'User',
 			selection: {
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: false,
+				fields: {
+					friends: {
 						type: 'User',
-					},
-					fields: {
-						id: {
-							type: 'ID',
-							keyRaw: 'id',
+						keyRaw: 'friends',
+						list: {
+							name: 'All_Users',
+							connection: false,
+							type: 'User',
 						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+						selection: {
+							fields: {
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									keyRaw: 'firstName',
+								},
+							},
 						},
 					},
 				},
@@ -2223,19 +2461,23 @@ test('remove operation', function () {
 	// that should be removed from the operation
 	cache.write({
 		selection: {
-			newUser: {
-				type: 'User',
-				keyRaw: 'newUser',
-				operations: [
-					{
-						action: 'remove',
-						list: 'All_Users',
-					},
-				],
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
+			fields: {
+				newUser: {
+					type: 'User',
+					keyRaw: 'newUser',
+					operations: [
+						{
+							action: 'remove',
+							list: 'All_Users',
+						},
+					],
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+						},
 					},
 				},
 			},
@@ -2258,25 +2500,31 @@ test('remove operation from list', function () {
 	// create a list we will add to
 	cache.write({
 		selection: {
-			viewer: {
-				type: 'User',
-				keyRaw: 'viewer',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
-					},
-					friends: {
-						type: 'User',
-						keyRaw: 'friends',
+			fields: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					selection: {
 						fields: {
 							id: {
 								type: 'ID',
 								keyRaw: 'id',
 							},
-							firstName: {
-								type: 'String',
-								keyRaw: 'firstName',
+							friends: {
+								type: 'User',
+								keyRaw: 'friends',
+								selection: {
+									fields: {
+										id: {
+											type: 'ID',
+											keyRaw: 'id',
+										},
+										firstName: {
+											type: 'String',
+											keyRaw: 'firstName',
+										},
+									},
+								},
 							},
 						},
 					},
@@ -2299,22 +2547,26 @@ test('remove operation from list', function () {
 		{
 			rootType: 'User',
 			selection: {
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: false,
+				fields: {
+					friends: {
 						type: 'User',
-					},
-					fields: {
-						id: {
-							type: 'ID',
-							keyRaw: 'id',
+						keyRaw: 'friends',
+						list: {
+							name: 'All_Users',
+							connection: false,
+							type: 'User',
 						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+						selection: {
+							fields: {
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									keyRaw: 'firstName',
+								},
+							},
 						},
 					},
 				},
@@ -2329,19 +2581,23 @@ test('remove operation from list', function () {
 	// that should be removed from the operation
 	cache.write({
 		selection: {
-			newUser: {
-				type: 'User',
-				keyRaw: 'newUser',
-				operations: [
-					{
-						action: 'remove',
-						list: 'All_Users',
-					},
-				],
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
+			fields: {
+				newUser: {
+					type: 'User',
+					keyRaw: 'newUser',
+					operations: [
+						{
+							action: 'remove',
+							list: 'All_Users',
+						},
+					],
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+						},
 					},
 				},
 			},
@@ -2362,25 +2618,31 @@ test('delete operation', function () {
 	// create a list we will add to
 	cache.write({
 		selection: {
-			viewer: {
-				type: 'User',
-				keyRaw: 'viewer',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
-					},
-					friends: {
-						type: 'User',
-						keyRaw: 'friends',
+			fields: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					selection: {
 						fields: {
 							id: {
 								type: 'ID',
 								keyRaw: 'id',
 							},
-							firstName: {
-								type: 'String',
-								keyRaw: 'firstName',
+							friends: {
+								type: 'User',
+								keyRaw: 'friends',
+								selection: {
+									fields: {
+										id: {
+											type: 'ID',
+											keyRaw: 'id',
+										},
+										firstName: {
+											type: 'String',
+											keyRaw: 'firstName',
+										},
+									},
+								},
 							},
 						},
 					},
@@ -2400,22 +2662,26 @@ test('delete operation', function () {
 		{
 			rootType: 'User',
 			selection: {
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: false,
+				fields: {
+					friends: {
 						type: 'User',
-					},
-					fields: {
-						id: {
-							type: 'ID',
-							keyRaw: 'id',
+						keyRaw: 'friends',
+						list: {
+							name: 'All_Users',
+							connection: false,
+							type: 'User',
 						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+						selection: {
+							fields: {
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									keyRaw: 'firstName',
+								},
+							},
 						},
 					},
 				},
@@ -2430,19 +2696,23 @@ test('delete operation', function () {
 	// that should be added to the list
 	cache.write({
 		selection: {
-			deleteUser: {
-				type: 'User',
-				keyRaw: 'deleteUser',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
-						operations: [
-							{
-								action: 'delete',
-								type: 'User',
+			fields: {
+				deleteUser: {
+					type: 'User',
+					keyRaw: 'deleteUser',
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+								operations: [
+									{
+										action: 'delete',
+										type: 'User',
+									},
+								],
 							},
-						],
+						},
 					},
 				},
 			},
@@ -2467,25 +2737,31 @@ test('delete operation from list', function () {
 	// create a list we will add to
 	cache.write({
 		selection: {
-			viewer: {
-				type: 'User',
-				keyRaw: 'viewer',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
-					},
-					friends: {
-						type: 'User',
-						keyRaw: 'friends',
+			fields: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					selection: {
 						fields: {
 							id: {
 								type: 'ID',
 								keyRaw: 'id',
 							},
-							firstName: {
-								type: 'String',
-								keyRaw: 'firstName',
+							friends: {
+								type: 'User',
+								keyRaw: 'friends',
+								selection: {
+									fields: {
+										id: {
+											type: 'ID',
+											keyRaw: 'id',
+										},
+										firstName: {
+											type: 'String',
+											keyRaw: 'firstName',
+										},
+									},
+								},
 							},
 						},
 					},
@@ -2508,22 +2784,26 @@ test('delete operation from list', function () {
 		{
 			rootType: 'User',
 			selection: {
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: false,
+				fields: {
+					friends: {
 						type: 'User',
-					},
-					fields: {
-						id: {
-							type: 'ID',
-							keyRaw: 'id',
+						keyRaw: 'friends',
+						list: {
+							name: 'All_Users',
+							connection: false,
+							type: 'User',
 						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+						selection: {
+							fields: {
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									keyRaw: 'firstName',
+								},
+							},
 						},
 					},
 				},
@@ -2538,19 +2818,23 @@ test('delete operation from list', function () {
 	// that should be added to the list
 	cache.write({
 		selection: {
-			deleteUser: {
-				type: 'User',
-				keyRaw: 'deleteUser',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
-						operations: [
-							{
-								action: 'delete',
-								type: 'User',
+			fields: {
+				deleteUser: {
+					type: 'User',
+					keyRaw: 'deleteUser',
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+								operations: [
+									{
+										action: 'delete',
+										type: 'User',
+									},
+								],
 							},
-						],
+						},
 					},
 				},
 			},
@@ -2576,43 +2860,53 @@ test('delete operation from connection', function () {
 	// create a list we will add to
 	cache.write({
 		selection: {
-			viewer: {
-				type: 'User',
-				keyRaw: 'viewer',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
-					},
-					friends: {
-						type: 'User',
-						keyRaw: 'friends',
-						list: {
-							name: 'All_Users',
-							connection: true,
-							type: 'User',
-						},
+			fields: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					selection: {
 						fields: {
-							edges: {
-								type: 'UserEdge',
-								keyRaw: 'edges',
-								fields: {
-									node: {
-										type: 'Node',
-										keyRaw: 'node',
-										abstract: true,
-										fields: {
-											__typename: {
-												type: 'String',
-												keyRaw: '__typename',
-											},
-											id: {
-												type: 'ID',
-												keyRaw: 'id',
-											},
-											firstName: {
-												type: 'String',
-												keyRaw: 'firstName',
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+							friends: {
+								type: 'User',
+								keyRaw: 'friends',
+								list: {
+									name: 'All_Users',
+									connection: true,
+									type: 'User',
+								},
+								selection: {
+									fields: {
+										edges: {
+											type: 'UserEdge',
+											keyRaw: 'edges',
+											selection: {
+												fields: {
+													node: {
+														type: 'Node',
+														keyRaw: 'node',
+														abstract: true,
+														selection: {
+															fields: {
+																__typename: {
+																	type: 'String',
+																	keyRaw: '__typename',
+																},
+																id: {
+																	type: 'ID',
+																	keyRaw: 'id',
+																},
+																firstName: {
+																	type: 'String',
+																	keyRaw: 'firstName',
+																},
+															},
+														},
+													},
+												},
 											},
 										},
 									},
@@ -2638,35 +2932,43 @@ test('delete operation from connection', function () {
 		{
 			rootType: 'User',
 			selection: {
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: true,
+				fields: {
+					friends: {
 						type: 'User',
-					},
-					fields: {
-						edges: {
-							type: 'UserEdge',
-							keyRaw: 'edges',
+						keyRaw: 'friends',
+						list: {
+							name: 'All_Users',
+							connection: true,
+							type: 'User',
+						},
+						selection: {
 							fields: {
-								node: {
-									type: 'Node',
-									keyRaw: 'node',
-									abstract: true,
-									fields: {
-										__typename: {
-											type: 'String',
-											keyRaw: '__typename',
-										},
-										id: {
-											type: 'ID',
-											keyRaw: 'id',
-										},
-										firstName: {
-											type: 'String',
-											keyRaw: 'firstName',
+								edges: {
+									type: 'UserEdge',
+									keyRaw: 'edges',
+									selection: {
+										fields: {
+											node: {
+												type: 'Node',
+												keyRaw: 'node',
+												abstract: true,
+												selection: {
+													fields: {
+														__typename: {
+															type: 'String',
+															keyRaw: '__typename',
+														},
+														id: {
+															type: 'ID',
+															keyRaw: 'id',
+														},
+														firstName: {
+															type: 'String',
+															keyRaw: 'firstName',
+														},
+													},
+												},
+											},
 										},
 									},
 								},
@@ -2685,19 +2987,23 @@ test('delete operation from connection', function () {
 	// that should be added to the list
 	cache.write({
 		selection: {
-			deleteUser: {
-				type: 'User',
-				keyRaw: 'deleteUser',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
-						operations: [
-							{
-								action: 'delete',
-								type: 'User',
+			fields: {
+				deleteUser: {
+					type: 'User',
+					keyRaw: 'deleteUser',
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+								operations: [
+									{
+										action: 'delete',
+										type: 'User',
+									},
+								],
 							},
-						],
+						},
 					},
 				},
 			},
@@ -2718,23 +3024,12 @@ test('disabled linked lists update', function () {
 	// instantiate the cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				firstName: {
-					type: 'String',
-					keyRaw: 'firstName',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					update: 'append',
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
@@ -2744,11 +3039,28 @@ test('disabled linked lists update', function () {
 							type: 'String',
 							keyRaw: 'firstName',
 						},
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							update: RefetchUpdateMode.append,
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+								},
+							},
+						},
 					},
 				},
 			},
 		},
-	} as SubscriptionSelection
+	}
 
 	// add some data to the cache
 	cache.write({
@@ -2774,7 +3086,7 @@ test('disabled linked lists update', function () {
 	// make sure we can get the linked lists back
 	expect(
 		cache.read({
-			selection: { friends: selection.viewer.fields!.friends },
+			selection: { fields: { friends: selection.fields!.viewer.selection!.fields!.friends } },
 			parent: 'User:1',
 		}).data
 	).toEqual({
@@ -2814,7 +3126,7 @@ test('disabled linked lists update', function () {
 	// make sure we can get the linked lists back
 	expect(
 		cache.read({
-			selection: { friends: selection.viewer.fields!.friends },
+			selection: { fields: { friends: selection.fields!.viewer.selection!.fields!.friends } },
 			parent: 'User:1',
 		}).data
 	).toEqual({
@@ -2835,23 +3147,12 @@ test('append linked lists update', function () {
 	// instantiate the cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				firstName: {
-					type: 'String',
-					keyRaw: 'firstName',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					update: 'append',
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
@@ -2861,11 +3162,28 @@ test('append linked lists update', function () {
 							type: 'String',
 							keyRaw: 'firstName',
 						},
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							update: RefetchUpdateMode.append,
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+								},
+							},
+						},
 					},
 				},
 			},
 		},
-	} as SubscriptionSelection
+	}
 
 	// add some data to the cache
 	cache.write({
@@ -2891,7 +3209,7 @@ test('append linked lists update', function () {
 	// make sure we can get the linked lists back
 	expect(
 		cache.read({
-			selection: { friends: selection.viewer.fields!.friends },
+			selection: { fields: { friends: selection.fields!.viewer.selection!.fields!.friends } },
 			parent: 'User:1',
 		}).data
 	).toEqual({
@@ -2932,7 +3250,7 @@ test('append linked lists update', function () {
 	// make sure we can get the linked lists back
 	expect(
 		cache.read({
-			selection: { friends: selection.viewer.fields!.friends },
+			selection: { fields: { friends: selection.fields!.viewer.selection!.fields!.friends } },
 			parent: 'User:1',
 		}).data
 	).toEqual({
@@ -2961,27 +3279,31 @@ test('writing a scalar marked with a disabled update overwrites', function () {
 	// instantiate the cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				firstName: {
-					type: 'String',
-					keyRaw: 'firstName',
-				},
-				friends: {
-					type: 'Int',
-					keyRaw: 'friends',
-					update: 'append',
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+						friends: {
+							type: 'Int',
+							keyRaw: 'friends',
+							update: RefetchUpdateMode.append,
+						},
+					},
 				},
 			},
 		},
-	} as SubscriptionSelection
+	}
 
 	// add some data to the cache
 	cache.write({
@@ -3030,27 +3352,31 @@ test('writing a scalar marked with a prepend', function () {
 	// instantiate the cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				firstName: {
-					type: 'String',
-					keyRaw: 'firstName',
-				},
-				friends: {
-					type: 'Int',
-					keyRaw: 'friends',
-					update: 'prepend',
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+						friends: {
+							type: 'Int',
+							keyRaw: 'friends',
+							update: RefetchUpdateMode.prepend,
+						},
+					},
 				},
 			},
 		},
-	} as SubscriptionSelection
+	}
 
 	// add some data to the cache
 	cache.write({
@@ -3100,27 +3426,31 @@ test('writing a scalar marked with an append', function () {
 	// instantiate the cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				firstName: {
-					type: 'String',
-					keyRaw: 'firstName',
-				},
-				friends: {
-					type: 'Int',
-					keyRaw: 'friends',
-					update: 'append',
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+						friends: {
+							type: 'Int',
+							keyRaw: 'friends',
+							update: RefetchUpdateMode.append,
+						},
+					},
 				},
 			},
 		},
-	} as SubscriptionSelection
+	}
 
 	// add some data to the cache
 	cache.write({
@@ -3175,19 +3505,23 @@ test('list operations fail silently', function () {
 	expect(() =>
 		cache.write({
 			selection: {
-				newUser: {
-					type: 'User',
-					keyRaw: 'newUser',
-					operations: [
-						{
-							action: 'insert',
-							list: 'All_Users',
-						},
-					],
-					fields: {
-						id: {
-							type: 'ID',
-							keyRaw: 'id',
+				fields: {
+					newUser: {
+						type: 'User',
+						keyRaw: 'newUser',
+						operations: [
+							{
+								action: 'insert',
+								list: 'All_Users',
+							},
+						],
+						selection: {
+							fields: {
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+							},
 						},
 					},
 				},
@@ -3206,43 +3540,49 @@ test('when conditions look for all matching lists', function () {
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				friends: {
-					type: 'User',
-					// the key takes an argument so that we can have multiple
-					// lists tracked in the cache
-					keyRaw: 'friends(filter: true, foo: $var)',
-					list: {
-						name: 'All_Users',
-						connection: false,
-						type: 'User',
-					},
-					filters: {
-						foo: {
-							kind: 'Variable',
-							value: 'var',
-						},
-						filter: {
-							kind: 'Boolean',
-							value: true,
-						},
-					},
-
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
 							keyRaw: 'id',
 						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+						friends: {
+							type: 'User',
+							// the key takes an argument so that we can have multiple
+							// lists tracked in the cache
+							keyRaw: 'friends(filter: true, foo: $var)',
+							list: {
+								name: 'All_Users',
+								connection: false,
+								type: 'User',
+							},
+							filters: {
+								foo: {
+									kind: 'Variable',
+									value: 'var',
+								},
+								filter: {
+									kind: 'Boolean',
+									value: true,
+								},
+							},
+
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+								},
+							},
 						},
 					},
 				},
@@ -3319,8 +3659,10 @@ test('when conditions look for all matching lists', function () {
 		.when({ must: { filter: true } })
 		.append(
 			{
-				id: { type: 'ID', keyRaw: 'id' },
-				firstName: { type: 'String', keyRaw: 'firstName' },
+				fields: {
+					id: { type: 'ID', keyRaw: 'id' },
+					firstName: { type: 'String', keyRaw: 'firstName' },
+				},
 			},
 			{
 				id: '3',
@@ -3353,22 +3695,26 @@ test('parentID must be passed if there are multiple instances of a list handler'
 	const cache = new Cache(config)
 
 	const friendsSelection: SubscriptionSelection = {
-		friends: {
-			type: 'User',
-			keyRaw: 'friends',
-			list: {
-				name: 'All_Users',
-				connection: false,
+		fields: {
+			friends: {
 				type: 'User',
-			},
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
+				keyRaw: 'friends',
+				list: {
+					name: 'All_Users',
+					connection: false,
+					type: 'User',
 				},
-				firstName: {
-					type: 'String',
-					keyRaw: 'firstName',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
 				},
 			},
 		},
@@ -3377,15 +3723,19 @@ test('parentID must be passed if there are multiple instances of a list handler'
 	// create a list we will add to
 	cache.write({
 		selection: {
-			viewer: {
-				type: 'User',
-				keyRaw: 'viewer',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
+			fields: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+							...friendsSelection.fields,
+						},
 					},
-					...friendsSelection,
 				},
 			},
 		},
@@ -3426,49 +3776,57 @@ test('parentID must be passed if there are multiple instances of a list handler'
 
 	// append a value to the store
 	const writeSelectionNoParentID: SubscriptionSelection = {
-		user: {
-			type: 'User',
-			keyRaw: 'user',
-			operations: [
-				{
-					action: 'insert',
-					list: 'All_Users',
-				},
-			],
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				firstName: {
-					type: 'String',
-					keyRaw: 'firstName',
+		fields: {
+			user: {
+				type: 'User',
+				keyRaw: 'user',
+				operations: [
+					{
+						action: 'insert',
+						list: 'All_Users',
+					},
+				],
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
 				},
 			},
 		},
 	}
 	const writeSelectionWithParentID: SubscriptionSelection = {
-		user: {
-			type: 'User',
-			keyRaw: 'user',
-			operations: [
-				{
-					action: 'insert',
-					list: 'All_Users',
-					parentID: {
-						kind: 'String',
-						value: '1',
+		fields: {
+			user: {
+				type: 'User',
+				keyRaw: 'user',
+				operations: [
+					{
+						action: 'insert',
+						list: 'All_Users',
+						parentID: {
+							kind: 'String',
+							value: '1',
+						},
 					},
-				},
-			],
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				firstName: {
-					type: 'String',
-					keyRaw: 'firstName',
+				],
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
 				},
 			},
 		},
@@ -3497,39 +3855,45 @@ test('append in abstract list', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'Node',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				__typename: {
-					type: 'String',
-					keyRaw: '__typename',
-				},
-				friends: {
-					type: 'Node',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Nodes',
-						connection: false,
-						type: 'Node',
-					},
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'Node',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
 							keyRaw: 'id',
 						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
-						},
 						__typename: {
 							type: 'String',
 							keyRaw: '__typename',
+						},
+						friends: {
+							type: 'Node',
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Nodes',
+								connection: false,
+								type: 'Node',
+							},
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+									__typename: {
+										type: 'String',
+										keyRaw: '__typename',
+									},
+								},
+							},
 						},
 					},
 				},
@@ -3567,7 +3931,12 @@ test('append in abstract list', function () {
 
 	// insert an element into the list (no parent ID)
 	cache.list('All_Nodes').append(
-		{ id: { type: 'ID', keyRaw: 'id' }, firstName: { type: 'String', keyRaw: 'firstName' } },
+		{
+			fields: {
+				id: { type: 'ID', keyRaw: 'id' },
+				firstName: { type: 'String', keyRaw: 'firstName' },
+			},
+		},
 		{
 			id: '3',
 			firstName: 'mary',
@@ -3600,23 +3969,12 @@ test('list operations on interface fields without a well defined parent update t
 	// they have to use __typename to compute the parentID because the list type is Node but the cached value is User:OOOOO// instantiate a cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'Node',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				__typename: {
-					type: 'String',
-					keyRaw: '__typename',
-				},
-				friends: {
-					type: 'Node',
-					keyRaw: 'friends',
-					abstract: true,
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'Node',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
@@ -3626,27 +3984,46 @@ test('list operations on interface fields without a well defined parent update t
 							type: 'String',
 							keyRaw: '__typename',
 						},
-						notFriends: {
+						friends: {
 							type: 'Node',
-							keyRaw: 'notFriends',
+							keyRaw: 'friends',
 							abstract: true,
-							list: {
-								name: 'Not_Friends',
-								connection: false,
-								type: 'Node',
-							},
-							fields: {
-								id: {
-									type: 'ID',
-									keyRaw: 'id',
-								},
-								firstName: {
-									type: 'String',
-									keyRaw: 'firstName',
-								},
-								__typename: {
-									type: 'String',
-									keyRaw: '__typename',
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									__typename: {
+										type: 'String',
+										keyRaw: '__typename',
+									},
+									notFriends: {
+										type: 'Node',
+										keyRaw: 'notFriends',
+										abstract: true,
+										list: {
+											name: 'Not_Friends',
+											connection: false,
+											type: 'Node',
+										},
+										selection: {
+											fields: {
+												id: {
+													type: 'ID',
+													keyRaw: 'id',
+												},
+												firstName: {
+													type: 'String',
+													keyRaw: 'firstName',
+												},
+												__typename: {
+													type: 'String',
+													keyRaw: '__typename',
+												},
+											},
+										},
+									},
 								},
 							},
 						},
@@ -3704,17 +4081,19 @@ test('list operations on interface fields without a well defined parent update t
 	// insert into the not friends list for user 3
 	cache.list('Not_Friends', '3').append(
 		{
-			id: {
-				type: 'ID',
-				keyRaw: 'id',
-			},
-			firstName: {
-				type: 'String',
-				keyRaw: 'firstName',
-			},
-			__typename: {
-				type: 'String',
-				keyRaw: '__typename',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				__typename: {
+					type: 'String',
+					keyRaw: '__typename',
+				},
 			},
 		},
 		{
@@ -3768,13 +4147,17 @@ test("parentID ignores single lists that don't match", function () {
 	// create a list we will add to
 	cache.write({
 		selection: {
-			viewer: {
-				type: 'User',
-				keyRaw: 'viewer',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
+			fields: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+						},
 					},
 				},
 			},
@@ -3791,22 +4174,26 @@ test("parentID ignores single lists that don't match", function () {
 		{
 			rootType: 'User',
 			selection: {
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: false,
+				fields: {
+					friends: {
 						type: 'User',
-					},
-					fields: {
-						id: {
-							type: 'ID',
-							keyRaw: 'id',
+						keyRaw: 'friends',
+						list: {
+							name: 'All_Users',
+							connection: false,
+							type: 'User',
 						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+						selection: {
+							fields: {
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									keyRaw: 'firstName',
+								},
+							},
 						},
 					},
 				},
@@ -3821,23 +4208,27 @@ test("parentID ignores single lists that don't match", function () {
 	// that should be added to the list
 	cache.write({
 		selection: {
-			newUser: {
-				type: 'User',
-				keyRaw: 'newUser',
-				operations: [
-					{
-						action: 'insert',
-						list: 'All_Users',
-						parentID: {
-							kind: 'String',
-							value: '2',
+			fields: {
+				newUser: {
+					type: 'User',
+					keyRaw: 'newUser',
+					operations: [
+						{
+							action: 'insert',
+							list: 'All_Users',
+							parentID: {
+								kind: 'String',
+								value: '2',
+							},
 						},
-					},
-				],
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
+					],
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+						},
 					},
 				},
 			},

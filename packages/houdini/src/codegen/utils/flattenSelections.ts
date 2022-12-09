@@ -7,11 +7,15 @@ export function flattenSelections({
 	filepath,
 	selections,
 	fragmentDefinitions,
+	applyFragments,
+	ignoreMaskDisable,
 }: {
 	config: Config
 	filepath: string
 	selections: readonly graphql.SelectionNode[]
 	fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode }
+	applyFragments: boolean
+	ignoreMaskDisable?: boolean
 }): readonly graphql.SelectionNode[] {
 	// collect all of the fields together
 	const fields = new FieldCollection({
@@ -19,6 +23,8 @@ export function flattenSelections({
 		filepath,
 		selections,
 		fragmentDefinitions,
+		applyFragments,
+		ignoreMaskDisable: !!ignoreMaskDisable,
 	})
 
 	// convert the flat fields into a selection set
@@ -33,15 +39,21 @@ class FieldCollection {
 	fields: { [name: string]: Field<graphql.FieldNode> }
 	inlineFragments: { [typeName: string]: Field<graphql.InlineFragmentNode> }
 	fragmentSpreads: { [fragmentName: string]: graphql.FragmentSpreadNode }
+	applyFragments: boolean
+	ignoreMaskDisable: boolean
 
 	constructor(args: {
 		config: Config
 		filepath: string
 		selections: readonly graphql.SelectionNode[]
 		fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode }
+		applyFragments: boolean
+		ignoreMaskDisable: boolean
 	}) {
 		this.config = args.config
 		this.fragmentDefinitions = args.fragmentDefinitions
+		this.applyFragments = args.applyFragments
+		this.ignoreMaskDisable = args.ignoreMaskDisable
 
 		this.fields = {}
 		this.inlineFragments = {}
@@ -88,22 +100,10 @@ class FieldCollection {
 		// we could run into an inline fragment. the application has been validated already
 		// so we just need to add it to the inline fragment for the appropriate type
 		if (selection.kind === 'InlineFragment' && selection.typeCondition) {
-			// figure out the key of the field
-			const key = selection.typeCondition.name.value
-
-			// if we don't already have an inline fragment of that type
-			if (!this.inlineFragments[key]) {
-				// create an entry for the selection field
-				this.inlineFragments[key] = {
-					astNode: selection,
-					selection: this.empty(),
-				}
-			}
-
-			// its safe to all this fields selections if they exist
-			for (const subselect of selection.selectionSet?.selections || []) {
-				this.inlineFragments[key].selection.add(subselect)
-			}
+			// we need to look at the selection set flatten all of the nested
+			// inline fragments that could appear. every time we run into a new
+			// inline fragment we need to create a new key in the object to add fields to
+			this.walkInlineFragment(selection)
 
 			// we're done
 			return
@@ -126,12 +126,14 @@ class FieldCollection {
 			if (maskArgument?.value.kind === 'BooleanValue') {
 				includeFragments = !maskArgument.value.value
 			}
-
-			// we're finished if we're not supposed to include fragments in the selection
-			if (!includeFragments) {
-				return
+			if (this.ignoreMaskDisable) {
+				includeFragments = true
 			}
 
+			// we're finished if we're not supposed to include fragments in the selection
+			if (!includeFragments || !this.applyFragments) {
+				return
+			}
 			const definition = this.fragmentDefinitions[selection.name.value]
 			if (!definition) {
 				throw new HoudiniError({
@@ -141,9 +143,22 @@ class FieldCollection {
 				})
 			}
 
-			for (const subselect of definition.selectionSet.selections) {
-				this.add(subselect)
-			}
+			// instead of adding the field on directly, let's turn the external fragment into an inline fragment
+
+			this.add({
+				kind: 'InlineFragment',
+				typeCondition: {
+					kind: 'NamedType',
+					name: {
+						kind: 'Name',
+						value: definition.typeCondition.name.value,
+					},
+				},
+				selectionSet: {
+					kind: 'SelectionSet',
+					selections: [...definition.selectionSet.selections],
+				},
+			})
 		}
 	}
 
@@ -166,12 +181,42 @@ class FieldCollection {
 			.concat(Object.values(this.fragmentSpreads))
 	}
 
+	walkInlineFragment(selection: graphql.InlineFragmentNode) {
+		// figure out the key of the field
+		const key = selection.typeCondition!.name.value
+
+		// if we don't already have an inline fragment of that type
+		if (!this.inlineFragments[key]) {
+			// create an entry for the selection field
+			this.inlineFragments[key] = {
+				astNode: selection,
+				selection: this.empty(),
+			}
+		}
+
+		// its safe to all this fields selections if they exist
+		for (const subselect of selection.selectionSet.selections || []) {
+			// the only thing we need to treat specially is inline fragments with type conditions,
+			// otherwise just add it like normal to the inline fragment
+			if (subselect.kind !== 'InlineFragment' || !subselect.typeCondition) {
+				this.inlineFragments[key].selection.add(subselect)
+				continue
+			}
+
+			// we know the selection is an inline fragment with a type condition so
+			// flatten the selection into this one
+			this.walkInlineFragment(subselect)
+		}
+	}
+
 	empty() {
 		return new FieldCollection({
 			config: this.config,
 			fragmentDefinitions: this.fragmentDefinitions,
 			selections: [],
 			filepath: this.filepath,
+			applyFragments: this.applyFragments,
+			ignoreMaskDisable: this.ignoreMaskDisable,
 		})
 	}
 }
