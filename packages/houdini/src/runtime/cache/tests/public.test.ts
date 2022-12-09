@@ -1,6 +1,7 @@
 import { test, expect } from 'vitest'
 
 import { testConfigFile } from '../../../test'
+import { SubscriptionSelection } from '../../lib'
 import { Cache, rootID } from '../cache'
 import { CacheProxy, RecordProxy } from '../publicWrapper'
 
@@ -37,9 +38,11 @@ test('can set root field value to scalar', function () {
 	expect(
 		cache._internal_unstable.read({
 			selection: {
-				test: {
-					keyRaw: 'test',
-					type: 'Int',
+				fields: {
+					test: {
+						keyRaw: 'test',
+						type: 'Int',
+					},
 				},
 			},
 		}).data
@@ -92,9 +95,11 @@ test('can set custom scalar value', function () {
 	expect(
 		cache._internal_unstable.read({
 			selection: {
-				test: {
-					keyRaw: 'test',
-					type: 'DateTime',
+				fields: {
+					test: {
+						keyRaw: 'test',
+						type: 'DateTime',
+					},
 				},
 			},
 		}).data
@@ -130,22 +135,12 @@ test('can read custom scalar value', function () {
 test('can read and write linked records', function () {
 	const cache = testCache()
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				firstName: {
-					type: 'String',
-					keyRaw: 'firstName',
-				},
-				parent: {
-					type: 'User',
-					keyRaw: 'parent',
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
@@ -154,6 +149,22 @@ test('can read and write linked records', function () {
 						firstName: {
 							type: 'String',
 							keyRaw: 'firstName',
+						},
+						parent: {
+							type: 'User',
+							keyRaw: 'parent',
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+								},
+							},
 						},
 					},
 				},

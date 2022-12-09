@@ -142,9 +142,11 @@ export class RecordProxy {
 		this.cache._internal_unstable.write({
 			parent: this.id,
 			selection: {
-				[field]: {
-					keyRaw: key,
-					...typeInfo,
+				fields: {
+					[field]: {
+						keyRaw: key,
+						...typeInfo,
+					},
 				},
 			},
 			data: {
@@ -191,9 +193,11 @@ export class RecordProxy {
 		const result = this.cache._internal_unstable.read({
 			parent: this.id,
 			selection: {
-				[field]: {
-					keyRaw: key,
-					...typeInfo,
+				fields: {
+					[field]: {
+						keyRaw: key,
+						...typeInfo,
+					},
 				},
 			},
 		})

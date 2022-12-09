@@ -12,17 +12,21 @@ test('writing a selection loads the schema information', function () {
 	// write the data
 	cache.write({
 		selection: {
-			viewer: {
-				type: 'User',
-				keyRaw: 'viewer',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
-					},
-					firstName: {
-						type: 'String',
-						keyRaw: 'firstName(id: "1")',
+			fields: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+							firstName: {
+								type: 'String',
+								keyRaw: 'firstName(id: "1")',
+							},
+						},
 					},
 				},
 			},
