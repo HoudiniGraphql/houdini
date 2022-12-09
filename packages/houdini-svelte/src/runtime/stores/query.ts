@@ -85,7 +85,10 @@ export class QueryStore<
 		const config = await this.getConfig()
 
 		// validate and prepare the request context for the current environment (client vs server)
-		const { policy, params, context } = await fetchParams(this.artifact, this.storeName, args)
+		// make a shallow copy of the args so we don't mutate the arguments that the user hands us
+		const { policy, params, context } = await fetchParams(this.artifact, this.storeName, {
+			...args,
+		})
 
 		// identify if this is a CSF or load
 		const isLoadFetch = Boolean('event' in params && params.event)

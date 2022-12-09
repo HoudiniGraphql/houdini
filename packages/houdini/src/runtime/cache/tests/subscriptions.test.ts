@@ -10,22 +10,26 @@ test('root subscribe - field change', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				firstName: {
-					type: 'String',
-					keyRaw: 'firstName',
-				},
-				favoriteColors: {
-					type: 'String',
-					keyRaw: 'favoriteColors',
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+						favoriteColors: {
+							type: 'String',
+							keyRaw: 'favoriteColors',
+						},
+					},
 				},
 			},
 		},
@@ -78,23 +82,27 @@ test('root subscribe - linked object changed', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				firstName: {
-					type: 'String',
-					keyRaw: 'firstName',
-				},
-				favoriteColors: {
-					type: 'String',
-					keyRaw: 'favoriteColors(where: "foo")',
-					nullable: true,
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+						favoriteColors: {
+							type: 'String',
+							keyRaw: 'favoriteColors(where: "foo")',
+							nullable: true,
+						},
+					},
 				},
 			},
 		},
@@ -146,9 +154,11 @@ test('root subscribe - linked object changed', function () {
 	// write a value to the new record
 	cache.write({
 		selection: {
-			firstName: {
-				type: 'String',
-				keyRaw: 'firstName',
+			fields: {
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
 			},
 		},
 		data: {
@@ -176,23 +186,27 @@ test("subscribing to null object doesn't explode", function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				firstName: {
-					type: 'String',
-					keyRaw: 'firstName',
-				},
-				favoriteColors: {
-					nullable: true,
-					type: 'String',
-					keyRaw: 'favoriteColors(where: "foo")',
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+						favoriteColors: {
+							nullable: true,
+							type: 'String',
+							keyRaw: 'favoriteColors(where: "foo")',
+						},
+					},
 				},
 			},
 		},
@@ -241,23 +255,27 @@ test('overwriting a reference with null clears its subscribers', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			nullable: true,
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				firstName: {
-					type: 'String',
-					keyRaw: 'firstName',
-				},
-				favoriteColors: {
-					type: 'String',
-					keyRaw: 'favoriteColors(where: "foo")',
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				nullable: true,
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+						favoriteColors: {
+							type: 'String',
+							keyRaw: 'favoriteColors(where: "foo")',
+						},
+					},
 				},
 			},
 		},
@@ -305,27 +323,33 @@ test('overwriting a linked list with null clears its subscribers', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					nullable: true,
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
-						},
 						id: {
 							type: 'ID',
 							keyRaw: 'id',
+						},
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							nullable: true,
+							selection: {
+								fields: {
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+								},
+							},
 						},
 					},
 				},
@@ -365,11 +389,13 @@ test('overwriting a linked list with null clears its subscribers', function () {
 	// write null over the list
 	cache.write({
 		selection: {
-			id: {
-				type: 'String',
-				keyRaw: 'id',
+			fields: {
+				id: {
+					type: 'String',
+					keyRaw: 'id',
+				},
+				friends: selection.fields!.viewer.selection!.fields!.friends,
 			},
-			friends: selection.viewer.fields.friends,
 		},
 		data: {
 			id: '1',
@@ -395,26 +421,32 @@ test('root subscribe - linked list lost entry', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
 							keyRaw: 'id',
 						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+								},
+							},
 						},
 					},
 				},
@@ -488,26 +520,32 @@ test("subscribing to list with null values doesn't explode", function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
 							keyRaw: 'id',
 						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+								},
+							},
 						},
 					},
 				},
@@ -575,26 +613,32 @@ test('root subscribe - linked list reorder', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
 							keyRaw: 'id',
 						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+								},
+							},
 						},
 					},
 				},
@@ -676,22 +720,26 @@ test('unsubscribe', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				firstName: {
-					type: 'String',
-					keyRaw: 'firstName',
-				},
-				favoriteColors: {
-					type: 'String',
-					keyRaw: 'favoriteColors(where: "foo")',
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+						favoriteColors: {
+							type: 'String',
+							keyRaw: 'favoriteColors(where: "foo")',
+						},
+					},
 				},
 			},
 		},
@@ -733,31 +781,37 @@ test('subscribe to new list nodes', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: false,
-						type: 'User',
-					},
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
 							keyRaw: 'id',
 						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: false,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+								},
+							},
 						},
 					},
 				},
@@ -794,13 +848,15 @@ test('subscribe to new list nodes', function () {
 	// update the user we just added
 	cache.write({
 		selection: {
-			id: {
-				type: 'String',
-				keyRaw: 'id',
-			},
-			firstName: {
-				type: 'String',
-				keyRaw: 'firstName',
+			fields: {
+				id: {
+					type: 'String',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
 			},
 		},
 		data: {
@@ -847,13 +903,15 @@ test('subscribe to new list nodes', function () {
 	// update the user we just added
 	cache.write({
 		selection: {
-			id: {
-				type: 'String',
-				keyRaw: 'id',
-			},
-			firstName: {
-				type: 'String',
-				keyRaw: 'firstName',
+			fields: {
+				id: {
+					type: 'String',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
 			},
 		},
 		data: {
@@ -886,31 +944,37 @@ test('variables in query and subscription', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends(filter: $filter)',
-					list: {
-						name: 'All_Users',
-						connection: false,
-						type: 'User',
-					},
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
 							keyRaw: 'id',
 						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+						friends: {
+							type: 'User',
+							keyRaw: 'friends(filter: $filter)',
+							list: {
+								name: 'All_Users',
+								connection: false,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+								},
+							},
 						},
 					},
 				},
@@ -999,31 +1063,37 @@ test('deleting a node removes nested subscriptions', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: false,
-						type: 'User',
-					},
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
 							keyRaw: 'id',
 						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: false,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+								},
+							},
 						},
 					},
 				},
@@ -1071,27 +1141,12 @@ test('same record twice in a query survives one unsubscribe (reference counting)
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				firstName: {
-					type: 'String',
-					keyRaw: 'firstName',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: false,
-						type: 'User',
-					},
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
@@ -1100,6 +1155,27 @@ test('same record twice in a query survives one unsubscribe (reference counting)
 						firstName: {
 							type: 'String',
 							keyRaw: 'firstName',
+						},
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: false,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+								},
+							},
 						},
 					},
 				},
@@ -1156,34 +1232,44 @@ test('embedded references', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
-						edges: {
-							type: 'UserEdge',
-							keyRaw: 'edges',
-							fields: {
-								node: {
-									type: 'User',
-									keyRaw: 'node',
-									fields: {
-										id: {
-											type: 'ID',
-											keyRaw: 'id',
-										},
-										firstName: {
-											type: 'String',
-											keyRaw: 'firstName',
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							selection: {
+								fields: {
+									edges: {
+										type: 'UserEdge',
+										keyRaw: 'edges',
+										selection: {
+											fields: {
+												node: {
+													type: 'User',
+													keyRaw: 'node',
+													selection: {
+														fields: {
+															id: {
+																type: 'ID',
+																keyRaw: 'id',
+															},
+															firstName: {
+																type: 'String',
+																keyRaw: 'firstName',
+															},
+														},
+													},
+												},
+											},
 										},
 									},
 								},
@@ -1239,17 +1325,21 @@ test('embedded references', function () {
 	// update one of the embedded references
 	cache.write({
 		selection: {
-			user: {
-				type: 'User',
-				keyRaw: 'user',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
-					},
-					firstName: {
-						type: 'String',
-						keyRaw: 'firstName',
+			fields: {
+				user: {
+					type: 'User',
+					keyRaw: 'user',
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+							firstName: {
+								type: 'String',
+								keyRaw: 'firstName',
+							},
+						},
 					},
 				},
 			},
@@ -1290,22 +1380,12 @@ test('self-referencing linked lists can be unsubscribed (avoid infinite recursio
 	// instantiate the cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				firstName: {
-					type: 'String',
-					keyRaw: 'firstName',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
@@ -1318,14 +1398,32 @@ test('self-referencing linked lists can be unsubscribed (avoid infinite recursio
 						friends: {
 							type: 'User',
 							keyRaw: 'friends',
-							fields: {
-								id: {
-									type: 'ID',
-									keyRaw: 'id',
-								},
-								firstName: {
-									type: 'String',
-									keyRaw: 'firstName',
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+									friends: {
+										type: 'User',
+										keyRaw: 'friends',
+										selection: {
+											fields: {
+												id: {
+													type: 'ID',
+													keyRaw: 'id',
+												},
+												firstName: {
+													type: 'String',
+													keyRaw: 'firstName',
+												},
+											},
+										},
+									},
 								},
 							},
 						},
@@ -1375,22 +1473,12 @@ test('self-referencing links can be unsubscribed (avoid infinite recursion)', fu
 	// instantiate the cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				firstName: {
-					type: 'String',
-					keyRaw: 'firstName',
-				},
-				friend: {
-					type: 'User',
-					keyRaw: 'friend',
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
@@ -1403,26 +1491,46 @@ test('self-referencing links can be unsubscribed (avoid infinite recursion)', fu
 						friend: {
 							type: 'User',
 							keyRaw: 'friend',
-							fields: {
-								id: {
-									type: 'ID',
-									keyRaw: 'id',
-								},
-								firstName: {
-									type: 'String',
-									keyRaw: 'firstName',
-								},
-								friend: {
-									type: 'User',
-									keyRaw: 'friend',
-									fields: {
-										id: {
-											type: 'ID',
-											keyRaw: 'id',
-										},
-										firstName: {
-											type: 'String',
-											keyRaw: 'firstName',
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+									friend: {
+										type: 'User',
+										keyRaw: 'friend',
+										selection: {
+											fields: {
+												id: {
+													type: 'ID',
+													keyRaw: 'id',
+												},
+												firstName: {
+													type: 'String',
+													keyRaw: 'firstName',
+												},
+												friend: {
+													type: 'User',
+													keyRaw: 'friend',
+													selection: {
+														fields: {
+															id: {
+																type: 'ID',
+																keyRaw: 'id',
+															},
+															firstName: {
+																type: 'String',
+																keyRaw: 'firstName',
+															},
+														},
+													},
+												},
+											},
 										},
 									},
 								},
@@ -1474,22 +1582,26 @@ test('overwriting a value in an optimistic layer triggers subscribers', function
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				firstName: {
-					type: 'String',
-					keyRaw: 'firstName',
-				},
-				favoriteColors: {
-					type: 'String',
-					keyRaw: 'favoriteColors',
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+						favoriteColors: {
+							type: 'String',
+							keyRaw: 'favoriteColors',
+						},
+					},
 				},
 			},
 		},
@@ -1546,22 +1658,26 @@ test('clearing a display layer updates subscribers', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				firstName: {
-					type: 'String',
-					keyRaw: 'firstName',
-				},
-				favoriteColors: {
-					type: 'String',
-					keyRaw: 'favoriteColors',
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+						favoriteColors: {
+							type: 'String',
+							keyRaw: 'favoriteColors',
+						},
+					},
 				},
 			},
 		},
@@ -1643,33 +1759,17 @@ test('ensure parent type is properly passed for nested lists', function () {
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
-		cities: {
-			type: 'City',
-			keyRaw: 'cities',
-			list: {
-				name: 'City_List',
-				connection: false,
+		fields: {
+			cities: {
 				type: 'City',
-			},
-			update: RefetchUpdateMode.append,
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
+				keyRaw: 'cities',
+				list: {
+					name: 'City_List',
+					connection: false,
+					type: 'City',
 				},
-				name: {
-					type: 'String',
-					keyRaw: 'name',
-				},
-				libraries: {
-					type: 'Library',
-					keyRaw: 'libraries',
-					update: RefetchUpdateMode.append,
-					list: {
-						name: 'Library_List',
-						connection: false,
-						type: 'Library',
-					},
+				update: RefetchUpdateMode.append,
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
@@ -1679,22 +1779,46 @@ test('ensure parent type is properly passed for nested lists', function () {
 							type: 'String',
 							keyRaw: 'name',
 						},
-						books: {
-							type: 'Book',
-							keyRaw: 'books',
+						libraries: {
+							type: 'Library',
+							keyRaw: 'libraries',
+							update: RefetchUpdateMode.append,
 							list: {
-								name: 'Book_List',
+								name: 'Library_List',
 								connection: false,
-								type: 'Book',
+								type: 'Library',
 							},
-							fields: {
-								id: {
-									type: 'ID',
-									keyRaw: 'id',
-								},
-								title: {
-									type: 'String',
-									keyRaw: 'title',
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									name: {
+										type: 'String',
+										keyRaw: 'name',
+									},
+									books: {
+										type: 'Book',
+										keyRaw: 'books',
+										list: {
+											name: 'Book_List',
+											connection: false,
+											type: 'Book',
+										},
+										selection: {
+											fields: {
+												id: {
+													type: 'ID',
+													keyRaw: 'id',
+												},
+												title: {
+													type: 'String',
+													keyRaw: 'title',
+												},
+											},
+										},
+									},
 								},
 							},
 						},
@@ -1751,6 +1875,107 @@ test('ensure parent type is properly passed for nested lists', function () {
 	// same with Books_List for Library:2
 	expect(() => cache.list('Book_List', '2')).not.toThrow()
 })
+
+test('subscribe to abstract fields of matching type', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'Node',
+				keyRaw: 'viewer',
+				abstract: true,
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+						__typename: {
+							type: 'String',
+							keyRaw: '__typename',
+						},
+					},
+					abstractFields: {
+						typeMap: {},
+						fields: {
+							User: {
+								__typename: {
+									type: 'String',
+									keyRaw: '__typename',
+								},
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									keyRaw: 'firstName',
+								},
+								favoriteColors: {
+									type: 'String',
+									keyRaw: 'favoriteColors',
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// write some data
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				__typename: 'User',
+				id: '1',
+				firstName: 'bob',
+				favoriteColors: [],
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = vi.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		selection,
+		set,
+	})
+
+	// somehow write a user to the cache with the same id, but a different name
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				__typename: 'User',
+				id: '1',
+				favoriteColors: ['red', 'green', 'blue'],
+			},
+		},
+	})
+
+	// make sure that set got called with the full response
+	expect(set).toHaveBeenCalledWith({
+		viewer: {
+			__typename: 'User',
+			firstName: 'bob',
+			favoriteColors: ['red', 'green', 'blue'],
+			id: '1',
+		},
+	})
+})
+
+test('new __typename moves subscribers', function () {})
 
 test.todo('can write to and resolve layers')
 
