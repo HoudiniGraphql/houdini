@@ -123,9 +123,22 @@ export const error = svelteKitError
 		}
 
 		const cfgPlugin = plugin_config(cfg)
-		const is_client_file_present =
-			fs.readFileSync(cfgPlugin.client + '.ts') || fs.readFileSync(cfgPlugin.client + '.js')
-		if (is_client_file_present === null) {
+
+		let client_file_exists = false
+		// if there is an extension in then we can just check that file
+		if (path.extname(cfgPlugin.client)) {
+			client_file_exists = !!(await fs.readFile(cfgPlugin.client))
+		}
+		// there is no extension so we to check .ts and .js versions
+		else {
+			client_file_exists = (
+				await Promise.all([
+					fs.readFile(cfgPlugin.client + '.ts'),
+					fs.readFile(cfgPlugin.client + '.js'),
+				])
+			).some(Boolean)
+		}
+		if (!client_file_exists) {
 			throw new HoudiniError({
 				filepath: cfgPlugin.client,
 				message: `File "${cfgPlugin.client}.(ts,js)" is missing. Either create it or set the client property in houdini.config.js file to target your houdini client file.`,
