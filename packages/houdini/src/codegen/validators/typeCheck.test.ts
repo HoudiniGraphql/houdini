@@ -808,6 +808,39 @@ const table: Row[] = [
 		],
 	},
 	{
+		title: '@paginate can fall on an interface if every constituent has a custom key',
+		pass: true,
+		// name needs to be passed to validate the id field
+		documents: [
+			`
+				query QueryA {
+					ghostsByCursor(first: 10) @paginate(name: "GhostA") { 
+						edges { 
+							node { 
+								... on Ghost { 
+									name
+								}
+							}
+						}
+					}	
+				}
+			`,
+			`
+				query QueryB {
+					ghostsByCursor(first: 10) @paginate(name: "GhostB") { 
+						edges { 
+							node { 
+								... on Ghost { 
+									name
+								}
+							}
+						}
+					}	
+				}
+			`,
+		],
+	},
+	{
 		title: "@paginate can't fall under lists",
 		pass: false,
 		documents: [
