@@ -240,32 +240,60 @@ export default async function typeCheck(
 					targetField.selectionSet
 				)
 
-				// make sure there is an id field
-				const missingIDFields = config
-					.keyFieldsForType(type.name)
-					.filter((fieldName) => !type.getFields()[fieldName])
+				// we need to validate that we have id configs for the target of the list
+				let targetTypes: readonly graphql.GraphQLObjectType<any, any>[] = [type]
 
-				if (missingIDFields.length > 0) {
-					if (error) {
-						errors.push(
-							new HoudiniError({
-								filepath: filename,
-								message: error,
-							})
-						)
-					} else {
-						errors.push(
-							new HoudiniError({
-								filepath: filename,
-								message: `@${
-									config.listDirective
-								} can only be applied to types with the necessary id fields: ${missingIDFields.join(
-									', '
-								)}.`,
-							})
-						)
+				// a union doesn't have fields itself so every possible type needs to have a valid key
+				if (graphql.isUnionType(type)) {
+					targetTypes = config.schema.getPossibleTypes(type)
+				}
+				// if the type is an abstract type, there are 2 options:
+				// - either the user has configured a custom type for the interface
+				// - the user has configured key fields for every constituent
+				else if (graphql.isInterfaceType(type)) {
+					// if the interface satisfies the default config, we're okay
+					try {
+						// look over every default key and validate it exists
+						for (const key of config.keyFieldsForType(type.name)) {
+							if (!type.getFields()[key]) {
+								throw new Error('continue')
+							}
+						}
+					} catch {
+						// if we got an error then the interface does not satisfy the default
+						// so we have to use the possible types in our check
+						targetTypes = config.schema.getPossibleTypes(type)
 					}
-					return
+				}
+
+				// make sure there is an id field
+				for (const targetType of targetTypes) {
+					const missingIDFields = config
+						.keyFieldsForType(targetType.name)
+						.filter((fieldName) => !targetType.getFields()[fieldName])
+
+					if (missingIDFields.length > 0) {
+						if (error) {
+							errors.push(
+								new HoudiniError({
+									filepath: filename,
+									message: error,
+								})
+							)
+						} else {
+							errors.push(
+								new HoudiniError({
+									filepath: filename,
+									message: `@${
+										config.listDirective
+									} can only be applied to types with the necessary id fields: ${missingIDFields.join(
+										', '
+									)}.`,
+								})
+							)
+						}
+						return
+					}
 				}
 
 				// add the list to the list

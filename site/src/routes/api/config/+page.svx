@@ -25,7 +25,7 @@ By default, your config file can contain the following values:
 - `include` (optional, default: `"src/**/*.{svelte,graphql,gql,ts,js}"`): a pattern (or list of patterns) to identify source code files.
 - `exclude` (optional): a pattern (or list of patterns) that filters out files that match the include pattern
 - `schemaPath` (optional, default: `"./schema.graphql"`): the path to the static representation of your schema, can be a glob pointing to multiple files
-- `apiUrl` (optional): A url to use to pull the schema. If you don't pass an `apiUrl`, the kit plugin will not poll for schema changes. For more information see the [pull-schema command docs](/api/cli#pull-schema).
+- `apiUrl` (optional): A url to use to pull the schema. If you don't pass an `apiUrl`, the kit plugin will not poll for schema changes. If you want to access an environment variable, prefix your string with `env:`, ie `env:PUBLIC_GRAPHQL_ENDPOINT`. For more information see the [pull-schema command docs](/api/cli#pull-schema).
 - `module` (optional, default: `"esm"`): One of `"esm"` or `"commonjs"`. Used to tell the artifact generator what kind of modules to create. (default: `esm`)
 - `definitionsPath` (optional, default: `"$houdini/graphql"`): a path that the generator will use to write `schema.graphql` and `documents.gql` files containing all of the internal fragment and directive definitions used in the project.
 - `scalars` (optional): An object describing custom scalars for your project (see below).
@@ -52,16 +52,14 @@ Configuring the svelte plugin is done inside of the `plugins` key in your config
 export default {
 	// ...
 	plugins: {
-		'houdini-svelte': {
-			client: './src/client.ts'
-		}
+		'houdini-svelte': { }
 	}
 }
 ```
 
 Here is a summary of the possible configuration values:
 
-- `client` (required): a relative path (from houdini.config.js) to a file that exports your houdini client as its default.
+- `client` (optional, default: `./src/client`): a relative path (from houdini.config.js) to a file that exports your houdini client as its default.
 - `projectDir` (optional, default: `process.cwd()`): an absolute path pointing to your SvelteKit project (useful for monorepos)
 - `pageQueryFilename` (optional, default: `+page.gql`): The name of the file used to define page queries.
 - `layoutQueryFilename` (optional, default: `+layout.gql`): The name of the file used to define layout queries.

@@ -117,7 +117,12 @@ export class Config {
 
 		// save the values we were given
 		this.schemaPath = schemaPath
-		this.apiUrl = apiUrl
+		if (apiUrl && apiUrl.startsWith('env:')) {
+			this.apiUrl = process.env[apiUrl.slice('env:'.length)]
+		} else {
+			this.apiUrl = apiUrl
+		}
+
 		this.filepath = filepath
 		this.exclude = Array.isArray(exclude) ? exclude : [exclude]
 		this.module = module

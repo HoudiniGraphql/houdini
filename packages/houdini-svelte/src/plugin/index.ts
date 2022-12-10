@@ -1,4 +1,4 @@
-import { HoudiniError, PluginFactory, path } from 'houdini'
+import { HoudiniError, PluginFactory, path, fs } from 'houdini'
 
 import generate from './codegen'
 import extract from './extract'
@@ -122,12 +122,28 @@ export const error = svelteKitError
 			})
 		}
 
-		if (!cfg.configFile.plugins?.['houdini-svelte'].client) {
+		const cfgPlugin = plugin_config(cfg)
+
+		let client_file_exists = false
+		// if there is an extension in then we can just check that file
+		if (path.extname(cfgPlugin.client)) {
+			client_file_exists = !!(await fs.readFile(cfgPlugin.client))
+		}
+		// there is no extension so we to check .ts and .js versions
+		else {
+			client_file_exists = (
+				await Promise.all([
+					fs.readFile(cfgPlugin.client + '.ts'),
+					fs.readFile(cfgPlugin.client + '.js'),
+				])
+			).some(Boolean)
+		}
+		if (!client_file_exists) {
 			throw new HoudiniError({
-				filepath: cfg.filepath,
-				message: 'Invalid config file: missing client value.',
+				filepath: cfgPlugin.client,
+				message: `File "${cfgPlugin.client}.(ts,js)" is missing. Either create it or set the client property in houdini.config.js file to target your houdini client file.`,
 				description:
-					'Please set it to the relative path (from houdini.config.js) to your client file. The file must have a default export with an instance of HoudiniClient.',
+					'It has to be a relative path (from houdini.config.js) to your client file. The file must have a default export with an instance of HoudiniClient.',
 			})
 		}
 
@@ -151,7 +167,7 @@ export type HoudiniVitePluginConfig = {
 	/**
 	 * A relative path from your houdini.config.js to the file that exports your client as its default value
 	 */
-	client: string
+	client?: string
 
 	/**
 	 * The name of the file used to define page queries.

@@ -8,6 +8,7 @@ export const routes = {
   isFetching_without_load: '/isFetching/without_load',
   isFetching_route_1: '/isFetching/route_1',
   lists_all: '/lists-all?limit=15',
+  union_result: '/union-result',
 
   Stores_SSR: '/stores/ssr',
   Stores_Network: '/stores/network',

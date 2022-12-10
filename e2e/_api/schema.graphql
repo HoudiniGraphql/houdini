@@ -60,6 +60,8 @@ type Query {
 	userNodes(limit: Int = 4, offset: Int, snapshot: String!): UserNodes!
 	session: String
 	cities: [City]!
+	userNodesResult(snapshot: String!, forceMessage: Boolean!): UserNodesResult!
+	userResult(id: ID!, snapshot: String!, forceMessage: Boolean!): UserResult!
 }
 
 type Subscription {
@@ -106,4 +108,11 @@ type City {
 	id: ID!
 	name: String!
 	libraries: [Library]!
+}
+
+union UserNodesResult = UserNodes | Message1
+union UserResult = User | Message1
+
+type Message1 {
+	message: String!
 }
