@@ -1,67 +1,13 @@
+import { rootID } from '../cache/cache'
+import { TypeInfo } from '../cache/schema'
 import { keyFieldsForType, SubscriptionSelection } from '../lib'
-import { Cache, rootID } from './cache'
-import { SchemaManager, TypeInfo } from './schema'
+import type { CacheProxy } from './cache'
+import { ArgType, CacheTypeDef, FieldType } from './types'
 
-export class CacheProxy {
-	_internal_unstable: Cache
-
-	constructor(cache: Cache) {
-		this._internal_unstable = cache
-	}
-
-	// if the user is using the imperative API, we want the ability to break the API
-	// with any minor version. In order to do this, we require them to accept this contract
-	// through their config file
-	validateInstabilityWarning() {
-		if (!this.config.acceptImperativeInstability) {
-			console.warn(`⚠️  The imperative cache API is considered unstable and will change in any minor version release
-Please acknowledge this by setting acceptImperativeInstability to true in your config file.`)
-		}
-	}
-
-	// if the user tries to assign a field type that we haven't seen before
-	// then we need to provide a way for them to give us that information
-	setFieldType(...args: Parameters<SchemaManager['setFieldType']>) {
-		this.validateInstabilityWarning()
-		this._internal_unstable._internal_unstable.schema.setFieldType(...args)
-	}
-
-	// return the root record
-	get root(): RecordProxy {
-		this.validateInstabilityWarning()
-		return new RecordProxy({
-			cache: this,
-			type: 'Query',
-			id: rootID,
-			idFields: {},
-		})
-	}
-
-	// return the record proxy for the given type/id combo
-	get(type: string, data: any) {
-		this.validateInstabilityWarning()
-
-		// verify that
-
-		// compute the id for the record
-		let recordID = this._internal_unstable._internal_unstable.id(type, data)
-		if (!recordID) {
-			throw new Error('todo')
-		}
-
-		// return the proxy
-		return new RecordProxy({ cache: this, type, id: recordID, idFields: data })
-	}
-
-	get config() {
-		return this._internal_unstable._internal_unstable.config
-	}
-}
-
-export class RecordProxy {
+export class RecordProxy<Def extends CacheTypeDef, Type extends keyof Def['types']> {
 	private id: string
 	private type: string
-	private cache: CacheProxy
+	private cache: CacheProxy<Def>
 	private idFields: {}
 
 	constructor({
@@ -70,7 +16,7 @@ export class RecordProxy {
 		id,
 		idFields,
 	}: {
-		cache: CacheProxy
+		cache: CacheProxy<Def>
 		type: string
 		idFields: {}
 		id: string
@@ -90,20 +36,33 @@ export class RecordProxy {
 		}
 	}
 
-	set({ field, args, value }: { field: string; args?: any; value: any }): any {
+	set<Field extends keyof Def['types'][Type]['fields']>({
+		field,
+		args,
+		value,
+	}: {
+		field: Field extends string ? Field : never
+		args?: ArgType<Def, Type, Field>
+		value: FieldType<Def, Type, Field>
+	}): void {
 		this.cache.validateInstabilityWarning()
 
 		// compute the key for the field/args combo
 		const key = this._computeKey({ field, args })
 		// look up the type information for the field
-		const typeInfo: Partial<SubscriptionSelection[string]> & TypeInfo = this._typeInfo(field)
+		const typeInfo: TypeInfoWithSelection = this._typeInfo(field)
+
+		// the value we will set
+		let newValue: any
 
 		// if we are writing a scalar we need to look for a special marshal function
 		if (!typeInfo.link) {
 			// if the type has a special marshal function we need to call it
 			const fnMarshal = this.cache.config.scalars?.[typeInfo.type]?.marshal
 			if (fnMarshal) {
-				value = fnMarshal(value)
+				newValue = fnMarshal(value)
+			} else {
+				newValue = value
 			}
 		}
 		// we are writing a link so we need to add some information to the selection
@@ -113,50 +72,63 @@ export class RecordProxy {
 			const keys = keyFieldsForType(this.cache.config, typeInfo.type)
 
 			// add the
-			typeInfo.fields = keys.reduce<{ [field: string]: { type: string; keyRaw: string } }>(
-				(acc, key) => {
-					// look up the type information for the key
-					const keyInfo = this._typeInfo(key, typeInfo.type)
+			typeInfo.selection = {
+				fields: keys.reduce<{ [field: string]: { type: string; keyRaw: string } }>(
+					(acc, key) => {
+						// look up the type information for the key
+						const keyInfo = this._typeInfo(key, typeInfo.type)
 
-					return {
-						...acc,
-						[key]: {
-							type: keyInfo.type,
-							keyRaw: key,
-						},
-					}
-				},
-				{}
-			)
+						return {
+							...acc,
+							[key]: {
+								type: keyInfo.type,
+								keyRaw: key,
+							},
+						}
+					},
+					{}
+				),
+			}
 
 			// use the id fields as the value
-			value = value.idFields
+			newValue = value.idFields
 		} else {
 			throw new Error('Value must be a RecordProxy if the field is a link to another record')
 		}
+
+		// reset the garbage collection status
+		this.cache._internal_unstable._internal_unstable.lifetimes.resetLifetime(this.id, key)
 
 		// write the value to the cache by constructing the correct selection
 		this.cache._internal_unstable.write({
 			parent: this.id,
 			selection: {
-				[field]: {
-					keyRaw: key,
-					...typeInfo,
+				fields: {
+					[field]: {
+						keyRaw: key,
+						...typeInfo,
+					},
 				},
 			},
 			data: {
-				[field]: value,
+				[field]: newValue,
 			},
 		})
 	}
 
-	get({ field, args }: { field: string; args?: any }): any {
+	get<Field extends keyof Def['types'][Type]['fields']>({
+		field,
+		args,
+	}: {
+		field: Field extends string ? Field : never
+		args?: ArgType<Def, Type, Field>
+	}): FieldType<Def, Type, Field> {
 		this.cache.validateInstabilityWarning()
 
 		// compute the key for the field/args combo
 		const key = this._computeKey({ field, args })
 		// look up the type information for the field
-		const typeInfo: Partial<SubscriptionSelection[string]> & TypeInfo = this._typeInfo(field)
+		const typeInfo: TypeInfoWithSelection = this._typeInfo(field)
 
 		// if the field is a link we need to look up all of the fields necessary to compute the id
 		if (typeInfo.link) {
@@ -164,37 +136,41 @@ export class RecordProxy {
 			const keys = keyFieldsForType(this.cache.config, typeInfo.type)
 
 			// add the keys to the selection
-			typeInfo.fields = keys.reduce<{ [field: string]: { type: string; keyRaw: string } }>(
-				(acc, key) => {
-					// look up the type information for the key
-					const keyInfo = this._typeInfo(key, typeInfo.type)
+			typeInfo.selection = {
+				fields: keys.reduce<{ [field: string]: { type: string; keyRaw: string } }>(
+					(acc, key) => {
+						// look up the type information for the key
+						const keyInfo = this._typeInfo(key, typeInfo.type)
 
-					return {
-						...acc,
-						[key]: {
-							type: keyInfo.type,
-							keyRaw: key,
-						},
-					}
-				},
-				{}
-			)
+						return {
+							...acc,
+							[key]: {
+								type: keyInfo.type,
+								keyRaw: key,
+							},
+						}
+					},
+					{}
+				),
+			}
 		}
 
 		// get the value from the cache
 		const result = this.cache._internal_unstable.read({
 			parent: this.id,
 			selection: {
-				[field]: {
-					keyRaw: key,
-					...typeInfo,
+				fields: {
+					[field]: {
+						keyRaw: key,
+						...typeInfo,
+					},
 				},
 			},
 		})
 
 		// if they asked for a scalar, just return the value
 		if (!typeInfo.link) {
-			return result.data?.[field]
+			return result.data?.[field] as FieldType<Def, Type, Field>
 		}
 
 		// they asked for a link so we need to return a proxy to that record
@@ -213,7 +189,7 @@ export class RecordProxy {
 			type: typeInfo.type,
 			id: linkedID,
 			idFields,
-		})
+		}) as FieldType<Def, Type, Field>
 	}
 
 	private _typeInfo(field: string, type: string = this.type): TypeInfo {
@@ -237,3 +213,5 @@ export class RecordProxy {
 			: field
 	}
 }
+
+type TypeInfoWithSelection = Partial<Required<SubscriptionSelection>['fields'][string]> & TypeInfo

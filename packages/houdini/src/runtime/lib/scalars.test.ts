@@ -3,11 +3,10 @@ import { test, expect, describe, beforeEach } from 'vitest'
 import { testConfigFile } from '../../test'
 import { setMockConfig } from './config'
 import { marshalInputs, marshalSelection, unmarshalSelection } from './scalars'
-import { ArtifactKind, QueryArtifact } from './types'
+import { ArtifactKind, QueryArtifact, SubscriptionSelection } from './types'
 
 beforeEach(() =>
 	setMockConfig({
-		client: '',
 		scalars: {
 			DateTime: {
 				type: 'Date',
@@ -29,42 +28,48 @@ const artifact: QueryArtifact = {
 	hash: 'hash',
 	raw: 'does not matter',
 	selection: {
-		items: {
-			type: 'TodoItem',
-			keyRaw: 'allItems',
+		fields: {
+			items: {
+				type: 'TodoItem',
+				keyRaw: 'allItems',
 
-			fields: {
-				createdAt: {
-					type: 'DateTime',
-					keyRaw: 'createdAt',
-				},
-				dates: {
-					type: 'DateTime',
-					keyRaw: 'dates',
-				},
-				creator: {
-					type: 'User',
-					keyRaw: 'creator',
-
+				selection: {
 					fields: {
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+						createdAt: {
+							type: 'DateTime',
+							keyRaw: 'createdAt',
+						},
+						dates: {
+							type: 'DateTime',
+							keyRaw: 'dates',
+						},
+						creator: {
+							type: 'User',
+							keyRaw: 'creator',
+
+							selection: {
+								fields: {
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+								},
+							},
+
+							list: {
+								name: 'All_Items',
+								type: 'User',
+								connection: false,
+							},
 						},
 					},
-
-					list: {
-						name: 'All_Items',
-						type: 'User',
-						connection: false,
-					},
 				},
-			},
 
-			list: {
-				name: 'All_Items',
-				type: 'User',
-				connection: false,
+				list: {
+					name: 'All_Items',
+					type: 'User',
+					connection: false,
+				},
 			},
 		},
 	},
@@ -405,15 +410,19 @@ describe('unmarshal selection', function () {
 			item: undefined,
 		}
 
-		const selection = {
-			item: {
-				type: 'TodoItem',
-				keyRaw: 'item',
+		const selection: SubscriptionSelection = {
+			fields: {
+				item: {
+					type: 'TodoItem',
+					keyRaw: 'item',
 
-				fields: {
-					createdAt: {
-						type: 'DateTime',
-						keyRaw: 'createdAt',
+					selection: {
+						fields: {
+							createdAt: {
+								type: 'DateTime',
+								keyRaw: 'createdAt',
+							},
+						},
 					},
 				},
 			},
@@ -429,15 +438,19 @@ describe('unmarshal selection', function () {
 			item: null,
 		}
 
-		const selection = {
-			item: {
-				type: 'TodoItem',
-				keyRaw: 'item',
+		const selection: SubscriptionSelection = {
+			fields: {
+				item: {
+					type: 'TodoItem',
+					keyRaw: 'item',
 
-				fields: {
-					createdAt: {
-						type: 'DateTime',
-						keyRaw: 'createdAt',
+					selection: {
+						fields: {
+							createdAt: {
+								type: 'DateTime',
+								keyRaw: 'createdAt',
+							},
+						},
 					},
 				},
 			},
@@ -455,15 +468,19 @@ describe('unmarshal selection', function () {
 			},
 		}
 
-		const selection = {
-			item: {
-				type: 'TodoItem',
-				keyRaw: 'item',
+		const selection: SubscriptionSelection = {
+			fields: {
+				item: {
+					type: 'TodoItem',
+					keyRaw: 'item',
 
-				fields: {
-					createdAt: {
-						type: 'DateTime',
-						keyRaw: 'createdAt',
+					selection: {
+						fields: {
+							createdAt: {
+								type: 'DateTime',
+								keyRaw: 'createdAt',
+							},
+						},
 					},
 				},
 			},
@@ -489,31 +506,37 @@ describe('unmarshal selection', function () {
 			},
 		}
 
-		const selection = {
-			item: {
-				type: 'TodoItem',
-				keyRaw: 'item',
+		const selection: SubscriptionSelection = {
+			fields: {
+				item: {
+					type: 'TodoItem',
+					keyRaw: 'item',
 
-				fields: {
-					createdAt: {
-						type: 'DateTime',
-						keyRaw: 'createdAt',
-					},
-					creator: {
-						type: 'User',
-						keyRaw: 'creator',
-
+					selection: {
 						fields: {
-							firstName: {
-								type: 'String',
-								keyRaw: 'firstName',
+							createdAt: {
+								type: 'DateTime',
+								keyRaw: 'createdAt',
 							},
-						},
+							creator: {
+								type: 'User',
+								keyRaw: 'creator',
 
-						list: {
-							name: 'All_Items',
-							type: 'User',
-							connection: false,
+								selection: {
+									fields: {
+										firstName: {
+											type: 'String',
+											keyRaw: 'firstName',
+										},
+									},
+								},
+
+								list: {
+									name: 'All_Items',
+									type: 'User',
+									connection: false,
+								},
+							},
 						},
 					},
 				},
@@ -535,10 +558,12 @@ describe('unmarshal selection', function () {
 			rootBool: true,
 		}
 
-		const selection = {
-			rootBool: {
-				type: 'Boolean',
-				keyRaw: 'rootBool',
+		const selection: SubscriptionSelection = {
+			fields: {
+				rootBool: {
+					type: 'Boolean',
+					keyRaw: 'rootBool',
+				},
 			},
 		}
 
@@ -552,10 +577,12 @@ describe('unmarshal selection', function () {
 			enumValue: 'Hello',
 		}
 
-		const selection = {
-			enumValue: {
-				type: 'EnumValue',
-				keyRaw: 'enumValue',
+		const selection: SubscriptionSelection = {
+			fields: {
+				enumValue: {
+					type: 'EnumValue',
+					keyRaw: 'enumValue',
+				},
 			},
 		}
 
@@ -569,10 +596,12 @@ describe('unmarshal selection', function () {
 			enumValue: ['Hello', 'World'],
 		}
 
-		const selection = {
-			enumValue: {
-				type: 'EnumValue',
-				keyRaw: 'enumValue',
+		const selection: SubscriptionSelection = {
+			fields: {
+				enumValue: {
+					type: 'EnumValue',
+					keyRaw: 'enumValue',
+				},
 			},
 		}
 
@@ -697,15 +726,19 @@ describe('marshal selection', function () {
 			item: undefined,
 		}
 
-		const selection = {
-			item: {
-				type: 'TodoItem',
-				keyRaw: 'item',
+		const selection: SubscriptionSelection = {
+			fields: {
+				item: {
+					type: 'TodoItem',
+					keyRaw: 'item',
 
-				fields: {
-					createdAt: {
-						type: 'DateTime',
-						keyRaw: 'createdAt',
+					selection: {
+						fields: {
+							createdAt: {
+								type: 'DateTime',
+								keyRaw: 'createdAt',
+							},
+						},
 					},
 				},
 			},
@@ -726,15 +759,19 @@ describe('marshal selection', function () {
 			item: null,
 		}
 
-		const selection = {
-			item: {
-				type: 'TodoItem',
-				keyRaw: 'item',
+		const selection: SubscriptionSelection = {
+			fields: {
+				item: {
+					type: 'TodoItem',
+					keyRaw: 'item',
 
-				fields: {
-					createdAt: {
-						type: 'DateTime',
-						keyRaw: 'createdAt',
+					selection: {
+						fields: {
+							createdAt: {
+								type: 'DateTime',
+								keyRaw: 'createdAt',
+							},
+						},
 					},
 				},
 			},
@@ -763,31 +800,37 @@ describe('marshal selection', function () {
 			},
 		}
 
-		const selection = {
-			item: {
-				type: 'TodoItem',
-				keyRaw: 'item',
+		const selection: SubscriptionSelection = {
+			fields: {
+				item: {
+					type: 'TodoItem',
+					keyRaw: 'item',
 
-				fields: {
-					createdAt: {
-						type: 'DateTime',
-						keyRaw: 'createdAt',
-					},
-					creator: {
-						type: 'User',
-						keyRaw: 'creator',
-
+					selection: {
 						fields: {
-							firstName: {
-								type: 'String',
-								keyRaw: 'firstName',
+							createdAt: {
+								type: 'DateTime',
+								keyRaw: 'createdAt',
 							},
-						},
+							creator: {
+								type: 'User',
+								keyRaw: 'creator',
 
-						list: {
-							name: 'All_Items',
-							type: 'User',
-							connection: false,
+								selection: {
+									fields: {
+										firstName: {
+											type: 'String',
+											keyRaw: 'firstName',
+										},
+									},
+								},
+
+								list: {
+									name: 'All_Items',
+									type: 'User',
+									connection: false,
+								},
+							},
 						},
 					},
 				},
@@ -814,10 +857,12 @@ describe('marshal selection', function () {
 			rootBool: true,
 		}
 
-		const selection = {
-			rootBool: {
-				type: 'Boolean',
-				keyRaw: 'rootBool',
+		const selection: SubscriptionSelection = {
+			fields: {
+				rootBool: {
+					type: 'Boolean',
+					keyRaw: 'rootBool',
+				},
 			},
 		}
 
@@ -836,10 +881,12 @@ describe('marshal selection', function () {
 			enumValue: 'Hello',
 		}
 
-		const selection = {
-			enumValue: {
-				type: 'EnumValue',
-				keyRaw: 'enumValue',
+		const selection: SubscriptionSelection = {
+			fields: {
+				enumValue: {
+					type: 'EnumValue',
+					keyRaw: 'enumValue',
+				},
 			},
 		}
 
@@ -858,10 +905,12 @@ describe('marshal selection', function () {
 			enumValue: ['Hello', 'World'],
 		}
 
-		const selection = {
-			enumValue: {
-				type: 'EnumValue',
-				keyRaw: 'enumValue',
+		const selection: SubscriptionSelection = {
+			fields: {
+				enumValue: {
+					type: 'EnumValue',
+					keyRaw: 'enumValue',
+				},
 			},
 		}
 

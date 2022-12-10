@@ -18,12 +18,12 @@ const config = {
       },
       {
         name: 'houdini-svelte',
-        includes: ['$houdini/plugins/houdini-svelte/runtime', 'src/lib/graphql/houdiniClient.ts'],
+        includes: ['$houdini/plugins/houdini-svelte/runtime', 'src/client.ts'],
         excludes: ['vite/preload-helper', '$houdini/runtime', '$houdini/index.js', 'svelte']
       },
       {
         name: 'houdini-full-e2e',
-        includes: ['$houdini', 'src/lib/graphql/houdiniClient.ts', 'houdini.config.js'],
+        includes: ['$houdini', 'src/client.ts', 'houdini.config.js'],
         excludes: ['vite/preload-helper', 'svelte']
       }
     ])

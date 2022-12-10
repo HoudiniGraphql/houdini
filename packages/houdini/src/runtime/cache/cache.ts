@@ -1,6 +1,7 @@
 import { defaultConfigValues, computeID, keyFieldsForType } from '../lib/config'
 import { ConfigFile } from '../lib/config'
 import { deepEquals } from '../lib/deepEquals'
+import { getFieldsForType } from '../lib/selection'
 import { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '../lib/types'
 import { GarbageCollector } from './gc'
 import { ListCollection, ListManager } from './lists'
@@ -222,10 +223,17 @@ class CacheInternal {
 			return []
 		}
 
+		// which selection we need to walk down depends on the type of the data
+		// if we dont have a matching abstract selection then we should just use the
+		// normal field one
+
+		// collect all of the fields that we need to write
+		let targetSelection = getFieldsForType(selection, data['__typename'] as string | undefined)
+
 		// data is an object with fields that we need to write to the store
 		for (const [field, value] of Object.entries(data)) {
 			// grab the selection info we care about
-			if (!selection || !selection[field]) {
+			if (!selection || !targetSelection[field]) {
 				throw new Error(
 					'Could not find field listing in selection for ' +
 						field +
@@ -239,12 +247,12 @@ class CacheInternal {
 			let {
 				type: linkedType,
 				keyRaw,
-				fields,
+				selection: fieldSelection,
 				operations,
 				abstract: isAbstract,
 				update,
 				nullable,
-			} = selection[field]
+			} = targetSelection[field]
 			const key = evaluateKey(keyRaw, variables)
 
 			// save the type information
@@ -253,7 +261,7 @@ class CacheInternal {
 				key: keyRaw,
 				type: linkedType,
 				nullable,
-				link: !!fields,
+				link: !!fieldSelection,
 			})
 
 			// the current set of subscribers
@@ -273,7 +281,7 @@ class CacheInternal {
 			}
 
 			// any scalar is defined as a field with no selection
-			if (!fields) {
+			if (!fieldSelection) {
 				// the value to write to the layer
 				let newValue = value
 
@@ -311,7 +319,7 @@ class CacheInternal {
 				const previousLinks = flattenList<string>([previousValue as string | string[]])
 
 				for (const link of previousLinks) {
-					this.subscriptions.remove(link, fields, currentSubscribers, variables)
+					this.subscriptions.remove(link, fieldSelection, currentSubscribers, variables)
 				}
 
 				layer.writeLink(parent, key, null)
@@ -360,7 +368,7 @@ class CacheInternal {
 					if (previousValue && typeof previousValue === 'string') {
 						this.subscriptions.remove(
 							previousValue,
-							fields,
+							fieldSelection,
 							currentSubscribers,
 							variables
 						)
@@ -369,7 +377,7 @@ class CacheInternal {
 					// copy the subscribers to the new value
 					this.subscriptions.addMany({
 						parent: linkedID,
-						selection: fields,
+						selection: fieldSelection,
 						subscribers: currentSubscribers,
 						variables,
 						parentType: linkedType,
@@ -382,14 +390,14 @@ class CacheInternal {
 				// selection and update any values we run into
 				if (linkedID) {
 					this.writeSelection({
-						selection: fields,
+						selection: fieldSelection,
 						parent: linkedID,
 						data: value,
 						variables,
 						toNotify,
 						applyUpdates,
 						layer,
-						forceNotify: true,
+						forceNotify,
 					})
 				}
 			}
@@ -452,7 +460,7 @@ class CacheInternal {
 					key,
 					linkedType,
 					variables,
-					fields,
+					fields: fieldSelection,
 					layer,
 					forceNotify,
 				})
@@ -540,7 +548,7 @@ class CacheInternal {
 						continue
 					}
 
-					this.subscriptions.remove(lostID, fields, currentSubscribers, variables)
+					this.subscriptions.remove(lostID, fieldSelection, currentSubscribers, variables)
 				}
 
 				// if there was a change in the list
@@ -557,7 +565,7 @@ class CacheInternal {
 
 					this.subscriptions.addMany({
 						parent: id,
-						selection: fields,
+						selection: fieldSelection,
 						subscribers: currentSubscribers,
 						variables,
 						parentType: linkedType,
@@ -598,20 +606,25 @@ class CacheInternal {
 					if (
 						operation.action === 'insert' &&
 						target instanceof Object &&
-						fields &&
+						fieldSelection &&
 						operation.list
 					) {
 						this.cache
 							.list(operation.list, parentID, operation.target === 'all')
 							.when(operation.when)
-							.addToList(fields, target, variables, operation.position || 'last')
+							.addToList(
+								fieldSelection,
+								target,
+								variables,
+								operation.position || 'last'
+							)
 					}
 
 					// remove object from list
 					else if (
 						operation.action === 'remove' &&
 						target instanceof Object &&
-						fields &&
+						fieldSelection &&
 						operation.list
 					) {
 						this.cache
@@ -637,13 +650,18 @@ class CacheInternal {
 					else if (
 						operation.action === 'toggle' &&
 						target instanceof Object &&
-						fields &&
+						fieldSelection &&
 						operation.list
 					) {
 						this.cache
 							.list(operation.list, parentID, operation.target === 'all')
 							.when(operation.when)
-							.toggleElement(fields, target, variables, operation.position || 'last')
+							.toggleElement(
+								fieldSelection,
+								target,
+								variables,
+								operation.position || 'last'
+							)
 					}
 				}
 			}
@@ -681,10 +699,16 @@ class CacheInternal {
 		// that happens after we process every field to determine if its a partial null
 		let cascadeNull = false
 
+		// if we have abstract fields, grab the __typename and include them in the list
+		const typename = this.storage.get(parent, '__typename').value as string
+		// collect all of the fields that we need to write
+		let targetSelection = getFieldsForType(selection, typename)
+
 		// look at every field in the parentFields
-		for (const [attributeName, { type, keyRaw, fields, nullable, list }] of Object.entries(
-			selection
-		)) {
+		for (const [
+			attributeName,
+			{ type, keyRaw, selection: fieldSelection, nullable, list },
+		] of Object.entries(targetSelection)) {
 			const key = evaluateKey(keyRaw, variables)
 
 			// look up the value in our store
@@ -733,7 +757,7 @@ class CacheInternal {
 			}
 
 			// if the field is a scalar
-			else if (!fields) {
+			else if (!fieldSelection) {
 				// is the type a custom scalar with a specified unmarshal function
 				const fnUnmarshal = this.config?.scalars?.[type]?.unmarshal
 				if (fnUnmarshal) {
@@ -752,7 +776,7 @@ class CacheInternal {
 			else if (Array.isArray(value)) {
 				// the linked list could be a deeply nested thing, we need to call getData for each record
 				const listValue = this.hydrateNestedList({
-					fields,
+					fields: fieldSelection,
 					variables,
 					linkedList: value as LinkedList,
 					stepsFromConnection: nextStep,
@@ -776,7 +800,7 @@ class CacheInternal {
 				// look up the related object fields
 				const objectFields = this.getSelection({
 					parent: value as string,
-					selection: fields,
+					selection: fieldSelection,
 					variables,
 					stepsFromConnection: nextStep,
 				})

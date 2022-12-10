@@ -35,8 +35,8 @@ test('insert fragments on query selection set', async function () {
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		mutation UpdateUser {
 		  updateUser {
-		    ...User_Friends_insert
 		    id
+		    ...User_Friends_insert
 		  }
 		}
 
@@ -44,7 +44,6 @@ test('insert fragments on query selection set', async function () {
 		  firstName
 		  id
 		}
-
 	`)
 })
 
@@ -80,15 +79,14 @@ test('delete fragments on query selection set', async function () {
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		mutation UpdateUser {
 		  updateUser {
-		    ...User_Friends_remove
 		    id
+		    ...User_Friends_remove
 		  }
 		}
 
 		fragment User_Friends_remove on User {
 		  id
 		}
-
 	`)
 })
 
@@ -122,8 +120,8 @@ test('list fragments on fragment selection set', async function () {
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		mutation UpdateUser {
 		  updateUser {
-		    ...User_Friends_insert @prepend(parentID: "1234")
 		    id
+		    ...User_Friends_insert @prepend(parentID: "1234")
 		  }
 		}
 
@@ -131,7 +129,6 @@ test('list fragments on fragment selection set', async function () {
 		  firstName
 		  id
 		}
-
 	`)
 })
 
@@ -276,8 +273,8 @@ test('includes `id` in list fragment', async function () {
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		mutation UpdateUser {
 		  updateUser {
-		    ...User_Friends_insert @prepend(parentID: "1234")
 		    id
+		    ...User_Friends_insert @prepend(parentID: "1234")
 		  }
 		}
 
@@ -285,7 +282,6 @@ test('includes `id` in list fragment', async function () {
 		  id
 		  firstName
 		}
-
 	`)
 })
 
@@ -324,13 +320,9 @@ test('connections marked with list directive get cursor information', async func
 		        friends {
 		          id
 		        }
-		      }
-		    }
-		    edges {
-		      cursor
-		      node {
 		        __typename
 		      }
+		      cursor
 		    }
 		    pageInfo {
 		      hasPreviousPage
@@ -340,7 +332,6 @@ test('connections marked with list directive get cursor information', async func
 		    }
 		  }
 		}
-
 	`)
 })
 
@@ -381,8 +372,8 @@ test('includes node selection on connection', async function () {
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		mutation UpdateUser {
 		  updateUser {
-		    ...User_Friends_insert @prepend(parentID: "1234")
 		    id
+		    ...User_Friends_insert @prepend(parentID: "1234")
 		  }
 		}
 
@@ -393,7 +384,6 @@ test('includes node selection on connection', async function () {
 		    id
 		  }
 		}
-
 	`)
 })
 
@@ -432,13 +422,9 @@ test('list flags connections', async function () {
 		        friends {
 		          id
 		        }
-		      }
-		    }
-		    edges {
-		      cursor
-		      node {
 		        __typename
 		      }
+		      cursor
 		    }
 		    pageInfo {
 		      hasPreviousPage
@@ -448,7 +434,6 @@ test('list flags connections', async function () {
 		    }
 		  }
 		}
-
 	`)
 })
 
@@ -511,8 +496,8 @@ test('paginate with name also gets treated as a list', async function () {
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		mutation UpdateUser {
 		  updateUser {
-		    ...User_Friends_insert @prepend(parentID: "1234")
 		    id
+		    ...User_Friends_insert @prepend(parentID: "1234")
 		  }
 		}
 
@@ -523,7 +508,6 @@ test('paginate with name also gets treated as a list', async function () {
 		    id
 		  }
 		}
-
 	`)
 })
 

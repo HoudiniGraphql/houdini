@@ -2,7 +2,7 @@
 // this function must return any so that we can assign it a type in a variable declaration (ie an inline store)
 import _cache from './cache'
 import { Cache } from './cache/cache'
-import { CacheProxy } from './cache/publicWrapper'
+import { CacheProxy } from './public'
 
 export * from './lib'
 

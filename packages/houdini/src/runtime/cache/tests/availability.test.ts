@@ -1,6 +1,7 @@
 import { test, expect, vi } from 'vitest'
 
 import { testConfigFile } from '../../../test'
+import type { SubscriptionSelection } from '../../lib'
 import { Cache } from '../cache'
 
 const config = testConfigFile()
@@ -9,23 +10,12 @@ test('not partial', function () {
 	// instantiate the cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				firstName: {
-					type: 'String',
-					keyRaw: 'firstName',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					nullable: true,
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
@@ -34,6 +24,23 @@ test('not partial', function () {
 						firstName: {
 							type: 'String',
 							keyRaw: 'firstName',
+						},
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							nullable: true,
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+								},
+							},
 						},
 					},
 				},
@@ -75,22 +82,12 @@ test('not partial with empty list', function () {
 	// instantiate the cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				firstName: {
-					type: 'String',
-					keyRaw: 'firstName',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
@@ -99,6 +96,22 @@ test('not partial with empty list', function () {
 						firstName: {
 							type: 'String',
 							keyRaw: 'firstName',
+						},
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+								},
+							},
 						},
 					},
 				},
@@ -134,22 +147,12 @@ test('partial with missing linked record', function () {
 	// instantiate the cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				firstName: {
-					type: 'String',
-					keyRaw: 'firstName',
-				},
-				parent: {
-					type: 'User',
-					keyRaw: 'parent',
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
@@ -158,6 +161,22 @@ test('partial with missing linked record', function () {
 						firstName: {
 							type: 'String',
 							keyRaw: 'firstName',
+						},
+						parent: {
+							type: 'User',
+							keyRaw: 'parent',
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+								},
+							},
 						},
 					},
 				},
@@ -192,22 +211,12 @@ test('partial with missing single field', function () {
 	// instantiate the cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				firstName: {
-					type: 'String',
-					keyRaw: 'firstName',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
@@ -216,6 +225,22 @@ test('partial with missing single field', function () {
 						firstName: {
 							type: 'String',
 							keyRaw: 'firstName',
+						},
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+								},
+							},
 						},
 					},
 				},
@@ -243,26 +268,32 @@ test('partial missing data inside of linked list', function () {
 	// instantiate the cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
 							keyRaw: 'id',
 						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+								},
+							},
 						},
 					},
 				},
@@ -291,49 +322,59 @@ test('missing cursor of item in connection from operation should not trigger nul
 	// instantiate the cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				friends: {
-					type: 'User',
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: true,
-						type: 'User',
-					},
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
-						edges: {
-							type: 'UserEdge',
-							keyRaw: 'edges',
-							fields: {
-								cursor: {
-									type: 'Node',
-									keyRaw: 'cursor',
-									nullable: false,
-								},
-								node: {
-									type: 'Node',
-									keyRaw: 'node',
-									abstract: true,
-									fields: {
-										__typename: {
-											type: 'String',
-											keyRaw: '__typename',
-										},
-										id: {
-											type: 'ID',
-											keyRaw: 'id',
-										},
-										firstName: {
-											type: 'String',
-											keyRaw: 'firstName',
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: true,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									edges: {
+										type: 'UserEdge',
+										keyRaw: 'edges',
+										selection: {
+											fields: {
+												cursor: {
+													type: 'Node',
+													keyRaw: 'cursor',
+													nullable: false,
+												},
+												node: {
+													type: 'Node',
+													keyRaw: 'node',
+													abstract: true,
+													selection: {
+														fields: {
+															__typename: {
+																type: 'String',
+																keyRaw: '__typename',
+															},
+															id: {
+																type: 'ID',
+																keyRaw: 'id',
+															},
+															firstName: {
+																type: 'String',
+																keyRaw: 'firstName',
+															},
+														},
+													},
+												},
+											},
 										},
 									},
 								},
@@ -376,17 +417,19 @@ test('missing cursor of item in connection from operation should not trigger nul
 	// inside of a list
 	cache.list('All_Users').prepend(
 		{
-			__typename: {
-				type: 'String',
-				keyRaw: '__typename',
-			},
-			id: {
-				type: 'ID',
-				keyRaw: 'id',
-			},
-			firstName: {
-				type: 'String',
-				keyRaw: 'firstName',
+			fields: {
+				__typename: {
+					type: 'String',
+					keyRaw: '__typename',
+				},
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
 			},
 		},
 		{

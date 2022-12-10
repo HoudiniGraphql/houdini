@@ -1,6 +1,7 @@
 import { test, vi, expect } from 'vitest'
 
 import { testConfigFile } from '../../../test'
+import type { SubscriptionSelection } from '../../lib'
 import { Cache } from '../cache'
 
 const config = testConfigFile()
@@ -9,23 +10,27 @@ config.cacheBufferSize! = 10
 test('adequate ticks of garbage collector clear unsubscribed data', function () {
 	const cache = new Cache(config)
 
-	const userFields = {
-		id: {
-			type: 'ID',
-			keyRaw: 'id',
-		},
-		firstName: {
-			type: 'String',
-			keyRaw: 'firstName',
+	const userFields: SubscriptionSelection = {
+		fields: {
+			id: {
+				type: 'ID',
+				keyRaw: 'id',
+			},
+			firstName: {
+				type: 'String',
+				keyRaw: 'firstName',
+			},
 		},
 	}
 
 	cache.write({
 		selection: {
-			viewer: {
-				type: 'User',
-				keyRaw: 'viewer',
-				fields: userFields,
+			fields: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					selection: userFields,
+				},
 			},
 		},
 		data: {
@@ -56,17 +61,21 @@ test("subscribed data shouldn't be garbage collected", function () {
 
 	cache.write({
 		selection: {
-			viewer: {
-				type: 'User',
-				keyRaw: 'viewer',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
-					},
-					firstName: {
-						type: 'String',
-						keyRaw: 'firstName',
+			fields: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+							firstName: {
+								type: 'String',
+								keyRaw: 'firstName',
+							},
+						},
 					},
 				},
 			},
@@ -83,13 +92,17 @@ test("subscribed data shouldn't be garbage collected", function () {
 	cache.subscribe({
 		rootType: 'Query',
 		selection: {
-			viewer: {
-				type: 'User',
-				keyRaw: 'viewer',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
+			fields: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+						},
 					},
 				},
 			},
@@ -105,9 +118,11 @@ test("subscribed data shouldn't be garbage collected", function () {
 	expect(
 		cache.read({
 			selection: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
 				},
 			},
 			parent: 'User:1',
@@ -120,17 +135,21 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 
 	cache.write({
 		selection: {
-			viewer: {
-				type: 'User',
-				keyRaw: 'viewer',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
-					},
-					firstName: {
-						type: 'String',
-						keyRaw: 'firstName',
+			fields: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+							firstName: {
+								type: 'String',
+								keyRaw: 'firstName',
+							},
+						},
 					},
 				},
 			},
@@ -154,13 +173,17 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 	cache.subscribe({
 		rootType: 'Query',
 		selection: {
-			viewer: {
-				type: 'User',
-				keyRaw: 'viewer',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
+			fields: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+						},
 					},
 				},
 			},
@@ -177,13 +200,17 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 	cache.unsubscribe({
 		rootType: 'Query',
 		selection: {
-			viewer: {
-				type: 'User',
-				keyRaw: 'viewer',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
+			fields: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+						},
 					},
 				},
 			},
@@ -200,9 +227,11 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 	expect(
 		cache.read({
 			selection: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
 				},
 			},
 			parent: 'User:1',
@@ -215,9 +244,11 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 	expect(
 		cache.read({
 			selection: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
 				},
 			},
 			parent: 'User:1',
@@ -231,33 +262,39 @@ test('ticks of gc delete list handlers', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			keyRaw: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					keyRaw: 'id',
-				},
-				friends: {
-					type: 'User',
-					// the key takes an argument so that we can have multiple
-					// lists tracked in the cache
-					keyRaw: 'friends',
-					list: {
-						name: 'All_Users',
-						connection: false,
-						type: 'User',
-					},
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
 					fields: {
 						id: {
 							type: 'ID',
 							keyRaw: 'id',
 						},
-						firstName: {
-							type: 'String',
-							keyRaw: 'firstName',
+						friends: {
+							type: 'User',
+							// the key takes an argument so that we can have multiple
+							// lists tracked in the cache
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: false,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+								},
+							},
 						},
 					},
 				},
