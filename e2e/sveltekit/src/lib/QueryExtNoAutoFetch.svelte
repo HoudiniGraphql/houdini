@@ -2,7 +2,7 @@
   import { graphql } from '$houdini';
 
   const store = graphql`
-    query QueryExtNoAutoFetch @pause {
+    query QueryExtNoAutoFetch @manual {
       usersList(limit: 3, snapshot: "QueryExtNoAutoFetch") {
         id
         name

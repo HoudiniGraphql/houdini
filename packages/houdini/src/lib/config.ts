@@ -451,8 +451,8 @@ export class Config {
 		GraphqQL conventions
 
 	*/
-	get pauseDirective() {
-		return 'pause'
+	get manualDirective() {
+		return 'manual'
 	}
 
 	get maskDirective() {
@@ -601,7 +601,7 @@ export class Config {
 				this.withDirective,
 				this.paginateDirective,
 				this.cacheDirective,
-				this.pauseDirective,
+				this.manualDirective,
 				this.maskDirective,
 			].includes(name.value) || this.isDeleteDirective(name.value)
 		)

@@ -268,12 +268,12 @@ export function onError({ error }) {
 
 Sometimes it's useful to have a lazy query that only fires when you call `fetch` (for
 example in a search input). For these scenarios, you will want to turn off the
-automatic loader using the `@pause` directive:
+automatic loader using the `@manual` directive:
 
 ```svelte
 <script>
 	const result = graphql`
-		query MyQuery @pause {
+		query MyQuery @manual {
 			viewer {
 				id
 			}

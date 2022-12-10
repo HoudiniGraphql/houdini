@@ -89,7 +89,7 @@ describe('kit route processor', function () {
 			component: `
 				<script>
 					const result = graphql\`
-						query TestQuery @pause {
+						query TestQuery @manual {
 							viewer {
 								id
 							}

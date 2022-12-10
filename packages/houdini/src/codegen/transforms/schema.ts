@@ -82,10 +82,10 @@ directive @${config.cacheDirective}(${config.cachePolicyArg}: CachePolicy, ${
 
 """
 	@${
-		config.pauseDirective
-	} is used to disable the automatic fetch (no load, no auto fetch), you will have to do it manually.
+		config.manualDirective
+	} is used to disable automatic fetch (no load, no auto fetch in component), you will have to do it manually.
 """
-directive @${config.pauseDirective} on QUERY
+directive @${config.manualDirective} on QUERY
 
 """
 	@${

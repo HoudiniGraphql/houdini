@@ -66,8 +66,8 @@ test('adds internal documents to schema', async function () {
 			"""@cache is used to specify cache rules for a query"""
 			directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
-			"""@pause is used to disable the automatic fetch (no load, no auto fetch), you will have to do it manually."""
-			directive @pause on QUERY
+			"""@manual is used to disable automatic fetch (no load, no auto fetch in component), you will have to do it manually."""
+			directive @manual on QUERY
 
 			"""@mask to specify at fragment level the masking behavior (overwriting the global conf)"""
 			directive @mask(on: Boolean! = true) on FRAGMENT_SPREAD
@@ -134,8 +134,8 @@ test('list operations are included', async function () {
 			"""@cache is used to specify cache rules for a query"""
 			directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
-			"""@pause is used to disable the automatic fetch (no load, no auto fetch), you will have to do it manually."""
-			directive @pause on QUERY
+			"""@manual is used to disable automatic fetch (no load, no auto fetch in component), you will have to do it manually."""
+			directive @manual on QUERY
 
 			"""@mask to specify at fragment level the masking behavior (overwriting the global conf)"""
 			directive @mask(on: Boolean! = true) on FRAGMENT_SPREAD
@@ -221,8 +221,8 @@ test("writing twice doesn't duplicate definitions", async function () {
 			"""@cache is used to specify cache rules for a query"""
 			directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
-			"""@pause is used to disable the automatic fetch (no load, no auto fetch), you will have to do it manually."""
-			directive @pause on QUERY
+			"""@manual is used to disable automatic fetch (no load, no auto fetch in component), you will have to do it manually."""
+			directive @manual on QUERY
 
 			"""@mask to specify at fragment level the masking behavior (overwriting the global conf)"""
 			directive @mask(on: Boolean! = true) on FRAGMENT_SPREAD

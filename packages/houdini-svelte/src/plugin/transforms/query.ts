@@ -212,9 +212,9 @@ export async function find_inline_queries(
 				return false
 			}
 
-			// as long as they don't have the @pause directive with load set to false
+			// as long as they don't have the @manual directive with load set to false
 			return !queryOperation.directives?.find(
-				(directive) => directive.name.value === page.config.pauseDirective
+				(directive) => directive.name.value === page.config.manualDirective
 			)
 		},
 		dependency: page.watch_file,

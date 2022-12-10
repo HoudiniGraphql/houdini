@@ -3,4 +3,4 @@
 'houdini-svelte': patch
 ---
 
-@houdini was removed in favor of @pause & @mask
+@houdini was removed in favor of @manual & @mask_enable / @mask_disable
