@@ -1,99 +1,10 @@
+import { rootID } from '../cache/cache'
+import { TypeInfo } from '../cache/schema'
 import { keyFieldsForType, SubscriptionSelection } from '../lib'
-import { Cache, rootID } from './cache'
-import { SchemaManager, TypeInfo } from './schema'
+import type { CacheProxy } from './cache'
+import { ArgType, CacheTypeDef, FieldType } from './types'
 
-type CacheTypeDef = {
-	[typeName: string]: {
-		idFields: {
-			[fieldName: string]: any
-		}
-		fields: {
-			[fieldName: string]: {
-				args: any
-				type: any
-			}
-		}
-	}
-}
-
-// if the result of the field type is a {target: string} then the value of the field
-// is a RecordProxy<Def, string>. Otherwise, just use the type in in the field map
-type FieldType<
-	Def extends CacheTypeDef,
-	Type extends keyof Def,
-	Field extends keyof Def[Type]['fields']
-> = Def[Type]['fields'][Field]['type'] extends { target: infer Target }
-	? RecordProxy<Def, Target extends string ? Target : never>
-	: Def[Type]['fields'][Field]['type']
-
-type ArgType<
-	Def extends CacheTypeDef,
-	Type extends keyof Def,
-	Field extends keyof Def[Type]['fields']
-> = Def[Type]['fields'][Field]['args']
-
-export class CacheProxy<Def extends CacheTypeDef> {
-	_internal_unstable: Cache
-
-	constructor(cache: Cache) {
-		this._internal_unstable = cache
-	}
-
-	// if the user is using the imperative API, we want the ability to break the API
-	// with any minor version. In order to do this, we require them to accept this contract
-	// through their config file
-	validateInstabilityWarning() {
-		if (!this.config.acceptImperativeInstability) {
-			console.warn(`⚠️  The imperative cache API is considered unstable and will change in any minor version release
-Please acknowledge this by setting acceptImperativeInstability to true in your config file.`)
-		}
-	}
-
-	// if the user tries to assign a field type that we haven't seen before
-	// then we need to provide a way for them to give us that information
-	setFieldType(...args: Parameters<SchemaManager['setFieldType']>) {
-		this.validateInstabilityWarning()
-		this._internal_unstable._internal_unstable.schema.setFieldType(...args)
-	}
-
-	// return the root record
-	get root(): RecordProxy<Def, '__ROOT__'> {
-		this.validateInstabilityWarning()
-		return new RecordProxy({
-			cache: this,
-			type: 'Query',
-			id: rootID,
-			idFields: {},
-		})
-	}
-
-	// return the record proxy for the given type/id combo
-	get<T extends keyof Def>(type: T, data: Def[T]['idFields']): RecordProxy<Def, T> {
-		this.validateInstabilityWarning()
-
-		// verify that
-
-		// compute the id for the record
-		let recordID = this._internal_unstable._internal_unstable.id(type as string, data)
-		if (!recordID) {
-			throw new Error('todo')
-		}
-
-		// return the proxy
-		return new RecordProxy({
-			cache: this,
-			type: type as string,
-			id: recordID,
-			idFields: data,
-		})
-	}
-
-	get config() {
-		return this._internal_unstable._internal_unstable.config
-	}
-}
-
-export class RecordProxy<Def extends CacheTypeDef, Type extends keyof Def> {
+export class RecordProxy<Def extends CacheTypeDef, Type extends keyof Def['types']> {
 	private id: string
 	private type: string
 	private cache: CacheProxy<Def>
@@ -125,7 +36,7 @@ export class RecordProxy<Def extends CacheTypeDef, Type extends keyof Def> {
 		}
 	}
 
-	set<Field extends keyof Def[Type]['fields']>({
+	set<Field extends keyof Def['types'][Type]['fields']>({
 		field,
 		args,
 		value,
@@ -205,7 +116,7 @@ export class RecordProxy<Def extends CacheTypeDef, Type extends keyof Def> {
 		})
 	}
 
-	get<Field extends keyof Def[Type]['fields']>({
+	get<Field extends keyof Def['types'][Type]['fields']>({
 		field,
 		args,
 	}: {

@@ -1,48 +1,52 @@
 import { test, expect } from 'vitest'
 
 import { testConfigFile } from '../../../test'
+import { Cache, rootID } from '../../cache/cache'
 import { SubscriptionSelection } from '../../lib'
-import { Cache, rootID } from '../cache'
-import { CacheProxy, RecordProxy } from '../publicWrapper'
+import { CacheProxy } from '../cache'
+import { RecordProxy } from '../record'
 
 // the type definition for our test cache
 type CacheTypeDef = {
-	__ROOT__: {
-		idFields: {}
-		fields: {
-			test: {
-				type: number
-				args: never
+	types: {
+		__ROOT__: {
+			idFields: {}
+			fields: {
+				test: {
+					type: number | null
+					args: never
+				}
+				testDate: {
+					type: Date
+					args: never
+				}
+				viewer: {
+					type: { target: 'User' }
+					args: never
+				}
 			}
-			testDate: {
-				type: Date
-				args: never
+		}
+		User: {
+			idFields: {
+				id: string
 			}
-			viewer: {
-				type: { target: 'User' }
-				args: never
+			fields: {
+				firstName: {
+					type: string
+					args: never
+				}
+				parent: {
+					type: { target: 'User' }
+					args: never
+				}
+				id: {
+					type: string
+					args: never
+				}
 			}
 		}
 	}
-	User: {
-		idFields: {
-			id: string
-		}
-		fields: {
-			firstName: {
-				type: string
-				args: never
-			}
-			parent: {
-				type: { target: 'User' }
-				args: never
-			}
-			id: {
-				type: string
-				args: never
-			}
-		}
-	}
+	lists: {}
 }
 
 const testCache = () => new CacheProxy<CacheTypeDef>(new Cache(testConfigFile()))
@@ -310,6 +314,26 @@ test('writing a field resets field life time', function () {
 	// collecting garbage one more time shouldn't remove the record from the cache
 	cache._internal_unstable._internal_unstable.collectGarbage()
 	expect(user.get({ field: 'firstName' })).toEqual('John')
+})
+
+test('can pass null', function () {
+	const cache = testCache()
+
+	// we'll need to provide the type information
+	cache.setFieldType({
+		parent: rootID,
+		key: 'test',
+		type: 'Int',
+		nullable: true,
+	})
+
+	// update the cached value
+	cache.root.set({
+		field: 'test',
+		value: null,
+	})
+
+	expect(cache.root.get({ field: 'test' })).toBeNull()
 })
 
 test.todo('complex keys')

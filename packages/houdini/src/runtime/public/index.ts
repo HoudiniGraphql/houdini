@@ -1,0 +1,1 @@
+export { CacheProxy } from './cache'
