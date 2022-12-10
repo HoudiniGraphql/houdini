@@ -2,7 +2,26 @@ import { keyFieldsForType, SubscriptionSelection } from '../lib'
 import { Cache, rootID } from './cache'
 import { SchemaManager, TypeInfo } from './schema'
 
-export class CacheProxy {
+type CacheTypeDef = {
+	[typeName: string]: {
+		idFields: {
+			[fieldName: string]: any
+		}
+		fields: {
+			[fieldName: string]: any
+		}
+	}
+}
+
+type FieldType<
+	Def extends CacheTypeDef,
+	Type extends keyof Def,
+	Field extends keyof Def[Type]['fields']
+> = Def[Type]['fields'][Field] extends { target: infer Target }
+	? RecordProxy<Def, Target extends string ? Target : never>
+	: Def[Type]['fields'][Field]
+
+export class CacheProxy<Def extends CacheTypeDef> {
 	_internal_unstable: Cache
 
 	constructor(cache: Cache) {
@@ -27,7 +46,7 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 	}
 
 	// return the root record
-	get root(): RecordProxy {
+	get root(): RecordProxy<Def, '__ROOT__'> {
 		this.validateInstabilityWarning()
 		return new RecordProxy({
 			cache: this,
@@ -38,19 +57,24 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 	}
 
 	// return the record proxy for the given type/id combo
-	get(type: string, data: any) {
+	get<T extends keyof Def>(type: T, data: Def[T]['idFields']): RecordProxy<Def, T> {
 		this.validateInstabilityWarning()
 
 		// verify that
 
 		// compute the id for the record
-		let recordID = this._internal_unstable._internal_unstable.id(type, data)
+		let recordID = this._internal_unstable._internal_unstable.id(type as string, data)
 		if (!recordID) {
 			throw new Error('todo')
 		}
 
 		// return the proxy
-		return new RecordProxy({ cache: this, type, id: recordID, idFields: data })
+		return new RecordProxy({
+			cache: this,
+			type: type as string,
+			id: recordID,
+			idFields: data,
+		})
 	}
 
 	get config() {
@@ -58,10 +82,10 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 	}
 }
 
-export class RecordProxy {
+export class RecordProxy<Def extends CacheTypeDef, Type extends keyof Def> {
 	private id: string
 	private type: string
-	private cache: CacheProxy
+	private cache: CacheProxy<Def>
 	private idFields: {}
 
 	constructor({
@@ -70,7 +94,7 @@ export class RecordProxy {
 		id,
 		idFields,
 	}: {
-		cache: CacheProxy
+		cache: CacheProxy<Def>
 		type: string
 		idFields: {}
 		id: string
@@ -90,7 +114,15 @@ export class RecordProxy {
 		}
 	}
 
-	set({ field, args, value }: { field: string; args?: any; value: any }): any {
+	set<Field extends keyof Def[Type]['fields']>({
+		field,
+		args,
+		value,
+	}: {
+		field: Field extends string ? Field : never
+		args?: any
+		value: FieldType<Def, Type, Field>
+	}): void {
 		this.cache.validateInstabilityWarning()
 
 		// compute the key for the field/args combo
@@ -98,12 +130,17 @@ export class RecordProxy {
 		// look up the type information for the field
 		const typeInfo: TypeInfoWithSelection = this._typeInfo(field)
 
+		// the value we will set
+		let newValue: any
+
 		// if we are writing a scalar we need to look for a special marshal function
 		if (!typeInfo.link) {
 			// if the type has a special marshal function we need to call it
 			const fnMarshal = this.cache.config.scalars?.[typeInfo.type]?.marshal
 			if (fnMarshal) {
-				value = fnMarshal(value)
+				newValue = fnMarshal(value)
+			} else {
+				newValue = value
 			}
 		}
 		// we are writing a link so we need to add some information to the selection
@@ -132,7 +169,7 @@ export class RecordProxy {
 			}
 
 			// use the id fields as the value
-			value = value.idFields
+			newValue = value.idFields
 		} else {
 			throw new Error('Value must be a RecordProxy if the field is a link to another record')
 		}
@@ -152,12 +189,18 @@ export class RecordProxy {
 				},
 			},
 			data: {
-				[field]: value,
+				[field]: newValue,
 			},
 		})
 	}
 
-	get({ field, args }: { field: string; args?: any }): any {
+	get<Field extends keyof Def[Type]['fields']>({
+		field,
+		args,
+	}: {
+		field: Field extends string ? Field : never
+		args?: any
+	}): FieldType<Def, Type, Field> {
 		this.cache.validateInstabilityWarning()
 
 		// compute the key for the field/args combo
@@ -205,7 +248,7 @@ export class RecordProxy {
 
 		// if they asked for a scalar, just return the value
 		if (!typeInfo.link) {
-			return result.data?.[field] ?? null
+			return result.data?.[field] as FieldType<Def, Type, Field>
 		}
 
 		// they asked for a link so we need to return a proxy to that record
@@ -224,7 +267,7 @@ export class RecordProxy {
 			type: typeInfo.type,
 			id: linkedID,
 			idFields,
-		})
+		}) as FieldType<Def, Type, Field>
 	}
 
 	private _typeInfo(field: string, type: string = this.type): TypeInfo {

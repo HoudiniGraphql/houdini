@@ -5,7 +5,29 @@ import { SubscriptionSelection } from '../../lib'
 import { Cache, rootID } from '../cache'
 import { CacheProxy, RecordProxy } from '../publicWrapper'
 
-const testCache = () => new CacheProxy(new Cache(testConfigFile()))
+// the type definition for our test cache
+type CacheTypeDef = {
+	__ROOT__: {
+		idFields: {}
+		fields: {
+			test: number
+			testDate: Date
+			viewer: { target: 'User' }
+		}
+	}
+	User: {
+		idFields: {
+			id: string
+		}
+		fields: {
+			firstName: string
+			parent: { target: 'User' }
+			id: string
+		}
+	}
+}
+
+const testCache = () => new CacheProxy<CacheTypeDef>(new Cache(testConfigFile()))
 
 test('must have schema information to set field', function () {
 	const cache = testCache()
@@ -87,7 +109,7 @@ test('can set custom scalar value', function () {
 
 	// update the cached value
 	cache.root.set({
-		field: 'test',
+		field: 'testDate',
 		value: targetDate,
 	})
 
@@ -96,15 +118,15 @@ test('can set custom scalar value', function () {
 		cache._internal_unstable.read({
 			selection: {
 				fields: {
-					test: {
-						keyRaw: 'test',
+					testDate: {
+						keyRaw: 'testDate',
 						type: 'DateTime',
 					},
 				},
 			},
 		}).data
 	).toEqual({
-		test: targetDate,
+		testDate: targetDate,
 	})
 })
 
