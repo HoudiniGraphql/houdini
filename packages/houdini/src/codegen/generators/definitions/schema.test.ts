@@ -69,8 +69,11 @@ test('adds internal documents to schema', async function () {
 			"""@manual is used to disable automatic fetch (no load, no auto fetch in component), you will have to do it manually."""
 			directive @manual on QUERY
 
-			"""@mask to specify at fragment level the masking behavior (overwriting the global conf)"""
-			directive @mask(on: Boolean! = true) on FRAGMENT_SPREAD
+			"""@mask_enable to enable masking on fragment (overwriting the global conf)"""
+			directive @mask_enable on FRAGMENT_SPREAD
+
+			"""@mask_disable to disable masking on fragment (overwriting the global conf)"""
+			directive @mask_disable on FRAGMENT_SPREAD
 		`)
 })
 
@@ -137,8 +140,11 @@ test('list operations are included', async function () {
 			"""@manual is used to disable automatic fetch (no load, no auto fetch in component), you will have to do it manually."""
 			directive @manual on QUERY
 
-			"""@mask to specify at fragment level the masking behavior (overwriting the global conf)"""
-			directive @mask(on: Boolean! = true) on FRAGMENT_SPREAD
+			"""@mask_enable to enable masking on fragment (overwriting the global conf)"""
+			directive @mask_enable on FRAGMENT_SPREAD
+
+			"""@mask_disable to disable masking on fragment (overwriting the global conf)"""
+			directive @mask_disable on FRAGMENT_SPREAD
 
 			directive @User_delete repeatable on FIELD
 		`)
@@ -224,7 +230,10 @@ test("writing twice doesn't duplicate definitions", async function () {
 			"""@manual is used to disable automatic fetch (no load, no auto fetch in component), you will have to do it manually."""
 			directive @manual on QUERY
 
-			"""@mask to specify at fragment level the masking behavior (overwriting the global conf)"""
-			directive @mask(on: Boolean! = true) on FRAGMENT_SPREAD
+			"""@mask_enable to enable masking on fragment (overwriting the global conf)"""
+			directive @mask_enable on FRAGMENT_SPREAD
+
+			"""@mask_disable to disable masking on fragment (overwriting the global conf)"""
+			directive @mask_disable on FRAGMENT_SPREAD
 		`)
 })

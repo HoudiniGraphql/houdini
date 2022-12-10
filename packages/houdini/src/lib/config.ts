@@ -47,7 +47,7 @@ export class Config {
 	typeConfig: ConfigFile['types']
 	configFile: ConfigFile
 	logLevel: LogLevel
-	disableMasking: boolean
+	defaultFragmentMasking: 'enable' | 'disable' = 'enable'
 	configIsRoute: ((filepath: string) => boolean) | null = null
 	routesDir: string
 	schemaPollInterval: number | null
@@ -67,6 +67,14 @@ export class Config {
 	}: ConfigFile & { filepath: string; loadFrameworkConfig?: boolean }) {
 		this.configFile = defaultConfigValues(configFile)
 
+		// depreciate disableMasking in favor of defaultFragmentMasking
+		// @ts-ignore
+		if (!!configFile.disableMasking) {
+			throw new HoudiniError({
+				message: `"disableMasking" was replaced by "defaultFragmentMasking" in houdini 0.18.0. Please update your config file.`,
+			})
+		}
+
 		// apply defaults and pull out the values
 		let {
 			schema,
@@ -84,7 +92,7 @@ export class Config {
 			defaultKeys,
 			types = {},
 			logLevel,
-			disableMasking = false,
+			defaultFragmentMasking = 'enable',
 			schemaPollInterval = 2000,
 			schemaPollHeaders = {},
 			projectDir,
@@ -124,7 +132,7 @@ export class Config {
 		this.defaultListTarget = defaultListTarget
 		this.definitionsFolder = definitionsPath
 		this.logLevel = ((logLevel as LogLevel) || LogLevel.Summary).toLowerCase() as LogLevel
-		this.disableMasking = disableMasking
+		this.defaultFragmentMasking = defaultFragmentMasking
 		this.routesDir = path.join(this.projectRoot, 'src', 'routes')
 		this.schemaPollInterval = schemaPollInterval
 		this.schemaPollHeaders = schemaPollHeaders
@@ -455,8 +463,12 @@ export class Config {
 		return 'manual'
 	}
 
-	get maskDirective() {
-		return 'mask'
+	get maskEnableDirective() {
+		return 'mask_enable'
+	}
+
+	get maskDisableDirective() {
+		return 'mask_disable'
 	}
 
 	get listDirective() {
@@ -602,7 +614,8 @@ export class Config {
 				this.paginateDirective,
 				this.cacheDirective,
 				this.manualDirective,
-				this.maskDirective,
+				this.maskEnableDirective,
+				this.maskDisableDirective,
 			].includes(name.value) || this.isDeleteDirective(name.value)
 		)
 	}

@@ -633,7 +633,7 @@ describe('typescript', function () {
 	})
 
 	test('fragment spreads no masking', async function () {
-		const withoutMasking = testConfig({ disableMasking: true })
+		const withoutMasking = testConfig({ defaultFragmentMasking: 'disable' })
 
 		// the document with the fragment
 		const fragment = mockCollectedDoc(`fragment Foo on User { firstName }`)
@@ -1076,7 +1076,10 @@ describe('typescript', function () {
 	})
 
 	test('can reference list fragments', async function () {
-		const unmaskedConfig = testConfig({ disableMasking: true, schema: config.schema })
+		const unmaskedConfig = testConfig({
+			defaultFragmentMasking: 'enable',
+			schema: config.schema,
+		})
 
 		// the document to test
 		const docs = [
@@ -1134,7 +1137,6 @@ describe('typescript', function () {
 
 			export type MyMutation$result = {
 			    readonly doThing: {
-			        readonly id: string
 			        readonly $fragments: {
 			            My_Users_remove: true
 			            My_Users_insert: true
@@ -1169,16 +1171,14 @@ describe('typescript', function () {
 			};
 
 			export type MyMutation$optimistic = {
-			    readonly doThing?: {
-			        readonly id?: string
-			    } | null
+			    readonly doThing?: {} | null
 			};
 		`)
 	})
 
 	test('disable default fragment masking', async function () {
 		const configWithoutMasking = testConfig({
-			disableMasking: true,
+			defaultFragmentMasking: 'enable',
 			schema: config.schema,
 		})
 
@@ -1227,15 +1227,6 @@ describe('typescript', function () {
 
 			export type MyQuery$result = {
 			    readonly user: {
-			        readonly id: string
-			        readonly firstName: string
-			        readonly friends: ({
-			            readonly id: string
-			            readonly firstName: string
-			            readonly $fragments: {
-			                UserBase: true
-			            }
-			        } | null)[] | null
 			        readonly $fragments: {
 			            UserBase: true
 			            UserMore: true
@@ -1249,7 +1240,7 @@ describe('typescript', function () {
 
 	test('disable individual fragment masking', async function () {
 		const configWithMasking = testConfig({
-			disableMasking: false,
+			defaultFragmentMasking: 'disable',
 			schema: config.schema,
 		})
 
@@ -1257,7 +1248,7 @@ describe('typescript', function () {
 			mockCollectedDoc(`
 				query MyQuery {
 					user {
-						...UserBase @mask(on: false)
+						...UserBase @mask_disable
 						...UserMore
 					}
 				}
@@ -1301,6 +1292,13 @@ describe('typescript', function () {
 			    readonly user: {
 			        readonly id: string
 			        readonly firstName: string
+			        readonly friends: ({
+			            readonly id: string
+			            readonly firstName: string
+			            readonly $fragments: {
+			                UserBase: true
+			            }
+			        } | null)[] | null
 			        readonly $fragments: {
 			            UserBase: true
 			            UserMore: true
@@ -1325,6 +1323,8 @@ describe('typescript', function () {
 
 			export type UserMore$data = {
 			    readonly friends: ({
+			        readonly id: string
+			        readonly firstName: string
 			        readonly $fragments: {
 			            UserBase: true
 			        }
@@ -1335,7 +1335,7 @@ describe('typescript', function () {
 
 	test('enable individual fragment masking', async function () {
 		const configWithoutMasking = testConfig({
-			disableMasking: true,
+			defaultFragmentMasking: 'enable',
 			schema: config.schema,
 		})
 
@@ -1343,7 +1343,7 @@ describe('typescript', function () {
 			mockCollectedDoc(`
 				query MyQuery {
 					user {
-						...UserBase @mask(on: true)
+						...UserBase @mask_enable
 						...UserMore
 					}
 				}
@@ -1385,13 +1385,6 @@ describe('typescript', function () {
 
 			export type MyQuery$result = {
 			    readonly user: {
-			        readonly friends: ({
-			            readonly id: string
-			            readonly firstName: string
-			            readonly $fragments: {
-			                UserBase: true
-			            }
-			        } | null)[] | null
 			        readonly $fragments: {
 			            UserBase: true
 			            UserMore: true
@@ -1416,8 +1409,6 @@ describe('typescript', function () {
 
 			export type UserMore$data = {
 			    readonly friends: ({
-			        readonly id: string
-			        readonly firstName: string
 			        readonly $fragments: {
 			            UserBase: true
 			        }

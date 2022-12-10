@@ -168,6 +168,22 @@ const table: Row[] = [
 		],
 	},
 	{
+		title: '@mask_enable @mask_disable on fragment',
+		pass: false,
+		documents: [
+			`fragment FooA on Query {
+				users(stringValue: $name) { id }
+			}`,
+			`fragment FooB on Query {
+				users(stringValue: $name) { id }
+			}`,
+			`query TestQuery {
+					...FooA @mask_enable @mask_disable
+					...FooB @mask_enable @mask_disable
+			}`,
+		],
+	},
+	{
 		title: '@list name must be unique',
 		pass: false,
 		documents: [
