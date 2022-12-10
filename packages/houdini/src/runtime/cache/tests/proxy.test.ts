@@ -10,9 +10,18 @@ type CacheTypeDef = {
 	__ROOT__: {
 		idFields: {}
 		fields: {
-			test: number
-			testDate: Date
-			viewer: { target: 'User' }
+			test: {
+				type: number
+				args: never
+			}
+			testDate: {
+				type: Date
+				args: never
+			}
+			viewer: {
+				type: { target: 'User' }
+				args: never
+			}
 		}
 	}
 	User: {
@@ -20,9 +29,18 @@ type CacheTypeDef = {
 			id: string
 		}
 		fields: {
-			firstName: string
-			parent: { target: 'User' }
-			id: string
+			firstName: {
+				type: string
+				args: never
+			}
+			parent: {
+				type: { target: 'User' }
+				args: never
+			}
+			id: {
+				type: string
+				args: never
+			}
 		}
 	}
 }

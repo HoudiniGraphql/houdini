@@ -8,18 +8,23 @@ type CacheTypeDef = {
 			[fieldName: string]: any
 		}
 		fields: {
-			[fieldName: string]: any
+			[fieldName: string]: {
+				args: any
+				type: any
+			}
 		}
 	}
 }
 
+// if the result of the field type is a {target: string} then the value of the field
+// is a RecordProxy<Def, string>. Otherwise, just use the type in in the field map
 type FieldType<
 	Def extends CacheTypeDef,
 	Type extends keyof Def,
 	Field extends keyof Def[Type]['fields']
-> = Def[Type]['fields'][Field] extends { target: infer Target }
+> = Def[Type]['fields'][Field]['type'] extends { target: infer Target }
 	? RecordProxy<Def, Target extends string ? Target : never>
-	: Def[Type]['fields'][Field]
+	: Def[Type]['fields'][Field]['type']
 
 export class CacheProxy<Def extends CacheTypeDef> {
 	_internal_unstable: Cache
