@@ -26,6 +26,12 @@ type FieldType<
 	? RecordProxy<Def, Target extends string ? Target : never>
 	: Def[Type]['fields'][Field]['type']
 
+type ArgType<
+	Def extends CacheTypeDef,
+	Type extends keyof Def,
+	Field extends keyof Def[Type]['fields']
+> = Def[Type]['fields'][Field]['args']
+
 export class CacheProxy<Def extends CacheTypeDef> {
 	_internal_unstable: Cache
 
@@ -125,7 +131,7 @@ export class RecordProxy<Def extends CacheTypeDef, Type extends keyof Def> {
 		value,
 	}: {
 		field: Field extends string ? Field : never
-		args?: any
+		args?: ArgType<Def, Type, Field>
 		value: FieldType<Def, Type, Field>
 	}): void {
 		this.cache.validateInstabilityWarning()
@@ -204,7 +210,7 @@ export class RecordProxy<Def extends CacheTypeDef, Type extends keyof Def> {
 		args,
 	}: {
 		field: Field extends string ? Field : never
-		args?: any
+		args?: ArgType<Def, Type, Field>
 	}): FieldType<Def, Type, Field> {
 		this.cache.validateInstabilityWarning()
 
