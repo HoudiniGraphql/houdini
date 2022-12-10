@@ -130,14 +130,14 @@ test('selection includes fragments', async function () {
 
 		                selection: {
 		                    fields: {
-		                        firstName: {
-		                            type: "String",
-		                            keyRaw: "firstName"
-		                        },
-
 		                        id: {
 		                            type: "ID",
 		                            keyRaw: "id"
+		                        },
+
+		                        firstName: {
+		                            type: "String",
+		                            keyRaw: "firstName"
 		                        }
 		                    }
 		                }
@@ -217,14 +217,14 @@ test('internal directives are scrubbed', async function () {
 
 		                selection: {
 		                    fields: {
-		                        firstName: {
-		                            type: "String",
-		                            keyRaw: "firstName"
-		                        },
-
 		                        id: {
 		                            type: "ID",
 		                            keyRaw: "id"
+		                        },
+
+		                        firstName: {
+		                            type: "String",
+		                            keyRaw: "firstName"
 		                        }
 		                    }
 		                }
@@ -284,14 +284,14 @@ test('variables only used by internal directives are scrubbed', async function (
 
 		                selection: {
 		                    fields: {
-		                        firstName: {
-		                            type: "String",
-		                            keyRaw: "firstName"
-		                        },
-
 		                        id: {
 		                            type: "ID",
 		                            keyRaw: "id"
+		                        },
+
+		                        firstName: {
+		                            type: "String",
+		                            keyRaw: "firstName"
 		                        }
 		                    }
 		                }
@@ -722,6 +722,11 @@ test('overlapping query and fragment nested selection', async function () {
 		                                    keyRaw: "firstName"
 		                                },
 
+		                                __typename: {
+		                                    type: "String",
+		                                    keyRaw: "__typename"
+		                                },
+
 		                                friends: {
 		                                    type: "User",
 		                                    keyRaw: "friends",
@@ -734,11 +739,6 @@ test('overlapping query and fragment nested selection', async function () {
 		                                            }
 		                                        }
 		                                    }
-		                                },
-
-		                                __typename: {
-		                                    type: "String",
-		                                    keyRaw: "__typename"
 		                                }
 		                            }
 		                        },

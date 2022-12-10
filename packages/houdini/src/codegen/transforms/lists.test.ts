@@ -372,7 +372,7 @@ test('includes node selection on connection', async function () {
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		mutation UpdateUser {
 		  updateUser {
-				id
+		    id
 		    ...User_Friends_insert @prepend @parentID(value: "1234")
 		  }
 		}
@@ -500,7 +500,7 @@ test('paginate with name also gets treated as a list', async function () {
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		mutation UpdateUser {
 		  updateUser {
-				id
+		    id
 		    ...User_Friends_insert @prepend @parentID(value: "1234")
 		  }
 		}

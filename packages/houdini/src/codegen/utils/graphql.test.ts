@@ -5,7 +5,7 @@ import { testConfig } from '../../test'
 import { flattenSelections } from './flattenSelections'
 import { TypeWrapper, unwrapType } from './graphql'
 
-const config = testConfig({ disableMasking: true })
+const config = testConfig({ defaultFragmentMasking: 'enable' })
 
 describe('unwrapType', () => {
 	test('list of lists', function () {
@@ -85,9 +85,6 @@ describe('flattenSelection', function () {
 		).toMatchInlineSnapshot(`
 			{
 			  user {
-			    ... on User {
-			      id
-			    }
 			    ...Foo
 			  }
 			}

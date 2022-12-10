@@ -756,6 +756,21 @@ test('embeds custom pagination query as a separate document', async function () 
 
 		                selection: {
 		                    fields: {
+		                        __typename: {
+		                            type: "String",
+		                            keyRaw: "__typename"
+		                        },
+
+		                        name: {
+		                            type: "String",
+		                            keyRaw: "name"
+		                        },
+
+		                        aka: {
+		                            type: "String",
+		                            keyRaw: "aka"
+		                        },
+
 		                        friendsConnection: {
 		                            type: "GhostConnection",
 		                            keyRaw: "friendsConnection::paginated",
@@ -832,21 +847,6 @@ test('embeds custom pagination query as a separate document', async function () 
 		                                    }
 		                                }
 		                            }
-		                        },
-
-		                        __typename: {
-		                            type: "String",
-		                            keyRaw: "__typename"
-		                        },
-
-		                        name: {
-		                            type: "String",
-		                            keyRaw: "name"
-		                        },
-
-		                        aka: {
-		                            type: "String",
-		                            keyRaw: "aka"
 		                        }
 		                    }
 		                }

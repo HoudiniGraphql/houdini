@@ -130,7 +130,7 @@ class FieldCollection {
 				fragmentMaskingState = 'disable'
 			}
 			if (this.ignoreMaskDisable) {
-				fragmentMaskingState === 'enable'
+				fragmentMaskingState === 'disable'
 			}
 
 			// we're finished if we're not supposed to include fragments in the selection
