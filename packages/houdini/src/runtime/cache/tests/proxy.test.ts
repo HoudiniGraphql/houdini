@@ -102,7 +102,7 @@ test('can set custom scalar value', function () {
 	// we'll need to provide the type information
 	cache.setFieldType({
 		parent: rootID,
-		key: 'test',
+		key: 'testDate',
 		type: 'DateTime',
 		nullable: true,
 	})
@@ -266,7 +266,7 @@ test("writing a field that isn't in the display layer still gets grabage collect
 
 	// collecting garbage one more time should remove the record from the cache
 	cache._internal_unstable._internal_unstable.collectGarbage()
-	expect(user.get({ field: 'firstName' })).toEqual(null)
+	expect(user.get({ field: 'firstName' })).toBeUndefined()
 })
 
 test('writing a field resets field life time', function () {
