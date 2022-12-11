@@ -117,18 +117,23 @@ class FieldCollection {
 
 			// find whether to include fragment fields
 			let fragmentMaskingState = this.config.defaultFragmentMasking
+
+			// Check if locally enable
 			const maskEnableDirective = selection.directives?.find(
 				({ name }) => name.value === this.config.maskEnableDirective
 			)
 			if (maskEnableDirective) {
 				fragmentMaskingState = 'enable'
 			}
+
+			// Check if locally disable
 			const maskDisableDirective = selection.directives?.find(
 				({ name }) => name.value === this.config.maskDisableDirective
 			)
 			if (maskDisableDirective) {
 				fragmentMaskingState = 'disable'
 			}
+
 			if (this.ignoreMaskDisable) {
 				fragmentMaskingState === 'disable'
 			}
@@ -137,6 +142,7 @@ class FieldCollection {
 			if (fragmentMaskingState === 'enable' || !this.applyFragments) {
 				return
 			}
+
 			const definition = this.fragmentDefinitions[selection.name.value]
 			if (!definition) {
 				throw new HoudiniError({
