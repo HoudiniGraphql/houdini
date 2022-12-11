@@ -2,9 +2,9 @@ import { rootID } from '../cache/cache'
 import { TypeInfo } from '../cache/schema'
 import { keyFieldsForType, SubscriptionSelection } from '../lib'
 import type { CacheProxy } from './cache'
-import { ArgType, CacheTypeDef, FieldType } from './types'
+import { ArgType, CacheTypeDef, FieldType, TypeFieldNames, TypeFields, ValidTypes } from './types'
 
-export class RecordProxy<Def extends CacheTypeDef, Type extends keyof Def['types']> {
+export class RecordProxy<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 	private id: string
 	private type: string
 	private cache: CacheProxy<Def>
@@ -36,12 +36,12 @@ export class RecordProxy<Def extends CacheTypeDef, Type extends keyof Def['types
 		}
 	}
 
-	set<Field extends keyof Def['types'][Type]['fields']>({
+	set<Field extends TypeFieldNames<Def, Type>>({
 		field,
 		args,
 		value,
 	}: {
-		field: Field extends string ? Field : never
+		field: Field
 		args?: ArgType<Def, Type, Field>
 		value: FieldType<Def, Type, Field>
 	}): void {
@@ -116,11 +116,11 @@ export class RecordProxy<Def extends CacheTypeDef, Type extends keyof Def['types
 		})
 	}
 
-	get<Field extends keyof Def['types'][Type]['fields']>({
+	get<Field extends TypeFieldNames<Def, Type>>({
 		field,
 		args,
 	}: {
-		field: Field extends string ? Field : never
+		field: Field
 		args?: ArgType<Def, Type, Field>
 	}): FieldType<Def, Type, Field> {
 		this.cache.validateInstabilityWarning()
