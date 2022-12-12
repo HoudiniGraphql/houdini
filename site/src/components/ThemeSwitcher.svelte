@@ -1,58 +1,54 @@
 <script>
 	import { Icon } from '~/components'
 
-	export let ui_theme = 'light'
+	export let ui_theme = 0
 
-	const themes = {
-		dark: {
-			label: 'Dark',
-			icon: 'moon'
-		},
-		light: {
-			label: 'Light',
-			icon: 'sun'
-		}
-		// os: {
-		// 	label: 'OS&nbsp;Default',
-		// 	icon: '?'
-		// }
-	}
+	const themes = [
+		{ label: 'light', icon: 'sun' },
+		{ label: 'dark', icon: 'moon' }
+	]
 
-	let menuOpen = false
-
-	const toggleMenu = () => (menuOpen = !menuOpen)
-
-	const setTheme = (themeName) => {
-		ui_theme = themeName
-		menuOpen = false
+	const setTheme = () => {
+		const theme = ui_theme ? 0 : 1
+		ui_theme = theme
+		document.cookie = `ui_theme=${theme};path=/;SameSite=Strict`
 	}
 </script>
 
+<svelte:head>
+	<meta name="theme-color" content="#161b22" />
+
+	{#if ui_theme === 1}
+		<style>
+			:root {
+				--hue: #f9fbff;
+				--contrast: #161b22;
+				--discreet: #ebeef5;
+				--discreet2: #d3d6dc;
+				--saturated: #ff3e00;
+				--external: #8d005f;
+				--text_highlight: hsl(207, 82%, 66%);
+			}
+		</style>
+	{:else}
+		<style>
+			:root {
+				--hue: #161b22;
+				--contrast: #f9fbff;
+				--discreet: #303a48;
+				--discreet2: #475465;
+				--saturated: #ff3e00;
+				--external: #8d005f;
+				--text_highlight: #a1c5f8;
+			}
+		</style>
+	{/if}
+</svelte:head>
+
 <div class="theme-switcher">
-	<button
-		aria-haspopup="menu"
-		type="button"
-		aria-expanded={menuOpen}
-		class="menu"
-		class:opened={menuOpen}
-		on:click={toggleMenu}
-	>
+	<button type="button" title={`Switch to ${themes[ui_theme].label} theme`} on:click={setTheme}>
 		<Icon name={themes[ui_theme].icon} />
 	</button>
-
-	<ul aria-labelledby="themes-menu-button" class:hidden={!menuOpen}>
-		{#each Object.keys(themes) as theme_name}
-			{@const theme = themes[theme_name]}
-			<li class:active={theme_name === ui_theme}>
-				<button type="button" on:click={() => setTheme(theme_name)}>
-					<span class="content">
-						<Icon name={theme.icon} />
-						<span class="label">{theme.label}</span>
-					</span>
-				</button>
-			</li>
-		{/each}
-	</ul>
 </div>
 
 <style>
@@ -61,7 +57,7 @@
 		position: relative;
 	}
 
-	button.menu {
+	button {
 		background: var(--hue);
 		color: var(--contrast);
 		font-size: 17px;
@@ -72,56 +68,7 @@
 		padding-right: 0;
 	}
 
-	button.menu.opened,
-	button.menu:hover {
+	button:hover {
 		color: var(--saturated);
-	}
-
-	ul {
-		border-radius: 9px;
-		padding: 12px 18px;
-		background: var(--discreet);
-		position: absolute;
-		top: 100%;
-		right: 0%;
-		z-index: 1;
-	}
-
-	ul.hidden {
-		display: none;
-	}
-
-	ul li button {
-		border-radius: 6px;
-		opacity: 0.9;
-		color: var(--contrast);
-		background: var(--hue);
-		border: 1px solid var(--discreet);
-		cursor: pointer;
-		padding: 6px 12px;
-		margin: 6px 0;
-	}
-
-	li.active button {
-		background: var(--hue);
-		border: 1px solid var(--saturated);
-	}
-
-	li button:hover {
-		border: 1px solid var(--discreet);
-		background: var(--saturated);
-		color: var(--hue);
-		opacity: 1;
-	}
-
-	ul button .content {
-		display: flex;
-		align-items: center;
-		flex-direction: row;
-	}
-
-	ul button .content .label {
-		margin-left: 9px;
-		margin-bottom: 1px;
 	}
 </style>

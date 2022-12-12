@@ -11,6 +11,8 @@
 	export let index
 	export let description
 
+	export let data
+
 	// the list of files we can render
 	// @ts-ignore
 	const categories = REPLACE_WITH_OUTLINE
@@ -19,7 +21,7 @@
 	let categoryNames = Object.keys(categories)
 
 	// @ts-ignore
-	let ui_theme
+	let ui_theme = data?.ui_theme
 
 	// some state to control the menu
 	let menuOpen = false
@@ -97,36 +99,6 @@
 		window.onscroll = throttle(highlightSubsection, 250)
 	})
 </script>
-
-<svelte:head>
-	<meta name="theme-color" content="#161b22" />
-
-	{#if ui_theme === 'light'}
-		<style>
-			:root {
-				--hue: #f9fbff;
-				--contrast: #161b22;
-				--discreet: #ebeef5;
-				--discreet2: #d3d6dc;
-				--saturated: #ff3e00;
-				--external: #8d005f;
-				--text_highlight: hsl(207, 82%, 66%);
-			}
-		</style>
-	{:else}
-		<style>
-			:root {
-				--hue: #161b22;
-				--contrast: #f9fbff;
-				--discreet: #303a48;
-				--discreet2: #475465;
-				--saturated: #ff3e00;
-				--external: #8d005f;
-				--text_highlight: #a1c5f8;
-			}
-		</style>
-	{/if}
-</svelte:head>
 
 <SEO {title} url={`https://www.houdinigraphql.com${link}`} {description} />
 
