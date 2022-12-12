@@ -116,14 +116,16 @@ class FieldCollection {
 			this.fragmentSpreads[selection.name.value] = selection
 
 			// find whether to include fragment fields
-			let fragmentMaskingState = this.config.defaultFragmentMasking
+			// let fragmentMaskingState = this.config.defaultFragmentMasking
+			let includeFragments = this.config.defaultFragmentMasking === 'disable'
 
 			// Check if locally enable
 			const maskEnableDirective = selection.directives?.find(
 				({ name }) => name.value === this.config.maskEnableDirective
 			)
 			if (maskEnableDirective) {
-				fragmentMaskingState = 'enable'
+				// fragmentMaskingState = 'enable'
+				includeFragments = false
 			}
 
 			// Check if locally disable
@@ -131,15 +133,18 @@ class FieldCollection {
 				({ name }) => name.value === this.config.maskDisableDirective
 			)
 			if (maskDisableDirective) {
-				fragmentMaskingState = 'disable'
+				// fragmentMaskingState = 'disable'
+				includeFragments = true
 			}
 
 			if (this.ignoreMaskDisable) {
-				fragmentMaskingState === 'disable'
+				// fragmentMaskingState === 'disable'
+				includeFragments = true
 			}
 
 			// we're finished if we're not supposed to include fragments in the selection
-			if (fragmentMaskingState === 'enable' || !this.applyFragments) {
+			// if (fragmentMaskingState === 'enable' || !this.applyFragments) {
+			if (!includeFragments || !this.applyFragments) {
 				return
 			}
 
