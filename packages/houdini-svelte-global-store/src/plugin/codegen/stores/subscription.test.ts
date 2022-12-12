@@ -7,7 +7,7 @@ import { test, expect } from 'vitest'
 import runPipeline from '..'
 import '../..'
 import { test_config } from '../../../test'
-import { stores_directory } from '../../kit'
+import { global_stores_directory } from '../../kit'
 
 test('generates a store for every subscription', async function () {
 	const config = await test_config()
@@ -20,10 +20,10 @@ test('generates a store for every subscription', async function () {
 	]
 
 	// execute the generator
-	await runPipeline({ config, documents: docs, plugin_root, framework: 'kit' })
+	await runPipeline({ config, documents: docs, plugin_root })
 
 	// look up the files in the artifact directory
-	const files = await fs.readdir(stores_directory(plugin_root))
+	const files = await fs.readdir(global_stores_directory(plugin_root))
 
 	// and they have the right names
 	expect(files).toEqual(expect.arrayContaining(['TestSubscription1.js', 'TestSubscription2.js']))
@@ -33,7 +33,7 @@ test('generates a store for every subscription', async function () {
 	)
 
 	const contents = await fs.readFile(
-		path.join(stores_directory(plugin_root), 'TestSubscription1.js')
+		path.join(global_stores_directory(plugin_root), 'TestSubscription1.js')
 	)
 	const parsed = recast.parse(contents!, {
 		parser: typeScriptParser,
@@ -41,20 +41,9 @@ test('generates a store for every subscription', async function () {
 
 	await expect(parsed).toMatchInlineSnapshot(
 		`
-		import artifact from '$houdini/artifacts/TestSubscription1'
-		import { SubscriptionStore } from '$houdini/plugins/houdini-svelte/runtime/stores'
-
-		export class TestSubscription1Store extends SubscriptionStore {
-			constructor() {
-				super({
-					artifact,
-				})
-			}
-		}
+		//import 
 
 		export const GQL_TestSubscription1 = new TestSubscription1Store()
-
-		export default GQL_TestSubscription1
 	`
 	)
 })

@@ -84,21 +84,6 @@ describe('extract_load_function', function () {
 			},
 		},
 		{
-			title: 'load single global import',
-			source: `
-                import { GQL_Hello } from '$houdini'
-
-                export const houdini_load = GQL_Hello
-            `,
-			artifacts: {
-				Hello: 'query Hello { viewer { id } }',
-			},
-			expected: {
-				exports: ['houdini_load'],
-				houdini_load: [`Hello`],
-			},
-		},
-		{
 			title: 'load list with inline value',
 			source: `
                 import { graphql } from '$houdini'
@@ -119,21 +104,6 @@ describe('extract_load_function', function () {
 
                 export const houdini_load = [store]
             `,
-			expected: {
-				exports: ['houdini_load'],
-				houdini_load: ['Hello'],
-			},
-		},
-		{
-			title: 'load list with global import',
-			source: `
-                import { GQL_Hello } from '$houdini'
-
-                export const houdini_load = [GQL_Hello]
-            `,
-			artifacts: {
-				Hello: 'query Hello { viewer { id } }',
-			},
 			expected: {
 				exports: ['houdini_load'],
 				houdini_load: ['Hello'],

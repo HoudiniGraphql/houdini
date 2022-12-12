@@ -10,8 +10,6 @@ const HoudiniSveltePlugin: PluginFactory = async () => ({
 
 	// we need to write the svelte specific runtime
 	generate(input) {
-		console.log(`input`, input)
-
 		return generate({
 			...input,
 		})
@@ -46,7 +44,7 @@ const HoudiniSveltePlugin: PluginFactory = async () => ({
 				description: `Here, both gives: ${store_name({ config: cfg, name: 'QueryName' })}`,
 			})
 		}
-	}
+	},
 })
 
 export default HoudiniSveltePlugin

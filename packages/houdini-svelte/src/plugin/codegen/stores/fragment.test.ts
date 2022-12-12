@@ -54,9 +54,7 @@ test('generates a store for every fragment', async function () {
 			}
 		}
 
-		export const GQL_TestFragment1 = new TestFragment1Store()
-
-		export default GQL_TestFragment1
+		export default new TestFragment1Store()
 	`
 	)
 })
