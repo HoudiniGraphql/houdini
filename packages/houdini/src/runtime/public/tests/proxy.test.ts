@@ -51,6 +51,10 @@ type CacheTypeDef = {
 					type: string
 					args: never
 				}
+				__typename: {
+					type: string
+					args: never
+				}
 			}
 		}
 		Cat: {
@@ -63,6 +67,25 @@ type CacheTypeDef = {
 					args: never
 				}
 				id: {
+					type: string
+					args: never
+				}
+				__typename: {
+					type: string
+					args: never
+				}
+			}
+		}
+		Ghost: {
+			idFields: {
+				id: string
+			}
+			fields: {
+				name: {
+					type: string | null
+					args: never
+				}
+				__typename: {
 					type: string
 					args: never
 				}
@@ -217,6 +240,10 @@ test('can read and write linked records', function () {
 							type: 'String',
 							keyRaw: 'firstName',
 						},
+						__typename: {
+							type: 'String',
+							keyRaw: '__typename',
+						},
 						parent: {
 							type: 'User',
 							keyRaw: 'parent',
@@ -229,6 +256,10 @@ test('can read and write linked records', function () {
 									firstName: {
 										type: 'String',
 										keyRaw: 'firstName',
+									},
+									__typename: {
+										type: 'String',
+										keyRaw: '__typename',
 									},
 								},
 							},
@@ -246,9 +277,11 @@ test('can read and write linked records', function () {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
+				__typename: 'User',
 				parent: {
 					id: '2',
 					firstName: 'jane',
+					__typename: 'User',
 				},
 			},
 		},
@@ -279,9 +312,11 @@ test('can read and write linked records', function () {
 		viewer: {
 			id: '1',
 			firstName: 'bob',
+			__typename: 'User',
 			parent: {
 				id: '3',
 				firstName: 'Jacob',
+				__typename: 'User',
 			},
 		},
 	})
@@ -348,6 +383,7 @@ test('can pass null', function () {
 		key: 'test',
 		type: 'Int',
 		nullable: true,
+		link: false,
 	})
 
 	// update the cached value
@@ -362,27 +398,35 @@ test('can pass null', function () {
 test('can set list types', function () {
 	const cache = testCache()
 
-	// create a cat and a user
-	const cat = cache.get('Cat', { id: '1' })
-	const user = cache.get('User', { id: '2' })
-
 	// we'll need to provide the type information
 	cache.setFieldType({
 		parent: rootID,
 		key: 'pets',
 		type: 'Pet',
 		nullable: true,
+		link: true,
 	})
+	cache.setFieldType({
+		parent: 'Pet',
+		key: 'id',
+		type: 'ID',
+		nullable: false,
+		link: false,
+	})
+
+	// create a cat and a user
+	const cat = cache.get('Cat', { id: '1' })
+	const user = cache.get('User', { id: '2' })
 
 	// set the pets value to the list
 	cache.root.set({ field: 'pets', value: [cat, user] })
 
 	// make sure we get the list back
 	const value = cache.root.get({ field: 'pets' })
-	const proxyValues = value.map((proxy) => ({ type: proxy.type, id: proxy.idFields }))
+	const proxyValues = value.map((proxy) => ({ type: proxy.type, idFields: proxy.idFields }))
 	expect(proxyValues).toEqual([
-		{ type: 'User', idFields: { id: '1' } },
-		{ type: 'Cat', idFields: { id: '2' } },
+		{ type: 'Cat', idFields: { id: '1', __typename: 'Cat' } },
+		{ type: 'User', idFields: { id: '2', __typename: 'User' } },
 	])
 })
 
@@ -399,6 +443,14 @@ test('can set union types', function () {
 		key: 'pet',
 		type: 'Pet',
 		nullable: true,
+		link: true,
+	})
+	cache.setFieldType({
+		parent: 'Pet',
+		key: 'id',
+		type: 'ID',
+		nullable: false,
+		link: false,
 	})
 
 	// set the pets value to the list
@@ -406,6 +458,7 @@ test('can set union types', function () {
 	cache.root.set({ field: 'pet', value: user })
 
 	expect(cache.root.get({ field: 'pet' }).idFields).toEqual({
+		__typename: 'User',
 		id: '2',
 	})
 })

@@ -2,7 +2,15 @@ import { rootID } from '../cache/cache'
 import { TypeInfo } from '../cache/schema'
 import { keyFieldsForType, SubscriptionSelection } from '../lib'
 import type { CacheProxy } from './cache'
-import { ArgType, CacheTypeDef, FieldType, TypeFieldNames, TypeFields, ValidTypes } from './types'
+import {
+	ArgType,
+	CacheTypeDef,
+	FieldType,
+	IDFields,
+	TypeFieldNames,
+	TypeFields,
+	ValidTypes,
+} from './types'
 
 export class RecordProxy<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 	private id: string
@@ -55,19 +63,8 @@ export class RecordProxy<Def extends CacheTypeDef, Type extends ValidTypes<Def>>
 		// the value we will set
 		let newValue: any
 
-		// if we are writing a scalar we need to look for a special marshal function
-		if (!typeInfo.link) {
-			// if the type has a special marshal function we need to call it
-			const fnMarshal = this.cache.config.scalars?.[typeInfo.type]?.marshal
-			if (fnMarshal) {
-				newValue = fnMarshal(value)
-			} else {
-				newValue = value
-			}
-		}
-		// we are writing a link so we need to add some information to the selection
-		// as well as use the id fields for the value
-		else if (value instanceof RecordProxy) {
+		// if the type is a link, we need to use a selection that includes the id fields
+		if (typeInfo.link) {
 			// look up the necessary fields to compute the key
 			const keys = keyFieldsForType(this.cache.config, typeInfo.type)
 
@@ -86,13 +83,52 @@ export class RecordProxy<Def extends CacheTypeDef, Type extends ValidTypes<Def>>
 							},
 						}
 					},
-					{}
+
+					{
+						__typename: {
+							type: 'String',
+							keyRaw: '__typename',
+						},
+					}
 				),
 			}
+		}
 
+		// if we are writing a scalar we need to look for a special marshal function
+		if (!typeInfo.link) {
+			// if the type has a special marshal function we need to call it
+			const fnMarshal = this.cache.config.scalars?.[typeInfo.type]?.marshal
+			if (fnMarshal) {
+				newValue = fnMarshal(value)
+			} else {
+				newValue = value
+			}
+		}
+		// we are writing a link so we need to add some information to the selection
+		// as well as use the id fields for the value
+		else if (value instanceof RecordProxy) {
 			// use the id fields as the value
-			newValue = value.idFields
-		} else {
+			newValue = {
+				...value.idFields,
+				__typename: value.type,
+			}
+		}
+		// it could also be a list of proxies
+		else if (Array.isArray(value)) {
+			newValue = []
+			for (const inner of value as any[]) {
+				if (!(inner instanceof RecordProxy)) {
+					throw new Error(
+						'Value must be a list RecordProxies if the field is a link to another record'
+					)
+				}
+
+				newValue.push({ ...inner.idFields, __typename: inner.type })
+			}
+		}
+
+		// they didn't pass a proxy or list of proxies when we expected one
+		else {
 			throw new Error('Value must be a RecordProxy if the field is a link to another record')
 		}
 
@@ -150,7 +186,12 @@ export class RecordProxy<Def extends CacheTypeDef, Type extends ValidTypes<Def>>
 							},
 						}
 					},
-					{}
+					{
+						__typename: {
+							type: 'String',
+							keyRaw: '__typename',
+						},
+					}
 				),
 			}
 		}
@@ -170,34 +211,66 @@ export class RecordProxy<Def extends CacheTypeDef, Type extends ValidTypes<Def>>
 
 		// if they asked for a scalar, just return the value
 		if (!typeInfo.link) {
-			return result.data?.[field] as FieldType<Def, Type, Field>
+			return (result.data?.[field] ?? (typeInfo.nullable ? null : undefined)) as FieldType<
+				Def,
+				Type,
+				Field
+			>
 		}
 
-		// they asked for a link so we need to return a proxy to that record
-		const idFields = result.data?.[field] || {}
-		const linkedID = this.cache._internal_unstable._internal_unstable.id(
-			typeInfo.type,
-			idFields
-		)
-		if (!linkedID) {
-			throw new Error('todo')
-		}
+		const data = result.data?.[field] || {}
 
-		// return the proxy
-		return new RecordProxy({
-			cache: this.cache,
-			type: typeInfo.type,
-			id: linkedID,
-			idFields,
-		}) as FieldType<Def, Type, Field>
+		// we need to handle lists and non lists so treat everything as a list for now
+		// and then we'll unpack after
+		let finalResult = (!Array.isArray(data) ? [data] : data).map((ids) => {
+			// they asked for a link so we need to return a proxy to that record
+			const linkedID = this.cache._internal_unstable._internal_unstable.id(
+				typeInfo.type,
+				ids || {}
+			)
+			if (!linkedID) {
+				throw new Error('todo')
+			}
+
+			// look up the __typename
+			const typename = this.cache._internal_unstable.read({
+				selection: {
+					fields: {
+						__typename: {
+							keyRaw: '__typename',
+							type: 'String',
+						},
+					},
+				},
+				parent: linkedID,
+			}).data?.__typename
+
+			// return the proxy
+			return new RecordProxy<Def, Field>({
+				cache: this.cache,
+				type: (typename as string) ?? typeInfo.type,
+				id: linkedID,
+				idFields: ids || {},
+			})
+		})
+
+		return (Array.isArray(data) ? finalResult : finalResult[0]) as FieldType<Def, Type, Field>
 	}
 
 	private _typeInfo(field: string, type: string = this.type): TypeInfo {
+		if (field === '__typename') {
+			return {
+				type: 'String',
+				nullable: false,
+				link: false,
+			}
+		}
+
 		const info = this.cache._internal_unstable._internal_unstable.schema.fieldType(type, field)
 
 		if (!info) {
 			throw new Error(
-				`Unknown field: ${field}. Please provide type information using setFieldType().`
+				`Unknown field: ${field} for type ${type}. Please provide type information using setFieldType().`
 			)
 		}
 
