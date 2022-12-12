@@ -464,8 +464,8 @@ export class Config {
 		GraphqQL conventions
 
 	*/
-	get manualDirective() {
-		return 'manual'
+	get manualLoadDirective() {
+		return 'manual_load'
 	}
 
 	get maskEnableDirective() {
@@ -618,7 +618,7 @@ export class Config {
 				this.withDirective,
 				this.paginateDirective,
 				this.cacheDirective,
-				this.manualDirective,
+				this.manualLoadDirective,
 				this.maskEnableDirective,
 				this.maskDisableDirective,
 			].includes(name.value) || this.isDeleteDirective(name.value)

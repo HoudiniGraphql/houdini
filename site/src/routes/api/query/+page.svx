@@ -267,13 +267,13 @@ export function onError({ error }) {
 ### Disabling Inline Query Loading
 
 Sometimes it's useful to have a lazy query that only fires when you call `fetch` (for
-example in a search input). For these scenarios, you will want to turn off the
-automatic loader using the `@manual` directive:
+example in a search input). For these scenarios (whether in a route or component), 
+you will want to turn off the generated load using the `@manual_load` directive:
 
 ```svelte
 <script>
 	const result = graphql`
-		query MyQuery @manual {
+		query MyQuery @manual_load {
 			viewer {
 				id
 			}
