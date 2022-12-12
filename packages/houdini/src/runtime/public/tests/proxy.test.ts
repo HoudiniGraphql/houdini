@@ -433,10 +433,6 @@ test('can set list types', function () {
 test('can set union types', function () {
 	const cache = testCache()
 
-	// create a cat and a user
-	const cat = cache.get('Cat', { id: '1' })
-	const user = cache.get('User', { id: '2' })
-
 	// we'll need to provide the type information
 	cache.setFieldType({
 		parent: rootID,
@@ -453,7 +449,11 @@ test('can set union types', function () {
 		link: false,
 	})
 
-	// set the pets value to the list
+	// create a cat and a user
+	const cat = cache.get('Cat', { id: '1' })
+	const user = cache.get('User', { id: '2' })
+
+	// set the pets value to the union value
 	cache.root.set({ field: 'pet', value: cat })
 	cache.root.set({ field: 'pet', value: user })
 
