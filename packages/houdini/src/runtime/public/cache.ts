@@ -1,7 +1,7 @@
 import { Cache, rootID } from '../cache/cache'
 import { SchemaManager } from '../cache/schema'
 import { RecordProxy } from './record'
-import { CacheTypeDef, IDFields, TypeNames, ValidTypes } from './types'
+import type { CacheTypeDef, IDFields, TypeNames } from './types'
 
 export class CacheProxy<Def extends CacheTypeDef> {
 	_internal_unstable: Cache

@@ -2,15 +2,7 @@ import { rootID } from '../cache/cache'
 import { TypeInfo } from '../cache/schema'
 import { keyFieldsForType, SubscriptionSelection } from '../lib'
 import type { CacheProxy } from './cache'
-import {
-	ArgType,
-	CacheTypeDef,
-	FieldType,
-	IDFields,
-	TypeFieldNames,
-	TypeFields,
-	ValidTypes,
-} from './types'
+import type { ArgType, CacheTypeDef, FieldType, TypeFieldNames, ValidTypes } from './types'
 
 export class RecordProxy<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 	private id: string
