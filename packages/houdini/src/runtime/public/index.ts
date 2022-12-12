@@ -1,1 +1,1 @@
-export { CacheProxy } from './cache'
+export { Cache } from './cache'

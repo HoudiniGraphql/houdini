@@ -1,12 +1,12 @@
-import { Cache, rootID } from '../cache/cache'
+import { Cache as _Cache, rootID } from '../cache/cache'
 import { SchemaManager } from '../cache/schema'
-import { RecordProxy } from './record'
+import { Record } from './record'
 import type { CacheTypeDef, IDFields, TypeNames } from './types'
 
-export class CacheProxy<Def extends CacheTypeDef> {
-	_internal_unstable: Cache
+export class Cache<Def extends CacheTypeDef> {
+	_internal_unstable: _Cache
 
-	constructor(cache: Cache) {
+	constructor(cache: _Cache) {
 		this._internal_unstable = cache
 	}
 
@@ -28,9 +28,9 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 	}
 
 	// return the root record
-	get root(): RecordProxy<Def, '__ROOT__'> {
+	get root(): Record<Def, '__ROOT__'> {
 		this.validateInstabilityWarning()
-		return new RecordProxy({
+		return new Record({
 			cache: this,
 			type: 'Query',
 			id: rootID,
@@ -39,7 +39,7 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 	}
 
 	// return the record proxy for the given type/id combo
-	get<T extends TypeNames<Def>>(type: T, data: IDFields<Def, T>): RecordProxy<Def, T> {
+	get<T extends TypeNames<Def>>(type: T, data: IDFields<Def, T>): Record<Def, T> {
 		this.validateInstabilityWarning()
 
 		// verify that
@@ -51,7 +51,7 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 		}
 
 		// return the proxy
-		return new RecordProxy({
+		return new Record({
 			cache: this,
 			type: type,
 			id: recordID,

@@ -1,13 +1,13 @@
 import { rootID } from '../cache/cache'
 import { TypeInfo } from '../cache/schema'
 import { keyFieldsForType, SubscriptionSelection } from '../lib'
-import type { CacheProxy } from './cache'
+import type { Cache } from './cache'
 import type { ArgType, CacheTypeDef, FieldType, TypeFieldNames, ValidTypes } from './types'
 
-export class RecordProxy<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
+export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 	private id: string
 	type: string
-	private cache: CacheProxy<Def>
+	private cache: Cache<Def>
 	idFields: {}
 
 	constructor({
@@ -16,7 +16,7 @@ export class RecordProxy<Def extends CacheTypeDef, Type extends ValidTypes<Def>>
 		id,
 		idFields,
 	}: {
-		cache: CacheProxy<Def>
+		cache: Cache<Def>
 		type: string
 		idFields: {}
 		id: string
@@ -98,7 +98,7 @@ export class RecordProxy<Def extends CacheTypeDef, Type extends ValidTypes<Def>>
 		}
 		// we are writing a link so we need to add some information to the selection
 		// as well as use the id fields for the value
-		else if (value instanceof RecordProxy) {
+		else if (value instanceof Record) {
 			// use the id fields as the value
 			newValue = {
 				...value.idFields,
@@ -109,7 +109,7 @@ export class RecordProxy<Def extends CacheTypeDef, Type extends ValidTypes<Def>>
 		else if (Array.isArray(value)) {
 			newValue = []
 			for (const inner of value as any[]) {
-				if (!(inner instanceof RecordProxy)) {
+				if (!(inner instanceof Record)) {
 					throw new Error(
 						'Value must be a list RecordProxies if the field is a link to another record'
 					)
@@ -238,7 +238,7 @@ export class RecordProxy<Def extends CacheTypeDef, Type extends ValidTypes<Def>>
 			}).data?.__typename
 
 			// return the proxy
-			return new RecordProxy<Def, Field>({
+			return new Record<Def, Field>({
 				cache: this.cache,
 				type: (typename as string) ?? typeInfo.type,
 				id: linkedID,

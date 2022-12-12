@@ -1,10 +1,10 @@
 import { test, expect } from 'vitest'
 
 import { testConfigFile } from '../../../test'
-import { Cache, rootID } from '../../cache/cache'
+import { Cache as _Cache, rootID } from '../../cache/cache'
 import { SubscriptionSelection } from '../../lib'
-import { CacheProxy } from '../cache'
-import { RecordProxy } from '../record'
+import { Cache } from '../cache'
+import { Record } from '../record'
 
 // the type definition for our test cache
 type CacheTypeDef = {
@@ -95,7 +95,7 @@ type CacheTypeDef = {
 	lists: {}
 }
 
-const testCache = () => new CacheProxy<CacheTypeDef>(new Cache(testConfigFile()))
+const testCache = () => new Cache<CacheTypeDef>(new _Cache(testConfigFile()))
 
 test('must have schema information to set field', function () {
 	const cache = testCache()
@@ -324,7 +324,7 @@ test('can read and write linked records', function () {
 
 test('record proxies need every field to compute the id', function () {
 	const cache = testCache()
-	expect(() => new RecordProxy({ cache, id: '1', type: 'User', idFields: {} })).toThrowError()
+	expect(() => new Record({ cache, id: '1', type: 'User', idFields: {} })).toThrowError()
 })
 
 test("writing a field that isn't in the display layer still gets grabage collected", function () {

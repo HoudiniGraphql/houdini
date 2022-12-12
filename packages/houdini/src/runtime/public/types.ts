@@ -1,4 +1,4 @@
-import type { RecordProxy } from './record'
+import type { Record } from './record'
 
 export type CacheTypeDef = {
 	types: {
@@ -46,9 +46,7 @@ export type IDFields<
 	Type extends keyof Def['types']
 > = Def['types'][Type]['idFields']
 
-type ProxyUnion<Def extends CacheTypeDef, U> = U extends TypeNames<Def>
-	? RecordProxy<Def, U>
-	: never
+type ProxyUnion<Def extends CacheTypeDef, U> = U extends TypeNames<Def> ? Record<Def, U> : never
 
 type _FieldType<
 	Def extends CacheTypeDef,
@@ -65,7 +63,7 @@ export type FieldType<
 	Type extends keyof Def['types'],
 	Field extends keyof TypeFields<Def, Type>
 > = _FieldType<Def, Type, Field> extends { type: infer Target }
-	? RecordProxy<Def, Target extends TypeNames<Def> ? Target : never>
+	? Record<Def, Target extends TypeNames<Def> ? Target : never>
 	: _FieldType<Def, Type, Field> extends { list: infer Target }
 	? ProxyUnion<Def, Target>[]
 	: _FieldType<Def, Type, Field> extends { union: infer Target }
