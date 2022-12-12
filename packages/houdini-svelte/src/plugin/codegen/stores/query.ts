@@ -3,7 +3,7 @@ import { CollectedGraphQLDocument, GenerateHookInput, path } from 'houdini'
 import { operation_requires_variables, fs } from 'houdini'
 
 import type { HoudiniVitePluginConfig } from '../..'
-import { global_store_name, stores_directory, store_name } from '../../kit'
+import { stores_directory, store_name } from '../../kit'
 import { store_import } from './custom'
 
 export async function queryStore(
@@ -13,7 +13,6 @@ export async function queryStore(
 	const fileName = doc.name
 	const artifactName = `${doc.name}`
 	const storeName = store_name({ config, name: doc.name })
-	const globalStoreName = global_store_name({ config, name: doc.name })
 
 	let variables = false
 	const operation = doc.originalDocument.definitions.find(
@@ -62,9 +61,7 @@ export async function load_${artifactName}(params) {
 	}
 }
 
-export const ${globalStoreName} = new ${storeName}()
-
-export default ${globalStoreName}
+export default new ${storeName}()
 `
 
 	const _input = `${artifactName}$input`
@@ -143,8 +140,6 @@ export declare class ${storeName} extends ${store_class}<${_data}, ${_input}> {
  * \`\`\`
  */
 export declare const load_${artifactName}: (params: QueryStoreFetchParams<${_data}, ${_input}>) => Promise<{${artifactName}: ${storeName}}>
-
-export const ${globalStoreName}: ${storeName}
 
 export default ${storeName}
 `

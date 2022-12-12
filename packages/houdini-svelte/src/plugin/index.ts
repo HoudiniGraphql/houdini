@@ -4,7 +4,6 @@ import generate from './codegen'
 import extract from './extract'
 import fs_patch from './fsPatch'
 import {
-	global_store_name,
 	plugin_config,
 	resolve_relative,
 	stores_directory,
@@ -108,20 +107,7 @@ export const error = svelteKitError
 	 * Setup
 	 */
 
-	// Check that storeName & globalStoreName are not overlapping.
-	// Not possible today, but maybe in the future if storeName starts to be configurable.
 	async after_load(cfg) {
-		if (
-			store_name({ config: cfg, name: 'QueryName' }) ===
-			global_store_name({ config: cfg, name: 'QueryName' })
-		) {
-			throw new HoudiniError({
-				filepath: cfg.filepath,
-				message: 'Invalid cfg file: "globalStoreName" and "storeName" are overlapping',
-				description: `Here, both gives: ${store_name({ config: cfg, name: 'QueryName' })}`,
-			})
-		}
-
 		const cfgPlugin = plugin_config(cfg)
 
 		let client_file_exists = false
@@ -180,14 +166,6 @@ export type HoudiniVitePluginConfig = {
 	 * @default +layout.gql
 	 */
 	layoutQueryFilename?: string
-
-	/**
-	 * The default prefix of your global stores.
-	 *
-	 * _Note: it's nice to have a prefix so that your editor finds all your stores by just typings this prefix_
-	 * @default GQL_
-	 */
-	globalStorePrefix?: string
 
 	/**
 	 * With this enabled, errors in your query will not be thrown as exceptions. You will have to handle

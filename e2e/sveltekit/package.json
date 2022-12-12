@@ -33,6 +33,7 @@
     "eslint-plugin-svelte3": "^4.0.0",
     "houdini": "workspace:^",
     "houdini-svelte": "workspace:^",
+    "houdini-svelte-global-store": "workspace:^",
     "prettier": "^2.5.1",
     "prettier-plugin-svelte": "^2.5.0",
     "svelte": "3.52.0",

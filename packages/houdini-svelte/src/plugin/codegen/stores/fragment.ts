@@ -1,7 +1,7 @@
 import { CollectedGraphQLDocument, fs, GenerateHookInput, path } from 'houdini'
 
 import { HoudiniVitePluginConfig } from '../..'
-import { global_store_name, stores_directory, store_name } from '../../kit'
+import { stores_directory, store_name } from '../../kit'
 import { store_import } from './custom'
 
 export async function fragmentStore(
@@ -11,7 +11,6 @@ export async function fragmentStore(
 	const fileName = doc.name
 	const artifactName = `${doc.name}`
 	const storeName = store_name({ config, name: doc.name })
-	const globalStoreName = global_store_name({ config, name: doc.name })
 
 	const paginationMethod = doc.refetch?.method
 
@@ -51,9 +50,7 @@ export class ${storeName} extends ${store_class} {
 	}
 }
 
-export const ${globalStoreName} = new ${storeName}()
-
-export default ${globalStoreName}
+export default new ${storeName}()
 `
 
 	const _data = `${artifactName}$data`
@@ -67,8 +64,6 @@ export declare class ${storeName} extends ${store_class}<${_data}, {}> {
 		super({})
 	}
 }
-
-export const ${globalStoreName}: ${storeName}
 
 export declare const load_${artifactName}: (params: QueryStoreFetchParams<${_data}, {}>) => Promise<${storeName}>
 

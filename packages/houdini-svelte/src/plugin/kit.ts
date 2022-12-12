@@ -354,16 +354,11 @@ export function store_name({ config, name }: { config: Config; name: string }) {
 	return name + store_suffix(config)
 }
 
-export function global_store_name({ config, name }: { config: Config; name: string }) {
-	return plugin_config(config).globalStorePrefix + name
-}
-
 export function plugin_config(config: Config): Required<HoudiniVitePluginConfig> {
 	const cfg = config.pluginConfig<HoudiniVitePluginConfig>('houdini-svelte')
 
 	return {
 		client: './src/client',
-		globalStorePrefix: 'GQL_',
 		pageQueryFilename: '+page.gql',
 		layoutQueryFilename: '+layout.gql',
 		quietQueryErrors: false,
