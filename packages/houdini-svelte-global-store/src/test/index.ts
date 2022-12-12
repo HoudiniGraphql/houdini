@@ -45,7 +45,7 @@ export async function pipeline_test(
 	await runPipeline(config, docs)
 
 	return {
-		plugin_root: config.pluginDirectory('houdini-svelte'),
+		plugin_root: config.pluginDirectory('houdini-svelte-global-store'),
 		docs,
 		config,
 	}
