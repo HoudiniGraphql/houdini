@@ -6,9 +6,9 @@ import { ArgType, CacheTypeDef, FieldType, TypeFieldNames, TypeFields, ValidType
 
 export class RecordProxy<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 	private id: string
-	private type: string
+	type: string
 	private cache: CacheProxy<Def>
-	private idFields: {}
+	idFields: {}
 
 	constructor({
 		cache,

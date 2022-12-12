@@ -21,7 +21,15 @@ type CacheTypeDef = {
 					args: never
 				}
 				viewer: {
-					type: { target: 'User' }
+					type: { type: 'User' }
+					args: never
+				}
+				pets: {
+					type: { list: 'Cat' | 'User' }
+					args: never
+				}
+				pet: {
+					type: { union: 'Cat' | 'User' }
 					args: never
 				}
 			}
@@ -36,7 +44,22 @@ type CacheTypeDef = {
 					args: never
 				}
 				parent: {
-					type: { target: 'User' }
+					type: { type: 'User' }
+					args: never
+				}
+				id: {
+					type: string
+					args: never
+				}
+			}
+		}
+		Cat: {
+			idFields: {
+				id: string
+			}
+			fields: {
+				name: {
+					type: string | null
 					args: never
 				}
 				id: {
@@ -334,6 +357,57 @@ test('can pass null', function () {
 	})
 
 	expect(cache.root.get({ field: 'test' })).toBeNull()
+})
+
+test('can set list types', function () {
+	const cache = testCache()
+
+	// create a cat and a user
+	const cat = cache.get('Cat', { id: '1' })
+	const user = cache.get('User', { id: '2' })
+
+	// we'll need to provide the type information
+	cache.setFieldType({
+		parent: rootID,
+		key: 'pets',
+		type: 'Pet',
+		nullable: true,
+	})
+
+	// set the pets value to the list
+	cache.root.set({ field: 'pets', value: [cat, user] })
+
+	// make sure we get the list back
+	const value = cache.root.get({ field: 'pets' })
+	const proxyValues = value.map((proxy) => ({ type: proxy.type, id: proxy.idFields }))
+	expect(proxyValues).toEqual([
+		{ type: 'User', idFields: { id: '1' } },
+		{ type: 'Cat', idFields: { id: '2' } },
+	])
+})
+
+test('can set union types', function () {
+	const cache = testCache()
+
+	// create a cat and a user
+	const cat = cache.get('Cat', { id: '1' })
+	const user = cache.get('User', { id: '2' })
+
+	// we'll need to provide the type information
+	cache.setFieldType({
+		parent: rootID,
+		key: 'pet',
+		type: 'Pet',
+		nullable: true,
+	})
+
+	// set the pets value to the list
+	cache.root.set({ field: 'pet', value: cat })
+	cache.root.set({ field: 'pet', value: user })
+
+	expect(cache.root.get({ field: 'pet' }).idFields).toEqual({
+		id: '2',
+	})
 })
 
 test.todo('complex keys')

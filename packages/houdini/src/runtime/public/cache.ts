@@ -1,7 +1,7 @@
 import { Cache, rootID } from '../cache/cache'
 import { SchemaManager } from '../cache/schema'
 import { RecordProxy } from './record'
-import { CacheTypeDef, IDFields, ValidTypes } from './types'
+import { CacheTypeDef, IDFields, TypeNames, ValidTypes } from './types'
 
 export class CacheProxy<Def extends CacheTypeDef> {
 	_internal_unstable: Cache
@@ -39,16 +39,13 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 	}
 
 	// return the record proxy for the given type/id combo
-	get<T extends Exclude<ValidTypes<Def>, '__ROOT__'>>(
-		type: T,
-		data: IDFields<Def, T>
-	): RecordProxy<Def, T> {
+	get<T extends TypeNames<Def>>(type: T, data: IDFields<Def, T>): RecordProxy<Def, T> {
 		this.validateInstabilityWarning()
 
 		// verify that
 
 		// compute the id for the record
-		let recordID = this._internal_unstable._internal_unstable.id(type as string, data)
+		let recordID = this._internal_unstable._internal_unstable.id(type, data)
 		if (!recordID) {
 			throw new Error('todo')
 		}
@@ -56,7 +53,7 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 		// return the proxy
 		return new RecordProxy({
 			cache: this,
-			type: type as string,
+			type: type,
 			id: recordID,
 			idFields: data,
 		})
