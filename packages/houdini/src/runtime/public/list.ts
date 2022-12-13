@@ -17,21 +17,27 @@ export class ListCollection<Def extends CacheTypeDef, ListName extends ValidList
 	append(...records: ListType<Def, ListName>[]) {
 		const { selection, data } = this.#listOperationPayload(records)
 		for (const entry of data) {
-			this.#collection.append(selection, entry)
+			if (entry) {
+				this.#collection.append(selection, entry)
+			}
 		}
 	}
 
 	prepend(...records: ListType<Def, ListName>[]) {
 		const { selection, data } = this.#listOperationPayload(records)
 		for (const entry of data) {
-			this.#collection.prepend(selection, entry)
+			if (entry) {
+				this.#collection.prepend(selection, entry)
+			}
 		}
 	}
 
 	toggle(where: 'first' | 'last', ...records: ListType<Def, ListName>[]) {
 		const { selection, data } = this.#listOperationPayload(records)
 		for (const entry of data) {
-			this.#collection.toggleElement(selection, entry, {}, where)
+			if (entry) {
+				this.#collection.toggleElement(selection, entry, {}, where)
+			}
 		}
 	}
 
@@ -44,7 +50,9 @@ export class ListCollection<Def extends CacheTypeDef, ListName extends ValidList
 
 	remove(...records: ListType<Def, ListName>[]) {
 		for (const record of records) {
-			this.#collection.remove(record.idFields)
+			if (record) {
+				this.#collection.remove(record.idFields)
+			}
 		}
 	}
 
