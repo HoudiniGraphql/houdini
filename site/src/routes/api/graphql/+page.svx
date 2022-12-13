@@ -33,13 +33,13 @@ For more information on using these fragments, head over to the [mutation docs](
 
 `@list` marks a field as the target for list operations. Must be passed a name which defines the fragments that can be used to mutate the list. See the [list operations](#list-operations) for more information.
 
-### `@prepend(parentID: ID)`
+### `@prepend`
 
-`@prepend` is used in conjunction with the [list operation fragments](#list-operations) to tell the runtime to add the element at the start of the list. Can be used with both `_insert` and `_toggle` fragments. If the list is a member of a fragment, you will have to pass a value for the `parentID` so the correct list can be updated, otherwise the argument should be omitted.
+`@prepend` is used in conjunction with the [list operation fragments](#list-operations) to tell the runtime to add the element at the start of the list. Can be used with both `_insert` and `_toggle` fragments. If the list is a member of a fragment, don't forget to specify `@parentID` directive.
 
-### `@append(parentID: ID)`
+### `@append`
 
-`@append` is used in conjunction with the [list operation fragments](#list-operations) to tell the runtime to add the element at the end of the list. Can be used with both `_insert` and `_toggle` fragments. If the list is a member of a fragment, you will have to pass a value for the `parentID` so the correct list can be updated, otherwise the argument should be omitted.
+`@append` is used in conjunction with the [list operation fragments](#list-operations) to tell the runtime to add the element at the end of the list. Can be used with both `_insert` and `_toggle` fragments. If the list is a member of a fragment, don't forget to specify `@parentID` directive.
 
 ### `@allLists`
 

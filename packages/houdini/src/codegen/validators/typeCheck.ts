@@ -350,6 +350,8 @@ export default async function typeCheck(
 				}),
 				// checkMutationOperation
 				checkMutationOperation(config),
+				// checkMaskDirective
+				checkMaskDirective(config),
 				// pagination directive can only show up on nodes or the query type
 				nodeDirectives(config, [config.paginateDirective]),
 				// this replaces KnownArgumentNamesRule
@@ -454,10 +456,14 @@ const validateLists = ({
 				if (directive) {
 					// find the argument holding the parent ID
 					let parentArg = directive.arguments?.find(
-						(arg) => arg.name.value === config.listDirectiveParentIDArg
+						(arg) => arg.name.value === config.deprecatedlistDirectiveParentIDArg
 					)
 					if (parentArg) {
-						parentIdFound = true
+						ctx.reportError(
+							new graphql.GraphQLError(
+								`@${config.deprecatedlistDirectiveParentIDArg} should be defined only in it's own directive now`
+							)
+						)
 					}
 				}
 
@@ -999,6 +1005,31 @@ function checkMutationOperation(config: Config) {
 					ctx.reportError(
 						new graphql.GraphQLError(
 							`You can't apply both @${config.listParentDirective} and @${config.listAllListsDirective} at the same time`
+						)
+					)
+					return
+				}
+			},
+		}
+	}
+}
+
+function checkMaskDirective(config: Config) {
+	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
+		return {
+			FragmentSpread(node, _, __, ___, ancestors) {
+				const maskEnableDirective = node.directives?.find(
+					(c) => c.name.value === config.maskEnableDirective
+				)
+
+				const maskDisableDirective = node.directives?.find(
+					(c) => c.name.value === config.maskDisableDirective
+				)
+
+				if (maskEnableDirective && maskDisableDirective) {
+					ctx.reportError(
+						new graphql.GraphQLError(
+							`You can't apply both @${config.maskEnableDirective} and @${config.maskDisableDirective} at the same time`
 						)
 					)
 					return

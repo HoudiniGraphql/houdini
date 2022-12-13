@@ -32,16 +32,12 @@ directive @${config.paginateDirective}(${config.paginateNameArg}: String) on FIE
 """
 	@${config.listPrependDirective} is used to tell the runtime to add the result to the end of the list
 """
-directive @${config.listPrependDirective}(
-	${config.listDirectiveParentIDArg}: ID
-) on FRAGMENT_SPREAD
+directive @${config.listPrependDirective} on FRAGMENT_SPREAD
 
 """
-	@${
-		config.listAppendDirective
-	} is used to tell the runtime to add the result to the start of the list
+	@${config.listAppendDirective} is used to tell the runtime to add the result to the start of the list
 """
-directive @${config.listAppendDirective}(${config.listDirectiveParentIDArg}: ID) on FRAGMENT_SPREAD
+directive @${config.listAppendDirective} on FRAGMENT_SPREAD
 
 """
 	@${config.listAllListsDirective} is used to tell the runtime to add the result to all list
@@ -49,24 +45,18 @@ directive @${config.listAppendDirective}(${config.listDirectiveParentIDArg}: ID)
 directive @${config.listAllListsDirective} on FRAGMENT_SPREAD
 
 """
-	@${
-		config.listParentDirective
-	} is used to provide a parentID without specifying position or in situations
+	@${config.listParentDirective} is used to provide a parentID without specifying position or in situations
 	where it doesn't make sense (eg when deleting a node.)
 """
 directive @${config.listParentDirective}(value: ID!) on FRAGMENT_SPREAD
 
 """
-	@${
-		config.whenDirective
-	} is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
+	@${config.whenDirective} is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
 """
 directive @${config.whenDirective} on FRAGMENT_SPREAD
 
 """
-	@${
-		config.whenNotDirective
-	} is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
+	@${config.whenNotDirective} is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
 """
 directive @${config.whenNotDirective} on FRAGMENT_SPREAD
 
@@ -78,23 +68,22 @@ directive @${config.argumentsDirective} on FRAGMENT_DEFINITION
 """
 	@${config.cacheDirective} is used to specify cache rules for a query
 """
-directive @${config.cacheDirective}(${config.cachePolicyArg}: CachePolicy, ${
-		config.cachePartialArg
-	}: Boolean) on QUERY
+directive @${config.cacheDirective}(${config.cachePolicyArg}: CachePolicy, ${config.cachePartialArg}: Boolean) on QUERY
 
 """
-	@${config.houdiniDirective} is used to configure houdini's internal behavior
+	@${config.manualLoadDirective} is used to disable automatic fetch (no load, no auto fetch in component), you will have to do it manually.
 """
-directive @${config.houdiniDirective}(
-	"""
-	Opt-in to an automatic load function (only valid when used at queries)
-	"""
-	load: Boolean! = true
-	"""
-	Mask fragment fields (only valid when used at a fragment spread)
-	"""
-	mask: Boolean! = ${config.disableMasking ? 'false' : 'true'}
-) on QUERY | FRAGMENT_SPREAD
+directive @${config.manualLoadDirective} on QUERY
+
+"""
+	@${config.maskEnableDirective} to enable masking on fragment (overwriting the global conf)
+"""
+directive @${config.maskEnableDirective} on FRAGMENT_SPREAD
+
+"""
+	@${config.maskDisableDirective} to disable masking on fragment (overwriting the global conf)
+"""
+directive @${config.maskDisableDirective} on FRAGMENT_SPREAD
 `
 
 	// if the config does not have the cache directive, then we need to add it

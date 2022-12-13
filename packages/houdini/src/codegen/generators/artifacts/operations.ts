@@ -141,17 +141,8 @@ function operationObject({
 		// is when_not applied?
 		const when_not = internalDirectives.find(({ name }) => name.value === 'when_not')
 
-		// the parent ID can be provided a few ways, either as an argument to the prepend
-		// and append directives or with the parentID directive.
-
+		// the parent ID can be provided only with the parentID directive.
 		let parentIDArg = parent?.arguments?.find((argument) => argument.name.value === 'value')
-		// if there is no parent id argument, it could have been provided by one of the list directives
-		if (!parentIDArg) {
-			parentIDArg = (append || prepend)?.arguments?.find(
-				({ name }) => name.value === config.listDirectiveParentIDArg
-			)
-		}
-
 		if (parentIDArg) {
 			// if the argument is a string
 			if (parentIDArg.value.kind === 'StringValue') {
