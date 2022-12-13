@@ -92,7 +92,7 @@ const config = testConfig({
 	`,
 })
 
-test('generates typedefinitions for the imperative API', async function () {
+test('generates type definitions for the imperative API', async function () {
 	// execute the generator
 	await runPipeline(config, [])
 
@@ -107,6 +107,8 @@ test('generates typedefinitions for the imperative API', async function () {
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(
 		`
+		import { MyEnum } from "../graphql";
+
 		export declare type CacheTypeDef = {
 		    types: {
 		        __ROOT__: {
@@ -157,7 +159,7 @@ test('generates typedefinitions for the imperative API', async function () {
 		                    type: "UserFilter" | null
 		                }
 		                enum: {
-		                    type: "MyEnum" | null
+		                    type: MyEnum | null
 		                }
 		            }
 		        }
@@ -208,8 +210,7 @@ test('generates typedefinitions for the imperative API', async function () {
 		                    nullable: false
 		                }
 		                enumValue: {
-							// vvvvv fix enums vvvvvv
-		                    type: "MyEnum" | null
+		                    type: MyEnum | null
 		                }
 		                admin: boolean | null
 		                age: number | null

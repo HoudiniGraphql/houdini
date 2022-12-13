@@ -19,6 +19,25 @@ export default async function imperativeCacheTypef(
 	// from a specific file
 	const target = path.join(config.runtimeDirectory, 'generated.d.ts')
 
+	// we need to import every enum
+	const enums = Object.values(config.schema.getTypeMap()).filter(
+		(type) =>
+			graphql.isEnumType(type) &&
+			!config.isInternalEnum({
+				kind: 'EnumTypeDefinition',
+				name: {
+					kind: 'Name',
+					value: type.name,
+				},
+			}) &&
+			!type.name.startsWith('__')
+	)
+
+	const enumImport = AST.importDeclaration(
+		enums.map((enumType) => AST.importSpecifier(AST.identifier(enumType.name))),
+		AST.stringLiteral(path.relative(config.runtimeDirectory, config.definitionsDirectory))
+	)
+
 	// build up the declaration
 	const declaration = AST.tsTypeAliasDeclaration(
 		AST.identifier(CacheTypeDefName),
@@ -36,7 +55,10 @@ export default async function imperativeCacheTypef(
 	declaration.declare = true
 
 	// print the result and write to the magic location
-	await fs.writeFile(target, recast.prettyPrint(AST.exportNamedDeclaration(declaration)).code)
+	await fs.writeFile(
+		target,
+		recast.prettyPrint(AST.program([enumImport, AST.exportNamedDeclaration(declaration)])).code
+	)
 }
 
 function typeDefinitions(config: Config): recast.types.namedTypes.TSTypeLiteral {
@@ -104,6 +126,12 @@ function typeDefinitions(config: Config): recast.types.namedTypes.TSTypeLiteral 
 						if (graphql.isScalarType(unwrapped.type)) {
 							typeOptions.types.push(
 								scalarPropertyValue(config, new Set<string>(), unwrapped.type)
+							)
+						}
+						// enums are valid to use directly
+						else if (graphql.isEnumType(unwrapped.type)) {
+							typeOptions.types.push(
+								AST.tsTypeReference(AST.identifier(unwrapped.type.name))
 							)
 						}
 						// if the type isn't abtract, we just need to leave behind a string
