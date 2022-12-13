@@ -116,16 +116,24 @@ class FieldCollection {
 			this.fragmentSpreads[selection.name.value] = selection
 
 			// find whether to include fragment fields
-			const houdiniDirective = selection.directives?.find(
-				({ name }) => name.value === this.config.houdiniDirective
+			let includeFragments = this.config.defaultFragmentMasking === 'disable'
+
+			// Check if locally enable
+			const maskEnableDirective = selection.directives?.find(
+				({ name }) => name.value === this.config.maskEnableDirective
 			)
-			const maskArgument = houdiniDirective?.arguments?.find(
-				({ name }) => name.value === 'mask'
-			)
-			let includeFragments = this.config.disableMasking
-			if (maskArgument?.value.kind === 'BooleanValue') {
-				includeFragments = !maskArgument.value.value
+			if (maskEnableDirective) {
+				includeFragments = false
 			}
+
+			// Check if locally disable
+			const maskDisableDirective = selection.directives?.find(
+				({ name }) => name.value === this.config.maskDisableDirective
+			)
+			if (maskDisableDirective) {
+				includeFragments = true
+			}
+
 			if (this.ignoreMaskDisable) {
 				includeFragments = true
 			}
@@ -134,6 +142,7 @@ class FieldCollection {
 			if (!includeFragments || !this.applyFragments) {
 				return
 			}
+
 			const definition = this.fragmentDefinitions[selection.name.value]
 			if (!definition) {
 				throw new HoudiniError({

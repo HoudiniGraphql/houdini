@@ -1,6 +1,6 @@
 ---
 title: Authentication
-index: 9
+index: 8
 description: A guide to authentication in Houdini
 ---
 
@@ -34,7 +34,7 @@ Then, you can use the `session` parameter passed to your client's network functi
 import { HoudiniClient } from '$houdini'
 
 async function fetchQuery({ fetch, text, variables = {}, session }) {
-	const url = 'http://localhost:4000/graphql'; // usually coming from env
+	const url = 'http://localhost:4000/graphql' // usually coming from env
 	const result = await fetch(url, {
 		method: 'POST',
 		headers: {

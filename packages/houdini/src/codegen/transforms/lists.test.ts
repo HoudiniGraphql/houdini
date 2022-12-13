@@ -96,7 +96,7 @@ test('list fragments on fragment selection set', async function () {
 			`
 				mutation UpdateUser {
 					updateUser {
-                        ...User_Friends_insert @prepend(parentID: "1234")
+              ...User_Friends_insert @prepend @parentID(value: "1234")
 					}
 				}
 			`
@@ -121,7 +121,7 @@ test('list fragments on fragment selection set', async function () {
 		mutation UpdateUser {
 		  updateUser {
 		    id
-		    ...User_Friends_insert @prepend(parentID: "1234")
+		    ...User_Friends_insert @prepend @parentID(value: "1234")
 		  }
 		}
 
@@ -249,7 +249,7 @@ test('includes `id` in list fragment', async function () {
 			`
 			mutation UpdateUser {
 				updateUser {
-					...User_Friends_insert @prepend(parentID: "1234")
+					...User_Friends_insert @prepend @parentID(value: "1234")
 				}
 			}
 		`
@@ -274,7 +274,7 @@ test('includes `id` in list fragment', async function () {
 		mutation UpdateUser {
 		  updateUser {
 		    id
-		    ...User_Friends_insert @prepend(parentID: "1234")
+		    ...User_Friends_insert @prepend @parentID(value: "1234")
 		  }
 		}
 
@@ -341,7 +341,7 @@ test('includes node selection on connection', async function () {
 			`
 			mutation UpdateUser {
 				updateUser {
-					...User_Friends_insert @prepend(parentID: "1234")
+					...User_Friends_insert @prepend @parentID(value: "1234")
 				}
 			}
 		`
@@ -373,7 +373,7 @@ test('includes node selection on connection', async function () {
 		mutation UpdateUser {
 		  updateUser {
 		    id
-		    ...User_Friends_insert @prepend(parentID: "1234")
+		    ...User_Friends_insert @prepend @parentID(value: "1234")
 		  }
 		}
 
@@ -465,7 +465,7 @@ test('paginate with name also gets treated as a list', async function () {
 			`
 			mutation UpdateUser {
 				updateUser {
-					...User_Friends_insert @prepend(parentID: "1234")
+					...User_Friends_insert @prepend @parentID(value: "1234")
 				}
 			}
 		`
@@ -491,13 +491,17 @@ test('paginate with name also gets treated as a list', async function () {
 
 	// run the pipeline
 	const config = testConfig()
-	await runPipeline(config, docs)
+	try {
+		await runPipeline(config, docs)
+	} catch (error) {
+		console.log(`error`, error)
+	}
 
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		mutation UpdateUser {
 		  updateUser {
 		    id
-		    ...User_Friends_insert @prepend(parentID: "1234")
+		    ...User_Friends_insert @prepend @parentID(value: "1234")
 		  }
 		}
 

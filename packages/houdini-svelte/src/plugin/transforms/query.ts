@@ -224,16 +224,9 @@ export async function find_inline_queries(
 				return false
 			}
 
-			// as long as they don't have the @houdini directive with load set to false
+			// as long as they don't have the @manual_load directive with load set to false
 			return !queryOperation.directives?.find(
-				(directive) =>
-					directive.name.value === page.config.houdiniDirective &&
-					directive.arguments?.find(
-						(arg) =>
-							arg.name.value === 'load' &&
-							arg.value.kind === 'BooleanValue' &&
-							!arg.value.value
-					)
+				(directive) => directive.name.value === page.config.manualLoadDirective
 			)
 		},
 		dependency: page.watch_file,

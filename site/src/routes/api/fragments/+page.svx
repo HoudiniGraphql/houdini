@@ -139,13 +139,13 @@ The store also has one of the following methods (depending on your fields pagina
 ## Fragment masking
 
 By default fields from a fragment are not included in a query to encourage separation of concerns.
-You can override this default behavior with the config option `disableMasking` for all fragment usages or individually per fragment:
+You can override this default behavior with the config option `defaultFragmentMasking: "disable"` for all fragment usages or individually per fragment:
 
 ```graphql
 query CurrentUser {
 	me {
 		uuid
-		...UserProfile @houdini(mask: false)
+		...UserProfile @mask_disable
 		...UserMeta
 	}
 }

@@ -1,5 +1,6 @@
 import { test, expect, describe } from 'vitest'
 
+import { Config } from '../../lib'
 import { CollectedGraphQLDocument } from '../../lib/types'
 import { pipelineTest, testConfig } from '../../test'
 
@@ -116,32 +117,8 @@ const table: Row[] = [
 		},
 	},
 	{
-		title: '@list with parentID on query',
+		title: 'no @parentID @allLists on _insert, but defaultListTarget',
 		pass: true,
-		documents: [
-			`
-                query TestQuery {
-					user {
-						friends {
-							friends @list(name: "Friends") {
-								id
-							}
-						}
-					}
-                }
-            `,
-			`
-                mutation MutationM {
-					addFriend {
-						...Friends_insert @prepend(parentID: "1234")
-					}
-                }
-            `,
-		],
-	},
-	{
-		title: '@prepend & @append on _insert',
-		pass: false,
 		documents: [
 			`query TestQuery {
 					user {						
@@ -154,15 +131,16 @@ const table: Row[] = [
       }`,
 			`mutation MutationM1 {
 					addFriend {
-						...Friends_insert @prepend @append @allLists
+						...Friends_insert
 					}
       }`,
 			`mutation MutationM2 {
 				addFriend {
-					...Friends_insert @prepend @append @allLists
+					...Friends_insert
 				}
 		}`,
 		],
+		partial_config: { defaultListTarget: 'all' },
 	},
 	{
 		title: '@parentID @allLists on _insert',
@@ -186,6 +164,22 @@ const table: Row[] = [
 				addFriend {
 					...Friends_insert @parentID @allLists
 				}
+			}`,
+		],
+	},
+	{
+		title: '@mask_enable @mask_disable on fragment',
+		pass: false,
+		documents: [
+			`fragment FooA on Query {
+				users(stringValue: $name) { id }
+			}`,
+			`fragment FooB on Query {
+				users(stringValue: $name) { id }
+			}`,
+			`query TestQuery {
+					...FooA @mask_enable @mask_disable
+					...FooB @mask_enable @mask_disable
 			}`,
 		],
 	},
@@ -232,8 +226,7 @@ const table: Row[] = [
 		title: '@list with parentID as variable on query',
 		pass: true,
 		documents: [
-			`
-                query TestQuery {
+			`query TestQuery {
 					user {
 						friends {
 							friends @list(name: "Friends") {
@@ -241,16 +234,46 @@ const table: Row[] = [
 							}
 						}
 					}
-                }
+        }
             `,
-			`
-                mutation MutationM($parentID: ID!) {
+			`mutation MutationM1($parentID: ID!) {
+					addFriend {
+						...Friends_insert @prepend @parentID(value: $parentID)
+					}
+				}`,
+			`mutation MutationM2($parentID: ID!) {
+					addFriend {
+						...Friends_insert @prepend @parentID(value: $parentID)
+					}
+				}`,
+		],
+	},
+	{
+		title: 'deprecated usage of parentID in append and prepend',
+		pass: false,
+		documents: [
+			`query TestQuery {
+					user {
+						friends {
+							friends @list(name: "Friends") {
+								id
+							}
+						}
+					}
+        }
+            `,
+			`mutation MutationM1($parentID: ID!) {
+					addFriend {
+						...Friends_insert @append(parentID: $parentID)
+					}
+				}`,
+			`mutation MutationM2($parentID: ID!) {
 					addFriend {
 						...Friends_insert @prepend(parentID: $parentID)
 					}
-                }
-            `,
+				}`,
 		],
+		nb_of_fail: 4,
 	},
 	{
 		title: '@list without parentID on fragment',
@@ -956,34 +979,39 @@ type Row =
 			pass: true
 			documents: string[]
 			check?: (docs: CollectedGraphQLDocument[]) => void
+			partial_config?: Partial<Config>
+			nb_of_fail?: number
 	  }
 	| {
 			title: string
 			pass: false
 			documents: string[]
 			check?: (result: Error | Error[]) => void
+			partial_config?: Partial<Config>
+			nb_of_fail?: number
 	  }
 
 // run the tests
-for (const { title, pass, documents, check } of table) {
+for (const { title, pass, documents, check, partial_config, nb_of_fail } of table) {
 	describe('type check', function () {
 		test(
 			title,
 			pipelineTest(
-				testConfig(),
+				testConfig(partial_config),
 				documents,
 				pass,
 				pass
 					? undefined
 					: check ||
 							function (e: Error | Error[]) {
-								if (title === '@prepend & @append on _insert') {
-									console.log(`e`, e)
-								}
+								const nb_of_fail_to_use = nb_of_fail || 2
+
+								// We should always have at least 2 fail tests!
+								expect(nb_of_fail_to_use).toBeGreaterThanOrEqual(2)
 
 								// We want to check that all errors are grouped into 1 throw
-								// having an array or errors.
-								expect(e).toHaveLength(2)
+								// having an array with at least 2 errors
+								expect(e).toHaveLength(nb_of_fail_to_use)
 							}
 			)
 		)
