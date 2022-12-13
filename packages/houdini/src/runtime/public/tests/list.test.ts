@@ -661,4 +661,5 @@ test('can remove record from all lists', function () {
 	expect(
 		cache._internal_unstable._internal_unstable.storage.topLayer.operations['User:2'].deleted
 	).toBeTruthy()
+	expect([...cache.list('All_Users')]).toHaveLength(0)
 })
