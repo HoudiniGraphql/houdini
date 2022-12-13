@@ -1,3 +1,4 @@
+import { logYellow } from '@kitql/helper'
 import type { StatementKind, IdentifierKind } from 'ast-types/gen/kinds'
 import type { namedTypes } from 'ast-types/gen/namedTypes'
 import * as graphql from 'graphql'
@@ -19,7 +20,14 @@ import {
 	store_import,
 	store_import_path,
 } from '../../kit'
-import { LoadTarget, find_inline_queries, query_variable_fn } from '../query'
+import {
+	houdini_after_load_fn,
+	houdini_before_load_fn,
+	houdini_load_fn,
+	houdini_on_error_fn,
+	query_variable_fn,
+} from '../../naming'
+import { LoadTarget, find_inline_queries } from '../query'
 import { SvelteTransformPage } from '../types'
 
 const AST = recast.types.builders
@@ -67,7 +75,7 @@ export default async function kit_load_generator(page: SvelteTransformPage) {
 		houdini_load_queries.push({
 			name: target.name!.value,
 			variables: operation_requires_variables(target),
-			store_id: AST.memberExpression(AST.identifier('houdini_load'), AST.literal(i)),
+			store_id: AST.memberExpression(AST.identifier(houdini_load_fn), AST.literal(i)),
 		})
 	}
 
@@ -151,7 +159,9 @@ function add_load({
 			// tell them we're missing something
 			formatErrors({
 				filepath: page.filepath,
-				message: `Could not find required variable function: ${variable_fn}. maybe its not exported? `,
+				message: `Could not find required variable function: ${logYellow(
+					variable_fn
+				)}. maybe its not exported? `,
 			})
 
 			// don't go any further
@@ -177,9 +187,9 @@ function add_load({
 	})
 
 	// look for any hooks
-	let before_load = page_info.exports.includes('beforeLoad')
-	let after_load = page_info.exports.includes('afterLoad')
-	let on_error = page_info.exports.includes('onError')
+	let before_load = page_info.exports.includes(houdini_before_load_fn)
+	let after_load = page_info.exports.includes(houdini_after_load_fn)
+	let on_error = page_info.exports.includes(houdini_on_error_fn)
 
 	// some local variables
 	const request_context = AST.identifier('houdini_context')
@@ -379,7 +389,7 @@ function add_load({
 												),
 												AST.objectProperty(
 													AST.literal('hookFn'),
-													AST.identifier('onError')
+													AST.identifier(houdini_on_error_fn)
 												),
 												AST.objectProperty(
 													AST.literal('error'),
@@ -400,7 +410,7 @@ function add_load({
 	// add calls to user before/after load functions
 	if (before_load) {
 		if (before_load) {
-			preload_fn.body.body.splice(1, 0, load_hook_statements('beforeLoad', ...args))
+			preload_fn.body.body.splice(1, 0, load_hook_statements('before', ...args))
 		}
 	}
 
@@ -408,7 +418,7 @@ function add_load({
 		preload_fn.body.body.splice(
 			preload_fn.body.body.length - 1,
 			0,
-			load_hook_statements('afterLoad', ...args)
+			load_hook_statements('after', ...args)
 		)
 	}
 }
@@ -456,7 +466,7 @@ async function find_special_query(
 }
 
 function load_hook_statements(
-	name: 'beforeLoad' | 'afterLoad',
+	name: 'before' | 'after',
 	request_context: namedTypes.Identifier,
 	input_id: IdentifierKind,
 	result_id: IdentifierKind
@@ -467,13 +477,15 @@ function load_hook_statements(
 				AST.memberExpression(request_context, AST.identifier('invokeLoadHook')),
 				[
 					AST.objectExpression([
+						AST.objectProperty(AST.literal('variant'), AST.stringLiteral(name)),
 						AST.objectProperty(
-							AST.literal('variant'),
-							AST.stringLiteral(name === 'afterLoad' ? 'after' : 'before')
+							AST.literal('hookFn'),
+							AST.identifier(
+								name === 'before' ? houdini_before_load_fn : houdini_after_load_fn
+							)
 						),
-						AST.objectProperty(AST.literal('hookFn'), AST.identifier(name)),
 						// after load: pass query data to the hook
-						...(name === 'afterLoad'
+						...(name === 'after'
 							? [
 									AST.objectProperty(AST.literal('input'), input_id),
 									AST.objectProperty(AST.literal('data'), result_id),
