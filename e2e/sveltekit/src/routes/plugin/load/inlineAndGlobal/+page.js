@@ -1,6 +1,6 @@
 import { graphql, GQL_Hello } from '$houdini';
 
-export const houdini_load = [
+export const _houdini_load = [
   GQL_Hello,
   graphql`
     query InlineAndGlobalLoadQuery2 {

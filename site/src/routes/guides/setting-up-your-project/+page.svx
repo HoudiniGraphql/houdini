@@ -1,6 +1,6 @@
 ---
 title: Setting Up Your Project
-index: 4
+index: 3
 description: A guide for setting up your Houdini project
 ---
 

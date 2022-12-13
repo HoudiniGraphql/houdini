@@ -1,6 +1,6 @@
 ---
 title: Typescript
-index: 7
+index: 6
 description: An overview of Houdini's support for Typescript
 ---
 
@@ -30,7 +30,7 @@ When working with Houdini's [generated load functions](/api/query#automatic-load
 import { graphql } from '$houdini'
 import type { AfterLoadEvent } from './$houdini'
 
-export const houdini_load = graphql`
+export const _houdini_load = graphql`
 	query MyProfile {
 		viewer {
 			id
@@ -38,7 +38,7 @@ export const houdini_load = graphql`
 	}
 `
 
-export function afterLoad({ data }: AfterLoadEvent) {
+export function _houdini_afterLoad({ data }: AfterLoadEvent) {
 	return {
 		computedValue: data.MyProfile.viewer.id + '_new'
 	}
@@ -84,9 +84,9 @@ To use inline fragments inside your components, you need to receive the parent q
 Remember to set the type of your fragment by importing it.
 
 ```typescript
-import { fragment, graphql, type PostContent } from '$houdini';
+import { fragment, graphql, type PostContent } from '$houdini'
 
-export let post: PostContent;
+export let post: PostContent
 
 $: data = fragment(
 	post,
@@ -100,6 +100,5 @@ $: data = fragment(
 			}
 		}
 	`
-);
+)
 ```
-

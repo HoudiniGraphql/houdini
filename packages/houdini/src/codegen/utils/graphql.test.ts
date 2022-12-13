@@ -5,7 +5,7 @@ import { testConfig } from '../../test'
 import { flattenSelections } from './flattenSelections'
 import { TypeWrapper, unwrapType } from './graphql'
 
-const config = testConfig({ disableMasking: true })
+const config = testConfig({ defaultFragmentMasking: 'disable' })
 
 describe('unwrapType', () => {
 	test('list of lists', function () {

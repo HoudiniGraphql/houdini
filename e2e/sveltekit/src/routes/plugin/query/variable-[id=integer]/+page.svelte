@@ -11,9 +11,9 @@
 </script>
 
 <div id="result">
-  {$result.data?.user.name}
+  {$result?.data?.user.name}
 </div>
 
 <div id="variables">
-  {JSON.stringify($result.variables)}
+  {JSON.stringify($result?.variables)}
 </div>

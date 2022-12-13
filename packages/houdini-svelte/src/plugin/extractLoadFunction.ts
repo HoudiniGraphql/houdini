@@ -5,6 +5,7 @@ import * as recast from 'recast'
 import { transformWithEsbuild } from 'vite'
 
 import { HoudiniRouteScript, plugin_config, stores_directory_name, store_suffix } from './kit'
+import { houdini_load_fn } from './naming'
 
 type Program = recast.types.namedTypes.Program
 type VariableDeclaration = recast.types.namedTypes.VariableDeclaration
@@ -123,7 +124,7 @@ async function processScript(
 			) {
 				exports.push(statement.declaration.declarations[0].id.name)
 				if (
-					statement.declaration.declarations[0].id.name === 'houdini_load' &&
+					statement.declaration.declarations[0].id.name === houdini_load_fn &&
 					statement.declaration.declarations[0].init
 				) {
 					houdiniLoad = statement.declaration.declarations[0].init
@@ -171,7 +172,7 @@ async function processScript(
 				load.push(result)
 				if (!result) {
 					throw new Error(
-						'Could not find query for computing houdini_load: ' +
+						`Could not find query for computing ${houdini_load_fn}: ` +
 							element.name +
 							'. filepath: ' +
 							filepath
@@ -179,7 +180,9 @@ async function processScript(
 				}
 			} else if (element.type === 'TaggedTemplateExpression') {
 				if (element.tag.type !== 'Identifier' || element.tag.name !== 'graphql') {
-					throw new Error('only graphql template tags can be passed to houdini_load')
+					throw new Error(
+						`only graphql template tags can be passed to ${houdini_load_fn}`
+					)
 				}
 				load.push(element.quasi.quasis[0].value.raw)
 			}
@@ -209,7 +212,7 @@ function identifyQueryReference(
 	}
 
 	const local = declaration.id.name
-	if (local === 'houdini_load') {
+	if (local === houdini_load_fn) {
 		return null
 	}
 
@@ -232,7 +235,7 @@ function identifyQueryReference(
 	}
 	if (value.type === 'TaggedTemplateExpression') {
 		if (value.tag.type !== 'Identifier' || value.tag.name !== 'graphql') {
-			throw new Error('only graphql template tags can be passed to houdini_load')
+			throw new Error(`only graphql template tags can be passed to ${houdini_load_fn}`)
 		}
 		return { local, query: value.quasi.quasis[0].value.raw }
 	}

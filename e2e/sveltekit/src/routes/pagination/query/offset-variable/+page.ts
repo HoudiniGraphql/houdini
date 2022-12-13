@@ -1,4 +1,4 @@
-export function OffsetVariablePaginationQueryVariables() {
+export function _OffsetVariablePaginationQueryVariables() {
   return {
     limit: 2
   };

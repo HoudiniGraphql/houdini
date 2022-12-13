@@ -3,6 +3,7 @@ import { test, describe, expect } from 'vitest'
 
 import { test_config } from '../test'
 import { extract_load_function } from './extractLoadFunction'
+import { houdini_after_load_fn, houdini_before_load_fn, houdini_load_fn } from './naming'
 
 describe('extract_load_function', function () {
 	const table: {
@@ -16,7 +17,7 @@ describe('extract_load_function', function () {
 			source: `
                 import { graphql } from '$houdini'
 
-                export const houdini_load = graphql\`
+                export const _houdini_load = graphql\`
                     query Foo {
                         viewer {
                             id
@@ -25,7 +26,7 @@ describe('extract_load_function', function () {
                 \`
             `,
 			expected: {
-				exports: ['houdini_load'],
+				exports: [houdini_load_fn],
 				houdini_load: ['Foo'],
 			},
 		},
@@ -42,10 +43,10 @@ describe('extract_load_function', function () {
                     }
                 \`
 
-                export const houdini_load = store
+                export const _houdini_load = store
             `,
 			expected: {
-				exports: ['houdini_load'],
+				exports: [houdini_load_fn],
 				houdini_load: ['Foo'],
 			},
 		},
@@ -56,13 +57,13 @@ describe('extract_load_function', function () {
 
                 const store = MyQueryStore()
 
-                export const houdini_load = store
+                export const _houdini_load = store
             `,
 			artifacts: {
 				MyQuery: 'query MyQuery { viewer { id } }',
 			},
 			expected: {
-				exports: ['houdini_load'],
+				exports: [houdini_load_fn],
 				houdini_load: ['MyQuery'],
 			},
 		},
@@ -73,13 +74,13 @@ describe('extract_load_function', function () {
 
                 const store = MyQueryStore()
 
-                export const houdini_load = store
+                export const _houdini_load = store
             `,
 			artifacts: {
 				MyQuery: 'query MyQuery { viewer { id } }',
 			},
 			expected: {
-				exports: ['houdini_load'],
+				exports: [houdini_load_fn],
 				houdini_load: ['MyQuery'],
 			},
 		},
@@ -88,10 +89,10 @@ describe('extract_load_function', function () {
 			source: `
                 import { graphql } from '$houdini'
 
-                export const houdini_load = [graphql\`query Hello { viewer { id } }\`]
+                export const _houdini_load = [graphql\`query Hello { viewer { id } }\`]
             `,
 			expected: {
-				exports: ['houdini_load'],
+				exports: [houdini_load_fn],
 				houdini_load: ['Hello'],
 			},
 		},
@@ -102,10 +103,10 @@ describe('extract_load_function', function () {
 
                 const store = graphql\`query Hello { viewer { id } }\`
 
-                export const houdini_load = [store]
+                export const _houdini_load = [store]
             `,
 			expected: {
-				exports: ['houdini_load'],
+				exports: [houdini_load_fn],
 				houdini_load: ['Hello'],
 			},
 		},
@@ -116,13 +117,13 @@ describe('extract_load_function', function () {
 
                 const store = MyQueryStore()
 
-                export const houdini_load = [store]
+                export const _houdini_load = [store]
             `,
 			artifacts: {
 				MyQuery: 'query MyQuery { viewer { id } }',
 			},
 			expected: {
-				exports: ['houdini_load'],
+				exports: [houdini_load_fn],
 				houdini_load: ['MyQuery'],
 			},
 		},
@@ -133,63 +134,63 @@ describe('extract_load_function', function () {
 
                 const store = MyQueryStore()
 
-                export const houdini_load = [store]
+                export const _houdini_load = [store]
             `,
 			artifacts: {
 				MyQuery: 'query MyQuery { viewer { id } }',
 			},
 			expected: {
-				exports: ['houdini_load'],
+				exports: [houdini_load_fn],
 				houdini_load: ['MyQuery'],
 			},
 		},
 		{
 			title: 'exported function',
 			source: `
-                export function afterLoad() {
+                export function _houdini_afterLoad() {
 
                 }
 
             `,
 			expected: {
-				exports: ['afterLoad'],
+				exports: [houdini_after_load_fn],
 			},
 		},
 		{
 			title: 'exported const',
 			source: `
-                export const afterLoad = () => {
+                export const _houdini_afterLoad = () => {
 
                 }
             `,
 			expected: {
-				exports: ['afterLoad'],
+				exports: [houdini_after_load_fn],
 			},
 		},
 		{
 			title: 'exported let',
 			source: `
-                export let afterLoad = () => {
+                export let _houdini_afterLoad = () => {
 
                 }
             `,
 			expected: {
-				exports: ['afterLoad'],
+				exports: [houdini_after_load_fn],
 			},
 		},
 		{
 			title: 'multiple exports',
 			source: `
-                export let afterLoad = () => {
+                export let _houdini_afterLoad = () => {
 
                 }
 
-                export function beforeLoad() {
+                export function _houdini_beforeLoad() {
 
                 }
             `,
 			expected: {
-				exports: ['afterLoad', 'beforeLoad'],
+				exports: [houdini_after_load_fn, houdini_before_load_fn],
 			},
 		},
 	]
