@@ -1,7 +1,8 @@
 import { Cache as _Cache, rootID } from '../cache/cache'
-import { SchemaManager } from '../cache/schema'
+import { SchemaManager, TypeInfo } from '../cache/schema'
+import { ListCollection } from './list'
 import { Record } from './record'
-import type { CacheTypeDef, IDFields, TypeNames } from './types'
+import type { CacheTypeDef, IDFields, TypeNames, ValidLists } from './types'
 
 export class Cache<Def extends CacheTypeDef> {
 	_internal_unstable: _Cache
@@ -62,4 +63,38 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 	get config() {
 		return this._internal_unstable._internal_unstable.config
 	}
+
+	list<Name extends ValidLists<Def>>(
+		name: Name,
+		{ parentID, allLists }: { parentID?: string; allLists?: boolean } = {}
+	): ListCollection<Def, Name> {
+		return new ListCollection({
+			cache: this,
+			collection: this._internal_unstable.list(name, parentID, allLists),
+		})
+	}
+}
+
+export function _typeInfo<Def extends CacheTypeDef>(
+	cache: Cache<Def>,
+	type: string,
+	field: string
+): TypeInfo {
+	if (field === '__typename') {
+		return {
+			type: 'String',
+			nullable: false,
+			link: false,
+		}
+	}
+
+	const info = cache._internal_unstable._internal_unstable.schema.fieldType(type, field)
+
+	if (!info) {
+		throw new Error(
+			`Unknown field: ${field} for type ${type}. Please provide type information using setFieldType().`
+		)
+	}
+
+	return info
 }

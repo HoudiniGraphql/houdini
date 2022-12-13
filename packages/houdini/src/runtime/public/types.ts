@@ -16,7 +16,7 @@ export type CacheTypeDef = {
 	}
 	lists: {
 		[listName: string]: {
-			types: string[]
+			types: any
 			when: any
 		}
 	}
@@ -46,7 +46,9 @@ export type IDFields<
 	Type extends keyof Def['types']
 > = Def['types'][Type]['idFields']
 
-type ProxyUnion<Def extends CacheTypeDef, U> = U extends TypeNames<Def> ? Record<Def, U> : never
+export type ProxyUnion<Def extends CacheTypeDef, U> = U extends TypeNames<Def>
+	? Record<Def, U>
+	: never
 
 type _FieldType<
 	Def extends CacheTypeDef,
@@ -75,3 +77,10 @@ export type ArgType<
 	Type extends keyof Def['types'],
 	Field extends keyof TypeFields<Def, Type>
 > = TypeFields<Def, Type>[Field]['args']
+
+export type ValidLists<Def extends CacheTypeDef> = Extract<keyof Def['lists'], string>
+
+export type ListType<Def extends CacheTypeDef, Name extends ValidLists<Def>> = ProxyUnion<
+	Def,
+	Def['lists'][Name]['types']
+>

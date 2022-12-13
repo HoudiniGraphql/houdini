@@ -1,13 +1,14 @@
 import { rootID } from '../cache/cache'
 import { TypeInfo } from '../cache/schema'
 import { keyFieldsForType, SubscriptionSelection } from '../lib'
-import type { Cache } from './cache'
+import { Cache, _typeInfo } from './cache'
 import type { ArgType, CacheTypeDef, FieldType, TypeFieldNames, ValidTypes } from './types'
 
 export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
-	private id: string
+	#id: string
+	#cache: Cache<Def>
+
 	type: string
-	private cache: Cache<Def>
 	idFields: {}
 
 	constructor({
@@ -21,14 +22,14 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 		idFields: {}
 		id: string
 	}) {
-		this.cache = cache
-		this.id = id
+		this.#cache = cache
+		this.#id = id
 		this.type = type
 		this.idFields = idFields
 
 		// make sure that we have all of the necessary fields for the id
 		if (id !== rootID) {
-			for (const key of keyFieldsForType(this.cache.config, type)) {
+			for (const key of keyFieldsForType(this.#cache.config, type)) {
 				if (!(key in idFields)) {
 					throw new Error('Missing key in idFields: ' + key)
 				}
@@ -45,12 +46,12 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 		args?: ArgType<Def, Type, Field>
 		value: FieldType<Def, Type, Field>
 	}): void {
-		this.cache.validateInstabilityWarning()
+		this.#cache.validateInstabilityWarning()
 
 		// compute the key for the field/args combo
-		const key = this._computeKey({ field, args })
+		const key = this.#_computeKey({ field, args })
 		// look up the type information for the field
-		const typeInfo: TypeInfoWithSelection = this._typeInfo(field)
+		const typeInfo: TypeInfoWithSelection = _typeInfo(this.#cache, this.type, field)
 
 		// the value we will set
 		let newValue: any
@@ -58,14 +59,14 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 		// if the type is a link, we need to use a selection that includes the id fields
 		if (typeInfo.link) {
 			// look up the necessary fields to compute the key
-			const keys = keyFieldsForType(this.cache.config, typeInfo.type)
+			const keys = keyFieldsForType(this.#cache.config, typeInfo.type)
 
 			// add the
 			typeInfo.selection = {
 				fields: keys.reduce<{ [field: string]: { type: string; keyRaw: string } }>(
 					(acc, key) => {
 						// look up the type information for the key
-						const keyInfo = this._typeInfo(key, typeInfo.type)
+						const keyInfo = _typeInfo(this.#cache, typeInfo.type, key)
 
 						return {
 							...acc,
@@ -89,7 +90,7 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 		// if we are writing a scalar we need to look for a special marshal function
 		if (!typeInfo.link) {
 			// if the type has a special marshal function we need to call it
-			const fnMarshal = this.cache.config.scalars?.[typeInfo.type]?.marshal
+			const fnMarshal = this.#cache.config.scalars?.[typeInfo.type]?.marshal
 			if (fnMarshal) {
 				newValue = fnMarshal(value)
 			} else {
@@ -125,11 +126,11 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 		}
 
 		// reset the garbage collection status
-		this.cache._internal_unstable._internal_unstable.lifetimes.resetLifetime(this.id, key)
+		this.#cache._internal_unstable._internal_unstable.lifetimes.resetLifetime(this.#id, key)
 
 		// write the value to the cache by constructing the correct selection
-		this.cache._internal_unstable.write({
-			parent: this.id,
+		this.#cache._internal_unstable.write({
+			parent: this.#id,
 			selection: {
 				fields: {
 					[field]: {
@@ -151,24 +152,24 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 		field: Field
 		args?: ArgType<Def, Type, Field>
 	}): FieldType<Def, Type, Field> {
-		this.cache.validateInstabilityWarning()
+		this.#cache.validateInstabilityWarning()
 
 		// compute the key for the field/args combo
-		const key = this._computeKey({ field, args })
+		const key = this.#_computeKey({ field, args })
 		// look up the type information for the field
-		const typeInfo: TypeInfoWithSelection = this._typeInfo(field)
+		const typeInfo: TypeInfoWithSelection = _typeInfo(this.#cache, this.type, field)
 
 		// if the field is a link we need to look up all of the fields necessary to compute the id
 		if (typeInfo.link) {
 			// look up the necessary fields to compute the key
-			const keys = keyFieldsForType(this.cache.config, typeInfo.type)
+			const keys = keyFieldsForType(this.#cache.config, typeInfo.type)
 
 			// add the keys to the selection
 			typeInfo.selection = {
 				fields: keys.reduce<{ [field: string]: { type: string; keyRaw: string } }>(
 					(acc, key) => {
 						// look up the type information for the key
-						const keyInfo = this._typeInfo(key, typeInfo.type)
+						const keyInfo = _typeInfo(this.#cache, typeInfo.type, key)
 
 						return {
 							...acc,
@@ -189,8 +190,8 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 		}
 
 		// get the value from the cache
-		const result = this.cache._internal_unstable.read({
-			parent: this.id,
+		const result = this.#cache._internal_unstable.read({
+			parent: this.#id,
 			selection: {
 				fields: {
 					[field]: {
@@ -216,7 +217,7 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 		// and then we'll unpack after
 		let finalResult = (!Array.isArray(data) ? [data] : data).map((ids) => {
 			// they asked for a link so we need to return a proxy to that record
-			const linkedID = this.cache._internal_unstable._internal_unstable.id(
+			const linkedID = this.#cache._internal_unstable._internal_unstable.id(
 				typeInfo.type,
 				ids || {}
 			)
@@ -225,7 +226,7 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 			}
 
 			// look up the __typename
-			const typename = this.cache._internal_unstable.read({
+			const typename = this.#cache._internal_unstable.read({
 				selection: {
 					fields: {
 						__typename: {
@@ -239,7 +240,7 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 
 			// return the proxy
 			return new Record<Def, Field>({
-				cache: this.cache,
+				cache: this.#cache,
 				type: (typename as string) ?? typeInfo.type,
 				id: linkedID,
 				idFields: ids || {},
@@ -249,27 +250,7 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 		return (Array.isArray(data) ? finalResult : finalResult[0]) as FieldType<Def, Type, Field>
 	}
 
-	private _typeInfo(field: string, type: string = this.type): TypeInfo {
-		if (field === '__typename') {
-			return {
-				type: 'String',
-				nullable: false,
-				link: false,
-			}
-		}
-
-		const info = this.cache._internal_unstable._internal_unstable.schema.fieldType(type, field)
-
-		if (!info) {
-			throw new Error(
-				`Unknown field: ${field} for type ${type}. Please provide type information using setFieldType().`
-			)
-		}
-
-		return info
-	}
-
-	private _computeKey({ field, args }: { field: string; args?: {} }) {
+	#_computeKey({ field, args }: { field: string; args?: {} }) {
 		// TODO: the actual key logic uses graphql.print to properly serialize complex values
 		return args && Object.values(args).length > 0
 			? `${field}(${Object.entries(args)
