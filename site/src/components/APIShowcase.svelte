@@ -8,7 +8,7 @@
 	export let language = 'typescript'
 </script>
 
-<a class="api-showcase-container" {href} data-sveltekit-prefetch>
+<a class="api-showcase-container" {href} data-sveltekit-preload-data="hover">
 	<div class="left-column">
 		<h3>
 			{title}

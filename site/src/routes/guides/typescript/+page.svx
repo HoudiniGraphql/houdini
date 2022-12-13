@@ -30,7 +30,7 @@ When working with Houdini's [generated load functions](/api/query#automatic-load
 import { graphql } from '$houdini'
 import type { AfterLoadEvent } from './$houdini'
 
-export const houdini_load = graphql`
+export const _houdini_load = graphql`
 	query MyProfile {
 		viewer {
 			id
@@ -38,7 +38,7 @@ export const houdini_load = graphql`
 	}
 `
 
-export function afterLoad({ data }: AfterLoadEvent) {
+export function _houdini_afterLoad({ data }: AfterLoadEvent) {
 	return {
 		computedValue: data.MyProfile.viewer.id + '_new'
 	}

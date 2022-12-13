@@ -1,4 +1,4 @@
-export function FragmentUpdateTestQueryVariables() {
+export function _FragmentUpdateTestQueryVariables() {
   return {
     id: 'preprocess-fragment:1'
   };
