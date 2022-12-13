@@ -3,7 +3,7 @@ import { keyFieldsForType } from '../lib'
 import { GraphQLObject, SubscriptionSelection } from '../lib/types'
 import { Cache, _typeInfo } from './cache'
 import { Record } from './record'
-import { CacheTypeDef, ListType, ValidLists, ListWhen } from './types'
+import { CacheTypeDef, ListType, ValidLists, ListFilters } from './types'
 
 export class ListCollection<Def extends CacheTypeDef, ListName extends ValidLists<Def>> {
 	#collection: _Collection
@@ -41,7 +41,7 @@ export class ListCollection<Def extends CacheTypeDef, ListName extends ValidList
 		}
 	}
 
-	when(filter: ListWhen<Def, ListName>): ListCollection<Def, ListName> {
+	when(filter: ListFilters<Def, ListName>): ListCollection<Def, ListName> {
 		return new ListCollection({
 			collection: this.#collection.when(filter),
 			cache: this.#cache,

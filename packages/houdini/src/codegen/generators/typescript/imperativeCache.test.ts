@@ -122,6 +122,8 @@ test('generates type definitions for the imperative API', async function () {
 		                    nullable: false
 		                }
 		                nodes: {
+							vvvvv this needs to {be type: { list: .... }}
+							vvvvv where does args go?
 		                    list: "Cat" | "Ghost" | "User"
 		                    nullable: true
 		                }

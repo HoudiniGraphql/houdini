@@ -17,7 +17,7 @@ export type CacheTypeDef = {
 	lists: {
 		[listName: string]: {
 			types: any
-			when: any
+			filters: any
 		}
 	}
 }
@@ -82,13 +82,13 @@ export type ArgType<
 
 export type ValidLists<Def extends CacheTypeDef> = Extract<keyof Def['lists'], string>
 
-export type ListWhen<
+export type ListFilters<
 	Def extends CacheTypeDef,
 	ListName extends ValidLists<Def>
-> = Def['lists'][ListName]['when'] extends any
+> = Def['lists'][ListName]['filters'] extends any
 	? {
-			must?: Def['lists'][ListName]['when']
-			must_not?: Def['lists'][ListName]['when']
+			must?: Def['lists'][ListName]['filters']
+			must_not?: Def['lists'][ListName]['filters']
 	  }
 	: never
 

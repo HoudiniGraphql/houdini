@@ -105,11 +105,11 @@ type CacheTypeDef = {
 	lists: {
 		All_Pets: {
 			types: 'User' | 'Cat'
-			when: never
+			filters: never
 		}
 		All_Users: {
 			types: 'User'
-			when: {
+			filters: {
 				foo?: string
 			}
 		}
