@@ -3,7 +3,7 @@ import { keyFieldsForType } from '../lib'
 import { GraphQLObject, SubscriptionSelection } from '../lib/types'
 import { Cache, _typeInfo } from './cache'
 import { Record } from './record'
-import { CacheTypeDef, ListType, ValidLists } from './types'
+import { CacheTypeDef, ListType, ValidLists, ListWhen } from './types'
 
 export class ListCollection<Def extends CacheTypeDef, ListName extends ValidLists<Def>> {
 	#collection: _Collection
@@ -22,6 +22,13 @@ export class ListCollection<Def extends CacheTypeDef, ListName extends ValidList
 	prepend(record: ListType<Def, ListName>) {
 		const { selection, data } = this.#listOperationPayload([record])
 		this.#collection.prepend(selection, data[0])
+	}
+
+	when(filter: ListWhen<Def, ListName>): ListCollection<Def, ListName> {
+		return new ListCollection({
+			collection: this.#collection.when(filter),
+			cache: this.#cache,
+		})
 	}
 
 	#listOperationPayload(records: ListType<Def, ListName>[]): {

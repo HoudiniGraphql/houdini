@@ -80,6 +80,16 @@ export type ArgType<
 
 export type ValidLists<Def extends CacheTypeDef> = Extract<keyof Def['lists'], string>
 
+export type ListWhen<
+	Def extends CacheTypeDef,
+	ListName extends ValidLists<Def>
+> = Def['lists'][ListName]['when'] extends any
+	? {
+			must?: Def['lists'][ListName]['when']
+			must_not?: Def['lists'][ListName]['when']
+	  }
+	: never
+
 export type ListType<Def extends CacheTypeDef, Name extends ValidLists<Def>> = ProxyUnion<
 	Def,
 	Def['lists'][Name]['types']

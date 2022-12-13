@@ -93,6 +93,12 @@ type CacheTypeDef = {
 			types: 'User' | 'Cat'
 			when: never
 		}
+		All_Users: {
+			types: 'User'
+			when: {
+				foo?: string
+			}
+		}
 	}
 }
 
