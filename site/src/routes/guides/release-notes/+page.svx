@@ -38,7 +38,7 @@ more plugins to show up over time and we want to avoid breaking this API again, 
 
 ### Directives have been cleaned up
 
-This generic use of the `@houdini` directive caused a confusing experience when relying on intellisense to autocomplete
+The generic use of the `@houdini` directive caused a confusing experience when relying on intellisense to autocomplete
 directives. In order to provide a better experience in your editor, we split up the `@houdini` directive and cleaned up
 some overlapping use cases:
 
