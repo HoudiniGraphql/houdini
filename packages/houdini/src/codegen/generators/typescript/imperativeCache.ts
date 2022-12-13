@@ -137,6 +137,17 @@ function typeDefinitions(config: Config): recast.types.namedTypes.TSTypeLiteral 
 									AST.identifier('list'),
 									AST.tsTypeAnnotation(typeOptions)
 								),
+
+								AST.tsPropertySignature(
+									AST.identifier('nullable'),
+									AST.tsTypeAnnotation(
+										AST.tsLiteralType(
+											AST.booleanLiteral(
+												unwrapped.wrappers.includes(TypeWrapper.NonNull)
+											)
+										)
+									)
+								),
 							])
 						} else if (!graphql.isScalarType(unwrapped.type)) {
 							typeOptions = AST.tsTypeLiteral([

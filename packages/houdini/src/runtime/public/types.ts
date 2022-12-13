@@ -68,8 +68,10 @@ export type FieldType<
 	Field extends keyof TypeFields<Def, Type>
 > = _FieldType<Def, Type, Field> extends { type: infer Target }
 	? ProxyUnion<Def, Target>
-	: _FieldType<Def, Type, Field> extends { list: infer Target }
+	: _FieldType<Def, Type, Field> extends { list: infer Target; nullable: false }
 	? ProxyUnion<Def, Target>[]
+	: _FieldType<Def, Type, Field> extends { list: infer Target; nullable: true }
+	? ProxyUnion<Def, Target>[] | null
 	: _FieldType<Def, Type, Field>
 
 export type ArgType<

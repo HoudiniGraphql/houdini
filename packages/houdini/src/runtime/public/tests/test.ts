@@ -21,7 +21,17 @@ type CacheTypeDef = {
 					args: never
 				}
 				pets: {
-					type: { list: 'Cat' | 'User' }
+					type: {
+						list: 'Cat' | 'User'
+						nullable: false
+					}
+					args: never
+				}
+				users: {
+					type: {
+						list: 'User'
+						nullable: true
+					}
 					args: never
 				}
 				pet: {

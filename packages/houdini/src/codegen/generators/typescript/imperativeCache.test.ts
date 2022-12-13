@@ -117,18 +117,22 @@ test('generates typedefinitions for the imperative API', async function () {
 		                }
 		                users: {
 		                    list: "User" | null
+		                    nullable: false
 		                }
 		                nodes: {
 		                    list: "Cat" | "Ghost" | "User"
+		                    nullable: true
 		                }
 		                entities: {
 		                    list: "User" | "Cat" | null
+		                    nullable: false
 		                }
 		                entity: {
 		                    type: "User" | "Cat"
 		                }
 		                listOfLists: {
 		                    list: "User"
+		                    nullable: false
 		                }
 		                node: {
 		                    type: "Cat" | "Ghost" | "User" | null
@@ -143,9 +147,11 @@ test('generates typedefinitions for the imperative API', async function () {
 		                }
 		                listRequired: {
 		                    list: string
+		                    nullable: true
 		                }
 		                nullList: {
 		                    list: string | null
+		                    nullable: false
 		                }
 		                recursive: {
 		                    type: "UserFilter" | null
@@ -199,6 +205,7 @@ test('generates typedefinitions for the imperative API', async function () {
 		                }
 		                friends: {
 		                    list: "User" | null
+		                    nullable: false
 		                }
 		                enumValue: {
 		                    type: "MyEnum" | null

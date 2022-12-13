@@ -121,7 +121,7 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 		}
 
 		// they didn't pass a proxy or list of proxies when we expected one
-		else {
+		else if (value !== null) {
 			throw new Error('Value must be a RecordProxy if the field is a link to another record')
 		}
 
@@ -216,6 +216,10 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 		// we need to handle lists and non lists so treat everything as a list for now
 		// and then we'll unpack after
 		let finalResult = (!Array.isArray(data) ? [data] : data).map((ids) => {
+			if (Object.keys(ids ?? {}).length === 0) {
+				return typeInfo.nullable ? null : undefined
+			}
+
 			// they asked for a link so we need to return a proxy to that record
 			const linkedID = this.#cache._internal_unstable._internal_unstable.id(
 				typeInfo.type,

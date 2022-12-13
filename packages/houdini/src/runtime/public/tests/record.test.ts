@@ -293,6 +293,27 @@ test('can pass null', function () {
 		nullable: true,
 		link: false,
 	})
+	cache.setFieldType({
+		parent: 'Cat',
+		key: 'parent',
+		type: 'User',
+		nullable: true,
+		link: true,
+	})
+	cache.setFieldType({
+		parent: 'User',
+		key: 'id',
+		type: 'ID',
+		nullable: false,
+		link: false,
+	})
+	cache.setFieldType({
+		parent: rootID,
+		key: 'users',
+		type: 'User',
+		nullable: true,
+		link: true,
+	})
 
 	// update the cached value
 	cache.root.set({
@@ -302,9 +323,14 @@ test('can pass null', function () {
 
 	expect(cache.root.get({ field: 'test' })).toBeNull()
 
+	// type check null types
 	const cat = cache.get('Cat', { id: '1' })
 	cat.set({ field: 'parent', value: null })
 	expect(cat.get({ field: 'parent' })).toEqual(null)
+
+	// type check setting the nullable value on root
+	cache.root.set({ field: 'users', value: null })
+	expect(cache.root.get({ field: 'users' })).toEqual(null)
 })
 
 test('can set list types', function () {
