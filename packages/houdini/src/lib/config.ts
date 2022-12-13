@@ -896,6 +896,8 @@ export enum LogLevel {
 export type PluginFactory = (args?: PluginConfig) => Promise<Plugin>
 
 export type Plugin = {
+	// will use the smallest number first when we need an order
+	priority: number
 	extensions?: string[]
 	transform_runtime?: Record<string, (args: { config: Config; content: string }) => string>
 	after_load?: (config: Config) => Promise<void> | void

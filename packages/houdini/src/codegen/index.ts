@@ -88,14 +88,19 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 				generators.definitions,
 
 				// these have to go after the artifacts so that plugins can import them
-				...generatePlugins.map(
-					(plugin) => async (config: Config, docs: CollectedGraphQLDocument[]) =>
-						await plugin.generate!({
-							config,
-							documents: docs,
-							plugin_root: config.pluginDirectory(plugin.name),
-						})
-				),
+				...generatePlugins
+					// smallest number first
+					.sort((a, b) => {
+						return a.priority - b.priority ? -1 : 1
+					})
+					.map(
+						(plugin) => async (config: Config, docs: CollectedGraphQLDocument[]) =>
+							await plugin.generate!({
+								config,
+								documents: docs,
+								plugin_root: config.pluginDirectory(plugin.name),
+							})
+					),
 			],
 			docs
 		)
