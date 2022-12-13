@@ -1,25 +1,18 @@
-import { CollectedGraphQLDocument, fs, path } from 'houdini'
-import { mockCollectedDoc } from 'houdini/test'
+import { fs, path } from 'houdini'
 import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { expect, test } from 'vitest'
 
-import runPipeline from '..'
-import { test_config } from '../../../test'
+import { pipeline_test } from '../../../test'
 import { global_stores_directory } from '../../kit'
 
 test('generates a store for every subscription', async function () {
-	const config = await test_config()
-	const plugin_root = config.pluginDirectory('test-plugin')
-
-	// the documents to test
-	const docs: CollectedGraphQLDocument[] = [
-		mockCollectedDoc(`subscription TestSubscription1 { newUser { id }  }`),
-		mockCollectedDoc(`subscription TestSubscription2 { newUser { id }  }`),
+	const docs = [
+		`subscription TestSubscription1 { newUser { user { id } }  }`,
+		`subscription TestSubscription2 { newUser { user { id } }  }`,
 	]
 
-	// execute the generator
-	await runPipeline({ config, documents: docs, plugin_root })
+	const { plugin_root } = await pipeline_test(docs)
 
 	// look up the files in the artifact directory
 	const files = await fs.readdir(global_stores_directory(plugin_root))

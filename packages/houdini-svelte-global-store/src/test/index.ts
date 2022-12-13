@@ -7,6 +7,7 @@ import _plugin_houdini_svelte_global_store from '../plugin'
 
 export async function test_config(extraConfig: Partial<ConfigFile> = {}) {
 	const config = testConfig(extraConfig)
+
 	const plugin_houdini_svelte = await _plugin_houdini_svelte()
 	const plugin_houdini_svelte_global_store = await _plugin_houdini_svelte_global_store()
 	config.plugins.push(
