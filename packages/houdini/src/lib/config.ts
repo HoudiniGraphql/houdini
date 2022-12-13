@@ -71,7 +71,7 @@ export class Config {
 		// @ts-ignore
 		if (configFile.disableMasking !== undefined) {
 			throw new HoudiniError({
-				message: `"disableMasking" was replaced by "defaultFragmentMasking" in houdini 0.18.0. Please update your config file.`,
+				message: `"disableMasking" was replaced by "defaultFragmentMasking". Please update your config file.`,
 			})
 		}
 
