@@ -381,3 +381,88 @@ test('list when must', function () {
 		},
 	})
 })
+
+test('can remove record', function () {
+	// instantiate a cache
+	const cache = testCache()
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: false,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache._internal_unstable.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+				],
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = vi.fn()
+
+	// subscribe to the fields
+	cache._internal_unstable.subscribe({
+		rootType: 'Query',
+		set,
+		selection,
+	})
+
+	// remove user 2 from the list
+	cache.list('All_Users').remove(
+		cache.get('User', {
+			id: '2',
+		})
+	)
+
+	// the first time set was called, a new entry was added.
+	// the second time it's called, we get a new value for mary-prime
+	expect(set).toHaveBeenCalledWith({
+		viewer: {
+			id: '1',
+			friends: [],
+		},
+	})
+})

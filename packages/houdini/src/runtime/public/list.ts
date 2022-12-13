@@ -31,6 +31,10 @@ export class ListCollection<Def extends CacheTypeDef, ListName extends ValidList
 		})
 	}
 
+	remove(record: ListType<Def, ListName>) {
+		this.#collection.remove(record.idFields)
+	}
+
 	#listOperationPayload(records: ListType<Def, ListName>[]): {
 		selection: SubscriptionSelection
 		data: GraphQLObject[]
