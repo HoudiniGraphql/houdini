@@ -8,8 +8,16 @@ description: A guide to migrating your application to each breaking version of h
 
 ## 0.18.0
 
-Since SvelteKit `1.0.0-next.573`, we are not allowed to export non-Kit functions from `+page.js`, or it has to start with "`_`".
-Please find here new function names to be used:
+`v0.18.0` brought with it a large collection of breaking changes. Some of them were required by recent updates to SvelteKit,
+and some of them are things we've been holding onto for awhile. This section will outline the things you need to change. For
+a more in-depth summary of everything that was released with this update, check out the
+[houdini](https://github.com/HoudiniGraphql/houdini/blob/main/packages/houdini/CHANGELOG.md) and
+[houdini-svelte](https://github.com/HoudiniGraphql/houdini/blob/main/packages/houdini-svelte/CHANGELOG.md) changelogs.
+
+### Magic functions are now prefixed with `_`
+
+Since SvelteKit `1.0.0-next.573`, all unknown exports in a `+page` file have to be prefixed with `_`. Since we expect
+more plugins to show up over time and we want to avoid breaking this API again, we opted for `_houdini`:
 
 ```diff
 -   export const YourQueryVariables = (event) => {}
@@ -27,6 +35,20 @@ Please find here new function names to be used:
 -   export const onError = (event) => {}
 +   export const _houdini_onError = (event) => {}
 ```
+
+### Directives have been cleaned up
+
+This generic use of the `@houdini` directive caused a confusing experience when relying on intellisense to autocomplete
+directives. In order to provide a better experience in your editor, we split up the `@houdini` directive and cleaned up
+some overlapping use cases:
+
+- deprecated usage of `parentID` argument in `@append` and `@prepend`. You should now use `@parentID` separately
+- `@houdini(load: false)` was removed in favor of `@manual_load`
+- `@houdini(mask: true | false)` was removed for two directives: `@mask_enable` and `@mask_disable`
+
+### Changed config values
+
+The `disableMasking` is now replaced by `defaultFragmentMasking` which sets the global default.
 
 ## 0.17.0
 

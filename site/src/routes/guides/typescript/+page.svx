@@ -1,6 +1,6 @@
 ---
 title: Typescript
-index: 7
+index: 6
 description: An overview of Houdini's support for Typescript
 ---
 
@@ -84,9 +84,9 @@ To use inline fragments inside your components, you need to receive the parent q
 Remember to set the type of your fragment by importing it.
 
 ```typescript
-import { fragment, graphql, type PostContent } from '$houdini';
+import { fragment, graphql, type PostContent } from '$houdini'
 
-export let post: PostContent;
+export let post: PostContent
 
 $: data = fragment(
 	post,
@@ -100,6 +100,5 @@ $: data = fragment(
 			}
 		}
 	`
-);
+)
 ```
-
