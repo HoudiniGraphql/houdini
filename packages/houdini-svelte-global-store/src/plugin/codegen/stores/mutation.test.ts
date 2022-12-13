@@ -1,26 +1,18 @@
-import { fs, CollectedGraphQLDocument, path } from 'houdini'
-import { mockCollectedDoc } from 'houdini/test'
+import { fs, path } from 'houdini'
 import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
-import { test, expect } from 'vitest'
+import { expect, test } from 'vitest'
 
-import runPipeline from '..'
-import '../..'
-import { test_config } from '../../../test'
+import { pipeline_test } from '../../../test'
 import { global_stores_directory } from '../../kit'
 
 test('generates a store for every mutation', async function () {
-	const config = await test_config()
-	const plugin_root = config.pluginDirectory('test-plugin')
-
-	// the documents to test
-	const docs: CollectedGraphQLDocument[] = [
-		mockCollectedDoc(`mutation TestMutation1 { updateUser { id }  }`),
-		mockCollectedDoc(`mutation TestMutation2 { updateUser { id }  }`),
+	const docs = [
+		`mutation TestMutation1 { updateUser { id }  }`,
+		`mutation TestMutation2 { updateUser { id }  }`,
 	]
 
-	// execute the generator
-	await runPipeline({ config, documents: docs, plugin_root })
+	const { plugin_root } = await pipeline_test(docs)
 
 	// look up the files in the artifact directory
 	const files = await fs.readdir(global_stores_directory(plugin_root))
@@ -39,7 +31,7 @@ test('generates a store for every mutation', async function () {
 
 	await expect(parsed).toMatchInlineSnapshot(
 		`
-		// import...
+		import { TestMutation1Store } from '../../houdini-svelte/stores'
 
 		export const GQL_TestMutation1 = new TestMutation1Store()
 	`

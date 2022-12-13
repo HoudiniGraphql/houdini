@@ -1,7 +1,8 @@
 import { HoudiniError, path, PluginFactory } from 'houdini'
 
+import { store_name } from '../../../houdini-svelte/src/plugin/kit'
 import generate from './codegen'
-import { global_stores_directory, global_store_name, store_name } from './kit'
+import { global_stores_directory, global_store_name } from './kit'
 
 const HoudiniSveltePlugin: PluginFactory = async () => ({
 	/**

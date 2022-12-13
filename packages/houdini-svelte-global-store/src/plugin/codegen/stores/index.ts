@@ -7,7 +7,7 @@ import { queryStore } from './query'
 import { subscriptionStore } from './subscription'
 
 export default async function storesGenerator(input: GenerateHookInput) {
-	const { config, documents } = input
+	const { documents } = input
 
 	const listOfStores: (string | null)[] = []
 
@@ -36,19 +36,9 @@ export default async function storesGenerator(input: GenerateHookInput) {
 	const dataIndex = listOfStoresOrdered.map((c) => `export * from './${c}'`).join(`\n`)
 	await fs.writeFile(path.join(global_stores_directory(input.plugin_root), `index.js`), dataIndex)
 
-	const dataIndexDTs = `import type { DataSource } from '$houdini/runtime'
-
-export type Result<DataType> = {
-	isFetching: boolean
-	partial: boolean
-	source?: DataSource | null
-	data?: DataType | null
-	error?: Error | null
-}`
-
 	const storePath = global_stores_directory(input.plugin_root)
 
-	await fs.writeFile(path.join(storePath, `index.d.ts`), dataIndexDTs + `\n` + dataIndex)
+	await fs.writeFile(path.join(storePath, `index.d.ts`), dataIndex)
 
 	// cleanup files that are no more necessary!
 	await cleanupFiles(storePath, listOfStoresOrdered)

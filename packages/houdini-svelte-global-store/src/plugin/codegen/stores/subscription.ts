@@ -1,6 +1,7 @@
 import { CollectedGraphQLDocument, fs, GenerateHookInput, path } from 'houdini'
 
-import { global_stores_directory, global_store_name, store_name } from '../../kit'
+import { stores_directory_name, store_name } from '../../../../../houdini-svelte/src/plugin/kit'
+import { global_stores_directory, global_store_name } from '../../kit'
 
 export async function subscriptionStore(
 	{ config, plugin_root }: GenerateHookInput,
@@ -9,19 +10,15 @@ export async function subscriptionStore(
 	const fileName = doc.name
 	const storeName = store_name({ config, name: doc.name })
 	const globalStoreName = global_store_name({ config, name: doc.name })
-	const artifactName = `${doc.name}`
 
 	// the content of the store
-	const storeContent = `//import 
+	const storeContent = `import { ${storeName} } from '../../houdini-svelte/${stores_directory_name()}'
 
 export const ${globalStoreName} = new ${storeName}()
 `
 
-	// const _input = `${artifactName}$input`
-	// const _data = `${artifactName}$result`
-
 	// the type definitions for the store
-	const typeDefs = `// import ...
+	const typeDefs = `import { ${storeName} } from '../../houdini-svelte/${stores_directory_name()}'
 
 export const ${globalStoreName}: ${storeName}
 `

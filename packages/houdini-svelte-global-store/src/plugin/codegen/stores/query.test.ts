@@ -1,14 +1,9 @@
-import { fs, CollectedGraphQLDocument, path } from 'houdini'
-import { mockCollectedDoc } from 'houdini/test'
+import { fs, path } from 'houdini'
 import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { expect, test } from 'vitest'
 
-import runPipeline from '..'
-import '../..'
-import '../..'
 import { pipeline_test } from '../../../test'
-import { test_config } from '../../../test'
 import { global_stores_directory } from '../../kit'
 
 test('change globalStorePrefix to "yop___"', async function () {
@@ -33,8 +28,8 @@ test('change globalStorePrefix to "yop___"', async function () {
 	}).program
 
 	// check the file contents
-	await expect(parsed).toMatchInlineSnapshot(`
-		// import 
+	expect(parsed).toMatchInlineSnapshot(`
+		import { TestQueryStore } from '../../houdini-svelte/stores'
 
 		export const yop___TestQuery = new TestQueryStore()
 	`)
@@ -62,8 +57,8 @@ test('change globalStorePrefix to ""', async function () {
 	}).program
 
 	// check the file contents
-	await expect(parsed).toMatchInlineSnapshot(`
-		// import 
+	expect(parsed).toMatchInlineSnapshot(`
+		import { TestQueryStore } from '../../houdini-svelte/stores'
 
 		export const TestQuery = new TestQueryStore()
 	`)

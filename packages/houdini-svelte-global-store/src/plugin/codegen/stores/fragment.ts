@@ -1,24 +1,26 @@
 import { CollectedGraphQLDocument, fs, GenerateHookInput, path } from 'houdini'
 
-import { global_store_name, global_stores_directory, store_name } from '../../kit'
+import { store_name, stores_directory_name } from '../../../../../houdini-svelte/src/plugin/kit'
+import { global_store_name, global_stores_directory } from '../../kit'
 
 export async function fragmentStore(
 	{ config, plugin_root }: GenerateHookInput,
 	doc: CollectedGraphQLDocument
 ) {
 	const fileName = doc.name
-	const artifactName = `${doc.name}`
 	const storeName = store_name({ config, name: doc.name })
 	const globalStoreName = global_store_name({ config, name: doc.name })
 
 	// store definition
-	const storeContent = `// import...
+	const storeContent = `import { ${storeName} } from '../../houdini-svelte/${stores_directory_name()}'
 
 export const ${globalStoreName} = new ${storeName}()
 `
 
 	// the type definitions for the store
-	const typeDefs = `export const ${globalStoreName}: ${storeName}`
+	const typeDefs = `import { ${storeName} } from '../../houdini-svelte/${stores_directory_name()}'
+
+export const ${globalStoreName}: ${storeName}`
 
 	// write the store contents to disk
 	await Promise.all([

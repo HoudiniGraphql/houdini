@@ -2,16 +2,6 @@ import { Config, path } from 'houdini'
 
 import { HoudiniVitePluginConfig } from '.'
 
-// to take from houdini-svelte
-export function store_suffix(config: Config) {
-	// if config changes, we might have more forbiddenNames to add in the validator
-	return 'Store'
-}
-
-export function store_name({ config, name }: { config: Config; name: string }) {
-	return name + store_suffix(config)
-}
-
 export function global_stores_directory_name() {
 	return 'stores'
 }
