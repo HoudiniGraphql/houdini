@@ -1,7 +1,6 @@
 import { TSTypeKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
-import * as typeScriptParser from 'recast/parsers/typescript'
 
 import { Config, CollectedGraphQLDocument, fs, path, keyFieldsForType } from '../../../lib'
 import { TypeWrapper, unwrapType } from '../../utils'
