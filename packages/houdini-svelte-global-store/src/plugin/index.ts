@@ -5,7 +5,8 @@ import generate from './codegen'
 import { global_stores_directory, global_store_name } from './kit'
 
 const HoudiniSveltePlugin: PluginFactory = async () => ({
-	priority: 700,
+	// it has to come before the core houdini-svelte plugin
+	// order: 'before',
 
 	/**
 	 * Generate

@@ -16,7 +16,7 @@ import validate from './validate'
 let framework: Framework = 'svelte'
 
 const HoudiniSveltePlugin: PluginFactory = async () => ({
-	priority: 1000,
+	order: 'core',
 
 	/**
 	 * Generate

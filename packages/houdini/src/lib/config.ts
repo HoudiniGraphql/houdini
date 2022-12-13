@@ -23,6 +23,13 @@ import { CollectedGraphQLDocument } from './types'
 // @ts-ignore
 const currentDir = global.__dirname || path.dirname(fileURLToPath(import.meta.url))
 
+export type PluginMeta = Plugin & {
+	name: string
+	include_runtime: boolean
+	version: string
+	directory: string
+}
+
 // a place to hold conventions and magic strings
 export class Config {
 	filepath: string
@@ -53,12 +60,7 @@ export class Config {
 	schemaPollInterval: number | null
 	schemaPollHeaders: Record<string, string | ((env: any) => string)>
 	pluginMode: boolean = false
-	plugins: (Plugin & {
-		name: string
-		include_runtime: boolean
-		version: string
-		directory: string
-	})[] = []
+	plugins: PluginMeta[] = []
 
 	constructor({
 		filepath,
@@ -895,9 +897,17 @@ export enum LogLevel {
 
 export type PluginFactory = (args?: PluginConfig) => Promise<Plugin>
 
+export const orderedPlugins = (plugins: PluginMeta[]) => {
+	const ordered = plugins.filter(
+		(plugin) => plugin.order === 'before' || plugin.order === undefined
+	)
+	ordered.push(...plugins.filter((plugin) => plugin.order === 'core'))
+	ordered.push(...plugins.filter((plugin) => plugin.order === 'after'))
+	return ordered
+}
+
 export type Plugin = {
-	// will use the smallest number first when we need an order
-	priority: number
+	order?: 'before' | 'after' | 'core' // when not set, it will be "before"
 	extensions?: string[]
 	transform_runtime?: Record<string, (args: { config: Config; content: string }) => string>
 	after_load?: (config: Config) => Promise<void> | void

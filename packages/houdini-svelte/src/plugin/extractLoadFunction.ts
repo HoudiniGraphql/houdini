@@ -80,13 +80,6 @@ async function processScript(
 				let name = specifier.local?.name || ''
 				let query = ''
 
-				// const store_prefix = plugin_config(config).globalStorePrefix
-				// if we are importing a prefixed store
-				// if (store_prefix && name.startsWith(store_prefix)) {
-				// 	// the name of the query is the parts after the prefix
-				// 	// query = name.substring(store_prefix.length)
-				// }
-
 				// if we are importing a store factory
 				if (name.endsWith(store_suffix(config))) {
 					query = name.substring(0, name.length - store_suffix(config).length)
