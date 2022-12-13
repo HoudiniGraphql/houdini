@@ -250,6 +250,10 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 		return (Array.isArray(data) ? finalResult : finalResult[0]) as FieldType<Def, Type, Field>
 	}
 
+	delete() {
+		this.#cache._internal_unstable.delete(this.#id)
+	}
+
 	#_computeKey({ field, args }: { field: string; args?: {} }) {
 		// TODO: the actual key logic uses graphql.print to properly serialize complex values
 		return args && Object.values(args).length > 0

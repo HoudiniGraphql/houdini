@@ -570,3 +570,95 @@ test('can toggle records', function () {
 	list.toggle('last', targetUser)
 	expect([...list]).toEqual(['User:5', 'User:3'])
 })
+
+test('can remove record from all lists', function () {
+	// instantiate a cache
+	const cache = testCache()
+
+	// create a list we will add to
+	cache._internal_unstable.write({
+		selection: {
+			fields: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+							friends: {
+								type: 'User',
+								keyRaw: 'friends',
+								selection: {
+									fields: {
+										id: {
+											type: 'ID',
+											keyRaw: 'id',
+										},
+										firstName: {
+											type: 'String',
+											keyRaw: 'firstName',
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		data: {
+			viewer: {
+				id: '1',
+				friends: [{ id: '2', firstName: 'jane' }],
+			},
+		},
+	})
+
+	// subscribe to the data to register the list
+	cache._internal_unstable.subscribe(
+		{
+			rootType: 'User',
+			selection: {
+				fields: {
+					friends: {
+						type: 'User',
+						keyRaw: 'friends',
+						list: {
+							name: 'All_Users',
+							connection: false,
+							type: 'User',
+						},
+						selection: {
+							fields: {
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									keyRaw: 'firstName',
+								},
+							},
+						},
+					},
+				},
+			},
+			parentID: cache._internal_unstable._internal_unstable.id('User', '1')!,
+			set: vi.fn(),
+		},
+		{}
+	)
+
+	// make sure we removed the element from the list
+	expect([...cache.list('All_Users')]).toHaveLength(1)
+
+	// remove the user
+	cache.get('User', { id: '2' }).delete()
+
+	expect(
+		cache._internal_unstable._internal_unstable.storage.topLayer.operations['User:2'].deleted
+	).toBeTruthy()
+})
