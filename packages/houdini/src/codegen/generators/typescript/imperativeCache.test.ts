@@ -208,6 +208,7 @@ test('generates typedefinitions for the imperative API', async function () {
 		                    nullable: false
 		                }
 		                enumValue: {
+							// vvvvv fix enums vvvvvv
 		                    type: "MyEnum" | null
 		                }
 		                admin: boolean | null

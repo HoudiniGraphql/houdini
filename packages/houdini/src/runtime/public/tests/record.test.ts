@@ -402,3 +402,5 @@ test('can set union types', function () {
 })
 
 test.todo('complex keys')
+
+test.todo('embedded data can be embedded / looked up')
