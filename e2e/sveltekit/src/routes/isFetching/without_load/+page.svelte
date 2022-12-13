@@ -2,7 +2,7 @@
   import { graphql } from '$houdini';
 
   const store = graphql`
-    query isFetching_wo @houdini(load: false) {
+    query isFetching_wo @manual_load {
       user(id: 1, snapshot: "isFetching_wo", delay: 200) {
         id
         name

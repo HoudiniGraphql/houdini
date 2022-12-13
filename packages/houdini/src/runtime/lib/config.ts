@@ -153,8 +153,9 @@ export type ConfigFile = {
 
 	/**
 	 * A flag to specify the default fragment masking behavior.
+	 * @default `enable`
 	 */
-	disableMasking?: boolean
+	defaultFragmentMasking?: 'enable' | 'disable'
 
 	/**
 	 * Configures the houdini plugin's schema polling behavior. By default, houdini will poll your APIs

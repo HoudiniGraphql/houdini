@@ -1,6 +1,6 @@
 import { graphql } from '$houdini';
 
-export const houdini_load = graphql`
+export const _houdini_load = graphql`
   query PreprocessorOnErrorTestQuery {
     user(id: "1000", snapshot: "preprocess-on-error-test-simple") {
       name
@@ -8,7 +8,7 @@ export const houdini_load = graphql`
   }
 `;
 
-export const onError = () => {
+export const _houdini_onError = () => {
   return {
     fancyMessage: 'hello'
   };
