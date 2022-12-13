@@ -10,11 +10,12 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 	return {
 		schema: `
 			scalar Cursor
-
+			scalar DateTime
 
 			type User implements Node & Friend & CatOwner {
 				id: ID!
 				name: String!
+				birthday: DateTime!
 				firstName: String!
 				friends: [User!]!
 				friendsByCursor(first: Int, after: String, last: Int, before: String, filter: String): UserConnection!

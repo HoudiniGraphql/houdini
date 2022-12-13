@@ -301,6 +301,10 @@ test('can pass null', function () {
 	})
 
 	expect(cache.root.get({ field: 'test' })).toBeNull()
+
+	const cat = cache.get('Cat', { id: '1' })
+	cat.set({ field: 'parent', value: null })
+	expect(cat.get({ field: 'parent' })).toEqual(null)
 })
 
 test('can set list types', function () {

@@ -25,7 +25,7 @@ type CacheTypeDef = {
 					args: never
 				}
 				pet: {
-					type: { union: 'Cat' | 'User' }
+					type: { type: 'Cat' | 'User' }
 					args: never
 				}
 			}
@@ -60,6 +60,10 @@ type CacheTypeDef = {
 			fields: {
 				name: {
 					type: string | null
+					args: never
+				}
+				parent: {
+					type: { type: 'User' | null }
 					args: never
 				}
 				id: {

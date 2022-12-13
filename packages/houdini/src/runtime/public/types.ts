@@ -46,7 +46,9 @@ export type IDFields<
 	Type extends keyof Def['types']
 > = Def['types'][Type]['idFields']
 
-export type ProxyUnion<Def extends CacheTypeDef, U> = U extends TypeNames<Def>
+export type ProxyUnion<Def extends CacheTypeDef, U> = U extends null
+	? null
+	: U extends TypeNames<Def>
 	? Record<Def, U>
 	: never
 
@@ -65,11 +67,9 @@ export type FieldType<
 	Type extends keyof Def['types'],
 	Field extends keyof TypeFields<Def, Type>
 > = _FieldType<Def, Type, Field> extends { type: infer Target }
-	? Record<Def, Target extends TypeNames<Def> ? Target : never>
+	? ProxyUnion<Def, Target>
 	: _FieldType<Def, Type, Field> extends { list: infer Target }
 	? ProxyUnion<Def, Target>[]
-	: _FieldType<Def, Type, Field> extends { union: infer Target }
-	? ProxyUnion<Def, Target>
 	: _FieldType<Def, Type, Field>
 
 export type ArgType<
