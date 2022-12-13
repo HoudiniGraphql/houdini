@@ -23,8 +23,8 @@ const config = {
     }
   },
   plugins: {
-    'houdini-svelte': {},
-    'houdini-svelte-global-store': {}
+    'houdini-svelte-global-store': {},
+    'houdini-svelte': {}
   }
 };
 

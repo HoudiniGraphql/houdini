@@ -32,14 +32,16 @@ A lot of the time we know the side effects of a mutation assuming everything goe
 
 ```svelte
 <script>
-	import { GQL_ToggleItem }  from '$houdini'
+	import { ToggleItemStore }  from '$houdini'
 
 	export let itemID
+
+    const update = new ToggleItemStore()
 </script>
 
 <button
 	on:click={() => {
-		ToggleItemStore.mutate({ id: itemID }, {
+		update.mutate({ id: itemID }, {
             optimisticResponse: {
                 toggleItem: {
                     item: {

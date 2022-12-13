@@ -1,3 +1,4 @@
+import { logYellow } from '@kitql/helper'
 import type { ExpressionKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
 import { Config, fs, parseJS, path } from 'houdini'
@@ -172,10 +173,10 @@ async function processScript(
 				load.push(result)
 				if (!result) {
 					throw new Error(
-						`Could not find query for computing ${houdini_load_fn}: ` +
-							element.name +
-							'. filepath: ' +
-							filepath
+						`Could not find ${logYellow(element.name)} ` +
+							`for computing ${logYellow(houdini_load_fn)}. ` +
+							`(if it was a global store, you need to instantiate the store manually.)` +
+							`\nfilepath: ${filepath}`
 					)
 				}
 			} else if (element.type === 'TaggedTemplateExpression') {

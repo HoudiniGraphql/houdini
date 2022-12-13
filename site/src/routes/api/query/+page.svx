@@ -441,10 +441,11 @@ Using a query store inside of an endpoint looks very similar to the `load` funct
 are handed in your route function:
 
 ```javascript
-import { GQL_MyQuery } from '$houdini'
+import { MyQueryStore } from '$houdini'
 
 export async function get(event) {
-	const { data } = await GQL_MyQuery.fetch({ event })
+	const myQuery = new MyQueryStore()
+	const { data } = await myQuery.fetch({ event })
 
 	return {
 		body: {

@@ -7,7 +7,7 @@
   </strong>
   <br />
   <br />
-  <a href="https://npmjs.org/package/houdini">
+  <a href="https://npmjs.org/package/houdini-svelte-global-store">
     <img src="https://img.shields.io/npm/v/houdini.svg" alt="version" />
   </a>
   <a href="https://github.com/HoudiniGraphql/houdini/actions">
@@ -24,10 +24,113 @@
   </a>
 </div>
 
-----
+---
 
-At its core, houdini seeks to enable a high quality developer experience
-without compromising bundle size. Like Svelte, houdini shifts what is
-traditionally handled by a bloated runtime into a compile step that allows
-for the generation of an incredibly lean GraphQL abstraction for your application.
-See more at <a href="https://www.houdinigraphql.com">HoudiniGraphQL.com</a> 🚀
+# ➕ houdini-svelte-global-store
+
+This package provides global stores for houdini's svelte bindings. 
+
+## Setup
+
+To be able to use this plugin, add it to the list of plugins in `houdini.config.js`, like so:
+```js
+/// <references types="houdini-svelte">
+/// <references types="houdini-svelte-global-store">
+
+/** @type {import('houdini').ConfigFile} */
+const config = {
+  
+  plugins: {
+    'houdini-svelte-global-store': {
+      globalStorePrefix: 'GQL_'
+    },
+    'houdini-svelte': {}
+  }
+
+};
+
+export default config;
+
+```
+
+One configuration option is available:
+- `globalStorePrefix` (optional, default: `GQL_`): The default prefix of your global stores. This lets your editor provide autocompletion with just a few characters.
+
+
+## Usage
+### Basic Idea
+
+External documents are pretty self explanatory: define your graphql documents a file (one definition per file) and then import your
+store from `$houdini` as `GQL_MyAwesomeQuery`:
+
+```graphql
+# src/lib/queries/MyAwesomeQuery.gql
+
+query MyAwesomeQuery {
+	viewer {
+		isAwesome
+	}
+}
+```
+
+```javascript
+// src/routes/myRoute/+page.js
+import { GQL_MyAwesomeQuery } from '$houdini'
+```
+
+Note the prefix `GQL_` is to enable easy autocompletion in your editor - give it a try!
+
+## Generating Loads For Stores
+
+You can now tell the houdini plugin to generate loads for your stores. To do this, you need to export a `houdini_load` variable from your `+page.js/ts` file:
+
+```typescript
+// src/routes/myProfile/+page.ts
+
+import { GQL_MyQuery, GQL_Query1, GQL_Query2 } from '$houdini'
+
+export const houdini_load = GQL_MyQuery
+// or
+export const houdini_load = [GQL_Query1, GQL_Query2]
+```
+
+### Fragments example
+
+Fragments stores can be created from your external documents by using the `.get` method on the global store in `$houdini`:
+
+```svelte
+<script>
+	import { GQL_UserAvatar } from '$houdini'
+
+	// the reference will get passed as a prop
+	export let user
+
+	// load the the required UserAvatar for this component
+	$: data = GQL_UserAvatar.get(user)
+</script>
+
+<img src={$data.profilePicture} />
+```
+
+### Endpoints
+
+Using a query store inside of an endpoint looks very similar to the `load` function: just pass the event you
+are handed in your route function:
+
+```javascript
+import { GQL_MyQuery } from '$houdini'
+
+export async function get(event) {
+	const { data } = await GQL_MyQuery.fetch({ event })
+
+	return {
+		body: {
+			data
+		}
+	}
+}
+```
+
+---
+
+<a href="https://www.houdinigraphql.com">HoudiniGraphQL.com</a> 🚀
