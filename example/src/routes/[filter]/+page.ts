@@ -1,6 +1,6 @@
 import { graphql } from '$houdini'
 
-export const houdini_load = graphql`
+export const _houdini_load = graphql`
 	query AllItems($completed: Boolean) @cache(policy: CacheOrNetwork) {
 		filteredItems: items(completed: $completed, first: 2) @paginate(name: "Filtered_Items") {
 			edges {
@@ -22,7 +22,7 @@ export const houdini_load = graphql`
 	}
 `
 
-export function AllItemsVariables({ params }) {
+export function _AllItemsVariables({ params }) {
 	// if there is no filter assigned, dont enforce one in the query
 	if (!params.filter || params.filter === 'all') {
 		return {

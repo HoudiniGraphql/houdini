@@ -6,6 +6,28 @@ description: A guide to migrating your application to each breaking version of h
 
 # Release Notes
 
+## 0.18.0
+
+Since SvelteKit `1.0.0-next.573`, we are not allowed to export non-Kit functions from `+page.js`, or it has to start with "`_`".
+Please find here new function names to be used:
+
+```diff
+-   export const YourQueryVariables = (event) => {}
++   export const _YourQueryVariables = (event) => {}
+
+-   export const houdini_load = (event) => {}
++   export const _houdini_load = (event) => {}
+
+-   export const afterLoad = (event) => {}
++   export const _houdini_afterLoad = (event) => {}
+
+-   export const beforeLoad = (event) => {}
++   export const _houdini_beforeLoad = (event) => {}
+
+-   export const onError = (event) => {}
++   export const _houdini_onError = (event) => {}
+```
+
 ## 0.17.0
 
 `v0.17.0` is mostly an internal refactor but it _does_ require you to install a new dependency and
