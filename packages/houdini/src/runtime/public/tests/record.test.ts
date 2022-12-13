@@ -372,7 +372,3 @@ test('can set union types', function () {
 })
 
 test.todo('complex keys')
-
-test.todo('set list of linked values - flat list')
-
-test.todo('set list of linked values - connection')
