@@ -466,3 +466,107 @@ test('can remove record', function () {
 		},
 	})
 })
+
+test('can toggle records', function () {
+	// instantiate a cache
+	const cache = testCache()
+
+	// create a list we will add to
+	cache._internal_unstable.write({
+		selection: {
+			fields: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+							friends: {
+								type: 'User',
+								keyRaw: 'friends',
+								list: {
+									name: 'All_Users',
+									connection: false,
+									type: 'User',
+								},
+								selection: {
+									fields: {
+										id: {
+											type: 'ID',
+											keyRaw: 'id',
+										},
+										firstName: {
+											type: 'String',
+											keyRaw: 'firstName',
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		data: {
+			viewer: {
+				id: '1',
+				friends: [{ id: '5' }],
+			},
+		},
+	})
+
+	// subscribe to the data to register the list
+	cache._internal_unstable.subscribe(
+		{
+			rootType: 'User',
+			selection: {
+				fields: {
+					friends: {
+						type: 'User',
+						keyRaw: 'friends',
+						list: {
+							name: 'All_Users',
+							connection: false,
+							type: 'User',
+						},
+						selection: {
+							fields: {
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									keyRaw: 'firstName',
+								},
+							},
+						},
+					},
+				},
+			},
+			parentID: cache._internal_unstable._internal_unstable.id('User', '1')!,
+			set: vi.fn(),
+		},
+		{}
+	)
+
+	// grab a reference to a user that
+	const targetUser = cache.get('User', { id: '3' })
+
+	// grab the list we are going to manipulate
+	const list = cache.list('All_Users')
+
+	list.toggle('first', targetUser)
+	expect([...list]).toEqual(['User:3', 'User:5'])
+
+	// toggle the user again to remove the user
+	list.toggle('first', targetUser)
+	expect([...list]).toEqual(['User:5'])
+
+	// toggle the user again to add the user back
+	list.toggle('last', targetUser)
+	expect([...list]).toEqual(['User:5', 'User:3'])
+})

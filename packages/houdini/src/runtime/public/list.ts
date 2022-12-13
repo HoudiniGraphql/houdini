@@ -14,14 +14,25 @@ export class ListCollection<Def extends CacheTypeDef, ListName extends ValidList
 		this.#cache = cache
 	}
 
-	append(record: ListType<Def, ListName>) {
-		const { selection, data } = this.#listOperationPayload([record])
-		this.#collection.append(selection, data[0])
+	append(...records: ListType<Def, ListName>[]) {
+		const { selection, data } = this.#listOperationPayload(records)
+		for (const entry of data) {
+			this.#collection.append(selection, entry)
+		}
 	}
 
-	prepend(record: ListType<Def, ListName>) {
-		const { selection, data } = this.#listOperationPayload([record])
-		this.#collection.prepend(selection, data[0])
+	prepend(...records: ListType<Def, ListName>[]) {
+		const { selection, data } = this.#listOperationPayload(records)
+		for (const entry of data) {
+			this.#collection.prepend(selection, entry)
+		}
+	}
+
+	toggle(where: 'first' | 'last', ...records: ListType<Def, ListName>[]) {
+		const { selection, data } = this.#listOperationPayload(records)
+		for (const entry of data) {
+			this.#collection.toggleElement(selection, entry, {}, where)
+		}
 	}
 
 	when(filter: ListWhen<Def, ListName>): ListCollection<Def, ListName> {
@@ -31,8 +42,16 @@ export class ListCollection<Def extends CacheTypeDef, ListName extends ValidList
 		})
 	}
 
-	remove(record: ListType<Def, ListName>) {
-		this.#collection.remove(record.idFields)
+	remove(...records: ListType<Def, ListName>[]) {
+		for (const record of records) {
+			this.#collection.remove(record.idFields)
+		}
+	}
+
+	*[Symbol.iterator]() {
+		for (const entry of this.#collection) {
+			yield entry
+		}
 	}
 
 	#listOperationPayload(records: ListType<Def, ListName>[]): {
