@@ -1,5 +1,22 @@
 # houdini
 
+## 0.18.0
+
+### Minor Changes
+
+-   [#754](https://github.com/HoudiniGraphql/houdini/pull/754) [`ca6b4ec`](https://github.com/HoudiniGraphql/houdini/commit/ca6b4ec1d9906cad9c624c05a8ab4e7487d23900) Thanks [@jycouet](https://github.com/jycouet)! - deprecated usage of parentID in append and prepend
+    @houdini(load: false) was removed in favor of @manual_load
+    @houdini(mask: true | false) -> @mask_enable / @mask_disable
+    config disableMasking is now replaced by defaultFragmentMasking
+
+### Patch Changes
+
+-   [#738](https://github.com/HoudiniGraphql/houdini/pull/738) [`758683f`](https://github.com/HoudiniGraphql/houdini/commit/758683fdf5d28eaf995eae8acb3c03e231f91b56) Thanks [@jycouet](https://github.com/jycouet)! - apiUrl can now take environment variable
+
+-   [#732](https://github.com/HoudiniGraphql/houdini/pull/732) [`138fddd`](https://github.com/HoudiniGraphql/houdini/commit/138fdddd8be9259e1e095c0077f7d8d498701aca) Thanks [@janvotava](https://github.com/janvotava)! - Do not delay app start by 2 schema pulls
+
+-   [#747](https://github.com/HoudiniGraphql/houdini/pull/747) [`7a34399`](https://github.com/HoudiniGraphql/houdini/commit/7a34399623d978f1ea89ec0a3fcf847893aa48fc) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix issue when working with unions and interfaces
+
 ## 0.17.14
 
 ## 0.17.13
