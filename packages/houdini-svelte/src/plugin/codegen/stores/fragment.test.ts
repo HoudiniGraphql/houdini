@@ -44,8 +44,8 @@ test('generates a store for every fragment', async function () {
 		// create the fragment store
 
 		export class TestFragment1Store extends FragmentStore {
-		    constructor() {
-		        super({
+			constructor() {
+				super({
 					artifact,
 					storeName: "TestFragment1Store",
 					variables: true,

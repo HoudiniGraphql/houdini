@@ -40,8 +40,8 @@ ${
 // create the fragment store
 
 export class ${storeName} extends ${store_class} {
-    constructor() {
-        super({
+	constructor() {
+		super({
 			artifact,
 			storeName: ${JSON.stringify(storeName)},
 			variables: ${JSON.stringify(true)},
