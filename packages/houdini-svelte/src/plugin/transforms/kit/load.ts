@@ -3,7 +3,7 @@ import type { StatementKind, IdentifierKind } from 'ast-types/gen/kinds'
 import type { namedTypes } from 'ast-types/gen/namedTypes'
 import * as graphql from 'graphql'
 import { formatErrors, operation_requires_variables, fs } from 'houdini'
-import { find_insert_index, ensure_imports } from 'houdini/vite'
+import { find_insert_index, ensure_imports, artifact_import } from 'houdini/vite'
 import * as recast from 'recast'
 
 import { parseSvelte } from '../../extract'
@@ -46,7 +46,9 @@ export default async function kit_load_generator(page: SvelteTransformPage) {
 	const inline_query_store = (name: string) =>
 		route
 			? AST.memberExpression(AST.identifier('data'), AST.identifier(name))
-			: store_import({
+			: artifact_import({
+					config: page.config,
+					script: page.script,
 					page,
 					artifact: { name },
 			  }).id
@@ -279,13 +281,20 @@ function add_load({
 								),
 								AST.objectProperty(
 									AST.literal('artifact'),
-									AST.memberExpression(
-										store_import({
-											page,
-											artifact: query,
-										}).id,
-										AST.identifier('artifact')
-									)
+									artifact_import({
+										config: page.config,
+										script: page.script,
+										page,
+										artifact: { name: query.name },
+									}).id
+									// AST.identifier('artifact')
+									// AST.memberExpression(
+									// 	store_import({
+									// 		page,
+									// 		artifact: query,
+									// 	}).id,
+									// 	AST.identifier('artifact')
+									// )
 								),
 							]),
 						]
