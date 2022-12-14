@@ -154,6 +154,7 @@ declare module 'houdini' {
 export type HoudiniVitePluginConfig = {
 	/**
 	 * A relative path from your houdini.config.js to the file that exports your client as its default value
+	 * @default `./src/client.ts`
 	 */
 	client?: string
 
@@ -172,11 +173,13 @@ export type HoudiniVitePluginConfig = {
 	/**
 	 * With this enabled, errors in your query will not be thrown as exceptions. You will have to handle
 	 * error state in your route components or by hand in your load (or the onError hook)
+	 * @default false
 	 */
 	quietQueryErrors?: boolean
 
 	/**
 	 * A flag to treat every component as a non-route. This is useful for projects built with the static-adapter
+	 * @default false
 	 */
 	static?: boolean
 
