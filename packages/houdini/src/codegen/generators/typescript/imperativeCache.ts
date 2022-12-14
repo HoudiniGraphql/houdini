@@ -1,9 +1,10 @@
-import { TSTypeKind } from 'ast-types/gen/kinds'
+import { StatementKind, TSTypeKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
 import { Config, CollectedGraphQLDocument, fs, path, keyFieldsForType } from '../../../lib'
 import { TypeWrapper, unwrapType } from '../../utils'
+import { addReferencedInputTypes } from './addReferencedInputTypes'
 import { tsTypeReference } from './typeReference'
 import { scalarPropertyValue } from './types'
 
@@ -33,10 +34,7 @@ export default async function imperativeCacheTypef(
 			!type.name.startsWith('__')
 	)
 
-	const enumImport = AST.importDeclaration(
-		enums.map((enumType) => AST.importSpecifier(AST.identifier(enumType.name))),
-		AST.stringLiteral(path.relative(config.runtimeDirectory, config.definitionsDirectory))
-	)
+	const body: StatementKind[] = []
 
 	// build up the declaration
 	const declaration = AST.tsTypeAliasDeclaration(
@@ -44,7 +42,7 @@ export default async function imperativeCacheTypef(
 		AST.tsTypeLiteral([
 			AST.tsPropertySignature(
 				AST.identifier('types'),
-				AST.tsTypeAnnotation(typeDefinitions(config))
+				AST.tsTypeAnnotation(typeDefinitions(config, body))
 			),
 			AST.tsPropertySignature(
 				AST.identifier('lists'),
@@ -57,15 +55,20 @@ export default async function imperativeCacheTypef(
 	// print the result and write to the magic location
 	await fs.writeFile(
 		target,
-		recast.prettyPrint(AST.program([enumImport, AST.exportNamedDeclaration(declaration)])).code
+		recast.prettyPrint(AST.program([...body, AST.exportNamedDeclaration(declaration)])).code
 	)
 }
 
-function typeDefinitions(config: Config): recast.types.namedTypes.TSTypeLiteral {
+function typeDefinitions(
+	config: Config,
+	body: StatementKind[]
+): recast.types.namedTypes.TSTypeLiteral {
 	// grab a list of the mutation and subscription type names so we don't include them
 	const operationTypes = [config.schema.getMutationType(), config.schema.getSubscriptionType()]
 		.filter(Boolean)
 		.map((type) => type?.name)
+
+	const visitedTypes = new Set<string>()
 
 	// we need to build up a list of all of the types
 	const types = Object.values(config.schema.getTypeMap()).filter(
@@ -197,6 +200,17 @@ function typeDefinitions(config: Config): recast.types.namedTypes.TSTypeLiteral 
 							if (fieldType.args?.length > 0) {
 								args = AST.tsTypeLiteral(
 									fieldType.args.map((arg) => {
+										// make sure we include any input types used in any args
+										addReferencedInputTypes(
+											config,
+											'',
+											body,
+											visitedTypes,
+											new Set(),
+											arg.type
+										)
+
+										// add the arg definition for the field
 										return AST.tsPropertySignature(
 											AST.identifier(arg.name),
 											AST.tsTypeAnnotation(

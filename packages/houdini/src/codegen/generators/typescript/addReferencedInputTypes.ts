@@ -15,7 +15,7 @@ export function addReferencedInputTypes(
 	body: StatementKind[],
 	visitedTypes: Set<string>,
 	missingScalars: Set<string>,
-	rootType: graphql.TypeNode
+	rootType: graphql.TypeNode | graphql.GraphQLInputType
 ) {
 	// try to find the name of the type
 	const { type } = unwrapType(config, rootType)

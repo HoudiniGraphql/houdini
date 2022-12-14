@@ -12,7 +12,13 @@ const AST = recast.types.builders
 export function tsTypeReference(
 	config: Config,
 	missingScalars: Set<string>,
-	definition: { type: graphql.TypeNode }
+	definition: {
+		type:
+			| graphql.GraphQLScalarType
+			| graphql.GraphQLInputType
+			| graphql.GraphQLNamedType
+			| graphql.TypeNode
+	}
 ): TSTypeKind {
 	const { type, wrappers } = unwrapType(config, definition.type)
 

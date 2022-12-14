@@ -107,7 +107,23 @@ test('generates type definitions for the imperative API', async function () {
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(
 		`
-		import { MyEnum } from "../graphql";
+		import type { MyEnum } from "$houdini/graphql/enums";
+
+		type NestedUserFilter = {
+		    id: string
+		    firstName: string
+		    admin?: boolean | null | undefined
+		    age?: number | null | undefined
+		    weight?: number | null | undefined
+		};
+
+		type UserFilter = {
+		    middle?: NestedUserFilter | null | undefined
+		    listRequired: (string)[]
+		    nullList?: (string | null | undefined)[] | null | undefined
+		    recursive?: UserFilter | null | undefined
+		    enum?: MyEnum | null | undefined
+		};
 
 		export declare type CacheTypeDef = {
 		    types: {
@@ -118,7 +134,12 @@ test('generates type definitions for the imperative API', async function () {
 		                    type: {
 		                        record: "User" | null
 		                    }
-		                    args: never
+		                    args: {
+		                        id: string | null | undefined
+		                        filter: UserFilter | null | undefined
+		                        filterList: (UserFilter)[] | null | undefined
+		                        enumArg: MyEnum | null | undefined
+		                    }
 		                }
 		                users: {
 		                    type: {
@@ -158,7 +179,9 @@ test('generates type definitions for the imperative API', async function () {
 		                    type: {
 		                        record: "Cat" | "Ghost" | "User" | null
 		                    }
-		                    args: never
+		                    args: {
+		                        id: string
+		                    }
 		                }
 		            }
 		        }
