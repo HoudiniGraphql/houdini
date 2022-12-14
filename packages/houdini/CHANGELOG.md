@@ -1,5 +1,11 @@
 # houdini
 
+## 0.18.1
+
+### Patch Changes
+
+-   [#763](https://github.com/HoudiniGraphql/houdini/pull/763) [`9c096a0`](https://github.com/HoudiniGraphql/houdini/commit/9c096a030219c9d4ff2cde1f6e35f47b7f14d92b) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - bump kit peerDepency to 1.0.0
+
 ## 0.18.0
 
 ### ⚠️ Breaking Changes
