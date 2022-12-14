@@ -17,7 +17,7 @@ type CacheTypeDef = {
 					args: never
 				}
 				viewer: {
-					type: { type: 'User' }
+					type: { record: 'User' }
 					args: never
 				}
 				pets: {
@@ -35,7 +35,7 @@ type CacheTypeDef = {
 					args: never
 				}
 				pet: {
-					type: { type: 'Cat' | 'User' }
+					type: { record: 'Cat' | 'User' }
 					args: never
 				}
 			}
@@ -50,7 +50,7 @@ type CacheTypeDef = {
 					args: never
 				}
 				parent: {
-					type: { type: 'User' }
+					type: { record: 'User' }
 					args: never
 				}
 				id: {
@@ -73,7 +73,7 @@ type CacheTypeDef = {
 					args: never
 				}
 				parent: {
-					type: { type: 'User' | null }
+					type: { record: 'User' | null }
 					args: never
 				}
 				id: {

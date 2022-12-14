@@ -115,31 +115,50 @@ test('generates type definitions for the imperative API', async function () {
 		            idFields: {}
 		            fields: {
 		                user: {
-		                    type: "User" | null
+		                    type: {
+		                        record: "User" | null
+		                    }
+		                    args: never
 		                }
 		                users: {
-		                    list: "User" | null
-		                    nullable: false
+		                    type: {
+		                        list: "User" | null
+		                        nullable: false
+		                    }
+		                    args: never
 		                }
 		                nodes: {
-							vvvvv this needs to {be type: { list: .... }}
-							vvvvv where does args go?
-		                    list: "Cat" | "Ghost" | "User"
-		                    nullable: true
+		                    type: {
+		                        list: "Cat" | "Ghost" | "User"
+		                        nullable: true
+		                    }
+		                    args: never
 		                }
 		                entities: {
-		                    list: "User" | "Cat" | null
-		                    nullable: false
+		                    type: {
+		                        list: "User" | "Cat" | null
+		                        nullable: false
+		                    }
+		                    args: never
 		                }
 		                entity: {
-		                    type: "User" | "Cat"
+		                    type: {
+		                        record: "User" | "Cat"
+		                    }
+		                    args: never
 		                }
 		                listOfLists: {
-		                    list: "User"
-		                    nullable: false
+		                    type: {
+		                        list: "User"
+		                        nullable: false
+		                    }
+		                    args: never
 		                }
 		                node: {
-		                    type: "Cat" | "Ghost" | "User" | null
+		                    type: {
+		                        record: "Cat" | "Ghost" | "User" | null
+		                    }
+		                    args: never
 		                }
 		            }
 		        }
@@ -147,32 +166,60 @@ test('generates type definitions for the imperative API', async function () {
 		            idFields: never
 		            fields: {
 		                middle: {
-		                    type: "NestedUserFilter" | null
+		                    type: {
+		                        record: "NestedUserFilter" | null
+		                    }
+		                    args: never
 		                }
 		                listRequired: {
-		                    list: string
-		                    nullable: true
+		                    type: {
+		                        list: string
+		                        nullable: true
+		                    }
+		                    args: never
 		                }
 		                nullList: {
-		                    list: string | null
-		                    nullable: false
+		                    type: {
+		                        list: string | null
+		                        nullable: false
+		                    }
+		                    args: never
 		                }
 		                recursive: {
-		                    type: "UserFilter" | null
+		                    type: {
+		                        record: "UserFilter" | null
+		                    }
+		                    args: never
 		                }
 		                enum: {
 		                    type: MyEnum | null
+		                    args: never
 		                }
 		            }
 		        }
 		        NestedUserFilter: {
 		            idFields: never
 		            fields: {
-		                id: string
-		                firstName: string
-		                admin: boolean | null
-		                age: number | null
-		                weight: number | null
+		                id: {
+		                    type: string
+		                    args: never
+		                }
+		                firstName: {
+		                    type: string
+		                    args: never
+		                }
+		                admin: {
+		                    type: boolean | null
+		                    args: never
+		                }
+		                age: {
+		                    type: number | null
+		                    args: never
+		                }
+		                weight: {
+		                    type: number | null
+		                    args: never
+		                }
 		            }
 		        }
 		        Cat: {
@@ -180,9 +227,18 @@ test('generates type definitions for the imperative API', async function () {
 		                id: string
 		            }
 		            fields: {
-		                id: string
-		                kitty: boolean
-		                isAnimal: boolean
+		                id: {
+		                    type: string
+		                    args: never
+		                }
+		                kitty: {
+		                    type: boolean
+		                    args: never
+		                }
+		                isAnimal: {
+		                    type: boolean
+		                    args: never
+		                }
 		            }
 		        }
 		        Ghost: {
@@ -191,9 +247,18 @@ test('generates type definitions for the imperative API', async function () {
 		                aka: string
 		            }
 		            fields: {
-		                id: string
-		                aka: string
-		                name: string
+		                id: {
+		                    type: string
+		                    args: never
+		                }
+		                aka: {
+		                    type: string
+		                    args: never
+		                }
+		                name: {
+		                    type: string
+		                    args: never
+		                }
 		            }
 		        }
 		        User: {
@@ -201,22 +266,47 @@ test('generates type definitions for the imperative API', async function () {
 		                id: string
 		            }
 		            fields: {
-		                id: string
-		                firstName: string
-		                nickname: string | null
+		                id: {
+		                    type: string
+		                    args: never
+		                }
+		                firstName: {
+		                    type: string
+		                    args: never
+		                }
+		                nickname: {
+		                    type: string | null
+		                    args: never
+		                }
 		                parent: {
-		                    type: "User" | null
+		                    type: {
+		                        record: "User" | null
+		                    }
+		                    args: never
 		                }
 		                friends: {
-		                    list: "User" | null
-		                    nullable: false
+		                    type: {
+		                        list: "User" | null
+		                        nullable: false
+		                    }
+		                    args: never
 		                }
 		                enumValue: {
 		                    type: MyEnum | null
+		                    args: never
 		                }
-		                admin: boolean | null
-		                age: number | null
-		                weight: number | null
+		                admin: {
+		                    type: boolean | null
+		                    args: never
+		                }
+		                age: {
+		                    type: number | null
+		                    args: never
+		                }
+		                weight: {
+		                    type: number | null
+		                    args: never
+		                }
 		            }
 		        }
 		    }

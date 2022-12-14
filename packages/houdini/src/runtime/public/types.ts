@@ -66,7 +66,7 @@ export type FieldType<
 	Def extends CacheTypeDef,
 	Type extends keyof Def['types'],
 	Field extends keyof TypeFields<Def, Type>
-> = _FieldType<Def, Type, Field> extends { type: infer Target }
+> = _FieldType<Def, Type, Field> extends { record: infer Target }
 	? ProxyUnion<Def, Target>
 	: _FieldType<Def, Type, Field> extends { list: infer Target; nullable: false }
 	? ProxyUnion<Def, Target>[]

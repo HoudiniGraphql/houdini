@@ -4,6 +4,7 @@ import * as recast from 'recast'
 
 import { Config, CollectedGraphQLDocument, fs, path, keyFieldsForType } from '../../../lib'
 import { TypeWrapper, unwrapType } from '../../utils'
+import { tsTypeReference } from './typeReference'
 import { scalarPropertyValue } from './types'
 
 const AST = recast.types.builders
@@ -116,80 +117,113 @@ function typeDefinitions(config: Config): recast.types.namedTypes.TSTypeLiteral 
 			let fields: TypeLiteral = AST.tsTypeLiteral([])
 			if (graphql.isObjectType(type) || graphql.isInputObjectType(type)) {
 				fields = AST.tsTypeLiteral(
-					Object.entries(type.getFields()).map(([key, fieldType]) => {
-						// figure out what was wrapped up
-						const unwrapped = unwrapType(config, fieldType.type)
+					Object.entries(type.getFields()).map(
+						([key, fieldType]: [string, graphql.GraphQLField<any, any>]) => {
+							// figure out what was wrapped up
+							const unwrapped = unwrapType(config, fieldType.type)
 
-						// build up all of the options as a union of at least 1
-						let typeOptions: TSTypeKind = AST.tsUnionType([])
-						if (graphql.isScalarType(unwrapped.type)) {
-							typeOptions.types.push(
-								scalarPropertyValue(config, new Set<string>(), unwrapped.type)
-							)
-						}
-						// enums are valid to use directly
-						else if (graphql.isEnumType(unwrapped.type)) {
-							typeOptions.types.push(
-								AST.tsTypeReference(AST.identifier(unwrapped.type.name))
-							)
-						}
-						// if the type isn't abtract, we just need to leave behind a string
-						else if (!graphql.isAbstractType(unwrapped.type)) {
-							typeOptions.types.push(
-								AST.tsLiteralType(AST.stringLiteral(unwrapped.type.name))
-							)
-						}
-						// the type is abtract so add every possible type
-						else {
-							typeOptions.types.push(
-								...config.schema
-									.getPossibleTypes(unwrapped.type)
-									.map((type) => AST.tsLiteralType(AST.stringLiteral(type.name)))
-							)
-						}
+							// build up all of the options as a union of at least 1
+							let typeOptions: TSTypeKind = AST.tsUnionType([])
+							if (graphql.isScalarType(unwrapped.type)) {
+								typeOptions.types.push(
+									scalarPropertyValue(config, new Set<string>(), unwrapped.type)
+								)
+							}
+							// enums are valid to use directly
+							else if (graphql.isEnumType(unwrapped.type)) {
+								typeOptions.types.push(
+									AST.tsTypeReference(AST.identifier(unwrapped.type.name))
+								)
+							}
+							// if the type isn't abtract, we just need to leave behind a string
+							else if (!graphql.isAbstractType(unwrapped.type)) {
+								typeOptions.types.push(
+									AST.tsLiteralType(AST.stringLiteral(unwrapped.type.name))
+								)
+							}
+							// the type is abtract so add every possible type
+							else {
+								typeOptions.types.push(
+									...config.schema
+										.getPossibleTypes(unwrapped.type)
+										.map((type) =>
+											AST.tsLiteralType(AST.stringLiteral(type.name))
+										)
+								)
+							}
 
-						// if the first entry is a NonNull indicator, we need to add null to the list
-						const head = unwrapped.wrappers.pop()
-						if (head === TypeWrapper.Nullable) {
-							typeOptions.types.push(AST.tsNullKeyword())
-						}
+							// if the first entry is a NonNull indicator, we need to add null to the list
+							const head = unwrapped.wrappers.pop()
+							if (head === TypeWrapper.Nullable) {
+								typeOptions.types.push(AST.tsNullKeyword())
+							}
 
-						// if there is a list in here
-						if (
-							head === TypeWrapper.List ||
-							unwrapped.wrappers.includes(TypeWrapper.List)
-						) {
-							typeOptions = AST.tsTypeLiteral([
-								AST.tsPropertySignature(
-									AST.identifier('list'),
-									AST.tsTypeAnnotation(typeOptions)
-								),
+							// if there is a list in here
+							if (
+								head === TypeWrapper.List ||
+								unwrapped.wrappers.includes(TypeWrapper.List)
+							) {
+								typeOptions = AST.tsTypeLiteral([
+									AST.tsPropertySignature(
+										AST.identifier('list'),
+										AST.tsTypeAnnotation(typeOptions)
+									),
 
-								AST.tsPropertySignature(
-									AST.identifier('nullable'),
-									AST.tsTypeAnnotation(
-										AST.tsLiteralType(
-											AST.booleanLiteral(
-												unwrapped.wrappers.includes(TypeWrapper.NonNull)
+									AST.tsPropertySignature(
+										AST.identifier('nullable'),
+										AST.tsTypeAnnotation(
+											AST.tsLiteralType(
+												AST.booleanLiteral(
+													unwrapped.wrappers.includes(TypeWrapper.NonNull)
+												)
 											)
 										)
-									)
-								),
-							])
-						} else if (!graphql.isScalarType(unwrapped.type)) {
-							typeOptions = AST.tsTypeLiteral([
-								AST.tsPropertySignature(
-									AST.identifier('type'),
-									AST.tsTypeAnnotation(typeOptions)
-								),
-							])
-						}
+									),
+								])
+							} else if (
+								!graphql.isScalarType(unwrapped.type) &&
+								!graphql.isEnumType(unwrapped.type)
+							) {
+								typeOptions = AST.tsTypeLiteral([
+									AST.tsPropertySignature(
+										AST.identifier('record'),
+										AST.tsTypeAnnotation(typeOptions)
+									),
+								])
+							}
 
-						return AST.tsPropertySignature(
-							AST.identifier(key),
-							AST.tsTypeAnnotation(typeOptions)
-						)
-					})
+							// if there are no arguments to the field, then we should leave a never behind
+							let args: TSTypeKind = AST.tsNeverKeyword()
+							if (fieldType.args?.length > 0) {
+								args = AST.tsTypeLiteral(
+									fieldType.args.map((arg) => {
+										return AST.tsPropertySignature(
+											AST.identifier(arg.name),
+											AST.tsTypeAnnotation(
+												tsTypeReference(config, new Set(), arg)
+											)
+										)
+									})
+								)
+							}
+
+							return AST.tsPropertySignature(
+								AST.identifier(key),
+								AST.tsTypeAnnotation(
+									AST.tsTypeLiteral([
+										AST.tsPropertySignature(
+											AST.identifier('type'),
+											AST.tsTypeAnnotation(typeOptions)
+										),
+										AST.tsPropertySignature(
+											AST.identifier('args'),
+											AST.tsTypeAnnotation(args)
+										),
+									])
+								)
+							)
+						}
+					)
 				)
 			}
 
