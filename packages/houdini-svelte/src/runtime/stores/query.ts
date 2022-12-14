@@ -176,6 +176,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 		// send the full request with the correct policy
 		const request = this.fetchAndCache(fetchArgs)
 		if (params.then) {
+			// eslint-disable-next-line promise/no-nesting
 			request.then((val) => params.then?.(val.result.data))
 		}
 

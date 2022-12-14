@@ -921,8 +921,10 @@ export const orderedPlugins = (plugins: PluginMeta[]) => {
 	const ordered = plugins.filter(
 		(plugin) => plugin.order === 'before' || plugin.order === undefined
 	)
-	ordered.push(...plugins.filter((plugin) => plugin.order === 'core'))
-	ordered.push(...plugins.filter((plugin) => plugin.order === 'after'))
+	ordered.push(
+		...plugins.filter((plugin) => plugin.order === 'core'),
+		...plugins.filter((plugin) => plugin.order === 'after')
+	)
 	return ordered
 }
 
