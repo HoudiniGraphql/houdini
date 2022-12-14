@@ -3,6 +3,7 @@
 
   export let data: PageData;
 
+  // TODO: fix the type issue
   $: ({ Hello, InlineAndGlobalLoadQuery2 } = data);
 </script>
 
