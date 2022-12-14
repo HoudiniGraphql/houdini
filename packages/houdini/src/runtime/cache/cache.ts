@@ -181,10 +181,13 @@ class CacheInternal {
 		this.lifetimes = lifetimes
 
 		// the cache should always be disabled on the server, unless we're testing
+		this._disabled = typeof globalThis.window === 'undefined'
 		try {
-			this._disabled = process.env.HOUDINI_TEST !== 'true'
+			if (process.env.HOUDINI_TEST === 'true') {
+				this._disabled = false
+			}
 		} catch {
-			this._disabled = typeof globalThis.window === 'undefined'
+			// if process.env doesn't exist, that's okay just use the normal value
 		}
 	}
 
