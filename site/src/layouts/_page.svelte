@@ -13,15 +13,16 @@
 
 	export let data
 
+	$: ui_theme = browser
+		? parseInt(document.cookie.match('(^|;)\\s*' + 'ui_theme' + '\\s*=\\s*([^;]+)')?.pop() || '0')
+		: data?.ui_theme
+
 	// the list of files we can render
 	// @ts-ignore
 	const categories = REPLACE_WITH_OUTLINE
 
 	// @ts-ignore
 	let categoryNames = Object.keys(categories)
-
-	// @ts-ignore
-	let ui_theme = data?.ui_theme
 
 	// some state to control the menu
 	let menuOpen = false
