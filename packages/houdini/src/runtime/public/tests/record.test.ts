@@ -331,6 +331,11 @@ test('can pass null', function () {
 	// type check setting the nullable value on root
 	cache.root.set({ field: 'users', value: null })
 	expect(cache.root.get({ field: 'users' })).toEqual(null)
+
+	// typecheck an | null in the definition
+	const user = cache.get('User', { id: '1' })
+	cache.root.set({ field: 'viewer', value: user })
+	cache.root.set({ field: 'viewer', value: null })
 })
 
 test('can set list types', function () {

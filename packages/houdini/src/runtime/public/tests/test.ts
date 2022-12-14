@@ -17,7 +17,7 @@ type CacheTypeDef = {
 					args: never
 				}
 				viewer: {
-					type: { record: 'User' }
+					type: { record: 'User' } | null
 					args: never
 				}
 				pets: {

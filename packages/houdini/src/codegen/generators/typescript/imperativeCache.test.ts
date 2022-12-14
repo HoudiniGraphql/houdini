@@ -15,7 +15,15 @@ const config = testConfig({
 
 		type Query {
 			user(id: ID, filter: UserFilter, filterList: [UserFilter!], enumArg: MyEnum): User
-			users: [User]
+			users(
+				filter: UserFilter,
+				list: [UserFilter!]!,
+				id: ID!
+				firstName: String!
+				admin: Boolean
+				age: Int
+				weight: Float
+			): [User]
 			nodes: [Node!]!
 			entities: [Entity]
 			entity: Entity!
@@ -59,6 +67,7 @@ const config = testConfig({
 			id: ID!
 			kitty: Boolean!
 			isAnimal: Boolean!
+			names: [String]!
 		}
 
 
@@ -146,7 +155,15 @@ test('generates type definitions for the imperative API', async function () {
 		                        list: "User" | null
 		                        nullable: false
 		                    }
-		                    args: never
+		                    args: {
+		                        filter: UserFilter | null | undefined
+		                        list: (UserFilter)[]
+		                        id: string
+		                        firstName: string
+		                        admin: boolean | null | undefined
+		                        age: number | null | undefined
+		                        weight: number | null | undefined
+		                    }
 		                }
 		                nodes: {
 		                    type: {
@@ -170,8 +187,8 @@ test('generates type definitions for the imperative API', async function () {
 		                }
 		                listOfLists: {
 		                    type: {
-		                        list: "User"
-		                        nullable: false
+		                        list: "User" | null
+		                        nullable: true
 		                    }
 		                    args: never
 		                }
@@ -182,66 +199,6 @@ test('generates type definitions for the imperative API', async function () {
 		                    args: {
 		                        id: string
 		                    }
-		                }
-		            }
-		        }
-		        UserFilter: {
-		            idFields: never
-		            fields: {
-		                middle: {
-		                    type: {
-		                        record: "NestedUserFilter" | null
-		                    }
-		                    args: never
-		                }
-		                listRequired: {
-		                    type: {
-		                        list: string
-		                        nullable: true
-		                    }
-		                    args: never
-		                }
-		                nullList: {
-		                    type: {
-		                        list: string | null
-		                        nullable: false
-		                    }
-		                    args: never
-		                }
-		                recursive: {
-		                    type: {
-		                        record: "UserFilter" | null
-		                    }
-		                    args: never
-		                }
-		                enum: {
-		                    type: MyEnum | null
-		                    args: never
-		                }
-		            }
-		        }
-		        NestedUserFilter: {
-		            idFields: never
-		            fields: {
-		                id: {
-		                    type: string
-		                    args: never
-		                }
-		                firstName: {
-		                    type: string
-		                    args: never
-		                }
-		                admin: {
-		                    type: boolean | null
-		                    args: never
-		                }
-		                age: {
-		                    type: number | null
-		                    args: never
-		                }
-		                weight: {
-		                    type: number | null
-		                    args: never
 		                }
 		            }
 		        }
@@ -260,6 +217,10 @@ test('generates type definitions for the imperative API', async function () {
 		                }
 		                isAnimal: {
 		                    type: boolean
+		                    args: never
+		                }
+		                names: {
+		                    type: (string | null)[]
 		                    args: never
 		                }
 		            }

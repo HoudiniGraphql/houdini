@@ -70,12 +70,13 @@ function typeDefinitions(
 
 	const visitedTypes = new Set<string>()
 
-	// we need to build up a list of all of the types
+	// we need to build up a list of all of the concrete types
 	const types = Object.values(config.schema.getTypeMap()).filter(
 		(type): type is graphql.GraphQLNamedType =>
 			!graphql.isAbstractType(type) &&
 			!graphql.isScalarType(type) &&
 			!graphql.isEnumType(type) &&
+			!graphql.isInputObjectType(type) &&
 			!type.name.startsWith('__') &&
 			!operationTypes.includes(type.name)
 	)
@@ -118,7 +119,7 @@ function typeDefinitions(
 
 			// build up the field objects
 			let fields: TypeLiteral = AST.tsTypeLiteral([])
-			if (graphql.isObjectType(type) || graphql.isInputObjectType(type)) {
+			if (graphql.isObjectType(type)) {
 				fields = AST.tsTypeLiteral(
 					Object.entries(type.getFields()).map(
 						([key, fieldType]: [string, graphql.GraphQLField<any, any>]) => {
@@ -155,16 +156,24 @@ function typeDefinitions(
 								)
 							}
 
+							// we need to walk through the list of wrappers and build up the final type object
+							for (const wrapper of unwrapped.wrappers) {
+								console.log(typeOptions)
+								// if the wrapper is a
+							}
+
 							// if the first entry is a NonNull indicator, we need to add null to the list
-							const head = unwrapped.wrappers.pop()
+							const head = unwrapped.wrappers.shift()
 							if (head === TypeWrapper.Nullable) {
 								typeOptions.types.push(AST.tsNullKeyword())
 							}
 
 							// if there is a list in here
 							if (
-								head === TypeWrapper.List ||
-								unwrapped.wrappers.includes(TypeWrapper.List)
+								(head === TypeWrapper.List ||
+									unwrapped.wrappers.includes(TypeWrapper.List)) &&
+								// but not a scalar
+								!graphql.isScalarType(unwrapped.type)
 							) {
 								typeOptions = AST.tsTypeLiteral([
 									AST.tsPropertySignature(
@@ -193,6 +202,24 @@ function typeDefinitions(
 										AST.tsTypeAnnotation(typeOptions)
 									),
 								])
+							}
+
+							// if we are looking at a scalar that's a list
+							if (
+								(head === TypeWrapper.List ||
+									unwrapped.wrappers.includes(TypeWrapper.List)) &&
+								// but not a scalar
+								graphql.isScalarType(unwrapped.type)
+							) {
+								typeOptions = AST.tsArrayType(AST.tsParenthesizedType(typeOptions))
+
+								// if there is a nullable wrapper still in there, we need to wrap it all in null
+								if (!unwrapped.wrappers.includes(TypeWrapper.NonNull)) {
+									typeOptions = AST.tsUnionType([
+										typeOptions,
+										AST.tsNullKeyword(),
+									])
+								}
 							}
 
 							// if there are no arguments to the field, then we should leave a never behind
