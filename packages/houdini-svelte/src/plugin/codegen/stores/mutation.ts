@@ -23,8 +23,6 @@ export class ${storeName} extends ${store_class} {
 		})
 	}
 }
-
-export default new ${storeName}()
 `
 
 	const _input = `${artifactName}$input`

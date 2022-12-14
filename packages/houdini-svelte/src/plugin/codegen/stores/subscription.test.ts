@@ -51,8 +51,6 @@ test('generates a store for every subscription', async function () {
 				})
 			}
 		}
-
-		export default new TestSubscription1Store()
 	`
 	)
 })

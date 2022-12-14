@@ -60,8 +60,6 @@ export async function load_${artifactName}(params) {
 		${artifactName}: store,
 	}
 }
-
-export default new ${storeName}()
 `
 
 	const _input = `${artifactName}$input`

@@ -67,8 +67,6 @@ test('basic store', async function () {
 				TestQuery: store,
 			}
 		}
-
-		export default new TestQueryStore()
 	`)
 })
 
@@ -108,8 +106,6 @@ test('store with required variables', async function () {
 				TestQuery: store,
 			}
 		}
-
-		export default new TestQueryStore()
 	`)
 })
 
@@ -149,8 +145,6 @@ test('store with nullable variables', async function () {
 				TestQuery: store,
 			}
 		}
-
-		export default new TestQueryStore()
 	`)
 })
 
@@ -192,8 +186,6 @@ test('store with non-null variables with default value', async function () {
 				TestQuery: store,
 			}
 		}
-
-		export default new TestQueryStore()
 	`)
 })
 
@@ -243,8 +235,6 @@ test('forward cursor pagination', async function () {
 				TestQuery: store,
 			}
 		}
-
-		export default new TestQueryStore()
 	`)
 })
 
@@ -294,8 +284,6 @@ test('backwards cursor pagination', async function () {
 				TestQuery: store,
 			}
 		}
-
-		export default new TestQueryStore()
 	`)
 })
 
@@ -341,8 +329,6 @@ test('offset pagination', async function () {
 				TestQuery: store,
 			}
 		}
-
-		export default new TestQueryStore()
 	`)
 })
 

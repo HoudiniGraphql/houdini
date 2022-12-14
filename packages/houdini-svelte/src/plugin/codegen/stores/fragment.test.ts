@@ -53,8 +53,6 @@ test('generates a store for every fragment', async function () {
 				})
 			}
 		}
-
-		export default new TestFragment1Store()
 	`
 	)
 })

@@ -47,8 +47,6 @@ test('generates a store for every mutation', async function () {
 				})
 			}
 		}
-
-		export default new TestMutation1Store()
 	`
 	)
 })

@@ -7,7 +7,6 @@ import {
 	plugin_config,
 	resolve_relative,
 	stores_directory,
-	store_name,
 	type Framework,
 } from './kit'
 import apply_transforms from './transforms'
