@@ -1,5 +1,7 @@
 # houdini
 
+## 0.18.1
+
 ## 0.18.0
 
 ### ⚠️ Breaking Changes
