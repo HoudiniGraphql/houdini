@@ -24,7 +24,7 @@ test.describe('prefetch-[userId] Page', () => {
     // Data displayed should still be the same
     await expectToBe(page, dataDisplayedSSR);
 
-    // Hovering again previous link should not trigger a new request (it's already ion the cache) AND should not change sur data displayed
+    // Hovering again previous link should not trigger a new request (it's already in the cache) AND should not change sur data displayed
     await expect_0_gql(page, `a[id=previous]`, 'hover');
     // Data displayed should still be the same
     await expectToBe(page, dataDisplayedSSR);
