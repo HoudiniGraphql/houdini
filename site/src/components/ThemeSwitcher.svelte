@@ -11,7 +11,7 @@
 	const setTheme = () => {
 		const theme = ui_theme ? 0 : 1
 		ui_theme = theme
-		document.cookie = `ui_theme=${theme};path=/;SameSite=Strict`
+		document.cookie = `ui_theme=${theme};path=/;SameSite=Lax`
 	}
 </script>
 
