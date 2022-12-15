@@ -25,7 +25,7 @@
 
 <style>
 	button {
-		border: 2px solid #475365;
+		border: 2px solid var(--discreet);
 		color: #475365;
 		border-radius: 8px;
 		padding: 3px 11px;
