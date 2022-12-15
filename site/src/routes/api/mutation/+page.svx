@@ -118,7 +118,7 @@ and provide an "optimistic response" for the mutation with the second argument t
 
 ```svelte
 <script>
-	import { ToggleItemStore, graphql } from '$houdini'
+	import { graphql, type ToggleItemStore } from '$houdini'
 
 	export let itemID
 

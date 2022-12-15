@@ -129,9 +129,13 @@ Houdini generates runtime representations of every enum in your schema. They can
 `$houdini`:
 
 ```javascript
-import { MyEnum, MyMutationStore } from '$houdini'
+import { MyEnum, type UpdateStore } from '$houdini'
 
-const update = new MyMutationStore()
+const update: UpdateStore = graphql`
+	mutation Update($input: MyEnum!) {
+		update(input: $input)
+	}
+`
 
 function onClick() {
 	update.mutate({ variables: { input: MyEnum.Value1 } })
