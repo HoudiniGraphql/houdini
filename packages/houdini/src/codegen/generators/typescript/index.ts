@@ -63,6 +63,7 @@ export default async function typescriptGenerator(
 				filepath: filename,
 				selections: definition.selectionSet.selections,
 				fragmentDefinitions,
+				applyFragments: definition.kind === 'OperationDefinition',
 			})
 
 			if (definition?.kind === 'OperationDefinition') {

@@ -22,9 +22,7 @@ const config = {
     }
   },
   plugins: {
-    'houdini-svelte': {
-      client: './src/lib/graphql/houdiniClient'
-    }
+    'houdini-svelte': {}
   }
 };
 

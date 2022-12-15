@@ -1,5 +1,6 @@
 import { getCurrentConfig } from './config'
 import { ConfigFile } from './config'
+import { getFieldsForType } from './selection'
 import {
 	MutationArtifact,
 	QueryArtifact,
@@ -12,7 +13,7 @@ export async function marshalSelection({
 	data,
 }: {
 	selection: SubscriptionSelection
-	data: unknown
+	data: any
 }): Promise<{} | null | undefined> {
 	const config = await getCurrentConfig()
 
@@ -26,12 +27,14 @@ export async function marshalSelection({
 		return await Promise.all(data.map((val) => marshalSelection({ selection, data: val })))
 	}
 
+	const targetSelection = getFieldsForType(selection, data['__typename'] as string)
+
 	// we're looking at an object, build it up from the current input
 	return Object.fromEntries(
 		await Promise.all(
 			Object.entries(data as {}).map(async ([fieldName, value]) => {
 				// look up the type for the field
-				const { type, fields } = selection[fieldName]
+				const { type, selection } = targetSelection[fieldName]
 				// if we don't have type information for this field, just use it directly
 				// it's most likely a non-custom scalars or enums
 				if (!type) {
@@ -39,8 +42,8 @@ export async function marshalSelection({
 				}
 
 				// if there is a sub selection, walk down the selection
-				if (fields) {
-					return [fieldName, await marshalSelection({ selection: fields, data: value })]
+				if (selection) {
+					return [fieldName, await marshalSelection({ selection, data: value })]
 				}
 
 				// is the type something that requires marshaling
@@ -132,7 +135,7 @@ export async function marshalInputs<T>({
 export function unmarshalSelection(
 	config: ConfigFile,
 	selection: SubscriptionSelection,
-	data: unknown
+	data: any
 ): {} | null | undefined {
 	if (data === null || typeof data === 'undefined') {
 		return data
@@ -144,11 +147,13 @@ export function unmarshalSelection(
 		return data.map((val) => unmarshalSelection(config, selection, val))
 	}
 
+	const targetSelection = getFieldsForType(selection, data['__typename'] as string)
+
 	// we're looking at an object, build it up from the current input
 	return Object.fromEntries(
 		Object.entries(data as {}).map(([fieldName, value]) => {
 			// look up the type for the field
-			const { type, fields } = selection[fieldName]
+			const { type, selection } = targetSelection[fieldName]
 			// if we don't have type information for this field, just use it directly
 			// it's most likely a non-custom scalars or enums
 			if (!type) {
@@ -156,11 +161,11 @@ export function unmarshalSelection(
 			}
 
 			// if there is a sub selection, walk down the selection
-			if (fields) {
+			if (selection) {
 				return [
 					fieldName,
 					// unmarshalSelection({ artifact, config, input: value, rootType: type }),
-					unmarshalSelection(config, fields, value),
+					unmarshalSelection(config, selection, value),
 				]
 			}
 			if (value === null) {

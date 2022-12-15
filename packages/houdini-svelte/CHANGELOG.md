@@ -1,5 +1,42 @@
 # houdini-svelte
 
+## 0.18.0
+
+### ⚠️ Breaking Changes
+
+-   [#752](https://github.com/HoudiniGraphql/houdini/pull/752) [`d1fcc47`](https://github.com/HoudiniGraphql/houdini/commit/d1fcc479791c3477cee4b5fd006c44cd9aab60b9) Thanks [@jycouet](https://github.com/jycouet)! - exported functions now starts with an "\_"
+
+-   [#754](https://github.com/HoudiniGraphql/houdini/pull/754) [`ca6b4ec`](https://github.com/HoudiniGraphql/houdini/commit/ca6b4ec1d9906cad9c624c05a8ab4e7487d23900) Thanks [@jycouet](https://github.com/jycouet)! - deprecated usage of parentID in append and prepend
+    @houdini(load: false) was removed in favor of @manual_load
+    @houdini(mask: true | false) -> @mask_enable / @mask_disable
+    config disableMasking is now replaced by defaultFragmentMasking
+
+### 🐛 Fixes
+
+-   [#747](https://github.com/HoudiniGraphql/houdini/pull/747) [`7a34399`](https://github.com/HoudiniGraphql/houdini/commit/7a34399623d978f1ea89ec0a3fcf847893aa48fc) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix issue when working with unions and interfaces
+
+### ✨ Features
+
+-   [#738](https://github.com/HoudiniGraphql/houdini/pull/738) [`758683f`](https://github.com/HoudiniGraphql/houdini/commit/758683fdf5d28eaf995eae8acb3c03e231f91b56) Thanks [@jycouet](https://github.com/jycouet)! - client path is now optional and defaults to ./src/client
+
+-   [#746](https://github.com/HoudiniGraphql/houdini/pull/746) [`e07c090`](https://github.com/HoudiniGraphql/houdini/commit/e07c0902f02495ecd9872f9488864294d58d80f5) Thanks [@524c](https://github.com/524c)! - Only generate route types if there are page files present
+
+## 0.17.14
+
+### 🐛 Fixes
+
+-   [#725](https://github.com/HoudiniGraphql/houdini/pull/725) [`257e2ee`](https://github.com/HoudiniGraphql/houdini/commit/257e2eeeb64b0bb26236d637adc696068932cab3) Thanks [@jycouet](https://github.com/jycouet)! - following kit next.560 [breaking] Rename prerendering to building
+
+## 0.17.13
+
+### 🐛 Fixes
+
+-   [#719](https://github.com/HoudiniGraphql/houdini/pull/719) [`2a54094`](https://github.com/HoudiniGraphql/houdini/commit/2a5409487348fc491af225c524e6b76268db657a) Thanks [@sjcobb2022](https://github.com/sjcobb2022)! - Fixed: BeforeLoadEvent having wrong type
+
+### ✨ Features
+
+-   [#717](https://github.com/HoudiniGraphql/houdini/pull/717) [`e4c9896`](https://github.com/HoudiniGraphql/houdini/commit/e4c9896350661029945abb8bb5c4308a90cd6adf) Thanks [@jycouet](https://github.com/jycouet)! - set cached info stores asap, even in fake await scenario
+
 ## 0.17.12
 
 ### 🐛 Fixes

@@ -12,8 +12,9 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 			scalar Cursor
 
 
-			type User implements Node {
+			type User implements Node & Friend & CatOwner {
 				id: ID!
+				name: String!
 				firstName: String!
 				friends: [User!]!
 				friendsByCursor(first: Int, after: String, last: Int, before: String, filter: String): UserConnection!
@@ -28,13 +29,14 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				field(filter: String): String
 			}
 
-			type Ghost implements Friend {
+			type Ghost implements Friend & CatOwner & IsGhost {
 				name: String!
 				aka: String!
 				believers: [User!]!
 				friends: [Ghost!]!
 				friendsConnection(first: Int, after: String): GhostConnection!
 				legends: [Legend!]!
+				cats: [Cat!]!
 			}
 
 			type Legend {
@@ -60,6 +62,9 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				usersByBackwardsCursor(last: Int, before: String): UserConnection!
 				usersByForwardsCursor(first: Int, after: String): UserConnection!
 				usersByOffset(offset: Int, limit: Int): [User!]!
+				friendsByCursor(first: Int, after: String, last: Int, before: String): FriendConnection!
+				ghostsByCursor(first: Int, after: String, last: Int, before: String): IsGhostConnection!
+				entitiesByCursor(first: Int, after: String, last: Int, before: String): EntityConnection!
 				node(id: ID!): Node
 			}
 
@@ -75,14 +80,24 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				node: User
 			}
 
-			type UserEdgeScalar {
-				cursor: Cursor!
-				node: User
-			}
-
 			type UserConnection {
 				pageInfo: PageInfo!
 				edges: [UserEdge!]!
+			}
+
+			type FriendEdge {
+				cursor: String!
+				node: Friend
+			}
+
+			type FriendConnection {
+				pageInfo: PageInfo!
+				edges: [FriendEdge!]!
+			}
+
+			type UserEdgeScalar {
+				cursor: Cursor!
+				node: User
 			}
 
 			type UserConnectionScalar {
@@ -100,8 +115,36 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				edges: [GhostEdge!]!
 			}
 
+			type EntityEdge {
+				cursor: String!
+				node: Entity
+			}
+
+			type EntityConnection {
+				pageInfo: PageInfo!
+				edges: [EntityEdge!]!
+			}
+
+			type IsGhostEdge {
+				cursor: String!
+				node: IsGhost
+			}
+
+			type IsGhostConnection {
+				pageInfo: PageInfo!
+				edges: [IsGhostEdge!]!
+			}
+
 			interface Friend {
 				name: String!
+			}
+
+			interface CatOwner {
+				cats: [Cat!]!
+			}
+
+			interface IsGhost { 
+				aka: String!
 			}
 
 			union Entity = User | Cat | Ghost
@@ -195,7 +238,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 	})
 }
 
-type Partial<T> = {
+export type Partial<T> = {
 	[P in keyof T]?: T[P]
 }
 
@@ -218,15 +261,16 @@ export function pipelineTest(
 		} catch (e) {
 			// only bubble the error up if we're supposed to pass the test
 			if (shouldPass) {
-				throw e
+				// console.error(docs)
+				console.error(e)
+				throw 'pipeline failed when it should have passed'
 			}
 			error = e as Error[]
 		}
 
 		// if we shouldn't pass but we did, we failed the test
 		if (!shouldPass && error.length === 0) {
-			throw 'did not fail test'
-			return
+			throw "pipeline shouldn't have passed!"
 		}
 
 		// run the rest of the test

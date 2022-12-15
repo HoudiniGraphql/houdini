@@ -633,7 +633,7 @@ describe('typescript', function () {
 	})
 
 	test('fragment spreads no masking', async function () {
-		const withoutMasking = testConfig({ disableMasking: true })
+		const withoutMasking = testConfig({ defaultFragmentMasking: 'disable' })
 
 		// the document with the fragment
 		const fragment = mockCollectedDoc(`fragment Foo on User { firstName }`)
@@ -1076,7 +1076,10 @@ describe('typescript', function () {
 	})
 
 	test('can reference list fragments', async function () {
-		const unmaskedConfig = testConfig({ disableMasking: true, schema: config.schema })
+		const unmaskedConfig = testConfig({
+			defaultFragmentMasking: 'disable',
+			schema: config.schema,
+		})
 
 		// the document to test
 		const docs = [
@@ -1178,7 +1181,7 @@ describe('typescript', function () {
 
 	test('disable default fragment masking', async function () {
 		const configWithoutMasking = testConfig({
-			disableMasking: true,
+			defaultFragmentMasking: 'disable',
 			schema: config.schema,
 		})
 
@@ -1249,7 +1252,7 @@ describe('typescript', function () {
 
 	test('disable individual fragment masking', async function () {
 		const configWithMasking = testConfig({
-			disableMasking: false,
+			defaultFragmentMasking: 'enable',
 			schema: config.schema,
 		})
 
@@ -1257,7 +1260,7 @@ describe('typescript', function () {
 			mockCollectedDoc(`
 				query MyQuery {
 					user {
-						...UserBase @houdini(mask: false)
+						...UserBase @mask_disable
 						...UserMore
 					}
 				}
@@ -1335,7 +1338,7 @@ describe('typescript', function () {
 
 	test('enable individual fragment masking', async function () {
 		const configWithoutMasking = testConfig({
-			disableMasking: true,
+			defaultFragmentMasking: 'disable',
 			schema: config.schema,
 		})
 
@@ -1343,7 +1346,7 @@ describe('typescript', function () {
 			mockCollectedDoc(`
 				query MyQuery {
 					user {
-						...UserBase @houdini(mask: true)
+						...UserBase @mask_enable
 						...UserMore
 					}
 				}

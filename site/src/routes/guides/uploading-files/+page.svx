@@ -1,6 +1,6 @@
 ---
 title: Uploading Files
-index: 10
+index: 9
 description: A guide for handling file uploads in Houdini
 ---
 
@@ -13,7 +13,7 @@ define your mutation to receive a file as an input:
 scalar File
 
 type Mutation {
-    uploadImage(file: File): UploadImageResult
+	uploadImage(file: File): UploadImageResult
 }
 ```
 

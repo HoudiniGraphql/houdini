@@ -137,25 +137,36 @@ export type GraphQLValue =
 	| undefined
 
 export type SubscriptionSelection = {
-	[field: string]: {
-		type: string
-		nullable?: boolean
-		keyRaw: string
-		operations?: MutationOperation[]
-		list?: {
-			name: string
-			connection: boolean
+	fields?: {
+		[fieldName: string]: {
 			type: string
-		}
-		update?: RefetchUpdateMode
-		filters?: {
-			[key: string]: {
-				kind: 'Boolean' | 'String' | 'Float' | 'Int' | 'Variable'
-				value: string | number | boolean
+			nullable?: boolean
+			keyRaw: string
+			operations?: MutationOperation[]
+			list?: {
+				name: string
+				connection: boolean
+				type: string
 			}
+			update?: RefetchUpdateMode
+			filters?: {
+				[key: string]: {
+					kind: 'Boolean' | 'String' | 'Float' | 'Int' | 'Variable'
+					value: string | number | boolean
+				}
+			}
+			selection?: SubscriptionSelection
+			abstract?: boolean
 		}
-		fields?: SubscriptionSelection
-		abstract?: boolean
+	}
+	abstractFields?: {
+		fields: {
+			[typeName: string]: SubscriptionSelection['fields']
+		}
+		// a mapping of __typenames to abstract types that might appear in the selection
+		typeMap: {
+			[typeName: string]: string
+		}
 	}
 }
 

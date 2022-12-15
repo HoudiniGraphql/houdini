@@ -6,6 +6,50 @@ description: A guide to migrating your application to each breaking version of h
 
 # Release Notes
 
+## 0.18.0
+
+`v0.18.0` brought with it a large collection of breaking changes. Some of them were required by recent updates to SvelteKit,
+and some of them are things we've been holding onto for awhile. This section will outline the things you need to change. For
+a more in-depth summary of everything that was released with this update, check out the
+[houdini](https://github.com/HoudiniGraphql/houdini/blob/main/packages/houdini/CHANGELOG.md) and
+[houdini-svelte](https://github.com/HoudiniGraphql/houdini/blob/main/packages/houdini-svelte/CHANGELOG.md) changelogs.
+
+### Magic functions are now prefixed with `_`
+
+Since SvelteKit `1.0.0-next.573`, all unknown exports in a `+page` file have to be prefixed with `_`. Since we expect
+more plugins to show up over time and we want to avoid breaking this API again, we opted for `_houdini`:
+
+```diff
+-   export const YourQueryVariables = (event) => {}
++   export const _YourQueryVariables = (event) => {}
+
+-   export const houdini_load = (event) => {}
++   export const _houdini_load = (event) => {}
+
+-   export const afterLoad = (event) => {}
++   export const _houdini_afterLoad = (event) => {}
+
+-   export const beforeLoad = (event) => {}
++   export const _houdini_beforeLoad = (event) => {}
+
+-   export const onError = (event) => {}
++   export const _houdini_onError = (event) => {}
+```
+
+### Directives have been cleaned up
+
+The generic use of the `@houdini` directive caused a confusing experience when relying on intellisense to autocomplete
+directives. In order to provide a better experience in your editor, we split up the `@houdini` directive and cleaned up
+some overlapping use cases:
+
+- deprecated usage of `parentID` argument in `@append` and `@prepend`. You should now use `@parentID` separately
+- `@houdini(load: false)` was removed in favor of `@manual_load`
+- `@houdini(mask: true | false)` was removed for two directives: `@mask_enable` and `@mask_disable`
+
+### Changed config values
+
+The `disableMasking` is now replaced by `defaultFragmentMasking` which sets the global default.
+
 ## 0.17.0
 
 `v0.17.0` is mostly an internal refactor but it _does_ require you to install a new dependency and

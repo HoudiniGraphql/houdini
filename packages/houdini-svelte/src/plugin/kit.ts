@@ -1,5 +1,5 @@
 import * as graphql from 'graphql'
-import { fs, find_graphql, Config, path } from 'houdini'
+import { Config, find_graphql, fs, path } from 'houdini'
 import { ensure_imports } from 'houdini/vite'
 import recast from 'recast'
 
@@ -272,9 +272,9 @@ export async function walk_routes(
 			'$types.d.ts'
 		)
 
-		// if type does not exists we error.
+		// We will only visite valid routes for Svelte.
 		if (!fs.existsSync(svelteTypeFilePath)) {
-			throw Error(`SvelteKit types do not exist at route: ${svelteTypeFilePath}`)
+			return
 		}
 
 		// only runs once per directory
@@ -362,6 +362,7 @@ export function plugin_config(config: Config): Required<HoudiniVitePluginConfig>
 	const cfg = config.pluginConfig<HoudiniVitePluginConfig>('houdini-svelte')
 
 	return {
+		client: './src/client',
 		globalStorePrefix: 'GQL_',
 		pageQueryFilename: '+page.gql',
 		layoutQueryFilename: '+layout.gql',

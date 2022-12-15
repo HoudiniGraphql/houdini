@@ -6,7 +6,9 @@ export const routes = {
   Query_param: '/query-param',
   isFetching_with_load: '/isFetching/with_load',
   isFetching_without_load: '/isFetching/without_load',
+  isFetching_route_1: '/isFetching/route_1',
   lists_all: '/lists-all?limit=15',
+  union_result: '/union-result',
 
   Stores_SSR: '/stores/ssr',
   Stores_Network: '/stores/network',
@@ -25,6 +27,7 @@ export const routes = {
   Stores_Endpoint_Query: '/stores/endpoint-query',
   Stores_Endpoint_Mutation: '/stores/endpoint-mutation',
   Stores_Session: '/stores/session',
+  Stores_Comp_disable_auto_fetch: '/stores/comp_disable_auto_fetch',
 
   Stores_Partial_List: '/stores/partial/partial_List',
   Stores_Pagination_query_forward_cursor: '/stores/pagination/query/forward-cursor',

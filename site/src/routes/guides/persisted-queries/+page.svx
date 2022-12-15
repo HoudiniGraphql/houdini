@@ -1,6 +1,6 @@
 ---
 title: Persisted Queries
-index: 8
+index: 7
 description: A guide to persisted queries in Houdini
 ---
 

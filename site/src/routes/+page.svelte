@@ -120,9 +120,11 @@
 		<img src="/images/logo.svg" alt="Houdini Logo" width="175px" />
 	</a>
 	<nav>
-		<a href="/intro/welcome" class="nav-link" data-sveltekit-prefetch>Get Started</a>
-		<a href="/guides/faq" class="nav-link small-hidden" data-sveltekit-prefetch>Guides</a>
-		<a href="/api/welcome" class="nav-link small-hidden" data-sveltekit-prefetch>API</a>
+		<a href="/intro/welcome" class="nav-link" data-sveltekit-preload-data="hover">Get Started</a>
+		<a href="/guides/faq" class="nav-link small-hidden" data-sveltekit-preload-data="hover"
+			>Guides</a
+		>
+		<a href="/api/welcome" class="nav-link small-hidden" data-sveltekit-preload-data="hover">API</a>
 		<a
 			href="https://github.com/sponsors/HoudiniGraphql"
 			class="nav-link small-hidden"
@@ -153,7 +155,9 @@
 				{/each}
 			</ul>
 			<nav id="hero-buttons">
-				<a href="/intro/welcome" class="button-shadow" data-sveltekit-prefetch>Get Started</a>
+				<a href="/intro/welcome" class="button-shadow" data-sveltekit-preload-data="hover"
+					>Get Started</a
+				>
 			</nav>
 		</div>
 		<div>

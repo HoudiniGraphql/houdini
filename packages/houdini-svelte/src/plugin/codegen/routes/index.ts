@@ -8,6 +8,7 @@ import {
 	Framework,
 	walk_routes,
 } from '../../kit'
+import { houdini_after_load_fn, houdini_before_load_fn, houdini_on_error_fn } from '../../naming'
 
 export default async function svelteKitGenerator(
 	framework: Framework,
@@ -67,13 +68,13 @@ export default async function svelteKitGenerator(
 				)
 
 				// Util bools for ensuring no unnecessary types
-				const afterPageLoad = pageExports.includes('afterLoad')
-				const beforePageLoad = pageExports.includes('beforeLoad')
-				const onPageError = pageExports.includes('onError')
+				const beforePageLoad = pageExports.includes(houdini_before_load_fn)
+				const afterPageLoad = pageExports.includes(houdini_after_load_fn)
+				const onPageError = pageExports.includes(houdini_on_error_fn)
 
-				const afterLayoutLoad = layoutExports.includes('afterLoad')
-				const beforeLayoutLoad = layoutExports.includes('beforeLoad')
-				const onLayoutError = layoutExports.includes('onError')
+				const beforeLayoutLoad = layoutExports.includes(houdini_before_load_fn)
+				const afterLayoutLoad = layoutExports.includes(houdini_after_load_fn)
+				const onLayoutError = layoutExports.includes(houdini_on_error_fn)
 
 				const layout_append_VariablesFunction = append_VariablesFunction(
 					'Layout',
@@ -302,7 +303,7 @@ type AfterLoadData = {
 };
 
 export type AfterLoadEvent = {
-	event: PageLoadEvent
+	event: ${type}LoadEvent
 	data: AfterLoadData
 	input: ${queries.filter((q) => q.variableDefinitions?.length).length ? 'LoadInput' : '{}'}
 };
@@ -324,7 +325,7 @@ function internal_append_afterLoad(queries: OperationDefinitionNode[]) {
 function append_beforeLoad(beforeLoad: boolean, type: 'Layout' | 'Page') {
 	return beforeLoad
 		? `
-export type BeforeLoadEvent = PageLoadEvent;
+export type BeforeLoadEvent = ${type}LoadEvent;
 type BeforeLoadReturn = Awaited<ReturnType<typeof import('./+${type.toLowerCase()}').beforeLoad>>;
 `
 		: ''

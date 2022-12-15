@@ -59,14 +59,18 @@ test('pass argument values to generated fragments', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        users: {
-		            type: "User",
-		            keyRaw: "users(stringValue: \\"Hello\\")",
+		        fields: {
+		            users: {
+		                type: "User",
+		                keyRaw: "users(stringValue: \\"Hello\\")",
 
-		            fields: {
-		                id: {
-		                    type: "ID",
-		                    keyRaw: "id"
+		                selection: {
+		                    fields: {
+		                        id: {
+		                            type: "ID",
+		                            keyRaw: "id"
+		                        }
+		                    }
 		                }
 		            }
 		        }
@@ -132,14 +136,18 @@ test("nullable arguments with no values don't show up in the query", async funct
 		    rootType: "Query",
 
 		    selection: {
-		        users: {
-		            type: "User",
-		            keyRaw: "users",
+		        fields: {
+		            users: {
+		                type: "User",
+		                keyRaw: "users",
 
-		            fields: {
-		                id: {
-		                    type: "ID",
-		                    keyRaw: "id"
+		                selection: {
+		                    fields: {
+		                        id: {
+		                            type: "ID",
+		                            keyRaw: "id"
+		                        }
+		                    }
 		                }
 		            }
 		        }
@@ -205,14 +213,18 @@ test("fragment arguments with default values don't rename the fragment", async f
 		    rootType: "Query",
 
 		    selection: {
-		        users: {
-		            type: "User",
-		            keyRaw: "users(stringValue: \\"Hello\\")",
+		        fields: {
+		            users: {
+		                type: "User",
+		                keyRaw: "users(stringValue: \\"Hello\\")",
 
-		            fields: {
-		                id: {
-		                    type: "ID",
-		                    keyRaw: "id"
+		                selection: {
+		                    fields: {
+		                        id: {
+		                            type: "ID",
+		                            keyRaw: "id"
+		                        }
+		                    }
 		                }
 		            }
 		        }
@@ -290,14 +302,18 @@ test('thread query variables to inner fragments', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        users: {
-		            type: "User",
-		            keyRaw: "users(stringValue: $name)",
+		        fields: {
+		            users: {
+		                type: "User",
+		                keyRaw: "users(stringValue: $name)",
 
-		            fields: {
-		                id: {
-		                    type: "ID",
-		                    keyRaw: "id"
+		                selection: {
+		                    fields: {
+		                        id: {
+		                            type: "ID",
+		                            keyRaw: "id"
+		                        }
+		                    }
 		                }
 		            }
 		        }
@@ -383,14 +399,18 @@ test('inner fragment with intermediate default value', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        users: {
-		            type: "User",
-		            keyRaw: "users(stringValue: \\"Hello\\", intValue: 2)",
+		        fields: {
+		            users: {
+		                type: "User",
+		                keyRaw: "users(stringValue: \\"Hello\\", intValue: 2)",
 
-		            fields: {
-		                id: {
-		                    type: "ID",
-		                    keyRaw: "id"
+		                selection: {
+		                    fields: {
+		                        id: {
+		                            type: "ID",
+		                            keyRaw: "id"
+		                        }
+		                    }
 		                }
 		            }
 		        }
@@ -468,14 +488,18 @@ test("default values don't overwrite unless explicitly passed", async function (
 		    rootType: "Query",
 
 		    selection: {
-		        users: {
-		            type: "User",
-		            keyRaw: "users(stringValue: \\"Goodbye\\", intValue: 10)",
+		        fields: {
+		            users: {
+		                type: "User",
+		                keyRaw: "users(stringValue: \\"Goodbye\\", intValue: 10)",
 
-		            fields: {
-		                id: {
-		                    type: "ID",
-		                    keyRaw: "id"
+		                selection: {
+		                    fields: {
+		                        id: {
+		                            type: "ID",
+		                            keyRaw: "id"
+		                        }
+		                    }
 		                }
 		            }
 		        }
@@ -541,14 +565,18 @@ test('default arguments', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        users: {
-		            type: "User",
-		            keyRaw: "users(boolValue: true, stringValue: \\"Hello\\")",
+		        fields: {
+		            users: {
+		                type: "User",
+		                keyRaw: "users(boolValue: true, stringValue: \\"Hello\\")",
 
-		            fields: {
-		                id: {
-		                    type: "ID",
-		                    keyRaw: "id"
+		                selection: {
+		                    fields: {
+		                        id: {
+		                            type: "ID",
+		                            keyRaw: "id"
+		                        }
+		                    }
 		                }
 		            }
 		        }
@@ -614,14 +642,18 @@ test('multiple with directives - no overlap', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        users: {
-		            type: "User",
-		            keyRaw: "users(boolValue: false, stringValue: \\"Goodbye\\")",
+		        fields: {
+		            users: {
+		                type: "User",
+		                keyRaw: "users(boolValue: false, stringValue: \\"Goodbye\\")",
 
-		            fields: {
-		                id: {
-		                    type: "ID",
-		                    keyRaw: "id"
+		                selection: {
+		                    fields: {
+		                        id: {
+		                            type: "ID",
+		                            keyRaw: "id"
+		                        }
+		                    }
 		                }
 		            }
 		        }

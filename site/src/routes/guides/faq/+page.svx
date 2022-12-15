@@ -35,7 +35,7 @@ Consider this query:
 <script>
 	import { query, graphql } from '$houdini'
 
-	const { data } = query(graphql`
+	const SpeciesInfo = graphql`
 		query SpeciesInfo {
 			species(id: 1) {
 				name
@@ -45,11 +45,11 @@ Consider this query:
 				}
 			}
 		}
-	`)
+	`
 </script>
 
 <div>
-	{$data.info..species.name}
+	{$SpeciesInfo.data.info.species.name}
 </div>
 ```
 

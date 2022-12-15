@@ -40,10 +40,10 @@ test('adds internal documents to schema', async function () {
 			directive @paginate(name: String) on FIELD
 
 			"""@prepend is used to tell the runtime to add the result to the end of the list"""
-			directive @prepend(parentID: ID) on FRAGMENT_SPREAD
+			directive @prepend on FRAGMENT_SPREAD
 
 			"""@append is used to tell the runtime to add the result to the start of the list"""
-			directive @append(parentID: ID) on FRAGMENT_SPREAD
+			directive @append on FRAGMENT_SPREAD
 
 			"""@allLists is used to tell the runtime to add the result to all list"""
 			directive @allLists on FRAGMENT_SPREAD
@@ -66,13 +66,14 @@ test('adds internal documents to schema', async function () {
 			"""@cache is used to specify cache rules for a query"""
 			directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
-			"""@houdini is used to configure houdini's internal behavior"""
-			directive @houdini(
-			  """Opt-in to an automatic load function (only valid when used at queries)"""
-			  load: Boolean! = true
-			  """Mask fragment fields (only valid when used at a fragment spread)"""
-			  mask: Boolean! = true
-			) on QUERY | FRAGMENT_SPREAD
+			"""@manual_load is used to disable automatic fetch (no load, no auto fetch in component), you will have to do it manually."""
+			directive @manual_load on QUERY
+
+			"""@mask_enable to enable masking on fragment (overwriting the global conf)"""
+			directive @mask_enable on FRAGMENT_SPREAD
+
+			"""@mask_disable to disable masking on fragment (overwriting the global conf)"""
+			directive @mask_disable on FRAGMENT_SPREAD
 		`)
 })
 
@@ -110,10 +111,10 @@ test('list operations are included', async function () {
 			directive @paginate(name: String) on FIELD
 
 			"""@prepend is used to tell the runtime to add the result to the end of the list"""
-			directive @prepend(parentID: ID) on FRAGMENT_SPREAD
+			directive @prepend on FRAGMENT_SPREAD
 
 			"""@append is used to tell the runtime to add the result to the start of the list"""
-			directive @append(parentID: ID) on FRAGMENT_SPREAD
+			directive @append on FRAGMENT_SPREAD
 
 			"""@allLists is used to tell the runtime to add the result to all list"""
 			directive @allLists on FRAGMENT_SPREAD
@@ -136,13 +137,14 @@ test('list operations are included', async function () {
 			"""@cache is used to specify cache rules for a query"""
 			directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
-			"""@houdini is used to configure houdini's internal behavior"""
-			directive @houdini(
-			  """Opt-in to an automatic load function (only valid when used at queries)"""
-			  load: Boolean! = true
-			  """Mask fragment fields (only valid when used at a fragment spread)"""
-			  mask: Boolean! = true
-			) on QUERY | FRAGMENT_SPREAD
+			"""@manual_load is used to disable automatic fetch (no load, no auto fetch in component), you will have to do it manually."""
+			directive @manual_load on QUERY
+
+			"""@mask_enable to enable masking on fragment (overwriting the global conf)"""
+			directive @mask_enable on FRAGMENT_SPREAD
+
+			"""@mask_disable to disable masking on fragment (overwriting the global conf)"""
+			directive @mask_disable on FRAGMENT_SPREAD
 
 			directive @User_delete repeatable on FIELD
 		`)
@@ -199,10 +201,10 @@ test("writing twice doesn't duplicate definitions", async function () {
 			directive @paginate(name: String) on FIELD
 
 			"""@prepend is used to tell the runtime to add the result to the end of the list"""
-			directive @prepend(parentID: ID) on FRAGMENT_SPREAD
+			directive @prepend on FRAGMENT_SPREAD
 
 			"""@append is used to tell the runtime to add the result to the start of the list"""
-			directive @append(parentID: ID) on FRAGMENT_SPREAD
+			directive @append on FRAGMENT_SPREAD
 
 			"""@allLists is used to tell the runtime to add the result to all list"""
 			directive @allLists on FRAGMENT_SPREAD
@@ -225,12 +227,13 @@ test("writing twice doesn't duplicate definitions", async function () {
 			"""@cache is used to specify cache rules for a query"""
 			directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
-			"""@houdini is used to configure houdini's internal behavior"""
-			directive @houdini(
-			  """Opt-in to an automatic load function (only valid when used at queries)"""
-			  load: Boolean! = true
-			  """Mask fragment fields (only valid when used at a fragment spread)"""
-			  mask: Boolean! = true
-			) on QUERY | FRAGMENT_SPREAD
+			"""@manual_load is used to disable automatic fetch (no load, no auto fetch in component), you will have to do it manually."""
+			directive @manual_load on QUERY
+
+			"""@mask_enable to enable masking on fragment (overwriting the global conf)"""
+			directive @mask_enable on FRAGMENT_SPREAD
+
+			"""@mask_disable to disable masking on fragment (overwriting the global conf)"""
+			directive @mask_disable on FRAGMENT_SPREAD
 		`)
 })

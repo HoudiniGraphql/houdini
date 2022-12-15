@@ -44,26 +44,32 @@ test('cache policy is persisted in artifact', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        user: {
-		            type: "User",
-		            keyRaw: "user",
+		        fields: {
+		            user: {
+		                type: "User",
+		                keyRaw: "user",
 
-		            fields: {
-		                friends: {
-		                    type: "User",
-		                    keyRaw: "friends",
-
+		                selection: {
 		                    fields: {
+		                        friends: {
+		                            type: "User",
+		                            keyRaw: "friends",
+
+		                            selection: {
+		                                fields: {
+		                                    id: {
+		                                        type: "ID",
+		                                        keyRaw: "id"
+		                                    }
+		                                }
+		                            }
+		                        },
+
 		                        id: {
 		                            type: "ID",
 		                            keyRaw: "id"
 		                        }
 		                    }
-		                },
-
-		                id: {
-		                    type: "ID",
-		                    keyRaw: "id"
 		                }
 		            }
 		        }
@@ -119,26 +125,32 @@ test('can change default cache policy', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        user: {
-		            type: "User",
-		            keyRaw: "user",
+		        fields: {
+		            user: {
+		                type: "User",
+		                keyRaw: "user",
 
-		            fields: {
-		                friends: {
-		                    type: "User",
-		                    keyRaw: "friends",
-
+		                selection: {
 		                    fields: {
+		                        friends: {
+		                            type: "User",
+		                            keyRaw: "friends",
+
+		                            selection: {
+		                                fields: {
+		                                    id: {
+		                                        type: "ID",
+		                                        keyRaw: "id"
+		                                    }
+		                                }
+		                            }
+		                        },
+
 		                        id: {
 		                            type: "ID",
 		                            keyRaw: "id"
 		                        }
 		                    }
-		                },
-
-		                id: {
-		                    type: "ID",
-		                    keyRaw: "id"
 		                }
 		            }
 		        }
@@ -189,26 +201,32 @@ test('partial opt-in is persisted', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        user: {
-		            type: "User",
-		            keyRaw: "user",
+		        fields: {
+		            user: {
+		                type: "User",
+		                keyRaw: "user",
 
-		            fields: {
-		                friends: {
-		                    type: "User",
-		                    keyRaw: "friends",
-
+		                selection: {
 		                    fields: {
+		                        friends: {
+		                            type: "User",
+		                            keyRaw: "friends",
+
+		                            selection: {
+		                                fields: {
+		                                    id: {
+		                                        type: "ID",
+		                                        keyRaw: "id"
+		                                    }
+		                                }
+		                            }
+		                        },
+
 		                        id: {
 		                            type: "ID",
 		                            keyRaw: "id"
 		                        }
 		                    }
-		                },
-
-		                id: {
-		                    type: "ID",
-		                    keyRaw: "id"
 		                }
 		            }
 		        }
@@ -264,26 +282,32 @@ test('can set default partial opt-in', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        user: {
-		            type: "User",
-		            keyRaw: "user",
+		        fields: {
+		            user: {
+		                type: "User",
+		                keyRaw: "user",
 
-		            fields: {
-		                friends: {
-		                    type: "User",
-		                    keyRaw: "friends",
-
+		                selection: {
 		                    fields: {
+		                        friends: {
+		                            type: "User",
+		                            keyRaw: "friends",
+
+		                            selection: {
+		                                fields: {
+		                                    id: {
+		                                        type: "ID",
+		                                        keyRaw: "id"
+		                                    }
+		                                }
+		                            }
+		                        },
+
 		                        id: {
 		                            type: "ID",
 		                            keyRaw: "id"
 		                        }
 		                    }
-		                },
-
-		                id: {
-		                    type: "ID",
-		                    keyRaw: "id"
 		                }
 		            }
 		        }

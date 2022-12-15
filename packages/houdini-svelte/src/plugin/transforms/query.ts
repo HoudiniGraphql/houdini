@@ -1,10 +1,12 @@
+import { logYellow } from '@kitql/helper'
 import { ExpressionKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
-import { Config, operation_requires_variables, find_graphql, Script } from 'houdini'
+import { Config, operation_requires_variables, find_graphql, Script, formatErrors } from 'houdini'
 import { find_exported_fn, find_insert_index, ensure_imports, TransformPage } from 'houdini/vite'
 import * as recast from 'recast'
 
 import { is_component, store_import_path } from '../kit'
+import { query_variable_fn } from '../naming'
 import { SvelteTransformPage } from './types'
 
 const AST = recast.types.builders
@@ -96,6 +98,16 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 			// if the query does not have variables, just define something local
 			const variable_fn = query_variable_fn(query.name)
 			const has_variables = find_exported_fn(page.script.body, variable_fn)
+
+			// If we need the variables function, but it's missing... let's display a message
+			if (query.variables && has_variables === null) {
+				formatErrors({
+					filepath: page.filepath,
+					message: `Could not find required variable function: ${logYellow(
+						variable_fn
+					)}. maybe its not exported? `,
+				})
+			}
 
 			return [
 				// define the inputs for the query
@@ -212,16 +224,9 @@ export async function find_inline_queries(
 				return false
 			}
 
-			// as long as they don't have the @houdini directive with load set to false
+			// as long as they don't have the @manual_load directive with load set to false
 			return !queryOperation.directives?.find(
-				(directive) =>
-					directive.name.value === page.config.houdiniDirective &&
-					directive.arguments?.find(
-						(arg) =>
-							arg.name.value === 'load' &&
-							arg.value.kind === 'BooleanValue' &&
-							!arg.value.value
-					)
+				(directive) => directive.name.value === page.config.manualLoadDirective
 			)
 		},
 		dependency: page.watch_file,
@@ -248,10 +253,6 @@ export async function find_inline_queries(
 			variables: query.variables,
 		}
 	})
-}
-
-export function query_variable_fn(name: string) {
-	return `${name}Variables`
 }
 
 export type LoadTarget = {

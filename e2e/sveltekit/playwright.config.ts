@@ -17,13 +17,14 @@ if (process.env.CI) {
 }
 
 const config = {
-  retries: 3,
+  retries: process.env.CI ? 3 : 0,
   workers: 5,
   reporter,
   use,
   webServer: {
     command: 'npm run build && npm run preview',
-    port: 3007
+    port: 3007,
+    timeout: 120 * 1000
   }
 };
 

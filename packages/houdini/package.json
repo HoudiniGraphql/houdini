@@ -1,6 +1,6 @@
 {
     "name": "houdini",
-    "version": "0.17.12",
+    "version": "0.18.0",
     "description": "The disappearing GraphQL clients",
     "keywords": [
         "typescript",
@@ -28,7 +28,7 @@
         "rollup": "^2.79.1",
         "scripts": "workspace:^",
         "turbo": "^1.5.4",
-        "vite": "^3.1.6",
+        "vite": "^3.2.4",
         "vitest": "^0.23.4"
     },
     "dependencies": {
