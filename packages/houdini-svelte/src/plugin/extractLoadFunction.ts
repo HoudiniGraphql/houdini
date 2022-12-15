@@ -1,4 +1,4 @@
-import type { ExpressionKind } from 'ast-types/gen/kinds'
+import type { ExpressionKind } from 'ast-types/lib/gen/kinds'
 import * as graphql from 'graphql'
 import { Config, fs, parseJS, path } from 'houdini'
 import * as recast from 'recast'
@@ -78,7 +78,7 @@ async function processScript(
 
 			for (const specifier of statement.specifiers ?? []) {
 				// the name of the query the import points to (if applicable)
-				let name = specifier.local?.name || ''
+				let name = (specifier.local?.name as string) || ''
 				let query = ''
 
 				const store_prefix = plugin_config(config).globalStorePrefix

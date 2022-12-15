@@ -1,4 +1,4 @@
-import type { StatementKind, TSPropertySignatureKind } from 'ast-types/gen/kinds'
+import type { StatementKind, TSPropertySignatureKind } from 'ast-types/lib/gen/kinds'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
