@@ -99,7 +99,7 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 		}
 		// we are writing a link so we need to add some information to the selection
 		// as well as use the id fields for the value
-		else if (value instanceof Record) {
+		else if ((value as unknown) instanceof Record) {
 			// use the id fields as the value
 			newValue = {
 				...value.idFields,
