@@ -14,25 +14,8 @@ export default async function imperativeCacheTypef(
 	config: Config,
 	docs: CollectedGraphQLDocument[]
 ) {
-	// in order to integrate with the generated runtime
-	// we need to export a type of the expected name
-	const CacheTypeDefName = 'CacheTypeDef'
 	// from a specific file
 	const target = path.join(config.runtimeDirectory, 'generated.d.ts')
-
-	// we need to import every enum
-	const enums = Object.values(config.schema.getTypeMap()).filter(
-		(type) =>
-			graphql.isEnumType(type) &&
-			!config.isInternalEnum({
-				kind: 'EnumTypeDefinition',
-				name: {
-					kind: 'Name',
-					value: type.name,
-				},
-			}) &&
-			!type.name.startsWith('__')
-	)
 
 	const body: StatementKind[] = []
 
@@ -52,10 +35,19 @@ export default async function imperativeCacheTypef(
 	)
 	declaration.declare = true
 
+	// we need to import the record type from the public cache
+	const importRecord = AST.importDeclaration(
+		[AST.importSpecifier(AST.identifier('Record'))],
+		AST.stringLiteral('./public')
+	)
+	importRecord.importKind = 'type'
+
 	// print the result and write to the magic location
 	await fs.writeFile(
 		target,
-		recast.prettyPrint(AST.program([...body, AST.exportNamedDeclaration(declaration)])).code
+		recast.prettyPrint(
+			AST.program([importRecord, ...body, AST.exportNamedDeclaration(declaration)])
+		).code
 	)
 }
 
@@ -123,6 +115,8 @@ function typeDefinitions(
 				fields = AST.tsTypeLiteral(
 					Object.entries(type.getFields()).map(
 						([key, fieldType]: [string, graphql.GraphQLField<any, any>]) => {
+							// we need to turn ever field into a nested, possible nullable lists
+
 							// figure out what was wrapped up
 							const unwrapped = unwrapType(config, fieldType.type)
 
@@ -141,85 +135,34 @@ function typeDefinitions(
 							}
 							// if the type isn't abtract, we just need to leave behind a string
 							else if (!graphql.isAbstractType(unwrapped.type)) {
-								typeOptions.types.push(
-									AST.tsLiteralType(AST.stringLiteral(unwrapped.type.name))
-								)
+								typeOptions.types.push(record(unwrapped.type.name))
 							}
 							// the type is abtract so add every possible type
 							else {
 								typeOptions.types.push(
 									...config.schema
 										.getPossibleTypes(unwrapped.type)
-										.map((type) =>
-											AST.tsLiteralType(AST.stringLiteral(type.name))
-										)
+										.map((type) => record(type.name))
 								)
 							}
 
 							// we need to walk through the list of wrappers and build up the final type object
 							for (const wrapper of unwrapped.wrappers) {
-								console.log(typeOptions)
-								// if the wrapper is a
-							}
-
-							// if the first entry is a NonNull indicator, we need to add null to the list
-							const head = unwrapped.wrappers.shift()
-							if (head === TypeWrapper.Nullable) {
-								typeOptions.types.push(AST.tsNullKeyword())
-							}
-
-							// if there is a list in here
-							if (
-								(head === TypeWrapper.List ||
-									unwrapped.wrappers.includes(TypeWrapper.List)) &&
-								// but not a scalar
-								!graphql.isScalarType(unwrapped.type)
-							) {
-								typeOptions = AST.tsTypeLiteral([
-									AST.tsPropertySignature(
-										AST.identifier('list'),
-										AST.tsTypeAnnotation(typeOptions)
-									),
-
-									AST.tsPropertySignature(
-										AST.identifier('nullable'),
-										AST.tsTypeAnnotation(
-											AST.tsLiteralType(
-												AST.booleanLiteral(
-													unwrapped.wrappers.includes(TypeWrapper.NonNull)
-												)
-											)
-										)
-									),
-								])
-							} else if (
-								!graphql.isScalarType(unwrapped.type) &&
-								!graphql.isEnumType(unwrapped.type)
-							) {
-								typeOptions = AST.tsTypeLiteral([
-									AST.tsPropertySignature(
-										AST.identifier('record'),
-										AST.tsTypeAnnotation(typeOptions)
-									),
-								])
-							}
-
-							// if we are looking at a scalar that's a list
-							if (
-								(head === TypeWrapper.List ||
-									unwrapped.wrappers.includes(TypeWrapper.List)) &&
-								// but not a scalar
-								graphql.isScalarType(unwrapped.type)
-							) {
-								typeOptions = AST.tsArrayType(AST.tsParenthesizedType(typeOptions))
-
-								// if there is a nullable wrapper still in there, we need to wrap it all in null
-								if (!unwrapped.wrappers.includes(TypeWrapper.NonNull)) {
-									typeOptions = AST.tsUnionType([
-										typeOptions,
-										AST.tsNullKeyword(),
-									])
+								// if the wrapper indicates null is an option, add it
+								if (wrapper === TypeWrapper.Nullable) {
+									typeOptions = AST.tsParenthesizedType(
+										AST.tsUnionType([typeOptions, AST.tsNullKeyword()])
+									)
+								} else if (wrapper === TypeWrapper.List) {
+									typeOptions = AST.tsArrayType(
+										AST.tsParenthesizedType(typeOptions)
+									)
 								}
+							}
+
+							// if the last wrapper is a parenthesized type, remove it
+							if (typeOptions.type === 'TSParenthesizedType') {
+								typeOptions = typeOptions.typeAnnotation
 							}
 
 							// if there are no arguments to the field, then we should leave a never behind
@@ -292,6 +235,21 @@ function listDefinitions(
 	docs: CollectedGraphQLDocument[]
 ): recast.types.namedTypes.TSTypeLiteral {
 	return AST.tsTypeLiteral([])
+}
+
+// in order to integrate with the generated runtime
+// we need to export a type of the expected name
+const CacheTypeDefName = 'CacheTypeDef'
+
+// we're going to wrap the type up in a record
+function record(name: string) {
+	return AST.tsTypeReference(
+		AST.identifier('Record'),
+		AST.tsTypeParameterInstantiation([
+			AST.tsTypeReference(AST.identifier(CacheTypeDefName)),
+			AST.tsLiteralType(AST.stringLiteral(name)),
+		])
+	)
 }
 
 type TypeLiteral = recast.types.namedTypes.TSTypeLiteral | recast.types.namedTypes.TSNeverKeyword

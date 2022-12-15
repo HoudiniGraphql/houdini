@@ -1,6 +1,7 @@
 import { testConfigFile } from '../../../test'
 import { Cache as _Cache } from '../../cache/cache'
 import { Cache } from '../cache'
+import { Record } from '../record'
 
 // the type definition for our test cache
 type CacheTypeDef = {
@@ -17,25 +18,19 @@ type CacheTypeDef = {
 					args: never
 				}
 				viewer: {
-					type: { record: 'User' } | null
+					type: Record<CacheTypeDef, 'User'> | null
 					args: never
 				}
 				pets: {
-					type: {
-						list: 'Cat' | 'User'
-						nullable: false
-					}
+					type: (Record<CacheTypeDef, 'Cat'> | Record<CacheTypeDef, 'User'>)[]
 					args: never
 				}
 				users: {
-					type: {
-						list: 'User'
-						nullable: true
-					}
+					type: Record<CacheTypeDef, 'User'>[] | null
 					args: never
 				}
 				pet: {
-					type: { record: 'Cat' | 'User' }
+					type: Record<CacheTypeDef, 'Cat'> | Record<CacheTypeDef, 'User'>
 					args: never
 				}
 			}
@@ -50,7 +45,7 @@ type CacheTypeDef = {
 					args: never
 				}
 				parent: {
-					type: { record: 'User' }
+					type: Record<CacheTypeDef, 'User'>
 					args: never
 				}
 				id: {
@@ -73,7 +68,7 @@ type CacheTypeDef = {
 					args: never
 				}
 				parent: {
-					type: { record: 'User' | null }
+					type: Record<CacheTypeDef, 'User'> | null
 					args: never
 				}
 				id: {

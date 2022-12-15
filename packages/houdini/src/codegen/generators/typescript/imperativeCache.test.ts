@@ -116,6 +116,7 @@ test('generates type definitions for the imperative API', async function () {
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(
 		`
+		import type { Record } from "./public";
 		import type { MyEnum } from "$houdini/graphql/enums";
 
 		type NestedUserFilter = {
@@ -140,9 +141,7 @@ test('generates type definitions for the imperative API', async function () {
 		            idFields: {}
 		            fields: {
 		                user: {
-		                    type: {
-		                        record: "User" | null
-		                    }
+		                    type: Record<CacheTypeDef, "User"> | null
 		                    args: {
 		                        id: string | null | undefined
 		                        filter: UserFilter | null | undefined
@@ -151,10 +150,7 @@ test('generates type definitions for the imperative API', async function () {
 		                    }
 		                }
 		                users: {
-		                    type: {
-		                        list: "User" | null
-		                        nullable: false
-		                    }
+		                    type: ((Record<CacheTypeDef, "User"> | null))[] | null
 		                    args: {
 		                        filter: UserFilter | null | undefined
 		                        list: (UserFilter)[]
@@ -166,36 +162,23 @@ test('generates type definitions for the imperative API', async function () {
 		                    }
 		                }
 		                nodes: {
-		                    type: {
-		                        list: "Cat" | "Ghost" | "User"
-		                        nullable: true
-		                    }
+		                    type: (Record<CacheTypeDef, "Cat"> | Record<CacheTypeDef, "Ghost"> | Record<CacheTypeDef, "User">)[]
 		                    args: never
 		                }
 		                entities: {
-		                    type: {
-		                        list: "User" | "Cat" | null
-		                        nullable: false
-		                    }
+		                    type: ((Record<CacheTypeDef, "User"> | Record<CacheTypeDef, "Cat"> | null))[] | null
 		                    args: never
 		                }
 		                entity: {
-		                    type: {
-		                        record: "User" | "Cat"
-		                    }
+		                    type: Record<CacheTypeDef, "User"> | Record<CacheTypeDef, "Cat">
 		                    args: never
 		                }
 		                listOfLists: {
-		                    type: {
-		                        list: "User" | null
-		                        nullable: true
-		                    }
+		                    type: ((((Record<CacheTypeDef, "User"> | null))[] | null))[]
 		                    args: never
 		                }
 		                node: {
-		                    type: {
-		                        record: "Cat" | "Ghost" | "User" | null
-		                    }
+		                    type: Record<CacheTypeDef, "Cat"> | Record<CacheTypeDef, "Ghost"> | Record<CacheTypeDef, "User"> | null
 		                    args: {
 		                        id: string
 		                    }
@@ -220,7 +203,7 @@ test('generates type definitions for the imperative API', async function () {
 		                    args: never
 		                }
 		                names: {
-		                    type: (string | null)[]
+		                    type: ((string | null))[]
 		                    args: never
 		                }
 		            }
@@ -263,16 +246,11 @@ test('generates type definitions for the imperative API', async function () {
 		                    args: never
 		                }
 		                parent: {
-		                    type: {
-		                        record: "User" | null
-		                    }
+		                    type: Record<CacheTypeDef, "User"> | null
 		                    args: never
 		                }
 		                friends: {
-		                    type: {
-		                        list: "User" | null
-		                        nullable: false
-		                    }
+		                    type: ((Record<CacheTypeDef, "User"> | null))[] | null
 		                    args: never
 		                }
 		                enumValue: {

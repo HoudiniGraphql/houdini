@@ -52,27 +52,11 @@ export type ProxyUnion<Def extends CacheTypeDef, U> = U extends null
 	? Record<Def, U>
 	: never
 
-type _FieldType<
-	Def extends CacheTypeDef,
-	Type extends keyof Def['types'],
-	Field extends keyof TypeFields<Def, Type>
-> = TypeFields<Def, Type>[Field]['type']
-
-// - if the result of the field type is a { type: string } then the value of the field is a RecordProxy<Def, string>
-// - if the value is { abstract: stringA | stringB }, then the result is a union of those types as proxies
-// - if the value is { list: stringA | stringB }, then the result is a list of those types
-// - otherwise, just use the type in in the field map
 export type FieldType<
 	Def extends CacheTypeDef,
 	Type extends keyof Def['types'],
 	Field extends keyof TypeFields<Def, Type>
-> = _FieldType<Def, Type, Field> extends { record: infer Target }
-	? ProxyUnion<Def, Target>
-	: _FieldType<Def, Type, Field> extends { list: infer Target; nullable: false }
-	? ProxyUnion<Def, Target>[]
-	: _FieldType<Def, Type, Field> extends { list: infer Target; nullable: true }
-	? ProxyUnion<Def, Target>[] | null
-	: _FieldType<Def, Type, Field>
+> = TypeFields<Def, Type>[Field]['type']
 
 export type ArgType<
 	Def extends CacheTypeDef,

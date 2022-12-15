@@ -301,6 +301,13 @@ test('can pass null', function () {
 		link: true,
 	})
 	cache.setFieldType({
+		parent: rootID,
+		key: 'viewer',
+		type: 'User',
+		nullable: true,
+		link: true,
+	})
+	cache.setFieldType({
 		parent: 'User',
 		key: 'id',
 		type: 'ID',
