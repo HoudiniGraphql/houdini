@@ -1,5 +1,16 @@
 # houdini-svelte
 
+## 0.18.2
+
+### Patch Changes
+
+-   [#767](https://github.com/HoudiniGraphql/houdini/pull/767) [`0ed1a7b`](https://github.com/HoudiniGraphql/houdini/commit/0ed1a7bc29727615c99ea6f54beeef8660e14dc9) Thanks [@524c](https://github.com/524c)! - Add support for expr satisfies TS expressions
+
+-   [#768](https://github.com/HoudiniGraphql/houdini/pull/768) [`b359ff0`](https://github.com/HoudiniGraphql/houdini/commit/b359ff0eff5dfd33164d3ec8cfb1b462258f60e4) Thanks [@thokra](https://github.com/thokra)! - Fix generated types referencing onError, afterLoad and beforeLoad
+
+-   Updated dependencies [[`0ed1a7b`](https://github.com/HoudiniGraphql/houdini/commit/0ed1a7bc29727615c99ea6f54beeef8660e14dc9)]:
+    -   houdini@0.18.2
+
 ## 0.18.1
 
 ### ✨ Features
