@@ -1,5 +1,11 @@
 # houdini-svelte
 
+## 0.18.2
+
+### 🐛 Fixes
+
+-   [#768](https://github.com/HoudiniGraphql/houdini/pull/768) [`b359ff0`](https://github.com/HoudiniGraphql/houdini/commit/b359ff0eff5dfd33164d3ec8cfb1b462258f60e4) Thanks [@thokra](https://github.com/thokra)! - Fix generated types referencing onError, afterLoad and beforeLoad
+
 ## 0.18.1
 
 ### ✨ Features
