@@ -113,16 +113,16 @@ describe('typescript', function () {
 			import { MyEnum } from "$houdini/graphql/enums";
 
 			export type TestFragment = {
-			    readonly "shape"?: TestFragment$data
+			    readonly "shape"?: TestFragment$data;
 			    readonly "$fragments": {
-			        "TestFragment": true
-			    }
+			        "TestFragment": true;
+			    };
 			};
 
 			export type TestFragment$data = {
-			    readonly firstName: string
-			    readonly nickname: string | null
-			    readonly enumValue: MyEnum | null
+			    readonly firstName: string;
+			    readonly nickname: string | null;
+			    readonly enumValue: MyEnum | null;
 			};
 		`)
 	})
@@ -146,17 +146,17 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type TestFragment = {
-			    readonly "shape"?: TestFragment$data
+			    readonly "shape"?: TestFragment$data;
 			    readonly "$fragments": {
-			        "TestFragment": true
-			    }
+			        "TestFragment": true;
+			    };
 			};
 
 			export type TestFragment$data = {
-			    readonly firstName: string
+			    readonly firstName: string;
 			    readonly parent: {
-			        readonly firstName: string
-			    } | null
+			        readonly firstName: string;
+			    } | null;
 			};
 		`)
 	})
@@ -180,18 +180,18 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type TestFragment = {
-			    readonly "shape"?: TestFragment$data
+			    readonly "shape"?: TestFragment$data;
 			    readonly "$fragments": {
-			        "TestFragment": true
-			    }
+			        "TestFragment": true;
+			    };
 			};
 
 			export type TestFragment$data = {
-			    readonly firstName: string
-			    readonly admin: boolean | null
-			    readonly age: number | null
-			    readonly id: string
-			    readonly weight: number | null
+			    readonly firstName: string;
+			    readonly admin: boolean | null;
+			    readonly age: number | null;
+			    readonly id: string;
+			    readonly weight: number | null;
 			};
 		`)
 	})
@@ -215,17 +215,17 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type TestFragment = {
-			    readonly "shape"?: TestFragment$data
+			    readonly "shape"?: TestFragment$data;
 			    readonly "$fragments": {
-			        "TestFragment": true
-			    }
+			        "TestFragment": true;
+			    };
 			};
 
 			export type TestFragment$data = {
-			    readonly firstName: string
+			    readonly firstName: string;
 			    readonly friends: ({
-			        readonly firstName: string
-			    } | null)[] | null
+			        readonly firstName: string;
+			    } | null)[] | null;
 			};
 		`)
 	})
@@ -247,14 +247,14 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type MyQuery = {
-			    readonly "input": MyQuery$input
-			    readonly "result": MyQuery$result | undefined
+			    readonly "input": MyQuery$input;
+			    readonly "result": MyQuery$result | undefined;
 			};
 
 			export type MyQuery$result = {
 			    readonly user: {
-			        readonly firstName: string
-			    } | null
+			        readonly firstName: string;
+			    } | null;
 			};
 
 			export type MyQuery$input = null;
@@ -283,14 +283,14 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type MyQuery = {
-			    readonly "input": MyQuery$input
-			    readonly "result": MyQuery$result | undefined
+			    readonly "input": MyQuery$input;
+			    readonly "result": MyQuery$result | undefined;
 			};
 
 			export type MyQuery$result = {
 			    readonly users: ({
-			        readonly firstName: string
-			    } | null)[] | null
+			        readonly firstName: string;
+			    } | null)[] | null;
 			};
 
 			export type MyQuery$input = null;
@@ -318,19 +318,19 @@ describe('typescript', function () {
 			import type { MyEnum } from "$houdini/graphql/enums";
 
 			export type MyQuery = {
-			    readonly "input": MyQuery$input
-			    readonly "result": MyQuery$result | undefined
+			    readonly "input": MyQuery$input;
+			    readonly "result": MyQuery$result | undefined;
 			};
 
 			export type MyQuery$result = {
 			    readonly user: {
-			        readonly firstName: string
-			    } | null
+			        readonly firstName: string;
+			    } | null;
 			};
 
 			export type MyQuery$input = {
-			    id: string
-			    enum?: MyEnum | null | undefined
+			    id: string;
+			    enum?: MyEnum | null | undefined;
 			};
 		`)
 	})
@@ -360,18 +360,18 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type MyTestQuery = {
-			    readonly "input": MyTestQuery$input
-			    readonly "result": MyTestQuery$result | undefined
+			    readonly "input": MyTestQuery$input;
+			    readonly "result": MyTestQuery$result | undefined;
 			};
 
 			export type MyTestQuery$result = {
 			    readonly entity: {} & (({
-			        readonly id: string
-			        readonly __typename: "Cat"
+			        readonly id: string;
+			        readonly __typename: "Cat";
 			    }) | ({
-			        readonly id: string
-			        readonly __typename: "User"
-			    }))
+			        readonly id: string;
+			        readonly __typename: "User";
+			    }));
 			};
 
 			export type MyTestQuery$input = null;
@@ -418,46 +418,46 @@ describe('typescript', function () {
 			import type { MyEnum } from "$houdini/graphql/enums";
 
 			export type MyMutation = {
-			    readonly "input": MyMutation$input
-			    readonly "result": MyMutation$result
+			    readonly "input": MyMutation$input;
+			    readonly "result": MyMutation$result;
 			};
 
 			export type MyMutation$result = {
 			    readonly doThing: {
-			        readonly firstName: string
-			    } | null
+			        readonly firstName: string;
+			    } | null;
 			};
 
 			type NestedUserFilter = {
-			    id: string
-			    firstName: string
-			    admin?: boolean | null | undefined
-			    age?: number | null | undefined
-			    weight?: number | null | undefined
+			    id: string;
+			    firstName: string;
+			    admin?: boolean | null | undefined;
+			    age?: number | null | undefined;
+			    weight?: number | null | undefined;
 			};
 
 			type UserFilter = {
-			    middle?: NestedUserFilter | null | undefined
-			    listRequired: (string)[]
-			    nullList?: (string | null | undefined)[] | null | undefined
-			    recursive?: UserFilter | null | undefined
-			    enum?: MyEnum | null | undefined
+			    middle?: NestedUserFilter | null | undefined;
+			    listRequired: (string)[];
+			    nullList?: (string | null | undefined)[] | null | undefined;
+			    recursive?: UserFilter | null | undefined;
+			    enum?: MyEnum | null | undefined;
 			};
 
 			export type MyMutation$input = {
-			    filter?: UserFilter | null | undefined
-			    filterList: (UserFilter)[]
-			    id: string
-			    firstName: string
-			    admin?: boolean | null | undefined
-			    age?: number | null | undefined
-			    weight?: number | null | undefined
+			    filter?: UserFilter | null | undefined;
+			    filterList: (UserFilter)[];
+			    id: string;
+			    firstName: string;
+			    admin?: boolean | null | undefined;
+			    age?: number | null | undefined;
+			    weight?: number | null | undefined;
 			};
 
 			export type MyMutation$optimistic = {
 			    readonly doThing?: {
-			        readonly firstName?: string
-			    } | null
+			        readonly firstName?: string;
+			    } | null;
 			};
 		`)
 	})
@@ -497,25 +497,25 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type MyMutation = {
-			    readonly "input": MyMutation$input
-			    readonly "result": MyMutation$result
+			    readonly "input": MyMutation$input;
+			    readonly "result": MyMutation$result;
 			};
 
 			export type MyMutation$result = {
 			    readonly doThing: {
-			        readonly firstName: string
+			        readonly firstName: string;
 			        readonly $fragments: {
-			            TestFragment: true
-			        }
-			    } | null
+			            TestFragment: true;
+			        };
+			    } | null;
 			};
 
 			export type MyMutation$input = null;
 
 			export type MyMutation$optimistic = {
 			    readonly doThing?: {
-			        readonly firstName?: string
-			    } | null
+			        readonly firstName?: string;
+			    } | null;
 			};
 		`)
 	})
@@ -541,34 +541,34 @@ describe('typescript', function () {
 			import type { MyEnum } from "$houdini/graphql/enums";
 
 			export type MyQuery = {
-			    readonly "input": MyQuery$input
-			    readonly "result": MyQuery$result | undefined
+			    readonly "input": MyQuery$input;
+			    readonly "result": MyQuery$result | undefined;
 			};
 
 			export type MyQuery$result = {
 			    readonly user: {
-			        readonly firstName: string
-			    } | null
+			        readonly firstName: string;
+			    } | null;
 			};
 
 			type NestedUserFilter = {
-			    id: string
-			    firstName: string
-			    admin?: boolean | null | undefined
-			    age?: number | null | undefined
-			    weight?: number | null | undefined
+			    id: string;
+			    firstName: string;
+			    admin?: boolean | null | undefined;
+			    age?: number | null | undefined;
+			    weight?: number | null | undefined;
 			};
 
 			type UserFilter = {
-			    middle?: NestedUserFilter | null | undefined
-			    listRequired: (string)[]
-			    nullList?: (string | null | undefined)[] | null | undefined
-			    recursive?: UserFilter | null | undefined
-			    enum?: MyEnum | null | undefined
+			    middle?: NestedUserFilter | null | undefined;
+			    listRequired: (string)[];
+			    nullList?: (string | null | undefined)[] | null | undefined;
+			    recursive?: UserFilter | null | undefined;
+			    enum?: MyEnum | null | undefined;
 			};
 
 			export type MyQuery$input = {
-			    filter: UserFilter
+			    filter: UserFilter;
 			};
 		`)
 	})
@@ -616,16 +616,16 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type MyQuery = {
-			    readonly "input": MyQuery$input
-			    readonly "result": MyQuery$result | undefined
+			    readonly "input": MyQuery$input;
+			    readonly "result": MyQuery$result | undefined;
 			};
 
 			export type MyQuery$result = {
 			    readonly user: {
 			        readonly $fragments: {
-			            Foo: true
-			        }
-			    } | null
+			            Foo: true;
+			        };
+			    } | null;
 			};
 
 			export type MyQuery$input = null;
@@ -654,17 +654,17 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type MyQuery = {
-			    readonly "input": MyQuery$input
-			    readonly "result": MyQuery$result | undefined
+			    readonly "input": MyQuery$input;
+			    readonly "result": MyQuery$result | undefined;
 			};
 
 			export type MyQuery$result = {
 			    readonly user: {
-			        readonly firstName: string
+			        readonly firstName: string;
 			        readonly $fragments: {
-			            Foo: true
-			        }
-			    }
+			            Foo: true;
+			        };
+			    };
 			};
 
 			export type MyQuery$input = null;
@@ -701,18 +701,18 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type MyQuery = {
-			    readonly "input": MyQuery$input
-			    readonly "result": MyQuery$result | undefined
+			    readonly "input": MyQuery$input;
+			    readonly "result": MyQuery$result | undefined;
 			};
 
 			export type MyQuery$result = {
 			    readonly nodes: ({} & (({
-			        readonly id: string
-			        readonly __typename: "User"
+			        readonly id: string;
+			        readonly __typename: "User";
 			    }) | ({
-			        readonly id: string
-			        readonly __typename: "Cat"
-			    })))[]
+			        readonly id: string;
+			        readonly __typename: "Cat";
+			    })))[];
 			};
 
 			export type MyQuery$input = null;
@@ -749,18 +749,18 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type MyQuery = {
-			    readonly "input": MyQuery$input
-			    readonly "result": MyQuery$result | undefined
+			    readonly "input": MyQuery$input;
+			    readonly "result": MyQuery$result | undefined;
 			};
 
 			export type MyQuery$result = {
 			    readonly entities: ({} & (({
-			        readonly id: string
-			        readonly __typename: "User"
+			        readonly id: string;
+			        readonly __typename: "User";
 			    }) | ({
-			        readonly id: string
-			        readonly __typename: "Cat"
-			    })) | null)[] | null
+			        readonly id: string;
+			        readonly __typename: "Cat";
+			    })) | null)[] | null;
 			};
 
 			export type MyQuery$input = null;
@@ -798,20 +798,20 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type MyQuery = {
-			    readonly "input": MyQuery$input
-			    readonly "result": MyQuery$result | undefined
+			    readonly "input": MyQuery$input;
+			    readonly "result": MyQuery$result | undefined;
 			};
 
 			export type MyQuery$result = {
 			    readonly nodes: ({
-			        readonly id: string
+			        readonly id: string;
 			    } & (({
-			        readonly firstName: string
-			        readonly __typename: "User"
+			        readonly firstName: string;
+			        readonly __typename: "User";
 			    }) | ({
-			        readonly kitty: boolean
-			        readonly __typename: "Cat"
-			    })))[]
+			        readonly kitty: boolean;
+			        readonly __typename: "Cat";
+			    })))[];
 			};
 
 			export type MyQuery$input = null;
@@ -851,19 +851,19 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type MyQuery = {
-			    readonly "input": MyQuery$input
-			    readonly "result": MyQuery$result | undefined
+			    readonly "input": MyQuery$input;
+			    readonly "result": MyQuery$result | undefined;
 			};
 
 			export type MyQuery$result = {
 			    readonly entities: ({} & (({
-			        readonly isAnimal: boolean
-			        readonly kitty: boolean
-			        readonly __typename: "Cat"
+			        readonly isAnimal: boolean;
+			        readonly kitty: boolean;
+			        readonly __typename: "Cat";
 			    }) | ({
-			        readonly firstName: string
-			        readonly __typename: "User"
-			    })) | null)[] | null
+			        readonly firstName: string;
+			        readonly __typename: "User";
+			    })) | null)[] | null;
 			};
 
 			export type MyQuery$input = null;
@@ -914,14 +914,14 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type MyQuery = {
-			    readonly "input": MyQuery$input
-			    readonly "result": MyQuery$result | undefined
+			    readonly "input": MyQuery$input;
+			    readonly "result": MyQuery$result | undefined;
 			};
 
 			export type MyQuery$result = {
 			    readonly allItems: ({
-			        readonly createdAt: Date
-			    })[]
+			        readonly createdAt: Date;
+			    })[];
 			};
 
 			export type MyQuery$input = null;
@@ -974,18 +974,18 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type MyQuery = {
-			    readonly "input": MyQuery$input
-			    readonly "result": MyQuery$result | undefined
+			    readonly "input": MyQuery$input;
+			    readonly "result": MyQuery$result | undefined;
 			};
 
 			export type MyQuery$result = {
 			    readonly allItems: ({
-			        readonly createdAt: Date
-			    })[]
+			        readonly createdAt: Date;
+			    })[];
 			};
 
 			export type MyQuery$input = {
-			    date: Date
+			    date: Date;
 			};
 		`)
 	})
@@ -1016,15 +1016,15 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type MyQuery = {
-			    readonly "input": MyQuery$input
-			    readonly "result": MyQuery$result | undefined
+			    readonly "input": MyQuery$input;
+			    readonly "result": MyQuery$result | undefined;
 			};
 
 			export type MyQuery$result = {
 			    readonly listOfLists: (({
-			        readonly firstName: string
-			        readonly nickname: string | null
-			    } | null)[] | null)[]
+			        readonly firstName: string;
+			        readonly nickname: string | null;
+			    } | null)[] | null)[];
 			};
 
 			export type MyQuery$input = null;
@@ -1058,17 +1058,17 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type MyQuery = {
-			    readonly "input": MyQuery$input
-			    readonly "result": MyQuery$result | undefined
+			    readonly "input": MyQuery$input;
+			    readonly "result": MyQuery$result | undefined;
 			};
 
 			export type MyQuery$result = {
 			    readonly user: {
 			        readonly parent: {
-			            readonly firstName: string
-			            readonly nickname: string | null
-			        } | null
-			    } | null
+			            readonly firstName: string;
+			            readonly nickname: string | null;
+			        } | null;
+			    } | null;
 			};
 
 			export type MyQuery$input = null;
@@ -1131,50 +1131,50 @@ describe('typescript', function () {
 			import type { MyEnum } from "$houdini/graphql/enums";
 
 			export type MyMutation = {
-			    readonly "input": MyMutation$input
-			    readonly "result": MyMutation$result
+			    readonly "input": MyMutation$input;
+			    readonly "result": MyMutation$result;
 			};
 
 			export type MyMutation$result = {
 			    readonly doThing: {
-			        readonly id: string
+			        readonly id: string;
 			        readonly $fragments: {
-			            My_Users_remove: true
-			            My_Users_insert: true
-			        }
-			    } | null
+			            My_Users_remove: true;
+			            My_Users_insert: true;
+			        };
+			    } | null;
 			};
 
 			type NestedUserFilter = {
-			    id: string
-			    firstName: string
-			    admin?: boolean | null | undefined
-			    age?: number | null | undefined
-			    weight?: number | null | undefined
+			    id: string;
+			    firstName: string;
+			    admin?: boolean | null | undefined;
+			    age?: number | null | undefined;
+			    weight?: number | null | undefined;
 			};
 
 			type UserFilter = {
-			    middle?: NestedUserFilter | null | undefined
-			    listRequired: (string)[]
-			    nullList?: (string | null | undefined)[] | null | undefined
-			    recursive?: UserFilter | null | undefined
-			    enum?: MyEnum | null | undefined
+			    middle?: NestedUserFilter | null | undefined;
+			    listRequired: (string)[];
+			    nullList?: (string | null | undefined)[] | null | undefined;
+			    recursive?: UserFilter | null | undefined;
+			    enum?: MyEnum | null | undefined;
 			};
 
 			export type MyMutation$input = {
-			    filter?: UserFilter | null | undefined
-			    filterList: (UserFilter)[]
-			    id: string
-			    firstName: string
-			    admin?: boolean | null | undefined
-			    age?: number | null | undefined
-			    weight?: number | null | undefined
+			    filter?: UserFilter | null | undefined;
+			    filterList: (UserFilter)[];
+			    id: string;
+			    firstName: string;
+			    admin?: boolean | null | undefined;
+			    age?: number | null | undefined;
+			    weight?: number | null | undefined;
 			};
 
 			export type MyMutation$optimistic = {
 			    readonly doThing?: {
-			        readonly id?: string
-			    } | null
+			        readonly id?: string;
+			    } | null;
 			};
 		`)
 	})
@@ -1224,26 +1224,26 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type MyQuery = {
-			    readonly "input": MyQuery$input
-			    readonly "result": MyQuery$result | undefined
+			    readonly "input": MyQuery$input;
+			    readonly "result": MyQuery$result | undefined;
 			};
 
 			export type MyQuery$result = {
 			    readonly user: {
-			        readonly id: string
-			        readonly firstName: string
+			        readonly id: string;
+			        readonly firstName: string;
 			        readonly friends: ({
-			            readonly id: string
-			            readonly firstName: string
+			            readonly id: string;
+			            readonly firstName: string;
 			            readonly $fragments: {
-			                UserBase: true
-			            }
-			        } | null)[] | null
+			                UserBase: true;
+			            };
+			        } | null)[] | null;
 			        readonly $fragments: {
-			            UserBase: true
-			            UserMore: true
-			        }
-			    } | null
+			            UserBase: true;
+			            UserMore: true;
+			        };
+			    } | null;
 			};
 
 			export type MyQuery$input = null;
@@ -1296,19 +1296,19 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type MyQuery = {
-			    readonly "input": MyQuery$input
-			    readonly "result": MyQuery$result | undefined
+			    readonly "input": MyQuery$input;
+			    readonly "result": MyQuery$result | undefined;
 			};
 
 			export type MyQuery$result = {
 			    readonly user: {
-			        readonly id: string
-			        readonly firstName: string
+			        readonly id: string;
+			        readonly firstName: string;
 			        readonly $fragments: {
-			            UserBase: true
-			            UserMore: true
-			        }
-			    } | null
+			            UserBase: true;
+			            UserMore: true;
+			        };
+			    } | null;
 			};
 
 			export type MyQuery$input = null;
@@ -1320,18 +1320,18 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type UserMore = {
-			    readonly "shape"?: UserMore$data
+			    readonly "shape"?: UserMore$data;
 			    readonly "$fragments": {
-			        "UserMore": true
-			    }
+			        "UserMore": true;
+			    };
 			};
 
 			export type UserMore$data = {
 			    readonly friends: ({
 			        readonly $fragments: {
-			            UserBase: true
-			        }
-			    } | null)[] | null
+			            UserBase: true;
+			        };
+			    } | null)[] | null;
 			};
 		`)
 	})
@@ -1382,24 +1382,24 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type MyQuery = {
-			    readonly "input": MyQuery$input
-			    readonly "result": MyQuery$result | undefined
+			    readonly "input": MyQuery$input;
+			    readonly "result": MyQuery$result | undefined;
 			};
 
 			export type MyQuery$result = {
 			    readonly user: {
 			        readonly friends: ({
-			            readonly id: string
-			            readonly firstName: string
+			            readonly id: string;
+			            readonly firstName: string;
 			            readonly $fragments: {
-			                UserBase: true
-			            }
-			        } | null)[] | null
+			                UserBase: true;
+			            };
+			        } | null)[] | null;
 			        readonly $fragments: {
-			            UserBase: true
-			            UserMore: true
-			        }
-			    } | null
+			            UserBase: true;
+			            UserMore: true;
+			        };
+			    } | null;
 			};
 
 			export type MyQuery$input = null;
@@ -1411,20 +1411,20 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type UserMore = {
-			    readonly "shape"?: UserMore$data
+			    readonly "shape"?: UserMore$data;
 			    readonly "$fragments": {
-			        "UserMore": true
-			    }
+			        "UserMore": true;
+			    };
 			};
 
 			export type UserMore$data = {
 			    readonly friends: ({
-			        readonly id: string
-			        readonly firstName: string
+			        readonly id: string;
+			        readonly firstName: string;
 			        readonly $fragments: {
-			            UserBase: true
-			        }
-			    } | null)[] | null
+			            UserBase: true;
+			        };
+			    } | null)[] | null;
 			};
 		`)
 	})
