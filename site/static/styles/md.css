@@ -60,19 +60,13 @@ ol {
 }
 
 #doc-content a {
-	/* color: #fc602d; */
-	color: #ff3e00;
+	color: var(--link-color);
 	text-decoration: none;
 	white-space: nowrap;
-	border-bottom: 1px solid #ff3e00;
-
-	/* text-decoration: underline; */
-	/* font-weight: 700; */
 }
 
 #doc-content pre {
 	margin-bottom: 30px;
-
 	background: #11141a;
 	border-radius: 10px;
 	padding: 2.5rem;
@@ -91,7 +85,7 @@ h4 > code {
 	font-family: 'Roboto Mono', monospace;
 	white-space: nowrap;
 	color: var(--text_highlight);
-	background-color: var(--text_highlight-background);
+	background-color: var(--text_highlight_background);
 }
 
 .message > p > code {
