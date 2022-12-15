@@ -413,4 +413,6 @@ test('can set union types', function () {
 	})
 })
 
+test.todo('can set nested lists of record proxies')
+
 test.todo('embedded data can be embedded / looked up')
