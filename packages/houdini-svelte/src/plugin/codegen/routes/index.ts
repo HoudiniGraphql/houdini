@@ -297,7 +297,7 @@ function append_afterLoad(
 ) {
 	return afterLoad
 		? `
-type AfterLoadReturn = Awaited<ReturnType<typeof import('./+${type.toLowerCase()}').afterLoad>>;
+type AfterLoadReturn = Awaited<ReturnType<typeof import('./+${type.toLowerCase()}')._houdini_afterLoad>>;
 type AfterLoadData = {
 	${internal_append_afterLoad(queries)}
 };
@@ -326,7 +326,7 @@ function append_beforeLoad(beforeLoad: boolean, type: 'Layout' | 'Page') {
 	return beforeLoad
 		? `
 export type BeforeLoadEvent = ${type}LoadEvent;
-type BeforeLoadReturn = Awaited<ReturnType<typeof import('./+${type.toLowerCase()}').beforeLoad>>;
+type BeforeLoadReturn = Awaited<ReturnType<typeof import('./+${type.toLowerCase()}')._houdini_beforeLoad>>;
 `
 		: ''
 }
@@ -334,7 +334,7 @@ type BeforeLoadReturn = Awaited<ReturnType<typeof import('./+${type.toLowerCase(
 function append_onError(onError: boolean, type: 'Layout' | 'Page', hasLoadInput: boolean) {
 	return onError
 		? `
-type OnErrorReturn = Awaited<ReturnType<typeof import('./+${type.toLowerCase()}').onError>>;
+type OnErrorReturn = Awaited<ReturnType<typeof import('./+${type.toLowerCase()}')._houdini_onError>>;
 export type OnErrorEvent =  { event: Kit.LoadEvent, input: ${
 				hasLoadInput ? 'LoadInput' : '{}'
 		  }, error: Error | Error[] };
