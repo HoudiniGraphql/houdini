@@ -34,7 +34,8 @@
 				--deep-dive: #214a9c;
 				--deep-dive-text: white;
 				--deep-dive-background: var(--discreet);
-				--text_highlight: hsl(207, 82%, 56%);
+				--text_highlight: #3595FF;
+				--text_highlight-background: #eee;
 			}
 		</style>
 	{:else}
@@ -54,6 +55,7 @@
 				--graphql-explained: #8d005f;
 				--graphql-explained-background: var(--discreet);
 				--text_highlight: #a1c5f8;
+				--text_highlight-background:  red;
 			}
 		</style>
 	{/if}
@@ -85,4 +87,10 @@
 	button:hover {
 		color: var(--saturated);
 	}
+
+	.text-highlight {
+		color: var(--text-highlight);
+		background-color: var(--text-highlight-background);
+	}
+	
 </style>

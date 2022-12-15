@@ -36,7 +36,7 @@
 		flex-direction: row;
 		align-items: center;
 		padding: 15px;
-		font-family: 'Hind', sans-serif;
+		font-family: 'Lato', sans-serif;
 		font-size: 20px;
 		width: 100%;
 		border: none;
