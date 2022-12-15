@@ -461,7 +461,7 @@ test('generates types for layout onError', async function () {
 		    MyPageLoad1Query: MyPageLoad1Query$input;
 		};
 
-		type OnErrorReturn = Awaited<ReturnType<typeof import("./+layout").onError>>;
+		type OnErrorReturn = Awaited<ReturnType<typeof import("./+layout")._houdini_onError>>;
 
 		export type OnErrorEvent = {
 		    event: Kit.LoadEvent;
@@ -574,7 +574,7 @@ test('generates types for page onError', async function () {
 		    MyPageLoad1Query: MyPageLoad1Query$input;
 		};
 
-		type OnErrorReturn = Awaited<ReturnType<typeof import("./+page").onError>>;
+		type OnErrorReturn = Awaited<ReturnType<typeof import("./+page")._houdini_onError>>;
 
 		export type OnErrorEvent = {
 		    event: Kit.LoadEvent;
@@ -688,7 +688,7 @@ test('generates types for layout beforeLoad', async function () {
 		};
 
 		export type BeforeLoadEvent = LayoutLoadEvent;
-		type BeforeLoadReturn = Awaited<ReturnType<typeof import("./+layout").beforeLoad>>;
+		type BeforeLoadReturn = Awaited<ReturnType<typeof import("./+layout")._houdini_beforeLoad>>;
 		export type MyPageLoad1QueryVariables = VariableFunction<LayoutParams, MyPageLoad1Query$input>;
 	`)
 })
@@ -795,7 +795,7 @@ test('generates types for page beforeLoad', async function () {
 		};
 
 		export type BeforeLoadEvent = PageLoadEvent;
-		type BeforeLoadReturn = Awaited<ReturnType<typeof import("./+page").beforeLoad>>;
+		type BeforeLoadReturn = Awaited<ReturnType<typeof import("./+page")._houdini_beforeLoad>>;
 		export type MyPageLoad1QueryVariables = VariableFunction<PageParams, MyPageLoad1Query$input>;
 	`)
 })
@@ -901,7 +901,7 @@ test('generates types for layout afterLoad', async function () {
 		    MyPageLoad1Query: MyPageLoad1Query$input;
 		};
 
-		type AfterLoadReturn = Awaited<ReturnType<typeof import("./+layout").afterLoad>>;
+		type AfterLoadReturn = Awaited<ReturnType<typeof import("./+layout")._houdini_afterLoad>>;
 
 		type AfterLoadData = {
 		    MyPageLoad1Query: MyPageLoad1Query$result;
@@ -1019,7 +1019,7 @@ test('generates types for page afterLoad', async function () {
 		    MyPageLoad1Query: MyPageLoad1Query$input;
 		};
 
-		type AfterLoadReturn = Awaited<ReturnType<typeof import("./+page").afterLoad>>;
+		type AfterLoadReturn = Awaited<ReturnType<typeof import("./+page")._houdini_afterLoad>>;
 
 		type AfterLoadData = {
 		    MyPageLoad1Query: MyPageLoad1Query$result;
