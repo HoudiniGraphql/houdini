@@ -49,7 +49,7 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 		this.#cache.validateInstabilityWarning()
 
 		// compute the key for the field/args combo
-		const key = this.#_computeKey({ field, args })
+		const key = computeKey({ field, args })
 		// look up the type information for the field
 		const typeInfo: TypeInfoWithSelection = _typeInfo(this.#cache, this.type, field)
 
@@ -155,7 +155,7 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 		this.#cache.validateInstabilityWarning()
 
 		// compute the key for the field/args combo
-		const key = this.#_computeKey({ field, args })
+		const key = computeKey({ field, args })
 		// look up the type information for the field
 		const typeInfo: TypeInfoWithSelection = _typeInfo(this.#cache, this.type, field)
 
@@ -257,15 +257,15 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 	delete() {
 		this.#cache._internal_unstable.delete(this.#id)
 	}
+}
 
-	#_computeKey({ field, args }: { field: string; args?: {} }) {
-		// TODO: the actual key logic uses graphql.print to properly serialize complex values
-		return args && Object.values(args).length > 0
-			? `${field}(${Object.entries(args)
-					.map((entries) => entries.join(': '))
-					.join(', ')})`
-			: field
-	}
+export function computeKey({ field, args }: { field: string; args?: {} }) {
+	// TODO: the actual key logic uses graphql.print to properly serialize complex values
+	return args && Object.values(args).length > 0
+		? `${field}(${Object.entries(args)
+				.map((entries) => entries.join(': '))
+				.join(', ')})`
+		: field
 }
 
 type TypeInfoWithSelection = Partial<Required<SubscriptionSelection>['fields'][string]> & TypeInfo
