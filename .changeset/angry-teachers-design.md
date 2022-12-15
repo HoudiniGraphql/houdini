@@ -1,10 +1,10 @@
 ---
-'e2e-next': minor
-'sveltekit': minor
-'scripts': minor
-'houdini': minor
-'houdini-react': minor
-'houdini-svelte': minor
+'e2e-next': patch
+'sveltekit': patch
+'scripts': patch
+'houdini': patch
+'houdini-react': patch
+'houdini-svelte': patch
 ---
 
 Add support for expr satisfies TS expressions
