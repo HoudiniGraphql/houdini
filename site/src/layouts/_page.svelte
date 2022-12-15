@@ -315,7 +315,7 @@
 
 	nav {
 		height: 30px;
-		border-bottom: 3px solid #303a48;
+		border-bottom: 3px solid var(--discreet);
 		display: flex;
 		margin-bottom: 1.25rem;
 		flex-shrink: 0;

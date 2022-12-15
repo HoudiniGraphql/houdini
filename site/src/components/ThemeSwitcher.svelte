@@ -19,26 +19,40 @@
 	<meta name="theme-color" content="#161b22" />
 
 	{#if ui_theme === 1}
+		<!-- light mode -->
 		<style>
 			:root {
 				--hue: #f9fbff;
 				--contrast: #161b22;
 				--discreet: #ebeef5;
 				--discreet2: #d3d6dc;
+				--scrollbar-slider: #828487;
+				--scrollbar-track: var(--discreet2);
 				--saturated: #ff3e00;
-				--external: #8d005f;
-				--text_highlight: hsl(207, 82%, 66%);
+				--graphql-explained: #cf2b99;
+				--graphql-explained-background: var(--discreet);
+				--deep-dive: #214a9c;
+				--deep-dive-text: white;
+				--deep-dive-background: var(--discreet);
+				--text_highlight: hsl(207, 82%, 56%);
 			}
 		</style>
 	{:else}
+		<!-- dark mode -->
 		<style>
 			:root {
 				--hue: #161b22;
 				--contrast: #f9fbff;
 				--discreet: #303a48;
 				--discreet2: #475465;
+				--scrollbar-slider: #101318;
+				--scrollbar-track: #272e38;
 				--saturated: #ff3e00;
-				--external: #8d005f;
+				--deep-dive: #17346d;
+				--deep-dive-background: var(--discreet);
+				--deep-dive-text: white;
+				--graphql-explained: #8d005f;
+				--graphql-explained-background: var(--discreet);
 				--text_highlight: #a1c5f8;
 			}
 		</style>
