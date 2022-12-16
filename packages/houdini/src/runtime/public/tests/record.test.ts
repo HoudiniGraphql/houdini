@@ -483,4 +483,97 @@ test('can set nested lists of record proxies', function () {
 	expect(marshalNestedList(cache.root.get({ field: 'listOfLists' }))).toEqual(expected)
 })
 
-test.todo('embedded data can be embedded / looked up')
+test('embedded data can be written and looked up', function () {
+	const cache = testCache()
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						friends: {
+							type: 'UserConnection',
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: true,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									edges: {
+										type: 'UserEdge',
+										keyRaw: 'edges',
+										selection: {
+											fields: {
+												node: {
+													type: 'Node',
+													keyRaw: 'node',
+													abstract: true,
+													selection: {
+														fields: {
+															__typename: {
+																type: 'String',
+																keyRaw: '__typename',
+															},
+															id: {
+																type: 'ID',
+																keyRaw: 'id',
+															},
+															firstName: {
+																type: 'String',
+																keyRaw: 'firstName',
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache._internal_unstable.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '2',
+								firstName: 'jane',
+							},
+						},
+						{
+							node: {
+								__typename: 'User',
+								id: '3',
+								firstName: 'jane',
+							},
+						},
+					],
+				},
+			},
+		},
+	})
+	console.log(JSON.stringify(cache._internal_unstable.read({ selection }).data))
+	console.log(cache._internal_unstable._internal_unstable.schema.fieldTypes)
+	console.log(cache._internal_unstable._internal_unstable.storage.data[0])
+	console.log(cache.get('User', { id: '1' }).get({ field: 'friends' }))
+})
