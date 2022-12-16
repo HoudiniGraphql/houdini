@@ -184,7 +184,7 @@ export default async function addListFragments(
 	}
 
 	// we need to add a delete directive for every type that is the target of a list
-	const listTargets = [
+	const validDeletes = [
 		...new Set(
 			Object.values(lists).map(({ type }) => {
 				// only consider object types
@@ -307,7 +307,7 @@ export default async function addListFragments(
 				}
 			) as graphql.DefinitionNode[]
 		).concat(
-			...listTargets.map<graphql.DirectiveDefinitionNode>((typeName) => ({
+			...validDeletes.map<graphql.DirectiveDefinitionNode>((typeName) => ({
 				kind: graphql.Kind.DIRECTIVE_DEFINITION,
 				name: {
 					kind: graphql.Kind.NAME,
