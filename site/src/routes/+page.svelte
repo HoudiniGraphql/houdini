@@ -249,7 +249,7 @@
 
 	.nav-link {
 		font-size: 1rem;
-		font-family: 'Lato', sans-serif;
+		font-family: 'Hind', sans-serif;
 		color: #161b22;
 		text-decoration: none;
 		font-weight: bold;
@@ -305,7 +305,7 @@
 	#hero h1 {
 		flex-grow: 1;
 		font-size: 38px;
-		font-weight: 900;
+		font-weight: bold;
 		line-height: 3.25rem;
 		color: #161b22;
 		text-align: center;
@@ -313,7 +313,7 @@
 
 	h1,
 	h2 {
-		font-family: 'Lato', serif;
+		font-family: 'Crete Round', serif;
 	}
 
 	#graphql-text {
@@ -357,7 +357,7 @@
 	}
 
 	li {
-		font-family: 'Lato', sans-serif;
+		font-family: 'Hind', sans-serif;
 		font-size: 20px;
 		line-height: 1.25;
 		position: relative;
@@ -391,7 +391,7 @@
 		height: 3rem;
 		width: 10.75rem;
 
-		font-family: 'Lato', sans;
+		font-family: 'Hind', sans;
 		font-weight: bold;
 		color: white;
 		background-color: #ff3e00;
@@ -422,7 +422,7 @@
 	}
 
 	p {
-		font-family: 'Lato', sans-serif;
+		font-family: 'Hind', sans-serif;
 		color: white;
 		font-size: 1.4rem;
 		line-height: 1.3;

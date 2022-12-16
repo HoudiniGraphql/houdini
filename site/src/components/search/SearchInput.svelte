@@ -37,7 +37,7 @@
 		justify-content: space-between;
 		background: none;
 		cursor: pointer;
-		font-family: 'Lato', sans-serif;
+		font-family: 'Hind', sans-serif;
 		outline: none;
 	}
 
