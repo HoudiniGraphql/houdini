@@ -187,8 +187,6 @@ function typeDefinitions(
 											arg.type
 										)
 
-										const unwrapped = unwrapType(config, arg.type)
-
 										// add the arg definition for the field
 										const prop = AST.tsPropertySignature(
 											AST.identifier(arg.name),
@@ -196,6 +194,8 @@ function typeDefinitions(
 												tsTypeReference(config, new Set(), arg)
 											)
 										)
+
+										const unwrapped = unwrapType(config, arg.type)
 										prop.optional =
 											unwrapped.wrappers[unwrapped.wrappers.length - 1] ===
 											TypeWrapper.Nullable
@@ -333,6 +333,8 @@ function listDefinitions(
 																)
 															)
 														)
+														// when args are always optional. just because an argument is required to compute the field
+														// does not mean that its required to filter
 														argDef.optional = true
 														return argDef
 													})
