@@ -124,7 +124,22 @@ export default {
 
 ## Custom IDs
 
-Some applications cannot rely on the [Global Object Identification spec](https://graphql.org/learn/global-object-identification/) for one reason or another. Maybe your types do not have an `id` field or maybe your API does not support the `node` query field. Either way, Houdini lets you configure both parts of this interaction so you can tell Houdini how to do the right thing.
+Some applications cannot rely on the [Global Object Identification spec](https://graphql.org/learn/global-object-identification/) for one reason or another. Maybe your types do not have an `id` field. If it's the case, you can tell it to Houdini by setting keys to your `types` in your `houdini.config.js`, like: 
+```javascript
+export default {
+    // ...
+    types: {
+        User: {
+            keys: ['firstName', 'lastName'],
+        }
+    }
+}
+```
+
+
+
+
+Maybe your API does not support the `node` query field. In this case, Houdini lets you configure both parts of this interaction so you can tell Houdini how to do the right thing.
 
 If all you need to do is change the way that Houdini resolves a particular type, you can use the following configuration:
 

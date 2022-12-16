@@ -65,6 +65,7 @@ Then, update your `svelte.config.js` to support the `$houdini` alias:
 
 ```javascript
 // svelte.config.js
+import path from 'path';
 
 export default {
 	kit: {
