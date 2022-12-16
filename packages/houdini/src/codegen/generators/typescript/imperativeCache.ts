@@ -244,6 +244,9 @@ function listDefinitions(
 	// we need to look at every document for a list definition
 	const lists: recast.types.namedTypes.TSPropertySignature[] = []
 
+	// we generate @list for every @paginate so we need to deduplicate list names
+	const visitedLists = new Set<string>()
+
 	for (const doc of docs) {
 		graphql.visit(doc.document, {
 			Directive(node, key, parent, path, ancestors) {
@@ -252,11 +255,13 @@ function listDefinitions(
 					return
 				}
 
-				// we only care about named lists
+				// we only care about processing lists with names (and only once)
 				const nameArg = node.arguments?.find((arg) => arg.name.value === 'name')
-				if (!nameArg) {
+				const nameValue = (nameArg?.value as graphql.StringValueNode)?.value || ''
+				if (!nameValue || visitedLists.has(nameValue)) {
 					return
 				}
+				visitedLists.add(nameValue)
 
 				// find the definition of field that it was tagged with
 
@@ -291,7 +296,7 @@ function listDefinitions(
 				// add the list to the list object definition
 				lists.push(
 					AST.tsPropertySignature(
-						AST.identifier((nameArg.value as graphql.StringValueNode).value),
+						AST.identifier(nameValue),
 						AST.tsTypeAnnotation(
 							AST.tsTypeLiteral([
 								AST.tsPropertySignature(
