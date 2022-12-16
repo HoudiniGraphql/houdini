@@ -1,11 +1,11 @@
-import type { ProgramKind } from 'ast-types/gen/kinds'
+import type { ProgramKind } from 'ast-types/lib/gen/kinds'
 import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { test, expect } from 'vitest'
 
 import { runPipeline } from '../..'
 import { fs, path } from '../../../lib'
-import { testConfig } from '../../../test'
+import { mockCollectedDoc, testConfig } from '../../../test'
 
 const config = testConfig({
 	schema: `
@@ -103,7 +103,30 @@ const config = testConfig({
 
 test('generates type definitions for the imperative API', async function () {
 	// execute the generator
-	await runPipeline(config, [])
+	await runPipeline(config, [
+		mockCollectedDoc(
+			`query TestQuery {
+					users(
+						id: "1"
+						firstName: "hello"
+						list: []
+					) @list(name: "All_Users") {
+						firstName
+					}
+				}
+			`
+		),
+		mockCollectedDoc(
+			`query TestQueryNoArgs {
+					entities @list(name: "NoArgs") {
+						... on User { 
+							firstName
+						}
+					}
+				}
+			`
+		),
+	])
 
 	// open up the index file
 	const fileContents = await fs.readFile(path.join(config.runtimeDirectory, 'generated.d.ts'))
@@ -272,7 +295,24 @@ test('generates type definitions for the imperative API', async function () {
 		            };
 		        };
 		    };
-		    lists: {};
+		    lists: {
+		        All_Users: {
+		            type: "User";
+		            filters: {
+		                filter?: UserFilter | null | undefined;
+		                list?: (UserFilter)[];
+		                id?: string;
+		                firstName?: string;
+		                admin?: boolean | null | undefined;
+		                age?: number | null | undefined;
+		                weight?: number | null | undefined;
+		            };
+		        };
+		        NoArgs: {
+		            type: "User" | "Cat";
+		            filters: never;
+		        };
+		    };
 		};
 	`
 	)

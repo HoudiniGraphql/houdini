@@ -2,7 +2,14 @@ import { StatementKind, TSTypeKind } from 'ast-types/lib/gen/kinds'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import { Config, CollectedGraphQLDocument, fs, path, keyFieldsForType } from '../../../lib'
+import {
+	Config,
+	CollectedGraphQLDocument,
+	fs,
+	path,
+	keyFieldsForType,
+	parentTypeFromAncestors,
+} from '../../../lib'
 import { TypeWrapper, unwrapType } from '../../utils'
 import { addReferencedInputTypes } from './addReferencedInputTypes'
 import { tsTypeReference } from './typeReference'
@@ -233,8 +240,101 @@ function typeDefinitions(
 function listDefinitions(
 	config: Config,
 	docs: CollectedGraphQLDocument[]
-): recast.types.namedTypes.TSTypeLiteral {
-	return AST.tsTypeLiteral([])
+): recast.types.namedTypes.TSTypeLiteral | recast.types.namedTypes.TSNeverKeyword {
+	// we need to look at every document for a list definition
+	const lists: recast.types.namedTypes.TSPropertySignature[] = []
+
+	for (const doc of docs) {
+		graphql.visit(doc.document, {
+			Directive(node, key, parent, path, ancestors) {
+				// we only care about fields tagged with the node or paginate directive
+				if (![config.listDirective, config.paginateDirective].includes(node.name.value)) {
+					return
+				}
+
+				// we only care about named lists
+				const nameArg = node.arguments?.find((arg) => arg.name.value === 'name')
+				if (!nameArg) {
+					return
+				}
+
+				// find the definition of field that it was tagged with
+
+				// look up the parent's type
+				const parentType = parentTypeFromAncestors(
+					config.schema,
+					doc.filename,
+					ancestors.slice(0, -1)
+				)
+
+				// a non-connection list can just use the selection set of the tagged field
+				// but if this is a connection tagged with list we need to use the selection
+				// of the edges.node field
+				const targetField = ancestors[ancestors.length - 1] as graphql.FieldNode
+				const targetFieldDefinition = parentType.getFields()[
+					targetField.name.value
+				] as graphql.GraphQLField<any, any>
+
+				// get the type of the field
+				const { type: listType } = unwrapType(config, targetFieldDefinition.type)
+				// we need to build up a union of the possible types that can fall in the list
+				const possibleTypes: string[] = []
+				if (graphql.isAbstractType(listType)) {
+					// get the list of possible types
+					possibleTypes.push(
+						...config.schema.getPossibleTypes(listType).map((possible) => possible.name)
+					)
+				} else {
+					possibleTypes.push(listType.name)
+				}
+
+				// add the list to the list object definition
+				lists.push(
+					AST.tsPropertySignature(
+						AST.identifier((nameArg.value as graphql.StringValueNode).value),
+						AST.tsTypeAnnotation(
+							AST.tsTypeLiteral([
+								AST.tsPropertySignature(
+									AST.identifier('type'),
+									AST.tsTypeAnnotation(
+										AST.tsUnionType(
+											possibleTypes.map((possible) =>
+												AST.tsLiteralType(AST.stringLiteral(possible))
+											)
+										)
+									)
+								),
+								AST.tsPropertySignature(
+									AST.identifier('filters'),
+									AST.tsTypeAnnotation(
+										targetFieldDefinition.args.length === 0
+											? AST.tsNeverKeyword()
+											: AST.tsTypeLiteral(
+													targetFieldDefinition.args.map((arg) => {
+														const argDef = AST.tsPropertySignature(
+															AST.identifier(arg.name),
+															AST.tsTypeAnnotation(
+																tsTypeReference(
+																	config,
+																	new Set(),
+																	arg
+																)
+															)
+														)
+														argDef.optional = true
+														return argDef
+													})
+											  )
+									)
+								),
+							])
+						)
+					)
+				)
+			},
+		})
+	}
+	return AST.tsTypeLiteral(lists)
 }
 
 // in order to integrate with the generated runtime
