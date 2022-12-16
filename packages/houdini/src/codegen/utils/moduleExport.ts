@@ -1,4 +1,4 @@
-import type { ExpressionKind } from 'ast-types/gen/kinds'
+import type { ExpressionKind } from 'ast-types/lib/gen/kinds'
 import * as recast from 'recast'
 
 import { Config } from '../../lib'

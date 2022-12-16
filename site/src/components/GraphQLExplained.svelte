@@ -24,13 +24,13 @@
 
 	.container {
 		border-radius: 10px;
-		background-color: #410f30;
+		background-color: var(--graphql-explained-background);
 		margin-bottom: 60px;
 		margin-top: 30px;
 	}
 
 	button {
-		background: #8d005f;
+		background: var(--graphql-explained);
 		border-radius: 10px;
 		display: flex;
 		flex-direction: row;

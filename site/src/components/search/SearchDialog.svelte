@@ -195,7 +195,7 @@
 	}
 
 	.body {
-		background: #161b22;
+		background: var(--hue);
 		max-width: 31.25rem;
 		width: calc(100% - 20px);
 		border-radius: 11px;
@@ -203,7 +203,7 @@
 
 		box-shadow: 0 5px 20px 20px rgba(22, 27, 34, 0.2);
 
-		color: white;
+		color: var(--contrast);
 	}
 
 	input {
@@ -264,24 +264,24 @@
 
 	a:hover,
 	a:focus {
-		background: #1b2129;
+		background: var(--hue);
 		outline: none;
 	}
 
 	small {
 		font-size: 14px;
 		font-family: 'Hind', sans-serif;
-		color: #7687a0;
+		color: var(--contrast);
 	}
 
 	strong {
 		font-family: 'Hind', sans-serif;
 		font-size: 1rem;
-		color: white;
+		color: var(--contrast);
 	}
 
 	span {
-		color: white;
+		color: var(--contrast);
 		font-family: 'Hind', sans-serif;
 		font-size: 1rem;
 		line-height: 1.5rem;
@@ -292,13 +292,13 @@
 	}
 
 	:global(mark) {
-		background-color: rgb(71, 83, 101);
-		color: white;
+		background-color: var(--discreet2);
+		color: var(--contrast);
 	}
 
 	p {
 		font-family: 'Hind', sans-serif;
-		color: white;
+		color: var(--contrast);
 		font-size: 1rem;
 		padding: 30px 15px;
 	}

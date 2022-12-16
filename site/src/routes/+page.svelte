@@ -304,7 +304,7 @@
 
 	#hero h1 {
 		flex-grow: 1;
-		font-size: 40px;
+		font-size: 38px;
 		font-weight: bold;
 		line-height: 3.25rem;
 		color: #161b22;

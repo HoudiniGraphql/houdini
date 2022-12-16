@@ -16,8 +16,8 @@
 		"src/**/*.svelte": "npm run format"
 	},
 	"devDependencies": {
-		"@sveltejs/adapter-vercel": "1.0.0-next.87",
-		"@sveltejs/kit": "1.0.0-next.587",
+		"@sveltejs/adapter-vercel": "1.0.0",
+		"@sveltejs/kit": "1.0.0",
 		"@typescript-eslint/eslint-plugin": "^5.10.1",
 		"@typescript-eslint/parser": "^5.10.1",
 		"eslint": "^8.12.0",
@@ -30,7 +30,7 @@
 		"svelte-check": "^2.8.0",
 		"svelte-kit-cookie-session": "3.0.6",
 		"tslib": "^2.3.1",
-		"typescript": "4.5.4"
+		"typescript": "^4.9"
 	},
 	"dependencies": {
 		"feather-icons": "^4.28.0",
@@ -43,8 +43,8 @@
 		"node-html-parser": "^5.4.1",
 		"rehype-autolink-headings": "^6.1.1",
 		"rehype-slug": "^5.0.1",
-		"svelte": "^3.47.0",
+		"svelte": "^3.55.0",
 		"svelte-preprocess": "^4.10.1",
-		"vite": "^4.0.0"
+		"vite": "^4.0.1"
 	}
 }

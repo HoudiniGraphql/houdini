@@ -1,5 +1,13 @@
 # houdini
 
+## 0.18.2
+
+### ✨ Features
+
+-   [#767](https://github.com/HoudiniGraphql/houdini/pull/767) [`0ed1a7b`](https://github.com/HoudiniGraphql/houdini/commit/0ed1a7bc29727615c99ea6f54beeef8660e14dc9) Thanks [@524c](https://github.com/524c)! - Add support for expr satisfies TS expressions
+
+## 0.18.1
+
 ## 0.18.0
 
 ### ⚠️ Breaking Changes

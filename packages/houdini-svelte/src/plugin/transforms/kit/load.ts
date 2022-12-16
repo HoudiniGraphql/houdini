@@ -1,6 +1,6 @@
 import { logYellow } from '@kitql/helper'
-import type { StatementKind, IdentifierKind } from 'ast-types/gen/kinds'
-import type { namedTypes } from 'ast-types/gen/namedTypes'
+import type { StatementKind, IdentifierKind } from 'ast-types/lib/gen/kinds'
+import type { namedTypes } from 'ast-types/lib/gen/namedTypes'
 import * as graphql from 'graphql'
 import { formatErrors, operation_requires_variables, fs } from 'houdini'
 import { find_insert_index, ensure_imports, artifact_import } from 'houdini/vite'

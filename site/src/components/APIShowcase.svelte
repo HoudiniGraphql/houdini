@@ -64,8 +64,8 @@
 	button {
 		display: inline-block;
 		width: 9.5rem;
-		background: #ff3e00;
-		color: white;
+		background: var(--saturated);
+		color: var(--contrast);
 		font-family: 'Hind', sans-serif;
 		font-weight: 500;
 		border: none;
@@ -77,7 +77,7 @@
 	}
 
 	.api-showcase-container:hover button {
-		background: #b42e02;
+		background: var(--saturated);
 	}
 
 	@media (min-width: 1200px) {
