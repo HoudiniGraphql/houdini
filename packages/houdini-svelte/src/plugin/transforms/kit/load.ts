@@ -461,14 +461,7 @@ async function find_special_query(
 		return null
 	}
 
-	// generate an import for the store
-	const { id } = store_import({
-		page,
-		artifact: { name: definition.name!.value },
-	})
-
 	return {
-		store_id: id,
 		name: definition.name!.value,
 		variables: operation_requires_variables(definition),
 	}

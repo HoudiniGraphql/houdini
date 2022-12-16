@@ -397,10 +397,15 @@ export function store_import({
 		config: page.config,
 		script: page.script,
 		sourceModule: store_import_path({ config: page.config, name: artifact.name }),
-		import: `GQL_${artifact.name}`,
+		import: [
+			store_name({
+				config: page.config,
+				name: artifact.name,
+			}),
+		],
 	})
 
-	return { id: ids, added }
+	return { id: ids[0], added }
 }
 
 export type Framework = 'kit' | 'svelte'
