@@ -2,9 +2,9 @@
 
 ## 0.18.3
 
-### Patch Changes
+### 🐛 Fixes
 
--   [#773](https://github.com/HoudiniGraphql/houdini/pull/773) [`57ea21c`](https://github.com/HoudiniGraphql/houdini/commit/57ea21c09707dbddfba5abf814f92c0d932ca628) Thanks [@jycouet](https://github.com/jycouet)! - object identification takes care of custom IDs in list directive now
+-   [#773](https://github.com/HoudiniGraphql/houdini/pull/773) [`57ea21c`](https://github.com/HoudiniGraphql/houdini/commit/57ea21c09707dbddfba5abf814f92c0d932ca628) Thanks [@jycouet](https://github.com/jycouet)! - Fix generated list operation fragments with custom keys
 
 ## 0.18.2
 
