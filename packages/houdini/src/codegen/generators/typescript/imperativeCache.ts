@@ -45,7 +45,7 @@ export default async function imperativeCacheTypef(
 	// we need to import the record type from the public cache
 	const importRecord = AST.importDeclaration(
 		[AST.importSpecifier(AST.identifier('Record'))],
-		AST.stringLiteral('./public')
+		AST.stringLiteral('./public/record')
 	)
 	importRecord.importKind = 'type'
 

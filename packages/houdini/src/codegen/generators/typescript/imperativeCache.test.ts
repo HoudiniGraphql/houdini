@@ -139,7 +139,7 @@ test('generates type definitions for the imperative API', async function () {
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(
 		`
-		import type { Record } from "./public";
+		import type { Record } from "./public/record";
 		import type { MyEnum } from "$houdini/graphql/enums";
 
 		type NestedUserFilter = {
