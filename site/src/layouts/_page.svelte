@@ -261,8 +261,10 @@
 	}
 
 	.aside-head {
+		background: var(--hue);
 		position: sticky;
 		top: 0;
+		z-index: 10;
 	}
 
 	nav button:nth-child(1) {
