@@ -92,19 +92,22 @@ export async function expect_n_gql(
     }
   }
 
+  // default waiting time
+  let time_waiting = 1111;
+
   // Wait algo
   if (n === 0) {
     // wait at least...
-    await sleep(1111);
+    await sleep(time_waiting);
   } else {
     // default increment
     const tim_inc = 11;
 
-    // total waiting time
-    let time_waiting = 0;
-
     // did he waited enough?
     let waited_enough = false;
+
+    // reset and start from 0 to start the loop.
+    time_waiting = 0;
 
     // While
     // - n !== nbResponse => We don't have the right number of response
@@ -130,7 +133,10 @@ export async function expect_n_gql(
 
   // Check if numbers are ok
   // expect(nbRequest, 'nbRequest').toBe(n);
-  expect(nbResponse, `Not the right number of responses (selector: ${selector})`).toBe(n);
+  expect(
+    nbResponse,
+    `Not the right number of responses (selector: ${selector}, Waited ${time_waiting}ms.)`
+  ).toBe(n);
 
   // Sort and return!
   return listStr.sort();
@@ -175,8 +181,11 @@ export async function goto(
  * @returns The response of graphql queries
  */
 export async function goto_expect_n_gql(page: Page, url: string, n: number): Promise<string[]> {
-  await page.goto(url, { waitUntil: 'load' });
-  return expect_n_gql(page, null, n);
+  const [, resExpect] = await Promise.all([
+    page.goto(url, { waitUntil: 'load' }),
+    expect_n_gql(page, null, n)
+  ]);
+  return resExpect;
 }
 
 /**

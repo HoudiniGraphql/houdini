@@ -261,8 +261,10 @@
 	}
 
 	.aside-head {
+		background: var(--hue);
 		position: sticky;
 		top: 0;
+		z-index: 10;
 	}
 
 	nav button:nth-child(1) {
@@ -271,7 +273,7 @@
 
 	h1 {
 		font-size: 30px;
-		font-family: 'Lato', sans-serif;
+		font-family: 'Hind', sans-serif;
 		margin-top: 14px;
 		margin-bottom: 14px;
 		color: var(--contrast);
@@ -293,7 +295,7 @@
 		padding-bottom: 10px;
 		color: var(--contrast);
 		font-size: 18px;
-		font-family: 'Lato', sans-serif;
+		font-family: 'Hind', sans-serif;
 		padding-left: 10px;
 		padding-right: 10px;
 		margin-right: 5px;
@@ -335,7 +337,7 @@
 		padding: 10px 0;
 		font-size: 18px;
 		line-height: 25px;
-		font-family: 'Lato', sans-serif;
+		font-family: 'Hind', sans-serif;
 		margin-bottom: 5px;
 		padding-left: 2.5rem;
 		padding-right: 20px;
@@ -424,7 +426,7 @@
 		flex-direction: row;
 		align-items: center;
 		font-size: 18px;
-		font-family: 'Lato', sans-serif;
+		font-family: 'Hind', sans-serif;
 		font-weight: 500;
 		text-decoration: none;
 		justify-content: center;
@@ -437,7 +439,7 @@
 	}
 
 	.pagination h4 {
-		font-family: 'Lato', sans-serif;
+		font-family: 'Hind', sans-serif;
 		margin-bottom: 5px;
 	}
 

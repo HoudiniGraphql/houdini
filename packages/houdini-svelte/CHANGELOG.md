@@ -1,5 +1,7 @@
 # houdini-svelte
 
+## 0.18.3
+
 ## 0.18.2
 
 ### 🐛 Fixes

@@ -1,5 +1,5 @@
 <script>
-	import flexsearch from 'flexsearch'
+	import { Index } from 'flexsearch/dist/flexsearch.bundle'
 	import { onMount } from 'svelte'
 	import { Icon } from '~/components'
 
@@ -15,7 +15,7 @@
 
 	onMount(async () => {
 		const response = await fetch('/_content')
-		index = new flexsearch.Index({
+		index = new Index({
 			tokenize: 'forward'
 		})
 
@@ -270,19 +270,19 @@
 
 	small {
 		font-size: 14px;
-		font-family: 'Lato', sans-serif;
+		font-family: 'Hind', sans-serif;
 		color: var(--contrast);
 	}
 
 	strong {
-		font-family: 'Lato', sans-serif;
+		font-family: 'Hind', sans-serif;
 		font-size: 1rem;
 		color: var(--contrast);
 	}
 
 	span {
 		color: var(--contrast);
-		font-family: 'Lato', sans-serif;
+		font-family: 'Hind', sans-serif;
 		font-size: 1rem;
 		line-height: 1.5rem;
 	}
@@ -297,7 +297,7 @@
 	}
 
 	p {
-		font-family: 'Lato', sans-serif;
+		font-family: 'Hind', sans-serif;
 		color: var(--contrast);
 		font-size: 1rem;
 		padding: 30px 15px;

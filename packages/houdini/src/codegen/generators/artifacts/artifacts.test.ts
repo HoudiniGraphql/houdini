@@ -1956,7 +1956,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    name: "A",
 			    kind: "HoudiniMutation",
-			    hash: "2a821dc72c7f92a67ff9fcef569c4cadaf9852662035b32d015c4af67e57aca3",
+			    hash: "e01f8a23cc33c10c4ee3745c041ee97f428b3b4676a5d8d681124f75b09306da",
 
 			    raw: \`mutation A {
 			  addFriend {
@@ -1969,7 +1969,6 @@ describe('mutation artifacts', function () {
 
 			fragment All_Users_toggle on User {
 			  firstName
-			  id
 			  id
 			}
 			\`,

@@ -1,14 +1,13 @@
-#doc-content h1,
-h2,
-h3,
-h4 {
+#doc-content h2,
+#doc-content h3,
+#doc-content h4 {
 	margin-bottom: 30px;
-	font-family: 'Lato', serif;
-	font-weight: 700;
+	font-family: 'Crete Round', serif;
 }
 
 #doc-content h1 {
-	font-family: 'Lato', serif;
+	font-family: 'Crete Round', serif;
+	margin-bottom: 10px;
 	font-size: 40px;
 }
 
@@ -32,7 +31,7 @@ h4 {
 #doc-content p {
 	font-size: 18px;
 	line-height: 28px;
-	font-family: 'Lato', sans-serif;
+	font-family: 'Hind', sans-serif;
 	font-weight: 500;
 	padding-bottom: 30px;
 }
@@ -45,7 +44,7 @@ ol {
 
 #doc-content li {
 	font-size: 18px;
-	font-family: 'Lato', sans-serif;
+	font-family: 'Hind', sans-serif;
 	margin-left: 45px;
 	margin-top: 5px;
 	line-height: 24px;

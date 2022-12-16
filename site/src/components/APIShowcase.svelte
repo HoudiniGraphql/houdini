@@ -66,7 +66,7 @@
 		width: 9.5rem;
 		background: var(--saturated);
 		color: var(--contrast);
-		font-family: 'Lato', sans-serif;
+		font-family: 'Hind', sans-serif;
 		font-weight: 500;
 		border: none;
 		font-size: 1.25rem;
