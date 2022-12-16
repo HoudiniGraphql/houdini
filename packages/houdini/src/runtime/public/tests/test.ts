@@ -25,6 +25,20 @@ type CacheTypeDef = {
 					type: (Record<CacheTypeDef, 'Cat'> | Record<CacheTypeDef, 'User'>)[]
 					args: never
 				}
+				listOfLists: {
+					type: (
+						| (
+								| Record<CacheTypeDef, 'Cat'>
+								| Record<CacheTypeDef, 'User'>
+								| null
+								| (null | Record<CacheTypeDef, 'User'>)[]
+						  )[]
+						| Record<CacheTypeDef, 'Cat'>
+						| Record<CacheTypeDef, 'User'>
+						| null
+					)[]
+					args: never
+				}
 				users: {
 					type: Record<CacheTypeDef, 'User'>[] | null
 					args: never

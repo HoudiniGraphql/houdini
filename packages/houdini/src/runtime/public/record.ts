@@ -108,16 +108,8 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 		}
 		// it could also be a list of proxies
 		else if (Array.isArray(value)) {
-			newValue = []
-			for (const inner of value as any[]) {
-				if (!(inner instanceof Record)) {
-					throw new Error(
-						'Value must be a list RecordProxies if the field is a link to another record'
-					)
-				}
-
-				newValue.push({ ...inner.idFields, __typename: inner.type })
-			}
+			// we want to allow nested lists of records and scalars
+			newValue = marshalNestedList(value)
 		}
 
 		// they didn't pass a proxy or list of proxies when we expected one
@@ -215,40 +207,14 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 
 		// we need to handle lists and non lists so treat everything as a list for now
 		// and then we'll unpack after
-		let finalResult = (!Array.isArray(data) ? [data] : data).map((ids) => {
-			if (Object.keys(ids ?? {}).length === 0) {
-				return typeInfo.nullable ? null : undefined
+		let finalResult = unmarshalNestedList(
+			this.#cache,
+			!Array.isArray(data) ? [data] : data
+		).map((val) => {
+			if (typeInfo.nullable && (val === null || Object.keys(val).length === 0)) {
+				return null
 			}
-
-			// they asked for a link so we need to return a proxy to that record
-			const linkedID = this.#cache._internal_unstable._internal_unstable.id(
-				typeInfo.type,
-				ids || {}
-			)
-			if (!linkedID) {
-				throw new Error('todo')
-			}
-
-			// look up the __typename
-			const typename = this.#cache._internal_unstable.read({
-				selection: {
-					fields: {
-						__typename: {
-							keyRaw: '__typename',
-							type: 'String',
-						},
-					},
-				},
-				parent: linkedID,
-			}).data?.__typename
-
-			// return the proxy
-			return new Record<Def, Field>({
-				cache: this.#cache,
-				type: (typename as string) ?? typeInfo.type,
-				id: linkedID,
-				idFields: ids || {},
-			})
+			return val
 		})
 
 		return (Array.isArray(data) ? finalResult : finalResult[0]) as FieldType<Def, Type, Field>
@@ -294,3 +260,66 @@ export const stringifyObjectWithNoQuotesOnKeys = (obj_from_json: {}): string => 
 }
 
 type TypeInfoWithSelection = Partial<Required<SubscriptionSelection>['fields'][string]> & TypeInfo
+
+export function marshalNestedList(list: any[]): any[] {
+	const newValue = []
+
+	for (const inner of list) {
+		// if the inner entry is a list, marshal it
+		if (Array.isArray(inner)) {
+			newValue.push(marshalNestedList(inner))
+		} else if (inner instanceof Record) {
+			newValue.push({ ...inner.idFields, __typename: inner.type })
+		} else {
+			newValue.push(inner)
+		}
+	}
+
+	return newValue
+}
+
+function unmarshalNestedList<Def extends CacheTypeDef>(cache: Cache<Def>, list: any[]): any[] {
+	const newValue = []
+
+	for (const inner of list) {
+		// if the inner entry is a list, marshal it
+		if (Array.isArray(inner)) {
+			newValue.push(unmarshalNestedList<Def>(cache, inner))
+		} else if (inner === null) {
+			newValue.push(null)
+		} else if (inner.__typename) {
+			const type = inner.__typename
+			// compute the id for the record
+			let recordID = cache._internal_unstable._internal_unstable.id(type, inner)
+			if (!recordID) {
+				throw new Error('todo')
+			}
+
+			// look up the __typename
+			const typename = cache._internal_unstable.read({
+				selection: {
+					fields: {
+						__typename: {
+							keyRaw: '__typename',
+							type: 'String',
+						},
+					},
+				},
+				parent: recordID,
+			}).data?.__typename
+
+			newValue.push(
+				new Record({
+					cache,
+					type: type || (typename as string),
+					idFields: inner,
+					id: recordID,
+				})
+			)
+		} else {
+			newValue.push(inner)
+		}
+	}
+
+	return newValue
+}

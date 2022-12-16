@@ -2,7 +2,7 @@ import { test, expect } from 'vitest'
 
 import { rootID } from '../../cache/cache'
 import { SubscriptionSelection } from '../../lib'
-import { Record } from '../record'
+import { marshalNestedList, Record } from '../record'
 import { testCache } from './test'
 
 test('must have schema information to set field', function () {
@@ -413,6 +413,74 @@ test('can set union types', function () {
 	})
 })
 
-test.todo('can set nested lists of record proxies')
+test('can set nested lists of record proxies', function () {
+	const cache = testCache()
+
+	cache.setFieldType({
+		parent: rootID,
+		key: 'listOfLists',
+		type: 'Pet',
+		nullable: true,
+		link: true,
+	})
+
+	cache.setFieldType({
+		parent: 'Pet',
+		key: 'id',
+		type: 'ID',
+		nullable: false,
+		link: false,
+	})
+
+	// build up some users
+	const user1 = cache.get('User', { id: '1' })
+	const user2 = cache.get('User', { id: '2' })
+	const user3 = cache.get('User', { id: '3' })
+
+	// set a nested list
+	cache.root.set({
+		field: 'listOfLists',
+		value: [null, user1, [user2, [null, user3]]],
+	})
+
+	const expected = [
+		null,
+		{ id: '1', __typename: 'User' },
+		[{ id: '2', __typename: 'User' }, [null, { id: '3', __typename: 'User' }]],
+	]
+
+	// make sure we wrote the correct value to cache
+	expect(
+		cache._internal_unstable.read({
+			selection: {
+				fields: {
+					listOfLists: {
+						keyRaw: 'listOfLists',
+						type: 'User',
+						nullable: true,
+						abstract: true,
+						selection: {
+							fields: {
+								id: {
+									keyRaw: 'id',
+									type: 'ID',
+								},
+								__typename: {
+									keyRaw: '__typename',
+									type: 'ID',
+								},
+							},
+						},
+					},
+				},
+			},
+		}).data
+	).toEqual({
+		listOfLists: expected,
+	})
+
+	// and make sure we get the right value from the imperative API
+	expect(marshalNestedList(cache.root.get({ field: 'listOfLists' }))).toEqual(expected)
+})
 
 test.todo('embedded data can be embedded / looked up')
