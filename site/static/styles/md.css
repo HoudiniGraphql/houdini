@@ -84,8 +84,8 @@ h4 > code {
 	padding: 1px 4px;
 	font-family: 'Roboto Mono', monospace;
 	white-space: nowrap;
-	color: var(--text_highlight);
-	background-color: var(--text_highlight_background);
+	color: var(--text-highlight);
+	background-color: var(--text-highlight-background);
 }
 
 .message > p > code {

@@ -34,9 +34,9 @@
 				--deep-dive: #214a9c;
 				--deep-dive-text: white;
 				--deep-dive-background: var(--discreet);
-				--link-color: #FF5C26;
-				--text_highlight: #3595FF;
-				--text_highlight_background: #eee;
+				--link-color: #ff5c26;
+				--text-highlight: #3595ff;
+				--text-highlight-background: #eee;
 			}
 		</style>
 	{:else}
@@ -56,8 +56,8 @@
 				--graphql-explained: #8d005f;
 				--graphql-explained-background: var(--discreet);
 				--link-color: #fc602d;
-				--text_highlight: #a1c5f8;
-				--text_highlight_background: #222832;
+				--text-highlight: #a1c5f8;
+				--text-highlight-background: #222832;
 			}
 		</style>
 	{/if}
