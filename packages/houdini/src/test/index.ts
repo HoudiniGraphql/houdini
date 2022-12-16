@@ -204,6 +204,7 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 			type CustomIdType {
 				foo: String!
 				bar: String!
+				dummy: String
 			}
 		`,
 

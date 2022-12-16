@@ -474,13 +474,14 @@ test('cannot use list directive if id is not a valid field', async function () {
 	// expect(docs[0]).toMatchInlineSnapshot(``)
 })
 
-test('list with Custom Ids', async function () {
+test('list with Custom Ids & an extra field', async function () {
 	const docs = [
 		mockCollectedDoc(
 			`
 			query CustomIdList {
 				customIdList @list(name: "theList") {
 					foo
+					dummy
 				}
 			}
 		`
@@ -494,15 +495,18 @@ test('list with Custom Ids', async function () {
 
 	const content = await fs.readFile(config.definitionsDocumentsPath)
 
+	// We want Obj Identification & the extra field on insert & toggle
 	expect(graphql.parse(content!)).toMatchInlineSnapshot(
 		`
 		fragment theList_insert on CustomIdType {
 		  foo
+		  dummy
 		  bar
 		}
 
 		fragment theList_toggle on CustomIdType {
 		  foo
+		  dummy
 		  bar
 		}
 
