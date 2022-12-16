@@ -1,6 +1,6 @@
 {
     "name": "houdini-react",
-    "version": "0.17.14",
+    "version": "0.18.2",
     "private": true,
     "description": "The React plugin for houdini",
     "keywords": [
@@ -32,7 +32,7 @@
         "estree-walker": "^3.0.1",
         "graphql": "^15.8.0",
         "houdini": "workspace:^",
-        "recast": "^0.21.5"
+        "recast": "^0.23.1"
     },
     "files": [
         "build"

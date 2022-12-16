@@ -1,5 +1,5 @@
 import { logYellow } from '@kitql/helper'
-import { ExpressionKind } from 'ast-types/gen/kinds'
+import { ExpressionKind } from 'ast-types/lib/gen/kinds'
 import * as graphql from 'graphql'
 import { Config, operation_requires_variables, find_graphql, Script, formatErrors } from 'houdini'
 import { find_exported_fn, find_insert_index, ensure_imports, TransformPage } from 'houdini/vite'
@@ -147,9 +147,11 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 																		props.map((prop) =>
 																			AST.objectProperty(
 																				AST.identifier(
-																					prop
+																					prop as string
 																				),
-																				AST.identifier(prop)
+																				AST.identifier(
+																					prop as string
+																				)
 																			)
 																		)
 																	)

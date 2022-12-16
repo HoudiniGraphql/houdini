@@ -24,23 +24,23 @@
 
 	.container {
 		border-radius: 10px;
-		background-color: #0f2146;
+		background-color: var(--deep-dive-background);
 		margin-bottom: 60px;
 		margin-top: 30px;
 	}
 
 	button {
-		background: #17346d;
+		background: var(--deep-dive);
 		border-radius: 10px;
 		display: flex;
 		flex-direction: row;
 		align-items: center;
 		padding: 15px;
-		font-family: 'Hind', sans-serif;
+		font-family: 'Lato', sans-serif;
 		font-size: 20px;
 		width: 100%;
 		border: none;
-		color: white;
+		color: var(--deep-dive-text);
 		cursor: pointer;
 	}
 

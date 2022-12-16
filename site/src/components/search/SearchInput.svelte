@@ -25,7 +25,7 @@
 
 <style>
 	button {
-		border: 2px solid #475365;
+		border: 2px solid var(--discreet);
 		color: #475365;
 		border-radius: 8px;
 		padding: 3px 11px;
@@ -37,7 +37,7 @@
 		justify-content: space-between;
 		background: none;
 		cursor: pointer;
-		font-family: 'Hind', sans-serif;
+		font-family: 'Lato', sans-serif;
 		outline: none;
 	}
 

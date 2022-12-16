@@ -48,10 +48,10 @@ describe('parser tests', () => {
 		const result = await parseSvelte(doc)
 
 		expect(result?.script).toMatchInlineSnapshot(`
-		type Foo = {
-		    hello: string
-		};
-	`)
+			type Foo = {
+			    hello: string;
+			};
+		`)
 	})
 
 	test('nested script block', async () => {
