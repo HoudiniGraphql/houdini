@@ -37,10 +37,10 @@ describe('evaluateKey', function () {
 		},
 		{
 			title: 'complex values',
-			args: { where: { name: { _eq: 'Sidney' } } },
+			args: { where: { name: [{ _eq: 'SidneyA' }, { _eq: 'SidneyB' }] } },
 			field: 'field',
 			expected: `field(where: {
-                name: {_eq: "Sidney"}
+                name: [{ _eq: "SidneyA" } , { _eq: "SidneyB" } ]
             })`,
 		},
 		{

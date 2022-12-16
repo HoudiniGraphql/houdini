@@ -3052,7 +3052,7 @@ describe('mutation artifacts', function () {
 			        fields: {
 			            users: {
 			                type: "User",
-			                keyRaw: "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
+			                keyRaw: "users(boolValue: true, floatValue: 1.2, intValue: 1, stringValue: $value)",
 
 			                list: {
 			                    name: "All_Users",
@@ -3523,7 +3523,7 @@ describe('mutation artifacts', function () {
 			        fields: {
 			            users: {
 			                type: "User",
-			                keyRaw: "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
+			                keyRaw: "users(boolValue: true, floatValue: 1.2, intValue: 1, stringValue: $value)",
 
 			                list: {
 			                    name: "All_Users",
@@ -3628,7 +3628,7 @@ describe('mutation artifacts', function () {
 			        fields: {
 			            users: {
 			                type: "User",
-			                keyRaw: "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
+			                keyRaw: "users(boolValue: true, floatValue: 1.2, intValue: 1, stringValue: $value)",
 
 			                list: {
 			                    name: "All_Users",
@@ -3852,7 +3852,7 @@ test('operation inputs', async function () {
 		        fields: {
 		            user: {
 		                type: "User",
-		                keyRaw: "user(id: $id, filter: $filter, filterList: $filterList, enumArg: $enumArg)",
+		                keyRaw: "user(enumArg: $enumArg, filter: $filter, filterList: $filterList, id: $id)",
 		                nullable: true,
 
 		                selection: {

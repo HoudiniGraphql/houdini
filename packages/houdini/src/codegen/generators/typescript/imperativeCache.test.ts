@@ -120,159 +120,159 @@ test('generates type definitions for the imperative API', async function () {
 		import type { MyEnum } from "$houdini/graphql/enums";
 
 		type NestedUserFilter = {
-		    id: string
-		    firstName: string
-		    admin?: boolean | null | undefined
-		    age?: number | null | undefined
-		    weight?: number | null | undefined
+		    id: string;
+		    firstName: string;
+		    admin?: boolean | null | undefined;
+		    age?: number | null | undefined;
+		    weight?: number | null | undefined;
 		};
 
 		type UserFilter = {
-		    middle?: NestedUserFilter | null | undefined
-		    listRequired: (string)[]
-		    nullList?: (string | null | undefined)[] | null | undefined
-		    recursive?: UserFilter | null | undefined
-		    enum?: MyEnum | null | undefined
+		    middle?: NestedUserFilter | null | undefined;
+		    listRequired: (string)[];
+		    nullList?: (string | null | undefined)[] | null | undefined;
+		    recursive?: UserFilter | null | undefined;
+		    enum?: MyEnum | null | undefined;
 		};
 
 		export declare type CacheTypeDef = {
 		    types: {
 		        __ROOT__: {
-		            idFields: {}
+		            idFields: {};
 		            fields: {
 		                user: {
-		                    type: Record<CacheTypeDef, "User"> | null
+		                    type: Record<CacheTypeDef, "User"> | null;
 		                    args: {
-		                        id: string | null | undefined
-		                        filter: UserFilter | null | undefined
-		                        filterList: (UserFilter)[] | null | undefined
-		                        enumArg: MyEnum | null | undefined
-		                    }
-		                }
+		                        id: string | null | undefined;
+		                        filter: UserFilter | null | undefined;
+		                        filterList: (UserFilter)[] | null | undefined;
+		                        enumArg: MyEnum | null | undefined;
+		                    };
+		                };
 		                users: {
-		                    type: ((Record<CacheTypeDef, "User"> | null))[] | null
+		                    type: ((Record<CacheTypeDef, "User"> | null))[] | null;
 		                    args: {
-		                        filter: UserFilter | null | undefined
-		                        list: (UserFilter)[]
-		                        id: string
-		                        firstName: string
-		                        admin: boolean | null | undefined
-		                        age: number | null | undefined
-		                        weight: number | null | undefined
-		                    }
-		                }
+		                        filter: UserFilter | null | undefined;
+		                        list: (UserFilter)[];
+		                        id: string;
+		                        firstName: string;
+		                        admin: boolean | null | undefined;
+		                        age: number | null | undefined;
+		                        weight: number | null | undefined;
+		                    };
+		                };
 		                nodes: {
-		                    type: (Record<CacheTypeDef, "Cat"> | Record<CacheTypeDef, "Ghost"> | Record<CacheTypeDef, "User">)[]
-		                    args: never
-		                }
+		                    type: (Record<CacheTypeDef, "Cat"> | Record<CacheTypeDef, "Ghost"> | Record<CacheTypeDef, "User">)[];
+		                    args: never;
+		                };
 		                entities: {
-		                    type: ((Record<CacheTypeDef, "User"> | Record<CacheTypeDef, "Cat"> | null))[] | null
-		                    args: never
-		                }
+		                    type: ((Record<CacheTypeDef, "User"> | Record<CacheTypeDef, "Cat"> | null))[] | null;
+		                    args: never;
+		                };
 		                entity: {
-		                    type: Record<CacheTypeDef, "User"> | Record<CacheTypeDef, "Cat">
-		                    args: never
-		                }
+		                    type: Record<CacheTypeDef, "User"> | Record<CacheTypeDef, "Cat">;
+		                    args: never;
+		                };
 		                listOfLists: {
-		                    type: ((((Record<CacheTypeDef, "User"> | null))[] | null))[]
-		                    args: never
-		                }
+		                    type: ((((Record<CacheTypeDef, "User"> | null))[] | null))[];
+		                    args: never;
+		                };
 		                node: {
-		                    type: Record<CacheTypeDef, "Cat"> | Record<CacheTypeDef, "Ghost"> | Record<CacheTypeDef, "User"> | null
+		                    type: Record<CacheTypeDef, "Cat"> | Record<CacheTypeDef, "Ghost"> | Record<CacheTypeDef, "User"> | null;
 		                    args: {
-		                        id: string
-		                    }
-		                }
-		            }
-		        }
+		                        id: string;
+		                    };
+		                };
+		            };
+		        };
 		        Cat: {
 		            idFields: {
-		                id: string
-		            }
+		                id: string;
+		            };
 		            fields: {
 		                id: {
-		                    type: string
-		                    args: never
-		                }
+		                    type: string;
+		                    args: never;
+		                };
 		                kitty: {
-		                    type: boolean
-		                    args: never
-		                }
+		                    type: boolean;
+		                    args: never;
+		                };
 		                isAnimal: {
-		                    type: boolean
-		                    args: never
-		                }
+		                    type: boolean;
+		                    args: never;
+		                };
 		                names: {
-		                    type: ((string | null))[]
-		                    args: never
-		                }
-		            }
-		        }
+		                    type: ((string | null))[];
+		                    args: never;
+		                };
+		            };
+		        };
 		        Ghost: {
 		            idFields: {
-		                name: string
-		                aka: string
-		            }
+		                name: string;
+		                aka: string;
+		            };
 		            fields: {
 		                id: {
-		                    type: string
-		                    args: never
-		                }
+		                    type: string;
+		                    args: never;
+		                };
 		                aka: {
-		                    type: string
-		                    args: never
-		                }
+		                    type: string;
+		                    args: never;
+		                };
 		                name: {
-		                    type: string
-		                    args: never
-		                }
-		            }
-		        }
+		                    type: string;
+		                    args: never;
+		                };
+		            };
+		        };
 		        User: {
 		            idFields: {
-		                id: string
-		            }
+		                id: string;
+		            };
 		            fields: {
 		                id: {
-		                    type: string
-		                    args: never
-		                }
+		                    type: string;
+		                    args: never;
+		                };
 		                firstName: {
-		                    type: string
-		                    args: never
-		                }
+		                    type: string;
+		                    args: never;
+		                };
 		                nickname: {
-		                    type: string | null
-		                    args: never
-		                }
+		                    type: string | null;
+		                    args: never;
+		                };
 		                parent: {
-		                    type: Record<CacheTypeDef, "User"> | null
-		                    args: never
-		                }
+		                    type: Record<CacheTypeDef, "User"> | null;
+		                    args: never;
+		                };
 		                friends: {
-		                    type: ((Record<CacheTypeDef, "User"> | null))[] | null
-		                    args: never
-		                }
+		                    type: ((Record<CacheTypeDef, "User"> | null))[] | null;
+		                    args: never;
+		                };
 		                enumValue: {
-		                    type: MyEnum | null
-		                    args: never
-		                }
+		                    type: MyEnum | null;
+		                    args: never;
+		                };
 		                admin: {
-		                    type: boolean | null
-		                    args: never
-		                }
+		                    type: boolean | null;
+		                    args: never;
+		                };
 		                age: {
-		                    type: number | null
-		                    args: never
-		                }
+		                    type: number | null;
+		                    args: never;
+		                };
 		                weight: {
-		                    type: number | null
-		                    args: never
-		                }
-		            }
-		        }
-		    }
-		    lists: {}
+		                    type: number | null;
+		                    args: never;
+		                };
+		            };
+		        };
+		    };
+		    lists: {};
 		};
 	`
 	)
