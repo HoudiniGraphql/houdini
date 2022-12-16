@@ -191,7 +191,7 @@ type ScalarMap = { [typeName: string]: ScalarSpec }
 export type TypeConfig = {
 	[typeName: string]: {
 		keys?: string[]
-		resolve: {
+		resolve?: {
 			queryField: string
 			arguments?: (data: any) => { [key: string]: any }
 		}

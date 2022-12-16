@@ -1,3 +1,4 @@
+import { logGreen, logYellow } from '@kitql/helper'
 import * as graphql from 'graphql'
 
 import {
@@ -229,7 +230,7 @@ export default async function typeCheck(
 					targetField.name.value
 				] as graphql.GraphQLField<any, any>
 
-				const { type, error } = connectionSelection(
+				const { type, error: errorConnectionSelection } = connectionSelection(
 					config,
 					targetFieldDefinition,
 					parentTypeFromAncestors(
@@ -273,25 +274,18 @@ export default async function typeCheck(
 						.filter((fieldName) => !targetType.getFields()[fieldName])
 
 					if (missingIDFields.length > 0) {
-						if (error) {
-							errors.push(
-								new HoudiniError({
-									filepath: filename,
-									message: error,
-								})
-							)
-						} else {
-							errors.push(
-								new HoudiniError({
-									filepath: filename,
-									message: `@${
-										config.listDirective
-									} can only be applied to types with the necessary id fields: ${missingIDFields.join(
-										', '
-									)}.`,
-								})
-							)
-						}
+						const message = `@${config.listDirective} on ${logGreen(
+							targetType.name
+						)} as a configuration issue. Object identification missing: ${missingIDFields
+							.map((c) => `"${logYellow(c)}"`)
+							.join(', ')}. Check 'Custom IDs' if needed.`
+						errors.push(
+							new HoudiniError({
+								filepath: filename,
+								message,
+								description: message,
+							})
+						)
 						return
 					}
 				}

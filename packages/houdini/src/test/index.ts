@@ -66,6 +66,7 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				ghostsByCursor(first: Int, after: String, last: Int, before: String): IsGhostConnection!
 				entitiesByCursor(first: Int, after: String, last: Int, before: String): EntityConnection!
 				node(id: ID!): Node
+				customIdList: [CustomIdType]!
 			}
 
 			type PageInfo {
@@ -199,6 +200,11 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				Value3
 				Value2
 			}
+
+			type CustomIdType {
+				foo: String!
+				bar: String!
+			}
 		`,
 
 		scalars: {
@@ -219,6 +225,9 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				resolve: {
 					queryField: 'ghost',
 				},
+			},
+			CustomIdType: {
+				keys: ['foo', 'bar'],
 			},
 		},
 		logLevel: 'quiet',

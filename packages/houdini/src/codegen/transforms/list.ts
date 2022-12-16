@@ -10,6 +10,7 @@ import {
 } from '../../lib'
 import { ArtifactKind } from '../../runtime/lib/types'
 import { TypeWrapper, unwrapType } from '../utils'
+import { objectIdentificationSelection } from '../utils/objectIdentificationSelection'
 import { pageInfoSelection } from './paginate'
 
 // addListFragments adds fragments for the fields tagged with @list
@@ -191,6 +192,11 @@ export default async function addListFragments(
 					return ''
 				}
 
+				// only consider when we have "id" or a single customId, if not, go out
+				if (config.keyFieldsForType(type.name).length !== 1) {
+					return ''
+				}
+
 				return type.name
 			})
 		).values(),
@@ -222,24 +228,20 @@ export default async function addListFragments(
 						selections: [...selection.selections],
 					}
 
-					// is there no id selection
+					// is there no custom ids selection
 					if (
 						schemaType &&
 						fragmentSelection &&
 						!fragmentSelection?.selections.find(
-							(field) => field.kind === 'Field' && field.name.value === 'id'
+							(field) =>
+								field.kind === 'Field' &&
+								config.keyFieldsForType(type.name).includes(field.name.value)
 						)
 					) {
 						// add the id field to the selection
 						fragmentSelection.selections = [
 							...fragmentSelection.selections,
-							{
-								kind: graphql.Kind.FIELD,
-								name: {
-									kind: graphql.Kind.NAME,
-									value: 'id',
-								},
-							},
+							...objectIdentificationSelection(config, type),
 						]
 					}
 
@@ -272,19 +274,7 @@ export default async function addListFragments(
 							kind: graphql.Kind.FRAGMENT_DEFINITION,
 							// in order to insert an item into this list, it must
 							// have the same selection as the field
-							selectionSet: {
-								...fragmentSelection,
-								selections: [
-									...fragmentSelection.selections,
-									{
-										kind: graphql.Kind.FIELD,
-										name: {
-											kind: graphql.Kind.NAME,
-											value: 'id',
-										},
-									},
-								],
-							},
+							selectionSet: fragmentSelection,
 							typeCondition: {
 								kind: graphql.Kind.NAMED_TYPE,
 								name: {
@@ -303,15 +293,7 @@ export default async function addListFragments(
 							// deleting an entity just takes its id and the parent
 							selectionSet: {
 								kind: graphql.Kind.SELECTION_SET,
-								selections: [
-									{
-										kind: graphql.Kind.FIELD,
-										name: {
-											kind: graphql.Kind.NAME,
-											value: 'id',
-										},
-									},
-								],
+								selections: [...objectIdentificationSelection(config, type)],
 							},
 							typeCondition: {
 								kind: graphql.Kind.NAMED_TYPE,

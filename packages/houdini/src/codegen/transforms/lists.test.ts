@@ -1,6 +1,8 @@
-import { test, expect } from 'vitest'
+import * as graphql from 'graphql'
+import { expect, test } from 'vitest'
 
 import { runPipeline } from '../../codegen'
+import { fs } from '../../lib'
 import { mockCollectedDoc, testConfig } from '../../test'
 
 test('insert fragments on query selection set', async function () {
@@ -456,7 +458,60 @@ test('cannot use list directive if id is not a valid field', async function () {
 
 	// run the pipeline
 	const config = testConfig()
-	await expect(runPipeline(config, docs)).rejects.toBeTruthy()
+
+	let nbError = 0
+	// run the pipeline
+	try {
+		await runPipeline(config, docs)
+	} catch (error: unknown) {
+		nbError++
+		// @ts-ignore
+		expect(error[0].description).toMatchInlineSnapshot(
+			'"@list on \\u001b[32mLegend\\u001b[37m\\u001b[0m as a configuration issue. Object identification missing: \\"\\u001b[33mid\\u001b[37m\\u001b[0m\\". Check \'Custom IDs\' if needed."'
+		)
+	}
+	expect(nbError).toBe(1)
+	// expect(docs[0]).toMatchInlineSnapshot(``)
+})
+
+test('list with Custom Ids', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+			query CustomIdList {
+				customIdList @list(name: "theList") {
+					foo
+				}
+			}
+		`
+		),
+	]
+
+	const config = testConfig()
+
+	// run the pipeline
+	await runPipeline(config, docs)
+
+	const content = await fs.readFile(config.definitionsDocumentsPath)
+
+	expect(graphql.parse(content!)).toMatchInlineSnapshot(
+		`
+		fragment theList_insert on CustomIdType {
+		  foo
+		  bar
+		}
+
+		fragment theList_toggle on CustomIdType {
+		  foo
+		  bar
+		}
+
+		fragment theList_remove on CustomIdType {
+		  foo
+		  bar
+		}
+	`
+	)
 })
 
 test('paginate with name also gets treated as a list', async function () {
