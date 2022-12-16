@@ -241,6 +241,17 @@ export default async function typeCheck(
 					targetField.selectionSet
 				)
 
+				// Add connection error only for @paginate
+				if (errorConnectionSelection && directive.name.value === config.paginateDirective) {
+					errors.push(
+						new HoudiniError({
+							filepath: filename,
+							message: errorConnectionSelection,
+							description: errorConnectionSelection,
+						})
+					)
+				}
+
 				// we need to validate that we have id configs for the target of the list
 				let targetTypes: readonly graphql.GraphQLObjectType<any, any>[] = [type]
 
