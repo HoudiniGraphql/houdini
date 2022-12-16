@@ -3,11 +3,12 @@ h2,
 h3,
 h4 {
 	margin-bottom: 30px;
-	font-family: 'Crete Round', serif;
+	font-family: 'Lato', serif;
+	font-weight: 700;
 }
 
 #doc-content h1 {
-	font-family: 'Crete Round', serif;
+	font-family: 'Lato', serif;
 	font-size: 40px;
 }
 
@@ -31,7 +32,7 @@ h4 {
 #doc-content p {
 	font-size: 18px;
 	line-height: 28px;
-	font-family: 'Hind', sans-serif;
+	font-family: 'Lato', sans-serif;
 	font-weight: 500;
 	padding-bottom: 30px;
 }
@@ -44,7 +45,7 @@ ol {
 
 #doc-content li {
 	font-size: 18px;
-	font-family: 'Hind', sans-serif;
+	font-family: 'Lato', sans-serif;
 	margin-left: 45px;
 	margin-top: 5px;
 	line-height: 24px;
@@ -59,14 +60,13 @@ ol {
 }
 
 #doc-content a {
-	color: #fc602d;
+	color: var(--link-color);
 	text-decoration: none;
 	white-space: nowrap;
 }
 
 #doc-content pre {
 	margin-bottom: 30px;
-
 	background: #11141a;
 	border-radius: 10px;
 	padding: 2.5rem;
@@ -79,12 +79,13 @@ h3 > code,
 h4 > code {
 	/* background: #ffffff; */
 	/* padding: 2px 6px; */
-	border-radius: 5px;
-	font-size: 16px;
-	padding-bottom: 1px;
+	border-radius: 4px;
+	font-size: 15px;
+	padding: 1px 4px;
 	font-family: 'Roboto Mono', monospace;
 	white-space: nowrap;
-	color: var(--text_highlight);
+	color: var(--text-highlight);
+	background-color: var(--text-highlight-background);
 }
 
 .message > p > code {

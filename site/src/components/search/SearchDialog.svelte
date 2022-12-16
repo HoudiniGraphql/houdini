@@ -270,19 +270,19 @@
 
 	small {
 		font-size: 14px;
-		font-family: 'Hind', sans-serif;
+		font-family: 'Lato', sans-serif;
 		color: var(--contrast);
 	}
 
 	strong {
-		font-family: 'Hind', sans-serif;
+		font-family: 'Lato', sans-serif;
 		font-size: 1rem;
 		color: var(--contrast);
 	}
 
 	span {
 		color: var(--contrast);
-		font-family: 'Hind', sans-serif;
+		font-family: 'Lato', sans-serif;
 		font-size: 1rem;
 		line-height: 1.5rem;
 	}
@@ -297,7 +297,7 @@
 	}
 
 	p {
-		font-family: 'Hind', sans-serif;
+		font-family: 'Lato', sans-serif;
 		color: var(--contrast);
 		font-size: 1rem;
 		padding: 30px 15px;

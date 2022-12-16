@@ -34,7 +34,9 @@
 				--deep-dive: #214a9c;
 				--deep-dive-text: white;
 				--deep-dive-background: var(--discreet);
-				--text_highlight: hsl(207, 82%, 56%);
+				--link-color: #ff5c26;
+				--text-highlight: #3595ff;
+				--text-highlight-background: #eee;
 			}
 		</style>
 	{:else}
@@ -53,7 +55,9 @@
 				--deep-dive-text: white;
 				--graphql-explained: #8d005f;
 				--graphql-explained-background: var(--discreet);
-				--text_highlight: #a1c5f8;
+				--link-color: #fc602d;
+				--text-highlight: #a1c5f8;
+				--text-highlight-background: #222832;
 			}
 		</style>
 	{/if}
