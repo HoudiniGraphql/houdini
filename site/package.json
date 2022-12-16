@@ -34,7 +34,7 @@
 	},
 	"dependencies": {
 		"feather-icons": "^4.28.0",
-		"flexsearch": "^0.7.21",
+		"flexsearch": "^0.7.31",
 		"lodash": "^4.17.21",
 		"mdsvex": "^0.10.6",
 		"prism-svelte": "^0.5.0",

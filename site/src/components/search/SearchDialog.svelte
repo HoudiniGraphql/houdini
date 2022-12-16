@@ -1,5 +1,5 @@
 <script>
-	import flexsearch from 'flexsearch'
+	import { Index } from 'flexsearch/dist/flexsearch.bundle'
 	import { onMount } from 'svelte'
 	import { Icon } from '~/components'
 
@@ -15,7 +15,7 @@
 
 	onMount(async () => {
 		const response = await fetch('/_content')
-		index = new flexsearch.Index({
+		index = new Index({
 			tokenize: 'forward'
 		})
 
