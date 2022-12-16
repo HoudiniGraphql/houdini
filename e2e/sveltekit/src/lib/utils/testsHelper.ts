@@ -181,11 +181,11 @@ export async function goto(
  * @returns The response of graphql queries
  */
 export async function goto_expect_n_gql(page: Page, url: string, n: number): Promise<string[]> {
-  const [res1, res2] = await Promise.all([
+  const [_, resExpect] = await Promise.all([
     page.goto(url, { waitUntil: 'load' }),
     expect_n_gql(page, null, n)
   ]);
-  return res2;
+  return resExpect;
 }
 
 /**
