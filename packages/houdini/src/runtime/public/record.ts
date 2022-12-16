@@ -259,11 +259,13 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 	}
 }
 
-export function computeKey({ field, args }: { field: string; args?: {} }) {
-	// TODO: the actual key logic uses graphql.print to properly serialize complex values
-	return args && Object.values(args).length > 0
-		? `${field}(${Object.entries(args)
-				.map((entries) => entries.join(': '))
+export function computeKey({ field, args }: { field: string; args?: { [key: string]: any } }) {
+	const keys = Object.keys(args ?? {})
+	keys.sort()
+
+	return args && keys.length > 0
+		? `${field}(${keys
+				.map((key) => `${key}: ${JSON.stringify(args[key]).replace(/"([^"]+)":/g, '$1: ')}`)
 				.join(', ')})`
 		: field
 }
