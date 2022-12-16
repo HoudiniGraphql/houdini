@@ -187,13 +187,20 @@ function typeDefinitions(
 											arg.type
 										)
 
+										const unwrapped = unwrapType(config, arg.type)
+
 										// add the arg definition for the field
-										return AST.tsPropertySignature(
+										const prop = AST.tsPropertySignature(
 											AST.identifier(arg.name),
 											AST.tsTypeAnnotation(
 												tsTypeReference(config, new Set(), arg)
 											)
 										)
+										prop.optional =
+											unwrapped.wrappers[unwrapped.wrappers.length - 1] ===
+											TypeWrapper.Nullable
+
+										return prop
 									})
 								)
 							}

@@ -166,22 +166,22 @@ test('generates type definitions for the imperative API', async function () {
 		                user: {
 		                    type: Record<CacheTypeDef, "User"> | null;
 		                    args: {
-		                        id: string | null | undefined;
-		                        filter: UserFilter | null | undefined;
-		                        filterList: (UserFilter)[] | null | undefined;
-		                        enumArg: MyEnum | null | undefined;
+		                        id?: string | null | undefined;
+		                        filter?: UserFilter | null | undefined;
+		                        filterList?: (UserFilter)[] | null | undefined;
+		                        enumArg?: MyEnum | null | undefined;
 		                    };
 		                };
 		                users: {
 		                    type: ((Record<CacheTypeDef, "User"> | null))[] | null;
 		                    args: {
-		                        filter: UserFilter | null | undefined;
+		                        filter?: UserFilter | null | undefined;
 		                        list: (UserFilter)[];
 		                        id: string;
 		                        firstName: string;
-		                        admin: boolean | null | undefined;
-		                        age: number | null | undefined;
-		                        weight: number | null | undefined;
+		                        admin?: boolean | null | undefined;
+		                        age?: number | null | undefined;
+		                        weight?: number | null | undefined;
 		                    };
 		                };
 		                nodes: {
