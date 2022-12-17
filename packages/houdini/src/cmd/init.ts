@@ -574,35 +574,6 @@ async function graphqlRCFile(targetPath: string) {
 		filepath: target,
 		content,
 	})
-
-	// Add also the recommendation for graphql extension in VSCode (needed for .graphqlrc.yaml to work)
-	const vscodeFolderPath = path.join(targetPath, '.vscode')
-	const extensionsPath = path.join(vscodeFolderPath, 'extensions.json')
-
-	// Read the existing file (if any)
-	const extensionsFile = await fs.readFile(extensionsPath)
-	const extensionsJson = extensionsFile ? parseJSON(extensionsFile) : {}
-
-	// Grab existing reco & add the new ext
-	const recommendations = extensionsJson.recommendations ?? ([] as string[])
-
-	const extToAddName = 'GraphQL.vscode-graphql'
-	// if we don't have the ext, let's proceed.
-	if (!recommendations.includes(extToAddName)) {
-		recommendations.push(extToAddName)
-		extensionsJson.recommendations = recommendations
-
-		// create the folder if it doesn't exist
-		try {
-			await fs.mkdir(vscodeFolderPath)
-		} catch (error) {}
-
-		// Write the file
-		await updateFile({
-			filepath: extensionsPath,
-			content: JSON.stringify(extensionsJson, null, 2),
-		})
-	}
 }
 
 async function gitIgnore(targetPath: string) {
