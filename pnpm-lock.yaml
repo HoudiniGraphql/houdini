@@ -8,7 +8,6 @@ importers:
       '@changesets/changelog-github': ^0.4.7
       '@changesets/cli': ^2.25.0
       '@playwright/test': 1.28.1
-      '@sveltejs/adapter-vercel': 1.0.0
       '@theguild/eslint-config': ^0.1.0
       '@trivago/prettier-plugin-sort-imports': ^3.3.0
       eslint-plugin-unused-imports: ^2.0.0
@@ -31,7 +30,6 @@ importers:
       '@changesets/changelog-github': 0.4.7
       '@changesets/cli': 2.25.2
       '@playwright/test': 1.28.1
-      '@sveltejs/adapter-vercel': 1.0.0_@sveltejs+kit@1.0.0
       '@theguild/eslint-config': 0.1.2_ha6vam6werchizxrnqvarmz2zu
       '@trivago/prettier-plugin-sort-imports': 3.4.0_prettier@2.8.1
       eslint-plugin-unused-imports: 2.0.0_eslint@8.29.0

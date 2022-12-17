@@ -30,7 +30,6 @@ jobs:
 
             - uses: pnpm/action-setup@v2.0.1
               name: Install pnpm
-              id: pnpm-install
               with:
                 version: 7
 
@@ -60,12 +59,10 @@ jobs:
 
             - uses: pnpm/action-setup@v2.0.1
               name: Install pnpm
-              id: pnpm-install
               with:
                 version: 7
                 
             - name: Get pnpm store directory
-              id: pnpm-cache
               run: |
                 echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
 
@@ -106,16 +103,16 @@ jobs:
 
             - uses: pnpm/action-setup@v2.0.1
               name: Install pnpm
-              id: pnpm-install
               with:
                 version: 7
                 
             - name: Get pnpm store directory
-              id: pnpm-cache
+              if: matrix.os == 'ubuntu-latest'
               run: |
                 echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
 
             - uses: actions/cache@v3
+              if: matrix.os == 'ubuntu-latest'
               name: Setup pnpm cache
               with:
                 path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
@@ -168,12 +165,10 @@ jobs:
 
             - uses: pnpm/action-setup@v2.0.1
               name: Install pnpm
-              id: pnpm-install
               with:
                 version: 7
                 
             - name: Get pnpm store directory
-              id: pnpm-cache
               run: |
                 echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
 
