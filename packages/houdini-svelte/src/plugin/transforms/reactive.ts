@@ -15,15 +15,9 @@ type TaggedTemplateExpression = recast.types.namedTypes.TaggedTemplateExpression
 export default async function ReactiveProcessor(config: Config, page: SvelteTransformPage) {
 	// if a file imports graphql from $houdini then they might have an inline document
 	// that needs to be transformed into a reactive statement.
-	// in order to avoid situations where graphql`` is passed around to functions we are going to
-	// look for graphql`` being passed specifically to a function that matches some list
-	// being used as an assignemtn
-	//
-	// ie:
-	//
-	// const value = graphql`` -> $: value = query(graphql``)
-	// const { value } = graphql`` -> $: { value } = query(graphql``)
-	//
+	// in order to avoid situations where graphql is passed around to functions we are going to
+	// look for graphql being passed specifically to a function that matches some list
+	// being used as an assignment
 	if (
 		!is_component(config, page.framework, page.filepath) &&
 		!is_route(config, page.framework, page.filepath)
@@ -32,7 +26,7 @@ export default async function ReactiveProcessor(config: Config, page: SvelteTran
 	}
 
 	// look for the list of magic functions the user has imported
-	const magicFunctions = ['query', 'graphql', 'fragment', 'paginatedFragment', 'paginatedQuery']
+	const magicFunctions = ['graphql', 'fragment', 'paginatedFragment']
 
 	// if they didn't import graphql and at least something else, there's nothing to do
 	if (!magicFunctions.includes('graphql') || magicFunctions.length === 1) {
@@ -101,23 +95,23 @@ function filterCallExpr(expr: CallExpression) {
 
 	// if the name of the function is 'graphql' then we should look for a string or
 	// template literal
-	if (
-		expr.callee.type === 'Identifier' &&
-		expr.callee.name === 'graphql' &&
-		expr.arguments.length === 1 &&
-		(expr.arguments[0].type === 'StringLiteral' || expr.arguments[0].type === 'TemplateLiteral')
-	) {
-		return true
-	}
 
 	// one of the arguments to the function must be a tagged template literal
 	// with the graphql tag or a function named graphql with a string or template
 	// literal
 	const tag = expr.arguments.find(
 		(arg) =>
-			arg.type === 'TaggedTemplateExpression' &&
-			arg.tag.type === 'Identifier' &&
-			arg.tag.name === 'graphql'
+			// if one of the arguments is a graphql template tag
+			(arg.type === 'TaggedTemplateExpression' &&
+				arg.tag.type === 'Identifier' &&
+				arg.tag.name === 'graphql') ||
+			// or an graphql function with a string or template literal
+			(arg.type === 'CallExpression' &&
+				arg.callee.type === 'Identifier' &&
+				arg.callee.name === 'graphql' &&
+				arg.arguments.length === 1 &&
+				(arg.arguments[0].type === 'StringLiteral' ||
+					arg.arguments[0].type === 'TemplateLiteral'))
 	)
 	if (!tag) {
 		return

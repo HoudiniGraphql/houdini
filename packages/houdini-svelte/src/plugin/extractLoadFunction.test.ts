@@ -261,6 +261,20 @@ describe('extract_load_function', function () {
 				exports: [houdini_after_load_fn, houdini_before_load_fn],
 			},
 		},
+		{
+			title: 'ignores call expressions inside of functions',
+			source: `
+				fragment(foo, graphql(\` 
+					query MyQuery { 
+						foo
+					}
+				\`))
+			`,
+			expected: {
+				exports: [],
+				houdini_load: [],
+			},
+		},
 	]
 
 	for (const row of table) {

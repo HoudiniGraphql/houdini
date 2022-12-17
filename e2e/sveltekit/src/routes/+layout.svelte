@@ -17,11 +17,11 @@
     return { key, value: (routes as Record<string, string>)[key] };
   });
 
-  const info = graphql`
+  const info = graphql(`
     query LayoutSession {
       session
     }
-  `;
+  `);
 </script>
 
 <slot />

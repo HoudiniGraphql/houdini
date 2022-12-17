@@ -1,22 +1,17 @@
 <script lang="ts">
-  import {
-    paginatedFragment,
-    graphql,
-    type UserFragmentForwardsCursorQueryStore,
-    type ForwardsCursorFragment
-  } from '$houdini';
+  import { paginatedFragment, graphql } from '$houdini';
 
-  const queryResult: UserFragmentForwardsCursorQueryStore = graphql`
+  const queryResult = graphql(`
     query UserFragmentForwardsCursorQuery {
       user(id: "1", snapshot: "pagination-fragment-forwards-cursor") {
         ...ForwardsCursorFragment
       }
     }
-  `;
+  `);
 
-  const fragmentResult = paginatedFragment<ForwardsCursorFragment>(
+  const fragmentResult = paginatedFragment(
     $queryResult.data?.user ?? null,
-    graphql`
+    graphql(`
       fragment ForwardsCursorFragment on User {
         friendsConnection(first: 2) @paginate {
           edges {
@@ -26,7 +21,7 @@
           }
         }
       }
-    `
+    `)
   );
 </script>
 

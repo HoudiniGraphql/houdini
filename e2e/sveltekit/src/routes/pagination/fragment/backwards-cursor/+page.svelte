@@ -9,8 +9,6 @@
     }
   `);
 
-  console.log($queryResult);
-
   const fragmentResult = paginatedFragment(
     $queryResult.data?.user ?? null,
     graphql(`
