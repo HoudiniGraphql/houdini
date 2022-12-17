@@ -101,8 +101,10 @@ describe('extract_load_function', function () {
 			source: `
                 import { graphql, MyQueryStore } from '$houdini'
 
+								const store1 = new MyQueryStore()
+
                 export const _houdini_load = [
-									new MyQueryStore(), 
+									store1, 
 									graphql\`query Hello { viewer { id } }\`
 								]
             `,
@@ -111,7 +113,7 @@ describe('extract_load_function', function () {
 			},
 			expected: {
 				exports: [houdini_load_fn],
-				houdini_load: ['Hello'],
+				houdini_load: ['MyQuery', 'Hello'],
 			},
 		},
 		{
