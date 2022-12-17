@@ -151,6 +151,7 @@ async function processScript(
 		// local variables
 		if (statement?.type === 'VariableDeclaration') {
 			const reference = identifyQueryReference(globalImports, statement)
+
 			if (reference) {
 				globalImports[reference.local] = reference.query
 			}
@@ -195,7 +196,7 @@ async function processScript(
 
 // a statement is a query reference if its
 // - an identifier that matches a global import
-// - is a call expression of a global import (store factory)
+// - is a call expression of a global import (new store factory)
 // - is a template expression with graphql
 function identifyQueryReference(
 	imports: Record<string, string>,
@@ -227,13 +228,11 @@ function identifyQueryReference(
 	if (value.type === 'Identifier' && value.name in imports) {
 		return { local, query: imports[value.name] }
 	}
-	if (
-		value.type === 'CallExpression' &&
-		value.callee.type == 'Identifier' &&
-		value.callee.name in imports
-	) {
+
+	if (value.type === 'NewExpression' && value.callee.type == 'Identifier') {
 		return { local, query: imports[value.callee.name] }
 	}
+
 	if (value.type === 'TaggedTemplateExpression') {
 		if (value.tag.type !== 'Identifier' || value.tag.name !== 'graphql') {
 			throw new Error(`only graphql template tags can be passed to ${houdini_load_fn}`)

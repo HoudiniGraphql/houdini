@@ -55,7 +55,7 @@ describe('extract_load_function', function () {
 			source: `
                 import { MyQueryStore } from '$houdini'
 
-                const store = MyQueryStore()
+                const store = new MyQueryStore()
 
                 export const _houdini_load = store
             `,
@@ -72,7 +72,7 @@ describe('extract_load_function', function () {
 			source: `
                 import { MyQueryStore } from '$houdini/stores/MyQuery'
 
-                const store = MyQueryStore()
+                const store = new MyQueryStore()
 
                 export const _houdini_load = store
             `,
@@ -97,6 +97,24 @@ describe('extract_load_function', function () {
 			},
 		},
 		{
+			title: 'load list with inline value & new Store()',
+			source: `
+                import { graphql, MyQueryStore } from '$houdini'
+
+                export const _houdini_load = [
+									new MyQueryStore(), 
+									graphql\`query Hello { viewer { id } }\`
+								]
+            `,
+			artifacts: {
+				MyQuery: 'query MyQuery { viewer { id } }',
+			},
+			expected: {
+				exports: [houdini_load_fn],
+				houdini_load: ['Hello'],
+			},
+		},
+		{
 			title: 'load list with inline identifier',
 			source: `
                 import { graphql } from '$houdini'
@@ -115,7 +133,7 @@ describe('extract_load_function', function () {
 			source: `
                 import { MyQueryStore } from '$houdini'
 
-                const store = MyQueryStore()
+                const store = new MyQueryStore()
 
                 export const _houdini_load = [store]
             `,
@@ -132,7 +150,7 @@ describe('extract_load_function', function () {
 			source: `
                 import { MyQueryStore } from '$houdini/stores/MyQuery'
 
-                const store = MyQueryStore()
+                const store = new MyQueryStore()
 
                 export const _houdini_load = [store]
             `,
