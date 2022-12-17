@@ -10,11 +10,11 @@
     user &&
     fragment(
       user,
-      graphql`
+      graphql(`
         fragment UserName on User {
           name
         }
-      `
+      `)
     );
 </script>
 

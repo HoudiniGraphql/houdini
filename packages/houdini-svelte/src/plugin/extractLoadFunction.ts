@@ -158,6 +158,7 @@ async function processScript(
 		if (statement?.type === 'VariableDeclaration') {
 			const reference = identifyQueryReference(globalImports, statement)
 			if (reference) {
+				console.log('here:', reference.query)
 				globalImports[reference.local] = reference.query
 			}
 		}
@@ -192,6 +193,28 @@ async function processScript(
 					)
 				}
 				load.push(element.quasi.quasis[0].value.raw)
+			} else if (element.type === 'CallExpression') {
+				// if the function is not called graphql, ignore it
+				if (
+					element.callee.type !== 'Identifier' ||
+					element.callee.name !== 'graphql' ||
+					element.arguments.length !== 1
+				) {
+					throw new Error(`only graphql function can be passed to ${houdini_load_fn}`)
+				}
+				let documentString: string
+				const argument = element.arguments[0]
+
+				// if we have a template or string literal, use its value
+				if (argument.type === 'TemplateLiteral') {
+					documentString = argument.quasis[0].value.raw
+				} else if (argument.type === 'StringLiteral') {
+					documentString = argument.value
+				} else {
+					throw new Error('only strings can be passed to the graphql function')
+				}
+
+				load.push(documentString)
 			}
 		}
 	}

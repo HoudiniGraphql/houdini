@@ -1,14 +1,14 @@
 <script lang="ts">
   import { graphql } from '$houdini';
 
-  const store = graphql`
+  const store = graphql(`
     query QueryExtNoAutoFetch @manual_load {
       usersList(limit: 3, snapshot: "QueryExtNoAutoFetch") {
         id
         name
       }
     }
-  `;
+  `);
 </script>
 
 <p id="QueryExt-result">

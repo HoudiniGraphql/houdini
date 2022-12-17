@@ -7,14 +7,13 @@ export default async function (
 	contents: string
 ): Promise<string[]> {
 	const documents: string[] = []
-
 	let parsedFile = await parseSvelte(contents)
 	if (!parsedFile) {
 		return documents
 	}
 
 	// look for graphql documents like normal
-	find_graphql(config, parsedFile.script, {
+	await find_graphql(config, parsedFile.script, {
 		tag({ tagContent }) {
 			documents.push(tagContent)
 		},

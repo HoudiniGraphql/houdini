@@ -16,7 +16,7 @@
 
   const fragmentResult = paginatedFragment<BackwardsCursorFragment>(
     $queryResult.data?.user ?? null,
-    graphql`
+    graphql(`
       fragment BackwardsCursorFragment on User {
         friendsConnection(last: 2) @paginate {
           edges {
@@ -26,7 +26,7 @@
           }
         }
       }
-    `
+    `)
   );
 </script>
 
