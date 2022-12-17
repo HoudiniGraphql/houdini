@@ -8,7 +8,7 @@ import { TypeWrapper, unwrapType } from './graphql'
 const config = testConfig({ defaultFragmentMasking: 'disable' })
 
 describe('unwrapType', () => {
-	test('list of lists', function () {
+	test('nullable list of non-null', function () {
 		const type: graphql.TypeNode = {
 			kind: graphql.Kind.LIST_TYPE,
 			type: {
@@ -35,11 +35,134 @@ describe('unwrapType', () => {
 			TypeWrapper.Nullable,
 		])
 	})
+
+	test('non-null list of non-null', function () {
+		const type: graphql.TypeNode = {
+			kind: graphql.Kind.NON_NULL_TYPE,
+			type: {
+				kind: graphql.Kind.LIST_TYPE,
+				type: {
+					kind: graphql.Kind.NON_NULL_TYPE,
+					type: {
+						kind: graphql.Kind.NAMED_TYPE,
+						name: {
+							kind: graphql.Kind.NAME,
+							value: 'User',
+						},
+					},
+				},
+			},
+		}
+
+		const unwrapped = unwrapType(testConfig(), type)
+
+		// make sure we can get the inner type
+		expect(unwrapped.type.name).toEqual('User')
+
+		// and that we have the correct set of wrappers
+		expect(unwrapped.wrappers).toEqual([
+			TypeWrapper.NonNull,
+			TypeWrapper.List,
+			TypeWrapper.NonNull,
+		])
+	})
+
+	test('non-null', function () {
+		const type: graphql.TypeNode = {
+			kind: graphql.Kind.NON_NULL_TYPE,
+			type: {
+				kind: graphql.Kind.NAMED_TYPE,
+				name: {
+					kind: graphql.Kind.NAME,
+					value: 'User',
+				},
+			},
+		}
+
+		const unwrapped = unwrapType(testConfig(), type)
+
+		// make sure we can get the inner type
+		expect(unwrapped.type.name).toEqual('User')
+
+		// and that we have the correct set of wrappers
+		expect(unwrapped.wrappers).toEqual([TypeWrapper.NonNull])
+	})
+
+	test('nullable', function () {
+		const type: graphql.TypeNode = {
+			kind: graphql.Kind.NAMED_TYPE,
+			name: {
+				kind: graphql.Kind.NAME,
+				value: 'User',
+			},
+		}
+
+		const unwrapped = unwrapType(testConfig(), type)
+
+		// make sure we can get the inner type
+		expect(unwrapped.type.name).toEqual('User')
+
+		// and that we have the correct set of wrappers
+		expect(unwrapped.wrappers).toEqual([TypeWrapper.Nullable])
+	})
+
+	test('nullable list of nullable', function () {
+		const type: graphql.TypeNode = {
+			kind: graphql.Kind.LIST_TYPE,
+			type: {
+				kind: graphql.Kind.NAMED_TYPE,
+				name: {
+					kind: graphql.Kind.NAME,
+					value: 'User',
+				},
+			},
+		}
+
+		const unwrapped = unwrapType(testConfig(), type)
+
+		// make sure we can get the inner type
+		expect(unwrapped.type.name).toEqual('User')
+
+		// and that we have the correct set of wrappers
+		expect(unwrapped.wrappers).toEqual([
+			TypeWrapper.Nullable,
+			TypeWrapper.List,
+			TypeWrapper.Nullable,
+		])
+	})
+
+	test('non-null list of nullable', function () {
+		const type: graphql.TypeNode = {
+			kind: graphql.Kind.NON_NULL_TYPE,
+			type: {
+				kind: graphql.Kind.LIST_TYPE,
+				type: {
+					kind: graphql.Kind.NAMED_TYPE,
+					name: {
+						kind: graphql.Kind.NAME,
+						value: 'User',
+					},
+				},
+			},
+		}
+
+		const unwrapped = unwrapType(testConfig(), type)
+
+		// make sure we can get the inner type
+		expect(unwrapped.type.name).toEqual('User')
+
+		// and that we have the correct set of wrappers
+		expect(unwrapped.wrappers).toEqual([
+			TypeWrapper.Nullable,
+			TypeWrapper.List,
+			TypeWrapper.NonNull,
+		])
+	})
 })
 
 const fragmentDefinitions = (
 	graphql.parse(`
-	fragment Foo on User { 
+	fragment Foo on User {
 		id
 	}
 `).definitions as graphql.FragmentDefinitionNode[]
@@ -76,8 +199,8 @@ describe('flattenSelection', function () {
 	test('applies fragment definitions', function () {
 		expect(
 			testFlatten(`
-				{ 
-					user { 
+				{
+					user {
 						...Foo
 					}
 				}
@@ -97,11 +220,11 @@ describe('flattenSelection', function () {
 	test('merges field selections', function () {
 		expect(
 			testFlatten(`
-				{ 
-					user { 
+				{
+					user {
 						id
 					}
-					user { 
+					user {
 						name
 					}
 				}
@@ -119,21 +242,21 @@ describe('flattenSelection', function () {
 	test('flattens nested inline fragments', function () {
 		expect(
 			testFlatten(`
-				{ 
-					friends { 
-						... on Friend { 
+				{
+					friends {
+						... on Friend {
 							name
-							... on User { 
+							... on User {
 								id
 							}
-							... on Ghost { 
+							... on Ghost {
 								id
 							}
-							... on Cat { 
+							... on Cat {
 								id
 							}
 						}
-						... on Cat { 
+						... on Cat {
 							name
 						}
 					}

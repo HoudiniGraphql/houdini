@@ -2,7 +2,7 @@ import type { ExpressionKind } from 'ast-types/lib/gen/kinds'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import { HoudiniError } from '../../../lib'
+import { Config, HoudiniError } from '../../../lib'
 
 const AST = recast.types.builders
 
@@ -81,12 +81,12 @@ export function deepMerge(filepath: string, ...targets: {}[]): {} {
 	)
 }
 
-export function convertValue(val: graphql.ValueNode) {
+export function convertValue(config: Config, val: graphql.ValueNode) {
 	// figure out the value to use
 	let value
 	let kind
 
-	// the value of the arg is always going to be a
+	// the value of the arg is always going to be a scalar
 	if (val.kind === graphql.Kind.INT) {
 		value = parseInt(val.value, 10)
 		kind = 'Int'

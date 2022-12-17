@@ -6,6 +6,7 @@ import * as recast from 'recast'
 import { Config, HoudiniError, siteURL, fs, CollectedGraphQLDocument, path } from '../../../lib'
 import { flattenSelections } from '../../utils'
 import { addReferencedInputTypes } from './addReferencedInputTypes'
+import imperativeCacheTypef from './imperativeCache'
 import { fragmentKey, inlineType } from './inlineType'
 import { tsTypeReference } from './typeReference'
 import { readonlyProperty } from './types'
@@ -150,6 +151,9 @@ export default async function typescriptGenerator(
 
 	// write the contents
 	await fs.writeFile(config.typeIndexPath, indexContent)
+
+	// write the imperative cache type definition
+	await imperativeCacheTypef(config, docs)
 
 	// if we were missing scalars, we need to warn the user and tell them
 	if (missingScalars.size > 0) {
