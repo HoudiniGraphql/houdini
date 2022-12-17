@@ -126,13 +126,23 @@ jobs:
             - name: Install dependencies
               run: pnpm install
               
-            - name: Cache playwright binaries
-              uses: actions/cache@v2
+            - name: Cache playwright binaries (ubuntu)
+              uses: actions/cache@v3
               id: playwright-cache
+              if: matrix.os == 'ubuntu-latest'
               with:
                   path: |
                       ~/.cache/ms-playwright
-                  key: cache-playwright-${{ matrix.os }}-1.25.0
+                  key: cache-playwright-${{ matrix.os }}-1.28.0
+
+            - name: Cache playwright binaries (windows)
+              uses: actions/cache@v3
+              id: playwright-cache
+              if: matrix.os == 'windows-latest'
+              with:
+                  path: |
+                      %USERPROFILE%\AppData\Local\ms-playwright
+                  key: cache-playwright-${{ matrix.os }}-1.28.0
 
             - name: Build packages
               run: pnpm run compile
