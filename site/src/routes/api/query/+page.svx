@@ -471,12 +471,12 @@ export async function load(event) {
 This value will get forwarded to the network function in your client definition, usually found in `src/client.js`:
 
 ```typescript
-async function fetchQuery({ fetch, text, variables, session, metadata }) {
+const requestHandler = async ({ fetch, text, variables, session, metadata }) => {
 	// do anything with metadata inside of here
 }
 
 // Export the Houdini client
-export default new HoudiniClient(fetchQuery)
+export default new HoudiniClient(requestHandler)
 ```
 
 ## Paginated Queries

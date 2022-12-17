@@ -139,7 +139,6 @@ importers:
   example:
     specifiers:
       '@graphql-yoga/node': ^2.8.0
-      '@kitql/vite-plugin-watch-and-run': ^0.4.0
       '@sveltejs/kit': 1.0.0
       concurrently: ^6.2.1
       graphql: ^15.8.0
@@ -158,7 +157,6 @@ importers:
       graphql-ws: 5.11.2_graphql@15.8.0
     devDependencies:
       '@graphql-yoga/node': 2.13.13_graphql@15.8.0
-      '@kitql/vite-plugin-watch-and-run': 0.4.2
       '@sveltejs/kit': 1.0.0_svelte@3.55.0+vite@4.0.1
       concurrently: 6.5.1
       graphql: 15.8.0
@@ -222,7 +220,7 @@ importers:
       scripts: workspace:^
       turbo: ^1.5.4
       vite: ^4.0.1
-      vite-plugin-watch-and-run: ^1.0.3
+      vite-plugin-watch-and-run: ^1.1.0
       vitest: ^0.23.4
     dependencies:
       '@babel/parser': 7.20.5
@@ -1514,10 +1512,6 @@ packages:
       '@jridgewell/resolve-uri': 3.1.0
       '@jridgewell/sourcemap-codec': 1.4.14
 
-  /@kitql/helper/0.3.5:
-    resolution: {integrity: sha512-nq7naGKnSsQ3KudK5ENDYfGb62Yre6e7suKZxjsfBqIfeh3wkxRFFMpQu0buEKeKZlqwhevVTKqgN1TdKGRyZw==}
-    dev: true
-
   /@kitql/helper/0.5.0:
     resolution: {integrity: sha512-qTDsv8qmbvSyZLb75hE9N4AnmZHtCi8JxgHYAj4dbgViEjs6HVYJKqHabGR7rZCAVQj7LwWu+cTfh52QhlNMcg==}
 
@@ -1525,14 +1519,6 @@ packages:
     resolution: {integrity: sha512-kdmpf3Xno1q7L+vpVlixxRrNcPe899/7d+ljpJQ3GG6s+jZ8m+qXh7ik+IfiwYbRKYqhNdEZLqMoZwIMhjxNfQ==}
     dependencies:
       safe-stable-stringify: 2.4.1
-
-  /@kitql/vite-plugin-watch-and-run/0.4.2:
-    resolution: {integrity: sha512-GKt6Hwp/qsMZVSNRGzckJZ7s7+k3QEpkVLpjSwqtW+6XVUsWPQr2k0Bi55imd4CgD8Rr7RkwAmnjcOo57DugPg==}
-    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
-    dependencies:
-      '@kitql/helper': 0.3.5
-      micromatch: 4.0.5
-    dev: true
 
   /@manypkg/find-root/1.1.0:
     resolution: {integrity: sha512-mki5uBvhHzO8kYYix/WRy2WX8S3B5wdVSc9D6KcU5lQNglP2yt58/VfLuAK49glRXChosY8ap2oJ1qgma3GUVA==}

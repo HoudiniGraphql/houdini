@@ -194,10 +194,12 @@ export type QueryResult<_Data, _Input, _Extra = {}> = {
 } & _Extra
 
 export type RequestPayload<_Data = any> = {
-	data: _Data
-	errors: {
-		message: string
-	}[]
+	data: _Data | null
+	errors:
+		| {
+				message: string
+		  }[]
+		| null
 }
 
 export type RequestPayloadMagic<_Data = any> = {
