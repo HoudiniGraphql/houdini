@@ -2,6 +2,7 @@ import { GenerateHookInput, fs, Config } from 'houdini'
 
 import { stores_directory, type_route_dir } from '../kit'
 import components from './components'
+import fragmentTypedefs from './fragmentTypedefs'
 import kit from './routes'
 import stores from './stores'
 
@@ -17,6 +18,7 @@ export default async function (input: PluginGenerateInput) {
 		kit(input.framework, input),
 		stores(input),
 		components(input.framework, input),
+		fragmentTypedefs(input),
 	])
 }
 
