@@ -47,7 +47,7 @@ test('generates types for fragments', async function () {
 
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		import { TestFragmentStore } from "../plugins/houdini-svelte/stores/TestFragment";
+		import { TestFragmentStore } from "../stores/TestFragment";
 		import { Fragment } from "$houdini/runtime/lib/types";
 		import { Readable } from "svelte/store";
 		import { FragmentStore } from "./stores";
@@ -60,7 +60,7 @@ test('generates types for fragments', async function () {
 		        };
 		    },
 		    document: TestFragmentStore
-		): TestFragmentStore;
+		): ReturnType<TestFragmentStore["get"]>;
 
 		export function fragment(
 		    initialValue: {
@@ -69,7 +69,7 @@ test('generates types for fragments', async function () {
 		        };
 		    } | null,
 		    document: TestFragmentStore
-		): TestFragmentStore | null;
+		): ReturnType<TestFragmentStore["get"]> | null;
 
 		export declare function fragment<_Fragment extends Fragment<any>>(ref: _Fragment, fragment: FragmentStore<_Fragment["shape"]>): Readable<NonNullable<_Fragment["shape"]>> & {
 		    data: Readable<_Fragment>;
