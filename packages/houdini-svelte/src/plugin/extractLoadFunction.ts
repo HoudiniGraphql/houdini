@@ -187,6 +187,18 @@ async function processScript(
 					)
 				}
 				load.push(element.quasi.quasis[0].value.raw)
+			} else if (element.type === 'NewExpression') {
+				const suffix = store_suffix(config)
+				if (
+					element &&
+					element.callee.type === 'Identifier' &&
+					element.callee.name.endsWith(suffix)
+				) {
+					// get the name of the query
+					load.push(globalImports[element.callee.name])
+				} else {
+					throw new Error(`only query store classes can be passed to ${houdini_load_fn}`)
+				}
 			}
 		}
 	}
