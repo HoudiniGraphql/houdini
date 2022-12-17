@@ -663,3 +663,9 @@ test('can remove record from all lists', function () {
 	).toBeTruthy()
 	expect([...cache.list('All_Users')]).toHaveLength(0)
 })
+
+test('list operations fail silently if there is no matching list', function () {
+	const cache = testCache()
+	const user = cache.get('User', { id: '1' })
+	expect(() => cache.list('All_Pets').i).not.toThrow()
+})

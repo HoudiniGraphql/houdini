@@ -6,15 +6,37 @@ import { Record } from './record'
 import { CacheTypeDef, ListType, ValidLists, ListFilters } from './types'
 
 export class ListCollection<Def extends CacheTypeDef, ListName extends ValidLists<Def>> {
-	#collection: _Collection
+	#parentID: string | undefined
+	#allLists: boolean | undefined
+	#when: ListFilters<Def, ListName> | undefined
 	#cache: Cache<Def>
+	#name: ValidLists<Def>
 
-	constructor({ collection, cache }: { collection: _Collection; cache: Cache<Def> }) {
-		this.#collection = collection
+	constructor({
+		parentID,
+		allLists,
+		when,
+		cache,
+		name,
+	}: {
+		name: ValidLists<Def>
+		parentID?: string
+		allLists?: boolean
+		when?: ListFilters<Def, ListName>
+		cache: Cache<Def>
+	}) {
+		this.#parentID = parentID
+		this.#allLists = allLists
+		this.#when = when
 		this.#cache = cache
+		this.#name = name
 	}
 
 	append(...records: ListType<Def, ListName>[]) {
+		if (!this.#collection) {
+			return
+		}
+
 		const { selection, data } = this.#listOperationPayload(records)
 		for (const entry of data) {
 			if (entry) {
@@ -24,6 +46,10 @@ export class ListCollection<Def extends CacheTypeDef, ListName extends ValidList
 	}
 
 	prepend(...records: ListType<Def, ListName>[]) {
+		if (!this.#collection) {
+			return
+		}
+
 		const { selection, data } = this.#listOperationPayload(records)
 		for (const entry of data) {
 			if (entry) {
@@ -33,6 +59,10 @@ export class ListCollection<Def extends CacheTypeDef, ListName extends ValidList
 	}
 
 	toggle(where: 'first' | 'last', ...records: ListType<Def, ListName>[]) {
+		if (!this.#collection) {
+			return
+		}
+
 		const { selection, data } = this.#listOperationPayload(records)
 		for (const entry of data) {
 			if (entry) {
@@ -42,13 +72,24 @@ export class ListCollection<Def extends CacheTypeDef, ListName extends ValidList
 	}
 
 	when(filter: ListFilters<Def, ListName>): ListCollection<Def, ListName> {
+		if (!this.#collection) {
+			return this
+		}
+
 		return new ListCollection({
-			collection: this.#collection.when(filter),
+			parentID: this.#parentID,
+			allLists: this.#allLists,
+			when: this.#when,
 			cache: this.#cache,
+			name: this.#name,
 		})
 	}
 
 	remove(...records: ListType<Def, ListName>[]) {
+		if (!this.#collection) {
+			return
+		}
+
 		for (const record of records) {
 			if (record) {
 				this.#collection.remove(record.idFields)
@@ -57,8 +98,28 @@ export class ListCollection<Def extends CacheTypeDef, ListName extends ValidList
 	}
 
 	*[Symbol.iterator]() {
+		if (!this.#collection) {
+			return
+		}
+
 		for (const entry of this.#collection) {
 			yield entry
+		}
+	}
+
+	get #collection(): _Collection | null {
+		try {
+			const list = this.#cache._internal_unstable.list(
+				this.#name,
+				this.#parentID,
+				this.#allLists
+			)
+			if (this.#when) {
+				return list.when(this.#when)
+			}
+			return list
+		} catch {
+			return null
 		}
 	}
 

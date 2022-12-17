@@ -1,4 +1,5 @@
 import { Cache as _Cache, rootID } from '../cache/cache'
+import type { ListCollection as _Collection } from '../cache/lists'
 import { SchemaManager, TypeInfo } from '../cache/schema'
 import { ListCollection } from './list'
 import { Record } from './record'
@@ -68,9 +69,11 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 		name: Name,
 		{ parentID, allLists }: { parentID?: string; allLists?: boolean } = {}
 	): ListCollection<Def, Name> {
-		return new ListCollection({
+		return new ListCollection<Def, Name>({
 			cache: this,
-			collection: this._internal_unstable.list(name, parentID, allLists),
+			name,
+			parentID,
+			allLists,
 		})
 	}
 }
