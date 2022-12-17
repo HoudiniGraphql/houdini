@@ -98,11 +98,22 @@ function filterCallExpr(expr: CallExpression) {
 		// that matches a magic function that was imported from the runtime
 		return
 	}
-	const callExpr = expr as CallExpression
+
+	// if the name of the function is 'graphql' then we should look for a string or
+	// template literal
+	if (
+		expr.callee.type === 'Identifier' &&
+		expr.callee.name === 'graphql' &&
+		expr.arguments.length === 1 &&
+		(expr.arguments[0].type === 'StringLiteral' || expr.arguments[0].type === 'TemplateLiteral')
+	) {
+		return true
+	}
 
 	// one of the arguments to the function must be a tagged template literal
-	// with the graphql tag
-	const tag = callExpr.arguments.find(
+	// with the graphql tag or a function named graphql with a string or template
+	// literal
+	const tag = expr.arguments.find(
 		(arg) =>
 			arg.type === 'TaggedTemplateExpression' &&
 			arg.tag.type === 'Identifier' &&
