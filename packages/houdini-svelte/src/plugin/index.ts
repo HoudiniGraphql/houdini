@@ -75,6 +75,10 @@ export const error = svelteKitError
 		})
 	},
 
+	graphql_tag_export({ doc, ensure_import }) {
+		return ''
+	},
+
 	// we need to add the exports to the index files (this one file processes index.js and index.d.ts)
 	index_file({ config, content, export_star_from, plugin_root }) {
 		const storesDir =
