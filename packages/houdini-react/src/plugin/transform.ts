@@ -34,8 +34,6 @@ export function transform_file(page: TransformPage): { code: string } {
 				query = argument.quasis[0].value.raw
 			} else if (argument.type === 'StringLiteral') {
 				query = argument.value
-			} else {
-				console.log(value.callee.name)
 			}
 
 			// we want to replace the template tag with an import to the appropriate

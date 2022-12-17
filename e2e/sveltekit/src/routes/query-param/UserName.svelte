@@ -10,7 +10,7 @@
     user &&
     fragment(
       user,
-      graphql(`
+      graphql(/* GraphQL */ `
         fragment UserName on User {
           name
         }

@@ -158,7 +158,6 @@ async function processScript(
 		if (statement?.type === 'VariableDeclaration') {
 			const reference = identifyQueryReference(globalImports, statement)
 			if (reference) {
-				console.log('here:', reference.query)
 				globalImports[reference.local] = reference.query
 			}
 		}
