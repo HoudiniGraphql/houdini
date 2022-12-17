@@ -1,9 +1,9 @@
 import { logYellow } from '@kitql/helper'
-import type { StatementKind, IdentifierKind } from 'ast-types/lib/gen/kinds'
+import type { IdentifierKind, StatementKind } from 'ast-types/lib/gen/kinds'
 import type { namedTypes } from 'ast-types/lib/gen/namedTypes'
 import * as graphql from 'graphql'
-import { formatErrors, operation_requires_variables, fs } from 'houdini'
-import { find_insert_index, ensure_imports, artifact_import } from 'houdini/vite'
+import { formatErrors, fs, operation_requires_variables } from 'houdini'
+import { artifact_import, ensure_imports, find_insert_index } from 'houdini/vite'
 import * as recast from 'recast'
 
 import { parseSvelte } from '../../extract'
@@ -17,7 +17,6 @@ import {
 	page_query_path,
 	route_data_path,
 	route_page_path,
-	store_import,
 	store_import_path,
 } from '../../kit'
 import {
@@ -27,7 +26,7 @@ import {
 	houdini_on_error_fn,
 	query_variable_fn,
 } from '../../naming'
-import { LoadTarget, find_inline_queries } from '../query'
+import { find_inline_queries, LoadTarget } from '../query'
 import { SvelteTransformPage } from '../types'
 
 const AST = recast.types.builders
