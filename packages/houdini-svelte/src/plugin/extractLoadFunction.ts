@@ -257,10 +257,22 @@ function identifyQueryReference(
 	}
 	if (
 		value.type === 'CallExpression' &&
-		value.callee.type == 'Identifier' &&
+		value.callee.type === 'Identifier' &&
 		value.callee.name in imports
 	) {
 		return { local, query: imports[value.callee.name] }
+	}
+	if (
+		value.type === 'CallExpression' &&
+		value.callee.type === 'Identifier' &&
+		value.callee.name === 'graphql' &&
+		value.arguments.length === 1
+	) {
+		if (value.arguments[0].type === 'StringLiteral') {
+			return { local, query: value.arguments[0].value }
+		} else if (value.arguments[0].type === 'TemplateLiteral') {
+			return { local, query: value.arguments[0].quasis[0].value.raw }
+		}
 	}
 	if (value.type === 'TaggedTemplateExpression') {
 		if (value.tag.type !== 'Identifier' || value.tag.name !== 'graphql') {
