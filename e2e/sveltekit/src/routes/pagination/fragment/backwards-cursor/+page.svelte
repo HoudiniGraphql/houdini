@@ -6,13 +6,15 @@
     type UserFragmentBackwardsCursorQueryStore
   } from '$houdini';
 
-  const queryResult: UserFragmentBackwardsCursorQueryStore = graphql`
+  const queryResult: UserFragmentBackwardsCursorQueryStore = graphql(`
     query UserFragmentBackwardsCursorQuery {
       user(id: "1", snapshot: "pagination-fragment-backwards-cursor") {
         ...BackwardsCursorFragment
       }
     }
-  `;
+  `);
+
+  console.log($queryResult);
 
   const fragmentResult = paginatedFragment<BackwardsCursorFragment>(
     $queryResult.data?.user ?? null,

@@ -927,10 +927,11 @@ export type Plugin = {
 	generate?: GenerateHook
 	transform_file?: (page: TransformPage) => Promise<{ code: string }> | { code: string }
 	index_file?: ModuleIndexTransform
-	graphql_tag_export?: (args: {
+	graphql_tag_return?: (args: {
+		config: Config
 		doc: CollectedGraphQLDocument
 		ensure_import: (import_args: { identifier: string; module: string }) => void
-	}) => string
+	}) => string | undefined
 	validate?: (args: {
 		config: Config
 		documents: CollectedGraphQLDocument[]
