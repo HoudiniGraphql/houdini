@@ -29,7 +29,7 @@ test('generates a store for every mutation', async function () {
 		parser: typeScriptParser,
 	}).program
 
-	await expect(parsed).toMatchInlineSnapshot(
+	expect(parsed).toMatchInlineSnapshot(
 		`
 		import { TestMutation1Store } from '../../houdini-svelte/stores'
 
