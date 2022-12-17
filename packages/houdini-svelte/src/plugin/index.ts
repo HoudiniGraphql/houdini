@@ -79,14 +79,17 @@ export const error = svelteKitError
 	graphql_tag_return({ config, doc, ensure_import }) {
 		// if we're supposed to generate a store then add an overloaded declaration
 		if (doc.generateStore) {
+			// make sure we are importing the store
 			const store = store_name({ config, name: doc.name })
 			ensure_import({
 				identifier: store,
 				module: store_import_path({
 					config,
-					name: store,
-				}),
+					name: doc.name,
+				}).replaceAll('$houdini', '..'),
 			})
+
+			// and use the store as the return value
 			return store
 		}
 	},
