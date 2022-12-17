@@ -128,7 +128,6 @@ jobs:
               
             - name: Cache playwright binaries (ubuntu)
               uses: actions/cache@v3
-              id: playwright-cache
               if: matrix.os == 'ubuntu-latest'
               with:
                   path: |
@@ -137,7 +136,6 @@ jobs:
 
             - name: Cache playwright binaries (windows)
               uses: actions/cache@v3
-              id: playwright-cache
               if: matrix.os == 'windows-latest'
               with:
                   path: |
