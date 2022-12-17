@@ -39,8 +39,6 @@ export declare class ${storeName} extends ${store_class}<${_data} | undefined, $
 		super({})
 	}
 }
-
-export default ${storeName}
 `
 
 	// write the store contents to disk

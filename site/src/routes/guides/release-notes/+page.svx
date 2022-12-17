@@ -6,6 +6,10 @@ description: A guide to migrating your application to each breaking version of h
 
 # Release Notes
 
+## 0.19.0
+
+Global stores moved to a separate package `houdini-svelte-global-store`. You can check the documentation and configuration [here](https://github.com/HoudiniGraphql/houdini/tree/main/packages/houdini-svelte-global-store).
+
 ## 0.18.0
 
 `v0.18.0` brought with it a large collection of breaking changes. Some of them were required by recent updates to SvelteKit,

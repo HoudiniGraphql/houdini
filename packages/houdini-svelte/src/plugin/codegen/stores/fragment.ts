@@ -64,8 +64,6 @@ export declare class ${storeName} extends ${store_class}<${_data}, {}> {
 }
 
 export declare const load_${artifactName}: (params: QueryStoreFetchParams<${_data}, {}>) => Promise<${storeName}>
-
-export default ${storeName}
 `
 
 	// write the store contents to disk

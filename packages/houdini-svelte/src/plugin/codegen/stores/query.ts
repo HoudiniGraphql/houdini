@@ -138,8 +138,6 @@ export declare class ${storeName} extends ${store_class}<${_data}, ${_input}> {
  * \`\`\`
  */
 export declare const load_${artifactName}: (params: QueryStoreFetchParams<${_data}, ${_input}>) => Promise<{${artifactName}: ${storeName}}>
-
-export default ${storeName}
 `
 
 	await Promise.all([
