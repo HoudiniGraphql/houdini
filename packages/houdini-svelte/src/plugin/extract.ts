@@ -1,7 +1,11 @@
-import { parseJS, type Maybe, type Script } from 'houdini'
+import { parseJS, type Maybe, type Script, find_graphql, Config } from 'houdini'
 import * as svelte from 'svelte/compiler'
 
-export default async function (filepath: string, contents: string): Promise<string[]> {
+export default async function (
+	config: Config,
+	filepath: string,
+	contents: string
+): Promise<string[]> {
 	const documents: string[] = []
 
 	let parsedFile = await parseSvelte(contents)
@@ -9,21 +13,10 @@ export default async function (filepath: string, contents: string): Promise<stri
 		return documents
 	}
 
-	// look for any template tag literals in the script body
-	svelte.walk(parsedFile.script, {
-		enter(node) {
-			// if we are looking at the graphql template tag
-			if (
-				node.type === 'TaggedTemplateExpression' &&
-				// @ts-ignore
-				node.tag.name === 'graphql'
-			) {
-				// @ts-ignore
-				// parse the tag contents to get the info we need
-				const printedDoc = node.quasi.quasis[0].value.raw
-
-				documents.push(printedDoc)
-			}
+	// look for graphql documents like normal
+	find_graphql(config, parsedFile.script, {
+		tag({ tagContent }) {
+			documents.push(tagContent)
 		},
 	})
 

@@ -919,7 +919,11 @@ export type Plugin = {
 	extensions?: string[]
 	transform_runtime?: Record<string, (args: { config: Config; content: string }) => string>
 	after_load?: (config: Config) => Promise<void> | void
-	extract_documents?: (filepath: string, content: string) => Promise<string[]> | string[]
+	extract_documents?: (
+		config: Config,
+		filepath: string,
+		content: string
+	) => Promise<string[]> | string[]
 	generate?: GenerateHook
 	transform_file?: (page: TransformPage) => Promise<{ code: string }> | { code: string }
 	index_file?: ModuleIndexTransform

@@ -188,8 +188,8 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 	}
 
 	// add the default extractors at the end of the appropriate lists
-	const graphql_extractor = (filepath: string, content: string) => [content]
-	const javascript_extractor = (filepath: string, content: string) =>
+	const graphql_extractor = (config: Config, filepath: string, content: string) => [content]
+	const javascript_extractor = (fconfig: Config, ilepath: string, content: string) =>
 		processJSFile(config, content)
 	extractors['.ts'].push(javascript_extractor)
 	extractors['.js'].push(javascript_extractor)
@@ -227,7 +227,7 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 						continue
 					}
 
-					const found = await extractor(filepath, contents)
+					const found = await extractor(config, filepath, contents)
 					if (found.length > 0) {
 						documents.push(...found.map((document) => ({ filepath, document })))
 					}
