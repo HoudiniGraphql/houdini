@@ -1,10 +1,5 @@
 <script lang="ts">
-  import {
-    graphql,
-    paginatedFragment,
-    type BackwardsCursorFragment,
-    type UserFragmentBackwardsCursorQueryStore
-  } from '$houdini';
+  import { graphql, paginatedFragment } from '$houdini';
 
   const queryResult = graphql(`
     query UserFragmentBackwardsCursorQuery {
