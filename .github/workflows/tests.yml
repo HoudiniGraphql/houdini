@@ -30,6 +30,7 @@ jobs:
 
             - uses: pnpm/action-setup@v2.0.1
               name: Install pnpm
+              id: pnpm-install
               with:
                 version: 7
 
@@ -59,13 +60,14 @@ jobs:
 
             - uses: pnpm/action-setup@v2.0.1
               name: Install pnpm
+              id: pnpm-install
               with:
                 version: 7
                 
             - name: Get pnpm store directory
+              id: pnpm-cache
               run: |
                 echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
-
             - uses: actions/cache@v3
               name: Setup pnpm cache
               with:
@@ -73,7 +75,6 @@ jobs:
                 key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
                 restore-keys: |
                   ${{ runner.os }}-pnpm-store-
-
             - name: Install dependencies
               run: pnpm install
 
@@ -103,22 +104,21 @@ jobs:
 
             - uses: pnpm/action-setup@v2.0.1
               name: Install pnpm
+              id: pnpm-install
               with:
                 version: 7
                 
             - name: Get pnpm store directory
+              id: pnpm-cache
               run: |
                 echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
-
             - uses: actions/cache@v3
-              if: matrix.os == 'ubuntu-latest'
               name: Setup pnpm cache
               with:
                 path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
                 key: ${{ matrix.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
                 restore-keys: |
                   ${{ matrix.os }}-pnpm-store-
-
             - name: Install dependencies
               run: pnpm install
               
@@ -164,13 +164,14 @@ jobs:
 
             - uses: pnpm/action-setup@v2.0.1
               name: Install pnpm
+              id: pnpm-install
               with:
                 version: 7
                 
             - name: Get pnpm store directory
+              id: pnpm-cache
               run: |
                 echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
-
             - uses: actions/cache@v3
               name: Setup pnpm cache
               with:
@@ -178,7 +179,6 @@ jobs:
                 key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
                 restore-keys: |
                   ${{ runner.os }}-pnpm-store-
-
             - name: Install dependencies
               run: pnpm install
 
