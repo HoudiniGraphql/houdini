@@ -98,11 +98,7 @@ export class ListCollection<Def extends CacheTypeDef, ListName extends ValidList
 	}
 
 	*[Symbol.iterator]() {
-		if (!this.#collection) {
-			return
-		}
-
-		for (const entry of this.#collection) {
+		for (const entry of this.#collection ?? []) {
 			yield entry
 		}
 	}
