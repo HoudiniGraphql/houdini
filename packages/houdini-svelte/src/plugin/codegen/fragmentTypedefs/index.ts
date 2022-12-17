@@ -3,8 +3,7 @@ import { parseJS, path, fs, ArtifactKind, ensureImports, CollectedGraphQLDocumen
 import * as recast from 'recast'
 
 import { PluginGenerateInput } from '..'
-// import { plugin_name } from '../..'
-import { stores_directory_name, store_import_path, store_name } from '../../kit'
+import { stores_directory_name, store_name } from '../../kit'
 
 const AST = recast.types.builders
 
@@ -31,10 +30,13 @@ export default async function fragmentTypedefs(input: PluginGenerateInput) {
 		'fragments.d.ts'
 	)
 
-	const contents = await parseJS((await fs.readFile(target_path)) || '')
+	const contents = await parseJS((await fs.readFile(target_path)) || '')!
+	if (!contents) {
+		return
+	}
 
 	function insert_exports(which: string, statements: StatementKind[]) {
-		for (const [i, expression] of [...(contents?.script.body ?? [])].entries()) {
+		for (const [i, expression] of [...(contents!.script.body ?? [])].entries()) {
 			if (
 				expression.type !== 'ExportNamedDeclaration' ||
 				expression.declaration?.type !== 'TSDeclareFunction' ||
@@ -107,7 +109,7 @@ export default async function fragmentTypedefs(input: PluginGenerateInput) {
 				// make sure the store is imported
 				ensureImports({
 					config: input.config,
-					body: contents?.script.body!,
+					body: contents!.script.body!,
 					sourceModule: import_path,
 					import: [store],
 				})
@@ -134,7 +136,7 @@ export default async function fragmentTypedefs(input: PluginGenerateInput) {
 			})
 		)
 	}
-	if (contents) {
-		await fs.writeFile(target_path, recast.prettyPrint(contents?.script!).code)
-	}
+
+	// write the updated file
+	await fs.writeFile(target_path, recast.prettyPrint(contents.script).code)
 }
