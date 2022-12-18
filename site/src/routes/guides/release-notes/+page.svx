@@ -8,7 +8,47 @@ description: A guide to migrating your application to each breaking version of h
 
 ## 0.19.0
 
-Global stores moved to a separate package `houdini-plugin-svelte-global-stores`. You can check the documentation and configuration [here](https://github.com/HoudiniGraphql/houdini/tree/main/packages/houdini-plugin-svelte-global-stores).
+`v0.19.0` brings changes quickly after `0.18`. We're trying to get out as much as possible as quickly as we prepare
+our upcoming 1.0 release so we can feel confident that we have a stable, battle-tested framework.
+
+This release brings some _really_ awesome things but we'll start off with what you're probably most worried
+about: breaking changes.
+
+### No more global stores by default
+
+In order to avoid complications and anti-patterns when using global stores, they have been removed by default from
+Houdini's core svelte plugin (along with the associated configuration values). Don't worry, if you rely heavily on them in your application, you can still
+have them generated for your application using the
+[houdini-plugin-svelte-global-stores](https://github.com/HoudiniGraphql/houdini/tree/main/packages/houdini-plugin-svelte-global-stores)
+plugin.
+
+You can install the plugin from npm, pnpm, yarn, etc:
+
+```bash
+yarn add -D houdini-plugin-svelte-global-stores
+# or
+npm install --save-dev houdini-plugin-svelte-global-stores
+# or
+pnpm install --save-dev houdini-plugin-svelte-global-stores
+```
+
+and add it to the `plugins` section of your config file (order doesn't matter).
+
+```diff
+ {
+
+ 	plugins: {
+ 		'houdini-svelte': {
+- 			globalStorePrefix: "G_"
+ 		},
++		'houdini-plugin-svelte-global-stores': {
++ 			globalStorePrefix: "G_"
++		},
+ 	}
+ }
+```
+
+If you _don't_ want to specify a custom prefix, the value of the plugin should be `{}`.
 
 ## 0.18.0
 
