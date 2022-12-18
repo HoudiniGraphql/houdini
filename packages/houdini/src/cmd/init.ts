@@ -225,7 +225,7 @@ export default async function init(
 	// - svelte only
 	// - both (with small variants)
 	if (framework === 'kit') {
-		await updateSvelteConfig(targetPath)
+		await updateSvelteConfig(targetPath, typescript)
 	} else if (framework === 'svelte') {
 		await updateSvelteMainJs(targetPath)
 	}
