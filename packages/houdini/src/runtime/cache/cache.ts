@@ -5,6 +5,7 @@ import { getFieldsForType } from '../lib/selection'
 import { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '../lib/types'
 import { GarbageCollector } from './gc'
 import { ListCollection, ListManager } from './lists'
+import { SchemaManager } from './schema'
 import { InMemoryStorage, Layer, LayerID } from './storage'
 import { evaluateKey, flattenList } from './stuff'
 import { InMemorySubscriptions } from './subscription'
@@ -22,6 +23,7 @@ export class Cache {
 			subscriptions: new InMemorySubscriptions(this),
 			lists: new ListManager(this, rootID),
 			lifetimes: new GarbageCollector(this),
+			schema: new SchemaManager(this),
 		})
 
 		if (config) {
@@ -160,6 +162,7 @@ class CacheInternal {
 	lists: ListManager
 	cache: Cache
 	lifetimes: GarbageCollector
+	schema: SchemaManager
 
 	constructor({
 		storage,
@@ -167,18 +170,21 @@ class CacheInternal {
 		lists,
 		cache,
 		lifetimes,
+		schema,
 	}: {
 		storage: InMemoryStorage
 		subscriptions: InMemorySubscriptions
 		lists: ListManager
 		cache: Cache
 		lifetimes: GarbageCollector
+		schema: SchemaManager
 	}) {
 		this.storage = storage
 		this.subscriptions = subscriptions
 		this.lists = lists
 		this.cache = cache
 		this.lifetimes = lifetimes
+		this.schema = schema
 
 		// the cache should always be disabled on the server, unless we're testing
 		this._disabled = typeof globalThis.window === 'undefined'
@@ -199,7 +205,6 @@ class CacheInternal {
 		data,
 		selection,
 		variables = {},
-		root = rootID,
 		parent = rootID,
 		applyUpdates = false,
 		layer,
@@ -249,8 +254,18 @@ class CacheInternal {
 				operations,
 				abstract: isAbstract,
 				update,
+				nullable,
 			} = targetSelection[field]
 			const key = evaluateKey(keyRaw, variables)
+
+			// save the type information
+			this.schema.setFieldType({
+				parent,
+				key: keyRaw,
+				type: linkedType,
+				nullable,
+				link: !!fieldSelection,
+			})
 
 			// the current set of subscribers
 			const currentSubscribers = this.subscriptions.get(parent, key)
@@ -378,7 +393,6 @@ class CacheInternal {
 				// selection and update any values we run into
 				if (linkedID) {
 					this.writeSelection({
-						root,
 						selection: fieldSelection,
 						parent: linkedID,
 						data: value,

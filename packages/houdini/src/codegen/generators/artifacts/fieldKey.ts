@@ -44,11 +44,12 @@ export default function fieldKey(config: Config, field: graphql.FieldNode): stri
 		}
 	}, {})
 
+	const args = Object.keys(argObj)
+	args.sort()
+
 	let key =
 		Object.values(argObj).length > 0
-			? `${attributeName}(${Object.entries(argObj)
-					.map((entries) => entries.join(': '))
-					.join(', ')})`
+			? `${attributeName}(${args.map((key) => `${key}: ${argObj[key]}`).join(', ')})`
 			: attributeName
 
 	// if the field is paginated, key it differently so other documents can ask for the non paginated value without conflict

@@ -752,7 +752,7 @@ test('embeds custom pagination query as a separate document', async function () 
 		        fields: {
 		            ghost: {
 		                type: "Ghost",
-		                keyRaw: "ghost(name: $name, aka: $aka)",
+		                keyRaw: "ghost(aka: $aka, name: $name)",
 
 		                selection: {
 		                    fields: {
