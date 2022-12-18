@@ -12,14 +12,14 @@ export function global_stores_directory(plugin_root: string) {
 }
 
 export function global_store_name({ config, name }: { config: Config; name: string }) {
-	return plugin_config(config).globalStorePrefix + name
+	return plugin_config(config).prefix + name
 }
 
 export function plugin_config(config: Config): Required<HoudiniVitePluginConfig> {
 	const cfg = config.pluginConfig<HoudiniVitePluginConfig>('houdini-plugin-svelte-global-stores')
 
 	return {
-		globalStorePrefix: 'GQL_',
+		prefix: 'GQL_',
 		...cfg,
 	}
 }

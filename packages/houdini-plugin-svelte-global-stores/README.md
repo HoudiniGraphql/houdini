@@ -28,7 +28,7 @@
 
 # ➕ houdini-plugin-svelte-global-stores
 
-This package provides global stores for houdini's svelte bindings. 
+This package provides global stores for houdini's svelte bindings.
 
 ## Setup
 
@@ -39,10 +39,10 @@ To be able to use this plugin, add it to the list of plugins in `houdini.config.
 
 /** @type {import('houdini').ConfigFile} */
 const config = {
-  
+
   plugins: {
     'houdini-plugin-svelte-global-stores': {
-      globalStorePrefix: 'GQL_'
+      prefix: 'G_'
     },
     'houdini-svelte': {}
   }
@@ -54,7 +54,7 @@ export default config;
 ```
 
 One configuration option is available:
-- `globalStorePrefix` (optional, default: `GQL_`): The default prefix of your global stores. This lets your editor provide autocompletion with just a few characters.
+- `prefix` (optional, default: `GQL_`): The default prefix of your global stores. This lets your editor provide autocompletion with just a few characters.
 
 
 ## Usage

@@ -42,7 +42,7 @@ and add it to the `plugins` section of your config file (order doesn't matter).
 - 			globalStorePrefix: "G_"
  		},
 +		'houdini-plugin-svelte-global-stores': {
-+ 			globalStorePrefix: "G_"
++ 			prefix: "G_"
 +		},
  	}
  }

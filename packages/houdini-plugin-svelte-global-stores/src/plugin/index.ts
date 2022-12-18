@@ -66,5 +66,5 @@ export type HoudiniVitePluginConfig = {
 	 * _Note: it's nice to have a prefix so that your editor finds all your stores by just typings this prefix_
 	 * @default GQL_
 	 */
-	globalStorePrefix?: string
+	prefix?: string
 }

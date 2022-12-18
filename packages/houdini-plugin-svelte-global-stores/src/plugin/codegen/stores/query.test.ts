@@ -6,14 +6,14 @@ import { expect, test } from 'vitest'
 import { pipeline_test } from '../../../test'
 import { global_stores_directory } from '../../kit'
 
-test('change globalStorePrefix to "yop___"', async function () {
+test('change prefix to "yop___"', async function () {
 	const docs = [`query TestQuery { version }`]
 
 	const { plugin_root } = await pipeline_test(docs, {
 		plugins: {
 			'houdini-svelte': {},
 			'houdini-plugin-svelte-global-stores': {
-				globalStorePrefix: 'yop___',
+				prefix: 'yop___',
 			},
 		},
 	})
@@ -35,14 +35,14 @@ test('change globalStorePrefix to "yop___"', async function () {
 	`)
 })
 
-test('change globalStorePrefix to ""', async function () {
+test('change prefix to ""', async function () {
 	const docs = [`query TestQuery { version }`]
 
 	const { plugin_root } = await pipeline_test(docs, {
 		plugins: {
 			'houdini-svelte': {},
 			'houdini-plugin-svelte-global-stores': {
-				globalStorePrefix: '',
+				prefix: '',
 			},
 		},
 	})
