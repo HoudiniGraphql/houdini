@@ -402,7 +402,7 @@ test('inner fragment with intermediate default value', async function () {
 		        fields: {
 		            users: {
 		                type: "User",
-		                keyRaw: "users(stringValue: \\"Hello\\", intValue: 2)",
+		                keyRaw: "users(intValue: 2, stringValue: \\"Hello\\")",
 
 		                selection: {
 		                    fields: {
@@ -491,7 +491,7 @@ test("default values don't overwrite unless explicitly passed", async function (
 		        fields: {
 		            users: {
 		                type: "User",
-		                keyRaw: "users(stringValue: \\"Goodbye\\", intValue: 10)",
+		                keyRaw: "users(intValue: 10, stringValue: \\"Goodbye\\")",
 
 		                selection: {
 		                    fields: {

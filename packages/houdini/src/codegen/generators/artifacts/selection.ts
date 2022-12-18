@@ -273,7 +273,7 @@ export default function selection({
 				fieldObj.filters = (field.arguments || []).reduce(
 					(filters, arg) => ({
 						...filters,
-						[arg.name.value]: convertValue(arg.value),
+						[arg.name.value]: convertValue(config, arg.value),
 					}),
 					{}
 				)

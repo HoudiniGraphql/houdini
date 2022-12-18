@@ -79,11 +79,11 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 
 				// generators
 
-				// the runtime is a static thing most of the time. It only needs to be regenerated if
-				// the user is upgrading versions or the client path changed
 				generators.runtime,
 				generators.indexFile,
 				generators.artifacts(artifactStats),
+				// typescript generator needs to go after the runtime one
+				// so that the imperative cache definitions always survive
 				generators.typescript,
 				generators.persistOutput,
 				generators.definitions,
@@ -101,6 +101,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 			docs
 		)
 	} catch (e) {
+		console.log(e)
 		error = e as Error
 	}
 
