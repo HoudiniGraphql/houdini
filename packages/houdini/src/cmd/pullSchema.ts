@@ -15,7 +15,7 @@ export default async function (args: { headers: string[] }) {
 	// The target path -> current working directory by default. Should we allow passing custom paths?
 	const targetPath = process.cwd()
 
-	let headers = config.pullHeaders
+	let headers = await config.pullHeaders()
 	let headerStrings: string[] = []
 
 	if (args.headers) {

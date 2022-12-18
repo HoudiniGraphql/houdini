@@ -58,7 +58,9 @@ export class Config {
 	configIsRoute: ((filepath: string) => boolean) | null = null
 	routesDir: string
 	schemaPollInterval: number | null
-	schemaPollHeaders: Record<string, string | ((env: any) => string)>
+	schemaPollHeaders:
+		| ((env: any) => Record<string, string>)
+		| Record<string, string | ((env: any) => string)>
 	pluginMode: boolean = false
 	plugins: PluginMeta[] = []
 
@@ -179,26 +181,49 @@ export class Config {
 		return this.configFile.plugins?.[name] ?? {}
 	}
 
-	get pullHeaders() {
-		return Object.fromEntries(
-			Object.entries(this.schemaPollHeaders || {}).map(([key, value]) => {
-				let headerValue
-				if (typeof value === 'function') {
-					headerValue = value(process.env)
-				} else if (value.startsWith('env:')) {
-					headerValue = process.env[value.slice('env:'.length)]
-				} else {
-					headerValue = value
+	async pullHeaders() {
+		// let plugins pick up environment variables from custom places
+		let env: Record<string, string | undefined> = process.env
+		for (const plugin of this.plugins) {
+			if (plugin.env) {
+				env = {
+					...(await plugin.env({ config: this, env })),
 				}
+			}
+		}
 
-				// if there was no value, dont add anything
-				if (!headerValue) {
-					return []
-				}
+		// if the whole thing is a function, just call it
+		if (typeof this.schemaPollHeaders === 'function') {
+			return this.schemaPollHeaders(env)
+		}
 
-				return [key, headerValue]
-			})
+		// we need to turn the map into the correct key/value pairs
+		const headers = Object.fromEntries(
+			Object.entries(this.schemaPollHeaders || {})
+				.map(([key, value]) => {
+					console.log(key, value)
+					let headerValue
+					if (typeof value === 'function') {
+						headerValue = value(env)
+					} else if (value.startsWith('env:')) {
+						console.log(env[''])
+						headerValue = env[value.slice('env:'.length)]
+					} else {
+						headerValue = value
+					}
+
+					// if there was no value, dont add anything
+					if (!headerValue) {
+						return []
+					}
+
+					return [key, headerValue]
+				})
+				.filter(([key]) => key)
 		)
+
+		// we're done
+		return headers
 	}
 
 	async sourceFiles() {
@@ -952,6 +977,7 @@ export type Plugin = {
 		doc: CollectedGraphQLDocument
 		ensure_import: (import_args: { identifier: string; module: string }) => void
 	}) => string | undefined
+	env?: (args: { env: any; config: Config }) => Promise<Record<string, string>>
 	validate?: (args: {
 		config: Config
 		documents: CollectedGraphQLDocument[]

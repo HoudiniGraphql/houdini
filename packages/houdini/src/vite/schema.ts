@@ -39,7 +39,7 @@ export default function HoudiniWatchSchemaPlugin(opts: PluginConfig = {}): Plugi
 					const schemaState = await pullSchema(
 						config.apiUrl!,
 						config.schemaPath ?? path.resolve(process.cwd(), 'schema.json'),
-						config.pullHeaders
+						await config.pullHeaders()
 					)
 
 					nbPullError = schemaState ? 0 : nbPullError + 1
