@@ -21,7 +21,7 @@ export async function test_config(extraConfig: Partial<ConfigFile> = {}) {
 		{
 			...plugin_houdini_svelte_global_store,
 			include_runtime: false,
-			name: 'houdini-svelte-global-store',
+			name: 'houdini-plugin-svelte-global-stores',
 			version: 'test',
 			directory: process.cwd(),
 		}
@@ -46,7 +46,7 @@ export async function pipeline_test(
 	await runPipeline(config, docs)
 
 	return {
-		plugin_root: config.pluginDirectory('houdini-svelte-global-store'),
+		plugin_root: config.pluginDirectory('houdini-plugin-svelte-global-stores'),
 		docs,
 		config,
 	}

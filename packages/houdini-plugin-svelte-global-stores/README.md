@@ -7,7 +7,7 @@
   </strong>
   <br />
   <br />
-  <a href="https://npmjs.org/package/houdini-svelte-global-store">
+  <a href="https://npmjs.org/package/houdini-plugin-svelte-global-stores">
     <img src="https://img.shields.io/npm/v/houdini.svg" alt="version" />
   </a>
   <a href="https://github.com/HoudiniGraphql/houdini/actions">
@@ -26,7 +26,7 @@
 
 ---
 
-# ➕ houdini-svelte-global-store
+# ➕ houdini-plugin-svelte-global-stores
 
 This package provides global stores for houdini's svelte bindings. 
 
@@ -35,13 +35,13 @@ This package provides global stores for houdini's svelte bindings.
 To be able to use this plugin, add it to the list of plugins in `houdini.config.js`, like so:
 ```js
 /// <references types="houdini-svelte">
-/// <references types="houdini-svelte-global-store">
+/// <references types="houdini-plugin-svelte-global-stores">
 
 /** @type {import('houdini').ConfigFile} */
 const config = {
   
   plugins: {
-    'houdini-svelte-global-store': {
+    'houdini-plugin-svelte-global-stores': {
       globalStorePrefix: 'GQL_'
     },
     'houdini-svelte': {}

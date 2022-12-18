@@ -16,7 +16,7 @@ export function global_store_name({ config, name }: { config: Config; name: stri
 }
 
 export function plugin_config(config: Config): Required<HoudiniVitePluginConfig> {
-	const cfg = config.pluginConfig<HoudiniVitePluginConfig>('houdini-svelte-global-store')
+	const cfg = config.pluginConfig<HoudiniVitePluginConfig>('houdini-plugin-svelte-global-stores')
 
 	return {
 		globalStorePrefix: 'GQL_',

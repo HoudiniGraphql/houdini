@@ -12,7 +12,7 @@ test('change globalStorePrefix to "yop___"', async function () {
 	const { plugin_root } = await pipeline_test(docs, {
 		plugins: {
 			'houdini-svelte': {},
-			'houdini-svelte-global-store': {
+			'houdini-plugin-svelte-global-stores': {
 				globalStorePrefix: 'yop___',
 			},
 		},
@@ -41,7 +41,7 @@ test('change globalStorePrefix to ""', async function () {
 	const { plugin_root } = await pipeline_test(docs, {
 		plugins: {
 			'houdini-svelte': {},
-			'houdini-svelte-global-store': {
+			'houdini-plugin-svelte-global-stores': {
 				globalStorePrefix: '',
 			},
 		},

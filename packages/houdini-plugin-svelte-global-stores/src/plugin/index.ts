@@ -55,7 +55,7 @@ export default HoudiniSveltePlugin
 
 declare module 'houdini' {
 	interface HoudiniPluginConfig {
-		'houdini-svelte-global-store': HoudiniVitePluginConfig
+		'houdini-plugin-svelte-global-stores': HoudiniVitePluginConfig
 	}
 }
 
