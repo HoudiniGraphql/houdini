@@ -1,6 +1,6 @@
 ---
 title: Caching Data
-index: 5
+index: 6
 description: A guide to all things caching in Houdini
 ---
 
@@ -126,7 +126,7 @@ export default {
 
 ## Custom IDs
 
-Some applications cannot rely on the [Global Object Identification spec](https://graphql.org/learn/global-object-identification/) for one reason or another. Maybe your types do not have an `id` field. If it's the case, you can tell it to Houdini by setting keys to your `types` in your `houdini.config.js`, like: 
+Some applications cannot rely on the [Global Object Identification spec](https://graphql.org/learn/global-object-identification/) for one reason or another. Maybe your types do not have an `id` field. If it's the case, you can tell it to Houdini by setting keys to your `types` in your `houdini.config.js`, like:
 ```javascript
 export default {
     // ...
