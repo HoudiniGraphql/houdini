@@ -20,7 +20,7 @@ In order to avoid complications and anti-patterns when using global stores, they
 Houdini's core svelte plugin (along with the associated configuration values). Don't worry, if you rely heavily on them in your application, you can still
 have them generated for your application using the
 [houdini-plugin-svelte-global-stores](https://github.com/HoudiniGraphql/houdini/tree/main/packages/houdini-plugin-svelte-global-stores)
-plugin.
+plugin. If you don't rely on global stores, then there's nothing for you to worry about.
 
 You can install the plugin from npm, pnpm, yarn, etc:
 
