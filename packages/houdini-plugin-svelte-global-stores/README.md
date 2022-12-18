@@ -32,7 +32,8 @@ This package provides global stores for houdini's svelte bindings.
 
 ## Setup
 
-To be able to use this plugin, add it to the list of plugins in `houdini.config.js`, like so:
+To use this plugin, add it to the list of plugins in `houdini.config.js`:
+
 ```js
 /// <references types="houdini-svelte">
 /// <references types="houdini-plugin-svelte-global-stores">

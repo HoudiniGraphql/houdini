@@ -35,7 +35,9 @@ pnpm install --save-dev houdini-plugin-svelte-global-stores
 and add it to the `plugins` section of your config file (order doesn't matter).
 
 ```diff
- {
++ /// <references types="houdini-plugin-svelte-global-stores">
+
+ export default {
 
  	plugins: {
  		'houdini-svelte': {
@@ -49,6 +51,17 @@ and add it to the `plugins` section of your config file (order doesn't matter).
 ```
 
 If you _don't_ want to specify a custom prefix, the value of the plugin should be `{}`.
+
+One side effect of this change is that you can no longer pass a global store to `_houdini_load.
+If this is something you currently do in your application, you should pass an instance of the store instead:
+
+```diff
+- import { GQL_MyQuery } from '$houdini'
++ import { MyQueryStore } from '$houdini'
+
+- export const _houdini_load = [ GQL_MyQuery ]
++ export const _houdini_load = [ new MyQueryStore() ]
+```
 
 ## 0.18.0
 
