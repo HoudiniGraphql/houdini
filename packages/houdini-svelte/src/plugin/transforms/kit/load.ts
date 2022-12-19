@@ -286,14 +286,6 @@ function add_load({
 										page,
 										artifact: { name: query.name },
 									}).id
-									// AST.identifier('artifact')
-									// AST.memberExpression(
-									// 	store_import({
-									// 		page,
-									// 		artifact: query,
-									// 	}).id,
-									// 	AST.identifier('artifact')
-									// )
 								),
 							]),
 						]
