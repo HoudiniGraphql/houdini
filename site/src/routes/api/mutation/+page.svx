@@ -14,9 +14,9 @@ Send a mutation to the server and updating your client-side cache with any chang
 
 ```svelte
 <script lang="ts">
-	import { graphql, type UncheckItemStore } from '$houdini'
+	import { graphql } from '$houdini'
 
-	const uncheckItem: UncheckItemStore = graphql(`
+	const uncheckItem = graphql(`
 		mutation UncheckItem($id: ID!) {
 			uncheckItem(item: $id) {
 				item {
@@ -58,7 +58,7 @@ Take for example, an `TodoItemRow` component:
 	import {
 		fragment,
 		graphql,
-		TodoItemRow,
+		type TodoItemRow,
 	} from '$houdini'
 
 	export let item: TodoItemRow
