@@ -75,7 +75,7 @@ If this is something you currently do in your application, you should pass an in
 
 This is more of a soft break - there's no need to update anything right away. If you don't use TypeScript,
 you are free to use whichever style you prefer. If you do use TypeScript, using `graphql` as a function
-will provide automatic types for your store values:
+will allow TypeScript to infer types for your store values:
 
 ```diff
 - import { MyQueryStore, graphql } from '$houdini'
