@@ -25,7 +25,7 @@ const mutationExample = `const addFriend = graphql(\`
     }
 \`)`
 
-const graphqlExample = `const addFriend = graphql(\`
+const graphqlExample = `const setFavorite = graphql(\`
     mutation SetFavorite {
         setFavoriteRecipe(id: 1) {
             recipe {
@@ -41,14 +41,13 @@ const fragmentExample = `$: data = fragment(user, graphql(\`
         lastName
         email
     }
-\`)`
+\`))`
 
 const configExample = `export default {
-    schemaPath: './schema.graphql',
-    sourceGlob: 'src/**/*.svelte',
-    module: 'esm',
-    framework: 'kit',
-    apiUrl: 'http://localhost:4000'
+    apiUrl: 'http://localhost:4000',
+    plugins: {
+        'houdini-svelte': {}
+    }
 }`
 
 const subscriptionExample = `graphql(\`
@@ -123,9 +122,9 @@ example={configExample}
 />
 
 <APIShowcase
-title="SvelteKit Plugin"
+title="Vite Plugin"
 description="A powerful tool to enable Houdini's declarative API in your svelte+vite projects"
-href="/api/plugin"
+href="/api/vite"
 example={pluginExample}
 />
 
