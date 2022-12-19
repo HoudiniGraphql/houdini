@@ -10,11 +10,12 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 	return {
 		schema: `
 			scalar Cursor
-
+			scalar DateTime
 
 			type User implements Node & Friend & CatOwner {
 				id: ID!
 				name: String!
+				birthday: DateTime!
 				firstName: String!
 				friends: [User!]!
 				friendsByCursor(first: Int, after: String, last: Int, before: String, filter: String): UserConnection!
@@ -212,6 +213,9 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 			DateTime: {
 				type: 'Date',
 				unmarshal(val: number): Date {
+					if (typeof val !== 'number') {
+						throw new Error('unmarshaling not a number')
+					}
 					return new Date(val)
 				},
 				marshal(date: Date): number {
@@ -237,6 +241,7 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				client: './my/client/path',
 			},
 		},
+		acceptImperativeInstability: true,
 		...config,
 	}
 }

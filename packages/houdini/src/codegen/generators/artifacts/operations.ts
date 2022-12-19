@@ -179,7 +179,7 @@ function operationObject({
 			operationWhen[i ? 'must_not' : 'must'] = arg.value.fields.reduce(
 				(obj, arg) => ({
 					...obj,
-					[arg.name.value]: convertValue(arg.value).value,
+					[arg.name.value]: convertValue(config, arg.value).value,
 				}),
 				{}
 			)
@@ -203,7 +203,7 @@ function operationObject({
 			operationWhen[which] = directive.arguments?.reduce(
 				(filters, argument) => ({
 					...filters,
-					[argument.name.value]: convertValue(argument.value).value,
+					[argument.name.value]: convertValue(config, argument.value).value,
 				}),
 				{}
 			)

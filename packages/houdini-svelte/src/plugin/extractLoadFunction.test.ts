@@ -93,7 +93,7 @@ describe('extract_load_function', function () {
 			source: `
                 import { MyQueryStore } from '$houdini'
 
-                const store = MyQueryStore()
+                const store = new MyQueryStore()
 
                 export const _houdini_load = store
             `,
@@ -110,7 +110,7 @@ describe('extract_load_function', function () {
 			source: `
                 import { MyQueryStore } from '$houdini/stores/MyQuery'
 
-                const store = MyQueryStore()
+                const store = new MyQueryStore()
 
                 export const _houdini_load = store
             `,
@@ -123,21 +123,6 @@ describe('extract_load_function', function () {
 			},
 		},
 		{
-			title: 'load single global import',
-			source: `
-                import { GQL_Hello } from '$houdini'
-
-                export const _houdini_load = GQL_Hello
-            `,
-			artifacts: {
-				Hello: 'query Hello { viewer { id } }',
-			},
-			expected: {
-				exports: [houdini_load_fn],
-				houdini_load: [`Hello`],
-			},
-		},
-		{
 			title: 'load list with inline value',
 			source: `
                 import { graphql } from '$houdini'
@@ -147,6 +132,44 @@ describe('extract_load_function', function () {
 			expected: {
 				exports: [houdini_load_fn],
 				houdini_load: ['Hello'],
+			},
+		},
+		{
+			title: 'load list with inline value & another store',
+			source: `
+                import { graphql, MyQueryStore } from '$houdini'
+
+								const store1 = new MyQueryStore()
+
+                export const _houdini_load = [
+									store1, 
+									graphql\`query Hello { viewer { id } }\`
+								]
+            `,
+			artifacts: {
+				MyQuery: 'query MyQuery { viewer { id } }',
+			},
+			expected: {
+				exports: [houdini_load_fn],
+				houdini_load: ['MyQuery', 'Hello'],
+			},
+		},
+		{
+			title: 'load list with inline value & new Store inside return',
+			source: `
+                import { graphql, MyQueryStore } from '$houdini'
+
+                export const _houdini_load = [
+									new MyQueryStore(), 
+									graphql\`query Hello { viewer { id } }\`
+								]
+            `,
+			artifacts: {
+				MyQuery: 'query MyQuery { viewer { id } }',
+			},
+			expected: {
+				exports: [houdini_load_fn],
+				houdini_load: ['MyQuery', 'Hello'],
 			},
 		},
 		{
@@ -164,26 +187,11 @@ describe('extract_load_function', function () {
 			},
 		},
 		{
-			title: 'load list with global import',
-			source: `
-                import { GQL_Hello } from '$houdini'
-
-                export const _houdini_load = [GQL_Hello]
-            `,
-			artifacts: {
-				Hello: 'query Hello { viewer { id } }',
-			},
-			expected: {
-				exports: [houdini_load_fn],
-				houdini_load: ['Hello'],
-			},
-		},
-		{
 			title: 'load list global factory identifier',
 			source: `
                 import { MyQueryStore } from '$houdini'
 
-                const store = MyQueryStore()
+                const store = new MyQueryStore()
 
                 export const _houdini_load = [store]
             `,
@@ -200,7 +208,7 @@ describe('extract_load_function', function () {
 			source: `
                 import { MyQueryStore } from '$houdini/stores/MyQuery'
 
-                const store = MyQueryStore()
+                const store = new MyQueryStore()
 
                 export const _houdini_load = [store]
             `,

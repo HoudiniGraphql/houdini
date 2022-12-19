@@ -6,6 +6,8 @@ import { extract_documents } from './extract'
 import { transform_file } from './transform'
 
 const HoudiniReactPlugin: PluginFactory = async () => ({
+	order: 'core',
+
 	// add the jsx extensions
 	extensions: ['.jsx', '.tsx'],
 

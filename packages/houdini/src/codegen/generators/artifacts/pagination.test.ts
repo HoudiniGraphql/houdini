@@ -649,7 +649,7 @@ test("sibling aliases don't get marked", async function () {
 
 		            friends: {
 		                type: "UserConnection",
-		                keyRaw: "friends(first: 10, filter: \\"hello\\")",
+		                keyRaw: "friends(filter: \\"hello\\", first: 10)",
 
 		                selection: {
 		                    fields: {

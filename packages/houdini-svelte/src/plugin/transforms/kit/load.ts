@@ -1,9 +1,9 @@
 import { logYellow } from '@kitql/helper'
-import type { StatementKind, IdentifierKind } from 'ast-types/lib/gen/kinds'
+import type { IdentifierKind, StatementKind } from 'ast-types/lib/gen/kinds'
 import type { namedTypes } from 'ast-types/lib/gen/namedTypes'
 import * as graphql from 'graphql'
-import { formatErrors, operation_requires_variables, fs } from 'houdini'
-import { find_insert_index, ensure_imports } from 'houdini/vite'
+import { formatErrors, fs, operation_requires_variables } from 'houdini'
+import { artifact_import, ensure_imports, find_insert_index } from 'houdini/vite'
 import * as recast from 'recast'
 
 import { parseSvelte } from '../../extract'
@@ -17,7 +17,6 @@ import {
 	page_query_path,
 	route_data_path,
 	route_page_path,
-	store_import,
 	store_import_path,
 } from '../../kit'
 import {
@@ -27,7 +26,7 @@ import {
 	houdini_on_error_fn,
 	query_variable_fn,
 } from '../../naming'
-import { LoadTarget, find_inline_queries } from '../query'
+import { find_inline_queries, LoadTarget } from '../query'
 import { SvelteTransformPage } from '../types'
 
 const AST = recast.types.builders
@@ -46,7 +45,9 @@ export default async function kit_load_generator(page: SvelteTransformPage) {
 	const inline_query_store = (name: string) =>
 		route
 			? AST.memberExpression(AST.identifier('data'), AST.identifier(name))
-			: store_import({
+			: artifact_import({
+					config: page.config,
+					script: page.script,
 					page,
 					artifact: { name },
 			  }).id
@@ -279,13 +280,12 @@ function add_load({
 								),
 								AST.objectProperty(
 									AST.literal('artifact'),
-									AST.memberExpression(
-										store_import({
-											page,
-											artifact: query,
-										}).id,
-										AST.identifier('artifact')
-									)
+									artifact_import({
+										config: page.config,
+										script: page.script,
+										page,
+										artifact: { name: query.name },
+									}).id
 								),
 							]),
 						]
@@ -452,14 +452,7 @@ async function find_special_query(
 		return null
 	}
 
-	// generate an import for the store
-	const { id } = store_import({
-		page,
-		artifact: { name: definition.name!.value },
-	})
-
 	return {
-		store_id: id,
 		name: definition.name!.value,
 		variables: operation_requires_variables(definition),
 	}

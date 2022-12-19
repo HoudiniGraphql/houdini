@@ -44,8 +44,8 @@ test('generates a store for every fragment', async function () {
 		// create the fragment store
 
 		export class TestFragment1Store extends FragmentStore {
-		    constructor() {
-		        super({
+			constructor() {
+				super({
 					artifact,
 					storeName: "TestFragment1Store",
 					variables: true,
@@ -53,10 +53,6 @@ test('generates a store for every fragment', async function () {
 				})
 			}
 		}
-
-		export const GQL_TestFragment1 = new TestFragment1Store()
-
-		export default GQL_TestFragment1
 	`
 	)
 })

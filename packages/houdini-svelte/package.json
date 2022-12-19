@@ -22,6 +22,11 @@
         "compile": "scripts build --plugin",
         "typedefs": "scripts typedefs --plugin"
     },
+    "devDependencies": {
+        "@types/minimatch": "^5.1.2",
+        "scripts": "workspace:^",
+        "vitest": "^0.23.4"
+    },
     "dependencies": {
         "@kitql/helper": "^0.5.0",
         "@sveltejs/kit": "^1.0.0",
@@ -29,14 +34,8 @@
         "estree-walker": "^3.0.1",
         "graphql": "^15.8.0",
         "houdini": "workspace:^",
-        "minimatch": "^5.1.0",
         "recast": "^0.23.1",
         "svelte": "^3.55.0"
-    },
-    "devDependencies": {
-        "@types/minimatch": "^5.1.2",
-        "scripts": "workspace:^",
-        "vitest": "^0.23.4"
     },
     "peerDependencies": {
         "graphql": "^14.0.0 || ^15.0.0"

@@ -1,4 +1,5 @@
 /// <references types="houdini-svelte">
+/// <references types="houdini-plugin-svelte-global-stores">
 
 /** @type {import('houdini').ConfigFile} */
 const config = {
@@ -22,6 +23,7 @@ const config = {
     }
   },
   plugins: {
+    'houdini-plugin-svelte-global-stores': {},
     'houdini-svelte': {}
   }
 };
