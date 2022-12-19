@@ -201,12 +201,10 @@ export class Config {
 		const headers = Object.fromEntries(
 			Object.entries(this.schemaPollHeaders || {})
 				.map(([key, value]) => {
-					console.log(key, value)
 					let headerValue
 					if (typeof value === 'function') {
 						headerValue = value(env)
 					} else if (value.startsWith('env:')) {
-						console.log(env[''])
 						headerValue = env[value.slice('env:'.length)]
 					} else {
 						headerValue = value
