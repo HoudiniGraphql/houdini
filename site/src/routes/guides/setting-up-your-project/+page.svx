@@ -71,7 +71,7 @@ const config = {
 export default config
 ```
 
-Then, update your `svelte.config.js` to support the `$houdini` alias:
+Finally, update your `svelte.config.js` to support the `$houdini` alias:
 
 ```javascript
 // svelte.config.js
@@ -88,8 +88,18 @@ export default {
 
 ### Svelte
 
-If you are using vite, you should use the `houdini/vite` plugin even if
-you aren't using kit. Update your `vite.config.js` file to look like this:
+First, we need to add the dedicated houdini package for svelte:
+
+```bash
+yarn add -D houdini-svelte
+# or
+npm install --save-dev houdini-svelte
+# or
+pnpm install --save-dev houdini-svelte
+```
+
+If you are using vite, you should use the `houdini/vite` plugin even if you aren't using kit.
+Update your `vite.config.js` file to look like this:
 
 ```javascript
 // vite.config.js
