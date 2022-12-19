@@ -4,15 +4,19 @@ index: 1
 description: A guide to migrating your application to each breaking version of houdini
 ---
 
+<script>
+	import { DeepDive } from '~/components'
+</script>
+
 # Release Notes
 
 ## 0.19.0
 
-`v0.19.0` brings changes quickly after `0.18`. We're trying to get out as much as possible as quickly as we prepare
-our upcoming 1.0 release so we can feel confident that we have a stable, battle-tested framework.
+`v0.19.0` brings changes quickly after `0.18`. We're trying to get out as much as possible as quickly as possible
+to prepare for our upcoming 1.0 release.
 
-This release brings some _really_ awesome things but we'll start off with what you're probably most worried
-about: breaking changes.
+This release brings some _really_ awesome things but we'll start off with what you're probably most concerned
+with: breaking changes. But don't worry, there's only one actual breaking change in this release.
 
 ### No more global stores by default
 
@@ -21,6 +25,8 @@ Houdini's core svelte plugin (along with the associated configuration values). D
 have them generated for your application using the
 [houdini-plugin-svelte-global-stores](https://github.com/HoudiniGraphql/houdini/tree/main/packages/houdini-plugin-svelte-global-stores)
 plugin. If you don't rely on global stores, then there's nothing for you to worry about.
+
+<DeepDive title="Bringing back global stores">
 
 You can install the plugin from npm, pnpm, yarn, etc:
 
@@ -61,6 +67,29 @@ If this is something you currently do in your application, you should pass an in
 
 - export const _houdini_load = [ GQL_MyQuery ]
 + export const _houdini_load = [ new MyQueryStore() ]
+```
+
+</DeepDive>
+
+### `graphql` can now be used a function
+
+This is more of a soft break - there's no need to update anything right away. If you don't use TypeScript,
+you are free to use whichever style you prefer. If you do use TypeScript, using `graphql` as a function
+will provide automatic types for your store values:
+
+```diff
+- import { MyQueryStore, graphql } from '$houdini'
++ import { graphql } from '$houdini'
+
+- const store: MyQueryStore = graphql`
++ const store = graphql(`
+  	query MyQuery {
+  		user {
+  			id
+  		}
+  	}
+- `
++ `)
 ```
 
 ## 0.18.0
