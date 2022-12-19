@@ -92,3 +92,31 @@ export default {
 	}
 }
 ```
+
+## Environment Variables
+
+There are a few different options for using environment variables in your `apiUrl` and `schemaPollHeaders`
+config values. Keep in mind that Houdini will look for `.env` and `.env.local` files for environment variables.
+For simple cases, you can just prepend `env:` to the value:
+
+```javascript
+export default {
+	schemaPollHeaders: {
+		Authentication: "env:AUTH_TOKEN",
+	}
+}
+```
+
+In other situations, the environment variable can't be used directly. For example to prepend `Bearer` to the
+value. For these situations, the values of the object should get set to a function that will receive the current
+environment variables:
+
+```javascript
+export default {
+	schemaPollHeaders: {
+		Authentication: function(env) {
+			return `Bearer ${env.AUTH_TOKEN}`
+		},
+	}
+}
+```

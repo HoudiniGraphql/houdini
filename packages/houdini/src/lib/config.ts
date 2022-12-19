@@ -36,7 +36,6 @@ export class Config {
 	rootDir: string
 	projectRoot: string
 	schema: graphql.GraphQLSchema
-	apiUrl?: string
 	schemaPath?: string
 	persistedQueryPath?: string
 	exclude: string[]
@@ -121,12 +120,6 @@ export class Config {
 
 		// save the values we were given
 		this.schemaPath = schemaPath
-		if (apiUrl && apiUrl.startsWith('env:')) {
-			this.apiUrl = process.env[apiUrl.slice('env:'.length)]
-		} else {
-			this.apiUrl = apiUrl
-		}
-
 		this.filepath = filepath
 		this.exclude = Array.isArray(exclude) ? exclude : [exclude]
 		this.module = module
@@ -159,6 +152,16 @@ export class Config {
 		}
 	}
 
+	async apiURL() {
+		if (!this.configFile.apiUrl) {
+			return ''
+		}
+
+		const env = await this.getEnv()
+
+		return this.processEnvValues(env, this.configFile.apiUrl)
+	}
+
 	get include() {
 		// if the config file has one, use it
 		if (this.configFile.include) {
@@ -181,7 +184,7 @@ export class Config {
 		return this.configFile.plugins?.[name] ?? {}
 	}
 
-	async pullHeaders() {
+	async getEnv() {
 		// let plugins pick up environment variables from custom places
 		let env: Record<string, string | undefined> = process.env
 		for (const plugin of this.plugins) {
@@ -192,6 +195,28 @@ export class Config {
 			}
 		}
 
+		return env
+	}
+
+	processEnvValues(
+		env: Record<string, string | undefined>,
+		value: string | ((env: any) => string)
+	) {
+		let headerValue
+		if (typeof value === 'function') {
+			headerValue = value(env)
+		} else if (value.startsWith('env:')) {
+			headerValue = env[value.slice('env:'.length)]
+		} else {
+			headerValue = value
+		}
+
+		return headerValue
+	}
+
+	async pullHeaders() {
+		const env = await this.getEnv()
+
 		// if the whole thing is a function, just call it
 		if (typeof this.schemaPollHeaders === 'function') {
 			return this.schemaPollHeaders(env)
@@ -201,14 +226,7 @@ export class Config {
 		const headers = Object.fromEntries(
 			Object.entries(this.schemaPollHeaders || {})
 				.map(([key, value]) => {
-					let headerValue
-					if (typeof value === 'function') {
-						headerValue = value(env)
-					} else if (value.startsWith('env:')) {
-						headerValue = env[value.slice('env:'.length)]
-					} else {
-						headerValue = value
-					}
+					const headerValue = this.processEnvValues(env, value)
 
 					// if there was no value, dont add anything
 					if (!headerValue) {
@@ -854,11 +872,13 @@ export async function getConfig({
 			filepath: configPath,
 		})
 
+		const apiURL = await _config.apiURL()
+
 		// look up the schema if we need to
 		if (_config.schemaPath && !_config.schema) {
 			let schemaOk = true
 			// we might have to pull the schema first
-			if (_config.apiUrl) {
+			if (apiURL) {
 				// make sure we don't have a pattern pointing to multiple files and a remove URL
 				if (fs.glob.hasMagic(_config.schemaPath)) {
 					console.log(
@@ -869,7 +889,7 @@ This will prevent your schema from being pulled.`
 				// we might have to create the file
 				else if (!(await fs.readFile(_config.schemaPath))) {
 					console.log('⌛ Pulling schema from api')
-					schemaOk = await pullSchema(_config.apiUrl, _config.schemaPath)
+					schemaOk = await pullSchema(apiURL, _config.schemaPath)
 				}
 			}
 

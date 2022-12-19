@@ -87,7 +87,7 @@ export type ConfigFile = {
 	/**
 	 * A url to use to pull the schema. For more information: https://www.houdinigraphql.com/api/cli#generate
 	 */
-	apiUrl?: string
+	apiUrl?: string | ((env: any) => string)
 
 	/**
 	 * An object describing custom scalars for your project. For more information: https://www.houdinigraphql.com/api/config#custom-scalars

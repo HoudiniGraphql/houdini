@@ -2,9 +2,9 @@ import { getConfig, pullSchema, path } from '../lib'
 
 export default async function (args: { headers: string[] }) {
 	const config = await getConfig({ noSchema: true })
-
+	const apiURL = await config.apiURL()
 	// Check if apiUrl is set in config
-	if (!config.apiUrl) {
+	if (!apiURL) {
 		console.log(
 			'❌ Your project does not have a remote endpoint configured. Please provide one with the `apiUrl` value in your houdini.config.js file.'
 		)
@@ -33,7 +33,7 @@ export default async function (args: { headers: string[] }) {
 
 	// Write the schema
 	await pullSchema(
-		config.apiUrl,
+		apiURL,
 		config.schemaPath ? config.schemaPath : path.resolve(targetPath, 'schema.json'),
 		headers
 	)
