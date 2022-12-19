@@ -18,8 +18,11 @@ export class HoudiniClient {
 	private fetchFn: RequestHandler<any>
 	socket: SubscriptionHandler | null | undefined
 
-	constructor(networkFn: RequestHandler<any>, subscriptionHandler?: SubscriptionHandler | null) {
-		this.fetchFn = networkFn
+	constructor(
+		requestHandler: RequestHandler<any>,
+		subscriptionHandler?: SubscriptionHandler | null
+	) {
+		this.fetchFn = requestHandler
 		this.socket = subscriptionHandler
 	}
 
@@ -164,7 +167,9 @@ export type RequestHandlerArgs = FetchContext &
 		App.Session
 	}
 
-export type RequestHandler<_Data> = (args: RequestHandlerArgs) => Promise<RequestPayload<_Data>>
+export type RequestHandler<_Data = any> = (
+	args: RequestHandlerArgs
+) => Promise<RequestPayload<_Data>>
 
 // This function is responsible for simulating the fetch context and executing the query with fetchQuery.
 // It is mainly used for mutations, refetch and possible other client side operations in the future.

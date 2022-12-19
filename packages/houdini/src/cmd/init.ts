@@ -225,7 +225,7 @@ export default async function init(
 	// - svelte only
 	// - both (with small variants)
 	if (framework === 'kit') {
-		await updateSvelteConfig(targetPath)
+		await updateSvelteConfig(targetPath, typescript)
 	} else if (framework === 'svelte') {
 		await updateSvelteMainJs(targetPath)
 	}
@@ -252,15 +252,20 @@ export default async function init(
 }
 
 const networkFile = (url: string, typescript: boolean) => `import { HoudiniClient${
-	typescript ? ', type RequestHandlerArgs' : ''
+	typescript ? ', type RequestHandler' : ''
 } } from '$houdini';
 
-async function fetchQuery({
+${
+	typescript
+		? `const requestHandler: RequestHandler`
+		: `/** @type {import('$houdini').RequestHandler<any>} */
+const requestHandler`
+} = async ({
 	fetch,
 	text = '',
 	variables = {},
 	metadata
-}${typescript ? ': RequestHandlerArgs' : ''}) {
+}) => {
 	const url = '${url}';
 	const result = await fetch(url, {
 		method: 'POST',
@@ -275,7 +280,7 @@ async function fetchQuery({
 	return await result.json();
 }
 
-export default new HoudiniClient(fetchQuery);
+export default new HoudiniClient(requestHandler);
 `
 
 const writeConfigFile = async ({
@@ -463,18 +468,33 @@ export default config;
 	}
 }
 
-async function updateSvelteConfig(targetPath: string) {
+async function updateSvelteConfig(targetPath: string, typescript: boolean) {
 	const svelteConfigPath = path.join(targetPath, 'svelte.config.js')
 
-	const newContent = `import adapter from '@sveltejs/adapter-auto';
-import preprocess from 'svelte-preprocess';
+	const newContentTs = `import adapter from '@sveltejs/adapter-auto';
+import { vitePreprocess } from '@sveltejs/kit/vite';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-	// Consult https://github.com/sveltejs/svelte-preprocess
+	// Consult https://kit.svelte.dev/docs/integrations#preprocessors
 	// for more information about preprocessors
-	preprocess: preprocess(),
+	preprocess: vitePreprocess(),
 
+	kit: {
+		adapter: adapter(),
+		alias: {
+			$houdini: './$houdini',
+		}
+	}
+};
+
+export default config;	
+`
+
+	const newContentJs = `import adapter from '@sveltejs/adapter-auto';
+
+/** @type {import('@sveltejs/kit').Config} */
+const config = {
 	kit: {
 		adapter: adapter(),
 		alias: {
@@ -489,7 +509,7 @@ export default config;
 	// write the svelte config file
 	await updateFile({
 		filepath: svelteConfigPath,
-		content: newContent,
+		content: typescript ? newContentTs : newContentJs,
 	})
 }
 

@@ -45,7 +45,17 @@ technology specific steps you need to take:
 
 ### SvelteKit
 
-First, we need to add houdini's plugin to your `vite.config.js`. Make sure that `houdini` comes before `sveltekit`:
+First, we need to add the dedicated houdini package for svelte & sveltekit:
+
+```bash
+yarn add -D houdini-svelte
+# or
+npm install --save-dev houdini-svelte
+# or
+pnpm install --save-dev houdini-svelte
+```
+
+Then, we need to add houdini's plugin to your `vite.config.js`. Make sure that `houdini` comes before `sveltekit`:
 
 ```javascript
 // vite.config.js
@@ -61,7 +71,7 @@ const config = {
 export default config
 ```
 
-Then, update your `svelte.config.js` to support the `$houdini` alias:
+Finally, update your `svelte.config.js` to support the `$houdini` alias:
 
 ```javascript
 // svelte.config.js
@@ -78,8 +88,18 @@ export default {
 
 ### Svelte
 
-If you are using vite, you should use the `houdini/vite` plugin even if
-you aren't using kit. Update your `vite.config.js` file to look like this:
+First, we need to add the dedicated houdini package for svelte:
+
+```bash
+yarn add -D houdini-svelte
+# or
+npm install --save-dev houdini-svelte
+# or
+pnpm install --save-dev houdini-svelte
+```
+
+If you are using vite, you should use the `houdini/vite` plugin even if you aren't using kit.
+Update your `vite.config.js` file to look like this:
 
 ```javascript
 // vite.config.js
@@ -124,3 +144,12 @@ variable and hooks types in your routes:
     }
 }
 ```
+
+### Setup your IDE
+
+We recommend the following extensions for your editor to take full advantage of GraphQL:
+- [IntelliJ - GraphQL](https://plugins.jetbrains.com/plugin/8097-graphql)
+- [Vim - vim-graphql](https://github.com/jparise/vim-graphql)
+- [VSCode - GraphQL: Language Feature Support](https://marketplace.visualstudio.com/items?itemName=GraphQL.vscode-graphql)
+
+If you want to add another suggestion, please open a PR or contact us.

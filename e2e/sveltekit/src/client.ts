@@ -1,14 +1,14 @@
-import type { RequestHandlerArgs } from '$houdini';
+import type { RequestHandler } from '$houdini';
 import { HoudiniClient } from '$houdini';
 
 // For Query & Mutation
-async function fetchQuery({
+const requestHandler: RequestHandler = async ({
   fetch,
   text = '',
   variables = {},
   metadata,
   session
-}: RequestHandlerArgs) {
+}) => {
   // Prepare the request
   const url = 'http://localhost:4000/graphql';
 
@@ -34,7 +34,7 @@ async function fetchQuery({
   }
 
   return json;
-}
+};
 
 // Export the Houdini client
-export default new HoudiniClient(fetchQuery);
+export default new HoudiniClient(requestHandler);

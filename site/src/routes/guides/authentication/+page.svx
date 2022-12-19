@@ -33,7 +33,7 @@ Then, you can use the `session` parameter passed to your client's network functi
 
 import { HoudiniClient } from '$houdini'
 
-async function fetchQuery({ fetch, text, variables = {}, session }) {
+async function requestHandler({ fetch, text, variables = {}, session }) {
 	const url = 'http://localhost:4000/graphql' // usually coming from env
 	const result = await fetch(url, {
 		method: 'POST',
@@ -50,7 +50,7 @@ async function fetchQuery({ fetch, text, variables = {}, session }) {
 	return await result.json()
 }
 
-export default new HoudiniClient(fetchQuery)
+export default new HoudiniClient(requestHandler)
 ```
 
 Remember, you can define types for your Session & Metadata by adding this to `src/app.d.ts`:

@@ -65,7 +65,7 @@ let socketClient = browser
 	  })
 	: null
 
-export default new HoudiniClient(fetchQuery, socketClient)
+export default new HoudiniClient(requestHandler, socketClient)
 ```
 
 ### Using `subscriptions-transport-ws`
@@ -98,7 +98,7 @@ if (browser) {
 	}
 }
 
-export default new HoudiniClient(fetchQuery, socketClient)
+export default new HoudiniClient(requestHandler, socketClient)
 ```
 
 ### Server-Side Events
@@ -126,5 +126,5 @@ if (browser) {
 	}
 }
 
-export default new HoudiniClient(fetchQuery, socketClient)
+export default new HoudiniClient(requestHandler, socketClient)
 ```
