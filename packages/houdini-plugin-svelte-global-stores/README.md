@@ -59,10 +59,9 @@ One configuration option is available:
 
 
 ## Usage
-### Basic Idea
 
-External documents are pretty self explanatory: define your graphql documents a file (one definition per file) and then import your
-store from `$houdini` as `GQL_MyAwesomeQuery`:
+This plugin allows you to import a globally accesible store for your external documents. It's important to be careful
+when using global stores on the server since it can result in data leaking across requests.
 
 ```graphql
 # src/lib/queries/MyAwesomeQuery.gql

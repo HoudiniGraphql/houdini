@@ -303,11 +303,7 @@ just make sure that you instantiate stores inside of `load` and pass them to you
 
 <Warning>
 
-Do not use global stores (ie, `GQL_MyQuery`) in `load` functions unless you have a very good reason. Global stores are not safe to use on the server because they get mutated
-by multiple users at the same time. By instantiating a new store on every load, you automatically support complex flows like prefetching and concurrent requests
-without any hassle.
-
-Also, be careful when loading multiple stores in a single load. You want to make sure that you aren't blocking one request while you wait for another. For
+Be careful when loading multiple stores in a single load. You want to make sure that you aren't blocking one request while you wait for another. For
 help in this situation, check out the loadAll function. It's described inside the Deep Dive, <a href="/api/query#manual-loading" target="_blank" rel="noreferrer">here</a>.
 
 </Warning>
