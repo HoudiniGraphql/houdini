@@ -13,11 +13,22 @@ export default async function fragmentTypedefs(input: PluginGenerateInput) {
 
 	for (const doc of input.documents) {
 		if (doc.kind === ArtifactKind.Fragment) {
-			const which = doc.refetch?.paginated ? 'paginatedFragment' : 'fragment'
+			// if the fragment is paginated, add it to the paginated one
+			if (doc.refetch?.paginated) {
+				fragments = {
+					...fragments,
+					['paginatedFragment']: {
+						...fragments['paginatedFragment'],
+						[doc.originalString]: doc,
+					},
+				}
+			}
+
+			// always add the fragment
 			fragments = {
 				...fragments,
-				[which]: {
-					...fragments[which],
+				['fragment']: {
+					...fragments['fragment'],
 					[doc.originalString]: doc,
 				},
 			}
