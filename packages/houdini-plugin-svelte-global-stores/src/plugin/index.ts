@@ -4,7 +4,7 @@ import { store_name } from '../../../houdini-svelte/src/plugin/kit'
 import generate from './codegen'
 import { global_stores_directory, global_store_name } from './kit'
 
-const HoudiniSveltePlugin: PluginFactory = async () => ({
+const HoudiniPluginSvelteGlobalStores: PluginFactory = async () => ({
 	// it has to come before the core houdini-svelte plugin
 	// order: 'before',
 
@@ -51,15 +51,15 @@ const HoudiniSveltePlugin: PluginFactory = async () => ({
 	},
 })
 
-export default HoudiniSveltePlugin
+export default HoudiniPluginSvelteGlobalStores
 
 declare module 'houdini' {
 	interface HoudiniPluginConfig {
-		'houdini-plugin-svelte-global-stores': HoudiniPluginSvelteGlobalStoreConfig
+		'houdini-plugin-svelte-global-stores': HoudiniPluginSvelteGlobalStoresConfig
 	}
 }
 
-export type HoudiniPluginSvelteGlobalStoreConfig = {
+export type HoudiniPluginSvelteGlobalStoresConfig = {
 	/**
 	 * The default prefix of your global stores.
 	 *

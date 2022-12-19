@@ -1,6 +1,6 @@
 import { Config, path } from 'houdini'
 
-import { HoudiniVitePluginConfig } from '.'
+import { HoudiniPluginSvelteGlobalStoresConfig } from '.'
 
 export function global_stores_directory_name() {
 	return 'stores'
@@ -15,8 +15,10 @@ export function global_store_name({ config, name }: { config: Config; name: stri
 	return plugin_config(config).prefix + name
 }
 
-export function plugin_config(config: Config): Required<HoudiniVitePluginConfig> {
-	const cfg = config.pluginConfig<HoudiniVitePluginConfig>('houdini-plugin-svelte-global-stores')
+export function plugin_config(config: Config): Required<HoudiniPluginSvelteGlobalStoresConfig> {
+	const cfg = config.pluginConfig<HoudiniPluginSvelteGlobalStoresConfig>(
+		'houdini-plugin-svelte-global-stores'
+	)
 
 	return {
 		prefix: 'GQL_',

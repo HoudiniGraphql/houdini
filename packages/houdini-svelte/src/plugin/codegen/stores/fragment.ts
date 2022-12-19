@@ -1,6 +1,6 @@
 import { CollectedGraphQLDocument, fs, GenerateHookInput, path } from 'houdini'
 
-import { HoudiniVitePluginConfig } from '../..'
+import { HoudiniSvelteConfig } from '../..'
 import { stores_directory, store_name } from '../../kit'
 import { store_import } from './custom'
 
@@ -15,7 +15,7 @@ export async function fragmentStore(
 	const paginationMethod = doc.refetch?.method
 
 	// in order to build the store, we need to know what class we're going to import from
-	let which: keyof Required<HoudiniVitePluginConfig>['customStores'] = 'fragment'
+	let which: keyof Required<HoudiniSvelteConfig>['customStores'] = 'fragment'
 	if (paginationMethod === 'cursor') {
 		which =
 			doc.refetch?.direction === 'forward'

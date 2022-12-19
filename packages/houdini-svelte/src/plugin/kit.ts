@@ -3,7 +3,7 @@ import { Config, find_graphql, fs, path } from 'houdini'
 import { ensure_imports } from 'houdini/vite'
 import recast from 'recast'
 
-import { HoudiniVitePluginConfig } from '.'
+import { HoudiniSvelteConfig } from '.'
 import { parseSvelte } from './extract'
 import { extract_load_function } from './extractLoadFunction'
 import { SvelteTransformPage } from './transforms/types'
@@ -354,8 +354,8 @@ export function store_name({ config, name }: { config: Config; name: string }) {
 	return name + store_suffix(config)
 }
 
-export function plugin_config(config: Config): Required<HoudiniVitePluginConfig> {
-	const cfg = config.pluginConfig<HoudiniVitePluginConfig>('houdini-svelte')
+export function plugin_config(config: Config): Required<HoudiniSvelteConfig> {
+	const cfg = config.pluginConfig<HoudiniSvelteConfig>('houdini-svelte')
 
 	return {
 		client: './src/client',

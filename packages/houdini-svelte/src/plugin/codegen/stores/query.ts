@@ -2,7 +2,7 @@ import * as graphql from 'graphql'
 import { CollectedGraphQLDocument, GenerateHookInput, path } from 'houdini'
 import { operation_requires_variables, fs } from 'houdini'
 
-import type { HoudiniVitePluginConfig } from '../..'
+import type { HoudiniSvelteConfig } from '../..'
 import { stores_directory, store_name } from '../../kit'
 import { store_import } from './custom'
 
@@ -28,7 +28,7 @@ export async function queryStore(
 	const paginationMethod = doc.refetch?.paginated && doc.refetch.method
 
 	// in order to build the store, we need to know what class we're going to import from
-	let which: keyof Required<HoudiniVitePluginConfig>['customStores'] = 'query'
+	let which: keyof Required<HoudiniSvelteConfig>['customStores'] = 'query'
 	if (paginationMethod === 'cursor') {
 		which =
 			doc.refetch?.direction === 'forward' ? 'queryForwardsCursor' : 'queryBackwardsCursor'
@@ -72,26 +72,26 @@ export declare class ${storeName} extends ${store_class}<${_data}, ${_input}> {
 	/**
 	 * ### Route Loads
 	 * In a route's load function, manually instantiating a store can be used to look at the result:
-	 * 
+	 *
 	 * \`\`\`js
 	 * export async function load(event) {
 	 * 	const store = new ${storeName}Store()
 	 * 	const { data } = await store.fetch({event})
 	 *  console.log('do something with', data)
-	 * 
-	 * 	return { 
+	 *
+	 * 	return {
 	 * 		${storeName}: store,
 	 * 	}
 	 * }
-	 * 
+	 *
 	 * \`\`\`
-	 * 
+	 *
 	 * ### Client Side Loading
 	 * When performing a client-side only fetch, the best practice to use a store _manually_ is to do the following:
-	 * 
+	 *
 	 * \`\`\`js
 	 * const store = new ${storeName}Store()
-	 * 
+	 *
 	 * $: browser && store.fetch({ variables });
 	 * \`\`\`
 	 */
@@ -104,37 +104,37 @@ export declare class ${storeName} extends ${store_class}<${_data}, ${_input}> {
 /**
  * ### Manual Loads
  * Usually your load function will look like this:
- * 
+ *
  * \`\`\`js
  * import { load_${artifactName} } from '$houdini';
  * import type { PageLoad } from './$types';
- * 
+ *
  * export const load: PageLoad = async (event) => {
  *   const variables = {
  *     id: // Something like: event.url.searchParams.get('id')
  *   };
- * 
+ *
  *   return await load_${artifactName}({ event, variables });
- * }; 
+ * };
  * \`\`\`
- * 
+ *
  * ### Multiple stores to load
  * You can trigger them in parallel with \`loadAll\` function
- * 
+ *
  * \`\`\`js
  * import { loadAll, load_${artifactName} } from '$houdini';
  * import type { PageLoad } from './$types';
- * 
+ *
  * export const load: PageLoad = async (event) => {
  *   const variables = {
  *     id: // Something like: event.url.searchParams.get('id')
  *   };
- * 
+ *
  *   return await await loadAll(
  *     load_${artifactName}({ event, variables }),
  *     // load_ANOTHER_STORE
  *   );
- * }; 
+ * };
  * \`\`\`
  */
 export declare const load_${artifactName}: (params: QueryStoreFetchParams<${_data}, ${_input}>) => Promise<{${artifactName}: ${storeName}}>

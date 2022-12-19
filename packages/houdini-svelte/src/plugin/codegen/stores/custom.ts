@@ -1,11 +1,11 @@
 import { Config } from 'houdini'
 
-import type { HoudiniVitePluginConfig } from '../../'
+import type { HoudiniSvelteConfig } from '../../'
 import { plugin_config } from '../../kit'
 
 export function store_import(
 	cfg: Config,
-	which: keyof Required<HoudiniVitePluginConfig>['customStores']
+	which: keyof Required<HoudiniSvelteConfig>['customStores']
 ): { statement: string; store_class: string } {
 	// look up the import string for the store
 	const store_string = plugin_config(cfg).customStores[which]!
