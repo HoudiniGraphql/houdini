@@ -58,7 +58,7 @@ and add it to the `plugins` section of your config file (order doesn't matter).
 
 If you _don't_ want to specify a custom prefix, the value of the plugin should be `{}`.
 
-One side effect of this change is that you can no longer pass a global store to `_houdini_load.
+One side effect of this change is that you can no longer pass a global store to `\_houdini_load.
 If this is something you currently do in your application, you should pass an instance of the store instead:
 
 ```diff
@@ -71,7 +71,7 @@ If this is something you currently do in your application, you should pass an in
 
 </DeepDive>
 
-### `graphql` can now be used a function
+### `graphql` should now be used a function
 
 This is more of a soft break - there's no need to update anything right away. If you don't use TypeScript,
 you are free to use whichever style you prefer. If you do use TypeScript, using `graphql` as a function
