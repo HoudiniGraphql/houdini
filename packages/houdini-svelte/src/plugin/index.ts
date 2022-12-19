@@ -168,9 +168,12 @@ export const error = svelteKitError
 		const config_file = path.join(config.projectRoot, 'svelte.config.js')
 
 		// load the SvelteKit config file
-		let svelte_kit_cfg = !fs.existsSync(config_file)
-			? {}
-			: await import(`${url.pathToFileURL(config_file).href}?ts=${Date.now()}`)
+		let svelte_kit_cfg = {}
+		try {
+			svelte_kit_cfg = !fs.existsSync(config_file)
+				? {}
+				: await import(`${url.pathToFileURL(config_file).href}?ts=${Date.now()}`)
+		} catch {}
 
 		// load the vite config
 		return loadEnv('dev', svelte_kit_cfg.kit?.dir || '.', '')

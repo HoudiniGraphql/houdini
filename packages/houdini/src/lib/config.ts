@@ -158,7 +158,6 @@ export class Config {
 		}
 
 		const env = await this.getEnv()
-
 		return this.processEnvValues(env, this.configFile.apiUrl)
 	}
 
