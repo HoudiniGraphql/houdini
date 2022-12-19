@@ -7,7 +7,7 @@ import { SvelteTransformPage } from './types'
 const AST = recast.types.builders
 
 export default async function GraphQLTagProcessor(config: Config, page: SvelteTransformPage) {
-	// all graphql template tags need to be turned into a reference to the appropriate store
+	// all graphql documents need to be turned into a reference to the appropriate store
 	await find_graphql(config, page.script, {
 		dependency: page.watch_file,
 		tag(tag) {

@@ -205,7 +205,7 @@ import { MyAwesomeQueryStore } from '$houdini'
 ### Inline Documents
 
 Another option is to define your document directly inside of your source code (ie, in a `.svelte`, `.js`, or `.ts` file). To
-do that, import `graphql` from `$houdini` and wrap your query inside of the template tag:
+do that, import `graphql` from `$houdini` and pass your query:
 
 ```svelte
 <!-- src/routes/myRoute/+page.svelte -->

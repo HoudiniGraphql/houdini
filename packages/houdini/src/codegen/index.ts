@@ -221,7 +221,7 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 
 			// make sure any errors include the filepath
 			try {
-				// if the file ends with .svelte, we need to look for graphql template tags
+				// if the file ends with .svelte, we need to look for graphql documents
 				for (const extractor of extractors[extension]) {
 					if (!extractor) {
 						continue

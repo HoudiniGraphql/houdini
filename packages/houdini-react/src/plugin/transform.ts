@@ -38,7 +38,6 @@ export function transform_file(page: TransformPage): { code: string } {
 
 			// we want to replace the template tag with an import to the appropriate
 			// artifact
-
 			let name = page.config.documentName(graphql.parse(query))
 			let artifact_name = ensureArtifactImport({
 				config: page.config,
