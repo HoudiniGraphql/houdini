@@ -53,7 +53,7 @@ describe('kit route processor', function () {
 			import { load_TestQuery } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
 			import { getCurrentConfig } from "$houdini/runtime/lib/config";
 			import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
-			import GQL_TestQuery from "$houdini/plugins/houdini-svelte/stores/TestQuery";
+			import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
 			export async function load(context) {
 			    const houdini_context = new RequestContext(context);
@@ -101,10 +101,10 @@ describe('kit route processor', function () {
 
 		// make sure we added the right stuff
 		expect(route.component).toMatchInlineSnapshot(`
-			import GQL_TestQuery from "$houdini/plugins/houdini-svelte/stores/TestQuery";
+			import { TestQueryStore } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
 
 			$:
-			result = GQL_TestQuery;
+			result = new TestQueryStore();
 		`)
 		expect(route.script).toMatchInlineSnapshot('')
 	})
@@ -131,7 +131,7 @@ describe('kit route processor', function () {
 
 		// make sure we added the right stuff
 		expect(route.script).toMatchInlineSnapshot(`
-			import GQL_TestQuery1 from "$houdini/plugins/houdini-svelte/stores/TestQuery1";
+			import _TestQuery1Artifact from "$houdini/artifacts/TestQuery1";
 			export async function load() {}
 		`)
 	})
@@ -173,8 +173,8 @@ describe('kit route processor', function () {
 			import { load_TestQuery1 } from "$houdini/plugins/houdini-svelte/stores/TestQuery1";
 			import { getCurrentConfig } from "$houdini/runtime/lib/config";
 			import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
-			import GQL_TestQuery2 from "$houdini/plugins/houdini-svelte/stores/TestQuery2";
-			import GQL_TestQuery1 from "$houdini/plugins/houdini-svelte/stores/TestQuery1";
+			import _TestQuery2Artifact from "$houdini/artifacts/TestQuery2";
+			import _TestQuery1Artifact from "$houdini/artifacts/TestQuery1";
 
 			export async function load(context) {
 			    const houdini_context = new RequestContext(context);
@@ -240,7 +240,7 @@ describe('kit route processor', function () {
 			import { load_TestQuery } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
 			import { getCurrentConfig } from "$houdini/runtime/lib/config";
 			import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
-			import GQL_TestQuery from "$houdini/plugins/houdini-svelte/stores/TestQuery";
+			import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
 			export async function _TestQueryVariables(page) {
 			    return {
@@ -257,7 +257,7 @@ describe('kit route processor', function () {
 			    inputs["TestQuery"] = await houdini_context.computeInput({
 			        "config": houdiniConfig,
 			        "variableFunction": _TestQueryVariables,
-			        "artifact": GQL_TestQuery.artifact
+			        "artifact": _TestQueryArtifact
 			    });
 
 			    promises.push(load_TestQuery({
@@ -368,16 +368,17 @@ describe('kit route processor', function () {
 			result = data.TestQuery;
 		`)
 		expect(route.script).toMatchInlineSnapshot(`
-			import GQL_MyQuery1 from "$houdini/plugins/houdini-svelte/stores/MyQuery1";
+			import { MyQuery2Store } from "$houdini/plugins/houdini-svelte/stores/MyQuery2";
+			import { MyQuery1Store } from "$houdini/plugins/houdini-svelte/stores/MyQuery1";
 			import { load_TestQuery } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
-			import GQL_MyQuery2 from "$houdini/plugins/houdini-svelte/stores/MyQuery2";
+			import _MyQuery2Artifact from "$houdini/artifacts/MyQuery2";
 			import { load_MyQuery2 } from "$houdini/plugins/houdini-svelte/stores/MyQuery2";
 			import { load_MyQuery1 } from "$houdini/plugins/houdini-svelte/stores/MyQuery1";
 			import { getCurrentConfig } from "$houdini/runtime/lib/config";
 			import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
-			import GQL_TestQuery from "$houdini/plugins/houdini-svelte/stores/TestQuery";
-			const store1 = GQL_MyQuery1;
-			const store2 = GQL_MyQuery2;
+			import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
+			const store1 = new MyQuery1Store();
+			const store2 = new MyQuery2Store();
 			export function _MyQuery2Variables() {}
 			export const _houdini_load = [store1, store2];
 
@@ -397,7 +398,7 @@ describe('kit route processor', function () {
 			    inputs["MyQuery2"] = await houdini_context.computeInput({
 			        "config": houdiniConfig,
 			        "variableFunction": _MyQuery2Variables,
-			        "artifact": GQL_MyQuery2.artifact
+			        "artifact": _MyQuery2Artifact
 			    });
 
 			    promises.push(load_MyQuery2({
@@ -441,15 +442,12 @@ describe('kit route processor', function () {
 			`,
 		})
 
-		expect(route.component).toMatchInlineSnapshot(
-			'import GQL_TestPageQuery from "$houdini/plugins/houdini-svelte/stores/TestPageQuery";'
-		)
+		expect(route.component).toMatchInlineSnapshot('')
 
 		expect(route.script).toMatchInlineSnapshot(`
 			import { load_TestPageQuery } from "$houdini/plugins/houdini-svelte/stores/TestPageQuery";
 			import { getCurrentConfig } from "$houdini/runtime/lib/config";
 			import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
-			import GQL_TestPageQuery from "$houdini/plugins/houdini-svelte/stores/TestPageQuery";
 
 			export async function load(context) {
 			    const houdini_context = new RequestContext(context);
@@ -484,7 +482,6 @@ describe('kit route processor', function () {
 			import { extractSession, setClientSession } from "$houdini/plugins/houdini-svelte/runtime/session";
 			import { onMount } from "svelte";
 			import { setClientStarted } from "$houdini/plugins/houdini-svelte/runtime/adapter";
-			import GQL_TestPageQuery from "$houdini/plugins/houdini-svelte/stores/TestPageQuery";
 			onMount(() => setClientStarted());
 
 			page.subscribe(val => {
@@ -493,8 +490,6 @@ describe('kit route processor', function () {
 		`)
 
 		expect(route.layout_script).toMatchInlineSnapshot(`
-			import GQL_TestPageQuery from "$houdini/plugins/houdini-svelte/stores/TestPageQuery";
-
 			export async function load(event) {
 			    const __houdini__vite__plugin__return__value__ = {};
 
@@ -517,20 +512,15 @@ describe('kit route processor', function () {
 			`,
 		})
 
-		expect(route.component).toMatchInlineSnapshot(
-			'import GQL_TestLayoutQuery from "$houdini/plugins/houdini-svelte/stores/TestLayoutQuery";'
-		)
+		expect(route.component).toMatchInlineSnapshot('')
 
-		expect(route.script).toMatchInlineSnapshot(
-			'import GQL_TestLayoutQuery from "$houdini/plugins/houdini-svelte/stores/TestLayoutQuery";'
-		)
+		expect(route.script).toMatchInlineSnapshot('')
 
 		expect(route.layout).toMatchInlineSnapshot(`
 			import { page } from "$app/stores";
 			import { extractSession, setClientSession } from "$houdini/plugins/houdini-svelte/runtime/session";
 			import { onMount } from "svelte";
 			import { setClientStarted } from "$houdini/plugins/houdini-svelte/runtime/adapter";
-			import GQL_TestLayoutQuery from "$houdini/plugins/houdini-svelte/stores/TestLayoutQuery";
 			onMount(() => setClientStarted());
 
 			page.subscribe(val => {
@@ -542,7 +532,6 @@ describe('kit route processor', function () {
 			import { load_TestLayoutQuery } from "$houdini/plugins/houdini-svelte/stores/TestLayoutQuery";
 			import { getCurrentConfig } from "$houdini/runtime/lib/config";
 			import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
-			import GQL_TestLayoutQuery from "$houdini/plugins/houdini-svelte/stores/TestLayoutQuery";
 
 			export async function load(context) {
 			    const houdini_context = new RequestContext(context);
@@ -611,7 +600,7 @@ test('beforeLoad hook', async function () {
 		import { load_TestQuery } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
 		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
-		import GQL_TestQuery from "$houdini/plugins/houdini-svelte/stores/TestQuery";
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
 		export async function _houdini_beforeLoad() {
 		    return this.redirect(302, "/test");
@@ -638,7 +627,7 @@ test('beforeLoad hook', async function () {
 		    inputs["TestQuery"] = await houdini_context.computeInput({
 		        "config": houdiniConfig,
 		        "variableFunction": _TestQueryVariables,
-		        "artifact": GQL_TestQuery.artifact
+		        "artifact": _TestQueryArtifact
 		    });
 
 		    promises.push(load_TestQuery({
@@ -701,8 +690,8 @@ test('beforeLoad hook - multiple queries', async function () {
 		import { load_TestQuery1 } from "$houdini/plugins/houdini-svelte/stores/TestQuery1";
 		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
-		import GQL_TestQuery2 from "$houdini/plugins/houdini-svelte/stores/TestQuery2";
-		import GQL_TestQuery1 from "$houdini/plugins/houdini-svelte/stores/TestQuery1";
+		import _TestQuery2Artifact from "$houdini/artifacts/TestQuery2";
+		import _TestQuery1Artifact from "$houdini/artifacts/TestQuery1";
 
 		export async function _houdini_beforeLoad() {
 		    return this.redirect(302, "/test");
@@ -787,7 +776,7 @@ test('afterLoad hook', async function () {
 		import { load_TestQuery } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
 		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
-		import GQL_TestQuery from "$houdini/plugins/houdini-svelte/stores/TestQuery";
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
 		export async function _houdini_afterLoad() {
 		    return this.redirect(302, "/test");
@@ -808,7 +797,7 @@ test('afterLoad hook', async function () {
 		    inputs["TestQuery"] = await houdini_context.computeInput({
 		        "config": houdiniConfig,
 		        "variableFunction": _TestQueryVariables,
-		        "artifact": GQL_TestQuery.artifact
+		        "artifact": _TestQueryArtifact
 		    });
 
 		    promises.push(load_TestQuery({
@@ -878,8 +867,8 @@ test('afterLoad hook - multiple queries', async function () {
 		import { load_TestQuery1 } from "$houdini/plugins/houdini-svelte/stores/TestQuery1";
 		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
-		import GQL_TestQuery2 from "$houdini/plugins/houdini-svelte/stores/TestQuery2";
-		import GQL_TestQuery1 from "$houdini/plugins/houdini-svelte/stores/TestQuery1";
+		import _TestQuery2Artifact from "$houdini/artifacts/TestQuery2";
+		import _TestQuery1Artifact from "$houdini/artifacts/TestQuery1";
 
 		export async function _houdini_afterLoad() {
 		    return this.redirect(302, "/test");
@@ -969,7 +958,7 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		import { load_TestQuery } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
 		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
-		import GQL_TestQuery from "$houdini/plugins/houdini-svelte/stores/TestQuery";
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
 		export async function _houdini_beforeLoad() {
 		    return this.redirect(302, "/test");
@@ -1000,7 +989,7 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		    inputs["TestQuery"] = await houdini_context.computeInput({
 		        "config": houdiniConfig,
 		        "variableFunction": _TestQueryVariables,
-		        "artifact": GQL_TestQuery.artifact
+		        "artifact": _TestQueryArtifact
 		    });
 
 		    promises.push(load_TestQuery({
@@ -1056,14 +1045,15 @@ test('layout loads', async function () {
 	})
 
 	expect(route.layout_script).toMatchInlineSnapshot(`
-		import GQL_MyQuery1 from "$houdini/plugins/houdini-svelte/stores/MyQuery1";
-		import GQL_MyQuery2 from "$houdini/plugins/houdini-svelte/stores/MyQuery2";
+		import { MyQuery2Store } from "$houdini/plugins/houdini-svelte/stores/MyQuery2";
+		import { MyQuery1Store } from "$houdini/plugins/houdini-svelte/stores/MyQuery1";
+		import _MyQuery2Artifact from "$houdini/artifacts/MyQuery2";
 		import { load_MyQuery2 } from "$houdini/plugins/houdini-svelte/stores/MyQuery2";
 		import { load_MyQuery1 } from "$houdini/plugins/houdini-svelte/stores/MyQuery1";
 		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
-		const store1 = GQL_MyQuery1;
-		const store2 = GQL_MyQuery2;
+		const store1 = new MyQuery1Store();
+		const store2 = new MyQuery2Store();
 		export function _MyQuery2Variables() {}
 		export const _houdini_load = [store1, store2];
 
@@ -1083,7 +1073,7 @@ test('layout loads', async function () {
 		    inputs["MyQuery2"] = await houdini_context.computeInput({
 		        "config": houdiniConfig,
 		        "variableFunction": _MyQuery2Variables,
-		        "artifact": GQL_MyQuery2.artifact
+		        "artifact": _MyQuery2Artifact
 		    });
 
 		    promises.push(load_MyQuery2({
@@ -1161,7 +1151,7 @@ test('layout inline query', async function () {
 		import { load_TestQuery } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
 		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
-		import GQL_TestQuery from "$houdini/plugins/houdini-svelte/stores/TestQuery";
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
 		export async function load(context) {
 		    const houdini_context = new RequestContext(context);
@@ -1227,7 +1217,7 @@ test('onError hook', async function () {
 		import { load_TestQuery } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
 		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
-		import GQL_TestQuery from "$houdini/plugins/houdini-svelte/stores/TestQuery";
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
 		export async function _houdini_onError() {
 		    return this.redirect(302, "/test");
@@ -1248,7 +1238,7 @@ test('onError hook', async function () {
 		    inputs["TestQuery"] = await houdini_context.computeInput({
 		        "config": houdiniConfig,
 		        "variableFunction": _TestQueryVariables,
-		        "artifact": GQL_TestQuery.artifact
+		        "artifact": _TestQueryArtifact
 		    });
 
 		    promises.push(load_TestQuery({

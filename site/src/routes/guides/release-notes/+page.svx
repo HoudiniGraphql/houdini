@@ -6,6 +6,63 @@ description: A guide to migrating your application to each breaking version of h
 
 # Release Notes
 
+## 0.19.0
+
+`v0.19.0` brings changes quickly after `0.18`. We're trying to get out as much as possible as quickly as we prepare
+our upcoming 1.0 release so we can feel confident that we have a stable, battle-tested framework.
+
+This release brings some _really_ awesome things but we'll start off with what you're probably most worried
+about: breaking changes.
+
+### No more global stores by default
+
+In order to avoid complications and anti-patterns when using global stores, they have been removed by default from
+Houdini's core svelte plugin (along with the associated configuration values). Don't worry, if you rely heavily on them in your application, you can still
+have them generated for your application using the
+[houdini-plugin-svelte-global-stores](https://github.com/HoudiniGraphql/houdini/tree/main/packages/houdini-plugin-svelte-global-stores)
+plugin. If you don't rely on global stores, then there's nothing for you to worry about.
+
+You can install the plugin from npm, pnpm, yarn, etc:
+
+```bash
+yarn add -D houdini-plugin-svelte-global-stores
+# or
+npm install --save-dev houdini-plugin-svelte-global-stores
+# or
+pnpm install --save-dev houdini-plugin-svelte-global-stores
+```
+
+and add it to the `plugins` section of your config file (order doesn't matter).
+
+```diff
++ /// <references types="houdini-plugin-svelte-global-stores">
+
+ export default {
+
+ 	plugins: {
+ 		'houdini-svelte': {
+- 			globalStorePrefix: "G_"
+ 		},
++		'houdini-plugin-svelte-global-stores': {
++ 			prefix: "G_"
++		},
+ 	}
+ }
+```
+
+If you _don't_ want to specify a custom prefix, the value of the plugin should be `{}`.
+
+One side effect of this change is that you can no longer pass a global store to `_houdini_load.
+If this is something you currently do in your application, you should pass an instance of the store instead:
+
+```diff
+- import { GQL_MyQuery } from '$houdini'
++ import { MyQueryStore } from '$houdini'
+
+- export const _houdini_load = [ GQL_MyQuery ]
++ export const _houdini_load = [ new MyQueryStore() ]
+```
+
 ## 0.18.0
 
 `v0.18.0` brought with it a large collection of breaking changes. Some of them were required by recent updates to SvelteKit,

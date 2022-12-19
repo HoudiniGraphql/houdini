@@ -1,7 +1,7 @@
-import { graphql, GQL_Hello } from '$houdini';
+import { graphql, HelloStore } from '$houdini';
 
 export const _houdini_load = [
-  GQL_Hello,
+  new HelloStore(),
   graphql`
     query InlineAndGlobalLoadQuery2 {
       user(id: "2", snapshot: "inline-and-global-load") {

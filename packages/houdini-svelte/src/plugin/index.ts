@@ -3,20 +3,15 @@ import { HoudiniError, PluginFactory, path, fs } from 'houdini'
 import generate from './codegen'
 import extract from './extract'
 import fs_patch from './fsPatch'
-import {
-	global_store_name,
-	plugin_config,
-	resolve_relative,
-	stores_directory,
-	store_name,
-	type Framework,
-} from './kit'
+import { plugin_config, resolve_relative, stores_directory, type Framework } from './kit'
 import apply_transforms from './transforms'
 import validate from './validate'
 
 let framework: Framework = 'svelte'
 
 const HoudiniSveltePlugin: PluginFactory = async () => ({
+	order: 'core',
+
 	/**
 	 * Generate
 	 */
@@ -108,20 +103,7 @@ export const error = svelteKitError
 	 * Setup
 	 */
 
-	// Check that storeName & globalStoreName are not overlapping.
-	// Not possible today, but maybe in the future if storeName starts to be configurable.
 	async after_load(cfg) {
-		if (
-			store_name({ config: cfg, name: 'QueryName' }) ===
-			global_store_name({ config: cfg, name: 'QueryName' })
-		) {
-			throw new HoudiniError({
-				filepath: cfg.filepath,
-				message: 'Invalid cfg file: "globalStoreName" and "storeName" are overlapping',
-				description: `Here, both gives: ${store_name({ config: cfg, name: 'QueryName' })}`,
-			})
-		}
-
 		const cfgPlugin = plugin_config(cfg)
 
 		let client_file_exists = false
@@ -159,13 +141,14 @@ export default HoudiniSveltePlugin
 
 declare module 'houdini' {
 	interface HoudiniPluginConfig {
-		'houdini-svelte': HoudiniVitePluginConfig
+		'houdini-svelte': HoudiniSvelteConfig
 	}
 }
 
-export type HoudiniVitePluginConfig = {
+export type HoudiniSvelteConfig = {
 	/**
 	 * A relative path from your houdini.config.js to the file that exports your client as its default value
+	 * @default `./src/client.ts`
 	 */
 	client?: string
 
@@ -182,21 +165,15 @@ export type HoudiniVitePluginConfig = {
 	layoutQueryFilename?: string
 
 	/**
-	 * The default prefix of your global stores.
-	 *
-	 * _Note: it's nice to have a prefix so that your editor finds all your stores by just typings this prefix_
-	 * @default GQL_
-	 */
-	globalStorePrefix?: string
-
-	/**
 	 * With this enabled, errors in your query will not be thrown as exceptions. You will have to handle
 	 * error state in your route components or by hand in your load (or the onError hook)
+	 * @default false
 	 */
 	quietQueryErrors?: boolean
 
 	/**
 	 * A flag to treat every component as a non-route. This is useful for projects built with the static-adapter
+	 * @default false
 	 */
 	static?: boolean
 

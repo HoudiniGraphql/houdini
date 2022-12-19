@@ -258,7 +258,6 @@ export async function find_inline_queries(
 }
 
 export type LoadTarget = {
-	store_id: Statement
 	name: string
 	variables: boolean
 }

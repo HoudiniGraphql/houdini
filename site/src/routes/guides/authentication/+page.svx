@@ -1,6 +1,6 @@
 ---
 title: Authentication
-index: 8
+index: 9
 description: A guide to authentication in Houdini
 ---
 

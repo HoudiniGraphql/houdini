@@ -1,0 +1,63 @@
+{
+    "name": "houdini-plugin-svelte-global-stores",
+    "version": "0.17.14",
+    "description": "The svelte global store plugin for houdini",
+    "keywords": [
+        "typescript",
+        "svelte",
+        "sveltekit",
+        "graphql",
+        "graphql-client"
+    ],
+    "homepage": "https://github.com/HoudiniGraphql/houdini",
+    "funding": "https://github.com/sponsors/HoudiniGraphql",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/HoudiniGraphql/houdini.git"
+    },
+    "license": "MIT",
+    "type": "module",
+    "scripts": {
+        "tests": "vitest",
+        "compile": "scripts build --plugin",
+        "typedefs": "scripts typedefs --plugin"
+    },
+    "devDependencies": {
+        "scripts": "workspace:^",
+        "vitest": "^0.23.4"
+    },
+    "dependencies": {
+        "@sveltejs/kit": "1.0.0",
+        "graphql": "^15.8.0",
+        "houdini": "workspace:^",
+        "houdini-svelte": "workspace:^",
+        "recast": "^0.23.1",
+        "svelte": "^3.55.0"
+    },
+    "peerDependencies": {
+        "graphql": "^14.0.0 || ^15.0.0"
+    },
+    "files": [
+        "build"
+    ],
+    "exports": {
+        "./package.json": "./package.json",
+        ".": {
+            "import": "./build/plugin-esm/index.js",
+            "require": "./build/plugin-cjs/index.js"
+        },
+        "./test": {
+            "import": "./build/test-esm/index.js",
+            "require": "./build/test-cjs/index.js"
+        }
+    },
+    "typesVersions": {
+        "*": {
+            "test": [
+                "build/test/index.d.ts"
+            ]
+        }
+    },
+    "main": "./build/plugin-cjs/index.js",
+    "types": "./build/plugin/index.d.ts"
+}

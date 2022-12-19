@@ -1,10 +1,11 @@
+import { logYellow } from '@kitql/helper'
 import type { ExpressionKind } from 'ast-types/lib/gen/kinds'
 import * as graphql from 'graphql'
 import { Config, fs, parseJS, path } from 'houdini'
 import * as recast from 'recast'
 import { transformWithEsbuild } from 'vite'
 
-import { HoudiniRouteScript, plugin_config, stores_directory_name, store_suffix } from './kit'
+import { HoudiniRouteScript, stores_directory_name, store_suffix } from './kit'
 import { houdini_load_fn } from './naming'
 
 type Program = recast.types.namedTypes.Program
@@ -81,15 +82,8 @@ async function processScript(
 				let name = (specifier.local?.name as string) || ''
 				let query = ''
 
-				const store_prefix = plugin_config(config).globalStorePrefix
-				// if we are importing a prefixed store
-				if (store_prefix && name.startsWith(store_prefix)) {
-					// the name of the query is the parts after the prefix
-					query = name.substring(store_prefix.length)
-				}
-
 				// if we are importing a store factory
-				else if (name.endsWith(store_suffix(config))) {
+				if (name.endsWith(store_suffix(config))) {
 					query = name.substring(0, name.length - store_suffix(config).length)
 				}
 
@@ -157,6 +151,7 @@ async function processScript(
 		// local variables
 		if (statement?.type === 'VariableDeclaration') {
 			const reference = identifyQueryReference(globalImports, statement)
+
 			if (reference) {
 				globalImports[reference.local] = reference.query
 			}
@@ -179,10 +174,10 @@ async function processScript(
 				load.push(result)
 				if (!result) {
 					throw new Error(
-						`Could not find query for computing ${houdini_load_fn}: ` +
-							element.name +
-							'. filepath: ' +
-							filepath
+						`Could not find ${logYellow(element.name)} ` +
+							`for computing ${logYellow(houdini_load_fn)}. ` +
+							`(if it was a global store, you need to instantiate the store manually.)` +
+							`\nfilepath: ${filepath}`
 					)
 				}
 			} else if (element.type === 'TaggedTemplateExpression') {
@@ -192,6 +187,18 @@ async function processScript(
 					)
 				}
 				load.push(element.quasi.quasis[0].value.raw)
+			} else if (element.type === 'NewExpression') {
+				const suffix = store_suffix(config)
+				if (
+					element &&
+					element.callee.type === 'Identifier' &&
+					element.callee.name.endsWith(suffix)
+				) {
+					// get the name of the query
+					load.push(globalImports[element.callee.name])
+				} else {
+					throw new Error(`only query store classes can be passed to ${houdini_load_fn}`)
+				}
 			}
 		}
 	}
@@ -201,7 +208,7 @@ async function processScript(
 
 // a statement is a query reference if its
 // - an identifier that matches a global import
-// - is a call expression of a global import (store factory)
+// - is a call expression of a global import (new store factory)
 // - is a template expression with graphql
 function identifyQueryReference(
 	imports: Record<string, string>,
@@ -233,13 +240,11 @@ function identifyQueryReference(
 	if (value.type === 'Identifier' && value.name in imports) {
 		return { local, query: imports[value.name] }
 	}
-	if (
-		value.type === 'CallExpression' &&
-		value.callee.type == 'Identifier' &&
-		value.callee.name in imports
-	) {
+
+	if (value.type === 'NewExpression' && value.callee.type == 'Identifier') {
 		return { local, query: imports[value.callee.name] }
 	}
+
 	if (value.type === 'TaggedTemplateExpression') {
 		if (value.tag.type !== 'Identifier' || value.tag.name !== 'graphql') {
 			throw new Error(`only graphql template tags can be passed to ${houdini_load_fn}`)

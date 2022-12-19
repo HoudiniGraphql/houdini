@@ -40,17 +40,17 @@ Inline fragments can defined using `fragment` imported from `$houdini` as shown 
 
 ## External Documents
 
-Fragments stores can be created from your external documents by using the `.get` method on the global store in `$houdini`:
+Fragments stores can be created from your external documents by using the `.get` method on the store in `$houdini`:
 
 ```svelte
 <script>
-	import { GQL_UserAvatar } from '$houdini'
+	import { UserAvatarStore } from '$houdini'
 
 	// the reference will get passed as a prop
 	export let user
 
 	// load the the required UserAvatar for this component
-	$: data = GQL_UserAvatar.get(user)
+	$: data = new UserAvatarStore().get(user)
 </script>
 
 <img src={$data.profilePicture} />

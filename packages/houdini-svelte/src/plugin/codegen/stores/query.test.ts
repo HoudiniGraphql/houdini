@@ -67,110 +67,6 @@ test('basic store', async function () {
 				TestQuery: store,
 			}
 		}
-
-		export const GQL_TestQuery = new TestQueryStore()
-
-		export default GQL_TestQuery
-	`)
-})
-
-test('change globalStorePrefix to "yop___"', async function () {
-	const docs = [`query TestQuery { version }`]
-
-	const { plugin_root } = await pipeline_test(docs, {
-		plugins: {
-			'houdini-svelte': {
-				client: '',
-				globalStorePrefix: 'yop___',
-			},
-		},
-	})
-
-	const contents = await fs.readFile(path.join(stores_directory(plugin_root), 'TestQuery.js'))
-
-	// parse the contents
-	const parsed = recast.parse(contents!, {
-		parser: typeScriptParser,
-	}).program
-
-	// check the file contents
-	await expect(parsed).toMatchInlineSnapshot(`
-		import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores'
-		import artifact from '$houdini/artifacts/TestQuery'
-
-		export class TestQueryStore extends QueryStore {
-			constructor() {
-				super({
-					artifact,
-					storeName: "TestQueryStore",
-					variables: false,
-				})
-			}
-		}
-
-		export async function load_TestQuery(params) {
-			const store = new TestQueryStore()
-
-			await store.fetch(params)
-
-			return {
-				TestQuery: store,
-			}
-		}
-
-		export const yop___TestQuery = new TestQueryStore()
-
-		export default yop___TestQuery
-	`)
-})
-
-test('change globalStorePrefix to ""', async function () {
-	const docs = [`query TestQuery { version }`]
-
-	const { plugin_root } = await pipeline_test(docs, {
-		plugins: {
-			'houdini-svelte': {
-				client: '',
-				globalStorePrefix: '',
-			},
-		},
-	})
-
-	const contents = await fs.readFile(path.join(stores_directory(plugin_root), 'TestQuery.js'))
-
-	// parse the contents
-	const parsed = recast.parse(contents!, {
-		parser: typeScriptParser,
-	}).program
-
-	// check the file contents
-	await expect(parsed).toMatchInlineSnapshot(`
-		import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores'
-		import artifact from '$houdini/artifacts/TestQuery'
-
-		export class TestQueryStore extends QueryStore {
-			constructor() {
-				super({
-					artifact,
-					storeName: "TestQueryStore",
-					variables: false,
-				})
-			}
-		}
-
-		export async function load_TestQuery(params) {
-			const store = new TestQueryStore()
-
-			await store.fetch(params)
-
-			return {
-				TestQuery: store,
-			}
-		}
-
-		export const TestQuery = new TestQueryStore()
-
-		export default TestQuery
 	`)
 })
 
@@ -210,10 +106,6 @@ test('store with required variables', async function () {
 				TestQuery: store,
 			}
 		}
-
-		export const GQL_TestQuery = new TestQueryStore()
-
-		export default GQL_TestQuery
 	`)
 })
 
@@ -253,10 +145,6 @@ test('store with nullable variables', async function () {
 				TestQuery: store,
 			}
 		}
-
-		export const GQL_TestQuery = new TestQueryStore()
-
-		export default GQL_TestQuery
 	`)
 })
 
@@ -298,10 +186,6 @@ test('store with non-null variables with default value', async function () {
 				TestQuery: store,
 			}
 		}
-
-		export const GQL_TestQuery = new TestQueryStore()
-
-		export default GQL_TestQuery
 	`)
 })
 
@@ -351,10 +235,6 @@ test('forward cursor pagination', async function () {
 				TestQuery: store,
 			}
 		}
-
-		export const GQL_TestQuery = new TestQueryStore()
-
-		export default GQL_TestQuery
 	`)
 })
 
@@ -404,10 +284,6 @@ test('backwards cursor pagination', async function () {
 				TestQuery: store,
 			}
 		}
-
-		export const GQL_TestQuery = new TestQueryStore()
-
-		export default GQL_TestQuery
 	`)
 })
 
@@ -453,10 +329,6 @@ test('offset pagination', async function () {
 				TestQuery: store,
 			}
 		}
-
-		export const GQL_TestQuery = new TestQueryStore()
-
-		export default GQL_TestQuery
 	`)
 })
 
