@@ -11,7 +11,6 @@ import {
 	fs,
 	CollectedGraphQLDocument,
 	path,
-	orderedPlugins,
 } from '../lib'
 import { ArtifactKind } from '../runtime/lib/types'
 import * as generators from './generators'
@@ -89,7 +88,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 				generators.definitions,
 
 				// these have to go after the artifacts so that plugins can import them
-				...orderedPlugins(generatePlugins).map(
+				...generatePlugins.map(
 					(plugin) => async (config: Config, docs: CollectedGraphQLDocument[]) =>
 						await plugin.generate!({
 							config,

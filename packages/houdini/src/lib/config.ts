@@ -860,12 +860,15 @@ This will prevent your schema from being pulled.`
 		throw e
 	}
 
+	// build up the list of plugins
+	const plugins = []
+
 	// load the specified plugins
 	for (const [pluginName, plugin_config] of Object.entries(_config.configFile.plugins ?? {})) {
 		try {
 			// look for the houdini-svelte module
 			const pluginDirectory = _config.findModule(pluginName)
-			const { default: sveltePlugin }: { default: PluginFactory } = await import(
+			const { default: pluginFactory }: { default: PluginFactory } = await import(
 				pathToFileURL(pluginDirectory).toString() + '/build/plugin-esm/index.js'
 			)
 			let include_runtime = false
@@ -886,8 +889,8 @@ This will prevent your schema from being pulled.`
 			} catch {}
 
 			// add the plugin to the list
-			_config.plugins.push({
-				...(await sveltePlugin(plugin_config)),
+			plugins.push({
+				...(await pluginFactory(plugin_config)),
 				name: pluginName,
 				include_runtime,
 				version,
@@ -899,6 +902,9 @@ This will prevent your schema from being pulled.`
 			)
 		}
 	}
+
+	// order the list of plugins
+	_config.plugins = orderedPlugins(plugins)
 
 	// look for any plugins with a loaded hook
 	await Promise.all(_config.plugins.map((plugin) => plugin.after_load?.(_config)))
