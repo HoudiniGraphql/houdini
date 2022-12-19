@@ -24,11 +24,11 @@ element and pass it to the mutation:
 <script>
     import { graphql } from '$houdini'
 
-    const UploadFile = graphql`
+    const UploadFile = graphql(`
         mutation UploadFile($file: File!) {
             uploadImage(file: File)
         }
-    `
+    `)
 </script>
 
 <input type="file" on:change={files => UploadFile.mutate({file: files[0]})} />

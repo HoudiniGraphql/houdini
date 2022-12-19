@@ -30,13 +30,13 @@ When working with Houdini's [generated load functions](/api/query#automatic-load
 import { graphql } from '$houdini'
 import type { AfterLoadEvent } from './$houdini'
 
-export const _houdini_load = graphql`
+export const _houdini_load = graphql(`
 	query MyProfile {
 		viewer {
 			id
 		}
 	}
-`
+`)
 
 export function _houdini_afterLoad({ data }: AfterLoadEvent) {
 	return {
@@ -63,10 +63,25 @@ Your `PageData` type will also come from `./$houdini` since SvelteKit's generate
 
 ## Inline Stores
 
-If you are working with inline stores, you will have to add your types explicitly:
+If you are working with inline stores, you don't have to provide types when using the `graphql` function:
 
 ```typescript
-import type { AllItemsStore, graphql } from '$houdini'
+import { graphql } from '$houdini'
+
+const store: AllItemsStore = graphql(`
+	query AllItems {
+		items {
+			id
+			text
+		}
+	}
+`)
+```
+
+If you are using `graphql` as a template tag, you will have to provide type signatures explicitly:
+
+```typescript
+import { type AllItemsStore, graphql } from '$houdini'
 
 const store: AllItemsStore = graphql`
 	query AllItems {
@@ -77,6 +92,7 @@ const store: AllItemsStore = graphql`
 	}
 `
 ```
+
 
 ## Fragments
 
@@ -90,7 +106,7 @@ export let post: PostContent
 
 $: data = fragment(
 	post,
-	graphql`
+	graphql(`
 		fragment PostContent on Post {
 			content
 			tags {
@@ -99,6 +115,6 @@ $: data = fragment(
 				}
 			}
 		}
-	`
+	`)
 )
 ```
