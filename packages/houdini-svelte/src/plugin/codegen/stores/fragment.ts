@@ -1,7 +1,7 @@
 import { CollectedGraphQLDocument, fs, GenerateHookInput, path } from 'houdini'
 
-import { HoudiniVitePluginConfig } from '../..'
-import { global_store_name, stores_directory, store_name } from '../../kit'
+import { HoudiniSvelteConfig } from '../..'
+import { stores_directory, store_name } from '../../kit'
 import { store_import } from './custom'
 
 export async function fragmentStore(
@@ -11,12 +11,11 @@ export async function fragmentStore(
 	const fileName = doc.name
 	const artifactName = `${doc.name}`
 	const storeName = store_name({ config, name: doc.name })
-	const globalStoreName = global_store_name({ config, name: doc.name })
 
 	const paginationMethod = doc.refetch?.method
 
 	// in order to build the store, we need to know what class we're going to import from
-	let which: keyof Required<HoudiniVitePluginConfig>['customStores'] = 'fragment'
+	let which: keyof Required<HoudiniSvelteConfig>['customStores'] = 'fragment'
 	if (paginationMethod === 'cursor') {
 		which =
 			doc.refetch?.direction === 'forward'
@@ -41,8 +40,8 @@ ${
 // create the fragment store
 
 export class ${storeName} extends ${store_class} {
-    constructor() {
-        super({
+	constructor() {
+		super({
 			artifact,
 			storeName: ${JSON.stringify(storeName)},
 			variables: ${JSON.stringify(true)},
@@ -50,10 +49,6 @@ export class ${storeName} extends ${store_class} {
 		})
 	}
 }
-
-export const ${globalStoreName} = new ${storeName}()
-
-export default ${globalStoreName}
 `
 
 	const _data = `${artifactName}$data`
@@ -68,11 +63,7 @@ export declare class ${storeName} extends ${store_class}<${_data}, {}> {
 	}
 }
 
-export const ${globalStoreName}: ${storeName}
-
 export declare const load_${artifactName}: (params: QueryStoreFetchParams<${_data}, {}>) => Promise<${storeName}>
-
-export default ${storeName}
 `
 
 	// write the store contents to disk

@@ -47,10 +47,6 @@ test('generates a store for every mutation', async function () {
 				})
 			}
 		}
-
-		export const GQL_TestMutation1 = new TestMutation1Store()
-
-		export default GQL_TestMutation1
 	`
 	)
 })

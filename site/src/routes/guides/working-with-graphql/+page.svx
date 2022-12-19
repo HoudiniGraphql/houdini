@@ -1,6 +1,6 @@
 ---
 title: Working With GraphQL
-index: 2
+index: 3
 description: An overview of the various ways Houdini applications can leverage GraphQL documents.
 ---
 
@@ -46,10 +46,12 @@ mutation UpdateUser($firstName: String!) {
     const externalMutation = `
 // src/routes/myProfile/+page.svelte
 
-import { GQL_UpdateUser } from '$houdini'
+import { UpdateUserStore } from '$houdini'
+
+const update = new UpdateUserStore()
 
 async function update() {
-    await GQL_UpdateUser.mutate({ firstName: "..." } )
+    await update.mutate({ firstName: "..." } )
 }
 `
 
@@ -182,7 +184,7 @@ The following examples all show query documents but everything holds true for al
 ### External Documents
 
 External documents are pretty self explanatory: define your graphql documents a file (one definition per file) and then import your
-store from `$houdini` as `GQL_DocumentName`:
+store from `$houdini` as `new MyAwesomeQueryStore()`:
 
 ```graphql
 # src/lib/queries/MyAwesomeQuery.gql
@@ -196,10 +198,8 @@ query MyAwesomeQuery {
 
 ```javascript
 // src/routes/myRoute/+page.js
-import { GQL_MyAwesomeQuery } from '$houdini'
+import { MyAwesomeQuery } from '$houdini'
 ```
-
-Note the prefix `GQL_` is to enable easy autocompletion in your editor - give it a try!
 
 <DeepDive title="Importing Document Stores">
 
@@ -208,12 +208,6 @@ instance of the store you can work with easily:
 
 ```javascript
 import store from '$houdini/stores/MyQuery'
-```
-
-You can import the same instance from the root of the runtime with `GQL_` prepended to the store's name.
-
-```javascript
-import { GQL_MyQuery } from '$houdini'
 ```
 
 Or, you can import the store's class from the module so you can instantiate multiple copies of the same store if you need to:
@@ -309,11 +303,7 @@ just make sure that you instantiate stores inside of `load` and pass them to you
 
 <Warning>
 
-Do not use global stores (ie, `GQL_MyQuery`) in `load` functions unless you have a very good reason. Global stores are not safe to use on the server because they get mutated
-by multiple users at the same time. By instantiating a new store on every load, you automatically support complex flows like prefetching and concurrent requests
-without any hassle.
-
-Also, be careful when loading multiple stores in a single load. You want to make sure that you aren't blocking one request while you wait for another. For
+Be careful when loading multiple stores in a single load. You want to make sure that you aren't blocking one request while you wait for another. For
 help in this situation, check out the loadAll function. It's described inside the Deep Dive, <a href="/api/query#manual-loading" target="_blank" rel="noreferrer">here</a>.
 
 </Warning>
@@ -328,7 +318,7 @@ The first way to tell houdini to generate a load for you is by exporting a `_hou
 
 ```javascript
 //  src/routes/myProfile/+page.js
-import { GQL_ProjectList, graphql } from '$houdini'
+import { ProjectListStore, graphql } from '$houdini'
 
 const userInfo = graphql`
 	query UserInfo {
@@ -338,7 +328,7 @@ const userInfo = graphql`
 	}
 `
 
-export const _houdini_load = [GQL_ProjectList, userInfo]
+export const _houdini_load = [new ProjectList(), userInfo]
 ```
 
 With that in place, your route will be passed two props, named after the queries: `ProjectList` and `UserInfo`:
@@ -389,7 +379,7 @@ export const _houdini_load = graphql`
 	}
 `
 
-export function UserInfoVariables({ params }) {
+export function _UserInfoVariables({ params }) {
 	return {
 		id: params.id
 	}

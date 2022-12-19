@@ -68,7 +68,6 @@ jobs:
               id: pnpm-cache
               run: |
                 echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
-
             - uses: actions/cache@v3
               name: Setup pnpm cache
               with:
@@ -76,7 +75,6 @@ jobs:
                 key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
                 restore-keys: |
                   ${{ runner.os }}-pnpm-store-
-
             - name: Install dependencies
               run: pnpm install
 
@@ -114,7 +112,6 @@ jobs:
               id: pnpm-cache
               run: |
                 echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
-
             - uses: actions/cache@v3
               name: Setup pnpm cache
               with:
@@ -122,17 +119,24 @@ jobs:
                 key: ${{ matrix.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
                 restore-keys: |
                   ${{ matrix.os }}-pnpm-store-
-
             - name: Install dependencies
               run: pnpm install
               
-            - name: Cache playwright binaries
-              uses: actions/cache@v2
-              id: playwright-cache
+            - name: Cache playwright binaries (ubuntu)
+              uses: actions/cache@v3
+              if: matrix.os == 'ubuntu-latest'
               with:
                   path: |
                       ~/.cache/ms-playwright
-                  key: cache-playwright-${{ matrix.os }}-1.25.0
+                  key: cache-playwright-${{ matrix.os }}-1.28.0
+
+            - name: Cache playwright binaries (windows)
+              uses: actions/cache@v3
+              if: matrix.os == 'windows-latest'
+              with:
+                  path: |
+                      %USERPROFILE%\AppData\Local\ms-playwright
+                  key: cache-playwright-${{ matrix.os }}-1.28.0
 
             - name: Build packages
               run: pnpm run compile
@@ -168,7 +172,6 @@ jobs:
               id: pnpm-cache
               run: |
                 echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
-
             - uses: actions/cache@v3
               name: Setup pnpm cache
               with:
@@ -176,7 +179,6 @@ jobs:
                 key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
                 restore-keys: |
                   ${{ runner.os }}-pnpm-store-
-
             - name: Install dependencies
               run: pnpm install
 

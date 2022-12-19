@@ -1,6 +1,6 @@
 import { CollectedGraphQLDocument, fs, path, GenerateHookInput } from 'houdini'
 
-import { global_store_name, stores_directory, store_name } from '../../kit'
+import { stores_directory, store_name } from '../../kit'
 import { store_import } from './custom'
 
 export async function mutationStore(
@@ -9,7 +9,6 @@ export async function mutationStore(
 ) {
 	const fileName = doc.name
 	const storeName = store_name({ config, name: doc.name })
-	const globalStoreName = global_store_name({ config, name: doc.name })
 	const artifactName = `${doc.name}`
 	const { statement, store_class } = store_import(config, 'mutation')
 
@@ -24,10 +23,6 @@ export class ${storeName} extends ${store_class} {
 		})
 	}
 }
-
-export const ${globalStoreName} = new ${storeName}()
-
-export default ${globalStoreName}
 `
 
 	const _input = `${artifactName}$input`
@@ -43,10 +38,6 @@ export declare class ${storeName} extends ${store_class}<${_data} | undefined, $
 		super({})
 	}
 }
-
-export const ${globalStoreName}: ${storeName}
-
-export default ${storeName}
   `
 
 	await Promise.all([

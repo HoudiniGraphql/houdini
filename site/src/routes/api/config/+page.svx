@@ -63,7 +63,6 @@ Here is a summary of the possible configuration values:
 - `projectDir` (optional, default: `process.cwd()`): an absolute path pointing to your SvelteKit project (useful for monorepos)
 - `pageQueryFilename` (optional, default: `+page.gql`): The name of the file used to define page queries.
 - `layoutQueryFilename` (optional, default: `+layout.gql`): The name of the file used to define layout queries.
-- `globalStorePrefix` (optional, default: `GQL_`): The default prefix of your global stores. This lets your editor provide autocompletion with just a few characters.
 - `quietQueryErrors` (optional, default: `false`): With this enabled, errors in your query will not be thrown as exceptions. You will have to handle error state in your route components or by hand in your load (or the onError hook)
 - `static` (optional, default: `false`): A flag to treat every component as a non-route.
 

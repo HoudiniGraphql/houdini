@@ -51,10 +51,6 @@ test('generates a store for every subscription', async function () {
 				})
 			}
 		}
-
-		export const GQL_TestSubscription1 = new TestSubscription1Store()
-
-		export default GQL_TestSubscription1
 	`
 	)
 })
