@@ -17,10 +17,10 @@ test('graphql template tag in a function', async function () {
 
 	// make sure we added the right stuff
 	expect(route).toMatchInlineSnapshot(`
-		import GQL_Foo from "$houdini/plugins/houdini-svelte/stores/Foo";
+		import { FooStore } from "$houdini/plugins/houdini-svelte/stores/Foo";
 
 		$:
-		result = fragment(user, GQL_Foo);
+		result = fragment(user, new FooStore());
 	`)
 })
 
@@ -39,10 +39,10 @@ test('graphql function in a function', async function () {
 
 	// make sure we added the right stuff
 	expect(route).toMatchInlineSnapshot(`
-		import GQL_Foo from "$houdini/plugins/houdini-svelte/stores/Foo";
+		import { FooStore } from "$houdini/plugins/houdini-svelte/stores/Foo";
 
 		$:
-		result = fragment(user, GQL_Foo);
+		result = fragment(user, new FooStore());
 	`)
 })
 
@@ -61,9 +61,9 @@ test('graphql function in a function', async function () {
 
 	// make sure we added the right stuff
 	expect(route).toMatchInlineSnapshot(`
-		import GQL_Foo from "$houdini/plugins/houdini-svelte/stores/Foo";
+		import { FooStore } from "$houdini/plugins/houdini-svelte/stores/Foo";
 
 		$:
-		result = fragment(user, GQL_Foo);
+		result = fragment(user, new FooStore());
 	`)
 })

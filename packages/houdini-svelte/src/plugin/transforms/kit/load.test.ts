@@ -23,7 +23,7 @@ describe('kit route processor', function () {
 			import { load_TestQuery } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
 			import { getCurrentConfig } from "$houdini/runtime/lib/config";
 			import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
-			import GQL_TestQuery from "$houdini/plugins/houdini-svelte/stores/TestQuery";
+			import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
 			export async function load(context) {
 			    const houdini_context = new RequestContext(context);
@@ -1246,7 +1246,7 @@ test('inline function query', async function () {
 		import { load_TestQuery } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
 		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
-		import GQL_TestQuery from "$houdini/plugins/houdini-svelte/stores/TestQuery";
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
 		export async function load(context) {
 		    const houdini_context = new RequestContext(context);
