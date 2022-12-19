@@ -31,6 +31,24 @@ describe('extract_load_function', function () {
 			},
 		},
 		{
+			title: 'handle functions',
+			source: `
+                import { graphql } from '$houdini'
+
+                export const _houdini_load = graphql(\`
+                    query Foo {
+                        viewer {
+                            id
+                        }
+                    }
+                \`)
+            `,
+			expected: {
+				exports: [houdini_load_fn],
+				houdini_load: ['Foo'],
+			},
+		},
+		{
 			title: 'load single inline identifier',
 			source: `
                 import { graphql } from '$houdini'
@@ -42,6 +60,26 @@ describe('extract_load_function', function () {
                         }
                     }
                 \`
+
+                export const _houdini_load = store
+            `,
+			expected: {
+				exports: [houdini_load_fn],
+				houdini_load: ['Foo'],
+			},
+		},
+		{
+			title: 'load single inline identifier as function',
+			source: `
+                import { graphql } from '$houdini'
+
+                const store = graphql(\`
+                    query Foo {
+                        viewer {
+                            id
+                        }
+                    }
+                \`)
 
                 export const _houdini_load = store
             `,
@@ -229,6 +267,20 @@ describe('extract_load_function', function () {
             `,
 			expected: {
 				exports: [houdini_after_load_fn, houdini_before_load_fn],
+			},
+		},
+		{
+			title: 'ignores call expressions inside of functions',
+			source: `
+				fragment(foo, graphql(\` 
+					query MyQuery { 
+						foo
+					}
+				\`))
+			`,
+			expected: {
+				exports: [],
+				houdini_load: [],
 			},
 		},
 	]

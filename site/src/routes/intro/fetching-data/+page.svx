@@ -19,7 +19,7 @@ Before we do anything _too_ complicated, lets look at what we are starting with:
     import { graphql } from '$houdini'
     import { Container, Display, Sprite, Panel } from '~/components'
 
-    const info = graphql`
+    const info = graphql(`
         query SpeciesInfo {
             species(id: 1) {
                 name
@@ -29,7 +29,7 @@ Before we do anything _too_ complicated, lets look at what we are starting with:
                 }
             }
         }
-    `
+    `)
 </script>
 
 <Container>
@@ -188,7 +188,7 @@ In order to tell the runtime how to compute that value, you have to define a fun
 ```javascript
 // src/routes/[...id]/+page.js
 
-export function SpeciesInfoVariables({ params }) {
+export function _SpeciesInfoVariables({ params }) {
 	return {
 		id: params.id ? parseInt(params.id) : 1
 	}
@@ -235,7 +235,7 @@ So far so good! There is one slight problem: there are only 151 species in the f
 In order to prevent this, we need to check if `id` is between `1` and `151` and if not, render an error for the user. This is accomplished by updating `SpeciesInfoVariables` to look like:
 
 ```javascript
-export function SpeciesInfoVariables({ params }) {
+export function _SpeciesInfoVariables({ params }) {
 	// if we were given an id, convert the string to a number
 	const id = params.id ? parseInt(params.id) : 1
 

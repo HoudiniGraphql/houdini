@@ -33,13 +33,13 @@
     // src/routes/items/+page.svelte
     import { graphql } from '$houdini'
 
-    const AllItems = graphql`
+    const AllItems = graphql(`
         query AllItems {
             items {
                 text
             }
         }
-    `
+    `)
 </script>
 
 {#each $AllItems.data.items as item}

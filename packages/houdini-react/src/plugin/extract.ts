@@ -1,7 +1,8 @@
 import { parse } from '@babel/parser'
+import { Config } from 'houdini'
 import * as recast from 'recast'
 
-export function extract_documents(filepath: string, content: string) {
+export function extract_documents(config: Config, filepath: string, content: string) {
 	// the documents  we've found
 	const documents: string[] = []
 

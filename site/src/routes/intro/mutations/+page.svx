@@ -72,7 +72,7 @@ With that in place we can now define a function that will invoke the `toggleFavo
 <script>
     // ... everything from before
 
-    const toggleFavorite = graphql`
+    const toggleFavorite = graphql(`
         mutation ToggleFavorite($id: Int!) {
             toggleFavorite(id: $id) {
                 species {
@@ -81,7 +81,7 @@ With that in place we can now define a function that will invoke the `toggleFavo
                 }
             }
         }
-    `
+    `)
 </script>
 ```
 
@@ -118,13 +118,13 @@ Before we get too far, let's add a place in our UI to show us the list of favori
 
     // this is a second query in the same route but we could
     // have just added the favorites selection to the existing one
-    const favorites = graphql`
+    const favorites = graphql(`
         query Favorites {
             favorites @list(name:"FavoriteSpecies") {
                 ...FavoritePreview
             }
         }
-    `
+    `)
 </script>
 
 <!-- this should go in the root of your component -->

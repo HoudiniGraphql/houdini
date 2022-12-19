@@ -6,13 +6,13 @@
 <script>
     import { graphql } from '$houdini'
 
-    const allItems = graphql\`
+    const allItems = graphql(\`
         query AllTodoItems {
             items {
                 text
             }
         }
-    \`
+    \`)
 <\/script>
 
 {#each $allItems.data.items as item}
@@ -35,13 +35,13 @@
 <script>
     import { graphql } from '$houdini'
 
-    const allItems = graphql\`
+    const allItems = graphql(\`
         query AllTodoItems {
             items {
                 text
             }
         }
-    \`
+    \`)
 <\/script>
 
 {#each $allItems.data.items as item}
@@ -56,11 +56,11 @@
 
     export let user
 
-    $: userInfo = fragment(user, graphql\`
+    $: userInfo = fragment(user, graphql(\`
         fragment UserAvatar on User {
             avatar
         }
-    \`)
+    \`))
 <\/script>
 
 
@@ -72,7 +72,7 @@
 			example: `<script>
     import { graphql } from '$houdini'
 
-    const createProject = graphql\`
+    const createProject = graphql(\`
         mutation CreateProject {
             createProject(name: "houdini") {
                 project {
@@ -80,24 +80,26 @@
                 }
             }
         }
-    \`
+    \`)
 <\/script>
 
 <button onClick={createProject.mutate} />`
 		},
 		{
 			header: 'Type Safe',
-			text: 'Generate TypeScript definitions for every document in your application.',
+			text:
+				'Houdini Generates definitions for every document in your application along with ' +
+				'matching signatures for its functions. No need to pass types explicitly - it just works.',
 			example: `<script lang="ts">
-    import { graphql, type AllTodoItemsStore } from '$houdini'
+    import { graphql } from '$houdini'
 
-    const store: AllTodoItemsStore = graphql\`
+    const store = graphql(\`
         query AllTodoItems {
             items {
                 text
             }
         }
-    \`
+    \`)
 <\/script>
 
 {#each $data.items as item}
@@ -129,6 +131,7 @@
 			href="https://github.com/sponsors/HoudiniGraphql"
 			class="nav-link small-hidden"
 			target="_blank"
+			rel="noreferrer"
 		>
 			Sponsor
 		</a>
@@ -136,6 +139,7 @@
 			href="https://www.github.com/HoudiniGraphQL/houdini"
 			class="tiny-hidden"
 			target="_blank"
+			rel="noreferrer"
 			id="gh-link"
 		>
 			<img src="/images/github.svg" alt="GitHub" height="20px" />

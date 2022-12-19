@@ -33,9 +33,9 @@ Consider this query:
 ```svelte
 <!-- src/routes/myRoute/+page.svelte -->
 <script>
-	import { query, graphql } from '$houdini'
+	import { graphql } from '$houdini'
 
-	const SpeciesInfo = graphql`
+	const SpeciesInfo = graphql(`
 		query SpeciesInfo {
 			species(id: 1) {
 				name
@@ -45,7 +45,7 @@ Consider this query:
 				}
 			}
 		}
-	`
+	`)
 </script>
 
 <div>

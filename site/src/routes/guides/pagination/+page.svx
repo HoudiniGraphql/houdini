@@ -21,13 +21,13 @@ supporting offset-based pagination would look something like:
 
 ```svelte
 <script>
-	const userList = graphql`
+	const userList = graphql(`
 		query UserList {
 			friends(limit: 10) @paginate {
 				id
 			}
 		}
-	`
+	`)
 </script>
 
 <button on:click={userList.loadNextPage}>
@@ -41,7 +41,7 @@ and a field that supports cursor-based pagination starting at the end of the lis
 
 ```svelte
 <script>
-	const userList = graphql`
+	const userList = graphql(`
 		query UserList {
 			friends(last: 10) @paginate {
 				edges {
@@ -51,7 +51,7 @@ and a field that supports cursor-based pagination starting at the end of the lis
 				}
 			}
 		}
-	`
+	`)
 </script>
 
 <button on:click={userList.loadNextPage}>
@@ -66,7 +66,7 @@ info can be looked up with the `pageInfo` field of store's value:
 
 ```svelte
 <script>
-    const userInfo = graphql`
+    const userInfo = graphql(`
         query UserList {
             friends(first: 10) @paginate {
                 edges {
@@ -76,7 +76,7 @@ info can be looked up with the `pageInfo` field of store's value:
                 }
             }
         }
-    `
+    `)
 </script>
 
 {#if $userInfo.pageInfo.hasNextPage}
@@ -93,7 +93,7 @@ info can be looked up with the `pageInfo` field of store's value:
 ```javascript
 const userWithFriends = paginatedFragment(
 	user,
-	graphql`
+	graphql(`
 		fragment UserWithFriends on User {
 			friends(first: 10) @paginate {
 				edges {
@@ -103,7 +103,7 @@ const userWithFriends = paginatedFragment(
 				}
 			}
 		}
-	`
+	`)
 )
 
 {#if $userWithFriends.pageInfo.hasNextPage}
@@ -143,7 +143,7 @@ a `name` argument to the `@paginate` directive. For more information, see [this 
 ```javascript
 const userWithFriends = paginatedFragment(
 	user,
-	graphql`
+	graphql(`
 		fragment UserWithFriends on User {
 			friends(first: 10) @paginate(name: "User_Friends") {
 				edges {
@@ -153,6 +153,6 @@ const userWithFriends = paginatedFragment(
 				}
 			}
 		}
-	`
+	`)
 )
 ```
