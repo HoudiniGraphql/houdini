@@ -162,7 +162,7 @@ Interacting with a paginated query is pretty similar to everything we've been do
 <script>
 	import { graphql } from '$houdini'
 
-	const speciesInfo = graphql`
+	const speciesInfo = graphql(`
 		query SpeciesInfo($id: Int!) {
 			species(id: $id) {
 				name
@@ -181,7 +181,7 @@ Interacting with a paginated query is pretty similar to everything we've been do
 				...SpriteInfo
 			}
 		}
-	`
+	`)
 </script>
 ```
 

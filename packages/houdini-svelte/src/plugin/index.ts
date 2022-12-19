@@ -3,7 +3,14 @@ import { HoudiniError, PluginFactory, path, fs } from 'houdini'
 import generate from './codegen'
 import extract from './extract'
 import fs_patch from './fsPatch'
-import { plugin_config, resolve_relative, stores_directory, type Framework } from './kit'
+import {
+	plugin_config,
+	resolve_relative,
+	stores_directory,
+	store_name,
+	store_import_path,
+	type Framework,
+} from './kit'
 import apply_transforms from './transforms'
 import validate from './validate'
 
@@ -68,6 +75,24 @@ export const error = svelteKitError
 			...input,
 			framework,
 		})
+	},
+
+	graphql_tag_return({ config, doc, ensure_import }) {
+		// if we're supposed to generate a store then add an overloaded declaration
+		if (doc.generateStore) {
+			// make sure we are importing the store
+			const store = store_name({ config, name: doc.name })
+			ensure_import({
+				identifier: store,
+				module: store_import_path({
+					config,
+					name: doc.name,
+				}).replaceAll('$houdini', '..'),
+			})
+
+			// and use the store as the return value
+			return store
+		}
 	},
 
 	// we need to add the exports to the index files (this one file processes index.js and index.d.ts)

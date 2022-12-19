@@ -14,7 +14,7 @@ As you've seen, we can get pretty far by just using GraphQL queries to define ou
 
 ```svelte
 <script>
-	const info = graphql`
+	const info = graphql(`
 		query SpeciesInfo($id: Int!) {
 			species(id: $id) {
 				name
@@ -23,10 +23,14 @@ As you've seen, we can get pretty far by just using GraphQL queries to define ou
 				}
 			}
 		}
-	`
+	`)
 </script>
 
-<Sprite id="species-sprite" src={$info.data.species.sprites.front} speciesName={$info.data.species.name} />
+<Sprite
+	id="species-sprite"
+	src={$info.data.species.sprites.front}
+	speciesName={$info.data.species.name}
+/>
 ```
 
 At first it might not be clear what the problem is. `Sprite` defines some props so we had to look up the necessary information in order to give those props their value. However, for the sake of argument, imagine that `Sprite` is used in many different views across our application. Every place where it shows up, we will have to remember to ask for these two pieces of data so that we can provide the props with the correct value. On top of that, as `Sprite` evolves to do more, we will have to make sure that everywhere we use it also asks for the new data. Our route is now tightly coupled to `Sprite`'s implementation.
@@ -81,18 +85,22 @@ Defining a fragment inside of your component looks a lot like the query from bef
 
 	export let species
 
-	$: info = fragment(species, graphql`
+	$: info = fragment(species, graphql(`
 		fragment SpriteInfo on Species {
 			name
 			sprites {
 				front
 			}
 		}
-	`)
+	`))
 </script>
 
 <div id={$$props.id} class="sprite">
-	<img height="100%" src={$info.sprites.front} alt={`${$info.name} sprite`} />
+	<img
+		src={$info.sprites.front}
+		alt={`${$info.name} sprite`}
+		height="100%"
+	/>
 </div>
 ```
 
@@ -146,14 +154,14 @@ Before we add anything to our route, let's update the component defined in `src/
 	export let species
 	export let number
 
-	$: preview = fragment(species, graphql`
+	$: preview = fragment(species, graphql(`
 		fragment SpeciesPreview on Species {
 			name
 			id
 
 			...SpriteInfo
 		}
-	`)
+	`))
 </script>
 
 <a href={$preview.id}>

@@ -7,15 +7,15 @@ description: A listing of every top-level export from the Houdini runtime
 <script>
     import { APIShowcase } from '~/components'
 
-    const queryExample = `const store = graphql\`
+    const queryExample = `const store = graphql(\`
     query AllTodoItems {
         items {
             text
         }
     }
-\``
+\`)`
 
-const mutationExample = `const addFriend = graphql\`
+const mutationExample = `const addFriend = graphql(\`
     mutation FollowFriend {
         followFriend(id: 1) {
             friend {
@@ -23,9 +23,9 @@ const mutationExample = `const addFriend = graphql\`
             }
         }
     }
-\``
+\`)`
 
-const graphqlExample = `const addFriend = graphql\`
+const graphqlExample = `const setFavorite = graphql(\`
     mutation SetFavorite {
         setFavoriteRecipe(id: 1) {
             recipe {
@@ -33,25 +33,24 @@ const graphqlExample = `const addFriend = graphql\`
             }
         }
     }
-\``
+\`)`
 
-const fragmentExample = `$: data = fragment(user, graphql\`
+const fragmentExample = `$: data = fragment(user, graphql(\`
     fragment UserAvatar on User {
         firstName
         lastName
         email
     }
-\`)`
+\`))`
 
 const configExample = `export default {
-    schemaPath: './schema.graphql',
-    sourceGlob: 'src/**/*.svelte',
-    module: 'esm',
-    framework: 'kit',
-    apiUrl: 'http://localhost:4000'
+    apiUrl: 'http://localhost:4000',
+    plugins: {
+        'houdini-svelte': {}
+    }
 }`
 
-const subscriptionExample = `subscription(graphql\`
+const subscriptionExample = `graphql(\`
     subscription PostLiked {
         postLiked {
             post {
@@ -123,9 +122,9 @@ example={configExample}
 />
 
 <APIShowcase
-title="SvelteKit Plugin"
+title="Vite Plugin"
 description="A powerful tool to enable Houdini's declarative API in your svelte+vite projects"
-href="/api/plugin"
+href="/api/vite"
 example={pluginExample}
 />
 

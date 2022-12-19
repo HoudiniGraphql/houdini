@@ -10,13 +10,13 @@ Listen for real-time updates from your server using GraphQL Subscriptions.
 
 ```svelte
 <script>
-	import { graphql, subscription } from '$houdini'
+	import { graphql } from '$houdini'
 
 	// this information should usually come from a fragment
 	export let itemID
 
 	// will start listening onMount (browser only)
-	const updates = graphql`
+	const updates = graphql(`
 		subscription ItemUpdate($id: ID!) {
 			itemUpdate(id: $id) {
 				item {
@@ -26,7 +26,7 @@ Listen for real-time updates from your server using GraphQL Subscriptions.
 				}
 			}
 		}
-	`
+	`)
 
 
 	$: updates.listen({ id: itemID })

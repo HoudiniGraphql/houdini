@@ -140,19 +140,20 @@ modified example [from the source repository](https://github.com/HoudiniGraphql/
 
 ```javascript
 // src/routes/[filter]/+page.ts
+import { graphql } from '$houdini'
 
-export const _houdini_load = graphql`
+export const _houdini_load = graphql(`
 	query AllItems($completed: Boolean) {
 		items(completed: $completed) {
 			id
 			text
 		}
 	}
-`
+`)
 
 // This is the function for the AllItems query.
 // Query variable functions must be named <QueryName>Variables.
-export function AllItemsVariables(event): AllItems$input {
+export function _AllItemsVariables(event): AllItems$input {
 	// make sure we recognize the value
 	if (!['active', 'completed'].includes(event.params.filter)) {
 		return this.error(400, 'invalid filter')
@@ -177,15 +178,16 @@ arguments as SvelteKit's [`load`](https://kit.svelte.dev/docs#loading) function.
 
 ```javascript
 // src/routes/myRoute/+page.js
+import { graphql } from '$houdini'
 
-export const _houdini_load = graphql`
+export const _houdini_load = graphql(`
 	query AllItems($completed: Boolean) {
 		items(completed: $completed) {
 			id
 			text
 		}
 	}
-`
+`)
 
 // It has access to the same arguments,
 // this.error, and this.redirect as the variable functions
@@ -211,14 +213,15 @@ docs.
 
 ```javascript
 // src/routes/myRoute/+page.js
+import { graphql } from '$houdini'
 
-export const _houdini_load = graphql`
+export const _houdini_load = graphql(`
 	query MyProfile($id: ID!) {
 		profile(id: $id) {
 			name
 		}
 	}
-`
+`)
 
 export function _MyProfileVariables({
 	page: {
@@ -250,14 +253,15 @@ docs.
 
 ```javascript
 // src/routes/myRoute/+page.js
+import { graphql } from '$houdini'
 
-export const _houdini_load = graphql`
+export const _houdini_load = graphql(`
 	query MyProfile {
 		profile {
 			name
 		}
 	}
-`
+`)
 
 export function _houdini_onError({ error }) {
 	throw this.redirect(307, '/login')
@@ -267,18 +271,20 @@ export function _houdini_onError({ error }) {
 ### Disabling Inline Query Loading
 
 Sometimes it's useful to have a lazy query that only fires when you call `fetch` (for
-example in a search input). For these scenarios (whether in a route or component), 
+example in a search input). For these scenarios (whether in a route or component),
 you will want to turn off the generated load using the `@manual_load` directive:
 
 ```svelte
+import { graphql } from '$houdini'
+
 <script>
-	const result = graphql`
+	const result = graphql(`
 		query MyQuery @manual_load {
 			viewer {
 				id
 			}
 		}
-	`
+	`)
 </script>
 ```
 
@@ -353,7 +359,7 @@ import { loadAll, load_MyQuery, load_MyOtherQuery } from '$houdini'
 export async function load(event) {
 	return {
 		...(await loadAll(
-			load_MyQuery({ event }), 
+			load_MyQuery({ event }),
 			load_MyOtherQuery({ event })
 		))
 	}
@@ -417,19 +423,19 @@ equivalent of the load function.
 
 ```svelte
 <script>
-	import { query, graphql } from '$houdini'
+	import { graphql } from '$houdini'
 
-	export function MyComponentQueryVariables({ props }) {
+	export function _MyComponentQueryVariables({ props }) {
 		return { id: props.id }
 	}
 
-	const store = graphql`
+	const store = graphql(`
 		query MyComponentQuery($id: ID!) {
 			user(id: $id) {
 				id
 			}
 		}
-	`
+	`)
 	</script>
 
 	{$store.data.value}

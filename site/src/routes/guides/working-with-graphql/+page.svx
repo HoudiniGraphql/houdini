@@ -21,7 +21,7 @@ type ViewerProfileStore = {
 
     const inlineMutation = `import { mutation, graphql } from '$houdini'
 
-const UpdateUser = graphql\`
+const UpdateUser = graphql(\`
     mutation UpdateUser($input: UpdateUserInput!) {
         updateUser(input: $input) {
             user {
@@ -29,7 +29,7 @@ const UpdateUser = graphql\`
             }
         }
     }
-\``
+\`)`
 
     const externalMutationGraphQL = `
 # src/lib/graphql/UpdateUser.gql
@@ -117,11 +117,11 @@ Fragments should be defined inside of your `.svelte` components using the inline
 
     export let user
 
-    $: data = fragment(user, graphql`
+    $: data = fragment(user, graphql(`
         fragment UserAvatar on User {
             avatar
         }
-    `)
+    `))
 </script>
 
 <img src={$data.avatar} />
@@ -198,45 +198,27 @@ query MyAwesomeQuery {
 
 ```javascript
 // src/routes/myRoute/+page.js
-import { MyAwesomeQuery } from '$houdini'
+import { MyAwesomeQueryStore } from '$houdini'
 ```
 
-<DeepDive title="Importing Document Stores">
-
-All document stores can be imported in three different ways. You can either import the default export of the path which will provide an
-instance of the store you can work with easily:
-
-```javascript
-import store from '$houdini/stores/MyQuery'
-```
-
-Or, you can import the store's class from the module so you can instantiate multiple copies of the same store if you need to:
-
-```javascript
-import { MyQueryStore } from '$houdini/stores/MyQuery'
-
-const store = new MyQueryStore()
-```
-
-</DeepDive>
 
 ### Inline Documents
 
 Another option is to define your document directly inside of your source code (ie, in a `.svelte`, `.js`, or `.ts` file). To
-do that, import `graphql` from `$houdini` and wrap your query inside of the template tag:
+do that, import `graphql` from `$houdini` and pass your query:
 
 ```svelte
 <!-- src/routes/myRoute/+page.svelte -->
 <script>
     import { graphql } from '$houdini'
 
-    const store = graphql`
+    const store = graphql(`
         query ViewerSettings {
             viewer {
                 isAwesome
             }
         }
-    `
+    `)
 </script>
 ```
 
@@ -245,13 +227,13 @@ do that, import `graphql` from `$houdini` and wrap your query inside of the temp
 
 import { graphql } from '$houdini'
 
-const store = graphql`
+const store = graphql(`
 	query MyAwesomeQuery {
 		viewer {
 			isAwesome
 		}
 	}
-`
+`)
 ```
 
 ### More Information
@@ -320,13 +302,13 @@ The first way to tell houdini to generate a load for you is by exporting a `_hou
 //  src/routes/myProfile/+page.js
 import { ProjectListStore, graphql } from '$houdini'
 
-const userInfo = graphql`
+const userInfo = graphql(`
 	query UserInfo {
 		viewer {
 			firstName
 		}
 	}
-`
+`)
 
 export const _houdini_load = [new ProjectList(), userInfo]
 ```
@@ -354,13 +336,13 @@ Keep in mind that `_houdini_load` can also take a single store, which allows for
 
 import { graphql } from '$houdini'
 
-export const _houdini_load = graphql`
+export const _houdini_load = graphql(`
 	query UserInfo {
 		viewer {
 			firstName
 		}
 	}
-`
+`)
 ```
 
 Your route will be rendered with a single prop: `UserInfo`. This approach works nicely when you have lots of different variables and
@@ -371,13 +353,13 @@ hooks for a particular query since it allows all of that logic to be co-located:
 
 import { graphql } from '$houdini'
 
-export const _houdini_load = graphql`
+export const _houdini_load = graphql(`
 	query UserInfo($id: ID!) {
 		user(id: $id) {
 			firstName
 		}
 	}
-`
+`)
 
 export function _UserInfoVariables({ params }) {
 	return {
@@ -395,13 +377,13 @@ Another way to get a generated load for your route queries, is to define your qu
 <script>
     import { graphql } from '$houdini'
 
-    const info = graphql`
+    const info = graphql(`
         query UserInfo {
             viewer {
                 firstName
             }
         }
-    `
+    `)
 </script>
 
 {$info.data.viewer.firstName}

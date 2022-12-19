@@ -100,7 +100,6 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 			docs
 		)
 	} catch (e) {
-		console.log(e)
 		error = e as Error
 	}
 
@@ -189,8 +188,8 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 	}
 
 	// add the default extractors at the end of the appropriate lists
-	const graphql_extractor = (filepath: string, content: string) => [content]
-	const javascript_extractor = (filepath: string, content: string) =>
+	const graphql_extractor = (config: Config, filepath: string, content: string) => [content]
+	const javascript_extractor = (fconfig: Config, ilepath: string, content: string) =>
 		processJSFile(config, content)
 	extractors['.ts'].push(javascript_extractor)
 	extractors['.js'].push(javascript_extractor)
@@ -222,13 +221,13 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 
 			// make sure any errors include the filepath
 			try {
-				// if the file ends with .svelte, we need to look for graphql template tags
+				// if the file ends with .svelte, we need to look for graphql documents
 				for (const extractor of extractors[extension]) {
 					if (!extractor) {
 						continue
 					}
 
-					const found = await extractor(filepath, contents)
+					const found = await extractor(config, filepath, contents)
 					if (found.length > 0) {
 						documents.push(...found.map((document) => ({ filepath, document })))
 					}

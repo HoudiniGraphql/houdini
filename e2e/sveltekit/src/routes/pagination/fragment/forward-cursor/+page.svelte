@@ -1,22 +1,17 @@
 <script lang="ts">
-  import {
-    paginatedFragment,
-    graphql,
-    type UserFragmentForwardsCursorQueryStore,
-    type ForwardsCursorFragment
-  } from '$houdini';
+  import { paginatedFragment, graphql } from '$houdini';
 
-  const queryResult: UserFragmentForwardsCursorQueryStore = graphql`
+  const queryResult = graphql(`
     query UserFragmentForwardsCursorQuery {
       user(id: "1", snapshot: "pagination-fragment-forwards-cursor") {
         ...ForwardsCursorFragment
       }
     }
-  `;
+  `);
 
-  const fragmentResult = paginatedFragment<ForwardsCursorFragment>(
+  const fragmentResult = paginatedFragment(
     $queryResult.data?.user ?? null,
-    graphql`
+    graphql(`
       fragment ForwardsCursorFragment on User {
         friendsConnection(first: 2) @paginate {
           edges {
@@ -26,16 +21,16 @@
           }
         }
       }
-    `
+    `)
   );
 </script>
 
 <div id="result">
-  {$fragmentResult.data?.friendsConnection.edges.map(({ node }) => node?.name).join(', ')}
+  {$fragmentResult?.data?.friendsConnection.edges.map(({ node }) => node?.name).join(', ')}
 </div>
 
 <div id="pageInfo">
-  {JSON.stringify($fragmentResult.pageInfo)}
+  {JSON.stringify($fragmentResult?.pageInfo)}
 </div>
 
-<button id="next" on:click={() => fragmentResult.loadNextPage()}>next</button>
+<button id="next" on:click={() => fragmentResult?.loadNextPage()}>next</button>

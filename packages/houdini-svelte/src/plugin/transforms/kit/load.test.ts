@@ -3,22 +3,55 @@ import { test, expect, describe } from 'vitest'
 import { route_test } from '../../../test'
 
 describe('kit route processor', function () {
-	test('inline store', async function () {
+	test('inline function', async function () {
 		const route = await route_test({
 			component: `
 				<script>
-					const store = graphql\`
+					const store = graphql(\`
 						query TestQuery {
 							viewer {
-								id
+								oid
 							}
 						}
-					\`
+					\`)
 
 
 				</script>
 			`,
 		})
+		expect(route.script).toMatchInlineSnapshot(`
+			import { load_TestQuery } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
+			import { getCurrentConfig } from "$houdini/runtime/lib/config";
+			import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
+			import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
+
+			export async function load(context) {
+			    const houdini_context = new RequestContext(context);
+			    const houdiniConfig = await getCurrentConfig();
+			    const promises = [];
+			    const inputs = {};
+			    inputs["TestQuery"] = {};
+
+			    promises.push(load_TestQuery({
+			        "variables": inputs["TestQuery"],
+			        "event": context,
+			        "blocking": false
+			    }));
+
+			    let result = {};
+
+			    try {
+			        result = Object.assign({}, ...(await Promise.all(promises)));
+			    } catch (err) {
+			        throw err;
+			    }
+
+			    return {
+			        ...houdini_context.returnValue,
+			        ...result
+			    };
+			}
+		`)
 		expect(route.component).toMatchInlineSnapshot(`
 			export let data;
 
@@ -27,7 +60,7 @@ describe('kit route processor', function () {
 		`)
 	})
 
-	test('inline query', async function () {
+	test('inline template', async function () {
 		const route = await route_test({
 			component: `
 				<script>
@@ -1182,6 +1215,63 @@ test('layout inline query', async function () {
 		    return {
 		        ...context.data,
 		        ...__houdini__vite__plugin__return__value__
+		    };
+		}
+	`)
+})
+
+test('inline function query', async function () {
+	const route = await route_test({
+		component: `
+			<script>
+				const result = graphql(\`
+					query TestQuery {
+						viewer {
+							id
+						}
+					}
+				\`)
+			</script>
+		`,
+	})
+
+	expect(route.component).toMatchInlineSnapshot(`
+		export let data;
+
+		$:
+		result = data.TestQuery;
+	`)
+
+	expect(route.script).toMatchInlineSnapshot(`
+		import { load_TestQuery } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
+		import { getCurrentConfig } from "$houdini/runtime/lib/config";
+		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
+
+		export async function load(context) {
+		    const houdini_context = new RequestContext(context);
+		    const houdiniConfig = await getCurrentConfig();
+		    const promises = [];
+		    const inputs = {};
+		    inputs["TestQuery"] = {};
+
+		    promises.push(load_TestQuery({
+		        "variables": inputs["TestQuery"],
+		        "event": context,
+		        "blocking": false
+		    }));
+
+		    let result = {};
+
+		    try {
+		        result = Object.assign({}, ...(await Promise.all(promises)));
+		    } catch (err) {
+		        throw err;
+		    }
+
+		    return {
+		        ...houdini_context.returnValue,
+		        ...result
 		    };
 		}
 	`)

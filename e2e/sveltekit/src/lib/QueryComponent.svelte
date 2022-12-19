@@ -10,13 +10,13 @@
   // svelte-ignore unused-export-let
   export let id = '';
 
-  const result: FragmentQueryVarsStore = graphql`
+  const result = graphql(`
     query FragmentQueryVars($id: ID!) {
       user(id: $id, snapshot: "preprocess-query-variable") {
         name
       }
     }
-  `;
+  `);
 </script>
 
 {$result.data?.user.name}

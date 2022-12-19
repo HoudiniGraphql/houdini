@@ -187,6 +187,28 @@ async function processScript(
 					)
 				}
 				load.push(element.quasi.quasis[0].value.raw)
+			} else if (element.type === 'CallExpression') {
+				// if the function is not called graphql, ignore it
+				if (
+					element.callee.type !== 'Identifier' ||
+					element.callee.name !== 'graphql' ||
+					element.arguments.length !== 1
+				) {
+					throw new Error(`only graphql function can be passed to ${houdini_load_fn}`)
+				}
+				let documentString: string
+				const argument = element.arguments[0]
+
+				// if we have a template or string literal, use its value
+				if (argument.type === 'TemplateLiteral') {
+					documentString = argument.quasis[0].value.raw
+				} else if (argument.type === 'StringLiteral') {
+					documentString = argument.value
+				} else {
+					throw new Error('only strings can be passed to the graphql function')
+				}
+
+				load.push(documentString)
 			} else if (element.type === 'NewExpression') {
 				const suffix = store_suffix(config)
 				if (
@@ -239,6 +261,25 @@ function identifyQueryReference(
 	// check the cases
 	if (value.type === 'Identifier' && value.name in imports) {
 		return { local, query: imports[value.name] }
+	}
+	if (
+		value.type === 'CallExpression' &&
+		value.callee.type === 'Identifier' &&
+		value.callee.name in imports
+	) {
+		return { local, query: imports[value.callee.name] }
+	}
+	if (
+		value.type === 'CallExpression' &&
+		value.callee.type === 'Identifier' &&
+		value.callee.name === 'graphql' &&
+		value.arguments.length === 1
+	) {
+		if (value.arguments[0].type === 'StringLiteral') {
+			return { local, query: value.arguments[0].value }
+		} else if (value.arguments[0].type === 'TemplateLiteral') {
+			return { local, query: value.arguments[0].quasis[0].value.raw }
+		}
 	}
 
 	if (value.type === 'NewExpression' && value.callee.type == 'Identifier') {

@@ -14,9 +14,9 @@ Send a mutation to the server and updating your client-side cache with any chang
 
 ```svelte
 <script lang="ts">
-	import { graphql, type UncheckItemStore } from '$houdini'
+	import { graphql } from '$houdini'
 
-	const uncheckItem: UncheckItemStore = graphql`
+	const uncheckItem = graphql(`
 		mutation UncheckItem($id: ID!) {
 			uncheckItem(item: $id) {
 				item {
@@ -25,7 +25,7 @@ Send a mutation to the server and updating your client-side cache with any chang
 				}
 			}
 		}
-	`
+	`)
 </script>
 
 <button on:click={() => uncheckItem.mutate({ id: 'my-item' })}>
@@ -58,23 +58,22 @@ Take for example, an `TodoItemRow` component:
 	import {
 		fragment,
 		graphql,
-		TodoItemRow,
-		CheckItemStore
+		type TodoItemRow,
 	} from '$houdini'
 
 	export let item: TodoItemRow
 
 	// the resulting store will stay up to date whenever `checkItem`
 	// is triggered
-	$: data = fragment(item, graphql`
+	$: data = fragment(item, graphql(`
 		fragment TodoItemRow on TodoItem {
 			id
 			text
 			completed
 		}
-	`)
+	`))
 
-	const store: CheckItemStore = graphql`
+	const store = graphql(`
 		mutation CheckItem($id: ID!) {
 			checkItem(item: $id) {
 				item {
@@ -83,7 +82,7 @@ Take for example, an `TodoItemRow` component:
 				}
 			}
 		}
-	`
+	`)
 
 	function checkItem() {
 		store.mutate({ id: $data.id })
@@ -117,12 +116,12 @@ resolve in order to apply the update to the cache. Instead, we can assume that i
 and provide an "optimistic response" for the mutation with the second argument to a mutation handler:
 
 ```svelte
-<script>
-	import { graphql, type ToggleItemStore } from '$houdini'
+<script lang="ts">
+	import { graphql } from '$houdini'
 
 	export let itemID
 
-	const toggleItem: ToggleItemStore = graphql`
+	const toggleItem = graphql(`
 		mutation ToggleItem($id: ID!) {
 			toggleItem {
 				item {
@@ -131,7 +130,7 @@ and provide an "optimistic response" for the mutation with the second argument t
 				}
 			}
 		}
-	`
+	`)
 
 	function toggleItem() {
 		toggleItem.mutate({ id: itemID }, {

@@ -99,8 +99,9 @@ export async function writeFile(filepath: string, data: string) {
 		return
 	}
 
-	// no mock in tests
+	// write the file when testing
 	if (houdini_mode.is_testing) {
+		memfs.mkdirpSync(path.dirname(filepath))
 		return memfs.writeFileSync(filepath, data)
 	}
 
