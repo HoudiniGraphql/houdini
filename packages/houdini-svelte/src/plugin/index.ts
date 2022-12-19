@@ -141,11 +141,11 @@ export default HoudiniSveltePlugin
 
 declare module 'houdini' {
 	interface HoudiniPluginConfig {
-		'houdini-svelte': HoudiniVitePluginConfig
+		'houdini-svelte': HoudiniSvelteConfig
 	}
 }
 
-export type HoudiniVitePluginConfig = {
+export type HoudiniSvelteConfig = {
 	/**
 	 * A relative path from your houdini.config.js to the file that exports your client as its default value
 	 * @default `./src/client.ts`
