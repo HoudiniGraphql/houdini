@@ -307,7 +307,7 @@ function listDefinitions(
 						AST.tsTypeAnnotation(
 							AST.tsTypeLiteral([
 								AST.tsPropertySignature(
-									AST.identifier('type'),
+									AST.identifier('types'),
 									AST.tsTypeAnnotation(
 										AST.tsUnionType(
 											possibleTypes.map((possible) =>

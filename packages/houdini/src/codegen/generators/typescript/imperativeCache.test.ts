@@ -297,7 +297,7 @@ test('generates type definitions for the imperative API', async function () {
 		    };
 		    lists: {
 		        All_Users: {
-		            type: "User";
+		            types: "User";
 		            filters: {
 		                filter?: UserFilter | null | undefined;
 		                list?: (UserFilter)[];
@@ -309,7 +309,7 @@ test('generates type definitions for the imperative API', async function () {
 		            };
 		        };
 		        NoArgs: {
-		            type: "User" | "Cat";
+		            types: "User" | "Cat";
 		            filters: never;
 		        };
 		    };
