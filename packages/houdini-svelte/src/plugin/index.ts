@@ -164,11 +164,15 @@ export const error = svelteKitError
 	},
 
 	async env({ config }) {
+		if (_env) {
+			return _env
+		}
+
 		// the first thing we have to do is load the sveltekit config file
 		const config_file = path.join(config.projectRoot, 'svelte.config.js')
 
 		// load the SvelteKit config file
-		let svelte_kit_cfg = {}
+		let svelte_kit_cfg: Record<string, Record<string, string>> = {}
 		try {
 			svelte_kit_cfg = !fs.existsSync(config_file)
 				? {}
@@ -176,7 +180,9 @@ export const error = svelteKitError
 		} catch {}
 
 		// load the vite config
-		return loadEnv('dev', svelte_kit_cfg.kit?.dir || '.', '')
+		_env = loadEnv('dev', svelte_kit_cfg.kit?.dir || '.', '')
+
+		return _env
 	},
 })
 

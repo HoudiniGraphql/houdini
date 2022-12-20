@@ -87,7 +87,7 @@ export type ConfigFile = {
 	/**
 	 * A url to use to pull the schema. For more information: https://www.houdinigraphql.com/api/cli#generate
 	 */
-	apiUrl?: string | ((env: any) => string)
+	apiUrl?: string | ((env: Record<string, string | undefined>) => string)
 
 	/**
 	 * An object describing custom scalars for your project. For more information: https://www.houdinigraphql.com/api/config#custom-scalars
@@ -172,7 +172,9 @@ export type ConfigFile = {
 	 * directly. If the value is a function, the current environment will be passed to your function so you can perform any
 	 * logic you need
 	 */
-	schemaPollHeaders?: Record<string, string | ((env: NodeJS.ProcessEnv) => string)>
+	schemaPollHeaders?:
+		| Record<string, string | ((env: Record<string, string | undefined>) => string)>
+		| ((env: Record<string, string | undefined>) => Record<string, string>)
 
 	/**
 	 * An object describing the plugins enabled for the project

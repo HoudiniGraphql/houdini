@@ -83,7 +83,6 @@ export class Config {
 			schema,
 			schemaPath = './schema.graphql',
 			exclude = [],
-			apiUrl,
 			module = 'esm',
 			scalars,
 			cacheBufferSize,
