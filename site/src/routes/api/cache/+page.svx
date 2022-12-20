@@ -128,7 +128,7 @@ const userFriends = cache.list("User_Friends", { parentID: "1" })
 const allFriends = cache.list("User_Friends", { allLists: true })
 ```
 
-You can insert records using the `prepend`, `append`, and `toggle` methods:
+You can mutate the list using the `prepend`, `append`, `remove`, and `toggle` methods:
 
 ```javascript
 const user1 = cache.get('User', { id: "1" })
@@ -139,7 +139,11 @@ allUsers.prepend(user1)
 // add it to the end
 allFriends.append(user1)
 
-// if its in list, add it to the front. Could also pass 'last'
+// remove it from the list
+allFriends.remove(user1)
+
+// if its in list, remove it. Otherwise, add it to the front.
+// You can also also pass 'last' to insert it to the end of the list
 allFriends.toggle('first', user1)
 ```
 
