@@ -2,7 +2,7 @@
 
 ## 0.19.1
 
-### Patch Changes
+### 🐛 Fixes
 
 -   [#783](https://github.com/HoudiniGraphql/houdini/pull/783) [`2d6395b`](https://github.com/HoudiniGraphql/houdini/commit/2d6395ba3393ae9157f467d97ecda02a661ce4b9) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix error in generated types for list operations
 
