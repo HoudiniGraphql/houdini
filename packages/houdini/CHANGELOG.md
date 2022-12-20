@@ -1,5 +1,17 @@
 # houdini
 
+## 0.19.0
+
+### Patch Changes
+
+-   [#776](https://github.com/HoudiniGraphql/houdini/pull/776) [`8f70291`](https://github.com/HoudiniGraphql/houdini/commit/8f702919e9a496a3de8cb22e035d4525a354a5d1) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - graphql template tag can now be used as a function for automatic typing
+
+-   [#779](https://github.com/HoudiniGraphql/houdini/pull/779) [`5739346`](https://github.com/HoudiniGraphql/houdini/commit/573934608c731a56fbdd7e0383fb6cb3be2faa4b) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add env hook to plugins
+
+-   [#748](https://github.com/HoudiniGraphql/houdini/pull/748) [`78a18e8`](https://github.com/HoudiniGraphql/houdini/commit/78a18e8ff1b6e34baa4f30895091bd3da6a2fbba) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add experimental imperative api for cache
+
+-   [#778](https://github.com/HoudiniGraphql/houdini/pull/778) [`9a09f31`](https://github.com/HoudiniGraphql/houdini/commit/9a09f31c6b6681213f4931a7c520471d87814d42) Thanks [@jycouet](https://github.com/jycouet)! - bump init script to follow latest kit init (without dedicated preprocessor)
+
 ## 0.18.3
 
 ### 🐛 Fixes
