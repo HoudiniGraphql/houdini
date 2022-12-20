@@ -1,6 +1,6 @@
 ---
 title: SvelteKit Plugin
-index: 6
+index: 7
 description: A summary of configuration values for Houdini's kit plugin
 ---
 
