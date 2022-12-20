@@ -32,8 +32,9 @@ export async function generate(
 		if (args.output) {
 			config.persistedQueryPath = args.output
 		}
+
 		// Pull the newest schema if the flag is set
-		if (args.pullSchema && config.apiUrl) {
+		if (args.pullSchema && (await config.apiURL())) {
 			// backwards compat
 			if (args.pullHeader) {
 				console.log('⚠️ --pull-headers has been replaced by --headers (abbreviated -h)')

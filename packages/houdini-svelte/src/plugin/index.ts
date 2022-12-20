@@ -1,4 +1,6 @@
 import { HoudiniError, PluginFactory, path, fs } from 'houdini'
+import * as url from 'url'
+import { loadEnv } from 'vite'
 
 import generate from './codegen'
 import extract from './extract'
@@ -160,7 +162,31 @@ export const error = svelteKitError
 			framework = 'kit'
 		} catch {}
 	},
+
+	async env({ config }) {
+		if (_env) {
+			return _env
+		}
+
+		// the first thing we have to do is load the sveltekit config file
+		const config_file = path.join(config.projectRoot, 'svelte.config.js')
+
+		// load the SvelteKit config file
+		let svelte_kit_cfg: Record<string, Record<string, string>> = {}
+		try {
+			svelte_kit_cfg = !fs.existsSync(config_file)
+				? {}
+				: await import(`${url.pathToFileURL(config_file).href}?ts=${Date.now()}`)
+		} catch {}
+
+		// load the vite config
+		_env = loadEnv('dev', svelte_kit_cfg.kit?.dir || '.', '')
+
+		return _env
+	},
 })
+
+let _env: Record<string, string>
 
 export default HoudiniSveltePlugin
 

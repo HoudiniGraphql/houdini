@@ -14,9 +14,10 @@ export default function HoudiniWatchSchemaPlugin(opts: PluginConfig = {}): Plugi
 			let nbPullError = 0
 
 			// validate the config
+			const apiURL = await config.apiURL()
 
 			// if there's no api url set, there's nothing to poll
-			if (!config.apiUrl) {
+			if (!apiURL) {
 				return
 			}
 
@@ -37,9 +38,9 @@ export default function HoudiniWatchSchemaPlugin(opts: PluginConfig = {}): Plugi
 				try {
 					// Write the schema
 					const schemaState = await pullSchema(
-						config.apiUrl!,
+						apiURL!,
 						config.schemaPath ?? path.resolve(process.cwd(), 'schema.json'),
-						config.pullHeaders
+						await config.pullHeaders()
 					)
 
 					nbPullError = schemaState ? 0 : nbPullError + 1
