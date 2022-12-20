@@ -44,7 +44,10 @@ export async function loadOutline() {
 						})
 						/** @type { { [key: string]: any }} */
 						const metadata = data.fm
-						if (typeof metadata.sidebar === 'boolean' && !metadata.sidebar) {
+						if (!metadata || (typeof metadata.sidebar === 'boolean' && !metadata.sidebar)) {
+							if (!metadata) {
+								console.log('invalid frontmatter:', filepath)
+							}
 							continue
 						}
 
