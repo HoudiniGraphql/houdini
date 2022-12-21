@@ -1,8 +1,8 @@
 import { GQL_Hello } from '$houdini';
-import type { RequestEvent } from '@sveltejs/kit';
 
-export async function load(event: RequestEvent) {
+/** @type {import('./$types').PageServerLoad} */
+export const load = async (event) => {
   const { data } = await GQL_Hello.fetch({ event });
 
   return { hello: data?.hello };
-}
+};

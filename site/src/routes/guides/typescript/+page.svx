@@ -68,7 +68,7 @@ If you are working with inline stores, you don't have to provide types when usin
 ```typescript
 import { graphql } from '$houdini'
 
-const store: AllItemsStore = graphql(`
+const store = graphql(`
 	query AllItems {
 		items {
 			id
