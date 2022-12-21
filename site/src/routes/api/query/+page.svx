@@ -454,7 +454,7 @@ export const load = (event) => {
 	const myQuery = new MyQueryStore()
 	const { data } = await myQuery.fetch({ event })
 
-	return { data	}
+	return { data }
 }
 ```
 
