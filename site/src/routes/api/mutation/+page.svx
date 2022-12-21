@@ -45,6 +45,40 @@ can be used to configure its behavior. The following values can be provided:
 - mutations usually do best when combined with at least one fragment grabbing
   the information needed for the mutation (for an example of this pattern, see below.)
 
+## Form actions
+
+Using a mutation inside an action endpoint looks very similar to anywhere else.
+For reference, it would look like:
+
+```js
+import { graphql } from '$houdini';
+import { fail } from '@sveltejs/kit';
+
+/** @type {import('./$types').Actions} */
+export const actions = {
+  add: async (event) => {
+    const data = await event.request.formData();
+
+    const name = data.get('name')?.toString();
+
+    if (!name) {
+      return fail(403, { name: '*' });
+    }
+
+    const actionMutation = graphql(`
+      mutation ActionMutation($name: String!) {
+        addUser(name: $name, birthDate: 254143016000, snapshot: "ActionMutation") {
+          id
+          name
+        }
+      }
+    `);
+
+    return await actionMutation.mutate({ name });
+  }
+};
+```
+
 ## Updating fields
 
 When a mutation is responsible for updating fields of entities, houdini

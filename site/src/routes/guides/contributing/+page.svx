@@ -107,7 +107,7 @@ To understand how this works, consider this query:
 <script>
 	import { query, graphql } from '$houdini'
 
-	const SpeciesInfo = graphql`
+	const SpeciesInfo = graphql(`
 		query SpeciesInfo {
 			species(id: 1) {
 				name
