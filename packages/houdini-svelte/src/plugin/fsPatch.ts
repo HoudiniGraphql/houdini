@@ -7,6 +7,7 @@ import {
 	is_root_layout,
 	is_root_layout_server,
 	is_route_script,
+	plugin_config,
 	resolve_relative,
 } from './kit'
 
@@ -197,7 +198,7 @@ filesystem.readdirSync = function (
 	if (
 		is_root_route(posix_filepath) &&
 		!contains('+layout.server.js', '+layout.server.ts') &&
-		!_config.configFile.static
+		!plugin_config(_config).static
 	) {
 		result.push(virtual_file('+layout.server.js', options))
 	}
