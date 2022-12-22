@@ -192,6 +192,11 @@ export type ConfigFile = {
 	 * you must enable this flag.
 	 */
 	acceptImperativeInstability?: boolean
+
+	/**
+	 * Configure your houdini app to run in without sessions
+	 */
+	static?: boolean
 }
 
 type ScalarMap = { [typeName: string]: ScalarSpec }
