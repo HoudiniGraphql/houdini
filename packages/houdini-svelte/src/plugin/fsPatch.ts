@@ -1,5 +1,5 @@
 import filesystem, { Dirent, PathLike } from 'fs'
-import { fs, Plugin, path, Config } from 'houdini'
+import { fs, Plugin, path } from 'houdini'
 
 import { _config } from '.'
 import {
