@@ -4,16 +4,13 @@
 
 ### Patch Changes
 
--   [#786](https://github.com/HoudiniGraphql/houdini/pull/786) [`0437769`](https://github.com/HoudiniGraphql/houdini/commit/043776906a1d7ec19e2e451ed4988614b14678e9) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Static configuration value can now be used to remove session infrastructure from application
-
--   Updated dependencies []:
-    -   houdini@0.19.2
+-   [#786](https://github.com/HoudiniGraphql/houdini/pull/786) [`0437769`](https://github.com/HoudiniGraphql/houdini/commit/043776906a1d7ec19e2e451ed4988614b14678e9) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Static plugin config value can now be used to remove session infrastructure from application
 
 ## 0.19.1
 
 ## 0.19.0
 
-### ⚠️ Breaking Changes
+### ✨ Features
 
 -   [#760](https://github.com/HoudiniGraphql/houdini/pull/760) [`f0ac816`](https://github.com/HoudiniGraphql/houdini/commit/f0ac81668d1cc630eb0a120c62a088cdc78cc84f) Thanks [@jycouet](https://github.com/jycouet)! - Global stores moved to a separate package `houdini-plugin-svelte-global-stores`. You can check the documentation and configuration [here](https://github.com/HoudiniGraphql/houdini/tree/main/packages/houdini-plugin-svelte-global-stores).
 
