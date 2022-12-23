@@ -113,6 +113,11 @@ test('generates types for inline layout queries', async function () {
 
 		type LayoutParams = RouteParams & {};
 		type LayoutParentData = EnsureDefined<{}>;
+
+		type MakeOptional<Target, Keys extends keyof Target> = Omit<Target, Keys> & {
+		    [Key in Keys]?: Target[Key];
+		};
+
 		export type LayoutServerData = null;
 		export type LayoutLoad<OutputData extends OutputDataShape<LayoutParentData> = OutputDataShape<LayoutParentData>> = Kit.Load<LayoutParams, LayoutServerData, LayoutParentData, OutputData>;
 		export type LayoutLoadEvent = Parameters<LayoutLoad>[0];
@@ -193,6 +198,11 @@ test('generates types for inline page queries', async function () {
 		} & U : never;
 
 		type PageParentData = EnsureDefined<import("../$houdini").LayoutData>;
+
+		type MakeOptional<Target, Keys extends keyof Target> = Omit<Target, Keys> & {
+		    [Key in Keys]?: Target[Key];
+		};
+
 		type PageParams = PageLoadEvent["params"];
 		export type PageServerData = null;
 		export type PageLoad<OutputData extends OutputDataShape<PageParentData> = OutputDataShape<PageParentData>> = Kit.Load<RouteParams, PageServerData, PageParentData, OutputData>;
@@ -210,8 +220,8 @@ test('generates types for layout queries', async function () {
 		[config.routesDir]: {
 			myProfile: {
 				'+layout.gql': `
-query MyLayoutQuery { 
-    viewer { 
+query MyLayoutQuery {
+    viewer {
         id
     }
 }
@@ -272,6 +282,11 @@ query MyLayoutQuery {
 
 		type LayoutParams = RouteParams & {};
 		type LayoutParentData = EnsureDefined<{}>;
+
+		type MakeOptional<Target, Keys extends keyof Target> = Omit<Target, Keys> & {
+		    [Key in Keys]?: Target[Key];
+		};
+
 		export type LayoutServerData = null;
 		export type LayoutLoad<OutputData extends OutputDataShape<LayoutParentData> = OutputDataShape<LayoutParentData>> = Kit.Load<LayoutParams, LayoutServerData, LayoutParentData, OutputData>;
 		export type LayoutLoadEvent = Parameters<LayoutLoad>[0];
@@ -350,6 +365,11 @@ query MyPageQuery {
 		} & U : never;
 
 		type PageParentData = EnsureDefined<import("../$houdini").LayoutData>;
+
+		type MakeOptional<Target, Keys extends keyof Target> = Omit<Target, Keys> & {
+		    [Key in Keys]?: Target[Key];
+		};
+
 		type PageParams = PageLoadEvent["params"];
 		export type PageServerData = null;
 		export type PageLoad<OutputData extends OutputDataShape<PageParentData> = OutputDataShape<PageParentData>> = Kit.Load<RouteParams, PageServerData, PageParentData, OutputData>;
@@ -448,6 +468,11 @@ test('generates types for layout onError', async function () {
 
 		type LayoutParams = RouteParams & {};
 		type LayoutParentData = EnsureDefined<{}>;
+
+		type MakeOptional<Target, Keys extends keyof Target> = Omit<Target, Keys> & {
+		    [Key in Keys]?: Target[Key];
+		};
+
 		export type LayoutServerData = null;
 		export type LayoutLoad<OutputData extends OutputDataShape<LayoutParentData> = OutputDataShape<LayoutParentData>> = Kit.Load<LayoutParams, LayoutServerData, LayoutParentData, OutputData>;
 		export type LayoutLoadEvent = Parameters<LayoutLoad>[0];
@@ -560,6 +585,11 @@ test('generates types for page onError', async function () {
 		} & U : never;
 
 		type PageParentData = EnsureDefined<import("../$houdini").LayoutData>;
+
+		type MakeOptional<Target, Keys extends keyof Target> = Omit<Target, Keys> & {
+		    [Key in Keys]?: Target[Key];
+		};
+
 		type PageParams = PageLoadEvent["params"];
 		export type PageServerData = null;
 		export type PageLoad<OutputData extends OutputDataShape<PageParentData> = OutputDataShape<PageParentData>> = Kit.Load<RouteParams, PageServerData, PageParentData, OutputData>;
@@ -674,6 +704,11 @@ test('generates types for layout beforeLoad', async function () {
 
 		type LayoutParams = RouteParams & {};
 		type LayoutParentData = EnsureDefined<{}>;
+
+		type MakeOptional<Target, Keys extends keyof Target> = Omit<Target, Keys> & {
+		    [Key in Keys]?: Target[Key];
+		};
+
 		export type LayoutServerData = null;
 		export type LayoutLoad<OutputData extends OutputDataShape<LayoutParentData> = OutputDataShape<LayoutParentData>> = Kit.Load<LayoutParams, LayoutServerData, LayoutParentData, OutputData>;
 		export type LayoutLoadEvent = Parameters<LayoutLoad>[0];
@@ -780,6 +815,11 @@ test('generates types for page beforeLoad', async function () {
 		} & U : never;
 
 		type PageParentData = EnsureDefined<import("../$houdini").LayoutData>;
+
+		type MakeOptional<Target, Keys extends keyof Target> = Omit<Target, Keys> & {
+		    [Key in Keys]?: Target[Key];
+		};
+
 		type PageParams = PageLoadEvent["params"];
 		export type PageServerData = null;
 		export type PageLoad<OutputData extends OutputDataShape<PageParentData> = OutputDataShape<PageParentData>> = Kit.Load<RouteParams, PageServerData, PageParentData, OutputData>;
@@ -888,6 +928,11 @@ test('generates types for layout afterLoad', async function () {
 
 		type LayoutParams = RouteParams & {};
 		type LayoutParentData = EnsureDefined<{}>;
+
+		type MakeOptional<Target, Keys extends keyof Target> = Omit<Target, Keys> & {
+		    [Key in Keys]?: Target[Key];
+		};
+
 		export type LayoutServerData = null;
 		export type LayoutLoad<OutputData extends OutputDataShape<LayoutParentData> = OutputDataShape<LayoutParentData>> = Kit.Load<LayoutParams, LayoutServerData, LayoutParentData, OutputData>;
 		export type LayoutLoadEvent = Parameters<LayoutLoad>[0];
@@ -1005,6 +1050,11 @@ test('generates types for page afterLoad', async function () {
 		} & U : never;
 
 		type PageParentData = EnsureDefined<import("../$houdini").LayoutData>;
+
+		type MakeOptional<Target, Keys extends keyof Target> = Omit<Target, Keys> & {
+		    [Key in Keys]?: Target[Key];
+		};
+
 		type PageParams = PageLoadEvent["params"];
 		export type PageServerData = null;
 		export type PageLoad<OutputData extends OutputDataShape<PageParentData> = OutputDataShape<PageParentData>> = Kit.Load<RouteParams, PageServerData, PageParentData, OutputData>;
@@ -1033,5 +1083,93 @@ test('generates types for page afterLoad', async function () {
 		};
 
 		export type MyPageLoad1QueryVariables = VariableFunction<PageParams, MyPageLoad1Query$input>;
+	`)
+})
+
+test('Marks required query arguments as optional if the url param provides it', async function () {
+	// create the mock filesystem
+	await fs.mock({
+		[path.join(config.routesDir, '[userID]', '+layout.js')]: `
+			import { graphql } from '$houdini'
+
+			export const _houdini_load = graphql\`query MyPageLoad1Query($userID: ID!) {
+				viewer(id: $userID) {
+					id
+				}
+			}\`
+		`,
+	})
+
+	await fs.mock({
+		[path.join(config.projectRoot, '.svelte-kit')]: {
+			types: {
+				src: {
+					routes: {
+						'[userID]': {
+							'$types.d.ts': default_layout_types,
+						},
+					},
+				},
+			},
+		},
+	})
+
+	// execute the generator
+	await generate({ config, documents: [], framework: 'kit', plugin_root })
+
+	// load the contents of the file
+	const queryContents = await fs.readFile(
+		path.join(type_route_dir(config), '[userID]', '$houdini.d.ts')
+	)
+	expect(queryContents).toBeTruthy()
+	const parsedQuery = (await parseJS(queryContents!))?.script
+
+	// verify contents
+	expect(parsedQuery).toMatchInlineSnapshot(`
+		import type * as Kit from "@sveltejs/kit";
+		import type { VariableFunction } from "../../../../plugins/houdini-svelte/runtime/types";
+		import { MyPageLoad1Query$result, MyPageLoad1Query$input } from "../../../../artifacts/MyPageLoad1Query";
+		import { MyPageLoad1QueryStore } from "../../../../plugins/houdini-svelte/stores/MyPageLoad1Query";
+
+		type Expand<T> = T extends infer O ? {
+		    [K in keyof O]: O[K];
+		} : never;
+
+		type RouteParams = {};
+		type MaybeWithVoid<T> = {} extends T ? T | void : T;
+
+		export type RequiredKeys<T> = {
+		    [K in keyof T]?: {} extends {
+		        [P in K]: T[K];
+		    } ? never : K;
+		}[keyof T];
+
+		type OutputDataShape<T> = MaybeWithVoid<Omit<App.PageData, RequiredKeys<T>> & Partial<Pick<App.PageData, keyof T & keyof App.PageData>> & Record<string, any>>;
+		type EnsureDefined<T> = T extends null | undefined ? {} : T;
+
+		type OptionalUnion<U extends Record<string, any>, A extends keyof U = U extends U ? keyof U : never> = U extends unknown ? {
+		    [P in Exclude<A, keyof U>]?: never;
+		} & U : never;
+
+		type LayoutParams = RouteParams & {};
+		type LayoutParentData = EnsureDefined<{}>;
+
+		type MakeOptional<Target, Keys extends keyof Target> = Omit<Target, Keys> & {
+		    [Key in Keys]?: Target[Key];
+		};
+
+		export type LayoutServerData = null;
+		export type LayoutLoad<OutputData extends OutputDataShape<LayoutParentData> = OutputDataShape<LayoutParentData>> = Kit.Load<LayoutParams, LayoutServerData, LayoutParentData, OutputData>;
+		export type LayoutLoadEvent = Parameters<LayoutLoad>[0];
+
+		export type LayoutData = Expand<Expand<Omit<LayoutParentData, keyof LayoutParentData & EnsureDefined<LayoutServerData>> & OptionalUnion<EnsureDefined<LayoutParentData & EnsureDefined<LayoutServerData>>>> & {
+		    MyPageLoad1Query: MyPageLoad1QueryStore;
+		}>;
+
+		type LoadInput = {
+		    MyPageLoad1Query: MyPageLoad1Query$input;
+		};
+
+		export type MyPageLoad1QueryVariables = VariableFunction<LayoutParams, MakeOptional<MyPageLoad1Query$input, "userID">>;
 	`)
 })

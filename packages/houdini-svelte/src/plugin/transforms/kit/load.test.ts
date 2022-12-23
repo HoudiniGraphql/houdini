@@ -1424,7 +1424,7 @@ test('route params, no variable function', async function () {
 
 		async function __houdini___UserInfoVariables(event) {
 		    const result = {
-		        userID: event.userID
+		        userID: event.params.userID
 		    };
 
 		    return result;
@@ -1500,7 +1500,7 @@ test('route params with variable function', async function () {
 
 		async function __houdini___UserInfoVariables(event) {
 		    const result = {
-		        userID: event.userID
+		        userID: event.params.userID
 		    };
 
 		    Object.assign(result, await _UserInfoVariables(event));

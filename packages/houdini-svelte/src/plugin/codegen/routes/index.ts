@@ -7,6 +7,7 @@ import {
 	store_suffix,
 	Framework,
 	walk_routes,
+	route_params,
 } from '../../kit'
 import { houdini_after_load_fn, houdini_before_load_fn, houdini_on_error_fn } from '../../naming'
 
@@ -29,7 +30,7 @@ export default async function svelteKitGenerator(
 			layoutExports,
 			pageExports,
 		}) {
-			//remove testing later
+			// remove testing later
 			const relativePath = path.relative(config.routesDir, dirpath)
 			const target = path.join(type_route_dir(config), relativePath, config.typeRootFile)
 
@@ -78,11 +79,13 @@ export default async function svelteKitGenerator(
 
 				const layout_append_VariablesFunction = append_VariablesFunction(
 					'Layout',
+					dirpath,
 					config,
 					uniqueLayoutQueries
 				)
 				const page_append_VariablesFunction = append_VariablesFunction(
 					'Page',
+					dirpath,
 					config,
 					uniquePageQueries
 				)
@@ -115,7 +118,13 @@ export default async function svelteKitGenerator(
 
 				//name our sections
 				let typeImports = splitString[0]
-				let utilityTypes = splitString[1]
+				let utilityTypes =
+					splitString[1] +
+					`
+						type MakeOptional<Target, Keys extends keyof Target> = Omit<Target, Keys> & {
+							[Key in Keys]?: Target[Key]
+						}
+					`
 				let typeExports = splitString[2]
 
 				// lots of comparisons but helpful to prevent unnecessary imports
@@ -256,9 +265,15 @@ function getTypeImports(
 
 function append_VariablesFunction(
 	type: `Page` | `Layout`,
+	filepath: string,
 	config: Config,
 	queries: OperationDefinitionNode[]
 ) {
+	const params = route_params(filepath)
+	const garunteed_args = Object.values(params)
+		.filter((param) => !param.optional)
+		.map((param) => param.name)
+
 	return queries
 		.map((query) => {
 			const name = query.name!.value
@@ -267,9 +282,25 @@ function append_VariablesFunction(
 				return ''
 			}
 
+			// if a garunteed arg matches one of the args of the query, its not required
+			// regardless of what the $input type says
+			const make_optional: string[] = []
+			for (const def of query.variableDefinitions) {
+				if (garunteed_args.includes(def.variable.name.value)) {
+					make_optional.push(`'${def.variable.name.value}'`)
+				}
+			}
+
+			// build up the input type
+			let input_type = `${name}$input`
+			if (make_optional.length > 0) {
+				input_type = `MakeOptional<${input_type}, ${make_optional.join(' | ')}>`
+			}
+
+			// define the variable function
 			return `\nexport type ${config.variableFunctionName(
 				name
-			)} = VariableFunction<${type}Params, ${name}$input>;`
+			)} = VariableFunction<${type}Params, ${input_type}>;`
 		})
 		.join('\n')
 }

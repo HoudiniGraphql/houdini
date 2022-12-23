@@ -17,12 +17,12 @@ import {
 	page_query_path,
 	route_data_path,
 	route_page_path,
+	route_params,
 	store_import_path,
 } from '../../kit'
 import {
 	houdini_after_load_fn,
 	houdini_before_load_fn,
-	houdini_load_fn,
 	houdini_on_error_fn,
 	query_variable_fn,
 } from '../../naming'
@@ -557,6 +557,8 @@ function variable_function_for_query(
 		}
 	}
 
+	// TODO: marshal scalars
+
 	// build up a function that mixes the appropriate url parameters with the
 	// value of the variable function
 	const fn_body: StatementKind[] = [
@@ -568,7 +570,13 @@ function variable_function_for_query(
 					has_args.map((arg) =>
 						AST.objectProperty(
 							AST.identifier(arg),
-							AST.memberExpression(AST.identifier('event'), AST.identifier(arg))
+							AST.memberExpression(
+								AST.memberExpression(
+									AST.identifier('event'),
+									AST.identifier('params')
+								),
+								AST.identifier(arg)
+							)
 						)
 					)
 				)
@@ -614,52 +622,4 @@ function variable_function_for_query(
 
 function __variable_fn_name(name: string) {
 	return `__houdini__` + query_variable_fn(name)
-}
-
-function route_params(input: string): Record<string, RouteParam> {
-	const params: Record<string, RouteParam> = {}
-
-	// walk through the input and collect any parameters we run into
-	let currentParam = ''
-	for (const char of input) {
-		// if we building up a parameter, just add it to the value
-		if (currentParam || char === '[' || char === ']') {
-			currentParam += char
-		}
-
-		// if we did run into a ] then we are done
-		if (char === ']') {
-			// strip the []
-			const value = currentParam.substring(1, currentParam.length - 1)
-			// the type of the paramter is defined by `=`
-			let [name, matcher] = value.split('=')
-
-			// and optional parameter is one with a name wrapped in []
-			const optional = value.startsWith('[') && value.endsWith(']')
-			if (optional) {
-				// remove the [] from the name and matcher
-				name = name.substring(1)
-				matcher = matcher.substring(matcher.length - 1)
-			}
-
-			// ignore rest params
-			if (!name.startsWith('...')) {
-				// push the param metadata to the list
-				params[name] = {
-					name,
-					matcher,
-					optional,
-				}
-			}
-			// stop tracking a parameter
-			currentParam = ''
-		}
-	}
-	return params
-}
-
-type RouteParam = {
-	name: string
-	matcher: string
-	optional: boolean
 }
