@@ -1,5 +1,11 @@
 # houdini-svelte
 
+## 0.19.2
+
+### ✨ Features
+
+-   [#786](https://github.com/HoudiniGraphql/houdini/pull/786) [`0437769`](https://github.com/HoudiniGraphql/houdini/commit/043776906a1d7ec19e2e451ed4988614b14678e9) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Static plugin config value can now be used to remove session infrastructure from application
+
 ## 0.19.1
 
 ## 0.19.0
