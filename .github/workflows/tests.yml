@@ -10,7 +10,7 @@ on:
     # every commit on master
     push:
         branches:
-            - main
+            - '*'
 
 jobs:
     format:
@@ -63,7 +63,7 @@ jobs:
               id: pnpm-install
               with:
                 version: 7
-                
+
             - name: Get pnpm store directory
               id: pnpm-cache
               run: |
@@ -107,7 +107,7 @@ jobs:
               id: pnpm-install
               with:
                 version: 7
-                
+
             - name: Get pnpm store directory
               id: pnpm-cache
               run: |
@@ -121,7 +121,7 @@ jobs:
                   ${{ matrix.os }}-pnpm-store-
             - name: Install dependencies
               run: pnpm install
-              
+
             - name: Cache playwright binaries (ubuntu)
               uses: actions/cache@v3
               if: matrix.os == 'ubuntu-latest'
@@ -167,7 +167,7 @@ jobs:
               id: pnpm-install
               with:
                 version: 7
-                
+
             - name: Get pnpm store directory
               id: pnpm-cache
               run: |
