@@ -281,6 +281,12 @@ describe('kit route processor', function () {
 			    };
 			}
 
+			async function __houdini___TestQueryVariables(event) {
+			    const result = {};
+			    Object.assign(result, await _TestQueryVariables(event));
+			    return result;
+			}
+
 			export async function load(context) {
 			    const houdini_context = new RequestContext(context);
 			    const houdiniConfig = await getCurrentConfig();
@@ -289,7 +295,7 @@ describe('kit route processor', function () {
 
 			    inputs["TestQuery"] = await houdini_context.computeInput({
 			        "config": houdiniConfig,
-			        "variableFunction": _TestQueryVariables,
+			        "variableFunction": __houdini___TestQueryVariables,
 			        "artifact": _TestQueryArtifact
 			    });
 
@@ -415,6 +421,12 @@ describe('kit route processor', function () {
 			export function _MyQuery2Variables() {}
 			export const _houdini_load = [store1, store2];
 
+			async function __houdini___MyQuery2Variables(event) {
+			    const result = {};
+			    Object.assign(result, await _MyQuery2Variables(event));
+			    return result;
+			}
+
 			export async function load(context) {
 			    const houdini_context = new RequestContext(context);
 			    const houdiniConfig = await getCurrentConfig();
@@ -430,7 +442,7 @@ describe('kit route processor', function () {
 
 			    inputs["MyQuery2"] = await houdini_context.computeInput({
 			        "config": houdiniConfig,
-			        "variableFunction": _MyQuery2Variables,
+			        "variableFunction": __houdini___MyQuery2Variables,
 			        "artifact": _MyQuery2Artifact
 			    });
 
@@ -645,6 +657,12 @@ test('beforeLoad hook', async function () {
 		    };
 		}
 
+		async function __houdini___TestQueryVariables(event) {
+		    const result = {};
+		    Object.assign(result, await _TestQueryVariables(event));
+		    return result;
+		}
+
 		export async function load(context) {
 		    const houdini_context = new RequestContext(context);
 
@@ -659,7 +677,7 @@ test('beforeLoad hook', async function () {
 
 		    inputs["TestQuery"] = await houdini_context.computeInput({
 		        "config": houdiniConfig,
-		        "variableFunction": _TestQueryVariables,
+		        "variableFunction": __houdini___TestQueryVariables,
 		        "artifact": _TestQueryArtifact
 		    });
 
@@ -821,6 +839,12 @@ test('afterLoad hook', async function () {
 		    };
 		}
 
+		async function __houdini___TestQueryVariables(event) {
+		    const result = {};
+		    Object.assign(result, await _TestQueryVariables(event));
+		    return result;
+		}
+
 		export async function load(context) {
 		    const houdini_context = new RequestContext(context);
 		    const houdiniConfig = await getCurrentConfig();
@@ -829,7 +853,7 @@ test('afterLoad hook', async function () {
 
 		    inputs["TestQuery"] = await houdini_context.computeInput({
 		        "config": houdiniConfig,
-		        "variableFunction": _TestQueryVariables,
+		        "variableFunction": __houdini___TestQueryVariables,
 		        "artifact": _TestQueryArtifact
 		    });
 
@@ -1007,6 +1031,12 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		    };
 		}
 
+		async function __houdini___TestQueryVariables(event) {
+		    const result = {};
+		    Object.assign(result, await _TestQueryVariables(event));
+		    return result;
+		}
+
 		export async function load(context) {
 		    const houdini_context = new RequestContext(context);
 
@@ -1021,7 +1051,7 @@ test('both beforeLoad and afterLoad hooks', async function () {
 
 		    inputs["TestQuery"] = await houdini_context.computeInput({
 		        "config": houdiniConfig,
-		        "variableFunction": _TestQueryVariables,
+		        "variableFunction": __houdini___TestQueryVariables,
 		        "artifact": _TestQueryArtifact
 		    });
 
@@ -1090,6 +1120,12 @@ test('layout loads', async function () {
 		export function _MyQuery2Variables() {}
 		export const _houdini_load = [store1, store2];
 
+		async function __houdini___MyQuery2Variables(event) {
+		    const result = {};
+		    Object.assign(result, await _MyQuery2Variables(event));
+		    return result;
+		}
+
 		export async function load(context) {
 		    const houdini_context = new RequestContext(context);
 		    const houdiniConfig = await getCurrentConfig();
@@ -1105,7 +1141,7 @@ test('layout loads', async function () {
 
 		    inputs["MyQuery2"] = await houdini_context.computeInput({
 		        "config": houdiniConfig,
-		        "variableFunction": _MyQuery2Variables,
+		        "variableFunction": __houdini___MyQuery2Variables,
 		        "artifact": _MyQuery2Artifact
 		    });
 
@@ -1319,6 +1355,12 @@ test('onError hook', async function () {
 		    };
 		}
 
+		async function __houdini___TestQueryVariables(event) {
+		    const result = {};
+		    Object.assign(result, await _TestQueryVariables(event));
+		    return result;
+		}
+
 		export async function load(context) {
 		    const houdini_context = new RequestContext(context);
 		    const houdiniConfig = await getCurrentConfig();
@@ -1327,7 +1369,7 @@ test('onError hook', async function () {
 
 		    inputs["TestQuery"] = await houdini_context.computeInput({
 		        "config": houdiniConfig,
-		        "variableFunction": _TestQueryVariables,
+		        "variableFunction": __houdini___TestQueryVariables,
 		        "artifact": _TestQueryArtifact
 		    });
 
@@ -1348,6 +1390,147 @@ test('onError hook', async function () {
 		            "error": err,
 		            "input": inputs
 		        });
+		    }
+
+		    return {
+		        ...houdini_context.returnValue,
+		        ...result
+		    };
+		}
+	`)
+})
+
+test('route params, no variable function', async function () {
+	const route = await route_test({
+		route_path: '[userID]/profile',
+		script: `
+			export const _houdini_load = graphql(\`
+				query UserInfo($userID: ID!) {
+					user(id: $userID) {
+						firstName
+					}
+				}
+			\`)
+		`,
+	})
+
+	expect(route.script).toMatchInlineSnapshot(`
+		import { UserInfoStore } from "$houdini/plugins/houdini-svelte/stores/UserInfo";
+		import _UserInfoArtifact from "$houdini/artifacts/UserInfo";
+		import { load_UserInfo } from "$houdini/plugins/houdini-svelte/stores/UserInfo";
+		import { getCurrentConfig } from "$houdini/runtime/lib/config";
+		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
+		export const _houdini_load = new UserInfoStore();
+
+		async function __houdini___UserInfoVariables(event) {
+		    const result = {
+		        userID: event.userID
+		    };
+
+		    return result;
+		}
+
+		export async function load(context) {
+		    const houdini_context = new RequestContext(context);
+		    const houdiniConfig = await getCurrentConfig();
+		    const promises = [];
+		    const inputs = {};
+
+		    inputs["UserInfo"] = await houdini_context.computeInput({
+		        "config": houdiniConfig,
+		        "variableFunction": __houdini___UserInfoVariables,
+		        "artifact": _UserInfoArtifact
+		    });
+
+		    promises.push(load_UserInfo({
+		        "variables": inputs["UserInfo"],
+		        "event": context,
+		        "blocking": false
+		    }));
+
+		    let result = {};
+
+		    try {
+		        result = Object.assign({}, ...(await Promise.all(promises)));
+		    } catch (err) {
+		        throw err;
+		    }
+
+		    return {
+		        ...houdini_context.returnValue,
+		        ...result
+		    };
+		}
+	`)
+})
+
+test('route params with variable function', async function () {
+	const route = await route_test({
+		route_path: '[userID]/profile',
+		script: `
+			export const _houdini_load = graphql(\`
+				query UserInfo($userID: ID!) {
+					user(id: $userID) {
+						firstName
+					}
+				}
+			\`)
+
+			export function _UserInfoVariables(event) {
+				return {
+					userID: '1'
+				}
+			}
+		`,
+	})
+
+	expect(route.script).toMatchInlineSnapshot(`
+		import { UserInfoStore } from "$houdini/plugins/houdini-svelte/stores/UserInfo";
+		import _UserInfoArtifact from "$houdini/artifacts/UserInfo";
+		import { load_UserInfo } from "$houdini/plugins/houdini-svelte/stores/UserInfo";
+		import { getCurrentConfig } from "$houdini/runtime/lib/config";
+		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
+		export const _houdini_load = new UserInfoStore();
+
+		export function _UserInfoVariables(event) {
+		    return {
+		        userID: "1"
+		    };
+		}
+
+		async function __houdini___UserInfoVariables(event) {
+		    const result = {
+		        userID: event.userID
+		    };
+
+		    Object.assign(result, await _UserInfoVariables(event));
+		    return result;
+		}
+
+		export async function load(context) {
+		    const houdini_context = new RequestContext(context);
+		    const houdiniConfig = await getCurrentConfig();
+		    const promises = [];
+		    const inputs = {};
+
+		    inputs["UserInfo"] = await houdini_context.computeInput({
+		        "config": houdiniConfig,
+		        "variableFunction": __houdini___UserInfoVariables,
+		        "artifact": _UserInfoArtifact
+		    });
+
+		    promises.push(load_UserInfo({
+		        "variables": inputs["UserInfo"],
+		        "event": context,
+		        "blocking": false
+		    }));
+
+		    let result = {};
+
+		    try {
+		        result = Object.assign({}, ...(await Promise.all(promises)));
+		    } catch (err) {
+		        throw err;
 		    }
 
 		    return {

@@ -2,7 +2,7 @@ import { logYellow } from '@kitql/helper'
 import type { IdentifierKind, StatementKind } from 'ast-types/lib/gen/kinds'
 import type { namedTypes } from 'ast-types/lib/gen/namedTypes'
 import * as graphql from 'graphql'
-import { formatErrors, fs, operation_requires_variables } from 'houdini'
+import { formatErrors, fs, TypeWrapper, unwrapType } from 'houdini'
 import { artifact_import, ensure_imports, find_insert_index } from 'houdini/vite'
 import * as recast from 'recast'
 
@@ -71,13 +71,9 @@ export default async function kit_load_generator(page: SvelteTransformPage) {
 		find_page_info(page),
 	])
 
-	const houdini_load_queries = []
+	const houdini_load_queries: LoadTarget[] = []
 	for (const [i, target] of (page_info.houdini_load ?? []).entries()) {
-		houdini_load_queries.push({
-			name: target.name!.value,
-			variables: operation_requires_variables(target),
-			store_id: AST.memberExpression(AST.identifier(houdini_load_fn), AST.literal(i)),
-		})
+		houdini_load_queries.push(target)
 	}
 
 	// add the load functions
@@ -154,18 +150,19 @@ function add_load({
 	// let's verify that we have all of the variable functions we need before we mutate anything
 	let invalid = false
 	for (const query of queries) {
-		const variable_fn = query_variable_fn(query.name)
-		// if the page doesn't export a function with the correct name, something is wrong
-		if (!page_info.exports.includes(variable_fn) && query.variables) {
-			// tell them we're missing something
-			formatErrors({
-				filepath: page.filepath,
-				message: `Could not find required variable function: ${logYellow(
-					variable_fn
-				)}. maybe its not exported? `,
-			})
+		// if the query doesn't have any variables, there's nothing to do
+		if (!query.variableDefinitions || query.variableDefinitions.length === 0) {
+			continue
+		}
 
-			// don't go any further
+		// add the internal variable function to the page and we'll call that when generating the load
+		const variable_fn = query_variable_fn(query.name!.value)
+		try {
+			page.script.body.push(
+				variable_function_for_query(page, query, page_info.exports.includes(variable_fn))
+			)
+		} catch (e) {
+			formatErrors(e)
 			invalid = true
 		}
 	}
@@ -258,40 +255,41 @@ function add_load({
 		const { ids } = ensure_imports({
 			script: page.script,
 			config: page.config,
-			import: [`load_${query.name}`],
-			sourceModule: store_import_path({ config: page.config, name: query.name }),
+			import: [`load_${query.name!.value}`],
+			sourceModule: store_import_path({ config: page.config, name: query.name!.value }),
 		})
 
 		const load_fn = ids[0]
 
-		const variables = page_info.exports.includes(query_variable_fn(query.name))
-			? AST.awaitExpression(
-					AST.callExpression(
-						AST.memberExpression(request_context, AST.identifier('computeInput')),
-						[
-							AST.objectExpression([
-								AST.objectProperty(
-									AST.literal('config'),
-									AST.identifier('houdiniConfig')
-								),
-								AST.objectProperty(
-									AST.literal('variableFunction'),
-									AST.identifier(query_variable_fn(query.name))
-								),
-								AST.objectProperty(
-									AST.literal('artifact'),
-									artifact_import({
-										config: page.config,
-										script: page.script,
-										page,
-										artifact: { name: query.name },
-									}).id
-								),
-							]),
-						]
-					)
-			  )
-			: AST.objectExpression([])
+		const variables =
+			(query.variableDefinitions?.length ?? 0) > 0
+				? AST.awaitExpression(
+						AST.callExpression(
+							AST.memberExpression(request_context, AST.identifier('computeInput')),
+							[
+								AST.objectExpression([
+									AST.objectProperty(
+										AST.literal('config'),
+										AST.identifier('houdiniConfig')
+									),
+									AST.objectProperty(
+										AST.literal('variableFunction'),
+										AST.identifier(__variable_fn_name(query.name!.value))
+									),
+									AST.objectProperty(
+										AST.literal('artifact'),
+										artifact_import({
+											config: page.config,
+											script: page.script,
+											page,
+											artifact: { name: query.name!.value },
+										}).id
+									),
+								]),
+							]
+						)
+				  )
+				: AST.objectExpression([])
 
 		preload_fn.body.body.splice(
 			insert_index++,
@@ -299,7 +297,7 @@ function add_load({
 			AST.expressionStatement(
 				AST.assignmentExpression(
 					'=',
-					AST.memberExpression(input_obj, AST.literal(query.name)),
+					AST.memberExpression(input_obj, AST.literal(query.name!.value)),
 					variables
 				)
 			)
@@ -315,7 +313,7 @@ function add_load({
 						AST.objectExpression([
 							AST.objectProperty(
 								AST.literal('variables'),
-								AST.memberExpression(input_obj, AST.literal(query.name))
+								AST.memberExpression(input_obj, AST.literal(query.name!.value))
 							),
 							AST.objectProperty(AST.literal('event'), AST.identifier('context')),
 							AST.objectProperty(
@@ -452,10 +450,7 @@ async function find_special_query(
 		return null
 	}
 
-	return {
-		name: definition.name!.value,
-		variables: operation_requires_variables(definition),
-	}
+	return definition
 }
 
 function load_hook_statements(
@@ -516,4 +511,155 @@ function unexported_data_error(filepath: string) {
 		message: `Encountered unexported local variable name data`,
 		description: `This is not allowed in a route since it would conflict with Houdini's generated code`,
 	}
+}
+
+function variable_function_for_query(
+	page: SvelteTransformPage,
+	query: graphql.OperationDefinitionNode,
+	has_local: boolean
+): namedTypes.FunctionDeclaration {
+	// there needs to be a local function if any of the required arguments for
+	// the query do not have a non-optional value from the url
+
+	// find the paramters we are passed to from the URL
+	const params = route_params(page.filepath)
+
+	// find any arguments that aren't optional but not given by the URL
+	const missing_args = []
+	const has_args = []
+	for (const definition of query.variableDefinitions ?? []) {
+		const unwrapped = unwrapType(page.config, definition.type)
+
+		// we need to remember the definition if
+		// the argument to the operation is non-null
+		// the url param doesn't exist or does exist but is optional
+		if (
+			unwrapped.wrappers[unwrapped.wrappers.length - 1] === TypeWrapper.NonNull &&
+			(!params[definition.variable.name.value] ||
+				params[definition.variable.name.value].optional)
+		) {
+			missing_args.push(definition.variable.name)
+		}
+
+		// if the query variable is a route param, add it to the specific pile
+		if (params[definition.variable.name.value]) {
+			has_args.push(definition.variable.name.value)
+		}
+	}
+
+	// if there are missing args but no local function then we have a problem
+	if (missing_args.length > 0 && !has_local) {
+		throw {
+			filepath: page.filepath,
+			message: `Could not find required variable function: ${logYellow(
+				query_variable_fn(query.name!.value)
+			)}. maybe its not exported?`,
+		}
+	}
+
+	// build up a function that mixes the appropriate url parameters with the
+	// value of the variable function
+	const fn_body: StatementKind[] = [
+		// we'll collect everything in a local variable
+		AST.variableDeclaration('const', [
+			AST.variableDeclarator(
+				AST.identifier('result'),
+				AST.objectExpression(
+					has_args.map((arg) =>
+						AST.objectProperty(
+							AST.identifier(arg),
+							AST.memberExpression(AST.identifier('event'), AST.identifier(arg))
+						)
+					)
+				)
+			),
+		]),
+	]
+
+	// if there is a local function we need to call it and add the return value to
+	// the running object
+	if (has_local) {
+		fn_body.push(
+			AST.expressionStatement(
+				AST.callExpression(
+					AST.memberExpression(AST.identifier('Object'), AST.identifier('assign')),
+					[
+						AST.identifier('result'),
+						AST.awaitExpression(
+							AST.callExpression(
+								AST.identifier(query_variable_fn(query.name!.value)),
+								[AST.identifier('event')]
+							)
+						),
+					]
+				)
+			)
+		)
+	}
+
+	// at the end of the function, return the result
+	fn_body.push(AST.returnStatement(AST.identifier('result')))
+
+	// build up the function declaration
+	const declaration = AST.functionDeclaration(
+		AST.identifier(__variable_fn_name(query.name!.value)),
+		[AST.identifier('event')],
+		AST.blockStatement(fn_body)
+	)
+	declaration.async = true
+
+	// we're done
+	return declaration
+}
+
+function __variable_fn_name(name: string) {
+	return `__houdini__` + query_variable_fn(name)
+}
+
+function route_params(input: string): Record<string, RouteParam> {
+	const params: Record<string, RouteParam> = {}
+
+	// walk through the input and collect any parameters we run into
+	let currentParam = ''
+	for (const char of input) {
+		// if we building up a parameter, just add it to the value
+		if (currentParam || char === '[' || char === ']') {
+			currentParam += char
+		}
+
+		// if we did run into a ] then we are done
+		if (char === ']') {
+			// strip the []
+			const value = currentParam.substring(1, currentParam.length - 1)
+			// the type of the paramter is defined by `=`
+			let [name, matcher] = value.split('=')
+
+			// and optional parameter is one with a name wrapped in []
+			const optional = value.startsWith('[') && value.endsWith(']')
+			if (optional) {
+				// remove the [] from the name and matcher
+				name = name.substring(1)
+				matcher = matcher.substring(matcher.length - 1)
+			}
+
+			// ignore rest params
+			if (!name.startsWith('...')) {
+				// push the param metadata to the list
+				params[name] = {
+					name,
+					matcher,
+					optional,
+				}
+			}
+			// stop tracking a parameter
+			currentParam = ''
+		}
+	}
+	return params
+}
+
+type RouteParam = {
+	name: string
+	matcher: string
+	optional: boolean
 }

@@ -1,7 +1,6 @@
 import * as graphql from 'graphql'
 
-import { Config, parentTypeFromAncestors, CollectedGraphQLDocument } from '../../lib'
-import { unwrapType } from '../utils'
+import { Config, parentTypeFromAncestors, CollectedGraphQLDocument, unwrapType } from '../../lib'
 
 // typename adds __typename to the selection set of any unions or interfaces
 export default async function addID(

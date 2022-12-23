@@ -2,8 +2,7 @@ import type { StatementKind, TSPropertySignatureKind } from 'ast-types/lib/gen/k
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import { Config, ensureImports, HoudiniError } from '../../../lib'
-import { unwrapType } from '../../utils'
+import { Config, ensureImports, HoudiniError, unwrapType } from '../../../lib'
 import { tsTypeReference } from './typeReference'
 
 const AST = recast.types.builders
