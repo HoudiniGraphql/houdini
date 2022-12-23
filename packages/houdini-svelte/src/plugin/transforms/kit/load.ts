@@ -2,7 +2,7 @@ import { logYellow } from '@kitql/helper'
 import type { IdentifierKind, StatementKind } from 'ast-types/lib/gen/kinds'
 import type { namedTypes } from 'ast-types/lib/gen/namedTypes'
 import * as graphql from 'graphql'
-import { formatErrors, fs, TypeWrapper, unwrapType } from 'houdini'
+import { formatErrors, fs, path, TypeWrapper, unwrapType } from 'houdini'
 import { artifact_import, ensure_imports, find_insert_index } from 'houdini/vite'
 import * as recast from 'recast'
 
@@ -264,30 +264,10 @@ function add_load({
 		const variables =
 			(query.variableDefinitions?.length ?? 0) > 0
 				? AST.awaitExpression(
-						AST.callExpression(
-							AST.memberExpression(request_context, AST.identifier('computeInput')),
-							[
-								AST.objectExpression([
-									AST.objectProperty(
-										AST.literal('config'),
-										AST.identifier('houdiniConfig')
-									),
-									AST.objectProperty(
-										AST.literal('variableFunction'),
-										AST.identifier(__variable_fn_name(query.name!.value))
-									),
-									AST.objectProperty(
-										AST.literal('artifact'),
-										artifact_import({
-											config: page.config,
-											script: page.script,
-											page,
-											artifact: { name: query.name!.value },
-										}).id
-									),
-								]),
-							]
-						)
+						AST.callExpression(AST.identifier(__variable_fn_name(query.name!.value)), [
+							AST.identifier('houdiniConfig'),
+							AST.identifier('context'),
+						])
 				  )
 				: AST.objectExpression([])
 
@@ -524,9 +504,22 @@ function variable_function_for_query(
 	// find the paramters we are passed to from the URL
 	const params = route_params(page.filepath)
 
+	// make sure that we have the utility to handle scalar args
+	ensure_imports({
+		config: page.config,
+		script: page.script,
+		import: ['parseScalar', 'marshalInputs'],
+		sourceModule: '$houdini/runtime/lib/scalars',
+	})
+	ensure_imports({
+		...page,
+		sourceModule: path.relative(page.filepath, page.config.filepath),
+		import: '__houdini__config',
+	})
+
 	// find any arguments that aren't optional but not given by the URL
 	const missing_args = []
-	const has_args = []
+	const has_args: Record<string, string> = {}
 	for (const definition of query.variableDefinitions ?? []) {
 		const unwrapped = unwrapType(page.config, definition.type)
 
@@ -543,7 +536,7 @@ function variable_function_for_query(
 
 		// if the query variable is a route param, add it to the specific pile
 		if (params[definition.variable.name.value]) {
-			has_args.push(definition.variable.name.value)
+			has_args[definition.variable.name.value] = unwrapped.type.name
 		}
 	}
 
@@ -567,16 +560,20 @@ function variable_function_for_query(
 			AST.variableDeclarator(
 				AST.identifier('result'),
 				AST.objectExpression(
-					has_args.map((arg) =>
+					Object.entries(has_args).map(([arg, type]) =>
 						AST.objectProperty(
 							AST.identifier(arg),
-							AST.memberExpression(
+							AST.callExpression(AST.identifier('parseScalar'), [
+								AST.identifier('__houdini__config'),
+								AST.stringLiteral(type),
 								AST.memberExpression(
-									AST.identifier('event'),
-									AST.identifier('params')
+									AST.memberExpression(
+										AST.identifier('event'),
+										AST.identifier('params')
+									),
+									AST.identifier(arg)
 								),
-								AST.identifier(arg)
-							)
+							])
 						)
 					)
 				)
@@ -594,10 +591,30 @@ function variable_function_for_query(
 					[
 						AST.identifier('result'),
 						AST.awaitExpression(
-							AST.callExpression(
-								AST.identifier(query_variable_fn(query.name!.value)),
-								[AST.identifier('event')]
-							)
+							AST.callExpression(AST.identifier('marshalInputs'), [
+								AST.objectExpression([
+									AST.objectProperty(
+										AST.identifier('input'),
+										AST.awaitExpression(
+											AST.callExpression(
+												AST.identifier(
+													query_variable_fn(query.name!.value)
+												),
+												[AST.identifier('event')]
+											)
+										)
+									),
+									AST.objectProperty(
+										AST.identifier('artifact'),
+										artifact_import({
+											config: page.config,
+											script: page.script,
+											page,
+											artifact: { name: query.name!.value },
+										}).id
+									),
+								]),
+							])
 						),
 					]
 				)
@@ -611,7 +628,7 @@ function variable_function_for_query(
 	// build up the function declaration
 	const declaration = AST.functionDeclaration(
 		AST.identifier(__variable_fn_name(query.name!.value)),
-		[AST.identifier('event')],
+		[AST.identifier('config'), AST.identifier('event')],
 		AST.blockStatement(fn_body)
 	)
 	declaration.async = true

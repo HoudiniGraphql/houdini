@@ -273,6 +273,8 @@ describe('kit route processor', function () {
 			import { load_TestQuery } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
 			import { getCurrentConfig } from "$houdini/runtime/lib/config";
 			import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
+			import __houdini__config from "../../../config.cjs";
+			import { parseScalar, marshalInputs } from "$houdini/runtime/lib/scalars";
 			import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
 			export async function _TestQueryVariables(page) {
@@ -281,9 +283,14 @@ describe('kit route processor', function () {
 			    };
 			}
 
-			async function __houdini___TestQueryVariables(event) {
+			async function __houdini___TestQueryVariables(config, event) {
 			    const result = {};
-			    Object.assign(result, await _TestQueryVariables(event));
+
+			    Object.assign(result, await marshalInputs({
+			        input: await _TestQueryVariables(event),
+			        artifact: _TestQueryArtifact
+			    }));
+
 			    return result;
 			}
 
@@ -292,12 +299,7 @@ describe('kit route processor', function () {
 			    const houdiniConfig = await getCurrentConfig();
 			    const promises = [];
 			    const inputs = {};
-
-			    inputs["TestQuery"] = await houdini_context.computeInput({
-			        "config": houdiniConfig,
-			        "variableFunction": __houdini___TestQueryVariables,
-			        "artifact": _TestQueryArtifact
-			    });
+			    inputs["TestQuery"] = await __houdini___TestQueryVariables(houdiniConfig, context);
 
 			    promises.push(load_TestQuery({
 			        "variables": inputs["TestQuery"],
@@ -410,20 +412,27 @@ describe('kit route processor', function () {
 			import { MyQuery2Store } from "$houdini/plugins/houdini-svelte/stores/MyQuery2";
 			import { MyQuery1Store } from "$houdini/plugins/houdini-svelte/stores/MyQuery1";
 			import { load_TestQuery } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
-			import _MyQuery2Artifact from "$houdini/artifacts/MyQuery2";
 			import { load_MyQuery2 } from "$houdini/plugins/houdini-svelte/stores/MyQuery2";
 			import { load_MyQuery1 } from "$houdini/plugins/houdini-svelte/stores/MyQuery1";
 			import { getCurrentConfig } from "$houdini/runtime/lib/config";
 			import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
+			import _MyQuery2Artifact from "$houdini/artifacts/MyQuery2";
+			import __houdini__config from "../../../config.cjs";
+			import { parseScalar, marshalInputs } from "$houdini/runtime/lib/scalars";
 			import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 			const store1 = new MyQuery1Store();
 			const store2 = new MyQuery2Store();
 			export function _MyQuery2Variables() {}
 			export const _houdini_load = [store1, store2];
 
-			async function __houdini___MyQuery2Variables(event) {
+			async function __houdini___MyQuery2Variables(config, event) {
 			    const result = {};
-			    Object.assign(result, await _MyQuery2Variables(event));
+
+			    Object.assign(result, await marshalInputs({
+			        input: await _MyQuery2Variables(event),
+			        artifact: _MyQuery2Artifact
+			    }));
+
 			    return result;
 			}
 
@@ -440,11 +449,7 @@ describe('kit route processor', function () {
 			        "blocking": false
 			    }));
 
-			    inputs["MyQuery2"] = await houdini_context.computeInput({
-			        "config": houdiniConfig,
-			        "variableFunction": __houdini___MyQuery2Variables,
-			        "artifact": _MyQuery2Artifact
-			    });
+			    inputs["MyQuery2"] = await __houdini___MyQuery2Variables(houdiniConfig, context);
 
 			    promises.push(load_MyQuery2({
 			        "variables": inputs["MyQuery2"],
@@ -645,6 +650,8 @@ test('beforeLoad hook', async function () {
 		import { load_TestQuery } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
 		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
+		import __houdini__config from "../../../config.cjs";
+		import { parseScalar, marshalInputs } from "$houdini/runtime/lib/scalars";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
 		export async function _houdini_beforeLoad() {
@@ -657,9 +664,14 @@ test('beforeLoad hook', async function () {
 		    };
 		}
 
-		async function __houdini___TestQueryVariables(event) {
+		async function __houdini___TestQueryVariables(config, event) {
 		    const result = {};
-		    Object.assign(result, await _TestQueryVariables(event));
+
+		    Object.assign(result, await marshalInputs({
+		        input: await _TestQueryVariables(event),
+		        artifact: _TestQueryArtifact
+		    }));
+
 		    return result;
 		}
 
@@ -674,12 +686,7 @@ test('beforeLoad hook', async function () {
 		    const houdiniConfig = await getCurrentConfig();
 		    const promises = [];
 		    const inputs = {};
-
-		    inputs["TestQuery"] = await houdini_context.computeInput({
-		        "config": houdiniConfig,
-		        "variableFunction": __houdini___TestQueryVariables,
-		        "artifact": _TestQueryArtifact
-		    });
+		    inputs["TestQuery"] = await __houdini___TestQueryVariables(houdiniConfig, context);
 
 		    promises.push(load_TestQuery({
 		        "variables": inputs["TestQuery"],
@@ -827,6 +834,8 @@ test('afterLoad hook', async function () {
 		import { load_TestQuery } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
 		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
+		import __houdini__config from "../../../config.cjs";
+		import { parseScalar, marshalInputs } from "$houdini/runtime/lib/scalars";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
 		export async function _houdini_afterLoad() {
@@ -839,9 +848,14 @@ test('afterLoad hook', async function () {
 		    };
 		}
 
-		async function __houdini___TestQueryVariables(event) {
+		async function __houdini___TestQueryVariables(config, event) {
 		    const result = {};
-		    Object.assign(result, await _TestQueryVariables(event));
+
+		    Object.assign(result, await marshalInputs({
+		        input: await _TestQueryVariables(event),
+		        artifact: _TestQueryArtifact
+		    }));
+
 		    return result;
 		}
 
@@ -850,12 +864,7 @@ test('afterLoad hook', async function () {
 		    const houdiniConfig = await getCurrentConfig();
 		    const promises = [];
 		    const inputs = {};
-
-		    inputs["TestQuery"] = await houdini_context.computeInput({
-		        "config": houdiniConfig,
-		        "variableFunction": __houdini___TestQueryVariables,
-		        "artifact": _TestQueryArtifact
-		    });
+		    inputs["TestQuery"] = await __houdini___TestQueryVariables(houdiniConfig, context);
 
 		    promises.push(load_TestQuery({
 		        "variables": inputs["TestQuery"],
@@ -1015,6 +1024,8 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		import { load_TestQuery } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
 		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
+		import __houdini__config from "../../../config.cjs";
+		import { parseScalar, marshalInputs } from "$houdini/runtime/lib/scalars";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
 		export async function _houdini_beforeLoad() {
@@ -1031,9 +1042,14 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		    };
 		}
 
-		async function __houdini___TestQueryVariables(event) {
+		async function __houdini___TestQueryVariables(config, event) {
 		    const result = {};
-		    Object.assign(result, await _TestQueryVariables(event));
+
+		    Object.assign(result, await marshalInputs({
+		        input: await _TestQueryVariables(event),
+		        artifact: _TestQueryArtifact
+		    }));
+
 		    return result;
 		}
 
@@ -1048,12 +1064,7 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		    const houdiniConfig = await getCurrentConfig();
 		    const promises = [];
 		    const inputs = {};
-
-		    inputs["TestQuery"] = await houdini_context.computeInput({
-		        "config": houdiniConfig,
-		        "variableFunction": __houdini___TestQueryVariables,
-		        "artifact": _TestQueryArtifact
-		    });
+		    inputs["TestQuery"] = await __houdini___TestQueryVariables(houdiniConfig, context);
 
 		    promises.push(load_TestQuery({
 		        "variables": inputs["TestQuery"],
@@ -1110,19 +1121,26 @@ test('layout loads', async function () {
 	expect(route.layout_script).toMatchInlineSnapshot(`
 		import { MyQuery2Store } from "$houdini/plugins/houdini-svelte/stores/MyQuery2";
 		import { MyQuery1Store } from "$houdini/plugins/houdini-svelte/stores/MyQuery1";
-		import _MyQuery2Artifact from "$houdini/artifacts/MyQuery2";
 		import { load_MyQuery2 } from "$houdini/plugins/houdini-svelte/stores/MyQuery2";
 		import { load_MyQuery1 } from "$houdini/plugins/houdini-svelte/stores/MyQuery1";
 		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
+		import _MyQuery2Artifact from "$houdini/artifacts/MyQuery2";
+		import __houdini__config from "../../../config.cjs";
+		import { parseScalar, marshalInputs } from "$houdini/runtime/lib/scalars";
 		const store1 = new MyQuery1Store();
 		const store2 = new MyQuery2Store();
 		export function _MyQuery2Variables() {}
 		export const _houdini_load = [store1, store2];
 
-		async function __houdini___MyQuery2Variables(event) {
+		async function __houdini___MyQuery2Variables(config, event) {
 		    const result = {};
-		    Object.assign(result, await _MyQuery2Variables(event));
+
+		    Object.assign(result, await marshalInputs({
+		        input: await _MyQuery2Variables(event),
+		        artifact: _MyQuery2Artifact
+		    }));
+
 		    return result;
 		}
 
@@ -1139,11 +1157,7 @@ test('layout loads', async function () {
 		        "blocking": false
 		    }));
 
-		    inputs["MyQuery2"] = await houdini_context.computeInput({
-		        "config": houdiniConfig,
-		        "variableFunction": __houdini___MyQuery2Variables,
-		        "artifact": _MyQuery2Artifact
-		    });
+		    inputs["MyQuery2"] = await __houdini___MyQuery2Variables(houdiniConfig, context);
 
 		    promises.push(load_MyQuery2({
 		        "variables": inputs["MyQuery2"],
@@ -1343,6 +1357,8 @@ test('onError hook', async function () {
 		import { load_TestQuery } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
 		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
+		import __houdini__config from "../../../config.cjs";
+		import { parseScalar, marshalInputs } from "$houdini/runtime/lib/scalars";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
 		export async function _houdini_onError() {
@@ -1355,9 +1371,14 @@ test('onError hook', async function () {
 		    };
 		}
 
-		async function __houdini___TestQueryVariables(event) {
+		async function __houdini___TestQueryVariables(config, event) {
 		    const result = {};
-		    Object.assign(result, await _TestQueryVariables(event));
+
+		    Object.assign(result, await marshalInputs({
+		        input: await _TestQueryVariables(event),
+		        artifact: _TestQueryArtifact
+		    }));
+
 		    return result;
 		}
 
@@ -1366,12 +1387,7 @@ test('onError hook', async function () {
 		    const houdiniConfig = await getCurrentConfig();
 		    const promises = [];
 		    const inputs = {};
-
-		    inputs["TestQuery"] = await houdini_context.computeInput({
-		        "config": houdiniConfig,
-		        "variableFunction": __houdini___TestQueryVariables,
-		        "artifact": _TestQueryArtifact
-		    });
+		    inputs["TestQuery"] = await __houdini___TestQueryVariables(houdiniConfig, context);
 
 		    promises.push(load_TestQuery({
 		        "variables": inputs["TestQuery"],
@@ -1416,15 +1432,16 @@ test('route params, no variable function', async function () {
 
 	expect(route.script).toMatchInlineSnapshot(`
 		import { UserInfoStore } from "$houdini/plugins/houdini-svelte/stores/UserInfo";
-		import _UserInfoArtifact from "$houdini/artifacts/UserInfo";
 		import { load_UserInfo } from "$houdini/plugins/houdini-svelte/stores/UserInfo";
 		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
+		import __houdini__config from "../../../../../config.cjs";
+		import { parseScalar, marshalInputs } from "$houdini/runtime/lib/scalars";
 		export const _houdini_load = new UserInfoStore();
 
-		async function __houdini___UserInfoVariables(event) {
+		async function __houdini___UserInfoVariables(config, event) {
 		    const result = {
-		        userID: event.params.userID
+		        userID: parseScalar(__houdini__config, "ID", event.params.userID)
 		    };
 
 		    return result;
@@ -1435,12 +1452,7 @@ test('route params, no variable function', async function () {
 		    const houdiniConfig = await getCurrentConfig();
 		    const promises = [];
 		    const inputs = {};
-
-		    inputs["UserInfo"] = await houdini_context.computeInput({
-		        "config": houdiniConfig,
-		        "variableFunction": __houdini___UserInfoVariables,
-		        "artifact": _UserInfoArtifact
-		    });
+		    inputs["UserInfo"] = await __houdini___UserInfoVariables(houdiniConfig, context);
 
 		    promises.push(load_UserInfo({
 		        "variables": inputs["UserInfo"],
@@ -1486,10 +1498,12 @@ test('route params with variable function', async function () {
 
 	expect(route.script).toMatchInlineSnapshot(`
 		import { UserInfoStore } from "$houdini/plugins/houdini-svelte/stores/UserInfo";
-		import _UserInfoArtifact from "$houdini/artifacts/UserInfo";
 		import { load_UserInfo } from "$houdini/plugins/houdini-svelte/stores/UserInfo";
 		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
+		import _UserInfoArtifact from "$houdini/artifacts/UserInfo";
+		import __houdini__config from "../../../../../config.cjs";
+		import { parseScalar, marshalInputs } from "$houdini/runtime/lib/scalars";
 		export const _houdini_load = new UserInfoStore();
 
 		export function _UserInfoVariables(event) {
@@ -1498,12 +1512,16 @@ test('route params with variable function', async function () {
 		    };
 		}
 
-		async function __houdini___UserInfoVariables(event) {
+		async function __houdini___UserInfoVariables(config, event) {
 		    const result = {
-		        userID: event.params.userID
+		        userID: parseScalar(__houdini__config, "ID", event.params.userID)
 		    };
 
-		    Object.assign(result, await _UserInfoVariables(event));
+		    Object.assign(result, await marshalInputs({
+		        input: await _UserInfoVariables(event),
+		        artifact: _UserInfoArtifact
+		    }));
+
 		    return result;
 		}
 
@@ -1512,12 +1530,7 @@ test('route params with variable function', async function () {
 		    const houdiniConfig = await getCurrentConfig();
 		    const promises = [];
 		    const inputs = {};
-
-		    inputs["UserInfo"] = await houdini_context.computeInput({
-		        "config": houdiniConfig,
-		        "variableFunction": __houdini___UserInfoVariables,
-		        "artifact": _UserInfoArtifact
-		    });
+		    inputs["UserInfo"] = await __houdini___UserInfoVariables(houdiniConfig, context);
 
 		    promises.push(load_UserInfo({
 		        "variables": inputs["UserInfo"],
@@ -1540,3 +1553,5 @@ test('route params with variable function', async function () {
 		}
 	`)
 })
+
+test.todo('overlapping query parameters')

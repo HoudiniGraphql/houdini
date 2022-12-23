@@ -173,7 +173,7 @@ export function unmarshalSelection(
 			}
 			// is the type something that requires marshaling
 			if (config.scalars?.[type]?.marshal) {
-				const unmarshalFn = config.scalars[type].unmarshal
+				const unmarshalFn = config.scalars[type]?.unmarshal
 				if (!unmarshalFn) {
 					throw new Error(
 						`scalar type ${type} is missing an \`unmarshal\` function. see https://github.com/AlecAivazis/houdini#%EF%B8%8Fcustom-scalars`
@@ -197,4 +197,34 @@ export function isScalar(config: ConfigFile, type: string) {
 	return ['String', 'Boolean', 'Float', 'ID', 'Int']
 		.concat(Object.keys(config.scalars || {}))
 		.includes(type)
+}
+
+export function parseScalar(
+	config: ConfigFile,
+	type: string,
+	value: string
+): string | number | boolean {
+	if (type === 'Boolean') {
+		return value === 'true'
+	}
+	if (type === 'ID') {
+		return value
+	}
+	if (type === 'String') {
+		return value
+	}
+	if (type === 'Int') {
+		return parseInt(value, 10)
+	}
+	if (type === 'Float') {
+		return parseFloat(value)
+	}
+
+	// if we have a special parse function, use it
+	if (config.scalars?.[type]?.marshal) {
+		return config.scalars[type]?.marshal!(value)
+	}
+
+	// we dont recognize the type, just use the string value
+	return value
 }

@@ -101,20 +101,6 @@ export class RequestContext {
 
 		this.returnValue = result
 	}
-
-	// compute the inputs for an operation should reflect the framework's conventions.
-	async computeInput({
-		variableFunction,
-		artifact,
-	}: {
-		variableFunction: KitBeforeLoad
-		artifact: QueryArtifact | MutationArtifact | SubscriptionArtifact
-	}) {
-		// call the variable function to match the framework
-		let input = await variableFunction.call(this, this.loadEvent)
-
-		return await marshalInputs({ artifact, input })
-	}
 }
 
 type KitBeforeLoad = (ctx: BeforeLoadArgs) => Record<string, any> | Promise<Record<string, any>>

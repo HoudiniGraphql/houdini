@@ -2,7 +2,7 @@ import { test, expect, describe, beforeEach } from 'vitest'
 
 import { testConfigFile } from '../../test'
 import { setMockConfig } from './config'
-import { marshalInputs, marshalSelection, unmarshalSelection } from './scalars'
+import { marshalInputs, marshalSelection, parseScalar, unmarshalSelection } from './scalars'
 import { ArtifactKind, QueryArtifact, SubscriptionSelection } from './types'
 
 beforeEach(() =>
@@ -923,4 +923,68 @@ describe('marshal selection', function () {
 			enumValue: ['Hello', 'World'],
 		})
 	})
+})
+
+describe('parseScalar', function () {
+	const table = [
+		{
+			title: 'String',
+			type: 'String',
+			value: 'asf',
+			expected: 'asf',
+		},
+		{
+			title: 'ID',
+			type: 'ID',
+			value: 'asf',
+			expected: 'asf',
+		},
+		{
+			title: 'Int',
+			type: 'Int',
+			value: '1',
+			expected: 1,
+		},
+		{
+			title: 'Boolean',
+			type: 'Boolean',
+			value: 'true',
+			expected: true,
+		},
+		{
+			title: 'Float',
+			type: 'Float',
+			value: '1.0',
+			expected: 1.0,
+		},
+		{
+			title: 'Custom with Marshal',
+			type: 'MyScalar',
+			value: '1.0',
+			expected: 100.0,
+		},
+		{
+			title: 'Custom mo Marshal',
+			type: 'MyScalar2',
+			value: '1.0',
+			expected: '1.0',
+		},
+	]
+
+	const config = testConfigFile({
+		scalars: {
+			MyScalar: {
+				type: 'number',
+				marshal(val: string) {
+					return parseInt(val, 10) * 100
+				},
+			},
+		},
+	})
+
+	for (const row of table) {
+		test(row.title, function () {
+			expect(parseScalar(config, row.type, row.value)).toEqual(row.expected)
+		})
+	}
 })
