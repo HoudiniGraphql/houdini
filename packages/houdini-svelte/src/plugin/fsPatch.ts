@@ -1,11 +1,13 @@
 import filesystem, { Dirent, PathLike } from 'fs'
 import { fs, Plugin, path } from 'houdini'
 
+import { _config } from '.'
 import {
 	Framework,
 	is_root_layout,
 	is_root_layout_server,
 	is_route_script,
+	plugin_config,
 	resolve_relative,
 } from './kit'
 
@@ -193,7 +195,11 @@ filesystem.readdirSync = function (
 	}
 	// if we are in looking inside of src/routes and there's no +layout.server.js file
 	// we need to create one
-	if (is_root_route(posix_filepath) && !contains('+layout.server.js', '+layout.server.ts')) {
+	if (
+		is_root_route(posix_filepath) &&
+		!contains('+layout.server.js', '+layout.server.ts') &&
+		!plugin_config(_config).static
+	) {
 		result.push(virtual_file('+layout.server.js', options))
 	}
 
