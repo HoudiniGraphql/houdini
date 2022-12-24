@@ -126,18 +126,11 @@ function affects_path(segment: string) {
  * Splits a route id into its segments, removing segments that
  * don't affect the path (i.e. groups). The root route is represented by `/`
  * and will be returned as `['']`.
- * @param {string} route
- * @returns string[]
  */
 export function get_route_segments(route: string) {
 	return route.slice(1).split('/').filter(affects_path)
 }
 
-/**
- * @param {RegExpMatchArray} match
- * @param {import('types').RouteParam[]} params
- * @param {Record<string, import('types').ParamMatcher>} matchers
- */
 export function exec(
 	match: RegExpMatchArray,
 	params: RouteParam[],
