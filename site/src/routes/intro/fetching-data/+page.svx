@@ -10,7 +10,23 @@ description: The first part of the Houdini intro focusing on how to fetch data
 
 # Fetching Data
 
-Before we do anything _too_ complicated, lets look at what we are starting with:
+Before we do anything _too_ complicated, lets start with some static content pulled from our GraphQL API.
+Create two files inside of your `src/routes` directory: `+page.gql` and `+page.svelte`:
+
+```graphql
+# src/routes/+page.gql
+
+query Info {
+    species(id: 1) {
+        id
+        name
+        flavor_text
+        sprites {
+            front
+        }
+    }
+}
+```
 
 ```svelte
 <!-- src/routes/+page.svelte -->
@@ -19,38 +35,34 @@ Before we do anything _too_ complicated, lets look at what we are starting with:
     import { graphql } from '$houdini'
     import { Container, Display, Sprite, Panel } from '~/components'
 
-    const info = graphql(`
-        query SpeciesInfo {
-            species(id: 1) {
-                name
-                flavor_text
-                sprites {
-                    front
-                }
-            }
-        }
-    `)
+    export let data
+
+    $: ({ Info } = data)
 </script>
 
 <Container>
     <Panel slot="left">
-		<Display id="species-name">
-			{$info.data.species.name}
-			<span>no.{$info.data.species.id}</span>
-		</Display>
+        <Display id="species-name">
+            {$Info.data.species.name}
+            <span>no.{$Info.data.species.id}</span>
+        </Display>
         <Sprite
             id="species-sprite"
-            src={$info.data.species.sprites.front}
-            speciesName={$info.data.species.name}
+            src={$Info.data.species.sprites.front}
+            speciesName={$Info.data.species.name}
         />
         <Display id="species-flavor_text">
-            {$info.data.species.flavor_text}
+            {$Info.data.species.flavor_text}
         </Display>
     </Panel>
 </Container>
 ```
 
-In this example, you can see we are taking a graphql query named `SpeciesInfo` and rendering the result using some components from the project's `components` directory. There is a lot of stuff going on under the hood here but let's not worry about it for now - what matters most is that we defined a named query with `graphql` and got back a store that we are using to access the result of our query.
+You're already starting to see some of the very exciting things Houdini offers. Just like you might define a route's `load` function in a standard
+SvelteKit application, you can use `+page.gql` to define the query for your route.
+
+The data for the query is passed as a store that's available in a key that matches its name (in this case its `Info`). We used the store to render some basic information about Bulbasaur using some components that
+were provided in the project's `component` directory.
 
 <GraphQLExplained title="Queries">
 
@@ -58,9 +70,9 @@ A GraphQL query is a string that describes what information you want from the AP
 
 ```graphql
 query CurrentUserInfo {
-	current_user {
-		firstName
-	}
+    current_user {
+        firstName
+    }
 }
 ```
 
@@ -68,11 +80,11 @@ The result of the above query might look something like:
 
 ```json
 {
-	"data": {
-		"current_user": {
-			"firstName": "Bill"
-		}
-	}
+    "data": {
+        "current_user": {
+            "firstName": "Bill"
+        }
+    }
 }
 ```
 
@@ -82,10 +94,10 @@ Fields in a query can take arguments to customize their behavior, for example:
 
 ```graphql
 query CurrentUserInfo {
-	current_user {
-		# specify the format for the date time stamp
-		lastLogin(format: "YYYY-MM-DD")
-	}
+    current_user {
+        # specify the format for the date time stamp
+        lastLogin(format: "YYYY-MM-DD")
+    }
 }
 ```
 
@@ -93,11 +105,11 @@ might return something like this:
 
 ```json
 {
-	"data": {
-		"current_user": {
-			"lastLogin": "2022-12-25"
-		}
-	}
+    "data": {
+        "current_user": {
+            "lastLogin": "2022-12-25"
+        }
+    }
 }
 ```
 
@@ -115,29 +127,29 @@ Anyway, now that you have the necessary files, you should see Bulbasaur's descri
 If you were looking carefully, you might have noticed that we didn't define a `load` function as described in the [SvelteKit docs](https://kit.svelte.dev/docs/loading). Don't worry, this route is still rendered on the server thanks to the vite plugin. One of its responsibilities is moving the actual fetch into a `load`. You can think of the block at the top of this section as equivalent to:
 
 ```svelte
-<!-- src/routes/myRoute/+page.svelte -->
+<!-- src/routes/+page.svelte -->
 
 <script>
-	// the store gets passed to us as a prop
-	export let data
+    // the store gets passed to us as a prop
+    export let data
 
-	$: info = data.SpeciesInfoStore
+    $: ({ Info } = data)
 </script>
 ```
 
 ```typescript
-// src/routes/myRoute/+page.js
+// src/routes/+page.js
 
-import { SpeciesInfoStore } from '$houdini/stores/SpeciesInfo'
+import { InfoStore } from '$houdini/stores/Info'
 
 export async function load({ event }) {
-	const store = new SpeciesInfoStore()
+    const store = new InfoStore()
 
-	await SpeciesInfoStore.fetch({ event })
+    await InfoStore.fetch({ event })
 
-	return {
-		SpeciesInfoStore: store
-	}
+    return {
+        Info: store
+    }
 }
 ```
 
@@ -145,47 +157,64 @@ export async function load({ event }) {
 
 ## Query Variables
 
-This is a good start but we will need to be able to show information for more species than just Bulbasaur. Let's set up our application to take look at the url for the id of the species we are interested in. To do that, rename `+page.svelte` to `[[id]]/+page.svelte`. That will let us have an optional parameter in the url so we can render the same view for both `/` and `/1`.
+This is a good start but we will need to be able to show information for more species than just Bulbasaur.
+Let's set up our application to take look at the url for the id of the species we are interested in.
+To do that, add a directory named `[[id]]` and move both `+page.gql` and `+page.svelte` inside of it.
+The double braces might seem strange but that will let us have an optional parameter in the url so we can
+render the same view for both `/` and `/1`.
+
+```bash
+# This needs to be run inside of src/routes
+mkdir "[[id]]" && mv +page.* "./[[id]]"
+```
 
 <GraphQLExplained title="Query Variables">
 
-All of the queries we've seen so far have had static arguments. However, most of the time you will need to want to give an argument a dynamic value based on something in your application. For example, the text of an input when filtering a list. GraphQL allows us to define references to dynamic values that must be fulfilled when sending the query. These values are known as variables and can be applied to not just queries: mutations and subscription too!
+All of the queries we've seen so far have had static arguments. However, most of the time
+you will need to want to give an argument a dynamic value based on something in your application.
+For example, the text of an input when filtering a list. GraphQL allows us to define references
+to dynamic values that must be fulfilled when sending the query. These values are known as
+variables and can be applied to not just queries: mutations and subscription too!
 
 Defining variables for your document looks like the follow:
 
 ```graphql
 query MyQuery($variable1: Boolean) {
-	myField(argument: $variable1)
+    myField(argument: $variable1)
 }
 ```
 
-Notice the `($variable1: Boolean)`? That's how we say that the `MyQuery` query takes one argument, called `$variable1`, that is a `Boolean`. All variables in GraphQL must start with a `$` (makes the compilers job easier) and are optional by default. In order to mark a variable as required, you have to put `!` at the end of the type:
+Notice the `($variable1: Boolean)`? That's how we say that the `MyQuery` query takes one argument,
+called `$variable1`, that is a `Boolean`. All variables in GraphQL must start with a `$`
+(makes the compilers job easier) and are optional by default. In order to mark a variable as required,
+you have to put `!` at the end of the type:
 
 ```graphql
 query MyQuery($variable1: Boolean, variable2: String!) {
-	myField(arg1: $variable1, arg2: $variable2)
+    myField(arg1: $variable1, arg2: $variable2)
 }
 ```
 
 </GraphQLExplained>
 
-Now that we have the actual route defined, we will have to change our query so that it can accept a variable. Doing this is relatively simple, just update the string inside of the `graphql` function to look like the following:
+Now that we have the actual route defined, we will have to change our query so that it can accept
+a variable. Doing this is relatively simple, just update the query inside of `+page.gql` to look like the following:
 
 ```graphql
-query SpeciesInfo($id: Int = 1) {
-	species(id: $id) {
-		name
-		flavor_text
-		sprites {
-			front
-		}
-	}
+query Info($id: Int = 1) {
+    species(id: $id) {
+        name
+        flavor_text
+        sprites {
+            front
+        }
+    }
 }
 ```
 
 And that's it! Notice that the route parameter matched the name of the query input? Houdini detected that,
 and took care of the all of the wiring for you. Pretty cool, huh? Don't worry, there is a way to perform
-custom logic to compute your query inputs which you can find [here](/api/query#query-variables).
+custom logic to compute your query inputs when you need it. For more information, checkout the [query api docs](/api/query#query-variables).
 
 You should be able to navigate to `/6` and see Charizard's information. If you then navigate back to `/`,
 no value for the `[[id]]` portion of the url is passed and the query uses its default value of `1`.
@@ -195,10 +224,10 @@ For completeness, let's quickly add some buttons to navigate between the differe
 ```svelte
 <Panel slot="right">
     <nav>
-        <a href={$info.data.species.id - 1} disabled={$info.data.species.id <= 1}>
+        <a href={$Info.data.species.id - 1} disabled={$Info.data.species.id <= 1}>
             previous
         </a>
-        <a href={$info.data.species.id + 1} disabled={$info.data.species.id >= 151}>
+        <a href={$Info.data.species.id + 1} disabled={$Info.data.species.id >= 151}>
             next
         </a>
     </nav>
@@ -212,16 +241,16 @@ to handle the loading state for our view. Let's just do something quick and dirt
 
 ```svelte
 
-{#if $info.isFetching}
-	<Container/>
+{#if $Info.isFetching}
+    <Container/>
 {:else}
-	<!-- what we had before -->
+    <!-- what we had before -->
 {/if}
 ```
 
 ## Error Handling
 
-So far so good! There is one slight problem: there are only 151 species in the first generation of Pokémon. The buttons we added in the last section prevent the user from going beyond those bounds, but if we navigate to `/152` directly we will get an error since `$info.data.species` is null. Go ahead, give it a try.
+So far so good! There is one slight problem: there are only 151 species in the first generation of Pokémon. The buttons we added in the last section prevent the user from going beyond those bounds, but if we navigate to `/152` directly we will get an error since `$Info.data.species` is null. Go ahead, give it a try.
 
 In order to prevent this, we need to check if `id` is between `1` and `151` and if not, render an error for the user. The best way to do this is to use a load hook to check the value before the load fires. Load hooks belong in `+page.js` files so create a
 file at `src/routes/[[id]]/+page.js` that looks like the following:
@@ -230,14 +259,14 @@ file at `src/routes/[[id]]/+page.js` that looks like the following:
 import { error } from '@sveltejs/kit'
 
 export function _houdini_beforeLoad({ params }) {
-	// if we were given an id, convert the string to a number
-	const id = params.id ? parseInt(params.id) : 1
+    // if we were given an id, convert the string to a number
+    const id = params.id ? parseInt(params.id) : 1
 
-	// check that the id falls between 1 and 151
-	if (id < 1 || id > 151) {
-		// return a status code 400 along with the error
-		throw error(400, 'id must be between 1 and 151')
-	}
+    // check that the id falls between 1 and 151
+    if (id < 1 || id > 151) {
+        // return a status code 400 along with the error
+        throw error(400, 'id must be between 1 and 151')
+    }
 }
 ```
 
