@@ -10,7 +10,7 @@ on:
     # every commit on master
     push:
         branches:
-            - '*'
+            - 'main'
 
 jobs:
     format:
