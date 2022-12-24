@@ -2,7 +2,7 @@ import { logYellow } from '@kitql/helper'
 import type { IdentifierKind, StatementKind } from 'ast-types/lib/gen/kinds'
 import type { namedTypes } from 'ast-types/lib/gen/namedTypes'
 import * as graphql from 'graphql'
-import { formatErrors, fs, path, TypeWrapper, unwrapType } from 'houdini'
+import { formatErrors, fs, TypeWrapper, unwrapType } from 'houdini'
 import { artifact_import, ensure_imports, find_insert_index } from 'houdini/vite'
 import * as recast from 'recast'
 

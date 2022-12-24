@@ -1,7 +1,7 @@
 import { logYellow } from '@kitql/helper'
 import { ExpressionKind } from 'ast-types/lib/gen/kinds'
 import * as graphql from 'graphql'
-import { Config, find_graphql, Script, formatErrors, unwrapType } from 'houdini'
+import { Config, find_graphql, Script, formatErrors } from 'houdini'
 import { find_exported_fn, find_insert_index, ensure_imports, TransformPage } from 'houdini/vite'
 import * as recast from 'recast'
 
@@ -13,8 +13,6 @@ const AST = recast.types.builders
 
 type ExportNamedDeclaration = recast.types.namedTypes.ExportNamedDeclaration
 type VariableDeclaration = recast.types.namedTypes.VariableDeclaration
-type Identifier = recast.types.namedTypes.Identifier
-type Statement = recast.types.namedTypes.Statement
 
 export default async function QueryProcessor(config: Config, page: SvelteTransformPage) {
 	// only consider consider components in this processor

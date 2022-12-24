@@ -9,7 +9,7 @@ import {
 	walk_routes,
 } from '../../kit'
 import { houdini_after_load_fn, houdini_before_load_fn, houdini_on_error_fn } from '../../naming'
-import { route_params, RouteParam } from '../../routing'
+import { route_params } from '../../routing'
 
 export default async function svelteKitGenerator(
 	framework: Framework,
