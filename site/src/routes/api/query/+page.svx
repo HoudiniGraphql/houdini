@@ -133,7 +133,11 @@ Regardless of which pattern you are using, you will quickly need to customize yo
 
 ### Query Variables
 
-Query variables must be exported from your `+page.js` files and named after your query. This function takes the same arguments passed to the `load` function
+The simplest way to pass values for your query inputs is to use route parameters. If houdini sees that the name for a route paramter matches the
+name of a query's input, it will attempt to parse the value and pass it to your query.
+
+Sometimes your query variables cannot be directly pulled from your route's path. In those cases, you can export a function
+named after your query from `+page.js` files to perform whatever logic you need. This function takes the same arguments passed to the `load` function
 described in the [SvelteKit](https://kit.svelte.dev/docs#Loading) docs. To return an error, or force a redirect, you can
 use the same utilities exported from `@sveltejs/kit`. Here is a modified example
 [from the source repository](https://github.com/HoudiniGraphql/houdini/tree/main/example):
@@ -153,13 +157,11 @@ export const _houdini_load = graphql(`
 `)
 
 // This is the function for the AllItems query.
-// Query variable functions must be named <QueryName>Variables.
+// Query variable functions must be named _<QueryName>Variables.
 export function _AllItemsVariables(event): AllItems$input {
 	// make sure we recognize the value
 	if (!['active', 'completed'].includes(event.params.filter)) {
-		throw error(400, {
-			message: 'invalid filter'
-		})
+		throw error(400, 'invalid filter')
 	}
 
 	return {
@@ -422,7 +424,7 @@ export async function load(event) {
 ## Components Queries
 
 Not every query will be inside of a route. In this situations, you can either work with your
-query stores directly, or use the same graphql tag to instruct the plugin to generate a client-side
+query stores directly, or use the same graphql function to instruct the plugin to generate a client-side
 equivalent of the load function.
 
 ```svelte
