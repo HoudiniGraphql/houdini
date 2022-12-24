@@ -159,14 +159,15 @@ export async function load({ event }) {
 
 This is a good start but we will need to be able to show information for more species than just Bulbasaur.
 Let's set up our application to take look at the url for the id of the species we are interested in.
-To do that, add a directory named `[[id]]` and move both `+page.gql` and `+page.svelte` inside of it.
-The double braces might seem strange but that will let us have an optional parameter in the url so we can
-render the same view for both `/` and `/1`.
+To do that, add a directory named `[[id]]` and move both `+page.gql` and `+page.svelte` inside of it:
 
 ```bash
-# This needs to be run inside of src/routes
-mkdir "[[id]]" && mv +page.* "./[[id]]"
+# This needs to be run at the root of the project
+cd src/routes && mkdir "[[id]]" && mv +page.* "./[[id]]"
 ```
+
+The double braces might seem strange but that will let us have an optional parameter in the url so we can
+render the same view for both `/` and `/1`.
 
 <GraphQLExplained title="Query Variables">
 
@@ -212,9 +213,10 @@ query Info($id: Int = 1) {
 }
 ```
 
-And that's it! Notice that the route parameter matched the name of the query input? Houdini detected that,
+And that's it! Notice that the route parameter matched the name of the query input? Houdini detected that
 and took care of the all of the wiring for you. Pretty cool, huh? Don't worry, there is a way to perform
-custom logic to compute your query inputs when you need it. For more information, checkout the [query api docs](/api/query#query-variables).
+custom logic to compute your query inputs when you need it. For more information, check out the
+[query api docs](/api/query#query-variables).
 
 You should be able to navigate to `/6` and see Charizard's information. If you then navigate back to `/`,
 no value for the `[[id]]` portion of the url is passed and the query uses its default value of `1`.
