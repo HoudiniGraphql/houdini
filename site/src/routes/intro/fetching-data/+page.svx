@@ -5,7 +5,7 @@ description: The first part of the Houdini intro focusing on how to fetch data
 ---
 
 <script>
-    import { GraphQLExplained, DeepDive, CodeBlock } from '~/components'
+    import { GraphQLExplained, DeepDive } from '~/components'
 </script>
 
 # Fetching Data
