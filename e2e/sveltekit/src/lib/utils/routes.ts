@@ -3,7 +3,7 @@ export const routes = {
   GraphQL: 'http://localhost:4000/graphql',
 
   // features
-  Query_param: '/nested-routes',
+  nested_routes: '/nested-routes',
   isFetching_with_load: '/isFetching/with_load',
   isFetching_without_load: '/isFetching/without_load',
   isFetching_route_1: '/isFetching/route_1',
