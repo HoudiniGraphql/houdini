@@ -7,9 +7,9 @@ import {
 	store_suffix,
 	Framework,
 	walk_routes,
-	route_params,
 } from '../../kit'
 import { houdini_after_load_fn, houdini_before_load_fn, houdini_on_error_fn } from '../../naming'
+import { route_params, RouteParam } from '../../routing'
 
 export default async function svelteKitGenerator(
 	framework: Framework,
@@ -269,10 +269,8 @@ function append_VariablesFunction(
 	config: Config,
 	queries: OperationDefinitionNode[]
 ) {
-	const params = route_params(filepath)
-	const garunteed_args = Object.values(params)
-		.filter((param) => !param.optional)
-		.map((param) => param.name)
+	const { params } = route_params(filepath)
+	const garunteed_args = params.filter((param) => !param.optional).map((param) => param.name)
 
 	return queries
 		.map((query) => {

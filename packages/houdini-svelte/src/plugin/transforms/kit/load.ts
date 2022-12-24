@@ -17,7 +17,6 @@ import {
 	page_query_path,
 	route_data_path,
 	route_page_path,
-	route_params,
 	store_import_path,
 } from '../../kit'
 import {
@@ -26,6 +25,7 @@ import {
 	houdini_on_error_fn,
 	query_variable_fn,
 } from '../../naming'
+import { route_params, RouteParam } from '../../routing'
 import { find_inline_queries, LoadTarget } from '../query'
 import { SvelteTransformPage } from '../types'
 
@@ -502,7 +502,13 @@ function variable_function_for_query(
 	// the query do not have a non-optional value from the url
 
 	// find the paramters we are passed to from the URL
-	const params = route_params(page.filepath)
+	const params = route_params(page.filepath).params.reduce(
+		(acc, param) => ({
+			...acc,
+			[param.name]: param,
+		}),
+		{} as Record<string, RouteParam>
+	)
 
 	// make sure that we have the utility to handle scalar args
 	ensure_imports({
