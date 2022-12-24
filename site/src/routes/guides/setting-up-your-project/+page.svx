@@ -126,10 +126,6 @@ export default {
 }
 ```
 
-Please keep in mind that returning the response from a query, you should not rely on `this.redirect` to handle the
-redirect as it will update your browsers `location` attribute, causing a hard transition to that url. Instead, you should
-use `this.error` to return an error and handle the redirect in a way that's appropriate for your application.
-
 ### Typescript
 
 When using Typescript and SvelteKit, you will need to add houdini to your rootDir value so that you can use the generated

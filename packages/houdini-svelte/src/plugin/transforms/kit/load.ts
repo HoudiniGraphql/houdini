@@ -513,7 +513,7 @@ function variable_function_for_query(
 	})
 	ensure_imports({
 		...page,
-		sourceModule: path.relative(page.filepath, page.config.filepath),
+		sourceModule: path.relative(path.dirname(page.filepath), page.config.filepath),
 		import: '__houdini__config',
 	})
 

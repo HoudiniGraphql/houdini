@@ -134,13 +134,14 @@ Regardless of which pattern you are using, you will quickly need to customize yo
 ### Query Variables
 
 Query variables must be exported from your `+page.js` files and named after your query. This function takes the same arguments passed to the `load` function
-described in the [SvelteKit](https://kit.svelte.dev/docs#Loading) docs. You can return
-the value from `this.error` and `this.redirect` in order to change the behavior of the response. Here is a
-modified example [from the source repository](https://github.com/HoudiniGraphql/houdini/tree/main/example):
+described in the [SvelteKit](https://kit.svelte.dev/docs#Loading) docs. To return an error, or force a redirect, you can
+use the same utilities exported from `@sveltejs/kit`. Here is a modified example
+[from the source repository](https://github.com/HoudiniGraphql/houdini/tree/main/example):
 
 ```javascript
 // src/routes/[filter]/+page.ts
 import { graphql } from '$houdini'
+import { error } from '@sveltejs/kit'
 
 export const _houdini_load = graphql(`
 	query AllItems($completed: Boolean) {
@@ -156,7 +157,9 @@ export const _houdini_load = graphql(`
 export function _AllItemsVariables(event): AllItems$input {
 	// make sure we recognize the value
 	if (!['active', 'completed'].includes(event.params.filter)) {
-		return this.error(400, 'invalid filter')
+		throw error(400, {
+			message: 'invalid filter'
+		})
 	}
 
 	return {
@@ -214,6 +217,7 @@ docs.
 ```javascript
 // src/routes/myRoute/+page.js
 import { graphql } from '$houdini'
+import { error } from '@sveltejs/kit'
 
 export const _houdini_load = graphql(`
 	query MyProfile($id: ID!) {
@@ -233,7 +237,7 @@ export function _MyProfileVariables({
 
 export function _houdini_afterLoad({ data }) {
 	if (!data.MyProfile) {
-		return this.error(404)
+		throw  error(404)
 	}
 
 	return {

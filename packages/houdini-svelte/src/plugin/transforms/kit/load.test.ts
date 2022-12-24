@@ -273,7 +273,7 @@ describe('kit route processor', function () {
 			import { load_TestQuery } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
 			import { getCurrentConfig } from "$houdini/runtime/lib/config";
 			import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
-			import __houdini__config from "../../../config.cjs";
+			import __houdini__config from "../../config.cjs";
 			import { parseScalar, marshalInputs } from "$houdini/runtime/lib/scalars";
 			import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
@@ -417,7 +417,7 @@ describe('kit route processor', function () {
 			import { getCurrentConfig } from "$houdini/runtime/lib/config";
 			import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
 			import _MyQuery2Artifact from "$houdini/artifacts/MyQuery2";
-			import __houdini__config from "../../../config.cjs";
+			import __houdini__config from "../../config.cjs";
 			import { parseScalar, marshalInputs } from "$houdini/runtime/lib/scalars";
 			import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 			const store1 = new MyQuery1Store();
@@ -650,7 +650,7 @@ test('beforeLoad hook', async function () {
 		import { load_TestQuery } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
 		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
-		import __houdini__config from "../../../config.cjs";
+		import __houdini__config from "../../config.cjs";
 		import { parseScalar, marshalInputs } from "$houdini/runtime/lib/scalars";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
@@ -834,7 +834,7 @@ test('afterLoad hook', async function () {
 		import { load_TestQuery } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
 		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
-		import __houdini__config from "../../../config.cjs";
+		import __houdini__config from "../../config.cjs";
 		import { parseScalar, marshalInputs } from "$houdini/runtime/lib/scalars";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
@@ -1024,7 +1024,7 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		import { load_TestQuery } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
 		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
-		import __houdini__config from "../../../config.cjs";
+		import __houdini__config from "../../config.cjs";
 		import { parseScalar, marshalInputs } from "$houdini/runtime/lib/scalars";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
@@ -1126,7 +1126,7 @@ test('layout loads', async function () {
 		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
 		import _MyQuery2Artifact from "$houdini/artifacts/MyQuery2";
-		import __houdini__config from "../../../config.cjs";
+		import __houdini__config from "../../config.cjs";
 		import { parseScalar, marshalInputs } from "$houdini/runtime/lib/scalars";
 		const store1 = new MyQuery1Store();
 		const store2 = new MyQuery2Store();
@@ -1357,7 +1357,7 @@ test('onError hook', async function () {
 		import { load_TestQuery } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
 		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
-		import __houdini__config from "../../../config.cjs";
+		import __houdini__config from "../../config.cjs";
 		import { parseScalar, marshalInputs } from "$houdini/runtime/lib/scalars";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
@@ -1435,7 +1435,7 @@ test('route params, no variable function', async function () {
 		import { load_UserInfo } from "$houdini/plugins/houdini-svelte/stores/UserInfo";
 		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
-		import __houdini__config from "../../../../../config.cjs";
+		import __houdini__config from "../../../../config.cjs";
 		import { parseScalar, marshalInputs } from "$houdini/runtime/lib/scalars";
 		export const _houdini_load = new UserInfoStore();
 
@@ -1502,7 +1502,7 @@ test('route params with variable function', async function () {
 		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
 		import _UserInfoArtifact from "$houdini/artifacts/UserInfo";
-		import __houdini__config from "../../../../../config.cjs";
+		import __houdini__config from "../../../../config.cjs";
 		import { parseScalar, marshalInputs } from "$houdini/runtime/lib/scalars";
 		export const _houdini_load = new UserInfoStore();
 

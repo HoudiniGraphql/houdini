@@ -39,15 +39,6 @@ export class RequestContext {
 		return fetch(input, init)
 	}
 
-	graphqlErrors(payload: { errors?: GraphQLError[] }) {
-		// if we have a list of errors
-		if (payload.errors) {
-			return this.error(500, payload.errors.map(({ message }) => message).join('\n'))
-		}
-
-		return this.error(500, 'Encountered invalid response: ' + JSON.stringify(payload))
-	}
-
 	// This hook fires before executing any queries, it allows custom props to be passed to the component.
 	async invokeLoadHook({
 		variant,

@@ -235,6 +235,8 @@ So far so good! There is one slight problem: there are only 151 species in the f
 In order to prevent this, we need to check if `id` is between `1` and `151` and if not, render an error for the user. This is accomplished by updating `SpeciesInfoVariables` to look like:
 
 ```javascript
+import { error } from '@sveltejs/kit'
+
 export function _SpeciesInfoVariables({ params }) {
 	// if we were given an id, convert the string to a number
 	const id = params.id ? parseInt(params.id) : 1
@@ -242,7 +244,7 @@ export function _SpeciesInfoVariables({ params }) {
 	// check that the id falls between 1 and 151
 	if (id < 1 || id > 151) {
 		// return a status code 400 along with the error
-		throw this.error(400, 'id must be between 1 and 151')
+		throw error(400, 'id must be between 1 and 151')
 	}
 
 	return {
