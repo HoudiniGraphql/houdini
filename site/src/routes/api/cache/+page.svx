@@ -99,8 +99,11 @@ const user = cache.get('User', { id: "1" })
 user.delete()
 ```
 
-This will work most of the time however if the cache has not seen the field before, you will
-need to provide some type information so we can ensure that your responses are always valid.
+### Field schema information
+
+There are a few situations where the runtime might complain that it doesn't know the type of the field that you have set.
+For example, if you are setting a field that has not yet been queried. When this happens, you will need
+to provide some additional information so we can ensure that your responses are always valid.
 To do this, use `cache.setFieldType`:
 
 ```typescript
