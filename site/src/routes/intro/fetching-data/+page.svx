@@ -5,7 +5,7 @@ description: The first part of the Houdini intro focusing on how to fetch data
 ---
 
 <script>
-    import { GraphQLExplained, DeepDive } from '~/components'
+    import { GraphQLExplained, DeepDive, CodeBlock } from '~/components'
 </script>
 
 # Fetching Data
@@ -214,12 +214,12 @@ query Info($id: Int = 1) {
 ```
 
 And that's it! Notice that the route parameter matched the name of the query input? Houdini detected that
-and took care of the all of the wiring for you. Pretty cool, huh? Don't worry, there is a way to perform
-custom logic to compute your query inputs when you need it. For more information, check out the
-[query api docs](/api/query#query-variables).
+and took care of the all of the wiring for you. Pretty cool, huh? There is also a way to perform
+custom logic to compute your query inputs when you need it but we'll keep things simple for now.
+For more information, check out the [query api docs](/api/query#query-variables).
 
 You should be able to navigate to `/6` and see Charizard's information. If you then navigate back to `/`,
-no value for the `[[id]]` portion of the url is passed and the query uses its default value of `1`.
+there is no value for the `[[id]]` portion of the url and the query uses its default value of `1`.
 
 For completeness, let's quickly add some buttons to navigate between the different species. Copy and paste this block of code as the last child of the `Container` component. Don't worry if you see an error when you click on them, we'll fix that next.
 
