@@ -43,6 +43,7 @@ export const routes = {
   Plugin_query_afterLoad: '/plugin/query/afterLoad',
   Plugin_query_onError: '/plugin/query/onError',
   Plugin_query_layout: '/plugin/query/layout',
+  Plugin_query_userRoute_params: '/plugin/query/user-testSnapshot-1',
 
   Plugin_subscription_renders: '/plugin/subscription/renders',
 

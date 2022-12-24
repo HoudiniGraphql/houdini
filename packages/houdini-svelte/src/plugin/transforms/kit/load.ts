@@ -511,11 +511,6 @@ function variable_function_for_query(
 		import: ['parseScalar', 'marshalInputs'],
 		sourceModule: '$houdini/runtime/lib/scalars',
 	})
-	ensure_imports({
-		...page,
-		sourceModule: path.relative(path.dirname(page.filepath), page.config.filepath),
-		import: '__houdini__config',
-	})
 
 	// find any arguments that aren't optional but not given by the URL
 	const missing_args = []
@@ -550,8 +545,6 @@ function variable_function_for_query(
 		}
 	}
 
-	// TODO: marshal scalars
-
 	// build up a function that mixes the appropriate url parameters with the
 	// value of the variable function
 	const fn_body: StatementKind[] = [
@@ -564,7 +557,7 @@ function variable_function_for_query(
 						AST.objectProperty(
 							AST.identifier(arg),
 							AST.callExpression(AST.identifier('parseScalar'), [
-								AST.identifier('__houdini__config'),
+								AST.identifier('config'),
 								AST.stringLiteral(type),
 								AST.memberExpression(
 									AST.memberExpression(
