@@ -470,6 +470,12 @@
 		width: 80%;
 	}
 
+	@media (min-width: 1000px) {
+		h1 a {
+			flex-grow: 1;
+		}
+	}
+
 	@media (max-width: 1000px) {
 		article,
 		footer {

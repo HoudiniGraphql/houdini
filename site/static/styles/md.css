@@ -65,6 +65,8 @@ ol {
 }
 
 .code-title {
+	max-width: 764px;
+	box-sizing: border-box;
 	font-family: 'Roboto Mono', monospace;
 	background: var(--code-title-background);
 	color: var(--code-title-color);

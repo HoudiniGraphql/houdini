@@ -93,7 +93,6 @@
 
 <style>
 	.theme-switcher {
-		margin-left: auto;
 		position: relative;
 		display: flex;
 		flex-direction: row;
