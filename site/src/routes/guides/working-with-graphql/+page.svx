@@ -196,8 +196,7 @@ query MyAwesomeQuery {
 }
 ```
 
-```javascript
-// src/routes/myRoute/+page.js
+```javascript:title=src/routes/myRoute/+page.js
 import { MyAwesomeQueryStore } from '$houdini'
 ```
 
@@ -207,8 +206,7 @@ import { MyAwesomeQueryStore } from '$houdini'
 Another option is to define your document directly inside of your source code (ie, in a `.svelte`, `.js`, or `.ts` file). To
 do that, import `graphql` from `$houdini` and pass your query:
 
-```svelte
-<!-- src/routes/myRoute/+page.svelte -->
+```svelte:title=src/routes/myRoute/+page.svelte
 <script>
     import { graphql } from '$houdini'
 
@@ -222,8 +220,7 @@ do that, import `graphql` from `$houdini` and pass your query:
 </script>
 ```
 
-```javascript
-// src/routes/myRoute/+page.js
+```javascript:title=src/routes/myRoute/+page.js
 
 import { graphql } from '$houdini'
 

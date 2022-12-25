@@ -10,10 +10,10 @@ Houdini's cache behavior can be customized with the `@cache` directive:
 
 ```graphql
 query AllItems @cache(policy: CacheAndNetwork) {
-	items {
-		id
-		text
-	}
+    items {
+        id
+        text
+    }
 }
 ```
 
@@ -32,16 +32,15 @@ A lot of the time we know the side effects of a mutation assuming everything goe
 
 ```svelte
 <script>
-	import { ToggleItemStore }  from '$houdini'
+    import { ToggleItemStore }  from '$houdini'
 
-	export let itemID
+    export let itemID
 
     const update = new ToggleItemStore()
 </script>
 
 <button
-	on:click={() => {
-		update.mutate({ id: itemID }, {
+    on:click={() => update.mutate({ id: itemID }, {
             optimisticResponse: {
                 toggleItem: {
                     item: {
@@ -51,9 +50,10 @@ A lot of the time we know the side effects of a mutation assuming everything goe
                 }
             }
         })
-	}}
+    }
+
 >
-	toggle item
+    toggle item
 </button>
 ```
 
@@ -81,10 +81,10 @@ As your users navigate through your application, their cache will build up with 
 
 ```graphql
 query AllItems @cache(partial: true) {
-	items {
-		id
-		text
-	}
+    items {
+        id
+        text
+    }
 }
 ```
 
@@ -92,16 +92,14 @@ This means that you will have to deal with a lot of `null` states in order to ac
 
 The default partial state can be configured with the `defaultPartial` value in your config file:
 
-```js
-// houdini.config.js
-
+```js:title=houdini.config.js
 export default {
-	// ...
-	plugins: {
-		'houdini-svelte': {
-			defaultPartial: true
-		}
-	}
+    // ...
+    plugins: {
+        'houdini-svelte': {
+            defaultPartial: true
+        }
+    }
 }
 ```
 
@@ -115,19 +113,18 @@ If you then toggle between the other routes 10 times and then try to load the fi
 route, a network request will be sent. This number is configurable with the
 `cacheBufferSize` value in your config file:
 
-```js
-// houdini.config.js
-
+```js:title=houdini.config.js
 export default {
-	// ...
-	cacheBufferSize: 5
+    // ...
+    cacheBufferSize: 5
 }
 ```
 
 ## Custom IDs
 
 Some applications cannot rely on the [Global Object Identification spec](https://graphql.org/learn/global-object-identification/) for one reason or another. Maybe your types do not have an `id` field. If it's the case, you can tell it to Houdini by setting keys to your `types` in your `houdini.config.js`, like:
-```javascript
+
+```javascript:title=houdini.config.js
 export default {
     // ...
     types: {
@@ -139,13 +136,11 @@ export default {
 ```
 
 
-
-
 Maybe your API does not support the `node` query field. In this case, Houdini lets you configure both parts of this interaction so you can tell Houdini how to do the right thing.
 
 If all you need to do is change the way that Houdini resolves a particular type, you can use the following configuration:
 
-```javascript
+```javascript:title=houdini.config.js
 export default {
     // ...
     defaultPartial: true
@@ -161,7 +156,7 @@ export default {
 
 This tells Houdini that in order to resolve a particular `User`, it needs to use a query field on our API that looks like: `user(id: ID!)`. By default, Houdini takes the keys of an object and passes each one as the input for the query field. If you need to change this behavior, you can pass an `arguments` field to the `resolve` object:
 
-```javascript
+```javascript:title=houdini.config.js
 export default {
     // ...
     defaultPartial: true
@@ -182,7 +177,7 @@ Note: Houdini's generator guarantees that your entities will always have its key
 
 If you want to configure Houdini to use a different key for computing your records' ID, you can configure the specific type with the `types` config value:
 
-```javascript
+```javascript:title=houdini.config.js
 export default {
     // ...
     defaultPartial: true
@@ -199,7 +194,7 @@ export default {
 
 Remember, Houdini will take every key for an object and pass it as an argument to the query with the same name. Ie, the following configuration is equivalent to the one above:
 
-```javascript
+```javascript:title=houdini.config.js
 export default {
     // ...
     defaultPartial: true

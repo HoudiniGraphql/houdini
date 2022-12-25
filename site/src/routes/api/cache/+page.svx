@@ -24,9 +24,7 @@ faster.
 
 In order to acknowlege this, you will need to enable the `acceptImperativeInstability` flag in your config file:
 
-```javascript
-/// houdini.config.js
-
+```javascript:title=houdini.config.js
 export default {
     // ...
     acceptImperativeInstability: true
