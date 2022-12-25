@@ -125,7 +125,7 @@ export default {
 When using Typescript and SvelteKit, you will need to add houdini to your rootDir value so that you can use the generated
 variable and hooks types in your routes:
 
-```typescript
+```typescript:title=tsconfig.json
 {
 	// ...
     "compilerOptions": {
