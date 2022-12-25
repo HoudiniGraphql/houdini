@@ -4,6 +4,10 @@
 	export let ui_theme = 0
 	export let lang = 'js'
 	$: other_lang = lang === 'js' ? 'ts' : 'js'
+	const full_name = {
+		js: 'javascript',
+		ts: 'typescript'
+	}
 
 	const themes = [
 		{ label: 'light', icon: 'sun' },
@@ -23,6 +27,40 @@
 
 <svelte:head>
 	<meta name="theme-color" content="#161b22" />
+
+	{#if lang === 'ts'}
+		<style>
+			pre.language-javascript {
+				display: none;
+			}
+
+			.code-title.javascript {
+				display: none;
+			}
+			pre.language-typescript {
+				display: block;
+			}
+			.code-title.typescript {
+				display: flex;
+			}
+		</style>
+	{:else}
+		<style>
+			pre.language-javascript {
+				display: block;
+			}
+
+			.code-title.javascript {
+				display: flex;
+			}
+			pre.language-typescript {
+				display: none;
+			}
+			.code-title.typescript {
+				display: none;
+			}
+		</style>
+	{/if}
 
 	{#if ui_theme === 1}
 		<!-- light mode -->
@@ -74,7 +112,11 @@
 </svelte:head>
 
 <div class="theme-switcher">
-	<button type="button" title={`Change code examples to ${other_lang}`} on:click={setLang}>
+	<button
+		type="button"
+		title={`Change code examples to ${full_name[other_lang]}`}
+		on:click={setLang}
+	>
 		{#if lang === 'js'}
 			<img src="/images/ts-logo.png" height="18px" />
 		{:else}

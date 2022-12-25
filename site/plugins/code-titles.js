@@ -23,7 +23,7 @@ export function codeTitles() {
 			const titleNode = {
 				type: 'html',
 				value: `
-		<div class="${className}">${title}</div>
+		<div class="${className} ${language}">${title}</div>
 			  `.trim()
 			}
 
