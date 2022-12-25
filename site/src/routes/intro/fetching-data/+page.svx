@@ -132,9 +132,10 @@ If you were looking carefully, you might have noticed that we didn't define a `l
 ```
 
 ```typescript:title=src/routes/+page.ts
+import type { PageLoad } from './$types'
 import { InfoStore } from '$houdini/stores/Info'
 
-export async function load({ event }) {
+export const load: PageLoad = async ({ event }) => {
     const store = new InfoStore()
 
     await InfoStore.fetch({ event })
