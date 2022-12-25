@@ -92,7 +92,7 @@ This means that you will have to deal with a lot of `null` states in order to ac
 
 The default partial state can be configured with the `defaultPartial` value in your config file:
 
-```js:title=houdini.config.js
+```typescript:title=houdini.config.ts
 export default {
     // ...
     plugins: {
@@ -124,7 +124,7 @@ export default {
 
 Some applications cannot rely on the [Global Object Identification spec](https://graphql.org/learn/global-object-identification/) for one reason or another. Maybe your types do not have an `id` field. If it's the case, you can tell it to Houdini by setting keys to your `types` in your `houdini.config.js`, like:
 
-```javascript:title=houdini.config.js
+```typescript:title=houdini.config.ts
 export default {
     // ...
     types: {
@@ -140,7 +140,7 @@ Maybe your API does not support the `node` query field. In this case, Houdini le
 
 If all you need to do is change the way that Houdini resolves a particular type, you can use the following configuration:
 
-```javascript:title=houdini.config.js
+```typescript:title=houdini.config.ts
 export default {
     // ...
     defaultPartial: true
@@ -156,7 +156,7 @@ export default {
 
 This tells Houdini that in order to resolve a particular `User`, it needs to use a query field on our API that looks like: `user(id: ID!)`. By default, Houdini takes the keys of an object and passes each one as the input for the query field. If you need to change this behavior, you can pass an `arguments` field to the `resolve` object:
 
-```javascript:title=houdini.config.js
+```typescript:title=houdini.config.ts
 export default {
     // ...
     defaultPartial: true
@@ -177,7 +177,7 @@ Note: Houdini's generator guarantees that your entities will always have its key
 
 If you want to configure Houdini to use a different key for computing your records' ID, you can configure the specific type with the `types` config value:
 
-```javascript:title=houdini.config.js
+```typescript:title=houdini.config.ts
 export default {
     // ...
     defaultPartial: true
@@ -194,7 +194,7 @@ export default {
 
 Remember, Houdini will take every key for an object and pass it as an argument to the query with the same name. Ie, the following configuration is equivalent to the one above:
 
-```javascript:title=houdini.config.js
+```typescript:title=houdini.config.ts
 export default {
     // ...
     defaultPartial: true

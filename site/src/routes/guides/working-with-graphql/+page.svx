@@ -196,7 +196,7 @@ query MyAwesomeQuery {
 }
 ```
 
-```javascript:title=src/routes/myRoute/+page.js
+```typescript:title=src/routes/myRoute/+page.ts
 import { MyAwesomeQueryStore } from '$houdini'
 ```
 
@@ -220,7 +220,7 @@ do that, import `graphql` from `$houdini` and pass your query:
 </script>
 ```
 
-```javascript:title=src/routes/myRoute/+page.js
+```typescript:title=src/routes/myRoute/+page.ts
 
 import { graphql } from '$houdini'
 
@@ -295,7 +295,7 @@ but they all behave the exact same and can be [customized the same way](/api/que
 
 The first way to tell houdini to generate a load for you is by exporting a `_houdini_load` value from `+page.js` that contains one or more query stores that you want to use in your route:
 
-```javascript
+```typescript
 //  src/routes/myProfile/+page.js
 import { ProjectListStore, graphql } from '$houdini'
 
@@ -328,7 +328,7 @@ With that in place, your route will be passed two props, named after the queries
 
 Keep in mind that `_houdini_load` can also take a single store, which allows for something interesting:
 
-```javascript
+```typescript
 // src/routes/myProfile/+page.js
 
 import { graphql } from '$houdini'
@@ -345,7 +345,7 @@ export const _houdini_load = graphql(`
 Your route will be rendered with a single prop: `UserInfo`. This approach works nicely when you have lots of different variables and
 hooks for a particular query since it allows all of that logic to be co-located:
 
-```javascript
+```typescript
 // src/routes/myProfile/+page.js
 
 import { graphql } from '$houdini'

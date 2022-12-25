@@ -268,7 +268,7 @@ Notice there's no more need to thread variables around or that ugly `$: browser 
 
 In order to make this work, your `load` functions need to now return instances of the store embedded in the correct key. This can be easily done with the new `load_StoreName` functions. The `load_` prefix is to make it easy to autocomplete when you are working in your editor:
 
-```javascript
+```typescript
 import { load_UserInfo } from '$houdini'
 
 export async function load(event) {
@@ -432,7 +432,7 @@ to interact with. For more information about the new store-based API, please che
 The `quiet` configuration value has been changed in favor of the [new logging parameters](/api/config). In order to replicate the
 previous behavior, you should use the `quiet` log level:
 
-```javascript:title=houdini.config.js
+```typescript:title=houdini.config.ts
 export default {
 	// ...
 	logLevel: 'quiet'

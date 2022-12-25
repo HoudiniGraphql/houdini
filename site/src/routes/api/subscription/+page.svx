@@ -105,7 +105,7 @@ export default new HoudiniClient(requestHandler, socketClient)
 
 If your server supports the latest Server-Side events, you can use them to power your subscriptions:
 
-```javascript
+```typescript
 import { SubscriptionClient } from 'subscriptions-transport-ws'
 import { browser } from '$app/environment'
 

@@ -90,7 +90,7 @@ info can be looked up with the `pageInfo` field of store's value:
 
 `paginatedFragment` works very much in the same way except for a few caveats. Consider the following:
 
-```javascript
+```typescript
 const userWithFriends = paginatedFragment(
 	user,
 	graphql(`
@@ -140,7 +140,7 @@ For information about how to customize this behavior, check out the [Caching Dat
 A paginated field can be marked as a potential target for a mutation operation by passing
 a `name` argument to the `@paginate` directive. For more information, see [this document](/api/mutation/inline#lists).
 
-```javascript
+```typescript
 const userWithFriends = paginatedFragment(
 	user,
 	graphql(`

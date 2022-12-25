@@ -138,7 +138,7 @@ described in the [SvelteKit](https://kit.svelte.dev/docs#Loading) docs. To retur
 use the same utilities exported from `@sveltejs/kit`. Here is a modified example
 [from the source repository](https://github.com/HoudiniGraphql/houdini/tree/main/example):
 
-```javascript:title=src/routes/[filter]/+page.ts
+```typescript:title=src/routes/[filter]/+page.ts
 import { graphql } from '$houdini'
 import { error } from '@sveltejs/kit'
 
@@ -176,7 +176,7 @@ Houdini will look for hook functions defined in your `+page.js` files.
 Called before Houdini executes load queries against the server. You can expect the same
 arguments as SvelteKit's [`load`](https://kit.svelte.dev/docs#loading) function.
 
-```javascript:title=src/routes/myRoute/+page.js
+```typescript:title=src/routes/myRoute/+page.ts
 import { graphql } from '$houdini'
 
 export const _houdini_load = graphql(`
@@ -210,7 +210,7 @@ will have to block requests to the route in order to wait for the result. For mo
 blocking during navigation, check out the deep dive in [this section](/api/query#manual-loading) of the query store
 docs.
 
-```javascript:title=src/routes/myRoute/+page.js
+```typescript:title=src/routes/myRoute/+page.ts
 import { graphql } from '$houdini'
 import { error } from '@sveltejs/kit'
 
@@ -250,7 +250,7 @@ will have to block requests to the route in order to wait for the result. For mo
 blocking during navigation, check out the deep dive in [this section](/api/query#manual-loading) of the query store
 docs.
 
-```javascript:title=src/routes/myRoute/+page.js
+```typescript:title=src/routes/myRoute/+page.ts
 import { graphql } from '$houdini'
 
 export const _houdini_load = graphql(`
@@ -292,7 +292,7 @@ If you are writing your route's load functions by hand, you'll want to instantia
 a function for each of your stores that you can use to render your route on the server. These functions take the same
 parameters as `fetch`:
 
-```javascript
+```typescript
 import { load_MyQuery } from '$houdini'
 
 export async function load(event) {
@@ -317,7 +317,7 @@ Anyway, with this in place, your route will recieve props for each of the stores
 
 If your query has variables, you can pass them straight to the loader:
 
-```javascript
+```typescript
 import { load_MyQuery } from '$houdini'
 
 export async function load(event) {
@@ -330,7 +330,7 @@ export async function load(event) {
 If you are defining a manual load and need to look at the result of the fetch, we recommend _not_ using the `load_`
 utility but instead defining your load explicitly:
 
-```javascript
+```typescript
 import { MyQueryStore } from '$houdini'
 
 export async function load(event) {
@@ -351,7 +351,7 @@ Be careful when loading multiple stores at once.
 Each of your loads should be performed inside of an `await Promise.all` so you perform the queries in parallel.
 This can get rather tedious so houdini provides a `loadAll` function you can use to simplify this process:
 
-```javascript
+```typescript
 import { loadAll, load_MyQuery, load_MyOtherQuery } from '$houdini'
 
 export async function load(event) {
@@ -367,7 +367,7 @@ export async function load(event) {
 If you want to load the same store twice or customize the props that will get passed to your
 route, you can pass any combination of single loaders and objects that map the result to a prop value:
 
-```javascript
+```typescript
 import { loadAll, load_MyQuery, load_MyOtherQuery } from '$houdini'
 
 export async function load(event) {
@@ -395,7 +395,7 @@ the request happens on the browser. This means that if you want to
 do something with the response, you have to pass `blocking: true`
 which will make the `await` behave like normal:
 
-```javascript
+```typescript
 export async function load(event) {
 	// blocking:true makes this await "real"
 	const { data } = await MyStore.fetch({ event, blocking: true })
@@ -444,7 +444,7 @@ equivalent of the load function.
 Using a query store inside of an endpoint looks very similar to the `load` function: just pass the event you
 are handed in your route function:
 
-```javascript
+```typescript
 import { MyQueryStore } from '$houdini'
 
 export async function get(event) {
@@ -464,7 +464,7 @@ export async function get(event) {
 Sometimes you need to do something very custom for a specific route. Maybe you need special headers or some other contextual information.
 Whatever the case may be, you can pass a `metadata` parameter to fetch:
 
-```javascript
+```typescript
 
 export async function load(event) {
 	return {

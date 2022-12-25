@@ -31,7 +31,7 @@ export default {
 				let codeBlock = content.slice(match.index, endIndex)
 
 				// the first thing we need to do is mark this as a javascript plugin instead
-				codeBlock = codeBlock.replace('```typescript', '```javascript')
+				codeBlock = codeBlock.replace('```typescript', '```typescript')
 				codeBlock = codeBlock.replace('.ts', '.js')
 
 				// push the new block at the beginning
