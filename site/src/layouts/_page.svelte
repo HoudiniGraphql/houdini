@@ -4,7 +4,7 @@
 	import { onMount } from 'svelte'
 	import throttle from 'lodash/throttle.js'
 	import { browser } from '$app/environment'
-	import ThemeSwitcher from '~/components/ThemeSwitcher.svelte'
+	import Toolbar from '~/components/Toolbar.svelte'
 
 	export let title = ''
 	export let link = ''
@@ -13,9 +13,13 @@
 
 	export let data
 
+	// pull the values out of the loader and configure the toolbar
 	$: ui_theme = browser
 		? parseInt(document.cookie.match('(^|;)\\s*' + 'ui_theme' + '\\s*=\\s*([^;]+)')?.pop() || '0')
 		: data?.ui_theme
+	$: lang = browser
+		? document.cookie.match('(^|;)\\s*' + 'lang' + '\\s*=\\s*([^;]+)')?.pop() || 'js'
+		: data?.lang
 
 	// the list of files we can render
 	// @ts-ignore
@@ -124,7 +128,7 @@
 				</buton>
 				<a href="/">Houdini</a>
 				<SearchInput id="nav-search-input" />
-				<ThemeSwitcher bind:ui_theme />
+				<Toolbar bind:ui_theme bind:lang />
 			</h1>
 			<nav class:hidden={!menuOpen}>
 				{#each categoryNames as category}

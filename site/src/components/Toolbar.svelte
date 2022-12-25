@@ -2,16 +2,22 @@
 	import { Icon } from '~/components'
 
 	export let ui_theme = 0
+	export let lang = 'js'
+	$: other_lang = lang === 'js' ? 'ts' : 'js'
 
 	const themes = [
 		{ label: 'light', icon: 'sun' },
 		{ label: 'dark', icon: 'moon' }
 	]
 
-	const setTheme = () => {
-		const theme = ui_theme ? 0 : 1
-		ui_theme = theme
-		document.cookie = `ui_theme=${theme};path=/;SameSite=Lax`
+	function setLang() {
+		document.cookie = `lang=${other_lang};path=/;SameSite=Lax`
+		lang = other_lang
+	}
+
+	function setTheme() {
+		ui_theme = ui_theme ? 0 : 1
+		document.cookie = `ui_theme=${ui_theme};path=/;SameSite=Lax`
 	}
 </script>
 
@@ -68,7 +74,19 @@
 </svelte:head>
 
 <div class="theme-switcher">
-	<button type="button" title={`Switch to ${themes[ui_theme].label} theme`} on:click={setTheme}>
+	<button type="button" title={`Change code examples to ${other_lang}`} on:click={setLang}>
+		{#if lang === 'js'}
+			<img src="/images/ts-logo.png" height="18px" />
+		{:else}
+			<img src="/images/js-logo.png" height="18px" />
+		{/if}
+	</button>
+	<button
+		type="button"
+		class="theme-button"
+		title={`Switch to ${themes[ui_theme].label} theme`}
+		on:click={setTheme}
+	>
 		<Icon name={themes[ui_theme].icon} />
 	</button>
 </div>
@@ -77,6 +95,13 @@
 	.theme-switcher {
 		margin-left: auto;
 		position: relative;
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-end;
+	}
+
+	img {
+		border-radius: 2px;
 	}
 
 	button {
@@ -85,9 +110,10 @@
 		font-size: 17px;
 		cursor: pointer;
 		border: 0px solid var(--discreet);
+	}
+
+	.theme-button {
 		opacity: 0.6;
-		padding: 5px;
-		padding-right: 0;
 	}
 
 	button:hover {
