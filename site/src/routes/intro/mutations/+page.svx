@@ -36,7 +36,7 @@ This example defines a mutation document named `SetFavorite` that invokes the `t
 
 Before we explain how to use mutations in Houdini, we need a way to visualize if a species is one of our favorites. To start, add the `favorite` to the route's query. It should now look something like:
 
-```graphql
+```graphql:title=src/routes/[[id]]/+page.gql
 query Info($id: Int!) {
 	species(id: $id) {
 		name
@@ -52,7 +52,7 @@ query Info($id: Int!) {
 
 Once you've added the field, add an import for `Icon` from the component directory and drop the following block of code at the bottom of the left panel:
 
-```svelte
+```svelte:title=src/routes/[[id]]/+page.svelte
 <script>
     import { Icon } from '~/components'
 </script>
@@ -68,7 +68,7 @@ Once you've added the field, add an import for `Icon` from the component directo
 
 With that in place we can now define a function that will invoke the `toggleFavorite` mutation and pass it to our button. Add the declaration for `toggleFavorite` shown below to your `script` tag:
 
-```svelte
+```svelte:title=src/routes/[[id]]/+page.svelte
 <script>
     // ... everything from before
 
@@ -87,7 +87,7 @@ With that in place we can now define a function that will invoke the `toggleFavo
 
 A mutation store provides a `mutate` method to trigger your mutation. It takes an object with fields to match the mutation's input and returns a promise that will resolve with the response from the mutation. With that in place, we can now configure the button we added earlier to call this function:
 
-```svelte
+```svelte:title=src/routes/[[id]]/+page.svelte
 <button on:click={() => toggleFavorite.mutate({
 	id: $Info.data.species.id
 })}>
@@ -114,7 +114,7 @@ It wouldn't be possible to look up this list's new value in the payload of `togg
 
 Before we get too far, let's add a place in our UI to show us the list of favorites. First, open up the `+page.gql` file and add the following block:
 
-```diff
+```diff:title=src/routes/[[id]]/+page.gql
  query Info {
      species(id: 1) {
          id
@@ -132,7 +132,7 @@ Before we get too far, let's add a place in our UI to show us the list of favori
 
 Then, open up `src/routes/[[id]]/+page.svelte`, add imports for `FavoritePreview` and `FavoriteContainer`, and some components to visualize the list:
 
-```svelte
+```svelte:title=src/routes/[[id]]/+page.svelte
 <script>
     import { FavoritePreview, FavoriteContainer } from '$houdini'
 </script>
@@ -151,7 +151,7 @@ Then, open up `src/routes/[[id]]/+page.svelte`, add imports for `FavoritePreview
 
 Don't worry about the `@list` directive just yet - we'll explain what it does in a bit. For now, just confirm that you have to refresh your browser in order to see the effect of clicking the star on the section at the top. Hopefully that's not too surprising since we haven't told Houdini how to update our view in response to the mutation. Connecting those dots just requires updating the mutation to look like this:
 
-```graphql
+```graphql:title=src/routes/[[id]]/+page.svelte
 mutation ToggleFavorite($id: Int!) {
 	toggleFavorite(id: $id) {
 		species {

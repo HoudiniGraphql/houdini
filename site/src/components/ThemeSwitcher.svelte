@@ -37,6 +37,8 @@
 				--link-color: #ff5c26;
 				--text-highlight: #3595ff;
 				--text-highlight-background: #eee;
+				--code-title-background: #0c0f14;
+				--code-title-color: #475465;
 			}
 		</style>
 	{:else}
@@ -58,6 +60,8 @@
 				--link-color: #fc602d;
 				--text-highlight: #a1c5f8;
 				--text-highlight-background: #222832;
+				--code-title-background: #0c0f14;
+				--code-title-color: #475465;
 			}
 		</style>
 	{/if}

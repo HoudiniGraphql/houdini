@@ -13,9 +13,7 @@ description: The first part of the Houdini intro focusing on how to fetch data
 Before we do anything _too_ complicated, lets start with some static content pulled from our GraphQL API.
 Create two files inside of your `src/routes` directory: `+page.gql` and `+page.svelte`:
 
-```graphql
-# src/routes/+page.gql
-
+```graphql:title=src/routes/+page.gql
 query Info {
     species(id: 1) {
         id
@@ -28,9 +26,7 @@ query Info {
 }
 ```
 
-```svelte
-<!-- src/routes/+page.svelte -->
-
+```svelte:title=src/routes/+page.svelte
 <script>
     import { graphql } from '$houdini'
     import { Container, Display, Sprite, Panel } from '~/components'
@@ -126,9 +122,7 @@ Anyway, now that you have the necessary files, you should see Bulbasaur's descri
 
 If you were looking carefully, you might have noticed that we didn't define a `load` function as described in the [SvelteKit docs](https://kit.svelte.dev/docs/loading). Don't worry, this route is still rendered on the server thanks to the vite plugin. One of its responsibilities is moving the actual fetch into a `load`. You can think of the block at the top of this section as equivalent to:
 
-```svelte
-<!-- src/routes/+page.svelte -->
-
+```svelte:title=src/routes/+page.svelte
 <script>
     // the store gets passed to us as a prop
     export let data
@@ -137,9 +131,7 @@ If you were looking carefully, you might have noticed that we didn't define a `l
 </script>
 ```
 
-```typescript
-// src/routes/+page.js
-
+```typescript:title=src/routes/+page.js
 import { InfoStore } from '$houdini/stores/Info'
 
 export async function load({ event }) {
@@ -201,7 +193,7 @@ query MyQuery($variable1: Boolean, variable2: String!) {
 Now that we have the actual route defined, we will have to change our query so that it can accept
 a variable. Doing this is relatively simple, just update the query inside of `+page.gql` to look like the following:
 
-```graphql
+```graphql:title=src/routes/[[id]]/+page.gql
 query Info($id: Int = 1) {
     species(id: $id) {
         name
@@ -223,7 +215,7 @@ there is no value for the `[[id]]` portion of the url and the query uses its def
 
 For completeness, let's quickly add some buttons to navigate between the different species. Copy and paste this block of code as the last child of the `Container` component. Don't worry if you see an error when you click on them, we'll fix that next.
 
-```svelte
+```svelte:title=src/routes/[[id]]/+page.svelte
 <Panel slot="right">
     <nav>
         <a href={$Info.data.species.id - 1} disabled={$Info.data.species.id <= 1}>
@@ -241,8 +233,7 @@ For completeness, let's quickly add some buttons to navigate between the differe
 If you've already clicked on those links you probably saw a scary message about accessing a value on `null`. This is because we haven't done anything
 to handle the loading state for our view. Let's just do something quick and dirty:
 
-```svelte
-
+```svelte:title=src/routes/[[id]]/+page.svelte
 {#if $Info.isFetching}
     <Container/>
 {:else}
@@ -257,7 +248,7 @@ So far so good! There is one slight problem: there are only 151 species in the f
 In order to prevent this, we need to check if `id` is between `1` and `151` and if not, render an error for the user. The best way to do this is to use a load hook to check the value before the load fires. Load hooks belong in `+page.js` files so create a
 file at `src/routes/[[id]]/+page.js` that looks like the following:
 
-```javascript
+```javascript:title=src/routes/[[id]]/+page.js
 import { error } from '@sveltejs/kit'
 
 export function _houdini_beforeLoad({ params }) {

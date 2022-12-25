@@ -172,7 +172,7 @@ For more information on the Connection model, check out [this blog post](https:/
 Interacting with a paginated query is pretty similar to everything we've been doing so far.
 Just add decorate the paginated field with the `@paginate` directive. Go ahead and change the `+page.gql` file to look like this:
 
-```graphql
+```graphql:title=src/routes/[[id]]/+page.gql
 query Info($id: Int!) {
     species(id: $id) {
         name
@@ -207,13 +207,13 @@ For a more in-depth summary of what you can do with `@paginate`, you can check o
 It's time to add some visuals. Add an import for the `MoveDisplay` component and copy the following block
 as the second child in the right panel (between `div#species-evolution-chain` and the `nav`):
 
-```svelte
+```svelte:title=src/routes/[[id]]/+page.svelte
 <MoveDisplay move={$Info.data.species.moves.edges[0].node} />
 ```
 
 In most situations houdini's automatic appending is great since it covers popular patterns like infinite scrolling or any kind of list that just keeps growing. Unfortunately, we are only showing one move at a time so we can't just display all of the information we're holding onto in memory. Also, the user might want to step back in the list and we won't need to load the next or previous page if we already have it loaded. In order to address this, we need hold onto a bit of local state that will track the index of the move on display. When we load the next move we will first check if we already have the element loaded and if not, we will trigger `loadNextPage` to grab it and then update our state to display the new result.
 
-```svelte
+```svelte:title=src/routes/[[id]]/+page.svelte
 <script>
     import { navigating } from '$app/stores'
     import { UpButton, DownButton } from '~/components'

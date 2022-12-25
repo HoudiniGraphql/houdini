@@ -5,6 +5,7 @@ import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypeSlug from 'rehype-slug'
 import preprocess from 'svelte-preprocess'
 import './src/lib/highlight.js'
+import { codeTitles } from './remark/code-titles.js'
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -19,7 +20,8 @@ const config = {
 				blank: path.resolve('./src/layouts/_blank.svelte'),
 				_: path.resolve('./src/layouts/_page.svelte')
 			},
-			rehypePlugins: [rehypeSlug, rehypeAutolinkHeadings]
+			rehypePlugins: [rehypeSlug, rehypeAutolinkHeadings],
+			remarkPlugins: [codeTitles]
 		}),
 		preprocess()
 	],
