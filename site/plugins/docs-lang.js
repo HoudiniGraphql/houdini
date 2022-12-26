@@ -18,43 +18,90 @@ export default {
 		// instead of getting super fancy with an AST, we're just going to
 		// do operations on the string content.
 
-		// in order to add the codeblocks back, we need to keep track of the list
-		// in reverse order (so the index is always valid)
-		const newBlocks = []
+		// the transformation we use depends on the matching codeblock
+		const transformation = {
+			typescript: transformTypescript,
+			svelte: transformSvelte
+		}
 
-		// our goal is to look for the content between ```typescript and ```
-		for (const match of [...content.matchAll(new RegExp('```typescript', 'gi'))]) {
-			// find the end of the codeblock
-			for (let endIndex = match.index + 3; endIndex < content.length; endIndex++) {
-				// look for the index where the 3 characters are ```
-				if (content.slice(endIndex, endIndex + 3) !== '```') {
-					continue
+		// look for each language we care about
+		for (const [language, transform] of Object.entries(transformation)) {
+			// in order to add the codeblocks back, we need to keep track of the list
+			// in reverse order (so the index is always valid)
+			const newBlocks = []
+
+			// our goal is to look for the content between ```typescript and ```
+			for (const match of [...content.matchAll(new RegExp('```' + language, 'gi'))]) {
+				// find the end of the codeblock
+				for (let endIndex = match.index + 3; endIndex < content.length; endIndex++) {
+					// look for the index where the 3 characters are ```
+					if (content.slice(endIndex, endIndex + 3) !== '```') {
+						continue
+					}
+					// we actually need to treat the block as ending 2 indices later
+					endIndex += 3
+
+					// the content of the block is between the two indices
+					const blockContent = content.slice(match.index, endIndex)
+
+					// if the language is svelte, only add something if there is a typescript param
+					if (language === 'svelte' && !blockContent.includes('typescript=true')) {
+						break
+					}
+
+					// push the new block at the beginning
+					newBlocks.unshift({
+						index: endIndex,
+						// transform the typescript source into the javascript equivalent
+						block: await transform(blockContent)
+					})
+
+					// we're done processing this block
+					break
 				}
-				// we actually need to treat the block as ending 2 indices later
-				endIndex += 3
+			}
 
-				// push the new block at the beginning
-				newBlocks.unshift({
-					index: endIndex,
-					// transform the typescript source into the javascript equivalent
-					block: await transformTypescript(content.slice(match.index, endIndex))
-				})
-
-				// we're done processing this block
-				break
+			// now that we have the list of codeblocks, insert them into the original script
+			for (const { index, block } of newBlocks) {
+				content = insert(content, block, index)
 			}
 		}
 
-		// now that we have the list of codeblocks, insert them into the original script
-		let final = content
-		for (const { index, block } of newBlocks) {
-			final = final.substring(0, index) + '\n' + block + final.substring(index)
-		}
-
 		return {
-			code: final
+			code: content
 		}
 	}
+}
+
+async function transformSvelte(content) {
+	// if we have a typescript script, there's something to do
+	if (content.includes('<script lang="ts">')) {
+		// we need to transform the contents of the script like we do the rest of
+		// our typescript samples
+		const open = '<script lang="ts">'
+		const close = '</script>'
+
+		// the content that needs processing is betetween the end of the open and the start of the close
+		const start = content.indexOf(open) + open.length
+		const end = content.indexOf(close)
+
+		// transform the content between the tags
+		let transformed = (await transformTypescript(content.substring(start, end))).trim() + '\n'
+		// the transformation needs to be indented one level
+		transformed = '    ' + transformed.replaceAll('\n', '\n    ')
+
+		// add the transformed content to the script
+		content = insert(content, transformed, start, end)
+			// the final closing tag needs to be outdented
+			.replace('    </script>', '</script>')
+
+		// the first thing we want to do is flag the typescript as off
+		content = content.replace('typescript=true', 'typescript=false')
+		// remove the lang="ts" portion
+		content = content.replace(' lang="ts"', '')
+	}
+
+	return content
 }
 
 export async function transformTypescript(content) {
@@ -109,10 +156,7 @@ export async function transformTypescript(content) {
 	return (
 		content.substring(0, start) +
 		'\n' +
-		prettier.format(recast.print(AST.program(transformed)).code, {
-			tabWidth: 4,
-			semi: false
-		}) +
+		format(recast.print(AST.program(transformed)).code) +
 		'\n' +
 		content.substring(end).trim()
 	)
@@ -165,7 +209,7 @@ function transformFunction(statement, parent, importPaths) {
 	}
 }
 
-export function parseJS(str) {
+function parseJS(str) {
 	return recast.parse(str || '', {
 		parser: typeScriptParser
 	}).program
@@ -174,4 +218,16 @@ export function parseJS(str) {
 function commentBlock(comment) {
 	// every new line need a new line, an asterix and a space
 	return AST.commentBlock('*\n * ' + comment.replaceAll('\n', '\n * ') + '\n ')
+}
+
+function insert(str, content, start, finish = start) {
+	return str.substring(0, start) + '\n' + content + str.substring(finish)
+}
+
+function format(str) {
+	return prettier.format(str, {
+		tabWidth: 4,
+		semi: false,
+		singleQuote: true
+	})
 }

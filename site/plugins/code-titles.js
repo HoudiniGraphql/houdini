@@ -3,10 +3,10 @@ import { visit } from 'unist-util-visit'
 export function codeTitles() {
 	return function gatsbyRemarkCodeTitles(tree, file) {
 		visit(tree, 'code', (node, index, parent) => {
-			const [language, params] = (node.lang || '').split(':')
+			const [language, paramsStr] = (node.lang || '').split(':')
 
-			const { title } =
-				params?.split('&').reduce((acc, param) => {
+			const params =
+				paramsStr?.split('&').reduce((acc, param) => {
 					const [title, value] = param.split('=')
 					return {
 						...acc,
@@ -14,16 +14,19 @@ export function codeTitles() {
 					}
 				}, {}) ?? {}
 
-			if (!title || !language) {
+			if (!params.title || !language) {
 				return
 			}
 
-			const className = 'code-title'
+			let extraClass = ''
+			if (language === 'svelte' && params.typescript) {
+				extraClass = params.typescript === 'true' ? 'example-typescript' : 'example-javascript'
+			}
 
 			const titleNode = {
 				type: 'html',
 				value: `
-		<div class="${className} ${language}">${title}</div>
+		<div class="code-title ${language} ${extraClass}">${params.title}</div>
 			  `.trim()
 			}
 

@@ -43,6 +43,19 @@
 			.code-title.typescript {
 				display: flex;
 			}
+
+			.code-title.example-typescript {
+				display: flex;
+			}
+			.code-title.example-typescript + pre.language-svelte {
+				display: block;
+			}
+			.code-title.example-javascript {
+				display: none;
+			}
+			.code-title.example-javascript + pre.language-svelte {
+				display: none;
+			}
 		</style>
 	{:else}
 		<style>
@@ -58,6 +71,19 @@
 			}
 			.code-title.typescript {
 				display: none;
+			}
+
+			.code-title.example-typescript {
+				display: none;
+			}
+			.code-title.example-typescript + pre.language-svelte {
+				display: none;
+			}
+			.code-title.example-javascript {
+				display: flex;
+			}
+			.code-title.example-javascript + pre.language-svelte {
+				display: block;
 			}
 		</style>
 	{/if}
