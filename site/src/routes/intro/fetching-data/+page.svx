@@ -251,8 +251,9 @@ file at `src/routes/[[id]]/+page.js` that looks like the following:
 
 ```typescript:title=src/routes/[[id]]/+page.ts
 import { error } from '@sveltejs/kit'
+import type { BeforeLoadEvent } from './$houdini'
 
-export function _houdini_beforeLoad({ params }) {
+export function _houdini_beforeLoad({ params }: BeforeLoadEvent) {
     // if we were given an id, convert the string to a number
     const id = params.id ? parseInt(params.id) : 1
 

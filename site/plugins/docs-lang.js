@@ -4,6 +4,7 @@
 
 import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript.js'
+import prettier from 'prettier'
 
 const AST = recast.types.builders
 
@@ -89,12 +90,16 @@ export async function transformTypescript(content) {
 		// if we are looking at a variable declaration, we need to strip the type declaration and
 		// add a comment over it
 		if (statement.type === 'VariableDeclaration') {
-			transformDeclaration(statement, statement, importSource)
+			transformVariable(statement, statement, importSource)
 		}
 
 		// if we are looking at an exported variable, we need to transform the underlying statement
 		if (statement.type === 'ExportNamedDeclaration') {
-			transformDeclaration(statement.declaration, statement, importSource)
+			if (statement.declaration.type === 'VariableDeclaration') {
+				transformVariable(statement.declaration, statement, importSource)
+			} else if (statement.declaration.type === 'FunctionDeclaration') {
+				transformFunction(statement.declaration, statement, importSource)
+			}
 		}
 
 		// the statement is okay to add to the list
@@ -104,19 +109,18 @@ export async function transformTypescript(content) {
 	return (
 		content.substring(0, start) +
 		'\n' +
-		recast.print(AST.program(transformed)).code +
+		prettier.format(recast.print(AST.program(transformed)).code, {
+			tabWidth: 4,
+			semi: false
+		}) +
 		'\n' +
 		content.substring(end).trim()
 	)
 }
 
 // transform a variable declaration
-function transformDeclaration(statement, parent, importPaths) {
-	if (
-		statement.type === 'VariableDeclaration' &&
-		statement.declarations[0] &&
-		statement.declarations[0].id.typeAnnotation
-	) {
+function transformVariable(statement, parent, importPaths) {
+	if (statement.declarations[0] && statement.declarations[0].id.typeAnnotation) {
 		const declaration = statement.declarations[0]
 		// look up the type it was declared as
 		const targetType = declaration.id.typeAnnotation.typeAnnotation.typeName.name
@@ -130,8 +134,44 @@ function transformDeclaration(statement, parent, importPaths) {
 	}
 }
 
+function transformFunction(statement, parent, importPaths) {
+	// build up a list of the params for the function
+	const params = []
+
+	for (const param of statement.params) {
+		// if the param has a type we need to add it to the list
+		if (param.typeAnnotation) {
+			params.push({
+				name: param.name,
+				type: param.typeAnnotation.typeAnnotation.typeName.name
+			})
+
+			// clear the annotation
+			param.typeAnnotation = null
+		}
+	}
+
+	// if we have parameters in function signature we need to build up the comment
+	if (params.length > 0) {
+		// create the comment
+		const comment = params
+			.map(
+				(param) =>
+					`@param { import('${importPaths[param.type]}').${param.type} } ${param.name ?? ''}`
+			)
+			.join('\n')
+
+		parent.comments = [commentBlock(comment)]
+	}
+}
+
 export function parseJS(str) {
 	return recast.parse(str || '', {
 		parser: typeScriptParser
 	}).program
+}
+
+function commentBlock(comment) {
+	// every new line need a new line, an asterix and a space
+	return AST.commentBlock('*\n * ' + comment.replaceAll('\n', '\n * ') + '\n ')
 }
