@@ -63,7 +63,7 @@ import houdini from 'houdini/vite'
 
 /** @type {import('vite').UserConfig} */
 const config = {
-	plugins: [houdini(), sveltekit()]
+    plugins: [houdini(), sveltekit()]
 }
 
 export default config
@@ -72,14 +72,14 @@ export default config
 Finally, update your `svelte.config.js` to support the `$houdini` alias:
 
 ```typescript:title=svelte.config.ts
-import path from 'path';
+import path from 'path'
 
 export default {
-	kit: {
-		alias: {
-			$houdini: path.resolve('.', '$houdini')
-		}
-	}
+    kit: {
+        alias: {
+            $houdini: path.resolve('.', '$houdini')
+        }
+    }
 }
 ```
 
@@ -104,7 +104,7 @@ import { svelte } from '@sveltejs/vite-plugin-svelte'
 import houdini from 'houdini/vite'
 
 export default defineConfig({
-	plugins: [houdini(), svelte()]
+    plugins: [houdini(), svelte()]
 })
 ```
 
@@ -116,7 +116,7 @@ need to make sure that the `$houdini` alias resolves to the directory in the roo
 import houdini from 'houdini-svelte/preprocess'
 
 export default {
-	preprocess: [houdini()]
+    preprocess: [houdini()]
 }
 ```
 
