@@ -467,7 +467,7 @@ test('cannot use list directive if id is not a valid field', async function () {
 		nbError++
 		// @ts-ignore
 		expect(error[0].description).toMatchInlineSnapshot(
-			'"@list on \\u001b[32mLegend\\u001b[37m\\u001b[0m as a configuration issue. Object identification missing: \\"\\u001b[33mid\\u001b[37m\\u001b[0m\\". Check \'Custom IDs\' if needed."'
+			'"@list on [32mLegend[37m[0m as a configuration issue. Object identification missing: \\"[33mid[37m[0m\\". Check \'Custom IDs\' if needed."'
 		)
 	}
 	expect(nbError).toBe(1)
