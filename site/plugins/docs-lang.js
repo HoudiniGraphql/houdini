@@ -44,8 +44,8 @@ export default {
 					// the content of the block is between the two indices
 					const blockContent = content.slice(match.index, endIndex)
 
-					// if the language is svelte, only add something if there is a typescript param
-					if (language === 'svelte' && !blockContent.includes('typescript=true')) {
+					// if the language is svelte, only add something if the typescript toggle is enabled
+					if (language === 'svelte' && !blockContent.includes('typescriptToggle=true')) {
 						break
 					}
 
@@ -95,8 +95,8 @@ async function transformSvelte(content) {
 			// the final closing tag needs to be outdented
 			.replace('    </script>', '</script>')
 
-		// the first thing we want to do is flag the typescript as off
-		content = content.replace('typescript=true', 'typescript=false')
+		// the first thing we want to do is flag the toggle as off
+		content = content.replace('typescriptToggle=true', 'typescriptToggle=false')
 		// remove the lang="ts" portion
 		content = content.replace(' lang="ts"', '')
 	}
@@ -166,15 +166,28 @@ export async function transformTypescript(content) {
 function transformVariable(statement, parent, importPaths) {
 	if (statement.declarations[0] && statement.declarations[0].id.typeAnnotation) {
 		const declaration = statement.declarations[0]
-		// look up the type it was declared as
-		const targetType = declaration.id.typeAnnotation.typeAnnotation.typeName.name
 
-		const source = importPaths[targetType]
+		// the type to assign to the variable
+		let targetType = ''
+
+		// dry up the type annotation reference
+		const typeAnnotation = declaration.id.typeAnnotation.typeAnnotation
+
+		// if the type it was declared as a reference to another type
+		if (typeAnnotation.typeName) {
+			const typeName = typeAnnotation.typeName.name
+			const source = importPaths[typeName]
+			targetType = `import('${source}').${typeName}`
+		}
+		// the type could be declared as a number
+		else if (typeAnnotation.type === 'TSNumberKeyword') {
+			targetType = 'number'
+		}
 
 		// remove the type annotation
 		declaration.id.typeAnnotation = null
 
-		parent.comments = [AST.commentBlock(` @type { import('${source}').${targetType} } `)]
+		parent.comments = [AST.commentBlock(` @type { ${targetType} } `)]
 	}
 }
 
@@ -228,6 +241,7 @@ function format(str) {
 	return prettier.format(str, {
 		tabWidth: 4,
 		semi: false,
-		singleQuote: true
+		singleQuote: true,
+		printWidth: 100
 	})
 }

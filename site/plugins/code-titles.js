@@ -19,8 +19,9 @@ export function codeTitles() {
 			}
 
 			let extraClass = ''
-			if (language === 'svelte' && params.typescript) {
-				extraClass = params.typescript === 'true' ? 'example-typescript' : 'example-javascript'
+			if (language === 'svelte' && params.typescriptToggle) {
+				extraClass =
+					params.typescriptToggle === 'true' ? 'example-typescript' : 'example-javascript'
 			}
 
 			const titleNode = {
@@ -34,6 +35,9 @@ export function codeTitles() {
 			 * Splice a node back into the Markdown AST with custom title
 			 */
 			parent.children.splice(index, 0, titleNode)
+
+			// remove any prettier ignore lines
+			node.value = node.value.replaceAll(/\s+\/\/ prettier-ignore/g, '\n')
 
 			/*
 			 * Reset to just the language
