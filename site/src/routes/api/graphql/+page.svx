@@ -128,14 +128,14 @@ mutation FavoriteBand($input: FavoriteBandInput!, $userID: String!) {
 Houdini generates runtime representations of every enum in your schema. They can be imported directly from
 `$houdini`:
 
-```typescript
-import { MyEnum, type UpdateStore } from '$houdini'
+```javascript
+import { MyEnum } from '$houdini'
 
-const update: UpdateStore = graphql`
+const update = graphql(`
 	mutation Update($input: MyEnum!) {
 		update(input: $input)
 	}
-`
+`)
 
 function onClick() {
 	update.mutate({ variables: { input: MyEnum.Value1 } })

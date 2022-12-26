@@ -24,6 +24,7 @@ export const routes = {
   Stores_SSR_One_Store_Multivariables: '/stores/ssr-one-store-multivariables',
   Stores_Fragment_Null: '/stores/fragment-null',
   Stores_Metadata: '/stores/metadata',
+  Stores_action_mutation: '/stores/action-mutation',
   Stores_Endpoint_Query: '/stores/endpoint-query',
   Stores_Endpoint_Mutation: '/stores/endpoint-mutation',
   Stores_Session: '/stores/session',

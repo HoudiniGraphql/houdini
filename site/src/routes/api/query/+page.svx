@@ -447,15 +447,12 @@ are handed in your route function:
 ```typescript
 import { MyQueryStore } from '$houdini'
 
-export async function get(event) {
+/** @type {import('./$types').PageServerLoad} */
+export const load = (event) => {
 	const myQuery = new MyQueryStore()
 	const { data } = await myQuery.fetch({ event })
 
-	return {
-		body: {
-			data
-		}
-	}
+	return { data }
 }
 ```
 
