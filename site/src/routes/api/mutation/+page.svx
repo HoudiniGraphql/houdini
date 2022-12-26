@@ -12,7 +12,7 @@ description: Mutations in Houdini
 
 Send a mutation to the server and updating your client-side cache with any changes.
 
-```svelte
+```svelte:typescriptToggle=true
 <script lang="ts">
 	import { graphql } from '$houdini'
 
@@ -50,33 +50,33 @@ can be used to configure its behavior. The following values can be provided:
 Using a mutation inside an action endpoint looks very similar to anywhere else.
 For reference, it would look like:
 
-```js
-import { graphql } from '$houdini';
-import { fail } from '@sveltejs/kit';
+```typescript:typescriptToggle=true
+import { graphql } from '$houdini'
+import { fail } from '@sveltejs/kit'
+import type { Actions } from './$types'
 
-/** @type {import('./$types').Actions} */
-export const actions = {
-  add: async (event) => {
-    const data = await event.request.formData();
+export const actions: Actions = {
+    add: async (event) => {
+        const data = await event.request.formData()
 
-    const name = data.get('name')?.toString();
+        const name = data.get('name')?.toString()
 
-    if (!name) {
-      return fail(403, { name: '*' });
-    }
-
-    const actionMutation = graphql(`
-      mutation ActionMutation($name: String!) {
-        addUser(name: $name, birthDate: 254143016000, snapshot: "ActionMutation") {
-          id
-          name
+        if (!name) {
+            return fail(403, { name: '*' })
         }
-      }
-    `);
 
-    return await actionMutation.mutate({ name });
-  }
-};
+        const actionMutation = graphql(`
+            mutation ActionMutation($name: String!) {
+                addUser(name: $name, birthDate: 254143016000, snapshot: "ActionMutation") {
+                    id
+                    name
+                }
+            }
+        `)
+
+        return await actionMutation.mutate({ name })
+    }
+}
 ```
 
 ## Updating fields

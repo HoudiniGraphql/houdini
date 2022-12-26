@@ -31,7 +31,7 @@ export function codeTitles() {
 			const titleNode = {
 				type: 'html',
 				value: `
-		<div class="code-title ${language} ${extraClass}">${params.title}</div>
+		<div class="code-title ${language} ${extraClass}">${params.title ?? ''}</div>
 			  `.trim()
 			}
 

@@ -30,8 +30,8 @@ Simple answer, we recommend [KitQL](https://www.kitql.dev/). For more informatio
 
 Consider this query:
 
-```svelte:title=src/routes/myRoute/+page.svelte
-<script>
+```svelte:title=src/routes/myRoute/+page.svelte&typescriptToggle=true
+<script lang="ts">
     import { graphql } from '$houdini'
 
     const SpeciesInfo = graphql(`
@@ -84,37 +84,6 @@ If you haven't seen Houdini's document stores before, please check out the [Work
 
 You should use the `metadata` parameter in the document store to pass arbitrary information into your client's network function. For more information,
 please visit [the query store docs](/api/query#passing-metadata).
-
-### Can I use .env files for pre-processing?
-
-Yes you can! You can pass any [valid configuration value](/api/config#fields) to the vite plugin to use your environment variable:
-
-```typescript
-import { sveltekit } from '@sveltejs/kit/vite'
-import houdini from 'houdini/vite'
-import { defineConfig, loadEnv } from 'vite'
-import type { UserConfigExport } from 'vite'
-
-const config: UserConfigExport = defineConfig(({ mode }) => {
-    // loads env files
-    // supports the use of seperate .env, .env.production, and .env.development files
-    const env = loadEnv(mode, process.cwd())
-
-    return {
-        plugins: [
-            houdini({
-                apiUrl: env.VITE_SECRET_ENDPOINT,
-                schemaPollHeaders: {
-                    'X-Header': env.VITE_CUSTOM_HEADER
-                }
-            }),
-            sveltekit()
-        ]
-    }
-})
-
-export default config
-```
 
 ### What is this `Generated an empty chunk...` warning from vite?
 

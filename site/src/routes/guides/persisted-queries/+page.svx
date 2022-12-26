@@ -81,8 +81,7 @@ Once this map has been created, you will have to make it available to your serve
 Once your serer has this list, instead of sending the full operation text with every request, you can now simply
 pass the hash under whatever field name your API is configured to use:
 
-```typescript&typescriptToggle=true
-/// src/client.ts
+```typescript:title=src/client.ts&typescriptToggle=true
 export default new HoudiniClient(async function (args) {
     const result = await this.fetch('http://localhost:4000', {
         method: 'POST',

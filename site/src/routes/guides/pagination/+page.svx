@@ -19,8 +19,8 @@ Regardless of the strategy used, houdini follows a simple pattern: mark the fiel
 Once you've done that, you can wire up your query however you prefer. For example, an inline query
 supporting offset-based pagination would look something like:
 
-```svelte
-<script>
+```svelte:typescriptToggle=true
+<script lang="ts">
 	const userList = graphql(`
 		query UserList {
 			friends(limit: 10) @paginate {
@@ -39,8 +39,8 @@ supporting offset-based pagination would look something like:
 
 and a field that supports cursor-based pagination starting at the end of the list would look something like:
 
-```svelte
-<script>
+```svelte:typescriptToggle=true
+<script lang="ts">
 	const userList = graphql(`
 		query UserList {
 			friends(last: 10) @paginate {
@@ -64,8 +64,8 @@ and a field that supports cursor-based pagination starting at the end of the lis
 If you are paginating a field with a cursor-based strategy (forward or backwards), the current page
 info can be looked up with the `pageInfo` field of store's value:
 
-```svelte
-<script>
+```svelte:typescriptToggle=true
+<script lang="ts">
     const userInfo = graphql(`
         query UserList {
             friends(first: 10) @paginate {
@@ -90,8 +90,8 @@ info can be looked up with the `pageInfo` field of store's value:
 
 `paginatedFragment` works very much in the same way except for a few caveats. Consider the following:
 
-```svelte
-<script>
+```svelte:typescriptToggle=true
+<script lang="ts">
 	const userWithFriends = paginatedFragment(
 		user,
 		graphql(`

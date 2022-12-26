@@ -8,13 +8,14 @@ description: Fragments in Houdini
 
 Specify the data requirements for a Svelte component.
 
-```svelte
-<script>
+```svelte:typescriptToggle=true
+<script lang="ts">
 	import { fragment, graphql } from '$houdini'
+	import type { UserAvatar } from '$houdini'
 
-	// the reference will get passed as a prop
-	export let user
+	export let user: UserAvatar
 
+	// prettier-ignore
 	$: data = fragment(user, graphql(`
 		fragment UserAvatar on User {
 			profilePicture
@@ -42,12 +43,13 @@ Inline fragments can defined using `fragment` imported from `$houdini` as shown 
 
 Fragments stores can be created from your external documents by using the `.get` method on the store in `$houdini`:
 
-```svelte
-<script>
+```svelte:typescriptToggle=true
+<script lang="ts">
 	import { UserAvatarStore } from '$houdini'
+	import type { UserAvatar } from '$houdini'
 
 	// the reference will get passed as a prop
-	export let user
+	export let user: UserAvatar
 
 	// load the the required UserAvatar for this component
 	$: data = new UserAvatarStore().get(user)
@@ -97,13 +99,14 @@ query AllUsers {
 
 Fragments may also contain a paginated field, similar to queries. A paginated fragment must use the `paginatedFragment` function and have a field tagged with the `@paginate` directive. For more information Houdini's support for pagination, please visit the [Pagination guide](/guides/pagination).
 
-```svelte
-<script>
+```svelte:typescriptToggle=true
+<script lang="ts">
 	import { paginatedFragment, graphql } from '$houdini'
+	import type { UserWithFriends } from '$houdini'
 
-	// the reference will get passed as a prop
-	export let user
+	export let user: UserWithFriends
 
+	// prettier-ignore
 	$: friendList = paginatedFragment(user, graphql(`
 		fragment UserWithFriends on User {
 			friends(first: 10) @paginate {

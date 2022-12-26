@@ -54,7 +54,6 @@ If your API supports the [`graphql-ws`](https://github.com/enisdenjo/graphql-ws)
 client and pass it directly:
 
 ```typescript:title=src/client.ts&typescriptToggle=true
-
 import { createClient } from 'graphql-ws'
 import { browser } from '$app/environment'
 
@@ -80,7 +79,7 @@ let socketClient = null
 if (browser) {
 	// instantiate the transport client
 	const client = new SubscriptionClient('ws://api.url', {
-		reconnect: true
+		reconnect: true,
 	})
 
 	// wrap the client in something houdini can use
@@ -91,7 +90,7 @@ if (browser) {
 
 			// return the function to unsubscribe
 			return unsubscribe
-		}
+		},
 	}
 }
 
@@ -102,7 +101,7 @@ export default new HoudiniClient(requestHandler, socketClient)
 
 If your server supports the latest Server-Side events, you can use them to power your subscriptions:
 
-```typescript&typescriptToggle=true
+```typescript:title=src/client.ts&typescriptToggle=true
 import { SubscriptionClient } from 'subscriptions-transport-ws'
 import { browser } from '$app/environment'
 
@@ -119,7 +118,7 @@ if (browser) {
 			eventSource.addEventListener('message', (ev) => handlers.next(JSON.parse(ev.data)))
 
 			return () => eventSource.close()
-		}
+		},
 	}
 }
 

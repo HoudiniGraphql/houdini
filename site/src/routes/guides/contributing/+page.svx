@@ -98,59 +98,6 @@ two things. First, we have to patch `node:fs` so that vite and kit think the fil
 vite has to be configure so that an import for one of the fake `+page.js` With those two things in place, the transform
 pipeline treats the fake files as empty.
 
-### How does the plugin generate loads?
-
-To understand how this works, consider this query:
-
-```svelte:title=src/routes/myRoute/+page.svelte
-<script>
-    import { query, graphql } from '$houdini'
-
-    const SpeciesInfo = graphql(`
-        query SpeciesInfo {
-            species(id: 1) {
-                name
-                flavor_text
-                sprites {
-                    front
-                }
-            }
-        }
-    `)
-</script>
-
-<div>
-    {$info.data.species.name}
-</div>
-```
-
-By looking at the contents of every `graphql` tag in a component, the plugin can extract the query names and then generate/transform that one
-file into these two:
-
-```svelte:title=src/routes/myRoute/+page.svelte&typescriptToggle=true
-<script lang="ts">
-    import type { PageData } from './$houdini'
-
-    export let data: PageData
-
-    let { SpeciesInfo } = data
-    $: ({ SpeciesInfo } = data)
-</script>
-```
-
-```typescript:title=src/routes/myRoute/+page.ts&typescriptToggle=true
-import { SpeciesInfoStore } from '$houdini'
-import type { PageLoad } from './$houdini'
-
-export const load: PageLoad = async ({ event }) => {
-    await SpeciesInfoStore.fetch({ event })
-
-    return {
-        SpeciesInfo: SpeciesInfoStore
-    }
-}
-```
-
 ## The Runtime
 
 The actual runtime used by houdini is split into multiple parts. The part shared by all frameworks is defined in [packages/houdini/src/runtime](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini/src/runtime) and contains the cache definition as well as some utilities for fetching data and other tasks that are shared by

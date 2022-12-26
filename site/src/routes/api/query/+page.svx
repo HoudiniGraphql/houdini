@@ -272,8 +272,8 @@ Sometimes it's useful to have a lazy query that only fires when you call `fetch`
 example in a search input). For these scenarios (whether in a route or component),
 you will want to turn off the generated load using the `@manual_load` directive:
 
-```svelte
-<script>
+```svelte:typescriptToggle=true
+<script lang="ts">
 	import { graphql } from '$houdini'
 
 	const result = graphql(`

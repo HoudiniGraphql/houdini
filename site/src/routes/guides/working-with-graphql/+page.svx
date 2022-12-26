@@ -195,7 +195,7 @@ query MyAwesomeQuery {
 }
 ```
 
-```typescript:title=src/routes/myRoute/+page.ts
+```typescript:title=src/routes/myRoute/+page.ts&typescriptToggle=true
 import { MyAwesomeQueryStore } from '$houdini'
 ```
 
@@ -341,7 +341,7 @@ export const _houdini_load = graphql(`
 Your route will be rendered with a single prop: `UserInfo`. This approach works nicely when you have lots of different variables and
 hooks for a particular query since it allows all of that logic to be co-located:
 
-```typescript:title=src/routes/myProfile/+page.js&typescriptToggle=true
+```typescript:title=src/routes/myProfile/+page.ts&typescriptToggle=true
 import { graphql } from '$houdini'
 import type { UserInfoVariables } from './$houdini'
 
