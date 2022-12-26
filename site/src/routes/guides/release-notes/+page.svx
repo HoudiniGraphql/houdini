@@ -268,7 +268,7 @@ Notice there's no more need to thread variables around or that ugly `$: browser 
 
 In order to make this work, your `load` functions need to now return instances of the store embedded in the correct key. This can be easily done with the new `load_StoreName` functions. The `load_` prefix is to make it easy to autocomplete when you are working in your editor:
 
-```javascript
+```typescript
 import { load_UserInfo } from '$houdini'
 
 export async function load(event) {
@@ -359,22 +359,22 @@ id: {$store.data?.viewer.id}
 
 You can now tell the houdini plugin to generate loads for your stores. To do this, you need to export a `houdini_load` variable from your `+page.js/ts` file:
 
-```typescript
-// src/routes/myProfile/+page.ts
-
-import { GQL_MyQuery, GQL_Query1, GQL_Query2 } from '$houdini'
+```typescript:title=src/routes/myProfile/+page.ts
+import { GQL_MyQuery } from '$houdini'
 
 export const houdini_load = GQL_MyQuery
-// or
+```
+```typescript:title=src/routes/myProfile/+page.ts
+import { GQL_Query1, GQL_Query2 } from '$houdini'
+
 export const houdini_load = [GQL_Query1, GQL_Query2]
 ```
 
 This can be mixed with the new `graphql` tag api to define your queries inside of your javascript files:
 
-```typescript
-// src/routes/myProfile/+page.ts
+```typescript:title=src/routes/myProfile/+page.ts
 
-import { GQL_MyQuery, graphql. } from '$houdini'
+import { GQL_MyQuery, graphql } from '$houdini'
 
 const otherQuery = graphql`
 	query ViewerInfo {

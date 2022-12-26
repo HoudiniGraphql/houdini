@@ -8,12 +8,12 @@ description: Subscriptions in Houdini
 
 Listen for real-time updates from your server using GraphQL Subscriptions.
 
-```svelte
-<script>
+```svelte:title=SubscriptionExample.svelte&typescriptToggle=true
+<script lang="ts">
 	import { graphql } from '$houdini'
 
 	// this information should usually come from a fragment
-	export let itemID
+	export let itemID: string
 
 	// will start listening onMount (browser only)
 	const updates = graphql(`
@@ -53,9 +53,7 @@ pass `null` when configuring your environment on the rendering server.
 If your API supports the [`graphql-ws`](https://github.com/enisdenjo/graphql-ws) protocol, you can create a
 client and pass it directly:
 
-```typescript
-// client.ts
-
+```typescript:title=src/client.ts&typescriptToggle=true
 import { createClient } from 'graphql-ws'
 import { browser } from '$app/environment'
 
@@ -73,17 +71,15 @@ export default new HoudiniClient(requestHandler, socketClient)
 If you are using the deprecated `subscriptions-transport-ws` library and associated protocol,
 you will have to slightly modify the above block:
 
-```typescript
-// client.ts
-
+```typescript:title=src/client.ts&typescriptToggle=true
 import { SubscriptionClient } from 'subscriptions-transport-ws'
 import { browser } from '$app/environment'
 
-let socketClient: SubscriptionHandler | null = null
+let socketClient = null
 if (browser) {
 	// instantiate the transport client
 	const client = new SubscriptionClient('ws://api.url', {
-		reconnect: true
+		reconnect: true,
 	})
 
 	// wrap the client in something houdini can use
@@ -94,7 +90,7 @@ if (browser) {
 
 			// return the function to unsubscribe
 			return unsubscribe
-		}
+		},
 	}
 }
 
@@ -105,11 +101,11 @@ export default new HoudiniClient(requestHandler, socketClient)
 
 If your server supports the latest Server-Side events, you can use them to power your subscriptions:
 
-```javascript
+```typescript:title=src/client.ts&typescriptToggle=true
 import { SubscriptionClient } from 'subscriptions-transport-ws'
 import { browser } from '$app/environment'
 
-let socketClient: SubscriptionHandler | null = null
+let socketClient = null
 if (browser) {
 	socketClient = {
 		subscribe(payload, handlers) {
@@ -122,7 +118,7 @@ if (browser) {
 			eventSource.addEventListener('message', (ev) => handlers.next(JSON.parse(ev.data)))
 
 			return () => eventSource.close()
-		}
+		},
 	}
 }
 

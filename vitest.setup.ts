@@ -51,6 +51,7 @@ expect.addSnapshotSerializer({
 expect.addSnapshotSerializer({
 	test: (val) =>
 		val &&
+		typeof val !== 'string' &&
 		!Object.values(graphql.Kind).includes(val.kind) &&
 		!Object.keys(recast.types.namedTypes).includes(val.type) &&
 		!val.document,

@@ -213,8 +213,8 @@ as the second child in the right panel (between `div#species-evolution-chain` an
 
 In most situations houdini's automatic appending is great since it covers popular patterns like infinite scrolling or any kind of list that just keeps growing. Unfortunately, we are only showing one move at a time so we can't just display all of the information we're holding onto in memory. Also, the user might want to step back in the list and we won't need to load the next or previous page if we already have it loaded. In order to address this, we need hold onto a bit of local state that will track the index of the move on display. When we load the next move we will first check if we already have the element loaded and if not, we will trigger `loadNextPage` to grab it and then update our state to display the new result.
 
-```svelte:title=src/routes/[[id]]/+page.svelte
-<script>
+```svelte:title=src/routes/[[id]]/+page.svelte&typescriptToggle=true
+<script lang="ts">
     import { navigating } from '$app/stores'
     import { UpButton, DownButton } from '~/components'
 

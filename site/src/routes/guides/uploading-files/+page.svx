@@ -20,8 +20,8 @@ type Mutation {
 With that defined, the only thing that's left is to have the user select a file with an `<input type="file"/>`
 element and pass it to the mutation:
 
-```svelte
-<script>
+```svelte:typescriptToggle=true
+<script lang="ts">
     import { graphql } from '$houdini'
 
     const UploadFile = graphql(`
@@ -31,7 +31,12 @@ element and pass it to the mutation:
     `)
 </script>
 
-<input type="file" on:change={files => UploadFile.mutate({file: files[0]})} />
+<input
+    type="file"
+    on:change={files =>
+        UploadFile.mutate({file: files[0]})
+    }
+/>
 ```
 
 As long as your server understands the [GraphQL multipart request specification](https://github.com/jaydenseric/graphql-multipart-request-spec),

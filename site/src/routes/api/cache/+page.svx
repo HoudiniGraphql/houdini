@@ -137,7 +137,7 @@ const allFriends = cache.list("User_Friends", { allLists: true })
 
 You can mutate the list using the `prepend`, `append`, `remove`, and `toggle` methods:
 
-```javascript
+```typescript
 const allUsers = cache.list("All_Users")
 const user1 = cache.get('User', { id: "1" })
 

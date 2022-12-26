@@ -73,7 +73,7 @@ query MyAwesomeQuery {
 }
 ```
 
-```javascript
+```typescript
 // src/routes/myRoute/+page.js
 import { GQL_MyAwesomeQuery } from '$houdini'
 ```
@@ -117,7 +117,7 @@ Fragments stores can be created from your external documents by using the `.get`
 Using a query store inside of an endpoint looks very similar to the `load` function: just pass the event you
 are handed in your route function:
 
-```javascript
+```typescript
 import { GQL_MyQuery } from '$houdini'
 
 export async function get(event) {

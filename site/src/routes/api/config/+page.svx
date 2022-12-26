@@ -10,7 +10,7 @@ All configuration for your houdini application is defined in a single file that 
 
 ```javascript:title=houdini.config.js
 export default {
-	apiUrl: 'http://localhost:4000/graphql'
+	apiUrl: 'http://localhost:4000/graphql',
 	schemaPollHeaders: {
 		Authentication(env) {
 			return `Bearer ${env.AUTH_TOKEN}`
@@ -48,7 +48,6 @@ By default, your config file can contain the following values:
 Configuring the svelte plugin is done inside of the `plugins` key in your config file:
 
 ```javascript:title=houdini.config.js
-
 export default {
 	// ...
 	plugins: {
@@ -64,14 +63,13 @@ Here is a summary of the possible configuration values:
 - `pageQueryFilename` (optional, default: `+page.gql`): The name of the file used to define page queries.
 - `layoutQueryFilename` (optional, default: `+layout.gql`): The name of the file used to define layout queries.
 - `quietQueryErrors` (optional, default: `false`): With this enabled, errors in your query will not be thrown as exceptions. You will have to handle error state in your route components or by hand in your load (or the onError hook)
-- `static` (optional, default: `false`): A flag to treat every component as a non-route.
+- `static` (optional, default: `false`): A flag to remove the session infrastructure from your application
 
 ## Custom Scalars
 
 Configuring your runtime to handle custom scalars is done under the `scalars` key in your config:
 
 ```javascript:title=houdini.config.js
-
 export default {
 	// ...
 	scalars: {

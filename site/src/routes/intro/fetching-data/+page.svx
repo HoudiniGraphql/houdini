@@ -26,12 +26,13 @@ query Info {
 }
 ```
 
-```svelte:title=src/routes/+page.svelte
-<script>
+```svelte:title=src/routes/+page.svelte&typescriptToggle=true
+<script lang="ts">
     import { graphql } from '$houdini'
     import { Container, Display, Sprite, Panel } from '~/components'
+    import type { PageData } from './$houdini'
 
-    export let data
+    export let data: PageData
 
     $: ({ Info } = data)
 </script>
@@ -131,16 +132,17 @@ If you were looking carefully, you might have noticed that we didn't define a `l
 </script>
 ```
 
-```typescript:title=src/routes/+page.js
+```typescript:title=src/routes/+page.ts&typescriptToggle=true
 import { InfoStore } from '$houdini/stores/Info'
+import type { PageLoad } from './$types'
 
-export async function load({ event }) {
+export const load: PageLoad = async ({ event }) => {
     const store = new InfoStore()
 
     await InfoStore.fetch({ event })
 
     return {
-        Info: store
+        Info: store,
     }
 }
 ```
@@ -248,10 +250,11 @@ So far so good! There is one slight problem: there are only 151 species in the f
 In order to prevent this, we need to check if `id` is between `1` and `151` and if not, render an error for the user. The best way to do this is to use a load hook to check the value before the load fires. Load hooks belong in `+page.js` files so create a
 file at `src/routes/[[id]]/+page.js` that looks like the following:
 
-```javascript:title=src/routes/[[id]]/+page.js
+```typescript:title=src/routes/[[id]]/+page.ts&typescriptToggle=true
 import { error } from '@sveltejs/kit'
+import type { BeforeLoadEvent } from './$houdini'
 
-export function _houdini_beforeLoad({ params }) {
+export function _houdini_beforeLoad({ params }: BeforeLoadEvent) {
     // if we were given an id, convert the string to a number
     const id = params.id ? parseInt(params.id) : 1
 

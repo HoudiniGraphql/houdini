@@ -63,7 +63,7 @@ import houdini from 'houdini/vite'
 
 /** @type {import('vite').UserConfig} */
 const config = {
-	plugins: [houdini(), sveltekit()]
+    plugins: [houdini(), sveltekit()]
 }
 
 export default config
@@ -72,14 +72,14 @@ export default config
 Finally, update your `svelte.config.js` to support the `$houdini` alias:
 
 ```javascript:title=svelte.config.js
-import path from 'path';
+import path from 'path'
 
 export default {
-	kit: {
-		alias: {
-			$houdini: path.resolve('.', '$houdini')
-		}
-	}
+    kit: {
+        alias: {
+            $houdini: path.resolve('.', '$houdini')
+        }
+    }
 }
 ```
 
@@ -98,13 +98,13 @@ pnpm install --save-dev houdini-svelte
 If you are using vite, you should use the `houdini/vite` plugin even if you aren't using kit.
 Update your `vite.config.js` file to look like this:
 
-```javascript:title=vite.config.js
+```typescript:title=vite.config.ts
 import { defineConfig } from 'vite'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import houdini from 'houdini/vite'
 
 export default defineConfig({
-	plugins: [houdini(), svelte()]
+    plugins: [houdini(), svelte()]
 })
 ```
 
@@ -112,11 +112,11 @@ If you aren't using vite, it's a lot harder to give an exact recommendation but 
 you should import houdini's preprocessor and pass it to your svelte config. You will also
 need to make sure that the `$houdini` alias resolves to the directory in the root of your project.
 
-```javascript:title=svelte.config.js
+```typescript:title=svelte.config.ts
 import houdini from 'houdini-svelte/preprocess'
 
 export default {
-	preprocess: [houdini()]
+    preprocess: [houdini()]
 }
 ```
 
@@ -125,11 +125,9 @@ export default {
 When using Typescript and SvelteKit, you will need to add houdini to your rootDir value so that you can use the generated
 variable and hooks types in your routes:
 
-```typescript:title=tsconfig.json
+```yaml:title=tsconfig.json
 {
-	// ...
     "compilerOptions": {
-        // ...
         "rootDirs": [".", "./.svelte-kit/types", "./$houdini/types"]
     }
 }

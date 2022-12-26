@@ -5,7 +5,8 @@ import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypeSlug from 'rehype-slug'
 import preprocess from 'svelte-preprocess'
 import './src/lib/highlight.js'
-import { codeTitles } from './remark/code-titles.js'
+import { codeTitles } from './plugins/code-titles.js'
+import docsLang from './plugins/docs-lang.js'
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -15,6 +16,7 @@ const config = {
 	// Consult https://github.com/sveltejs/svelte-preprocess
 	// for more information about preprocessors
 	preprocess: [
+		docsLang,
 		mdsvex({
 			layout: {
 				blank: path.resolve('./src/layouts/_blank.svelte'),

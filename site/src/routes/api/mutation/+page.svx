@@ -12,7 +12,7 @@ description: Mutations in Houdini
 
 Send a mutation to the server and updating your client-side cache with any changes.
 
-```svelte
+```svelte:typescriptToggle=true
 <script lang="ts">
 	import { graphql } from '$houdini'
 
@@ -45,6 +45,40 @@ can be used to configure its behavior. The following values can be provided:
 - mutations usually do best when combined with at least one fragment grabbing
   the information needed for the mutation (for an example of this pattern, see below.)
 
+## Form actions
+
+Using a mutation inside an action endpoint looks very similar to anywhere else.
+For reference, it would look like:
+
+```typescript:typescriptToggle=true
+import { graphql } from '$houdini'
+import { fail } from '@sveltejs/kit'
+import type { Actions } from './$types'
+
+export const actions: Actions = {
+    add: async (event) => {
+        const data = await event.request.formData()
+
+        const name = data.get('name')?.toString()
+
+        if (!name) {
+            return fail(403, { name: '*' })
+        }
+
+        const actionMutation = graphql(`
+            mutation ActionMutation($name: String!) {
+                addUser(name: $name, birthDate: 254143016000, snapshot: "ActionMutation") {
+                    id
+                    name
+                }
+            }
+        `)
+
+        return await actionMutation.mutate({ name })
+    }
+}
+```
+
 ## Updating fields
 
 When a mutation is responsible for updating fields of entities, houdini
@@ -53,16 +87,14 @@ record's id.
 
 Take for example, an `TodoItemRow` component:
 
-```svelte
+```svelte:title=TodoItemRow.svelte&typescriptToggle=true
 <script lang="ts">
-	import {
-		fragment,
-		graphql,
-		type TodoItemRow,
-	} from '$houdini'
+	import { fragment, graphql } from '$houdini'
+	import type { TodoItemRow } from '$houdini'
 
 	export let item: TodoItemRow
 
+	// prettier-ignore
 	// the resulting store will stay up to date whenever `checkItem`
 	// is triggered
 	$: data = fragment(item, graphql(`
@@ -87,7 +119,6 @@ Take for example, an `TodoItemRow` component:
 	function checkItem() {
 		store.mutate({ id: $data.id })
 	}
-
 </script>
 
 <li class:completed={$data.completed}>
@@ -115,13 +146,13 @@ field of a particular item. In these situations, we don't have to wait for a mut
 resolve in order to apply the update to the cache. Instead, we can assume that it will succeed
 and provide an "optimistic response" for the mutation with the second argument to a mutation handler:
 
-```svelte
+```svelte:title=ToggleButton.svelte&typescriptToggle=true
 <script lang="ts">
 	import { graphql } from '$houdini'
 
-	export let itemID
+	export let itemID: number
 
-	const toggleItem = graphql(`
+	const toggle = graphql(`
 		mutation ToggleItem($id: ID!) {
 			toggleItem {
 				item {
@@ -133,7 +164,7 @@ and provide an "optimistic response" for the mutation with the second argument t
 	`)
 
 	function toggleItem() {
-		toggleItem.mutate({ id: itemID }, {
+		toggle.mutate({ id: itemID }, {
 			optimisticResponse: {
 				toggleItem: {
 					item: {

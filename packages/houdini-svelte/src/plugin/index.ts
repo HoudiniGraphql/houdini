@@ -1,4 +1,4 @@
-import { HoudiniError, PluginFactory, path, fs } from 'houdini'
+import { HoudiniError, PluginFactory, path, fs, type Config } from 'houdini'
 import * as url from 'url'
 import { loadEnv } from 'vite'
 
@@ -17,6 +17,8 @@ import apply_transforms from './transforms'
 import validate from './validate'
 
 let framework: Framework = 'svelte'
+
+export let _config: Config
 
 const HoudiniSveltePlugin: PluginFactory = async () => ({
 	order: 'core',
@@ -131,6 +133,7 @@ export const error = svelteKitError
 	 */
 
 	async after_load(cfg) {
+		_config = cfg
 		const cfgPlugin = plugin_config(cfg)
 
 		let client_file_exists = false

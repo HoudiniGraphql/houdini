@@ -14,20 +14,20 @@ As you've seen, we can get pretty far by just using GraphQL queries to define ou
 
 ```graphql:title=src/routes/[[id]]/+page.gql
 query Info($id: Int! = 1) {
-	species(id: $id) {
-		name
-		sprites {
-			front
-		}
-	}
+    species(id: $id) {
+        name
+        sprites {
+            front
+        }
+    }
 }
 ```
 
 ```svelte:title=src/routes/[[id]]/+page.svelte
 <Sprite
-	id="species-sprite"
-	src={$info.data.species.sprites.front}
-	speciesName={$info.data.species.name}
+    id="species-sprite"
+    src={$info.data.species.sprites.front}
+    speciesName={$info.data.species.name}
 />
 ```
 
@@ -43,8 +43,8 @@ Fragments are a super powerful tool in GraphQL that is commonly overlooked. In s
 
 ```graphql
 fragment MyFragment on Species {
-	name
-	flavor_text
+    name
+    flavor_text
 }
 ```
 
@@ -76,28 +76,30 @@ query {
 
 Defining a fragment inside of your component looks a lot like the query from before. Let's see this in action by updating the `Sprite` component to look like this:
 
-```svelte:title=src/components/Sprite.svelte
-<script>
-	import { fragment, graphql } from '$houdini'
+```svelte:title=src/components/Sprite.svelte&typescriptToggle=true
+<script lang="ts">
+    import { fragment, graphql } from '$houdini'
+    import type { SprintInfo } from '$houdini'
 
-	export let species
+    export let species: SprintInfo
 
-	$: info = fragment(species, graphql(`
-		fragment SpriteInfo on Species {
-			name
-			sprites {
-				front
-			}
-		}
-	`))
+    // prettier-ignore
+    $: info = fragment(species, graphql(`
+        fragment SpriteInfo on Species {
+            name
+            sprites {
+                front
+            }
+        }
+    `))
 </script>
 
 <div id={$$props.id} class="sprite">
-	<img
-		src={$info.sprites.front}
-		alt={`${$info.name} sprite`}
-		height="100%"
-	/>
+    <img
+        src={$info.sprites.front}
+        alt={`${$info.name} sprite`}
+        height="100%"
+    />
 </div>
 ```
 
@@ -105,12 +107,12 @@ Next we have to go back to the route and put this fragment to use. Update the qu
 
 ```graphql:title=src/routes/[[id]]/+page.gql
 query Info($id: Int! = 1) {
-	species(id: $id) {
-		name
-		flavor_text
+    species(id: $id) {
+        name
+        flavor_text
 
-		...SpriteInfo
-	}
+        ...SpriteInfo
+    }
 }
 ```
 
@@ -142,31 +144,33 @@ It's worth mentioning explicitly that you are free to mix and match fragments ho
 
 Before we add anything to our route, let's update the component defined in `src/components/SpeciesPreview` to use the new fragment we just added to `Sprite`. You might want to give it a try without looking ahead but either way, here's what it should look like now:
 
-```svelte:title=src/components/Sprite.svelte
-<script>
-	import { graphql, fragment } from '$houdini'
-	import { Sprite, Display } from '.'
-	import Number from './SpeciesPreviewNumber.svelte'
+```svelte:title=src/components/Sprite.svelte&typescriptToggle=true
+<script lang="ts">
+    import { graphql, fragment } from '$houdini'
+    import { Sprite, Display } from '.'
+    import Number from './SpeciesPreviewNumber.svelte'
+    import type { SpeciesPreview } from '$houdini'
 
-	export let species
-	export let number
+    export let species: SpeciesPreview
+    export let num: number
 
-	$: preview = fragment(species, graphql(`
-		fragment SpeciesPreview on Species {
-			name
-			id
+	// prettier-ignore
+    $: preview = fragment(species, graphql(`
+        fragment SpeciesPreview on Species {
+            name
+            id
 
-			...SpriteInfo
-		}
-	`))
+            ...SpriteInfo
+        }
+    `))
 </script>
 
 <a href={$preview.id}>
-	<Number value={number} />
-	<Sprite {species} />
-	<Display>
-		{$preview.name}
-	</Display>
+    <Number value={num} />
+    <Sprite {species} />
+    <Display>
+        {$preview.name}
+    </Display>
 </a>
 ```
 
@@ -174,14 +178,14 @@ Once that's done, go back to the route we've been working with and update the qu
 
 ```graphql:title=src/routes/[[id]]/+page.gql
 query Info($id: Int!) {
-	species(id: $id) {
-		name
-		flavor_text
-		evolution_chain {
-			...SpeciesPreview
-		}
-		...SpriteInfo
-	}
+    species(id: $id) {
+        name
+        flavor_text
+        evolution_chain {
+            ...SpeciesPreview
+        }
+        ...SpriteInfo
+    }
 }
 ```
 
@@ -189,17 +193,17 @@ Next, copy and paste the following code above the `nav` in the right panel. You'
 
 ```svelte:title=src/routes/[[id]]/+page.svelte
 <script>
-	import { SpeciesPreview, SpeciesPreviewPlaceholder } from '~/components'
+    import { SpeciesPreview, SpeciesPreviewPlaceholder } from '~/components'
 </script>
 
 <div id="species-evolution-chain">
-	{#each $info.data.species.evolution_chain as form, i}
-		<SpeciesPreview species={form} number={i + 1} />
-	{/each}
-	<!-- if there are less than three species in the chain, leave a placeholder behind -->
-	{#each Array.from({ length: 3 - $info.data.species.evolution_chain?.length }) as _, i}
-		<SpeciesPreviewPlaceholder number={$info.data.species.evolution_chain.length + i + 1} />
-	{/each}
+    {#each $info.data.species.evolution_chain as form, i}
+        <SpeciesPreview species={form} number={i + 1} />
+    {/each}
+    <!-- if there are less than three species in the chain, leave a placeholder behind -->
+    {#each Array.from({ length: 3 - $info.data.species.evolution_chain?.length }) as _, i}
+        <SpeciesPreviewPlaceholder number={$info.data.species.evolution_chain.length + i + 1} />
+    {/each}
 </div>
 ```
 
