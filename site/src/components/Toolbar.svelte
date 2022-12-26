@@ -30,59 +30,31 @@
 
 	{#if lang === 'ts'}
 		<style>
-			pre.language-javascript {
-				display: none;
-			}
-
-			.code-title.javascript {
-				display: none;
-			}
-			pre.language-typescript {
-				display: block;
-			}
-			.code-title.typescript {
-				display: flex;
-			}
-
 			.code-title.example-typescript {
 				display: flex;
 			}
-			.code-title.example-typescript + pre.language-svelte {
+			.code-title.example-typescript + :is(pre.language-svelte, pre.language-typescript) {
 				display: block;
 			}
 			.code-title.example-javascript {
 				display: none;
 			}
-			.code-title.example-javascript + pre.language-svelte {
+			.code-title.example-javascript + :is(pre.language-svelte, pre.language-javascript) {
 				display: none;
 			}
 		</style>
 	{:else}
 		<style>
-			pre.language-javascript {
-				display: block;
-			}
-
-			.code-title.javascript {
-				display: flex;
-			}
-			pre.language-typescript {
-				display: none;
-			}
-			.code-title.typescript {
-				display: none;
-			}
-
 			.code-title.example-typescript {
 				display: none;
 			}
-			.code-title.example-typescript + pre.language-svelte {
+			.code-title.example-typescript + :is(pre.language-svelte, pre.language-typescript) {
 				display: none;
 			}
 			.code-title.example-javascript {
 				display: flex;
 			}
-			.code-title.example-javascript + pre.language-svelte {
+			.code-title.example-javascript + :is(pre.language-svelte, pre.language-javascript) {
 				display: block;
 			}
 		</style>

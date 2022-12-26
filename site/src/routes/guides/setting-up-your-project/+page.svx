@@ -57,7 +57,7 @@ pnpm install --save-dev houdini-svelte
 
 Then, we need to add houdini's plugin to your `vite.config.js`. Make sure that `houdini` comes before `sveltekit`:
 
-```typescript:title=vite.config.ts
+```javascript:title=vite.config.js
 import { sveltekit } from '@sveltejs/kit/vite'
 import houdini from 'houdini/vite'
 
@@ -71,7 +71,7 @@ export default config
 
 Finally, update your `svelte.config.js` to support the `$houdini` alias:
 
-```typescript:title=svelte.config.ts
+```javascript:title=svelte.config.js
 import path from 'path'
 
 export default {

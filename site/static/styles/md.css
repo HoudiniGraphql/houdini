@@ -70,7 +70,6 @@ ol {
 	font-family: 'Roboto Mono', monospace;
 	background: var(--code-title-background);
 	color: var(--code-title-color);
-	height: 3rem;
 	font-size: 1rem;
 	display: flex;
 	flex-direction: row;
@@ -81,11 +80,21 @@ ol {
 	border-top-right-radius: 10px;
 }
 
+.code-title:not(.empty) {
+	height: 3rem;
+}
+
 .code-title + pre {
 	padding-top: 1rem !important;
 	margin-top: 0px !important;
 	border-top-left-radius: 0px !important;
 	border-top-right-radius: 0px !important;
+}
+
+.code-title.empty + pre {
+	padding-top: 2rem !important;
+	border-top-left-radius: 10px !important;
+	border-top-right-radius: 10px !important;
 }
 
 #doc-content pre {

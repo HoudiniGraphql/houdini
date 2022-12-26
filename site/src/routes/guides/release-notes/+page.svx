@@ -432,7 +432,7 @@ to interact with. For more information about the new store-based API, please che
 The `quiet` configuration value has been changed in favor of the [new logging parameters](/api/config). In order to replicate the
 previous behavior, you should use the `quiet` log level:
 
-```typescript:title=houdini.config.ts
+```javascript:title=houdini.config.js
 export default {
 	// ...
 	logLevel: 'quiet'

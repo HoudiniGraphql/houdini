@@ -138,7 +138,7 @@ file into these two:
 </script>
 ```
 
-```typescript:title=src/routes/myRoute/+page.ts
+```typescript:title=src/routes/myRoute/+page.ts&typescriptToggle=true
 import { SpeciesInfoStore } from '$houdini'
 import type { PageLoad } from './$houdini'
 

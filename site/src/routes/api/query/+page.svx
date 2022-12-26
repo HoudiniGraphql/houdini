@@ -139,7 +139,7 @@ described in the [SvelteKit](https://kit.svelte.dev/docs#Loading) docs. To retur
 use the same utilities exported from `@sveltejs/kit`. Here is a modified example
 [from the source repository](https://github.com/HoudiniGraphql/houdini/tree/main/example):
 
-```typescript:title=src/routes/[filter]/+page.ts
+```typescript:title=src/routes/[filter]/+page.ts&typescriptToggle=true
 import { graphql } from '$houdini'
 import { error } from '@sveltejs/kit'
 import type { AllItemsVariables } from './$houdini'
@@ -178,7 +178,7 @@ Houdini will look for hook functions defined in your `+page.js` files.
 Called before Houdini executes load queries against the server. You can expect the same
 arguments as SvelteKit's [`load`](https://kit.svelte.dev/docs#loading) function.
 
-```typescript:title=src/routes/myRoute/+page.ts
+```typescript:title=src/routes/myRoute/+page.ts&typescriptToggle=true
 import { graphql } from '$houdini'
 import { redirect } from '@sveltejs/kit'
 import type { BeforeLoadEvent } from './$houdini'
@@ -212,7 +212,7 @@ will have to block requests to the route in order to wait for the result. For mo
 blocking during navigation, check out the deep dive in [this section](/api/query#manual-loading) of the query store
 docs.
 
-```typescript:title=src/routes/myRoute/+page.ts
+```typescript:title=src/routes/myRoute/+page.ts&typescriptToggle=true
 import { graphql } from '$houdini'
 import { error } from '@sveltejs/kit'
 import type { AfterLoadEvent, MyProfileVariables } from './$houdini'
@@ -249,7 +249,7 @@ will have to block requests to the route in order to wait for the result. For mo
 blocking during navigation, check out the deep dive in [this section](/api/query#manual-loading) of the query store
 docs.
 
-```typescript:title=src/routes/myRoute/+page.ts
+```typescript:title=src/routes/myRoute/+page.ts&typescriptToggle=true
 import { graphql } from '$houdini'
 import type { OnErrorEvent } from './$houdini'
 
@@ -273,9 +273,9 @@ example in a search input). For these scenarios (whether in a route or component
 you will want to turn off the generated load using the `@manual_load` directive:
 
 ```svelte
-import { graphql } from '$houdini'
-
 <script>
+	import { graphql } from '$houdini'
+
 	const result = graphql(`
 		query MyQuery @manual_load {
 			viewer {
@@ -292,7 +292,7 @@ If you are writing your route's load functions by hand, you'll want to instantia
 a function for each of your stores that you can use to render your route on the server. These functions take the same
 parameters as `fetch`:
 
-```typescript
+```typescript:title=&typescriptToggle=true
 import { load_MyQuery } from '$houdini'
 import type { PageLoad } from './$houdini'
 
@@ -319,7 +319,7 @@ Anyway, with this in place, your route will recieve props for each of the stores
 
 If your query has variables, you can pass them straight to the loader:
 
-```typescript
+```typescript:typescriptToggle=true
 import { load_MyQuery } from '$houdini'
 import type { PageLoad } from './$houdini'
 
@@ -336,7 +336,7 @@ export const load: PageLoad = async (event) => {
 If you are defining a manual load and need to look at the result of the fetch, we recommend _not_ using the `load_`
 utility but instead defining your load explicitly:
 
-```typescript
+```typescript:typescriptToggle=true
 import { MyQueryStore } from '$houdini'
 import type { PageLoad } from './$houdini'
 
@@ -358,7 +358,7 @@ Be careful when loading multiple stores at once.
 Each of your loads should be performed inside of an `await Promise.all` so you perform the queries in parallel.
 This can get rather tedious so houdini provides a `loadAll` function you can use to simplify this process:
 
-```typescript
+```typescript:typescriptToggle=true
 import { loadAll, load_MyQuery, load_MyOtherQuery } from '$houdini'
 import type { PageLoad } from './$houdini'
 
@@ -375,7 +375,7 @@ export const load: PageLoad = async (event) => {
 If you want to load the same store twice or customize the props that will get passed to your
 route, you can pass any combination of single loaders and objects that map the result to a prop value:
 
-```typescript
+```typescript:typescriptToggle=true
 import { loadAll, load_MyQuery, load_MyOtherQuery } from '$houdini'
 import type { PageLoad } from './$houdini'
 
@@ -404,7 +404,7 @@ the request happens on the browser. This means that if you want to
 do something with the response, you have to pass `blocking: true`
 which will make the `await` behave like normal:
 
-```typescript
+```typescript:typescriptToggle=true
 import { redirect } from '@sveltejs/kit'
 import type { PageLoad } from './$houdini'
 
@@ -455,7 +455,7 @@ equivalent of the load function.
 Using a query store inside of an endpoint looks very similar to the `load` function: just pass the event you
 are handed in your route function:
 
-```typescript
+```typescript:typescriptToggle=true
 import { MyQueryStore } from '$houdini'
 import type { PageServerLoad } from './$houdini'
 
@@ -472,7 +472,7 @@ export const load: PageServerLoad = async (event) => {
 Sometimes you need to do something very custom for a specific route. Maybe you need special headers or some other contextual information.
 Whatever the case may be, you can pass a `metadata` parameter to fetch:
 
-```typescript
+```typescript:typescriptToggle=true
 import type { PageLoad } from './$houdini'
 
 export const load: PageLoad = async (event) => {
@@ -484,7 +484,7 @@ export const load: PageLoad = async (event) => {
 
 This value will get forwarded to the network function in your client definition, usually found in `src/client.js`:
 
-```typescript
+```typescript:typescriptToggle=true
 import type { RequestHandler } from './$houdini'
 
 const requestHandler: RequestHandler = async ({ fetch, text, variables, session, metadata }) => {

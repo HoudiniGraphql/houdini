@@ -65,7 +65,7 @@ file into these two:
 </script>
 ```
 
-```typescript:title=src/routes/myRoute/+page.ts
+```typescript:title=src/routes/myRoute/+page.ts&typescriptToggle=true
 import { SpeciesInfoStore } from '$houdini'
 import type { PageLoad } from './$houdini'
 
@@ -92,8 +92,8 @@ Yes you can! You can pass any [valid configuration value](/api/config#fields) to
 ```typescript
 import { sveltekit } from '@sveltejs/kit/vite'
 import houdini from 'houdini/vite'
-import type { UserConfigExport } from 'vite'
 import { defineConfig, loadEnv } from 'vite'
+import type { UserConfigExport } from 'vite'
 
 const config: UserConfigExport = defineConfig(({ mode }) => {
     // loads env files

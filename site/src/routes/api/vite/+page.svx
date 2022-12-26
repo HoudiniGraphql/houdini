@@ -10,7 +10,7 @@ Houdini's SvelteKit plugin is responsible for generating the code necessary to
 power [its GraphQL APIs](/guides/working-with-graphql). Adding it to your project
 is done in your vite config file. Make sure that Houdini's plugin comes before SvelteKit:
 
-```typescript:title=vite.config.ts
+```javascript:title=vite.config.js
 import sveltekit from '@sveltejs/kit/vite'
 import houdini from 'houdini/vite'
 

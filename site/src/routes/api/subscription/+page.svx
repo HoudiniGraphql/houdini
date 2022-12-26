@@ -13,7 +13,7 @@ Listen for real-time updates from your server using GraphQL Subscriptions.
 	import { graphql } from '$houdini'
 
 	// this information should usually come from a fragment
-	export let itemID: number
+	export let itemID: string
 
 	// will start listening onMount (browser only)
 	const updates = graphql(`
@@ -53,7 +53,7 @@ pass `null` when configuring your environment on the rendering server.
 If your API supports the [`graphql-ws`](https://github.com/enisdenjo/graphql-ws) protocol, you can create a
 client and pass it directly:
 
-```typescript:title=src/client.ts
+```typescript:title=src/client.ts&typescriptToggle=true
 
 import { createClient } from 'graphql-ws'
 import { browser } from '$app/environment'
@@ -72,7 +72,7 @@ export default new HoudiniClient(requestHandler, socketClient)
 If you are using the deprecated `subscriptions-transport-ws` library and associated protocol,
 you will have to slightly modify the above block:
 
-```typescript:title=src/client.ts
+```typescript:title=src/client.ts&typescriptToggle=true
 import { SubscriptionClient } from 'subscriptions-transport-ws'
 import { browser } from '$app/environment'
 
@@ -102,7 +102,7 @@ export default new HoudiniClient(requestHandler, socketClient)
 
 If your server supports the latest Server-Side events, you can use them to power your subscriptions:
 
-```typescript
+```typescript&typescriptToggle=true
 import { SubscriptionClient } from 'subscriptions-transport-ws'
 import { browser } from '$app/environment'
 

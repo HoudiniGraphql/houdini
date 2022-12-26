@@ -9,7 +9,7 @@ description: A guide to authentication in Houdini
 Houdini's support for user sessions comes in 2 parts. First, you need to add a `hooks.server.js` file that defines the
 session for that user:
 
-```typescript:title=src/hooks.server.js
+```typescript:title=src/hooks.server.ts&typescriptToggle=true
 import { setSession } from '$houdini'
 import type { Handle } from '@sveltejs/kit'
 
@@ -27,7 +27,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 Then, you can use the `session` parameter passed to your client's network function to access the information:
 
-```typescript:title=src/lib/client.ts
+```typescript:title=src/client.ts&typescriptToggle=true
 import { HoudiniClient } from '$houdini'
 import type { RequestHandler } from '$houdini'
 

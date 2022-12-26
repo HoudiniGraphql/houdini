@@ -1,4 +1,5 @@
 import { visit } from 'unist-util-visit'
+import { format } from './docs-lang.js'
 
 export function codeTitles() {
 	return function gatsbyRemarkCodeTitles(tree, file) {
@@ -14,14 +15,17 @@ export function codeTitles() {
 					}
 				}, {}) ?? {}
 
-			if (!params.title || !language) {
+			if (!language || !paramsStr) {
 				return
 			}
 
 			let extraClass = ''
-			if (language === 'svelte' && params.typescriptToggle) {
+			if (params.typescriptToggle) {
 				extraClass =
 					params.typescriptToggle === 'true' ? 'example-typescript' : 'example-javascript'
+			}
+			if (!params.title) {
+				extraClass += ' empty'
 			}
 
 			const titleNode = {
@@ -37,7 +41,7 @@ export function codeTitles() {
 			parent.children.splice(index, 0, titleNode)
 
 			// remove any prettier ignore lines
-			node.value = node.value.replaceAll(/\s+\/\/ prettier-ignore/g, '\n')
+			node.value = node.value.replaceAll(/\s+\/\/ prettier-ignore/g, '\n').replaceAll('\t', '    ')
 
 			/*
 			 * Reset to just the language

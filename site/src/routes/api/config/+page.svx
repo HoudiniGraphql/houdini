@@ -8,7 +8,7 @@ description: A description of every valid configuration value for Houdini.
 
 All configuration for your houdini application is defined in a single file that is imported by both the runtime and the command-line tool (called `houdini.config.js`). Because of this, you must make sure that any imports and logic are resolvable in both environments. This means that if you rely on process.env or other node-specifics you will have to use a plugin to replace the expression with something that can run in the browser.
 
-```typescript:title=houdini.config.ts
+```javascript:title=houdini.config.js
 export default {
 	apiUrl: 'http://localhost:4000/graphql',
 	schemaPollHeaders: {
@@ -47,8 +47,7 @@ By default, your config file can contain the following values:
 
 Configuring the svelte plugin is done inside of the `plugins` key in your config file:
 
-```typescript:title=houdini.config.ts
-
+```javascript:title=houdini.config.js
 export default {
 	// ...
 	plugins: {
@@ -70,8 +69,7 @@ Here is a summary of the possible configuration values:
 
 Configuring your runtime to handle custom scalars is done under the `scalars` key in your config:
 
-```typescript:title=houdini.config.ts
-
+```javascript:title=houdini.config.js
 export default {
 	// ...
 	scalars: {
@@ -98,7 +96,7 @@ There are a few different options for using environment variables in your `apiUr
 config values. Keep in mind that Houdini will look for `.env` and `.env.local` files for environment variables.
 For simple cases, you can just prepend `env:` to the value:
 
-```typescript
+```javascript
 export default {
 	schemaPollHeaders: {
 		Authentication: "env:AUTH_TOKEN",
@@ -110,7 +108,7 @@ In other situations, the environment variable can't be used directly. For exampl
 value. For these situations, the values of the object should get set to a function that will receive the current
 environment variables:
 
-```typescript
+```javascript
 export default {
 	schemaPollHeaders: {
 		Authentication: function(env) {

@@ -44,10 +44,12 @@ export default {
 					// the content of the block is between the two indices
 					const blockContent = content.slice(match.index, endIndex)
 
-					// if the language is svelte, only add something if the typescript toggle is enabled
-					if (language === 'svelte' && !blockContent.includes('typescriptToggle=true')) {
+					// only add something if the typescript toggle is enabled
+					if (!blockContent.includes('typescriptToggle=true')) {
 						break
 					}
+
+					// if the language
 
 					// push the new block at the beginning
 					newBlocks.unshift({
@@ -108,6 +110,7 @@ export async function transformTypescript(content) {
 	// the first thing we need to do is mark this as a javascript plugin instead
 	content = content.replace('```typescript', '```javascript')
 	content = content.replace('.ts', '.js')
+	content = content.replace('typescriptToggle=true', 'typescriptToggle=false')
 
 	// the actual source is between the first and last line break. we'll leave the first line break
 	// in place so that we can use them as markers for every line in the following loop
@@ -187,7 +190,7 @@ function transformVariable(statement, parent, importPaths) {
 		// remove the type annotation
 		declaration.id.typeAnnotation = null
 
-		parent.comments = [AST.commentBlock(` @type { ${targetType} } `)]
+		parent.comments = [...(parent.comments ?? []), AST.commentBlock(` @type { ${targetType} } `)]
 	}
 }
 
@@ -218,7 +221,7 @@ function transformFunction(statement, parent, importPaths) {
 			)
 			.join('\n')
 
-		parent.comments = [commentBlock(comment)]
+		parent.comments = [...(parent.comments ?? []), commentBlock(comment)]
 	}
 }
 
@@ -243,6 +246,7 @@ export function format(str) {
 		semi: false,
 		singleQuote: true,
 		printWidth: 100,
-		plugins: ['prettier-plugin-svelte']
+		plugins: ['prettier-plugin-svelte'],
+		parser: 'babel-ts'
 	})
 }

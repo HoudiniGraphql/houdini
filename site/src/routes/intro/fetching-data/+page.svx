@@ -132,9 +132,9 @@ If you were looking carefully, you might have noticed that we didn't define a `l
 </script>
 ```
 
-```typescript:title=src/routes/+page.ts
-import type { PageLoad } from './$types'
+```typescript:title=src/routes/+page.ts&typescriptToggle=true
 import { InfoStore } from '$houdini/stores/Info'
+import type { PageLoad } from './$types'
 
 export const load: PageLoad = async ({ event }) => {
     const store = new InfoStore()
@@ -142,7 +142,7 @@ export const load: PageLoad = async ({ event }) => {
     await InfoStore.fetch({ event })
 
     return {
-        Info: store
+        Info: store,
     }
 }
 ```
@@ -250,7 +250,7 @@ So far so good! There is one slight problem: there are only 151 species in the f
 In order to prevent this, we need to check if `id` is between `1` and `151` and if not, render an error for the user. The best way to do this is to use a load hook to check the value before the load fires. Load hooks belong in `+page.js` files so create a
 file at `src/routes/[[id]]/+page.js` that looks like the following:
 
-```typescript:title=src/routes/[[id]]/+page.ts
+```typescript:title=src/routes/[[id]]/+page.ts&typescriptToggle=true
 import { error } from '@sveltejs/kit'
 import type { BeforeLoadEvent } from './$houdini'
 
