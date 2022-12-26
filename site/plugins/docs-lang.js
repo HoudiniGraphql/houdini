@@ -237,11 +237,12 @@ function insert(str, content, start, finish = start) {
 	return str.substring(0, start) + '\n' + content + str.substring(finish)
 }
 
-function format(str) {
+export function format(str) {
 	return prettier.format(str, {
 		tabWidth: 4,
 		semi: false,
 		singleQuote: true,
-		printWidth: 100
+		printWidth: 100,
+		plugins: ['prettier-plugin-svelte']
 	})
 }

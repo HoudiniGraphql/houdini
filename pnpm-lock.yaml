@@ -350,7 +350,7 @@ importers:
             mdsvex: ^0.10.6
             node-html-parser: ^5.4.1
             prettier: ^2.8.1
-            prettier-plugin-svelte: ^2.7.0
+            prettier-plugin-svelte: ^2.9.0
             prism-svelte: ^0.5.0
             prismjs: ^1.28.0
             query-string: ^8.1.0

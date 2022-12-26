@@ -30,11 +30,11 @@ The default cache policy as well as other parameters can be changed in your [con
 
 A lot of the time we know the side effects of a mutation assuming everything goes right. For example, a `toggleItem` mutation in a todo list will invert the value of the `checked` field of a particular item. In these situations, we don't have to wait for a mutation to resolve in order to apply the update to the cache. Instead, we can assume that it will succeed and provide an "optimistic response" for the mutation with the second argument to a mutation handler:
 
-```svelte
-<script>
+```svelte:title=&typescriptToggle=true
+<script lang="ts">
     import { ToggleItemStore }  from '$houdini'
 
-    export let itemID
+    export let itemID: number
 
     const update = new ToggleItemStore()
 </script>
@@ -95,11 +95,7 @@ The default partial state can be configured with the `defaultPartial` value in y
 ```typescript:title=houdini.config.ts
 export default {
     // ...
-    plugins: {
-        'houdini-svelte': {
-            defaultPartial: true
-        }
-    }
+    defaultPartial: true
 }
 ```
 
@@ -143,7 +139,6 @@ If all you need to do is change the way that Houdini resolves a particular type,
 ```typescript:title=houdini.config.ts
 export default {
     // ...
-    defaultPartial: true
     types: {
         User: {
             resolve: {
@@ -159,7 +154,6 @@ This tells Houdini that in order to resolve a particular `User`, it needs to use
 ```typescript:title=houdini.config.ts
 export default {
     // ...
-    defaultPartial: true
     types: {
         User: {
             resolve: {
@@ -180,7 +174,6 @@ If you want to configure Houdini to use a different key for computing your recor
 ```typescript:title=houdini.config.ts
 export default {
     // ...
-    defaultPartial: true
     types: {
         User: {
             keys: ['firstName', 'lastName'],
@@ -197,7 +190,6 @@ Remember, Houdini will take every key for an object and pass it as an argument t
 ```typescript:title=houdini.config.ts
 export default {
     // ...
-    defaultPartial: true
     types: {
         User: {
             keys: ['firstName', 'lastName' ],

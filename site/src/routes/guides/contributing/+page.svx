@@ -104,48 +104,50 @@ To understand how this works, consider this query:
 
 ```svelte:title=src/routes/myRoute/+page.svelte
 <script>
-	import { query, graphql } from '$houdini'
+    import { query, graphql } from '$houdini'
 
-	const SpeciesInfo = graphql`
-		query SpeciesInfo {
-			species(id: 1) {
-				name
-				flavor_text
-				sprites {
-					front
-				}
-			}
-		}
-	`)
+    const SpeciesInfo = graphql(`
+        query SpeciesInfo {
+            species(id: 1) {
+                name
+                flavor_text
+                sprites {
+                    front
+                }
+            }
+        }
+    `)
 </script>
 
 <div>
-	{$info.data.species.name}
+    {$info.data.species.name}
 </div>
 ```
 
 By looking at the contents of every `graphql` tag in a component, the plugin can extract the query names and then generate/transform that one
 file into these two:
 
-```svelte:title=src/routes/myRoute/+page.svelte
-<script>
-	// the store gets passed to us as a prop
-	export let data
+```svelte:title=src/routes/myRoute/+page.svelte&typescriptToggle=true
+<script lang="ts">
+    import type { PageData } from './$houdini'
 
-   let { SpeciesInfo } = data
-	$: ({ SpeciesInfo } = data)
+    export let data: PageData
+
+    let { SpeciesInfo } = data
+    $: ({ SpeciesInfo } = data)
 </script>
 ```
 
 ```typescript:title=src/routes/myRoute/+page.ts
-import SpeciesInfoStore from '$houdini/stores/SpeciesInfo'
+import { SpeciesInfoStore } from '$houdini'
+import type { PageLoad } from './$houdini'
 
-export async function load({ event }) {
-	await SpeciesInfoStore.fetch({ event })
+export const load: PageLoad = async ({ event }) => {
+    await SpeciesInfoStore.fetch({ event })
 
-	return {
-		SpeciesInfo: SpeciesInfoStore
-	}
+    return {
+        SpeciesInfo: SpeciesInfoStore
+    }
 }
 ```
 
@@ -223,10 +225,10 @@ There are two parts to this feature. First, a user marks a particular field as a
 
 ```graphql
 query AllUsersQuery {
-	users @list(name: "All_Users") {
-		id
-		firstName
-	}
+    users @list(name: "All_Users") {
+        id
+        firstName
+    }
 }
 ```
 
@@ -234,9 +236,9 @@ query AllUsersQuery {
 
 ```graphql
 mutation AddUserMutation {
-	addUser(firstName: "Alec") {
-		...All_Users_insert
-	}
+    addUser(firstName: "Alec") {
+        ...All_Users_insert
+    }
 }
 ```
 
