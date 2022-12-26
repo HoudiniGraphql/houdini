@@ -180,8 +180,8 @@ function transformVariable(statement, parent, importPaths) {
 			targetType = `import('${source}').${typeName}`
 		}
 		// the type could be declared as a number
-		else if (typeAnnotation.type === 'TSNumberKeyword') {
-			targetType = 'number'
+		else {
+			targetType = recast.print(typeAnnotation).code
 		}
 
 		// remove the type annotation

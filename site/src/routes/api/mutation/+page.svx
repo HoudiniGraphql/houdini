@@ -87,16 +87,14 @@ record's id.
 
 Take for example, an `TodoItemRow` component:
 
-```svelte
+```svelte:title=TodoItemRow.svelte&typescriptToggle=true
 <script lang="ts">
-	import {
-		fragment,
-		graphql,
-		type TodoItemRow,
-	} from '$houdini'
+	import { fragment, graphql } from '$houdini'
+	import type { TodoItemRow } from '$houdini'
 
 	export let item: TodoItemRow
 
+	// prettier-ignore
 	// the resulting store will stay up to date whenever `checkItem`
 	// is triggered
 	$: data = fragment(item, graphql(`
@@ -121,7 +119,6 @@ Take for example, an `TodoItemRow` component:
 	function checkItem() {
 		store.mutate({ id: $data.id })
 	}
-
 </script>
 
 <li class:completed={$data.completed}>
@@ -149,13 +146,13 @@ field of a particular item. In these situations, we don't have to wait for a mut
 resolve in order to apply the update to the cache. Instead, we can assume that it will succeed
 and provide an "optimistic response" for the mutation with the second argument to a mutation handler:
 
-```svelte
+```svelte:title=ToggleButton.svelte&typescriptToggle=true
 <script lang="ts">
 	import { graphql } from '$houdini'
 
-	export let itemID
+	export let itemID: number
 
-	const toggleItem = graphql(`
+	const toggle = graphql(`
 		mutation ToggleItem($id: ID!) {
 			toggleItem {
 				item {
@@ -167,7 +164,7 @@ and provide an "optimistic response" for the mutation with the second argument t
 	`)
 
 	function toggleItem() {
-		toggleItem.mutate({ id: itemID }, {
+		toggle.mutate({ id: itemID }, {
 			optimisticResponse: {
 				toggleItem: {
 					item: {

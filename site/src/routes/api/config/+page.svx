@@ -10,7 +10,7 @@ All configuration for your houdini application is defined in a single file that 
 
 ```typescript:title=houdini.config.ts
 export default {
-	apiUrl: 'http://localhost:4000/graphql'
+	apiUrl: 'http://localhost:4000/graphql',
 	schemaPollHeaders: {
 		Authentication(env) {
 			return `Bearer ${env.AUTH_TOKEN}`
