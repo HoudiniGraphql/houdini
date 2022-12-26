@@ -11,16 +11,17 @@ session for that user:
 
 ```typescript:title=src/hooks.server.js
 import { setSession } from '$houdini'
+import type { Handle } from '@sveltejs/kit'
 
-export async function handle({ event, resolve }) {
-	// get the user information however you want
-	const user = await authenticateUser(event)
+export const handle: Handle = async ({ event, resolve }) => {
+    // get the user information however you want
+    const user = await authenticateUser(event)
 
-	// set the session information for this event
-	setSession(event, { user })
+    // set the session information for this event
+    setSession(event, { user })
 
-	// pass the event onto the default handle
-	return await resolve(event)
+    // pass the event onto the default handle
+    return await resolve(event)
 }
 ```
 
@@ -28,22 +29,23 @@ Then, you can use the `session` parameter passed to your client's network functi
 
 ```typescript:title=src/lib/client.ts
 import { HoudiniClient } from '$houdini'
+import type { RequestHandler } from '$houdini'
 
-async function requestHandler({ fetch, text, variables = {}, session }) {
-	const url = 'http://localhost:4000/graphql' // usually coming from env
-	const result = await fetch(url, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-			Authorization: `Bearer ${session?.user.token}`
-		},
-		body: JSON.stringify({
-			query: text,
-			variables
-		})
-	})
+const requestHandler: RequestHandler = async ({ fetch, text, variables = {}, session }) => {
+    const url = 'http://localhost:4000/graphql' // usually coming from env
+    const result = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session?.user.token}`
+        },
+        body: JSON.stringify({
+            query: text,
+            variables
+        })
+    })
 
-	return await result.json()
+    return await result.json()
 }
 
 export default new HoudiniClient(requestHandler)
