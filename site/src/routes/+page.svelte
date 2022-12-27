@@ -1,217 +1,106 @@
 <script>
-	import { SEO, Icon, Highlight } from '~/components'
+	import { SEO, Highlight } from '~/components'
 
-	const heroExample = `<!-- src/routes/items/+page.svelte -->
+	const codeExample = `<script lang=”ts”>
+	import { graphql } from '$houdini'
 
-<script>
-    import { graphql } from '$houdini'
-
-    const allItems = graphql(\`
-        query AllTodoItems {
-            items {
-                text
-            }
-        }
-    \`)
-<\/script>
-
-{#each $allItems.data.items as item}
-    <div>{item.text}</div>
-{/each}`
-
-	const bullets = [
-		'Normalized cache with declarative field updates and list mutations',
-		'Colocate data requirements or define operations in external files',
-		'First-class support for advanced patterns like subscriptions and pagination'
-	]
-	// Server Side Rendering
-	// First Contentful Paint
-	const sellingPoints = [
-		{
-			header: 'Automatic Load Generation',
-			text: "Houdini's vite plugin can hide all of the details you don't care about when fetching your query. This is everything it takes for SSR 👉",
-			example: `<!-- src/routes/items/+page.svelte -->
-
-<script>
-    import { graphql } from '$houdini'
-
-    const allItems = graphql(\`
-        query AllTodoItems {
-            items {
-                text
-            }
-        }
-    \`)
-<\/script>
-
-{#each $allItems.data.items as item}
-    <div>{item.text}</div>
-{/each}`
-		},
-		{
-			header: 'Composable',
-			text: 'Your components can define what data they need to do their job by and you can mix them together however you want.',
-			example: `<script>
-    import { graphql, fragment } from '$houdini'
-
-    export let user
-
-    $: userInfo = fragment(user, graphql(\`
-        fragment UserAvatar on User {
-            avatar
-        }
-    \`))
-<\/script>
-
-
-<img src={$userInfo.avatar} />`
-		},
-		{
-			header: 'Declarative',
-			text: 'Updates to your application cache are made with a set of declarative fragments that avoid the surgical logic necessary to keep your application up to date.',
-			example: `<script>
-    import { graphql } from '$houdini'
-
-    const createProject = graphql(\`
-        mutation CreateProject {
-            createProject(name: "houdini") {
-                project {
-                    ...All_Projects_insert
-                }
-            }
-        }
-    \`)
-<\/script>
-
-<button onClick={createProject.mutate} />`
-		},
-		{
-			header: 'Type Safe',
-			text:
-				'Houdini Generates definitions for every document in your application along with ' +
-				'matching signatures for its functions. No need to pass types explicitly - it just works.',
-			example: `<script lang="ts">
-    import { graphql } from '$houdini'
-
-    const store = graphql(\`
-        query AllTodoItems {
-            items {
-                text
-            }
-        }
-    \`)
-<\/script>
-
-{#each $data.items as item}
-    <div>{item.text}</div>
-{/each}`
+	const allItems = graphql(\`
+		query AllTodoItems {
+			items {
+				text
+			}
 		}
-	]
-</script>
+	\`)
+\<\/script>
 
-<svelte:head>
-	<meta name="theme-color" content="white" />
-</svelte:head>
+{#each $allItems.data.items as item}
+	<div>{item.text}</div>
+{/each}`
+</script>
 
 <SEO />
 
 <a id="skip-nav" href="#main"> Skip to Content </a>
 
-<header class="content">
-	<a href="/">
-		<img src="/images/logo.svg" alt="Houdini Logo" width="175px" />
-	</a>
-	<nav>
-		<a href="/intro/welcome" class="nav-link" data-sveltekit-preload-data="hover">Get Started</a>
-		<a href="/guides/faq" class="nav-link small-hidden" data-sveltekit-preload-data="hover"
-			>Guides</a
-		>
-		<a href="/api/welcome" class="nav-link small-hidden" data-sveltekit-preload-data="hover">API</a>
-		<a
-			href="https://github.com/sponsors/HoudiniGraphql"
-			class="nav-link small-hidden"
-			target="_blank"
-			rel="noreferrer"
-		>
-			Sponsor
-		</a>
+<article>
+	<header>
+		<div class="logo">
+			<img src="/images/logo.svg" style="margin-top: -4px" />
+			Houdini
+		</div>
+		<nav>
+			<a data-sveltekit-preload-data href="/intro/welcome">Getting Started</a>
+			<a data-sveltekit-preload-data href="/api/welcome">API Docs</a>
+			<a data-sveltekit-preload-data href="/guides/faq">Guides</a>
+			<a
+				data-sveltekit-preload-data
+				href="https://github.com/sponsors/HoudiniGraphql"
+				target="_blank"
+				rel="noreferrer"
+			>
+				Sponsor
+			</a>
+		</nav>
+
 		<a
 			href="https://www.github.com/HoudiniGraphQL/houdini"
 			class="tiny-hidden"
 			target="_blank"
 			rel="noreferrer"
-			id="gh-link"
 		>
-			<img src="/images/github.svg" alt="GitHub" height="20px" />
+			<svg
+				height="20px"
+				xmlns="http://www.w3.org/2000/svg"
+				viewBox="0 0 32.58 31.77"
+				class="gh-link"
+				><defs><style></style></defs><g id="Layer_2" data-name="Layer 2"
+					><g id="Layer_1-2" data-name="Layer 1"
+						><path
+							fill="currentcolor"
+							class="cls-1"
+							d="M16.29,0a16.29,16.29,0,0,0-5.15,31.75c.82.15,1.11-.36,1.11-.79s0-1.41,0-2.77C7.7,29.18,6.74,26,6.74,26a4.36,4.36,0,0,0-1.81-2.39c-1.47-1,.12-1,.12-1a3.43,3.43,0,0,1,2.49,1.68,3.48,3.48,0,0,0,4.74,1.36,3.46,3.46,0,0,1,1-2.18c-3.62-.41-7.42-1.81-7.42-8a6.3,6.3,0,0,1,1.67-4.37,5.94,5.94,0,0,1,.16-4.31s1.37-.44,4.48,1.67a15.41,15.41,0,0,1,8.16,0c3.11-2.11,4.47-1.67,4.47-1.67A5.91,5.91,0,0,1,25,11.07a6.3,6.3,0,0,1,1.67,4.37c0,6.26-3.81,7.63-7.44,8a3.85,3.85,0,0,1,1.11,3c0,2.18,0,3.94,0,4.47s.29.94,1.12.78A16.29,16.29,0,0,0,16.29,0Z"
+						/></g
+					></g
+				></svg
+			>
 		</a>
-	</nav>
-</header>
-<main id="main">
-	<section id="hero" class="content">
-		<div>
-			<h1>
-				The disappearing <span id="graphql-text">GraphQL</span>
-				client for <span class="svelte-text">SvelteKit</span>.
-			</h1>
-			<ul>
-				{#each bullets as bullet}
-					<li>{bullet}</li>
-				{/each}
-			</ul>
-			<nav id="hero-buttons">
-				<a href="/intro/welcome" class="button-shadow" data-sveltekit-preload-data="hover"
-					>Get Started</a
-				>
-			</nav>
-		</div>
-		<div>
-			<Highlight code={heroExample} class="shadow" />
-		</div>
-	</section>
-	<div class="tease">
-		<Icon name="chevron-down" width="3rem" height="3rem" />
-	</div>
-	<section id="info">
-		<div id="angle" />
-		<article>
-			<div id="showcase" class="content">
-				{#each sellingPoints as point}
-					<div class="showcase-item">
-						<div class="showcase-text">
-							<h2>{point.header}</h2>
-							<p>
-								{point.text}
-							</p>
-						</div>
-						<Highlight code={point.example} class="showcase-example" />
-					</div>
-				{/each}
+	</header>
+	<main id="main">
+		<h1>
+			<span class="highlight">Houdini</span> or: How I Learned to Stop Worrying and Love
+			<span class="graphql">GraphQL</span> 🤯
+		</h1>
+		<section class="hero">
+			<div>
+				<p class="hero-text">
+					It’s here. A <em>fully-featured</em> GraphQL client that seamlessly integrates with the framework
+					of your choice.
+				</p>
+				<p class="hero-subtext">
+					Start with a schema. Write queries and let Houdini take care of the rest. Fully automatic
+					and totally customizable. <b>Declarative</b>, <b>Composable</b>, <b>Typesafe</b>.
+					First-class support for Subscriptions, Pagination, List Mutations, Optimistic Responses,
+					and so much more. You didn’t know you needed this.
+				</p>
 			</div>
-		</article>
-	</section>
-</main>
+			<div>
+				<div class="code-example-container">
+					<code class="block code-example">
+						<Highlight code={codeExample} class="code" />
+					</code>
+					<p class="code-example-subtext">
+						This is all you need to get going with SSR.&nbsp;&nbsp;&nbsp;🚀
+					</p>
+				</div>
+			</div>
+		</section>
+	</main>
+</article>
 
 <style>
-	:global(body) {
-		background-color: #f9fbff;
-		display: flex;
-		flex-direction: column;
-	}
-
-	:global(#hero pre) {
-		background: #161b22;
-		border-radius: 32px;
-		color: white;
-	}
-
-	:global(.shadow) {
-		box-shadow: 10px 12px 25px 3px rgba(23, 40, 102, 0.25);
-	}
-
-	main {
-		flex-grow: 1;
-		display: flex;
-		flex-direction: column;
+	:root {
+		--scrollbar-slider: #101318;
+		--scrollbar-track: #272e38;
 	}
 
 	#skip-nav {
@@ -223,6 +112,30 @@
 		padding: 0;
 		overflow: hidden;
 		position: absolute;
+	}
+
+	header,
+	main {
+		max-width: 1024px;
+		margin: 0 auto;
+		width: 100%;
+	}
+
+	nav {
+		display: flex;
+		flex-direction: row;
+		gap: 48px;
+	}
+
+	a,
+	a:visited {
+		color: #979aa6;
+		font-family: 'Hind';
+		text-decoration: none;
+	}
+
+	a:hover {
+		color: white;
 	}
 
 	#skip-nav:focus {
@@ -237,423 +150,132 @@
 		clip: auto;
 	}
 
-	.tease {
-		align-self: center;
-		margin-top: 150px;
+	article {
+		padding: 48px 0;
+		background: #20283d;
+		background: linear-gradient(180deg, #20283d 0%, rgba(20, 21, 25, 1) 80%);
+		display: flex;
+		flex-direction: column;
+		gap: 128px;
 	}
 
-	header {
-		height: 100px;
+	main {
+		display: flex;
+		flex-direction: column;
+		gap: 128px;
+	}
+	h1 {
+		font-size: 64px;
+		font-family: 'Hind';
+		font-weight: bolder;
+		color: white;
+		line-height: 1.2;
+		text-align: center;
+	}
+
+	.highlight {
+		color: #855aff;
+	}
+
+	.graphql {
+		color: #e10098;
+	}
+
+	header,
+	.logo {
 		display: flex;
 		flex-direction: row;
 		justify-content: space-between;
 		align-items: center;
-		box-sizing: border-box;
 	}
 
-	.nav-link {
-		font-size: 1rem;
-		font-family: 'Hind', sans-serif;
-		color: #161b22;
-		text-decoration: none;
-		font-weight: bold;
-	}
-
-	.nav-link:hover {
-		padding-bottom: 4px;
-		border-bottom: 4px solid #ff3e00;
-		margin-bottom: -8px;
-	}
-
-	nav {
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		margin-top: 15px;
-	}
-
-	.content {
-		max-width: 1150px;
-		margin: 0 auto;
-		width: 100%;
-	}
-
-	.content nav {
-		gap: 1.5rem;
-	}
-
-	#hero {
-		display: flex;
-		flex-direction: row;
-		margin-top: 90px;
-	}
-
-	#hero div:first-child {
-		width: 10px;
-		flex-grow: 1;
-		margin-top: 24px;
-		display: flex;
-		flex-direction: column;
-		gap: 3.25rem;
-	}
-
-	#hero div:last-child {
-		width: 10px;
-		flex-grow: 1;
-		margin-top: 24px;
-		display: flex;
-		flex-direction: column;
-		margin-left: 4rem;
-	}
-
-	#hero h1 {
-		flex-grow: 1;
-		font-size: 38px;
-		font-weight: bold;
-		line-height: 3.25rem;
-		color: #161b22;
-		text-align: center;
-	}
-
-	h1,
-	h2 {
-		font-family: 'Crete Round', serif;
-	}
-
-	#graphql-text {
-		color: #e10098;
-	}
-
-	.svelte-text {
-		color: #ff3e00;
-	}
-
-	.button-shadow {
-		box-shadow: 1px 2px 25px 3px rgba(23, 40, 102, 0.1);
-	}
-
-	#info {
-		display: flex;
-		flex-direction: column;
-		margin-top: 3rem;
-		flex-grow: 1;
-	}
-
-	#angle {
-		width: 100%;
-		height: 100px;
-		background: #161b22;
-		clip-path: polygon(-1% 101%, 100% 0%, 100% 101%);
-	}
-
-	article {
-		flex-grow: 1;
-		background: #161b22;
-		padding-top: 11.5rem;
-	}
-	ul {
-		width: 70%;
-		margin: auto;
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-		max-width: 455px;
-	}
-
-	li {
-		font-family: 'Hind', sans-serif;
-		font-size: 20px;
-		line-height: 1.25;
-		position: relative;
-	}
-
-	li::before {
-		content: ' ';
-		width: 12px;
-		height: 12px;
-		font-size: 32px;
-		line-height: 20px;
-		background: #ff3e00;
-		border-radius: 50%;
-		margin-left: -30px;
-		margin-right: 10px;
-		display: inline-block;
-		margin-top: -3px;
-		position: absolute;
-		right: calc(100%);
-		top: 9px;
-	}
-
-	#hero-buttons {
-		display: flex;
-		flex-direction: row;
-		gap: 36px;
-		justify-content: center;
-	}
-
-	#hero-buttons a {
-		height: 3rem;
-		width: 10.75rem;
-
-		font-family: 'Hind', sans;
-		font-weight: bold;
+	.logo {
+		font-size: 22px;
+		gap: 8px;
+		font-family: 'Hind';
+		font-weight: bolder;
 		color: white;
-		background-color: #ff3e00;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		border-radius: 8px;
-		font-size: 1.2rem;
-		text-decoration: none;
 	}
 
-	#showcase {
-		display: grid;
-		width: 100%;
-		margin-bottom: 100px;
-	}
-
-	.showcase-item {
+	.hero {
 		display: flex;
 		flex-direction: row;
-		margin-bottom: 160px;
+		gap: 94px;
 	}
 
-	h2 {
-		color: white;
-		font-size: 2rem;
-		margin-bottom: 1.25rem;
-	}
-
-	p {
-		font-family: 'Hind', sans-serif;
-		color: white;
-		font-size: 1.4rem;
-		line-height: 1.3;
-		margin-right: 35px;
-	}
-
-	.showcase-text {
-		width: 10px;
-		flex-grow: 1;
+	.hero > div {
 		display: flex;
 		flex-direction: column;
-		justify-content: flex-start;
-		margin-right: 2.5rem;
+		gap: 64px;
+		width: 10px;
 	}
 
-	:global(.showcase-example) {
-		width: 10px;
-		flex-grow: 1;
+	.hero div:first-child {
+		flex-grow: 5;
+	}
+	.hero div:nth-child(2) {
+		flex-grow: 4;
+	}
+
+	.hero-text {
+		font-size: 30px;
+		color: white;
+		font-family: 'Hind';
+		font-weight: 100;
+		line-height: 1.2;
+	}
+
+	.hero-subtext {
+		color: #979aa6;
 		font-size: 18px;
-		font-family: 'Roboto Mono', monospace;
-
-		margin-left: 4rem;
+		line-height: 1.5;
+		font-family: 'Hind';
+		font-weight: 100;
 	}
 
-	:global(#main pre) {
-		overflow: hidden;
-		padding: 34px;
+	em {
+		font-style: italic;
 	}
 
-	@media (max-width: 1450px) {
-		h1 {
-			padding: 0 40px;
-			margin-left: 0px !important;
-			margin-right: 0px !important;
-			box-sizing: border-box;
-			text-align: center;
-			width: 100%;
-		}
-
-		#hero-buttons {
-			justify-content: center;
-		}
-
-		header {
-			padding: 0 30px;
-			padding: 0 calc(env(safe-area-inset-right) + 60px) 0 calc(env(safe-area-inset-left) + 60px);
-		}
-
-		:global(.showcase-item pre),
-		:global(#hero pre) {
-			margin-right: calc(env(safe-area-inset-right) + 60px);
-		}
-
-		.showcase-text {
-			margin-left: calc(env(safe-area-inset-left) + 60px);
-		}
-
-		:global(.showcase-example) {
-			margin-bottom: 30px;
-		}
-
-		:global(code) {
-			font-size: 15px;
-		}
+	b {
+		font-weight: 600;
 	}
 
-	@media (max-width: 1000px) {
-		h1 {
-			font-weight: 400 !important;
-		}
-		h2 {
-			font-size: 32px;
-		}
-
-		p {
-			font-size: 20px;
-			margin-right: 0;
-		}
-
-		article {
-			padding-top: 2rem;
-		}
-
-		#hero-buttons {
-			align-self: center;
-		}
-
-		.showcase-item:first-child {
-			margin-top: 100px;
-		}
-
-		.showcase-item {
-			flex-direction: column;
-			width: 100%;
-			overflow-x: hidden;
-		}
-
-		.showcase-text {
-			width: 100%;
-			align-self: center;
-			padding: 0 10%;
-			margin-right: 0;
-			margin-left: 0;
-			box-sizing: border-box;
-		}
-
-		:global(.showcase-example) {
-			margin-top: 30px;
-			width: 100%;
-			align-self: center;
-			margin-right: 0;
-			padding: 0 10%;
-			box-sizing: border-box;
-		}
-
-		#hero {
-			flex-direction: column;
-			width: 100%;
-		}
-
-		#hero div:first-child {
-			align-self: center;
-			width: 90%;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-		}
-
-		#hero div:last-child {
-			align-self: center;
-			width: 100%;
-			margin-top: 50px;
-			margin-right: 0;
-			margin-left: 0;
-		}
-
-		:global(#hero pre) {
-			margin: auto;
-			width: 70%;
-		}
-
-		:global(code) {
-			font-size: 18px;
-			overflow-x: auto;
-		}
-
-		#hero {
-			margin-top: 30px !important;
-		}
-
-		#hero div:first-child {
-			margin-bottom: 40px;
-		}
+	.block {
+		background: #16171b;
+		border: 1px solid #393b43;
+		border-radius: 16px;
+		box-shadow: 0 16px 50px 0 rgba(0, 0, 0, 0.35);
 	}
 
-	@media (max-width: 790px) {
-		:global(#hero pre) {
-			width: 80%;
-			box-sizing: border-box;
-		}
-	}
-	@media (max-width: 650px) {
-		:global(#hero pre) {
-			width: 95%;
-		}
+	:global(.code) {
+		font-size: 14px !important;
+		font-family: 'Roboto Mono';
 	}
 
-	@media (max-width: 580px) {
-		h1 {
-			padding: 0 30px;
-		}
-
-		.small-hidden {
-			display: none;
-		}
-
-		.nav-link {
-			margin-left: 20px;
-		}
-
-		:global(#hero pre) {
-			box-sizing: border-box;
-		}
+	.code-example {
+		width: 555px;
+		padding: 8px;
+	}
+	.code-example-container {
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+		align-items: center;
 	}
 
-	@media (max-width: 450px) {
-		.tiny-hidden {
-			display: none;
-		}
-
-		#hero-buttons {
-			flex-direction: column;
-		}
-		header,
-		:global(#main pre) {
-			padding-left: calc(10% + env(safe-area-inset-left));
-			padding-right: calc(10% + env(safe-area-inset-right));
-		}
-
-		.showcase-item {
-			margin-bottom: 75px;
-		}
-
-		.showcase-text {
-			padding: 0 30px;
-		}
-
-		article {
-			padding-top: 1rem;
-		}
-
-		#info {
-			margin-top: 6rem;
-		}
+	.code-example-container,
+	.code-example {
+		width: 100% !important;
 	}
 
-	@media (max-width: 400px) {
-		.micro-hidden {
-			display: none;
-		}
+	.code-example-text {
+		font-size: 16px;
+		color: #9194a4;
 	}
-
-	.caption {
-		color: #161b22;
-		font-size: 18px;
-		margin-top: 12px;
-		padding: 0 30px;
-		margin-right: 0;
+	.code-example-subtext {
+		font-family: 'Hind';
+		font-size: 14px;
+		color: #9194a4;
 	}
 </style>
