@@ -26,9 +26,7 @@ export function find_exported_fn(
 	body: Statement[],
 	name: string
 ): FunctionDeclaration | FunctionExpression | ArrowFunctionExpression | null {
-	console.log(body)
 	for (const statement of body) {
-		console.log(statement)
 		if (statement.type !== 'ExportNamedDeclaration') {
 			continue
 		}
