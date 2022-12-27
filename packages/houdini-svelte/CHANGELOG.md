@@ -1,5 +1,12 @@
 # houdini-svelte
 
+## 0.19.4
+
+### Patch Changes
+
+-   Updated dependencies [[`dae437e`](https://github.com/HoudiniGraphql/houdini/commit/dae437e3923628c0e816e7f53509c1ddcc8bd019)]:
+    -   houdini@0.19.4
+
 ## 0.19.3
 
 ### 🐛 Fixes
