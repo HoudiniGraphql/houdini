@@ -26,7 +26,9 @@ export function find_exported_fn(
 	body: Statement[],
 	name: string
 ): FunctionDeclaration | FunctionExpression | ArrowFunctionExpression | null {
+	console.log(body)
 	for (const statement of body) {
+		console.log(statement)
 		if (statement.type !== 'ExportNamedDeclaration') {
 			continue
 		}
@@ -44,7 +46,6 @@ export function find_exported_fn(
 		// we also need to find exported variables that are functions or arrow functions
 		else if (exportDeclaration.declaration?.type === 'VariableDeclaration') {
 			const value = exportDeclaration.declaration as VariableDeclaration
-
 			// make sure that the declared value has a matching name
 			if (
 				value.declarations.length !== 1 ||
@@ -57,12 +58,19 @@ export function find_exported_fn(
 
 			// we only care about this exported thing if it's a function or arrow function
 			const declaration = value.declarations[0]
+			// grab the initialized value
+			let { init } = declaration
+			if (!init) {
+				continue
+			}
 
-			if (
-				declaration.init?.type === 'FunctionExpression' ||
-				declaration.init?.type === 'ArrowFunctionExpression'
-			) {
-				return declaration.init
+			// if the value is a satisfies expression, we need to use the actual expression
+			if (init.type === 'TSSatisfiesExpression') {
+				init = init.expression
+			}
+
+			if (init.type === 'FunctionExpression' || init.type === 'ArrowFunctionExpression') {
+				return init
 			}
 		}
 		// it wasn't something we care about, move along
