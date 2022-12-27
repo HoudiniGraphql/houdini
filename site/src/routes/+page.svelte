@@ -2,19 +2,19 @@
 	import { SEO, Highlight } from '~/components'
 
 	const codeExample = `<script lang=”ts”>
-	import { graphql } from '$houdini'
+  import { graphql } from '$houdini'
 
-	const allItems = graphql(\`
-		query AllTodoItems {
-			items {
-				text
-			}
-		}
-	\`)
+  const allItems = graphql(\`
+    query AllTodoItems {
+      items {
+        text
+      }
+    }
+  \`)
 \<\/script>
 
 {#each $allItems.data.items as item}
-	<div>{item.text}</div>
+  <div>{item.text}</div>
 {/each}`
 </script>
 
@@ -82,12 +82,66 @@
 					First-class support for Subscriptions, Pagination, List Mutations, Optimistic Responses,
 					and so much more. You didn’t know you needed this.
 				</p>
+				<div class="hero-dive-in">
+					<p>Dive in:</p>
+					<nav class="framework-links">
+						<a data-sveltekit-preload-data href="/intro/welcome">
+							<img src="/images/svelte.svg" width="20px" />
+							SvelteKit
+						</a>
+						<a data-sveltekit-preload-data href="javascript:void(0)" disabled>
+							<img src="/images/react.svg" width="20px" />
+							Next
+						</a>
+						<a data-sveltekit-preload-data href="javascript:void(0)" disabled>
+							<img src="/images/vue.svg" width="20px" />
+							Nuxt
+						</a>
+						<a data-sveltekit-preload-data href="javascript:void(0)" disabled>
+							<img src="/images/solid.svg" width="20px" />
+							SolidStart
+						</a>
+					</nav>
+				</div>
 			</div>
 			<div>
 				<div class="code-example-container">
-					<code class="block code-example">
-						<Highlight code={codeExample} class="code" />
-					</code>
+					<div class="code-example block">
+						<div class="code-example-header">
+							<div class="code-example-filename">+page.svelte</div>
+							<div class="code-example-location">
+								src
+								<span class="code-example-location-chevron">></span>
+								routes
+								<span class="code-example-location-chevron">></span>
+								items
+								<span class="code-example-location-chevron">></span>
+								+page.svelte
+							</div>
+						</div>
+						<div class="code-example-body">
+							<div class="code-example-numbers">
+								<div>1</div>
+								<div>2</div>
+								<div>3</div>
+								<div>4</div>
+								<div>5</div>
+								<div>6</div>
+								<div>7</div>
+								<div>8</div>
+								<div>9</div>
+								<div>10</div>
+								<div>11</div>
+								<div>12</div>
+								<div>13</div>
+								<div>14</div>
+								<div>15</div>
+							</div>
+							<code>
+								<Highlight code={codeExample} class="code" />
+							</code>
+						</div>
+					</div>
 					<p class="code-example-subtext">
 						This is all you need to get going with SSR.&nbsp;&nbsp;&nbsp;🚀
 					</p>
@@ -119,6 +173,7 @@
 		max-width: 1024px;
 		margin: 0 auto;
 		width: 100%;
+		font-family: 'Hind';
 	}
 
 	nav {
@@ -127,14 +182,14 @@
 		gap: 48px;
 	}
 
-	a,
-	a:visited {
+	header a,
+	header a:visited {
 		color: #979aa6;
 		font-family: 'Hind';
 		text-decoration: none;
 	}
 
-	a:hover {
+	header a:hover {
 		color: white;
 	}
 
@@ -153,7 +208,7 @@
 	article {
 		padding: 48px 0;
 		background: #20283d;
-		background: linear-gradient(180deg, #20283d 0%, rgba(20, 21, 25, 1) 80%);
+		background: linear-gradient(180deg, #20283d 0%, rgba(20, 21, 25, 1) 900px);
 		display: flex;
 		flex-direction: column;
 		gap: 100px;
@@ -206,14 +261,15 @@
 	.hero > div {
 		display: flex;
 		flex-direction: column;
-		gap: 64px;
 		width: 10px;
+		justify-content: space-between;
 	}
 
-	.hero div:first-child {
+	.hero > div:first-child {
 		flex-grow: 5;
+		padding-bottom: 35px;
 	}
-	.hero div:nth-child(2) {
+	.hero > div:nth-child(2) {
 		flex-grow: 4;
 	}
 
@@ -248,14 +304,35 @@
 		box-shadow: 0 16px 50px 0 rgba(0, 0, 0, 0.35);
 	}
 
-	:global(.code) {
+	:global(.code),
+	.code-example-body {
 		font-size: 14px !important;
-		font-family: 'Roboto Mono';
+		font-family: 'Fira Mono';
+	}
+
+	.code-example-numbers {
+		padding: 4px;
+		line-height: 1.5rem;
+		width: 28px;
+		flex-grow: 0;
+		border-right: 1px solid #393b43;
+		color: #393b43;
+		margin-right: 8px;
+		text-align: center;
+		padding-top: 16px;
+		padding-bottom: 16px;
+	}
+
+	.code-example-header {
+		background: #393b43;
+		border-top-left-radius: 16px;
+		width: 280px;
+		padding: 8px 16px;
 	}
 
 	.code-example {
 		width: 555px;
-		padding: 8px;
+		padding: 0px;
 	}
 	.code-example-container {
 		display: flex;
@@ -274,8 +351,79 @@
 		color: #9194a4;
 	}
 	.code-example-subtext {
-		font-family: 'Hind';
 		font-size: 14px;
 		color: #9194a4;
+	}
+	.code-example-body {
+		display: flex;
+		flex-direction: row;
+	}
+
+	.code-example-body code {
+		padding: 12px 0 16px 0;
+	}
+
+	.code-example-filename {
+		color: white;
+		font-family: 'Fira Sans';
+		font-size: 16px;
+		margin-bottom: 6px;
+	}
+
+	.code-example-location {
+		color: #838797;
+		font-family: 'Fira Mono';
+		font-size: 12px;
+	}
+
+	.code-example-location-chevron {
+		color: #91a2e5;
+		font-size: 10px;
+	}
+
+	.hero-dive-in {
+		color: white;
+		font-size: 18px;
+	}
+
+	.hero-dive-in {
+		display: flex;
+		flex-direction: column;
+		gap: 24px;
+	}
+
+	.framework-links {
+		display: flex;
+		flex-direction: row;
+		gap: 24px;
+	}
+
+	.framework-links a {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: flex-start;
+		padding: 10px 16px;
+		border: 1px solid #393b43;
+		gap: 8px;
+		font-size: 16px;
+		border-radius: 8px;
+		background: #131925;
+		color: #a3accf;
+		text-decoration: none;
+		width: 180px;
+	}
+
+	.framework-links a:visited {
+		background: #131925;
+		color: #a3accf;
+		text-decoration: none;
+		box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.15);
+	}
+
+	.framework-links a[disabled] {
+		background: #262e3e;
+		cursor: default;
+		box-shadow: none;
 	}
 </style>
