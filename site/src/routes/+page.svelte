@@ -156,7 +156,7 @@
 		background: linear-gradient(180deg, #20283d 0%, rgba(20, 21, 25, 1) 80%);
 		display: flex;
 		flex-direction: column;
-		gap: 128px;
+		gap: 100px;
 	}
 
 	main {
