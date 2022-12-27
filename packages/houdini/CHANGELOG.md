@@ -2,7 +2,7 @@
 
 ## 0.19.4
 
-### Patch Changes
+### 🐛 Fixes
 
 -   [#796](https://github.com/HoudiniGraphql/houdini/pull/796) [`dae437e`](https://github.com/HoudiniGraphql/houdini/commit/dae437e3923628c0e816e7f53509c1ddcc8bd019) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Remove logs from vite processor
 
