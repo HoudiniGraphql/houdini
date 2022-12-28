@@ -17,6 +17,8 @@
 		? parseInt(document.cookie.match('(^|;)\\s*' + 'ui_theme' + '\\s*=\\s*([^;]+)')?.pop() || '0')
 		: data?.ui_theme
 
+	$: logo_src = ui_theme === 0 ? '/images/logo.svg' : '/images/logo-dark.svg'
+
 	// the list of files we can render
 	// @ts-ignore
 	const categories = REPLACE_WITH_OUTLINE
@@ -122,7 +124,7 @@
 						<Icon name="menu" width="20px" />
 					{/if}
 				</buton>
-				<a href="/">Houdini</a>
+				<a href="/"> <img class="logo" src={logo_src} style="margin-top: -4px" /> Houdini</a>
 				<SearchInput id="nav-search-input" />
 				<ThemeSwitcher bind:ui_theme />
 			</h1>
@@ -464,6 +466,10 @@
 	:global(#left-nav-search-input) {
 		margin-bottom: 1rem;
 		width: 80%;
+	}
+
+	.logo {
+		margin-bottom: -4px;
 	}
 
 	@media (max-width: 1000px) {

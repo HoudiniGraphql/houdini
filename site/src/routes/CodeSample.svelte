@@ -63,7 +63,7 @@
 	:global(.code),
 	.body {
 		font-size: 14px !important;
-		font-family: 'Fira Mono';
+		font-family: 'Roboto Mono';
 	}
 
 	.numbers {
@@ -123,7 +123,7 @@
 
 	.location {
 		color: #838797;
-		font-family: 'Fira Mono';
+		font-family: 'Roboto Mono';
 		font-size: 12px;
 	}
 

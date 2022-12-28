@@ -88,8 +88,13 @@
 				<p class="hero-subtext">
 					Start with a schema. Write queries and let Houdini take care of the rest. Fully automatic
 					and totally customizable. <b>Declarative</b>, <b>Composable</b>, <b>Typesafe</b>.
-					First-class support for Subscriptions, Pagination, List Mutations, Optimistic Responses,
-					and so much more. You didn’t know you needed this.
+					First-class support for
+					<a data-sveltekit-preload-data href="/api/subscription">Subscriptions</a>,
+					<a data-sveltekit-preload-data href="/guides/pagination">Pagination</a>,
+					<a data-sveltekit-preload-data href="/api/mutation#lists">List Mutations</a>,
+					<a data-sveltekit-preload-data href="/api/mutation#optimistic-responses"
+						>Optimistic Responses</a
+					>, and so much more. You didn’t know you needed this.
 				</p>
 				<div class="hero-dive-in">
 					<p>Dive in:</p>
@@ -129,8 +134,8 @@
 				<p>
 					Whether you are a seasoned GraphQL developer or just starting out on your journey, Houdini
 					will feel like a superpower. It leverages battle-tested patterns like fragment composition
-					and connection-based pagination to deliver an experience you might not have known was even
-					possible.
+					and connection-based pagination to deliver a developer experience you might not have known
+					was even possible.
 				</p>
 			</Block>
 			<Block class="splash-block">
@@ -328,6 +333,10 @@
 		line-height: 1.5;
 		font-family: 'Hind';
 		font-weight: 100;
+	}
+
+	.hero-subtext :is(a, a:visited) {
+		color: #979aa6;
 	}
 
 	em {
