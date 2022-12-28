@@ -15,24 +15,47 @@
 			Houdini
 		</div>
 		<nav>
-			<a data-sveltekit-preload-data href="/intro/welcome">Getting Started</a>
-			<a data-sveltekit-preload-data href="/api/welcome">API Docs</a>
-			<a data-sveltekit-preload-data href="/guides/faq">Guides</a>
+			<a data-sveltekit-preload-data href="/intro/welcome">Get Started</a>
+			<a data-sveltekit-preload-data href="/guides/faq" class="hide-thin">Guides</a>
+			<a data-sveltekit-preload-data href="/api/welcome" class="hide-thinner">API Docs</a>
 			<a
 				data-sveltekit-preload-data
 				href="https://github.com/sponsors/HoudiniGraphql"
 				target="_blank"
 				rel="noreferrer"
+				class="hide-tiny"
 			>
 				Sponsor
+			</a>
+			<a
+				href="https://www.github.com/HoudiniGraphQL/houdini"
+				target="_blank"
+				rel="noreferrer"
+				class="show-tiny"
+			>
+				<svg
+					height="20px"
+					xmlns="http://www.w3.org/2000/svg"
+					viewBox="0 0 32.58 31.77"
+					class="gh-link"
+					><defs><style></style></defs><g id="Layer_2" data-name="Layer 2"
+						><g id="Layer_1-2" data-name="Layer 1"
+							><path
+								fill="currentcolor"
+								class="cls-1"
+								d="M16.29,0a16.29,16.29,0,0,0-5.15,31.75c.82.15,1.11-.36,1.11-.79s0-1.41,0-2.77C7.7,29.18,6.74,26,6.74,26a4.36,4.36,0,0,0-1.81-2.39c-1.47-1,.12-1,.12-1a3.43,3.43,0,0,1,2.49,1.68,3.48,3.48,0,0,0,4.74,1.36,3.46,3.46,0,0,1,1-2.18c-3.62-.41-7.42-1.81-7.42-8a6.3,6.3,0,0,1,1.67-4.37,5.94,5.94,0,0,1,.16-4.31s1.37-.44,4.48,1.67a15.41,15.41,0,0,1,8.16,0c3.11-2.11,4.47-1.67,4.47-1.67A5.91,5.91,0,0,1,25,11.07a6.3,6.3,0,0,1,1.67,4.37c0,6.26-3.81,7.63-7.44,8a3.85,3.85,0,0,1,1.11,3c0,2.18,0,3.94,0,4.47s.29.94,1.12.78A16.29,16.29,0,0,0,16.29,0Z"
+							/></g
+						></g
+					>
+				</svg>
 			</a>
 		</nav>
 
 		<a
 			href="https://www.github.com/HoudiniGraphQL/houdini"
-			class="tiny-hidden"
 			target="_blank"
 			rel="noreferrer"
+			class="hide-tiny"
 		>
 			<svg
 				height="20px"
@@ -47,8 +70,8 @@
 							d="M16.29,0a16.29,16.29,0,0,0-5.15,31.75c.82.15,1.11-.36,1.11-.79s0-1.41,0-2.77C7.7,29.18,6.74,26,6.74,26a4.36,4.36,0,0,0-1.81-2.39c-1.47-1,.12-1,.12-1a3.43,3.43,0,0,1,2.49,1.68,3.48,3.48,0,0,0,4.74,1.36,3.46,3.46,0,0,1,1-2.18c-3.62-.41-7.42-1.81-7.42-8a6.3,6.3,0,0,1,1.67-4.37,5.94,5.94,0,0,1,.16-4.31s1.37-.44,4.48,1.67a15.41,15.41,0,0,1,8.16,0c3.11-2.11,4.47-1.67,4.47-1.67A5.91,5.91,0,0,1,25,11.07a6.3,6.3,0,0,1,1.67,4.37c0,6.26-3.81,7.63-7.44,8a3.85,3.85,0,0,1,1.11,3c0,2.18,0,3.94,0,4.47s.29.94,1.12.78A16.29,16.29,0,0,0,16.29,0Z"
 						/></g
 					></g
-				></svg
-			>
+				>
+			</svg>
 		</a>
 	</header>
 	<main id="main">
@@ -139,6 +162,23 @@
 		--scrollbar-track: #272e38;
 	}
 
+	/* variables are assigned on article to avoid conflict with other pages */
+	article {
+		/* Colors  */
+		--background-color-1: #20283d;
+		--background-color-2: rgba(20, 21, 25, 1);
+		--highlight: #855aff;
+		--graphql: #e10098;
+		--dark-grey: #16171b;
+		--grey: #393b43;
+		--light-grey: #979aa6;
+		--lightest-grey: #d2d9f5;
+
+		/* Dimensions */
+		--max-width: 1024px;
+		--gutter: 60px;
+	}
+
 	:global(body) {
 		background: #20283d;
 	}
@@ -163,7 +203,7 @@
 
 	header,
 	main {
-		max-width: 1024px;
+		max-width: calc(var(--max-width) + var(--gutter));
 		margin: 0 auto;
 		width: 100%;
 		font-family: 'Hind';
@@ -199,16 +239,7 @@
 	}
 
 	article {
-		--background-color-1: #20283d;
-		--background-color-2: rgba(20, 21, 25, 1);
-		--highlight: #855aff;
-		--graphql: #e10098;
-		--dark-grey: #16171b;
-		--grey: #393b43;
-		--light-grey: #979aa6;
-		--lightest-grey: #d2d9f5;
-
-		padding: 48px 0;
+		padding: 48px var(--gutter);
 		background: var(--background-color-1);
 		background: linear-gradient(
 			180deg,
@@ -328,7 +359,7 @@
 		display: flex;
 		flex-direction: row;
 		align-items: center;
-		justify-content: flex-start;
+		justify-content: center;
 		padding: 10px 16px;
 		border: 1px solid var(--grey);
 		gap: 8px;
@@ -385,5 +416,82 @@
 		font-weight: bold;
 		border: none;
 		cursor: pointer;
+	}
+
+	.show-tiny {
+		display: none;
+	}
+
+	@media (max-width: 1050px) {
+		main {
+			gap: 64px;
+		}
+
+		.hero {
+			flex-direction: column;
+		}
+
+		.hero > *:first-child {
+			padding: 50px;
+			width: calc(100% - 100px);
+			gap: 50px;
+		}
+
+		:global(.splash-code-sample) {
+			width: 100%;
+			padding-bottom: 50px;
+		}
+	}
+
+	@media (max-width: 850px) {
+		.selling-points {
+			grid-template-columns: 1fr;
+		}
+
+		.hero {
+			gap: 40px;
+		}
+
+		header nav {
+			gap: 32px;
+		}
+	}
+
+	@media (max-width: 777px) {
+		.framework-links {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+		}
+
+		.framework-links a {
+			width: calc(100% - 40px);
+			padding: 10px 16px;
+		}
+	}
+
+	@media (max-width: 700px) {
+		.hide-thin {
+			display: none;
+		}
+	}
+
+	@media (max-width: 650px) {
+		.hide-thinner {
+			display: none;
+		}
+	}
+
+	@media (max-width: 600px) {
+		.hero > *:first-child {
+			padding: 0px;
+			width: 100%;
+		}
+		.hide-tiny {
+			display: none;
+		}
+
+		.show-tiny {
+			display: block;
+		}
 	}
 </style>

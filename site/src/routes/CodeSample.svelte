@@ -19,22 +19,22 @@
 {/each}`
 </script>
 
-<div class={`code-example-container ${$$props.class}`}>
+<div class={`container ${$$props.class}`}>
 	<Block class="code-example block">
-		<div class="code-example-header">
-			<div class="code-example-filename">+page.svelte</div>
-			<div class="code-example-location">
+		<div class="header">
+			<div class="filename">+page.svelte</div>
+			<div class="location">
 				src
-				<span class="code-example-location-chevron">></span>
+				<span class="location-chevron">></span>
 				routes
-				<span class="code-example-location-chevron">></span>
+				<span class="location-chevron">></span>
 				items
-				<span class="code-example-location-chevron">></span>
+				<span class="location-chevron">></span>
 				+page.svelte
 			</div>
 		</div>
-		<div class="code-example-body">
-			<div class="code-example-numbers">
+		<div class="body">
+			<div class="numbers">
 				<div>1</div>
 				<div>2</div>
 				<div>3</div>
@@ -56,19 +56,17 @@
 			</code>
 		</div>
 	</Block>
-	<p class="code-example-subtext">
-		This is all you need to get going with SSR.&nbsp;&nbsp;&nbsp;🚀
-	</p>
+	<p class="subtext">This is all you need to get going with SSR.&nbsp;&nbsp;&nbsp;🚀</p>
 </div>
 
 <style>
 	:global(.code),
-	.code-example-body {
+	.body {
 		font-size: 14px !important;
 		font-family: 'Fira Mono';
 	}
 
-	.code-example-numbers {
+	.numbers {
 		padding: 4px;
 		line-height: 1.5rem;
 		width: 28px;
@@ -81,9 +79,8 @@
 		padding-bottom: 16px;
 	}
 
-	.code-example-header {
+	.header {
 		background: var(--grey);
-		border-top-left-radius: 16px;
 		width: 280px;
 		padding: 8px 16px;
 	}
@@ -91,45 +88,46 @@
 	:global(.code-example) {
 		width: 100%;
 		padding: 0px;
+		overflow: hidden;
 	}
-	.code-example-container {
+	.container {
 		display: flex;
 		flex-direction: column;
 		gap: 20px;
 		align-items: center;
 	}
 
-	.code-example-text {
+	.text {
 		font-size: 16px;
 		color: var(--light-grey);
 	}
-	.code-example-subtext {
+	.subtext {
 		font-size: 14px;
 		color: var(--light-grey);
 	}
-	.code-example-body {
+	.body {
 		display: flex;
 		flex-direction: row;
 	}
 
-	.code-example-body code {
+	.body code {
 		padding: 12px 0 16px 0;
 	}
 
-	.code-example-filename {
+	.filename {
 		color: white;
 		font-family: 'Fira Sans';
 		font-size: 16px;
 		margin-bottom: 6px;
 	}
 
-	.code-example-location {
+	.location {
 		color: #838797;
 		font-family: 'Fira Mono';
 		font-size: 12px;
 	}
 
-	.code-example-location-chevron {
+	.location-chevron {
 		color: #91a2e5;
 		font-size: 10px;
 	}
