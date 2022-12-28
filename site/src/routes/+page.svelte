@@ -148,6 +148,44 @@
 				</div>
 			</div>
 		</section>
+		<div class="selling-points">
+			<div class="block">
+				<h2>GraphQL, simplified</h2>
+				<p>
+					GraphQL makes a lot of promises but the other clients expect you to go though a silly
+					amount of ceremony to see the benefits. Houdini integrates tightly in your existing tool
+					chain to remove as much of the complexity as possible without compromising on features.
+				</p>
+			</div>
+			<div class="block">
+				<h2>Great for Simple Cases, Amazing for Complex Ones</h2>
+				<p>
+					Whether you are a seasoned GraphQL developer or just starting out on your journey, Houdini
+					will feel like a superpower. It leverages battle-tested patterns like fragment composition
+					and connection-based pagination to deliver an experience you might not have known was even
+					possible.
+				</p>
+			</div>
+			<div class="block">
+				<h2>100% Typesafe</h2>
+				<p>
+					Houdini generates types for every document in your application. It doesn’t require passing
+					in any generic parameters or messing with complicated paths.
+				</p>
+			</div>
+			<div class="block">
+				<h2>Declarative</h2>
+				<p>
+					Updates to your application cache are made with a set of declarative fragments that avoid
+					the surgical logic necessary to keep your application up to date.
+				</p>
+			</div>
+		</div>
+		<div class="cta-container">
+			<a href="/intro/welcome">
+				<button> Get Started </button>
+			</a>
+		</div>
 	</main>
 </article>
 
@@ -155,6 +193,10 @@
 	:root {
 		--scrollbar-slider: #101318;
 		--scrollbar-track: #272e38;
+	}
+
+	:global(body) {
+		background: #20283d;
 	}
 
 	#skip-nav {
@@ -206,12 +248,26 @@
 	}
 
 	article {
+		--background-color-1: #20283d;
+		--background-color-2: rgba(20, 21, 25, 1);
+		--highlight: #855aff;
+		--graphql: #e10098;
+		--dark-grey: #16171b;
+		--grey: #393b43;
+		--light-grey: #979aa6;
+		--lightest-grey: #d2d9f5;
+
 		padding: 48px 0;
-		background: #20283d;
-		background: linear-gradient(180deg, #20283d 0%, rgba(20, 21, 25, 1) 900px);
+		background: var(--background-color-1);
+		background: linear-gradient(
+			180deg,
+			var(--background-color-1) 0%,
+			var(--background-color-2) 900px
+		);
 		display: flex;
 		flex-direction: column;
 		gap: 100px;
+		padding-bottom: 100px;
 	}
 
 	main {
@@ -229,11 +285,11 @@
 	}
 
 	.highlight {
-		color: #855aff;
+		color: var(--highlight);
 	}
 
 	.graphql {
-		color: #e10098;
+		color: var(--graphql);
 	}
 
 	header,
@@ -298,8 +354,8 @@
 	}
 
 	.block {
-		background: #16171b;
-		border: 1px solid #393b43;
+		background: var(--dark-grey);
+		border: 1px solid var(--grey);
 		border-radius: 16px;
 		box-shadow: 0 16px 50px 0 rgba(0, 0, 0, 0.35);
 	}
@@ -315,8 +371,8 @@
 		line-height: 1.5rem;
 		width: 28px;
 		flex-grow: 0;
-		border-right: 1px solid #393b43;
-		color: #393b43;
+		border-right: 1px solid var(--grey);
+		color: var(--grey);
 		margin-right: 8px;
 		text-align: center;
 		padding-top: 16px;
@@ -324,7 +380,7 @@
 	}
 
 	.code-example-header {
-		background: #393b43;
+		background: var(--grey);
 		border-top-left-radius: 16px;
 		width: 280px;
 		padding: 8px 16px;
@@ -348,11 +404,11 @@
 
 	.code-example-text {
 		font-size: 16px;
-		color: #9194a4;
+		color: var(--light-grey);
 	}
 	.code-example-subtext {
 		font-size: 14px;
-		color: #9194a4;
+		color: var(--light-grey);
 	}
 	.code-example-body {
 		display: flex;
@@ -404,7 +460,7 @@
 		align-items: center;
 		justify-content: flex-start;
 		padding: 10px 16px;
-		border: 1px solid #393b43;
+		border: 1px solid var(--grey);
 		gap: 8px;
 		font-size: 16px;
 		border-radius: 8px;
@@ -425,5 +481,46 @@
 		background: #262e3e;
 		cursor: default;
 		box-shadow: none;
+	}
+
+	.selling-points {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 40px;
+	}
+
+	.selling-points div {
+		padding: 40px;
+		display: flex;
+		flex-direction: column;
+		gap: 34px;
+	}
+
+	.selling-points h2 {
+		font-size: 18px;
+		font-weight: 500;
+		color: var(--lightest-grey);
+	}
+
+	.selling-points p {
+		color: var(--light-grey);
+		line-height: 1.5;
+	}
+
+	.cta-container {
+		display: flex;
+		flex-direction: row;
+		justify-content: center;
+	}
+
+	.cta-container button {
+		font-size: 16px;
+		padding: 20px 60px;
+		border-radius: 5px;
+		color: white;
+		background: var(--highlight);
+		font-weight: bold;
+		border: none;
+		cursor: pointer;
 	}
 </style>
