@@ -1,21 +1,7 @@
 <script>
-	import { SEO, Highlight } from '~/components'
-
-	const codeExample = `<script lang=”ts”>
-  import { graphql } from '$houdini'
-
-  const allItems = graphql(\`
-    query AllTodoItems {
-      items {
-        text
-      }
-    }
-  \`)
-\<\/script>
-
-{#each $allItems.data.items as item}
-  <div>{item.text}</div>
-{/each}`
+	import { SEO } from '~/components'
+	import CodeSample from './CodeSample.svelte'
+	import Block from './Block.svelte'
 </script>
 
 <SEO />
@@ -104,60 +90,18 @@
 					</nav>
 				</div>
 			</div>
-			<div>
-				<div class="code-example-container">
-					<div class="code-example block">
-						<div class="code-example-header">
-							<div class="code-example-filename">+page.svelte</div>
-							<div class="code-example-location">
-								src
-								<span class="code-example-location-chevron">></span>
-								routes
-								<span class="code-example-location-chevron">></span>
-								items
-								<span class="code-example-location-chevron">></span>
-								+page.svelte
-							</div>
-						</div>
-						<div class="code-example-body">
-							<div class="code-example-numbers">
-								<div>1</div>
-								<div>2</div>
-								<div>3</div>
-								<div>4</div>
-								<div>5</div>
-								<div>6</div>
-								<div>7</div>
-								<div>8</div>
-								<div>9</div>
-								<div>10</div>
-								<div>11</div>
-								<div>12</div>
-								<div>13</div>
-								<div>14</div>
-								<div>15</div>
-							</div>
-							<code>
-								<Highlight code={codeExample} class="code" />
-							</code>
-						</div>
-					</div>
-					<p class="code-example-subtext">
-						This is all you need to get going with SSR.&nbsp;&nbsp;&nbsp;🚀
-					</p>
-				</div>
-			</div>
+			<CodeSample class="splash-code-sample" />
 		</section>
 		<div class="selling-points">
-			<div class="block">
+			<Block class="splash-block">
 				<h2>GraphQL, simplified</h2>
 				<p>
 					GraphQL makes a lot of promises but the other clients expect you to go though a silly
 					amount of ceremony to see the benefits. Houdini integrates tightly in your existing tool
 					chain to remove as much of the complexity as possible without compromising on features.
 				</p>
-			</div>
-			<div class="block">
+			</Block>
+			<Block class="splash-block">
 				<h2>Great for Simple Cases, Amazing for Complex Ones</h2>
 				<p>
 					Whether you are a seasoned GraphQL developer or just starting out on your journey, Houdini
@@ -165,21 +109,21 @@
 					and connection-based pagination to deliver an experience you might not have known was even
 					possible.
 				</p>
-			</div>
-			<div class="block">
+			</Block>
+			<Block class="splash-block">
 				<h2>100% Typesafe</h2>
 				<p>
 					Houdini generates types for every document in your application. It doesn’t require passing
 					in any generic parameters or messing with complicated paths.
 				</p>
-			</div>
-			<div class="block">
+			</Block>
+			<Block class="splash-block">
 				<h2>Declarative</h2>
 				<p>
 					Updates to your application cache are made with a set of declarative fragments that avoid
 					the surgical logic necessary to keep your application up to date.
 				</p>
-			</div>
+			</Block>
 		</div>
 		<div class="cta-container">
 			<a href="/intro/welcome">
@@ -197,6 +141,13 @@
 
 	:global(body) {
 		background: #20283d;
+	}
+
+	:global(.splash-block) {
+		padding: 40px;
+		display: flex;
+		flex-direction: column;
+		gap: 34px;
 	}
 
 	#skip-nav {
@@ -321,12 +272,15 @@
 		justify-content: space-between;
 	}
 
-	.hero > div:first-child {
+	.hero > *:first-child {
 		flex-grow: 5;
 		padding-bottom: 35px;
+		width: 10px;
 	}
-	.hero > div:nth-child(2) {
+
+	:global(.splash-code-sample) {
 		flex-grow: 4;
+		width: 10px;
 	}
 
 	.hero-text {
@@ -351,90 +305,6 @@
 
 	b {
 		font-weight: 600;
-	}
-
-	.block {
-		background: var(--dark-grey);
-		border: 1px solid var(--grey);
-		border-radius: 16px;
-		box-shadow: 0 16px 50px 0 rgba(0, 0, 0, 0.35);
-	}
-
-	:global(.code),
-	.code-example-body {
-		font-size: 14px !important;
-		font-family: 'Fira Mono';
-	}
-
-	.code-example-numbers {
-		padding: 4px;
-		line-height: 1.5rem;
-		width: 28px;
-		flex-grow: 0;
-		border-right: 1px solid var(--grey);
-		color: var(--grey);
-		margin-right: 8px;
-		text-align: center;
-		padding-top: 16px;
-		padding-bottom: 16px;
-	}
-
-	.code-example-header {
-		background: var(--grey);
-		border-top-left-radius: 16px;
-		width: 280px;
-		padding: 8px 16px;
-	}
-
-	.code-example {
-		width: 555px;
-		padding: 0px;
-	}
-	.code-example-container {
-		display: flex;
-		flex-direction: column;
-		gap: 20px;
-		align-items: center;
-	}
-
-	.code-example-container,
-	.code-example {
-		width: 100% !important;
-	}
-
-	.code-example-text {
-		font-size: 16px;
-		color: var(--light-grey);
-	}
-	.code-example-subtext {
-		font-size: 14px;
-		color: var(--light-grey);
-	}
-	.code-example-body {
-		display: flex;
-		flex-direction: row;
-	}
-
-	.code-example-body code {
-		padding: 12px 0 16px 0;
-	}
-
-	.code-example-filename {
-		color: white;
-		font-family: 'Fira Sans';
-		font-size: 16px;
-		margin-bottom: 6px;
-	}
-
-	.code-example-location {
-		color: #838797;
-		font-family: 'Fira Mono';
-		font-size: 12px;
-	}
-
-	.code-example-location-chevron {
-		color: #91a2e5;
-		font-size: 10px;
 	}
 
 	.hero-dive-in {
@@ -487,13 +357,6 @@
 		display: grid;
 		grid-template-columns: 1fr 1fr;
 		gap: 40px;
-	}
-
-	.selling-points div {
-		padding: 40px;
-		display: flex;
-		flex-direction: column;
-		gap: 34px;
 	}
 
 	.selling-points h2 {
