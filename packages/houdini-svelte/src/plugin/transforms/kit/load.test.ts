@@ -1546,3 +1546,33 @@ test('route params with variable function', async function () {
 })
 
 test.todo('overlapping query parameters')
+test('existing loads with parens', async function () {
+	const route = await route_test({
+		script: `
+			import type { LayoutServerLoad } from "./$types";
+
+			export const load = (() => ({ test: "Hello" })) satisfies LayoutServerLoad;
+			`,
+		component: `
+				<script>
+					const result = graphql\`
+						query TestQuery1 {
+							viewer {
+								id
+							}
+						}
+					\`
+				</script>
+			`,
+	})
+
+	// make sure we added the right stuff
+	expect(route.script).toMatchInlineSnapshot(`
+		import _TestQuery1Artifact from "$houdini/artifacts/TestQuery1";
+		import type { LayoutServerLoad } from "./$types";
+
+		export const load = (() => ({
+		    test: "Hello"
+		})) satisfies LayoutServerLoad;
+	`)
+})

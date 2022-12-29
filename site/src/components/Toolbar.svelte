@@ -87,11 +87,11 @@
 		<!-- dark mode -->
 		<style>
 			:root {
-				--hue: #161b22;
+				--hue: #191c26;
 				--contrast: #f9fbff;
-				--discreet: #303a48;
-				--discreet2: #475465;
-				--scrollbar-slider: #101318;
+				--discreet: #232938;
+				--discreet2: #323b53;
+				--scrollbar-slider: rgba(20, 21, 25, 1);
 				--scrollbar-track: #272e38;
 				--saturated: #ff3e00;
 				--deep-dive: #17346d;

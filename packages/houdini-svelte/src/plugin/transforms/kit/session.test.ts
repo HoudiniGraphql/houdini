@@ -117,6 +117,33 @@ test('modifies existing load +layout.server.js - no return', async function () {
 	`)
 })
 
+test('modifies existing load +layout.server.js - satisfies operator', async function () {
+	const result = await test_transform_js(
+		'src/routes/+layout.server.js',
+		`
+			import type { LayoutServerLoad } from "./$types";
+
+			export const load = (() => ({ test: "Hello" })) satisfies LayoutServerLoad;
+		`
+	)
+
+	expect(result).toMatchInlineSnapshot(`
+		import { buildSessionObject } from "$houdini/plugins/houdini-svelte/runtime/session";
+		import type { LayoutServerLoad } from "./$types";
+
+		export const load = (event => {
+		    const __houdini__vite__plugin__return__value__ = ({
+		        test: "Hello"
+		    });
+
+		    return {
+		        ...buildSessionObject(event),
+		        ...__houdini__vite__plugin__return__value__
+		    };
+		}) satisfies LayoutServerLoad;
+	`)
+})
+
 test('modifies existing load +layout.server.js - rest params', async function () {
 	const result = await test_transform_js(
 		'src/routes/+layout.server.js',

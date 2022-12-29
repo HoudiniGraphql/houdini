@@ -1,5 +1,17 @@
 # houdini
 
+## 0.19.4
+
+### 🐛 Fixes
+
+-   [#796](https://github.com/HoudiniGraphql/houdini/pull/796) [`dae437e`](https://github.com/HoudiniGraphql/houdini/commit/dae437e3923628c0e816e7f53509c1ddcc8bd019) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Remove logs from vite processor
+
+## 0.19.3
+
+### 🐛 Fixes
+
+-   [#793](https://github.com/HoudiniGraphql/houdini/pull/793) [`d3ba00f`](https://github.com/HoudiniGraphql/houdini/commit/d3ba00f62d71d8cc7c2e89c8eb32a20370ecfe07) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix erorr when using satisfies expression with load functions
+
 ## 0.19.2
 
 ## 0.19.1

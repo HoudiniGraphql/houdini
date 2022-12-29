@@ -21,6 +21,8 @@
 		? document.cookie.match('(^|;)\\s*' + 'lang' + '\\s*=\\s*([^;]+)')?.pop() || 'js'
 		: data?.lang
 
+	$: logo_src = ui_theme === 0 ? '/images/logo.svg' : '/images/logo-dark.svg'
+
 	// the list of files we can render
 	// @ts-ignore
 	const categories = REPLACE_WITH_OUTLINE
@@ -126,7 +128,10 @@
 						<Icon name="menu" width="20px" />
 					{/if}
 				</buton>
-				<a href="/">Houdini</a>
+				<a href="/">
+					<img class="logo" src={logo_src} style="margin-top: -4px" />
+					<span class="logo-text">Houdini</span></a
+				>
 				<SearchInput id="nav-search-input" />
 				<Toolbar bind:ui_theme bind:lang />
 			</h1>
@@ -470,10 +475,8 @@
 		width: 80%;
 	}
 
-	@media (min-width: 1000px) {
-		h1 a {
-			flex-grow: 1;
-		}
+	.logo {
+		margin-bottom: -4px;
 	}
 
 	@media (max-width: 1000px) {
@@ -557,6 +560,10 @@
 
 		:global(#nav-search-input) {
 			display: flex;
+		}
+
+		.logo-text {
+			display: none;
 		}
 	}
 
