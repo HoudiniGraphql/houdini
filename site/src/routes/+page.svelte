@@ -93,7 +93,9 @@
 				<a href="https://punchup.com" target="_blank" rel="noreferrer">
 					<img src="/images/users/punchup.png" height="60px" />
 				</a>
-				<img src="/images/users/dynamic-process.svg" height="60px" />
+				<a href="https://dynamicprocess.io/" target="_blank" rel="noreferrer">
+					<img src="/images/users/dynamic-process.svg" height="60px" />
+				</a>
 			</div>
 		</div>
 		<div class="selling-points">
