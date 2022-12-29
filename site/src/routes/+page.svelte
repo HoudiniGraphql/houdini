@@ -103,17 +103,20 @@
 							<img src="/images/svelte.svg" width="20px" />
 							SvelteKit
 						</a>
-						<a data-sveltekit-preload-data href="javascript:void(0)" disabled>
+						<a data-sveltekit-preload-data href="#disabled" disabled>
 							<img src="/images/react.svg" width="20px" />
 							Next
+							<div class="coming-soon">Coming Soon</div>
 						</a>
-						<a data-sveltekit-preload-data href="javascript:void(0)" disabled>
+						<a data-sveltekit-preload-data href="#disabled" disabled>
 							<img src="/images/vue.svg" width="20px" />
 							Nuxt
+							<div class="coming-soon">Coming Soon</div>
 						</a>
-						<a data-sveltekit-preload-data href="javascript:void(0)" disabled>
+						<a data-sveltekit-preload-data href="#disabled" disabled>
 							<img src="/images/solid.svg" width="20px" />
 							SolidStart
+							<div class="coming-soon">Coming Soon</div>
 						</a>
 					</nav>
 				</div>
@@ -379,6 +382,24 @@
 		color: #a3accf;
 		text-decoration: none;
 		width: 180px;
+		position: relative;
+		overflow: hidden;
+	}
+
+	.coming-soon {
+		width: 120%;
+		height: 20px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		position: absolute;
+		transform: rotate(15deg) translateX(-50%) translateY(50%) translateY(10px);
+		background: var(--grey);
+		color: white;
+		left: 50%;
+		opacity: 0.8;
+		font-size: 12px;
+		display: none;
 	}
 
 	.framework-links a:visited {
@@ -392,6 +413,7 @@
 		background: #262e3e;
 		cursor: default;
 		box-shadow: none;
+		opacity: 0.2;
 	}
 
 	.selling-points {
