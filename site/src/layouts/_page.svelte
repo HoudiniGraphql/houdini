@@ -124,7 +124,10 @@
 						<Icon name="menu" width="20px" />
 					{/if}
 				</buton>
-				<a href="/"> <img class="logo" src={logo_src} style="margin-top: -4px" /> Houdini</a>
+				<a href="/">
+					<img class="logo" src={logo_src} style="margin-top: -4px" />
+					<span class="logo-text">Houdini</span></a
+				>
 				<SearchInput id="nav-search-input" />
 				<ThemeSwitcher bind:ui_theme />
 			</h1>
@@ -553,6 +556,10 @@
 
 		:global(#nav-search-input) {
 			display: flex;
+		}
+
+		.logo-text {
+			display: none;
 		}
 	}
 

@@ -81,6 +81,21 @@
 			</div>
 			<CodeSample class="splash-code-sample" />
 		</section>
+		<div class="logos-container">
+			<h2>Used in Production By</h2>
+			<div class="logos">
+				<a href="https://www.se.com" target="_blank" rel="noreferrer">
+					<img src="/images/users/schneider-electric.svg" height="60px" />
+				</a>
+				<a href="https://tryhussle.com/" target="_blank" rel="noreferrer">
+					<img src="/images/users/hussle.svg" height="60px" />
+				</a>
+				<a href="https://punchup.com" target="_blank" rel="noreferrer">
+					<img src="/images/users/punchup.png" height="60px" />
+				</a>
+				<img src="/images/users/dynamic-process.svg" height="60px" />
+			</div>
+		</div>
 		<div class="selling-points">
 			<Block class="splash-block">
 				<h2>GraphQL, simplified</h2>
@@ -179,6 +194,9 @@
 	nav {
 		display: flex;
 		flex-direction: row;
+	}
+
+	header nav {
 		gap: 48px;
 	}
 
@@ -323,7 +341,7 @@
 	.framework-links {
 		display: flex;
 		flex-direction: row;
-		gap: 24px;
+		gap: 32px;
 	}
 
 	.framework-links a {
@@ -333,13 +351,12 @@
 		justify-content: center;
 		padding: 10px 16px;
 		border: 1px solid var(--grey);
-		gap: 8px;
+		gap: 4px;
 		font-size: 16px;
 		border-radius: 8px;
 		background: #131925;
 		color: #a3accf;
 		text-decoration: none;
-		width: 180px;
 		position: relative;
 		overflow: hidden;
 	}
@@ -412,6 +429,27 @@
 		display: none !important;
 	}
 
+	.logos {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		gap: 64px;
+	}
+
+	.logos-container {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 40px;
+	}
+
+	.logos-container h2 {
+		color: var(--lightest-grey);
+		align-self: center;
+		font-size: 18px;
+	}
+
 	@media (max-width: 1050px) {
 		main {
 			gap: 64px;
@@ -431,10 +469,27 @@
 			width: 100%;
 			padding-bottom: 50px;
 		}
+
+		.logos {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			padding-bottom: 50px;
+		}
+
+		.logos > * {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 100%;
+		}
 	}
 
 	@media (max-width: 850px) {
 		.selling-points {
+			grid-template-columns: 1fr;
+		}
+
+		.logos {
 			grid-template-columns: 1fr;
 		}
 
