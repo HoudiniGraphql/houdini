@@ -141,8 +141,9 @@
 			<Block class="splash-block">
 				<h2>100% Typesafe</h2>
 				<p>
-					Houdini generates types for every document in your application. It doesn’t require passing
-					in any generic parameters or messing with complicated paths.
+					Houdini generates types for every document in your application. If you are a TypeScript
+					person, you won't have to juggle any generic parameters or messing with complicated paths.
+					If you prefer JSDocs, eveything just works.
 				</p>
 			</Block>
 			<Block class="splash-block">
