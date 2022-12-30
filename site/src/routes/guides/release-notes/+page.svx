@@ -322,8 +322,7 @@ In order to make this work, you have to change your tsconfig file to look like t
 
 You can now define a `+page.gql` file inside of a route directory to automatically opt-into a generated load without having to do anything else:
 
-```graphql
-# src/routes/myProfile/+page.gql
+```graphql:title=src/routes/myProfile/+page.gql
 
 query MyQuery {
 	viewer {

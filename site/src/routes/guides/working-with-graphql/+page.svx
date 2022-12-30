@@ -77,8 +77,7 @@ sense immediately. Come back and read this list a second time after you are done
 The first one is straight forward: define your route queries in a file named `+page.gql` inside of your route directory. When houdini detects this file, it will handle
 all of the details for you and your route will receive the query store as a prop with the same name:
 
-```graphql
-# src/routes/myProfile/+page.gql
+```graphql:title=src/routes/myProfile/+page.gql
 
 query MyProfile {
 	viewer {

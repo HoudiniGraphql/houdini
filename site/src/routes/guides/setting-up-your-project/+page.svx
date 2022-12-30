@@ -98,7 +98,7 @@ pnpm install --save-dev houdini-svelte
 If you are using vite, you should use the `houdini/vite` plugin even if you aren't using kit.
 Update your `vite.config.js` file to look like this:
 
-```typescript:title=vite.config.ts
+```typescript:title=vite.config.js
 import { defineConfig } from 'vite'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import houdini from 'houdini/vite'
@@ -112,7 +112,7 @@ If you aren't using vite, it's a lot harder to give an exact recommendation but 
 you should import houdini's preprocessor and pass it to your svelte config. You will also
 need to make sure that the `$houdini` alias resolves to the directory in the root of your project.
 
-```typescript:title=svelte.config.ts
+```typescript:title=svelte.config.js
 import houdini from 'houdini-svelte/preprocess'
 
 export default {
