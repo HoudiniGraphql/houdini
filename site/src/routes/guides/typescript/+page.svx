@@ -100,17 +100,14 @@ import { fragment, graphql, type PostContent } from '$houdini'
 
 export let post: PostContent
 
-$: data = fragment(
-	post,
-	graphql(`
-		fragment PostContent on Post {
-			content
-			tags {
-				nodes {
-					name
-				}
+$: data = fragment(post, graphql(`
+	fragment PostContent on Post {
+		content
+		tags {
+			nodes {
+				name
 			}
 		}
-	`)
-)
+	}
+`))
 ```
