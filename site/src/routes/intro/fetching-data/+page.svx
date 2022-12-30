@@ -11,7 +11,7 @@ description: The first part of the Houdini intro focusing on how to fetch data
 # Fetching Data
 
 Before we do anything _too_ complicated, lets start with some static content pulled from our GraphQL API.
-Create two files inside of your `src/routes` directory: `+page.gql` and `+page.svelte`:
+Create two files inside of your `src/routes` directory, `+page.gql` and `+page.svelte`:
 
 ```graphql:title=src/routes/+page.gql
 query Info {
@@ -196,7 +196,7 @@ Now that we have the actual route defined, we will have to change our query so t
 a variable. Doing this is relatively simple, just update the query inside of `+page.gql` to look like the following:
 
 ```graphql:title=src/routes/[[id]]/+page.gql
-query Info($id: Int = 1) {
+query Info($id: Int! = 1) {
     species(id: $id) {
         name
         flavor_text
