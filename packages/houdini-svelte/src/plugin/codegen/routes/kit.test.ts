@@ -115,7 +115,7 @@ test('generates types for inline layout queries', async function () {
 		type LayoutParentData = EnsureDefined<{}>;
 
 		type MakeOptional<Target, Keys extends keyof Target> = Omit<Target, Keys> & {
-		    [Key in Keys]?: Target[Key];
+		    [Key in Keys]?: Target[Key] | undefined | null;
 		};
 
 		export type LayoutServerData = null;
@@ -200,7 +200,7 @@ test('generates types for inline page queries', async function () {
 		type PageParentData = EnsureDefined<import("../$houdini").LayoutData>;
 
 		type MakeOptional<Target, Keys extends keyof Target> = Omit<Target, Keys> & {
-		    [Key in Keys]?: Target[Key];
+		    [Key in Keys]?: Target[Key] | undefined | null;
 		};
 
 		type PageParams = PageLoadEvent["params"];
@@ -284,7 +284,7 @@ query MyLayoutQuery {
 		type LayoutParentData = EnsureDefined<{}>;
 
 		type MakeOptional<Target, Keys extends keyof Target> = Omit<Target, Keys> & {
-		    [Key in Keys]?: Target[Key];
+		    [Key in Keys]?: Target[Key] | undefined | null;
 		};
 
 		export type LayoutServerData = null;
@@ -367,7 +367,7 @@ query MyPageQuery {
 		type PageParentData = EnsureDefined<import("../$houdini").LayoutData>;
 
 		type MakeOptional<Target, Keys extends keyof Target> = Omit<Target, Keys> & {
-		    [Key in Keys]?: Target[Key];
+		    [Key in Keys]?: Target[Key] | undefined | null;
 		};
 
 		type PageParams = PageLoadEvent["params"];
@@ -470,7 +470,7 @@ test('generates types for layout onError', async function () {
 		type LayoutParentData = EnsureDefined<{}>;
 
 		type MakeOptional<Target, Keys extends keyof Target> = Omit<Target, Keys> & {
-		    [Key in Keys]?: Target[Key];
+		    [Key in Keys]?: Target[Key] | undefined | null;
 		};
 
 		export type LayoutServerData = null;
@@ -587,7 +587,7 @@ test('generates types for page onError', async function () {
 		type PageParentData = EnsureDefined<import("../$houdini").LayoutData>;
 
 		type MakeOptional<Target, Keys extends keyof Target> = Omit<Target, Keys> & {
-		    [Key in Keys]?: Target[Key];
+		    [Key in Keys]?: Target[Key] | undefined | null;
 		};
 
 		type PageParams = PageLoadEvent["params"];
@@ -706,7 +706,7 @@ test('generates types for layout beforeLoad', async function () {
 		type LayoutParentData = EnsureDefined<{}>;
 
 		type MakeOptional<Target, Keys extends keyof Target> = Omit<Target, Keys> & {
-		    [Key in Keys]?: Target[Key];
+		    [Key in Keys]?: Target[Key] | undefined | null;
 		};
 
 		export type LayoutServerData = null;
@@ -817,7 +817,7 @@ test('generates types for page beforeLoad', async function () {
 		type PageParentData = EnsureDefined<import("../$houdini").LayoutData>;
 
 		type MakeOptional<Target, Keys extends keyof Target> = Omit<Target, Keys> & {
-		    [Key in Keys]?: Target[Key];
+		    [Key in Keys]?: Target[Key] | undefined | null;
 		};
 
 		type PageParams = PageLoadEvent["params"];
@@ -930,7 +930,7 @@ test('generates types for layout afterLoad', async function () {
 		type LayoutParentData = EnsureDefined<{}>;
 
 		type MakeOptional<Target, Keys extends keyof Target> = Omit<Target, Keys> & {
-		    [Key in Keys]?: Target[Key];
+		    [Key in Keys]?: Target[Key] | undefined | null;
 		};
 
 		export type LayoutServerData = null;
@@ -1052,7 +1052,7 @@ test('generates types for page afterLoad', async function () {
 		type PageParentData = EnsureDefined<import("../$houdini").LayoutData>;
 
 		type MakeOptional<Target, Keys extends keyof Target> = Omit<Target, Keys> & {
-		    [Key in Keys]?: Target[Key];
+		    [Key in Keys]?: Target[Key] | undefined | null;
 		};
 
 		type PageParams = PageLoadEvent["params"];
@@ -1155,7 +1155,7 @@ test('Marks required query arguments as optional if the url param provides it', 
 		type LayoutParentData = EnsureDefined<{}>;
 
 		type MakeOptional<Target, Keys extends keyof Target> = Omit<Target, Keys> & {
-		    [Key in Keys]?: Target[Key];
+		    [Key in Keys]?: Target[Key] | undefined | null;
 		};
 
 		export type LayoutServerData = null;

@@ -47,6 +47,8 @@ export const routes = {
   Plugin_query_inferInput_userRoute_params: '/plugin/query/infer-input/user-testSnapshot-1',
   Plugin_query_inferInput_optional: '/plugin/query/infer-input/optional',
   Plugin_query_inferInput_optional2: '/plugin/query/infer-input/optional2',
+  Plugin_query_inferInput_customFunction:
+    '/plugin/query/infer-input/custom-function-testSnapshot-1',
 
   Plugin_subscription_renders: '/plugin/subscription/renders',
 

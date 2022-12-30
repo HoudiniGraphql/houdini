@@ -122,7 +122,7 @@ export default async function svelteKitGenerator(
 					splitString[1] +
 					`
 						type MakeOptional<Target, Keys extends keyof Target> = Omit<Target, Keys> & {
-							[Key in Keys]?: Target[Key]
+							[Key in Keys]?: Target[Key] | undefined | null
 						}
 					`
 				let typeExports = splitString[2]
