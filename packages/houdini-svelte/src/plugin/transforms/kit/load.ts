@@ -26,7 +26,7 @@ import {
 	query_variable_fn,
 } from '../../naming'
 import { route_params, RouteParam } from '../../routing'
-import { find_inline_queries, LoadTarget } from '../query'
+import { find_inline_queries, LoadTarget } from '../componentQuery'
 import { SvelteTransformPage } from '../types'
 
 const AST = recast.types.builders
@@ -529,6 +529,7 @@ function variable_function_for_query(
 		// the url param doesn't exist or does exist but is optional
 		if (
 			unwrapped.wrappers[unwrapped.wrappers.length - 1] === TypeWrapper.NonNull &&
+			!definition.defaultValue &&
 			(!params[definition.variable.name.value] ||
 				params[definition.variable.name.value].optional)
 		) {

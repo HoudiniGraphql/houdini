@@ -44,7 +44,9 @@ export const routes = {
   Plugin_query_afterLoad: '/plugin/query/afterLoad',
   Plugin_query_onError: '/plugin/query/onError',
   Plugin_query_layout: '/plugin/query/layout',
-  Plugin_query_userRoute_params: '/plugin/query/user-testSnapshot-1',
+  Plugin_query_inferInput_userRoute_params: '/plugin/query/infer-input/user-testSnapshot-1',
+  Plugin_query_inferInput_optional: '/plugin/query/infer-input/optional',
+  Plugin_query_inferInput_optional2: '/plugin/query/infer-input/optional2',
 
   Plugin_subscription_renders: '/plugin/subscription/renders',
 
