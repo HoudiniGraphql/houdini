@@ -67,9 +67,9 @@ A GraphQL query is a string that describes what information you want from the AP
 
 ```graphql
 query CurrentUserInfo {
-    current_user {
-        firstName
-    }
+	current_user {
+		firstName
+	}
 }
 ```
 
@@ -77,11 +77,11 @@ The result of the above query might look something like:
 
 ```json
 {
-    "data": {
-        "current_user": {
-            "firstName": "Bill"
-        }
-    }
+	"data": {
+		"current_user": {
+			"firstName": "Bill"
+		}
+	}
 }
 ```
 
@@ -91,10 +91,10 @@ Fields in a query can take arguments to customize their behavior, for example:
 
 ```graphql
 query CurrentUserInfo {
-    current_user {
-        # specify the format for the date time stamp
-        lastLogin(format: "YYYY-MM-DD")
-    }
+	current_user {
+		# specify the format for the date time stamp
+		lastLogin(format: "YYYY-MM-DD")
+	}
 }
 ```
 
@@ -102,11 +102,11 @@ might return something like this:
 
 ```json
 {
-    "data": {
-        "current_user": {
-            "lastLogin": "2022-12-25"
-        }
-    }
+	"data": {
+		"current_user": {
+			"lastLogin": "2022-12-25"
+		}
+	}
 }
 ```
 
@@ -175,7 +175,7 @@ Defining variables for your document looks like the follow:
 
 ```graphql
 query MyQuery($variable1: Boolean) {
-    myField(argument: $variable1)
+	myField(argument: $variable1)
 }
 ```
 
@@ -236,7 +236,7 @@ If you've already clicked on those links you probably saw a scary message about 
 to handle the loading state for our view. Let's just do something quick and dirty:
 
 ```svelte:title=src/routes/[[id]]/+page.svelte
-{#if $Info.isFetching}
+{#if $Info.fetching}
     <Container/>
 {:else}
     <!-- what we had before -->
