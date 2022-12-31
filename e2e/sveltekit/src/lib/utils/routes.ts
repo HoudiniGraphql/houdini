@@ -4,9 +4,9 @@ export const routes = {
 
   // features
   nested_routes: '/nested-routes',
-  isFetching_with_load: '/isFetching/with_load',
-  isFetching_without_load: '/isFetching/without_load',
-  isFetching_route_1: '/isFetching/route_1',
+  fetching_with_load: '/fetching/with_load',
+  fetching_without_load: '/fetching/without_load',
+  fetching_route_1: '/fetching/route_1',
   lists_all: '/lists-all?limit=15',
   union_result: '/union-result',
 
