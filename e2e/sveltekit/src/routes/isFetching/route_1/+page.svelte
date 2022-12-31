@@ -2,8 +2,8 @@
   import { graphql } from '$houdini';
 
   const store = graphql(`
-    query isFetching_route_1 {
-      user(id: 1, snapshot: "isFetching_route_1", delay: 200) {
+    query fetching_route_1 {
+      user(id: 1, snapshot: "fetching_route_1", delay: 200) {
         id
         name
       }

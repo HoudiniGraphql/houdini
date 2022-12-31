@@ -77,7 +77,7 @@ class FragmentStoreCursor<_Data extends GraphQLObject, _Input> extends BasePagin
 	get(initialValue: _Data | null) {
 		const store = writable<FragmentPaginatedResult<_Data, { pageInfo: PageInfo }>>({
 			data: initialValue,
-			isFetching: false,
+			fetching: false,
 			pageInfo: nullPageInfo(),
 		})
 
@@ -171,7 +171,7 @@ export class FragmentStoreBackwardCursor<
 		const handlers = this.storeHandlers(
 			parent,
 			// it really is a writable under the hood :(
-			(isFetching: boolean) => parent.data.update((p) => ({ ...p, isFetching }))
+			(fetching: boolean) => parent.data.update((p) => ({ ...p, fetching }))
 		)
 
 		return {
@@ -189,7 +189,7 @@ export class FragmentStoreOffset<
 	get(initialValue: _Data | null) {
 		const parent = writable<FragmentPaginatedResult<_Data>>({
 			data: initialValue,
-			isFetching: false,
+			fetching: false,
 		})
 
 		// create the offset handlers we'll add to the store
@@ -197,7 +197,7 @@ export class FragmentStoreOffset<
 			artifact: this.paginationArtifact,
 			fetch: async () => ({} as any),
 			getValue: () => get(parent).data,
-			setFetching: (isFetching: boolean) => parent.update((p) => ({ ...p, isFetching })),
+			setFetching: (fetching: boolean) => parent.update((p) => ({ ...p, fetching })),
 			queryVariables: () => this.queryVariables({ subscribe: parent.subscribe }),
 			storeName: this.name,
 			getConfig: () => this.getConfig(),
@@ -215,7 +215,7 @@ export class FragmentStoreOffset<
 
 export type FragmentStorePaginated<_Data extends GraphQLObject, _Input> = Readable<{
 	data: _Data
-	isFetching: boolean
+	fetching: boolean
 	pageInfo: PageInfo
 }> & {
 	loadNextPage(
@@ -232,5 +232,5 @@ export type FragmentStorePaginated<_Data extends GraphQLObject, _Input> = Readab
 
 export type FragmentPaginatedResult<_Data, _ExtraFields = {}> = {
 	data: _Data | null
-	isFetching: boolean
+	fetching: boolean
 } & _ExtraFields

@@ -56,8 +56,8 @@ export class QueryStore<
 	// the string identifying the store
 	protected storeName: string
 
-	protected setFetching(isFetching: boolean) {
-		this.store?.update((s) => ({ ...s, isFetching }))
+	protected setFetching(fetching: boolean) {
+		this.store?.update((s) => ({ ...s, fetching }))
 	}
 
 	protected async currentVariables() {
@@ -163,12 +163,12 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 				rawCacheOnlyResult: true,
 			})
 			if (cachedStore && cachedStore?.result.data) {
-				// update only what matters at this stage (data & isFetching),
+				// update only what matters at this stage (data & fetching),
 				// not all the store. The complete store will be filled later.
 				this.store.update((s) => ({
 					...s,
 					data: cachedStore?.result.data,
-					isFetching: false,
+					fetching: false,
 				}))
 			}
 		}
@@ -292,7 +292,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 			store.update((s) => ({
 				...s,
 				errors: result.errors,
-				isFetching: false,
+				fetching: false,
 				partial: false,
 				data: unmarshaled as _Data,
 				source,
@@ -311,7 +311,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 				data: (unmarshaled || {}) as _Data,
 				variables: variables || ({} as _Input),
 				errors: null,
-				isFetching: false,
+				fetching: false,
 				partial: request.partial,
 				source: request.source,
 			})
@@ -381,7 +381,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 		return {
 			data: null,
 			errors: null,
-			isFetching: true,
+			fetching: true,
 			partial: false,
 			source: null,
 			variables: {} as _Input,

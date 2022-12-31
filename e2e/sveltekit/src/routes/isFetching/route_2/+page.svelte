@@ -3,9 +3,9 @@
 
   export let data: PageData;
 
-  $: ({ isFetching_route_1 } = data);
+  $: ({ fetching_route_1 } = data);
 
-  $: console.info(`isFetching_route_2 - isFetching: ${$isFetching_route_1.isFetching}`);
+  $: console.info(`fetching_route_2 - fetching: ${$fetching_route_1.fetching}`);
 </script>
 
-<pre>{JSON.stringify($isFetching_route_1, null, 2)}</pre>
+<pre>{JSON.stringify($fetching_route_1, null, 2)}</pre>

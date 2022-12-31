@@ -187,7 +187,7 @@ export type FetchQueryResult<_Data> = {
 export type QueryResult<_Data, _Input, _Extra = {}> = {
 	data: _Data | null
 	errors: { message: string }[] | null
-	isFetching: boolean
+	fetching: boolean
 	partial: boolean
 	source: DataSource | null
 	variables: _Input

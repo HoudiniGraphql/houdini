@@ -20,8 +20,8 @@ export class MutationStore<
 
 	private store: Writable<MutationResult<_Data, _Input>>
 
-	protected setFetching(isFetching: boolean) {
-		this.store?.update((s) => ({ ...s, isFetching }))
+	protected setFetching(fetching: boolean) {
+		this.store?.update((s) => ({ ...s, fetching }))
 	}
 
 	constructor({ artifact }: { artifact: MutationArtifact }) {
@@ -46,7 +46,7 @@ export class MutationStore<
 		const config = await this.getConfig()
 
 		this.store.update((c) => {
-			return { ...c, isFetching: true }
+			return { ...c, fetching: true }
 		})
 
 		// treat a mutation like it has an optimistic layer regardless of
@@ -99,7 +99,7 @@ export class MutationStore<
 				this.store.update((s) => ({
 					...s,
 					errors: result.errors,
-					isFetching: false,
+					fetching: false,
 					isOptimisticResponse: false,
 					data: result.data,
 					variables: (newVariables || {}) as _Input,
@@ -132,7 +132,7 @@ export class MutationStore<
 			const storeData: MutationResult<_Data, _Input> = {
 				data: unmarshalSelection(config, this.artifact.selection, result.data) as _Data,
 				errors: result.errors ?? null,
-				isFetching: false,
+				fetching: false,
 				isOptimisticResponse: false,
 				variables: newVariables,
 			}
@@ -146,7 +146,7 @@ export class MutationStore<
 			this.store.update((s) => ({
 				...s,
 				errors: error as { message: string }[],
-				isFetching: false,
+				fetching: false,
 				isOptimisticResponse: false,
 				data: null,
 				variables: newVariables,
@@ -170,7 +170,7 @@ export class MutationStore<
 		return {
 			data: null as _Data | null,
 			errors: null,
-			isFetching: false,
+			fetching: false,
 			isOptimisticResponse: false,
 			variables: null,
 		}
@@ -184,7 +184,7 @@ export type MutationConfig<_Result, _Input, _Optimistic> = {
 export type MutationResult<_Data, _Input> = {
 	data: _Data | null
 	errors: { message: string }[] | null
-	isFetching: boolean
+	fetching: boolean
 	isOptimisticResponse: boolean
 	variables: _Input | null
 }
