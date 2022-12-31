@@ -30,7 +30,7 @@
 <button id="refresh-77" on:click={() => refresh('77')}>Fetch 77</button>
 <button id="refresh-2Star" on:click={() => refresh2WithVariableDifferentOrder()}>Fetch 2*</button>
 
-{#if $User.isFetching}
+{#if $User.fetching}
   <p>Loading...</p>
 {:else if $User.errors}
   <pre>

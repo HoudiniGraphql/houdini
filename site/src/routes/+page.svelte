@@ -1,5 +1,5 @@
 <script>
-	import { SEO } from '~/components'
+	import { SEO, Emoji } from '~/components'
 	import CodeSample from './CodeSample.svelte'
 	import Block from './Block.svelte'
 	import Logos from './Logos.svelte'
@@ -35,7 +35,8 @@
 	<main id="main">
 		<h1>
 			<span class="highlight">Houdini</span> or: How I Learned to Stop Worrying and Love
-			<span class="graphql">GraphQL</span> 🤯
+			<span class="graphql">GraphQL</span>
+			<Emoji name="exploding-head" height={75} fallback="🤯" />
 		</h1>
 		<section class="hero">
 			<div>

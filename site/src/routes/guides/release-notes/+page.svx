@@ -5,10 +5,56 @@ description: A guide to migrating your application to each breaking version of h
 ---
 
 <script>
-	import { DeepDive } from '~/components'
+    import { DeepDive, Emoji } from '~/components'
 </script>
 
 # Release Notes
+
+## 1.0.0
+
+It's finally here! <Emoji name="partying-face" height={28} fallback="🥳" />
+
+There are just a few breaking changes that have been introduced with this and one _very_ cool feature.
+
+### `isFetching` has been renamed to `fetching`
+
+This sounds big but we suspect that the fix should be relatively safe and quick. Just replace all instances of `isFetching` in your
+application with `fetching`.
+
+```diff
+- {#if $MyQuery.isFetching}
++ {#if $MyQuery.fetching}
+```
+
+### `error` and `redirect` are no longer attached to `this` in hooks
+
+We felt that these methods didn't offer a lot on top of SvelteKit's exports and were just complicating the situation. Now, you should just
+use the exported values from SvelteKit:
+
+```diff
++ import { error } from '@sveltejs/kit'
+
+  export function _houdini_beforeLoad({ params }) {
+    if (valueIsValid(params)) {
+-         throw this.error(400, "message")
++         throw error(400, "message")
+    }
+  }
+```
+
+### Query Inputs can now be inferred from route parameters
+
+For example, if a route is defined at `src/routes/users/[id]` and a query looks like this:
+
+```graphql
+query UserInfo($id: Int!) {
+    user(id: $id) {
+        ...
+    }
+}
+```
+
+Then the `Variable` function is not required. That being said, you can still define a `Variable` function for custom logic if you want.
 
 ## 0.19.0
 
@@ -45,14 +91,14 @@ and add it to the `plugins` section of your config file (order doesn't matter).
 
  export default {
 
- 	plugins: {
- 		'houdini-svelte': {
-- 			globalStorePrefix: "G_"
- 		},
-+		'houdini-plugin-svelte-global-stores': {
-+ 			prefix: "G_"
-+		},
- 	}
+     plugins: {
+         'houdini-svelte': {
+-             globalStorePrefix: "G_"
+         },
++        'houdini-plugin-svelte-global-stores': {
++             prefix: "G_"
++        },
+     }
  }
 ```
 
@@ -83,11 +129,11 @@ will allow TypeScript to infer types for your store values:
 
 - const store: MyQueryStore = graphql`
 + const store = graphql(`
-  	query MyQuery {
-  		user {
-  			id
-  		}
-  	}
+      query MyQuery {
+          user {
+              id
+          }
+      }
 - `
 + `)
 ```
@@ -235,17 +281,17 @@ with the underlying query store directly
 
 ```svelte
 <script>
-	const MyQuery = graphql`
-		query MyQuery {
-			viewer  {
-				id
-			}
-		}
-	`
+    const MyQuery = graphql`
+        query MyQuery {
+            viewer  {
+                id
+            }
+        }
+    `
 </script>
 
 <div>
-	{$MyQuery.data.viewer.id}
+    {$MyQuery.data.viewer.id}
 </div>
 ```
 
@@ -255,10 +301,10 @@ The core of this change is that instead of using stores that you import, your co
 
 ```svelte
 <script>
-	/** @type {import('./$types').Data */
-	export let data: Data
+    /** @type {import('./$types').Data */
+    export let data: Data
 
-	$: ({ UserInfo } = data)
+    $: ({ UserInfo } = data)
 </script>
 
 {$UserInfo.data.firstName}
@@ -325,9 +371,9 @@ You can now define a `+page.gql` file inside of a route directory to automatical
 ```graphql:title=src/routes/myProfile/+page.gql
 
 query MyQuery {
-	viewer {
-		id
-	}
+    viewer {
+        id
+    }
 }
 ```
 
@@ -340,13 +386,13 @@ The `graphql` template tag can now be used to define your stores in your javascr
 ```svelte
 <!-- src/routes/myProfile/+page.svelte -->
 <script>
-	const store = graphql`
-		query ViewerInfo {
-			viewer {
-				id
-			}
-		}
-	`
+    const store = graphql`
+        query ViewerInfo {
+            viewer {
+                id
+            }
+        }
+    `
 </script>
 
 id: {$store.data?.viewer.id}
@@ -363,6 +409,7 @@ import { GQL_MyQuery } from '$houdini'
 
 export const houdini_load = GQL_MyQuery
 ```
+
 ```typescript:title=src/routes/myProfile/+page.ts
 import { GQL_Query1, GQL_Query2 } from '$houdini'
 
@@ -376,11 +423,11 @@ This can be mixed with the new `graphql` tag api to define your queries inside o
 import { GQL_MyQuery, graphql } from '$houdini'
 
 const otherQuery = graphql`
-	query ViewerInfo {
-		viewer {
-			id
-		}
-	}
+    query ViewerInfo {
+        viewer {
+            id
+        }
+    }
 `
 
 export const houdini_load = [ GQL_MyQuery, otherQuery ]
@@ -433,8 +480,8 @@ previous behavior, you should use the `quiet` log level:
 
 ```javascript:title=houdini.config.js
 export default {
-	// ...
-	logLevel: 'quiet'
+    // ...
+    logLevel: 'quiet'
 }
 ```
 

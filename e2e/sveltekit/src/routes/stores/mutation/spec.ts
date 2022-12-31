@@ -10,7 +10,7 @@ test.describe('Mutation Page', () => {
     const defaultStoreValues = {
       data: null,
       errors: null,
-      isFetching: false,
+      fetching: false,
       isOptimisticResponse: false,
       variables: null
     };

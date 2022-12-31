@@ -137,7 +137,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 			return {
 				data: result.data,
 				variables: queryVariables as _Input,
-				isFetching: false,
+				fetching: false,
 				partial: result.partial,
 				errors: null,
 				source: result.source,
