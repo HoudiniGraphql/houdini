@@ -1,6 +1,4 @@
 <script>
-	import { onMount } from 'svelte'
-
 	export let name
 	export let fallback
 	export let height
