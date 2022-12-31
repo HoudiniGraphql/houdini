@@ -1,5 +1,11 @@
 # houdini
 
+## 1.0.0-next.0
+
+### ⚠️ Breaking Changes
+
+-   [#800](https://github.com/HoudiniGraphql/houdini/pull/800) [`a107f6c`](https://github.com/HoudiniGraphql/houdini/commit/a107f6ce22f33719ed8c5fbeb49eb854d3238e9f) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Rename `isFetching` to `fetching`
+
 ## 0.19.4
 
 ### 🐛 Fixes
