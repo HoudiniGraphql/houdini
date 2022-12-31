@@ -1,7 +1,7 @@
 import { logYellow } from '@kitql/helper'
 import { ExpressionKind } from 'ast-types/lib/gen/kinds'
 import * as graphql from 'graphql'
-import { Config, operation_requires_variables, find_graphql, Script, formatErrors } from 'houdini'
+import { Config, find_graphql, Script, formatErrors } from 'houdini'
 import { find_exported_fn, find_insert_index, ensure_imports, TransformPage } from 'houdini/vite'
 import * as recast from 'recast'
 
@@ -13,8 +13,6 @@ const AST = recast.types.builders
 
 type ExportNamedDeclaration = recast.types.namedTypes.ExportNamedDeclaration
 type VariableDeclaration = recast.types.namedTypes.VariableDeclaration
-type Identifier = recast.types.namedTypes.Identifier
-type Statement = recast.types.namedTypes.Statement
 
 export default async function QueryProcessor(config: Config, page: SvelteTransformPage) {
 	// only consider consider components in this processor
@@ -78,15 +76,15 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 		const factory = ensure_imports({
 			script: page.script,
 			config: page.config,
-			import: [`${query.name}Store`],
-			sourceModule: store_import_path({ config, name: query.name }),
+			import: [`${query.name!.value}Store`],
+			sourceModule: store_import_path({ config, name: query.name!.value }),
 		}).ids[0]
 
 		page.script.body.splice(
 			find_insert_index(page.script),
 			0,
 			AST.variableDeclaration('const', [
-				AST.variableDeclarator(store_id(query.name), AST.newExpression(factory, [])),
+				AST.variableDeclarator(store_id(query.name!.value), AST.newExpression(factory, [])),
 			])
 		)
 	}
@@ -96,11 +94,15 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 		// a variable to hold the query input
 		...queries.flatMap((query) => {
 			// if the query does not have variables, just define something local
-			const variable_fn = query_variable_fn(query.name)
+			const variable_fn = query_variable_fn(query.name!.value)
 			const has_variables = find_exported_fn(page.script.body, variable_fn)
 
 			// If we need the variables function, but it's missing... let's display a message
-			if (query.variables && has_variables === null) {
+			if (
+				query.variableDefinitions &&
+				query.variableDefinitions?.length > 0 &&
+				has_variables === null
+			) {
 				formatErrors({
 					filepath: page.filepath,
 					message: `Could not find required variable function: ${logYellow(
@@ -122,7 +124,7 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 										AST.objectProperty(
 											AST.identifier('artifact'),
 											AST.memberExpression(
-												store_id(query.name),
+												store_id(query.name!.value),
 												AST.identifier('artifact')
 											)
 										),
@@ -167,21 +169,21 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 							),
 							[
 								AST.arrowFunctionExpression(
-									[local_input_id(query.name)],
+									[local_input_id(query.name!.value)],
 									// load the query
 									AST.logicalExpression(
 										'&&',
 										AST.identifier('isBrowser'),
 										AST.callExpression(
 											AST.memberExpression(
-												store_id(query.name),
+												store_id(query.name!.value),
 												AST.identifier('fetch')
 											),
 											[
 												AST.objectExpression([
 													AST.objectProperty(
 														AST.identifier('variables'),
-														local_input_id(query.name)
+														local_input_id(query.name!.value)
 													),
 												]),
 											]
@@ -208,10 +210,7 @@ export async function find_inline_queries(
 	}
 
 	// build up a list of the queries we run into
-	const queries: {
-		name: string
-		variables: boolean
-	}[] = []
+	const queries: LoadTarget[] = []
 
 	// look for inline queries
 	await find_graphql(page.config, parsed, {
@@ -236,30 +235,17 @@ export async function find_inline_queries(
 			// if the graphql tag was inside of a call expression, we need to assume that it's a
 			// part of an inline document. if the operation is a query, we need to add it to the list
 			// so that the load function can have the correct contents
-			const { parsedDocument, parent } = tag
+			const { parsedDocument } = tag
 			const operation = page.config.extractQueryDefinition(parsedDocument)
-			queries.push({
-				name: operation.name!.value,
-				// an operation requires variables if there is any non-null variable that doesn't have a default value
-				variables: operation_requires_variables(operation),
-			})
+			queries.push(operation)
 
 			tag.node.replaceWith(store_id(operation.name!.value))
 		},
 	})
 
-	return queries.map((query) => {
-		return {
-			store_id: AST.identifier(''),
-			name: query.name,
-			variables: query.variables,
-		}
-	})
+	return queries
 }
 
-export type LoadTarget = {
-	name: string
-	variables: boolean
-}
+export type LoadTarget = graphql.OperationDefinitionNode
 
 const local_input_id = (name: string) => AST.identifier(`_${name}_Input`)

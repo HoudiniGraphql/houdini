@@ -16,6 +16,7 @@
 		"src/**/*.svelte": "npm run format"
 	},
 	"devDependencies": {
+		"@babel/parser": "^7.20.7",
 		"@sveltejs/adapter-vercel": "1.0.0",
 		"@sveltejs/kit": "1.0.0",
 		"@typescript-eslint/eslint-plugin": "^5.10.1",
@@ -23,11 +24,14 @@
 		"eslint": "^8.12.0",
 		"eslint-config-prettier": "^8.3.0",
 		"eslint-plugin-svelte3": "^4.0.0",
+		"estree-walker": "^3.0.1",
+		"gatsby-remark-code-titles": "^1.1.0",
 		"husky": "^7.0.4",
 		"lint-staged": "^12.3.4",
-		"prettier": "^2.5.1",
-		"prettier-plugin-svelte": "^2.7.0",
-		"svelte-check": "^2.8.0",
+		"prettier": "^2.8.1",
+		"prettier-plugin-svelte": "^2.9.0",
+		"recast": "^0.23.1",
+		"svelte-check": "^3.0.1",
 		"svelte-kit-cookie-session": "3.0.6",
 		"tslib": "^2.3.1",
 		"typescript": "^4.9"
@@ -37,14 +41,16 @@
 		"flexsearch": "^0.7.31",
 		"lodash": "^4.17.21",
 		"mdsvex": "^0.10.6",
+		"node-html-parser": "^5.4.1",
 		"prism-svelte": "^0.5.0",
 		"prismjs": "^1.28.0",
-		"vite-plugin-replace": "^0.1.1",
-		"node-html-parser": "^5.4.1",
+		"query-string": "^8.1.0",
 		"rehype-autolink-headings": "^6.1.1",
 		"rehype-slug": "^5.0.1",
 		"svelte": "^3.55.0",
 		"svelte-preprocess": "^5.0.0",
-		"vite": "^4.0.1"
+		"unist-util-visit": "^4.1.1",
+		"vite": "^4.0.1",
+		"vite-plugin-replace": "^0.1.1"
 	}
 }

@@ -14,6 +14,7 @@ const schema = `
 
 	type Query {
 		viewer: User
+		field(input: Int!): Int
 	}
 
 	type Mutation {
@@ -66,6 +67,7 @@ export async function route_test({
 	layout_script = '',
 	config: extra,
 	framework = 'kit',
+	route_path = '',
 }: {
 	component?: string
 	script?: string
@@ -75,6 +77,7 @@ export async function route_test({
 	layout_script?: string
 	config?: Partial<ConfigFile>
 	framework?: Framework
+	route_path?: string
 }): Promise<{
 	component: Script | null
 	script: Script | null
@@ -85,8 +88,8 @@ export async function route_test({
 	const config = await test_config({ schema, ...extra })
 
 	// scripts live in src/routes/+page.svelte
-	const page_path = path.join(process.cwd(), 'src/routes', '+page.svelte')
-	const layout_path = path.join(process.cwd(), 'src/routes', '+layout.svelte')
+	const page_path = path.join(process.cwd(), 'src/routes', route_path, '+page.svelte')
+	const layout_path = path.join(process.cwd(), 'src/routes', route_path, '+layout.svelte')
 	const layout_script_path = route_data_path(config, layout_path)
 
 	await fs.mkdirp(path.dirname(page_path))

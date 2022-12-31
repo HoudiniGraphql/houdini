@@ -7,9 +7,10 @@ import {
 	HoudiniError,
 	CollectedGraphQLDocument,
 	siteURL,
+	TypeWrapper,
+	unwrapType,
 } from '../../lib'
 import { ArtifactKind } from '../../runtime/lib/types'
-import { TypeWrapper, unwrapType } from '../utils'
 import { objectIdentificationSelection } from '../utils/objectIdentificationSelection'
 import { pageInfoSelection } from './paginate'
 

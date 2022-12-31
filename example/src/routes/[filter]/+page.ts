@@ -1,4 +1,5 @@
 import { graphql } from '$houdini'
+import { error } from '@sveltejs/kit'
 
 export const _houdini_load = graphql`
 	query AllItems($completed: Boolean) @cache(policy: CacheOrNetwork) {
@@ -32,7 +33,7 @@ export function _AllItemsVariables({ params }) {
 
 	// make sure we recognize the value
 	if (!['active', 'completed', 'all'].includes(params.filter)) {
-		return this.error(400, "filter must be one of 'active' or 'completed'")
+		throw error(400, "filter must be one of 'active' or 'completed'")
 	}
 
 	return {

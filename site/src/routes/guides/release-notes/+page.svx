@@ -268,7 +268,7 @@ Notice there's no more need to thread variables around or that ugly `$: browser 
 
 In order to make this work, your `load` functions need to now return instances of the store embedded in the correct key. This can be easily done with the new `load_StoreName` functions. The `load_` prefix is to make it easy to autocomplete when you are working in your editor:
 
-```javascript
+```typescript
 import { load_UserInfo } from '$houdini'
 
 export async function load(event) {
@@ -322,8 +322,7 @@ In order to make this work, you have to change your tsconfig file to look like t
 
 You can now define a `+page.gql` file inside of a route directory to automatically opt-into a generated load without having to do anything else:
 
-```graphql
-# src/routes/myProfile/+page.gql
+```graphql:title=src/routes/myProfile/+page.gql
 
 query MyQuery {
 	viewer {
@@ -359,22 +358,22 @@ id: {$store.data?.viewer.id}
 
 You can now tell the houdini plugin to generate loads for your stores. To do this, you need to export a `houdini_load` variable from your `+page.js/ts` file:
 
-```typescript
-// src/routes/myProfile/+page.ts
-
-import { GQL_MyQuery, GQL_Query1, GQL_Query2 } from '$houdini'
+```typescript:title=src/routes/myProfile/+page.ts
+import { GQL_MyQuery } from '$houdini'
 
 export const houdini_load = GQL_MyQuery
-// or
+```
+```typescript:title=src/routes/myProfile/+page.ts
+import { GQL_Query1, GQL_Query2 } from '$houdini'
+
 export const houdini_load = [GQL_Query1, GQL_Query2]
 ```
 
 This can be mixed with the new `graphql` tag api to define your queries inside of your javascript files:
 
-```typescript
-// src/routes/myProfile/+page.ts
+```typescript:title=src/routes/myProfile/+page.ts
 
-import { GQL_MyQuery, graphql. } from '$houdini'
+import { GQL_MyQuery, graphql } from '$houdini'
 
 const otherQuery = graphql`
 	query ViewerInfo {
@@ -432,9 +431,7 @@ to interact with. For more information about the new store-based API, please che
 The `quiet` configuration value has been changed in favor of the [new logging parameters](/api/config). In order to replicate the
 previous behavior, you should use the `quiet` log level:
 
-```javascript
-// houdini.config.js
-
+```javascript:title=houdini.config.js
 export default {
 	// ...
 	logLevel: 'quiet'

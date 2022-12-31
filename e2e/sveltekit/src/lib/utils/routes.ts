@@ -3,7 +3,7 @@ export const routes = {
   GraphQL: 'http://localhost:4000/graphql',
 
   // features
-  Query_param: '/query-param',
+  nested_routes: '/nested-routes',
   isFetching_with_load: '/isFetching/with_load',
   isFetching_without_load: '/isFetching/without_load',
   isFetching_route_1: '/isFetching/route_1',
@@ -44,6 +44,11 @@ export const routes = {
   Plugin_query_afterLoad: '/plugin/query/afterLoad',
   Plugin_query_onError: '/plugin/query/onError',
   Plugin_query_layout: '/plugin/query/layout',
+  Plugin_query_inferInput_userRoute_params: '/plugin/query/infer-input/user-testSnapshot-1',
+  Plugin_query_inferInput_optional: '/plugin/query/infer-input/optional',
+  Plugin_query_inferInput_optional2: '/plugin/query/infer-input/optional2',
+  Plugin_query_inferInput_customFunction:
+    '/plugin/query/infer-input/custom-function-testSnapshot-1',
 
   Plugin_subscription_renders: '/plugin/subscription/renders',
 

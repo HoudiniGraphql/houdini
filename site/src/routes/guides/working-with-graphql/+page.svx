@@ -77,8 +77,7 @@ sense immediately. Come back and read this list a second time after you are done
 The first one is straight forward: define your route queries in a file named `+page.gql` inside of your route directory. When houdini detects this file, it will handle
 all of the details for you and your route will receive the query store as a prop with the same name:
 
-```graphql
-# src/routes/myProfile/+page.gql
+```graphql:title=src/routes/myProfile/+page.gql
 
 query MyProfile {
 	viewer {
@@ -87,10 +86,11 @@ query MyProfile {
 }
 ```
 
-```svelte
-<!--  src/routes/myProfile/+page.svelte -->
-<script>
-    export let data
+```svelte:title=src/routes/myProfile/+page.svelte&typescriptToggle=true
+<script lang="ts">
+    import type { PageData } from './$houdini'
+
+    export let data: PageData
 
     $: ({ MyProfile } = data)
 </script>
@@ -109,14 +109,14 @@ how you can customize the load function that houdini will generate for you.
 
 Fragments should be defined inside of your `.svelte` components using the inline fragment function.
 
-```svelte
-<!-- src/lib/components/UserAvatar.svelte -->
-
-<script>
+```svelte:title=src/lib/components/UserAvatar.svelte&typescriptToggle=true
+<script lang="ts">
     import { fragment, graphql } from '$houdini'
+    import type { UserAvatar } from '$houdini'
 
-    export let user
+    export let user: UserAvatar
 
+    // prettier-ignore
     $: data = fragment(user, graphql(`
         fragment UserAvatar on User {
             avatar
@@ -186,9 +186,7 @@ The following examples all show query documents but everything holds true for al
 External documents are pretty self explanatory: define your graphql documents a file (one definition per file) and then import your
 store from `$houdini` as `new MyAwesomeQueryStore()`:
 
-```graphql
-# src/lib/queries/MyAwesomeQuery.gql
-
+```graphql:title=src/lib/queries/MyAwesomeQuery.gql
 query MyAwesomeQuery {
 	viewer {
 		isAwesome
@@ -196,8 +194,7 @@ query MyAwesomeQuery {
 }
 ```
 
-```javascript
-// src/routes/myRoute/+page.js
+```typescript:title=src/routes/myRoute/+page.ts&typescriptToggle=true
 import { MyAwesomeQueryStore } from '$houdini'
 ```
 
@@ -207,9 +204,8 @@ import { MyAwesomeQueryStore } from '$houdini'
 Another option is to define your document directly inside of your source code (ie, in a `.svelte`, `.js`, or `.ts` file). To
 do that, import `graphql` from `$houdini` and pass your query:
 
-```svelte
-<!-- src/routes/myRoute/+page.svelte -->
-<script>
+```svelte:title=src/routes/myRoute/+page.svelte&typescriptToggle=true
+<script lang="ts">
     import { graphql } from '$houdini'
 
     const store = graphql(`
@@ -222,9 +218,7 @@ do that, import `graphql` from `$houdini` and pass your query:
 </script>
 ```
 
-```javascript
-// src/routes/myRoute/+page.js
-
+```typescript:title=src/routes/myRoute/+page.ts&typescriptToggle=true
 import { graphql } from '$houdini'
 
 const store = graphql(`
@@ -248,10 +242,11 @@ back.
 
 Once you have your store, the next step is to start using it. Usually, your route's `.svelte` files will receive their stores as props. This often looks something like:
 
-```svelte
-<!-- src/routes/myProfile/+page.svelte -->
-<script>
-    export let data
+```svelte:title=src/routes/myProfile/+page.svelte&typescriptToggle=true
+<script lang="ts">
+    import type { PageData } from './$houdini'
+
+    export let data: PageData
 
     $: ({ UserProfile } = data)
 </script>
@@ -268,12 +263,11 @@ If you are the kind of person who doesn't like hidden details, you are totally f
 the store's `fetch` method. In order to streamline this, Houdini provides a function for each of your stores that you can use to render
 your route on the server. These functions take the same parameters as fetch:
 
-```typescript
-//  src/routes/myProfile/+page.js
-
+```typescript:title=src/routes/myProfile/+page.ts&typescriptToggle=true
 import { load_MyQuery } from '$houdini'
+import type { PageLoad } from './$houdini'
 
-export async function load(event) {
+export const load: PageLoad = async (event) => {
 	return {
 		...(await load_MyQuery({ event }))
 	}
@@ -298,8 +292,7 @@ but they all behave the exact same and can be [customized the same way](/api/que
 
 The first way to tell houdini to generate a load for you is by exporting a `_houdini_load` value from `+page.js` that contains one or more query stores that you want to use in your route:
 
-```javascript
-//  src/routes/myProfile/+page.js
+```typescript:title=src/routes/myProfile/+page.ts&typescriptToggle=true
 import { ProjectListStore, graphql } from '$houdini'
 
 const userInfo = graphql(`
@@ -310,15 +303,16 @@ const userInfo = graphql(`
 	}
 `)
 
-export const _houdini_load = [new ProjectList(), userInfo]
+export const _houdini_load = [new ProjectListStore(), userInfo]
 ```
 
 With that in place, your route will be passed two props, named after the queries: `ProjectList` and `UserInfo`:
 
-```svelte
-<!-- src/routes/myProfile/+page.svelte -->
-<script>
-    export let data
+```svelte:title=src/routes/myProfile/+page.svelte&typescriptToggle=true
+<script lang="ts">
+    import type { PageData } from './$houdini'
+
+    export let data: PageData
 
     $: ({ ProjectList, UserInfo } = data)
 
@@ -331,9 +325,7 @@ With that in place, your route will be passed two props, named after the queries
 
 Keep in mind that `_houdini_load` can also take a single store, which allows for something interesting:
 
-```javascript
-// src/routes/myProfile/+page.js
-
+```typescript:title=src/routes/myProfile/+page.ts&typescriptToggle=true
 import { graphql } from '$houdini'
 
 export const _houdini_load = graphql(`
@@ -348,10 +340,9 @@ export const _houdini_load = graphql(`
 Your route will be rendered with a single prop: `UserInfo`. This approach works nicely when you have lots of different variables and
 hooks for a particular query since it allows all of that logic to be co-located:
 
-```javascript
-// src/routes/myProfile/+page.js
-
+```typescript:title=src/routes/myProfile/+page.ts&typescriptToggle=true
 import { graphql } from '$houdini'
+import type { UserInfoVariables } from './$houdini'
 
 export const _houdini_load = graphql(`
 	query UserInfo($id: ID!) {
@@ -361,7 +352,7 @@ export const _houdini_load = graphql(`
 	}
 `)
 
-export function _UserInfoVariables({ params }) {
+export const _UserInfoVariables: UserInfoVariables = ({ params }) => {
 	return {
 		id: params.id
 	}
@@ -372,9 +363,8 @@ export function _UserInfoVariables({ params }) {
 
 Another way to get a generated load for your route queries, is to define your query inside of your `+page.svelte`:
 
-```svelte
-<!-- src/lib/UserList.svelte -->
-<script>
+```svelte:title=src/lib/UserList.svelte&typescriptToggle=true
+<script lang="ts">
     import { graphql } from '$houdini'
 
     const info = graphql(`
@@ -401,9 +391,7 @@ The final approach for loading your data that we need to cover is by defining a 
 file inside of your route directory. This file behaves like the rest of SvelteKit's `+page` files and automatically configures your route to load the
 provided query. For example, with the following query defined:
 
-```graphql
-# src/routes/myProfile/+page.gql
-
+```graphql:title=src/routes/myProfile/+page.gql
 query UserInfo {
 	viewer {
 		firstName
@@ -413,10 +401,11 @@ query UserInfo {
 
 You can now define a `+page.svelte` file that looks like the following and your route will be rendered on the server without any extra configuration:
 
-```svelte
-<!-- src/routes/myProfile/+page.svelte -->
-<script>
-    export let data
+```svelte:title=src/routes/myProfile/+page.svelte&typescriptToggle=true
+<script lang="ts">
+    import type { PageData } from './$houdini'
+
+    export let data: PageData
 
     $: ({ UserInfo } = data)
 </script>

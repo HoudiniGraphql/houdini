@@ -9,61 +9,45 @@ description: A guide to authentication in Houdini
 Houdini's support for user sessions comes in 2 parts. First, you need to add a `hooks.server.js` file that defines the
 session for that user:
 
-```typescript
-/// src/hooks.server.js
-
+```typescript:title=src/hooks.server.ts&typescriptToggle=true
 import { setSession } from '$houdini'
+import type { Handle } from '@sveltejs/kit'
 
-export async function handle({ event, resolve }) {
-	// get the user information however you want
-	const user = await authenticateUser(event)
+export const handle: Handle = async ({ event, resolve }) => {
+    // get the user information however you want
+    const user = await authenticateUser(event)
 
-	// set the session information for this event
-	setSession(event, { user })
+    // set the session information for this event
+    setSession(event, { user })
 
-	// pass the event onto the default handle
-	return await resolve(event)
+    // pass the event onto the default handle
+    return await resolve(event)
 }
 ```
 
 Then, you can use the `session` parameter passed to your client's network function to access the information:
 
-```typescript
-/// src/lib/client.ts
-
+```typescript:title=src/client.ts&typescriptToggle=true
 import { HoudiniClient } from '$houdini'
+import type { RequestHandler } from '$houdini'
 
-async function requestHandler({ fetch, text, variables = {}, session }) {
-	const url = 'http://localhost:4000/graphql' // usually coming from env
-	const result = await fetch(url, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-			Authorization: `Bearer ${session?.user.token}`
-		},
-		body: JSON.stringify({
-			query: text,
-			variables
-		})
-	})
+const requestHandler: RequestHandler = async ({ fetch, text, variables = {}, session }) => {
+    const url = 'http://localhost:4000/graphql'
+    const result = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session?.user.token}`
+        },
+        body: JSON.stringify({
+            query: text,
+            variables
+        })
+    })
 
-	return await result.json()
+    return await result.json()
 }
 
 export default new HoudiniClient(requestHandler)
 ```
 
-Remember, you can define types for your Session & Metadata by adding this to `src/app.d.ts`:
-
-```typescript
-/// <reference types="@sveltejs/kit" />
-declare namespace App {
-	interface Session {
-		token?: string | null
-	}
-
-	interface Metadata {
-		abortController?: AbortController
-	}
-}
-```

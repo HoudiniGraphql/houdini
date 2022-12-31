@@ -49,6 +49,10 @@ test('global fragment type', async function () {
 	)
 
 	expect(contents).toMatchInlineSnapshot(
-		'"import { TestFragment1Store } from \'../../houdini-svelte/stores\'\\n\\nexport const GQL_TestFragment1: TestFragment1Store"'
+		`
+		"import { TestFragment1Store } from '../../houdini-svelte/stores'
+
+		export const GQL_TestFragment1: TestFragment1Store"
+	`
 	)
 })

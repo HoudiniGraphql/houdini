@@ -1,4 +1,5 @@
+import { error } from '@sveltejs/kit';
+
 export function _PreprocessorTestQueryErrorVariables() {
-  // @ts-ignore
-  return this.error(403, 'test');
+  throw error(403, 'test');
 }

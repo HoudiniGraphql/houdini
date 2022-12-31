@@ -9,6 +9,7 @@ import {
 	HoudiniError,
 	siteURL,
 	CollectedGraphQLDocument,
+	unwrapType,
 } from '../../lib'
 import {
 	FragmentArgument,
@@ -16,7 +17,6 @@ import {
 	withArguments,
 } from '../transforms/fragmentVariables'
 import { connectionSelection } from '../transforms/list'
-import { unwrapType } from '../utils'
 
 // typeCheck verifies that the documents are valid instead of waiting
 // for the compiler to fail later down the line.

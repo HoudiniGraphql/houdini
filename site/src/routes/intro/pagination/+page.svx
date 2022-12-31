@@ -5,14 +5,20 @@ description: The fourth part of the Houdini intro focusing on how to render long
 ---
 
 <script>
-	import { GraphQLExplained } from '~/components'
+    import { GraphQLExplained } from '~/components'
 </script>
 
 # Rendering Long Lists
 
-You'll often run into the situation where you want to render a long list of data. It's also common for that list to be much too long to query or even render on the screen. In order to address this, most APIs will accept a set of arguments on the field designed to window the list and leave it up to the client to keep a running total if the situation calls for it.
+You'll often run into the situation where you want to render a long list of data.
+It's also common for that list to be much too long to query or even render on the screen.
+In order to address this, most APIs will accept a set of arguments on the field designed to window
+the list and leave it up to the client to keep a running total if the situation calls for it.
 
-As GraphQL has matured, these arguments have somewhat standardized and fall roughly into two categories: cursor-based pagination and offset-based pagination. Houdini supports both but since our API relies on cursor-based pagination that's what we're going to show here. If you want to read more about pagination, head over to the [pagination guide](/guides/pagination).
+As GraphQL has matured, these arguments have somewhat standardized and fall roughly
+into two categories: cursor-based pagination and offset-based pagination.
+Houdini supports both but since our API relies on cursor-based pagination that's what we're going to show here.
+If you want to read more about pagination, head over to the [pagination guide](/guides/pagination).
 
 <GraphQLExplained title="Cursor-Based Pagination">
 
@@ -22,56 +28,59 @@ Cursor-based pagination is an approach popularized in GraphQL by Facebook's clie
 
 ```graphql
 type Species {
-	moves(first: Int, after: String): SpeciesMoveConnection!
+    moves(first: Int, after: String): SpeciesMoveConnection!
 }
 
 type SpeciesMove {
-	learned_at: Int!
-	method: String!
-	move: Move!
+    learned_at: Int!
+    method: String!
+    move: Move!
 }
 
 type SpeciesMoveConnection {
-	edges: [SpeciesMoveEdge!]!
-	pageInfo: PageInfo!
-	totalCount: Int!
+    edges: [SpeciesMoveEdge!]!
+    pageInfo: PageInfo!
+    totalCount: Int!
 }
 
 type SpeciesMoveEdge {
-	cursor: String
-	node: SpeciesMove
+    cursor: String
+    node: SpeciesMove
 }
 
 type PageInfo {
-	endCursor: String
-	hasNextPage: Boolean!
-	hasPreviousPage: Boolean!
-	startCursor: String
+    endCursor: String
+    hasNextPage: Boolean!
+    hasPreviousPage: Boolean!
+    startCursor: String
 }
 ```
 
-Any time we have a field that would return a list we want to paginate, we instead return a Connection type that provides some meta data about the list like our current position (defined by the `cursor`) and whether or not there is more data to query. To see how this works in practice, let's look at a query that gets the first 10 items in this list:
+Any time we have a field that would return a list we want to paginate, we instead return a
+Connection type that provides some meta data about the list like our current position
+(defined by the `cursor`) and whether or not there is more data to query.
+To see how this works in practice, let's look at a query that gets the first 10 items in this list:
 
 ```graphql
 query {
-	species(id: 1) {
-		moves(first: 10) {
-			pageInfo {
-				hasNextPage
-				endCursor
-			}
-			edges {
-				cursor
-				# this is the move object
-				node {
-					learned_at
-					move {
-						name
-					}
-				}
-			}
-		}
-	}
+    species(id: 1) {
+        moves(first: 10) {
+            pageInfo {
+                hasNextPage
+                endCursor
+            }
+            edges {
+                cursor
+                # this is the move object
+                node {
+                    learned_at
+                    move {
+                        name
+                    }
+                }
+            }
+        }
+    }
 }
 ```
 
@@ -79,159 +88,168 @@ The result of this query looks something like:
 
 ```json
 {
-	"species": {
-		"moves": {
-			"pageInfo": {
-				"hasNextPage": true,
-				"endCursor": "k"
-			},
-			"edges": [
-				{
-					"cursor": "a",
-					"node": {
-						"learned_at": 1,
-						"move": {
-							"name": "Growl"
-						}
-					}
-				},
-				...,
-				{
-					"cursor": "k",
-					"node": {
-						"learned_at": 0,
-						"move": {
-							"name": "Substitute"
-						}
-					}
-				}
-			]
-		}
-	}
+    "species": {
+        "moves": {
+            "pageInfo": {
+                "hasNextPage": true,
+                "endCursor": "k"
+            },
+            "edges": [
+                {
+                    "cursor": "a",
+                    "node": {
+                        "learned_at": 1,
+                        "move": {
+                            "name": "Growl"
+                        }
+                    }
+                },
+                ...,
+                {
+                    "cursor": "k",
+                    "node": {
+                        "learned_at": 0,
+                        "move": {
+                            "name": "Substitute"
+                        }
+                    }
+                }
+            ]
+        }
+    }
 }
 ```
 
-If we want to look up the next 10 items in the list, we just have to take the `endCursor` value in the `pageInfo` object and send it as the `after` argument for our next query:
+If we want to look up the next 10 items in the list, we just have to take the `endCursor`
+value in the `pageInfo` object and send it as the `after` argument for our next query:
 
 ```graphql
 query {
-	species(id: 1) {
-		moves(first: 10, after: "k") {
-			pageInfo {
-				hasNextPage
-				endCursor
-			}
-			edges {
-				cursor
-				node {
-					learned_at
-					move {
-						name
-					}
-				}
-			}
-		}
-	}
+    species(id: 1) {
+        moves(first: 10, after: "k") {
+            pageInfo {
+                hasNextPage
+                endCursor
+            }
+            edges {
+                cursor
+                node {
+                    learned_at
+                    move {
+                        name
+                    }
+                }
+            }
+        }
+    }
 }
 ```
 
-That will give us the next 10 items after the last item we saw from our previous query. Houdini takes care of most of this interaction automatically so you don't need to worry too much about it. Just know that if you are writing a query against a field with connection-based pagination, it looks something like this:
+That will give us the next 10 items after the last item we saw from our previous query.
+Houdini takes care of most of this interaction automatically so you don't need to worry too much about it.
+Just know that if you are writing a query against a field with connection-based pagination, it looks something like this:
 
 ```graphql
 query {
-	species(id: 1) {
-		moves {
-			edges {
-				node {
-					learned_at
-				}
-			}
-		}
-	}
+    species(id: 1) {
+        moves {
+            edges {
+                node {
+                    learned_at
+                }
+            }
+        }
+    }
 }
 ```
 
 For more information on the Connection model, check out [this blog post](https://www.apollographql.com/blog/graphql/explaining-graphql-connections/).
+
 </GraphQLExplained>
 
 ## Paginated Queries
 
-Interacting with a paginated query is pretty similar to everything we've been doing so far. Just use the `graphql` tag and decorate the paginated field with the `@paginate` directive. Go ahead and change the query with the `SpeciesInfo` document to look like this:
+Interacting with a paginated query is pretty similar to everything we've been doing so far.
+Just add decorate the paginated field with the `@paginate` directive. Go ahead and change the `+page.gql` file to look like this:
 
-```svelte
-<script>
-	import { graphql } from '$houdini'
+```graphql:title=src/routes/[[id]]/+page.gql
+query Info($id: Int!) {
+    species(id: $id) {
+        name
+        flavor_text
+        favorite
+        evolution_chain {
+            ...SpeciesPreview
+        }
+        ...SpriteInfo
 
-	const speciesInfo = graphql(`
-		query SpeciesInfo($id: Int!) {
-			species(id: $id) {
-				name
-				flavor_text
-				favorite
-				evolution_chain {
-					...SpeciesPreview
-				}
-				moves(first: 1) @paginate {
-					edges {
-						node {
-							...MoveDisplay
-						}
-					}
-				}
-				...SpriteInfo
-			}
-		}
-	`)
-</script>
+        moves(first: 1) @paginate {
+            edges {
+                node {
+                    ...MoveDisplay
+                }
+            }
+        }
+    }
+
+    favorites @list(name:"FavoriteSpecies") {
+        ...FavoritePreview
+    }
+}
 ```
 
-At the surface, a paginated query store is basically the same thing as a normal query except for a few extra utilities. They're pretty self-explanatory but just in case there's any confusion: there's a `pageInfo` value on the store that contains to an object with meta data about the current page and `loadNextPage` is an async function that will load the next page and append the result of the field tagged with `@paginate` to the existing value in our cache. For a more in-depth summary of what you can do with `@paginate`, you can check out the [Pagination Guide](/guides/pagination).
+At the surface, a paginated query store is basically the same thing as a normal query except for a few extra utilities.
+They're pretty self-explanatory but just in case there's any confusion: `loadNextPage` is an async function that will load the next
+page and append the result of the field tagged with `@paginate` to the existing value in our cache and
+there is a `pageInfo` value on the store that contains an object with meta data about the current page.
+For a more in-depth summary of what you can do with `@paginate`, you can check out the [Pagination Guide](/guides/pagination).
 
-It's time to add some visuals. Add an import for the `MoveDisplay` component and copy the following block as the second child in the right panel (between `div#species-evolution-chain` and the `nav`):
+It's time to add some visuals. Add an import for the `MoveDisplay` component and copy the following block
+as the second child in the right panel (between `div#species-evolution-chain` and the `nav`):
 
-```svelte
-<MoveDisplay move={$speciesInfo.data.species.moves.edges[0].node} />
+```svelte:title=src/routes/[[id]]/+page.svelte
+<MoveDisplay move={$Info.data.species.moves.edges[0].node} />
 ```
 
 In most situations houdini's automatic appending is great since it covers popular patterns like infinite scrolling or any kind of list that just keeps growing. Unfortunately, we are only showing one move at a time so we can't just display all of the information we're holding onto in memory. Also, the user might want to step back in the list and we won't need to load the next or previous page if we already have it loaded. In order to address this, we need hold onto a bit of local state that will track the index of the move on display. When we load the next move we will first check if we already have the element loaded and if not, we will trigger `loadNextPage` to grab it and then update our state to display the new result.
 
-```svelte
-<script>
-	import { navigating } from '$app/stores'
-	import { UpButton, DownButton } from '~/components'
+```svelte:title=src/routes/[[id]]/+page.svelte&typescriptToggle=true
+<script lang="ts">
+    import { navigating } from '$app/stores'
+    import { UpButton, DownButton } from '~/components'
 
-	let moveIndex = 0
-	$: hasPrevMove = moveIndex > 0
-	$: hasNextMove = moveIndex < $speciesInfo.data.species.moves.edges.length - 1 || $pageInfo.hasNextPage
+    let moveIndex = 0
+    $: hasPrevMove = moveIndex > 0
+    $: hasNextMove = moveIndex < $Info.data.species.moves.edges.length - 1 || $pageInfo.hasNextPage
 
-	const loadNextMove = async () => {
-		// if we haven't already seen this page
-		if (!$speciesInfo.data.species.moves.edges[moveIndex + 1] && $pageInfo.hasNextPage) {
-			// load the next page of data
-			await speciesInfo.loadNextPage()
-		}
+    const loadNextMove = async () => {
+        // if we haven't already seen this page
+        if (!$Info.data.species.moves.edges[moveIndex + 1] && $pageInfo.hasNextPage) {
+            // load the next page of data
+            await Info.loadNextPage()
+        }
 
-		// its safe to increment the move index
-		moveIndex += 1
-	}
+        // its safe to increment the move index
+        moveIndex += 1
+    }
 
-	const loadPrevMove = () => {
-		moveIndex--
-	}
+    const loadPrevMove = () => {
+        moveIndex--
+    }
 
-	// when we navigate to another species, reset the move index
-	navigating.subscribe(() => {
-		moveIndex = 0
-	})
+    // when we navigate to another species, reset the move index
+    navigating.subscribe(() => {
+        moveIndex = 0
+    })
 </script>
 
 <!-- Use this instead of the move display we added earlier -->
 <div id="move-summary">
-	<MoveDisplay move={$speciesInfo.data.species.moves.edges[moveIndex].node} />
-	<div id="move-controls">
-		<UpButton disabled={!hasPrevMove} on:click={speciesInfo.loadPrevMove} />
-		<DownButton disabled={!hasNextMove} on:click={speciesInfo.loadNextMove} />
-	</div>
+    <MoveDisplay move={$Info.data.species.moves.edges[moveIndex].node} />
+    <div id="move-controls">
+        <UpButton disabled={!hasPrevMove} on:click={Info.loadPrevMove} />
+        <DownButton disabled={!hasNextMove} on:click={Info.loadNextMove} />
+    </div>
 </div>
 ```
 

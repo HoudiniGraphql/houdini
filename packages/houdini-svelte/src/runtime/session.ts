@@ -1,12 +1,5 @@
-import { marshalInputs } from '$houdini/runtime/lib/scalars'
-import {
-	MutationArtifact,
-	QueryArtifact,
-	QueryResult,
-	SubscriptionArtifact,
-} from '$houdini/runtime/lib/types'
+import { QueryResult } from '$houdini/runtime/lib/types'
 import { error, LoadEvent, redirect, RequestEvent } from '@sveltejs/kit'
-import { GraphQLError } from 'graphql'
 import { get } from 'svelte/store'
 
 import { isBrowser } from './adapter'
@@ -37,15 +30,6 @@ export class RequestContext {
 			typeof window !== 'undefined' ? this.loadEvent.fetch.bind(window) : this.loadEvent.fetch
 
 		return fetch(input, init)
-	}
-
-	graphqlErrors(payload: { errors?: GraphQLError[] }) {
-		// if we have a list of errors
-		if (payload.errors) {
-			return this.error(500, payload.errors.map(({ message }) => message).join('\n'))
-		}
-
-		return this.error(500, 'Encountered invalid response: ' + JSON.stringify(payload))
 	}
 
 	// This hook fires before executing any queries, it allows custom props to be passed to the component.
@@ -100,20 +84,6 @@ export class RequestContext {
 		}
 
 		this.returnValue = result
-	}
-
-	// compute the inputs for an operation should reflect the framework's conventions.
-	async computeInput({
-		variableFunction,
-		artifact,
-	}: {
-		variableFunction: KitBeforeLoad
-		artifact: QueryArtifact | MutationArtifact | SubscriptionArtifact
-	}) {
-		// call the variable function to match the framework
-		let input = await variableFunction.call(this, this.loadEvent)
-
-		return await marshalInputs({ artifact, input })
 	}
 }
 

@@ -6,7 +6,7 @@ import { resolvers, typeDefs } from './graphql.mjs'
 
 async function main() {
 	const yogaApp = createServer({
-		hostname: "::",
+		hostname: '::',
 		logging: true,
 		schema: {
 			typeDefs,
@@ -51,13 +51,13 @@ mutation AddUser {
 			onSubscribe: async (ctx, msg) => {
 				// prettier-ignore
 				const {
-          schema,
-          execute,
-          subscribe,
-          contextFactory,
-          parse,
-          validate
-        } = yogaApp.getEnveloped(ctx);
+					schema,
+					execute,
+					subscribe,
+					contextFactory,
+					parse,
+					validate
+				} = yogaApp.getEnveloped(ctx);
 
 				const args = {
 					schema,
@@ -72,7 +72,10 @@ mutation AddUser {
 				}
 
 				const errors = validate(args.schema, args.document)
-				if (errors.length) return errors
+				if (errors.length) {
+					console.log(errors)
+					return errors
+				}
 				return args
 			},
 		},

@@ -77,9 +77,7 @@ type MyFriendsStore = QueryStore & {
 
 Load data from the server and subscribe to any changes of fields we detect from mutations, subscriptions, and other queries.
 
-```graphql
-# src/routes/myRoute/+page.gql
-
+```graphql:title=src/routes/myRoute/+page.gql
 query MyProfileInfo {
 	viewer {
 		firstName
@@ -88,11 +86,10 @@ query MyProfileInfo {
 }
 ```
 
-```svelte
-<!-- src/routes/myRoute/+page.svelte -->
-
-<script>
-	export let data
+```svelte:title=src/routes/myRoute/+page.svelte&typescriptToggle=true
+<script lang="ts">
+	import type { PageData } from './$houdini'
+	export let data: PageData
 
 	// pull the store reference from the route props
 	$: ({ MyProfileInfo } = data)
@@ -133,14 +130,19 @@ Regardless of which pattern you are using, you will quickly need to customize yo
 
 ### Query Variables
 
-Query variables must be exported from your `+page.js` files and named after your query. This function takes the same arguments passed to the `load` function
-described in the [SvelteKit](https://kit.svelte.dev/docs#Loading) docs. You can return
-the value from `this.error` and `this.redirect` in order to change the behavior of the response. Here is a
-modified example [from the source repository](https://github.com/HoudiniGraphql/houdini/tree/main/example):
+The simplest way to pass values for your query inputs is to use route parameters. If houdini sees that the name for a route paramter matches the
+name of a query's input, it will attempt to parse the value and pass it to your query.
 
-```javascript
-// src/routes/[filter]/+page.ts
+Sometimes your query variables cannot be directly pulled from your route's path. In those cases, you can export a function
+named after your query from `+page.js` files to perform whatever logic you need. This function takes the same arguments passed to the `load` function
+described in the [SvelteKit](https://kit.svelte.dev/docs#Loading) docs. To return an error, or force a redirect, you can
+use the same utilities exported from `@sveltejs/kit`. Here is a modified example
+[from the source repository](https://github.com/HoudiniGraphql/houdini/tree/main/example):
+
+```typescript:title=src/routes/[filter]/+page.ts&typescriptToggle=true
 import { graphql } from '$houdini'
+import { error } from '@sveltejs/kit'
+import type { AllItemsVariables } from './$houdini'
 
 export const _houdini_load = graphql(`
 	query AllItems($completed: Boolean) {
@@ -152,11 +154,11 @@ export const _houdini_load = graphql(`
 `)
 
 // This is the function for the AllItems query.
-// Query variable functions must be named <QueryName>Variables.
-export function _AllItemsVariables(event): AllItems$input {
+// Query variable functions must be named _<QueryName>Variables.
+export const _AllItemsVariables : AllItemsVariables = (event) => {
 	// make sure we recognize the value
 	if (!['active', 'completed'].includes(event.params.filter)) {
-		return this.error(400, 'invalid filter')
+		throw error(400, 'invalid filter')
 	}
 
 	return {
@@ -176,9 +178,10 @@ Houdini will look for hook functions defined in your `+page.js` files.
 Called before Houdini executes load queries against the server. You can expect the same
 arguments as SvelteKit's [`load`](https://kit.svelte.dev/docs#loading) function.
 
-```javascript
-// src/routes/myRoute/+page.js
+```typescript:title=src/routes/myRoute/+page.ts&typescriptToggle=true
 import { graphql } from '$houdini'
+import { redirect } from '@sveltejs/kit'
+import type { BeforeLoadEvent } from './$houdini'
 
 export const _houdini_load = graphql(`
 	query AllItems($completed: Boolean) {
@@ -189,11 +192,9 @@ export const _houdini_load = graphql(`
 	}
 `)
 
-// It has access to the same arguments,
-// this.error, and this.redirect as the variable functions
-export function _houdini_beforeLoad({ page, session }) {
+export function _houdini_beforeLoad({ page, session }: BeforeLoadEvent) {
 	if (!session.authenticated) {
-		return this.redirect(302, '/login')
+		throw redirect(302, '/login')
 	}
 
 	return {
@@ -211,9 +212,10 @@ will have to block requests to the route in order to wait for the result. For mo
 blocking during navigation, check out the deep dive in [this section](/api/query#manual-loading) of the query store
 docs.
 
-```javascript
-// src/routes/myRoute/+page.js
+```typescript:title=src/routes/myRoute/+page.ts&typescriptToggle=true
 import { graphql } from '$houdini'
+import { error } from '@sveltejs/kit'
+import type { AfterLoadEvent, MyProfileVariables } from './$houdini'
 
 export const _houdini_load = graphql(`
 	query MyProfile($id: ID!) {
@@ -223,17 +225,13 @@ export const _houdini_load = graphql(`
 	}
 `)
 
-export function _MyProfileVariables({
-	page: {
-		params: { id }
-	}
-}) {
-	return { id }
+export const _MyProfileVariables: MyProfileVariables = ({ params }) => {
+	return { id: params.id }
 }
 
-export function _houdini_afterLoad({ data }) {
+export function _houdini_afterLoad({ data }: AfterLoadEvent) {
 	if (!data.MyProfile) {
-		return this.error(404)
+		throw  error(404)
 	}
 
 	return {
@@ -251,9 +249,9 @@ will have to block requests to the route in order to wait for the result. For mo
 blocking during navigation, check out the deep dive in [this section](/api/query#manual-loading) of the query store
 docs.
 
-```javascript
-// src/routes/myRoute/+page.js
+```typescript:title=src/routes/myRoute/+page.ts&typescriptToggle=true
 import { graphql } from '$houdini'
+import type { OnErrorEvent } from './$houdini'
 
 export const _houdini_load = graphql(`
 	query MyProfile {
@@ -263,7 +261,7 @@ export const _houdini_load = graphql(`
 	}
 `)
 
-export function _houdini_onError({ error }) {
+export function _houdini_onError({ error }: OnErrorEvent) {
 	throw this.redirect(307, '/login')
 }
 ```
@@ -274,10 +272,10 @@ Sometimes it's useful to have a lazy query that only fires when you call `fetch`
 example in a search input). For these scenarios (whether in a route or component),
 you will want to turn off the generated load using the `@manual_load` directive:
 
-```svelte
-import { graphql } from '$houdini'
+```svelte:typescriptToggle=true
+<script lang="ts">
+	import { graphql } from '$houdini'
 
-<script>
 	const result = graphql(`
 		query MyQuery @manual_load {
 			viewer {
@@ -294,10 +292,11 @@ If you are writing your route's load functions by hand, you'll want to instantia
 a function for each of your stores that you can use to render your route on the server. These functions take the same
 parameters as `fetch`:
 
-```javascript
+```typescript:title=&typescriptToggle=true
 import { load_MyQuery } from '$houdini'
+import type { PageLoad } from './$houdini'
 
-export async function load(event) {
+export const load: PageLoad = async (event) => {
 	return {
 		...(await load_MyQuery({ event }))
 	}
@@ -307,9 +306,10 @@ export async function load(event) {
 In case you were wondering, the `load_` prefix is there so you can autocomplete your loads by just typing `load_<tab>`.
 Anyway, with this in place, your route will recieve props for each of the stores that you have loaded:
 
-```svelte
-<script>
-	export let data
+```svelte:title=src/routes/myRoute.svelte&typescriptToggle=true
+<script lang="ts">
+	import type { PageData } from './$houdini'
+	export let data: PageData
 
 	$: ({ MyQuery } = data)
 </script>
@@ -319,12 +319,16 @@ Anyway, with this in place, your route will recieve props for each of the stores
 
 If your query has variables, you can pass them straight to the loader:
 
-```javascript
+```typescript:typescriptToggle=true
 import { load_MyQuery } from '$houdini'
+import type { PageLoad } from './$houdini'
 
-export async function load(event) {
+export const load: PageLoad = async (event) => {
   return {
-    ...await load_MyQuery({ event, variables: { ... } })
+    ...await load_MyQuery({
+		event,
+		variables: { variable1: 'value' }
+	})
   }
 }
 ```
@@ -332,10 +336,11 @@ export async function load(event) {
 If you are defining a manual load and need to look at the result of the fetch, we recommend _not_ using the `load_`
 utility but instead defining your load explicitly:
 
-```javascript
+```typescript:typescriptToggle=true
 import { MyQueryStore } from '$houdini'
+import type { PageLoad } from './$houdini'
 
-export async function load(event) {
+export const load: PageLoad = async (event) => {
 	const MyQuery = new MyQueryStore()
 
 	const result = await MyQuery.fetch({ event })
@@ -353,10 +358,11 @@ Be careful when loading multiple stores at once.
 Each of your loads should be performed inside of an `await Promise.all` so you perform the queries in parallel.
 This can get rather tedious so houdini provides a `loadAll` function you can use to simplify this process:
 
-```javascript
+```typescript:typescriptToggle=true
 import { loadAll, load_MyQuery, load_MyOtherQuery } from '$houdini'
+import type { PageLoad } from './$houdini'
 
-export async function load(event) {
+export const load: PageLoad = async (event) => {
 	return {
 		...(await loadAll(
 			load_MyQuery({ event }),
@@ -369,10 +375,11 @@ export async function load(event) {
 If you want to load the same store twice or customize the props that will get passed to your
 route, you can pass any combination of single loaders and objects that map the result to a prop value:
 
-```javascript
+```typescript:typescriptToggle=true
 import { loadAll, load_MyQuery, load_MyOtherQuery } from '$houdini'
+import type { PageLoad } from './$houdini'
 
-export async function load(event) {
+export const load: PageLoad = async (event) => {
 	return {
 		...(await loadAll(load_MyQuery({ event }), {
 			propA: load_MyOtherQuery({ event, variables: { foo: 'A' } }),
@@ -397,16 +404,17 @@ the request happens on the browser. This means that if you want to
 do something with the response, you have to pass `blocking: true`
 which will make the `await` behave like normal:
 
-```javascript
-export async function load(event) {
+```typescript:typescriptToggle=true
+import { redirect } from '@sveltejs/kit'
+import type { PageLoad } from './$houdini'
+
+export const load: PageLoad = async (event) => {
 	// blocking:true makes this await "real"
 	const { data } = await MyStore.fetch({ event, blocking: true })
 
 	// check the response of the query and redirect when appropriate
 	if (!data.fieldName) {
-		return {
-			redirect: '/not-field-name'
-		}
+		throw redirect(300, '/not-field-name')
 	}
 
 	return {}
@@ -418,14 +426,15 @@ export async function load(event) {
 ## Components Queries
 
 Not every query will be inside of a route. In this situations, you can either work with your
-query stores directly, or use the same graphql tag to instruct the plugin to generate a client-side
+query stores directly, or use the same graphql function to instruct the plugin to generate a client-side
 equivalent of the load function.
 
-```svelte
-<script>
+```svelte:title=src/lib/MyComponent.svelte&typescriptToggle=true
+<script lang="ts">
 	import { graphql } from '$houdini'
+	import type { MyComponentQueryVariables } from './$houdini'
 
-	export function _MyComponentQueryVariables({ props }) {
+	export const _MyComponentQueryVariables: MyComponentQueryVariables = ({ props }) => {
 		return { id: props.id }
 	}
 
@@ -436,9 +445,9 @@ equivalent of the load function.
 			}
 		}
 	`)
-	</script>
+</script>
 
-	{$store.data.value}
+{$store.data.value}
 ```
 
 ## Endpoints
@@ -446,11 +455,11 @@ equivalent of the load function.
 Using a query store inside of an endpoint looks very similar to the `load` function: just pass the event you
 are handed in your route function:
 
-```javascript
+```typescript:typescriptToggle=true
 import { MyQueryStore } from '$houdini'
+import type { PageServerLoad } from './$houdini'
 
-/** @type {import('./$types').PageServerLoad} */
-export const load = (event) => {
+export const load: PageServerLoad = async (event) => {
 	const myQuery = new MyQueryStore()
 	const { data } = await myQuery.fetch({ event })
 
@@ -463,19 +472,22 @@ export const load = (event) => {
 Sometimes you need to do something very custom for a specific route. Maybe you need special headers or some other contextual information.
 Whatever the case may be, you can pass a `metadata` parameter to fetch:
 
-```javascript
+```typescript:typescriptToggle=true
+import type { PageLoad } from './$houdini'
 
-export async function load(event) {
+export const load: PageLoad = async (event) => {
 	return {
-		...(await load_MyStore({event, metadata: { ... }}))
+		...(await load_MyStore({event, metadata: { key: 'value' }}))
 	}
 }
 ```
 
 This value will get forwarded to the network function in your client definition, usually found in `src/client.js`:
 
-```typescript
-const requestHandler = async ({ fetch, text, variables, session, metadata }) => {
+```typescript:typescriptToggle=true
+import type { RequestHandler } from './$houdini'
+
+const requestHandler: RequestHandler = async ({ fetch, text, variables, session, metadata }) => {
 	// do anything with metadata inside of here
 }
 

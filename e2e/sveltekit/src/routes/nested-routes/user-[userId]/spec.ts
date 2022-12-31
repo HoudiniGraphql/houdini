@@ -4,7 +4,7 @@ import { expectToBe, expect_n_gql, goto, navSelector } from '../../../lib/utils/
 
 test.describe('+Layout.gql', () => {
   test('No GraphQL request & response happen (SSR)', async ({ page }) => {
-    await goto(page, routes.Query_param);
+    await goto(page, routes.nested_routes);
     await expectToBe(page, 'Page: Samuel Jackson', 'h3');
   });
 
@@ -13,7 +13,7 @@ test.describe('+Layout.gql', () => {
   }) => {
     await goto(page, routes.Home);
 
-    const listStr = await expect_n_gql(page, navSelector(routes.Query_param), 1);
+    const listStr = await expect_n_gql(page, navSelector(routes.nested_routes), 1);
     const expected = [`{"data":{"user":{"id":"Page_User:2","name":"Samuel Jackson"}}}`];
     expect(listStr).toStrictEqual(expected);
   });

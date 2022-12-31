@@ -9,8 +9,9 @@ import {
 	path,
 	keyFieldsForType,
 	parentTypeFromAncestors,
+	TypeWrapper,
+	unwrapType,
 } from '../../../lib'
-import { TypeWrapper, unwrapType } from '../../utils'
 import { addReferencedInputTypes } from './addReferencedInputTypes'
 import { tsTypeReference } from './typeReference'
 import { scalarPropertyValue } from './types'

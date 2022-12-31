@@ -19,3 +19,5 @@ $houdini
 build/**
 dist/**
 .next/**
+
+vite.config.js.timestamp-*

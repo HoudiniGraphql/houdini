@@ -24,9 +24,7 @@ faster.
 
 In order to acknowlege this, you will need to enable the `acceptImperativeInstability` flag in your config file:
 
-```javascript
-/// houdini.config.js
-
+```javascript:title=houdini.config.js
 export default {
     // ...
     acceptImperativeInstability: true
@@ -99,8 +97,11 @@ const user = cache.get('User', { id: "1" })
 user.delete()
 ```
 
-This will work most of the time however if the cache has not seen the field before, you will
-need to provide some type information so we can ensure that your responses are always valid.
+### Field schema information
+
+There are a few situations where the runtime might complain that it doesn't know the type of the field that you have set.
+For example, if you are setting a field that has not yet been queried. When this happens, you will need
+to provide some additional information so we can ensure that your responses are always valid.
 To do this, use `cache.setFieldType`:
 
 ```typescript
@@ -136,7 +137,7 @@ const allFriends = cache.list("User_Friends", { allLists: true })
 
 You can mutate the list using the `prepend`, `append`, `remove`, and `toggle` methods:
 
-```javascript
+```typescript
 const allUsers = cache.list("All_Users")
 const user1 = cache.get('User', { id: "1" })
 

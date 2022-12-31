@@ -24,9 +24,7 @@ In order to setup your project to take full advantage of Houdini's generated typ
 
 When working with Houdini's [generated load functions](/api/query#automatic-loading) (whether in a route or component), you can import type definition for your variable functions and hooks from `./$houdini` (a relative import):
 
-```typescript
-/// src/routes/myProifle/+page.ts
-
+```typescript:title=src/routes/myProifle/+page.ts
 import { graphql } from '$houdini'
 import type { AfterLoadEvent } from './$houdini'
 
@@ -47,9 +45,7 @@ export function _houdini_afterLoad({ data }: AfterLoadEvent) {
 
 Your `PageData` type will also come from `./$houdini` since SvelteKit's generated type definitions don't know about the generated load:
 
-```svelte
-<!-- src/routes/myProfile/+page.svelte -->
-
+```svelte:title=src/routes/myProfile/+page.svelte -->
 <script>
 	import { PageData } from './$houdini'
 
@@ -104,17 +100,14 @@ import { fragment, graphql, type PostContent } from '$houdini'
 
 export let post: PostContent
 
-$: data = fragment(
-	post,
-	graphql(`
-		fragment PostContent on Post {
-			content
-			tags {
-				nodes {
-					name
-				}
+$: data = fragment(post, graphql(`
+	fragment PostContent on Post {
+		content
+		tags {
+			nodes {
+				name
 			}
 		}
-	`)
-)
+	}
+`))
 ```

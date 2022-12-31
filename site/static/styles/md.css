@@ -64,11 +64,44 @@ ol {
 	white-space: nowrap;
 }
 
+.code-title {
+	max-width: 764px;
+	box-sizing: border-box;
+	font-family: 'Roboto Mono', monospace;
+	background: var(--code-title-background);
+	color: var(--code-title-color);
+	font-size: 1rem;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	align-items: center;
+	padding-left: 2rem;
+	border-top-left-radius: 10px;
+	border-top-right-radius: 10px;
+}
+
+.code-title:not(.empty) {
+	height: 3rem;
+}
+
+.code-title + pre {
+	padding-top: 1rem !important;
+	margin-top: 0px !important;
+	border-top-left-radius: 0px !important;
+	border-top-right-radius: 0px !important;
+}
+
+.code-title.empty + pre {
+	padding-top: 2rem !important;
+	border-top-left-radius: 10px !important;
+	border-top-right-radius: 10px !important;
+}
+
 #doc-content pre {
 	margin-bottom: 30px;
 	background: #11141a;
 	border-radius: 10px;
-	padding: 2.5rem;
+	padding: 2rem;
 	overflow-x: auto;
 }
 

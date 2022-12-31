@@ -41,6 +41,12 @@
 		outline: none;
 	}
 
+	@media (max-width: 1000px) {
+		button {
+			flex-grow: 1;
+		}
+	}
+
 	span {
 		margin-left: 10px;
 		margin-top: 4px;
