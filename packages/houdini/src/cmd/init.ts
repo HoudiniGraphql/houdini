@@ -391,29 +391,14 @@ async function tjsConfig(targetPath: string, framework: 'kit' | 'svelte') {
 	return false
 }
 
-async function updateViteConfig(
-	targetPath: string,
-	framework: 'kit' | 'svelte',
-	typescript: boolean
-) {
-	const viteConfigPath = path.join(targetPath, `vite.config${typescript ? '.ts' : '.js'}`)
+async function updateViteConfig(targetPath: string, framework: 'kit' | 'svelte') {
+	const viteConfigPath = path.join(targetPath, 'vite.config.js')
 
 	const viteConfigKit = `import { sveltekit } from '@sveltejs/kit/vite';
 import houdini from 'houdini/vite';
 
 /** @type {import('vite').UserConfig} */
 const config = {
-	plugins: [houdini(), sveltekit()],
-}
-
-export default config;
-`
-
-	const viteConfigKitTs = `import { sveltekit } from '@sveltejs/kit/vite';
-import houdini from 'houdini/vite';
-import type { UserConfig } from "vite";
-
-const config: UserConfig = {
 	plugins: [houdini(), sveltekit()],
 }
 
@@ -431,41 +416,19 @@ const config = {
 export default config;
 `
 
-	const viteConfigSvelteTs = `import { svelte } from '@sveltejs/vite-plugin-svelte';
-import houdini from 'houdini/vite';
-import type { UserConfig } from "vite";
-
-const config: UserConfig = {
-	plugins: [houdini(), svelte()],
-}
-
-export default config;
-`
-
-	let content = 'NOTHING!'
-	if (framework === 'kit' && typescript) {
-		content = viteConfigKitTs
-	} else if (framework === 'kit' && !typescript) {
+	let content
+	if (framework === 'kit') {
 		content = viteConfigKit
-	} else if (framework === 'svelte' && typescript) {
-		content = viteConfigSvelteTs
-	} else if (framework === 'svelte' && !typescript) {
+	} else if (framework === 'svelte') {
 		content = viteConfigSvelte
 	} else {
 		throw new Error('Unknown updateViteConfig()')
 	}
 
-	if (typescript) {
-		await updateFile({
-			filepath: viteConfigPath,
-			content: framework === 'kit' ? viteConfigKitTs : viteConfigSvelteTs,
-		})
-	} else {
-		await updateFile({
-			filepath: viteConfigPath,
-			content: framework === 'kit' ? viteConfigKit : viteConfigSvelte,
-		})
-	}
+	await updateFile({
+		filepath: viteConfigPath,
+		content: framework === 'kit' ? viteConfigKit : viteConfigSvelte,
+	})
 }
 
 async function updateSvelteConfig(targetPath: string, typescript: boolean) {
