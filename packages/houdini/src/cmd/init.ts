@@ -229,7 +229,7 @@ export default async function init(
 	} else if (framework === 'svelte') {
 		await updateSvelteMainJs(targetPath)
 	}
-	await updateViteConfig(targetPath, framework, typescript)
+	await updateViteConfig(targetPath, framework)
 	await tjsConfig(targetPath, framework)
 
 	// we're done!
@@ -451,7 +451,7 @@ const config = {
 	}
 };
 
-export default config;	
+export default config;
 `
 
 	const newContentJs = `import adapter from '@sveltejs/adapter-auto';
