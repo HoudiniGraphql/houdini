@@ -2,11 +2,9 @@
 
 /** @type {import('houdini').ConfigFile} */
 const config = {
-	apiUrl: 'https://grafbase-test-main-alecaivazis.grafbase.app/graphql',
+	apiUrl: 'http://localhost:4000/graphql',
 	schemaPollHeaders: {
-		Authorization(env) {
-			return `Bearer ${env.GRAFBASE_TOKEN}`;
-		}
+		'x-api-key': 'env:GRAFBASE_TOKEN'
 	},
 	plugins: {
 		'houdini-svelte': {}
