@@ -572,6 +572,10 @@ export class Config {
 		return this.whenDirective + '_not'
 	}
 
+	get liveDirective() {
+		return 'live'
+	}
+
 	get argumentsDirective() {
 		return 'arguments'
 	}

@@ -12,6 +12,8 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 			scalar Cursor
 			scalar DateTime
 
+			directive @live on QUERY
+
 			type User implements Node & Friend & CatOwner {
 				id: ID!
 				name: String!
