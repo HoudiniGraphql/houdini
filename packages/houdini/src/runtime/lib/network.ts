@@ -17,13 +17,16 @@ import {
 export class HoudiniClient {
 	private fetchFn: RequestHandler<any>
 	socket: SubscriptionHandler | null | undefined
+	live: LiveQueryHandler | null | undefined
 
 	constructor(
 		requestHandler: RequestHandler<any>,
-		subscriptionHandler?: SubscriptionHandler | null
+		subscriptionHandler?: SubscriptionHandler | null,
+		liveQueryHandler?: LiveQueryHandler | null
 	) {
 		this.fetchFn = requestHandler
 		this.socket = subscriptionHandler
+		this.live = liveQueryHandler
 	}
 
 	handleMultipart(
@@ -136,6 +139,12 @@ export type SubscriptionHandler = {
 		}
 	) => () => void
 }
+
+// a live query needs to take the fetch params, pass values to onMessage, and register
+// a function to use when the live query is closed
+export type LiveQueryHandler = (
+	params: FetchParams & { onMessage: (value: any) => void }
+) => () => void
 
 export type FetchParams = {
 	text: string

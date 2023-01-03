@@ -2,7 +2,7 @@
 
 /** @type {import('houdini').ConfigFile} */
 const config = {
-	apiUrl: 'http://localhost:4000/graphql',
+	apiUrl: 'https://grafbase-test-main-alecaivazis.grafbase.app/graphql',
 	schemaPollHeaders: {
 		'x-api-key': 'env:GRAFBASE_TOKEN'
 	},

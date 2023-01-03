@@ -108,6 +108,7 @@ type Todo {
 	Unique identifier
 	"""
 	id: ID!
+	list: TodoList
 	title: String!
 
 	"""
@@ -134,6 +135,7 @@ Input to create a Todo
 """
 input TodoCreateInput {
 	complete: Boolean!
+	list: TodoTodoRelateTodoListTodoListCreateRelationInput
 	title: String!
 }
 
@@ -241,10 +243,36 @@ type TodoListUpdatePayload {
 }
 
 """
+Input to create a TodoList for the TodoRelateTodoList relation of Todo
+"""
+input TodoTodoRelateTodoListTodoListCreateInput {
+	title: String!
+	todos: [TodoListTodoRelateTodoListTodoCreateRelationInput]
+}
+
+"""
+Input to link to or create a TodoList for the TodoRelateTodoList relation of Todo
+"""
+input TodoTodoRelateTodoListTodoListCreateRelationInput {
+	create: TodoTodoRelateTodoListTodoListCreateInput
+	link: ID
+}
+
+"""
+Input to link/unlink to or create a TodoList for the TodoRelateTodoList relation of Todo
+"""
+input TodoTodoRelateTodoListTodoListUpdateRelationInput {
+	create: TodoTodoRelateTodoListTodoListCreateInput
+	link: ID
+	unlink: ID
+}
+
+"""
 Input to update a Todo
 """
 input TodoUpdateInput {
 	complete: Boolean
+	list: TodoTodoRelateTodoListTodoListUpdateRelationInput
 	title: String
 }
 
