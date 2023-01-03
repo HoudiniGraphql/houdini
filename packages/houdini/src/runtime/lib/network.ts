@@ -114,21 +114,6 @@ export class HoudiniClient {
 	}
 }
 
-export class Environment extends HoudiniClient {
-	constructor(...args: ConstructorParameters<typeof HoudiniClient>) {
-		super(...args)
-		log.info(
-			`${log.red('⚠️  Environment has been renamed to HoudiniClient. ⚠️')}
-You should update your client to look something like the following:
-
-import { HoudiniClient } from '$houdini/runtime'
-
-export default new HoudiniClient(fetchQuery)
-`
-		)
-	}
-}
-
 export type SubscriptionHandler = {
 	subscribe: (
 		payload: { query: string; variables?: {} },
