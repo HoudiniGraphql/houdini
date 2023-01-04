@@ -366,7 +366,7 @@ function append_onError(onError: boolean, type: 'Layout' | 'Page', hasLoadInput:
 type OnErrorReturn = Awaited<ReturnType<typeof import('./+${type.toLowerCase()}').${houdini_on_error_fn}>>;
 export type OnErrorEvent =  { event: Kit.LoadEvent, input: ${
 				hasLoadInput ? 'LoadInput' : '{}'
-		  }, error: Error | Error[] };
+		  }, error: Kit.HttpError };
 `
 		: ''
 }
