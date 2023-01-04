@@ -226,16 +226,34 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 				text: args.artifact.raw,
 				variables: args.variables,
 				hash: args.artifact.hash,
-				onMessage(value) {
-					console.log(value)
+				updateValue: (updater) => {
+					// ask the client for the new value given the current one
+					const newValue = updater(get(this.store).data)
+
+					// set the new value in the store
+					this.store.update((val) => ({
+						...val,
+						data: newValue,
+					}))
+
 					// if we haven't resolved the promise yet, resolve it with the value
 					if (!resolved) {
 						resolve({
-							result: { data: null, errors: null },
+							result: { data: newValue, errors: null },
 							partial: false,
 							source: DataSource.Network,
 						})
+
+						// don't resolve the promise twice
+						resolved = true
 					}
+
+					// we need to update the cache with the new value
+					getCache().write({
+						selection: this.artifact.selection,
+						data: newValue,
+						variables: args.variables ?? {},
+					})
 				},
 			})
 		})

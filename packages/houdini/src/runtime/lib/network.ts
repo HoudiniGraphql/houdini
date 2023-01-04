@@ -128,7 +128,7 @@ export type SubscriptionHandler = {
 // a live query needs to take the fetch params, pass values to onMessage, and register
 // a function to use when the live query is closed
 export type LiveQueryHandler = (
-	params: FetchParams & { onMessage: (value: any) => void }
+	params: FetchParams & { updateValue: (updater: (old: any) => any) => void }
 ) => () => void
 
 export type FetchParams = {

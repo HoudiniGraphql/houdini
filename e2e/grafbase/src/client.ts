@@ -1,4 +1,5 @@
 import { HoudiniClient, type RequestHandler, type LiveQueryHandler } from '$houdini';
+import { applyPatch } from '$lib/jsonPatch/patch';
 
 const api_url = 'https://grafbase-test-main-alecaivazis.grafbase.app/graphql';
 const api_key =
@@ -25,7 +26,7 @@ const requestHandler: RequestHandler = async ({ fetch, text = '', variables = {}
 	return result;
 };
 
-const liveQueryHandler: LiveQueryHandler = ({ text, variables, onMessage }) => {
+const liveQueryHandler: LiveQueryHandler = ({ text, variables, updateValue }) => {
 	const url = new URL(api_url);
 	url.searchParams.append('query', text);
 	url.searchParams.append('variables', JSON.stringify(variables));
@@ -33,7 +34,7 @@ const liveQueryHandler: LiveQueryHandler = ({ text, variables, onMessage }) => {
 
 	const eventSource = new EventSource(url);
 	eventSource.addEventListener('message', (ev) => {
-		onMessage(ev.data);
+		updateValue((previousValue) => applyPatch(previousValue, ev.data));
 	});
 
 	return () => {
