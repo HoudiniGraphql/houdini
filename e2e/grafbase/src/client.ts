@@ -1,4 +1,4 @@
-import { HoudiniClient, type RequestHandler, type SubscriptionHandler } from '$houdini';
+import { HoudiniClient, type RequestHandler, type LiveQueryHandler } from '$houdini';
 
 const api_url = 'https://grafbase-test-main-alecaivazis.grafbase.app/graphql';
 const api_key =
@@ -19,7 +19,7 @@ const requestHandler: RequestHandler = async ({ fetch, text = '', variables = {}
 	return await result.json();
 };
 
-const liveQueryHandler = ({ text, variables, onMessage }) => {
+const liveQueryHandler: LiveQueryHandler = ({ text, variables, onMessage }) => {
 	const url = new URL(api_url);
 	url.searchParams.append('query', text);
 	url.searchParams.append('variables', JSON.stringify(variables));

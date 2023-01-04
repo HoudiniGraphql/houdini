@@ -8,6 +8,7 @@
 					edges {
 						node {
 							id
+							title
 						}
 					}
 				}
@@ -16,7 +17,7 @@
 	`);
 </script>
 
-{#if $store.isFetching}
+{#if $store.fetching}
 	loading...
 {:else}
 	{#each $store.data?.todoList?.todos?.edges ?? [] as todo}

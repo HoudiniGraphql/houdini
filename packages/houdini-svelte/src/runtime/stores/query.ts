@@ -23,6 +23,10 @@ import { getCurrentClient } from '../network'
 import { getSession } from '../session'
 import { BaseStore } from './store'
 
+type FetchValue<_Data extends GraphQLObject, _Input extends {}> = Awaited<
+	ReturnType<QueryStore<_Data, _Input>['fetchAndCache']>
+>
+
 export class QueryStore<
 	_Data extends GraphQLObject,
 	_Input extends {},
@@ -63,6 +67,8 @@ export class QueryStore<
 	protected async currentVariables() {
 		return get(this.store).variables
 	}
+
+	onUnsubscribe: null | (() => void) = null
 
 	constructor({ artifact, storeName, variables }: StoreConfig<_Data, _Input, QueryArtifact>) {
 		super()
@@ -173,8 +179,14 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 			}
 		}
 
-		// send the full request with the correct policy
-		const request = this.fetchAndCache(fetchArgs)
+		// if the query is a live query, we don't really care about network policies any more
+		// since CacheOrNetwork behaves the same as CacheAndNetwork
+		const request =
+			this.artifact.live && isBrowser
+				? this.#liveQuery(fetchArgs)
+				: this.fetchAndCache(fetchArgs)
+
+		// if we have to track when the fetch is done,
 		if (params.then) {
 			request.then((val) => params.then?.(val.result.data))
 		}
@@ -189,6 +201,44 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 
 	get name() {
 		return this.artifact.name
+	}
+
+	// the live query fetch resolves with the first value and starts listening for new events
+	// from the server
+	async #liveQuery(
+		args: Parameters<QueryStore<_Data, _Input>['fetchAndCache']>[0]
+	): Promise<FetchValue<_Data, _Input>> {
+		console.log('setting up live query')
+		// grab the current client
+		const client = await getCurrentClient()
+
+		// make sure there's a live query handler
+		const handler = client.live
+		if (!handler) {
+			throw new Error('Looks like this client is not set up for live queries')
+		}
+
+		// we're only going to resolve the promise once
+		let resolved = false
+
+		return await new Promise((resolve) => {
+			this.onUnsubscribe = handler({
+				text: args.artifact.raw,
+				variables: args.variables,
+				hash: args.artifact.hash,
+				onMessage(value) {
+					console.log(value)
+					// if we haven't resolved the promise yet, resolve it with the value
+					if (!resolved) {
+						resolve({
+							result: { data: null, errors: null },
+							partial: false,
+							source: DataSource.Network,
+						})
+					}
+				},
+			})
+		})
 	}
 
 	subscribe(
@@ -372,6 +422,12 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 
 		// make sure we subscribe to the new values
 		cache.subscribe(this.subscriptionSpec, newVariables)
+
+		// if we have a live query to unsubscribe
+		if (this.onUnsubscribe) {
+			console.log('on subscribe')
+			this.onUnsubscribe()
+		}
 
 		// track the newVariables
 		this.lastVariables = newVariables
