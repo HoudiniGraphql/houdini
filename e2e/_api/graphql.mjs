@@ -133,7 +133,7 @@ export const resolvers = {
 			}
 
 			if (!user) {
-				throw new Error('User not found')
+				throw new GraphQLYogaError('User not found', { code: 404 })
 			}
 			return user
 		},
