@@ -32,7 +32,7 @@ export class ${storeName} extends ${store_class} {
 	// the type definitions for the store
 	const typeDefs = `import type { ${_input}, ${_data}, ${_optimistic}, ${store_class} } from '$houdini'
 
-export declare class ${storeName} extends ${store_class}<${_data} | undefined, ${_input}, ${_optimistic}>{
+export declare class ${storeName} extends ${store_class}<${_data}, ${_input}, ${_optimistic}>{
 	constructor() {
 		// @ts-ignore
 		super({})
