@@ -208,7 +208,6 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 	async #liveQuery(
 		args: Parameters<QueryStore<_Data, _Input>['fetchAndCache']>[0]
 	): Promise<FetchValue<_Data, _Input>> {
-		console.log('setting up live query')
 		// grab the current client
 		const client = await getCurrentClient()
 
@@ -234,6 +233,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 					// set the new value in the store
 					this.store.update((val) => ({
 						...val,
+						fetching: false,
 						data: newValue,
 					}))
 

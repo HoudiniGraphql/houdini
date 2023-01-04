@@ -24,7 +24,6 @@ test('index file - esm', async function () {
 
 	// open up the index file
 	const queryContents = await fs.readFile(path.join(config.artifactDirectory, 'index.js'))
-	console.log({ queryContents })
 	expect(queryContents).toBeTruthy()
 	// parse the contents
 	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
