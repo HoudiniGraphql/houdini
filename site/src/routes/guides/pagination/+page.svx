@@ -140,7 +140,7 @@ For information about how to customize this behavior, check out the [Caching Dat
 ## Mutation Operations
 
 A paginated field can be marked as a potential target for a mutation operation by passing
-a `name` argument to the `@paginate` directive. For more information, see [this document](/api/mutation/inline#lists).
+a `name` argument to the `@paginate` directive. For more information, see [this document](/api/mutation#lists).
 
 ```typescript
 const userWithFriends = paginatedFragment(
