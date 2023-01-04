@@ -226,6 +226,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 				text: args.artifact.raw,
 				variables: args.variables,
 				hash: args.artifact.hash,
+				...args.context,
 				updateValue: (updater) => {
 					// ask the client for the new value given the current one
 					const newValue = updater(get(this.store).data)

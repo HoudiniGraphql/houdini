@@ -128,7 +128,7 @@ export type SubscriptionHandler = {
 // a live query needs to take the fetch params, pass values to onMessage, and register
 // a function to use when the live query is closed
 export type LiveQueryHandler = (
-	params: FetchParams & { updateValue: (updater: (old: any) => any) => void }
+	params: FetchParams & FetchContext & { updateValue: (updater: (old: any) => any) => void }
 ) => () => void
 
 export type FetchParams = {
@@ -155,11 +155,7 @@ export type FetchContext = {
  * ```
  *
  */
-export type RequestHandlerArgs = FetchContext &
-	FetchParams & {
-		session?: // @ts-ignore
-		App.Session
-	}
+export type RequestHandlerArgs = FetchContext & FetchParams
 
 export type RequestHandler<_Data = any> = (
 	args: RequestHandlerArgs
