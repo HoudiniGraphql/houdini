@@ -5,7 +5,8 @@ const api_key =
 	'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NzI1OTU1NDksImlzcyI6ImdyYWZiYXNlIiwiYXVkIjoiMDFHTlE3REFXRkI3UE5WTkhLWlFEQ1ZQQUsiLCJqdGkiOiIwMUdOUTdEQVdGRVFERFRCUTVGTVI3SkZNOCIsImVudiI6InByb2R1Y3Rpb24iLCJwdXJwb3NlIjoicHJvamVjdC1hcGkta2V5In0.iH9T9FaE9vTRjPvbMVZnWzPRXHbyzwigKY4RjE4lxpk';
 
 const requestHandler: RequestHandler = async ({ fetch, text = '', variables = {}, metadata }) => {
-	const result = await fetch(api_url, {
+	console.log('sending query', text);
+	const request = await fetch(api_url, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
@@ -16,7 +17,12 @@ const requestHandler: RequestHandler = async ({ fetch, text = '', variables = {}
 			variables
 		})
 	});
-	return await result.json();
+
+	const result = await request.json();
+
+	console.log(result);
+
+	return result;
 };
 
 const liveQueryHandler: LiveQueryHandler = ({ text, variables, onMessage }) => {

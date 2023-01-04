@@ -267,6 +267,10 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 					getCache().unsubscribe(this.subscriptionSpec, this.lastVariables || {})
 				}
 
+				if (this.onUnsubscribe) {
+					this.onUnsubscribe()
+				}
+
 				// clear the active subscription
 				this.subscriptionSpec = null
 			}
