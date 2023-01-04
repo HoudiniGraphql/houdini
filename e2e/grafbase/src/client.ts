@@ -1,5 +1,4 @@
 import { HoudiniClient, type RequestHandler, type SubscriptionHandler } from '$houdini';
-import { browser } from '$app/environment';
 
 const api_url = 'https://grafbase-test-main-alecaivazis.grafbase.app/graphql';
 const api_key =

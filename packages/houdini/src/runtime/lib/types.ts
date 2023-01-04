@@ -41,6 +41,7 @@ export type QueryArtifact = BaseCompiledDocument & {
 	kind: ArtifactKind.Query
 	policy?: CachePolicy
 	partial?: boolean
+	live: boolean
 }
 
 export type MutationArtifact = BaseCompiledDocument & {
