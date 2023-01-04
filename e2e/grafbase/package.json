@@ -27,6 +27,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"jsonpatch": "^3.1.0",
 		"reconnecting-eventsource": "^1.6.2"
 	}
 }

@@ -64,6 +64,7 @@ importers:
             graphql: ^15.8.0
             houdini: workspace:^
             houdini-svelte: workspace:^
+            jsonpatch: ^3.1.0
             prettier: ^2.8.0
             prettier-plugin-svelte: ^2.8.1
             reconnecting-eventsource: ^1.6.2
@@ -73,6 +74,7 @@ importers:
             typescript: ^4.9.3
             vite: ^4.0.0
         dependencies:
+            jsonpatch: 3.1.0
             reconnecting-eventsource: 1.6.2
         devDependencies:
             '@sveltejs/adapter-auto': 1.0.0_@sveltejs+kit@1.0.0
@@ -6970,6 +6972,14 @@ packages:
             universalify: 2.0.0
         optionalDependencies:
             graceful-fs: 4.2.10
+        dev: false
+
+    /jsonpatch/3.1.0:
+        resolution:
+            {
+                integrity: sha512-rJa0FepwDzebgYAuT389AtziWfn3EZA4N5e/B8d50IC1glqlZ7njo7iAI/ph5MYw2GGH7lCE6DGqBGQ7TVa06w==,
+            }
+        engines: { node: '>=0.4.0' }
         dev: false
 
     /jsx-ast-utils/3.3.3:
