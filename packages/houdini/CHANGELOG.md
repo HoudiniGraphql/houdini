@@ -1,5 +1,11 @@
 # houdini
 
+## 1.0.0-next.1
+
+### Patch Changes
+
+-   [#801](https://github.com/HoudiniGraphql/houdini/pull/801) [`1d18dd4`](https://github.com/HoudiniGraphql/houdini/commit/1d18dd42c66933bbb67d2357a6cbb9023235cff9) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Update init command to always write to vite.config.js
+
 ## 1.0.0-next.0
 
 ### ⚠️ Breaking Changes
