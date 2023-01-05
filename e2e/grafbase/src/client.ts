@@ -37,7 +37,14 @@ const liveQueryHandler: LiveQueryHandler = ({ text, variables, updateValue }) =>
 		// if we have a patch, apply it otherwise just use the value
 		if (payload.patch) {
 			updateValue((previousValue) => apply_patch(previousValue, payload.patch));
-		} else {
+		}
+		// stop listening to the event source if we get an error
+		else if (payload.errors) {
+			eventSource.close();
+			console.error(payload.errors);
+		}
+		// the payload contains the full data we want to use
+		else {
 			updateValue(() => payload.data);
 		}
 	});
