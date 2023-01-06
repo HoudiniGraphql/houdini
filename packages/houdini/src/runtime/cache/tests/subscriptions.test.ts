@@ -381,6 +381,8 @@ test('overwriting a linked list with null clears its subscribers', function () {
 		},
 	})
 
+	console.log(cache._internal_unstable.subscriptions.subscribers)
+
 	// make sure something is subscribing to the friends field
 	expect(cache._internal_unstable.subscriptions.get('User:1', 'friends')).toHaveLength(1)
 	expect(cache._internal_unstable.subscriptions.get('User:2', 'firstName')).toHaveLength(1)

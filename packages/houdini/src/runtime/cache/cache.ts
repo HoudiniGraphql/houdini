@@ -8,7 +8,7 @@ import { ListCollection, ListManager } from './lists'
 import { SchemaManager } from './schema'
 import { InMemoryStorage, Layer, LayerID } from './storage'
 import { evaluateKey, flattenList } from './stuff'
-import { InMemorySubscriptions } from './subscription'
+import { type FieldSelection, InMemorySubscriptions } from './subscription'
 
 export class Cache {
 	// the internal implementation for a lot of the cache's methods are moved into
@@ -53,7 +53,9 @@ export class Cache {
 			: this._internal_unstable.storage.topLayer
 
 		// write any values that we run into and get a list of subscribers
-		const subscribers = this._internal_unstable.writeSelection({ ...args, layer })
+		const subscribers = this._internal_unstable
+			.writeSelection({ ...args, layer })
+			.map((sub) => sub[0])
 
 		// the same spec will likely need to be updated multiple times, create the unique list by using the set
 		// function's identity
@@ -217,10 +219,10 @@ class CacheInternal {
 		parent?: string
 		root?: string
 		layer: Layer
-		toNotify?: SubscriptionSpec[]
+		toNotify?: FieldSelection[]
 		applyUpdates?: boolean
 		forceNotify?: boolean
-	}): SubscriptionSpec[] {
+	}): FieldSelection[] {
 		// if the cache is disabled, dont do anything
 		if (this._disabled) {
 			return []
@@ -322,7 +324,12 @@ class CacheInternal {
 				const previousLinks = flattenList<string>([previousValue as string | string[]])
 
 				for (const link of previousLinks) {
-					this.subscriptions.remove(link, fieldSelection, currentSubscribers, variables)
+					this.subscriptions.remove(
+						link,
+						fieldSelection,
+						currentSubscribers.map((sub) => sub[0]),
+						variables
+					)
 				}
 
 				layer.writeLink(parent, key, null)
@@ -372,7 +379,7 @@ class CacheInternal {
 						this.subscriptions.remove(
 							previousValue,
 							fieldSelection,
-							currentSubscribers,
+							currentSubscribers.map((sub) => sub[0]),
 							variables
 						)
 					}
@@ -380,7 +387,6 @@ class CacheInternal {
 					// copy the subscribers to the new value
 					this.subscriptions.addMany({
 						parent: linkedID,
-						selection: fieldSelection,
 						subscribers: currentSubscribers,
 						variables,
 						parentType: linkedType,
@@ -551,7 +557,12 @@ class CacheInternal {
 						continue
 					}
 
-					this.subscriptions.remove(lostID, fieldSelection, currentSubscribers, variables)
+					this.subscriptions.remove(
+						lostID,
+						fieldSelection,
+						currentSubscribers.map((sub) => sub[0]),
+						variables
+					)
 				}
 
 				// if there was a change in the list
@@ -568,7 +579,6 @@ class CacheInternal {
 
 					this.subscriptions.addMany({
 						parent: id,
-						selection: fieldSelection,
 						subscribers: currentSubscribers,
 						variables,
 						parentType: linkedType,
@@ -950,7 +960,7 @@ class CacheInternal {
 		linkedType: string
 		abstract: boolean
 		variables: {}
-		specs: SubscriptionSpec[]
+		specs: FieldSelection[]
 		applyUpdates: boolean
 		fields: SubscriptionSelection
 		layer: Layer

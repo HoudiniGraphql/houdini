@@ -369,7 +369,7 @@ export class List {
 			// if we are unsubscribing from a connection, the fields we care about
 			// are tucked away under edges
 			this.connection ? this.selection.fields!.edges.selection! : this.selection,
-			subscribers,
+			subscribers.map((sub) => sub[0]),
 			variables
 		)
 
@@ -377,7 +377,7 @@ export class List {
 		this.cache._internal_unstable.storage.remove(parentID, targetKey, targetID)
 
 		// notify the subscribers about the change
-		for (const spec of subscribers) {
+		for (const [spec] of subscribers) {
 			// trigger the update
 			spec.set(
 				this.cache._internal_unstable.getSelection({
