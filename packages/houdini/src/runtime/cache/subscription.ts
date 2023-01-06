@@ -98,6 +98,7 @@ export class InMemorySubscriptions {
 		parentType: string
 		variables: GraphQLObject
 	}) {
+		console.log('subscribing', id, key)
 		// if we haven't seen the id or field before, create a list we can add to
 		if (!this.subscribers[id]) {
 			this.subscribers[id] = {}

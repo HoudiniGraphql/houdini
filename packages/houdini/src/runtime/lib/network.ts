@@ -2,7 +2,7 @@
 import cache from '../cache'
 import type { ConfigFile } from './config'
 import { extractFiles } from './networkUtils'
-import { DocumentObserver } from './pipeline'
+import { DocumentObserver, ObserverMiddleware } from './operations'
 import {
 	CachePolicy,
 	DataSource,
@@ -13,6 +13,7 @@ import {
 	RequestPayload,
 	RequestPayloadMagic,
 	DocumentArtifact,
+	SubscriptionSpec,
 } from './types'
 
 export class HoudiniClient {
@@ -31,7 +32,7 @@ export class HoudiniClient {
 	}
 
 	observe(artifact: DocumentArtifact) {
-		return new DocumentObserver({ artifact })
+		return new DocumentObserver({ artifact, middlewares: defaultMiddlewares })
 	}
 
 	handleMultipart(
@@ -301,3 +302,31 @@ export async function fetchQuery<_Data extends GraphQLObject, _Input extends {}>
 		partial: false,
 	}
 }
+
+const queryMiddleware: ObserverMiddleware = function () {
+	// track the bits of state we need to hold onto
+	let lastVariables = null
+	let subscriptionSpec: SubscriptionSpec | null = null
+
+	// the function to call when a query is sent
+	return {}
+}
+
+const mutationMiddleware: ObserverMiddleware = function () {
+	return {}
+}
+
+const subscriptionMiddleware: ObserverMiddleware = function () {
+	return {}
+}
+
+const fetchMiddleware: ObserverMiddleware = function () {
+	return {}
+}
+
+const defaultMiddlewares = [
+	queryMiddleware,
+	mutationMiddleware,
+	subscriptionMiddleware,
+	fetchMiddleware,
+]
