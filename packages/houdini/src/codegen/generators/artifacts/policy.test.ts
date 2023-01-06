@@ -42,6 +42,7 @@ test('cache policy is persisted in artifact', async function () {
 		\`,
 
 		    rootType: "Query",
+		    live: false,
 
 		    selection: {
 		        fields: {
@@ -123,6 +124,7 @@ test('can change default cache policy', async function () {
 		\`,
 
 		    rootType: "Query",
+		    live: false,
 
 		    selection: {
 		        fields: {
@@ -199,6 +201,7 @@ test('partial opt-in is persisted', async function () {
 		\`,
 
 		    rootType: "Query",
+		    live: false,
 
 		    selection: {
 		        fields: {
@@ -280,6 +283,7 @@ test('can set default partial opt-in', async function () {
 		\`,
 
 		    rootType: "Query",
+		    live: false,
 
 		    selection: {
 		        fields: {

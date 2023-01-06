@@ -456,6 +456,7 @@ test('embeds node pagination query as a separate document', async function () {
 		\`,
 
 		    rootType: "Query",
+		    live: false,
 
 		    selection: {
 		        fields: {
@@ -747,6 +748,7 @@ test('embeds custom pagination query as a separate document', async function () 
 		\`,
 
 		    rootType: "Query",
+		    live: false,
 
 		    selection: {
 		        fields: {
@@ -1406,6 +1408,7 @@ test('generated query has same refetch spec', async function () {
 		\`,
 
 		    rootType: "Query",
+		    live: false,
 
 		    selection: {
 		        fields: {

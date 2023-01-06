@@ -51,10 +51,17 @@ export class InMemorySubscriptions {
 			const key = evaluateKey(keyRaw, variables)
 
 			// add the subscriber to the field
+			let targetSelection: FieldSelection[1]
+			if (innerSelection) {
+				// figure out the correct selection
+				const __typename = this.cache._internal_unstable.storage.get(parent, '__typename')
+					.value as string
+				targetSelection = getFieldsForType(innerSelection, __typename)
+			}
 			this.addFieldSubscription({
 				id: parent,
 				key,
-				selection: [spec, innerSelection?.fields],
+				selection: [spec, targetSelection],
 			})
 
 			if (list) {
@@ -283,15 +290,20 @@ export class InMemorySubscriptions {
 		// walk down to every record we know about
 		const linkedIDs: [string, SubscriptionSelection][] = []
 
+		// figure out the correct selection
+		const __typename = this.cache._internal_unstable.storage.get(id, '__typename')
+			.value as string
+		let targetSelection = getFieldsForType(selection, __typename)
+
 		// look at the fields for ones corresponding to links
-		for (const fieldSelection of Object.values(selection.fields || {})) {
+		for (const fieldSelection of Object.values(targetSelection || {})) {
 			const key = evaluateKey(fieldSelection.keyRaw, variables)
 
 			// remove the subscribers for the field
 			this.removeSubscribers(id, key, targets)
 
 			// if there is no subselection it doesn't point to a link, move on
-			if (!fieldSelection.selection?.fields) {
+			if (!fieldSelection.selection) {
 				continue
 			}
 
