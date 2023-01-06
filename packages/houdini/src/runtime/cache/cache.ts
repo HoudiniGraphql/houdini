@@ -271,6 +271,7 @@ class CacheInternal {
 
 			// the current set of subscribers
 			const currentSubscribers = this.subscriptions.get(parent, key)
+			const specs = currentSubscribers.map((sub) => sub[0])
 
 			// look up the previous value
 			const { value: previousValue, displayLayers } = this.storage.get(parent, key)
@@ -324,12 +325,7 @@ class CacheInternal {
 				const previousLinks = flattenList<string>([previousValue as string | string[]])
 
 				for (const link of previousLinks) {
-					this.subscriptions.remove(
-						link,
-						fieldSelection,
-						currentSubscribers.map((sub) => sub[0]),
-						variables
-					)
+					this.subscriptions.remove(link, fieldSelection, specs, variables)
 				}
 
 				layer.writeLink(parent, key, null)
@@ -376,12 +372,7 @@ class CacheInternal {
 					// we need to clear the subscriptions in the previous link
 					// and add them to the new link
 					if (previousValue && typeof previousValue === 'string') {
-						this.subscriptions.remove(
-							previousValue,
-							fieldSelection,
-							currentSubscribers.map((sub) => sub[0]),
-							variables
-						)
+						this.subscriptions.remove(previousValue, fieldSelection, specs, variables)
 					}
 
 					// copy the subscribers to the new value
@@ -557,12 +548,7 @@ class CacheInternal {
 						continue
 					}
 
-					this.subscriptions.remove(
-						lostID,
-						fieldSelection,
-						currentSubscribers.map((sub) => sub[0]),
-						variables
-					)
+					this.subscriptions.remove(lostID, fieldSelection, specs, variables)
 				}
 
 				// if there was a change in the list
