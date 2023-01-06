@@ -448,7 +448,6 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 
 		// if we have a live query to unsubscribe
 		if (this.onUnsubscribe) {
-			console.log('on subscribe')
 			this.onUnsubscribe()
 		}
 

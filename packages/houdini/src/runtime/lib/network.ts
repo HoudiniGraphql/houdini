@@ -1,8 +1,8 @@
 /// <reference path="../../../../../houdini.d.ts" />
 import cache from '../cache'
 import type { ConfigFile } from './config'
-import * as log from './log'
 import { extractFiles } from './networkUtils'
+import { DocumentObserver } from './pipeline'
 import {
 	CachePolicy,
 	DataSource,
@@ -12,6 +12,7 @@ import {
 	FetchQueryResult,
 	RequestPayload,
 	RequestPayloadMagic,
+	DocumentArtifact,
 } from './types'
 
 export class HoudiniClient {
@@ -27,6 +28,10 @@ export class HoudiniClient {
 		this.fetchFn = requestHandler
 		this.socket = subscriptionHandler
 		this.live = liveQueryHandler
+	}
+
+	observe(artifact: DocumentArtifact) {
+		return new DocumentObserver({ artifact })
 	}
 
 	handleMultipart(
