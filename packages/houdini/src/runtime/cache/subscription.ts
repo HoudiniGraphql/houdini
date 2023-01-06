@@ -2,6 +2,7 @@ import { getFieldsForType } from '../lib/selection'
 import type { SubscriptionSpec, SubscriptionSelection, GraphQLObject } from '../lib/types'
 import type { GraphQLValue } from '../lib/types'
 import { Cache, LinkedList } from './cache'
+import { List } from './lists'
 import { evaluateKey, flattenList } from './stuff'
 
 export type FieldSelection = [
@@ -45,7 +46,7 @@ export class InMemorySubscriptions {
 
 		// walk down the selection
 		for (const fieldSelection of Object.values(targetSelection || {})) {
-			const { keyRaw, selection: innerSelection, type } = fieldSelection
+			const { keyRaw, selection: innerSelection, type, list, filters } = fieldSelection
 
 			const key = evaluateKey(keyRaw, variables)
 
@@ -54,10 +55,19 @@ export class InMemorySubscriptions {
 				id: parent,
 				key,
 				selection: [spec, innerSelection?.fields],
-				parentType: parentType || spec.rootType,
-				variables,
 			})
 
+			if (list) {
+				this.registerList({
+					list,
+					filters,
+					id: parent,
+					key,
+					variables,
+					selection: innerSelection!,
+					parentType: parentType || spec.rootType,
+				})
+			}
 			// if the field points to a link, we need to subscribe to any fields of that
 			// linked record
 			if (innerSelection) {
@@ -93,14 +103,10 @@ export class InMemorySubscriptions {
 		id,
 		key,
 		selection,
-		parentType,
-		variables,
 	}: {
 		id: string
 		key: string
 		selection: FieldSelection
-		parentType: string
-		variables: GraphQLObject
 	}) {
 		const spec = selection[0]
 		// if we haven't seen the id or field before, create a list we can add to
@@ -140,27 +146,43 @@ export class InMemorySubscriptions {
 
 		// if this field is marked as a list, register it. this will overwrite existing list handlers
 		// so that they can get up to date filters
-		const { selection: innerSelection, list, filters } = selection[1]?.[key] ?? {}
-		console.log({ id, key, innerSelection, selection })
-		if (innerSelection && list) {
-			this.cache._internal_unstable.lists.add({
-				name: list.name,
-				connection: list.connection,
-				recordID: id,
-				recordType:
-					(this.cache._internal_unstable.storage.get(id, '__typename')
-						?.value as string) || parentType,
-				listType: list.type,
-				key,
-				selection: innerSelection,
-				filters: Object.entries(filters || {}).reduce((acc, [key, { kind, value }]) => {
-					return {
-						...acc,
-						[key]: kind !== 'Variable' ? value : variables[value as string],
-					}
-				}, {}),
-			})
-		}
+		const { selection: innerSelection } = selection[1]?.[key] ?? {}
+	}
+
+	registerList({
+		list,
+		id,
+		key,
+		parentType,
+		selection,
+		filters,
+		variables,
+	}: {
+		list: Required<Required<SubscriptionSelection>['fields'][string]>['list']
+		selection: SubscriptionSelection
+		id: string
+		parentType: string
+		key: string
+		filters: Required<SubscriptionSelection>['fields'][string]['filters']
+		variables: Record<string, any>
+	}) {
+		this.cache._internal_unstable.lists.add({
+			name: list.name,
+			connection: list.connection,
+			recordID: id,
+			recordType:
+				(this.cache._internal_unstable.storage.get(id, '__typename')?.value as string) ||
+				parentType,
+			listType: list.type,
+			key,
+			selection: selection,
+			filters: Object.entries(filters || {}).reduce((acc, [key, { kind, value }]) => {
+				return {
+					...acc,
+					[key]: kind !== 'Variable' ? value : variables[value as string],
+				}
+			}, {}),
+		})
 	}
 
 	// this is different from add because of the treatment of lists
@@ -179,7 +201,13 @@ export class InMemorySubscriptions {
 		for (const [spec, targetSelection] of subscribers) {
 			// look at every field in the selection and add the subscribers
 			for (const selection of Object.values(targetSelection ?? {})) {
-				const { type: linkedType, keyRaw, selection: innerSelection } = selection
+				const {
+					type: linkedType,
+					keyRaw,
+					selection: innerSelection,
+					list,
+					filters,
+				} = selection
 				const key = evaluateKey(keyRaw, variables)
 
 				// figure out the selection for the field we are writing
@@ -191,10 +219,19 @@ export class InMemorySubscriptions {
 					id: parent,
 					key,
 					selection: [spec, fieldSelection],
-					parentType,
-					variables,
 				})
 
+				if (list) {
+					this.registerList({
+						list,
+						filters,
+						id: parent,
+						key,
+						variables,
+						selection: innerSelection!,
+						parentType: parentType || spec.rootType,
+					})
+				}
 				// if there are fields under this
 				const childSelection = selection.selection
 				if (childSelection) {
