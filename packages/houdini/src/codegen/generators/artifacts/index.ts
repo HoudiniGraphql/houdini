@@ -169,9 +169,6 @@ export default function artifactGenerator(stats: {
 					let rootType: string | undefined = ''
 					let selectionSet: graphql.SelectionSetNode
 
-					// we need to identify the document points to something tagged with @live
-					let live = false
-
 					// if we are generating the artifact for an operation
 					if (docKind !== ArtifactKind.Fragment) {
 						// find the operation
@@ -179,11 +176,6 @@ export default function artifactGenerator(stats: {
 
 						if (operation.operation === 'query') {
 							rootType = config.schema.getQueryType()?.name
-
-							// check if the operation is tagged with @live
-							live = !!operation.directives?.find(
-								(directive) => directive.name.value === config.liveDirective
-							)
 						} else if (operation.operation === 'mutation') {
 							rootType = config.schema.getMutationType()?.name
 						} else if (operation.operation === 'subscription') {
@@ -252,7 +244,6 @@ export default function artifactGenerator(stats: {
 						refetch: doc.refetch,
 						raw: rawString,
 						rootType,
-						live,
 						selection: selection({
 							config,
 							filepath: doc.filename,

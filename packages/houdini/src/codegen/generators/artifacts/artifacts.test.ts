@@ -47,7 +47,6 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		\`,
 
 		    rootType: "Query",
-		    live: false,
 
 		    selection: {
 		        fields: {
@@ -77,7 +76,6 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		\`,
 
 		    rootType: "User",
-		    live: false,
 
 		    selection: {
 		        fields: {
@@ -123,7 +121,6 @@ test('selection includes fragments', async function () {
 		\`,
 
 		    rootType: "Query",
-		    live: false,
 
 		    selection: {
 		        fields: {
@@ -167,7 +164,6 @@ test('selection includes fragments', async function () {
 		\`,
 
 		    rootType: "User",
-		    live: false,
 
 		    selection: {
 		        fields: {
@@ -212,7 +208,6 @@ test('internal directives are scrubbed', async function () {
 		\`,
 
 		    rootType: "Query",
-		    live: false,
 
 		    selection: {
 		        fields: {
@@ -280,7 +275,6 @@ test('variables only used by internal directives are scrubbed', async function (
 		\`,
 
 		    rootType: "Query",
-		    live: false,
 
 		    selection: {
 		        fields: {
@@ -351,7 +345,6 @@ test('overlapping query and fragment selection', async function () {
 		\`,
 
 		    rootType: "Query",
-		    live: false,
 
 		    selection: {
 		        fields: {
@@ -415,7 +408,6 @@ test('interface to interface inline fragment', async function () {
 		\`,
 
 		    rootType: "Query",
-		    live: false,
 
 		    selection: {
 		        fields: {
@@ -549,7 +541,6 @@ test('paginate over unions', async function () {
 		\`,
 
 		    rootType: "Query",
-		    live: false,
 
 		    selection: {
 		        fields: {
@@ -715,7 +706,6 @@ test('overlapping query and fragment nested selection', async function () {
 		\`,
 
 		    rootType: "Query",
-		    live: false,
 
 		    selection: {
 		        fields: {
@@ -839,7 +829,6 @@ test('selections with interfaces', async function () {
 		\`,
 
 		    rootType: "Query",
-		    live: false,
 
 		    selection: {
 		        fields: {
@@ -966,7 +955,6 @@ test('selections with unions', async function () {
 		\`,
 
 		    rootType: "Query",
-		    live: false,
 
 		    selection: {
 		        fields: {
@@ -1095,7 +1083,6 @@ test('selections with overlapping unions', async function () {
 		\`,
 
 		    rootType: "Query",
-		    live: false,
 
 		    selection: {
 		        fields: {
@@ -1237,7 +1224,6 @@ test('selections with unions of abstract types', async function () {
 		\`,
 
 		    rootType: "Query",
-		    live: false,
 
 		    selection: {
 		        fields: {
@@ -1382,7 +1368,6 @@ test('selections with concrete types matching multiple abstract types', async fu
 		\`,
 
 		    rootType: "Query",
-		    live: false,
 
 		    selection: {
 		        fields: {
@@ -1538,7 +1523,6 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    rootType: "Mutation",
-			    live: false,
 
 			    selection: {
 			        fields: {
@@ -1623,7 +1607,6 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    rootType: "Mutation",
-			    live: false,
 
 			    selection: {
 			        fields: {
@@ -1713,7 +1696,6 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    rootType: "Mutation",
-			    live: false,
 
 			    selection: {
 			        fields: {
@@ -1808,7 +1790,6 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    rootType: "Mutation",
-			    live: false,
 
 			    selection: {
 			        fields: {
@@ -1903,7 +1884,6 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    rootType: "Mutation",
-			    live: false,
 
 			    selection: {
 			        fields: {
@@ -1994,7 +1974,6 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    rootType: "Mutation",
-			    live: false,
 
 			    selection: {
 			        fields: {
@@ -2084,7 +2063,6 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    rootType: "Mutation",
-			    live: false,
 
 			    selection: {
 			        fields: {
@@ -2159,7 +2137,6 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    rootType: "Mutation",
-			    live: false,
 
 			    selection: {
 			        fields: {
@@ -2225,7 +2202,6 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    rootType: "Mutation",
-			    live: false,
 
 			    selection: {
 			        fields: {
@@ -2307,7 +2283,6 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    rootType: "Mutation",
-			    live: false,
 
 			    selection: {
 			        fields: {
@@ -2403,7 +2378,6 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    rootType: "Mutation",
-			    live: false,
 
 			    selection: {
 			        fields: {
@@ -2499,7 +2473,6 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    rootType: "Mutation",
-			    live: false,
 
 			    selection: {
 			        fields: {
@@ -2595,7 +2568,6 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    rootType: "Mutation",
-			    live: false,
 
 			    selection: {
 			        fields: {
@@ -2692,7 +2664,6 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    rootType: "Mutation",
-			    live: false,
 
 			    selection: {
 			        fields: {
@@ -2789,7 +2760,6 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    rootType: "Mutation",
-			    live: false,
 
 			    selection: {
 			        fields: {
@@ -2886,7 +2856,6 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    rootType: "Mutation",
-			    live: false,
 
 			    selection: {
 			        fields: {
@@ -2983,7 +2952,6 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    rootType: "Mutation",
-			    live: false,
 
 			    selection: {
 			        fields: {
@@ -3078,7 +3046,6 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    rootType: "Query",
-			    live: false,
 
 			    selection: {
 			        fields: {
@@ -3193,7 +3160,6 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    rootType: "Mutation",
-			    live: false,
 
 			    selection: {
 			        fields: {
@@ -3283,7 +3249,6 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    rootType: "Query",
-			    live: false,
 
 			    selection: {
 			        fields: {
@@ -3399,7 +3364,6 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    rootType: "Query",
-			    live: false,
 
 			    selection: {
 			        fields: {
@@ -3553,7 +3517,6 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    rootType: "Query",
-			    live: false,
 
 			    selection: {
 			        fields: {
@@ -3659,7 +3622,6 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    rootType: "Query",
-			    live: false,
 
 			    selection: {
 			        fields: {
@@ -3779,7 +3741,6 @@ test('custom scalar shows up in artifact', async function () {
 		\`,
 
 		    rootType: "Query",
-		    live: false,
 
 		    selection: {
 		        fields: {
@@ -3885,7 +3846,6 @@ test('operation inputs', async function () {
 		\`,
 
 		    rootType: "Query",
-		    live: false,
 
 		    selection: {
 		        fields: {
@@ -3976,7 +3936,6 @@ describe('subscription artifacts', function () {
 			\`,
 
 			    rootType: "Subscription",
-			    live: false,
 
 			    selection: {
 			        fields: {
@@ -4036,7 +3995,6 @@ test('persists live indicator on queries', async function () {
 		\`,
 
 		    rootType: "Query",
-		    live: true,
 
 		    selection: {
 		        fields: {

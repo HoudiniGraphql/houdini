@@ -67,7 +67,6 @@ test('pagination arguments stripped from key', async function () {
 		\`,
 
 		    rootType: "User",
-		    live: false,
 
 		    selection: {
 		        fields: {
@@ -192,7 +191,6 @@ test('offset based pagination marks appropriate field', async function () {
 		\`,
 
 		    rootType: "User",
-		    live: false,
 
 		    selection: {
 		        fields: {
@@ -297,7 +295,6 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		\`,
 
 		    rootType: "Query",
-		    live: false,
 
 		    selection: {
 		        fields: {
@@ -541,7 +538,6 @@ test("sibling aliases don't get marked", async function () {
 		\`,
 
 		    rootType: "User",
-		    live: false,
 
 		    selection: {
 		        fields: {

@@ -57,7 +57,6 @@ test('pass argument values to generated fragments', async function () {
 		\`,
 
 		    rootType: "Query",
-		    live: false,
 
 		    selection: {
 		        fields: {
@@ -135,7 +134,6 @@ test("nullable arguments with no values don't show up in the query", async funct
 		\`,
 
 		    rootType: "Query",
-		    live: false,
 
 		    selection: {
 		        fields: {
@@ -213,7 +211,6 @@ test("fragment arguments with default values don't rename the fragment", async f
 		\`,
 
 		    rootType: "Query",
-		    live: false,
 
 		    selection: {
 		        fields: {
@@ -303,7 +300,6 @@ test('thread query variables to inner fragments', async function () {
 		\`,
 
 		    rootType: "Query",
-		    live: false,
 
 		    selection: {
 		        fields: {
@@ -401,7 +397,6 @@ test('inner fragment with intermediate default value', async function () {
 		\`,
 
 		    rootType: "Query",
-		    live: false,
 
 		    selection: {
 		        fields: {
@@ -491,7 +486,6 @@ test("default values don't overwrite unless explicitly passed", async function (
 		\`,
 
 		    rootType: "Query",
-		    live: false,
 
 		    selection: {
 		        fields: {
@@ -569,7 +563,6 @@ test('default arguments', async function () {
 		\`,
 
 		    rootType: "Query",
-		    live: false,
 
 		    selection: {
 		        fields: {
@@ -647,7 +640,6 @@ test('multiple with directives - no overlap', async function () {
 		\`,
 
 		    rootType: "Query",
-		    live: false,
 
 		    selection: {
 		        fields: {
