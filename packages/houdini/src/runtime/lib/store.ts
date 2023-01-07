@@ -1,31 +1,31 @@
-// The code in this file is a modified version of the Svelte codebase subject to the MIT license contained at the
+// The code in this file is a modified version of logic from the Svelte codebase subject to the MIT license contained at the
 // bottom of this file
 
 const subscriber_queue: any[] = []
 const noop = () => {}
 
 export class Writable<T> {
-	#state: T | undefined
+	state: T | null
 	#subscribers: Set<SubscribeInvalidateTuple<T>>
 	#stop: Unsubscriber | null
 	#start: StartStopNotifier<T>
 
-	constructor(value?: T, start: StartStopNotifier<T> = noop) {
-		this.#state = value
+	constructor(value: T | null = null, start: StartStopNotifier<T> = noop) {
+		this.state = value
 		this.#subscribers = new Set()
 		this.#stop = null
 		this.#start = start
 	}
 
-	set(new_value: T | undefined): void {
-		if (safe_not_equal(this.#state, new_value)) {
-			this.#state = new_value
+	set(new_value: T | null): void {
+		if (safe_not_equal(this.state, new_value)) {
+			this.state = new_value
 			if (this.#stop) {
 				// store is ready
 				const run_queue = !subscriber_queue.length
 				for (const subscriber of this.#subscribers) {
 					subscriber[1]()
-					subscriber_queue.push(subscriber, this.#state)
+					subscriber_queue.push(subscriber, this.state)
 				}
 				if (run_queue) {
 					for (let i = 0; i < subscriber_queue.length; i += 2) {
@@ -38,7 +38,7 @@ export class Writable<T> {
 	}
 
 	update(fn: Updater<T>): void {
-		this.set(fn(this.#state))
+		this.set(fn(this.state))
 	}
 
 	subscribe(run: Subscriber<T>, invalidate: Invalidator<T> = noop): Unsubscriber {
@@ -47,7 +47,7 @@ export class Writable<T> {
 		if (this.#subscribers.size === 1) {
 			this.#stop = this.#start(this.set) || noop
 		}
-		run(this.#state)
+		run(this.state)
 
 		return () => {
 			this.#subscribers.delete(subscriber)
@@ -64,19 +64,19 @@ function safe_not_equal(a: any, b: any) {
 }
 
 /** Start and stop notification callbacks. */
-export type StartStopNotifier<T> = (set: Subscriber<T>) => Unsubscriber | void
+type StartStopNotifier<T> = (set: Subscriber<T>) => Unsubscriber | void
 
 /** Pair of subscriber and invalidator. */
 type SubscribeInvalidateTuple<T> = [Subscriber<T>, Invalidator<T>]
 
 /** Callback to inform of a value updates. */
-type Subscriber<T> = (value: T | undefined) => void
+type Subscriber<T> = (value: T | null) => void
 
 /** Unsubscribes from value updates. */
 type Unsubscriber = () => void
 
 /** Callback to update a value. */
-type Updater<T> = (value: T | undefined) => T
+type Updater<T> = (value: T | null) => T
 
 /** Cleanup logic callback. */
 type Invalidator<T> = (value?: T) => void

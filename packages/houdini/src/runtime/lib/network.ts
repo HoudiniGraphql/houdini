@@ -1,8 +1,8 @@
 /// <reference path="../../../../../houdini.d.ts" />
 import cache from '../cache'
 import type { ConfigFile } from './config'
+import { DocumentObserver, ObserverMiddleware } from './networkMiddleware'
 import { extractFiles } from './networkUtils'
-import { DocumentObserver, ObserverMiddleware } from './operations'
 import {
 	CachePolicy,
 	DataSource,
@@ -17,22 +17,27 @@ import {
 } from './types'
 
 export class HoudiniClient {
-	private fetchFn: RequestHandler<any>
 	socket: SubscriptionHandler | null | undefined
-	live: LiveQueryHandler | null | undefined
 
-	constructor(
-		requestHandler: RequestHandler<any>,
-		subscriptionHandler?: SubscriptionHandler | null,
-		liveQueryHandler?: LiveQueryHandler | null
-	) {
-		this.fetchFn = requestHandler
+	#middlewares: ObserverMiddleware[]
+
+	constructor({
+		requestHandler,
+		subscriptionHandler,
+		middlewares = defaultMiddlewares,
+	}: {
+		requestHandler?: RequestHandler<any>
+		subscriptionHandler?: SubscriptionHandler | null
+		middlewares: ObserverMiddleware[]
+	}) {
 		this.socket = subscriptionHandler
-		this.live = liveQueryHandler
+
+		// we need to call the hooks in the appropriate order
+		this.#middlewares = middlewares
 	}
 
 	observe(artifact: DocumentArtifact) {
-		return new DocumentObserver({ artifact, middlewares: defaultMiddlewares })
+		return new DocumentObserver({ artifact, middlewares: this.#middlewares })
 	}
 
 	handleMultipart(
@@ -85,39 +90,39 @@ export class HoudiniClient {
 		}
 	}
 
-	async sendRequest<_Data>(
-		ctx: FetchContext,
-		params: FetchParams
-	): Promise<RequestPayloadMagic<_Data>> {
-		let url = ''
+	// async sendRequest<_Data>(
+	// 	ctx: FetchContext,
+	// 	params: FetchParams
+	// ): Promise<RequestPayloadMagic<_Data>> {
+	// 	let url = ''
 
-		// invoke the function
-		const result = await this.fetchFn({
-			// wrap the user's fetch function so we can identify SSR by checking
-			// the response.url
-			fetch: async (...args: Parameters<FetchContext['fetch']>) => {
-				// figure out if we need to do something special for multipart uploads
-				const newArgs = this.handleMultipart(params, args)
+	// 	// invoke the function
+	// 	const result = await this.#fetchFn({
+	// 		// wrap the user's fetch function so we can identify SSR by checking
+	// 		// the response.url
+	// 		fetch: async (...args: Parameters<FetchContext['fetch']>) => {
+	// 			// figure out if we need to do something special for multipart uploads
+	// 			const newArgs = this.handleMultipart(params, args)
 
-				// use the new args if they exist, otherwise the old ones are good
-				const response = await ctx.fetch(...(newArgs || args))
-				if (response.url) {
-					url = response.url
-				}
+	// 			// use the new args if they exist, otherwise the old ones are good
+	// 			const response = await ctx.fetch(...(newArgs || args))
+	// 			if (response.url) {
+	// 				url = response.url
+	// 			}
 
-				return response
-			},
-			...params,
-			metadata: ctx.metadata,
-			session: ctx.session || {},
-		})
+	// 			return response
+	// 		},
+	// 		...params,
+	// 		metadata: ctx.metadata,
+	// 		session: ctx.session || {},
+	// 	})
 
-		// return the result
-		return {
-			body: result,
-			ssr: !url,
-		}
-	}
+	// 	// return the result
+	// 	return {
+	// 		body: result,
+	// 		ssr: !url,
+	// 	}
+	// }
 }
 
 export type SubscriptionHandler = {
@@ -290,16 +295,22 @@ export async function fetchQuery<_Data extends GraphQLObject, _Input extends {}>
 	setFetching(true)
 
 	// the request must be resolved against the network
-	const result = await client.sendRequest<_Data>(context, {
-		text: artifact.raw,
-		hash: artifact.hash,
-		variables,
-	})
+	// const result = await client.sendRequest<_Data>(context, {
+	// 	text: artifact.raw,
+	// 	hash: artifact.hash,
+	// 	variables,
+	// })
+
+	// return {
+	// 	result: result.body,
+	// 	source: result.ssr ? DataSource.Ssr : DataSource.Network,
+	// 	partial: false,
+	// }
 
 	return {
-		result: result.body,
-		source: result.ssr ? DataSource.Ssr : DataSource.Network,
+		result: { data: null, errors: [] },
 		partial: false,
+		source: DataSource.Network,
 	}
 }
 
@@ -320,6 +331,10 @@ const subscriptionMiddleware: ObserverMiddleware = function () {
 	return {}
 }
 
+const cachePolicyMiddleware: ObserverMiddleware = function () {
+	return {}
+}
+
 const fetchMiddleware: ObserverMiddleware = function () {
 	return {}
 }
@@ -328,5 +343,6 @@ const defaultMiddlewares = [
 	queryMiddleware,
 	mutationMiddleware,
 	subscriptionMiddleware,
+	cachePolicyMiddleware,
 	fetchMiddleware,
 ]

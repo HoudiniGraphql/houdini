@@ -2090,7 +2090,6 @@ test('overlapping subscriptions', function () {
 	expect(set2).toHaveBeenCalledOnce()
 
 	// and writing to firstName should trigger set 2
-	// writing to favoriteColors should only trigger selection1
 	cache.write({
 		parent: 'User:1',
 		selection: {
