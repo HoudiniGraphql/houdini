@@ -2,7 +2,7 @@ import { test, expect, vi } from 'vitest'
 
 import cache from '../cache'
 import { HoudiniClient } from './network'
-import { ObserverMiddleware } from './networkMiddleware'
+import { HoudiniMiddleware } from './networkMiddleware'
 import { DocumentArtifact, ArtifactKind } from './types'
 
 const artifact: DocumentArtifact = {
@@ -20,27 +20,13 @@ test('middleware pipeline happy path', async function () {
 		history.push([which, step])
 	}
 
-	const iterable = (() => {
-		const list = [1, 2, 3]
-		const i = 0
-		const state = null
-
-		return {
-			next(args) {
-				list[i + 1].enter(args, {
-					next() {},
-				})
-			},
-		}
-	})()
-
-	const middleware1: ObserverMiddleware = () => ({
+	const middleware1: HoudiniMiddleware = () => ({
 		setup: {
 			enter(ctx, { next }) {
 				tracker(1, 'setup_enter')
 				next(ctx)
 			},
-			exit(ctx, { next }) {
+			exit(ctx, next) {
 				tracker(1, 'setup_exit')
 				next(ctx)
 			},
@@ -52,7 +38,7 @@ test('middleware pipeline happy path', async function () {
 			},
 		},
 	})
-	const middleware2: ObserverMiddleware = () => {
+	const middleware2: HoudiniMiddleware = () => {
 		return {
 			setup: {
 				exit(ctx, next) {
@@ -65,7 +51,7 @@ test('middleware pipeline happy path', async function () {
 					tracker(2, 'fetch_enter')
 					next(ctx)
 				},
-				exit(ctx, { next }) {
+				exit(ctx, next) {
 					tracker(2, 'fetch_exit')
 					next(ctx)
 				},
@@ -73,27 +59,23 @@ test('middleware pipeline happy path', async function () {
 		}
 	}
 
-	const terminate: ObserverMiddleware = () => ({
+	const terminate: HoudiniMiddleware = () => ({
 		setup: {
 			enter(ctx, { next }) {
 				tracker(3, 'setup_enter')
-
 				next(ctx)
 			},
-			exit(ctx, { next }) {
+			exit(ctx, next) {
 				tracker(3, 'setup_exit')
 				next(ctx)
 			},
 		},
 		fetch: {
 			enter(ctx, { terminate }) {
+				tracker(3, 'fetch_enter')
 				terminate('value')
-
-				window.onEvent((msg) => {
-					terminate(msg)
-				})
 			},
-			exit(ctx, { next }) {
+			exit(ctx, next) {
 				tracker(3, 'fetch_exit')
 				next(ctx)
 			},
@@ -103,8 +85,15 @@ test('middleware pipeline happy path', async function () {
 	// create the client with the middlewares
 	const client = new HoudiniClient({ middlewares: [middleware1, middleware2, terminate] })
 
+	// create a store we can subscribe to
+	const store = client.observe(artifact)
+
+	// spy on the subscribe function
+	const subscribeSpy = vi.fn()
+	store.subscribe(subscribeSpy)
+
 	// kick off the pipeline
-	const value = await client.observe(artifact).send()
+	const value = await store.send()
 
 	// make sure we called the hooks in the right order
 	expect(history).toEqual([
@@ -120,5 +109,8 @@ test('middleware pipeline happy path', async function () {
 		[1, 'setup_exit'],
 	])
 
+	// make sure we got the right value back
 	expect(value).toEqual('value')
+	// make sure we updated the store state
+	expect(subscribeSpy).toHaveBeenCalledWith('value')
 })

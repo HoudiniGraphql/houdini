@@ -14,6 +14,7 @@ const client = new HoudiniClient({
 			}
 		};
 	},
+
 	liveQuery({ text, variables, updateValue }) {
 		const url = new URL(api_url);
 		url.searchParams.append('query', text);

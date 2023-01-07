@@ -1,7 +1,7 @@
 /// <reference path="../../../../../houdini.d.ts" />
 import cache from '../cache'
 import type { ConfigFile } from './config'
-import { DocumentObserver, ObserverMiddleware } from './networkMiddleware'
+import { DocumentObserver, HoudiniMiddleware } from './networkMiddleware'
 import { extractFiles } from './networkUtils'
 import {
 	CachePolicy,
@@ -19,7 +19,7 @@ import {
 export class HoudiniClient {
 	socket: SubscriptionHandler | null | undefined
 
-	#middlewares: ObserverMiddleware[]
+	#middlewares: HoudiniMiddleware[]
 
 	constructor({
 		requestHandler,
@@ -28,7 +28,7 @@ export class HoudiniClient {
 	}: {
 		requestHandler?: RequestHandler<any>
 		subscriptionHandler?: SubscriptionHandler | null
-		middlewares: ObserverMiddleware[]
+		middlewares: HoudiniMiddleware[]
 	}) {
 		this.socket = subscriptionHandler
 
@@ -314,7 +314,7 @@ export async function fetchQuery<_Data extends GraphQLObject, _Input extends {}>
 	}
 }
 
-const queryMiddleware: ObserverMiddleware = function () {
+const queryMiddleware: HoudiniMiddleware = function () {
 	// track the bits of state we need to hold onto
 	let lastVariables = null
 	let subscriptionSpec: SubscriptionSpec | null = null
@@ -323,19 +323,19 @@ const queryMiddleware: ObserverMiddleware = function () {
 	return {}
 }
 
-const mutationMiddleware: ObserverMiddleware = function () {
+const mutationMiddleware: HoudiniMiddleware = function () {
 	return {}
 }
 
-const subscriptionMiddleware: ObserverMiddleware = function () {
+const subscriptionMiddleware: HoudiniMiddleware = function () {
 	return {}
 }
 
-const cachePolicyMiddleware: ObserverMiddleware = function () {
+const cachePolicyMiddleware: HoudiniMiddleware = function () {
 	return {}
 }
 
-const fetchMiddleware: ObserverMiddleware = function () {
+const fetchMiddleware: HoudiniMiddleware = function () {
 	return {}
 }
 
