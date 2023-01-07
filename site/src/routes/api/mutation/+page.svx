@@ -74,10 +74,13 @@ export const actions: Actions = {
             }
         `)
 
-        return await actionMutation.mutate({ name })
+        return await actionMutation.mutate({ name }, event)
     }
 }
 ```
+
+Please note that passing the `RequestEvent` through to the `mutate` call is necessary in order for
+SvelteKit's `fetch` request handling to work as expected: header forwarding, `handleFetch` hook, etc.
 
 ## Updating fields
 
