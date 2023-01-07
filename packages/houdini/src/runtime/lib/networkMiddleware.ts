@@ -176,9 +176,9 @@ export class DocumentObserver<
 }
 
 /**
- * A network plugin has 2 primary entry points to modify the pipeline:
- * - setup happens before the request is potentially cached
- * - fetch happens when a request has not been cached
+ * A network plugin has 2 primary entry points to modify the pipeline.
+ * - phaseOne happens before the request is potentially cached
+ * - phaseTwo happens when a request has not been cached and needs to be resolved from the api
  */
 export type HoudiniMiddleware =
 	// the first function lets a middleware setup for a particular observer chain
