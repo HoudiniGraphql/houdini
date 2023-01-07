@@ -1,6 +1,5 @@
 import { test, expect, vi } from 'vitest'
 
-import cache from '../cache'
 import { HoudiniClient } from './network'
 import { HoudiniMiddleware } from './networkMiddleware'
 import { DocumentArtifact, ArtifactKind } from './types'
