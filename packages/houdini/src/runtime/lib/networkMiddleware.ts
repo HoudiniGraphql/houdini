@@ -78,7 +78,7 @@ export class DocumentObserver<
 					},
 					terminate: (newContext, value) => {
 						// start the journey back
-						this.#terminate.bind(
+						this.#terminate(
 							{
 								...ctx,
 								context: newContext,
