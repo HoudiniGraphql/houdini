@@ -42,7 +42,7 @@ export class DocumentObserver<
 				value: null,
 				terminatingIndex: null,
 				index: -1,
-				currentStep: 'setup',
+				currentStep: 'phaseOne',
 				promise: {
 					resolved: false,
 					resolve,
@@ -76,11 +76,12 @@ export class DocumentObserver<
 							index,
 						})
 					},
-					terminate: (value) => {
+					terminate: (newContext, value) => {
 						// start the journey back
-						this.#terminate.bind(this)(
+						this.#terminate.bind(
 							{
 								...ctx,
+								context: newContext,
 								// increment the index so that terminate looks at this link again
 								index: index + 1,
 								// save this value
@@ -100,10 +101,10 @@ export class DocumentObserver<
 		// if we got this far, we have exhausted the step.
 
 		// if we are still in setup, flip over to fetch and start over
-		if (ctx.currentStep === 'setup') {
+		if (ctx.currentStep === 'phaseOne') {
 			return this.#next.bind(this)({
 				...ctx,
-				currentStep: 'fetch',
+				currentStep: 'phaseTwo',
 				index: -1,
 			})
 		}
@@ -148,11 +149,11 @@ export class DocumentObserver<
 		}
 
 		// if we're done with the fetch step, we need to start the setup phase of the termination flow
-		if (ctx.currentStep === 'fetch') {
+		if (ctx.currentStep === 'phaseTwo') {
 			return this.#terminate(
 				{
 					...ctx,
-					currentStep: 'setup',
+					currentStep: 'phaseOne',
 					index: ctx.terminatingIndex || this.#middlewares.length,
 				},
 				value
@@ -182,8 +183,8 @@ export class DocumentObserver<
 export type HoudiniMiddleware =
 	// the first function lets a middleware setup for a particular observer chain
 	() => {
-		setup?: NetworkMiddleware
-		fetch?: NetworkMiddleware
+		phaseOne?: NetworkMiddleware
+		phaseTwo?: NetworkMiddleware
 		cleanup?(): any
 	}
 
@@ -202,7 +203,7 @@ type IteratorState = {
 	index: number
 	value: any
 	terminatingIndex: number | null
-	currentStep: 'setup' | 'fetch'
+	currentStep: 'phaseOne' | 'phaseTwo'
 	promise: {
 		resolved: boolean
 		resolve(val: any): void
@@ -226,5 +227,5 @@ type MiddlewareHandlers = {
 	// TODO: i hate this name. It kind of make sense for a single request
 	// but for a subscription or live query, its more like "push". The semantic
 	// meaning is that the chain is done and should be pushed back in reverse order
-	terminate(data: any): void
+	terminate(ctx: MiddlewareContext, data: any): void
 }

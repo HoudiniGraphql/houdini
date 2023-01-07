@@ -20,7 +20,7 @@ test('middleware pipeline happy path', async function () {
 	}
 
 	const middleware1: HoudiniMiddleware = () => ({
-		setup: {
+		phaseOne: {
 			enter(ctx, { next }) {
 				tracker(1, 'setup_enter')
 				next(ctx)
@@ -30,7 +30,7 @@ test('middleware pipeline happy path', async function () {
 				next(ctx)
 			},
 		},
-		fetch: {
+		phaseTwo: {
 			enter(ctx, { next }) {
 				tracker(1, 'fetch_enter')
 				next(ctx)
@@ -39,13 +39,13 @@ test('middleware pipeline happy path', async function () {
 	})
 	const middleware2: HoudiniMiddleware = () => {
 		return {
-			setup: {
+			phaseOne: {
 				exit(ctx, next) {
 					tracker(2, 'setup_exit')
 					next(ctx)
 				},
 			},
-			fetch: {
+			phaseTwo: {
 				enter(ctx, { next }) {
 					tracker(2, 'fetch_enter')
 					next(ctx)
@@ -59,7 +59,7 @@ test('middleware pipeline happy path', async function () {
 	}
 
 	const terminate: HoudiniMiddleware = () => ({
-		setup: {
+		phaseOne: {
 			enter(ctx, { next }) {
 				tracker(3, 'setup_enter')
 				next(ctx)
@@ -69,10 +69,10 @@ test('middleware pipeline happy path', async function () {
 				next(ctx)
 			},
 		},
-		fetch: {
+		phaseTwo: {
 			enter(ctx, { terminate }) {
 				tracker(3, 'fetch_enter')
-				terminate('value')
+				terminate(ctx, 'value')
 			},
 			exit(ctx, next) {
 				tracker(3, 'fetch_exit')
