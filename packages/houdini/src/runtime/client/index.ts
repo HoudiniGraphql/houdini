@@ -9,6 +9,7 @@ import {
 	FetchQueryResult,
 	DocumentArtifact,
 } from '../lib/types'
+import { DocumentObserver, HoudiniMiddleware } from './documentObserver'
 import {
 	queryMiddleware,
 	mutationMiddleware,
@@ -19,7 +20,6 @@ import {
 	type FetchContext,
 	type SubscriptionHandler,
 } from './middlewares'
-import { DocumentObserver, HoudiniMiddleware } from './networkMiddleware'
 import pluginMiddlewares from './pluginMiddlewares'
 
 export class HoudiniClient {

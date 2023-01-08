@@ -1,4 +1,4 @@
-import { HoudiniMiddleware } from '../networkMiddleware'
+import { HoudiniMiddleware } from '../documentObserver'
 
 export function subscriptionMiddleware(client: SubscriptionHandler): HoudiniMiddleware {
 	return () => {

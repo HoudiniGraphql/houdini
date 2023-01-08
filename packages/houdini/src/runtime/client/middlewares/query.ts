@@ -1,5 +1,5 @@
 import { type SubscriptionSpec } from '../../lib'
-import { type HoudiniMiddleware } from '../networkMiddleware'
+import { type HoudiniMiddleware } from '../documentObserver'
 
 export const queryMiddleware: HoudiniMiddleware = function () {
 	// track the bits of state we need to hold onto

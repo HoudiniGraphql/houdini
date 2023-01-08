@@ -1,8 +1,6 @@
 import type { DocumentArtifact, GraphQLObject } from '../lib'
 import { Writable } from '../lib/store'
 
-type Fetch = typeof globalThis.fetch
-
 export class DocumentObserver<
 	_Data extends GraphQLObject,
 	_Input extends {}
@@ -257,15 +255,6 @@ export type HoudiniMiddleware =
 
 type HoudiniMiddlewareInstance = ReturnType<HoudiniMiddleware>
 
-type MiddlewareContext = {
-	artifact: DocumentArtifact
-	fetch?: Fetch
-	variables?: {}
-	metadata?: App.Metadata | null
-	session?: App.Session
-	fetchParams?: RequestInit
-}
-
 type IteratorState = {
 	context: MiddlewareContext
 	index: number
@@ -279,6 +268,17 @@ type IteratorState = {
 	}
 }
 
+type Fetch = typeof globalThis.fetch
+
+export type MiddlewareContext = {
+	artifact: DocumentArtifact
+	fetch?: Fetch
+	variables?: {}
+	metadata?: App.Metadata | null
+	session?: App.Session
+	fetchParams?: RequestInit
+}
+
 /** NetworkMiddleware describes the logic of the HoudiniClient plugin at a particular stage. */
 export type NetworkMiddleware = {
 	// enter is called when an artifact is pushed through
@@ -288,9 +288,9 @@ export type NetworkMiddleware = {
 	exit?(ctx: ExitContext, next: (ctx: ExitContext, data?: any) => any): void | Promise<void>
 }
 
-type ExitContext = MiddlewareContext & { value: any }
+export type ExitContext = MiddlewareContext & { value: any }
 
-type MiddlewareHandlers = {
+export type MiddlewareHandlers = {
 	next(ctx: MiddlewareContext): void
 	// TODO: i hate this name. It kind of make sense for a single request
 	// but for a subscription or live query, its more like "push". The semantic

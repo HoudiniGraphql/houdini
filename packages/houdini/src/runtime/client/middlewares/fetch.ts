@@ -1,5 +1,5 @@
-import { DataSource, RequestPayload, type SubscriptionSpec } from '../../lib'
-import type { HoudiniMiddleware } from '../networkMiddleware'
+import { DataSource, RequestPayload } from '../../lib'
+import type { HoudiniMiddleware } from '../documentObserver'
 
 export const fetchMiddleware = (fetchFn: RequestHandler): HoudiniMiddleware => {
 	return () => {

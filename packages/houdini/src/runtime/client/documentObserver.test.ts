@@ -1,9 +1,9 @@
 import { sleep } from '@kitql/helper'
 import { test, expect, vi } from 'vitest'
 
+import { HoudiniClient } from '.'
 import { ArtifactKind } from '../lib/types'
-import { HoudiniClient } from './'
-import { DocumentObserver, HoudiniMiddleware } from './networkMiddleware'
+import { DocumentObserver, HoudiniMiddleware } from './documentObserver'
 
 function createStore(middlewares: HoudiniMiddleware[]): DocumentObserver<any, any> {
 	return new HoudiniClient({ middlewares }).observe({
