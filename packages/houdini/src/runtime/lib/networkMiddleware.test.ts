@@ -23,17 +23,17 @@ test('middleware pipeline happy path', async function () {
 	const middleware1: HoudiniMiddleware = () => ({
 		phaseOne: {
 			enter(ctx, { next }) {
-				tracker(1, 'setup_enter')
+				tracker(1, 'one_enter')
 				next(ctx)
 			},
 			exit(ctx, next) {
-				tracker(1, 'setup_exit')
+				tracker(1, 'one_exit')
 				next(ctx)
 			},
 		},
 		phaseTwo: {
 			enter(ctx, { next }) {
-				tracker(1, 'fetch_enter')
+				tracker(1, 'two_enter')
 				next(ctx)
 			},
 		},
@@ -42,17 +42,17 @@ test('middleware pipeline happy path', async function () {
 		return {
 			phaseOne: {
 				exit(ctx, next) {
-					tracker(2, 'setup_exit')
+					tracker(2, 'one_exit')
 					next(ctx)
 				},
 			},
 			phaseTwo: {
 				enter(ctx, { next }) {
-					tracker(2, 'fetch_enter')
+					tracker(2, 'two_enter')
 					next(ctx)
 				},
 				exit(ctx, next) {
-					tracker(2, 'fetch_exit')
+					tracker(2, 'two_exit')
 					next(ctx)
 				},
 			},
@@ -62,21 +62,21 @@ test('middleware pipeline happy path', async function () {
 	const terminate: HoudiniMiddleware = () => ({
 		phaseOne: {
 			enter(ctx, { next }) {
-				tracker(3, 'setup_enter')
+				tracker(3, 'one_enter')
 				next(ctx)
 			},
 			exit(ctx, next) {
-				tracker(3, 'setup_exit')
+				tracker(3, 'one_exit')
 				next(ctx)
 			},
 		},
 		phaseTwo: {
 			enter(ctx, { terminate }) {
-				tracker(3, 'fetch_enter')
+				tracker(3, 'two_enter')
 				terminate(ctx, 'value')
 			},
 			exit(ctx, next) {
-				tracker(3, 'fetch_exit')
+				tracker(3, 'two_exit')
 				next(ctx)
 			},
 		},
@@ -97,16 +97,16 @@ test('middleware pipeline happy path', async function () {
 
 	// make sure we called the hooks in the right order
 	expect(history).toEqual([
-		[1, 'setup_enter'],
-		[3, 'setup_enter'],
-		[1, 'fetch_enter'],
-		[2, 'fetch_enter'],
-		[3, 'fetch_enter'],
-		[3, 'fetch_exit'],
-		[2, 'fetch_exit'],
-		[3, 'setup_exit'],
-		[2, 'setup_exit'],
-		[1, 'setup_exit'],
+		[1, 'one_enter'],
+		[3, 'one_enter'],
+		[1, 'two_enter'],
+		[2, 'two_enter'],
+		[3, 'two_enter'],
+		[3, 'two_exit'],
+		[2, 'two_exit'],
+		[3, 'one_exit'],
+		[2, 'one_exit'],
+		[1, 'one_exit'],
 	])
 
 	// make sure we got the right value back
@@ -124,17 +124,17 @@ test('terminate short-circuits pipeline', async function () {
 	const middleware1: HoudiniMiddleware = () => ({
 		phaseOne: {
 			enter(ctx, { next }) {
-				tracker(1, 'setup_enter')
+				tracker(1, 'one_enter')
 				next(ctx)
 			},
 			exit(ctx, next) {
-				tracker(1, 'setup_exit')
+				tracker(1, 'one_exit')
 				next(ctx)
 			},
 		},
 		phaseTwo: {
 			enter(ctx, { next }) {
-				tracker(1, 'fetch_enter')
+				tracker(1, 'two_enter')
 				next(ctx)
 			},
 		},
@@ -143,21 +143,21 @@ test('terminate short-circuits pipeline', async function () {
 		return {
 			phaseOne: {
 				enter(ctx, { terminate }) {
-					tracker(2, 'setup_enter')
+					tracker(2, 'one_enter')
 					terminate(ctx, 'value')
 				},
 				exit(ctx, next) {
-					tracker(2, 'setup_exit')
+					tracker(2, 'one_exit')
 					next(ctx, 'value')
 				},
 			},
 			phaseTwo: {
 				enter(ctx, { next }) {
-					tracker(2, 'fetch_enter')
+					tracker(2, 'two_enter')
 					next(ctx)
 				},
 				exit(ctx, next) {
-					tracker(2, 'fetch_exit')
+					tracker(2, 'two_exit')
 					next(ctx)
 				},
 			},
@@ -172,10 +172,10 @@ test('terminate short-circuits pipeline', async function () {
 
 	// make sure we called the hooks in the right order
 	expect(history).toEqual([
-		[1, 'setup_enter'],
-		[2, 'setup_enter'],
-		[2, 'setup_exit'],
-		[1, 'setup_exit'],
+		[1, 'one_enter'],
+		[2, 'one_enter'],
+		[2, 'one_exit'],
+		[1, 'one_exit'],
 	])
 })
 
@@ -309,4 +309,38 @@ test('cleanup phase', async function () {
 	expect(spy).not.toHaveBeenCalled()
 	unsubscribe()
 	expect(spy).toHaveBeenCalled()
+})
+
+test('middlewares can set twoParams', async function () {
+	const middleware1: HoudiniMiddleware = () => ({
+		phaseOne: {
+			enter(ctx, { next }) {
+				ctx.fetchParams = {
+					...ctx.fetchParams,
+					headers: {
+						hello: 'world',
+					},
+				}
+				next(ctx)
+			},
+		},
+	})
+
+	const spy = vi.fn()
+	const fetchMiddleware: HoudiniMiddleware = () => ({
+		phaseOne: {
+			enter(ctx, { terminate }) {
+				spy(ctx.fetchParams)
+				terminate(ctx, 'value')
+			},
+		},
+	})
+
+	// start the pipeline
+	const client = new HoudiniClient({ middlewares: [middleware1, fetchMiddleware] })
+	await client.observe(artifact).send()
+
+	expect(spy).toBeCalledWith({
+		headers: { hello: 'world' },
+	})
 })

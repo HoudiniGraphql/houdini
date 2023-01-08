@@ -263,6 +263,7 @@ type MiddlewareContext = {
 	variables?: {}
 	metadata?: App.Metadata | null
 	session?: App.Session
+	fetchParams?: RequestInit
 }
 
 type IteratorState = {
