@@ -2,7 +2,6 @@ import { getCache } from '$houdini/runtime'
 import type { ConfigFile } from '$houdini/runtime/lib/config'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import * as log from '$houdini/runtime/lib/log'
-import { FetchContext, fetchQuery } from '$houdini/runtime/lib/network'
 import { marshalInputs, unmarshalSelection } from '$houdini/runtime/lib/scalars'
 import type { QueryArtifact } from '$houdini/runtime/lib/types'
 // internals
@@ -16,6 +15,7 @@ import {
 	SubscriptionSpec,
 } from '$houdini/runtime/lib/types'
 import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
+import { FetchContext, fetchQuery } from 'houdini/src/runtime/client/network'
 import { get, Readable, Writable, writable } from 'svelte/store'
 
 import { clientStarted, error, isBrowser } from '../adapter'
@@ -162,7 +162,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 		// we will wait for the real fetch to happen anyway and fill the store)
 		// then, we are safe to try to load it from the cache before we worry about
 		// performing a network request. This makes sure the cache gets a cached
-		// value during client side navigation (fake awaits)
+		// value during client side navigation (fake awaits) before waiting for the load
 		if (policy !== CachePolicy.NetworkOnly && fakeAwait) {
 			const cachedStore = await this.fetchAndCache({
 				...fetchArgs,

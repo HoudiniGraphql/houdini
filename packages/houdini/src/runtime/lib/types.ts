@@ -201,8 +201,3 @@ export type RequestPayload<_Data = any> = {
 		  }[]
 		| null
 }
-
-export type RequestPayloadMagic<_Data = any> = {
-	ssr: boolean
-	body: RequestPayload<_Data>
-}

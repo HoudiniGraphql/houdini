@@ -1,5 +1,5 @@
-import { Writable } from './store'
-import { DocumentArtifact, GraphQLObject } from './types'
+import type { DocumentArtifact, GraphQLObject } from '../lib'
+import { Writable } from '../lib/store'
 
 type Fetch = typeof globalThis.fetch
 

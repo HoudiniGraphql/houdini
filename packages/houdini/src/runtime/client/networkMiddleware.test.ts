@@ -1,9 +1,9 @@
 import { sleep } from '@kitql/helper'
 import { test, expect, vi } from 'vitest'
 
-import { HoudiniClient } from './network'
+import { DocumentArtifact, ArtifactKind } from '../lib/types'
+import { HoudiniClient } from './client'
 import { HoudiniMiddleware } from './networkMiddleware'
-import { DocumentArtifact, ArtifactKind } from './types'
 
 const artifact: DocumentArtifact = {
 	kind: ArtifactKind.Query,

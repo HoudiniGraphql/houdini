@@ -1,8 +1,8 @@
 import { getCache } from '$houdini/runtime'
 import { ConfigFile } from '$houdini/runtime/lib/config'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
-import { executeQuery } from '$houdini/runtime/lib/network'
 import { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
+import { executeQuery } from 'houdini/src/runtime/client/network'
 
 import { getCurrentClient } from '../../network'
 import { getSession } from '../../session'
