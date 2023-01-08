@@ -54,7 +54,7 @@ export class HoudiniClient {
 		)
 	}
 
-	observe(artifact: DocumentArtifact) {
+	observe(artifact: DocumentArtifact): DocumentObserver<GraphQLObject, {}> {
 		return new DocumentObserver({ artifact, middlewares: this.#middlewares })
 	}
 }

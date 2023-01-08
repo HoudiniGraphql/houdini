@@ -1,4 +1,4 @@
-import { RequestPayload, type SubscriptionSpec } from '../../lib'
+import { DataSource, RequestPayload, type SubscriptionSpec } from '../../lib'
 import type { HoudiniMiddleware } from '../networkMiddleware'
 
 export const fetchMiddleware = (fetchFn: RequestHandler): HoudiniMiddleware => {
@@ -40,7 +40,11 @@ export const fetchMiddleware = (fetchFn: RequestHandler): HoudiniMiddleware => {
 					})
 
 					// return the result
-					terminate(ctx, result)
+					terminate(ctx, {
+						result,
+						partial: false,
+						source: DataSource.Network,
+					})
 				},
 			},
 		}
