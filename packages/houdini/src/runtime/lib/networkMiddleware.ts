@@ -41,8 +41,8 @@ export class DocumentObserver<
 			const state: IteratorState = {
 				value: null,
 				terminatingIndex: null,
-				index: -1,
 				currentStep: 'phaseOne',
+				index: -1,
 				promise: {
 					resolved: false,
 					resolve,
@@ -67,33 +67,43 @@ export class DocumentObserver<
 		for (let index = ctx.index + 1; index <= this.#middlewares.length; index++) {
 			let target = this.#middlewares[index]?.[ctx.currentStep]?.enter
 			if (target) {
-				// invoke the target
-				target(ctx.context, {
-					next: (newContext) => {
-						this.#next({
-							...ctx,
-							context: newContext,
-							index,
-						})
-					},
-					terminate: (newContext, value) => {
-						// start the journey back
-						this.#terminate(
-							{
-								...ctx,
-								context: newContext,
-								// increment the index so that terminate looks at this link again
-								index: index + 1,
-								// save this value
-								value,
-								// increment the index so that terminate looks at this link again
-								// when we flip phases, we need to start from here
-								terminatingIndex: index + 1,
+				try {
+					// invoke the target
+					const result = target(
+						{ ...ctx.context },
+						{
+							next: (newContext) => {
+								this.#next({
+									...ctx,
+									context: newContext,
+									index,
+								})
 							},
-							value
-						)
-					},
-				})
+							terminate: (newContext, value) => {
+								// start the journey back
+								this.#terminate(
+									{
+										...ctx,
+										context: newContext,
+										// increment the index so that terminate looks at this link again
+										index: index + 1,
+										// save this value
+										value,
+										// increment the index so that terminate looks at this link again
+										// when we flip phases, we need to start from here
+										terminatingIndex: index + 1,
+									},
+									value
+								)
+							},
+						}
+					)
+					result?.catch((err) => {
+						this.#error({ ...ctx, index }, err)
+					})
+				} catch (err) {
+					this.#error({ ...ctx, index }, err)
+				}
 				return
 			}
 		}
@@ -102,7 +112,7 @@ export class DocumentObserver<
 
 		// if we are still in setup, flip over to fetch and start over
 		if (ctx.currentStep === 'phaseOne') {
-			return this.#next.bind(this)({
+			return this.#next({
 				...ctx,
 				currentStep: 'phaseTwo',
 				index: -1,
@@ -122,28 +132,35 @@ export class DocumentObserver<
 			// if we find a middleware in the same phase, call it
 			let target = this.#middlewares[index]?.[ctx.currentStep]?.exit
 			if (target) {
-				// invoke the target
-				target(
-					{
-						...ctx.context,
-						value,
-					},
-					(context, val) => {
-						// if we were given a value, use it. otherwise use the previous value
-						const newValue = typeof val !== 'undefined' ? val : ctx.value
+				try {
+					// invoke the target
+					const result = target(
+						{
+							...ctx.context,
+							value,
+						},
+						(context, val) => {
+							// if we were given a value, use it. otherwise use the previous value
+							const newValue = typeof val !== 'undefined' ? val : ctx.value
 
-						// be brave. take the next step.
-						this.#terminate(
-							{
-								...ctx,
-								...context,
-								value: newValue,
-								index,
-							},
-							newValue
-						)
-					}
-				)
+							// be brave. take the next step.
+							this.#terminate(
+								{
+									...ctx,
+									...context,
+									value: newValue,
+									index,
+								},
+								newValue
+							)
+						}
+					)
+					result?.catch((err) => {
+						this.#error({ ...ctx, index }, err)
+					})
+				} catch (err) {
+					this.#error({ ...ctx, index }, err)
+				}
 				return
 			}
 		}
@@ -173,6 +190,43 @@ export class DocumentObserver<
 		// the latest value should be written to the store
 		this.set(value)
 	}
+
+	#error(ctx: IteratorState, error: unknown) {
+		// propagating an error up only visits middlewares that come before the
+		// current
+		let propagate = true
+		for (let i = ctx.index; i >= 0 && propagate; i--) {
+			// if the step has an error handler, invoke it
+			const errorHandler = this.#middlewares[i].error
+			if (errorHandler) {
+				errorHandler(ctx.context, {
+					error,
+					// calling next in response to a
+					next: (newContext) => {
+						this.#next({
+							...ctx,
+							context: newContext,
+							index: i,
+						})
+
+						// don't step through the rest of the errors
+						propagate = false
+					},
+				})
+			}
+		}
+
+		// if propagate is still true, we've gone through everything without "breaking"
+		if (propagate) {
+			// if the promise hasn't been resolved yet, reject it
+			if (!ctx.promise.resolved) {
+				ctx.promise.reject(error)
+
+				// make sure we dont do anything else to the promise
+				ctx.promise.resolved = true
+			}
+		}
+	}
 }
 
 /**
@@ -186,6 +240,11 @@ export type HoudiniMiddleware =
 		phaseOne?: NetworkMiddleware
 		phaseTwo?: NetworkMiddleware
 		cleanup?(): any
+		// error is called when a middleware after this raises an exception
+		error?(
+			ctx: MiddlewareContext,
+			args: { error: unknown } & Pick<MiddlewareHandlers, 'next'>
+		): void | Promise<void>
 	}
 
 type HoudiniMiddlewareInstance = ReturnType<HoudiniMiddleware>
@@ -214,10 +273,10 @@ type IteratorState = {
 /** NetworkMiddleware describes the logic of the HoudiniClient plugin at a particular stage. */
 export type NetworkMiddleware = {
 	// enter is called when an artifact is pushed through
-	enter?(ctx: MiddlewareContext, handlers: MiddlewareHandlers): void
+	enter?(ctx: MiddlewareContext, handlers: MiddlewareHandlers): void | Promise<void>
 	// exist is called when the result of the next middleware in the chain
 	// is called
-	exit?(args: ExitContext, next: (ctx: ExitContext, data?: any) => any): void
+	exit?(ctx: ExitContext, next: (ctx: ExitContext, data?: any) => any): void | Promise<void>
 }
 
 type ExitContext = MiddlewareContext & { value: any }

@@ -1,4 +1,6 @@
 /// <reference path="../../../../../houdini.d.ts" />
+import { marshalInputs } from 'build/runtime'
+
 import cache from '../cache'
 import type { ConfigFile } from './config'
 import { DocumentObserver, HoudiniMiddleware } from './networkMiddleware'
@@ -314,6 +316,10 @@ export async function fetchQuery<_Data extends GraphQLObject, _Input extends {}>
 	}
 }
 
+const marshalInputsMiddleware: HoudiniMiddleware = function () {
+	return {}
+}
+
 const queryMiddleware: HoudiniMiddleware = function () {
 	// track the bits of state we need to hold onto
 	let lastVariables = null
@@ -340,6 +346,7 @@ const fetchMiddleware: HoudiniMiddleware = function () {
 }
 
 const defaultMiddlewares = [
+	marshalInputsMiddleware,
 	queryMiddleware,
 	mutationMiddleware,
 	subscriptionMiddleware,
