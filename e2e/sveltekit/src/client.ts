@@ -37,4 +37,8 @@ const requestHandler: RequestHandler = async ({
 };
 
 // Export the Houdini client
-export default new HoudiniClient(requestHandler);
+export default new HoudiniClient({
+  links(defaultLinks) {
+    return [myOtherLink, ...defaultLinks, myLink];
+  }
+});

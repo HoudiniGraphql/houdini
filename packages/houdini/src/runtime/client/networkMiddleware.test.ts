@@ -1,17 +1,19 @@
 import { sleep } from '@kitql/helper'
 import { test, expect, vi } from 'vitest'
 
-import { DocumentArtifact, ArtifactKind } from '../lib/types'
-import { HoudiniClient } from './client'
-import { HoudiniMiddleware } from './networkMiddleware'
+import { ArtifactKind } from '../lib/types'
+import { HoudiniClient } from './'
+import { DocumentObserver, HoudiniMiddleware } from './networkMiddleware'
 
-const artifact: DocumentArtifact = {
-	kind: ArtifactKind.Query,
-	hash: '1234',
-	raw: 'RAW_TEXT',
-	name: 'TestArtifact',
-	rootType: 'Query',
-	selection: {},
+function createStore(middlewares: HoudiniMiddleware[]): DocumentObserver<any, any> {
+	return new HoudiniClient({ middlewares }).observe({
+		kind: ArtifactKind.Query,
+		hash: '1234',
+		raw: 'RAW_TEXT',
+		name: 'TestArtifact',
+		rootType: 'Query',
+		selection: {},
+	})
 }
 
 test('middleware pipeline happy path', async function () {
@@ -83,10 +85,7 @@ test('middleware pipeline happy path', async function () {
 	})
 
 	// create the client with the middlewares
-	const client = new HoudiniClient({ middlewares: [middleware1, middleware2, terminate] })
-
-	// create a store we can subscribe to
-	const store = client.observe(artifact)
+	const store = createStore([middleware1, middleware2, terminate])
 
 	// spy on the subscribe function
 	const subscribeSpy = vi.fn()
@@ -165,10 +164,10 @@ test('terminate short-circuits pipeline', async function () {
 	}
 
 	// create the client with the middlewares
-	const client = new HoudiniClient({ middlewares: [middleware1, middleware2] })
+	const store = createStore([middleware1, middleware2])
 
 	// kick off the pipeline
-	await client.observe(artifact).send()
+	await store.send()
 
 	// make sure we called the hooks in the right order
 	expect(history).toEqual([
@@ -190,10 +189,7 @@ test('can call terminate multiple times to set multiple values', async function 
 	})
 
 	// create the client with the middlewares
-	const client = new HoudiniClient({ middlewares: [middleware] })
-
-	// create the store and subscribe to the value
-	const store = client.observe(artifact)
+	const store = createStore([middleware])
 	const fn = vi.fn()
 	store.subscribe(fn)
 
@@ -250,10 +246,10 @@ test('error can replay chain', async function () {
 	})
 
 	// create the client with the middlewares
-	const client = new HoudiniClient({ middlewares: [firstErrorHandler, errorTrapper, middleware] })
+	const store = createStore([firstErrorHandler, errorTrapper, middleware])
 
 	// make sure that the promise rejected with the error value
-	await expect(client.observe(artifact).send()).resolves.toEqual('value')
+	await expect(store.send()).resolves.toEqual('value')
 	expect(spy).toHaveBeenCalled()
 	expect(outerSpy).not.toHaveBeenCalled()
 })
@@ -268,10 +264,10 @@ test('error rejects the promise', async function () {
 	})
 
 	// create the client with the middlewares
-	const client = new HoudiniClient({ middlewares: [middleware] })
+	const store = createStore([middleware])
 
 	// make sure that the promise rejected with the error value
-	await expect(client.observe(artifact).send()).rejects.toEqual('hello')
+	await expect(store.send()).rejects.toEqual('hello')
 })
 
 test('async error rejects the promise', async function () {
@@ -284,10 +280,10 @@ test('async error rejects the promise', async function () {
 	})
 
 	// create the client with the middlewares
-	const client = new HoudiniClient({ middlewares: [middleware] })
+	const store = createStore([middleware])
 
 	// make sure that the promise rejected with the error value
-	await expect(client.observe(artifact).send()).rejects.toEqual('hello')
+	await expect(store.send()).rejects.toEqual('hello')
 })
 
 test('cleanup phase', async function () {
@@ -300,9 +296,7 @@ test('cleanup phase', async function () {
 	})
 
 	// create the client with the middlewares
-	const client = new HoudiniClient({ middlewares: [middleware] })
-
-	const store = client.observe(artifact)
+	const store = createStore([middleware])
 	const unsubscribe = store.subscribe(() => {})
 
 	// call the unsubscribe function
@@ -337,8 +331,8 @@ test('middlewares can set twoParams', async function () {
 	})
 
 	// start the pipeline
-	const client = new HoudiniClient({ middlewares: [middleware1, fetchMiddleware] })
-	await client.observe(artifact).send()
+	const store = createStore([middleware1, fetchMiddleware])
+	await store.send()
 
 	expect(spy).toBeCalledWith({
 		headers: { hello: 'world' },
