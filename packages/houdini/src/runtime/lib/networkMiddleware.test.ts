@@ -289,3 +289,24 @@ test('async error rejects the promise', async function () {
 	// make sure that the promise rejected with the error value
 	await expect(client.observe(artifact).send()).rejects.toEqual('hello')
 })
+
+test('cleanup phase', async function () {
+	const spy = vi.fn()
+
+	const middleware: HoudiniMiddleware = () => ({
+		cleanup() {
+			spy()
+		},
+	})
+
+	// create the client with the middlewares
+	const client = new HoudiniClient({ middlewares: [middleware] })
+
+	const store = client.observe(artifact)
+	const unsubscribe = store.subscribe(() => {})
+
+	// call the unsubscribe function
+	expect(spy).not.toHaveBeenCalled()
+	unsubscribe()
+	expect(spy).toHaveBeenCalled()
+})

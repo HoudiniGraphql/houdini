@@ -19,7 +19,15 @@ export class DocumentObserver<
 		artifact: DocumentArtifact
 		middlewares: HoudiniMiddleware[]
 	}) {
-		super(null)
+		super(null, () => {
+			// unsubscribing from the store means walking down all of the middlewares and calling
+			// cleanup
+			return () => {
+				for (const middleware of this.#middlewares) {
+					middleware.cleanup?.()
+				}
+			}
+		})
 		this.#artifact = artifact
 		this.#middlewares = middlewares.map((factory) => factory())
 	}

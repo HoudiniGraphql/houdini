@@ -52,7 +52,7 @@ export class Writable<T> {
 		return () => {
 			this.#subscribers.delete(subscriber)
 			if (this.#subscribers.size === 0) {
-				stop?.()
+				this.#stop?.()
 				this.#stop = null
 			}
 		}
