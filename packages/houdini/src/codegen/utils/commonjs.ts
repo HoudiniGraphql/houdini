@@ -22,5 +22,13 @@ export function exportStarFrom(where: string): string {
 
 export function exportDefaultFrom(where: string, as: string): string {
 	return `var ${as} = require("${where}");
-Object.defineProperty(exports, "${as}", { enumerable: true, get: function () { return __importDefault(${as}).default; } });`
+${exportDefault(as)}`
+}
+
+export function exportDefault(as: string) {
+	return `Object.defineProperty(exports, "${as}", { enumerable: true, get: function () { return __importDefault(${as}).default; } });`
+}
+
+export function importDefaultFrom(where: string, as: string): string {
+	return `var ${as} = require("${where}")`
 }

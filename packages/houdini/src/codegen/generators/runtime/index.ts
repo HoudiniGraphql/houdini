@@ -1,5 +1,6 @@
 import * as recast from 'recast'
 
+import { exportDefault, importDefaultFrom } from '../../../codegen/utils'
 import {
 	Config,
 	siteURL as SITE_URL,
@@ -11,6 +12,7 @@ import {
 	parseJS,
 	ensureImports,
 } from '../../../lib'
+import type { HoudiniClientPluginConfig } from '../../../runtime/lib'
 
 const AST = recast.types.builders
 
@@ -30,6 +32,37 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 			},
 			[path.join(config.runtimeSource, 'lib', 'constants.js')]: (content) => {
 				return content.replace('SITE_URL', SITE_URL)
+			},
+			[path.join(config.runtimeSource, 'client', 'pluginMiddlewares.js')]: (content) => {
+				// get the list of plugins we need to add to the client
+				const client_plugins = config.plugins
+					.filter((plugin) => plugin.client_plugins)
+					.reduce((acc, plugin) => {
+						return [...acc, ...Object.entries(plugin.client_plugins!)]
+					}, [] as Record<string, any>[])
+
+				// figure out the correct import statement
+				const importStatement =
+					config.module === 'commonjs'
+						? importDefaultFrom
+						: (where: string, as: string) => `import ${as} from '${where}'`
+				const exportStatement =
+					config.module === 'commonjs'
+						? exportDefault
+						: (as: string) => `export default ${as}`
+
+				return client_plugins.length > 0
+					? `
+${client_plugins.map((plugin, i) => importStatement(plugin[0], `plugin${i}`))}
+
+const plugins = [
+	${client_plugins.map((plugin, i) => `plugin${i}(${JSON.stringify(plugin[1])})`).join(',\n')}
+]
+
+${exportStatement('plugins')}
+
+				`
+					: content
 			},
 		}),
 		...config.plugins

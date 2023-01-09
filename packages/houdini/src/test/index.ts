@@ -6,7 +6,7 @@ import { Config, fs, path, CollectedGraphQLDocument } from '../lib'
 import { ConfigFile } from '../runtime/lib/config'
 import { ArtifactKind } from '../runtime/lib/types'
 
-export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
+export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {}): ConfigFile {
 	return {
 		schema: `
 			scalar Cursor
@@ -147,7 +147,7 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				cats: [Cat!]!
 			}
 
-			interface IsGhost { 
+			interface IsGhost {
 				aka: String!
 			}
 
@@ -242,6 +242,7 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 			'houdini-svelte': {
 				client: './my/client/path',
 			},
+			...plugins,
 		},
 		acceptImperativeInstability: true,
 		...config,

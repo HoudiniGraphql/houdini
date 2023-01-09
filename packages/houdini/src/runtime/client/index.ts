@@ -10,6 +10,7 @@ import {
 	DocumentArtifact,
 } from '../lib/types'
 import { ClientPlugin, DocumentObserver } from './documentObserver'
+import pluginMiddlewares from './pluginMiddlewares'
 import {
 	queryMiddleware,
 	mutationMiddleware,
@@ -21,8 +22,7 @@ import {
 	type RequestHandler,
 	type FetchContext,
 	type SubscriptionHandler,
-} from './middlewares'
-import pluginMiddlewares from './pluginMiddlewares'
+} from './plugins'
 
 export class HoudiniClient {
 	#plugins: ClientPlugin[]

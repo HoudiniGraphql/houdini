@@ -10,7 +10,7 @@ import type {
 } from 'rollup'
 import { fileURLToPath, pathToFileURL } from 'url'
 
-import { ConfigFile, CachePolicy } from '../runtime/lib'
+import { ConfigFile, CachePolicy, HoudiniClientPluginConfig } from '../runtime/lib'
 import { computeID, defaultConfigValues, keyFieldsForType } from '../runtime/lib/config'
 import { TransformPage } from '../vite/houdini'
 import { houdini_mode } from './constants'
@@ -990,6 +990,7 @@ export type Plugin = {
 		content: string
 	) => Promise<string[]> | string[]
 	generate?: GenerateHook
+	client_plugins?: HoudiniClientPluginConfig
 	transform_file?: (page: TransformPage) => Promise<{ code: string }> | { code: string }
 	index_file?: ModuleIndexTransform
 	graphql_tag_return?: (args: {

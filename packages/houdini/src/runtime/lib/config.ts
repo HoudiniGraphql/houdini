@@ -220,3 +220,7 @@ export type ScalarSpec = {
 // this type is meant to be extended by plugins to provide type definitions
 // for config
 export interface HoudiniPluginConfig {}
+
+// this type is meant to be extended by client plugins to provide type definitions
+// for config
+export interface HoudiniClientPluginConfig {}
