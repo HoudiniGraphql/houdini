@@ -45,7 +45,7 @@ test('updates the list of plugin-specified client plugins', async function () {
 
 	// open up the index file
 	const fileContents = await fs.readFile(
-		path.join(config.runtimeDirectory, 'client', 'pluginMiddlewares.js')
+		path.join(config.runtimeDirectory, 'client', 'injectedPlugins.js')
 	)
 	expect(fileContents).toBeTruthy()
 
@@ -75,7 +75,7 @@ test("does not update the list of plugin-specified client plugins if there aren'
 
 	// open up the index file
 	const fileContents = await fs.readFile(
-		path.join(config.runtimeDirectory, 'client', 'pluginMiddlewares.js')
+		path.join(config.runtimeDirectory, 'client', 'injectedPlugins.js')
 	)
 	expect(fileContents).toBeTruthy()
 
@@ -86,9 +86,9 @@ test("does not update the list of plugin-specified client plugins if there aren'
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		const plugins = [];
-		var pluginMiddlewares_default = plugins;
+		var injectedPlugins_default = plugins;
 		export {
-		  pluginMiddlewares_default as default
+		  injectedPlugins_default as default
 		};
 	`)
 })
@@ -114,7 +114,7 @@ test('passing null as client plugin config generates a reference, not a function
 
 	// open up the index file
 	const fileContents = await fs.readFile(
-		path.join(config.runtimeDirectory, 'client', 'pluginMiddlewares.js')
+		path.join(config.runtimeDirectory, 'client', 'injectedPlugins.js')
 	)
 	expect(fileContents).toBeTruthy()
 

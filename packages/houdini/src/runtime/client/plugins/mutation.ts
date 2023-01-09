@@ -1,5 +1,5 @@
 import { ClientPlugin } from '../documentObserver'
 
-export const mutationMiddleware: ClientPlugin = function () {
+export const mutationPlugin: ClientPlugin = function () {
 	return {}
 }

@@ -33,7 +33,7 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 			[path.join(config.runtimeSource, 'lib', 'constants.js')]: (content) => {
 				return content.replace('SITE_URL', SITE_URL)
 			},
-			[path.join(config.runtimeSource, 'client', 'pluginMiddlewares.js')]: (content) => {
+			[path.join(config.runtimeSource, 'client', 'injectedPlugins.js')]: (content) => {
 				// get the list of plugins we need to add to the client
 				const client_plugins = config.plugins
 					.filter((plugin) => plugin.client_plugins)

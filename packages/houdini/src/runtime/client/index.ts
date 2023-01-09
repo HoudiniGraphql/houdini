@@ -10,66 +10,69 @@ import {
 	DocumentArtifact,
 } from '../lib/types'
 import { ClientPlugin, DocumentObserver } from './documentObserver'
-import pluginMiddlewares from './pluginMiddlewares'
+import pluginsFromPlugins from './injectedPlugins'
 import {
-	queryMiddleware,
-	mutationMiddleware,
-	subscriptionMiddleware,
-	cachePolicyMiddleware,
-	fetchMiddleware,
-	fetchParamsMiddleware,
+	queryPlugin,
+	mutationPlugin,
+	cachePolicyPlugin,
+	fetchPlugin,
+	fetchParamsPlugin,
 	type FetchParamFn,
-	type RequestHandler,
 	type FetchContext,
-	type SubscriptionHandler,
 } from './plugins'
 
+// export the plugin constructors
+export { queryPlugin, mutationPlugin, fetchPlugin, subscriptionPlugin } from './plugins'
+
 export class HoudiniClient {
+	// the list of plugins for the client
 	#plugins: ClientPlugin[]
+	// the URL of the api
+	url: string
 
 	constructor({
-		requestHandler,
-		subscriptionHandler,
+		url,
+		fetchParams,
 		plugins,
 		pipeline,
-		fetchParams,
 	}: {
-		requestHandler?: RequestHandler<any>
-		subscriptionHandler?: SubscriptionHandler | null
-		middlewares?: ClientPlugin[]
+		url: string
+		fetchParams?: FetchParamFn
 		plugins?: ClientPlugin[]
 		pipeline?: () => ClientPlugin[]
-		fetchParams?: FetchParamFn
 	}) {
-		// a few middlewares _have_ to run
-		const setupPlugins = fetchParams ? [fetchParamsMiddleware(fetchParams)] : []
-
-		// we need to call the hooks in the appropriate order
-		this.#plugins = setupPlugins.concat(
+		// a few middlewares _have_ to run to setup the API and then we
+		// either have to add a totally custom pipeline specified by the pipeline value
+		// or build up the default list
+		this.#plugins = (fetchParams ? [fetchParamsPlugin(fetchParams)] : []).concat(
+			[
+				// cache policy needs to always come first so that it can be the first fetch_enter to fire
+				cachePolicyPlugin,
+			],
 			// if the user wants to specify the entire pipeline, let them do so
 			pipeline?.() ??
-				// build up the defaut list of plugins
+				// the user doesn't have a specific pipeline so we should just add their desired plugins
+				// to the standard set
 				[
-					// cache policy needs to always come first so that it can be the first fetch_enter to fire
-					cachePolicyMiddleware,
 					// make sure that queries and mutations always work
-					queryMiddleware,
-					mutationMiddleware,
+					queryPlugin,
+					mutationPlugin,
 				].concat(
 					// add the specified middlewares
 					plugins ?? [],
 					// and any middlewares we got from plugins
-					pluginMiddlewares,
-					// if they handed up a subscription handler than add the subscription middleware
-					subscriptionHandler ? [subscriptionMiddleware(subscriptionHandler)] : [],
+					pluginsFromPlugins,
 					// if they provided a fetch function, use it as the body for the fetch middleware
-					requestHandler ? [fetchMiddleware(requestHandler)] : []
+					fetchPlugin()
 				)
 		)
+
+		// save the state values
+		this.url = url
 	}
 
 	observe(artifact: DocumentArtifact): DocumentObserver<GraphQLObject, {}> {
-		return new DocumentObserver({ artifact, plugins: this.#plugins })
+		return new DocumentObserver({ client: this, artifact, plugins: this.#plugins })
 	}
 }
 

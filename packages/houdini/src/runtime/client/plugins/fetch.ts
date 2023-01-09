@@ -1,11 +1,11 @@
 import { DataSource, RequestPayload } from '../../lib'
 import type { ClientPlugin } from '../documentObserver'
 
-export const fetchMiddleware = (fetchFn: RequestHandler): ClientPlugin => {
+export const fetchPlugin = (fn?: RequestHandler | string): ClientPlugin => {
 	return () => {
 		return {
 			network: {
-				async enter(ctx, { resolve }) {
+				async enter(ctx, { client, resolve }) {
 					// figure out which fetch to use
 					const fetch = ctx.fetch ?? globalThis.fetch
 
@@ -16,18 +16,29 @@ export const fetchMiddleware = (fetchFn: RequestHandler): ClientPlugin => {
 						variables: ctx.variables ?? {},
 					}
 
+					let fetchFn = defaultFetch(client.url)
+					if (fn && typeof fn === 'string') {
+						fetchFn = defaultFetch(fn)
+					} else {
+						fetchFn = defaultFetch(client.url)
+					}
+
 					// invoke the function
 					const result = await fetchFn({
 						// wrap the user's fetch function so we can identify SSR by checking
 						// the response.url
 						fetch: (url: URL | RequestInfo, args: RequestInit | undefined) => {
 							// figure out if we need to do something special for multipart uploads
-							const newArgs = handleMultipart(fetchParams, args)
+							const newArgs = handleMultipart(fetchParams, args) ?? args
 
 							// use the new args if they exist, otherwise the old ones are good
 							return fetch(url, {
-								...(newArgs || args),
 								...ctx.fetchParams,
+								...newArgs,
+								headers: {
+									...ctx.fetchParams?.headers,
+									...newArgs?.headers,
+								},
 							})
 						},
 						...fetchParams,
@@ -44,6 +55,31 @@ export const fetchMiddleware = (fetchFn: RequestHandler): ClientPlugin => {
 				},
 			},
 		}
+	}
+}
+
+const defaultFetch = (url: string): RequestHandler => {
+	// if there is no configured url, we can't use this plugin
+	if (!url) {
+		throw new Error(
+			'Could not find configured client url. Please specify one in your houdini.config.js file.'
+		)
+	}
+
+	return async ({ fetch, text, variables }) => {
+		// regular fetch (Server & Client)
+		const result = await fetch(url, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({
+				query: text,
+				variables,
+			}),
+		})
+
+		return await result.json()
 	}
 }
 

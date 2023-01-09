@@ -1,6 +1,6 @@
 import { ClientPlugin } from '../documentObserver'
 
-export function subscriptionMiddleware(client: SubscriptionHandler): ClientPlugin {
+export function subscriptionPlugin(client: SubscriptionHandler): ClientPlugin {
 	return () => {
 		return {}
 	}

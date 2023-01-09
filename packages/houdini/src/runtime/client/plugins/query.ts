@@ -1,7 +1,7 @@
 import { type SubscriptionSpec } from '../../lib'
 import { type ClientPlugin } from '../documentObserver'
 
-export const queryMiddleware: ClientPlugin = function () {
+export const queryPlugin: ClientPlugin = function () {
 	// track the bits of state we need to hold onto
 	let lastVariables = null
 	let subscriptionSpec: SubscriptionSpec | null = null

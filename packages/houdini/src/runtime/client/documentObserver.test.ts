@@ -7,6 +7,7 @@ import { DocumentObserver, ClientPlugin } from './documentObserver'
 
 function createStore(plugins: ClientPlugin[]): DocumentObserver<any, any> {
 	return new HoudiniClient({
+		url: 'URL',
 		pipeline() {
 			return plugins
 		},
@@ -32,9 +33,9 @@ test('middleware pipeline happy path', async function () {
 				tracker(1, 'one_enter')
 				next(ctx)
 			},
-			exit(ctx, next) {
+			exit(ctx, { resolve }) {
 				tracker(1, 'one_exit')
-				next(ctx)
+				resolve(ctx)
 			},
 		},
 		network: {
@@ -47,9 +48,9 @@ test('middleware pipeline happy path', async function () {
 	const middleware2: ClientPlugin = () => {
 		return {
 			setup: {
-				exit(ctx, next) {
+				exit(ctx, { resolve }) {
 					tracker(2, 'one_exit')
-					next(ctx)
+					resolve(ctx)
 				},
 			},
 			network: {
@@ -57,9 +58,9 @@ test('middleware pipeline happy path', async function () {
 					tracker(2, 'two_enter')
 					next(ctx)
 				},
-				exit(ctx, next) {
+				exit(ctx, { resolve }) {
 					tracker(2, 'two_exit')
-					next(ctx)
+					resolve(ctx)
 				},
 			},
 		}
@@ -71,9 +72,9 @@ test('middleware pipeline happy path', async function () {
 				tracker(3, 'one_enter')
 				next(ctx)
 			},
-			exit(ctx, next) {
+			exit(ctx, { resolve }) {
 				tracker(3, 'one_exit')
-				next(ctx)
+				resolve(ctx)
 			},
 		},
 		network: {
@@ -81,9 +82,9 @@ test('middleware pipeline happy path', async function () {
 				tracker(3, 'two_enter')
 				resolve(ctx, { result: { data: 'value', errors: [] } })
 			},
-			exit(ctx, next) {
+			exit(ctx, { resolve }) {
 				tracker(3, 'two_exit')
-				next(ctx)
+				resolve(ctx)
 			},
 		},
 	})
@@ -128,9 +129,9 @@ test('terminate short-circuits pipeline', async function () {
 				tracker(1, 'one_enter')
 				next(ctx)
 			},
-			exit(ctx, next) {
+			exit(ctx, { resolve }) {
 				tracker(1, 'one_exit')
-				next(ctx)
+				resolve(ctx)
 			},
 		},
 		network: {
@@ -147,9 +148,9 @@ test('terminate short-circuits pipeline', async function () {
 					tracker(2, 'one_enter')
 					resolve(ctx, { result: { data: 'value', errors: [] } })
 				},
-				exit(ctx, next) {
+				exit(ctx, { resolve }) {
 					tracker(2, 'one_exit')
-					next(ctx, { result: { data: 'value', errors: [] } })
+					resolve(ctx, { result: { data: 'value', errors: [] } })
 				},
 			},
 			network: {
@@ -157,9 +158,9 @@ test('terminate short-circuits pipeline', async function () {
 					tracker(2, 'two_enter')
 					next(ctx)
 				},
-				exit(ctx, next) {
+				exit(ctx, { resolve }) {
 					tracker(2, 'two_exit')
-					next(ctx)
+					resolve(ctx)
 				},
 			},
 		}
@@ -408,6 +409,53 @@ test('tracks loading state', async function () {
 		source: null,
 		result: {
 			data: 'value',
+			errors: [],
+		},
+	})
+})
+
+test('test can replay a pipeline', async function () {
+	let count = 0
+
+	const firstErrorHandler: ClientPlugin = () => ({
+		setup: {
+			exit(ctx, { value, next, resolve }) {
+				if (value.result?.data === 'value') {
+					count++
+					next(ctx)
+				} else {
+					resolve(ctx, {
+						result: {
+							data: 'another-value',
+							errors: [],
+						},
+					})
+				}
+			},
+		},
+	})
+
+	const middleware: ClientPlugin = () => ({
+		setup: {
+			enter(ctx, { resolve }) {
+				// we have to get here twice to succeed
+				if (count) {
+					resolve(ctx, { result: { data: 'another-value', errors: [] } })
+					return
+				}
+
+				resolve(ctx, { result: { data: 'value', errors: [] } })
+			},
+		},
+	})
+
+	// create the client with the middlewares
+	const store = createStore([firstErrorHandler, middleware])
+
+	// make sure that the promise rejected with the error value
+	await expect(store.send()).resolves.toEqual({
+		result: {
+			data: 'another-value',
 			errors: [],
 		},
 	})

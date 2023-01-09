@@ -1,3 +1,4 @@
+import type { HoudiniClient } from '.'
 import type { DocumentArtifact, FetchQueryResult, GraphQLObject, QueryResult } from '../lib'
 import { Writable } from '../lib/store'
 
@@ -7,11 +8,20 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 	State<_Data>
 > {
 	#artifact: DocumentArtifact
+	#client: HoudiniClient
 
 	// the list of instantiated plugins
 	#plugins: ReturnType<ClientPlugin>[]
 
-	constructor({ artifact, plugins }: { artifact: DocumentArtifact; plugins: ClientPlugin[] }) {
+	constructor({
+		artifact,
+		plugins,
+		client,
+	}: {
+		artifact: DocumentArtifact
+		plugins: ClientPlugin[]
+		client: HoudiniClient
+	}) {
 		// the intial store state
 		const initialState = {
 			result: { data: null, errors: [] },
@@ -30,6 +40,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 			}
 		})
 		this.#artifact = artifact
+		this.#client = client
 		this.#plugins = plugins.map((factory) => factory())
 	}
 
@@ -83,6 +94,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 					const result = target(
 						{ ...ctx.context },
 						{
+							client: this.#client,
 							next: (newContext) => {
 								this.#next({
 									...ctx,
@@ -150,20 +162,33 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 							...ctx.context,
 							value,
 						},
-						(context, val) => {
-							// if we were given a value, use it. otherwise use the previous value
-							const newValue = typeof val !== 'undefined' ? val : ctx.value
-
-							// be brave. take the next step.
-							this.#terminate(
-								{
+						{
+							client: this.#client,
+							value,
+							next: (newContext) => {
+								// push the ctx onto the next step
+								this.#next({
 									...ctx,
-									...context,
-									value: newValue,
-									index,
-								},
-								newValue
-							)
+									index: index - 1,
+									currentStep: 'setup',
+									context: newContext,
+								})
+							},
+							resolve: (context, val) => {
+								// if we were given a value, use it. otherwise use the previous value
+								const newValue = typeof val !== 'undefined' ? val : ctx.value
+
+								// be brave. take the next step.
+								this.#terminate(
+									{
+										...ctx,
+										...context,
+										value: newValue,
+										index,
+									},
+									newValue
+								)
+							},
 						}
 					)
 					result?.catch((err) => {
@@ -221,6 +246,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 						this.#next({
 							...ctx,
 							context: newContext,
+							currentStep: 'setup',
 							index: i,
 						})
 
@@ -263,8 +289,6 @@ export type ClientPlugin =
 		): void | Promise<void>
 	}
 
-type ClientPluginInstance = ReturnType<ClientPlugin>
-
 type IteratorState = {
 	context: ClientPluginContext
 	index: number
@@ -295,18 +319,22 @@ export type ClientPluginPhase = {
 	enter?(ctx: ClientPluginContext, handlers: ClientPluginHandlers): void | Promise<void>
 	// exist is called when the result of the next plugin in the chain
 	// is called
-	exit?(
-		ctx: ExitContext,
-		next: (ctx: ExitContext, data?: Partial<State<any>>) => any
-	): void | Promise<void>
+	exit?(ctx: ExitContext, handlers: ClientPluginExitHandlers): void | Promise<void>
 }
 
 export type ExitContext = ClientPluginContext & { value: any }
 
 export type ClientPluginHandlers = {
+	/** A reference to the houdini client to access any configuration values */
+	client: HoudiniClient
+	/** Move onto the next step using the provided context.  */
 	next(ctx: ClientPluginContext): void
-	// TODO: i hate this name. It kind of make sense for a single request
-	// but for a subscription or live query, its more like "push". The semantic
-	// meaning is that the chain is done and should be pushed back in reverse order
+	/** Terminate the current chain  */
 	resolve(ctx: ClientPluginContext, data: Partial<State<any>>): void
+}
+
+// /** Exit handlers are the same as enter handles but don't need to resolve with a specific value */
+export type ClientPluginExitHandlers = Omit<ClientPluginHandlers, 'resolve'> & {
+	resolve: (ctx: ClientPluginContext, data?: Partial<State<any>>) => void
+	value: Partial<State<any>>
 }

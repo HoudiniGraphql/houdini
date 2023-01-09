@@ -1,5 +1,5 @@
 import { ClientPlugin } from '../documentObserver'
 
-export const cachePolicyMiddleware: ClientPlugin = function () {
+export const cachePolicyPlugin: ClientPlugin = function () {
 	return {}
 }
