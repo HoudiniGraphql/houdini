@@ -1,16 +1,14 @@
 # houdini
 
-## 1.0.0-next.1
-
-### Patch Changes
-
--   [#801](https://github.com/HoudiniGraphql/houdini/pull/801) [`1d18dd4`](https://github.com/HoudiniGraphql/houdini/commit/1d18dd42c66933bbb67d2357a6cbb9023235cff9) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Update init command to always write to vite.config.js
-
-## 1.0.0-next.0
+## 0.20.0
 
 ### ⚠️ Breaking Changes
 
 -   [#800](https://github.com/HoudiniGraphql/houdini/pull/800) [`a107f6c`](https://github.com/HoudiniGraphql/houdini/commit/a107f6ce22f33719ed8c5fbeb49eb854d3238e9f) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Rename `isFetching` to `fetching`
+
+### 🐛 Fixes
+
+-   [#801](https://github.com/HoudiniGraphql/houdini/pull/801) [`1d18dd4`](https://github.com/HoudiniGraphql/houdini/commit/1d18dd42c66933bbb67d2357a6cbb9023235cff9) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Update init command to always write to vite.config.js
 
 ## 0.19.4
 

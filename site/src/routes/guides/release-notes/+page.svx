@@ -10,11 +10,11 @@ description: A guide to migrating your application to each breaking version of h
 
 # Release Notes
 
-## 1.0.0
+## 0.20.0
 
-It's finally here! <Emoji name="partying-face" height={28} fallback="🥳" />
-
-There are just a few breaking changes that have been introduced with this and one _very_ cool feature.
+This release was originally planned to be `1.0` but we have some exciting stuff planned
+that's just not quite ready.There are just a few breaking changes that have been
+introduced with this and one _very_ cool feature.
 
 ### `isFetching` has been renamed to `fetching`
 
