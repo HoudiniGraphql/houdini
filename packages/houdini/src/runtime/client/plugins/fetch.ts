@@ -17,10 +17,14 @@ export const fetchPlugin = (fn?: RequestHandler | string): ClientPlugin => {
 					}
 
 					let fetchFn = defaultFetch(client.url)
-					if (fn && typeof fn === 'string') {
-						fetchFn = defaultFetch(fn)
-					} else {
-						fetchFn = defaultFetch(client.url)
+					// the provided parameter either specifies the URL or is the entire function to
+					// use
+					if (fn) {
+						if (typeof fn === 'string') {
+							fetchFn = defaultFetch(fn)
+						} else {
+							fetchFn = fn
+						}
 					}
 
 					// invoke the function
@@ -41,9 +45,9 @@ export const fetchPlugin = (fn?: RequestHandler | string): ClientPlugin => {
 								},
 							})
 						},
-						...fetchParams,
 						metadata: ctx.metadata,
 						session: ctx.session || {},
+						...fetchParams,
 					})
 
 					// return the result
