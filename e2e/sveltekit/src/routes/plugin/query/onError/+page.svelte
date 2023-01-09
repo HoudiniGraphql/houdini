@@ -4,5 +4,5 @@
 </script>
 
 <div id="result">
-  {data.fancyMessage}
+  {data.fancyMessage},{data.errorMessage}
 </div>

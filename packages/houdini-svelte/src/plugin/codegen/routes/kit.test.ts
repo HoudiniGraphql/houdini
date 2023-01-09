@@ -491,7 +491,7 @@ test('generates types for layout onError', async function () {
 		export type OnErrorEvent = {
 		    event: Kit.LoadEvent;
 		    input: LoadInput;
-		    error: Error | Error[];
+		    error: Kit.HttpError;
 		};
 
 		export type MyPageLoad1QueryVariables = VariableFunction<LayoutParams, MyPageLoad1Query$input>;
@@ -609,7 +609,7 @@ test('generates types for page onError', async function () {
 		export type OnErrorEvent = {
 		    event: Kit.LoadEvent;
 		    input: LoadInput;
-		    error: Error | Error[];
+		    error: Kit.HttpError;
 		};
 
 		export type MyPageLoad1QueryVariables = VariableFunction<PageParams, MyPageLoad1Query$input>;
