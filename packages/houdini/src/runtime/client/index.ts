@@ -24,23 +24,39 @@ import {
 // export the plugin constructors
 export { queryPlugin, mutationPlugin, fetchPlugin, subscriptionPlugin } from './plugins'
 
+type ConstructorArgs = {
+	url: string
+	fetchParams?: FetchParamFn
+	plugins?: ClientPlugin[]
+	pipeline?: () => ClientPlugin[]
+}
+
 export class HoudiniClient {
 	// the list of plugins for the client
 	#plugins: ClientPlugin[]
 	// the URL of the api
 	url: string
 
-	constructor({
-		url,
-		fetchParams,
-		plugins,
-		pipeline,
-	}: {
+	constructor(args: {
 		url: string
 		fetchParams?: FetchParamFn
 		plugins?: ClientPlugin[]
+		pipeline?: never
+	})
+	constructor(args: {
+		url: string
+		fetchParams?: FetchParamFn
+		plugins?: never
 		pipeline?: () => ClientPlugin[]
-	}) {
+	})
+	constructor({ url, fetchParams, plugins, pipeline }: ConstructorArgs) {
+		// if we were given plugins and pipeline there's an error
+		if (plugins && pipeline) {
+			throw new Error(
+				'A client cannot be given a pipeline and a list of plugins at the same time.'
+			)
+		}
+
 		// a few middlewares _have_ to run to setup the API and then we
 		// either have to add a totally custom pipeline specified by the pipeline value
 		// or build up the default list
