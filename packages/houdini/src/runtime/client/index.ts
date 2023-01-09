@@ -16,11 +16,11 @@ import {
 	subscriptionMiddleware,
 	cachePolicyMiddleware,
 	fetchMiddleware,
+	fetchParamsMiddleware,
+	type FetchParamFn,
 	type RequestHandler,
 	type FetchContext,
 	type SubscriptionHandler,
-	fetchParamsMiddleware,
-	FetchParamFn,
 } from './middlewares'
 import pluginMiddlewares from './pluginMiddlewares'
 
@@ -48,16 +48,16 @@ export class HoudiniClient {
 		this.#plugins = setupPlugins.concat(
 			// if the user wants to specify the entire pipeline, let them do so
 			pipeline?.() ??
+				// build up the defaut list of plugins
 				[
 					// cache policy needs to always come first so that it can be the first fetch_enter to fire
 					cachePolicyMiddleware,
-
 					// make sure that queries and mutations always work
 					queryMiddleware,
 					mutationMiddleware,
 				].concat(
 					// add the specified middlewares
-					plugins,
+					plugins ?? [],
 					// and any middlewares we got from plugins
 					pluginMiddlewares,
 					// if they handed up a subscription handler than add the subscription middleware

@@ -1,6 +1,6 @@
-import { HoudiniMiddleware } from '../documentObserver'
+import { ClientPlugin } from '../documentObserver'
 
-export function subscriptionMiddleware(client: SubscriptionHandler): HoudiniMiddleware {
+export function subscriptionMiddleware(client: SubscriptionHandler): ClientPlugin {
 	return () => {
 		return {}
 	}

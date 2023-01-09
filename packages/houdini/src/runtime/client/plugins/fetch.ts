@@ -1,5 +1,5 @@
 import { DataSource, RequestPayload } from '../../lib'
-import type { Fetch, ClientPlugin } from '../documentObserver'
+import type { ClientPlugin } from '../documentObserver'
 
 export const fetchMiddleware = (fetchFn: RequestHandler): ClientPlugin => {
 	return () => {

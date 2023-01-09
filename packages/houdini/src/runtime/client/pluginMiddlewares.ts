@@ -1,8 +1,8 @@
 // the actual contents of this file will be overwritten by the runtime generator
 // to include imports from plugins so that they can register middlewares as
 // part of the generation pipeline
-import { HoudiniMiddleware } from './documentObserver'
+import { ClientPlugin } from './documentObserver'
 
-const plugins: HoudiniMiddleware[] = []
+const plugins: ClientPlugin[] = []
 
 export default plugins

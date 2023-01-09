@@ -6,7 +6,11 @@ import { ArtifactKind } from '../lib/types'
 import { DocumentObserver, ClientPlugin } from './documentObserver'
 
 function createStore(plugins: ClientPlugin[]): DocumentObserver<any, any> {
-	return new HoudiniClient({ plugins }).observe({
+	return new HoudiniClient({
+		pipeline() {
+			return plugins
+		},
+	}).observe({
 		kind: ArtifactKind.Query,
 		hash: '1234',
 		raw: 'RAW_TEXT',
