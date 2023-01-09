@@ -23,7 +23,7 @@ test('middleware pipeline happy path', async function () {
 	}
 
 	const middleware1: HoudiniMiddleware = () => ({
-		phaseOne: {
+		setup: {
 			enter(ctx, { next }) {
 				tracker(1, 'one_enter')
 				next(ctx)
@@ -33,7 +33,7 @@ test('middleware pipeline happy path', async function () {
 				next(ctx)
 			},
 		},
-		phaseTwo: {
+		network: {
 			enter(ctx, { next }) {
 				tracker(1, 'two_enter')
 				next(ctx)
@@ -42,13 +42,13 @@ test('middleware pipeline happy path', async function () {
 	})
 	const middleware2: HoudiniMiddleware = () => {
 		return {
-			phaseOne: {
+			setup: {
 				exit(ctx, next) {
 					tracker(2, 'one_exit')
 					next(ctx)
 				},
 			},
-			phaseTwo: {
+			network: {
 				enter(ctx, { next }) {
 					tracker(2, 'two_enter')
 					next(ctx)
@@ -62,7 +62,7 @@ test('middleware pipeline happy path', async function () {
 	}
 
 	const terminate: HoudiniMiddleware = () => ({
-		phaseOne: {
+		setup: {
 			enter(ctx, { next }) {
 				tracker(3, 'one_enter')
 				next(ctx)
@@ -72,10 +72,10 @@ test('middleware pipeline happy path', async function () {
 				next(ctx)
 			},
 		},
-		phaseTwo: {
-			enter(ctx, { terminate }) {
+		network: {
+			enter(ctx, { resolve }) {
 				tracker(3, 'two_enter')
-				terminate(ctx, 'value')
+				resolve(ctx, { result: { data: 'value', errors: [] } })
 			},
 			exit(ctx, next) {
 				tracker(3, 'two_exit')
@@ -109,9 +109,7 @@ test('middleware pipeline happy path', async function () {
 	])
 
 	// make sure we got the right value back
-	expect(value).toEqual('value')
-	// make sure we updated the store state
-	expect(subscribeSpy).toHaveBeenCalledWith('value')
+	expect(value).toEqual({ result: { data: 'value', errors: [] } })
 })
 
 test('terminate short-circuits pipeline', async function () {
@@ -121,7 +119,7 @@ test('terminate short-circuits pipeline', async function () {
 	}
 
 	const middleware1: HoudiniMiddleware = () => ({
-		phaseOne: {
+		setup: {
 			enter(ctx, { next }) {
 				tracker(1, 'one_enter')
 				next(ctx)
@@ -131,7 +129,7 @@ test('terminate short-circuits pipeline', async function () {
 				next(ctx)
 			},
 		},
-		phaseTwo: {
+		network: {
 			enter(ctx, { next }) {
 				tracker(1, 'two_enter')
 				next(ctx)
@@ -140,17 +138,17 @@ test('terminate short-circuits pipeline', async function () {
 	})
 	const middleware2: HoudiniMiddleware = () => {
 		return {
-			phaseOne: {
-				enter(ctx, { terminate }) {
+			setup: {
+				enter(ctx, { resolve }) {
 					tracker(2, 'one_enter')
-					terminate(ctx, 'value')
+					resolve(ctx, { result: { data: 'value', errors: [] } })
 				},
 				exit(ctx, next) {
 					tracker(2, 'one_exit')
-					next(ctx, 'value')
+					next(ctx, { result: { data: 'value', errors: [] } })
 				},
 			},
-			phaseTwo: {
+			network: {
 				enter(ctx, { next }) {
 					tracker(2, 'two_enter')
 					next(ctx)
@@ -178,12 +176,14 @@ test('terminate short-circuits pipeline', async function () {
 	])
 })
 
-test('can call terminate multiple times to set multiple values', async function () {
+test('can call resolve multiple times to set multiple values', async function () {
 	const middleware: HoudiniMiddleware = () => ({
-		phaseOne: {
-			enter(ctx, { terminate }) {
-				terminate(ctx, 'value')
-				sleep(100).then(() => terminate(ctx, 'another-value'))
+		setup: {
+			enter(ctx, { resolve }) {
+				resolve(ctx, { result: { data: 'value', errors: [] } })
+				sleep(100).then(() =>
+					resolve(ctx, { result: { data: 'another-value', errors: [] } })
+				)
 			},
 		},
 	})
@@ -199,11 +199,36 @@ test('can call terminate multiple times to set multiple values', async function 
 	await sleep(100)
 
 	// make sure we get the first value  from the promise
-	expect(result).toEqual('value')
+	expect(result).toEqual({ result: { data: 'value', errors: [] } })
 	// that value will be the second value to the spy
-	expect(fn).toHaveBeenNthCalledWith(2, 'value')
+	expect(fn).toHaveBeenNthCalledWith(2, {
+		fetching: true,
+		partial: false,
+		source: null,
+		result: {
+			data: null,
+			errors: [],
+		},
+	})
 	// and the third call will be the second call to terminate
-	expect(fn).toHaveBeenNthCalledWith(3, 'another-value')
+	expect(fn).toHaveBeenNthCalledWith(3, {
+		fetching: false,
+		partial: false,
+		result: {
+			data: 'value',
+			errors: [],
+		},
+		source: null,
+	})
+	expect(fn).toHaveBeenNthCalledWith(4, {
+		fetching: false,
+		partial: false,
+		result: {
+			data: 'another-value',
+			errors: [],
+		},
+		source: null,
+	})
 })
 
 test('error can replay chain', async function () {
@@ -232,11 +257,11 @@ test('error can replay chain', async function () {
 	})
 
 	const middleware: HoudiniMiddleware = () => ({
-		phaseOne: {
-			enter(ctx, { terminate }) {
+		setup: {
+			enter(ctx, { resolve }) {
 				// we have to get here twice to succeed
 				if (count) {
-					terminate(ctx, 'value')
+					resolve(ctx, { result: { data: 'value', errors: [] } })
 					return
 				}
 
@@ -249,14 +274,19 @@ test('error can replay chain', async function () {
 	const store = createStore([firstErrorHandler, errorTrapper, middleware])
 
 	// make sure that the promise rejected with the error value
-	await expect(store.send()).resolves.toEqual('value')
+	await expect(store.send()).resolves.toEqual({
+		result: {
+			data: 'value',
+			errors: [],
+		},
+	})
 	expect(spy).toHaveBeenCalled()
 	expect(outerSpy).not.toHaveBeenCalled()
 })
 
 test('error rejects the promise', async function () {
 	const middleware: HoudiniMiddleware = () => ({
-		phaseOne: {
+		setup: {
 			enter() {
 				throw 'hello'
 			},
@@ -272,7 +302,7 @@ test('error rejects the promise', async function () {
 
 test('async error rejects the promise', async function () {
 	const middleware: HoudiniMiddleware = () => ({
-		phaseOne: {
+		setup: {
 			async enter() {
 				throw 'hello'
 			},
@@ -307,7 +337,7 @@ test('cleanup phase', async function () {
 
 test('middlewares can set twoParams', async function () {
 	const middleware1: HoudiniMiddleware = () => ({
-		phaseOne: {
+		setup: {
 			enter(ctx, { next }) {
 				ctx.fetchParams = {
 					...ctx.fetchParams,
@@ -322,10 +352,10 @@ test('middlewares can set twoParams', async function () {
 
 	const spy = vi.fn()
 	const fetchMiddleware: HoudiniMiddleware = () => ({
-		phaseOne: {
-			enter(ctx, { terminate }) {
+		setup: {
+			enter(ctx, { resolve }) {
 				spy(ctx.fetchParams)
-				terminate(ctx, 'value')
+				resolve(ctx, { result: { data: 'value', errors: [] } })
 			},
 		},
 	})
@@ -336,5 +366,45 @@ test('middlewares can set twoParams', async function () {
 
 	expect(spy).toBeCalledWith({
 		headers: { hello: 'world' },
+	})
+})
+
+test('tracks loading state', async function () {
+	const middleware: HoudiniMiddleware = () => ({
+		setup: {
+			enter(ctx, { resolve }) {
+				resolve(ctx, { result: { data: 'value', errors: [] } })
+			},
+		},
+	})
+
+	// create a store we'll test with
+	const store = createStore([middleware])
+	// a spy to check the value
+	const spy = vi.fn()
+	store.subscribe(spy)
+
+	// trigger the pipeline
+	const value = await store.send()
+
+	// make sure we started off as loading
+	expect(spy).toHaveBeenNthCalledWith(2, {
+		fetching: true,
+		partial: false,
+		source: null,
+		result: {
+			data: null,
+			errors: [],
+		},
+	})
+	// make sure we're not
+	expect(spy).toHaveBeenNthCalledWith(3, {
+		fetching: false,
+		partial: false,
+		source: null,
+		result: {
+			data: 'value',
+			errors: [],
+		},
 	})
 })

@@ -5,19 +5,19 @@ const subscriber_queue: any[] = []
 const noop = () => {}
 
 export class Writable<T> {
-	state: T | null
+	state: T
 	#subscribers: Set<SubscribeInvalidateTuple<T>>
 	#stop: Unsubscriber | null
 	#start: StartStopNotifier<T>
 
-	constructor(value: T | null = null, start: StartStopNotifier<T> = noop) {
+	constructor(value: T, start: StartStopNotifier<T> = noop) {
 		this.state = value
 		this.#subscribers = new Set()
 		this.#stop = null
 		this.#start = start
 	}
 
-	set(new_value: T | null): void {
+	set(new_value: T): void {
 		if (safe_not_equal(this.state, new_value)) {
 			this.state = new_value
 			if (this.#stop) {
@@ -70,13 +70,13 @@ type StartStopNotifier<T> = (set: Subscriber<T>) => Unsubscriber | void
 type SubscribeInvalidateTuple<T> = [Subscriber<T>, Invalidator<T>]
 
 /** Callback to inform of a value updates. */
-type Subscriber<T> = (value: T | null) => void
+type Subscriber<T> = (value: T) => void
 
 /** Unsubscribes from value updates. */
 type Unsubscriber = () => void
 
 /** Callback to update a value. */
-type Updater<T> = (value: T | null) => T
+type Updater<T> = (value: T) => T
 
 /** Cleanup logic callback. */
 type Invalidator<T> = (value?: T) => void

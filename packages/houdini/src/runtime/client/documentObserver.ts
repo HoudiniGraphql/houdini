@@ -1,10 +1,11 @@
-import type { DocumentArtifact, GraphQLObject } from '../lib'
+import type { DocumentArtifact, FetchQueryResult, GraphQLObject, QueryResult } from '../lib'
 import { Writable } from '../lib/store'
 
-export class DocumentObserver<
-	_Data extends GraphQLObject,
-	_Input extends {}
-> extends Writable<_Data | null> {
+type State<_Data> = FetchQueryResult<_Data> & { fetching: boolean }
+
+export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> extends Writable<
+	State<_Data>
+> {
 	#artifact: DocumentArtifact
 
 	// the list of instantiated middlewares
@@ -17,7 +18,15 @@ export class DocumentObserver<
 		artifact: DocumentArtifact
 		middlewares: HoudiniMiddleware[]
 	}) {
-		super(null, () => {
+		// the intial store state
+		const initialState = {
+			result: { data: null, errors: [] },
+			partial: false,
+			source: null,
+			fetching: false,
+		}
+
+		super(initialState, () => {
 			// unsubscribing from the store means walking down all of the middlewares and calling
 			// cleanup
 			return () => {
@@ -42,12 +51,14 @@ export class DocumentObserver<
 		fetch?: Fetch
 		session?: App.Session
 	} = {}): Promise<_Data | null> {
+		this.update((state) => ({ ...state, fetching: true }))
+
 		return new Promise((resolve, reject) => {
 			// the initial state of the iterator
 			const state: IteratorState = {
 				value: null,
 				terminatingIndex: null,
-				currentStep: 'phaseOne',
+				currentStep: 'setup',
 				index: -1,
 				promise: {
 					resolved: false,
@@ -85,7 +96,7 @@ export class DocumentObserver<
 									index,
 								})
 							},
-							terminate: (newContext, value) => {
+							resolve: (newContext, value) => {
 								// start the journey back
 								this.#terminate(
 									{
@@ -117,10 +128,10 @@ export class DocumentObserver<
 		// if we got this far, we have exhausted the step.
 
 		// if we are still in setup, flip over to fetch and start over
-		if (ctx.currentStep === 'phaseOne') {
+		if (ctx.currentStep === 'setup') {
 			return this.#next({
 				...ctx,
-				currentStep: 'phaseTwo',
+				currentStep: 'network',
 				index: -1,
 			})
 		}
@@ -132,7 +143,7 @@ export class DocumentObserver<
 		)
 	}
 
-	#terminate(ctx: IteratorState, value: _Data | null): void {
+	#terminate(ctx: IteratorState, value: Partial<State<_Data>>): void {
 		// starting one less than the current index
 		for (let index = ctx.index - 1; index >= 0; index--) {
 			// if we find a middleware in the same phase, call it
@@ -172,11 +183,11 @@ export class DocumentObserver<
 		}
 
 		// if we're done with the fetch step, we need to start the setup phase of the termination flow
-		if (ctx.currentStep === 'phaseTwo') {
+		if (ctx.currentStep === 'network') {
 			return this.#terminate(
 				{
 					...ctx,
-					currentStep: 'phaseOne',
+					currentStep: 'setup',
 					index: ctx.terminatingIndex || this.#middlewares.length,
 				},
 				value
@@ -194,7 +205,11 @@ export class DocumentObserver<
 		}
 
 		// the latest value should be written to the store
-		this.set(value)
+		this.update((state) => ({
+			...state,
+			...value,
+			fetching: false,
+		}))
 	}
 
 	#error(ctx: IteratorState, error: unknown) {
@@ -243,8 +258,8 @@ export class DocumentObserver<
 export type HoudiniMiddleware =
 	// the first function lets a middleware setup for a particular observer chain
 	() => {
-		phaseOne?: NetworkMiddleware
-		phaseTwo?: NetworkMiddleware
+		setup?: NetworkMiddleware
+		network?: NetworkMiddleware
 		cleanup?(): any
 		// error is called when a middleware after this raises an exception
 		error?(
@@ -260,7 +275,7 @@ type IteratorState = {
 	index: number
 	value: any
 	terminatingIndex: number | null
-	currentStep: 'phaseOne' | 'phaseTwo'
+	currentStep: 'network' | 'setup'
 	promise: {
 		resolved: boolean
 		resolve(val: any): void
@@ -285,7 +300,10 @@ export type NetworkMiddleware = {
 	enter?(ctx: MiddlewareContext, handlers: MiddlewareHandlers): void | Promise<void>
 	// exist is called when the result of the next middleware in the chain
 	// is called
-	exit?(ctx: ExitContext, next: (ctx: ExitContext, data?: any) => any): void | Promise<void>
+	exit?(
+		ctx: ExitContext,
+		next: (ctx: ExitContext, data?: Partial<State<any>>) => any
+	): void | Promise<void>
 }
 
 export type ExitContext = MiddlewareContext & { value: any }
@@ -295,5 +313,5 @@ export type MiddlewareHandlers = {
 	// TODO: i hate this name. It kind of make sense for a single request
 	// but for a subscription or live query, its more like "push". The semantic
 	// meaning is that the chain is done and should be pushed back in reverse order
-	terminate(ctx: MiddlewareContext, data: any): void
+	resolve(ctx: MiddlewareContext, data: Partial<State<any>>): void
 }

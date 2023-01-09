@@ -4,8 +4,8 @@ import type { HoudiniMiddleware } from '../documentObserver'
 export const fetchMiddleware = (fetchFn: RequestHandler): HoudiniMiddleware => {
 	return () => {
 		return {
-			phaseTwo: {
-				async enter(ctx, { terminate }) {
+			network: {
+				async enter(ctx, { resolve }) {
 					let url = ''
 
 					// figure out which fetch to use
@@ -40,7 +40,7 @@ export const fetchMiddleware = (fetchFn: RequestHandler): HoudiniMiddleware => {
 					})
 
 					// return the result
-					terminate(ctx, {
+					resolve(ctx, {
 						result,
 						partial: false,
 						source: DataSource.Network,
