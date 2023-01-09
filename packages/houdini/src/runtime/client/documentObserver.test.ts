@@ -3,10 +3,10 @@ import { test, expect, vi } from 'vitest'
 
 import { HoudiniClient } from '.'
 import { ArtifactKind } from '../lib/types'
-import { DocumentObserver, HoudiniMiddleware } from './documentObserver'
+import { DocumentObserver, ClientPlugin } from './documentObserver'
 
-function createStore(middlewares: HoudiniMiddleware[]): DocumentObserver<any, any> {
-	return new HoudiniClient({ middlewares }).observe({
+function createStore(plugins: ClientPlugin[]): DocumentObserver<any, any> {
+	return new HoudiniClient({ plugins }).observe({
 		kind: ArtifactKind.Query,
 		hash: '1234',
 		raw: 'RAW_TEXT',
@@ -22,7 +22,7 @@ test('middleware pipeline happy path', async function () {
 		history.push([which, step])
 	}
 
-	const middleware1: HoudiniMiddleware = () => ({
+	const middleware1: ClientPlugin = () => ({
 		setup: {
 			enter(ctx, { next }) {
 				tracker(1, 'one_enter')
@@ -40,7 +40,7 @@ test('middleware pipeline happy path', async function () {
 			},
 		},
 	})
-	const middleware2: HoudiniMiddleware = () => {
+	const middleware2: ClientPlugin = () => {
 		return {
 			setup: {
 				exit(ctx, next) {
@@ -61,7 +61,7 @@ test('middleware pipeline happy path', async function () {
 		}
 	}
 
-	const terminate: HoudiniMiddleware = () => ({
+	const terminate: ClientPlugin = () => ({
 		setup: {
 			enter(ctx, { next }) {
 				tracker(3, 'one_enter')
@@ -118,7 +118,7 @@ test('terminate short-circuits pipeline', async function () {
 		history.push([which, step])
 	}
 
-	const middleware1: HoudiniMiddleware = () => ({
+	const middleware1: ClientPlugin = () => ({
 		setup: {
 			enter(ctx, { next }) {
 				tracker(1, 'one_enter')
@@ -136,7 +136,7 @@ test('terminate short-circuits pipeline', async function () {
 			},
 		},
 	})
-	const middleware2: HoudiniMiddleware = () => {
+	const middleware2: ClientPlugin = () => {
 		return {
 			setup: {
 				enter(ctx, { resolve }) {
@@ -177,7 +177,7 @@ test('terminate short-circuits pipeline', async function () {
 })
 
 test('can call resolve multiple times to set multiple values', async function () {
-	const middleware: HoudiniMiddleware = () => ({
+	const middleware: ClientPlugin = () => ({
 		setup: {
 			enter(ctx, { resolve }) {
 				resolve(ctx, { result: { data: 'value', errors: [] } })
@@ -239,13 +239,13 @@ test('error can replay chain', async function () {
 	const outerSpy = vi.fn()
 	const spy = vi.fn()
 
-	const firstErrorHandler: HoudiniMiddleware = () => ({
+	const firstErrorHandler: ClientPlugin = () => ({
 		error(ctx) {
 			outerSpy()
 		},
 	})
 
-	const errorTrapper: HoudiniMiddleware = () => ({
+	const errorTrapper: ClientPlugin = () => ({
 		error(ctx, { next, error }) {
 			// invoke the spy (we got here once)
 			spy(error)
@@ -256,7 +256,7 @@ test('error can replay chain', async function () {
 		},
 	})
 
-	const middleware: HoudiniMiddleware = () => ({
+	const middleware: ClientPlugin = () => ({
 		setup: {
 			enter(ctx, { resolve }) {
 				// we have to get here twice to succeed
@@ -285,7 +285,7 @@ test('error can replay chain', async function () {
 })
 
 test('error rejects the promise', async function () {
-	const middleware: HoudiniMiddleware = () => ({
+	const middleware: ClientPlugin = () => ({
 		setup: {
 			enter() {
 				throw 'hello'
@@ -301,7 +301,7 @@ test('error rejects the promise', async function () {
 })
 
 test('async error rejects the promise', async function () {
-	const middleware: HoudiniMiddleware = () => ({
+	const middleware: ClientPlugin = () => ({
 		setup: {
 			async enter() {
 				throw 'hello'
@@ -319,7 +319,7 @@ test('async error rejects the promise', async function () {
 test('cleanup phase', async function () {
 	const spy = vi.fn()
 
-	const middleware: HoudiniMiddleware = () => ({
+	const middleware: ClientPlugin = () => ({
 		cleanup() {
 			spy()
 		},
@@ -336,7 +336,7 @@ test('cleanup phase', async function () {
 })
 
 test('middlewares can set twoParams', async function () {
-	const middleware1: HoudiniMiddleware = () => ({
+	const middleware1: ClientPlugin = () => ({
 		setup: {
 			enter(ctx, { next }) {
 				ctx.fetchParams = {
@@ -351,7 +351,7 @@ test('middlewares can set twoParams', async function () {
 	})
 
 	const spy = vi.fn()
-	const fetchMiddleware: HoudiniMiddleware = () => ({
+	const fetchMiddleware: ClientPlugin = () => ({
 		setup: {
 			enter(ctx, { resolve }) {
 				spy(ctx.fetchParams)
@@ -370,7 +370,7 @@ test('middlewares can set twoParams', async function () {
 })
 
 test('tracks loading state', async function () {
-	const middleware: HoudiniMiddleware = () => ({
+	const middleware: ClientPlugin = () => ({
 		setup: {
 			enter(ctx, { resolve }) {
 				resolve(ctx, { result: { data: 'value', errors: [] } })
@@ -385,7 +385,7 @@ test('tracks loading state', async function () {
 	store.subscribe(spy)
 
 	// trigger the pipeline
-	const value = await store.send()
+	await store.send()
 
 	// make sure we started off as loading
 	expect(spy).toHaveBeenNthCalledWith(2, {

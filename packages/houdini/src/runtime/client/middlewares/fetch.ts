@@ -1,13 +1,11 @@
 import { DataSource, RequestPayload } from '../../lib'
-import type { HoudiniMiddleware } from '../documentObserver'
+import type { Fetch, ClientPlugin } from '../documentObserver'
 
-export const fetchMiddleware = (fetchFn: RequestHandler): HoudiniMiddleware => {
+export const fetchMiddleware = (fetchFn: RequestHandler): ClientPlugin => {
 	return () => {
 		return {
 			network: {
 				async enter(ctx, { resolve }) {
-					let url = ''
-
 					// figure out which fetch to use
 					const fetch = ctx.fetch ?? globalThis.fetch
 
@@ -22,17 +20,15 @@ export const fetchMiddleware = (fetchFn: RequestHandler): HoudiniMiddleware => {
 					const result = await fetchFn({
 						// wrap the user's fetch function so we can identify SSR by checking
 						// the response.url
-						fetch: async (...args: Parameters<FetchContext['fetch']>) => {
+						fetch: (url: URL | RequestInfo, args: RequestInit | undefined) => {
 							// figure out if we need to do something special for multipart uploads
 							const newArgs = handleMultipart(fetchParams, args)
 
 							// use the new args if they exist, otherwise the old ones are good
-							const response = await fetch(...(newArgs || args))
-							if (response.url) {
-								url = response.url
-							}
-
-							return response
+							return fetch(url, {
+								...(newArgs || args),
+								...ctx.fetchParams,
+							})
 						},
 						...fetchParams,
 						metadata: ctx.metadata,
@@ -52,7 +48,7 @@ export const fetchMiddleware = (fetchFn: RequestHandler): HoudiniMiddleware => {
 }
 
 export type FetchContext = {
-	fetch: typeof window.fetch
+	fetch: typeof globalThis.fetch
 	metadata?: App.Metadata | null
 	session: App.Session | null
 }
@@ -83,8 +79,8 @@ export type FetchParams = {
 
 function handleMultipart(
 	params: FetchParams,
-	args: Parameters<FetchContext['fetch']>
-): Parameters<FetchContext['fetch']> | undefined {
+	args: RequestInit | undefined
+): RequestInit | undefined {
 	// process any files that could be included
 	const { clone, files } = extractFiles({
 		query: params.text,
@@ -93,7 +89,7 @@ function handleMultipart(
 
 	// if there are files in the request
 	if (files.size) {
-		const [url, req] = args
+		const req = args
 		let headers: Record<string, string> = {}
 
 		// filters `content-type: application/json` if received by client.ts
@@ -126,7 +122,7 @@ function handleMultipart(
 			form.set(`${++i}`, file as Blob, (file as File).name)
 		})
 
-		return [url, { ...req, headers, body: form as any }]
+		return { ...req, headers, body: form as any }
 	}
 }
 

@@ -8,16 +8,10 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 > {
 	#artifact: DocumentArtifact
 
-	// the list of instantiated middlewares
-	#middlewares: HoudiniMiddlewareInstance[]
+	// the list of instantiated plugins
+	#plugins: ClientPluginInstance[]
 
-	constructor({
-		artifact,
-		middlewares,
-	}: {
-		artifact: DocumentArtifact
-		middlewares: HoudiniMiddleware[]
-	}) {
+	constructor({ artifact, plugins }: { artifact: DocumentArtifact; plugins: ClientPlugin[] }) {
 		// the intial store state
 		const initialState = {
 			result: { data: null, errors: [] },
@@ -27,16 +21,16 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		}
 
 		super(initialState, () => {
-			// unsubscribing from the store means walking down all of the middlewares and calling
+			// unsubscribing from the store means walking down all of the plugins and calling
 			// cleanup
 			return () => {
-				for (const middleware of this.#middlewares) {
-					middleware.cleanup?.()
+				for (const plugin of this.#plugins) {
+					plugin.cleanup?.()
 				}
 			}
 		})
 		this.#artifact = artifact
-		this.#middlewares = middlewares.map((factory) => factory())
+		this.#plugins = plugins.map((factory) => factory())
 	}
 
 	// used by the client to send a new set of variables to the pipeline
@@ -80,9 +74,9 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 	}
 
 	#next(ctx: IteratorState): void {
-		// look for the next middleware that defines an enter of the correct step
-		for (let index = ctx.index + 1; index <= this.#middlewares.length; index++) {
-			let target = this.#middlewares[index]?.[ctx.currentStep]?.enter
+		// look for the next plugin that defines an enter of the correct step
+		for (let index = ctx.index + 1; index <= this.#plugins.length; index++) {
+			let target = this.#plugins[index]?.[ctx.currentStep]?.enter
 			if (target) {
 				try {
 					// invoke the target
@@ -139,15 +133,15 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		// if we are in fetch, the last fetch enter called next. there's no terminating link for this
 		// chain
 		throw new Error(
-			'Called next() on last possible middleware. Your chain is missing a terminating link.'
+			'Called next() on last possible plugin. Your chain is missing a terminating link.'
 		)
 	}
 
 	#terminate(ctx: IteratorState, value: Partial<State<_Data>>): void {
 		// starting one less than the current index
 		for (let index = ctx.index - 1; index >= 0; index--) {
-			// if we find a middleware in the same phase, call it
-			let target = this.#middlewares[index]?.[ctx.currentStep]?.exit
+			// if we find a plugin in the same phase, call it
+			let target = this.#plugins[index]?.[ctx.currentStep]?.exit
 			if (target) {
 				try {
 					// invoke the target
@@ -188,7 +182,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 				{
 					...ctx,
 					currentStep: 'setup',
-					index: ctx.terminatingIndex || this.#middlewares.length,
+					index: ctx.terminatingIndex || this.#plugins.length,
 				},
 				value
 			)
@@ -213,12 +207,12 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 	}
 
 	#error(ctx: IteratorState, error: unknown) {
-		// propagating an error up only visits middlewares that come before the
+		// propagating an error up only visits plugins that come before the
 		// current
 		let propagate = true
 		for (let i = ctx.index; i >= 0 && propagate; i--) {
 			// if the step has an error handler, invoke it
-			const errorHandler = this.#middlewares[i].error
+			const errorHandler = this.#plugins[i].error
 			if (errorHandler) {
 				errorHandler(ctx.context, {
 					error,
@@ -255,23 +249,23 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
  * - phaseOne happens before the request is potentially cached
  * - phaseTwo happens when a request has not been cached and needs to be resolved from the api
  */
-export type HoudiniMiddleware =
-	// the first function lets a middleware setup for a particular observer chain
+export type ClientPlugin =
+	// the first function lets a plugin setup for a particular observer chain
 	() => {
-		setup?: NetworkMiddleware
-		network?: NetworkMiddleware
+		setup?: ClientPluginPhase
+		network?: ClientPluginPhase
 		cleanup?(): any
-		// error is called when a middleware after this raises an exception
+		// error is called when a plugin after this raises an exception
 		error?(
-			ctx: MiddlewareContext,
-			args: { error: unknown } & Pick<MiddlewareHandlers, 'next'>
+			ctx: ClientPluginContext,
+			args: { error: unknown } & Pick<ClientPluginHandlers, 'next'>
 		): void | Promise<void>
 	}
 
-type HoudiniMiddlewareInstance = ReturnType<HoudiniMiddleware>
+type ClientPluginInstance = ReturnType<ClientPlugin>
 
 type IteratorState = {
-	context: MiddlewareContext
+	context: ClientPluginContext
 	index: number
 	value: any
 	terminatingIndex: number | null
@@ -283,9 +277,9 @@ type IteratorState = {
 	}
 }
 
-type Fetch = typeof globalThis.fetch
+export type Fetch = typeof globalThis.fetch
 
-export type MiddlewareContext = {
+export type ClientPluginContext = {
 	artifact: DocumentArtifact
 	fetch?: Fetch
 	variables?: {}
@@ -294,11 +288,11 @@ export type MiddlewareContext = {
 	fetchParams?: RequestInit
 }
 
-/** NetworkMiddleware describes the logic of the HoudiniClient plugin at a particular stage. */
-export type NetworkMiddleware = {
+/** ClientPlugin describes the logic of the HoudiniClient plugin at a particular stage. */
+export type ClientPluginPhase = {
 	// enter is called when an artifact is pushed through
-	enter?(ctx: MiddlewareContext, handlers: MiddlewareHandlers): void | Promise<void>
-	// exist is called when the result of the next middleware in the chain
+	enter?(ctx: ClientPluginContext, handlers: ClientPluginHandlers): void | Promise<void>
+	// exist is called when the result of the next plugin in the chain
 	// is called
 	exit?(
 		ctx: ExitContext,
@@ -306,12 +300,12 @@ export type NetworkMiddleware = {
 	): void | Promise<void>
 }
 
-export type ExitContext = MiddlewareContext & { value: any }
+export type ExitContext = ClientPluginContext & { value: any }
 
-export type MiddlewareHandlers = {
-	next(ctx: MiddlewareContext): void
+export type ClientPluginHandlers = {
+	next(ctx: ClientPluginContext): void
 	// TODO: i hate this name. It kind of make sense for a single request
 	// but for a subscription or live query, its more like "push". The semantic
 	// meaning is that the chain is done and should be pushed back in reverse order
-	resolve(ctx: MiddlewareContext, data: Partial<State<any>>): void
+	resolve(ctx: ClientPluginContext, data: Partial<State<any>>): void
 }

@@ -9,7 +9,7 @@ import {
 	FetchQueryResult,
 	DocumentArtifact,
 } from '../lib/types'
-import { DocumentObserver, HoudiniMiddleware } from './documentObserver'
+import { ClientPlugin, DocumentObserver } from './documentObserver'
 import {
 	queryMiddleware,
 	mutationMiddleware,
@@ -19,43 +19,57 @@ import {
 	type RequestHandler,
 	type FetchContext,
 	type SubscriptionHandler,
+	fetchParamsMiddleware,
+	FetchParamFn,
 } from './middlewares'
 import pluginMiddlewares from './pluginMiddlewares'
 
 export class HoudiniClient {
-	#middlewares: HoudiniMiddleware[]
+	#plugins: ClientPlugin[]
 
 	constructor({
 		requestHandler,
 		subscriptionHandler,
-		middlewares = [],
+		plugins,
+		pipeline,
+		fetchParams,
 	}: {
 		requestHandler?: RequestHandler<any>
 		subscriptionHandler?: SubscriptionHandler | null
-		middlewares?: HoudiniMiddleware[]
+		middlewares?: ClientPlugin[]
+		plugins?: ClientPlugin[]
+		pipeline?: () => ClientPlugin[]
+		fetchParams?: FetchParamFn
 	}) {
-		// we need to call the hooks in the appropriate order
-		this.#middlewares = [
-			// cache policy needs to always come first so that it can be the first fetch_enter to fire
-			cachePolicyMiddleware,
+		// a few middlewares _have_ to run
+		const setupPlugins = fetchParams ? [fetchParamsMiddleware(fetchParams)] : []
 
-			// make sure that queries and mutations always work
-			queryMiddleware,
-			mutationMiddleware,
-		].concat(
-			// add the specified middlewares
-			middlewares,
-			// and any middlewares we got from plugins
-			pluginMiddlewares,
-			// if they handed up a subscription handler than add the subscription middleware
-			subscriptionHandler ? [subscriptionMiddleware(subscriptionHandler)] : [],
-			// if they provided a fetch function, use it as the body for the fetch middleware
-			requestHandler ? [fetchMiddleware(requestHandler)] : []
+		// we need to call the hooks in the appropriate order
+		this.#plugins = setupPlugins.concat(
+			// if the user wants to specify the entire pipeline, let them do so
+			pipeline?.() ??
+				[
+					// cache policy needs to always come first so that it can be the first fetch_enter to fire
+					cachePolicyMiddleware,
+
+					// make sure that queries and mutations always work
+					queryMiddleware,
+					mutationMiddleware,
+				].concat(
+					// add the specified middlewares
+					plugins,
+					// and any middlewares we got from plugins
+					pluginMiddlewares,
+					// if they handed up a subscription handler than add the subscription middleware
+					subscriptionHandler ? [subscriptionMiddleware(subscriptionHandler)] : [],
+					// if they provided a fetch function, use it as the body for the fetch middleware
+					requestHandler ? [fetchMiddleware(requestHandler)] : []
+				)
 		)
 	}
 
 	observe(artifact: DocumentArtifact): DocumentObserver<GraphQLObject, {}> {
-		return new DocumentObserver({ artifact, middlewares: this.#middlewares })
+		return new DocumentObserver({ artifact, plugins: this.#plugins })
 	}
 }
 
