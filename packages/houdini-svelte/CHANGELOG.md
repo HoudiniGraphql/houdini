@@ -1,5 +1,24 @@
 # houdini-svelte
 
+## 0.20.0
+
+### Minor Changes
+
+-   [#789](https://github.com/HoudiniGraphql/houdini/pull/789) [`a8237aa`](https://github.com/HoudiniGraphql/houdini/commit/a8237aa5c309de68b126ed55c6fe3fd6f1b24503) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Removed this.error and this.redirect from function variables
+
+-   [#800](https://github.com/HoudiniGraphql/houdini/pull/800) [`a107f6c`](https://github.com/HoudiniGraphql/houdini/commit/a107f6ce22f33719ed8c5fbeb49eb854d3238e9f) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Rename `isFetching` to `fetching`
+
+### Patch Changes
+
+-   [#804](https://github.com/HoudiniGraphql/houdini/pull/804) [`2c89fab`](https://github.com/HoudiniGraphql/houdini/commit/2c89fab5b20213f6636a92ed5232c922a1b2785a) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix onError error type
+
+-   [#803](https://github.com/HoudiniGraphql/houdini/pull/803) [`4c1c4f6`](https://github.com/HoudiniGraphql/houdini/commit/4c1c4f68a592ab78a496b1d2ddf05e3734b60fe2) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Mutation store result types can never be undefined
+
+-   [#789](https://github.com/HoudiniGraphql/houdini/pull/789) [`a8237aa`](https://github.com/HoudiniGraphql/houdini/commit/a8237aa5c309de68b126ed55c6fe3fd6f1b24503) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Query variables can now be inferred from route params
+
+-   Updated dependencies [[`a8237aa`](https://github.com/HoudiniGraphql/houdini/commit/a8237aa5c309de68b126ed55c6fe3fd6f1b24503), [`1d18dd4`](https://github.com/HoudiniGraphql/houdini/commit/1d18dd42c66933bbb67d2357a6cbb9023235cff9), [`a107f6c`](https://github.com/HoudiniGraphql/houdini/commit/a107f6ce22f33719ed8c5fbeb49eb854d3238e9f)]:
+    -   houdini@0.20.0
+
 ## 1.0.0-next.1
 
 ### Patch Changes
