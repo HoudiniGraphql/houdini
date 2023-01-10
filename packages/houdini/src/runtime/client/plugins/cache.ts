@@ -1,10 +1,10 @@
 import cache from '../../cache'
 import { ArtifactKind, CachePolicy, DataSource } from '../../lib'
 import { ClientPlugin } from '../documentObserver'
-import { marshaledInputs } from './inputs'
+import { marshaledVariables } from './inputs'
 
 export const cachePolicyPlugin =
-	(setFetching: (val: boolean) => void): ClientPlugin =>
+	(enabled: boolean, setFetching: (val: boolean) => void): ClientPlugin =>
 	() => {
 		return {
 			network: {
@@ -12,7 +12,7 @@ export const cachePolicyPlugin =
 					const { policy, artifact } = ctx
 
 					// enforce cache policies for queries
-					if (policy) {
+					if (enabled && policy && !ctx.cacheParams?.disableRead) {
 						// this function is called as the first step in requesting data. If the policy prefers
 						// cached data, we need to load data from the cache (if its available). If the policy
 						// prefers network data we need to send a request (the onLoad of the component will
@@ -23,7 +23,7 @@ export const cachePolicyPlugin =
 							// look up the current value in the cache
 							const value = cache.read({
 								selection: artifact.selection,
-								variables: marshaledInputs(ctx),
+								variables: marshaledVariables(ctx),
 							})
 
 							// we can only use the result if its not a partial result
@@ -32,20 +32,8 @@ export const cachePolicyPlugin =
 								// or the artifact allows for partial responses
 								(artifact.kind === ArtifactKind.Query && artifact.partial)
 
-							// if we have data, use that unless its partial data and we dont allow that
-							if (value.data !== null && allowed) {
-								return resolve(ctx, {
-									result: {
-										data: value.data,
-										errors: [],
-									},
-									source: DataSource.Cache,
-									partial: value.partial,
-								})
-							}
-
 							// if the policy is cacheOnly and we got this far, we need to return null (no network request will be sent)
-							else if (policy === CachePolicy.CacheOnly) {
+							if (policy === CachePolicy.CacheOnly) {
 								return resolve(ctx, {
 									result: {
 										data: null,
@@ -55,16 +43,36 @@ export const cachePolicyPlugin =
 									partial: false,
 								})
 							}
+
+							// if we have data, use that unless its partial data and we dont allow that
+							const useCache = value.data !== null && allowed
+							if (useCache) {
+								resolve(ctx, {
+									result: {
+										data: value.data,
+										errors: [],
+									},
+									source: DataSource.Cache,
+									partial: value.partial,
+								})
+							}
+
+							// if we used the cache data and there's no followup necessary, we're done
+							if (useCache && !value.partial) {
+								return
+							}
 						}
 					}
 
 					// we're not using the cached data which means there will be a network request
 					// tick the garbage collector asynchronously
-					setTimeout(() => {
-						cache._internal_unstable.collectGarbage()
-					}, 0)
+					if (enabled) {
+						setTimeout(() => {
+							cache._internal_unstable.collectGarbage()
+						}, 0)
+					}
 
-					// if we got this far, we shouldn't apply a cache policy so we are actually fetching something
+					// if we got this far, we are resolving something against the network
 					setFetching(true)
 
 					// move on
@@ -72,14 +80,14 @@ export const cachePolicyPlugin =
 				},
 				exit(ctx, { resolve, value }) {
 					// if we have data coming in from the cache, we should write it and mvoe on
-					if (value.result?.data) {
+					if (enabled && value.result?.data && !ctx.cacheParams?.disableWrite) {
 						// write the result of the mutation to the cache
 						cache.write({
 							...ctx.cacheParams,
 							layer: ctx.cacheParams?.layer?.id,
 							selection: ctx.artifact.selection,
 							data: value.result.data,
-							variables: marshaledInputs(ctx),
+							variables: marshaledVariables(ctx),
 						})
 					}
 

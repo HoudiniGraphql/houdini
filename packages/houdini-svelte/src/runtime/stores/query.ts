@@ -15,7 +15,6 @@ import {
 	SubscriptionSpec,
 } from '$houdini/runtime/lib/types'
 import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
-import { FetchContext, fetchQuery } from 'houdini/src/runtime/client/network'
 import { get, Readable, Writable, writable } from 'svelte/store'
 
 import { clientStarted, error, isBrowser } from '../adapter'

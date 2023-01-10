@@ -5,7 +5,6 @@ import pluginsFromPlugins from './injectedPlugins'
 import {
 	queryPlugin,
 	mutationPlugin,
-	cachePolicyPlugin,
 	fetchPlugin,
 	fetchParamsPlugin,
 	inputsPlugin,
@@ -48,10 +47,9 @@ export class HoudiniClient {
 			)
 		}
 
-		// a few middlewares _have_ to run to setup the API and then we
-		// either have to add a totally custom pipeline specified by the pipeline value
-		// or build up the default list
-		this.#plugins = (fetchParams ? [fetchParamsPlugin(fetchParams), inputsPlugin] : []).concat(
+		// a few middlewares _have_ to run to setup the pipeline
+		this.#plugins = [inputsPlugin].concat(
+			fetchParams ? [fetchParamsPlugin(fetchParams)] : [],
 			// if the user wants to specify the entire pipeline, let them do so
 			pipeline?.() ??
 				// the user doesn't have a specific pipeline so we should just add their desired plugins
@@ -74,7 +72,13 @@ export class HoudiniClient {
 		this.url = url
 	}
 
-	observe(artifact: DocumentArtifact): DocumentObserver<GraphQLObject, {}> {
-		return new DocumentObserver({ client: this, artifact, plugins: this.#plugins })
+	observe({
+		artifact,
+		cache = true,
+	}: {
+		artifact: DocumentArtifact
+		cache?: boolean
+	}): DocumentObserver<GraphQLObject, {}> {
+		return new DocumentObserver({ client: this, artifact, plugins: this.#plugins, cache })
 	}
 }

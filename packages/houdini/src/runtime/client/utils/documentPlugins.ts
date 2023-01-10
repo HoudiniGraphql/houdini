@@ -3,8 +3,10 @@ import { ClientPlugin, ClientPluginPhase } from '../documentObserver'
 
 export const documentPlugin = (kind: ArtifactKind, source: ClientPlugin): ClientPlugin => {
 	return () => {
+		// pull out the hooks we care about
 		const { setup, network, error, cleanup, ...rest } = source()
 
+		// a function to conditionally invoke the hooks if the artifact has the right kind
 		const wrap = (sourceHook?: ClientPluginPhase): ClientPluginPhase =>
 			!sourceHook
 				? {}
@@ -23,6 +25,7 @@ export const documentPlugin = (kind: ArtifactKind, source: ClientPlugin): Client
 						},
 				  }
 
+		// return the modified hooks
 		return {
 			setup: wrap(setup),
 			network: wrap(network),

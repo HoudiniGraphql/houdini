@@ -12,7 +12,7 @@ import type {
 import { Writable } from '../lib/store'
 import { cachePolicyPlugin } from './plugins'
 
-type State<_Data> = FetchQueryResult<_Data> & { fetching: boolean }
+type State<_Data> = FetchQueryResult<_Data> & { fetching: boolean; variables: {} }
 
 export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> extends Writable<
 	State<_Data>
@@ -29,10 +29,12 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		artifact,
 		plugins,
 		client,
+		cache = true,
 	}: {
 		artifact: DocumentArtifact
 		plugins: ClientPlugin[]
 		client: HoudiniClient
+		cache?: boolean
 	}) {
 		// the initial store state
 		const initialState = {
@@ -40,6 +42,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 			partial: false,
 			source: null,
 			fetching: false,
+			variables: {},
 		}
 
 		super(initialState, () => {
@@ -56,7 +59,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 
 		this.#plugins = [
 			// cache policy needs to always come first so that it can be the first fetch_enter to fire
-			cachePolicyPlugin((fetching: boolean) =>
+			cachePolicyPlugin(cache, (fetching: boolean) =>
 				this.update((state) => ({ ...state, fetching }))
 			)(),
 		].concat(plugins.map((factory) => factory()))
@@ -248,6 +251,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		// the latest value should be written to the store
 		this.update((state) => ({
 			...state,
+			variables: ctx.context.variables ?? {},
 			...value,
 			fetching: false,
 		}))
@@ -292,7 +296,6 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 	}
 }
 
-// prettier-ignore
 /**
  * A network plugin has 2 primary entry points to modify the pipeline.
  * - phaseOne happens before the request is potentially cached
@@ -338,6 +341,8 @@ export type ClientPluginContext = {
 		layer?: Layer
 		notifySubscribers?: SubscriptionSpec[]
 		forceNotify?: boolean
+		disableWrite?: boolean
+		disableRead?: boolean
 	}
 	stuff: Record<string, any>
 }

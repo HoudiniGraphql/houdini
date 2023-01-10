@@ -1,6 +1,6 @@
 import { DataSource, RequestPayload } from '../../lib'
 import type { ClientPlugin } from '../documentObserver'
-import { marshaledInputs } from './inputs'
+import { marshaledVariables } from './inputs'
 
 export const fetchPlugin = (fn?: RequestHandler | string): ClientPlugin => {
 	return () => {
@@ -14,7 +14,7 @@ export const fetchPlugin = (fn?: RequestHandler | string): ClientPlugin => {
 					const fetchParams: FetchParams = {
 						text: ctx.artifact.raw,
 						hash: ctx.artifact.hash,
-						variables: marshaledInputs(ctx),
+						variables: marshaledVariables(ctx),
 					}
 
 					let fetchFn = defaultFetch(client.url)
@@ -167,7 +167,7 @@ function handleMultipart(
 	}
 }
 
-/// This file contains a modified version, made by AlecAivazis, of the functions found here: https://github.com/jaydenseric/extract-files/blob/master/extractFiles.mjs
+/// This file contains a modified version of the functions found here: https://github.com/jaydenseric/extract-files/blob/master/extractFiles.mjs
 /// The associated license is at the end of the file (per the project's license agreement)
 
 export function isExtractableFile(value: any): value is ExtractableFile {
@@ -183,16 +183,6 @@ type ExtractableFile = File | Blob
 
 export function extractFiles(value: any) {
 	if (!arguments.length) throw new TypeError('Argument 1 `value` is required.')
-
-	/**
-	 * Deeply clonable value.
-	 * @typedef {Array<unknown> | FileList | Record<PropertyKey, unknown>} Cloneable
-	 */
-
-	/**
-	 * Clone of a {@link Cloneable deeply cloneable value}.
-	 * @typedef {Exclude<Cloneable, FileList>} Clone
-	 */
 
 	/**
 	 * Map of values recursed within the input value and their clones, for reusing

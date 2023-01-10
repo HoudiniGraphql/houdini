@@ -12,12 +12,16 @@ function createStore(plugins: ClientPlugin[]): DocumentObserver<any, any> {
 			return plugins
 		},
 	}).observe({
-		kind: ArtifactKind.Query,
-		hash: '1234',
-		raw: 'RAW_TEXT',
-		name: 'TestArtifact',
-		rootType: 'Query',
-		selection: {},
+		artifact: {
+			kind: ArtifactKind.Query,
+			hash: '1234',
+			raw: 'RAW_TEXT',
+			name: 'TestArtifact',
+			rootType: 'Query',
+			selection: {},
+		},
+		// turn off the cache since we aren't pushing actual graphql documents through by default
+		cache: false,
 	})
 }
 
@@ -183,7 +187,7 @@ test('terminate short-circuits pipeline', async function () {
 
 test('can call resolve multiple times to set multiple values', async function () {
 	const middleware: ClientPlugin = () => ({
-		setup: {
+		network: {
 			enter(ctx, { resolve }) {
 				resolve(ctx, { result: { data: 'value', errors: [] } })
 				sleep(100).then(() =>
@@ -214,6 +218,7 @@ test('can call resolve multiple times to set multiple values', async function ()
 			data: null,
 			errors: [],
 		},
+		variables: {},
 	})
 	// and the third call will be the second call to terminate
 	expect(fn).toHaveBeenNthCalledWith(3, {
@@ -224,6 +229,7 @@ test('can call resolve multiple times to set multiple values', async function ()
 			errors: [],
 		},
 		source: null,
+		variables: {},
 	})
 	expect(fn).toHaveBeenNthCalledWith(4, {
 		fetching: false,
@@ -233,6 +239,7 @@ test('can call resolve multiple times to set multiple values', async function ()
 			errors: [],
 		},
 		source: null,
+		variables: {},
 	})
 })
 
@@ -376,7 +383,7 @@ test('middlewares can set twoParams', async function () {
 
 test('tracks loading state', async function () {
 	const middleware: ClientPlugin = () => ({
-		setup: {
+		network: {
 			enter(ctx, { resolve }) {
 				resolve(ctx, { result: { data: 'value', errors: [] } })
 			},
@@ -401,6 +408,7 @@ test('tracks loading state', async function () {
 			data: null,
 			errors: [],
 		},
+		variables: {},
 	})
 	// make sure we're not
 	expect(spy).toHaveBeenNthCalledWith(3, {
@@ -411,6 +419,7 @@ test('tracks loading state', async function () {
 			data: 'value',
 			errors: [],
 		},
+		variables: {},
 	})
 })
 

@@ -2,7 +2,7 @@ import cache from '../../cache'
 import { ArtifactKind, marshalSelection, SubscriptionSpec } from '../../lib'
 import { ClientPlugin } from '../documentObserver'
 import { documentPlugin } from '../utils'
-import { marshaledInputs } from './inputs'
+import { marshaledVariables } from './inputs'
 
 export const mutationPlugin: ClientPlugin = documentPlugin(ArtifactKind.Mutation, () => {
 	return {
@@ -31,7 +31,7 @@ export const mutationPlugin: ClientPlugin = documentPlugin(ArtifactKind.Mutation
 							selection: ctx.artifact.selection,
 							data: optimisticResponse,
 						}))!,
-						variables: marshaledInputs(ctx),
+						variables: marshaledVariables(ctx),
 						layer: layer.id,
 					})
 				}

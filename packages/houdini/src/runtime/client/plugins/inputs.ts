@@ -1,7 +1,7 @@
 import { ArtifactKind, deepEquals, marshalInputs } from '../../lib'
 import { ClientPlugin, ClientPluginContext } from '../documentObserver'
 
-export function marshaledInputs(ctx: ClientPluginContext) {
+export function marshaledVariables(ctx: ClientPluginContext) {
 	return ctx.stuff.inputs?.marshaled ?? {}
 }
 
@@ -17,7 +17,7 @@ export const inputsPlugin: ClientPlugin = () => {
 				let newContext = ctx
 
 				// if we aren't working with a fragment then we can marshal the inputs
-				if (ctx.artifact.kind !== ArtifactKind.Fragment) {
+				if (ctx.artifact.kind !== ArtifactKind.Fragment && ctx.variables) {
 					// marshal the inputs for other plugins
 					const marshaled = await marshalInputs({
 						input: ctx.variables ?? {},
