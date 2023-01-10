@@ -1,5 +1,14 @@
 import type { HoudiniClient } from '.'
-import type { DocumentArtifact, FetchQueryResult, GraphQLObject, QueryResult } from '../lib'
+import { Layer } from '../cache/storage'
+import type {
+	CachePolicy,
+	DocumentArtifact,
+	FetchQueryResult,
+	GraphQLObject,
+	QueryArtifact,
+	QueryResult,
+	SubscriptionSpec,
+} from '../lib'
 import { Writable } from '../lib/store'
 
 type State<_Data> = FetchQueryResult<_Data> & { fetching: boolean }
@@ -12,6 +21,8 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 
 	// the list of instantiated plugins
 	#plugins: ReturnType<ClientPlugin>[]
+
+	// build up the list of phases to define the order
 
 	constructor({
 		artifact,
@@ -50,11 +61,13 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		metadata,
 		session,
 		fetch = globalThis.fetch,
+		policy,
 	}: {
 		variables?: _Input
 		metadata?: {}
 		fetch?: Fetch
 		session?: App.Session
+		policy?: CachePolicy
 	} = {}): Promise<_Data | null> {
 		this.update((state) => ({ ...state, fetching: true }))
 
@@ -71,6 +84,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 					reject,
 				},
 				context: {
+					policy: policy ?? (this.#artifact as QueryArtifact).policy,
 					variables,
 					metadata,
 					session,
@@ -306,11 +320,17 @@ export type Fetch = typeof globalThis.fetch
 
 export type ClientPluginContext = {
 	artifact: DocumentArtifact
+	policy?: CachePolicy
 	fetch?: Fetch
 	variables?: {}
 	metadata?: App.Metadata | null
 	session?: App.Session
 	fetchParams?: RequestInit
+	cacheParams?: {
+		layer?: Layer
+		notifySubscribers?: SubscriptionSpec[]
+		forceNotify?: boolean
+	}
 }
 
 /** ClientPlugin describes the logic of the HoudiniClient plugin at a particular stage. */
