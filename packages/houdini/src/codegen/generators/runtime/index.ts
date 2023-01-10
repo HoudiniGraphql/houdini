@@ -12,7 +12,6 @@ import {
 	parseJS,
 	ensureImports,
 } from '../../../lib'
-import type { HoudiniClientPluginConfig } from '../../../runtime/lib'
 
 const AST = recast.types.builders
 

@@ -1,9 +1,11 @@
+import { ArtifactKind } from '../../lib'
 import { ClientPlugin } from '../documentObserver'
+import { documentPlugin } from '../utils'
 
 export function subscriptionPlugin(client: SubscriptionHandler): ClientPlugin {
-	return () => {
+	return documentPlugin(ArtifactKind.Subscription, () => {
 		return {}
-	}
+	})
 }
 
 export type SubscriptionHandler = {

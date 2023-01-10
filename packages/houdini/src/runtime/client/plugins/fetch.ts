@@ -1,5 +1,6 @@
 import { DataSource, RequestPayload } from '../../lib'
 import type { ClientPlugin } from '../documentObserver'
+import { marshaledInputs } from './inputs'
 
 export const fetchPlugin = (fn?: RequestHandler | string): ClientPlugin => {
 	return () => {
@@ -13,7 +14,7 @@ export const fetchPlugin = (fn?: RequestHandler | string): ClientPlugin => {
 					const fetchParams: FetchParams = {
 						text: ctx.artifact.raw,
 						hash: ctx.artifact.hash,
-						variables: ctx.variables ?? {},
+						variables: marshaledInputs(ctx),
 					}
 
 					let fetchFn = defaultFetch(client.url)

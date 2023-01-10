@@ -8,6 +8,7 @@ import {
 	cachePolicyPlugin,
 	fetchPlugin,
 	fetchParamsPlugin,
+	inputsPlugin,
 	type FetchParamFn,
 } from './plugins'
 
@@ -50,11 +51,7 @@ export class HoudiniClient {
 		// a few middlewares _have_ to run to setup the API and then we
 		// either have to add a totally custom pipeline specified by the pipeline value
 		// or build up the default list
-		this.#plugins = (fetchParams ? [fetchParamsPlugin(fetchParams)] : []).concat(
-			[
-				// cache policy needs to always come first so that it can be the first fetch_enter to fire
-				cachePolicyPlugin,
-			],
+		this.#plugins = (fetchParams ? [fetchParamsPlugin(fetchParams), inputsPlugin] : []).concat(
 			// if the user wants to specify the entire pipeline, let them do so
 			pipeline?.() ??
 				// the user doesn't have a specific pipeline so we should just add their desired plugins

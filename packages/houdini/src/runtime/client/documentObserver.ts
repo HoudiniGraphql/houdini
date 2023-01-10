@@ -10,6 +10,7 @@ import type {
 	SubscriptionSpec,
 } from '../lib'
 import { Writable } from '../lib/store'
+import { cachePolicyPlugin } from './plugins'
 
 type State<_Data> = FetchQueryResult<_Data> & { fetching: boolean }
 
@@ -33,7 +34,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		plugins: ClientPlugin[]
 		client: HoudiniClient
 	}) {
-		// the intial store state
+		// the initial store state
 		const initialState = {
 			result: { data: null, errors: [] },
 			partial: false,
@@ -52,7 +53,13 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		})
 		this.#artifact = artifact
 		this.#client = client
-		this.#plugins = plugins.map((factory) => factory())
+
+		this.#plugins = [
+			// cache policy needs to always come first so that it can be the first fetch_enter to fire
+			cachePolicyPlugin((fetching: boolean) =>
+				this.update((state) => ({ ...state, fetching }))
+			)(),
+		].concat(plugins.map((factory) => factory()))
 	}
 
 	// used by the client to send a new set of variables to the pipeline
@@ -62,15 +69,15 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		session,
 		fetch = globalThis.fetch,
 		policy,
+		stuff,
 	}: {
 		variables?: _Input
 		metadata?: {}
 		fetch?: Fetch
 		session?: App.Session
 		policy?: CachePolicy
+		stuff?: {}
 	} = {}): Promise<_Data | null> {
-		this.update((state) => ({ ...state, fetching: true }))
-
 		return new Promise((resolve, reject) => {
 			// the initial state of the iterator
 			const state: IteratorState = {
@@ -89,6 +96,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 					metadata,
 					session,
 					fetch,
+					stuff: stuff ?? {},
 					artifact: this.#artifact,
 				},
 			}
@@ -331,6 +339,7 @@ export type ClientPluginContext = {
 		notifySubscribers?: SubscriptionSpec[]
 		forceNotify?: boolean
 	}
+	stuff: Record<string, any>
 }
 
 /** ClientPlugin describes the logic of the HoudiniClient plugin at a particular stage. */
