@@ -22,10 +22,11 @@ type ConstructorArgs = {
 }
 
 export class HoudiniClient {
-	// the list of plugins for the client
-	#plugins: ClientPlugin[]
 	// the URL of the api
 	url: string
+
+	// the list of plugins for the client
+	#plugins: ClientPlugin[]
 
 	constructor(args: {
 		url: string

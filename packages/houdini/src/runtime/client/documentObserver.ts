@@ -6,7 +6,6 @@ import type {
 	FetchQueryResult,
 	GraphQLObject,
 	QueryArtifact,
-	QueryResult,
 	SubscriptionSpec,
 } from '../lib'
 import { Writable } from '../lib/store'
@@ -22,8 +21,6 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 
 	// the list of instantiated plugins
 	#plugins: ReturnType<ClientPlugin>[]
-
-	// build up the list of phases to define the order
 
 	constructor({
 		artifact,
