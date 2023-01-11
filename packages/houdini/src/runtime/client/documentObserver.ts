@@ -4,6 +4,7 @@ import {
 	ArtifactKind,
 	CachePolicy,
 	ConfigFile,
+	deepEquals,
 	DocumentArtifact,
 	FetchQueryResult,
 	getCurrentConfig,
@@ -26,6 +27,10 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 
 	// the list of instantiated plugins
 	#plugins: ReturnType<ClientPlugin>[]
+
+	// we need to track the last set of variables used so we can
+	// detect if they have changed
+	#lastVariables: Record<string, any> | null
 
 	constructor({
 		artifact,
@@ -58,6 +63,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		})
 		this.#artifact = artifact
 		this.#client = client
+		this.#lastVariables = null
 
 		this.#plugins = [
 			// cache policy needs to always come first so that it can be the first fetch_enter to fire
@@ -88,6 +94,18 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 			this.#configFile = await getCurrentConfig()
 		}
 
+		// start off with the initial context
+		const context = {
+			config: this.#configFile!,
+			policy: policy ?? (this.#artifact as QueryArtifact).policy,
+			variables: {},
+			metadata,
+			session,
+			fetch,
+			stuff: stuff ?? {},
+			artifact: this.#artifact,
+		}
+
 		return await new Promise((resolve, reject) => {
 			// the initial state of the iterator
 			const state: IteratorState = {
@@ -100,16 +118,11 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 					resolve,
 					reject,
 				},
-				context: {
-					config: this.#configFile!,
-					policy: policy ?? (this.#artifact as QueryArtifact).policy,
+				// patch the context with new variables
+				context: this.#patchContext(context, {
+					...context,
 					variables,
-					metadata,
-					session,
-					fetch,
-					stuff: stuff ?? {},
-					artifact: this.#artifact,
-				},
+				}),
 			}
 
 			// start walking down the chain
@@ -131,7 +144,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 							next: (newContext) => {
 								this.#next({
 									...ctx,
-									context: patchContext(ctx.context, newContext),
+									context: this.#patchContext(ctx.context, newContext),
 									index,
 								})
 							},
@@ -140,7 +153,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 								this.#terminate(
 									{
 										...ctx,
-										context: patchContext(ctx.context, newContext),
+										context: this.#patchContext(ctx.context, newContext),
 										// increment the index so that terminate looks at this link again
 										index: index + 1,
 										// save this value
@@ -204,7 +217,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 									...ctx,
 									index: index - 1,
 									currentStep: 'setup',
-									context: patchContext(ctx.context, newContext),
+									context: this.#patchContext(ctx.context, newContext),
 								})
 							},
 							resolve: (context, val) => {
@@ -279,7 +292,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 					next: (newContext) => {
 						this.#next({
 							...ctx,
-							context: patchContext(ctx.context, newContext),
+							context: this.#patchContext(ctx.context, newContext),
 							currentStep: 'setup',
 							index: i,
 						})
@@ -301,6 +314,40 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 				ctx.promise.resolved = true
 			}
 		}
+	}
+
+	// #patchContext is responsible for keeping any of the internal state up to date
+	#patchContext(old: ClientPluginContext, update: ClientPluginContext) {
+		// look at the variables for ones that are different
+		const changed: Required<ClientPluginContext>['variables'] = {}
+		for (const [name, value] of Object.entries(update.variables ?? {})) {
+			if (value !== old.variables?.[name]) {
+				// we need to marshal the new value
+				changed[name] = value
+			}
+		}
+
+		if (update.artifact.kind !== ArtifactKind.Fragment && Object.keys(changed).length > 0) {
+			// only marshal the changed variables so we don't double marshal
+			const newVariables = {
+				...update.stuff.inputs?.marshaled,
+				...marshalInputs({
+					artifact: update.artifact,
+					input: changed,
+					config: update.config,
+				}),
+			}
+
+			update.stuff.inputs = {
+				marshaled: newVariables,
+				changed: !deepEquals(this.#lastVariables, newVariables),
+			}
+
+			// track the last variables used
+			this.#lastVariables = update.stuff.inputs.marshaled
+		}
+
+		return update
 	}
 }
 
@@ -335,32 +382,12 @@ type IteratorState = {
 	}
 }
 
-const patchContext = (old: ClientPluginContext, update: ClientPluginContext) => {
-	// look at the variables for ones that are different
-	const changed: Required<ClientPluginContext>['variables'] = {}
-	for (const [name, value] of Object.entries(update.variables ?? {})) {
-		if (value !== old.variables?.[name]) {
-			// we need to marshal the new value
-			changed[name] = value
-		}
-	}
+export function marshaledVariables(ctx: ClientPluginContext) {
+	return ctx.stuff.inputs?.marshaled ?? {}
+}
 
-	// TODO: fix this. this is leaky af.
-	if (update.artifact.kind !== ArtifactKind.Fragment && Object.keys(changed).length > 0) {
-		update.stuff.inputs = {
-			...update.stuff.inputs,
-			marshaled: {
-				...update.stuff.inputs?.marshaled,
-				...marshalInputs({
-					artifact: update.artifact,
-					input: changed,
-					config: update.config,
-				}),
-			},
-		}
-	}
-
-	return update
+export function variablesChanged(ctx: ClientPluginContext) {
+	return ctx.stuff.inputs?.changed
 }
 
 export type Fetch = typeof globalThis.fetch

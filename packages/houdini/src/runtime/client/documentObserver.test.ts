@@ -4,8 +4,7 @@ import { test, expect, vi, beforeEach } from 'vitest'
 import { HoudiniClient } from '.'
 import { setMockConfig } from '../lib/config'
 import { ArtifactKind } from '../lib/types'
-import { DocumentObserver, ClientPlugin } from './documentObserver'
-import { marshaledVariables } from './plugins'
+import { DocumentObserver, ClientPlugin, marshaledVariables } from './documentObserver'
 
 function createStore(plugins: ClientPlugin[]): DocumentObserver<any, any> {
 	return new HoudiniClient({

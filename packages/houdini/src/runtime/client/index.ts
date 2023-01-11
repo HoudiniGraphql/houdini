@@ -7,7 +7,6 @@ import {
 	mutationPlugin,
 	fetchPlugin,
 	fetchParamsPlugin,
-	inputsPlugin,
 	type FetchParamFn,
 } from './plugins'
 
@@ -49,7 +48,7 @@ export class HoudiniClient {
 		}
 
 		// a few middlewares _have_ to run to setup the pipeline
-		this.#plugins = [inputsPlugin].concat(
+		this.#plugins = ([] as ClientPlugin[]).concat(
 			fetchParams ? [fetchParamsPlugin(fetchParams)] : [],
 			// if the user wants to specify the entire pipeline, let them do so
 			pipeline?.() ??
