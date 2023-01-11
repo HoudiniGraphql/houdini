@@ -1,9 +1,11 @@
 import { sleep } from '@kitql/helper'
-import { test, expect, vi } from 'vitest'
+import { setMockConfig } from 'houdini'
+import { test, expect, vi, beforeEach } from 'vitest'
 
 import { HoudiniClient } from '.'
 import { ArtifactKind } from '../lib/types'
 import { DocumentObserver, ClientPlugin } from './documentObserver'
+import { marshaledVariables } from './plugins'
 
 function createStore(plugins: ClientPlugin[]): DocumentObserver<any, any> {
 	return new HoudiniClient({
@@ -19,11 +21,36 @@ function createStore(plugins: ClientPlugin[]): DocumentObserver<any, any> {
 			name: 'TestArtifact',
 			rootType: 'Query',
 			selection: {},
+			input: {
+				types: {},
+				fields: {
+					date1: 'Date',
+					date2: 'Date',
+				},
+			},
 		},
 		// turn off the cache since we aren't pushing actual graphql documents through by default
 		cache: false,
 	})
 }
+
+beforeEach(() => {
+	setMockConfig({
+		scalars: {
+			Date: {
+				type: 'Date',
+				// turn the api's response into that type
+				unmarshal(val) {
+					return new Date(val)
+				},
+				// turn the value into something the API can use
+				marshal(date) {
+					return date.getTime()
+				},
+			},
+		},
+	})
+})
 
 test('middleware pipeline happy path', async function () {
 	const history: [number, string][] = []
@@ -467,5 +494,53 @@ test('test can replay a pipeline', async function () {
 			data: 'another-value',
 			errors: [],
 		},
+	})
+})
+
+test('plugins can update variables', async function () {
+	// a spy we'll pass the marshaled variables to
+	const spy = vi.fn()
+
+	// we're going to be passed in 2 dates
+	const date1 = new Date()
+	const date2 = new Date().setHours(date1.getHours() + 10)
+
+	const setVariables: ClientPlugin = () => {
+		return {
+			setup: {
+				enter(ctx, { next }) {
+					next({
+						...ctx,
+						variables: {
+							date1,
+						},
+					})
+				},
+			},
+		}
+	}
+
+	const checkVariables: ClientPlugin = () => {
+		return {
+			network: {
+				enter(ctx, { resolve }) {
+					spy(marshaledVariables(ctx))
+					resolve(ctx, {})
+				},
+			},
+		}
+	}
+
+	// create the client with the middlewares
+	await createStore([setVariables, checkVariables]).send({
+		variables: {
+			date2,
+		},
+	})
+
+	// make sure the spy was called with the correct values
+	expect(spy).toHaveBeenCalledWith({
+		date1: date1.getTime(),
+		date2: date1.getTime(),
 	})
 })

@@ -1,9 +1,11 @@
 import type { HoudiniClient } from '.'
 import { Layer } from '../cache/storage'
-import type {
+import {
 	CachePolicy,
+	ConfigFile,
 	DocumentArtifact,
 	FetchQueryResult,
+	getCurrentConfig,
 	GraphQLObject,
 	QueryArtifact,
 	SubscriptionSpec,
@@ -11,13 +13,14 @@ import type {
 import { Writable } from '../lib/store'
 import { cachePolicyPlugin } from './plugins'
 
-type State<_Data> = FetchQueryResult<_Data> & { fetching: boolean; variables: {} }
+type NetworkResult<_Data> = FetchQueryResult<_Data> & { fetching: boolean; variables: {} }
 
 export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> extends Writable<
-	State<_Data>
+	NetworkResult<_Data>
 > {
 	#artifact: DocumentArtifact
 	#client: HoudiniClient
+	#configFile: ConfigFile | null = null
 
 	// the list of instantiated plugins
 	#plugins: ReturnType<ClientPlugin>[]
@@ -63,7 +66,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 	}
 
 	// used by the client to send a new set of variables to the pipeline
-	send({
+	async send({
 		variables,
 		metadata,
 		session,
@@ -78,7 +81,12 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		policy?: CachePolicy
 		stuff?: {}
 	} = {}): Promise<_Data | null> {
-		return new Promise((resolve, reject) => {
+		// if we dont have the config file yet, load it
+		if (!this.#configFile) {
+			this.#configFile = await getCurrentConfig()
+		}
+
+		return await new Promise((resolve, reject) => {
 			// the initial state of the iterator
 			const state: IteratorState = {
 				value: null,
@@ -171,7 +179,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		)
 	}
 
-	#terminate(ctx: IteratorState, value: Partial<State<_Data>>): void {
+	#terminate(ctx: IteratorState, value: Partial<NetworkResult<_Data>>): void {
 		// starting one less than the current index
 		for (let index = ctx.index - 1; index >= 0; index--) {
 			// if we find a plugin in the same phase, call it
@@ -361,11 +369,11 @@ export type ClientPluginHandlers = {
 	/** Move onto the next step using the provided context.  */
 	next(ctx: ClientPluginContext): void
 	/** Terminate the current chain  */
-	resolve(ctx: ClientPluginContext, data: Partial<State<any>>): void
+	resolve(ctx: ClientPluginContext, data: Partial<NetworkResult<any>>): void
 }
 
 // /** Exit handlers are the same as enter handles but don't need to resolve with a specific value */
 export type ClientPluginExitHandlers = Omit<ClientPluginHandlers, 'resolve'> & {
-	resolve: (ctx: ClientPluginContext, data?: Partial<State<any>>) => void
-	value: Partial<State<any>>
+	resolve: (ctx: ClientPluginContext, data?: Partial<NetworkResult<any>>) => void
+	value: Partial<NetworkResult<any>>
 }
