@@ -19,7 +19,8 @@ export const inputsPlugin: ClientPlugin = () => {
 				// if we aren't working with a fragment then we can marshal the inputs
 				if (ctx.artifact.kind !== ArtifactKind.Fragment && ctx.variables) {
 					// marshal the inputs for other plugins
-					const marshaled = await marshalInputs({
+					const marshaled = marshalInputs({
+						config: ctx.config,
 						input: ctx.variables ?? {},
 						artifact: ctx.artifact,
 					})

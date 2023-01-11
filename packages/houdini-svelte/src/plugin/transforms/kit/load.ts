@@ -590,32 +590,32 @@ function variable_function_for_query(
 					AST.memberExpression(AST.identifier('Object'), AST.identifier('assign')),
 					[
 						AST.identifier('result'),
-						AST.awaitExpression(
-							AST.callExpression(AST.identifier('marshalInputs'), [
-								AST.objectExpression([
-									AST.objectProperty(
-										AST.identifier('input'),
-										AST.awaitExpression(
-											AST.callExpression(
-												AST.identifier(
-													query_variable_fn(query.name!.value)
-												),
-												[AST.identifier('event')]
-											)
+						AST.callExpression(AST.identifier('marshalInputs'), [
+							AST.objectExpression([
+								AST.objectProperty(
+									AST.identifier('config'),
+									AST.identifier('config')
+								),
+								AST.objectProperty(
+									AST.identifier('input'),
+									AST.awaitExpression(
+										AST.callExpression(
+											AST.identifier(query_variable_fn(query.name!.value)),
+											[AST.identifier('event')]
 										)
-									),
-									AST.objectProperty(
-										AST.identifier('artifact'),
-										artifact_import({
-											config: page.config,
-											script: page.script,
-											page,
-											artifact: { name: query.name!.value },
-										}).id
-									),
-								]),
-							])
-						),
+									)
+								),
+								AST.objectProperty(
+									AST.identifier('artifact'),
+									artifact_import({
+										config: page.config,
+										script: page.script,
+										page,
+										artifact: { name: query.name!.value },
+									}).id
+								),
+							]),
+						]),
 					]
 				)
 			)

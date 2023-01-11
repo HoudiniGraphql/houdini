@@ -285,7 +285,8 @@ describe('kit route processor', function () {
 			async function __houdini___TestQueryVariables(config, event) {
 			    const result = {};
 
-			    Object.assign(result, await marshalInputs({
+			    Object.assign(result, marshalInputs({
+			        config: config,
 			        input: await _TestQueryVariables(event),
 			        artifact: _TestQueryArtifact
 			    }));
@@ -426,7 +427,8 @@ describe('kit route processor', function () {
 			async function __houdini___MyQuery2Variables(config, event) {
 			    const result = {};
 
-			    Object.assign(result, await marshalInputs({
+			    Object.assign(result, marshalInputs({
+			        config: config,
 			        input: await _MyQuery2Variables(event),
 			        artifact: _MyQuery2Artifact
 			    }));
@@ -664,7 +666,8 @@ test('beforeLoad hook', async function () {
 		async function __houdini___TestQueryVariables(config, event) {
 		    const result = {};
 
-		    Object.assign(result, await marshalInputs({
+		    Object.assign(result, marshalInputs({
+		        config: config,
 		        input: await _TestQueryVariables(event),
 		        artifact: _TestQueryArtifact
 		    }));
@@ -847,7 +850,8 @@ test('afterLoad hook', async function () {
 		async function __houdini___TestQueryVariables(config, event) {
 		    const result = {};
 
-		    Object.assign(result, await marshalInputs({
+		    Object.assign(result, marshalInputs({
+		        config: config,
 		        input: await _TestQueryVariables(event),
 		        artifact: _TestQueryArtifact
 		    }));
@@ -1040,7 +1044,8 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		async function __houdini___TestQueryVariables(config, event) {
 		    const result = {};
 
-		    Object.assign(result, await marshalInputs({
+		    Object.assign(result, marshalInputs({
+		        config: config,
 		        input: await _TestQueryVariables(event),
 		        artifact: _TestQueryArtifact
 		    }));
@@ -1130,7 +1135,8 @@ test('layout loads', async function () {
 		async function __houdini___MyQuery2Variables(config, event) {
 		    const result = {};
 
-		    Object.assign(result, await marshalInputs({
+		    Object.assign(result, marshalInputs({
+		        config: config,
 		        input: await _MyQuery2Variables(event),
 		        artifact: _MyQuery2Artifact
 		    }));
@@ -1367,7 +1373,8 @@ test('onError hook', async function () {
 		async function __houdini___TestQueryVariables(config, event) {
 		    const result = {};
 
-		    Object.assign(result, await marshalInputs({
+		    Object.assign(result, marshalInputs({
+		        config: config,
 		        input: await _TestQueryVariables(event),
 		        artifact: _TestQueryArtifact
 		    }));
@@ -1508,7 +1515,8 @@ test('route params with variable function', async function () {
 		        userID: parseScalar(config, "ID", event.params.userID)
 		    };
 
-		    Object.assign(result, await marshalInputs({
+		    Object.assign(result, marshalInputs({
+		        config: config,
 		        input: await _UserInfoVariables(event),
 		        artifact: _UserInfoArtifact
 		    }));

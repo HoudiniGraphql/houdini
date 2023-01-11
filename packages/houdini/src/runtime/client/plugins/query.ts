@@ -8,6 +8,9 @@ export const queryPlugin: ClientPlugin = documentPlugin(ArtifactKind.Query, func
 	// track the bits of state we need to hold onto
 	let subscriptionSpec: SubscriptionSpec | null = null
 
+	// remember the last variables we were called with
+	let lastVariables: Record<string, any> | null = null
+
 	// the function to call when a query is sent
 	return {
 		setup: {
@@ -20,6 +23,9 @@ export const queryPlugin: ClientPlugin = documentPlugin(ArtifactKind.Query, func
 						cache.unsubscribe(subscriptionSpec, subscriptionSpec.variables?.() || {})
 					}
 
+					// track the new variables
+					lastVariables = ctx.variables ?? null
+
 					// save the new subscription spec
 					subscriptionSpec = {
 						rootType: ctx.artifact.rootType,
@@ -30,6 +36,12 @@ export const queryPlugin: ClientPlugin = documentPlugin(ArtifactKind.Query, func
 
 					// make sure we subscribe to the new values
 					cache.subscribe(subscriptionSpec, marshaledVariables(ctx))
+				}
+
+				// make sure to include the last variables as well as the new ones
+				ctx.variables = {
+					...lastVariables,
+					...ctx.variables,
 				}
 
 				// we are done

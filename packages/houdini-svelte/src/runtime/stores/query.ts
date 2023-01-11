@@ -101,6 +101,7 @@ export class QueryStore<
 
 		// compute the variables we need to use for the query
 		const input = ((await marshalInputs({
+			config,
 			artifact: this.artifact,
 			input: params?.variables,
 		})) || {}) as _Input
@@ -180,10 +181,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 
 		// if the query is a live query, we don't really care about network policies any more
 		// since CacheOrNetwork behaves the same as CacheAndNetwork
-		const request =
-			this.artifact.live && isBrowser
-				? this.#liveQuery(fetchArgs)
-				: this.fetchAndCache(fetchArgs)
+		const request = this.fetchAndCache(fetchArgs)
 
 		// if we have to track when the fetch is done,
 		if (params.then) {
@@ -202,62 +200,62 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 		return this.artifact.name
 	}
 
-	// the live query fetch resolves with the first value and starts listening for new events
-	// from the server
-	async #liveQuery(
-		args: Parameters<QueryStore<_Data, _Input>['fetchAndCache']>[0]
-	): Promise<FetchValue<_Data, _Input>> {
-		// grab the current client
-		const client = await getCurrentClient()
+	// // the live query fetch resolves with the first value and starts listening for new events
+	// // from the server
+	// async #liveQuery(
+	// 	args: Parameters<QueryStore<_Data, _Input>['fetchAndCache']>[0]
+	// ): Promise<FetchValue<_Data, _Input>> {
+	// 	// grab the current client
+	// 	const client = await getCurrentClient()
 
-		// make sure there's a live query handler
-		const handler = client.live
-		if (!handler) {
-			throw new Error('Looks like this client is not set up for live queries')
-		}
+	// 	// make sure there's a live query handler
+	// 	const handler = client.live
+	// 	if (!handler) {
+	// 		throw new Error('Looks like this client is not set up for live queries')
+	// 	}
 
-		// we're only going to resolve the promise once
-		let resolved = false
+	// 	// we're only going to resolve the promise once
+	// 	let resolved = false
 
-		return await new Promise((resolve) => {
-			this.onUnsubscribe = handler({
-				text: args.artifact.raw,
-				variables: args.variables,
-				hash: args.artifact.hash,
-				...args.context,
-				updateValue: (updater) => {
-					// ask the client for the new value given the current one
-					const newValue = updater(get(this.store).data)
+	// 	return await new Promise((resolve) => {
+	// 		this.onUnsubscribe = handler({
+	// 			text: args.artifact.raw,
+	// 			variables: args.variables,
+	// 			hash: args.artifact.hash,
+	// 			...args.context,
+	// 			updateValue: (updater) => {
+	// 				// ask the client for the new value given the current one
+	// 				const newValue = updater(get(this.store).data)
 
-					// set the new value in the store
-					this.store.update((val) => ({
-						...val,
-						fetching: false,
-						data: newValue,
-					}))
+	// 				// set the new value in the store
+	// 				this.store.update((val) => ({
+	// 					...val,
+	// 					fetching: false,
+	// 					data: newValue,
+	// 				}))
 
-					// if we haven't resolved the promise yet, resolve it with the value
-					if (!resolved) {
-						resolve({
-							result: { data: newValue, errors: null },
-							partial: false,
-							source: DataSource.Network,
-						})
+	// 				// if we haven't resolved the promise yet, resolve it with the value
+	// 				if (!resolved) {
+	// 					resolve({
+	// 						result: { data: newValue, errors: null },
+	// 						partial: false,
+	// 						source: DataSource.Network,
+	// 					})
 
-						// don't resolve the promise twice
-						resolved = true
-					}
+	// 					// don't resolve the promise twice
+	// 					resolved = true
+	// 				}
 
-					// we need to update the cache with the new value
-					getCache().write({
-						selection: this.artifact.selection,
-						data: newValue,
-						variables: args.variables ?? {},
-					})
-				},
-			})
-		})
-	}
+	// 				// we need to update the cache with the new value
+	// 				getCache().write({
+	// 					selection: this.artifact.selection,
+	// 					data: newValue,
+	// 					variables: args.variables ?? {},
+	// 				})
+	// 			},
+	// 		})
+	// 	})
+	// }
 
 	subscribe(
 		...args: Parameters<Readable<QueryResult<_Data, _Input, _ExtraFields>>['subscribe']>

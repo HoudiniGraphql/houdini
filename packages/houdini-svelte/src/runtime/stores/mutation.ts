@@ -76,10 +76,11 @@ export class MutationStore<
 			})
 		}
 
-		const newVariables = (await marshalInputs({
+		const newVariables = marshalInputs({
+			config,
 			input: variables,
 			artifact: this.artifact,
-		})) as _Input
+		}) as _Input
 
 		try {
 			// trigger the mutation

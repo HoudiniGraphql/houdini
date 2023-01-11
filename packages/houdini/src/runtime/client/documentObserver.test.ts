@@ -1,8 +1,8 @@
 import { sleep } from '@kitql/helper'
-import { setMockConfig } from 'houdini'
 import { test, expect, vi, beforeEach } from 'vitest'
 
 import { HoudiniClient } from '.'
+import { setMockConfig } from '../lib/config'
 import { ArtifactKind } from '../lib/types'
 import { DocumentObserver, ClientPlugin } from './documentObserver'
 import { marshaledVariables } from './plugins'
@@ -40,11 +40,11 @@ beforeEach(() => {
 			Date: {
 				type: 'Date',
 				// turn the api's response into that type
-				unmarshal(val) {
+				unmarshal(val: number) {
 					return new Date(val)
 				},
 				// turn the value into something the API can use
-				marshal(date) {
+				marshal(date: Date) {
 					return date.getTime()
 				},
 			},
@@ -374,7 +374,7 @@ test('cleanup phase', async function () {
 	expect(spy).toHaveBeenCalled()
 })
 
-test('middlewares can set twoParams', async function () {
+test('middlewares can set fetch params', async function () {
 	const middleware1: ClientPlugin = () => ({
 		setup: {
 			enter(ctx, { next }) {
@@ -450,10 +450,10 @@ test('tracks loading state', async function () {
 	})
 })
 
-test('test can replay a pipeline', async function () {
+test('exit can replay a pipeline', async function () {
 	let count = 0
 
-	const firstErrorHandler: ClientPlugin = () => ({
+	const replayPlugin: ClientPlugin = () => ({
 		setup: {
 			exit(ctx, { value, next, resolve }) {
 				if (value.result?.data === 'value') {
@@ -471,7 +471,7 @@ test('test can replay a pipeline', async function () {
 		},
 	})
 
-	const middleware: ClientPlugin = () => ({
+	const source: ClientPlugin = () => ({
 		setup: {
 			enter(ctx, { resolve }) {
 				// we have to get here twice to succeed
@@ -485,8 +485,8 @@ test('test can replay a pipeline', async function () {
 		},
 	})
 
-	// create the client with the middlewares
-	const store = createStore([firstErrorHandler, middleware])
+	// create the client with the sources
+	const store = createStore([replayPlugin, source])
 
 	// make sure that the promise rejected with the error value
 	await expect(store.send()).resolves.toEqual({
@@ -503,18 +503,21 @@ test('plugins can update variables', async function () {
 
 	// we're going to be passed in 2 dates
 	const date1 = new Date()
-	const date2 = new Date().setHours(date1.getHours() + 10)
+	const date2 = new Date()
+	date2.setHours(date1.getHours() + 10)
 
 	const setVariables: ClientPlugin = () => {
 		return {
 			setup: {
-				enter(ctx, { next }) {
-					next({
-						...ctx,
-						variables: {
-							date1,
-						},
-					})
+				async enter(ctx, { next }) {
+					// assign the new variables
+					ctx.variables = {
+						...ctx.variables,
+						date1,
+					}
+
+					// move on
+					next(ctx)
 				},
 			},
 		}
@@ -541,6 +544,6 @@ test('plugins can update variables', async function () {
 	// make sure the spy was called with the correct values
 	expect(spy).toHaveBeenCalledWith({
 		date1: date1.getTime(),
-		date2: date1.getTime(),
+		date2: date2.getTime(),
 	})
 })

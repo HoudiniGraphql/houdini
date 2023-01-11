@@ -1,12 +1,14 @@
 import type { HoudiniClient } from '.'
 import { Layer } from '../cache/storage'
 import {
+	ArtifactKind,
 	CachePolicy,
 	ConfigFile,
 	DocumentArtifact,
 	FetchQueryResult,
 	getCurrentConfig,
 	GraphQLObject,
+	marshalInputs,
 	QueryArtifact,
 	SubscriptionSpec,
 } from '../lib'
@@ -99,6 +101,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 					reject,
 				},
 				context: {
+					config: this.#configFile!,
 					policy: policy ?? (this.#artifact as QueryArtifact).policy,
 					variables,
 					metadata,
@@ -128,7 +131,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 							next: (newContext) => {
 								this.#next({
 									...ctx,
-									context: newContext,
+									context: patchContext(ctx.context, newContext),
 									index,
 								})
 							},
@@ -137,7 +140,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 								this.#terminate(
 									{
 										...ctx,
-										context: newContext,
+										context: patchContext(ctx.context, newContext),
 										// increment the index so that terminate looks at this link again
 										index: index + 1,
 										// save this value
@@ -201,7 +204,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 									...ctx,
 									index: index - 1,
 									currentStep: 'setup',
-									context: newContext,
+									context: patchContext(ctx.context, newContext),
 								})
 							},
 							resolve: (context, val) => {
@@ -276,7 +279,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 					next: (newContext) => {
 						this.#next({
 							...ctx,
-							context: newContext,
+							context: patchContext(ctx.context, newContext),
 							currentStep: 'setup',
 							index: i,
 						})
@@ -332,13 +335,42 @@ type IteratorState = {
 	}
 }
 
+const patchContext = (old: ClientPluginContext, update: ClientPluginContext) => {
+	// look at the variables for ones that are different
+	const changed: Required<ClientPluginContext>['variables'] = {}
+	for (const [name, value] of Object.entries(update.variables ?? {})) {
+		if (value !== old.variables?.[name]) {
+			// we need to marshal the new value
+			changed[name] = value
+		}
+	}
+
+	// TODO: fix this. this is leaky af.
+	if (update.artifact.kind !== ArtifactKind.Fragment && Object.keys(changed).length > 0) {
+		update.stuff.inputs = {
+			...update.stuff.inputs,
+			marshaled: {
+				...update.stuff.inputs?.marshaled,
+				...marshalInputs({
+					artifact: update.artifact,
+					input: changed,
+					config: update.config,
+				}),
+			},
+		}
+	}
+
+	return update
+}
+
 export type Fetch = typeof globalThis.fetch
 
 export type ClientPluginContext = {
+	config: ConfigFile
 	artifact: DocumentArtifact
 	policy?: CachePolicy
 	fetch?: Fetch
-	variables?: {}
+	variables?: Record<string, any>
 	metadata?: App.Metadata | null
 	session?: App.Session
 	fetchParams?: RequestInit
