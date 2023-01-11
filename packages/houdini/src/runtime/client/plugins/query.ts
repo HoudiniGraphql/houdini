@@ -15,6 +15,12 @@ export const queryPlugin: ClientPlugin = documentPlugin(ArtifactKind.Query, func
 	return {
 		setup: {
 			enter(ctx, { next, resolve }) {
+				// make sure to include the last variables as well as the new ones
+				ctx.variables = {
+					...lastVariables,
+					...ctx.variables,
+				}
+
 				// if the variables have changed we need to setup a new subscription with the cache
 				if (variablesChanged(ctx)) {
 					// if the variables changed we need to unsubscribe from the old fields and
@@ -36,12 +42,6 @@ export const queryPlugin: ClientPlugin = documentPlugin(ArtifactKind.Query, func
 
 					// make sure we subscribe to the new values
 					cache.subscribe(subscriptionSpec, marshaledVariables(ctx))
-				}
-
-				// make sure to include the last variables as well as the new ones
-				ctx.variables = {
-					...lastVariables,
-					...ctx.variables,
 				}
 
 				// we are done
