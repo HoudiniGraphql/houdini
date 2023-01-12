@@ -472,7 +472,7 @@ class ClientPluginContextWrapper {
 	}
 
 	// apply applies the draft value in a new context
-	apply<T>(values: ClientPluginContext & T): ClientPluginContextWrapper {
+	apply(values: ClientPluginContext): ClientPluginContextWrapper {
 		return new ClientPluginContextWrapper({
 			...values,
 			lastVariables: this.#lastVariables,
