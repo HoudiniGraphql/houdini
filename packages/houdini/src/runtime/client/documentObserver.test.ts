@@ -547,7 +547,7 @@ test('plugins can update variables', async function () {
 	})
 })
 
-test('can detect changed variables', async function () {
+test('can detect changed variables from inputs', async function () {
 	// a spy to track changes
 	const spy = vi.fn()
 
@@ -586,4 +586,96 @@ test('can detect changed variables', async function () {
 	// send with the same est
 	await store.send({ variables: { hello: 'world' } })
 	expect(spy).toHaveBeenNthCalledWith(4, false)
+})
+
+test('can update variables and then check if they were updated', async function () {
+	// a spy to track changes
+	const spy = vi.fn()
+
+	// a plugin to detect changes
+	const changePlugin: ClientPlugin = () => {
+		return {
+			setup: {
+				enter(ctx, { next, variablesChanged }) {
+					ctx.variables = {
+						...ctx.variables,
+						count: 0,
+					}
+					spy(variablesChanged(ctx))
+					next(ctx)
+				},
+			},
+			network: {
+				enter(ctx, { resolve }) {
+					resolve(ctx, {})
+				},
+			},
+		}
+	}
+
+	// instantiate a store we'll perform multiple queries with
+	const store = createStore([changePlugin])
+
+	// send one set of variables
+	await store.send()
+	expect(spy).toHaveBeenNthCalledWith(1, true)
+
+	// send another empty set of variables
+	await store.send()
+	expect(spy).toHaveBeenNthCalledWith(2, false)
+
+	// send with a known set
+	await store.send({ variables: { hello: 'world' } })
+	expect(spy).toHaveBeenNthCalledWith(3, true)
+})
+
+test('multiple new variables from inside plugin', async function () {
+	// a spy to track changes
+	const spy = vi.fn()
+
+	let count = 0
+
+	// a plugin to detect changes
+	const changePlugin: ClientPlugin = () => {
+		return {
+			setup: {
+				enter(ctx, { next, variablesChanged }) {
+					ctx.variables = {
+						...ctx.variables,
+						count: count === 0 ? count++ : count,
+					}
+					spy(variablesChanged(ctx), count)
+					next(ctx)
+				},
+			},
+			network: {
+				enter(ctx, { resolve }) {
+					resolve(ctx, {})
+				},
+			},
+		}
+	}
+
+	// instantiate a store we'll perform multiple queries with
+	const store = createStore([changePlugin])
+
+	// send one set of variables
+	await store.send()
+	expect(spy).toHaveBeenNthCalledWith(1, true, 1)
+
+	// send another empty set of variables, count gets incremented
+	await store.send()
+	expect(spy).toHaveBeenNthCalledWith(2, true, 1)
+
+	// send another empty set of variables, count won't get incremented
+	await store.send()
+	expect(spy).toHaveBeenNthCalledWith(3, false, 1)
+
+	// send with a known set (count won't get incrememented)
+	await store.send()
+	expect(spy).toHaveBeenNthCalledWith(4, false, 1)
+
+	// if we do send with a payload, make sure we know its changed
+	await store.send({ variables: { hello: 'world' } })
+	expect(spy).toHaveBeenNthCalledWith(5, true, 1)
 })

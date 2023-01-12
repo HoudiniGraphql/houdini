@@ -82,7 +82,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		policy,
 		stuff,
 	}: {
-		variables?: _Input
+		variables?: {}
 		metadata?: {}
 		fetch?: Fetch
 		session?: App.Session
@@ -95,7 +95,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		}
 
 		// start off with the initial context
-		const context = {
+		const context = this.#wrapContext({
 			config: this.#configFile!,
 			policy: policy ?? (this.#artifact as QueryArtifact).policy,
 			variables: {},
@@ -104,7 +104,8 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 			fetch,
 			stuff: stuff ?? {},
 			artifact: this.#artifact,
-		}
+		})
+		context.variables = variables ?? {}
 
 		return await new Promise((resolve, reject) => {
 			// the initial state of the iterator
@@ -119,10 +120,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 					reject,
 				},
 				// patch the context with new variables
-				context: this.#patchContext(context, {
-					...context,
-					variables,
-				}),
+				context,
 			}
 
 			// start walking down the chain
@@ -137,38 +135,35 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 			if (target) {
 				try {
 					// invoke the target
-					const result = target(
-						{ ...ctx.context },
-						{
-							client: this.#client,
-							variablesChanged,
-							marshalVariables,
-							next: (newContext) => {
-								this.#next({
+					const result = target(this.#wrapContext(ctx.context), {
+						client: this.#client,
+						variablesChanged,
+						marshalVariables,
+						next: (newContext) => {
+							this.#next({
+								...ctx,
+								context: newContext,
+								index,
+							})
+						},
+						resolve: (newContext, value) => {
+							// start the journey back
+							this.#terminate(
+								{
 									...ctx,
-									context: this.#patchContext(ctx.context, newContext),
-									index,
-								})
-							},
-							resolve: (newContext, value) => {
-								// start the journey back
-								this.#terminate(
-									{
-										...ctx,
-										context: this.#patchContext(ctx.context, newContext),
-										// increment the index so that terminate looks at this link again
-										index: index + 1,
-										// save this value
-										value,
-										// increment the index so that terminate looks at this link again
-										// when we flip phases, we need to start from here
-										terminatingIndex: index + 1,
-									},
-									value
-								)
-							},
-						}
-					)
+									context: newContext,
+									// increment the index so that terminate looks at this link again
+									index: index + 1,
+									// save this value
+									value,
+									// increment the index so that terminate looks at this link again
+									// when we flip phases, we need to start from here
+									terminatingIndex: index + 1,
+								},
+								value
+							)
+						},
+					})
 					result?.catch((err) => {
 						this.#error({ ...ctx, index }, err)
 					})
@@ -206,10 +201,10 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 				try {
 					// invoke the target
 					const result = target(
-						{
+						this.#wrapContext<ExitContext>({
 							...ctx.context,
 							value,
-						},
+						}),
 						{
 							value,
 							client: this.#client,
@@ -221,7 +216,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 									...ctx,
 									index: index - 1,
 									currentStep: 'setup',
-									context: this.#patchContext(ctx.context, newContext),
+									context: newContext,
 								})
 							},
 							resolve: (context, val) => {
@@ -276,8 +271,8 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		// the latest value should be written to the store
 		this.update((state) => ({
 			...state,
-			variables: ctx.context.variables ?? {},
 			...value,
+			variables: ctx.context.variables ?? {},
 			fetching: false,
 		}))
 	}
@@ -296,7 +291,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 					next: (newContext) => {
 						this.#next({
 							...ctx,
-							context: this.#patchContext(ctx.context, newContext),
+							context: newContext,
 							currentStep: 'setup',
 							index: i,
 						})
@@ -320,43 +315,52 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		}
 	}
 
-	// #patchContext is responsible for keeping any of the internal state up to date
-	#patchContext(old: ClientPluginContext, update: ClientPluginContext) {
-		// look at the variables for ones that are different
-		let changed: Required<ClientPluginContext>['variables'] = {}
-		if (update.variables !== old.variables) {
-			for (const [name, value] of Object.entries(update.variables ?? {})) {
-				if (value !== old.variables?.[name]) {
-					// we need to marshal the new value
-					changed[name] = value
+	#wrapContext<T extends ClientPluginContext>(values: T): T {
+		const data = values
+
+		const lastVariables = this.#lastVariables
+		const setVariables = (vars: {}) => (this.#lastVariables = vars)
+
+		return {
+			...data,
+			get variables() {
+				return data.variables ?? {}
+			},
+			set variables(val: Required<ClientPluginContext>['variables']) {
+				// look at the variables for ones that are different
+				let changed: Required<ClientPluginContext>['variables'] = {}
+				for (const [name, value] of Object.entries(val ?? {})) {
+					if (value !== data.variables?.[name]) {
+						// we need to marshal the new value
+						changed[name] = value
+					}
 				}
-			}
+
+				const hasChanged =
+					Object.keys(changed).length > 0 || !data.stuff.inputs || !data.stuff.inputs.init
+				if (data.artifact.kind !== ArtifactKind.Fragment && hasChanged) {
+					// only marshal the changed variables so we don't double marshal
+					const newVariables = {
+						...data.stuff.inputs?.marshaled,
+						...marshalInputs({
+							artifact: data.artifact,
+							input: changed,
+							config: data.config,
+						}),
+					}
+
+					data.stuff.inputs = {
+						init: true,
+						marshaled: newVariables,
+						changed: !deepEquals(lastVariables, newVariables),
+					}
+
+					// track the last variables used
+					setVariables(data.stuff.inputs.marshaled)
+					data.variables = val
+				}
+			},
 		}
-
-		const hasChanged =
-			Object.keys(changed).length > 0 || !update.stuff.inputs || !update.stuff.inputs.init
-		if (update.artifact.kind !== ArtifactKind.Fragment && hasChanged) {
-			// only marshal the changed variables so we don't double marshal
-			const newVariables = {
-				...update.stuff.inputs?.marshaled,
-				...marshalInputs({
-					artifact: update.artifact,
-					input: changed,
-					config: update.config,
-				}),
-			}
-
-			update.stuff.inputs = {
-				init: true,
-				marshaled: newVariables,
-				changed: !deepEquals(this.#lastVariables, newVariables),
-			}
-
-			// track the last variables used
-			this.#lastVariables = update.stuff.inputs.marshaled
-		}
-
-		return update
 	}
 }
 
