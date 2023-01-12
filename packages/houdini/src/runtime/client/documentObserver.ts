@@ -420,53 +420,71 @@ class ClientPluginContextWrapper {
 	// actually affecting the context values
 	draft(): ClientPluginContext {
 		// so there are some values
-		const data = {
+		const ctx = {
 			...this.#context,
 		}
 
 		const lastVariables = this.#lastVariables
 
 		return {
-			...data,
+			...ctx,
+			get stuff() {
+				return ctx.stuff
+			},
+			set stuff(val: any) {
+				ctx.stuff = val
+			},
 			get variables() {
-				return data.variables ?? {}
+				return ctx.variables ?? {}
 			},
 			set variables(val: Required<ClientPluginContext>['variables']) {
 				// look at the variables for ones that are different
 				let changed: Required<ClientPluginContext>['variables'] = {}
 				for (const [name, value] of Object.entries(val ?? {})) {
-					if (value !== data.variables?.[name]) {
+					if (value !== ctx.variables?.[name]) {
 						// we need to marshal the new value
 						changed[name] = value
 					}
 				}
 
+				// since we are mutating deeply nested values in stuff, we need to make sure we don't modify our parent
+				ctx.stuff = {
+					...ctx.stuff,
+					inputs: {
+						...ctx.stuff.inputs,
+					},
+				}
+
 				// update the marshaled version of the inputs
 				// - only update the values that changed (to re-marshal scalars)
 				const hasChanged =
-					Object.keys(changed).length > 0 || !data.stuff.inputs || !data.stuff.inputs.init
-				if (data.artifact.kind !== ArtifactKind.Fragment && hasChanged) {
+					Object.keys(changed).length > 0 || !ctx.stuff.inputs || !ctx.stuff.inputs.init
+				if (ctx.artifact.kind !== ArtifactKind.Fragment && hasChanged) {
 					// only marshal the changed variables so we don't double marshal
 					const newVariables = {
-						...data.stuff.inputs?.marshaled,
+						...ctx.stuff.inputs?.marshaled,
 						...marshalInputs({
-							artifact: data.artifact,
+							artifact: ctx.artifact,
 							input: changed,
-							config: data.config,
+							config: ctx.config,
 						}),
 					}
 
-					data.stuff.inputs = {
+					ctx.stuff.inputs = {
 						init: true,
 						marshaled: newVariables,
 					}
 
 					// track the last variables used
-					data.variables = val
+					ctx.variables = val
 				}
-
-				// we need to compute if this value is different than the last known ones
-				data.stuff.inputs.changed = !deepEquals(data.stuff.inputs.marshaled, lastVariables)
+				ctx.stuff = {
+					...ctx.stuff,
+					inputs: {
+						...ctx.stuff.inputs,
+						changed: !deepEquals(ctx.stuff.inputs.marshaled, lastVariables),
+					},
+				}
 			},
 		}
 	}
