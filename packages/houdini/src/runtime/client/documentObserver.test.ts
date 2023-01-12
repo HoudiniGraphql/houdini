@@ -4,7 +4,7 @@ import { test, expect, vi, beforeEach } from 'vitest'
 import { HoudiniClient } from '.'
 import { setMockConfig } from '../lib/config'
 import { ArtifactKind } from '../lib/types'
-import { DocumentObserver, ClientPlugin, marshaledVariables } from './documentObserver'
+import { DocumentObserver, ClientPlugin } from './documentObserver'
 
 function createStore(plugins: ClientPlugin[]): DocumentObserver<any, any> {
 	return new HoudiniClient({
@@ -525,8 +525,8 @@ test('plugins can update variables', async function () {
 	const checkVariables: ClientPlugin = () => {
 		return {
 			network: {
-				enter(ctx, { resolve }) {
-					spy(marshaledVariables(ctx))
+				enter(ctx, { resolve, marshalVariables }) {
+					spy(marshalVariables(ctx))
 					resolve(ctx, {})
 				},
 			},
@@ -545,4 +545,45 @@ test('plugins can update variables', async function () {
 		date1: date1.getTime(),
 		date2: date2.getTime(),
 	})
+})
+
+test('can detect changed variables', async function () {
+	// a spy to track changes
+	const spy = vi.fn()
+
+	// a plugin to detect changes
+	const changePlugin: ClientPlugin = () => {
+		return {
+			setup: {
+				enter(ctx, { next, variablesChanged }) {
+					spy(variablesChanged(ctx))
+					next(ctx)
+				},
+			},
+			network: {
+				enter(ctx, { resolve }) {
+					resolve(ctx, {})
+				},
+			},
+		}
+	}
+
+	// instantiate a store we'll perform multiple queries with
+	const store = createStore([changePlugin])
+
+	// send one set of variables
+	await store.send()
+	expect(spy).toHaveBeenNthCalledWith(1, true)
+
+	// send another empty set of variables
+	await store.send()
+	expect(spy).toHaveBeenNthCalledWith(2, false)
+
+	// send with a known set
+	await store.send({ variables: { hello: 'world' } })
+	expect(spy).toHaveBeenNthCalledWith(3, true)
+
+	// send with the same est
+	await store.send({ variables: { hello: 'world' } })
+	expect(spy).toHaveBeenNthCalledWith(4, false)
 })

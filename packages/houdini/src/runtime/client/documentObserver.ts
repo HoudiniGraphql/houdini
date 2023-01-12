@@ -141,6 +141,8 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 						{ ...ctx.context },
 						{
 							client: this.#client,
+							variablesChanged,
+							marshalVariables,
 							next: (newContext) => {
 								this.#next({
 									...ctx,
@@ -209,8 +211,10 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 							value,
 						},
 						{
-							client: this.#client,
 							value,
+							client: this.#client,
+							variablesChanged,
+							marshalVariables,
 							next: (newContext) => {
 								// push the ctx onto the next step
 								this.#next({
@@ -319,15 +323,19 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 	// #patchContext is responsible for keeping any of the internal state up to date
 	#patchContext(old: ClientPluginContext, update: ClientPluginContext) {
 		// look at the variables for ones that are different
-		const changed: Required<ClientPluginContext>['variables'] = {}
-		for (const [name, value] of Object.entries(update.variables ?? {})) {
-			if (value !== old.variables?.[name]) {
-				// we need to marshal the new value
-				changed[name] = value
+		let changed: Required<ClientPluginContext>['variables'] = {}
+		if (update.variables !== old.variables) {
+			for (const [name, value] of Object.entries(update.variables ?? {})) {
+				if (value !== old.variables?.[name]) {
+					// we need to marshal the new value
+					changed[name] = value
+				}
 			}
 		}
 
-		if (update.artifact.kind !== ArtifactKind.Fragment && Object.keys(changed).length > 0) {
+		const hasChanged =
+			Object.keys(changed).length > 0 || !update.stuff.inputs || !update.stuff.inputs.init
+		if (update.artifact.kind !== ArtifactKind.Fragment && hasChanged) {
 			// only marshal the changed variables so we don't double marshal
 			const newVariables = {
 				...update.stuff.inputs?.marshaled,
@@ -339,6 +347,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 			}
 
 			update.stuff.inputs = {
+				init: true,
 				marshaled: newVariables,
 				changed: !deepEquals(this.#lastVariables, newVariables),
 			}
@@ -382,11 +391,11 @@ type IteratorState = {
 	}
 }
 
-export function marshaledVariables(ctx: ClientPluginContext) {
+function marshalVariables(ctx: ClientPluginContext) {
 	return ctx.stuff.inputs?.marshaled ?? {}
 }
 
-export function variablesChanged(ctx: ClientPluginContext) {
+function variablesChanged(ctx: ClientPluginContext) {
 	return ctx.stuff.inputs?.changed
 }
 
@@ -429,6 +438,10 @@ export type ClientPluginHandlers = {
 	next(ctx: ClientPluginContext): void
 	/** Terminate the current chain  */
 	resolve(ctx: ClientPluginContext, data: Partial<NetworkResult<any>>): void
+	/** Return true if the variables have chaged */
+	variablesChanged: (ctx: ClientPluginContext) => boolean
+	/** Returns the marshaled variables for the operation */
+	marshalVariables: typeof marshalVariables
 }
 
 // /** Exit handlers are the same as enter handles but don't need to resolve with a specific value */

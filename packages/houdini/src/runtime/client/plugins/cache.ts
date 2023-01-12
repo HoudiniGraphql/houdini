@@ -1,14 +1,13 @@
 import cache from '../../cache'
 import { ArtifactKind, CachePolicy, DataSource } from '../../lib'
 import { ClientPlugin } from '../documentObserver'
-import { marshaledVariables } from './inputs'
 
 export const cachePolicyPlugin =
 	(enabled: boolean, setFetching: (val: boolean) => void): ClientPlugin =>
 	() => {
 		return {
 			network: {
-				enter(ctx, { next, resolve }) {
+				enter(ctx, { next, resolve, marshalVariables }) {
 					const { policy, artifact } = ctx
 
 					// enforce cache policies for queries
@@ -23,7 +22,7 @@ export const cachePolicyPlugin =
 							// look up the current value in the cache
 							const value = cache.read({
 								selection: artifact.selection,
-								variables: marshaledVariables(ctx),
+								variables: marshalVariables(ctx),
 							})
 
 							// we can only use the result if its not a partial result
@@ -78,7 +77,7 @@ export const cachePolicyPlugin =
 					// move on
 					return next(ctx)
 				},
-				exit(ctx, { resolve, value }) {
+				exit(ctx, { resolve, value, marshalVariables }) {
 					// if we have data coming in from the cache, we should write it and mvoe on
 					if (enabled && value.result?.data && !ctx.cacheParams?.disableWrite) {
 						// write the result of the mutation to the cache
@@ -87,7 +86,7 @@ export const cachePolicyPlugin =
 							layer: ctx.cacheParams?.layer?.id,
 							selection: ctx.artifact.selection,
 							data: value.result.data,
-							variables: marshaledVariables(ctx),
+							variables: marshalVariables(ctx),
 						})
 					}
 

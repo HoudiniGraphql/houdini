@@ -2,7 +2,6 @@ import cache from '../../cache'
 import { type SubscriptionSpec, ArtifactKind } from '../../lib'
 import { type ClientPlugin } from '../documentObserver'
 import { documentPlugin } from '../utils'
-import { marshaledVariables, variablesChanged } from './inputs'
 
 export const queryPlugin: ClientPlugin = documentPlugin(ArtifactKind.Query, function () {
 	// track the bits of state we need to hold onto
@@ -14,7 +13,7 @@ export const queryPlugin: ClientPlugin = documentPlugin(ArtifactKind.Query, func
 	// the function to call when a query is sent
 	return {
 		setup: {
-			enter(ctx, { next, resolve }) {
+			enter(ctx, { next, resolve, marshalVariables, variablesChanged }) {
 				// make sure to include the last variables as well as the new ones
 				ctx.variables = {
 					...lastVariables,
@@ -36,12 +35,12 @@ export const queryPlugin: ClientPlugin = documentPlugin(ArtifactKind.Query, func
 					subscriptionSpec = {
 						rootType: ctx.artifact.rootType,
 						selection: ctx.artifact.selection,
-						variables: () => marshaledVariables(ctx),
+						variables: () => marshalVariables(ctx),
 						set: (newValue) => resolve(ctx, newValue),
 					}
 
 					// make sure we subscribe to the new values
-					cache.subscribe(subscriptionSpec, marshaledVariables(ctx))
+					cache.subscribe(subscriptionSpec, marshalVariables(ctx))
 				}
 
 				// we are done

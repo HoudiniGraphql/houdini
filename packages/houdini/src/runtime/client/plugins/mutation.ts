@@ -2,12 +2,11 @@ import cache from '../../cache'
 import { ArtifactKind, marshalSelection, SubscriptionSpec } from '../../lib'
 import { ClientPlugin } from '../documentObserver'
 import { documentPlugin } from '../utils'
-import { marshaledVariables } from './inputs'
 
 export const mutationPlugin: ClientPlugin = documentPlugin(ArtifactKind.Mutation, () => {
 	return {
 		setup: {
-			async enter(ctx, { next }) {
+			async enter(ctx, { next, marshalVariables }) {
 				// treat a mutation like it has an optimistic layer regardless of
 				// whether there actually _is_ one. This ensures that a query which fires
 				// after this mutation has been sent will overwrite any return values from the mutation
@@ -31,7 +30,7 @@ export const mutationPlugin: ClientPlugin = documentPlugin(ArtifactKind.Mutation
 							selection: ctx.artifact.selection,
 							data: optimisticResponse,
 						}))!,
-						variables: marshaledVariables(ctx),
+						variables: marshalVariables(ctx),
 						layer: layer.id,
 					})
 				}
