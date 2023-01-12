@@ -96,7 +96,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		}
 
 		// start off with the initial context
-		let context = new ClientPluginContext({
+		let context = new ClientPluginContextWrapper({
 			config: this.#configFile!,
 			policy: policy ?? (this.#artifact as QueryArtifact).policy,
 			variables: {},
@@ -380,11 +380,11 @@ export type ClientPlugin =
 		network?: ClientPluginPhase
 		cleanup?(): any
 		// error is called when a plugin after this raises an exception
-		error?(ctx: ClientPluginContextValue, args: ClientPluginErrorHandlers): void | Promise<void>
+		error?(ctx: ClientPluginContext, args: ClientPluginErrorHandlers): void | Promise<void>
 	}
 
 type IteratorState = {
-	context: ClientPluginContext
+	context: ClientPluginContextWrapper
 	index: number
 	value: any
 	terminatingIndex: number | null
@@ -398,15 +398,15 @@ type IteratorState = {
 
 // the context is built out of a class so we can easily hide fields from the
 // object that we don't want users to access
-class ClientPluginContext {
+class ClientPluginContextWrapper {
 	// separate the last variables from what we pass to the user
-	#context: ClientPluginContextValue
+	#context: ClientPluginContext
 	#lastVariables: Record<string, any> | null
 	constructor({
 		lastVariables,
 		...values
-	}: ClientPluginContextValue & {
-		lastVariables: Required<ClientPluginContextValue>['variables'] | null
+	}: ClientPluginContext & {
+		lastVariables: Required<ClientPluginContext>['variables'] | null
 	}) {
 		this.#context = values
 		this.#lastVariables = lastVariables
@@ -418,7 +418,7 @@ class ClientPluginContext {
 
 	// draft produces a wrapper over the context so users can mutate it without
 	// actually affecting the context values
-	draft(): ClientPluginContextValue {
+	draft(): ClientPluginContext {
 		// so there are some values
 		const data = {
 			...this.#context,
@@ -431,9 +431,9 @@ class ClientPluginContext {
 			get variables() {
 				return data.variables ?? {}
 			},
-			set variables(val: Required<ClientPluginContextValue>['variables']) {
+			set variables(val: Required<ClientPluginContext>['variables']) {
 				// look at the variables for ones that are different
-				let changed: Required<ClientPluginContextValue>['variables'] = {}
+				let changed: Required<ClientPluginContext>['variables'] = {}
 				for (const [name, value] of Object.entries(val ?? {})) {
 					if (value !== data.variables?.[name]) {
 						// we need to marshal the new value
@@ -472,25 +472,25 @@ class ClientPluginContext {
 	}
 
 	// apply applies the draft value in a new context
-	apply<T>(values: ClientPluginContextValue & T): ClientPluginContext {
-		return new ClientPluginContext({
+	apply<T>(values: ClientPluginContext & T): ClientPluginContextWrapper {
+		return new ClientPluginContextWrapper({
 			...values,
 			lastVariables: this.#lastVariables,
 		})
 	}
 }
 
-function marshalVariables(ctx: ClientPluginContextValue) {
+function marshalVariables(ctx: ClientPluginContext) {
 	return ctx.stuff.inputs?.marshaled ?? {}
 }
 
-function variablesChanged(ctx: ClientPluginContextValue) {
+function variablesChanged(ctx: ClientPluginContext) {
 	return ctx.stuff.inputs?.changed
 }
 
 export type Fetch = typeof globalThis.fetch
 
-export type ClientPluginContextValue = {
+export type ClientPluginContext = {
 	config: ConfigFile
 	artifact: DocumentArtifact
 	policy?: CachePolicy
@@ -512,28 +512,28 @@ export type ClientPluginContextValue = {
 /** ClientPlugin describes the logic of the HoudiniClient plugin at a particular stage. */
 export type ClientPluginPhase = {
 	// enter is called when an artifact is pushed through
-	enter?(ctx: ClientPluginContextValue, handlers: ClientPluginHandlers): void | Promise<void>
+	enter?(ctx: ClientPluginContext, handlers: ClientPluginHandlers): void | Promise<void>
 	// exist is called when the result of the next plugin in the chain
 	// is called
-	exit?(ctx: ClientPluginContextValue, handlers: ClientPluginExitHandlers): void | Promise<void>
+	exit?(ctx: ClientPluginContext, handlers: ClientPluginExitHandlers): void | Promise<void>
 }
 
 export type ClientPluginHandlers = {
 	/** A reference to the houdini client to access any configuration values */
 	client: HoudiniClient
 	/** Move onto the next step using the provided context.  */
-	next(ctx: ClientPluginContextValue): void
+	next(ctx: ClientPluginContext): void
 	/** Terminate the current chain  */
-	resolve(ctx: ClientPluginContextValue, data: Partial<NetworkResult<any>>): void
+	resolve(ctx: ClientPluginContext, data: Partial<NetworkResult<any>>): void
 	/** Return true if the variables have changed */
-	variablesChanged: (ctx: ClientPluginContextValue) => boolean
+	variablesChanged: (ctx: ClientPluginContext) => boolean
 	/** Returns the marshaled variables for the operation */
 	marshalVariables: typeof marshalVariables
 }
 
 /** Exit handlers are the same as enter handles but don't need to resolve with a specific value */
 export type ClientPluginExitHandlers = Omit<ClientPluginHandlers, 'resolve'> & {
-	resolve: (ctx: ClientPluginContextValue, data?: Partial<NetworkResult<any>>) => void
+	resolve: (ctx: ClientPluginContext, data?: Partial<NetworkResult<any>>) => void
 	value: Partial<NetworkResult<any>>
 }
 
