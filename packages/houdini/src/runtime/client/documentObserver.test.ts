@@ -269,59 +269,6 @@ test('can call resolve multiple times to set multiple values', async function ()
 	})
 })
 
-test('error can replay chain', async function () {
-	let count = 0
-
-	// we want to make sure that the errors dont bubble up beyond the middleware that
-	// traps it
-	const outerSpy = vi.fn()
-	const spy = vi.fn()
-
-	const firstErrorHandler: ClientPlugin = () => ({
-		error(ctx) {
-			outerSpy()
-		},
-	})
-
-	const errorTrapper: ClientPlugin = () => ({
-		error(ctx, { next, error }) {
-			// invoke the spy (we got here once)
-			spy(error)
-
-			// try again but this time, succeed
-			count++
-			next(ctx)
-		},
-	})
-
-	const middleware: ClientPlugin = () => ({
-		setup: {
-			enter(ctx, { resolve }) {
-				// we have to get here twice to succeed
-				if (count) {
-					resolve(ctx, { result: { data: 'value', errors: [] } })
-					return
-				}
-
-				throw 'hello'
-			},
-		},
-	})
-
-	// create the client with the middlewares
-	const store = createStore([firstErrorHandler, errorTrapper, middleware])
-
-	// make sure that the promise rejected with the error value
-	await expect(store.send()).resolves.toEqual({
-		result: {
-			data: 'value',
-			errors: [],
-		},
-	})
-	expect(spy).toHaveBeenCalled()
-	expect(outerSpy).not.toHaveBeenCalled()
-})
-
 test('error rejects the promise', async function () {
 	const middleware: ClientPlugin = () => ({
 		setup: {

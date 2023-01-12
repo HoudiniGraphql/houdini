@@ -285,21 +285,29 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 			// if the step has an error handler, invoke it
 			const errorHandler = this.#plugins[i].error
 			if (errorHandler) {
-				errorHandler(ctx.context, {
-					error,
-					// calling next in response to a
-					next: (newContext) => {
-						this.#next({
-							...ctx,
-							context: newContext,
-							currentStep: 'setup',
-							index: i,
-						})
-
-						// don't step through the rest of the errors
-						propagate = false
+				errorHandler(
+					{
+						...ctx.context,
+						error,
 					},
-				})
+					{
+						client: this.#client,
+						variablesChanged,
+						marshalVariables,
+						// calling next in response to a
+						next: (newContext) => {
+							this.#next({
+								...ctx,
+								context: newContext,
+								currentStep: 'setup',
+								index: i,
+							})
+
+							// don't step through the rest of the errors
+							propagate = false
+						},
+					}
+				)
 			}
 		}
 
@@ -377,8 +385,8 @@ export type ClientPlugin =
 		cleanup?(): any
 		// error is called when a plugin after this raises an exception
 		error?(
-			ctx: ClientPluginContext,
-			args: { error: unknown } & Pick<ClientPluginHandlers, 'next'>
+			ctx: ClientPluginContext & { error: unknown },
+			args: Omit<ClientPluginHandlers, 'resolve'>
 		): void | Promise<void>
 	}
 

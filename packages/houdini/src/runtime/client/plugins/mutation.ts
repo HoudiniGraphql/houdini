@@ -51,7 +51,14 @@ export const mutationPlugin: ClientPlugin = documentPlugin(ArtifactKind.Mutation
 					},
 				})
 			},
-			exit(ctx, { resolve }) {
+			exit(ctx, { resolve, value }) {
+				const hasErrors = value.result?.errors && value.result.errors.length > 0
+				// if there are errors, we need to clear the layer before resolving
+				if (hasErrors) {
+					// if the mutation failed, roll the layer back and delete it
+					ctx.cacheParams?.layer?.clear()
+				}
+
 				// merge the layer back into the cache
 				if (ctx.cacheParams?.layer) {
 					cache._internal_unstable.storage.resolveLayer(ctx.cacheParams.layer.id)
@@ -70,7 +77,7 @@ export const mutationPlugin: ClientPlugin = documentPlugin(ArtifactKind.Mutation
 				resolve(ctx)
 			},
 		},
-		error(ctx, { next }) {
+		error(ctx) {
 			// if there was an error, we need to clear the mutation
 			if (ctx.cacheParams?.layer) {
 				const { layer } = ctx.cacheParams
@@ -79,9 +86,6 @@ export const mutationPlugin: ClientPlugin = documentPlugin(ArtifactKind.Mutation
 				layer.clear()
 				cache._internal_unstable.storage.resolveLayer(layer.id)
 			}
-
-			// we're done
-			next(ctx)
 		},
 	}
 })
