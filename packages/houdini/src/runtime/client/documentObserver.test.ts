@@ -144,7 +144,11 @@ test('middleware pipeline happy path', async function () {
 	])
 
 	// make sure we got the right value back
-	expect(value).toEqual({ result: { data: 'value', errors: [] } })
+	expect(value).toEqual({
+		fetching: false,
+		variables: {},
+		result: { data: 'value', errors: [] },
+	})
 })
 
 test('terminate short-circuits pipeline', async function () {
@@ -234,7 +238,11 @@ test('can call resolve multiple times to set multiple values', async function ()
 	await sleep(100)
 
 	// make sure we get the first value  from the promise
-	expect(result).toEqual({ result: { data: 'value', errors: [] } })
+	expect(result).toEqual({
+		fetching: false,
+		variables: {},
+		result: { data: 'value', errors: [] },
+	})
 	// that value will be the second value to the spy
 	expect(fn).toHaveBeenNthCalledWith(2, {
 		fetching: true,
@@ -436,6 +444,8 @@ test('exit can replay a pipeline', async function () {
 
 	// make sure that the promise rejected with the error value
 	await expect(store.send()).resolves.toEqual({
+		fetching: false,
+		variables: {},
 		result: {
 			data: 'another-value',
 			errors: [],
@@ -587,11 +597,15 @@ test('multiple new variables from inside plugin', async function () {
 		return {
 			setup: {
 				enter(ctx, { next, variablesChanged }) {
+					let oldCount = count
+					if (count === 0) {
+						count++
+					}
 					ctx.variables = {
 						...ctx.variables,
-						count: count === 0 ? count++ : count,
+						count: oldCount,
 					}
-					spy(variablesChanged(ctx), count)
+					spy(variablesChanged(ctx), oldCount)
 					next(ctx)
 				},
 			},
@@ -608,7 +622,7 @@ test('multiple new variables from inside plugin', async function () {
 
 	// send one set of variables
 	await store.send()
-	expect(spy).toHaveBeenNthCalledWith(1, true, 1)
+	expect(spy).toHaveBeenNthCalledWith(1, true, 0)
 
 	// send another empty set of variables, count gets incremented
 	await store.send()

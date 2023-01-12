@@ -38,6 +38,7 @@ export function subscriptionPlugin(client: SubscriptionHandler): ClientPlugin {
 								resolve(ctx, { result: { data, errors: [...(errors ?? [])] } })
 							},
 							error(data) {
+								clearSubscription?.()
 								resolve(ctx, { ...data })
 							},
 							complete() {},

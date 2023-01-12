@@ -1,8 +1,8 @@
-import { ClientPlugin, ClientPluginContext } from '../documentObserver'
+import { ClientPlugin, ClientPluginContextValue } from '../documentObserver'
 
 export type FetchParamFn = (
-	ctx: ClientPluginContext
-) => Required<ClientPluginContext>['fetchParams']
+	ctx: ClientPluginContextValue
+) => Required<ClientPluginContextValue>['fetchParams']
 
 export const fetchParamsPlugin: (fn?: FetchParamFn) => ClientPlugin =
 	(fn = () => ({})) =>

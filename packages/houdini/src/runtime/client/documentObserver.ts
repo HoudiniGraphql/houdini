@@ -83,7 +83,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		policy,
 		stuff,
 	}: {
-		variables?: {}
+		variables?: Record<string, any> | null
 		metadata?: {}
 		fetch?: Fetch
 		session?: App.Session
@@ -96,7 +96,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		}
 
 		// start off with the initial context
-		const context = this.#wrapContext({
+		let context = new ClientPluginContext({
 			config: this.#configFile!,
 			policy: policy ?? (this.#artifact as QueryArtifact).policy,
 			variables: {},
@@ -105,8 +105,13 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 			fetch,
 			stuff: stuff ?? {},
 			artifact: this.#artifact,
+			lastVariables: this.#lastVariables,
 		})
-		context.variables = variables ?? {}
+
+		// assign variables to take advantage of the setter on variables
+		const draft = context.draft()
+		draft.variables = variables ?? {}
+		context = context.apply(draft)
 
 		// walk through the plugins to get the first result
 		const result = await new Promise<NetworkResult<_Data | null>>((resolve, reject) => {
@@ -160,14 +165,14 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 			if (target) {
 				try {
 					// invoke the target
-					const result = target(this.#wrapContext(ctx.context), {
+					const result = target(ctx.context.draft(), {
 						client: this.#client,
 						variablesChanged,
 						marshalVariables,
 						next: (newContext) => {
 							this.#next({
 								...ctx,
-								context: newContext,
+								context: ctx.context.apply(newContext),
 								index,
 							})
 						},
@@ -176,7 +181,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 							this.#terminate(
 								{
 									...ctx,
-									context: newContext,
+									context: ctx.context.apply(newContext),
 									// increment the index so that terminate looks at this link again
 									index: index + 1,
 									// save this value
@@ -225,42 +230,36 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 			if (target) {
 				try {
 					// invoke the target
-					const result = target(
-						this.#wrapContext<ExitContext>({
-							...ctx.context,
-							value,
-						}),
-						{
-							value,
-							client: this.#client,
-							variablesChanged,
-							marshalVariables,
-							next: (newContext) => {
-								// push the ctx onto the next step
-								this.#next({
-									...ctx,
-									index: index - 1,
-									currentStep: 'setup',
-									context: newContext,
-								})
-							},
-							resolve: (context, val) => {
-								// if we were given a value, use it. otherwise use the previous value
-								const newValue = typeof val !== 'undefined' ? val : ctx.value
+					const result = target(ctx.context.draft(), {
+						value,
+						client: this.#client,
+						variablesChanged,
+						marshalVariables,
+						next: (newContext) => {
+							// push the ctx onto the next step
+							this.#next({
+								...ctx,
+								index: index - 1,
+								currentStep: 'setup',
+								context: ctx.context.apply(newContext),
+							})
+						},
+						resolve: (context, val) => {
+							// if we were given a value, use it. otherwise use the previous value
+							const newValue = typeof val !== 'undefined' ? val : ctx.value
 
-								// be brave. take the next step.
-								this.#terminate(
-									{
-										...ctx,
-										...context,
-										value: newValue,
-										index,
-									},
-									newValue
-								)
-							},
-						}
-					)
+							// be brave. take the next step.
+							this.#terminate(
+								{
+									...ctx,
+									context: ctx.context.apply(context),
+									value: newValue,
+									index,
+								},
+								newValue
+							)
+						},
+					})
 					result?.catch((err) => {
 						this.#error({ ...ctx, index }, err)
 					})
@@ -314,6 +313,8 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 			ctx.promise.resolved = true
 		}
 
+		this.#lastVariables = ctx.context.draft().stuff.inputs.marshaled
+
 		// the latest value should be written to the store
 		this.update((state) => ({ ...state, ...finalValue }))
 	}
@@ -323,32 +324,34 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		// current
 		let propagate = true
 		for (let i = ctx.index; i >= 0 && propagate; i--) {
+			let breakBubble = false
 			// if the step has an error handler, invoke it
 			const errorHandler = this.#plugins[i].error
 			if (errorHandler) {
-				errorHandler(
-					{
-						...ctx.context,
-						error,
-					},
-					{
-						client: this.#client,
-						variablesChanged,
-						marshalVariables,
-						// calling next in response to a
-						next: (newContext) => {
-							this.#next({
-								...ctx,
-								context: newContext,
-								currentStep: 'setup',
-								index: i,
-							})
+				errorHandler(ctx.context.draft(), {
+					client: this.#client,
+					variablesChanged,
+					marshalVariables,
+					// calling next in response to a
+					next: (newContext) => {
+						breakBubble = true
 
-							// don't step through the rest of the errors
-							propagate = false
-						},
-					}
-				)
+						this.#next({
+							...ctx,
+							context: ctx.context.apply(newContext),
+							currentStep: 'setup',
+							index: i,
+						})
+
+						// don't step through the rest of the errors
+						propagate = false
+					},
+					error,
+				})
+			}
+
+			if (breakBubble) {
+				break
 			}
 		}
 
@@ -361,54 +364,6 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 				// make sure we dont do anything else to the promise
 				ctx.promise.resolved = true
 			}
-		}
-	}
-
-	#wrapContext<T extends ClientPluginContext>(values: T): T {
-		const data = values
-
-		const lastVariables = this.#lastVariables
-		const setVariables = (vars: {}) => (this.#lastVariables = vars)
-
-		return {
-			...data,
-			get variables() {
-				return data.variables ?? {}
-			},
-			set variables(val: Required<ClientPluginContext>['variables']) {
-				// look at the variables for ones that are different
-				let changed: Required<ClientPluginContext>['variables'] = {}
-				for (const [name, value] of Object.entries(val ?? {})) {
-					if (value !== data.variables?.[name]) {
-						// we need to marshal the new value
-						changed[name] = value
-					}
-				}
-
-				const hasChanged =
-					Object.keys(changed).length > 0 || !data.stuff.inputs || !data.stuff.inputs.init
-				if (data.artifact.kind !== ArtifactKind.Fragment && hasChanged) {
-					// only marshal the changed variables so we don't double marshal
-					const newVariables = {
-						...data.stuff.inputs?.marshaled,
-						...marshalInputs({
-							artifact: data.artifact,
-							input: changed,
-							config: data.config,
-						}),
-					}
-
-					data.stuff.inputs = {
-						init: true,
-						marshaled: newVariables,
-						changed: !deepEquals(lastVariables, newVariables),
-					}
-
-					// track the last variables used
-					setVariables(data.stuff.inputs.marshaled)
-					data.variables = val
-				}
-			},
 		}
 	}
 }
@@ -425,10 +380,7 @@ export type ClientPlugin =
 		network?: ClientPluginPhase
 		cleanup?(): any
 		// error is called when a plugin after this raises an exception
-		error?(
-			ctx: ClientPluginContext & { error: unknown },
-			args: Omit<ClientPluginHandlers, 'resolve'>
-		): void | Promise<void>
+		error?(ctx: ClientPluginContextValue, args: ClientPluginErrorHandlers): void | Promise<void>
 	}
 
 type IteratorState = {
@@ -444,17 +396,101 @@ type IteratorState = {
 	}
 }
 
-function marshalVariables(ctx: ClientPluginContext) {
+// the context is built out of a class so we can easily hide fields from the
+// object that we don't want users to access
+class ClientPluginContext {
+	// separate the last variables from what we pass to the user
+	#context: ClientPluginContextValue
+	#lastVariables: Record<string, any> | null
+	constructor({
+		lastVariables,
+		...values
+	}: ClientPluginContextValue & {
+		lastVariables: Required<ClientPluginContextValue>['variables'] | null
+	}) {
+		this.#context = values
+		this.#lastVariables = lastVariables
+	}
+
+	get variables() {
+		return this.#context.variables
+	}
+
+	// draft produces a wrapper over the context so users can mutate it without
+	// actually affecting the context values
+	draft(): ClientPluginContextValue {
+		// so there are some values
+		const data = {
+			...this.#context,
+		}
+
+		const lastVariables = this.#lastVariables
+
+		return {
+			...data,
+			get variables() {
+				return data.variables ?? {}
+			},
+			set variables(val: Required<ClientPluginContextValue>['variables']) {
+				// look at the variables for ones that are different
+				let changed: Required<ClientPluginContextValue>['variables'] = {}
+				for (const [name, value] of Object.entries(val ?? {})) {
+					if (value !== data.variables?.[name]) {
+						// we need to marshal the new value
+						changed[name] = value
+					}
+				}
+
+				// update the marshaled version of the inputs
+				// - only update the values that changed (to re-marshal scalars)
+				const hasChanged =
+					Object.keys(changed).length > 0 || !data.stuff.inputs || !data.stuff.inputs.init
+				if (data.artifact.kind !== ArtifactKind.Fragment && hasChanged) {
+					// only marshal the changed variables so we don't double marshal
+					const newVariables = {
+						...data.stuff.inputs?.marshaled,
+						...marshalInputs({
+							artifact: data.artifact,
+							input: changed,
+							config: data.config,
+						}),
+					}
+
+					data.stuff.inputs = {
+						init: true,
+						marshaled: newVariables,
+					}
+
+					// track the last variables used
+					data.variables = val
+				}
+
+				// we need to compute if this value is different than the last known ones
+				data.stuff.inputs.changed = !deepEquals(data.stuff.inputs.marshaled, lastVariables)
+			},
+		}
+	}
+
+	// apply applies the draft value in a new context
+	apply<T>(values: ClientPluginContextValue & T): ClientPluginContext {
+		return new ClientPluginContext({
+			...values,
+			lastVariables: this.#lastVariables,
+		})
+	}
+}
+
+function marshalVariables(ctx: ClientPluginContextValue) {
 	return ctx.stuff.inputs?.marshaled ?? {}
 }
 
-function variablesChanged(ctx: ClientPluginContext) {
+function variablesChanged(ctx: ClientPluginContextValue) {
 	return ctx.stuff.inputs?.changed
 }
 
 export type Fetch = typeof globalThis.fetch
 
-export type ClientPluginContext = {
+export type ClientPluginContextValue = {
 	config: ConfigFile
 	artifact: DocumentArtifact
 	policy?: CachePolicy
@@ -476,29 +512,32 @@ export type ClientPluginContext = {
 /** ClientPlugin describes the logic of the HoudiniClient plugin at a particular stage. */
 export type ClientPluginPhase = {
 	// enter is called when an artifact is pushed through
-	enter?(ctx: ClientPluginContext, handlers: ClientPluginHandlers): void | Promise<void>
+	enter?(ctx: ClientPluginContextValue, handlers: ClientPluginHandlers): void | Promise<void>
 	// exist is called when the result of the next plugin in the chain
 	// is called
-	exit?(ctx: ExitContext, handlers: ClientPluginExitHandlers): void | Promise<void>
+	exit?(ctx: ClientPluginContextValue, handlers: ClientPluginExitHandlers): void | Promise<void>
 }
-
-export type ExitContext = ClientPluginContext & { value: any }
 
 export type ClientPluginHandlers = {
 	/** A reference to the houdini client to access any configuration values */
 	client: HoudiniClient
 	/** Move onto the next step using the provided context.  */
-	next(ctx: ClientPluginContext): void
+	next(ctx: ClientPluginContextValue): void
 	/** Terminate the current chain  */
-	resolve(ctx: ClientPluginContext, data: Partial<NetworkResult<any>>): void
+	resolve(ctx: ClientPluginContextValue, data: Partial<NetworkResult<any>>): void
 	/** Return true if the variables have changed */
-	variablesChanged: (ctx: ClientPluginContext) => boolean
+	variablesChanged: (ctx: ClientPluginContextValue) => boolean
 	/** Returns the marshaled variables for the operation */
 	marshalVariables: typeof marshalVariables
 }
 
-// /** Exit handlers are the same as enter handles but don't need to resolve with a specific value */
+/** Exit handlers are the same as enter handles but don't need to resolve with a specific value */
 export type ClientPluginExitHandlers = Omit<ClientPluginHandlers, 'resolve'> & {
-	resolve: (ctx: ClientPluginContext, data?: Partial<NetworkResult<any>>) => void
+	resolve: (ctx: ClientPluginContextValue, data?: Partial<NetworkResult<any>>) => void
 	value: Partial<NetworkResult<any>>
+}
+
+/** Exit handlers are the same as enter handles but don't need to resolve with a specific value */
+export type ClientPluginErrorHandlers = Omit<ClientPluginHandlers, 'resolve'> & {
+	error: unknown
 }
