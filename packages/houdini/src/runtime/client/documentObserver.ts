@@ -88,7 +88,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		session?: App.Session
 		policy?: CachePolicy
 		stuff?: {}
-	} = {}): Promise<_Data | null> {
+	} = {}): Promise<NetworkResult<_Data | null>> {
 		// if we dont have the config file yet, load it
 		if (!this.#configFile) {
 			this.#configFile = await getCurrentConfig()
@@ -107,7 +107,8 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		})
 		context.variables = variables ?? {}
 
-		return await new Promise((resolve, reject) => {
+		// walk through the plugins to get the first result
+		const result = await new Promise<NetworkResult<_Data | null>>((resolve, reject) => {
 			// the initial state of the iterator
 			const state: IteratorState = {
 				value: null,
@@ -126,6 +127,29 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 			// start walking down the chain
 			this.#next(state)
 		})
+
+		// if there are errors, we might need to throw
+		if (
+			result.result.errors &&
+			result.result.errors.length > 0 &&
+			this.#configFile.quietErrors
+		) {
+			// convert the artifact kind into the matching error pattern
+			const whichKind = {
+				[ArtifactKind.Mutation]: 'mutation',
+				[ArtifactKind.Query]: 'query',
+				[ArtifactKind.Fragment]: 'fragment',
+				[ArtifactKind.Subscription]: 'subscription',
+			}[this.#artifact.kind]
+
+			// we're only going to throw if we're not quieting the error
+			if (!(this.#configFile.quietErrors as string[]).includes(whichKind)) {
+				throw result.result.errors
+			}
+		}
+
+		// we're done
+		return result
 	}
 
 	#next(ctx: IteratorState): void {

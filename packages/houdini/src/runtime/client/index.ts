@@ -49,7 +49,7 @@ export class HoudiniClient {
 
 		// a few middlewares _have_ to run to setup the pipeline
 		this.#plugins = ([] as ClientPlugin[]).concat(
-			fetchParams ? [fetchParamsPlugin(fetchParams)] : [],
+			[fetchParamsPlugin(fetchParams)],
 			// if the user wants to specify the entire pipeline, let them do so
 			pipeline?.() ??
 				// the user doesn't have a specific pipeline so we should just add their desired plugins
