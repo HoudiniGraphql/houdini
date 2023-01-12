@@ -326,7 +326,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		for (let i = ctx.index; i >= 0 && propagate; i--) {
 			let breakBubble = false
 			// if the step has an error handler, invoke it
-			const errorHandler = this.#plugins[i].error
+			const errorHandler = this.#plugins[i].throw
 			if (errorHandler) {
 				errorHandler(ctx.context.draft(), {
 					client: this.#client,
@@ -379,8 +379,8 @@ export type ClientPlugin =
 		setup?: ClientPluginPhase
 		network?: ClientPluginPhase
 		cleanup?(): any
-		// error is called when a plugin after this raises an exception
-		error?(ctx: ClientPluginContext, args: ClientPluginErrorHandlers): void | Promise<void>
+		// throw is called when a plugin after this raises an exception
+		throw?(ctx: ClientPluginContext, args: ClientPluginErrorHandlers): void | Promise<void>
 	}
 
 type IteratorState = {
