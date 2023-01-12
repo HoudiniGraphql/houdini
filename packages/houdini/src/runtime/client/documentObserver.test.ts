@@ -639,4 +639,8 @@ test('multiple new variables from inside plugin', async function () {
 	// if we do send with a payload, make sure we know its changed
 	await store.send({ variables: { hello: 'world' } })
 	expect(spy).toHaveBeenNthCalledWith(5, true, 1)
+
+	// if we do send with a payload, send the same value for good measure
+	await store.send({ variables: { hello: 'world' } })
+	expect(spy).toHaveBeenNthCalledWith(6, false, 1)
 })
