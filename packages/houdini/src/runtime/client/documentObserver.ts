@@ -12,6 +12,7 @@ import {
 	marshalInputs,
 	QueryArtifact,
 	SubscriptionSpec,
+	unmarshalSelection,
 } from '../lib'
 import { Writable } from '../lib/store'
 import { cachePolicyPlugin } from './plugins'
@@ -284,21 +285,37 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 
 		// we're done with the chain
 
+		// convert the raw value into something we can give to the user
+		let data = value.result?.data as _Data
+		try {
+			data = (unmarshalSelection(
+				this.#configFile!,
+				this.#artifact.selection,
+				value.result?.data
+			) ?? null) as _Data
+		} catch {}
+
+		// build up the final state
+		const finalValue = {
+			...value,
+			result: {
+				errors: value.result?.errors ?? [],
+				data,
+			},
+			variables: ctx.context.variables ?? {},
+			fetching: false,
+		}
+
 		// if the promise hasn't been resolved yet, do it
 		if (!ctx.promise.resolved) {
-			ctx.promise.resolve(value)
+			ctx.promise.resolve(finalValue)
 
 			// make sure we dont resolve it again
 			ctx.promise.resolved = true
 		}
 
 		// the latest value should be written to the store
-		this.update((state) => ({
-			...state,
-			...value,
-			variables: ctx.context.variables ?? {},
-			fetching: false,
-		}))
+		this.update((state) => ({ ...state, ...finalValue }))
 	}
 
 	#error(ctx: IteratorState, error: unknown) {
