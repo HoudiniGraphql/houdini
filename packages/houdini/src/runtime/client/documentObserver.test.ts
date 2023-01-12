@@ -618,7 +618,7 @@ test('multiple new variables from inside plugin', async function () {
 	await store.send()
 	expect(spy).toHaveBeenNthCalledWith(3, false, 1)
 
-	// send with a known set (count won't get incrememented)
+	// send with a known set (count won't get incremented)
 	await store.send()
 	expect(spy).toHaveBeenNthCalledWith(4, false, 1)
 

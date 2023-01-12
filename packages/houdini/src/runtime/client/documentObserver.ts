@@ -491,7 +491,7 @@ export type ClientPluginHandlers = {
 	next(ctx: ClientPluginContext): void
 	/** Terminate the current chain  */
 	resolve(ctx: ClientPluginContext, data: Partial<NetworkResult<any>>): void
-	/** Return true if the variables have chaged */
+	/** Return true if the variables have changed */
 	variablesChanged: (ctx: ClientPluginContext) => boolean
 	/** Returns the marshaled variables for the operation */
 	marshalVariables: typeof marshalVariables
