@@ -43,6 +43,8 @@ test('runtime index file - sapper', async function () {
 		    return (mod && mod.__esModule) ? mod : { "default": mod };
 		};
 		Object.defineProperty(exports, "__esModule", { value: true });
+		__exportStar(require("./runtime/client"), exports);
+
 		__exportStar(require("./runtime"), exports);
 
 		__exportStar(require("./artifacts"), exports);
@@ -71,6 +73,8 @@ test('runtime index file - kit', async function () {
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
+		export * from "./runtime/client"
+
 		export * from "./runtime"
 
 		export * from "./artifacts"
@@ -92,7 +96,7 @@ test('runtime client export - kit', async function () {
 
 	// open up the index file
 	const queryContents = await fs.readFile(
-		path.join(config.runtimeDirectory, 'lib', 'clientImport.js')
+		path.join(config.runtimeDirectory, 'imports', 'client.js')
 	)
 	expect(queryContents).toBeTruthy()
 	// parse the contents
@@ -101,13 +105,8 @@ test('runtime client export - kit', async function () {
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		import { HoudiniClient } from "../client";
-		var clientImport_default = new HoudiniClient({
-		  url: ""
-		});
-		export {
-		  clientImport_default as default
-		};
+		import client from '../../../src/client'
+		export default client
 	`)
 })
 
@@ -123,7 +122,7 @@ test('runtime client export - commonjs', async function () {
 
 	// open up the index file
 	const queryContents = await fs.readFile(
-		path.join(config.runtimeDirectory, 'lib', 'clientImport.js')
+		path.join(config.runtimeDirectory, 'imports', 'client.js')
 	)
 	expect(queryContents).toBeTruthy()
 	// parse the contents
@@ -132,34 +131,7 @@ test('runtime client export - commonjs', async function () {
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		"use strict";
-		var __defProp = Object.defineProperty;
-		var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-		var __getOwnPropNames = Object.getOwnPropertyNames;
-		var __hasOwnProp = Object.prototype.hasOwnProperty;
-		var __export = (target, all) => {
-		  for (var name in all)
-		    __defProp(target, name, { get: all[name], enumerable: true });
-		};
-		var __copyProps = (to, from, except, desc) => {
-		  if (from && typeof from === "object" || typeof from === "function") {
-		    for (let key of __getOwnPropNames(from))
-		      if (!__hasOwnProp.call(to, key) && key !== except)
-		        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-		  }
-		  return to;
-		};
-		var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-		var clientImport_exports = {};
-		__export(clientImport_exports, {
-		  default: () => clientImport_default
-		});
-		module.exports = __toCommonJS(clientImport_exports);
-		var import_client = require("../client");
-		var clientImport_default = new import_client.HoudiniClient({
-		  url: ""
-		});
-		// Annotate the CommonJS export names for ESM import in node:
-		0 && (module.exports = {});
+		var client = require("../../../src/client")
+		Object.defineProperty(exports, "client", { enumerable: true, get: function () { return __importDefault(client).default; } });
 	`)
 })
