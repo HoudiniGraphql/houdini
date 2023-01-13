@@ -3,10 +3,12 @@ import { test, expect, vi, beforeEach } from 'vitest'
 
 import { HoudiniClient } from '.'
 import { setMockConfig } from '../lib/config'
-import { ArtifactKind, DataSource } from '../lib/types'
+import { ArtifactKind, DataSource, GraphQLObject } from '../lib/types'
 import { DocumentObserver, ClientPlugin } from './documentObserver'
 
-function createStore(plugins: ClientPlugin[]): DocumentObserver {
+function createStore(
+	plugins: ClientPlugin[]
+): DocumentObserver<GraphQLObject, Record<string, any>> {
 	return new HoudiniClient({
 		url: 'URL',
 		pipeline() {
@@ -116,7 +118,7 @@ test('middleware pipeline happy path', async function () {
 					fetching: false,
 					partial: false,
 					source: DataSource.Cache,
-					variables: {},
+					variables: null,
 				})
 			},
 			exit(ctx, { resolve }) {
@@ -153,8 +155,11 @@ test('middleware pipeline happy path', async function () {
 	// make sure we got the right value back
 	expect(value).toEqual({
 		fetching: false,
-		variables: {},
-		result: { data: { hello: 'world' }, errors: [] },
+		variables: null,
+		data: { hello: 'world' },
+		errors: [],
+		partial: false,
+		source: DataSource.Cache,
 	})
 })
 
@@ -193,7 +198,7 @@ test('terminate short-circuits pipeline', async function () {
 						fetching: false,
 						partial: false,
 						source: DataSource.Cache,
-						variables: {},
+						variables: null,
 					})
 				},
 				exit(ctx, { resolve }) {
@@ -204,7 +209,7 @@ test('terminate short-circuits pipeline', async function () {
 						fetching: false,
 						partial: false,
 						source: DataSource.Cache,
-						variables: {},
+						variables: null,
 					})
 				},
 			},
@@ -246,7 +251,7 @@ test('can call resolve multiple times to set multiple values', async function ()
 					fetching: false,
 					partial: false,
 					source: DataSource.Cache,
-					variables: {},
+					variables: null,
 				})
 				sleep(100).then(() =>
 					resolve(ctx, {
@@ -255,7 +260,7 @@ test('can call resolve multiple times to set multiple values', async function ()
 						fetching: false,
 						partial: false,
 						source: DataSource.Cache,
-						variables: {},
+						variables: null,
 					})
 				)
 			},
@@ -275,40 +280,41 @@ test('can call resolve multiple times to set multiple values', async function ()
 	// make sure we get the first value  from the promise
 	expect(result).toEqual({
 		fetching: false,
-		variables: {},
-		result: { data: { hello: 'world' }, errors: [] },
+		variables: null,
+		data: { hello: 'world' },
+		errors: [],
+		partial: false,
+		source: DataSource.Cache,
 	})
 	// that value will be the second value to the spy
 	expect(fn).toHaveBeenNthCalledWith(2, {
 		fetching: true,
 		partial: false,
 		source: null,
-		result: {
-			data: null,
-			errors: [],
-		},
-		variables: {},
+
+		data: null,
+		errors: [],
+
+		variables: null,
 	})
 	// and the third call will be the second call to terminate
 	expect(fn).toHaveBeenNthCalledWith(3, {
 		fetching: false,
 		partial: false,
-		result: {
-			data: { hello: 'world' },
-			errors: [],
-		},
-		source: null,
-		variables: {},
+
+		data: { hello: 'world' },
+		errors: [],
+		source: DataSource.Cache,
+		variables: null,
 	})
 	expect(fn).toHaveBeenNthCalledWith(4, {
 		fetching: false,
 		partial: false,
-		result: {
-			data: { hello: 'another-world' },
-			errors: [],
-		},
-		source: null,
-		variables: {},
+
+		data: { hello: 'another-world' },
+		errors: [],
+		source: DataSource.Cache,
+		variables: null,
 	})
 })
 
@@ -389,7 +395,7 @@ test('middlewares can set fetch params', async function () {
 					fetching: false,
 					partial: false,
 					source: DataSource.Cache,
-					variables: {},
+					variables: null,
 				})
 			},
 		},
@@ -414,7 +420,7 @@ test('tracks loading state', async function () {
 					fetching: false,
 					partial: false,
 					source: DataSource.Cache,
-					variables: {},
+					variables: null,
 				})
 			},
 		},
@@ -434,22 +440,20 @@ test('tracks loading state', async function () {
 		fetching: true,
 		partial: false,
 		source: null,
-		result: {
-			data: null,
-			errors: [],
-		},
-		variables: {},
+
+		data: null,
+		errors: [],
+		variables: null,
 	})
 	// make sure we're not
 	expect(spy).toHaveBeenNthCalledWith(3, {
 		fetching: false,
 		partial: false,
-		source: null,
-		result: {
-			data: { hello: 'world' },
-			errors: [],
-		},
-		variables: {},
+		source: DataSource.Cache,
+
+		data: { hello: 'world' },
+		errors: [],
+		variables: null,
 	})
 })
 
@@ -469,7 +473,7 @@ test('exit can replay a pipeline', async function () {
 						fetching: false,
 						partial: false,
 						source: DataSource.Cache,
-						variables: {},
+						variables: null,
 					})
 				}
 			},
@@ -487,7 +491,7 @@ test('exit can replay a pipeline', async function () {
 						fetching: false,
 						partial: false,
 						source: DataSource.Cache,
-						variables: {},
+						variables: null,
 					})
 					return
 				}
@@ -498,7 +502,7 @@ test('exit can replay a pipeline', async function () {
 					fetching: false,
 					partial: false,
 					source: DataSource.Cache,
-					variables: {},
+					variables: null,
 				})
 			},
 		},
@@ -510,11 +514,12 @@ test('exit can replay a pipeline', async function () {
 	// make sure that the promise rejected with the error value
 	await expect(store.send()).resolves.toEqual({
 		fetching: false,
-		variables: {},
-		result: {
-			data: 'another-value',
-			errors: [],
-		},
+		variables: null,
+
+		data: { hello: 'another-value' },
+		partial: false,
+		source: DataSource.Cache,
+		errors: [],
 	})
 })
 
@@ -555,7 +560,7 @@ test('plugins can update variables', async function () {
 						fetching: false,
 						partial: false,
 						source: DataSource.Cache,
-						variables: {},
+						variables: null,
 					})
 				},
 			},
@@ -597,7 +602,7 @@ test('can detect changed variables from inputs', async function () {
 						fetching: false,
 						partial: false,
 						source: DataSource.Cache,
-						variables: {},
+						variables: null,
 					})
 				},
 			},
@@ -649,7 +654,7 @@ test('can update variables and then check if they were updated', async function 
 						fetching: false,
 						partial: false,
 						source: DataSource.Cache,
-						variables: {},
+						variables: null,
 					})
 				},
 			},
@@ -703,7 +708,7 @@ test('multiple new variables from inside plugin', async function () {
 						fetching: false,
 						partial: false,
 						source: DataSource.Cache,
-						variables: {},
+						variables: null,
 					})
 				},
 			},

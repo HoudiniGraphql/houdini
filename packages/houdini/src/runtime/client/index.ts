@@ -73,13 +73,13 @@ export class HoudiniClient {
 		this.url = url
 	}
 
-	observe({
+	observe<_Data extends GraphQLObject, _Input extends Record<string, any>>({
 		artifact,
 		cache = true,
 	}: {
 		artifact: DocumentArtifact
 		cache?: boolean
-	}): DocumentObserver {
+	}): DocumentObserver<_Data, _Input> {
 		return new DocumentObserver({ client: this, artifact, plugins: this.#plugins, cache })
 	}
 }

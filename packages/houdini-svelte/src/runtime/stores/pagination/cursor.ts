@@ -1,12 +1,10 @@
-import { DocumentObserver, getCache } from '$houdini/runtime'
+import { DocumentObserver } from '$houdini/runtime'
 import { siteURL } from '$houdini/runtime/lib/constants'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
 import { getCurrentConfig } from 'houdini'
 import { get, Writable, writable } from 'svelte/store'
 
-import { getCurrentClient } from '../../network'
-import { getSession } from '../../session'
 import { QueryStoreFetchParams } from '../query'
 import { fetchParams } from '../query'
 import { countPage, extractPageInfo, missingPageSizeError, PageInfo } from './pageInfo'
