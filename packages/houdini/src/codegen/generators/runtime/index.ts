@@ -58,7 +58,9 @@ ${exportStatement('config')}
 ${exportStatement('client')}
 `
 			},
-			[path.join(config.runtimeSource, 'client', 'injectedPlugins.js')]: (content) => {
+			[path.join(config.runtimeSource, 'client', 'plugins', 'injectedPlugins.js')]: (
+				content
+			) => {
 				// get the list of plugins we need to add to the client
 				const client_plugins = config.plugins
 					.filter((plugin) => plugin.client_plugins)

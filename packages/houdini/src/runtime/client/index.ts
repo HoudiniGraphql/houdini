@@ -1,7 +1,6 @@
 /// <reference path="../../../../../houdini.d.ts" />
 import { GraphQLObject, DocumentArtifact } from '../lib/types'
 import { ClientPlugin, DocumentObserver } from './documentObserver'
-import pluginsFromPlugins from './injectedPlugins'
 import {
 	queryPlugin,
 	mutationPlugin,
@@ -9,6 +8,7 @@ import {
 	fetchParamsPlugin,
 	type FetchParamFn,
 } from './plugins'
+import pluginsFromPlugins from './plugins/injectedPlugins'
 
 // export the plugin constructors
 export { queryPlugin, mutationPlugin, fetchPlugin, subscriptionPlugin } from './plugins'
