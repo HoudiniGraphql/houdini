@@ -1,21 +1,19 @@
 import type { HoudiniClient } from '.'
 import { Layer } from '../cache/storage'
+import { ConfigFile, getCurrentConfig } from '../lib/config'
+import { deepEquals } from '../lib/deepEquals'
+import { marshalInputs, unmarshalSelection } from '../lib/scalars'
+import { Writable } from '../lib/store'
 import {
 	ArtifactKind,
 	CachePolicy,
-	ConfigFile,
-	deepEquals,
 	DocumentArtifact,
 	QueryResult,
-	getCurrentConfig,
 	GraphQLObject,
-	marshalInputs,
 	QueryArtifact,
 	SubscriptionSpec,
-	unmarshalSelection,
 	App,
-} from '../lib'
-import { Writable } from '../lib/store'
+} from '../lib/types'
 import { cachePolicyPlugin } from './plugins'
 
 export class DocumentObserver<
@@ -133,6 +131,7 @@ export class DocumentObserver<
 			this.#next(state)
 		})
 
+		console.log(result)
 		// if there are errors, we might need to throw
 		if (result.errors && result.errors.length > 0 && this.#configFile.quietErrors) {
 			// convert the artifact kind into the matching error pattern

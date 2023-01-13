@@ -1,7 +1,7 @@
 import { DocumentObserver } from '$houdini/runtime/client'
 import { FetchContext } from '$houdini/runtime/client/plugins/fetch'
-import { getCurrentClient } from '$houdini/runtime/lib'
 import * as log from '$houdini/runtime/lib/log'
+import { getCurrentClient } from '$houdini/runtime/lib/network'
 import type { QueryArtifact } from '$houdini/runtime/lib/types'
 // internals
 import {

@@ -763,7 +763,7 @@ export async function readConfigFile(
 
 	let imported: any
 	try {
-		imported = await import(importPath)
+		imported = await import(/* @vite-ignore */ importPath)
 	} catch (e: any) {
 		throw new Error(`Could not load config file at file://${configPath}.\n${e.message}`)
 	}

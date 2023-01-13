@@ -1,4 +1,4 @@
-import { DataSource, RequestPayload, App } from '../../lib'
+import { DataSource, RequestPayload, App } from '../../lib/types'
 import type { ClientPlugin } from '../documentObserver'
 
 export const fetchPlugin = (fn?: RequestHandler | string): ClientPlugin => {
@@ -27,7 +27,6 @@ export const fetchPlugin = (fn?: RequestHandler | string): ClientPlugin => {
 						}
 					}
 
-					// invoke the function
 					const result = await fetchFn({
 						// wrap the user's fetch function so we can identify SSR by checking
 						// the response.url
@@ -50,6 +49,7 @@ export const fetchPlugin = (fn?: RequestHandler | string): ClientPlugin => {
 						...fetchParams,
 					})
 
+					console.log(result)
 					// return the result
 					resolve(ctx, {
 						fetching: false,

@@ -1,6 +1,7 @@
 import { rootID } from '../cache/cache'
 import { TypeInfo } from '../cache/schema'
-import { keyFieldsForType, SubscriptionSelection } from '../lib'
+import { keyFieldsForType } from '../lib/config'
+import { SubscriptionSelection } from '../lib/types'
 import { Cache, _typeInfo } from './cache'
 import type { ArgType, CacheTypeDef, FieldType, TypeFieldNames, ValidTypes } from './types'
 

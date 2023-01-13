@@ -1,4 +1,4 @@
-import { getCurrentClient } from '$houdini/runtime/lib'
+import { getCurrentClient } from '$houdini/runtime/lib/network'
 import type { QueryArtifact } from 'houdini'
 
 export async function query(artifact: QueryArtifact, variables?: any) {

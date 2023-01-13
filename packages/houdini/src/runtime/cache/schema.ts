@@ -1,4 +1,4 @@
-import { ConfigFile } from '../lib'
+import { ConfigFile } from '../lib/config'
 import { Cache, rootID } from './cache'
 
 export type TypeInfo = {

@@ -1,5 +1,5 @@
 import { DocumentObserver } from '$houdini/runtime/client'
-import { getCurrentClient } from '$houdini/runtime/lib'
+import { getCurrentClient } from '$houdini/runtime/lib/network'
 import type { MutationArtifact } from '$houdini/runtime/lib/types'
 import { GraphQLObject, App } from '$houdini/runtime/lib/types'
 

@@ -26,6 +26,8 @@ export default async function writeIndexFile(config: Config, docs: CollectedGrap
 
 	// add the standard exports
 	body += [
+		// we need to export the client first so that we don't get any weird cycle issues
+		export_star_from({ module: './' + path.join(runtimeDir, 'client') }),
 		export_star_from({ module: runtimeDir }),
 		export_star_from({ module: artifactDir }),
 		export_star_from({ module: definitionsDir }),

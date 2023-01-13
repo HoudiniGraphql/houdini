@@ -1,4 +1,4 @@
-import { GraphQLSchema } from 'graphql'
+import { type GraphQLSchema } from 'graphql'
 
 import config from '../imports/config'
 import { CachePolicy } from './types'

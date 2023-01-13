@@ -1,5 +1,6 @@
 import cache from '../../cache'
-import { ArtifactKind, marshalSelection, SubscriptionSpec } from '../../lib'
+import { marshalSelection } from '../../lib/scalars'
+import { ArtifactKind, SubscriptionSpec } from '../../lib/types'
 import { documentPlugin } from '../utils'
 
 export const mutationPlugin = documentPlugin(ArtifactKind.Mutation, () => {
@@ -35,20 +36,7 @@ export const mutationPlugin = documentPlugin(ArtifactKind.Mutation, () => {
 				}
 
 				// make sure we write to the correct layer in the cache
-				next({
-					...ctx,
-					cacheParams: {
-						...ctx.cacheParams,
-						// write to the mutation's layer
-						layer,
-						// notify any subscribers that we updated with the optimistic response
-						// in order to address situations where the optimistic update was wrong
-						notifySubscribers: toNotify,
-						// make sure that we notify subscribers for any values that we overwrite
-						// in order to address any race conditions when comparing the previous value
-						forceNotify: true,
-					},
-				})
+				next(ctx)
 			},
 			exit(ctx, { resolve, value }) {
 				const hasErrors = value.errors && value.errors.length > 0

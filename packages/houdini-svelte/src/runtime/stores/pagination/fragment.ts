@@ -1,7 +1,7 @@
 import { DocumentObserver } from '$houdini/runtime/client/documentObserver'
-import { getCurrentClient } from '$houdini/runtime/lib'
 import { keyFieldsForType, getCurrentConfig } from '$houdini/runtime/lib/config'
 import { siteURL } from '$houdini/runtime/lib/constants'
+import { getCurrentClient } from '$houdini/runtime/lib/network'
 import {
 	GraphQLObject,
 	FragmentArtifact,

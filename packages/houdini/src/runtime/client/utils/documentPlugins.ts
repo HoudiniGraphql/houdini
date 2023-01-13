@@ -1,4 +1,4 @@
-import { ArtifactKind, GraphQLObject } from '../../lib'
+import type { ArtifactKind } from '../../lib/types'
 import { ClientPlugin, ClientPluginPhase } from '../documentObserver'
 
 export const documentPlugin = (kind: ArtifactKind, source: ClientPlugin): ClientPlugin => {
@@ -29,12 +29,9 @@ export const documentPlugin = (kind: ArtifactKind, source: ClientPlugin): Client
 		return {
 			setup: wrap(sourceHandlers.setup),
 			network: wrap(sourceHandlers.network),
-			throw: (ctx, handlers) => {
-				if (ctx.artifact.kind !== kind || !sourceHandlers.throw) {
-					return handlers.next(ctx)
-				}
-				return sourceHandlers.throw(ctx, handlers)
-			},
+			throw: sourceHandlers.throw
+				? (ctx, handlers) => sourceHandlers.throw!(ctx, handlers)
+				: undefined,
 			cleanup: () => sourceHandlers.cleanup?.(),
 		}
 	}

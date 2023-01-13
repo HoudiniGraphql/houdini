@@ -1,5 +1,5 @@
 import cache from '../../cache'
-import { ArtifactKind, CachePolicy, DataSource, GraphQLObject } from '../../lib'
+import { ArtifactKind, CachePolicy, DataSource } from '../../lib/types'
 import { ClientPlugin } from '../documentObserver'
 
 export const cachePolicyPlugin =

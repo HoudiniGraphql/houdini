@@ -1,4 +1,4 @@
-import { DocumentObserver } from '$houdini/runtime'
+import { DocumentObserver } from '$houdini/runtime/client/documentObserver'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
 import { get } from 'svelte/store'

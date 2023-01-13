@@ -1,5 +1,5 @@
 import cache from '../../cache'
-import { type SubscriptionSpec, ArtifactKind } from '../../lib'
+import { type SubscriptionSpec, ArtifactKind } from '../../lib/types'
 import { type ClientPlugin } from '../documentObserver'
 import { documentPlugin } from '../utils'
 
