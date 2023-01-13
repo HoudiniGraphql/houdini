@@ -21,6 +21,8 @@ export default async function svelteKitGenerator(
 		return
 	}
 
+	console.log('generating')
+
 	await walk_routes(config, framework, {
 		async route({
 			dirpath,
@@ -30,9 +32,9 @@ export default async function svelteKitGenerator(
 			layoutExports,
 			pageExports,
 		}) {
-			// remove testing later
 			const relativePath = path.relative(config.routesDir, dirpath)
 			const target = path.join(type_route_dir(config), relativePath, config.typeRootFile)
+			console.log('step', target, svelteTypeFilePath)
 
 			const houdiniRelative = path.relative(target, config.typeRootDir)
 
@@ -246,6 +248,8 @@ export default async function svelteKitGenerator(
 			}
 		},
 	})
+
+	throw new Error('done')
 }
 
 function getTypeImports(

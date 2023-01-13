@@ -17,7 +17,6 @@ export function is_route(config: Config, framework: Framework, filepath: string)
 		return false
 	}
 
-	// only consider filepaths in src/routes
 	if (
 		!filepath.startsWith(config.routesDir) &&
 		!filepath.startsWith(path.join(config.projectRoot, config.routesDir))
@@ -119,7 +118,9 @@ export async function walk_routes(
 	config: Config,
 	framework: Framework,
 	visitor: RouteVisitor,
-	dirpath = config.routesDir
+	dirpath = config.routesDir.startsWith(config.projectRoot)
+		? config.routesDir
+		: path.join(config.projectRoot, config.routesDir)
 ) {
 	let pageExports: string[] = []
 	let layoutExports: string[] = []
@@ -267,11 +268,12 @@ export async function walk_routes(
 		const relative_path_regex = /src(.*)/
 
 		// here we define the location of the correspoding sveltekit type file
+		const local = dirpath.replace(config.projectRoot, '')
 		const svelteTypeFilePath = path.join(
 			config.projectRoot,
 			'.svelte-kit',
 			'types',
-			dirpath.match(relative_path_regex)?.[0] ?? '',
+			local.match(relative_path_regex)?.[0] ?? '',
 			'$types.d.ts'
 		)
 
