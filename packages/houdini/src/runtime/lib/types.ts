@@ -190,7 +190,7 @@ export type QueryResult<_Data, _Input, _Extra = {}> = {
 	fetching: boolean
 	partial: boolean
 	source: DataSource | null
-	variables: _Input
+	variables: _Input | null
 } & _Extra
 
 export type RequestPayload<_Data = any> = {

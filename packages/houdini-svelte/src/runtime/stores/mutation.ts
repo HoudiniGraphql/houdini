@@ -85,7 +85,7 @@ export class MutationStore<
 		try {
 			// trigger the mutation
 			const { result } = await executeQuery({
-				client: await getCurrentClient(),
+				client: getCurrentClient(),
 				config,
 				artifact: this.artifact,
 				variables: newVariables,

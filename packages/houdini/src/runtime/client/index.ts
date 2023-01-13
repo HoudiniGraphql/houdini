@@ -12,6 +12,7 @@ import {
 
 // export the plugin constructors
 export { queryPlugin, mutationPlugin, fetchPlugin, subscriptionPlugin } from './plugins'
+export { DocumentObserver } from './documentObserver'
 
 type ConstructorArgs = {
 	url: string
@@ -72,13 +73,13 @@ export class HoudiniClient {
 		this.url = url
 	}
 
-	observe({
+	observe<_Data extends GraphQLObject, _Input extends {}>({
 		artifact,
 		cache = true,
 	}: {
 		artifact: DocumentArtifact
 		cache?: boolean
-	}): DocumentObserver<GraphQLObject, {}> {
+	}): DocumentObserver<_Data, _Input> {
 		return new DocumentObserver({ client: this, artifact, plugins: this.#plugins, cache })
 	}
 }

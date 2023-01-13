@@ -21,7 +21,8 @@
 		"baseUrl": "./packages/houdini",
 		"paths": {
 			"$houdini": ["../houdini/src"],
-			"$houdini/*": ["../houdini/src/*"]
+			"$houdini/*": ["../houdini/src/*"],
+			"HOUDINI_CLIENT_PATH": ["../../e2e/sveltekit/src/client"]
 		}
 	}
 }

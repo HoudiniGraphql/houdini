@@ -1,6 +1,7 @@
-import { HoudiniClient } from '$houdini/runtime/lib'
+import { HoudiniClient } from '$houdini/runtime/client'
+import client from 'HOUDINI_CLIENT_PATH'
 
-export async function getCurrentClient(): Promise<HoudiniClient> {
+export function getCurrentClient(): HoudiniClient {
 	// @ts-ignore
-	return (await import('HOUDINI_CLIENT_PATH')).default
+	return client
 }

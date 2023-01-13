@@ -1,8 +1,7 @@
 import { getCache } from '$houdini/runtime'
-import type { ConfigFile } from '$houdini/runtime/lib/config'
-import { deepEquals } from '$houdini/runtime/lib/deepEquals'
+import { DocumentObserver } from '$houdini/runtime/client'
+import { FetchContext } from '$houdini/runtime/client/plugins/fetch'
 import * as log from '$houdini/runtime/lib/log'
-import { marshalInputs, unmarshalSelection } from '$houdini/runtime/lib/scalars'
 import type { QueryArtifact } from '$houdini/runtime/lib/types'
 // internals
 import {
@@ -22,10 +21,6 @@ import { getCurrentClient } from '../network'
 import { getSession } from '../session'
 import { BaseStore } from './store'
 
-type FetchValue<_Data extends GraphQLObject, _Input extends {}> = Awaited<
-	ReturnType<QueryStore<_Data, _Input>['fetchAndCache']>
->
-
 export class QueryStore<
 	_Data extends GraphQLObject,
 	_Input extends {},
@@ -41,13 +36,7 @@ export class QueryStore<
 	kind = CompiledQueryKind
 
 	// at its core, a query store is a writable store with extra methods
-	protected store: Writable<StoreState<_Data, _Input, _ExtraFields>>
-
-	// we will be reading and write the last known variables often, avoid frequent gets and updates
-	protected lastVariables: _Input | null = null
-
-	// track the subscription's existence to refresh and unsubscribe when unmounting
-	protected subscriptionSpec: SubscriptionSpec | null = null
+	protected observer: DocumentObserver<_Data, _Input>
 
 	// if there is a load in progress when the CSF triggers we need to stop it
 	protected loadPending = false
@@ -59,22 +48,12 @@ export class QueryStore<
 	// the string identifying the store
 	protected storeName: string
 
-	protected setFetching(fetching: boolean) {
-		this.store?.update((s) => ({ ...s, fetching }))
-	}
-
-	protected async currentVariables() {
-		return get(this.store).variables
-	}
-
-	onUnsubscribe: null | (() => void) = null
-
 	constructor({ artifact, storeName, variables }: StoreConfig<_Data, _Input, QueryArtifact>) {
 		super()
 
 		// set the initial state
-		this.store = writable(this.initialState)
 		this.artifact = artifact
+		this.observer = getCurrentClient().observe({ artifact })
 		this.storeName = storeName
 		this.variables = variables
 	}
@@ -95,39 +74,24 @@ export class QueryStore<
 			...args,
 		})
 
+		// if we aren't on the browser but there's no event there's a big mistake
+		if (!isBrowser && !(params && 'fetch' in params) && (!params || !('event' in params))) {
+			// prettier-ignore
+			log.error(contextError(this.storeName))
+
+			throw new Error('Error, check above logs for help.')
+		}
+
 		// identify if this is a CSF or load
 		const isLoadFetch = Boolean('event' in params && params.event)
 		const isComponentFetch = !isLoadFetch
-
-		// compute the variables we need to use for the query
-		const input = ((await marshalInputs({
-			config,
-			artifact: this.artifact,
-			input: params?.variables,
-		})) || {}) as _Input
-		const newVariables = {
-			...this.lastVariables,
-			...input,
-		}
-
-		// check if the variables are different from the last time we saw them
-		let variableChange = !deepEquals(this.lastVariables, newVariables)
-
-		// if we are loading on the client and the variables _are_ different, we have to
-		// update the subscribers. do that before the fetch so we don't accidentally
-		// cause the new data to trigger the old subscription after the store has been
-		// update with fetchAndCache
-		if (variableChange && isBrowser) {
-			this.refreshSubscription(newVariables)
-			this.store.update((s) => ({ ...s, variables: newVariables }))
-		}
 
 		// if there is a pending load, don't do anything
 		if (this.loadPending && isComponentFetch) {
 			log.error(`⚠️ Encountered fetch from your component while ${this.storeName}.load was running.
 This will result in duplicate queries. If you are trying to ensure there is always a good value, please a CachePolicy instead.`)
 
-			return get(this.store)
+			return get(this.observer)
 		}
 
 		// a component fetch is _always_ blocking
@@ -140,135 +104,45 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 			this.loadPending = true
 		}
 
-		// its time to fetch the query, build up the necessary arguments
-		const fetchArgs: Parameters<QueryStore<_Data, _Input>['fetchAndCache']>[0] = {
-			config,
-			context,
-			artifact: this.artifact,
-			variables: newVariables,
-			store: this.store,
-			cached: policy !== CachePolicy.NetworkOnly,
-			setLoadPending: (val) => {
-				this.loadPending = val
-				this.setFetching(val)
-			},
+		// if the query is a live query, we don't really care about network policies any more
+		// since CacheOrNetwork behaves the same as CacheAndNetwork
+		const request = this.observer.send({
+			variables: params.variables,
+			metadata: params.metadata,
+			session: context.session,
+			policy: params.policy,
+			stuff: {},
+		})
+
+		// if we have to track when the fetch is done,
+		if (params.then) {
+			request.then((val) => params.then?.(val.data))
 		}
 
 		// we might not want to actually wait for the fetch to resolve
 		const fakeAwait = clientStarted && isBrowser && !params?.blocking
-
-		// if a) the cache does not have the network only policy,
-		// AND b) we are in a fakeAwait scenario (in a real await,
-		// we will wait for the real fetch to happen anyway and fill the store)
-		// then, we are safe to try to load it from the cache before we worry about
-		// performing a network request. This makes sure the cache gets a cached
-		// value during client side navigation (fake awaits) before waiting for the load
-		if (policy !== CachePolicy.NetworkOnly && fakeAwait) {
-			const cachedStore = await this.fetchAndCache({
-				...fetchArgs,
-				rawCacheOnlyResult: true,
-			})
-			if (cachedStore && cachedStore?.result.data) {
-				// update only what matters at this stage (data & fetching),
-				// not all the store. The complete store will be filled later.
-				this.store.update((s) => ({
-					...s,
-					data: cachedStore?.result.data,
-					fetching: false,
-				}))
-			}
-		}
-
-		// if the query is a live query, we don't really care about network policies any more
-		// since CacheOrNetwork behaves the same as CacheAndNetwork
-		const request = this.fetchAndCache(fetchArgs)
-
-		// if we have to track when the fetch is done,
-		if (params.then) {
-			request.then((val) => params.then?.(val.result.data))
-		}
-
 		if (!fakeAwait) {
 			await request
 		}
 
 		// the store will have been updated already since we waited for the response
-		return get(this.store)
+		return get(this.observer)
 	}
 
 	get name() {
 		return this.artifact.name
 	}
 
-	// // the live query fetch resolves with the first value and starts listening for new events
-	// // from the server
-	// async #liveQuery(
-	// 	args: Parameters<QueryStore<_Data, _Input>['fetchAndCache']>[0]
-	// ): Promise<FetchValue<_Data, _Input>> {
-	// 	// grab the current client
-	// 	const client = await getCurrentClient()
-
-	// 	// make sure there's a live query handler
-	// 	const handler = client.live
-	// 	if (!handler) {
-	// 		throw new Error('Looks like this client is not set up for live queries')
-	// 	}
-
-	// 	// we're only going to resolve the promise once
-	// 	let resolved = false
-
-	// 	return await new Promise((resolve) => {
-	// 		this.onUnsubscribe = handler({
-	// 			text: args.artifact.raw,
-	// 			variables: args.variables,
-	// 			hash: args.artifact.hash,
-	// 			...args.context,
-	// 			updateValue: (updater) => {
-	// 				// ask the client for the new value given the current one
-	// 				const newValue = updater(get(this.store).data)
-
-	// 				// set the new value in the store
-	// 				this.store.update((val) => ({
-	// 					...val,
-	// 					fetching: false,
-	// 					data: newValue,
-	// 				}))
-
-	// 				// if we haven't resolved the promise yet, resolve it with the value
-	// 				if (!resolved) {
-	// 					resolve({
-	// 						result: { data: newValue, errors: null },
-	// 						partial: false,
-	// 						source: DataSource.Network,
-	// 					})
-
-	// 					// don't resolve the promise twice
-	// 					resolved = true
-	// 				}
-
-	// 				// we need to update the cache with the new value
-	// 				getCache().write({
-	// 					selection: this.artifact.selection,
-	// 					data: newValue,
-	// 					variables: args.variables ?? {},
-	// 				})
-	// 			},
-	// 		})
-	// 	})
-	// }
-
-	subscribe(
-		...args: Parameters<Readable<QueryResult<_Data, _Input, _ExtraFields>>['subscribe']>
-	) {
-		const bubbleUp = this.store.subscribe(...args)
+	subscribe(...args: Parameters<Readable<QueryResult<_Data, _Input>>['subscribe']>) {
+		const bubbleUp = this.observer.subscribe(...args)
 
 		// we have a new subscriber
 		this.subscriberCount = (this.subscriberCount ?? 0) + 1
 
 		// make sure that the store is always listening to the cache (on the browser)
-		if (isBrowser && !this.subscriptionSpec) {
-			this.refreshSubscription(this.lastVariables ?? ({} as _Input))
-		}
+		// if (isBrowser && !this.subscriptionSpec) {
+		// 	this.refreshSubscription(this.lastVariables ?? ({} as _Input))
+		// }
 
 		// Handle unsubscribe
 		return () => {
@@ -278,194 +152,10 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 			// don't clear the store state on the server (breaks SSR)
 			// or when there is still an active subscriber
 			if (this.subscriberCount <= 0) {
-				// clean up any cache subscriptions
-				if (isBrowser && this.subscriptionSpec) {
-					getCache().unsubscribe(this.subscriptionSpec, this.lastVariables || {})
-				}
-
-				if (this.onUnsubscribe) {
-					this.onUnsubscribe()
-				}
-
-				// clear the active subscription
-				this.subscriptionSpec = null
-			}
-
-			// we're done
-			bubbleUp()
-		}
-	}
-
-	//// Internal methods
-
-	private async fetchAndCache({
-		config,
-		artifact,
-		variables,
-		store,
-		cached,
-		ignoreFollowup,
-		setLoadPending,
-		policy,
-		context,
-		rawCacheOnlyResult = false,
-	}: {
-		config: ConfigFile
-		artifact: QueryArtifact
-		variables: _Input
-		store: Writable<QueryResult<_Data, _Input>>
-		cached: boolean
-		ignoreFollowup?: boolean
-		setLoadPending: (pending: boolean) => void
-		policy?: CachePolicy
-		context: FetchContext
-		rawCacheOnlyResult?: boolean
-	}) {
-		const request = await fetchQuery<_Data, _Input>({
-			...context,
-			client: await getCurrentClient(),
-			setFetching: (val) => this.setFetching(val),
-			artifact,
-			variables,
-			cached,
-			policy: rawCacheOnlyResult ? CachePolicy.CacheOnly : policy,
-			context,
-		})
-		const { result, source, partial } = request
-
-		// if we want only the raw CacheOnly result,
-		// return it directly
-		if (rawCacheOnlyResult) {
-			return request
-		}
-
-		// we're done
-		setLoadPending(false)
-
-		if (result.data && source !== DataSource.Cache) {
-			// update the cache with the data that we just ran into
-			getCache().write({
-				selection: artifact.selection,
-				data: result.data,
-				variables: variables || {},
-			})
-		}
-
-		// unmarshal the result into complex scalars if its a response from the server
-		const unmarshaled =
-			source === DataSource.Cache
-				? result.data
-				: unmarshalSelection(config, artifact.selection, result.data)
-
-		// since we know we're not prefetching, we need to update the store with any errors
-		if (result.errors && result.errors.length > 0) {
-			store.update((s) => ({
-				...s,
-				errors: result.errors,
-				fetching: false,
-				partial: false,
-				data: unmarshaled as _Data,
-				source,
-				variables,
-			}))
-
-			// don't go any further
-			if (
-				// @ts-ignore
-				!config.plugins?.['houdini-svelte']?.quietQueryErrors
-			) {
-				throw error(500, result.errors.map((error) => error.message).join('. ') + '.')
-			}
-		} else {
-			store.set({
-				data: (unmarshaled || {}) as _Data,
-				variables: variables || ({} as _Input),
-				errors: null,
-				fetching: false,
-				partial: request.partial,
-				source: request.source,
-			})
-		}
-
-		if (!ignoreFollowup) {
-			// if the data was loaded from a cached value, and the document cache policy wants a
-			// network request to be sent after the data was loaded, load the data
-			if (source === DataSource.Cache && artifact.policy === CachePolicy.CacheAndNetwork) {
-				this.fetchAndCache({
-					config,
-					context,
-					artifact,
-					variables,
-					store,
-					cached: false,
-					ignoreFollowup: true,
-					setLoadPending,
-					policy,
-				})
-			}
-			// if we have a partial result and we can load the rest of the data
-			// from the network, send the request
-			if (partial && artifact.policy === CachePolicy.CacheOrNetwork) {
-				this.fetchAndCache({
-					config,
-					context,
-					artifact,
-					variables,
-					store,
-					cached: false,
-					ignoreFollowup: true,
-					setLoadPending,
-					policy,
-				})
+				// we're done
+				bubbleUp()
 			}
 		}
-
-		return request
-	}
-
-	// a method to update the store's cache subscriptions
-	private refreshSubscription(newVariables: _Input) {
-		const cache = getCache()
-		// if the variables changed we need to unsubscribe from the old fields and
-		// listen to the new ones
-		if (this.subscriptionSpec) {
-			cache.unsubscribe(this.subscriptionSpec, this.lastVariables || {})
-		}
-
-		// subscribe to cache updates
-		this.subscriptionSpec = {
-			rootType: this.artifact.rootType,
-			selection: this.artifact.selection,
-			variables: () => newVariables,
-			set: (newValue) => this.store.update((s) => ({ ...s, data: newValue })),
-		}
-
-		// make sure we subscribe to the new values
-		cache.subscribe(this.subscriptionSpec, newVariables)
-
-		// if we have a live query to unsubscribe
-		if (this.onUnsubscribe) {
-			this.onUnsubscribe()
-		}
-
-		// track the newVariables
-		this.lastVariables = newVariables
-	}
-
-	private get initialState(): QueryResult<_Data, _Input> & _ExtraFields {
-		return {
-			data: null,
-			errors: null,
-			fetching: true,
-			partial: false,
-			source: null,
-			variables: {} as _Input,
-			...this.extraFields(),
-		}
-	}
-
-	extraFields(): _ExtraFields {
-		return {} as _ExtraFields
 	}
 }
 
@@ -487,13 +177,6 @@ export async function fetchParams<_Data extends GraphQLObject, _Input>(
 	policy: CachePolicy
 	params: QueryStoreFetchParams<_Data, _Input>
 }> {
-	// if we aren't on the browser but there's no event there's a big mistake
-	if (!isBrowser && !(params && 'fetch' in params) && (!params || !('event' in params))) {
-		// prettier-ignore
-		log.error(contextError(storeName))
-
-		throw new Error('Error, check above logs for help.')
-	}
 	// figure out the right policy
 	let policy = params?.policy
 	if (!policy) {

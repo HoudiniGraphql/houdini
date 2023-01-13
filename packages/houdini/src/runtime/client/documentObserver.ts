@@ -6,21 +6,22 @@ import {
 	ConfigFile,
 	deepEquals,
 	DocumentArtifact,
-	FetchQueryResult,
+	QueryResult,
 	getCurrentConfig,
 	GraphQLObject,
 	marshalInputs,
 	QueryArtifact,
 	SubscriptionSpec,
 	unmarshalSelection,
+	Subscriber,
 } from '../lib'
 import { Writable } from '../lib/store'
 import { cachePolicyPlugin } from './plugins'
 
-type NetworkResult<_Data> = FetchQueryResult<_Data> & { fetching: boolean; variables: {} }
+type NetworkResult<_Data extends GraphQLObject, _Input extends {}> = QueryResult<_Data, _Input>
 
 export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> extends Writable<
-	NetworkResult<_Data>
+	NetworkResult<_Data, _Input>
 > {
 	#artifact: DocumentArtifact
 	#client: HoudiniClient
@@ -45,12 +46,13 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		cache?: boolean
 	}) {
 		// the initial store state
-		const initialState = {
-			result: { data: null, errors: [] },
+		const initialState: QueryResult<_Data, _Input> = {
+			data: null,
+			errors: [],
 			partial: false,
 			source: null,
 			fetching: false,
-			variables: {},
+			variables: null,
 		}
 
 		super(initialState, () => {
@@ -76,20 +78,20 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 
 	// used by the client to send a new set of variables to the pipeline
 	async send({
-		variables,
 		metadata,
 		session,
 		fetch = globalThis.fetch,
+		variables,
 		policy,
 		stuff,
 	}: {
 		variables?: Record<string, any> | null
-		metadata?: {}
+		metadata?: App.Metadata | null
 		fetch?: Fetch
-		session?: App.Session
+		session?: App.Session | null
 		policy?: CachePolicy
 		stuff?: {}
-	} = {}): Promise<NetworkResult<_Data | null>> {
+	} = {}): Promise<NetworkResult<_Data, _Input>> {
 		// if we dont have the config file yet, load it
 		if (!this.#configFile) {
 			this.#configFile = await getCurrentConfig()
@@ -114,7 +116,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		context = context.apply(draft)
 
 		// walk through the plugins to get the first result
-		const result = await new Promise<NetworkResult<_Data | null>>((resolve, reject) => {
+		const result = await new Promise<NetworkResult<_Data, _Input>>((resolve, reject) => {
 			// the initial state of the iterator
 			const state: IteratorState = {
 				value: null,
@@ -135,11 +137,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		})
 
 		// if there are errors, we might need to throw
-		if (
-			result.result.errors &&
-			result.result.errors.length > 0 &&
-			this.#configFile.quietErrors
-		) {
+		if (result.errors && result.errors.length > 0 && this.#configFile.quietErrors) {
 			// convert the artifact kind into the matching error pattern
 			const whichKind = {
 				[ArtifactKind.Mutation]: 'mutation',
@@ -150,7 +148,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 
 			// we're only going to throw if we're not quieting the error
 			if (!(this.#configFile.quietErrors as string[]).includes(whichKind)) {
-				throw result.result.errors
+				throw result.errors
 			}
 		}
 
@@ -222,7 +220,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		)
 	}
 
-	#terminate(ctx: IteratorState, value: Partial<NetworkResult<_Data>>): void {
+	#terminate(ctx: IteratorState, value: Partial<NetworkResult<_Data, _Input>>): void {
 		// starting one less than the current index
 		for (let index = ctx.index - 1; index >= 0; index--) {
 			// if we find a plugin in the same phase, call it
@@ -285,20 +283,17 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		// we're done with the chain
 
 		// convert the raw value into something we can give to the user
-		let data = value.result?.data as _Data
+		let data = value.data as _Data
 		try {
-			data = (unmarshalSelection(
-				this.#configFile!,
-				this.#artifact.selection,
-				value.result?.data
-			) ?? null) as _Data
+			data = (unmarshalSelection(this.#configFile!, this.#artifact.selection, value.data) ??
+				null) as _Data
 		} catch {}
 
 		// build up the final state
 		const finalValue = {
 			...value,
 			result: {
-				errors: value.result?.errors ?? [],
+				errors: value.errors ?? [],
 				data,
 			},
 			variables: ctx.context.variables ?? {},
@@ -515,7 +510,7 @@ export type ClientPluginContext = {
 	fetch?: Fetch
 	variables?: Record<string, any>
 	metadata?: App.Metadata | null
-	session?: App.Session
+	session?: App.Session | null
 	fetchParams?: RequestInit
 	cacheParams?: {
 		layer?: Layer
@@ -542,7 +537,7 @@ export type ClientPluginHandlers = {
 	/** Move onto the next step using the provided context.  */
 	next(ctx: ClientPluginContext): void
 	/** Terminate the current chain  */
-	resolve(ctx: ClientPluginContext, data: Partial<NetworkResult<any>>): void
+	resolve(ctx: ClientPluginContext, data: Partial<NetworkResult<any, {}>>): void
 	/** Return true if the variables have changed */
 	variablesChanged: (ctx: ClientPluginContext) => boolean
 	/** Returns the marshaled variables for the operation */
@@ -551,8 +546,8 @@ export type ClientPluginHandlers = {
 
 /** Exit handlers are the same as enter handles but don't need to resolve with a specific value */
 export type ClientPluginExitHandlers = Omit<ClientPluginHandlers, 'resolve'> & {
-	resolve: (ctx: ClientPluginContext, data?: Partial<NetworkResult<any>>) => void
-	value: Partial<NetworkResult<any>>
+	resolve: (ctx: ClientPluginContext, data?: Partial<NetworkResult<any, {}>>) => void
+	value: Partial<NetworkResult<any, {}>>
 }
 
 /** Exit handlers are the same as enter handles but don't need to resolve with a specific value */

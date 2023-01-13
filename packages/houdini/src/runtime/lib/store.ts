@@ -70,10 +70,10 @@ type StartStopNotifier<T> = (set: Subscriber<T>) => Unsubscriber | void
 type SubscribeInvalidateTuple<T> = [Subscriber<T>, Invalidator<T>]
 
 /** Callback to inform of a value updates. */
-type Subscriber<T> = (value: T) => void
+export type Subscriber<T> = (value: T) => void
 
 /** Unsubscribes from value updates. */
-type Unsubscriber = () => void
+export type Unsubscriber = () => void
 
 /** Callback to update a value. */
 type Updater<T> = (value: T) => T
