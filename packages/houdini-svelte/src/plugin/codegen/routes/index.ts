@@ -34,7 +34,6 @@ export default async function svelteKitGenerator(
 		}) {
 			const relativePath = path.relative(config.routesDir, dirpath)
 			const target = path.join(type_route_dir(config), relativePath, config.typeRootFile)
-			console.log('step', target, svelteTypeFilePath)
 
 			const houdiniRelative = path.relative(target, config.typeRootDir)
 
@@ -248,8 +247,6 @@ export default async function svelteKitGenerator(
 			}
 		},
 	})
-
-	throw new Error('done')
 }
 
 function getTypeImports(
