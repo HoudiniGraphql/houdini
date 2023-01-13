@@ -91,7 +91,7 @@ export const cachePolicyPlugin =
 					}
 
 					// we're done. don't change the result value
-					resolve(ctx)
+					resolve(ctx, value)
 				},
 			},
 		}

@@ -114,7 +114,6 @@ export class DocumentObserver<
 		const result = await new Promise<QueryResult<_Data, _Input>>((resolve, reject) => {
 			// the initial state of the iterator
 			const state: IteratorState = {
-				value: null,
 				terminatingIndex: null,
 				currentStep: 'setup',
 				index: -1,
@@ -131,21 +130,9 @@ export class DocumentObserver<
 			this.#next(state)
 		})
 
-		console.log(result)
 		// if there are errors, we might need to throw
 		if (result.errors && result.errors.length > 0 && this.#configFile.quietErrors) {
-			// convert the artifact kind into the matching error pattern
-			const whichKind = {
-				[ArtifactKind.Mutation]: 'mutation',
-				[ArtifactKind.Query]: 'query',
-				[ArtifactKind.Fragment]: 'fragment',
-				[ArtifactKind.Subscription]: 'subscription',
-			}[this.#artifact.kind]
-
-			// we're only going to throw if we're not quieting the error
-			if (!(this.#configFile.quietErrors as string[]).includes(whichKind)) {
-				throw result.errors
-			}
+			throw result.errors
 		}
 
 		// we're done
@@ -179,8 +166,6 @@ export class DocumentObserver<
 									context: ctx.context.apply(newContext),
 									// increment the index so that terminate looks at this link again
 									index: index + 1,
-									// save this value
-									value,
 									// increment the index so that terminate looks at this link again
 									// when we flip phases, we need to start from here
 									terminatingIndex: index + 1,
@@ -241,18 +226,15 @@ export class DocumentObserver<
 							})
 						},
 						resolve: (context, val) => {
-							// if we were given a value, use it. otherwise use the previous value
-							const newValue = typeof val !== 'undefined' ? val : ctx.value
-
 							// be brave. take the next step.
 							this.#terminate(
 								{
 									...ctx,
 									context: ctx.context.apply(context),
-									value: newValue,
 									index,
 								},
-								newValue
+								// if we were given a value, use it. otherwise use the previous value
+								val ?? value
 							)
 						},
 					})
@@ -304,10 +286,7 @@ export class DocumentObserver<
 		this.#lastVariables = ctx.context.draft().stuff.inputs.marshaled
 
 		// the latest value should be written to the store
-		this.update((state) => ({
-			...state,
-			...finalValue,
-		}))
+		this.set(finalValue)
 	}
 
 	#error(ctx: IteratorState, error: unknown) {
@@ -317,9 +296,9 @@ export class DocumentObserver<
 		for (let i = ctx.index; i >= 0 && propagate; i--) {
 			let breakBubble = false
 			// if the step has an error handler, invoke it
-			const errorHandler = this.#plugins[i].throw
-			if (errorHandler) {
-				errorHandler(ctx.context.draft(), {
+			const throwHandler = this.#plugins[i].throw
+			if (throwHandler) {
+				throwHandler(ctx.context.draft(), {
 					initialValue: this.state,
 					client: this.#client,
 					variablesChanged,
@@ -378,7 +357,6 @@ export type ClientPlugin =
 type IteratorState = {
 	context: ClientPluginContextWrapper
 	index: number
-	value: any
 	terminatingIndex: number | null
 	currentStep: 'network' | 'setup'
 	promise: {

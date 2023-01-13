@@ -49,7 +49,6 @@ export const fetchPlugin = (fn?: RequestHandler | string): ClientPlugin => {
 						...fetchParams,
 					})
 
-					console.log(result)
 					// return the result
 					resolve(ctx, {
 						fetching: false,

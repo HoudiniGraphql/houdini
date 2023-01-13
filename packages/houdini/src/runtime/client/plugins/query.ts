@@ -1,5 +1,5 @@
 import cache from '../../cache'
-import { type SubscriptionSpec, ArtifactKind } from '../../lib/types'
+import { type SubscriptionSpec, ArtifactKind, DataSource } from '../../lib/types'
 import { type ClientPlugin } from '../documentObserver'
 import { documentPlugin } from '../utils'
 
@@ -13,13 +13,18 @@ export const queryPlugin: ClientPlugin = documentPlugin(ArtifactKind.Query, func
 	// the function to call when a query is sent
 	return {
 		setup: {
-			enter(ctx, { next, resolve, marshalVariables, variablesChanged }) {
+			enter(ctx, { next }) {
 				// make sure to include the last variables as well as the new ones
 				ctx.variables = {
 					...lastVariables,
 					...ctx.variables,
 				}
+				next(ctx)
+			},
 
+			// patch subscriptions on the way out so that we don't get a cache update
+			// before the promise resolves
+			exit(ctx, { next, resolve, marshalVariables, variablesChanged }) {
 				// if the variables have changed we need to setup a new subscription with the cache
 				if (variablesChanged(ctx)) {
 					// if the variables changed we need to unsubscribe from the old fields and
@@ -36,7 +41,15 @@ export const queryPlugin: ClientPlugin = documentPlugin(ArtifactKind.Query, func
 						rootType: ctx.artifact.rootType,
 						selection: ctx.artifact.selection,
 						variables: () => marshalVariables(ctx),
-						set: (newValue) => resolve(ctx, newValue),
+						set: (newValue) =>
+							resolve(ctx, {
+								data: newValue,
+								errors: [],
+								fetching: false,
+								partial: false,
+								source: DataSource.Cache,
+								variables: ctx.variables ?? null,
+							}),
 					}
 
 					// make sure we subscribe to the new values
@@ -44,7 +57,7 @@ export const queryPlugin: ClientPlugin = documentPlugin(ArtifactKind.Query, func
 				}
 
 				// we are done
-				next(ctx)
+				resolve(ctx)
 			},
 		},
 		cleanup() {
