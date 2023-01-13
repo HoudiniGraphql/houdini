@@ -11,7 +11,6 @@ test.describe('Mutation Page', () => {
       data: null,
       errors: null,
       fetching: false,
-      isOptimisticResponse: false,
       variables: null
     };
     await expectToBe(page, stry(defaultStoreValues) ?? '', '[id="store-value"]');

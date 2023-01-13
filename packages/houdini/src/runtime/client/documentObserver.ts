@@ -18,11 +18,10 @@ import {
 import { Writable } from '../lib/store'
 import { cachePolicyPlugin } from './plugins'
 
-type NetworkResult<_Data extends GraphQLObject, _Input extends {}> = QueryResult<_Data, _Input>
-
-export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> extends Writable<
-	NetworkResult<_Data, _Input>
-> {
+export class DocumentObserver<
+	_Data extends GraphQLObject,
+	_Input extends Record<string, any>
+> extends Writable<QueryResult<_Data, _Input>> {
 	#artifact: DocumentArtifact
 	#client: HoudiniClient
 	#configFile: ConfigFile | null = null
@@ -91,7 +90,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		session?: App.Session | null
 		policy?: CachePolicy
 		stuff?: {}
-	} = {}): Promise<NetworkResult<_Data, _Input>> {
+	} = {}): Promise<QueryResult<_Data, _Input>> {
 		// if we dont have the config file yet, load it
 		if (!this.#configFile) {
 			this.#configFile = await getCurrentConfig()
@@ -116,7 +115,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		context = context.apply(draft)
 
 		// walk through the plugins to get the first result
-		const result = await new Promise<NetworkResult<_Data, _Input>>((resolve, reject) => {
+		const result = await new Promise<QueryResult<_Data, _Input>>((resolve, reject) => {
 			// the initial state of the iterator
 			const state: IteratorState = {
 				value: null,
@@ -164,6 +163,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 				try {
 					// invoke the target
 					const result = target(ctx.context.draft(), {
+						initialValue: this.state,
 						client: this.#client,
 						variablesChanged,
 						marshalVariables,
@@ -220,7 +220,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		)
 	}
 
-	#terminate(ctx: IteratorState, value: Partial<NetworkResult<_Data, _Input>>): void {
+	#terminate(ctx: IteratorState, value: QueryResult): void {
 		// starting one less than the current index
 		for (let index = ctx.index - 1; index >= 0; index--) {
 			// if we find a plugin in the same phase, call it
@@ -229,6 +229,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 				try {
 					// invoke the target
 					const result = target(ctx.context.draft(), {
+						initialValue: this.state,
 						value,
 						client: this.#client,
 						variablesChanged,
@@ -283,22 +284,17 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		// we're done with the chain
 
 		// convert the raw value into something we can give to the user
-		let data = value.data as _Data
+		let data = value.data
 		try {
-			data = (unmarshalSelection(this.#configFile!, this.#artifact.selection, value.data) ??
-				null) as _Data
+			data =
+				unmarshalSelection(this.#configFile!, this.#artifact.selection, value.data) ?? null
 		} catch {}
 
 		// build up the final state
 		const finalValue = {
 			...value,
-			result: {
-				errors: value.errors ?? [],
-				data,
-			},
-			variables: ctx.context.variables ?? {},
-			fetching: false,
-		}
+			data,
+		} as QueryResult<_Data, _Input>
 
 		// if the promise hasn't been resolved yet, do it
 		if (!ctx.promise.resolved) {
@@ -311,7 +307,10 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 		this.#lastVariables = ctx.context.draft().stuff.inputs.marshaled
 
 		// the latest value should be written to the store
-		this.update((state) => ({ ...state, ...finalValue }))
+		this.update((state) => ({
+			...state,
+			...finalValue,
+		}))
 	}
 
 	#error(ctx: IteratorState, error: unknown) {
@@ -324,6 +323,7 @@ export class DocumentObserver<_Data extends GraphQLObject, _Input extends {}> ex
 			const errorHandler = this.#plugins[i].throw
 			if (errorHandler) {
 				errorHandler(ctx.context.draft(), {
+					initialValue: this.state,
 					client: this.#client,
 					variablesChanged,
 					marshalVariables,
@@ -434,7 +434,7 @@ class ClientPluginContextWrapper {
 			},
 			set variables(val: Required<ClientPluginContext>['variables']) {
 				// look at the variables for ones that are different
-				let changed: Required<ClientPluginContext>['variables'] = {}
+				let changed: ClientPluginContext['variables'] = {}
 				for (const [name, value] of Object.entries(val ?? {})) {
 					if (value !== ctx.variables?.[name]) {
 						// we need to marshal the new value
@@ -493,17 +493,21 @@ class ClientPluginContextWrapper {
 	}
 }
 
-function marshalVariables(ctx: ClientPluginContext) {
+function marshalVariables<_Data extends GraphQLObject, _Input extends {}>(
+	ctx: ClientPluginContext
+) {
 	return ctx.stuff.inputs?.marshaled ?? {}
 }
 
-function variablesChanged(ctx: ClientPluginContext) {
+function variablesChanged<_Data extends GraphQLObject, _Input extends {}>(
+	ctx: ClientPluginContext
+) {
 	return ctx.stuff.inputs?.changed
 }
 
 export type Fetch = typeof globalThis.fetch
 
-export type ClientPluginContext = {
+export type ClientPluginContext<_Data extends GraphQLObject = GraphQLObject> = {
 	config: ConfigFile
 	artifact: DocumentArtifact
 	policy?: CachePolicy
@@ -532,12 +536,14 @@ export type ClientPluginPhase = {
 }
 
 export type ClientPluginHandlers = {
+	/* The initial value of the query */
+	initialValue: QueryResult
 	/** A reference to the houdini client to access any configuration values */
 	client: HoudiniClient
 	/** Move onto the next step using the provided context.  */
 	next(ctx: ClientPluginContext): void
 	/** Terminate the current chain  */
-	resolve(ctx: ClientPluginContext, data: Partial<NetworkResult<any, {}>>): void
+	resolve(ctx: ClientPluginContext, data: QueryResult): void
 	/** Return true if the variables have changed */
 	variablesChanged: (ctx: ClientPluginContext) => boolean
 	/** Returns the marshaled variables for the operation */
@@ -546,8 +552,8 @@ export type ClientPluginHandlers = {
 
 /** Exit handlers are the same as enter handles but don't need to resolve with a specific value */
 export type ClientPluginExitHandlers = Omit<ClientPluginHandlers, 'resolve'> & {
-	resolve: (ctx: ClientPluginContext, data?: Partial<NetworkResult<any, {}>>) => void
-	value: Partial<NetworkResult<any, {}>>
+	resolve: (ctx: ClientPluginContext, data?: QueryResult) => void
+	value: QueryResult
 }
 
 /** Exit handlers are the same as enter handles but don't need to resolve with a specific value */

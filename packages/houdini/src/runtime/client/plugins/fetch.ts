@@ -1,4 +1,4 @@
-import { DataSource, RequestPayload } from '../../lib'
+import { DataSource, GraphQLObject, RequestPayload } from '../../lib'
 import type { ClientPlugin } from '../documentObserver'
 
 export const fetchPlugin = (fn?: RequestHandler | string): ClientPlugin => {
@@ -52,7 +52,10 @@ export const fetchPlugin = (fn?: RequestHandler | string): ClientPlugin => {
 
 					// return the result
 					resolve(ctx, {
-						result,
+						fetching: false,
+						variables: ctx.variables ?? null,
+						data: result.data,
+						errors: result.errors,
 						partial: false,
 						source: DataSource.Network,
 					})

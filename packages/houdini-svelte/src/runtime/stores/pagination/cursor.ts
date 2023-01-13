@@ -3,7 +3,6 @@ import { ConfigFile } from '$houdini/runtime/lib/config'
 import { siteURL } from '$houdini/runtime/lib/constants'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
-import { executeQuery } from 'houdini/src/runtime/client/network'
 import { Writable, writable } from 'svelte/store'
 
 import { getCurrentClient } from '../../network'

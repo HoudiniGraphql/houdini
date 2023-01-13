@@ -3,10 +3,10 @@ import { test, expect, vi, beforeEach } from 'vitest'
 
 import { HoudiniClient } from '.'
 import { setMockConfig } from '../lib/config'
-import { ArtifactKind } from '../lib/types'
+import { ArtifactKind, DataSource } from '../lib/types'
 import { DocumentObserver, ClientPlugin } from './documentObserver'
 
-function createStore(plugins: ClientPlugin[]): DocumentObserver<any, any> {
+function createStore(plugins: ClientPlugin[]): DocumentObserver {
 	return new HoudiniClient({
 		url: 'URL',
 		pipeline() {
@@ -110,7 +110,14 @@ test('middleware pipeline happy path', async function () {
 		network: {
 			enter(ctx, { resolve }) {
 				tracker(3, 'two_enter')
-				resolve(ctx, { result: { data: 'value', errors: [] } })
+				resolve(ctx, {
+					data: { hello: 'world' },
+					errors: [],
+					fetching: false,
+					partial: false,
+					source: DataSource.Cache,
+					variables: {},
+				})
 			},
 			exit(ctx, { resolve }) {
 				tracker(3, 'two_exit')
@@ -147,7 +154,7 @@ test('middleware pipeline happy path', async function () {
 	expect(value).toEqual({
 		fetching: false,
 		variables: {},
-		result: { data: 'value', errors: [] },
+		result: { data: { hello: 'world' }, errors: [] },
 	})
 })
 
@@ -180,11 +187,25 @@ test('terminate short-circuits pipeline', async function () {
 			setup: {
 				enter(ctx, { resolve }) {
 					tracker(2, 'one_enter')
-					resolve(ctx, { result: { data: 'value', errors: [] } })
+					resolve(ctx, {
+						data: { hello: 'world' },
+						errors: [],
+						fetching: false,
+						partial: false,
+						source: DataSource.Cache,
+						variables: {},
+					})
 				},
 				exit(ctx, { resolve }) {
 					tracker(2, 'one_exit')
-					resolve(ctx, { result: { data: 'value', errors: [] } })
+					resolve(ctx, {
+						data: { hello: 'world' },
+						errors: [],
+						fetching: false,
+						partial: false,
+						source: DataSource.Cache,
+						variables: {},
+					})
 				},
 			},
 			network: {
@@ -219,9 +240,23 @@ test('can call resolve multiple times to set multiple values', async function ()
 	const middleware: ClientPlugin = () => ({
 		network: {
 			enter(ctx, { resolve }) {
-				resolve(ctx, { result: { data: 'value', errors: [] } })
+				resolve(ctx, {
+					data: { hello: 'world' },
+					errors: [],
+					fetching: false,
+					partial: false,
+					source: DataSource.Cache,
+					variables: {},
+				})
 				sleep(100).then(() =>
-					resolve(ctx, { result: { data: 'another-value', errors: [] } })
+					resolve(ctx, {
+						data: { hello: 'another-world' },
+						errors: [],
+						fetching: false,
+						partial: false,
+						source: DataSource.Cache,
+						variables: {},
+					})
 				)
 			},
 		},
@@ -241,7 +276,7 @@ test('can call resolve multiple times to set multiple values', async function ()
 	expect(result).toEqual({
 		fetching: false,
 		variables: {},
-		result: { data: 'value', errors: [] },
+		result: { data: { hello: 'world' }, errors: [] },
 	})
 	// that value will be the second value to the spy
 	expect(fn).toHaveBeenNthCalledWith(2, {
@@ -259,7 +294,7 @@ test('can call resolve multiple times to set multiple values', async function ()
 		fetching: false,
 		partial: false,
 		result: {
-			data: 'value',
+			data: { hello: 'world' },
 			errors: [],
 		},
 		source: null,
@@ -269,7 +304,7 @@ test('can call resolve multiple times to set multiple values', async function ()
 		fetching: false,
 		partial: false,
 		result: {
-			data: 'another-value',
+			data: { hello: 'another-world' },
 			errors: [],
 		},
 		source: null,
@@ -348,7 +383,14 @@ test('middlewares can set fetch params', async function () {
 		setup: {
 			enter(ctx, { resolve }) {
 				spy(ctx.fetchParams)
-				resolve(ctx, { result: { data: 'value', errors: [] } })
+				resolve(ctx, {
+					data: { hello: 'world' },
+					errors: [],
+					fetching: false,
+					partial: false,
+					source: DataSource.Cache,
+					variables: {},
+				})
 			},
 		},
 	})
@@ -366,7 +408,14 @@ test('tracks loading state', async function () {
 	const middleware: ClientPlugin = () => ({
 		network: {
 			enter(ctx, { resolve }) {
-				resolve(ctx, { result: { data: 'value', errors: [] } })
+				resolve(ctx, {
+					data: { hello: 'world' },
+					errors: [],
+					fetching: false,
+					partial: false,
+					source: DataSource.Cache,
+					variables: {},
+				})
 			},
 		},
 	})
@@ -397,7 +446,7 @@ test('tracks loading state', async function () {
 		partial: false,
 		source: null,
 		result: {
-			data: 'value',
+			data: { hello: 'world' },
 			errors: [],
 		},
 		variables: {},
@@ -410,15 +459,17 @@ test('exit can replay a pipeline', async function () {
 	const replayPlugin: ClientPlugin = () => ({
 		setup: {
 			exit(ctx, { value, next, resolve }) {
-				if (value.result?.data === 'value') {
+				if (value.data?.hello === 'world') {
 					count++
 					next(ctx)
 				} else {
 					resolve(ctx, {
-						result: {
-							data: 'another-value',
-							errors: [],
-						},
+						data: { hello: 'another-value' },
+						errors: [],
+						fetching: false,
+						partial: false,
+						source: DataSource.Cache,
+						variables: {},
 					})
 				}
 			},
@@ -430,11 +481,25 @@ test('exit can replay a pipeline', async function () {
 			enter(ctx, { resolve }) {
 				// we have to get here twice to succeed
 				if (count) {
-					resolve(ctx, { result: { data: 'another-value', errors: [] } })
+					resolve(ctx, {
+						data: { hello: 'another-value' },
+						errors: [],
+						fetching: false,
+						partial: false,
+						source: DataSource.Cache,
+						variables: {},
+					})
 					return
 				}
 
-				resolve(ctx, { result: { data: 'value', errors: [] } })
+				resolve(ctx, {
+					data: { hello: 'world' },
+					errors: [],
+					fetching: false,
+					partial: false,
+					source: DataSource.Cache,
+					variables: {},
+				})
 			},
 		},
 	})
@@ -484,7 +549,14 @@ test('plugins can update variables', async function () {
 			network: {
 				enter(ctx, { resolve, marshalVariables }) {
 					spy(marshalVariables(ctx))
-					resolve(ctx, {})
+					resolve(ctx, {
+						data: { hello: 'world' },
+						errors: [],
+						fetching: false,
+						partial: false,
+						source: DataSource.Cache,
+						variables: {},
+					})
 				},
 			},
 		}
@@ -519,7 +591,14 @@ test('can detect changed variables from inputs', async function () {
 			},
 			network: {
 				enter(ctx, { resolve }) {
-					resolve(ctx, {})
+					resolve(ctx, {
+						data: { hello: 'world' },
+						errors: [],
+						fetching: false,
+						partial: false,
+						source: DataSource.Cache,
+						variables: {},
+					})
 				},
 			},
 		}
@@ -564,7 +643,14 @@ test('can update variables and then check if they were updated', async function 
 			},
 			network: {
 				enter(ctx, { resolve }) {
-					resolve(ctx, {})
+					resolve(ctx, {
+						data: { hello: 'world' },
+						errors: [],
+						fetching: false,
+						partial: false,
+						source: DataSource.Cache,
+						variables: {},
+					})
 				},
 			},
 		}
@@ -611,7 +697,14 @@ test('multiple new variables from inside plugin', async function () {
 			},
 			network: {
 				enter(ctx, { resolve }) {
-					resolve(ctx, {})
+					resolve(ctx, {
+						data: { hello: 'world' },
+						errors: [],
+						fetching: false,
+						partial: false,
+						source: DataSource.Cache,
+						variables: {},
+					})
 				},
 			},
 		}

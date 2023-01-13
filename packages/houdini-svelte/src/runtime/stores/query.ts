@@ -1,4 +1,3 @@
-import { getCache } from '$houdini/runtime'
 import { DocumentObserver } from '$houdini/runtime/client'
 import { FetchContext } from '$houdini/runtime/client/plugins/fetch'
 import * as log from '$houdini/runtime/lib/log'
@@ -7,25 +6,18 @@ import type { QueryArtifact } from '$houdini/runtime/lib/types'
 import {
 	CachePolicy,
 	CompiledQueryKind,
-	DataSource,
 	GraphQLObject,
 	HoudiniFetchContext,
 	QueryResult,
-	SubscriptionSpec,
 } from '$houdini/runtime/lib/types'
 import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
-import { get, Readable, Writable, writable } from 'svelte/store'
+import { get, Readable } from 'svelte/store'
 
-import { clientStarted, error, isBrowser } from '../adapter'
+import { clientStarted, isBrowser } from '../adapter'
 import { getCurrentClient } from '../network'
 import { getSession } from '../session'
-import { BaseStore } from './store'
 
-export class QueryStore<
-	_Data extends GraphQLObject,
-	_Input extends {},
-	_ExtraFields = {}
-> extends BaseStore {
+export class QueryStore<_Data extends GraphQLObject, _Input extends {}> {
 	// the underlying artifact
 	artifact: QueryArtifact
 
@@ -49,8 +41,6 @@ export class QueryStore<
 	protected storeName: string
 
 	constructor({ artifact, storeName, variables }: StoreConfig<_Data, _Input, QueryArtifact>) {
-		super()
-
 		// set the initial state
 		this.artifact = artifact
 		this.observer = getCurrentClient().observe({ artifact })
@@ -66,13 +56,9 @@ export class QueryStore<
 	fetch(params?: ClientFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
-		const config = await this.getConfig()
-
 		// validate and prepare the request context for the current environment (client vs server)
 		// make a shallow copy of the args so we don't mutate the arguments that the user hands us
-		const { policy, params, context } = await fetchParams(this.artifact, this.storeName, {
-			...args,
-		})
+		const { policy, params, context } = await fetchParams(this.artifact, this.storeName, args)
 
 		// if we aren't on the browser but there's no event there's a big mistake
 		if (!isBrowser && !(params && 'fetch' in params) && (!params || !('event' in params))) {
@@ -110,7 +96,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 			variables: params.variables,
 			metadata: params.metadata,
 			session: context.session,
-			policy: params.policy,
+			policy: policy,
 			stuff: {},
 		})
 
@@ -165,8 +151,6 @@ export type StoreConfig<_Data extends GraphQLObject, _Input, _Artifact> = {
 	storeName: string
 	variables: boolean
 }
-
-type StoreState<_Data, _Input, _Extra = {}> = QueryResult<_Data, _Input> & _Extra
 
 export async function fetchParams<_Data extends GraphQLObject, _Input>(
 	artifact: QueryArtifact,

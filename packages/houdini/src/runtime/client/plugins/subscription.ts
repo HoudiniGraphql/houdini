@@ -1,19 +1,19 @@
-import { ArtifactKind } from '../../lib'
+import { ArtifactKind, DataSource, GraphQLObject } from '../../lib'
 import { ClientPlugin } from '../documentObserver'
 import { documentPlugin } from '../utils'
 
-export function subscriptionPlugin(client: SubscriptionHandler): ClientPlugin {
+export function subscriptionPlugin(client: SubscriptionHandler) {
 	return documentPlugin(ArtifactKind.Subscription, () => {
 		// the unsubscribe hook for the active subscription
 		let clearSubscription: null | (() => void) = null
 
 		return {
 			setup: {
-				enter(ctx, { next, resolve, variablesChanged }) {
+				enter(ctx, { next, resolve, variablesChanged, initialValue }) {
 					// if the variables havent changed since the last time we ran this,
 					// there's nothing to do
 					if (!variablesChanged(ctx)) {
-						resolve(ctx, {})
+						resolve(ctx, initialValue)
 						return
 					}
 
@@ -35,11 +35,25 @@ export function subscriptionPlugin(client: SubscriptionHandler): ClientPlugin {
 						},
 						{
 							next: ({ data, errors }) => {
-								resolve(ctx, { result: { data, errors: [...(errors ?? [])] } })
+								resolve(ctx, {
+									data: data ?? null,
+									errors: [...(errors ?? [])],
+									fetching: false,
+									partial: true,
+									source: DataSource.Network,
+									variables: ctx.variables ?? null,
+								})
 							},
 							error(data) {
 								clearSubscription?.()
-								resolve(ctx, { ...data })
+								resolve(ctx, {
+									partial: true,
+									source: DataSource.Network,
+									data: null,
+									errors: [data as Error],
+									fetching: false,
+									variables: ctx.variables ?? null,
+								})
 							},
 							complete() {},
 						}
@@ -57,7 +71,10 @@ export type SubscriptionHandler = {
 	subscribe: (
 		payload: { query: string; variables?: {} },
 		handlers: {
-			next: (payload: { data?: {}; errors?: readonly { message: string }[] }) => void
+			next: (payload: {
+				data?: GraphQLObject
+				errors?: readonly { message: string }[]
+			}) => void
 			error: (data: {}) => void
 			complete: () => void
 		}

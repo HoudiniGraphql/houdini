@@ -1,9 +1,8 @@
 import cache from '../../cache'
 import { ArtifactKind, marshalSelection, SubscriptionSpec } from '../../lib'
-import { ClientPlugin } from '../documentObserver'
 import { documentPlugin } from '../utils'
 
-export const mutationPlugin: ClientPlugin = documentPlugin(ArtifactKind.Mutation, () => {
+export const mutationPlugin = documentPlugin(ArtifactKind.Mutation, () => {
 	return {
 		setup: {
 			async enter(ctx, { next, marshalVariables }) {
@@ -52,7 +51,7 @@ export const mutationPlugin: ClientPlugin = documentPlugin(ArtifactKind.Mutation
 				})
 			},
 			exit(ctx, { resolve, value }) {
-				const hasErrors = value.result?.errors && value.result.errors.length > 0
+				const hasErrors = value.errors && value.errors.length > 0
 				// if there are errors, we need to clear the layer before resolving
 				if (hasErrors) {
 					// if the mutation failed, roll the layer back and delete it
@@ -77,7 +76,7 @@ export const mutationPlugin: ClientPlugin = documentPlugin(ArtifactKind.Mutation
 				resolve(ctx)
 			},
 		},
-		error(ctx) {
+		throw(ctx) {
 			// if there was an error, we need to clear the mutation
 			if (ctx.cacheParams?.layer) {
 				const { layer } = ctx.cacheParams
