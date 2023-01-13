@@ -21,8 +21,6 @@ export default async function svelteKitGenerator(
 		return
 	}
 
-	console.log('generating')
-
 	await walk_routes(config, framework, {
 		async route({
 			dirpath,
