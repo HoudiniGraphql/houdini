@@ -16,6 +16,14 @@ import {
 const AST = recast.types.builders
 
 export default async function runtimeGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
+	const importStatement =
+		config.module === 'commonjs'
+			? importDefaultFrom
+			: (where: string, as: string) => `import ${as} from '${where}'`
+
+	const exportStatement =
+		config.module === 'commonjs' ? exportDefault : (as: string) => `export default ${as}`
+
 	// generate the adapter to normalize interactions with the framework
 	// update the generated runtime to point to the client
 	await Promise.all([
@@ -26,33 +34,27 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 			// transform the files while we are copying so we don't trigger unnecessary changes
 			[path.join(config.runtimeSource, 'imports', 'config.js')]: (content) => {
 				// the path to the config file
-				const configFilePath = path.join(config.runtimeDirectory, 'lib', 'config.js')
+				const configFilePath = path.join(config.runtimeDirectory, 'imports', 'config.js')
 				// the relative path
 				const relativePath = path.relative(path.dirname(configFilePath), config.filepath)
 
-				const exportStatement =
-					config.module === 'commonjs'
-						? exportDefault
-						: (as: string) => `export default ${as}`
-
-				return `${importDefaultFrom(relativePath, 'client')}
-${exportStatement('client')}
+				return `${importStatement(relativePath, 'config')}
+${exportStatement('config')}
 `
 			},
 			[path.join(config.runtimeSource, 'imports', 'client.js')]: (content) => {
 				// the path to the network file
-				const networkFilePath = path.join(config.runtimeDirectory, 'lib', 'clientImport.js')
+				const networkFilePath = path.join(
+					config.runtimeDirectory,
+					'imports',
+					'clientImport.js'
+				)
 				// the relative path
 				const relativePath = path.relative(
 					path.dirname(networkFilePath),
 					path.join(config.projectRoot, config.configFile.client ?? 'src/client')
 				)
-				const exportStatement =
-					config.module === 'commonjs'
-						? exportDefault
-						: (as: string) => `export default ${as}`
-
-				return `${importDefaultFrom(relativePath, 'client')}
+				return `${importStatement(relativePath, 'client')}
 ${exportStatement('client')}
 `
 			},
@@ -63,16 +65,6 @@ ${exportStatement('client')}
 					.reduce((acc, plugin) => {
 						return [...acc, ...Object.entries(plugin.client_plugins!)]
 					}, [] as Record<string, any>[])
-
-				// figure out the correct import statement
-				const importStatement =
-					config.module === 'commonjs'
-						? importDefaultFrom
-						: (where: string, as: string) => `import ${as} from '${where}'`
-				const exportStatement =
-					config.module === 'commonjs'
-						? exportDefault
-						: (as: string) => `export default ${as}`
 
 				return client_plugins.length > 0
 					? `

@@ -100,7 +100,15 @@ test('runtime client export - kit', async function () {
 		parser: typeScriptParser,
 	}).program
 	// verify contents
-	expect(parsedQuery).toMatchInlineSnapshot()
+	expect(parsedQuery).toMatchInlineSnapshot(`
+		import { HoudiniClient } from "../client";
+		var clientImport_default = new HoudiniClient({
+		  url: ""
+		});
+		export {
+		  clientImport_default as default
+		};
+	`)
 })
 
 test('runtime client export - commonjs', async function () {
@@ -123,5 +131,35 @@ test('runtime client export - commonjs', async function () {
 		parser: typeScriptParser,
 	}).program
 	// verify contents
-	expect(parsedQuery).toMatchInlineSnapshot()
+	expect(parsedQuery).toMatchInlineSnapshot(`
+		"use strict";
+		var __defProp = Object.defineProperty;
+		var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+		var __getOwnPropNames = Object.getOwnPropertyNames;
+		var __hasOwnProp = Object.prototype.hasOwnProperty;
+		var __export = (target, all) => {
+		  for (var name in all)
+		    __defProp(target, name, { get: all[name], enumerable: true });
+		};
+		var __copyProps = (to, from, except, desc) => {
+		  if (from && typeof from === "object" || typeof from === "function") {
+		    for (let key of __getOwnPropNames(from))
+		      if (!__hasOwnProp.call(to, key) && key !== except)
+		        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+		  }
+		  return to;
+		};
+		var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+		var clientImport_exports = {};
+		__export(clientImport_exports, {
+		  default: () => clientImport_default
+		});
+		module.exports = __toCommonJS(clientImport_exports);
+		var import_client = require("../client");
+		var clientImport_default = new import_client.HoudiniClient({
+		  url: ""
+		});
+		// Annotate the CommonJS export names for ESM import in node:
+		0 && (module.exports = {});
+	`)
 })

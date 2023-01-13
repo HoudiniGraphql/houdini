@@ -13,15 +13,12 @@ test('updates the config file with import path', async function () {
 	await runPipeline(config, [])
 
 	// open up the index file
-	const fileContents = await fs.readFile(path.join(config.runtimeDirectory, 'lib', 'config.js'))
-	expect(fileContents).toBeTruthy()
+	const fileContents = await fs.readFile(
+		path.join(config.runtimeDirectory, 'imports', 'config.js')
+	)
 
-	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(fileContents!, {
-		parser: typeScriptParser,
-	}).program
 	// verify contents
-	expect(recast.print(parsedQuery).code).toContain('import("../../../config.cjs")')
+	expect(fileContents).toContain("from '../../../config.cjs'")
 })
 
 test('updates the list of plugin-specified client plugins', async function () {

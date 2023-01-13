@@ -27,7 +27,7 @@ describe('kit route processor', function () {
 
 			export async function load(context) {
 			    const houdini_context = new RequestContext(context);
-			    const houdiniConfig = await getCurrentConfig();
+			    const houdiniConfig = getCurrentConfig();
 			    const promises = [];
 			    const inputs = {};
 			    inputs["TestQuery"] = {};
@@ -90,7 +90,7 @@ describe('kit route processor', function () {
 
 			export async function load(context) {
 			    const houdini_context = new RequestContext(context);
-			    const houdiniConfig = await getCurrentConfig();
+			    const houdiniConfig = getCurrentConfig();
 			    const promises = [];
 			    const inputs = {};
 			    inputs["TestQuery"] = {};
@@ -211,7 +211,7 @@ describe('kit route processor', function () {
 
 			export async function load(context) {
 			    const houdini_context = new RequestContext(context);
-			    const houdiniConfig = await getCurrentConfig();
+			    const houdiniConfig = getCurrentConfig();
 			    const promises = [];
 			    const inputs = {};
 			    inputs["TestQuery1"] = {};
@@ -296,7 +296,7 @@ describe('kit route processor', function () {
 
 			export async function load(context) {
 			    const houdini_context = new RequestContext(context);
-			    const houdiniConfig = await getCurrentConfig();
+			    const houdiniConfig = getCurrentConfig();
 			    const promises = [];
 			    const inputs = {};
 			    inputs["TestQuery"] = await __houdini___TestQueryVariables(houdiniConfig, context);
@@ -438,7 +438,7 @@ describe('kit route processor', function () {
 
 			export async function load(context) {
 			    const houdini_context = new RequestContext(context);
-			    const houdiniConfig = await getCurrentConfig();
+			    const houdiniConfig = getCurrentConfig();
 			    const promises = [];
 			    const inputs = {};
 			    inputs["MyQuery1"] = {};
@@ -501,7 +501,7 @@ describe('kit route processor', function () {
 
 			export async function load(context) {
 			    const houdini_context = new RequestContext(context);
-			    const houdiniConfig = await getCurrentConfig();
+			    const houdiniConfig = getCurrentConfig();
 			    const promises = [];
 			    const inputs = {};
 			    inputs["TestPageQuery"] = {};
@@ -585,7 +585,7 @@ describe('kit route processor', function () {
 
 			export async function load(context) {
 			    const houdini_context = new RequestContext(context);
-			    const houdiniConfig = await getCurrentConfig();
+			    const houdiniConfig = getCurrentConfig();
 			    const promises = [];
 			    const inputs = {};
 			    inputs["TestLayoutQuery"] = {};
@@ -683,7 +683,7 @@ test('beforeLoad hook', async function () {
 		        "hookFn": _houdini_beforeLoad
 		    });
 
-		    const houdiniConfig = await getCurrentConfig();
+		    const houdiniConfig = getCurrentConfig();
 		    const promises = [];
 		    const inputs = {};
 		    inputs["TestQuery"] = await __houdini___TestQueryVariables(houdiniConfig, context);
@@ -769,7 +769,7 @@ test('beforeLoad hook - multiple queries', async function () {
 		        "hookFn": _houdini_beforeLoad
 		    });
 
-		    const houdiniConfig = await getCurrentConfig();
+		    const houdiniConfig = getCurrentConfig();
 		    const promises = [];
 		    const inputs = {};
 		    inputs["TestQuery1"] = {};
@@ -861,7 +861,7 @@ test('afterLoad hook', async function () {
 
 		export async function load(context) {
 		    const houdini_context = new RequestContext(context);
-		    const houdiniConfig = await getCurrentConfig();
+		    const houdiniConfig = getCurrentConfig();
 		    const promises = [];
 		    const inputs = {};
 		    inputs["TestQuery"] = await __houdini___TestQueryVariables(houdiniConfig, context);
@@ -948,7 +948,7 @@ test('afterLoad hook - multiple queries', async function () {
 
 		export async function load(context) {
 		    const houdini_context = new RequestContext(context);
-		    const houdiniConfig = await getCurrentConfig();
+		    const houdiniConfig = getCurrentConfig();
 		    const promises = [];
 		    const inputs = {};
 		    inputs["TestQuery1"] = {};
@@ -1061,7 +1061,7 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		        "hookFn": _houdini_beforeLoad
 		    });
 
-		    const houdiniConfig = await getCurrentConfig();
+		    const houdiniConfig = getCurrentConfig();
 		    const promises = [];
 		    const inputs = {};
 		    inputs["TestQuery"] = await __houdini___TestQueryVariables(houdiniConfig, context);
@@ -1146,7 +1146,7 @@ test('layout loads', async function () {
 
 		export async function load(context) {
 		    const houdini_context = new RequestContext(context);
-		    const houdiniConfig = await getCurrentConfig();
+		    const houdiniConfig = getCurrentConfig();
 		    const promises = [];
 		    const inputs = {};
 		    inputs["MyQuery1"] = {};
@@ -1238,7 +1238,7 @@ test('layout inline query', async function () {
 
 		export async function load(context) {
 		    const houdini_context = new RequestContext(context);
-		    const houdiniConfig = await getCurrentConfig();
+		    const houdiniConfig = getCurrentConfig();
 		    const promises = [];
 		    const inputs = {};
 		    inputs["TestQuery"] = {};
@@ -1300,7 +1300,7 @@ test('inline function query', async function () {
 
 		export async function load(context) {
 		    const houdini_context = new RequestContext(context);
-		    const houdiniConfig = await getCurrentConfig();
+		    const houdiniConfig = getCurrentConfig();
 		    const promises = [];
 		    const inputs = {};
 		    inputs["TestQuery"] = {};
@@ -1384,7 +1384,7 @@ test('onError hook', async function () {
 
 		export async function load(context) {
 		    const houdini_context = new RequestContext(context);
-		    const houdiniConfig = await getCurrentConfig();
+		    const houdiniConfig = getCurrentConfig();
 		    const promises = [];
 		    const inputs = {};
 		    inputs["TestQuery"] = await __houdini___TestQueryVariables(houdiniConfig, context);
@@ -1448,7 +1448,7 @@ test('route params, no variable function', async function () {
 
 		export async function load(context) {
 		    const houdini_context = new RequestContext(context);
-		    const houdiniConfig = await getCurrentConfig();
+		    const houdiniConfig = getCurrentConfig();
 		    const promises = [];
 		    const inputs = {};
 		    inputs["UserInfo"] = await __houdini___UserInfoVariables(houdiniConfig, context);
@@ -1526,7 +1526,7 @@ test('route params with variable function', async function () {
 
 		export async function load(context) {
 		    const houdini_context = new RequestContext(context);
-		    const houdiniConfig = await getCurrentConfig();
+		    const houdiniConfig = getCurrentConfig();
 		    const promises = [];
 		    const inputs = {};
 		    inputs["UserInfo"] = await __houdini___UserInfoVariables(houdiniConfig, context);

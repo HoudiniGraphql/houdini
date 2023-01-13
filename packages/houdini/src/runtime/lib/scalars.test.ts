@@ -1,11 +1,11 @@
 import { test, expect, describe, beforeEach } from 'vitest'
 
 import { testConfigFile } from '../../test'
-import { setMockConfig } from './config'
+import { defaultConfigValues, setMockConfig } from './config'
 import { marshalInputs, marshalSelection, parseScalar, unmarshalSelection } from './scalars'
 import { ArtifactKind, QueryArtifact, SubscriptionSelection } from './types'
 
-const config = {
+const config = defaultConfigValues({
 	scalars: {
 		DateTime: {
 			type: 'Date',
@@ -17,11 +17,9 @@ const config = {
 			},
 		},
 	},
-}
-
-beforeEach(() => {
-	setMockConfig(config)
 })
+
+beforeEach(() => setMockConfig(config))
 
 // the test artifact
 const artifact: QueryArtifact = {
@@ -101,9 +99,9 @@ describe('marshal inputs', function () {
 		const date3 = new Date(2)
 
 		// compute the inputs
-		const inputs = await marshalInputs({
-			config,
+		const inputs = marshalInputs({
 			artifact,
+			config,
 			input: {
 				date: [
 					{
@@ -144,9 +142,9 @@ describe('marshal inputs', function () {
 
 		// compute the inputs
 
-		const inputs = await marshalInputs({
-			config,
+		const inputs = marshalInputs({
 			artifact,
+			config,
 			input: {
 				date: [
 					{
@@ -169,9 +167,9 @@ describe('marshal inputs', function () {
 	test('empty list of scalars', async function () {
 		// compute the inputs
 
-		const inputs = await marshalInputs({
-			config,
+		const inputs = marshalInputs({
 			artifact,
+			config,
 			input: {
 				date: [
 					{
@@ -194,9 +192,9 @@ describe('marshal inputs', function () {
 	test('root fields', async function () {
 		// compute the inputs
 
-		const inputs = await marshalInputs({
-			config,
+		const inputs = marshalInputs({
 			artifact,
+			config,
 			input: {
 				booleanValue: true,
 			},
@@ -211,9 +209,9 @@ describe('marshal inputs', function () {
 	test('non-custom scalar fields of objects', async function () {
 		// compute the inputs
 
-		const inputs = await marshalInputs({
-			config,
+		const inputs = marshalInputs({
 			artifact,
+			config,
 			input: {
 				date: {
 					name: 'hello',
@@ -232,9 +230,9 @@ describe('marshal inputs', function () {
 	test('non-custom scalar fields of lists', async function () {
 		// compute the inputs
 
-		const inputs = await marshalInputs({
-			config,
+		const inputs = marshalInputs({
 			artifact,
+			config,
 			input: {
 				date: [
 					{
@@ -257,9 +255,9 @@ describe('marshal inputs', function () {
 	test('null', async function () {
 		// compute the inputs
 
-		const inputs = await marshalInputs({
-			config,
+		const inputs = marshalInputs({
 			artifact,
+			config,
 			input: {
 				date: null,
 			},
@@ -274,9 +272,9 @@ describe('marshal inputs', function () {
 	test('undefined', async function () {
 		// compute the inputs
 
-		const inputs = await marshalInputs({
-			config,
+		const inputs = marshalInputs({
 			artifact,
+			config,
 			input: {
 				date: undefined,
 			},
@@ -291,9 +289,9 @@ describe('marshal inputs', function () {
 	test('enums', async function () {
 		// compute the inputs
 
-		const inputs = await marshalInputs({
-			config,
+		const inputs = marshalInputs({
 			artifact,
+			config,
 			input: {
 				enumValue: 'ValueA',
 			},
@@ -308,9 +306,9 @@ describe('marshal inputs', function () {
 	test('list of enums', async function () {
 		// compute the inputs
 
-		const inputs = await marshalInputs({
-			config,
+		const inputs = marshalInputs({
 			artifact,
+			config,
 			input: {
 				enumValue: ['ValueA', 'ValueB'],
 			},
@@ -339,7 +337,7 @@ describe('unmarshal selection', function () {
 			],
 		}
 
-		expect(unmarshalSelection(testConfigFile(config), artifact.selection, data)).toEqual({
+		expect(unmarshalSelection(testConfigFile(), artifact.selection, data)).toEqual({
 			items: [
 				{
 					createdAt: date,
@@ -364,7 +362,7 @@ describe('unmarshal selection', function () {
 			],
 		}
 
-		expect(unmarshalSelection(testConfigFile(config), artifact.selection, data)).toEqual({
+		expect(unmarshalSelection(testConfigFile(), artifact.selection, data)).toEqual({
 			items: [
 				{
 					dates: [date1, date2],
@@ -382,7 +380,7 @@ describe('unmarshal selection', function () {
 			],
 		}
 
-		expect(unmarshalSelection(testConfigFile(config), artifact.selection, data)).toEqual({
+		expect(unmarshalSelection(testConfigFile(), artifact.selection, data)).toEqual({
 			items: [
 				{
 					dates: [],
@@ -440,7 +438,7 @@ describe('unmarshal selection', function () {
 			},
 		}
 
-		expect(unmarshalSelection(testConfigFile(config), selection, data)).toEqual({
+		expect(unmarshalSelection(testConfigFile(), selection, data)).toEqual({
 			item: undefined,
 		})
 	})
@@ -468,7 +466,7 @@ describe('unmarshal selection', function () {
 			},
 		}
 
-		expect(unmarshalSelection(testConfigFile(config), selection, data)).toEqual({
+		expect(unmarshalSelection(testConfigFile(), selection, data)).toEqual({
 			item: null,
 		})
 	})
@@ -498,7 +496,7 @@ describe('unmarshal selection', function () {
 			},
 		}
 
-		expect(unmarshalSelection(testConfigFile(config), selection, data)).toEqual({
+		expect(unmarshalSelection(testConfigFile(), selection, data)).toEqual({
 			item: {
 				createdAt: null,
 			},
@@ -555,7 +553,7 @@ describe('unmarshal selection', function () {
 			},
 		}
 
-		expect(unmarshalSelection(testConfigFile(config), selection, data)).toEqual({
+		expect(unmarshalSelection(testConfigFile(), selection, data)).toEqual({
 			item: {
 				createdAt: date,
 				creator: {
@@ -579,7 +577,7 @@ describe('unmarshal selection', function () {
 			},
 		}
 
-		expect(unmarshalSelection(testConfigFile(config), selection, data)).toEqual({
+		expect(unmarshalSelection(testConfigFile(), selection, data)).toEqual({
 			rootBool: true,
 		})
 	})
@@ -598,7 +596,7 @@ describe('unmarshal selection', function () {
 			},
 		}
 
-		expect(unmarshalSelection(testConfigFile(config), selection, data)).toEqual({
+		expect(unmarshalSelection(testConfigFile(), selection, data)).toEqual({
 			enumValue: 'Hello',
 		})
 	})
@@ -617,7 +615,7 @@ describe('unmarshal selection', function () {
 			},
 		}
 
-		expect(unmarshalSelection(testConfigFile(config), selection, data)).toEqual({
+		expect(unmarshalSelection(testConfigFile(), selection, data)).toEqual({
 			enumValue: ['Hello', 'World'],
 		})
 	})
@@ -707,7 +705,15 @@ describe('marshal selection', function () {
 	})
 
 	test('missing marshal function', async function () {
-		setMockConfig(testConfigFile(config))
+		setMockConfig(
+			testConfigFile({
+				scalars: {
+					DateTime: {
+						type: 'Date',
+					},
+				},
+			})
+		)
 
 		const data = {
 			items: [
