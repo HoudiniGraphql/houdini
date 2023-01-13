@@ -29,7 +29,7 @@ export const queryPlugin: ClientPlugin = documentPlugin(ArtifactKind.Query, func
 					}
 
 					// track the new variables
-					lastVariables = ctx.variables ?? null
+					lastVariables = marshalVariables(ctx)
 
 					// save the new subscription spec
 					subscriptionSpec = {
@@ -40,7 +40,7 @@ export const queryPlugin: ClientPlugin = documentPlugin(ArtifactKind.Query, func
 					}
 
 					// make sure we subscribe to the new values
-					cache.subscribe(subscriptionSpec, marshalVariables(ctx))
+					cache.subscribe(subscriptionSpec, lastVariables ?? {})
 				}
 
 				// we are done
