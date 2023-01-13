@@ -76,10 +76,18 @@ export class HoudiniClient {
 	observe<_Data extends GraphQLObject, _Input extends Record<string, any>>({
 		artifact,
 		cache = true,
+		initialValue,
 	}: {
 		artifact: DocumentArtifact
 		cache?: boolean
+		initialValue?: _Data | null
 	}): DocumentObserver<_Data, _Input> {
-		return new DocumentObserver({ client: this, artifact, plugins: this.#plugins, cache })
+		return new DocumentObserver({
+			client: this,
+			artifact,
+			plugins: this.#plugins,
+			cache,
+			initialValue,
+		})
 	}
 }

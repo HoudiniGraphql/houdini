@@ -18,13 +18,18 @@ import {
 import { Writable } from '../lib/store'
 import { cachePolicyPlugin } from './plugins'
 
+export declare namespace App {
+	interface Session {}
+	interface Metadata {}
+}
+
 export class DocumentObserver<
 	_Data extends GraphQLObject,
 	_Input extends Record<string, any>
 > extends Writable<QueryResult<_Data, _Input>> {
 	#artifact: DocumentArtifact
 	#client: HoudiniClient
-	#configFile: ConfigFile | null = null
+	#configFile: ConfigFile | null = getCurrentConfig()
 
 	// the list of instantiated plugins
 	#plugins: ReturnType<ClientPlugin>[]
@@ -38,15 +43,17 @@ export class DocumentObserver<
 		plugins,
 		client,
 		cache = true,
+		initialValue,
 	}: {
 		artifact: DocumentArtifact
 		plugins: ClientPlugin[]
 		client: HoudiniClient
 		cache?: boolean
+		initialValue?: _Data | null
 	}) {
 		// the initial store state
 		const initialState: QueryResult<_Data, _Input> = {
-			data: null,
+			data: initialValue ?? null,
 			errors: [],
 			partial: false,
 			source: null,
@@ -91,11 +98,6 @@ export class DocumentObserver<
 		policy?: CachePolicy
 		stuff?: {}
 	} = {}): Promise<QueryResult<_Data, _Input>> {
-		// if we dont have the config file yet, load it
-		if (!this.#configFile) {
-			this.#configFile = await getCurrentConfig()
-		}
-
 		// start off with the initial context
 		let context = new ClientPluginContextWrapper({
 			config: this.#configFile!,
@@ -513,7 +515,9 @@ export type ClientPluginContext<_Data extends GraphQLObject = GraphQLObject> = {
 	policy?: CachePolicy
 	fetch?: Fetch
 	variables?: Record<string, any>
+	// @ts-ignore
 	metadata?: App.Metadata | null
+	// @ts-ignore
 	session?: App.Session | null
 	fetchParams?: RequestInit
 	cacheParams?: {

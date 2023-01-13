@@ -1,5 +1,6 @@
 import { DocumentObserver } from '$houdini/runtime/client'
 import { FetchContext } from '$houdini/runtime/client/plugins/fetch'
+import { getCurrentClient } from '$houdini/runtime/lib'
 import * as log from '$houdini/runtime/lib/log'
 import type { QueryArtifact } from '$houdini/runtime/lib/types'
 // internals
@@ -14,7 +15,6 @@ import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
 import { get, Readable } from 'svelte/store'
 
 import { clientStarted, isBrowser } from '../adapter'
-import { getCurrentClient } from '../network'
 import { getSession } from '../session'
 
 export class QueryStore<_Data extends GraphQLObject, _Input extends {}> {

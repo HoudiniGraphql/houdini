@@ -1,8 +1,6 @@
-import { DocumentObserver } from '$houdini/runtime'
+import { DocumentObserver, getCurrentClient } from '$houdini/runtime'
 import { CompiledSubscriptionKind, SubscriptionArtifact } from '$houdini/runtime/lib/types'
 import { GraphQLObject } from 'houdini'
-
-import { getCurrentClient } from '../network'
 
 export class SubscriptionStore<_Data extends GraphQLObject, _Input extends {}> {
 	artifact: SubscriptionArtifact

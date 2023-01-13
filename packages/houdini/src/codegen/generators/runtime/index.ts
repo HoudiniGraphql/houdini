@@ -20,17 +20,41 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 	// update the generated runtime to point to the client
 	await Promise.all([
 		fs.recursiveCopy(config.runtimeSource, config.runtimeDirectory, {
+			[path.join(config.runtimeSource, 'lib', 'constants.js')]: (content) => {
+				return content.replace('SITE_URL', SITE_URL)
+			},
 			// transform the files while we are copying so we don't trigger unnecessary changes
-			[path.join(config.runtimeSource, 'lib', 'config.js')]: (content) => {
+			[path.join(config.runtimeSource, 'imports', 'config.js')]: (content) => {
 				// the path to the config file
 				const configFilePath = path.join(config.runtimeDirectory, 'lib', 'config.js')
 				// the relative path
 				const relativePath = path.relative(path.dirname(configFilePath), config.filepath)
 
-				return content.replace('HOUDINI_CONFIG_PATH', relativePath)
+				const exportStatement =
+					config.module === 'commonjs'
+						? exportDefault
+						: (as: string) => `export default ${as}`
+
+				return `${importDefaultFrom(relativePath, 'client')}
+${exportStatement('client')}
+`
 			},
-			[path.join(config.runtimeSource, 'lib', 'constants.js')]: (content) => {
-				return content.replace('SITE_URL', SITE_URL)
+			[path.join(config.runtimeSource, 'imports', 'client.js')]: (content) => {
+				// the path to the network file
+				const networkFilePath = path.join(config.runtimeDirectory, 'lib', 'clientImport.js')
+				// the relative path
+				const relativePath = path.relative(
+					path.dirname(networkFilePath),
+					path.join(config.projectRoot, config.configFile.client ?? 'src/client')
+				)
+				const exportStatement =
+					config.module === 'commonjs'
+						? exportDefault
+						: (as: string) => `export default ${as}`
+
+				return `${importDefaultFrom(relativePath, 'client')}
+${exportStatement('client')}
+`
 			},
 			[path.join(config.runtimeSource, 'client', 'injectedPlugins.js')]: (content) => {
 				// get the list of plugins we need to add to the client

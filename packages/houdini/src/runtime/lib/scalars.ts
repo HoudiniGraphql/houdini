@@ -15,7 +15,7 @@ export async function marshalSelection({
 	selection: SubscriptionSelection
 	data: any
 }): Promise<{} | null | undefined> {
-	const config = await getCurrentConfig()
+	const config = getCurrentConfig()
 
 	if (data === null || typeof data === 'undefined') {
 		return data

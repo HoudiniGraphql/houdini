@@ -8,13 +8,13 @@ import { fs, path } from '../../../lib'
 import { CollectedGraphQLDocument } from '../../../lib/types'
 import { testConfig, mockCollectedDoc } from '../../../test'
 
-// the documents to test
-const docs: CollectedGraphQLDocument[] = [
-	mockCollectedDoc(`query TestQuery { version }`),
-	mockCollectedDoc(`fragment TestFragment on User { firstName }`),
-]
-
 test('runtime index file - sapper', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		mockCollectedDoc(`query TestQuery { version }`),
+		mockCollectedDoc(`fragment TestFragment on User { firstName }`),
+	]
+
 	const config = testConfig({ module: 'commonjs' })
 	// execute the generator
 	await runPipeline(config, docs)
@@ -52,6 +52,12 @@ test('runtime index file - sapper', async function () {
 })
 
 test('runtime index file - kit', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		mockCollectedDoc(`query TestQuery { version }`),
+		mockCollectedDoc(`fragment TestFragment on User { firstName }`),
+	]
+
 	const config = testConfig({ module: 'esm', framework: 'kit' })
 	// execute the generator
 	await runPipeline(config, docs)
@@ -71,4 +77,51 @@ test('runtime index file - kit', async function () {
 
 		export * from "./graphql"
 	`)
+})
+
+test('runtime client export - kit', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		mockCollectedDoc(`query TestQuery { version }`),
+		mockCollectedDoc(`fragment TestFragment on User { firstName }`),
+	]
+
+	const config = testConfig({ module: 'esm', framework: 'kit' })
+	// execute the generator
+	await runPipeline(config, docs)
+
+	// open up the index file
+	const queryContents = await fs.readFile(
+		path.join(config.runtimeDirectory, 'lib', 'clientImport.js')
+	)
+	expect(queryContents).toBeTruthy()
+	// parse the contents
+	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
+		parser: typeScriptParser,
+	}).program
+	// verify contents
+	expect(parsedQuery).toMatchInlineSnapshot()
+})
+
+test('runtime client export - commonjs', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		mockCollectedDoc(`query TestQuery { version }`),
+		mockCollectedDoc(`fragment TestFragment on User { firstName }`),
+	]
+	const config = testConfig({ module: 'commonjs' })
+	// execute the generator
+	await runPipeline(config, docs)
+
+	// open up the index file
+	const queryContents = await fs.readFile(
+		path.join(config.runtimeDirectory, 'lib', 'clientImport.js')
+	)
+	expect(queryContents).toBeTruthy()
+	// parse the contents
+	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
+		parser: typeScriptParser,
+	}).program
+	// verify contents
+	expect(parsedQuery).toMatchInlineSnapshot()
 })

@@ -857,13 +857,39 @@ export async function getConfig({
 	})
 
 	// look up the current config file
-	let configFile = await readConfigFile(configPath)
+	let configFile = {
+		client: './src/client',
+		...(await readConfigFile(configPath)),
+	}
 
 	// if there is a framework specified, tell them they need to change things
 	if (!configFile.plugins) {
 		throw new HoudiniError({
 			message:
 				'Welcome to 0.17.0! Please following the migration guide here: http://www.houdinigraphql.com/guides/release-notes#0170',
+		})
+	}
+
+	let client_file_exists = false
+	// if there is an extension in then we can just check that file
+	if (path.extname(configFile.client)) {
+		client_file_exists = !!(await fs.readFile(configFile.client))
+	}
+	// there is no extension so we to check .ts and .js versions
+	else {
+		client_file_exists = (
+			await Promise.all([
+				fs.readFile(configFile.client + '.ts'),
+				fs.readFile(configFile.client + '.js'),
+			])
+		).some(Boolean)
+	}
+	if (!client_file_exists) {
+		throw new HoudiniError({
+			filepath: configFile.client,
+			message: `File "${configFile.client}.(ts,js)" is missing. Either create it or set the client property in houdini.config.js file to target your houdini client file.`,
+			description:
+				'It has to be a relative path (from houdini.config.js) to your client file. The file must have a default export with an instance of HoudiniClient.',
 		})
 	}
 

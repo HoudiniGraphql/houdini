@@ -1,3 +1,5 @@
+import { DocumentObserver } from '$houdini/runtime/client/documentObserver'
+import { getCurrentClient } from '$houdini/runtime/lib'
 import { keyFieldsForType, getCurrentConfig } from '$houdini/runtime/lib/config'
 import { siteURL } from '$houdini/runtime/lib/constants'
 import {
@@ -36,7 +38,7 @@ class BasePaginatedFragmentStore<_Data extends GraphQLObject, _Input> {
 	protected async queryVariables(
 		store: Readable<FragmentPaginatedResult<_Data, unknown>>
 	): Promise<_Input> {
-		const config = await getCurrentConfig()
+		const config = getCurrentConfig()
 
 		const { targetType } = this.paginationArtifact.refetch || {}
 		const typeConfig = config.types?.[targetType || '']
@@ -73,17 +75,16 @@ class FragmentStoreCursor<
 > extends BasePaginatedFragmentStore<_Data, _Input> {
 	// we want to add the cursor-based fetch to the return value of get
 	get(initialValue: _Data | null) {
-		const store = writable<FragmentPaginatedResult<_Data, { pageInfo: PageInfo }>>({
-			data: initialValue,
-			fetching: false,
-			pageInfo: nullPageInfo(),
+		const store = getCurrentClient().observe<_Data, _Input>({
+			artifact: this.paginationArtifact,
+			initialValue: initialValue ?? null,
 		})
 
 		// track the loading state
 		const loading = writable(false)
 
 		// generate the pagination handlers
-		const handlers = this.storeHandlers(store, loading.set)
+		const handlers = this.storeHandlers(store)
 
 		const subscribe = (
 			run: Subscriber<FragmentPaginatedResult<_Data, { pageInfo: PageInfo }>>,
@@ -107,7 +108,7 @@ class FragmentStoreCursor<
 
 		return {
 			kind: CompiledFragmentKind,
-			data: store,
+			data: derived(store, ($value) => $value.data),
 			subscribe: subscribe,
 			loading: loading as Readable<boolean>,
 			fetch: handlers.fetch,
@@ -116,19 +117,21 @@ class FragmentStoreCursor<
 	}
 
 	protected storeHandlers(
-		store: Readable<FragmentPaginatedResult<_Data, unknown>>,
-		setFetching: (val: boolean) => void
+		observer: DocumentObserver<_Data, _Input>
 	): CursorHandlers<_Data, _Input> {
 		return cursorHandlers<_Data, _Input>({
 			artifact: this.paginationArtifact,
-			fetch: async () => {
-				return {} as any
+			fetch: async (args) => {
+				return observer.send({
+					...args,
+					variables: {
+						...args?.variables,
+						...this.queryVariables(observer),
+					},
+				})
 			},
-			getValue: () => get(store).data,
-			queryVariables: () => this.queryVariables(store),
-			setFetching,
+			observer,
 			storeName: this.name,
-			getConfig: () => getCurrentConfig(),
 		})
 	}
 }
@@ -141,13 +144,13 @@ export class FragmentStoreForwardCursor<
 	get(initialValue: _Data | null) {
 		// get the base class
 		const parent = super.get(initialValue)
+		const observer = getCurrentClient().observe<_Data, _Input>({
+			artifact: this.paginationArtifact,
+			initialValue,
+		})
 
 		// generate the pagination handlers
-		const handlers = this.storeHandlers(
-			parent,
-			// it really is a writable under the hood :(
-			(parent.loading as unknown as Writable<boolean>).set
-		)
+		const handlers = this.storeHandlers(observer)
 
 		return {
 			...parent,
@@ -164,13 +167,13 @@ export class FragmentStoreBackwardCursor<
 > extends FragmentStoreCursor<_Data, _Input> {
 	get(initialValue: _Data | null) {
 		const parent = super.get(initialValue)
+		const observer = getCurrentClient().observe<_Data, _Input>({
+			artifact: this.paginationArtifact,
+			initialValue,
+		})
 
 		// generate the pagination handlers
-		const handlers = this.storeHandlers(
-			parent,
-			// it really is a writable under the hood :(
-			(fetching: boolean) => parent.data.update((p) => ({ ...p, fetching }))
-		)
+		const handlers = this.storeHandlers(observer)
 
 		return {
 			...parent,
@@ -185,25 +188,30 @@ export class FragmentStoreOffset<
 	_Input extends Record<string, any>
 > extends BasePaginatedFragmentStore<_Data, _Input> {
 	get(initialValue: _Data | null) {
-		const parent = writable<FragmentPaginatedResult<_Data>>({
-			data: initialValue,
-			fetching: false,
+		const observer = getCurrentClient().observe<_Data, _Input>({
+			artifact: this.paginationArtifact,
+			initialValue,
 		})
 
 		// create the offset handlers we'll add to the store
 		const handlers = offsetHandlers<_Data, _Input>({
 			artifact: this.paginationArtifact,
-			fetch: async () => ({} as any),
-			getValue: () => get(parent).data,
-			setFetching: (fetching: boolean) => parent.update((p) => ({ ...p, fetching })),
-			queryVariables: () => this.queryVariables({ subscribe: parent.subscribe }),
+			fetch: async (args) => {
+				return observer.send({
+					...args,
+					variables: {
+						...args?.variables,
+						...this.queryVariables(observer),
+					},
+				})
+			},
+			observer,
 			storeName: this.name,
-			getConfig: () => getCurrentConfig(),
 		})
 
 		// add the offset handlers
 		return {
-			...parent,
+			...observer,
 			kind: CompiledFragmentKind,
 			fetch: handlers.fetch,
 			loadNextPage: handlers.loadNextPage,

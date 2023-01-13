@@ -1,5 +1,6 @@
 import { GraphQLSchema } from 'graphql'
 
+import config from '../imports/config'
 import { CachePolicy } from './types'
 
 let mockConfig: ConfigFile | null = null
@@ -45,18 +46,23 @@ export function computeID(configFile: ConfigFile, type: string, data: any): stri
 	return id.slice(0, -2)
 }
 
-export async function getCurrentConfig(): Promise<ConfigFile> {
+export function getCurrentConfig(): ConfigFile {
 	const mockConfig = getMockConfig()
 	if (mockConfig) {
 		return mockConfig
 	}
 
-	// @ts-ignore
-	return defaultConfigValues((await import('HOUDINI_CONFIG_PATH')).default)
+	return defaultConfigValues(config)
 }
 
 // the values we can take in from the config file
 export type ConfigFile = {
+	/**
+	 * A relative path from your houdini.config.js to the file that exports your client as its default value
+	 * @default `./src/client.ts`
+	 */
+	client?: string
+
 	/**
 	 * A glob pointing to all files that houdini should consider. Note, this must include .js files
 	 * for inline queries to work

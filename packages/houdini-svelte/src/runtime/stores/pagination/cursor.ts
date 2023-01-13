@@ -7,16 +7,19 @@ import { get, Writable, writable } from 'svelte/store'
 
 import { QueryStoreFetchParams } from '../query'
 import { fetchParams } from '../query'
+import { FetchFn } from './fetch'
 import { countPage, extractPageInfo, missingPageSizeError, PageInfo } from './pageInfo'
 
 export function cursorHandlers<_Data extends GraphQLObject, _Input extends Record<string, any>>({
 	artifact,
 	storeName,
 	observer,
+	fetch: parentFetch,
 }: {
 	artifact: QueryArtifact
 	storeName: string
 	observer: DocumentObserver<_Data, _Input>
+	fetch: FetchFn<_Data, _Input>
 }): CursorHandlers<_Data, _Input> {
 	const pageInfo = writable<PageInfo>(extractPageInfo(get(observer).data, artifact.refetch!.path))
 
@@ -36,7 +39,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 		metadata?: {}
 		fetch?: typeof globalThis.fetch
 	}) => {
-		const config = await getCurrentConfig()
+		const config = getCurrentConfig()
 
 		// if we don't have a value for the page size, tell the user
 		if (!input[pageSizeVar] && !artifact.refetch!.pageSize) {
@@ -44,7 +47,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 		}
 
 		// send the query
-		const { data } = await observer.send({ variables: { input }, fetch, metadata })
+		const { data } = await parentFetch({ variables: input, fetch, metadata })
 
 		// if the query is embedded in a node field (paginated fragments)
 		// make sure we look down one more for the updated page info

@@ -216,7 +216,7 @@ function add_load({
 			AST.variableDeclaration('const', [
 				AST.variableDeclarator(
 					AST.identifier('houdiniConfig'),
-					AST.awaitExpression(AST.callExpression(AST.identifier('getCurrentConfig'), []))
+					AST.callExpression(AST.identifier('getCurrentConfig'), [])
 				),
 			]),
 

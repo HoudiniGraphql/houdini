@@ -21,9 +21,7 @@ export function fragment<_Fragment extends Fragment<any>>(
 export function fragment<_Fragment extends Fragment<any>>(
 	ref: _Fragment | null,
 	store: FragmentStore<_Fragment['shape']>
-): Readable<NonNullable<_Fragment['shape']>> & {
-	data: Readable<_Fragment | null>
-} {
+) {
 	// make sure we got a query document
 	if (store.kind !== 'HoudiniFragment') {
 		throw new Error(`fragment can only take fragment documents. Found: ${store.kind}`)

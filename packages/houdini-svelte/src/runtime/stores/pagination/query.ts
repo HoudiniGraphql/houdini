@@ -34,6 +34,7 @@ class CursorPaginatedStore<_Data extends GraphQLObject, _Input extends {}> exten
 			artifact: this.artifact,
 			observer: this.observer,
 			storeName: this.name,
+			fetch: super.fetch,
 		})
 	}
 

@@ -1,4 +1,4 @@
 import { HoudiniClient } from '$houdini';
 
 // Export the Houdini client
-export default new HoudiniClient({});
+export default new HoudiniClient(async () => ({ data: null, errors: [] }));
