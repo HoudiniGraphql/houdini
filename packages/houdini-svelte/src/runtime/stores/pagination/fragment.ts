@@ -10,7 +10,6 @@ import {
 import { derived, get, Readable, Subscriber, Writable, writable } from 'svelte/store'
 
 import { StoreConfig } from '../query'
-import { BaseStore } from '../store'
 import { cursorHandlers, CursorHandlers } from './cursor'
 import { offsetHandlers } from './offset'
 import { nullPageInfo, PageInfo } from './pageInfo'
@@ -21,7 +20,7 @@ type FragmentStoreConfig<_Data extends GraphQLObject, _Input> = StoreConfig<
 	FragmentArtifact
 > & { paginationArtifact: QueryArtifact }
 
-class BasePaginatedFragmentStore<_Data extends GraphQLObject, _Input> extends BaseStore {
+class BasePaginatedFragmentStore<_Data extends GraphQLObject, _Input> {
 	// all paginated stores need to have a flag to distinguish from other fragment stores
 	paginated = true
 
@@ -30,7 +29,6 @@ class BasePaginatedFragmentStore<_Data extends GraphQLObject, _Input> extends Ba
 	kind = CompiledFragmentKind
 
 	constructor(config: FragmentStoreConfig<_Data, _Input>) {
-		super()
 		this.paginationArtifact = config.paginationArtifact
 		this.name = config.storeName
 	}
@@ -69,10 +67,10 @@ class BasePaginatedFragmentStore<_Data extends GraphQLObject, _Input> extends Ba
 }
 
 // both cursor paginated stores add a page info to their subscribe
-class FragmentStoreCursor<_Data extends GraphQLObject, _Input> extends BasePaginatedFragmentStore<
-	_Data,
-	_Input
-> {
+class FragmentStoreCursor<
+	_Data extends GraphQLObject,
+	_Input extends Record<string, any>
+> extends BasePaginatedFragmentStore<_Data, _Input> {
 	// we want to add the cursor-based fetch to the return value of get
 	get(initialValue: _Data | null) {
 		const store = writable<FragmentPaginatedResult<_Data, { pageInfo: PageInfo }>>({
@@ -130,7 +128,7 @@ class FragmentStoreCursor<_Data extends GraphQLObject, _Input> extends BasePagin
 			queryVariables: () => this.queryVariables(store),
 			setFetching,
 			storeName: this.name,
-			getConfig: () => this.getConfig(),
+			getConfig: () => getCurrentConfig(),
 		})
 	}
 }
@@ -138,7 +136,7 @@ class FragmentStoreCursor<_Data extends GraphQLObject, _Input> extends BasePagin
 // FragmentStoreForwardCursor adds loadNextPage to FragmentStoreCursor
 export class FragmentStoreForwardCursor<
 	_Data extends GraphQLObject,
-	_Input
+	_Input extends Record<string, any>
 > extends FragmentStoreCursor<_Data, _Input> {
 	get(initialValue: _Data | null) {
 		// get the base class
@@ -162,7 +160,7 @@ export class FragmentStoreForwardCursor<
 // BackwardFragmentStoreCursor adds loadPreviousPage to FragmentStoreCursor
 export class FragmentStoreBackwardCursor<
 	_Data extends GraphQLObject,
-	_Input
+	_Input extends Record<string, any>
 > extends FragmentStoreCursor<_Data, _Input> {
 	get(initialValue: _Data | null) {
 		const parent = super.get(initialValue)
@@ -184,7 +182,7 @@ export class FragmentStoreBackwardCursor<
 
 export class FragmentStoreOffset<
 	_Data extends GraphQLObject,
-	_Input
+	_Input extends Record<string, any>
 > extends BasePaginatedFragmentStore<_Data, _Input> {
 	get(initialValue: _Data | null) {
 		const parent = writable<FragmentPaginatedResult<_Data>>({
@@ -200,7 +198,7 @@ export class FragmentStoreOffset<
 			setFetching: (fetching: boolean) => parent.update((p) => ({ ...p, fetching })),
 			queryVariables: () => this.queryVariables({ subscribe: parent.subscribe }),
 			storeName: this.name,
-			getConfig: () => this.getConfig(),
+			getConfig: () => getCurrentConfig(),
 		})
 
 		// add the offset handlers

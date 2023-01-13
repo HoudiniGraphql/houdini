@@ -1,4 +1,4 @@
-import { DataSource, GraphQLObject, RequestPayload } from '../../lib'
+import { DataSource, RequestPayload } from '../../lib'
 import type { ClientPlugin } from '../documentObserver'
 
 export const fetchPlugin = (fn?: RequestHandler | string): ClientPlugin => {
