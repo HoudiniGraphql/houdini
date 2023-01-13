@@ -118,9 +118,7 @@ export async function walk_routes(
 	config: Config,
 	framework: Framework,
 	visitor: RouteVisitor,
-	dirpath = config.routesDir.startsWith(config.projectRoot)
-		? config.routesDir
-		: path.join(config.projectRoot, config.routesDir)
+	dirpath = config.routesDir
 ) {
 	let pageExports: string[] = []
 	let layoutExports: string[] = []
