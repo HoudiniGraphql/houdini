@@ -13,15 +13,10 @@ import {
 	QueryArtifact,
 	SubscriptionSpec,
 	unmarshalSelection,
-	Subscriber,
+	App,
 } from '../lib'
 import { Writable } from '../lib/store'
 import { cachePolicyPlugin } from './plugins'
-
-export declare namespace App {
-	interface Session {}
-	interface Metadata {}
-}
 
 export class DocumentObserver<
 	_Data extends GraphQLObject,
@@ -29,7 +24,7 @@ export class DocumentObserver<
 > extends Writable<QueryResult<_Data, _Input>> {
 	#artifact: DocumentArtifact
 	#client: HoudiniClient
-	#configFile: ConfigFile | null = getCurrentConfig()
+	#configFile: ConfigFile
 
 	// the list of instantiated plugins
 	#plugins: ReturnType<ClientPlugin>[]
@@ -73,6 +68,7 @@ export class DocumentObserver<
 		this.#artifact = artifact
 		this.#client = client
 		this.#lastVariables = null
+		this.#configFile = getCurrentConfig()
 
 		this.#plugins = [
 			// cache policy needs to always come first so that it can be the first fetch_enter to fire

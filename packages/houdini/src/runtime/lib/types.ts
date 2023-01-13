@@ -201,3 +201,8 @@ export type RequestPayload<GraphQLObject = any> = {
 		  }[]
 		| null
 }
+
+export declare namespace App {
+	interface Session {}
+	interface Metadata {}
+}
