@@ -132,6 +132,8 @@ test('CacheOnly', async function () {
 	})
 	const ret2 = await store.send({ policy: CachePolicy.CacheOrNetwork })
 
+	// we should have set loading to true along the way
+	expect(spy).toHaveBeenCalledTimes(1)
 	expect(ret2).toEqual({
 		data: {
 			viewer: {
@@ -147,6 +149,8 @@ test('CacheOnly', async function () {
 	})
 	const ret3 = await store.send({ policy: CachePolicy.CacheOnly })
 
+	// doesn't update the fetch value
+	expect(spy).toHaveBeenCalledTimes(1)
 	expect(ret3).toEqual({
 		data: {
 			viewer: {
