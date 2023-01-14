@@ -86,7 +86,6 @@ export class HoudiniClient {
 			client: this,
 			artifact,
 			plugins: this.#plugins,
-			pipeline: [],
 			cache,
 			initialValue,
 		})
