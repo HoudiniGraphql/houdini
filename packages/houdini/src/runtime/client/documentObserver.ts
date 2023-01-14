@@ -48,10 +48,10 @@ export class DocumentObserver<
 		// the initial store state
 		const initialState: QueryResult<_Data, _Input> = {
 			data: initialValue ?? null,
-			errors: [],
+			errors: null,
 			partial: false,
 			source: null,
-			fetching: true,
+			fetching: artifact.kind === ArtifactKind.Query,
 			variables: null,
 		}
 
