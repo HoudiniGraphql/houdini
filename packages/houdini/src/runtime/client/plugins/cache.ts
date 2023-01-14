@@ -50,9 +50,9 @@ export const cachePolicyPlugin =
 									fetching: false,
 									variables: ctx.variables ?? null,
 									data: value.data,
-									errors: [{ message: 'a' }],
+									errors: null,
 									source: DataSource.Cache,
-									partial: false,
+									partial: value.partial,
 								})
 							}
 
@@ -63,7 +63,7 @@ export const cachePolicyPlugin =
 									fetching: false,
 									variables: ctx.variables ?? null,
 									data: value.data,
-									errors: [],
+									errors: null,
 									source: DataSource.Cache,
 									partial: value.partial,
 								})
@@ -71,6 +71,7 @@ export const cachePolicyPlugin =
 
 							// if we used the cache data and there's no followup necessary, we're done
 							if (useCache && !value.partial) {
+								console.log(' used cached value')
 								return
 							}
 						}

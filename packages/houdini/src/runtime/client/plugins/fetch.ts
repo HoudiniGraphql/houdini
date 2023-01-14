@@ -54,7 +54,7 @@ export const fetchPlugin = (fn?: RequestHandler | string): ClientPlugin => {
 						fetching: false,
 						variables: ctx.variables ?? null,
 						data: result.data,
-						errors: result.errors ?? null,
+						errors: !result.errors || result.errors.length === 0 ? null : result.errors,
 						partial: false,
 						source: DataSource.Network,
 					})

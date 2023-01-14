@@ -144,11 +144,6 @@ export class DocumentObserver<
 			this.#next(state)
 		})
 
-		// if there are errors, we might need to throw
-		if (result.errors && result.errors.length > 0 && this.#configFile.quietErrors) {
-			throw result.errors
-		}
-
 		// we're done
 		return result
 	}

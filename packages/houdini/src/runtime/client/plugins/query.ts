@@ -44,9 +44,10 @@ export const queryPlugin: ClientPlugin = documentPlugin(ArtifactKind.Query, func
 						selection: ctx.artifact.selection,
 						variables: () => lastVariables,
 						set: (newValue) => {
+							console.log('setting from cache update')
 							resolve(ctx, {
 								data: newValue,
-								errors: [],
+								errors: null,
 								fetching: false,
 								partial: false,
 								source: DataSource.Cache,

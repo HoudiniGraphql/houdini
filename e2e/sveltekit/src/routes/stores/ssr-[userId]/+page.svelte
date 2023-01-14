@@ -10,7 +10,8 @@
 
   async function refresh(id: string | null) {
     if (id) {
-      await User.fetch({ variables: { id, tmp: false } });
+      const result = await User.fetch({ variables: { id, tmp: false } });
+      console.log(result);
     } else {
       // context not usefull here, but we can put it!
       await User.fetch({ policy: CachePolicy.NetworkOnly });
