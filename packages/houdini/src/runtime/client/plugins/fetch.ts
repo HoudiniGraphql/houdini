@@ -1,4 +1,4 @@
-import { DataSource, RequestPayload, App } from '../../lib/types'
+import { DataSource, RequestPayload } from '../../lib/types'
 import type { ClientPlugin } from '../documentObserver'
 
 export const fetchPlugin = (fn?: RequestHandler | string): ClientPlugin => {
@@ -91,8 +91,10 @@ const defaultFetch = (url: string): RequestHandler => {
 
 export type FetchContext = {
 	fetch: typeof globalThis.fetch
-	metadata?: App.Metadata | null
-	session: App.Session | null
+	// @ts-ignore
+	metadata?: Record<string, any> | null
+	// @ts-ignore
+	session: Record<string, any> | null
 }
 
 /**

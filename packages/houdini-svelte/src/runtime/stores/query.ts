@@ -93,6 +93,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 		// if the query is a live query, we don't really care about network policies any more
 		// since CacheOrNetwork behaves the same as CacheAndNetwork
 		const request = this.observer.send({
+			fetch: context.fetch,
 			variables: params.variables,
 			metadata: params.metadata,
 			session: context.session,

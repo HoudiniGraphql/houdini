@@ -1,7 +1,7 @@
 import { DocumentObserver } from '$houdini/runtime/client'
 import { getCurrentClient } from '$houdini/runtime/lib/network'
 import type { MutationArtifact } from '$houdini/runtime/lib/types'
-import { GraphQLObject, App } from '$houdini/runtime/lib/types'
+import { GraphQLObject } from '$houdini/runtime/lib/types'
 
 import { getSession } from '../session'
 
@@ -27,6 +27,7 @@ export class MutationStore<
 			fetch,
 			...mutationConfig
 		}: {
+			// @ts-ignore
 			metadata?: App.Metadata
 			fetch?: typeof globalThis.fetch
 		} & MutationConfig<_Data, _Input, _Optimistic> = {}

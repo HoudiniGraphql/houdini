@@ -12,7 +12,6 @@ import {
 	GraphQLObject,
 	QueryArtifact,
 	SubscriptionSpec,
-	App,
 } from '../lib/types'
 import { cachePolicyPlugin } from './plugins'
 
@@ -93,9 +92,11 @@ export class DocumentObserver<
 		stuff,
 	}: {
 		variables?: Record<string, any> | null
-		metadata?: App.Metadata | null
+		// @ts-ignore
+		metadata?: Record<string, any> | null
 		fetch?: Fetch
-		session?: App.Session | null
+		// @ts-ignore
+		session?: Record<string, any> | null
 		policy?: CachePolicy
 		stuff?: {}
 	} = {}): Promise<QueryResult<_Data, _Input>> {
@@ -496,9 +497,9 @@ export type ClientPluginContext<_Data extends GraphQLObject = GraphQLObject> = {
 	fetch?: Fetch
 	variables?: Record<string, any>
 	// @ts-ignore
-	metadata?: App.Metadata | null
+	metadata?: Record<string, any> | null
 	// @ts-ignore
-	session?: App.Session | null
+	session?: Record<string, any> | null
 	fetchParams?: RequestInit
 	cacheParams?: {
 		layer?: Layer
