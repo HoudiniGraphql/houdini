@@ -51,7 +51,7 @@ export class DocumentObserver<
 			errors: [],
 			partial: false,
 			source: null,
-			fetching: false,
+			fetching: true,
 			variables: null,
 		}
 

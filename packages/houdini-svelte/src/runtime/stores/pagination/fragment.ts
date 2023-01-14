@@ -78,9 +78,6 @@ class FragmentStoreCursor<
 			initialValue: initialValue ?? null,
 		})
 
-		// track the loading state
-		const loading = writable(false)
-
 		// generate the pagination handlers
 		const handlers = this.storeHandlers(store)
 
@@ -108,7 +105,7 @@ class FragmentStoreCursor<
 			kind: CompiledFragmentKind,
 			data: derived(store, ($value) => $value.data),
 			subscribe: subscribe,
-			loading: loading as Readable<boolean>,
+			fetching: derived(store, ($store) => $store.fetching),
 			fetch: handlers.fetch,
 			pageInfo: handlers.pageInfo,
 		}
@@ -233,10 +230,12 @@ export class FragmentStoreOffset<
 
 		// add the offset handlers
 		return {
-			...observer,
 			kind: CompiledFragmentKind,
+			data: derived(observer, ($value) => $value.data),
+			subscribe: observer.subscribe.bind(observer),
 			fetch: handlers.fetch,
 			loadNextPage: handlers.loadNextPage,
+			fetching: derived(observer, ($store) => $store.fetching),
 		}
 	}
 }

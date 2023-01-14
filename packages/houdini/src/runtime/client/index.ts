@@ -12,7 +12,7 @@ import pluginsFromPlugins from './plugins/injectedPlugins'
 
 // export the plugin constructors
 export { queryPlugin, mutationPlugin, fetchPlugin, subscriptionPlugin } from './plugins'
-export { DocumentObserver } from './documentObserver'
+export { DocumentObserver, type ClientPlugin } from './documentObserver'
 
 type ConstructorArgs = {
 	url: string

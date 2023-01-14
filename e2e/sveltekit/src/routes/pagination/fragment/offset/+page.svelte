@@ -9,8 +9,8 @@
     }
   `);
 
-  const fragmentResult = paginatedFragment(
-    $queryResult.data?.user ?? null,
+  $: fragmentResult = paginatedFragment(
+    $queryResult.data?.user!,
     graphql(`
       fragment OffsetFragment on User {
         friendsList(limit: 2) @paginate {
