@@ -35,9 +35,7 @@ class BasePaginatedFragmentStore<_Data extends GraphQLObject, _Input> {
 		this.name = config.storeName
 	}
 
-	protected async queryVariables(
-		store: Readable<FragmentPaginatedResult<_Data, unknown>>
-	): Promise<_Input> {
+	protected queryVariables(store: Readable<FragmentPaginatedResult<_Data, unknown>>): _Input {
 		const config = getCurrentConfig()
 
 		const { targetType } = this.paginationArtifact.refetch || {}
@@ -212,8 +210,8 @@ export class FragmentStoreOffset<
 				return observer.send({
 					...args,
 					variables: {
-						...args?.variables,
 						...this.queryVariables(observer),
+						...args?.variables,
 					},
 				})
 			},
@@ -221,8 +219,8 @@ export class FragmentStoreOffset<
 				return observer.send({
 					...args,
 					variables: {
-						...args?.variables,
 						...this.queryVariables(observer),
+						...args?.variables,
 					},
 					cacheParams: {
 						applyUpdates: true,
