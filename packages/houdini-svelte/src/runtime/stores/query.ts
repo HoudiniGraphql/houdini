@@ -127,18 +127,13 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 		// make sure that the store is always listening to the cache (on the browser)
 		if (isBrowser && this.subscriberCount === 0) {
 			this.observer.send({
-				policy: CachePolicy.CacheOnly,
+				setup: true,
 				variables: get(this.observer).variables,
 			})
 		}
 
 		// we have a new subscriber
 		this.subscriberCount = (this.subscriberCount ?? 0) + 1
-
-		// make sure that the store is always listening to the cache (on the browser)
-		// if (isBrowser && !this.subscriptionSpec) {
-		// 	this.refreshSubscription(this.lastVariables ?? ({} as _Input))
-		// }
 
 		// Handle unsubscribe
 		return () => {

@@ -19,6 +19,7 @@ export const cachePolicyPlugin =
 				enter(ctx, { next, resolve, marshalVariables }) {
 					const { policy, artifact } = ctx
 
+					let useCache = false
 					// enforce cache policies for queries
 					if (enabled && policy && !ctx.cacheParams?.disableRead) {
 						// this function is called as the first step in requesting data. If the policy prefers
@@ -53,7 +54,7 @@ export const cachePolicyPlugin =
 							}
 
 							// if we have data, use that unless its partial data and we dont allow that
-							const useCache = value.data !== null && allowed
+							useCache = !!(value.data !== null && allowed)
 							if (useCache) {
 								resolve(ctx, {
 									fetching: false,
@@ -81,7 +82,8 @@ export const cachePolicyPlugin =
 					}
 
 					// if we got this far, we are resolving something against the network
-					setFetching(true)
+					// dont set the fetching state to true if we accepted a cache value
+					setFetching(!useCache)
 
 					// move on
 					return next(ctx)

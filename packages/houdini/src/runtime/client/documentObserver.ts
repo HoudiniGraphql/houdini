@@ -92,6 +92,7 @@ export class DocumentObserver<
 		policy,
 		stuff,
 		cacheParams,
+		setup = false,
 	}: {
 		variables?: Record<string, any> | null
 		// @ts-ignore
@@ -102,6 +103,7 @@ export class DocumentObserver<
 		policy?: CachePolicy
 		stuff?: {}
 		cacheParams?: ClientPluginContext['cacheParams']
+		setup?: boolean
 	} = {}): Promise<QueryResult<_Data, _Input>> {
 		// start off with the initial context
 		let context = new ClientPluginContextWrapper({
@@ -127,6 +129,7 @@ export class DocumentObserver<
 			// the initial state of the iterator
 			const state: IteratorState = {
 				currentStep: 'setup',
+				setup,
 				index: -1,
 				promise: {
 					resolved: false,
@@ -193,7 +196,16 @@ export class DocumentObserver<
 		}
 
 		// if we got this far, we have exhausted the step.
-
+		if (ctx.setup) {
+			return this.#terminate(
+				{
+					...ctx,
+					currentStep: 'network',
+					index: this.#plugins.length,
+				},
+				this.state
+			)
+		}
 		// if we are still in setup, flip over to fetch and start over
 		if (ctx.currentStep === 'setup') {
 			return this.#next({
@@ -365,6 +377,7 @@ export type ClientPlugin =
 type IteratorState = {
 	context: ClientPluginContextWrapper
 	index: number
+	setup: boolean
 	currentStep: 'network' | 'setup'
 	promise: {
 		resolved: boolean

@@ -44,14 +44,20 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 	}) => {
 		const config = getCurrentConfig()
 
+		// build up the variables to pass to the query
+		const loadVariables: _Input = {
+			...getState().variables,
+			...input,
+		}
+
 		// if we don't have a value for the page size, tell the user
-		if (!input[pageSizeVar] && !artifact.refetch!.pageSize) {
+		if (!loadVariables[pageSizeVar] && !artifact.refetch!.pageSize) {
 			throw missingPageSizeError(functionName)
 		}
 
 		// send the query
 		const { data } = await parentFetchUpdate({
-			variables: input,
+			variables: loadVariables,
 			fetch,
 			metadata,
 			policy: CachePolicy.NetworkOnly,

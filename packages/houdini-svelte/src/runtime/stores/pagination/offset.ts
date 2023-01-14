@@ -46,7 +46,8 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends {}>({
 		} = {}) => {
 			// build up the variables to pass to the query
 			const queryVariables: Record<string, any> = {
-				offset,
+				...getValue().variables,
+				offset: offset ?? getOffset(),
 			}
 			if (limit || limit === 0) {
 				queryVariables.limit = limit
