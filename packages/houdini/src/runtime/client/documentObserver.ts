@@ -59,6 +59,7 @@ export class DocumentObserver<
 			// unsubscribing from the store means walking down all of the plugins and calling
 			// cleanup
 			return () => {
+				this.#lastVariables = null
 				for (const plugin of this.#plugins) {
 					plugin.cleanup?.()
 				}
@@ -90,6 +91,7 @@ export class DocumentObserver<
 		variables,
 		policy,
 		stuff,
+		cacheParams,
 	}: {
 		variables?: Record<string, any> | null
 		// @ts-ignore
@@ -99,6 +101,7 @@ export class DocumentObserver<
 		session?: Record<string, any> | null
 		policy?: CachePolicy
 		stuff?: {}
+		cacheParams?: ClientPluginContext['cacheParams']
 	} = {}): Promise<QueryResult<_Data, _Input>> {
 		// start off with the initial context
 		let context = new ClientPluginContextWrapper({
@@ -111,6 +114,7 @@ export class DocumentObserver<
 			stuff: stuff ?? {},
 			artifact: this.#artifact,
 			lastVariables: this.#lastVariables,
+			cacheParams,
 		})
 
 		// assign variables to take advantage of the setter on variables
@@ -122,7 +126,6 @@ export class DocumentObserver<
 		const result = await new Promise<QueryResult<_Data, _Input>>((resolve, reject) => {
 			// the initial state of the iterator
 			const state: IteratorState = {
-				terminatingIndex: null,
 				currentStep: 'setup',
 				index: -1,
 				promise: {
@@ -174,9 +177,6 @@ export class DocumentObserver<
 									context: ctx.context.apply(newContext),
 									// increment the index so that terminate looks at this link again
 									index: index + 1,
-									// increment the index so that terminate looks at this link again
-									// when we flip phases, we need to start from here
-									terminatingIndex: index + 1,
 								},
 								value
 							)
@@ -262,7 +262,7 @@ export class DocumentObserver<
 				{
 					...ctx,
 					currentStep: 'setup',
-					index: ctx.terminatingIndex || this.#plugins.length,
+					index: this.#plugins.length,
 				},
 				value
 			)
@@ -365,7 +365,6 @@ export type ClientPlugin =
 type IteratorState = {
 	context: ClientPluginContextWrapper
 	index: number
-	terminatingIndex: number | null
 	currentStep: 'network' | 'setup'
 	promise: {
 		resolved: boolean
@@ -507,6 +506,7 @@ export type ClientPluginContext<_Data extends GraphQLObject = GraphQLObject> = {
 		forceNotify?: boolean
 		disableWrite?: boolean
 		disableRead?: boolean
+		applyUpdates?: boolean
 	}
 	stuff: Record<string, any>
 }

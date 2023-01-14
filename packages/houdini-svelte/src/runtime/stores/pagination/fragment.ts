@@ -121,6 +121,18 @@ class FragmentStoreCursor<
 	): CursorHandlers<_Data, _Input> {
 		return cursorHandlers<_Data, _Input>({
 			artifact: this.paginationArtifact,
+			fetchUpdate: async (args) => {
+				return observer.send({
+					...args,
+					variables: {
+						...args?.variables,
+						...this.queryVariables(observer),
+					},
+					cacheParams: {
+						applyUpdates: true,
+					},
+				})
+			},
 			fetch: async (args) => {
 				return observer.send({
 					...args,
@@ -202,6 +214,18 @@ export class FragmentStoreOffset<
 					variables: {
 						...args?.variables,
 						...this.queryVariables(observer),
+					},
+				})
+			},
+			fetchUpdate: async (args) => {
+				return observer.send({
+					...args,
+					variables: {
+						...args?.variables,
+						...this.queryVariables(observer),
+					},
+					cacheParams: {
+						applyUpdates: true,
 					},
 				})
 			},

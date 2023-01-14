@@ -1,4 +1,5 @@
 import { DocumentObserver } from '$houdini/runtime/client/documentObserver'
+import { CachePolicy } from '$houdini/runtime/lib'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
 import { get } from 'svelte/store'
@@ -12,10 +13,12 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends {}>({
 	artifact,
 	observer,
 	fetch,
+	fetchUpdate,
 	storeName,
 }: {
 	artifact: QueryArtifact
 	fetch: FetchFn<_Data, _Input>
+	fetchUpdate: FetchFn<_Data, _Input>
 	storeName: string
 	observer: DocumentObserver<_Data, _Input>
 }) {
@@ -56,7 +59,12 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends {}>({
 			}
 
 			// send the query
-			await observer.send({ variables: queryVariables, fetch, metadata })
+			await fetchUpdate({
+				variables: queryVariables as _Input,
+				fetch,
+				metadata,
+				policy: CachePolicy.NetworkOnly,
+			})
 
 			// add the page size to the offset so we load the next page next time
 			const pageSize = queryVariables.limit || artifact.refetch!.pageSize

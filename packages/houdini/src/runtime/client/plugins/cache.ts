@@ -46,7 +46,7 @@ export const cachePolicyPlugin =
 									fetching: false,
 									variables: ctx.variables ?? null,
 									data: value.data,
-									errors: [],
+									errors: [{ message: 'a' }],
 									source: DataSource.Cache,
 									partial: false,
 								})

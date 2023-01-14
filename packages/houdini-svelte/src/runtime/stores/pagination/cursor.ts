@@ -1,4 +1,5 @@
 import { DocumentObserver } from '$houdini/runtime/client/documentObserver'
+import { CachePolicy } from '$houdini/runtime/lib'
 import { getCurrentConfig } from '$houdini/runtime/lib/config'
 import { siteURL } from '$houdini/runtime/lib/constants'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
@@ -14,16 +15,18 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 	artifact,
 	storeName,
 	observer,
+	fetchUpdate: parentFetchUpdate,
 	fetch: parentFetch,
 }: {
 	artifact: QueryArtifact
 	storeName: string
 	observer: DocumentObserver<_Data, _Input>
 	fetch: FetchFn<_Data, _Input>
+	fetchUpdate: FetchFn<_Data, _Input>
 }): CursorHandlers<_Data, _Input> {
 	const pageInfo = writable<PageInfo>(extractPageInfo(get(observer).data, artifact.refetch!.path))
 
-	const getValue = () => get(observer)
+	const getState = () => get(observer)
 
 	// dry up the page-loading logic
 	const loadPage = async ({
@@ -47,7 +50,12 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 		}
 
 		// send the query
-		const { data } = await parentFetch({ variables: input, fetch, metadata })
+		const { data } = await parentFetchUpdate({
+			variables: input,
+			fetch,
+			metadata,
+			policy: CachePolicy.NetworkOnly,
+		})
 
 		// if the query is embedded in a node field (paginated fragments)
 		// make sure we look down one more for the updated page info
@@ -82,8 +90,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 			metadata?: {}
 		} = {}) => {
 			// we need to find the connection object holding the current page info
-			const currentPageInfo = extractPageInfo(getValue().data, artifact.refetch!.path)
-
+			const currentPageInfo = extractPageInfo(getState().data, artifact.refetch!.path)
 			// if there is no next page, we're done
 			if (!currentPageInfo.hasNextPage) {
 				return
@@ -118,7 +125,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 			metadata?: {}
 		} = {}) => {
 			// we need to find the connection object holding the current page info
-			const currentPageInfo = extractPageInfo(getValue().data, artifact.refetch!.path)
+			const currentPageInfo = extractPageInfo(getState().data, artifact.refetch!.path)
 
 			// if there is no next page, we're done
 			if (!currentPageInfo.hasPreviousPage) {
@@ -157,8 +164,8 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 			}
 
 			// if the input is different than the query variables then we just do everything like normal
-			if (variables && !deepEquals(getValue().variables, variables)) {
-				return await this.fetch({
+			if (variables && !deepEquals(getState().variables, variables)) {
+				return await parentFetch({
 					...params,
 					then(data) {
 						pageInfo.set(extractPageInfo(data, artifact.refetch!.path))
@@ -169,7 +176,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 			// we are updating the current set of items, count the number of items that currently exist
 			// and ask for the full data set
 			const count =
-				countPage(artifact.refetch!.path.concat('edges'), getValue().data) ||
+				countPage(artifact.refetch!.path.concat('edges'), getState().data) ||
 				artifact.refetch!.pageSize
 
 			// if there are more records than the first page, we need fetch to load everything
@@ -179,7 +186,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 			}
 
 			// send the query
-			const result = await this.fetch({
+			const result = await parentFetch({
 				...params,
 				variables: queryVariables as _Input,
 			})

@@ -1,3 +1,4 @@
+import { getCurrentClient } from '$houdini/runtime/lib'
 import { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
 import { derived, Subscriber } from 'svelte/store'
 
@@ -30,11 +31,28 @@ class CursorPaginatedStore<_Data extends GraphQLObject, _Input extends {}> exten
 
 	constructor(config: StoreConfig<_Data, _Input, QueryArtifact>) {
 		super(config)
+
+		// we're going to use a separate observer for the page loading
+		const paginationObserver = getCurrentClient().observe<_Data, _Input>({
+			artifact: this.artifact,
+		})
+
 		this.handlers = cursorHandlers<_Data, _Input>({
 			artifact: this.artifact,
 			observer: this.observer,
 			storeName: this.name,
-			fetch: super.fetch,
+			fetch: super.fetch.bind(this),
+			fetchUpdate: async (args) => {
+				return paginationObserver.send({
+					...args,
+					variables: {
+						...args?.variables,
+					},
+					cacheParams: {
+						applyUpdates: true,
+					},
+				})
+			},
 		})
 	}
 
@@ -102,11 +120,28 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input extends {}> ex
 
 	constructor(config: StoreConfig<_Data, _Input, QueryArtifact>) {
 		super(config)
+
+		// we're going to use a separate observer for the page loading
+		const paginationObserver = getCurrentClient().observe<_Data, _Input>({
+			artifact: this.artifact,
+		})
+
 		this.handlers = offsetHandlers<_Data, _Input>({
 			artifact: this.artifact,
 			observer: this.observer,
 			storeName: this.name,
 			fetch: super.fetch,
+			fetchUpdate: async (args) => {
+				return paginationObserver.send({
+					...args,
+					variables: {
+						...args?.variables,
+					},
+					cacheParams: {
+						applyUpdates: true,
+					},
+				})
+			},
 		})
 	}
 

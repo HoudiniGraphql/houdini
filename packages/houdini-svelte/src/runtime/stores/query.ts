@@ -102,9 +102,10 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 		})
 
 		// if we have to track when the fetch is done,
-		if (params.then) {
-			request.then((val) => params.then?.(val.data))
-		}
+		request.then((val) => {
+			this.loadPending = false
+			params.then?.(val.data)
+		})
 
 		// we might not want to actually wait for the fetch to resolve
 		const fakeAwait = clientStarted && isBrowser && !params?.blocking
@@ -122,6 +123,14 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 
 	subscribe(...args: Parameters<Readable<QueryResult<_Data, _Input>>['subscribe']>) {
 		const bubbleUp = this.observer.subscribe(...args)
+
+		// make sure that the store is always listening to the cache (on the browser)
+		if (isBrowser && this.subscriberCount === 0) {
+			this.observer.send({
+				policy: CachePolicy.CacheOnly,
+				variables: get(this.observer).variables,
+			})
+		}
 
 		// we have a new subscriber
 		this.subscriberCount = (this.subscriberCount ?? 0) + 1

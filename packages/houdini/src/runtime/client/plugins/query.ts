@@ -10,6 +10,7 @@ export const queryPlugin: ClientPlugin = documentPlugin(ArtifactKind.Query, func
 	// remember the last variables we were called with
 	let lastVariables: Record<string, any> | null = null
 
+	let artifactName: string = ''
 	// the function to call when a query is sent
 	return {
 		setup: {
@@ -24,9 +25,10 @@ export const queryPlugin: ClientPlugin = documentPlugin(ArtifactKind.Query, func
 
 			// patch subscriptions on the way out so that we don't get a cache update
 			// before the promise resolves
-			exit(ctx, { next, resolve, marshalVariables, variablesChanged }) {
+			exit(ctx, { resolve, marshalVariables, variablesChanged }) {
 				// if the variables have changed we need to setup a new subscription with the cache
 				if (variablesChanged(ctx)) {
+					artifactName = ctx.artifact.name
 					// if the variables changed we need to unsubscribe from the old fields and
 					// listen to the new ones
 					if (subscriptionSpec) {
@@ -34,14 +36,14 @@ export const queryPlugin: ClientPlugin = documentPlugin(ArtifactKind.Query, func
 					}
 
 					// track the new variables
-					lastVariables = marshalVariables(ctx)
+					lastVariables = { ...marshalVariables(ctx) }
 
 					// save the new subscription spec
 					subscriptionSpec = {
 						rootType: ctx.artifact.rootType,
 						selection: ctx.artifact.selection,
-						variables: () => marshalVariables(ctx),
-						set: (newValue) =>
+						variables: () => lastVariables,
+						set: (newValue) => {
 							resolve(ctx, {
 								data: newValue,
 								errors: [],
@@ -49,7 +51,8 @@ export const queryPlugin: ClientPlugin = documentPlugin(ArtifactKind.Query, func
 								partial: false,
 								source: DataSource.Cache,
 								variables: ctx.variables ?? null,
-							}),
+							})
+						},
 					}
 
 					// make sure we subscribe to the new values
@@ -63,6 +66,7 @@ export const queryPlugin: ClientPlugin = documentPlugin(ArtifactKind.Query, func
 		cleanup() {
 			if (subscriptionSpec) {
 				cache.unsubscribe(subscriptionSpec, subscriptionSpec.variables?.() ?? {})
+				lastVariables = null
 			}
 		},
 	}
