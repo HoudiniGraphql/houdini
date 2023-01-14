@@ -91,10 +91,8 @@ const defaultFetch = (url: string): RequestHandler => {
 
 export type FetchContext = {
 	fetch: typeof globalThis.fetch
-	// @ts-ignore
-	metadata?: Record<string, any> | null
-	// @ts-ignore
-	session: Record<string, any> | null
+	metadata?: App.Metadata | null
+	session: App.Session | null
 }
 
 /**
