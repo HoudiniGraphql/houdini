@@ -4,7 +4,30 @@ import { libReporter } from 'vite-plugin-lib-reporter';
 
 /** @type {import('vite').UserConfig} */
 const config = {
-  plugins: [houdini(), sveltekit()]
+  plugins: [
+    houdini(),
+    sveltekit(),
+
+    // This plugin is checking build sizes by lib.
+    // It's not required for Houdini to work.
+    libReporter([
+      {
+        name: 'houdini runtime core',
+        includes: ['$houdini/runtime'],
+        excludes: ['vite/preload-helper', '$houdini/index.js', 'houdini.config.js', 'src/client.ts']
+      },
+      {
+        name: 'houdini runtime svelte',
+        includes: ['$houdini/plugins/houdini-svelte/runtime'],
+        excludes: ['vite/preload-helper', '$houdini/runtime', '$houdini/index.js', 'svelte']
+      },
+      {
+        name: 'houdini full e2e',
+        includes: ['$houdini', 'src/client.ts', 'houdini.config.js'],
+        excludes: ['vite/preload-helper', 'svelte']
+      }
+    ])
+  ]
 };
 
 export default config;
