@@ -1,9 +1,18 @@
 import cache from '../../cache'
+import type { Cache } from '../../cache/cache'
 import { ArtifactKind, CachePolicy, DataSource } from '../../lib/types'
 import { ClientPlugin } from '../documentObserver'
 
 export const cachePolicyPlugin =
-	(enabled: boolean, setFetching: (val: boolean) => void): ClientPlugin =>
+	({
+		enabled,
+		setFetching,
+		cache: localCache = cache,
+	}: {
+		enabled: boolean
+		setFetching: (val: boolean) => void
+		cache?: Cache
+	}): ClientPlugin =>
 	() => {
 		return {
 			network: {
@@ -20,7 +29,7 @@ export const cachePolicyPlugin =
 						// if the cache policy allows for cached data, look at the caches value first
 						if (policy !== CachePolicy.NetworkOnly) {
 							// look up the current value in the cache
-							const value = cache.read({
+							const value = localCache.read({
 								selection: artifact.selection,
 								variables: marshalVariables(ctx),
 							})
@@ -36,7 +45,7 @@ export const cachePolicyPlugin =
 								return resolve(ctx, {
 									fetching: false,
 									variables: ctx.variables ?? null,
-									data: null,
+									data: value.data,
 									errors: [],
 									source: DataSource.Cache,
 									partial: false,
@@ -67,7 +76,7 @@ export const cachePolicyPlugin =
 					// tick the garbage collector asynchronously
 					if (enabled) {
 						setTimeout(() => {
-							cache._internal_unstable.collectGarbage()
+							localCache._internal_unstable.collectGarbage()
 						}, 0)
 					}
 
@@ -79,9 +88,14 @@ export const cachePolicyPlugin =
 				},
 				exit(ctx, { resolve, value, marshalVariables }) {
 					// if we have data coming in from the cache, we should write it and mvoe on
-					if (enabled && value.data && !ctx.cacheParams?.disableWrite) {
+					if (
+						value.source !== DataSource.Cache &&
+						enabled &&
+						value.data &&
+						!ctx.cacheParams?.disableWrite
+					) {
 						// write the result of the mutation to the cache
-						cache.write({
+						localCache.write({
 							...ctx.cacheParams,
 							layer: ctx.cacheParams?.layer?.id,
 							selection: ctx.artifact.selection,

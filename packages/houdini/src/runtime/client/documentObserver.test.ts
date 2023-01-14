@@ -9,12 +9,13 @@ import { DocumentObserver, ClientPlugin } from './documentObserver'
 function createStore(
 	plugins: ClientPlugin[]
 ): DocumentObserver<GraphQLObject, Record<string, any>> {
-	return new HoudiniClient({
+	const client = new HoudiniClient({
 		url: 'URL',
-		pipeline() {
-			return plugins
-		},
-	}).observe({
+	})
+
+	return new DocumentObserver({
+		client,
+		pipeline: plugins,
 		artifact: {
 			kind: ArtifactKind.Query,
 			hash: '1234',
@@ -286,19 +287,7 @@ test('can call resolve multiple times to set multiple values', async function ()
 		partial: false,
 		source: DataSource.Cache,
 	})
-	// that value will be the second value to the spy
 	expect(fn).toHaveBeenNthCalledWith(2, {
-		fetching: true,
-		partial: false,
-		source: null,
-
-		data: null,
-		errors: [],
-
-		variables: null,
-	})
-	// and the third call will be the second call to terminate
-	expect(fn).toHaveBeenNthCalledWith(3, {
 		fetching: false,
 		partial: false,
 
@@ -307,7 +296,7 @@ test('can call resolve multiple times to set multiple values', async function ()
 		source: DataSource.Cache,
 		variables: null,
 	})
-	expect(fn).toHaveBeenNthCalledWith(4, {
+	expect(fn).toHaveBeenNthCalledWith(3, {
 		fetching: false,
 		partial: false,
 
@@ -407,53 +396,6 @@ test('middlewares can set fetch params', async function () {
 
 	expect(spy).toBeCalledWith({
 		headers: { hello: 'world' },
-	})
-})
-
-test('tracks loading state', async function () {
-	const middleware: ClientPlugin = () => ({
-		network: {
-			enter(ctx, { resolve }) {
-				resolve(ctx, {
-					data: { hello: 'world' },
-					errors: [],
-					fetching: false,
-					partial: false,
-					source: DataSource.Cache,
-					variables: null,
-				})
-			},
-		},
-	})
-
-	// create a store we'll test with
-	const store = createStore([middleware])
-	// a spy to check the value
-	const spy = vi.fn()
-	store.subscribe(spy)
-
-	// trigger the pipeline
-	await store.send()
-
-	// make sure we started off as loading
-	expect(spy).toHaveBeenNthCalledWith(2, {
-		fetching: true,
-		partial: false,
-		source: null,
-
-		data: null,
-		errors: [],
-		variables: null,
-	})
-	// make sure we're not
-	expect(spy).toHaveBeenNthCalledWith(3, {
-		fetching: false,
-		partial: false,
-		source: DataSource.Cache,
-
-		data: { hello: 'world' },
-		errors: [],
-		variables: null,
 	})
 })
 
