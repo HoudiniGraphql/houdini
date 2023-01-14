@@ -59,6 +59,13 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 	ensure_imports({
 		config: page.config,
 		script: page.script,
+		import: ['getCurrentConfig'],
+		sourceModule: '$houdini/runtime/lib/config',
+	})
+
+	ensure_imports({
+		config: page.config,
+		script: page.script,
 		import: ['RequestContext'],
 		sourceModule: '$houdini/plugins/houdini-svelte/runtime/session',
 	})
@@ -115,82 +122,83 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 				// define the inputs for the query
 				AST.labeledStatement(
 					AST.identifier('$'),
-					//
+
 					AST.expressionStatement(
-						AST.callExpression(
-							AST.memberExpression(
-								AST.callExpression(AST.identifier('marshalInputs'), [
+						AST.logicalExpression(
+							'&&',
+							AST.identifier('isBrowser'),
+							AST.callExpression(
+								AST.memberExpression(
+									store_id(query.name!.value),
+									AST.identifier('fetch')
+								),
+								[
 									AST.objectExpression([
 										AST.objectProperty(
-											AST.identifier('artifact'),
-											AST.memberExpression(
-												store_id(query.name!.value),
-												AST.identifier('artifact')
-											)
-										),
-										AST.objectProperty(
-											AST.identifier('input'),
-											has_variables
-												? AST.callExpression(
-														AST.memberExpression(
-															AST.identifier(variable_fn),
-															AST.identifier('call')
-														),
-														[
-															AST.newExpression(
-																AST.identifier('RequestContext'),
-																[]
-															),
-															AST.objectExpression([
-																AST.objectProperty(
-																	AST.identifier('props'),
-																	// pass every prop explicitly
-																	AST.objectExpression(
-																		props.map((prop) =>
-																			AST.objectProperty(
-																				AST.identifier(
-																					prop as string
-																				),
-																				AST.identifier(
-																					prop as string
-																				)
-																			)
-																		)
-																	)
-																),
-															]),
-														]
-												  )
-												: AST.objectExpression([])
-										),
-									]),
-								]),
-								AST.identifier('then')
-							),
-							[
-								AST.arrowFunctionExpression(
-									[local_input_id(query.name!.value)],
-									// load the query
-									AST.logicalExpression(
-										'&&',
-										AST.identifier('isBrowser'),
-										AST.callExpression(
-											AST.memberExpression(
-												store_id(query.name!.value),
-												AST.identifier('fetch')
-											),
-											[
+											AST.identifier('variables'),
+											//
+											AST.callExpression(AST.identifier('marshalInputs'), [
 												AST.objectExpression([
 													AST.objectProperty(
-														AST.identifier('variables'),
-														local_input_id(query.name!.value)
+														AST.identifier('config'),
+														AST.callExpression(
+															AST.identifier('getCurrentConfig'),
+															[]
+														)
+													),
+													AST.objectProperty(
+														AST.identifier('artifact'),
+														AST.memberExpression(
+															store_id(query.name!.value),
+															AST.identifier('artifact')
+														)
+													),
+													AST.objectProperty(
+														AST.identifier('input'),
+														has_variables
+															? AST.callExpression(
+																	AST.memberExpression(
+																		AST.identifier(variable_fn),
+																		AST.identifier('call')
+																	),
+																	[
+																		AST.newExpression(
+																			AST.identifier(
+																				'RequestContext'
+																			),
+																			[]
+																		),
+																		AST.objectExpression([
+																			AST.objectProperty(
+																				AST.identifier(
+																					'props'
+																				),
+																				// pass every prop explicitly
+																				AST.objectExpression(
+																					props.map(
+																						(prop) =>
+																							AST.objectProperty(
+																								AST.identifier(
+																									prop as string
+																								),
+																								AST.identifier(
+																									prop as string
+																								)
+																							)
+																					)
+																				)
+																			),
+																		]),
+																	]
+															  )
+															: AST.objectExpression([])
 													),
 												]),
-											]
-										)
-									)
-								),
-							]
+											])
+										),
+									]),
+								]
+							)
 						)
 					)
 				),
