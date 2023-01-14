@@ -35,6 +35,12 @@ export const mutationPlugin = documentPlugin(ArtifactKind.Mutation, () => {
 					})
 				}
 
+				// write to the layer
+				ctx.cacheParams = {
+					...ctx.cacheParams,
+					layer,
+				}
+
 				// make sure we write to the correct layer in the cache
 				next(ctx)
 			},

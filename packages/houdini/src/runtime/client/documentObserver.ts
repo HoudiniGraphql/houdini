@@ -195,17 +195,21 @@ export class DocumentObserver<
 			}
 		}
 
-		// if we got this far, we have exhausted the step.
+		// if we got this far, we have exhausted the step
+
+		// if we're only supposed to `setup` then turn around
+		// and run the rest of the setup
 		if (ctx.setup) {
 			return this.#terminate(
 				{
 					...ctx,
-					currentStep: 'network',
+					currentStep: 'setup',
 					index: this.#plugins.length,
 				},
 				this.state
 			)
 		}
+
 		// if we are still in setup, flip over to fetch and start over
 		if (ctx.currentStep === 'setup') {
 			return this.#next({

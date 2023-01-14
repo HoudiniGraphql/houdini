@@ -90,6 +90,25 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 			this.loadPending = true
 		}
 
+		// we might not want to actually wait for the fetch to resolve
+		const fakeAwait = clientStarted && isBrowser && !params?.blocking
+
+		// if a) the cache does not have the network only policy,
+		// AND b) we are in a fakeAwait scenario (in a real await,
+		// we will wait for the real fetch to happen anyway and fill the store)
+		// then, we are safe to try to load it from the cache before we worry about
+		// performing a network request. This makes sure the cache gets a cached
+		// value during client side navigation (fake awaits)
+		if (policy !== CachePolicy.NetworkOnly && fakeAwait) {
+			await this.observer.send({
+				fetch: context.fetch,
+				variables: params.variables,
+				metadata: params.metadata,
+				session: context.session,
+				policy: CachePolicy.CacheOnly,
+			})
+		}
+
 		// if the query is a live query, we don't really care about network policies any more
 		// since CacheOrNetwork behaves the same as CacheAndNetwork
 		const request = this.observer.send({
@@ -106,9 +125,6 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 			this.loadPending = false
 			params.then?.(val.data)
 		})
-
-		// we might not want to actually wait for the fetch to resolve
-		const fakeAwait = clientStarted && isBrowser && !params?.blocking
 		if (!fakeAwait) {
 			await request
 		}
