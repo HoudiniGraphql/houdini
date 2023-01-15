@@ -94,12 +94,10 @@ export class DocumentObserver<
 		cacheParams,
 		setup = false,
 	}: {
-		variables?: Record<string, any> | null
-		// @ts-ignore
-		metadata?: Record<string, any> | null
 		fetch?: Fetch
-		// @ts-ignore
-		session?: Record<string, any> | null
+		variables?: Record<string, any> | null
+		metadata?: App.Metadata | null
+		session?: App.Session | null
 		policy?: CachePolicy
 		stuff?: {}
 		cacheParams?: ClientPluginContext['cacheParams']
@@ -507,10 +505,8 @@ export type ClientPluginContext<_Data extends GraphQLObject = GraphQLObject> = {
 	policy?: CachePolicy
 	fetch?: Fetch
 	variables?: Record<string, any>
-	// @ts-ignore
-	metadata?: Record<string, any> | null
-	// @ts-ignore
-	session?: Record<string, any> | null
+	metadata?: App.Metadata | null
+	session?: App.Session | null
 	fetchParams?: RequestInit
 	cacheParams?: {
 		layer?: Layer

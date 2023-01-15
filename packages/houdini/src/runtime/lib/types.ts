@@ -5,6 +5,13 @@ export enum CachePolicy {
 	CacheAndNetwork = 'CacheAndNetwork',
 }
 
+declare global {
+	namespace App {
+		interface Session {}
+		interface Metadata {}
+	}
+}
+
 export type Fragment<_Result> = {
 	readonly shape?: _Result
 }
