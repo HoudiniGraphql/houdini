@@ -16,8 +16,9 @@ export const mutationPlugin = documentPlugin(ArtifactKind.Mutation, () => {
 				const layer = cache._internal_unstable.storage.createLayer(true)
 
 				// the optimistic response gets passed in the context's stuff bag
-				// if there is an optimistic response then we need to write the value immediately
 				const optimisticResponse = ctx.stuff.optimisticResponse
+
+				// if there is an optimistic response then we need to write the value immediately
 
 				// hold onto the list of subscribers that we updated because of the optimistic response
 				// and make sure they are included in the final set of subscribers to notify
@@ -38,7 +39,14 @@ export const mutationPlugin = documentPlugin(ArtifactKind.Mutation, () => {
 				// write to the layer
 				ctx.cacheParams = {
 					...ctx.cacheParams,
-					layer,
+					// write to the mutation's layer
+					layer: layer,
+					// notify any subscribers that we updated with the optimistic response
+					// in order to address situations where the optimistic update was wrong
+					notifySubscribers: toNotify,
+					// make sure that we notify subscribers for any values that we compare
+					// in order to address any race conditions when comparing the previous value
+					forceNotify: true,
 				}
 
 				// make sure we write to the correct layer in the cache

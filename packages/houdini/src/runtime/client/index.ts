@@ -43,7 +43,7 @@ export class HoudiniClient {
 		this.#plugins = ([] as ClientPlugin[]).concat(
 			// if they specified a throw behavior
 			throwOnError ? [throwOnErrorPlugin(throwOnError)] : [],
-			[fetchParamsPlugin(fetchParams)],
+			fetchParamsPlugin(fetchParams),
 			// if the user wants to specify the entire pipeline, let them do so
 			pipeline?.() ??
 				// the user doesn't have a specific pipeline so we should just add their desired plugins

@@ -28,6 +28,5 @@ export default new HoudiniClient({
     operations: ['all'],
     error: (errors) => error(500, errors.map((error) => error.message).join('. ') + '.')
   },
-
   plugins: [logMetadata]
 });

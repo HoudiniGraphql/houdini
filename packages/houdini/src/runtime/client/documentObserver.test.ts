@@ -684,3 +684,57 @@ test('multiple new variables from inside plugin', async function () {
 	await store.send({ variables: { hello: 'world' } })
 	expect(spy).toHaveBeenNthCalledWith(6, false, 1)
 })
+
+test('can set observer state from hook', async function () {
+	const updateMiddleware: ClientPlugin = () => ({
+		setup: {
+			enter(ctx, { next, updateState }) {
+				updateState((old) => ({ ...old, data: { loading: true } }))
+				next(ctx)
+			},
+		},
+		network: {
+			enter(ctx, { resolve }) {
+				resolve(ctx, {
+					data: { hello: 'test' },
+					errors: null,
+					fetching: false,
+					partial: false,
+					source: DataSource.Network,
+					variables: null,
+				})
+			},
+		},
+	})
+
+	// create a store we will test against
+	const store = createStore([updateMiddleware])
+
+	// listen for updates to the state
+	const spy = vi.fn()
+	store.subscribe(spy)
+
+	// kick off the pipeline
+	await store.send()
+
+	// the first updated state is the null state
+	// the second should contain the value we set
+	expect(spy).toHaveBeenNthCalledWith(2, {
+		data: { loading: true },
+		errors: null,
+		fetching: true,
+		partial: false,
+		source: null,
+		variables: null,
+	})
+
+	// the third should have the final result
+	expect(spy).toHaveBeenNthCalledWith(3, {
+		data: { hello: 'test' },
+		errors: null,
+		fetching: false,
+		partial: false,
+		source: DataSource.Network,
+		variables: null,
+	})
+})

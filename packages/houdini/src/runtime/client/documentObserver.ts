@@ -158,6 +158,7 @@ export class DocumentObserver<
 						client: this.#client,
 						variablesChanged,
 						marshalVariables,
+						updateState: this.update.bind(this),
 						next: (newContext) => {
 							this.#next({
 								...ctx,
@@ -233,6 +234,7 @@ export class DocumentObserver<
 						client: this.#client,
 						variablesChanged,
 						marshalVariables,
+						updateState: this.update.bind(this),
 						next: (newContext) => {
 							// push the ctx onto the next step
 							this.#next({
@@ -321,6 +323,7 @@ export class DocumentObserver<
 					client: this.#client,
 					variablesChanged,
 					marshalVariables,
+					updateState: this.update.bind(this),
 					// calling next in response to a
 					next: (newContext) => {
 						breakBubble = true
@@ -538,6 +541,10 @@ export type ClientPluginHandlers = {
 	next(ctx: ClientPluginContext): void
 	/** Terminate the current chain  */
 	resolve(ctx: ClientPluginContext, data: QueryResult): void
+
+	/** Update the stores state without resolving the promise */
+	updateState(updater: (old: QueryResult) => QueryResult): void
+
 	/** Return true if the variables have changed */
 	variablesChanged: (ctx: ClientPluginContext) => boolean
 	/** Returns the marshaled variables for the operation */
