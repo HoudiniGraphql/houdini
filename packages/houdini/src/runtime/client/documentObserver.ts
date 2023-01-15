@@ -261,6 +261,7 @@ export class DocumentObserver<
 				} catch (err) {
 					this.#error({ ...ctx, index }, err)
 				}
+
 				return
 			}
 		}

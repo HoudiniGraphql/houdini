@@ -121,10 +121,12 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 		})
 
 		// if we have to track when the fetch is done,
-		request.then((val) => {
-			this.loadPending = false
-			params.then?.(val.data)
-		})
+		request
+			.then((val) => {
+				this.loadPending = false
+				params.then?.(val.data)
+			})
+			.catch(() => {})
 		if (!fakeAwait) {
 			await request
 		}

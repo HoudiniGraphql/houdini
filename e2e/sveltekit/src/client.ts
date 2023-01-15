@@ -1,4 +1,5 @@
 import { HoudiniClient, type ClientPlugin } from '$houdini';
+import { error } from '@sveltejs/kit';
 
 // in order to verify that we send metadata, we need something that will log the metadata after
 const logMetadata: ClientPlugin = () => ({
@@ -23,5 +24,10 @@ export default new HoudiniClient({
       }
     };
   },
+  throwOnError: {
+    operations: ['all'],
+    error: (errors) => error(500, errors.map((error) => error.message).join('. ') + '.')
+  },
+
   plugins: [logMetadata]
 });

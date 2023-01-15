@@ -1,5 +1,5 @@
 /// <reference path="../../../../../houdini.d.ts" />
-import { GraphQLObject, DocumentArtifact } from '../lib/types'
+import { GraphQLObject, DocumentArtifact, QueryResult } from '../lib/types'
 import { ClientPlugin, DocumentObserver } from './documentObserver'
 import {
 	queryPlugin,
@@ -7,6 +7,8 @@ import {
 	fetchPlugin,
 	fetchParamsPlugin,
 	type FetchParamFn,
+	throwOnErrorPlugin,
+	type ThrowOnErrorParams,
 } from './plugins'
 import pluginsFromPlugins from './plugins/injectedPlugins'
 
@@ -19,6 +21,7 @@ type ConstructorArgs = {
 	fetchParams?: FetchParamFn
 	plugins?: ClientPlugin[]
 	pipeline?: () => ClientPlugin[]
+	throwOnError?: ThrowOnErrorParams
 }
 
 export class HoudiniClient {
@@ -28,19 +31,7 @@ export class HoudiniClient {
 	// the list of plugins for the client
 	#plugins: ClientPlugin[]
 
-	constructor(args: {
-		url: string
-		fetchParams?: FetchParamFn
-		plugins?: ClientPlugin[]
-		pipeline?: never
-	})
-	constructor(args: {
-		url: string
-		fetchParams?: FetchParamFn
-		plugins?: never
-		pipeline?: () => ClientPlugin[]
-	})
-	constructor({ url, fetchParams, plugins, pipeline }: ConstructorArgs) {
+	constructor({ url, fetchParams, plugins, pipeline, throwOnError }: ConstructorArgs) {
 		// if we were given plugins and pipeline there's an error
 		if (plugins && pipeline) {
 			throw new Error(
@@ -50,6 +41,8 @@ export class HoudiniClient {
 
 		// a few middlewares _have_ to run to setup the pipeline
 		this.#plugins = ([] as ClientPlugin[]).concat(
+			// if they specified a throw behavior
+			throwOnError ? [throwOnErrorPlugin(throwOnError)] : [],
 			[fetchParamsPlugin(fetchParams)],
 			// if the user wants to specify the entire pipeline, let them do so
 			pipeline?.() ??
