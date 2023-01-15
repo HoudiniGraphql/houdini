@@ -58,12 +58,6 @@ export function getCurrentConfig(): ConfigFile {
 // the values we can take in from the config file
 export type ConfigFile = {
 	/**
-	 * A relative path from your houdini.config.js to the file that exports your client as its default value
-	 * @default `./src/client.ts`
-	 */
-	client?: string
-
-	/**
 	 * A glob pointing to all files that houdini should consider. Note, this must include .js files
 	 * for inline queries to work
 	 * @default `src/** /*.{svelte,graphql,gql,ts,js}`

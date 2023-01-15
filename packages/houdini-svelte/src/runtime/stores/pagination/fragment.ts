@@ -1,7 +1,6 @@
 import { DocumentObserver } from '$houdini/runtime/client/documentObserver'
 import { keyFieldsForType, getCurrentConfig } from '$houdini/runtime/lib/config'
 import { siteURL } from '$houdini/runtime/lib/constants'
-import { getCurrentClient } from '$houdini/runtime/lib/network'
 import {
 	GraphQLObject,
 	FragmentArtifact,
@@ -11,6 +10,7 @@ import {
 } from '$houdini/runtime/lib/types'
 import { derived, get, Readable, Subscriber, Writable, writable } from 'svelte/store'
 
+import { getClient } from '../../client'
 import { StoreConfig } from '../query'
 import { cursorHandlers, CursorHandlers } from './cursor'
 import { offsetHandlers } from './offset'
@@ -73,7 +73,7 @@ class FragmentStoreCursor<
 > extends BasePaginatedFragmentStore<_Data, _Input> {
 	// we want to add the cursor-based fetch to the return value of get
 	get(initialValue: _Data | null) {
-		const store = getCurrentClient().observe<_Data, _Input>({
+		const store = getClient().observe<_Data, _Input>({
 			artifact: this.paginationArtifact,
 			initialValue: initialValue ?? null,
 		})
@@ -151,7 +151,7 @@ export class FragmentStoreForwardCursor<
 	get(initialValue: _Data | null) {
 		// get the base class
 		const parent = super.get(initialValue)
-		const observer = getCurrentClient().observe<_Data, _Input>({
+		const observer = getClient().observe<_Data, _Input>({
 			artifact: this.paginationArtifact,
 			initialValue,
 		})
@@ -174,7 +174,7 @@ export class FragmentStoreBackwardCursor<
 > extends FragmentStoreCursor<_Data, _Input> {
 	get(initialValue: _Data | null) {
 		const parent = super.get(initialValue)
-		const observer = getCurrentClient().observe<_Data, _Input>({
+		const observer = getClient().observe<_Data, _Input>({
 			artifact: this.paginationArtifact,
 			initialValue,
 		})
@@ -195,7 +195,7 @@ export class FragmentStoreOffset<
 	_Input extends Record<string, any>
 > extends BasePaginatedFragmentStore<_Data, _Input> {
 	get(initialValue: _Data | null) {
-		const observer = getCurrentClient().observe<_Data, _Input>({
+		const observer = getClient().observe<_Data, _Input>({
 			artifact: this.paginationArtifact,
 			initialValue,
 		})

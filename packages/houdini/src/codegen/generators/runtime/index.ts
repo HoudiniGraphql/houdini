@@ -42,22 +42,6 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 ${exportStatement('config')}
 `
 			},
-			[path.join(config.runtimeSource, 'imports', 'client.js')]: (content) => {
-				// the path to the network file
-				const networkFilePath = path.join(
-					config.runtimeDirectory,
-					'imports',
-					'clientImport.js'
-				)
-				// the relative path
-				const relativePath = path.relative(
-					path.dirname(networkFilePath),
-					path.join(config.projectRoot, config.configFile.client ?? 'src/client')
-				)
-				return `${importStatement(relativePath, 'client')}
-${exportStatement('client')}
-`
-			},
 			[path.join(config.runtimeSource, 'client', 'plugins', 'injectedPlugins.js')]: (
 				content
 			) => {

@@ -1,8 +1,8 @@
 import { DocumentObserver } from '$houdini/runtime/client'
-import { getCurrentClient } from '$houdini/runtime/lib/network'
 import type { MutationArtifact } from '$houdini/runtime/lib/types'
 import { GraphQLObject } from '$houdini/runtime/lib/types'
 
+import { getClient } from '../client'
 import { getSession } from '../session'
 
 export class MutationStore<
@@ -17,7 +17,7 @@ export class MutationStore<
 
 	constructor({ artifact }: { artifact: MutationArtifact }) {
 		this.artifact = artifact
-		this.store = getCurrentClient().observe({ artifact: this.artifact })
+		this.store = getClient().observe({ artifact: this.artifact })
 	}
 
 	async mutate(

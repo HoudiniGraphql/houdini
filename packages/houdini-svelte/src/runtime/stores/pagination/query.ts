@@ -1,7 +1,7 @@
-import { getCurrentClient } from '$houdini/runtime/lib'
 import { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
 import { derived, Subscriber } from 'svelte/store'
 
+import { getClient } from '../../client'
 import {
 	ClientFetchParams,
 	LoadEventFetchParams,
@@ -33,7 +33,7 @@ class CursorPaginatedStore<_Data extends GraphQLObject, _Input extends {}> exten
 		super(config)
 
 		// we're going to use a separate observer for the page loading
-		const paginationObserver = getCurrentClient().observe<_Data, _Input>({
+		const paginationObserver = getClient().observe<_Data, _Input>({
 			artifact: this.artifact,
 		})
 
@@ -122,7 +122,7 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input extends {}> ex
 		super(config)
 
 		// we're going to use a separate observer for the page loading
-		const paginationObserver = getCurrentClient().observe<_Data, _Input>({
+		const paginationObserver = getClient().observe<_Data, _Input>({
 			artifact: this.artifact,
 		})
 

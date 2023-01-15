@@ -358,6 +358,7 @@ export function plugin_config(config: Config): Required<HoudiniSvelteConfig> {
 	const cfg = config.pluginConfig<HoudiniSvelteConfig>('houdini-svelte')
 
 	return {
+		client: './src/client',
 		pageQueryFilename: '+page.gql',
 		layoutQueryFilename: '+layout.gql',
 		static: false,

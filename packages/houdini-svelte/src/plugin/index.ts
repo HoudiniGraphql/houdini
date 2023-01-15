@@ -50,6 +50,25 @@ export const error = svelteKitError
 
 			return framework === 'kit' ? sveltekit_adapter : content
 		},
+
+		[path.join('imports', 'client.js')]: ({ config: cfg }) => {
+			const config = plugin_config(cfg)
+			// the path to the network file
+			const networkFilePath = path.join(
+				cfg.pluginRuntimeDirectory('houdini-svelte'),
+				'imports',
+				'clientImport.js'
+			)
+			// the relative path
+			const relativePath = path.relative(
+				path.dirname(networkFilePath),
+				path.join(cfg.projectRoot, config.client ?? 'src/client')
+			)
+			return `import client from "${relativePath}"
+
+export default client
+`
+		},
 	},
 
 	// custom logic to pull a graphql document out of a svelte file
@@ -119,6 +138,30 @@ export const error = svelteKitError
 
 	async after_load(cfg) {
 		_config = cfg
+		const cfgPlugin = plugin_config(cfg)
+
+		let client_file_exists = false
+		// if there is an extension in then we can just check that file
+		if (path.extname(cfgPlugin.client)) {
+			client_file_exists = !!(await fs.readFile(cfgPlugin.client))
+		}
+		// there is no extension so we to check .ts and .js versions
+		else {
+			client_file_exists = (
+				await Promise.all([
+					fs.readFile(cfgPlugin.client + '.ts'),
+					fs.readFile(cfgPlugin.client + '.js'),
+				])
+			).some(Boolean)
+		}
+		if (!client_file_exists) {
+			throw new HoudiniError({
+				filepath: cfgPlugin.client,
+				message: `File "${cfgPlugin.client}.(ts,js)" is missing. Either create it or set the client property in houdini.config.js file to target your houdini client file.`,
+				description:
+					'It has to be a relative path (from houdini.config.js) to your client file. The file must have a default export with an instance of HoudiniClient.',
+			})
+		}
 
 		// try to import the kit module
 		try {
@@ -161,6 +204,12 @@ declare module 'houdini' {
 }
 
 export type HoudiniSvelteConfig = {
+	/**
+	 * A relative path from your houdini.config.js to the file that exports your client as its default value
+	 * @default `./src/client.ts`
+	 */
+	client?: string
+
 	/**
 	 * The name of the file used to define page queries.
 	 * @default +page.gql

@@ -1,7 +1,8 @@
 import { DocumentObserver } from '$houdini/runtime/client/documentObserver'
-import { getCurrentClient } from '$houdini/runtime/lib/network'
 import { CompiledSubscriptionKind, SubscriptionArtifact } from '$houdini/runtime/lib/types'
 import { GraphQLObject } from 'houdini'
+
+import { getClient } from '../client'
 
 export class SubscriptionStore<_Data extends GraphQLObject, _Input extends {}> {
 	artifact: SubscriptionArtifact
@@ -11,7 +12,7 @@ export class SubscriptionStore<_Data extends GraphQLObject, _Input extends {}> {
 
 	constructor({ artifact }: { artifact: SubscriptionArtifact }) {
 		this.artifact = artifact
-		this.store = getCurrentClient().observe({ artifact: this.artifact })
+		this.store = getClient().observe({ artifact: this.artifact })
 	}
 
 	subscribe(...args: Parameters<DocumentObserver<_Data, _Input>['subscribe']>) {
