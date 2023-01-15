@@ -935,14 +935,16 @@ This will prevent your schema from being pulled.`
 				version = packageJSON.version
 			} catch {}
 
-			// add the plugin to the list
-			plugins.push({
-				...(await pluginFactory(plugin_config)),
-				name: pluginName,
-				include_runtime,
-				version,
-				directory: pluginDirectory,
-			})
+			// if the plugin config is a function, we should pass the config files
+			if (typeof plugin_config)
+				// add the plugin to the list
+				plugins.push({
+					...(await pluginFactory(plugin_config)),
+					name: pluginName,
+					include_runtime,
+					version,
+					directory: pluginDirectory,
+				})
 		} catch (e) {
 			throw new Error(
 				`Could not find plugin: ${pluginName}. Are you sure its installed? If so, please open a ticket on GitHub.`
@@ -992,7 +994,9 @@ export type Plugin = {
 		content: string
 	) => Promise<string[]> | string[]
 	generate?: GenerateHook
-	client_plugins?: HoudiniClientPluginConfig
+	client_plugins?:
+		| Record<string, null | Record<string, any>>
+		| ((config: ConfigFile, pluginConfig: any) => Record<string, null | Record<string, any>>)
 	transform_file?: (page: TransformPage) => Promise<{ code: string }> | { code: string }
 	index_file?: ModuleIndexTransform
 	graphql_tag_return?: (args: {

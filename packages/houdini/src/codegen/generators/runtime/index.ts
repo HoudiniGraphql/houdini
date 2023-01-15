@@ -49,7 +49,14 @@ ${exportStatement('config')}
 				const client_plugins = config.plugins
 					.filter((plugin) => plugin.client_plugins)
 					.reduce((acc, plugin) => {
-						return [...acc, ...Object.entries(plugin.client_plugins!)]
+						let plugins = plugin.client_plugins!
+						// if the plugin config is a function then we need to pass the
+						// two configs to the factory
+						if (typeof plugins === 'function') {
+							plugins = plugins(config, config.pluginConfig(plugin.name))
+						}
+
+						return [...acc, ...Object.entries(plugins!)]
 					}, [] as Record<string, any>[])
 
 				return client_plugins.length > 0

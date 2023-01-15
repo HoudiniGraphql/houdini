@@ -130,3 +130,46 @@ test('passing null as client plugin config generates a reference, not a function
 		export default plugins
 	`)
 })
+
+test('passing a function passes the config files', async function () {
+	const config = testConfig({
+		module: 'esm',
+	})
+	config.plugins = [
+		{
+			name: 'pluginWithClientPlugin',
+			include_runtime: false,
+			version: 'string',
+			directory: 'string',
+			client_plugins() {
+				return {
+					testPlugin: null,
+				}
+			},
+		},
+	]
+
+	// execute the generator
+	await runPipeline(config, [])
+
+	// open up the index file
+	const fileContents = await fs.readFile(
+		path.join(config.runtimeDirectory, 'client', 'plugins', 'injectedPlugins.js')
+	)
+	expect(fileContents).toBeTruthy()
+
+	// parse the contents
+	const parsedQuery: ProgramKind = recast.parse(fileContents!, {
+		parser: typeScriptParser,
+	}).program
+	// verify contents
+	expect(parsedQuery).toMatchInlineSnapshot(`
+		import plugin0 from 'testPlugin'
+
+		const plugins = [
+			plugin0
+		]
+
+		export default plugins
+	`)
+})
