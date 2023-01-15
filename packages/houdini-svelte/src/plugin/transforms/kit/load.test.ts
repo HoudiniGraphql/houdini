@@ -344,6 +344,7 @@ describe('kit route processor', function () {
 			import { TestQueryStore } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
 			import { isBrowser } from "$houdini/plugins/houdini-svelte/runtime/adapter";
 			import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
+			import { getCurrentConfig } from "$houdini/runtime/lib/config";
 			import { marshalInputs } from "$houdini/runtime/lib/scalars";
 			const _houdini_TestQuery = new TestQueryStore();
 
@@ -351,12 +352,13 @@ describe('kit route processor', function () {
 			test = _houdini_TestQuery;
 
 			$:
-			marshalInputs({
-			    artifact: _houdini_TestQuery.artifact,
-			    input: {}
-			}).then(_TestQuery_Input => isBrowser && _houdini_TestQuery.fetch({
-			    variables: _TestQuery_Input
-			}));
+			isBrowser && _houdini_TestQuery.fetch({
+			    variables: marshalInputs({
+			        config: getCurrentConfig(),
+			        artifact: _houdini_TestQuery.artifact,
+			        input: {}
+			    })
+			});
 		`)
 	})
 

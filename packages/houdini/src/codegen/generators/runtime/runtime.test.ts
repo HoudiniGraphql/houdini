@@ -72,7 +72,7 @@ test("does not update the list of plugin-specified client plugins if there aren'
 
 	// open up the index file
 	const fileContents = await fs.readFile(
-		path.join(config.runtimeDirectory, 'client', 'injectedPlugins.js')
+		path.join(config.runtimeDirectory, 'client', 'plugins', 'injectedPlugins.js')
 	)
 	expect(fileContents).toBeTruthy()
 
