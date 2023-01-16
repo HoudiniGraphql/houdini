@@ -738,3 +738,98 @@ test('can set observer state from hook', async function () {
 		variables: null,
 	})
 })
+
+test("sending a setup message doesn't trigger the network steps", async function () {
+	const history: [number, string][] = []
+	const tracker = (which: number, step: string) => {
+		history.push([which, step])
+	}
+
+	const middleware1: ClientPlugin = () => ({
+		setup: {
+			enter(ctx, { next }) {
+				tracker(1, 'one_enter')
+				next(ctx)
+			},
+			exit(ctx, { resolve }) {
+				tracker(1, 'one_exit')
+				resolve(ctx)
+			},
+		},
+		network: {
+			enter(ctx, { next }) {
+				tracker(1, 'two_enter')
+				next(ctx)
+			},
+		},
+	})
+	const middleware2: ClientPlugin = () => {
+		return {
+			setup: {
+				exit(ctx, { resolve }) {
+					tracker(2, 'one_exit')
+					resolve(ctx)
+				},
+			},
+			network: {
+				enter(ctx, { next }) {
+					tracker(2, 'two_enter')
+					next(ctx)
+				},
+				exit(ctx, { resolve }) {
+					tracker(2, 'two_exit')
+					resolve(ctx)
+				},
+			},
+		}
+	}
+
+	const terminate: ClientPlugin = () => ({
+		setup: {
+			enter(ctx, { next }) {
+				tracker(3, 'one_enter')
+				next(ctx)
+			},
+			exit(ctx, { resolve }) {
+				tracker(3, 'one_exit')
+				resolve(ctx)
+			},
+		},
+		network: {
+			enter(ctx, { resolve }) {
+				tracker(3, 'two_enter')
+				resolve(ctx, {
+					data: { hello: 'world' },
+					errors: [],
+					fetching: false,
+					partial: false,
+					source: DataSource.Cache,
+					variables: null,
+				})
+			},
+			exit(ctx, { resolve }) {
+				tracker(3, 'two_exit')
+				resolve(ctx)
+			},
+		},
+	})
+
+	// create the client with the middlewares
+	const store = createStore([middleware1, middleware2, terminate])
+
+	// spy on the subscribe function
+	const subscribeSpy = vi.fn()
+	store.subscribe(subscribeSpy)
+
+	// kick off the pipeline
+	const value = await store.send({ setup: true })
+
+	// make sure we called the hooks in the right order
+	expect(history).toEqual([
+		[1, 'one_enter'],
+		[3, 'one_enter'],
+		[3, 'one_exit'],
+		[2, 'one_exit'],
+		[1, 'one_exit'],
+	])
+})
