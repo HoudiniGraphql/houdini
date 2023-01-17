@@ -10,7 +10,7 @@ import type {
 } from 'rollup'
 import { fileURLToPath, pathToFileURL } from 'url'
 
-import { ConfigFile, CachePolicy, HoudiniClientPluginConfig } from '../runtime/lib'
+import { CachePolicy, ConfigFile } from '../runtime/lib'
 import { computeID, defaultConfigValues, keyFieldsForType } from '../runtime/lib/config'
 import { TransformPage } from '../vite/houdini'
 import { houdini_mode } from './constants'
@@ -936,6 +936,7 @@ This will prevent your schema from being pulled.`
 			} catch {}
 
 			// if the plugin config is a function, we should pass the config files
+			// eslint-disable-next-line no-constant-condition
 			if (typeof plugin_config)
 				// add the plugin to the list
 				plugins.push({

@@ -14,7 +14,13 @@ const config = {
     //   {
     //     name: 'houdini runtime core',
     //     includes: ['$houdini/runtime', 'src/client.ts'],
-    //     excludes: ['vite/preload-helper', '$houdini/index.js', 'houdini.config.js', 'src/client.ts']
+    //     excludes: [
+    //       'vite/preload-helper',
+    //       '$houdini/index.js',
+    //       'houdini.config.js',
+    //       'src/client.ts',
+    //       'sveltejs'
+    //     ]
     //   },
     //   {
     //     name: 'houdini runtime svelte',
