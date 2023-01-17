@@ -7,7 +7,8 @@ import { ArtifactKind, DataSource, GraphQLObject } from '../lib/types'
 import { DocumentObserver, ClientPlugin } from './documentObserver'
 
 function createStore(
-	plugins: ClientPlugin[]
+	plugins: ClientPlugin[],
+	isManualLoad = false
 ): DocumentObserver<GraphQLObject, Record<string, any>> {
 	const client = new HoudiniClient({
 		url: 'URL',
@@ -30,6 +31,7 @@ function createStore(
 					date2: 'Date',
 				},
 			},
+			isManualLoad,
 		},
 		// turn off the cache since we aren't pushing actual graphql documents through by default
 		cache: false,
@@ -116,7 +118,7 @@ test('middleware pipeline happy path', async function () {
 				resolve(ctx, {
 					data: { hello: 'world' },
 					errors: [],
-					fetching: false,
+					fetching: true,
 					partial: false,
 					source: DataSource.Cache,
 					variables: null,
@@ -155,7 +157,7 @@ test('middleware pipeline happy path', async function () {
 
 	// make sure we got the right value back
 	expect(value).toEqual({
-		fetching: false,
+		fetching: true,
 		variables: null,
 		data: { hello: 'world' },
 		errors: [],
@@ -196,7 +198,7 @@ test('terminate short-circuits pipeline', async function () {
 					resolve(ctx, {
 						data: { hello: 'world' },
 						errors: [],
-						fetching: false,
+						fetching: true,
 						partial: false,
 						source: DataSource.Cache,
 						variables: null,
@@ -207,7 +209,7 @@ test('terminate short-circuits pipeline', async function () {
 					resolve(ctx, {
 						data: { hello: 'world' },
 						errors: [],
-						fetching: false,
+						fetching: true,
 						partial: false,
 						source: DataSource.Cache,
 						variables: null,
@@ -249,7 +251,7 @@ test('can call resolve multiple times to set multiple values', async function ()
 				resolve(ctx, {
 					data: { hello: 'world' },
 					errors: [],
-					fetching: false,
+					fetching: true,
 					partial: false,
 					source: DataSource.Cache,
 					variables: null,
@@ -258,7 +260,7 @@ test('can call resolve multiple times to set multiple values', async function ()
 					resolve(ctx, {
 						data: { hello: 'another-world' },
 						errors: [],
-						fetching: false,
+						fetching: true,
 						partial: false,
 						source: DataSource.Cache,
 						variables: null,
@@ -280,7 +282,7 @@ test('can call resolve multiple times to set multiple values', async function ()
 
 	// make sure we get the first value  from the promise
 	expect(result).toEqual({
-		fetching: false,
+		fetching: true,
 		variables: null,
 		data: { hello: 'world' },
 		errors: [],
@@ -288,7 +290,7 @@ test('can call resolve multiple times to set multiple values', async function ()
 		source: DataSource.Cache,
 	})
 	expect(fn).toHaveBeenNthCalledWith(2, {
-		fetching: false,
+		fetching: true,
 		partial: false,
 
 		data: { hello: 'world' },
@@ -297,7 +299,7 @@ test('can call resolve multiple times to set multiple values', async function ()
 		variables: null,
 	})
 	expect(fn).toHaveBeenNthCalledWith(3, {
-		fetching: false,
+		fetching: true,
 		partial: false,
 
 		data: { hello: 'another-world' },
@@ -381,7 +383,7 @@ test('middlewares can set fetch params', async function () {
 				resolve(ctx, {
 					data: { hello: 'world' },
 					errors: [],
-					fetching: false,
+					fetching: true,
 					partial: false,
 					source: DataSource.Cache,
 					variables: null,
@@ -412,7 +414,7 @@ test('exit can replay a pipeline', async function () {
 					resolve(ctx, {
 						data: { hello: 'another-value' },
 						errors: [],
-						fetching: false,
+						fetching: true,
 						partial: false,
 						source: DataSource.Cache,
 						variables: null,
@@ -430,7 +432,7 @@ test('exit can replay a pipeline', async function () {
 					resolve(ctx, {
 						data: { hello: 'another-value' },
 						errors: [],
-						fetching: false,
+						fetching: true,
 						partial: false,
 						source: DataSource.Cache,
 						variables: null,
@@ -441,7 +443,7 @@ test('exit can replay a pipeline', async function () {
 				resolve(ctx, {
 					data: { hello: 'world' },
 					errors: [],
-					fetching: false,
+					fetching: true,
 					partial: false,
 					source: DataSource.Cache,
 					variables: null,
@@ -455,7 +457,7 @@ test('exit can replay a pipeline', async function () {
 
 	// make sure that the promise rejected with the error value
 	await expect(store.send()).resolves.toEqual({
-		fetching: false,
+		fetching: true,
 		variables: null,
 
 		data: { hello: 'another-value' },
@@ -499,7 +501,7 @@ test('plugins can update variables', async function () {
 					resolve(ctx, {
 						data: { hello: 'world' },
 						errors: [],
-						fetching: false,
+						fetching: true,
 						partial: false,
 						source: DataSource.Cache,
 						variables: null,
@@ -541,7 +543,7 @@ test('can detect changed variables from inputs', async function () {
 					resolve(ctx, {
 						data: { hello: 'world' },
 						errors: [],
-						fetching: false,
+						fetching: true,
 						partial: false,
 						source: DataSource.Cache,
 						variables: null,
@@ -593,7 +595,7 @@ test('can update variables and then check if they were updated', async function 
 					resolve(ctx, {
 						data: { hello: 'world' },
 						errors: [],
-						fetching: false,
+						fetching: true,
 						partial: false,
 						source: DataSource.Cache,
 						variables: null,
@@ -647,7 +649,7 @@ test('multiple new variables from inside plugin', async function () {
 					resolve(ctx, {
 						data: { hello: 'world' },
 						errors: [],
-						fetching: false,
+						fetching: true,
 						partial: false,
 						source: DataSource.Cache,
 						variables: null,
@@ -698,7 +700,7 @@ test('can set observer state from hook', async function () {
 				resolve(ctx, {
 					data: { hello: 'test' },
 					errors: null,
-					fetching: false,
+					fetching: true,
 					partial: false,
 					source: DataSource.Network,
 					variables: null,
@@ -732,7 +734,7 @@ test('can set observer state from hook', async function () {
 	expect(spy).toHaveBeenNthCalledWith(3, {
 		data: { hello: 'test' },
 		errors: null,
-		fetching: false,
+		fetching: true,
 		partial: false,
 		source: DataSource.Network,
 		variables: null,
@@ -801,7 +803,7 @@ test("sending a setup message doesn't trigger the network steps", async function
 				resolve(ctx, {
 					data: { hello: 'world' },
 					errors: [],
-					fetching: false,
+					fetching: true,
 					partial: false,
 					source: DataSource.Cache,
 					variables: null,
@@ -832,4 +834,46 @@ test("sending a setup message doesn't trigger the network steps", async function
 		[2, 'one_exit'],
 		[1, 'one_exit'],
 	])
+})
+
+test('check default fetching value in manual load', async function () {
+	const fakeFetch: ClientPlugin = () => ({
+		setup: {
+			enter(ctx, { next }) {
+				next(ctx)
+			},
+		},
+		network: {
+			enter(ctx, { resolve }) {
+				resolve(ctx, {
+					data: { hello: 'test' },
+					errors: null,
+					fetching: true,
+					partial: false,
+					source: DataSource.Network,
+					variables: null,
+				})
+			},
+		},
+	})
+
+	// create a store we will test against
+	const store = createStore([fakeFetch], true)
+
+	// listen for updates to the state
+	const spy = vi.fn()
+	store.subscribe(spy)
+
+	// kick off the pipeline
+	await store.send()
+
+	// check the fetching value
+	expect(spy).toHaveBeenNthCalledWith(1, {
+		data: null,
+		errors: null,
+		fetching: false,
+		partial: false,
+		source: null,
+		variables: null,
+	})
 })

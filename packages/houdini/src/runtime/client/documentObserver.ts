@@ -45,13 +45,25 @@ export class DocumentObserver<
 		cache?: boolean
 		initialValue?: _Data | null
 	}) {
+		// fetching init logic
+		let fetching = false
+		if (artifact.kind === ArtifactKind.Query) {
+			if (artifact.isManualLoad === true) {
+				fetching = false
+			} else {
+				fetching = true
+			}
+		} else {
+			fetching = false
+		}
+
 		// the initial store state
 		const initialState: QueryResult<_Data, _Input> = {
 			data: initialValue ?? null,
 			errors: null,
 			partial: false,
 			source: null,
-			fetching: artifact.kind === ArtifactKind.Query,
+			fetching,
 			variables: null,
 		}
 
