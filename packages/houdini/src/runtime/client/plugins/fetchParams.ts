@@ -7,9 +7,7 @@ export type FetchParamFn = (
 export const fetchParamsPlugin: (fn?: FetchParamFn) => ClientPlugin =
 	(fn = () => ({})) =>
 	() => ({
-		setup: {
-			enter(ctx, { next }) {
-				next({ ...ctx, fetchParams: fn(ctx) })
-			},
+		start(ctx, { next }) {
+			next({ ...ctx, fetchParams: fn(ctx) })
 		},
 	})

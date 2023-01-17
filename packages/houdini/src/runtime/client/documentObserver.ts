@@ -15,6 +15,11 @@ import {
 } from '../lib/types'
 import { cachePolicyPlugin } from './plugins'
 
+// the list of states to step forward with
+const forwardSteps = ['start', 'network'] as const
+// the list of states to step backwards with
+const backwardSteps = ['end', 'afterNetwork'] as const
+
 export class DocumentObserver<
 	_Data extends GraphQLObject,
 	_Input extends Record<string, any>
@@ -29,6 +34,9 @@ export class DocumentObserver<
 	// we need to track the last set of variables used so we can
 	// detect if they have changed
 	#lastVariables: Record<string, any> | null
+
+	// we need the last context value we've seen in order to pass it during cleanup
+	#lastContext: ClientPluginContext<GraphQLObject> | null = null
 
 	constructor({
 		artifact,
@@ -61,7 +69,7 @@ export class DocumentObserver<
 			return () => {
 				this.#lastVariables = null
 				for (const plugin of this.#plugins) {
-					plugin.cleanup?.()
+					plugin.cleanup?.(this.#lastContext!)
 				}
 			}
 		})
@@ -126,7 +134,7 @@ export class DocumentObserver<
 		const result = await new Promise<QueryResult<_Data, _Input>>((resolve, reject) => {
 			// the initial state of the iterator
 			const state: IteratorState = {
-				currentStep: 'setup',
+				currentStep: 0,
 				setup,
 				index: -1,
 				promise: {
@@ -147,9 +155,11 @@ export class DocumentObserver<
 	}
 
 	#next(ctx: IteratorState): void {
+		const currentStep = forwardSteps[ctx.currentStep]
+
 		// look for the next plugin that defines an enter of the correct step
 		for (let index = ctx.index + 1; index <= this.#plugins.length; index++) {
-			let target = this.#plugins[index]?.[ctx.currentStep]?.enter
+			let target = this.#plugins[index]?.[currentStep]
 			if (target) {
 				try {
 					// invoke the target
@@ -197,18 +207,18 @@ export class DocumentObserver<
 			return this.#terminate(
 				{
 					...ctx,
-					currentStep: 'setup',
+					currentStep: 0,
 					index: this.#plugins.length,
 				},
 				this.state
 			)
 		}
 
-		// if we are still in setup, flip over to fetch and start over
-		if (ctx.currentStep === 'setup') {
+		// if we still have steps to go forward, do so
+		if (ctx.currentStep <= forwardSteps.length - 2) {
 			return this.#next({
 				...ctx,
-				currentStep: 'network',
+				currentStep: ctx.currentStep + 1,
 				index: -1,
 			})
 		}
@@ -221,10 +231,11 @@ export class DocumentObserver<
 	}
 
 	#terminate(ctx: IteratorState, value: QueryResult): void {
+		const currentStep = backwardSteps[ctx.currentStep]
 		// starting one less than the current index
 		for (let index = ctx.index - 1; index >= 0; index--) {
 			// if we find a plugin in the same phase, call it
-			let target = this.#plugins[index]?.[ctx.currentStep]?.exit
+			let target = this.#plugins[index]?.[currentStep]
 			if (target) {
 				try {
 					// invoke the target
@@ -240,7 +251,7 @@ export class DocumentObserver<
 							this.#next({
 								...ctx,
 								index: index - 1,
-								currentStep: 'setup',
+								currentStep: 0,
 								context: ctx.context.apply(newContext),
 							})
 						},
@@ -268,12 +279,12 @@ export class DocumentObserver<
 			}
 		}
 
-		// if we're done with the fetch step, we need to start the setup phase of the termination flow
-		if (ctx.currentStep === 'network') {
+		// if we aren't at the last phase then we have more to go
+		if (ctx.currentStep > 0) {
 			return this.#terminate(
 				{
 					...ctx,
-					currentStep: 'setup',
+					currentStep: ctx.currentStep - 1,
 					index: this.#plugins.length,
 				},
 				value
@@ -304,6 +315,7 @@ export class DocumentObserver<
 		}
 
 		this.#lastVariables = ctx.context.draft().stuff.inputs.marshaled
+		this.#lastContext = ctx.context.draft()
 
 		// the latest value should be written to the store
 		this.set(finalValue)
@@ -331,7 +343,7 @@ export class DocumentObserver<
 						this.#next({
 							...ctx,
 							context: ctx.context.apply(newContext),
-							currentStep: 'setup',
+							currentStep: 0,
 							index: i,
 						})
 
@@ -357,33 +369,6 @@ export class DocumentObserver<
 				ctx.promise.resolved = true
 			}
 		}
-	}
-}
-
-/**
- * A network plugin has 2 primary entry points to modify the pipeline.
- * - phaseOne happens before the request is potentially cached
- * - phaseTwo happens when a request has not been cached and needs to be resolved from the api
- */
-export type ClientPlugin =
-	// the second function lets a plugin setup for a particular observer chain
-	() => {
-		setup?: ClientPluginPhase
-		network?: ClientPluginPhase
-		cleanup?(): any
-		// throw is called when a plugin after this raises an exception
-		throw?(ctx: ClientPluginContext, args: ClientPluginErrorHandlers): void | Promise<void>
-	}
-
-type IteratorState = {
-	context: ClientPluginContextWrapper
-	index: number
-	setup: boolean
-	currentStep: 'network' | 'setup'
-	promise: {
-		resolved: boolean
-		resolve(val: any): void
-		reject(val: any): void
 	}
 }
 
@@ -501,6 +486,35 @@ function variablesChanged<_Data extends GraphQLObject, _Input extends {}>(
 	return ctx.stuff.inputs?.changed
 }
 
+type IteratorState = {
+	context: ClientPluginContextWrapper
+	index: number
+	setup: boolean
+	currentStep: number
+	promise: {
+		resolved: boolean
+		resolve(val: any): void
+		reject(val: any): void
+	}
+}
+
+/**
+ * A network plugin has 2 primary entry points to modify the pipeline.
+ * - phaseOne happens before the request is potentially cached
+ * - phaseTwo happens when a request has not been cached and needs to be resolved from the api
+ */
+export type ClientPlugin =
+	// the second function lets a plugin setup for a particular observer chain
+	() => {
+		start?: ClientPluginEnterPhase
+		network?: ClientPluginEnterPhase
+		afterNetwork?: ClientPluginExitPhase
+		end?: ClientPluginExitPhase
+		cleanup?(ctx: ClientPluginContext): void | Promise<void>
+		// throw is called when a plugin after this raises an exception
+		throw?(ctx: ClientPluginContext, args: ClientPluginErrorHandlers): void | Promise<void>
+	}
+
 export type Fetch = typeof globalThis.fetch
 
 export type ClientPluginContext<_Data extends GraphQLObject = GraphQLObject> = {
@@ -523,14 +537,13 @@ export type ClientPluginContext<_Data extends GraphQLObject = GraphQLObject> = {
 	stuff: Record<string, any>
 }
 
-/** ClientPlugin describes the logic of the HoudiniClient plugin at a particular stage. */
-export type ClientPluginPhase = {
-	// enter is called when an artifact is pushed through
-	enter?(ctx: ClientPluginContext, handlers: ClientPluginHandlers): void | Promise<void>
-	// exist is called when the result of the next plugin in the chain
-	// is called
-	exit?(ctx: ClientPluginContext, handlers: ClientPluginExitHandlers): void | Promise<void>
-}
+type ClientPluginPhase<Handlers> = (
+	ctx: ClientPluginContext,
+	handlers: Handlers
+) => void | Promise<void>
+
+export type ClientPluginEnterPhase = ClientPluginPhase<ClientPluginHandlers>
+export type ClientPluginExitPhase = ClientPluginPhase<ClientPluginExitHandlers>
 
 export type ClientPluginHandlers = {
 	/* The initial value of the query */
