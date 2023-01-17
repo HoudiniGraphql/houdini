@@ -4012,3 +4012,44 @@ test('persists live indicator on queries', async function () {
 		"HoudiniHash=2d8b418baedb9a11ad7d4f80e747ee7eee1eba5904800523e5d0e012c662e191";
 	`)
 })
+
+test('when manual_load directive is present add it in artifact', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		mockCollectedDoc(`query TestQuery @manual_load { version }`),
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
+
+	// load the contents of the file
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    name: "TestQuery",
+		    kind: "HoudiniQuery",
+		    hash: "8e483259f3d69f416c01b6106c0440fa0f916abb4cadb75273f8226a1ff0a5e2",
+
+		    raw: \`query TestQuery {
+		  version
+		}
+		\`,
+
+		    rootType: "Query",
+
+		    selection: {
+		        fields: {
+		            version: {
+		                type: "Int",
+		                keyRaw: "version"
+		            }
+		        }
+		    },
+
+		    isManualLoad: true,
+		    policy: "CacheOrNetwork",
+		    partial: false
+		};
+
+		"HoudiniHash=d699afecf5f5b3367f7a84b0ca5aa88c2f78e1ef1c65bb9dc020fa6cbdf0863a";
+	`)
+})
