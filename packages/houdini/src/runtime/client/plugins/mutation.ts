@@ -51,6 +51,13 @@ export const mutationPlugin = documentPlugin(ArtifactKind.Mutation, () => {
 			// make sure we write to the correct layer in the cache
 			next(ctx)
 		},
+		afterNetwork(ctx, { resolve }) {
+			// before the cache sees the data, we need to clear the layer
+			ctx.cacheParams?.layer?.clear()
+
+			// we're done
+			resolve(ctx)
+		},
 		end(ctx, { resolve, value }) {
 			const hasErrors = value.errors && value.errors.length > 0
 			// if there are errors, we need to clear the layer before resolving
@@ -65,13 +72,6 @@ export const mutationPlugin = documentPlugin(ArtifactKind.Mutation, () => {
 			}
 
 			// keep going
-			resolve(ctx)
-		},
-		afterNetwork(ctx, { resolve }) {
-			// before the cache sees the data, we need to clear the layer
-			ctx.cacheParams?.layer?.clear()
-
-			// we're done
 			resolve(ctx)
 		},
 		throw(ctx) {

@@ -10,6 +10,117 @@ description: A guide to migrating your application to each breaking version of h
 
 # Release Notes
 
+## 1.0.0
+
+It's finally here! <Emoji name="partying-face" height={20} fallback="🥳" />
+
+This is a huge milestone for the project and we're so thankful to everyone that made it possible
+
+### Client Plugins
+
+Houdini's runtime logic (document subscriptions, network calls, etc) has been completely rewritten using a new
+composable architecture that allows you to add new functionality (like [Live Queries](https://the-guild.dev/blog/subscriptions-and-live-queries-real-time-with-graphql)) or change most aspects of your
+document's behavior. This is probably the biggest upgrade to Houdini since the introduction of
+Document Stores. We won't go into too much detail about how to use the new system here. For that,
+you can check out the [Client documentation](/api/client).
+
+Unfortunately, it's hard to give an exact example you can follow if you are doing anything extra special in your network's function. Here are a few situations, you might fall into:
+
+<DeepDive title="Simple Client">
+
+In the simplest case,
+your entire fetch function can be replaced with a single configuration value:
+
+```diff
+  import { HoudiniClient } from '$houdini'
+
+  const url = 'my_app.com'
+
+- const requestHandler = async ({
+-    fetch,
+-    text = '',
+-    variables = {},
+- }) => {
+-    const result = await fetch(url, {
+-        method: 'POST',
+-        headers: {
+-            'Content-Type': 'application/json',
+-        },
+-        body: JSON.stringify({
+-            query: text,
+-            variables
+-        })
+-    });
+-    return await result.json();
+- }
+-
+- export default new HoudiniClient(requestHandler);
+
+
++ export default new HoudiniClient({
++    url,
++ })
+
+```
+
+</DeepDive>
+
+<DeepDive title="Client with Authentication">
+
+If you needed to pass values to fetch (ie, for authentication) then you can use the `fetchParams`
+config value:
+
+```diff
+  import { HoudiniClient } from '$houdini'
+
+  const url = 'my_app.com'
+
+- const requestHandler = async ({
+-    fetch,
+-    text = '',
+-    variables = {},
+-    session
+- }) => {
+-    const result = await fetch(url, {
+-        method: 'POST',
+-        headers: {
+-            'Content-Type': 'application/json',
+-            'Authentication': `Bearer ${session.user?.token}`
+-        },
+-        body: JSON.stringify({
+-            query: text,
+-            variables
+-        })
+-    });
+-    return await result.json();
+- }
+-
+- export default new HoudiniClient(requestHandler);
+
+
++ export default new HoudiniClient({
++    url,
++    fetchParams({ session }) {
++        return {
++            headers: {
++                'Authentication': `Bearer ${session.user?.token}`
++            }
++        }
++    }
++ })
+
+```
+
+</DeepDive>
+
+<DeepDive title="Client with Special Logic">
+
+If you were performing special logic in your network function (either before or after the actual
+call to `fetch`), you'll need to build a custom plugin for the client. Please head over to
+the [client plugin documentation](/api/client) for more information.
+
+</DeepDive>
+
 ## 0.20.0
 
 This release was originally planned to be `1.0` but we have some exciting stuff planned
