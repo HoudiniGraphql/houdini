@@ -26,7 +26,7 @@ element and pass it to the mutation:
 
     const UploadFile = graphql(`
         mutation UploadFile($file: File!) {
-            uploadImage(file: File)
+            uploadImage(file: $file)
         }
     `)
 </script>
