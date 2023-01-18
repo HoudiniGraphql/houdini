@@ -1,0 +1,83 @@
+---
+title: Client
+description: Documentation for the HoudiniClient, the core runtime abstraction
+---
+
+# HoudiniClient
+
+The central entity for defining your document's runtime logic.
+
+```typescript:title=src/client.ts&typescriptToggle=true
+import { HoudiniClient } from '$houdini'
+
+export default new HoudiniClient({
+    url: "http://my.awesome.app.com",
+    fetchParams({ session }) {
+        return {
+            headers: {
+                Authentication: `Bearer \${session.token}`
+            }
+        }
+    }
+})
+```
+
+Your application's instance of `HoudiniClient` defines virtually all of the behavior of
+your documents (`query`, `mutation`, `subscription`, etc). While this logic _is_ totally
+configurable, most people will never have to worry about those details. If your application
+only sends queries and mutations over http(s) then all you need is to pass
+
+### Constructor Fields
+
+The `HoudiniClient` constructor takes the following arguments
+
+- `url` - the URL that your application will use to query the API
+- `fetchParams` - a function that takes a [ClientPluginContext](/api/client-plugins) and returns additional parameters to `fetch` and other network calls made by the client.
+- `plugins` - a list of [ClientPlugins](/api/client-plugins) that will be added to the Client's default list
+- `pipeline` - a function that returns the full list of plugins that the client will use. This is only for very advanced usecases.
+  If you find yourself needing this level of control, please open an issue to discuss your situation.
+- `throwOnError` - an object that configures your client's error handling (see [Error Handling](#error-handling) below)
+
+## Location
+
+Your client must be discoverable by the svelte code generation logic. By default, it looks at `src/client.{js,ts}`
+but if your client is defined elsewhere, you will need to configure the `houdini-svelte` plugin to point to the
+correct location:
+
+```javascript:title=houdini.config.js
+export default {
+    // ...
+    plugins: {
+        'houdini-svelte': {
+            client: "./src/lib/graphql/client",
+        }
+    }
+
+}
+```
+
+## Error Handling
+
+There are 2 ways you can handle errors in GraphQL: you can either have documents throw an exception if an
+`error` key is located in the payload (and is a list with at least one member) or they can fail silently
+and rely on application level code to function.
+
+By default, Houdini will behave "silently" and not throw any exceptions if an error is the query response is
+seen. If you want to turn on exceptions, you can specify the details in the `throwOnError` field:
+
+```typescript:title=src/client.ts&typescriptToggle=true
+import { error } from '@sveltejs/kit'
+
+export default new HoudiniClient({
+    url: '...',
+    throwOnError: {
+        // can be any combination of
+        // query, mutation, subscription, and all
+        operations: ['all'],
+        // the function to call
+        error: (errors) => error(500,
+            errors.map((err) => err.message).join('. ') + '.'
+        )
+    }
+})
+```

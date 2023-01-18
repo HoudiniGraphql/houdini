@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { page, navigating } from '$app/stores'
 	import { Icon, SEO, SearchInput, SearchDialog, searching } from '~/components'
 	import { onMount } from 'svelte'
@@ -8,7 +8,6 @@
 
 	export let title = ''
 	export let link = ''
-	export let index
 	export let description
 
 	export let data
@@ -63,6 +62,9 @@
 
 	// show the files associated with the current category
 	$: currentFiles = categories[currentCategory]?.files || []
+	$: index = currentFiles.findIndex((file) => {
+		return file.title === title
+	})
 	$: previous = currentFiles[index]?.previous
 	$: next = currentFiles[index]?.next
 

@@ -7,6 +7,8 @@
 		"mutation",
 		"subscription",
 		"graphql",
+		"client",
+		"client-plugins",
 		"cache",
 		"vite",
 		"config",

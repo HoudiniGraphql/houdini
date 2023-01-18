@@ -74,17 +74,13 @@ export async function loadOutline() {
 						})
 					)
 
-					// give it the appropriate length value
-					list.length = Object.keys(list).length - 1
-
-					return [category, Array.from(list)]
+					return [category, list]
 				})
 			)
 		).filter(Boolean)
 	)
-
 	// transform the keys of an object
-	return Object.fromEntries(
+	const result = Object.fromEntries(
 		['intro', 'guides', 'api'].map((category) => {
 			const files = content[category]
 
@@ -110,4 +106,6 @@ export async function loadOutline() {
 			]
 		})
 	)
+
+	return result
 }

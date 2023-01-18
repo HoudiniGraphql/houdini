@@ -1,0 +1,6 @@
+---
+title: Client Plugins
+description: Everything you could want to know about HoudiniClient Plugins
+---
+
+Foo bar
