@@ -81,3 +81,29 @@ export default new HoudiniClient({
     }
 })
 ```
+
+## Specifying Plugins
+
+There are 2 different ways of specifying plugins for your client. Most of the time,
+you're better off by specifying the `plugins` argument
+
+```typescript:title=src/client.ts&typescriptToggle=true
+new HoudiniClient({
+    url: '...',
+    plugins: [plugin1, plugin2]
+})
+```
+
+This will insert the provided plugins in Houdini's internal list of plugins.
+
+There are, however, some times when you need full control over Houdini's plugin pipeline.
+For those situations, you can use the `pipeline` argument to provide the full list:
+
+```typescript:title=src/client.ts&typescriptToggle=true
+new HoudiniClient({
+    url: '...',
+    pipeline() {
+        return [query, mutation, myCustomFetch]
+    }
+})
+```

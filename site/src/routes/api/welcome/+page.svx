@@ -77,8 +77,13 @@ const cacheExample = `
 `
 
 const clientExample = `
-    export default new HoudiniClient({
+    new HoudiniClient({
         url: "...",
+        fetchParams({ session }) {
+            return {
+                headers: { }
+            }
+        }
     })
 `
 
@@ -146,13 +151,6 @@ example={graphqlExample}
 />
 
 <APIShowcase
-title="Cache API"
-description="An overview of the programmatic cache API (for imperative updates)"
-href="/api/cache"
-example={cacheExample}
-/>
-
-<APIShowcase
 title="HoudiniClient"
 description="An overview of the options you can pass to the HoudiniClient constructor"
 href="/api/client"
@@ -164,6 +162,13 @@ title="Client Plugins"
 description="Everything you could want to know about HoudiniClient Plugins"
 href="/api/client-plugins"
 example={clientPluginExample}
+/>
+
+<APIShowcase
+title="Cache API"
+description="An overview of the programmatic cache API (for imperative updates)"
+href="/api/cache"
+example={cacheExample}
 />
 
 ## Setup
