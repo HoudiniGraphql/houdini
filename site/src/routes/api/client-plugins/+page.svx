@@ -3,8 +3,43 @@ title: Client Plugins
 description: Everything you could want to know about HoudiniClient Plugins
 ---
 
+<script>
+    import Workflow from './Workflow.svelte'
+</script>
+
 # Client Plugins
 
 Client plugins allow you to customize the behavior of your application's documents.
 They can be simple things like integrating with a logging service, adding retry logic,
 or even entirely new network capabilities like [Live Queries](https://the-guild.dev/blog/subscriptions-and-live-queries-real-time-with-graphql).
+
+## Overview
+
+In Houdini, every document is your app is backed by an observable value we call a "Document Store".
+The store has 2 main concerns: holding onto the latest value of the document and sending new
+queries to update its state (usually with new variables). Client plugins let you modify these processes
+to fit your needs by hooking into 4 different phases of the request pipeline:
+
+- `start` happens at the beginning of a request (or setup cycle) and contains logic that must happen for every request
+- `network` performs the actual network request
+- `afterNetwork` for logic after the network request but before the cache processes it
+- `end` happens at the end of the request regardless of the data’s source
+
+For some documents, the `network` and `afterNetwork` steps might be short circuited with cached values
+if the policy allows it. You can think of the cache as a gatekeeper that decides if a request can be resolved
+before beginning the network phases.
+
+<Workflow style="width: 100%; height: auto; margin: 40px 0px;" />
+
+While preparing the request, plugins are iterated over in the order they are passed to the client. Once a result
+has been provided, its value is sent in reverse order through the list of plugins we've visited so far
+in case chance to modify the response.
+
+## Your First Client Plugin
+
+## Plugins Are Data Sources
+
+The store might receive multiple updates for a given set of inputs. For example, subscriptions and live queries
+both push multiple documents into the cache and need to update the store value. Each payload should be pushed all
+the way through the chain using the same function. If the original request hasn’t been resolved when a payload
+reaches the end, the promise will resolve with that first value.
