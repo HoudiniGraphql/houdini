@@ -24,9 +24,9 @@ document's behavior. This is probably the biggest upgrade to Houdini since the i
 Document Stores. We won't go into too much detail about how to use the new system here. For that,
 you can check out the [Client documentation](/api/client).
 
-Unfortunately, it's hard to give an exact example you can follow if you are doing anything extra special in your network's function. Here are a few situations, you might fall into:
+It's a bit hard to give you an exact example to follow but here are a few situations you might fall into:
 
-<DeepDive title="Simple Client">
+<DeepDive title="Simple Client" style="margin-bottom: 0px">
 
 In the simplest case,
 your entire fetch function can be replaced with a single configuration value:
@@ -65,7 +65,7 @@ your entire fetch function can be replaced with a single configuration value:
 
 </DeepDive>
 
-<DeepDive title="Client with Authentication">
+<DeepDive title="Client with Authentication" style="margin-bottom: 0px">
 
 If you needed to pass values to fetch (ie, for authentication) then you can use the `fetchParams`
 config value:
@@ -113,7 +113,42 @@ config value:
 
 </DeepDive>
 
-<DeepDive title="Client with Special Logic">
+<DeepDive title="Client with Subscriptions" style="margin-bottom: 0px">
+
+If your application uses subscriptions, you'll need to import the
+`subscription` plugin and pass it to your client:
+
+```diff
+  import { createClient } from 'graphql-ws'
+  import { browser } from '$app/environment'
++ import { subscriptions } from '$houdini/plugins'
+
+  let socketClient = browser
+  	? new createClient({
+  			url: 'ws://api.url'
+  	  })
+  	: null
+
+- export default new HoudiniClient(requestHandler, socketClient)
++ export default new HoudiniClient({
++     url: '...',
++     // these will be used by the subscription plugin too!
++     fetchParams({ session }) {
++         return {
++             headers: {
++                 'Authentication': `Bearer ${session.user?.token}`
++             }
++         }
++     },
++     plugins: [
++         subscriptions(socketClient)
++     ]
++ })
+```
+
+</DeepDive>
+
+<DeepDive title="Client with Special Logic" >
 
 If you were performing special logic in your network function (either before or after the actual
 call to `fetch`), you'll need to build a custom plugin for the client. Please head over to
