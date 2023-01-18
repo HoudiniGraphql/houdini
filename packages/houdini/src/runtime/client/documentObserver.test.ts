@@ -31,7 +31,11 @@ function createStore(
 					date2: 'Date',
 				},
 			},
-			isManualLoad,
+			pluginsData: {
+				'plugin-svelte': {
+					isManualLoad,
+				},
+			},
 		},
 		// turn off the cache since we aren't pushing actual graphql documents through by default
 		cache: false,

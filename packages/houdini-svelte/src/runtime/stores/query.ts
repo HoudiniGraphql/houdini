@@ -13,6 +13,7 @@ import {
 import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
 import { get, Readable } from 'svelte/store'
 
+import { PluginArtifactData } from '../../plugin/artifactGenerator'
 import { clientStarted, isBrowser } from '../adapter'
 import { getClient } from '../client'
 import { getSession } from '../session'
@@ -173,11 +174,9 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 	}
 }
 
-type DedicatedArtifactPlugin = { pluginsData: { 'houdini-svelte': { isManualLoad?: boolean } } }
-
 // the parameters we will be passed from the generator
 export type StoreConfig<_Data extends GraphQLObject, _Input, _Artifact> = {
-	artifact: _Artifact & DedicatedArtifactPlugin
+	artifact: _Artifact & { pluginsData: { 'houdini-svelte': PluginArtifactData } }
 	storeName: string
 	variables: boolean
 }

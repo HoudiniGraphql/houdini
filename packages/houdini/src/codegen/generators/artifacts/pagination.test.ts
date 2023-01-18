@@ -28,22 +28,22 @@ test('pagination arguments stripped from key', async function () {
 	// look at the artifact for the generated pagination query
 	await expect(docs[0]).toMatchInlineSnapshot(`
 		export default {
-		    name: "PaginatedFragment",
-		    kind: "HoudiniFragment",
-		    hash: "d655188329bfa82826d0e09c9b56fb90c276ed5b3b155784c3358db3cac30c87",
+		    "name": "PaginatedFragment",
+		    "kind": "HoudiniFragment",
+		    "hash": "d655188329bfa82826d0e09c9b56fb90c276ed5b3b155784c3358db3cac30c87",
 
-		    refetch: {
-		        update: "append",
-		        path: ["friendsByCursor"],
-		        method: "cursor",
-		        pageSize: 10,
-		        embedded: true,
-		        targetType: "Node",
-		        paginated: true,
-		        direction: "forward"
+		    "refetch": {
+		        "update": "append",
+		        "path": ["friendsByCursor"],
+		        "method": "cursor",
+		        "pageSize": 10,
+		        "embedded": true,
+		        "targetType": "Node",
+		        "paginated": true,
+		        "direction": "forward"
 		    },
 
-		    raw: \`fragment PaginatedFragment on User {
+		    "raw": \`fragment PaginatedFragment on User {
 		  friendsByCursor(first: $first, filter: "hello", after: $after) {
 		    edges {
 		      node {
@@ -66,75 +66,75 @@ test('pagination arguments stripped from key', async function () {
 		}
 		\`,
 
-		    rootType: "User",
+		    "rootType": "User",
 
-		    selection: {
-		        fields: {
-		            friendsByCursor: {
-		                type: "UserConnection",
-		                keyRaw: "friendsByCursor(filter: \\"hello\\")::paginated",
+		    "selection": {
+		        "fields": {
+		            "friendsByCursor": {
+		                "type": "UserConnection",
+		                "keyRaw": "friendsByCursor(filter: \\"hello\\")::paginated",
 
-		                selection: {
-		                    fields: {
-		                        edges: {
-		                            type: "UserEdge",
-		                            keyRaw: "edges",
-		                            update: "append",
+		                "selection": {
+		                    "fields": {
+		                        "edges": {
+		                            "type": "UserEdge",
+		                            "keyRaw": "edges",
+		                            "update": "append",
 
-		                            selection: {
-		                                fields: {
-		                                    node: {
-		                                        type: "User",
-		                                        keyRaw: "node",
-		                                        nullable: true,
+		                            "selection": {
+		                                "fields": {
+		                                    "node": {
+		                                        "type": "User",
+		                                        "keyRaw": "node",
+		                                        "nullable": true,
 
-		                                        selection: {
-		                                            fields: {
-		                                                id: {
-		                                                    type: "ID",
-		                                                    keyRaw: "id"
+		                                        "selection": {
+		                                            "fields": {
+		                                                "id": {
+		                                                    "type": "ID",
+		                                                    "keyRaw": "id"
 		                                                },
 
-		                                                __typename: {
-		                                                    type: "String",
-		                                                    keyRaw: "__typename"
+		                                                "__typename": {
+		                                                    "type": "String",
+		                                                    "keyRaw": "__typename"
 		                                                }
 		                                            }
 		                                        }
 		                                    },
 
-		                                    cursor: {
-		                                        type: "String",
-		                                        keyRaw: "cursor"
+		                                    "cursor": {
+		                                        "type": "String",
+		                                        "keyRaw": "cursor"
 		                                    }
 		                                }
 		                            }
 		                        },
 
-		                        pageInfo: {
-		                            type: "PageInfo",
-		                            keyRaw: "pageInfo",
+		                        "pageInfo": {
+		                            "type": "PageInfo",
+		                            "keyRaw": "pageInfo",
 
-		                            selection: {
-		                                fields: {
-		                                    hasPreviousPage: {
-		                                        type: "Boolean",
-		                                        keyRaw: "hasPreviousPage"
+		                            "selection": {
+		                                "fields": {
+		                                    "hasPreviousPage": {
+		                                        "type": "Boolean",
+		                                        "keyRaw": "hasPreviousPage"
 		                                    },
 
-		                                    hasNextPage: {
-		                                        type: "Boolean",
-		                                        keyRaw: "hasNextPage"
+		                                    "hasNextPage": {
+		                                        "type": "Boolean",
+		                                        "keyRaw": "hasNextPage"
 		                                    },
 
-		                                    startCursor: {
-		                                        type: "String",
-		                                        keyRaw: "startCursor"
+		                                    "startCursor": {
+		                                        "type": "String",
+		                                        "keyRaw": "startCursor"
 		                                    },
 
-		                                    endCursor: {
-		                                        type: "String",
-		                                        keyRaw: "endCursor"
+		                                    "endCursor": {
+		                                        "type": "String",
+		                                        "keyRaw": "endCursor"
 		                                    }
 		                                }
 		                            }
@@ -168,42 +168,42 @@ test('offset based pagination marks appropriate field', async function () {
 	// look at the artifact for the generated pagination query
 	await expect(docs[0]).toMatchInlineSnapshot(`
 		export default {
-		    name: "PaginatedFragment",
-		    kind: "HoudiniFragment",
-		    hash: "61656f834b4f2afccdd42328b499f288fc9776befbef14154133565e0ac7e8b6",
+		    "name": "PaginatedFragment",
+		    "kind": "HoudiniFragment",
+		    "hash": "61656f834b4f2afccdd42328b499f288fc9776befbef14154133565e0ac7e8b6",
 
-		    refetch: {
-		        update: "append",
-		        path: ["friendsByOffset"],
-		        method: "offset",
-		        pageSize: 10,
-		        embedded: true,
-		        targetType: "Node",
-		        paginated: true,
-		        direction: "forward"
+		    "refetch": {
+		        "update": "append",
+		        "path": ["friendsByOffset"],
+		        "method": "offset",
+		        "pageSize": 10,
+		        "embedded": true,
+		        "targetType": "Node",
+		        "paginated": true,
+		        "direction": "forward"
 		    },
 
-		    raw: \`fragment PaginatedFragment on User {
+		    "raw": \`fragment PaginatedFragment on User {
 		  friendsByOffset(limit: $limit, filter: "hello", offset: $offset) {
 		    id
 		  }
 		}
 		\`,
 
-		    rootType: "User",
+		    "rootType": "User",
 
-		    selection: {
-		        fields: {
-		            friendsByOffset: {
-		                type: "User",
-		                keyRaw: "friendsByOffset(filter: \\"hello\\")::paginated",
-		                update: "append",
+		    "selection": {
+		        "fields": {
+		            "friendsByOffset": {
+		                "type": "User",
+		                "keyRaw": "friendsByOffset(filter: \\"hello\\")::paginated",
+		                "update": "append",
 
-		                selection: {
-		                    fields: {
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
+		                "selection": {
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
 		                        }
 		                    }
 		                }
@@ -246,22 +246,22 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 	// look at the artifact for the generated pagination query
 	await expect(docs[0]).toMatchInlineSnapshot(`
 		export default {
-		    name: "ScalarPagination",
-		    kind: "HoudiniQuery",
-		    hash: "09863f3b665ef14816cc6b9cc965f12bb68ea569345d3f346415ba7a8b8af71c",
+		    "name": "ScalarPagination",
+		    "kind": "HoudiniQuery",
+		    "hash": "09863f3b665ef14816cc6b9cc965f12bb68ea569345d3f346415ba7a8b8af71c",
 
-		    refetch: {
-		        update: "append",
-		        path: ["user", "friendsByCursorScalar"],
-		        method: "cursor",
-		        pageSize: 10,
-		        embedded: false,
-		        targetType: "Query",
-		        paginated: true,
-		        direction: "forward"
+		    "refetch": {
+		        "update": "append",
+		        "path": ["user", "friendsByCursorScalar"],
+		        "method": "cursor",
+		        "pageSize": 10,
+		        "embedded": false,
+		        "targetType": "Query",
+		        "paginated": true,
+		        "direction": "forward"
 		    },
 
-		    raw: \`query ScalarPagination($first: Int = 10, $after: Cursor) {
+		    "raw": \`query ScalarPagination($first: Int = 10, $after: Cursor) {
 		  user {
 		    friendsByCursorScalar(first: $first, filter: "hello", after: $after) {
 		      edges {
@@ -294,58 +294,58 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		}
 		\`,
 
-		    rootType: "Query",
+		    "rootType": "Query",
 
-		    selection: {
-		        fields: {
-		            user: {
-		                type: "User",
-		                keyRaw: "user",
+		    "selection": {
+		        "fields": {
+		            "user": {
+		                "type": "User",
+		                "keyRaw": "user",
 
-		                selection: {
-		                    fields: {
-		                        friendsByCursorScalar: {
-		                            type: "UserConnection",
-		                            keyRaw: "friendsByCursorScalar(filter: \\"hello\\")::paginated",
+		                "selection": {
+		                    "fields": {
+		                        "friendsByCursorScalar": {
+		                            "type": "UserConnection",
+		                            "keyRaw": "friendsByCursorScalar(filter: \\"hello\\")::paginated",
 
-		                            selection: {
-		                                fields: {
-		                                    edges: {
-		                                        type: "UserEdge",
-		                                        keyRaw: "edges",
-		                                        update: "append",
+		                            "selection": {
+		                                "fields": {
+		                                    "edges": {
+		                                        "type": "UserEdge",
+		                                        "keyRaw": "edges",
+		                                        "update": "append",
 
-		                                        selection: {
-		                                            fields: {
-		                                                node: {
-		                                                    type: "User",
-		                                                    keyRaw: "node",
-		                                                    nullable: true,
+		                                        "selection": {
+		                                            "fields": {
+		                                                "node": {
+		                                                    "type": "User",
+		                                                    "keyRaw": "node",
+		                                                    "nullable": true,
 
-		                                                    selection: {
-		                                                        fields: {
-		                                                            friendsByCursor: {
-		                                                                type: "UserConnection",
-		                                                                keyRaw: "friendsByCursor",
+		                                                    "selection": {
+		                                                        "fields": {
+		                                                            "friendsByCursor": {
+		                                                                "type": "UserConnection",
+		                                                                "keyRaw": "friendsByCursor",
 
-		                                                                selection: {
-		                                                                    fields: {
-		                                                                        edges: {
-		                                                                            type: "UserEdge",
-		                                                                            keyRaw: "edges",
+		                                                                "selection": {
+		                                                                    "fields": {
+		                                                                        "edges": {
+		                                                                            "type": "UserEdge",
+		                                                                            "keyRaw": "edges",
 
-		                                                                            selection: {
-		                                                                                fields: {
-		                                                                                    node: {
-		                                                                                        type: "User",
-		                                                                                        keyRaw: "node",
-		                                                                                        nullable: true,
+		                                                                            "selection": {
+		                                                                                "fields": {
+		                                                                                    "node": {
+		                                                                                        "type": "User",
+		                                                                                        "keyRaw": "node",
+		                                                                                        "nullable": true,
 
-		                                                                                        selection: {
-		                                                                                            fields: {
-		                                                                                                id: {
-		                                                                                                    type: "ID",
-		                                                                                                    keyRaw: "id"
+		                                                                                        "selection": {
+		                                                                                            "fields": {
+		                                                                                                "id": {
+		                                                                                                    "type": "ID",
+		                                                                                                    "keyRaw": "id"
 		                                                                                                }
 		                                                                                            }
 		                                                                                        }
@@ -357,51 +357,51 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		                                                                }
 		                                                            },
 
-		                                                            id: {
-		                                                                type: "ID",
-		                                                                keyRaw: "id"
+		                                                            "id": {
+		                                                                "type": "ID",
+		                                                                "keyRaw": "id"
 		                                                            },
 
-		                                                            __typename: {
-		                                                                type: "String",
-		                                                                keyRaw: "__typename"
+		                                                            "__typename": {
+		                                                                "type": "String",
+		                                                                "keyRaw": "__typename"
 		                                                            }
 		                                                        }
 		                                                    }
 		                                                },
 
-		                                                cursor: {
-		                                                    type: "String",
-		                                                    keyRaw: "cursor"
+		                                                "cursor": {
+		                                                    "type": "String",
+		                                                    "keyRaw": "cursor"
 		                                                }
 		                                            }
 		                                        }
 		                                    },
 
-		                                    pageInfo: {
-		                                        type: "PageInfo",
-		                                        keyRaw: "pageInfo",
+		                                    "pageInfo": {
+		                                        "type": "PageInfo",
+		                                        "keyRaw": "pageInfo",
 
-		                                        selection: {
-		                                            fields: {
-		                                                hasPreviousPage: {
-		                                                    type: "Boolean",
-		                                                    keyRaw: "hasPreviousPage"
+		                                        "selection": {
+		                                            "fields": {
+		                                                "hasPreviousPage": {
+		                                                    "type": "Boolean",
+		                                                    "keyRaw": "hasPreviousPage"
 		                                                },
 
-		                                                hasNextPage: {
-		                                                    type: "Boolean",
-		                                                    keyRaw: "hasNextPage"
+		                                                "hasNextPage": {
+		                                                    "type": "Boolean",
+		                                                    "keyRaw": "hasNextPage"
 		                                                },
 
-		                                                startCursor: {
-		                                                    type: "String",
-		                                                    keyRaw: "startCursor"
+		                                                "startCursor": {
+		                                                    "type": "String",
+		                                                    "keyRaw": "startCursor"
 		                                                },
 
-		                                                endCursor: {
-		                                                    type: "String",
-		                                                    keyRaw: "endCursor"
+		                                                "endCursor": {
+		                                                    "type": "String",
+		                                                    "keyRaw": "endCursor"
 		                                                }
 		                                            }
 		                                        }
@@ -410,9 +410,9 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		                            }
 		                        },
 
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
 		                        }
 		                    }
 		                }
@@ -420,17 +420,17 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		        }
 		    },
 
-		    input: {
-		        fields: {
-		            first: "Int",
-		            after: "Cursor"
+		    "input": {
+		        "fields": {
+		            "first": "Int",
+		            "after": "Cursor"
 		        },
 
-		        types: {}
+		        "types": {}
 		    },
 
-		    policy: "CacheOrNetwork",
-		    partial: false
+		    "policy": "CacheOrNetwork",
+		    "partial": false
 		};
 
 		"HoudiniHash=9e2c500b01d31185266042250d637f928613b87afe976f04d02975d00b843a21";
@@ -478,22 +478,22 @@ test("sibling aliases don't get marked", async function () {
 	// look at the artifact for the generated pagination query
 	await expect(docs[0]).toMatchInlineSnapshot(`
 		export default {
-		    name: "PaginatedFragment",
-		    kind: "HoudiniFragment",
-		    hash: "1a2d87a1d79e0241ab3ebda1cd43296a631d99973bb06e4fc66becd42c4a67be",
+		    "name": "PaginatedFragment",
+		    "kind": "HoudiniFragment",
+		    "hash": "1a2d87a1d79e0241ab3ebda1cd43296a631d99973bb06e4fc66becd42c4a67be",
 
-		    refetch: {
-		        update: "append",
-		        path: ["friendsByCursor"],
-		        method: "cursor",
-		        pageSize: 10,
-		        embedded: true,
-		        targetType: "Node",
-		        paginated: true,
-		        direction: "forward"
+		    "refetch": {
+		        "update": "append",
+		        "path": ["friendsByCursor"],
+		        "method": "cursor",
+		        "pageSize": 10,
+		        "embedded": true,
+		        "targetType": "Node",
+		        "paginated": true,
+		        "direction": "forward"
 		    },
 
-		    raw: \`fragment PaginatedFragment on User {
+		    "raw": \`fragment PaginatedFragment on User {
 		  friendsByCursor(first: $first, filter: "hello", after: $after) {
 		    edges {
 		      node {
@@ -537,52 +537,52 @@ test("sibling aliases don't get marked", async function () {
 		}
 		\`,
 
-		    rootType: "User",
+		    "rootType": "User",
 
-		    selection: {
-		        fields: {
-		            friendsByCursor: {
-		                type: "UserConnection",
-		                keyRaw: "friendsByCursor(filter: \\"hello\\")::paginated",
+		    "selection": {
+		        "fields": {
+		            "friendsByCursor": {
+		                "type": "UserConnection",
+		                "keyRaw": "friendsByCursor(filter: \\"hello\\")::paginated",
 
-		                selection: {
-		                    fields: {
-		                        edges: {
-		                            type: "UserEdge",
-		                            keyRaw: "edges",
-		                            update: "append",
+		                "selection": {
+		                    "fields": {
+		                        "edges": {
+		                            "type": "UserEdge",
+		                            "keyRaw": "edges",
+		                            "update": "append",
 
-		                            selection: {
-		                                fields: {
-		                                    node: {
-		                                        type: "User",
-		                                        keyRaw: "node",
-		                                        nullable: true,
+		                            "selection": {
+		                                "fields": {
+		                                    "node": {
+		                                        "type": "User",
+		                                        "keyRaw": "node",
+		                                        "nullable": true,
 
-		                                        selection: {
-		                                            fields: {
-		                                                friendsByCursor: {
-		                                                    type: "UserConnection",
-		                                                    keyRaw: "friendsByCursor",
+		                                        "selection": {
+		                                            "fields": {
+		                                                "friendsByCursor": {
+		                                                    "type": "UserConnection",
+		                                                    "keyRaw": "friendsByCursor",
 
-		                                                    selection: {
-		                                                        fields: {
-		                                                            edges: {
-		                                                                type: "UserEdge",
-		                                                                keyRaw: "edges",
+		                                                    "selection": {
+		                                                        "fields": {
+		                                                            "edges": {
+		                                                                "type": "UserEdge",
+		                                                                "keyRaw": "edges",
 
-		                                                                selection: {
-		                                                                    fields: {
-		                                                                        node: {
-		                                                                            type: "User",
-		                                                                            keyRaw: "node",
-		                                                                            nullable: true,
+		                                                                "selection": {
+		                                                                    "fields": {
+		                                                                        "node": {
+		                                                                            "type": "User",
+		                                                                            "keyRaw": "node",
+		                                                                            "nullable": true,
 
-		                                                                            selection: {
-		                                                                                fields: {
-		                                                                                    id: {
-		                                                                                        type: "ID",
-		                                                                                        keyRaw: "id"
+		                                                                            "selection": {
+		                                                                                "fields": {
+		                                                                                    "id": {
+		                                                                                        "type": "ID",
+		                                                                                        "keyRaw": "id"
 		                                                                                    }
 		                                                                                }
 		                                                                            }
@@ -594,51 +594,51 @@ test("sibling aliases don't get marked", async function () {
 		                                                    }
 		                                                },
 
-		                                                id: {
-		                                                    type: "ID",
-		                                                    keyRaw: "id"
+		                                                "id": {
+		                                                    "type": "ID",
+		                                                    "keyRaw": "id"
 		                                                },
 
-		                                                __typename: {
-		                                                    type: "String",
-		                                                    keyRaw: "__typename"
+		                                                "__typename": {
+		                                                    "type": "String",
+		                                                    "keyRaw": "__typename"
 		                                                }
 		                                            }
 		                                        }
 		                                    },
 
-		                                    cursor: {
-		                                        type: "String",
-		                                        keyRaw: "cursor"
+		                                    "cursor": {
+		                                        "type": "String",
+		                                        "keyRaw": "cursor"
 		                                    }
 		                                }
 		                            }
 		                        },
 
-		                        pageInfo: {
-		                            type: "PageInfo",
-		                            keyRaw: "pageInfo",
+		                        "pageInfo": {
+		                            "type": "PageInfo",
+		                            "keyRaw": "pageInfo",
 
-		                            selection: {
-		                                fields: {
-		                                    hasPreviousPage: {
-		                                        type: "Boolean",
-		                                        keyRaw: "hasPreviousPage"
+		                            "selection": {
+		                                "fields": {
+		                                    "hasPreviousPage": {
+		                                        "type": "Boolean",
+		                                        "keyRaw": "hasPreviousPage"
 		                                    },
 
-		                                    hasNextPage: {
-		                                        type: "Boolean",
-		                                        keyRaw: "hasNextPage"
+		                                    "hasNextPage": {
+		                                        "type": "Boolean",
+		                                        "keyRaw": "hasNextPage"
 		                                    },
 
-		                                    startCursor: {
-		                                        type: "String",
-		                                        keyRaw: "startCursor"
+		                                    "startCursor": {
+		                                        "type": "String",
+		                                        "keyRaw": "startCursor"
 		                                    },
 
-		                                    endCursor: {
-		                                        type: "String",
-		                                        keyRaw: "endCursor"
+		                                    "endCursor": {
+		                                        "type": "String",
+		                                        "keyRaw": "endCursor"
 		                                    }
 		                                }
 		                            }
@@ -647,47 +647,47 @@ test("sibling aliases don't get marked", async function () {
 		                }
 		            },
 
-		            friends: {
-		                type: "UserConnection",
-		                keyRaw: "friends(filter: \\"hello\\", first: 10)",
+		            "friends": {
+		                "type": "UserConnection",
+		                "keyRaw": "friends(filter: \\"hello\\", first: 10)",
 
-		                selection: {
-		                    fields: {
-		                        edges: {
-		                            type: "UserEdge",
-		                            keyRaw: "edges",
+		                "selection": {
+		                    "fields": {
+		                        "edges": {
+		                            "type": "UserEdge",
+		                            "keyRaw": "edges",
 
-		                            selection: {
-		                                fields: {
-		                                    node: {
-		                                        type: "User",
-		                                        keyRaw: "node",
-		                                        nullable: true,
+		                            "selection": {
+		                                "fields": {
+		                                    "node": {
+		                                        "type": "User",
+		                                        "keyRaw": "node",
+		                                        "nullable": true,
 
-		                                        selection: {
-		                                            fields: {
-		                                                friendsByCursor: {
-		                                                    type: "UserConnection",
-		                                                    keyRaw: "friendsByCursor",
+		                                        "selection": {
+		                                            "fields": {
+		                                                "friendsByCursor": {
+		                                                    "type": "UserConnection",
+		                                                    "keyRaw": "friendsByCursor",
 
-		                                                    selection: {
-		                                                        fields: {
-		                                                            edges: {
-		                                                                type: "UserEdge",
-		                                                                keyRaw: "edges",
+		                                                    "selection": {
+		                                                        "fields": {
+		                                                            "edges": {
+		                                                                "type": "UserEdge",
+		                                                                "keyRaw": "edges",
 
-		                                                                selection: {
-		                                                                    fields: {
-		                                                                        node: {
-		                                                                            type: "User",
-		                                                                            keyRaw: "node",
-		                                                                            nullable: true,
+		                                                                "selection": {
+		                                                                    "fields": {
+		                                                                        "node": {
+		                                                                            "type": "User",
+		                                                                            "keyRaw": "node",
+		                                                                            "nullable": true,
 
-		                                                                            selection: {
-		                                                                                fields: {
-		                                                                                    id: {
-		                                                                                        type: "ID",
-		                                                                                        keyRaw: "id"
+		                                                                            "selection": {
+		                                                                                "fields": {
+		                                                                                    "id": {
+		                                                                                        "type": "ID",
+		                                                                                        "keyRaw": "id"
 		                                                                                    }
 		                                                                                }
 		                                                                            }
@@ -699,9 +699,9 @@ test("sibling aliases don't get marked", async function () {
 		                                                    }
 		                                                },
 
-		                                                id: {
-		                                                    type: "ID",
-		                                                    keyRaw: "id"
+		                                                "id": {
+		                                                    "type": "ID",
+		                                                    "keyRaw": "id"
 		                                                }
 		                                            }
 		                                        }

@@ -266,7 +266,7 @@ export default function artifactGenerator(stats: {
 					const pluginsData: Record<string, any> = config.plugins.reduce(
 						(prev, plugin) => {
 							if (plugin.artifact_data) {
-								const dataToAdd = plugin.artifact_data(config, docs) ?? {}
+								const dataToAdd = plugin.artifact_data(config, doc) ?? {}
 								if (JSON.stringify(dataToAdd) !== '{}') {
 									prev[plugin.name] = dataToAdd
 								}
