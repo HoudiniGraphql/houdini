@@ -1,4 +1,4 @@
-import type { CollectedGraphQLDocument, GenerateHookInput} from 'houdini';
+import type { CollectedGraphQLDocument, GenerateHookInput } from 'houdini'
 import { fs, path } from 'houdini'
 
 import type { HoudiniSvelteConfig } from '../..'

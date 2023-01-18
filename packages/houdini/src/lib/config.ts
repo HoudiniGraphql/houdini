@@ -10,7 +10,7 @@ import type {
 } from 'rollup'
 import { fileURLToPath, pathToFileURL } from 'url'
 
-import type { ConfigFile } from '../runtime/lib';
+import type { ConfigFile } from '../runtime/lib'
 import { CachePolicy } from '../runtime/lib'
 import { computeID, defaultConfigValues, keyFieldsForType } from '../runtime/lib/config'
 import type { TransformPage } from '../vite/houdini'

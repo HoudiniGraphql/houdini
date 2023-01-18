@@ -1,4 +1,4 @@
-import type { Config} from 'houdini';
+import type { Config } from 'houdini'
 import { find_graphql } from 'houdini'
 import * as recast from 'recast'
 

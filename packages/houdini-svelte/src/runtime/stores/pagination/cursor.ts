@@ -4,13 +4,13 @@ import { getCurrentConfig } from '$houdini/runtime/lib/config'
 import { siteURL } from '$houdini/runtime/lib/constants'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import type { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
-import type { Writable} from 'svelte/store';
+import type { Writable } from 'svelte/store'
 import { get, writable } from 'svelte/store'
 
 import type { QueryStoreFetchParams } from '../query'
 import { fetchParams } from '../query'
 import type { FetchFn } from './fetch'
-import type { PageInfo } from './pageInfo';
+import type { PageInfo } from './pageInfo'
 import { countPage, extractPageInfo, missingPageSizeError } from './pageInfo'
 
 export function cursorHandlers<_Data extends GraphQLObject, _Input extends Record<string, any>>({

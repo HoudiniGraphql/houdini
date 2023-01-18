@@ -1,6 +1,6 @@
 import cache from '../../cache'
 import { marshalSelection } from '../../lib/scalars'
-import type { SubscriptionSpec } from '../../lib/types';
+import type { SubscriptionSpec } from '../../lib/types'
 import { ArtifactKind } from '../../lib/types'
 import { documentPlugin } from '../utils'
 

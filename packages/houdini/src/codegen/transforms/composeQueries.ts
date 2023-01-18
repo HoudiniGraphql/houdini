@@ -1,7 +1,7 @@
-import type graphql from 'graphql';
+import type graphql from 'graphql'
 import { Kind as GraphqlKinds } from 'graphql'
 
-import type { Config, CollectedGraphQLDocument } from '../../lib';
+import type { Config, CollectedGraphQLDocument } from '../../lib'
 import { HoudiniError } from '../../lib'
 
 export type FragmentDependency = {

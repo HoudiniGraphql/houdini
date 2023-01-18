@@ -1,4 +1,4 @@
-import type { Cache as _Cache} from '../cache/cache';
+import type { Cache as _Cache } from '../cache/cache'
 import { rootID } from '../cache/cache'
 import type { SchemaManager, TypeInfo } from '../cache/schema'
 import { ListCollection } from './list'

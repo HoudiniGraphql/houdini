@@ -2,7 +2,7 @@ import type { TSTypeKind } from 'ast-types/lib/gen/kinds'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import type { Config} from '../../../lib';
+import type { Config } from '../../../lib'
 import { TypeWrapper, unwrapType } from '../../../lib'
 import { nullableField, scalarPropertyValue } from './types'
 

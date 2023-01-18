@@ -1,4 +1,4 @@
-import type { RequestPayload } from '../../lib/types';
+import type { RequestPayload } from '../../lib/types'
 import { DataSource } from '../../lib/types'
 import type { ClientPlugin } from '../documentObserver'
 

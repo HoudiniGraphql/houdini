@@ -1,9 +1,7 @@
 import * as recast from 'recast'
 
 import { exportDefault, importDefaultFrom } from '../../../codegen/utils'
-import type {
-	Config,
-	CollectedGraphQLDocument} from '../../../lib';
+import type { Config, CollectedGraphQLDocument } from '../../../lib'
 import {
 	siteURL as SITE_URL,
 	fs,

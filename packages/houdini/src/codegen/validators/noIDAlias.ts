@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
 
-import type { Config, CollectedGraphQLDocument } from '../../lib';
+import type { Config, CollectedGraphQLDocument } from '../../lib'
 import { parentTypeFromAncestors, HoudiniError } from '../../lib'
 
 // noIDAlias verifies that the user did not alias any field as id which would conflict

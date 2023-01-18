@@ -1,11 +1,10 @@
-import type { PathLike } from 'fs';
+import type { PathLike } from 'fs'
 import filesystem, { Dirent } from 'fs'
-import type { Plugin} from 'houdini';
+import type { Plugin } from 'houdini'
 import { fs, path } from 'houdini'
 
 import { _config } from '.'
-import type {
-	Framework} from './kit';
+import type { Framework } from './kit'
 import {
 	is_root_layout,
 	is_root_layout_server,

@@ -1,4 +1,4 @@
-import type { Config} from 'houdini';
+import type { Config } from 'houdini'
 import { path } from 'houdini'
 
 import type { HoudiniPluginSvelteGlobalStoresConfig } from '.'

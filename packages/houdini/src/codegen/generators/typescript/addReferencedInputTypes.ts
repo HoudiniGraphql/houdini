@@ -2,7 +2,7 @@ import type { StatementKind, TSPropertySignatureKind } from 'ast-types/lib/gen/k
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import type { Config} from '../../../lib';
+import type { Config } from '../../../lib'
 import { ensureImports, HoudiniError, unwrapType } from '../../../lib'
 import { tsTypeReference } from './typeReference'
 

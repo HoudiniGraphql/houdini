@@ -2,7 +2,7 @@ import * as graphql from 'graphql'
 import { vol } from 'memfs'
 
 import { runPipeline } from '../codegen'
-import type { CollectedGraphQLDocument } from '../lib';
+import type { CollectedGraphQLDocument } from '../lib'
 import { Config, fs, path } from '../lib'
 import type { ConfigFile } from '../runtime/lib/config'
 import { ArtifactKind } from '../runtime/lib/types'

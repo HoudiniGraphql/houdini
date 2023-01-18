@@ -1,4 +1,4 @@
-import type { Config, CollectedGraphQLDocument} from '../../../lib';
+import type { Config, CollectedGraphQLDocument } from '../../../lib'
 import { fs, path } from '../../../lib'
 import { cjsIndexFilePreamble, exportDefaultFrom } from '../../utils'
 

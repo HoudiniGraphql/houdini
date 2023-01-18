@@ -1,12 +1,11 @@
 import type {
 	GraphQLObject,
 	FragmentArtifact,
-	HoudiniFetchContext} from '$houdini/runtime/lib/types';
-import {
-	CompiledFragmentKind
+	HoudiniFetchContext,
 } from '$houdini/runtime/lib/types'
+import { CompiledFragmentKind } from '$houdini/runtime/lib/types'
 import { writable } from 'svelte/store'
-import type { Readable , Writable} from 'svelte/store'
+import type { Readable, Writable } from 'svelte/store'
 
 // a fragment store exists in multiple places in a given application so we
 // can't just return a store directly, the user has to load the version of the

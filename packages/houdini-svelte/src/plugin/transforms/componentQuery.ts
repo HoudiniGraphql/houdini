@@ -1,9 +1,9 @@
 import { logYellow } from '@kitql/helper'
 import type { ExpressionKind } from 'ast-types/lib/gen/kinds'
 import type * as graphql from 'graphql'
-import type { Config, Script} from 'houdini';
+import type { Config, Script } from 'houdini'
 import { find_graphql, formatErrors } from 'houdini'
-import type { TransformPage } from 'houdini/vite';
+import type { TransformPage } from 'houdini/vite'
 import { find_exported_fn, find_insert_index, ensure_imports } from 'houdini/vite'
 import * as recast from 'recast'
 

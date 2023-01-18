@@ -1,5 +1,5 @@
 import type { QueryResult } from '$houdini/runtime/lib/types'
-import type { LoadEvent, RequestEvent } from '@sveltejs/kit';
+import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
 import { error, redirect } from '@sveltejs/kit'
 import { get } from 'svelte/store'
 

@@ -8,8 +8,7 @@ import * as recast from 'recast'
 
 import { parseSvelte } from '../../extract'
 import { extract_load_function } from '../../extractLoadFunction'
-import type {
-	HoudiniRouteScript} from '../../kit';
+import type { HoudiniRouteScript } from '../../kit'
 import {
 	is_layout,
 	is_route,
@@ -26,9 +25,9 @@ import {
 	houdini_on_error_fn,
 	query_variable_fn,
 } from '../../naming'
-import type { RouteParam } from '../../routing';
+import type { RouteParam } from '../../routing'
 import { route_params } from '../../routing'
-import type { LoadTarget } from '../componentQuery';
+import type { LoadTarget } from '../componentQuery'
 import { find_inline_queries } from '../componentQuery'
 import type { SvelteTransformPage } from '../types'
 

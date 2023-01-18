@@ -1,4 +1,4 @@
-import type { GenerateHookInput} from 'houdini';
+import type { GenerateHookInput } from 'houdini'
 import { cleanupFiles, fs, ArtifactKind, path } from 'houdini'
 
 import { stores_directory } from '../../kit'

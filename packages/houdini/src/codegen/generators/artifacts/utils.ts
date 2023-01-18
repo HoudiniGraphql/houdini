@@ -2,7 +2,7 @@ import type { ExpressionKind } from 'ast-types/lib/gen/kinds'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import type { Config} from '../../../lib';
+import type { Config } from '../../../lib'
 import { HoudiniError } from '../../../lib'
 
 const AST = recast.types.builders

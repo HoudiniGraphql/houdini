@@ -1,4 +1,4 @@
-import type { Config, CollectedGraphQLDocument } from 'houdini';
+import type { Config, CollectedGraphQLDocument } from 'houdini'
 import { HoudiniError } from 'houdini'
 
 import { store_name } from './kit'

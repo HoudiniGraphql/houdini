@@ -1,6 +1,6 @@
 import type * as graphql from 'graphql'
 
-import type { Config} from '../../lib';
+import type { Config } from '../../lib'
 import { HoudiniError } from '../../lib'
 
 export function flattenSelections({

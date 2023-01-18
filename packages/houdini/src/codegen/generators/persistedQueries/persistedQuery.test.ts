@@ -1,7 +1,7 @@
 import { test, expect } from 'vitest'
 
 import { runPipeline } from '../../../codegen'
-import type { CollectedGraphQLDocument} from '../../../lib';
+import type { CollectedGraphQLDocument } from '../../../lib'
 import { fs, path } from '../../../lib'
 import { mockCollectedDoc, testConfig } from '../../../test'
 

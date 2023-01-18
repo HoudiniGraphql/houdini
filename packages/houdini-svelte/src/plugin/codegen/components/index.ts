@@ -1,4 +1,4 @@
-import type { Config, GenerateHookInput} from 'houdini';
+import type { Config, GenerateHookInput } from 'houdini'
 import { ArtifactKind, fs, path } from 'houdini'
 
 import type { Framework } from '../../kit'

@@ -4,7 +4,7 @@ import * as typeScriptParser from 'recast/parsers/typescript'
 import { test, expect } from 'vitest'
 
 import { runPipeline } from '../..'
-import type { CollectedGraphQLDocument} from '../../../lib';
+import type { CollectedGraphQLDocument } from '../../../lib'
 import { fs, path } from '../../../lib'
 import { mockCollectedDoc, testConfig } from '../../../test'
 

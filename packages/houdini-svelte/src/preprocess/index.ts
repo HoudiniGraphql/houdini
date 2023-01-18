@@ -1,4 +1,4 @@
-import type { ConfigFile } from 'houdini';
+import type { ConfigFile } from 'houdini'
 import { getConfig } from 'houdini'
 import type { TransformPage } from 'houdini/vite'
 

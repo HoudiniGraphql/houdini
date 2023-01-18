@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
 
-import type { Config, CollectedGraphQLDocument} from '../../lib';
+import type { Config, CollectedGraphQLDocument } from '../../lib'
 import { siteURL } from '../../lib'
 import { CachePolicy } from '../../runtime/lib/types'
 

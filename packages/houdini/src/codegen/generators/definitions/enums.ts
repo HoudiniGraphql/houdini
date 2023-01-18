@@ -1,7 +1,7 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import type { Config} from '../../../lib';
+import type { Config } from '../../../lib'
 import { fs, path } from '../../../lib'
 import { moduleExport } from '../../utils'
 

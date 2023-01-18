@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
 
-import type { Config, CollectedGraphQLDocument} from '../../lib';
+import type { Config, CollectedGraphQLDocument } from '../../lib'
 import { parentTypeFromAncestors, unwrapType } from '../../lib'
 
 // typename adds __typename to the selection set of any unions or interfaces

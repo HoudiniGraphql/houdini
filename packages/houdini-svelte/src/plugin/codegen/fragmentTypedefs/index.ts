@@ -1,5 +1,5 @@
 import type { StatementKind } from 'ast-types/lib/gen/kinds'
-import type { CollectedGraphQLDocument } from 'houdini';
+import type { CollectedGraphQLDocument } from 'houdini'
 import { parseJS, path, fs, ArtifactKind, ensureImports } from 'houdini'
 import * as recast from 'recast'
 

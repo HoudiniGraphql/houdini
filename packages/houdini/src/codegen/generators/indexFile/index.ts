@@ -1,5 +1,5 @@
 // locals
-import type { Config, CollectedGraphQLDocument} from '../../../lib';
+import type { Config, CollectedGraphQLDocument } from '../../../lib'
 import { fs, path } from '../../../lib'
 import { cjsIndexFilePreamble, exportStarFrom, exportDefaultFrom } from '../../utils'
 

@@ -2,7 +2,7 @@ import { parseJS, runPipeline, formatErrors } from 'houdini'
 import type { TransformPage } from 'houdini/vite'
 import * as recast from 'recast'
 
-import type { ParsedFile} from '../extract';
+import type { ParsedFile } from '../extract'
 import { parseSvelte } from '../extract'
 import type { Framework } from '../kit'
 import query from './componentQuery'

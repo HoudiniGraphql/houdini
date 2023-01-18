@@ -1,5 +1,5 @@
 import type { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
-import type { Subscriber } from 'svelte/store';
+import type { Subscriber } from 'svelte/store'
 import { derived } from 'svelte/store'
 
 import { getClient } from '../../client'
@@ -8,15 +8,14 @@ import type {
 	LoadEventFetchParams,
 	QueryStoreFetchParams,
 	RequestEventFetchParams,
-	StoreConfig} from '../query';
-import {
-	QueryStore
+	StoreConfig,
 } from '../query'
-import type { CursorHandlers} from './cursor';
+import { QueryStore } from '../query'
+import type { CursorHandlers } from './cursor'
 import { cursorHandlers } from './cursor'
-import type { OffsetHandlers } from './offset';
+import type { OffsetHandlers } from './offset'
 import { offsetHandlers } from './offset'
-import type { PageInfo } from './pageInfo';
+import type { PageInfo } from './pageInfo'
 import { nullPageInfo } from './pageInfo'
 
 export type CursorStoreResult<_Data extends GraphQLObject, _Input extends {}> = QueryResult<

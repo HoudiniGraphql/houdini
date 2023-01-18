@@ -1,4 +1,4 @@
-import type { Config} from '../../../lib';
+import type { Config } from '../../../lib'
 import { fs } from '../../../lib'
 import enums from './enums'
 

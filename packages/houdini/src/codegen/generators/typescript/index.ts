@@ -3,7 +3,7 @@ import type { StatementKind } from 'ast-types/lib/gen/kinds'
 import type * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import type { Config, CollectedGraphQLDocument} from '../../../lib';
+import type { Config, CollectedGraphQLDocument } from '../../../lib'
 import { HoudiniError, siteURL, fs, path } from '../../../lib'
 import { flattenSelections } from '../../utils'
 import { addReferencedInputTypes } from './addReferencedInputTypes'

@@ -1,9 +1,7 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import type {
-	Config,
-	CollectedGraphQLDocument} from '../../../lib';
+import type { Config, CollectedGraphQLDocument } from '../../../lib'
 import {
 	getRootType,
 	hashDocument,
@@ -16,7 +14,7 @@ import { ArtifactKind } from '../../../lib'
 import { flattenSelections, moduleExport } from '../../utils'
 import writeIndexFile from './indexFile'
 import { inputObject } from './inputs'
-import type { FilterMap } from './operations';
+import type { FilterMap } from './operations'
 import { operationsByPath } from './operations'
 import selection from './selection'
 import { serializeValue } from './utils'

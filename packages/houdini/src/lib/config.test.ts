@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import type { PluginMeta} from './config';
+import type { PluginMeta } from './config'
 import { orderedPlugins, readConfigFile } from './config'
 
 describe('loadConfig', function () {

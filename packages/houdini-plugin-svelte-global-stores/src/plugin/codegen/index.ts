@@ -1,4 +1,4 @@
-import type { Config, GenerateHookInput } from 'houdini';
+import type { Config, GenerateHookInput } from 'houdini'
 import { fs } from 'houdini'
 
 import { global_stores_directory } from '../kit'

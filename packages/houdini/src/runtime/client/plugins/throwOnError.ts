@@ -1,4 +1,4 @@
-import type { QueryResult } from '../../lib';
+import type { QueryResult } from '../../lib'
 import { ArtifactKind } from '../../lib'
 import type { ClientPlugin } from '../documentObserver'
 

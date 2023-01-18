@@ -1,14 +1,7 @@
 import * as graphql from 'graphql'
 
-import type {
-	Config,
-	CollectedGraphQLDocument} from '../../lib';
-import {
-	HoudiniError,
-	parentTypeFromAncestors,
-	unwrapType,
-	wrapType,
-} from '../../lib'
+import type { Config, CollectedGraphQLDocument } from '../../lib'
+import { HoudiniError, parentTypeFromAncestors, unwrapType, wrapType } from '../../lib'
 import { ArtifactKind, RefetchUpdateMode } from '../../runtime/lib/types'
 
 // the paginate transform is responsible for preparing a fragment marked for pagination

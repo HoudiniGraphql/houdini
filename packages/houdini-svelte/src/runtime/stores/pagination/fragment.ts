@@ -5,16 +5,15 @@ import type {
 	FragmentArtifact,
 	GraphQLObject,
 	HoudiniFetchContext,
-	QueryArtifact} from '$houdini/runtime/lib/types';
-import {
-	CompiledFragmentKind
+	QueryArtifact,
 } from '$houdini/runtime/lib/types'
-import type { Readable, Subscriber } from 'svelte/store';
+import { CompiledFragmentKind } from '$houdini/runtime/lib/types'
+import type { Readable, Subscriber } from 'svelte/store'
 import { derived, get } from 'svelte/store'
 
 import { getClient } from '../../client'
 import type { StoreConfig } from '../query'
-import type { CursorHandlers } from './cursor';
+import type { CursorHandlers } from './cursor'
 import { cursorHandlers } from './cursor'
 import { offsetHandlers } from './offset'
 import type { PageInfo } from './pageInfo'
