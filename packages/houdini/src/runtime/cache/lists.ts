@@ -1,5 +1,11 @@
-import { SubscriptionSelection, ListWhen, SubscriptionSpec, RefetchUpdateMode } from '../lib/types'
-import { Cache, LinkedList, rootID } from './cache'
+import type {
+	SubscriptionSelection,
+	ListWhen,
+	SubscriptionSpec,
+	RefetchUpdateMode,
+} from '../lib/types'
+import type { Cache, LinkedList } from './cache'
+import { rootID } from './cache'
 import { flattenList } from './stuff'
 
 export class ListManager {

@@ -1,11 +1,11 @@
 import type { HoudiniClient } from '.'
-import { Layer } from '../cache/storage'
-import { ConfigFile, getCurrentConfig } from '../lib/config'
+import type { Layer } from '../cache/storage'
+import type { ConfigFile } from '../lib/config'
+import { getCurrentConfig } from '../lib/config'
 import { deepEquals } from '../lib/deepEquals'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 import { Writable } from '../lib/store'
-import {
-	ArtifactKind,
+import type {
 	CachePolicy,
 	DocumentArtifact,
 	QueryResult,
@@ -13,6 +13,7 @@ import {
 	QueryArtifact,
 	SubscriptionSpec,
 } from '../lib/types'
+import { ArtifactKind } from '../lib/types'
 import { cachePolicyPlugin } from './plugins'
 
 // the list of states to step forward with
@@ -45,6 +46,7 @@ export class DocumentObserver<
 		client,
 		cache = true,
 		initialValue,
+		fetching,
 	}: {
 		artifact: DocumentArtifact
 		plugins?: ClientPlugin[]
@@ -52,14 +54,21 @@ export class DocumentObserver<
 		client: HoudiniClient
 		cache?: boolean
 		initialValue?: _Data | null
+		fetching?: boolean
 	}) {
+		// if fetching is set, respect the value
+		// if fetching is not set, we should default fetching on queries and not on the rest.
+		if (fetching === undefined) {
+			fetching = artifact.kind === ArtifactKind.Query
+		}
+
 		// the initial store state
 		const initialState: QueryResult<_Data, _Input> = {
 			data: initialValue ?? null,
 			errors: null,
 			partial: false,
 			source: null,
-			fetching: artifact.kind === ArtifactKind.Query,
+			fetching,
 			variables: null,
 		}
 

@@ -10,15 +10,16 @@ import type {
 } from 'rollup'
 import { fileURLToPath, pathToFileURL } from 'url'
 
-import { ConfigFile, CachePolicy, HoudiniClientPluginConfig } from '../runtime/lib'
+import type { ConfigFile } from '../runtime/lib'
+import { CachePolicy } from '../runtime/lib'
 import { computeID, defaultConfigValues, keyFieldsForType } from '../runtime/lib/config'
-import { TransformPage } from '../vite/houdini'
+import type { TransformPage } from '../vite/houdini'
 import { houdini_mode } from './constants'
 import { HoudiniError } from './error'
 import * as fs from './fs'
 import { pullSchema } from './introspection'
 import * as path from './path'
-import { CollectedGraphQLDocument } from './types'
+import type { CollectedGraphQLDocument } from './types'
 
 // @ts-ignore
 const currentDir = global.__dirname || path.dirname(fileURLToPath(import.meta.url))
@@ -936,6 +937,7 @@ This will prevent your schema from being pulled.`
 			} catch {}
 
 			// if the plugin config is a function, we should pass the config files
+			// eslint-disable-next-line no-constant-condition
 			if (typeof plugin_config)
 				// add the plugin to the list
 				plugins.push({
@@ -988,6 +990,7 @@ export type Plugin = {
 	extensions?: string[]
 	transform_runtime?: Record<string, (args: { config: Config; content: string }) => string>
 	after_load?: (config: Config) => Promise<void> | void
+	artifact_data?: (config: Config, doc: CollectedGraphQLDocument) => Record<string, any>
 	extract_documents?: (
 		config: Config,
 		filepath: string,

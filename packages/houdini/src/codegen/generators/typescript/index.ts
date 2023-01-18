@@ -1,9 +1,10 @@
 import { logCyan, logGreen } from '@kitql/helper'
 import type { StatementKind } from 'ast-types/lib/gen/kinds'
-import * as graphql from 'graphql'
+import type * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import { Config, HoudiniError, siteURL, fs, CollectedGraphQLDocument, path } from '../../../lib'
+import type { Config, CollectedGraphQLDocument } from '../../../lib'
+import { HoudiniError, siteURL, fs, path } from '../../../lib'
 import { flattenSelections } from '../../utils'
 import { addReferencedInputTypes } from './addReferencedInputTypes'
 import imperativeCacheTypef from './imperativeCache'

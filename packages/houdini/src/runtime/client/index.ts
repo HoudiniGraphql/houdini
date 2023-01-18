@@ -1,20 +1,21 @@
 /// <reference path="../../../../../houdini.d.ts" />
-import { GraphQLObject, DocumentArtifact, QueryResult } from '../lib/types'
-import { ClientPlugin, DocumentObserver } from './documentObserver'
+import type { DocumentArtifact, GraphQLObject } from '../lib/types'
+import type { ClientPlugin } from './documentObserver'
+import { DocumentObserver } from './documentObserver'
 import {
-	queryPlugin,
-	mutationPlugin,
-	fetchPlugin,
 	fetchParamsPlugin,
-	type FetchParamFn,
+	fetchPlugin,
+	mutationPlugin,
+	queryPlugin,
 	throwOnErrorPlugin,
+	type FetchParamFn,
 	type ThrowOnErrorParams,
 } from './plugins'
 import pluginsFromPlugins from './plugins/injectedPlugins'
 
 // export the plugin constructors
-export { queryPlugin, mutationPlugin, fetchPlugin, subscriptionPlugin } from './plugins'
 export { DocumentObserver, type ClientPlugin } from './documentObserver'
+export { fetchPlugin, mutationPlugin, queryPlugin, subscriptionPlugin } from './plugins'
 
 type ConstructorArgs = {
 	url: string
@@ -70,10 +71,12 @@ export class HoudiniClient {
 		artifact,
 		cache = true,
 		initialValue,
+		fetching = false,
 	}: {
 		artifact: DocumentArtifact
 		cache?: boolean
 		initialValue?: _Data | null
+		fetching?: boolean
 	}): DocumentObserver<_Data, _Input> {
 		return new DocumentObserver({
 			client: this,
@@ -81,6 +84,7 @@ export class HoudiniClient {
 			plugins: this.#plugins,
 			cache,
 			initialValue,
+			fetching,
 		})
 	}
 }

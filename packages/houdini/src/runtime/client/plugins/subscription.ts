@@ -1,4 +1,5 @@
-import { ArtifactKind, DataSource, GraphQLObject } from '../../lib/types'
+import type { GraphQLObject } from '../../lib/types'
+import { ArtifactKind, DataSource } from '../../lib/types'
 import { documentPlugin } from '../utils'
 
 export function subscriptionPlugin(client: SubscriptionHandler) {

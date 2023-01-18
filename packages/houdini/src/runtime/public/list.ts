@@ -1,9 +1,10 @@
-import { ListCollection as _Collection } from '../cache/lists'
+import type { ListCollection as _Collection } from '../cache/lists'
 import { keyFieldsForType } from '../lib/config'
-import { GraphQLObject, SubscriptionSelection } from '../lib/types'
-import { Cache, _typeInfo } from './cache'
+import type { GraphQLObject, SubscriptionSelection } from '../lib/types'
+import type { Cache } from './cache'
+import { _typeInfo } from './cache'
 import { Record } from './record'
-import { CacheTypeDef, ListType, ValidLists, ListFilters } from './types'
+import type { CacheTypeDef, ListType, ValidLists, ListFilters } from './types'
 
 export class ListCollection<Def extends CacheTypeDef, ListName extends ValidLists<Def>> {
 	#parentID: string | undefined

@@ -1,12 +1,12 @@
-import { DocumentObserver } from '$houdini/runtime/client/documentObserver'
+import type { DocumentObserver } from '$houdini/runtime/client/documentObserver'
 import { CachePolicy } from '$houdini/runtime/lib'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
-import { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
+import type { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
 import { get } from 'svelte/store'
 
-import { QueryStoreFetchParams } from '../query'
+import type { QueryStoreFetchParams } from '../query'
 import { fetchParams } from '../query'
-import { FetchFn } from './fetch'
+import type { FetchFn } from './fetch'
 import { countPage, missingPageSizeError } from './pageInfo'
 
 export function offsetHandlers<_Data extends GraphQLObject, _Input extends {}>({

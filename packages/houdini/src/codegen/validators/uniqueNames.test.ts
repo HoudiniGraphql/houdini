@@ -1,6 +1,6 @@
 import { test } from 'vitest'
 
-import { CollectedGraphQLDocument } from '../../lib/types'
+import type { CollectedGraphQLDocument } from '../../lib/types'
 import { pipelineTest, testConfig } from '../../test'
 
 const table: Row[] = [

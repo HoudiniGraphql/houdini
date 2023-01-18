@@ -1,13 +1,9 @@
-import { OperationDefinitionNode } from 'graphql'
-import { Config, fs, GenerateHookInput, path } from 'houdini'
+import type { OperationDefinitionNode } from 'graphql'
+import type { Config, GenerateHookInput } from 'houdini'
+import { fs, path } from 'houdini'
 
-import {
-	type_route_dir,
-	stores_directory_name,
-	store_suffix,
-	Framework,
-	walk_routes,
-} from '../../kit'
+import type { Framework } from '../../kit'
+import { type_route_dir, stores_directory_name, store_suffix, walk_routes } from '../../kit'
 import { houdini_after_load_fn, houdini_before_load_fn, houdini_on_error_fn } from '../../naming'
 import { route_params } from '../../routing'
 

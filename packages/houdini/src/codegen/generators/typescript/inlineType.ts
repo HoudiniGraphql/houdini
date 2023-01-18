@@ -2,7 +2,8 @@ import type { TSTypeKind, StatementKind } from 'ast-types/lib/gen/kinds'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import { Config, ensureImports, HoudiniError, TypeWrapper, unwrapType } from '../../../lib'
+import type { Config } from '../../../lib'
+import { ensureImports, HoudiniError, TypeWrapper, unwrapType } from '../../../lib'
 import { nullableField, readonlyProperty, scalarPropertyValue } from './types'
 
 const AST = recast.types.builders

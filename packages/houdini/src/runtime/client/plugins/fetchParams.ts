@@ -1,4 +1,4 @@
-import { ClientPlugin, ClientPluginContext } from '../documentObserver'
+import type { ClientPlugin, ClientPluginContext } from '../documentObserver'
 
 export type FetchParamFn = (
 	ctx: ClientPluginContext

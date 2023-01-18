@@ -27,11 +27,11 @@ test('cache policy is persisted in artifact', async function () {
 	// look at the artifact for the generated pagination query
 	await expect(docs[0]).toMatchInlineSnapshot(`
 		export default {
-		    name: "CachedFriends",
-		    kind: "HoudiniQuery",
-		    hash: "ea9bab33b9e934c92f813b96c5a86f88fa81fbd06a27045efc95c4506b01ece4",
+		    "name": "CachedFriends",
+		    "kind": "HoudiniQuery",
+		    "hash": "ea9bab33b9e934c92f813b96c5a86f88fa81fbd06a27045efc95c4506b01ece4",
 
-		    raw: \`query CachedFriends {
+		    "raw": \`query CachedFriends {
 		  user {
 		    friends {
 		      id
@@ -41,33 +41,33 @@ test('cache policy is persisted in artifact', async function () {
 		}
 		\`,
 
-		    rootType: "Query",
+		    "rootType": "Query",
 
-		    selection: {
-		        fields: {
-		            user: {
-		                type: "User",
-		                keyRaw: "user",
+		    "selection": {
+		        "fields": {
+		            "user": {
+		                "type": "User",
+		                "keyRaw": "user",
 
-		                selection: {
-		                    fields: {
-		                        friends: {
-		                            type: "User",
-		                            keyRaw: "friends",
+		                "selection": {
+		                    "fields": {
+		                        "friends": {
+		                            "type": "User",
+		                            "keyRaw": "friends",
 
-		                            selection: {
-		                                fields: {
-		                                    id: {
-		                                        type: "ID",
-		                                        keyRaw: "id"
+		                            "selection": {
+		                                "fields": {
+		                                    "id": {
+		                                        "type": "ID",
+		                                        "keyRaw": "id"
 		                                    }
 		                                }
 		                            }
 		                        },
 
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
 		                        }
 		                    }
 		                }
@@ -75,8 +75,8 @@ test('cache policy is persisted in artifact', async function () {
 		        }
 		    },
 
-		    policy: "CacheAndNetwork",
-		    partial: false
+		    "policy": "CacheAndNetwork",
+		    "partial": false
 		};
 
 		"HoudiniHash=08a3bafdc782d255deb9894e8bb198e5a47681e8fc4d1d1bff0c075d93c2362d";
@@ -108,11 +108,11 @@ test('can change default cache policy', async function () {
 	// look at the artifact for the generated pagination query
 	await expect(docs[0]).toMatchInlineSnapshot(`
 		export default {
-		    name: "CachedFriends",
-		    kind: "HoudiniQuery",
-		    hash: "ea9bab33b9e934c92f813b96c5a86f88fa81fbd06a27045efc95c4506b01ece4",
+		    "name": "CachedFriends",
+		    "kind": "HoudiniQuery",
+		    "hash": "ea9bab33b9e934c92f813b96c5a86f88fa81fbd06a27045efc95c4506b01ece4",
 
-		    raw: \`query CachedFriends {
+		    "raw": \`query CachedFriends {
 		  user {
 		    friends {
 		      id
@@ -122,33 +122,33 @@ test('can change default cache policy', async function () {
 		}
 		\`,
 
-		    rootType: "Query",
+		    "rootType": "Query",
 
-		    selection: {
-		        fields: {
-		            user: {
-		                type: "User",
-		                keyRaw: "user",
+		    "selection": {
+		        "fields": {
+		            "user": {
+		                "type": "User",
+		                "keyRaw": "user",
 
-		                selection: {
-		                    fields: {
-		                        friends: {
-		                            type: "User",
-		                            keyRaw: "friends",
+		                "selection": {
+		                    "fields": {
+		                        "friends": {
+		                            "type": "User",
+		                            "keyRaw": "friends",
 
-		                            selection: {
-		                                fields: {
-		                                    id: {
-		                                        type: "ID",
-		                                        keyRaw: "id"
+		                            "selection": {
+		                                "fields": {
+		                                    "id": {
+		                                        "type": "ID",
+		                                        "keyRaw": "id"
 		                                    }
 		                                }
 		                            }
 		                        },
 
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
 		                        }
 		                    }
 		                }
@@ -156,8 +156,8 @@ test('can change default cache policy', async function () {
 		        }
 		    },
 
-		    policy: "NetworkOnly",
-		    partial: false
+		    "policy": "NetworkOnly",
+		    "partial": false
 		};
 
 		"HoudiniHash=07860fa33d7e0f709a61716b22c5fada0f5074d95da404e8cac9d3b245843773";
@@ -184,11 +184,11 @@ test('partial opt-in is persisted', async function () {
 	// look at the artifact for the generated pagination query
 	await expect(docs[0]).toMatchInlineSnapshot(`
 		export default {
-		    name: "CachedFriends",
-		    kind: "HoudiniQuery",
-		    hash: "ea9bab33b9e934c92f813b96c5a86f88fa81fbd06a27045efc95c4506b01ece4",
+		    "name": "CachedFriends",
+		    "kind": "HoudiniQuery",
+		    "hash": "ea9bab33b9e934c92f813b96c5a86f88fa81fbd06a27045efc95c4506b01ece4",
 
-		    raw: \`query CachedFriends {
+		    "raw": \`query CachedFriends {
 		  user {
 		    friends {
 		      id
@@ -198,33 +198,33 @@ test('partial opt-in is persisted', async function () {
 		}
 		\`,
 
-		    rootType: "Query",
+		    "rootType": "Query",
 
-		    selection: {
-		        fields: {
-		            user: {
-		                type: "User",
-		                keyRaw: "user",
+		    "selection": {
+		        "fields": {
+		            "user": {
+		                "type": "User",
+		                "keyRaw": "user",
 
-		                selection: {
-		                    fields: {
-		                        friends: {
-		                            type: "User",
-		                            keyRaw: "friends",
+		                "selection": {
+		                    "fields": {
+		                        "friends": {
+		                            "type": "User",
+		                            "keyRaw": "friends",
 
-		                            selection: {
-		                                fields: {
-		                                    id: {
-		                                        type: "ID",
-		                                        keyRaw: "id"
+		                            "selection": {
+		                                "fields": {
+		                                    "id": {
+		                                        "type": "ID",
+		                                        "keyRaw": "id"
 		                                    }
 		                                }
 		                            }
 		                        },
 
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
 		                        }
 		                    }
 		                }
@@ -232,8 +232,8 @@ test('partial opt-in is persisted', async function () {
 		        }
 		    },
 
-		    policy: "CacheAndNetwork",
-		    partial: true
+		    "policy": "CacheAndNetwork",
+		    "partial": true
 		};
 
 		"HoudiniHash=4fb7cd5b288356c5bd7b09bd128cab1d399cb2aab2fe8c57bce318d423282a2f";
@@ -265,11 +265,11 @@ test('can set default partial opt-in', async function () {
 	// look at the artifact for the generated pagination query
 	await expect(docs[0]).toMatchInlineSnapshot(`
 		export default {
-		    name: "CachedFriends",
-		    kind: "HoudiniQuery",
-		    hash: "ea9bab33b9e934c92f813b96c5a86f88fa81fbd06a27045efc95c4506b01ece4",
+		    "name": "CachedFriends",
+		    "kind": "HoudiniQuery",
+		    "hash": "ea9bab33b9e934c92f813b96c5a86f88fa81fbd06a27045efc95c4506b01ece4",
 
-		    raw: \`query CachedFriends {
+		    "raw": \`query CachedFriends {
 		  user {
 		    friends {
 		      id
@@ -279,33 +279,33 @@ test('can set default partial opt-in', async function () {
 		}
 		\`,
 
-		    rootType: "Query",
+		    "rootType": "Query",
 
-		    selection: {
-		        fields: {
-		            user: {
-		                type: "User",
-		                keyRaw: "user",
+		    "selection": {
+		        "fields": {
+		            "user": {
+		                "type": "User",
+		                "keyRaw": "user",
 
-		                selection: {
-		                    fields: {
-		                        friends: {
-		                            type: "User",
-		                            keyRaw: "friends",
+		                "selection": {
+		                    "fields": {
+		                        "friends": {
+		                            "type": "User",
+		                            "keyRaw": "friends",
 
-		                            selection: {
-		                                fields: {
-		                                    id: {
-		                                        type: "ID",
-		                                        keyRaw: "id"
+		                            "selection": {
+		                                "fields": {
+		                                    "id": {
+		                                        "type": "ID",
+		                                        "keyRaw": "id"
 		                                    }
 		                                }
 		                            }
 		                        },
 
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
 		                        }
 		                    }
 		                }
@@ -313,8 +313,8 @@ test('can set default partial opt-in', async function () {
 		        }
 		    },
 
-		    policy: "CacheAndNetwork",
-		    partial: true
+		    "policy": "CacheAndNetwork",
+		    "partial": true
 		};
 
 		"HoudiniHash=08a3bafdc782d255deb9894e8bb198e5a47681e8fc4d1d1bff0c075d93c2362d";

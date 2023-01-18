@@ -1,13 +1,15 @@
 import { logYellow } from '@kitql/helper'
-import { ExpressionKind } from 'ast-types/lib/gen/kinds'
-import * as graphql from 'graphql'
-import { Config, find_graphql, Script, formatErrors } from 'houdini'
-import { find_exported_fn, find_insert_index, ensure_imports, TransformPage } from 'houdini/vite'
+import type { ExpressionKind } from 'ast-types/lib/gen/kinds'
+import type * as graphql from 'graphql'
+import type { Config, Script } from 'houdini'
+import { find_graphql, formatErrors } from 'houdini'
+import type { TransformPage } from 'houdini/vite'
+import { find_exported_fn, find_insert_index, ensure_imports } from 'houdini/vite'
 import * as recast from 'recast'
 
 import { is_component, store_import_path } from '../kit'
 import { query_variable_fn } from '../naming'
-import { SvelteTransformPage } from './types'
+import type { SvelteTransformPage } from './types'
 
 const AST = recast.types.builders
 

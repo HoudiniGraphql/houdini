@@ -1,7 +1,8 @@
 import * as graphql from 'graphql'
 
-import { Config, parentTypeFromAncestors } from '../../../lib'
-import { MutationOperation } from '../../../runtime/lib/types'
+import type { Config } from '../../../lib'
+import { parentTypeFromAncestors } from '../../../lib'
+import type { MutationOperation } from '../../../runtime/lib/types'
 import { convertValue } from './utils'
 
 // return the list of operations that are part of a mutation

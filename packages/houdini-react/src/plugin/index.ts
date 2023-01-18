@@ -1,7 +1,5 @@
 import type { PluginFactory } from 'houdini'
-import path from 'path'
 
-import { plugin_config } from './config'
 import { extract_documents } from './extract'
 import { transform_file } from './transform'
 

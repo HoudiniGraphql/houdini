@@ -5,7 +5,7 @@ import { test, expect } from 'vitest'
 
 import { runPipeline } from '../..'
 import { fs, path } from '../../../lib'
-import { CollectedGraphQLDocument } from '../../../lib/types'
+import type { CollectedGraphQLDocument } from '../../../lib/types'
 import { testConfig, mockCollectedDoc } from '../../../test'
 
 test('runtime index file - sapper', async function () {

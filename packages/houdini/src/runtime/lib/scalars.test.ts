@@ -3,7 +3,8 @@ import { test, expect, describe, beforeEach } from 'vitest'
 import { testConfigFile } from '../../test'
 import { defaultConfigValues, setMockConfig } from './config'
 import { marshalInputs, marshalSelection, parseScalar, unmarshalSelection } from './scalars'
-import { ArtifactKind, QueryArtifact, SubscriptionSelection } from './types'
+import type { QueryArtifact, SubscriptionSelection } from './types'
+import { ArtifactKind } from './types'
 
 const config = defaultConfigValues({
 	scalars: {

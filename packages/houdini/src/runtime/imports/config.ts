@@ -1,3 +1,3 @@
-import { ConfigFile } from '../lib/config'
+import type { ConfigFile } from '../lib/config'
 
 export default {} as ConfigFile

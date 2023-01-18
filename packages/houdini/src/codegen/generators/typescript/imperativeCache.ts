@@ -1,10 +1,9 @@
-import { StatementKind, TSTypeKind } from 'ast-types/lib/gen/kinds'
+import type { StatementKind, TSTypeKind } from 'ast-types/lib/gen/kinds'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
+import type { Config, CollectedGraphQLDocument } from '../../../lib'
 import {
-	Config,
-	CollectedGraphQLDocument,
 	fs,
 	path,
 	keyFieldsForType,

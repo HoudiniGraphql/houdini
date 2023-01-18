@@ -6,7 +6,8 @@ import { Cache } from '../../cache/cache'
 import { CachePolicy } from '../../lib'
 import { setMockConfig } from '../../lib/config'
 import { ArtifactKind, DataSource } from '../../lib/types'
-import { ClientPlugin, DocumentObserver } from './../documentObserver'
+import type { ClientPlugin } from './../documentObserver'
+import { DocumentObserver } from './../documentObserver'
 import { cachePolicyPlugin } from './cache'
 
 /**

@@ -1,7 +1,7 @@
 import { test, expect, describe } from 'vitest'
 
-import { Config } from '../../lib'
-import { CollectedGraphQLDocument } from '../../lib/types'
+import type { Config } from '../../lib'
+import type { CollectedGraphQLDocument } from '../../lib/types'
 import { pipelineTest, testConfig } from '../../test'
 
 // since generation will catch a lot of these errors for us, the goal of these tests is to make sure

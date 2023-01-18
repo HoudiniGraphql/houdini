@@ -36,12 +36,11 @@ test.describe('fetching', () => {
     await goto(page, routes.Home);
 
     // Switch page and check the first console log
-    // It's expected to stay true until the first fetch!
     const [msg] = await Promise.all([
       waitForConsoleInfo(page),
       clientSideNavigation(page, routes.fetching_without_load)
     ]);
-    expect(msg.text()).toBe('without_load - fetching: true');
+    expect(msg.text()).toBe('without_load - fetching: false');
 
     const [msg2] = await Promise.all([
       waitForConsoleInfo(page),

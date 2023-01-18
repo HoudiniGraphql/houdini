@@ -1,5 +1,6 @@
-import { ArtifactKind, QueryResult } from '../../lib'
-import { ClientPlugin } from '../documentObserver'
+import type { QueryResult } from '../../lib'
+import { ArtifactKind } from '../../lib'
+import type { ClientPlugin } from '../documentObserver'
 
 export type ThrowOnErrorParams = {
 	operations: (`all` | 'query' | 'mutation' | 'subscription')[]

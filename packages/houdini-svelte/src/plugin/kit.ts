@@ -1,12 +1,13 @@
 import * as graphql from 'graphql'
-import { Config, find_graphql, fs, path } from 'houdini'
+import type { Config } from 'houdini'
+import { find_graphql, fs, path } from 'houdini'
 import { ensure_imports } from 'houdini/vite'
-import recast from 'recast'
+import type recast from 'recast'
 
-import { HoudiniSvelteConfig } from '.'
+import type { HoudiniSvelteConfig } from '.'
 import { parseSvelte } from './extract'
 import { extract_load_function } from './extractLoadFunction'
-import { SvelteTransformPage } from './transforms/types'
+import type { SvelteTransformPage } from './transforms/types'
 
 type Identifier = recast.types.namedTypes.Identifier
 

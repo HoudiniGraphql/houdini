@@ -1,15 +1,17 @@
-import { DocumentObserver } from '$houdini/runtime/client/documentObserver'
+import type { DocumentObserver } from '$houdini/runtime/client/documentObserver'
 import { CachePolicy } from '$houdini/runtime/lib'
 import { getCurrentConfig } from '$houdini/runtime/lib/config'
 import { siteURL } from '$houdini/runtime/lib/constants'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
-import { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
-import { get, Writable, writable } from 'svelte/store'
+import type { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
+import type { Writable } from 'svelte/store'
+import { get, writable } from 'svelte/store'
 
-import { QueryStoreFetchParams } from '../query'
+import type { QueryStoreFetchParams } from '../query'
 import { fetchParams } from '../query'
-import { FetchFn } from './fetch'
-import { countPage, extractPageInfo, missingPageSizeError, PageInfo } from './pageInfo'
+import type { FetchFn } from './fetch'
+import type { PageInfo } from './pageInfo'
+import { countPage, extractPageInfo, missingPageSizeError } from './pageInfo'
 
 export function cursorHandlers<_Data extends GraphQLObject, _Input extends Record<string, any>>({
 	artifact,

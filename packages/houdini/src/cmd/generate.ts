@@ -1,5 +1,6 @@
 import codegen from '../codegen'
-import { Config, ConfigFile, formatErrors, getConfig } from '../lib'
+import type { Config, ConfigFile } from '../lib'
+import { formatErrors, getConfig } from '../lib'
 import pullSchema from './pullSchema'
 
 export async function generate(

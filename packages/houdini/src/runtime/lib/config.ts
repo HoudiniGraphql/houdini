@@ -1,7 +1,7 @@
-import { type GraphQLSchema } from 'graphql'
+import type { GraphQLSchema } from 'graphql'
 
 import config from '../imports/config'
-import { CachePolicy } from './types'
+import type { CachePolicy } from './types'
 
 let mockConfig: ConfigFile | null = null
 

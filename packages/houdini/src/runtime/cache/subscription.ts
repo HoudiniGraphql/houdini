@@ -1,8 +1,6 @@
 import { getFieldsForType } from '../lib/selection'
-import type { SubscriptionSpec, SubscriptionSelection, GraphQLObject } from '../lib/types'
-import type { GraphQLValue } from '../lib/types'
-import { Cache, LinkedList } from './cache'
-import { List } from './lists'
+import type { GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '../lib/types'
+import type { Cache, LinkedList } from './cache'
 import { evaluateKey, flattenList } from './stuff'
 
 export type FieldSelection = [
