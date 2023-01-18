@@ -1,5 +1,5 @@
 import _cache from './cache'
-import { Cache as InternalCache } from './cache/cache'
+import type { Cache as InternalCache } from './cache/cache'
 import type { CacheTypeDef } from './generated'
 import { Cache } from './public'
 

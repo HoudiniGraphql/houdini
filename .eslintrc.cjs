@@ -14,6 +14,13 @@ module.exports = {
 		'@typescript-eslint/no-inferrable-types': 'off',
 		'@typescript-eslint/prefer-as-const': 'off',
 		'@typescript-eslint/no-var-requires': 'off',
+		'@typescript-eslint/consistent-type-imports': [
+			'error',
+			{
+				prefer: 'type-imports',
+				fixStyle: 'separate-type-imports',
+			},
+		],
 		'unicorn/no-lonely-if': 'off',
 		'unicorn/filename-case': 'off',
 		'unicorn/no-instanceof-array': 'off',

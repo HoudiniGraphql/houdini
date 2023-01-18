@@ -1,6 +1,7 @@
 /// <reference path="../../../../../houdini.d.ts" />
-import { DocumentArtifact, GraphQLObject } from '../lib/types'
-import { ClientPlugin, DocumentObserver } from './documentObserver'
+import type { DocumentArtifact, GraphQLObject } from '../lib/types'
+import type { ClientPlugin} from './documentObserver';
+import { DocumentObserver } from './documentObserver'
 import {
 	fetchParamsPlugin,
 	fetchPlugin,

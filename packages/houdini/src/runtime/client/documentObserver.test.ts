@@ -3,8 +3,10 @@ import { test, expect, vi, beforeEach } from 'vitest'
 
 import { HoudiniClient } from '.'
 import { setMockConfig } from '../lib/config'
-import { ArtifactKind, DataSource, GraphQLObject } from '../lib/types'
-import { DocumentObserver, ClientPlugin } from './documentObserver'
+import type { GraphQLObject } from '../lib/types';
+import { ArtifactKind, DataSource } from '../lib/types'
+import type { ClientPlugin } from './documentObserver';
+import { DocumentObserver } from './documentObserver'
 
 function createStore(
 	plugins: ClientPlugin[],

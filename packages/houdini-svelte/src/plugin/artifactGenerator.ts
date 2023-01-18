@@ -1,5 +1,5 @@
 import * as graphql from 'graphql'
-import { CollectedGraphQLDocument, Config } from 'houdini'
+import type { CollectedGraphQLDocument, Config } from 'houdini'
 
 export type PluginArtifactData = { isManualLoad?: boolean }
 

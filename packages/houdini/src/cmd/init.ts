@@ -5,7 +5,7 @@ import fetch from 'node-fetch'
 import prompts from 'prompts'
 
 import { fs, parseJSON, path, pullSchema } from '../lib'
-import { ConfigFile } from '../runtime/lib/config'
+import type { ConfigFile } from '../runtime/lib/config'
 
 // the init command is responsible for scaffolding a few files
 // as well as pulling down the initial schema representation

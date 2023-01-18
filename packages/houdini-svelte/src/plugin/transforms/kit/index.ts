@@ -1,6 +1,6 @@
-import { Config } from 'houdini'
+import type { Config } from 'houdini'
 
-import { SvelteTransformPage } from '../types'
+import type { SvelteTransformPage } from '../types'
 import init from './init'
 import load from './load'
 import session from './session'

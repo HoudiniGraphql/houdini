@@ -1,4 +1,4 @@
-import { SubscriptionSelection } from './types'
+import type { SubscriptionSelection } from './types'
 
 export function getFieldsForType(
 	selection: SubscriptionSelection,

@@ -1,7 +1,7 @@
-import { Fragment } from '$houdini/runtime/lib/types'
-import { Readable } from 'svelte/store'
+import type { Fragment } from '$houdini/runtime/lib/types'
+import type { Readable } from 'svelte/store'
 
-import { FragmentStore } from './stores'
+import type { FragmentStore } from './stores'
 import type { FragmentStorePaginated } from './stores/pagination/fragment'
 
 // function overloads meant to only return a nullable value

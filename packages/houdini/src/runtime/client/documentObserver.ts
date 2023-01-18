@@ -1,17 +1,19 @@
 import type { HoudiniClient } from '.'
-import { Layer } from '../cache/storage'
-import { ConfigFile, getCurrentConfig } from '../lib/config'
+import type { Layer } from '../cache/storage'
+import type { ConfigFile} from '../lib/config';
+import { getCurrentConfig } from '../lib/config'
 import { deepEquals } from '../lib/deepEquals'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 import { Writable } from '../lib/store'
-import {
-	ArtifactKind,
+import type {
 	CachePolicy,
 	DocumentArtifact,
 	QueryResult,
 	GraphQLObject,
 	QueryArtifact,
-	SubscriptionSpec,
+	SubscriptionSpec} from '../lib/types';
+import {
+	ArtifactKind
 } from '../lib/types'
 import { cachePolicyPlugin } from './plugins'
 

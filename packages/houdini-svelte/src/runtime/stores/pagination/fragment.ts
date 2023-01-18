@@ -1,20 +1,23 @@
-import { DocumentObserver } from '$houdini/runtime/client/documentObserver'
+import type { DocumentObserver } from '$houdini/runtime/client/documentObserver'
 import { getCurrentConfig, keyFieldsForType } from '$houdini/runtime/lib/config'
 import { siteURL } from '$houdini/runtime/lib/constants'
-import {
-	CompiledFragmentKind,
+import type {
 	FragmentArtifact,
 	GraphQLObject,
 	HoudiniFetchContext,
-	QueryArtifact,
+	QueryArtifact} from '$houdini/runtime/lib/types';
+import {
+	CompiledFragmentKind
 } from '$houdini/runtime/lib/types'
-import { derived, get, Readable, Subscriber } from 'svelte/store'
+import type { Readable, Subscriber } from 'svelte/store';
+import { derived, get } from 'svelte/store'
 
 import { getClient } from '../../client'
-import { StoreConfig } from '../query'
-import { cursorHandlers, CursorHandlers } from './cursor'
+import type { StoreConfig } from '../query'
+import type { CursorHandlers } from './cursor';
+import { cursorHandlers } from './cursor'
 import { offsetHandlers } from './offset'
-import { PageInfo } from './pageInfo'
+import type { PageInfo } from './pageInfo'
 
 type FragmentStoreConfig<_Data extends GraphQLObject, _Input> = StoreConfig<
 	_Data,

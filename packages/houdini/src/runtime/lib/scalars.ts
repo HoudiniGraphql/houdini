@@ -1,7 +1,7 @@
 import { getCurrentConfig } from './config'
-import { ConfigFile } from './config'
+import type { ConfigFile } from './config'
 import { getFieldsForType } from './selection'
-import {
+import type {
 	MutationArtifact,
 	QueryArtifact,
 	SubscriptionArtifact,

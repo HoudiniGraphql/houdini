@@ -1,7 +1,7 @@
 import { testConfigFile } from '../../../test'
 import { Cache as _Cache } from '../../cache/cache'
 import { Cache } from '../cache'
-import { Record } from '../record'
+import type { Record } from '../record'
 
 // the type definition for our test cache
 type CacheTypeDef = {

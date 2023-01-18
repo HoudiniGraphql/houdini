@@ -1,4 +1,5 @@
-import { HoudiniError, PluginFactory, path, fs, type Config } from 'houdini'
+import type { PluginFactory} from 'houdini';
+import { HoudiniError, path, fs, type Config } from 'houdini'
 import * as url from 'url'
 import { loadEnv } from 'vite'
 

@@ -1,11 +1,12 @@
 import { logGreen, logYellow } from '@kitql/helper'
 import * as graphql from 'graphql'
 
-import {
+import type {
 	Config,
+	CollectedGraphQLDocument} from '../../lib';
+import {
 	parentTypeFromAncestors,
 	HoudiniError,
-	CollectedGraphQLDocument,
 	siteURL,
 	TypeWrapper,
 	unwrapType,

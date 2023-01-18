@@ -1,15 +1,16 @@
 import * as graphql from 'graphql'
 
-import {
+import type {
 	Config,
+	Plugin,
+	CollectedGraphQLDocument} from '../lib';
+import {
 	runPipeline as run,
 	LogLevel,
 	find_graphql,
 	parseJS,
 	HoudiniError,
-	Plugin,
 	fs,
-	CollectedGraphQLDocument,
 	path,
 } from '../lib'
 import { ArtifactKind } from '../runtime/lib/types'

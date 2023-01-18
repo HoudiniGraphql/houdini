@@ -1,4 +1,4 @@
-import * as recast from 'recast'
+import type * as recast from 'recast'
 
 type Statement = recast.types.namedTypes.Statement
 type Program = recast.types.namedTypes.Program

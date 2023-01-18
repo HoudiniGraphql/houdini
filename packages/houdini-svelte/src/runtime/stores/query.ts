@@ -1,19 +1,20 @@
-import { DocumentObserver } from '$houdini/runtime/client'
-import { FetchContext } from '$houdini/runtime/client/plugins/fetch'
+import type { DocumentObserver } from '$houdini/runtime/client'
+import type { FetchContext } from '$houdini/runtime/client/plugins/fetch'
 import * as log from '$houdini/runtime/lib/log'
-import type { QueryArtifact } from '$houdini/runtime/lib/types'
+import type { QueryArtifact ,
+	GraphQLObject,
+	HoudiniFetchContext,
+	QueryResult} from '$houdini/runtime/lib/types'
 // internals
 import {
 	CachePolicy,
-	CompiledQueryKind,
-	GraphQLObject,
-	HoudiniFetchContext,
-	QueryResult,
+	CompiledQueryKind
 } from '$houdini/runtime/lib/types'
 import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
-import { get, Readable } from 'svelte/store'
+import type { Readable } from 'svelte/store';
+import { get } from 'svelte/store'
 
-import { PluginArtifactData } from '../../plugin/artifactGenerator'
+import type { PluginArtifactData } from '../../plugin/artifactGenerator'
 import { clientStarted, isBrowser } from '../adapter'
 import { getClient } from '../client'
 import { getSession } from '../session'

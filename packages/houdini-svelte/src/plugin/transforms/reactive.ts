@@ -1,9 +1,9 @@
 import { walk } from 'estree-walker'
-import { Config } from 'houdini'
+import type { Config } from 'houdini'
 import * as recast from 'recast'
 
 import { is_component, is_route } from '../kit'
-import { SvelteTransformPage } from './types'
+import type { SvelteTransformPage } from './types'
 
 const AST = recast.types.builders
 

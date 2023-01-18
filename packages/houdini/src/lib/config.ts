@@ -10,15 +10,16 @@ import type {
 } from 'rollup'
 import { fileURLToPath, pathToFileURL } from 'url'
 
-import { CachePolicy, ConfigFile } from '../runtime/lib'
+import type { ConfigFile } from '../runtime/lib';
+import { CachePolicy } from '../runtime/lib'
 import { computeID, defaultConfigValues, keyFieldsForType } from '../runtime/lib/config'
-import { TransformPage } from '../vite/houdini'
+import type { TransformPage } from '../vite/houdini'
 import { houdini_mode } from './constants'
 import { HoudiniError } from './error'
 import * as fs from './fs'
 import { pullSchema } from './introspection'
 import * as path from './path'
-import { CollectedGraphQLDocument } from './types'
+import type { CollectedGraphQLDocument } from './types'
 
 // @ts-ignore
 const currentDir = global.__dirname || path.dirname(fileURLToPath(import.meta.url))

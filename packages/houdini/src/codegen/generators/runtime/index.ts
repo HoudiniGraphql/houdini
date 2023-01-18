@@ -1,14 +1,15 @@
 import * as recast from 'recast'
 
 import { exportDefault, importDefaultFrom } from '../../../codegen/utils'
-import {
+import type {
 	Config,
+	CollectedGraphQLDocument} from '../../../lib';
+import {
 	siteURL as SITE_URL,
 	fs,
 	HoudiniError,
 	path,
 	houdini_mode,
-	CollectedGraphQLDocument,
 	parseJS,
 	ensureImports,
 } from '../../../lib'

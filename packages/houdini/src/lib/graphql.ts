@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import * as graphql from 'graphql'
 
-import { Config } from '.'
+import type { Config } from '.'
 import { HoudiniError } from './error'
 import * as path from './path'
 

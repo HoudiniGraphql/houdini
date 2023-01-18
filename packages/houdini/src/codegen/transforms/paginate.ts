@@ -1,10 +1,11 @@
 import * as graphql from 'graphql'
 
-import {
+import type {
 	Config,
+	CollectedGraphQLDocument} from '../../lib';
+import {
 	HoudiniError,
 	parentTypeFromAncestors,
-	CollectedGraphQLDocument,
 	unwrapType,
 	wrapType,
 } from '../../lib'

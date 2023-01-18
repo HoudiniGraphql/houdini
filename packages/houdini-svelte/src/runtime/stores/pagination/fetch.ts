@@ -1,6 +1,6 @@
-import { GraphQLObject, QueryResult } from '$houdini/runtime/lib/types'
+import type { GraphQLObject, QueryResult } from '$houdini/runtime/lib/types'
 
-import { QueryStoreFetchParams } from '../query'
+import type { QueryStoreFetchParams } from '../query'
 
 export type FetchFn<_Data extends GraphQLObject, _Input = any> = (
 	params?: QueryStoreFetchParams<_Data, _Input>

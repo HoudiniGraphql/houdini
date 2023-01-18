@@ -1,21 +1,23 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import {
+import type {
 	Config,
+	CollectedGraphQLDocument} from '../../../lib';
+import {
 	getRootType,
 	hashDocument,
 	HoudiniError,
 	parentTypeFromAncestors,
 	fs,
-	CollectedGraphQLDocument,
 	cleanupFiles,
 } from '../../../lib'
 import { ArtifactKind } from '../../../lib'
 import { flattenSelections, moduleExport } from '../../utils'
 import writeIndexFile from './indexFile'
 import { inputObject } from './inputs'
-import { operationsByPath, FilterMap } from './operations'
+import type { FilterMap } from './operations';
+import { operationsByPath } from './operations'
 import selection from './selection'
 import { serializeValue } from './utils'
 

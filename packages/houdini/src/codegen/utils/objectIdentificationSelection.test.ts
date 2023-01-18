@@ -1,4 +1,4 @@
-import * as graphql from 'graphql'
+import type * as graphql from 'graphql'
 import { expect, test } from 'vitest'
 
 import { testConfig } from '../../test'
