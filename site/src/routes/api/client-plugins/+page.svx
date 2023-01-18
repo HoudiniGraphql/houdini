@@ -37,9 +37,36 @@ in case chance to modify the response.
 
 ## Your First Client Plugin
 
+Let's start off simple and create a plugin to log something every time we run into an error. If you don't have
+a project to test in, you can always use [`final` branch](https://github.com/HoudiniGraphql/intro/tree/final) branch
+of the PokeDex we made in the [Getting Started guide](/intro/welcome).
+
+Once you have a project, we can define an empty plugin and pass it to your client:
+
+```typescript:title=src/client.ts&typescriptToggle=true
+import type { ClientPlugin } from '$houdini'
+
+const logErrors: ClientPlugin = () => {
+    return {}
+}
+
+export default new HoudiniClient({
+    url: "...",
+    plugins: [
+        logErrors
+    ]
+})
+```
+
+If you look at the diagram above, you'll see we have 2
+
 ## Plugins Are Data Sources
 
 The store might receive multiple updates for a given set of inputs. For example, subscriptions and live queries
 both push multiple documents into the cache and need to update the store value. Each payload should be pushed all
 the way through the chain using the same function. If the original request hasn’t been resolved when a payload
 reaches the end, the promise will resolve with that first value.
+
+## Type Definitions
+
+## Example: Adding Retry Logic to Your Queries
