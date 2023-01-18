@@ -4,3 +4,7 @@ description: Everything you could want to know about HoudiniClient Plugins
 ---
 
 # Client Plugins
+
+Client plugins allow you to customize the behavior of your application's documents.
+They can be simple things like integrating with a logging service, adding retry logic,
+or even entirely new network capabilities like [Live Queries](https://the-guild.dev/blog/subscriptions-and-live-queries-real-time-with-graphql).
