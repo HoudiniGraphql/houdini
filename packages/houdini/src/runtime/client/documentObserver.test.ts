@@ -728,7 +728,7 @@ test('can set observer state from hook', async function () {
 	expect(spy).toHaveBeenNthCalledWith(2, {
 		data: { loading: true },
 		errors: null,
-		fetching: true,
+		fetching: false,
 		partial: false,
 		source: null,
 		variables: null,
