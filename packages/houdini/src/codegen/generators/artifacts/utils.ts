@@ -19,7 +19,7 @@ export function serializeValue(value: any): ExpressionKind {
 			Object.entries(value)
 				.filter(([, value]) => typeof value !== 'undefined')
 				.map(([key, value]) =>
-					AST.objectProperty(AST.identifier(key), serializeValue(value))
+					AST.objectProperty(AST.stringLiteral(key), serializeValue(value))
 				)
 		)
 	}
