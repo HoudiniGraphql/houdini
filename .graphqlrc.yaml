@@ -6,4 +6,5 @@ projects:
             - e2e/sveltekit/$houdini/graphql/schema.graphql
         documents:
             - e2e/sveltekit/src/**/*.gql
+            - e2e/sveltekit/src/**/*.svelte
             - e2e/sveltekit/$houdini/graphql/documents.gql
