@@ -1,6 +1,5 @@
 ---
 title: Rendering Long Lists
-index: 4
 description: The fourth part of the Houdini intro focusing on how to render long lists of data
 ---
 
@@ -28,31 +27,31 @@ Cursor-based pagination is an approach popularized in GraphQL by Facebook's clie
 
 ```graphql
 type Species {
-    moves(first: Int, after: String): SpeciesMoveConnection!
+	moves(first: Int, after: String): SpeciesMoveConnection!
 }
 
 type SpeciesMove {
-    learned_at: Int!
-    method: String!
-    move: Move!
+	learned_at: Int!
+	method: String!
+	move: Move!
 }
 
 type SpeciesMoveConnection {
-    edges: [SpeciesMoveEdge!]!
-    pageInfo: PageInfo!
-    totalCount: Int!
+	edges: [SpeciesMoveEdge!]!
+	pageInfo: PageInfo!
+	totalCount: Int!
 }
 
 type SpeciesMoveEdge {
-    cursor: String
-    node: SpeciesMove
+	cursor: String
+	node: SpeciesMove
 }
 
 type PageInfo {
-    endCursor: String
-    hasNextPage: Boolean!
-    hasPreviousPage: Boolean!
-    startCursor: String
+	endCursor: String
+	hasNextPage: Boolean!
+	hasPreviousPage: Boolean!
+	startCursor: String
 }
 ```
 
@@ -63,24 +62,24 @@ To see how this works in practice, let's look at a query that gets the first 10 
 
 ```graphql
 query {
-    species(id: 1) {
-        moves(first: 10) {
-            pageInfo {
-                hasNextPage
-                endCursor
-            }
-            edges {
-                cursor
-                # this is the move object
-                node {
-                    learned_at
-                    move {
-                        name
-                    }
-                }
-            }
-        }
-    }
+	species(id: 1) {
+		moves(first: 10) {
+			pageInfo {
+				hasNextPage
+				endCursor
+			}
+			edges {
+				cursor
+				# this is the move object
+				node {
+					learned_at
+					move {
+						name
+					}
+				}
+			}
+		}
+	}
 }
 ```
 
@@ -125,23 +124,23 @@ value in the `pageInfo` object and send it as the `after` argument for our next 
 
 ```graphql
 query {
-    species(id: 1) {
-        moves(first: 10, after: "k") {
-            pageInfo {
-                hasNextPage
-                endCursor
-            }
-            edges {
-                cursor
-                node {
-                    learned_at
-                    move {
-                        name
-                    }
-                }
-            }
-        }
-    }
+	species(id: 1) {
+		moves(first: 10, after: "k") {
+			pageInfo {
+				hasNextPage
+				endCursor
+			}
+			edges {
+				cursor
+				node {
+					learned_at
+					move {
+						name
+					}
+				}
+			}
+		}
+	}
 }
 ```
 
@@ -151,15 +150,15 @@ Just know that if you are writing a query against a field with connection-based 
 
 ```graphql
 query {
-    species(id: 1) {
-        moves {
-            edges {
-                node {
-                    learned_at
-                }
-            }
-        }
-    }
+	species(id: 1) {
+		moves {
+			edges {
+				node {
+					learned_at
+				}
+			}
+		}
+	}
 }
 ```
 

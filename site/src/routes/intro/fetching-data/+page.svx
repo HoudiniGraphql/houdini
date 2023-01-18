@@ -1,6 +1,5 @@
 ---
 title: Fetching Data
-index: 1
 description: The first part of the Houdini intro focusing on how to fetch data
 ---
 

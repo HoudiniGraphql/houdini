@@ -1,0 +1,15 @@
+{
+	"name": "API",
+	"pages": [
+		"welcome",
+		"query",
+		"fragments",
+		"mutation",
+		"subscription",
+		"graphql",
+		"cache",
+		"vite",
+		"config",
+		"cli"
+	]
+}

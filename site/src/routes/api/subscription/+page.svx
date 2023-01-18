@@ -1,6 +1,5 @@
 ---
 title: Subscription
-index: 4
 description: Subscriptions in Houdini
 ---
 

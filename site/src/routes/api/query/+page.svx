@@ -1,6 +1,5 @@
 ---
 title: Query
-index: 1
 description: Queries in Houdini
 ---
 

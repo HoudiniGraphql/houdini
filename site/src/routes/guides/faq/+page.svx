@@ -1,6 +1,5 @@
 ---
 title: Frequently Asked Questions
-index: 0
 description: A list of frequently asked questions when working with Houdini
 ---
 

@@ -1,6 +1,5 @@
 ---
 title: Reusing Parts of a Query
-index: 2
 description: The second part of the Houdini intro focusing how to reuse parts of a query
 ---
 
@@ -43,8 +42,8 @@ Fragments are a super powerful tool in GraphQL that is commonly overlooked. In s
 
 ```graphql
 fragment MyFragment on Species {
-    name
-    flavor_text
+	name
+	flavor_text
 }
 ```
 

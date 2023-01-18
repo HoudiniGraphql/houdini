@@ -1,6 +1,5 @@
 ---
 title: Setting Up Your Project
-index: 4
 description: A guide for setting up your Houdini project
 ---
 
@@ -136,6 +135,7 @@ variable and hooks types in your routes:
 ### Setup your IDE
 
 We recommend the following extensions for your editor to take full advantage of GraphQL:
+
 - [IntelliJ - GraphQL](https://plugins.jetbrains.com/plugin/8097-graphql)
 - [Vim - vim-graphql](https://github.com/jparise/vim-graphql)
 - [VSCode - GraphQL: Language Feature Support](https://marketplace.visualstudio.com/items?itemName=GraphQL.vscode-graphql)

@@ -1,6 +1,5 @@
 ---
 title: Authentication
-index: 9
 description: A guide to authentication in Houdini
 ---
 
@@ -50,4 +49,3 @@ const requestHandler: RequestHandler = async ({ fetch, text, variables = {}, ses
 
 export default new HoudiniClient(requestHandler)
 ```
-

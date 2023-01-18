@@ -1,6 +1,5 @@
 ---
 title: Mutations
-index: 3
 description: Mutations in Houdini
 ---
 

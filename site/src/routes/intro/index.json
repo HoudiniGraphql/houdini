@@ -1,0 +1,4 @@
+{
+	"name": "Get Started",
+	"pages": ["welcome", "fetching-data", "fragments", "mutations", "pagination"]
+}

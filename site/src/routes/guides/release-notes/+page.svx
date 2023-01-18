@@ -1,6 +1,5 @@
 ---
 title: Release Notes
-index: 1
 description: A guide to migrating your application to each breaking version of houdini
 ---
 

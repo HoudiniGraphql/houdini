@@ -1,6 +1,5 @@
 ---
 title: API Reference
-index: 0
 description: A listing of every top-level export from the Houdini runtime
 ---
 

@@ -1,6 +1,5 @@
 ---
 title: Command Line
-index: 9
 description: A listing of all of the commands and arguments provided by the Houdini cli
 ---
 
