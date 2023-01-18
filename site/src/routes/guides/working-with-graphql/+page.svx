@@ -1,6 +1,5 @@
 ---
 title: Working With GraphQL
-index: 3
 description: An overview of the various ways Houdini applications can leverage GraphQL documents.
 ---
 
@@ -197,7 +196,6 @@ query MyAwesomeQuery {
 ```typescript:title=src/routes/myRoute/+page.ts&typescriptToggle=true
 import { MyAwesomeQueryStore } from '$houdini'
 ```
-
 
 ### Inline Documents
 

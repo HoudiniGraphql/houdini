@@ -1,6 +1,5 @@
 ---
 title: API Reference
-index: 0
 description: A listing of every top-level export from the Houdini runtime
 ---
 
@@ -60,6 +59,43 @@ const subscriptionExample = `graphql(\`
     }
 \`)`
 
+const cacheExample = `
+    const user = cache.get("User", { 
+        id: 3 
+    })
+
+    user.writeFragment({
+        fragment: graphql(\`
+            fragment Update on User { 
+                firstName
+            }
+        \`), 
+        data: { 
+            firstName: "Harry"
+        }
+    })
+`
+
+const clientExample = `
+    new HoudiniClient({
+        url: "...",
+        fetchParams({ session }) {
+            return {
+                headers: { }
+            }
+        }
+    })
+`
+
+const clientPluginExample = `
+    () => ({
+        start(ctx, { next }) {
+            console.log("hello world")
+            next(ctx)
+        }
+    })
+`
+
 const cliExample = `houdini generate --pull-schema`
 
 const pluginExample = `// vite.config.js
@@ -105,11 +141,34 @@ href="/api/subscription"
 example={subscriptionExample}
 />
 
+## Runtime APIs
+
 <APIShowcase
 title="Extra Bits"
 description="A summary of the custom things houdini lets you do in your graphql documents"
 href="/api/graphql"
 example={graphqlExample}
+/>
+
+<APIShowcase
+title="HoudiniClient"
+description="An overview of the options you can pass to the HoudiniClient constructor"
+href="/api/client"
+example={clientExample}
+/>
+
+<APIShowcase
+title="Client Plugins"
+description="Everything you could want to know about HoudiniClient Plugins"
+href="/api/client-plugins"
+example={clientPluginExample}
+/>
+
+<APIShowcase
+title="Cache API"
+description="An overview of the programmatic cache API (for imperative updates)"
+href="/api/cache"
+example={cacheExample}
 />
 
 ## Setup

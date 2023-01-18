@@ -1,6 +1,5 @@
 ---
 title: Typescript
-index: 7
 description: An overview of Houdini's support for Typescript
 ---
 
@@ -89,7 +88,6 @@ const store: AllItemsStore = graphql`
 `
 ```
 
-
 ## Fragments
 
 To use inline fragments inside your components, you need to receive the parent query as a prop.
@@ -100,14 +98,17 @@ import { fragment, graphql, type PostContent } from '$houdini'
 
 export let post: PostContent
 
-$: data = fragment(post, graphql(`
-	fragment PostContent on Post {
-		content
-		tags {
-			nodes {
-				name
+$: data = fragment(
+	post,
+	graphql(`
+		fragment PostContent on Post {
+			content
+			tags {
+				nodes {
+					name
+				}
 			}
 		}
-	}
-`))
+	`)
+)
 ```

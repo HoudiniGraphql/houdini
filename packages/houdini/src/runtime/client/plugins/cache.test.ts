@@ -228,11 +228,8 @@ function fakeFetch({
 	},
 }) {
 	return (() => ({
-		setup: {},
-		network: {
-			enter(ctx, { resolve }) {
-				resolve(ctx, { ...result })
-			},
+		network(ctx, { resolve }) {
+			resolve(ctx, { ...result })
 		},
 	})) as ClientPlugin
 }

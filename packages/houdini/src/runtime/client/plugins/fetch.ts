@@ -5,61 +5,59 @@ import type { ClientPlugin } from '../documentObserver'
 export const fetchPlugin = (fn?: RequestHandler | string): ClientPlugin => {
 	return () => {
 		return {
-			network: {
-				async enter(ctx, { client, resolve, marshalVariables }) {
-					// figure out which fetch to use
-					const fetch = ctx.fetch ?? globalThis.fetch
+			async network(ctx, { client, resolve, marshalVariables }) {
+				// figure out which fetch to use
+				const fetch = ctx.fetch ?? globalThis.fetch
 
-					// build up the params object
-					const fetchParams: FetchParams = {
-						text: ctx.artifact.raw,
-						hash: ctx.artifact.hash,
-						variables: marshalVariables(ctx),
+				// build up the params object
+				const fetchParams: FetchParams = {
+					text: ctx.artifact.raw,
+					hash: ctx.artifact.hash,
+					variables: marshalVariables(ctx),
+				}
+
+				let fetchFn = defaultFetch(client.url)
+				// the provided parameter either specifies the URL or is the entire function to
+				// use
+				if (fn) {
+					if (typeof fn === 'string') {
+						fetchFn = defaultFetch(fn)
+					} else {
+						fetchFn = fn
 					}
+				}
 
-					let fetchFn = defaultFetch(client.url)
-					// the provided parameter either specifies the URL or is the entire function to
-					// use
-					if (fn) {
-						if (typeof fn === 'string') {
-							fetchFn = defaultFetch(fn)
-						} else {
-							fetchFn = fn
-						}
-					}
+				const result = await fetchFn({
+					// wrap the user's fetch function so we can identify SSR by checking
+					// the response.url
+					fetch: (url: URL | RequestInfo, args: RequestInit | undefined) => {
+						// figure out if we need to do something special for multipart uploads
+						const newArgs = handleMultipart(fetchParams, args) ?? args
 
-					const result = await fetchFn({
-						// wrap the user's fetch function so we can identify SSR by checking
-						// the response.url
-						fetch: (url: URL | RequestInfo, args: RequestInit | undefined) => {
-							// figure out if we need to do something special for multipart uploads
-							const newArgs = handleMultipart(fetchParams, args) ?? args
+						// use the new args if they exist, otherwise the old ones are good
+						return fetch(url, {
+							...ctx.fetchParams,
+							...newArgs,
+							headers: {
+								...ctx.fetchParams?.headers,
+								...newArgs?.headers,
+							},
+						})
+					},
+					metadata: ctx.metadata,
+					session: ctx.session || {},
+					...fetchParams,
+				})
 
-							// use the new args if they exist, otherwise the old ones are good
-							return fetch(url, {
-								...ctx.fetchParams,
-								...newArgs,
-								headers: {
-									...ctx.fetchParams?.headers,
-									...newArgs?.headers,
-								},
-							})
-						},
-						metadata: ctx.metadata,
-						session: ctx.session || {},
-						...fetchParams,
-					})
-
-					// return the result
-					resolve(ctx, {
-						fetching: false,
-						variables: ctx.variables ?? null,
-						data: result.data,
-						errors: !result.errors || result.errors.length === 0 ? null : result.errors,
-						partial: false,
-						source: DataSource.Network,
-					})
-				},
+				// return the result
+				resolve(ctx, {
+					fetching: false,
+					variables: ctx.variables ?? null,
+					data: result.data,
+					errors: !result.errors || result.errors.length === 0 ? null : result.errors,
+					partial: false,
+					source: DataSource.Network,
+				})
 			},
 		}
 	}

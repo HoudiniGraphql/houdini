@@ -1,6 +1,5 @@
 ---
 title: Subscription
-index: 4
 description: Subscriptions in Houdini
 ---
 
@@ -44,7 +43,7 @@ Subscription bodies can contain all of the list operations described in [this do
 ## Configuring the client
 
 Houdini can work with any websocket client as long as you can provide an object that satisfies
-the `SubscriptionHandler` interface as the second argument to the HoudiniClient's constructor. Keep in mind
+the `SubscriptionHandler` interface to the `subscriptions` plugin you can import from `$houdini/plugins`. Keep in mind
 that WebSocket connections only exist between the browser and your API, therefor you must remember to
 pass `null` when configuring your environment on the rendering server.
 
@@ -56,6 +55,7 @@ client and pass it directly:
 ```typescript:title=src/client.ts&typescriptToggle=true
 import { createClient } from 'graphql-ws'
 import { browser } from '$app/environment'
+import { subscriptions } from '$houdini/plugins'
 
 let socketClient = browser
 	? new createClient({
@@ -63,7 +63,12 @@ let socketClient = browser
 	  })
 	: null
 
-export default new HoudiniClient(requestHandler, socketClient)
+export default new HoudiniClient({
+	url: "...",
+	plugins: [
+		subscriptions(socketClient)
+	]
+})
 ```
 
 ### Using `subscriptions-transport-ws`
@@ -74,6 +79,7 @@ you will have to slightly modify the above block:
 ```typescript:title=src/client.ts&typescriptToggle=true
 import { SubscriptionClient } from 'subscriptions-transport-ws'
 import { browser } from '$app/environment'
+import { subscriptions } from '$houdini/plugins'
 
 let socketClient = null
 if (browser) {
@@ -94,7 +100,12 @@ if (browser) {
 	}
 }
 
-export default new HoudiniClient(requestHandler, socketClient)
+export default new HoudiniClient({
+	url: "...",
+	plugins: [
+		subscriptions(socketClient)
+	]
+})
 ```
 
 ### Server-Side Events
@@ -104,12 +115,13 @@ If your server supports the latest Server-Side events, you can use them to power
 ```typescript:title=src/client.ts&typescriptToggle=true
 import { SubscriptionClient } from 'subscriptions-transport-ws'
 import { browser } from '$app/environment'
+import { subscriptions } from '$houdini/plugins'
 
 let socketClient = null
 if (browser) {
 	socketClient = {
 		subscribe(payload, handlers) {
-			const url = new URL('/api/graplhql', location.href)
+			const url = new URL('/api/graphql', location.href)
 			url.searchParams.append('query', payload.query)
 			url.searchParams.append('variables', JSON.stringify(payload.variables))
 
@@ -122,5 +134,10 @@ if (browser) {
 	}
 }
 
-export default new HoudiniClient(requestHandler, socketClient)
+export default new HoudiniClient({
+	url: "...",
+	plugins: [
+		subscriptions(socketClient)
+	]
+})
 ```

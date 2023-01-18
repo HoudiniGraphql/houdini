@@ -22,17 +22,15 @@ export const throwOnErrorPlugin =
 			}[kind]
 
 		return {
-			setup: {
-				async exit(ctx, { value, resolve }) {
-					// if we are supposed to throw and there are errors
-					if (value.errors && value.errors.length > 0 && throwOnKind(ctx.artifact.kind)) {
-						const result = await (error ?? defaultErrorFn)(value.errors)
-						throw result
-					}
+			async end(ctx, { value, resolve }) {
+				// if we are supposed to throw and there are errors
+				if (value.errors && value.errors.length > 0 && throwOnKind(ctx.artifact.kind)) {
+					const result = await (error ?? defaultErrorFn)(value.errors)
+					throw result
+				}
 
-					// we're not supposed to throw, move on
-					resolve(ctx)
-				},
+				// we're not supposed to throw, move on
+				resolve(ctx)
 			},
 		}
 	}

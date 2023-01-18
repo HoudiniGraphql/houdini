@@ -1,6 +1,5 @@
 ---
 title: Handling Updates
-index: 3
 description: The third part of the Houdini intro focusing on how to update the client side cache
 ---
 

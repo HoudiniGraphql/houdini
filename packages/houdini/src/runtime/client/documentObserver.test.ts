@@ -3,9 +3,9 @@ import { test, expect, vi, beforeEach } from 'vitest'
 
 import { HoudiniClient } from '.'
 import { setMockConfig } from '../lib/config'
-import type { GraphQLObject } from '../lib/types';
+import type { GraphQLObject } from '../lib/types'
 import { ArtifactKind, DataSource } from '../lib/types'
-import type { ClientPlugin } from './documentObserver';
+import type { ClientPlugin } from './documentObserver'
 import { DocumentObserver } from './documentObserver'
 
 function createStore(
@@ -69,71 +69,60 @@ test('middleware pipeline happy path', async function () {
 	}
 
 	const middleware1: ClientPlugin = () => ({
-		setup: {
-			enter(ctx, { next }) {
-				tracker(1, 'one_enter')
-				next(ctx)
-			},
-			exit(ctx, { resolve }) {
-				tracker(1, 'one_exit')
-				resolve(ctx)
-			},
+		start(ctx, { next }) {
+			tracker(1, 'start')
+			next(ctx)
 		},
-		network: {
-			enter(ctx, { next }) {
-				tracker(1, 'two_enter')
-				next(ctx)
-			},
+		network(ctx, { next }) {
+			tracker(1, 'network')
+			next(ctx)
+		},
+		end(ctx, { resolve }) {
+			tracker(1, 'end')
+			resolve(ctx)
 		},
 	})
+
 	const middleware2: ClientPlugin = () => {
 		return {
-			setup: {
-				exit(ctx, { resolve }) {
-					tracker(2, 'one_exit')
-					resolve(ctx)
-				},
+			network(ctx, { next }) {
+				tracker(2, 'network')
+				next(ctx)
 			},
-			network: {
-				enter(ctx, { next }) {
-					tracker(2, 'two_enter')
-					next(ctx)
-				},
-				exit(ctx, { resolve }) {
-					tracker(2, 'two_exit')
-					resolve(ctx)
-				},
+			afterNetwork(ctx, { resolve }) {
+				tracker(2, 'afterNetwork')
+				resolve(ctx)
+			},
+			end(ctx, { resolve }) {
+				tracker(2, 'end')
+				resolve(ctx)
 			},
 		}
 	}
 
 	const terminate: ClientPlugin = () => ({
-		setup: {
-			enter(ctx, { next }) {
-				tracker(3, 'one_enter')
-				next(ctx)
-			},
-			exit(ctx, { resolve }) {
-				tracker(3, 'one_exit')
-				resolve(ctx)
-			},
+		start(ctx, { next }) {
+			tracker(3, 'start')
+			next(ctx)
 		},
-		network: {
-			enter(ctx, { resolve }) {
-				tracker(3, 'two_enter')
-				resolve(ctx, {
-					data: { hello: 'world' },
-					errors: [],
-					fetching: true,
-					partial: false,
-					source: DataSource.Cache,
-					variables: null,
-				})
-			},
-			exit(ctx, { resolve }) {
-				tracker(3, 'two_exit')
-				resolve(ctx)
-			},
+		network(ctx, { resolve }) {
+			tracker(3, 'network')
+			resolve(ctx, {
+				data: { hello: 'world' },
+				errors: [],
+				fetching: false,
+				partial: false,
+				source: DataSource.Cache,
+				variables: null,
+			})
+		},
+		afterNetwork(ctx, { resolve }) {
+			tracker(3, 'afterNetwork')
+			resolve(ctx)
+		},
+		end(ctx, { resolve }) {
+			tracker(3, 'end')
+			resolve(ctx)
 		},
 	})
 
@@ -149,21 +138,21 @@ test('middleware pipeline happy path', async function () {
 
 	// make sure we called the hooks in the right order
 	expect(history).toEqual([
-		[1, 'one_enter'],
-		[3, 'one_enter'],
-		[1, 'two_enter'],
-		[2, 'two_enter'],
-		[3, 'two_enter'],
-		[3, 'two_exit'],
-		[2, 'two_exit'],
-		[3, 'one_exit'],
-		[2, 'one_exit'],
-		[1, 'one_exit'],
+		[1, 'start'],
+		[3, 'start'],
+		[1, 'network'],
+		[2, 'network'],
+		[3, 'network'],
+		[3, 'afterNetwork'],
+		[2, 'afterNetwork'],
+		[3, 'end'],
+		[2, 'end'],
+		[1, 'end'],
 	])
 
 	// make sure we got the right value back
 	expect(value).toEqual({
-		fetching: true,
+		fetching: false,
 		variables: null,
 		data: { hello: 'world' },
 		errors: [],
@@ -179,58 +168,50 @@ test('terminate short-circuits pipeline', async function () {
 	}
 
 	const middleware1: ClientPlugin = () => ({
-		setup: {
-			enter(ctx, { next }) {
-				tracker(1, 'one_enter')
-				next(ctx)
-			},
-			exit(ctx, { resolve }) {
-				tracker(1, 'one_exit')
-				resolve(ctx)
-			},
+		start(ctx, { next }) {
+			tracker(1, 'start')
+			next(ctx)
 		},
-		network: {
-			enter(ctx, { next }) {
-				tracker(1, 'two_enter')
-				next(ctx)
-			},
+		end(ctx, { resolve }) {
+			tracker(1, 'end')
+			resolve(ctx)
+		},
+		network(ctx, { next }) {
+			tracker(1, 'network')
+			next(ctx)
 		},
 	})
 	const middleware2: ClientPlugin = () => {
 		return {
-			setup: {
-				enter(ctx, { resolve }) {
-					tracker(2, 'one_enter')
-					resolve(ctx, {
-						data: { hello: 'world' },
-						errors: [],
-						fetching: true,
-						partial: false,
-						source: DataSource.Cache,
-						variables: null,
-					})
-				},
-				exit(ctx, { resolve }) {
-					tracker(2, 'one_exit')
-					resolve(ctx, {
-						data: { hello: 'world' },
-						errors: [],
-						fetching: true,
-						partial: false,
-						source: DataSource.Cache,
-						variables: null,
-					})
-				},
+			start(ctx, { resolve }) {
+				tracker(2, 'start')
+				resolve(ctx, {
+					data: { hello: 'world' },
+					errors: [],
+					fetching: false,
+					partial: false,
+					source: DataSource.Cache,
+					variables: null,
+				})
 			},
-			network: {
-				enter(ctx, { next }) {
-					tracker(2, 'two_enter')
-					next(ctx)
-				},
-				exit(ctx, { resolve }) {
-					tracker(2, 'two_exit')
-					resolve(ctx)
-				},
+			end(ctx, { resolve }) {
+				tracker(2, 'end')
+				resolve(ctx, {
+					data: { hello: 'world' },
+					errors: [],
+					fetching: false,
+					partial: false,
+					source: DataSource.Cache,
+					variables: null,
+				})
+			},
+			network(ctx, { next }) {
+				tracker(2, 'network')
+				next(ctx)
+			},
+			afterNetwork(ctx, { resolve }) {
+				tracker(2, 'afterNetwork')
+				resolve(ctx)
 			},
 		}
 	}
@@ -243,36 +224,34 @@ test('terminate short-circuits pipeline', async function () {
 
 	// make sure we called the hooks in the right order
 	expect(history).toEqual([
-		[1, 'one_enter'],
-		[2, 'one_enter'],
-		[2, 'one_exit'],
-		[1, 'one_exit'],
+		[1, 'start'],
+		[2, 'start'],
+		[2, 'end'],
+		[1, 'end'],
 	])
 })
 
 test('can call resolve multiple times to set multiple values', async function () {
 	const middleware: ClientPlugin = () => ({
-		network: {
-			enter(ctx, { resolve }) {
+		network(ctx, { resolve }) {
+			resolve(ctx, {
+				data: { hello: 'world' },
+				errors: [],
+				fetching: false,
+				partial: false,
+				source: DataSource.Cache,
+				variables: null,
+			})
+			sleep(100).then(() =>
 				resolve(ctx, {
-					data: { hello: 'world' },
+					data: { hello: 'another-world' },
 					errors: [],
 					fetching: true,
 					partial: false,
 					source: DataSource.Cache,
 					variables: null,
 				})
-				sleep(100).then(() =>
-					resolve(ctx, {
-						data: { hello: 'another-world' },
-						errors: [],
-						fetching: true,
-						partial: false,
-						source: DataSource.Cache,
-						variables: null,
-					})
-				)
-			},
+			)
 		},
 	})
 
@@ -288,7 +267,7 @@ test('can call resolve multiple times to set multiple values', async function ()
 
 	// make sure we get the first value  from the promise
 	expect(result).toEqual({
-		fetching: true,
+		fetching: false,
 		variables: null,
 		data: { hello: 'world' },
 		errors: [],
@@ -296,9 +275,8 @@ test('can call resolve multiple times to set multiple values', async function ()
 		source: DataSource.Cache,
 	})
 	expect(fn).toHaveBeenNthCalledWith(2, {
-		fetching: true,
+		fetching: false,
 		partial: false,
-
 		data: { hello: 'world' },
 		errors: [],
 		source: DataSource.Cache,
@@ -317,10 +295,8 @@ test('can call resolve multiple times to set multiple values', async function ()
 
 test('error rejects the promise', async function () {
 	const middleware: ClientPlugin = () => ({
-		setup: {
-			enter() {
-				throw 'hello'
-			},
+		start() {
+			throw 'hello'
 		},
 	})
 
@@ -333,10 +309,8 @@ test('error rejects the promise', async function () {
 
 test('async error rejects the promise', async function () {
 	const middleware: ClientPlugin = () => ({
-		setup: {
-			async enter() {
-				throw 'hello'
-			},
+		async start() {
+			throw 'hello'
 		},
 	})
 
@@ -368,33 +342,29 @@ test('cleanup phase', async function () {
 
 test('middlewares can set fetch params', async function () {
 	const middleware1: ClientPlugin = () => ({
-		setup: {
-			enter(ctx, { next }) {
-				ctx.fetchParams = {
-					...ctx.fetchParams,
-					headers: {
-						hello: 'world',
-					},
-				}
-				next(ctx)
-			},
+		start(ctx, { next }) {
+			ctx.fetchParams = {
+				...ctx.fetchParams,
+				headers: {
+					hello: 'world',
+				},
+			}
+			next(ctx)
 		},
 	})
 
 	const spy = vi.fn()
 	const fetchMiddleware: ClientPlugin = () => ({
-		setup: {
-			enter(ctx, { resolve }) {
-				spy(ctx.fetchParams)
-				resolve(ctx, {
-					data: { hello: 'world' },
-					errors: [],
-					fetching: true,
-					partial: false,
-					source: DataSource.Cache,
-					variables: null,
-				})
-			},
+		start(ctx, { resolve }) {
+			spy(ctx.fetchParams)
+			resolve(ctx, {
+				data: { hello: 'world' },
+				errors: [],
+				fetching: false,
+				partial: false,
+				source: DataSource.Cache,
+				variables: null,
+			})
 		},
 	})
 
@@ -411,50 +381,46 @@ test('exit can replay a pipeline', async function () {
 	let count = 0
 
 	const replayPlugin: ClientPlugin = () => ({
-		setup: {
-			exit(ctx, { value, next, resolve }) {
-				if (value.data?.hello === 'world') {
-					count++
-					next(ctx)
-				} else {
-					resolve(ctx, {
-						data: { hello: 'another-value' },
-						errors: [],
-						fetching: true,
-						partial: false,
-						source: DataSource.Cache,
-						variables: null,
-					})
-				}
-			},
-		},
-	})
-
-	const source: ClientPlugin = () => ({
-		setup: {
-			enter(ctx, { resolve }) {
-				// we have to get here twice to succeed
-				if (count) {
-					resolve(ctx, {
-						data: { hello: 'another-value' },
-						errors: [],
-						fetching: true,
-						partial: false,
-						source: DataSource.Cache,
-						variables: null,
-					})
-					return
-				}
-
+		end(ctx, { value, next, resolve }) {
+			if (value.data?.hello === 'world') {
+				count++
+				next(ctx)
+			} else {
 				resolve(ctx, {
-					data: { hello: 'world' },
+					data: { hello: 'another-value' },
 					errors: [],
 					fetching: true,
 					partial: false,
 					source: DataSource.Cache,
 					variables: null,
 				})
-			},
+			}
+		},
+	})
+
+	const source: ClientPlugin = () => ({
+		start(ctx, { resolve }) {
+			// we have to get here twice to succeed
+			if (count) {
+				resolve(ctx, {
+					data: { hello: 'another-value' },
+					errors: [],
+					fetching: false,
+					partial: false,
+					source: DataSource.Cache,
+					variables: null,
+				})
+				return
+			}
+
+			resolve(ctx, {
+				data: { hello: 'world' },
+				errors: [],
+				fetching: false,
+				partial: false,
+				source: DataSource.Cache,
+				variables: null,
+			})
 		},
 	})
 
@@ -484,35 +450,31 @@ test('plugins can update variables', async function () {
 
 	const setVariables: ClientPlugin = () => {
 		return {
-			setup: {
-				async enter(ctx, { next }) {
-					// assign the new variables
-					ctx.variables = {
-						...ctx.variables,
-						date1,
-					}
+			async start(ctx, { next }) {
+				// assign the new variables
+				ctx.variables = {
+					...ctx.variables,
+					date1,
+				}
 
-					// move on
-					next(ctx)
-				},
+				// move on
+				next(ctx)
 			},
 		}
 	}
 
 	const checkVariables: ClientPlugin = () => {
 		return {
-			network: {
-				enter(ctx, { resolve, marshalVariables }) {
-					spy(marshalVariables(ctx))
-					resolve(ctx, {
-						data: { hello: 'world' },
-						errors: [],
-						fetching: true,
-						partial: false,
-						source: DataSource.Cache,
-						variables: null,
-					})
-				},
+			network(ctx, { resolve, marshalVariables }) {
+				spy(marshalVariables(ctx))
+				resolve(ctx, {
+					data: { hello: 'world' },
+					errors: [],
+					fetching: false,
+					partial: false,
+					source: DataSource.Cache,
+					variables: null,
+				})
 			},
 		}
 	}
@@ -538,23 +500,19 @@ test('can detect changed variables from inputs', async function () {
 	// a plugin to detect changes
 	const changePlugin: ClientPlugin = () => {
 		return {
-			setup: {
-				enter(ctx, { next, variablesChanged }) {
-					spy(variablesChanged(ctx))
-					next(ctx)
-				},
+			start(ctx, { next, variablesChanged }) {
+				spy(variablesChanged(ctx))
+				next(ctx)
 			},
-			network: {
-				enter(ctx, { resolve }) {
-					resolve(ctx, {
-						data: { hello: 'world' },
-						errors: [],
-						fetching: true,
-						partial: false,
-						source: DataSource.Cache,
-						variables: null,
-					})
-				},
+			network(ctx, { resolve }) {
+				resolve(ctx, {
+					data: { hello: 'world' },
+					errors: [],
+					fetching: false,
+					partial: false,
+					source: DataSource.Cache,
+					variables: null,
+				})
 			},
 		}
 	}
@@ -586,27 +544,23 @@ test('can update variables and then check if they were updated', async function 
 	// a plugin to detect changes
 	const changePlugin: ClientPlugin = () => {
 		return {
-			setup: {
-				enter(ctx, { next, variablesChanged }) {
-					ctx.variables = {
-						...ctx.variables,
-						count: 0,
-					}
-					spy(variablesChanged(ctx))
-					next(ctx)
-				},
+			start(ctx, { next, variablesChanged }) {
+				ctx.variables = {
+					...ctx.variables,
+					count: 0,
+				}
+				spy(variablesChanged(ctx))
+				next(ctx)
 			},
-			network: {
-				enter(ctx, { resolve }) {
-					resolve(ctx, {
-						data: { hello: 'world' },
-						errors: [],
-						fetching: true,
-						partial: false,
-						source: DataSource.Cache,
-						variables: null,
-					})
-				},
+			network(ctx, { resolve }) {
+				resolve(ctx, {
+					data: { hello: 'world' },
+					errors: [],
+					fetching: false,
+					partial: false,
+					source: DataSource.Cache,
+					variables: null,
+				})
 			},
 		}
 	}
@@ -636,31 +590,27 @@ test('multiple new variables from inside plugin', async function () {
 	// a plugin to detect changes
 	const changePlugin: ClientPlugin = () => {
 		return {
-			setup: {
-				enter(ctx, { next, variablesChanged }) {
-					let oldCount = count
-					if (count === 0) {
-						count++
-					}
-					ctx.variables = {
-						...ctx.variables,
-						count: oldCount,
-					}
-					spy(variablesChanged(ctx), oldCount)
-					next(ctx)
-				},
+			start(ctx, { next, variablesChanged }) {
+				let oldCount = count
+				if (count === 0) {
+					count++
+				}
+				ctx.variables = {
+					...ctx.variables,
+					count: oldCount,
+				}
+				spy(variablesChanged(ctx), oldCount)
+				next(ctx)
 			},
-			network: {
-				enter(ctx, { resolve }) {
-					resolve(ctx, {
-						data: { hello: 'world' },
-						errors: [],
-						fetching: true,
-						partial: false,
-						source: DataSource.Cache,
-						variables: null,
-					})
-				},
+			network(ctx, { resolve }) {
+				resolve(ctx, {
+					data: { hello: 'world' },
+					errors: [],
+					fetching: false,
+					partial: false,
+					source: DataSource.Cache,
+					variables: null,
+				})
 			},
 		}
 	}
@@ -695,23 +645,19 @@ test('multiple new variables from inside plugin', async function () {
 
 test('can set observer state from hook', async function () {
 	const updateMiddleware: ClientPlugin = () => ({
-		setup: {
-			enter(ctx, { next, updateState }) {
-				updateState((old) => ({ ...old, data: { loading: true } }))
-				next(ctx)
-			},
+		start(ctx, { next, updateState }) {
+			updateState((old) => ({ ...old, data: { loading: true } }))
+			next(ctx)
 		},
-		network: {
-			enter(ctx, { resolve }) {
-				resolve(ctx, {
-					data: { hello: 'test' },
-					errors: null,
-					fetching: true,
-					partial: false,
-					source: DataSource.Network,
-					variables: null,
-				})
-			},
+		network(ctx, { resolve }) {
+			resolve(ctx, {
+				data: { hello: 'test' },
+				errors: null,
+				fetching: false,
+				partial: false,
+				source: DataSource.Network,
+				variables: null,
+			})
 		},
 	})
 
@@ -740,7 +686,7 @@ test('can set observer state from hook', async function () {
 	expect(spy).toHaveBeenNthCalledWith(3, {
 		data: { hello: 'test' },
 		errors: null,
-		fetching: true,
+		fetching: false,
 		partial: false,
 		source: DataSource.Network,
 		variables: null,
@@ -754,71 +700,59 @@ test("sending a setup message doesn't trigger the network steps", async function
 	}
 
 	const middleware1: ClientPlugin = () => ({
-		setup: {
-			enter(ctx, { next }) {
-				tracker(1, 'one_enter')
-				next(ctx)
-			},
-			exit(ctx, { resolve }) {
-				tracker(1, 'one_exit')
-				resolve(ctx)
-			},
+		start(ctx, { next }) {
+			tracker(1, 'start')
+			next(ctx)
 		},
-		network: {
-			enter(ctx, { next }) {
-				tracker(1, 'two_enter')
-				next(ctx)
-			},
+		afterNetwork(ctx, { next }) {
+			tracker(1, 'network')
+			next(ctx)
+		},
+		end(ctx, { resolve }) {
+			tracker(1, 'end')
+			resolve(ctx)
 		},
 	})
 	const middleware2: ClientPlugin = () => {
 		return {
-			setup: {
-				exit(ctx, { resolve }) {
-					tracker(2, 'one_exit')
-					resolve(ctx)
-				},
+			end(ctx, { resolve }) {
+				tracker(2, 'end')
+				resolve(ctx)
 			},
-			network: {
-				enter(ctx, { next }) {
-					tracker(2, 'two_enter')
-					next(ctx)
-				},
-				exit(ctx, { resolve }) {
-					tracker(2, 'two_exit')
-					resolve(ctx)
-				},
+			network(ctx, { next }) {
+				tracker(2, 'network')
+				next(ctx)
+			},
+			afterNetwork(ctx, { resolve }) {
+				tracker(2, 'afterNetwork')
+				resolve(ctx)
 			},
 		}
 	}
 
 	const terminate: ClientPlugin = () => ({
-		setup: {
-			enter(ctx, { next }) {
-				tracker(3, 'one_enter')
-				next(ctx)
-			},
-			exit(ctx, { resolve }) {
-				tracker(3, 'one_exit')
-				resolve(ctx)
-			},
+		start(ctx, { next }) {
+			tracker(3, 'start')
+			next(ctx)
 		},
-		network: {
-			enter(ctx, { resolve }) {
-				tracker(3, 'two_enter')
-				resolve(ctx, {
-					data: { hello: 'world' },
-					errors: [],
-					fetching: true,
-					partial: false,
-					source: DataSource.Cache,
-					variables: null,
-				})
-			},
-			exit(ctx, { resolve }) {
-				tracker(3, 'two_exit')
-				resolve(ctx)
-			},
+		network(ctx, { resolve }) {
+			tracker(3, 'network')
+			resolve(ctx, {
+				data: { hello: 'world' },
+				errors: [],
+				fetching: false,
+				partial: false,
+				source: DataSource.Cache,
+				variables: null,
+			})
+		},
+		afterNetwork(ctx, { resolve }) {
+			tracker(3, 'afterNetwork')
+			resolve(ctx)
+		},
+		end(ctx, { resolve }) {
+			tracker(3, 'end')
+			resolve(ctx)
 		},
 	})
 
@@ -834,32 +768,34 @@ test("sending a setup message doesn't trigger the network steps", async function
 
 	// make sure we called the hooks in the right order
 	expect(history).toEqual([
-		[1, 'one_enter'],
-		[3, 'one_enter'],
-		[3, 'one_exit'],
-		[2, 'one_exit'],
-		[1, 'one_exit'],
+		[1, 'start'],
+		[3, 'start'],
+		[3, 'end'],
+		[2, 'end'],
+		[1, 'end'],
 	])
 })
 
 test('check default fetching value in manual load', async function () {
 	const fakeFetch: ClientPlugin = () => ({
-		setup: {
-			enter(ctx, { next }) {
-				next(ctx)
-			},
+		start(ctx, { next }) {
+			next(ctx)
 		},
-		network: {
-			enter(ctx, { resolve }) {
-				resolve(ctx, {
-					data: { hello: 'test' },
-					errors: null,
-					fetching: true,
-					partial: false,
-					source: DataSource.Network,
-					variables: null,
-				})
-			},
+		network(ctx, { resolve }) {
+			resolve(ctx, {
+				data: { hello: 'world' },
+				errors: [],
+				fetching: true,
+				partial: false,
+				source: DataSource.Cache,
+				variables: null,
+			})
+		},
+		afterNetwork(ctx, { resolve }) {
+			resolve(ctx)
+		},
+		end(ctx, { resolve }) {
+			resolve(ctx)
 		},
 	})
 

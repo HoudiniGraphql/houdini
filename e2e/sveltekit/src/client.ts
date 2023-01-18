@@ -3,14 +3,12 @@ import { error } from '@sveltejs/kit';
 
 // in order to verify that we send metadata, we need something that will log the metadata after
 const logMetadata: ClientPlugin = () => ({
-  setup: {
-    exit(ctx, { resolve, value }) {
-      if (ctx.metadata?.logResult === true) {
-        console.info(JSON.stringify(value));
-      }
-
-      resolve(ctx);
+  end(ctx, { resolve, value }) {
+    if (ctx.metadata?.logResult === true) {
+      console.info(JSON.stringify(value));
     }
+
+    resolve(ctx);
   }
 });
 
