@@ -989,6 +989,7 @@ export type Plugin = {
 	extensions?: string[]
 	transform_runtime?: Record<string, (args: { config: Config; content: string }) => string>
 	after_load?: (config: Config) => Promise<void> | void
+	artifact_data?: (config: Config, doc: CollectedGraphQLDocument[]) => Record<string, any>
 	extract_documents?: (
 		config: Config,
 		filepath: string,

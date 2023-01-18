@@ -48,7 +48,6 @@ export type QueryArtifact = BaseCompiledDocument & {
 	kind: ArtifactKind.Query
 	policy?: CachePolicy
 	partial?: boolean
-	isManualLoad?: boolean
 }
 
 export type MutationArtifact = BaseCompiledDocument & {
@@ -92,6 +91,7 @@ export type BaseCompiledDocument = {
 		paginated: boolean
 		direction?: 'forward' | 'backwards'
 	}
+	pluginsData?: Record<string, any>
 }
 
 export type HoudiniFetchContext = {

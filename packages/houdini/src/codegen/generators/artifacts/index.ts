@@ -32,17 +32,11 @@ export default function artifactGenerator(stats: {
 	return async function (config: Config, docs: CollectedGraphQLDocument[]) {
 		// put together the type information for the filter for every list
 		const filterTypes: FilterMap = {}
-		let isManualLoad = false
 
 		for (const doc of docs) {
 			graphql.visit(doc.document, {
 				// look for any field marked with a list
 				Directive(node, _, __, ___, ancestors) {
-					// check manualLoadDirective
-					if (node.name.value === config.manualLoadDirective) {
-						isManualLoad = true
-					}
-
 					// now, we only care about lists
 					if (node.name.value !== config.listDirective) {
 						return
@@ -268,9 +262,21 @@ export default function artifactGenerator(stats: {
 						}),
 					}
 
-					// add the manual load flag in the artifact
-					if (isManualLoad) {
-						artifact.isManualLoad = true
+					// adding artifact_data of plugins (only if any information is present)
+					const pluginsData: Record<string, any> = config.plugins.reduce(
+						(prev, plugin) => {
+							if (plugin.artifact_data) {
+								const dataToAdd = plugin.artifact_data(config, docs) ?? {}
+								if (JSON.stringify(dataToAdd) !== '{}') {
+									prev[plugin.name] = dataToAdd
+								}
+							}
+							return prev
+						},
+						{} as any
+					)
+					if (JSON.stringify(pluginsData) !== '{}') {
+						artifact.pluginsData = pluginsData
 					}
 
 					// if the document has inputs describe their types in the artifact so we can

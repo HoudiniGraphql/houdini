@@ -37,6 +37,7 @@ export class DocumentObserver<
 		client,
 		cache = true,
 		initialValue,
+		fetching = false,
 	}: {
 		artifact: DocumentArtifact
 		plugins?: ClientPlugin[]
@@ -44,19 +45,8 @@ export class DocumentObserver<
 		client: HoudiniClient
 		cache?: boolean
 		initialValue?: _Data | null
+		fetching?: boolean
 	}) {
-		// fetching init logic
-		let fetching = false
-		if (artifact.kind === ArtifactKind.Query) {
-			if (artifact.isManualLoad === true) {
-				fetching = false
-			} else {
-				fetching = true
-			}
-		} else {
-			fetching = false
-		}
-
 		// the initial store state
 		const initialState: QueryResult<_Data, _Input> = {
 			data: initialValue ?? null,

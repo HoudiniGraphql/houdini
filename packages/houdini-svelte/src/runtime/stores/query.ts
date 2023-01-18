@@ -43,7 +43,12 @@ export class QueryStore<_Data extends GraphQLObject, _Input extends {}> {
 	constructor({ artifact, storeName, variables }: StoreConfig<_Data, _Input, QueryArtifact>) {
 		// set the initial state
 		this.artifact = artifact
-		this.observer = getClient().observe({ artifact })
+
+		// all queries should be with fetching: true by default (because auto fetching)
+		// except for manual queries, which should be false, it will be manualy triggered
+		const fetching = artifact.pluginsData['houdini-svelte'].isManualLoad === true ? false : true
+
+		this.observer = getClient().observe({ artifact, fetching })
 		this.storeName = storeName
 		this.variables = variables
 	}
@@ -168,9 +173,11 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 	}
 }
 
+type DedicatedArtifactPlugin = { pluginsData: { 'houdini-svelte': { isManualLoad?: boolean } } }
+
 // the parameters we will be passed from the generator
 export type StoreConfig<_Data extends GraphQLObject, _Input, _Artifact> = {
-	artifact: _Artifact
+	artifact: _Artifact & DedicatedArtifactPlugin
 	storeName: string
 	variables: boolean
 }

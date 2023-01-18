@@ -2,6 +2,7 @@ import { HoudiniError, PluginFactory, path, fs, type Config } from 'houdini'
 import * as url from 'url'
 import { loadEnv } from 'vite'
 
+import { artifactGenerator } from './artifactGenerator'
 import generate from './codegen'
 import extract from './extract'
 import fs_patch from './fsPatch'
@@ -70,6 +71,9 @@ export default client
 `
 		},
 	},
+
+	// add custom artifact data to the artifact document
+	artifact_data: artifactGenerator,
 
 	// custom logic to pull a graphql document out of a svelte file
 	extract_documents: extract,

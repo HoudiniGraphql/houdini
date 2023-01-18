@@ -70,10 +70,12 @@ export class HoudiniClient {
 		artifact,
 		cache = true,
 		initialValue,
+		fetching = false,
 	}: {
 		artifact: DocumentArtifact
 		cache?: boolean
 		initialValue?: _Data | null
+		fetching?: boolean
 	}): DocumentObserver<_Data, _Input> {
 		return new DocumentObserver({
 			client: this,
@@ -81,6 +83,7 @@ export class HoudiniClient {
 			plugins: this.#plugins,
 			cache,
 			initialValue,
+			fetching,
 		})
 	}
 }
