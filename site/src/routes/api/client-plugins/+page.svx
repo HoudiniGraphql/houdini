@@ -6,7 +6,7 @@ description: The API reference for HoudiniClient plugins
 <script>
     import PluginWorkflow from './Workflow.svelte'
     import AuthoringPluginsDive from './Authoring.svx'
-    import { Warning, DeepDive, Emoji } from '~/components'
+    import { Warning, DeepDive, Emoji, Zoomable } from '~/components'
 </script>
 
 # Client Plugins
@@ -32,7 +32,9 @@ For some documents, the `network` and `afterNetwork` steps might be short circui
 if the policy allows it. You can think of the cache as a gatekeeper that decides if a request can be resolved
 before beginning the network phases.
 
-<PluginWorkflow />
+<Zoomable>
+    <PluginWorkflow />
+</Zoomable>
 
 While preparing the request, plugins are iterated over in the order they are passed to the client. Once a result
 has been provided, its value is sent in reverse order through the list of plugins we've visited who can
