@@ -147,7 +147,7 @@ export class InMemorySubscriptions {
 		counts.set(spec.set, (counts.get(spec.set) || 0) + 1)
 
 		// reset the lifetime for the key
-		this.cache._internal_unstable.lifetimes.resetLifetime(id, key)
+		this.cache._internal_unstable.lifetimes.resetLifetime('JYC_TODO', id, key)
 
 		// if this field is marked as a list, register it. this will overwrite existing list handlers
 		// so that they can get up to date filters

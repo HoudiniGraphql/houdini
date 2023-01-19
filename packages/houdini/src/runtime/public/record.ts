@@ -120,7 +120,11 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 		}
 
 		// reset the garbage collection status
-		this.#cache._internal_unstable._internal_unstable.lifetimes.resetLifetime(this.#id, key)
+		this.#cache._internal_unstable._internal_unstable.lifetimes.resetLifetime(
+			'JYC_TODO',
+			this.#id,
+			key
+		)
 
 		// write the value to the cache by constructing the correct selection
 		this.#cache._internal_unstable.write({

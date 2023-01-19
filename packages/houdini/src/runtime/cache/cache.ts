@@ -290,7 +290,7 @@ class CacheInternal {
 
 			// if we are writing to the display layer we need to refresh the lifetime of the value
 			if (displayLayer) {
-				this.lifetimes.resetLifetime(parent, key)
+				this.lifetimes.resetLifetime('JYC_TODO', parent, key)
 			}
 
 			// any scalar is defined as a field with no selection
