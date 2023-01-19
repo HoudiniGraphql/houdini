@@ -20,8 +20,11 @@ This is a huge milestone for the project and we're so thankful to everyone that 
 Houdini's runtime logic (document subscriptions, network calls, etc) has been completely rewritten using a new
 composable architecture that allows you to add new functionality (like [Live Queries](https://the-guild.dev/blog/subscriptions-and-live-queries-real-time-with-graphql)) or change most aspects of your
 document's behavior. This is probably the biggest upgrade to Houdini since the introduction of
-Document Stores. We won't go into too much detail about how to use the new system here. For that,
-you can check out the [Client documentation](/api/client).
+Document Stores.
+
+We won't go into too much detail about how to use the new system here but
+you will need to change your client file. For more information on the new architecture,
+you can check out the [Client Plugin documentation](/api/client-plugins).
 
 It's a bit hard to give you an exact example to follow but here are a few situations you might fall into:
 
