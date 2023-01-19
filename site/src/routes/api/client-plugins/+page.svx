@@ -4,7 +4,8 @@ description: The API reference for HoudiniClient plugins
 ---
 
 <script>
-    import { Warning, PluginWorkflow } from '~/components'
+    import { PluginWorkflow } from '~/components'
+    import AuthoringPluginsDive from './Authoring.svx'
 </script>
 
 # Client Plugins
@@ -36,109 +37,104 @@ While preparing the request, plugins are iterated over in the order they are pas
 has been provided, its value is sent in reverse order through the list of plugins we've visited who can
 modify the response.
 
-## Your First Client Plugin
+## Create Your First Plugin
 
-Let's start off simple and create a plugin to log something every time we send a query. If you don't have
-a project to test in, you can always use [`final` branch](https://github.com/HoudiniGraphql/intro/tree/final) branch
-of the PokeDex we made in the [Getting Started guide](/intro/welcome).
+<AuthoringPluginsDive />
 
-Once you have a project, we can define an empty plugin and pass it to your client:
+## Enter vs Exit Phases
 
-```typescript:title=src/client.ts&typescriptToggle=true
-import type { ClientPlugin } from '$houdini'
+It's important to keep in mind the direction that information is flowing in a given step.
+As mentioned before, the request pipeline is broken up into 4 distinct phases. Of of them
+(`start` and `network`) are known as "enter phases".
 
-const sayHello: ClientPlugin = () => {
-    return {}
+## Type Definitions
+
+The best source of truth for the type definitions are exported from your `$houdini`
+package. They've been summarized below for reference but this copy may be out of date.
+If you find a discrepancy, please let us know on GitHub.
+
+```typescript
+type ClientPlugin = () => {
+	start?: ClientPluginEnterPhase
+	network?: ClientPluginEnterPhase
+	afterNetwork?: ClientPluginExitPhase
+	end?: ClientPluginExitPhase
+	cleanup?(ctx: ClientPluginContext): void | Promise<void>
+	throw?(ctx: ClientPluginContext, args: ClientPluginErrorHandlers): void | Promise<void>
 }
 
-export default new HoudiniClient({
-    url: "...",
-    plugins: [
-        sayHello
-    ]
-})
-```
+type ClientPluginPhase<Handlers> = (
+	ctx: ClientPluginContext,
+	handlers: Handlers
+) => void | Promise<void>
 
-Fundamentally a plugin is just a function that returns an object. That object can have a few different keys
-to hook into different phases of the request. For our purposes, we just need to define an `start` function that
-will run at the beginning of every request:
+type ClientPluginEnterPhase = ClientPluginPhase<ClientPluginEnterHandlers>
+type ClientPluginExitPhase = ClientPluginPhase<ClientPluginExitHandlers>
 
-```typescript:title=src/client.ts&typescriptToggle=true
-import type { ClientPlugin } from '$houdini'
+type ClientPluginEnterHandlers = {
+	/* The initial value of the query */
+	initialValue: QueryResult
+	/** A reference to the houdini client */
+	client: HoudiniClient
+	/** Move onto the next step using the provided context.  */
+	next(ctx: ClientPluginContext): void
+	/** Terminate the current chain  */
+	resolve(ctx: ClientPluginContext, data: QueryResult): void
 
-const sayHello: ClientPlugin = () => {
-    return {
-        start(ctx, { next }) {
-            // say hello
-            console.log("Hello world!")
+	/** Update the stores state without resolving the promise */
+	updateState(updater: (old: QueryResult) => QueryResult): void
 
-            // move onto the next step in the pipeline
-            next(ctx)
-        }
-    }
+	/** Return true if the variables have changed */
+	variablesChanged: (ctx: ClientPluginContext) => boolean
+	/** Returns the marshaled variables for the operation */
+	marshalVariables: (ctx: ClientPluginContext) => Record<string, any>
+}
+
+/**
+ * Exit handlers are the same as enter handles but don't need to
+ * resolve with a specific value
+ */
+type ClientPluginExitHandlers = {
+	/* The response value we're exiting with */
+	value: QueryResult
+
+	/* The initial value of the query */
+	initialValue: QueryResult
+	/** A reference to the houdini client */
+	client: HoudiniClient
+	/** Move onto the next step using the provided context.  */
+	next(ctx: ClientPluginContext): void
+	/** Terminate the current chain  */
+	resolve: (ctx: ClientPluginContext, data?: QueryResult) => void
+
+	/** Update the stores state without resolving the promise */
+	updateState(updater: (old: QueryResult) => QueryResult): void
+
+	/** Return true if the variables have changed */
+	variablesChanged: (ctx: ClientPluginContext) => boolean
+	/** Returns the marshaled variables for the operation */
+	marshalVariables: (ctx: ClientPluginContext) => Record<string, any>
+}
+
+type ClientPluginContext = {
+	config: ConfigFile
+	artifact: DocumentArtifact
+	policy?: CachePolicy
+	fetch?: Fetch
+	variables?: Record<string, any>
+	metadata?: App.Metadata | null
+	session?: App.Session | null
+	fetchParams?: RequestInit
+	cacheParams?: {
+		layer?: Layer
+		notifySubscribers?: SubscriptionSpec[]
+		forceNotify?: boolean
+		disableWrite?: boolean
+		disableRead?: boolean
+		applyUpdates?: boolean
+	}
+	stuff: Record<string, any>
 }
 ```
 
-And that's it! If you click around your app now, you should see our message logged every time a request is made.
-
-<Warning title="Your plugin must call `next` or `resolve`">
-
-While most of this example is self-explanatory, it's important to highlight that we had to call `next(ctx)`
-in our plugin to indicate we were done. It's important to remember that these phases are asynchronous by nature.
-If we never call `next` (or `resolve`) the pipeline would never terminate.
-
-</Warning>
-
-## Your Second Plugin
-
-Now that you know what a plugin looks like, let's take it up a notch and create another one. This time, we're
-going to create a plugin that retries a query if we encountered an error in the result.
-
-It starts off looking very similar to the first example except this time we'll hook into the `end` step:
-
-```typescript:title=src/client.ts&typescriptToggle=true
-import type { ClientPlugin } from '$houdini'
-
-const retry: ClientPlugin = () => {
-    return {
-        end(ctx, { resolve }) {
-            // move onto the next step in the pipeline
-            resolve(ctx)
-        }
-    }
-}
-```
-
-One important difference between `resolve` and `next` is the direction we are going. As we saw before, `next` is meant to push
-the pipeline forward and send a request. `resolve` does the opposite and pushes an answer back to the caller/store. This means
-that `end` and `afterNetwork` need to `resolve` at some point in order to finish the request. While this does sound kind of
-complicated, having this distinction allows us to replay the request if we run into an error relatively easily:
-
-```typescript:title=src/client.ts&typescriptToggle=true
-import type { ClientPlugin } from '$houdini'
-
-const retry: ClientPlugin = () => {
-    return {
-        end(ctx, { value, next, resolve }) {
-            // if we ran into an error, start another request
-            if (value.errors && value.errors.length > 0) {
-                next(ctx)
-                return
-            }
-
-            // there is no error so we can use the result
-            resolve(ctx)
-        }
-    }
-}
-```
-
-Keep in mind you would probably want to add more to this example in production so that you wouldn't be stuck in an loop that constantly errors
-but hopefully you can piece together how you would do that.
-
-## Plugins Are Data Sources
-
-The store might receive multiple updates for a given set of inputs. For example, subscriptions and live queries
-both push multiple documents into the cache and need to update the store value. Each payload should be pushed all
-the way through the chain using the same function. If the original request hasn’t been resolved when a payload
-reaches the end, the promise will resolve with that first value.
+### `start`

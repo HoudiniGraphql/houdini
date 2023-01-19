@@ -37,7 +37,7 @@ export class DocumentObserver<
 	#lastVariables: Record<string, any> | null
 
 	// we need the last context value we've seen in order to pass it during cleanup
-	#lastContext: ClientPluginContext<GraphQLObject> | null = null
+	#lastContext: ClientPluginContext | null = null
 
 	constructor({
 		artifact,
@@ -507,26 +507,18 @@ type IteratorState = {
 	}
 }
 
-/**
- * A network plugin has 2 primary entry points to modify the pipeline.
- * - phaseOne happens before the request is potentially cached
- * - phaseTwo happens when a request has not been cached and needs to be resolved from the api
- */
-export type ClientPlugin =
-	// the second function lets a plugin setup for a particular observer chain
-	() => {
-		start?: ClientPluginEnterPhase
-		network?: ClientPluginEnterPhase
-		afterNetwork?: ClientPluginExitPhase
-		end?: ClientPluginExitPhase
-		cleanup?(ctx: ClientPluginContext): void | Promise<void>
-		// throw is called when a plugin after this raises an exception
-		throw?(ctx: ClientPluginContext, args: ClientPluginErrorHandlers): void | Promise<void>
-	}
+export type ClientPlugin = () => {
+	start?: ClientPluginEnterPhase
+	network?: ClientPluginEnterPhase
+	afterNetwork?: ClientPluginExitPhase
+	end?: ClientPluginExitPhase
+	cleanup?(ctx: ClientPluginContext): void | Promise<void>
+	throw?(ctx: ClientPluginContext, args: ClientPluginErrorHandlers): void | Promise<void>
+}
 
 export type Fetch = typeof globalThis.fetch
 
-export type ClientPluginContext<_Data extends GraphQLObject = GraphQLObject> = {
+export type ClientPluginContext = {
 	config: ConfigFile
 	artifact: DocumentArtifact
 	policy?: CachePolicy
@@ -551,10 +543,10 @@ type ClientPluginPhase<Handlers> = (
 	handlers: Handlers
 ) => void | Promise<void>
 
-export type ClientPluginEnterPhase = ClientPluginPhase<ClientPluginHandlers>
+export type ClientPluginEnterPhase = ClientPluginPhase<ClientPluginEnterHandlers>
 export type ClientPluginExitPhase = ClientPluginPhase<ClientPluginExitHandlers>
 
-export type ClientPluginHandlers = {
+export type ClientPluginEnterHandlers = {
 	/* The initial value of the query */
 	initialValue: QueryResult
 	/** A reference to the houdini client to access any configuration values */
@@ -574,12 +566,12 @@ export type ClientPluginHandlers = {
 }
 
 /** Exit handlers are the same as enter handles but don't need to resolve with a specific value */
-export type ClientPluginExitHandlers = Omit<ClientPluginHandlers, 'resolve'> & {
+export type ClientPluginExitHandlers = Omit<ClientPluginEnterHandlers, 'resolve'> & {
 	resolve: (ctx: ClientPluginContext, data?: QueryResult) => void
 	value: QueryResult
 }
 
 /** Exit handlers are the same as enter handles but don't need to resolve with a specific value */
-export type ClientPluginErrorHandlers = Omit<ClientPluginHandlers, 'resolve'> & {
+export type ClientPluginErrorHandlers = Omit<ClientPluginEnterHandlers, 'resolve'> & {
 	error: unknown
 }
