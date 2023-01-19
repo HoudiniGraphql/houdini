@@ -17,7 +17,7 @@ import { ArtifactKind } from '../lib/types'
 import { cachePolicyPlugin } from './plugins'
 
 // the list of states to step forward with
-const forwardSteps = ['start', 'network'] as const
+const forwardSteps = ['start', 'beforeNetwork', 'network'] as const
 // the list of states to step backwards with
 const backwardSteps = ['end', 'afterNetwork'] as const
 
@@ -243,6 +243,11 @@ export class DocumentObserver<
 		const currentStep = backwardSteps[ctx.currentStep]
 		// starting one less than the current index
 		for (let index = ctx.index - 1; index >= 0; index--) {
+			// if the current step is never valid, we're done
+			if (!currentStep) {
+				break
+			}
+
 			// if we find a plugin in the same phase, call it
 			let target = this.#plugins[index]?.[currentStep]
 			if (target) {
@@ -509,6 +514,7 @@ type IteratorState = {
 
 export type ClientPlugin = () => {
 	start?: ClientPluginEnterPhase
+	beforeNetwork?: ClientPluginEnterPhase
 	network?: ClientPluginEnterPhase
 	afterNetwork?: ClientPluginExitPhase
 	end?: ClientPluginExitPhase

@@ -495,10 +495,12 @@ export class Config {
 		return path.join(this.pluginDirectory(name), 'runtime')
 	}
 
+	get pluginRootDirectory() {
+		return houdini_mode.is_testing ? '../../../' : path.join(this.rootDir, 'plugins')
+	}
+
 	pluginDirectory(name: string) {
-		return houdini_mode.is_testing
-			? path.resolve('../../../', name)
-			: path.join(this.rootDir, 'plugins', name)
+		return path.join(this.pluginRootDirectory, name)
 	}
 
 	/*

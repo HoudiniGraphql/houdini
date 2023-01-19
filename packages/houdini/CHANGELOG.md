@@ -1,5 +1,13 @@
 # houdini
 
+## 0.20.2
+
+### 🐛 Fixes
+
+-   [#826](https://github.com/HoudiniGraphql/houdini/pull/826) [`815be2f`](https://github.com/HoudiniGraphql/houdini/commit/815be2f0650c503dadfa366616faef91d2462222) Thanks [@jycouet](https://github.com/jycouet)! - update init to have correct graphqlrc.yaml looking at svelte files
+
+## 0.20.1
+
 ## 0.20.0
 
 ### ⚠️ Breaking Changes

@@ -92,6 +92,10 @@ test('middleware pipeline happy path', async function () {
 			tracker(1, 'start')
 			next(ctx)
 		},
+		beforeNetwork(ctx, { next }) {
+			tracker(1, 'beforeNetwork')
+			next(ctx)
+		},
 		network(ctx, { next }) {
 			tracker(1, 'network')
 			next(ctx)
@@ -104,9 +108,16 @@ test('middleware pipeline happy path', async function () {
 
 	const middleware2: ClientPlugin = () => {
 		return {
-			network(ctx, { next }) {
+			network(ctx, { resolve }) {
 				tracker(2, 'network')
-				next(ctx)
+				resolve(ctx, {
+					data: { hello: 'world' },
+					errors: [],
+					fetching: true,
+					partial: false,
+					source: DataSource.Cache,
+					variables: null,
+				})
 			},
 			afterNetwork(ctx, { resolve }) {
 				tracker(2, 'afterNetwork')
@@ -119,21 +130,14 @@ test('middleware pipeline happy path', async function () {
 		}
 	}
 
-	const terminate: ClientPlugin = () => ({
+	const middleware3: ClientPlugin = () => ({
 		start(ctx, { next }) {
 			tracker(3, 'start')
 			next(ctx)
 		},
-		network(ctx, { resolve }) {
-			tracker(3, 'network')
-			resolve(ctx, {
-				data: { hello: 'world' },
-				errors: [],
-				fetching: true,
-				partial: false,
-				source: DataSource.Cache,
-				variables: null,
-			})
+		beforeNetwork(ctx, { next }) {
+			tracker(3, 'beforeNetwork')
+			next(ctx)
 		},
 		afterNetwork(ctx, { resolve }) {
 			tracker(3, 'afterNetwork')
@@ -146,7 +150,7 @@ test('middleware pipeline happy path', async function () {
 	})
 
 	// create the client with the middlewares
-	const store = createStore([middleware1, middleware2, terminate])
+	const store = createStore([middleware1, middleware2, middleware3])
 
 	// spy on the subscribe function
 	const subscribeSpy = vi.fn()
@@ -159,9 +163,10 @@ test('middleware pipeline happy path', async function () {
 	expect(history).toEqual([
 		[1, 'start'],
 		[3, 'start'],
+		[1, 'beforeNetwork'],
+		[3, 'beforeNetwork'],
 		[1, 'network'],
 		[2, 'network'],
-		[3, 'network'],
 		[3, 'afterNetwork'],
 		[2, 'afterNetwork'],
 		[3, 'end'],
@@ -202,8 +207,8 @@ test('terminate short-circuits pipeline', async function () {
 	})
 	const middleware2: ClientPlugin = () => {
 		return {
-			start(ctx, { resolve }) {
-				tracker(2, 'start')
+			beforeNetwork(ctx, { resolve }) {
+				tracker(2, 'beforeNetwork')
 				resolve(ctx, {
 					data: { hello: 'world' },
 					errors: [],
@@ -244,7 +249,76 @@ test('terminate short-circuits pipeline', async function () {
 	// make sure we called the hooks in the right order
 	expect(history).toEqual([
 		[1, 'start'],
-		[2, 'start'],
+		[2, 'beforeNetwork'],
+		[2, 'afterNetwork'],
+		[2, 'end'],
+		[1, 'end'],
+	])
+})
+
+test('uneven lists phases', async function () {
+	const history: [number, string][] = []
+	const tracker = (which: number, step: string) => {
+		history.push([which, step])
+	}
+
+	const middleware1: ClientPlugin = () => ({
+		start(ctx, { next }) {
+			tracker(1, 'start')
+			next(ctx)
+		},
+		end(ctx, { resolve }) {
+			tracker(1, 'end')
+			resolve(ctx)
+		},
+		beforeNetwork(ctx, { next }) {
+			tracker(1, 'beforeNetwork')
+			next(ctx)
+		},
+		network(ctx, { resolve }) {
+			tracker(1, 'network')
+			resolve(ctx, {
+				data: { hello: 'world' },
+				errors: [],
+				fetching: true,
+				partial: false,
+				source: DataSource.Cache,
+				variables: null,
+			})
+		},
+	})
+	const middleware2: ClientPlugin = () => {
+		return {
+			end(ctx, { resolve }) {
+				tracker(2, 'end')
+				resolve(ctx, {
+					data: { hello: 'world' },
+					errors: [],
+					fetching: true,
+					partial: false,
+					source: DataSource.Cache,
+					variables: null,
+				})
+			},
+			afterNetwork(ctx, { resolve }) {
+				tracker(2, 'afterNetwork')
+				resolve(ctx)
+			},
+		}
+	}
+
+	// create the client with the middlewares
+	const store = createStore([middleware1, middleware2])
+
+	// kick off the pipeline
+	await store.send()
+
+	// make sure we called the hooks in the right order
+	expect(history).toEqual([
+		[1, 'start'],
+		[1, 'beforeNetwork'],
+		[1, 'network'],
+		[2, 'afterNetwork'],
 		[2, 'end'],
 		[1, 'end'],
 	])

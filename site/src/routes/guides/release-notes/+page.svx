@@ -20,8 +20,11 @@ This is a huge milestone for the project and we're so thankful to everyone that 
 Houdini's runtime logic (document subscriptions, network calls, etc) has been completely rewritten using a new
 composable architecture that allows you to add new functionality (like [Live Queries](https://the-guild.dev/blog/subscriptions-and-live-queries-real-time-with-graphql)) or change most aspects of your
 document's behavior. This is probably the biggest upgrade to Houdini since the introduction of
-Document Stores. We won't go into too much detail about how to use the new system here. For that,
-you can check out the [Client documentation](/api/client).
+Document Stores.
+
+We won't go into too much detail about how to use the new system here but
+you will need to change your client file. For more information on the new architecture,
+you can check out the [Client Plugin documentation](/api/client-plugins).
 
 It's a bit hard to give you an exact example to follow but here are a few situations you might fall into:
 
@@ -122,25 +125,24 @@ If your application uses subscriptions, you'll need to import the
   import { browser } from '$app/environment'
 + import { subscriptions } from '$houdini/plugins'
 
-  let socketClient = browser
-  	? new createClient({
-  			url: 'ws://api.url'
-  	  })
-  	: null
+-  let socketClient = browser
+-  	? new createClient({
+-  			url: 'ws://api.url'
+-  	  })
+-  	: null
 
 - export default new HoudiniClient(requestHandler, socketClient)
 + export default new HoudiniClient({
 +     url: '...',
-+     // these will be used by the subscription plugin too!
-+     fetchParams({ session }) {
-+         return {
-+             headers: {
-+                 'Authentication': `Bearer ${session.user?.token}`
-+             }
-+         }
-+     },
 +     plugins: [
-+         subscriptions(socketClient)
++         subscriptions(({ session }) => createClient({
++             url: 'ws://api.url',
++             connectionParams: {
++                 headers: {
++                     Authentication: `Bearer ${session.user?.token}`
++                 }
++             }
++  	      }))
 +     ]
 + })
 ```
@@ -152,6 +154,53 @@ If your application uses subscriptions, you'll need to import the
 If you were performing special logic in your network function (either before or after the actual
 call to `fetch`), you'll need to build a custom plugin for the client. Please head over to
 the [client plugin documentation](/api/client) for more information.
+
+</DeepDive>
+
+### Error handling
+
+`config.quietQueryErrors` has been removed from `houdini-svelte`'s configuration and into
+the constructor for your client. Also, the relationship has been inverted: instead of
+specifying if you want your queries to be quiet, you now tell the client when it should
+throw.
+
+Please select the situation that applies:
+
+<DeepDive title="Had quietQueryErrors on" style="margin-bottom: 0px">
+
+You are now aligned with houdini's default behavior. Just remove the config in
+`houdini-svelte`:
+
+```diff
+  export default {
+      plugins: {
+          'houdini-svelte': {
+-             quietQueryErrors: true
+          }
+      }
+  }
+```
+
+</DeepDive>
+
+<DeepDive title="Did not configure quietQueryErrors" >
+
+In order to bring your application back to its previous state, you now
+need to pass a new config to your client:
+
+```diff
++ import { error } from '@sveltejs/kit'
+
+  export default new HoudiniClient({
+      url: '...',
++     throwOnError: {
++         operations: ['all'],
++         error: (errors) => error(500,
++             errors.map((err) => err.message).join('. ') + '.'
++         )
++     }
+  })
+```
 
 </DeepDive>
 

@@ -10,8 +10,8 @@
 		"client",
 		"client-plugins",
 		"cache",
-		"vite",
 		"config",
+		"vite",
 		"cli"
 	]
 }

@@ -21,7 +21,7 @@ type ConstructorArgs = {
 	url: string
 	fetchParams?: FetchParamFn
 	plugins?: ClientPlugin[]
-	pipeline?: () => ClientPlugin[]
+	pipeline?: ClientPlugin[]
 	throwOnError?: ThrowOnErrorParams
 }
 
@@ -46,7 +46,7 @@ export class HoudiniClient {
 			throwOnError ? [throwOnErrorPlugin(throwOnError)] : [],
 			fetchParamsPlugin(fetchParams),
 			// if the user wants to specify the entire pipeline, let them do so
-			pipeline?.() ??
+			pipeline ??
 				// the user doesn't have a specific pipeline so we should just add their desired plugins
 				// to the standard set
 				[

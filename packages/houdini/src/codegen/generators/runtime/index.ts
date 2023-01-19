@@ -1,18 +1,9 @@
-import * as recast from 'recast'
-
-import { exportDefault, importDefaultFrom } from '../../../codegen/utils'
+import { exportDefault, exportStarFrom, importDefaultFrom } from '../../../codegen/utils'
 import type { Config, CollectedGraphQLDocument } from '../../../lib'
-import {
-	siteURL as SITE_URL,
-	fs,
-	HoudiniError,
-	path,
-	houdini_mode,
-	parseJS,
-	ensureImports,
-} from '../../../lib'
-
-const AST = recast.types.builders
+import { siteURL as SITE_URL, fs, HoudiniError, path, houdini_mode } from '../../../lib'
+import generateGraphqlReturnTypes from './graphqlFunction'
+import injectPlugins from './injectPlugins'
+import { generatePluginIndex } from './pluginIndex'
 
 export default async function runtimeGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	const importStatement =
@@ -23,14 +14,19 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 	const exportStatement =
 		config.module === 'commonjs' ? exportDefault : (as: string) => `export default ${as}`
 
-	// generate the adapter to normalize interactions with the framework
-	// update the generated runtime to point to the client
+	const exportStar =
+		config.module === 'commonjs'
+			? exportStarFrom
+			: (where: string) => `export * from '${where}'`
+
+	// copy the appropriate runtime first so we can generate files over it
 	await Promise.all([
 		fs.recursiveCopy(config.runtimeSource, config.runtimeDirectory, {
+			// update the link to the site for error messages
 			[path.join(config.runtimeSource, 'lib', 'constants.js')]: (content) => {
 				return content.replace('SITE_URL', SITE_URL)
 			},
-			// transform the files while we are copying so we don't trigger unnecessary changes
+			// make sure the config import points to the correct file
 			[path.join(config.runtimeSource, 'imports', 'config.js')]: (content) => {
 				// the path to the config file
 				const configFilePath = path.join(config.runtimeDirectory, 'imports', 'config.js')
@@ -41,119 +37,18 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 ${exportStatement('config')}
 `
 			},
+			// we need to update the list of client plugins that get injected by codegen plugins
 			[path.join(config.runtimeSource, 'client', 'plugins', 'injectedPlugins.js')]: (
 				content
-			) => {
-				// get the list of plugins we need to add to the client
-				const client_plugins = config.plugins
-					.filter((plugin) => plugin.client_plugins)
-					.reduce((acc, plugin) => {
-						let plugins = plugin.client_plugins!
-						// if the plugin config is a function then we need to pass the
-						// two configs to the factory
-						if (typeof plugins === 'function') {
-							plugins = plugins(config, config.pluginConfig(plugin.name))
-						}
-
-						return [...acc, ...Object.entries(plugins!)]
-					}, [] as Record<string, any>[])
-
-				return client_plugins.length > 0
-					? `
-${client_plugins.map((plugin, i) => importStatement(plugin[0], `plugin${i}`))}
-
-const plugins = [
-	${client_plugins
-		.map((plugin, i) => {
-			const suffix = plugin[1] !== null ? `(${JSON.stringify(plugin[1])})` : ''
-			return `plugin${i}${suffix}`
-		})
-		.join(',\n')}
-]
-
-${exportStatement('plugins')}
-				`
-					: content
-			},
+			) => injectPlugins({ config, content, importStatement, exportStatement }),
 		}),
 		...config.plugins
 			.filter((plugin) => plugin.include_runtime)
 			.map((plugin) => generatePluginRuntime(config, plugin)),
+		generatePluginIndex({ config, exportStatement: exportStar }),
 	])
 
-	// we need to find the index of the `export default function graphql` in the index.d.ts of the runtime
-	const indexPath = path.join(config.runtimeDirectory, 'index.d.ts')
-	const contents = await parseJS((await fs.readFile(indexPath)) || '')
-
-	// figure out if any of the plugins provide a graphql tag export
-	const graphql_tag_return = config.plugins.find(
-		(plugin) => plugin.graphql_tag_return
-	)?.graphql_tag_return
-	if (graphql_tag_return && contents) {
-		// build up the mapping of hard coded strings to exports
-		const overloaded_returns: Record<string, string> = {}
-		for (const doc of docs) {
-			const return_value = graphql_tag_return!({
-				config,
-				doc,
-				ensure_import({ identifier, module }) {
-					ensureImports({
-						config,
-						body: contents.script.body,
-						sourceModule: module,
-						import: [identifier],
-					})
-				},
-			})
-			if (return_value) {
-				overloaded_returns[doc.originalString] = return_value
-			}
-		}
-
-		// if we have any overloaded return values then we need to update the index.d.ts of the
-		// runtime to return those values
-		if (Object.keys(overloaded_returns).length > 0) {
-			for (const [i, expression] of (contents?.script.body ?? []).entries()) {
-				if (
-					expression.type !== 'ExportNamedDeclaration' ||
-					expression.declaration?.type !== 'TSDeclareFunction' ||
-					expression.declaration.id?.name !== 'graphql'
-				) {
-					continue
-				}
-
-				// we need to insert an overloaded definition for every entry we found
-				for (const [queryString, returnValue] of Object.entries(overloaded_returns)) {
-					// build up the input with the query string as a hard coded value
-					const input = AST.identifier('str')
-					input.typeAnnotation = AST.tsTypeAnnotation(
-						AST.tsLiteralType(AST.stringLiteral(queryString))
-					)
-
-					// it should return the right thing
-					contents?.script.body.splice(
-						i,
-						0,
-						AST.exportNamedDeclaration(
-							AST.tsDeclareFunction(
-								AST.identifier('graphql'),
-								[input],
-								AST.tsTypeAnnotation(
-									AST.tsTypeReference(AST.identifier(returnValue))
-								)
-							)
-						)
-					)
-				}
-
-				// we're done here
-				break
-			}
-
-			// write the result back to the file
-			await fs.writeFile(indexPath, recast.prettyPrint(contents!.script).code)
-		}
-	}
+	await generateGraphqlReturnTypes(config, docs)
 }
 
 async function generatePluginRuntime(config: Config, plugin: Config['plugins'][number]) {

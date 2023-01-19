@@ -5,7 +5,8 @@ import { test, expect } from 'vitest'
 
 import { runPipeline } from '../..'
 import { fs, path } from '../../../lib'
-import { testConfig } from '../../../test'
+import type { CollectedGraphQLDocument } from '../../../lib/types'
+import { testConfig, mockCollectedDoc } from '../../../test'
 
 test('updates the config file with import path', async function () {
 	const config = testConfig({ module: 'esm' })
@@ -21,155 +22,77 @@ test('updates the config file with import path', async function () {
 	expect(fileContents).toContain("from '../../../config.cjs'")
 })
 
-test('updates the list of plugin-specified client plugins', async function () {
-	const config = testConfig({
-		module: 'esm',
-	})
-	config.plugins = [
-		{
-			name: 'pluginWithClientPlugin',
-			include_runtime: false,
-			version: 'string',
-			directory: 'string',
-			client_plugins: {
-				testPlugin: {},
-			},
-		},
+test('runtime index file - cjs', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		mockCollectedDoc(`query TestQuery { version }`),
+		mockCollectedDoc(`fragment TestFragment on User { firstName }`),
 	]
 
+	const config = testConfig({ module: 'commonjs' })
 	// execute the generator
-	await runPipeline(config, [])
+	await runPipeline(config, docs)
 
 	// open up the index file
-	const fileContents = await fs.readFile(
-		path.join(config.runtimeDirectory, 'client', 'plugins', 'injectedPlugins.js')
-	)
-	expect(fileContents).toBeTruthy()
-
+	const queryContents = await fs.readFile(path.join(config.rootDir, 'index.js'))
+	expect(queryContents).toBeTruthy()
 	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(fileContents!, {
+	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 		parser: typeScriptParser,
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		import plugin0 from 'testPlugin'
-
-		const plugins = [
-			plugin0({})
-		]
-
-		export default plugins
-	`)
-})
-
-test("does not update the list of plugin-specified client plugins if there aren't any", async function () {
-	const config = testConfig({
-		module: 'esm',
-	})
-
-	// execute the generator
-	await runPipeline(config, [])
-
-	// open up the index file
-	const fileContents = await fs.readFile(
-		path.join(config.runtimeDirectory, 'client', 'plugins', 'injectedPlugins.js')
-	)
-	expect(fileContents).toBeTruthy()
-
-	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(fileContents!, {
-		parser: typeScriptParser,
-	}).program
-	// verify contents
-	expect(parsedQuery).toMatchInlineSnapshot(`
-		const plugins = [];
-		var injectedPlugins_default = plugins;
-		export {
-		  injectedPlugins_default as default
+		"use strict";
+		var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+		    if (k2 === undefined) k2 = k;
+		    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+		}) : (function(o, m, k, k2) {
+		    if (k2 === undefined) k2 = k;
+		    o[k2] = m[k];
+		}));
+		var __exportStar = (this && this.__exportStar) || function(m, exports) {
+		    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 		};
+		var __importDefault = (this && this.__importDefault) || function (mod) {
+		    return (mod && mod.__esModule) ? mod : { "default": mod };
+		};
+		Object.defineProperty(exports, "__esModule", { value: true });
+		__exportStar(require("./runtime/client"), exports);
+
+		__exportStar(require("./runtime"), exports);
+
+		__exportStar(require("./artifacts"), exports);
+
+		__exportStar(require("./graphql"), exports);
 	`)
 })
 
-test('passing null as client plugin config generates a reference, not a function', async function () {
-	const config = testConfig({
-		module: 'esm',
-	})
-	config.plugins = [
-		{
-			name: 'pluginWithClientPlugin',
-			include_runtime: false,
-			version: 'string',
-			directory: 'string',
-			client_plugins: {
-				testPlugin: null,
-			},
-		},
+test('runtime index file - kit', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		mockCollectedDoc(`query TestQuery { version }`),
+		mockCollectedDoc(`fragment TestFragment on User { firstName }`),
 	]
 
+	const config = testConfig({ module: 'esm', framework: 'kit' })
 	// execute the generator
-	await runPipeline(config, [])
+	await runPipeline(config, docs)
 
 	// open up the index file
-	const fileContents = await fs.readFile(
-		path.join(config.runtimeDirectory, 'client', 'plugins', 'injectedPlugins.js')
-	)
-	expect(fileContents).toBeTruthy()
-
+	const contents = await fs.readFile(path.join(config.rootDir, 'index.js'))
+	expect(contents).toBeTruthy()
 	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(fileContents!, {
+	const parsed: ProgramKind = recast.parse(contents!, {
 		parser: typeScriptParser,
 	}).program
 	// verify contents
-	expect(parsedQuery).toMatchInlineSnapshot(`
-		import plugin0 from 'testPlugin'
+	expect(parsed).toMatchInlineSnapshot(`
+		export * from "./runtime/client"
 
-		const plugins = [
-			plugin0
-		]
+		export * from "./runtime"
 
-		export default plugins
-	`)
-})
+		export * from "./artifacts"
 
-test('passing a function passes the config files', async function () {
-	const config = testConfig({
-		module: 'esm',
-	})
-	config.plugins = [
-		{
-			name: 'pluginWithClientPlugin',
-			include_runtime: false,
-			version: 'string',
-			directory: 'string',
-			client_plugins() {
-				return {
-					testPlugin: null,
-				}
-			},
-		},
-	]
-
-	// execute the generator
-	await runPipeline(config, [])
-
-	// open up the index file
-	const fileContents = await fs.readFile(
-		path.join(config.runtimeDirectory, 'client', 'plugins', 'injectedPlugins.js')
-	)
-	expect(fileContents).toBeTruthy()
-
-	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(fileContents!, {
-		parser: typeScriptParser,
-	}).program
-	// verify contents
-	expect(parsedQuery).toMatchInlineSnapshot(`
-		import plugin0 from 'testPlugin'
-
-		const plugins = [
-			plugin0
-		]
-
-		export default plugins
+		export * from "./graphql"
 	`)
 })

@@ -2,7 +2,7 @@ import type { RequestPayload } from '../../lib/types'
 import { DataSource } from '../../lib/types'
 import type { ClientPlugin } from '../documentObserver'
 
-export const fetchPlugin = (fn?: RequestHandler | string): ClientPlugin => {
+export const fetchPlugin = (target?: RequestHandler | string): ClientPlugin => {
 	return () => {
 		return {
 			async network(ctx, { client, resolve, marshalVariables }) {
@@ -19,11 +19,11 @@ export const fetchPlugin = (fn?: RequestHandler | string): ClientPlugin => {
 				let fetchFn = defaultFetch(client.url)
 				// the provided parameter either specifies the URL or is the entire function to
 				// use
-				if (fn) {
-					if (typeof fn === 'string') {
-						fetchFn = defaultFetch(fn)
+				if (target) {
+					if (typeof target === 'string') {
+						fetchFn = defaultFetch(target)
 					} else {
-						fetchFn = fn
+						fetchFn = target
 					}
 				}
 

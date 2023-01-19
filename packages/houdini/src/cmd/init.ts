@@ -517,6 +517,7 @@ async function graphqlRCFile(targetPath: string) {
       - ./$houdini/graphql/schema.graphql
     documents:
       - '**/*.gql'
+      - '**/*.svelte'
       - ./$houdini/graphql/documents.gql
 `
 

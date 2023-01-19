@@ -79,7 +79,7 @@ info can be looked up with the `pageInfo` field of store's value:
 </script>
 
 {#if $userInfo.pageInfo.hasNextPage}
-	<button on:click=={userInfo.loadNextPage}>
+	<button on:click={userInfo.loadNextPage}>
 		load more
 	</button>
 {/if}

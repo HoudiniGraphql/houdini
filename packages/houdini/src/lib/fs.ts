@@ -231,7 +231,7 @@ export async function mock(target: MockFilesystem[string], filepath: string = ''
 export async function recursiveCopy(
 	source: string,
 	target: string,
-	transforms?: Record<string, (content: string, filepath: string) => string>,
+	transforms?: Record<string, (content: string, filepath: string) => string | Promise<string>>,
 	notRoot?: boolean
 ) {
 	// if the folder containing the target doesn't exist, then we need to create it
@@ -268,7 +268,7 @@ export async function recursiveCopy(
 					// we might have to transform the value before copying it
 					let original = (await readFile(childPath)) || ''
 					if (transforms?.[childPath]) {
-						original = transforms[childPath](original, childPath)
+						original = await transforms[childPath](original, childPath)
 					}
 
 					await writeFile(targetPath, original)

@@ -19,16 +19,17 @@ or even add support for entirely new network capabilities like
 ## Overview
 
 In Houdini, every document in your app is backed by an observable value we call a "Document Store".
-The store has 2 main concerns: holding onto the latest value of the document and sending new
+The store has two main concerns: holding onto the latest value of the document and sending new
 queries to update its state (usually with new variables). Client plugins let you modify this structure
-to fit your needs by hooking into 4 different phases of the request pipeline:
+to fit your needs by hooking into five different phases of the request pipeline:
 
 - `start` happens at the beginning of a request (or setup cycle) and contains logic that must happen for every request
+- `beforeNetwork` for things that should happen when there was no cache hit (there will be a network request)
 - `network` performs the actual network request
 - `afterNetwork` for logic after the network request but before the cache processes it
 - `end` happens at the end of the request regardless of the data’s source
 
-For some documents, the `network` and `afterNetwork` steps might be short circuited with cached values
+For some documents, `beforeNetwork`, `network`, and `afterNetwork` might be short circuited with cached values
 if the policy allows it. You can think of the cache as a gatekeeper that decides if a request can be resolved
 before beginning the network phases.
 
@@ -44,10 +45,32 @@ modify the response. For more information on this, please read the section on [E
 
 <AuthoringPluginsDive />
 
-## Enter vs Exit hooks
+## Choosing a Phase
+
+We recognize it can be a bit confusing to work your way through this. If you're struggling
+to figure out which phase you want to hook into, here are a series of helpful questions.
+If you are still unsure after reading this, please open an issue on GitHub -
+we'd love to help.
+
+The first question you have to ask yourself is wether you are going to look data up
+from the server or act as a middleware in the pipeline. If you are going to interact with
+the server, you'll almost certainly want to do that in `network`.
+
+If you aren't building a `network` hook, the next question to ask is if you
+want to process a request on its way to the API or do you want to look at
+the result of the query?
+If you want to see the request before it gets to the API, you want one of the `start`,
+`beforeNetwork`. If you want to look at responses from the API then your
+options are `afterNetwork` or `end`.
+
+The next question is to ask yourself wether you want to execute the logic if the response is cached. If your logic must always run, `start` or `end` is what you're looking for.
+If your logic should only run if the cache isn't involved then `beforeNetwork` or
+`afterNetwork` is the answer.
+
+## Enter vs Exit Hooks
 
 It's important to keep in mind the direction that information is flowing in a given step.
-As mentioned before, the request pipeline is broken up into 4 distinct phases. `start` and `network`
+As mentioned before, the request pipeline is broken up into 5 distinct phases. `start`, `beforeNetwork`, and `network`
 are known as "enter hooks" whereas `afterNetwork` and `end` are known as "exit hooks".
 
 ### Enter Hook
@@ -140,7 +163,7 @@ In Summary,
 
 ## Stateful Plugins
 
-Plugins can contain state across multiple requests as well as phases:
+Plugins can contain state across multiple requests as well as phases.
 
 ### State within a single request (multiple phases)
 
@@ -177,9 +200,9 @@ const timer: ClientPlugin = () => {
 
 ### State across network requests
 
-If you're plugin needs to track some statment for multiple network requests, you can
-instantiate the state before you return your plugin. Houdini will make sure that your
-function is called only once when the store is created:
+If you're plugin needs to track some state between multiple network requests, you can
+instantiate the state at the top of you plugin definition, before you return your hooks.
+Houdini will make sure that your function is called only once when the store is created:
 
 ```typescript:title=src/client.ts&typescriptToggle=true
 import type { ClientPlugin } from '$houdini'
@@ -219,29 +242,6 @@ listeners to return multiple values.
 to your hooks. For a full summary, please refer to the the `ClientPluginEnterHandlers` and
 `ClientPluginExitHandlers` in the [Type Definitions section below](#type-definitions).
 
-## Changing Values
-
-For the most part, you are free to update any values in the context object passed to your hook. That being said,
-if you modify a value please assign the value directly:
-
-```typescript:title=src/client.ts&typescriptToggle=true
-import type { ClientPlugin } from '$houdini'
-
-const logErrors: ClientPlugin = () => {
-    return {
-        start(ctx, { next }) {
-
-            ctx.variables = {
-                ...ctx.variables,
-                something: 'else',
-            }
-
-            next(ctx)
-        }
-    }
-}
-```
-
 ## Type Definitions
 
 The best source of truth for the type definitions are exported from your `$houdini`
@@ -251,6 +251,7 @@ If you find a discrepancy, please let us know on GitHub.
 ```typescript
 type ClientPlugin = () => {
 	start?: ClientPluginEnterPhase
+	beforeNetwork?: ClientPluginEnterPhase
 	network?: ClientPluginEnterPhase
 	afterNetwork?: ClientPluginExitPhase
 	end?: ClientPluginExitPhase

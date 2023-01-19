@@ -1,31 +1,62 @@
+import { deepEquals } from '../../lib/deepEquals'
 import type { GraphQLObject } from '../../lib/types'
 import { ArtifactKind, DataSource } from '../../lib/types'
+import type { ClientPluginContext } from '../documentObserver'
 import { documentPlugin } from '../utils'
 
-export function subscriptionPlugin(client: SubscriptionHandler) {
+export function subscriptionPlugin(factory: SubscriptionHandler) {
 	return documentPlugin(ArtifactKind.Subscription, () => {
 		// the unsubscribe hook for the active subscription
 		let clearSubscription: null | (() => void) = null
 
+		// when we detect a new fetchParams we need to recreate the socket client
+		let socketClient: ReturnType<SubscriptionHandler> | null = null
+
+		// we need to re-run the subscription if the following object has changed
+		let check: {
+			fetchParams: RequestInit
+			session: App.Session
+			metadata: App.Metadata
+		} | null = null
+
 		return {
-			start(ctx, { next, resolve, variablesChanged, initialValue }) {
-				// if the variables havent changed since the last time we ran this,
-				// there's nothing to do
-				if (!variablesChanged(ctx)) {
+			start(ctx, { resolve, next, initialValue }) {
+				// we can only start a websocket client if we're on the browser
+				if (typeof globalThis.window === 'undefined') {
 					resolve(ctx, initialValue)
 					return
 				}
 
-				// the variables _have_ changed so move onto the next step
+				// its safe to keep going
 				next(ctx)
 			},
-			network(ctx, { resolve, marshalVariables }) {
+			network(ctx, { resolve, initialValue, variablesChanged, marshalVariables }) {
+				const checkValue = {
+					fetchParams: ctx.fetchParams ?? {},
+					session: ctx.session ?? {},
+					metadata: ctx.metadata ?? {},
+				}
+				// if the variables havent changed since the last time we ran this,
+				// there's nothing to do
+				if (!variablesChanged(ctx) && deepEquals(check, checkValue)) {
+					resolve(ctx, initialValue)
+					return
+				}
+
+				// we need to use this as the new check value
+				check = checkValue
+
+				// if the socket client hasn't been made yet then do so with the current context
+				if (!socketClient) {
+					socketClient = factory(ctx)
+				}
+
 				// if we got this far, we need to clear the subscription before we
 				// create a new one
 				clearSubscription?.()
 
 				// start listening for the new subscription
-				clearSubscription = client.subscribe(
+				clearSubscription = socketClient.subscribe(
 					{
 						query: ctx.artifact.raw,
 						variables: marshalVariables(ctx),
@@ -63,7 +94,7 @@ export function subscriptionPlugin(client: SubscriptionHandler) {
 	})
 }
 
-export type SubscriptionHandler = {
+export type SubscriptionHandler = (ctx: ClientPluginContext) => {
 	subscribe: (
 		payload: { query: string; variables?: {} },
 		handlers: {
