@@ -1,5 +1,5 @@
 ---
-title: SvelteKit Plugin
+title: Vite Plugin
 description: A summary of configuration values for Houdini's kit plugin
 ---
 

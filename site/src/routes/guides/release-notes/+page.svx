@@ -125,25 +125,24 @@ If your application uses subscriptions, you'll need to import the
   import { browser } from '$app/environment'
 + import { subscriptions } from '$houdini/plugins'
 
-  let socketClient = browser
-  	? new createClient({
-  			url: 'ws://api.url'
-  	  })
-  	: null
+-  let socketClient = browser
+-  	? new createClient({
+-  			url: 'ws://api.url'
+-  	  })
+-  	: null
 
 - export default new HoudiniClient(requestHandler, socketClient)
 + export default new HoudiniClient({
 +     url: '...',
-+     // these will be used by the subscription plugin too!
-+     fetchParams({ session }) {
-+         return {
-+             headers: {
-+                 'Authentication': `Bearer ${session.user?.token}`
-+             }
-+         }
-+     },
 +     plugins: [
-+         subscriptions(socketClient)
++         subscriptions(({ session }) => createClient({
++             url: 'ws://api.url',
++             connectionParams: {
++                 headers: {
++                     Authentication: `Bearer ${session.user?.token}`
++                 }
++             }
++  	      }))
 +     ]
 + })
 ```
