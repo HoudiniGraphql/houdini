@@ -136,7 +136,7 @@ const plugins = [
 ]
 ```
 
-If you use the `pipeline` parameter instead, you only get the first two forced on your:
+If you use the `pipeline` parameter instead, only the first two get added to what you provide:
 
 ```typescript:title=
 const pipeline = [

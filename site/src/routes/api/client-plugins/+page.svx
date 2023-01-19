@@ -43,7 +43,29 @@ modify the response. For more information on this, please read the section on [E
 
 <AuthoringPluginsDive />
 
-## Enter vs Exit hooks
+## Choosing a Phase
+
+We recognize it can be a bit confusing to work your way through this. If you're struggling
+to figure out which phase you want to hook into, here are a series of helpful questions.
+If you are still unsure after reading this, please open an issue on GitHub -
+we'd love to help.
+
+The first question you have to ask yourself is wether you are going to look data up
+from the server or act as a middleware in the pipeline. If you are going to interact with
+the server, you'll almost certainly want to do that in `network`.
+
+If you aren't building a `network` hook, the next question to ask is if you
+want to process a request on its way to the API or do you want to look at
+the result of the query?
+If you want to see the request before it gets to the API, you want one of the `start`,
+`beforeNetwork`. If you want to look at responses from the API then your
+options are `afterNetwork` or `end`.
+
+The next question is to ask yourself wether you want to execute the logic if the response is cached. If your logic must always run, `start` or `end` is what you're looking for.
+If your logic should only run if the cache isn't involved then `beforeNetwork` or
+`afterNetwork` is the answer.
+
+## Enter vs Exit Hooks
 
 It's important to keep in mind the direction that information is flowing in a given step.
 As mentioned before, the request pipeline is broken up into 5 distinct phases. `start`, `beforeNetwork`, and `network`
@@ -176,9 +198,9 @@ const timer: ClientPlugin = () => {
 
 ### State across network requests
 
-If you're plugin needs to track some statment for multiple network requests, you can
-instantiate the state before you return your plugin. Houdini will make sure that your
-function is called only once when the store is created:
+If you're plugin needs to track some state between multiple network requests, you can
+instantiate the state at the top of you plugin definition, before you return your hooks.
+Houdini will make sure that your function is called only once when the store is created:
 
 ```typescript:title=src/client.ts&typescriptToggle=true
 import type { ClientPlugin } from '$houdini'
@@ -217,29 +239,6 @@ listeners to return multiple values.
 `next` and `resolve` are just two examples of functions passed as the second argument
 to your hooks. For a full summary, please refer to the the `ClientPluginEnterHandlers` and
 `ClientPluginExitHandlers` in the [Type Definitions section below](#type-definitions).
-
-## Changing Values
-
-For the most part, you are free to update any values in the context object passed to your hook. That being said,
-if you modify a value please assign the value directly:
-
-```typescript:title=src/client.ts&typescriptToggle=true
-import type { ClientPlugin } from '$houdini'
-
-const logErrors: ClientPlugin = () => {
-    return {
-        start(ctx, { next }) {
-
-            ctx.variables = {
-                ...ctx.variables,
-                something: 'else',
-            }
-
-            next(ctx)
-        }
-    }
-}
-```
 
 ## Type Definitions
 
