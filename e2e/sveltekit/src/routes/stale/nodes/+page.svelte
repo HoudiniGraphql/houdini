@@ -11,8 +11,6 @@
       }
     }
   `);
-
-  $: console.log(`$store`, $store);
 </script>
 
 <h4>Total count</h4>
