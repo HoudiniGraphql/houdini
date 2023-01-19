@@ -93,14 +93,15 @@ const simpleFetchPlugin: ClientPlugin = () => {
 ```
 
 There are a few things to keep in mind when defining Enter hooks:
+
 - An enter hook can call `next` or `resolve` in any combination
-you want as long as at least one of them is always called. If you do
-not call one of them, your pipeline will hang indefinitely.
+  you want as long as at least one of them is always called. If you do
+  not call one of them, your pipeline will hang indefinitely.
 - When calling both `resolve` and `next` in the same hook, make
-sure to call `resolve` before `next` when possible so you can
-resolve the request as quickly as possible
+  sure to call `resolve` before `next` when possible so you can
+  resolve the request as quickly as possible
 - When calling `resolve` you have to pass a full `QueryResult`
-(see [Type Definitions](#type-definitions) below)
+  (see [Type Definitions](#type-definitions) below)
 
 ### Exit hooks
 
@@ -130,41 +131,10 @@ an exit hook needs to call `resolve` under some circumstances. If an exit hook n
 the pipeline will hang forever <Emoji name="fear" height={20} fallback="😨" style="margin-bottom: -3px" />
 
 In Summary,
+
 - You do not have to pass a value when calling `resolve`. The last known value will be used automatically. You are
-also free to modify the value.
+  also free to modify the value.
 - Make sure your exit hook resolves under some condition
-
-## Plugins Are Data Sources
-
-The store might receive multiple updates for a given set of inputs. For example, subscriptions and live queries
-both push multiple documents into the cache and need to update the store value. Each payload is pushed all
-the way through the chain using the same `resolve` function. If the original request hasn’t been resolved when a payload
-reaches the end, the promise will resolve with that first value so you are free to use `resolve` inside of event
-listeners to return multiple values.
-
-## Updating Values
-
-For the most part, you are free to update any values in the context object passed to your hook. That being said,
-if you modify a value please assign the value directly:
-
-```typescript:title=src/client.ts&typescriptToggle=true
-import type { ClientPlugin } from '$houdini'
-
-const logErrors: ClientPlugin = () => {
-    return {
-        start(ctx, { next }) {
-
-            ctx.variables = {
-                ...ctx.variables,
-                something: 'else',
-            }
-
-            next(ctx)
-        }
-    }
-}
-```
-
 
 ## Stateful Plugins
 
@@ -233,11 +203,42 @@ const logErrors: ClientPlugin = () => {
 }
 ```
 
+## Multiple Values
+
+The store might receive multiple updates for a given set of inputs. For example, subscriptions and live queries
+both push multiple documents into the cache and need to update the store value. Each payload is pushed all
+the way through the chain using the same `resolve` function. If the original request hasn’t been resolved when a payload
+reaches the end, the promise will resolve with that first value so you are free to use `resolve` inside of event
+listeners to return multiple values.
+
 ## Utilities
 
 `next` and `resolve` are just two examples of functions passed as the second argument
 to your hooks. For a full summary, please refer to the the `ClientPluginEnterHandlers` and
 `ClientPluginExitHandlers` in the [Type Definitions section below](#type-definitions).
+
+## Changing Values
+
+For the most part, you are free to update any values in the context object passed to your hook. That being said,
+if you modify a value please assign the value directly:
+
+```typescript:title=src/client.ts&typescriptToggle=true
+import type { ClientPlugin } from '$houdini'
+
+const logErrors: ClientPlugin = () => {
+    return {
+        start(ctx, { next }) {
+
+            ctx.variables = {
+                ...ctx.variables,
+                something: 'else',
+            }
+
+            next(ctx)
+        }
+    }
+}
+```
 
 ## Type Definitions
 
