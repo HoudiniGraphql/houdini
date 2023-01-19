@@ -4,8 +4,9 @@ description: The API reference for HoudiniClient plugins
 ---
 
 <script>
-    import { PluginWorkflow } from '~/components'
+    import PluginWorkflow from './Workflow.svelte'
     import AuthoringPluginsDive from './Authoring.svx'
+    import { Warning, DeepDive, Emoji } from '~/components'
 </script>
 
 # Client Plugins
@@ -19,7 +20,7 @@ or even add support for entirely new network capabilities like
 
 In Houdini, every document is your app is backed by an observable value we call a "Document Store".
 The store has 2 main concerns: holding onto the latest value of the document and sending new
-queries to update its state (usually with new variables). Client plugins let you modify this
+queries to update its state (usually with new variables). Client plugins let you modify this structure
 to fit your needs by hooking into 4 different phases of the request pipeline:
 
 - `start` happens at the beginning of a request (or setup cycle) and contains logic that must happen for every request
@@ -35,17 +36,196 @@ before beginning the network phases.
 
 While preparing the request, plugins are iterated over in the order they are passed to the client. Once a result
 has been provided, its value is sent in reverse order through the list of plugins we've visited who can
-modify the response.
+modify the response. For more information on this, please read the section on [Enter vs Exit hooks](#enter-vs-exit-phases).
 
 ## Create Your First Plugin
 
 <AuthoringPluginsDive />
 
-## Enter vs Exit Phases
+## Enter vs Exit hooks
 
 It's important to keep in mind the direction that information is flowing in a given step.
-As mentioned before, the request pipeline is broken up into 4 distinct phases. Of of them
-(`start` and `network`) are known as "enter phases".
+As mentioned before, the request pipeline is broken up into 4 distinct phases. `start` and `network`
+are known as "enter hooks" whereas `afterNetwork` and `end` are known as "exit hooks".
+
+### Enter Hook
+
+In an enter hook, information flows forward, to the next plugin in the list:
+
+```typescript:title=src/client.ts&typescriptToggle=true
+import type { ClientPlugin } from '$houdini'
+
+const sayHello: ClientPlugin = () => {
+    return {
+        start(ctx, { next }) {
+            // say hello
+            console.log("Hello world!")
+
+            // move onto the next step in the pipeline
+            next(ctx)
+        }
+    }
+}
+```
+
+One enter hook in a list _must_ use the `resolve` function to provide a value
+for the store. By default, `HoudiniClient` includes a fetch plugin that always
+resolves the pipeline with a value. Here is a simplified version as an example:
+
+```typescript:title=src/client.ts&typescriptToggle=true
+import type { ClientPlugin } from '$houdini'
+
+const simpleFetchPlugin: ClientPlugin = () => {
+    return {
+        async network(ctx, { resolve, next }) {
+            const result = await fetch('...', {
+                body: JSON.strinify({ query: ctx.artifact.raw })
+            })
+
+            // in reality we need to pass more here
+            // see Type Defintions for more information
+            resolve(ctx, {
+                data: result.data
+            })
+        }
+    }
+}
+```
+
+There are a few things to keep in mind when defining Enter hooks:
+- An enter hook can call `next` or `resolve` in any combination
+you want as long as at least one of them is always called. If you do
+not call one of them, your pipeline will hang indefinitely.
+- When calling both `resolve` and `next` in the same hook, make
+sure to call `resolve` before `next` when possible so you can
+resolve the request as quickly as possible
+- When calling `resolve` you have to pass a full `QueryResult`
+(see [Type Definitions](#type-definitions) below)
+
+### Exit hooks
+
+In an exit hook, we are returning a value from our request pipeline. This
+means we use the `resolve` function to proceed through the pipeline as normal.
+Apart from that, the biggest difference between an exit hook and
+an enter hook is that an exit hook has a value that it can process:
+
+```typescript:title=src/client.ts&typescriptToggle=true
+import type { ClientPlugin } from '$houdini'
+
+const logErrors: ClientPlugin = () => {
+    return {
+        end(ctx, { value, resolve }) {
+            if (value.errors && value.errors.length > 0) {
+                console.warn('encountered errors:', value.errors)
+            }
+
+            resolve(ctx)
+        }
+    }
+}
+```
+
+An exit hook can also call `resolve` and `next` in the same function. However,
+an exit hook needs to call `resolve` under some circumstances. If an exit hook never calls `resolve`,
+the pipeline will hang forever <Emoji name="fear" height={20} fallback="😨" style="margin-bottom: -3px" />
+
+In Summary,
+- You do not have to pass a value when calling `resolve`. The last known value will be used automatically. You are
+also free to modify the value.
+- Make sure your exit hook resolves under some condition
+
+## Updating Values
+
+For the most part, you are free to update any values in the context object passed to your hook. That being said,
+if you modify a value please assign the value directly:
+
+```typescript:title=src/client.ts&typescriptToggle=true
+import type { ClientPlugin } from '$houdini'
+
+const logErrors: ClientPlugin = () => {
+    return {
+        start(ctx, { next }) {
+
+            ctx.variables = {
+                ...ctx.variables,
+                something: 'else',
+            }
+
+            next(ctx)
+        }
+    }
+}
+```
+
+
+## Stateful Plugins
+
+Plugins can contain state across multiple requests as well as phases:
+
+### State within a single request (multiple phases)
+
+If you want to track state between various phases, you can put any values you want inside of `ctx.stuff`:
+
+```typescript:title=src/client.ts&typescriptToggle=true
+import type { ClientPlugin } from '$houdini'
+
+const timer: ClientPlugin = () => {
+    return {
+        start(ctx, { next }) {
+            // add the start time to the context's stuff
+            ctx.stuff = {
+                ...ctx.stuff,
+                startTime: new Date(),
+            }
+
+            // move onto the next plugin
+            next(ctx)
+        },
+        end(ctx, { resolve }) {
+            // compute the difference in time between the
+            // date we created on `start` and now
+            const diff = Math.abs(new Date() - ctx.stuff.startTime)
+            // print the result
+            console.log(`This request took ${diff}ms`)
+
+            // we're done
+            resolve(ctx)
+        }
+    }
+}
+```
+
+### State across network requests
+
+If you're plugin needs to track some statment for multiple network requests, you can
+instantiate the state before you return your plugin. Houdini will make sure that your
+function is called only once when the store is created:
+
+```typescript:title=src/client.ts&typescriptToggle=true
+import type { ClientPlugin } from '$houdini'
+
+const logErrors: ClientPlugin = () => {
+    let lastVariables = {}
+
+    return {
+        start(ctx, { next, resolve, value }) {
+            // add the last variables we used to the current request
+            ctx.variables = {
+                ...lastVariables,
+                ...ctx.variables,
+            }
+
+            // track the last variables we used
+            lastVariables = ctx.variables
+
+            // move onto the next plugin
+            next(ctx)
+        }
+    }
+}
+```
+
+## Utilities
 
 ## Type Definitions
 
@@ -134,6 +314,15 @@ type ClientPluginContext = {
 		applyUpdates?: boolean
 	}
 	stuff: Record<string, any>
+}
+
+type QueryResult = {
+	data: _Data | null
+	errors: { message: string }[] | null
+	fetching: boolean
+	partial: boolean
+	source: DataSource | null
+	variables: _Input | null
 }
 ```
 

@@ -7,6 +7,5 @@ export { default as Transformation } from './Transformation.svelte'
 export { default as Warning } from './Warning.svelte'
 export { default as Highlight } from './Highlight.svelte'
 export { default as Emoji } from './Emoji.svelte'
-export { default as PluginWorkflow } from './PluginWorkflow.svelte'
 
 export * from './search'
