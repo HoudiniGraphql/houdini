@@ -16,6 +16,11 @@ They can do things like integrate with a logging service, adding retry logic,
 or even add support for entirely new network capabilities like
 [Live Queries](https://the-guild.dev/blog/subscriptions-and-live-queries-real-time-with-graphql).
 
+> You might not need to add _any_ plugins for your application. If all you need to do is
+> send queries and mutations over standard HTTP requests, then you should be able
+> to configure the client to suit your needs without using any plugins. For more
+> information, check out the [Client document](/api/client).
+
 ## Overview
 
 In Houdini, every document in your app is backed by an observable value we call a "Document Store".
@@ -42,6 +47,9 @@ has been provided, its value is sent in reverse order through the list of plugin
 modify the response. For more information on this, please read the section on [Enter vs Exit hooks](#enter-vs-exit-hooks).
 
 ## Create Your First Plugin
+
+If you are brand new to working with client plugins, we recommend creating a
+few very simple ones before getting too deep in the explanation:
 
 <AuthoringPluginsDive />
 
@@ -95,7 +103,8 @@ const sayHello: ClientPlugin = () => {
 
 One enter hook in a list _must_ use the `resolve` function to provide a value
 for the store. By default, `HoudiniClient` includes a fetch plugin that always
-resolves the pipeline with a value. Here is a simplified version as an example:
+resolves the pipeline with a value. If no enter hook calls `resolve`, the pipeline
+will hang forever. Here is a simplified version as an example:
 
 ```typescript:title=src/client.ts&typescriptToggle=true
 import type { ClientPlugin } from '$houdini'
@@ -159,7 +168,7 @@ In Summary,
 
 - You do not have to pass a value when calling `resolve`. The last known value will be used automatically. You are
   also free to modify the value.
-- Make sure your exit hook resolves under some condition
+- Make sure your exit hook resolves under _some_ condition
 
 ## Stateful Plugins
 
@@ -231,7 +240,7 @@ const logErrors: ClientPlugin = () => {
 ## Multiple Values
 
 The store might receive multiple updates for a given set of inputs. For example, subscriptions and live queries
-both push multiple documents into the cache and need to update the store value. Each payload is pushed all
+both push multiple results into the cache and need to update the store value. Each payload is pushed all
 the way through the chain using the same `resolve` function. If the original request hasn’t been resolved when a payload
 reaches the end, the promise will resolve with that first value so you are free to use `resolve` inside of event
 listeners to return multiple values.

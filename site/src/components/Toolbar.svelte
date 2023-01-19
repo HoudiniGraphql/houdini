@@ -81,6 +81,7 @@
 				--text-highlight-background: #eee;
 				--code-title-background: #0c0f14;
 				--code-title-color: #475465;
+				--zoom-shadow: #191c26;
 			}
 		</style>
 	{:else}
@@ -104,6 +105,7 @@
 				--text-highlight-background: #222832;
 				--code-title-background: #0c0f14;
 				--code-title-color: #475465;
+				--zoom-shadow: black;
 			}
 		</style>
 	{/if}

@@ -102,9 +102,9 @@
 
 	.content {
 		padding: 1rem;
-		border: 1px solid var(--contrast);
+		border: 1px solid var(--zoom-shadow);
 		border-radius: 1rem;
 		background-color: var(--hue);
-		box-shadow: 0.5rem 0.5rem 2rem var(--contrast);
+		box-shadow: 0.5rem 0.5rem 2rem var(--zoom-shadow);
 	}
 </style>
