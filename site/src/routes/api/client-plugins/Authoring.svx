@@ -111,11 +111,4 @@ const retry: ClientPlugin = () => {
 Keep in mind you would probably want to add more to this example in production so that you wouldn't be stuck in an loop that constantly errors
 but hopefully you can piece together how you would do that.
 
-## Plugins Are Data Sources
-
-The store might receive multiple updates for a given set of inputs. For example, subscriptions and live queries
-both push multiple documents into the cache and need to update the store value. Each payload should be pushed all
-the way through the chain using the same `resolve` function. If the original request hasn’t been resolved when a payload
-reaches the end, the promise will resolve with that first value.
-
 </DeepDive>

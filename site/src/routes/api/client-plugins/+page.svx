@@ -134,6 +134,14 @@ In Summary,
 also free to modify the value.
 - Make sure your exit hook resolves under some condition
 
+## Plugins Are Data Sources
+
+The store might receive multiple updates for a given set of inputs. For example, subscriptions and live queries
+both push multiple documents into the cache and need to update the store value. Each payload is pushed all
+the way through the chain using the same `resolve` function. If the original request hasn’t been resolved when a payload
+reaches the end, the promise will resolve with that first value so you are free to use `resolve` inside of event
+listeners to return multiple values.
+
 ## Updating Values
 
 For the most part, you are free to update any values in the context object passed to your hook. That being said,
