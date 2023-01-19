@@ -26,7 +26,6 @@ export default async function svelteKitGenerator(
 			layoutExports,
 			pageExports,
 		}) {
-			// remove testing later
 			const relativePath = path.relative(config.routesDir, dirpath)
 			const target = path.join(type_route_dir(config), relativePath, config.typeRootFile)
 
