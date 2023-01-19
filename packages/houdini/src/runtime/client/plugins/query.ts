@@ -49,6 +49,7 @@ export const queryPlugin: ClientPlugin = documentPlugin(ArtifactKind.Query, func
 							errors: null,
 							fetching: false,
 							partial: false,
+							stale: false,
 							source: DataSource.Cache,
 							variables: ctx.variables ?? null,
 						})

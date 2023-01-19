@@ -141,6 +141,13 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 				[field]: newValue,
 			},
 		})
+
+		// When we write to the cache, that means that the value was refreshed, let's set the time
+		this.#cache._internal_unstable._internal_unstable.staleManager.setFieldTimeToNow(
+			this.type,
+			this.#id,
+			field
+		)
 	}
 
 	get<Field extends TypeFieldNames<Def, Type>>({
@@ -228,6 +235,20 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 
 	delete() {
 		this.#cache._internal_unstable.delete(this.#id)
+	}
+
+	markStale<Field extends TypeFieldNames<Def, Type>>({
+		field,
+	}: // args,
+	{
+		field: Field
+		// args?: ArgType<Def, Type, Field>
+	}): void {
+		this.#cache._internal_unstable._internal_unstable.staleManager.markFieldStale(
+			this.type,
+			this.#id,
+			field
+		)
 	}
 }
 

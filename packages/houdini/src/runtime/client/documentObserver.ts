@@ -66,9 +66,10 @@ export class DocumentObserver<
 		const initialState: QueryResult<_Data, _Input> = {
 			data: initialValue ?? null,
 			errors: null,
-			partial: false,
-			source: null,
 			fetching,
+			partial: false,
+			stale: false,
+			source: null,
 			variables: null,
 		}
 

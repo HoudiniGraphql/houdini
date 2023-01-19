@@ -71,16 +71,16 @@ export class GarbageCollector {
 
 					// --- Part 2 : valueTimes ---
 					// if the field is older than x... mark it as stale
-					// const dt_valueOf = this.cache._internal_unstable.staleManager.getFieldTime(
-					// 	type,
-					// 	id,
-					// 	field
-					// )
+					const dt_valueOf = this.cache._internal_unstable.staleManager.getFieldTime(
+						type,
+						id,
+						field
+					)
 
-					// // if we have no dt_valueOf, it's already stale
-					// if (dt_valueOf && dt_tick - dt_valueOf > config_max_time) {
-					// 	this.cache._internal_unstable.staleManager.markFieldStale(type, id, field)
-					// }
+					// if we have no dt_valueOf, it's already stale
+					if (dt_valueOf && dt_tick - dt_valueOf > config_max_time) {
+						this.cache._internal_unstable.staleManager.markFieldStale(type, id, field)
+					}
 				}
 			}
 		}

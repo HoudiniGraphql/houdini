@@ -46,6 +46,7 @@ test('NetworkOnly', async function () {
 		variables: null,
 		source: 'network',
 		partial: false,
+		stale: false,
 	})
 
 	expect(ret2).toEqual({
@@ -60,6 +61,7 @@ test('NetworkOnly', async function () {
 		variables: null,
 		source: 'network',
 		partial: false,
+		stale: false,
 	})
 })
 
@@ -91,6 +93,7 @@ test('CacheOrNetwork', async function () {
 		variables: null,
 		source: 'network',
 		partial: false,
+		stale: false,
 	})
 
 	expect(ret2).toEqual({
@@ -105,6 +108,7 @@ test('CacheOrNetwork', async function () {
 		variables: {},
 		source: 'cache',
 		partial: false,
+		stale: false,
 	})
 })
 
@@ -127,9 +131,10 @@ test('CacheOnly', async function () {
 		data: null,
 		errors: null,
 		fetching: false,
-		variables: {},
-		source: 'cache',
 		partial: false,
+		stale: false,
+		source: 'cache',
+		variables: {},
 	})
 	const ret2 = await store.send({ policy: CachePolicy.CacheOrNetwork })
 
@@ -144,9 +149,10 @@ test('CacheOnly', async function () {
 		},
 		errors: null,
 		fetching: false,
-		variables: null,
-		source: 'network',
 		partial: false,
+		stale: false,
+		source: 'network',
+		variables: null,
 	})
 	const ret3 = await store.send({ policy: CachePolicy.CacheOnly })
 
@@ -161,9 +167,10 @@ test('CacheOnly', async function () {
 		},
 		errors: null,
 		fetching: false,
-		variables: {},
-		source: 'cache',
 		partial: false,
+		stale: false,
+		source: 'cache',
+		variables: {},
 	})
 })
 
@@ -222,9 +229,10 @@ function fakeFetch({
 		},
 		errors: null,
 		fetching: false,
-		variables: null,
-		source: DataSource.Network,
 		partial: false,
+		stale: false,
+		source: DataSource.Network,
+		variables: null,
 	},
 }) {
 	return (() => ({

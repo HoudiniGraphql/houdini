@@ -76,6 +76,14 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 			allLists,
 		})
 	}
+
+	/**
+	 * Mark all fields known at this point on this type as stale
+	 * @param type
+	 */
+	markStale<T extends TypeNames<Def>>(type: T): void {
+		this._internal_unstable._internal_unstable.staleManager.markTypeStale(type)
+	}
 }
 
 export function _typeInfo<Def extends CacheTypeDef>(

@@ -482,3 +482,86 @@ test('can set nested lists of record proxies', function () {
 	// and make sure we get the right value from the imperative API
 	expect(marshalNestedList(cache.root.get({ field: 'listOfLists' }))).toEqual(expected)
 })
+
+test('info doesn t exist in the stale manager, return undefined', async function () {
+	const cache = testCache()
+
+	const staleUserId_7 = cache._internal_unstable._internal_unstable.staleManager.getFieldTime(
+		'User',
+		'User:7',
+		'id'
+	)
+	expect(staleUserId_7).toBe(undefined)
+})
+
+test('Mark a field stale', async function () {
+	const cache = testCache()
+
+	const user1 = cache.get('User', { id: '1' })
+
+	let staleUserId_1 = cache._internal_unstable._internal_unstable.staleManager.getFieldTime(
+		'User',
+		'User:1',
+		'id'
+	)
+	expect(staleUserId_1).not.toBe(null)
+
+	// mark the field stale
+	user1.markStale({ field: 'id' })
+	staleUserId_1 = cache._internal_unstable._internal_unstable.staleManager.getFieldTime(
+		'User',
+		'User:1',
+		'id'
+	)
+	expect(staleUserId_1).toBe(null)
+})
+
+test('Mark a type stale', async function () {
+	const cache = testCache()
+
+	const user2 = cache.get('User', { id: '2' })
+	cache.setFieldType({ parent: 'User', key: 'id', type: 'String', nullable: false })
+	user2.set({ field: 'id', value: '2' })
+	const staleUserId_2 = cache._internal_unstable._internal_unstable.staleManager.getFieldTime(
+		'User',
+		'User:2',
+		'id'
+	)
+	expect(staleUserId_2).not.toBe(null)
+	expect(staleUserId_2).not.toBe(undefined)
+
+	const user3 = cache.get('User', { id: '3' })
+	const user4 = cache.get('User', { id: '4' })
+	cache.setFieldType({ parent: 'User', key: 'id', type: 'String', nullable: false })
+	user3.set({ field: 'id', value: '3' })
+	user4.set({ field: 'id', value: '4' })
+	let staleUserId_3 = cache._internal_unstable._internal_unstable.staleManager.getFieldTime(
+		'User',
+		'User:3',
+		'id'
+	)
+	expect(staleUserId_3).not.toBe(null)
+	expect(staleUserId_3).not.toBe(undefined)
+	let staleUserId_4 = cache._internal_unstable._internal_unstable.staleManager.getFieldTime(
+		'User',
+		'User:4',
+		'id'
+	)
+	expect(staleUserId_4).not.toBe(null)
+	expect(staleUserId_4).not.toBe(undefined)
+
+	cache.markStale('User')
+
+	staleUserId_3 = cache._internal_unstable._internal_unstable.staleManager.getFieldTime(
+		'User',
+		'User:3',
+		'id'
+	)
+	expect(staleUserId_3).toBe(null)
+	staleUserId_4 = cache._internal_unstable._internal_unstable.staleManager.getFieldTime(
+		'User',
+		'User:4',
+		'id'
+	)
+	expect(staleUserId_4).toBe(null)
+})

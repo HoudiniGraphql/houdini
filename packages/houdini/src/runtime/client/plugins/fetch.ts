@@ -51,12 +51,13 @@ export const fetchPlugin = (target?: RequestHandler | string): ClientPlugin => {
 
 				// return the result
 				resolve(ctx, {
-					fetching: false,
-					variables: ctx.variables ?? null,
 					data: result.data,
 					errors: !result.errors || result.errors.length === 0 ? null : result.errors,
+					fetching: false,
 					partial: false,
+					stale: false,
 					source: DataSource.Network,
+					variables: ctx.variables ?? null,
 				})
 			},
 		}

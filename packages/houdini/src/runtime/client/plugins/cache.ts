@@ -46,12 +46,13 @@ export const cachePolicyPlugin =
 						// if the policy is cacheOnly and we got this far, we need to return null (no network request will be sent)
 						if (policy === CachePolicy.CacheOnly) {
 							return resolve(ctx, {
-								fetching: false,
-								variables: ctx.variables ?? null,
 								data: value.data,
 								errors: null,
-								source: DataSource.Cache,
+								fetching: false,
 								partial: value.partial,
+								stale: value.stale,
+								source: DataSource.Cache,
+								variables: ctx.variables ?? null,
 							})
 						}
 
@@ -59,12 +60,13 @@ export const cachePolicyPlugin =
 						useCache = !!(value.data !== null && allowed)
 						if (useCache) {
 							resolve(ctx, {
-								fetching: false,
-								variables: ctx.variables ?? null,
 								data: value.data,
 								errors: null,
-								source: DataSource.Cache,
+								fetching: false,
 								partial: value.partial,
+								stale: value.stale,
+								source: DataSource.Cache,
+								variables: ctx.variables ?? null,
 							})
 						}
 
