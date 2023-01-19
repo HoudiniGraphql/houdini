@@ -1,5 +1,7 @@
 # houdini-svelte
 
+## 0.20.2
+
 ## 0.20.1
 
 -   [#820](https://github.com/HoudiniGraphql/houdini/pull/820) [`c595749`](https://github.com/HoudiniGraphql/houdini/commit/c5957491bda52fae7eb96042203a47bab4d7cd9a) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix build issue with monorepos
