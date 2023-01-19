@@ -60,6 +60,7 @@ export class InMemorySubscriptions {
 				id: parent,
 				key,
 				selection: [spec, targetSelection],
+				type,
 			})
 
 			if (list) {
@@ -108,10 +109,12 @@ export class InMemorySubscriptions {
 		id,
 		key,
 		selection,
+		type,
 	}: {
 		id: string
 		key: string
 		selection: FieldSelection
+		type: string
 	}) {
 		const spec = selection[0]
 		// if we haven't seen the id or field before, create a list we can add to
@@ -147,7 +150,9 @@ export class InMemorySubscriptions {
 		counts.set(spec.set, (counts.get(spec.set) || 0) + 1)
 
 		// reset the lifetime for the key
-		this.cache._internal_unstable.lifetimes.resetLifetime('JYC_TODO', id, key)
+		// console.log(`selection`, id, key, selection[0].rootType)
+
+		this.cache._internal_unstable.lifetimes.resetLifetime(type, id, key)
 
 		// if this field is marked as a list, register it. this will overwrite existing list handlers
 		// so that they can get up to date filters
@@ -224,6 +229,7 @@ export class InMemorySubscriptions {
 					id: parent,
 					key,
 					selection: [spec, fieldSelection],
+					type: linkedType,
 				})
 
 				if (list) {

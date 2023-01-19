@@ -121,7 +121,7 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 
 		// reset the garbage collection status
 		this.#cache._internal_unstable._internal_unstable.lifetimes.resetLifetime(
-			'JYC_TODO',
+			this.type,
 			this.#id,
 			key
 		)
