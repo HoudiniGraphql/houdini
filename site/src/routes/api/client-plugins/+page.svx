@@ -18,7 +18,7 @@ or even add support for entirely new network capabilities like
 
 ## Overview
 
-In Houdini, every document is your app is backed by an observable value we call a "Document Store".
+In Houdini, every document in your app is backed by an observable value we call a "Document Store".
 The store has 2 main concerns: holding onto the latest value of the document and sending new
 queries to update its state (usually with new variables). Client plugins let you modify this structure
 to fit your needs by hooking into 4 different phases of the request pipeline:
@@ -38,7 +38,7 @@ before beginning the network phases.
 
 While preparing the request, plugins are iterated over in the order they are passed to the client. Once a result
 has been provided, its value is sent in reverse order through the list of plugins we've visited who can
-modify the response. For more information on this, please read the section on [Enter vs Exit hooks](#enter-vs-exit-phases).
+modify the response. For more information on this, please read the section on [Enter vs Exit hooks](#enter-vs-exit-hooks).
 
 ## Create Your First Plugin
 
