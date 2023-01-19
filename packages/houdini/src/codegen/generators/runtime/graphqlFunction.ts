@@ -1,6 +1,6 @@
 import * as recast from 'recast'
 
-import { fs, parseJS, ensureImports, Config, CollectedGraphQLDocument } from '../../../lib'
+import { fs, parseJS, ensureImports, type Config, CollectedGraphQLDocument } from '../../../lib'
 
 const AST = recast.types.builders
 

@@ -1,4 +1,4 @@
-import { Config } from '../../../lib'
+import type { Config } from '../../../lib'
 
 export default async function injectPlugins({
 	config,
