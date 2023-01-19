@@ -19,9 +19,9 @@ or even add support for entirely new network capabilities like
 ## Overview
 
 In Houdini, every document is your app is backed by an observable value we call a "Document Store".
-The store has 2 main concerns: holding onto the latest value of the document and sending new
+The store has two main concerns: holding onto the latest value of the document and sending new
 queries to update its state (usually with new variables). Client plugins let you modify this structure
-to fit your needs by hooking into 5 different phases of the request pipeline:
+to fit your needs by hooking into five different phases of the request pipeline:
 
 - `start` happens at the beginning of a request (or setup cycle) and contains logic that must happen for every request
 - `beforeNetwork` for things that should happen when there was no cache hit (there will be a network request)
@@ -29,7 +29,7 @@ to fit your needs by hooking into 5 different phases of the request pipeline:
 - `afterNetwork` for logic after the network request but before the cache processes it
 - `end` happens at the end of the request regardless of the data’s source
 
-For some documents, the `network` and `afterNetwork` steps might be short circuited with cached values
+For some documents, `beforeNetwork`, `network`, and `afterNetwork` might be short circuited with cached values
 if the policy allows it. You can think of the cache as a gatekeeper that decides if a request can be resolved
 before beginning the network phases.
 

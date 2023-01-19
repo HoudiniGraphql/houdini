@@ -155,6 +155,53 @@ the [client plugin documentation](/api/client) for more information.
 
 </DeepDive>
 
+### Error handling
+
+`config.quietQueryErrors` has been removed from `houdini-svelte`'s configuration and into
+the constructor for your client. Also, the relationship has been inverted: instead of
+specifying if you want your queries to be quiet, you now tell the client when it should
+throw.
+
+Please select the situation that applies:
+
+<DeepDive title="Had quietQueryErrors on" style="margin-bottom: 0px">
+
+You are now aligned with houdini's default behavior. Just remove the config in
+`houdini-svelte`:
+
+```diff
+  export default {
+      plugins: {
+          'houdini-svelte': {
+-             quietQueryErrors: true
+          }
+      }
+  }
+```
+
+</DeepDive>
+
+<DeepDive title="Did not configure quietQueryErrors" >
+
+In order to bring your application back to its previous state, you now
+need to pass a new config to your client:
+
+```diff
++ import { error } from '@sveltejs/kit'
+
+  export default new HoudiniClient({
+      url: '...',
++     throwOnError: {
++         operations: ['all'],
++         error: (errors) => error(500,
++             errors.map((err) => err.message).join('. ') + '.'
++         )
++     }
+  })
+```
+
+</DeepDive>
+
 ## 0.20.0
 
 This release was originally planned to be `1.0` but we have some exciting stuff planned
