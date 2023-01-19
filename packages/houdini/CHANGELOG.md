@@ -2,7 +2,7 @@
 
 ## 0.20.2
 
-### Patch Changes
+### 🐛 Fixes
 
 -   [#826](https://github.com/HoudiniGraphql/houdini/pull/826) [`815be2f`](https://github.com/HoudiniGraphql/houdini/commit/815be2f0650c503dadfa366616faef91d2462222) Thanks [@jycouet](https://github.com/jycouet)! - update init to have correct graphqlrc.yaml looking at svelte files
 
