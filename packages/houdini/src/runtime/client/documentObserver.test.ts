@@ -108,9 +108,16 @@ test('middleware pipeline happy path', async function () {
 
 	const middleware2: ClientPlugin = () => {
 		return {
-			network(ctx, { next }) {
+			network(ctx, { resolve }) {
 				tracker(2, 'network')
-				next(ctx)
+				resolve(ctx, {
+					data: { hello: 'world' },
+					errors: [],
+					fetching: true,
+					partial: false,
+					source: DataSource.Cache,
+					variables: null,
+				})
 			},
 			afterNetwork(ctx, { resolve }) {
 				tracker(2, 'afterNetwork')
@@ -123,7 +130,7 @@ test('middleware pipeline happy path', async function () {
 		}
 	}
 
-	const terminate: ClientPlugin = () => ({
+	const middleware3: ClientPlugin = () => ({
 		start(ctx, { next }) {
 			tracker(3, 'start')
 			next(ctx)
@@ -131,17 +138,6 @@ test('middleware pipeline happy path', async function () {
 		beforeNetwork(ctx, { next }) {
 			tracker(3, 'beforeNetwork')
 			next(ctx)
-		},
-		network(ctx, { resolve }) {
-			tracker(3, 'network')
-			resolve(ctx, {
-				data: { hello: 'world' },
-				errors: [],
-				fetching: true,
-				partial: false,
-				source: DataSource.Cache,
-				variables: null,
-			})
 		},
 		afterNetwork(ctx, { resolve }) {
 			tracker(3, 'afterNetwork')
@@ -154,7 +150,7 @@ test('middleware pipeline happy path', async function () {
 	})
 
 	// create the client with the middlewares
-	const store = createStore([middleware1, middleware2, terminate])
+	const store = createStore([middleware1, middleware2, middleware3])
 
 	// spy on the subscribe function
 	const subscribeSpy = vi.fn()
@@ -171,7 +167,6 @@ test('middleware pipeline happy path', async function () {
 		[3, 'beforeNetwork'],
 		[1, 'network'],
 		[2, 'network'],
-		[3, 'network'],
 		[3, 'afterNetwork'],
 		[2, 'afterNetwork'],
 		[3, 'end'],
