@@ -1,5 +1,3 @@
-import { resolve } from 'styled-jsx/css'
-
 import { deepEquals } from '../../lib/deepEquals'
 import type { GraphQLObject } from '../../lib/types'
 import { ArtifactKind, DataSource } from '../../lib/types'
