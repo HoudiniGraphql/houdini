@@ -705,6 +705,7 @@ class CacheInternal {
 
 		// we need to track if we have a partial data set which means we have _something_ but not everything
 		let hasData = false
+
 		// if we run into a single missing value we will flip this since it means we have a partial result
 		let partial = false
 
@@ -730,7 +731,9 @@ class CacheInternal {
 			// look up the value in our store
 			const { value } = this.storage.get(parent, key)
 
+			// JYC todo, I think it's the wrong "type"
 			const dt_field = this.staleManager.getFieldTime(type, parent, key)
+
 			// If we have an explicite null, that mean that it's stale and the we should do a network call
 			if (dt_field === null) {
 				stale = true
@@ -812,6 +815,10 @@ class CacheInternal {
 					partial = true
 				}
 
+				if (listValue.stale) {
+					stale = true
+				}
+
 				if (listValue.hasData || value.length === 0) {
 					hasData = true
 				}
@@ -856,7 +863,7 @@ class CacheInternal {
 			// our value is considered true if there is some data but not everything
 			// has a full value
 			partial: hasData && partial,
-			stale,
+			stale: hasData && stale,
 			hasData,
 		}
 	}

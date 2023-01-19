@@ -174,20 +174,69 @@ test('CacheOnly', async function () {
 	})
 })
 
+test('stale', async function () {
+	const spy = vi.fn()
+
+	const cache = new Cache(config)
+
+	const store = createStore([
+		cachePolicyPlugin({
+			enabled: true,
+			setFetching: spy,
+			cache,
+		}),
+		fakeFetch({}),
+	])
+	const ret1 = await store.send({ policy: CachePolicy.CacheOrNetwork })
+
+	expect(spy).toHaveBeenCalledTimes(1)
+
+	expect(ret1).toEqual({
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+			},
+		},
+		errors: null,
+		fetching: false,
+		variables: null,
+		source: 'network',
+		partial: false,
+		stale: false,
+	})
+
+	// I would like to access the public cache to do a "normal" cache update test
+	cache._internal_unstable.staleManager.markTypeStale('User')
+
+	const ret2 = await store.send({ policy: CachePolicy.CacheOrNetwork })
+	expect(ret2).toEqual({
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+			},
+		},
+		errors: null,
+		fetching: false,
+		variables: {},
+		source: 'cache',
+		partial: false,
+		stale: true,
+	})
+})
+
 /**
  * Utilities for testing the cache plugin
  */
-export function createStore(plugins: ClientPlugin[]): DocumentObserver<any, any> {
+function createStore(plugins: ClientPlugin[]): DocumentObserver<any, any> {
 	const client = new HoudiniClient({
 		url: 'URL',
-		pipeline() {
-			return plugins
-		},
 	})
 
 	return new DocumentObserver({
-		pipeline: plugins,
 		client,
+		pipeline: plugins,
 		cache: true,
 		artifact: {
 			kind: ArtifactKind.Query,

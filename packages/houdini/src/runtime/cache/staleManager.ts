@@ -3,9 +3,9 @@ import { Cache } from './cache'
 export class StaleManager {
 	cache: Cache
 
-	// type {
-	// 	id {
-	//   field {
+	// type {       "User"
+	// 	id {         "User:1"
+	//   field {      "id"
 	// 	  number | null
 	// 	 }
 	//  }
@@ -62,6 +62,7 @@ export class StaleManager {
 	markTypeStale(type: string): void {
 		const fieldsTimeOfType = this.fieldsTime.get(type)
 
+		console.log(`markTypeStale`, this.fieldsTime)
 		if (fieldsTimeOfType) {
 			// Go over everything we know until now and stale fields
 			for (const [id, fieldMap] of fieldsTimeOfType.entries()) {
