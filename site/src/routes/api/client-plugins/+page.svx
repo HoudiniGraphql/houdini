@@ -227,6 +227,10 @@ const logErrors: ClientPlugin = () => {
 
 ## Utilities
 
+`next` and `resolve` are just two examples of functions passed as the second argument
+to your hooks. For a full summary, please refer to the the `ClientPluginEnterHandlers` and
+`ClientPluginExitHandlers` in the [Type Definitions section below](#type-definitions).
+
 ## Type Definitions
 
 The best source of truth for the type definitions are exported from your `$houdini`
@@ -317,7 +321,7 @@ type ClientPluginContext = {
 }
 
 type QueryResult = {
-	data: _Data | null
+	data: GraphQLObject | null
 	errors: { message: string }[] | null
 	fetching: boolean
 	partial: boolean
@@ -325,5 +329,3 @@ type QueryResult = {
 	variables: _Input | null
 }
 ```
-
-### `start`
