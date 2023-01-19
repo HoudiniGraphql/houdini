@@ -41,15 +41,14 @@ ${exportStatement('config')}
 			[path.join(config.runtimeSource, 'client', 'plugins', 'injectedPlugins.js')]: (
 				content
 			) => injectPlugins({ config, content, importStatement, exportStatement }),
-			// the graphql return value
-			[path.join(config.runtimeDirectory, 'index.d.ts')]: (content) =>
-				generateGraphqlReturnTypes(config, docs, content),
 		}),
 		...config.plugins
 			.filter((plugin) => plugin.include_runtime)
 			.map((plugin) => generatePluginRuntime(config, plugin)),
 		generatePluginIndex({ config, exportStatement: exportStar }),
 	])
+
+	await generateGraphqlReturnTypes(config, docs)
 }
 
 async function generatePluginRuntime(config: Config, plugin: Config['plugins'][number]) {
