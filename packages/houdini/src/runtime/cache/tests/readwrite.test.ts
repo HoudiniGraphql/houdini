@@ -1280,6 +1280,7 @@ test('null-value cascade from object value', function () {
 		data: {
 			viewer: null,
 		},
+		stale: false,
 	})
 
 	// read the data as if the nested value is not required (parent should be null)
@@ -1316,6 +1317,7 @@ test('null-value cascade from object value', function () {
 				parent: null,
 			},
 		},
+		stale: false,
 	})
 })
 
@@ -1375,6 +1377,7 @@ test('null-value cascade to root', function () {
 	).toEqual({
 		data: null,
 		partial: true,
+		stale: false,
 	})
 
 	// read the data as if the nested value is not required (parent should be null)
@@ -1458,8 +1461,9 @@ test('must have a single value in order to use partial data', function () {
 			},
 		})
 	).toEqual({
-		partial: false,
 		data: null,
+		partial: false,
+		stale: false,
 	})
 
 	expect(
@@ -1491,6 +1495,7 @@ test('must have a single value in order to use partial data', function () {
 		data: {
 			viewer: null,
 		},
+		stale: false,
 	})
 })
 
@@ -1576,6 +1581,7 @@ test('reading an empty list counts as data', function () {
 		})
 	).toEqual({
 		partial: false,
+		stale: false,
 		data: {
 			viewer: {
 				friends: [],
