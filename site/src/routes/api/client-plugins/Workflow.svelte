@@ -612,7 +612,7 @@
 			stroke-width="2"
 			fill="none"
 		/></g
-	><g transform="translate(38.5 388.3422666416923) rotate(0 78 23)"
+	><g transform="translate(46.5 388.3422666416923) rotate(0 78 23)"
 		><text
 			x="78"
 			y="18"
@@ -711,7 +711,7 @@
 			fill="none"
 			stroke-dasharray="8 9"
 		/></g
-	><g transform="translate(1431.4958701538403 370.89210233810627) rotate(0 81.99999999999989 23)"
+	><g transform="translate(1440.4958701538403 370.89210233810627) rotate(0 81.99999999999989 23)"
 		><text
 			x="82"
 			y="18"
