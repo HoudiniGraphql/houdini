@@ -13,6 +13,9 @@ export async function generatePluginIndex({
 	// and its typedefs
 	const typedefs = `export * from '../runtime/client/plugins'`
 
+	// make sure the plugin root directory exists
+	await fs.mkdirp(config.pluginRootDirectory)
+
 	// write both files
 	await Promise.all([
 		fs.writeFile(path.join(config.pluginRootDirectory, 'index.js'), indexFile),
