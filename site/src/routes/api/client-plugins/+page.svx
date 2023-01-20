@@ -271,13 +271,18 @@ If you find a discrepancy, please let us know on GitHub.
 
 ```typescript
 type ClientPlugin = () => {
+	/* The 5 hooks described in this document*/
 	start?: ClientPluginEnterPhase
 	beforeNetwork?: ClientPluginEnterPhase
 	network?: ClientPluginEnterPhase
 	afterNetwork?: ClientPluginExitPhase
 	end?: ClientPluginExitPhase
+
+	/* Called when the document store has no more subscribers */
 	cleanup?(ctx: ClientPluginContext): void | Promise<void>
-	throw?(ctx: ClientPluginContext, args: ClientPluginErrorHandlers): void | Promise<void>
+
+	/* Called when an inner plugin has thrown an exception. If you want the error to keep moving up, you'll have to throw again (this hook traps the error) */
+	catch?(ctx: ClientPluginContext, args: ClientPluginCatchHandlers): void | Promise<void>
 }
 
 type ClientPluginPhase<Handlers> = (
@@ -293,13 +298,13 @@ type ClientPluginEnterHandlers = {
 	initialValue: QueryResult
 	/** A reference to the houdini client */
 	client: HoudiniClient
+	/** Update the stores state without resolving the promise */
+	updateState(updater: (old: QueryResult) => QueryResult): void
+
 	/** Move onto the next step using the provided context.  */
 	next(ctx: ClientPluginContext): void
 	/** Terminate the current chain  */
 	resolve(ctx: ClientPluginContext, data: QueryResult): void
-
-	/** Update the stores state without resolving the promise */
-	updateState(updater: (old: QueryResult) => QueryResult): void
 
 	/** Return true if the variables have changed */
 	variablesChanged: (ctx: ClientPluginContext) => boolean
@@ -319,13 +324,39 @@ type ClientPluginExitHandlers = {
 	initialValue: QueryResult
 	/** A reference to the houdini client */
 	client: HoudiniClient
+	/** Update the stores state without resolving the promise */
+	updateState(updater: (old: QueryResult) => QueryResult): void
+
 	/** Move onto the next step using the provided context.  */
 	next(ctx: ClientPluginContext): void
 	/** Terminate the current chain  */
 	resolve: (ctx: ClientPluginContext, data?: QueryResult) => void
 
+	/** Return true if the variables have changed */
+	variablesChanged: (ctx: ClientPluginContext) => boolean
+	/** Returns the marshaled variables for the operation */
+	marshalVariables: (ctx: ClientPluginContext) => Record<string, any>
+}
+
+/**
+ * Catch handlers are the same as enter handlers with access to the
+ * error that was thrown
+ */
+type ClientPluginCatchHandlers = {
+	/* The response value we're exiting with */
+	error: unknown
+
+	/* The initial value of the query */
+	initialValue: QueryResult
+	/** A reference to the houdini client */
+	client: HoudiniClient
 	/** Update the stores state without resolving the promise */
 	updateState(updater: (old: QueryResult) => QueryResult): void
+
+	/** Move onto the next step using the provided context.  */
+	next(ctx: ClientPluginContext): void
+	/** Terminate the current chain  */
+	resolve: (ctx: ClientPluginContext, data?: QueryResult) => void
 
 	/** Return true if the variables have changed */
 	variablesChanged: (ctx: ClientPluginContext) => boolean
