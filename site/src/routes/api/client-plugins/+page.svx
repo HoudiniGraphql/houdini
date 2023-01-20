@@ -323,6 +323,7 @@ type ClientPluginExitHandlers = {
 
 type ClientPluginContext = {
 	config: ConfigFile
+	text: string
 	artifact: DocumentArtifact
 	policy?: CachePolicy
 	fetch?: Fetch

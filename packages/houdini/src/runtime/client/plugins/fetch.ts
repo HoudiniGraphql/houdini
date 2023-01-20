@@ -68,25 +68,16 @@ const defaultFetch = (
 	}
 
 	return async ({ fetch, text, variables }) => {
-		// figure out the correct body to show
-		let body = { query: text, variables }
-		if (params?.body && params.body) {
-		}
-
 		// regular fetch (Server & Client)
 		const result = await fetch(url, {
 			method: 'POST',
+			body: JSON.stringify({ query: text, variables }),
 			...params,
 			headers: {
 				Accept: 'application/graphql+json, application/json',
 				'Content-Type': 'application/json',
 				...params?.headers,
 			},
-			body: JSON.stringify({
-				query: text,
-				variables,
-				...params?.body,
-			}),
 		})
 
 		return await result.json()

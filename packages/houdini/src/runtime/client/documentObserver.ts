@@ -123,6 +123,7 @@ export class DocumentObserver<
 		// start off with the initial context
 		let context = new ClientPluginContextWrapper({
 			config: this.#configFile!,
+			text: this.#artifact.raw,
 			policy: policy ?? (this.#artifact as QueryArtifact).policy,
 			variables: {},
 			metadata,
@@ -526,13 +527,14 @@ export type Fetch = typeof globalThis.fetch
 
 export type ClientPluginContext = {
 	config: ConfigFile
+	text: string
 	artifact: DocumentArtifact
 	policy?: CachePolicy
 	fetch?: Fetch
 	variables?: Record<string, any>
 	metadata?: App.Metadata | null
 	session?: App.Session | null
-	fetchParams?: Omit<RequestInit, 'body'> & { body?: Record<string, any> }
+	fetchParams?: RequestInit
 	cacheParams?: {
 		layer?: Layer
 		notifySubscribers?: SubscriptionSpec[]
