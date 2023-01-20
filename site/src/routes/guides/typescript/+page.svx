@@ -38,7 +38,7 @@ declare namespace App {
 
     // used to pass one-off configuration for a request
     interface Metadata {
-        logResult?: boolean | null;
+        doTheThing?: boolean | null;
     }
 }
 
