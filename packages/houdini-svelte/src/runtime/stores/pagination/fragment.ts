@@ -1,4 +1,4 @@
-import type { DocumentStore } from '$houdini/runtime/client/DocumentStore'
+import type { DocumentStore } from '$houdini/runtime/client'
 import { getCurrentConfig, keyFieldsForType } from '$houdini/runtime/lib/config'
 import { siteURL } from '$houdini/runtime/lib/constants'
 import type {

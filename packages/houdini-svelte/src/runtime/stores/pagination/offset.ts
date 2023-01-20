@@ -1,4 +1,4 @@
-import type { DocumentStore } from '$houdini/runtime/client/DocumentStore'
+import type { DocumentStore } from '$houdini/runtime/client'
 import { CachePolicy } from '$houdini/runtime/lib'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import type { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'

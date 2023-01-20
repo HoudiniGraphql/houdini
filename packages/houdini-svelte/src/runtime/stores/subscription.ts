@@ -1,4 +1,4 @@
-import type { DocumentStore } from '$houdini/runtime/client/documentStore'
+import type { DocumentStore } from '$houdini/runtime/client'
 import type { SubscriptionArtifact } from '$houdini/runtime/lib/types'
 import { CompiledSubscriptionKind } from '$houdini/runtime/lib/types'
 import type { GraphQLObject } from 'houdini'
