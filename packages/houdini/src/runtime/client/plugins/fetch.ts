@@ -16,12 +16,12 @@ export const fetchPlugin = (target?: RequestHandler | string): ClientPlugin => {
 					variables: marshalVariables(ctx),
 				}
 
-				let fetchFn = defaultFetch(client.url)
+				let fetchFn = defaultFetch(client.url, ctx.fetchParams)
 				// the provided parameter either specifies the URL or is the entire function to
 				// use
 				if (target) {
 					if (typeof target === 'string') {
-						fetchFn = defaultFetch(target)
+						fetchFn = defaultFetch(target, ctx.fetchParams)
 					} else {
 						fetchFn = target
 					}
@@ -63,7 +63,7 @@ export const fetchPlugin = (target?: RequestHandler | string): ClientPlugin => {
 	}
 }
 
-const defaultFetch = (url: string): RequestHandler => {
+const defaultFetch = (url: string, params?: RequestInit): RequestHandler => {
 	// if there is no configured url, we can't use this plugin
 	if (!url) {
 		throw new Error(
@@ -72,11 +72,19 @@ const defaultFetch = (url: string): RequestHandler => {
 	}
 
 	return async ({ fetch, text, variables }) => {
+		// figure out the correct body to show
+		let body = { query: text, variables }
+		if (params?.body && params.body) {
+		}
+
 		// regular fetch (Server & Client)
 		const result = await fetch(url, {
 			method: 'POST',
+			...params,
 			headers: {
+				Accept: 'application/graphql+json, application/json',
 				'Content-Type': 'application/json',
+				...params?.headers,
 			},
 			body: JSON.stringify({
 				query: text,
