@@ -361,36 +361,56 @@ export class DocumentStore<
 		let propagate = true
 		for (let i = ctx.index; i >= 0 && propagate; i--) {
 			let breakBubble = false
-			// // if the step has an error handler, invoke it
-			// const throwHandler = this.#plugins[i].throw
-			// if (throwHandler) {
-			// 	const draft = ctx.context.draft()
-			// 	throwHandler(draft, {
-			// 		initialValue: this.state,
-			// 		client: this.#client,
-			// 		variablesChanged,
-			// 		marshalVariables,
-			// 		updateState: this.update.bind(this),
-			// 		// calling next in response to a
-			// 		next: (newContext) => {
-			// 			breakBubble = true
+			// if the step has an error handler, invoke it
+			const throwHandler = this.#plugins[i].throw
+			if (!throwHandler) {
+				continue
+			}
 
-			// 			this.#step('fo', {
-			// 				...ctx,
-			// 				context: ctx.context.apply(
-			// 					newContext,
-			// 					draft.variables !== newContext.variables
-			// 				),
-			// 				currentStep: 0,
-			// 				index: i + 1,
-			// 			}, )
+			console.log('found handler', i)
 
-			// 			// don't step through the rest of the errors
-			// 			propagate = false
-			// 		},
-			// 		error,
-			// 	})
-			// }
+			const draft = ctx.context.draft()
+			const variablesRefChanged = (newContext: ClientPluginContext) =>
+				draft.variables !== newContext.variables
+
+			throwHandler(draft, {
+				initialValue: this.state,
+				client: this.#client,
+				variablesChanged,
+				marshalVariables,
+				updateState: this.update.bind(this),
+				next: (newContext) => {
+					breakBubble = true
+
+					this.#step('forward', {
+						...ctx,
+						context: ctx.context.apply(newContext, variablesRefChanged(newContext)),
+						currentStep: 0,
+						index: i + 1,
+					})
+
+					// don't step through the rest of the errors
+					propagate = false
+				},
+				resolve: (newContext, data) => {
+					breakBubble = true
+
+					this.#step(
+						'backwards',
+						{
+							...ctx,
+							context: ctx.context.apply(newContext, variablesRefChanged(newContext)),
+							currentStep: 0,
+							index: i + 1,
+						},
+						data
+					)
+
+					// don't step through the rest of the errors
+					propagate = false
+				},
+				error,
+			})
 
 			if (breakBubble) {
 				break
@@ -628,6 +648,6 @@ export type ClientPluginExitHandlers = Omit<ClientPluginEnterHandlers, 'resolve'
 }
 
 /** Exit handlers are the same as enter handles but don't need to resolve with a specific value */
-export type ClientPluginErrorHandlers = Omit<ClientPluginEnterHandlers, 'resolve'> & {
+export type ClientPluginErrorHandlers = ClientPluginEnterHandlers & {
 	error: unknown
 }

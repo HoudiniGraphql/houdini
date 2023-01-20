@@ -386,6 +386,42 @@ test('can call resolve multiple times to set multiple values', async function ()
 	})
 })
 
+test('error hooks get called in order', async function () {
+	const fn = vi.fn()
+
+	const middleware1: ClientPlugin = () => ({
+		throw(ctx, args) {
+			fn(1, args.error)
+		},
+	})
+	const middleware2: ClientPlugin = () => ({
+		throw(ctx, args) {
+			fn(2, args.error)
+		},
+	})
+	const middleware3: ClientPlugin = () => ({
+		throw(ctx, args) {
+			fn(3, args.error)
+		},
+	})
+	const panic: ClientPlugin = () => ({
+		network() {
+			throw 'oh no!'
+		},
+	})
+
+	// create the store
+	const store = createStore([middleware1, middleware2, middleware3, panic])
+
+	// start the pipeline
+	await expect(store.send()).rejects.toEqual('oh no!')
+
+	// make sure the spy was called in the correct order
+	expect(fn).toHaveBeenNthCalledWith(1, 3, 'oh no!')
+	expect(fn).toHaveBeenNthCalledWith(2, 2, 'oh no!')
+	expect(fn).toHaveBeenNthCalledWith(3, 1, 'oh no!')
+})
+
 test('error rejects the promise', async function () {
 	const middleware: ClientPlugin = () => ({
 		start() {
