@@ -3,6 +3,10 @@ title: Client
 description: Documentation for the HoudiniClient, the core runtime abstraction
 ---
 
+<script>
+    import { DeepDive } from '~/components'
+</script>
+
 # HoudiniClient
 
 The central entity for defining your document's runtime logic.
@@ -96,20 +100,6 @@ new HoudiniClient({
 
 This will insert the provided plugins in Houdini's internal list of plugins.
 
-There are, however, some times when you need full control over Houdini's plugin pipeline.
-For those situations, you can use the `pipeline` argument to provide the full list. Houdini
-will still add a few plugins to this list to make some internals function like the cache
-policy behavior and support for `fetchParams`.
-
-```typescript:title=src/client.ts&typescriptToggle=true
-import { queryPlugin, mutationPlug } from '$houdini/plugins'
-
-new HoudiniClient({
-    url: '...',
-    pipeline: [queryPlugin, mutationPlugin, myCustomFetch]
-})
-```
-
 ### Default Plugin Order
 
 In most cases, your client is made up of a mixture of default plugins,
@@ -136,6 +126,24 @@ const plugins = [
 ]
 ```
 
+<DeepDive title="Defining the Full Pipeline">
+
+If you need full control over Houdini's plugin pipeline.
+For those situations, you can use the `pipeline` argument to provide the full list. Houdini
+will still add a few plugins to this list to make some internals function like the cache
+policy behavior and support for `fetchParams`.
+
+```typescript:title=src/client.ts&typescriptToggle=true
+import { queryPlugin, mutationPlug } from '$houdini/plugins'
+
+new HoudiniClient({
+    url: '...',
+    pipeline: [queryPlugin, mutationPlugin, myCustomFetch]
+})
+```
+
+### Plugin Order
+
 If you use the `pipeline` parameter instead, only the first two get added to what you provide:
 
 ```typescript:title=
@@ -151,3 +159,5 @@ const pipeline = [
 
 If you are using the `pipeline` argument, you need to include any client plugins
 that might be included from plugins in your `houdini.config.js` file.
+
+</DeepDive>
