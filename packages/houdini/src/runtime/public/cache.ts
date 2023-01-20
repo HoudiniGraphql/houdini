@@ -3,7 +3,7 @@ import { rootID } from '../cache/cache'
 import type { SchemaManager, TypeInfo } from '../cache/schema'
 import { ListCollection } from './list'
 import { Record } from './record'
-import type { CacheTypeDef, IDFields, TypeNames, ValidLists } from './types'
+import type { CacheTypeDef, IDFields, TypeFieldNames, TypeNames, ValidLists } from './types'
 
 export class Cache<Def extends CacheTypeDef> {
 	_internal_unstable: _Cache
@@ -78,11 +78,18 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 	}
 
 	/**
-	 * Mark all fields known at this point on this type as stale
+	 * Mark some elements of the cache stale.
 	 * @param type
+	 * @param field
 	 */
-	markStale<T extends TypeNames<Def>>(type: T): void {
-		this._internal_unstable._internal_unstable.staleManager.markTypeStale(type)
+	markStale<T extends TypeNames<Def>>(type?: T, field?: TypeFieldNames<Def, T>): void {
+		if (!type) {
+			this._internal_unstable._internal_unstable.staleManager.markAllStale()
+		} else if (!field) {
+			this._internal_unstable._internal_unstable.staleManager.markTypeStale(type)
+		} else {
+			this._internal_unstable._internal_unstable.staleManager.markTypeFieldStale(type, field)
+		}
 	}
 }
 

@@ -1,9 +1,10 @@
-import { test, expect } from 'vitest'
+import { expect, test } from 'vitest'
 
 import { rootID } from '../../cache/cache'
 import type { SubscriptionSelection } from '../../lib'
+import { Cache } from '../cache'
 import { marshalNestedList, Record } from '../record'
-import { testCache } from './test'
+import { testCache, type CacheTypeDefTest } from './test'
 
 test('must have schema information to set field', function () {
 	const cache = testCache()
@@ -483,7 +484,7 @@ test('can set nested lists of record proxies', function () {
 	expect(marshalNestedList(cache.root.get({ field: 'listOfLists' }))).toEqual(expected)
 })
 
-test('info doesn t exist in the stale manager, return undefined', async function () {
+test('info doesn t exist in the stale manager, return null', async function () {
 	const cache = testCache()
 
 	const staleUserId_7 = cache._internal_unstable._internal_unstable.staleManager.getFieldTime(
@@ -491,77 +492,178 @@ test('info doesn t exist in the stale manager, return undefined', async function
 		'User:7',
 		'id'
 	)
-	expect(staleUserId_7).toBe(undefined)
+	expect(staleUserId_7).toBe(null)
 })
 
-test('Mark a field stale', async function () {
+/**               */
+/**  Stale tests  */
+/**   1/ Helpers  */
+const h_SetUserInCache = (cache: Cache<CacheTypeDefTest>, id: string) => {
+	const user = cache.get('User', { id })
+	cache.setFieldType({ parent: 'User', key: 'id', type: 'String', nullable: false })
+	user.set({ field: 'id', value: id })
+	cache.setFieldType({ parent: 'User', key: 'firstName', type: 'String', nullable: false })
+	user.set({ field: 'firstName', value: 'default name' })
+	return user
+}
+
+const h_GetUserRecord = (id: string, field: 'id' | 'firstName' = 'id') => {
+	return {
+		type: 'User',
+		id: `User:${id}`,
+		field,
+	}
+}
+
+const h_SetCatInCache = (cache: Cache<CacheTypeDefTest>, id: string) => {
+	const cat = cache.get('Cat', { id })
+	cache.setFieldType({ parent: 'Cat', key: 'id', type: 'String', nullable: false })
+	cat.set({ field: 'id', value: id })
+	return cat
+}
+
+const h_GetCatRecord = (id: string) => {
+	return {
+		type: 'Cat',
+		id: `Cat:${id}`,
+		field: 'id',
+	}
+}
+
+const h_GetFieldTime = (
+	cache: Cache<CacheTypeDefTest>,
+	{ type, id, field }: { type: string; id: string; field: string }
+) => {
+	return cache._internal_unstable._internal_unstable.staleManager.getFieldTime(type, id, field)
+}
+
+/**               */
+/**  Stale tests  */
+/**   2/ Tests    */
+test('Mark all stale', async function () {
 	const cache = testCache()
 
-	const user1 = cache.get('User', { id: '1' })
+	// create some users & Cats
+	h_SetUserInCache(cache, '1')
+	h_SetUserInCache(cache, '2')
+	h_SetCatInCache(cache, '8')
+	h_SetCatInCache(cache, '9')
 
-	let staleUserId_1 = cache._internal_unstable._internal_unstable.staleManager.getFieldTime(
-		'User',
-		'User:1',
-		'id'
-	)
-	expect(staleUserId_1).not.toBe(null)
+	// Nothing should be  null
+	expect(h_GetFieldTime(cache, h_GetUserRecord('1'))).not.toBe(null)
+	expect(h_GetFieldTime(cache, h_GetUserRecord('2'))).not.toBe(null)
+	expect(h_GetFieldTime(cache, h_GetCatRecord('8'))).not.toBe(null)
+	expect(h_GetFieldTime(cache, h_GetCatRecord('9'))).not.toBe(null)
 
-	// mark the field stale
-	user1.markStale({ field: 'id' })
-	staleUserId_1 = cache._internal_unstable._internal_unstable.staleManager.getFieldTime(
-		'User',
-		'User:1',
-		'id'
-	)
-	expect(staleUserId_1).toBe(null)
+	// make all stale
+	cache.markStale()
+
+	// every type `User` should be stale, but not the rest
+	expect(h_GetFieldTime(cache, h_GetUserRecord('1'))).toBe(null)
+	expect(h_GetFieldTime(cache, h_GetUserRecord('2'))).toBe(null)
+	expect(h_GetFieldTime(cache, h_GetCatRecord('8'))).toBe(null)
+	expect(h_GetFieldTime(cache, h_GetCatRecord('9'))).toBe(null)
 })
 
 test('Mark a type stale', async function () {
 	const cache = testCache()
 
-	const user2 = cache.get('User', { id: '2' })
-	cache.setFieldType({ parent: 'User', key: 'id', type: 'String', nullable: false })
-	user2.set({ field: 'id', value: '2' })
-	const staleUserId_2 = cache._internal_unstable._internal_unstable.staleManager.getFieldTime(
-		'User',
-		'User:2',
-		'id'
-	)
-	expect(staleUserId_2).not.toBe(null)
-	expect(staleUserId_2).not.toBe(undefined)
+	// create some users & Cats
+	h_SetUserInCache(cache, '1')
+	h_SetUserInCache(cache, '2')
+	h_SetCatInCache(cache, '8')
+	h_SetCatInCache(cache, '9')
 
-	const user3 = cache.get('User', { id: '3' })
-	const user4 = cache.get('User', { id: '4' })
-	cache.setFieldType({ parent: 'User', key: 'id', type: 'String', nullable: false })
-	user3.set({ field: 'id', value: '3' })
-	user4.set({ field: 'id', value: '4' })
-	let staleUserId_3 = cache._internal_unstable._internal_unstable.staleManager.getFieldTime(
-		'User',
-		'User:3',
-		'id'
-	)
-	expect(staleUserId_3).not.toBe(null)
-	expect(staleUserId_3).not.toBe(undefined)
-	let staleUserId_4 = cache._internal_unstable._internal_unstable.staleManager.getFieldTime(
-		'User',
-		'User:4',
-		'id'
-	)
-	expect(staleUserId_4).not.toBe(null)
-	expect(staleUserId_4).not.toBe(undefined)
+	// Nothing should be null
+	expect(h_GetFieldTime(cache, h_GetUserRecord('1'))).not.toBe(null)
+	expect(h_GetFieldTime(cache, h_GetUserRecord('2'))).not.toBe(null)
+	expect(h_GetFieldTime(cache, h_GetCatRecord('8'))).not.toBe(null)
+	expect(h_GetFieldTime(cache, h_GetCatRecord('9'))).not.toBe(null)
 
+	// make the type `User` stale
 	cache.markStale('User')
 
-	staleUserId_3 = cache._internal_unstable._internal_unstable.staleManager.getFieldTime(
-		'User',
-		'User:3',
-		'id'
-	)
-	expect(staleUserId_3).toBe(null)
-	staleUserId_4 = cache._internal_unstable._internal_unstable.staleManager.getFieldTime(
-		'User',
-		'User:4',
-		'id'
-	)
-	expect(staleUserId_4).toBe(null)
+	// every type `User` should be stale, but not the rest
+	expect(h_GetFieldTime(cache, h_GetUserRecord('1'))).toBe(null)
+	expect(h_GetFieldTime(cache, h_GetUserRecord('2'))).toBe(null)
+	expect(h_GetFieldTime(cache, h_GetCatRecord('8'))).not.toBe(null)
+	expect(h_GetFieldTime(cache, h_GetCatRecord('9'))).not.toBe(null)
+})
+
+test('Mark a type field stale', async function () {
+	const cache = testCache()
+
+	// create some users
+	h_SetUserInCache(cache, '1')
+	h_SetUserInCache(cache, '2')
+
+	// Nothing should be null
+	expect(h_GetFieldTime(cache, h_GetUserRecord('1'))).not.toBe(null)
+	expect(h_GetFieldTime(cache, h_GetUserRecord('2'))).not.toBe(null)
+	expect(h_GetFieldTime(cache, h_GetUserRecord('1', 'firstName'))).not.toBe(null)
+	expect(h_GetFieldTime(cache, h_GetUserRecord('2', 'firstName'))).not.toBe(null)
+
+	// make the type `User` field `firstName` stale
+	cache.markStale('User', 'firstName')
+
+	// every type `User` should be stale, but not the rest
+	expect(h_GetFieldTime(cache, h_GetUserRecord('1'))).not.toBe(null)
+	expect(h_GetFieldTime(cache, h_GetUserRecord('2'))).not.toBe(null)
+	expect(h_GetFieldTime(cache, h_GetUserRecord('1', 'firstName'))).toBe(null)
+	expect(h_GetFieldTime(cache, h_GetUserRecord('2', 'firstName'))).toBe(null)
+})
+
+test('Mark a record stale', async function () {
+	const cache = testCache()
+
+	// create a user
+	const user1 = h_SetUserInCache(cache, '1')
+
+	// check data state of stale
+	expect(h_GetFieldTime(cache, h_GetUserRecord('1'))).not.toBe(null)
+	expect(h_GetFieldTime(cache, h_GetUserRecord('1', 'firstName'))).not.toBe(null)
+
+	// mark a record stale
+	user1.markStale()
+
+	// check data state of stale
+	expect(h_GetFieldTime(cache, h_GetUserRecord('1'))).toBe(null)
+	expect(h_GetFieldTime(cache, h_GetUserRecord('1', 'firstName'))).toBe(null)
+})
+
+test('Mark a record field stale', async function () {
+	const cache = testCache()
+
+	// create a user
+	const user1 = h_SetUserInCache(cache, '1')
+
+	// check data state of stale
+	expect(h_GetFieldTime(cache, h_GetUserRecord('1'))).not.toBe(null)
+	expect(h_GetFieldTime(cache, h_GetUserRecord('1', 'firstName'))).not.toBe(null)
+
+	// mark a field stale
+	user1.markStale({ field: 'id' })
+
+	// check data state of stale
+	expect(h_GetFieldTime(cache, h_GetUserRecord('1'))).toBe(null)
+	expect(h_GetFieldTime(cache, h_GetUserRecord('1', 'firstName'))).not.toBe(null)
+})
+
+test('Mark a record field stale when args', async function () {
+	const cache = testCache()
+
+	// create a user
+	const user1 = h_SetUserInCache(cache, '1')
+
+	// check data state of stale
+	expect(h_GetFieldTime(cache, h_GetUserRecord('1'))).not.toBe(null)
+	expect(h_GetFieldTime(cache, h_GetUserRecord('1', 'firstName'))).not.toBe(null)
+
+	// mark a field stale
+	user1.markStale({ field: 'id', args: {} })
+	expect("I don't get this args typeing").toBe(false)
+
+	// check data state of stale
+	expect(h_GetFieldTime(cache, h_GetUserRecord('1'))).toBe(null)
+	expect(h_GetFieldTime(cache, h_GetUserRecord('1', 'firstName'))).not.toBe(null)
 })

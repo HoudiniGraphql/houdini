@@ -52,6 +52,7 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 
 		// compute the key for the field/args combo
 		const key = computeKey({ field, args })
+
 		// look up the type information for the field
 		const typeInfo: TypeInfoWithSelection = _typeInfo(this.#cache, this.type, field)
 
@@ -238,18 +239,34 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 		this.#cache._internal_unstable.delete(this.#id)
 	}
 
+	/**
+	 * Mark some elements of the record stale in the cache.
+	 * @param field
+	 * @param args
+	 */
 	markStale<Field extends TypeFieldNames<Def, Type>>({
 		field,
 		args,
 	}: {
-		field: Field
+		field?: Field
 		args?: ArgType<Def, Type, Field>
-	}): void {
-		this.#cache._internal_unstable._internal_unstable.staleManager.markFieldStale(
-			this.type,
-			this.#id,
-			field
-		)
+	} = {}): void {
+		// If we don't have a field, mark the whole record as stale
+		if (!field) {
+			this.#cache._internal_unstable._internal_unstable.staleManager.markRecordFieldsStale(
+				this.type,
+				this.#id
+			)
+		} else {
+			// compute the key for the field/args combo
+			const key = computeKey({ field, args })
+
+			this.#cache._internal_unstable._internal_unstable.staleManager.markFieldStale(
+				this.type,
+				this.#id,
+				key
+			)
+		}
 	}
 }
 

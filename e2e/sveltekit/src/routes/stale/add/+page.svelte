@@ -16,17 +16,17 @@
 
   const markStale_type = async () => {
     await addUser.mutate(null);
-    cache.markStale({ type: 'UserNodes' });
+    cache.markStale('UserNodes');
   };
 
   const markStale_type_field = async () => {
     await addUser.mutate(null);
-    cache.markStale({ type: 'UserNodes', field: 'totalCount' });
+    cache.markStale('UserNodes', 'totalCount');
   };
 
   const markStale_subtype = async () => {
     await addUser.mutate(null);
-    cache.markStale({ type: 'User' });
+    cache.markStale('User');
   };
 
   const markStale_entry = async () => {
@@ -44,7 +44,7 @@
   const markStale_entry_field_when = async () => {
     await addUser.mutate(null);
     const user = cache.get('User', { id: '1' });
-    user.markStale({ field: 'name', args: { foo: 'bar' } });
+    user.markStale({ field: 'name', args: { name: 'New User' } });
   };
 </script>
 

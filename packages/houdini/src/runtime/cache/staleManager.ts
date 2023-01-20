@@ -46,20 +46,16 @@ export class StaleManager {
 		this.fieldsTime.get(type)?.get(id)?.set(field, new Date().valueOf())
 	}
 
-	/**
-	 * mark a field State
-	 * @param id User:1
-	 * @param field id
-	 */
-	markFieldStale(type: string, id: string, field: string): void {
-		this.#initMapId(type, id)
-		this.fieldsTime.get(type)?.get(id)?.set(field, null)
+	markAllStale(): void {
+		for (const [type, fieldTypeMap] of this.fieldsTime.entries()) {
+			for (const [id, fieldMap] of fieldTypeMap.entries()) {
+				for (const [field] of fieldMap.entries()) {
+					this.markFieldStale(type, id, field)
+				}
+			}
+		}
 	}
 
-	/**
-	 * mark a type Stale
-	 * @param type User
-	 */
 	markTypeStale(type: string): void {
 		const fieldsTimeOfType = this.fieldsTime.get(type)
 
@@ -71,5 +67,39 @@ export class StaleManager {
 				}
 			}
 		}
+	}
+
+	markTypeFieldStale(type: string, field: string): void {
+		const fieldsTimeOfType = this.fieldsTime.get(type)
+
+		if (fieldsTimeOfType) {
+			// Go over everything we know until now and stale fields
+			for (const [id, fieldMap] of fieldsTimeOfType.entries()) {
+				for (const [local_field] of fieldMap.entries()) {
+					if (local_field === field) {
+						this.markFieldStale(type, id, local_field)
+					}
+				}
+			}
+		}
+	}
+
+	markRecordFieldsStale(type: string, id: string): void {
+		const fieldsTimeOfType = this.fieldsTime.get(type)
+
+		if (fieldsTimeOfType) {
+			const fieldMap = fieldsTimeOfType.get(id)
+
+			if (fieldMap) {
+				for (const [field] of fieldMap.entries()) {
+					this.markFieldStale(type, id, field)
+				}
+			}
+		}
+	}
+
+	markFieldStale(type: string, id: string, field: string): void {
+		this.#initMapId(type, id)
+		this.fieldsTime.get(type)?.get(id)?.set(field, null)
 	}
 }
