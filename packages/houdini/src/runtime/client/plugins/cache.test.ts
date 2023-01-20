@@ -175,54 +175,101 @@ test('CacheOnly', async function () {
 })
 
 test('stale', async function () {
-	const spy = vi.fn()
+	const fn = vi.fn()
 
 	const cache = new Cache(config)
 
 	const store = createStore([
 		cachePolicyPlugin({
 			enabled: true,
-			setFetching: spy,
+			setFetching: vi.fn(),
 			cache,
 		}),
 		fakeFetch({}),
 	])
+
+	store.subscribe(fn)
+
 	const ret1 = await store.send({ policy: CachePolicy.CacheOrNetwork })
 
-	expect(spy).toHaveBeenCalledTimes(1)
+	expect(fn).toHaveBeenNthCalledWith(1, {
+		data: null,
+		errors: null,
+		fetching: true,
+		partial: false,
+		source: null,
+		stale: false,
+		variables: null,
+	})
 
 	expect(ret1).toEqual({
 		data: {
 			viewer: {
-				id: '1',
+				__typename: 'User',
 				firstName: 'bob',
+				id: '1',
 			},
 		},
 		errors: null,
 		fetching: false,
-		variables: null,
-		source: 'network',
 		partial: false,
+		source: 'network',
 		stale: false,
+		variables: {},
 	})
 
-	// I would like to access the public cache to do a "normal" cache update test
 	cache._internal_unstable.staleManager.markTypeStale('User')
 
 	const ret2 = await store.send({ policy: CachePolicy.CacheOrNetwork })
+
+	// We should have a first resolve with stale: true
 	expect(ret2).toEqual({
 		data: {
 			viewer: {
-				id: '1',
+				__typename: 'User',
 				firstName: 'bob',
+				id: '1',
 			},
 		},
 		errors: null,
 		fetching: false,
-		variables: {},
-		source: 'cache',
 		partial: false,
+		source: 'cache',
 		stale: true,
+		variables: {},
+	})
+
+	expect(fn).toHaveBeenNthCalledWith(3, {
+		data: {
+			viewer: {
+				__typename: 'User',
+				firstName: 'bob',
+				id: '1',
+			},
+		},
+		errors: null,
+		fetching: false,
+		partial: false,
+		source: 'cache',
+		stale: true,
+		variables: {},
+	})
+
+	// Doing a real network call in the end and returning the new data & stale false
+	expect(fn).toHaveBeenNthCalledWith(4, {
+		data: {
+			viewer: {
+				__typename: 'User',
+				firstName: 'bob',
+				id: '1',
+			},
+		},
+		errors: null,
+		fetching: false,
+		partial: false,
+		source: 'network',
+		stale: false,
+		variables: {},
 	})
 })
 
@@ -259,6 +306,10 @@ function createStore(plugins: ClientPlugin[]): DocumentObserver<any, any> {
 									type: 'String',
 									keyRaw: 'firstName',
 								},
+								__typename: {
+									type: 'String',
+									keyRaw: '__typename',
+								},
 							},
 						},
 					},
@@ -274,6 +325,7 @@ function fakeFetch({
 			viewer: {
 				id: '1',
 				firstName: 'bob',
+				__typename: 'User',
 			},
 		},
 		errors: null,
@@ -281,7 +333,7 @@ function fakeFetch({
 		partial: false,
 		stale: false,
 		source: DataSource.Network,
-		variables: null,
+		variables: {},
 	},
 }) {
 	return (() => ({

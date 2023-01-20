@@ -10,6 +10,7 @@ export class StaleManager {
 	// 	 }
 	//  }
 	// }
+
 	// nulls mean that the value is stale, and the number is the time that the value was set
 	private fieldsTime: Map<string, Map<string, Map<string, number | null>>> = new Map()
 
@@ -31,8 +32,8 @@ export class StaleManager {
 		}
 	}
 
-	getFieldTime(type: string, id: string, field: string): number | null | undefined {
-		return this.fieldsTime.get(type)?.get(id)?.get(field)
+	getFieldTime(type: string, id: string, field: string): number | null {
+		return this.fieldsTime.get(type)?.get(id)?.get(field) ?? null
 	}
 
 	/**

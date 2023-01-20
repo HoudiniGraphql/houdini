@@ -731,10 +731,8 @@ class CacheInternal {
 			// look up the value in our store
 			const { value } = this.storage.get(parent, key)
 
-			// JYC todo, I think it's the wrong "type"
-			const dt_field = this.staleManager.getFieldTime(type, parent, key)
-
 			// If we have an explicite null, that mean that it's stale and the we should do a network call
+			const dt_field = this.staleManager.getFieldTime(typename, parent, key)
 			if (dt_field === null) {
 				stale = true
 			}

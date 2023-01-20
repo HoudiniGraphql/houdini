@@ -239,10 +239,10 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 
 	markStale<Field extends TypeFieldNames<Def, Type>>({
 		field,
-	}: // args,
-	{
+		args,
+	}: {
 		field: Field
-		// args?: ArgType<Def, Type, Field>
+		args?: ArgType<Def, Type, Field>
 	}): void {
 		this.#cache._internal_unstable._internal_unstable.staleManager.markFieldStale(
 			this.type,
