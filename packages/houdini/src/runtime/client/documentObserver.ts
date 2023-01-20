@@ -116,7 +116,7 @@ export class DocumentObserver<
 		metadata?: App.Metadata | null
 		session?: App.Session | null
 		policy?: CachePolicy
-		stuff?: {}
+		stuff?: Partial<App.Stuff>
 		cacheParams?: ClientPluginContext['cacheParams']
 		setup?: boolean
 	} = {}): Promise<QueryResult<_Data, _Input>> {
@@ -129,7 +129,14 @@ export class DocumentObserver<
 			metadata,
 			session,
 			fetch,
-			stuff: stuff ?? {},
+			stuff: {
+				inputs: {
+					changed: false,
+					init: false,
+					marshaled: {},
+				},
+				...stuff,
+			},
 			artifact: this.#artifact,
 			lastVariables: this.#lastVariables,
 			cacheParams,
@@ -464,6 +471,7 @@ class ClientPluginContextWrapper {
 					ctx.stuff.inputs = {
 						init: true,
 						marshaled: newVariables,
+						changed: true,
 					}
 
 					// track the last variables used
@@ -543,7 +551,7 @@ export type ClientPluginContext = {
 		disableRead?: boolean
 		applyUpdates?: boolean
 	}
-	stuff: Record<string, any>
+	stuff: App.Stuff
 }
 
 type ClientPluginPhase<Handlers> = (

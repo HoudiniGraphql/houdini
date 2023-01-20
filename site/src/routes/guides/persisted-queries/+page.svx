@@ -12,6 +12,38 @@ your motivation, the approach involves associating a known string with a particu
 and sending that string to the server instead of the full query body. To support this,
 houdini provides a query's hash to the fetch function for you to use.
 
+## Fixed List
+
+The simplest solution for persisted queries it to generate a fixed mapping of hash to
+query for every document that your client will send. To support this, you can pass
+the `--output` flag to the `generate` command and provide a path to save the map:
+
+```bash
+npx houdini generate --output ./queries.json
+# or
+npx houdini generate -o ./queries.json
+```
+
+Once this map has been created, you will have to make it available to your server somehow.
+
+Once your serer has this list, instead of sending the full operation text with every request, you can now simply
+pass the hash under whatever field name your API is configured to use:
+
+```typescript:title=src/client.ts&typescriptToggle=true
+export default new HoudiniClient({
+    url: 'http://localhost:4000',
+    fetchParams({ hash, variables }){
+        return {
+            body: JSON.stringify({
+                doc_id: hash,
+                variables: variables
+            })
+        }
+    }
+})
+```
+
+
 ## Automatic
 
 An approach to Persisted Queries, popularized by Apollo, is known as
@@ -82,36 +114,4 @@ function retryPlugin() {
         }
     }
 }
-```
-
-## Fixed List
-
-If you don't want the flexibility of Automatic Persisted Queries, you will need
-a fixed mapping of hash to query for every document that your client will send.
-To support this, you can pass the `--output` flag to the `generate` command
-and provide a path to save the map:
-
-```bash
-npx houdini generate --output ./queries.json
-# or
-npx houdini generate -o ./queries.json
-```
-
-Once this map has been created, you will have to make it available to your server somehow.
-
-Once your serer has this list, instead of sending the full operation text with every request, you can now simply
-pass the hash under whatever field name your API is configured to use:
-
-```typescript:title=src/client.ts&typescriptToggle=true
-export default new HoudiniClient({
-    url: 'http://localhost:4000',
-    fetchParams({ hash, variables }){
-        return {
-            body: JSON.stringify({
-                doc_id: hash,
-                variables: variables
-            })
-        }
-    }
-})
 ```

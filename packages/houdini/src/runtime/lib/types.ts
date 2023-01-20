@@ -9,6 +9,14 @@ declare global {
 	namespace App {
 		interface Session {}
 		interface Metadata {}
+		interface Stuff {
+			inputs: {
+				init: boolean
+				marshaled: Record<string, any>
+				changed: boolean
+			}
+			optimisticResponse?: GraphQLObject
+		}
 	}
 }
 

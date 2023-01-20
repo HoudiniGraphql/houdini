@@ -19,6 +19,31 @@ In order to setup your project to take full advantage of Houdini's generated typ
 }
 ```
 
+## Global Types
+
+There are 3 different types that Houdini defines globally. It is useful to extend these values to fit your
+needs (for example, to get help filling out your session information):
+
+```typescript
+declare namespace App {
+    // user-specific information passed to each query
+    interface Session {
+        user?: {
+            token: string;
+        };
+    }
+
+    // used to thread information between plugins
+    interface Stuff {}
+
+    // used to pass one-off configuration for a request
+    interface Metadata {
+        logResult?: boolean | null;
+    }
+}
+
+```
+
 ## Queries
 
 When working with Houdini's [generated load functions](/api/query#automatic-loading) (whether in a route or component), you can import type definition for your variable functions and hooks from `./$houdini` (a relative import):
