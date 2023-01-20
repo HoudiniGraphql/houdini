@@ -65,7 +65,7 @@ To make the conversation easier, we'll refer to the top half as "enter hooks" an
 bottom half as the "exit hooks". While these hooks do behave very similarly, there are some important
 things to keep in mind.
 
-### Enter Hook
+### Enter Hooks
 
 In enter hooks like `start`, `beforeNetwork` and `network`, information flows forward: to the next plugin in the list.
 
@@ -221,7 +221,7 @@ const timer: ClientPlugin = () => {
 
 ### State across network requests
 
-If you're plugin needs to track some state between multiple network requests, you can
+If your plugin needs to track some state between multiple network requests, you can
 instantiate the state at the top of your plugin function, before you return your hooks.
 Houdini will make sure that your function is called only once when the store is created.
 
@@ -382,7 +382,7 @@ type ClientPluginContext = {
 		disableRead?: boolean
 		applyUpdates?: boolean
 	}
-	stuff: Record<string, any>
+	stuff: App.Stuff
 }
 
 type QueryResult = {
