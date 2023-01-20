@@ -1138,7 +1138,6 @@ test('throw hooks can replay the plugin instead', async function () {
 		start(ctx, { next }) {
 			// increment the count
 			count++
-			console.log({ count })
 			next(ctx)
 		},
 		catch(_, { error }) {

@@ -53,31 +53,6 @@ few very simple ones before getting too deep in the explanation:
 
 <AuthoringPluginsDive />
 
-## Choosing a Phase
-
-We recognize it can be a bit confusing to work your way through this. If you're struggling
-to figure out which phase you want to hook into, here are a series of helpful questions.
-If you are still unsure after reading this, please open an issue on GitHub -
-we'd love to help.
-
-The first question you have to ask yourself is wether you are going to look data up
-from the server or act as a middleware in the pipeline. If you are going to interact with
-the server, you'll almost certainly want to do that in `network`.
-
-If you aren't building a `network` hook, the next question to ask is if you
-want to process a request on its way to the API or do you want to look at
-the result of the query?
-If you want to see the request before it gets to the API, you either want`start` or
-`beforeNetwork`. If you want to look at responses from the API then your
-options are `afterNetwork` or `end`.
-
-The next question is to ask yourself wether you want to execute the logic if the response is cached.
-If your logic must always run, `start` or `end` is what you're looking for.
-If your logic should only run if the cache isn't involved then `beforeNetwork` or
-`afterNetwork` is the answer.
-
-Hope that helps!
-
 ## Enter vs Exit Hooks
 
 It's important to keep in mind the direction that information is flowing in a given step.
@@ -92,7 +67,7 @@ things to keep in mind.
 
 ### Enter Hook
 
-In enter hooks like `start`, `beforeNetwork` and `network`, information flows forward: to the next plugin in the list:
+In enter hooks like `start`, `beforeNetwork` and `network`, information flows forward: to the next plugin in the list.
 
 ```typescript:title=src/client.ts&typescriptToggle=true
 import type { ClientPlugin } from '$houdini'
@@ -181,6 +156,31 @@ In Summary,
 - You do not have to pass a value when calling `resolve`. The last known value will be used automatically. You are
   also free to modify the value.
 - Make sure your exit hook resolves under _some_ condition
+
+## Choosing a Phase
+
+We recognize it can be a bit confusing to work your way through this. If you're struggling
+to figure out which phase you want to hook into, here are a series of helpful questions.
+If you are still unsure after reading this, please open an issue on GitHub -
+we'd love to help.
+
+The first question you have to ask yourself is whether you are going to look data up
+from the server or act as a middleware in the pipeline. If you are going to interact with
+the server, you'll almost certainly want to do that in `network`.
+
+If you aren't building a `network` hook, the next question to ask is if you
+want to process a request on its way to the API or do you want to look at
+the result of the query?
+If you want to see the request before it gets to the API, you either want`start` or
+`beforeNetwork`. If you want to look at responses from the API then your
+options are `afterNetwork` or `end`.
+
+The next question is to ask yourself whether you want to execute the logic if the response is cached.
+If your logic must always run, `start` or `end` is what you're looking for.
+If your logic should only run if the cache isn't involved then `beforeNetwork` or
+`afterNetwork` is the answer.
+
+Hope that helps!
 
 ## Stateful Plugins
 
@@ -271,13 +271,18 @@ If you find a discrepancy, please let us know on GitHub.
 
 ```typescript
 type ClientPlugin = () => {
+	/* The 5 hooks described in this document*/
 	start?: ClientPluginEnterPhase
 	beforeNetwork?: ClientPluginEnterPhase
 	network?: ClientPluginEnterPhase
 	afterNetwork?: ClientPluginExitPhase
 	end?: ClientPluginExitPhase
+
+	/* Called when the document store has no more subscribers */
 	cleanup?(ctx: ClientPluginContext): void | Promise<void>
-	throw?(ctx: ClientPluginContext, args: ClientPluginErrorHandlers): void | Promise<void>
+
+	/* Called when an inner plugin has thrown an exception. If you want the error to keep moving up, you'll have to throw again (this hook traps the error) */
+	catch?(ctx: ClientPluginContext, args: ClientPluginCatchHandlers): void | Promise<void>
 }
 
 type ClientPluginPhase<Handlers> = (
@@ -293,13 +298,13 @@ type ClientPluginEnterHandlers = {
 	initialValue: QueryResult
 	/** A reference to the houdini client */
 	client: HoudiniClient
+	/** Update the stores state without resolving the promise */
+	updateState(updater: (old: QueryResult) => QueryResult): void
+
 	/** Move onto the next step using the provided context.  */
 	next(ctx: ClientPluginContext): void
 	/** Terminate the current chain  */
 	resolve(ctx: ClientPluginContext, data: QueryResult): void
-
-	/** Update the stores state without resolving the promise */
-	updateState(updater: (old: QueryResult) => QueryResult): void
 
 	/** Return true if the variables have changed */
 	variablesChanged: (ctx: ClientPluginContext) => boolean
@@ -319,13 +324,39 @@ type ClientPluginExitHandlers = {
 	initialValue: QueryResult
 	/** A reference to the houdini client */
 	client: HoudiniClient
+	/** Update the stores state without resolving the promise */
+	updateState(updater: (old: QueryResult) => QueryResult): void
+
 	/** Move onto the next step using the provided context.  */
 	next(ctx: ClientPluginContext): void
 	/** Terminate the current chain  */
 	resolve: (ctx: ClientPluginContext, data?: QueryResult) => void
 
+	/** Return true if the variables have changed */
+	variablesChanged: (ctx: ClientPluginContext) => boolean
+	/** Returns the marshaled variables for the operation */
+	marshalVariables: (ctx: ClientPluginContext) => Record<string, any>
+}
+
+/**
+ * Catch handlers are the same as enter handlers with access to the
+ * error that was thrown
+ */
+type ClientPluginCatchHandlers = {
+	/* The response value we're exiting with */
+	error: unknown
+
+	/* The initial value of the query */
+	initialValue: QueryResult
+	/** A reference to the houdini client */
+	client: HoudiniClient
 	/** Update the stores state without resolving the promise */
 	updateState(updater: (old: QueryResult) => QueryResult): void
+
+	/** Move onto the next step using the provided context.  */
+	next(ctx: ClientPluginContext): void
+	/** Terminate the current chain  */
+	resolve: (ctx: ClientPluginContext, data?: QueryResult) => void
 
 	/** Return true if the variables have changed */
 	variablesChanged: (ctx: ClientPluginContext) => boolean
