@@ -39,11 +39,12 @@ test('NetworkOnly', async function () {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
+				__typename: 'User',
 			},
 		},
 		errors: null,
 		fetching: false,
-		variables: null,
+		variables: {},
 		source: 'network',
 		partial: false,
 		stale: false,
@@ -54,11 +55,12 @@ test('NetworkOnly', async function () {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
+				__typename: 'User',
 			},
 		},
 		errors: null,
 		fetching: false,
-		variables: null,
+		variables: {},
 		source: 'network',
 		partial: false,
 		stale: false,
@@ -145,6 +147,7 @@ test('CacheOnly', async function () {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
+				__typename: 'User',
 			},
 		},
 		errors: null,
@@ -152,7 +155,7 @@ test('CacheOnly', async function () {
 		partial: false,
 		stale: false,
 		source: 'network',
-		variables: null,
+		variables: {},
 	})
 	const ret3 = await store.send({ policy: CachePolicy.CacheOnly })
 
@@ -163,6 +166,7 @@ test('CacheOnly', async function () {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
+				__typename: 'User',
 			},
 		},
 		errors: null,
