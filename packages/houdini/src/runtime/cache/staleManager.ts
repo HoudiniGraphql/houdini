@@ -6,10 +6,14 @@ export class StaleManager {
 	// type {       "User"
 	// 	id {         "User:1"
 	//   field {      "id"
-	// 	  number | null
+	// 	  number | null | undefined
 	// 	 }
 	//  }
 	// }
+
+	// number => data ok (not stale!)
+	// undefined => no data (not stale!)
+	// null => data stale (stale)
 
 	// nulls mean that the value is stale, and the number is the time that the value was set
 	private fieldsTime: Map<string, Map<string, Map<string, number | null>>> = new Map()
@@ -32,8 +36,8 @@ export class StaleManager {
 		}
 	}
 
-	getFieldTime(type: string, id: string, field: string): number | null {
-		return this.fieldsTime.get(type)?.get(id)?.get(field) ?? null
+	getFieldTime(type: string, id: string, field: string): number | undefined | null {
+		return this.fieldsTime.get(type)?.get(id)?.get(field)
 	}
 
 	/**
@@ -42,6 +46,8 @@ export class StaleManager {
 	 * @param field id
 	 */
 	setFieldTimeToNow(type: string, id: string, field: string): void {
+		console.log(`setFieldTimeToNow`)
+
 		this.#initMapId(type, id)
 		this.fieldsTime.get(type)?.get(id)?.set(field, new Date().valueOf())
 	}

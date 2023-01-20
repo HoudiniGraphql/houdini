@@ -19,12 +19,12 @@ beforeEach(async () => {
 })
 
 test('NetworkOnly', async function () {
-	const spy = vi.fn()
+	const setFetching = vi.fn()
 
 	const store = createStore([
 		cachePolicyPlugin({
 			enabled: true,
-			setFetching: spy,
+			setFetching,
 			cache: new Cache(config),
 		}),
 		fakeFetch({}),
@@ -32,7 +32,7 @@ test('NetworkOnly', async function () {
 	const ret1 = await store.send({ policy: CachePolicy.NetworkOnly })
 	const ret2 = await store.send({ policy: CachePolicy.NetworkOnly })
 
-	expect(spy).toHaveBeenCalledTimes(2)
+	expect(setFetching).toHaveBeenCalledTimes(2)
 
 	expect(ret1).toEqual({
 		data: {
@@ -68,31 +68,33 @@ test('NetworkOnly', async function () {
 })
 
 test('CacheOrNetwork', async function () {
-	const spy = vi.fn()
+	const setFetching = vi.fn()
 
 	const store = createStore([
 		cachePolicyPlugin({
 			enabled: true,
-			setFetching: spy,
+			setFetching,
 			cache: new Cache(config),
 		}),
 		fakeFetch({}),
 	])
+
 	const ret1 = await store.send({ policy: CachePolicy.CacheOrNetwork })
 	const ret2 = await store.send({ policy: CachePolicy.CacheOrNetwork })
 
-	expect(spy).toHaveBeenCalledTimes(1)
+	expect(setFetching).toHaveBeenCalledTimes(1)
 
 	expect(ret1).toEqual({
 		data: {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
+				__typename: 'User',
 			},
 		},
 		errors: null,
 		fetching: false,
-		variables: null,
+		variables: {},
 		source: 'network',
 		partial: false,
 		stale: false,
@@ -103,6 +105,7 @@ test('CacheOrNetwork', async function () {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
+				__typename: 'User',
 			},
 		},
 		errors: null,
@@ -115,19 +118,23 @@ test('CacheOrNetwork', async function () {
 })
 
 test('CacheOnly', async function () {
-	const spy = vi.fn()
+	const setFetching = vi.fn()
+	const fn = vi.fn()
 
 	const store = createStore([
 		cachePolicyPlugin({
 			enabled: true,
-			setFetching: spy,
+			setFetching,
 			cache: new Cache(config),
 		}),
 		fakeFetch({}),
 	])
+
+	store.subscribe(fn)
+
 	const ret1 = await store.send({ policy: CachePolicy.CacheOnly })
 
-	expect(spy).toHaveBeenCalledTimes(0)
+	expect(setFetching).toHaveBeenCalledTimes(0)
 
 	expect(ret1).toEqual({
 		data: null,
@@ -141,7 +148,7 @@ test('CacheOnly', async function () {
 	const ret2 = await store.send({ policy: CachePolicy.CacheOrNetwork })
 
 	// we should have set loading to true along the way
-	expect(spy).toHaveBeenCalledTimes(1)
+	expect(setFetching).toHaveBeenCalledTimes(1)
 	expect(ret2).toEqual({
 		data: {
 			viewer: {
@@ -160,7 +167,7 @@ test('CacheOnly', async function () {
 	const ret3 = await store.send({ policy: CachePolicy.CacheOnly })
 
 	// doesn't update the fetch value
-	expect(spy).toHaveBeenCalledTimes(1)
+	expect(setFetching).toHaveBeenCalledTimes(1)
 	expect(ret3).toEqual({
 		data: {
 			viewer: {
@@ -179,6 +186,7 @@ test('CacheOnly', async function () {
 })
 
 test('stale', async function () {
+	const setFetching = vi.fn()
 	const fn = vi.fn()
 
 	const cache = new Cache(config)
@@ -186,7 +194,7 @@ test('stale', async function () {
 	const store = createStore([
 		cachePolicyPlugin({
 			enabled: true,
-			setFetching: vi.fn(),
+			setFetching,
 			cache,
 		}),
 		fakeFetch({}),
@@ -196,16 +204,7 @@ test('stale', async function () {
 
 	const ret1 = await store.send({ policy: CachePolicy.CacheOrNetwork })
 
-	expect(fn).toHaveBeenNthCalledWith(1, {
-		data: null,
-		errors: null,
-		fetching: true,
-		partial: false,
-		source: null,
-		stale: false,
-		variables: null,
-	})
-
+	// Final return
 	expect(ret1).toEqual({
 		data: {
 			viewer: {
@@ -222,11 +221,23 @@ test('stale', async function () {
 		variables: {},
 	})
 
+	// intermediate returns
+	expect(fn).toHaveBeenNthCalledWith(1, {
+		data: null,
+		errors: null,
+		fetching: true,
+		partial: false,
+		source: null,
+		stale: false,
+		variables: null,
+	})
+
+	// mark stale
 	cache._internal_unstable.staleManager.markTypeStale('User')
 
 	const ret2 = await store.send({ policy: CachePolicy.CacheOrNetwork })
 
-	// We should have a first resolve with stale: true
+	// First final return with stale: true
 	expect(ret2).toEqual({
 		data: {
 			viewer: {
@@ -243,6 +254,7 @@ test('stale', async function () {
 		variables: {},
 	})
 
+	// intermediate returns
 	expect(fn).toHaveBeenNthCalledWith(3, {
 		data: {
 			viewer: {

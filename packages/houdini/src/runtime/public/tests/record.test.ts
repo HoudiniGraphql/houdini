@@ -484,17 +484,6 @@ test('can set nested lists of record proxies', function () {
 	expect(marshalNestedList(cache.root.get({ field: 'listOfLists' }))).toEqual(expected)
 })
 
-test('info doesn t exist in the stale manager, return null', async function () {
-	const cache = testCache()
-
-	const staleUserId_7 = cache._internal_unstable._internal_unstable.staleManager.getFieldTime(
-		'User',
-		'User:7',
-		'id'
-	)
-	expect(staleUserId_7).toBe(null)
-})
-
 /**               */
 /**  Stale tests  */
 /**   1/ Helpers  */
@@ -540,6 +529,13 @@ const h_GetFieldTime = (
 /**               */
 /**  Stale tests  */
 /**   2/ Tests    */
+test('info doesn t exist in the stale manager, return undefined (not stale)', async function () {
+	const cache = testCache()
+
+	// let's have a look at something that  was never seen before, it should be undefined
+	expect(h_GetFieldTime(cache, h_GetCatRecord('1'))).toBe(undefined)
+})
+
 test('Mark all stale', async function () {
 	const cache = testCache()
 
