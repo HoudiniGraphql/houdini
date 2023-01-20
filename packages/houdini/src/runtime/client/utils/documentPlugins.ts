@@ -39,8 +39,8 @@ export const documentPlugin = (kind: ArtifactKind, source: ClientPlugin): Client
 			network: enterWrapper(sourceHandlers.network),
 			afterNetwork: exitWrapper(sourceHandlers.afterNetwork),
 			end: exitWrapper(sourceHandlers.end),
-			throw: sourceHandlers.throw
-				? (ctx, handlers) => sourceHandlers.throw!(ctx, handlers)
+			catch: sourceHandlers.catch
+				? (ctx, handlers) => sourceHandlers.catch!(ctx, handlers)
 				: undefined,
 			cleanup: (...args) => sourceHandlers.cleanup?.(...args),
 		}

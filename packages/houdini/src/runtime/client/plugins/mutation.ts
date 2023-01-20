@@ -75,7 +75,7 @@ export const mutationPlugin = documentPlugin(ArtifactKind.Mutation, () => {
 			// keep going
 			resolve(ctx)
 		},
-		throw(ctx) {
+		catch(ctx, { error }) {
 			// if there was an error, we need to clear the mutation
 			if (ctx.cacheParams?.layer) {
 				const { layer } = ctx.cacheParams
@@ -84,6 +84,8 @@ export const mutationPlugin = documentPlugin(ArtifactKind.Mutation, () => {
 				layer.clear()
 				cache._internal_unstable.storage.resolveLayer(layer.id)
 			}
+
+			throw error
 		},
 	}
 })
