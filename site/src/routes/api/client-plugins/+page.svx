@@ -97,7 +97,7 @@ const simpleFetchPlugin: ClientPlugin = () => {
     return {
         async network(ctx, { resolve, next }) {
             const result = await fetch('...', {
-                body: JSON.strinify({ query: ctx.artifact.raw })
+                body: JSON.strinify({ query: ctx.text })
             })
 
             // in reality we need to pass more here
@@ -367,6 +367,7 @@ type ClientPluginCatchHandlers = {
 type ClientPluginContext = {
 	config: ConfigFile
 	text: string
+	hash: string
 	artifact: DocumentArtifact
 	policy?: CachePolicy
 	fetch?: Fetch

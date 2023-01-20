@@ -125,6 +125,7 @@ export class DocumentStore<
 		let context = new ClientPluginContextWrapper({
 			config: this.#configFile!,
 			text: this.#artifact.raw,
+			hash: this.#artifact.hash,
 			policy: policy ?? (this.#artifact as QueryArtifact).policy,
 			variables: {},
 			metadata,
@@ -545,6 +546,7 @@ export type Fetch = typeof globalThis.fetch
 export type ClientPluginContext = {
 	config: ConfigFile
 	text: string
+	hash: string
 	artifact: DocumentArtifact
 	policy?: CachePolicy
 	fetch?: Fetch
