@@ -164,7 +164,7 @@ to figure out which phase you want to hook into, here are a series of helpful qu
 If you are still unsure after reading this, please open an issue on GitHub -
 we'd love to help.
 
-The first question you have to ask yourself is wether you are going to look data up
+The first question you have to ask yourself is whether you are going to look data up
 from the server or act as a middleware in the pipeline. If you are going to interact with
 the server, you'll almost certainly want to do that in `network`.
 
@@ -175,7 +175,7 @@ If you want to see the request before it gets to the API, you either want`start`
 `beforeNetwork`. If you want to look at responses from the API then your
 options are `afterNetwork` or `end`.
 
-The next question is to ask yourself wether you want to execute the logic if the response is cached.
+The next question is to ask yourself whether you want to execute the logic if the response is cached.
 If your logic must always run, `start` or `end` is what you're looking for.
 If your logic should only run if the cache isn't involved then `beforeNetwork` or
 `afterNetwork` is the answer.
