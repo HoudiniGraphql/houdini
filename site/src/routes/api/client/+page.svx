@@ -128,8 +128,8 @@ const plugins = [
 
 <DeepDive title="Defining the Full Pipeline">
 
-If you need full control over Houdini's plugin pipeline.
-For those situations, you can use the `pipeline` argument to provide the full list. Houdini
+If you need full control over Houdini's plugin pipeline, you can use the `pipeline`
+argument to provide the full list. Houdini
 will still add a few plugins to this list to make some internals function like the cache
 policy behavior and support for `fetchParams`.
 
