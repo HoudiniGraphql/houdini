@@ -120,7 +120,7 @@ export class DocumentStore<
 		stuff?: Partial<App.Stuff>
 		cacheParams?: ClientPluginContext['cacheParams']
 		setup?: boolean
-	} = {}): Promise<QueryResult<_Data, _Input>> {
+	} = {}) {
 		// start off with the initial context
 		let context = new ClientPluginContextWrapper({
 			config: this.#configFile!,
@@ -149,13 +149,12 @@ export class DocumentStore<
 		context = context.apply(draft, false)
 
 		// walk through the plugins to get the first result
-		const result = await new Promise<QueryResult<_Data, _Input>>((resolve, reject) => {
+		return await new Promise<QueryResult<_Data, _Input>>((resolve, reject) => {
 			// the initial state of the iterator
 			const state: IteratorState = {
 				setup,
 				currentStep: 0,
 				index: 0,
-				direction: 'forward',
 				promise: {
 					resolved: false,
 					resolve,
@@ -166,27 +165,26 @@ export class DocumentStore<
 			}
 
 			// start walking down the chain
-			this.#step(state)
+			this.#step('forward', state)
 		})
-
-		// we're done
-		return result
 	}
 
-	#step(ctx: IteratorState, value?: QueryResult): void {
+	#step(direction: 'backwards', ctx: IteratorState, value: QueryResult): void
+	#step(direction: 'forward', ctx: IteratorState, value?: never): void
+	#step(direction: keyof typeof steps, ctx: IteratorState, value?: QueryResult): void {
 		// grab the current step
-		const currentStep = steps[ctx.direction][ctx.currentStep]
+		const currentStep = steps[direction][ctx.currentStep]
 
 		// figure out which direction we want to go (starting from the specified index)
 		let valid = (i: number) => i <= this.#plugins.length
-		let step = (i: number) => i++
-		if (ctx.direction === 'backwards') {
+		let step = (i: number) => i + 1
+		if (direction === 'backwards') {
 			valid = (i) => i >= 0
-			step = (i) => i--
+			step = (i) => i - 1
 		}
 
 		// walk down the list of plugins
-		for (let index = ctx.index; valid(index); step(index)) {
+		for (let index = ctx.index; valid(index); index = step(index)) {
 			// if we found a handle
 			let target = this.#plugins[index]?.[currentStep]
 			if (!target) {
@@ -197,7 +195,7 @@ export class DocumentStore<
 			const draft = ctx.context.draft()
 
 			// detect changes in the variables from the user using object identity
-			let variablesChanged = (newContext: ClientPluginContext) =>
+			let variablesRefChanged = (newContext: ClientPluginContext) =>
 				newContext.variables !== draft.variables
 
 			// the common handlers
@@ -210,7 +208,7 @@ export class DocumentStore<
 				next: (newContext) => {
 					// the next index depends on the direction we're going now
 					const nextIndex =
-						ctx.direction === 'forward'
+						direction === 'forward'
 							? // if we're going forward, add one
 							  index + 1
 							: // if we're moving backwards but called next, we
@@ -219,24 +217,20 @@ export class DocumentStore<
 
 					// if we are resolving the pipe and fire next, we need to start
 					// from the first phase
-					const nextStep = ctx.direction === 'backwards' ? 0 : ctx.currentStep
+					const nextStep = direction === 'backwards' ? 0 : ctx.currentStep
 
 					// move on
-					this.#step(
-						{
-							...ctx,
-							direction: 'forward',
-							index: nextIndex,
-							currentStep: nextStep,
-							context: ctx.context.apply(newContext, variablesChanged(newContext)),
-						},
-						value
-					)
+					this.#step('forward', {
+						...ctx,
+						index: nextIndex,
+						currentStep: nextStep,
+						context: ctx.context.apply(newContext, variablesRefChanged(newContext)),
+					})
 				},
-				resolve: (newContext) => {
+				resolve: (newContext, value) => {
 					// the next index depends on the direction we're going now
 					const nextIndex =
-						ctx.direction === 'backwards'
+						direction === 'backwards'
 							? // if we're going backwards, subtract one
 							  index - 1
 							: // if we're moving forwards but then call resolve
@@ -244,19 +238,22 @@ export class DocumentStore<
 							  index
 
 					// move on
-					this.#step({
-						...ctx,
-						direction: 'backwards',
-						index: nextIndex,
-						context: ctx.context.apply(newContext, variablesChanged(newContext)),
-					})
+					this.#step(
+						'backwards',
+						{
+							...ctx,
+							index: nextIndex,
+							context: ctx.context.apply(newContext, variablesRefChanged(newContext)),
+						},
+						value
+					)
 				},
 			} as ClientPluginEnterHandlers
 
 			const handlers = (steps.forward as readonly string[]).includes(currentStep)
 				? // enter handlers
 				  common
-				: // exit handlers
+				: // exit handlers need slightly different values
 				  {
 						...common,
 						value: value!,
@@ -283,14 +280,19 @@ export class DocumentStore<
 			return
 		}
 
+		/// if we got this far, we are at one of the bounds
+		/// we're need to move onto the next phase
+		/// or we are at the end of the pipeline so we need to resolve
+		/// or there is no call to resolve in the enter hooks so we need to throw
+
 		// check forward end conditions
-		if (ctx.direction === 'forward') {
+		if (direction === 'forward') {
 			// if we triggering a setup cycle phase
 			if (ctx.setup) {
 				return this.#step(
+					'backwards',
 					{
 						...ctx,
-						direction: 'backwards',
 						currentStep: 0,
 						index: this.#plugins.length,
 					},
@@ -300,7 +302,7 @@ export class DocumentStore<
 
 			// if we still have steps to go forward, do so
 			if (ctx.currentStep <= steps.forward.length - 2) {
-				return this.#step({
+				return this.#step('forward', {
 					...ctx,
 					currentStep: ctx.currentStep + 1,
 					index: 0,
@@ -313,21 +315,18 @@ export class DocumentStore<
 			)
 		}
 
-		// we are resolving the chain
-
 		// if we aren't at the last phase then we have more to go
 		if (ctx.currentStep > 0) {
 			return this.#step(
+				'backwards',
 				{
 					...ctx,
 					currentStep: ctx.currentStep - 1,
 					index: this.#plugins.length - 1,
 				},
-				value
+				value!
 			)
 		}
-
-		// we're done with the chain
 
 		// convert the raw value into something we can give to the user
 		let data = value!.data
@@ -362,36 +361,36 @@ export class DocumentStore<
 		let propagate = true
 		for (let i = ctx.index; i >= 0 && propagate; i--) {
 			let breakBubble = false
-			// if the step has an error handler, invoke it
-			const throwHandler = this.#plugins[i].throw
-			if (throwHandler) {
-				const draft = ctx.context.draft()
-				throwHandler(draft, {
-					initialValue: this.state,
-					client: this.#client,
-					variablesChanged,
-					marshalVariables,
-					updateState: this.update.bind(this),
-					// calling next in response to a
-					next: (newContext) => {
-						breakBubble = true
+			// // if the step has an error handler, invoke it
+			// const throwHandler = this.#plugins[i].throw
+			// if (throwHandler) {
+			// 	const draft = ctx.context.draft()
+			// 	throwHandler(draft, {
+			// 		initialValue: this.state,
+			// 		client: this.#client,
+			// 		variablesChanged,
+			// 		marshalVariables,
+			// 		updateState: this.update.bind(this),
+			// 		// calling next in response to a
+			// 		next: (newContext) => {
+			// 			breakBubble = true
 
-						this.#step({
-							...ctx,
-							context: ctx.context.apply(
-								newContext,
-								draft.variables !== newContext.variables
-							),
-							currentStep: 0,
-							index: i + 1,
-						})
+			// 			this.#step('fo', {
+			// 				...ctx,
+			// 				context: ctx.context.apply(
+			// 					newContext,
+			// 					draft.variables !== newContext.variables
+			// 				),
+			// 				currentStep: 0,
+			// 				index: i + 1,
+			// 			}, )
 
-						// don't step through the rest of the errors
-						propagate = false
-					},
-					error,
-				})
-			}
+			// 			// don't step through the rest of the errors
+			// 			propagate = false
+			// 		},
+			// 		error,
+			// 	})
+			// }
 
 			if (breakBubble) {
 				break
@@ -555,7 +554,6 @@ type IteratorState = {
 	index: number
 	setup: boolean
 	currentStep: number
-	direction: keyof typeof steps
 	promise: {
 		resolved: boolean
 		resolve(val: any): void
