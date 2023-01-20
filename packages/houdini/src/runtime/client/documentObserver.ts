@@ -117,19 +117,27 @@ export class DocumentObserver<
 		metadata?: App.Metadata | null
 		session?: App.Session | null
 		policy?: CachePolicy
-		stuff?: {}
+		stuff?: Partial<App.Stuff>
 		cacheParams?: ClientPluginContext['cacheParams']
 		setup?: boolean
 	} = {}): Promise<QueryResult<_Data, _Input>> {
 		// start off with the initial context
 		let context = new ClientPluginContextWrapper({
 			config: this.#configFile!,
+			text: this.#artifact.raw,
 			policy: policy ?? (this.#artifact as QueryArtifact).policy,
 			variables: {},
 			metadata,
 			session,
 			fetch,
-			stuff: stuff ?? {},
+			stuff: {
+				inputs: {
+					changed: false,
+					init: false,
+					marshaled: {},
+				},
+				...stuff,
+			},
 			artifact: this.#artifact,
 			lastVariables: this.#lastVariables,
 			cacheParams,
@@ -138,7 +146,7 @@ export class DocumentObserver<
 		// assign variables to take advantage of the setter on variables
 		const draft = context.draft()
 		draft.variables = variables ?? {}
-		context = context.apply(draft)
+		context = context.apply(draft, false)
 
 		// walk through the plugins to get the first result
 		const result = await new Promise<QueryResult<_Data, _Input>>((resolve, reject) => {
@@ -172,8 +180,9 @@ export class DocumentObserver<
 			let target = this.#plugins[index]?.[currentStep]
 			if (target) {
 				try {
+					const draft = ctx.context.draft()
 					// invoke the target
-					const result = target(ctx.context.draft(), {
+					const result = target(draft, {
 						initialValue: this.state,
 						client: this.#client,
 						variablesChanged,
@@ -182,7 +191,10 @@ export class DocumentObserver<
 						next: (newContext) => {
 							this.#next({
 								...ctx,
-								context: ctx.context.apply(newContext),
+								context: ctx.context.apply(
+									newContext,
+									draft.variables !== newContext.variables
+								),
 								index,
 							})
 						},
@@ -191,7 +203,10 @@ export class DocumentObserver<
 							this.#terminate(
 								{
 									...ctx,
-									context: ctx.context.apply(newContext),
+									context: ctx.context.apply(
+										newContext,
+										draft.variables !== newContext.variables
+									),
 									// increment the index so that terminate looks at this link again
 									index: index + 1,
 								},
@@ -253,8 +268,9 @@ export class DocumentObserver<
 			let target = this.#plugins[index]?.[currentStep]
 			if (target) {
 				try {
+					const draft = ctx.context.draft()
 					// invoke the target
-					const result = target(ctx.context.draft(), {
+					const result = target(draft, {
 						initialValue: this.state,
 						value,
 						client: this.#client,
@@ -267,7 +283,10 @@ export class DocumentObserver<
 								...ctx,
 								index: index - 1,
 								currentStep: 0,
-								context: ctx.context.apply(newContext),
+								context: ctx.context.apply(
+									newContext,
+									newContext.variables !== draft.variables
+								),
 							})
 						},
 						resolve: (context, val) => {
@@ -275,7 +294,10 @@ export class DocumentObserver<
 							this.#terminate(
 								{
 									...ctx,
-									context: ctx.context.apply(context),
+									context: ctx.context.apply(
+										context,
+										draft.variables !== context.variables
+									),
 									index,
 								},
 								// if we were given a value, use it. otherwise use the previous value
@@ -345,7 +367,8 @@ export class DocumentObserver<
 			// if the step has an error handler, invoke it
 			const throwHandler = this.#plugins[i].throw
 			if (throwHandler) {
-				throwHandler(ctx.context.draft(), {
+				const draft = ctx.context.draft()
+				throwHandler(draft, {
 					initialValue: this.state,
 					client: this.#client,
 					variablesChanged,
@@ -357,7 +380,10 @@ export class DocumentObserver<
 
 						this.#next({
 							...ctx,
-							context: ctx.context.apply(newContext),
+							context: ctx.context.apply(
+								newContext,
+								draft.variables !== newContext.variables
+							),
 							currentStep: 0,
 							index: i,
 						})
@@ -415,7 +441,7 @@ class ClientPluginContextWrapper {
 			...this.#context,
 		}
 
-		const lastVariables = this.#lastVariables
+		const applyVariables = this.applyVariables.bind(this)
 
 		return {
 			...ctx,
@@ -429,63 +455,88 @@ class ClientPluginContextWrapper {
 				return ctx.variables ?? {}
 			},
 			set variables(val: Required<ClientPluginContext>['variables']) {
-				// look at the variables for ones that are different
-				let changed: ClientPluginContext['variables'] = {}
-				for (const [name, value] of Object.entries(val ?? {})) {
-					if (value !== ctx.variables?.[name]) {
-						// we need to marshal the new value
-						changed[name] = value
-					}
-				}
-
-				// since we are mutating deeply nested values in stuff, we need to make sure we don't modify our parent
-				ctx.stuff = {
-					...ctx.stuff,
-					inputs: {
-						...ctx.stuff.inputs,
-					},
-				}
-
-				// update the marshaled version of the inputs
-				// - only update the values that changed (to re-marshal scalars)
-				const hasChanged =
-					Object.keys(changed).length > 0 || !ctx.stuff.inputs || !ctx.stuff.inputs.init
-				if (ctx.artifact.kind !== ArtifactKind.Fragment && hasChanged) {
-					// only marshal the changed variables so we don't double marshal
-					const newVariables = {
-						...ctx.stuff.inputs?.marshaled,
-						...marshalInputs({
-							artifact: ctx.artifact,
-							input: changed,
-							config: ctx.config,
-						}),
-					}
-
-					ctx.stuff.inputs = {
-						init: true,
-						marshaled: newVariables,
-					}
-
-					// track the last variables used
-					ctx.variables = val
-				}
-				ctx.stuff = {
-					...ctx.stuff,
-					inputs: {
-						...ctx.stuff.inputs,
-						changed: !deepEquals(ctx.stuff.inputs.marshaled, lastVariables),
-					},
-				}
+				Object.assign(ctx, applyVariables(ctx, { variables: val }))
 			},
 		}
 	}
 
+	applyVariables(source: ClientPluginContext, values: Partial<ClientPluginContext>) {
+		const artifact = source.artifact
+
+		// build up the new context
+		const ctx = {
+			...source,
+			...values,
+		}
+
+		const val = values.variables
+
+		// look at the variables for ones that are different
+		let changed: ClientPluginContext['variables'] = {}
+		for (const [name, value] of Object.entries(val ?? {})) {
+			if (value !== source.variables?.[name]) {
+				// we need to marshal the new value
+				changed[name] = value
+			}
+		}
+
+		// since we are mutating deeply nested values in stuff, we need to make sure we don't modify our parent
+		ctx.stuff = {
+			...ctx.stuff,
+			inputs: {
+				...ctx.stuff.inputs,
+			},
+		}
+
+		// update the marshaled version of the inputs
+		// - only update the values that changed (to re-marshal scalars)
+		// - or if there are no values to begin with
+		const firstInit = !ctx.stuff.inputs || !ctx.stuff.inputs.init
+		const hasChanged = Object.keys(changed).length > 0 || firstInit
+		if (artifact.kind !== ArtifactKind.Fragment && hasChanged) {
+			// only marshal the changed variables so we don't double marshal
+			const newVariables = {
+				...ctx.stuff.inputs?.marshaled,
+				...marshalInputs({
+					artifact,
+					input: changed,
+					config: source.config,
+				}),
+			}
+
+			ctx.stuff.inputs = {
+				init: true,
+				marshaled: newVariables,
+				changed: true,
+			}
+
+			// track the last variables used
+			ctx.variables = val
+		}
+
+		ctx.stuff = {
+			...ctx.stuff,
+			inputs: {
+				...ctx.stuff.inputs,
+				changed: !deepEquals(ctx.stuff.inputs.marshaled, this.#lastVariables),
+			},
+		}
+		return ctx
+	}
+
 	// apply applies the draft value in a new context
-	apply(values: ClientPluginContext): ClientPluginContextWrapper {
-		return new ClientPluginContextWrapper({
+	apply(values: ClientPluginContext, newVariables: boolean): ClientPluginContextWrapper {
+		// if we have a different set of variables
+		if (newVariables) {
+			values = this.applyVariables(this.#context, values)
+		}
+		// instantiate a new wrapper to use
+		const wrapper = new ClientPluginContextWrapper({
 			...values,
 			lastVariables: this.#lastVariables,
 		})
+
+		return wrapper
 	}
 }
 
@@ -527,6 +578,7 @@ export type Fetch = typeof globalThis.fetch
 
 export type ClientPluginContext = {
 	config: ConfigFile
+	text: string
 	artifact: DocumentArtifact
 	policy?: CachePolicy
 	fetch?: Fetch
@@ -542,7 +594,7 @@ export type ClientPluginContext = {
 		disableRead?: boolean
 		applyUpdates?: boolean
 	}
-	stuff: Record<string, any>
+	stuff: App.Stuff
 }
 
 type ClientPluginPhase<Handlers> = (

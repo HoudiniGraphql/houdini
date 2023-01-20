@@ -192,13 +192,6 @@ export type ConfigFile = {
 	 * you must enable this flag.
 	 */
 	acceptImperativeInstability?: boolean
-
-	/**
-	 * With this enabled, errors in your query will not be thrown as exceptions. You will have to handle
-	 * error state in your route components or by hand in your load (or the onError hook)
-	 * @default false
-	 */
-	quietErrors?: ('mutation' | 'query')[]
 }
 
 type ScalarMap = { [typeName: string]: ScalarSpec }

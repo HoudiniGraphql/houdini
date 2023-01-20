@@ -646,6 +646,60 @@ test('can detect changed variables from inputs', async function () {
 	expect(spy).toHaveBeenNthCalledWith(4, false)
 })
 
+test('can pass new variables in a spread', async function () {
+	// a spy we'll pass the marshaled variables to
+	const spy = vi.fn()
+
+	// we're going to be passed in 2 dates
+	const date1 = new Date()
+	const date2 = new Date()
+	date2.setHours(date1.getHours() + 10)
+
+	const setVariables: ClientPlugin = () => {
+		return {
+			async start(ctx, { next }) {
+				// move on
+				next({
+					...ctx,
+					variables: {
+						...ctx.variables,
+						date1,
+					},
+				})
+			},
+		}
+	}
+
+	const checkVariables: ClientPlugin = () => {
+		return {
+			network(ctx, { resolve, marshalVariables }) {
+				spy(marshalVariables(ctx))
+				resolve(ctx, {
+					data: { hello: 'world' },
+					errors: [],
+					fetching: true,
+					partial: false,
+					source: DataSource.Cache,
+					variables: null,
+				})
+			},
+		}
+	}
+
+	// create the client with the middlewares
+	await createStore([setVariables, checkVariables]).send({
+		variables: {
+			date2,
+		},
+	})
+
+	// make sure the spy was called with the correct values
+	expect(spy).toHaveBeenCalledWith({
+		date1: date1.getTime(),
+		date2: date2.getTime(),
+	})
+})
+
 test('can update variables and then check if they were updated', async function () {
 	// a spy to track changes
 	const spy = vi.fn()
@@ -720,7 +774,7 @@ test('multiple new variables from inside plugin', async function () {
 					partial: false,
 					stale: false,
 					source: DataSource.Cache,
-					variables: null,
+					variables: ctx.variables!,
 				})
 			},
 		}

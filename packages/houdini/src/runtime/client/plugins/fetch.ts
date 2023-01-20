@@ -1,6 +1,6 @@
 import type { RequestPayload } from '../../lib/types'
 import { DataSource } from '../../lib/types'
-import type { ClientPlugin } from '../documentObserver'
+import type { ClientPlugin, ClientPluginContext } from '../documentObserver'
 
 export const fetchPlugin = (target?: RequestHandler | string): ClientPlugin => {
 	return () => {
@@ -16,12 +16,12 @@ export const fetchPlugin = (target?: RequestHandler | string): ClientPlugin => {
 					variables: marshalVariables(ctx),
 				}
 
-				let fetchFn = defaultFetch(client.url)
+				let fetchFn = defaultFetch(client.url, ctx.fetchParams)
 				// the provided parameter either specifies the URL or is the entire function to
 				// use
 				if (target) {
 					if (typeof target === 'string') {
-						fetchFn = defaultFetch(target)
+						fetchFn = defaultFetch(target, ctx.fetchParams)
 					} else {
 						fetchFn = target
 					}
@@ -35,14 +35,7 @@ export const fetchPlugin = (target?: RequestHandler | string): ClientPlugin => {
 						const newArgs = handleMultipart(fetchParams, args) ?? args
 
 						// use the new args if they exist, otherwise the old ones are good
-						return fetch(url, {
-							...ctx.fetchParams,
-							...newArgs,
-							headers: {
-								...ctx.fetchParams?.headers,
-								...newArgs?.headers,
-							},
-						})
+						return fetch(url, newArgs)
 					},
 					metadata: ctx.metadata,
 					session: ctx.session || {},
@@ -64,7 +57,10 @@ export const fetchPlugin = (target?: RequestHandler | string): ClientPlugin => {
 	}
 }
 
-const defaultFetch = (url: string): RequestHandler => {
+const defaultFetch = (
+	url: string,
+	params?: Required<ClientPluginContext>['fetchParams']
+): RequestHandler => {
 	// if there is no configured url, we can't use this plugin
 	if (!url) {
 		throw new Error(
@@ -76,13 +72,13 @@ const defaultFetch = (url: string): RequestHandler => {
 		// regular fetch (Server & Client)
 		const result = await fetch(url, {
 			method: 'POST',
+			body: JSON.stringify({ query: text, variables }),
+			...params,
 			headers: {
+				Accept: 'application/graphql+json, application/json',
 				'Content-Type': 'application/json',
+				...params?.headers,
 			},
-			body: JSON.stringify({
-				query: text,
-				variables,
-			}),
 		})
 
 		return await result.json()
