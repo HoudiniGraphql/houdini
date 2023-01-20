@@ -48,6 +48,7 @@
 					Start with a schema. Write queries and let Houdini take care of the rest. Fully automatic
 					and totally customizable. <b>Declarative</b>, <b>Composable</b>, <b>Typesafe</b>.
 					First-class support for
+					<a data-sveltekit-preload-data href="/api/fragments">Fragments</a>,
 					<a data-sveltekit-preload-data href="/api/subscription">Subscriptions</a>,
 					<a data-sveltekit-preload-data href="/guides/pagination">Pagination</a>,
 					<a data-sveltekit-preload-data href="/api/mutation#lists">List Mutations</a>,
