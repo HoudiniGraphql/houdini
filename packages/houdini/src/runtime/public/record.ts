@@ -161,6 +161,7 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 
 		// compute the key for the field/args combo
 		const key = computeKey({ field, args })
+
 		// look up the type information for the field
 		const typeInfo: TypeInfoWithSelection = _typeInfo(this.#cache, this.type, field)
 

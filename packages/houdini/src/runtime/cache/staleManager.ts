@@ -63,7 +63,6 @@ export class StaleManager {
 	markTypeStale(type: string): void {
 		const fieldsTimeOfType = this.fieldsTime.get(type)
 
-		console.log(`markTypeStale`, this.fieldsTime)
 		if (fieldsTimeOfType) {
 			// Go over everything we know until now and stale fields
 			for (const [id, fieldMap] of fieldsTimeOfType.entries()) {
