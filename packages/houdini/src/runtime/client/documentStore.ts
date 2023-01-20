@@ -367,8 +367,6 @@ export class DocumentStore<
 				continue
 			}
 
-			console.log('found handler', i)
-
 			const draft = ctx.context.draft()
 			const variablesRefChanged = (newContext: ClientPluginContext) =>
 				draft.variables !== newContext.variables
