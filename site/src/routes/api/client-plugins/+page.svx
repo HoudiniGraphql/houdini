@@ -43,7 +43,7 @@ before beginning the network phases.
     <figure alt="A diagram showing the organization of phases as a request is processed by houdini">
     		<PluginWorkflow />
     	<figcaption style="margin-top: 20px">
-    		In this diagram, the colored boxes represent plugins and the number indicates their order in the client file.
+    		In this diagram, colored boxes represent plugins and the number indicates their order in the client file.
     		The arrow shows the flow of information to the server and back to the user.
     	</figcaption>
     </figure>
