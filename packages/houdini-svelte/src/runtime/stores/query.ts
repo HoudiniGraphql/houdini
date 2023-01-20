@@ -13,7 +13,7 @@ import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
 import type { Readable } from 'svelte/store'
 import { get } from 'svelte/store'
 
-import type { PluginArtifactData } from '../../plugin/artifactGenerator'
+import type { PluginArtifactData } from '../../plugin/artifactData'
 import { clientStarted, isBrowser } from '../adapter'
 import { getClient } from '../client'
 import { getSession } from '../session'
