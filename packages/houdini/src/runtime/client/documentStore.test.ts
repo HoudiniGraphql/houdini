@@ -396,34 +396,6 @@ test('can call resolve multiple times to set multiple values', async function ()
 	})
 })
 
-test('error rejects the promise', async function () {
-	const middleware: ClientPlugin = () => ({
-		start() {
-			throw 'hello'
-		},
-	})
-
-	// create the client with the middlewares
-	const store = createStore([middleware])
-
-	// make sure that the promise rejected with the error value
-	await expect(store.send()).rejects.toEqual('hello')
-})
-
-test('async error rejects the promise', async function () {
-	const middleware: ClientPlugin = () => ({
-		async start() {
-			throw 'hello'
-		},
-	})
-
-	// create the client with the middlewares
-	const store = createStore([middleware])
-
-	// make sure that the promise rejected with the error value
-	await expect(store.send()).rejects.toEqual('hello')
-})
-
 test('cleanup phase', async function () {
 	const spy = vi.fn()
 
@@ -1017,4 +989,182 @@ test('in a mutation, fetching should be false', async function () {
 		source: null,
 		variables: null,
 	})
+})
+
+test('error hooks get called in order', async function () {
+	const fn = vi.fn()
+
+	const middleware1: ClientPlugin = () => ({
+		catch(ctx, { error }) {
+			fn(1, error)
+			throw error
+		},
+	})
+	const middleware2: ClientPlugin = () => ({
+		catch(ctx, { error }) {
+			fn(2, error)
+			throw error
+		},
+	})
+	const middleware3: ClientPlugin = () => ({
+		catch(ctx, { error }) {
+			fn(3, error)
+			throw error
+		},
+	})
+	const panic: ClientPlugin = () => ({
+		network() {
+			throw 'oh no!'
+		},
+	})
+
+	// create the store
+	const store = createStore([middleware1, middleware2, middleware3, panic])
+
+	// start the pipeline
+	await expect(store.send()).rejects.toEqual('oh no!')
+
+	// make sure the spy was called in the correct order
+	expect(fn).toHaveBeenNthCalledWith(1, 3, 'oh no!')
+	expect(fn).toHaveBeenNthCalledWith(2, 2, 'oh no!')
+	expect(fn).toHaveBeenNthCalledWith(3, 1, 'oh no!')
+})
+
+test('error rejects the promise', async function () {
+	const middleware: ClientPlugin = () => ({
+		start() {
+			throw 'hello'
+		},
+	})
+
+	// create the client with the middlewares
+	const store = createStore([middleware])
+
+	// make sure that the promise rejected with the error value
+	await expect(store.send()).rejects.toEqual('hello')
+})
+
+test('async error rejects the promise', async function () {
+	const middleware: ClientPlugin = () => ({
+		async start() {
+			throw 'hello'
+		},
+	})
+
+	// create the client with the middlewares
+	const store = createStore([middleware])
+
+	// make sure that the promise rejected with the error value
+	await expect(store.send()).rejects.toEqual('hello')
+})
+
+test('throw hooks can resolve the plugin instead', async function () {
+	const fn = vi.fn()
+
+	const middleware1: ClientPlugin = () => ({
+		catch(_, { error }) {
+			fn(1, error)
+			throw error
+		},
+	})
+	const middleware2: ClientPlugin = () => ({
+		catch(ctx, { resolve }) {
+			resolve(ctx, {
+				data: { hello: 'world' },
+				errors: [],
+				fetching: true,
+				partial: false,
+				source: DataSource.Cache,
+				variables: null,
+			})
+		},
+	})
+	const middleware3: ClientPlugin = () => ({
+		catch(_, { error }) {
+			fn(3, error)
+			throw error
+		},
+	})
+	const panic: ClientPlugin = () => ({
+		network() {
+			throw 'oh no!'
+		},
+	})
+
+	// create the store
+	const store = createStore([middleware1, middleware2, middleware3, panic])
+
+	// start the pipeline
+	await expect(store.send()).resolves.toEqual({
+		data: { hello: 'world' },
+		errors: [],
+		fetching: true,
+		partial: false,
+		source: DataSource.Cache,
+		variables: null,
+	})
+
+	// make sure the spy was called in the correct order
+	expect(fn).toHaveBeenNthCalledWith(1, 3, 'oh no!')
+	expect(fn).not.toHaveBeenCalledTimes(2)
+})
+
+test('throw hooks can replay the plugin instead', async function () {
+	const data = {
+		data: { hello: 'world' },
+		errors: [],
+		fetching: true,
+		partial: false,
+		source: DataSource.Cache,
+		variables: null,
+	}
+	const fn = vi.fn()
+
+	// we'll track a count so that we throw in some situations and resolve in others
+	let count = 0
+
+	const middleware1: ClientPlugin = () => ({
+		catch(_, { error }) {
+			fn(1, error)
+			throw error
+		},
+	})
+	const middleware2: ClientPlugin = () => ({
+		catch(ctx, { next }) {
+			next(ctx)
+		},
+	})
+	const middleware3: ClientPlugin = () => ({
+		start(ctx, { next }) {
+			// increment the count
+			count++
+			console.log({ count })
+			next(ctx)
+		},
+		catch(_, { error }) {
+			fn(3, error)
+			throw error
+		},
+	})
+	const panic: ClientPlugin = () => ({
+		network(ctx, { resolve }) {
+			// if we got there the first time, throw
+			if (count === 1) {
+				throw 'oh no!'
+			}
+
+			// we're back here the second time
+			resolve(ctx, data)
+		},
+	})
+
+	// create the store
+	const store = createStore([middleware1, middleware2, middleware3, panic])
+
+	// start the pipeline
+	await expect(store.send()).resolves.toEqual(data)
+
+	// make sure the spy was called in the correct order
+	expect(fn).toHaveBeenNthCalledWith(1, 3, 'oh no!')
+	expect(fn).not.toHaveBeenCalledTimes(2)
 })

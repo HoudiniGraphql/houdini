@@ -170,16 +170,17 @@ export class DocumentStore<
 		})
 	}
 
+	#step(direction: 'error', ctx: IteratorState, value: unknown): void
 	#step(direction: 'backwards', ctx: IteratorState, value: QueryResult): void
 	#step(direction: 'forward', ctx: IteratorState, value?: never): void
-	#step(direction: keyof typeof steps, ctx: IteratorState, value?: QueryResult): void {
+	#step(direction: keyof typeof steps | 'error', ctx: IteratorState, value?: any): void {
 		// grab the current step
-		const currentStep = steps[direction][ctx.currentStep]
+		const hook = direction === 'error' ? 'catch' : steps[direction][ctx.currentStep]
 
 		// figure out which direction we want to go (starting from the specified index)
 		let valid = (i: number) => i <= this.#plugins.length
 		let step = (i: number) => i + 1
-		if (direction === 'backwards') {
+		if (['backwards', 'error'].includes(direction)) {
 			valid = (i) => i >= 0
 			step = (i) => i - 1
 		}
@@ -187,7 +188,7 @@ export class DocumentStore<
 		// walk down the list of plugins
 		for (let index = ctx.index; valid(index); index = step(index)) {
 			// if we found a handle
-			let target = this.#plugins[index]?.[currentStep]
+			let target = this.#plugins[index]?.[hook]
 			if (!target) {
 				continue
 			}
@@ -208,17 +209,18 @@ export class DocumentStore<
 				updateState: this.update.bind(this),
 				next: (newContext) => {
 					// the next index depends on the direction we're going now
-					const nextIndex =
-						direction === 'forward'
-							? // if we're going forward, add one
-							  index + 1
-							: // if we're moving backwards but called next, we
-							  // we need to invoke the same hook
-							  index
+					const nextIndex = ['forward', 'error'].includes(direction)
+						? // if we're going forward, add one
+						  index + 1
+						: // if we're moving backwards but called next, we
+						  // we need to invoke the same hook
+						  index
 
 					// if we are resolving the pipe and fire next, we need to start
 					// from the first phase
-					const nextStep = direction === 'backwards' ? 0 : ctx.currentStep
+					const nextStep = ['backwards', 'error'].includes(direction)
+						? 0
+						: ctx.currentStep
 
 					// move on
 					this.#step('forward', {
@@ -251,17 +253,24 @@ export class DocumentStore<
 				},
 			} as ClientPluginEnterHandlers
 
-			const handlers = (steps.forward as readonly string[]).includes(currentStep)
-				? // enter handlers
-				  common
-				: // exit handlers need slightly different values
-				  {
-						...common,
-						value: value!,
-						resolve: ((ctx, data) => {
-							return common.resolve(ctx, data ?? value!)
-						}) as ClientPluginExitHandlers['resolve'],
-				  }
+			// build up the specific handlers for the direction
+			let handlers
+			if (direction === 'forward') {
+				handlers = common
+			} else if (direction === 'backwards') {
+				handlers = {
+					...common,
+					value: value!,
+					resolve: ((ctx, data) => {
+						return common.resolve(ctx, data ?? value!)
+					}) as ClientPluginExitHandlers['resolve'],
+				}
+			} else if (direction === 'error') {
+				handlers = {
+					...common,
+					error: value,
+				}
+			}
 
 			try {
 				// @ts-expect-error
@@ -271,11 +280,11 @@ export class DocumentStore<
 				// if we got _something_ back its a promise so we need to make
 				// sure something is listening for error
 				result?.catch((err) => {
-					this.#error({ ...ctx, index }, err)
+					this.#step('error', { ...ctx, index: index - 1 }, err)
 				})
 			} catch (err) {
 				// if an exception was thrown it was a synchronous hook so catch the exception
-				this.#error({ ...ctx, index }, err)
+				this.#step('error', { ...ctx, index: index - 1 }, err)
 			}
 
 			return
@@ -284,7 +293,7 @@ export class DocumentStore<
 		/// if we got this far, we are at one of the bounds
 		/// we're need to move onto the next phase
 		/// or we are at the end of the pipeline so we need to resolve
-		/// or there is no call to resolve in the enter hooks so we need to throw
+		/// or there is no call to resolve in the enter hooks so we need to catch
 
 		// check forward end conditions
 		if (direction === 'forward') {
@@ -314,6 +323,20 @@ export class DocumentStore<
 			throw new Error(
 				'Called next() on last possible plugin. Your chain is missing a plugin that calls resolve().'
 			)
+		}
+
+		// we could be propagating an error up
+		if (direction === 'error') {
+			// if we got here, we have bubbled up to the last handler
+			// see if we still need to resolve the promise
+			if (!ctx.promise.resolved) {
+				ctx.promise.reject(value)
+
+				// make sure we dont do anything else to the promise
+				ctx.promise.resolved = true
+			}
+
+			return
 		}
 
 		// if we aren't at the last phase then we have more to go
@@ -354,60 +377,6 @@ export class DocumentStore<
 
 		// the latest value should be written to the store
 		this.set(finalValue)
-	}
-
-	#error(ctx: IteratorState, error: unknown) {
-		// propagating an error up only visits plugins that come before the
-		// current
-		let propagate = true
-		for (let i = ctx.index; i >= 0 && propagate; i--) {
-			let breakBubble = false
-			// // if the step has an error handler, invoke it
-			// const throwHandler = this.#plugins[i].throw
-			// if (throwHandler) {
-			// 	const draft = ctx.context.draft()
-			// 	throwHandler(draft, {
-			// 		initialValue: this.state,
-			// 		client: this.#client,
-			// 		variablesChanged,
-			// 		marshalVariables,
-			// 		updateState: this.update.bind(this),
-			// 		// calling next in response to a
-			// 		next: (newContext) => {
-			// 			breakBubble = true
-
-			// 			this.#step('fo', {
-			// 				...ctx,
-			// 				context: ctx.context.apply(
-			// 					newContext,
-			// 					draft.variables !== newContext.variables
-			// 				),
-			// 				currentStep: 0,
-			// 				index: i + 1,
-			// 			}, )
-
-			// 			// don't step through the rest of the errors
-			// 			propagate = false
-			// 		},
-			// 		error,
-			// 	})
-			// }
-
-			if (breakBubble) {
-				break
-			}
-		}
-
-		// if propagate is still true, we've gone through everything without "breaking"
-		if (propagate) {
-			// if the promise hasn't been resolved yet, reject it
-			if (!ctx.promise.resolved) {
-				ctx.promise.reject(error)
-
-				// make sure we dont do anything else to the promise
-				ctx.promise.resolved = true
-			}
-		}
 	}
 }
 
@@ -569,7 +538,7 @@ export type ClientPlugin = () => {
 	afterNetwork?: ClientPluginExitPhase
 	end?: ClientPluginExitPhase
 	cleanup?(ctx: ClientPluginContext): void | Promise<void>
-	throw?(ctx: ClientPluginContext, args: ClientPluginErrorHandlers): void | Promise<void>
+	catch?(ctx: ClientPluginContext, args: ClientPluginErrorHandlers): void | Promise<void>
 }
 
 export type Fetch = typeof globalThis.fetch
@@ -629,6 +598,6 @@ export type ClientPluginExitHandlers = Omit<ClientPluginEnterHandlers, 'resolve'
 }
 
 /** Exit handlers are the same as enter handles but don't need to resolve with a specific value */
-export type ClientPluginErrorHandlers = Omit<ClientPluginEnterHandlers, 'resolve'> & {
+export type ClientPluginErrorHandlers = ClientPluginEnterHandlers & {
 	error: unknown
 }
