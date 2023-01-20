@@ -532,7 +532,7 @@ export type ClientPluginContext = {
 	variables?: Record<string, any>
 	metadata?: App.Metadata | null
 	session?: App.Session | null
-	fetchParams?: RequestInit
+	fetchParams?: Omit<RequestInit, 'body'> & { body?: Record<string, any> }
 	cacheParams?: {
 		layer?: Layer
 		notifySubscribers?: SubscriptionSpec[]
