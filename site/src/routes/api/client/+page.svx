@@ -148,8 +148,6 @@ If you use the `pipeline` parameter instead, only the first two get added to wha
 
 ```typescript:title=
 const pipeline = [
-    // client-level config always works
-    // these two plugins are only passed if the config value is added
     throwOnErrorPlugin,
     fetchParamsPlugin,
     // everything else is up to you
