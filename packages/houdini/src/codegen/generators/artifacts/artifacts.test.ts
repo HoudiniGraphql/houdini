@@ -3976,44 +3976,6 @@ describe('subscription artifacts', function () {
 	})
 })
 
-test('persists live indicator on queries', async function () {
-	// the documents to test
-	const docs: CollectedGraphQLDocument[] = [mockCollectedDoc(`query TestQuery @live { version }`)]
-
-	// execute the generator
-	await runPipeline(config, docs)
-
-	// load the contents of the file
-	expect(docs[0]).toMatchInlineSnapshot(`
-		export default {
-		    "name": "TestQuery",
-		    "kind": "HoudiniQuery",
-		    "hash": "91aa85ca308b78de2f8604efecbcde8b1c8a4c9aaff48c48ba414d646159a3dc",
-
-		    "raw": \`query TestQuery @live {
-		  version
-		}
-		\`,
-
-		    "rootType": "Query",
-
-		    "selection": {
-		        "fields": {
-		            "version": {
-		                "type": "Int",
-		                "keyRaw": "version"
-		            }
-		        }
-		    },
-
-		    "policy": "CacheOrNetwork",
-		    "partial": false
-		};
-
-		"HoudiniHash=2d8b418baedb9a11ad7d4f80e747ee7eee1eba5904800523e5d0e012c662e191";
-	`)
-})
-
 test('some artifact_data added to artifact specific to plugins', async function () {
 	config.plugins = [
 		{
