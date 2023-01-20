@@ -117,7 +117,7 @@ export default new HoudiniClient({
 })
 ```
 
-## Specifying Plugins
+## Adding Plugins
 
 Most of the time, you should add plugins to your client with the `plugins` argument
 
@@ -136,7 +136,7 @@ In most cases, your client is made up of a mixture of default plugins,
 plugins you have passed by hand, and plugins that have been injected into
 your client from plugins specified in `houdini.config.js`.
 
-When specifying plugins using the `plugin` key, the order for the final list
+When providing plugins using the `plugin` key, the order for the final list
 of plugins is follows:
 
 ```typescript:title=
