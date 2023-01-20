@@ -1,7 +1,7 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import type { Config, CollectedGraphQLDocument, DocumentArtifact } from '../../../lib'
+import type { Config, CollectedGraphQLDocument } from '../../../lib'
 import {
 	getRootType,
 	hashDocument,
