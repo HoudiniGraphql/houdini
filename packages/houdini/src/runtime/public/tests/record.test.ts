@@ -657,7 +657,7 @@ test('Mark a record field stale when args', async function () {
 
 	// mark a field stale
 	user1.markStale({ field: 'id', args: {} })
-	expect("I don't get this args typeing").toBe(false)
+	expect('args typing???').toBe(false)
 
 	// check data state of stale
 	expect(h_GetFieldTime(cache, h_GetUserRecord('1'))).toBe(null)
