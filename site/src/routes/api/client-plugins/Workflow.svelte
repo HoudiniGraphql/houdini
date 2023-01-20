@@ -1,5 +1,5 @@
 <script>
-	export let style = 'width: 100%; height: auto; margin: 40px 0px;'
+	export let style = ''
 
 	$: background = 'var(--hue)'
 	$: lineColor = 'var(--contrast)'
@@ -12,7 +12,7 @@
 	viewBox="0 0 1672.08536266316 517.0348433133063"
 	width="1672.08536266316"
 	height="517.0348433133063"
-	{style}
+	style={`width: 100%; height: auto;  ${style}`}
 >
 	<!-- svg-source:excalidraw -->
 

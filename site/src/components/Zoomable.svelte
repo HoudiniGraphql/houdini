@@ -2,8 +2,12 @@
 	import { scale, fade } from 'svelte/transition'
 	import { clickOutside } from './clickOutside.js'
 
+	export let style = ''
+
 	let zoomed = false
 	let canWeZoom = true
+
+	$: console.log(style)
 
 	function on_key_up(event) {
 		switch (event.key) {
@@ -27,6 +31,7 @@
 
 <div
 	class="zoomable"
+	{style}
 	on:click={() => {
 		if (canWeZoom) {
 			zoomed = !zoomed

@@ -164,3 +164,13 @@ h3 > code {
 #doc-content blockquote p {
 	padding-bottom: 0px;
 }
+
+#doc-content figcaption {
+	width: 70%;
+	margin: 0 auto;
+	color: var(--caption-text);
+	font-family: 'Hind', sans-serif;
+	font-weight: 500;
+	line-height: 1.5;
+	text-align: center;
+}
