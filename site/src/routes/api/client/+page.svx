@@ -88,8 +88,7 @@ export default new HoudiniClient({
 
 ## Specifying Plugins
 
-There are 2 different ways of specifying plugins for your client. Most of the time,
-you're better off by specifying the `plugins` argument
+Most of the time, you should add plugins to your client with the `plugins` argument
 
 ```typescript:title=src/client.ts&typescriptToggle=true
 new HoudiniClient({
@@ -110,6 +109,14 @@ When specifying plugins using the `plugin` key, the order for the final list
 of plugins is follows:
 
 ```typescript:title=
+import {
+    throwOnErrorPlugin,
+    fetchParamsPlugin,
+    queryPlugin,
+    mutationPlugins,
+    fetchPlugin
+} from '$houdini/plugins'
+
 const plugins = [
     // client-level config always works
     // these two plugins are only passed if the config value is added
@@ -147,6 +154,11 @@ new HoudiniClient({
 If you use the `pipeline` parameter instead, only the first two get added to what you provide:
 
 ```typescript:title=
+import {
+    throwOnErrorPlugin,
+    fetchParamsPlugin,
+} from '$houdini/plugins'
+
 const pipeline = [
     throwOnErrorPlugin,
     fetchParamsPlugin,
