@@ -17,12 +17,12 @@ houdini provides a query's hash to the fetch function for you to use.
 An approach to Persisted Queries, popularized by Apollo, is known as
 [Automatic Persisted Queries](https://www.apollographql.com/docs/apollo-server/performance/apq/).
 This involves first sending a query's hash and if its unrecognized, sending the full
-query string. This might look something like:
+query string. The easiest way to do this is to define a [client plugin](/api/client-plugins).
+This might look something like:
 
 ```typescript:title=src/client.ts&typescriptToggle=true
 import { HoudiniClient } from '$houdini'
 import type { ClientPlugin } from '$houdini'
-
 
 export default new HoudiniClient({
     url: 'localhost:4000/graphql',
@@ -56,9 +56,9 @@ function retryPlugin() {
                 return resolve(ctx)
             }
 
-            // there was an error, check if it indicates a
-            // missing hash and try again.
+            // there was an error, check if it indicates a missing hash
             if (value.errors.some(isMissingHashError)) {
+                // try again with the query text
                 ctx.fetchParams = {
                     ...ctx.fetchParams,
                     body: JSON.stringify({
