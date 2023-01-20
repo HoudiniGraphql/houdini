@@ -29,18 +29,49 @@ export default new HoudiniClient({
 Your application's instance of `HoudiniClient` defines virtually all of the behavior of
 your documents (`query`, `mutation`, `subscription`, etc). While this logic _is_ totally
 configurable, most people will never have to worry about those details. If your application
-only sends queries and mutations over http(s) then all you need is to pass
+only sends queries and mutations over http(s) then all you need is to provide a url for your
+API and optionally provide additional arguments to the fetch call as shown above.
 
 ### Constructor Fields
 
 The `HoudiniClient` constructor takes the following arguments
 
-- `url` - the URL that your application will use to query the API
-- `fetchParams` - a function that takes a [ClientPluginContext](/api/client-plugins) and returns additional parameters to `fetch` and other network calls made by the client.
-- `plugins` - a list of [ClientPlugins](/api/client-plugins) that will be added to the Client's default list
-- `pipeline` - a function that returns the full list of plugins that the client will use. This is only for very advanced usecases.
+- `url` (required): the URL that your application will use to query the API
+- `fetchParams` (optional): a function that takes a [FetchParamsInput](#type-definitions) and returns additional parameters to `fetch` and other network calls made by the client.
+- `plugins` (optional): a list of [ClientPlugins](/api/client-plugins) that will be added to the Client's default list
+- `pipeline` (optional): a function that returns the full list of plugins that the client will use. This is only for very advanced use cases.
   If you find yourself needing this level of control, please open an issue to discuss your situation.
-- `throwOnError` - an object that configures your client's error handling (see [Error Handling](#error-handling) below)
+- `throwOnError` (optional): takes an object of type [ThrowOnErrorParams](#type-definitions) and configures your client's error handling (see [Error Handling](#error-handling) below)
+
+### Type Definitions
+
+The best source of truth for the type definitions are exported from your `$houdini`
+package. You can see them [here](https://github.com/HoudiniGraphql/houdini/tree/main/packages/houdini/src/runtime/client/DocumentStore.ts). They've been summarized below for reference but this copy may be out of date.
+If you find a discrepancy, please let us know on GitHub.
+
+```typescript
+type FetchParamsInput = {
+	text: string
+	hash: string
+	artifact: DocumentArtifact
+	config: ConfigFile
+	policy: CachePolicy
+	variables: Record<string, any>
+	metadata: App.Metadata | null
+	session: App.Session | null
+	stuff: App.Stuff | null
+}
+
+type ThrowOnErrorParams = {
+	operations: ('all' | 'query' | 'mutation' | 'subscription')[]
+	error?: (errors: GraphqlError[]) => unknown
+}
+
+type GraphqlError = {
+	message: string
+	extensions?: Record<string, any>
+}
+```
 
 ## Location
 

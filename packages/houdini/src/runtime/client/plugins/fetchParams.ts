@@ -1,7 +1,7 @@
 import type { DocumentArtifact } from '../../lib/types'
 import type { ClientPlugin, ClientPluginContext } from '../documentStore'
 
-export type FetchParamFn = (ctx: FetchparamsInput) => Required<ClientPluginContext>['fetchParams']
+export type FetchParamFn = (ctx: FetchParamsInput) => Required<ClientPluginContext>['fetchParams']
 
 export const fetchParamsPlugin: (fn?: FetchParamFn) => ClientPlugin =
 	(fn = () => ({})) =>
@@ -19,7 +19,7 @@ export const fetchParamsPlugin: (fn?: FetchParamFn) => ClientPlugin =
 		},
 	})
 
-export type FetchparamsInput = Pick<
+export type FetchParamsInput = Pick<
 	ClientPluginContext,
 	'config' | 'policy' | 'variables' | 'metadata' | 'session' | 'stuff'
 > & {
