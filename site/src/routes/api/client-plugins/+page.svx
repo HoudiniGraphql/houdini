@@ -174,7 +174,7 @@ const logErrors: ClientPlugin = () => {
 An exit hook can also call `resolve` and `next` in the same function. However,
 an exit hook needs to call `resolve` under some circumstances. If an exit hook never calls `resolve`,
 you will have created a plugin black hole. No data will get to the user and the pipeline will
-hang forever <Emoji name="fear" height={20} fallback="😨" style="margin-bottom: -3px" />.
+hang forever <Emoji name="fear" height={20} fallback="😨" style="margin-bottom: -3px" />
 
 In Summary,
 
