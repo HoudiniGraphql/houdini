@@ -1,9 +1,5 @@
 import type { ArtifactKind } from '../../lib/types'
-import type {
-	ClientPlugin,
-	ClientPluginExitPhase,
-	ClientPluginEnterPhase,
-} from '../documentObserver'
+import type { ClientPlugin, ClientPluginExitPhase, ClientPluginEnterPhase } from '../documentStore'
 
 export const documentPlugin = (kind: ArtifactKind, source: ClientPlugin): ClientPlugin => {
 	return () => {

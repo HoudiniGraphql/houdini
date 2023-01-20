@@ -1,7 +1,7 @@
 import { deepEquals } from '../../lib/deepEquals'
 import type { GraphQLObject } from '../../lib/types'
 import { ArtifactKind, DataSource } from '../../lib/types'
-import type { ClientPluginContext } from '../documentObserver'
+import type { ClientPluginContext } from '../documentStore'
 import { documentPlugin } from '../utils'
 
 export function subscriptionPlugin(factory: SubscriptionHandler) {

@@ -1,4 +1,4 @@
-import type { DocumentObserver } from '$houdini/runtime/client/documentObserver'
+import type { DocumentStore } from '$houdini/runtime/client/DocumentStore'
 import { CachePolicy } from '$houdini/runtime/lib'
 import { getCurrentConfig } from '$houdini/runtime/lib/config'
 import { siteURL } from '$houdini/runtime/lib/constants'
@@ -22,7 +22,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 }: {
 	artifact: QueryArtifact
 	storeName: string
-	observer: DocumentObserver<_Data, _Input>
+	observer: DocumentStore<_Data, _Input>
 	fetch: FetchFn<_Data, _Input>
 	fetchUpdate: FetchFn<_Data, _Input>
 }): CursorHandlers<_Data, _Input> {

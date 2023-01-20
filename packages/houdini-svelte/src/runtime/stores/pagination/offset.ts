@@ -1,4 +1,4 @@
-import type { DocumentObserver } from '$houdini/runtime/client/documentObserver'
+import type { DocumentStore } from '$houdini/runtime/client/DocumentStore'
 import { CachePolicy } from '$houdini/runtime/lib'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import type { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
@@ -20,7 +20,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends {}>({
 	fetch: FetchFn<_Data, _Input>
 	fetchUpdate: FetchFn<_Data, _Input>
 	storeName: string
-	observer: DocumentObserver<_Data, _Input>
+	observer: DocumentStore<_Data, _Input>
 }) {
 	const getValue = () => get(observer)
 

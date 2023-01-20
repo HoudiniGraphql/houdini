@@ -1,4 +1,4 @@
-import type { DocumentObserver } from '$houdini/runtime/client'
+import type { DocumentStore } from '$houdini/runtime/client'
 import type { MutationArtifact } from '$houdini/runtime/lib/types'
 import type { GraphQLObject } from '$houdini/runtime/lib/types'
 
@@ -13,7 +13,7 @@ export class MutationStore<
 	artifact: MutationArtifact
 	kind = 'HoudiniMutation' as const
 
-	private store: DocumentObserver<_Data, _Input>
+	private store: DocumentStore<_Data, _Input>
 
 	constructor({ artifact }: { artifact: MutationArtifact }) {
 		this.artifact = artifact
@@ -45,7 +45,7 @@ export class MutationStore<
 		).data!
 	}
 
-	subscribe(...args: Parameters<DocumentObserver<_Data, _Input>['subscribe']>) {
+	subscribe(...args: Parameters<DocumentStore<_Data, _Input>['subscribe']>) {
 		// use it's value
 		return this.store.subscribe(...args)
 	}

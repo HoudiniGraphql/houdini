@@ -21,7 +21,7 @@ const forwardSteps = ['start', 'beforeNetwork', 'network'] as const
 // the list of states to step backwards with
 const backwardSteps = ['end', 'afterNetwork'] as const
 
-export class DocumentObserver<
+export class DocumentStore<
 	_Data extends GraphQLObject,
 	_Input extends Record<string, any>
 > extends Writable<QueryResult<_Data, _Input>> {
