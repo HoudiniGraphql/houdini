@@ -1,7 +1,7 @@
 import cache from '../../cache'
 import type { Cache } from '../../cache/cache'
 import { ArtifactKind, CachePolicy, DataSource } from '../../lib/types'
-import type { ClientPlugin } from '../documentObserver'
+import type { ClientPlugin } from '../documentStore'
 
 export const cachePolicyPlugin =
 	({

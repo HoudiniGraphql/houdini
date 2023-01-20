@@ -12,14 +12,14 @@ description: The API reference for HoudiniClient plugins
 # Client Plugins
 
 Client plugins allow you to customize the runtime behavior of your application's documents.
-They can do things like integrate with a logging service, adding retry logic,
+They can do things like integrate with a logging service, add retry logic,
 or even add support for entirely new network capabilities like
 [Live Queries](https://the-guild.dev/blog/subscriptions-and-live-queries-real-time-with-graphql).
 
 > You might not need to add _any_ plugins for your application. If all you need to do is
 > send queries and mutations over standard HTTP requests, then you should be able
 > to configure the client to suit your needs without using any plugins. For more
-> information, check out the [Client document](/api/client).
+> information, check out the [Client docs](/api/client).
 
 ## Overview
 
@@ -67,23 +67,32 @@ the server, you'll almost certainly want to do that in `network`.
 If you aren't building a `network` hook, the next question to ask is if you
 want to process a request on its way to the API or do you want to look at
 the result of the query?
-If you want to see the request before it gets to the API, you want one of the `start`,
+If you want to see the request before it gets to the API, you either want`start` or
 `beforeNetwork`. If you want to look at responses from the API then your
 options are `afterNetwork` or `end`.
 
-The next question is to ask yourself wether you want to execute the logic if the response is cached. If your logic must always run, `start` or `end` is what you're looking for.
+The next question is to ask yourself wether you want to execute the logic if the response is cached.
+If your logic must always run, `start` or `end` is what you're looking for.
 If your logic should only run if the cache isn't involved then `beforeNetwork` or
 `afterNetwork` is the answer.
+
+Hope that helps!
 
 ## Enter vs Exit Hooks
 
 It's important to keep in mind the direction that information is flowing in a given step.
-As mentioned before, the request pipeline is broken up into 5 distinct phases. `start`, `beforeNetwork`, and `network`
-are known as "enter hooks" whereas `afterNetwork` and `end` are known as "exit hooks".
+
+The easiest way to track this is by looking at the diagram above. Notice that in the top half,
+information is flowing from the user to the server. The bottom half is concerned with data flowing
+from the server back to the user.
+
+To make the conversation easier, we'll refer to the top half as "enter hooks" and the
+bottom half as the "exit hooks". While these hooks do behave very similarly, there are some important
+things to keep in mind.
 
 ### Enter Hook
 
-In an enter hook, information flows forward, to the next plugin in the list:
+In enter hooks like `start`, `beforeNetwork` and `network`, information flows forward: to the next plugin in the list:
 
 ```typescript:title=src/client.ts&typescriptToggle=true
 import type { ClientPlugin } from '$houdini'
@@ -126,23 +135,23 @@ const simpleFetchPlugin: ClientPlugin = () => {
 }
 ```
 
-There are a few things to keep in mind when defining Enter hooks:
+There are a few things to remember when defining Enter hooks:
 
 - An enter hook can call `next` or `resolve` in any combination
   you want as long as at least one of them is always called. If you do
   not call one of them, your pipeline will hang indefinitely.
-- When calling both `resolve` and `next` in the same hook, make
-  sure to call `resolve` before `next` when possible so you can
-  resolve the request as quickly as possible
+- When calling both `resolve` and `next` in the same hook, try
+  to call `resolve` before `next` so you can resolve the request
+  as soon as you can (if it makes sense for the situation).
 - When calling `resolve` you have to pass a full `QueryResult`
   (see [Type Definitions](#type-definitions) below)
 
 ### Exit hooks
 
-In an exit hook, we are returning a value from our request pipeline. This
-means we use the `resolve` function to proceed through the pipeline as normal.
-Apart from that, the biggest difference between an exit hook and
-an enter hook is that an exit hook has a value that it can process:
+Exit hooks like `afterNetwork` and `end` process a value as it leaves our request pipeline. This
+means we use the `resolve` function to keep the chain of returns going and ultimately complete the pipeline.
+Apart from that, the biggest difference between an exit hook and an enter hook is that an
+exit hook has a value that it can process:
 
 ```typescript:title=src/client.ts&typescriptToggle=true
 import type { ClientPlugin } from '$houdini'
@@ -150,10 +159,12 @@ import type { ClientPlugin } from '$houdini'
 const logErrors: ClientPlugin = () => {
     return {
         end(ctx, { value, resolve }) {
+            // log errors if we see them
             if (value.errors && value.errors.length > 0) {
                 console.warn('encountered errors:', value.errors)
             }
 
+            // keep the information flowing to the user
             resolve(ctx)
         }
     }
@@ -162,7 +173,8 @@ const logErrors: ClientPlugin = () => {
 
 An exit hook can also call `resolve` and `next` in the same function. However,
 an exit hook needs to call `resolve` under some circumstances. If an exit hook never calls `resolve`,
-the pipeline will hang forever <Emoji name="fear" height={20} fallback="😨" style="margin-bottom: -3px" />
+you will have created a plugin black hole. No data will get to the user and the pipeline will
+hang forever <Emoji name="fear" height={20} fallback="😨" style="margin-bottom: -3px" />
 
 In Summary,
 
@@ -172,7 +184,7 @@ In Summary,
 
 ## Stateful Plugins
 
-Plugins can contain state across multiple requests as well as phases.
+Plugins can track state across multiple requests as well as phases.
 
 ### State within a single request (multiple phases)
 
@@ -210,8 +222,8 @@ const timer: ClientPlugin = () => {
 ### State across network requests
 
 If you're plugin needs to track some state between multiple network requests, you can
-instantiate the state at the top of you plugin definition, before you return your hooks.
-Houdini will make sure that your function is called only once when the store is created:
+instantiate the state at the top of your plugin function, before you return your hooks.
+Houdini will make sure that your function is called only once when the store is created.
 
 ```typescript:title=src/client.ts&typescriptToggle=true
 import type { ClientPlugin } from '$houdini'
@@ -242,7 +254,7 @@ const logErrors: ClientPlugin = () => {
 The store might receive multiple updates for a given set of inputs. For example, subscriptions and live queries
 both push multiple results into the cache and need to update the store value. Each payload is pushed all
 the way through the chain using the same `resolve` function. If the original request hasn’t been resolved when a payload
-reaches the end, the promise will resolve with that first value so you are free to use `resolve` inside of event
+reaches the end, the promise will resolve with that first value. This means you are free to use `resolve` inside of event
 listeners to return multiple values.
 
 ## Utilities
@@ -254,7 +266,7 @@ to your hooks. For a full summary, please refer to the the `ClientPluginEnterHan
 ## Type Definitions
 
 The best source of truth for the type definitions are exported from your `$houdini`
-package. You can see them [here](https://github.com/HoudiniGraphql/houdini/tree/main/packages/houdini/src/runtime/client/documentObserver.ts). They've been summarized below for reference but this copy may be out of date.
+package. You can see them [here](https://github.com/HoudiniGraphql/houdini/tree/main/packages/houdini/src/runtime/client/DocumentStore.ts). They've been summarized below for reference but this copy may be out of date.
 If you find a discrepancy, please let us know on GitHub.
 
 ```typescript

@@ -1,6 +1,6 @@
 import cache from '../../cache'
 import { type SubscriptionSpec, ArtifactKind, DataSource } from '../../lib/types'
-import type { ClientPlugin } from '../documentObserver'
+import type { ClientPlugin } from '../documentStore'
 import { documentPlugin } from '../utils'
 
 export const queryPlugin: ClientPlugin = documentPlugin(ArtifactKind.Query, function () {

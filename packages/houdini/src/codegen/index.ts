@@ -266,7 +266,12 @@ async function processGraphQLDocument(
 	filepath: string,
 	document: string
 ): Promise<CollectedGraphQLDocument> {
-	const parsedDoc = graphql.parse(document)
+	try {
+		var parsedDoc = graphql.parse(document)
+	} catch (e) {
+		console.log('error parsing!!')
+		throw e
+	}
 
 	// look for the operation
 	const operations = parsedDoc.definitions.filter(

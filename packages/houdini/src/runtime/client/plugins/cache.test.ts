@@ -6,8 +6,8 @@ import { Cache } from '../../cache/cache'
 import { CachePolicy } from '../../lib'
 import { setMockConfig } from '../../lib/config'
 import { ArtifactKind, DataSource } from '../../lib/types'
-import type { ClientPlugin } from './../documentObserver'
-import { DocumentObserver } from './../documentObserver'
+import type { ClientPlugin } from '../documentStore'
+import { DocumentStore } from '../documentStore'
 import { cachePolicyPlugin } from './cache'
 
 /**
@@ -276,12 +276,12 @@ test('stale', async function () {
 /**
  * Utilities for testing the cache plugin
  */
-function createStore(plugins: ClientPlugin[]): DocumentObserver<any, any> {
+function createStore(plugins: ClientPlugin[]): DocumentStore<any, any> {
 	const client = new HoudiniClient({
 		url: 'URL',
 	})
 
-	return new DocumentObserver({
+	return new DocumentStore({
 		client,
 		pipeline: plugins,
 		cache: true,

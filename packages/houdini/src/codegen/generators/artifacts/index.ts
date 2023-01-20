@@ -263,19 +263,26 @@ export default function artifactGenerator(stats: {
 					}
 
 					// adding artifact_data of plugins (only if any information is present)
-					const pluginsData: Record<string, any> = config.plugins.reduce(
+					const pluginsData = config.plugins.reduce<Record<string, any>>(
 						(prev, plugin) => {
-							if (plugin.artifact_data) {
-								const dataToAdd = plugin.artifact_data(config, doc) ?? {}
-								if (JSON.stringify(dataToAdd) !== '{}') {
-									prev[plugin.name] = dataToAdd
-								}
+							// if the plugin doesn't provide any artifact data, ignore it
+							if (!plugin.artifact_data) {
+								return prev
 							}
-							return prev
+
+							// add the specified artifact data (if it exists)
+							const result = { ...prev }
+							const dataToAdd = plugin.artifact_data(config, doc) ?? {}
+							if (Object.keys(dataToAdd).length > 0) {
+								result[plugin.name] = dataToAdd
+							}
+
+							// we're done
+							return result
 						},
-						{} as any
+						{}
 					)
-					if (JSON.stringify(pluginsData) !== '{}') {
+					if (Object.keys(pluginsData).length > 0) {
 						artifact.pluginsData = pluginsData
 					}
 

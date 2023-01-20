@@ -1,4 +1,4 @@
-import type { DocumentObserver } from '$houdini/runtime/client'
+import type { DocumentStore } from '$houdini/runtime/client'
 import type { FetchContext } from '$houdini/runtime/client/plugins/fetch'
 import * as log from '$houdini/runtime/lib/log'
 import type {
@@ -29,7 +29,7 @@ export class QueryStore<_Data extends GraphQLObject, _Input extends {}> {
 	kind = CompiledQueryKind
 
 	// at its core, a query store is a writable store with extra methods
-	protected observer: DocumentObserver<_Data, _Input>
+	protected observer: DocumentStore<_Data, _Input>
 
 	// if there is a load in progress when the CSF triggers we need to stop it
 	protected loadPending = false

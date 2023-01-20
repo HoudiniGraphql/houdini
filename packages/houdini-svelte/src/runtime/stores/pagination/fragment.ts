@@ -1,4 +1,4 @@
-import type { DocumentObserver } from '$houdini/runtime/client/documentObserver'
+import type { DocumentStore } from '$houdini/runtime/client'
 import { getCurrentConfig, keyFieldsForType } from '$houdini/runtime/lib/config'
 import { siteURL } from '$houdini/runtime/lib/constants'
 import type {
@@ -113,9 +113,7 @@ class FragmentStoreCursor<
 		}
 	}
 
-	protected storeHandlers(
-		observer: DocumentObserver<_Data, _Input>
-	): CursorHandlers<_Data, _Input> {
+	protected storeHandlers(observer: DocumentStore<_Data, _Input>): CursorHandlers<_Data, _Input> {
 		return cursorHandlers<_Data, _Input>({
 			artifact: this.paginationArtifact,
 			fetchUpdate: async (args) => {

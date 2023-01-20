@@ -16,12 +16,13 @@ import type {
 import { ArtifactKind } from '../lib/types'
 import { cachePolicyPlugin } from './plugins'
 
-// the list of states to step forward with
-const forwardSteps = ['start', 'beforeNetwork', 'network'] as const
-// the list of states to step backwards with
-const backwardSteps = ['end', 'afterNetwork'] as const
+// the list of states to step in what direction
+const steps = {
+	forward: ['start', 'beforeNetwork', 'network'],
+	backwards: ['end', 'afterNetwork'],
+} as const
 
-export class DocumentObserver<
+export class DocumentStore<
 	_Data extends GraphQLObject,
 	_Input extends Record<string, any>
 > extends Writable<QueryResult<_Data, _Input>> {
@@ -152,9 +153,10 @@ export class DocumentObserver<
 		const result = await new Promise<QueryResult<_Data, _Input>>((resolve, reject) => {
 			// the initial state of the iterator
 			const state: IteratorState = {
-				currentStep: 0,
 				setup,
-				index: -1,
+				currentStep: 0,
+				index: 0,
+				direction: 'forward',
 				promise: {
 					resolved: false,
 					resolve,
@@ -165,164 +167,162 @@ export class DocumentObserver<
 			}
 
 			// start walking down the chain
-			this.#next(state)
+			this.#step(state)
 		})
 
 		// we're done
 		return result
 	}
 
-	#next(ctx: IteratorState): void {
-		const currentStep = forwardSteps[ctx.currentStep]
+	#step(ctx: IteratorState, value?: QueryResult): void {
+		// grab the current step
+		const currentStep = steps[ctx.direction][ctx.currentStep]
 
-		// look for the next plugin that defines an enter of the correct step
-		for (let index = ctx.index + 1; index <= this.#plugins.length; index++) {
-			let target = this.#plugins[index]?.[currentStep]
-			if (target) {
-				try {
-					const draft = ctx.context.draft()
-					// invoke the target
-					const result = target(draft, {
-						initialValue: this.state,
-						client: this.#client,
-						variablesChanged,
-						marshalVariables,
-						updateState: this.update.bind(this),
-						next: (newContext) => {
-							this.#next({
-								...ctx,
-								context: ctx.context.apply(
-									newContext,
-									draft.variables !== newContext.variables
-								),
-								index,
-							})
-						},
-						resolve: (newContext, value) => {
-							// start the journey back
-							this.#terminate(
-								{
-									...ctx,
-									context: ctx.context.apply(
-										newContext,
-										draft.variables !== newContext.variables
-									),
-									// increment the index so that terminate looks at this link again
-									index: index + 1,
-								},
-								value
-							)
-						},
-					})
-					result?.catch((err) => {
-						this.#error({ ...ctx, index }, err)
-					})
-				} catch (err) {
-					this.#error({ ...ctx, index }, err)
-				}
-				return
-			}
+		// figure out which direction we want to go (starting from the specified index)
+		let valid = (i: number) => i <= this.#plugins.length
+		let step = (i: number) => i++
+		if (ctx.direction === 'backwards') {
+			valid = (i) => i >= 0
+			step = (i) => i--
 		}
 
-		// if we got this far, we have exhausted the step
+		// walk down the list of plugins
+		for (let index = ctx.index; valid(index); step(index)) {
+			// if we found a handle
+			let target = this.#plugins[index]?.[currentStep]
+			if (!target) {
+				continue
+			}
 
-		// if we're only supposed to `setup` then turn around
-		// and run the rest of the setup
-		if (ctx.setup) {
-			return this.#terminate(
-				{
-					...ctx,
-					currentStep: 0,
-					index: this.#plugins.length,
+			// create a new draft
+			const draft = ctx.context.draft()
+
+			// detect changes in the variables from the user using object identity
+			let variablesChanged = (newContext: ClientPluginContext) =>
+				newContext.variables !== draft.variables
+
+			// the common handlers
+			const common = {
+				initialValue: this.state,
+				client: this.#client,
+				variablesChanged,
+				marshalVariables,
+				updateState: this.update.bind(this),
+				next: (newContext) => {
+					// the next index depends on the direction we're going now
+					const nextIndex =
+						ctx.direction === 'forward'
+							? // if we're going forward, add one
+							  index + 1
+							: // if we're moving backwards but called next, we
+							  // we need to invoke the same hook
+							  index
+
+					// if we are resolving the pipe and fire next, we need to start
+					// from the first phase
+					const nextStep = ctx.direction === 'backwards' ? 0 : ctx.currentStep
+
+					// move on
+					this.#step(
+						{
+							...ctx,
+							direction: 'forward',
+							index: nextIndex,
+							currentStep: nextStep,
+							context: ctx.context.apply(newContext, variablesChanged(newContext)),
+						},
+						value
+					)
 				},
-				this.state
+				resolve: (newContext) => {
+					// the next index depends on the direction we're going now
+					const nextIndex =
+						ctx.direction === 'backwards'
+							? // if we're going backwards, subtract one
+							  index - 1
+							: // if we're moving forwards but then call resolve
+							  // we need to visit the same hook
+							  index
+
+					// move on
+					this.#step({
+						...ctx,
+						direction: 'backwards',
+						index: nextIndex,
+						context: ctx.context.apply(newContext, variablesChanged(newContext)),
+					})
+				},
+			} as ClientPluginEnterHandlers
+
+			const handlers = (steps.forward as readonly string[]).includes(currentStep)
+				? // enter handlers
+				  common
+				: // exit handlers
+				  {
+						...common,
+						value: value!,
+						resolve: ((ctx, data) => {
+							return common.resolve(ctx, data ?? value!)
+						}) as ClientPluginExitHandlers['resolve'],
+				  }
+
+			try {
+				// @ts-expect-error
+				// invoke the target with the correct handlers
+				const result = target(draft, handlers)
+
+				// if we got _something_ back its a promise so we need to make
+				// sure something is listening for error
+				result?.catch((err) => {
+					this.#error({ ...ctx, index }, err)
+				})
+			} catch (err) {
+				// if an exception was thrown it was a synchronous hook so catch the exception
+				this.#error({ ...ctx, index }, err)
+			}
+
+			return
+		}
+
+		// check forward end conditions
+		if (ctx.direction === 'forward') {
+			// if we triggering a setup cycle phase
+			if (ctx.setup) {
+				return this.#step(
+					{
+						...ctx,
+						direction: 'backwards',
+						currentStep: 0,
+						index: this.#plugins.length,
+					},
+					this.state
+				)
+			}
+
+			// if we still have steps to go forward, do so
+			if (ctx.currentStep <= steps.forward.length - 2) {
+				return this.#step({
+					...ctx,
+					currentStep: ctx.currentStep + 1,
+					index: 0,
+				})
+			}
+
+			// we're at the end of the chain in the last phase. something is wrong.
+			throw new Error(
+				'Called next() on last possible plugin. Your chain is missing a plugin that calls resolve().'
 			)
 		}
 
-		// if we still have steps to go forward, do so
-		if (ctx.currentStep <= forwardSteps.length - 2) {
-			return this.#next({
-				...ctx,
-				currentStep: ctx.currentStep + 1,
-				index: -1,
-			})
-		}
-
-		// if we are in fetch, the last fetch enter called next. there's no terminating link for this
-		// chain
-		throw new Error(
-			'Called next() on last possible plugin. Your chain is missing a terminating link.'
-		)
-	}
-
-	#terminate(ctx: IteratorState, value: QueryResult): void {
-		const currentStep = backwardSteps[ctx.currentStep]
-		// starting one less than the current index
-		for (let index = ctx.index - 1; index >= 0; index--) {
-			// if the current step is never valid, we're done
-			if (!currentStep) {
-				break
-			}
-
-			// if we find a plugin in the same phase, call it
-			let target = this.#plugins[index]?.[currentStep]
-			if (target) {
-				try {
-					const draft = ctx.context.draft()
-					// invoke the target
-					const result = target(draft, {
-						initialValue: this.state,
-						value,
-						client: this.#client,
-						variablesChanged,
-						marshalVariables,
-						updateState: this.update.bind(this),
-						next: (newContext) => {
-							// push the ctx onto the next step
-							this.#next({
-								...ctx,
-								index: index - 1,
-								currentStep: 0,
-								context: ctx.context.apply(
-									newContext,
-									newContext.variables !== draft.variables
-								),
-							})
-						},
-						resolve: (context, val) => {
-							// be brave. take the next step.
-							this.#terminate(
-								{
-									...ctx,
-									context: ctx.context.apply(
-										context,
-										draft.variables !== context.variables
-									),
-									index,
-								},
-								// if we were given a value, use it. otherwise use the previous value
-								val ?? value
-							)
-						},
-					})
-					result?.catch((err) => {
-						this.#error({ ...ctx, index }, err)
-					})
-				} catch (err) {
-					this.#error({ ...ctx, index }, err)
-				}
-
-				return
-			}
-		}
+		// we are resolving the chain
 
 		// if we aren't at the last phase then we have more to go
 		if (ctx.currentStep > 0) {
-			return this.#terminate(
+			return this.#step(
 				{
 					...ctx,
 					currentStep: ctx.currentStep - 1,
-					index: this.#plugins.length,
+					index: this.#plugins.length - 1,
 				},
 				value
 			)
@@ -331,10 +331,9 @@ export class DocumentObserver<
 		// we're done with the chain
 
 		// convert the raw value into something we can give to the user
-		let data = value.data
+		let data = value!.data
 		try {
-			data =
-				unmarshalSelection(this.#configFile!, this.#artifact.selection, value.data) ?? null
+			data = unmarshalSelection(this.#configFile!, this.#artifact.selection, data) ?? null
 		} catch {}
 
 		// build up the final state
@@ -351,8 +350,8 @@ export class DocumentObserver<
 			ctx.promise.resolved = true
 		}
 
-		this.#lastVariables = ctx.context.draft().stuff.inputs.marshaled
 		this.#lastContext = ctx.context.draft()
+		this.#lastVariables = this.#lastContext.stuff.inputs.marshaled
 
 		// the latest value should be written to the store
 		this.set(finalValue)
@@ -378,14 +377,14 @@ export class DocumentObserver<
 					next: (newContext) => {
 						breakBubble = true
 
-						this.#next({
+						this.#step({
 							...ctx,
 							context: ctx.context.apply(
 								newContext,
 								draft.variables !== newContext.variables
 							),
 							currentStep: 0,
-							index: i,
+							index: i + 1,
 						})
 
 						// don't step through the rest of the errors
@@ -557,6 +556,7 @@ type IteratorState = {
 	index: number
 	setup: boolean
 	currentStep: number
+	direction: keyof typeof steps
 	promise: {
 		resolved: boolean
 		resolve(val: any): void

@@ -1,7 +1,7 @@
 import { deepEquals } from '../../lib/deepEquals'
 import type { GraphQLObject } from '../../lib/types'
 import { ArtifactKind, DataSource } from '../../lib/types'
-import type { ClientPluginContext } from '../documentObserver'
+import type { ClientPluginContext } from '../documentStore'
 import { documentPlugin } from '../utils'
 
 export function subscriptionPlugin(factory: SubscriptionHandler) {
@@ -38,7 +38,9 @@ export function subscriptionPlugin(factory: SubscriptionHandler) {
 				}
 				// if the variables havent changed since the last time we ran this,
 				// there's nothing to do
-				if (!variablesChanged(ctx) && deepEquals(check, checkValue)) {
+				const changed = variablesChanged(ctx)
+				const sessionChange = !deepEquals(check, checkValue)
+				if (!changed && !sessionChange) {
 					resolve(ctx, initialValue)
 					return
 				}
@@ -46,14 +48,15 @@ export function subscriptionPlugin(factory: SubscriptionHandler) {
 				// we need to use this as the new check value
 				check = checkValue
 
-				// if the socket client hasn't been made yet then do so with the current context
-				if (!socketClient) {
-					socketClient = factory(ctx)
-				}
-
 				// if we got this far, we need to clear the subscription before we
 				// create a new one
 				clearSubscription?.()
+
+				// if the socket client hasn't been made yet then do so with the current context
+				// if the session has also changed then recreate the client
+				if (!socketClient || sessionChange) {
+					socketClient = factory(ctx)
+				}
 
 				// start listening for the new subscription
 				clearSubscription = socketClient.subscribe(

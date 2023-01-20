@@ -5,18 +5,18 @@ import { HoudiniClient } from '.'
 import { setMockConfig } from '../lib/config'
 import type { GraphQLObject } from '../lib/types'
 import { ArtifactKind, DataSource } from '../lib/types'
-import type { ClientPlugin } from './documentObserver'
-import { DocumentObserver } from './documentObserver'
+import type { ClientPlugin } from './documentStore'
+import { DocumentStore } from './documentStore'
 
 function createStore(
 	plugins: ClientPlugin[],
 	fetching: boolean | undefined = undefined
-): DocumentObserver<GraphQLObject, Record<string, any>> {
+): DocumentStore<GraphQLObject, Record<string, any>> {
 	const client = new HoudiniClient({
 		url: 'URL',
 	})
 
-	return new DocumentObserver({
+	return new DocumentStore({
 		client,
 		pipeline: plugins,
 		artifact: {
@@ -42,12 +42,12 @@ function createStore(
 
 function createStoreMutation(
 	plugins: ClientPlugin[]
-): DocumentObserver<GraphQLObject, Record<string, any>> {
+): DocumentStore<GraphQLObject, Record<string, any>> {
 	const client = new HoudiniClient({
 		url: 'URL',
 	})
 
-	return new DocumentObserver({
+	return new DocumentStore({
 		client,
 		pipeline: plugins,
 		artifact: {
