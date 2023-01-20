@@ -67,7 +67,7 @@ things to keep in mind.
 
 ### Enter Hook
 
-In enter hooks like `start`, `beforeNetwork` and `network`, information flows forward: to the next plugin in the list:
+In enter hooks like `start`, `beforeNetwork` and `network`, information flows forward: to the next plugin in the list.
 
 ```typescript:title=src/client.ts&typescriptToggle=true
 import type { ClientPlugin } from '$houdini'
