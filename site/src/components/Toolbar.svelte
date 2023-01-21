@@ -82,6 +82,7 @@
 				--code-title-background: #0c0f14;
 				--code-title-color: #475465;
 				--zoom-shadow: #191c26;
+				--caption-text: #828282;
 			}
 		</style>
 	{:else}
@@ -106,6 +107,7 @@
 				--code-title-background: #0c0f14;
 				--code-title-color: #475465;
 				--zoom-shadow: black;
+				--caption-text: #5d6994;
 			}
 		</style>
 	{/if}

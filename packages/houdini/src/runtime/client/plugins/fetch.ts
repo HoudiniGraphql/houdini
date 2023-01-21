@@ -11,8 +11,8 @@ export const fetchPlugin = (target?: RequestHandler | string): ClientPlugin => {
 
 				// build up the params object
 				const fetchParams: FetchParams = {
-					text: ctx.artifact.raw,
-					hash: ctx.artifact.hash,
+					text: ctx.text,
+					hash: ctx.hash,
 					variables: marshalVariables(ctx),
 				}
 

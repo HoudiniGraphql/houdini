@@ -38,12 +38,20 @@ For some documents, `beforeNetwork`, `network`, and `afterNetwork` might be shor
 if the policy allows it. You can think of the cache as a gatekeeper that decides if a request can be resolved
 before beginning the network phases.
 
-<Zoomable>
-    <PluginWorkflow />
+<Zoomable style="margin: 40px 0 60px 0;">
+
+    <figure alt="A diagram showing the organization of phases as a request is processed by houdini">
+    		<PluginWorkflow />
+    	<figcaption style="margin-top: 20px">
+    		In this diagram, colored boxes represent plugins and the number indicates their order in the client file.
+    		The arrow shows the flow of information to the server and back to the user.
+    	</figcaption>
+    </figure>
+
 </Zoomable>
 
 While preparing the request, plugins are iterated over in the order they are passed to the client. Once a result
-has been provided, its value is sent in reverse order through the list of plugins we've visited who can
+has been provided, its value is sent in reverse order through the list of plugins we've visited to potentially
 modify the response. For more information on this, please read the section on [Enter vs Exit hooks](#enter-vs-exit-hooks).
 
 ## Create Your First Plugin
@@ -65,7 +73,7 @@ To make the conversation easier, we'll refer to the top half as "enter hooks" an
 bottom half as the "exit hooks". While these hooks do behave very similarly, there are some important
 things to keep in mind.
 
-### Enter Hook
+### Enter Hooks
 
 In enter hooks like `start`, `beforeNetwork` and `network`, information flows forward: to the next plugin in the list.
 
@@ -97,7 +105,7 @@ const simpleFetchPlugin: ClientPlugin = () => {
     return {
         async network(ctx, { resolve, next }) {
             const result = await fetch('...', {
-                body: JSON.strinify({ query: ctx.artifact.raw })
+                body: JSON.strinify({ query: ctx.text })
             })
 
             // in reality we need to pass more here
@@ -221,7 +229,7 @@ const timer: ClientPlugin = () => {
 
 ### State across network requests
 
-If you're plugin needs to track some state between multiple network requests, you can
+If your plugin needs to track some state between multiple network requests, you can
 instantiate the state at the top of your plugin function, before you return your hooks.
 Houdini will make sure that your function is called only once when the store is created.
 
@@ -367,6 +375,7 @@ type ClientPluginCatchHandlers = {
 type ClientPluginContext = {
 	config: ConfigFile
 	text: string
+	hash: string
 	artifact: DocumentArtifact
 	policy?: CachePolicy
 	fetch?: Fetch
@@ -382,7 +391,7 @@ type ClientPluginContext = {
 		disableRead?: boolean
 		applyUpdates?: boolean
 	}
-	stuff: Record<string, any>
+	stuff: App.Stuff
 }
 
 type QueryResult = {
