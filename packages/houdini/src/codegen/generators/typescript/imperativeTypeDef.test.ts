@@ -147,7 +147,7 @@ test('generates type definitions for the imperative API', async function () {
 		`
 		import type { Record } from "./public/record";
 		import type { MyEnum } from "$houdini/graphql/enums";
-		import { UserInfo$data } from "../artifacts";
+		import { UserInfo$data } from "../artifacts/UserInfo";
 
 		type NestedUserFilter = {
 		    id: string;
