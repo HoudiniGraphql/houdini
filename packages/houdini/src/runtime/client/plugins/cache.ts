@@ -70,7 +70,6 @@ export const cachePolicyPlugin =
 
 						// if we used the cache data and there's no followup necessary, we're done
 						if (useCache && !value.partial) {
-							console.log(' used cached value')
 							return
 						}
 					}
