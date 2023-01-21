@@ -2,7 +2,7 @@ import type { StatementKind, TSTypeKind } from 'ast-types/lib/gen/kinds'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import type { Config, CollectedGraphQLDocument } from '../../../lib'
+import { Config, CollectedGraphQLDocument, ArtifactKind, ensureImports } from '../../../lib'
 import {
 	fs,
 	path,
@@ -32,7 +32,7 @@ export default async function imperativeCacheTypef(
 		AST.tsTypeLiteral([
 			AST.tsPropertySignature(
 				AST.identifier('types'),
-				AST.tsTypeAnnotation(typeDefinitions(config, body))
+				AST.tsTypeAnnotation(typeDefinitions(config, body, docs))
 			),
 			AST.tsPropertySignature(
 				AST.identifier('lists'),
@@ -60,7 +60,8 @@ export default async function imperativeCacheTypef(
 
 function typeDefinitions(
 	config: Config,
-	body: StatementKind[]
+	body: StatementKind[],
+	docs: CollectedGraphQLDocument[]
 ): recast.types.namedTypes.TSTypeLiteral {
 	// grab a list of the mutation and subscription type names so we don't include them
 	const operationTypes = [config.schema.getMutationType(), config.schema.getSubscriptionType()]
@@ -80,6 +81,14 @@ function typeDefinitions(
 			!operationTypes.includes(type.name)
 	)
 
+	// we need to look for every fragment defined on a concrete type
+	const fragmentMap = fragmentListMap(
+		config,
+		types.map((type) => type.name),
+		body,
+		docs
+	)
+
 	return AST.tsTypeLiteral(
 		types.map((type) => {
 			// figure out the appropriate type name
@@ -88,7 +97,7 @@ function typeDefinitions(
 				typeName = '__ROOT__'
 			}
 
-			// if the type has a field for every necesary key, it can be looked up
+			// if the type has a field for every necessary key, it can be looked up
 			let idFields: TypeLiteral = AST.tsNeverKeyword()
 			const keys = keyFieldsForType(config.configFile, type.name)
 			if (
@@ -237,6 +246,10 @@ function typeDefinitions(
 							AST.identifier('fields'),
 							AST.tsTypeAnnotation(fields)
 						),
+						AST.tsPropertySignature(
+							AST.identifier('fragments'),
+							AST.tsTypeAnnotation(fragmentMap[typeName] ?? AST.tsTupleType([]))
+						),
 					])
 				)
 			)
@@ -349,6 +362,80 @@ function listDefinitions(
 		})
 	}
 	return AST.tsTypeLiteral(lists)
+}
+
+function fragmentListMap(
+	config: Config,
+	concreteTypes: string[],
+	body: StatementKind[],
+	docs: CollectedGraphQLDocument[]
+): { [typeName: string]: recast.types.namedTypes.TSTupleType } {
+	// in order to generate type definitions for the write method, we need to
+	// make the return value of graphql to the actual data structure that users
+	// need to pass. This means figuring out the return type.
+	let return_type = config.plugins.find((plugin) => plugin.graphql_tag_return)?.graphql_tag_return
+
+	// we need to find all of the fragments that are on concrete types,
+	// group them by type name and then map them to the fragment list definition
+	return docs.reduce<ReturnType<typeof fragmentListMap>>((prev, doc) => {
+		// if the doc is not a fragment, ignore it
+		if (doc.kind !== ArtifactKind.Fragment) {
+			return prev
+		}
+
+		// if the fragment's type condition is not in the concrete list, ignore it
+		const definition = doc.document.definitions.find<graphql.FragmentDefinitionNode>(
+			(def): def is graphql.FragmentDefinitionNode =>
+				def.kind === 'FragmentDefinition' && def.name.value === doc.name
+		)
+		if (!definition || !concreteTypes.includes(definition.typeCondition.name.value)) {
+			return prev
+		}
+		const typeName = definition.typeCondition.name.value
+
+		// if we already had a value at that key, it must be a tuple type
+		const previousValue = prev[typeName]?.elementTypes ?? []
+
+		/// compute the fragment information
+
+		// the fragment store wrapper (what's returned from the graphql tag)
+		const tagResult =
+			return_type?.({
+				config,
+				doc,
+				ensure_import({ identifier, module }) {
+					ensureImports({
+						config,
+						body,
+						sourceModule: module,
+						import: [identifier],
+					})
+				},
+			}) ?? 'any'
+
+		// import the shape type
+		const [shapeType] = ensureImports({
+			config,
+			body,
+			sourceModule: path.relative(
+				config.runtimeDirectory,
+				config.artifactImportPath(doc.name)
+			),
+			import: [`${definition.name.value}$data`],
+		})
+
+		return {
+			...prev,
+			[typeName]: AST.tsTupleType(
+				previousValue.concat(
+					AST.tsTupleType([
+						AST.tsTypeReference(AST.identifier(tagResult)),
+						AST.tsTypeReference(AST.identifier(shapeType)),
+					])
+				)
+			),
+		}
+	}, {})
 }
 
 // in order to integrate with the generated runtime

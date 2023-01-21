@@ -12,6 +12,9 @@ export type CacheTypeDef = {
 					type: any
 				}
 			}
+			// the fragments we know about are passed as a list of pairs
+			// that map the tag return type to the data shape
+			fragments: [any, any][]
 		}
 	}
 	lists: {
@@ -40,6 +43,11 @@ export type TypeNames<Def extends CacheTypeDef> = Extract<
 	Exclude<ValidTypes<Def>, '__ROOT__'>,
 	string
 >
+
+export type FragmentList<
+	Def extends CacheTypeDef,
+	Type extends ValidTypes<Def>
+> = Def['types'][Type]['fragments']
 
 export type IDFields<
 	Def extends CacheTypeDef,

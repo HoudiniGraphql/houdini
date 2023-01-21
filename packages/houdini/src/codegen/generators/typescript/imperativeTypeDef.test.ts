@@ -126,6 +126,12 @@ test('generates type definitions for the imperative API', async function () {
 				}
 			`
 		),
+		mockCollectedDoc(
+			`fragment UserInfo on User {
+					firstName
+				}
+			`
+		),
 	])
 
 	// open up the index file
@@ -141,6 +147,7 @@ test('generates type definitions for the imperative API', async function () {
 		`
 		import type { Record } from "./public/record";
 		import type { MyEnum } from "$houdini/graphql/enums";
+		import { UserInfo$data } from "../artifacts";
 
 		type NestedUserFilter = {
 		    id: string;
@@ -207,6 +214,7 @@ test('generates type definitions for the imperative API', async function () {
 		                    };
 		                };
 		            };
+		            fragments: [];
 		        };
 		        Cat: {
 		            idFields: {
@@ -230,6 +238,7 @@ test('generates type definitions for the imperative API', async function () {
 		                    args: never;
 		                };
 		            };
+		            fragments: [];
 		        };
 		        Ghost: {
 		            idFields: {
@@ -250,6 +259,7 @@ test('generates type definitions for the imperative API', async function () {
 		                    args: never;
 		                };
 		            };
+		            fragments: [];
 		        };
 		        User: {
 		            idFields: {
@@ -293,6 +303,7 @@ test('generates type definitions for the imperative API', async function () {
 		                    args: never;
 		                };
 		            };
+		            fragments: [[any, UserInfo$data]];
 		        };
 		    };
 		    lists: {
