@@ -5,6 +5,21 @@ export enum CachePolicy {
 	CacheAndNetwork = 'CacheAndNetwork',
 }
 
+declare global {
+	namespace App {
+		interface Session {}
+		interface Metadata {}
+		interface Stuff {
+			inputs: {
+				init: boolean
+				marshaled: Record<string, any>
+				changed: boolean
+			}
+			optimisticResponse?: GraphQLObject
+		}
+	}
+}
+
 export type Fragment<_Result> = {
 	readonly shape?: _Result
 }
@@ -84,6 +99,7 @@ export type BaseCompiledDocument = {
 		paginated: boolean
 		direction?: 'forward' | 'backwards'
 	}
+	pluginsData?: Record<string, any>
 }
 
 export type HoudiniFetchContext = {
@@ -184,25 +200,20 @@ export type FetchQueryResult<_Data> = {
 	partial: boolean
 }
 
-export type QueryResult<_Data, _Input, _Extra = {}> = {
+export type QueryResult<_Data = GraphQLObject, _Input = Record<string, any>> = {
 	data: _Data | null
 	errors: { message: string }[] | null
 	fetching: boolean
 	partial: boolean
 	source: DataSource | null
-	variables: _Input
-} & _Extra
+	variables: _Input | null
+}
 
-export type RequestPayload<_Data = any> = {
-	data: _Data | null
+export type RequestPayload<GraphQLObject = any> = {
+	data: GraphQLObject | null
 	errors:
 		| {
 				message: string
 		  }[]
 		| null
-}
-
-export type RequestPayloadMagic<_Data = any> = {
-	ssr: boolean
-	body: RequestPayload<_Data>
 }

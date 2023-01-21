@@ -1,7 +1,8 @@
 import { test, expect, vi } from 'vitest'
 
 import { testConfigFile } from '../../../test'
-import { RefetchUpdateMode, SubscriptionSelection } from '../../lib'
+import type { SubscriptionSelection } from '../../lib'
+import { RefetchUpdateMode } from '../../lib'
 import { Cache } from '../cache'
 
 const config = testConfigFile()
@@ -1975,7 +1976,142 @@ test('subscribe to abstract fields of matching type', function () {
 	})
 })
 
-test('new __typename moves subscribers', function () {})
+test('overlapping subscriptions', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection1: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				nullable: true,
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						favoriteColors: {
+							type: 'String',
+							keyRaw: 'favoriteColors',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	const selection2: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				nullable: true,
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// write some data
+	cache.write({
+		selection: selection1,
+		data: {
+			viewer: null,
+		},
+	})
+
+	// subscribe with both subscriptions
+
+	// a function to spy on that will play the role of set
+	const set1 = vi.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		selection: selection1,
+		set: set1,
+	})
+
+	// a function to spy on that will play the role of set
+	const set2 = vi.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		selection: selection2,
+		set: set2,
+	})
+
+	// write to the first selection
+	cache.write({
+		selection: selection1,
+		data: {
+			viewer: {
+				id: '1',
+				favoriteColors: ['test'],
+			},
+		},
+	})
+
+	// both sets will have been called by now
+
+	// writing to favoriteColors should only trigger selection1
+	cache.write({
+		parent: 'User:1',
+		selection: {
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				favoriteColors: {
+					type: 'String',
+					keyRaw: 'favoriteColors',
+				},
+			},
+		},
+		data: {
+			id: '1',
+			favoriteColors: ['test2'],
+		},
+	})
+
+	expect(set2).toHaveBeenCalledOnce()
+
+	// and writing to firstName should trigger set 2
+	cache.write({
+		parent: 'User:1',
+		selection: {
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+			},
+		},
+		data: {
+			id: '1',
+			firstName: 'test2',
+		},
+	})
+	expect(set2).toHaveBeenCalledTimes(2)
+})
 
 test.todo('can write to and resolve layers')
 

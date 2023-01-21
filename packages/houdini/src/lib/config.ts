@@ -10,15 +10,16 @@ import type {
 } from 'rollup'
 import { fileURLToPath, pathToFileURL } from 'url'
 
-import { ConfigFile, CachePolicy } from '../runtime/lib'
+import type { ConfigFile } from '../runtime/lib'
+import { CachePolicy } from '../runtime/lib'
 import { computeID, defaultConfigValues, keyFieldsForType } from '../runtime/lib/config'
-import { TransformPage } from '../vite/houdini'
+import type { TransformPage } from '../vite/houdini'
 import { houdini_mode } from './constants'
 import { HoudiniError } from './error'
 import * as fs from './fs'
 import { pullSchema } from './introspection'
 import * as path from './path'
-import { CollectedGraphQLDocument } from './types'
+import type { CollectedGraphQLDocument } from './types'
 
 // @ts-ignore
 const currentDir = global.__dirname || path.dirname(fileURLToPath(import.meta.url))
@@ -494,10 +495,12 @@ export class Config {
 		return path.join(this.pluginDirectory(name), 'runtime')
 	}
 
+	get pluginRootDirectory() {
+		return houdini_mode.is_testing ? '../../../' : path.join(this.rootDir, 'plugins')
+	}
+
 	pluginDirectory(name: string) {
-		return houdini_mode.is_testing
-			? path.resolve('../../../', name)
-			: path.join(this.rootDir, 'plugins', name)
+		return path.join(this.pluginRootDirectory, name)
 	}
 
 	/*
@@ -570,6 +573,10 @@ export class Config {
 
 	get whenNotDirective() {
 		return this.whenDirective + '_not'
+	}
+
+	get liveDirective() {
+		return 'live'
 	}
 
 	get argumentsDirective() {
@@ -759,7 +766,7 @@ export async function readConfigFile(
 
 	let imported: any
 	try {
-		imported = await import(importPath)
+		imported = await import(/* @vite-ignore */ importPath)
 	} catch (e: any) {
 		throw new Error(`Could not load config file at file://${configPath}.\n${e.message}`)
 	}
@@ -853,7 +860,9 @@ export async function getConfig({
 	})
 
 	// look up the current config file
-	let configFile = await readConfigFile(configPath)
+	let configFile = {
+		...(await readConfigFile(configPath)),
+	}
 
 	// if there is a framework specified, tell them they need to change things
 	if (!configFile.plugins) {
@@ -929,14 +938,17 @@ This will prevent your schema from being pulled.`
 				version = packageJSON.version
 			} catch {}
 
-			// add the plugin to the list
-			plugins.push({
-				...(await pluginFactory(plugin_config)),
-				name: pluginName,
-				include_runtime,
-				version,
-				directory: pluginDirectory,
-			})
+			// if the plugin config is a function, we should pass the config files
+			// eslint-disable-next-line no-constant-condition
+			if (typeof plugin_config)
+				// add the plugin to the list
+				plugins.push({
+					...(await pluginFactory(plugin_config)),
+					name: pluginName,
+					include_runtime,
+					version,
+					directory: pluginDirectory,
+				})
 		} catch (e) {
 			throw new Error(
 				`Could not find plugin: ${pluginName}. Are you sure its installed? If so, please open a ticket on GitHub.`
@@ -980,12 +992,16 @@ export type Plugin = {
 	extensions?: string[]
 	transform_runtime?: Record<string, (args: { config: Config; content: string }) => string>
 	after_load?: (config: Config) => Promise<void> | void
+	artifact_data?: (config: Config, doc: CollectedGraphQLDocument) => Record<string, any>
 	extract_documents?: (
 		config: Config,
 		filepath: string,
 		content: string
 	) => Promise<string[]> | string[]
 	generate?: GenerateHook
+	client_plugins?:
+		| Record<string, null | Record<string, any>>
+		| ((config: ConfigFile, pluginConfig: any) => Record<string, null | Record<string, any>>)
 	transform_file?: (page: TransformPage) => Promise<{ code: string }> | { code: string }
 	index_file?: ModuleIndexTransform
 	graphql_tag_return?: (args: {

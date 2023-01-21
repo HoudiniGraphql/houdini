@@ -1,7 +1,8 @@
 import type { Plugin as VitePlugin } from 'vite'
 
 import generate from '../codegen'
-import { path, Config, getConfig, PluginConfig, formatErrors } from '../lib'
+import type { Config, PluginConfig } from '../lib'
+import { path, getConfig, formatErrors } from '../lib'
 
 let config: Config
 

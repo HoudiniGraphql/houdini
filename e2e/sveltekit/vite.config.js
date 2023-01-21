@@ -10,19 +10,26 @@ const config = {
 
     // This plugin is checking build sizes by lib.
     // It's not required for Houdini to work.
+    // If there is a config change needed, please comment it and let us know.
     libReporter([
       {
-        name: 'houdini',
-        includes: ['$houdini/runtime', 'houdini.config.js'],
-        excludes: ['vite/preload-helper']
+        name: 'houdini runtime core',
+        includes: ['$houdini/runtime', 'src/client.ts'],
+        excludes: [
+          'vite/preload-helper',
+          '$houdini/index.js',
+          'houdini.config.js',
+          'src/client.ts',
+          'sveltejs'
+        ]
       },
       {
-        name: 'houdini-svelte',
+        name: 'houdini runtime svelte',
         includes: ['$houdini/plugins/houdini-svelte/runtime', 'src/client.ts'],
         excludes: ['vite/preload-helper', '$houdini/runtime', '$houdini/index.js', 'svelte']
       },
       {
-        name: 'houdini-full-e2e',
+        name: 'houdini full e2e',
         includes: ['$houdini', 'src/client.ts', 'houdini.config.js'],
         excludes: ['vite/preload-helper', 'svelte']
       }

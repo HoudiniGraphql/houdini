@@ -2,15 +2,18 @@ import * as graphql from 'graphql'
 import { vol } from 'memfs'
 
 import { runPipeline } from '../codegen'
-import { Config, fs, path, CollectedGraphQLDocument } from '../lib'
-import { ConfigFile } from '../runtime/lib/config'
+import type { CollectedGraphQLDocument } from '../lib'
+import { Config, fs, path } from '../lib'
+import type { ConfigFile } from '../runtime/lib/config'
 import { ArtifactKind } from '../runtime/lib/types'
 
-export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
+export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {}): ConfigFile {
 	return {
 		schema: `
 			scalar Cursor
 			scalar DateTime
+
+			directive @live on QUERY
 
 			type User implements Node & Friend & CatOwner {
 				id: ID!
@@ -145,7 +148,7 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				cats: [Cat!]!
 			}
 
-			interface IsGhost { 
+			interface IsGhost {
 				aka: String!
 			}
 
@@ -240,6 +243,7 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 			'houdini-svelte': {
 				client: './my/client/path',
 			},
+			...plugins,
 		},
 		acceptImperativeInstability: true,
 		...config,

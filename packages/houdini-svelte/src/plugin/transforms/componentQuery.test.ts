@@ -20,6 +20,7 @@ test('no variables', async function () {
 		import { TestQueryStore } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
 		import { isBrowser } from "$houdini/plugins/houdini-svelte/runtime/adapter";
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
+		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { marshalInputs } from "$houdini/runtime/lib/scalars";
 		const _houdini_TestQuery = new TestQueryStore();
 
@@ -27,12 +28,13 @@ test('no variables', async function () {
 		value = _houdini_TestQuery;
 
 		$:
-		marshalInputs({
-		    artifact: _houdini_TestQuery.artifact,
-		    input: {}
-		}).then(_TestQuery_Input => isBrowser && _houdini_TestQuery.fetch({
-		    variables: _TestQuery_Input
-		}));
+		isBrowser && _houdini_TestQuery.fetch({
+		    variables: marshalInputs({
+		        config: getCurrentConfig(),
+		        artifact: _houdini_TestQuery.artifact,
+		        input: {}
+		    })
+		});
 	`)
 })
 
@@ -64,6 +66,7 @@ test('with variables', async function () {
 		import { TestQueryStore } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
 		import { isBrowser } from "$houdini/plugins/houdini-svelte/runtime/adapter";
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
+		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { marshalInputs } from "$houdini/runtime/lib/scalars";
 		const _houdini_TestQuery = new TestQueryStore();
 
@@ -81,20 +84,21 @@ test('with variables', async function () {
 		result = _houdini_TestQuery;
 
 		$:
-		marshalInputs({
-		    artifact: _houdini_TestQuery.artifact,
+		isBrowser && _houdini_TestQuery.fetch({
+		    variables: marshalInputs({
+		        config: getCurrentConfig(),
+		        artifact: _houdini_TestQuery.artifact,
 
-		    input: _TestQueryVariables.call(new RequestContext(), {
-		        props: {
-		            prop1: prop1,
-		            prop2: prop2,
-		            prop3: prop3,
-		            prop4: prop4
-		        }
+		        input: _TestQueryVariables.call(new RequestContext(), {
+		            props: {
+		                prop1: prop1,
+		                prop2: prop2,
+		                prop3: prop3,
+		                prop4: prop4
+		            }
+		        })
 		    })
-		}).then(_TestQuery_Input => isBrowser && _houdini_TestQuery.fetch({
-		    variables: _TestQuery_Input
-		}));
+		});
 	`)
 })
 
@@ -126,6 +130,7 @@ test('graphql function', async function () {
 		import { TestQueryStore } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
 		import { isBrowser } from "$houdini/plugins/houdini-svelte/runtime/adapter";
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
+		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { marshalInputs } from "$houdini/runtime/lib/scalars";
 		const _houdini_TestQuery = new TestQueryStore();
 
@@ -143,20 +148,21 @@ test('graphql function', async function () {
 		result = _houdini_TestQuery;
 
 		$:
-		marshalInputs({
-		    artifact: _houdini_TestQuery.artifact,
+		isBrowser && _houdini_TestQuery.fetch({
+		    variables: marshalInputs({
+		        config: getCurrentConfig(),
+		        artifact: _houdini_TestQuery.artifact,
 
-		    input: _TestQueryVariables.call(new RequestContext(), {
-		        props: {
-		            prop1: prop1,
-		            prop2: prop2,
-		            prop3: prop3,
-		            prop4: prop4
-		        }
+		        input: _TestQueryVariables.call(new RequestContext(), {
+		            props: {
+		                prop1: prop1,
+		                prop2: prop2,
+		                prop3: prop3,
+		                prop4: prop4
+		            }
+		        })
 		    })
-		}).then(_TestQuery_Input => isBrowser && _houdini_TestQuery.fetch({
-		    variables: _TestQuery_Input
-		}));
+		});
 	`)
 })
 

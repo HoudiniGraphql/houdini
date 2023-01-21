@@ -5,7 +5,7 @@ import fetch from 'node-fetch'
 import prompts from 'prompts'
 
 import { fs, parseJSON, path, pullSchema } from '../lib'
-import { ConfigFile } from '../runtime/lib/config'
+import type { ConfigFile } from '../runtime/lib/config'
 
 // the init command is responsible for scaffolding a few files
 // as well as pulling down the initial schema representation
@@ -255,32 +255,19 @@ const networkFile = (url: string, typescript: boolean) => `import { HoudiniClien
 	typescript ? ', type RequestHandler' : ''
 } } from '$houdini';
 
-${
-	typescript
-		? `const requestHandler: RequestHandler`
-		: `/** @type {import('$houdini').RequestHandler<any>} */
-const requestHandler`
-} = async ({
-	fetch,
-	text = '',
-	variables = {},
-	metadata
-}) => {
-	const url = '${url}';
-	const result = await fetch(url, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify({
-			query: text,
-			variables
-		})
-	});
-	return await result.json();
-}
-
-export default new HoudiniClient(requestHandler);
+export default new HoudiniClient({
+    url: '${url}'
+	
+    // uncomment this to configure the network call (for things like authentication)
+	// for more information, please visit here: https://www.houdinigraphql.com/guides/authentication
+    // fetchParams({ session }) { 
+    //     return { 
+	//         headers: {
+    //             Authentication: \`Bearer \${session.token}\`,
+    //         }
+    //     }
+    // }
+})
 `
 
 const writeConfigFile = async ({

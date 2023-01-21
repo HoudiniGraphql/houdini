@@ -1,15 +1,8 @@
 import { logGreen, logYellow } from '@kitql/helper'
 import * as graphql from 'graphql'
 
-import {
-	Config,
-	parentTypeFromAncestors,
-	HoudiniError,
-	CollectedGraphQLDocument,
-	siteURL,
-	TypeWrapper,
-	unwrapType,
-} from '../../lib'
+import type { Config, CollectedGraphQLDocument } from '../../lib'
+import { parentTypeFromAncestors, HoudiniError, siteURL, TypeWrapper, unwrapType } from '../../lib'
 import { ArtifactKind } from '../../runtime/lib/types'
 import { objectIdentificationSelection } from '../utils/objectIdentificationSelection'
 import { pageInfoSelection } from './paginate'

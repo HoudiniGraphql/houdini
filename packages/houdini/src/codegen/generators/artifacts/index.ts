@@ -1,21 +1,21 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
+import type { Config, CollectedGraphQLDocument } from '../../../lib'
 import {
-	Config,
 	getRootType,
 	hashDocument,
 	HoudiniError,
 	parentTypeFromAncestors,
 	fs,
-	CollectedGraphQLDocument,
 	cleanupFiles,
 } from '../../../lib'
 import { ArtifactKind } from '../../../lib'
 import { flattenSelections, moduleExport } from '../../utils'
 import writeIndexFile from './indexFile'
 import { inputObject } from './inputs'
-import { operationsByPath, FilterMap } from './operations'
+import type { FilterMap } from './operations'
+import { operationsByPath } from './operations'
 import selection from './selection'
 import { serializeValue } from './utils'
 
@@ -37,7 +37,7 @@ export default function artifactGenerator(stats: {
 			graphql.visit(doc.document, {
 				// look for any field marked with a list
 				Directive(node, _, __, ___, ancestors) {
-					// we only care about lists
+					// now, we only care about lists
 					if (node.name.value !== config.listDirective) {
 						return
 					}
@@ -260,6 +260,30 @@ export default function artifactGenerator(stats: {
 							includeFragments: docKind !== 'HoudiniFragment',
 							document: doc,
 						}),
+					}
+
+					// adding artifact_data of plugins (only if any information is present)
+					const pluginsData = config.plugins.reduce<Record<string, any>>(
+						(prev, plugin) => {
+							// if the plugin doesn't provide any artifact data, ignore it
+							if (!plugin.artifact_data) {
+								return prev
+							}
+
+							// add the specified artifact data (if it exists)
+							const result = { ...prev }
+							const dataToAdd = plugin.artifact_data(config, doc) ?? {}
+							if (Object.keys(dataToAdd).length > 0) {
+								result[plugin.name] = dataToAdd
+							}
+
+							// we're done
+							return result
+						},
+						{}
+					)
+					if (Object.keys(pluginsData).length > 0) {
+						artifact.pluginsData = pluginsData
 					}
 
 					// if the document has inputs describe their types in the artifact so we can

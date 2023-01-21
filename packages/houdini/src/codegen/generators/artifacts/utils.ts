@@ -2,7 +2,8 @@ import type { ExpressionKind } from 'ast-types/lib/gen/kinds'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import { Config, HoudiniError } from '../../../lib'
+import type { Config } from '../../../lib'
+import { HoudiniError } from '../../../lib'
 
 const AST = recast.types.builders
 
@@ -19,7 +20,7 @@ export function serializeValue(value: any): ExpressionKind {
 			Object.entries(value)
 				.filter(([, value]) => typeof value !== 'undefined')
 				.map(([key, value]) =>
-					AST.objectProperty(AST.identifier(key), serializeValue(value))
+					AST.objectProperty(AST.stringLiteral(key), serializeValue(value))
 				)
 		)
 	}

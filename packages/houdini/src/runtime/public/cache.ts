@@ -1,5 +1,6 @@
-import { Cache as _Cache, rootID } from '../cache/cache'
-import { SchemaManager, TypeInfo } from '../cache/schema'
+import type { Cache as _Cache } from '../cache/cache'
+import { rootID } from '../cache/cache'
+import type { SchemaManager, TypeInfo } from '../cache/schema'
 import { ListCollection } from './list'
 import { Record } from './record'
 import type { CacheTypeDef, IDFields, TypeNames, ValidLists } from './types'

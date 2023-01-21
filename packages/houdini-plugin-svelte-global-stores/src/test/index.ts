@@ -1,4 +1,4 @@
-import { CollectedGraphQLDocument, Config, ConfigFile } from 'houdini'
+import type { CollectedGraphQLDocument, Config, ConfigFile } from 'houdini'
 import { runPipeline } from 'houdini/codegen'
 import { mockCollectedDoc, testConfig } from 'houdini/test'
 

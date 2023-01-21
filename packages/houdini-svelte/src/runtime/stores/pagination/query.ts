@@ -1,23 +1,32 @@
-import { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
-import { derived, get, Subscriber } from 'svelte/store'
+import type { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
+import type { Subscriber } from 'svelte/store'
+import { derived } from 'svelte/store'
 
-import {
+import { getClient } from '../../client'
+import type {
 	ClientFetchParams,
 	LoadEventFetchParams,
-	QueryStore,
 	QueryStoreFetchParams,
 	RequestEventFetchParams,
 	StoreConfig,
 } from '../query'
-import { CursorHandlers, cursorHandlers } from './cursor'
-import { offsetHandlers, OffsetHandlers } from './offset'
-import { nullPageInfo, PageInfo } from './pageInfo'
+import { QueryStore } from '../query'
+import type { CursorHandlers } from './cursor'
+import { cursorHandlers } from './cursor'
+import type { OffsetHandlers } from './offset'
+import { offsetHandlers } from './offset'
+import type { PageInfo } from './pageInfo'
+import { nullPageInfo } from './pageInfo'
+
+export type CursorStoreResult<_Data extends GraphQLObject, _Input extends {}> = QueryResult<
+	_Data,
+	_Input
+> & { pageInfo: PageInfo }
 
 // both cursor paginated stores add a page info to their subscribe
 class CursorPaginatedStore<_Data extends GraphQLObject, _Input extends {}> extends QueryStore<
 	_Data,
-	_Input,
-	{ pageInfo: PageInfo }
+	_Input
 > {
 	// all paginated stores need to have a flag to distinguish from other query stores
 	paginated = true
@@ -26,14 +35,28 @@ class CursorPaginatedStore<_Data extends GraphQLObject, _Input extends {}> exten
 
 	constructor(config: StoreConfig<_Data, _Input, QueryArtifact>) {
 		super(config)
+
+		// we're going to use a separate observer for the page loading
+		const paginationObserver = getClient().observe<_Data, _Input>({
+			artifact: this.artifact,
+		})
+
 		this.handlers = cursorHandlers<_Data, _Input>({
 			artifact: this.artifact,
-			fetch: super.fetch.bind(this),
-			setFetching: this.setFetching.bind(this),
-			queryVariables: this.currentVariables.bind(this),
+			observer: this.observer,
 			storeName: this.name,
-			getValue: () => get(this.store).data,
-			getConfig: () => this.getConfig(),
+			fetch: super.fetch.bind(this),
+			fetchUpdate: async (args) => {
+				return paginationObserver.send({
+					...args,
+					variables: {
+						...args?.variables,
+					},
+					cacheParams: {
+						applyUpdates: true,
+					},
+				})
+			},
 		})
 	}
 
@@ -52,10 +75,8 @@ class CursorPaginatedStore<_Data extends GraphQLObject, _Input extends {}> exten
 	}
 
 	subscribe(
-		run: Subscriber<QueryResult<_Data, _Input, { pageInfo: PageInfo }>>,
-		invalidate?:
-			| ((value?: QueryResult<_Data, _Input, { pageInfo: PageInfo }> | undefined) => void)
-			| undefined
+		run: Subscriber<CursorStoreResult<_Data, _Input>>,
+		invalidate?: ((value?: CursorStoreResult<_Data, _Input> | undefined) => void) | undefined
 	): () => void {
 		const combined = derived(
 			[{ subscribe: super.subscribe.bind(this) }, this.handlers.pageInfo],
@@ -103,14 +124,28 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input extends {}> ex
 
 	constructor(config: StoreConfig<_Data, _Input, QueryArtifact>) {
 		super(config)
+
+		// we're going to use a separate observer for the page loading
+		const paginationObserver = getClient().observe<_Data, _Input>({
+			artifact: this.artifact,
+		})
+
 		this.handlers = offsetHandlers<_Data, _Input>({
 			artifact: this.artifact,
-			fetch: super.fetch,
-			getValue: () => get(this.store).data,
-			setFetching: (...args) => this.setFetching(...args),
-			queryVariables: () => this.currentVariables(),
+			observer: this.observer,
 			storeName: this.name,
-			getConfig: () => this.getConfig(),
+			fetch: super.fetch,
+			fetchUpdate: async (args) => {
+				return paginationObserver.send({
+					...args,
+					variables: {
+						...args?.variables,
+					},
+					cacheParams: {
+						applyUpdates: true,
+					},
+				})
+			},
 		})
 	}
 

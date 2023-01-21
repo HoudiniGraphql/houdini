@@ -1,10 +1,12 @@
-import { CollectedGraphQLDocument, Config, ConfigFile, fs, parseJS, Script, path } from 'houdini'
+import type { CollectedGraphQLDocument, Config, ConfigFile, Script } from 'houdini'
+import { fs, parseJS, path } from 'houdini'
 import { runPipeline } from 'houdini/codegen'
 import { mockCollectedDoc, testConfig } from 'houdini/test'
 
 import plugin from '../plugin'
 import { parseSvelte } from '../plugin/extract'
-import { Framework, layout_query_path, page_query_path, route_data_path } from '../plugin/kit'
+import type { Framework } from '../plugin/kit'
+import { layout_query_path, page_query_path, route_data_path } from '../plugin/kit'
 import runTransforms from '../plugin/transforms'
 
 const schema = `

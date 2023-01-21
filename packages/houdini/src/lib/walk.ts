@@ -1,16 +1,17 @@
 import type { TaggedTemplateExpressionKind, CallExpressionKind } from 'ast-types/lib/gen/kinds'
-import { asyncWalk, BaseNode } from 'estree-walker'
+import type { BaseNode } from 'estree-walker'
+import { asyncWalk } from 'estree-walker'
 import * as graphql from 'graphql'
 
+import type { CompiledDocumentKind } from '../runtime/lib/types'
 import {
-	CompiledDocumentKind,
 	CompiledFragmentKind,
 	CompiledMutationKind,
 	CompiledQueryKind,
 	CompiledSubscriptionKind,
 } from '../runtime/lib/types'
-import { Config } from './config'
-import { Script } from './types'
+import type { Config } from './config'
+import type { Script } from './types'
 
 export type EmbeddedGraphqlDocument = {
 	parsedDocument: graphql.DocumentNode

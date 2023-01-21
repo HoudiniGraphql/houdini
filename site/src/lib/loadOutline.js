@@ -29,59 +29,58 @@ export async function loadOutline() {
 						return null
 					}
 
-					/** @type {{ length: number; [key: number]: any }} */
-					const list = { length: 0 }
+					// check to see if there is an index file
+					const indexFile = JSON.parse(
+						await fs.readFile(path.join(categoryDir, 'index.json'), 'utf-8')
+					)
 
-					// look at every file in the category directory
-					for (let file of await fs.readdir(categoryDir)) {
-						// the file's path
-						let filepath = path.join(categoryDir, file, '+page.svx')
+					const list = await Promise.all(
+						indexFile.pages.map(async (child) => {
+							// the file's path
+							let filepath = path.join(categoryDir, child, '+page.svx')
 
-						// open the contents of the file so we can extract the frontmatter
-						const contents = await fs.readFile(filepath, 'utf-8')
-						const { data, code } = await compile(contents, {
-							rehypePlugins: [rehypeSlug, rehypeAutolinkHeadings]
-						})
-						/** @type { { [key: string]: any }} */
-						const metadata = data.fm
-						if (!metadata || (typeof metadata.sidebar === 'boolean' && !metadata.sidebar)) {
-							if (!metadata) {
-								console.log('invalid frontmatter:', filepath)
+							// open the contents of the file so we can extract the frontmatter
+							const contents = await fs.readFile(filepath, 'utf-8')
+							const { data, code } = await compile(contents, {
+								rehypePlugins: [rehypeSlug, rehypeAutolinkHeadings]
+							})
+							/** @type { { [key: string]: any }} */
+							const metadata = data.fm
+							if (!metadata || (typeof metadata.sidebar === 'boolean' && !metadata.sidebar)) {
+								if (!metadata) {
+									console.log('invalid frontmatter:', filepath)
+								}
+								return null
 							}
-							continue
-						}
 
-						// parse the contents so we can extract the various headers
-						const parsed = parse(code)
+							// parse the contents so we can extract the various headers
+							const parsed = parse(code)
 
-						// every h2 gets an entry in the timeline
-						const subcategories = parsed
-							.querySelectorAll('h2')
-							.map((h2) => ({
-								text: h2.text,
-								id: h2.attributes.id
-							}))
-							.filter((subcat) => !subcat.text.toLowerCase().endsWith('s next?'))
+							// every h2 gets an entry in the timeline
+							const subcategories = parsed
+								.querySelectorAll('h2')
+								.map((h2) => ({
+									text: h2.text,
+									id: h2.attributes.id
+								}))
+								.filter((subcat) => !subcat.text.toLowerCase().endsWith('s next?'))
 
-						list[metadata.index] = {
-							title: metadata.title,
-							slug: `/${category}/${file}`,
-							filepath,
-							subcategories
-						}
-					}
+							return {
+								title: metadata.title,
+								slug: `/${category}/${child}`,
+								filepath,
+								subcategories
+							}
+						})
+					)
 
-					// give it the appropriate length value
-					list.length = Object.keys(list).length - 1
-
-					return [category, Array.from(list)]
+					return [category, list]
 				})
 			)
 		).filter(Boolean)
 	)
-
 	// transform the keys of an object
-	return Object.fromEntries(
+	const result = Object.fromEntries(
 		['intro', 'guides', 'api'].map((category) => {
 			const files = content[category]
 
@@ -107,4 +106,6 @@ export async function loadOutline() {
 			]
 		})
 	)
+
+	return result
 }

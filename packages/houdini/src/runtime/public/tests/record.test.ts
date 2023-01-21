@@ -1,7 +1,7 @@
 import { test, expect } from 'vitest'
 
 import { rootID } from '../../cache/cache'
-import { SubscriptionSelection } from '../../lib'
+import type { SubscriptionSelection } from '../../lib'
 import { marshalNestedList, Record } from '../record'
 import { testCache } from './test'
 

@@ -36,6 +36,10 @@
 	padding-bottom: 30px;
 }
 
+#doc-content em {
+	font-style: italic;
+}
+
 #doc-content ul,
 ol {
 	margin-top: -20px;
@@ -152,11 +156,21 @@ h3 > code {
 }
 
 #doc-content blockquote {
-	border-left: 15px solid var(--saturate);
-	padding-left: 40px;
+	border-left: 10px solid var(--discreet2);
+	padding-left: 20px;
 	margin-bottom: 30px;
 }
 
 #doc-content blockquote p {
 	padding-bottom: 0px;
+}
+
+#doc-content figcaption {
+	width: 70%;
+	margin: 0 auto;
+	color: var(--caption-text);
+	font-family: 'Hind', sans-serif;
+	font-weight: 500;
+	line-height: 1.5;
+	text-align: center;
 }

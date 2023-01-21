@@ -1,6 +1,5 @@
 ---
 title: GraphQL
-index: 5
 description: The GraphQL API provided by Houdini
 ---
 

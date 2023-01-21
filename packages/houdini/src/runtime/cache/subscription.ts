@@ -1,8 +1,12 @@
 import { getFieldsForType } from '../lib/selection'
-import type { SubscriptionSpec, SubscriptionSelection, GraphQLObject } from '../lib/types'
-import type { GraphQLValue } from '../lib/types'
-import { Cache, LinkedList } from './cache'
+import type { GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '../lib/types'
+import type { Cache, LinkedList } from './cache'
 import { evaluateKey, flattenList } from './stuff'
+
+export type FieldSelection = [
+	SubscriptionSpec,
+	Required<SubscriptionSelection>['fields'] | undefined
+]
 
 // manage the subscriptions
 export class InMemorySubscriptions {
@@ -12,7 +16,9 @@ export class InMemorySubscriptions {
 		this.cache = cache
 	}
 
-	private subscribers: { [id: string]: { [fieldName: string]: SubscriptionSpec[] } } = {}
+	private subscribers: {
+		[id: string]: { [fieldName: string]: FieldSelection[] }
+	} = {}
 	private referenceCounts: {
 		[id: string]: { [fieldName: string]: Map<SubscriptionSpec['set'], number> }
 	} = {}
@@ -38,20 +44,35 @@ export class InMemorySubscriptions {
 
 		// walk down the selection
 		for (const fieldSelection of Object.values(targetSelection || {})) {
-			const { keyRaw, selection: innerSelection, type } = fieldSelection
+			const { keyRaw, selection: innerSelection, type, list, filters } = fieldSelection
 
 			const key = evaluateKey(keyRaw, variables)
 
 			// add the subscriber to the field
+			let targetSelection: FieldSelection[1]
+			if (innerSelection) {
+				// figure out the correct selection
+				const __typename = this.cache._internal_unstable.storage.get(parent, '__typename')
+					.value as string
+				targetSelection = getFieldsForType(innerSelection, __typename)
+			}
 			this.addFieldSubscription({
 				id: parent,
 				key,
-				field: fieldSelection,
-				spec,
-				parentType: parentType || spec.rootType,
-				variables,
+				selection: [spec, targetSelection],
 			})
 
+			if (list) {
+				this.registerList({
+					list,
+					filters,
+					id: parent,
+					key,
+					variables,
+					selection: innerSelection!,
+					parentType: parentType || spec.rootType,
+				})
+			}
 			// if the field points to a link, we need to subscribe to any fields of that
 			// linked record
 			if (innerSelection) {
@@ -86,18 +107,13 @@ export class InMemorySubscriptions {
 	addFieldSubscription({
 		id,
 		key,
-		field,
-		spec,
-		parentType,
-		variables,
+		selection,
 	}: {
 		id: string
 		key: string
-		field: Required<SubscriptionSelection>['fields'][string]
-		spec: SubscriptionSpec
-		parentType: string
-		variables: GraphQLObject
+		selection: FieldSelection
 	}) {
+		const spec = selection[0]
 		// if we haven't seen the id or field before, create a list we can add to
 		if (!this.subscribers[id]) {
 			this.subscribers[id] = {}
@@ -114,8 +130,8 @@ export class InMemorySubscriptions {
 		// add this version of the key if we need to
 		this.keyVersions[key].add(key)
 
-		if (!this.subscribers[id][key].map(({ set }) => set).includes(spec.set)) {
-			this.subscribers[id][key].push(spec)
+		if (!this.subscribers[id][key].map(([{ set }]) => set).includes(spec.set)) {
+			this.subscribers[id][key].push([spec, selection[1]])
 		}
 
 		// if this is the first time we've seen this key
@@ -135,90 +151,128 @@ export class InMemorySubscriptions {
 
 		// if this field is marked as a list, register it. this will overwrite existing list handlers
 		// so that they can get up to date filters
-		const { selection, list, filters } = field
-		if (selection && list) {
-			this.cache._internal_unstable.lists.add({
-				name: list.name,
-				connection: list.connection,
-				recordID: id,
-				recordType:
-					(this.cache._internal_unstable.storage.get(id, '__typename')
-						?.value as string) || parentType,
-				listType: list.type,
-				key,
-				selection,
-				filters: Object.entries(filters || {}).reduce((acc, [key, { kind, value }]) => {
-					return {
-						...acc,
-						[key]: kind !== 'Variable' ? value : variables[value as string],
-					}
-				}, {}),
-			})
-		}
+		const { selection: innerSelection } = selection[1]?.[key] ?? {}
+	}
+
+	registerList({
+		list,
+		id,
+		key,
+		parentType,
+		selection,
+		filters,
+		variables,
+	}: {
+		list: Required<Required<SubscriptionSelection>['fields'][string]>['list']
+		selection: SubscriptionSelection
+		id: string
+		parentType: string
+		key: string
+		filters: Required<SubscriptionSelection>['fields'][string]['filters']
+		variables: Record<string, any>
+	}) {
+		this.cache._internal_unstable.lists.add({
+			name: list.name,
+			connection: list.connection,
+			recordID: id,
+			recordType:
+				(this.cache._internal_unstable.storage.get(id, '__typename')?.value as string) ||
+				parentType,
+			listType: list.type,
+			key,
+			selection: selection,
+			filters: Object.entries(filters || {}).reduce((acc, [key, { kind, value }]) => {
+				return {
+					...acc,
+					[key]: kind !== 'Variable' ? value : variables[value as string],
+				}
+			}, {}),
+		})
 	}
 
 	// this is different from add because of the treatment of lists
 	addMany({
 		parent,
-		selection,
 		variables,
 		subscribers,
 		parentType,
 	}: {
 		parent: string
-		selection: SubscriptionSelection
 		variables: {}
-		subscribers: SubscriptionSpec[]
+		subscribers: FieldSelection[]
 		parentType: string
 	}) {
-		// if there is an abstract selection for the type, use that, otherwise
-		// the standard selection is good
-		let targetSelection = getFieldsForType(selection, parentType)
+		// every subscriber specifies a different selection set to add to the parent
+		for (const [spec, targetSelection] of subscribers) {
+			// look at every field in the selection and add the subscribers
+			for (const selection of Object.values(targetSelection ?? {})) {
+				const {
+					type: linkedType,
+					keyRaw,
+					selection: innerSelection,
+					list,
+					filters,
+				} = selection
+				const key = evaluateKey(keyRaw, variables)
 
-		// look at every field in the selection and add the subscribers
-		for (const fieldSelection of Object.values(targetSelection)) {
-			const { type: linkedType, keyRaw, selection: innerSelection } = fieldSelection
-			const key = evaluateKey(keyRaw, variables)
+				// figure out the selection for the field we are writing
+				const fieldSelection = innerSelection
+					? getFieldsForType(innerSelection, parentType)
+					: undefined
 
-			// add the subscriber to the
-			for (const spec of subscribers) {
 				this.addFieldSubscription({
 					id: parent,
 					key,
-					field: fieldSelection,
-					spec,
-					parentType,
-					variables,
+					selection: [spec, fieldSelection],
 				})
-			}
 
-			// if there are fields under this
-			if (innerSelection) {
-				const { value: link } = this.cache._internal_unstable.storage.get(parent, key)
-
-				// figure out who else needs subscribers
-				const children = !Array.isArray(link)
-					? ([link] as string[])
-					: flattenList(link as string[])
-				for (const linkedRecord of children) {
-					// avoid null records
-					if (!linkedRecord) {
-						continue
-					}
-					// insert the subscriber
-					this.addMany({
-						parent: linkedRecord,
-						selection: innerSelection,
+				if (list) {
+					this.registerList({
+						list,
+						filters,
+						id: parent,
+						key,
 						variables,
-						subscribers,
-						parentType: linkedType,
+						selection: innerSelection!,
+						parentType: parentType || spec.rootType,
 					})
+				}
+				// if there are fields under this
+				const childSelection = selection.selection
+				if (childSelection) {
+					const { value: link } = this.cache._internal_unstable.storage.get(parent, key)
+
+					// figure out who else needs subscribers
+					const children = !Array.isArray(link)
+						? ([link] as string[])
+						: flattenList(link as string[])
+
+					for (const linkedRecord of children) {
+						// avoid null records
+						if (!linkedRecord) {
+							continue
+						}
+
+						// figure out the correct selection
+						const __typename = this.cache._internal_unstable.storage.get(
+							linkedRecord,
+							'__typename'
+						).value as string
+						let targetSelection = getFieldsForType(childSelection, __typename)
+						// insert the subscriber
+						this.addMany({
+							parent: linkedRecord,
+							variables,
+							subscribers: subscribers.map(([sub]) => [sub, targetSelection]),
+							parentType: linkedType,
+						})
+					}
 				}
 			}
 		}
 	}
 
-	get(id: string, field: string): SubscriptionSpec[] {
+	get(id: string, field: string): FieldSelection[] {
 		return this.subscribers[id]?.[field] || []
 	}
 
@@ -234,15 +288,20 @@ export class InMemorySubscriptions {
 		// walk down to every record we know about
 		const linkedIDs: [string, SubscriptionSelection][] = []
 
+		// figure out the correct selection
+		const __typename = this.cache._internal_unstable.storage.get(id, '__typename')
+			.value as string
+		let targetSelection = getFieldsForType(selection, __typename)
+
 		// look at the fields for ones corresponding to links
-		for (const fieldSelection of Object.values(selection.fields || {})) {
+		for (const fieldSelection of Object.values(targetSelection || {})) {
 			const key = evaluateKey(fieldSelection.keyRaw, variables)
 
 			// remove the subscribers for the field
 			this.removeSubscribers(id, key, targets)
 
 			// if there is no subselection it doesn't point to a link, move on
-			if (!fieldSelection.selection?.fields) {
+			if (!fieldSelection.selection) {
 				continue
 			}
 
@@ -291,7 +350,7 @@ export class InMemorySubscriptions {
 		// we do need to remove the set from the list
 		if (this.subscribers[id]) {
 			this.subscribers[id][fieldName] = this.get(id, fieldName).filter(
-				({ set }) => !targets.includes(set)
+				([{ set }]) => !targets.includes(set)
 			)
 		}
 	}
@@ -302,7 +361,7 @@ export class InMemorySubscriptions {
 		// every field that currently being subscribed to needs to be cleaned up
 		for (const field of Object.keys(this.subscribers[id] || [])) {
 			// grab the current set of subscribers
-			const subscribers = targets || this.subscribers[id][field]
+			const subscribers = targets || this.subscribers[id][field].map(([spec]) => spec)
 
 			// delete the subscriber for the field
 			this.removeSubscribers(id, field, subscribers)

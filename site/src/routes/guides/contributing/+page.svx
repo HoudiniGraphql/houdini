@@ -1,6 +1,5 @@
 ---
 title: Contributing to Houdini
-index: 11
 description: A guide for contributing to Houdini
 ---
 
@@ -172,10 +171,10 @@ There are two parts to this feature. First, a user marks a particular field as a
 
 ```graphql
 query AllUsersQuery {
-    users @list(name: "All_Users") {
-        id
-        firstName
-    }
+	users @list(name: "All_Users") {
+		id
+		firstName
+	}
 }
 ```
 
@@ -183,9 +182,9 @@ query AllUsersQuery {
 
 ```graphql
 mutation AddUserMutation {
-    addUser(firstName: "Alec") {
-        ...All_Users_insert
-    }
+	addUser(firstName: "Alec") {
+		...All_Users_insert
+	}
 }
 ```
 
