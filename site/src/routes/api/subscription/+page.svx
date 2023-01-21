@@ -1,6 +1,5 @@
 ---
 title: Subscription
-index: 4
 description: Subscriptions in Houdini
 ---
 
@@ -10,26 +9,26 @@ Listen for real-time updates from your server using GraphQL Subscriptions.
 
 ```svelte:title=SubscriptionExample.svelte&typescriptToggle=true
 <script lang="ts">
-	import { graphql } from '$houdini'
+  import { graphql } from '$houdini'
 
-	// this information should usually come from a fragment
-	export let itemID: string
+  // this information should usually come from a fragment
+  export let itemID: string
 
-	// will start listening onMount (browser only)
-	const updates = graphql(`
-		subscription ItemUpdate($id: ID!) {
-			itemUpdate(id: $id) {
-				item {
-					id
-					completed
-					text
-				}
-			}
-		}
-	`)
+  // will start listening onMount (browser only)
+  const updates = graphql(`
+    subscription ItemUpdate($id: ID!) {
+      itemUpdate(id: $id) {
+        item {
+          id
+          completed
+          text
+        }
+      }
+    }
+  `)
 
 
-	$: updates.listen({ id: itemID })
+  $: updates.listen({ id: itemID })
 </script>
 
 latest value: {$updates.itemUpdate.item.text}
@@ -43,10 +42,8 @@ Subscription bodies can contain all of the list operations described in [this do
 
 ## Configuring the client
 
-Houdini can work with any websocket client as long as you can provide an object that satisfies
-the `SubscriptionHandler` interface as the second argument to the HoudiniClient's constructor. Keep in mind
-that WebSocket connections only exist between the browser and your API, therefor you must remember to
-pass `null` when configuring your environment on the rendering server.
+Houdini can work with any websocket client as long as you can provide an a function that returns an object that
+satisfies the `SubscriptionHandler` interface to the `subscriptions` plugin you can import from `$houdini/plugins`.
 
 ### Using `graphql-ws`
 
@@ -55,15 +52,17 @@ client and pass it directly:
 
 ```typescript:title=src/client.ts&typescriptToggle=true
 import { createClient } from 'graphql-ws'
-import { browser } from '$app/environment'
+import { subscriptionPlugin } from '$houdini/plugins'
 
-let socketClient = browser
-	? new createClient({
-			url: 'ws://api.url'
-	  })
-	: null
-
-export default new HoudiniClient(requestHandler, socketClient)
+// prettier-ignore
+export default new HoudiniClient({
+  url: "...",
+  plugins: [
+    subscriptionPlugin(() => new createClient({
+      url: 'ws://api.url'
+    }))
+  ]
+})
 ```
 
 ### Using `subscriptions-transport-ws`
@@ -74,27 +73,33 @@ you will have to slightly modify the above block:
 ```typescript:title=src/client.ts&typescriptToggle=true
 import { SubscriptionClient } from 'subscriptions-transport-ws'
 import { browser } from '$app/environment'
+import { subscriptions } from '$houdini/plugins'
 
-let socketClient = null
-if (browser) {
-	// instantiate the transport client
-	const client = new SubscriptionClient('ws://api.url', {
-		reconnect: true,
-	})
+  // prettier-ignore
+function createClient() {
+  // instantiate the transport client
+  const client = new SubscriptionClient('ws://api.url', {
+    reconnect: true,
+  })
 
-	// wrap the client in something houdini can use
-	socketClient = {
-		subscribe(payload, handlers) {
-			// send the request
-			const { unsubscribe } = client.request(payload).subscribe(handlers)
+  // wrap the client in something houdini can use
+  return {
+    subscribe(payload, handlers) {
+      // send the request
+      const { unsubscribe } = client.request(payload).subscribe(handlers)
 
-			// return the function to unsubscribe
-			return unsubscribe
-		},
-	}
+      // return the function to unsubscribe
+      return unsubscribe
+    },
+  }
 }
 
-export default new HoudiniClient(requestHandler, socketClient)
+export default new HoudiniClient({
+  url: "...",
+  plugins: [
+    subscriptions(createClient)
+  ]
+})
 ```
 
 ### Server-Side Events
@@ -104,23 +109,59 @@ If your server supports the latest Server-Side events, you can use them to power
 ```typescript:title=src/client.ts&typescriptToggle=true
 import { SubscriptionClient } from 'subscriptions-transport-ws'
 import { browser } from '$app/environment'
+import { subscriptions } from '$houdini/plugins'
 
-let socketClient = null
-if (browser) {
-	socketClient = {
-		subscribe(payload, handlers) {
-			const url = new URL('/api/graplhql', location.href)
-			url.searchParams.append('query', payload.query)
-			url.searchParams.append('variables', JSON.stringify(payload.variables))
+  // prettier-ignore
+function sseSockets() {
+  return {
+    subscribe(payload, handlers) {
+      const url = new URL('/api/graphql', location.href)
+      url.searchParams.append('query', payload.query)
+      url.searchParams.append('variables', JSON.stringify(payload.variables))
 
-			const eventSource = new EventSource(url)
+      const eventSource = new EventSource(url)
 
-			eventSource.addEventListener('message', (ev) => handlers.next(JSON.parse(ev.data)))
+      eventSource.addEventListener('message', (ev) => handlers.next(JSON.parse(ev.data)))
 
-			return () => eventSource.close()
-		},
-	}
+      return () => eventSource.close()
+    },
+  }
 }
 
-export default new HoudiniClient(requestHandler, socketClient)
+export default new HoudiniClient({
+  url: "...",
+  plugins: [
+    subscriptions(sseSockets)
+  ]
+})
+```
+
+## Authentication
+
+Subscriptions integrate with the rest of the session logic provided by houdini. When
+your session value, `fetchParams` or `metadata` changes a new subscription client will
+be created based on that new information. You can use this information to pass connection
+parameters to your subscription client. For example, authenticating `graphql-ws` would look
+something like:
+
+```typescript:title=src/client.ts&typescriptToggle=true
+import { createClient } from 'graphql-ws'
+import { subscriptionPlugin } from '$houdini/plugins'
+
+// prettier-ignore
+export default new HoudiniClient({
+  url: "...",
+  plugins: [
+    subscriptionPlugin(({ session }) => new createClient({
+      url: 'ws://api.url',
+      connectionParams: () => {
+        return {
+          headers: {
+            Authorization: `Bearer ${session.token}`,
+          },
+        }
+      },
+    }))
+  ]
+})
 ```

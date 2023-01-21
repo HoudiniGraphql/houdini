@@ -1,0 +1,17 @@
+{
+	"name": "Guides",
+	"pages": [
+		"faq",
+		"release-notes",
+		"plugins",
+		"working-with-graphql",
+		"setting-up-your-project",
+		"pagination",
+		"caching-data",
+		"typescript",
+		"persisted-queries",
+		"authentication",
+		"uploading-files",
+		"contributing"
+	]
+}

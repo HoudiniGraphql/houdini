@@ -1,6 +1,7 @@
-import { ArtifactKind, Config, fs, GenerateHookInput, path } from 'houdini'
+import type { Config, GenerateHookInput } from 'houdini'
+import { ArtifactKind, fs, path } from 'houdini'
 
-import { Framework } from '../../kit'
+import type { Framework } from '../../kit'
 
 export default async function componentTypesGenerator(
 	framework: Framework,

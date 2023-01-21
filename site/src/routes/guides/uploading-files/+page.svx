@@ -1,6 +1,5 @@
 ---
 title: Uploading Files
-index: 10
 description: A guide for handling file uploads in Houdini
 ---
 

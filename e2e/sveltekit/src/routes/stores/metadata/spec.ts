@@ -15,14 +15,16 @@ test.describe('Metadata Page', () => {
     // Go on the page
     await goto_expect_n_gql(page, routes.Stores_Metadata, 1);
 
-    expect(displayed).toBe(`{"data":{"session":"1234-Houdini-Token-5678"}}`);
+    expect(displayed).toBe(
+      '{"fetching":false,"variables":{},"data":{"session":"1234-Houdini-Token-5678"},"errors":null,"partial":false,"source":"network"}'
+    );
 
     //Click the button
     // Mutate the data (that will be displayed in the console)
     await expect_1_gql(page, 'button[id=mutate]');
 
     expect(displayed).toBe(
-      `{"data":{"updateUser":{"id":"list-store-user-subunsub:5","name":"Hello!"}}}`
+      '{"fetching":false,"variables":{"id":"5","name":"Hello!"},"data":{"updateUser":{"id":"list-store-user-subunsub:5","name":"Hello!"}},"errors":null,"partial":false,"source":"network"}'
     );
   });
 });

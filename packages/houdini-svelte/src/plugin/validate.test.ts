@@ -1,4 +1,4 @@
-import { CollectedGraphQLDocument } from 'houdini'
+import type { CollectedGraphQLDocument } from 'houdini'
 import { pipelineTest } from 'houdini/test'
 import { describe, test } from 'vitest'
 

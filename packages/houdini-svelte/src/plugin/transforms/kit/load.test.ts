@@ -27,7 +27,7 @@ describe('kit route processor', function () {
 
 			export async function load(context) {
 			    const houdini_context = new RequestContext(context);
-			    const houdiniConfig = await getCurrentConfig();
+			    const houdiniConfig = getCurrentConfig();
 			    const promises = [];
 			    const inputs = {};
 			    inputs["TestQuery"] = {};
@@ -90,7 +90,7 @@ describe('kit route processor', function () {
 
 			export async function load(context) {
 			    const houdini_context = new RequestContext(context);
-			    const houdiniConfig = await getCurrentConfig();
+			    const houdiniConfig = getCurrentConfig();
 			    const promises = [];
 			    const inputs = {};
 			    inputs["TestQuery"] = {};
@@ -211,7 +211,7 @@ describe('kit route processor', function () {
 
 			export async function load(context) {
 			    const houdini_context = new RequestContext(context);
-			    const houdiniConfig = await getCurrentConfig();
+			    const houdiniConfig = getCurrentConfig();
 			    const promises = [];
 			    const inputs = {};
 			    inputs["TestQuery1"] = {};
@@ -285,7 +285,8 @@ describe('kit route processor', function () {
 			async function __houdini___TestQueryVariables(config, event) {
 			    const result = {};
 
-			    Object.assign(result, await marshalInputs({
+			    Object.assign(result, marshalInputs({
+			        config: config,
 			        input: await _TestQueryVariables(event),
 			        artifact: _TestQueryArtifact
 			    }));
@@ -295,7 +296,7 @@ describe('kit route processor', function () {
 
 			export async function load(context) {
 			    const houdini_context = new RequestContext(context);
-			    const houdiniConfig = await getCurrentConfig();
+			    const houdiniConfig = getCurrentConfig();
 			    const promises = [];
 			    const inputs = {};
 			    inputs["TestQuery"] = await __houdini___TestQueryVariables(houdiniConfig, context);
@@ -343,6 +344,7 @@ describe('kit route processor', function () {
 			import { TestQueryStore } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
 			import { isBrowser } from "$houdini/plugins/houdini-svelte/runtime/adapter";
 			import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
+			import { getCurrentConfig } from "$houdini/runtime/lib/config";
 			import { marshalInputs } from "$houdini/runtime/lib/scalars";
 			const _houdini_TestQuery = new TestQueryStore();
 
@@ -350,12 +352,13 @@ describe('kit route processor', function () {
 			test = _houdini_TestQuery;
 
 			$:
-			marshalInputs({
-			    artifact: _houdini_TestQuery.artifact,
-			    input: {}
-			}).then(_TestQuery_Input => isBrowser && _houdini_TestQuery.fetch({
-			    variables: _TestQuery_Input
-			}));
+			isBrowser && _houdini_TestQuery.fetch({
+			    variables: marshalInputs({
+			        config: getCurrentConfig(),
+			        artifact: _houdini_TestQuery.artifact,
+			        input: {}
+			    })
+			});
 		`)
 	})
 
@@ -426,7 +429,8 @@ describe('kit route processor', function () {
 			async function __houdini___MyQuery2Variables(config, event) {
 			    const result = {};
 
-			    Object.assign(result, await marshalInputs({
+			    Object.assign(result, marshalInputs({
+			        config: config,
 			        input: await _MyQuery2Variables(event),
 			        artifact: _MyQuery2Artifact
 			    }));
@@ -436,7 +440,7 @@ describe('kit route processor', function () {
 
 			export async function load(context) {
 			    const houdini_context = new RequestContext(context);
-			    const houdiniConfig = await getCurrentConfig();
+			    const houdiniConfig = getCurrentConfig();
 			    const promises = [];
 			    const inputs = {};
 			    inputs["MyQuery1"] = {};
@@ -499,7 +503,7 @@ describe('kit route processor', function () {
 
 			export async function load(context) {
 			    const houdini_context = new RequestContext(context);
-			    const houdiniConfig = await getCurrentConfig();
+			    const houdiniConfig = getCurrentConfig();
 			    const promises = [];
 			    const inputs = {};
 			    inputs["TestPageQuery"] = {};
@@ -583,7 +587,7 @@ describe('kit route processor', function () {
 
 			export async function load(context) {
 			    const houdini_context = new RequestContext(context);
-			    const houdiniConfig = await getCurrentConfig();
+			    const houdiniConfig = getCurrentConfig();
 			    const promises = [];
 			    const inputs = {};
 			    inputs["TestLayoutQuery"] = {};
@@ -664,7 +668,8 @@ test('beforeLoad hook', async function () {
 		async function __houdini___TestQueryVariables(config, event) {
 		    const result = {};
 
-		    Object.assign(result, await marshalInputs({
+		    Object.assign(result, marshalInputs({
+		        config: config,
 		        input: await _TestQueryVariables(event),
 		        artifact: _TestQueryArtifact
 		    }));
@@ -680,7 +685,7 @@ test('beforeLoad hook', async function () {
 		        "hookFn": _houdini_beforeLoad
 		    });
 
-		    const houdiniConfig = await getCurrentConfig();
+		    const houdiniConfig = getCurrentConfig();
 		    const promises = [];
 		    const inputs = {};
 		    inputs["TestQuery"] = await __houdini___TestQueryVariables(houdiniConfig, context);
@@ -766,7 +771,7 @@ test('beforeLoad hook - multiple queries', async function () {
 		        "hookFn": _houdini_beforeLoad
 		    });
 
-		    const houdiniConfig = await getCurrentConfig();
+		    const houdiniConfig = getCurrentConfig();
 		    const promises = [];
 		    const inputs = {};
 		    inputs["TestQuery1"] = {};
@@ -847,7 +852,8 @@ test('afterLoad hook', async function () {
 		async function __houdini___TestQueryVariables(config, event) {
 		    const result = {};
 
-		    Object.assign(result, await marshalInputs({
+		    Object.assign(result, marshalInputs({
+		        config: config,
 		        input: await _TestQueryVariables(event),
 		        artifact: _TestQueryArtifact
 		    }));
@@ -857,7 +863,7 @@ test('afterLoad hook', async function () {
 
 		export async function load(context) {
 		    const houdini_context = new RequestContext(context);
-		    const houdiniConfig = await getCurrentConfig();
+		    const houdiniConfig = getCurrentConfig();
 		    const promises = [];
 		    const inputs = {};
 		    inputs["TestQuery"] = await __houdini___TestQueryVariables(houdiniConfig, context);
@@ -944,7 +950,7 @@ test('afterLoad hook - multiple queries', async function () {
 
 		export async function load(context) {
 		    const houdini_context = new RequestContext(context);
-		    const houdiniConfig = await getCurrentConfig();
+		    const houdiniConfig = getCurrentConfig();
 		    const promises = [];
 		    const inputs = {};
 		    inputs["TestQuery1"] = {};
@@ -1040,7 +1046,8 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		async function __houdini___TestQueryVariables(config, event) {
 		    const result = {};
 
-		    Object.assign(result, await marshalInputs({
+		    Object.assign(result, marshalInputs({
+		        config: config,
 		        input: await _TestQueryVariables(event),
 		        artifact: _TestQueryArtifact
 		    }));
@@ -1056,7 +1063,7 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		        "hookFn": _houdini_beforeLoad
 		    });
 
-		    const houdiniConfig = await getCurrentConfig();
+		    const houdiniConfig = getCurrentConfig();
 		    const promises = [];
 		    const inputs = {};
 		    inputs["TestQuery"] = await __houdini___TestQueryVariables(houdiniConfig, context);
@@ -1130,7 +1137,8 @@ test('layout loads', async function () {
 		async function __houdini___MyQuery2Variables(config, event) {
 		    const result = {};
 
-		    Object.assign(result, await marshalInputs({
+		    Object.assign(result, marshalInputs({
+		        config: config,
 		        input: await _MyQuery2Variables(event),
 		        artifact: _MyQuery2Artifact
 		    }));
@@ -1140,7 +1148,7 @@ test('layout loads', async function () {
 
 		export async function load(context) {
 		    const houdini_context = new RequestContext(context);
-		    const houdiniConfig = await getCurrentConfig();
+		    const houdiniConfig = getCurrentConfig();
 		    const promises = [];
 		    const inputs = {};
 		    inputs["MyQuery1"] = {};
@@ -1232,7 +1240,7 @@ test('layout inline query', async function () {
 
 		export async function load(context) {
 		    const houdini_context = new RequestContext(context);
-		    const houdiniConfig = await getCurrentConfig();
+		    const houdiniConfig = getCurrentConfig();
 		    const promises = [];
 		    const inputs = {};
 		    inputs["TestQuery"] = {};
@@ -1294,7 +1302,7 @@ test('inline function query', async function () {
 
 		export async function load(context) {
 		    const houdini_context = new RequestContext(context);
-		    const houdiniConfig = await getCurrentConfig();
+		    const houdiniConfig = getCurrentConfig();
 		    const promises = [];
 		    const inputs = {};
 		    inputs["TestQuery"] = {};
@@ -1367,7 +1375,8 @@ test('onError hook', async function () {
 		async function __houdini___TestQueryVariables(config, event) {
 		    const result = {};
 
-		    Object.assign(result, await marshalInputs({
+		    Object.assign(result, marshalInputs({
+		        config: config,
 		        input: await _TestQueryVariables(event),
 		        artifact: _TestQueryArtifact
 		    }));
@@ -1377,7 +1386,7 @@ test('onError hook', async function () {
 
 		export async function load(context) {
 		    const houdini_context = new RequestContext(context);
-		    const houdiniConfig = await getCurrentConfig();
+		    const houdiniConfig = getCurrentConfig();
 		    const promises = [];
 		    const inputs = {};
 		    inputs["TestQuery"] = await __houdini___TestQueryVariables(houdiniConfig, context);
@@ -1441,7 +1450,7 @@ test('route params, no variable function', async function () {
 
 		export async function load(context) {
 		    const houdini_context = new RequestContext(context);
-		    const houdiniConfig = await getCurrentConfig();
+		    const houdiniConfig = getCurrentConfig();
 		    const promises = [];
 		    const inputs = {};
 		    inputs["UserInfo"] = await __houdini___UserInfoVariables(houdiniConfig, context);
@@ -1508,7 +1517,8 @@ test('route params with variable function', async function () {
 		        userID: parseScalar(config, "ID", event.params.userID)
 		    };
 
-		    Object.assign(result, await marshalInputs({
+		    Object.assign(result, marshalInputs({
+		        config: config,
 		        input: await _UserInfoVariables(event),
 		        artifact: _UserInfoArtifact
 		    }));
@@ -1518,7 +1528,7 @@ test('route params with variable function', async function () {
 
 		export async function load(context) {
 		    const houdini_context = new RequestContext(context);
-		    const houdiniConfig = await getCurrentConfig();
+		    const houdiniConfig = getCurrentConfig();
 		    const promises = [];
 		    const inputs = {};
 		    inputs["UserInfo"] = await __houdini___UserInfoVariables(houdiniConfig, context);

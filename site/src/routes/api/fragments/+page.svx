@@ -1,6 +1,5 @@
 ---
 title: Fragments
-index: 2
 description: Fragments in Houdini
 ---
 

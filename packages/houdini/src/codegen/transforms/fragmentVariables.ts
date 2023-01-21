@@ -1,9 +1,11 @@
 import * as graphql from 'graphql'
 
-import { Config, HoudiniError, CollectedGraphQLDocument } from '../../lib'
+import type { Config, CollectedGraphQLDocument } from '../../lib'
+import { HoudiniError } from '../../lib'
 import { ArtifactKind } from '../../lib'
 import { murmurHash } from '../utils'
-import { collectFragments, FragmentDependency } from './composeQueries'
+import type { FragmentDependency } from './composeQueries'
+import { collectFragments } from './composeQueries'
 
 const GraphqlKinds = graphql.Kind
 

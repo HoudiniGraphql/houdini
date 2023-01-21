@@ -1,40 +1,30 @@
-import type { RequestHandler } from '$houdini';
-import { HoudiniClient } from '$houdini';
+import { HoudiniClient, type ClientPlugin } from '$houdini';
+import { error } from '@sveltejs/kit';
 
-// For Query & Mutation
-const requestHandler: RequestHandler = async ({
-  fetch,
-  text = '',
-  variables = {},
-  metadata,
-  session
-}) => {
-  // Prepare the request
-  const url = 'http://localhost:4000/graphql';
+// in order to verify that we send metadata, we need something that will log the metadata after
+const logMetadata: ClientPlugin = () => ({
+  end(ctx, { resolve, value }) {
+    if (ctx.metadata?.logResult === true) {
+      console.info(JSON.stringify(value));
+    }
 
-  // regular fetch (Server & Client)
-  const result = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${session?.user?.token}` // session usage example
-    },
-    body: JSON.stringify({
-      query: text,
-      variables
-    })
-  });
-
-  // return the result as a JSON object to Houdini
-  const json = await result.json();
-
-  // metadata usage example
-  if (metadata?.logResult === true) {
-    console.info(JSON.stringify(json));
+    resolve(ctx);
   }
-
-  return json;
-};
+});
 
 // Export the Houdini client
-export default new HoudiniClient(requestHandler);
+export default new HoudiniClient({
+  url: 'http://localhost:4000/graphql',
+  fetchParams({ session }) {
+    return {
+      headers: {
+        Authorization: `Bearer ${session?.user?.token}` // session usage example
+      }
+    };
+  },
+  throwOnError: {
+    operations: ['all'],
+    error: (errors) => error(500, errors.map((error) => error.message).join('. ') + '.')
+  },
+  plugins: [logMetadata]
+});

@@ -1,18 +1,17 @@
 import { logGreen, logYellow } from '@kitql/helper'
 import * as graphql from 'graphql'
 
+import type { Config, CollectedGraphQLDocument } from '../../lib'
 import {
-	Config,
 	definitionFromAncestors,
 	LogLevel,
 	parentTypeFromAncestors,
 	HoudiniError,
 	siteURL,
-	CollectedGraphQLDocument,
 	unwrapType,
 } from '../../lib'
+import type { FragmentArgument } from '../transforms/fragmentVariables'
 import {
-	FragmentArgument,
 	fragmentArguments as collectFragmentArguments,
 	withArguments,
 } from '../transforms/fragmentVariables'

@@ -8,8 +8,8 @@ import * as recast from 'recast'
 
 import { parseSvelte } from '../../extract'
 import { extract_load_function } from '../../extractLoadFunction'
+import type { HoudiniRouteScript } from '../../kit'
 import {
-	HoudiniRouteScript,
 	is_layout,
 	is_route,
 	is_route_script,
@@ -25,9 +25,11 @@ import {
 	houdini_on_error_fn,
 	query_variable_fn,
 } from '../../naming'
-import { route_params, RouteParam } from '../../routing'
-import { find_inline_queries, LoadTarget } from '../componentQuery'
-import { SvelteTransformPage } from '../types'
+import type { RouteParam } from '../../routing'
+import { route_params } from '../../routing'
+import type { LoadTarget } from '../componentQuery'
+import { find_inline_queries } from '../componentQuery'
+import type { SvelteTransformPage } from '../types'
 
 const AST = recast.types.builders
 
@@ -216,7 +218,7 @@ function add_load({
 			AST.variableDeclaration('const', [
 				AST.variableDeclarator(
 					AST.identifier('houdiniConfig'),
-					AST.awaitExpression(AST.callExpression(AST.identifier('getCurrentConfig'), []))
+					AST.callExpression(AST.identifier('getCurrentConfig'), [])
 				),
 			]),
 
@@ -590,32 +592,32 @@ function variable_function_for_query(
 					AST.memberExpression(AST.identifier('Object'), AST.identifier('assign')),
 					[
 						AST.identifier('result'),
-						AST.awaitExpression(
-							AST.callExpression(AST.identifier('marshalInputs'), [
-								AST.objectExpression([
-									AST.objectProperty(
-										AST.identifier('input'),
-										AST.awaitExpression(
-											AST.callExpression(
-												AST.identifier(
-													query_variable_fn(query.name!.value)
-												),
-												[AST.identifier('event')]
-											)
+						AST.callExpression(AST.identifier('marshalInputs'), [
+							AST.objectExpression([
+								AST.objectProperty(
+									AST.identifier('config'),
+									AST.identifier('config')
+								),
+								AST.objectProperty(
+									AST.identifier('input'),
+									AST.awaitExpression(
+										AST.callExpression(
+											AST.identifier(query_variable_fn(query.name!.value)),
+											[AST.identifier('event')]
 										)
-									),
-									AST.objectProperty(
-										AST.identifier('artifact'),
-										artifact_import({
-											config: page.config,
-											script: page.script,
-											page,
-											artifact: { name: query.name!.value },
-										}).id
-									),
-								]),
-							])
-						),
+									)
+								),
+								AST.objectProperty(
+									AST.identifier('artifact'),
+									artifact_import({
+										config: page.config,
+										script: page.script,
+										page,
+										artifact: { name: query.name!.value },
+									}).id
+								),
+							]),
+						]),
 					]
 				)
 			)

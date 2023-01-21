@@ -41,11 +41,11 @@ test('pass argument values to generated fragments', async function () {
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		export default {
-		    name: "AllUsers",
-		    kind: "HoudiniQuery",
-		    hash: "c346b9eaafaa74d18a267a74706e193e8080b9533d994d6e8489d7e5b534ee41",
+		    "name": "AllUsers",
+		    "kind": "HoudiniQuery",
+		    "hash": "c346b9eaafaa74d18a267a74706e193e8080b9533d994d6e8489d7e5b534ee41",
 
-		    raw: \`query AllUsers {
+		    "raw": \`query AllUsers {
 		  ...QueryFragment_10b3uv
 		}
 
@@ -56,19 +56,19 @@ test('pass argument values to generated fragments', async function () {
 		}
 		\`,
 
-		    rootType: "Query",
+		    "rootType": "Query",
 
-		    selection: {
-		        fields: {
-		            users: {
-		                type: "User",
-		                keyRaw: "users(stringValue: \\"Hello\\")",
+		    "selection": {
+		        "fields": {
+		            "users": {
+		                "type": "User",
+		                "keyRaw": "users(stringValue: \\"Hello\\")",
 
-		                selection: {
-		                    fields: {
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
+		                "selection": {
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
 		                        }
 		                    }
 		                }
@@ -76,8 +76,8 @@ test('pass argument values to generated fragments', async function () {
 		        }
 		    },
 
-		    policy: "CacheOrNetwork",
-		    partial: false
+		    "policy": "CacheOrNetwork",
+		    "partial": false
 		};
 
 		"HoudiniHash=fb97ee7e3f483801de403f425fcd2b4ed5c1357ffc3d73394e34c23b278552b1";
@@ -118,11 +118,11 @@ test("nullable arguments with no values don't show up in the query", async funct
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		export default {
-		    name: "AllUsers",
-		    kind: "HoudiniQuery",
-		    hash: "19b6a6cc9d06ab798cbf4b0a9530e07a3473b78e7d964cc9d6557d8240ed9012",
+		    "name": "AllUsers",
+		    "kind": "HoudiniQuery",
+		    "hash": "19b6a6cc9d06ab798cbf4b0a9530e07a3473b78e7d964cc9d6557d8240ed9012",
 
-		    raw: \`query AllUsers {
+		    "raw": \`query AllUsers {
 		  ...QueryFragment
 		}
 
@@ -133,19 +133,19 @@ test("nullable arguments with no values don't show up in the query", async funct
 		}
 		\`,
 
-		    rootType: "Query",
+		    "rootType": "Query",
 
-		    selection: {
-		        fields: {
-		            users: {
-		                type: "User",
-		                keyRaw: "users",
+		    "selection": {
+		        "fields": {
+		            "users": {
+		                "type": "User",
+		                "keyRaw": "users",
 
-		                selection: {
-		                    fields: {
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
+		                "selection": {
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
 		                        }
 		                    }
 		                }
@@ -153,8 +153,8 @@ test("nullable arguments with no values don't show up in the query", async funct
 		        }
 		    },
 
-		    policy: "CacheOrNetwork",
-		    partial: false
+		    "policy": "CacheOrNetwork",
+		    "partial": false
 		};
 
 		"HoudiniHash=774e85c1a749388df97ed5768006535072408ceea2a7bba3c835553e2d65e5bd";
@@ -195,11 +195,11 @@ test("fragment arguments with default values don't rename the fragment", async f
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		export default {
-		    name: "AllUsers",
-		    kind: "HoudiniQuery",
-		    hash: "3835ee68277547d738cc8fd5051fe98799b5bd470516146906fa0f134a2b3891",
+		    "name": "AllUsers",
+		    "kind": "HoudiniQuery",
+		    "hash": "3835ee68277547d738cc8fd5051fe98799b5bd470516146906fa0f134a2b3891",
 
-		    raw: \`query AllUsers {
+		    "raw": \`query AllUsers {
 		  ...QueryFragment
 		}
 
@@ -210,19 +210,19 @@ test("fragment arguments with default values don't rename the fragment", async f
 		}
 		\`,
 
-		    rootType: "Query",
+		    "rootType": "Query",
 
-		    selection: {
-		        fields: {
-		            users: {
-		                type: "User",
-		                keyRaw: "users(stringValue: \\"Hello\\")",
+		    "selection": {
+		        "fields": {
+		            "users": {
+		                "type": "User",
+		                "keyRaw": "users(stringValue: \\"Hello\\")",
 
-		                selection: {
-		                    fields: {
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
+		                "selection": {
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
 		                        }
 		                    }
 		                }
@@ -230,8 +230,8 @@ test("fragment arguments with default values don't rename the fragment", async f
 		        }
 		    },
 
-		    policy: "CacheOrNetwork",
-		    partial: false
+		    "policy": "CacheOrNetwork",
+		    "partial": false
 		};
 
 		"HoudiniHash=774e85c1a749388df97ed5768006535072408ceea2a7bba3c835553e2d65e5bd";
@@ -280,11 +280,11 @@ test('thread query variables to inner fragments', async function () {
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		export default {
-		    name: "AllUsers",
-		    kind: "HoudiniQuery",
-		    hash: "8fa4273ab75455c901e7de893f72a28af4c001afbf204ceca2fd7ab30b7ff372",
+		    "name": "AllUsers",
+		    "kind": "HoudiniQuery",
+		    "hash": "8fa4273ab75455c901e7de893f72a28af4c001afbf204ceca2fd7ab30b7ff372",
 
-		    raw: \`query AllUsers($name: String!) {
+		    "raw": \`query AllUsers($name: String!) {
 		  ...QueryFragment_VDHGm
 		}
 
@@ -299,19 +299,19 @@ test('thread query variables to inner fragments', async function () {
 		}
 		\`,
 
-		    rootType: "Query",
+		    "rootType": "Query",
 
-		    selection: {
-		        fields: {
-		            users: {
-		                type: "User",
-		                keyRaw: "users(stringValue: $name)",
+		    "selection": {
+		        "fields": {
+		            "users": {
+		                "type": "User",
+		                "keyRaw": "users(stringValue: $name)",
 
-		                selection: {
-		                    fields: {
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
+		                "selection": {
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
 		                        }
 		                    }
 		                }
@@ -319,16 +319,16 @@ test('thread query variables to inner fragments', async function () {
 		        }
 		    },
 
-		    input: {
-		        fields: {
-		            name: "String"
+		    "input": {
+		        "fields": {
+		            "name": "String"
 		        },
 
-		        types: {}
+		        "types": {}
 		    },
 
-		    policy: "CacheOrNetwork",
-		    partial: false
+		    "policy": "CacheOrNetwork",
+		    "partial": false
 		};
 
 		"HoudiniHash=7add8faa7fad1d3ba59adacc533e8e1ab6f92b4805a48b14665eb35591e96bb0";
@@ -377,11 +377,11 @@ test('inner fragment with intermediate default value', async function () {
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		export default {
-		    name: "AllUsers",
-		    kind: "HoudiniQuery",
-		    hash: "d5753a3cae56b8133c72527cdccdd0c001effb48104b98806ac62dd9afeeb259",
+		    "name": "AllUsers",
+		    "kind": "HoudiniQuery",
+		    "hash": "d5753a3cae56b8133c72527cdccdd0c001effb48104b98806ac62dd9afeeb259",
 
-		    raw: \`query AllUsers {
+		    "raw": \`query AllUsers {
 		  ...QueryFragment
 		}
 
@@ -396,19 +396,19 @@ test('inner fragment with intermediate default value', async function () {
 		}
 		\`,
 
-		    rootType: "Query",
+		    "rootType": "Query",
 
-		    selection: {
-		        fields: {
-		            users: {
-		                type: "User",
-		                keyRaw: "users(intValue: 2, stringValue: \\"Hello\\")",
+		    "selection": {
+		        "fields": {
+		            "users": {
+		                "type": "User",
+		                "keyRaw": "users(intValue: 2, stringValue: \\"Hello\\")",
 
-		                selection: {
-		                    fields: {
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
+		                "selection": {
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
 		                        }
 		                    }
 		                }
@@ -416,8 +416,8 @@ test('inner fragment with intermediate default value', async function () {
 		        }
 		    },
 
-		    policy: "CacheOrNetwork",
-		    partial: false
+		    "policy": "CacheOrNetwork",
+		    "partial": false
 		};
 
 		"HoudiniHash=774e85c1a749388df97ed5768006535072408ceea2a7bba3c835553e2d65e5bd";
@@ -466,11 +466,11 @@ test("default values don't overwrite unless explicitly passed", async function (
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		export default {
-		    name: "AllUsers",
-		    kind: "HoudiniQuery",
-		    hash: "b155b401cdbdfe0f63dd47575fbcfb2aa90678e7530b93476c4efe559405cf4f",
+		    "name": "AllUsers",
+		    "kind": "HoudiniQuery",
+		    "hash": "b155b401cdbdfe0f63dd47575fbcfb2aa90678e7530b93476c4efe559405cf4f",
 
-		    raw: \`query AllUsers {
+		    "raw": \`query AllUsers {
 		  ...QueryFragment
 		}
 
@@ -485,19 +485,19 @@ test("default values don't overwrite unless explicitly passed", async function (
 		}
 		\`,
 
-		    rootType: "Query",
+		    "rootType": "Query",
 
-		    selection: {
-		        fields: {
-		            users: {
-		                type: "User",
-		                keyRaw: "users(intValue: 10, stringValue: \\"Goodbye\\")",
+		    "selection": {
+		        "fields": {
+		            "users": {
+		                "type": "User",
+		                "keyRaw": "users(intValue: 10, stringValue: \\"Goodbye\\")",
 
-		                selection: {
-		                    fields: {
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
+		                "selection": {
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
 		                        }
 		                    }
 		                }
@@ -505,8 +505,8 @@ test("default values don't overwrite unless explicitly passed", async function (
 		        }
 		    },
 
-		    policy: "CacheOrNetwork",
-		    partial: false
+		    "policy": "CacheOrNetwork",
+		    "partial": false
 		};
 
 		"HoudiniHash=774e85c1a749388df97ed5768006535072408ceea2a7bba3c835553e2d65e5bd";
@@ -547,11 +547,11 @@ test('default arguments', async function () {
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		export default {
-		    name: "AllUsers",
-		    kind: "HoudiniQuery",
-		    hash: "5c4a8d1fe2e117286ecdfbd273bf1beb2f71a0a3fd9ea6bc84fe97c394c1a836",
+		    "name": "AllUsers",
+		    "kind": "HoudiniQuery",
+		    "hash": "5c4a8d1fe2e117286ecdfbd273bf1beb2f71a0a3fd9ea6bc84fe97c394c1a836",
 
-		    raw: \`query AllUsers {
+		    "raw": \`query AllUsers {
 		  ...QueryFragment
 		}
 
@@ -562,19 +562,19 @@ test('default arguments', async function () {
 		}
 		\`,
 
-		    rootType: "Query",
+		    "rootType": "Query",
 
-		    selection: {
-		        fields: {
-		            users: {
-		                type: "User",
-		                keyRaw: "users(boolValue: true, stringValue: \\"Hello\\")",
+		    "selection": {
+		        "fields": {
+		            "users": {
+		                "type": "User",
+		                "keyRaw": "users(boolValue: true, stringValue: \\"Hello\\")",
 
-		                selection: {
-		                    fields: {
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
+		                "selection": {
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
 		                        }
 		                    }
 		                }
@@ -582,8 +582,8 @@ test('default arguments', async function () {
 		        }
 		    },
 
-		    policy: "CacheOrNetwork",
-		    partial: false
+		    "policy": "CacheOrNetwork",
+		    "partial": false
 		};
 
 		"HoudiniHash=774e85c1a749388df97ed5768006535072408ceea2a7bba3c835553e2d65e5bd";
@@ -624,11 +624,11 @@ test('multiple with directives - no overlap', async function () {
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		export default {
-		    name: "AllUsers",
-		    kind: "HoudiniQuery",
-		    hash: "7327e6f7f6c8339feebb640b995c3e25efe1b25de29b1f43cb55c2a0566f713f",
+		    "name": "AllUsers",
+		    "kind": "HoudiniQuery",
+		    "hash": "7327e6f7f6c8339feebb640b995c3e25efe1b25de29b1f43cb55c2a0566f713f",
 
-		    raw: \`query AllUsers {
+		    "raw": \`query AllUsers {
 		  ...QueryFragment_2prn0K
 		}
 
@@ -639,19 +639,19 @@ test('multiple with directives - no overlap', async function () {
 		}
 		\`,
 
-		    rootType: "Query",
+		    "rootType": "Query",
 
-		    selection: {
-		        fields: {
-		            users: {
-		                type: "User",
-		                keyRaw: "users(boolValue: false, stringValue: \\"Goodbye\\")",
+		    "selection": {
+		        "fields": {
+		            "users": {
+		                "type": "User",
+		                "keyRaw": "users(boolValue: false, stringValue: \\"Goodbye\\")",
 
-		                selection: {
-		                    fields: {
-		                        id: {
-		                            type: "ID",
-		                            keyRaw: "id"
+		                "selection": {
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
 		                        }
 		                    }
 		                }
@@ -659,8 +659,8 @@ test('multiple with directives - no overlap', async function () {
 		        }
 		    },
 
-		    policy: "CacheOrNetwork",
-		    partial: false
+		    "policy": "CacheOrNetwork",
+		    "partial": false
 		};
 
 		"HoudiniHash=10b3cd7304221a7e9337b66dd1b083c11cafad428fe02bc0b889f2eb5fe524ff";

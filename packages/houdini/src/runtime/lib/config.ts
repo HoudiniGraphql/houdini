@@ -1,6 +1,7 @@
-import { GraphQLSchema } from 'graphql'
+import type { GraphQLSchema } from 'graphql'
 
-import { CachePolicy } from './types'
+import config from '../imports/config'
+import type { CachePolicy } from './types'
 
 let mockConfig: ConfigFile | null = null
 
@@ -45,14 +46,13 @@ export function computeID(configFile: ConfigFile, type: string, data: any): stri
 	return id.slice(0, -2)
 }
 
-export async function getCurrentConfig(): Promise<ConfigFile> {
+export function getCurrentConfig(): ConfigFile {
 	const mockConfig = getMockConfig()
 	if (mockConfig) {
 		return mockConfig
 	}
 
-	// @ts-ignore
-	return defaultConfigValues((await import('HOUDINI_CONFIG_PATH')).default)
+	return defaultConfigValues(config)
 }
 
 // the values we can take in from the config file
@@ -220,3 +220,7 @@ export type ScalarSpec = {
 // this type is meant to be extended by plugins to provide type definitions
 // for config
 export interface HoudiniPluginConfig {}
+
+// this type is meant to be extended by client plugins to provide type definitions
+// for config
+export interface HoudiniClientPluginConfig {}

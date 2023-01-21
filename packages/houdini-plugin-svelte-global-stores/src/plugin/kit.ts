@@ -1,6 +1,7 @@
-import { Config, path } from 'houdini'
+import type { Config } from 'houdini'
+import { path } from 'houdini'
 
-import { HoudiniPluginSvelteGlobalStoresConfig } from '.'
+import type { HoudiniPluginSvelteGlobalStoresConfig } from '.'
 
 export function global_stores_directory_name() {
 	return 'stores'

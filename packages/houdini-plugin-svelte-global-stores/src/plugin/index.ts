@@ -1,4 +1,5 @@
-import { HoudiniError, path, PluginFactory } from 'houdini'
+import type { PluginFactory } from 'houdini'
+import { HoudiniError, path } from 'houdini'
 
 import { store_name } from '../../../houdini-svelte/src/plugin/kit'
 import generate from './codegen'

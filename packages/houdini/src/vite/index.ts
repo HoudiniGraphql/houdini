@@ -3,7 +3,8 @@ import type { Plugin } from 'vite'
 import watch_and_run from 'vite-plugin-watch-and-run'
 
 import generate from '../codegen'
-import { getConfig, PluginConfig, formatErrors, path } from '../lib'
+import type { PluginConfig } from '../lib'
+import { getConfig, formatErrors, path } from '../lib'
 import houdini_vite from './houdini'
 import watch_remote_schema from './schema'
 

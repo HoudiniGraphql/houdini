@@ -1,11 +1,13 @@
 import { logYellow } from '@kitql/helper'
 import type { ExpressionKind } from 'ast-types/lib/gen/kinds'
 import * as graphql from 'graphql'
-import { Config, fs, parseJS, path } from 'houdini'
-import * as recast from 'recast'
+import type { Config } from 'houdini'
+import { fs, parseJS, path } from 'houdini'
+import type * as recast from 'recast'
 import { transformWithEsbuild } from 'vite'
 
-import { HoudiniRouteScript, stores_directory_name, store_suffix } from './kit'
+import type { HoudiniRouteScript } from './kit'
+import { stores_directory_name, store_suffix } from './kit'
 import { houdini_load_fn } from './naming'
 
 type Program = recast.types.namedTypes.Program

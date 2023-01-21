@@ -1,7 +1,7 @@
 import { getCurrentConfig } from './config'
-import { ConfigFile } from './config'
+import type { ConfigFile } from './config'
 import { getFieldsForType } from './selection'
-import {
+import type {
 	MutationArtifact,
 	QueryArtifact,
 	SubscriptionArtifact,
@@ -15,7 +15,7 @@ export async function marshalSelection({
 	selection: SubscriptionSelection
 	data: any
 }): Promise<{} | null | undefined> {
-	const config = await getCurrentConfig()
+	const config = getCurrentConfig()
 
 	if (data === null || typeof data === 'undefined') {
 		return data
@@ -68,17 +68,17 @@ export async function marshalSelection({
 	)
 }
 
-export async function marshalInputs<T>({
+export function marshalInputs<T>({
 	artifact,
 	input,
+	config,
 	rootType = '@root',
 }: {
 	artifact: QueryArtifact | MutationArtifact | SubscriptionArtifact
 	input: unknown
 	rootType?: string
-}): Promise<{} | null | undefined> {
-	const config = await getCurrentConfig()
-
+	config: ConfigFile
+}): {} | null | undefined {
 	if (input === null || typeof input === 'undefined') {
 		return input
 	}
@@ -93,42 +93,38 @@ export async function marshalInputs<T>({
 
 	// if we are looking at a list
 	if (Array.isArray(input)) {
-		return await Promise.all(
-			input.map(async (val) => await marshalInputs({ artifact, input: val, rootType }))
-		)
+		return input.map((val) => marshalInputs({ artifact, input: val, rootType, config }))
 	}
 
 	// we're looking at an object, build it up from the current input
 	return Object.fromEntries(
-		await Promise.all(
-			Object.entries(input as {}).map(async ([fieldName, value]) => {
-				// look up the type for the field
-				const type = fields?.[fieldName]
-				// if we don't have type information for this field, just use it directly
-				// it's most likely a non-custom scalars or enums
-				if (!type) {
-					return [fieldName, value]
-				}
+		Object.entries(input as {}).map(([fieldName, value]) => {
+			// look up the type for the field
+			const type = fields?.[fieldName]
+			// if we don't have type information for this field, just use it directly
+			// it's most likely a non-custom scalars or enums
+			if (!type) {
+				return [fieldName, value]
+			}
 
-				// is the type something that requires marshaling
-				const marshalFn = config.scalars?.[type]?.marshal
-				if (marshalFn) {
-					// if we are looking at a list of scalars
-					if (Array.isArray(value)) {
-						return [fieldName, value.map(marshalFn)]
-					}
-					return [fieldName, marshalFn(value)]
+			// is the type something that requires marshaling
+			const marshalFn = config.scalars?.[type]?.marshal
+			if (marshalFn) {
+				// if we are looking at a list of scalars
+				if (Array.isArray(value)) {
+					return [fieldName, value.map(marshalFn)]
 				}
+				return [fieldName, marshalFn(value)]
+			}
 
-				// if the type doesn't require marshaling and isn't a referenced type
-				if (isScalar(config, type) || !artifact.input!.types[type]) {
-					return [fieldName, value]
-				}
+			// if the type doesn't require marshaling and isn't a referenced type
+			if (isScalar(config, type) || !artifact.input!.types[type]) {
+				return [fieldName, value]
+			}
 
-				// we ran into an object type that should be referenced by the artifact
-				return [fieldName, await marshalInputs({ artifact, input: value, rootType: type })]
-			})
-		)
+			// we ran into an object type that should be referenced by the artifact
+			return [fieldName, marshalInputs({ artifact, input: value, rootType: type, config })]
+		})
 	)
 }
 

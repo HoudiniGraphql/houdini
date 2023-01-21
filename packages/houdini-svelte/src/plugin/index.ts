@@ -1,7 +1,9 @@
-import { HoudiniError, PluginFactory, path, fs, type Config } from 'houdini'
+import type { PluginFactory } from 'houdini'
+import { HoudiniError, path, fs, type Config } from 'houdini'
 import * as url from 'url'
 import { loadEnv } from 'vite'
 
+import { artifactData } from './artifactData'
 import generate from './codegen'
 import extract from './extract'
 import fs_patch from './fsPatch'
@@ -30,21 +32,6 @@ const HoudiniSveltePlugin: PluginFactory = async () => ({
 	extensions: ['.svelte'],
 
 	transform_runtime: {
-		'network.js': ({ config, content }) => {
-			// the path to the network file
-			const networkFilePath = path.join(
-				config.pluginRuntimeDirectory('houdini-svelte'),
-				'network.js'
-			)
-			// the relative path
-			const relativePath = path.relative(
-				path.dirname(networkFilePath),
-				path.join(config.projectRoot, plugin_config(config).client)
-			)
-
-			return content.replace('HOUDINI_CLIENT_PATH', relativePath)
-		},
-
 		'adapter.js': ({ content }) => {
 			// dedicated sveltekit adapter.
 			const sveltekit_adapter = `import { browser, building } from '$app/environment'
@@ -65,7 +52,29 @@ export const error = svelteKitError
 
 			return framework === 'kit' ? sveltekit_adapter : content
 		},
+
+		[path.join('imports', 'client.js')]: ({ config: cfg }) => {
+			const config = plugin_config(cfg)
+			// the path to the network file
+			const networkFilePath = path.join(
+				cfg.pluginRuntimeDirectory('houdini-svelte'),
+				'imports',
+				'clientImport.js'
+			)
+			// the relative path
+			const relativePath = path.relative(
+				path.dirname(networkFilePath),
+				path.join(cfg.projectRoot, config.client ?? 'src/client')
+			)
+			return `import client from "${relativePath}"
+
+export default client
+`
+		},
 	},
+
+	// add custom artifact data to the artifact document
+	artifact_data: artifactData,
 
 	// custom logic to pull a graphql document out of a svelte file
 	extract_documents: extract,
@@ -217,13 +226,6 @@ export type HoudiniSvelteConfig = {
 	 * @default +layout.gql
 	 */
 	layoutQueryFilename?: string
-
-	/**
-	 * With this enabled, errors in your query will not be thrown as exceptions. You will have to handle
-	 * error state in your route components or by hand in your load (or the onError hook)
-	 * @default false
-	 */
-	quietQueryErrors?: boolean
 
 	/**
 	 * A flag to treat every component as a non-route. This is useful for projects built with the static-adapter
