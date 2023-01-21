@@ -66,6 +66,14 @@ class FieldCollection {
 		}
 	}
 
+	get size() {
+		return (
+			Object.keys(this.fields).length +
+			Object.keys(this.inlineFragments).length +
+			Object.keys(this.fragmentSpreads).length
+		)
+	}
+
 	add(selection: graphql.SelectionNode) {
 		// how we handle the field depends on what kind of field it is
 		if (selection.kind === 'Field') {
@@ -153,7 +161,6 @@ class FieldCollection {
 			}
 
 			// instead of adding the field on directly, let's turn the external fragment into an inline fragment
-
 			this.add({
 				kind: 'InlineFragment',
 				typeCondition: {
@@ -173,10 +180,17 @@ class FieldCollection {
 
 	toSelectionSet(): graphql.SelectionNode[] {
 		return Object.values(this.inlineFragments)
-			.map<graphql.SelectionNode>((fragment) => {
+			.flatMap<graphql.SelectionNode>((fragment) => {
+				// if there are no selections in the fragment, skip it
+				if (fragment.selection.size === 0) {
+					return []
+				}
+
+				// convert the selection to a real selection set
 				fragment.astNode.selectionSet.selections = fragment.selection.toSelectionSet()
 
-				return fragment.astNode
+				// return the value
+				return [fragment.astNode]
 			})
 			.concat(
 				Object.values(this.fields).map((field) => {
