@@ -39,7 +39,7 @@ export class GarbageCollector {
 	tick() {
 		// get the current time of the tick
 		const dt_tick = Date.now().valueOf()
-		const config_max_time = 60_1000
+		const config_max_time = this.cache._internal_unstable.config.defaultTimeToStale
 
 		// look at every field of every record we know about
 		for (const [type, fieldMapTypes] of this.lifetimes.entries()) {
@@ -70,16 +70,22 @@ export class GarbageCollector {
 					}
 
 					// --- Part 2 : valueTimes ---
-					// if the field is older than x... mark it as stale
-					const dt_valueOf = this.cache._internal_unstable.staleManager.getFieldTime(
-						type,
-						id,
-						field
-					)
+					if (config_max_time && config_max_time > 0) {
+						// if the field is older than x... mark it as stale
+						const dt_valueOf = this.cache._internal_unstable.staleManager.getFieldTime(
+							type,
+							id,
+							field
+						)
 
-					// if we have no dt_valueOf, it's already stale
-					if (dt_valueOf && dt_tick - dt_valueOf > config_max_time) {
-						this.cache._internal_unstable.staleManager.markFieldStale(type, id, field)
+						// if we have no dt_valueOf, it's already stale
+						if (dt_valueOf && dt_tick - dt_valueOf > config_max_time) {
+							this.cache._internal_unstable.staleManager.markFieldStale(
+								type,
+								id,
+								field
+							)
+						}
 					}
 				}
 			}
