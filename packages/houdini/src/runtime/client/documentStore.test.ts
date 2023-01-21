@@ -1,5 +1,5 @@
 import { sleep } from '@kitql/helper'
-import { QueryResult } from 'build/runtime-esm'
+import type { QueryResult } from 'build/runtime-esm'
 import { test, expect, vi, beforeEach } from 'vitest'
 
 import { HoudiniClient } from '.'
