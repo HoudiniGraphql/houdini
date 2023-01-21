@@ -1,7 +1,7 @@
 import * as graphql from 'graphql'
 import { expect, test } from 'vitest'
 
-import { CollectedGraphQLDocument } from '../../lib'
+import type { CollectedGraphQLDocument } from '../../lib'
 import { pipelineTest, testConfig } from '../../test'
 
 const start = [

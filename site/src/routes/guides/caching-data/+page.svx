@@ -1,6 +1,5 @@
 ---
 title: Caching Data
-index: 6
 description: A guide to all things caching in Houdini
 ---
 
@@ -10,10 +9,10 @@ Houdini's cache behavior can be customized with the `@cache` directive:
 
 ```graphql
 query AllItems @cache(policy: CacheAndNetwork) {
-    items {
-        id
-        text
-    }
+	items {
+		id
+		text
+	}
 }
 ```
 
@@ -81,10 +80,10 @@ As your users navigate through your application, their cache will build up with 
 
 ```graphql
 query AllItems @cache(partial: true) {
-    items {
-        id
-        text
-    }
+	items {
+		id
+		text
+	}
 }
 ```
 
@@ -130,7 +129,6 @@ export default {
     }
 }
 ```
-
 
 Maybe your API does not support the `node` query field. In this case, Houdini lets you configure both parts of this interaction so you can tell Houdini how to do the right thing.
 

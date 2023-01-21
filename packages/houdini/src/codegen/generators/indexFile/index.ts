@@ -1,5 +1,6 @@
 // locals
-import { Config, CollectedGraphQLDocument, fs, path } from '../../../lib'
+import type { Config, CollectedGraphQLDocument } from '../../../lib'
+import { fs, path } from '../../../lib'
 import { cjsIndexFilePreamble, exportStarFrom, exportDefaultFrom } from '../../utils'
 
 // every document in the application should be re-exported from the root. this allows the user to balance
@@ -26,6 +27,8 @@ export default async function writeIndexFile(config: Config, docs: CollectedGrap
 
 	// add the standard exports
 	body += [
+		// we need to export the client first so that we don't get any weird cycle issues
+		export_star_from({ module: './' + path.join(runtimeDir, 'client') }),
 		export_star_from({ module: runtimeDir }),
 		export_star_from({ module: artifactDir }),
 		export_star_from({ module: definitionsDir }),

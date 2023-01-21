@@ -1,0 +1,405 @@
+---
+title: Client Plugins
+description: The API reference for HoudiniClient plugins
+---
+
+<script>
+    import PluginWorkflow from './Workflow.svelte'
+    import AuthoringPluginsDive from './Authoring.svx'
+    import { Warning, DeepDive, Emoji, Zoomable } from '~/components'
+</script>
+
+# Client Plugins
+
+Client plugins allow you to customize the runtime behavior of your application's documents.
+They can do things like integrate with a logging service, add retry logic,
+or even add support for entirely new network capabilities like
+[Live Queries](https://the-guild.dev/blog/subscriptions-and-live-queries-real-time-with-graphql).
+
+> You might not need to add _any_ plugins for your application. If all you need to do is
+> send queries and mutations over standard HTTP requests, then you should be able
+> to configure the client to suit your needs without using any plugins. For more
+> information, check out the [Client docs](/api/client).
+
+## Overview
+
+In Houdini, every document in your app is backed by an observable value we call a "Document Store".
+The store has two main concerns: holding onto the latest value of the document and sending new
+queries to update its state (usually with new variables). Client plugins let you modify this structure
+to fit your needs by hooking into five different phases of the request pipeline:
+
+- `start` happens at the beginning of a request (or setup cycle) and contains logic that must happen for every request
+- `beforeNetwork` for things that should happen when there was no cache hit (there will be a network request)
+- `network` performs the actual network request
+- `afterNetwork` for logic after the network request but before the cache processes it
+- `end` happens at the end of the request regardless of the data’s source
+
+For some documents, `beforeNetwork`, `network`, and `afterNetwork` might be short circuited with cached values
+if the policy allows it. You can think of the cache as a gatekeeper that decides if a request can be resolved
+before beginning the network phases.
+
+<Zoomable style="margin: 40px 0 60px 0;">
+
+    <figure alt="A diagram showing the organization of phases as a request is processed by houdini">
+    		<PluginWorkflow />
+    	<figcaption style="margin-top: 20px">
+    		In this diagram, colored boxes represent plugins and the number indicates their order in the client file.
+    		The arrow shows the flow of information to the server and back to the user.
+    	</figcaption>
+    </figure>
+
+</Zoomable>
+
+While preparing the request, plugins are iterated over in the order they are passed to the client. Once a result
+has been provided, its value is sent in reverse order through the list of plugins we've visited to potentially
+modify the response. For more information on this, please read the section on [Enter vs Exit hooks](#enter-vs-exit-hooks).
+
+## Create Your First Plugin
+
+If you are brand new to working with client plugins, we recommend creating a
+few very simple ones before getting too deep in the explanation:
+
+<AuthoringPluginsDive />
+
+## Enter vs Exit Hooks
+
+It's important to keep in mind the direction that information is flowing in a given step.
+
+The easiest way to track this is by looking at the diagram above. Notice that in the top half,
+information is flowing from the user to the server. The bottom half is concerned with data flowing
+from the server back to the user.
+
+To make the conversation easier, we'll refer to the top half as "enter hooks" and the
+bottom half as the "exit hooks". While these hooks do behave very similarly, there are some important
+things to keep in mind.
+
+### Enter Hooks
+
+In enter hooks like `start`, `beforeNetwork` and `network`, information flows forward: to the next plugin in the list.
+
+```typescript:title=src/client.ts&typescriptToggle=true
+import type { ClientPlugin } from '$houdini'
+
+const sayHello: ClientPlugin = () => {
+    return {
+        start(ctx, { next }) {
+            // say hello
+            console.log("Hello world!")
+
+            // move onto the next step in the pipeline
+            next(ctx)
+        }
+    }
+}
+```
+
+One enter hook in a list _must_ use the `resolve` function to provide a value
+for the store. By default, `HoudiniClient` includes a fetch plugin that always
+resolves the pipeline with a value. If no enter hook calls `resolve`, the pipeline
+will hang forever. Here is a simplified version as an example:
+
+```typescript:title=src/client.ts&typescriptToggle=true
+import type { ClientPlugin } from '$houdini'
+
+const simpleFetchPlugin: ClientPlugin = () => {
+    return {
+        async network(ctx, { resolve, next }) {
+            const result = await fetch('...', {
+                body: JSON.strinify({ query: ctx.text })
+            })
+
+            // in reality we need to pass more here
+            // see Type Defintions for more information
+            resolve(ctx, {
+                data: result.data
+            })
+        }
+    }
+}
+```
+
+There are a few things to remember when defining Enter hooks:
+
+- An enter hook can call `next` or `resolve` in any combination
+  you want as long as at least one of them is always called. If you do
+  not call one of them, your pipeline will hang indefinitely.
+- When calling both `resolve` and `next` in the same hook, try
+  to call `resolve` before `next` so you can resolve the request
+  as soon as you can (if it makes sense for the situation).
+- When calling `resolve` you have to pass a full `QueryResult`
+  (see [Type Definitions](#type-definitions) below)
+
+### Exit hooks
+
+Exit hooks like `afterNetwork` and `end` process a value as it leaves our request pipeline. This
+means we use the `resolve` function to keep the chain of returns going and ultimately complete the pipeline.
+Apart from that, the biggest difference between an exit hook and an enter hook is that an
+exit hook has a value that it can process:
+
+```typescript:title=src/client.ts&typescriptToggle=true
+import type { ClientPlugin } from '$houdini'
+
+const logErrors: ClientPlugin = () => {
+    return {
+        end(ctx, { value, resolve }) {
+            // log errors if we see them
+            if (value.errors && value.errors.length > 0) {
+                console.warn('encountered errors:', value.errors)
+            }
+
+            // keep the information flowing to the user
+            resolve(ctx)
+        }
+    }
+}
+```
+
+An exit hook can also call `resolve` and `next` in the same function. However,
+an exit hook needs to call `resolve` under some circumstances. If an exit hook never calls `resolve`,
+you will have created a plugin black hole. No data will get to the user and the pipeline will
+hang forever <Emoji name="fear" height={20} fallback="😨" style="margin-bottom: -3px" />
+
+In Summary,
+
+- You do not have to pass a value when calling `resolve`. The last known value will be used automatically. You are
+  also free to modify the value.
+- Make sure your exit hook resolves under _some_ condition
+
+## Choosing a Phase
+
+We recognize it can be a bit confusing to work your way through this. If you're struggling
+to figure out which phase you want to hook into, here are a series of helpful questions.
+If you are still unsure after reading this, please open an issue on GitHub -
+we'd love to help.
+
+The first question you have to ask yourself is whether you are going to look data up
+from the server or act as a middleware in the pipeline. If you are going to interact with
+the server, you'll almost certainly want to do that in `network`.
+
+If you aren't building a `network` hook, the next question to ask is if you
+want to process a request on its way to the API or do you want to look at
+the result of the query?
+If you want to see the request before it gets to the API, you either want`start` or
+`beforeNetwork`. If you want to look at responses from the API then your
+options are `afterNetwork` or `end`.
+
+The next question is to ask yourself whether you want to execute the logic if the response is cached.
+If your logic must always run, `start` or `end` is what you're looking for.
+If your logic should only run if the cache isn't involved then `beforeNetwork` or
+`afterNetwork` is the answer.
+
+Hope that helps!
+
+## Stateful Plugins
+
+Plugins can track state across multiple requests as well as phases.
+
+### State within a single request (multiple phases)
+
+If you want to track state between various phases, you can put any values you want inside of `ctx.stuff`:
+
+```typescript:title=src/client.ts&typescriptToggle=true
+import type { ClientPlugin } from '$houdini'
+
+const timer: ClientPlugin = () => {
+    return {
+        start(ctx, { next }) {
+            // add the start time to the context's stuff
+            ctx.stuff = {
+                ...ctx.stuff,
+                startTime: new Date(),
+            }
+
+            // move onto the next plugin
+            next(ctx)
+        },
+        end(ctx, { resolve }) {
+            // compute the difference in time between the
+            // date we created on `start` and now
+            const diff = Math.abs(new Date() - ctx.stuff.startTime)
+            // print the result
+            console.log(`This request took ${diff}ms`)
+
+            // we're done
+            resolve(ctx)
+        }
+    }
+}
+```
+
+### State across network requests
+
+If your plugin needs to track some state between multiple network requests, you can
+instantiate the state at the top of your plugin function, before you return your hooks.
+Houdini will make sure that your function is called only once when the store is created.
+
+```typescript:title=src/client.ts&typescriptToggle=true
+import type { ClientPlugin } from '$houdini'
+
+const logErrors: ClientPlugin = () => {
+    let lastVariables = {}
+
+    return {
+        start(ctx, { next, resolve, value }) {
+            // add the last variables we used to the current request
+            ctx.variables = {
+                ...lastVariables,
+                ...ctx.variables,
+            }
+
+            // track the last variables we used
+            lastVariables = ctx.variables
+
+            // move onto the next plugin
+            next(ctx)
+        }
+    }
+}
+```
+
+## Multiple Values
+
+The store might receive multiple updates for a given set of inputs. For example, subscriptions and live queries
+both push multiple results into the cache and need to update the store value. Each payload is pushed all
+the way through the chain using the same `resolve` function. If the original request hasn’t been resolved when a payload
+reaches the end, the promise will resolve with that first value. This means you are free to use `resolve` inside of event
+listeners to return multiple values.
+
+## Utilities
+
+`next` and `resolve` are just two examples of functions passed as the second argument
+to your hooks. For a full summary, please refer to the the `ClientPluginEnterHandlers` and
+`ClientPluginExitHandlers` in the [Type Definitions section below](#type-definitions).
+
+## Type Definitions
+
+The best source of truth for the type definitions are exported from your `$houdini`
+package. You can see them [here](https://github.com/HoudiniGraphql/houdini/tree/main/packages/houdini/src/runtime/client/DocumentStore.ts). They've been summarized below for reference but this copy may be out of date.
+If you find a discrepancy, please let us know on GitHub.
+
+```typescript
+type ClientPlugin = () => {
+	/* The 5 hooks described in this document*/
+	start?: ClientPluginEnterPhase
+	beforeNetwork?: ClientPluginEnterPhase
+	network?: ClientPluginEnterPhase
+	afterNetwork?: ClientPluginExitPhase
+	end?: ClientPluginExitPhase
+
+	/* Called when the document store has no more subscribers */
+	cleanup?(ctx: ClientPluginContext): void | Promise<void>
+
+	/* Called when an inner plugin has thrown an exception. If you want the error to keep moving up, you'll have to throw again (this hook traps the error) */
+	catch?(ctx: ClientPluginContext, args: ClientPluginCatchHandlers): void | Promise<void>
+}
+
+type ClientPluginPhase<Handlers> = (
+	ctx: ClientPluginContext,
+	handlers: Handlers
+) => void | Promise<void>
+
+type ClientPluginEnterPhase = ClientPluginPhase<ClientPluginEnterHandlers>
+type ClientPluginExitPhase = ClientPluginPhase<ClientPluginExitHandlers>
+
+type ClientPluginEnterHandlers = {
+	/* The initial value of the query */
+	initialValue: QueryResult
+	/** A reference to the houdini client */
+	client: HoudiniClient
+	/** Update the stores state without resolving the promise */
+	updateState(updater: (old: QueryResult) => QueryResult): void
+
+	/** Move onto the next step using the provided context.  */
+	next(ctx: ClientPluginContext): void
+	/** Terminate the current chain  */
+	resolve(ctx: ClientPluginContext, data: QueryResult): void
+
+	/** Return true if the variables have changed */
+	variablesChanged: (ctx: ClientPluginContext) => boolean
+	/** Returns the marshaled variables for the operation */
+	marshalVariables: (ctx: ClientPluginContext) => Record<string, any>
+}
+
+/**
+ * Exit handlers are the same as enter handles but don't need to
+ * resolve with a specific value
+ */
+type ClientPluginExitHandlers = {
+	/* The response value we're exiting with */
+	value: QueryResult
+
+	/* The initial value of the query */
+	initialValue: QueryResult
+	/** A reference to the houdini client */
+	client: HoudiniClient
+	/** Update the stores state without resolving the promise */
+	updateState(updater: (old: QueryResult) => QueryResult): void
+
+	/** Move onto the next step using the provided context.  */
+	next(ctx: ClientPluginContext): void
+	/** Terminate the current chain  */
+	resolve: (ctx: ClientPluginContext, data?: QueryResult) => void
+
+	/** Return true if the variables have changed */
+	variablesChanged: (ctx: ClientPluginContext) => boolean
+	/** Returns the marshaled variables for the operation */
+	marshalVariables: (ctx: ClientPluginContext) => Record<string, any>
+}
+
+/**
+ * Catch handlers are the same as enter handlers with access to the
+ * error that was thrown
+ */
+type ClientPluginCatchHandlers = {
+	/* The response value we're exiting with */
+	error: unknown
+
+	/* The initial value of the query */
+	initialValue: QueryResult
+	/** A reference to the houdini client */
+	client: HoudiniClient
+	/** Update the stores state without resolving the promise */
+	updateState(updater: (old: QueryResult) => QueryResult): void
+
+	/** Move onto the next step using the provided context.  */
+	next(ctx: ClientPluginContext): void
+	/** Terminate the current chain  */
+	resolve: (ctx: ClientPluginContext, data?: QueryResult) => void
+
+	/** Return true if the variables have changed */
+	variablesChanged: (ctx: ClientPluginContext) => boolean
+	/** Returns the marshaled variables for the operation */
+	marshalVariables: (ctx: ClientPluginContext) => Record<string, any>
+}
+
+type ClientPluginContext = {
+	config: ConfigFile
+	text: string
+	hash: string
+	artifact: DocumentArtifact
+	policy?: CachePolicy
+	fetch?: Fetch
+	variables?: Record<string, any>
+	metadata?: App.Metadata | null
+	session?: App.Session | null
+	fetchParams?: RequestInit
+	cacheParams?: {
+		layer?: Layer
+		notifySubscribers?: SubscriptionSpec[]
+		forceNotify?: boolean
+		disableWrite?: boolean
+		disableRead?: boolean
+		applyUpdates?: boolean
+	}
+	stuff: App.Stuff
+}
+
+type QueryResult = {
+	data: GraphQLObject | null
+	errors: { message: string }[] | null
+	fetching: boolean
+	partial: boolean
+	source: DataSource | null
+	variables: _Input | null
+}
+```

@@ -1,6 +1,5 @@
 ---
 title: Config
-index: 8
 description: A description of every valid configuration value for Houdini.
 ---
 
@@ -99,7 +98,7 @@ For simple cases, you can just prepend `env:` to the value:
 ```javascript
 export default {
 	schemaPollHeaders: {
-		Authentication: "env:AUTH_TOKEN",
+		Authentication: 'env:AUTH_TOKEN'
 	}
 }
 ```
@@ -111,9 +110,9 @@ environment variables:
 ```javascript
 export default {
 	schemaPollHeaders: {
-		Authentication: function(env) {
+		Authentication: function (env) {
 			return `Bearer ${env.AUTH_TOKEN}`
-		},
+		}
 	}
 }
 ```

@@ -1,5 +1,6 @@
-import * as graphql from 'graphql'
-import { CollectedGraphQLDocument, GenerateHookInput, path } from 'houdini'
+import type * as graphql from 'graphql'
+import type { CollectedGraphQLDocument, GenerateHookInput } from 'houdini'
+import { path } from 'houdini'
 import { operation_requires_variables, fs } from 'houdini'
 
 import type { HoudiniSvelteConfig } from '../..'

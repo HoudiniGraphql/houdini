@@ -1,19 +1,22 @@
-import { keyFieldsForType, getCurrentConfig } from '$houdini/runtime/lib/config'
+import type { DocumentStore } from '$houdini/runtime/client'
+import { getCurrentConfig, keyFieldsForType } from '$houdini/runtime/lib/config'
 import { siteURL } from '$houdini/runtime/lib/constants'
-import {
-	GraphQLObject,
+import type {
 	FragmentArtifact,
-	QueryArtifact,
+	GraphQLObject,
 	HoudiniFetchContext,
-	CompiledFragmentKind,
+	QueryArtifact,
 } from '$houdini/runtime/lib/types'
-import { derived, get, Readable, Subscriber, Writable, writable } from 'svelte/store'
+import { CompiledFragmentKind } from '$houdini/runtime/lib/types'
+import type { Readable, Subscriber } from 'svelte/store'
+import { derived, get } from 'svelte/store'
 
-import { StoreConfig } from '../query'
-import { BaseStore } from '../store'
-import { cursorHandlers, CursorHandlers } from './cursor'
+import { getClient } from '../../client'
+import type { StoreConfig } from '../query'
+import type { CursorHandlers } from './cursor'
+import { cursorHandlers } from './cursor'
 import { offsetHandlers } from './offset'
-import { nullPageInfo, PageInfo } from './pageInfo'
+import type { PageInfo } from './pageInfo'
 
 type FragmentStoreConfig<_Data extends GraphQLObject, _Input> = StoreConfig<
 	_Data,
@@ -21,7 +24,7 @@ type FragmentStoreConfig<_Data extends GraphQLObject, _Input> = StoreConfig<
 	FragmentArtifact
 > & { paginationArtifact: QueryArtifact }
 
-class BasePaginatedFragmentStore<_Data extends GraphQLObject, _Input> extends BaseStore {
+class BasePaginatedFragmentStore<_Data extends GraphQLObject, _Input> {
 	// all paginated stores need to have a flag to distinguish from other fragment stores
 	paginated = true
 
@@ -30,15 +33,12 @@ class BasePaginatedFragmentStore<_Data extends GraphQLObject, _Input> extends Ba
 	kind = CompiledFragmentKind
 
 	constructor(config: FragmentStoreConfig<_Data, _Input>) {
-		super()
 		this.paginationArtifact = config.paginationArtifact
 		this.name = config.storeName
 	}
 
-	protected async queryVariables(
-		store: Readable<FragmentPaginatedResult<_Data, unknown>>
-	): Promise<_Input> {
-		const config = await getCurrentConfig()
+	protected queryVariables(store: Readable<FragmentPaginatedResult<_Data, unknown>>): _Input {
+		const config = getCurrentConfig()
 
 		const { targetType } = this.paginationArtifact.refetch || {}
 		const typeConfig = config.types?.[targetType || '']
@@ -69,23 +69,19 @@ class BasePaginatedFragmentStore<_Data extends GraphQLObject, _Input> extends Ba
 }
 
 // both cursor paginated stores add a page info to their subscribe
-class FragmentStoreCursor<_Data extends GraphQLObject, _Input> extends BasePaginatedFragmentStore<
-	_Data,
-	_Input
-> {
+class FragmentStoreCursor<
+	_Data extends GraphQLObject,
+	_Input extends Record<string, any>
+> extends BasePaginatedFragmentStore<_Data, _Input> {
 	// we want to add the cursor-based fetch to the return value of get
 	get(initialValue: _Data | null) {
-		const store = writable<FragmentPaginatedResult<_Data, { pageInfo: PageInfo }>>({
-			data: initialValue,
-			fetching: false,
-			pageInfo: nullPageInfo(),
+		const store = getClient().observe<_Data, _Input>({
+			artifact: this.paginationArtifact,
+			initialValue: initialValue ?? null,
 		})
 
-		// track the loading state
-		const loading = writable(false)
-
 		// generate the pagination handlers
-		const handlers = this.storeHandlers(store, loading.set)
+		const handlers = this.storeHandlers(store)
 
 		const subscribe = (
 			run: Subscriber<FragmentPaginatedResult<_Data, { pageInfo: PageInfo }>>,
@@ -109,28 +105,40 @@ class FragmentStoreCursor<_Data extends GraphQLObject, _Input> extends BasePagin
 
 		return {
 			kind: CompiledFragmentKind,
-			data: store,
+			data: derived(store, ($value) => $value.data),
 			subscribe: subscribe,
-			loading: loading as Readable<boolean>,
+			fetching: derived(store, ($store) => $store.fetching),
 			fetch: handlers.fetch,
 			pageInfo: handlers.pageInfo,
 		}
 	}
 
-	protected storeHandlers(
-		store: Readable<FragmentPaginatedResult<_Data, unknown>>,
-		setFetching: (val: boolean) => void
-	): CursorHandlers<_Data, _Input> {
+	protected storeHandlers(observer: DocumentStore<_Data, _Input>): CursorHandlers<_Data, _Input> {
 		return cursorHandlers<_Data, _Input>({
 			artifact: this.paginationArtifact,
-			fetch: async () => {
-				return {} as any
+			fetchUpdate: async (args) => {
+				return observer.send({
+					...args,
+					variables: {
+						...args?.variables,
+						...this.queryVariables(observer),
+					},
+					cacheParams: {
+						applyUpdates: true,
+					},
+				})
 			},
-			getValue: () => get(store).data,
-			queryVariables: () => this.queryVariables(store),
-			setFetching,
+			fetch: async (args) => {
+				return observer.send({
+					...args,
+					variables: {
+						...args?.variables,
+						...this.queryVariables(observer),
+					},
+				})
+			},
+			observer,
 			storeName: this.name,
-			getConfig: () => this.getConfig(),
 		})
 	}
 }
@@ -138,18 +146,18 @@ class FragmentStoreCursor<_Data extends GraphQLObject, _Input> extends BasePagin
 // FragmentStoreForwardCursor adds loadNextPage to FragmentStoreCursor
 export class FragmentStoreForwardCursor<
 	_Data extends GraphQLObject,
-	_Input
+	_Input extends Record<string, any>
 > extends FragmentStoreCursor<_Data, _Input> {
 	get(initialValue: _Data | null) {
 		// get the base class
 		const parent = super.get(initialValue)
+		const observer = getClient().observe<_Data, _Input>({
+			artifact: this.paginationArtifact,
+			initialValue,
+		})
 
 		// generate the pagination handlers
-		const handlers = this.storeHandlers(
-			parent,
-			// it really is a writable under the hood :(
-			(parent.loading as unknown as Writable<boolean>).set
-		)
+		const handlers = this.storeHandlers(observer)
 
 		return {
 			...parent,
@@ -162,17 +170,17 @@ export class FragmentStoreForwardCursor<
 // BackwardFragmentStoreCursor adds loadPreviousPage to FragmentStoreCursor
 export class FragmentStoreBackwardCursor<
 	_Data extends GraphQLObject,
-	_Input
+	_Input extends Record<string, any>
 > extends FragmentStoreCursor<_Data, _Input> {
 	get(initialValue: _Data | null) {
 		const parent = super.get(initialValue)
+		const observer = getClient().observe<_Data, _Input>({
+			artifact: this.paginationArtifact,
+			initialValue,
+		})
 
 		// generate the pagination handlers
-		const handlers = this.storeHandlers(
-			parent,
-			// it really is a writable under the hood :(
-			(fetching: boolean) => parent.data.update((p) => ({ ...p, fetching }))
-		)
+		const handlers = this.storeHandlers(observer)
 
 		return {
 			...parent,
@@ -184,31 +192,50 @@ export class FragmentStoreBackwardCursor<
 
 export class FragmentStoreOffset<
 	_Data extends GraphQLObject,
-	_Input
+	_Input extends Record<string, any>
 > extends BasePaginatedFragmentStore<_Data, _Input> {
 	get(initialValue: _Data | null) {
-		const parent = writable<FragmentPaginatedResult<_Data>>({
-			data: initialValue,
-			fetching: false,
+		const observer = getClient().observe<_Data, _Input>({
+			artifact: this.paginationArtifact,
+			initialValue,
 		})
 
 		// create the offset handlers we'll add to the store
 		const handlers = offsetHandlers<_Data, _Input>({
 			artifact: this.paginationArtifact,
-			fetch: async () => ({} as any),
-			getValue: () => get(parent).data,
-			setFetching: (fetching: boolean) => parent.update((p) => ({ ...p, fetching })),
-			queryVariables: () => this.queryVariables({ subscribe: parent.subscribe }),
+			fetch: async (args) => {
+				return observer.send({
+					...args,
+					variables: {
+						...this.queryVariables(observer),
+						...args?.variables,
+					},
+				})
+			},
+			fetchUpdate: async (args) => {
+				return observer.send({
+					...args,
+					variables: {
+						...this.queryVariables(observer),
+						...args?.variables,
+					},
+					cacheParams: {
+						applyUpdates: true,
+					},
+				})
+			},
+			observer,
 			storeName: this.name,
-			getConfig: () => this.getConfig(),
 		})
 
 		// add the offset handlers
 		return {
-			...parent,
 			kind: CompiledFragmentKind,
+			data: derived(observer, ($value) => $value.data),
+			subscribe: observer.subscribe.bind(observer),
 			fetch: handlers.fetch,
 			loadNextPage: handlers.loadNextPage,
+			fetching: derived(observer, ($store) => $store.fetching),
 		}
 	}
 }

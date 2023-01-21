@@ -1,4 +1,5 @@
-import { CollectedGraphQLDocument, fs, path, GenerateHookInput } from 'houdini'
+import type { CollectedGraphQLDocument, GenerateHookInput } from 'houdini'
+import { fs, path } from 'houdini'
 
 import { stores_directory, store_name } from '../../kit'
 import { store_import } from './custom'

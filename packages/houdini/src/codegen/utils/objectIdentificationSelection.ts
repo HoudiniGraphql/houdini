@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
 
-import { Config } from '../../lib'
+import type { Config } from '../../lib'
 
 export const objectIdentificationSelection = (config: Config, type: graphql.GraphQLNamedType) => {
 	return config.keyFieldsForType(type.name).map((key) => {

@@ -1,23 +1,16 @@
-import { fetchQuery } from '$houdini/runtime/lib'
+import { HoudiniClient } from '$houdini/runtime/client'
 import type { QueryArtifact } from 'houdini'
 
-// this filepath will be replaced to an actual import of the client
-import client from './client'
+const client = new HoudiniClient({
+	url: 'http://localhost:4000/graphql',
+})
 
 export async function query(artifact: QueryArtifact, variables?: any) {
-	const result = await fetchQuery({
-		client,
-		artifact,
+	const observer = client.observe({ artifact })
+
+	const result = await observer.send({
 		variables,
-		context: {
-			fetch,
-			session: {},
-			metadata: {},
-		},
-		setFetching: () => {
-			console.log('fetching...')
-		},
 	})
 
-	return [result.result]
+	return [result]
 }

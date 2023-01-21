@@ -1,9 +1,10 @@
-import { QueryResult } from '$houdini/runtime/lib/types'
-import { error, LoadEvent, redirect, RequestEvent } from '@sveltejs/kit'
+import type { QueryResult } from '$houdini/runtime/lib/types'
+import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
+import { error, redirect } from '@sveltejs/kit'
 import { get } from 'svelte/store'
 
 import { isBrowser } from './adapter'
-import { AfterLoadArgs, BeforeLoadArgs, OnErrorArgs } from './types'
+import type { AfterLoadArgs, BeforeLoadArgs, OnErrorArgs } from './types'
 
 const sessionKeyName = '__houdini__session__'
 

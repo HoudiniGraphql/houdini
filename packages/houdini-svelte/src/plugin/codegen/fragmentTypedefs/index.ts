@@ -1,8 +1,9 @@
-import { StatementKind } from 'ast-types/lib/gen/kinds'
-import { parseJS, path, fs, ArtifactKind, ensureImports, CollectedGraphQLDocument } from 'houdini'
+import type { StatementKind } from 'ast-types/lib/gen/kinds'
+import type { CollectedGraphQLDocument } from 'houdini'
+import { parseJS, path, fs, ArtifactKind, ensureImports } from 'houdini'
 import * as recast from 'recast'
 
-import { PluginGenerateInput } from '..'
+import type { PluginGenerateInput } from '..'
 import { stores_directory_name, store_name } from '../../kit'
 
 const AST = recast.types.builders

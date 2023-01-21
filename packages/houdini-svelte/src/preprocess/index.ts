@@ -1,5 +1,6 @@
-import { getConfig, ConfigFile } from 'houdini'
-import { TransformPage } from 'houdini/vite'
+import type { ConfigFile } from 'houdini'
+import { getConfig } from 'houdini'
+import type { TransformPage } from 'houdini/vite'
 
 import transform from '../plugin/transforms'
 

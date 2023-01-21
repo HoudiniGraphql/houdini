@@ -1,36 +1,34 @@
-import { getCache } from '$houdini/runtime'
-import { ConfigFile } from '$houdini/runtime/lib/config'
+import type { DocumentStore } from '$houdini/runtime/client'
+import { CachePolicy } from '$houdini/runtime/lib'
+import { getCurrentConfig } from '$houdini/runtime/lib/config'
 import { siteURL } from '$houdini/runtime/lib/constants'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
-import { executeQuery } from '$houdini/runtime/lib/network'
-import { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
-import { Writable, writable } from 'svelte/store'
+import type { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
+import type { Writable } from 'svelte/store'
+import { get, writable } from 'svelte/store'
 
-import { getCurrentClient } from '../../network'
-import { getSession } from '../../session'
-import { QueryStoreFetchParams } from '../query'
+import type { QueryStoreFetchParams } from '../query'
 import { fetchParams } from '../query'
-import { FetchFn } from './fetch'
-import { countPage, extractPageInfo, missingPageSizeError, PageInfo } from './pageInfo'
+import type { FetchFn } from './fetch'
+import type { PageInfo } from './pageInfo'
+import { countPage, extractPageInfo, missingPageSizeError } from './pageInfo'
 
-export function cursorHandlers<_Data extends GraphQLObject, _Input>({
+export function cursorHandlers<_Data extends GraphQLObject, _Input extends Record<string, any>>({
 	artifact,
-	queryVariables: extraVariables,
-	setFetching,
-	fetch,
 	storeName,
-	getValue,
-	getConfig,
+	observer,
+	fetchUpdate: parentFetchUpdate,
+	fetch: parentFetch,
 }: {
 	artifact: QueryArtifact
-	getValue: () => _Data | null
-	queryVariables: () => Promise<_Input | null>
-	setFetching: (val: boolean) => void
-	fetch: FetchFn<_Data, _Input>
 	storeName: string
-	getConfig: () => Promise<ConfigFile>
+	observer: DocumentStore<_Data, _Input>
+	fetch: FetchFn<_Data, _Input>
+	fetchUpdate: FetchFn<_Data, _Input>
 }): CursorHandlers<_Data, _Input> {
-	const pageInfo = writable<PageInfo>(extractPageInfo(getValue(), artifact.refetch!.path))
+	const pageInfo = writable<PageInfo>(extractPageInfo(get(observer).data, artifact.refetch!.path))
+
+	const getState = () => get(observer)
 
 	// dry up the page-loading logic
 	const loadPage = async ({
@@ -42,16 +40,15 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 	}: {
 		pageSizeVar: string
 		functionName: string
-		input: {}
+		input: _Input
 		metadata?: {}
 		fetch?: typeof globalThis.fetch
 	}) => {
-		const config = await getConfig()
-		const client = await getCurrentClient()
+		const config = getCurrentConfig()
 
 		// build up the variables to pass to the query
-		const loadVariables: Record<string, any> = {
-			...(await extraVariables?.()),
+		const loadVariables: _Input = {
+			...getState().variables,
 			...input,
 		}
 
@@ -61,16 +58,11 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 		}
 
 		// send the query
-		const { result } = await executeQuery<GraphQLObject, {}>({
-			client,
-			artifact,
+		const { data } = await parentFetchUpdate({
 			variables: loadVariables,
-			session: await getSession(),
-			setFetching,
-			cached: false,
-			config,
 			fetch,
 			metadata,
+			policy: CachePolicy.NetworkOnly,
 		})
 
 		// if the query is embedded in a node field (paginated fragments)
@@ -90,18 +82,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 		}
 
 		// we need to find the connection object holding the current page info
-		pageInfo.set(extractPageInfo(result.data, resultPath))
-
-		// update cache with the result
-		getCache().write({
-			selection: artifact.selection,
-			data: result.data,
-			variables: loadVariables,
-			applyUpdates: true,
-		})
-
-		// we're not loading any more
-		setFetching(false)
+		pageInfo.set(extractPageInfo(data, resultPath))
 	}
 
 	return {
@@ -117,15 +98,14 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 			metadata?: {}
 		} = {}) => {
 			// we need to find the connection object holding the current page info
-			const currentPageInfo = extractPageInfo(getValue(), artifact.refetch!.path)
-
+			const currentPageInfo = extractPageInfo(getState().data, artifact.refetch!.path)
 			// if there is no next page, we're done
 			if (!currentPageInfo.hasNextPage) {
 				return
 			}
 
 			// only specify the page count if we're given one
-			const input: Record<string, any> = {
+			const input: any = {
 				after: after ?? currentPageInfo.endCursor,
 			}
 			if (first) {
@@ -153,7 +133,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 			metadata?: {}
 		} = {}) => {
 			// we need to find the connection object holding the current page info
-			const currentPageInfo = extractPageInfo(getValue(), artifact.refetch!.path)
+			const currentPageInfo = extractPageInfo(getState().data, artifact.refetch!.path)
 
 			// if there is no next page, we're done
 			if (!currentPageInfo.hasPreviousPage) {
@@ -161,7 +141,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 			}
 
 			// only specify the page count if we're given one
-			const input: Record<string, any> = {
+			const input: any = {
 				before: before ?? currentPageInfo.startCursor,
 			}
 			if (last) {
@@ -187,27 +167,24 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 			const { variables } = params ?? {}
 
 			// build up the variables to pass to the query
-			const extra = await extraVariables()
 			const queryVariables: Record<string, any> = {
-				...extra,
 				...variables,
 			}
 
 			// if the input is different than the query variables then we just do everything like normal
-			if (variables && !deepEquals(extra, variables)) {
-				const result = await fetch({
+			if (variables && !deepEquals(getState().variables, variables)) {
+				return await parentFetch({
 					...params,
 					then(data) {
 						pageInfo.set(extractPageInfo(data, artifact.refetch!.path))
 					},
 				})
-				return result
 			}
 
 			// we are updating the current set of items, count the number of items that currently exist
 			// and ask for the full data set
 			const count =
-				countPage(artifact.refetch!.path.concat('edges'), getValue()) ||
+				countPage(artifact.refetch!.path.concat('edges'), getState().data) ||
 				artifact.refetch!.pageSize
 
 			// if there are more records than the first page, we need fetch to load everything
@@ -217,7 +194,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 			}
 
 			// send the query
-			const result = await fetch({
+			const result = await parentFetch({
 				...params,
 				variables: queryVariables as _Input,
 			})
@@ -225,17 +202,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 			// keep the page info store up to date
 			pageInfo.set(extractPageInfo(result.data, artifact.refetch!.path))
 
-			// we're not loading any more
-			setFetching(false)
-
-			return {
-				data: result.data,
-				variables: queryVariables as _Input,
-				fetching: false,
-				partial: result.partial,
-				errors: null,
-				source: result.source,
-			}
+			return result
 		},
 	}
 }

@@ -9,7 +9,7 @@
     }
   `);
 
-  const fragmentResult = paginatedFragment(
+  $: fragmentResult = paginatedFragment(
     $queryResult.data?.user ?? null,
     graphql(`
       fragment OffsetFragment on User {
