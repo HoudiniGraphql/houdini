@@ -1,5 +1,11 @@
 # houdini
 
+## 0.20.3
+
+### Patch Changes
+
+-   [#836](https://github.com/HoudiniGraphql/houdini/pull/836) [`0f1f0b4`](https://github.com/HoudiniGraphql/houdini/commit/0f1f0b423f8c1e4f9126c183fa077bc4b4fd82e0) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix syntax error when generating artifacts for queries that contain fragments with direct inline fragment children
+
 ## 0.20.2
 
 ### 🐛 Fixes
