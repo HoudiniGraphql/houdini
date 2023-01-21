@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { page, navigating } from '$app/stores'
 	import { Icon, SEO, SearchInput, SearchDialog, searching } from '~/components'
 	import { onMount } from 'svelte'
@@ -8,7 +8,6 @@
 
 	export let title = ''
 	export let link = ''
-	export let index
 	export let description
 
 	export let data
@@ -63,6 +62,9 @@
 
 	// show the files associated with the current category
 	$: currentFiles = categories[currentCategory]?.files || []
+	$: index = currentFiles.findIndex((file) => {
+		return file.title === title
+	})
 	$: previous = currentFiles[index]?.previous
 	$: next = currentFiles[index]?.next
 
@@ -483,8 +485,8 @@
 	@media (max-width: 1000px) {
 		article,
 		footer {
-			padding-left: calc(55px + env(safe-area-inset-left));
-			padding-right: calc(55px + env(safe-area-inset-right));
+			padding-left: calc(30px + env(safe-area-inset-left));
+			padding-right: calc(30px + env(safe-area-inset-right));
 			padding-top: 20px;
 			max-width: none;
 		}
@@ -571,8 +573,8 @@
 	@media (max-width: 450px) {
 		article,
 		footer {
-			padding-left: calc(30px + env(safe-area-inset-left));
-			padding-right: calc(30px + env(safe-area-inset-right));
+			padding-left: calc(15px + env(safe-area-inset-left));
+			padding-right: calc(15px + env(safe-area-inset-right));
 		}
 	}
 </style>

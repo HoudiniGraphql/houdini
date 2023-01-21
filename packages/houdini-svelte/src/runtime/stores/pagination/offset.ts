@@ -1,37 +1,33 @@
-import { getCache } from '$houdini/runtime'
-import { ConfigFile } from '$houdini/runtime/lib/config'
+import type { DocumentStore } from '$houdini/runtime/client'
+import { CachePolicy } from '$houdini/runtime/lib'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
-import { executeQuery } from '$houdini/runtime/lib/network'
-import { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
+import type { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
+import { get } from 'svelte/store'
 
-import { getCurrentClient } from '../../network'
-import { getSession } from '../../session'
-import { QueryStoreFetchParams } from '../query'
+import type { QueryStoreFetchParams } from '../query'
 import { fetchParams } from '../query'
-import { FetchFn } from './fetch'
+import type { FetchFn } from './fetch'
 import { countPage, missingPageSizeError } from './pageInfo'
 
-export function offsetHandlers<_Data extends GraphQLObject, _Input>({
+export function offsetHandlers<_Data extends GraphQLObject, _Input extends {}>({
 	artifact,
-	queryVariables: extraVariables,
+	observer,
 	fetch,
-	getValue,
-	setFetching,
+	fetchUpdate,
 	storeName,
-	getConfig,
 }: {
 	artifact: QueryArtifact
-	queryVariables: () => Promise<_Input | null>
 	fetch: FetchFn<_Data, _Input>
-	getValue: () => _Data | null
+	fetchUpdate: FetchFn<_Data, _Input>
 	storeName: string
-	setFetching: (val: boolean) => void
-	getConfig: () => Promise<ConfigFile>
+	observer: DocumentStore<_Data, _Input>
 }) {
+	const getValue = () => get(observer)
+
 	// we need to track the most recent offset for this handler
 	let getOffset = () =>
 		(artifact.refetch?.start as number) ||
-		countPage(artifact.refetch!.path, getValue()) ||
+		countPage(artifact.refetch!.path, getValue().data) ||
 		artifact.refetch!.pageSize
 
 	let currentOffset = getOffset() ?? 0
@@ -48,16 +44,10 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 			fetch?: typeof globalThis.fetch
 			metadata?: {}
 		} = {}) => {
-			const config = await getConfig()
-
-			// if the offset is zero then we want to count it just to make sure
-			// hence why (|| and not ??)
-			offset ??= currentOffset || getOffset()
-
 			// build up the variables to pass to the query
 			const queryVariables: Record<string, any> = {
-				...(await extraVariables()),
-				offset,
+				...getValue().variables,
+				offset: offset ?? getOffset(),
 			}
 			if (limit || limit === 0) {
 				queryVariables.limit = limit
@@ -70,32 +60,16 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 			}
 
 			// send the query
-			const { result } = await executeQuery<GraphQLObject, {}>({
-				client: await getCurrentClient(),
-				artifact,
-				variables: queryVariables,
-				session: await getSession(),
-				cached: false,
-				config,
-				setFetching,
+			await fetchUpdate({
+				variables: queryVariables as _Input,
 				fetch,
 				metadata,
-			})
-
-			// update cache with the result
-			getCache().write({
-				selection: artifact.selection,
-				data: result.data,
-				variables: queryVariables,
-				applyUpdates: true,
+				policy: CachePolicy.NetworkOnly,
 			})
 
 			// add the page size to the offset so we load the next page next time
 			const pageSize = queryVariables.limit || artifact.refetch!.pageSize
 			currentOffset = offset + pageSize
-
-			// we're not loading any more
-			setFetching(false)
 		},
 		async fetch(
 			args?: QueryStoreFetchParams<_Data, _Input>
@@ -104,10 +78,8 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 
 			const { variables } = params ?? {}
 
-			const extra = await extraVariables()
-
 			// if the input is different than the query variables then we just do everything like normal
-			if (variables && !deepEquals(extra, variables)) {
+			if (variables && !deepEquals(getValue().variables, variables)) {
 				return fetch.call(this, params)
 			}
 
@@ -116,9 +88,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 			const count = currentOffset || getOffset()
 
 			// build up the variables to pass to the query
-			const queryVariables: Record<string, any> = {
-				...extra,
-			}
+			const queryVariables: Record<string, any> = {}
 
 			// if there are more records than the first page, we need fetch to load everything
 			if (!artifact.refetch!.pageSize || count > artifact.refetch!.pageSize) {
@@ -126,22 +96,10 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 			}
 
 			// send the query
-			const result = await fetch.call(this, {
+			return await fetch.call(this, {
 				...params,
 				variables: queryVariables as _Input,
 			})
-
-			// we're not loading any more
-			setFetching(false)
-
-			return {
-				data: result.data,
-				variables: queryVariables as _Input,
-				fetching: false,
-				partial: result.partial,
-				errors: null,
-				source: result.source,
-			}
 		},
 	}
 }

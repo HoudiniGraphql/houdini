@@ -1,5 +1,6 @@
-import { ConfigFile } from '../lib'
-import { Cache, rootID } from './cache'
+import type { ConfigFile } from '../lib/config'
+import type { Cache } from './cache'
+import { rootID } from './cache'
 
 export type TypeInfo = {
 	type: string

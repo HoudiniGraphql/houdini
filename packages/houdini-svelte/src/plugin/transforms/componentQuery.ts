@@ -1,13 +1,15 @@
 import { logYellow } from '@kitql/helper'
-import { ExpressionKind } from 'ast-types/lib/gen/kinds'
-import * as graphql from 'graphql'
-import { Config, find_graphql, Script, formatErrors } from 'houdini'
-import { find_exported_fn, find_insert_index, ensure_imports, TransformPage } from 'houdini/vite'
+import type { ExpressionKind } from 'ast-types/lib/gen/kinds'
+import type * as graphql from 'graphql'
+import type { Config, Script } from 'houdini'
+import { find_graphql, formatErrors } from 'houdini'
+import type { TransformPage } from 'houdini/vite'
+import { find_exported_fn, find_insert_index, ensure_imports } from 'houdini/vite'
 import * as recast from 'recast'
 
 import { is_component, store_import_path } from '../kit'
 import { query_variable_fn } from '../naming'
-import { SvelteTransformPage } from './types'
+import type { SvelteTransformPage } from './types'
 
 const AST = recast.types.builders
 
@@ -54,6 +56,13 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 		script: page.script,
 		import: ['marshalInputs'],
 		sourceModule: '$houdini/runtime/lib/scalars',
+	})
+
+	ensure_imports({
+		config: page.config,
+		script: page.script,
+		import: ['getCurrentConfig'],
+		sourceModule: '$houdini/runtime/lib/config',
 	})
 
 	ensure_imports({
@@ -115,82 +124,83 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 				// define the inputs for the query
 				AST.labeledStatement(
 					AST.identifier('$'),
-					//
+
 					AST.expressionStatement(
-						AST.callExpression(
-							AST.memberExpression(
-								AST.callExpression(AST.identifier('marshalInputs'), [
+						AST.logicalExpression(
+							'&&',
+							AST.identifier('isBrowser'),
+							AST.callExpression(
+								AST.memberExpression(
+									store_id(query.name!.value),
+									AST.identifier('fetch')
+								),
+								[
 									AST.objectExpression([
 										AST.objectProperty(
-											AST.identifier('artifact'),
-											AST.memberExpression(
-												store_id(query.name!.value),
-												AST.identifier('artifact')
-											)
-										),
-										AST.objectProperty(
-											AST.identifier('input'),
-											has_variables
-												? AST.callExpression(
-														AST.memberExpression(
-															AST.identifier(variable_fn),
-															AST.identifier('call')
-														),
-														[
-															AST.newExpression(
-																AST.identifier('RequestContext'),
-																[]
-															),
-															AST.objectExpression([
-																AST.objectProperty(
-																	AST.identifier('props'),
-																	// pass every prop explicitly
-																	AST.objectExpression(
-																		props.map((prop) =>
-																			AST.objectProperty(
-																				AST.identifier(
-																					prop as string
-																				),
-																				AST.identifier(
-																					prop as string
-																				)
-																			)
-																		)
-																	)
-																),
-															]),
-														]
-												  )
-												: AST.objectExpression([])
-										),
-									]),
-								]),
-								AST.identifier('then')
-							),
-							[
-								AST.arrowFunctionExpression(
-									[local_input_id(query.name!.value)],
-									// load the query
-									AST.logicalExpression(
-										'&&',
-										AST.identifier('isBrowser'),
-										AST.callExpression(
-											AST.memberExpression(
-												store_id(query.name!.value),
-												AST.identifier('fetch')
-											),
-											[
+											AST.identifier('variables'),
+											//
+											AST.callExpression(AST.identifier('marshalInputs'), [
 												AST.objectExpression([
 													AST.objectProperty(
-														AST.identifier('variables'),
-														local_input_id(query.name!.value)
+														AST.identifier('config'),
+														AST.callExpression(
+															AST.identifier('getCurrentConfig'),
+															[]
+														)
+													),
+													AST.objectProperty(
+														AST.identifier('artifact'),
+														AST.memberExpression(
+															store_id(query.name!.value),
+															AST.identifier('artifact')
+														)
+													),
+													AST.objectProperty(
+														AST.identifier('input'),
+														has_variables
+															? AST.callExpression(
+																	AST.memberExpression(
+																		AST.identifier(variable_fn),
+																		AST.identifier('call')
+																	),
+																	[
+																		AST.newExpression(
+																			AST.identifier(
+																				'RequestContext'
+																			),
+																			[]
+																		),
+																		AST.objectExpression([
+																			AST.objectProperty(
+																				AST.identifier(
+																					'props'
+																				),
+																				// pass every prop explicitly
+																				AST.objectExpression(
+																					props.map(
+																						(prop) =>
+																							AST.objectProperty(
+																								AST.identifier(
+																									prop as string
+																								),
+																								AST.identifier(
+																									prop as string
+																								)
+																							)
+																					)
+																				)
+																			),
+																		]),
+																	]
+															  )
+															: AST.objectExpression([])
 													),
 												]),
-											]
-										)
-									)
-								),
-							]
+											])
+										),
+									]),
+								]
+							)
 						)
 					)
 				),

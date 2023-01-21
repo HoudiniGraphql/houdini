@@ -1,6 +1,6 @@
 import { test, expect, vi } from 'vitest'
 
-import { SubscriptionSelection } from '../../lib'
+import type { SubscriptionSelection } from '../../lib'
 import { testCache } from './test'
 
 test('list.append accepts record proxies', function () {

@@ -1,7 +1,7 @@
 import type { ExpressionKind } from 'ast-types/lib/gen/kinds'
 import * as recast from 'recast'
 
-import { Config } from '../../lib'
+import type { Config } from '../../lib'
 
 const AST = recast.types.builders
 

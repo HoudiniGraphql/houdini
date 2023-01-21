@@ -1,14 +1,15 @@
 import { parseJS, runPipeline, formatErrors } from 'houdini'
-import { TransformPage } from 'houdini/vite'
+import type { TransformPage } from 'houdini/vite'
 import * as recast from 'recast'
 
-import { ParsedFile, parseSvelte } from '../extract'
-import { Framework } from '../kit'
+import type { ParsedFile } from '../extract'
+import { parseSvelte } from '../extract'
+import type { Framework } from '../kit'
 import query from './componentQuery'
 import kit from './kit'
 import reactive from './reactive'
 import tags from './tags'
-import { SvelteTransformPage } from './types'
+import type { SvelteTransformPage } from './types'
 
 // tags must be processed last so we don't lose the graphql tags we look for
 // context must go last since it looks for GQL_ imports

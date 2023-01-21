@@ -1,4 +1,169 @@
-/// This file contains a modified version, made by AlecAivazis, of the functions found here: https://github.com/jaydenseric/extract-files/blob/master/extractFiles.mjs
+import type { RequestPayload } from '../../lib/types'
+import { DataSource } from '../../lib/types'
+import type { ClientPlugin, ClientPluginContext } from '../documentStore'
+
+export const fetchPlugin = (target?: RequestHandler | string): ClientPlugin => {
+	return () => {
+		return {
+			async network(ctx, { client, resolve, marshalVariables }) {
+				// figure out which fetch to use
+				const fetch = ctx.fetch ?? globalThis.fetch
+
+				// build up the params object
+				const fetchParams: FetchParams = {
+					text: ctx.text,
+					hash: ctx.hash,
+					variables: marshalVariables(ctx),
+				}
+
+				let fetchFn = defaultFetch(client.url, ctx.fetchParams)
+				// the provided parameter either specifies the URL or is the entire function to
+				// use
+				if (target) {
+					if (typeof target === 'string') {
+						fetchFn = defaultFetch(target, ctx.fetchParams)
+					} else {
+						fetchFn = target
+					}
+				}
+
+				const result = await fetchFn({
+					// wrap the user's fetch function so we can identify SSR by checking
+					// the response.url
+					fetch: (url: URL | RequestInfo, args: RequestInit | undefined) => {
+						// figure out if we need to do something special for multipart uploads
+						const newArgs = handleMultipart(fetchParams, args) ?? args
+
+						// use the new args if they exist, otherwise the old ones are good
+						return fetch(url, newArgs)
+					},
+					metadata: ctx.metadata,
+					session: ctx.session || {},
+					...fetchParams,
+				})
+
+				// return the result
+				resolve(ctx, {
+					fetching: false,
+					variables: ctx.variables ?? null,
+					data: result.data,
+					errors: !result.errors || result.errors.length === 0 ? null : result.errors,
+					partial: false,
+					source: DataSource.Network,
+				})
+			},
+		}
+	}
+}
+
+const defaultFetch = (
+	url: string,
+	params?: Required<ClientPluginContext>['fetchParams']
+): RequestHandler => {
+	// if there is no configured url, we can't use this plugin
+	if (!url) {
+		throw new Error(
+			'Could not find configured client url. Please specify one in your houdini.config.js file.'
+		)
+	}
+
+	return async ({ fetch, text, variables }) => {
+		// regular fetch (Server & Client)
+		const result = await fetch(url, {
+			method: 'POST',
+			body: JSON.stringify({ query: text, variables }),
+			...params,
+			headers: {
+				Accept: 'application/graphql+json, application/json',
+				'Content-Type': 'application/json',
+				...params?.headers,
+			},
+		})
+
+		return await result.json()
+	}
+}
+
+export type FetchContext = {
+	fetch: typeof globalThis.fetch
+	metadata?: App.Metadata | null
+	session: App.Session | null
+}
+
+/**
+ * ## Tip 👇
+ *
+ * To define types for your metadata, create a file `src/app.d.ts` containing the followingI:
+ *
+ * ```ts
+ * declare namespace App { *
+ * 	interface Metadata {}
+ * }
+ * ```
+ *
+ */
+export type RequestHandlerArgs = FetchContext & FetchParams
+
+export type RequestHandler<_Data = any> = (
+	args: RequestHandlerArgs
+) => Promise<RequestPayload<_Data>>
+
+export type FetchParams = {
+	text: string
+	hash: string
+	variables: { [key: string]: any }
+}
+
+function handleMultipart(
+	params: FetchParams,
+	args: RequestInit | undefined
+): RequestInit | undefined {
+	// process any files that could be included
+	const { clone, files } = extractFiles({
+		query: params.text,
+		variables: params.variables,
+	})
+
+	// if there are files in the request
+	if (files.size) {
+		const req = args
+		let headers: Record<string, string> = {}
+
+		// filters `content-type: application/json` if received by client.ts
+		if (req?.headers) {
+			const filtered = Object.entries(req?.headers).filter(([key, value]) => {
+				return !(
+					key.toLowerCase() == 'content-type' && value.toLowerCase() == 'application/json'
+				)
+			})
+			headers = Object.fromEntries(filtered)
+		}
+
+		// See the GraphQL multipart request spec:
+		// https://github.com/jaydenseric/graphql-multipart-request-spec
+		const form = new FormData()
+		const operationJSON = JSON.stringify(clone)
+
+		form.set('operations', operationJSON)
+
+		const map: Record<string, Array<string>> = {}
+
+		let i = 0
+		files.forEach((paths) => {
+			map[++i] = paths
+		})
+		form.set('map', JSON.stringify(map))
+
+		i = 0
+		files.forEach((paths, file) => {
+			form.set(`${++i}`, file as Blob, (file as File).name)
+		})
+
+		return { ...req, headers, body: form as any }
+	}
+}
+
+/// This file contains a modified version of the functions found here: https://github.com/jaydenseric/extract-files/blob/master/extractFiles.mjs
 /// The associated license is at the end of the file (per the project's license agreement)
 
 export function isExtractableFile(value: any): value is ExtractableFile {
@@ -14,16 +179,6 @@ type ExtractableFile = File | Blob
 
 export function extractFiles(value: any) {
 	if (!arguments.length) throw new TypeError('Argument 1 `value` is required.')
-
-	/**
-	 * Deeply clonable value.
-	 * @typedef {Array<unknown> | FileList | Record<PropertyKey, unknown>} Cloneable
-	 */
-
-	/**
-	 * Clone of a {@link Cloneable deeply cloneable value}.
-	 * @typedef {Exclude<Cloneable, FileList>} Clone
-	 */
 
 	/**
 	 * Map of values recursed within the input value and their clones, for reusing

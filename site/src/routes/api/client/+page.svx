@@ -1,0 +1,204 @@
+---
+title: Client
+description: Documentation for the HoudiniClient, the core runtime abstraction
+---
+
+<script>
+    import { DeepDive } from '~/components'
+</script>
+
+# HoudiniClient
+
+The central entity for defining your document's runtime logic.
+
+```typescript:title=src/client.ts&typescriptToggle=true
+import { HoudiniClient } from '$houdini'
+
+export default new HoudiniClient({
+    url: "http://my.awesome.app.com",
+    fetchParams({ session }) {
+        return {
+            headers: {
+                Authentication: `Bearer \${session.token}`
+            }
+        }
+    }
+})
+```
+
+Your application's instance of `HoudiniClient` defines virtually all of the behavior of
+your documents (`query`, `mutation`, `subscription`, etc). While this logic _is_ totally
+configurable, most people will never have to worry about those details. If your application
+only sends queries and mutations over http(s) then all you need is to provide a url for your
+API and optionally provide additional arguments to the fetch call as shown above.
+
+### Constructor Fields
+
+The `HoudiniClient` constructor takes the following arguments
+
+- `url` (required): the URL that your application will use to query the API
+- `fetchParams` (optional): a function that takes a [FetchParamsInput](#type-definitions) and returns additional parameters to `fetch` and other network calls made by the client.
+- `plugins` (optional): a list of [ClientPlugins](/api/client-plugins) that will be added to the Client's default list
+- `pipeline` (optional): a function that returns the full list of plugins that the client will use. This is only for very advanced use cases.
+  If you find yourself needing this level of control, please open an issue to discuss your situation.
+- `throwOnError` (optional): takes an object of type [ThrowOnErrorParams](#type-definitions) and configures your client's error handling (see [Error Handling](#error-handling) below)
+
+### Type Definitions
+
+The best source of truth for the type definitions are exported from your `$houdini`
+package. You can see them [here](https://github.com/HoudiniGraphql/houdini/tree/main/packages/houdini/src/runtime/client/DocumentStore.ts). They've been summarized below for reference but this copy may be out of date.
+If you find a discrepancy, please let us know on GitHub.
+
+```typescript
+type FetchParamsInput = {
+	text: string
+	hash: string
+	artifact: DocumentArtifact
+	config: ConfigFile
+	policy: CachePolicy
+	variables: Record<string, any>
+	metadata: App.Metadata | null
+	session: App.Session | null
+	stuff: App.Stuff | null
+}
+
+type ThrowOnErrorParams = {
+	operations: ('all' | 'query' | 'mutation' | 'subscription')[]
+	error?: (errors: GraphqlError[]) => unknown
+}
+
+type GraphqlError = {
+	message: string
+	extensions?: Record<string, any>
+}
+```
+
+## Location
+
+Your client must be discoverable by the svelte code generation logic. By default, it looks at `src/client.{js,ts}`
+but if your client is defined elsewhere, you will need to configure the `houdini-svelte` plugin to point to the
+correct location:
+
+```javascript:title=houdini.config.js
+export default {
+    // ...
+    plugins: {
+        'houdini-svelte': {
+            client: "./src/lib/graphql/client",
+        }
+    }
+
+}
+```
+
+## Error Handling
+
+There are 2 ways you can handle errors in GraphQL: you can either have documents throw an exception if an
+`error` key is located in the payload (and is a list with at least one member) or they can fail silently
+and rely on application level code to function.
+
+By default, Houdini will behave "silently" and not throw any exceptions if an error is the query response is
+seen. If you want to turn on exceptions, you can specify the details in the `throwOnError` field:
+
+```typescript:title=src/client.ts&typescriptToggle=true
+import { error } from '@sveltejs/kit'
+
+export default new HoudiniClient({
+    url: '...',
+    throwOnError: {
+        // can be any combination of
+        // query, mutation, subscription, and all
+        operations: ['all'],
+        // the function to call
+        error: (errors) => error(500,
+            errors.map((err) => err.message).join('. ') + '.'
+        )
+    }
+})
+```
+
+## Adding Plugins
+
+Most of the time, you should add plugins to your client with the `plugins` argument
+
+```typescript:title=src/client.ts&typescriptToggle=true
+new HoudiniClient({
+    url: '...',
+    plugins: [plugin1, plugin2]
+})
+```
+
+This will insert the provided plugins in Houdini's internal list of plugins.
+
+### Default Plugin Order
+
+In most cases, your client is made up of a mixture of default plugins,
+plugins you have passed by hand, and plugins that have been injected into
+your client from plugins specified in `houdini.config.js`.
+
+When providing plugins using the `plugin` key, the order for the final list
+of plugins is follows:
+
+```typescript:title=
+import {
+    throwOnErrorPlugin,
+    fetchParamsPlugin,
+    queryPlugin,
+    mutationPlugins,
+    fetchPlugin
+} from '$houdini/plugins'
+
+const plugins = [
+    // client-level config always works
+    // these two plugins are only passed if the config value is added
+    throwOnErrorPlugin,
+    fetchParamsPlugin,
+    // queries and mutations will always work
+    queryPlugin,
+    mutationPlugin,
+    // your plugins can wrap the injected ones
+    ...specifiedPlugins,
+    ...injectedPlugins,
+    // fetch will always exist as a fallback to resolve your pipeline
+    fetchPlugin
+]
+```
+
+<DeepDive title="Defining the Full Pipeline">
+
+If you need full control over Houdini's plugin pipeline, you can use the `pipeline`
+argument to provide the full list. Houdini
+will still add a few plugins to this list to make some internals function like the cache
+policy behavior and support for `fetchParams`.
+
+```typescript:title=src/client.ts&typescriptToggle=true
+import { queryPlugin, mutationPlug } from '$houdini/plugins'
+
+new HoudiniClient({
+    url: '...',
+    pipeline: [queryPlugin, mutationPlugin, myCustomFetch]
+})
+```
+
+### Plugin Order
+
+If you use the `pipeline` parameter instead, only the first two get added to what you provide:
+
+```typescript:title=
+import {
+    throwOnErrorPlugin,
+    fetchParamsPlugin,
+} from '$houdini/plugins'
+
+const pipeline = [
+    throwOnErrorPlugin,
+    fetchParamsPlugin,
+    // everything else is up to you
+    ...specifiedPlugins,
+]
+```
+
+If you are using the `pipeline` argument, you need to include any client plugins
+that might be included from plugins in your `houdini.config.js` file.
+
+</DeepDive>

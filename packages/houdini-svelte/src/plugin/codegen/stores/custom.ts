@@ -1,4 +1,4 @@
-import { Config } from 'houdini'
+import type { Config } from 'houdini'
 
 import type { HoudiniSvelteConfig } from '../../'
 import { plugin_config } from '../../kit'
