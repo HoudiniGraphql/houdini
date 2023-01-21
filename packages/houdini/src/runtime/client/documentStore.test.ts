@@ -1103,6 +1103,7 @@ test('throw hooks can resolve the plugin instead', async function () {
 		errors: [],
 		fetching: true,
 		partial: false,
+		stale: false,
 		source: DataSource.Cache,
 		variables: null,
 	})
