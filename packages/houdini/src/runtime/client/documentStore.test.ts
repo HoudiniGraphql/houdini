@@ -1,4 +1,5 @@
 import { sleep } from '@kitql/helper'
+import { QueryResult } from 'build/runtime-esm'
 import { test, expect, vi, beforeEach } from 'vitest'
 
 import { HoudiniClient } from '.'
@@ -651,6 +652,7 @@ test('can pass new variables in a spread', async function () {
 					errors: [],
 					fetching: true,
 					partial: false,
+					stale: false,
 					source: DataSource.Cache,
 					variables: null,
 				})
@@ -1074,6 +1076,7 @@ test('throw hooks can resolve the plugin instead', async function () {
 				errors: [],
 				fetching: true,
 				partial: false,
+				stale: false,
 				source: DataSource.Cache,
 				variables: null,
 			})
@@ -1115,9 +1118,10 @@ test('throw hooks can replay the plugin instead', async function () {
 		errors: [],
 		fetching: true,
 		partial: false,
+		stale: false,
 		source: DataSource.Cache,
 		variables: null,
-	}
+	} satisfies QueryResult<GraphQLObject, Record<string, any>>
 	const fn = vi.fn()
 
 	// we'll track a count so that we throw in some situations and resolve in others
