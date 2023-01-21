@@ -6,8 +6,6 @@
 
 -   [#838](https://github.com/HoudiniGraphql/houdini/pull/838) [`d275adc`](https://github.com/HoudiniGraphql/houdini/commit/d275adc97dd97c49a8e35159d41e638128d8ad69) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Implemented new ClientPlugin architecture for HoudiniClient
 
--   [#838](https://github.com/HoudiniGraphql/houdini/pull/838) [`d275adc`](https://github.com/HoudiniGraphql/houdini/commit/d275adc97dd97c49a8e35159d41e638128d8ad69) Thanks [@jycouet](https://github.com/jycouet)! - Default fetching when `@manual_load` is applied to a query
-
 ## 0.20.3
 
 ### 🐛 Fixes
