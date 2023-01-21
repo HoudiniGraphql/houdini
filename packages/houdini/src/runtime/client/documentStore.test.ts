@@ -1069,6 +1069,7 @@ test('throw hooks can resolve the plugin instead', async function () {
 			throw error
 		},
 	})
+	
 	const middleware2: ClientPlugin = () => ({
 		catch(ctx, { resolve }) {
 			resolve(ctx, {
