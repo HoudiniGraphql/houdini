@@ -297,7 +297,14 @@ class CacheInternal {
 
 			// if we are writing to the display layer we need to refresh the lifetime of the value
 			if (displayLayer) {
+				// JYC TODO: Type for parentType is not correct with linkedType
 				this.lifetimes.resetLifetime(linkedType, parent, key)
+
+				this.cache._internal_unstable.staleManager.setFieldTimeToNow(
+					linkedType,
+					parent,
+					key
+				)
 			}
 
 			// any scalar is defined as a field with no selection

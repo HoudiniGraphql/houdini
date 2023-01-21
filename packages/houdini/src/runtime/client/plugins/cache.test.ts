@@ -233,6 +233,11 @@ test('stale', async function () {
 	})
 
 	// mark stale
+	console.log(
+		`cache._internal_unstable.staleManager`,
+		cache._internal_unstable.staleManager.fieldsTime
+	)
+
 	cache._internal_unstable.staleManager.markTypeStale('User')
 
 	const ret2 = await store.send({ policy: CachePolicy.CacheOrNetwork })

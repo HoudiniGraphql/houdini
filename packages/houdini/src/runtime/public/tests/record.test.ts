@@ -600,7 +600,7 @@ test('Mark a type field stale', async function () {
 	expect(h_GetFieldTime(cache, h_GetUserRecord('2', 'firstName'))).not.toBe(null)
 
 	// make the type `User` field `firstName` stale
-	cache.markStale('User', 'firstName')
+	cache.markStale('User', { field: 'firstName' })
 
 	// every type `User` should be stale, but not the rest
 	expect(h_GetFieldTime(cache, h_GetUserRecord('1'))).not.toBe(null)

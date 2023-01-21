@@ -3,10 +3,10 @@ import type { Cache } from './cache'
 export class StaleManager {
 	cache: Cache
 
-	// type {       "User"
-	// 	id {         "User:1"
-	//   field {      "id"
-	// 	  number | null | undefined
+	// type {       "User"      "User"
+	// 	id {         "User:1"    "_ROOT_"
+	//   field {      "id"        "viewer"
+	// 	  number | undefined | null
 	// 	 }
 	//  }
 	// }
@@ -16,7 +16,7 @@ export class StaleManager {
 	// null => data stale (stale)
 
 	// nulls mean that the value is stale, and the number is the time that the value was set
-	private fieldsTime: Map<string, Map<string, Map<string, number | null>>> = new Map()
+	fieldsTime: Map<string, Map<string, Map<string, number | null>>> = new Map()
 
 	constructor(cache: Cache) {
 		this.cache = cache
@@ -46,8 +46,6 @@ export class StaleManager {
 	 * @param field id
 	 */
 	setFieldTimeToNow(type: string, id: string, field: string): void {
-		console.log(`setFieldTimeToNow`)
-
 		this.#initMapId(type, id)
 		this.fieldsTime.get(type)?.get(id)?.set(field, new Date().valueOf())
 	}

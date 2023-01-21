@@ -82,13 +82,19 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 	 * @param type
 	 * @param field
 	 */
-	markStale<T extends TypeNames<Def>>(type?: T, field?: TypeFieldNames<Def, T>): void {
+	markStale<T extends TypeNames<Def>>(
+		type?: T,
+		options: { field?: TypeFieldNames<Def, T> } = {}
+	): void {
 		if (!type) {
 			this._internal_unstable._internal_unstable.staleManager.markAllStale()
-		} else if (!field) {
+		} else if (!options.field) {
 			this._internal_unstable._internal_unstable.staleManager.markTypeStale(type)
 		} else {
-			this._internal_unstable._internal_unstable.staleManager.markTypeFieldStale(type, field)
+			this._internal_unstable._internal_unstable.staleManager.markTypeFieldStale(
+				type,
+				options.field
+			)
 		}
 	}
 }

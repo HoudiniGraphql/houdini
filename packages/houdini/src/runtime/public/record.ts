@@ -127,6 +127,13 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 			key
 		)
 
+		// When we write to the cache, that means that the value was refreshed, let's set the time
+		this.#cache._internal_unstable._internal_unstable.staleManager.setFieldTimeToNow(
+			this.type,
+			this.#id,
+			key
+		)
+
 		// write the value to the cache by constructing the correct selection
 		this.#cache._internal_unstable.write({
 			parent: this.#id,
@@ -142,13 +149,6 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 				[field]: newValue,
 			},
 		})
-
-		// When we write to the cache, that means that the value was refreshed, let's set the time
-		this.#cache._internal_unstable._internal_unstable.staleManager.setFieldTimeToNow(
-			this.type,
-			this.#id,
-			field
-		)
 	}
 
 	get<Field extends TypeFieldNames<Def, Type>>({
