@@ -74,13 +74,16 @@ test('can read fragment', function () {
 			.get('User', { id: '1' })
 			.read({ fragment: testFragment(selection.fields.viewer.selection) })
 	).toEqual({
-		id: '1',
-		firstName: 'bob',
-		__typename: 'User',
-		parent: {
-			id: '2',
-			firstName: 'jane',
+		partial: false,
+		data: {
+			id: '1',
+			firstName: 'bob',
 			__typename: 'User',
+			parent: {
+				id: '2',
+				firstName: 'jane',
+				__typename: 'User',
+			},
 		},
 	})
 })
@@ -180,6 +183,9 @@ test('can writeFragments', function () {
 	expect(
 		cache.get('User', { id: '2' }).read({ fragment: testFragment(artifact.selection) })
 	).toEqual({
-		firstName: 'michael',
+		partial: false,
+		data: {
+			firstName: 'michael',
+		},
 	})
 })
