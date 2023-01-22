@@ -1,5 +1,5 @@
 import type { Cache as _Cache } from '../cache/cache'
-import { QueryArtifact, type GraphQLObject } from '../lib'
+import type { QueryArtifact, GraphQLObject } from '../lib'
 import { ListCollection } from './list'
 import { Record } from './record'
 import type { CacheTypeDef, IDFields, TypeNames, ValidLists } from './types'

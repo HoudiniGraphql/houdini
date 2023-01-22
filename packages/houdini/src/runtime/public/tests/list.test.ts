@@ -1,6 +1,6 @@
 import { test, expect, vi } from 'vitest'
 
-import { ArtifactKind, type FragmentArtifact, type SubscriptionSelection } from '../../lib'
+import { type SubscriptionSelection } from '../../lib'
 import { testCache, testFragment } from './test'
 
 test('list.append accepts record proxies', function () {
