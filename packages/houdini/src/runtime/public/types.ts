@@ -52,6 +52,8 @@ export type FragmentList<
 	Type extends ValidTypes<Def>
 > = Def['types'][Type]['fragments']
 
+export type QueryList<Def extends CacheTypeDef> = Def['queries']
+
 export type IDFields<
 	Def extends CacheTypeDef,
 	Type extends keyof Def['types']
@@ -99,3 +101,11 @@ export type FragmentValue<List, _Target> = List extends [infer Head, ...infer Re
 			: FragmentValue<Rest, _Target>
 		: 'Encountered unknown fragment'
 	: 'Encountered unknown fragment'
+
+export type QueryValue<List, _Target> = List extends [infer Head, ...infer Rest]
+	? Head extends [infer _Key, infer _Value]
+		? _Key extends _Target
+			? _Value
+			: QueryValue<Rest, _Target>
+		: 'Encountered unknown query'
+	: 'Encountered unknown query'
