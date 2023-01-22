@@ -23,6 +23,9 @@ export type CacheTypeDef = {
 			filters: any
 		}
 	}
+	// we need to map query tag values to their result
+	// to pass be able to pass queries to the read and write methods
+	queries: [any, any][]
 }
 
 export type ValidTypes<Def extends CacheTypeDef> = keyof Def['types']

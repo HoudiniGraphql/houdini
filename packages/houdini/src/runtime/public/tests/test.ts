@@ -121,6 +121,7 @@ type CacheTypeDef = {
 			}
 		}
 	}
+	queries: []
 	lists: {
 		All_Pets: {
 			types: 'User' | 'Cat'
