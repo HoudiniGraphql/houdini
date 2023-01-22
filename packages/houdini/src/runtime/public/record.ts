@@ -37,9 +37,11 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 		}
 	}
 
-	read<_Fragment extends { artifact: FragmentArtifact }>(
+	read<_Fragment extends { artifact: FragmentArtifact }>({
+		fragment,
+	}: {
 		fragment: _Fragment
-	): { data: FragmentValue<FragmentList<Def, Type>, _Fragment> | null; partial: boolean } {
+	}): { data: FragmentValue<FragmentList<Def, Type>, _Fragment> | null; partial: boolean } {
 		// @ts-expect-error
 		return this.#cache._internal_unstable.read({
 			selection: fragment.artifact.selection,

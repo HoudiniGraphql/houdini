@@ -21,7 +21,7 @@ to break its API on any minor version. We understand this is not technically sem
 but ultimately it will let us refine the API against real applications and lead to a better solution
 faster.
 
-In order to acknowlege this, you will need to enable the `acceptImperativeInstability` flag in your config file:
+In order to acknowledge this, you will need to enable the `acceptImperativeInstability` flag in your config file:
 
 ```javascript:title=houdini.config.js
 export default {
@@ -52,11 +52,13 @@ Once you have the reference, you can query any cached fields or related records 
 ```typescript
 const user = cache.get('User', { id: '1' })
 
-const info = user.read(graphql(`
-	fragment UserInfo on User {
-		firstName
-	}
-`))
+const info = user.read({
+	fragment: graphql(`
+		fragment UserInfo on User {
+			firstName
+		}
+	`)
+})
 
 console.log(`hello ${info.firstName}!`)
 ```
@@ -75,7 +77,7 @@ user.write({
 		}
 	`),
 	data: {
-		firstName: "New name",
+		firstName: 'New name'
 	}
 })
 ```
@@ -83,7 +85,6 @@ user.write({
 The
 
 This includes
-
 
 ## Deleting Records
 

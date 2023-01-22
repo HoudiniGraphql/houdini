@@ -1,7 +1,7 @@
 import { test, expect } from 'vitest'
 
 import { ArtifactKind, type FragmentArtifact, type SubscriptionSelection } from '../../lib'
-import { testCache } from './test'
+import { testCache, testFragment } from './test'
 
 test('can read fragment', function () {
 	const cache = testCache()
@@ -68,17 +68,12 @@ test('can read fragment', function () {
 		},
 	})
 
-	const artifact: FragmentArtifact = {
-		kind: ArtifactKind.Fragment,
-		name: 'string',
-		raw: 'string',
-		hash: 'string',
-		rootType: 'string',
-		selection: selection.fields.viewer.selection,
-	}
-
 	// look up the values we just wrote
-	expect(cache.get('User', { id: '1' }).read({ artifact })).toEqual({
+	expect(
+		cache
+			.get('User', { id: '1' })
+			.read({ fragment: testFragment(selection.fields.viewer.selection) })
+	).toEqual({
 		id: '1',
 		firstName: 'bob',
 		__typename: 'User',
@@ -182,5 +177,9 @@ test('can writeFragments', function () {
 	})
 
 	// make sure we updated the field
-	expect(cache.get('User', { id: '2' }).read({ artifact })).toEqual({ firstName: 'michael' })
+	expect(
+		cache.get('User', { id: '2' }).read({ fragment: testFragment(artifact.selection) })
+	).toEqual({
+		firstName: 'michael',
+	})
 })
