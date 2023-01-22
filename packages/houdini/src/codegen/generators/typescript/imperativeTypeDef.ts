@@ -26,6 +26,25 @@ export default async function imperativeCacheTypef(
 	config: Config,
 	docs: CollectedGraphQLDocument[]
 ) {
+	// in order to generate type definitions for the write method, we need to
+	// make the return value of graphql to the actual data structure that users
+	// need to pass. This means figuring out the return type.
+	const returnType = (doc: CollectedGraphQLDocument) =>
+		config.plugins
+			.find((plugin) => plugin.graphql_tag_return)
+			?.graphql_tag_return?.({
+				config,
+				doc,
+				ensure_import({ identifier, module }) {
+					ensureImports({
+						config,
+						body,
+						sourceModule: module,
+						import: [identifier],
+					})
+				},
+			}) ?? 'any'
+
 	// from a specific file
 	const target = path.join(config.runtimeDirectory, 'generated.d.ts')
 
@@ -37,11 +56,15 @@ export default async function imperativeCacheTypef(
 		AST.tsTypeLiteral([
 			AST.tsPropertySignature(
 				AST.identifier('types'),
-				AST.tsTypeAnnotation(typeDefinitions(config, body, docs))
+				AST.tsTypeAnnotation(typeDefinitions(config, body, docs, returnType))
 			),
 			AST.tsPropertySignature(
 				AST.identifier('lists'),
 				AST.tsTypeAnnotation(listDefinitions(config, docs))
+			),
+			AST.tsPropertySignature(
+				AST.identifier('queries'),
+				AST.tsTypeAnnotation(queryDefinitions(config, body, docs, returnType))
 			),
 		])
 	)
@@ -66,7 +89,8 @@ export default async function imperativeCacheTypef(
 function typeDefinitions(
 	config: Config,
 	body: StatementKind[],
-	docs: CollectedGraphQLDocument[]
+	docs: CollectedGraphQLDocument[],
+	returnType: (doc: CollectedGraphQLDocument) => string
 ): recast.types.namedTypes.TSTypeLiteral {
 	// grab a list of the mutation and subscription type names so we don't include them
 	const operationTypes = [config.schema.getMutationType(), config.schema.getSubscriptionType()]
@@ -91,7 +115,8 @@ function typeDefinitions(
 		config,
 		types.map((type) => type.name),
 		body,
-		docs
+		docs,
+		returnType
 	)
 
 	return AST.tsTypeLiteral(
@@ -369,17 +394,62 @@ function listDefinitions(
 	return AST.tsTypeLiteral(lists)
 }
 
+function queryDefinitions(
+	config: Config,
+	body: StatementKind[],
+	docs: CollectedGraphQLDocument[],
+	returnType: (doc: CollectedGraphQLDocument) => string
+): recast.types.namedTypes.TSTupleType {
+	// we need to build a tuple type that describes the queries
+	return AST.tsTupleType(
+		docs.reduce<recast.types.namedTypes.TSTupleType[]>((prev, doc) => {
+			// if the document is not a query that generates a store, skip it
+			if (doc.kind !== ArtifactKind.Query || !doc.generateStore) {
+				return prev
+			}
+
+			// if the fragment's type condition is not in the concrete list, ignore it
+			const definition = doc.document.definitions.find<graphql.OperationDefinitionNode>(
+				(def): def is graphql.OperationDefinitionNode =>
+					def.kind === 'OperationDefinition' && def.operation === 'query'
+			)
+			if (!definition) {
+				return prev
+			}
+
+			// figure out the runtime representation of the doc (the return value of the graphql function)
+			const runtimeType = returnType(doc)
+			// import the shape type
+			const [shapeType, inputType] = ensureImports({
+				config,
+				body,
+				sourceModule: path.relative(
+					config.runtimeDirectory,
+					config.artifactImportPath(doc.name)
+				),
+				import: [`${doc.name}$result`, `${doc.name}$input`],
+			})
+
+			// we need to add an entry to the tuple for each query document we have (that generates a store)
+			// in the order of (tag_value, shape, input)
+			return prev.concat(
+				AST.tsTupleType([
+					AST.tsTypeReference(AST.identifier(runtimeType)),
+					AST.tsTypeReference(AST.identifier(shapeType)),
+					AST.tsTypeReference(AST.identifier(inputType)),
+				])
+			)
+		}, [])
+	)
+}
+
 function fragmentListMap(
 	config: Config,
 	concreteTypes: string[],
 	body: StatementKind[],
-	docs: CollectedGraphQLDocument[]
+	docs: CollectedGraphQLDocument[],
+	return_type: (doc: CollectedGraphQLDocument) => string
 ): { [typeName: string]: recast.types.namedTypes.TSTupleType } {
-	// in order to generate type definitions for the write method, we need to
-	// make the return value of graphql to the actual data structure that users
-	// need to pass. This means figuring out the return type.
-	let return_type = config.plugins.find((plugin) => plugin.graphql_tag_return)?.graphql_tag_return
-
 	// we need to find all of the fragments that are on concrete types,
 	// group them by type name and then map them to the fragment list definition
 	return docs.reduce<ReturnType<typeof fragmentListMap>>((prev, doc) => {
@@ -404,19 +474,7 @@ function fragmentListMap(
 		/// compute the fragment information
 
 		// the fragment store wrapper (what's returned from the graphql tag)
-		const tagResult =
-			return_type?.({
-				config,
-				doc,
-				ensure_import({ identifier, module }) {
-					ensureImports({
-						config,
-						body,
-						sourceModule: module,
-						import: [identifier],
-					})
-				},
-			}) ?? 'any'
+		const tagResult = return_type(doc)
 
 		// import the shape type
 		const [shapeType] = ensureImports({

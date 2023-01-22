@@ -119,7 +119,7 @@ test('generates type definitions for the imperative API', async function () {
 		mockCollectedDoc(
 			`query TestQueryNoArgs {
 					entities @list(name: "NoArgs") {
-						... on User { 
+						... on User {
 							firstName
 						}
 					}
@@ -146,6 +146,8 @@ test('generates type definitions for the imperative API', async function () {
 	expect(parsedQuery).toMatchInlineSnapshot(
 		`
 		import type { Record } from "./public/record";
+		import { TestQueryNoArgs$data, TestQueryNoArgs$input } from "../artifacts/TestQueryNoArgs";
+		import { TestQuery$data, TestQuery$input } from "../artifacts/TestQuery";
 		import type { MyEnum } from "$houdini/graphql/enums";
 		import { UserInfo$data } from "../artifacts/UserInfo";
 
@@ -324,6 +326,7 @@ test('generates type definitions for the imperative API', async function () {
 		            filters: never;
 		        };
 		    };
+		    queries: [[any, TestQuery$data, TestQuery$input], [any, TestQueryNoArgs$data, TestQueryNoArgs$input]];
 		};
 	`
 	)
