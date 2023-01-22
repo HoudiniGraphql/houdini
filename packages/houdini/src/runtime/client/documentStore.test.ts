@@ -1069,7 +1069,7 @@ test('throw hooks can resolve the plugin instead', async function () {
 			throw error
 		},
 	})
-	
+
 	const middleware2: ClientPlugin = () => ({
 		catch(ctx, { resolve }) {
 			resolve(ctx, {
@@ -1115,7 +1115,7 @@ test('throw hooks can resolve the plugin instead', async function () {
 })
 
 test('throw hooks can replay the plugin instead', async function () {
-	const data = {
+	const data: QueryResult<GraphQLObject, Record<string, any>> = {
 		data: { hello: 'world' },
 		errors: [],
 		fetching: true,
@@ -1123,7 +1123,7 @@ test('throw hooks can replay the plugin instead', async function () {
 		stale: false,
 		source: DataSource.Cache,
 		variables: null,
-	} satisfies QueryResult<GraphQLObject, Record<string, any>>
+	}
 	const fn = vi.fn()
 
 	// we'll track a count so that we throw in some situations and resolve in others

@@ -21,7 +21,7 @@
 
   const markStale_type_field = async () => {
     await addUser.mutate(null);
-    cache.markStale('UserNodes', 'totalCount');
+    cache.markStale('UserNodes', { field: 'totalCount' });
   };
 
   const markStale_subtype = async () => {
