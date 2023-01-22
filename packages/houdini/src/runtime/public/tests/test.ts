@@ -135,7 +135,8 @@ type CacheTypeDef = {
 						__typename: string
 					}
 				}
-			}
+			},
+			any
 		]
 	]
 	lists: {

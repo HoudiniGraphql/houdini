@@ -25,7 +25,8 @@ export type CacheTypeDef = {
 	}
 	// we need to map query tag values to their result
 	// to pass be able to pass queries to the read and write methods
-	queries: [any, any][]
+	// entries in the tuple are graphql tag, query shape, query input
+	queries: [any, any, any][]
 }
 
 export type ValidTypes<Def extends CacheTypeDef> = keyof Def['types']
@@ -103,9 +104,17 @@ export type FragmentValue<List, _Target> = List extends [infer Head, ...infer Re
 	: 'Encountered unknown fragment'
 
 export type QueryValue<List, _Target> = List extends [infer Head, ...infer Rest]
-	? Head extends [infer _Key, infer _Value]
+	? Head extends [infer _Key, infer _Value, infer _Input]
 		? _Key extends _Target
 			? _Value
+			: QueryValue<Rest, _Target>
+		: 'Encountered unknown query'
+	: 'Encountered unknown query'
+
+export type QueryInput<List, _Target> = List extends [infer Head, ...infer Rest]
+	? Head extends [infer _Key, infer _Value, infer _Input]
+		? _Key extends _Target
+			? _Input
 			: QueryValue<Rest, _Target>
 		: 'Encountered unknown query'
 	: 'Encountered unknown query'

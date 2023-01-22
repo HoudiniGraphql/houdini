@@ -2,7 +2,15 @@ import type { Cache as _Cache } from '../cache/cache'
 import { QueryArtifact, type GraphQLObject } from '../lib'
 import { ListCollection } from './list'
 import { Record } from './record'
-import type { CacheTypeDef, IDFields, QueryList, QueryValue, TypeNames, ValidLists } from './types'
+import type {
+	CacheTypeDef,
+	IDFields,
+	QueryInput,
+	QueryList,
+	QueryValue,
+	TypeNames,
+	ValidLists,
+} from './types'
 
 export class Cache<Def extends CacheTypeDef> {
 	_internal_unstable: _Cache
@@ -60,26 +68,35 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 
 	read<_Query extends { artifact: QueryArtifact }>({
 		query,
+		variables,
 	}: {
 		query: _Query
-	}): QueryValue<QueryList<Def>, _Query> {
-		// @ts-ignore
+		variables?: QueryInput<QueryList<Def>, _Query>
+	}): {
+		data: QueryValue<QueryList<Def>, _Query> | null
+		partial: boolean
+	} {
+		// @ts-expect-error
 		return this._internal_unstable.read({
 			selection: query.artifact.selection,
+			variables,
 		})
 	}
 
 	write<_Query extends { artifact: QueryArtifact }>({
 		query,
+		variables,
 		data,
 	}: {
 		query: _Query
 		data: QueryValue<QueryList<Def>, _Query>
+		variables?: QueryInput<QueryList<Def>, _Query>
 	}) {
 		this._internal_unstable.write({
 			selection: query.artifact.selection,
 			// @ts-expect-error
 			data,
+			variables,
 		})
 
 		return
