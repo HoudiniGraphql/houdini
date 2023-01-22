@@ -1,6 +1,6 @@
 import { test, expect } from 'vitest'
 
-import { ArtifactKind, FragmentArtifact, SubscriptionSelection } from '../../lib'
+import { ArtifactKind, type FragmentArtifact, type SubscriptionSelection } from '../../lib'
 import { testCache } from './test'
 
 test('can read fragment', function () {

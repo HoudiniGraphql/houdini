@@ -1,6 +1,6 @@
 import { testConfigFile } from '../../../test'
 import { Cache as _Cache } from '../../cache/cache'
-import { FragmentArtifact } from '../../lib'
+import { type FragmentArtifact } from '../../lib'
 import { Cache } from '../cache'
 import type { Record } from '../record'
 

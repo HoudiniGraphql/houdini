@@ -1,5 +1,4 @@
 import type { ListCollection as _Collection } from '../cache/lists'
-import { keyFieldsForType } from '../lib/config'
 import type { GraphQLObject, SubscriptionSelection } from '../lib/types'
 import type { Cache } from './cache'
 import { Record } from './record'

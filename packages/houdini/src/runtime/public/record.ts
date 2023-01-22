@@ -1,6 +1,6 @@
 import { rootID } from '../cache/cache'
 import { keyFieldsForType } from '../lib/config'
-import type { FragmentArtifact, GraphQLObject, SubscriptionSelection } from '../lib/types'
+import type { FragmentArtifact, GraphQLObject } from '../lib/types'
 import type { Cache } from './cache'
 import type { CacheTypeDef, FragmentList, FragmentValue, ValidTypes } from './types'
 

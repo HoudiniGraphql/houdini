@@ -2,7 +2,12 @@ import type { StatementKind, TSTypeKind } from 'ast-types/lib/gen/kinds'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import { Config, CollectedGraphQLDocument, ArtifactKind, ensureImports } from '../../../lib'
+import {
+	type Config,
+	type CollectedGraphQLDocument,
+	ArtifactKind,
+	ensureImports,
+} from '../../../lib'
 import {
 	fs,
 	path,
