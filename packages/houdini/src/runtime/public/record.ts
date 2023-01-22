@@ -39,12 +39,12 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 
 	read<_Fragment extends { artifact: FragmentArtifact }>(
 		fragment: _Fragment
-	): FragmentValue<FragmentList<Def, Type>, _Fragment> {
-		// @ts-ignore
+	): { data: FragmentValue<FragmentList<Def, Type>, _Fragment> | null; partial: boolean } {
+		// @ts-expect-error
 		return this.#cache._internal_unstable.read({
 			selection: fragment.artifact.selection,
 			parent: this.#id,
-		}).data
+		})
 	}
 
 	write<_Fragment extends { artifact: FragmentArtifact }>(args: {

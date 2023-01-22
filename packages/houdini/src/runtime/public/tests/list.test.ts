@@ -1,7 +1,7 @@
 import { test, expect, vi } from 'vitest'
 
 import { ArtifactKind, type FragmentArtifact, type SubscriptionSelection } from '../../lib'
-import { testCache } from './test'
+import { testCache, testFragment } from './test'
 
 test('list.append accepts record proxies', function () {
 	const cache = testCache()
@@ -704,15 +704,4 @@ test('list operations fail silently if there is no matching list', function () {
 	const cache = testCache()
 	const user = cache.get('User', { id: '1' })
 	expect(() => cache.list('All_Pets')).not.toThrow()
-})
-
-const testFragment = (selection: SubscriptionSelection): { artifact: FragmentArtifact } => ({
-	artifact: {
-		kind: ArtifactKind.Fragment,
-		hash: '',
-		raw: '',
-		name: '',
-		rootType: 'User',
-		selection,
-	},
 })

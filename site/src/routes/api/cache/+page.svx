@@ -33,92 +33,66 @@ export default {
 ## Records
 
 The primary unit of the cache api is the `Record`. It acts as a proxy for interacting with entities in Houdini's cache
-and does not actually hold onto any values. Retrieving a record from your cache is done
+and does not actually hold onto any values. Creating a record is done
 with the `get` method on the `cache` exported from `$houdini`:
 
 ```typescript
 import { cache } from '$houdini'
 
 const user = cache.get('User', { id: '1' })
+
+// the root record points to the root of your API (the Query type)
+const root = cache.root
 ```
 
-Once you have the reference, you can retrieve values using the `get` method on the record:
+## Retrieving Values
+
+Once you have the reference, you can query any cached fields or related records using the `read` method on the record:
 
 ```typescript
 const user = cache.get('User', { id: '1' })
 
-// scalar values can be retrieved, custom scalars will be marshaled
-const fullName = user.get({ field: 'fullName' })
-
-// links to other records can also be retrieved
-const bestFriend = user.get({ field: 'bestFriend' })
-
-// if you need to retrieve the value when specific arguments are
-// set, you should use the args parameter
-const formattedName = user.get({
-	field: 'fullName',
-	args: {
-		format: 'FIRST_LAST'
+const info = user.read(graphql(`
+	fragment UserInfo on User {
+		firstName
 	}
-})
+`))
+
+console.log(`hello ${info.firstName}!`)
 ```
 
-You can also update values using the `set` method. Keep in mind that when you set a value
-that points to a linked record, you need to set it to another instance of `Record`:
+## Updating Cache Values
+
+To update your cache's data, you can use the `write` method on any record:
 
 ```typescript
 const user = cache.get('User', { id: '1' })
 
-// scalar values will be marshaled appropriately
-user.set({ field: 'fullName', value: 'Houdini' })
-
-// when setting linked records, you need to pass another record
-user.set({
-	field: 'bestFriend',
-	value: cache.get('User', { id: '3' })
-})
-
-// as with get, you can pass arguments to the field
-user.set({
-	field: 'fullName',
-	value: 'HOUDINI_GRAPHQL',
-	args: {
-		format: 'FIRST_LAST'
+user.write({
+	fragment: graphql(`
+		fragment UserInfo on User {
+			firstName
+		}
+	`),
+	data: {
+		firstName: "New name",
 	}
 })
 ```
 
-You can also delete a record from the cache using the `delete` method:
+The
+
+This includes
+
+
+## Deleting Records
+
+You can delete a record from the cache using the `delete` method:
 
 ```typescript
 const user = cache.get('User', { id: '1' })
 
 user.delete()
-```
-
-### Field schema information
-
-There are a few situations where the runtime might complain that it doesn't know the type of the field that you have set.
-For example, if you are setting a field that has not yet been queried. When this happens, you will need
-to provide some additional information so we can ensure that your responses are always valid.
-To do this, use `cache.setFieldType`:
-
-```typescript
-cache.setFieldType({
-	parent: 'User',
-	key: 'fullName',
-	type: 'String',
-	nullable: false
-})
-
-// links to other records must have `link` set to true
-cache.setFieldType({
-	parent: 'User',
-	key: 'bestFriend',
-	type: 'User',
-	nullable: true,
-	link: true
-})
 ```
 
 ## Lists

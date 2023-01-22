@@ -1,6 +1,11 @@
 import { testConfigFile } from '../../../test'
 import { Cache as _Cache } from '../../cache/cache'
-import { type FragmentArtifact } from '../../lib'
+import {
+	ArtifactKind,
+	type SubscriptionSelection,
+	type FragmentArtifact,
+	type QueryArtifact,
+} from '../../lib'
 import { Cache } from '../cache'
 import type { Record } from '../record'
 
@@ -131,3 +136,25 @@ type CacheTypeDef = {
 }
 
 export const testCache = () => new Cache<CacheTypeDef>(new _Cache(testConfigFile()))
+
+export const testFragment = (selection: SubscriptionSelection): { artifact: FragmentArtifact } => ({
+	artifact: {
+		kind: ArtifactKind.Fragment,
+		hash: '',
+		raw: '',
+		name: '',
+		rootType: 'User',
+		selection,
+	},
+})
+
+export const testQuery = (selection: SubscriptionSelection): { artifact: QueryArtifact } => ({
+	artifact: {
+		kind: ArtifactKind.Query,
+		hash: '',
+		raw: '',
+		name: '',
+		rootType: 'Query',
+		selection,
+	},
+})

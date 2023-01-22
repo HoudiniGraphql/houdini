@@ -1,5 +1,5 @@
 import type { Cache as _Cache } from '../cache/cache'
-import { rootID } from '../cache/cache'
+import { QueryArtifact, type GraphQLObject } from '../lib'
 import { ListCollection } from './list'
 import { Record } from './record'
 import type { CacheTypeDef, IDFields, TypeNames, ValidLists } from './types'
@@ -19,17 +19,6 @@ export class Cache<Def extends CacheTypeDef> {
 			console.warn(`⚠️  The imperative cache API is considered unstable and will change in any minor version release
 Please acknowledge this by setting acceptImperativeInstability to true in your config file.`)
 		}
-	}
-
-	// return the root record
-	get root(): Record<Def, '__ROOT__'> {
-		this.validateInstabilityWarning()
-		return new Record({
-			cache: this,
-			type: 'Query',
-			id: rootID,
-			idFields: {},
-		})
 	}
 
 	// return the record proxy for the given type/id combo
@@ -67,5 +56,20 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 			parentID,
 			allLists,
 		})
+	}
+
+	read({ query }: { query: { artifact: QueryArtifact } }): GraphQLObject {
+		return this._internal_unstable.read({
+			selection: query.artifact.selection,
+		})
+	}
+
+	write({ query, data }: { query: { artifact: QueryArtifact }; data: any }) {
+		this._internal_unstable.write({
+			selection: query.artifact.selection,
+			data,
+		})
+
+		return
 	}
 }
