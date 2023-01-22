@@ -40,9 +40,6 @@ with the `get` method on the `cache` exported from `$houdini`:
 import { cache } from '$houdini'
 
 const user = cache.get('User', { id: '1' })
-
-// the root record points to the root of your API (the Query type)
-const root = cache.root
 ```
 
 ## Retrieving Values
@@ -50,6 +47,8 @@ const root = cache.root
 Once you have the reference, you can query any cached fields or related records using the `read` method on the record:
 
 ```typescript
+import { cache } from '$houdini'
+
 const user = cache.get('User', { id: '1' })
 
 const info = user.read({
@@ -60,7 +59,25 @@ const info = user.read({
 	`)
 })
 
-console.log(`hello ${info.firstName}!`)
+console.log(`hello ${info.data.firstName}!`)
+```
+
+To extract values from the root of your cache (the Query type), use the `read` method on the cache:
+
+```typescript
+import { cache } from '$houdini'
+
+const allUsers = cache.read({
+	query: graphql(`
+		query AllUsersCache {
+			users {
+				name
+			}
+		}
+	`)
+})
+
+console.log('Users:', allUsers.data?.users)
 ```
 
 ## Updating Cache Values
@@ -68,6 +85,8 @@ console.log(`hello ${info.firstName}!`)
 To update your cache's data, you can use the `write` method on any record:
 
 ```typescript
+import { cache } from '$houdini'
+
 const user = cache.get('User', { id: '1' })
 
 user.write({
@@ -82,9 +101,68 @@ user.write({
 })
 ```
 
-The
+Just like `read`, there is also a way to write values to the root of your api:
 
-This includes
+```typescript
+import { cache } from '$houdini'
+
+cache.write({
+	query: graphql(`
+		query AllUsersCache {
+			users {
+				name
+			}
+		}
+	`)
+	data: {
+		users: [
+			{ name: "Harry" },
+		]
+	}
+})
+```
+
+### Updating Relationships
+
+The fragment and query that you pass do not have to be limited to only fields
+on the record. You can use the same API in order to change a link between two
+records.
+
+```typescript
+import { cache } from '$houdini'
+
+const user = cache.get('User', { id: '1' })
+
+// set the parent field to be user 2
+user.write({
+	fragment: graphql(`
+		fragment UserInfo on User {
+			parent {
+				id
+			}
+		}
+	`),
+	data: {
+		parent: {
+			id: '2'
+		}
+	}
+})
+
+// set the list of friends to be users 2 and 3
+user.write({
+	fragment: graphql(`
+		fragment UserInfo on User {
+			friends {
+				id
+			}
+		}
+	`),
+	data: {
+		friends: [{ id: '2' }, { id: '3' }]
+	}
+})
+```
 
 ## Deleting Records
 
