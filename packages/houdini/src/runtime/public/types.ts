@@ -88,3 +88,11 @@ export type ListType<Def extends CacheTypeDef, Name extends ValidLists<Def>> = P
 	Def,
 	Def['lists'][Name]['types']
 >
+
+export type FragmentValue<List, _Target> = List extends [infer Head, ...infer Rest]
+	? Head extends [infer _Key, infer _Value]
+		? _Key extends _Target
+			? _Value
+			: FragmentValue<Rest, _Target>
+		: 'Encountered unknown fragment'
+	: 'Encountered unknown fragment'

@@ -1,9 +1,8 @@
 import { rootID } from '../cache/cache'
-import type { TypeInfo } from '../cache/schema'
 import { keyFieldsForType } from '../lib/config'
 import type { FragmentArtifact, GraphQLObject, SubscriptionSelection } from '../lib/types'
 import type { Cache } from './cache'
-import type { CacheTypeDef, FragmentList, ValidTypes } from './types'
+import type { CacheTypeDef, FragmentList, FragmentValue, ValidTypes } from './types'
 
 export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 	#id: string
@@ -40,7 +39,7 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 
 	read<_Fragment extends { artifact: FragmentArtifact }>(
 		fragment: _Fragment
-	): ListKeyValue<FragmentList<Def, Type>, _Fragment> {
+	): FragmentValue<FragmentList<Def, Type>, _Fragment> {
 		// @ts-ignore
 		return this.#cache._internal_unstable.read({
 			selection: fragment.artifact.selection,
@@ -50,7 +49,7 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 
 	write<_Fragment extends { artifact: FragmentArtifact }>(args: {
 		fragment: _Fragment
-		data: ListKeyValue<FragmentList<Def, Type>, _Fragment>
+		data: FragmentValue<FragmentList<Def, Type>, _Fragment>
 	}) {
 		// we have the data and the fragment, just pass them both to the cache
 		this.#cache._internal_unstable.write({
@@ -64,11 +63,3 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 		this.#cache._internal_unstable.delete(this.#id)
 	}
 }
-
-type ListKeyValue<List, _Target> = List extends [infer Head, ...infer Rest]
-	? Head extends [infer _Key, infer _Value]
-		? _Key extends _Target
-			? _Value
-			: ListKeyValue<Rest, _Target>
-		: 'Encountered unknown fragment'
-	: 'Encountered unknown fragment'
