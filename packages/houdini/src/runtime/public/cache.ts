@@ -22,13 +22,6 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 		}
 	}
 
-	// if the user tries to assign a field type that we haven't seen before
-	// then we need to provide a way for them to give us that information
-	setFieldType(...args: Parameters<SchemaManager['setFieldType']>) {
-		this.validateInstabilityWarning()
-		this._internal_unstable._internal_unstable.schema.setFieldType(...args)
-	}
-
 	// return the root record
 	get root(): Record<Def, '__ROOT__'> {
 		this.validateInstabilityWarning()
@@ -76,28 +69,4 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 			allLists,
 		})
 	}
-}
-
-export function _typeInfo<Def extends CacheTypeDef>(
-	cache: Cache<Def>,
-	type: string,
-	field: string
-): TypeInfo {
-	if (field === '__typename') {
-		return {
-			type: 'String',
-			nullable: false,
-			link: false,
-		}
-	}
-
-	const info = cache._internal_unstable._internal_unstable.schema.fieldType(type, field)
-
-	if (!info) {
-		throw new Error(
-			`Unknown field: ${field} for type ${type}. Please provide type information using setFieldType().`
-		)
-	}
-
-	return info
 }
