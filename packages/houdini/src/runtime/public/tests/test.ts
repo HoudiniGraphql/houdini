@@ -121,7 +121,24 @@ type CacheTypeDef = {
 			}
 		}
 	}
-	queries: []
+	queries: [
+		[
+			{ artifact: QueryArtifact },
+			{
+				viewer: {
+					id: string
+					firstName: string
+					__typename: string
+					parent: {
+						id: string
+						firstName: string
+						__typename: string
+					}
+				}
+			},
+			any
+		]
+	]
 	lists: {
 		All_Pets: {
 			types: 'User' | 'Cat'
