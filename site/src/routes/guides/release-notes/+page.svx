@@ -233,8 +233,8 @@ For more information, check out the [new docs page](/api/cache)
 ### Inline Queries No Longer Automatically Load
 
 Using `graphql` in your `.svelte` files will not cause the query to be automatically loaded. You must now
-opt into automatically loading for queries defined inside of you components using the `@load` directive.
-
+opt into automatically loading for queries defined inside of your components using the `@load` directive.
+This change only affects `.svelte` files.
 
 ```diff:title=src/routes/+page.svelte
   <script>
