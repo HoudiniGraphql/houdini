@@ -11,7 +11,7 @@ layout: blank
 ## Your First Client Plugin
 
 Let's start off simple and create a plugin to log something every time we send a query. If you don't have
-a project to test in, you can always use the [`final` branch](https://github.com/HoudiniGraphql/intro/tree/final) branch
+a project to test in, you can always use the [`final` branch](https://github.com/HoudiniGraphql/intro/tree/final)
 of the PokeDex we made in the [Getting Started guide](/intro/welcome).
 
 Once you have a project, we can define an empty plugin and pass it to your client:
