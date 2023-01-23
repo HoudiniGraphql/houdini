@@ -104,9 +104,8 @@ const retry: ClientPlugin = () => {
 }
 ```
 
-Keep in mind you would probably want to add more to this example in production so that you wouldn't be stuck in an loop that constantly errors
-but hopefully you can piece together how you would do that.
-
-We'll talk more about the differences between `resolve` and `next` in the next section.
+We'll talk more about the differences between `resolve` and `next` in the next section so don't worry if that went
+kind of quick. Also, Keep in mind you would probably want to add more to this example so that you wouldn't
+be stuck in an loop that constantly errors but hopefully you can piece together how you would do that.
 
 </DeepDive>
