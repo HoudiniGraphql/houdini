@@ -4039,6 +4039,6 @@ test('some artifact_data added to artifact specific to plugins', async function 
 		    "partial": false
 		};
 
-		"HoudiniHash=d699afecf5f5b3367f7a84b0ca5aa88c2f78e1ef1c65bb9dc020fa6cbdf0863a";
+		"HoudiniHash=4e7afee5e8aa689ee7f58f61f60955769c29fe630b05a32ca2a5d8f61620afe3";
 	`)
 })

@@ -220,9 +220,14 @@ test("imperative cache inside mutation doesn't confuse anything", async function
 		import { TestQueryStore } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
 		import { cache } from "$houdini";
 
-		cache.read({
-		    query: new TestQueryStore()
-		});
+		function onClick() {
+		    $:
+		    query = new TestQueryStore();
+
+		    cache.read({
+		        query
+		    });
+		}
 	`)
 })
 

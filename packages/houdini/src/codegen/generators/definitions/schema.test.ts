@@ -67,7 +67,7 @@ test('adds internal documents to schema', async function () {
 			"""@cache is used to specify cache rules for a query"""
 			directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
-			"""@load is used in a component to instruct houdini to load the query automatically"""
+			"""@load is used to disable automatic fetch (no load, no auto fetch in component), you will have to do it manually."""
 			directive @load on QUERY
 
 			"""@mask_enable to enable masking on fragment (overwriting the global conf)"""
@@ -138,7 +138,7 @@ test('list operations are included', async function () {
 			"""@cache is used to specify cache rules for a query"""
 			directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
-			"""@load is used in a component to instruct houdini to load the query automatically"""
+			"""@load is used to disable automatic fetch (no load, no auto fetch in component), you will have to do it manually."""
 			directive @load on QUERY
 
 			"""@mask_enable to enable masking on fragment (overwriting the global conf)"""
@@ -228,7 +228,7 @@ test('list operations are included but delete directive should not be in when we
 			"""@cache is used to specify cache rules for a query"""
 			directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
-			"""@load is used in a component to instruct houdini to load the query automatically"""
+			"""@load is used to disable automatic fetch (no load, no auto fetch in component), you will have to do it manually."""
 			directive @load on QUERY
 
 			"""@mask_enable to enable masking on fragment (overwriting the global conf)"""
@@ -331,7 +331,7 @@ test("writing twice doesn't duplicate definitions", async function () {
 			"""@cache is used to specify cache rules for a query"""
 			directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
-			"""@load is used in a component to instruct houdini to load the query automatically"""
+			"""@load is used to disable automatic fetch (no load, no auto fetch in component), you will have to do it manually."""
 			directive @load on QUERY
 
 			"""@mask_enable to enable masking on fragment (overwriting the global conf)"""
