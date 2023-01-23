@@ -199,7 +199,7 @@ import { MyAwesomeQueryStore } from '$houdini'
 
 ### Inline Documents
 
-Another option is to add `@load` to a query thats defined inside of your source code (ie, in a `.svelte`, `.js`, or `.ts` file). To
+Another option is to define your document directly inside of your source code (ie, in a `.svelte`, `.js`, or `.ts` file). To
 do that, import `graphql` from `$houdini` and pass your query:
 
 ```svelte:title=src/routes/myRoute/+page.svelte&typescriptToggle=true
@@ -207,7 +207,7 @@ do that, import `graphql` from `$houdini` and pass your query:
     import { graphql } from '$houdini'
 
     const store = graphql(`
-        query ViewerSettings @load {
+        query ViewerSettings {
             viewer {
                 isAwesome
             }
@@ -220,7 +220,7 @@ do that, import `graphql` from `$houdini` and pass your query:
 import { graphql } from '$houdini'
 
 const store = graphql(`
-	query MyAwesomeQuery @load {
+	query MyAwesomeQuery {
 		viewer {
 			isAwesome
 		}
@@ -359,14 +359,14 @@ export const _UserInfoVariables: UserInfoVariables = ({ params }) => {
 
 ### Inline Queries
 
-Another way to get a generated load for your route queries, is to define your query inside of your `+page.svelte`:
+Another way to get a generated load for your route queries, is to add `@load` to a query inside of your `+page.svelte`:
 
 ```svelte:title=src/lib/UserList.svelte&typescriptToggle=true
 <script lang="ts">
     import { graphql } from '$houdini'
 
     const info = graphql(`
-        query UserInfo {
+        query UserInfo @load {
             viewer {
                 firstName
             }

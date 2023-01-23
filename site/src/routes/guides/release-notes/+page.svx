@@ -13,7 +13,9 @@ description: A guide to migrating your application to each breaking version of h
 
 It's finally here! <Emoji name="partying-face" height={20} fallback="🥳" />
 
-This is a huge milestone for the project and we're so thankful to everyone that made it possible
+This is a huge milestone for the project and we're so thankful to
+everyone that made it possible. As I'm sure you're expecting, this version brings a
+lot of changes so please read through this document carefully.
 
 ### Client Plugins
 
@@ -203,6 +205,60 @@ need to pass a new config to your client:
 ```
 
 </DeepDive>
+
+### Imperative Cache Reworked
+
+We removed all of that `setFieldType` complexity and now you can read and write data by passing
+fragments and queries to the cache:
+
+```typescript
+import { cache, graphql } from '$houdini'
+
+cache.read({
+	query: graphql(`
+		query AllUsersCache($pattern: String!) {
+			users {
+				firstName(pattern: $pattern)
+			}
+		}
+	`)
+	variables: {
+		pattern: "capitalize"
+	}
+})
+```
+
+For more information, check out the [new docs page](/api/cache)
+
+### Inline Queries No Longer Automatically Load
+
+Using `graphql` in your `.svelte` files will not cause the query to be automatically loaded. You must now
+opt into automatically loading for queries defined inside of you components using the `@load` directive.
+
+
+```diff:title=src/routes/+page.svelte
+  <script>
+      import { graphql } from '$houdini'
+
+      const UserList = graphql(`
+-         query UserList {
++         query UserList @load {
+              users {
+                  name
+              }
+          }
+      `)
+  </script>
+
+  <div>
+      {$UserList.data?.users.map(user => user.name).join(',')}
+  </div>
+```
+
+With the recent improvements we've made to our data loading patterns, `graphql` in svelte files
+has become mostly used for "lazy" stores that don't fetch automatically. On top of that, the
+new imperative cache api relies heavily on `graphql` documents which would mean a lot of accidental
+loading. At least this way everything is very explicit.
 
 ## 0.20.0
 
