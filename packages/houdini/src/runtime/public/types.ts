@@ -124,13 +124,13 @@ export type QueryValue<List, _Target> = List extends [infer Head, ...infer Rest]
 		? _Key extends _Target
 			? _Value
 			: QueryValue<Rest, _Target>
-		: 'Encountered unknown query'
-	: 'Encountered unknown query'
+		: 'Encountered unknown query.Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
+	: 'Encountered unknown query.Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
 
 export type QueryInput<List, _Target> = List extends [infer Head, ...infer Rest]
 	? Head extends [infer _Key, infer _Value, infer _Input]
 		? _Key extends _Target
 			? _Input
 			: QueryValue<Rest, _Target>
-		: 'Encountered unknown query'
-	: 'Encountered unknown query'
+		: 'Encountered unknown query.Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
+	: 'Encountered unknown query.Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'

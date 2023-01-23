@@ -64,9 +64,11 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 		})
 	}
 
-	write<_Fragment extends { artifact: FragmentArtifact }>(args: {
+	write<_Fragment extends { artifact: FragmentArtifact }, _Variable>(args: {
 		fragment: _Fragment
 		data: FragmentValue<FragmentList<Def, Type>, _Fragment>
+		// TODO: figure out a way to make this required  when _Variables has a value
+		//       and optional when _Variables is never
 		variables?: FragmentVariables<FragmentList<Def, Type>, _Fragment>
 	}) {
 		// we have the data and the fragment, just pass them both to the cache
