@@ -95,21 +95,29 @@ export type ListType<Def extends CacheTypeDef, Name extends ValidLists<Def>> = P
 	Def['lists'][Name]['types']
 >
 
-type FragmentDefinition<List, _Target> = List extends [infer Head, ...infer Rest]
-	? Head extends [infer _Key, infer _Value, infer _Input]
-		? Head
-		: FragmentValue<Rest, _Target>
-	: 'Encountered unknown fragment'
+// This same structure is repeated because when I dry'd the structure to
+//
+// type FragmentDefinition<_List, _Index, _Target>
+// type FragmentVariables<_Def, _Type, _Target> = FragmentDefinition<FragmentList<...>>
+//
+// then typescript wasn't responding on every change... Having the duplication makes
+// it very responsive.
 
-export type FragmentVariables<_List, _Target> = FragmentDefinition<_List, _Target>[2]
+export type FragmentVariables<_List, _Target> = _List extends [infer Head, ...infer Rest]
+	? Head extends [infer _Key, infer _Value, infer _Input]
+		? _Key extends _Target
+			? _Input
+			: FragmentValue<Rest, _Target>
+		: 'Encountered unknown fragment. Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
+	: 'Encountered unknown fragment. Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
 
 export type FragmentValue<List, _Target> = List extends [infer Head, ...infer Rest]
 	? Head extends [infer _Key, infer _Value, infer _Input]
 		? _Key extends _Target
 			? _Value
 			: FragmentValue<Rest, _Target>
-		: 'Encountered unknown fragment'
-	: 'Encountered unknown fragment'
+		: 'Encountered unknown fragment. Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
+	: 'Encountered unknown fragment. Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
 
 export type QueryValue<List, _Target> = List extends [infer Head, ...infer Rest]
 	? Head extends [infer _Key, infer _Value, infer _Input]
