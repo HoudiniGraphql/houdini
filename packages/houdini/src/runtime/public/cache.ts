@@ -1,5 +1,5 @@
 import type { Cache as _Cache } from '../cache/cache'
-import { marshalInputs, QueryArtifact } from '../lib'
+import { marshalInputs, type QueryArtifact } from '../lib'
 import { ListCollection } from './list'
 import { Record } from './record'
 import type {
