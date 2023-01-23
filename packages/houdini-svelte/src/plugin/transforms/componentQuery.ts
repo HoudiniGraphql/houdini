@@ -224,7 +224,7 @@ export async function find_inline_queries(
 
 	// look for inline queries
 	await find_graphql(page.config, parsed, {
-		where(tag, { parent }) {
+		where(tag) {
 			// only consider query documents
 			const definition = tag.definitions.find((defn) => defn.kind === 'OperationDefinition')
 			if (!definition) {

@@ -58,6 +58,7 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 		name: Name,
 		{ parentID, allLists }: { parentID?: string; allLists?: boolean } = {}
 	): ListCollection<Def, Name> {
+		this.validateInstabilityWarning()
 		return new ListCollection<Def, Name>({
 			cache: this,
 			name,
@@ -76,6 +77,7 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 		data: QueryValue<QueryList<Def>, _Query> | null
 		partial: boolean
 	} {
+		this.validateInstabilityWarning()
 		// @ts-expect-error
 		return this._internal_unstable.read({
 			selection: query.artifact.selection,
@@ -92,6 +94,7 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 		data: QueryValue<QueryList<Def>, _Query>
 		variables?: QueryInput<QueryList<Def>, _Query>
 	}) {
+		this.validateInstabilityWarning()
 		this._internal_unstable.write({
 			selection: query.artifact.selection,
 			// @ts-expect-error
