@@ -90,6 +90,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 			docs
 		)
 	} catch (e) {
+		console.log(e)
 		error = e as Error
 	}
 

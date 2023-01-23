@@ -5,6 +5,7 @@ import * as recast from 'recast'
 
 import type { Config, CollectedGraphQLDocument } from '../../../lib'
 import { HoudiniError, siteURL, fs, path } from '../../../lib'
+import { fragmentArgumentsDefinitions } from '../../transforms/fragmentVariables'
 import { flattenSelections } from '../../utils'
 import { addReferencedInputTypes } from './addReferencedInputTypes'
 import { fragmentKey, inlineType } from './inlineType'
@@ -345,6 +346,7 @@ async function generateFragmentTypeDefs(
 		const propTypeName = definition.name.value
 		// the name of the shape type
 		const shapeTypeName = `${definition.name.value}$data`
+		const inputTypeName = `${definition.name!.value}$input`
 
 		// look up the root type of the document
 		const type = config.schema.getType(definition.typeCondition.name.value)
@@ -352,7 +354,38 @@ async function generateFragmentTypeDefs(
 			throw new Error('Should not get here')
 		}
 
+		let extraExports: recast.types.namedTypes.ExportNamedDeclaration[] = []
+		// if we are looking at fragments, the inputs to the fragment
+		// are defined with the arguments directive
+		let directive = definition.directives?.find(
+			(directive) => directive.name.value === config.argumentsDirective
+		)
+		if (directive) {
+			extraExports.push(
+				AST.exportNamedDeclaration(
+					AST.tsTypeAliasDeclaration(
+						AST.identifier(inputTypeName),
+						AST.tsTypeLiteral(
+							(fragmentArgumentsDefinitions(config, filepath, definition) || []).map(
+								(definition: graphql.VariableDefinitionNode) => {
+									// add a property describing the variable to the root object
+									return AST.tsPropertySignature(
+										AST.identifier(definition.variable.name.value),
+										AST.tsTypeAnnotation(
+											tsTypeReference(config, missingScalars, definition)
+										),
+										definition.type.kind !== 'NonNullType'
+									)
+								}
+							)
+						)
+					)
+				)
+			)
+		}
+
 		body.push(
+			...extraExports,
 			// we need to add a type that will act as the entry point for the fragment
 			// and be assigned to the prop that holds the reference passed from
 			// the fragment's parent

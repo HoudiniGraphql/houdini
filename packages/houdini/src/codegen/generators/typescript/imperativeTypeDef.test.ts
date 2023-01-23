@@ -88,7 +88,7 @@ const config = testConfig({
 		type User implements Node {
 			id: ID!
 
-			firstName: String!
+			firstName(pattern: String): String!
 			nickname: String
 			parent: User
 			friends: [User]
@@ -132,6 +132,14 @@ test('generates type definitions for the imperative API', async function () {
 				}
 			`
 		),
+		mockCollectedDoc(
+			`fragment UserInfoWithArguments on User
+				@arguments(pattern: { type: "String" })
+				{
+					firstName(pattern: $pattern)
+				}
+			`
+		),
 	])
 
 	// open up the index file
@@ -149,6 +157,8 @@ test('generates type definitions for the imperative API', async function () {
 		import { TestQueryNoArgs$result, TestQueryNoArgs$input } from "../artifacts/TestQueryNoArgs";
 		import { TestQuery$result, TestQuery$input } from "../artifacts/TestQuery";
 		import type { MyEnum } from "$houdini/graphql/enums";
+		import { UserInfoWithArguments$input } from "../artifacts/UserInfoWithArguments";
+		import { UserInfoWithArguments$data } from "../artifacts/UserInfoWithArguments";
 		import { UserInfo$data } from "../artifacts/UserInfo";
 
 		type NestedUserFilter = {
@@ -274,7 +284,9 @@ test('generates type definitions for the imperative API', async function () {
 		                };
 		                firstName: {
 		                    type: string;
-		                    args: never;
+		                    args: {
+		                        pattern?: string | null | undefined;
+		                    };
 		                };
 		                nickname: {
 		                    type: string | null;
@@ -305,7 +317,7 @@ test('generates type definitions for the imperative API', async function () {
 		                    args: never;
 		                };
 		            };
-		            fragments: [[any, UserInfo$data]];
+		            fragments: [[any, UserInfo$data, never], [any, UserInfoWithArguments$data, UserInfoWithArguments$input]];
 		        };
 		    };
 		    lists: {

@@ -13,8 +13,8 @@ export type CacheTypeDef = {
 				}
 			}
 			// the fragments we know about are passed as a list of pairs
-			// that map the tag return type to the data shape
-			fragments: [any, any][]
+			// that map the tag return type to the data shape and input
+			fragments: [any, any, any][]
 		}
 	}
 	lists: {
@@ -95,8 +95,16 @@ export type ListType<Def extends CacheTypeDef, Name extends ValidLists<Def>> = P
 	Def['lists'][Name]['types']
 >
 
+type FragmentDefinition<List, _Target> = List extends [infer Head, ...infer Rest]
+	? Head extends [infer _Key, infer _Value, infer _Input]
+		? Head
+		: FragmentValue<Rest, _Target>
+	: 'Encountered unknown fragment'
+
+export type FragmentVariables<_List, _Target> = FragmentDefinition<_List, _Target>[2]
+
 export type FragmentValue<List, _Target> = List extends [infer Head, ...infer Rest]
-	? Head extends [infer _Key, infer _Value]
+	? Head extends [infer _Key, infer _Value, infer _Input]
 		? _Key extends _Target
 			? _Value
 			: FragmentValue<Rest, _Target>

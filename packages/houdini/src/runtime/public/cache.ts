@@ -1,5 +1,5 @@
 import type { Cache as _Cache } from '../cache/cache'
-import type { QueryArtifact } from '../lib'
+import { marshalInputs, QueryArtifact } from '../lib'
 import { ListCollection } from './list'
 import { Record } from './record'
 import type {
@@ -96,7 +96,12 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 			selection: query.artifact.selection,
 			// @ts-expect-error
 			data,
-			variables,
+			variables:
+				marshalInputs({
+					config: this.config,
+					artifact: query.artifact,
+					input: variables,
+				}) ?? {},
 		})
 
 		return

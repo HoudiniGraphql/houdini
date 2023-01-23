@@ -487,6 +487,28 @@ function fragmentListMap(
 			import: [`${definition.name.value}$data`],
 		})
 
+		let inputType: TSTypeKind = AST.tsNeverKeyword()
+		// if we are looking at fragments, the inputs to the fragment
+		// are defined with the arguments directive
+		let directive = definition.directives?.find(
+			(directive) => directive.name.value === config.argumentsDirective
+		)
+		if (directive) {
+			inputType = AST.tsTypeReference(
+				AST.identifier(
+					ensureImports({
+						config,
+						body,
+						sourceModule: path.relative(
+							config.runtimeDirectory,
+							config.artifactImportPath(doc.name)
+						),
+						import: [`${definition.name.value}$input`],
+					})[0]
+				)
+			)
+		}
+
 		return {
 			...prev,
 			[typeName]: AST.tsTupleType(
@@ -494,6 +516,7 @@ function fragmentListMap(
 					AST.tsTupleType([
 						AST.tsTypeReference(AST.identifier(tagResult)),
 						AST.tsTypeReference(AST.identifier(shapeType)),
+						inputType,
 					])
 				)
 			),
