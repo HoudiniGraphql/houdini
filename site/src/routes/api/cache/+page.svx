@@ -122,6 +122,50 @@ cache.write({
 })
 ```
 
+Your fragments can use variables to write dynamic fields to match any situation. This includes
+both queries and fragments
+
+```typescript
+import { cache } from '$houdini'
+
+// update data at the root of your api
+cache.write({
+	query: graphql(`
+		query AllUsersCache($pattern: String!) {
+			users {
+				firstName(pattern: $pattern)
+			}
+		}
+	`)
+	data: {
+		users: [
+			{ name: "Harry" },
+		]
+	},
+	variables: {
+		pattern: "capitalize"
+	}
+})
+
+
+// use fragment variables to update a specific field/argument combo:
+cache.get('User', { id: '1' }).write({
+	fragment: graphql(`
+		fragment UserInfo on User
+			@arguments(pattern: { type: "String" }) {
+				firstName(pattern: $pattern)
+			}
+	`),
+	data: {
+		firstName: 'New Name'
+	},
+	variables: {
+		pattern: "capitalize"
+	}
+})
+```
+
+
 ### Updating Relationships
 
 The fragment and query that you pass do not have to be limited to only fields
