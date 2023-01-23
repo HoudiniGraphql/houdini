@@ -80,6 +80,44 @@ const allUsers = cache.read({
 console.log('Users:', allUsers.data?.users)
 ```
 
+
+Your documents can use variables to read dynamic fields to match any situation. This includes
+both queries and fragments:
+
+```typescript
+import { cache } from '$houdini'
+
+// read data from the root of your api
+cache.read({
+	query: graphql(`
+		query AllUsersCache($pattern: String!) {
+			users {
+				firstName(pattern: $pattern)
+			}
+		}
+	`)
+	variables: {
+		pattern: "capitalize"
+	}
+})
+
+
+// use fragment variables to read a specific field/argument combo:
+cache.get('User', { id: '1' }).read({
+	fragment: graphql(`
+		fragment UserInfo on User
+			@arguments(pattern: { type: "String" }) {
+				firstName(pattern: $pattern)
+			}
+	`),
+	variables: {
+		pattern: "capitalize"
+	}
+})
+```
+
+For more information about fragment variables, head over to the [fragment api reference](/api/fragments#fragment-arguments).
+
 ## Updating Cache Values
 
 To update your cache's data, you can use the `write` method on any record:
@@ -122,7 +160,7 @@ cache.write({
 })
 ```
 
-Your fragments can use variables to write dynamic fields to match any situation. This includes
+Your documents can use variables to write dynamic fields to match any situation. This includes
 both queries and fragments
 
 ```typescript
@@ -165,6 +203,7 @@ cache.get('User', { id: '1' }).write({
 })
 ```
 
+For more information about fragment variables, head over to the [fragment api reference](/api/fragments#fragment-arguments).
 
 ### Updating Relationships
 
