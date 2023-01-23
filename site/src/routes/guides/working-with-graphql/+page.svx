@@ -199,7 +199,7 @@ import { MyAwesomeQueryStore } from '$houdini'
 
 ### Inline Documents
 
-Another option is to define your document directly inside of your source code (ie, in a `.svelte`, `.js`, or `.ts` file). To
+Another option is to add `@load` to a query thats defined inside of your source code (ie, in a `.svelte`, `.js`, or `.ts` file). To
 do that, import `graphql` from `$houdini` and pass your query:
 
 ```svelte:title=src/routes/myRoute/+page.svelte&typescriptToggle=true
@@ -207,7 +207,7 @@ do that, import `graphql` from `$houdini` and pass your query:
     import { graphql } from '$houdini'
 
     const store = graphql(`
-        query ViewerSettings {
+        query ViewerSettings @load {
             viewer {
                 isAwesome
             }
@@ -220,7 +220,7 @@ do that, import `graphql` from `$houdini` and pass your query:
 import { graphql } from '$houdini'
 
 const store = graphql(`
-	query MyAwesomeQuery {
+	query MyAwesomeQuery @load {
 		viewer {
 			isAwesome
 		}
