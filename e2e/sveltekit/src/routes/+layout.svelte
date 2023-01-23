@@ -18,7 +18,7 @@
   });
 
   const info = graphql(`
-    query LayoutSession {
+    query LayoutSession @load {
       session
     }
   `);

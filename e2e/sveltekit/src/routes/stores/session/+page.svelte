@@ -2,7 +2,7 @@
   import { graphql } from '$houdini';
 
   const Session = graphql`
-    query Session {
+    query Session @load {
       session
     }
   `;

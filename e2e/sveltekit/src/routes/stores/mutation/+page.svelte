@@ -3,7 +3,7 @@
   import { stry } from '@kitql/helper';
 
   const query: OptimisticUserQueryStore = graphql`
-    query OptimisticUserQuery {
+    query OptimisticUserQuery @load {
       user(id: "1", snapshot: "update-user-mutation") {
         name
       }

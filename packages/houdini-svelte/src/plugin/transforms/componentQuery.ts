@@ -224,7 +224,7 @@ export async function find_inline_queries(
 
 	// look for inline queries
 	await find_graphql(page.config, parsed, {
-		where(tag) {
+		where(tag, { parent }) {
 			// only consider query documents
 			const definition = tag.definitions.find((defn) => defn.kind === 'OperationDefinition')
 			if (!definition) {
@@ -235,9 +235,9 @@ export async function find_inline_queries(
 				return false
 			}
 
-			// as long as they don't have the @manual_load directive with load set to false
-			return !queryOperation.directives?.find(
-				(directive) => directive.name.value === page.config.manualLoadDirective
+			// as long as they have the @load directive
+			return !!queryOperation.directives?.find(
+				(directive) => directive.name.value === page.config.loadDirective
 			)
 		},
 		dependency: page.watch_file,

@@ -3998,9 +3998,7 @@ test('some artifact_data added to artifact specific to plugins', async function 
 	]
 
 	// the documents to test
-	const docs: CollectedGraphQLDocument[] = [
-		mockCollectedDoc(`query TestQuery @manual_load { version }`),
-	]
+	const docs: CollectedGraphQLDocument[] = [mockCollectedDoc(`query TestQuery { version }`)]
 
 	// execute the generator
 	await runPipeline(config, docs)

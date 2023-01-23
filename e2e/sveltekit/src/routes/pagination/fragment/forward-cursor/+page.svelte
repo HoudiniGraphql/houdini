@@ -2,7 +2,7 @@
   import { paginatedFragment, graphql } from '$houdini';
 
   const queryResult = graphql(`
-    query UserFragmentForwardsCursorQuery {
+    query UserFragmentForwardsCursorQuery @load {
       user(id: "1", snapshot: "pagination-fragment-forwards-cursor") {
         ...ForwardsCursorFragment
       }

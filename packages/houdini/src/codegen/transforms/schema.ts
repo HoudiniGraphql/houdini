@@ -72,9 +72,9 @@ directive @${config.argumentsDirective} on FRAGMENT_DEFINITION
 directive @${config.cacheDirective}(${config.cachePolicyArg}: CachePolicy, ${config.cachePartialArg}: Boolean) on QUERY
 
 """
-	@${config.manualLoadDirective} is used to disable automatic fetch (no load, no auto fetch in component), you will have to do it manually.
+	@${config.loadDirective} is used to disable automatic fetch (no load, no auto fetch in component), you will have to do it manually.
 """
-directive @${config.manualLoadDirective} on QUERY
+directive @${config.loadDirective} on QUERY
 
 """
 	@${config.maskEnableDirective} to enable masking on fragment (overwriting the global conf)

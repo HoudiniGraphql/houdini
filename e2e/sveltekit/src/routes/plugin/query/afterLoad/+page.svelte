@@ -5,7 +5,7 @@
   export let data: PageData;
 
   const result: PreprocessorTestQuery1Store = graphql`
-    query PreprocessorAfterLoadTestQuery {
+    query PreprocessorAfterLoadTestQuery @load {
       user(id: "1", snapshot: "preprocess-after-load-test-simple") {
         name
       }

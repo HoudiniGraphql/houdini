@@ -2,7 +2,7 @@
   import { CachePolicy, graphql, type ForwardCursorPaginationQueryStore } from '$houdini';
 
   const result: ForwardCursorPaginationQueryStore = graphql`
-    query ForwardCursorPaginationQuery {
+    query ForwardCursorPaginationQuery @load {
       usersConnection(first: 2, snapshot: "pagination-query-forwards-cursor") @paginate {
         edges {
           node {

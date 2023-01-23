@@ -5,14 +5,14 @@ export type PluginArtifactData = { isManualLoad?: boolean }
 
 export function artifactData(config: Config, doc: CollectedGraphQLDocument): PluginArtifactData {
 	// put together the type information for the filter for every list
-	let isManualLoad = false
+	let isManualLoad = true
 
 	graphql.visit(doc.document, {
 		// look for any field marked with a list
 		Directive(node, _, __, ___) {
-			// check manualLoadDirective
-			if (node.name.value === config.manualLoadDirective) {
-				isManualLoad = true
+			// check loadDirective
+			if (node.name.value === config.loadDirective) {
+				isManualLoad = false
 			}
 		},
 	})
