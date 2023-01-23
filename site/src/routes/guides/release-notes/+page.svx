@@ -232,7 +232,7 @@ For more information, check out the [new docs page](/api/cache)
 
 ### Inline Queries No Longer Automatically Load
 
-Using `graphql` in your `.svelte` files will not cause the query to be automatically loaded. You must now
+We removed `@manual_load` since using `graphql` in your `.svelte` files will not cause the query to be automatically loaded. You must now
 opt into automatically loading for queries defined inside of your components using the `@load` directive.
 This change only affects `.svelte` files.
 
