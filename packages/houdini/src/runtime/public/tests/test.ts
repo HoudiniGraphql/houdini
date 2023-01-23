@@ -60,7 +60,9 @@ type CacheTypeDef = {
 			idFields: {
 				id: string
 			}
-			fragments: [[{ artifact: FragmentArtifact }, { firstName: string }, { name: string }]]
+			fragments: [
+				[{ artifact: FragmentArtifact }, { firstName: string }, { pattern: string }]
+			]
 			fields: {
 				firstName: {
 					type: string

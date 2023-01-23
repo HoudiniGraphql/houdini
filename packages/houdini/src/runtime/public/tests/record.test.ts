@@ -189,3 +189,63 @@ test('can writeFragments', function () {
 		},
 	})
 })
+
+test('can read and write variables', function () {
+	const cache = testCache()
+
+	const artifact: FragmentArtifact = {
+		kind: ArtifactKind.Fragment,
+		name: 'string',
+		raw: 'string',
+		hash: 'string',
+		rootType: 'string',
+		selection: {
+			fields: {
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName(pattern: $pattern)',
+				},
+			},
+		},
+	}
+
+	// write a fragment to update User:2
+	cache.get('User', { id: '2' }).write({
+		fragment: {
+			artifact,
+		},
+		data: {
+			firstName: 'michael',
+		},
+		variables: {
+			pattern: 'foo',
+		},
+	})
+
+	// make sure we cached the right value for the key
+	expect(
+		cache._internal_unstable.read({
+			parent: 'User:2',
+			selection: {
+				fields: {
+					firstName: {
+						keyRaw: 'firstName(pattern: "foo")',
+						type: 'String',
+					},
+				},
+			},
+		}).data
+	).toEqual({ firstName: 'michael' })
+
+	// read from the cache with variables too
+	expect(
+		cache.get('User', { id: '2' }).read({
+			fragment: {
+				artifact,
+			},
+			variables: {
+				pattern: 'foo',
+			},
+		}).data
+	).toEqual({ firstName: 'michael' })
+})

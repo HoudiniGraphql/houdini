@@ -46,13 +46,21 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 
 	read<_Fragment extends { artifact: FragmentArtifact }>({
 		fragment,
+		variables,
 	}: {
 		fragment: _Fragment
+		variables?: FragmentVariables<FragmentList<Def, Type>, _Fragment>
 	}): { data: FragmentValue<FragmentList<Def, Type>, _Fragment> | null; partial: boolean } {
 		// @ts-expect-error
 		return this.#cache._internal_unstable.read({
 			selection: fragment.artifact.selection,
 			parent: this.#id,
+			variables:
+				marshalInputs({
+					config: this.#cache.config,
+					artifact: fragment.artifact,
+					input: variables,
+				}) ?? undefined,
 		})
 	}
 
