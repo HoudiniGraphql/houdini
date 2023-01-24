@@ -1,12 +1,12 @@
 import { test, expect, vi } from 'vitest'
 
-import type { SubscriptionSelection } from '../../lib'
-import { testCache } from './test'
+import { type SubscriptionSelection } from '../../lib'
+import { testCache, testFragment } from './test'
 
 test('list.append accepts record proxies', function () {
 	const cache = testCache()
 
-	const selection: SubscriptionSelection = {
+	const selection = {
 		fields: {
 			viewer: {
 				type: 'User',
@@ -105,7 +105,19 @@ test('list.append accepts record proxies', function () {
 
 	// create a user
 	const user = cache.get('User', { id: '4' })
-	user.set({ field: 'firstName', value: 'jacob' })
+	user.write({
+		fragment: testFragment({
+			fields: {
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+			},
+		}),
+		data: {
+			firstName: 'jacob',
+		},
+	})
 
 	cache.list('All_Pets').append(user)
 
@@ -145,7 +157,7 @@ test('list.append accepts record proxies', function () {
 test('list.prepend accepts record proxies', function () {
 	const cache = testCache()
 
-	const selection: SubscriptionSelection = {
+	const selection = {
 		fields: {
 			viewer: {
 				type: 'User',
@@ -244,7 +256,19 @@ test('list.prepend accepts record proxies', function () {
 
 	// create a user
 	const user = cache.get('User', { id: '4' })
-	user.set({ field: 'firstName', value: 'jacob' })
+	user.write({
+		fragment: testFragment({
+			fields: {
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+			},
+		}),
+		data: {
+			firstName: 'jacob',
+		},
+	})
 
 	cache.list('All_Pets').prepend(user)
 
@@ -356,7 +380,19 @@ test('list when must', function () {
 	})
 
 	const user = cache.get('User', { id: '3' })
-	user.set({ field: 'firstName', value: 'mary' })
+	user.write({
+		fragment: testFragment({
+			fields: {
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+			},
+		}),
+		data: {
+			firstName: 'mary',
+		},
+	})
 
 	// apply the when
 	cache
@@ -667,5 +703,5 @@ test('can remove record from all lists', function () {
 test('list operations fail silently if there is no matching list', function () {
 	const cache = testCache()
 	const user = cache.get('User', { id: '1' })
-	expect(() => cache.list('All_Pets').i).not.toThrow()
+	expect(() => cache.list('All_Pets')).not.toThrow()
 })

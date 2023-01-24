@@ -11,7 +11,7 @@
   export let id = '';
 
   const result = graphql(`
-    query FragmentQueryVars($id: ID!) {
+    query FragmentQueryVars($id: ID!) @load {
       user(id: $id, snapshot: "preprocess-query-variable") {
         name
       }

@@ -1,4 +1,4 @@
-import type { Fragment } from '$houdini/runtime/lib/types'
+import type { Fragment, FragmentArtifact } from '$houdini/runtime/lib/types'
 import type { Readable } from 'svelte/store'
 
 import type { FragmentStore } from './stores'
@@ -11,12 +11,14 @@ export function fragment<_Fragment extends Fragment<any>>(
 	fragment: FragmentStore<_Fragment['shape']>
 ): Readable<NonNullable<_Fragment['shape']>> & {
 	data: Readable<_Fragment>
+	artifact: FragmentArtifact
 }
 export function fragment<_Fragment extends Fragment<any>>(
 	ref: _Fragment | null,
 	fragment: FragmentStore<_Fragment['shape']>
 ): Readable<NonNullable<_Fragment['shape']> | null> & {
 	data: Readable<_Fragment | null>
+	artifact: FragmentArtifact
 }
 export function fragment<_Fragment extends Fragment<any>>(
 	ref: _Fragment | null,
@@ -32,6 +34,7 @@ export function fragment<_Fragment extends Fragment<any>>(
 
 	return {
 		...fragmentStore,
+		artifact: store.artifact,
 		data: { subscribe: fragmentStore.subscribe },
 	}
 }

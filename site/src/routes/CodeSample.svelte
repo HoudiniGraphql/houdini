@@ -6,7 +6,7 @@
   import { graphql } from '$houdini'
 
   const allItems = graphql(\`
-    query AllTodoItems {
+    query AllTodoItems @load {
       items {
         text
       }

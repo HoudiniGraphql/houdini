@@ -1,9 +1,16 @@
 import type { Cache as _Cache } from '../cache/cache'
-import { rootID } from '../cache/cache'
-import type { SchemaManager, TypeInfo } from '../cache/schema'
+import { marshalInputs, type QueryArtifact } from '../lib'
 import { ListCollection } from './list'
 import { Record } from './record'
-import type { CacheTypeDef, IDFields, TypeNames, ValidLists } from './types'
+import type {
+	CacheTypeDef,
+	IDFields,
+	QueryInput,
+	QueryList,
+	QueryValue,
+	TypeNames,
+	ValidLists,
+} from './types'
 
 export class Cache<Def extends CacheTypeDef> {
 	_internal_unstable: _Cache
@@ -20,24 +27,6 @@ export class Cache<Def extends CacheTypeDef> {
 			console.warn(`⚠️  The imperative cache API is considered unstable and will change in any minor version release
 Please acknowledge this by setting acceptImperativeInstability to true in your config file.`)
 		}
-	}
-
-	// if the user tries to assign a field type that we haven't seen before
-	// then we need to provide a way for them to give us that information
-	setFieldType(...args: Parameters<SchemaManager['setFieldType']>) {
-		this.validateInstabilityWarning()
-		this._internal_unstable._internal_unstable.schema.setFieldType(...args)
-	}
-
-	// return the root record
-	get root(): Record<Def, '__ROOT__'> {
-		this.validateInstabilityWarning()
-		return new Record({
-			cache: this,
-			type: 'Query',
-			id: rootID,
-			idFields: {},
-		})
 	}
 
 	// return the record proxy for the given type/id combo
@@ -69,6 +58,7 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 		name: Name,
 		{ parentID, allLists }: { parentID?: string; allLists?: boolean } = {}
 	): ListCollection<Def, Name> {
+		this.validateInstabilityWarning()
 		return new ListCollection<Def, Name>({
 			cache: this,
 			name,
@@ -76,28 +66,47 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 			allLists,
 		})
 	}
-}
 
-export function _typeInfo<Def extends CacheTypeDef>(
-	cache: Cache<Def>,
-	type: string,
-	field: string
-): TypeInfo {
-	if (field === '__typename') {
-		return {
-			type: 'String',
-			nullable: false,
-			link: false,
-		}
+	read<_Query extends { artifact: QueryArtifact }>({
+		query,
+		variables,
+	}: {
+		query: _Query
+		variables?: QueryInput<QueryList<Def>, _Query>
+	}): {
+		data: QueryValue<QueryList<Def>, _Query> | null
+		partial: boolean
+	} {
+		this.validateInstabilityWarning()
+		// @ts-expect-error
+		return this._internal_unstable.read({
+			selection: query.artifact.selection,
+			variables,
+		})
 	}
 
-	const info = cache._internal_unstable._internal_unstable.schema.fieldType(type, field)
+	write<_Query extends { artifact: QueryArtifact }>({
+		query,
+		variables,
+		data,
+	}: {
+		query: _Query
+		data: QueryValue<QueryList<Def>, _Query>
+		variables?: QueryInput<QueryList<Def>, _Query>
+	}) {
+		this.validateInstabilityWarning()
+		this._internal_unstable.write({
+			selection: query.artifact.selection,
+			// @ts-expect-error
+			data,
+			variables:
+				marshalInputs({
+					config: this.config,
+					artifact: query.artifact,
+					input: variables,
+				}) ?? {},
+		})
 
-	if (!info) {
-		throw new Error(
-			`Unknown field: ${field} for type ${type}. Please provide type information using setFieldType().`
-		)
+		return
 	}
-
-	return info
 }

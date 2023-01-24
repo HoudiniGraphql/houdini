@@ -12,6 +12,9 @@ export type CacheTypeDef = {
 					type: any
 				}
 			}
+			// the fragments we know about are passed as a list of pairs
+			// that map the tag return type to the data shape and input
+			fragments: [any, any, any][]
 		}
 	}
 	lists: {
@@ -20,6 +23,10 @@ export type CacheTypeDef = {
 			filters: any
 		}
 	}
+	// we need to map query tag values to their result
+	// to pass be able to pass queries to the read and write methods
+	// entries in the tuple are graphql tag, query shape, query input
+	queries: [any, any, any][]
 }
 
 export type ValidTypes<Def extends CacheTypeDef> = keyof Def['types']
@@ -40,6 +47,13 @@ export type TypeNames<Def extends CacheTypeDef> = Extract<
 	Exclude<ValidTypes<Def>, '__ROOT__'>,
 	string
 >
+
+export type FragmentList<
+	Def extends CacheTypeDef,
+	Type extends ValidTypes<Def>
+> = Def['types'][Type]['fragments']
+
+export type QueryList<Def extends CacheTypeDef> = Def['queries']
 
 export type IDFields<
 	Def extends CacheTypeDef,
@@ -80,3 +94,43 @@ export type ListType<Def extends CacheTypeDef, Name extends ValidLists<Def>> = P
 	Def,
 	Def['lists'][Name]['types']
 >
+
+// This same structure is repeated because when I dry'd the structure to
+//
+// type FragmentDefinition<_List, _Index, _Target>
+// type FragmentVariables<_Def, _Type, _Target> = FragmentDefinition<FragmentList<...>>
+//
+// then typescript wasn't responding on every change... Having the duplication makes
+// it very responsive.
+
+export type FragmentVariables<_List, _Target> = _List extends [infer Head, ...infer Rest]
+	? Head extends [infer _Key, infer _Value, infer _Input]
+		? _Key extends _Target
+			? _Input
+			: FragmentValue<Rest, _Target>
+		: 'Encountered unknown fragment. Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
+	: 'Encountered unknown fragment. Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
+
+export type FragmentValue<List, _Target> = List extends [infer Head, ...infer Rest]
+	? Head extends [infer _Key, infer _Value, infer _Input]
+		? _Key extends _Target
+			? _Value
+			: FragmentValue<Rest, _Target>
+		: 'Encountered unknown fragment. Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
+	: 'Encountered unknown fragment. Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
+
+export type QueryValue<List, _Target> = List extends [infer Head, ...infer Rest]
+	? Head extends [infer _Key, infer _Value, infer _Input]
+		? _Key extends _Target
+			? _Value
+			: QueryValue<Rest, _Target>
+		: 'Encountered unknown query.Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
+	: 'Encountered unknown query.Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
+
+export type QueryInput<List, _Target> = List extends [infer Head, ...infer Rest]
+	? Head extends [infer _Key, infer _Value, infer _Input]
+		? _Key extends _Target
+			? _Input
+			: QueryValue<Rest, _Target>
+		: 'Encountered unknown query.Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
+	: 'Encountered unknown query.Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'

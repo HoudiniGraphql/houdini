@@ -2,7 +2,7 @@
   import { graphql, type OffsetPaginationQueryStore, CachePolicy } from '$houdini';
 
   const result: OffsetPaginationQueryStore = graphql`
-    query OffsetPaginationQuery {
+    query OffsetPaginationQuery @load {
       usersList(limit: 2, snapshot: "pagination-query-offset") @paginate {
         name
       }

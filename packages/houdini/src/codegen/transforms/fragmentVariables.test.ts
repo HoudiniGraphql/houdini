@@ -18,9 +18,9 @@ test('pass argument values to generated fragments', async function () {
 		),
 		mockCollectedDoc(
 			`
-				fragment QueryFragment on Query 
+				fragment QueryFragment on Query
                 @arguments(name: {type: "String!"} ) {
-                    users(stringValue: $name) { 
+                    users(stringValue: $name) {
                         id
                     }
 				}
@@ -95,9 +95,9 @@ test("nullable arguments with no values don't show up in the query", async funct
 		),
 		mockCollectedDoc(
 			`
-				fragment QueryFragment on Query 
+				fragment QueryFragment on Query
                 @arguments(name: {type: "String"} ) {
-                    users(stringValue: $name) { 
+                    users(stringValue: $name) {
                         id
                     }
 				}
@@ -172,9 +172,9 @@ test("fragment arguments with default values don't rename the fragment", async f
 		),
 		mockCollectedDoc(
 			`
-				fragment QueryFragment on Query 
+				fragment QueryFragment on Query
                 @arguments(name: {type: "String", default: "Hello"}) {
-                    users(stringValue: $name) { 
+                    users(stringValue: $name) {
                         id
                     }
 				}
@@ -249,7 +249,7 @@ test('thread query variables to inner fragments', async function () {
 		),
 		mockCollectedDoc(
 			`
-				fragment QueryFragment on Query 
+				fragment QueryFragment on Query
                 @arguments(name: {type: "String", default: "Hello"}) {
                     ...InnerFragment @with(name: $name)
 				}
@@ -257,9 +257,9 @@ test('thread query variables to inner fragments', async function () {
 		),
 		mockCollectedDoc(
 			`
-				fragment InnerFragment on Query 
+				fragment InnerFragment on Query
                 @arguments(name: {type: "String", default: "Hello"}) {
-                    users(stringValue: $name) { 
+                    users(stringValue: $name) {
                         id
                     }
 				}
@@ -346,7 +346,7 @@ test('inner fragment with intermediate default value', async function () {
 		),
 		mockCollectedDoc(
 			`
-				fragment QueryFragment on Query 
+				fragment QueryFragment on Query
                 @arguments(name: {type: "String", default: "Hello"}) {
                     ...InnerFragment @with(name: $name)
 				}
@@ -354,9 +354,9 @@ test('inner fragment with intermediate default value', async function () {
 		),
 		mockCollectedDoc(
 			`
-				fragment InnerFragment on Query 
+				fragment InnerFragment on Query
                 @arguments(name: {type: "String", default: "Goodbye"}, age: {type: "Int", default: 2}) {
-                    users(stringValue: $name, intValue: $age) { 
+                    users(stringValue: $name, intValue: $age) {
                         id
                     }
 				}
@@ -435,7 +435,7 @@ test("default values don't overwrite unless explicitly passed", async function (
 		),
 		mockCollectedDoc(
 			`
-				fragment QueryFragment on Query 
+				fragment QueryFragment on Query
                 @arguments(name: {type: "Int", default: 10}) {
                     ...InnerFragment @with(other: $name)
 				}
@@ -443,9 +443,9 @@ test("default values don't overwrite unless explicitly passed", async function (
 		),
 		mockCollectedDoc(
 			`
-				fragment InnerFragment on Query 
+				fragment InnerFragment on Query
                 @arguments(name: {type: "String", default: "Goodbye"}, other: { type: "Int"}) {
-                    users(stringValue: $name, intValue: $other) { 
+                    users(stringValue: $name, intValue: $other) {
                         id
                     }
 				}
@@ -524,9 +524,9 @@ test('default arguments', async function () {
 		),
 		mockCollectedDoc(
 			`
-				fragment QueryFragment on Query 
+				fragment QueryFragment on Query
                 @arguments(name: {type: "String", default: "Hello"}, cool: {type: "Boolean", default: true}) {
-                    users(boolValue: $cool, stringValue: $name) { 
+                    users(boolValue: $cool, stringValue: $name) {
 						id
 					}
 				}
@@ -601,9 +601,9 @@ test('multiple with directives - no overlap', async function () {
 		),
 		mockCollectedDoc(
 			`
-				fragment QueryFragment on Query 
+				fragment QueryFragment on Query
                 @arguments(name: {type: "String", default: "Hello"}, cool: {type: "Boolean", default: true}) {
-                    users(boolValue: $cool, stringValue: $name) { 
+                    users(boolValue: $cool, stringValue: $name) {
 						id
 					}
 				}
@@ -664,5 +664,71 @@ test('multiple with directives - no overlap', async function () {
 		};
 
 		"HoudiniHash=10b3cd7304221a7e9337b66dd1b083c11cafad428fe02bc0b889f2eb5fe524ff";
+	`)
+})
+
+test('persists fragment variables in artifact', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+				fragment QueryFragment on Query
+                @arguments(name: {type: "String", default: "Hello"}, cool: {type: "Boolean", default: true}) {
+                    users(boolValue: $cool, stringValue: $name) {
+						id
+					}
+				}
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	// verify contents
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "QueryFragment",
+		    "kind": "HoudiniFragment",
+		    "hash": "1e4bddf3d9bb482ea6eb5fc83b890908b9b4eee4d81523a65d990e10af66f2dd",
+
+		    "raw": \`fragment QueryFragment on Query {
+		  users(boolValue: $cool, stringValue: $name) {
+		    id
+		  }
+		}
+		\`,
+
+		    "rootType": "Query",
+
+		    "selection": {
+		        "fields": {
+		            "users": {
+		                "type": "User",
+		                "keyRaw": "users(boolValue: $cool, stringValue: $name)",
+
+		                "selection": {
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
+		                        }
+		                    }
+		                }
+		            }
+		        }
+		    },
+
+		    "input": {
+		        "fields": {
+		            "name": "String",
+		            "cool": "Boolean"
+		        },
+
+		        "types": {}
+		    }
+		};
+
+		"HoudiniHash=6c327bb344ded7bcdfa0cb250d5139bb8e18d5618335b4e621a06576cb10a67f";
 	`)
 })

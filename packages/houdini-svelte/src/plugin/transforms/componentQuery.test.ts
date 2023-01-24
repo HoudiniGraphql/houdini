@@ -6,7 +6,7 @@ test('no variables', async function () {
 	const route = await component_test(
 		`
             const value = graphql\`
-                query TestQuery {
+                query TestQuery @load {
                     viewer {
                         id
                     }
@@ -52,7 +52,7 @@ test('with variables', async function () {
             export let prop3, prop4
 
             const result = graphql\`
-                query TestQuery($test: String!) {
+                query TestQuery($test: String!) @load {
                     users(stringValue: $test) {
                         id
                     }
@@ -116,7 +116,7 @@ test('graphql function', async function () {
             export let prop3, prop4
 
             const result = graphql(\`
-                query TestQuery($test: String!) {
+                query TestQuery($test: String!) @load {
                     users(stringValue: $test) {
                         id
                     }
@@ -166,6 +166,71 @@ test('graphql function', async function () {
 	`)
 })
 
+test("imperative cache doesn't confuse the load generator", async function () {
+	const route = await component_test(
+		`
+			import { cache } from '$houdini'
+
+			cache.read({
+				query: graphql(\`
+					query TestQuery($test: String!) {
+						users(stringValue: $test) {
+							id
+						}
+					}
+				\`)
+			})
+		`
+	)
+
+	// make sure we added the right stuff
+	expect(route).toMatchInlineSnapshot(`
+		import { TestQueryStore } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
+		import { cache } from "$houdini";
+
+		cache.read({
+		    query: new TestQueryStore()
+		});
+	`)
+})
+
+test("imperative cache inside mutation doesn't confuse anything", async function () {
+	const route = await component_test(
+		`
+			import { cache } from '$houdini'
+
+			function onClick() {
+				const query = graphql(\`
+					query TestQuery($test: String!) {
+						users(stringValue: $test) {
+							id
+						}
+					}
+				\`)
+
+				cache.read({
+					query
+				})
+			}
+		`
+	)
+
+	// make sure we added the right stuff
+	expect(route).toMatchInlineSnapshot(`
+		import { TestQueryStore } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
+		import { cache } from "$houdini";
+
+		function onClick() {
+		    $:
+		    query = new TestQueryStore();
+
+		    cache.read({
+		        query
+		    });
+		}
+	`)
+})
+
 test('missing variables', async function () {
 	vi.spyOn(console, 'error')
 
@@ -176,7 +241,7 @@ test('missing variables', async function () {
             export let prop3, prop4
 
             const result = graphql\`
-                query TestQuery($test: String!) {
+                query TestQuery($test: String!) @load {
                     users(stringValue: $test) {
                         id
                     }

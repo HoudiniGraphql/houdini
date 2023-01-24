@@ -143,6 +143,15 @@ test('pagination arguments stripped from key', async function () {
 		                }
 		            }
 		        }
+		    },
+
+		    "input": {
+		        "fields": {
+		            "first": "Int",
+		            "after": "String"
+		        },
+
+		        "types": {}
 		    }
 		};
 
@@ -209,6 +218,15 @@ test('offset based pagination marks appropriate field', async function () {
 		                }
 		            }
 		        }
+		    },
+
+		    "input": {
+		        "fields": {
+		            "limit": "Int",
+		            "offset": "Int"
+		        },
+
+		        "types": {}
 		    }
 		};
 
@@ -713,6 +731,15 @@ test("sibling aliases don't get marked", async function () {
 		                }
 		            }
 		        }
+		    },
+
+		    "input": {
+		        "fields": {
+		            "first": "Int",
+		            "after": "String"
+		        },
+
+		        "types": {}
 		    }
 		};
 
