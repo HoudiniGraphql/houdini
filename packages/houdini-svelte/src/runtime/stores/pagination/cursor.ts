@@ -173,12 +173,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 
 			// if the input is different than the query variables then we just do everything like normal
 			if (variables && !deepEquals(getState().variables, variables)) {
-				return await parentFetch({
-					...params,
-					then(data) {
-						pageInfo.set(extractPageInfo(data, artifact.refetch!.path))
-					},
-				})
+				return await parentFetch(params)
 			}
 
 			// we are updating the current set of items, count the number of items that currently exist

@@ -15,8 +15,7 @@ import type { CursorHandlers } from './cursor'
 import { cursorHandlers } from './cursor'
 import type { OffsetHandlers } from './offset'
 import { offsetHandlers } from './offset'
-import type { PageInfo } from './pageInfo'
-import { nullPageInfo } from './pageInfo'
+import { extractPageInfo, PageInfo } from './pageInfo'
 
 export type CursorStoreResult<_Data extends GraphQLObject, _Input extends {}> = QueryResult<
 	_Data,
@@ -82,14 +81,14 @@ export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> ex
 		run: Subscriber<CursorStoreResult<_Data, _Input>>,
 		invalidate?: ((value?: CursorStoreResult<_Data, _Input> | undefined) => void) | undefined
 	): () => void {
-		const combined = derived(
-			[{ subscribe: super.subscribe.bind(this) }, this.#handlers.pageInfo],
-			([$parent, $pageInfo]) => ({
+		const combined = derived([{ subscribe: super.subscribe.bind(this) }], ([$parent]) => {
+			console.log($parent.data, extractPageInfo($parent.data, this.artifact.refetch!.path))
+			return {
 				// @ts-ignore
 				...$parent,
-				pageInfo: $pageInfo,
-			})
-		)
+				pageInfo: extractPageInfo($parent.data, this.artifact.refetch!.path),
+			}
+		})
 
 		return combined.subscribe(run, invalidate)
 	}

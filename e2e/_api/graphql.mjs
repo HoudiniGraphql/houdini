@@ -2,8 +2,9 @@ import { GraphQLYogaError } from '@graphql-yoga/node'
 import { sleep } from '@kitql/helper'
 import fs from 'fs-extra'
 import { GraphQLScalarType, Kind } from 'graphql'
-import { connectionFromArray } from 'graphql-relay'
 import path from 'path'
+
+import { connectionFromArray } from './util.mjs'
 
 const sourceFiles = ['../_api/schema.graphql', '../_api/schema-hello.graphql']
 export const typeDefs = sourceFiles.map((filepath) =>
@@ -116,7 +117,11 @@ export const resolvers = {
 			throw new GraphQLYogaError('No authorization found', { code: 403 })
 		},
 		usersConnection(_, args) {
-			console.log(args)
+			console.log(
+				args,
+				getSnapshot(args.snapshot),
+				JSON.stringify(connectionFromArray(getSnapshot(args.snapshot), args), null, 4)
+			)
 			return connectionFromArray(getSnapshot(args.snapshot), args)
 		},
 		user: async (_, args) => {

@@ -16,7 +16,7 @@ import type { StoreConfig } from '../query'
 import type { CursorHandlers } from './cursor'
 import { cursorHandlers } from './cursor'
 import { offsetHandlers } from './offset'
-import type { PageInfo } from './pageInfo'
+import { extractPageInfo, PageInfo } from './pageInfo'
 
 type FragmentStoreConfig<_Data extends GraphQLObject, _Input> = StoreConfig<
 	_Data,
@@ -92,11 +92,14 @@ export class FragmentStoreCursor<
 				| undefined
 		): (() => void) => {
 			const combined = derived(
-				[store, handlers.pageInfo],
-				([$parent, $pageInfo]) =>
+				[store],
+				([$parent]) =>
 					({
 						...$parent,
-						pageInfo: $pageInfo,
+						pageInfo: extractPageInfo(
+							$parent.data,
+							this.paginationArtifact.refetch!.path
+						),
 					} as FragmentPaginatedResult<_Data, { pageInfo: PageInfo }>)
 			)
 
