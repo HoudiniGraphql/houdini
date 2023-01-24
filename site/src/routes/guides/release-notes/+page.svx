@@ -161,7 +161,7 @@ the [client plugin documentation](/api/client) for more information.
 
 ### Error handling
 
-`config.quietQueryErrors` has been removed from `houdini-svelte`'s configuration and into
+`config.quietQueryErrors` has moved out of `houdini-svelte`'s configuration and into
 the constructor for your client. Also, the relationship has been inverted: instead of
 specifying if you want your queries to be quiet, you now tell the client when it should
 throw.
@@ -214,13 +214,13 @@ config values into a single `watchSchema` object:
 
 ```diff
   export default {
--     apiUrl: "http://my.awesome.app.com,
+-     apiUrl: "http://my.awesome.app.com",
 -     schemaPollInterval: 6000,
 -     schemaPollHeaders: {
 -         Authorization: (env) => `Bearer ${env.TOKEN}`,
 -     },
 +     watchSchema {
-+         url: "http://my.awesome.app.com,
++         url: "http://my.awesome.app.com",
 +         interval: 6000,
 +         headers: {
 +             Authorization: (env) => `Bearer ${env.TOKEN}`,
