@@ -206,6 +206,29 @@ need to pass a new config to your client:
 
 </DeepDive>
 
+### Grouped `apiUrl`, `schemaPollHeaders`, and `schemaPollInterval` together
+
+In order to clarify the difference between the `apiUrl` config value and the
+value passed to `HoudiniClient`, we moved all of the schema polling related
+config values into a single `watchSchema` object:
+
+```diff
+  export default {
+-     apiUrl: "http://my.awesome.app.com,
+-     schemaPollInterval: 6000,
+-     schemaPollHeaders: {
+-         Authorization: (env) => `Bearer ${env.TOKEN}`,
+-     },
++     watchSchema {
++         url: "http://my.awesome.app.com,
++         interval: 6000,
++         headers: {
++             Authorization: (env) => `Bearer ${env.TOKEN}`,
++         }
++     },
+}
+```
+
 ### Imperative Cache Reworked
 
 We removed all of that `setFieldType` complexity and now you can read and write data by passing

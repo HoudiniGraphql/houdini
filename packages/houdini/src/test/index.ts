@@ -226,7 +226,6 @@ export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {})
 				},
 			},
 		},
-		framework: 'kit',
 		types: {
 			Ghost: {
 				keys: ['name', 'aka'],
