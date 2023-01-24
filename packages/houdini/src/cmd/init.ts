@@ -285,7 +285,9 @@ const writeConfigFile = async ({
 
 	// if we have no url, we are using a local schema
 	if (url !== null) {
-		config.apiUrl = url
+		config.watchSchema = {
+			url,
+		}
 	}
 
 	// if it's different for defaults, write it down
@@ -563,7 +565,7 @@ async function detectTools(cwd: string): Promise<DetectedTools> {
 
 	const hasDependency = (dep: string) => Boolean(devDependencies?.[dep] || dependencies?.[dep])
 
-	let framework: ConfigFile['framework'] = 'svelte'
+	let framework: 'svelte' | 'kit' = 'svelte'
 	if (hasDependency('@sveltejs/kit')) {
 		framework = 'kit'
 	}
