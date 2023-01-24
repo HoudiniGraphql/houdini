@@ -9,11 +9,19 @@ All configuration for your houdini application is defined in a single file that 
 
 ```javascript:title=houdini.config.js
 export default {
-	apiUrl: 'http://localhost:4000/graphql',
-	schemaPollHeaders: {
-		Authentication(env) {
-			return `Bearer ${env.AUTH_TOKEN}`
-		}
+	watchSchema: {
+		url: 'http://localhost:4000/graphql',
+	},
+	scalars: {
+        DateTime: {
+            type: 'Date',
+            unmarshal(val) {
+                return new Date(val)
+            },
+            marshal(date) {
+                return date.getTime()
+            }
+        }
 	}
 }
 ```
@@ -25,7 +33,7 @@ By default, your config file can contain the following values:
 - `include` (optional, default: `"src/**/*.{svelte,graphql,gql,ts,js}"`): a pattern (or list of patterns) to identify source code files.
 - `exclude` (optional): a pattern (or list of patterns) that filters out files that match the include pattern
 - `schemaPath` (optional, default: `"./schema.graphql"`): the path to the static representation of your schema, can be a glob pointing to multiple files
-- `apiUrl` (optional, a string or function): Configures the url to use to pull the schema. If you don't pass an `apiUrl`, the kit plugin will not poll for schema changes. If you want to access an environment variable, you can either prefix your string with `env:` or set it to a function that takes the current environment and returns a string. For more information see the [section below](#environment-variables).
+- `watchSchema` (optional, an object): configure the development server to poll a remote url for changes in the schema. When a change is detected, the dev serer will automatically regenerate your runtime. For more information see [Watching a Remote Schema](#watching-a-remote-schema).
 - `module` (optional, default: `"esm"`): One of `"esm"` or `"commonjs"`. Used to tell the artifact generator what kind of modules to create. (default: `esm`)
 - `definitionsPath` (optional, default: `"$houdini/graphql"`): a path that the generator will use to write `schema.graphql` and `documents.gql` files containing all of the internal fragment and directive definitions used in the project.
 - `scalars` (optional): An object describing custom scalars for your project (see below).
@@ -36,8 +44,6 @@ By default, your config file can contain the following values:
 - `types` (optional): an object that customizes the resolution behavior for a specific type. For more information see the [Caching Guide](/guides/caching-data#custom-ids).
 - `logLevel` (optional, default: `"summary"`): Specifies the style of logging houdini will use when generating your file. One of "quiet", "full", "summary", or "short-summary".
 - `defaultFragmentMasking` (optional, default: `enable`): `"enable"` to mask fragment and use collocated data requirement as best or `"disable"` to access fragment data directly in operation. Can be overridden individually at fragment level.
-- `schemaPollHeaders` (optional): An object specifying the headers to use when pulling your schema. Keys of the object are header names and its values can be either a strings or a function that takes the current `process.env` and returns the the value to use. If you want to access an environment variable, prefix your string with `env:`, ie `env:API_KEY`. For more information see the [section below](#environment-variables).
-- `schemaPollInterval` (optional, default: `2000`): Configures the schema polling behavior for the kit plugin. If its value is greater than `0`, the plugin will poll the set number of milliseconds. If set to `0`, the plugin will only pull the schema when you first run `dev`. If you set to `null`, the plugin will never look for schema changes. You can see use the [pull-schema command](/api/cli#pull-schema) to get updates.
 - `defaultListTarget` (optional): Can be set to `all` for all list operations to ignore parent ID and affect all lists with the name.
 - `defaultListPosition` (optional, default: "first"): One of `"first"` or `"last"` to indicate the default location for list operations.
 - `plugins` (optional): An object containing the set of plugins you want to add to your houdini application. The keys are plugin names, the values are plugin-specific configuration. The actual plugin API is undocumented and considered unstable while we try out various things internally. For an overview of your framework plugin's specific configuration, see below.
@@ -89,16 +95,43 @@ export default {
 }
 ```
 
-## Environment Variables
+## Schema Polling
 
-There are a few different options for using environment variables in your `apiUrl` and `schemaPollHeaders`
+You can configure your development server to poll a remote URL for changes in your schema using the `watchSchema`
+argument:
+
+```typescript
+export default {
+	watchSchema: {
+		url: 'http://localhost:4000/graphql',
+		headers: {
+			Authentication(env) {
+				return `Bearer ${env.AUTH_TOKEN}`
+			}
+		}
+	}
+}
+```
+
+You can pass the following parameters to `watchSchema`:
+
+- `url` (a string or function): Configures the url to use to pull the schema. If you don't pass an `apiUrl`, the kit plugin will not poll for schema changes. If you want to access an environment variable, you can either prefix your string with `env:` or set it to a function that takes the current environment and returns a string. For more information see the [section below](#environment-variables).
+- `schemaPollHeaders` (optional): An object specifying the headers to use when pulling your schema. Keys of the object are header names and its values can be either a strings or a function that takes the current `process.env` and returns the the value to use. If you want to access an environment variable, prefix your string with `env:`, ie `env:API_KEY`. For more information see the [section below](#environment-variables).
+- `schemaPollInterval` (optional, default: `2000`): Configures the schema polling behavior for the kit plugin. If its value is greater than `0`, the plugin will poll the set number of milliseconds. If set to `0`, the plugin will only pull the schema when you first run `dev`. If you set to `null`, the plugin will never look for schema changes. You can see use the [pull-schema command](/api/cli#pull-schema) to get updates.
+
+### Environment Variables
+
+There are a few different options for using environment variables in your `url` and `headers`
 config values. Keep in mind that Houdini will look for `.env` and `.env.local` files for environment variables.
 For simple cases, you can just prepend `env:` to the value:
 
 ```javascript
 export default {
-	schemaPollHeaders: {
-		Authentication: 'env:AUTH_TOKEN'
+	watchSchema: {
+		url: '...',
+		headers: {
+			Authentication: 'env:AUTH_TOKEN'
+		}
 	}
 }
 ```
@@ -109,9 +142,12 @@ environment variables:
 
 ```javascript
 export default {
-	schemaPollHeaders: {
-		Authentication: function (env) {
-			return `Bearer ${env.AUTH_TOKEN}`
+	watchSchema: {
+		url: '...',
+		headers: {
+			Authentication(env) {
+				return `Bearer ${env.AUTH_TOKEN}`
+			}
 		}
 	}
 }

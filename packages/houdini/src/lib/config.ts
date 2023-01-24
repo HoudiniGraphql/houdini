@@ -152,7 +152,7 @@ export class Config {
 	}
 
 	async apiURL() {
-		const apiURL = this.configFile.watchSchema?.apiUrl
+		const apiURL = this.configFile.watchSchema?.url
 		if (!apiURL) {
 			return ''
 		}

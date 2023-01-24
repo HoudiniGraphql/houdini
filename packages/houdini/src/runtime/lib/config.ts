@@ -183,16 +183,16 @@ export type TypeConfig = {
 
 export type WatchSchemaConfig = {
 	/**
+	 * A url to use to pull the schema. For more information: https://www.houdinigraphql.com/api/cli#generate
+	 */
+	url: string | ((env: Record<string, string | undefined>) => string)
+
+	/**
 	 * sets the amount of time between each request in milliseconds (default 2 seconds).
 	 * To limit the schema introspection to just on the start of the server, set interval to 0.
 	 * To disable the schema introspection, set interval to null.
 	 */
 	interval?: number | null
-
-	/**
-	 * A url to use to pull the schema. For more information: https://www.houdinigraphql.com/api/cli#generate
-	 */
-	apiUrl?: string | ((env: Record<string, string | undefined>) => string)
 
 	/**
 	 * An object containing the environment variables you want passed onto the api when polling for a new schema.
