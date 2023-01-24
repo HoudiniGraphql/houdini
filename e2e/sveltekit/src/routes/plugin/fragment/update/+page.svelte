@@ -7,7 +7,7 @@
   } from '$houdini';
 
   const userInfo: FragmentUpdateTestQueryStore = graphql`
-    query FragmentUpdateTestQuery($id: ID!) {
+    query FragmentUpdateTestQuery($id: ID!) @load {
       node(id: $id) {
         ... on User {
           ...UserFragmentTestFragment

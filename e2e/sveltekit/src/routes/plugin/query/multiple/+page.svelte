@@ -6,7 +6,7 @@
   } from '$houdini';
 
   const result1: PreprocessorTestQuery3Store = graphql`
-    query PreprocessorTestQuery3 {
+    query PreprocessorTestQuery3 @load {
       user(id: "1", snapshot: "preprocess-query-multiple") {
         name
       }
@@ -14,7 +14,7 @@
   `;
 
   const result2: PreprocessorTestQuery4Store = graphql`
-    query PreprocessorTestQuery4 {
+    query PreprocessorTestQuery4 @load {
       user(id: "2", snapshot: "preprocess-query-multiple") {
         name
       }

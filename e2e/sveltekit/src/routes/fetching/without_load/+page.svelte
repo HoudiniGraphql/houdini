@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { graphql } from '$houdini';
+  import { fetching_woStore, graphql } from '$houdini';
 
-  const store = graphql`
-    query fetching_wo @manual_load {
+  const store = graphql<fetching_woStore>`
+    query fetching_wo {
       user(id: 1, snapshot: "fetching_wo", delay: 200) {
         id
         name

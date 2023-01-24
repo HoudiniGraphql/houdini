@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { graphql } from '$houdini';
+  import { graphql, type SessionStore } from '$houdini';
 
-  const Session = graphql`
-    query Session {
+  const Session = graphql<SessionStore>`
+    query Session @load {
       session
     }
   `;

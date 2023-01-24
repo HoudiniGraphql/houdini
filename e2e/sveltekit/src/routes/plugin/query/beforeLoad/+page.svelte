@@ -5,7 +5,7 @@
   import { graphql, type PreprocessorTestQuery1Store } from '$houdini';
 
   const result: PreprocessorTestQuery1Store = graphql`
-    query PreprocessorBeforeLoadTestQuery {
+    query PreprocessorBeforeLoadTestQuery @load {
       user(id: "1", snapshot: "preprocess-before-load-test-simple") {
         name
       }

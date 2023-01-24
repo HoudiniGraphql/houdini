@@ -2,7 +2,7 @@
   import { graphql, type PreprocessorTestQuery1Store } from '$houdini';
 
   const result: PreprocessorTestQuery1Store = graphql`
-    query PreprocessorTestQuery1 {
+    query PreprocessorTestQuery1 @load {
       user(id: "1", snapshot: "preprocess-query-simple") {
         name
       }
