@@ -4,7 +4,6 @@
 /** @type {import('houdini').ConfigFile} */
 const config = {
   schemaPath: '../_api/*.graphql',
-  defaultCachePolicy: 'CacheOrNetwork',
   defaultPartial: true,
   scalars: {
     DateTime: {
