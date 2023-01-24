@@ -68,10 +68,14 @@ export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> ex
 		return this.#handlers!.fetch.call(this, args)
 	}
 
-	extraFields(): { pageInfo: PageInfo } {
-		return {
-			pageInfo: nullPageInfo(),
-		}
+	async loadPreviousPage(
+		args?: Parameters<Required<CursorHandlers<_Data, _Input>>['loadPreviousPage']>[0]
+	) {
+		return this.#handlers.loadPreviousPage(args)
+	}
+
+	async loadNextPage(args?: Parameters<CursorHandlers<_Data, _Input>['loadNextPage']>[0]) {
+		return this.#handlers.loadNextPage(args)
 	}
 
 	subscribe(
