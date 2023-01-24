@@ -1,5 +1,7 @@
 # houdini-plugin-svelte-global-stores
 
+## 1.0.0-next.3
+
 ## 1.0.0-next.2
 
 ## 0.20.3

@@ -1,5 +1,16 @@
 # houdini-svelte
 
+## 1.0.0-next.3
+
+### ⚠️ Breaking Changes
+
+-   [#841](https://github.com/HoudiniGraphql/houdini/pull/841) [`55e750c`](https://github.com/HoudiniGraphql/houdini/commit/55e750c8c90121ba021c597fa9c66364bc2dca8d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Removed `@manual_load` since queries defined inline in a component are no longer automatically loaded. In order to opt into generated loads for your inline queries, use the `@load` directive
+
+### Dependency Changes
+
+-   Updated dependencies [[`d468143`](https://github.com/HoudiniGraphql/houdini/commit/d46814386d6ab8609aad01a10aeb028e6a829ecb), [`55e750c`](https://github.com/HoudiniGraphql/houdini/commit/55e750c8c90121ba021c597fa9c66364bc2dca8d)]:
+    -   houdini@1.0.0-next.3
+
 ## 1.0.0-next.2
 
 ### ⚠️ Breaking Changes

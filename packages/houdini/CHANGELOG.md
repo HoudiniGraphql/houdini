@@ -1,5 +1,13 @@
 # houdini
 
+## 1.0.0-next.3
+
+### ⚠️ Breaking Changes
+
+-   [#842](https://github.com/HoudiniGraphql/houdini/pull/842) [`d468143`](https://github.com/HoudiniGraphql/houdini/commit/d46814386d6ab8609aad01a10aeb028e6a829ecb) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Grouped `apiUrl`, `schemaPollHeaders`, and `schemaPollInterval` together
+
+-   [#841](https://github.com/HoudiniGraphql/houdini/pull/841) [`55e750c`](https://github.com/HoudiniGraphql/houdini/commit/55e750c8c90121ba021c597fa9c66364bc2dca8d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Restructure programmatic cache api
+
 ## 1.0.0-next.2
 
 ### ⚠️ Breaking Changes

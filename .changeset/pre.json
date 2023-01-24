@@ -15,6 +15,9 @@
   },
   "changesets": [
     "beige-cheetahs-provide",
-    "clean-rules-itch"
+    "breezy-mirrors-provide",
+    "clean-rules-itch",
+    "shaggy-clocks-retire",
+    "swift-buttons-nail"
   ]
 }
