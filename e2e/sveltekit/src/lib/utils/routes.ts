@@ -63,6 +63,7 @@ export const routes = {
 
   Pagination_query_forward_cursor: '/pagination/query/forward-cursor',
   Pagination_query_backwards_cursor: '/pagination/query/backwards-cursor',
+  Pagination_query_bidirectional_cursor: '/pagination/query/bidirectional-cursor',
   Pagination_query_offset: '/pagination/query/offset',
   Pagination_query_offset_variable: '/pagination/query/offset-variable',
 
