@@ -2,7 +2,7 @@
   import { paginatedFragment, graphql } from '$houdini';
 
   const queryResult = graphql(`
-    query UserFragmentOffsetQuery {
+    query UserFragmentOffsetQuery @load {
       user(id: "1", snapshot: "pagination-fragment-offset") {
         ...OffsetFragment
       }

@@ -28,7 +28,7 @@ export type EmbeddedGraphqlDocument = {
 }
 
 type GraphqlTagWalker = {
-	where?: (tag: graphql.DocumentNode) => boolean
+	where?: (tag: graphql.DocumentNode, ast: { node: BaseNode; parent: BaseNode }) => boolean
 	dependency?: (fp: string) => void
 	tag: (tag: EmbeddedGraphqlDocument) => void | Promise<void>
 }
@@ -91,7 +91,7 @@ export async function find_graphql(
 			const parsedTag = graphql.parse(documentString)
 
 			// if there is a predicate and the graphql tag does not satisfy it
-			if (walker.where && !walker.where(parsedTag)) {
+			if (walker.where && !walker.where(parsedTag, { node, parent })) {
 				// ignore the tag
 				return
 			}

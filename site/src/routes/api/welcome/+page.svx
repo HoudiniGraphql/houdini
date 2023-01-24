@@ -60,17 +60,17 @@ const subscriptionExample = `graphql(\`
 \`)`
 
 const cacheExample = `
-    const user = cache.get("User", { 
-        id: 3 
+    const user = cache.get("User", {
+        id: 3
     })
 
-    user.writeFragment({
+    user.write({
         fragment: graphql(\`
-            fragment Update on User { 
+            fragment Update on User {
                 firstName
             }
-        \`), 
-        data: { 
+        \`),
+        data: {
             firstName: "Harry"
         }
     })

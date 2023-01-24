@@ -359,14 +359,14 @@ export const _UserInfoVariables: UserInfoVariables = ({ params }) => {
 
 ### Inline Queries
 
-Another way to get a generated load for your route queries, is to define your query inside of your `+page.svelte`:
+Another way to get a generated load for your route queries, is to add `@load` to a query inside of your `+page.svelte`:
 
 ```svelte:title=src/lib/UserList.svelte&typescriptToggle=true
 <script lang="ts">
     import { graphql } from '$houdini'
 
     const info = graphql(`
-        query UserInfo {
+        query UserInfo @load {
             viewer {
                 firstName
             }

@@ -88,7 +88,7 @@ const config = testConfig({
 		type User implements Node {
 			id: ID!
 
-			firstName: String!
+			firstName(pattern: String): String!
 			nickname: String
 			parent: User
 			friends: [User]
@@ -119,10 +119,24 @@ test('generates type definitions for the imperative API', async function () {
 		mockCollectedDoc(
 			`query TestQueryNoArgs {
 					entities @list(name: "NoArgs") {
-						... on User { 
+						... on User {
 							firstName
 						}
 					}
+				}
+			`
+		),
+		mockCollectedDoc(
+			`fragment UserInfo on User {
+					firstName
+				}
+			`
+		),
+		mockCollectedDoc(
+			`fragment UserInfoWithArguments on User
+				@arguments(pattern: { type: "String" })
+				{
+					firstName(pattern: $pattern)
 				}
 			`
 		),
@@ -140,7 +154,12 @@ test('generates type definitions for the imperative API', async function () {
 	expect(parsedQuery).toMatchInlineSnapshot(
 		`
 		import type { Record } from "./public/record";
+		import { TestQueryNoArgs$result, TestQueryNoArgs$input } from "../artifacts/TestQueryNoArgs";
+		import { TestQuery$result, TestQuery$input } from "../artifacts/TestQuery";
 		import type { MyEnum } from "$houdini/graphql/enums";
+		import { UserInfoWithArguments$input } from "../artifacts/UserInfoWithArguments";
+		import { UserInfoWithArguments$data } from "../artifacts/UserInfoWithArguments";
+		import { UserInfo$data } from "../artifacts/UserInfo";
 
 		type NestedUserFilter = {
 		    id: string;
@@ -207,6 +226,7 @@ test('generates type definitions for the imperative API', async function () {
 		                    };
 		                };
 		            };
+		            fragments: [];
 		        };
 		        Cat: {
 		            idFields: {
@@ -230,6 +250,7 @@ test('generates type definitions for the imperative API', async function () {
 		                    args: never;
 		                };
 		            };
+		            fragments: [];
 		        };
 		        Ghost: {
 		            idFields: {
@@ -250,6 +271,7 @@ test('generates type definitions for the imperative API', async function () {
 		                    args: never;
 		                };
 		            };
+		            fragments: [];
 		        };
 		        User: {
 		            idFields: {
@@ -262,7 +284,9 @@ test('generates type definitions for the imperative API', async function () {
 		                };
 		                firstName: {
 		                    type: string;
-		                    args: never;
+		                    args: {
+		                        pattern?: string | null | undefined;
+		                    };
 		                };
 		                nickname: {
 		                    type: string | null;
@@ -293,6 +317,7 @@ test('generates type definitions for the imperative API', async function () {
 		                    args: never;
 		                };
 		            };
+		            fragments: [[any, UserInfo$data, never], [any, UserInfoWithArguments$data, UserInfoWithArguments$input]];
 		        };
 		    };
 		    lists: {
@@ -313,6 +338,7 @@ test('generates type definitions for the imperative API', async function () {
 		            filters: never;
 		        };
 		    };
+		    queries: [[any, TestQuery$result, TestQuery$input], [any, TestQueryNoArgs$result, TestQueryNoArgs$input]];
 		};
 	`
 	)

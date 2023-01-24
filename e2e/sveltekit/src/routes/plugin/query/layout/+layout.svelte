@@ -3,7 +3,7 @@
   import type { LayoutTestQueryStore } from '$houdini';
 
   const result: LayoutTestQueryStore = graphql`
-    query LayoutTestQuery {
+    query LayoutTestQuery @load {
       user(id: "1", snapshot: "preprocess-query-simple") {
         name
       }

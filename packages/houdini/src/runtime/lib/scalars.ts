@@ -2,6 +2,7 @@ import { getCurrentConfig } from './config'
 import type { ConfigFile } from './config'
 import { getFieldsForType } from './selection'
 import type {
+	FragmentArtifact,
 	MutationArtifact,
 	QueryArtifact,
 	SubscriptionArtifact,
@@ -74,7 +75,7 @@ export function marshalInputs<T>({
 	config,
 	rootType = '@root',
 }: {
-	artifact: QueryArtifact | MutationArtifact | SubscriptionArtifact
+	artifact: QueryArtifact | MutationArtifact | SubscriptionArtifact | FragmentArtifact
 	input: unknown
 	rootType?: string
 	config: ConfigFile
