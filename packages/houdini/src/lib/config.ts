@@ -96,8 +96,7 @@ export class Config {
 			types = {},
 			logLevel,
 			defaultFragmentMasking = 'enable',
-			schemaPollInterval = 2000,
-			schemaPollHeaders = {},
+			watchSchema,
 			projectDir,
 		} = this.configFile
 
@@ -136,8 +135,8 @@ export class Config {
 		this.logLevel = ((logLevel as LogLevel) || LogLevel.Summary).toLowerCase() as LogLevel
 		this.defaultFragmentMasking = defaultFragmentMasking
 		this.routesDir = path.join(this.projectRoot, 'src', 'routes')
-		this.schemaPollInterval = schemaPollInterval
-		this.schemaPollHeaders = schemaPollHeaders
+		this.schemaPollInterval = watchSchema?.interval ?? 2000
+		this.schemaPollHeaders = watchSchema?.headers ?? {}
 		this.rootDir = path.join(this.projectRoot, '$houdini')
 
 		// hold onto the key config
@@ -153,12 +152,13 @@ export class Config {
 	}
 
 	async apiURL() {
-		if (!this.configFile.apiUrl) {
+		const apiURL = this.configFile.watchSchema?.url
+		if (!apiURL) {
 			return ''
 		}
 
 		const env = await this.getEnv()
-		return this.processEnvValues(env, this.configFile.apiUrl)
+		return this.processEnvValues(env, apiURL)
 	}
 
 	get include() {

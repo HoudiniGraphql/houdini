@@ -1,6 +1,8 @@
 /** @type {import('houdini').ConfigFile} */
 const config = {
-	apiUrl: 'http://localhost:4000/graphql',
+	watchSchema: {
+		url: 'http://localhost:4000/graphql',
+	},
 	scalars: {
 		DateTime: {
 			type: 'Date',
@@ -13,9 +15,7 @@ const config = {
 		},
 	},
 	plugins: {
-		'houdini-svelte': {
-			client: './src/client.ts',
-		},
+		'houdini-svelte': {},
 	},
 }
 
