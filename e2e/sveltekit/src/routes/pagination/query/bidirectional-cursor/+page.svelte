@@ -4,9 +4,9 @@
   const result = graphql(`
     query BidirectionalCursorPaginationQuery @load {
       usersConnection(
-        after: "YXJyYXljb25uZWN0aW9uOjE"
+        after: "YXJyYXljb25uZWN0aW9uOjE="
         first: 2
-        snapshot: "pagination-query-forwards-cursor"
+        snapshot: "pagination-query-bdiriectional-cursor"
       ) @paginate {
         edges {
           node {
