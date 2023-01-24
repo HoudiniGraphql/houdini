@@ -8,7 +8,7 @@ describe('kit route processor', function () {
 			component: `
 				<script>
 					const store = graphql(\`
-						query TestQuery {
+						query TestQuery @load {
 							viewer {
 								oid
 							}
@@ -65,7 +65,7 @@ describe('kit route processor', function () {
 			component: `
 				<script>
 					const result = graphql\`
-						query TestQuery {
+						query TestQuery @load {
 							viewer {
 								id
 							}
@@ -122,7 +122,7 @@ describe('kit route processor', function () {
 			component: `
 				<script>
 					const result = graphql\`
-						query TestQuery @manual_load {
+						query TestQuery {
 							viewer {
 								id
 							}
@@ -152,7 +152,7 @@ describe('kit route processor', function () {
 			component: `
 					<script>
 						const result = graphql\`
-							query TestQuery1 {
+							query TestQuery1 @load {
 								viewer {
 									id
 								}
@@ -174,14 +174,14 @@ describe('kit route processor', function () {
 			component: `
 				<script>
 					const data1 = graphql\`
-						query TestQuery1 {
+						query TestQuery1 @load {
 							viewer {
 								id
 							}
 						}
 					\`
 					const data2 = graphql\`
-						query TestQuery2 {
+						query TestQuery2 @load {
 							viewer {
 								id
 							}
@@ -258,7 +258,7 @@ describe('kit route processor', function () {
 			component: `
 					<script>
 						const data1 = graphql\`
-							query TestQuery($test: Boolean!) {
+							query TestQuery($test: Boolean!) @load {
 								viewer {
 									id
 								}
@@ -328,7 +328,7 @@ describe('kit route processor', function () {
 			component: `
 					<script>
 						const test = graphql\`
-							query TestQuery {
+							query TestQuery @load {
 								viewer {
 									id
 								}
@@ -370,7 +370,7 @@ describe('kit route processor', function () {
 		`
 
 		const MyQuery2 = `
-			query MyQuery2($input: Int) {
+			query MyQuery2($input: Int) @load {
 				field(input: $input)
 			}
 		`
@@ -379,7 +379,7 @@ describe('kit route processor', function () {
 			component: `
 				<script>
 					const result = graphql\`
-						query TestQuery {
+						query TestQuery @load {
 							viewer {
 								id
 							}
@@ -638,7 +638,7 @@ test('beforeLoad hook', async function () {
 		component: `
 				<script>
 					const result = graphql\`
-						query TestQuery($test: Boolean!) {
+						query TestQuery($test: Boolean!) @load {
 							viewer {
 								id
 							}
@@ -728,14 +728,14 @@ test('beforeLoad hook - multiple queries', async function () {
 		component: `
 				<script>
 					const { data: data1 } = graphql\`
-						query TestQuery1 {
+						query TestQuery1 @load {
 							viewer {
 								id
 							}
 						}
 					\`
 					const { data: data2 } = graphql\`
-						query TestQuery2 {
+						query TestQuery2 @load {
 							viewer {
 								id
 							}
@@ -822,7 +822,7 @@ test('afterLoad hook', async function () {
 		component: `
 				<script>
 					const result = graphql\`
-						query TestQuery($test: Boolean!) {
+						query TestQuery($test: Boolean!) @load {
 							viewer {
 								id
 							}
@@ -913,14 +913,14 @@ test('afterLoad hook - multiple queries', async function () {
 		component: `
 			<script>
 				const { data: data1 } = graphql\`
-					query TestQuery1 {
+					query TestQuery1 @load {
 						viewer {
 							id
 						}
 					}
 				\`
 				const { data: data2 } = graphql\`
-					query TestQuery2 {
+					query TestQuery2 @load {
 						viewer {
 							id
 						}
@@ -1012,7 +1012,7 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		component: `
 			<script>
 				const result = graphql\`
-					query TestQuery($test: Boolean!) {
+					query TestQuery($test: Boolean!) @load {
 						viewer {
 							id
 						}
@@ -1205,7 +1205,7 @@ test('layout inline query', async function () {
 		layout: `
 			<script>
 				const result = graphql\`
-					query TestQuery {
+					query TestQuery @load {
 						viewer {
 							id
 						}
@@ -1277,7 +1277,7 @@ test('inline function query', async function () {
 		component: `
 			<script>
 				const result = graphql(\`
-					query TestQuery {
+					query TestQuery @load {
 						viewer {
 							id
 						}
@@ -1345,7 +1345,7 @@ test('onError hook', async function () {
 		component: `
 				<script>
 					const result = graphql\`
-						query TestQuery($test: Boolean!) {
+						query TestQuery($test: Boolean!) @load {
 							viewer {
 								id
 							}
@@ -1566,7 +1566,7 @@ test('existing loads with parens', async function () {
 		component: `
 				<script>
 					const result = graphql\`
-						query TestQuery1 {
+						query TestQuery1 @load {
 							viewer {
 								id
 							}

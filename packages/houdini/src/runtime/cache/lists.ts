@@ -486,6 +486,10 @@ export class ListCollection {
 		this.lists = lists
 	}
 
+	get selection(): SubscriptionSelection {
+		return this.lists[0].selection
+	}
+
 	append(...args: Parameters<List['append']>) {
 		this.lists.forEach((list) => list.append(...args))
 	}

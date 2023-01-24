@@ -127,6 +127,43 @@ describe('typescript', function () {
 		`)
 	})
 
+	test('fragment types with variables', async function () {
+		// the document to test
+		const doc = mockCollectedDoc(
+			`fragment TestFragment on Query @arguments(name:{ type: "ID" }) { user(id: $name) { age } }`
+		)
+
+		// execute the generator
+		await runPipeline(config, [doc])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document))
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents!, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+			export type TestFragment$input = {
+			    name: string;
+			};
+
+			export type TestFragment = {
+			    readonly "shape"?: TestFragment$data;
+			    readonly "$fragments": {
+			        "TestFragment": true;
+			    };
+			};
+
+			export type TestFragment$data = {
+			    readonly user: {
+			        readonly age: number | null;
+			    } | null;
+			};
+		`)
+	})
+
 	test('nested types', async function () {
 		const fragment = `fragment TestFragment on User { firstName parent { firstName } }`
 

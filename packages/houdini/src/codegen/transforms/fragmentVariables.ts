@@ -417,3 +417,44 @@ function operationScope(operation: graphql.OperationDefinitionNode) {
 		) || {}
 	)
 }
+
+export function fragmentArgumentsDefinitions(
+	config: Config,
+	filepath: string,
+	definition: graphql.FragmentDefinitionNode
+): graphql.VariableDefinitionNode[] {
+	// analyze the @artguments directive
+	const args = fragmentArguments(config, filepath, definition)
+	if (args.length === 0) {
+		return []
+	}
+
+	// we have a list of the arguments
+	return args.map<graphql.VariableDefinitionNode>((arg) => {
+		const innerType: graphql.NamedTypeNode = {
+			kind: 'NamedType',
+			name: {
+				kind: 'Name',
+				value: arg.type,
+			},
+		}
+
+		return {
+			kind: 'VariableDefinition',
+			type: arg.required
+				? innerType
+				: {
+						kind: 'NonNullType',
+						type: innerType,
+				  },
+			variable: {
+				kind: 'Variable',
+				name: {
+					kind: 'Name',
+					value: arg.name,
+				},
+			},
+			defaultValue: arg.defaultValue ?? undefined,
+		}
+	})
+}

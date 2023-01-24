@@ -12,6 +12,7 @@ import {
 } from '../../../lib'
 import { ArtifactKind } from '../../../lib'
 import { flattenSelections, moduleExport } from '../../utils'
+import { fragmentArgumentsDefinitions } from '.././../transforms/fragmentVariables'
 import writeIndexFile from './indexFile'
 import { inputObject } from './inputs'
 import type { FilterMap } from './operations'
@@ -212,7 +213,15 @@ export default function artifactGenerator(stats: {
 					}
 
 					// if there are inputs to the operation
-					const inputs = operations[0]?.variableDefinitions
+					let inputs = operations[0]?.variableDefinitions
+					// if we are looking at fragments, the inputs to the fragment
+					// are defined with the arguments directive
+					let directive = fragments[0]?.directives?.find(
+						(directive) => directive.name.value === config.argumentsDirective
+					)
+					if (docKind === ArtifactKind.Fragment && directive) {
+						inputs = fragmentArgumentsDefinitions(config, doc.filename, fragments[0])
+					}
 
 					// in order to simplify the selection generation, we want to merge fragments together
 					const mergedSelection = flattenSelections({

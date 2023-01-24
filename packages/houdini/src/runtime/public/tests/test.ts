@@ -1,5 +1,11 @@
 import { testConfigFile } from '../../../test'
 import { Cache as _Cache } from '../../cache/cache'
+import {
+	ArtifactKind,
+	type SubscriptionSelection,
+	type FragmentArtifact,
+	type QueryArtifact,
+} from '../../lib'
 import { Cache } from '../cache'
 import type { Record } from '../record'
 
@@ -8,6 +14,7 @@ type CacheTypeDef = {
 	types: {
 		__ROOT__: {
 			idFields: {}
+			fragments: []
 			fields: {
 				test: {
 					type: number | null
@@ -53,6 +60,9 @@ type CacheTypeDef = {
 			idFields: {
 				id: string
 			}
+			fragments: [
+				[{ artifact: FragmentArtifact }, { firstName: string }, { pattern: string }]
+			]
 			fields: {
 				firstName: {
 					type: string
@@ -76,6 +86,7 @@ type CacheTypeDef = {
 			idFields: {
 				id: string
 			}
+			fragments: []
 			fields: {
 				name: {
 					type: string | null
@@ -99,6 +110,7 @@ type CacheTypeDef = {
 			idFields: {
 				id: string
 			}
+			fragments: []
 			fields: {
 				name: {
 					type: string | null
@@ -111,6 +123,24 @@ type CacheTypeDef = {
 			}
 		}
 	}
+	queries: [
+		[
+			{ artifact: QueryArtifact },
+			{
+				viewer: {
+					id: string
+					firstName: string
+					__typename: string
+					parent: {
+						id: string
+						firstName: string
+						__typename: string
+					}
+				}
+			},
+			any
+		]
+	]
 	lists: {
 		All_Pets: {
 			types: 'User' | 'Cat'
@@ -126,3 +156,25 @@ type CacheTypeDef = {
 }
 
 export const testCache = () => new Cache<CacheTypeDef>(new _Cache(testConfigFile()))
+
+export const testFragment = (selection: SubscriptionSelection): { artifact: FragmentArtifact } => ({
+	artifact: {
+		kind: ArtifactKind.Fragment,
+		hash: '',
+		raw: '',
+		name: '',
+		rootType: 'User',
+		selection,
+	},
+})
+
+export const testQuery = (selection: SubscriptionSelection): { artifact: QueryArtifact } => ({
+	artifact: {
+		kind: ArtifactKind.Query,
+		hash: '',
+		raw: '',
+		name: '',
+		rootType: 'Query',
+		selection,
+	},
+})
