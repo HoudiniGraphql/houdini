@@ -39,8 +39,7 @@ test('pagination arguments stripped from key', async function () {
 		        "pageSize": 10,
 		        "embedded": true,
 		        "targetType": "Node",
-		        "paginated": true,
-		        "direction": "forward"
+		        "paginated": true
 		    },
 
 		    "raw": \`fragment PaginatedFragment on User {
@@ -188,8 +187,7 @@ test('offset based pagination marks appropriate field', async function () {
 		        "pageSize": 10,
 		        "embedded": true,
 		        "targetType": "Node",
-		        "paginated": true,
-		        "direction": "forward"
+		        "paginated": true
 		    },
 
 		    "raw": \`fragment PaginatedFragment on User {
@@ -275,8 +273,7 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		        "pageSize": 10,
 		        "embedded": false,
 		        "targetType": "Query",
-		        "paginated": true,
-		        "direction": "forward"
+		        "paginated": true
 		    },
 
 		    "raw": \`query ScalarPagination($first: Int = 10, $after: Cursor) {
@@ -507,8 +504,7 @@ test("sibling aliases don't get marked", async function () {
 		        "pageSize": 10,
 		        "embedded": true,
 		        "targetType": "Node",
-		        "paginated": true,
-		        "direction": "forward"
+		        "paginated": true
 		    },
 
 		    "raw": \`fragment PaginatedFragment on User {

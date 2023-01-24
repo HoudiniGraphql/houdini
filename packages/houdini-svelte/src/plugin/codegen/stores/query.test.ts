@@ -214,10 +214,10 @@ test('forward cursor pagination', async function () {
 
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
-		import { QueryStoreForwardCursor } from '$houdini/plugins/houdini-svelte/runtime/stores'
+		import { QueryStoreCursor } from '$houdini/plugins/houdini-svelte/runtime/stores'
 		import artifact from '$houdini/artifacts/TestQuery'
 
-		export class TestQueryStore extends QueryStoreForwardCursor {
+		export class TestQueryStore extends QueryStoreCursor {
 			constructor() {
 				super({
 					artifact,
@@ -263,10 +263,10 @@ test('backwards cursor pagination', async function () {
 
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
-		import { QueryStoreBackwardCursor } from '$houdini/plugins/houdini-svelte/runtime/stores'
+		import { QueryStoreCursor } from '$houdini/plugins/houdini-svelte/runtime/stores'
 		import artifact from '$houdini/artifacts/TestQuery'
 
-		export class TestQueryStore extends QueryStoreBackwardCursor {
+		export class TestQueryStore extends QueryStoreCursor {
 			constructor() {
 				super({
 					artifact,

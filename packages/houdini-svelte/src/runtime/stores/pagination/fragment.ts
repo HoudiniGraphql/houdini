@@ -69,7 +69,7 @@ class BasePaginatedFragmentStore<_Data extends GraphQLObject, _Input> {
 }
 
 // both cursor paginated stores add a page info to their subscribe
-class FragmentStoreCursor<
+export class FragmentStoreCursor<
 	_Data extends GraphQLObject,
 	_Input extends Record<string, any>
 > extends BasePaginatedFragmentStore<_Data, _Input> {
@@ -110,6 +110,10 @@ class FragmentStoreCursor<
 			fetching: derived(store, ($store) => $store.fetching),
 			fetch: handlers.fetch,
 			pageInfo: handlers.pageInfo,
+
+			// add the pagination handlers
+			loadNextPage: handlers.loadNextPage,
+			loadPreviousPage: handlers.loadPreviousPage,
 		}
 	}
 
@@ -140,53 +144,6 @@ class FragmentStoreCursor<
 			observer,
 			storeName: this.name,
 		})
-	}
-}
-
-// FragmentStoreForwardCursor adds loadNextPage to FragmentStoreCursor
-export class FragmentStoreForwardCursor<
-	_Data extends GraphQLObject,
-	_Input extends Record<string, any>
-> extends FragmentStoreCursor<_Data, _Input> {
-	get(initialValue: _Data | null) {
-		// get the base class
-		const parent = super.get(initialValue)
-		const observer = getClient().observe<_Data, _Input>({
-			artifact: this.paginationArtifact,
-			initialValue,
-		})
-
-		// generate the pagination handlers
-		const handlers = this.storeHandlers(observer)
-
-		return {
-			...parent,
-			// add the specific handlers for this situation
-			loadNextPage: handlers.loadNextPage,
-		}
-	}
-}
-
-// BackwardFragmentStoreCursor adds loadPreviousPage to FragmentStoreCursor
-export class FragmentStoreBackwardCursor<
-	_Data extends GraphQLObject,
-	_Input extends Record<string, any>
-> extends FragmentStoreCursor<_Data, _Input> {
-	get(initialValue: _Data | null) {
-		const parent = super.get(initialValue)
-		const observer = getClient().observe<_Data, _Input>({
-			artifact: this.paginationArtifact,
-			initialValue,
-		})
-
-		// generate the pagination handlers
-		const handlers = this.storeHandlers(observer)
-
-		return {
-			...parent,
-			// add the specific handlers for this situation
-			loadPreviousPage: handlers.loadPreviousPage,
-		}
 	}
 }
 

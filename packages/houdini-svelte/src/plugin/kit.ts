@@ -371,15 +371,9 @@ export function plugin_config(config: Config): Required<HoudiniSvelteConfig> {
 			mutation: '$houdini/plugins/houdini-svelte/runtime/stores.MutationStore',
 			fragment: '$houdini/plugins/houdini-svelte/runtime/stores.FragmentStore',
 			subscription: '$houdini/plugins/houdini-svelte/runtime/stores.SubscriptionStore',
-			queryForwardsCursor:
-				'$houdini/plugins/houdini-svelte/runtime/stores.QueryStoreForwardCursor',
-			queryBackwardsCursor:
-				'$houdini/plugins/houdini-svelte/runtime/stores.QueryStoreBackwardCursor',
+			queryCursor: '$houdini/plugins/houdini-svelte/runtime/stores.QueryStoreCursor',
 			queryOffset: '$houdini/plugins/houdini-svelte/runtime/stores.QueryStoreOffset',
-			fragmentForwardsCursor:
-				'$houdini/plugins/houdini-svelte/runtime/stores.FragmentStoreForwardCursor',
-			fragmentBackwardsCursor:
-				'$houdini/plugins/houdini-svelte/runtime/stores.FragmentStoreBackwardCursor',
+			fragmentCursor: '$houdini/plugins/houdini-svelte/runtime/stores.FragmentStoreCursor',
 			fragmentOffset: '$houdini/plugins/houdini-svelte/runtime/stores.FragmentStoreOffset',
 			...cfg?.customStores,
 		},

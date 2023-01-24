@@ -1,7 +1,2 @@
-export {
-	FragmentStoreBackwardCursor,
-	FragmentStoreForwardCursor,
-	FragmentStoreOffset,
-} from './fragment'
-
-export { QueryStoreBackwardCursor, QueryStoreForwardCursor, QueryStoreOffset } from './query'
+export { FragmentStoreCursor, FragmentStoreOffset } from './fragment'
+export { QueryStoreCursor, QueryStoreOffset } from './query'

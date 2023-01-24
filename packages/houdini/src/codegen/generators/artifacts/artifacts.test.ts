@@ -511,8 +511,7 @@ test('paginate over unions', async function () {
 		        "pageSize": 10,
 		        "embedded": false,
 		        "targetType": "Query",
-		        "paginated": true,
-		        "direction": "forward"
+		        "paginated": true
 		    },
 
 		    "raw": \`query TestQuery($first: Int = 10, $after: String) {
@@ -3336,8 +3335,7 @@ describe('mutation artifacts', function () {
 			        "pageSize": 10,
 			        "embedded": false,
 			        "targetType": "Query",
-			        "paginated": true,
-			        "direction": "forward"
+			        "paginated": true
 			    },
 
 			    "raw": \`query TestQuery($first: Int = 10, $after: String) {
