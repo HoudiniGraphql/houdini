@@ -217,16 +217,16 @@ config values into a single `watchSchema` object:
 -     apiUrl: "http://my.awesome.app.com",
 -     schemaPollInterval: 6000,
 -     schemaPollHeaders: {
--         Authorization: (env) => `Bearer ${env.TOKEN}`,
--     },
-+     watchSchema {
+-         Authorization: (env) => `Bearer ${env.TOKEN}`
+-     }
++     watchSchema: {
 +         url: "http://my.awesome.app.com",
 +         interval: 6000,
 +         headers: {
-+             Authorization: (env) => `Bearer ${env.TOKEN}`,
++             Authorization: (env) => `Bearer ${env.TOKEN}`
 +         }
-+     },
-}
++     }
+  }
 ```
 
 ### Imperative Cache Reworked
@@ -283,7 +283,7 @@ has become mostly used for "lazy" stores that don't fetch automatically. On top 
 new imperative cache api relies heavily on `graphql` documents which would mean a lot of accidental
 loading. At least this way everything is very explicit.
 
-### pagination options in `customStores` config have been changed
+### Pagination Options In `customStores` Config Have Been Changed
 
 There is no more distinction between forwards and backwards cursor pagination
 so the options have been merged
