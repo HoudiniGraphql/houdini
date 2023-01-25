@@ -502,7 +502,7 @@ test('paginate over unions', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "e51aa476e50a6550a2597054599ac958070848f0b5cb0301774e6b16d5ce629d",
+		    "hash": "b26bb5299170a9094b17439a57a84037c883f9ddf4f61856efa5c5dd55754eb0",
 
 		    "refetch": {
 		        "path": ["entitiesByCursor"],
@@ -510,11 +510,12 @@ test('paginate over unions', async function () {
 		        "pageSize": 10,
 		        "embedded": false,
 		        "targetType": "Query",
-		        "paginated": true
+		        "paginated": true,
+		        "direction": "both"
 		    },
 
-		    "raw": \`query TestQuery($first: Int = 10, $after: String) {
-		  entitiesByCursor(first: $first, after: $after) {
+		    "raw": \`query TestQuery($first: Int = 10, $after: String, $last: Int, $before: String) {
+		  entitiesByCursor(first: $first, after: $after, last: $last, before: $before) {
 		    edges {
 		      node {
 		        ... on User {
@@ -613,22 +614,26 @@ test('paginate over unions', async function () {
 		                                "fields": {
 		                                    "hasPreviousPage": {
 		                                        "type": "Boolean",
-		                                        "keyRaw": "hasPreviousPage"
+		                                        "keyRaw": "hasPreviousPage",
+		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "hasNextPage": {
 		                                        "type": "Boolean",
-		                                        "keyRaw": "hasNextPage"
+		                                        "keyRaw": "hasNextPage",
+		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "startCursor": {
 		                                        "type": "String",
-		                                        "keyRaw": "startCursor"
+		                                        "keyRaw": "startCursor",
+		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "endCursor": {
 		                                        "type": "String",
-		                                        "keyRaw": "endCursor"
+		                                        "keyRaw": "endCursor",
+		                                        "updates": ["append", "prepend"]
 		                                    }
 		                                }
 		                            }
@@ -645,6 +650,16 @@ test('paginate over unions', async function () {
 		                    "after": {
 		                        "kind": "Variable",
 		                        "value": "after"
+		                    },
+
+		                    "last": {
+		                        "kind": "Variable",
+		                        "value": "last"
+		                    },
+
+		                    "before": {
+		                        "kind": "Variable",
+		                        "value": "before"
 		                    }
 		                }
 		            }
@@ -654,7 +669,9 @@ test('paginate over unions', async function () {
 		    "input": {
 		        "fields": {
 		            "first": "Int",
-		            "after": "String"
+		            "after": "String",
+		            "last": "Int",
+		            "before": "String"
 		        },
 
 		        "types": {}
@@ -3325,7 +3342,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
-			    "hash": "ae03169e8d96702d39c54183ece747c31f4b5d1e3abf54cf3fc0706abfd597b9",
+			    "hash": "6fe0aeaa708161553cd04645834b38c4ce625fce10c46056efcff9a97988d358",
 
 			    "refetch": {
 			        "path": ["usersByCursor"],
@@ -3333,11 +3350,12 @@ describe('mutation artifacts', function () {
 			        "pageSize": 10,
 			        "embedded": false,
 			        "targetType": "Query",
-			        "paginated": true
+			        "paginated": true,
+			        "direction": "both"
 			    },
 
-			    "raw": \`query TestQuery($first: Int = 10, $after: String) {
-			  usersByCursor(first: $first, after: $after) {
+			    "raw": \`query TestQuery($first: Int = 10, $after: String, $last: Int, $before: String) {
+			  usersByCursor(first: $first, after: $after, last: $last, before: $before) {
 			    edges {
 			      node {
 			        firstName
@@ -3424,22 +3442,26 @@ describe('mutation artifacts', function () {
 			                                "fields": {
 			                                    "hasPreviousPage": {
 			                                        "type": "Boolean",
-			                                        "keyRaw": "hasPreviousPage"
+			                                        "keyRaw": "hasPreviousPage",
+			                                        "updates": ["append", "prepend"]
 			                                    },
 
 			                                    "hasNextPage": {
 			                                        "type": "Boolean",
-			                                        "keyRaw": "hasNextPage"
+			                                        "keyRaw": "hasNextPage",
+			                                        "updates": ["append", "prepend"]
 			                                    },
 
 			                                    "startCursor": {
 			                                        "type": "String",
-			                                        "keyRaw": "startCursor"
+			                                        "keyRaw": "startCursor",
+			                                        "updates": ["append", "prepend"]
 			                                    },
 
 			                                    "endCursor": {
 			                                        "type": "String",
-			                                        "keyRaw": "endCursor"
+			                                        "keyRaw": "endCursor",
+			                                        "updates": ["append", "prepend"]
 			                                    }
 			                                }
 			                            }
@@ -3456,6 +3478,16 @@ describe('mutation artifacts', function () {
 			                    "after": {
 			                        "kind": "Variable",
 			                        "value": "after"
+			                    },
+
+			                    "last": {
+			                        "kind": "Variable",
+			                        "value": "last"
+			                    },
+
+			                    "before": {
+			                        "kind": "Variable",
+			                        "value": "before"
 			                    }
 			                }
 			            }
@@ -3465,7 +3497,9 @@ describe('mutation artifacts', function () {
 			    "input": {
 			        "fields": {
 			            "first": "Int",
-			            "after": "String"
+			            "after": "String",
+			            "last": "Int",
+			            "before": "String"
 			        },
 
 			        "types": {}

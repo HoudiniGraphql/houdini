@@ -10,7 +10,7 @@
   `);
 
   const fragmentResult = paginatedFragment(
-    $queryResult.data?.user!,
+    $queryResult.data!.user!,
     graphql(`
       fragment BidirectionalCursorFragment on User {
         usersConnection(after: "YXJyYXljb25uZWN0aW9uOjE=", first: 2) @paginate {

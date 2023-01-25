@@ -514,22 +514,26 @@ test('embeds node pagination query as a separate document', async function () {
 		                                                    "fields": {
 		                                                        "hasPreviousPage": {
 		                                                            "type": "Boolean",
-		                                                            "keyRaw": "hasPreviousPage"
+		                                                            "keyRaw": "hasPreviousPage",
+		                                                            "updates": ["append", "prepend", "append", "prepend"]
 		                                                        },
 
 		                                                        "hasNextPage": {
 		                                                            "type": "Boolean",
-		                                                            "keyRaw": "hasNextPage"
+		                                                            "keyRaw": "hasNextPage",
+		                                                            "updates": ["append", "prepend", "append", "prepend"]
 		                                                        },
 
 		                                                        "startCursor": {
 		                                                            "type": "String",
-		                                                            "keyRaw": "startCursor"
+		                                                            "keyRaw": "startCursor",
+		                                                            "updates": ["append", "prepend", "append", "prepend"]
 		                                                        },
 
 		                                                        "endCursor": {
 		                                                            "type": "String",
-		                                                            "keyRaw": "endCursor"
+		                                                            "keyRaw": "endCursor",
+		                                                            "updates": ["append", "prepend", "append", "prepend"]
 		                                                        }
 		                                                    }
 		                                                }
@@ -613,22 +617,26 @@ test('embeds node pagination query as a separate document', async function () {
 		                                            "fields": {
 		                                                "hasPreviousPage": {
 		                                                    "type": "Boolean",
-		                                                    "keyRaw": "hasPreviousPage"
+		                                                    "keyRaw": "hasPreviousPage",
+		                                                    "updates": ["append", "prepend"]
 		                                                },
 
 		                                                "hasNextPage": {
 		                                                    "type": "Boolean",
-		                                                    "keyRaw": "hasNextPage"
+		                                                    "keyRaw": "hasNextPage",
+		                                                    "updates": ["append", "prepend"]
 		                                                },
 
 		                                                "startCursor": {
 		                                                    "type": "String",
-		                                                    "keyRaw": "startCursor"
+		                                                    "keyRaw": "startCursor",
+		                                                    "updates": ["append", "prepend"]
 		                                                },
 
 		                                                "endCursor": {
 		                                                    "type": "String",
-		                                                    "keyRaw": "endCursor"
+		                                                    "keyRaw": "endCursor",
+		                                                    "updates": ["append", "prepend"]
 		                                                }
 		                                            }
 		                                        }
@@ -806,22 +814,26 @@ test('embeds custom pagination query as a separate document', async function () 
 		                                            "fields": {
 		                                                "hasPreviousPage": {
 		                                                    "type": "Boolean",
-		                                                    "keyRaw": "hasPreviousPage"
+		                                                    "keyRaw": "hasPreviousPage",
+		                                                    "updates": ["append", "prepend", "append", "prepend"]
 		                                                },
 
 		                                                "hasNextPage": {
 		                                                    "type": "Boolean",
-		                                                    "keyRaw": "hasNextPage"
+		                                                    "keyRaw": "hasNextPage",
+		                                                    "updates": ["append", "prepend", "append", "prepend"]
 		                                                },
 
 		                                                "startCursor": {
 		                                                    "type": "String",
-		                                                    "keyRaw": "startCursor"
+		                                                    "keyRaw": "startCursor",
+		                                                    "updates": ["append", "prepend", "append", "prepend"]
 		                                                },
 
 		                                                "endCursor": {
 		                                                    "type": "String",
-		                                                    "keyRaw": "endCursor"
+		                                                    "keyRaw": "endCursor",
+		                                                    "updates": ["append", "prepend", "append", "prepend"]
 		                                                }
 		                                            }
 		                                        }
@@ -1493,22 +1505,26 @@ test('generated query has same refetch spec', async function () {
 		                                "fields": {
 		                                    "hasPreviousPage": {
 		                                        "type": "Boolean",
-		                                        "keyRaw": "hasPreviousPage"
+		                                        "keyRaw": "hasPreviousPage",
+		                                        "updates": ["append", "prepend", "append", "prepend"]
 		                                    },
 
 		                                    "hasNextPage": {
 		                                        "type": "Boolean",
-		                                        "keyRaw": "hasNextPage"
+		                                        "keyRaw": "hasNextPage",
+		                                        "updates": ["append", "prepend", "append", "prepend"]
 		                                    },
 
 		                                    "startCursor": {
 		                                        "type": "String",
-		                                        "keyRaw": "startCursor"
+		                                        "keyRaw": "startCursor",
+		                                        "updates": ["append", "prepend", "append", "prepend"]
 		                                    },
 
 		                                    "endCursor": {
 		                                        "type": "String",
-		                                        "keyRaw": "endCursor"
+		                                        "keyRaw": "endCursor",
+		                                        "updates": ["append", "prepend", "append", "prepend"]
 		                                    }
 		                                }
 		                            }
