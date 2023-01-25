@@ -283,6 +283,28 @@ has become mostly used for "lazy" stores that don't fetch automatically. On top 
 new imperative cache api relies heavily on `graphql` documents which would mean a lot of accidental
 loading. At least this way everything is very explicit.
 
+### Server-side Mutations Need an Event
+
+In order to simplify the mental model for sessions and fetching, server-side mutations
+need their event passed explicitly.
+
+```diff
+  import { Actions } from './$types'
+
+  const actionMutation = graphql(...)
+
+  export const actions: Actions = {
+      addUser: async (event) => {
+          const data = await event.request.formData();
+
+          const name = data.get('name')?.toString();
+
+-         return await actionMutation.mutate({ name }, { fetch: event.fetch });
++         return await actionMutation.mutate({ name }, { event });
+      }
+  }
+```
+
 ## 0.20.0
 
 This release was originally planned to be `1.0` but we have some exciting stuff planned
