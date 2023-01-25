@@ -21,6 +21,6 @@ export const actions = {
       }
     `);
 
-    return await actionMutation.mutate({ name });
+    return await actionMutation.mutate({ name }, { event });
   }
 };
