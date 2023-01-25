@@ -16,7 +16,7 @@ import type { StoreConfig } from '../query'
 import type { CursorHandlers } from './cursor'
 import { cursorHandlers } from './cursor'
 import { offsetHandlers } from './offset'
-import { extractPageInfo, PageInfo } from './pageInfo'
+import { extractPageInfo, type PageInfo } from './pageInfo'
 
 type FragmentStoreConfig<_Data extends GraphQLObject, _Input> = StoreConfig<
 	_Data,

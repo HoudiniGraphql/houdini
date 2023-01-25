@@ -3,9 +3,9 @@ import * as graphql from 'graphql'
 import type { Config, CollectedGraphQLDocument } from '../../../lib'
 import { getRootType, HoudiniError } from '../../../lib'
 import {
-	MutationOperation,
+	type MutationOperation,
 	RefetchUpdateMode,
-	SubscriptionSelection,
+	type SubscriptionSelection,
 } from '../../../runtime/lib/types'
 import { connectionSelection } from '../../transforms/list'
 import fieldKey from './fieldKey'

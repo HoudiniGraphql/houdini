@@ -15,7 +15,7 @@ import type { CursorHandlers } from './cursor'
 import { cursorHandlers } from './cursor'
 import type { OffsetHandlers } from './offset'
 import { offsetHandlers } from './offset'
-import { extractPageInfo, PageInfo } from './pageInfo'
+import { extractPageInfo, type PageInfo } from './pageInfo'
 
 export type CursorStoreResult<_Data extends GraphQLObject, _Input extends {}> = QueryResult<
 	_Data,
