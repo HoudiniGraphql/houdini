@@ -191,9 +191,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 			}
 
 			// build up the variables to pass to the query
-			const queryVariables: Record<string, any> = {
-				...variables,
-			}
+			const queryVariables: Record<string, any> = {}
 
 			// we are updating the current set of items, count the number of items that currently exist
 			// and ask for the full data set
@@ -203,12 +201,42 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 
 			// if there are more records than the first page, we need fetch to load everything
 			if (count && count > artifact.refetch!.pageSize) {
-				// the direction we load from doesn't matter as long as its the correct snapshot.
-				queryVariables['first'] = count
-				queryVariables['after'] = currentPageInfo.startCursor
-				queryVariables['last'] = null
-				queryVariables['before'] = null
+				// if we aren't at one of the boundaries, we can't refresh the current window
+				// of a paginated field. warn the user if that's the case
+				if (
+					currentPageInfo.hasPreviousPage &&
+					currentPageInfo.hasNextPage &&
+					// only log if they haven't provided special parameters
+					!(
+						(variables?.['first'] && variables?.['after']) ||
+						(variables?.['last'] && variables?.['before'])
+					)
+				) {
+					console.warn(`⚠️ Encountered a fetch() in the middle of the connection.
+Make sure to pass a cursor value by hand that includes the current set (ie the entry before startCursor)					
+`)
+					return observer.state
+				}
+
+				// if we are loading the first boundary
+				if (!currentPageInfo.hasPreviousPage) {
+					queryVariables['first'] = count
+					queryVariables['after'] = null
+					queryVariables['last'] = null
+					queryVariables['before'] = null
+				}
+
+				// or we're loading the last boundary
+				else if (!currentPageInfo.hasNextPage) {
+					queryVariables['last'] = count
+					queryVariables['first'] = null
+					queryVariables['after'] = null
+					queryVariables['before'] = null
+				}
 			}
+
+			// let the user overwrite the variables
+			Object.assign(queryVariables, variables ?? {})
 
 			// send the query
 			const result = await parentFetch({
