@@ -317,7 +317,6 @@ export default async function paginate(
 
 			// add the paginate info to the collected document
 			doc.refetch = {
-				update: refetchUpdate,
 				path: paginationPath,
 				method: flags.first.enabled || flags.last.enabled ? 'cursor' : 'offset',
 				pageSize: 0,

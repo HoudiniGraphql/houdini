@@ -29,7 +29,7 @@ test('prepend linked lists update', function () {
 						friends: {
 							type: 'User',
 							keyRaw: 'friends',
-							update: RefetchUpdateMode.prepend,
+							updates: [RefetchUpdateMode.prepend],
 							selection: {
 								fields: {
 									id: {
@@ -68,7 +68,7 @@ test('prepend linked lists update', function () {
 				],
 			},
 		},
-		applyUpdates: true,
+		applyUpdates: ['prepend'],
 	})
 
 	// make sure we can get the linked lists back
@@ -79,7 +79,7 @@ test('prepend linked lists update', function () {
 					friends: {
 						type: 'User',
 						keyRaw: 'friends',
-						update: RefetchUpdateMode.prepend,
+						updates: [RefetchUpdateMode.prepend],
 						selection: {
 							fields: {
 								id: {
@@ -128,7 +128,7 @@ test('prepend linked lists update', function () {
 				],
 			},
 		},
-		applyUpdates: true,
+		applyUpdates: ['prepend'],
 	})
 
 	// make sure we can get the linked lists back
@@ -139,7 +139,7 @@ test('prepend linked lists update', function () {
 					friends: {
 						type: 'User',
 						keyRaw: 'friends',
-						update: RefetchUpdateMode.prepend,
+						updates: [RefetchUpdateMode.prepend],
 						selection: {
 							fields: {
 								id: {
@@ -906,7 +906,7 @@ test('inserting data with an update overwrites a record inserted with list.appen
 
 	// insert a record with a query update
 	cache.write({
-		applyUpdates: true,
+		applyUpdates: [RefetchUpdateMode.append],
 		data: {
 			viewer: {
 				id: '1',
@@ -948,7 +948,7 @@ test('inserting data with an update overwrites a record inserted with list.appen
 										edges: {
 											type: 'UserEdge',
 											keyRaw: 'edges',
-											update: RefetchUpdateMode.append,
+											updates: [RefetchUpdateMode.append],
 											selection: {
 												fields: {
 													cursor: {
@@ -3043,7 +3043,7 @@ test('disabled linked lists update', function () {
 						friends: {
 							type: 'User',
 							keyRaw: 'friends',
-							update: RefetchUpdateMode.append,
+							updates: [RefetchUpdateMode.append],
 							selection: {
 								fields: {
 									id: {
@@ -3166,7 +3166,7 @@ test('append linked lists update', function () {
 						friends: {
 							type: 'User',
 							keyRaw: 'friends',
-							update: RefetchUpdateMode.append,
+							updates: [RefetchUpdateMode.append],
 							selection: {
 								fields: {
 									id: {
@@ -3245,7 +3245,7 @@ test('append linked lists update', function () {
 				],
 			},
 		},
-		applyUpdates: true,
+		applyUpdates: [RefetchUpdateMode.append],
 	})
 
 	// make sure we can get the linked lists back
@@ -3298,7 +3298,7 @@ test('writing a scalar marked with a disabled update overwrites', function () {
 						friends: {
 							type: 'Int',
 							keyRaw: 'friends',
-							update: RefetchUpdateMode.append,
+							updates: [RefetchUpdateMode.append],
 						},
 					},
 				},
@@ -3371,7 +3371,7 @@ test('writing a scalar marked with a prepend', function () {
 						friends: {
 							type: 'Int',
 							keyRaw: 'friends',
-							update: RefetchUpdateMode.prepend,
+							updates: [RefetchUpdateMode.prepend],
 						},
 					},
 				},
@@ -3410,7 +3410,7 @@ test('writing a scalar marked with a prepend', function () {
 				friends: [2],
 			},
 		},
-		applyUpdates: true,
+		applyUpdates: [RefetchUpdateMode.prepend],
 	})
 
 	// make sure we can get the updated lists back
@@ -3445,7 +3445,7 @@ test('writing a scalar marked with an append', function () {
 						friends: {
 							type: 'Int',
 							keyRaw: 'friends',
-							update: RefetchUpdateMode.append,
+							updates: [RefetchUpdateMode.append],
 						},
 					},
 				},
@@ -3484,7 +3484,7 @@ test('writing a scalar marked with an append', function () {
 				friends: [2],
 			},
 		},
-		applyUpdates: true,
+		applyUpdates: [RefetchUpdateMode.append],
 	})
 
 	// make sure we can get the updated lists back

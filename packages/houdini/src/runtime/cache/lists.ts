@@ -240,9 +240,7 @@ export class List {
 								edges: {
 									keyRaw: 'edges',
 									type: 'ConnectionEdge',
-									update: (where === 'first'
-										? 'prepend'
-										: 'append') as RefetchUpdateMode,
+									updates: ['append', 'prepend'],
 									selection: {
 										fields: {
 											node: {
@@ -278,7 +276,7 @@ export class List {
 					newEntries: {
 						keyRaw: this.key,
 						type: listType,
-						update: (where === 'first' ? 'prepend' : 'append') as RefetchUpdateMode,
+						updates: ['append', 'prepend'],
 						selection: {
 							...selection,
 							fields: {
@@ -303,7 +301,7 @@ export class List {
 			data: insertData,
 			variables,
 			parent: this.recordID,
-			applyUpdates: true,
+			applyUpdates: [where === 'first' ? 'prepend' : 'append'],
 		})
 	}
 

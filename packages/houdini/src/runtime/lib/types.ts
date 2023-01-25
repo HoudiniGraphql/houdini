@@ -89,7 +89,6 @@ export type BaseCompiledDocument = {
 	rootType: string
 	input?: InputObject
 	refetch?: {
-		update: RefetchUpdateMode
 		path: string[]
 		method: 'cursor' | 'offset'
 		pageSize: number
@@ -163,7 +162,7 @@ export type SubscriptionSelection = {
 				connection: boolean
 				type: string
 			}
-			update?: RefetchUpdateMode
+			updates?: string[]
 			filters?: {
 				[key: string]: {
 					kind: 'Boolean' | 'String' | 'Float' | 'Int' | 'Variable'

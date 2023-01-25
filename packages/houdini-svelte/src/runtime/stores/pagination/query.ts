@@ -45,14 +45,14 @@ export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> ex
 			observer: this.observer,
 			storeName: this.name,
 			fetch: super.fetch.bind(this),
-			fetchUpdate: async (args) => {
+			fetchUpdate: async (args, updates) => {
 				return paginationObserver.send({
 					...args,
 					variables: {
 						...args?.variables,
 					},
 					cacheParams: {
-						applyUpdates: true,
+						applyUpdates: updates,
 					},
 				})
 			},
@@ -82,7 +82,6 @@ export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> ex
 		invalidate?: ((value?: CursorStoreResult<_Data, _Input> | undefined) => void) | undefined
 	): () => void {
 		const combined = derived([{ subscribe: super.subscribe.bind(this) }], ([$parent]) => {
-			console.log($parent.data, extractPageInfo($parent.data, this.artifact.refetch!.path))
 			return {
 				// @ts-ignore
 				...$parent,
@@ -123,7 +122,7 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input extends {}> ex
 						...args?.variables,
 					},
 					cacheParams: {
-						applyUpdates: true,
+						applyUpdates: ['append'],
 					},
 				})
 			},

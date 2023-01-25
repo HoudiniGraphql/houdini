@@ -47,7 +47,6 @@ test('adds pagination info to full', async function () {
 
 	expect(docs[0].refetch).toMatchInlineSnapshot(`
 		{
-		    "update": "append",
 		    "path": [
 		        "usersByCursor"
 		    ],
@@ -83,7 +82,6 @@ test('paginated fragments on node pull data from one field deeper', async functi
 
 	expect(docs[0].refetch).toMatchInlineSnapshot(`
 		{
-		    "update": "append",
 		    "path": [
 		        "friendsByCursor"
 		    ],
@@ -416,7 +414,6 @@ test('embeds node pagination query as a separate document', async function () {
 		    "hash": "4ff3c0d7d0bc3f812896dd71dc3ff18e3066fe2459502a99fab163508be90b7a",
 
 		    "refetch": {
-		        "update": "append",
 		        "path": ["friendsByForwardsCursor"],
 		        "method": "cursor",
 		        "pageSize": 10,
@@ -474,7 +471,7 @@ test('embeds node pagination query as a separate document', async function () {
 		                                            "edges": {
 		                                                "type": "UserEdge",
 		                                                "keyRaw": "edges",
-		                                                "update": "append",
+		                                                "updates": ["append", "prepend", "append", "prepend"],
 
 		                                                "selection": {
 		                                                    "fields": {
@@ -573,7 +570,7 @@ test('embeds node pagination query as a separate document', async function () {
 		                                    "edges": {
 		                                        "type": "UserEdge",
 		                                        "keyRaw": "edges",
-		                                        "update": "append",
+		                                        "updates": ["append", "prepend"],
 
 		                                        "selection": {
 		                                            "fields": {
@@ -704,7 +701,6 @@ test('embeds custom pagination query as a separate document', async function () 
 		    "hash": "c5970407ebf288fcad596b8eacf0093c3992c8b16a5044e4f38317c8d73245aa",
 
 		    "refetch": {
-		        "update": "append",
 		        "path": ["friendsConnection"],
 		        "method": "cursor",
 		        "pageSize": 10,
@@ -761,7 +757,7 @@ test('embeds custom pagination query as a separate document', async function () 
 		                                    "edges": {
 		                                        "type": "GhostEdge",
 		                                        "keyRaw": "edges",
-		                                        "update": "append",
+		                                        "updates": ["append", "prepend", "append", "prepend"],
 
 		                                        "selection": {
 		                                            "fields": {
@@ -1249,7 +1245,6 @@ test('refetch specification with backwards pagination', async function () {
 
 	expect(docs[0].refetch).toMatchInlineSnapshot(`
 		{
-		    "update": "prepend",
 		    "path": [
 		        "usersByCursor"
 		    ],
@@ -1285,7 +1280,6 @@ test('refetch entry with initial backwards', async function () {
 
 	expect(docs[0].refetch).toMatchInlineSnapshot(`
 		{
-		    "update": "prepend",
 		    "path": [
 		        "usersByCursor"
 		    ],
@@ -1322,7 +1316,6 @@ test('refetch entry with initial forwards', async function () {
 
 	expect(docs[0].refetch).toMatchInlineSnapshot(`
 		{
-		    "update": "append",
 		    "path": [
 		        "usersByCursor"
 		    ],
@@ -1364,7 +1357,6 @@ test('generated query has same refetch spec', async function () {
 		    "hash": "1e2bc755f493a5f3c58fdb284609136e7160f1f2365fe192c49f1ae95b3ef2ee",
 
 		    "refetch": {
-		        "update": "append",
 		        "path": ["usersByCursor"],
 		        "method": "cursor",
 		        "pageSize": 10,
@@ -1410,7 +1402,7 @@ test('generated query has same refetch spec', async function () {
 		                        "edges": {
 		                            "type": "UserEdge",
 		                            "keyRaw": "edges",
-		                            "update": "append",
+		                            "updates": ["append", "prepend", "append", "prepend"],
 
 		                            "selection": {
 		                                "fields": {
@@ -1512,7 +1504,6 @@ test('refetch specification with offset pagination', async function () {
 
 	expect(docs[0].refetch).toMatchInlineSnapshot(`
 		{
-		    "update": "append",
 		    "path": [
 		        "usersByOffset"
 		    ],
@@ -1544,7 +1535,6 @@ test('refetch specification with initial offset', async function () {
 
 	expect(docs[0].refetch).toMatchInlineSnapshot(`
 		{
-		    "update": "append",
 		    "path": [
 		        "usersByOffset"
 		    ],

@@ -123,7 +123,7 @@ export class FragmentStoreCursor<
 	protected storeHandlers(observer: DocumentStore<_Data, _Input>): CursorHandlers<_Data, _Input> {
 		return cursorHandlers<_Data, _Input>({
 			artifact: this.paginationArtifact,
-			fetchUpdate: async (args) => {
+			fetchUpdate: async (args, updates) => {
 				return observer.send({
 					...args,
 					variables: {
@@ -131,7 +131,7 @@ export class FragmentStoreCursor<
 						...this.queryVariables(observer),
 					},
 					cacheParams: {
-						applyUpdates: true,
+						applyUpdates: updates,
 					},
 				})
 			},
@@ -180,7 +180,7 @@ export class FragmentStoreOffset<
 						...args?.variables,
 					},
 					cacheParams: {
-						applyUpdates: true,
+						applyUpdates: ['append'],
 					},
 				})
 			},

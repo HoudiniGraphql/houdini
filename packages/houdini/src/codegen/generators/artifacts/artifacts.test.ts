@@ -505,7 +505,6 @@ test('paginate over unions', async function () {
 		    "hash": "e51aa476e50a6550a2597054599ac958070848f0b5cb0301774e6b16d5ce629d",
 
 		    "refetch": {
-		        "update": "append",
 		        "path": ["entitiesByCursor"],
 		        "method": "cursor",
 		        "pageSize": 10,
@@ -559,7 +558,7 @@ test('paginate over unions', async function () {
 		                        "edges": {
 		                            "type": "EntityEdge",
 		                            "keyRaw": "edges",
-		                            "update": "append",
+		                            "updates": ["append", "prepend"],
 
 		                            "selection": {
 		                                "fields": {
@@ -3329,7 +3328,6 @@ describe('mutation artifacts', function () {
 			    "hash": "ae03169e8d96702d39c54183ece747c31f4b5d1e3abf54cf3fc0706abfd597b9",
 
 			    "refetch": {
-			        "update": "append",
 			        "path": ["usersByCursor"],
 			        "method": "cursor",
 			        "pageSize": 10,
@@ -3381,7 +3379,7 @@ describe('mutation artifacts', function () {
 			                        "edges": {
 			                            "type": "UserEdge",
 			                            "keyRaw": "edges",
-			                            "update": "append",
+			                            "updates": ["append", "prepend"],
 
 			                            "selection": {
 			                                "fields": {

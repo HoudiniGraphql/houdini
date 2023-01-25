@@ -24,7 +24,10 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 	storeName: string
 	observer: DocumentStore<_Data, _Input>
 	fetch: FetchFn<_Data, _Input>
-	fetchUpdate: FetchFn<_Data, _Input>
+	fetchUpdate: (
+		arg: Parameters<FetchFn<_Data, _Input>>[0],
+		updates: string[]
+	) => ReturnType<FetchFn<_Data, _Input>>
 }): CursorHandlers<_Data, _Input> {
 	const pageInfo = writable<PageInfo>(extractPageInfo(get(observer).data, artifact.refetch!.path))
 
@@ -37,12 +40,14 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 		functionName,
 		metadata = {},
 		fetch,
+		where,
 	}: {
 		pageSizeVar: string
 		functionName: string
 		input: _Input
 		metadata?: {}
 		fetch?: typeof globalThis.fetch
+		where: 'start' | 'end'
 	}) => {
 		const config = getCurrentConfig()
 
@@ -58,12 +63,16 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 		}
 
 		// send the query
-		const { data } = await parentFetchUpdate({
-			variables: loadVariables,
-			fetch,
-			metadata,
-			policy: CachePolicy.NetworkOnly,
-		})
+		const { data } = await parentFetchUpdate(
+			{
+				variables: loadVariables,
+				fetch,
+				metadata,
+				policy: CachePolicy.NetworkOnly,
+			},
+			// if we are adding to the start of the list, prepend the result
+			[where === 'start' ? 'prepend' : 'append']
+		)
 
 		// if the query is embedded in a node field (paginated fragments)
 		// make sure we look down one more for the updated page info
@@ -107,6 +116,8 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 			// only specify the page count if we're given one
 			const input: any = {
 				after: after ?? currentPageInfo.endCursor,
+				before: null,
+				last: null,
 			}
 			if (first) {
 				input.first = first
@@ -119,6 +130,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 				input,
 				fetch,
 				metadata,
+				where: 'end',
 			})
 		},
 		loadPreviousPage: async ({
@@ -155,6 +167,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 				input,
 				fetch,
 				metadata,
+				where: 'start',
 			})
 		},
 		pageInfo,
@@ -166,14 +179,22 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 
 			const { variables } = params ?? {}
 
-			// build up the variables to pass to the query
-			const queryVariables: Record<string, any> = {
-				...variables,
-			}
-
 			// if the input is different than the query variables then we just do everything like normal
 			if (variables && !deepEquals(getState().variables, variables)) {
 				return await parentFetch(params)
+			}
+
+			// we need to find the connection object holding the current page info
+			try {
+				var currentPageInfo = extractPageInfo(getState().data, artifact.refetch!.path)
+			} catch {
+				// if there was any issue getting the page info, just fetch like normal
+				return await parentFetch(params)
+			}
+
+			// build up the variables to pass to the query
+			const queryVariables: Record<string, any> = {
+				...variables,
 			}
 
 			// we are updating the current set of items, count the number of items that currently exist
@@ -184,8 +205,11 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 
 			// if there are more records than the first page, we need fetch to load everything
 			if (count && count > artifact.refetch!.pageSize) {
-				// reverse cursors need the last entries in the list
-				queryVariables[artifact.refetch!.update === 'prepend' ? 'last' : 'first'] = count
+				// the direction we load from doesn't matter as long as its the correct snapshot.
+				queryVariables['first'] = count
+				queryVariables['after'] = currentPageInfo.startCursor
+				queryVariables['last'] = null
+				queryVariables['before'] = null
 			}
 
 			// send the query

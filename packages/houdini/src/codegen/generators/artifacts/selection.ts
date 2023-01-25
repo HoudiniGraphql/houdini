@@ -2,7 +2,11 @@ import * as graphql from 'graphql'
 
 import type { Config, CollectedGraphQLDocument } from '../../../lib'
 import { getRootType, HoudiniError } from '../../../lib'
-import type { MutationOperation, SubscriptionSelection } from '../../../runtime/lib/types'
+import {
+	MutationOperation,
+	RefetchUpdateMode,
+	SubscriptionSelection,
+} from '../../../runtime/lib/types'
 import { connectionSelection } from '../../transforms/list'
 import fieldKey from './fieldKey'
 import { convertValue, deepMerge } from './utils'
@@ -233,15 +237,16 @@ export default function selection({
 				(directive) => directive.name.value === config.paginateDirective
 			)
 
-			// if the field is marked for offset pagination we need to mark this field
+			// if the field is marked for offset pagination
 			if (paginated && document.refetch && document.refetch.method === 'offset') {
-				fieldObj.update = document.refetch.update
+				// we need to mark this field as only accepting append updates
+				fieldObj.updates = [RefetchUpdateMode.append]
 			}
 
 			// if we are looking at the edges field and we're supposed to mark it for pagination
 			if (attributeName === 'edges' && markEdges && document.refetch) {
 				// otherwise mark this field
-				fieldObj.update = document.refetch.update
+				fieldObj.updates = [RefetchUpdateMode.append, RefetchUpdateMode.prepend]
 
 				// make sure we don't mark the children
 				markEdges = ''
@@ -253,7 +258,7 @@ export default function selection({
 				// the edges field that falls underneath it
 				const edgesMark =
 					paginated && document.refetch?.method === 'cursor'
-						? document.refetch.update
+						? document.refetch?.method
 						: markEdges
 
 				fieldObj.selection = selection({
