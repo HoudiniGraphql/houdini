@@ -100,7 +100,7 @@ export default async function paginate(
 				const args = new Set(fieldTypeFields.args.map((arg) => arg.name))
 
 				// also look to see if the user wants to do forward pagination
-				const passedArgs = new Set(node.arguments?.map((arg) => arg.name.value))
+				const passedArgs = new Set<string>(node.arguments?.map((arg) => arg.name.value))
 				const specifiedForwards = passedArgs.has('first')
 				const specifiedBackwards = passedArgs.has('last')
 
@@ -113,21 +113,15 @@ export default async function paginate(
 				flags.before.type = cursorType
 
 				// figure out what kind of pagination the field supports
-				const forwardPagination =
-					!specifiedBackwards && args.has('first') && args.has('after')
-				const backwardsPagination =
-					!specifiedForwards && args.has('last') && args.has('before')
+				const cursorPagination = specifiedBackwards || specifiedForwards
 				const offsetPagination =
-					!forwardPagination &&
-					!backwardsPagination &&
-					args.has('offset') &&
-					args.has('limit')
+					!cursorPagination && args.has('offset') && args.has('limit')
 
 				// update the flags based on what the tagged field supports
-				flags.first.enabled = forwardPagination
-				flags.after.enabled = forwardPagination
-				flags.last.enabled = backwardsPagination
-				flags.before.enabled = backwardsPagination
+				flags.first.enabled = cursorPagination
+				flags.after.enabled = cursorPagination
+				flags.last.enabled = cursorPagination
+				flags.before.enabled = cursorPagination
 				flags.offset.enabled = offsetPagination
 				flags.limit.enabled = offsetPagination
 
@@ -168,12 +162,6 @@ export default async function paginate(
 			// check if we have to embed the fragment in Node
 			let nodeQuery = false
 
-			// figure out the right refetch
-			let refetchUpdate = RefetchUpdateMode.append
-			if (flags.last.enabled) {
-				refetchUpdate = RefetchUpdateMode.prepend
-			}
-
 			// remember if we found a fragment or operation
 			let fragment = ''
 
@@ -206,7 +194,8 @@ export default async function paginate(
 							Object.entries(flags)
 								.filter(
 									([, spec]) =>
-										// let's tale the spec enabled AND where we don't have a dedicated variable for it
+										// use the fields from enabled pagination strategies
+										// where we don't have a dedicated variable for it already
 										spec.enabled && spec.variableName === undefined
 								)
 								.map(([fieldName, spec]) => [

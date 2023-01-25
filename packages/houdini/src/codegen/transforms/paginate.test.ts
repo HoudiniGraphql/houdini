@@ -888,8 +888,9 @@ test('query with forwards cursor paginate', async function () {
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users($first: Int = 10, $after: String) {
-		  usersByForwardsCursor(first: $first, after: $after) @paginate {
+		query Users($first: Int = 10, $after: String, $before: String, $last: Int) {
+		vvvvv this has to include every variable so that we can use the one query for both load directions vvvvvv
+		  usersByForwardsCursor(first: $first, after: $after, last: $last, before: $before) @paginate {
 		    edges {
 		      node {
 		        id
