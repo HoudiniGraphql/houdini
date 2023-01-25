@@ -117,11 +117,6 @@ export const resolvers = {
 			throw new GraphQLYogaError('No authorization found', { code: 403 })
 		},
 		usersConnection(_, args) {
-			console.log(
-				args,
-				getSnapshot(args.snapshot),
-				JSON.stringify(connectionFromArray(getSnapshot(args.snapshot), args), null, 4)
-			)
 			return connectionFromArray(getSnapshot(args.snapshot), args)
 		},
 		user: async (_, args) => {

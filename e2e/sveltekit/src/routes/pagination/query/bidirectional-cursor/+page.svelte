@@ -26,7 +26,7 @@
   {JSON.stringify($result.pageInfo)}
 </div>
 
-<button id="next" on:click={() => result.loadPreviousPage()}>previous</button>
+<button id="previous" on:click={() => result.loadPreviousPage()}>previous</button>
 <button id="next" on:click={() => result.loadNextPage()}>next</button>
 
 <button id="refetch" on:click={() => result.fetch({ policy: CachePolicy.NetworkOnly })}

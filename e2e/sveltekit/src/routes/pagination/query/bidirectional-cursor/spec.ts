@@ -8,68 +8,39 @@ import {
   goto
 } from '../../../../lib/utils/testsHelper.js';
 
-test.describe('forwards cursor paginatedQuery', () => {
-  test('loadNextPage', async ({ page }) => {
-    await goto(page, routes.Pagination_query_forward_cursor);
+test.describe('bidirectional cursor paginated query', () => {
+  test('backwards and then forwards', async ({ page }) => {
+    await goto(page, routes.Pagination_query_bidirectional_cursor);
 
-    await expectToBe(page, 'Bruce Willis, Samuel Jackson');
+    await expectToBe(page, 'Morgan Freeman, Tom Hanks');
 
-    // wait for the api response
+    /// Click on the previous button
+
+    // load the previous page and wait for the response
+    await expect_1_gql(page, 'button[id=previous]');
+
+    // make sure we got the new content
+    await expectToBe(page, 'Bruce Willis, Samuel Jackson, Morgan Freeman, Tom Hanks');
+
+    // there should be a next page
+    await expectToContain(page, `"hasNextPage":true`);
+    // there should be no previous page
+    await expectToContain(page, `"hasPreviousPage":false`);
+
+    /// Click on the next button
+
+    // load the next page and wait for the response
     await expect_1_gql(page, 'button[id=next]');
 
-    // // make sure we got the new content
-    await expectToBe(page, 'Bruce Willis, Samuel Jackson, Morgan Freeman, Tom Hanks');
-  });
+    // there should be no previous page
+    await expectToContain(page, `"hasPreviousPage":false`);
+    // there should be a next page
+    await expectToContain(page, `"hasNextPage":true`);
 
-  test('refetch', async ({ page }) => {
-    await goto(page, routes.Pagination_query_forward_cursor);
-
-    // wait for the api response
-    let response = await expect_1_gql(page, 'button[id=next]');
-    expect(response).not.toContain(
-      '"name":"Bruce Willis","id":"pagination-query-forwards-cursor:1"'
+    // make sure we got the new content
+    await expectToBe(
+      page,
+      'Bruce Willis, Samuel Jackson, Morgan Freeman, Tom Hanks, Will Smith, Harrison Ford'
     );
-    expect(response).not.toContain(
-      '"name":"Samuel Jackson","id":"pagination-query-forwards-cursor:2"'
-    );
-    expect(response).toContain('"name":"Morgan Freeman","id":"pagination-query-forwards-cursor:3"');
-    expect(response).toContain('"name":"Tom Hanks","id":"pagination-query-forwards-cursor:4"');
-
-    // wait for the api response
-    response = await expect_1_gql(page, 'button[id=refetch]');
-
-    expect(response).toContain('"name":"Bruce Willis","id":"pagination-query-forwards-cursor:1"');
-    expect(response).toContain('"name":"Samuel Jackson","id":"pagination-query-forwards-cursor:2"');
-    expect(response).toContain('"name":"Morgan Freeman","id":"pagination-query-forwards-cursor:3"');
-    expect(response).toContain('"name":"Tom Hanks","id":"pagination-query-forwards-cursor:4"');
-  });
-
-  test('page info tracks connection state', async ({ page }) => {
-    await goto(page, routes.Pagination_query_forward_cursor);
-
-    const data = [
-      'Bruce Willis, Samuel Jackson, Morgan Freeman, Tom Hanks',
-      'Bruce Willis, Samuel Jackson, Morgan Freeman, Tom Hanks, Will Smith, Harrison Ford',
-      'Bruce Willis, Samuel Jackson, Morgan Freeman, Tom Hanks, Will Smith, Harrison Ford, Eddie Murphy, Clint Eastwood'
-    ];
-
-    // load the next 3 pages
-    for (let i = 0; i < 3; i++) {
-      // check the page info to know if we will click on next?
-      await expectToContain(page, `"hasNextPage":true`);
-
-      // wait for the request to resolve
-      await expect_1_gql(page, 'button[id=next]');
-
-      // check the data
-      await expectToBe(page, data[i]);
-    }
-
-    // make sure we have all of the data loaded
-    await expectToBe(page, data[2]);
-
-    await expectToContain(page, `"hasNextPage":false`);
-
-    await expect_0_gql(page, 'button[id=next]');
   });
 });

@@ -115,12 +115,10 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 
 			// only specify the page count if we're given one
 			const input: any = {
+				first: first ?? artifact.refetch!.pageSize,
 				after: after ?? currentPageInfo.endCursor,
 				before: null,
 				last: null,
-			}
-			if (first) {
-				input.first = first
 			}
 
 			// load the page
@@ -155,9 +153,9 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 			// only specify the page count if we're given one
 			const input: any = {
 				before: before ?? currentPageInfo.startCursor,
-			}
-			if (last) {
-				input.last = last
+				last: last ?? artifact.refetch!.pageSize,
+				first: null,
+				after: null,
 			}
 
 			// load the page
