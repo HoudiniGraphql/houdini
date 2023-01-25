@@ -246,11 +246,15 @@ Please remember to pass event to fetch like so:
 
 import type { LoadEvent } from '@sveltejs/kit';
 
+// in a load function...
 export async function load(${log.yellow('event')}: LoadEvent) {
 	return {
 		...load_${storeName}({ ${log.yellow('event')}, variables: { ... } })
 	};
 }
+
+// in a server-side mutation:
+await mutation.mutate({ ... }, ${log.yellow('{ event }')})
 `
 
 type FetchGlobalParams<_Data extends GraphQLObject, _Input> = {
