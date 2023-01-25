@@ -96,6 +96,7 @@ export type BaseCompiledDocument = {
 		embedded: boolean
 		targetType: string
 		paginated: boolean
+		direction: 'forward' | 'backward' | 'both'
 	}
 	pluginsData?: Record<string, any>
 }

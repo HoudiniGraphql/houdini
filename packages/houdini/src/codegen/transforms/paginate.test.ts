@@ -26,8 +26,8 @@ test('adds pagination info to full', async function () {
 
 	// load the contents of the file
 	expect(docs[0].document).toMatchInlineSnapshot(`
-		fragment UserFriends on Query @arguments(first: {type: "Int", default: 10}, after: {type: "String"}) {
-		  usersByCursor(first: $first, after: $after) @paginate {
+		fragment UserFriends on Query @arguments(first: {type: "Int", default: 10}, after: {type: "String"}, last: {type: "Int"}, before: {type: "String"}) {
+		  usersByCursor(first: $first, after: $after, last: $last, before: $before) @paginate {
 		    edges {
 		      node {
 		        id
@@ -54,7 +54,8 @@ test('adds pagination info to full', async function () {
 		    "pageSize": 10,
 		    "embedded": false,
 		    "targetType": "Query",
-		    "paginated": true
+		    "paginated": true,
+		    "direction": "both"
 		}
 	`)
 })
@@ -89,7 +90,8 @@ test('paginated fragments on node pull data from one field deeper', async functi
 		    "pageSize": 10,
 		    "embedded": true,
 		    "targetType": "Node",
-		    "paginated": true
+		    "paginated": true,
+		    "direction": "both"
 		}
 	`)
 })
@@ -145,8 +147,8 @@ test('paginate adds forwards cursor args to the full cursor fragment', async fun
 
 	// load the contents of the file
 	expect(docs[0].document).toMatchInlineSnapshot(`
-		fragment UserFriends on Query @arguments(first: {type: "Int", default: 10}, after: {type: "String"}) {
-		  usersByCursor(first: $first, after: $after) @paginate {
+		fragment UserFriends on Query @arguments(first: {type: "Int", default: 10}, after: {type: "String"}, last: {type: "Int"}, before: {type: "String"}) {
+		  usersByCursor(first: $first, after: $after, last: $last, before: $before) @paginate {
 		    edges {
 		      node {
 		        id
@@ -188,8 +190,8 @@ test('paginate adds backwards cursor args to the full cursor fragment', async fu
 
 	// load the contents of the file
 	expect(docs[0].document).toMatchInlineSnapshot(`
-		fragment UserFriends on Query @arguments(last: {type: "Int", default: 10}, before: {type: "String"}) {
-		  usersByCursor(last: $last, before: $before) @paginate {
+		fragment UserFriends on Query @arguments(first: {type: "Int"}, after: {type: "String"}, last: {type: "Int", default: 10}, before: {type: "String"}) {
+		  usersByCursor(last: $last, first: $first, after: $after, before: $before) @paginate {
 		    edges {
 		      node {
 		        id
@@ -274,8 +276,8 @@ test('paginate adds backwards cursor args to the fragment', async function () {
 
 	// load the contents of the file
 	expect(docs[0].document).toMatchInlineSnapshot(`
-		fragment UserFriends on Query @arguments(last: {type: "Int", default: 10}, before: {type: "String"}) {
-		  usersByBackwardsCursor(last: $last, before: $before) @paginate {
+		fragment UserFriends on Query @arguments {
+		  usersByBackwardsCursor(last: 10) @paginate {
 		    edges {
 		      node {
 		        id
@@ -318,8 +320,8 @@ test('sets before with default value', async function () {
 
 	// load the contents of the file
 	expect(docs[0].document).toMatchInlineSnapshot(`
-		fragment UserFriends on Query @arguments(last: {type: "Int", default: 10}, before: {type: "String", default: "cursor"}) {
-		  usersByCursor(last: $last, before: $before) @paginate {
+		fragment UserFriends on Query @arguments(first: {type: "Int"}, after: {type: "String"}, last: {type: "Int", default: 10}, before: {type: "String", default: "cursor"}) {
+		  usersByCursor(last: $last, before: $before, first: $first, after: $after) @paginate {
 		    edges {
 		      node {
 		        id
@@ -419,7 +421,8 @@ test('embeds node pagination query as a separate document', async function () {
 		        "pageSize": 10,
 		        "embedded": true,
 		        "targetType": "Node",
-		        "paginated": true
+		        "paginated": true,
+		        "direction": "forward"
 		    },
 
 		    "raw": \`query UserFriends_Pagination_Query($first: Int = 10, $after: String, $id: ID!) {
@@ -706,7 +709,8 @@ test('embeds custom pagination query as a separate document', async function () 
 		        "pageSize": 10,
 		        "embedded": true,
 		        "targetType": "Ghost",
-		        "paginated": true
+		        "paginated": true,
+		        "direction": "forward"
 		    },
 
 		    "raw": \`query UserGhost_Pagination_Query($first: Int = 10, $after: String, $name: String!, $aka: String!) {
@@ -888,9 +892,8 @@ test('query with forwards cursor paginate', async function () {
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users($first: Int = 10, $after: String, $before: String, $last: Int) {
-		vvvvv this has to include every variable so that we can use the one query for both load directions vvvvvv
-		  usersByForwardsCursor(first: $first, after: $after, last: $last, before: $before) @paginate {
+		query Users($first: Int = 10, $after: String) {
+		  usersByForwardsCursor(first: $first, after: $after) @paginate {
 		    edges {
 		      node {
 		        id
@@ -975,8 +978,8 @@ test('query with backwards cursor paginate', async function () {
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users($last: Int = 10, $before: String) {
-		  usersByBackwardsCursor(last: $last, before: $before) @paginate {
+		query Users {
+		  usersByBackwardsCursor(last: 10) @paginate {
 		    edges {
 		      node {
 		        id
@@ -1046,8 +1049,8 @@ test('query with backwards cursor on full paginate', async function () {
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users($last: Int = 10, $before: String) {
-		  usersByCursor(last: $last, before: $before) @paginate {
+		query Users($first: Int, $after: String, $last: Int = 10, $before: String) {
+		  usersByCursor(last: $last, first: $first, after: $after, before: $before) @paginate {
 		    edges {
 		      node {
 		        id
@@ -1089,8 +1092,51 @@ test('query with forwards cursor on full paginate', async function () {
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
+		query Users($first: Int = 10, $after: String, $last: Int, $before: String) {
+		  usersByCursor(first: $first, after: $after, last: $last, before: $before) @paginate {
+		    edges {
+		      node {
+		        id
+		        __typename
+		      }
+		      cursor
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
+		}
+	`)
+})
+
+test("don't generate unsupported directions", async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+                query Users {
+                    usersByForwardsCursor(first: 10) @paginate {
+                        edges {
+                            node {
+                                id
+                            }
+                        }
+                    }
+                }
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	// load the contents of the file
+	expect(docs[0]?.document).toMatchInlineSnapshot(`
 		query Users($first: Int = 10, $after: String) {
-		  usersByCursor(first: $first, after: $after) @paginate {
+		  usersByForwardsCursor(first: $first, after: $after) @paginate {
 		    edges {
 		      node {
 		        id
@@ -1132,8 +1178,8 @@ test("forwards cursor paginated query doesn't overlap variables", async function
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users($first: Int!, $after: String) {
-		  usersByCursor(first: $first, after: $after) @paginate {
+		query Users($first: Int!, $after: String, $last: Int, $before: String) {
+		  usersByCursor(first: $first, after: $after, last: $last, before: $before) @paginate {
 		    edges {
 		      node {
 		        id
@@ -1175,8 +1221,8 @@ test("backwards cursor paginated query doesn't overlap variables", async functio
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users($last: Int!, $before: String) {
-		  usersByCursor(last: $last, before: $before) @paginate {
+		query Users($last: Int!, $first: Int, $after: String, $before: String) {
+		  usersByCursor(last: $last, first: $first, after: $after, before: $before) @paginate {
 		    edges {
 		      node {
 		        id
@@ -1253,7 +1299,8 @@ test('refetch specification with backwards pagination', async function () {
 		    "pageSize": 10,
 		    "embedded": false,
 		    "targetType": "Query",
-		    "paginated": true
+		    "paginated": true,
+		    "direction": "both"
 		}
 	`)
 })
@@ -1289,6 +1336,7 @@ test('refetch entry with initial backwards', async function () {
 		    "embedded": false,
 		    "targetType": "Query",
 		    "paginated": true,
+		    "direction": "both",
 		    "start": "1234"
 		}
 	`)
@@ -1325,6 +1373,7 @@ test('refetch entry with initial forwards', async function () {
 		    "embedded": false,
 		    "targetType": "Query",
 		    "paginated": true,
+		    "direction": "both",
 		    "start": "1234"
 		}
 	`)
@@ -1355,7 +1404,7 @@ test('generated query has same refetch spec', async function () {
 		export default {
 		    "name": "UserFriends_Pagination_Query",
 		    "kind": "HoudiniQuery",
-		    "hash": "1e2bc755f493a5f3c58fdb284609136e7160f1f2365fe192c49f1ae95b3ef2ee",
+		    "hash": "f1eb3c2bde855b70a59c4cccd29ddf014bbd0ff8a49f214af22974d698730a31",
 
 		    "refetch": {
 		        "path": ["usersByCursor"],
@@ -1364,15 +1413,16 @@ test('generated query has same refetch spec', async function () {
 		        "embedded": false,
 		        "targetType": "Query",
 		        "paginated": true,
+		        "direction": "both",
 		        "start": "1234"
 		    },
 
-		    "raw": \`query UserFriends_Pagination_Query($first: Int = 10, $after: String = "1234") {
-		  ...UserFriends_jrGTj
+		    "raw": \`query UserFriends_Pagination_Query($first: Int = 10, $after: String = "1234", $last: Int, $before: String) {
+		  ...UserFriends_2Bf0M6
 		}
 
-		fragment UserFriends_jrGTj on Query {
-		  usersByCursor(first: $first, after: $after) {
+		fragment UserFriends_2Bf0M6 on Query {
+		  usersByCursor(first: $first, after: $after, last: $last, before: $before) {
 		    edges {
 		      node {
 		        id
@@ -1472,7 +1522,9 @@ test('generated query has same refetch spec', async function () {
 		    "input": {
 		        "fields": {
 		            "first": "Int",
-		            "after": "String"
+		            "after": "String",
+		            "last": "Int",
+		            "before": "String"
 		        },
 
 		        "types": {}
@@ -1512,7 +1564,8 @@ test('refetch specification with offset pagination', async function () {
 		    "pageSize": 10,
 		    "embedded": false,
 		    "targetType": "Query",
-		    "paginated": true
+		    "paginated": true,
+		    "direction": "forward"
 		}
 	`)
 })
@@ -1544,6 +1597,7 @@ test('refetch specification with initial offset', async function () {
 		    "embedded": false,
 		    "targetType": "Query",
 		    "paginated": true,
+		    "direction": "forward",
 		    "start": 10
 		}
 	`)
