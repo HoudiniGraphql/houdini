@@ -2,7 +2,7 @@
 
 ## 1.0.0-next.4
 
-### Patch Changes
+### 🐛 Fixes
 
 -   [#846](https://github.com/HoudiniGraphql/houdini/pull/846) [`3245233`](https://github.com/HoudiniGraphql/houdini/commit/32452332c446a6a779a687bd80e2278f1e66ceef) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fixed pageInfo behavior when prepending and append values
 
