@@ -16,7 +16,7 @@ import type { StoreConfig } from '../query'
 import type { CursorHandlers } from './cursor'
 import { cursorHandlers } from './cursor'
 import { offsetHandlers } from './offset'
-import type { PageInfo } from './pageInfo'
+import { extractPageInfo, type PageInfo } from './pageInfo'
 
 type FragmentStoreConfig<_Data extends GraphQLObject, _Input> = StoreConfig<
 	_Data,
@@ -69,7 +69,7 @@ class BasePaginatedFragmentStore<_Data extends GraphQLObject, _Input> {
 }
 
 // both cursor paginated stores add a page info to their subscribe
-class FragmentStoreCursor<
+export class FragmentStoreCursor<
 	_Data extends GraphQLObject,
 	_Input extends Record<string, any>
 > extends BasePaginatedFragmentStore<_Data, _Input> {
@@ -92,11 +92,14 @@ class FragmentStoreCursor<
 				| undefined
 		): (() => void) => {
 			const combined = derived(
-				[store, handlers.pageInfo],
-				([$parent, $pageInfo]) =>
+				[store],
+				([$parent]) =>
 					({
 						...$parent,
-						pageInfo: $pageInfo,
+						pageInfo: extractPageInfo(
+							$parent.data,
+							this.paginationArtifact.refetch!.path
+						),
 					} as FragmentPaginatedResult<_Data, { pageInfo: PageInfo }>)
 			)
 
@@ -110,13 +113,17 @@ class FragmentStoreCursor<
 			fetching: derived(store, ($store) => $store.fetching),
 			fetch: handlers.fetch,
 			pageInfo: handlers.pageInfo,
+
+			// add the pagination handlers
+			loadNextPage: handlers.loadNextPage,
+			loadPreviousPage: handlers.loadPreviousPage,
 		}
 	}
 
 	protected storeHandlers(observer: DocumentStore<_Data, _Input>): CursorHandlers<_Data, _Input> {
 		return cursorHandlers<_Data, _Input>({
 			artifact: this.paginationArtifact,
-			fetchUpdate: async (args) => {
+			fetchUpdate: async (args, updates) => {
 				return observer.send({
 					...args,
 					variables: {
@@ -124,7 +131,7 @@ class FragmentStoreCursor<
 						...this.queryVariables(observer),
 					},
 					cacheParams: {
-						applyUpdates: true,
+						applyUpdates: updates,
 					},
 				})
 			},
@@ -140,53 +147,6 @@ class FragmentStoreCursor<
 			observer,
 			storeName: this.name,
 		})
-	}
-}
-
-// FragmentStoreForwardCursor adds loadNextPage to FragmentStoreCursor
-export class FragmentStoreForwardCursor<
-	_Data extends GraphQLObject,
-	_Input extends Record<string, any>
-> extends FragmentStoreCursor<_Data, _Input> {
-	get(initialValue: _Data | null) {
-		// get the base class
-		const parent = super.get(initialValue)
-		const observer = getClient().observe<_Data, _Input>({
-			artifact: this.paginationArtifact,
-			initialValue,
-		})
-
-		// generate the pagination handlers
-		const handlers = this.storeHandlers(observer)
-
-		return {
-			...parent,
-			// add the specific handlers for this situation
-			loadNextPage: handlers.loadNextPage,
-		}
-	}
-}
-
-// BackwardFragmentStoreCursor adds loadPreviousPage to FragmentStoreCursor
-export class FragmentStoreBackwardCursor<
-	_Data extends GraphQLObject,
-	_Input extends Record<string, any>
-> extends FragmentStoreCursor<_Data, _Input> {
-	get(initialValue: _Data | null) {
-		const parent = super.get(initialValue)
-		const observer = getClient().observe<_Data, _Input>({
-			artifact: this.paginationArtifact,
-			initialValue,
-		})
-
-		// generate the pagination handlers
-		const handlers = this.storeHandlers(observer)
-
-		return {
-			...parent,
-			// add the specific handlers for this situation
-			loadPreviousPage: handlers.loadPreviousPage,
-		}
 	}
 }
 
@@ -220,7 +180,7 @@ export class FragmentStoreOffset<
 						...args?.variables,
 					},
 					cacheParams: {
-						applyUpdates: true,
+						applyUpdates: ['append'],
 					},
 				})
 			},

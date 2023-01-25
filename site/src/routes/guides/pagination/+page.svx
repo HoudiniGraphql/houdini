@@ -116,7 +116,7 @@ info can be looked up with the `pageInfo` field of store's value:
 
 In order to look up the next page for the user's friend. We need a way to query the specific user
 that this fragment has been spread into. In order to pull this off, houdini will try to use a generic `Node`
-interface and corresponding query:
+interface and corresponding query by default but you can change the behavior [for any type in your schema](/guides/caching-data#custom-ids).
 
 ```graphql
 interface Node {
@@ -128,13 +128,12 @@ type Query {
 }
 ```
 
-In short, this means that, by default, any paginated fragment must be of a type that implements the Node interface
-(so it can be looked up in the api). You can read more information about the `Node` interface in
+In short, this means that, by default, any paginated fragment must be of a type that implements the Node interface or has a custom resolver configured
+so it can be looked up in the api. You can read more information about the `Node` interface in
 [this section](https://graphql.org/learn/global-object-identification/) of the graphql community website.
-This is only a requirement for paginated fragments. If your application only uses paginated queries,
-you do not need to implement the Node interface and resolver.
 
-For information about how to customize this behavior, check out the [Caching Data guide](/guides/caching-data#custom-ids).
+Keep in mind, this is only a requirement for paginated fragments. If your application only uses paginated queries,
+you do not need to implement the Node interface and resolver.
 
 ## Mutation Operations
 

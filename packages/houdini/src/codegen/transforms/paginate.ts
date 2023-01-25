@@ -2,7 +2,7 @@ import * as graphql from 'graphql'
 
 import type { Config, CollectedGraphQLDocument } from '../../lib'
 import { HoudiniError, parentTypeFromAncestors, unwrapType, wrapType } from '../../lib'
-import { ArtifactKind, RefetchUpdateMode } from '../../runtime/lib/types'
+import { ArtifactKind } from '../../runtime/lib/types'
 
 // the paginate transform is responsible for preparing a fragment marked for pagination
 // to be embedded in the query that will be used to fetch additional data. That means it
@@ -99,11 +99,7 @@ export default async function paginate(
 				).getFields()[node.name.value]
 				const args = new Set(fieldTypeFields.args.map((arg) => arg.name))
 
-				// also look to see if the user wants to do forward pagination
-				const passedArgs = new Set(node.arguments?.map((arg) => arg.name.value))
-				const specifiedForwards = passedArgs.has('first')
-				const specifiedBackwards = passedArgs.has('last')
-
+				// find and assign the cursor type
 				cursorType =
 					(
 						fieldTypeFields.args?.find((arg) => ['before', 'after'].includes(arg.name))
@@ -113,21 +109,18 @@ export default async function paginate(
 				flags.before.type = cursorType
 
 				// figure out what kind of pagination the field supports
-				const forwardPagination =
-					!specifiedBackwards && args.has('first') && args.has('after')
-				const backwardsPagination =
-					!specifiedForwards && args.has('last') && args.has('before')
+				const passedArgs = new Set<string>(node.arguments?.map((arg) => arg.name.value))
+				const forwards = args.has('first') && args.has('after')
+				const backwards = args.has('last') && args.has('after')
+				const cursorPagination = passedArgs.has('last') || passedArgs.has('first')
 				const offsetPagination =
-					!forwardPagination &&
-					!backwardsPagination &&
-					args.has('offset') &&
-					args.has('limit')
+					!cursorPagination && args.has('offset') && args.has('limit')
 
 				// update the flags based on what the tagged field supports
-				flags.first.enabled = forwardPagination
-				flags.after.enabled = forwardPagination
-				flags.last.enabled = backwardsPagination
-				flags.before.enabled = backwardsPagination
+				flags.first.enabled = forwards
+				flags.after.enabled = forwards
+				flags.last.enabled = backwards
+				flags.before.enabled = backwards
 				flags.offset.enabled = offsetPagination
 				flags.limit.enabled = offsetPagination
 
@@ -168,12 +161,6 @@ export default async function paginate(
 			// check if we have to embed the fragment in Node
 			let nodeQuery = false
 
-			// figure out the right refetch
-			let refetchUpdate = RefetchUpdateMode.append
-			if (flags.last.enabled) {
-				refetchUpdate = RefetchUpdateMode.prepend
-			}
-
 			// remember if we found a fragment or operation
 			let fragment = ''
 
@@ -199,14 +186,14 @@ export default async function paginate(
 							}),
 							{}
 						) || {}
-
 					// figure out the variables we want on the query
 					let newVariables: Record<string, graphql.VariableDefinitionNode> =
 						Object.fromEntries(
 							Object.entries(flags)
 								.filter(
 									([, spec]) =>
-										// let's tale the spec enabled AND where we don't have a dedicated variable for it
+										// use the fields from enabled pagination strategies
+										// where we don't have a dedicated variable for it already
 										spec.enabled && spec.variableName === undefined
 								)
 								.map(([fieldName, spec]) => [
@@ -315,28 +302,32 @@ export default async function paginate(
 				}
 			}
 
+			// figure out some of the refetch values early
+
+			// page size is the default value of the  limit argument
+			const pageSize =
+				flags.first.defaultValue ?? flags.last.defaultValue ?? flags.limit.defaultValue
+			// start is the default value of the offset argument
+			const start =
+				flags.after.defaultValue ?? flags.before.defaultValue ?? flags.offset.defaultValue
+			// the direction is always forwards for offset but check for connections
+			let direction: 'forward' | 'backward' | 'both' = 'forward'
+			if (flags.before.enabled && flags.after.enabled) {
+				direction = 'both'
+			} else if (flags.before.enabled) {
+				direction = 'backward'
+			}
+
 			// add the paginate info to the collected document
 			doc.refetch = {
-				update: refetchUpdate,
 				path: paginationPath,
 				method: flags.first.enabled || flags.last.enabled ? 'cursor' : 'offset',
-				pageSize: 0,
+				pageSize,
 				embedded: nodeQuery,
 				targetType,
 				paginated: true,
-				direction: flags.last.enabled ? 'backwards' : 'forward',
-			}
-
-			// add the correct default page size
-			if (flags.first.enabled) {
-				doc.refetch.pageSize = flags.first.defaultValue
-				doc.refetch.start = flags.after.defaultValue
-			} else if (flags.last.enabled) {
-				doc.refetch.pageSize = flags.last.defaultValue
-				doc.refetch.start = flags.before.defaultValue
-			} else if (flags.limit.enabled) {
-				doc.refetch.pageSize = flags.limit.defaultValue
-				doc.refetch.start = flags.offset.defaultValue
+				direction,
+				start,
 			}
 
 			// if we're not paginating a fragment, there's nothing more to do. we mutated
@@ -571,15 +562,6 @@ function replaceArgumentsWithVariables(
 
 		// if we have a value or its disabled, ignore it
 		if (flags[name].defaultValue || !spec.enabled || seenArgs[name]) {
-			continue
-		}
-
-		// if we are looking at forward pagination args when backwards is enabled ignore it
-		if (['first', 'after'].includes(name) && flags['before'].enabled) {
-			continue
-		}
-		// same but opposite for backwards pagination
-		if (['last', 'before'].includes(name) && flags['first'].enabled) {
 			continue
 		}
 

@@ -50,7 +50,7 @@ export class Cache {
 		variables?: {}
 		parent?: string
 		layer?: LayerID | null
-		applyUpdates?: boolean
+		applyUpdates?: string[]
 		notifySubscribers?: SubscriptionSpec[]
 		forceNotify?: boolean
 	}): SubscriptionSpec[] {
@@ -215,7 +215,7 @@ class CacheInternal {
 		selection,
 		variables = {},
 		parent = rootID,
-		applyUpdates = false,
+		applyUpdates,
 		layer,
 		toNotify = [],
 		forceNotify,
@@ -227,7 +227,7 @@ class CacheInternal {
 		root?: string
 		layer: Layer
 		toNotify?: FieldSelection[]
-		applyUpdates?: boolean
+		applyUpdates?: string[]
 		forceNotify?: boolean
 	}): FieldSelection[] {
 		// if the cache is disabled, dont do anything
@@ -262,7 +262,7 @@ class CacheInternal {
 				selection: fieldSelection,
 				operations,
 				abstract: isAbstract,
-				update,
+				updates,
 				nullable,
 			} = targetSelection[field]
 			const key = evaluateKey(keyRaw, variables)
@@ -299,15 +299,45 @@ class CacheInternal {
 				let newValue = value
 
 				// if the value is an array, we might have to apply updates
-				if (Array.isArray(value) && applyUpdates && update) {
-					// if we have to prepend the new value on the old one
-					if (update === 'append') {
-						newValue = ((previousValue as any[]) || []).concat(value)
+				if (updates && applyUpdates && Array.isArray(value)) {
+					// look every update we were told to apply
+					for (const update of applyUpdates) {
+						// make sure the field accepts the update we're about to check
+						if (!updates.includes(update)) {
+							continue
+						}
+
+						// if we have to prepend the new value on the old one
+						if (update === 'append') {
+							newValue = ((previousValue as any[]) || []).concat(value)
+						}
+						// we might have to prepend our value onto the old one
+						else if (update === 'prepend') {
+							newValue = value.concat(previousValue || [])
+						}
 					}
-					// we might have to prepend our value onto the old one
-					else if (update === 'prepend') {
-						newValue = value.concat(previousValue || [])
-					}
+				}
+
+				// we need to handle pageInfo's contents specially. For now, they have an
+				// update tagged on them which we will interpret here to indicate if we want the new value
+				// or the old one
+
+				// in a prepend update we want to use the old values for endCursor and hasNextPage
+				if (
+					updates &&
+					applyUpdates?.includes('prepend') &&
+					['endCursor', 'hasNextPage'].includes(key)
+				) {
+					newValue = previousValue
+				}
+
+				// in an append update we want to use the old values for startCursor and hasPreviousPage
+				else if (
+					updates &&
+					applyUpdates?.includes('append') &&
+					['startCursor', 'hasPreviousPage'].includes(key)
+				) {
+					newValue = previousValue
 				}
 
 				// if the value changed on a layer that impacts the current latest value
@@ -422,7 +452,7 @@ class CacheInternal {
 				// have already been added as part of a list operation. if that happens
 				// we will need to filter out ids that refer to these fake-edges which
 				// can be idenfitied as not having a cursor or node value
-				const emptyEdges = !update
+				const emptyEdges = !updates
 					? []
 					: oldIDs.map((id) => {
 							if (!id) {
@@ -473,7 +503,7 @@ class CacheInternal {
 				})
 
 				// if we're supposed to apply this write as an update, we need to figure out how
-				if (applyUpdates && update) {
+				if (applyUpdates && updates) {
 					// if we are updating the edges field, we might need to do a little more than just
 					// append/prepend to the field value. we might need to wrap the values in extra references
 					if (key === 'edges') {
@@ -519,17 +549,25 @@ class CacheInternal {
 						})
 					}
 
-					// if we have to prepend it, do so
-					if (update === 'prepend') {
-						linkedIDs = newIDs.concat(oldIDs as (string | null)[])
-					}
-					// otherwise we might have to append it
-					else if (update === 'append') {
-						linkedIDs = oldIDs.concat(newIDs)
-					}
-					// if the update is a replace do the right thing
-					else if (update === 'replace') {
-						linkedIDs = newIDs
+					// look every update we were told to apply
+					for (const update of applyUpdates) {
+						// make sure the field accepts the update we're about to check
+						if (update !== 'replace' && !updates.includes(update)) {
+							continue
+						}
+
+						// if we have to prepend it, do so
+						if (update === 'prepend') {
+							linkedIDs = newIDs.concat(oldIDs as (string | null)[])
+						}
+						// otherwise we might have to append it
+						else if (update === 'append') {
+							linkedIDs = oldIDs.concat(newIDs)
+						}
+						// if the update is a replace do the right thing
+						else if (update === 'replace') {
+							linkedIDs = newIDs
+						}
 					}
 				}
 				// we're not supposed to apply this write as an update, just use the new value
@@ -954,7 +992,7 @@ class CacheInternal {
 		abstract: boolean
 		variables: {}
 		specs: FieldSelection[]
-		applyUpdates: boolean
+		applyUpdates?: string[]
 		fields: SubscriptionSelection
 		layer: Layer
 		forceNotify?: boolean

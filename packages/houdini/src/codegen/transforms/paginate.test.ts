@@ -26,8 +26,8 @@ test('adds pagination info to full', async function () {
 
 	// load the contents of the file
 	expect(docs[0].document).toMatchInlineSnapshot(`
-		fragment UserFriends on Query @arguments(first: {type: "Int", default: 10}, after: {type: "String"}) {
-		  usersByCursor(first: $first, after: $after) @paginate {
+		fragment UserFriends on Query @arguments(first: {type: "Int", default: 10}, after: {type: "String"}, last: {type: "Int"}, before: {type: "String"}) {
+		  usersByCursor(first: $first, after: $after, last: $last, before: $before) @paginate {
 		    edges {
 		      node {
 		        id
@@ -47,7 +47,6 @@ test('adds pagination info to full', async function () {
 
 	expect(docs[0].refetch).toMatchInlineSnapshot(`
 		{
-		    "update": "append",
 		    "path": [
 		        "usersByCursor"
 		    ],
@@ -56,7 +55,7 @@ test('adds pagination info to full', async function () {
 		    "embedded": false,
 		    "targetType": "Query",
 		    "paginated": true,
-		    "direction": "forward"
+		    "direction": "both"
 		}
 	`)
 })
@@ -84,7 +83,6 @@ test('paginated fragments on node pull data from one field deeper', async functi
 
 	expect(docs[0].refetch).toMatchInlineSnapshot(`
 		{
-		    "update": "append",
 		    "path": [
 		        "friendsByCursor"
 		    ],
@@ -93,7 +91,7 @@ test('paginated fragments on node pull data from one field deeper', async functi
 		    "embedded": true,
 		    "targetType": "Node",
 		    "paginated": true,
-		    "direction": "forward"
+		    "direction": "both"
 		}
 	`)
 })
@@ -149,8 +147,8 @@ test('paginate adds forwards cursor args to the full cursor fragment', async fun
 
 	// load the contents of the file
 	expect(docs[0].document).toMatchInlineSnapshot(`
-		fragment UserFriends on Query @arguments(first: {type: "Int", default: 10}, after: {type: "String"}) {
-		  usersByCursor(first: $first, after: $after) @paginate {
+		fragment UserFriends on Query @arguments(first: {type: "Int", default: 10}, after: {type: "String"}, last: {type: "Int"}, before: {type: "String"}) {
+		  usersByCursor(first: $first, after: $after, last: $last, before: $before) @paginate {
 		    edges {
 		      node {
 		        id
@@ -192,8 +190,8 @@ test('paginate adds backwards cursor args to the full cursor fragment', async fu
 
 	// load the contents of the file
 	expect(docs[0].document).toMatchInlineSnapshot(`
-		fragment UserFriends on Query @arguments(last: {type: "Int", default: 10}, before: {type: "String"}) {
-		  usersByCursor(last: $last, before: $before) @paginate {
+		fragment UserFriends on Query @arguments(first: {type: "Int"}, after: {type: "String"}, last: {type: "Int", default: 10}, before: {type: "String"}) {
+		  usersByCursor(last: $last, first: $first, after: $after, before: $before) @paginate {
 		    edges {
 		      node {
 		        id
@@ -278,8 +276,8 @@ test('paginate adds backwards cursor args to the fragment', async function () {
 
 	// load the contents of the file
 	expect(docs[0].document).toMatchInlineSnapshot(`
-		fragment UserFriends on Query @arguments(last: {type: "Int", default: 10}, before: {type: "String"}) {
-		  usersByBackwardsCursor(last: $last, before: $before) @paginate {
+		fragment UserFriends on Query @arguments {
+		  usersByBackwardsCursor(last: 10) @paginate {
 		    edges {
 		      node {
 		        id
@@ -322,8 +320,8 @@ test('sets before with default value', async function () {
 
 	// load the contents of the file
 	expect(docs[0].document).toMatchInlineSnapshot(`
-		fragment UserFriends on Query @arguments(last: {type: "Int", default: 10}, before: {type: "String", default: "cursor"}) {
-		  usersByCursor(last: $last, before: $before) @paginate {
+		fragment UserFriends on Query @arguments(first: {type: "Int"}, after: {type: "String"}, last: {type: "Int", default: 10}, before: {type: "String", default: "cursor"}) {
+		  usersByCursor(last: $last, before: $before, first: $first, after: $after) @paginate {
 		    edges {
 		      node {
 		        id
@@ -418,7 +416,6 @@ test('embeds node pagination query as a separate document', async function () {
 		    "hash": "4ff3c0d7d0bc3f812896dd71dc3ff18e3066fe2459502a99fab163508be90b7a",
 
 		    "refetch": {
-		        "update": "append",
 		        "path": ["friendsByForwardsCursor"],
 		        "method": "cursor",
 		        "pageSize": 10,
@@ -477,7 +474,7 @@ test('embeds node pagination query as a separate document', async function () {
 		                                            "edges": {
 		                                                "type": "UserEdge",
 		                                                "keyRaw": "edges",
-		                                                "update": "append",
+		                                                "updates": ["append", "prepend", "append", "prepend"],
 
 		                                                "selection": {
 		                                                    "fields": {
@@ -517,22 +514,26 @@ test('embeds node pagination query as a separate document', async function () {
 		                                                    "fields": {
 		                                                        "hasPreviousPage": {
 		                                                            "type": "Boolean",
-		                                                            "keyRaw": "hasPreviousPage"
+		                                                            "keyRaw": "hasPreviousPage",
+		                                                            "updates": ["append", "prepend", "append", "prepend"]
 		                                                        },
 
 		                                                        "hasNextPage": {
 		                                                            "type": "Boolean",
-		                                                            "keyRaw": "hasNextPage"
+		                                                            "keyRaw": "hasNextPage",
+		                                                            "updates": ["append", "prepend", "append", "prepend"]
 		                                                        },
 
 		                                                        "startCursor": {
 		                                                            "type": "String",
-		                                                            "keyRaw": "startCursor"
+		                                                            "keyRaw": "startCursor",
+		                                                            "updates": ["append", "prepend", "append", "prepend"]
 		                                                        },
 
 		                                                        "endCursor": {
 		                                                            "type": "String",
-		                                                            "keyRaw": "endCursor"
+		                                                            "keyRaw": "endCursor",
+		                                                            "updates": ["append", "prepend", "append", "prepend"]
 		                                                        }
 		                                                    }
 		                                                }
@@ -576,7 +577,7 @@ test('embeds node pagination query as a separate document', async function () {
 		                                    "edges": {
 		                                        "type": "UserEdge",
 		                                        "keyRaw": "edges",
-		                                        "update": "append",
+		                                        "updates": ["append", "prepend"],
 
 		                                        "selection": {
 		                                            "fields": {
@@ -616,22 +617,26 @@ test('embeds node pagination query as a separate document', async function () {
 		                                            "fields": {
 		                                                "hasPreviousPage": {
 		                                                    "type": "Boolean",
-		                                                    "keyRaw": "hasPreviousPage"
+		                                                    "keyRaw": "hasPreviousPage",
+		                                                    "updates": ["append", "prepend"]
 		                                                },
 
 		                                                "hasNextPage": {
 		                                                    "type": "Boolean",
-		                                                    "keyRaw": "hasNextPage"
+		                                                    "keyRaw": "hasNextPage",
+		                                                    "updates": ["append", "prepend"]
 		                                                },
 
 		                                                "startCursor": {
 		                                                    "type": "String",
-		                                                    "keyRaw": "startCursor"
+		                                                    "keyRaw": "startCursor",
+		                                                    "updates": ["append", "prepend"]
 		                                                },
 
 		                                                "endCursor": {
 		                                                    "type": "String",
-		                                                    "keyRaw": "endCursor"
+		                                                    "keyRaw": "endCursor",
+		                                                    "updates": ["append", "prepend"]
 		                                                }
 		                                            }
 		                                        }
@@ -707,7 +712,6 @@ test('embeds custom pagination query as a separate document', async function () 
 		    "hash": "c5970407ebf288fcad596b8eacf0093c3992c8b16a5044e4f38317c8d73245aa",
 
 		    "refetch": {
-		        "update": "append",
 		        "path": ["friendsConnection"],
 		        "method": "cursor",
 		        "pageSize": 10,
@@ -765,7 +769,7 @@ test('embeds custom pagination query as a separate document', async function () 
 		                                    "edges": {
 		                                        "type": "GhostEdge",
 		                                        "keyRaw": "edges",
-		                                        "update": "append",
+		                                        "updates": ["append", "prepend", "append", "prepend"],
 
 		                                        "selection": {
 		                                            "fields": {
@@ -810,22 +814,26 @@ test('embeds custom pagination query as a separate document', async function () 
 		                                            "fields": {
 		                                                "hasPreviousPage": {
 		                                                    "type": "Boolean",
-		                                                    "keyRaw": "hasPreviousPage"
+		                                                    "keyRaw": "hasPreviousPage",
+		                                                    "updates": ["append", "prepend", "append", "prepend"]
 		                                                },
 
 		                                                "hasNextPage": {
 		                                                    "type": "Boolean",
-		                                                    "keyRaw": "hasNextPage"
+		                                                    "keyRaw": "hasNextPage",
+		                                                    "updates": ["append", "prepend", "append", "prepend"]
 		                                                },
 
 		                                                "startCursor": {
 		                                                    "type": "String",
-		                                                    "keyRaw": "startCursor"
+		                                                    "keyRaw": "startCursor",
+		                                                    "updates": ["append", "prepend", "append", "prepend"]
 		                                                },
 
 		                                                "endCursor": {
 		                                                    "type": "String",
-		                                                    "keyRaw": "endCursor"
+		                                                    "keyRaw": "endCursor",
+		                                                    "updates": ["append", "prepend", "append", "prepend"]
 		                                                }
 		                                            }
 		                                        }
@@ -982,8 +990,8 @@ test('query with backwards cursor paginate', async function () {
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users($last: Int = 10, $before: String) {
-		  usersByBackwardsCursor(last: $last, before: $before) @paginate {
+		query Users {
+		  usersByBackwardsCursor(last: 10) @paginate {
 		    edges {
 		      node {
 		        id
@@ -1053,8 +1061,8 @@ test('query with backwards cursor on full paginate', async function () {
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users($last: Int = 10, $before: String) {
-		  usersByCursor(last: $last, before: $before) @paginate {
+		query Users($first: Int, $after: String, $last: Int = 10, $before: String) {
+		  usersByCursor(last: $last, first: $first, after: $after, before: $before) @paginate {
 		    edges {
 		      node {
 		        id
@@ -1096,8 +1104,51 @@ test('query with forwards cursor on full paginate', async function () {
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
+		query Users($first: Int = 10, $after: String, $last: Int, $before: String) {
+		  usersByCursor(first: $first, after: $after, last: $last, before: $before) @paginate {
+		    edges {
+		      node {
+		        id
+		        __typename
+		      }
+		      cursor
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
+		}
+	`)
+})
+
+test("don't generate unsupported directions", async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+                query Users {
+                    usersByForwardsCursor(first: 10) @paginate {
+                        edges {
+                            node {
+                                id
+                            }
+                        }
+                    }
+                }
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	// load the contents of the file
+	expect(docs[0]?.document).toMatchInlineSnapshot(`
 		query Users($first: Int = 10, $after: String) {
-		  usersByCursor(first: $first, after: $after) @paginate {
+		  usersByForwardsCursor(first: $first, after: $after) @paginate {
 		    edges {
 		      node {
 		        id
@@ -1139,8 +1190,8 @@ test("forwards cursor paginated query doesn't overlap variables", async function
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users($first: Int!, $after: String) {
-		  usersByCursor(first: $first, after: $after) @paginate {
+		query Users($first: Int!, $after: String, $last: Int, $before: String) {
+		  usersByCursor(first: $first, after: $after, last: $last, before: $before) @paginate {
 		    edges {
 		      node {
 		        id
@@ -1182,8 +1233,8 @@ test("backwards cursor paginated query doesn't overlap variables", async functio
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users($last: Int!, $before: String) {
-		  usersByCursor(last: $last, before: $before) @paginate {
+		query Users($last: Int!, $first: Int, $after: String, $before: String) {
+		  usersByCursor(last: $last, first: $first, after: $after, before: $before) @paginate {
 		    edges {
 		      node {
 		        id
@@ -1253,7 +1304,6 @@ test('refetch specification with backwards pagination', async function () {
 
 	expect(docs[0].refetch).toMatchInlineSnapshot(`
 		{
-		    "update": "prepend",
 		    "path": [
 		        "usersByCursor"
 		    ],
@@ -1262,7 +1312,7 @@ test('refetch specification with backwards pagination', async function () {
 		    "embedded": false,
 		    "targetType": "Query",
 		    "paginated": true,
-		    "direction": "backwards"
+		    "direction": "both"
 		}
 	`)
 })
@@ -1290,7 +1340,6 @@ test('refetch entry with initial backwards', async function () {
 
 	expect(docs[0].refetch).toMatchInlineSnapshot(`
 		{
-		    "update": "prepend",
 		    "path": [
 		        "usersByCursor"
 		    ],
@@ -1299,7 +1348,7 @@ test('refetch entry with initial backwards', async function () {
 		    "embedded": false,
 		    "targetType": "Query",
 		    "paginated": true,
-		    "direction": "backwards",
+		    "direction": "both",
 		    "start": "1234"
 		}
 	`)
@@ -1328,7 +1377,6 @@ test('refetch entry with initial forwards', async function () {
 
 	expect(docs[0].refetch).toMatchInlineSnapshot(`
 		{
-		    "update": "append",
 		    "path": [
 		        "usersByCursor"
 		    ],
@@ -1337,7 +1385,7 @@ test('refetch entry with initial forwards', async function () {
 		    "embedded": false,
 		    "targetType": "Query",
 		    "paginated": true,
-		    "direction": "forward",
+		    "direction": "both",
 		    "start": "1234"
 		}
 	`)
@@ -1368,26 +1416,25 @@ test('generated query has same refetch spec', async function () {
 		export default {
 		    "name": "UserFriends_Pagination_Query",
 		    "kind": "HoudiniQuery",
-		    "hash": "1e2bc755f493a5f3c58fdb284609136e7160f1f2365fe192c49f1ae95b3ef2ee",
+		    "hash": "f1eb3c2bde855b70a59c4cccd29ddf014bbd0ff8a49f214af22974d698730a31",
 
 		    "refetch": {
-		        "update": "append",
 		        "path": ["usersByCursor"],
 		        "method": "cursor",
 		        "pageSize": 10,
 		        "embedded": false,
 		        "targetType": "Query",
 		        "paginated": true,
-		        "direction": "forward",
+		        "direction": "both",
 		        "start": "1234"
 		    },
 
-		    "raw": \`query UserFriends_Pagination_Query($first: Int = 10, $after: String = "1234") {
-		  ...UserFriends_jrGTj
+		    "raw": \`query UserFriends_Pagination_Query($first: Int = 10, $after: String = "1234", $last: Int, $before: String) {
+		  ...UserFriends_2Bf0M6
 		}
 
-		fragment UserFriends_jrGTj on Query {
-		  usersByCursor(first: $first, after: $after) {
+		fragment UserFriends_2Bf0M6 on Query {
+		  usersByCursor(first: $first, after: $after, last: $last, before: $before) {
 		    edges {
 		      node {
 		        id
@@ -1418,7 +1465,7 @@ test('generated query has same refetch spec', async function () {
 		                        "edges": {
 		                            "type": "UserEdge",
 		                            "keyRaw": "edges",
-		                            "update": "append",
+		                            "updates": ["append", "prepend", "append", "prepend"],
 
 		                            "selection": {
 		                                "fields": {
@@ -1458,22 +1505,26 @@ test('generated query has same refetch spec', async function () {
 		                                "fields": {
 		                                    "hasPreviousPage": {
 		                                        "type": "Boolean",
-		                                        "keyRaw": "hasPreviousPage"
+		                                        "keyRaw": "hasPreviousPage",
+		                                        "updates": ["append", "prepend", "append", "prepend"]
 		                                    },
 
 		                                    "hasNextPage": {
 		                                        "type": "Boolean",
-		                                        "keyRaw": "hasNextPage"
+		                                        "keyRaw": "hasNextPage",
+		                                        "updates": ["append", "prepend", "append", "prepend"]
 		                                    },
 
 		                                    "startCursor": {
 		                                        "type": "String",
-		                                        "keyRaw": "startCursor"
+		                                        "keyRaw": "startCursor",
+		                                        "updates": ["append", "prepend", "append", "prepend"]
 		                                    },
 
 		                                    "endCursor": {
 		                                        "type": "String",
-		                                        "keyRaw": "endCursor"
+		                                        "keyRaw": "endCursor",
+		                                        "updates": ["append", "prepend", "append", "prepend"]
 		                                    }
 		                                }
 		                            }
@@ -1487,7 +1538,9 @@ test('generated query has same refetch spec', async function () {
 		    "input": {
 		        "fields": {
 		            "first": "Int",
-		            "after": "String"
+		            "after": "String",
+		            "last": "Int",
+		            "before": "String"
 		        },
 
 		        "types": {}
@@ -1520,7 +1573,6 @@ test('refetch specification with offset pagination', async function () {
 
 	expect(docs[0].refetch).toMatchInlineSnapshot(`
 		{
-		    "update": "append",
 		    "path": [
 		        "usersByOffset"
 		    ],
@@ -1553,7 +1605,6 @@ test('refetch specification with initial offset', async function () {
 
 	expect(docs[0].refetch).toMatchInlineSnapshot(`
 		{
-		    "update": "append",
 		    "path": [
 		        "usersByOffset"
 		    ],
