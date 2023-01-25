@@ -4,7 +4,6 @@ import type { GraphQLObject } from '$houdini/runtime/lib/types'
 import type { RequestEvent } from '@sveltejs/kit'
 
 import { getClient } from '../client'
-import { getSession } from '../session'
 import { fetchParams } from './query'
 
 export class MutationStore<
