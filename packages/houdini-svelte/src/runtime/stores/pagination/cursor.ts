@@ -106,6 +106,11 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 			fetch?: typeof globalThis.fetch
 			metadata?: {}
 		} = {}) => {
+			if (artifact.refetch?.direction === 'backward') {
+				console.warn(`⚠️ ${storeName}.loadNextPage was called but it does not support forwards pagination.
+If you think this is an error, please open an issue on GitHub`)
+				return
+			}
 			// we need to find the connection object holding the current page info
 			const currentPageInfo = extractPageInfo(getState().data, artifact.refetch!.path)
 			// if there is no next page, we're done
@@ -142,6 +147,12 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 			fetch?: typeof globalThis.fetch
 			metadata?: {}
 		} = {}) => {
+			if (artifact.refetch?.direction === 'forward') {
+				console.warn(`⚠️ ${storeName}.loadPreviousPage was called but it does not support backwards pagination.
+If you think this is an error, please open an issue on GitHub`)
+				return
+			}
+
 			// we need to find the connection object holding the current page info
 			const currentPageInfo = extractPageInfo(getState().data, artifact.refetch!.path)
 
