@@ -1769,7 +1769,7 @@ test('ensure parent type is properly passed for nested lists', function () {
 					connection: false,
 					type: 'City',
 				},
-				update: RefetchUpdateMode.append,
+				updates: [RefetchUpdateMode.append],
 				selection: {
 					fields: {
 						id: {
@@ -1783,7 +1783,6 @@ test('ensure parent type is properly passed for nested lists', function () {
 						libraries: {
 							type: 'Library',
 							keyRaw: 'libraries',
-							update: RefetchUpdateMode.append,
 							list: {
 								name: 'Library_List',
 								connection: false,

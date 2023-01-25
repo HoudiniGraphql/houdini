@@ -1,9 +1,4 @@
-import type {
-	SubscriptionSelection,
-	ListWhen,
-	SubscriptionSpec,
-	RefetchUpdateMode,
-} from '../lib/types'
+import type { SubscriptionSelection, ListWhen, SubscriptionSpec } from '../lib/types'
 import type { Cache, LinkedList } from './cache'
 import { rootID } from './cache'
 import { flattenList } from './stuff'
@@ -240,9 +235,7 @@ export class List {
 								edges: {
 									keyRaw: 'edges',
 									type: 'ConnectionEdge',
-									update: (where === 'first'
-										? 'prepend'
-										: 'append') as RefetchUpdateMode,
+									updates: ['append', 'prepend'],
 									selection: {
 										fields: {
 											node: {
@@ -278,7 +271,7 @@ export class List {
 					newEntries: {
 						keyRaw: this.key,
 						type: listType,
-						update: (where === 'first' ? 'prepend' : 'append') as RefetchUpdateMode,
+						updates: ['append', 'prepend'],
 						selection: {
 							...selection,
 							fields: {
@@ -303,7 +296,7 @@ export class List {
 			data: insertData,
 			variables,
 			parent: this.recordID,
-			applyUpdates: true,
+			applyUpdates: [where === 'first' ? 'prepend' : 'append'],
 		})
 	}
 

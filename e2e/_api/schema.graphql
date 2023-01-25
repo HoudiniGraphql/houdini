@@ -71,6 +71,8 @@ type Subscription {
 type User implements Node {
 	birthDate: DateTime
 	friendsConnection(after: String, before: String, first: Int, last: Int): UserConnection!
+	"This is the same list as what's used globally. its here to tests fragments"
+	usersConnection(after: String, before: String, first: Int, last: Int): UserConnection!
 	friendsList(limit: Int, offset: Int): [User!]!
 	id: ID!
 	name: String!

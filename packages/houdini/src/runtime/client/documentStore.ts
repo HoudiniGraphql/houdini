@@ -560,7 +560,7 @@ export type ClientPluginContext = {
 		forceNotify?: boolean
 		disableWrite?: boolean
 		disableRead?: boolean
-		applyUpdates?: boolean
+		applyUpdates?: string[]
 	}
 	stuff: App.Stuff
 }
