@@ -6,7 +6,7 @@ description: Queries in Houdini
 <script>
     import { DeepDive, Warning, Transformation, Highlight } from '~/components'
 
-  const forwardPaginationStoreBefore = `
+  const cursorStoreBefore = `
 query MyFriends {
   viewer {
     friends(first: 10) @paginate( name: "My_Friends") {
@@ -18,7 +18,7 @@ query MyFriends {
   }
 }
 `
-	const forwardPaginationStoreAfter = `
+	const cursorStoreAfter = `
 type MyFriendsStore = QueryStore & {
   loadNextPage(
     pageCount?: number,
@@ -26,23 +26,6 @@ type MyFriendsStore = QueryStore & {
     houdiniContext?: HoudiniContext,
   ): Promise<void>,
 
-  pageInfo: Readable<PageInfo>
-}
-`
-	 const backwardsPaginationStoreBefore = `
-query MyFriends {
-  viewer {
-    friends(last: 10) @paginate(name: "My_Friends") {
-      edges {
-        node {
-          id
-        }
-      }
-  }
-}
-`
-	const backwardsPaginationStoreAfter = `
-type MyFriendsStore = QueryStore & {
   loadPreviousPage(
     pageCount?: number,
     before?: string | number
@@ -265,7 +248,6 @@ export function _houdini_onError({ error }: OnErrorEvent) {
 }
 ```
 
-
 ## Manual Loading
 
 If you are writing your route's load functions by hand, you'll want to instantiate a store, calls its `fetch` method and return the store to your route. In order to streamline this, houdini provides
@@ -484,26 +466,15 @@ If the query contains the pagination directive then the generated store will hav
 according to the pagination strategy and direction. For more information about pagination in general, check
 out [this guide](/guides/pagination).
 
-### Forward cursor pagination
+### Cursor-based pagination
 
-If the decorated field implements cursor-based pagination and provides a `first` argument, the query store will be
-generated with an extra method that loads more data and a field pointing to a store with the current `pageInfo`
+If the decorated field implements cursor-based pagination the query store will be
+generated with an extra methods that loads more data in both directions and a field pointing to a store with the current `pageInfo`
 object. This extra field can be used to track if there are more pages to load:
 
 <Transformation>
-	<Highlight slot="from" code={forwardPaginationStoreBefore} language="graphql" />
-	<Highlight slot="to" code={forwardPaginationStoreAfter} language="typescript"/>
-</Transformation>
-
-### Backwards cursor pagination
-
-If the decorated field implements cursor-based pagination and provides a `last` argument, the query store will be
-generated with an extra method that loads more data and a field pointing to a store with the current `pageInfo`
-object. This extra field can be used to track if there are more pages to load:
-
-<Transformation>
-	<Highlight slot="from" code={backwardsPaginationStoreBefore} language="graphql" />
-	<Highlight slot="to" code={backwardsPaginationStoreAfter} language="typescript"/>
+	<Highlight slot="from" code={cursorStoreBefore} language="graphql" />
+	<Highlight slot="to" code={cursorStoreAfter} language="typescript"/>
 </Transformation>
 
 ### Offset/limit Pagination
