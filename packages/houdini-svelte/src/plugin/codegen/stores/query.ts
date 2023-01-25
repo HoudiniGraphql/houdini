@@ -31,8 +31,7 @@ export async function queryStore(
 	// in order to build the store, we need to know what class we're going to import from
 	let which: keyof Required<HoudiniSvelteConfig>['customStores'] = 'query'
 	if (paginationMethod === 'cursor') {
-		which =
-			doc.refetch?.direction === 'forward' ? 'queryForwardsCursor' : 'queryBackwardsCursor'
+		which = 'queryCursor'
 	} else if (paginationMethod === 'offset') {
 		which = 'queryOffset'
 	}

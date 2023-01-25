@@ -15,8 +15,7 @@ import type { CursorHandlers } from './cursor'
 import { cursorHandlers } from './cursor'
 import type { OffsetHandlers } from './offset'
 import { offsetHandlers } from './offset'
-import type { PageInfo } from './pageInfo'
-import { nullPageInfo } from './pageInfo'
+import { extractPageInfo, type PageInfo } from './pageInfo'
 
 export type CursorStoreResult<_Data extends GraphQLObject, _Input extends {}> = QueryResult<
 	_Data,
@@ -24,14 +23,14 @@ export type CursorStoreResult<_Data extends GraphQLObject, _Input extends {}> = 
 > & { pageInfo: PageInfo }
 
 // both cursor paginated stores add a page info to their subscribe
-class CursorPaginatedStore<_Data extends GraphQLObject, _Input extends {}> extends QueryStore<
+export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> extends QueryStore<
 	_Data,
 	_Input
 > {
 	// all paginated stores need to have a flag to distinguish from other query stores
 	paginated = true
 
-	protected handlers: CursorHandlers<_Data, _Input>
+	#handlers: CursorHandlers<_Data, _Input>
 
 	constructor(config: StoreConfig<_Data, _Input, QueryArtifact>) {
 		super(config)
@@ -41,19 +40,19 @@ class CursorPaginatedStore<_Data extends GraphQLObject, _Input extends {}> exten
 			artifact: this.artifact,
 		})
 
-		this.handlers = cursorHandlers<_Data, _Input>({
+		this.#handlers = cursorHandlers<_Data, _Input>({
 			artifact: this.artifact,
 			observer: this.observer,
 			storeName: this.name,
 			fetch: super.fetch.bind(this),
-			fetchUpdate: async (args) => {
+			fetchUpdate: async (args, updates) => {
 				return paginationObserver.send({
 					...args,
 					variables: {
 						...args?.variables,
 					},
 					cacheParams: {
-						applyUpdates: true,
+						applyUpdates: updates,
 					},
 				})
 			},
@@ -65,51 +64,32 @@ class CursorPaginatedStore<_Data extends GraphQLObject, _Input extends {}> exten
 	fetch(params?: ClientFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
-		return this.handlers!.fetch.call(this, args)
+		return this.#handlers!.fetch.call(this, args)
 	}
 
-	extraFields(): { pageInfo: PageInfo } {
-		return {
-			pageInfo: nullPageInfo(),
-		}
+	async loadPreviousPage(
+		args?: Parameters<Required<CursorHandlers<_Data, _Input>>['loadPreviousPage']>[0]
+	) {
+		return this.#handlers.loadPreviousPage(args)
+	}
+
+	async loadNextPage(args?: Parameters<CursorHandlers<_Data, _Input>['loadNextPage']>[0]) {
+		return this.#handlers.loadNextPage(args)
 	}
 
 	subscribe(
 		run: Subscriber<CursorStoreResult<_Data, _Input>>,
 		invalidate?: ((value?: CursorStoreResult<_Data, _Input> | undefined) => void) | undefined
 	): () => void {
-		const combined = derived(
-			[{ subscribe: super.subscribe.bind(this) }, this.handlers.pageInfo],
-			([$parent, $pageInfo]) => ({
+		const combined = derived([{ subscribe: super.subscribe.bind(this) }], ([$parent]) => {
+			return {
 				// @ts-ignore
 				...$parent,
-				pageInfo: $pageInfo,
-			})
-		)
+				pageInfo: extractPageInfo($parent.data, this.artifact.refetch!.path),
+			}
+		})
 
 		return combined.subscribe(run, invalidate)
-	}
-}
-
-// QueryStoreForwardCursor adds loadNextPage to CursorPaginatedQueryStore
-export class QueryStoreForwardCursor<
-	_Data extends GraphQLObject,
-	_Input extends {}
-> extends CursorPaginatedStore<_Data, _Input> {
-	async loadNextPage(args?: Parameters<CursorHandlers<_Data, _Input>['loadNextPage']>[0]) {
-		return this.handlers.loadNextPage(args)
-	}
-}
-
-// QueryStoreBackwardCursor adds loadPreviousPage to CursorPaginatedQueryStore
-export class QueryStoreBackwardCursor<
-	_Data extends GraphQLObject,
-	_Input extends {}
-> extends CursorPaginatedStore<_Data, _Input> {
-	async loadPreviousPage(
-		args?: Parameters<Required<CursorHandlers<_Data, _Input>>['loadPreviousPage']>[0]
-	) {
-		return this.handlers.loadPreviousPage(args)
 	}
 }
 
@@ -142,7 +122,7 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input extends {}> ex
 						...args?.variables,
 					},
 					cacheParams: {
-						applyUpdates: true,
+						applyUpdates: ['append'],
 					},
 				})
 			},

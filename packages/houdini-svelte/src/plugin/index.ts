@@ -242,11 +242,9 @@ export type HoudiniSvelteConfig = {
 		mutation?: string
 		subscription?: string
 		fragment?: string
-		queryForwardsCursor?: string
-		queryBackwardsCursor?: string
+		queryCursor?: string
 		queryOffset?: string
-		fragmentForwardsCursor?: string
-		fragmentBackwardsCursor?: string
+		fragmentCursor?: string
 		fragmentOffset?: string
 	}
 }

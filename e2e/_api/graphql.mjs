@@ -2,8 +2,9 @@ import { GraphQLYogaError } from '@graphql-yoga/node'
 import { sleep } from '@kitql/helper'
 import fs from 'fs-extra'
 import { GraphQLScalarType, Kind } from 'graphql'
-import { connectionFromArray } from 'graphql-relay'
 import path from 'path'
+
+import { connectionFromArray } from './util.mjs'
 
 const sourceFiles = ['../_api/schema.graphql', '../_api/schema-hello.graphql']
 export const typeDefs = sourceFiles.map((filepath) =>
@@ -188,6 +189,9 @@ export const resolvers = {
 			return [...getSnapshot(user.snapshot)].splice(args.offset || 0, args.limit)
 		},
 		friendsConnection(user, args) {
+			return connectionFromArray(getSnapshot(user.snapshot), args)
+		},
+		usersConnection: (user, args) => {
 			return connectionFromArray(getSnapshot(user.snapshot), args)
 		},
 	},

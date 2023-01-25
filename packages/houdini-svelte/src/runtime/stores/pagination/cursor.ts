@@ -24,7 +24,10 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 	storeName: string
 	observer: DocumentStore<_Data, _Input>
 	fetch: FetchFn<_Data, _Input>
-	fetchUpdate: FetchFn<_Data, _Input>
+	fetchUpdate: (
+		arg: Parameters<FetchFn<_Data, _Input>>[0],
+		updates: string[]
+	) => ReturnType<FetchFn<_Data, _Input>>
 }): CursorHandlers<_Data, _Input> {
 	const pageInfo = writable<PageInfo>(extractPageInfo(get(observer).data, artifact.refetch!.path))
 
@@ -37,12 +40,14 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 		functionName,
 		metadata = {},
 		fetch,
+		where,
 	}: {
 		pageSizeVar: string
 		functionName: string
 		input: _Input
 		metadata?: {}
 		fetch?: typeof globalThis.fetch
+		where: 'start' | 'end'
 	}) => {
 		const config = getCurrentConfig()
 
@@ -58,12 +63,16 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 		}
 
 		// send the query
-		const { data } = await parentFetchUpdate({
-			variables: loadVariables,
-			fetch,
-			metadata,
-			policy: CachePolicy.NetworkOnly,
-		})
+		const { data } = await parentFetchUpdate(
+			{
+				variables: loadVariables,
+				fetch,
+				metadata,
+				policy: CachePolicy.NetworkOnly,
+			},
+			// if we are adding to the start of the list, prepend the result
+			[where === 'start' ? 'prepend' : 'append']
+		)
 
 		// if the query is embedded in a node field (paginated fragments)
 		// make sure we look down one more for the updated page info
@@ -97,6 +106,11 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 			fetch?: typeof globalThis.fetch
 			metadata?: {}
 		} = {}) => {
+			if (artifact.refetch?.direction === 'backward') {
+				console.warn(`⚠️ ${storeName}.loadNextPage was called but it does not support forwards pagination.
+If you think this is an error, please open an issue on GitHub`)
+				return
+			}
 			// we need to find the connection object holding the current page info
 			const currentPageInfo = extractPageInfo(getState().data, artifact.refetch!.path)
 			// if there is no next page, we're done
@@ -106,10 +120,10 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 
 			// only specify the page count if we're given one
 			const input: any = {
+				first: first ?? artifact.refetch!.pageSize,
 				after: after ?? currentPageInfo.endCursor,
-			}
-			if (first) {
-				input.first = first
+				before: null,
+				last: null,
 			}
 
 			// load the page
@@ -119,6 +133,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 				input,
 				fetch,
 				metadata,
+				where: 'end',
 			})
 		},
 		loadPreviousPage: async ({
@@ -132,6 +147,12 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 			fetch?: typeof globalThis.fetch
 			metadata?: {}
 		} = {}) => {
+			if (artifact.refetch?.direction === 'forward') {
+				console.warn(`⚠️ ${storeName}.loadPreviousPage was called but it does not support backwards pagination.
+If you think this is an error, please open an issue on GitHub`)
+				return
+			}
+
 			// we need to find the connection object holding the current page info
 			const currentPageInfo = extractPageInfo(getState().data, artifact.refetch!.path)
 
@@ -143,9 +164,9 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 			// only specify the page count if we're given one
 			const input: any = {
 				before: before ?? currentPageInfo.startCursor,
-			}
-			if (last) {
-				input.last = last
+				last: last ?? artifact.refetch!.pageSize,
+				first: null,
+				after: null,
 			}
 
 			// load the page
@@ -155,6 +176,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 				input,
 				fetch,
 				metadata,
+				where: 'start',
 			})
 		},
 		pageInfo,
@@ -166,20 +188,21 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 
 			const { variables } = params ?? {}
 
-			// build up the variables to pass to the query
-			const queryVariables: Record<string, any> = {
-				...variables,
-			}
-
 			// if the input is different than the query variables then we just do everything like normal
 			if (variables && !deepEquals(getState().variables, variables)) {
-				return await parentFetch({
-					...params,
-					then(data) {
-						pageInfo.set(extractPageInfo(data, artifact.refetch!.path))
-					},
-				})
+				return await parentFetch(params)
 			}
+
+			// we need to find the connection object holding the current page info
+			try {
+				var currentPageInfo = extractPageInfo(getState().data, artifact.refetch!.path)
+			} catch {
+				// if there was any issue getting the page info, just fetch like normal
+				return await parentFetch(params)
+			}
+
+			// build up the variables to pass to the query
+			const queryVariables: Record<string, any> = {}
 
 			// we are updating the current set of items, count the number of items that currently exist
 			// and ask for the full data set
@@ -189,9 +212,42 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 
 			// if there are more records than the first page, we need fetch to load everything
 			if (count && count > artifact.refetch!.pageSize) {
-				// reverse cursors need the last entries in the list
-				queryVariables[artifact.refetch!.update === 'prepend' ? 'last' : 'first'] = count
+				// if we aren't at one of the boundaries, we can't refresh the current window
+				// of a paginated field. warn the user if that's the case
+				if (
+					currentPageInfo.hasPreviousPage &&
+					currentPageInfo.hasNextPage &&
+					// only log if they haven't provided special parameters
+					!(
+						(variables?.['first'] && variables?.['after']) ||
+						(variables?.['last'] && variables?.['before'])
+					)
+				) {
+					console.warn(`⚠️ Encountered a fetch() in the middle of the connection.
+Make sure to pass a cursor value by hand that includes the current set (ie the entry before startCursor)					
+`)
+					return observer.state
+				}
+
+				// if we are loading the first boundary
+				if (!currentPageInfo.hasPreviousPage) {
+					queryVariables['first'] = count
+					queryVariables['after'] = null
+					queryVariables['last'] = null
+					queryVariables['before'] = null
+				}
+
+				// or we're loading the last boundary
+				else if (!currentPageInfo.hasNextPage) {
+					queryVariables['last'] = count
+					queryVariables['first'] = null
+					queryVariables['after'] = null
+					queryVariables['before'] = null
+				}
 			}
+
+			// let the user overwrite the variables
+			Object.assign(queryVariables, variables ?? {})
 
 			// send the query
 			const result = await parentFetch({

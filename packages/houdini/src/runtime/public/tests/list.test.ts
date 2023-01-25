@@ -30,6 +30,7 @@ test('list.append accepts record proxies', function () {
 									edges: {
 										type: 'UserEdge',
 										keyRaw: 'edges',
+										updates: ['append'],
 										selection: {
 											fields: {
 												node: {

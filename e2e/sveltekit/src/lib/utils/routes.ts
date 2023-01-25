@@ -64,11 +64,13 @@ export const routes = {
 
   Pagination_query_forward_cursor: '/pagination/query/forward-cursor',
   Pagination_query_backwards_cursor: '/pagination/query/backwards-cursor',
+  Pagination_query_bidirectional_cursor: '/pagination/query/bidirectional-cursor',
   Pagination_query_offset: '/pagination/query/offset',
   Pagination_query_offset_variable: '/pagination/query/offset-variable',
 
   Pagination_fragment_forward_cursor: '/pagination/fragment/forward-cursor',
   Pagination_fragment_backwards_cursor: '/pagination/fragment/backwards-cursor',
+  Pagination_fragment_bidirectional_cursor: '/pagination/fragment/bidirectional-cursor',
   Pagination_fragment_offset: '/pagination/fragment/offset',
 
   Stores_Nested_List: '/stores/nested-list',
