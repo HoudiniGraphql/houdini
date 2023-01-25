@@ -1,9 +1,10 @@
 import type { DocumentStore } from '$houdini/runtime/client'
 import type { MutationArtifact } from '$houdini/runtime/lib/types'
 import type { GraphQLObject } from '$houdini/runtime/lib/types'
+import type { RequestEvent } from '@sveltejs/kit'
 
 import { getClient } from '../client'
-import { getSession } from '../session'
+import { fetchParams } from './query'
 
 export class MutationStore<
 	_Data extends GraphQLObject,
@@ -25,19 +26,27 @@ export class MutationStore<
 		{
 			metadata,
 			fetch,
+			event,
 			...mutationConfig
 		}: {
 			// @ts-ignore
 			metadata?: App.Metadata
 			fetch?: typeof globalThis.fetch
+			event?: RequestEvent
 		} & MutationConfig<_Data, _Input, _Optimistic> = {}
 	): Promise<_Data> {
+		const { context } = await fetchParams(this.artifact, this.artifact.name, {
+			fetch,
+			metadata,
+			event,
+		})
+
 		return (
 			await this.store.send({
 				variables,
-				fetch,
+				fetch: context.fetch,
 				metadata,
-				session: await getSession(),
+				session: context.session,
 				stuff: {
 					...mutationConfig,
 				},

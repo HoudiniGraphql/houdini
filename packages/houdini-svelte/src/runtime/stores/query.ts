@@ -3,10 +3,12 @@ import type { FetchContext } from '$houdini/runtime/client/plugins/fetch'
 import * as log from '$houdini/runtime/lib/log'
 import type {
 	QueryArtifact,
+	MutationArtifact,
 	GraphQLObject,
 	HoudiniFetchContext,
 	QueryResult,
 } from '$houdini/runtime/lib/types'
+import { ArtifactKind } from '$houdini/runtime/lib/types'
 // internals
 import { CachePolicy, CompiledQueryKind } from '$houdini/runtime/lib/types'
 import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
@@ -183,17 +185,17 @@ export type StoreConfig<_Data extends GraphQLObject, _Input, _Artifact> = {
 }
 
 export async function fetchParams<_Data extends GraphQLObject, _Input>(
-	artifact: QueryArtifact,
+	artifact: QueryArtifact | MutationArtifact,
 	storeName: string,
 	params?: QueryStoreFetchParams<_Data, _Input>
 ): Promise<{
 	context: FetchContext
-	policy: CachePolicy
+	policy: CachePolicy | undefined
 	params: QueryStoreFetchParams<_Data, _Input>
 }> {
 	// figure out the right policy
 	let policy = params?.policy
-	if (!policy) {
+	if (!policy && artifact.kind === ArtifactKind.Query) {
 		// use the artifact policy as the default, otherwise prefer the cache over the network
 		policy = artifact.policy ?? CachePolicy.CacheOrNetwork
 	}
@@ -244,11 +246,15 @@ Please remember to pass event to fetch like so:
 
 import type { LoadEvent } from '@sveltejs/kit';
 
+// in a load function...
 export async function load(${log.yellow('event')}: LoadEvent) {
 	return {
 		...load_${storeName}({ ${log.yellow('event')}, variables: { ... } })
 	};
 }
+
+// in a server-side mutation:
+await mutation.mutate({ ... }, ${log.yellow('{ event }')})
 `
 
 type FetchGlobalParams<_Data extends GraphQLObject, _Input> = {
