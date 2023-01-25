@@ -796,6 +796,536 @@ test('append in connection', function () {
 	})
 })
 
+test("prepending update doesn't overwrite endCursor and hasNext Page", function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: true,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									pageInfo: {
+										type: 'PageInfo',
+										keyRaw: 'pageInfo',
+										selection: {
+											fields: {
+												hasNextPage: {
+													type: 'Boolean',
+													keyRaw: 'hasNextPage',
+													updates: ['prepend'],
+												},
+												hasPreviousPage: {
+													type: 'Boolean',
+													keyRaw: 'hasPreviousPage',
+													updates: ['prepend'],
+												},
+												startCursor: {
+													type: 'String',
+													keyRaw: 'startCursor',
+													updates: ['prepend'],
+												},
+												endCursor: {
+													type: 'String',
+													keyRaw: 'endCursor',
+													updates: ['prepend'],
+												},
+											},
+										},
+									},
+									edges: {
+										type: 'UserEdge',
+										keyRaw: 'edges',
+										updates: ['prepend'],
+										selection: {
+											fields: {
+												node: {
+													type: 'Node',
+													keyRaw: 'node',
+													abstract: true,
+													selection: {
+														fields: {
+															__typename: {
+																type: 'String',
+																keyRaw: '__typename',
+															},
+															id: {
+																type: 'ID',
+																keyRaw: 'id',
+															},
+															firstName: {
+																type: 'String',
+																keyRaw: 'firstName',
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// write the cached data once
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					pageInfo: {
+						hasPreviousPage: true,
+						hasNextPage: true,
+						startCursor: 'a',
+						endCursor: 'b',
+					},
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '2',
+								firstName: 'jane2',
+							},
+						},
+						{
+							node: {
+								__typename: 'User',
+								id: '3',
+								firstName: 'jane',
+							},
+						},
+					],
+				},
+			},
+		},
+	})
+
+	// write it again with a prepend update to insert the user
+	cache.write({
+		selection,
+		applyUpdates: ['prepend'],
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					pageInfo: {
+						// should have a different value for the initial set
+						// so we can confirm that it only picked up the starting keys
+						hasPreviousPage: false,
+						hasNextPage: false,
+						startCursor: 'aa',
+						endCursor: 'bb',
+					},
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '4',
+								firstName: 'jane3',
+							},
+						},
+					],
+				},
+			},
+		},
+	})
+
+	// make sure that the data looks good
+	expect(cache.read({ selection })).toEqual({
+		partial: false,
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					pageInfo: {
+						hasPreviousPage: false,
+						hasNextPage: true,
+						startCursor: 'aa',
+						endCursor: 'b',
+					},
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '4',
+								firstName: 'jane3',
+							},
+						},
+						{
+							node: {
+								__typename: 'User',
+								id: '2',
+								firstName: 'jane2',
+							},
+						},
+						{
+							node: {
+								__typename: 'User',
+								id: '3',
+								firstName: 'jane',
+							},
+						},
+					],
+				},
+			},
+		},
+	})
+})
+
+test("append update doesn't overwrite startCursor and hasPrevious Page", function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: true,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									pageInfo: {
+										type: 'PageInfo',
+										keyRaw: 'pageInfo',
+										selection: {
+											fields: {
+												hasNextPage: {
+													type: 'Boolean',
+													keyRaw: 'hasNextPage',
+													updates: ['append'],
+												},
+												hasPreviousPage: {
+													type: 'Boolean',
+													keyRaw: 'hasPreviousPage',
+													updates: ['append'],
+												},
+												startCursor: {
+													type: 'String',
+													keyRaw: 'startCursor',
+													updates: ['append'],
+												},
+												endCursor: {
+													type: 'String',
+													keyRaw: 'endCursor',
+													updates: ['append'],
+												},
+											},
+										},
+									},
+									edges: {
+										type: 'UserEdge',
+										keyRaw: 'edges',
+										updates: ['append'],
+										selection: {
+											fields: {
+												node: {
+													type: 'Node',
+													keyRaw: 'node',
+													abstract: true,
+													selection: {
+														fields: {
+															__typename: {
+																type: 'String',
+																keyRaw: '__typename',
+															},
+															id: {
+																type: 'ID',
+																keyRaw: 'id',
+															},
+															firstName: {
+																type: 'String',
+																keyRaw: 'firstName',
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// write the cached data once
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					pageInfo: {
+						hasPreviousPage: true,
+						hasNextPage: true,
+						startCursor: 'a',
+						endCursor: 'b',
+					},
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '2',
+								firstName: 'jane2',
+							},
+						},
+						{
+							node: {
+								__typename: 'User',
+								id: '3',
+								firstName: 'jane',
+							},
+						},
+					],
+				},
+			},
+		},
+	})
+
+	// write it again with a prepend update to insert the user
+	cache.write({
+		selection,
+		applyUpdates: ['append'],
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					pageInfo: {
+						// should have a different value for the initial set
+						// so we can confirm that it only picked up the starting keys
+						hasPreviousPage: false,
+						hasNextPage: false,
+						startCursor: 'aa',
+						endCursor: 'bb',
+					},
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '4',
+								firstName: 'jane3',
+							},
+						},
+					],
+				},
+			},
+		},
+	})
+
+	// make sure that the data looks good
+	expect(cache.read({ selection })).toEqual({
+		partial: false,
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					pageInfo: {
+						hasPreviousPage: true,
+						hasNextPage: false,
+						startCursor: 'a',
+						endCursor: 'bb',
+					},
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '2',
+								firstName: 'jane2',
+							},
+						},
+						{
+							node: {
+								__typename: 'User',
+								id: '3',
+								firstName: 'jane',
+							},
+						},
+						{
+							node: {
+								__typename: 'User',
+								id: '4',
+								firstName: 'jane3',
+							},
+						},
+					],
+				},
+			},
+		},
+	})
+})
+
+test('append in connection', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: true,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									edges: {
+										type: 'UserEdge',
+										keyRaw: 'edges',
+										selection: {
+											fields: {
+												node: {
+													type: 'Node',
+													keyRaw: 'node',
+													abstract: true,
+													selection: {
+														fields: {
+															__typename: {
+																type: 'String',
+																keyRaw: '__typename',
+															},
+															id: {
+																type: 'ID',
+																keyRaw: 'id',
+															},
+															firstName: {
+																type: 'String',
+																keyRaw: 'firstName',
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '2',
+								firstName: 'jane',
+							},
+						},
+					],
+				},
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = vi.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection,
+	})
+
+	// insert an element into the list (no parent ID)
+	cache.list('All_Users').append(
+		{
+			fields: {
+				id: { type: 'ID', keyRaw: 'id' },
+				firstName: { type: 'String', keyRaw: 'firstName' },
+			},
+		},
+		{
+			id: '3',
+			firstName: 'mary',
+		}
+	)
+
+	// make sure we got the new value
+	expect(set).toHaveBeenCalledWith({
+		viewer: {
+			id: '1',
+			friends: {
+				edges: [
+					{
+						node: {
+							__typename: 'User',
+							id: '2',
+							firstName: 'jane',
+						},
+					},
+					{
+						node: {
+							__typename: 'User',
+							id: '3',
+							firstName: 'mary',
+						},
+					},
+				],
+			},
+		},
+	})
+})
+
 test('inserting data with an update overwrites a record inserted with list.append', function () {
 	// instantiate a cache
 	const cache = new Cache(config)

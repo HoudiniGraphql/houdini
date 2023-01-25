@@ -30,7 +30,7 @@ test('pagination arguments stripped from key', async function () {
 		export default {
 		    "name": "PaginatedFragment",
 		    "kind": "HoudiniFragment",
-		    "hash": "d655188329bfa82826d0e09c9b56fb90c276ed5b3b155784c3358db3cac30c87",
+		    "hash": "6d646ff828f2db18e4c3565cac182da80c45967954b61a8e0dcdc3a2041724c6",
 
 		    "refetch": {
 		        "path": ["friendsByCursor"],
@@ -38,11 +38,18 @@ test('pagination arguments stripped from key', async function () {
 		        "pageSize": 10,
 		        "embedded": true,
 		        "targetType": "Node",
-		        "paginated": true
+		        "paginated": true,
+		        "direction": "both"
 		    },
 
 		    "raw": \`fragment PaginatedFragment on User {
-		  friendsByCursor(first: $first, filter: "hello", after: $after) {
+		  friendsByCursor(
+		    first: $first
+		    filter: "hello"
+		    after: $after
+		    last: $last
+		    before: $before
+		  ) {
 		    edges {
 		      node {
 		        id
@@ -117,22 +124,26 @@ test('pagination arguments stripped from key', async function () {
 		                                "fields": {
 		                                    "hasPreviousPage": {
 		                                        "type": "Boolean",
-		                                        "keyRaw": "hasPreviousPage"
+		                                        "keyRaw": "hasPreviousPage",
+		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "hasNextPage": {
 		                                        "type": "Boolean",
-		                                        "keyRaw": "hasNextPage"
+		                                        "keyRaw": "hasNextPage",
+		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "startCursor": {
 		                                        "type": "String",
-		                                        "keyRaw": "startCursor"
+		                                        "keyRaw": "startCursor",
+		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "endCursor": {
 		                                        "type": "String",
-		                                        "keyRaw": "endCursor"
+		                                        "keyRaw": "endCursor",
+		                                        "updates": ["append", "prepend"]
 		                                    }
 		                                }
 		                            }
@@ -146,7 +157,9 @@ test('pagination arguments stripped from key', async function () {
 		    "input": {
 		        "fields": {
 		            "first": "Int",
-		            "after": "String"
+		            "after": "String",
+		            "last": "Int",
+		            "before": "String"
 		        },
 
 		        "types": {}
@@ -185,7 +198,8 @@ test('offset based pagination marks appropriate field', async function () {
 		        "pageSize": 10,
 		        "embedded": true,
 		        "targetType": "Node",
-		        "paginated": true
+		        "paginated": true,
+		        "direction": "forward"
 		    },
 
 		    "raw": \`fragment PaginatedFragment on User {
@@ -262,7 +276,7 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		export default {
 		    "name": "ScalarPagination",
 		    "kind": "HoudiniQuery",
-		    "hash": "09863f3b665ef14816cc6b9cc965f12bb68ea569345d3f346415ba7a8b8af71c",
+		    "hash": "52d1832ab8d47b638e7f73bf90390ffd2e3a41ec194f0cc821ebe51ad792d771",
 
 		    "refetch": {
 		        "path": ["user", "friendsByCursorScalar"],
@@ -270,12 +284,19 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		        "pageSize": 10,
 		        "embedded": false,
 		        "targetType": "Query",
-		        "paginated": true
+		        "paginated": true,
+		        "direction": "both"
 		    },
 
-		    "raw": \`query ScalarPagination($first: Int = 10, $after: Cursor) {
+		    "raw": \`query ScalarPagination($first: Int = 10, $after: Cursor, $last: Int, $before: Cursor) {
 		  user {
-		    friendsByCursorScalar(first: $first, filter: "hello", after: $after) {
+		    friendsByCursorScalar(
+		      first: $first
+		      filter: "hello"
+		      after: $after
+		      last: $last
+		      before: $before
+		    ) {
 		      edges {
 		        node {
 		          friendsByCursor {
@@ -398,22 +419,26 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		                                            "fields": {
 		                                                "hasPreviousPage": {
 		                                                    "type": "Boolean",
-		                                                    "keyRaw": "hasPreviousPage"
+		                                                    "keyRaw": "hasPreviousPage",
+		                                                    "updates": ["append", "prepend"]
 		                                                },
 
 		                                                "hasNextPage": {
 		                                                    "type": "Boolean",
-		                                                    "keyRaw": "hasNextPage"
+		                                                    "keyRaw": "hasNextPage",
+		                                                    "updates": ["append", "prepend"]
 		                                                },
 
 		                                                "startCursor": {
 		                                                    "type": "String",
-		                                                    "keyRaw": "startCursor"
+		                                                    "keyRaw": "startCursor",
+		                                                    "updates": ["append", "prepend"]
 		                                                },
 
 		                                                "endCursor": {
 		                                                    "type": "String",
-		                                                    "keyRaw": "endCursor"
+		                                                    "keyRaw": "endCursor",
+		                                                    "updates": ["append", "prepend"]
 		                                                }
 		                                            }
 		                                        }
@@ -435,7 +460,9 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		    "input": {
 		        "fields": {
 		            "first": "Int",
-		            "after": "Cursor"
+		            "after": "Cursor",
+		            "last": "Int",
+		            "before": "Cursor"
 		        },
 
 		        "types": {}
@@ -492,7 +519,7 @@ test("sibling aliases don't get marked", async function () {
 		export default {
 		    "name": "PaginatedFragment",
 		    "kind": "HoudiniFragment",
-		    "hash": "1a2d87a1d79e0241ab3ebda1cd43296a631d99973bb06e4fc66becd42c4a67be",
+		    "hash": "1a925fd7ed0822f150c0d9bbcdfd73b902a0551af06dc6cbe64488cc7fecf069",
 
 		    "refetch": {
 		        "path": ["friendsByCursor"],
@@ -500,11 +527,18 @@ test("sibling aliases don't get marked", async function () {
 		        "pageSize": 10,
 		        "embedded": true,
 		        "targetType": "Node",
-		        "paginated": true
+		        "paginated": true,
+		        "direction": "both"
 		    },
 
 		    "raw": \`fragment PaginatedFragment on User {
-		  friendsByCursor(first: $first, filter: "hello", after: $after) {
+		  friendsByCursor(
+		    first: $first
+		    filter: "hello"
+		    after: $after
+		    last: $last
+		    before: $before
+		  ) {
 		    edges {
 		      node {
 		        friendsByCursor {
@@ -633,22 +667,26 @@ test("sibling aliases don't get marked", async function () {
 		                                "fields": {
 		                                    "hasPreviousPage": {
 		                                        "type": "Boolean",
-		                                        "keyRaw": "hasPreviousPage"
+		                                        "keyRaw": "hasPreviousPage",
+		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "hasNextPage": {
 		                                        "type": "Boolean",
-		                                        "keyRaw": "hasNextPage"
+		                                        "keyRaw": "hasNextPage",
+		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "startCursor": {
 		                                        "type": "String",
-		                                        "keyRaw": "startCursor"
+		                                        "keyRaw": "startCursor",
+		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "endCursor": {
 		                                        "type": "String",
-		                                        "keyRaw": "endCursor"
+		                                        "keyRaw": "endCursor",
+		                                        "updates": ["append", "prepend"]
 		                                    }
 		                                }
 		                            }
@@ -728,7 +766,9 @@ test("sibling aliases don't get marked", async function () {
 		    "input": {
 		        "fields": {
 		            "first": "Int",
-		            "after": "String"
+		            "after": "String",
+		            "last": "Int",
+		            "before": "String"
 		        },
 
 		        "types": {}

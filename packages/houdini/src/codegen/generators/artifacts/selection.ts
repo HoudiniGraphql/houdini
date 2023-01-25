@@ -20,7 +20,7 @@ export default function selection({
 	path = [],
 	includeFragments,
 	document,
-	markEdges,
+	inConnection,
 }: {
 	config: Config
 	filepath: string
@@ -30,7 +30,7 @@ export default function selection({
 	path?: string[]
 	includeFragments: boolean
 	document: CollectedGraphQLDocument
-	markEdges?: string
+	inConnection?: boolean
 }): SubscriptionSelection {
 	// we need to build up an object that contains every field in the selection
 	let object: SubscriptionSelection = {}
@@ -243,23 +243,34 @@ export default function selection({
 				fieldObj.updates = [RefetchUpdateMode.append]
 			}
 
+			let continueConnection = inConnection
 			// if we are looking at the edges field and we're supposed to mark it for pagination
-			if (attributeName === 'edges' && markEdges && document.refetch) {
+			if (
+				[
+					'edges',
+					// we want to include the page info fields here so that they are considered special
+					// when we apply a particular update as part of cursor pagination
+					'endCursor',
+					'startCursor',
+					'hasNextPage',
+					'hasPreviousPage',
+				].includes(attributeName) &&
+				inConnection &&
+				document.refetch
+			) {
 				// otherwise mark this field
 				fieldObj.updates = [RefetchUpdateMode.append, RefetchUpdateMode.prepend]
-
-				// make sure we don't mark the children
-				markEdges = ''
+			}
+			if (attributeName === 'node' && inConnection) {
+				continueConnection = false
 			}
 
 			// only add the field object if there are properties in it
 			if (field.selectionSet) {
 				// if this field was marked for cursor based pagination we need to mark
 				// the edges field that falls underneath it
-				const edgesMark =
-					paginated && document.refetch?.method === 'cursor'
-						? document.refetch?.method
-						: markEdges
+				const connectionState =
+					(paginated && document.refetch?.method === 'cursor') || continueConnection
 
 				fieldObj.selection = selection({
 					config,
@@ -270,7 +281,7 @@ export default function selection({
 					path: pathSoFar,
 					includeFragments,
 					document,
-					markEdges: edgesMark,
+					inConnection: connectionState,
 				})
 			}
 
