@@ -340,11 +340,6 @@ class CacheInternal {
 					newValue = previousValue
 				}
 
-				// if we are writing pageInfo
-				// if (key === 'startCursor') {
-				// 	console.log('writing startCursor', updates, applyUpdates)
-				// }
-
 				// if the value changed on a layer that impacts the current latest value
 				const valueChanged = !deepEquals(newValue, previousValue)
 
