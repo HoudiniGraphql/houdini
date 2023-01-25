@@ -8,6 +8,7 @@ import type {
 	QueryInput,
 	QueryList,
 	QueryValue,
+	TypeFieldNames,
 	TypeNames,
 	ValidLists,
 } from './types'
@@ -108,5 +109,26 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 		})
 
 		return
+	}
+
+	/**
+	 * Mark some elements of the cache stale.
+	 * @param type
+	 * @param field
+	 */
+	markStale<T extends TypeNames<Def>>(
+		type?: T,
+		options: { field?: TypeFieldNames<Def, T> } = {}
+	): void {
+		if (!type) {
+			this._internal_unstable._internal_unstable.staleManager.markAllStale()
+		} else if (!options.field) {
+			this._internal_unstable._internal_unstable.staleManager.markTypeStale(type)
+		} else {
+			this._internal_unstable._internal_unstable.staleManager.markTypeFieldStale(
+				type,
+				options.field
+			)
+		}
 	}
 }

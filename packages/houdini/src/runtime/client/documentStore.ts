@@ -68,6 +68,7 @@ export class DocumentStore<
 			data: initialValue ?? null,
 			errors: null,
 			partial: false,
+			stale: false,
 			source: null,
 			fetching,
 			variables: null,

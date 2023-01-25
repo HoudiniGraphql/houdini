@@ -12,6 +12,7 @@ import { GarbageCollector } from './gc'
 import type { ListCollection } from './lists'
 import { ListManager } from './lists'
 import { SchemaManager } from './schema'
+import { StaleManager } from './staleManager'
 import type { Layer, LayerID } from './storage'
 import { InMemoryStorage } from './storage'
 import { evaluateKey, flattenList } from './stuff'
@@ -30,6 +31,7 @@ export class Cache {
 			subscriptions: new InMemorySubscriptions(this),
 			lists: new ListManager(this, rootID),
 			lifetimes: new GarbageCollector(this),
+			staleManager: new StaleManager(this),
 			schema: new SchemaManager(this),
 		})
 
@@ -53,6 +55,7 @@ export class Cache {
 		applyUpdates?: boolean
 		notifySubscribers?: SubscriptionSpec[]
 		forceNotify?: boolean
+		forceStale?: boolean
 	}): SubscriptionSpec[] {
 		// find the correct layer
 		const layer = layerID
@@ -88,15 +91,16 @@ export class Cache {
 
 	// reconstruct an object with the fields/relations specified by a selection
 	read(...args: Parameters<CacheInternal['getSelection']>) {
-		const { data, partial, hasData } = this._internal_unstable.getSelection(...args)
+		const { data, partial, stale, hasData } = this._internal_unstable.getSelection(...args)
 
 		if (!hasData) {
-			return { data: null, partial: false }
+			return { data: null, partial: false, stale: false }
 		}
 
 		return {
 			data,
 			partial,
+			stale,
 		}
 	}
 
@@ -171,6 +175,7 @@ class CacheInternal {
 	lists: ListManager
 	cache: Cache
 	lifetimes: GarbageCollector
+	staleManager: StaleManager
 	schema: SchemaManager
 
 	constructor({
@@ -179,6 +184,7 @@ class CacheInternal {
 		lists,
 		cache,
 		lifetimes,
+		staleManager,
 		schema,
 	}: {
 		storage: InMemoryStorage
@@ -186,6 +192,7 @@ class CacheInternal {
 		lists: ListManager
 		cache: Cache
 		lifetimes: GarbageCollector
+		staleManager: StaleManager
 		schema: SchemaManager
 	}) {
 		this.storage = storage
@@ -193,6 +200,7 @@ class CacheInternal {
 		this.lists = lists
 		this.cache = cache
 		this.lifetimes = lifetimes
+		this.staleManager = staleManager
 		this.schema = schema
 
 		// the cache should always be disabled on the server, unless we're testing
@@ -219,6 +227,7 @@ class CacheInternal {
 		layer,
 		toNotify = [],
 		forceNotify,
+		forceStale,
 	}: {
 		data: { [key: string]: GraphQLValue }
 		selection: SubscriptionSelection
@@ -229,6 +238,7 @@ class CacheInternal {
 		toNotify?: FieldSelection[]
 		applyUpdates?: boolean
 		forceNotify?: boolean
+		forceStale?: boolean
 	}): FieldSelection[] {
 		// if the cache is disabled, dont do anything
 		if (this._disabled) {
@@ -290,7 +300,22 @@ class CacheInternal {
 
 			// if we are writing to the display layer we need to refresh the lifetime of the value
 			if (displayLayer) {
-				this.lifetimes.resetLifetime(parent, key)
+				// JYC TODO: Type for parentType is not correct with linkedType
+				this.lifetimes.resetLifetime(linkedType, parent, key)
+
+				if (forceStale) {
+					this.cache._internal_unstable.staleManager.markFieldStale(
+						linkedType,
+						parent,
+						key
+					)
+				} else {
+					this.cache._internal_unstable.staleManager.setFieldTimeToNow(
+						linkedType,
+						parent,
+						key
+					)
+				}
 			}
 
 			// any scalar is defined as a field with no selection
@@ -688,10 +713,10 @@ class CacheInternal {
 		parent?: string
 		variables?: {}
 		stepsFromConnection?: number | null
-	}): { data: GraphQLObject | null; partial: boolean; hasData: boolean } {
+	}): { data: GraphQLObject | null; partial: boolean; stale: boolean; hasData: boolean } {
 		// we could be asking for values of null
 		if (parent === null) {
-			return { data: null, partial: false, hasData: true }
+			return { data: null, partial: false, stale: false, hasData: true }
 		}
 
 		const target = {} as GraphQLObject
@@ -704,6 +729,9 @@ class CacheInternal {
 		// if we get an empty value for a non-null field, we need to turn the whole object null
 		// that happens after we process every field to determine if its a partial null
 		let cascadeNull = false
+
+		// Check if we have at least one stale data
+		let stale = false
 
 		// if we have abstract fields, grab the __typename and include them in the list
 		const typename = this.storage.get(parent, '__typename').value as string
@@ -719,6 +747,12 @@ class CacheInternal {
 
 			// look up the value in our store
 			const { value } = this.storage.get(parent, key)
+
+			// If we have an explicite null, that mean that it's stale and the we should do a network call
+			const dt_field = this.staleManager.getFieldTime(typename, parent, key)
+			if (dt_field === null) {
+				stale = true
+			}
 
 			// in order to avoid falsey identifying the `cursor` field of a connection edge
 			// as missing non-nullable data (and therefor cascading null to the response) we need to
@@ -796,6 +830,10 @@ class CacheInternal {
 					partial = true
 				}
 
+				if (listValue.stale) {
+					stale = true
+				}
+
 				if (listValue.hasData || value.length === 0) {
 					hasData = true
 				}
@@ -819,6 +857,10 @@ class CacheInternal {
 					partial = true
 				}
 
+				if (objectFields.stale) {
+					stale = true
+				}
+
 				if (objectFields.hasData) {
 					hasData = true
 				}
@@ -836,6 +878,7 @@ class CacheInternal {
 			// our value is considered true if there is some data but not everything
 			// has a full value
 			partial: hasData && partial,
+			stale: hasData && stale,
 			hasData,
 		}
 	}
@@ -878,12 +921,13 @@ class CacheInternal {
 		variables?: {}
 		linkedList: LinkedList
 		stepsFromConnection: number | null
-	}): { data: LinkedList<GraphQLValue>; partial: boolean; hasData: boolean } {
+	}): { data: LinkedList<GraphQLValue>; partial: boolean; stale: boolean; hasData: boolean } {
 		// the linked list could be a deeply nested thing, we need to call getData for each record
 		// we can't mutate the lists because that would change the id references in the listLinks map
 		// to the corresponding record. can't have that now, can we?
 		const result: LinkedList<GraphQLValue> = []
 		let partialData = false
+		let stale = false
 		let hasValues = false
 
 		for (const entry of linkedList) {
@@ -909,7 +953,12 @@ class CacheInternal {
 			}
 
 			// look up the data for the record
-			const { data, partial, hasData } = this.getSelection({
+			const {
+				data,
+				partial,
+				stale: local_stale,
+				hasData,
+			} = this.getSelection({
 				parent: entry,
 				selection: fields,
 				variables,
@@ -922,6 +971,10 @@ class CacheInternal {
 				partialData = true
 			}
 
+			if (local_stale) {
+				stale = true
+			}
+
 			if (hasData) {
 				hasValues = true
 			}
@@ -930,6 +983,7 @@ class CacheInternal {
 		return {
 			data: result,
 			partial: partialData,
+			stale,
 			hasData: hasValues,
 		}
 	}

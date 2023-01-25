@@ -39,6 +39,7 @@ test('NetworkOnly', async function () {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
+				__typename: 'User',
 			},
 		},
 		errors: null,
@@ -46,6 +47,7 @@ test('NetworkOnly', async function () {
 		variables: null,
 		source: 'network',
 		partial: false,
+		stale: false,
 	})
 
 	expect(ret2).toEqual({
@@ -53,6 +55,7 @@ test('NetworkOnly', async function () {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
+				__typename: 'User',
 			},
 		},
 		errors: null,
@@ -60,6 +63,7 @@ test('NetworkOnly', async function () {
 		variables: null,
 		source: 'network',
 		partial: false,
+		stale: false,
 	})
 })
 
@@ -84,6 +88,7 @@ test('CacheOrNetwork', async function () {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
+				__typename: 'User',
 			},
 		},
 		errors: null,
@@ -91,6 +96,7 @@ test('CacheOrNetwork', async function () {
 		variables: null,
 		source: 'network',
 		partial: false,
+		stale: false,
 	})
 
 	expect(ret2).toEqual({
@@ -98,6 +104,7 @@ test('CacheOrNetwork', async function () {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
+				__typename: 'User',
 			},
 		},
 		errors: null,
@@ -105,6 +112,7 @@ test('CacheOrNetwork', async function () {
 		variables: {},
 		source: 'cache',
 		partial: false,
+		stale: false,
 	})
 })
 
@@ -130,6 +138,7 @@ test('CacheOnly', async function () {
 		variables: {},
 		source: 'cache',
 		partial: false,
+		stale: false,
 	})
 	const ret2 = await store.send({ policy: CachePolicy.CacheOrNetwork })
 
@@ -140,6 +149,7 @@ test('CacheOnly', async function () {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
+				__typename: 'User',
 			},
 		},
 		errors: null,
@@ -147,6 +157,7 @@ test('CacheOnly', async function () {
 		variables: null,
 		source: 'network',
 		partial: false,
+		stale: false,
 	})
 	const ret3 = await store.send({ policy: CachePolicy.CacheOnly })
 
@@ -157,6 +168,7 @@ test('CacheOnly', async function () {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
+				__typename: 'User',
 			},
 		},
 		errors: null,
@@ -164,6 +176,117 @@ test('CacheOnly', async function () {
 		variables: {},
 		source: 'cache',
 		partial: false,
+		stale: false,
+	})
+})
+
+test('stale', async function () {
+	const setFetching = vi.fn()
+	const fn = vi.fn()
+
+	const cache = new Cache(config)
+
+	const store = createStore([
+		cachePolicyPlugin({
+			enabled: true,
+			setFetching,
+			cache,
+		}),
+		fakeFetch({}),
+	])
+
+	store.subscribe(fn)
+
+	const ret1 = await store.send({ policy: CachePolicy.CacheOrNetwork })
+
+	// Final return
+	expect(ret1).toEqual({
+		data: {
+			viewer: {
+				__typename: 'User',
+				firstName: 'bob',
+				id: '1',
+			},
+		},
+		errors: null,
+		fetching: false,
+		partial: false,
+		source: 'network',
+		stale: false,
+		variables: null,
+	})
+
+	// intermediate returns
+	expect(fn).toHaveBeenNthCalledWith(1, {
+		data: null,
+		errors: null,
+		fetching: true,
+		partial: false,
+		source: null,
+		stale: false,
+		variables: null,
+	})
+
+	//  mark stale
+	// JYC TODO: remove log
+	console.log(
+		`cache._internal_unstable.staleManager`,
+		cache._internal_unstable.staleManager.fieldsTime
+	)
+
+	cache._internal_unstable.staleManager.markTypeStale('User')
+
+	const ret2 = await store.send({ policy: CachePolicy.CacheOrNetwork })
+
+	// First final return with stale: true
+	expect(ret2).toEqual({
+		data: {
+			viewer: {
+				__typename: 'User',
+				firstName: 'bob',
+				id: '1',
+			},
+		},
+		errors: null,
+		fetching: false,
+		partial: false,
+		source: 'cache',
+		stale: true,
+		variables: {},
+	})
+
+	// intermediate returns
+	expect(fn).toHaveBeenNthCalledWith(3, {
+		data: {
+			viewer: {
+				__typename: 'User',
+				firstName: 'bob',
+				id: '1',
+			},
+		},
+		errors: null,
+		fetching: false,
+		partial: false,
+		source: 'cache',
+		stale: true,
+		variables: {},
+	})
+
+	// Doing a real network call in the end and returning the new data & stale false
+	expect(fn).toHaveBeenNthCalledWith(4, {
+		data: {
+			viewer: {
+				__typename: 'User',
+				firstName: 'bob',
+				id: '1',
+			},
+		},
+		errors: null,
+		fetching: false,
+		partial: false,
+		source: 'network',
+		stale: false,
+		variables: {},
 	})
 })
 
@@ -203,6 +326,10 @@ export function createStore(plugins: ClientPlugin[]): DocumentStore<any, any> {
 									type: 'String',
 									keyRaw: 'firstName',
 								},
+								__typename: {
+									type: 'String',
+									keyRaw: '__typename',
+								},
 							},
 						},
 					},
@@ -218,6 +345,7 @@ function fakeFetch({
 			viewer: {
 				id: '1',
 				firstName: 'bob',
+				__typename: 'User',
 			},
 		},
 		errors: null,
@@ -225,6 +353,7 @@ function fakeFetch({
 		variables: null,
 		source: DataSource.Network,
 		partial: false,
+		stale: false,
 	},
 }) {
 	return (() => ({

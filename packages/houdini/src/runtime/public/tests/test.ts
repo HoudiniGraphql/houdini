@@ -10,7 +10,7 @@ import { Cache } from '../cache'
 import type { Record } from '../record'
 
 // the type definition for our test cache
-type CacheTypeDef = {
+export type CacheTypeDefTest = {
 	types: {
 		__ROOT__: {
 			idFields: {}
@@ -25,33 +25,33 @@ type CacheTypeDef = {
 					args: never
 				}
 				viewer: {
-					type: Record<CacheTypeDef, 'User'> | null
+					type: Record<CacheTypeDefTest, 'User'> | null
 					args: never
 				}
 				pets: {
-					type: (Record<CacheTypeDef, 'Cat'> | Record<CacheTypeDef, 'User'>)[]
+					type: (Record<CacheTypeDefTest, 'Cat'> | Record<CacheTypeDefTest, 'User'>)[]
 					args: never
 				}
 				listOfLists: {
 					type: (
 						| (
-								| Record<CacheTypeDef, 'Cat'>
-								| Record<CacheTypeDef, 'User'>
+								| Record<CacheTypeDefTest, 'Cat'>
+								| Record<CacheTypeDefTest, 'User'>
 								| null
-								| (null | Record<CacheTypeDef, 'User'>)[]
+								| (null | Record<CacheTypeDefTest, 'User'>)[]
 						  )[]
-						| Record<CacheTypeDef, 'Cat'>
-						| Record<CacheTypeDef, 'User'>
+						| Record<CacheTypeDefTest, 'Cat'>
+						| Record<CacheTypeDefTest, 'User'>
 						| null
 					)[]
 					args: never
 				}
 				users: {
-					type: Record<CacheTypeDef, 'User'>[] | null
+					type: Record<CacheTypeDefTest, 'User'>[] | null
 					args: never
 				}
 				pet: {
-					type: Record<CacheTypeDef, 'Cat'> | Record<CacheTypeDef, 'User'>
+					type: Record<CacheTypeDefTest, 'Cat'> | Record<CacheTypeDefTest, 'User'>
 					args: never
 				}
 			}
@@ -69,7 +69,7 @@ type CacheTypeDef = {
 					args: never
 				}
 				parent: {
-					type: Record<CacheTypeDef, 'User'>
+					type: Record<CacheTypeDefTest, 'User'>
 					args: never
 				}
 				id: {
@@ -93,7 +93,7 @@ type CacheTypeDef = {
 					args: never
 				}
 				parent: {
-					type: Record<CacheTypeDef, 'User'> | null
+					type: Record<CacheTypeDefTest, 'User'> | null
 					args: never
 				}
 				id: {
@@ -155,7 +155,7 @@ type CacheTypeDef = {
 	}
 }
 
-export const testCache = () => new Cache<CacheTypeDef>(new _Cache(testConfigFile()))
+export const testCache = () => new Cache<CacheTypeDefTest>(new _Cache(testConfigFile()))
 
 export const testFragment = (selection: SubscriptionSelection): { artifact: FragmentArtifact } => ({
 	artifact: {

@@ -197,7 +197,6 @@ export type SubscriptionSpec = {
 export type FetchQueryResult<_Data> = {
 	result: RequestPayload<_Data | null>
 	source: DataSource | null
-	partial: boolean
 }
 
 export type QueryResult<_Data = GraphQLObject, _Input = Record<string, any>> = {
@@ -205,6 +204,7 @@ export type QueryResult<_Data = GraphQLObject, _Input = Record<string, any>> = {
 	errors: { message: string }[] | null
 	fetching: boolean
 	partial: boolean
+	stale: boolean
 	source: DataSource | null
 	variables: _Input | null
 }
