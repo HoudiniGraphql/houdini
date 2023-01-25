@@ -283,6 +283,28 @@ has become mostly used for "lazy" stores that don't fetch automatically. On top 
 new imperative cache api relies heavily on `graphql` documents which would mean a lot of accidental
 loading. At least this way everything is very explicit.
 
+### pagination options in `customStores` config have been changed
+
+There is no more distinction between forwards and backwards cursor pagination
+so the options have been merged
+
+```diff
+  export default {
+      plugins: {
+          'houdini-svelte': {
+              'customStores': {
+-                 queryForwardsCursor: 'MyCustomQuery'
+-                 queryBackwardsCursor: 'MyCustomQuery'
+-                 fragmentForwardsCursor: 'MyCustomFragment'
+-                 fragmentBackwardsCursor: 'MyCustomFragment'
++                 queryCursor: 'MyCustomQuery'
++                 fragmentCursor: 'MyCustomFragment',
+              }
+          }
+      }
+  }
+```
+
 ## 0.20.0
 
 This release was originally planned to be `1.0` but we have some exciting stuff planned
