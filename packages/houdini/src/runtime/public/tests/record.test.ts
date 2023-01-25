@@ -257,6 +257,7 @@ test('can read and write variables', function () {
 /**  Stale tests  */
 /**   1/ Helpers  */
 const h_SetUserInCache = (cache: Cache<CacheTypeDefTest>, id: string) => {
+	// JYC TODO set in cache?
 	const artifact: FragmentArtifact = {
 		kind: ArtifactKind.Fragment,
 		name: 'string',
@@ -295,6 +296,7 @@ const h_GetUserRecord = (id: string, field: 'id' | 'firstName' = 'id') => {
 }
 
 const h_SetCatInCache = (cache: Cache<CacheTypeDefTest>, id: string) => {
+	// JYC TODO set in cache?
 	const artifact: FragmentArtifact = {
 		kind: ArtifactKind.Fragment,
 		name: 'string',
@@ -312,14 +314,14 @@ const h_SetCatInCache = (cache: Cache<CacheTypeDefTest>, id: string) => {
 	}
 
 	const cat = cache.get('Cat', { id })
-	// cat.write({
-	// 	fragment: {
-	// 		artifact,
-	// 	},
-	// 	data: {
-	// 		id,
-	// 	},
-	// })
+	cat.write({
+		fragment: {
+			artifact,
+		},
+		data: {
+			id,
+		},
+	})
 
 	// cache.setFieldType({ parent: 'Cat', key: 'id', type: 'String', nullable: false })
 	// cat.set({ field: 'id', value: id })
@@ -359,6 +361,11 @@ test('Mark all stale', async function () {
 	h_SetUserInCache(cache, '2')
 	h_SetCatInCache(cache, '8')
 	h_SetCatInCache(cache, '9')
+	//JYC to remove
+	console.log(
+		`cache._internal_unstable._internal_unstable.staleManager.fieldsTime`,
+		cache._internal_unstable._internal_unstable.staleManager.fieldsTime
+	)
 
 	// Nothing should be  null
 	expect(h_GetFieldTime(cache, h_GetUserRecord('1'))).not.toBe(null)

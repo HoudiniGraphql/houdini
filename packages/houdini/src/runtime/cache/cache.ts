@@ -300,7 +300,7 @@ class CacheInternal {
 
 			// if we are writing to the display layer we need to refresh the lifetime of the value
 			if (displayLayer) {
-				// JYC TODO: Type for parentType is not correct with linkedType
+				// JYC TODO: Type for parentType is not correct with linkedType. How to get parent type?
 				this.lifetimes.resetLifetime(linkedType, parent, key)
 
 				if (forceStale) {

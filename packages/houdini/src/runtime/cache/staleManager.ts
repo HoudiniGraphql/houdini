@@ -16,7 +16,7 @@ export class StaleManager {
 	// null => data stale (stale)
 
 	// nulls mean that the value is stale, and the number is the time that the value was set
-	// JYC TODO: put this private
+	// JYC TODO: put this private (useful for debugging now)
 	fieldsTime: Map<string, Map<string, Map<string, number | null>>> = new Map()
 
 	constructor(cache: Cache) {
