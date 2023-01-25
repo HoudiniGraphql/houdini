@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { CachePolicy, graphql, type BidirectionalCursorPaginationQueryStore } from '$houdini';
+  import { CachePolicy, graphql } from '$houdini';
 
   const result = graphql(`
     query BidirectionalCursorPaginationQuery @load {

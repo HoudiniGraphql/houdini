@@ -191,6 +191,9 @@ export const resolvers = {
 		friendsConnection(user, args) {
 			return connectionFromArray(getSnapshot(user.snapshot), args)
 		},
+		usersConnection: (user, args) => {
+			return connectionFromArray(getSnapshot(user.snapshot), args)
+		},
 	},
 
 	Mutation: {
