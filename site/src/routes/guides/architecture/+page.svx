@@ -3,6 +3,10 @@ title: Architecture
 description: An overview of Houdini's internal architecture
 ---
 
+<script>
+    import { DeepDive } from '~/components'
+</script>
+
 # Architecture
 
 Houdini is a highly customizable framework for building GraphQL applications.
@@ -16,10 +20,92 @@ head over to the [Codegen Plugins reference](/api/codegen-plugins) for a deeper 
 extensions. As always, if you have any questions, please [join us on discord](https://discord.gg/Gd8vfvxpsD)
 and ask.
 
-## Overview
+## Summary
 
-Let's start off with a concrete example
+Our solution is broken up into 3 parts:
 
-Houdini has 4 core parts that
+- **HoudiniClient**: The heart of your application. It's built out of a composable
+  structure that defines your documents' behavior (query the API, cache the
+  result, mutations, etc). Out of the box, it contains a normalized cache,
+  garbage collector, optimistic updates, pagination, and much more.
+- **Codegen**: A code generation tool that's responsible for taking
+  your GraphQL documents and generating all of the necessary files that the runtime
+  needs to perform its job. Plugins can also hook into this pipeline and generate their
+  own documents or runtime utilities. This is incredibly
+  helpful when combined with custom file transformations.
+- **Source Transformations**: Plugins can define transformations that change
+  your project's files from an ergonomic API to whatever it takes to support the
+  desired behavior.
 
-#### Isn't That a Bit... Much?
+As a guiding principal, Houdini tries to shift as much processing and logic into
+a build/compile step. This significantly trims down your application's
+bundle size since we can avoid including things like your schema or
+extraneous logic to parse your queries. As a loose rule, the more we
+can do at compile time, the less our browsers are responsible for.
+
+## An Example
+
+Let's see this in practice with a concrete example: a Svelte component. Don't
+worry if you don't know Svelte - the actual contents and syntax should translate
+to any framework. But, just in case it's not clear, this component fires a
+query and renders the name of every user separated by a comma:
+
+```svelte:title=src/components/UserList.svelte&typescriptToggle=true
+<script lang="ts">
+    import { graphql } from '$houdini'
+
+    const UserList = graphql(`
+        query UserList @load {
+            users {
+                name
+            }
+        }
+    `)
+</script>
+
+{$UserList.data?.users?.map(user => user.name).join(', ')}
+```
+
+This small example contains a lot of things:
+
+- The user defines a query by passing a string to the `graphql` function. This function
+  has an overloaded definition that returns a specific store for the given
+  string.
+- The code generator parses, validates and creates an internal representation
+  of the document that the cache needs to process the result. The svelte plugin
+  generates the store in the previous step from this representation.
+- The component content is transformed to automatically load the query when the
+  component mounts.
+
+It might help to see the transformed version. This does contain a little more Svelte
+but hopefully its clear that the function passed to `onMount` happens when the component
+mounts:
+
+```svelte:title=src/components/UserList.svelte&typescriptToggle=true
+<script lang="ts">
+    import { graphql } from '$houdini'
+    import { UserListStore } from '$houdini'
+
+    const UserList = new UserListStore()
+
+    onMount(() => {
+        UserList.fetch()
+    })
+</script>
+
+{$UserList.data?.users?.map(user => user.name).join(', ')}
+```
+
+With this in mind, we can now be a little more explicit about what we have to do:
+
+- Generate an overloaded definition for `graphql` for type checking
+- Generate a `UserListStore` class that will perform the actual loading. Internally,
+  it holds a reference to the query's internal representation and creates a
+  [Document Store](/api/client-plugins) which handles the caching and
+  network interactions.
+- Replace the `graphql` function with an instantiation of `UserListStore`
+- Add the `onMount` block to load the store
+
+While this example _is_ slightly complex, it's a good example of how Houdini leverages
+a combination of code generation and file transformations to deliver an amazing
+user-experiences.
