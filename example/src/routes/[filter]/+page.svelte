@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores'
 	import { graphql } from '$houdini'
-	import type { AddItemStore, NewItemStore } from '$houdini'
 	import ItemEntry from '$lib/ItemEntry.svelte'
 	import { derived } from 'svelte/store'
 
@@ -12,7 +11,7 @@
 	$: ({ AllItems } = data)
 
 	// state and handler for the new item input
-	const addItem: AddItemStore = graphql`
+	const addItem = graphql(`
 		mutation AddItem($input: AddItemInput!) {
 			addItem(input: $input) {
 				error {
@@ -20,9 +19,9 @@
 				}
 			}
 		}
-	`
+	`)
 
-	const subscription: NewItemStore = graphql`
+	const subscription = graphql(`
 		subscription NewItem {
 			newItem {
 				item {
@@ -31,7 +30,7 @@
 				}
 			}
 		}
-	`
+	`)
 
 	$: subscription.listen()
 
