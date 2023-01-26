@@ -98,13 +98,14 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 	 * @param field
 	 * @param args
 	 */
-	markStale<Field extends TypeFieldNames<Def, Type>>({
-		field,
-		args,
-	}: {
-		field?: Field
-		args?: ArgType<Def, Type, Field>
-	} = {}): void {
+	markStale<Field extends TypeFieldNames<Def, Type>>(
+		field?: Field,
+		{
+			args,
+		}: {
+			args?: ArgType<Def, Type, Field>
+		} = {}
+	): void {
 		// If we don't have a field, mark the whole record as stale
 		if (!field) {
 			this.#cache._internal_unstable._internal_unstable.staleManager.markRecordFieldsStale(

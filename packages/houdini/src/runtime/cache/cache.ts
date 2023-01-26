@@ -304,17 +304,9 @@ class CacheInternal {
 				this.lifetimes.resetLifetime(linkedType, parent, key)
 
 				if (forceStale) {
-					this.cache._internal_unstable.staleManager.markFieldStale(
-						linkedType,
-						parent,
-						key
-					)
+					this.staleManager.markFieldStale(linkedType, parent, key)
 				} else {
-					this.cache._internal_unstable.staleManager.setFieldTimeToNow(
-						linkedType,
-						parent,
-						key
-					)
+					this.staleManager.setFieldTimeToNow(linkedType, parent, key)
 				}
 			}
 

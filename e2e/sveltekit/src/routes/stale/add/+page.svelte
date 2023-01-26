@@ -38,13 +38,13 @@
   const markStale_entry_field = async () => {
     await addUser.mutate(null);
     const user = cache.get('User', { id: '1' });
-    user.markStale({ field: 'name' });
+    user.markStale('name');
   };
 
   const markStale_entry_field_when = async () => {
     await addUser.mutate(null);
     const user = cache.get('User', { id: '1' });
-    user.markStale({ field: 'name', args: { name: 'New User' } });
+    user.markStale('name', args: { name: 'New User' } );
   };
 </script>
 
