@@ -10,17 +10,18 @@ description: An overview of Houdini's internal architecture
 # Architecture
 
 Houdini is a highly customizable framework for building GraphQL applications.
-It comes with a basic set of assumptions that we believe deliver a best-in-class developer experience
-and gives you the tools to add your own twists.
+It does come with a basic set of assumptions that we believe are important,
+however it relies on plugins to make this core integrate as closely as possible with
+your application.
 
-It is helpful to have a high level grasp on the various parts of its implementation if you want to
-best understand how to extend Houdini to fit your needs. Hopefully, this guide should provide that
-context. Once you are some-what comfortable with this document,
-head over to the [Codegen Plugins reference](/api/codegen-plugins) for a deeper dive in how to build your own
-extensions. As always, if you have any questions, please [join us on discord](https://discord.gg/Gd8vfvxpsD)
-and ask.
+This document is meant to illustrate the high level organization of Houdini and is
+meant for people who are looking to build their own extensions or contribute to
+the project. Once you are some-what comfortable with this document,
+head over to the [Codegen Plugins reference](/api/codegen-plugins) for a deeper
+dive in how to build your own extensions. As always, if you have any questions,
+please [join us on discord](https://discord.gg/Gd8vfvxpsD) and ask.
 
-## Summary
+## Overview
 
 Our solution is broken up into 3 parts:
 
@@ -42,6 +43,9 @@ a build/compile step. This significantly trims down your application's
 bundle size since we can avoid including things like your schema or
 extraneous logic to parse your queries. As a loose rule, the more we
 can do at compile time, the less our browsers are responsible for.
+
+For more info on `HoudiniClient`, check out the [Client Plugin docs](/api/client-plugins). For the code generation pipeline and source transformations,
+check out the [Codegen Plugin docs](/api/codegen-plugins).
 
 ## An Example
 
@@ -98,7 +102,8 @@ mounts:
 
 With this in mind, we can now be a little more explicit about what we have to do:
 
-- Generate an overloaded definition for `graphql` for type checking
+- Generate an overloaded definition for `graphql` for typescript that points to a
+  Svelte Store
 - Generate a `UserListStore` class that will perform the actual loading. Internally,
   it holds a reference to the query's internal representation and creates a
   [Document Store](/api/client-plugins) which handles the caching and
@@ -106,6 +111,15 @@ With this in mind, we can now be a little more explicit about what we have to do
 - Replace the `graphql` function with an instantiation of `UserListStore`
 - Add the `onMount` block to load the store
 
-While this example _is_ slightly complex, it's a good example of how Houdini leverages
-a combination of code generation and file transformations to deliver an amazing
-user-experiences.
+The most important take away is to be able to identify what is provided by the
+Svelte plugin and what is part of Houdini's core. If you look at this list,
+you'll notice that the Svelte plugin needed to generate the Svelte store, define
+the return value of `graphql`, and transform the contents to perform the actual fetch.
+Sure, Houdini's `DocumentStore` handles all of the network and caching logic and that's
+a significant portion but the Svelte plugin was responsible for wrapping the
+it in something that would integrate well with Svelte.
+
+While this example _is_ slightly complex, it does provide a good overview of
+the kinds of things a plugin is concerned about. It also illustrates how Houdini
+leverages a combination of code generation and file transformations to deliver its core
+user experience.
