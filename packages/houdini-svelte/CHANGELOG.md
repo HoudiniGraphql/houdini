@@ -1,5 +1,22 @@
 # houdini-svelte
 
+## 1.0.0-next.4
+
+### ⚠️ Breaking Changes
+
+-   [#846](https://github.com/HoudiniGraphql/houdini/pull/846) [`3245233`](https://github.com/HoudiniGraphql/houdini/commit/32452332c446a6a779a687bd80e2278f1e66ceef) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - removed the config values for specify custom cursor stores for a specific direction
+
+### ✨ Features
+
+-   [#846](https://github.com/HoudiniGraphql/houdini/pull/846) [`3245233`](https://github.com/HoudiniGraphql/houdini/commit/32452332c446a6a779a687bd80e2278f1e66ceef) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Added support for bidirectional pagination when using connections
+
+-   [#847](https://github.com/HoudiniGraphql/houdini/pull/847) [`308ed34`](https://github.com/HoudiniGraphql/houdini/commit/308ed34af9be4913a1d5c9ac998ff53599601667) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add event argument to mutation for server-side operations
+
+### Dependency Changes
+
+-   Updated dependencies [[`3245233`](https://github.com/HoudiniGraphql/houdini/commit/32452332c446a6a779a687bd80e2278f1e66ceef)]:
+    -   houdini@1.0.0-next.4
+
 ## 1.0.0-next.3
 
 ### ⚠️ Breaking Changes

@@ -89,7 +89,6 @@ export type BaseCompiledDocument = {
 	rootType: string
 	input?: InputObject
 	refetch?: {
-		update: RefetchUpdateMode
 		path: string[]
 		method: 'cursor' | 'offset'
 		pageSize: number
@@ -97,7 +96,7 @@ export type BaseCompiledDocument = {
 		embedded: boolean
 		targetType: string
 		paginated: boolean
-		direction?: 'forward' | 'backwards'
+		direction: 'forward' | 'backward' | 'both'
 	}
 	pluginsData?: Record<string, any>
 }
@@ -164,7 +163,7 @@ export type SubscriptionSelection = {
 				connection: boolean
 				type: string
 			}
-			update?: RefetchUpdateMode
+			updates?: string[]
 			filters?: {
 				[key: string]: {
 					kind: 'Boolean' | 'String' | 'Float' | 'Int' | 'Variable'

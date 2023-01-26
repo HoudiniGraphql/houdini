@@ -94,9 +94,9 @@ const sayHello: ClientPlugin = () => {
 ```
 
 One enter hook in a list _must_ use the `resolve` function to provide a value
-for the store. By default, `HoudiniClient` includes a fetch plugin that always
-resolves the pipeline with a value. If no enter hook calls `resolve`, the pipeline
-will hang forever. Here is a simplified version as an example:
+for the store. If no enter hook calls `resolve`, the pipeline
+will hang forever. By default, `HoudiniClient` includes a fetch plugin that always
+resolves the pipeline with a value. Here is a simplified version as an example:
 
 ```typescript:title=src/client.ts&typescriptToggle=true
 import type { ClientPlugin } from '$houdini'

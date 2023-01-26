@@ -18,10 +18,7 @@ export async function fragmentStore(
 	// in order to build the store, we need to know what class we're going to import from
 	let which: keyof Required<HoudiniSvelteConfig>['customStores'] = 'fragment'
 	if (paginationMethod === 'cursor') {
-		which =
-			doc.refetch?.direction === 'forward'
-				? 'fragmentForwardsCursor'
-				: 'fragmentBackwardsCursor'
+		which = 'fragmentCursor'
 	} else if (paginationMethod === 'offset') {
 		which = 'fragmentOffset'
 	}
