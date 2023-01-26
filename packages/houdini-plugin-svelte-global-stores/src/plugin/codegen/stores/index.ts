@@ -1,5 +1,5 @@
-import type { Config, GenerateHookInput } from 'houdini'
-import { cleanupFiles, fs, ArtifactKind, path } from 'houdini'
+import type { GenerateHookInput } from 'houdini'
+import { ArtifactKind, cleanupFiles, fs, path } from 'houdini'
 
 import { global_stores_directory, plugin_config } from '../../kit'
 import { fragmentStore } from './fragment'
