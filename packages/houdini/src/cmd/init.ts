@@ -502,7 +502,6 @@ async function updatePackageJSON(targetPath: string) {
 		...packageJSON.devDependencies,
 		houdini: '^PACKAGE_VERSION',
 		'houdini-svelte': '^PACKAGE_VERSION',
-		graphql: '^15.8.0',
 	}
 
 	await fs.writeFile(packagePath, JSON.stringify(packageJSON, null, 4))

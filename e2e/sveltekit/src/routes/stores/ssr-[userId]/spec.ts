@@ -59,9 +59,7 @@ test.describe('SSR-[userId] Page', () => {
 
     // 4 Check id 77 (that doens't exist)
     response = await expect_1_gql(page, `button[id="refresh-77"]`);
-    expect(response).toBe(
-      '{"data":null,"errors":[{"message":"User not found","locations":[{"line":2,"column":3}],"path":["user"],"extensions":{"code":404}}]}'
-    );
+    expect(response).toBe('{"data":null,"errors":[{"message":"User not found","path":["user"]}]}');
   });
 
   test('Check that variables order doesnt matter', async ({ page }) => {

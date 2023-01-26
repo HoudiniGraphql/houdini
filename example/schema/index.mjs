@@ -1,6 +1,6 @@
-import { createPubSub, pipe, filter } from '@graphql-yoga/node'
 import { GraphQLScalarType, Kind } from 'graphql'
 import gql from 'graphql-tag'
+import { createPubSub, pipe, filter } from 'graphql-yoga'
 
 const pubSub = createPubSub()
 
