@@ -10,6 +10,7 @@
 		"client",
 		"client-plugins",
 		"cache",
+		"codegen-plugins",
 		"config",
 		"vite",
 		"cli"

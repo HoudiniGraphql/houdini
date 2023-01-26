@@ -1,0 +1,12 @@
+---
+title: Codegen Plugins
+description: An overview of Houdini's Codegen Plugins
+---
+
+# Codegen Plugins
+
+## Overview
+
+## Local Plugins
+
+## Publishing a Plugin
