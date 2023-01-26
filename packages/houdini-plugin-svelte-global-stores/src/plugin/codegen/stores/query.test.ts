@@ -1,4 +1,4 @@
-import { fs, path } from 'houdini'
+import { ArtifactKind, fs, path } from 'houdini'
 import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { expect, test } from 'vitest'
@@ -14,6 +14,7 @@ test('change prefix to "yop___"', async function () {
 			'houdini-svelte': {},
 			'houdini-plugin-svelte-global-stores': {
 				prefix: 'yop___',
+				storesToGenerate: ['Query'],
 			},
 		},
 	})
@@ -43,6 +44,7 @@ test('change prefix to ""', async function () {
 			'houdini-svelte': {},
 			'houdini-plugin-svelte-global-stores': {
 				prefix: '',
+				storesToGenerate: ['Query'],
 			},
 		},
 	})
@@ -62,4 +64,29 @@ test('change prefix to ""', async function () {
 
 		export const TestQuery = new TestQueryStore()
 	`)
+})
+
+test('no query', async function () {
+	const docs = [`query TestQuery { version }`]
+
+	const { plugin_root } = await pipeline_test(docs, {
+		plugins: {
+			'houdini-svelte': {},
+			'houdini-plugin-svelte-global-stores': {
+				prefix: '',
+			},
+		},
+	})
+
+	const contents = await fs.readFile(
+		path.join(global_stores_directory(plugin_root), 'TestQuery.js')
+	)
+
+	// parse the contents
+	const parsed = recast.parse(contents!, {
+		parser: typeScriptParser,
+	}).program
+
+	// check the file contents
+	expect(parsed).toMatchInlineSnapshot('null')
 })

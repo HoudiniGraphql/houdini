@@ -43,7 +43,8 @@ const config = {
 
   plugins: {
     'houdini-plugin-svelte-global-stores': {
-      prefix: 'G_'
+      prefix: 'GQL_',
+      storesToGenerate: ['Mutation', 'Subscription', 'Fragment']
     },
     'houdini-svelte': {}
   }
@@ -54,8 +55,9 @@ export default config;
 
 ```
 
-One configuration option is available:
+Configuration option is available:
 - `prefix` (optional, default: `GQL_`): The default prefix of your global stores. This lets your editor provide autocompletion with just a few characters.
+- `storesToGenerate` (optional, default: `['Mutation', 'Subscription', 'Fragment']`). Note that by default, 'Query' is omitted on purpose.
 
 
 ## Usage

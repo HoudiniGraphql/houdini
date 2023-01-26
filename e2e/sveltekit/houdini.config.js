@@ -22,7 +22,9 @@ const config = {
     }
   },
   plugins: {
-    'houdini-plugin-svelte-global-stores': {},
+    'houdini-plugin-svelte-global-stores': {
+      storesToGenerate: ['Query', 'Mutation', 'Subscription', 'Fragment']
+    },
     'houdini-svelte': {}
   }
 };

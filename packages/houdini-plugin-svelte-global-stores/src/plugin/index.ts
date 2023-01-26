@@ -68,4 +68,12 @@ export type HoudiniPluginSvelteGlobalStoresConfig = {
 	 * @default GQL_
 	 */
 	prefix?: string
+
+	/**
+	 * Types of stores to generate.
+	 *
+	 * _Note: by default, 'Query' is omitted on purpose._
+	 * @default ['Mutation', 'Subscription', 'Fragment']
+	 */
+	storesToGenerate?: ('Query' | 'Mutation' | 'Subscription' | 'Fragment')[]
 }
