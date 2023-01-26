@@ -3,6 +3,7 @@
 	"pages": [
 		"faq",
 		"release-notes",
+		"architecture",
 		"plugins",
 		"working-with-graphql",
 		"setting-up-your-project",

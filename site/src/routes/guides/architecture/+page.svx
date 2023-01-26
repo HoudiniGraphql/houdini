@@ -1,0 +1,25 @@
+---
+title: Architecture
+description: An overview of Houdini's internal architecture
+---
+
+# Architecture
+
+Houdini is a highly customizable framework for building GraphQL applications.
+It comes with a basic set of assumptions that we believe deliver a best-in-class developer experience
+and gives you the tools to add your own twists.
+
+It is helpful to have a high level grasp on the various parts of its implementation if you want to
+best understand how to extend Houdini to fit your needs. Hopefully, this guide should provide that
+context. Once you are some-what comfortable with this document,
+head over to the [Codegen Plugins reference](/api/codegen-plugins) for a deeper dive in how to build your own
+extensions. As always, if you have any questions, please [join us on discord](https://discord.gg/Gd8vfvxpsD)
+and ask.
+
+## Overview
+
+Let's start off with a concrete example
+
+Houdini has 4 core parts that
+
+#### Isn't That a Bit... Much?
