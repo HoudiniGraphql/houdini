@@ -1,5 +1,5 @@
 import { useServer } from 'graphql-ws/lib/use/ws'
-import { createYoga } from 'graphql-yoga'
+import { createYoga, createSchema } from 'graphql-yoga'
 import { createServer } from 'node:http'
 import { WebSocketServer } from 'ws'
 
@@ -9,10 +9,10 @@ async function main() {
 	const yogaApp = createYoga({
 		hostname: '::',
 		logging: true,
-		schema: {
+		schema: createSchema({
 			typeDefs,
 			resolvers,
-		},
+		}),
 		maskedErrors: false,
 		graphiql: {
 			// Use WebSockets in GraphiQL
