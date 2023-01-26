@@ -6,10 +6,14 @@ import path from 'path'
 
 import { connectionFromArray } from './util.mjs'
 
-const sourceFiles = ['../_api/schema.graphql', '../_api/schema-hello.graphql']
-export const typeDefs = sourceFiles.map((filepath) =>
-	fs.readFileSync(path.resolve(filepath), 'utf-8')
-)
+const sourceFiles = ['schema.graphql', 'schema-hello.graphql']
+export const typeDefs = sourceFiles.map((filepath) => {
+	let filepathToUse = path.join('.', filepath)
+	if (!fs.existsSync(filepathToUse)) {
+		filepathToUse = path.join('../_api', filepath)
+	}
+	return fs.readFileSync(path.resolve(filepathToUse), 'utf-8')
+})
 
 // Example Cities/Libraries/Books data
 // Assume a traditional relational database for storage - each table with unique ID.
