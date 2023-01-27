@@ -4,7 +4,7 @@ description: An overview of Houdini's Codegen Plugins
 ---
 
 <script>
-    import FullDiagram  from '../../_diagrams/full.svelte'
+    import { CodegenDiagram, IncludeDiagram } from '~/routes/_diagrams'
 </script>
 
 # Codegen Plugins
@@ -76,7 +76,7 @@ export default {
 
 ## Code Generation Hooks
 
-<FullDiagram />
+<CodegenDiagram style="max-width: 600px"/>
 
 ### `extensions`
 
@@ -119,3 +119,5 @@ export default {
 ### `after_load`
 
 ### `include`
+
+<IncludeDiagram style="max-width: 300px" />

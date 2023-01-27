@@ -6,8 +6,8 @@ title: Hello
 	import mermaid from 'mermaid'
     import { onMount } from 'svelte'
 
-    onMount(() => { 
-        mermaid.initialize({ startOnLoad: true, 
+    onMount(() => {
+        mermaid.initialize({ startOnLoad: true,
             'theme': 'base',
             'themeVariables': {
                 // 'primaryColor': '#BB2528',
@@ -18,7 +18,9 @@ title: Hello
                 // 'tertiaryColor': '#fff'
             }
         })
-        mermaid.init({})
+        mermaid.init({
+            startOnLoad: true
+        })
     })
 </script>
 
@@ -36,26 +38,39 @@ graph TD
     houdini_transforms{`{{Houdini Transforms}}`} --> t_before_g
     t_before_g[transform_before_generate] --> gen_sq
 
-    gen_sq[ ] --> graphql_tag
-    graphql_tag --> $houdini/runtime
-
 
     gen_sq[ ] --> |For every document|artifact_data
-    artifact_data --> artifact_selection
+    artifact_data --> artifact_hash
+    artifact_hash[hash] --> artifact_selection
     artifact_selection --> artifact_e
-    artifact_e[artifact_end] --> artifact_g
-    artifact_g[$houdini/artifacts/name.js<br>$houdini/artifacts/name.d.ts]
+    artifact_e[artifact_end]
+
+    gen_sq[ ] --> graphql_tag_return
+    graphql_tag_return
 
     gen_sq[ ] --> index_file
-    index_file -->index_file_o
-    index_file_o[$houdini/index.js<br>$houdini/index.d.ts]
+    index_file
 
     gen_sq[ ] --> generate
-    generate -->generate_o
-    generate_o[$houdini/plugins/name/...]
+    generate
 
     gen_sq[ ] --> transform_runtime
-    transform_runtime[transform_runtime] --> injected_plugins
-    injected_plugins[$houdini/plugins/name/runtime]
-
 ```
+
+```mermaid
+graph TD
+    A[Schema File?] --> |no|B
+    F --> |yes|C
+    B[include] --> |yes|C
+    C[Matches Config.exclude?] --> |no|D
+    D[exclude] --> E
+    E[Do Include]
+    A --> |yes|E
+    B --> |no| F
+    F[Matches Config.include?] --> |no|G
+    C --> |yes|G
+    D --> |yes|G
+    G[Do Not Include]
+```
+
+

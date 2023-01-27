@@ -8,11 +8,26 @@ test('has title', async ({ page }) => {
 	// wait for the diagram to be rendered
 	await page.waitForSelector('pre.mermaid[data-processed="true"]')
 
-	// get the diagram contents
-	// and map the internal colors with their semantic equivalent:
-	// green -> line color
-	const fullDiagram = (await page.innerHTML('pre.mermaid')).replace(/green/g, 'var(--contrast)')
-
 	await mkdirp('./src/diagrams')
-	await fs.writeFile('src/routes/_diagrams/full.svelte', fullDiagram, 'utf-8')
+
+	// loop over the list of diagrams and create the appropriate files
+	const diagrams = ['codegen', 'include']
+	for (const [i, diagramName] of diagrams.entries()) {
+		// get the diagram contents
+		// and map the internal colors with their semantic equivalent:
+		// green -> line color
+		let fullDiagram = (await page.innerHTML(`pre.mermaid>>nth=${i}`)).replace(
+			/green/g,
+			'var(--contrast)'
+		)
+
+		// we need to add {...$$props} to the tag, so find the first >
+		const firstClose = fullDiagram.indexOf('>')
+		// and add the prop spread
+		fullDiagram =
+			fullDiagram.substring(0, firstClose) + ' {...$$props} ' + fullDiagram.substring(firstClose)
+
+		// create the appropriate file
+		await fs.writeFile(`src/routes/_diagrams/rendered/${diagramName}.svelte`, fullDiagram, 'utf-8')
+	}
 })
