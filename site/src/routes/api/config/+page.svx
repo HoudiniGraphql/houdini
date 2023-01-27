@@ -156,3 +156,30 @@ export default {
 	}
 }
 ```
+
+## Adding Plugins
+
+If you are adding a third-party plugin, you can just use the package name
+instead of a relative path:
+
+```javascript:title=houdini.config.js
+export default {
+    plugins: {
+        'houdini-svelte': {}
+    }
+}
+```
+
+If you defined plugin locally, you can just reference the file in your `houdini.config.js`
+file to add it to your project:
+
+```javascript:title=houdini.config.js
+export default {
+    plugins: {
+        './src/plugins/myPlugin': {}
+    }
+}
+```
+
+Keep in mind: your config file will be bundled into your application so
+you shouldn't use `path` or any packages you don't want to include.
