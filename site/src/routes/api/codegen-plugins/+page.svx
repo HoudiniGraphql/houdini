@@ -3,6 +3,11 @@ title: Codegen Plugins
 description: An overview of Houdini's Codegen Plugins
 ---
 
+<script>
+    import WrapDiagram from './WrapDiagram.svelte'
+    import { FullDiagram } from './Diagram'
+</script>
+
 # Codegen Plugins
 
 Codegen plugins allow you to add additional behavior to Houdini's static processing. This includes
@@ -71,6 +76,8 @@ export default {
 ## Publishing a Plugin
 
 ## Code Generation Hooks
+
+<WrapDiagram source={FullDiagram} />
 
 ### `extensions`
 
