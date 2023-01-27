@@ -174,3 +174,7 @@ h3 > code {
 	line-height: 1.5;
 	text-align: center;
 }
+
+.edgeLabel {
+	color: var(--contrast) !important;
+}

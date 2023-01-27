@@ -4,7 +4,7 @@ description: An overview of Houdini's Codegen Plugins
 ---
 
 <script>
-    import { CodegenDiagram, IncludeDiagram } from '~/routes/_diagrams'
+    import { ExtractDiagram, ValidateDiagram, SetupDiagram, GenerateDiagram } from '~/routes/_diagrams'
 </script>
 
 # Codegen Plugins
@@ -39,7 +39,7 @@ const generateSomething = async () =>  {
 }
 ```
 
-### Typesafe Config Values
+#### Typesafe Config Values
 
 When defining a plugin, your users will likely want type definitions for the
 configuration values you ask for. You can easily provide these definitions by
@@ -74,50 +74,66 @@ export default {
 
 ## Publishing a Plugin
 
-## Code Generation Hooks
+## Codegen Pipeline
 
-<CodegenDiagram style="max-width: 600px"/>
+### Setup
 
-### `extensions`
+<SetupDiagram style="max-width: 250px; margin: 0 auto;" />
 
-### `extract_documents`
+#### `config`
 
-### `schema`
+#### `env`
 
-### `transform_before_validate`
+#### `after_load`
 
-### `validate`
 
-### `transform_before_validate`
+### Extract
 
-### `artifact_data`
+<ExtractDiagram style="max-width: 600px; margin: 0 auto;"/>
 
-### `artifact_selection`
+#### `extensions`
 
-### `artifact_end`
+#### `include`
 
-### `hash`
+#### `exclude`
 
-### `graphql_tag_return`
+#### `extract_documents`
 
-### `index_file`
+#### `schema`
 
-### `generate`
+### Transform and Validate
 
-### `transform_runtime`
+<ValidateDiagram style="max-width: 600px; margin: 0 auto;"/>
+
+#### `transform_before_validate`
+
+#### `validate`
+
+#### `transform_before_validate`
+
+### Generate
+
+<GenerateDiagram style="max-width: 600px; margin: 0 auto;"/>
+
+#### `transform_before_generate`
+
+#### `artifact_data`
+
+#### `artifact_selection`
+
+#### `artifact_end`
+
+#### `hash`
+
+#### `graphql_tag_return`
+
+#### `index_file`
+
+#### `generate`
+
+#### `transform_runtime`
 
 ## Transform Hooks
 
-### `transform_file`
+#### `transform_file`
 
-## Miscellaneous Hooks
-
-### `config`
-
-### `env`
-
-### `after_load`
-
-### `include`
-
-<IncludeDiagram style="max-width: 300px" />

@@ -2,6 +2,7 @@
 title: Hello
 ---
 
+
 <script lang="ts">
 	import mermaid from 'mermaid'
     import { onMount } from 'svelte'
@@ -10,12 +11,9 @@ title: Hello
         mermaid.initialize({ startOnLoad: true,
             'theme': 'base',
             'themeVariables': {
-                // 'primaryColor': '#BB2528',
-                // 'primaryTextColor': '#fff',
-                // 'primaryBorderColor': '#7C0000',
                 'lineColor': 'green',
-                // 'secondaryColor': '#006100',
-                // 'tertiaryColor': '#fff'
+                'edgeLabelBackground': 'red',
+                textColor: 'blue',
             }
         })
         mermaid.init({
@@ -25,52 +23,55 @@ title: Hello
 </script>
 
 ```mermaid
-graph TD
-    extensions[Extensions] --> |Find all source files|include
-    include[Include file?] --> transform
-    transform[transform_file] ---> extract
+graph LR
+    config[config] --> env
+    env[env] --> after_load
+    after_load[after_load]
+```
+
+```mermaid
+graph LR
+    extensions[extensions] --> include
+    include[include] --> exclude
+    exclude[exclude] --> extract
     extract[extract_documents] --- collect
     schema[schema] --- collect
-    collect[Collect and parse all GraphQL <br> documents in project] --> t_before_v
+    collect((Parse <br> Documents))
+```
+
+```mermaid
+graph LR
     t_before_v[transform_before_validate] --> validate
     validate[validate] --> t_after_v
-    t_after_v[transform_after_validate] --> houdini_transforms
-    houdini_transforms{`{{Houdini Transforms}}`} --> t_before_g
-    t_before_g[transform_before_generate] --> gen_sq
+    t_after_v[transform_after_validate]
+```
 
+```mermaid
+graph TD
 
-    gen_sq[ ] --> |For every document|artifact_data
+    t_before_g[transform_before_generate] --> gen_sq_center
+
+    gen_sq_center --> gen_sq_left
+    gen_sq_left[ ]
+
+    gen_sq_left --> index_file
+    index_file
+
+    gen_sq_left --> graphql_tag_return
+    graphql_tag_return
+
+    gen_sq_center[ ] --> |For every document|artifact_data
     artifact_data --> artifact_hash
     artifact_hash[hash] --> artifact_selection
     artifact_selection --> artifact_e
     artifact_e[artifact_end]
 
-    gen_sq[ ] --> graphql_tag_return
-    graphql_tag_return
 
-    gen_sq[ ] --> index_file
-    index_file
+    gen_sq_center --> gen_sq_right
+    gen_sq_right[ ]
 
-    gen_sq[ ] --> generate
+    gen_sq_right --> transform_runtime
+
+    gen_sq_right --> generate
     generate
-
-    gen_sq[ ] --> transform_runtime
 ```
-
-```mermaid
-graph TD
-    A[Schema File?] --> |no|B
-    F --> |yes|C
-    B[include] --> |yes|C
-    C[Matches Config.exclude?] --> |no|D
-    D[exclude] --> E
-    E[Do Include]
-    A --> |yes|E
-    B --> |no| F
-    F[Matches Config.include?] --> |no|G
-    C --> |yes|G
-    D --> |yes|G
-    G[Do Not Include]
-```
-
-

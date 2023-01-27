@@ -11,15 +11,14 @@ test('has title', async ({ page }) => {
 	await mkdirp('./src/diagrams')
 
 	// loop over the list of diagrams and create the appropriate files
-	const diagrams = ['codegen', 'include']
+	const diagrams = ['setup', 'extract', 'validate', 'generate']
 	for (const [i, diagramName] of diagrams.entries()) {
 		// get the diagram contents
 		// and map the internal colors with their semantic equivalent:
 		// green -> line color
-		let fullDiagram = (await page.innerHTML(`pre.mermaid>>nth=${i}`)).replace(
-			/green/g,
-			'var(--contrast)'
-		)
+		let fullDiagram = (await page.innerHTML(`pre.mermaid>>nth=${i}`))
+			.replace(/green/g, 'var(--contrast)')
+			.replace(/red/g, 'var(--hue)')
 
 		// we need to add {...$$props} to the tag, so find the first >
 		const firstClose = fullDiagram.indexOf('>')
