@@ -1,5 +1,5 @@
-import { defaultConfigValues, computeID, keyFieldsForType } from '../lib/config'
 import type { ConfigFile } from '../lib/config'
+import { computeID, defaultConfigValues, keyFieldsForType } from '../lib/config'
 import { deepEquals } from '../lib/deepEquals'
 import { getFieldsForType } from '../lib/selection'
 import type {
@@ -16,7 +16,7 @@ import { StaleManager } from './staleManager'
 import type { Layer, LayerID } from './storage'
 import { InMemoryStorage } from './storage'
 import { evaluateKey, flattenList } from './stuff'
-import { type FieldSelection, InMemorySubscriptions } from './subscription'
+import { InMemorySubscriptions, type FieldSelection } from './subscription'
 
 export class Cache {
 	// the internal implementation for a lot of the cache's methods are moved into
@@ -300,13 +300,12 @@ class CacheInternal {
 
 			// if we are writing to the display layer we need to refresh the lifetime of the value
 			if (displayLayer) {
-				// JYC TODO: Type for parentType is not correct with linkedType. How to get parent type?
-				this.lifetimes.resetLifetime(linkedType, parent, key)
+				this.lifetimes.resetLifetime(parent, key)
 
 				if (forceStale) {
-					this.staleManager.markFieldStale(linkedType, parent, key)
+					this.staleManager.setFieldTimeToStale(parent, key)
 				} else {
-					this.staleManager.setFieldTimeToNow(linkedType, parent, key)
+					this.staleManager.setFieldTimeToNow(parent, key)
 				}
 			}
 
@@ -779,7 +778,7 @@ class CacheInternal {
 			const { value } = this.storage.get(parent, key)
 
 			// If we have an explicite null, that mean that it's stale and the we should do a network call
-			const dt_field = this.staleManager.getFieldTime(typename, parent, key)
+			const dt_field = this.staleManager.getFieldTime(parent, key)
 			if (dt_field === null) {
 				stale = true
 			}
@@ -1145,6 +1144,34 @@ class CacheInternal {
 		if (this.storage.layerCount === 1) {
 			this.storage.topLayer.removeUndefinedFields()
 		}
+	}
+
+	getFieldTime(id: string, field: string) {
+		return this.staleManager.getFieldTime(id, field)
+	}
+
+	setFieldTimeToNow(id: string, field: string) {
+		this.staleManager.setFieldTimeToNow(id, field)
+	}
+
+	setFieldTimeToStale(id: string, field: string) {
+		this.staleManager.setFieldTimeToStale(id, field)
+	}
+
+	markAllStale() {
+		this.staleManager.markAllStale()
+	}
+
+	markRecordStale(id: string) {
+		this.staleManager.markRecordStale(id)
+	}
+
+	markTypeStale(type: string) {
+		this.staleManager.markTypeStale(type)
+	}
+
+	markTypeFieldStale(type: string, field: string) {
+		this.staleManager.markTypeFieldStale(type, field)
 	}
 }
 

@@ -228,13 +228,7 @@ test('stale', async function () {
 	})
 
 	//  mark stale
-	// JYC TODO: remove log
-	console.log(
-		`cache._internal_unstable.staleManager`,
-		cache._internal_unstable.staleManager.fieldsTime
-	)
-
-	cache._internal_unstable.staleManager.markTypeStale('User')
+	cache._internal_unstable.markTypeStale('User')
 
 	const ret2 = await store.send({ policy: CachePolicy.CacheOrNetwork })
 
@@ -286,7 +280,7 @@ test('stale', async function () {
 		partial: false,
 		source: 'network',
 		stale: false,
-		variables: {},
+		variables: null,
 	})
 })
 

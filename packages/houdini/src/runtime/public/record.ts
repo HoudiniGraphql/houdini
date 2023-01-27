@@ -96,30 +96,56 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 	/**
 	 * Mark some elements of the record stale in the cache.
 	 * @param field
-	 * @param args
+	 * @param when
 	 */
-	markStale<Field extends TypeFieldNames<Def, Type>>(
-		field?: Field,
-		{
-			args,
-		}: {
-			args?: ArgType<Def, Type, Field>
-		} = {}
-	): void {
+	markStale<Field extends TypeFieldNames<Def, Type>>({
+		field,
+		when,
+	}: {
+		field?: Field
+		when?: ArgType<Def, Type, Field>
+	} = {}): void {
+		const key = when ? computeKey({ field: this.#id, args: when }) : this.#id
+
 		// If we don't have a field, mark the whole record as stale
 		if (!field) {
-			this.#cache._internal_unstable._internal_unstable.staleManager.markRecordFieldsStale(
-				this.type,
-				this.#id
-			)
+			this.#cache._internal_unstable._internal_unstable.markRecordStale(key)
 		} else {
-			// JYC TODO: Manage args?
-
-			this.#cache._internal_unstable._internal_unstable.staleManager.markFieldStale(
-				this.type,
-				this.#id,
-				field
-			)
+			this.#cache._internal_unstable._internal_unstable.setFieldTimeToStale(key, field)
 		}
 	}
+}
+
+const computeKey = ({ field, args }: { field: string; args?: { [key: string]: any } }) => {
+	const keys = Object.keys(args ?? {})
+	keys.sort()
+
+	return args && keys.length > 0
+		? `${field}(${keys
+				.map((key) => `${key}: ${stringifyObjectWithNoQuotesOnKeys(args[key])}`)
+				.join(', ')})`
+		: field
+}
+
+const stringifyObjectWithNoQuotesOnKeys = (obj_from_json: {}): string => {
+	// In case of an array we'll stringify all objects.
+	if (Array.isArray(obj_from_json)) {
+		return `[${obj_from_json
+			.map((obj) => `${stringifyObjectWithNoQuotesOnKeys(obj)}`)
+			.join(', ')}]`
+	}
+	// not an object, stringify using native function
+	if (
+		typeof obj_from_json !== 'object' ||
+		obj_from_json instanceof Date ||
+		obj_from_json === null
+	) {
+		return JSON.stringify(obj_from_json).replace(/"([^"]+)":/g, '$1: ')
+	}
+	// Implements recursive object serialization according to JSON spec
+	// but without quotes around the keys.
+	return `{${Object.keys(obj_from_json)
+		// @ts-ignore
+		.map((key) => `${key}: ${stringifyObjectWithNoQuotesOnKeys(obj_from_json[key])}`)
+		.join(', ')}}`
 }

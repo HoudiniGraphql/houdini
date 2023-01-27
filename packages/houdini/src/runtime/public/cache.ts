@@ -121,14 +121,11 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 		options: { field?: TypeFieldNames<Def, T> } = {}
 	): void {
 		if (!type) {
-			this._internal_unstable._internal_unstable.staleManager.markAllStale()
+			this._internal_unstable._internal_unstable.markAllStale()
 		} else if (!options.field) {
-			this._internal_unstable._internal_unstable.staleManager.markTypeStale(type)
+			this._internal_unstable._internal_unstable.markTypeStale(type)
 		} else {
-			this._internal_unstable._internal_unstable.staleManager.markTypeFieldStale(
-				type,
-				options.field
-			)
+			this._internal_unstable._internal_unstable.markTypeFieldStale(type, options.field)
 		}
 	}
 }

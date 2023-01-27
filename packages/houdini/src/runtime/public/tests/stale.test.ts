@@ -6,7 +6,6 @@ import { CacheTypeDefTest, testCache, testFragment } from './test'
 
 /**   1/ Helpers  */
 const h_SetUserInCache = (cache: Cache<CacheTypeDefTest>, id: string) => {
-	// JYC TODO set in cache?
 	const artifact: FragmentArtifact = {
 		kind: ArtifactKind.Fragment,
 		name: 'string',
@@ -15,6 +14,10 @@ const h_SetUserInCache = (cache: Cache<CacheTypeDefTest>, id: string) => {
 		rootType: 'string',
 		selection: {
 			fields: {
+				id: {
+					type: 'String',
+					keyRaw: 'id',
+				},
 				firstName: {
 					type: 'String',
 					keyRaw: 'firstName',
@@ -29,7 +32,9 @@ const h_SetUserInCache = (cache: Cache<CacheTypeDefTest>, id: string) => {
 			artifact,
 		},
 		data: {
-			firstName: 'default name',
+			// JYC TODO type issue?
+			id,
+			firstName: 'newName',
 		},
 	})
 
@@ -45,7 +50,6 @@ const h_GetUserRecord = (id: string, field: 'id' | 'firstName' = 'id') => {
 }
 
 const h_SetCatInCache = (cache: Cache<CacheTypeDefTest>, id: string) => {
-	// JYC TODO set in cache?
 	const artifact: FragmentArtifact = {
 		kind: ArtifactKind.Fragment,
 		name: 'string',
@@ -68,6 +72,7 @@ const h_SetCatInCache = (cache: Cache<CacheTypeDefTest>, id: string) => {
 			artifact,
 		},
 		data: {
+			// JYC TODO type issue?
 			id,
 		},
 	})
@@ -87,9 +92,9 @@ const h_GetCatRecord = (id: string) => {
 
 const h_GetFieldTime = (
 	cache: Cache<CacheTypeDefTest>,
-	{ type, id, field }: { type: string; id: string; field: string }
+	{ id, field }: { id: string; field: string }
 ) => {
-	return cache._internal_unstable._internal_unstable.staleManager.getFieldTime(type, id, field)
+	return cache._internal_unstable._internal_unstable.getFieldTime(id, field)
 }
 
 /**   2/ Tests    */
@@ -108,11 +113,6 @@ test('Mark all stale', async function () {
 	h_SetUserInCache(cache, '2')
 	h_SetCatInCache(cache, '8')
 	h_SetCatInCache(cache, '9')
-	//JYC to remove
-	console.log(
-		`cache._internal_unstable._internal_unstable.staleManager.fieldsTime`,
-		cache._internal_unstable._internal_unstable.staleManager.fieldsTime
-	)
 
 	// Nothing should be  null
 	expect(h_GetFieldTime(cache, h_GetUserRecord('1'))).not.toBe(null)
@@ -183,7 +183,6 @@ test('Mark a record stale', async function () {
 
 	// create a user
 	const user1 = h_SetUserInCache(cache, '1')
-	console.log(`cache`, cache._internal_unstable._internal_unstable.staleManager.fieldsTime)
 
 	// check data state of stale
 	expect(h_GetFieldTime(cache, h_GetUserRecord('1'))).not.toBe(null)
@@ -208,7 +207,7 @@ test('Mark a record field stale', async function () {
 	expect(h_GetFieldTime(cache, h_GetUserRecord('1', 'firstName'))).not.toBe(null)
 
 	// mark a field stale
-	user1.markStale('id')
+	user1.markStale({ field: 'id' })
 
 	// check data state of stale
 	expect(h_GetFieldTime(cache, h_GetUserRecord('1'))).toBe(null)
@@ -226,14 +225,10 @@ test('Mark a record field stale when args', async function () {
 	expect(h_GetFieldTime(cache, h_GetUserRecord('1', 'firstName'))).not.toBe(null)
 
 	// mark a field stale
-	// JYC TODO: how to type args?
-	user1.markStale(
-		'id'
-		//args: {}
-	)
-	expect('args typing???').toBe(false)
+	// JYC TODO type issue?
+	user1.markStale({ field: 'id', when: { id: '1' } })
 
 	// check data state of stale
-	expect(h_GetFieldTime(cache, h_GetUserRecord('1'))).toBe(null)
 	expect(h_GetFieldTime(cache, h_GetUserRecord('1', 'firstName'))).not.toBe(null)
+	expect(h_GetFieldTime(cache, h_GetUserRecord('1'))).toBe(null)
 })
