@@ -14,5 +14,5 @@ test('has title', async ({ page }) => {
 	const fullDiagram = (await page.innerHTML('pre.mermaid')).replace(/green/g, 'var(--contrast)')
 
 	await mkdirp('./src/diagrams')
-	await fs.writeFile('src/diagrams/full.svelte', fullDiagram, 'utf-8')
+	await fs.writeFile('src/routes/_diagrams/full.svelte', fullDiagram, 'utf-8')
 })

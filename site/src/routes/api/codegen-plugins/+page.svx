@@ -4,7 +4,7 @@ description: An overview of Houdini's Codegen Plugins
 ---
 
 <script>
-    import FullDiagram  from '~/diagrams/full.svelte'
+    import FullDiagram  from '../../_diagrams/full.svelte'
 </script>
 
 # Codegen Plugins

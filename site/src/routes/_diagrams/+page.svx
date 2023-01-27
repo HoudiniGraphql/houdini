@@ -39,9 +39,6 @@ graph TD
     gen_sq[ ] --> graphql_tag
     graphql_tag --> $houdini/runtime
 
-    gen_sq[ ] --> o_enabled
-    o_enabled[is -o enabled?] --> |For Every Document|hash
-    hash --> Config.persistedQueryPath
 
     gen_sq[ ] --> |For every document|artifact_data
     artifact_data --> artifact_selection
