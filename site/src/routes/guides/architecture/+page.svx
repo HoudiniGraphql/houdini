@@ -15,7 +15,7 @@ however it relies on plugins to make this core integrate as closely as possible 
 your application.
 
 This document is meant to illustrate the high level organization of Houdini and is
-meant for people who are looking to build their own extensions or contribute to
+meant for people who are looking to extend the framework or contribute to
 the project. Once you are some-what comfortable with this document,
 head over to the [Codegen Plugins reference](/api/codegen-plugins) for a deeper
 dive in how to build your own extensions. As always, if you have any questions,
@@ -111,15 +111,22 @@ With this in mind, we can now be a little more explicit about what we have to do
 - Replace the `graphql` function with an instantiation of `UserListStore`
 - Add the `onMount` block to load the store
 
-The most important take away is to be able to identify what is provided by the
-Svelte plugin and what is part of Houdini's core. If you look at this list,
-you'll notice that the Svelte plugin needed to generate the Svelte store, define
-the return value of `graphql`, and transform the contents to perform the actual fetch.
-Sure, Houdini's `DocumentStore` handles all of the network and caching logic and that's
-a significant portion but the Svelte plugin was responsible for wrapping the
-it in something that would integrate well with Svelte.
-
-While this example _is_ slightly complex, it does provide a good overview of
-the kinds of things a plugin is concerned about. It also illustrates how Houdini
+While this example _is_ slightly complex, it does illustrates how Houdini
 leverages a combination of code generation and file transformations to deliver its core
-user experience.
+user experience. It's also a good overview of the kinds of things a plugin might be
+concerned about.
+
+<DeepDive title="Plugin vs Core">
+
+If you want to build your own plugins, it's worth trying identify which parts of that
+list are provided by the Svelte plugin and what is part of Houdini's core.
+
+The Svelte plugin needed to generate the Svelte store, define the return value of
+`graphql`, and transform the contents to perform the actual fetch. Sure,
+Houdini's `DocumentStore` handles all of the network and caching logic and
+that's a significant portion but the Svelte plugin was responsible for wrapping the it
+in something that would integrate well with Svelte.
+
+</DeepDive>
+
+If you're interested in building your own plugins, check out the [Codegen Plugins reference](/api/codegen-plugins).
