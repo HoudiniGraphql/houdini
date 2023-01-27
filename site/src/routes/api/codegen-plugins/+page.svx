@@ -4,8 +4,7 @@ description: An overview of Houdini's Codegen Plugins
 ---
 
 <script>
-    import WrapDiagram from './WrapDiagram.svelte'
-    import { FullDiagram } from './Diagram'
+    import FullDiagram  from '~/diagrams/full.svelte'
 </script>
 
 # Codegen Plugins
@@ -77,7 +76,7 @@ export default {
 
 ## Code Generation Hooks
 
-<WrapDiagram source={FullDiagram} />
+<FullDiagram />
 
 ### `extensions`
 

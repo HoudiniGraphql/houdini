@@ -1,0 +1,64 @@
+---
+title: Hello
+---
+
+<script lang="ts">
+	import mermaid from 'mermaid'
+    import { onMount } from 'svelte'
+
+    onMount(() => { 
+        mermaid.initialize({ startOnLoad: true, 
+            'theme': 'base',
+            'themeVariables': {
+                // 'primaryColor': '#BB2528',
+                // 'primaryTextColor': '#fff',
+                // 'primaryBorderColor': '#7C0000',
+                'lineColor': 'green',
+                // 'secondaryColor': '#006100',
+                // 'tertiaryColor': '#fff'
+            }
+        })
+        mermaid.init({})
+    })
+</script>
+
+```mermaid
+graph TD
+    extensions[Extensions] --> |Find all source files|include
+    include[Include file?] --> transform
+    transform[transform_file] ---> extract
+    extract[extract_documents] --- collect
+    schema[schema] --- collect
+    collect[Collect and parse all GraphQL <br> documents in project] --> t_before_v
+    t_before_v[transform_before_validate] --> validate
+    validate[validate] --> t_after_v
+    t_after_v[transform_after_validate] --> houdini_transforms
+    houdini_transforms{`{{Houdini Transforms}}`} --> t_before_g
+    t_before_g[transform_before_generate] --> gen_sq
+
+    gen_sq[ ] --> graphql_tag
+    graphql_tag --> $houdini/runtime
+
+    gen_sq[ ] --> o_enabled
+    o_enabled[is -o enabled?] --> |For Every Document|hash
+    hash --> Config.persistedQueryPath
+
+    gen_sq[ ] --> |For every document|artifact_data
+    artifact_data --> artifact_selection
+    artifact_selection --> artifact_e
+    artifact_e[artifact_end] --> artifact_g
+    artifact_g[$houdini/artifacts/name.js<br>$houdini/artifacts/name.d.ts]
+
+    gen_sq[ ] --> index_file
+    index_file -->index_file_o
+    index_file_o[$houdini/index.js<br>$houdini/index.d.ts]
+
+    gen_sq[ ] --> generate
+    generate -->generate_o
+    generate_o[$houdini/plugins/name/...]
+
+    gen_sq[ ] --> transform_runtime
+    transform_runtime[transform_runtime] --> injected_plugins
+    injected_plugins[$houdini/plugins/name/runtime]
+
+```
