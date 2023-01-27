@@ -24,7 +24,7 @@ import type { CollectedGraphQLDocument } from './types'
 // @ts-ignore
 const currentDir = global.__dirname || path.dirname(fileURLToPath(import.meta.url))
 
-export type PluginMeta = Plugin & {
+export type PluginMeta = PluginHooks & {
 	name: string
 	include_runtime: boolean
 	version: string
@@ -918,7 +918,7 @@ This will prevent your schema from being pulled.`
 		try {
 			// look for the houdini-svelte module
 			const pluginDirectory = _config.findModule(pluginName)
-			const { default: pluginFactory }: { default: PluginFactory } = await import(
+			const { default: pluginFactory }: { default: Plugin } = await import(
 				pathToFileURL(pluginDirectory).toString() + '/build/plugin-esm/index.js'
 			)
 			let include_runtime = false
@@ -974,7 +974,7 @@ export enum LogLevel {
 	Quiet = 'quiet',
 }
 
-export type PluginFactory = (args?: PluginConfig) => Promise<Plugin>
+export type Plugin = (args?: PluginConfig) => Promise<PluginHooks>
 
 export const orderedPlugins = (plugins: PluginMeta[]) => {
 	const ordered = plugins.filter(
@@ -987,7 +987,7 @@ export const orderedPlugins = (plugins: PluginMeta[]) => {
 	return ordered
 }
 
-export type Plugin = {
+export type PluginHooks = {
 	order?: 'before' | 'after' | 'core' // when not set, it will be "before"
 	extensions?: string[]
 	transform_runtime?: Record<string, (args: { config: Config; content: string }) => string>

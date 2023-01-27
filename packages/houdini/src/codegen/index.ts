@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
 
-import type { Config, Plugin, CollectedGraphQLDocument } from '../lib'
+import type { Config, PluginHooks, CollectedGraphQLDocument } from '../lib'
 import { runPipeline as run, LogLevel, find_graphql, parseJS, HoudiniError, fs, path } from '../lib'
 import { ArtifactKind } from '../runtime/lib/types'
 import * as generators from './generators'
@@ -160,7 +160,7 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 	// the list of documents we found
 	const documents: DiscoveredDoc[] = []
 
-	const extractors: Record<string, Plugin['extract_documents'][]> = {
+	const extractors: Record<string, PluginHooks['extract_documents'][]> = {
 		'.graphql': [],
 		'.gql': [],
 		'.js': [],
