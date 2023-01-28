@@ -6,17 +6,18 @@ title: Hello
 <script lang="ts">
 	import mermaid from 'mermaid'
     import { onMount } from 'svelte'
+    import { colors } from './colors.ts'
 
     onMount(() => {
         mermaid.initialize({ startOnLoad: true,
             'theme': 'base',
             'themeVariables': {
-                'lineColor': 'green',
-                'edgeLabelBackground': 'red',
-                textColor: 'blue',
-                primaryBorderColor: 'orange',
-                primaryColor: 'purple',
-                primaryTextColor: 'yellow',
+                'lineColor': colors.lineColor[0],
+                'edgeLabelBackground': colors.canvasColor[0],
+                textColor: colors.textColor[0],
+                primaryBorderColor: colors.borderColor[0],
+                primaryColor: colors.backgroundColor[0],
+                primaryTextColor: colors.textColor[0],
             }
         })
         mermaid.init({

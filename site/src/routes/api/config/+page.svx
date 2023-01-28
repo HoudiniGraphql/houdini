@@ -171,7 +171,8 @@ export default {
 ```
 
 If you defined plugin locally, you can just reference the file in your `houdini.config.js`
-file to add it to your project:
+file to add it to your project. For the time being, local plugins need to be written in
+javascript since the build environment imports it directly.
 
 ```javascript:title=houdini.config.js
 export default {
