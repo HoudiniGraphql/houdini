@@ -2,6 +2,12 @@ import { test, expect } from '@playwright/test'
 import { mkdirp } from 'fs-extra'
 import fs from 'fs/promises'
 
+const lineColor = 'var(--contrast)'
+const canvasColor = 'var(--hue)'
+const borderColor = 'var(--contrast)'
+const backgroundColor = 'var(--discreet2)'
+const textColor = 'var(--contrast)'
+
 test('has title', async ({ page }) => {
 	await page.goto('http://localhost:3078/_diagrams')
 
@@ -17,8 +23,11 @@ test('has title', async ({ page }) => {
 		// and map the internal colors with their semantic equivalent:
 		// green -> line color
 		let fullDiagram = (await page.innerHTML(`pre.mermaid>>nth=${i}`))
-			.replace(/green/g, 'var(--contrast)')
-			.replace(/red/g, 'var(--hue)')
+			.replace(/green/g, lineColor)
+			.replace(/red/g, canvasColor)
+			.replace(/orange/g, borderColor)
+			.replace(/purple/, backgroundColor)
+			.replace(/yellow/g, textColor)
 
 		// we need to add {...$$props} to the tag, so find the first >
 		const firstClose = fullDiagram.indexOf('>')

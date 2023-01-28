@@ -76,6 +76,12 @@ export default {
 
 ## Codegen Pipeline
 
+The code generation pipeline is broken up into 4 phases:
+- [Setup](#setup) does so much. its pretty much the best.
+- [Extract and Parse](#extract-and-parse) does so much. its pretty much the best.
+- [Validate and Transform](#validate-and-transform) does so much. its pretty much the best.
+- [Generate](#generate) does so much. its pretty much the best.
+
 ### Setup
 
 <SetupDiagram style="max-width: 250px; margin: 0 auto;" />
@@ -87,7 +93,7 @@ export default {
 #### `after_load`
 
 
-### Extract
+### Extract and Parse
 
 <ExtractDiagram style="max-width: 600px; margin: 0 auto;"/>
 
