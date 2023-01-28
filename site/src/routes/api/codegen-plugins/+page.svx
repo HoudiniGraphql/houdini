@@ -74,7 +74,7 @@ export default {
 
 ## Publishing a Plugin
 
-## Codegen Pipeline
+## Generation Pipeline
 
 The code generation pipeline is broken up into 4 phases:
 - [Setup](#setup) does so much. its pretty much the best.
