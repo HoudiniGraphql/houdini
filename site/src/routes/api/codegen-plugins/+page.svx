@@ -88,7 +88,7 @@ export type CustomPluginConfig = {
 }
 ```
 
-With that defined, a user can now include add a reference to your plugin's declarations and reference
+With that defined, a user can now include add a reference to your plugin's declarations and rely on
 your custom type in their config file:
 
 ```javascript:title=houdini.config.js
@@ -108,13 +108,15 @@ export default {
 
 ## Plugin Setup
 
-Every pipeline begins with a common set of hooks that allow you to
-
-
+Every pipeline begins with a common set of hooks that allow you to setup
+and configure the system. This can include loading environment variables, or
+updating any configuration values.
 
 <SetupDiagram style="max-width: 250px; margin: 0 auto;" />
 
 #### `config`
+
+- Type:
 
 #### `env`
 
