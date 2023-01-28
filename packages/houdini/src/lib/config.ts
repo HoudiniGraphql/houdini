@@ -864,57 +864,13 @@ export async function getConfig({
 		...(await readConfigFile(configPath)),
 	}
 
-	// if there is a framework specified, tell them they need to change things
-	if (!configFile.plugins) {
-		throw new HoudiniError({
-			message:
-				'Welcome to 0.17.0! Please following the migration guide here: http://www.houdinigraphql.com/guides/release-notes#0170',
-		})
-	}
-
-	try {
-		_config = new Config({
-			...configFile,
-			...extraConfig,
-			filepath: configPath,
-		})
-
-		const apiURL = await _config.apiURL()
-
-		// look up the schema if we need to
-		if (_config.schemaPath && !_config.schema) {
-			let schemaOk = true
-			// we might have to pull the schema first
-			if (apiURL) {
-				// make sure we don't have a pattern pointing to multiple files and a remove URL
-				if (fs.glob.hasMagic(_config.schemaPath)) {
-					console.log(
-						`⚠️  Your houdini configuration contains an apiUrl and a path pointing to multiple files.
-This will prevent your schema from being pulled.`
-					)
-				}
-				// we might have to create the file
-				else if (!(await fs.readFile(_config.schemaPath))) {
-					console.log('⌛ Pulling schema from api')
-					schemaOk = await pullSchema(apiURL, _config.schemaPath)
-				}
-			}
-
-			// the schema is safe to load
-			if (schemaOk && !noSchema) {
-				_config.schema = await loadSchemaFile(_config.schemaPath)
-			}
-		}
-	} catch (e) {
-		reject(e)
-		throw e
-	}
+	// we need to process the plugins before we instantiate the config object
 
 	// build up the list of plugins
 	const plugins = []
 
 	// load the specified plugins
-	for (const [pluginName, plugin_config] of Object.entries(_config.configFile.plugins ?? {})) {
+	for (const [pluginName, plugin_config] of Object.entries(configFile.plugins ?? {})) {
 		try {
 			// look for the houdini-svelte module
 			const pluginDirectory = _config.findModule(pluginName)
@@ -956,6 +912,44 @@ This will prevent your schema from being pulled.`
 		}
 	}
 
+	try {
+		_config = new Config({
+			...configFile,
+			...extraConfig,
+			filepath: configPath,
+		})
+
+		const apiURL = await _config.apiURL()
+
+		// look up the schema if we need to
+		if (_config.schemaPath && !_config.schema) {
+			let schemaOk = true
+			// we might have to pull the schema first
+			if (apiURL) {
+				// make sure we don't have a pattern pointing to multiple files and a remove URL
+				if (fs.glob.hasMagic(_config.schemaPath)) {
+					console.log(
+						`⚠️  Your houdini configuration contains an apiUrl and a path pointing to multiple files.
+This will prevent your schema from being pulled.`
+					)
+				}
+				// we might have to create the file
+				else if (!(await fs.readFile(_config.schemaPath))) {
+					console.log('⌛ Pulling schema from api')
+					schemaOk = await pullSchema(apiURL, _config.schemaPath)
+				}
+			}
+
+			// the schema is safe to load
+			if (schemaOk && !noSchema) {
+				_config.schema = await loadSchemaFile(_config.schemaPath)
+			}
+		}
+	} catch (e) {
+		reject(e)
+		throw e
+	}
+
 	// order the list of plugins
 	_config.plugins = orderedPlugins(plugins)
 
@@ -991,6 +985,7 @@ export type PluginHooks = {
 	order?: 'before' | 'after' | 'core' // when not set, it will be "before"
 	extensions?: string[]
 	transform_runtime?: Record<string, (args: { config: Config; content: string }) => string>
+	config?: (old: ConfigFile) => void | ConfigFile | Promise<ConfigFile | void>
 	after_load?: (config: Config) => Promise<void> | void
 	artifact_data?: (config: Config, doc: CollectedGraphQLDocument) => Record<string, any>
 	extract_documents?: (

@@ -56,6 +56,7 @@ export default {
     }
 }
 ```
+
 ```javascript:title=src/plugins/myPlugins.js
 /** @type { import("houdini").Plugin }*/
 const generateSomething = async ({ aValue }) =>  {
@@ -67,6 +68,7 @@ const generateSomething = async ({ aValue }) =>  {
 }
 ```
 
+Remember, local plugins have to be importable by Node so they must be written in JavaScript.
 
 #### Typesafe Config Values
 
@@ -109,14 +111,21 @@ export default {
 ## Plugin Setup
 
 Every pipeline begins with a common set of hooks that allow you to setup
-and configure the system. This can include loading environment variables, or
+and configure the system. This can include loading environment variables or
 updating any configuration values.
 
 <SetupDiagram style="max-width: 250px; margin: 0 auto;" />
 
 #### `config`
 
-- Type:
+- Type: `(old: ConfigFile) => ConfigFile`
+- Order: Sequential (plugins can overwrite each other)
+
+Used to modify any values that the user passed to their config files.
+Configuration values that you return will be deeply merged with the previous
+value. If you just want to look at the config values, we recommend using
+`[after_load](#after-load)` which will have the final set of values after all `config`
+hooks have run.
 
 #### `env`
 
@@ -125,11 +134,10 @@ updating any configuration values.
 ## Generation Pipeline
 
 The code generation pipeline is broken up into 3 parts:
+
 - [Extract and Parse](#extract-and-parse) does so much. its pretty much the best.
 - [Validate and Transform](#validate-and-transform) does so much. its pretty much the best.
 - [Generate](#generate) does so much. its pretty much the best.
-
-
 
 ### Extract and Parse
 
@@ -181,3 +189,8 @@ The code generation pipeline is broken up into 3 parts:
 
 #### `transform_file`
 
+## Definitions
+
+This section contains definitions for terms used throughout this document
+
+### Plugin Order
