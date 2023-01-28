@@ -118,7 +118,7 @@ updating any configuration values.
 
 #### `config`
 
-- Type: `(old: ConfigFile) => ConfigFile`
+- Type: `(old: ConfigFile) => ConfigFile | Promise<ConfigFile>`
 - Order: Sequential (plugins can overwrite each other)
 
 Used to modify any values that the user passed to their config files.

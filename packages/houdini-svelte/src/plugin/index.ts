@@ -1,4 +1,4 @@
-import type { PluginFactory } from 'houdini'
+import type { Plugin } from 'houdini'
 import { HoudiniError, path, fs, type Config } from 'houdini'
 import * as url from 'url'
 import { loadEnv } from 'vite'
@@ -22,7 +22,7 @@ let framework: Framework = 'svelte'
 
 export let _config: Config
 
-const HoudiniSveltePlugin: PluginFactory = async () => ({
+const HoudiniSveltePlugin: Plugin = async () => ({
 	order: 'core',
 
 	/**

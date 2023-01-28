@@ -15,6 +15,7 @@ import { CachePolicy } from '../runtime/lib'
 import { computeID, defaultConfigValues, keyFieldsForType } from '../runtime/lib/config'
 import type { TransformPage } from '../vite/houdini'
 import { houdini_mode } from './constants'
+import { deepMerge } from './deepMerge'
 import { HoudiniError } from './error'
 import * as fs from './fs'
 import { pullSchema } from './introspection'
@@ -330,46 +331,13 @@ export class Config {
 		return '$houdini.d.ts'
 	}
 
-	findModule(
-		pkg: string = 'houdini',
-		currentLocation: string = path.join(path.dirname(this.filepath))
-	) {
-		const pathEndingBy = ['node_modules', pkg]
-
-		// Build the first possible location
-		let locationFound = path.join(currentLocation, ...pathEndingBy)
-
-		// previousLocation is nothing
-		let previousLocation = ''
-		const backFolder: string[] = []
-
-		// if previousLocation !== locationFound that mean that we can go upper
-		// if the directory doesn't exist, let's go upper.
-		while (previousLocation !== locationFound && !fs.existsSync(locationFound)) {
-			// save the previous path
-			previousLocation = locationFound
-
-			// add a back folder
-			backFolder.push('../')
-
-			// set the new location
-			locationFound = path.join(currentLocation, ...backFolder, ...pathEndingBy)
-		}
-
-		if (previousLocation === locationFound) {
-			throw new Error('Could not find any node_modules/houdini folder')
-		}
-
-		return locationFound
-	}
-
 	get runtimeSource() {
 		// when running in the real world, scripts are nested in a sub directory of build, in tests they aren't nested
 		// under /src so we need to figure out how far up to go to find the appropriately compiled runtime
 		const relative = houdini_mode.is_testing
 			? path.join(currentDir, '..', '..')
 			: // start here and go to parent until we find the node_modules/houdini folder
-			  this.findModule()
+			  findModule('houdini', path.join(path.dirname(this.filepath)))
 
 		const which = this.module === 'esm' ? 'esm' : 'cjs'
 
@@ -860,11 +828,10 @@ export async function getConfig({
 	})
 
 	// look up the current config file
-	let configFile = {
-		...(await readConfigFile(configPath)),
-	}
+	let configFile = await readConfigFile(configPath)
 
 	// we need to process the plugins before we instantiate the config object
+	// so that we can compute the final configFile
 
 	// build up the list of plugins
 	const plugins = []
@@ -873,7 +840,7 @@ export async function getConfig({
 	for (const [pluginName, plugin_config] of Object.entries(configFile.plugins ?? {})) {
 		try {
 			// look for the houdini-svelte module
-			const pluginDirectory = _config.findModule(pluginName)
+			const pluginDirectory = findModule(pluginName, configPath)
 			const { default: pluginFactory }: { default: Plugin } = await import(
 				pathToFileURL(pluginDirectory).toString() + '/build/plugin-esm/index.js'
 			)
@@ -909,6 +876,13 @@ export async function getConfig({
 			throw new Error(
 				`Could not find plugin: ${pluginName}. Are you sure its installed? If so, please open a ticket on GitHub.`
 			)
+		}
+	}
+
+	// pass the config file through all of the plugins
+	for (const plugin of plugins) {
+		if (plugin.config) {
+			configFile = deepMerge(configPath, configFile, await plugin.config(configFile))
 		}
 	}
 
@@ -985,7 +959,7 @@ export type PluginHooks = {
 	order?: 'before' | 'after' | 'core' // when not set, it will be "before"
 	extensions?: string[]
 	transform_runtime?: Record<string, (args: { config: Config; content: string }) => string>
-	config?: (old: ConfigFile) => void | ConfigFile | Promise<ConfigFile | void>
+	config?: (old: ConfigFile) => ConfigFile | Promise<ConfigFile>
 	after_load?: (config: Config) => Promise<void> | void
 	artifact_data?: (config: Config, doc: CollectedGraphQLDocument) => Record<string, any>
 	extract_documents?: (
@@ -1059,3 +1033,33 @@ export type GenerateHookInput = {
 }
 
 export type PluginConfig = { configPath?: string } & Partial<ConfigFile>
+
+function findModule(pkg: string = 'houdini', currentLocation: string) {
+	const pathEndingBy = ['node_modules', pkg]
+
+	// Build the first possible location
+	let locationFound = path.join(currentLocation, ...pathEndingBy)
+
+	// previousLocation is nothing
+	let previousLocation = ''
+	const backFolder: string[] = []
+
+	// if previousLocation !== locationFound that mean that we can go upper
+	// if the directory doesn't exist, let's go upper.
+	while (previousLocation !== locationFound && !fs.existsSync(locationFound)) {
+		// save the previous path
+		previousLocation = locationFound
+
+		// add a back folder
+		backFolder.push('../')
+
+		// set the new location
+		locationFound = path.join(currentLocation, ...backFolder, ...pathEndingBy)
+	}
+
+	if (previousLocation === locationFound) {
+		throw new Error('Could not find any node_modules/houdini folder')
+	}
+
+	return locationFound
+}

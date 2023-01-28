@@ -1,9 +1,9 @@
-import type { PluginFactory } from 'houdini'
+import type { Plugin } from 'houdini'
 
 import { extract_documents } from './extract'
 import { transform_file } from './transform'
 
-const HoudiniReactPlugin: PluginFactory = async () => ({
+const HoudiniReactPlugin: Plugin = async () => ({
 	order: 'core',
 
 	// add the jsx extensions

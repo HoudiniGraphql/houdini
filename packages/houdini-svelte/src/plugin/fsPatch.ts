@@ -1,6 +1,6 @@
 import type { PathLike } from 'fs'
 import filesystem, { Dirent } from 'fs'
-import type { PluginConfig } from 'houdini'
+import type { PluginHooks } from 'houdini'
 import { fs, path } from 'houdini'
 
 import { _config } from '.'
@@ -71,7 +71,7 @@ export default (getFramwork: () => Framework) =>
 				}
 			}
 		},
-	} as PluginConfig['vite'])
+	} as PluginHooks['vite'])
 
 const _readDirSync = filesystem.readdirSync
 const _statSync = filesystem.statSync
