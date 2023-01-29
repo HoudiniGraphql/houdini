@@ -114,7 +114,7 @@ Every pipeline begins with a common set of hooks that allow you to setup
 and configure the system. This can include loading environment variables or
 updating any configuration values.
 
-<SetupDiagram style="max-width: 250px; margin: 0 auto;" />
+<SetupDiagram style="max-width: 250px; margin: 0 auto; margin-bottom: 30px;" />
 
 ### `config`
 
@@ -148,7 +148,7 @@ if you want to perform logic based on config values.
 These hooks are responsibile for generating a list of filepaths and finding the GraphQL
 documents inside.
 
-<ExtractDiagram style="max-width: 600px; margin: 0 auto;"/>
+<ExtractDiagram style="max-width: 600px; margin: 0 auto; margin-bottom: 30px;"/>
 
 ### `extensions`
 
@@ -202,7 +202,7 @@ Currently, this hook can only add directives, scalars, or enums to the schema.
 These hooks are responsible for transforming and validating the documents in your application. If you want
 to add new definitions, you can add new documents to provided list.
 
-<ValidateDiagram style="max-width: 600px; margin: 0 auto;"/>
+<ValidateDiagram style="max-width: 600px; margin: 0 auto; margin-bottom: 30px;"/>
 
 ### `transform_before_validate`
 
@@ -236,7 +236,7 @@ This Pipeline is responsible for generating all of the files for your applicatio
 modify the query artifact (a static respresentation of the document), hooks to customize the core runtime
 provided by houdini, as well as hooks to generate your own files and runtimes for your plugin.
 
-<GenerateDiagram style="max-width: 600px; margin: 0 auto;"/>
+<GenerateDiagram style="max-width: 600px; margin: 0 auto; margin-bottom: 30px;"/>
 
 ### `transform_before_generate`
 
@@ -251,10 +251,6 @@ A hook to transform the documents just before static assets are generated.
 
 A hook to embed metadata at the root of the artifact. You should use this to encode document-level
 data at build time so you don't have to analyze the document at runtime (in a client plugin, for example).
-
-### `artifact_selection`
-
-Not Yet Implemented
 
 ### `artifact_end`
 
