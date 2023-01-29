@@ -210,6 +210,9 @@ Currently, this hook can only add directives, scalars, or enums to the schema.
 
 ### Transform and Validate
 
+These hooks are responsible for transforming and validating the documents in your application. If you want
+to add new definitions, you can add new documents to provided list.
+
 <ValidateDiagram style="max-width: 600px; margin: 0 auto;"/>
 
 #### `transform_before_validate`
@@ -232,6 +235,9 @@ reliably import the correct artifact.
 
 #### `transform_after_validate`
 
+- Type: `({config: Config documents: CollectedGraphQLDocument[]}) => void`
+- Can also return a Promise
+
 A hook to transform the documents after they have been validated. This is useful if you are building a feature
 that needs to add extra selections or documents to the list.
 
@@ -240,6 +246,11 @@ that needs to add extra selections or documents to the list.
 <GenerateDiagram style="max-width: 600px; margin: 0 auto;"/>
 
 #### `transform_before_generate`
+
+- Type: `({config: Config documents: CollectedGraphQLDocument[]}) => void`
+- Can also return a Promise
+
+A hook to transform the documents just before static assets are generated.
 
 #### `artifact_data`
 
