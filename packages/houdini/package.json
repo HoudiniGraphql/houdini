@@ -68,10 +68,6 @@
             "import": "./build/lib-esm/index.js",
             "require": "./build/lib-cjs/index.js"
         },
-        "./runtime": {
-            "import": "./build/runtime-esm/index.js",
-            "require": "./build/runtime-cjs/index.js"
-        },
         "./test": {
             "import": "./build/test-esm/index.js",
             "require": "./build/test-cjs/index.js"

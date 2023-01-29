@@ -13,17 +13,13 @@ export async function test_config(extraConfig: Partial<ConfigFile> = {}) {
 	config.plugins.push(
 		{
 			...plugin_houdini_svelte,
-			include_runtime: true,
+			filepath: '',
 			name: 'houdini-svelte',
-			version: 'test',
-			directory: process.cwd(),
 		},
 		{
 			...plugin_houdini_svelte_global_store,
-			include_runtime: false,
 			name: 'houdini-plugin-svelte-global-stores',
-			version: 'test',
-			directory: process.cwd(),
+			filepath: '',
 		}
 	)
 	return config

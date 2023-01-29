@@ -6,8 +6,7 @@ import generate from './codegen'
 import { global_stores_directory, global_store_name } from './kit'
 
 const HoudiniPluginSvelteGlobalStores: Plugin = async () => ({
-	// it has to come before the core houdini-svelte plugin
-	// order: 'before',
+	name: 'houdini-plugin-svelte-global-stores',
 
 	/**
 	 * Generate

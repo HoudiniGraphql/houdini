@@ -29,10 +29,9 @@ export async function test_config(extraConfig: Partial<ConfigFile> = {}) {
 	const svelte_plugin = await plugin()
 	config.plugins.push({
 		...svelte_plugin,
-		include_runtime: true,
+		include_runtime: './test',
 		name: 'houdini-svelte',
-		version: 'test',
-		directory: process.cwd(),
+		filepath: path.join(process.cwd(), 'index.js'),
 	})
 	return config
 }

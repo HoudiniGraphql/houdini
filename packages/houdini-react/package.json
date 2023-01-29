@@ -45,10 +45,6 @@
         ".": {
             "import": "./build/plugin-esm/index.js",
             "require": "./build/plugin-cjs/index.js"
-        },
-        "./runtime": {
-            "import": "./build/runtime-esm/index.js",
-            "require": "./build/runtime-cjs/index.js"
         }
     },
     "typesVersions": {

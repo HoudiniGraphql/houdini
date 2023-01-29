@@ -46,7 +46,7 @@ export enum LogLevel {
 	Quiet = 'quiet',
 }
 
-export type Plugin = (args?: PluginConfig) => Promise<PluginHooks | PluginHooks[]>
+export type Plugin = (args?: PluginConfig) => Promise<PluginHooks | PluginHooks[] | null | false>
 
 export type PluginHooks = {
 	/**

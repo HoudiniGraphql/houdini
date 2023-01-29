@@ -771,7 +771,7 @@ export async function getConfig({
 			const hooks = await pluginFactory(plugin_config)
 
 			pluginsNested.push(
-				(Array.isArray(hooks) ? hooks : [hooks]).map((hook) => ({
+				(Array.isArray(hooks) ? hooks : [hooks]).filter(Boolean).map((hook) => ({
 					...hook,
 					name: pluginName,
 					filepath: pluginFile,

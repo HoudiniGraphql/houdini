@@ -14,9 +14,7 @@ test('updates the list of plugin-specified client plugins', async function () {
 	config.plugins = [
 		{
 			name: 'pluginWithClientPlugin',
-			include_runtime: false,
-			version: 'string',
-			directory: 'string',
+			filepath: '',
 			client_plugins: {
 				testPlugin: {},
 			},
@@ -83,9 +81,7 @@ test('passing null as client plugin config generates a reference, not a function
 	config.plugins = [
 		{
 			name: 'pluginWithClientPlugin',
-			include_runtime: false,
-			version: 'string',
-			directory: 'string',
+			filepath: '',
 			client_plugins: {
 				testPlugin: null,
 			},
@@ -124,9 +120,7 @@ test('passing a function passes the config files', async function () {
 	config.plugins = [
 		{
 			name: 'pluginWithClientPlugin',
-			include_runtime: false,
-			version: 'string',
-			directory: 'string',
+			filepath: '',
 			client_plugins() {
 				return {
 					testPlugin: null,

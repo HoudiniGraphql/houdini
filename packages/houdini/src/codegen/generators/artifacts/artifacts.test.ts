@@ -4010,9 +4010,7 @@ test('some artifact_data added to artifact specific to plugins', async function 
 	config.plugins = [
 		{
 			name: 'plugin-tmp1',
-			include_runtime: true,
-			version: 'test',
-			directory: process.cwd(),
+			filepath: '',
 			artifact_data: () => {
 				return {
 					added_stuff: { yop: 'true' },
@@ -4021,9 +4019,7 @@ test('some artifact_data added to artifact specific to plugins', async function 
 		},
 		{
 			name: 'plugin-tmp2',
-			include_runtime: true,
-			version: 'test',
-			directory: process.cwd(),
+			filepath: '',
 		},
 	]
 
