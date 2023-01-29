@@ -42,8 +42,7 @@ const generateSomething = plugin('my plugin', async () =>  {
 })
 ```
 
-For a summary of the available hooks, check out the [Generation Pipeline](#generation-pipeline)
-section below.
+The list of available hooks can be in the next sections, beginning with [Plugin Setup](#plugin-setup).
 
 <DeepDive title="Accepting Configuration">
 
@@ -107,6 +106,41 @@ export default {
         }
     }
 }
+```
+
+</DeepDive>
+
+<DeepDive title="Composing Plugins">
+
+Codegen plugins can be defined as a composition of many different sets of hooks.
+The function passed to `plugin` can return a list of hooks, external plugins or null -
+allowing you to easily toggle functionality depending on configuration values:
+
+```javascript:title=src/plugins/myPlugins.js
+import { plugin } from 'houdini'
+import externalPlugin from 'third-party'
+
+const localHooks = { }
+
+const generateSomething = plugin('gen', async ({ include }) =>  {
+    return [
+        localHooks,
+        include ? externalPlugin : null,
+    ]
+})
+```
+
+Use the `with` method to pass configuration to the third-party plugin:
+
+```javascript:title=src/plugins/myPlugins.js
+import { plugin } from 'houdini'
+import externalPlugin from 'third-party'
+
+const generateSomething = plugin('gen', async () =>  {
+    return [
+        externalPlugin.with({ key: "value" })
+    ]
+})
 ```
 
 </DeepDive>
