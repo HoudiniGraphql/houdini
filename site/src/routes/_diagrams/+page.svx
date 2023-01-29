@@ -30,6 +30,10 @@ graph LR
     config[config] --> env
     env[env] --> after_load
     after_load[after_load]
+    click config "#config" "config hook"
+    click env "#env" "env hook"
+    click after_load "#after_load" "after_load hook"
+
 ```
 
 ```mermaid

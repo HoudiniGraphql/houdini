@@ -124,12 +124,24 @@ updating any configuration values.
 Used to modify any values that the user passed to their config files.
 Configuration values that you return will be deeply merged with the previous
 value. If you just want to look at the config values, we recommend using
-`[after_load](#after-load)` which will have the final set of values after all `config`
+[after_load](#after_load) which will have the final set of values after all `config`
 hooks have run.
 
 #### `env`
 
+- Type: `(args: { env: any; config: Config }) => Promise<Record<string, string>>`
+- Order: Sequential (plugins can overwrite each other)
+
+Adds environment variables to houdini's pipeline (ie, for schema polling headers, url, etc.).
+
+
 #### `after_load`
+
+- Type: `(config: Config) => Promise<void> | void`
+- Order: Async (plugins can't affect each other)
+
+Invoked after all plugins have loaded and modified config values. This is the hook to use
+if you want to perform logic based on config values.
 
 ## Generation Pipeline
 

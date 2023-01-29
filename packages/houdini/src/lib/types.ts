@@ -79,7 +79,21 @@ export type PluginHooks = {
 	 */
 	transform_runtime?: Record<string, (args: { config: Config; content: string }) => string>
 
+	/**
+	 * Used to modify any values that the user passed to their config files. Configuration values
+	 * that you return will be deeply merged with the previous value.
+	 */
 	config?: (old: ConfigFile) => ConfigFile | Promise<ConfigFile>
+
+	/**
+	 *
+	 * Add environment variables to houdini's pipeline (ie, for schema polling headers, url, etc.)
+	 */
+	env?: (args: { env: any; config: Config }) => Promise<Record<string, string>>
+
+	/**
+	 * Invoked after all plugins have loaded and modified config values.
+	 */
 	after_load?: (config: Config) => Promise<void> | void
 	artifact_data?: (config: Config, doc: CollectedGraphQLDocument) => Record<string, any>
 	extract_documents?: (
@@ -98,7 +112,6 @@ export type PluginHooks = {
 		doc: CollectedGraphQLDocument
 		ensure_import: (import_args: { identifier: string; module: string }) => void
 	}) => string | undefined
-	env?: (args: { env: any; config: Config }) => Promise<Record<string, string>>
 	validate?: (args: {
 		config: Config
 		documents: CollectedGraphQLDocument[]
