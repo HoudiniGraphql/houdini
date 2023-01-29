@@ -78,8 +78,7 @@ graph TD
 
     gen_sq_center[ ] --> |For every document|artifact_data
     artifact_data --> artifact_hash
-    artifact_hash[hash] --> artifact_selection
-    artifact_selection --> artifact_e
+    artifact_hash[hash] --> artifact_e
     artifact_e[artifact_end]
 
 

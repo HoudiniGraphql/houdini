@@ -385,9 +385,3 @@ This hook is used to transform the user's source code from an ergonomic
 API to the the actual implementation under the hood. For more
 information, please review the example at the bottom of the
 [Architecture Guide](/guides/architecture#an-example).
-
-## Definitions
-
-This section contains definitions for terms used throughout this document
-
-### Plugin Order
