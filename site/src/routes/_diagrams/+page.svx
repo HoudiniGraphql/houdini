@@ -44,6 +44,11 @@ graph LR
     extract[extract_documents] --- collect
     schema[schema] --- collect
     collect((Parse <br> Documents))
+    click extensions "#extensions" "extensions hook"
+    click include "#include" "include hook"
+    click exclude "#exclude" "exclude hook"
+    click extract_documents "#extract_documents" "extract_documents hook"
+    click schema "#schema" "schema hook"
 ```
 
 ```mermaid

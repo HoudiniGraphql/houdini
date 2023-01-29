@@ -95,6 +95,17 @@ export type PluginHooks = {
 	 * Invoked after all plugins have loaded and modified config values.
 	 */
 	after_load?: (config: Config) => Promise<void> | void
+
+	/**
+	 * A filter for whether a file should be included in the the processing
+	 */
+	include?: (config: Config, filepath: string) => boolean | null | undefined
+
+	/**
+	 * A filter for whether a file should be included in the the processing. Return true
+	 */
+	exclude?: (config: Config, filepath: string) => boolean | null | undefined
+
 	artifact_data?: (config: Config, doc: CollectedGraphQLDocument) => Record<string, any>
 	extract_documents?: (
 		config: Config,
@@ -144,7 +155,6 @@ export type PluginHooks = {
 			) => Promise<LoadResult> | LoadResult
 		>
 	}
-	include?: (config: Config, filepath: string) => boolean | null | undefined
 }
 
 type ModuleIndexTransform = (arg: {

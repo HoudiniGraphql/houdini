@@ -119,7 +119,7 @@ updating any configuration values.
 #### `config`
 
 - Type: `(old: ConfigFile) => ConfigFile | Promise<ConfigFile>`
-- Order: Sequential (plugins can overwrite each other)
+- Plugins might overwrite each other
 
 Used to modify any values that the user passed to their config files.
 Configuration values that you return will be deeply merged with the previous
@@ -130,15 +130,15 @@ hooks have run.
 #### `env`
 
 - Type: `(args: { env: any; config: Config }) => Promise<Record<string, string>>`
-- Order: Sequential (plugins can overwrite each other)
+- Plugins might overwrite each other
 
 Adds environment variables to houdini's pipeline (ie, for schema polling headers, url, etc.).
+Plugins are executed in the order they are defined so they can overwrite each other.
 
 
 #### `after_load`
 
 - Type: `(config: Config) => Promise<void> | void`
-- Order: Async (plugins can't affect each other)
 
 Invoked after all plugins have loaded and modified config values. This is the hook to use
 if you want to perform logic based on config values.
@@ -147,21 +147,43 @@ if you want to perform logic based on config values.
 
 The code generation pipeline is broken up into 3 parts:
 
-- [Extract and Parse](#extract-and-parse) does so much. its pretty much the best.
-- [Validate and Transform](#validate-and-transform) does so much. its pretty much the best.
-- [Generate](#generate) does so much. its pretty much the best.
+- [Extract and Parse](#extract-and-parse) finds all of the GraphQL documents in your application.
+- [Validate and Transform](#validate-and-transform) verifies your application's documents and
+  transforms them to fit the needs of your plugin.
+- [Generate](#generate) creates the various artifacts that your application needs.
 
 ### Extract and Parse
+
+These hooks are responsibile for generating a list of filepaths and finding the GraphQL
+documents inside.
 
 <ExtractDiagram style="max-width: 600px; margin: 0 auto;"/>
 
 #### `extensions`
 
+- Type: `string[]`
+- Plugin values are concattenated together
+
+Add extensions to the list that houdini uses to find valid source files.
+
 #### `include`
+
+- Type: `(config: Config, filepath: string) => boolean | null | undefined`
+
+A filter for wether a file should be included in processing. This hook is useful
+if you generate imports that do not match your users configure `include` value.
+Return `true` to include the file.
 
 #### `exclude`
 
+- Type: `(config: Config, filepath: string) => boolean | null | undefined`
+
+A filter for wether a file should be included in processing. This hook is useful
+if you generate imports that do not match your users configure `include` value.
+Return `false` to include the file.
+
 #### `extract_documents`
+
 
 #### `schema`
 

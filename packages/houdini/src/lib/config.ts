@@ -412,6 +412,26 @@ export class Config {
 		)
 	}
 
+	excludeFile(filepath: string) {
+		// if the configured exclude does not allow this file, we're done
+		if (
+			this.exclude.length > 0 &&
+			this.exclude.some((pattern) => minimatch(filepath, pattern))
+		) {
+			return true
+		}
+
+		// look at every plugin
+		for (const plugin of this.plugins) {
+			if (plugin?.exclude?.(this, filepath)) {
+				return true
+			}
+		}
+
+		// if we got this far, we shouldn't exclude
+		return false
+	}
+
 	includeFile(
 		filepath: string,
 		{
@@ -441,11 +461,7 @@ export class Config {
 		}
 
 		// if there is an exclude, make sure the path doesn't match any of the exclude patterns
-		return (
-			!this.exclude ||
-			this.exclude.length === 0 ||
-			!this.exclude.some((pattern) => minimatch(filepath, pattern))
-		)
+		return !this.excludeFile(filepath)
 	}
 
 	pluginRuntimeDirectory(name: string) {
