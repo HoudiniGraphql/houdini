@@ -22,7 +22,7 @@ of what was generated).
 For information on adding a plugin to your project, checkout the
 [Config reference](/api/config#adding-plugins).
 
-## Defining a Plugin
+## Writing a Plugin
 
 A codegen plugin is defined as an asynchronous function that returns
 an object with a fixed set of keys, defining the "hooks" that you want
@@ -70,7 +70,7 @@ const generateSomething = async ({ aValue }) =>  {
 
 Remember, local plugins have to be importable by Node so they must be written in JavaScript.
 
-#### Typesafe Config Values
+### Typesafe Config Values
 
 If you use typescript, you probably want type definitions for your configuration
 values. The best way to set that up is by
@@ -106,7 +106,7 @@ export default {
 }
 ```
 
-## Publishing a Plugin
+### Publishing a Plugin
 
 ## Plugin Setup
 
@@ -116,7 +116,7 @@ updating any configuration values.
 
 <SetupDiagram style="max-width: 250px; margin: 0 auto;" />
 
-#### `config`
+### `config`
 
 - Type: `(old: ConfigFile) => ConfigFile`
 - Can return a `Promise` as well
@@ -128,7 +128,7 @@ value. If you just want to look at the config values, we recommend using
 [after_load](#after_load) which will have the final set of values after all `config`
 hooks have run.
 
-#### `env`
+### `env`
 
 - Type: `({ env: any; config: Config }) => Promise<Record<string, string>>`
 - Plugins might overwrite each other
@@ -136,37 +136,28 @@ hooks have run.
 Adds environment variables to houdini's pipeline (ie, for schema polling headers, url, etc.).
 Plugins are executed in the order they are defined so they can overwrite each other.
 
-#### `after_load`
+### `after_load`
 
 - Type: `(config: Config) => Promise<void> | void`
 
 Invoked after all plugins have loaded and modified config values. This is the hook to use
 if you want to perform logic based on config values.
 
-## Generation Pipeline
-
-The code generation pipeline is broken up into 3 parts:
-
-- [Extract and Parse](#extract-and-parse) finds and parses all of the GraphQL documents in your application
-- [Validate and Transform](#validate-and-transform) verifies your application's documents and
-  transforms them to fit the needs of your plugin.
-- [Generate](#generate-pipeline) creates the various artifacts that your application needs.
-
-### Extract and Parse
+## Extract and Parse
 
 These hooks are responsibile for generating a list of filepaths and finding the GraphQL
 documents inside.
 
 <ExtractDiagram style="max-width: 600px; margin: 0 auto;"/>
 
-#### `extensions`
+### `extensions`
 
 - Type: `string[]`
 - Plugin values are concattenated together
 
 Add extensions to the list that houdini uses to find valid source files.
 
-#### `include`
+### `include`
 
 - Type: `(config: Config, filepath: string) => boolean | null | undefined`
 - If any plugin includes the value, the filepath is excluded
@@ -175,7 +166,7 @@ A filter for wether a file should be included in processing. This hook is useful
 if you generate imports that do not match your users configure `include` value.
 Return `true` to include the file.
 
-#### `exclude`
+### `exclude`
 
 - Type: `(config: Config, filepath: string) => boolean | null | undefined`
 - If any plugin excludes the value, the filepath is excluded
@@ -184,7 +175,7 @@ A filter for wether a file should be included in processing. This hook is useful
 if you generate imports that do not match your users configure `include` value.
 Return `false` to include the file.
 
-#### `extract_documents`
+### `extract_documents`
 
 - Type: `(config: Config, path: string, content: string) => string[] | null`
 - Can return a `Promise` as well
@@ -195,7 +186,7 @@ given its filepath and the file contents. You can return `null` or an empty stri
 that you didn't find any graphql documents. This step is responsible for actually parsing your
 source code and extracting the string values of the `graphql` function.
 
-#### `schema`
+### `schema`
 
 - Type: `({ config: Config, path: string, content: string }) => string`
 
@@ -206,14 +197,14 @@ or [artifact_selection](#artfiact_selection) to embed data in the artifact.
 
 Currently, this hook can only add directives, scalars, or enums to the schema.
 
-### Validate and Transform
+## Validate and Transform
 
 These hooks are responsible for transforming and validating the documents in your application. If you want
 to add new definitions, you can add new documents to provided list.
 
 <ValidateDiagram style="max-width: 600px; margin: 0 auto;"/>
 
-#### `transform_before_validate`
+### `transform_before_validate`
 
 - Type: `({config: Config documents: Document[]}) => void`
 - Can also return a Promise
@@ -221,7 +212,7 @@ to add new definitions, you can add new documents to provided list.
 A hook to transform documents before they has been validated. This can be useful if you are adding a layer
 that translates into a Houdini feature.
 
-#### `validate`
+### `validate`
 
 - Type: `({config: Config documents: Document[]}) => void`
 - Can also return a Promise
@@ -231,7 +222,7 @@ the [uniqueNames](https://github.com/HoudiniGraphql/houdini/blob/main/packages/h
 validator makes sure that every document has a unique name so that the preprocessor can
 reliably import the correct artifact.
 
-#### `transform_after_validate`
+### `transform_after_validate`
 
 - Type: `({config: Config documents: Document[]}) => void`
 - Can also return a Promise
@@ -239,7 +230,7 @@ reliably import the correct artifact.
 A hook to transform the documents after they have been validated. This is useful if you are building a feature
 that needs to add extra selections or documents to the list.
 
-### Generate Pipeline
+## Generate Runtime
 
 This Pipeline is responsible for generating all of the files for your application. This includes hooks to
 modify the query artifact (a static respresentation of the document), hooks to customize the core runtime
@@ -247,25 +238,25 @@ provided by houdini, as well as hooks to generate your own files and runtimes fo
 
 <GenerateDiagram style="max-width: 600px; margin: 0 auto;"/>
 
-#### `transform_before_generate`
+### `transform_before_generate`
 
 - Type: `({config: Config documents: Document[]}) => void`
 - Can also return a Promise
 
 A hook to transform the documents just before static assets are generated.
 
-#### `artifact_data`
+### `artifact_data`
 
 - Type: `(config: Config, doc: Document) => Record<string, any>`
 
 A hook to embed metadata at the root of the artifact. You should use this to encode document-level
 data at build time so you don't have to analyze the document at runtime (in a client plugin, for example).
 
-#### `artifact_selection`
+### `artifact_selection`
 
 Not Yet Implemented
 
-#### `artifact_end`
+### `artifact_end`
 
 - Type `(config: Config, artifact: DocumentArtifact) => DocumentArtifact`
 - Plugins can overwrite values
@@ -273,14 +264,14 @@ Not Yet Implemented
 A hook to modify the generated artifact before its written to disk. This is useful to set artifact data
 based on information derived from the artifact's final state.
 
-#### `hash`
+### `hash`
 
 - Type: `(Config, Document) => string`
 - The first hook provided is used.
 
 Customizes the hash generated for a given document
 
-#### `index_file`
+### `index_file`
 
 - Type: `(args: IndexFileArgs) => string`
 
@@ -300,7 +291,7 @@ A hook to modify the root `index.js` and `index.d.ts` files in the generated run
 add any exports, make sure to use the `export_default_as` and `export_star_from` utilities which will
 make sure your type definitions are up to date.
 
-#### `graphql_tag_return`
+### `graphql_tag_return`
 
 - Type: `({
 	config,
@@ -320,7 +311,7 @@ export default {
 }
 ```
 
-#### `generate`
+### `generate`
 
 - Type: `(args: GenerateArgs) => void`
 - Can also return a Promise
@@ -339,7 +330,7 @@ files you want. If you want values that you generated to be included in
 the values exported from `$houdini`, you should use the
 [index_file](#index_file) hook.
 
-#### `include_runtime`
+### `include_runtime`
 
 - Type: `string | { commonjs: string, esm: string }`
 
@@ -353,7 +344,7 @@ directory to the directory that should be copied. If you have different
 versions of your runtime for CommonJS and ESModules, you can set this
 to an object specifying both paths.
 
-#### `transform_runtime`
+### `transform_runtime`
 
 - Type: `Record<string, ({ config: Config; content: string }) => string>`
 
@@ -364,9 +355,9 @@ setting). The values are functions that set the new file value.
 This hook only has an effect if you have passed a value
 for [include_runtime](#include-runtime).
 
-## Transform Hooks
+## Transform Source
 
-#### `transform_file`
+### `transform_file`
 
 - Type: `(page: TransformPage) => { code: string }`
 - Can also return a Promise
