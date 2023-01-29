@@ -130,7 +130,7 @@ hooks have run.
 
 #### `env`
 
-- Type: `(args: { env: any; config: Config }) => Promise<Record<string, string>>`
+- Type: `({ env: any; config: Config }) => Promise<Record<string, string>>`
 - Plugins might overwrite each other
 
 Adds environment variables to houdini's pipeline (ie, for schema polling headers, url, etc.).
@@ -199,7 +199,7 @@ source code and extracting the string values of the `graphql` function.
 
 #### `schema`
 
-- Type: `(args: { config: Config, path: string, content: string }) => string`
+- Type: `({ config: Config, path: string, content: string }) => string`
 
 Can be used to add custom definitions to your project's schema. Definitions (like directives) added
 here are automatically removed from the document before they are sent to the server. It is sometimes
@@ -214,9 +214,26 @@ Currently, this hook can only add directives, scalars, or enums to the schema.
 
 #### `transform_before_validate`
 
+- Type: `({config: Config documents: CollectedGraphQLDocument[]}) => void`
+- Can also return a Promise
+
+A hook to transform documents before they has been validated. This can be useful if you are adding a layer
+that translates into a Houdini feature.
+
 #### `validate`
 
-#### `transform_before_validate`
+- Type: `({config: Config documents: CollectedGraphQLDocument[]}) => void`
+- Can also return a Promise
+
+A hook to ensure that assumptions made by the rest of the tasks are true. For example,
+the [uniqueNames](https://github.com/HoudiniGraphql/houdini/blob/main/packages/houdini/src/codegen/validators/uniqueNames.ts)
+validator makes sure that every document has a unique name so that the preprocessor can
+reliably import the correct artifact.
+
+#### `transform_after_validate`
+
+A hook to transform the documents after they have been validated. This is useful if you are building a feature
+that needs to add extra selections or documents to the list.
 
 ### Generate
 

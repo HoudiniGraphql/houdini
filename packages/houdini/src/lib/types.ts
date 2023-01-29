@@ -122,6 +122,38 @@ export type PluginHooks = {
 	 */
 	schema?: (args: { config: Config }) => string
 
+	/**
+	 * A hook to transform the documents before they are validated.
+	 */
+	transform_before_validate?: (args: {
+		config: Config
+		documents: CollectedGraphQLDocument[]
+	}) => Promise<void> | void
+
+	/**
+	 * A hook to validate all of the documents in a project.
+	 */
+	validate?: (args: {
+		config: Config
+		documents: CollectedGraphQLDocument[]
+	}) => Promise<void> | void
+
+	/**
+	 * A hook to transform the documents after they are validated.
+	 */
+	transform_after_validate?: (args: {
+		config: Config
+		documents: CollectedGraphQLDocument[]
+	}) => Promise<void> | void
+
+	/**
+	 * A hook to transform the documents before documents are generated.
+	 */
+	transform_before_generate?: (args: {
+		config: Config
+		documents: CollectedGraphQLDocument[]
+	}) => Promise<void> | void
+
 	artifact_data?: (config: Config, doc: CollectedGraphQLDocument) => Record<string, any>
 	generate?: GenerateHook
 	client_plugins?:
@@ -134,10 +166,7 @@ export type PluginHooks = {
 		doc: CollectedGraphQLDocument
 		ensure_import: (import_args: { identifier: string; module: string }) => void
 	}) => string | undefined
-	validate?: (args: {
-		config: Config
-		documents: CollectedGraphQLDocument[]
-	}) => Promise<void> | void
+
 	vite?: {
 		// these type definitions are copy and pasted from the vite ones
 		// with config added to the appropriate options object

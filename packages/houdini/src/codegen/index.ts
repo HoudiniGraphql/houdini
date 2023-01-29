@@ -41,6 +41,34 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 	// collect any plugins that need to do something after generating
 	const generatePlugins = config.plugins.filter((plugin) => plugin.generate)
 
+	// find the different hooks we need to add to the pipeline
+	const transform_after_validate = config.plugins
+		.filter((plugin) => plugin.transform_after_validate)
+		.map((plugin) => plugin.transform_after_validate!)
+	const validate = config.plugins
+		.filter((plugin) => plugin.validate)
+		.map((plugin) => plugin.validate!)
+	const transform_before_validate = config.plugins
+		.filter((plugin) => plugin.transform_before_validate)
+		.map((plugin) => plugin.transform_before_validate!)
+	const transform_before_generate = config.plugins
+		.filter((plugin) => plugin.transform_before_generate)
+		.map((plugin) => plugin.transform_before_generate!)
+
+	const wrapHook = (
+		hooks: ((args: {
+			config: Config
+			documents: CollectedGraphQLDocument[]
+		}) => Promise<void> | void)[]
+	) =>
+		hooks.map(
+			(fn) => (config: Config, docs: CollectedGraphQLDocument[]) =>
+				fn({
+					config,
+					documents: docs,
+				})
+		)
+
 	// run the generate command before we print "🎩 Generating runtime..." because we don't know upfront artifactStats.
 	let error: Error | null = null
 	try {
@@ -50,12 +78,14 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 				// transforms
 				transforms.internalSchema,
 
+				...wrapHook(transform_before_validate),
 				// validators
 				validators.typeCheck,
 				validators.uniqueNames,
 				validators.noIDAlias,
 				validators.plugins,
-
+				...wrapHook(validate),
+				...wrapHook(transform_after_validate),
 				transforms.addID,
 				transforms.typename,
 				// list transform must go before fragment variables
@@ -66,9 +96,8 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 				transforms.paginate,
 				transforms.fragmentVariables,
 				transforms.composeQueries,
-
+				...wrapHook(transform_before_generate),
 				// generators
-
 				generators.runtime,
 				generators.indexFile,
 				generators.artifacts(artifactStats),
