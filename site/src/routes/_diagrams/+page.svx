@@ -2,7 +2,6 @@
 title: Hello
 ---
 
-
 <script lang="ts">
 	import mermaid from 'mermaid'
     import { onMount } from 'svelte'
@@ -74,8 +73,9 @@ graph TD
     gen_sq_center --> gen_sq_right
     gen_sq_right[ ]
 
-    gen_sq_right --> transform_runtime
-
     gen_sq_right --> generate
     generate
+
+    gen_sq_right --> include_runtime
+    include_runtime --> transform_runtime
 ```

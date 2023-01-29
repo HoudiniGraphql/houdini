@@ -1,35 +1,24 @@
 import { mergeSchemas } from '@graphql-tools/schema'
 import * as graphql from 'graphql'
 import minimatch from 'minimatch'
-import type {
-	CustomPluginOptions,
-	LoadResult,
-	ObjectHook,
-	PluginContext,
-	ResolveIdResult,
-} from 'rollup'
 import { fileURLToPath, pathToFileURL } from 'url'
 
 import type { ConfigFile } from '../runtime/lib'
 import { CachePolicy } from '../runtime/lib'
 import { computeID, defaultConfigValues, keyFieldsForType } from '../runtime/lib/config'
-import type { TransformPage } from '../vite/houdini'
 import { houdini_mode } from './constants'
 import { deepMerge } from './deepMerge'
 import { HoudiniError } from './error'
 import * as fs from './fs'
 import { pullSchema } from './introspection'
 import * as path from './path'
-import type { CollectedGraphQLDocument } from './types'
+import { LogLevel, Plugin, PluginConfig, PluginHooks } from './types'
 
 // @ts-ignore
 const currentDir = global.__dirname || path.dirname(fileURLToPath(import.meta.url))
 
 export type PluginMeta = PluginHooks & {
-	name: string
-	include_runtime: boolean
-	version: string
-	directory: string
+	filepath: string
 }
 
 // a place to hold conventions and magic strings
@@ -724,6 +713,131 @@ export class Config {
 
 const DEFAULT_CONFIG_PATH = path.join(process.cwd(), 'houdini.config.js')
 
+// a place to store the current configuration
+let _config: Config
+
+// if multiple calls to getConfig happen simultaneously, we want to only load the
+// schema once (if it needs to happen, ie the file doesn't exist).
+let pendingConfigPromise: Promise<Config> | null = null
+
+// get the project's current configuration
+export async function getConfig({
+	configPath = DEFAULT_CONFIG_PATH,
+	noSchema,
+	...extraConfig
+}: PluginConfig & { noSchema?: boolean } = {}): Promise<Config> {
+	if (_config) {
+		return _config
+	}
+
+	// if we have a pending promise, return the result of that
+	if (pendingConfigPromise) {
+		return await pendingConfigPromise
+	}
+
+	// there isn't a pending config so let's make one to claim
+	let resolve: (cfg: Config | PromiseLike<Config>) => void = () => {}
+	let reject = (message?: any) => {}
+	pendingConfigPromise = new Promise((res, rej) => {
+		resolve = res
+		reject = rej
+	})
+
+	// wrap the rest of the function so that errors resolve the promise aswell
+	try {
+		// look up the current config file
+		let configFile = await readConfigFile(configPath)
+
+		// we need to process the plugins before we instantiate the config object
+		// so that we can compute the final configFile
+
+		// build up the list of plugins
+		const pluginsNested: (PluginMeta | PluginMeta[])[] = []
+		for (const [pluginName, plugin_config] of Object.entries(configFile.plugins ?? {})) {
+			// we need to find the file containing the plugin
+			// if the name is a relative path, we're done
+			let pluginFile = path.join(path.dirname(configPath), pluginName)
+
+			// the plugin name doesn't start with . then treat it as a global thing
+			if (!pluginName.startsWith('.')) {
+				// the plugin factory will either give us a
+				pluginFile = await pluginPath(pluginName, configPath)
+			}
+
+			// if we got this far, pluginFile points to a file that supposedly exports a plugin
+			const { default: pluginFactory }: { default: Plugin } = await import(pluginFile)
+
+			// grab the plugin config and add the plugin to the list
+			const hooks = await pluginFactory(plugin_config)
+
+			pluginsNested.push(
+				(Array.isArray(hooks) ? hooks : [hooks]).map((hook) => ({
+					...hook,
+					name: pluginName,
+					filepath: pluginFile,
+				}))
+			)
+		}
+
+		// flatten any lists of hooks
+		const plugins = pluginsNested.flat()
+
+		// pass the config file through all of the plugins
+		for (const plugin of plugins) {
+			if (plugin.config) {
+				configFile = deepMerge(configPath, configFile, await plugin.config(configFile))
+			}
+		}
+
+		_config = new Config({
+			...configFile,
+			...extraConfig,
+			filepath: configPath,
+		})
+
+		const apiURL = await _config.apiURL()
+
+		// look up the schema if we need to
+		if (_config.schemaPath && !_config.schema) {
+			let schemaOk = true
+			// we might have to pull the schema first
+			if (apiURL) {
+				// make sure we don't have a pattern pointing to multiple files and a remove URL
+				if (fs.glob.hasMagic(_config.schemaPath)) {
+					console.log(
+						`⚠️  Your houdini configuration contains an apiUrl and a path pointing to multiple files.
+	This will prevent your schema from being pulled.`
+					)
+				}
+				// we might have to create the file
+				else if (!(await fs.readFile(_config.schemaPath))) {
+					console.log('⌛ Pulling schema from api')
+					schemaOk = await pullSchema(apiURL, _config.schemaPath)
+				}
+			}
+
+			// the schema is safe to load
+			if (schemaOk && !noSchema) {
+				_config.schema = await loadSchemaFile(_config.schemaPath)
+			}
+		}
+
+		// order the list of plugins
+		_config.plugins = orderedPlugins(plugins)
+
+		// look for any plugins with a loaded hook
+		await Promise.all(_config.plugins.map((plugin) => plugin.after_load?.(_config)))
+
+		// we're done and have a valid config
+		resolve(_config)
+		return _config
+
+		// error handling
+	} catch (e) {
+		reject(e)
+		throw e
+	}
+}
 // helper function to load the config file
 export async function readConfigFile(
 	configPath: string = DEFAULT_CONFIG_PATH
@@ -744,8 +858,73 @@ export async function readConfigFile(
 	return config
 }
 
-// a place to store the current configuration
-let _config: Config
+export const orderedPlugins = (plugins: PluginMeta[]) => {
+	const ordered = plugins.filter(
+		(plugin) => plugin.order === 'before' || plugin.order === undefined
+	)
+	ordered.push(
+		...plugins.filter((plugin) => plugin.order === 'core'),
+		...plugins.filter((plugin) => plugin.order === 'after')
+	)
+	return ordered
+}
+
+async function pluginPath(plugin_name: string, config_path: string): Promise<string> {
+	try {
+		// otherwise we have to hunt the module down relative to the current path
+		const pluginDirectory = findModule(plugin_name, config_path)
+
+		// load up the package json
+		const packageJsonSrc = await fs.readFile(path.join(pluginDirectory, 'package.json'))
+		if (!packageJsonSrc) {
+			throw new Error('skip')
+		}
+		const packageJSON = JSON.parse(packageJsonSrc)
+
+		// the esm target to import is defined at exports['.'].import
+		if (!packageJSON.exports?.['.']?.import) {
+			throw new Error('')
+		}
+
+		return path.join(pluginDirectory, packageJSON.exports['.'].import)
+	} catch {
+		const err = new Error(
+			`Could not find plugin: ${plugin_name}. Are you sure its installed? If so, please open a ticket on GitHub.`
+		)
+
+		throw err
+	}
+}
+
+function findModule(pkg: string = 'houdini', currentLocation: string) {
+	const pathEndingBy = ['node_modules', pkg]
+
+	// Build the first possible location
+	let locationFound = path.join(currentLocation, ...pathEndingBy)
+
+	// previousLocation is nothing
+	let previousLocation = ''
+	const backFolder: string[] = []
+
+	// if previousLocation !== locationFound that mean that we can go upper
+	// if the directory doesn't exist, let's go upper.
+	while (previousLocation !== locationFound && !fs.existsSync(locationFound)) {
+		// save the previous path
+		previousLocation = locationFound
+
+		// add a back folder
+		backFolder.push('../')
+
+		// set the new location
+		locationFound = path.join(currentLocation, ...backFolder, ...pathEndingBy)
+	}
+
+	if (previousLocation === locationFound) {
+		throw new Error('Could not find any node_modules/houdini folder')
+	}
+
+	return locationFound
+}
 
 async function loadSchemaFile(schemaPath: string): Promise<graphql.GraphQLSchema> {
 	// if the schema is not a relative path, the config file is out of date
@@ -798,268 +977,4 @@ async function loadSchemaFile(schemaPath: string): Promise<graphql.GraphQLSchema
 		return graphql.buildClientSchema(jsonContents.data)
 	}
 	return graphql.buildClientSchema(jsonContents)
-}
-
-// if multiple calls to getConfig happen simultaneously, we want to only load the
-// schema once (if it needs to happen, ie the file doesn't exist).
-let pendingConfigPromise: Promise<Config> | null = null
-
-// get the project's current configuration
-export async function getConfig({
-	configPath = DEFAULT_CONFIG_PATH,
-	noSchema,
-	...extraConfig
-}: PluginConfig & { noSchema?: boolean } = {}): Promise<Config> {
-	if (_config) {
-		return _config
-	}
-
-	// if we have a pending promise, return the result of that
-	if (pendingConfigPromise) {
-		return await pendingConfigPromise
-	}
-
-	// there isn't a pending config so let's make one to claim
-	let resolve: (cfg: Config | PromiseLike<Config>) => void = () => {}
-	let reject = (message?: any) => {}
-	pendingConfigPromise = new Promise((res, rej) => {
-		resolve = res
-		reject = rej
-	})
-
-	// look up the current config file
-	let configFile = await readConfigFile(configPath)
-
-	// we need to process the plugins before we instantiate the config object
-	// so that we can compute the final configFile
-
-	// build up the list of plugins
-	const plugins = []
-
-	// load the specified plugins
-	for (const [pluginName, plugin_config] of Object.entries(configFile.plugins ?? {})) {
-		try {
-			// look for the houdini-svelte module
-			const pluginDirectory = findModule(pluginName, configPath)
-			const { default: pluginFactory }: { default: Plugin } = await import(
-				pathToFileURL(pluginDirectory).toString() + '/build/plugin-esm/index.js'
-			)
-			let include_runtime = false
-			try {
-				await fs.stat(path.join(pluginDirectory, 'build', 'runtime-esm'))
-				include_runtime = true
-			} catch {}
-
-			// figure out the current version
-			let version = ''
-			try {
-				const packageJsonSrc = await fs.readFile(path.join(pluginDirectory, 'package.json'))
-				if (!packageJsonSrc) {
-					throw new Error('skip')
-				}
-				const packageJSON = JSON.parse(packageJsonSrc)
-				version = packageJSON.version
-			} catch {}
-
-			// if the plugin config is a function, we should pass the config files
-			// eslint-disable-next-line no-constant-condition
-			if (typeof plugin_config)
-				// add the plugin to the list
-				plugins.push({
-					...(await pluginFactory(plugin_config)),
-					name: pluginName,
-					include_runtime,
-					version,
-					directory: pluginDirectory,
-				})
-		} catch (e) {
-			throw new Error(
-				`Could not find plugin: ${pluginName}. Are you sure its installed? If so, please open a ticket on GitHub.`
-			)
-		}
-	}
-
-	// pass the config file through all of the plugins
-	for (const plugin of plugins) {
-		if (plugin.config) {
-			configFile = deepMerge(configPath, configFile, await plugin.config(configFile))
-		}
-	}
-
-	try {
-		_config = new Config({
-			...configFile,
-			...extraConfig,
-			filepath: configPath,
-		})
-
-		const apiURL = await _config.apiURL()
-
-		// look up the schema if we need to
-		if (_config.schemaPath && !_config.schema) {
-			let schemaOk = true
-			// we might have to pull the schema first
-			if (apiURL) {
-				// make sure we don't have a pattern pointing to multiple files and a remove URL
-				if (fs.glob.hasMagic(_config.schemaPath)) {
-					console.log(
-						`⚠️  Your houdini configuration contains an apiUrl and a path pointing to multiple files.
-This will prevent your schema from being pulled.`
-					)
-				}
-				// we might have to create the file
-				else if (!(await fs.readFile(_config.schemaPath))) {
-					console.log('⌛ Pulling schema from api')
-					schemaOk = await pullSchema(apiURL, _config.schemaPath)
-				}
-			}
-
-			// the schema is safe to load
-			if (schemaOk && !noSchema) {
-				_config.schema = await loadSchemaFile(_config.schemaPath)
-			}
-		}
-	} catch (e) {
-		reject(e)
-		throw e
-	}
-
-	// order the list of plugins
-	_config.plugins = orderedPlugins(plugins)
-
-	// look for any plugins with a loaded hook
-	await Promise.all(_config.plugins.map((plugin) => plugin.after_load?.(_config)))
-
-	// we're done and have a valid config
-	resolve(_config)
-	return _config
-}
-
-export enum LogLevel {
-	Full = 'full',
-	Summary = 'summary',
-	ShortSummary = 'short-summary',
-	Quiet = 'quiet',
-}
-
-export type Plugin = (args?: PluginConfig) => Promise<PluginHooks>
-
-export const orderedPlugins = (plugins: PluginMeta[]) => {
-	const ordered = plugins.filter(
-		(plugin) => plugin.order === 'before' || plugin.order === undefined
-	)
-	ordered.push(
-		...plugins.filter((plugin) => plugin.order === 'core'),
-		...plugins.filter((plugin) => plugin.order === 'after')
-	)
-	return ordered
-}
-
-export type PluginHooks = {
-	order?: 'before' | 'after' | 'core' // when not set, it will be "before"
-	extensions?: string[]
-	transform_runtime?: Record<string, (args: { config: Config; content: string }) => string>
-	config?: (old: ConfigFile) => ConfigFile | Promise<ConfigFile>
-	after_load?: (config: Config) => Promise<void> | void
-	artifact_data?: (config: Config, doc: CollectedGraphQLDocument) => Record<string, any>
-	extract_documents?: (
-		config: Config,
-		filepath: string,
-		content: string
-	) => Promise<string[]> | string[]
-	generate?: GenerateHook
-	client_plugins?:
-		| Record<string, null | Record<string, any>>
-		| ((config: ConfigFile, pluginConfig: any) => Record<string, null | Record<string, any>>)
-	transform_file?: (page: TransformPage) => Promise<{ code: string }> | { code: string }
-	index_file?: ModuleIndexTransform
-	graphql_tag_return?: (args: {
-		config: Config
-		doc: CollectedGraphQLDocument
-		ensure_import: (import_args: { identifier: string; module: string }) => void
-	}) => string | undefined
-	env?: (args: { env: any; config: Config }) => Promise<Record<string, string>>
-	validate?: (args: {
-		config: Config
-		documents: CollectedGraphQLDocument[]
-	}) => Promise<void> | void
-	vite?: {
-		// these type definitions are copy and pasted from the vite ones
-		// with config added to the appropriate options object
-		resolveId?: ObjectHook<
-			(
-				this: PluginContext,
-				source: string,
-				importer: string | undefined,
-				options: {
-					config: Config
-					custom?: CustomPluginOptions
-					ssr?: boolean
-					/* Excluded from this release type: scan */
-					isEntry: boolean
-				}
-			) => Promise<ResolveIdResult> | ResolveIdResult
-		>
-		load?: ObjectHook<
-			(
-				this: PluginContext,
-				id: string,
-				options: {
-					config: Config
-					ssr?: boolean
-				}
-			) => Promise<LoadResult> | LoadResult
-		>
-	}
-	include?: (config: Config, filepath: string) => boolean | null | undefined
-}
-
-type ModuleIndexTransform = (arg: {
-	config: Config
-	content: string
-	export_default_as(args: { module: string; as: string }): string
-	export_star_from(args: { module: string }): string
-	plugin_root: string
-	typedef: boolean
-	documents: CollectedGraphQLDocument[]
-}) => string
-
-export type GenerateHook = (args: GenerateHookInput) => Promise<void> | void
-
-export type GenerateHookInput = {
-	config: Config
-	documents: CollectedGraphQLDocument[]
-	plugin_root: string
-}
-
-export type PluginConfig = { configPath?: string } & Partial<ConfigFile>
-
-function findModule(pkg: string = 'houdini', currentLocation: string) {
-	const pathEndingBy = ['node_modules', pkg]
-
-	// Build the first possible location
-	let locationFound = path.join(currentLocation, ...pathEndingBy)
-
-	// previousLocation is nothing
-	let previousLocation = ''
-	const backFolder: string[] = []
-
-	// if previousLocation !== locationFound that mean that we can go upper
-	// if the directory doesn't exist, let's go upper.
-	while (previousLocation !== locationFound && !fs.existsSync(locationFound)) {
-		// save the previous path
-		previousLocation = locationFound
-
-		// add a back folder
-		backFolder.push('../')
-
-		// set the new location
-		locationFound = path.join(currentLocation, ...backFolder, ...pathEndingBy)
-	}
-
-	if (previousLocation === locationFound) {
-		throw new Error('Could not find any node_modules/houdini folder')
-	}
-
-	return locationFound
 }

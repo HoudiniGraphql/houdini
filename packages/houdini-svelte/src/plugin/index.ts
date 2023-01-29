@@ -23,6 +23,11 @@ let framework: Framework = 'svelte'
 export let _config: Config
 
 const HoudiniSveltePlugin: Plugin = async () => ({
+	/**
+	 * Config
+	 */
+
+	name: 'houdini-svelte',
 	order: 'core',
 
 	/**
@@ -30,6 +35,11 @@ const HoudiniSveltePlugin: Plugin = async () => ({
 	 */
 
 	extensions: ['.svelte'],
+
+	include_runtime: {
+		esm: '../runtime-esm',
+		commonjs: '../runtime-cjs',
+	},
 
 	transform_runtime: {
 		'adapter.js': ({ content }) => {
