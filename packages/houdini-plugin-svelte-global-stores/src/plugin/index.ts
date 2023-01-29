@@ -1,13 +1,11 @@
-import type { Plugin } from 'houdini'
+import { plugin, type PluginHooks } from 'houdini'
 import { HoudiniError, path } from 'houdini'
 
 import { store_name } from '../../../houdini-svelte/src/plugin/kit'
 import generate from './codegen'
 import { global_stores_directory, global_store_name } from './kit'
 
-const HoudiniPluginSvelteGlobalStores: Plugin = async () => ({
-	name: 'houdini-plugin-svelte-global-stores',
-
+export const pluginHooks: () => Promise<PluginHooks> = async () => ({
 	/**
 	 * Generate
 	 */
@@ -51,7 +49,7 @@ const HoudiniPluginSvelteGlobalStores: Plugin = async () => ({
 	},
 })
 
-export default HoudiniPluginSvelteGlobalStores
+export default plugin('houdini-plugin-svelte-global-stores', pluginHooks)
 
 declare module 'houdini' {
 	interface HoudiniPluginConfig {

@@ -12,12 +12,14 @@ import { HoudiniError } from './error'
 import * as fs from './fs'
 import { pullSchema } from './introspection'
 import * as path from './path'
-import { LogLevel, Plugin, PluginConfig, PluginHooks } from './types'
+import { plugin } from './plugin'
+import { LogLevel, PluginConfig, PluginHooks, PluginInit } from './types'
 
 // @ts-ignore
 const currentDir = global.__dirname || path.dirname(fileURLToPath(import.meta.url))
 
 export type PluginMeta = PluginHooks & {
+	name: string
 	filepath: string
 }
 
@@ -782,17 +784,27 @@ export async function getConfig({
 			}
 
 			// if we got this far, pluginFile points to a file that supposedly exports a plugin
-			const { default: pluginFactory }: { default: Plugin } = await import(pluginFile)
+			const { default: pluginInit }: { default: PluginInit } = await import(pluginFile)
+			if (!pluginInit.plugin || !pluginInit.name) {
+				throw new HoudiniError({
+					filepath: pluginFile,
+					message: `The default export does not match the expected shape.`,
+					description:
+						'Please make sure that the file exports the default of the plugin function.',
+				})
+			}
 
 			// grab the plugin config and add the plugin to the list
-			const hooks = await pluginFactory(plugin_config)
+			const hooks = await pluginInit.plugin(plugin_config)
+			// apply boolean filters and always have a list
+			const hooksList = (Array.isArray(hooks) ? hooks : [hooks]).filter(Boolean).flat() as (
+				| PluginHooks
+				| PluginInit
+			)[]
 
+			// add the flat list of hooks to the pile
 			pluginsNested.push(
-				(Array.isArray(hooks) ? hooks : [hooks]).filter(Boolean).map((hook) => ({
-					...hook,
-					name: pluginName,
-					filepath: pluginFile,
-				}))
+				await flattenPluginList(configPath, hooksList, pluginName, pluginFile)
 			)
 		}
 
@@ -855,6 +867,68 @@ export async function getConfig({
 		throw e
 	}
 }
+
+async function flattenPluginList(
+	root: string,
+	list: (PluginHooks | PluginInit)[],
+	name: string,
+	pluginFile: string
+): Promise<PluginMeta[]> {
+	// a plugin value might contain other plugins that need to be
+	// included. keep a running list of the plugins to process
+	// so that we do this breadth-first
+	const pluginsLeft: PluginInit[] = [
+		{
+			...plugin(name, async () => list),
+			local: pluginFile,
+		},
+	]
+
+	// the plugin data we collection
+	const result: PluginMeta[] = []
+
+	// while we have plugins left to process
+	while (pluginsLeft.length > 0) {
+		// all we are responsible for here is adding hooks to the list
+		// processing one level of plugin values.
+		// the next step down will happen on another tick of the while loop
+
+		// pop the first element off of the list
+		const head = pluginsLeft.shift()
+		if (!head) {
+			break
+		}
+
+		// look up the directory for the plugin
+		const nestedFile = head.local ?? (await pluginPath(head.name, root))
+
+		// invoke the plugin
+		const nestedPlugin = await head.plugin(head.config ?? {})
+		const nestedPluginValues = Array.isArray(nestedPlugin) ? nestedPlugin : [nestedPlugin]
+
+		// look at all of the values exported by the plugins
+		for (const value of nestedPluginValues) {
+			if (!value) {
+				continue
+			}
+
+			// if the plugin is a refence, add it to the list
+			if ('__plugin_init__' in value) {
+				pluginsLeft.push(value)
+			} else {
+				result.push({
+					...value,
+					name: head.name,
+					filepath: nestedFile,
+				})
+			}
+		}
+	}
+
+	// if we got this far, we processed all of the referenced plugins
+	return result
+}
+
 // helper function to load the config file
 export async function readConfigFile(
 	configPath: string = DEFAULT_CONFIG_PATH

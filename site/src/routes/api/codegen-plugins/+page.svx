@@ -5,6 +5,7 @@ description: An overview of Houdini's Codegen Plugins
 
 <script>
     import { ExtractDiagram, ValidateDiagram, SetupDiagram, GenerateDiagram } from '~/routes/_diagrams'
+    import { DeepDive } from '~/components'
 </script>
 
 # Codegen Plugins
@@ -24,27 +25,29 @@ For information on adding a plugin to your project, checkout the
 
 ## Writing a Plugin
 
-A codegen plugin is defined as an asynchronous function that returns
-an object with a fixed set of keys, defining the "hooks" that you want
+A codegen plugin is created using the `plugin` function exported from `houdini`.
+It takes a name and an asynchronous function that returns
+an object with a fixed set of keys defining the "hooks" that you want
 to use:
 
 ```javascript:title=src/plugins/myPlugins.js
-/** @type { import("houdini").Plugin }*/
-const generateSomething = async () =>  {
+import { plugin } from 'houdini'
+
+const generateSomething = plugin('my plugin', async () =>  {
     return {
         generate({ documents }) {
             // generate something for every document in the project
         }
     }
-}
+})
 ```
 
-For a summary of the hooks you can use, check out the [Generation Pipeline](#generation-pipeline)
+For a summary of the available hooks, check out the [Generation Pipeline](#generation-pipeline)
 section below.
 
-### Accepting configuration
+<DeepDive title="Accepting Configuration">
 
-Most of time, your plugin will need to accept configuration from the user. To support this, Houdini
+Most of time, your plugin will need to accept configuration from the user. To support this,
 users are asked to pass objects in their config file which are then passed to your function:
 
 ```javascript:title=houdini.config.js
@@ -59,13 +62,13 @@ export default {
 
 ```javascript:title=src/plugins/myPlugins.js
 /** @type { import("houdini").Plugin }*/
-const generateSomething = async ({ aValue }) =>  {
+const generateSomething = plugin('my plugin', async ({ aValue }) =>  {
     return {
         generate({ documents }) {
             // do something with aValue
         }
     }
-}
+})
 ```
 
 Remember, local plugins have to be importable by Node so they must be written in JavaScript.
@@ -106,7 +109,11 @@ export default {
 }
 ```
 
-### Publishing a Plugin
+</DeepDive>
+
+<DeepDive title="Publishing a Plugin" >
+
+</DeepDive>
 
 ## Plugin Setup
 

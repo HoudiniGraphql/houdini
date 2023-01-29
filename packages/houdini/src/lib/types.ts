@@ -46,16 +46,20 @@ export enum LogLevel {
 	Quiet = 'quiet',
 }
 
-export type Plugin = (args?: PluginConfig) => Promise<PluginHooks | PluginHooks[] | null | false>
+export type Plugin = (
+	args?: PluginConfig
+) => Promise<(PluginHooks | PluginInit) | (PluginHooks | PluginInit)[] | null | false>
+
+export type PluginInit = {
+	__plugin_init__: boolean
+	plugin: Plugin
+	name: string
+	config?: {}
+	local?: string
+	with(config: {}): PluginInit
+}
 
 export type PluginHooks = {
-	/**
-	 * The name of the plugin. Must match the package name for external plugins.
-	 * For local plugins, this value should equal the relative path from your config file
-	 * to this file.
-	 */
-	name: string
-
 	/**
 	 * Specify the priority for the hook. The order is before -> core -> after.
 	 * @default 'before'

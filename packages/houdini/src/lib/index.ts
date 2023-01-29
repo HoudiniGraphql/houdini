@@ -10,6 +10,7 @@ export * from './constants'
 export * from './introspection'
 export * from './cleanupFiles'
 export * from './deepMerge'
+export * from './plugin'
 
 export * from './walk'
 export type { EmbeddedGraphqlDocument } from './walk'

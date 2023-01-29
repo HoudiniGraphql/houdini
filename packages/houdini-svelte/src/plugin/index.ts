@@ -1,4 +1,5 @@
-import type { Plugin } from 'houdini'
+import type { Plugin, PluginHooks } from 'houdini'
+import { plugin } from 'houdini'
 import { HoudiniError, path, fs, type Config } from 'houdini'
 import * as url from 'url'
 import { loadEnv } from 'vite'
@@ -22,12 +23,10 @@ let framework: Framework = 'svelte'
 
 export let _config: Config
 
-const HoudiniSveltePlugin: Plugin = async () => ({
+export const pluginHooks = async (): Promise<PluginHooks> => ({
 	/**
 	 * Config
 	 */
-
-	name: 'houdini-svelte',
 	order: 'core',
 
 	/**
@@ -210,7 +209,7 @@ export default client
 
 let _env: Record<string, string>
 
-export default HoudiniSveltePlugin
+export default plugin('houdini-svelte', pluginHooks)
 
 declare module 'houdini' {
 	interface HoudiniPluginConfig {
