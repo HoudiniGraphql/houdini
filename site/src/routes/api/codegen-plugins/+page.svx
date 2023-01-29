@@ -150,7 +150,7 @@ const generateSomething = plugin('gen', async () =>  {
 For the most part, publishing a plugin is just like publishing any other node package. There
 are a few things to keep in mind:
 
-- By convention, start your plugin's name with `houdini-plugin-` which will prevent any collisions with
+- By convention, start your plugin's name with `houdini-plugin-`. This will prevent any collisions with
   packages we might create in the future.
 - The name of your plugin (the string passed to the `plugin` function) should match the name of your package
 - Your packages default export must be the result of the `plugin` function.
