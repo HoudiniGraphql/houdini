@@ -47,7 +47,7 @@ graph LR
     click extensions "#extensions" "extensions hook"
     click include "#include" "include hook"
     click exclude "#exclude" "exclude hook"
-    click extract_documents "#extract_documents" "extract_documents hook"
+    click extract "#extract_documents" "extract_documents hook"
     click schema "#schema" "schema hook"
 ```
 
