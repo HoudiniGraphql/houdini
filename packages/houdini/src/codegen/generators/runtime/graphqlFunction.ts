@@ -33,7 +33,7 @@ export default async function generateGraphqlReturnTypes(
 	for (const doc of docs) {
 		const return_value = graphql_tag_return!({
 			config,
-			doc,
+			document: doc,
 			ensure_import({ identifier, module }) {
 				ensureImports({
 					config,

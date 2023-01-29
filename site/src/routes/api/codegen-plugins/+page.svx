@@ -151,7 +151,7 @@ The code generation pipeline is broken up into 3 parts:
 - [Extract and Parse](#extract-and-parse) finds and parses all of the GraphQL documents in your application
 - [Validate and Transform](#validate-and-transform) verifies your application's documents and
   transforms them to fit the needs of your plugin.
-- [Generate](#generate) creates the various artifacts that your application needs.
+- [Generate](#generate-pipeline) creates the various artifacts that your application needs.
 
 ### Extract and Parse
 
@@ -241,7 +241,11 @@ reliably import the correct artifact.
 A hook to transform the documents after they have been validated. This is useful if you are building a feature
 that needs to add extra selections or documents to the list.
 
-### Generate
+### Generate Pipeline
+
+This Pipeline is responsible for generating all of the files for your application. This includes hooks to
+modify the query artifact (a static respresentation of the document), hooks to customize the core runtime
+provided by houdini, as well as hooks to generate your own files and runtimes for your plugin.
 
 <GenerateDiagram style="max-width: 600px; margin: 0 auto;"/>
 
@@ -253,18 +257,65 @@ that needs to add extra selections or documents to the list.
 A hook to transform the documents just before static assets are generated.
 
 #### `artifact_data`
+- Type: (config: Config, doc: CollectedGraphQLDocument) => Record<string, any>
+
+A hook to embed metadata at the root of the artifact. You should use this to encode document-level
+data at build time so you don't have to analyze the document at runtime (in a client plugin, for example).
 
 #### `artifact_selection`
 
+Not Yet Implemented
+
 #### `artifact_end`
+
+Not Yet Implemented
 
 #### `hash`
 
-#### `graphql_tag_return`
+Not Yet Implemented
 
 #### `index_file`
+- Type: `(args: IndexFileArgs) => string`
+
+```typescript
+type IndexFileArgs = {
+	config: Config
+	content: string
+	export_default_as(args: { module: string; as: string }): string
+	export_star_from(args: { module: string }): string
+	plugin_root: string
+	typedef: boolean
+	documents: CollectedGraphQLDocument[]
+}
+```
+
+A hook to modify the root `index.js` and `index.d.ts` files in the generated runtime. If you want to
+add any exports, make sure to use the `export_default_as` and `export_star_from` utilities which will
+make sure your type definitions are up to date.
+
+#### `graphql_tag_return`
+
+- Type: `({
+		config,
+		document,
+		ensure_import
+	}) => string | undefined`
+- The first value provided by a plugin is used
+
+A hook to customize the return type of the graphql function. If you need to add an import to the file
+in order to resolve the import, you can use the `ensure_import` utility:
+
+```javascript:title=myPlugins.js
+export default {
+    graphql_tag_return({ config, ensure_import }) {
+        // TODO
+    }
+}
+```
 
 #### `generate`
+
+#### `include_runtime`
 
 #### `transform_runtime`
 

@@ -91,4 +91,15 @@ graph TD
 
     gen_sq_right --> include_runtime
     include_runtime --> transform_runtime
+
+    click aftifact_data "#aftifact_data" "aftifact_data hook"
+    click hash "#hash" "hash hook"
+    click index_file "#index_file" "index_file hook"
+    click graphql_tag_return "#graphql_tag_return" "graphql_tag_return hook"
+    click artifact_selection "#artifact_selection" "artifact_selection hook"
+    click artifact_e "#artifact_end" "artifact_end hook"
+    click generate "#generate" "generate hook"
+    click include_runtime "#include_runtime" "include_runtime hook"
+    click transform_runtime "#transform_runtime" "transform_runtime hook"
+
 ```

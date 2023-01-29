@@ -154,18 +154,31 @@ export type PluginHooks = {
 		documents: CollectedGraphQLDocument[]
 	}) => Promise<void> | void
 
+	/**
+	 * A hook to embed metadata at the root of the artifact.
+	 */
 	artifact_data?: (config: Config, doc: CollectedGraphQLDocument) => Record<string, any>
+
+	/**
+	 * A hook to customize the return type of the graphql function. If you need to add an import to the file
+	 * in order to resolve the import, you can use the `ensure_import` utility.
+	 */
+	graphql_tag_return?: (args: {
+		config: Config
+		document: CollectedGraphQLDocument
+		ensure_import: (import_args: { identifier: string; module: string }) => void
+	}) => string | undefined
+
+	/**
+	 * A hook to modify the root `index.js` of the generated runtime.
+	 */
+	index_file?: ModuleIndexTransform
+
 	generate?: GenerateHook
 	client_plugins?:
 		| Record<string, null | Record<string, any>>
 		| ((config: ConfigFile, pluginConfig: any) => Record<string, null | Record<string, any>>)
 	transform_file?: (page: TransformPage) => Promise<{ code: string }> | { code: string }
-	index_file?: ModuleIndexTransform
-	graphql_tag_return?: (args: {
-		config: Config
-		doc: CollectedGraphQLDocument
-		ensure_import: (import_args: { identifier: string; module: string }) => void
-	}) => string | undefined
 
 	vite?: {
 		// these type definitions are copy and pasted from the vite ones
