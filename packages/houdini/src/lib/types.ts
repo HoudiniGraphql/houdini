@@ -73,6 +73,7 @@ export type PluginHooks = {
 	 */
 
 	include_runtime?: string | { esm: string; commonjs: string }
+
 	/**
 	 * Transform the plugin's runtime while houdini is copying it .
 	 * You must have passed a value to include_runtime for this hook to matter.
@@ -174,10 +175,18 @@ export type PluginHooks = {
 	 */
 	index_file?: ModuleIndexTransform
 
+	/**
+	 * A hook to generate custom files for every document in a project.
+	 */
 	generate?: GenerateHook
+
 	client_plugins?:
 		| Record<string, null | Record<string, any>>
 		| ((config: ConfigFile, pluginConfig: any) => Record<string, null | Record<string, any>>)
+
+	/**
+	 * A hook to transform the source file to support desired APIs.
+	 */
 	transform_file?: (page: TransformPage) => Promise<{ code: string }> | { code: string }
 
 	vite?: {

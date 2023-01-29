@@ -136,7 +136,6 @@ hooks have run.
 Adds environment variables to houdini's pipeline (ie, for schema polling headers, url, etc.).
 Plugins are executed in the order they are defined so they can overwrite each other.
 
-
 #### `after_load`
 
 - Type: `(config: Config) => Promise<void> | void`
@@ -195,7 +194,6 @@ Teaches the pipeline how to extract graphql documents out of your application so
 given its filepath and the file contents. You can return `null` or an empty string to indicate
 that you didn't find any graphql documents. This step is responsible for actually parsing your
 source code and extracting the string values of the `graphql` function.
-
 
 #### `schema`
 
@@ -257,7 +255,8 @@ provided by houdini, as well as hooks to generate your own files and runtimes fo
 A hook to transform the documents just before static assets are generated.
 
 #### `artifact_data`
-- Type: (config: Config, doc: CollectedGraphQLDocument) => Record<string, any>
+
+- Type: `(config: Config, doc: CollectedGraphQLDocument) => Record<string, any>`
 
 A hook to embed metadata at the root of the artifact. You should use this to encode document-level
 data at build time so you don't have to analyze the document at runtime (in a client plugin, for example).
@@ -275,6 +274,7 @@ Not Yet Implemented
 Not Yet Implemented
 
 #### `index_file`
+
 - Type: `(args: IndexFileArgs) => string`
 
 ```typescript
@@ -296,10 +296,10 @@ make sure your type definitions are up to date.
 #### `graphql_tag_return`
 
 - Type: `({
-		config,
-		document,
-		ensure_import
-	}) => string | undefined`
+	config,
+	document,
+	ensure_import
+}) => string | undefined`
 - The first value provided by a plugin is used
 
 A hook to customize the return type of the graphql function. If you need to add an import to the file
@@ -315,13 +315,69 @@ export default {
 
 #### `generate`
 
+- Type: `(args: GenerateArgs) => void`
+- Can also return a Promise
+
+```typescript
+type GenerateArgs = {
+	config: Config
+	documents: CollectedGraphQLDocument[]
+	plugin_root: string
+}
+```
+
+A hook to generate project files for each document in the application.
+Each plugin is assigned a root directory that you are free to place any
+files you want. If you want values that you generated to be included in
+the values exported from `$houdini`, you should use the
+[index_file](#index_file) hook.
+
 #### `include_runtime`
 
+- Type: `string | { commonjs: string, esm: string }`
+
+A hook that instructs the runtime to copy the specified runtime to your
+plugin's root directory. This is useful if you have a bunch of static
+values, utilities, that you want to use in
+[transform_file](#transform_file).
+
+This value should be set to a relative path from your plugin's root
+directory to the directory that should be copied. If you have different
+versions of your runtime for CommonJS and ESModules, you can set this
+to an object specifying both paths.
+
 #### `transform_runtime`
+
+- Type: `Record<string, ({ config: Config; content: string }) => string>`
+
+Transform the plugin's runtime while houdini is copying it. The keys of
+the object are paths in your runtime (relative to the `include_runtime`
+setting). The values are functions that set the new file value.
+
+This hook only has an effect if you have passed a value
+for [include_runtime](#include-runtime).
 
 ## Transform Hooks
 
 #### `transform_file`
+
+- Type: `(page: TransformPage) => { code: string }`
+- Can also return a Promise
+
+```typescript
+type TransformInput = {
+	config: Config
+	content: string
+	filepath: string
+	/* Adds the filepath to the dev server's watch list */
+	watch_file: (path: string) => void
+}
+```
+
+This hook is used to transform the user's source code from an ergonomic
+API to the the actual implementation under the hood. For more
+information, please review the example at the bottom of the
+[Architecture Guide](/guides/architecture#an-example).
 
 ## Definitions
 

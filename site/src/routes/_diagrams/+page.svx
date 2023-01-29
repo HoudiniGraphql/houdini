@@ -92,6 +92,7 @@ graph TD
     gen_sq_right --> include_runtime
     include_runtime --> transform_runtime
 
+    click t_before_g "#transform_before_generate" "transform_before_generate hook"
     click artifact_data "#artifact_data" "artifact_data hook"
     click artifact_hash "#hash" "hash hook"
     click index_file "#index_file" "index_file hook"
