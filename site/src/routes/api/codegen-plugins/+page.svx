@@ -202,9 +202,9 @@ source code and extracting the string values of the `graphql` function.
 - Type: `(args: { config: Config, path: string, content: string }) => string`
 
 Can be used to add custom definitions to your project's schema. Definitions (like directives) added
-here are automatically removed from the document before they are sent to the server. Useful
-in connection with [artifact_data](#artitfact_data) or [artifact_selection](#artfiact_selection)
-to embed data in the artifact.
+here are automatically removed from the document before they are sent to the server. It is sometimes
+useful to add things that can be used in connection with [artifact_data](#artitfact_data)
+or [artifact_selection](#artfiact_selection) to embed data in the artifact.
 
 Currently, this hook can only add directives, scalars, or enums to the schema.
 
