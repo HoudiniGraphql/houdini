@@ -206,7 +206,7 @@ or [artifact_selection](#artfiact_selection) to embed data in the artifact.
 
 Currently, this hook can only add directives, scalars, or enums to the schema.
 
-### Transform and Validate
+### Validate and Transform
 
 These hooks are responsible for transforming and validating the documents in your application. If you want
 to add new definitions, you can add new documents to provided list.
