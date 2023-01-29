@@ -57,10 +57,12 @@ async function generatePluginRuntime(config: Config, plugin: Config['plugins'][n
 	}
 
 	// a plugin has told us to include a runtime then the path is relative to the plugin file
-	const runtime_path =
+	const runtime_path = path.join(
+		path.dirname(plugin.filepath),
 		typeof plugin.include_runtime === 'string'
 			? plugin.include_runtime
 			: plugin.include_runtime[config.module]
+	)
 
 	try {
 		await fs.stat(runtime_path)
@@ -70,8 +72,6 @@ async function generatePluginRuntime(config: Config, plugin: Config['plugins'][n
 			description: 'Maybe it was bundled?',
 		})
 	}
-
-	const which = config.module === 'esm' ? 'esm' : 'cjs'
 
 	// copy the runtime
 	const pluginDir = config.pluginRuntimeDirectory(plugin.name)
