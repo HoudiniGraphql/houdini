@@ -97,21 +97,25 @@ export type PluginHooks = {
 	after_load?: (config: Config) => Promise<void> | void
 
 	/**
-	 * A filter for whether a file should be included in the the processing
+	 * A filter for whether a file should be included in the the processing. Return true to include.
 	 */
 	include?: (config: Config, filepath: string) => boolean | null | undefined
 
 	/**
-	 * A filter for whether a file should be included in the the processing. Return true
+	 * A filter for whether a file should be included in the the processing. Return false to include.
 	 */
 	exclude?: (config: Config, filepath: string) => boolean | null | undefined
 
-	artifact_data?: (config: Config, doc: CollectedGraphQLDocument) => Record<string, any>
+	/**
+	 * Configure the codegen pipeline to extract graphql documents out of a file.
+	 */
 	extract_documents?: (
 		config: Config,
 		filepath: string,
 		content: string
-	) => Promise<string[]> | string[]
+	) => Promise<string[] | null> | string[] | null
+
+	artifact_data?: (config: Config, doc: CollectedGraphQLDocument) => Record<string, any>
 	generate?: GenerateHook
 	client_plugins?:
 		| Record<string, null | Record<string, any>>

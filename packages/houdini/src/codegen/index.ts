@@ -218,7 +218,7 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 					}
 
 					const found = await extractor(config, filepath, contents)
-					if (found.length > 0) {
+					if (found && found.length > 0) {
 						documents.push(...found.map((document) => ({ filepath, document })))
 					}
 				}

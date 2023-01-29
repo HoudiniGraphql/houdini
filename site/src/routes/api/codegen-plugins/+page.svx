@@ -118,7 +118,8 @@ updating any configuration values.
 
 #### `config`
 
-- Type: `(old: ConfigFile) => ConfigFile | Promise<ConfigFile>`
+- Type: `(old: ConfigFile) => ConfigFile`
+- Can return a `Promise` as well
 - Plugins might overwrite each other
 
 Used to modify any values that the user passed to their config files.
@@ -169,6 +170,7 @@ Add extensions to the list that houdini uses to find valid source files.
 #### `include`
 
 - Type: `(config: Config, filepath: string) => boolean | null | undefined`
+- If any plugin includes the value, the filepath is excluded
 
 A filter for wether a file should be included in processing. This hook is useful
 if you generate imports that do not match your users configure `include` value.
@@ -177,12 +179,22 @@ Return `true` to include the file.
 #### `exclude`
 
 - Type: `(config: Config, filepath: string) => boolean | null | undefined`
+- If any plugin excludes the value, the filepath is excluded
 
 A filter for wether a file should be included in processing. This hook is useful
 if you generate imports that do not match your users configure `include` value.
 Return `false` to include the file.
 
 #### `extract_documents`
+
+- Type: `(config: Config, path: string, content: string) => string[] | null`
+- Can return a `Promise` as well
+- Plugin values are concattenated together
+
+Teaches the pipeline how to extract graphql documents out of your application source code
+given its filepath and the file contents. You can return `null` or an empty string to indicate
+that you didn't find any graphql documents. This step is responsible for actually parsing your
+source code and extracting the string values of the `graphql` function.
 
 
 #### `schema`
