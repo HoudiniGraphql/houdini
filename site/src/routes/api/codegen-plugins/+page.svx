@@ -147,6 +147,17 @@ const generateSomething = plugin('gen', async () =>  {
 
 <DeepDive title="Publishing a Plugin" >
 
+For the most part, publishing a plugin is just like publishing any other node package. There
+are a few things to keep in mind:
+
+- By convention, start your plugin's name with `houdini-plugin-` which will prevent any collisions with
+  packages we might create in the future.
+- The name of your plugin (the string passed to the `plugin` function) should match the name of your package
+- Your packages default export must be the result of the `plugin` function.
+- Your `package.json` must have an entry for `["exports"]["."]["import"]` so that houdini can find the esm-compatible
+  version of your plugin.
+- The `include_runtime` value will be taken relative to `package.json["exports"]["."]["import"]`
+
 </DeepDive>
 
 ## Plugin Setup
