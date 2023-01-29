@@ -9,7 +9,7 @@ import type {
 } from 'rollup'
 
 import type { ConfigFile } from '../runtime/lib/config'
-import type { ArtifactKind, BaseCompiledDocument } from '../runtime/lib/types'
+import type { ArtifactKind, BaseCompiledDocument, DocumentArtifact } from '../runtime/lib/types'
 import type { TransformPage } from '../vite/houdini'
 import type { Config } from './config'
 
@@ -184,6 +184,11 @@ export type PluginHooks = {
 	 * A hook to generate custom files for every document in a project.
 	 */
 	generate?: GenerateHook
+
+	/**
+	 * A hook to modify the generated artifact before it is persisted
+	 */
+	artifact_end?: (config: Config, artifact: DocumentArtifact) => DocumentArtifact
 
 	/**
 	 * Specify the plugins that should be added to the user's client because

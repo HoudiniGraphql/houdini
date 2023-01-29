@@ -1,7 +1,7 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import type { Config, CollectedGraphQLDocument } from '../../../lib'
+import type { Config, CollectedGraphQLDocument, DocumentArtifact, CachePolicy } from '../../../lib'
 import {
 	getRootType,
 	hashDocument,
@@ -249,7 +249,7 @@ export default function artifactGenerator(stats: {
 
 					// generate a hash of the document that we can use to detect changes
 					// start building up the artifact
-					const artifact: Record<string, any> = {
+					let artifact: DocumentArtifact = {
 						name,
 						kind: docKind,
 						hash: hash(config, doc),
@@ -305,7 +305,7 @@ export default function artifactGenerator(stats: {
 					}
 
 					// add the cache policy to query documents
-					if (docKind === 'HoudiniQuery') {
+					if (artifact.kind === 'HoudiniQuery') {
 						const cacheDirective = operations[0].directives?.find(
 							(directive) => directive.name.value === config.cacheDirective
 						)
@@ -321,8 +321,8 @@ export default function artifactGenerator(stats: {
 								) || {}
 
 							const policy = args[config.cachePolicyArg]
-							if (policy && policy.value.kind === 'EnumValue') {
-								artifact.policy = policy.value.value
+							if (policy && policy.value.kind === 'EnumValue' && policy.value.value) {
+								artifact.policy = policy.value.value as CachePolicy
 							} else {
 								artifact.policy = config.defaultCachePolicy
 							}
@@ -338,6 +338,14 @@ export default function artifactGenerator(stats: {
 							artifact.policy = config.defaultCachePolicy
 							artifact.partial = config.defaultPartial
 						}
+					}
+
+					// pass the artifact through the artifact_end hooks
+					for (const plugin of config.plugins) {
+						if (!plugin.artifact_end) {
+							continue
+						}
+						artifact = plugin.artifact_end(config, artifact)
 					}
 
 					// the artifact should be the default export of the file

@@ -267,7 +267,11 @@ Not Yet Implemented
 
 #### `artifact_end`
 
-Not Yet Implemented
+- Type `(config: Config, artifact: DocumentArtifact) => DocumentArtifact`
+- Plugins can overwrite values
+
+A hook to modify the generated artifact before its written to disk. This is useful to set artifact data
+based on information derived from the artifact's final state.
 
 #### `hash`
 
