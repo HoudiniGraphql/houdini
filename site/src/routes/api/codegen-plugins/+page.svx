@@ -215,7 +215,7 @@ to add new definitions, you can add new documents to provided list.
 
 #### `transform_before_validate`
 
-- Type: `({config: Config documents: CollectedGraphQLDocument[]}) => void`
+- Type: `({config: Config documents: Document[]}) => void`
 - Can also return a Promise
 
 A hook to transform documents before they has been validated. This can be useful if you are adding a layer
@@ -223,7 +223,7 @@ that translates into a Houdini feature.
 
 #### `validate`
 
-- Type: `({config: Config documents: CollectedGraphQLDocument[]}) => void`
+- Type: `({config: Config documents: Document[]}) => void`
 - Can also return a Promise
 
 A hook to ensure that assumptions made by the rest of the tasks are true. For example,
@@ -233,7 +233,7 @@ reliably import the correct artifact.
 
 #### `transform_after_validate`
 
-- Type: `({config: Config documents: CollectedGraphQLDocument[]}) => void`
+- Type: `({config: Config documents: Document[]}) => void`
 - Can also return a Promise
 
 A hook to transform the documents after they have been validated. This is useful if you are building a feature
@@ -249,14 +249,14 @@ provided by houdini, as well as hooks to generate your own files and runtimes fo
 
 #### `transform_before_generate`
 
-- Type: `({config: Config documents: CollectedGraphQLDocument[]}) => void`
+- Type: `({config: Config documents: Document[]}) => void`
 - Can also return a Promise
 
 A hook to transform the documents just before static assets are generated.
 
 #### `artifact_data`
 
-- Type: `(config: Config, doc: CollectedGraphQLDocument) => Record<string, any>`
+- Type: `(config: Config, doc: Document) => Record<string, any>`
 
 A hook to embed metadata at the root of the artifact. You should use this to encode document-level
 data at build time so you don't have to analyze the document at runtime (in a client plugin, for example).
@@ -271,7 +271,10 @@ Not Yet Implemented
 
 #### `hash`
 
-Not Yet Implemented
+- Type: `(Config, Document) => string`
+- The first hook provided is used.
+
+Customizes the hash generated for a given document
 
 #### `index_file`
 
@@ -285,7 +288,7 @@ type IndexFileArgs = {
 	export_star_from(args: { module: string }): string
 	plugin_root: string
 	typedef: boolean
-	documents: CollectedGraphQLDocument[]
+	documents: Document[]
 }
 ```
 
@@ -321,7 +324,7 @@ export default {
 ```typescript
 type GenerateArgs = {
 	config: Config
-	documents: CollectedGraphQLDocument[]
+	documents: Document[]
 	plugin_root: string
 }
 ```

@@ -43,7 +43,7 @@ export default async function persistOutputGenerator(
 
 		// if there are operations in the document
 		if (operations.length > 0 && operations[0].kind === 'OperationDefinition') {
-			acc[hashDocument(rawString)] = rawString
+			acc[hashDocument(config, rawString)] = rawString
 		}
 
 		return acc

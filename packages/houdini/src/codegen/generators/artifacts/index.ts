@@ -101,6 +101,9 @@ export default function artifactGenerator(stats: {
 
 		const listOfArtifacts: string[] = []
 
+		// figure out the function we'll use to hash
+		const hash = config.plugins?.find((plugin) => plugin.hash)?.hash ?? hashDocument
+
 		// we have everything we need to generate the artifacts
 		await Promise.all(
 			[
@@ -249,7 +252,7 @@ export default function artifactGenerator(stats: {
 					const artifact: Record<string, any> = {
 						name,
 						kind: docKind,
-						hash: hashDocument(rawString),
+						hash: hash(config, doc),
 						refetch: doc.refetch,
 						raw: rawString,
 						rootType,
@@ -341,7 +344,7 @@ export default function artifactGenerator(stats: {
 					const file = AST.program([
 						moduleExport(config, 'default', serializeValue(artifact)),
 						AST.expressionStatement(
-							AST.stringLiteral(`HoudiniHash=${hashDocument(doc.originalString)}`)
+							AST.stringLiteral(`HoudiniHash=${hash(config, doc)}`)
 						),
 					])
 
@@ -368,7 +371,7 @@ export default function artifactGenerator(stats: {
 
 					// check if the artifact exists
 					const match = existingArtifact && existingArtifact.match(/"HoudiniHash=(\w+)"/)
-					if (match && match[1] !== hashDocument(doc.originalString)) {
+					if (match && match[1] !== hash(config, doc)) {
 						stats.changed.push(artifact.name)
 					}
 

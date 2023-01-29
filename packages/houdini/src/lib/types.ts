@@ -161,6 +161,11 @@ export type PluginHooks = {
 	artifact_data?: (config: Config, doc: CollectedGraphQLDocument) => Record<string, any>
 
 	/**
+	 * A hook to customize the hash generated for your document.
+	 */
+	hash?: (config: Config, doc: CollectedGraphQLDocument) => string
+
+	/**
 	 * A hook to customize the return type of the graphql function. If you need to add an import to the file
 	 * in order to resolve the import, you can use the `ensure_import` utility.
 	 */
@@ -180,6 +185,10 @@ export type PluginHooks = {
 	 */
 	generate?: GenerateHook
 
+	/**
+	 * Specify the plugins that should be added to the user's client because
+	 * of this plugin.
+	 */
 	client_plugins?:
 		| Record<string, null | Record<string, any>>
 		| ((config: ConfigFile, pluginConfig: any) => Record<string, null | Record<string, any>>)
