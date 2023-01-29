@@ -38,7 +38,6 @@ export class Config {
 	internalListPosition: 'first' | 'last'
 	defaultListTarget: 'all' | null = null
 	definitionsFolder?: string
-	newSchema: string = ''
 	newDocuments: string = ''
 	defaultKeys: string[] = ['id']
 	typeConfig: ConfigFile['types']
@@ -258,6 +257,21 @@ export class Config {
 					})
 			),
 		]
+	}
+
+	#newSchemaInstance: graphql.GraphQLSchema | null = null
+	#schemaString: string = ''
+	set newSchema(value: string) {
+		this.#schemaString = value
+		if (value) {
+			this.#newSchemaInstance = graphql.buildSchema(value)
+		} else {
+			this.#newSchemaInstance = null
+		}
+	}
+
+	get newSchema() {
+		return this.#schemaString
 	}
 
 	/*
@@ -625,25 +639,12 @@ export class Config {
 		return node.name.value === 'CachePolicy'
 	}
 
-	isInternalDirective({ name }: graphql.DirectiveNode): boolean {
-		return (
-			[
-				this.listDirective,
-				this.listPrependDirective,
-				this.listAppendDirective,
-				this.listParentDirective,
-				this.listAllListsDirective,
-				this.whenDirective,
-				this.whenNotDirective,
-				this.argumentsDirective,
-				this.withDirective,
-				this.paginateDirective,
-				this.cacheDirective,
-				this.loadDirective,
-				this.maskEnableDirective,
-				this.maskDisableDirective,
-			].includes(name.value) || this.isDeleteDirective(name.value)
-		)
+	isInternalDirective(name: string): boolean {
+		// an internal directive is one that was defined in the new schema
+		const internalDirectives =
+			this.#newSchemaInstance?.getDirectives().map((directive) => directive.name) ?? []
+
+		return internalDirectives.includes(name)
 	}
 
 	isListFragment(name: string): boolean {

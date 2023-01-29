@@ -10,7 +10,7 @@ export default async function graphqlExtensions(
 	documents: CollectedGraphQLDocument[]
 ): Promise<void> {
 	// the bits to add to the schema
-	const internalSchema = `
+	let internalSchema = `
 enum CachePolicy {
 	${CachePolicy.CacheAndNetwork}
 	${CachePolicy.CacheOnly}
@@ -86,6 +86,17 @@ directive @${config.maskEnableDirective} on FRAGMENT_SPREAD
 """
 directive @${config.maskDisableDirective} on FRAGMENT_SPREAD
 `
+
+	// add each custom schema to the internal value
+	for (const plugin of config.plugins) {
+		// if the plugin doesn't add a schema, ignore it
+		if (!plugin.schema) {
+			continue
+		}
+
+		// add the schema value
+		internalSchema += plugin.schema({ config })
+	}
 
 	// if the config does not have the cache directive, then we need to add it
 	let currentSchema = graphql.printSchema(config.schema)

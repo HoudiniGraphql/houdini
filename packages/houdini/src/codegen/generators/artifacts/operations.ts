@@ -104,7 +104,7 @@ function operationObject({
 	let operationWhen: MutationOperation['when'] | undefined
 
 	const internalDirectives = selection.directives?.filter((directive) =>
-		config.isInternalDirective(directive)
+		config.isInternalDirective(directive.name.value)
 	)
 	if (internalDirectives && internalDirectives.length > 0) {
 		// is prepend applied?

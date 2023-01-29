@@ -47,14 +47,15 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 		await run(
 			config,
 			[
+				// transforms
+				transforms.internalSchema,
+
 				// validators
 				validators.typeCheck,
 				validators.uniqueNames,
 				validators.noIDAlias,
 				validators.plugins,
 
-				// transforms
-				transforms.internalSchema,
 				transforms.addID,
 				transforms.typename,
 				// list transform must go before fragment variables
@@ -90,6 +91,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 			docs
 		)
 	} catch (e) {
+		console.log(e)
 		error = e as Error
 	}
 

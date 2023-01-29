@@ -115,6 +115,13 @@ export type PluginHooks = {
 		content: string
 	) => Promise<string[] | null> | string[] | null
 
+	/**
+	 * Can be used to add custom definitions to your project's schema. Definitions (like directives) added
+	 * here are automatically removed from the document before they are sent to the server. Useful
+	 * in connection with artifact_data or artifact_selection to embed data in the artifact.
+	 */
+	schema?: (args: { config: Config }) => string
+
 	artifact_data?: (config: Config, doc: CollectedGraphQLDocument) => Record<string, any>
 	generate?: GenerateHook
 	client_plugins?:

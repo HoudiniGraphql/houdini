@@ -125,7 +125,7 @@ export default function artifactGenerator(stats: {
 					let documentWithoutInternalDirectives = graphql.visit(document, {
 						Directive(node) {
 							// if the directive is one of the internal ones, remove it
-							if (config.isInternalDirective(node)) {
+							if (config.isInternalDirective(node.name.value)) {
 								return null
 							}
 						},
