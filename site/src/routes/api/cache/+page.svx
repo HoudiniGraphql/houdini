@@ -331,7 +331,7 @@ user.markStale()
 const user = cache.get('User', { id: '1' })
 user.markStale({ field: 'name' })
 
-// TODO
+// Mark the name field when the pattern is 'capitalize'
 const user = cache.get('User', { id: '1' })
-user.markStale({ field: 'name', args: { name: 'New User' } })
+user.markStale({ field: 'name', when: { pattern: 'capitalize' } })
 ```

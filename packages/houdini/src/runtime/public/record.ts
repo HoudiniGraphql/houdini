@@ -105,13 +105,14 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 		field?: Field
 		when?: ArgType<Def, Type, Field>
 	} = {}): void {
-		const key = when ? computeKey({ field: this.#id, args: when }) : this.#id
-
 		// If we don't have a field, mark the whole record as stale
 		if (!field) {
-			this.#cache._internal_unstable._internal_unstable.markRecordStale(key)
-		} else {
-			this.#cache._internal_unstable._internal_unstable.setFieldTimeToStale(key, field)
+			this.#cache._internal_unstable._internal_unstable.markRecordStale(this.#id)
+		}
+		// we are marking a specific field
+		else {
+			const key = computeKey({ field, args: when })
+			this.#cache._internal_unstable._internal_unstable.setFieldTimeToStale(this.#id, key)
 		}
 	}
 }

@@ -41,7 +41,7 @@ const h_SetUserInCache = (cache: Cache<CacheTypeDefTest>, id: string) => {
 	return user
 }
 
-const h_GetUserRecord = (id: string, field: 'id' | 'firstName' = 'id') => {
+const h_GetUserRecord = (id: string, field: string = 'id') => {
 	return {
 		type: 'User',
 		id: `User:${id}`,
@@ -204,13 +204,14 @@ test('Mark a record field stale', async function () {
 
 	// check data state of stale
 	expect(h_GetFieldTime(cache, h_GetUserRecord('1'))).not.toBe(null)
+	expect(h_GetFieldTime(cache, h_GetUserRecord('1', 'id'))).not.toBe(null)
 	expect(h_GetFieldTime(cache, h_GetUserRecord('1', 'firstName'))).not.toBe(null)
 
 	// mark a field stale
 	user1.markStale({ field: 'id' })
 
 	// check data state of stale
-	expect(h_GetFieldTime(cache, h_GetUserRecord('1'))).toBe(null)
+	expect(h_GetFieldTime(cache, h_GetUserRecord('1', 'id'))).toBe(null)
 	expect(h_GetFieldTime(cache, h_GetUserRecord('1', 'firstName'))).not.toBe(null)
 })
 
@@ -222,13 +223,15 @@ test('Mark a record field stale when args', async function () {
 
 	// check data state of stale
 	expect(h_GetFieldTime(cache, h_GetUserRecord('1'))).not.toBe(null)
-	expect(h_GetFieldTime(cache, h_GetUserRecord('1', 'firstName'))).not.toBe(null)
+	expect(h_GetFieldTime(cache, h_GetUserRecord('1', 'id'))).not.toBe(null)
 
 	// mark a field stale
-	// JYC TODO type issue?
+	// @ts-expect-error: generated type definitions are busted locally
 	user1.markStale({ field: 'id', when: { id: '1' } })
 
 	// check data state of stale
+	expect(h_GetFieldTime(cache, h_GetUserRecord('1', 'id(id: "1")'))).toBe(null)
+	expect(h_GetFieldTime(cache, h_GetUserRecord('1', 'id'))).not.toBe(null)
 	expect(h_GetFieldTime(cache, h_GetUserRecord('1', 'firstName'))).not.toBe(null)
-	expect(h_GetFieldTime(cache, h_GetUserRecord('1'))).toBe(null)
+	expect(h_GetFieldTime(cache, h_GetUserRecord('1'))).not.toBe(null)
 })
