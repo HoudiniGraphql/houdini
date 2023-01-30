@@ -1,4 +1,4 @@
-import { Plugin, PluginInit } from './types'
+import type { Plugin, PluginInit } from './types'
 
 export function plugin(name: string, hooks: Plugin): PluginInit {
 	const data: PluginInit = {

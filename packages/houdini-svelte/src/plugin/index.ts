@@ -1,4 +1,4 @@
-import type { Plugin, PluginHooks } from 'houdini'
+import type { PluginHooks } from 'houdini'
 import { plugin } from 'houdini'
 import { HoudiniError, path, fs, type Config } from 'houdini'
 import * as url from 'url'

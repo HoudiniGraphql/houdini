@@ -307,11 +307,7 @@ async function processGraphQLDocument(
 	filepath: string,
 	document: string
 ): Promise<CollectedGraphQLDocument> {
-	try {
-		var parsedDoc = graphql.parse(document)
-	} catch (e) {
-		throw e
-	}
+	const parsedDoc = graphql.parse(document)
 
 	// look for the operation
 	const operations = parsedDoc.definitions.filter(
