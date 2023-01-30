@@ -71,18 +71,23 @@
 				--scrollbar-slider: #828487;
 				--scrollbar-track: var(--discreet2);
 				--saturated: #ff3e00;
-				--graphql-explained: #cf2b99;
-				--graphql-explained-background: var(--discreet);
-				--deep-dive: #214a9c;
-				--deep-dive-text: white;
-				--deep-dive-background: var(--discreet);
 				--link-color: #ff5c26;
 				--text-highlight: #3595ff;
 				--text-highlight-background: #eee;
 				--code-title-background: #0c0f14;
 				--code-title-color: #475465;
+
 				--zoom-shadow: #191c26;
 				--caption-text: #828282;
+
+				/* Notices */
+				--deep-dive: #3269d9;
+				--deep-dive-text: white;
+				--deep-dive-background: var(--discreet);
+				--graphql-explained: #cf2b99;
+				--graphql-explained-background: var(--discreet);
+				--warning: #f0aa48;
+				--warning-text: white;
 
 				/* Diagram Colors */
 				--diagram-line-color: #292f38;
@@ -104,11 +109,6 @@
 				--scrollbar-slider: rgba(20, 21, 25, 1);
 				--scrollbar-track: #272e38;
 				--saturated: #ff3e00;
-				--deep-dive: #17346d;
-				--deep-dive-background: var(--discreet);
-				--deep-dive-text: white;
-				--graphql-explained: #8d005f;
-				--graphql-explained-background: var(--discreet);
 				--link-color: #fc602d;
 				--text-highlight: #a1c5f8;
 				--text-highlight-background: #222832;
@@ -116,6 +116,15 @@
 				--code-title-color: #475465;
 				--zoom-shadow: black;
 				--caption-text: #5d6994;
+
+				/* Notices */
+				--deep-dive: #17346d;
+				--deep-dive-background: var(--discreet);
+				--deep-dive-text: white;
+				--graphql-explained: #8d005f;
+				--graphql-explained-background: var(--discreet);
+				--warning: #bc791b;
+				--warning-text: white;
 
 				/* Diagram Colors */
 				--diagram-line-color: var(--contrast);
