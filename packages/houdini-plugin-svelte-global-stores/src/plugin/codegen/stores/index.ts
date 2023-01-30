@@ -10,7 +10,7 @@ import { subscriptionStore } from './subscription'
 const is_store_needed = (
 	kindExpected: ArtifactKind,
 	kindDocument: ArtifactKind,
-	storesToGenerate: ('query' | 'mutation' | 'subscription' | 'fragment')[] | 'all'
+	generate: ('query' | 'mutation' | 'subscription' | 'fragment')[] | 'all'
 ) => {
 	if (kindExpected === kindDocument) {
 		// build association between ArtifactKind and Literal
@@ -24,7 +24,7 @@ const is_store_needed = (
 			HoudiniFragment: 'fragment',
 		}
 
-		if (storesToGenerate === 'all' || storesToGenerate.includes(kindLiteral[kindExpected])) {
+		if (generate === 'all' || generate.includes(kindLiteral[kindExpected])) {
 			return true
 		}
 	}
@@ -33,7 +33,7 @@ const is_store_needed = (
 
 export default async function storesGenerator(input: GenerateHookInput) {
 	const { documents, config } = input
-	const storesToGenerate = plugin_config(config).storesToGenerate
+	const generate = plugin_config(config).generate
 
 	const listOfStores: (string | null)[] = []
 
@@ -44,13 +44,13 @@ export default async function storesGenerator(input: GenerateHookInput) {
 				return
 			}
 
-			if (is_store_needed(ArtifactKind.Query, doc.kind, storesToGenerate)) {
+			if (is_store_needed(ArtifactKind.Query, doc.kind, generate)) {
 				listOfStores.push(await queryStore(input, doc))
-			} else if (is_store_needed(ArtifactKind.Mutation, doc.kind, storesToGenerate)) {
+			} else if (is_store_needed(ArtifactKind.Mutation, doc.kind, generate)) {
 				listOfStores.push(await mutationStore(input, doc))
-			} else if (is_store_needed(ArtifactKind.Subscription, doc.kind, storesToGenerate)) {
+			} else if (is_store_needed(ArtifactKind.Subscription, doc.kind, generate)) {
 				listOfStores.push(await subscriptionStore(input, doc))
-			} else if (is_store_needed(ArtifactKind.Fragment, doc.kind, storesToGenerate)) {
+			} else if (is_store_needed(ArtifactKind.Fragment, doc.kind, generate)) {
 				listOfStores.push(await fragmentStore(input, doc))
 			}
 		})

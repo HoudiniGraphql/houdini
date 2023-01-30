@@ -14,7 +14,7 @@ test('change prefix to "yop___"', async function () {
 			'houdini-svelte': {},
 			'houdini-plugin-svelte-global-stores': {
 				prefix: 'yop___',
-				storesToGenerate: ['query'],
+				generate: ['query'],
 			},
 		},
 	})
@@ -44,7 +44,7 @@ test('change prefix to ""', async function () {
 			'houdini-svelte': {},
 			'houdini-plugin-svelte-global-stores': {
 				prefix: '',
-				storesToGenerate: ['query'],
+				generate: ['query'],
 			},
 		},
 	})
@@ -99,7 +99,7 @@ test('all', async function () {
 			'houdini-svelte': {},
 			'houdini-plugin-svelte-global-stores': {
 				prefix: '',
-				storesToGenerate: 'all',
+				generate: 'all',
 			},
 		},
 	})

@@ -72,5 +72,5 @@ export type HoudiniPluginSvelteGlobalStoresConfig = {
 	 * _Note: by default, 'query' is omitted on purpose._
 	 * @default ['mutation', 'subscription', 'fragment']
 	 */
-	storesToGenerate?: ('query' | 'mutation' | 'subscription' | 'fragment')[] | 'all'
+	generate?: ('query' | 'mutation' | 'subscription' | 'fragment')[] | 'all'
 }

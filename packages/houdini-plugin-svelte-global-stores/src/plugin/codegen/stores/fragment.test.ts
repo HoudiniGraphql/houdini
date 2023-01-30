@@ -65,7 +65,7 @@ test('no fragment', async function () {
 			'houdini-svelte': {},
 			'houdini-plugin-svelte-global-stores': {
 				prefix: '',
-				storesToGenerate: [],
+				generate: [],
 			},
 		},
 	})

@@ -23,7 +23,7 @@ const config = {
   },
   plugins: {
     'houdini-plugin-svelte-global-stores': {
-      storesToGenerate: ['query', 'mutation', 'subscription', 'fragment']
+      generate: ['query', 'mutation', 'subscription', 'fragment']
     },
     'houdini-svelte': {}
   }
