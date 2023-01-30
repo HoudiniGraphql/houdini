@@ -509,7 +509,7 @@ const validateLists = ({
 				}
 
 				// if the directive is not a list directive
-				if (!config.isInternalDirective(node)) {
+				if (!config.isInternalDirective(node.name.value)) {
 					// look for the definition of the fragment
 					if (!config.schema.getDirective(directiveName)) {
 						ctx.reportError(

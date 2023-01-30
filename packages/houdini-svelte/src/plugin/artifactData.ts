@@ -3,11 +3,17 @@ import type { CollectedGraphQLDocument, Config } from 'houdini'
 
 export type PluginArtifactData = { isManualLoad?: boolean }
 
-export function artifactData(config: Config, doc: CollectedGraphQLDocument): PluginArtifactData {
+export function artifactData({
+	config,
+	document,
+}: {
+	config: Config
+	document: CollectedGraphQLDocument
+}): PluginArtifactData {
 	// put together the type information for the filter for every list
 	let isManualLoad = true
 
-	graphql.visit(doc.document, {
+	graphql.visit(document.document, {
 		// look for any field marked with a list
 		Directive(node, _, __, ___) {
 			// check loadDirective

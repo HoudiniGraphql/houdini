@@ -3,7 +3,7 @@ import { fs, parseJS, path } from 'houdini'
 import { runPipeline } from 'houdini/codegen'
 import { mockCollectedDoc, testConfig } from 'houdini/test'
 
-import plugin from '../plugin'
+import { pluginHooks } from '../plugin'
 import { parseSvelte } from '../plugin/extract'
 import type { Framework } from '../plugin/kit'
 import { layout_query_path, page_query_path, route_data_path } from '../plugin/kit'
@@ -26,13 +26,12 @@ const schema = `
 
 export async function test_config(extraConfig: Partial<ConfigFile> = {}) {
 	const config = testConfig(extraConfig)
-	const svelte_plugin = await plugin()
+	const svelte_plugin = await pluginHooks()
 	config.plugins.push({
 		...svelte_plugin,
-		include_runtime: true,
-		name: 'houdini-svelte',
-		version: 'test',
-		directory: process.cwd(),
+		include_runtime: './test',
+		filepath: path.join(process.cwd(), 'index.js'),
+		name: 'test',
 	})
 	return config
 }

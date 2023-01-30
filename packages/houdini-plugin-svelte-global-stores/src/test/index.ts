@@ -2,8 +2,8 @@ import type { CollectedGraphQLDocument, Config, ConfigFile } from 'houdini'
 import { runPipeline } from 'houdini/codegen'
 import { mockCollectedDoc, testConfig } from 'houdini/test'
 
-import _plugin_houdini_svelte from '../../../houdini-svelte/src/plugin'
-import _plugin_houdini_svelte_global_store from '../plugin'
+import { pluginHooks as _plugin_houdini_svelte } from '../../../houdini-svelte/src/plugin'
+import { pluginHooks as _plugin_houdini_svelte_global_store } from '../plugin'
 
 export async function test_config(extraConfig: Partial<ConfigFile> = {}) {
 	const config = testConfig(extraConfig)
@@ -13,17 +13,13 @@ export async function test_config(extraConfig: Partial<ConfigFile> = {}) {
 	config.plugins.push(
 		{
 			...plugin_houdini_svelte,
-			include_runtime: true,
+			filepath: '',
 			name: 'houdini-svelte',
-			version: 'test',
-			directory: process.cwd(),
 		},
 		{
 			...plugin_houdini_svelte_global_store,
-			include_runtime: false,
 			name: 'houdini-plugin-svelte-global-stores',
-			version: 'test',
-			directory: process.cwd(),
+			filepath: '',
 		}
 	)
 	return config

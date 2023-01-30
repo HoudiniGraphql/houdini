@@ -67,6 +67,7 @@ export default async function fragmentVariables(
 		generateArtifact: false,
 		filename: 'generated::fragmentVariables',
 		originalString: '',
+		artifact: null,
 	})
 }
 

@@ -1,7 +1,7 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import type { Config, CollectedGraphQLDocument } from '../../../lib'
+import type { Config, CollectedGraphQLDocument, DocumentArtifact, CachePolicy } from '../../../lib'
 import {
 	getRootType,
 	hashDocument,
@@ -101,6 +101,9 @@ export default function artifactGenerator(stats: {
 
 		const listOfArtifacts: string[] = []
 
+		// figure out the function we'll use to hash
+		const hash = config.plugins?.find((plugin) => plugin.hash)?.hash ?? hashDocument
+
 		// we have everything we need to generate the artifacts
 		await Promise.all(
 			[
@@ -125,7 +128,7 @@ export default function artifactGenerator(stats: {
 					let documentWithoutInternalDirectives = graphql.visit(document, {
 						Directive(node) {
 							// if the directive is one of the internal ones, remove it
-							if (config.isInternalDirective(node)) {
+							if (config.isInternalDirective(node.name.value)) {
 								return null
 							}
 						},
@@ -246,10 +249,10 @@ export default function artifactGenerator(stats: {
 
 					// generate a hash of the document that we can use to detect changes
 					// start building up the artifact
-					const artifact: Record<string, any> = {
+					let artifact: DocumentArtifact = {
 						name,
 						kind: docKind,
-						hash: hashDocument(rawString),
+						hash: hash({ config, document: doc }),
 						refetch: doc.refetch,
 						raw: rawString,
 						rootType,
@@ -272,7 +275,7 @@ export default function artifactGenerator(stats: {
 					}
 
 					// adding artifact_data of plugins (only if any information is present)
-					const pluginsData = config.plugins.reduce<Record<string, any>>(
+					const plugin_data = config.plugins.reduce<Record<string, any>>(
 						(prev, plugin) => {
 							// if the plugin doesn't provide any artifact data, ignore it
 							if (!plugin.artifact_data) {
@@ -281,7 +284,7 @@ export default function artifactGenerator(stats: {
 
 							// add the specified artifact data (if it exists)
 							const result = { ...prev }
-							const dataToAdd = plugin.artifact_data(config, doc) ?? {}
+							const dataToAdd = plugin.artifact_data({ config, document: doc }) ?? {}
 							if (Object.keys(dataToAdd).length > 0) {
 								result[plugin.name] = dataToAdd
 							}
@@ -291,8 +294,8 @@ export default function artifactGenerator(stats: {
 						},
 						{}
 					)
-					if (Object.keys(pluginsData).length > 0) {
-						artifact.pluginsData = pluginsData
+					if (Object.keys(plugin_data).length > 0) {
+						artifact.plugin_data = plugin_data
 					}
 
 					// if the document has inputs describe their types in the artifact so we can
@@ -302,7 +305,7 @@ export default function artifactGenerator(stats: {
 					}
 
 					// add the cache policy to query documents
-					if (docKind === 'HoudiniQuery') {
+					if (artifact.kind === 'HoudiniQuery') {
 						const cacheDirective = operations[0].directives?.find(
 							(directive) => directive.name.value === config.cacheDirective
 						)
@@ -318,8 +321,8 @@ export default function artifactGenerator(stats: {
 								) || {}
 
 							const policy = args[config.cachePolicyArg]
-							if (policy && policy.value.kind === 'EnumValue') {
-								artifact.policy = policy.value.value
+							if (policy && policy.value.kind === 'EnumValue' && policy.value.value) {
+								artifact.policy = policy.value.value as CachePolicy
 							} else {
 								artifact.policy = config.defaultCachePolicy
 							}
@@ -337,11 +340,22 @@ export default function artifactGenerator(stats: {
 						}
 					}
 
+					// assign the artifact
+					doc.artifact = artifact
+
+					// pass the artifact through the artifact_end hooks
+					for (const plugin of config.plugins) {
+						if (!plugin.artifact_end) {
+							continue
+						}
+						plugin.artifact_end({ config, document: doc })
+					}
+
 					// the artifact should be the default export of the file
 					const file = AST.program([
 						moduleExport(config, 'default', serializeValue(artifact)),
 						AST.expressionStatement(
-							AST.stringLiteral(`HoudiniHash=${hashDocument(doc.originalString)}`)
+							AST.stringLiteral(`HoudiniHash=${hash({ config, document: doc })}`)
 						),
 					])
 
@@ -368,7 +382,7 @@ export default function artifactGenerator(stats: {
 
 					// check if the artifact exists
 					const match = existingArtifact && existingArtifact.match(/"HoudiniHash=(\w+)"/)
-					if (match && match[1] !== hashDocument(doc.originalString)) {
+					if (match && match[1] !== hash({ config, document: doc })) {
 						stats.changed.push(artifact.name)
 					}
 

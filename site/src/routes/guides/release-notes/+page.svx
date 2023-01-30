@@ -30,7 +30,7 @@ you can check out the [Client Plugin documentation](/api/client-plugins).
 
 It's a bit hard to give you an exact example to follow but here are a few situations you might fall into:
 
-<DeepDive title="Simple Client" style="margin-bottom: 0px">
+<DeepDive title="Simple Client" >
 
 In the simplest case,
 your entire fetch function can be replaced with a single configuration value:
@@ -69,7 +69,7 @@ your entire fetch function can be replaced with a single configuration value:
 
 </DeepDive>
 
-<DeepDive title="Client with Authentication" style="margin-bottom: 0px">
+<DeepDive title="Client with Authentication" >
 
 If you needed to pass values to fetch (ie, for authentication) then you can use the `fetchParams`
 config value:
@@ -117,7 +117,7 @@ config value:
 
 </DeepDive>
 
-<DeepDive title="Client with Subscriptions" style="margin-bottom: 0px">
+<DeepDive title="Client with Subscriptions" >
 
 If your application uses subscriptions, you'll need to import the
 `subscription` plugin and pass it to your client:
@@ -168,7 +168,7 @@ throw.
 
 Please select the situation that applies:
 
-<DeepDive title="Had quietQueryErrors on" style="margin-bottom: 0px">
+<DeepDive title="Had quietQueryErrors on" >
 
 You are now aligned with houdini's default behavior. Just remove the config in
 `houdini-svelte`:

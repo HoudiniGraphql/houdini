@@ -514,6 +514,7 @@ export default async function paginate(
 				generateStore: false,
 				refetch: doc.refetch,
 				originalString: '',
+				artifact: null,
 			})
 		}
 	}

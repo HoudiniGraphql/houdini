@@ -1,14 +1,11 @@
-import type { PluginFactory } from 'houdini'
+import { plugin, type PluginHooks } from 'houdini'
 import { HoudiniError, path } from 'houdini'
 
 import { store_name } from '../../../houdini-svelte/src/plugin/kit'
 import generate from './codegen'
 import { global_stores_directory, global_store_name } from './kit'
 
-const HoudiniPluginSvelteGlobalStores: PluginFactory = async () => ({
-	// it has to come before the core houdini-svelte plugin
-	// order: 'before',
-
+export const pluginHooks: () => Promise<PluginHooks> = async () => ({
 	/**
 	 * Generate
 	 */
@@ -38,7 +35,7 @@ const HoudiniPluginSvelteGlobalStores: PluginFactory = async () => ({
 
 	// Check that storeName & globalStoreName are not overlapping.
 	// Not possible today, but maybe in the future if storeName starts to be configurable.
-	async after_load(cfg) {
+	async after_load({ config: cfg }) {
 		if (
 			store_name({ config: cfg, name: 'QueryName' }) ===
 			global_store_name({ config: cfg, name: 'QueryName' })
@@ -52,7 +49,7 @@ const HoudiniPluginSvelteGlobalStores: PluginFactory = async () => ({
 	},
 })
 
-export default HoudiniPluginSvelteGlobalStores
+export default plugin('houdini-plugin-svelte-global-stores', pluginHooks)
 
 declare module 'houdini' {
 	interface HoudiniPluginConfig {

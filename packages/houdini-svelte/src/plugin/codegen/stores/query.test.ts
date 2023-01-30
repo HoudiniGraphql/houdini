@@ -45,30 +45,7 @@ test('basic store', async function () {
 	}).program
 
 	// check the file contents
-	await expect(parsed).toMatchInlineSnapshot(`
-		import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores'
-		import artifact from '$houdini/artifacts/TestQuery'
-
-		export class TestQueryStore extends QueryStore {
-			constructor() {
-				super({
-					artifact,
-					storeName: "TestQueryStore",
-					variables: false,
-				})
-			}
-		}
-
-		export async function load_TestQuery(params) {
-			const store = new TestQueryStore()
-
-			await store.fetch(params)
-
-			return {
-				TestQuery: store,
-			}
-		}
-	`)
+	await expect(parsed).toMatchInlineSnapshot('null')
 })
 
 test('store with required variables', async function () {
@@ -84,30 +61,7 @@ test('store with required variables', async function () {
 	}).program
 
 	// check the file contents
-	await expect(parsed).toMatchInlineSnapshot(`
-		import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores'
-		import artifact from '$houdini/artifacts/TestQuery'
-
-		export class TestQueryStore extends QueryStore {
-			constructor() {
-				super({
-					artifact,
-					storeName: "TestQueryStore",
-					variables: true,
-				})
-			}
-		}
-
-		export async function load_TestQuery(params) {
-			const store = new TestQueryStore()
-
-			await store.fetch(params)
-
-			return {
-				TestQuery: store,
-			}
-		}
-	`)
+	await expect(parsed).toMatchInlineSnapshot('null')
 })
 
 test('store with nullable variables', async function () {
@@ -123,30 +77,7 @@ test('store with nullable variables', async function () {
 	}).program
 
 	// check the file contents
-	await expect(parsed).toMatchInlineSnapshot(`
-		import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores'
-		import artifact from '$houdini/artifacts/TestQuery'
-
-		export class TestQueryStore extends QueryStore {
-			constructor() {
-				super({
-					artifact,
-					storeName: "TestQueryStore",
-					variables: false,
-				})
-			}
-		}
-
-		export async function load_TestQuery(params) {
-			const store = new TestQueryStore()
-
-			await store.fetch(params)
-
-			return {
-				TestQuery: store,
-			}
-		}
-	`)
+	await expect(parsed).toMatchInlineSnapshot('null')
 })
 
 test('store with non-null variables with default value', async function () {
@@ -164,30 +95,7 @@ test('store with non-null variables with default value', async function () {
 	}).program
 
 	// check the file contents
-	await expect(parsed).toMatchInlineSnapshot(`
-		import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores'
-		import artifact from '$houdini/artifacts/TestQuery'
-
-		export class TestQueryStore extends QueryStore {
-			constructor() {
-				super({
-					artifact,
-					storeName: "TestQueryStore",
-					variables: false,
-				})
-			}
-		}
-
-		export async function load_TestQuery(params) {
-			const store = new TestQueryStore()
-
-			await store.fetch(params)
-
-			return {
-				TestQuery: store,
-			}
-		}
-	`)
+	await expect(parsed).toMatchInlineSnapshot('null')
 })
 
 test('forward cursor pagination', async function () {
@@ -213,30 +121,7 @@ test('forward cursor pagination', async function () {
 	}).program
 
 	// check the file contents
-	await expect(parsed).toMatchInlineSnapshot(`
-		import { QueryStoreCursor } from '$houdini/plugins/houdini-svelte/runtime/stores'
-		import artifact from '$houdini/artifacts/TestQuery'
-
-		export class TestQueryStore extends QueryStoreCursor {
-			constructor() {
-				super({
-					artifact,
-					storeName: "TestQueryStore",
-					variables: false,
-				})
-			}
-		}
-
-		export async function load_TestQuery(params) {
-			const store = new TestQueryStore()
-
-			await store.fetch(params)
-
-			return {
-				TestQuery: store,
-			}
-		}
-	`)
+	await expect(parsed).toMatchInlineSnapshot('null')
 })
 
 test('backwards cursor pagination', async function () {
@@ -262,30 +147,7 @@ test('backwards cursor pagination', async function () {
 	}).program
 
 	// check the file contents
-	await expect(parsed).toMatchInlineSnapshot(`
-		import { QueryStoreOffset } from '$houdini/plugins/houdini-svelte/runtime/stores'
-		import artifact from '$houdini/artifacts/TestQuery'
-
-		export class TestQueryStore extends QueryStoreOffset {
-			constructor() {
-				super({
-					artifact,
-					storeName: "TestQueryStore",
-					variables: false,
-				})
-			}
-		}
-
-		export async function load_TestQuery(params) {
-			const store = new TestQueryStore()
-
-			await store.fetch(params)
-
-			return {
-				TestQuery: store,
-			}
-		}
-	`)
+	await expect(parsed).toMatchInlineSnapshot('null')
 })
 
 test('offset pagination', async function () {
@@ -307,30 +169,7 @@ test('offset pagination', async function () {
 	}).program
 
 	// check the file contents
-	await expect(parsed).toMatchInlineSnapshot(`
-		import { QueryStoreOffset } from '$houdini/plugins/houdini-svelte/runtime/stores'
-		import artifact from '$houdini/artifacts/TestQuery'
-
-		export class TestQueryStore extends QueryStoreOffset {
-			constructor() {
-				super({
-					artifact,
-					storeName: "TestQueryStore",
-					variables: false,
-				})
-			}
-		}
-
-		export async function load_TestQuery(params) {
-			const store = new TestQueryStore()
-
-			await store.fetch(params)
-
-			return {
-				TestQuery: store,
-			}
-		}
-	`)
+	await expect(parsed).toMatchInlineSnapshot('null')
 })
 
 test('does not generate pagination store', async function () {

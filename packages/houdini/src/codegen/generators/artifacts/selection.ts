@@ -1,7 +1,7 @@
 import * as graphql from 'graphql'
 
 import type { Config, CollectedGraphQLDocument } from '../../../lib'
-import { getRootType, HoudiniError } from '../../../lib'
+import { getRootType, HoudiniError, deepMerge } from '../../../lib'
 import {
 	type MutationOperation,
 	RefetchUpdateMode,
@@ -9,7 +9,7 @@ import {
 } from '../../../runtime/lib/types'
 import { connectionSelection } from '../../transforms/list'
 import fieldKey from './fieldKey'
-import { convertValue, deepMerge } from './utils'
+import { convertValue } from './utils'
 
 export default function selection({
 	config,
