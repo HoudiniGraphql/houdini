@@ -298,7 +298,7 @@ allFriends.when({ favorites: true }).append(user1)
 ## Stale Data
 
 If you want fine-grained logic for marking data as stale, you can use the programmatic api. For more
-information on stale data in Houdini, check out the [Caching Data guide](/guides/caching-data).
+information on stale data in Houdini, check out the [Caching Data guide](/guides/caching-data#stale-data).
 
 ```typescript
 import { cache, graphql } from '$houdini'
