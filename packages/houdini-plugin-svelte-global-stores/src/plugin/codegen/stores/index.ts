@@ -7,6 +7,30 @@ import { mutationStore } from './mutation'
 import { queryStore } from './query'
 import { subscriptionStore } from './subscription'
 
+const is_store_needed = (
+	kindExpected: ArtifactKind,
+	kindDocument: ArtifactKind,
+	storesToGenerate: ('query' | 'mutation' | 'subscription' | 'fragment')[] | 'all'
+) => {
+	if (kindExpected === kindDocument) {
+		// build association between ArtifactKind and Literal
+		const kindLiteral: Record<
+			ArtifactKind,
+			'query' | 'mutation' | 'subscription' | 'fragment'
+		> = {
+			HoudiniQuery: 'query',
+			HoudiniMutation: 'mutation',
+			HoudiniSubscription: 'subscription',
+			HoudiniFragment: 'fragment',
+		}
+
+		if (storesToGenerate === 'all' || storesToGenerate.includes(kindLiteral[kindExpected])) {
+			return true
+		}
+	}
+	return false
+}
+
 export default async function storesGenerator(input: GenerateHookInput) {
 	const { documents, config } = input
 	const storesToGenerate = plugin_config(config).storesToGenerate
@@ -20,22 +44,13 @@ export default async function storesGenerator(input: GenerateHookInput) {
 				return
 			}
 
-			if (doc.kind === ArtifactKind.Query && storesToGenerate.includes('Query')) {
+			if (is_store_needed(ArtifactKind.Query, doc.kind, storesToGenerate)) {
 				listOfStores.push(await queryStore(input, doc))
-			} else if (
-				doc.kind === ArtifactKind.Mutation &&
-				storesToGenerate.includes('Mutation')
-			) {
+			} else if (is_store_needed(ArtifactKind.Mutation, doc.kind, storesToGenerate)) {
 				listOfStores.push(await mutationStore(input, doc))
-			} else if (
-				doc.kind === ArtifactKind.Subscription &&
-				storesToGenerate.includes('Subscription')
-			) {
+			} else if (is_store_needed(ArtifactKind.Subscription, doc.kind, storesToGenerate)) {
 				listOfStores.push(await subscriptionStore(input, doc))
-			} else if (
-				doc.kind === ArtifactKind.Fragment &&
-				storesToGenerate.includes('Fragment')
-			) {
+			} else if (is_store_needed(ArtifactKind.Fragment, doc.kind, storesToGenerate)) {
 				listOfStores.push(await fragmentStore(input, doc))
 			}
 		})
