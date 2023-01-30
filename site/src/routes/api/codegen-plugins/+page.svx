@@ -397,7 +397,7 @@ export default {
 
 ### `client_plugins`
 
-- Type: `Record<string, null | Record<string, any>>`
+- Type: `Record<string, any>`
 
 Adds plugins to the application's default list of plugins to add to `HoudiniClient`. This can be useful for
 [client plugins](/api/client-plugins) that want to add a generated portion. For example,
