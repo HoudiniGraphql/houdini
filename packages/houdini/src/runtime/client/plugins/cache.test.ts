@@ -228,7 +228,7 @@ test('stale', async function () {
 	})
 
 	//  mark stale
-	cache._internal_unstable.markTypeStale('User')
+	cache.markTypeStale('User')
 
 	const ret2 = await store.send({ policy: CachePolicy.CacheOrNetwork })
 
@@ -290,9 +290,7 @@ test('stale', async function () {
 export function createStore(plugins: ClientPlugin[]): DocumentStore<any, any> {
 	const client = new HoudiniClient({
 		url: 'URL',
-		pipeline() {
-			return plugins
-		},
+		pipeline: [...plugins],
 	})
 
 	return new DocumentStore({

@@ -1,3 +1,4 @@
+import { computeKey } from '../lib'
 import type { ConfigFile } from '../lib/config'
 import { computeID, defaultConfigValues, keyFieldsForType } from '../lib/config'
 import { deepEquals } from '../lib/deepEquals'
@@ -157,6 +158,33 @@ export class Cache {
 	setConfig(config: ConfigFile) {
 		this._internal_unstable.setConfig(config)
 	}
+
+	markTypeStale(type?: string, options: { field?: string; when?: {} } = {}): void {
+		if (!type) {
+			this._internal_unstable.staleManager.markAllStale()
+		} else if (!options.field) {
+			this._internal_unstable.staleManager.markTypeStale(type)
+		} else {
+			this._internal_unstable.staleManager.markTypeFieldStale(
+				type,
+				options.field,
+				options.when
+			)
+		}
+	}
+
+	markRecordStale(id: string, options: { field?: string; when?: {} }) {
+		if (options.field) {
+			const key = computeKey({ field: options.field, args: options.when ?? {} })
+			this._internal_unstable.staleManager.markFieldStale(id, key)
+		} else {
+			this._internal_unstable.staleManager.markRecordStale(id)
+		}
+	}
+
+	getFieldTime(id: string, field: string) {
+		return this._internal_unstable.staleManager.getFieldTime(id, field)
+	}
 }
 
 class CacheInternal {
@@ -302,8 +330,9 @@ class CacheInternal {
 			if (displayLayer) {
 				this.lifetimes.resetLifetime(parent, key)
 
+				// update the stale status
 				if (forceStale) {
-					this.staleManager.setFieldTimeToStale(parent, key)
+					this.staleManager.markFieldStale(parent, key)
 				} else {
 					this.staleManager.setFieldTimeToNow(parent, key)
 				}
@@ -1144,34 +1173,6 @@ class CacheInternal {
 		if (this.storage.layerCount === 1) {
 			this.storage.topLayer.removeUndefinedFields()
 		}
-	}
-
-	getFieldTime(id: string, field: string) {
-		return this.staleManager.getFieldTime(id, field)
-	}
-
-	setFieldTimeToNow(id: string, field: string) {
-		this.staleManager.setFieldTimeToNow(id, field)
-	}
-
-	setFieldTimeToStale(id: string, field: string) {
-		this.staleManager.setFieldTimeToStale(id, field)
-	}
-
-	markAllStale() {
-		this.staleManager.markAllStale()
-	}
-
-	markRecordStale(id: string) {
-		this.staleManager.markRecordStale(id)
-	}
-
-	markTypeStale(type: string) {
-		this.staleManager.markTypeStale(type)
-	}
-
-	markTypeFieldStale(type: string, field: string) {
-		this.staleManager.markTypeFieldStale(type, field)
 	}
 }
 

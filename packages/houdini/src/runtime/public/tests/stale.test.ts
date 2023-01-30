@@ -94,7 +94,7 @@ const h_GetFieldTime = (
 	cache: Cache<CacheTypeDefTest>,
 	{ id, field }: { id: string; field: string }
 ) => {
-	return cache._internal_unstable._internal_unstable.getFieldTime(id, field)
+	return cache._internal_unstable.getFieldTime(id, field)
 }
 
 /**   2/ Tests    */

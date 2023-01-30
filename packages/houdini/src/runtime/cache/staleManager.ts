@@ -1,3 +1,4 @@
+import { computeKey } from '../lib'
 import type { Cache } from './cache'
 
 export class StaleManager {
@@ -50,7 +51,7 @@ export class StaleManager {
 	 * @param id User:1
 	 * @param field firstName
 	 */
-	setFieldTimeToStale(id: string, field: string): void {
+	markFieldStale(id: string, field: string): void {
 		this.#initMapId(id)
 		this.fieldsTime.get(id)?.set(field, null)
 	}
@@ -58,7 +59,7 @@ export class StaleManager {
 	markAllStale(): void {
 		for (const [id, fieldMap] of this.fieldsTime.entries()) {
 			for (const [field] of fieldMap.entries()) {
-				this.setFieldTimeToStale(id, field)
+				this.markFieldStale(id, field)
 			}
 		}
 	}
@@ -67,7 +68,7 @@ export class StaleManager {
 		const fieldsTimeOfType = this.fieldsTime.get(id)
 		if (fieldsTimeOfType) {
 			for (const [field] of fieldsTimeOfType.entries()) {
-				this.setFieldTimeToStale(id, field)
+				this.markFieldStale(id, field)
 			}
 		}
 	}
@@ -77,19 +78,21 @@ export class StaleManager {
 			// if starts lile `User:` (it will catch `User:1` for example)
 			if (id.startsWith(`${type}:`)) {
 				for (const [field] of fieldMap.entries()) {
-					this.setFieldTimeToStale(id, field)
+					this.markFieldStale(id, field)
 				}
 			}
 		}
 	}
 
-	markTypeFieldStale(type: string, field: string): void {
+	markTypeFieldStale(type: string, field: string, when?: {}): void {
+		const key = computeKey({ field, args: when })
+
 		for (const [id, fieldMap] of this.fieldsTime.entries()) {
-			// if starts lile `User:` (it will catch `User:1` for example)
+			// if starts with `User:` (it will catch `User:1` for example)
 			if (id.startsWith(`${type}:`)) {
-				for (const [local_field] of fieldMap.entries()) {
-					if (local_field === field) {
-						this.setFieldTimeToStale(id, field)
+				for (const local_field of fieldMap.keys()) {
+					if (local_field === key) {
+						this.markFieldStale(id, field)
 					}
 				}
 			}

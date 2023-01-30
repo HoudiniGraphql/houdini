@@ -1,5 +1,5 @@
 import { rootID } from '../cache/cache'
-import { marshalInputs } from '../lib'
+import { computeKey, marshalInputs } from '../lib'
 import { keyFieldsForType } from '../lib/config'
 import type { FragmentArtifact, GraphQLObject } from '../lib/types'
 import type { Cache } from './cache'
@@ -105,48 +105,7 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 		field?: Field
 		when?: ArgType<Def, Type, Field>
 	} = {}): void {
-		// If we don't have a field, mark the whole record as stale
-		if (!field) {
-			this.#cache._internal_unstable._internal_unstable.markRecordStale(this.#id)
-		}
-		// we are marking a specific field
-		else {
-			const key = computeKey({ field, args: when })
-			this.#cache._internal_unstable._internal_unstable.setFieldTimeToStale(this.#id, key)
-		}
+		// mark the record
+		this.#cache._internal_unstable.markRecordStale(this.#id, { field, when })
 	}
-}
-
-const computeKey = ({ field, args }: { field: string; args?: { [key: string]: any } }) => {
-	const keys = Object.keys(args ?? {})
-	keys.sort()
-
-	return args && keys.length > 0
-		? `${field}(${keys
-				.map((key) => `${key}: ${stringifyObjectWithNoQuotesOnKeys(args[key])}`)
-				.join(', ')})`
-		: field
-}
-
-const stringifyObjectWithNoQuotesOnKeys = (obj_from_json: {}): string => {
-	// In case of an array we'll stringify all objects.
-	if (Array.isArray(obj_from_json)) {
-		return `[${obj_from_json
-			.map((obj) => `${stringifyObjectWithNoQuotesOnKeys(obj)}`)
-			.join(', ')}]`
-	}
-	// not an object, stringify using native function
-	if (
-		typeof obj_from_json !== 'object' ||
-		obj_from_json instanceof Date ||
-		obj_from_json === null
-	) {
-		return JSON.stringify(obj_from_json).replace(/"([^"]+)":/g, '$1: ')
-	}
-	// Implements recursive object serialization according to JSON spec
-	// but without quotes around the keys.
-	return `{${Object.keys(obj_from_json)
-		// @ts-ignore
-		.map((key) => `${key}: ${stringifyObjectWithNoQuotesOnKeys(obj_from_json[key])}`)
-		.join(', ')}}`
 }

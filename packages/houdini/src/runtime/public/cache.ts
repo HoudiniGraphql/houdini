@@ -3,6 +3,7 @@ import { marshalInputs, type QueryArtifact } from '../lib'
 import { ListCollection } from './list'
 import { Record } from './record'
 import type {
+	ArgType,
 	CacheTypeDef,
 	IDFields,
 	QueryInput,
@@ -114,16 +115,10 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 	/**
 	 * Mark some elements of the cache stale.
 	 */
-	markStale<T extends TypeNames<Def>>(
-		type?: T,
-		options: { field?: TypeFieldNames<Def, T> } = {}
+	markStale<_Type extends TypeNames<Def>, _Field extends TypeFieldNames<Def, _Type>>(
+		type?: _Type,
+		options: { field?: _Field; when?: ArgType<Def, _Type, _Field> } = {}
 	): void {
-		if (!type) {
-			this._internal_unstable._internal_unstable.markAllStale()
-		} else if (!options.field) {
-			this._internal_unstable._internal_unstable.markTypeStale(type)
-		} else {
-			this._internal_unstable._internal_unstable.markTypeFieldStale(type, options.field)
-		}
+		return this._internal_unstable.markTypeStale(type, options)
 	}
 }
