@@ -168,7 +168,13 @@ Every pipeline begins with a common set of hooks that allow you to setup
 and configure the system. This can include loading environment variables or
 updating any configuration values.
 
-<SetupDiagram style="max-width: 250px; margin: 50px auto;" />
+<SetupDiagram style="max-width: 350px; margin: 50px auto;" />
+
+### `order`
+- Type: `"before" | "after"`
+- Default is `"before"`
+
+Defines wether your plugin runs before or after "core" plugins like `houdini-svelte`.
 
 ### `config`
 

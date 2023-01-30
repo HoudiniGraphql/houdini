@@ -27,9 +27,11 @@ title: Hello
 
 ```mermaid
 graph LR
+    order[order] --> config
     config[config] --> env
     env[env] --> after_load
     after_load[after_load]
+    click order "#order" "order hook"
     click config "#config" "config hook"
     click env "#env" "env hook"
     click after_load "#after_load" "after_load hook"
