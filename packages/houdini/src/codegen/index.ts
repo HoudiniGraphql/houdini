@@ -98,9 +98,9 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 				transforms.composeQueries,
 				...wrapHook(transform_before_generate),
 				// generators
+				generators.artifacts(artifactStats),
 				generators.runtime,
 				generators.indexFile,
-				generators.artifacts(artifactStats),
 				// typescript generator needs to go after the runtime one
 				// so that the imperative cache definitions always survive
 				generators.typescript,

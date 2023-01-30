@@ -29,6 +29,7 @@ export type TransformDocument = {
 // the result of collecting documents from source code
 export type CollectedGraphQLDocument = {
 	kind: ArtifactKind
+	artifact: DocumentArtifact | null
 	filename: string
 	name: string
 	document: graphql.DocumentNode

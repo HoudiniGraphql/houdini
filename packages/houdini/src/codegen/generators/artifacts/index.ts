@@ -275,7 +275,7 @@ export default function artifactGenerator(stats: {
 					}
 
 					// adding artifact_data of plugins (only if any information is present)
-					const pluginsData = config.plugins.reduce<Record<string, any>>(
+					const plugin_data = config.plugins.reduce<Record<string, any>>(
 						(prev, plugin) => {
 							// if the plugin doesn't provide any artifact data, ignore it
 							if (!plugin.artifact_data) {
@@ -294,8 +294,8 @@ export default function artifactGenerator(stats: {
 						},
 						{}
 					)
-					if (Object.keys(pluginsData).length > 0) {
-						artifact.pluginsData = pluginsData
+					if (Object.keys(plugin_data).length > 0) {
+						artifact.plugin_data = plugin_data
 					}
 
 					// if the document has inputs describe their types in the artifact so we can
@@ -347,6 +347,8 @@ export default function artifactGenerator(stats: {
 						}
 						artifact = plugin.artifact_end({ config, artifact })
 					}
+
+					doc.artifact = artifact
 
 					// the artifact should be the default export of the file
 					const file = AST.program([

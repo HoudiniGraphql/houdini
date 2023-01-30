@@ -11,12 +11,16 @@ title: Hello
         mermaid.initialize({ startOnLoad: true,
             'theme': 'base',
             'themeVariables': {
-                'lineColor': colors.lineColor[0],
-                'edgeLabelBackground': colors.canvasColor[0],
+                lineColor: colors.lineColor[0],
+                edgeLabelBackground: colors.canvasColor[0],
                 textColor: colors.textColor[0],
                 primaryBorderColor: colors.borderColor[0],
                 primaryColor: colors.backgroundColor[0],
                 primaryTextColor: colors.textColor[0],
+                secondaryTextColor: colors.textColor[0],
+                clusterBkg: colors.subgraphBackground[0],
+                clusterBorder: colors.borderColor[0],
+                labelTextColor: colors.textColor[0],
             }
         })
         mermaid.init({
@@ -59,38 +63,42 @@ graph LR
     validate[validate] --> t_after_v
     t_after_v[transform_after_validate]
 
-    click t_before_v "#t_before_v" "t_before_v hook"
+    click t_before_v "#transform_before_validate" "t_before_v hook"
     click validate "#validate" "validate hook"
-    click t_after_v "#t_after_v" "t_after_v hook"
+    click t_after_v "#transform_after_validate" "t_after_v hook"
 ```
 
 ```mermaid
-graph TD
+flowchart TD
+    subgraph " "
+        direction LR
 
-    t_before_g[transform_before_generate] --> gen_sq_center
+        artifact_data --> artifact_hash
+        artifact_hash[hash] --> artifact_e
+        artifact_e[artifact_end]
+    end
+    t_before_g[transform_before_generate]
 
-    gen_sq_center[ ]
-    gen_sq_center --> |For every document|artifact_data
-    gen_sq_center --> plugin_runtime
-    gen_sq_center --> customize_core
+    sq[ ]
 
-    customize_core[ ]
+    generate
+    include_runtime
+    transform_runtime
+
     index_file
     graphql_tag_return
     client_plugins
-    customize_core --> index_file
-    customize_core --> graphql_tag_return
-    customize_core --> client_plugins
 
-    artifact_data --> artifact_hash
-    artifact_hash[hash] --> artifact_e
-    artifact_e[artifact_end]
+    t_before_g --> |For every document|artifact_data
 
-    generate
-    plugin_runtime[ ]
-    transform_runtime
-    plugin_runtime --> generate
-    plugin_runtime --> include_runtime
+    artifact_e --> sq
+
+    sq --> generate
+    sq --> include_runtime
+    sq --> index_file
+    sq --> graphql_tag_return
+    sq --> client_plugins
+
     include_runtime --> transform_runtime
 
     click t_before_g "#transform_before_generate" "transform_before_generate hook"

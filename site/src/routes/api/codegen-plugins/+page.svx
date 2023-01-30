@@ -328,6 +328,50 @@ Customizes the hash generated for a given document
 Modifies the generated artifact before its written to disk. This is useful to set artifact data
 based on information derived from the artifact's final state.
 
+### `generate`
+
+- Type: `(args: GenerateArgs) => void`
+- Can also return a Promise
+
+```typescript
+type GenerateArgs = {
+	config: Config
+	documents: Document[]
+	plugin_root: string
+}
+```
+
+Generates project files for each document in the application.
+Each plugin is assigned a root directory that you are free to place any
+files you want. If you want values that you generated to be included in
+the values exported from `$houdini`, you should use the
+[index_file](#index_file) hook.
+
+### `include_runtime`
+
+- Type: `string | { commonjs: string, esm: string }`
+
+Instructs the runtime to copy the specified runtime to your
+plugin's root directory. This is useful if you have a bunch of static
+values, utilities, that you want to use in
+[transform_file](#transform_file).
+
+This value should be set to a relative path from your plugin's root
+directory to the directory that should be copied. If you have different
+versions of your runtime for CommonJS and ESModules, you can set this
+to an object specifying both paths.
+
+### `transform_runtime`
+
+- Type: `Record<string, ({ config: Config; content: string }) => string>`
+
+Transforms the plugin's runtime while houdini is copying it. The keys of
+the object are paths in your runtime (relative to the `include_runtime`
+setting). The values are functions that set the new file value.
+
+This hook only has an effect if you have passed a value
+for [include_runtime](#include-runtime).
+
 ### `index_file`
 
 - Type: `(args: IndexFileArgs) => string`
@@ -369,7 +413,7 @@ export default {
 
 		// if we're supposed to generate a store then add
         // an overloaded declaration
-		if (artifact.artifact_data['houdini-svelte'].generate) {
+		if (artifact.plugin_data['houdini-svelte'].generate) {
 			// use the name of the store as the return value
             const store = store_name({ name })
 
@@ -419,50 +463,6 @@ The key of this object should be a globally resolvable module (third-party packa
 The generated runtime assumes that the default export  of this module is a function that returns a client plugin.
 The value of the `client_plugins` hook object are passed to that function.
 
-
-### `generate`
-
-- Type: `(args: GenerateArgs) => void`
-- Can also return a Promise
-
-```typescript
-type GenerateArgs = {
-	config: Config
-	documents: Document[]
-	plugin_root: string
-}
-```
-
-Generates project files for each document in the application.
-Each plugin is assigned a root directory that you are free to place any
-files you want. If you want values that you generated to be included in
-the values exported from `$houdini`, you should use the
-[index_file](#index_file) hook.
-
-### `include_runtime`
-
-- Type: `string | { commonjs: string, esm: string }`
-
-Instructs the runtime to copy the specified runtime to your
-plugin's root directory. This is useful if you have a bunch of static
-values, utilities, that you want to use in
-[transform_file](#transform_file).
-
-This value should be set to a relative path from your plugin's root
-directory to the directory that should be copied. If you have different
-versions of your runtime for CommonJS and ESModules, you can set this
-to an object specifying both paths.
-
-### `transform_runtime`
-
-- Type: `Record<string, ({ config: Config; content: string }) => string>`
-
-Transforms the plugin's runtime while houdini is copying it. The keys of
-the object are paths in your runtime (relative to the `include_runtime`
-setting). The values are functions that set the new file value.
-
-This hook only has an effect if you have passed a value
-for [include_runtime](#include-runtime).
 
 ## Transform Source
 

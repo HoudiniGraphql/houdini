@@ -4053,7 +4053,7 @@ test('some artifact_data added to artifact specific to plugins', async function 
 		        }
 		    },
 
-		    "pluginsData": {
+		    "plugin_data": {
 		        "plugin-tmp1": {
 		            "added_stuff": {
 		                "yop": "true"

@@ -83,6 +83,14 @@
 				--code-title-color: #475465;
 				--zoom-shadow: #191c26;
 				--caption-text: #828282;
+
+				/* Diagram Colors */
+				--diagram-line-color: #292f38;
+				--diagram-canvas-color: var(--hue);
+				--diagram-border-color: #a6cdf7;
+				--diagram-background-color: #cfe6ff;
+				--diagram-text-color: var(--contrast);
+				--diagram-subgraph-color: #e6f0fc;
 			}
 		</style>
 	{:else}
@@ -108,6 +116,14 @@
 				--code-title-color: #475465;
 				--zoom-shadow: black;
 				--caption-text: #5d6994;
+
+				/* Diagram Colors */
+				--diagram-line-color: var(--contrast);
+				--diagram-canvas-color: var(--hue);
+				--diagram-border-color: var(--contrast);
+				--diagram-background-color: var(--discreet2);
+				--diagram-text-color: var(--contrast);
+				--diagram-subgraph-color: var(--discreet);
 			}
 		</style>
 	{/if}
