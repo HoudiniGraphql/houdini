@@ -4,7 +4,7 @@ import * as typeScriptParser from 'recast/parsers/typescript'
 import { test, expect } from 'vitest'
 
 import { runPipeline } from '../..'
-import type { CollectedGraphQLDocument } from '../../../lib'
+import type { Document } from '../../../lib'
 import { fs, path } from '../../../lib'
 import { mockCollectedDoc, testConfig } from '../../../test'
 
@@ -12,7 +12,7 @@ import { mockCollectedDoc, testConfig } from '../../../test'
 const config = testConfig()
 
 // the documents to test
-const docs: CollectedGraphQLDocument[] = [
+const docs: Document[] = [
 	mockCollectedDoc(`query TestQuery { version }`),
 	mockCollectedDoc(`fragment TestFragment on User { firstName }`),
 ]

@@ -5,7 +5,7 @@ import { test, expect } from 'vitest'
 import generate from '..'
 
 const config = testConfig()
-const plugin_root = config.pluginDirectory('hodini-svelte')
+const pluginRoot = config.pluginDirectory('hodini-svelte')
 
 test('generates types for fragments', async function () {
 	// create the mock filesystem
@@ -32,7 +32,7 @@ test('generates types for fragments', async function () {
 		config,
 		documents: [mockCollectedDoc(`fragment TestFragment on Query { viewer { id } } `)],
 		framework: 'kit',
-		plugin_root,
+		pluginRoot,
 	})
 
 	// load the contents of the file

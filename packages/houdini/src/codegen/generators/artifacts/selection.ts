@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
 
-import type { Config, CollectedGraphQLDocument } from '../../../lib'
+import type { Config, Document } from '../../../lib'
 import { getRootType, HoudiniError, deepMerge } from '../../../lib'
 import {
 	type MutationOperation,
@@ -29,7 +29,7 @@ export default function selection({
 	operations: { [path: string]: MutationOperation[] }
 	path?: string[]
 	includeFragments: boolean
-	document: CollectedGraphQLDocument
+	document: Document
 	inConnection?: boolean
 }): SubscriptionSelection {
 	// we need to build up an object that contains every field in the selection
