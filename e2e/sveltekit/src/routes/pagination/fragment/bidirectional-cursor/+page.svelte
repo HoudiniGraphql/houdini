@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { CachePolicy, paginatedFragment, graphql } from '$houdini';
+  import { CachePolicy, graphql, paginatedFragment } from '$houdini';
 
   const queryResult = graphql(`
     query UserFragmentBidirectionalCursorQuery @load {
@@ -10,6 +10,7 @@
   `);
 
   const fragmentResult = paginatedFragment(
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     $queryResult.data!.user!,
     graphql(`
       fragment BidirectionalCursorFragment on User {
