@@ -76,7 +76,7 @@ test('plugins can customize the hash', async function () {
 		{
 			name: 'pluginWithClientPlugin',
 			filepath: '',
-			hash: (_, { name }) => name,
+			hash: ({ document: { name } }) => name,
 		},
 	]
 

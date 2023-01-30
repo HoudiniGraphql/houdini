@@ -439,7 +439,7 @@ export class Config {
 
 		// look at every plugin
 		for (const plugin of this.plugins) {
-			if (plugin?.exclude?.(this, filepath)) {
+			if (plugin?.exclude?.({ config: this, filepath })) {
 				return true
 			}
 		}
@@ -462,7 +462,7 @@ export class Config {
 				continue
 			}
 
-			if (plugin.include(this, filepath)) {
+			if (plugin.include({ config: this, filepath })) {
 				included = true
 				break
 			}

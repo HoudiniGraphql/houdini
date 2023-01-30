@@ -135,7 +135,7 @@ export default client
 		return apply_transforms(framework, page)
 	},
 
-	include(config, filepath) {
+	include({ config, filepath }) {
 		// the files we generate contain some crazy relative paths that we need to make sure we include for transformations
 		// fix the include path and try again
 		return config.includeFile(resolve_relative(config, filepath), { ignore_plugins: true })

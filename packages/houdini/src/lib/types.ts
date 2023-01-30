@@ -104,21 +104,21 @@ export type PluginHooks = {
 	/**
 	 * A filter for whether a file should be included in the the processing. Return true to include.
 	 */
-	include?: (config: Config, filepath: string) => boolean | null | undefined
+	include?: (args: { config: Config; filepath: string }) => boolean | null | undefined
 
 	/**
 	 * A filter for whether a file should be included in the the processing. Return false to include.
 	 */
-	exclude?: (config: Config, filepath: string) => boolean | null | undefined
+	exclude?: (args: { config: Config; filepath: string }) => boolean | null | undefined
 
 	/**
 	 * Configure the codegen pipeline to extract graphql documents out of a file.
 	 */
-	extract_documents?: (
-		config: Config,
-		filepath: string,
+	extract_documents?: (args: {
+		config: Config
+		filepath: string
 		content: string
-	) => Promise<string[] | null> | string[] | null
+	}) => Promise<string[] | null> | string[] | null
 
 	/**
 	 * Can be used to add custom definitions to your project's schema. Definitions (like directives) added
@@ -162,12 +162,15 @@ export type PluginHooks = {
 	/**
 	 * A hook to embed metadata at the root of the artifact.
 	 */
-	artifact_data?: (config: Config, doc: CollectedGraphQLDocument) => Record<string, any>
+	artifact_data?: (args: {
+		config: Config
+		document: CollectedGraphQLDocument
+	}) => Record<string, any>
 
 	/**
 	 * A hook to customize the hash generated for your document.
 	 */
-	hash?: (config: Config, doc: CollectedGraphQLDocument) => string
+	hash?: (args: { config: Config; document: CollectedGraphQLDocument }) => string
 
 	/**
 	 * A hook to customize the return type of the graphql function. If you need to add an import to the file
@@ -192,7 +195,7 @@ export type PluginHooks = {
 	/**
 	 * A hook to modify the generated artifact before it is persisted
 	 */
-	artifact_end?: (config: Config, artifact: DocumentArtifact) => DocumentArtifact
+	artifact_end?: (args: { config: Config; artifact: DocumentArtifact }) => DocumentArtifact
 
 	/**
 	 * Specify the plugins that should be added to the user's client because

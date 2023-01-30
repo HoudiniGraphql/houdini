@@ -1,11 +1,9 @@
-import type { Plugin } from 'houdini'
+import { plugin } from 'houdini'
 
 import { extract_documents } from './extract'
 import { transform_file } from './transform'
 
-const HoudiniReactPlugin: Plugin = async () => ({
-	name: 'houdini-react',
-
+const HoudiniReactPlugin = plugin('houdini-react', async () => ({
 	order: 'core',
 
 	// add the jsx extensions
@@ -16,7 +14,7 @@ const HoudiniReactPlugin: Plugin = async () => ({
 
 	// convert the graphql template tags into references to their artifact
 	transform_file,
-})
+}))
 
 export default HoudiniReactPlugin
 

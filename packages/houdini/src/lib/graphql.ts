@@ -20,7 +20,12 @@ export function getRootType(type: graphql.GraphQLType): graphql.GraphQLType {
 	return type
 }
 
-export function hashDocument(config: Config, document: string | CollectedGraphQLDocument): string {
+export function hashDocument({
+	document,
+}: {
+	config: Config
+	document: string | CollectedGraphQLDocument
+}): string {
 	// if we were given an AST document, print it first
 	const docString = typeof document === 'string' ? document : graphql.print(document.document)
 

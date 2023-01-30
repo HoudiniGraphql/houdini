@@ -252,7 +252,7 @@ export default function artifactGenerator(stats: {
 					let artifact: DocumentArtifact = {
 						name,
 						kind: docKind,
-						hash: hash(config, doc),
+						hash: hash({ config, document: doc }),
 						refetch: doc.refetch,
 						raw: rawString,
 						rootType,
@@ -284,7 +284,7 @@ export default function artifactGenerator(stats: {
 
 							// add the specified artifact data (if it exists)
 							const result = { ...prev }
-							const dataToAdd = plugin.artifact_data(config, doc) ?? {}
+							const dataToAdd = plugin.artifact_data({ config, document: doc }) ?? {}
 							if (Object.keys(dataToAdd).length > 0) {
 								result[plugin.name] = dataToAdd
 							}
@@ -345,14 +345,14 @@ export default function artifactGenerator(stats: {
 						if (!plugin.artifact_end) {
 							continue
 						}
-						artifact = plugin.artifact_end(config, artifact)
+						artifact = plugin.artifact_end({ config, artifact })
 					}
 
 					// the artifact should be the default export of the file
 					const file = AST.program([
 						moduleExport(config, 'default', serializeValue(artifact)),
 						AST.expressionStatement(
-							AST.stringLiteral(`HoudiniHash=${hash(config, doc)}`)
+							AST.stringLiteral(`HoudiniHash=${hash({ config, document: doc })}`)
 						),
 					])
 
@@ -379,7 +379,7 @@ export default function artifactGenerator(stats: {
 
 					// check if the artifact exists
 					const match = existingArtifact && existingArtifact.match(/"HoudiniHash=(\w+)"/)
-					if (match && match[1] !== hash(config, doc)) {
+					if (match && match[1] !== hash({ config, document: doc })) {
 						stats.changed.push(artifact.name)
 					}
 

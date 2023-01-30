@@ -211,7 +211,7 @@ Add extensions to the list that houdini uses to find valid source files.
 
 ### `include`
 
-- Type: `(config: Config, filepath: string) => boolean | null | undefined`
+- Type: `({ config: Config, filepath: string }) => boolean | null | undefined`
 - If any plugin includes the value, the filepath is excluded
 
 A filter for wether a file should be included in processing. This hook is useful
@@ -220,7 +220,7 @@ Return `true` to include the file.
 
 ### `exclude`
 
-- Type: `(config: Config, filepath: string) => boolean | null | undefined`
+- Type: `({ config: Config, filepath: string }) => boolean | null | undefined`
 - If any plugin excludes the value, the filepath is excluded
 
 A filter for wether a file should be included in processing. This hook is useful
@@ -229,7 +229,7 @@ Return `false` to include the file.
 
 ### `extract_documents`
 
-- Type: `(config: Config, path: string, content: string) => string[] | null`
+- Type: `({ config: Config, path: string, content: string }) => string[] | null`
 - Can return a `Promise` as well
 - Plugin values are concattenated together
 
@@ -258,7 +258,7 @@ to add new definitions, you can add new documents to provided list.
 
 ### `transform_before_validate`
 
-- Type: `({config: Config documents: Document[]}) => void`
+- Type: `({ config: Config documents: Document[] }) => void`
 - Can also return a Promise
 
 Transforms documents before they has been validated. This can be useful if you are adding a layer
@@ -266,7 +266,7 @@ that translates into a Houdini feature.
 
 ### `validate`
 
-- Type: `({config: Config documents: Document[]}) => void`
+- Type: `({ config: Config documents: Document[] }) => void`
 - Can also return a Promise
 
 Performs any validation checks before the rest of the pipeline continue. Performing checks here makes sure that as many errors
@@ -277,7 +277,7 @@ reliably import the correct artifact.
 
 ### `transform_after_validate`
 
-- Type: `({config: Config documents: Document[]}) => void`
+- Type: `({ config: Config documents: Document[] }) => void`
 - Can also return a Promise
 
 Transforms the project's documents after they have been validated. This is useful if you are building a feature
@@ -293,28 +293,28 @@ provided by houdini, as well as hooks to generate your own files and runtimes fo
 
 ### `transform_before_generate`
 
-- Type: `({config: Config documents: Document[]}) => void`
+- Type: `({ config: Config documents: Document[] }) => void`
 - Can also return a Promise
 
 Transforms the documents just before static assets are generated.
 
 ### `artifact_data`
 
-- Type: `(config: Config, doc: Document) => Record<string, any>`
+- Type: `({ config: Config, doc: Document }) => Record<string, any>`
 
 Embeds metadata at the root of the artifact. You should use this to encode document-level
 data at build time so you don't have to analyze the document at runtime (in a client plugin, for example).
 
 ### `hash`
 
-- Type: `(Config, Document) => string`
+- Type: `({ config: Config, document: Document }) => string`
 - The first hook provided is used.
 
 Customizes the hash generated for a given document
 
 ### `artifact_end`
 
-- Type `(config: Config, artifact: DocumentArtifact) => DocumentArtifact`
+- Type `({ config: Config, artifact: DocumentArtifact }) => DocumentArtifact`
 - Plugins can overwrite values
 
 Modifies the generated artifact before its written to disk. This is useful to set artifact data
