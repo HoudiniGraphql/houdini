@@ -729,6 +729,19 @@ The key of this object should be a globally resolvable module (third-party packa
 The generated runtime assumes that the default export of this module is a function that returns a client plugin.
 The value of the `clientPlugins` hook object is passed to that function.
 
+The above codeblock is equivalent to:
+
+```typescript:title=src/client.ts&typescriptToggle
+import { HoudiniClient } from '$houdini'
+import customPlugin from 'houdini-plugin-custom/client'
+
+export default new HoudiniClient({
+    plugins: [
+        customPlugin(null)
+    ]
+})
+```
+
 ## Transform Source
 
 ### `transformFile`
