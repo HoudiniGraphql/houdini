@@ -11,7 +11,7 @@ export default async function (input: PluginGenerateInput) {
 	// create the static directories
 	await Promise.all([
 		fs.mkdirp(type_route_dir(input.config)),
-		fs.mkdirp(stores_directory(input.plugin_root)),
+		fs.mkdirp(stores_directory(input.pluginRoot)),
 	])
 
 	// generate the files

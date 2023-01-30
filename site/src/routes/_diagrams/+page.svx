@@ -33,12 +33,12 @@ title: Hello
 graph LR
     order[order] --> config
     config[config] --> env
-    env[env] --> after_load
-    after_load[after_load]
+    env[env] --> afterLoad
+    afterLoad[afterLoad]
     click order "#order" "order hook"
     click config "#config" "config hook"
     click env "#env" "env hook"
-    click after_load "#after_load" "after_load hook"
+    click afterLoad "#afterload" "afterLoad hook"
 
 ```
 
@@ -47,25 +47,25 @@ graph LR
     extensions[extensions] --> include
     include[include] --> exclude
     exclude[exclude] --> extract
-    extract[extract_documents] --- collect
+    extract[extractDocuments] --- collect
     schema[schema] --- collect
     collect((Parse <br> Documents))
     click extensions "#extensions" "extensions hook"
     click include "#include" "include hook"
     click exclude "#exclude" "exclude hook"
-    click extract "#extract_documents" "extract_documents hook"
+    click extract "#extractdocuments" "extractDocuments hook"
     click schema "#schema" "schema hook"
 ```
 
 ```mermaid
 graph LR
-    t_before_v[before_validate] --> validate
+    t_before_v[beforeValidate] --> validate
     validate[validate] --> t_after_v
-    t_after_v[after_validate]
+    t_after_v[afterValidate]
 
-    click t_before_v "#before_validate" "t_before_v hook"
+    click t_before_v "#beforevalidate" "beforeValidate hook"
     click validate "#validate" "validate hook"
-    click t_after_v "#after_validate" "t_after_v hook"
+    click t_after_v "#aftervalidate" "afterValidate hook"
 ```
 
 ```mermaid
@@ -73,44 +73,43 @@ flowchart TD
     subgraph " "
         direction LR
 
-        artifact_data --> artifact_hash
+        artifactData --> artifact_hash
         artifact_hash[hash] --> artifact_e
-        artifact_e[artifact_end]
+        artifact_e[artifactEnd]
     end
-    t_before_g[transform_before_generate]
+    t_before_g[beforeGenerate]
 
     sq[ ]
 
     generate
-    include_runtime
-    transform_runtime
+    includeRuntime
+    transformRuntime
 
-    index_file
-    graphql_tag_return
-    client_plugins
+    indexFile
+    graphqlTagReturn
+    clientPlugins
 
-    t_before_g --> |For every document|artifact_data
+    t_before_g --> |For every document|artifactData
 
     artifact_e --> sq
 
     sq --> generate
-    sq --> include_runtime
-    sq --> index_file
-    sq --> graphql_tag_return
-    sq --> client_plugins
+    sq --> includeRuntime
+    sq --> indexFile
+    sq --> graphqlTagReturn
+    sq --> clientPlugins
 
-    include_runtime --> transform_runtime
+    includeRuntime --> transformRuntime
 
-    click t_before_g "#transform_before_generate" "transform_before_generate hook"
-    click artifact_data "#artifact_data" "artifact_data hook"
+    click t_before_g "#beforegenerate" "beforeGenerate hook"
+    click artifactData "#artifactdata" "artifactData hook"
     click artifact_hash "#hash" "hash hook"
-    click index_file "#index_file" "index_file hook"
-    click graphql_tag_return "#graphql_tag_return" "graphql_tag_return hook"
-    click artifact_selection "#artifact_selection" "artifact_selection hook"
-    click artifact_e "#artifact_end" "artifact_end hook"
+    click indexFile "#indexFile" "indexfile hook"
+    click graphqlTagReturn "#graphqltagreturn" "graphqlTagReturn hook"
+    click artifact_e "#artifactend" "artifactEnd hook"
     click generate "#generate" "generate hook"
-    click include_runtime "#include_runtime" "include_runtime hook"
-    click transform_runtime "#transform_runtime" "transform_runtime hook"
-    click client_plugins "#client_plugins" "client_plugins hook"
+    click includeRuntime "#includeruntime" "includeRuntime hook"
+    click transformRuntime "#transformruntime" "transformRuntime hook"
+    click clientPlugins "#clientplugins" "clientPlugins hook"
 
 ```

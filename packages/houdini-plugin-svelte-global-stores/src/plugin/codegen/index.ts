@@ -6,7 +6,7 @@ import stores from './stores'
 
 export default async function (input: PluginGenerateInput) {
 	// create the static directories
-	await fs.mkdirp(global_stores_directory(input.plugin_root))
+	await fs.mkdirp(global_stores_directory(input.pluginRoot))
 
 	// generate the files
 	await stores(input)

@@ -1,5 +1,5 @@
 import type * as graphql from 'graphql'
-import type { CollectedGraphQLDocument, GenerateHookInput } from 'houdini'
+import type { Document, GenerateHookInput } from 'houdini'
 import { path } from 'houdini'
 import { operation_requires_variables, fs } from 'houdini'
 
@@ -7,16 +7,13 @@ import type { HoudiniSvelteConfig } from '../..'
 import { stores_directory, store_name } from '../../kit'
 import { store_import } from './custom'
 
-export async function queryStore(
-	{ config, plugin_root }: GenerateHookInput,
-	doc: CollectedGraphQLDocument
-) {
+export async function queryStore({ config, pluginRoot }: GenerateHookInput, doc: Document) {
 	const fileName = doc.name
 	const artifactName = `${doc.name}`
 	const storeName = store_name({ config, name: doc.name })
 
 	let variables = false
-	const operation = doc.originalDocument.definitions.find(
+	const operation = doc.originalParsed.definitions.find(
 		(defn) => defn.kind === 'OperationDefinition' && defn.operation === 'query'
 	) as graphql.OperationDefinitionNode
 	if (operation) {
@@ -141,8 +138,8 @@ export declare const load_${artifactName}: (params: QueryStoreFetchParams<${_dat
 `
 
 	await Promise.all([
-		fs.writeFile(path.join(stores_directory(plugin_root), `${fileName}.js`), storeData),
-		fs.writeFile(path.join(stores_directory(plugin_root), `${fileName}.d.ts`), typeDefs),
+		fs.writeFile(path.join(stores_directory(pluginRoot), `${fileName}.js`), storeData),
+		fs.writeFile(path.join(stores_directory(pluginRoot), `${fileName}.d.ts`), typeDefs),
 	])
 
 	return fileName

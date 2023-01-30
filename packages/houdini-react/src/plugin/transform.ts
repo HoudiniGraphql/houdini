@@ -3,7 +3,7 @@ import * as graphql from 'graphql'
 import type { TransformPage } from 'houdini/vite'
 import * as recast from 'recast'
 
-export function transform_file(page: TransformPage): { code: string } {
+export function transformFile(page: TransformPage): { code: string } {
 	// parse the content and look for an invocation of the graphql function
 	const parsed = parse(page.content, {
 		plugins: ['typescript', 'jsx'],

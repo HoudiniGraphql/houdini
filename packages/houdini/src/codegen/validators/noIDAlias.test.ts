@@ -1,6 +1,6 @@
 import { test } from 'vitest'
 
-import type { CollectedGraphQLDocument } from '../../lib/types'
+import type { Document } from '../../lib/types'
 import { pipelineTest, testConfig } from '../../test'
 
 const table: Row[] = [
@@ -55,7 +55,7 @@ type Row =
 			title: string
 			pass: true
 			documents: string[]
-			check?: (docs: CollectedGraphQLDocument[]) => void
+			check?: (docs: Document[]) => void
 	  }
 	| {
 			title: string

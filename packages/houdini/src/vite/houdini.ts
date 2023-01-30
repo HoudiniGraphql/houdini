@@ -62,10 +62,10 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 
 			// run the plugin pipeline
 			for (const plugin of config.plugins) {
-				if (!plugin.transform_file) {
+				if (!plugin.transformFile) {
 					continue
 				}
-				const { code } = await plugin.transform_file(ctx)
+				const { code } = await plugin.transformFile(ctx)
 				ctx.content = code
 			}
 

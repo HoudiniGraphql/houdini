@@ -1,4 +1,4 @@
-import type { CollectedGraphQLDocument, Config, ConfigFile, Script } from 'houdini'
+import type { Document, Config, ConfigFile, Script } from 'houdini'
 import { fs, parseJS, path } from 'houdini'
 import { runPipeline } from 'houdini/codegen'
 import { mockCollectedDoc, testConfig } from 'houdini/test'
@@ -29,7 +29,7 @@ export async function test_config(extraConfig: Partial<ConfigFile> = {}) {
 	const svelte_plugin = await pluginHooks()
 	config.plugins.push({
 		...svelte_plugin,
-		include_runtime: './test',
+		includeRuntime: './test',
 		filepath: path.join(process.cwd(), 'index.js'),
 		name: 'test',
 	})
@@ -40,20 +40,20 @@ export async function pipeline_test(
 	documents: string[],
 	extra_config?: Partial<ConfigFile>
 ): Promise<{
-	plugin_root: string
-	docs: CollectedGraphQLDocument[]
+	pluginRoot: string
+	docs: Document[]
 	config: Config
 }> {
 	const config = await test_config(extra_config)
 
 	// the first thing to do is to create the list of collected documents
-	const docs: CollectedGraphQLDocument[] = documents.map(mockCollectedDoc)
+	const docs: Document[] = documents.map(mockCollectedDoc)
 
 	// apply the transforms
 	await runPipeline(config, docs)
 
 	return {
-		plugin_root: config.pluginDirectory('houdini-svelte'),
+		pluginRoot: config.pluginDirectory('houdini-svelte'),
 		docs,
 		config,
 	}
