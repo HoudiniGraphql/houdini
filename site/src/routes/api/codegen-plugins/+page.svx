@@ -727,7 +727,7 @@ plugin('houdini-plugin-custom', async () => {
 
 The key of this object should be a globally resolvable module (third-party package, aliased local path, etc).
 The generated runtime assumes that the default export of this module is a function that returns a client plugin.
-The value of the `client_plugins` hook object are passed to that function.
+The value of the `client_plugins` hook object is passed to that function.
 
 ## Transform Source
 
