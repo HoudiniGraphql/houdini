@@ -80,7 +80,6 @@ const allUsers = cache.read({
 console.log('Users:', allUsers.data?.users)
 ```
 
-
 Your documents can use variables to read dynamic fields to match any situation. This includes
 both queries and fragments:
 
@@ -294,4 +293,34 @@ If you only want to operate on the list depending on argument values, you can us
 
 ```typescript
 allFriends.when({ favorites: true }).append(user1)
+```
+
+## Stale Data
+
+If you want fine-grained logic for marking data as stale, you can use the programmatic api. For more
+information on stale data in Houdini, check out the [Caching Data guide](/guides/caching-data#stale-data).
+
+```typescript
+import { cache, graphql } from '$houdini'
+
+// Mark everything stale
+cache.markStale()
+
+// Mark all type 'UserNodes' stale
+cache.markStale('UserNodes')
+
+// Mark all type 'UserNodes' field 'totalCount' stale
+cache.markStale('UserNodes', 'totalCount')
+
+// Mark the User 1 stale
+const user = cache.get('User', { id: '1' })
+user.markStale()
+
+// Mark the User 1 field name stale
+const user = cache.get('User', { id: '1' })
+user.markStale({ field: 'name' })
+
+// Mark the name field when the pattern field argument is 'capitalize'
+const user = cache.get('User', { id: '1' })
+user.markStale({ field: 'name', when: { pattern: 'capitalize' } })
 ```

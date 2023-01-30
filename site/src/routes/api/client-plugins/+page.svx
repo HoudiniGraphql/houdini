@@ -227,7 +227,7 @@ const timer: ClientPlugin = () => {
 }
 ```
 
-### State across network requests
+### State between network requests
 
 If your plugin needs to track some state between multiple network requests, you can
 instantiate the state at the top of your plugin function, before you return your hooks.
@@ -399,6 +399,7 @@ type QueryResult = {
 	errors: { message: string }[] | null
 	fetching: boolean
 	partial: boolean
+	stale: boolean
 	source: DataSource | null
 	variables: _Input | null
 }

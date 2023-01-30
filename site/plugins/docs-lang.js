@@ -236,7 +236,7 @@ function commentBlock(comment) {
 	return AST.commentBlock('*\n * ' + comment.replaceAll('\n', '\n * ') + '\n ')
 }
 
-function insert(str, content, start, finish = start) {
+export function insert(str, content, start, finish = start) {
 	return str.substring(0, start) + '\n' + content + str.substring(finish)
 }
 

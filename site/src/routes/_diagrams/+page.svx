@@ -1,0 +1,116 @@
+---
+title: Hello
+---
+
+<script lang="ts">
+	import mermaid from 'mermaid'
+    import { onMount } from 'svelte'
+    import { colors } from './colors.ts'
+
+    onMount(() => {
+        mermaid.initialize({ startOnLoad: true,
+            'theme': 'base',
+            'themeVariables': {
+                lineColor: colors.lineColor[0],
+                edgeLabelBackground: colors.canvasColor[0],
+                textColor: colors.textColor[0],
+                primaryBorderColor: colors.borderColor[0],
+                primaryColor: colors.backgroundColor[0],
+                primaryTextColor: colors.textColor[0],
+                secondaryTextColor: colors.textColor[0],
+                clusterBkg: colors.subgraphBackground[0],
+                clusterBorder: colors.borderColor[0],
+                labelTextColor: colors.textColor[0],
+            }
+        })
+        mermaid.init({
+            startOnLoad: true
+        })
+    })
+</script>
+
+```mermaid
+graph LR
+    order[order] --> config
+    config[config] --> env
+    env[env] --> after_load
+    after_load[after_load]
+    click order "#order" "order hook"
+    click config "#config" "config hook"
+    click env "#env" "env hook"
+    click after_load "#after_load" "after_load hook"
+
+```
+
+```mermaid
+graph LR
+    extensions[extensions] --> include
+    include[include] --> exclude
+    exclude[exclude] --> extract
+    extract[extract_documents] --- collect
+    schema[schema] --- collect
+    collect((Parse <br> Documents))
+    click extensions "#extensions" "extensions hook"
+    click include "#include" "include hook"
+    click exclude "#exclude" "exclude hook"
+    click extract "#extract_documents" "extract_documents hook"
+    click schema "#schema" "schema hook"
+```
+
+```mermaid
+graph LR
+    t_before_v[before_validate] --> validate
+    validate[validate] --> t_after_v
+    t_after_v[after_validate]
+
+    click t_before_v "#before_validate" "t_before_v hook"
+    click validate "#validate" "validate hook"
+    click t_after_v "#after_validate" "t_after_v hook"
+```
+
+```mermaid
+flowchart TD
+    subgraph " "
+        direction LR
+
+        artifact_data --> artifact_hash
+        artifact_hash[hash] --> artifact_e
+        artifact_e[artifact_end]
+    end
+    t_before_g[transform_before_generate]
+
+    sq[ ]
+
+    generate
+    include_runtime
+    transform_runtime
+
+    index_file
+    graphql_tag_return
+    client_plugins
+
+    t_before_g --> |For every document|artifact_data
+
+    artifact_e --> sq
+
+    sq --> generate
+    sq --> include_runtime
+    sq --> index_file
+    sq --> graphql_tag_return
+    sq --> client_plugins
+
+    include_runtime --> transform_runtime
+
+    click t_before_g "#transform_before_generate" "transform_before_generate hook"
+    click artifact_data "#artifact_data" "artifact_data hook"
+    click artifact_hash "#hash" "hash hook"
+    click index_file "#index_file" "index_file hook"
+    click graphql_tag_return "#graphql_tag_return" "graphql_tag_return hook"
+    click artifact_selection "#artifact_selection" "artifact_selection hook"
+    click artifact_e "#artifact_end" "artifact_end hook"
+    click generate "#generate" "generate hook"
+    click include_runtime "#include_runtime" "include_runtime hook"
+    click transform_runtime "#transform_runtime" "transform_runtime hook"
+    click client_plugins "#client_plugins" "client_plugins hook"
+
+```

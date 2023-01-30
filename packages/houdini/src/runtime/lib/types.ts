@@ -98,7 +98,7 @@ export type BaseCompiledDocument = {
 		paginated: boolean
 		direction: 'forward' | 'backward' | 'both'
 	}
-	pluginsData?: Record<string, any>
+	plugin_data?: Record<string, any>
 }
 
 export type HoudiniFetchContext = {
@@ -196,7 +196,6 @@ export type SubscriptionSpec = {
 export type FetchQueryResult<_Data> = {
 	result: RequestPayload<_Data | null>
 	source: DataSource | null
-	partial: boolean
 }
 
 export type QueryResult<_Data = GraphQLObject, _Input = Record<string, any>> = {
@@ -204,6 +203,7 @@ export type QueryResult<_Data = GraphQLObject, _Input = Record<string, any>> = {
 	errors: { message: string }[] | null
 	fetching: boolean
 	partial: boolean
+	stale: boolean
 	source: DataSource | null
 	variables: _Input | null
 }

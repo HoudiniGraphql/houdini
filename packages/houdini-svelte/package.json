@@ -1,6 +1,6 @@
 {
     "name": "houdini-svelte",
-    "version": "1.0.0-next.4",
+    "version": "1.0.0-next.5",
     "description": "The svelte plugin for houdini",
     "keywords": [
         "typescript",
@@ -36,7 +36,7 @@
         "houdini": "workspace:^",
         "recast": "^0.23.1",
         "svelte": "^3.55.0",
-        "vite": "^4.0.1"
+        "vite": "^4.0.4"
     },
     "peerDependencies": {
         "graphql": "^14.0.0 || ^15.0.0"

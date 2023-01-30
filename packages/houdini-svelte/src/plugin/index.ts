@@ -1,4 +1,5 @@
-import type { PluginFactory } from 'houdini'
+import type { PluginHooks } from 'houdini'
+import { plugin } from 'houdini'
 import { HoudiniError, path, fs, type Config } from 'houdini'
 import * as url from 'url'
 import { loadEnv } from 'vite'
@@ -22,7 +23,10 @@ let framework: Framework = 'svelte'
 
 export let _config: Config
 
-const HoudiniSveltePlugin: PluginFactory = async () => ({
+export const pluginHooks = async (): Promise<PluginHooks> => ({
+	/**
+	 * Config
+	 */
 	order: 'core',
 
 	/**
@@ -30,6 +34,11 @@ const HoudiniSveltePlugin: PluginFactory = async () => ({
 	 */
 
 	extensions: ['.svelte'],
+
+	include_runtime: {
+		esm: '../runtime-esm',
+		commonjs: '../runtime-cjs',
+	},
 
 	transform_runtime: {
 		'adapter.js': ({ content }) => {
@@ -90,7 +99,7 @@ export default client
 		})
 	},
 
-	graphql_tag_return({ config, doc, ensure_import }) {
+	graphql_tag_return({ config, document: doc, ensure_import }) {
 		// if we're supposed to generate a store then add an overloaded declaration
 		if (doc.generateStore) {
 			// make sure we are importing the store
@@ -126,7 +135,7 @@ export default client
 		return apply_transforms(framework, page)
 	},
 
-	include(config, filepath) {
+	include({ config, filepath }) {
 		// the files we generate contain some crazy relative paths that we need to make sure we include for transformations
 		// fix the include path and try again
 		return config.includeFile(resolve_relative(config, filepath), { ignore_plugins: true })
@@ -141,7 +150,7 @@ export default client
 	 * Setup
 	 */
 
-	async after_load(cfg) {
+	async after_load({ config: cfg }) {
 		_config = cfg
 		const cfgPlugin = plugin_config(cfg)
 
@@ -200,7 +209,7 @@ export default client
 
 let _env: Record<string, string>
 
-export default HoudiniSveltePlugin
+export default plugin('houdini-svelte', pluginHooks)
 
 declare module 'houdini' {
 	interface HoudiniPluginConfig {

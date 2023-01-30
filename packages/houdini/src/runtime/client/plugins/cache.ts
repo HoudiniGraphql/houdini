@@ -52,6 +52,7 @@ export const cachePolicyPlugin =
 								errors: null,
 								source: DataSource.Cache,
 								partial: value.partial,
+								stale: value.stale,
 							})
 						}
 
@@ -65,11 +66,12 @@ export const cachePolicyPlugin =
 								errors: null,
 								source: DataSource.Cache,
 								partial: value.partial,
+								stale: value.stale,
 							})
 						}
 
 						// if we used the cache data and there's no followup necessary, we're done
-						if (useCache && !value.partial) {
+						if (useCache && !value.partial && !value.stale) {
 							return
 						}
 					}

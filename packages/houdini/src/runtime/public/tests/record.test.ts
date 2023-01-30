@@ -75,6 +75,7 @@ test('can read fragment', function () {
 			.read({ fragment: testFragment(selection.fields.viewer.selection) })
 	).toEqual({
 		partial: false,
+		stale: false,
 		data: {
 			id: '1',
 			firstName: 'bob',
@@ -184,6 +185,7 @@ test('can writeFragments', function () {
 		cache.get('User', { id: '2' }).read({ fragment: testFragment(artifact.selection) })
 	).toEqual({
 		partial: false,
+		stale: false,
 		data: {
 			firstName: 'michael',
 		},

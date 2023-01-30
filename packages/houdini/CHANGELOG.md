@@ -1,5 +1,15 @@
 # houdini
 
+## 1.0.0-next.5
+
+### ⚠️ Breaking Changes
+
+-   [#858](https://github.com/HoudiniGraphql/houdini/pull/858) [`fad070f`](https://github.com/HoudiniGraphql/houdini/commit/fad070f04bd82acdcd71ecdaed52783f468b5216) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Restructured codegen plugins
+
+### ✨ Features
+
+-   [#849](https://github.com/HoudiniGraphql/houdini/pull/849) [`c7d4008`](https://github.com/HoudiniGraphql/houdini/commit/c7d4008f67dd9e25cab4e3816d0459ad6ff7c436) Thanks [@jycouet](https://github.com/jycouet)! - Add support for marking data as stale
+
 ## 1.0.0-next.4
 
 ### 🐛 Fixes

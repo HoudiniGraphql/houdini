@@ -41,6 +41,7 @@ By default, your config file can contain the following values:
 - `cacheBufferSize` (optional, default: `10`): The number of queries that must occur before a value is removed from the cache. For more information, see the [Caching Guide](/guides/caching-data).
 - `defaultCachePolicy` (optional, default: `"CacheOrNetwork"`): The default cache policy to use for queries. For a list of the policies or other information see the [Caching Guide](/guides/caching-data).
 - `defaultPartial` (optional, default: `false`): specifies whether or not the cache should always use partial data. For more information, check out the [Partial Data guide](/guides/caching-data#partial-data).
+- `defaultLifetime` (optional, default: `undefined`): Specifies after how long a data goes stale in miliseconds. [Cache stale](/api/cache#stale).
 - `defaultKeys` (optional, default: `["id"]`): A list of fields to use when computing a record's id. The default value is `['id']`. For more information see the [Caching Guide](/guides/caching-data#custom-ids).
 - `types` (optional): an object that customizes the resolution behavior for a specific type. For more information see the [Caching Guide](/guides/caching-data#custom-ids).
 - `logLevel` (optional, default: `"summary"`): Specifies the style of logging houdini will use when generating your file. One of "quiet", "full", "summary", or "short-summary".
@@ -156,3 +157,33 @@ export default {
 	}
 }
 ```
+
+## Adding Plugins
+
+If you are adding a third-party plugin, you can just use the package name
+instead of a relative path:
+
+```javascript:title=houdini.config.js
+export default {
+    plugins: {
+        'houdini-svelte': {
+			// any configuration values go here
+		}
+    }
+}
+```
+
+If you defined plugin locally, you can just reference the file in your `houdini.config.js`
+file to add it to your project. For the time being, local plugins need to be written in
+javascript since the build environment imports it directly.
+
+```javascript:title=houdini.config.js
+export default {
+    plugins: {
+        './src/plugins/myPlugin.js': {}
+    }
+}
+```
+
+Keep in mind: your config file will be bundled into your application so
+you shouldn't use `path` or any packages you don't want to include.

@@ -1,5 +1,4 @@
 import { deepEquals } from '../../lib/deepEquals'
-import type { GraphQLObject } from '../../lib/types'
 import { ArtifactKind, DataSource } from '../../lib/types'
 import type { ClientPluginContext } from '../documentStore'
 import { documentPlugin } from '../utils'
@@ -71,6 +70,7 @@ export function subscriptionPlugin(factory: SubscriptionHandler) {
 								errors: [...(errors ?? [])],
 								fetching: false,
 								partial: true,
+								stale: false,
 								source: DataSource.Network,
 								variables: ctx.variables ?? null,
 							})
@@ -79,6 +79,7 @@ export function subscriptionPlugin(factory: SubscriptionHandler) {
 							clearSubscription?.()
 							resolve(ctx, {
 								partial: true,
+								stale: false,
 								source: DataSource.Network,
 								data: null,
 								errors: [data as Error],
@@ -101,10 +102,7 @@ export type SubscriptionHandler = (ctx: ClientPluginContext) => {
 	subscribe: (
 		payload: { query: string; variables?: {} },
 		handlers: {
-			next: (payload: {
-				data?: GraphQLObject
-				errors?: readonly { message: string }[]
-			}) => void
+			next: (payload: { data?: {} | null; errors?: readonly { message: string }[] }) => void
 			error: (data: {}) => void
 			complete: () => void
 		}

@@ -25,6 +25,10 @@ export class GarbageCollector {
 	}
 
 	tick() {
+		// get the current time of the tick
+		const dt_tick = Date.now().valueOf()
+		const config_max_time = this.cache._internal_unstable.config.defaultLifetime
+
 		// look at every field of every record we know about
 		for (const [id, fieldMap] of this.lifetimes.entries()) {
 			for (const [field, lifetime] of fieldMap.entries()) {
@@ -33,6 +37,9 @@ export class GarbageCollector {
 					continue
 				}
 
+				// --- ----------------- ---
+				// --- Part 1 : lifetime ---
+				// --- ----------------- ---
 				// there are no active subscriptions for this field, increment the lifetime count
 				fieldMap.set(field, lifetime + 1)
 
@@ -48,6 +55,23 @@ export class GarbageCollector {
 					// if there are no more entries for the id, delete the id info
 					if ([...fieldMap.keys()].length === 0) {
 						this.lifetimes.delete(id)
+					}
+
+					// remove the field from the stale manager
+					this.cache._internal_unstable.staleManager.delete(id, field)
+				}
+
+				// --- ------------------- ---
+				// --- Part 2 : fieldTimes ---
+				// --- ------------------- ---
+				if (config_max_time && config_max_time > 0) {
+					// if the field is older than x... mark it as stale
+					const dt_valueOf = this.cache.getFieldTime(id, field)
+
+					// if we have no dt_valueOf, it's already stale
+					// check if more than the max time has passed since it was marked stale
+					if (dt_valueOf && dt_tick - dt_valueOf > config_max_time) {
+						this.cache._internal_unstable.staleManager.markFieldStale(id, field)
 					}
 				}
 			}

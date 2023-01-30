@@ -5,7 +5,7 @@
 	let expanded = false
 </script>
 
-<div class="container">
+<div class="container-deepdive">
 	<button on:click={() => (expanded = !expanded)}>
 		<Icon name={expanded ? 'chevron-down' : 'chevron-right'} class="graphql-explained-icon" />
 		GraphQL Explained: {title}
@@ -18,17 +18,6 @@
 </div>
 
 <style>
-	:global(.graphql-explained-icon) {
-		margin-right: 10px;
-	}
-
-	.container {
-		border-radius: 10px;
-		background-color: var(--graphql-explained-background);
-		margin-bottom: 60px;
-		margin-top: 30px;
-	}
-
 	button {
 		background: var(--graphql-explained);
 		border-radius: 10px;

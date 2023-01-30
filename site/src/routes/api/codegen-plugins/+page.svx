@@ -1,0 +1,762 @@
+---
+title: Codegen Plugins
+description: An overview of Houdini's Codegen Plugins
+---
+
+<script>
+    import { ExtractDiagram, ValidateDiagram, SetupDiagram, GenerateDiagram } from '~/routes/_diagrams'
+    import { DeepDive } from '~/components'
+</script>
+
+# Codegen Plugins
+
+Codegen plugins allow you to add additional behavior to Houdini's static processing. This includes
+integrating into the core code generation pipeline as well as transforming users' source code
+(usually to take advantage of what was generated).
+
+> This is an advanced topic and requires a deep understanding of Houdini. Please make
+> sure you've at least seen the example at the bottom of the
+> [Architecture Guide](/guides/architecture).
+> If something isn't clicking or if you have any questions, please
+> [join us on discord](https://discord.gg/Gd8vfvxpsD) and ask!
+
+For information on adding a plugin to your project, checkout the
+[Config reference](/api/config#adding-plugins).
+
+## Writing a Plugin
+
+A codegen plugin is created using the `plugin` function exported from `houdini`.
+It takes a name and an asynchronous function that returns
+an object with a fixed set of keys defining the "hooks" that you want
+to use:
+
+```javascript:title=src/plugins/custom_plugin.js
+import { plugin } from 'houdini'
+
+const generateSomething = plugin('plugin_name', async () =>  {
+    return {
+        generate({ documents }) {
+            // generate something for every document in the project
+        }
+    }
+})
+```
+
+The list of available hooks can be in the next sections, beginning with [Plugin Setup](#plugin-setup).
+
+<DeepDive title="Accepting Configuration">
+
+Most of time, your plugin will need to accept configuration from the user. To support this,
+users pass objects to your plugin through in their config file:
+
+```javascript:title=houdini.config.js
+export default {
+    plugins: {
+        'plugin_name': {
+            key: 'myValue',
+        }
+    }
+}
+```
+
+```javascript:title=plugin_name/src/index.js
+/** @type { import("houdini").Plugin }*/
+const doSomething = plugin('plugin_name', async ({ key }) => {
+    return {
+        generate({ documents }) {
+            // do something with key
+        }
+    }
+})
+```
+
+Remember, local plugins have to be importable by Node so they must be written in JavaScript.
+
+### Typesafe Config Values
+
+If you use typescript, you probably want type definitions for your configuration
+values. The best way to set that up is by
+extending the `HoudiniPluginConfig` in the `houdini` module to map your plugin's
+name with your custom config type. This will merge your
+definition with the one Houdini uses internally:
+
+```typescript:title=plugin_name/src/index.ts
+declare module 'houdini' {
+	interface HoudiniPluginConfig {
+		'plugin_name': CustomPluginConfig
+	}
+}
+
+export type CustomPluginConfig = {
+    key: string
+}
+```
+
+With that defined, a user can now include add a reference to your plugin's declarations and rely on
+your custom type in their config file:
+
+```javascript:title=houdini.config.js
+/// <references types="plugin_name">
+
+/** @type { import('houdini').ConfigFile } */
+export default {
+    plugins: {
+        'plugin_name': {
+            key: 'myValue',
+        }
+    }
+}
+```
+
+</DeepDive>
+
+<DeepDive title="Composing Plugins">
+
+Codegen plugins can be defined as a composition of many different sets of hooks.
+The function passed to `plugin` can return a list of hooks, external plugins or null -
+allowing you to easily toggle functionality depending on configuration values:
+
+```javascript:title=src/plugins/custom_plugin.js
+import { plugin } from 'houdini'
+import externalPlugin from 'third-party'
+
+const localHooks = { }
+
+const generateSomething = plugin('gen', async ({ include }) =>  {
+    return [
+        localHooks,
+        include ? externalPlugin : null,
+    ]
+})
+```
+
+Use the `with` method to pass configuration to the third-party plugin:
+
+```javascript:title=src/plugins/custom_plugin.js
+import { plugin } from 'houdini'
+import externalPlugin from 'third-party'
+
+const generateSomething = plugin('gen', async () =>  {
+    return [
+        externalPlugin.with({ key: "value" })
+    ]
+})
+```
+
+</DeepDive>
+
+<DeepDive title="Publishing a Plugin" >
+
+For the most part, publishing a plugin is just like publishing any other node package. There
+are a few things to keep in mind:
+
+- By convention, start your plugin's name with `houdini-plugin-`. This will prevent any collisions with
+  packages we might create in the future.
+- The name of your plugin (the string passed to the `plugin` function) should match the name of your package
+- Your packages default export must be the result of the `plugin` function.
+- Your `package.json` must have an entry for `["exports"]["."]["import"]` so that houdini can find the esm-compatible
+  version of your plugin.
+- The `include_runtime` value will be taken relative to `package.json["exports"]["."]["import"]`
+- If you are bundling your plugin, you should mark external plugins as external dependencies so they aren't
+  bundled with your package which is necessary to support hooks like `include_runtime`.
+
+</DeepDive>
+
+## Plugin Setup
+
+Every pipeline begins with a common set of hooks that allow you to setup
+and configure the system. This can include loading environment variables or
+updating any configuration values.
+
+<SetupDiagram style="max-width: 350px; margin: 50px auto;" />
+
+### `order`
+
+- Type: `"before" | "after"`
+- Default is `"before"`
+
+Defines wether your plugin runs before or after "core" plugins like `houdini-svelte`.
+
+### `config`
+
+- Type: `(old: ConfigFile) => ConfigFile`
+- Can return a `Promise` as well
+- Plugins might overwrite each other
+
+Used to modify any values that the user passed to their config files.
+Configuration values that you return will be deeply merged with the previous
+value. If you just want to look at the config values, we recommend using
+[after_load](#after_load) which will have the final set of values after all `config`
+hooks have run.
+
+```javascript:title=plugin_name/src/index.js
+import { plugin } from 'houdini'
+
+export default plugin('plugin_name', async () => {
+    return {
+        config() {
+            return {
+                // add scalar config
+                scalars: {
+                    DateTime: {
+                        type: 'Date',
+                        unmarshal(val) {
+                            return new Date(val)
+                        },
+                        marshal(date) {
+                            return date.getTime()
+                        }
+                    }
+                }
+            }
+        }
+    }
+})
+```
+
+### `env`
+
+- Type: `({ env: any; config: Config }) => Promise<Record<string, string>>`
+- Plugins might overwrite each other
+
+Adds environment variables to houdini's pipeline (ie, for schema polling headers, url, etc.).
+Plugins are executed in the order they are defined so they can overwrite each other.
+
+```javascript:title=plugin_name/src/index.js
+import { loadEnv } from 'vite'
+import { plugin } from 'houdini'
+
+export default plugin('plugin_name', async () => {
+    return {
+        // load .env files using vite's rules
+        env() {
+            return loadEnv('dev', '.', '')
+        }
+    }
+})
+```
+
+### `after_load`
+
+- Type: `(config: Config) => Promise<void> | void`
+
+Invoked after all plugins have loaded and modified config values. This is the hook to use
+if you want to perform logic based on config values.
+
+```javascript:title=plugin_name/src/index.js
+import { plugin } from 'houdini'
+
+export default plugin('plugin_name', async () => {
+    return {
+        after_load({ config }) {
+            // make sure we were given a valid value
+            if (!isValid(config)) {
+                throw new Error("invalid config!")
+            }
+        }
+    }
+})
+```
+
+## Extract and Parse
+
+These hooks are responsibile for generating a list of filepaths and finding the GraphQL
+documents inside.
+
+<ExtractDiagram style="max-width: 500px; margin: 50px auto;"/>
+
+### `extensions`
+
+- Type: `string[]`
+- Plugin values are concattenated together
+
+Add extensions to the list that houdini uses to find valid source files.
+
+```javascript:title=plugin_name/src/index.js
+import { plugin } from 'houdini'
+
+export default plugin('plugin_name', async () => {
+    return {
+        extensions: ['tsx', 'jsx']
+    }
+})
+```
+
+### `include`
+
+- Type: `({ config: Config, filepath: string }) => boolean | null | undefined`
+- If any plugin includes the value, the filepath is excluded
+
+A filter for wether a file should be included in processing. This hook is useful
+if you generate imports that do not match your users configure `include` value.
+Return `true` to include the file. This is commonly used in tandem with the
+[vite](#vite) hook.
+
+```javascript:title=plugin_name/src/index.js
+import { plugin } from 'houdini'
+
+export default plugin('plugin_name', async () => {
+    return {
+        // include any paths that start with `@` in the transforms
+        include({ filepath }) {
+            if (filepath.startsWith('@')) {
+                return true
+            }
+        }
+    }
+})
+```
+
+### `exclude`
+
+- Type: `({ config: Config, filepath: string }) => boolean | null | undefined`
+- If any plugin excludes the value, the filepath is excluded
+
+A filter for wether a file should be included in processing. This hook is useful
+if you generate imports that do not match your users configure `include` value.
+Return `false` to include the file.
+
+```javascript:title=plugin_name/src/index.js
+import { plugin } from 'houdini'
+
+export default plugin('plugin_name', async () => {
+    return {
+        // exclude any server.graphql files
+        exclude({ filepath }) {
+            return filepath.endsWith('server.graphql')
+        }
+    }
+})
+```
+
+### `extract_documents`
+
+- Type: `({ config: Config, path: string, content: string }) => string[] | null`
+- Can return a `Promise` as well
+- Plugin values are concattenated together
+
+Teaches the pipeline how to extract graphql documents out of your application source code
+given its filepath and the file contents. You can return `null` or an empty string to indicate
+that you didn't find any graphql documents. This step is responsible for actually parsing your
+source code and extracting the string values of the `graphql` function.
+
+```typescript:title=plugin_name/src/index.ts
+import { parseJS, find_graphql, plugin } from 'houdini'
+
+export default plugin('plugin_name', async () => {
+    return {
+        // exclude any server.graphql files
+        async extract_documents({
+            config,
+            content,
+            filepath
+        }) {
+            // only add documents for svelte files
+            if (!filepath.endsWith(".svelte")) {
+                return []
+            }
+
+            // parse the svelte files
+            const documents = []
+            let parsedFile = await parseSvelte(content)
+            if (!parsedFile) {
+                return documents
+            }
+
+            // look for graphql documents using houdini's utility
+            await find_graphql(config, parsedFile.script, {
+                tag({ tagContent }) {
+                    documents.push(tagContent)
+                },
+            })
+
+            // we found every document in the file
+            return documents
+        }
+    }
+})
+```
+
+### `schema`
+
+- Type: `({ config: Config }) => string`
+
+Can be used to add custom definitions to your project's schema. Definitions added
+here are automatically removed from the document before they are sent to the server. It is sometimes
+useful to add things that can be used in connection with [artifact_data](#artifact_data)
+to embed data in the artifact.
+
+Currently, this hook can only add directives, scalars, or enums to the schema.
+
+```typescript:title=plugin_name/src/index.ts
+export default plugin('plugin_name', async () => {
+    return {
+        // add the @special directive
+        schema() {
+            return `
+                directive @special on QUERY
+            `
+        }
+    }
+})
+```
+
+## Validate and Transform
+
+These hooks are responsible for transforming and validating the documents in your application. If you want
+to add new definitions, you can add new documents to provided list.
+
+<ValidateDiagram style="max-width: 500px; margin: 50px auto;"/>
+
+### `before_validate`
+
+- Type: `({ config: Config documents: Document[] }) => void`
+- Can also return a Promise
+
+Processes documents before they has been validated. This can be useful if you are adding a layer
+that translates into a Houdini feature.
+
+### `validate`
+
+- Type: `({ config: Config documents: Document[] }) => void`
+- Can also return a Promise
+
+Performs any validation checks before the rest of the pipeline continue. Remember to verify as many documents as possible
+before erroring. For example, the
+[uniqueNames](https://github.com/HoudiniGraphql/houdini/blob/main/packages/houdini/src/codegen/validators/uniqueNames.ts)
+validator makes sure that every document has a unique name so that the preprocessor can
+reliably import the correct artifact.
+
+### `after_validate`
+
+- Type: `({ config: Config documents: Document[] }) => void`
+- Can also return a Promise
+
+Transforms the project's documents after they have been validated. This is useful if you are building a feature
+that needs to add extra selections or documents to the list.
+
+## Generate Runtime
+
+This pipeline is responsible for generating all of the files for your application. This includes hooks to
+modify the query artifact (a static respresentation of the document), hooks to customize the core runtime
+provided by houdini, as well as hooks to generate your own files and runtimes for your plugin.
+
+<GenerateDiagram style="max-width: 700px; margin: 50px auto;"/>
+
+### `transform_before_generate`
+
+- Type: `({ config: Config documents: Document[] }) => void`
+- Can also return a Promise
+
+Transforms the documents just before static assets are generated.
+
+### `artifact_data`
+
+- Type: `({ config: Config, doc: Document }) => Record<string, any>`
+
+Embeds metadata at the root of the artifact. You should use this to encode document-level
+data at build time so you don't have to analyze the document at runtime (in a client plugin, for example).
+
+```typescript:title=plugin_name/src/index.ts
+import * as graphql from 'graphql'
+import { plugin } from 'houdini'
+
+export default plugin('plugin_name', async () => {
+    return {
+        // emebed data in the artifact if we detect the @live
+        artifact_data({ config, document }) {
+            let live = false
+
+            // look for the live directive
+            graphql.visit(document.document, {
+                Directive(node) {
+                    if (node.name.value === 'live) {
+                        live = true
+                    }
+                },
+            })
+
+            return {
+                live
+            }
+        }
+    }
+})
+```
+
+### `hash`
+
+- Type: `({ config: Config, document: Document }) => string`
+- The first hook provided is used.
+
+Customizes the hash generated for a given document
+
+```typescript:title=plugin_name/src/index.ts
+import { plugin } from 'houdini'
+
+export default plugin('plugin_name', async () => {
+    return {
+        // use a custom hash function
+        hash({ document }) {
+            return hashDocumentName(document.name)
+        }
+    }
+})
+```
+
+### `artifact_end`
+
+- Type `({ config: Config, artifact: DocumentArtifact }) => DocumentArtifact`
+- Plugins can overwrite values
+
+Modifies the generated artifact before its written to disk. This is useful to set artifact data
+based on information derived from the artifact's final state.
+
+```typescript:title=plugin_name/src/index.ts
+import { plugin } from 'houdini'
+
+export default plugin('plugin_name', async () => {
+    return {
+        // alert if query complexity is too high
+        artifact_end({ document }) {
+            if (computeComplexity(document.originalDocument) > 0.8) {
+                console.warn("High complexity query!", document.name)
+            }
+        }
+    }
+})
+```
+
+### `generate`
+
+- Type: `(args: GenerateArgs) => void`
+- Can also return a Promise
+
+```typescript
+type GenerateArgs = {
+	config: Config
+	documents: Document[]
+	plugin_root: string
+}
+```
+
+Generates project files for each document in the application.
+Each plugin is assigned a root directory that you are free to place any
+files you want. If you want values that you generated to be included in
+the values exported from `$houdini`, you should use the
+[index_file](#index_file) hook.
+
+```typescript:title=plugin_name/src/index.ts
+import { plugin } from 'houdini'
+import fs from 'fs/promises'
+
+export default plugin('plugin_name', async () => {
+    return {
+        // write a file with the name of every document
+        async generate({ plugin_root, documents }) {
+            const fileName = path.join(plugin_root, 'queryname.txt')
+            const contents = documents.map(doc => doc.name).join('\n')
+            await fs.writeFile(fileName, contents, 'utf-8')
+        }
+    }
+})
+```
+
+### `include_runtime`
+
+- Type: `string | { commonjs: string, esm: string }`
+
+Instructs the runtime to copy the specified runtime to your
+plugin's root directory. This is useful if you have a bunch of static
+values, utilities, that you want to use in
+[transform_file](#transform_file).
+
+This value should be set to a relative path from your plugin's root
+directory to the directory that should be copied. If you have different
+versions of your runtime for CommonJS and ESModules, you can set this
+to an object specifying both paths.
+
+```typescript:title=plugin_name/src/index.ts
+import { plugin } from 'houdini'
+
+export default plugin('plugin_name', async () => {
+    return {
+        include_runtime: {
+            commonjs: "../runtime-commonjs",
+            esm: "../runtime-esm",
+        }
+    }
+})
+```
+
+### `transform_runtime`
+
+- Type: `Record<string, ({ config: Config; content: string }) => string>`
+
+Transforms the plugin's runtime while houdini is copying it. The keys of
+the object are paths in your runtime (relative to the `include_runtime`
+setting). The values are functions that set the new file value.
+
+This hook only has an effect if you have passed a value
+for [include_runtime](#include-runtime).
+
+```typescript:title=plugin_name/src/index.ts
+import { plugin } from 'houdini'
+
+const plugin_variable = "1234"
+
+export default plugin('plugin_name', async () => {
+    return {
+        // this must be set
+        include_runtime: "../runtime",
+
+        // replace value in {plugin_root}/lib/constants.js
+        transform_runtime: {
+            ['lib/constants.js']: ({ content }) {
+                return content.replace("THIS", plugin_variable)
+            }
+        }
+    }
+})
+```
+
+### `index_file`
+
+- Type: `(args: IndexFileArgs) => string`
+
+```typescript
+type IndexFileArgs = {
+	config: Config
+	content: string
+	export_default_as(args: { module: string; as: string }): string
+	export_star_from(args: { module: string }): string
+	plugin_root: string
+	typedef: boolean
+	documents: Document[]
+}
+```
+
+Modifies the root `index.js` and `index.d.ts` files in the generated runtime. If you want to
+add any exports, make sure to use the `export_default_as` and `export_star_from` utilities which will
+make sure your type definitions are up to date.
+
+```typescript:title=plugin_name/src/index.ts
+import { plugin } from 'houdini'
+
+const plugin_variable = "1234"
+
+export default plugin('plugin_name', async () => {
+    return {
+        // export everything in the stores directory
+        // this one function handles .js and .d.ts
+        index_file({ content, export_star_from, plugin_root }) {
+            return content + export_star_from({
+                module: path.join('.', plugin_root, 'stores')
+            })
+        },
+    }
+})
+```
+
+### `graphql_tag_return`
+
+- Type: `({
+	config,
+	document,
+	ensure_import
+}) => string | undefined`
+- The first value provided by a plugin is used
+
+Customizes the return type of the graphql function. If you need to add an import to the file
+in order to resolve the import, you can use the `ensure_import` utility. Here is an example
+from `houdini-svelte` which maps the result of `graphql` to the store that was generated for
+the document:
+
+```javascript:title=custom_plugin.js
+export default {
+    graphql_tag_return({ ensure_import, document }) {
+        const { artifact, name } = document
+
+		// if we're supposed to generate a store then add
+        // an overloaded declaration
+		if (artifact.plugin_data['houdini-svelte'].generate) {
+			// use the name of the store as the return value
+            const store = store_name({ name })
+
+			// make sure we are importing the store
+            // this won't add an import if its already been imported
+			ensure_import({
+                // identifier specifies the local variable created
+                // by the import
+				identifier: store,
+                // the module you are importing from
+				module: store_import_path({
+					name,
+				}),
+			})
+
+			// and use the store as the return value
+			return store
+		}
+
+        // if we got this far, we dont want to add
+        // an overloaded return type
+    }
+}
+```
+
+### `client_plugins`
+
+- Type: `Record<string, any>`
+
+Adds plugins to the application's default list of plugins to add to `HoudiniClient`. This can be useful for
+[client plugins](/api/client-plugins) that want to add a generated portion. For example,
+a plugin for something like Live Queries could check for the `@live` directive at build time
+(using something like the [artifact_data](#artifact_data) hook) and then check for the
+persisted value in a client plugin.
+
+```javascript
+plugin('houdini-plugin-custom', async () => {
+	return {
+		client_plugins: {
+			'houdini-plugin-custom/client': null
+		}
+	}
+})
+```
+
+The key of this object should be a globally resolvable module (third-party package, aliased local path, etc).
+The generated runtime assumes that the default export of this module is a function that returns a client plugin.
+The value of the `client_plugins` hook object is passed to that function.
+
+## Transform Source
+
+### `transform_file`
+
+- Type: `(page: TransformPage) => { code: string }`
+- Can also return a Promise
+
+```typescript
+type TransformInput = {
+	config: Config
+	content: string
+	filepath: string
+	/* Adds the filepath to the dev server's watch list */
+	watch_file: (path: string) => void
+}
+```
+
+Transforms the user's source code from an ergonomic
+API to the the actual implementation under the hood. For more
+information, please review the example at the bottom of the
+[Architecture Guide](/guides/architecture#an-example).
+
+## Miscellaneous hooks
+
+### `vite`
+
+- Type: same `{ resolveId, load }` from [vite](https://vitejs.dev/guide/api-plugin.html#vite-specific-hooks)
+  except with the config file passed to the appropriate object.
+
+Allows a plugin to configure the vite plugin exported from `houdini/vite.` This hook is
+useful if you generate files that are imported or need to hook into vite for any reason.

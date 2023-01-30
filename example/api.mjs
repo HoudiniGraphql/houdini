@@ -1,15 +1,16 @@
-import { createServer } from '@graphql-yoga/node'
 import { useServer } from 'graphql-ws/lib/use/ws'
+import { createYoga, createSchema } from 'graphql-yoga'
+import { createServer } from 'node:http'
 import { WebSocketServer } from 'ws'
 
 import { resolvers, typeDefs } from './schema/index.mjs'
 
 async function main() {
-	const yogaApp = createServer({
-		schema: {
+	const yogaApp = createYoga({
+		schema: createSchema({
 			typeDefs,
 			resolvers,
-		},
+		}),
 		graphiql: {
 			// Use WebSockets in GraphiQL
 			subscriptionsProtocol: 'WS',
@@ -47,12 +48,12 @@ subscription SubToNewItem {
 	})
 
 	// Get NodeJS Server from Yoga
-	const httpServer = await yogaApp.start()
+	const httpServer = createServer(yogaApp)
 
 	// Create WebSocket server instance from our Node server
 	const wsServer = new WebSocketServer({
 		server: httpServer,
-		path: yogaApp.getAddressInfo().endpoint,
+		path: yogaApp.graphqlEndpoint,
 	})
 
 	// Integrate Yoga's Envelop instance and NodeJS server with graphql-ws
@@ -83,6 +84,10 @@ subscription SubToNewItem {
 		},
 		wsServer
 	)
+
+	httpServer.listen(4000, () => {
+		console.info('Server is running on http://localhost:4000/graphql')
+	})
 }
 
 main().catch((e) => {

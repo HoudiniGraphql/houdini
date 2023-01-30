@@ -64,6 +64,9 @@ test('adds internal documents to schema', async function () {
 			"""@arguments is used to define the arguments of a fragment"""
 			directive @arguments on FRAGMENT_DEFINITION
 
+			"""@with is used to provide arguments to fragments that have been marked with @arguments"""
+			directive @with on FRAGMENT_SPREAD
+
 			"""@cache is used to specify cache rules for a query"""
 			directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
@@ -134,6 +137,9 @@ test('list operations are included', async function () {
 
 			"""@arguments is used to define the arguments of a fragment"""
 			directive @arguments on FRAGMENT_DEFINITION
+
+			"""@with is used to provide arguments to fragments that have been marked with @arguments"""
+			directive @with on FRAGMENT_SPREAD
 
 			"""@cache is used to specify cache rules for a query"""
 			directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
@@ -224,6 +230,9 @@ test('list operations are included but delete directive should not be in when we
 
 			"""@arguments is used to define the arguments of a fragment"""
 			directive @arguments on FRAGMENT_DEFINITION
+
+			"""@with is used to provide arguments to fragments that have been marked with @arguments"""
+			directive @with on FRAGMENT_SPREAD
 
 			"""@cache is used to specify cache rules for a query"""
 			directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
@@ -327,6 +336,9 @@ test("writing twice doesn't duplicate definitions", async function () {
 
 			"""@arguments is used to define the arguments of a fragment"""
 			directive @arguments on FRAGMENT_DEFINITION
+
+			"""@with is used to provide arguments to fragments that have been marked with @arguments"""
+			directive @with on FRAGMENT_SPREAD
 
 			"""@cache is used to specify cache rules for a query"""
 			directive @cache(policy: CachePolicy, partial: Boolean) on QUERY

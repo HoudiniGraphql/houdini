@@ -7,7 +7,7 @@
 
 #doc-content h1 {
 	font-family: 'Crete Round', serif;
-	margin-bottom: 10px;
+	margin-bottom: 20px;
 	font-size: 40px;
 }
 
@@ -173,4 +173,30 @@ h3 > code {
 	font-weight: 500;
 	line-height: 1.5;
 	text-align: center;
+}
+
+.edgeLabel {
+	color: var(--contrast) !important;
+}
+
+/* DeepDives should be spread 20 px apart */
+.container-deepdive {
+	border-radius: 10px;
+	background-color: var(--deep-dive-background);
+	margin-top: 20px;
+}
+
+/* Don't add vertical spacing before the first deepdive */
+:not(.container-deepdive) + .container-deepdive {
+	margin-top: 0px;
+}
+
+/* The elements after a deep dive should be pushed away a little bit more than usual */
+
+.container-deepdive + :not(.container-deepdive, h1, h2, h3) {
+	margin-top: 50px;
+}
+/* headers have a different spacing */
+.container-deepdive + :is(h1, h2, h3) {
+	margin-top: 40px;
 }

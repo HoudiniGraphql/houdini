@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import * as graphql from 'graphql'
 
-import type { Config } from '.'
+import type { CollectedGraphQLDocument, Config } from '.'
 import { HoudiniError } from './error'
 import * as path from './path'
 
@@ -20,9 +20,14 @@ export function getRootType(type: graphql.GraphQLType): graphql.GraphQLType {
 	return type
 }
 
-export function hashDocument(document: string | graphql.DocumentNode): string {
+export function hashDocument({
+	document,
+}: {
+	config: Config
+	document: string | CollectedGraphQLDocument
+}): string {
 	// if we were given an AST document, print it first
-	const docString = typeof document === 'string' ? document : graphql.print(document)
+	const docString = typeof document === 'string' ? document : graphql.print(document.document)
 
 	// hash the string
 	return crypto.createHash('sha256').update(docString).digest('hex')
