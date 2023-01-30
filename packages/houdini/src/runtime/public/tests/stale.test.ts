@@ -1,8 +1,8 @@
 import { test, expect } from 'vitest'
 
-import { ArtifactKind, type FragmentArtifact, type SubscriptionSelection } from '../../lib'
-import { Cache } from '../cache'
-import { CacheTypeDefTest, testCache, testFragment } from './test'
+import { ArtifactKind, type FragmentArtifact } from '../../lib'
+import type { Cache } from '../cache'
+import { type CacheTypeDefTest, testCache } from './test'
 
 /**   1/ Helpers  */
 const h_SetUserInCache = (cache: Cache<CacheTypeDefTest>, id: string) => {
@@ -32,7 +32,7 @@ const h_SetUserInCache = (cache: Cache<CacheTypeDefTest>, id: string) => {
 			artifact,
 		},
 		data: {
-			// JYC TODO type issue?
+			// @ts-expect-error: type definitions for the test api are busted
 			id,
 			firstName: 'newName',
 		},
@@ -71,8 +71,8 @@ const h_SetCatInCache = (cache: Cache<CacheTypeDefTest>, id: string) => {
 		fragment: {
 			artifact,
 		},
+		// @ts-expect-error: type definitions for the test api are busted
 		data: {
-			// JYC TODO type issue?
 			id,
 		},
 	})
