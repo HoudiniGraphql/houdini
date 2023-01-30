@@ -1,7 +1,7 @@
 import { mergeSchemas } from '@graphql-tools/schema'
 import * as graphql from 'graphql'
 import minimatch from 'minimatch'
-import { fileURLToPath } from 'url'
+import { fileURLToPath, pathToFileURL } from 'url'
 
 import type { ConfigFile } from '../runtime/lib'
 import { CachePolicy } from '../runtime/lib'
@@ -790,7 +790,9 @@ export async function getConfig({
 			console.log({ pluginFile })
 			console.log({ pluginFile })
 			console.log({ pluginFile })
-			const { default: pluginInit }: { default: PluginInit } = await import(pluginFile)
+			const { default: pluginInit }: { default: PluginInit } = await import(
+				pathToFileURL(pluginFile).toString()
+			)
 			if (!pluginInit.plugin || !pluginInit.name) {
 				throw new HoudiniError({
 					filepath: pluginFile,
