@@ -18,7 +18,7 @@ importers:
             recast: ^0.23.1
             turbo: ^1.5.5
             typescript: ^4.9
-            vite: ^4.0.1
+            vite: ^4.0.4
             vitest: ^0.23.4
         dependencies:
             fs-extra: 10.1.0
@@ -37,23 +37,25 @@ importers:
             prettier: 2.8.1
             turbo: 1.6.3
             typescript: 4.9.4
-            vite: 4.0.1
+            vite: 4.0.4
             vitest: 0.23.4
 
     e2e/_api:
         specifiers:
-            '@graphql-yoga/node': ^2.13.13
             '@kitql/helper': ^0.5.0
+            fs-extra: ^10.1.0
             graphql: ^15.8.0
             graphql-relay: ^0.10.0
             graphql-ws: ^5.8.2
+            graphql-yoga: ^3.3.0
             ws: ^8.8.1
         dependencies:
-            '@graphql-yoga/node': 2.13.13_graphql@16.6.0
             '@kitql/helper': 0.5.0
+            fs-extra: 10.1.0
             graphql: 16.6.0
             graphql-relay: 0.10.0_graphql@16.6.0
             graphql-ws: 5.11.2_graphql@16.6.0
+            graphql-yoga: 3.4.0_graphql@16.6.0
             ws: 8.11.0
 
     e2e/next:
@@ -109,13 +111,13 @@ importers:
             svelte-preprocess: ^5.0.0
             tslib: ^2.3.1
             typescript: ^4.9
-            vite: ^4.0.1
+            vite: ^4.0.4
             vite-plugin-lib-reporter: ^0.0.6
         devDependencies:
             '@kitql/helper': 0.5.0
             '@playwright/test': 1.28.1
             '@sveltejs/adapter-auto': 1.0.0_@sveltejs+kit@1.0.0
-            '@sveltejs/kit': 1.0.0_svelte@3.55.0+vite@4.0.1
+            '@sveltejs/kit': 1.0.0_svelte@3.55.0+vite@4.0.4
             '@typescript-eslint/eslint-plugin': 5.46.1_imrg37k3svwu377c6q7gkarwmi
             '@typescript-eslint/parser': 5.46.1_ha6vam6werchizxrnqvarmz2zu
             concurrently: 7.1.0
@@ -134,41 +136,41 @@ importers:
             svelte-preprocess: 5.0.0_niwyv7xychq2ag6arq5eqxbomm
             tslib: 2.4.1
             typescript: 4.9.4
-            vite: 4.0.1
+            vite: 4.0.4
             vite-plugin-lib-reporter: 0.0.6
 
     example:
         specifiers:
-            '@graphql-yoga/node': ^2.8.0
             '@sveltejs/kit': 1.0.0
             concurrently: ^6.2.1
             graphql: ^15.8.0
-            graphql-tag: 2.12.6
+            graphql-tag: ^2.12.6
             graphql-ws: ^5.11.2
+            graphql-yoga: ^3.3.0
             houdini: workspace:^
             houdini-svelte: workspace:^
             svelte: ^3.55.0
             svelte-preprocess: ^5.0.0
             tslib: ^2.3.1
-            typescript: ^4.9
-            vite: ^4.0.1
+            typescript: ^4.9.4
+            vite: ^4.0.4
             ws: ^8.8.1
         dependencies:
+            graphql: 15.8.0
             graphql-tag: 2.12.6_graphql@15.8.0
             graphql-ws: 5.11.2_graphql@15.8.0
+            graphql-yoga: 3.4.0_graphql@15.8.0
+            ws: 8.11.0
         devDependencies:
-            '@graphql-yoga/node': 2.13.13_graphql@15.8.0
-            '@sveltejs/kit': 1.0.0_svelte@3.55.0+vite@4.0.1
+            '@sveltejs/kit': 1.0.0_svelte@3.55.0+vite@4.0.4
             concurrently: 6.5.1
-            graphql: 15.8.0
             houdini: link:../packages/houdini
             houdini-svelte: link:../packages/houdini-svelte
             svelte: 3.55.0
             svelte-preprocess: 5.0.0_niwyv7xychq2ag6arq5eqxbomm
             tslib: 2.4.1
             typescript: 4.9.4
-            vite: 4.0.1
-            ws: 8.11.0
+            vite: 4.0.4
 
     packages/_scripts:
         specifiers:
@@ -221,7 +223,7 @@ importers:
             rollup: ^3.7.4
             scripts: workspace:^
             turbo: ^1.5.4
-            vite: ^4.0.1
+            vite: ^4.0.4
             vite-plugin-watch-and-run: ^1.1.0
             vitest: ^0.23.4
         dependencies:
@@ -256,7 +258,7 @@ importers:
             rollup: 3.7.4
             scripts: link:../_scripts
             turbo: 1.6.3
-            vite: 4.0.1_@types+node@18.11.15
+            vite: 4.0.4_@types+node@18.11.15
             vitest: 0.23.4
 
     packages/houdini-plugin-svelte-global-stores:
@@ -315,7 +317,7 @@ importers:
             recast: ^0.23.1
             scripts: workspace:^
             svelte: ^3.55.0
-            vite: ^4.0.1
+            vite: ^4.0.4
             vitest: ^0.23.4
         dependencies:
             '@kitql/helper': 0.5.0
@@ -369,7 +371,7 @@ importers:
             tslib: ^2.3.1
             typescript: ^4.9
             unist-util-visit: ^4.1.1
-            vite: ^4.0.1
+            vite: ^4.0.4
             vite-plugin-replace: ^0.1.1
         dependencies:
             feather-icons: 4.29.0
@@ -385,13 +387,13 @@ importers:
             svelte: 3.55.0
             svelte-preprocess: 5.0.0_niwyv7xychq2ag6arq5eqxbomm
             unist-util-visit: 4.1.1
-            vite: 4.0.1
-            vite-plugin-replace: 0.1.1_vite@4.0.1
+            vite: 4.0.4
+            vite-plugin-replace: 0.1.1_vite@4.0.4
         devDependencies:
             '@babel/parser': 7.20.7
             '@playwright/test': 1.28.1
             '@sveltejs/adapter-vercel': 1.0.0_@sveltejs+kit@1.0.0
-            '@sveltejs/kit': 1.0.0_svelte@3.55.0+vite@4.0.1
+            '@sveltejs/kit': 1.0.0_svelte@3.55.0+vite@4.0.4
             '@typescript-eslint/eslint-plugin': 5.46.1_imrg37k3svwu377c6q7gkarwmi
             '@typescript-eslint/parser': 5.46.1_ha6vam6werchizxrnqvarmz2zu
             eslint: 8.29.0
@@ -1313,115 +1315,84 @@ packages:
             prettier: 2.8.1
         dev: true
 
-    /@envelop/core/2.6.0_graphql@15.8.0:
+    /@envelop/core/3.0.4:
         resolution:
             {
-                integrity: sha512-yTptKinJN//i6m1kXUbnLBl/FobzddI4ehURAMS08eRUOQwAuXqJU9r8VdTav8nIZLb4t6cuDWFb3n331LiwLw==,
+                integrity: sha512-AybIZxQsDlFQTWHy6YtX/MSQPVuw+eOFtTW90JsHn6EbmcQnD6N3edQfSiTGjggPRHLoC0+0cuYXp2Ly2r3vrQ==,
             }
-        peerDependencies:
-            graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
         dependencies:
-            '@envelop/types': 2.4.0_graphql@15.8.0
-            graphql: 15.8.0
-            tslib: 2.4.0
-        dev: true
-
-    /@envelop/core/2.6.0_graphql@16.6.0:
-        resolution:
-            {
-                integrity: sha512-yTptKinJN//i6m1kXUbnLBl/FobzddI4ehURAMS08eRUOQwAuXqJU9r8VdTav8nIZLb4t6cuDWFb3n331LiwLw==,
-            }
-        peerDependencies:
-            graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
-        dependencies:
-            '@envelop/types': 2.4.0_graphql@16.6.0
-            graphql: 16.6.0
+            '@envelop/types': 3.0.1
             tslib: 2.4.0
         dev: false
 
-    /@envelop/parser-cache/4.7.0_4hr55tbjlvoppd2sokdhrbpreq:
+    /@envelop/parser-cache/5.0.4_a6sekiasy2tqr6d5gj7n2wtjli:
         resolution:
             {
-                integrity: sha512-63NfXDcW/vGn4U6NFxaZ0JbYWAcJb9A6jhTvghsSz1ZS+Dny/ci8bVSgVmM1q+N56hPyGsVPuyI+rIc71mPU5g==,
+                integrity: sha512-+kp6nzCVLYI2WQExQcE3FSy6n9ZGB5GYi+ntyjYdxaXU41U1f8RVwiLdyh0Ewn5D/s/zaLin09xkFKITVSAKDw==,
             }
         peerDependencies:
-            '@envelop/core': ^2.6.0
+            '@envelop/core': ^3.0.4
             graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
         dependencies:
-            '@envelop/core': 2.6.0_graphql@16.6.0
+            '@envelop/core': 3.0.4
             graphql: 16.6.0
             lru-cache: 6.0.0
             tslib: 2.4.1
         dev: false
 
-    /@envelop/parser-cache/4.7.0_nhznfxrlclsvs4aen6pcdf2xd4:
+    /@envelop/parser-cache/5.0.4_j6i6lclrzilzz6orexmuccsxju:
         resolution:
             {
-                integrity: sha512-63NfXDcW/vGn4U6NFxaZ0JbYWAcJb9A6jhTvghsSz1ZS+Dny/ci8bVSgVmM1q+N56hPyGsVPuyI+rIc71mPU5g==,
+                integrity: sha512-+kp6nzCVLYI2WQExQcE3FSy6n9ZGB5GYi+ntyjYdxaXU41U1f8RVwiLdyh0Ewn5D/s/zaLin09xkFKITVSAKDw==,
             }
         peerDependencies:
-            '@envelop/core': ^2.6.0
+            '@envelop/core': ^3.0.4
             graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
         dependencies:
-            '@envelop/core': 2.6.0_graphql@15.8.0
+            '@envelop/core': 3.0.4
             graphql: 15.8.0
             lru-cache: 6.0.0
             tslib: 2.4.1
-        dev: true
+        dev: false
 
-    /@envelop/types/2.4.0_graphql@15.8.0:
+    /@envelop/types/3.0.1:
         resolution:
             {
-                integrity: sha512-pjxS98cDQBS84X29VcwzH3aJ/KiLCGwyMxuj7/5FkdiaCXAD1JEvKEj9LARWlFYj1bY43uII4+UptFebrhiIaw==,
+                integrity: sha512-Ok62K1K+rlS+wQw77k8Pis8+1/h7+/9Wk5Fgcc2U6M5haEWsLFAHcHsk8rYlnJdEUl2Y3yJcCSOYbt1dyTaU5w==,
             }
-        peerDependencies:
-            graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
         dependencies:
-            graphql: 15.8.0
-            tslib: 2.4.1
-        dev: true
-
-    /@envelop/types/2.4.0_graphql@16.6.0:
-        resolution:
-            {
-                integrity: sha512-pjxS98cDQBS84X29VcwzH3aJ/KiLCGwyMxuj7/5FkdiaCXAD1JEvKEj9LARWlFYj1bY43uII4+UptFebrhiIaw==,
-            }
-        peerDependencies:
-            graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
-        dependencies:
-            graphql: 16.6.0
             tslib: 2.4.1
         dev: false
 
-    /@envelop/validation-cache/4.7.0_4hr55tbjlvoppd2sokdhrbpreq:
+    /@envelop/validation-cache/5.0.5_a6sekiasy2tqr6d5gj7n2wtjli:
         resolution:
             {
-                integrity: sha512-PzL+GfWJRT+JjsJqZAIxHKEkvkM3hxkeytS5O0QLXT8kURNBV28r+Kdnn2RCF5+6ILhyGpiDb60vaquBi7g4lw==,
+                integrity: sha512-69sq5H7hvxE+7VV60i0bgnOiV1PX9GEJHKrBrVvyEZAXqYojKO3DP9jnLGryiPgVaBjN5yw12ge0l0s2gXbolQ==,
             }
         peerDependencies:
-            '@envelop/core': ^2.6.0
+            '@envelop/core': ^3.0.4
             graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
         dependencies:
-            '@envelop/core': 2.6.0_graphql@16.6.0
+            '@envelop/core': 3.0.4
             graphql: 16.6.0
             lru-cache: 6.0.0
             tslib: 2.4.1
         dev: false
 
-    /@envelop/validation-cache/4.7.0_nhznfxrlclsvs4aen6pcdf2xd4:
+    /@envelop/validation-cache/5.0.5_j6i6lclrzilzz6orexmuccsxju:
         resolution:
             {
-                integrity: sha512-PzL+GfWJRT+JjsJqZAIxHKEkvkM3hxkeytS5O0QLXT8kURNBV28r+Kdnn2RCF5+6ILhyGpiDb60vaquBi7g4lw==,
+                integrity: sha512-69sq5H7hvxE+7VV60i0bgnOiV1PX9GEJHKrBrVvyEZAXqYojKO3DP9jnLGryiPgVaBjN5yw12ge0l0s2gXbolQ==,
             }
         peerDependencies:
-            '@envelop/core': ^2.6.0
+            '@envelop/core': ^3.0.4
             graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
         dependencies:
-            '@envelop/core': 2.6.0_graphql@15.8.0
+            '@envelop/core': 3.0.4
             graphql: 15.8.0
             lru-cache: 6.0.0
             tslib: 2.4.1
-        dev: true
+        dev: false
 
     /@esbuild/android-arm/0.15.18:
         resolution:
@@ -1706,6 +1677,38 @@ packages:
         transitivePeerDependencies:
             - supports-color
 
+    /@graphql-tools/executor/0.0.12_graphql@15.8.0:
+        resolution:
+            {
+                integrity: sha512-bWpZcYRo81jDoTVONTnxS9dDHhEkNVjxzvFCH4CRpuyzD3uL+5w3MhtxIh24QyWm4LvQ4f+Bz3eMV2xU2I5+FA==,
+            }
+        peerDependencies:
+            graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
+        dependencies:
+            '@graphql-tools/utils': 9.1.4_graphql@15.8.0
+            '@graphql-typed-document-node/core': 3.1.1_graphql@15.8.0
+            '@repeaterjs/repeater': 3.0.4
+            graphql: 15.8.0
+            tslib: 2.4.1
+            value-or-promise: 1.0.12
+        dev: false
+
+    /@graphql-tools/executor/0.0.12_graphql@16.6.0:
+        resolution:
+            {
+                integrity: sha512-bWpZcYRo81jDoTVONTnxS9dDHhEkNVjxzvFCH4CRpuyzD3uL+5w3MhtxIh24QyWm4LvQ4f+Bz3eMV2xU2I5+FA==,
+            }
+        peerDependencies:
+            graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
+        dependencies:
+            '@graphql-tools/utils': 9.1.4_graphql@16.6.0
+            '@graphql-typed-document-node/core': 3.1.1_graphql@16.6.0
+            '@repeaterjs/repeater': 3.0.4
+            graphql: 16.6.0
+            tslib: 2.4.1
+            value-or-promise: 1.0.12
+        dev: false
+
     /@graphql-tools/merge/8.3.14_graphql@15.8.0:
         resolution:
             {
@@ -1717,6 +1720,7 @@ packages:
             '@graphql-tools/utils': 9.1.3_graphql@15.8.0
             graphql: 15.8.0
             tslib: 2.4.1
+        dev: false
 
     /@graphql-tools/merge/8.3.14_graphql@16.6.0:
         resolution:
@@ -1744,6 +1748,7 @@ packages:
             graphql: 15.8.0
             tslib: 2.4.1
             value-or-promise: 1.0.11
+        dev: false
 
     /@graphql-tools/schema/9.0.12_graphql@16.6.0:
         resolution:
@@ -1760,30 +1765,6 @@ packages:
             value-or-promise: 1.0.11
         dev: false
 
-    /@graphql-tools/utils/8.13.1_graphql@15.8.0:
-        resolution:
-            {
-                integrity: sha512-qIh9yYpdUFmctVqovwMdheVNJqFh+DQNWIhX87FJStfXYnmweBUDATok9fWPleKeFwxnW8IapKmY8m8toJEkAw==,
-            }
-        peerDependencies:
-            graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
-        dependencies:
-            graphql: 15.8.0
-            tslib: 2.4.1
-        dev: true
-
-    /@graphql-tools/utils/8.13.1_graphql@16.6.0:
-        resolution:
-            {
-                integrity: sha512-qIh9yYpdUFmctVqovwMdheVNJqFh+DQNWIhX87FJStfXYnmweBUDATok9fWPleKeFwxnW8IapKmY8m8toJEkAw==,
-            }
-        peerDependencies:
-            graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
-        dependencies:
-            graphql: 16.6.0
-            tslib: 2.4.1
-        dev: false
-
     /@graphql-tools/utils/9.1.3_graphql@15.8.0:
         resolution:
             {
@@ -1794,11 +1775,36 @@ packages:
         dependencies:
             graphql: 15.8.0
             tslib: 2.4.1
+        dev: false
 
     /@graphql-tools/utils/9.1.3_graphql@16.6.0:
         resolution:
             {
                 integrity: sha512-bbJyKhs6awp1/OmP+WKA1GOyu9UbgZGkhIj5srmiMGLHohEOKMjW784Sk0BZil1w2x95UPu0WHw6/d/HVCACCg==,
+            }
+        peerDependencies:
+            graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
+        dependencies:
+            graphql: 16.6.0
+            tslib: 2.4.1
+        dev: false
+
+    /@graphql-tools/utils/9.1.4_graphql@15.8.0:
+        resolution:
+            {
+                integrity: sha512-hgIeLt95h9nQgQuzbbdhuZmh+8WV7RZ/6GbTj6t3IU4Zd2zs9yYJ2jgW/krO587GMOY8zCwrjNOMzD40u3l7Vg==,
+            }
+        peerDependencies:
+            graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
+        dependencies:
+            graphql: 15.8.0
+            tslib: 2.4.1
+        dev: false
+
+    /@graphql-tools/utils/9.1.4_graphql@16.6.0:
+        resolution:
+            {
+                integrity: sha512-hgIeLt95h9nQgQuzbbdhuZmh+8WV7RZ/6GbTj6t3IU4Zd2zs9yYJ2jgW/krO587GMOY8zCwrjNOMzD40u3l7Vg==,
             }
         peerDependencies:
             graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
@@ -1816,7 +1822,7 @@ packages:
             graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
         dependencies:
             graphql: 15.8.0
-        dev: true
+        dev: false
 
     /@graphql-typed-document-node/core/3.1.1_graphql@16.6.0:
         resolution:
@@ -1829,108 +1835,27 @@ packages:
             graphql: 16.6.0
         dev: false
 
-    /@graphql-yoga/common/2.12.12_graphql@15.8.0:
+    /@graphql-yoga/subscription/3.1.0:
         resolution:
             {
-                integrity: sha512-La2ygIw2qlIJZrRGT4nW70Nam7gQ2xZkOn0FDCnKWSJhQ4nHw4aFAkeHIJdZGK0u2TqtXRrNSAj5cb/TZoqUiQ==,
-            }
-        peerDependencies:
-            graphql: ^15.2.0 || ^16.0.0
-        dependencies:
-            '@envelop/core': 2.6.0_graphql@15.8.0
-            '@envelop/parser-cache': 4.7.0_nhznfxrlclsvs4aen6pcdf2xd4
-            '@envelop/validation-cache': 4.7.0_nhznfxrlclsvs4aen6pcdf2xd4
-            '@graphql-tools/schema': 9.0.12_graphql@15.8.0
-            '@graphql-tools/utils': 8.13.1_graphql@15.8.0
-            '@graphql-typed-document-node/core': 3.1.1_graphql@15.8.0
-            '@graphql-yoga/subscription': 2.2.3
-            '@whatwg-node/fetch': 0.3.2
-            dset: 3.1.2
-            graphql: 15.8.0
-            tslib: 2.4.1
-        transitivePeerDependencies:
-            - encoding
-        dev: true
-
-    /@graphql-yoga/common/2.12.12_graphql@16.6.0:
-        resolution:
-            {
-                integrity: sha512-La2ygIw2qlIJZrRGT4nW70Nam7gQ2xZkOn0FDCnKWSJhQ4nHw4aFAkeHIJdZGK0u2TqtXRrNSAj5cb/TZoqUiQ==,
-            }
-        peerDependencies:
-            graphql: ^15.2.0 || ^16.0.0
-        dependencies:
-            '@envelop/core': 2.6.0_graphql@16.6.0
-            '@envelop/parser-cache': 4.7.0_4hr55tbjlvoppd2sokdhrbpreq
-            '@envelop/validation-cache': 4.7.0_4hr55tbjlvoppd2sokdhrbpreq
-            '@graphql-tools/schema': 9.0.12_graphql@16.6.0
-            '@graphql-tools/utils': 8.13.1_graphql@16.6.0
-            '@graphql-typed-document-node/core': 3.1.1_graphql@16.6.0
-            '@graphql-yoga/subscription': 2.2.3
-            '@whatwg-node/fetch': 0.3.2
-            dset: 3.1.2
-            graphql: 16.6.0
-            tslib: 2.4.1
-        transitivePeerDependencies:
-            - encoding
-        dev: false
-
-    /@graphql-yoga/node/2.13.13_graphql@15.8.0:
-        resolution:
-            {
-                integrity: sha512-3NmdEq3BkuVLRbo5yUi401sBiwowSKgY8O1DN1RwYdHRr0nu2dXzlYEETf4XLymyP6mKsVfQgsy7HQjwsc1oNw==,
-            }
-        peerDependencies:
-            graphql: ^15.2.0 || ^16.0.0
-        dependencies:
-            '@envelop/core': 2.6.0_graphql@15.8.0
-            '@graphql-tools/utils': 8.13.1_graphql@15.8.0
-            '@graphql-yoga/common': 2.12.12_graphql@15.8.0
-            '@graphql-yoga/subscription': 2.2.3
-            '@whatwg-node/fetch': 0.3.2
-            graphql: 15.8.0
-            tslib: 2.4.1
-        transitivePeerDependencies:
-            - encoding
-        dev: true
-
-    /@graphql-yoga/node/2.13.13_graphql@16.6.0:
-        resolution:
-            {
-                integrity: sha512-3NmdEq3BkuVLRbo5yUi401sBiwowSKgY8O1DN1RwYdHRr0nu2dXzlYEETf4XLymyP6mKsVfQgsy7HQjwsc1oNw==,
-            }
-        peerDependencies:
-            graphql: ^15.2.0 || ^16.0.0
-        dependencies:
-            '@envelop/core': 2.6.0_graphql@16.6.0
-            '@graphql-tools/utils': 8.13.1_graphql@16.6.0
-            '@graphql-yoga/common': 2.12.12_graphql@16.6.0
-            '@graphql-yoga/subscription': 2.2.3
-            '@whatwg-node/fetch': 0.3.2
-            graphql: 16.6.0
-            tslib: 2.4.1
-        transitivePeerDependencies:
-            - encoding
-        dev: false
-
-    /@graphql-yoga/subscription/2.2.3:
-        resolution:
-            {
-                integrity: sha512-It/Dfh+nW2ClTtmOylAa+o7fbKIRYRTH6jfKLj3YB75tkv/rFZ70bjlChDCrEMa46I+zDMg7+cdkrQOXov2fDg==,
+                integrity: sha512-Vc9lh8KzIHyS3n4jBlCbz7zCjcbtQnOBpsymcRvHhFr2cuH+knmRn0EmzimMQ58jQ8kxoRXXC3KJS3RIxSdPIg==,
             }
         dependencies:
-            '@graphql-yoga/typed-event-target': 0.1.1
+            '@graphql-yoga/typed-event-target': 1.0.0
             '@repeaterjs/repeater': 3.0.4
+            '@whatwg-node/events': 0.0.2
             tslib: 2.4.1
+        dev: false
 
-    /@graphql-yoga/typed-event-target/0.1.1:
+    /@graphql-yoga/typed-event-target/1.0.0:
         resolution:
             {
-                integrity: sha512-l23kLKHKhfD7jmv4OUlzxMTihSqgIjGWCSb0KdlLkeiaF2jjuo8pRhX200hFTrtjRHGSYS1fx2lltK/xWci+vw==,
+                integrity: sha512-Mqni6AEvl3VbpMtKw+TIjc9qS9a8hKhiAjFtqX488yq5oJtj9TkNlFTIacAVS3vnPiswNsmDiQqvwUOcJgi1DA==,
             }
         dependencies:
             '@repeaterjs/repeater': 3.0.4
             tslib: 2.4.1
+        dev: false
 
     /@humanwhocodes/config-array/0.11.8:
         resolution:
@@ -2364,6 +2289,7 @@ packages:
             asn1js: 3.0.5
             pvtsutils: 1.3.2
             tslib: 2.4.1
+        dev: false
 
     /@peculiar/json-schema/1.1.12:
         resolution:
@@ -2373,6 +2299,7 @@ packages:
         engines: { node: '>=8.0.0' }
         dependencies:
             tslib: 2.4.1
+        dev: false
 
     /@peculiar/webcrypto/1.4.1:
         resolution:
@@ -2386,6 +2313,7 @@ packages:
             pvtsutils: 1.3.2
             tslib: 2.4.1
             webcrypto-core: 1.7.5
+        dev: false
 
     /@pkgr/utils/2.3.1:
         resolution:
@@ -2425,6 +2353,7 @@ packages:
             {
                 integrity: sha512-AW8PKd6iX3vAZ0vA43nOUOnbq/X5ihgU+mSXXqunMkeQADGiqw/PY0JNeYtD5sr0PAy51YPgAPbDoeapv9r8WA==,
             }
+        dev: false
 
     /@rollup/pluginutils/4.2.1:
         resolution:
@@ -2457,7 +2386,7 @@ packages:
         peerDependencies:
             '@sveltejs/kit': ^1.0.0
         dependencies:
-            '@sveltejs/kit': 1.0.0_svelte@3.55.0+vite@4.0.1
+            '@sveltejs/kit': 1.0.0_svelte@3.55.0+vite@4.0.4
             import-meta-resolve: 2.2.0
         dev: true
 
@@ -2469,7 +2398,7 @@ packages:
         peerDependencies:
             '@sveltejs/kit': ^1.0.0
         dependencies:
-            '@sveltejs/kit': 1.0.0_svelte@3.55.0+vite@4.0.1
+            '@sveltejs/kit': 1.0.0_svelte@3.55.0+vite@4.0.4
             '@vercel/nft': 0.22.6
             esbuild: 0.16.7
         transitivePeerDependencies:
@@ -2506,6 +2435,38 @@ packages:
             vite: 4.0.1
         transitivePeerDependencies:
             - supports-color
+        dev: false
+
+    /@sveltejs/kit/1.0.0_svelte@3.55.0+vite@4.0.4:
+        resolution:
+            {
+                integrity: sha512-6VgD5C3i2XOT7GRBi5LaPPLiFAmpiDkhKJNVt8fLg1RmaL6f7rT4Kiwi2XGpYRj3V1F4t1QRdsfmAkkDUKY3OA==,
+            }
+        engines: { node: '>=16.14' }
+        hasBin: true
+        requiresBuild: true
+        peerDependencies:
+            svelte: ^3.54.0
+            vite: ^4.0.0
+        dependencies:
+            '@sveltejs/vite-plugin-svelte': 2.0.2_svelte@3.55.0+vite@4.0.4
+            '@types/cookie': 0.5.1
+            cookie: 0.5.0
+            devalue: 4.2.0
+            esm-env: 1.0.0
+            kleur: 4.1.5
+            magic-string: 0.27.0
+            mime: 3.0.0
+            sade: 1.8.1
+            set-cookie-parser: 2.5.1
+            sirv: 2.0.2
+            svelte: 3.55.0
+            tiny-glob: 0.2.9
+            undici: 5.14.0
+            vite: 4.0.4
+        transitivePeerDependencies:
+            - supports-color
+        dev: true
 
     /@sveltejs/vite-plugin-svelte/2.0.2_svelte@3.55.0+vite@4.0.1:
         resolution:
@@ -2527,6 +2488,29 @@ packages:
             vitefu: 0.2.3_vite@4.0.1
         transitivePeerDependencies:
             - supports-color
+        dev: false
+
+    /@sveltejs/vite-plugin-svelte/2.0.2_svelte@3.55.0+vite@4.0.4:
+        resolution:
+            {
+                integrity: sha512-xCEan0/NNpQuL0l5aS42FjwQ6wwskdxC3pW1OeFtEKNZwRg7Evro9lac9HesGP6TdFsTv2xMes5ASQVKbCacxg==,
+            }
+        engines: { node: ^14.18.0 || >= 16 }
+        peerDependencies:
+            svelte: ^3.54.0
+            vite: ^4.0.0
+        dependencies:
+            debug: 4.3.4
+            deepmerge: 4.2.2
+            kleur: 4.1.5
+            magic-string: 0.27.0
+            svelte: 3.55.0
+            svelte-hmr: 0.15.1_svelte@3.55.0
+            vite: 4.0.4
+            vitefu: 0.2.3_vite@4.0.4
+        transitivePeerDependencies:
+            - supports-color
+        dev: true
 
     /@swc/helpers/0.4.14:
         resolution:
@@ -3143,23 +3127,46 @@ packages:
             }
         dev: true
 
-    /@whatwg-node/fetch/0.3.2:
+    /@whatwg-node/events/0.0.2:
         resolution:
             {
-                integrity: sha512-Bs5zAWQs0tXsLa4mRmLw7Psps1EN78vPtgcLpw3qPY8s6UYPUM67zFZ9cy+7tZ64PXhfwzxJn+m7RH2Lq48RNQ==,
+                integrity: sha512-WKj/lI4QjnLuPrim0cfO7i+HsDSXHxNv1y0CrJhdntuO3hxWZmnXCwNDnwOvry11OjRin6cgWNF+j/9Pn8TN4w==,
+            }
+        dev: false
+
+    /@whatwg-node/fetch/0.6.2:
+        resolution:
+            {
+                integrity: sha512-fCUycF1W+bI6XzwJFnbdDuxIldfKM3w8+AzVCLGlucm0D+AQ8ZMm2j84hdcIhfV6ZdE4Y1HFVrHosAxdDZ+nPw==,
             }
         dependencies:
             '@peculiar/webcrypto': 1.4.1
             abort-controller: 3.0.0
             busboy: 1.6.0
-            event-target-polyfill: 0.0.3
             form-data-encoder: 1.7.2
             formdata-node: 4.4.1
             node-fetch: 2.6.7
             undici: 5.14.0
+            urlpattern-polyfill: 6.0.2
             web-streams-polyfill: 3.2.1
         transitivePeerDependencies:
             - encoding
+        dev: false
+
+    /@whatwg-node/server/0.5.8_@types+node@18.11.15:
+        resolution:
+            {
+                integrity: sha512-29f2Ijk663Hr6hF5GU5a8ELGQVbNMMDBWF1lTdpIKGyLrLJTKixarp6COEyEN5H9tGzIRUQar9Z76A+Jb9DyzQ==,
+            }
+        peerDependencies:
+            '@types/node': ^18.0.6
+        dependencies:
+            '@types/node': 18.11.15
+            '@whatwg-node/fetch': 0.6.2
+            tslib: 2.4.1
+        transitivePeerDependencies:
+            - encoding
+        dev: false
 
     /abbrev/1.1.1:
         resolution:
@@ -3176,6 +3183,7 @@ packages:
         engines: { node: '>=6.5' }
         dependencies:
             event-target-shim: 5.0.1
+        dev: false
 
     /acorn-jsx/5.3.2_acorn@8.8.1:
         resolution:
@@ -3432,6 +3440,7 @@ packages:
             pvtsutils: 1.3.2
             pvutils: 1.1.3
             tslib: 2.4.1
+        dev: false
 
     /assert/2.0.0:
         resolution:
@@ -4916,6 +4925,7 @@ packages:
                 integrity: sha512-g/M9sqy3oHe477Ar4voQxWtaPIFw1jTdKZuomOjhCcBx9nHUNn0pu6NopuFFrTh/TRZIKEj+76vLWFu9BNKk+Q==,
             }
         engines: { node: '>=4' }
+        dev: false
 
     /eastasianwidth/0.2.0:
         resolution:
@@ -5977,18 +5987,13 @@ packages:
             }
         engines: { node: '>=0.10.0' }
 
-    /event-target-polyfill/0.0.3:
-        resolution:
-            {
-                integrity: sha512-ZMc6UuvmbinrCk4RzGyVmRyIsAyxMRlp4CqSrcQRO8Dy0A9ldbiRy5kdtBj4OtP7EClGdqGfIqo9JmOClMsGLQ==,
-            }
-
     /event-target-shim/5.0.1:
         resolution:
             {
                 integrity: sha512-i/2XbnSz/uxRCU6+NdVJgKWDTM427+MqYbkQzD321DuCQJUqOuJKIA0IM2+W2xtYHdKOmZ4dR6fExsd4SXL+WQ==,
             }
         engines: { node: '>=6' }
+        dev: false
 
     /execa/5.1.1:
         resolution:
@@ -6269,6 +6274,7 @@ packages:
             {
                 integrity: sha512-qfqtYan3rxrnCk1VYaA4H+Ms9xdpPqvLZa6xmMgFvhO32x7/3J/ExcTd6qpxM0vH2GdMI+poehyBZvqfMTto8A==,
             }
+        dev: false
 
     /formdata-node/4.4.1:
         resolution:
@@ -6279,6 +6285,7 @@ packages:
         dependencies:
             node-domexception: 1.0.0
             web-streams-polyfill: 4.0.0-beta.3
+        dev: false
 
     /formdata-polyfill/4.0.10:
         resolution:
@@ -6675,6 +6682,56 @@ packages:
             graphql: '>=0.11 <=16'
         dependencies:
             graphql: 16.6.0
+        dev: false
+
+    /graphql-yoga/3.4.0_graphql@15.8.0:
+        resolution:
+            {
+                integrity: sha512-Cjx60mmpoK1qL/sLdM285VdAOQyJBKLuC6oMZrfO8QleneNtu0nDOM6Efv5m0IrRYSONEMtIYA7eNr0u/cCBfg==,
+            }
+        peerDependencies:
+            graphql: ^15.2.0 || ^16.0.0
+        dependencies:
+            '@envelop/core': 3.0.4
+            '@envelop/parser-cache': 5.0.4_j6i6lclrzilzz6orexmuccsxju
+            '@envelop/validation-cache': 5.0.5_j6i6lclrzilzz6orexmuccsxju
+            '@graphql-tools/executor': 0.0.12_graphql@15.8.0
+            '@graphql-tools/schema': 9.0.12_graphql@15.8.0
+            '@graphql-tools/utils': 9.1.3_graphql@15.8.0
+            '@graphql-yoga/subscription': 3.1.0
+            '@types/node': 18.11.15
+            '@whatwg-node/fetch': 0.6.2
+            '@whatwg-node/server': 0.5.8_@types+node@18.11.15
+            dset: 3.1.2
+            graphql: 15.8.0
+            tslib: 2.4.1
+        transitivePeerDependencies:
+            - encoding
+        dev: false
+
+    /graphql-yoga/3.4.0_graphql@16.6.0:
+        resolution:
+            {
+                integrity: sha512-Cjx60mmpoK1qL/sLdM285VdAOQyJBKLuC6oMZrfO8QleneNtu0nDOM6Efv5m0IrRYSONEMtIYA7eNr0u/cCBfg==,
+            }
+        peerDependencies:
+            graphql: ^15.2.0 || ^16.0.0
+        dependencies:
+            '@envelop/core': 3.0.4
+            '@envelop/parser-cache': 5.0.4_a6sekiasy2tqr6d5gj7n2wtjli
+            '@envelop/validation-cache': 5.0.5_a6sekiasy2tqr6d5gj7n2wtjli
+            '@graphql-tools/executor': 0.0.12_graphql@16.6.0
+            '@graphql-tools/schema': 9.0.12_graphql@16.6.0
+            '@graphql-tools/utils': 9.1.3_graphql@16.6.0
+            '@graphql-yoga/subscription': 3.1.0
+            '@types/node': 18.11.15
+            '@whatwg-node/fetch': 0.6.2
+            '@whatwg-node/server': 0.5.8_@types+node@18.11.15
+            dset: 3.1.2
+            graphql: 16.6.0
+            tslib: 2.4.1
+        transitivePeerDependencies:
+            - encoding
         dev: false
 
     /graphql/15.8.0:
@@ -8332,6 +8389,7 @@ packages:
                 integrity: sha512-/jKZoMpw0F8GRwl4/eLROPA3cfcXtLApP0QzLmUT/HuPCZWyB7IY9ZrMeKw2O/nFIqPQB3PVM9aYm0F312AXDQ==,
             }
         engines: { node: '>=10.5.0' }
+        dev: false
 
     /node-fetch/2.6.7:
         resolution:
@@ -9077,6 +9135,7 @@ packages:
             }
         dependencies:
             tslib: 2.4.1
+        dev: false
 
     /pvutils/1.1.3:
         resolution:
@@ -9084,6 +9143,7 @@ packages:
                 integrity: sha512-pMpnA0qRdFp32b1sJl1wOJNxZLQ2cbQx+k6tjNtZ8CpvVhNqEPRgivZ2WOUev2YMajecdH7ctUPDvEe87nariQ==,
             }
         engines: { node: '>=6.0.0' }
+        dev: false
 
     /query-string/6.0.0:
         resolution:
@@ -10565,6 +10625,7 @@ packages:
             {
                 integrity: sha512-d6xOpEDfsi2CZVlPQzGeux8XMwLT9hssAsaPYExaQMuYskwb+x1x7J371tWlbBdWHroy99KnVB6qIkUbs5X3UQ==,
             }
+        dev: false
 
     /tslib/2.4.1:
         resolution:
@@ -10971,6 +11032,15 @@ packages:
         dependencies:
             punycode: 2.1.1
 
+    /urlpattern-polyfill/6.0.2:
+        resolution:
+            {
+                integrity: sha512-5vZjFlH9ofROmuWmXM9yj2wljYKgWstGwe8YTyiqM7hVum/g9LyCizPZtb3UqsuppVwety9QJmfc42VggLpTgg==,
+            }
+        dependencies:
+            braces: 3.0.2
+        dev: false
+
     /util-deprecate/1.0.2:
         resolution:
             {
@@ -11033,6 +11103,15 @@ packages:
                 integrity: sha512-41BrgH+dIbCFXClcSapVs5M6GkENd3gQOJpEfPDNa71LsUGMXDL0jMWpI/Rh7WhX+Aalfz2TTS3Zt5pUsbnhLg==,
             }
         engines: { node: '>=12' }
+        dev: false
+
+    /value-or-promise/1.0.12:
+        resolution:
+            {
+                integrity: sha512-Z6Uz+TYwEqE7ZN50gwn+1LCVo9ZVrpxRPOhOLnncYkY1ZzOYtrX8Fwf/rFktZ8R5mJms6EZf5TqNOMeZmnPq9Q==,
+            }
+        engines: { node: '>=12' }
+        dev: false
 
     /vfile-location/3.2.0:
         resolution:
@@ -11097,7 +11176,7 @@ packages:
             terser: 5.16.1
         dev: true
 
-    /vite-plugin-replace/0.1.1_vite@4.0.1:
+    /vite-plugin-replace/0.1.1_vite@4.0.4:
         resolution:
             {
                 integrity: sha512-v+okl3JNt2pf1jDYijw+WPVt6h9FWa/atTi+qnSFBqmKThLTDhlesx0r3bh+oFPmxRJmis5tNx9HtN6lGFoqWg==,
@@ -11105,7 +11184,7 @@ packages:
         peerDependencies:
             vite: ^2
         dependencies:
-            vite: 4.0.1
+            vite: 4.0.4
         dev: false
 
     /vite-plugin-watch-and-run/1.1.0:
@@ -11189,11 +11268,47 @@ packages:
             rollup: 3.7.4
         optionalDependencies:
             fsevents: 2.3.2
+        dev: false
 
-    /vite/4.0.1_@types+node@18.11.15:
+    /vite/4.0.4:
         resolution:
             {
-                integrity: sha512-kZQPzbDau35iWOhy3CpkrRC7It+HIHtulAzBhMqzGHKRf/4+vmh8rPDDdv98SWQrFWo6//3ozwsRmwQIPZsK9g==,
+                integrity: sha512-xevPU7M8FU0i/80DMR+YhgrzR5KS2ORy1B4xcX/cXLsvnUWvfHuqMmVU6N0YiJ4JWGRJJsLCgjEzKjG9/GKoSw==,
+            }
+        engines: { node: ^14.18.0 || >=16.0.0 }
+        hasBin: true
+        peerDependencies:
+            '@types/node': '>= 14'
+            less: '*'
+            sass: '*'
+            stylus: '*'
+            sugarss: '*'
+            terser: ^5.4.0
+        peerDependenciesMeta:
+            '@types/node':
+                optional: true
+            less:
+                optional: true
+            sass:
+                optional: true
+            stylus:
+                optional: true
+            sugarss:
+                optional: true
+            terser:
+                optional: true
+        dependencies:
+            esbuild: 0.16.7
+            postcss: 8.4.20
+            resolve: 1.22.1
+            rollup: 3.7.4
+        optionalDependencies:
+            fsevents: 2.3.2
+
+    /vite/4.0.4_@types+node@18.11.15:
+        resolution:
+            {
+                integrity: sha512-xevPU7M8FU0i/80DMR+YhgrzR5KS2ORy1B4xcX/cXLsvnUWvfHuqMmVU6N0YiJ4JWGRJJsLCgjEzKjG9/GKoSw==,
             }
         engines: { node: ^14.18.0 || >=16.0.0 }
         hasBin: true
@@ -11239,6 +11354,21 @@ packages:
                 optional: true
         dependencies:
             vite: 4.0.1
+        dev: false
+
+    /vitefu/0.2.3_vite@4.0.4:
+        resolution:
+            {
+                integrity: sha512-75l7TTuU8isAhz1QFtNKjDkqjxvndfMC1AfIMjJ0ZQ59ZD0Ow9QOIsJJX16Wv9PS8f+zMzp6fHy5cCbKG/yVUQ==,
+            }
+        peerDependencies:
+            vite: ^3.0.0 || ^4.0.0
+        peerDependenciesMeta:
+            vite:
+                optional: true
+        dependencies:
+            vite: 4.0.4
+        dev: true
 
     /vitest/0.23.4:
         resolution:
@@ -11309,6 +11439,7 @@ packages:
                 integrity: sha512-e0MO3wdXWKrLbL0DgGnUV7WHVuw9OUvL4hjgnPkIeEvESk74gAITi5G606JtZPp39cd8HA9VQzCIvA49LpPN5Q==,
             }
         engines: { node: '>= 8' }
+        dev: false
 
     /web-streams-polyfill/4.0.0-beta.3:
         resolution:
@@ -11316,6 +11447,7 @@ packages:
                 integrity: sha512-QW95TCTaHmsYfHDybGMwO5IJIM93I/6vTRk+daHTWFPhwh+C8Cg7j7XyKrwrj8Ib6vYXe0ocYNrmzY4xAAN6ug==,
             }
         engines: { node: '>= 14' }
+        dev: false
 
     /webcrypto-core/1.7.5:
         resolution:
@@ -11328,6 +11460,7 @@ packages:
             asn1js: 3.0.5
             pvtsutils: 1.3.2
             tslib: 2.4.1
+        dev: false
 
     /webidl-conversions/3.0.1:
         resolution:
@@ -11496,6 +11629,7 @@ packages:
                 optional: true
             utf-8-validate:
                 optional: true
+        dev: false
 
     /xtend/4.0.2:
         resolution:

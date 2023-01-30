@@ -36,8 +36,8 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-svelte3": "^4.0.0",
     "houdini": "workspace:^",
-    "houdini-svelte": "workspace:^",
     "houdini-plugin-svelte-global-stores": "workspace:^",
+    "houdini-svelte": "workspace:^",
     "prettier": "^2.5.1",
     "prettier-plugin-svelte": "^2.5.0",
     "svelte": "3.55.0",
@@ -45,7 +45,7 @@
     "svelte-preprocess": "^5.0.0",
     "tslib": "^2.3.1",
     "typescript": "^4.9",
-    "vite": "^4.0.1",
+    "vite": "^4.0.4",
     "vite-plugin-lib-reporter": "^0.0.6"
   }
 }

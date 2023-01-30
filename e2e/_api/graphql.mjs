@@ -1,15 +1,19 @@
-import { GraphQLYogaError } from '@graphql-yoga/node'
 import { sleep } from '@kitql/helper'
 import fs from 'fs-extra'
+import { GraphQLError } from 'graphql'
 import { GraphQLScalarType, Kind } from 'graphql'
 import path from 'path'
 
 import { connectionFromArray } from './util.mjs'
 
-const sourceFiles = ['../_api/schema.graphql', '../_api/schema-hello.graphql']
-export const typeDefs = sourceFiles.map((filepath) =>
-	fs.readFileSync(path.resolve(filepath), 'utf-8')
-)
+const sourceFiles = ['schema.graphql', 'schema-hello.graphql']
+export const typeDefs = sourceFiles.map((filepath) => {
+	let filepathToUse = path.join('.', filepath)
+	if (!fs.existsSync(filepathToUse)) {
+		filepathToUse = path.join('../_api', filepath)
+	}
+	return fs.readFileSync(path.resolve(filepathToUse), 'utf-8')
+})
 
 // Example Cities/Libraries/Books data
 // Assume a traditional relational database for storage - each table with unique ID.
@@ -114,7 +118,7 @@ export const resolvers = {
 			if (token) {
 				return token
 			}
-			throw new GraphQLYogaError('No authorization found', { code: 403 })
+			throw new GraphQLError('No authorization found', { code: 403 })
 		},
 		usersConnection(_, args) {
 			return connectionFromArray(getSnapshot(args.snapshot), args)
@@ -134,7 +138,7 @@ export const resolvers = {
 			}
 
 			if (!user) {
-				throw new GraphQLYogaError('User not found', { code: 404 })
+				throw new GraphQLError('User not found', { code: 404 })
 			}
 			return user
 		},
@@ -220,7 +224,7 @@ export const resolvers = {
 			const list = getSnapshot(args.snapshot)
 			const userIndex = list.findIndex((c) => c.id === `${args.snapshot}:${args.id}`)
 			if (userIndex === -1) {
-				throw new GraphQLYogaError('User not found', { code: 404 })
+				throw new GraphQLError('User not found', { code: 404 })
 			}
 			if (args.birthDate) {
 				list[userIndex].birthDate = args.birthDate
@@ -235,7 +239,7 @@ export const resolvers = {
 				let data = await processFile(file)
 				return data
 			} catch (e) {}
-			throw new GraphQLYogaError('ERROR', { code: 500 })
+			throw new GraphQLError('ERROR', { code: 500 })
 		},
 		multipleUpload: async (_, { files }) => {
 			let res = []
@@ -244,7 +248,7 @@ export const resolvers = {
 					let data = await processFile(files[i])
 					res.push(data)
 				} catch (e) {
-					throw new GraphQLYogaError('ERROR', { code: 500 })
+					throw new GraphQLError('ERROR', { code: 500 })
 				}
 			}
 			return res
@@ -263,7 +267,7 @@ export const resolvers = {
 			const cityId = Number.parseInt(args.city)
 			const city = cities.find((city) => city.id === cityId)
 			if (!city) {
-				throw new GraphQLYogaError('City not found', { code: 404 })
+				throw new GraphQLError('City not found', { code: 404 })
 			}
 
 			const library = {
@@ -280,7 +284,7 @@ export const resolvers = {
 				city.libraries.find((library) => library.id === libraryId)
 			)
 			if (!city) {
-				throw new GraphQLYogaError('City/Library not found', { code: 404 })
+				throw new GraphQLError('City/Library not found', { code: 404 })
 			}
 			const library = city.libraries.find((library) => library.id === libraryId)
 
@@ -303,7 +307,7 @@ export const resolvers = {
 				city.libraries.find((library) => library.id === libraryId)
 			)
 			if (!city) {
-				throw new GraphQLYogaError('City/Library not found', { code: 404 })
+				throw new GraphQLError('City/Library not found', { code: 404 })
 			}
 			const library = city.libraries.find((library) => library.id === libraryId)
 			city.libraries = city.libraries.filter((library) => library.id !== libraryId)
@@ -315,7 +319,7 @@ export const resolvers = {
 				city.libraries.find((library) => library.books.find((book) => book.id === bookId))
 			)
 			if (!city) {
-				throw new GraphQLYogaError('City/Library/Book not found', { code: 404 })
+				throw new GraphQLError('City/Library/Book not found', { code: 404 })
 			}
 			const library = city.libraries.find((library) =>
 				library.books.find((book) => book.id === bookId)
