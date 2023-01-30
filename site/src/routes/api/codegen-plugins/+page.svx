@@ -168,7 +168,7 @@ Every pipeline begins with a common set of hooks that allow you to setup
 and configure the system. This can include loading environment variables or
 updating any configuration values.
 
-<SetupDiagram style="max-width: 350px; margin: 50px auto;" />
+<SetupDiagram style="max-width: 400px; margin: 50px auto;" />
 
 ### `order`
 
@@ -263,7 +263,7 @@ export default plugin('plugin_name', async () => {
 These hooks are responsibile for generating a list of filepaths and finding the GraphQL
 documents inside.
 
-<ExtractDiagram style="max-width: 500px; margin: 50px auto;"/>
+<ExtractDiagram style="max-width: 600px; margin: 50px auto;"/>
 
 ### `extensions`
 
@@ -406,7 +406,7 @@ export default plugin('plugin_name', async () => {
 These hooks are responsible for transforming and validating the documents in your application. If you want
 to add new definitions, you can add new documents to provided list.
 
-<ValidateDiagram style="max-width: 500px; margin: 50px auto;"/>
+<ValidateDiagram style="max-width: 400px; margin: 50px auto;"/>
 
 ### `beforeValidate`
 
