@@ -1,4 +1,4 @@
-import type { CollectedGraphQLDocument } from 'houdini'
+import type { Document } from 'houdini'
 import { fs, path } from 'houdini'
 import { mockCollectedDoc } from 'houdini/test'
 import * as recast from 'recast'
@@ -15,7 +15,7 @@ test('generates a query store for every query', async function () {
 	const plugin_root = config.pluginDirectory('test-plugin')
 
 	// the documents to test
-	const docs: CollectedGraphQLDocument[] = [
+	const docs: Document[] = [
 		mockCollectedDoc(`query TestQuery1 { version }`),
 		mockCollectedDoc(`query TestQuery2 { version }`),
 	]

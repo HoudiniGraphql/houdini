@@ -1,4 +1,4 @@
-import type { Config, CollectedGraphQLDocument } from 'houdini'
+import type { Config, Document } from 'houdini'
 import { HoudiniError } from 'houdini'
 
 import { store_name } from './kit'
@@ -9,7 +9,7 @@ export default async function validateDocuments({
 	documents,
 }: {
 	config: Config
-	documents: CollectedGraphQLDocument[]
+	documents: Document[]
 }): Promise<void> {
 	// all forbiddenNames
 	const forbiddenNames = [

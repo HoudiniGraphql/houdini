@@ -1,20 +1,10 @@
 import * as recast from 'recast'
 
-import {
-	fs,
-	path,
-	parseJS,
-	ensureImports,
-	type Config,
-	type CollectedGraphQLDocument,
-} from '../../../lib'
+import { fs, path, parseJS, ensureImports, type Config, type Document } from '../../../lib'
 
 const AST = recast.types.builders
 
-export default async function generateGraphqlReturnTypes(
-	config: Config,
-	docs: CollectedGraphQLDocument[]
-) {
+export default async function generateGraphqlReturnTypes(config: Config, docs: Document[]) {
 	// we need to find the index of the `export default function graphql` in the index.d.ts of the runtime
 	const indexPath = path.join(config.runtimeDirectory, 'index.d.ts')
 	const fileContent = (await fs.readFile(indexPath)) || ''

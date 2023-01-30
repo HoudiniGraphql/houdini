@@ -1,7 +1,7 @@
 import { logGreen, logYellow } from '@kitql/helper'
 import * as graphql from 'graphql'
 
-import type { Config, CollectedGraphQLDocument } from '../../lib'
+import type { Config, Document } from '../../lib'
 import {
 	definitionFromAncestors,
 	LogLevel,
@@ -19,10 +19,7 @@ import { connectionSelection } from '../transforms/list'
 
 // typeCheck verifies that the documents are valid instead of waiting
 // for the compiler to fail later down the line.
-export default async function typeCheck(
-	config: Config,
-	docs: CollectedGraphQLDocument[]
-): Promise<void> {
+export default async function typeCheck(config: Config, docs: Document[]): Promise<void> {
 	// wrap the errors we run into in a HoudiniError
 	const errors: Error[] = []
 

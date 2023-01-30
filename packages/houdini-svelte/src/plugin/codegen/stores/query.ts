@@ -1,5 +1,5 @@
 import type * as graphql from 'graphql'
-import type { CollectedGraphQLDocument, GenerateHookInput } from 'houdini'
+import type { Document, GenerateHookInput } from 'houdini'
 import { path } from 'houdini'
 import { operation_requires_variables, fs } from 'houdini'
 
@@ -7,10 +7,7 @@ import type { HoudiniSvelteConfig } from '../..'
 import { stores_directory, store_name } from '../../kit'
 import { store_import } from './custom'
 
-export async function queryStore(
-	{ config, plugin_root }: GenerateHookInput,
-	doc: CollectedGraphQLDocument
-) {
+export async function queryStore({ config, plugin_root }: GenerateHookInput, doc: Document) {
 	const fileName = doc.name
 	const artifactName = `${doc.name}`
 	const storeName = store_name({ config, name: doc.name })

@@ -2,12 +2,7 @@ import type { StatementKind, TSTypeKind } from 'ast-types/lib/gen/kinds'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import {
-	type Config,
-	type CollectedGraphQLDocument,
-	ArtifactKind,
-	ensureImports,
-} from '../../../lib'
+import { type Config, type Document, ArtifactKind, ensureImports } from '../../../lib'
 import {
 	fs,
 	path,
@@ -22,14 +17,11 @@ import { scalarPropertyValue } from './types'
 
 const AST = recast.types.builders
 
-export default async function imperativeCacheTypef(
-	config: Config,
-	docs: CollectedGraphQLDocument[]
-) {
+export default async function imperativeCacheTypef(config: Config, docs: Document[]) {
 	// in order to generate type definitions for the write method, we need to
 	// make the return value of graphql to the actual data structure that users
 	// need to pass. This means figuring out the return type.
-	const returnType = (doc: CollectedGraphQLDocument) =>
+	const returnType = (doc: Document) =>
 		config.plugins
 			.find((plugin) => plugin.graphql_tag_return)
 			?.graphql_tag_return?.({
@@ -89,8 +81,8 @@ export default async function imperativeCacheTypef(
 function typeDefinitions(
 	config: Config,
 	body: StatementKind[],
-	docs: CollectedGraphQLDocument[],
-	returnType: (doc: CollectedGraphQLDocument) => string
+	docs: Document[],
+	returnType: (doc: Document) => string
 ): recast.types.namedTypes.TSTypeLiteral {
 	// grab a list of the mutation and subscription type names so we don't include them
 	const operationTypes = [config.schema.getMutationType(), config.schema.getSubscriptionType()]
@@ -289,7 +281,7 @@ function typeDefinitions(
 
 function listDefinitions(
 	config: Config,
-	docs: CollectedGraphQLDocument[]
+	docs: Document[]
 ): recast.types.namedTypes.TSTypeLiteral | recast.types.namedTypes.TSNeverKeyword {
 	// we need to look at every document for a list definition
 	const lists: recast.types.namedTypes.TSPropertySignature[] = []
@@ -397,8 +389,8 @@ function listDefinitions(
 function queryDefinitions(
 	config: Config,
 	body: StatementKind[],
-	docs: CollectedGraphQLDocument[],
-	returnType: (doc: CollectedGraphQLDocument) => string
+	docs: Document[],
+	returnType: (doc: Document) => string
 ): recast.types.namedTypes.TSTupleType {
 	// we need to build a tuple type that describes the queries
 	return AST.tsTupleType(
@@ -447,8 +439,8 @@ function fragmentListMap(
 	config: Config,
 	concreteTypes: string[],
 	body: StatementKind[],
-	docs: CollectedGraphQLDocument[],
-	return_type: (doc: CollectedGraphQLDocument) => string
+	docs: Document[],
+	return_type: (doc: Document) => string
 ): { [typeName: string]: recast.types.namedTypes.TSTupleType } {
 	// we need to find all of the fragments that are on concrete types,
 	// group them by type name and then map them to the fragment list definition

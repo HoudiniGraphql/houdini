@@ -1,7 +1,7 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import type { Config, CollectedGraphQLDocument, DocumentArtifact, CachePolicy } from '../../../lib'
+import type { Config, Document, DocumentArtifact, CachePolicy } from '../../../lib'
 import {
 	getRootType,
 	hashDocument,
@@ -30,7 +30,7 @@ export default function artifactGenerator(stats: {
 	changed: string[]
 	deleted: string[]
 }) {
-	return async function (config: Config, docs: CollectedGraphQLDocument[]) {
+	return async function (config: Config, docs: Document[]) {
 		// put together the type information for the filter for every list
 		const filterTypes: FilterMap = {}
 

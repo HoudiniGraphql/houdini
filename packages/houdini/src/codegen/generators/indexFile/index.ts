@@ -1,11 +1,11 @@
 // locals
-import type { Config, CollectedGraphQLDocument } from '../../../lib'
+import type { Config, Document } from '../../../lib'
 import { fs, path } from '../../../lib'
 import { cjsIndexFilePreamble, exportStarFrom, exportDefaultFrom } from '../../utils'
 
 // every document in the application should be re-exported from the root. this allows the user to balance
 // code-splitting concerns with the "cleanliness" of importing from a single location
-export default async function writeIndexFile(config: Config, docs: CollectedGraphQLDocument[]) {
+export default async function writeIndexFile(config: Config, docs: Document[]) {
 	const relative = (target: string) => './' + path.relative(config.rootDir, target)
 
 	// the directories we want to export

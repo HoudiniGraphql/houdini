@@ -2,7 +2,7 @@ import * as graphql from 'graphql'
 import { vol } from 'memfs'
 
 import { runPipeline } from '../codegen'
-import type { CollectedGraphQLDocument } from '../lib'
+import type { Document } from '../lib'
 import { Config, fs, path } from '../lib'
 import type { ConfigFile } from '../runtime/lib/config'
 import { ArtifactKind } from '../runtime/lib/types'
@@ -264,11 +264,11 @@ export function pipelineTest(
 	config: Config,
 	documents: string[],
 	shouldPass: boolean,
-	testBody?: ((result: Error | Error[]) => void) | ((docs: CollectedGraphQLDocument[]) => void)
+	testBody?: ((result: Error | Error[]) => void) | ((docs: Document[]) => void)
 ) {
 	return async () => {
 		// the first thing to do is to create the list of collected documents
-		const docs: CollectedGraphQLDocument[] = documents.map(mockCollectedDoc)
+		const docs: Document[] = documents.map(mockCollectedDoc)
 
 		// we need to trap if we didn't fail
 		let error: Error[] = []
@@ -300,7 +300,7 @@ export function pipelineTest(
 	}
 }
 
-export function mockCollectedDoc(query: string): CollectedGraphQLDocument {
+export function mockCollectedDoc(query: string): Document {
 	const parsed = graphql.parse(query)
 
 	// look at the first definition in the pile for the name

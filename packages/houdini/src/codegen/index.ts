@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
 
-import type { Config, PluginHooks, CollectedGraphQLDocument } from '../lib'
+import type { Config, PluginHooks, Document } from '../lib'
 import { runPipeline as run, LogLevel, find_graphql, parseJS, HoudiniError, fs, path } from '../lib'
 import { ArtifactKind } from '../runtime/lib/types'
 import * as generators from './generators'
@@ -20,7 +20,7 @@ export default async function compile(config: Config) {
 // - validate their structure
 // - perform a series of transformations
 // - write the corresponding artifacts to disk
-export async function runPipeline(config: Config, docs: CollectedGraphQLDocument[]) {
+export async function runPipeline(config: Config, docs: Document[]) {
 	// we need to create the runtime folder structure
 	config.createDirectories()
 
@@ -56,13 +56,10 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 		.map((plugin) => plugin.transform_before_generate!)
 
 	const wrapHook = (
-		hooks: ((args: {
-			config: Config
-			documents: CollectedGraphQLDocument[]
-		}) => Promise<void> | void)[]
+		hooks: ((args: { config: Config; documents: Document[] }) => Promise<void> | void)[]
 	) =>
 		hooks.map(
-			(fn) => (config: Config, docs: CollectedGraphQLDocument[]) =>
+			(fn) => (config: Config, docs: Document[]) =>
 				fn({
 					config,
 					documents: docs,
@@ -109,7 +106,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 
 				// these have to go after the artifacts so that plugins can import them
 				...generatePlugins.map(
-					(plugin) => async (config: Config, docs: CollectedGraphQLDocument[]) =>
+					(plugin) => async (config: Config, docs: Document[]) =>
 						await plugin.generate!({
 							config,
 							documents: docs,
@@ -184,7 +181,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 	}
 }
 
-async function collectDocuments(config: Config): Promise<CollectedGraphQLDocument[]> {
+async function collectDocuments(config: Config): Promise<Document[]> {
 	// the first step we have to do is grab a list of every file in the source tree
 	let sourceFiles = await config.sourceFiles()
 
@@ -307,7 +304,7 @@ async function processGraphQLDocument(
 	config: Config,
 	filepath: string,
 	document: string
-): Promise<CollectedGraphQLDocument> {
+): Promise<Document> {
 	const parsedDoc = graphql.parse(document)
 
 	// look for the operation

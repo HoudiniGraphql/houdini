@@ -1,11 +1,11 @@
 import { exportDefault, exportStarFrom, importDefaultFrom } from '../../../codegen/utils'
-import type { Config, CollectedGraphQLDocument } from '../../../lib'
+import type { Config, Document } from '../../../lib'
 import { siteURL as SITE_URL, fs, HoudiniError, path, houdini_mode } from '../../../lib'
 import generateGraphqlReturnTypes from './graphqlFunction'
 import injectPlugins from './injectPlugins'
 import { generatePluginIndex } from './pluginIndex'
 
-export default async function runtimeGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
+export default async function runtimeGenerator(config: Config, docs: Document[]) {
 	const importStatement =
 		config.module === 'commonjs'
 			? importDefaultFrom

@@ -29,7 +29,7 @@ export type TransformDocument = {
 /**
  * The result of collecting documents from source code
  */
-export type CollectedGraphQLDocument = {
+export type Document = {
 	/**
 	 * The name of the document.
 	 */
@@ -175,47 +175,35 @@ export type PluginHooks = {
 	/**
 	 * A hook to transform the documents before they are validated.
 	 */
-	before_validate?: (args: {
-		config: Config
-		documents: CollectedGraphQLDocument[]
-	}) => Promise<void> | void
+	before_validate?: (args: { config: Config; documents: Document[] }) => Promise<void> | void
 
 	/**
 	 * A hook to validate all of the documents in a project.
 	 */
-	validate?: (args: {
-		config: Config
-		documents: CollectedGraphQLDocument[]
-	}) => Promise<void> | void
+	validate?: (args: { config: Config; documents: Document[] }) => Promise<void> | void
 
 	/**
 	 * A hook to transform the documents after they are validated.
 	 */
-	after_validate?: (args: {
-		config: Config
-		documents: CollectedGraphQLDocument[]
-	}) => Promise<void> | void
+	after_validate?: (args: { config: Config; documents: Document[] }) => Promise<void> | void
 
 	/**
 	 * A hook to transform the documents before documents are generated.
 	 */
 	transform_before_generate?: (args: {
 		config: Config
-		documents: CollectedGraphQLDocument[]
+		documents: Document[]
 	}) => Promise<void> | void
 
 	/**
 	 * A hook to embed metadata at the root of the artifact.
 	 */
-	artifact_data?: (args: {
-		config: Config
-		document: CollectedGraphQLDocument
-	}) => Record<string, any>
+	artifact_data?: (args: { config: Config; document: Document }) => Record<string, any>
 
 	/**
 	 * A hook to customize the hash generated for your document.
 	 */
-	hash?: (args: { config: Config; document: CollectedGraphQLDocument }) => string
+	hash?: (args: { config: Config; document: Document }) => string
 
 	/**
 	 * A hook to customize the return type of the graphql function. If you need to add an import to the file
@@ -223,7 +211,7 @@ export type PluginHooks = {
 	 */
 	graphql_tag_return?: (args: {
 		config: Config
-		document: CollectedGraphQLDocument
+		document: Document
 		ensure_import: (import_args: { identifier: string; module: string }) => void
 	}) => string | undefined
 
@@ -240,7 +228,7 @@ export type PluginHooks = {
 	/**
 	 * A hook to modify the generated artifact before it is persisted
 	 */
-	artifact_end?: (args: { config: Config; document: CollectedGraphQLDocument }) => void
+	artifact_end?: (args: { config: Config; document: Document }) => void
 
 	/**
 	 * Specify the plugins that should be added to the user's client because
@@ -292,14 +280,14 @@ type ModuleIndexTransform = (arg: {
 	export_star_from(args: { module: string }): string
 	plugin_root: string
 	typedef: boolean
-	documents: CollectedGraphQLDocument[]
+	documents: Document[]
 }) => string
 
 export type GenerateHook = (args: GenerateHookInput) => Promise<void> | void
 
 export type GenerateHookInput = {
 	config: Config
-	documents: CollectedGraphQLDocument[]
+	documents: Document[]
 	plugin_root: string
 }
 

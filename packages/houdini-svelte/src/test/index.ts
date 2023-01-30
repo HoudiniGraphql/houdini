@@ -1,4 +1,4 @@
-import type { CollectedGraphQLDocument, Config, ConfigFile, Script } from 'houdini'
+import type { Document, Config, ConfigFile, Script } from 'houdini'
 import { fs, parseJS, path } from 'houdini'
 import { runPipeline } from 'houdini/codegen'
 import { mockCollectedDoc, testConfig } from 'houdini/test'
@@ -41,13 +41,13 @@ export async function pipeline_test(
 	extra_config?: Partial<ConfigFile>
 ): Promise<{
 	plugin_root: string
-	docs: CollectedGraphQLDocument[]
+	docs: Document[]
 	config: Config
 }> {
 	const config = await test_config(extra_config)
 
 	// the first thing to do is to create the list of collected documents
-	const docs: CollectedGraphQLDocument[] = documents.map(mockCollectedDoc)
+	const docs: Document[] = documents.map(mockCollectedDoc)
 
 	// apply the transforms
 	await runPipeline(config, docs)

@@ -1,7 +1,7 @@
 import { logGreen, logYellow } from '@kitql/helper'
 import * as graphql from 'graphql'
 
-import type { Config, CollectedGraphQLDocument } from '../../lib'
+import type { Config, Document } from '../../lib'
 import { parentTypeFromAncestors, HoudiniError, siteURL, TypeWrapper, unwrapType } from '../../lib'
 import { ArtifactKind } from '../../runtime/lib/types'
 import { objectIdentificationSelection } from '../utils/objectIdentificationSelection'
@@ -10,7 +10,7 @@ import { pageInfoSelection } from './paginate'
 // addListFragments adds fragments for the fields tagged with @list
 export default async function addListFragments(
 	config: Config,
-	documents: CollectedGraphQLDocument[]
+	documents: Document[]
 ): Promise<void> {
 	// collect all of the fields that have the list applied
 	const lists: {

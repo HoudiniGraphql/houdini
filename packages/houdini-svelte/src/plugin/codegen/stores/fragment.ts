@@ -1,14 +1,11 @@
-import type { CollectedGraphQLDocument, GenerateHookInput } from 'houdini'
+import type { Document, GenerateHookInput } from 'houdini'
 import { fs, path } from 'houdini'
 
 import type { HoudiniSvelteConfig } from '../..'
 import { stores_directory, store_name } from '../../kit'
 import { store_import } from './custom'
 
-export async function fragmentStore(
-	{ config, plugin_root }: GenerateHookInput,
-	doc: CollectedGraphQLDocument
-) {
+export async function fragmentStore({ config, plugin_root }: GenerateHookInput, doc: Document) {
 	const fileName = doc.name
 	const artifactName = `${doc.name}`
 	const storeName = store_name({ config, name: doc.name })

@@ -2,15 +2,12 @@
 import * as graphql from 'graphql'
 
 // internals
-import type { Config, CollectedGraphQLDocument } from '../../../lib'
+import type { Config, Document } from '../../../lib'
 import { hashDocument, fs } from '../../../lib'
 
 // the persist output generator is responsible for generating a queryMap.json
 // to the provided path with the `hash` as key and the raw query as value.
-export default async function persistOutputGenerator(
-	config: Config,
-	docs: CollectedGraphQLDocument[]
-) {
+export default async function persistOutputGenerator(config: Config, docs: Document[]) {
 	if (typeof config.persistedQueryPath !== 'string' || config.persistedQueryPath.length === 0)
 		return
 

@@ -3,7 +3,7 @@ import type { StatementKind } from 'ast-types/lib/gen/kinds'
 import type * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import type { Config, CollectedGraphQLDocument } from '../../../lib'
+import type { Config, Document } from '../../../lib'
 import { HoudiniError, siteURL, fs, path } from '../../../lib'
 import { fragmentArgumentsDefinitions } from '../../transforms/fragmentVariables'
 import { flattenSelections } from '../../utils'
@@ -15,7 +15,7 @@ import { readonlyProperty } from './types'
 const AST = recast.types.builders
 
 // typescriptGenerator generates typescript definitions for the artifacts
-export async function generateDocumentTypes(config: Config, docs: CollectedGraphQLDocument[]) {
+export async function generateDocumentTypes(config: Config, docs: Document[]) {
 	// build up a list of paths we have types in (to export from index.d.ts)
 	const typePaths: string[] = []
 
