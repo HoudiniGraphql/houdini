@@ -496,7 +496,7 @@ import { plugin } from 'houdini'
 
 export default plugin('plugin_name', async () => {
     return {
-        // emebed data in the artifact if we detect the @live
+        // use a custom hash function
         hash({ document }) {
             return hashDocumentName(document.name)
         }
