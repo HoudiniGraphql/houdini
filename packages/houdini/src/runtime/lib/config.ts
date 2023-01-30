@@ -117,7 +117,7 @@ export type ConfigFile = {
 	/**
 	 * Specifies after how long a data goes stale in miliseconds. (default: `undefined`)
 	 */
-	defaultTimeToStale?: number
+	defaultLifetime?: number
 
 	/**
 	 * Specifies whether mutations should append or prepend list. For more information: https://www.houdinigraphql.com/api/graphql (default: `append`)

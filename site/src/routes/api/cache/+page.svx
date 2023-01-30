@@ -80,7 +80,6 @@ const allUsers = cache.read({
 console.log('Users:', allUsers.data?.users)
 ```
 
-
 Your documents can use variables to read dynamic fields to match any situation. This includes
 both queries and fragments:
 
@@ -298,14 +297,14 @@ allFriends.when({ favorites: true }).append(user1)
 
 ## Stale
 
-If some cases it can be useful to mark data as `Stale` so that next time it is requested, 
-it will be refetched over the network. Houdini has two principles in place: 
+If some cases it can be useful to mark data as `Stale` so that next time it is requested,
+it will be refetched over the network. Houdini has two principles in place:
 
 ### Globaly after a timeout
 
-In the [config](/api/config#fields) you can set `defaultTimeToStale` to mark automatically 
-data as stale after a certain time (in miliseconds). You can imagine to use this to say all data that 
-are older than 7 mintues should be refetched (example: `defaultTimeToStale: 7 * 60 * 1000`)
+In the [config](/api/config#fields) you can set `defaultLifetime` to mark automatically
+data as stale after a certain time (in miliseconds). You can imagine to use this to say all data that
+are older than 7 mintues should be refetched (example: `defaultLifetime: 7 * 60 * 1000`)
 
 ### Programmatically
 
@@ -313,26 +312,26 @@ Houdini provides you different levels to interact with the stale mechanism.
 Here you can find the list of options you have at your disposal:
 
 ```typescript
-  import { cache, graphql } from '$houdini';
+import { cache, graphql } from '$houdini'
 
-	// Mark everything stale
-	cache.markStale();
+// Mark everything stale
+cache.markStale()
 
-	// Mark all type 'UserNodes' stale
-  cache.markStale('UserNodes');
-  
-	// Mark all type 'UserNodes' field 'totalCount' stale
-  cache.markStale('UserNodes', 'totalCount');
-  
-	// Mark the User 1 stale
-	const user = cache.get('User', { id: '1' });
-  user.markStale();
-  
-	// Mark the User 1 field name stale
-	const user = cache.get('User', { id: '1' });
-  user.markStale({ field: 'name' });
-  
-	// TODO
-	const user = cache.get('User', { id: '1' });
-  user.markStale({ field: 'name', args: { name: 'New User' } });
+// Mark all type 'UserNodes' stale
+cache.markStale('UserNodes')
+
+// Mark all type 'UserNodes' field 'totalCount' stale
+cache.markStale('UserNodes', 'totalCount')
+
+// Mark the User 1 stale
+const user = cache.get('User', { id: '1' })
+user.markStale()
+
+// Mark the User 1 field name stale
+const user = cache.get('User', { id: '1' })
+user.markStale({ field: 'name' })
+
+// TODO
+const user = cache.get('User', { id: '1' })
+user.markStale({ field: 'name', args: { name: 'New User' } })
 ```

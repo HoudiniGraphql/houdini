@@ -27,7 +27,7 @@ export class GarbageCollector {
 	tick() {
 		// get the current time of the tick
 		const dt_tick = Date.now().valueOf()
-		const config_max_time = this.cache._internal_unstable.config.defaultTimeToStale
+		const config_max_time = this.cache._internal_unstable.config.defaultLifetime
 
 		// look at every field of every record we know about
 		for (const [id, fieldMap] of this.lifetimes.entries()) {
