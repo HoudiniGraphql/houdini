@@ -1,13 +1,10 @@
-import type { CollectedGraphQLDocument, GenerateHookInput } from 'houdini'
+import type { Document, GenerateHookInput } from 'houdini'
 import { fs, path } from 'houdini'
 
 import { stores_directory, store_name } from '../../kit'
 import { store_import } from './custom'
 
-export async function subscriptionStore(
-	{ config, plugin_root }: GenerateHookInput,
-	doc: CollectedGraphQLDocument
-) {
+export async function subscriptionStore({ config, pluginRoot }: GenerateHookInput, doc: Document) {
 	const fileName = doc.name
 	const storeName = store_name({ config, name: doc.name })
 	const artifactName = `${doc.name}`
@@ -44,8 +41,8 @@ export declare class ${storeName} extends ${store_class}<${_data} | undefined, $
 
 	// write the store contents to disk
 	await Promise.all([
-		fs.writeFile(path.join(stores_directory(plugin_root), `${fileName}.d.ts`), typeDefs),
-		fs.writeFile(path.join(stores_directory(plugin_root), `${fileName}.js`), storeContent),
+		fs.writeFile(path.join(stores_directory(pluginRoot), `${fileName}.d.ts`), typeDefs),
+		fs.writeFile(path.join(stores_directory(pluginRoot), `${fileName}.js`), storeContent),
 	])
 
 	// return the store name to the generator so the index file can be created

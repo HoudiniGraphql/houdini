@@ -1,5 +1,5 @@
 import * as graphql from 'graphql'
-import type { CollectedGraphQLDocument, Config } from 'houdini'
+import type { Document, Config } from 'houdini'
 
 export type PluginArtifactData = { isManualLoad?: boolean }
 
@@ -8,7 +8,7 @@ export function artifactData({
 	document,
 }: {
 	config: Config
-	document: CollectedGraphQLDocument
+	document: Document
 }): PluginArtifactData {
 	// put together the type information for the filter for every list
 	let isManualLoad = true

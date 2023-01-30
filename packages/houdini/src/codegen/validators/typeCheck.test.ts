@@ -1,7 +1,7 @@
 import { test, expect, describe } from 'vitest'
 
 import type { Config } from '../../lib'
-import type { CollectedGraphQLDocument } from '../../lib/types'
+import type { Document } from '../../lib/types'
 import { pipelineTest, testConfig } from '../../test'
 
 // since generation will catch a lot of these errors for us, the goal of these tests is to make sure
@@ -979,7 +979,7 @@ type Row =
 			title: string
 			pass: true
 			documents: string[]
-			check?: (docs: CollectedGraphQLDocument[]) => void
+			check?: (docs: Document[]) => void
 			partial_config?: Partial<Config>
 			nb_of_fail?: number
 	  }

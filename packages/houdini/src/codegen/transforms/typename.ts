@@ -1,13 +1,10 @@
 import * as graphql from 'graphql'
 
-import type { Config, CollectedGraphQLDocument } from '../../lib'
+import type { Config, Document } from '../../lib'
 import { parentTypeFromAncestors, unwrapType } from '../../lib'
 
 // typename adds __typename to the selection set of any unions or interfaces
-export default async function addTypename(
-	config: Config,
-	documents: CollectedGraphQLDocument[]
-): Promise<void> {
+export default async function addTypename(config: Config, documents: Document[]): Promise<void> {
 	// visit every document
 	for (const doc of documents) {
 		// update the document (graphql.visit is pure)

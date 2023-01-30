@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
 
-import type { Config, CollectedGraphQLDocument } from '../../lib'
+import type { Config, Document } from '../../lib'
 import { HoudiniError, parentTypeFromAncestors, unwrapType, wrapType } from '../../lib'
 import { ArtifactKind } from '../../runtime/lib/types'
 
@@ -30,12 +30,9 @@ type PaginationFlags = {
 }
 
 // paginate transform adds the necessary fields for a paginated field
-export default async function paginate(
-	config: Config,
-	documents: CollectedGraphQLDocument[]
-): Promise<void> {
+export default async function paginate(config: Config, documents: Document[]): Promise<void> {
 	// we're going to have to add documents to the list so collect them here and we'll add them when we're done
-	const newDocs: CollectedGraphQLDocument[] = []
+	const newDocs: Document[] = []
 
 	// visit every document
 	for (const doc of documents) {
@@ -509,7 +506,7 @@ export default async function paginate(
 				filename: doc.filename,
 				name: refetchQueryName,
 				document: queryDoc,
-				originalDocument: queryDoc,
+				originalParsed: queryDoc,
 				generateArtifact: true,
 				generateStore: false,
 				refetch: doc.refetch,

@@ -87,6 +87,16 @@ const clientExample = `
     })
 `
 
+const codegenPluginExample = `
+plugin('plugin_name', async () =>  {
+    return {
+        generate({ documents }) {
+            // generate something 
+        }
+    }
+})
+`
+
 const clientPluginExample = `
     () => ({
         start(ctx, { next }) {
@@ -172,6 +182,13 @@ example={clientPluginExample}
 />
 
 ## Setup
+
+<APIShowcase
+title="Codegen Plugins"
+description="Everything you could want to know about Houdini Codegen Plugins"
+href="/api/codegen-plugins"
+example={codegenPluginExample}
+/>
 
 <APIShowcase
 title="Config"

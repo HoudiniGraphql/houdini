@@ -1,7 +1,7 @@
 import { test, expect } from 'vitest'
 
 import { runPipeline } from '../../../codegen'
-import type { CollectedGraphQLDocument } from '../../../lib'
+import type { Document } from '../../../lib'
 import { fs, path } from '../../../lib'
 import { mockCollectedDoc, testConfig } from '../../../test'
 
@@ -10,7 +10,7 @@ test('generates an artifact for every document', async function () {
 	config.persistedQueryPath = path.join(config.rootDir, 'hash.json')
 
 	// the documents to test
-	const docs: CollectedGraphQLDocument[] = [
+	const docs: Document[] = [
 		mockCollectedDoc(`query TestQuery1 { version }`),
 		mockCollectedDoc(`query TestQuery2 { user { ...TestFragment } }`),
 		mockCollectedDoc(`fragment TestFragment on User { firstName }`),
