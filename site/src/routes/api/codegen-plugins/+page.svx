@@ -25,7 +25,7 @@ For information on adding a plugin to your project, checkout the
 
 <Warning>
 
-The Codegen plugin API (the hooks signatures, field names, artifact field names, etc) is still
+The codegen plugin API (the hooks signatures, field names, artifact field names, etc) is still
 considered unstable. We reserve the ability to change its structure with any minor version update.
 We recognize this isn't proper semantic versioning but it will ultimately lead us to a better place faster.
 
@@ -579,7 +579,9 @@ export default plugin('plugin_name', async () => {
 Instructs the runtime to copy the specified runtime to your
 plugin's root directory. This is useful if you have a bunch of static
 values, utilities, that you want to use in
-[transformFile](#transformFile).
+[transformFile](#transformFile). If you specify this value,
+you do not need to add an export in [indexFile](#indexfile) to export your runtime -
+an `export * from ...` is automatically added for the generated directory.
 
 This value should be set to a relative path from your plugin's root
 directory to the directory that should be copied. If you have different
