@@ -342,6 +342,7 @@ export default async function addListFragments(
 		originalDocument: generatedDoc,
 		filename: 'generated::lists',
 		originalString: '',
+		artifact: null,
 	})
 }
 

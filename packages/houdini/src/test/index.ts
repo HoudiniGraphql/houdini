@@ -342,6 +342,7 @@ export function mockCollectedDoc(query: string): CollectedGraphQLDocument {
 		generateArtifact: true,
 		generateStore: true,
 		originalString: query,
+		artifact: null,
 	}
 }
 

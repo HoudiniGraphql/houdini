@@ -374,6 +374,7 @@ async function processGraphQLDocument(
 		generateArtifact: true,
 		generateStore: true,
 		originalString: document,
+		artifact: null,
 	}
 }
 
