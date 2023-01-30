@@ -44,7 +44,7 @@ test('no mutation', async function () {
 		`mutation TestMutation2 { updateUser { id }  }`,
 	]
 
-	const { plugin_root } = await pipeline_test(docs, {
+	const { pluginRoot } = await pipeline_test(docs, {
 		plugins: {
 			'houdini-svelte': {},
 			'houdini-plugin-svelte-global-stores': {
@@ -55,7 +55,7 @@ test('no mutation', async function () {
 	})
 
 	const contents = await fs.readFile(
-		path.join(global_stores_directory(plugin_root), 'TestMutation1.js')
+		path.join(global_stores_directory(pluginRoot), 'TestMutation1.js')
 	)
 
 	// parse the contents
