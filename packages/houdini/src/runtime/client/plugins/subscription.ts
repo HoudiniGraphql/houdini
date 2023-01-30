@@ -103,10 +103,7 @@ export type SubscriptionHandler = (ctx: ClientPluginContext) => {
 	subscribe: (
 		payload: { query: string; variables?: {} },
 		handlers: {
-			next: (payload: {
-				data?: GraphQLObject
-				errors?: readonly { message: string }[]
-			}) => void
+			next: (payload: { data?: {} | null; errors?: readonly { message: string }[] }) => void
 			error: (data: {}) => void
 			complete: () => void
 		}
