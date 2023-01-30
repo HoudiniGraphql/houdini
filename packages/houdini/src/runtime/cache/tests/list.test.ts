@@ -955,6 +955,7 @@ test("prepending update doesn't overwrite endCursor and hasNext Page", function 
 	// make sure that the data looks good
 	expect(cache.read({ selection })).toEqual({
 		partial: false,
+		stale: false,
 		data: {
 			viewer: {
 				id: '1',
@@ -1153,6 +1154,7 @@ test("append update doesn't overwrite startCursor and hasPrevious Page", functio
 	// make sure that the data looks good
 	expect(cache.read({ selection })).toEqual({
 		partial: false,
+		stale: false,
 		data: {
 			viewer: {
 				id: '1',

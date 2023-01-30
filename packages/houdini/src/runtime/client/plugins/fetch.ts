@@ -49,6 +49,7 @@ export const fetchPlugin = (target?: RequestHandler | string): ClientPlugin => {
 					data: result.data,
 					errors: !result.errors || result.errors.length === 0 ? null : result.errors,
 					partial: false,
+					stale: false,
 					source: DataSource.Network,
 				})
 			},
