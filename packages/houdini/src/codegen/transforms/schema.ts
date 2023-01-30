@@ -10,7 +10,7 @@ export default async function graphqlExtensions(
 	documents: CollectedGraphQLDocument[]
 ): Promise<void> {
 	// the bits to add to the schema
-	const internalSchema = `
+	let internalSchema = `
 enum CachePolicy {
 	${CachePolicy.CacheAndNetwork}
 	${CachePolicy.CacheOnly}
@@ -51,6 +51,7 @@ directive @${config.listAllListsDirective} on FRAGMENT_SPREAD
 """
 directive @${config.listParentDirective}(value: ID!) on FRAGMENT_SPREAD
 
+
 """
 	@${config.whenDirective} is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
 """
@@ -65,6 +66,11 @@ directive @${config.whenNotDirective} on FRAGMENT_SPREAD
 	@${config.argumentsDirective} is used to define the arguments of a fragment
 """
 directive @${config.argumentsDirective} on FRAGMENT_DEFINITION
+
+"""
+	@${config.withDirective} is used to provide arguments to fragments that have been marked with @${config.argumentsDirective}
+"""
+directive @${config.withDirective} on FRAGMENT_SPREAD
 
 """
 	@${config.cacheDirective} is used to specify cache rules for a query
@@ -86,6 +92,17 @@ directive @${config.maskEnableDirective} on FRAGMENT_SPREAD
 """
 directive @${config.maskDisableDirective} on FRAGMENT_SPREAD
 `
+
+	// add each custom schema to the internal value
+	for (const plugin of config.plugins) {
+		// if the plugin doesn't add a schema, ignore it
+		if (!plugin.schema) {
+			continue
+		}
+
+		// add the schema value
+		internalSchema += plugin.schema({ config })
+	}
 
 	// if the config does not have the cache directive, then we need to add it
 	let currentSchema = graphql.printSchema(config.schema)

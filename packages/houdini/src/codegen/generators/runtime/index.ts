@@ -52,38 +52,36 @@ ${exportStatement('config')}
 }
 
 async function generatePluginRuntime(config: Config, plugin: Config['plugins'][number]) {
-	if (houdini_mode.is_testing) {
+	if (houdini_mode.is_testing || !plugin.include_runtime) {
 		return
 	}
 
-	// a plugin with a generated runtime has something at <dir>/build/runtime-{esm,cjs}
-
-	// find the location of the plugin
-	const source = path.join(
-		plugin.directory,
-		'build',
-		'runtime-' + (config.module === 'esm' ? 'esm' : 'cjs')
+	// a plugin has told us to include a runtime then the path is relative to the plugin file
+	const runtime_path = path.join(
+		path.dirname(plugin.filepath),
+		typeof plugin.include_runtime === 'string'
+			? plugin.include_runtime
+			: plugin.include_runtime[config.module]
 	)
+
 	try {
-		await fs.stat(source)
+		await fs.stat(runtime_path)
 	} catch {
 		throw new HoudiniError({
-			message: name + ' does not have a runtime to generate',
-			description: 'please use the houdini-scripts command to bundle your plugin',
+			message: 'Cannot find runtime to generate for ' + plugin.name,
+			description: 'Maybe it was bundled?',
 		})
 	}
-
-	const which = config.module === 'esm' ? 'esm' : 'cjs'
 
 	// copy the runtime
 	const pluginDir = config.pluginRuntimeDirectory(plugin.name)
 	await fs.mkdirp(pluginDir)
 	await fs.recursiveCopy(
-		source,
+		runtime_path,
 		pluginDir,
 		Object.fromEntries(
 			Object.entries(plugin.transform_runtime ?? {}).map(([key, value]) => [
-				path.join(plugin.directory, 'build', `runtime-${which}`, key),
+				path.join(runtime_path, key),
 				(content) => value({ config, content }),
 			])
 		)

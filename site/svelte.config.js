@@ -7,6 +7,7 @@ import preprocess from 'svelte-preprocess'
 import './src/lib/highlight.js'
 import { codeTitles } from './plugins/code-titles.js'
 import docsLang from './plugins/docs-lang.js'
+import mermaid from './plugins/mermaid.js'
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -16,6 +17,7 @@ const config = {
 	// Consult https://github.com/sveltejs/svelte-preprocess
 	// for more information about preprocessors
 	preprocess: [
+		mermaid,
 		docsLang,
 		mdsvex({
 			layout: {

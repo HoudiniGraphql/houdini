@@ -12,7 +12,7 @@
 <article>
 	<header>
 		<div class="logo">
-			<img src="/images/logo.svg" style="margin-top: -4px" />
+			<img src="/images/logo.svg" style="margin-top: -4px" alt="The Houdini Logo" />
 			Houdini
 		</div>
 		<nav>
@@ -60,21 +60,21 @@
 					<p>Dive in:</p>
 					<nav class="framework-links">
 						<a data-sveltekit-preload-data href="/intro/welcome">
-							<img src="/images/svelte.svg" width="20px" />
+							<img src="/images/svelte.svg" width="20px" aria-hidden="true" />
 							SvelteKit
 						</a>
 						<a data-sveltekit-preload-data href="#disabled" disabled>
-							<img src="/images/react.svg" width="20px" />
+							<img src="/images/react.svg" width="20px" aria-hidden="true" />
 							Next
 							<div class="coming-soon">Coming Soon</div>
 						</a>
 						<a data-sveltekit-preload-data href="#disabled" disabled>
-							<img src="/images/vue.svg" width="20px" />
+							<img src="/images/vue.svg" width="20px" aria-hidden="true" />
 							Nuxt
 							<div class="coming-soon">Coming Soon</div>
 						</a>
 						<a data-sveltekit-preload-data href="#disabled" disabled>
-							<img src="/images/solid.svg" width="20px" />
+							<img src="/images/solid.svg" width="20px" aria-hidden="true" />
 							SolidStart
 							<div class="coming-soon">Coming Soon</div>
 						</a>

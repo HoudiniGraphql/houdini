@@ -32,7 +32,7 @@ ${client_plugins.map((plugin, i) => importStatement(plugin[0], `plugin${i}`))}
 const plugins = [
 	${client_plugins
 		.map((plugin, i) => {
-			const suffix = plugin[1] !== null ? `(${JSON.stringify(plugin[1])})` : ''
+			const suffix = `(${JSON.stringify(plugin[1])})`
 			return `plugin${i}${suffix}`
 		})
 		.join(',\n')}

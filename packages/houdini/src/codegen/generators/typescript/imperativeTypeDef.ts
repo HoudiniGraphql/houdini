@@ -34,7 +34,7 @@ export default async function imperativeCacheTypef(
 			.find((plugin) => plugin.graphql_tag_return)
 			?.graphql_tag_return?.({
 				config,
-				doc,
+				document: doc,
 				ensure_import({ identifier, module }) {
 					ensureImports({
 						config,

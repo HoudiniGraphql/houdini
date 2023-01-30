@@ -3,7 +3,6 @@ import * as graphql from 'graphql'
 import * as recast from 'recast'
 
 import type { Config } from '../../../lib'
-import { HoudiniError } from '../../../lib'
 
 const AST = recast.types.builders
 
@@ -39,47 +38,6 @@ export function serializeValue(value: any): ExpressionKind {
 
 	// anything else can just use its literal value
 	return AST.literal(value)
-}
-
-export function deepMerge(filepath: string, ...targets: {}[]): {} {
-	// look at the first target to know what type we're merging
-
-	// if we aren't looking at an object
-	if (typeof targets[0] !== 'object') {
-		// make sure all of the values are the same
-		const matches = targets.filter((val) => val !== targets[0]).length === 0
-		if (!matches) {
-			throw new HoudiniError({ filepath, message: 'could not merge: ' + targets })
-		}
-
-		// return the matching value
-		return targets[0]
-	}
-
-	// if we are looking at a list of lists
-	if (Array.isArray(targets[0])) {
-		return (targets[0] as {}[]).concat(...targets.slice(1))
-	}
-
-	// collect all of the fields that the targets specify and map them to their value
-	const fields: Record<string, any[]> = {}
-
-	for (const target of targets) {
-		// add every field of the target to the bag
-		for (const [key, value] of Object.entries(target)) {
-			// if we haven't seen the key before
-			if (!fields[key]) {
-				// save it as a list
-				fields[key] = []
-			}
-
-			fields[key].push(value)
-		}
-	}
-
-	return Object.fromEntries(
-		Object.entries(fields).map(([key, value]) => [key, deepMerge(filepath, ...value)])
-	)
 }
 
 export function convertValue(config: Config, val: graphql.ValueNode) {

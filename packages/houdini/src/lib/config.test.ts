@@ -17,9 +17,7 @@ const getPluginTest = (name: string, order: 'core' | 'before' | 'after' | undefi
 	return {
 		name,
 		order,
-		include_runtime: false,
-		version: '0.0.0',
-		directory: 'dir',
+		filepath: '',
 	} as PluginMeta
 }
 const p_undefined = getPluginTest('p_undefined', undefined)

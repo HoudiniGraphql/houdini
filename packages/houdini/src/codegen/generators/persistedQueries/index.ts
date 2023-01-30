@@ -30,7 +30,7 @@ export default async function persistOutputGenerator(
 			graphql.visit(document, {
 				Directive(node) {
 					// if the directive is one of the internal ones, remove it
-					if (config.isInternalDirective(node)) {
+					if (config.isInternalDirective(node.name.value)) {
 						return null
 					}
 				},
@@ -43,7 +43,7 @@ export default async function persistOutputGenerator(
 
 		// if there are operations in the document
 		if (operations.length > 0 && operations[0].kind === 'OperationDefinition') {
-			acc[hashDocument(rawString)] = rawString
+			acc[hashDocument({ config, document: rawString })] = rawString
 		}
 
 		return acc
