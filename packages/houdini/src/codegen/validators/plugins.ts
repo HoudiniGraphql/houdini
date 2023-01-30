@@ -1,10 +1,7 @@
 import type { Config } from '../../lib/config'
-import type { CollectedGraphQLDocument } from '../../lib/types'
+import type { Document } from '../../lib/types'
 
-export default async function validatePlugins(
-	config: Config,
-	documents: CollectedGraphQLDocument[]
-) {
+export default async function validatePlugins(config: Config, documents: Document[]) {
 	let errors: unknown[] = []
 
 	for (const plugin of config.plugins) {

@@ -35,9 +35,9 @@ export default async function storesGenerator(input: GenerateHookInput) {
 		.filter((c) => c !== null)
 		.sort((a, b) => (a + '').localeCompare(b + '')) as string[]
 	const dataIndex = listOfStoresOrdered.map((c) => `export * from './${c}'`).join(`\n`)
-	await fs.writeFile(path.join(global_stores_directory(input.plugin_root), `index.js`), dataIndex)
+	await fs.writeFile(path.join(global_stores_directory(input.pluginRoot), `index.js`), dataIndex)
 
-	const storePath = global_stores_directory(input.plugin_root)
+	const storePath = global_stores_directory(input.pluginRoot)
 
 	await fs.writeFile(path.join(storePath, `index.d.ts`), dataIndex)
 

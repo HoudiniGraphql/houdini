@@ -1,7 +1,7 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import type { Config, CollectedGraphQLDocument, DocumentArtifact, CachePolicy } from '../../../lib'
+import type { Config, Document, DocumentArtifact, CachePolicy } from '../../../lib'
 import {
 	getRootType,
 	hashDocument,
@@ -30,7 +30,7 @@ export default function artifactGenerator(stats: {
 	changed: string[]
 	deleted: string[]
 }) {
-	return async function (config: Config, docs: CollectedGraphQLDocument[]) {
+	return async function (config: Config, docs: Document[]) {
 		// put together the type information for the filter for every list
 		const filterTypes: FilterMap = {}
 
@@ -113,7 +113,7 @@ export default function artifactGenerator(stats: {
 				// and an artifact for every document
 				docs.map(async (doc) => {
 					// pull out the info we need from the collected doc
-					const { document, name, generateArtifact } = doc
+					const { document, name, generateArtifact: generateArtifact } = doc
 
 					// if the document is generated, don't write it to disk - it's use is to provide definitions
 					// for the other transforms
@@ -274,17 +274,17 @@ export default function artifactGenerator(stats: {
 						}),
 					}
 
-					// adding artifact_data of plugins (only if any information is present)
+					// adding artifactData of plugins (only if any information is present)
 					const plugin_data = config.plugins.reduce<Record<string, any>>(
 						(prev, plugin) => {
 							// if the plugin doesn't provide any artifact data, ignore it
-							if (!plugin.artifact_data) {
+							if (!plugin.artifactData) {
 								return prev
 							}
 
 							// add the specified artifact data (if it exists)
 							const result = { ...prev }
-							const dataToAdd = plugin.artifact_data({ config, document: doc }) ?? {}
+							const dataToAdd = plugin.artifactData({ config, document: doc }) ?? {}
 							if (Object.keys(dataToAdd).length > 0) {
 								result[plugin.name] = dataToAdd
 							}
@@ -343,12 +343,12 @@ export default function artifactGenerator(stats: {
 					// assign the artifact
 					doc.artifact = artifact
 
-					// pass the artifact through the artifact_end hooks
+					// pass the artifact through the artifactEnd hooks
 					for (const plugin of config.plugins) {
-						if (!plugin.artifact_end) {
+						if (!plugin.artifactEnd) {
 							continue
 						}
-						plugin.artifact_end({ config, document: doc })
+						plugin.artifactEnd({ config, document: doc })
 					}
 
 					// the artifact should be the default export of the file

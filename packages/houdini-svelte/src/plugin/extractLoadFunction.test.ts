@@ -3,7 +3,7 @@ import { test, describe, expect } from 'vitest'
 
 import { test_config } from '../test'
 import { extract_load_function } from './extractLoadFunction'
-import { houdini_after_load_fn, houdini_before_load_fn, houdini_load_fn } from './naming'
+import { houdini_afterLoad_fn, houdini_before_load_fn, houdini_load_fn } from './naming'
 
 describe('extract_load_function', function () {
 	const table: {
@@ -229,7 +229,7 @@ describe('extract_load_function', function () {
 
             `,
 			expected: {
-				exports: [houdini_after_load_fn],
+				exports: [houdini_afterLoad_fn],
 			},
 		},
 		{
@@ -240,7 +240,7 @@ describe('extract_load_function', function () {
                 }
             `,
 			expected: {
-				exports: [houdini_after_load_fn],
+				exports: [houdini_afterLoad_fn],
 			},
 		},
 		{
@@ -251,7 +251,7 @@ describe('extract_load_function', function () {
                 }
             `,
 			expected: {
-				exports: [houdini_after_load_fn],
+				exports: [houdini_afterLoad_fn],
 			},
 		},
 		{
@@ -266,7 +266,7 @@ describe('extract_load_function', function () {
                 }
             `,
 			expected: {
-				exports: [houdini_after_load_fn, houdini_before_load_fn],
+				exports: [houdini_afterLoad_fn, houdini_before_load_fn],
 			},
 		},
 		{

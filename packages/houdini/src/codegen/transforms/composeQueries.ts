@@ -1,19 +1,19 @@
 import type graphql from 'graphql'
 import { Kind as GraphqlKinds } from 'graphql'
 
-import type { Config, CollectedGraphQLDocument } from '../../lib'
+import type { Config, Document } from '../../lib'
 import { HoudiniError } from '../../lib'
 
 export type FragmentDependency = {
 	definition: graphql.FragmentDefinitionNode
 	requiredFragments: string[]
-	document: CollectedGraphQLDocument
+	document: Document
 }
 
 // includeFragmentDefinitions adds any referenced fragments to operations
 export default async function includeFragmentDefinitions(
 	config: Config,
-	documents: CollectedGraphQLDocument[]
+	documents: Document[]
 ): Promise<void> {
 	// we will need to add the same fragment definitions to multiple operations so lets compute
 	// a single mapping that we'll reference later from the list of documents
@@ -51,7 +51,7 @@ export default async function includeFragmentDefinitions(
 
 export function collectFragments(
 	config: Config,
-	docs: CollectedGraphQLDocument[]
+	docs: Document[]
 ): Record<string, FragmentDependency> {
 	return docs.reduce<{ [name: string]: FragmentDependency }>((acc, doc) => {
 		// look for any definitions in this document

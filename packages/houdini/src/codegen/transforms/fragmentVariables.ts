@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
 
-import type { Config, CollectedGraphQLDocument } from '../../lib'
+import type { Config, Document } from '../../lib'
 import { HoudiniError } from '../../lib'
 import { ArtifactKind } from '../../lib'
 import { murmurHash } from '../utils'
@@ -12,7 +12,7 @@ const GraphqlKinds = graphql.Kind
 // fragmentVariables transforms fragment spreads with variables into something the server can use
 export default async function fragmentVariables(
 	config: Config,
-	documents: CollectedGraphQLDocument[]
+	documents: Document[]
 ): Promise<void> {
 	// collect all of the defined fragments
 	const fragments = collectFragments(config, documents)
@@ -62,7 +62,7 @@ export default async function fragmentVariables(
 		name: 'generated::fragmentVariables',
 		kind: ArtifactKind.Fragment,
 		document: doc,
-		originalDocument: doc,
+		originalParsed: doc,
 		generateStore: false,
 		generateArtifact: false,
 		filename: 'generated::fragmentVariables',

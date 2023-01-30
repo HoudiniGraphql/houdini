@@ -15,7 +15,7 @@ test('updates the list of plugin-specified client plugins', async function () {
 		{
 			name: 'pluginWithClientPlugin',
 			filepath: '',
-			client_plugins: {
+			clientPlugins: {
 				testPlugin: {},
 			},
 		},
@@ -82,7 +82,7 @@ test('passing null as client plugin config serializes correctly', async function
 		{
 			name: 'pluginWithClientPlugin',
 			filepath: '',
-			client_plugins: {
+			clientPlugins: {
 				testPlugin: null,
 			},
 		},

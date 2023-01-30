@@ -1,11 +1,8 @@
-import type { Config, CollectedGraphQLDocument } from '../../lib'
+import type { Config, Document } from '../../lib'
 import { HoudiniError } from '../../lib/error'
 
 // uniqueDocumentNames verifies that the documents all have unique names
-export default async function uniqueDocumentNames(
-	config: Config,
-	docs: CollectedGraphQLDocument[]
-): Promise<void> {
+export default async function uniqueDocumentNames(config: Config, docs: Document[]): Promise<void> {
 	// build up a list of document names
 	const nameMap = docs.reduce<{ [docName: string]: string[] }>(
 		(acc, { name, filename }) => ({

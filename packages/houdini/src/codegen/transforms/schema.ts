@@ -1,13 +1,13 @@
 import * as graphql from 'graphql'
 
-import type { Config, CollectedGraphQLDocument } from '../../lib'
+import type { Config, Document } from '../../lib'
 import { siteURL } from '../../lib'
 import { CachePolicy } from '../../runtime/lib/types'
 
 // graphqlExtensions adds a few different things to the graphql schema
 export default async function graphqlExtensions(
 	config: Config,
-	documents: CollectedGraphQLDocument[]
+	documents: Document[]
 ): Promise<void> {
 	// the bits to add to the schema
 	let internalSchema = `
