@@ -11,8 +11,8 @@ description: An overview of Houdini's Codegen Plugins
 # Codegen Plugins
 
 Codegen plugins allow you to add additional behavior to Houdini's static processing. This includes
-integrating into the core code generation pipeline as well as transforming files (usually to take advantage
-of what was generated).
+integrating into the core code generation pipeline as well as transforming users' source code
+(usually to take advantage of what was generated).
 
 > This is an advanced topic and requires a deep understanding of Houdini. Please make
 > sure you've at least seen the example at the bottom of the
@@ -30,10 +30,10 @@ It takes a name and an asynchronous function that returns
 an object with a fixed set of keys defining the "hooks" that you want
 to use:
 
-```javascript:title=src/plugins/myPlugins.js
+```javascript:title=src/plugins/plugin_names.js
 import { plugin } from 'houdini'
 
-const generateSomething = plugin('my plugin', async () =>  {
+const generateSomething = plugin('plugin_name', async () =>  {
     return {
         generate({ documents }) {
             // generate something for every document in the project
@@ -47,24 +47,24 @@ The list of available hooks can be in the next sections, beginning with [Plugin 
 <DeepDive title="Accepting Configuration">
 
 Most of time, your plugin will need to accept configuration from the user. To support this,
-users are asked to pass objects in their config file which are then passed to your function:
+users pass objects to your plugin through in their config file:
 
 ```javascript:title=houdini.config.js
 export default {
     plugins: {
-        './src/plugins/myPlugins.js': {
-            aValue: 'myValue',
+        'plugin_name': {
+            key: 'myValue',
         }
     }
 }
 ```
 
-```javascript:title=src/plugins/myPlugins.js
+```javascript:title=plugin_name/src/index.js
 /** @type { import("houdini").Plugin }*/
-const generateSomething = plugin('my plugin', async ({ aValue }) =>  {
+const doSomething = plugin('plugin_name', async ({ key }) => {
     return {
         generate({ documents }) {
-            // do something with aValue
+            // do something with key
         }
     }
 })
@@ -80,15 +80,15 @@ extending the `HoudiniPluginConfig` in the `houdini` module to map your plugin's
 name with your custom config type. This will merge your
 definition with the one Houdini uses internally:
 
-```typescript:title=my-custom-plugin/src/index.ts
+```typescript:title=plugin_name/src/index.ts
 declare module 'houdini' {
 	interface HoudiniPluginConfig {
-		'my-custom-plugin': CustomPluginConfig
+		'plugin_name': CustomPluginConfig
 	}
 }
 
 export type CustomPluginConfig = {
-    aValue: string
+    key: string
 }
 ```
 
@@ -96,13 +96,13 @@ With that defined, a user can now include add a reference to your plugin's decla
 your custom type in their config file:
 
 ```javascript:title=houdini.config.js
-/// <references types="my-custom-plugin">
+/// <references types="plugin_name">
 
 /** @type { import('houdini').ConfigFile } */
 export default {
     plugins: {
-        'my-custom-plugin': {
-            aValue: 'myValue',
+        'plugin_name': {
+            key: 'myValue',
         }
     }
 }
@@ -116,7 +116,7 @@ Codegen plugins can be defined as a composition of many different sets of hooks.
 The function passed to `plugin` can return a list of hooks, external plugins or null -
 allowing you to easily toggle functionality depending on configuration values:
 
-```javascript:title=src/plugins/myPlugins.js
+```javascript:title=src/plugins/plugin_names.js
 import { plugin } from 'houdini'
 import externalPlugin from 'third-party'
 
@@ -132,7 +132,7 @@ const generateSomething = plugin('gen', async ({ include }) =>  {
 
 Use the `with` method to pass configuration to the third-party plugin:
 
-```javascript:title=src/plugins/myPlugins.js
+```javascript:title=src/plugins/plugin_names.js
 import { plugin } from 'houdini'
 import externalPlugin from 'third-party'
 
@@ -242,10 +242,10 @@ source code and extracting the string values of the `graphql` function.
 
 - Type: `({ config: Config, path: string, content: string }) => string`
 
-Can be used to add custom definitions to your project's schema. Definitions (like directives) added
+Can be used to add custom definitions to your project's schema. Definitions added
 here are automatically removed from the document before they are sent to the server. It is sometimes
 useful to add things that can be used in connection with [artifact_data](#artitfact_data)
-or [artifact_selection](#artfiact_selection) to embed data in the artifact.
+to embed data in the artifact.
 
 Currently, this hook can only add directives, scalars, or enums to the schema.
 
@@ -261,7 +261,7 @@ to add new definitions, you can add new documents to provided list.
 - Type: `({config: Config documents: Document[]}) => void`
 - Can also return a Promise
 
-A hook to transform documents before they has been validated. This can be useful if you are adding a layer
+Transforms documents before they has been validated. This can be useful if you are adding a layer
 that translates into a Houdini feature.
 
 ### `validate`
@@ -269,7 +269,8 @@ that translates into a Houdini feature.
 - Type: `({config: Config documents: Document[]}) => void`
 - Can also return a Promise
 
-A hook to ensure that assumptions made by the rest of the tasks are true. For example,
+Performs any validation checks before the rest of the pipeline continue. Performing checks here makes sure that as many errors
+are reported as possible (instead of just failing on the first error). For example,
 the [uniqueNames](https://github.com/HoudiniGraphql/houdini/blob/main/packages/houdini/src/codegen/validators/uniqueNames.ts)
 validator makes sure that every document has a unique name so that the preprocessor can
 reliably import the correct artifact.
@@ -279,12 +280,12 @@ reliably import the correct artifact.
 - Type: `({config: Config documents: Document[]}) => void`
 - Can also return a Promise
 
-A hook to transform the documents after they have been validated. This is useful if you are building a feature
+Transforms the project's documents after they have been validated. This is useful if you are building a feature
 that needs to add extra selections or documents to the list.
 
 ## Generate Runtime
 
-This Pipeline is responsible for generating all of the files for your application. This includes hooks to
+This pipeline is responsible for generating all of the files for your application. This includes hooks to
 modify the query artifact (a static respresentation of the document), hooks to customize the core runtime
 provided by houdini, as well as hooks to generate your own files and runtimes for your plugin.
 
@@ -295,13 +296,13 @@ provided by houdini, as well as hooks to generate your own files and runtimes fo
 - Type: `({config: Config documents: Document[]}) => void`
 - Can also return a Promise
 
-A hook to transform the documents just before static assets are generated.
+Transforms the documents just before static assets are generated.
 
 ### `artifact_data`
 
 - Type: `(config: Config, doc: Document) => Record<string, any>`
 
-A hook to embed metadata at the root of the artifact. You should use this to encode document-level
+Embeds metadata at the root of the artifact. You should use this to encode document-level
 data at build time so you don't have to analyze the document at runtime (in a client plugin, for example).
 
 ### `hash`
@@ -316,7 +317,7 @@ Customizes the hash generated for a given document
 - Type `(config: Config, artifact: DocumentArtifact) => DocumentArtifact`
 - Plugins can overwrite values
 
-A hook to modify the generated artifact before its written to disk. This is useful to set artifact data
+Modifies the generated artifact before its written to disk. This is useful to set artifact data
 based on information derived from the artifact's final state.
 
 ### `index_file`
@@ -335,7 +336,7 @@ type IndexFileArgs = {
 }
 ```
 
-A hook to modify the root `index.js` and `index.d.ts` files in the generated runtime. If you want to
+Modifies the root `index.js` and `index.d.ts` files in the generated runtime. If you want to
 add any exports, make sure to use the `export_default_as` and `export_star_from` utilities which will
 make sure your type definitions are up to date.
 
@@ -348,10 +349,10 @@ make sure your type definitions are up to date.
 }) => string | undefined`
 - The first value provided by a plugin is used
 
-A hook to customize the return type of the graphql function. If you need to add an import to the file
+Customizes the return type of the graphql function. If you need to add an import to the file
 in order to resolve the import, you can use the `ensure_import` utility:
 
-```javascript:title=myPlugins.js
+```javascript:title=plugin_names.js
 export default {
     graphql_tag_return({ config, ensure_import }) {
         // TODO
@@ -372,7 +373,7 @@ type GenerateArgs = {
 }
 ```
 
-A hook to generate project files for each document in the application.
+Generates project files for each document in the application.
 Each plugin is assigned a root directory that you are free to place any
 files you want. If you want values that you generated to be included in
 the values exported from `$houdini`, you should use the
@@ -382,7 +383,7 @@ the values exported from `$houdini`, you should use the
 
 - Type: `string | { commonjs: string, esm: string }`
 
-A hook that instructs the runtime to copy the specified runtime to your
+Instructs the runtime to copy the specified runtime to your
 plugin's root directory. This is useful if you have a bunch of static
 values, utilities, that you want to use in
 [transform_file](#transform_file).
@@ -396,7 +397,7 @@ to an object specifying both paths.
 
 - Type: `Record<string, ({ config: Config; content: string }) => string>`
 
-Transform the plugin's runtime while houdini is copying it. The keys of
+Transforms the plugin's runtime while houdini is copying it. The keys of
 the object are paths in your runtime (relative to the `include_runtime`
 setting). The values are functions that set the new file value.
 
@@ -420,7 +421,7 @@ type TransformInput = {
 }
 ```
 
-This hook is used to transform the user's source code from an ergonomic
+Transforms the user's source code from an ergonomic
 API to the the actual implementation under the hood. For more
 information, please review the example at the bottom of the
 [Architecture Guide](/guides/architecture#an-example).
