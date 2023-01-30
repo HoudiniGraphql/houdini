@@ -3,7 +3,7 @@ import type { StatementKind } from 'ast-types/lib/gen/kinds'
 import type * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import type { Config, CollectedGraphQLDocument } from '../../../lib'
+import type { Config, Document } from '../../../lib'
 import { HoudiniError, siteURL, fs, path } from '../../../lib'
 import { fragmentArgumentsDefinitions } from '../../transforms/fragmentVariables'
 import { flattenSelections } from '../../utils'
@@ -15,14 +15,14 @@ import { readonlyProperty } from './types'
 const AST = recast.types.builders
 
 // typescriptGenerator generates typescript definitions for the artifacts
-export async function generateDocumentTypes(config: Config, docs: CollectedGraphQLDocument[]) {
+export async function generateDocumentTypes(config: Config, docs: Document[]) {
 	// build up a list of paths we have types in (to export from index.d.ts)
 	const typePaths: string[] = []
 
 	// we need every fragment definition
 	const fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode } = {}
 	for (const document of docs) {
-		for (const defn of document.originalDocument.definitions.filter(
+		for (const defn of document.originalParsed.definitions.filter(
 			({ kind }) => kind === 'FragmentDefinition'
 		) as graphql.FragmentDefinitionNode[]) {
 			fragmentDefinitions[defn.name.value] = defn
@@ -36,64 +36,71 @@ export async function generateDocumentTypes(config: Config, docs: CollectedGraph
 		// the generated types depend solely on user-provided information
 		// so we need to use the original document that we haven't mutated
 		// as part of the compiler
-		docs.map(async ({ originalDocument, name, filename, generateArtifact }) => {
-			if (!generateArtifact) {
-				return
-			}
+		docs.map(
+			async ({
+				originalParsed: originalDocument,
+				name,
+				filename,
+				generateArtifact: generateArtifact,
+			}) => {
+				if (!generateArtifact) {
+					return
+				}
 
-			// the place to put the artifact's type definition
-			const typeDefPath = config.artifactTypePath(originalDocument)
+				// the place to put the artifact's type definition
+				const typeDefPath = config.artifactTypePath(originalDocument)
 
-			// build up the program
-			const program = AST.program([])
+				// build up the program
+				const program = AST.program([])
 
-			// if we have to define any types along the way, make sure we only do it once
-			const visitedTypes = new Set<string>()
+				// if we have to define any types along the way, make sure we only do it once
+				const visitedTypes = new Set<string>()
 
-			// if there's an operation definition
-			let definition = originalDocument.definitions.find(
-				(def) =>
-					(def.kind === 'OperationDefinition' || def.kind === 'FragmentDefinition') &&
-					def.name?.value === name
-			) as graphql.OperationDefinitionNode | graphql.FragmentDefinitionNode
+				// if there's an operation definition
+				let definition = originalDocument.definitions.find(
+					(def) =>
+						(def.kind === 'OperationDefinition' || def.kind === 'FragmentDefinition') &&
+						def.name?.value === name
+				) as graphql.OperationDefinitionNode | graphql.FragmentDefinitionNode
 
-			const selections = flattenSelections({
-				config,
-				filepath: filename,
-				selections: definition.selectionSet.selections,
-				fragmentDefinitions,
-				applyFragments: definition.kind === 'OperationDefinition',
-			})
-
-			if (definition?.kind === 'OperationDefinition') {
-				// treat it as an operation document
-				await generateOperationTypeDefs(
+				const selections = flattenSelections({
 					config,
-					filename,
-					program.body,
-					definition,
-					selections,
-					visitedTypes,
-					missingScalars
-				)
-			} else {
-				// treat it as a fragment document
-				await generateFragmentTypeDefs(
-					config,
-					filename,
-					program.body,
-					selections,
-					originalDocument.definitions,
-					visitedTypes,
-					missingScalars
-				)
+					filepath: filename,
+					selections: definition.selectionSet.selections,
+					fragmentDefinitions,
+					applyFragments: definition.kind === 'OperationDefinition',
+				})
+
+				if (definition?.kind === 'OperationDefinition') {
+					// treat it as an operation document
+					await generateOperationTypeDefs(
+						config,
+						filename,
+						program.body,
+						definition,
+						selections,
+						visitedTypes,
+						missingScalars
+					)
+				} else {
+					// treat it as a fragment document
+					await generateFragmentTypeDefs(
+						config,
+						filename,
+						program.body,
+						selections,
+						originalDocument.definitions,
+						visitedTypes,
+						missingScalars
+					)
+				}
+
+				// write the file contents
+				await fs.writeFile(typeDefPath, recast.print(program).code)
+
+				typePaths.push(typeDefPath)
 			}
-
-			// write the file contents
-			await fs.writeFile(typeDefPath, recast.print(program).code)
-
-			typePaths.push(typeDefPath)
-		})
+		)
 	)
 
 	// now that we have every type generated, create an index file in the runtime root that exports the types
@@ -119,27 +126,27 @@ export async function generateDocumentTypes(config: Config, docs: CollectedGraph
 	)
 
 	// stringify the value so we can push it through the plugins
-	const export_default_as = ({ module, as }: { module: string; as: string }) =>
+	const exportDefaultAs = ({ module, as }: { module: string; as: string }) =>
 		`\nexport { default as ${as} } from "${module}"\n`
-	const export_star_from = ({ module }: { module: string }) => `\nexport * from "${module}"\n`
+	const exportStarFrom = ({ module }: { module: string }) => `\nexport * from "${module}"\n`
 	let indexContent = recast.print(typeIndex).code
 	for (const plugin of config.plugins) {
-		if (!plugin.index_file) {
+		if (!plugin.indexFile) {
 			continue
 		}
-		indexContent = plugin.index_file({
+		indexContent = plugin.indexFile({
 			config,
 			content: indexContent,
-			export_default_as,
-			export_star_from,
-			plugin_root: config.pluginDirectory(plugin.name),
+			exportDefaultAs,
+			exportStarFrom,
+			pluginRoot: config.pluginDirectory(plugin.name),
 			typedef: true,
 			documents: docs,
 		})
 
 		// if the plugin generated a runtime
-		if (plugin.include_runtime) {
-			indexContent += export_star_from({
+		if (plugin.includeRuntime) {
+			indexContent += exportStarFrom({
 				module:
 					'./' +
 					path.relative(config.rootDir, config.pluginRuntimeDirectory(plugin.name)),

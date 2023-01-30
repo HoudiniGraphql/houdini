@@ -3,14 +3,14 @@ import * as graphql from 'graphql'
 import { test, expect } from 'vitest'
 
 import { runPipeline } from '../..'
-import type { CollectedGraphQLDocument } from '../../../lib'
+import type { Document } from '../../../lib'
 import { fs } from '../../../lib'
 import { mockCollectedDoc, testConfig } from '../../../test'
 
 const config = testConfig()
 
 test('adds internal documents to schema', async function () {
-	const docs: CollectedGraphQLDocument[] = [
+	const docs: Document[] = [
 		mockCollectedDoc(`query TestQuery { version }`),
 		mockCollectedDoc(`fragment TestFragment on User { firstName }`),
 	]
@@ -82,7 +82,7 @@ test('adds internal documents to schema', async function () {
 })
 
 test('list operations are included', async function () {
-	const docs: CollectedGraphQLDocument[] = [
+	const docs: Document[] = [
 		mockCollectedDoc(
 			`query TestQuery { usersByCursor @list(name: "Friends") { edges { node { id } } } }`
 		),
@@ -174,7 +174,7 @@ test('list operations are included', async function () {
 })
 
 test('list operations are included but delete directive should not be in when we have Custom Ids', async function () {
-	const docs: CollectedGraphQLDocument[] = [
+	const docs: Document[] = [
 		mockCollectedDoc(
 			`query TestQuery { usersByCursor @list(name: "Friends") { edges { node { id } } } }`
 		),
@@ -282,7 +282,7 @@ test('list operations are included but delete directive should not be in when we
 })
 
 test("writing twice doesn't duplicate definitions", async function () {
-	const docs: CollectedGraphQLDocument[] = [
+	const docs: Document[] = [
 		mockCollectedDoc(`query TestQuery { version }`),
 		mockCollectedDoc(`fragment TestFragment on User { firstName }`),
 	]

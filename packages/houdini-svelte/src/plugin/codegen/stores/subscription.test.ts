@@ -1,4 +1,4 @@
-import type { CollectedGraphQLDocument } from 'houdini'
+import type { Document } from 'houdini'
 import { fs, path } from 'houdini'
 import { mockCollectedDoc } from 'houdini/test'
 import * as recast from 'recast'
@@ -12,19 +12,19 @@ import { stores_directory } from '../../kit'
 
 test('generates a store for every subscription', async function () {
 	const config = await test_config()
-	const plugin_root = config.pluginDirectory('test-plugin')
+	const pluginRoot = config.pluginDirectory('test-plugin')
 
 	// the documents to test
-	const docs: CollectedGraphQLDocument[] = [
+	const docs: Document[] = [
 		mockCollectedDoc(`subscription TestSubscription1 { newUser { id }  }`),
 		mockCollectedDoc(`subscription TestSubscription2 { newUser { id }  }`),
 	]
 
 	// execute the generator
-	await runPipeline({ config, documents: docs, plugin_root, framework: 'kit' })
+	await runPipeline({ config, documents: docs, pluginRoot, framework: 'kit' })
 
 	// look up the files in the artifact directory
-	const files = await fs.readdir(stores_directory(plugin_root))
+	const files = await fs.readdir(stores_directory(pluginRoot))
 
 	// and they have the right names
 	expect(files).toEqual(expect.arrayContaining(['TestSubscription1.js', 'TestSubscription2.js']))
@@ -34,7 +34,7 @@ test('generates a store for every subscription', async function () {
 	)
 
 	const contents = await fs.readFile(
-		path.join(stores_directory(plugin_root), 'TestSubscription1.js')
+		path.join(stores_directory(pluginRoot), 'TestSubscription1.js')
 	)
 	const parsed = recast.parse(contents!, {
 		parser: typeScriptParser,

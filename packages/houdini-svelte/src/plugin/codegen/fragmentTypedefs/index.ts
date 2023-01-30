@@ -1,5 +1,5 @@
 import type { StatementKind } from 'ast-types/lib/gen/kinds'
-import type { CollectedGraphQLDocument } from 'houdini'
+import type { Document } from 'houdini'
 import { parseJS, path, fs, ArtifactKind, ensureImports } from 'houdini'
 import * as recast from 'recast'
 
@@ -10,7 +10,7 @@ const AST = recast.types.builders
 
 export default async function fragmentTypedefs(input: PluginGenerateInput) {
 	// before we update the typedefs lets find all of the fragments so we can overload the correct function
-	let fragments: Record<string, Record<string, CollectedGraphQLDocument>> = {}
+	let fragments: Record<string, Record<string, Document>> = {}
 
 	for (const doc of input.documents) {
 		if (doc.kind === ArtifactKind.Fragment) {

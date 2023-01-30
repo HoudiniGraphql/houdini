@@ -1,7 +1,7 @@
 import { test, expect, describe } from 'vitest'
 
 import { runPipeline } from '../../../codegen'
-import type { CollectedGraphQLDocument } from '../../../lib'
+import type { Document } from '../../../lib'
 import { fs } from '../../../lib'
 import { mockCollectedDoc, testConfig } from '../../../test'
 
@@ -10,7 +10,7 @@ const config = testConfig()
 
 test('generates an artifact for every document', async function () {
 	// the documents to test
-	const docs: CollectedGraphQLDocument[] = [
+	const docs: Document[] = [
 		mockCollectedDoc(`query TestQuery { version }`),
 		mockCollectedDoc(`fragment TestFragment on User { firstName }`),
 	]
@@ -27,7 +27,7 @@ test('generates an artifact for every document', async function () {
 
 test('adds kind, name, and raw, response, and selection', async function () {
 	// the documents to test
-	const docs: CollectedGraphQLDocument[] = [
+	const docs: Document[] = [
 		mockCollectedDoc(`query TestQuery { version }`),
 		mockCollectedDoc(`fragment TestFragment on User { firstName }`),
 	]
@@ -94,7 +94,7 @@ test('adds kind, name, and raw, response, and selection', async function () {
 
 test('selection includes fragments', async function () {
 	// the documents to test
-	const selectionDocs: CollectedGraphQLDocument[] = [
+	const selectionDocs: Document[] = [
 		mockCollectedDoc(`query TestQuery { user { ...TestFragment } }`),
 		mockCollectedDoc(`fragment TestFragment on User { firstName }`),
 	]
@@ -3724,7 +3724,7 @@ describe('mutation artifacts', function () {
 
 test('custom scalar shows up in artifact', async function () {
 	// the documents to test
-	const docs: CollectedGraphQLDocument[] = [
+	const docs: Document[] = [
 		mockCollectedDoc(`query TestQuery { version }`),
 		mockCollectedDoc(`fragment TestFragment on User { firstName }`),
 	]
@@ -3801,7 +3801,7 @@ test('custom scalar shows up in artifact', async function () {
 
 test('operation inputs', async function () {
 	// the documents to test
-	const docs: CollectedGraphQLDocument[] = [
+	const docs: Document[] = [
 		mockCollectedDoc(`query TestQuery { version }`),
 		mockCollectedDoc(`fragment TestFragment on User { firstName }`),
 	]
@@ -4006,12 +4006,12 @@ describe('subscription artifacts', function () {
 	})
 })
 
-test('some artifact_data added to artifact specific to plugins', async function () {
+test('some artifactData added to artifact specific to plugins', async function () {
 	config.plugins = [
 		{
 			name: 'plugin-tmp1',
 			filepath: '',
-			artifact_data: () => {
+			artifactData: () => {
 				return {
 					added_stuff: { yop: 'true' },
 				}
@@ -4024,7 +4024,7 @@ test('some artifact_data added to artifact specific to plugins', async function 
 	]
 
 	// the documents to test
-	const docs: CollectedGraphQLDocument[] = [mockCollectedDoc(`query TestQuery { version }`)]
+	const docs: Document[] = [mockCollectedDoc(`query TestQuery { version }`)]
 
 	// execute the generator
 	await runPipeline(config, docs)

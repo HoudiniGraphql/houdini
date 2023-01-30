@@ -1,40 +1,30 @@
 import * as recast from 'recast'
 
-import {
-	fs,
-	path,
-	parseJS,
-	ensureImports,
-	type Config,
-	type CollectedGraphQLDocument,
-} from '../../../lib'
+import { fs, path, parseJS, ensureImports, type Config, type Document } from '../../../lib'
 
 const AST = recast.types.builders
 
-export default async function generateGraphqlReturnTypes(
-	config: Config,
-	docs: CollectedGraphQLDocument[]
-) {
+export default async function generateGraphqlReturnTypes(config: Config, docs: Document[]) {
 	// we need to find the index of the `export default function graphql` in the index.d.ts of the runtime
 	const indexPath = path.join(config.runtimeDirectory, 'index.d.ts')
 	const fileContent = (await fs.readFile(indexPath)) || ''
 	const contents = await parseJS(fileContent)
 
 	// figure out if any of the plugins provide a graphql tag export
-	const graphql_tag_return = config.plugins.find(
-		(plugin) => plugin.graphql_tag_return
-	)?.graphql_tag_return
-	if (!graphql_tag_return || !contents) {
+	const graphqlTagReturn = config.plugins.find(
+		(plugin) => plugin.graphqlTagReturn
+	)?.graphqlTagReturn
+	if (!graphqlTagReturn || !contents) {
 		return fileContent
 	}
 
 	// build up the mapping of hard coded strings to exports
 	const overloaded_returns: Record<string, string> = {}
 	for (const doc of docs) {
-		const return_value = graphql_tag_return!({
+		const return_value = graphqlTagReturn!({
 			config,
 			document: doc,
-			ensure_import({ identifier, module }) {
+			ensureImport({ identifier, module }) {
 				ensureImports({
 					config,
 					body: contents.script.body,

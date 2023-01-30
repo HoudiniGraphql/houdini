@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
 
-import type { Config, PluginHooks, CollectedGraphQLDocument } from '../lib'
+import type { Config, PluginHooks, Document } from '../lib'
 import { runPipeline as run, LogLevel, find_graphql, parseJS, HoudiniError, fs, path } from '../lib'
 import { ArtifactKind } from '../runtime/lib/types'
 import * as generators from './generators'
@@ -20,7 +20,7 @@ export default async function compile(config: Config) {
 // - validate their structure
 // - perform a series of transformations
 // - write the corresponding artifacts to disk
-export async function runPipeline(config: Config, docs: CollectedGraphQLDocument[]) {
+export async function runPipeline(config: Config, docs: Document[]) {
 	// we need to create the runtime folder structure
 	config.createDirectories()
 
@@ -42,27 +42,24 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 	const generatePlugins = config.plugins.filter((plugin) => plugin.generate)
 
 	// find the different hooks we need to add to the pipeline
-	const after_validate = config.plugins
-		.filter((plugin) => plugin.after_validate)
-		.map((plugin) => plugin.after_validate!)
+	const afterValidate = config.plugins
+		.filter((plugin) => plugin.afterValidate)
+		.map((plugin) => plugin.afterValidate!)
 	const validate = config.plugins
 		.filter((plugin) => plugin.validate)
 		.map((plugin) => plugin.validate!)
-	const before_validate = config.plugins
-		.filter((plugin) => plugin.before_validate)
-		.map((plugin) => plugin.before_validate!)
-	const transform_before_generate = config.plugins
-		.filter((plugin) => plugin.transform_before_generate)
-		.map((plugin) => plugin.transform_before_generate!)
+	const beforeValidate = config.plugins
+		.filter((plugin) => plugin.beforeValidate)
+		.map((plugin) => plugin.beforeValidate!)
+	const beforeGenerate = config.plugins
+		.filter((plugin) => plugin.beforeGenerate)
+		.map((plugin) => plugin.beforeGenerate!)
 
 	const wrapHook = (
-		hooks: ((args: {
-			config: Config
-			documents: CollectedGraphQLDocument[]
-		}) => Promise<void> | void)[]
+		hooks: ((args: { config: Config; documents: Document[] }) => Promise<void> | void)[]
 	) =>
 		hooks.map(
-			(fn) => (config: Config, docs: CollectedGraphQLDocument[]) =>
+			(fn) => (config: Config, docs: Document[]) =>
 				fn({
 					config,
 					documents: docs,
@@ -78,14 +75,14 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 				// transforms
 				transforms.internalSchema,
 
-				...wrapHook(before_validate),
+				...wrapHook(beforeValidate),
 				// validators
 				validators.typeCheck,
 				validators.uniqueNames,
 				validators.noIDAlias,
 				validators.plugins,
 				...wrapHook(validate),
-				...wrapHook(after_validate),
+				...wrapHook(afterValidate),
 				transforms.addID,
 				transforms.typename,
 				// list transform must go before fragment variables
@@ -96,7 +93,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 				transforms.paginate,
 				transforms.fragmentVariables,
 				transforms.composeQueries,
-				...wrapHook(transform_before_generate),
+				...wrapHook(beforeGenerate),
 				// generators
 				generators.artifacts(artifactStats),
 				generators.runtime,
@@ -109,11 +106,11 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 
 				// these have to go after the artifacts so that plugins can import them
 				...generatePlugins.map(
-					(plugin) => async (config: Config, docs: CollectedGraphQLDocument[]) =>
+					(plugin) => async (config: Config, docs: Document[]) =>
 						await plugin.generate!({
 							config,
 							documents: docs,
-							plugin_root: config.pluginDirectory(plugin.name),
+							pluginRoot: config.pluginDirectory(plugin.name),
 						})
 				),
 			],
@@ -184,14 +181,14 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 	}
 }
 
-async function collectDocuments(config: Config): Promise<CollectedGraphQLDocument[]> {
+async function collectDocuments(config: Config): Promise<Document[]> {
 	// the first step we have to do is grab a list of every file in the source tree
 	let sourceFiles = await config.sourceFiles()
 
 	// the list of documents we found
 	const documents: DiscoveredDoc[] = []
 
-	const extractors: Record<string, PluginHooks['extract_documents'][]> = {
+	const extractors: Record<string, PluginHooks['extractDocuments'][]> = {
 		'.graphql': [],
 		'.gql': [],
 		'.js': [],
@@ -201,9 +198,9 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 	// a config's set of plugins defines a priority list of ways to extract a document from a file
 	// build up a mapping from extension to a list functions that extract documents
 	for (const plugin of config.plugins) {
-		if (plugin.extensions && plugin.extract_documents) {
+		if (plugin.extensions && plugin.extractDocuments) {
 			for (const extension of plugin.extensions) {
-				extractors[extension] = [...(extractors[extension] || []), plugin.extract_documents]
+				extractors[extension] = [...(extractors[extension] || []), plugin.extractDocuments]
 			}
 		}
 	}
@@ -307,7 +304,7 @@ async function processGraphQLDocument(
 	config: Config,
 	filepath: string,
 	document: string
-): Promise<CollectedGraphQLDocument> {
+): Promise<Document> {
 	const parsedDoc = graphql.parse(document)
 
 	// look for the operation
@@ -367,7 +364,7 @@ async function processGraphQLDocument(
 		kind,
 		document: parsedDoc,
 		filename: filepath,
-		originalDocument: parsedDoc,
+		originalParsed: parsedDoc,
 		generateArtifact: true,
 		generateStore: true,
 		originalString: document,

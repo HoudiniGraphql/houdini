@@ -5,7 +5,7 @@ import { test, expect } from 'vitest'
 
 import { runPipeline } from '../..'
 import { fs, path } from '../../../lib'
-import type { CollectedGraphQLDocument } from '../../../lib/types'
+import type { Document } from '../../../lib/types'
 import { testConfig, mockCollectedDoc } from '../../../test'
 
 test('updates the config file with import path', async function () {
@@ -24,7 +24,7 @@ test('updates the config file with import path', async function () {
 
 test('runtime index file - cjs', async function () {
 	// the documents to test
-	const docs: CollectedGraphQLDocument[] = [
+	const docs: Document[] = [
 		mockCollectedDoc(`query TestQuery { version }`),
 		mockCollectedDoc(`fragment TestFragment on User { firstName }`),
 	]
@@ -69,7 +69,7 @@ test('runtime index file - cjs', async function () {
 
 test('runtime index file - kit', async function () {
 	// the documents to test
-	const docs: CollectedGraphQLDocument[] = [
+	const docs: Document[] = [
 		mockCollectedDoc(`query TestQuery { version }`),
 		mockCollectedDoc(`fragment TestFragment on User { firstName }`),
 	]

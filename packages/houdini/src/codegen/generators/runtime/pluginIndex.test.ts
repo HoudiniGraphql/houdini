@@ -15,7 +15,7 @@ test('generates an index file for the plugin directory', async function () {
 		{
 			name: 'pluginWithClientPlugin',
 			filepath: '',
-			client_plugins: {
+			clientPlugins: {
 				testPlugin: {},
 			},
 		},
