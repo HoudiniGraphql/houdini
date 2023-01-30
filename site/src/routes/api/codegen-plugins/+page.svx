@@ -252,7 +252,7 @@ source code and extracting the string values of the `graphql` function.
 
 Can be used to add custom definitions to your project's schema. Definitions added
 here are automatically removed from the document before they are sent to the server. It is sometimes
-useful to add things that can be used in connection with [artifact_data](#artitfact_data)
+useful to add things that can be used in connection with [artifact_data](#artifact_data)
 to embed data in the artifact.
 
 Currently, this hook can only add directives, scalars, or enums to the schema.
@@ -485,3 +485,14 @@ Transforms the user's source code from an ergonomic
 API to the the actual implementation under the hood. For more
 information, please review the example at the bottom of the
 [Architecture Guide](/guides/architecture#an-example).
+
+## Miscellaneous hooks
+
+### `vite`
+
+- Type: same `{ resolveId, load }` from [vite](https://vitejs.dev/guide/api-plugin.html#vite-specific-hooks)
+except with the config file passed to the appropriate object.
+
+Allows a plugin to configure the vite plugin exported from `houdini/vite.` This hook is
+useful if you generate files that are imported or need to hook into vite for any reason.
+
