@@ -2,13 +2,15 @@ import type { Config } from 'houdini'
 import { parseJS, type Maybe, type Script, find_graphql } from 'houdini'
 import * as svelte from 'svelte/compiler'
 
-export default async function (
-	config: Config,
-	filepath: string,
-	contents: string
-): Promise<string[]> {
+export default async function ({
+	config,
+	content,
+}: {
+	config: Config
+	content: string
+}): Promise<string[]> {
 	const documents: string[] = []
-	let parsedFile = await parseSvelte(contents)
+	let parsedFile = await parseSvelte(content)
 	if (!parsedFile) {
 		return documents
 	}

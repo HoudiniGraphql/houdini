@@ -1,6 +1,6 @@
 import { test, expect, describe } from 'vitest'
 
-import { deepMerge } from './utils'
+import { deepMerge } from './deepMerge'
 
 describe('deep merge', function () {
 	test('non-conflicting keys', function () {
@@ -55,7 +55,9 @@ describe('deep merge', function () {
 		const two = {
 			hello: 'moon',
 		}
-		expect(() => deepMerge('', one, two)).toThrow()
+		expect(deepMerge('', one, two)).toEqual({
+			hello: 'moon',
+		})
 	})
 
 	test('three-way merge', function () {

@@ -41,6 +41,7 @@
         "@types/prompts": "^2.0.14",
         "ast-types": "^0.16.1",
         "commander": "^9.4.0",
+        "deepmerge": "^4.2.2",
         "estree-walker": "^3.0.1",
         "fs-extra": "^10.1.0",
         "glob": "^8.0.3",

@@ -158,17 +158,17 @@ example={clientExample}
 />
 
 <APIShowcase
-title="Client Plugins"
-description="Everything you could want to know about HoudiniClient Plugins"
-href="/api/client-plugins"
-example={clientPluginExample}
-/>
-
-<APIShowcase
 title="Cache API"
 description="An overview of the programmatic cache API (for imperative updates)"
 href="/api/cache"
 example={cacheExample}
+/>
+
+<APIShowcase
+title="Client Plugins"
+description="Everything you could want to know about HoudiniClient Plugins"
+href="/api/client-plugins"
+example={clientPluginExample}
 />
 
 ## Setup

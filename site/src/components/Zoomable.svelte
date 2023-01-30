@@ -7,8 +7,6 @@
 	let zoomed = false
 	let canWeZoom = true
 
-	$: console.log(style)
-
 	function on_key_up(event) {
 		switch (event.key) {
 			case 'Escape':

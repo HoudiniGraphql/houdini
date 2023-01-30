@@ -29,7 +29,7 @@ test('cache policy is persisted in artifact', async function () {
 		export default {
 		    "name": "CachedFriends",
 		    "kind": "HoudiniQuery",
-		    "hash": "ea9bab33b9e934c92f813b96c5a86f88fa81fbd06a27045efc95c4506b01ece4",
+		    "hash": "38ee638bcf224e763a3275f84f3b006360fc5b52a7688478b486d30f3963cae1",
 
 		    "raw": \`query CachedFriends {
 		  user {
@@ -79,7 +79,7 @@ test('cache policy is persisted in artifact', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=08a3bafdc782d255deb9894e8bb198e5a47681e8fc4d1d1bff0c075d93c2362d";
+		"HoudiniHash=38ee638bcf224e763a3275f84f3b006360fc5b52a7688478b486d30f3963cae1";
 	`)
 })
 
@@ -160,7 +160,7 @@ test('can change default cache policy', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=07860fa33d7e0f709a61716b22c5fada0f5074d95da404e8cac9d3b245843773";
+		"HoudiniHash=ea9bab33b9e934c92f813b96c5a86f88fa81fbd06a27045efc95c4506b01ece4";
 	`)
 })
 
@@ -186,7 +186,7 @@ test('partial opt-in is persisted', async function () {
 		export default {
 		    "name": "CachedFriends",
 		    "kind": "HoudiniQuery",
-		    "hash": "ea9bab33b9e934c92f813b96c5a86f88fa81fbd06a27045efc95c4506b01ece4",
+		    "hash": "9bf0627632b6c42837a39d3478fdb185d5bbd81bd6796a42c451d3769857dada",
 
 		    "raw": \`query CachedFriends {
 		  user {
@@ -236,7 +236,7 @@ test('partial opt-in is persisted', async function () {
 		    "partial": true
 		};
 
-		"HoudiniHash=4fb7cd5b288356c5bd7b09bd128cab1d399cb2aab2fe8c57bce318d423282a2f";
+		"HoudiniHash=9bf0627632b6c42837a39d3478fdb185d5bbd81bd6796a42c451d3769857dada";
 	`)
 })
 
@@ -267,7 +267,7 @@ test('can set default partial opt-in', async function () {
 		export default {
 		    "name": "CachedFriends",
 		    "kind": "HoudiniQuery",
-		    "hash": "ea9bab33b9e934c92f813b96c5a86f88fa81fbd06a27045efc95c4506b01ece4",
+		    "hash": "38ee638bcf224e763a3275f84f3b006360fc5b52a7688478b486d30f3963cae1",
 
 		    "raw": \`query CachedFriends {
 		  user {
@@ -317,6 +317,6 @@ test('can set default partial opt-in', async function () {
 		    "partial": true
 		};
 
-		"HoudiniHash=08a3bafdc782d255deb9894e8bb198e5a47681e8fc4d1d1bff0c075d93c2362d";
+		"HoudiniHash=38ee638bcf224e763a3275f84f3b006360fc5b52a7688478b486d30f3963cae1";
 	`)
 })

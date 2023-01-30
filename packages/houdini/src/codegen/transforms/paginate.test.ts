@@ -413,7 +413,7 @@ test('embeds node pagination query as a separate document', async function () {
 		export default {
 		    "name": "UserFriends_Pagination_Query",
 		    "kind": "HoudiniQuery",
-		    "hash": "4ff3c0d7d0bc3f812896dd71dc3ff18e3066fe2459502a99fab163508be90b7a",
+		    "hash": "87f411df30e2cbfdc3bc414d02f760b57cf47c2f8eeac50915912bb5cd2e7ad2",
 
 		    "refetch": {
 		        "path": ["friendsByForwardsCursor"],
@@ -666,7 +666,7 @@ test('embeds node pagination query as a separate document', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+		"HoudiniHash=87f411df30e2cbfdc3bc414d02f760b57cf47c2f8eeac50915912bb5cd2e7ad2";
 	`)
 })
 
@@ -709,7 +709,7 @@ test('embeds custom pagination query as a separate document', async function () 
 		export default {
 		    "name": "UserGhost_Pagination_Query",
 		    "kind": "HoudiniQuery",
-		    "hash": "c5970407ebf288fcad596b8eacf0093c3992c8b16a5044e4f38317c8d73245aa",
+		    "hash": "da3eb066e49c863b5f4fbec4ce3c7aeaa53a7aefda21cb29cb04738dfb81e251",
 
 		    "refetch": {
 		        "path": ["friendsConnection"],
@@ -877,7 +877,7 @@ test('embeds custom pagination query as a separate document', async function () 
 		    "partial": false
 		};
 
-		"HoudiniHash=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+		"HoudiniHash=da3eb066e49c863b5f4fbec4ce3c7aeaa53a7aefda21cb29cb04738dfb81e251";
 	`)
 })
 
@@ -1416,7 +1416,7 @@ test('generated query has same refetch spec', async function () {
 		export default {
 		    "name": "UserFriends_Pagination_Query",
 		    "kind": "HoudiniQuery",
-		    "hash": "f1eb3c2bde855b70a59c4cccd29ddf014bbd0ff8a49f214af22974d698730a31",
+		    "hash": "e8f2dcc82537252a6576c9f8750312fd98df0af9692c55f4d49c2a842414f1dc",
 
 		    "refetch": {
 		        "path": ["usersByCursor"],
@@ -1550,7 +1550,7 @@ test('generated query has same refetch spec', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+		"HoudiniHash=e8f2dcc82537252a6576c9f8750312fd98df0af9692c55f4d49c2a842414f1dc";
 	`)
 })
 

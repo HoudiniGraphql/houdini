@@ -74,7 +74,7 @@ test('runtime index file - kit', async function () {
 		mockCollectedDoc(`fragment TestFragment on User { firstName }`),
 	]
 
-	const config = testConfig({ module: 'esm', framework: 'kit' })
+	const config = testConfig({ module: 'esm' })
 	// execute the generator
 	await runPipeline(config, docs)
 
