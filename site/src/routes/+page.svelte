@@ -3,6 +3,7 @@
 	import CodeSample from './CodeSample.svelte'
 	import Block from './Block.svelte'
 	import Logos from './Logos.svelte'
+	import Logo from '~/components/Logo.svelte'
 </script>
 
 <SEO />
@@ -12,8 +13,10 @@
 <article>
 	<header>
 		<div class="logo">
-			<img src="/images/logo.svg" style="margin-top: -4px" alt="The Houdini Logo" />
-			Houdini
+			<div style="display: flex; align-items: center; gap: 7px">
+				<Logo size={30} />
+				<span class="logo-text">Houdini</span>
+			</div>
 		</div>
 		<nav>
 			<a data-sveltekit-preload-data href="/intro/welcome">Get Started</a>

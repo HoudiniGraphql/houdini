@@ -5,6 +5,7 @@
 	import throttle from 'lodash/throttle.js'
 	import { browser } from '$app/environment'
 	import Toolbar from '~/components/Toolbar.svelte'
+	import Logo from '~/components/Logo.svelte'
 
 	export let title = ''
 	export let link = ''
@@ -19,8 +20,6 @@
 	$: lang = browser
 		? document.cookie.match('(^|;)\\s*' + 'lang' + '\\s*=\\s*([^;]+)')?.pop() || 'js'
 		: data?.lang
-
-	$: logo_src = ui_theme === 0 ? '/images/logo.svg' : '/images/logo-dark.svg'
 
 	// the list of files we can render
 	// @ts-ignore
@@ -131,9 +130,11 @@
 					{/if}
 				</buton>
 				<a href="/">
-					<img class="logo" src={logo_src} style="margin-top: -4px" />
-					<span class="logo-text">Houdini</span></a
-				>
+					<div style="display: flex; align-items: center; gap: 7px">
+						<Logo size={30} color={ui_theme === 0 ? 'white' : 'black'} />
+						<span class="logo-text">Houdini</span>
+					</div>
+				</a>
 				<SearchInput id="nav-search-input" />
 				<Toolbar bind:ui_theme bind:lang />
 			</h1>
