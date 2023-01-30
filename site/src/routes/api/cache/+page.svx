@@ -297,20 +297,7 @@ allFriends.when({ favorites: true }).append(user1)
 
 ## Stale Data
 
-In some cases it can be useful to mark data as "stale" so that next time it is requested,
-it will be refetched over the network. This can be done in two ways:
-
-### Globally after a timeout
-
-If you set `defaultLifetime` in your [config file](/api/config#fields) then data will
-get automatically marked stale after a certain time (in milliseconds). For example, you can
-configure so that any data older than 7 minutes is refreshed (example: `defaultLifetime: 7 * 60 * 1000`).
-When this happens, the cached data will still be returned but a new query will be sent
-(effectively making the cache policy `CacheAndNetwork`).
-
-### Programmatically
-
-If you want more fine-grained logic for marking data as stale, you can use the programmatic api:
+If you want fine-grained logic for marking data as stale, you can use the programmatic api:
 
 ```typescript
 import { cache, graphql } from '$houdini'
