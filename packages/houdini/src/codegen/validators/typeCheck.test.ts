@@ -121,7 +121,7 @@ const table: Row[] = [
 		pass: true,
 		documents: [
 			`query TestQuery {
-					user {						
+					user {
 						friends {
 							friends @list(name: "Friends") {
 								id
@@ -140,6 +140,7 @@ const table: Row[] = [
 				}
 		}`,
 		],
+		check(docs) {},
 		partial_config: { defaultListTarget: 'all' },
 	},
 	{
@@ -157,12 +158,12 @@ const table: Row[] = [
 			}`,
 			`mutation MutationM1 {
 				addFriend {
-					...Friends_insert @parentID @allLists
+					...Friends_insert @parentID(value: "1") @allLists
 				}
 			}`,
 			`mutation MutationM2 {
 				addFriend {
-					...Friends_insert @parentID @allLists
+					...Friends_insert @parentID(value: "1") @allLists
 				}
 			}`,
 		],
@@ -837,28 +838,28 @@ const table: Row[] = [
 		documents: [
 			`
 				query QueryA {
-					ghostsByCursor(first: 10) @paginate(name: "GhostA") { 
-						edges { 
-							node { 
-								... on Ghost { 
+					ghostsByCursor(first: 10) @paginate(name: "GhostA") {
+						edges {
+							node {
+								... on Ghost {
 									name
 								}
 							}
 						}
-					}	
+					}
 				}
 			`,
 			`
 				query QueryB {
-					ghostsByCursor(first: 10) @paginate(name: "GhostB") { 
-						edges { 
-							node { 
-								... on Ghost { 
+					ghostsByCursor(first: 10) @paginate(name: "GhostB") {
+						edges {
+							node {
+								... on Ghost {
 									name
 								}
 							}
 						}
-					}	
+					}
 				}
 			`,
 		],
