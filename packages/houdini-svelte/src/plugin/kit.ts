@@ -366,6 +366,7 @@ export function plugin_config(config: Config): Required<HoudiniSvelteConfig> {
 		pageQueryFilename: '+page.gql',
 		layoutQueryFilename: '+layout.gql',
 		static: false,
+		...cfg,
 		customStores: {
 			query: '$houdini/plugins/houdini-svelte/runtime/stores.QueryStore',
 			mutation: '$houdini/plugins/houdini-svelte/runtime/stores.MutationStore',
@@ -377,7 +378,6 @@ export function plugin_config(config: Config): Required<HoudiniSvelteConfig> {
 			fragmentOffset: '$houdini/plugins/houdini-svelte/runtime/stores.FragmentStoreOffset',
 			...cfg?.customStores,
 		},
-		...cfg,
 	}
 }
 
