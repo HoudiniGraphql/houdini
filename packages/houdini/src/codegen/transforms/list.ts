@@ -339,7 +339,7 @@ export default async function addListFragments(
 		generateArtifact: false,
 		generateStore: false,
 		document: generatedDoc,
-		originalDocument: generatedDoc,
+		originalParsed: generatedDoc,
 		filename: 'generated::lists',
 		originalString: '',
 		artifact: null,

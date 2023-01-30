@@ -22,7 +22,7 @@ export async function generateDocumentTypes(config: Config, docs: Document[]) {
 	// we need every fragment definition
 	const fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode } = {}
 	for (const document of docs) {
-		for (const defn of document.originalDocument.definitions.filter(
+		for (const defn of document.originalParsed.definitions.filter(
 			({ kind }) => kind === 'FragmentDefinition'
 		) as graphql.FragmentDefinitionNode[]) {
 			fragmentDefinitions[defn.name.value] = defn
@@ -36,7 +36,7 @@ export async function generateDocumentTypes(config: Config, docs: Document[]) {
 		// the generated types depend solely on user-provided information
 		// so we need to use the original document that we haven't mutated
 		// as part of the compiler
-		docs.map(async ({ originalDocument, name, filename, generateArtifact }) => {
+		docs.map(async ({ originalParsed: originalDocument, name, filename, generateArtifact }) => {
 			if (!generateArtifact) {
 				return
 			}

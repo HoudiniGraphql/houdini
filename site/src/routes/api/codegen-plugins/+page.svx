@@ -519,7 +519,7 @@ export default plugin('plugin_name', async () => {
     return {
         // alert if query complexity is too high
         artifact_end({ document }) {
-            if (computeComplexity(document.originalDocument) > 0.8) {
+            if (computeComplexity(document.originalParsed) > 0.8) {
                 console.warn("High complexity query!", document.name)
             }
         }

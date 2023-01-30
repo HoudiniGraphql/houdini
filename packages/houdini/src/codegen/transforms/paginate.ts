@@ -506,7 +506,7 @@ export default async function paginate(config: Config, documents: Document[]): P
 				filename: doc.filename,
 				name: refetchQueryName,
 				document: queryDoc,
-				originalDocument: queryDoc,
+				originalParsed: queryDoc,
 				generateArtifact: true,
 				generateStore: false,
 				refetch: doc.refetch,

@@ -57,11 +57,6 @@ export type Document = {
 	document: graphql.DocumentNode
 
 	/**
-	 * The document that the user provided
-	 * */
-	originalDocument: graphql.DocumentNode
-
-	/**
 	 * Whether an artifact should be generated for the document. This should be set to false for internal
 	 * or virtual documents .
 	 */
@@ -77,6 +72,10 @@ export type Document = {
 	 * The original document string that the user passed
 	 */
 	originalString: string
+	/**
+	 * The parsed document that the user provided
+	 * */
+	originalParsed: graphql.DocumentNode
 
 	/**
 	 * Refetch logic that has been built up throughout the pipeline

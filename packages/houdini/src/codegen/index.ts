@@ -364,7 +364,7 @@ async function processGraphQLDocument(
 		kind,
 		document: parsedDoc,
 		filename: filepath,
-		originalDocument: parsedDoc,
+		originalParsed: parsedDoc,
 		generateArtifact: true,
 		generateStore: true,
 		originalString: document,
