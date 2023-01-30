@@ -120,7 +120,6 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 			docs
 		)
 	} catch (e) {
-		console.log(e)
 		error = e as Error
 	}
 
@@ -311,7 +310,6 @@ async function processGraphQLDocument(
 	try {
 		var parsedDoc = graphql.parse(document)
 	} catch (e) {
-		console.log('error parsing!!')
 		throw e
 	}
 

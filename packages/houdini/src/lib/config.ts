@@ -646,7 +646,7 @@ export class Config {
 		const internalDirectives =
 			this.#newSchemaInstance?.getDirectives().map((directive) => directive.name) ?? []
 
-		return internalDirectives.includes(name)
+		return internalDirectives.includes(name) || this.isDeleteDirective(name)
 	}
 
 	isListFragment(name: string): boolean {

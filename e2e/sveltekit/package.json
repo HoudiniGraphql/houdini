@@ -11,7 +11,7 @@
     "build:": "cd ../../ && ((run build && cd -) || (cd - && exit 1))",
     "build:dev": "pnpm build: && pnpm dev",
     "build:test": "pnpm build: && pnpm test",
-    "build:build": "pnpm build: && pnpm test",
+    "build:build": "pnpm build: && pnpm build",
     "package": "svelte-kit package",
     "previewWeb": "vite preview --port 3007",
     "preview": "concurrently \"pnpm run previewWeb\" \"pnpm run api\" -n \"web,api\" -c \"green,magenta\"",
