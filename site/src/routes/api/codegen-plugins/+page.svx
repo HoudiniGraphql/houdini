@@ -30,7 +30,7 @@ It takes a name and an asynchronous function that returns
 an object with a fixed set of keys defining the "hooks" that you want
 to use:
 
-```javascript:title=src/plugins/plugin_names.js
+```javascript:title=src/plugins/custom_plugin.js
 import { plugin } from 'houdini'
 
 const generateSomething = plugin('plugin_name', async () =>  {
@@ -116,7 +116,7 @@ Codegen plugins can be defined as a composition of many different sets of hooks.
 The function passed to `plugin` can return a list of hooks, external plugins or null -
 allowing you to easily toggle functionality depending on configuration values:
 
-```javascript:title=src/plugins/plugin_names.js
+```javascript:title=src/plugins/custom_plugin.js
 import { plugin } from 'houdini'
 import externalPlugin from 'third-party'
 
@@ -132,7 +132,7 @@ const generateSomething = plugin('gen', async ({ include }) =>  {
 
 Use the `with` method to pass configuration to the third-party plugin:
 
-```javascript:title=src/plugins/plugin_names.js
+```javascript:title=src/plugins/custom_plugin.js
 import { plugin } from 'houdini'
 import externalPlugin from 'third-party'
 
@@ -358,12 +358,39 @@ make sure your type definitions are up to date.
 - The first value provided by a plugin is used
 
 Customizes the return type of the graphql function. If you need to add an import to the file
-in order to resolve the import, you can use the `ensure_import` utility:
+in order to resolve the import, you can use the `ensure_import` utility. Here is an example
+from `houdini-svelte` which maps the result of `graphql` to the store that was generated for
+the document:
 
-```javascript:title=plugin_names.js
+```javascript:title=custom_plugin.js
 export default {
-    graphql_tag_return({ config, ensure_import }) {
-        // TODO
+    graphql_tag_return({ ensure_import, document }) {
+        const { artifact, name } = document
+
+		// if we're supposed to generate a store then add
+        // an overloaded declaration
+		if (artifact.artifact_data['houdini-svelte'].generate) {
+			// use the name of the store as the return value
+            const store = store_name({ name })
+
+			// make sure we are importing the store
+            // this won't add an import if its already been imported
+			ensure_import({
+                // identifier specifies the local variable created
+                // by the import
+				identifier: store,
+                // the module you are importing from
+				module: store_import_path({
+					name,
+				}),
+			})
+
+			// and use the store as the return value
+			return store
+		}
+
+        // if we got this far, we dont want to add
+        // an overloaded return type
     }
 }
 ```
