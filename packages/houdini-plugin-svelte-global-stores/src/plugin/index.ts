@@ -35,7 +35,7 @@ export const pluginHooks: () => Promise<PluginHooks> = async () => ({
 
 	// Check that storeName & globalStoreName are not overlapping.
 	// Not possible today, but maybe in the future if storeName starts to be configurable.
-	async after_load(cfg) {
+	async after_load({ config: cfg }) {
 		if (
 			store_name({ config: cfg, name: 'QueryName' }) ===
 			global_store_name({ config: cfg, name: 'QueryName' })

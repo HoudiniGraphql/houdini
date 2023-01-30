@@ -59,13 +59,13 @@ graph LR
 
 ```mermaid
 graph LR
-    t_before_v[transform_before_validate] --> validate
+    t_before_v[before_validate] --> validate
     validate[validate] --> t_after_v
-    t_after_v[transform_after_validate]
+    t_after_v[after_validate]
 
-    click t_before_v "#transform_before_validate" "t_before_v hook"
+    click t_before_v "#before_validate" "t_before_v hook"
     click validate "#validate" "validate hook"
-    click t_after_v "#transform_after_validate" "t_after_v hook"
+    click t_after_v "#after_validate" "t_after_v hook"
 ```
 
 ```mermaid

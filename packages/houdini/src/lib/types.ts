@@ -26,17 +26,61 @@ export type TransformDocument = {
 	filename: string
 }
 
-// the result of collecting documents from source code
+/**
+ * The result of collecting documents from source code
+ */
 export type CollectedGraphQLDocument = {
-	kind: ArtifactKind
-	artifact: DocumentArtifact | null
-	filename: string
+	/**
+	 * The name of the document.
+	 */
 	name: string
+
+	/**
+	 * A field you can use to distinguish documents by type (query, mutation, subscription, fragment)
+	 */
+	kind: ArtifactKind
+
+	/**
+	 * The artifact generated for the document. This will only have a value in the last phase
+	 * of the Generation Pipeline.
+	 */
+	artifact: DocumentArtifact | null
+
+	/**
+	 * The path of the file containing this document
+	 */
+	filename: string
+
+	/**
+	 * The parsed document. This value should be modified throughout the pipeline.
+	 * */
 	document: graphql.DocumentNode
+
+	/**
+	 * The document that the user provided
+	 * */
 	originalDocument: graphql.DocumentNode
+
+	/**
+	 * Whether an artifact should be generated for the document. This should be set to false for internal
+	 * or virtual documents .
+	 */
 	generateArtifact: boolean
+
+	/**
+	 * Whether a runtime equivalent should be generated for the document. This should be set to false for internal
+	 * or virtual documents .
+	 */
 	generateStore: boolean
+
+	/**
+	 * The original document string that the user passed
+	 */
 	originalString: string
+
+	/**
+	 * Refetch logic that has been built up throughout the pipeline
+	 */
 	refetch?: BaseCompiledDocument['refetch']
 }
 
@@ -100,7 +144,7 @@ export type PluginHooks = {
 	/**
 	 * Invoked after all plugins have loaded and modified config values.
 	 */
-	after_load?: (config: Config) => Promise<void> | void
+	after_load?: (args: { config: Config }) => Promise<void> | void
 
 	/**
 	 * A filter for whether a file should be included in the the processing. Return true to include.
@@ -131,7 +175,7 @@ export type PluginHooks = {
 	/**
 	 * A hook to transform the documents before they are validated.
 	 */
-	transform_before_validate?: (args: {
+	before_validate?: (args: {
 		config: Config
 		documents: CollectedGraphQLDocument[]
 	}) => Promise<void> | void
@@ -147,7 +191,7 @@ export type PluginHooks = {
 	/**
 	 * A hook to transform the documents after they are validated.
 	 */
-	transform_after_validate?: (args: {
+	after_validate?: (args: {
 		config: Config
 		documents: CollectedGraphQLDocument[]
 	}) => Promise<void> | void
@@ -196,7 +240,7 @@ export type PluginHooks = {
 	/**
 	 * A hook to modify the generated artifact before it is persisted
 	 */
-	artifact_end?: (args: { config: Config; artifact: DocumentArtifact }) => DocumentArtifact
+	artifact_end?: (args: { config: Config; document: CollectedGraphQLDocument }) => void
 
 	/**
 	 * Specify the plugins that should be added to the user's client because

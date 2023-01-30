@@ -188,6 +188,31 @@ value. If you just want to look at the config values, we recommend using
 [after_load](#after_load) which will have the final set of values after all `config`
 hooks have run.
 
+```javascript:title=plugin_name/src/index.js
+import { plugin } from 'houdini'
+
+export default plugin('plugin_name', async () => {
+    return {
+        config() {
+            return {
+                // add scalar config
+                scalars: {
+                    DateTime: {
+                        type: 'Date',
+                        unmarshal(val) {
+                            return new Date(val)
+                        },
+                        marshal(date) {
+                            return date.getTime()
+                        }
+                    }
+                }
+            }
+        }
+    }
+})
+```
+
 ### `env`
 
 - Type: `({ env: any; config: Config }) => Promise<Record<string, string>>`
@@ -196,12 +221,41 @@ hooks have run.
 Adds environment variables to houdini's pipeline (ie, for schema polling headers, url, etc.).
 Plugins are executed in the order they are defined so they can overwrite each other.
 
+```javascript:title=plugin_name/src/index.js
+import { loadEnv } from 'vite'
+import { plugin } from 'houdini'
+
+export default plugin('plugin_name', async () => {
+    return {
+        // load .env files using vite's rules
+        env() {
+            return loadEnv('dev', '.', '')
+        }
+    }
+})
+```
+
 ### `after_load`
 
 - Type: `(config: Config) => Promise<void> | void`
 
 Invoked after all plugins have loaded and modified config values. This is the hook to use
 if you want to perform logic based on config values.
+
+```javascript:title=plugin_name/src/index.js
+import { plugin } from 'houdini'
+
+export default plugin('plugin_name', async () => {
+    return {
+        after_load({ config }) {
+            // make sure we were given a valid value
+            if (!isValid(config)) {
+                throw new Error("invalid config!")
+            }
+        }
+    }
+})
+```
 
 ## Extract and Parse
 
@@ -217,6 +271,16 @@ documents inside.
 
 Add extensions to the list that houdini uses to find valid source files.
 
+```javascript:title=plugin_name/src/index.js
+import { plugin } from 'houdini'
+
+export default plugin('plugin_name', async () => {
+    return {
+        extensions: ['tsx', 'jsx']
+    }
+})
+```
+
 ### `include`
 
 - Type: `({ config: Config, filepath: string }) => boolean | null | undefined`
@@ -224,7 +288,23 @@ Add extensions to the list that houdini uses to find valid source files.
 
 A filter for wether a file should be included in processing. This hook is useful
 if you generate imports that do not match your users configure `include` value.
-Return `true` to include the file.
+Return `true` to include the file. This is commonly used in tandem with the
+[vite](#vite) hook.
+
+```javascript:title=plugin_name/src/index.js
+import { plugin } from 'houdini'
+
+export default plugin('plugin_name', async () => {
+    return {
+        // include any paths that start with `@` in the transforms
+        include({ filepath }) {
+            if (filepath.startsWith('@')) {
+                return true
+            }
+        }
+    }
+})
+```
 
 ### `exclude`
 
@@ -234,6 +314,19 @@ Return `true` to include the file.
 A filter for wether a file should be included in processing. This hook is useful
 if you generate imports that do not match your users configure `include` value.
 Return `false` to include the file.
+
+```javascript:title=plugin_name/src/index.js
+import { plugin } from 'houdini'
+
+export default plugin('plugin_name', async () => {
+    return {
+        // exclude any server.graphql files
+        exclude({ filepath }) {
+            return filepath.endsWith('server.graphql')
+        }
+    }
+})
+```
 
 ### `extract_documents`
 
@@ -246,9 +339,46 @@ given its filepath and the file contents. You can return `null` or an empty stri
 that you didn't find any graphql documents. This step is responsible for actually parsing your
 source code and extracting the string values of the `graphql` function.
 
+```typescript:title=plugin_name/src/index.ts
+import { parseJS, find_graphql, plugin } from 'houdini'
+
+export default plugin('plugin_name', async () => {
+    return {
+        // exclude any server.graphql files
+        async extract_documents({
+            config,
+            content,
+            filepath
+        }) {
+            // only add documents for svelte files
+            if (!filepath.endsWith(".svelte")) {
+                return []
+            }
+
+            // parse the svelte files
+            const documents = []
+            let parsedFile = await parseSvelte(content)
+            if (!parsedFile) {
+                return documents
+            }
+
+            // look for graphql documents using houdini's utility
+            await find_graphql(config, parsedFile.script, {
+                tag({ tagContent }) {
+                    documents.push(tagContent)
+                },
+            })
+
+            // we found every document in the file
+            return documents
+        }
+    }
+})
+```
+
 ### `schema`
 
-- Type: `({ config: Config, path: string, content: string }) => string`
+- Type: `({ config: Config }) => string`
 
 Can be used to add custom definitions to your project's schema. Definitions added
 here are automatically removed from the document before they are sent to the server. It is sometimes
@@ -257,6 +387,19 @@ to embed data in the artifact.
 
 Currently, this hook can only add directives, scalars, or enums to the schema.
 
+```typescript:title=plugin_name/src/index.ts
+export default plugin('plugin_name', async () => {
+    return {
+        // add the @special directive
+        schema() {
+            return `
+                directive @special on QUERY
+            `
+        }
+    }
+})
+```
+
 ## Validate and Transform
 
 These hooks are responsible for transforming and validating the documents in your application. If you want
@@ -264,12 +407,12 @@ to add new definitions, you can add new documents to provided list.
 
 <ValidateDiagram style="max-width: 500px; margin: 50px auto;"/>
 
-### `transform_before_validate`
+### `before_validate`
 
 - Type: `({ config: Config documents: Document[] }) => void`
 - Can also return a Promise
 
-Transforms documents before they has been validated. This can be useful if you are adding a layer
+Processes documents before they has been validated. This can be useful if you are adding a layer
 that translates into a Houdini feature.
 
 ### `validate`
@@ -277,13 +420,13 @@ that translates into a Houdini feature.
 - Type: `({ config: Config documents: Document[] }) => void`
 - Can also return a Promise
 
-Performs any validation checks before the rest of the pipeline continue. Performing checks here makes sure that as many errors
-are reported as possible (instead of just failing on the first error). For example,
-the [uniqueNames](https://github.com/HoudiniGraphql/houdini/blob/main/packages/houdini/src/codegen/validators/uniqueNames.ts)
+Performs any validation checks before the rest of the pipeline continue. Remember to verify as many documents as possible
+before erroring. For example, the
+[uniqueNames](https://github.com/HoudiniGraphql/houdini/blob/main/packages/houdini/src/codegen/validators/uniqueNames.ts)
 validator makes sure that every document has a unique name so that the preprocessor can
 reliably import the correct artifact.
 
-### `transform_after_validate`
+### `after_validate`
 
 - Type: `({ config: Config documents: Document[] }) => void`
 - Can also return a Promise
@@ -313,12 +456,53 @@ Transforms the documents just before static assets are generated.
 Embeds metadata at the root of the artifact. You should use this to encode document-level
 data at build time so you don't have to analyze the document at runtime (in a client plugin, for example).
 
+```typescript:title=plugin_name/src/index.ts
+import * as graphql from 'graphql'
+import { plugin } from 'houdini'
+
+export default plugin('plugin_name', async () => {
+    return {
+        // emebed data in the artifact if we detect the @live
+        artifact_data({ config, document }) {
+            let live = false
+
+            // look for the live directive
+            graphql.visit(document.document, {
+                Directive(node) {
+                    if (node.name.value === 'live) {
+                        live = true
+                    }
+                },
+            })
+
+            return {
+                live
+            }
+        }
+    }
+})
+```
+
 ### `hash`
 
 - Type: `({ config: Config, document: Document }) => string`
 - The first hook provided is used.
 
 Customizes the hash generated for a given document
+
+
+```typescript:title=plugin_name/src/index.ts
+import { plugin } from 'houdini'
+
+export default plugin('plugin_name', async () => {
+    return {
+        // emebed data in the artifact if we detect the @live
+        hash({ document }) {
+            return hashDocumentName(document.name)
+        }
+    }
+})
+```
 
 ### `artifact_end`
 
@@ -327,6 +511,21 @@ Customizes the hash generated for a given document
 
 Modifies the generated artifact before its written to disk. This is useful to set artifact data
 based on information derived from the artifact's final state.
+
+```typescript:title=plugin_name/src/index.ts
+import { plugin } from 'houdini'
+
+export default plugin('plugin_name', async () => {
+    return {
+        // alert if query complexity is too high
+        artifact_end({ document }) {
+            if (computeComplexity(document.originalDocument) > 0.8) {
+                console.warn("High complexity query!", document.name)
+            }
+        }
+    }
+})
+```
 
 ### `generate`
 
@@ -347,6 +546,22 @@ files you want. If you want values that you generated to be included in
 the values exported from `$houdini`, you should use the
 [index_file](#index_file) hook.
 
+```typescript:title=plugin_name/src/index.ts
+import { plugin } from 'houdini'
+import fs from 'fs/promises'
+
+export default plugin('plugin_name', async () => {
+    return {
+        // write a file with the name of every document
+        async generate({ plugin_root, documents }) {
+            const fileName = path.join(plugin_root, 'queryname.txt')
+            const contents = documents.map(doc => doc.name).join('\n')
+            await fs.writeFile(fileName, contents, 'utf-8')
+        }
+    }
+})
+```
+
 ### `include_runtime`
 
 - Type: `string | { commonjs: string, esm: string }`
@@ -361,6 +576,19 @@ directory to the directory that should be copied. If you have different
 versions of your runtime for CommonJS and ESModules, you can set this
 to an object specifying both paths.
 
+```typescript:title=plugin_name/src/index.ts
+import { plugin } from 'houdini'
+
+export default plugin('plugin_name', async () => {
+    return {
+        include_runtime: {
+            commonjs: "../runtime-commonjs",
+            esm: "../runtime-esm",
+        }
+    }
+})
+```
+
 ### `transform_runtime`
 
 - Type: `Record<string, ({ config: Config; content: string }) => string>`
@@ -371,6 +599,26 @@ setting). The values are functions that set the new file value.
 
 This hook only has an effect if you have passed a value
 for [include_runtime](#include-runtime).
+
+```typescript:title=plugin_name/src/index.ts
+import { plugin } from 'houdini'
+
+const plugin_variable = "1234"
+
+export default plugin('plugin_name', async () => {
+    return {
+        // this must be set
+        include_runtime: "../runtime",
+
+        // replace value in {plugin_root}/lib/constants.js
+        transform_runtime: {
+            ['lib/constants.js']: ({ content }) {
+                return content.replace("THIS", plugin_variable)
+            }
+        }
+    }
+})
+```
 
 ### `index_file`
 

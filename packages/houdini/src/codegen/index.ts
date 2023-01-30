@@ -42,15 +42,15 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 	const generatePlugins = config.plugins.filter((plugin) => plugin.generate)
 
 	// find the different hooks we need to add to the pipeline
-	const transform_after_validate = config.plugins
-		.filter((plugin) => plugin.transform_after_validate)
-		.map((plugin) => plugin.transform_after_validate!)
+	const after_validate = config.plugins
+		.filter((plugin) => plugin.after_validate)
+		.map((plugin) => plugin.after_validate!)
 	const validate = config.plugins
 		.filter((plugin) => plugin.validate)
 		.map((plugin) => plugin.validate!)
-	const transform_before_validate = config.plugins
-		.filter((plugin) => plugin.transform_before_validate)
-		.map((plugin) => plugin.transform_before_validate!)
+	const before_validate = config.plugins
+		.filter((plugin) => plugin.before_validate)
+		.map((plugin) => plugin.before_validate!)
 	const transform_before_generate = config.plugins
 		.filter((plugin) => plugin.transform_before_generate)
 		.map((plugin) => plugin.transform_before_generate!)
@@ -78,14 +78,14 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 				// transforms
 				transforms.internalSchema,
 
-				...wrapHook(transform_before_validate),
+				...wrapHook(before_validate),
 				// validators
 				validators.typeCheck,
 				validators.uniqueNames,
 				validators.noIDAlias,
 				validators.plugins,
 				...wrapHook(validate),
-				...wrapHook(transform_after_validate),
+				...wrapHook(after_validate),
 				transforms.addID,
 				transforms.typename,
 				// list transform must go before fragment variables

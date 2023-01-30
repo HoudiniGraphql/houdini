@@ -340,15 +340,16 @@ export default function artifactGenerator(stats: {
 						}
 					}
 
+					// assign the artifact
+					doc.artifact = artifact
+
 					// pass the artifact through the artifact_end hooks
 					for (const plugin of config.plugins) {
 						if (!plugin.artifact_end) {
 							continue
 						}
-						artifact = plugin.artifact_end({ config, artifact })
+						plugin.artifact_end({ config, document: doc })
 					}
-
-					doc.artifact = artifact
 
 					// the artifact should be the default export of the file
 					const file = AST.program([

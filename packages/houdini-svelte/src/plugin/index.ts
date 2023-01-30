@@ -150,7 +150,7 @@ export default client
 	 * Setup
 	 */
 
-	async after_load(cfg) {
+	async after_load({ config: cfg }) {
 		_config = cfg
 		const cfgPlugin = plugin_config(cfg)
 
