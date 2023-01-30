@@ -5,6 +5,7 @@
 	import { Logo } from '~/components'
 
 	let subTitle = $page.url.searchParams.get('s') || ''
+	let nicer = false
 
 	$: browser && subTitle && updateQS()
 
@@ -19,11 +20,8 @@
 	}
 </script>
 
-<div class="content">
-	<div class="inputs">
-		<input type="text" bind:value={subTitle} placeholder="Sub Title" />
-	</div>
-	<div class="og-card">
+<div class={nicer ? 'content-nice' : 'content'}>
+	<div id="og-card" style={nicer ? '' : 'margin-left: 0; margin-top: 0; border-radius: 0'}>
 		<div class="layer-0">
 			<div style="width: 300px;" />
 			<img id="code" src="/images/_og/code_01.png" alt="code in the background" />
@@ -37,6 +35,12 @@
 			</div>
 		</div>
 	</div>
+
+	<input type="text" bind:value={subTitle} placeholder="Sub Title" />
+	<div>
+		<input id="nicer" type="checkbox" bind:checked={nicer} />
+		<label for="nicer">Nicer</label>
+	</div>
 </div>
 
 <style>
@@ -45,19 +49,27 @@
 		--background-color-1: #20283d;
 		--background-color-2: rgba(20, 21, 25, 1);
 		--highlight: #855aff;
-		--graphql: #e10098;
-		--dark-grey: #16171b;
-		--grey: #393b43;
-		--light-grey: #979aa6;
-		--lightest-grey: #d2d9f5;
+		/* To have a nice image of 630px, I have to have here 650! */
+		--card-height: 630px;
 	}
 
-	.inputs {
-		margin-top: 2rem;
+	input {
+		margin-bottom: 2rem;
+		font-size: xx-large;
 		font-size: 24px;
 	}
 
 	.content {
+		display: flex;
+		flex-direction: column;
+		justify-content: left;
+		align-items: flex-start;
+		height: 100vh;
+		width: 100vw;
+		background: white;
+	}
+
+	.content-nice {
 		display: flex;
 		flex-direction: column;
 		justify-content: center;
@@ -71,7 +83,7 @@
 		position: absolute;
 		display: flex;
 		width: 1200px;
-		height: 628px;
+		height: var(--card-height);
 		justify-content: center;
 		gap: 50px;
 	}
@@ -80,7 +92,7 @@
 		position: absolute;
 		display: flex;
 		width: 1200px;
-		height: 628px;
+		height: var(--card-height);
 		justify-content: center;
 		align-items: center;
 		gap: 100px;
@@ -126,10 +138,10 @@
 		width: 600px;
 	}
 
-	.og-card {
+	#og-card {
 		margin: auto;
 		width: 1200px;
-		height: 628px;
+		height: var(--card-height);
 		background: var(--background-color-1);
 		background: linear-gradient(
 			180deg,

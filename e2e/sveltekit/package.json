@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "@kitql/helper": "^0.5.0",
-    "@playwright/test": "1.28.1",
+    "@playwright/test": "1.30.0",
     "@sveltejs/adapter-auto": "1.0.0",
     "@sveltejs/kit": "1.0.0",
     "@typescript-eslint/eslint-plugin": "^5.10.1",
