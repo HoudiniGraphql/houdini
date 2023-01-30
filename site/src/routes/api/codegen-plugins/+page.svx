@@ -171,6 +171,7 @@ updating any configuration values.
 <SetupDiagram style="max-width: 350px; margin: 50px auto;" />
 
 ### `order`
+
 - Type: `"before" | "after"`
 - Default is `"before"`
 
@@ -490,7 +491,6 @@ export default plugin('plugin_name', async () => {
 
 Customizes the hash generated for a given document
 
-
 ```typescript:title=plugin_name/src/index.ts
 import { plugin } from 'houdini'
 
@@ -640,6 +640,24 @@ Modifies the root `index.js` and `index.d.ts` files in the generated runtime. If
 add any exports, make sure to use the `export_default_as` and `export_star_from` utilities which will
 make sure your type definitions are up to date.
 
+```typescript:title=plugin_name/src/index.ts
+import { plugin } from 'houdini'
+
+const plugin_variable = "1234"
+
+export default plugin('plugin_name', async () => {
+    return {
+        // export everything in the stores directory
+        // this one function handles .js and .d.ts
+        index_file({ content, export_star_from, plugin_root }) {
+            return content + export_star_from({
+                module: path.join('.', plugin_root, 'stores')
+            })
+        },
+    }
+})
+```
+
 ### `graphql_tag_return`
 
 - Type: `({
@@ -698,19 +716,18 @@ a plugin for something like Live Queries could check for the `@live` directive a
 persisted value in a client plugin.
 
 ```javascript
-plugin("houdini-plugin-custom", async () => {
-    return {
-        client_plugins: {
-            'houdini-plugin-custom/client': null
-        }
-    }
+plugin('houdini-plugin-custom', async () => {
+	return {
+		client_plugins: {
+			'houdini-plugin-custom/client': null
+		}
+	}
 })
 ```
 
 The key of this object should be a globally resolvable module (third-party package, aliased local path, etc).
-The generated runtime assumes that the default export  of this module is a function that returns a client plugin.
+The generated runtime assumes that the default export of this module is a function that returns a client plugin.
 The value of the `client_plugins` hook object are passed to that function.
-
 
 ## Transform Source
 
@@ -739,7 +756,7 @@ information, please review the example at the bottom of the
 ### `vite`
 
 - Type: same `{ resolveId, load }` from [vite](https://vitejs.dev/guide/api-plugin.html#vite-specific-hooks)
-except with the config file passed to the appropriate object.
+  except with the config file passed to the appropriate object.
 
 Allows a plugin to configure the vite plugin exported from `houdini/vite.` This hook is
 useful if you generate files that are imported or need to hook into vite for any reason.
