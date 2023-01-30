@@ -14,7 +14,7 @@ test('change prefix to "yop___"', async function () {
 			'houdini-svelte': {},
 			'houdini-plugin-svelte-global-stores': {
 				prefix: 'yop___',
-				storesToGenerate: ['Query'],
+				storesToGenerate: ['query'],
 			},
 		},
 	})
@@ -44,7 +44,7 @@ test('change prefix to ""', async function () {
 			'houdini-svelte': {},
 			'houdini-plugin-svelte-global-stores': {
 				prefix: '',
-				storesToGenerate: ['Query'],
+				storesToGenerate: ['query'],
 			},
 		},
 	})
@@ -89,4 +89,34 @@ test('no query', async function () {
 
 	// check the file contents
 	expect(parsed).toMatchInlineSnapshot('null')
+})
+
+test('all', async function () {
+	const docs = [`query TestQuery { version }`]
+
+	const { plugin_root } = await pipeline_test(docs, {
+		plugins: {
+			'houdini-svelte': {},
+			'houdini-plugin-svelte-global-stores': {
+				prefix: '',
+				storesToGenerate: 'all',
+			},
+		},
+	})
+
+	const contents = await fs.readFile(
+		path.join(global_stores_directory(plugin_root), 'TestQuery.js')
+	)
+
+	// parse the contents
+	const parsed = recast.parse(contents!, {
+		parser: typeScriptParser,
+	}).program
+
+	// check the file contents
+	expect(parsed).toMatchInlineSnapshot(`
+		import { TestQueryStore } from '../../houdini-svelte/stores'
+
+		export const TestQuery = new TestQueryStore()
+	`)
 })

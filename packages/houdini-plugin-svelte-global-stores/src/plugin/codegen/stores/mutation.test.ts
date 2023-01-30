@@ -37,3 +37,32 @@ test('generates a store for every mutation', async function () {
 	`
 	)
 })
+
+test('no mutation', async function () {
+	const docs = [
+		`mutation TestMutation1 { updateUser { id }  }`,
+		`mutation TestMutation2 { updateUser { id }  }`,
+	]
+
+	const { plugin_root } = await pipeline_test(docs, {
+		plugins: {
+			'houdini-svelte': {},
+			'houdini-plugin-svelte-global-stores': {
+				prefix: '',
+				storesToGenerate: [],
+			},
+		},
+	})
+
+	const contents = await fs.readFile(
+		path.join(global_stores_directory(plugin_root), 'TestMutation1.js')
+	)
+
+	// parse the contents
+	const parsed = recast.parse(contents!, {
+		parser: typeScriptParser,
+	}).program
+
+	// check the file contents
+	expect(parsed).toMatchInlineSnapshot('null')
+})
