@@ -295,21 +295,22 @@ If you only want to operate on the list depending on argument values, you can us
 allFriends.when({ favorites: true }).append(user1)
 ```
 
-## Stale
+## Stale Data
 
-If some cases it can be useful to mark data as `Stale` so that next time it is requested,
-it will be refetched over the network. Houdini has two principles in place:
+In some cases it can be useful to mark data as "stale" so that next time it is requested,
+it will be refetched over the network. This can be done in two ways:
 
-### Globaly after a timeout
+### Globally after a timeout
 
-In the [config](/api/config#fields) you can set `defaultLifetime` to mark automatically
-data as stale after a certain time (in miliseconds). You can imagine to use this to say all data that
-are older than 7 mintues should be refetched (example: `defaultLifetime: 7 * 60 * 1000`)
+If you set `defaultLifetime` in your [config file](/api/config#fields) then data will
+get automatically marked stale after a certain time (in milliseconds). For example, you can
+configure so that any data older than 7 minutes is refreshed (example: `defaultLifetime: 7 * 60 * 1000`).
+When this happens, the cached data will still be returned but a new query will be sent
+(effectively making the cache policy `CacheAndNetwork`).
 
 ### Programmatically
 
-Houdini provides you different levels to interact with the stale mechanism.
-Here you can find the list of options you have at your disposal:
+If you want more fine-grained logic for marking data as stale, you can use the programmatic api:
 
 ```typescript
 import { cache, graphql } from '$houdini'
@@ -331,7 +332,7 @@ user.markStale()
 const user = cache.get('User', { id: '1' })
 user.markStale({ field: 'name' })
 
-// Mark the name field when the pattern is 'capitalize'
+// Mark the name field when the pattern field argument is 'capitalize'
 const user = cache.get('User', { id: '1' })
 user.markStale({ field: 'name', when: { pattern: 'capitalize' } })
 ```
