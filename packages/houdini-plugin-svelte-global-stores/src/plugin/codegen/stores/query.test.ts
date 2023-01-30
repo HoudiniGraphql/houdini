@@ -9,7 +9,7 @@ import { global_stores_directory } from '../../kit'
 test('change prefix to "yop___"', async function () {
 	const docs = [`query TestQuery { version }`]
 
-	const { plugin_root } = await pipeline_test(docs, {
+	const { pluginRoot } = await pipeline_test(docs, {
 		plugins: {
 			'houdini-svelte': {},
 			'houdini-plugin-svelte-global-stores': {
@@ -19,7 +19,7 @@ test('change prefix to "yop___"', async function () {
 	})
 
 	const contents = await fs.readFile(
-		path.join(global_stores_directory(plugin_root), 'TestQuery.js')
+		path.join(global_stores_directory(pluginRoot), 'TestQuery.js')
 	)
 
 	// parse the contents
@@ -38,7 +38,7 @@ test('change prefix to "yop___"', async function () {
 test('change prefix to ""', async function () {
 	const docs = [`query TestQuery { version }`]
 
-	const { plugin_root } = await pipeline_test(docs, {
+	const { pluginRoot } = await pipeline_test(docs, {
 		plugins: {
 			'houdini-svelte': {},
 			'houdini-plugin-svelte-global-stores': {
@@ -48,7 +48,7 @@ test('change prefix to ""', async function () {
 	})
 
 	const contents = await fs.readFile(
-		path.join(global_stores_directory(plugin_root), 'TestQuery.js')
+		path.join(global_stores_directory(pluginRoot), 'TestQuery.js')
 	)
 
 	// parse the contents

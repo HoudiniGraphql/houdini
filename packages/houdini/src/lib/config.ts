@@ -858,7 +858,7 @@ export async function getConfig({
 		_config.plugins = orderedPlugins(plugins)
 
 		// look for any plugins with a loaded hook
-		await Promise.all(_config.plugins.map((plugin) => plugin.after_load?.({ config: _config })))
+		await Promise.all(_config.plugins.map((plugin) => plugin.afterLoad?.({ config: _config })))
 
 		// we're done and have a valid config
 		resolve(_config)

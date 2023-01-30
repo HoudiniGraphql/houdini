@@ -6,7 +6,7 @@ import generate from '..'
 import { type_route_dir } from '../../kit'
 
 const config = testConfig()
-const plugin_root = config.pluginDirectory('test-plugin')
+const pluginRoot = config.pluginDirectory('test-plugin')
 
 const default_layout_types = `import type * as Kit from '@sveltejs/kit';
 
@@ -73,7 +73,7 @@ test('generates types for inline layout queries', async function () {
 	})
 
 	// execute the generator
-	await generate({ config, documents: [], framework: 'kit', plugin_root })
+	await generate({ config, documents: [], framework: 'kit', pluginRoot })
 
 	// load the contents of the file
 	const queryContents = await fs.readFile(
@@ -159,7 +159,7 @@ test('generates types for inline page queries', async function () {
 	})
 
 	// execute the generator
-	await generate({ config, documents: [], framework: 'kit', plugin_root })
+	await generate({ config, documents: [], framework: 'kit', pluginRoot })
 
 	// load the contents of the file
 	const queryContents = await fs.readFile(
@@ -245,7 +245,7 @@ query MyLayoutQuery {
 	})
 
 	// execute the generator
-	await generate({ config, documents: [], framework: 'kit', plugin_root })
+	await generate({ config, documents: [], framework: 'kit', pluginRoot })
 
 	// load the contents of the file
 	const queryContents = await fs.readFile(
@@ -328,7 +328,7 @@ query MyPageQuery {
 	})
 
 	// execute the generator
-	await generate({ config, documents: [], framework: 'kit', plugin_root })
+	await generate({ config, documents: [], framework: 'kit', pluginRoot })
 
 	// load the contents of the file
 	const queryContents = await fs.readFile(
@@ -428,7 +428,7 @@ test('generates types for layout onError', async function () {
 	})
 
 	// execute the generator
-	await generate({ config, documents: [], framework: 'kit', plugin_root })
+	await generate({ config, documents: [], framework: 'kit', pluginRoot })
 
 	// load the contents of the file
 	const queryContents = await fs.readFile(
@@ -545,7 +545,7 @@ test('generates types for page onError', async function () {
 	})
 
 	// execute the generator
-	await generate({ config, documents: [], framework: 'kit', plugin_root })
+	await generate({ config, documents: [], framework: 'kit', pluginRoot })
 
 	// load the contents of the file
 	const queryContents = await fs.readFile(
@@ -663,7 +663,7 @@ test('generates types for layout beforeLoad', async function () {
 	})
 
 	// execute the generator
-	await generate({ config, documents: [], framework: 'kit', plugin_root })
+	await generate({ config, documents: [], framework: 'kit', pluginRoot })
 
 	// load the contents of the file
 	const queryContents = await fs.readFile(
@@ -775,7 +775,7 @@ test('generates types for page beforeLoad', async function () {
 	})
 
 	// execute the generator
-	await generate({ config, documents: [], framework: 'kit', plugin_root })
+	await generate({ config, documents: [], framework: 'kit', pluginRoot })
 
 	// load the contents of the file
 	const queryContents = await fs.readFile(
@@ -887,7 +887,7 @@ test('generates types for layout afterLoad', async function () {
 	})
 
 	// execute the generator
-	await generate({ config, documents: [], framework: 'kit', plugin_root })
+	await generate({ config, documents: [], framework: 'kit', pluginRoot })
 
 	// load the contents of the file
 	const queryContents = await fs.readFile(
@@ -1010,7 +1010,7 @@ test('generates types for page afterLoad', async function () {
 	})
 
 	// execute the generator
-	await generate({ config, documents: [], framework: 'kit', plugin_root })
+	await generate({ config, documents: [], framework: 'kit', pluginRoot })
 
 	// load the contents of the file
 	const queryContents = await fs.readFile(
@@ -1115,7 +1115,7 @@ test('Marks required query arguments as optional if the url param provides it', 
 	})
 
 	// execute the generator
-	await generate({ config, documents: [], framework: 'kit', plugin_root })
+	await generate({ config, documents: [], framework: 'kit', pluginRoot })
 
 	// load the contents of the file
 	const queryContents = await fs.readFile(

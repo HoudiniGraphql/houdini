@@ -42,18 +42,18 @@ export async function runPipeline(config: Config, docs: Document[]) {
 	const generatePlugins = config.plugins.filter((plugin) => plugin.generate)
 
 	// find the different hooks we need to add to the pipeline
-	const after_validate = config.plugins
-		.filter((plugin) => plugin.after_validate)
-		.map((plugin) => plugin.after_validate!)
+	const afterValidate = config.plugins
+		.filter((plugin) => plugin.afterValidate)
+		.map((plugin) => plugin.afterValidate!)
 	const validate = config.plugins
 		.filter((plugin) => plugin.validate)
 		.map((plugin) => plugin.validate!)
-	const before_validate = config.plugins
-		.filter((plugin) => plugin.before_validate)
-		.map((plugin) => plugin.before_validate!)
-	const transform_before_generate = config.plugins
-		.filter((plugin) => plugin.transform_before_generate)
-		.map((plugin) => plugin.transform_before_generate!)
+	const beforeValidate = config.plugins
+		.filter((plugin) => plugin.beforeValidate)
+		.map((plugin) => plugin.beforeValidate!)
+	const beforeGenerate = config.plugins
+		.filter((plugin) => plugin.beforeGenerate)
+		.map((plugin) => plugin.beforeGenerate!)
 
 	const wrapHook = (
 		hooks: ((args: { config: Config; documents: Document[] }) => Promise<void> | void)[]
@@ -75,14 +75,14 @@ export async function runPipeline(config: Config, docs: Document[]) {
 				// transforms
 				transforms.internalSchema,
 
-				...wrapHook(before_validate),
+				...wrapHook(beforeValidate),
 				// validators
 				validators.typeCheck,
 				validators.uniqueNames,
 				validators.noIDAlias,
 				validators.plugins,
 				...wrapHook(validate),
-				...wrapHook(after_validate),
+				...wrapHook(afterValidate),
 				transforms.addID,
 				transforms.typename,
 				// list transform must go before fragment variables
@@ -93,7 +93,7 @@ export async function runPipeline(config: Config, docs: Document[]) {
 				transforms.paginate,
 				transforms.fragmentVariables,
 				transforms.composeQueries,
-				...wrapHook(transform_before_generate),
+				...wrapHook(beforeGenerate),
 				// generators
 				generators.artifacts(artifactStats),
 				generators.runtime,
@@ -110,7 +110,7 @@ export async function runPipeline(config: Config, docs: Document[]) {
 						await plugin.generate!({
 							config,
 							documents: docs,
-							plugin_root: config.pluginDirectory(plugin.name),
+							pluginRoot: config.pluginDirectory(plugin.name),
 						})
 				),
 			],
@@ -188,7 +188,7 @@ async function collectDocuments(config: Config): Promise<Document[]> {
 	// the list of documents we found
 	const documents: DiscoveredDoc[] = []
 
-	const extractors: Record<string, PluginHooks['extract_documents'][]> = {
+	const extractors: Record<string, PluginHooks['extractDocuments'][]> = {
 		'.graphql': [],
 		'.gql': [],
 		'.js': [],
@@ -198,9 +198,9 @@ async function collectDocuments(config: Config): Promise<Document[]> {
 	// a config's set of plugins defines a priority list of ways to extract a document from a file
 	// build up a mapping from extension to a list functions that extract documents
 	for (const plugin of config.plugins) {
-		if (plugin.extensions && plugin.extract_documents) {
+		if (plugin.extensions && plugin.extractDocuments) {
 			for (const extension of plugin.extensions) {
-				extractors[extension] = [...(extractors[extension] || []), plugin.extract_documents]
+				extractors[extension] = [...(extractors[extension] || []), plugin.extractDocuments]
 			}
 		}
 	}
@@ -364,10 +364,10 @@ async function processGraphQLDocument(
 		kind,
 		document: parsedDoc,
 		filename: filepath,
-		original_parsed: parsedDoc,
-		generate_artifact: true,
-		generate_store: true,
-		original_string: document,
+		originalParsed: parsedDoc,
+		generateArtifact: true,
+		generateStore: true,
+		originalString: document,
 		artifact: null,
 	}
 }

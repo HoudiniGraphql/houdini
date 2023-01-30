@@ -22,7 +22,7 @@ export async function generateDocumentTypes(config: Config, docs: Document[]) {
 	// we need every fragment definition
 	const fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode } = {}
 	for (const document of docs) {
-		for (const defn of document.original_parsed.definitions.filter(
+		for (const defn of document.originalParsed.definitions.filter(
 			({ kind }) => kind === 'FragmentDefinition'
 		) as graphql.FragmentDefinitionNode[]) {
 			fragmentDefinitions[defn.name.value] = defn
@@ -38,12 +38,12 @@ export async function generateDocumentTypes(config: Config, docs: Document[]) {
 		// as part of the compiler
 		docs.map(
 			async ({
-				original_parsed: originalDocument,
+				originalParsed: originalDocument,
 				name,
 				filename,
-				generate_artifact: generate_artifact,
+				generateArtifact: generateArtifact,
 			}) => {
-				if (!generate_artifact) {
+				if (!generateArtifact) {
 					return
 				}
 
@@ -126,27 +126,27 @@ export async function generateDocumentTypes(config: Config, docs: Document[]) {
 	)
 
 	// stringify the value so we can push it through the plugins
-	const export_default_as = ({ module, as }: { module: string; as: string }) =>
+	const exportDefaultAs = ({ module, as }: { module: string; as: string }) =>
 		`\nexport { default as ${as} } from "${module}"\n`
-	const export_star_from = ({ module }: { module: string }) => `\nexport * from "${module}"\n`
+	const exportStarFrom = ({ module }: { module: string }) => `\nexport * from "${module}"\n`
 	let indexContent = recast.print(typeIndex).code
 	for (const plugin of config.plugins) {
-		if (!plugin.index_file) {
+		if (!plugin.indexFile) {
 			continue
 		}
-		indexContent = plugin.index_file({
+		indexContent = plugin.indexFile({
 			config,
 			content: indexContent,
-			export_default_as,
-			export_star_from,
-			plugin_root: config.pluginDirectory(plugin.name),
+			exportDefaultAs,
+			exportStarFrom,
+			pluginRoot: config.pluginDirectory(plugin.name),
 			typedef: true,
 			documents: docs,
 		})
 
 		// if the plugin generated a runtime
-		if (plugin.include_runtime) {
-			indexContent += export_star_from({
+		if (plugin.includeRuntime) {
+			indexContent += exportStarFrom({
 				module:
 					'./' +
 					path.relative(config.rootDir, config.pluginRuntimeDirectory(plugin.name)),

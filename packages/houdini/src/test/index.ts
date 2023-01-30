@@ -337,11 +337,11 @@ export function mockCollectedDoc(query: string): Document {
 		name,
 		kind,
 		document: parsed,
-		original_parsed: parsed,
+		originalParsed: parsed,
 		filename: `${name}.ts`,
-		generate_artifact: true,
-		generate_store: true,
-		original_string: query,
+		generateArtifact: true,
+		generateStore: true,
+		originalString: query,
 		artifact: null,
 	}
 }

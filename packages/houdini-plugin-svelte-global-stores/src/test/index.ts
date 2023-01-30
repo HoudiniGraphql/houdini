@@ -29,7 +29,7 @@ export async function pipeline_test(
 	documents: string[],
 	extra_config?: Partial<ConfigFile>
 ): Promise<{
-	plugin_root: string
+	pluginRoot: string
 	docs: Document[]
 	config: Config
 }> {
@@ -42,7 +42,7 @@ export async function pipeline_test(
 	await runPipeline(config, docs)
 
 	return {
-		plugin_root: config.pluginDirectory('houdini-plugin-svelte-global-stores'),
+		pluginRoot: config.pluginDirectory('houdini-plugin-svelte-global-stores'),
 		docs,
 		config,
 	}

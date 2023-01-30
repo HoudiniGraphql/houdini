@@ -20,7 +20,7 @@ import {
 	store_import_path,
 } from '../../kit'
 import {
-	houdini_after_load_fn,
+	houdini_afterLoad_fn,
 	houdini_before_load_fn,
 	houdini_on_error_fn,
 	query_variable_fn,
@@ -188,7 +188,7 @@ function add_load({
 
 	// look for any hooks
 	let before_load = page_info.exports.includes(houdini_before_load_fn)
-	let after_load = page_info.exports.includes(houdini_after_load_fn)
+	let afterLoad = page_info.exports.includes(houdini_afterLoad_fn)
 	let on_error = page_info.exports.includes(houdini_on_error_fn)
 
 	// some local variables
@@ -300,7 +300,7 @@ function add_load({
 							AST.objectProperty(AST.literal('event'), AST.identifier('context')),
 							AST.objectProperty(
 								AST.literal('blocking'),
-								AST.booleanLiteral(after_load || on_error)
+								AST.booleanLiteral(afterLoad || on_error)
 							),
 						]),
 					]),
@@ -394,7 +394,7 @@ function add_load({
 		}
 	}
 
-	if (after_load) {
+	if (afterLoad) {
 		preload_fn.body.body.splice(
 			preload_fn.body.body.length - 1,
 			0,
@@ -451,7 +451,7 @@ function load_hook_statements(
 						AST.objectProperty(
 							AST.literal('hookFn'),
 							AST.identifier(
-								name === 'before' ? houdini_before_load_fn : houdini_after_load_fn
+								name === 'before' ? houdini_before_load_fn : houdini_afterLoad_fn
 							)
 						),
 						// after load: pass query data to the hook

@@ -43,7 +43,7 @@ ${exportStatement('config')}
 			) => injectPlugins({ config, content, importStatement, exportStatement }),
 		}),
 		...config.plugins
-			.filter((plugin) => plugin.include_runtime)
+			.filter((plugin) => plugin.includeRuntime)
 			.map((plugin) => generatePluginRuntime(config, plugin)),
 		generatePluginIndex({ config, exportStatement: exportStar }),
 	])
@@ -52,16 +52,16 @@ ${exportStatement('config')}
 }
 
 async function generatePluginRuntime(config: Config, plugin: Config['plugins'][number]) {
-	if (houdini_mode.is_testing || !plugin.include_runtime) {
+	if (houdini_mode.is_testing || !plugin.includeRuntime) {
 		return
 	}
 
 	// a plugin has told us to include a runtime then the path is relative to the plugin file
 	const runtime_path = path.join(
 		path.dirname(plugin.filepath),
-		typeof plugin.include_runtime === 'string'
-			? plugin.include_runtime
-			: plugin.include_runtime[config.module]
+		typeof plugin.includeRuntime === 'string'
+			? plugin.includeRuntime
+			: plugin.includeRuntime[config.module]
 	)
 
 	try {
@@ -80,7 +80,7 @@ async function generatePluginRuntime(config: Config, plugin: Config['plugins'][n
 		runtime_path,
 		pluginDir,
 		Object.fromEntries(
-			Object.entries(plugin.transform_runtime ?? {}).map(([key, value]) => [
+			Object.entries(plugin.transformRuntime ?? {}).map(([key, value]) => [
 				path.join(runtime_path, key),
 				(content) => value({ config, content }),
 			])

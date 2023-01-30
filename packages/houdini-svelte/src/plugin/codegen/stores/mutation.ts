@@ -4,7 +4,7 @@ import { fs, path } from 'houdini'
 import { stores_directory, store_name } from '../../kit'
 import { store_import } from './custom'
 
-export async function mutationStore({ config, plugin_root }: GenerateHookInput, doc: Document) {
+export async function mutationStore({ config, pluginRoot }: GenerateHookInput, doc: Document) {
 	const fileName = doc.name
 	const storeName = store_name({ config, name: doc.name })
 	const artifactName = `${doc.name}`
@@ -39,8 +39,8 @@ export declare class ${storeName} extends ${store_class}<${_data}, ${_input}, ${
   `
 
 	await Promise.all([
-		fs.writeFile(path.join(stores_directory(plugin_root), `${fileName}.js`), storeData),
-		fs.writeFile(path.join(stores_directory(plugin_root), `${fileName}.d.ts`), typeDefs),
+		fs.writeFile(path.join(stores_directory(pluginRoot), `${fileName}.js`), storeData),
+		fs.writeFile(path.join(stores_directory(pluginRoot), `${fileName}.d.ts`), typeDefs),
 	])
 
 	return fileName

@@ -29,7 +29,7 @@ export async function test_config(extraConfig: Partial<ConfigFile> = {}) {
 	const svelte_plugin = await pluginHooks()
 	config.plugins.push({
 		...svelte_plugin,
-		include_runtime: './test',
+		includeRuntime: './test',
 		filepath: path.join(process.cwd(), 'index.js'),
 		name: 'test',
 	})
@@ -40,7 +40,7 @@ export async function pipeline_test(
 	documents: string[],
 	extra_config?: Partial<ConfigFile>
 ): Promise<{
-	plugin_root: string
+	pluginRoot: string
 	docs: Document[]
 	config: Config
 }> {
@@ -53,7 +53,7 @@ export async function pipeline_test(
 	await runPipeline(config, docs)
 
 	return {
-		plugin_root: config.pluginDirectory('houdini-svelte'),
+		pluginRoot: config.pluginDirectory('houdini-svelte'),
 		docs,
 		config,
 	}

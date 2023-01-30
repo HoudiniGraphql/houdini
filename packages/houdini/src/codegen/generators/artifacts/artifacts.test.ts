@@ -4006,12 +4006,12 @@ describe('subscription artifacts', function () {
 	})
 })
 
-test('some artifact_data added to artifact specific to plugins', async function () {
+test('some artifactData added to artifact specific to plugins', async function () {
 	config.plugins = [
 		{
 			name: 'plugin-tmp1',
 			filepath: '',
-			artifact_data: () => {
+			artifactData: () => {
 				return {
 					added_stuff: { yop: 'true' },
 				}

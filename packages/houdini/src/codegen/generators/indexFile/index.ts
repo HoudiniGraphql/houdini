@@ -18,9 +18,9 @@ export default async function writeIndexFile(config: Config, docs: Document[]) {
 	let body = cjs ? cjsIndexFilePreamble : ''
 
 	// create the export functions
-	const export_star_from = ({ module }: { module: string }) =>
+	const exportStar = ({ module }: { module: string }) =>
 		'\n' + (cjs ? exportStarFrom(module) : `export * from "${module}"`) + '\n'
-	const export_default_as = ({ module, as }: { module: string; as: string }) =>
+	const exportDefaultAs = ({ module, as }: { module: string; as: string }) =>
 		'\n' +
 		(cjs ? exportDefaultFrom(module, as) : `export { default as ${as} } from "${module}"`) +
 		'\n'
@@ -28,35 +28,35 @@ export default async function writeIndexFile(config: Config, docs: Document[]) {
 	// add the standard exports
 	body += [
 		// we need to export the client first so that we don't get any weird cycle issues
-		export_star_from({ module: './' + path.join(runtimeDir, 'client') }),
-		export_star_from({ module: runtimeDir }),
-		export_star_from({ module: artifactDir }),
-		export_star_from({ module: definitionsDir }),
+		exportStar({ module: './' + path.join(runtimeDir, 'client') }),
+		exportStar({ module: runtimeDir }),
+		exportStar({ module: artifactDir }),
+		exportStar({ module: definitionsDir }),
 	].join('')
 
 	// plugins can influence the index file
 	for (const plugin of config.plugins) {
 		// if they need to add stuff directly (from directories that were generated)
-		if (plugin.index_file) {
-			body = plugin.index_file({
+		if (plugin.indexFile) {
+			body = plugin.indexFile({
 				config,
 				content: body,
-				export_default_as,
-				export_star_from,
-				plugin_root: config.pluginDirectory(plugin.name),
+				exportDefaultAs,
+				exportStarFrom: exportStar,
+				pluginRoot: config.pluginDirectory(plugin.name),
 				typedef: false,
 				documents: docs,
 			})
 		}
 
 		// if the plugin generated a runtime
-		if (plugin.include_runtime) {
-			body += export_star_from({
+		if (plugin.includeRuntime) {
+			body += exportStar({
 				module: relative(config.pluginRuntimeDirectory(plugin.name)),
 			})
 		}
 
-		if (!plugin.index_file) {
+		if (!plugin.indexFile) {
 			continue
 		}
 	}

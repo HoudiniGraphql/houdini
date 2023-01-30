@@ -12,7 +12,7 @@ import { stores_directory } from '../../kit'
 
 test('generates a query store for every query', async function () {
 	const config = await test_config()
-	const plugin_root = config.pluginDirectory('test-plugin')
+	const pluginRoot = config.pluginDirectory('test-plugin')
 
 	// the documents to test
 	const docs: Document[] = [
@@ -21,10 +21,10 @@ test('generates a query store for every query', async function () {
 	]
 
 	// execute the generator
-	await runPipeline({ config, documents: docs, plugin_root, framework: 'kit' })
+	await runPipeline({ config, documents: docs, pluginRoot, framework: 'kit' })
 
 	// look up the files in the artifact directory
-	const files = await fs.readdir(stores_directory(plugin_root))
+	const files = await fs.readdir(stores_directory(pluginRoot))
 
 	// and they have the right names
 	expect(files).toEqual(expect.arrayContaining(['TestQuery1.js', 'TestQuery2.js']))
@@ -35,9 +35,9 @@ test('generates a query store for every query', async function () {
 test('basic store', async function () {
 	const docs = [`query TestQuery { version }`]
 
-	const { plugin_root } = await pipeline_test(docs)
+	const { pluginRoot } = await pipeline_test(docs)
 
-	const contents = await fs.readFile(path.join(stores_directory(plugin_root), 'TestQuery.js'))
+	const contents = await fs.readFile(path.join(stores_directory(pluginRoot), 'TestQuery.js'))
 
 	// parse the contents
 	const parsed = recast.parse(contents!, {
@@ -51,9 +51,9 @@ test('basic store', async function () {
 test('store with required variables', async function () {
 	const docs = [`query TestQuery($intValue: Int!) { usersByOffset(offset: $intValue) { id }  }`]
 
-	const { plugin_root } = await pipeline_test(docs)
+	const { pluginRoot } = await pipeline_test(docs)
 
-	const contents = await fs.readFile(path.join(stores_directory(plugin_root), 'TestQuery.js'))
+	const contents = await fs.readFile(path.join(stores_directory(pluginRoot), 'TestQuery.js'))
 
 	// parse the contents
 	const parsed = recast.parse(contents!, {
@@ -67,9 +67,9 @@ test('store with required variables', async function () {
 test('store with nullable variables', async function () {
 	const docs = [`query TestQuery($intValue: Int) { usersByOffset(offset: $intValue) { id }  }`]
 
-	const { plugin_root } = await pipeline_test(docs)
+	const { pluginRoot } = await pipeline_test(docs)
 
-	const contents = await fs.readFile(path.join(stores_directory(plugin_root), 'TestQuery.js'))
+	const contents = await fs.readFile(path.join(stores_directory(pluginRoot), 'TestQuery.js'))
 
 	// parse the contents
 	const parsed = recast.parse(contents!, {
@@ -85,9 +85,9 @@ test('store with non-null variables with default value', async function () {
 		`query TestQuery($intValue: Int = 2) { usersByOffset(offset: $intValue) { id }  }`,
 	]
 
-	const { plugin_root } = await pipeline_test(docs)
+	const { pluginRoot } = await pipeline_test(docs)
 
-	const contents = await fs.readFile(path.join(stores_directory(plugin_root), 'TestQuery.js'))
+	const contents = await fs.readFile(path.join(stores_directory(pluginRoot), 'TestQuery.js'))
 
 	// parse the contents
 	const parsed = recast.parse(contents!, {
@@ -111,9 +111,9 @@ test('forward cursor pagination', async function () {
 	}`,
 	]
 
-	const { plugin_root } = await pipeline_test(docs)
+	const { pluginRoot } = await pipeline_test(docs)
 
-	const contents = await fs.readFile(path.join(stores_directory(plugin_root), 'TestQuery.js'))
+	const contents = await fs.readFile(path.join(stores_directory(pluginRoot), 'TestQuery.js'))
 
 	// parse the contents
 	const parsed = recast.parse(contents!, {
@@ -137,9 +137,9 @@ test('backwards cursor pagination', async function () {
 	}`,
 	]
 
-	const { plugin_root } = await pipeline_test(docs)
+	const { pluginRoot } = await pipeline_test(docs)
 
-	const contents = await fs.readFile(path.join(stores_directory(plugin_root), 'TestQuery.js'))
+	const contents = await fs.readFile(path.join(stores_directory(pluginRoot), 'TestQuery.js'))
 
 	// parse the contents
 	const parsed = recast.parse(contents!, {
@@ -159,9 +159,9 @@ test('offset pagination', async function () {
 		}`,
 	]
 
-	const { plugin_root } = await pipeline_test(docs)
+	const { pluginRoot } = await pipeline_test(docs)
 
-	const contents = await fs.readFile(path.join(stores_directory(plugin_root), 'TestQuery.js'))
+	const contents = await fs.readFile(path.join(stores_directory(pluginRoot), 'TestQuery.js'))
 
 	// parse the contents
 	const parsed = recast.parse(contents!, {
@@ -185,14 +185,11 @@ test('does not generate pagination store', async function () {
 	}`,
 	]
 
-	const { plugin_root, config } = await pipeline_test(docs)
+	const { pluginRoot, config } = await pipeline_test(docs)
 
 	await expect(
 		fs.stat(
-			path.join(
-				stores_directory(plugin_root),
-				config.paginationQueryName('TestQuery') + '.js'
-			)
+			path.join(stores_directory(pluginRoot), config.paginationQueryName('TestQuery') + '.js')
 		)
 	).rejects.toBeTruthy()
 })

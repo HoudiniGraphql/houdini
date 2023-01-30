@@ -336,12 +336,12 @@ export default async function addListFragments(
 	documents.push({
 		name: 'generated::lists',
 		kind: ArtifactKind.Fragment,
-		generate_artifact: false,
-		generate_store: false,
+		generateArtifact: false,
+		generateStore: false,
 		document: generatedDoc,
-		original_parsed: generatedDoc,
+		originalParsed: generatedDoc,
 		filename: 'generated::lists',
-		original_string: '',
+		originalString: '',
 		artifact: null,
 	})
 }

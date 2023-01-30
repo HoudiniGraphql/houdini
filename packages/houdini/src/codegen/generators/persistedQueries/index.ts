@@ -17,9 +17,9 @@ export default async function persistOutputGenerator(config: Config, docs: Docum
 	}
 
 	const queryMap = docs.reduce<Record<string, string>>(
-		(acc, { document, generate_artifact: generate_artifact }) => {
+		(acc, { document, generateArtifact: generateArtifact }) => {
 			// if the document is generated, just return early since there is no operation
-			if (!generate_artifact) {
+			if (!generateArtifact) {
 				return acc
 			}
 

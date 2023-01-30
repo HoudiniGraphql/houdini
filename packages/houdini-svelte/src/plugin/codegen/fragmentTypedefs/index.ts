@@ -20,7 +20,7 @@ export default async function fragmentTypedefs(input: PluginGenerateInput) {
 					...fragments,
 					['paginatedFragment']: {
 						...fragments['paginatedFragment'],
-						[doc.original_string]: doc,
+						[doc.originalString]: doc,
 					},
 				}
 			}
@@ -30,7 +30,7 @@ export default async function fragmentTypedefs(input: PluginGenerateInput) {
 				...fragments,
 				['fragment']: {
 					...fragments['fragment'],
-					[doc.original_string]: doc,
+					[doc.originalString]: doc,
 				},
 			}
 		}
@@ -70,7 +70,7 @@ export default async function fragmentTypedefs(input: PluginGenerateInput) {
 		insert_exports(
 			which,
 			Object.entries(docs).flatMap(([queryString, doc]) => {
-				if (!doc.generate_store) {
+				if (!doc.generateStore) {
 					return []
 				}
 

@@ -11,20 +11,20 @@ export default async function generateGraphqlReturnTypes(config: Config, docs: D
 	const contents = await parseJS(fileContent)
 
 	// figure out if any of the plugins provide a graphql tag export
-	const graphql_tag_return = config.plugins.find(
-		(plugin) => plugin.graphql_tag_return
-	)?.graphql_tag_return
-	if (!graphql_tag_return || !contents) {
+	const graphqlTagReturn = config.plugins.find(
+		(plugin) => plugin.graphqlTagReturn
+	)?.graphqlTagReturn
+	if (!graphqlTagReturn || !contents) {
 		return fileContent
 	}
 
 	// build up the mapping of hard coded strings to exports
 	const overloaded_returns: Record<string, string> = {}
 	for (const doc of docs) {
-		const return_value = graphql_tag_return!({
+		const return_value = graphqlTagReturn!({
 			config,
 			document: doc,
-			ensure_import({ identifier, module }) {
+			ensureImport({ identifier, module }) {
 				ensureImports({
 					config,
 					body: contents.script.body,
@@ -34,7 +34,7 @@ export default async function generateGraphqlReturnTypes(config: Config, docs: D
 			},
 		})
 		if (return_value) {
-			overloaded_returns[doc.original_string] = return_value
+			overloaded_returns[doc.originalString] = return_value
 		}
 	}
 

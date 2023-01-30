@@ -23,11 +23,11 @@ export default async function imperativeCacheTypef(config: Config, docs: Documen
 	// need to pass. This means figuring out the return type.
 	const returnType = (doc: Document) =>
 		config.plugins
-			.find((plugin) => plugin.graphql_tag_return)
-			?.graphql_tag_return?.({
+			.find((plugin) => plugin.graphqlTagReturn)
+			?.graphqlTagReturn?.({
 				config,
 				document: doc,
-				ensure_import({ identifier, module }) {
+				ensureImport({ identifier, module }) {
 					ensureImports({
 						config,
 						body,
@@ -396,7 +396,7 @@ function queryDefinitions(
 	return AST.tsTupleType(
 		docs.reduce<recast.types.namedTypes.TSTupleType[]>((prev, doc) => {
 			// if the document is not a query that generates a store, skip it
-			if (doc.kind !== ArtifactKind.Query || !doc.generate_store) {
+			if (doc.kind !== ArtifactKind.Query || !doc.generateStore) {
 				return prev
 			}
 
