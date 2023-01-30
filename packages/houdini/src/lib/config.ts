@@ -785,11 +785,6 @@ export async function getConfig({
 			}
 
 			// if we got this far, pluginFile points to a file that supposedly exports a plugin
-			console.log({ pluginFile })
-			console.log({ pluginFile })
-			console.log({ pluginFile })
-			console.log({ pluginFile })
-			console.log({ pluginFile })
 			const { default: pluginInit }: { default: PluginInit } = await import(
 				pathToFileURL(pluginFile).toString()
 			)
