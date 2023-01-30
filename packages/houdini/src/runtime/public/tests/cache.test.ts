@@ -77,6 +77,7 @@ test('can read values', function () {
 	).toEqual({
 		data,
 		partial: false,
+		stale: false,
 	})
 })
 
@@ -155,6 +156,7 @@ test('can write values', function () {
 	).toEqual({
 		data,
 		partial: false,
+		stale: false,
 	})
 })
 
@@ -220,5 +222,6 @@ test('can read and write variables', function () {
 	).toEqual({
 		data,
 		partial: false,
+		stale: false,
 	})
 })

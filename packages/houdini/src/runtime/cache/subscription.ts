@@ -60,6 +60,7 @@ export class InMemorySubscriptions {
 				id: parent,
 				key,
 				selection: [spec, targetSelection],
+				type,
 			})
 
 			if (list) {
@@ -108,10 +109,12 @@ export class InMemorySubscriptions {
 		id,
 		key,
 		selection,
+		type,
 	}: {
 		id: string
 		key: string
 		selection: FieldSelection
+		type: string
 	}) {
 		const spec = selection[0]
 		// if we haven't seen the id or field before, create a list we can add to
@@ -224,6 +227,7 @@ export class InMemorySubscriptions {
 					id: parent,
 					key,
 					selection: [spec, fieldSelection],
+					type: linkedType,
 				})
 
 				if (list) {
