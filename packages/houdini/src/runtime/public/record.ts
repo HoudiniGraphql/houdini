@@ -1,5 +1,5 @@
 import { rootID } from '../cache/cache'
-import { computeKey, marshalInputs } from '../lib'
+import { marshalInputs } from '../lib'
 import { keyFieldsForType } from '../lib/config'
 import type { FragmentArtifact, GraphQLObject } from '../lib/types'
 import type { Cache } from './cache'
