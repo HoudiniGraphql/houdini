@@ -42,12 +42,12 @@ const generateSomething = plugin('plugin_name', async () =>  {
 })
 ```
 
-The list of available hooks can be in the next sections, beginning with [Plugin Setup](#plugin-setup).
+The list of available hooks can be in the next section, beginning with [Plugin Setup](#plugin-setup).
 
 <DeepDive title="Accepting Configuration">
 
 Most of time, your plugin will need to accept configuration from the user. To support this,
-users pass objects to your plugin through in their config file:
+users pass objects to your plugin through their config file:
 
 ```javascript:title=houdini.config.js
 export default {
@@ -506,7 +506,7 @@ export default plugin('plugin_name', async () => {
 
 ### `artifactEnd`
 
-- Type `({ config: Config, artifact: DocumentArtifact }) => DocumentArtifact`
+- Type `({ config: Config, document: Document }) => DocumentArtifact`
 - Plugins can overwrite values
 
 Modifies the generated artifact before its written to disk. This is useful to set artifact data
