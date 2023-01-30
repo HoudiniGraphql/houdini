@@ -71,6 +71,7 @@ export function subscriptionPlugin(factory: SubscriptionHandler) {
 								errors: [...(errors ?? [])],
 								fetching: false,
 								partial: true,
+								stale: false,
 								source: DataSource.Network,
 								variables: ctx.variables ?? null,
 							})
@@ -79,6 +80,7 @@ export function subscriptionPlugin(factory: SubscriptionHandler) {
 							clearSubscription?.()
 							resolve(ctx, {
 								partial: true,
+								stale: false,
 								source: DataSource.Network,
 								data: null,
 								errors: [data as Error],

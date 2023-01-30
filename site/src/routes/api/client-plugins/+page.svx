@@ -399,6 +399,7 @@ type QueryResult = {
 	errors: { message: string }[] | null
 	fetching: boolean
 	partial: boolean
+	stale: boolean
 	source: DataSource | null
 	variables: _Input | null
 }

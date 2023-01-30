@@ -13,6 +13,7 @@ test.describe('Mutation Page', () => {
       fetching: false,
       variables: null,
       partial: false,
+      stale: false,
       source: null
     };
     await expectToBe(page, stry(defaultStoreValues) ?? '', '[id="store-value"]');

@@ -16,7 +16,7 @@ test.describe('Metadata Page', () => {
     await goto_expect_n_gql(page, routes.Stores_Metadata, 1);
 
     expect(displayed).toBe(
-      '{"fetching":false,"variables":{},"data":{"session":"1234-Houdini-Token-5678"},"errors":null,"partial":false,"source":"network"}'
+      '{"fetching":false,"variables":{},"data":{"session":"1234-Houdini-Token-5678"},"errors":null,"partial":false,"stale":false,"source":"network"}'
     );
 
     //Click the button
@@ -24,7 +24,7 @@ test.describe('Metadata Page', () => {
     await expect_1_gql(page, 'button[id=mutate]');
 
     expect(displayed).toBe(
-      '{"fetching":false,"variables":{"id":"5","name":"Hello!"},"data":{"updateUser":{"id":"list-store-user-subunsub:5","name":"Hello!"}},"errors":null,"partial":false,"source":"network"}'
+      '{"fetching":false,"variables":{"id":"5","name":"Hello!"},"data":{"updateUser":{"id":"list-store-user-subunsub:5","name":"Hello!"}},"errors":null,"partial":false,"stale":false,"source":"network"}'
     );
   });
 });
