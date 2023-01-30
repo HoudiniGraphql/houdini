@@ -208,7 +208,7 @@ if you want to perform logic based on config values.
 These hooks are responsibile for generating a list of filepaths and finding the GraphQL
 documents inside.
 
-<ExtractDiagram style="max-width: 600px; margin: 50px auto;"/>
+<ExtractDiagram style="max-width: 500px; margin: 50px auto;"/>
 
 ### `extensions`
 
@@ -262,7 +262,7 @@ Currently, this hook can only add directives, scalars, or enums to the schema.
 These hooks are responsible for transforming and validating the documents in your application. If you want
 to add new definitions, you can add new documents to provided list.
 
-<ValidateDiagram style="max-width: 600px; margin: 50px auto;"/>
+<ValidateDiagram style="max-width: 500px; margin: 50px auto;"/>
 
 ### `transform_before_validate`
 
@@ -297,7 +297,7 @@ This pipeline is responsible for generating all of the files for your applicatio
 modify the query artifact (a static respresentation of the document), hooks to customize the core runtime
 provided by houdini, as well as hooks to generate your own files and runtimes for your plugin.
 
-<GenerateDiagram style="max-width: 600px; margin: 50px auto;"/>
+<GenerateDiagram style="max-width: 700px; margin: 50px auto;"/>
 
 ### `transform_before_generate`
 
@@ -367,6 +367,31 @@ export default {
     }
 }
 ```
+
+### `client_plugins`
+
+- Type: `Record<string, null | Record<string, any>>`
+
+Adds plugins to the application's default list of plugins to add to `HoudiniClient`. This can be useful for
+[client plugins](/api/client-plugins) that want to add a generated portion. For example,
+a plugin for something like Live Queries could check for the `@live` directive at build time
+(using something like the [artifact_data](#artifact_data) hook) and then check for the
+persisted value in a client plugin.
+
+```javascript
+plugin("houdini-plugin-custom", async () => {
+    return {
+        client_plugins: {
+            'houdini-plugin-custom/client': null
+        }
+    }
+})
+```
+
+The key of this object should be a globally resolvable module (third-party package, aliased local path, etc).
+The generated runtime assumes that the default export  of this module is a function that returns a client plugin.
+The value of the `client_plugins` hook object are passed to that function.
+
 
 ### `generate`
 

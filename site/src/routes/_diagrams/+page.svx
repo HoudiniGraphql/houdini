@@ -69,28 +69,28 @@ graph TD
 
     t_before_g[transform_before_generate] --> gen_sq_center
 
-    gen_sq_center --> gen_sq_left
-    gen_sq_left[ ]
+    gen_sq_center[ ]
+    gen_sq_center --> |For every document|artifact_data
+    gen_sq_center --> plugin_runtime
+    gen_sq_center --> customize_core
 
-    gen_sq_left --> index_file
+    customize_core[ ]
     index_file
-
-    gen_sq_left --> graphql_tag_return
     graphql_tag_return
+    client_plugins
+    customize_core --> index_file
+    customize_core --> graphql_tag_return
+    customize_core --> client_plugins
 
-    gen_sq_center[ ] --> |For every document|artifact_data
     artifact_data --> artifact_hash
     artifact_hash[hash] --> artifact_e
     artifact_e[artifact_end]
 
-
-    gen_sq_center --> gen_sq_right
-    gen_sq_right[ ]
-
-    gen_sq_right --> generate
     generate
-
-    gen_sq_right --> include_runtime
+    plugin_runtime[ ]
+    transform_runtime
+    plugin_runtime --> generate
+    plugin_runtime --> include_runtime
     include_runtime --> transform_runtime
 
     click t_before_g "#transform_before_generate" "transform_before_generate hook"
@@ -103,5 +103,6 @@ graph TD
     click generate "#generate" "generate hook"
     click include_runtime "#include_runtime" "include_runtime hook"
     click transform_runtime "#transform_runtime" "transform_runtime hook"
+    click client_plugins "#client_plugins" "client_plugins hook"
 
 ```

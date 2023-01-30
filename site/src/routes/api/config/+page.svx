@@ -165,7 +165,9 @@ instead of a relative path:
 ```javascript:title=houdini.config.js
 export default {
     plugins: {
-        'houdini-svelte': {}
+        'houdini-svelte': {
+			// any configuration values go here
+		}
     }
 }
 ```
@@ -177,7 +179,7 @@ javascript since the build environment imports it directly.
 ```javascript:title=houdini.config.js
 export default {
     plugins: {
-        './src/plugins/myPlugin': {}
+        './src/plugins/myPlugin.js': {}
     }
 }
 ```
