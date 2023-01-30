@@ -1,6 +1,4 @@
 ---
-'houdini-svelte': major
-'houdini-react': major
 'houdini': major
 ---
 
