@@ -516,7 +516,7 @@ export default plugin('plugin_name', async () => {
 
 ### `artifactEnd`
 
-- Type `({ config: Config, document: Document }) => DocumentArtifact`
+- Type `({ config: Config, document: Document }) => void`
 - Plugins can overwrite values
 
 Modifies the generated artifact before its written to disk. This is useful to set artifact data
