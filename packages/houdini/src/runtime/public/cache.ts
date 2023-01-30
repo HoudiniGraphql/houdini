@@ -113,8 +113,6 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 
 	/**
 	 * Mark some elements of the cache stale.
-	 * @param type
-	 * @param field
 	 */
 	markStale<T extends TypeNames<Def>>(
 		type?: T,

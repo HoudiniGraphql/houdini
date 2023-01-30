@@ -56,6 +56,9 @@ export class GarbageCollector {
 					if ([...fieldMap.keys()].length === 0) {
 						this.lifetimes.delete(id)
 					}
+
+					// remove the field from the stale manager
+					this.cache._internal_unstable.staleManager.delete(id, field)
 				}
 
 				// --- ------------------- ---

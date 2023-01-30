@@ -95,4 +95,14 @@ export class StaleManager {
 			}
 		}
 	}
+
+	// clean up the stale manager
+	delete(id: string, field: string) {
+		if (this.fieldsTime.has(id)) {
+			this.fieldsTime.get(id)?.delete(field)
+			if (this.fieldsTime.get(id)?.size === 0) {
+				this.fieldsTime.delete(id)
+			}
+		}
+	}
 }
