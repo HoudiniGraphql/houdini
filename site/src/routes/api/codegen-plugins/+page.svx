@@ -157,6 +157,8 @@ are a few things to keep in mind:
 - Your `package.json` must have an entry for `["exports"]["."]["import"]` so that houdini can find the esm-compatible
   version of your plugin.
 - The `include_runtime` value will be taken relative to `package.json["exports"]["."]["import"]`
+- If you are bundling your plugin, you should mark external plugins as external dependencies so they aren't
+  bundled with your package which is necessary to support hooks like `include_runtime`.
 
 </DeepDive>
 
