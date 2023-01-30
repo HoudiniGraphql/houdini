@@ -2,18 +2,17 @@
 	import { browser } from '$app/environment'
 	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
-	import Logo from '~/components/Logo.svelte'
+	import { Logo } from '~/components'
 
-	let h1 = $page.url.searchParams.get('h1') || ''
-	let h2 = $page.url.searchParams.get('h2') || ''
+	let subTitle = $page.url.searchParams.get('s') || ''
 
-	$: browser && (h1 || h2) && updateQS()
+	$: browser && subTitle && updateQS()
 
 	function updateQS() {
-		if (h2) {
-			$page.url.searchParams.set('h2', h2)
+		if (subTitle) {
+			$page.url.searchParams.set('s', subTitle)
 		} else {
-			$page.url.searchParams.delete('h2')
+			$page.url.searchParams.delete('s')
 		}
 
 		goto($page.url.href, { replaceState: true, keepFocus: true })
@@ -22,19 +21,19 @@
 
 <div class="content">
 	<div class="inputs">
-		<input type="text" bind:value={h2} placeholder="h2" />
+		<input type="text" bind:value={subTitle} placeholder="Sub Title" />
 	</div>
 	<div class="og-card">
 		<div class="layer-0">
 			<div style="width: 300px;" />
-			<img id="code" src="/images/og/code_01.png" />
+			<img id="code" src="/images/_og/code_01.png" alt="code in the background" />
 		</div>
 		<div class="layer-1">
 			<Logo />
 
 			<div>
 				<div id="title">Houdini</div>
-				<div id="subTitle2">{h2.replace('graphql', 'GraphQL').replace(/-/g, ' ')}</div>
+				<div id="subTitle">{subTitle.replace('graphql', 'GraphQL').replace(/-/g, ' ')}</div>
 			</div>
 		</div>
 	</div>
@@ -118,7 +117,7 @@
 		padding-right: 100px;
 	}
 
-	#subTitle2 {
+	#subTitle {
 		font-family: 'Hind';
 		font-weight: 500;
 		font-size: 80px;
