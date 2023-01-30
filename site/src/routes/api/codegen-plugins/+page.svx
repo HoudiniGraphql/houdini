@@ -495,4 +495,3 @@ except with the config file passed to the appropriate object.
 
 Allows a plugin to configure the vite plugin exported from `houdini/vite.` This hook is
 useful if you generate files that are imported or need to hook into vite for any reason.
-
