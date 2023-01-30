@@ -35,7 +35,7 @@ It's a bit hard to give you an exact example to follow but here are a few situat
 In the simplest case,
 your entire fetch function can be replaced with a single configuration value:
 
-```diff
+```diff:title=src/client.ts
   import { HoudiniClient } from '$houdini'
 
   const url = 'my_app.com'
@@ -74,7 +74,7 @@ your entire fetch function can be replaced with a single configuration value:
 If you needed to pass values to fetch (ie, for authentication) then you can use the `fetchParams`
 config value:
 
-```diff
+```diff:title=src/client.ts
   import { HoudiniClient } from '$houdini'
 
   const url = 'my_app.com'
@@ -122,7 +122,7 @@ config value:
 If your application uses subscriptions, you'll need to import the
 `subscription` plugin and pass it to your client:
 
-```diff
+```diff:title=src/client.ts
   import { createClient } from 'graphql-ws'
   import { browser } from '$app/environment'
 + import { subscriptions } from '$houdini/plugins'
@@ -173,7 +173,7 @@ Please select the situation that applies:
 You are now aligned with houdini's default behavior. Just remove the config in
 `houdini-svelte`:
 
-```diff
+```diff:title=houdini.config.js
   export default {
       plugins: {
           'houdini-svelte': {
@@ -190,7 +190,7 @@ You are now aligned with houdini's default behavior. Just remove the config in
 In order to bring your application back to its previous state, you now
 need to pass a new config to your client:
 
-```diff
+```diff:title=src/client.ts
 + import { error } from '@sveltejs/kit'
 
   export default new HoudiniClient({
@@ -212,7 +212,7 @@ In order to clarify the difference between the `apiUrl` config value and the
 value passed to `HoudiniClient`, we moved all of the schema polling related
 config values into a single `watchSchema` object:
 
-```diff
+```diff:title=houdini.config.js
   export default {
 -     apiUrl: "http://my.awesome.app.com",
 -     schemaPollInterval: 6000,
@@ -288,7 +288,7 @@ loading. At least this way everything is very explicit.
 There is no more distinction between forwards and backwards cursor pagination
 so the options have been merged
 
-```diff
+```diff:title=houdini.config.js
   export default {
       plugins: {
           'houdini-svelte': {
@@ -310,7 +310,7 @@ so the options have been merged
 In order to simplify the mental model for sessions and fetching, server-side mutations
 need their event passed explicitly.
 
-```diff
+```diff:title=src/routes/+page.server.ts
   import { Actions } from './$types'
 
   const actionMutation = graphql(...)
