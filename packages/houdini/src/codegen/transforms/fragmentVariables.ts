@@ -62,11 +62,11 @@ export default async function fragmentVariables(
 		name: 'generated::fragmentVariables',
 		kind: ArtifactKind.Fragment,
 		document: doc,
-		originalParsed: doc,
-		generateStore: false,
-		generateArtifact: false,
+		original_parsed: doc,
+		generate_store: false,
+		generate_artifact: false,
 		filename: 'generated::fragmentVariables',
-		originalString: '',
+		original_string: '',
 		artifact: null,
 	})
 }

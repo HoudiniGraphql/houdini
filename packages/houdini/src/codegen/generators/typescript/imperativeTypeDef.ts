@@ -396,7 +396,7 @@ function queryDefinitions(
 	return AST.tsTupleType(
 		docs.reduce<recast.types.namedTypes.TSTupleType[]>((prev, doc) => {
 			// if the document is not a query that generates a store, skip it
-			if (doc.kind !== ArtifactKind.Query || !doc.generateStore) {
+			if (doc.kind !== ArtifactKind.Query || !doc.generate_store) {
 				return prev
 			}
 

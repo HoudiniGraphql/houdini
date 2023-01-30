@@ -101,7 +101,7 @@ export default client
 
 	graphql_tag_return({ config, document: doc, ensure_import }) {
 		// if we're supposed to generate a store then add an overloaded declaration
-		if (doc.generateStore) {
+		if (doc.generate_store) {
 			// make sure we are importing the store
 			const store = store_name({ config, name: doc.name })
 			ensure_import({

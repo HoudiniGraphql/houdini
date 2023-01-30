@@ -13,7 +13,7 @@ export async function queryStore({ config, plugin_root }: GenerateHookInput, doc
 	const storeName = store_name({ config, name: doc.name })
 
 	let variables = false
-	const operation = doc.originalParsed.definitions.find(
+	const operation = doc.original_parsed.definitions.find(
 		(defn) => defn.kind === 'OperationDefinition' && defn.operation === 'query'
 	) as graphql.OperationDefinitionNode
 	if (operation) {

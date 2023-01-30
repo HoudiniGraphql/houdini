@@ -15,7 +15,7 @@ export default async function storesGenerator(input: GenerateHookInput) {
 	await Promise.all(
 		documents.map(async (doc) => {
 			// if the doc is not meant to be generated, skip it
-			if (!doc.generateStore) {
+			if (!doc.generate_store) {
 				return
 			}
 

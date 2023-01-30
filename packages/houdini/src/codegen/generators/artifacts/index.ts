@@ -113,11 +113,11 @@ export default function artifactGenerator(stats: {
 				// and an artifact for every document
 				docs.map(async (doc) => {
 					// pull out the info we need from the collected doc
-					const { document, name, generateArtifact } = doc
+					const { document, name, generate_artifact: generate_artifact } = doc
 
 					// if the document is generated, don't write it to disk - it's use is to provide definitions
 					// for the other transforms
-					if (!generateArtifact) {
+					if (!generate_artifact) {
 						return
 					}
 
@@ -362,7 +362,7 @@ export default function artifactGenerator(stats: {
 					const artifactPath = config.artifactPath(document)
 
 					// don't count the document unless it's user-facing (ie, generates a store)
-					const countDocument = doc.generateStore
+					const countDocument = doc.generate_store
 
 					// check if the file exists (indicating a new document)
 					let existingArtifact = await fs.readFile(artifactPath)

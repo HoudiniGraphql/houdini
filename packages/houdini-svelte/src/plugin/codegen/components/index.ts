@@ -22,7 +22,7 @@ export default async function componentTypesGenerator(
 
 		queries[document.filename] = (queries[document.filename] ?? []).concat({
 			name: document.name,
-			query: document.originalString,
+			query: document.original_string,
 		})
 	}
 	let matches = Object.keys(queries).filter((filepath) => filepath.endsWith('.svelte'))

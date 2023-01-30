@@ -60,22 +60,22 @@ export type Document = {
 	 * Whether an artifact should be generated for the document. This should be set to false for internal
 	 * or virtual documents .
 	 */
-	generateArtifact: boolean
+	generate_artifact: boolean
 
 	/**
 	 * Whether a runtime equivalent should be generated for the document. This should be set to false for internal
 	 * or virtual documents .
 	 */
-	generateStore: boolean
+	generate_store: boolean
 
 	/**
 	 * The original document string that the user passed
 	 */
-	originalString: string
+	original_string: string
 	/**
 	 * The parsed document that the user provided
 	 * */
-	originalParsed: graphql.DocumentNode
+	original_parsed: graphql.DocumentNode
 
 	/**
 	 * Refetch logic that has been built up throughout the pipeline

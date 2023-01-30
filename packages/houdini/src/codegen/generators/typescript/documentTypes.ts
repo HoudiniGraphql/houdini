@@ -22,7 +22,7 @@ export async function generateDocumentTypes(config: Config, docs: Document[]) {
 	// we need every fragment definition
 	const fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode } = {}
 	for (const document of docs) {
-		for (const defn of document.originalParsed.definitions.filter(
+		for (const defn of document.original_parsed.definitions.filter(
 			({ kind }) => kind === 'FragmentDefinition'
 		) as graphql.FragmentDefinitionNode[]) {
 			fragmentDefinitions[defn.name.value] = defn
@@ -36,64 +36,71 @@ export async function generateDocumentTypes(config: Config, docs: Document[]) {
 		// the generated types depend solely on user-provided information
 		// so we need to use the original document that we haven't mutated
 		// as part of the compiler
-		docs.map(async ({ originalParsed: originalDocument, name, filename, generateArtifact }) => {
-			if (!generateArtifact) {
-				return
-			}
+		docs.map(
+			async ({
+				original_parsed: originalDocument,
+				name,
+				filename,
+				generate_artifact: generate_artifact,
+			}) => {
+				if (!generate_artifact) {
+					return
+				}
 
-			// the place to put the artifact's type definition
-			const typeDefPath = config.artifactTypePath(originalDocument)
+				// the place to put the artifact's type definition
+				const typeDefPath = config.artifactTypePath(originalDocument)
 
-			// build up the program
-			const program = AST.program([])
+				// build up the program
+				const program = AST.program([])
 
-			// if we have to define any types along the way, make sure we only do it once
-			const visitedTypes = new Set<string>()
+				// if we have to define any types along the way, make sure we only do it once
+				const visitedTypes = new Set<string>()
 
-			// if there's an operation definition
-			let definition = originalDocument.definitions.find(
-				(def) =>
-					(def.kind === 'OperationDefinition' || def.kind === 'FragmentDefinition') &&
-					def.name?.value === name
-			) as graphql.OperationDefinitionNode | graphql.FragmentDefinitionNode
+				// if there's an operation definition
+				let definition = originalDocument.definitions.find(
+					(def) =>
+						(def.kind === 'OperationDefinition' || def.kind === 'FragmentDefinition') &&
+						def.name?.value === name
+				) as graphql.OperationDefinitionNode | graphql.FragmentDefinitionNode
 
-			const selections = flattenSelections({
-				config,
-				filepath: filename,
-				selections: definition.selectionSet.selections,
-				fragmentDefinitions,
-				applyFragments: definition.kind === 'OperationDefinition',
-			})
-
-			if (definition?.kind === 'OperationDefinition') {
-				// treat it as an operation document
-				await generateOperationTypeDefs(
+				const selections = flattenSelections({
 					config,
-					filename,
-					program.body,
-					definition,
-					selections,
-					visitedTypes,
-					missingScalars
-				)
-			} else {
-				// treat it as a fragment document
-				await generateFragmentTypeDefs(
-					config,
-					filename,
-					program.body,
-					selections,
-					originalDocument.definitions,
-					visitedTypes,
-					missingScalars
-				)
+					filepath: filename,
+					selections: definition.selectionSet.selections,
+					fragmentDefinitions,
+					applyFragments: definition.kind === 'OperationDefinition',
+				})
+
+				if (definition?.kind === 'OperationDefinition') {
+					// treat it as an operation document
+					await generateOperationTypeDefs(
+						config,
+						filename,
+						program.body,
+						definition,
+						selections,
+						visitedTypes,
+						missingScalars
+					)
+				} else {
+					// treat it as a fragment document
+					await generateFragmentTypeDefs(
+						config,
+						filename,
+						program.body,
+						selections,
+						originalDocument.definitions,
+						visitedTypes,
+						missingScalars
+					)
+				}
+
+				// write the file contents
+				await fs.writeFile(typeDefPath, recast.print(program).code)
+
+				typePaths.push(typeDefPath)
 			}
-
-			// write the file contents
-			await fs.writeFile(typeDefPath, recast.print(program).code)
-
-			typePaths.push(typeDefPath)
-		})
+		)
 	)
 
 	// now that we have every type generated, create an index file in the runtime root that exports the types

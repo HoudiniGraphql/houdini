@@ -34,7 +34,7 @@ export default async function generateGraphqlReturnTypes(config: Config, docs: D
 			},
 		})
 		if (return_value) {
-			overloaded_returns[doc.originalString] = return_value
+			overloaded_returns[doc.original_string] = return_value
 		}
 	}
 

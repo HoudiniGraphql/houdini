@@ -506,11 +506,11 @@ export default async function paginate(config: Config, documents: Document[]): P
 				filename: doc.filename,
 				name: refetchQueryName,
 				document: queryDoc,
-				originalParsed: queryDoc,
-				generateArtifact: true,
-				generateStore: false,
+				original_parsed: queryDoc,
+				generate_artifact: true,
+				generate_store: false,
 				refetch: doc.refetch,
-				originalString: '',
+				original_string: '',
 				artifact: null,
 			})
 		}
