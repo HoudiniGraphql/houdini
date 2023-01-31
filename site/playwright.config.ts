@@ -12,6 +12,7 @@ import { devices } from '@playwright/test'
  */
 const config: PlaywrightTestConfig = {
 	testDir: './src/routes/',
+
 	testMatch: '*.e2e.ts',
 	/* Maximum time one test can run for. */
 	timeout: 30 * 1000,
@@ -52,6 +53,9 @@ const config: PlaywrightTestConfig = {
 			}
 		}
 	],
+
+	// Change the default location of the snapshots to serve them from the public folder
+	snapshotPathTemplate: './static/images/og/{arg}{ext}',
 
 	/* Folder for test artifacts such as screenshots, videos, traces, etc. */
 	// outputDir: 'test-results/',

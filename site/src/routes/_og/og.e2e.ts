@@ -41,12 +41,12 @@ test('rendering og images', async ({ page }) => {
 		})
 	}
 
-	// copy all files to the public folder
-	await mkdirp('./static/images/og')
-	for (const folder of folders) {
-		await fs.copyFile(
-			`./src/routes/_og/og.e2e.ts-snapshots/${folder.fileName}-chromium-linux.png`,
-			`./static/images/og/${folder.fileName}.png`
-		)
-	}
+	// // copy all files to the public folder
+	// await mkdirp('./static/images/og')
+	// for (const folder of folders) {
+	// 	await fs.copyFile(
+	// 		`./src/routes/_og/og.e2e.ts-snapshots/${folder.fileName}-chromium-linux.png`,
+	// 		`./static/images/og/${folder.fileName}.png`
+	// 	)
+	// }
 })
