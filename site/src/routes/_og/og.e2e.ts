@@ -10,7 +10,7 @@ const getSubFolders = async (main: string) => {
 	})
 }
 
-test('all og images', async ({ page }) => {
+test('rendering og images', async ({ page }) => {
 	// get all folders and format them
 	const folders = (
 		await Promise.all(
