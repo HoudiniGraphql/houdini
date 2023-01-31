@@ -31,7 +31,7 @@
 		"@changesets/cli": "^2.26.0",
 		"@playwright/test": "1.28.1",
 		"@theguild/eslint-config": "^0.1.0",
-		"@trivago/prettier-plugin-sort-imports": "^3.3.0",
+		"@trivago/prettier-plugin-sort-imports": "^4.0.0",
 		"@vitest/coverage-c8": "^0.28.3",
 		"@vitest/ui": "^0.28.3",
 		"eslint-plugin-unused-imports": "^2.0.0",
