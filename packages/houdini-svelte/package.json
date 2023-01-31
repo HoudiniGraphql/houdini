@@ -1,6 +1,6 @@
 {
     "name": "houdini-svelte",
-    "version": "0.20.3",
+    "version": "0.20.4",
     "description": "The svelte plugin for houdini",
     "keywords": [
         "typescript",
