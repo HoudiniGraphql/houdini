@@ -9,7 +9,8 @@ import {
 	parentTypeFromAncestors,
 	fs,
 	cleanupFiles,
- ArtifactKind } from '../../../lib'
+	ArtifactKind,
+} from '../../../lib'
 import { flattenSelections, moduleExport } from '../../utils'
 import { fragmentArgumentsDefinitions } from '.././../transforms/fragmentVariables'
 import writeIndexFile from './indexFile'

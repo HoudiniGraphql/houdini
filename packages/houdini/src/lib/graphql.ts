@@ -1,5 +1,5 @@
-import crypto from 'node:crypto'
 import * as graphql from 'graphql'
+import crypto from 'node:crypto'
 
 import type { Document, Config } from '.'
 import { HoudiniError } from './error'

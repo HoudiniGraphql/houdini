@@ -1,5 +1,5 @@
-import type { PluginHooks ,  Config } from 'houdini'
-import { plugin , HoudiniError, path, fs} from 'houdini'
+import type { PluginHooks, Config } from 'houdini'
+import { plugin, HoudiniError, path, fs } from 'houdini'
 import * as url from 'node:url'
 import { loadEnv } from 'vite'
 
