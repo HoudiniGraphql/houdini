@@ -17,7 +17,6 @@ import { get } from 'svelte/store'
 
 import type { PluginArtifactData } from '../../plugin/artifactData'
 import { clientStarted, isBrowser } from '../adapter'
-import { getClient, initClient } from '../client'
 import { getSession } from '../session'
 import { BaseStore } from './base'
 
