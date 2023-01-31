@@ -23,9 +23,9 @@ test('rendering diagrams', async ({ page }) => {
 			fullDiagram = fullDiagram.replace(new RegExp(diagramColor, 'g'), themeColor)
 		}
 		// fix mermaid id
-		fullDiagram = fullDiagram.replace(new RegExp('id="mermaid-\\d+"', 'g'), `id="mermaid-${i}"`)
+		// fullDiagram = fullDiagram.replace(new RegExp('id="mermaid-\\d+"', 'g'), `id="mermaid-${i}"`)
 		// fix mermaid class id
-		fullDiagram = fullDiagram.replace(new RegExp('#mermaid-\\d+\\s+', 'g'), `#mermaid-${i} `)
+		fullDiagram = fullDiagram.replace(new RegExp('mermaid-\\d+', 'g'), `mermaid-${i}`)
 
 		// we need to add {...$$props} to the tag, so find the first >
 		const firstClose = fullDiagram.indexOf('>')
