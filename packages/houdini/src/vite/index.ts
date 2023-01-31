@@ -27,11 +27,13 @@ export default function (opts?: PluginConfig): Plugin[] {
 				quiet: true,
 				async watchFile(filepath: string) {
 					// load the config file
-					const config = await getConfig(opts)
+					let config = await getConfig(opts)
 
 					// we need to watch some specific files
 					const schemaPath = path.join(path.dirname(config.filepath), config.schemaPath!)
 					if (minimatch(filepath, schemaPath)) {
+						// if it's a schema change, let's reload the config
+						config = await getConfig({ ...opts, forceReload: true })
 						return true
 					}
 
