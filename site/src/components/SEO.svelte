@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { page } from '$app/stores'
 
 	export let title = 'Houdini'
@@ -8,6 +8,13 @@
 	// TODO JYC: do we want to keep the url in params? Or we could take $page.url.href?
 	const getUrl = () => {
 		return $page.url.href
+	}
+
+	const getTitle = (_title: string) => {
+		if (_title.toLocaleLowerCase().startsWith('houdini')) {
+			return _title
+		}
+		return `Houdini - ${_title}`
 	}
 
 	const getImg = () => {
@@ -22,13 +29,22 @@
 <svelte:head>
 	<title>{title}</title>
 	<meta name="description" content={description} />
+
+	<!-- Open Graph -->
 	<meta property="og:type" content="website" />
 	<meta property="og:url" content={getUrl()} />
-	<meta property="og:title" content={title} />
+	<meta property="og:title" content={getTitle(title)} />
 	<meta property="og:description" content={description} />
 	<meta property="og:image" content={getImg()} />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="630" />
+	<meta property="og:site_name" content={$page.url.origin} />
+
+	<!-- Open Graph : Twitter-->
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content={title} />
+	<meta name="twitter:title" content={getTitle(title)} />
 	<meta name="twitter:description" content={description} />
 	<meta name="twitter:image" content={getImg()} />
+	<meta property="twitter:domain" content={$page.url.origin} />
+	<meta property="twitter:url" content={getUrl()} />
 </svelte:head>
