@@ -38,7 +38,7 @@ test('generates a store for every fragment', async function () {
 
 	await expect(parsed).toMatchInlineSnapshot(
 		`
-		import { FragmentStore } from '$houdini/plugins/houdini-svelte/runtime/stores'
+		import { FragmentStore } from '../runtime/stores/fragment'
 		import artifact from '$houdini/artifacts/TestFragment1'
 
 

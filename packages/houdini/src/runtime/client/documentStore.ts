@@ -27,7 +27,7 @@ export class DocumentStore<
 	_Input extends Record<string, any>
 > extends Writable<QueryResult<_Data, _Input>> {
 	#artifact: DocumentArtifact
-	#client: HoudiniClient
+	#client: HoudiniClient | null
 	#configFile: ConfigFile
 
 	// the list of instantiated plugins
@@ -52,7 +52,7 @@ export class DocumentStore<
 		artifact: DocumentArtifact
 		plugins?: ClientPlugin[]
 		pipeline?: ClientPlugin[]
-		client: HoudiniClient
+		client: HoudiniClient | null
 		cache?: boolean
 		initialValue?: _Data | null
 		fetching?: boolean

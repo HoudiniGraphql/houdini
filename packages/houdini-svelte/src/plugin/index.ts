@@ -62,23 +62,19 @@ export const error = svelteKitError
 			return framework === 'kit' ? sveltekit_adapter : content
 		},
 
-		[path.join('imports', 'client.js')]: ({ config: cfg }) => {
-			const config = plugin_config(cfg)
+		'client.js': ({ config, content }) => {
 			// the path to the network file
 			const networkFilePath = path.join(
-				cfg.pluginRuntimeDirectory('houdini-svelte'),
-				'imports',
-				'clientImport.js'
+				config.pluginRuntimeDirectory('houdini-svelte'),
+				'network.js'
 			)
 			// the relative path
 			const relativePath = path.relative(
 				path.dirname(networkFilePath),
-				path.join(cfg.projectRoot, config.client ?? 'src/client')
+				path.join(config.projectRoot, plugin_config(config).client)
 			)
-			return `import client from "${relativePath}"
 
-export default client
-`
+			return content.replace('HOUDINI_CLIENT_PATH', relativePath)
 		},
 	},
 
