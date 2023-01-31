@@ -24,7 +24,7 @@
         "@types/glob": "^8.0.0",
         "@types/minimatch": "^5.1.2",
         "@types/node": "^18.7.23",
-        "prettier": "^2.5.1",
+        "prettier": "^2.8.3",
         "rollup": "^3.7.4",
         "scripts": "workspace:^",
         "turbo": "^1.5.4",
