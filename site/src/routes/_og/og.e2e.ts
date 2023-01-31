@@ -49,6 +49,4 @@ test('all og images', async ({ page }) => {
 			`./static/images/og/${folder.fileName}.png`
 		)
 	}
-
-	expect('done').toBe('done')
 })

@@ -135,7 +135,8 @@
 		font-size: 80px;
 		color: var(--highlight);
 		text-transform: capitalize;
-		width: 600px;
+		/* The perfect value! */
+		width: 604px;
 	}
 
 	#og-card {
