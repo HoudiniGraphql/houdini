@@ -185,7 +185,7 @@ updating any configuration values.
 - Type: `"before" | "after"`
 - Default is `"before"`
 
-Defines wether your plugin runs before or after "core" plugins like `houdini-svelte`.
+Defines whether your plugin runs before or after "core" plugins like `houdini-svelte`.
 
 ### `config`
 
@@ -297,7 +297,7 @@ export default plugin('plugin_name', async () => {
 - Type: `({ config: Config, filepath: string }) => boolean | null | undefined`
 - If any plugin includes the value, the filepath is excluded
 
-A filter for wether a file should be included in processing. This hook is useful
+A filter for whether a file should be included in processing. This hook is useful
 if you generate imports that do not match your users configure `include` value.
 Return `true` to include the file. This is commonly used in tandem with the
 [vite](#vite) hook.
@@ -322,7 +322,7 @@ export default plugin('plugin_name', async () => {
 - Type: `({ config: Config, filepath: string }) => boolean | null | undefined`
 - If any plugin excludes the value, the filepath is excluded
 
-A filter for wether a file should be included in processing. This hook is useful
+A filter for whether a file should be included in processing. This hook is useful
 if you generate imports that do not match your users configure `include` value.
 Return `false` to include the file.
 
@@ -553,8 +553,8 @@ type GenerateArgs = {
 Generates project files for each document in the application.
 Each plugin is assigned a root directory that you are free to place any
 files you want. If you want values that you generated to be included in
-the values exported from `$houdini`, you should use the
-[indexFile](#indexFile) hook.
+the values exported from `$houdini`, you will also need to use the
+[indexFile](#indexfile) hook.
 
 ```typescript:title=plugin_name/src/index.ts
 import { plugin } from 'houdini'
