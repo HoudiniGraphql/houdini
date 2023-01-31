@@ -159,14 +159,14 @@ export class Cache {
 		this._internal_unstable.setConfig(config)
 	}
 
-	markTypeStale(type?: string, options: { field?: string; when?: {} } = {}): void {
-		if (!type) {
+	markTypeStale(options?: { type: string; field?: string; when?: {} }): void {
+		if (!options) {
 			this._internal_unstable.staleManager.markAllStale()
 		} else if (!options.field) {
-			this._internal_unstable.staleManager.markTypeStale(type)
+			this._internal_unstable.staleManager.markTypeStale(options.type)
 		} else {
 			this._internal_unstable.staleManager.markTypeFieldStale(
-				type,
+				options.type,
 				options.field,
 				options.when
 			)

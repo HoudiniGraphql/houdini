@@ -115,10 +115,11 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 	/**
 	 * Mark some elements of the cache stale.
 	 */
-	markStale<_Type extends TypeNames<Def>, _Field extends TypeFieldNames<Def, _Type>>(
-		type?: _Type,
-		options: { field?: _Field; when?: ArgType<Def, _Type, _Field> } = {}
-	): void {
-		return this._internal_unstable.markTypeStale(type, options)
+	markStale<_Type extends TypeNames<Def>, _Field extends TypeFieldNames<Def, _Type>>(options?: {
+		type: _Type
+		field?: _Field
+		when?: ArgType<Def, _Type, _Field>
+	}): void {
+		return this._internal_unstable.markTypeStale(options)
 	}
 }

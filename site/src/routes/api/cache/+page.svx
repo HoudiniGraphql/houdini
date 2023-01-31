@@ -307,10 +307,10 @@ import { cache, graphql } from '$houdini'
 cache.markStale()
 
 // Mark all type 'UserNodes' stale
-cache.markStale('UserNodes')
+cache.markStale({ type: 'UserNodes' })
 
 // Mark all type 'UserNodes' field 'totalCount' stale
-cache.markStale('UserNodes', 'totalCount')
+cache.markStale({ type: 'UserNodes', field: 'totalCount' })
 
 // Mark the User 1 stale
 const user = cache.get('User', { id: '1' })
