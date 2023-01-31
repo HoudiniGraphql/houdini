@@ -17,21 +17,19 @@ import { get } from 'svelte/store'
 
 import type { PluginArtifactData } from '../../plugin/artifactData'
 import { clientStarted, isBrowser } from '../adapter'
-import { getClient } from '../client'
 import { getSession } from '../session'
+import { BaseStore } from './base'
 
-export class QueryStore<_Data extends GraphQLObject, _Input extends {}> {
-	// the underlying artifact
-	artifact: QueryArtifact
-
+export class QueryStore<_Data extends GraphQLObject, _Input extends {}> extends BaseStore<
+	_Data,
+	_Input,
+	QueryArtifact
+> {
 	// whether the store requires variables for input
 	variables: boolean
 
 	// identify it as a query store
 	kind = CompiledQueryKind
-
-	// at its core, a query store is a writable store with extra methods
-	protected observer: DocumentStore<_Data, _Input>
 
 	// if there is a load in progress when the CSF triggers we need to stop it
 	protected loadPending = false
@@ -44,15 +42,12 @@ export class QueryStore<_Data extends GraphQLObject, _Input extends {}> {
 	protected storeName: string
 
 	constructor({ artifact, storeName, variables }: StoreConfig<_Data, _Input, QueryArtifact>) {
-		// set the initial state
-		this.artifact = artifact
-
 		// all queries should be with fetching: true by default (because auto fetching)
 		// except for manual queries, which should be false, it will be manualy triggered
 		const fetching =
 			artifact.plugin_data?.['houdini-svelte'].isManualLoad === true ? false : true
+		super({ artifact, fetching })
 
-		this.observer = getClient().observe({ artifact, fetching })
 		this.storeName = storeName
 		this.variables = variables
 	}

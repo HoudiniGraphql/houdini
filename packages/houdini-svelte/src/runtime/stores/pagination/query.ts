@@ -30,17 +30,22 @@ export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> ex
 	// all paginated stores need to have a flag to distinguish from other query stores
 	paginated = true
 
-	#handlers: CursorHandlers<_Data, _Input>
-
 	constructor(config: StoreConfig<_Data, _Input, QueryArtifact>) {
 		super(config)
+	}
+
+	#_handlers: CursorHandlers<_Data, _Input> | null = null
+	get #handlers(): CursorHandlers<_Data, _Input> {
+		if (this.#_handlers) {
+			return this.#_handlers
+		}
 
 		// we're going to use a separate observer for the page loading
 		const paginationObserver = getClient().observe<_Data, _Input>({
 			artifact: this.artifact,
 		})
 
-		this.#handlers = cursorHandlers<_Data, _Input>({
+		this.#_handlers = cursorHandlers<_Data, _Input>({
 			artifact: this.artifact,
 			observer: this.observer,
 			storeName: this.name,
@@ -57,6 +62,8 @@ export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> ex
 				})
 			},
 		})
+
+		return this.#_handlers
 	}
 
 	fetch(params?: RequestEventFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
