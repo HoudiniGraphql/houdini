@@ -1,5 +1,12 @@
 # houdini-react
 
+## 1.0.0-next.7
+
+### Dependency Changes
+
+-   Updated dependencies []:
+    -   houdini@1.0.0-next.7
+
 ## 1.0.0-next.6
 
 ### Dependency Changes
