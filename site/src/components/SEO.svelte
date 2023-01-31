@@ -13,9 +13,9 @@
 	const getImg = () => {
 		const [part0, part1, part2] = $page.url.pathname.split('/')
 		if (part1 && part2) {
-			return `${$page.url.host}/images/og/houdini-${part1}-${part2}.png`
+			return `${$page.url.origin}/images/og/houdini-${part1}-${part2}.png`
 		}
-		return `${$page.url.host}/images/og/houdini.png`
+		return `${$page.url.origin}/images/og/houdini.png`
 	}
 </script>
 
