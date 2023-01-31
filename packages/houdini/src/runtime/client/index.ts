@@ -25,6 +25,16 @@ type ConstructorArgs = {
 	throwOnError?: ThrowOnErrorParams
 }
 
+export type ObserveParams<
+	_Data extends GraphQLObject,
+	_Artifact extends DocumentArtifact = DocumentArtifact
+> = {
+	artifact: _Artifact
+	cache?: boolean
+	initialValue?: _Data | null
+	fetching?: boolean
+}
+
 export class HoudiniClient {
 	// the URL of the api
 	url: string
@@ -72,12 +82,7 @@ export class HoudiniClient {
 		cache = true,
 		initialValue,
 		fetching = false,
-	}: {
-		artifact: DocumentArtifact
-		cache?: boolean
-		initialValue?: _Data | null
-		fetching?: boolean
-	}): DocumentStore<_Data, _Input> {
+	}: ObserveParams<_Data>): DocumentStore<_Data, _Input> {
 		return new DocumentStore({
 			client: this,
 			artifact,

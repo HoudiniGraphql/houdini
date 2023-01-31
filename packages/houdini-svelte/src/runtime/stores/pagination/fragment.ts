@@ -11,7 +11,7 @@ import { CompiledFragmentKind } from '$houdini/runtime/lib/types'
 import type { Readable, Subscriber } from 'svelte/store'
 import { derived, get } from 'svelte/store'
 
-import { getClient } from '../../client'
+import { getClient, initClient } from '../../client'
 import type { StoreConfig } from '../query'
 import type { CursorHandlers } from './cursor'
 import { cursorHandlers } from './cursor'
@@ -124,6 +124,8 @@ export class FragmentStoreCursor<
 		return cursorHandlers<_Data, _Input>({
 			artifact: this.paginationArtifact,
 			fetchUpdate: async (args, updates) => {
+				await initClient()
+
 				return observer.send({
 					...args,
 					variables: {
@@ -136,7 +138,9 @@ export class FragmentStoreCursor<
 				})
 			},
 			fetch: async (args) => {
-				return observer.send({
+				await initClient()
+
+				return await observer.send({
 					...args,
 					variables: {
 						...args?.variables,

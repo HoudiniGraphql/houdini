@@ -32,7 +32,7 @@ test("doesn't include directives defined in plugins", async function () {
 		export default {
 		    "name": "MyQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "3697047838d5c7ac301e11a8ea95a3d85897dd2c7d8d5f3c0a28799780094c0f",
+		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 		    "raw": \`query MyQuery {
 		  users(stringValue: "asdf") {
@@ -65,7 +65,7 @@ test("doesn't include directives defined in plugins", async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=3697047838d5c7ac301e11a8ea95a3d85897dd2c7d8d5f3c0a28799780094c0f";
+		"HoudiniHash=93f2f73a7b5bc8ec643024414471b0b955d2916b1edd8f3d94109020078bf106";
 	`)
 })
 
