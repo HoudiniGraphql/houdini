@@ -1,5 +1,14 @@
 # houdini-svelte
 
+## 0.20.4
+
+### Patch Changes
+
+-   [#868](https://github.com/HoudiniGraphql/houdini/pull/868) [`9808b74`](https://github.com/HoudiniGraphql/houdini/commit/9808b74176bc36fd847372ca7973605c725a5e51) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug preventing server.js and page.gql files from coexisting
+
+-   Updated dependencies []:
+    -   houdini@0.20.4
+
 ## 0.20.3
 
 ## 0.20.2
