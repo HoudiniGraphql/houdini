@@ -2,9 +2,11 @@
 
 ## 1.0.0-next.7
 
-### Patch Changes
+### 🐛 Fixes
 
 -   [#862](https://github.com/HoudiniGraphql/houdini/pull/862) [`2619c25`](https://github.com/HoudiniGraphql/houdini/commit/2619c25d643752fb53f9ac812f022463edc8a791) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix issue with store import order
+
+### Dependency Changes
 
 -   Updated dependencies []:
     -   houdini@1.0.0-next.7

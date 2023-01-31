@@ -2,7 +2,7 @@
 
 ## 1.0.0-next.7
 
-### Patch Changes
+### Dependency Changes
 
 -   Updated dependencies []:
     -   houdini@1.0.0-next.7
