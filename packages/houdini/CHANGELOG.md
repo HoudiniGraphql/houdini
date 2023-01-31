@@ -2,7 +2,7 @@
 
 ## 1.0.0-next.6
 
-### Major Changes
+### ⚠️ Breaking Changes
 
 -   [#860](https://github.com/HoudiniGraphql/houdini/pull/860) [`7f856d2`](https://github.com/HoudiniGraphql/houdini/commit/7f856d2b7b716b39bacae84de93b6a718bb10a84) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Normalize codegen plugin hook name casing
 
