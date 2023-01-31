@@ -1,10 +1,9 @@
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
 import { routes } from '../../../../lib/utils/routes.js';
 import {
-  expect_1_gql,
-  expect_0_gql,
   expectToBe,
   expectToContain,
+  expect_1_gql,
   goto
 } from '../../../../lib/utils/testsHelper.js';
 

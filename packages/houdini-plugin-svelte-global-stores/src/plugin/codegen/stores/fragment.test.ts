@@ -56,3 +56,29 @@ test('global fragment type', async function () {
 	`
 	)
 })
+
+test('no fragment', async function () {
+	const docs = [`fragment TestFragment1 on User { id }`, `fragment TestFragment2 on User { id }`]
+
+	const { pluginRoot } = await pipeline_test(docs, {
+		plugins: {
+			'houdini-svelte': {},
+			'houdini-plugin-svelte-global-stores': {
+				prefix: '',
+				generate: [],
+			},
+		},
+	})
+
+	const contents = await fs.readFile(
+		path.join(global_stores_directory(pluginRoot), 'TestFragment1.js')
+	)
+
+	// parse the contents
+	const parsed = recast.parse(contents!, {
+		parser: typeScriptParser,
+	}).program
+
+	// check the file contents
+	expect(parsed).toMatchInlineSnapshot('null')
+})
