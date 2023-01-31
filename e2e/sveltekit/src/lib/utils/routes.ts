@@ -60,6 +60,7 @@ export const routes = {
   Plugin_load_list: '/plugin/load/list',
   Plugin_load_pageQuery: '/plugin/load/pageQuery',
   Plugin_load_pageQuerySession: '/plugin/load/pageQuery-session',
+  Plugin_load_pageQuery_with_server: '/plugin/load/pageQuery-with-server',
 
   Pagination_query_forward_cursor: '/pagination/query/forward-cursor',
   Pagination_query_backwards_cursor: '/pagination/query/backwards-cursor',

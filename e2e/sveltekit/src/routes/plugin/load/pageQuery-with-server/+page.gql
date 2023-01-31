@@ -1,0 +1,5 @@
+query PageQueryWithServer {
+  user(id: "1", snapshot: "page-query-with-server") {
+    id
+  }
+}
