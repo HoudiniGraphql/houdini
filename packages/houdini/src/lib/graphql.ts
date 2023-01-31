@@ -27,10 +27,13 @@ export function hashDocument({
 	document: string | Document
 }): string {
 	// if we were given an AST document, print it first
-	const docString = typeof document === 'string' ? document : graphql.print(document.document)
+	const docString = typeof document === 'string' ? document : document.artifact?.raw
 
 	// hash the string
-	return crypto.createHash('sha256').update(docString).digest('hex')
+	return crypto
+		.createHash('sha256')
+		.update(docString ?? '')
+		.digest('hex')
 }
 
 type GraphQLParentType =

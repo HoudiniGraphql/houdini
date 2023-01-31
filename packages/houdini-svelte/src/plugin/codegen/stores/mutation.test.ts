@@ -39,7 +39,7 @@ test('generates a store for every mutation', async function () {
 	await expect(parsed).toMatchInlineSnapshot(
 		`
 		import artifact from '$houdini/artifacts/TestMutation1'
-		import { MutationStore } from '$houdini/plugins/houdini-svelte/runtime/stores'
+		import { MutationStore } from '../runtime/stores/mutation'
 
 		export class TestMutation1Store extends MutationStore {
 			constructor() {

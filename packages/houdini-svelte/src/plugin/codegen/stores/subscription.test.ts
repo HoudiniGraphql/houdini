@@ -43,7 +43,7 @@ test('generates a store for every subscription', async function () {
 	await expect(parsed).toMatchInlineSnapshot(
 		`
 		import artifact from '$houdini/artifacts/TestSubscription1'
-		import { SubscriptionStore } from '$houdini/plugins/houdini-svelte/runtime/stores'
+		import { SubscriptionStore } from '../runtime/stores/subscription'
 
 		export class TestSubscription1Store extends SubscriptionStore {
 			constructor() {
