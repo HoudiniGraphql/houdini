@@ -1,16 +1,16 @@
 import { DocumentStore } from '$houdini/runtime/client'
 import type { FetchContext } from '$houdini/runtime/client/plugins/fetch'
 import * as log from '$houdini/runtime/lib/log'
-import type {
-	QueryArtifact,
-	MutationArtifact,
+import {
+	ArtifactKind,
+	CachePolicy,
+	CompiledQueryKind,
 	GraphQLObject,
 	HoudiniFetchContext,
+	MutationArtifact,
+	QueryArtifact,
 	QueryResult,
 } from '$houdini/runtime/lib/types'
-import { ArtifactKind } from '$houdini/runtime/lib/types'
-// internals
-import { CachePolicy, CompiledQueryKind } from '$houdini/runtime/lib/types'
 import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
 import type { Readable } from 'svelte/store'
 import { get } from 'svelte/store'

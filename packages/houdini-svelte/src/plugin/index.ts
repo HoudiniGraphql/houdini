@@ -1,7 +1,6 @@
-import type { PluginHooks } from 'houdini'
-import { plugin } from 'houdini'
-import { HoudiniError, path, fs, type Config } from 'houdini'
-import * as url from 'url'
+import type { PluginHooks ,  Config } from 'houdini'
+import { plugin , HoudiniError, path, fs} from 'houdini'
+import * as url from 'node:url'
 import { loadEnv } from 'vite'
 
 import { artifactData } from './artifactData'

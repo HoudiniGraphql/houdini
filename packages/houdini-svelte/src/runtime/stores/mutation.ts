@@ -1,6 +1,5 @@
 import type { DocumentStore } from '$houdini/runtime/client'
-import type { MutationArtifact } from '$houdini/runtime/lib/types'
-import type { GraphQLObject } from '$houdini/runtime/lib/types'
+import type { MutationArtifact , GraphQLObject } from '$houdini/runtime/lib/types'
 import type { RequestEvent } from '@sveltejs/kit'
 
 import { initClient } from '../client'

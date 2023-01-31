@@ -1,5 +1,5 @@
-import type { PathLike } from 'fs'
-import filesystem, { Dirent } from 'fs'
+import type { PathLike } from 'node:fs'
+import filesystem, { Dirent } from 'node:fs'
 import type { PluginHooks } from 'houdini'
 import { fs, path } from 'houdini'
 

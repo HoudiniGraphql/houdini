@@ -1,4 +1,4 @@
-import crypto from 'crypto'
+import crypto from 'node:crypto'
 import * as graphql from 'graphql'
 
 import type { Document, Config } from '.'
