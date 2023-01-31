@@ -17,6 +17,7 @@ import { get } from 'svelte/store'
 
 import type { PluginArtifactData } from '../../plugin/artifactData'
 import { clientStarted, isBrowser } from '../adapter'
+import { initClient } from '../client'
 import { getSession } from '../session'
 import { BaseStore } from './base'
 
@@ -69,7 +70,8 @@ export class QueryStore<_Data extends GraphQLObject, _Input extends {}> extends 
 	fetch(params?: ClientFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
-		this.#setup(false)
+		await initClient()
+		await this.#setup(false)
 
 		// validate and prepare the request context for the current environment (client vs server)
 		// make a shallow copy of the args so we don't mutate the arguments that the user hands us
