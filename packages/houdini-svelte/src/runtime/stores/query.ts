@@ -17,7 +17,7 @@ import { get } from 'svelte/store'
 
 import type { PluginArtifactData } from '../../plugin/artifactData'
 import { clientStarted, isBrowser } from '../adapter'
-import { initClient } from '../client'
+import { getClient, initClient } from '../client'
 import { getSession } from '../session'
 import { BaseStore } from './base'
 
@@ -157,7 +157,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 
 	// setting up is synchronous at first so that #unsubscribe
 	// is a "thread safe" way to prevent multiple setups from happening
-	#setup() {
+	async #setup() {
 		// if we've already setup, don't do anything
 		if (this.#unsubscribe) {
 			return
@@ -167,7 +167,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 			this.#store.set(value)
 		})
 
-		return this.observer.send({
+		return await this.observer.send({
 			setup: true,
 			variables: get(this.observer).variables,
 		})
@@ -178,6 +178,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 
 		// make sure that the store is always listening to the cache (on the browser)
 		if (isBrowser && (this.subscriberCount === 0 || !this.#unsubscribe)) {
+			// make sure the query is listening
 			this.#setup()
 		}
 

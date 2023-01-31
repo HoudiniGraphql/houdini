@@ -50,8 +50,6 @@ export class ${storeName} extends ${store_class} {
 }
 
 export async function load_${artifactName}(params) {
-	await initClient()
-
 	const store = new ${storeName}()
 
 	await store.fetch(params)
