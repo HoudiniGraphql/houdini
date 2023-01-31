@@ -23,6 +23,7 @@ export function plugin_config(config: Config): Required<HoudiniPluginSvelteGloba
 
 	return {
 		prefix: 'GQL_',
+		generate: ['mutation', 'subscription', 'fragment'],
 		...cfg,
 	}
 }

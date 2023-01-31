@@ -39,3 +39,32 @@ test('generates a store for every subscription', async function () {
 	`
 	)
 })
+
+test('no subscription', async function () {
+	const docs = [
+		`subscription TestSubscription1 { newUser { user { id } }  }`,
+		`subscription TestSubscription2 { newUser { user { id } }  }`,
+	]
+
+	const { pluginRoot } = await pipeline_test(docs, {
+		plugins: {
+			'houdini-svelte': {},
+			'houdini-plugin-svelte-global-stores': {
+				prefix: '',
+				generate: [],
+			},
+		},
+	})
+
+	const contents = await fs.readFile(
+		path.join(global_stores_directory(pluginRoot), 'TestSubscription1.js')
+	)
+
+	// parse the contents
+	const parsed = recast.parse(contents!, {
+		parser: typeScriptParser,
+	}).program
+
+	// check the file contents
+	expect(parsed).toMatchInlineSnapshot('null')
+})

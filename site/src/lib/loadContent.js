@@ -48,25 +48,10 @@ export async function loadContent() {
 							// we're done
 							continue
 						}
-
 						// we ran into a header after accumulating content, we need to add a passage
 						// with everything we've been building up since now
 						if (content) {
-							const passage = {
-								breadcrumb: [
-									sectionName[0].toLocaleUpperCase() + sectionName.slice(1),
-									...breadcrumb.map((ele) => ele.text || ele)
-								],
-								content: content.replace(/\n/g, ' '),
-								href: file.slug
-							}
-
-							// if the content is nested under a header make sure we include the id link
-							if (breadcrumb.length > 1) {
-								passage.href += `#${breadcrumb[breadcrumb.length - 1].attributes.id}`
-							}
-
-							passages.push(passage)
+							addPassage(sectionName, breadcrumb, content, file, passages)
 
 							// reset the content accumulator
 							content = ''
@@ -101,6 +86,11 @@ export async function loadContent() {
 						}
 					}
 
+					// Finally, add the last passage
+					if (content) {
+						addPassage(sectionName, breadcrumb, content, file, passages)
+					}
+
 					// if there's content at the end we need to include it
 
 					// return the list of passages for every file in the docs
@@ -109,4 +99,22 @@ export async function loadContent() {
 			)
 		)
 	).flat()
+
+	function addPassage(sectionName, breadcrumb, content, file, passages) {
+		const passage = {
+			breadcrumb: [
+				sectionName[0].toLocaleUpperCase() + sectionName.slice(1),
+				...breadcrumb.map((ele) => ele.text || ele)
+			],
+			content: content.replace(/\n/g, ' '),
+			href: file.slug
+		}
+
+		// if the content is nested under a header make sure we include the id link
+		if (breadcrumb.length > 1) {
+			passage.href += `#${breadcrumb[breadcrumb.length - 1].attributes.id}`
+		}
+
+		passages.push(passage)
+	}
 }
