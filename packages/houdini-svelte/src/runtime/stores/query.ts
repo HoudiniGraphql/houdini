@@ -1,4 +1,3 @@
-import type { DocumentStore } from '$houdini/runtime/client'
 import type { FetchContext } from '$houdini/runtime/client/plugins/fetch'
 import * as log from '$houdini/runtime/lib/log'
 import type {

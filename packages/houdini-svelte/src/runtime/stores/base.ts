@@ -1,4 +1,4 @@
-import type { DocumentStore, ObserveParams, HoudiniClient } from '$houdini/runtime/client'
+import type { DocumentStore, ObserveParams } from '$houdini/runtime/client'
 import type { GraphQLObject, DocumentArtifact } from '$houdini/runtime/lib/types'
 
 import { getClient } from '../client'
