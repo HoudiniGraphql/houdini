@@ -18,15 +18,15 @@ export const pluginHooks: () => Promise<PluginHooks> = async () => ({
 	},
 
 	// we need to add the exports to the index files (this one file processes index.js and index.d.ts)
-	index_file({ config, content, export_star_from, plugin_root }) {
+	indexFile({ config, content, exportStarFrom, pluginRoot }) {
 		const storesDir =
 			'./' +
 			path
-				.relative(config.rootDir, global_stores_directory(plugin_root))
+				.relative(config.rootDir, global_stores_directory(pluginRoot))
 				.split(path.sep)
 				.join('/')
 
-		return content + export_star_from({ module: storesDir })
+		return content + exportStarFrom({ module: storesDir })
 	},
 
 	/**
@@ -35,7 +35,7 @@ export const pluginHooks: () => Promise<PluginHooks> = async () => ({
 
 	// Check that storeName & globalStoreName are not overlapping.
 	// Not possible today, but maybe in the future if storeName starts to be configurable.
-	async after_load({ config: cfg }) {
+	async afterLoad({ config: cfg }) {
 		if (
 			store_name({ config: cfg, name: 'QueryName' }) ===
 			global_store_name({ config: cfg, name: 'QueryName' })
@@ -65,4 +65,12 @@ export type HoudiniPluginSvelteGlobalStoresConfig = {
 	 * @default GQL_
 	 */
 	prefix?: string
+
+	/**
+	 * Types of stores to generate.
+	 *
+	 * _Note: by default, 'query' is omitted on purpose._
+	 * @default ['mutation', 'subscription', 'fragment']
+	 */
+	generate?: ('query' | 'mutation' | 'subscription' | 'fragment')[] | 'all'
 }

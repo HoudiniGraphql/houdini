@@ -336,8 +336,8 @@ export function stores_directory_name() {
 }
 
 // the directory where we put all of the stores
-export function stores_directory(plugin_root: string) {
-	return path.join(plugin_root, stores_directory_name())
+export function stores_directory(pluginRoot: string) {
+	return path.join(pluginRoot, stores_directory_name())
 }
 
 export function type_route_dir(config: Config) {
@@ -368,14 +368,14 @@ export function plugin_config(config: Config): Required<HoudiniSvelteConfig> {
 		static: false,
 		...cfg,
 		customStores: {
-			query: '$houdini/plugins/houdini-svelte/runtime/stores.QueryStore',
-			mutation: '$houdini/plugins/houdini-svelte/runtime/stores.MutationStore',
-			fragment: '$houdini/plugins/houdini-svelte/runtime/stores.FragmentStore',
-			subscription: '$houdini/plugins/houdini-svelte/runtime/stores.SubscriptionStore',
-			queryCursor: '$houdini/plugins/houdini-svelte/runtime/stores.QueryStoreCursor',
-			queryOffset: '$houdini/plugins/houdini-svelte/runtime/stores.QueryStoreOffset',
-			fragmentCursor: '$houdini/plugins/houdini-svelte/runtime/stores.FragmentStoreCursor',
-			fragmentOffset: '$houdini/plugins/houdini-svelte/runtime/stores.FragmentStoreOffset',
+			query: '../runtime/stores/query.QueryStore',
+			mutation: '../runtime/stores/mutation.MutationStore',
+			fragment: '../runtime/stores/fragment.FragmentStore',
+			subscription: '../runtime/stores/subscription.SubscriptionStore',
+			queryCursor: '../runtime/stores/pagination/query.QueryStoreCursor',
+			queryOffset: '../runtime/stores/pagination/query.QueryStoreOffset',
+			fragmentCursor: '../runtime/stores/pagination/fragment.FragmentStoreCursor',
+			fragmentOffset: '../runtime/stores/pagination/fragment.FragmentStoreOffset',
 			...cfg?.customStores,
 		},
 	}

@@ -2,7 +2,7 @@ import { parse } from '@babel/parser'
 import type { Config } from 'houdini'
 import * as recast from 'recast'
 
-export function extract_documents({ content }: { config: Config; content: string }) {
+export function extractDocuments({ content }: { config: Config; content: string }) {
 	// the documents  we've found
 	const documents: string[] = []
 

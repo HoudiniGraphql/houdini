@@ -29,7 +29,7 @@ export type TransformDocument = {
 /**
  * The result of collecting documents from source code
  */
-export type CollectedGraphQLDocument = {
+export type Document = {
 	/**
 	 * The name of the document.
 	 */
@@ -57,11 +57,6 @@ export type CollectedGraphQLDocument = {
 	document: graphql.DocumentNode
 
 	/**
-	 * The document that the user provided
-	 * */
-	originalDocument: graphql.DocumentNode
-
-	/**
 	 * Whether an artifact should be generated for the document. This should be set to false for internal
 	 * or virtual documents .
 	 */
@@ -77,6 +72,11 @@ export type CollectedGraphQLDocument = {
 	 * The original document string that the user passed
 	 */
 	originalString: string
+
+	/**
+	 * The parsed document that the user provided
+	 * */
+	originalParsed: graphql.DocumentNode
 
 	/**
 	 * Refetch logic that has been built up throughout the pipeline
@@ -121,13 +121,13 @@ export type PluginHooks = {
 	 * automatically included with your
 	 */
 
-	include_runtime?: string | { esm: string; commonjs: string }
+	includeRuntime?: string | { esm: string; commonjs: string }
 
 	/**
 	 * Transform the plugin's runtime while houdini is copying it .
-	 * You must have passed a value to include_runtime for this hook to matter.
+	 * You must have passed a value to includeRuntime for this hook to matter.
 	 */
-	transform_runtime?: Record<string, (args: { config: Config; content: string }) => string>
+	transformRuntime?: Record<string, (args: { config: Config; content: string }) => string>
 
 	/**
 	 * Used to modify any values that the user passed to their config files. Configuration values
@@ -144,7 +144,7 @@ export type PluginHooks = {
 	/**
 	 * Invoked after all plugins have loaded and modified config values.
 	 */
-	after_load?: (args: { config: Config }) => Promise<void> | void
+	afterLoad?: (args: { config: Config }) => Promise<void> | void
 
 	/**
 	 * A filter for whether a file should be included in the the processing. Return true to include.
@@ -159,7 +159,7 @@ export type PluginHooks = {
 	/**
 	 * Configure the codegen pipeline to extract graphql documents out of a file.
 	 */
-	extract_documents?: (args: {
+	extractDocuments?: (args: {
 		config: Config
 		filepath: string
 		content: string
@@ -168,69 +168,54 @@ export type PluginHooks = {
 	/**
 	 * Can be used to add custom definitions to your project's schema. Definitions (like directives) added
 	 * here are automatically removed from the document before they are sent to the server. Useful
-	 * in connection with artifact_data or artifact_selection to embed data in the artifact.
+	 * in connection with artifactData or artifact_selection to embed data in the artifact.
 	 */
 	schema?: (args: { config: Config }) => string
 
 	/**
 	 * A hook to transform the documents before they are validated.
 	 */
-	before_validate?: (args: {
-		config: Config
-		documents: CollectedGraphQLDocument[]
-	}) => Promise<void> | void
+	beforeValidate?: (args: { config: Config; documents: Document[] }) => Promise<void> | void
 
 	/**
 	 * A hook to validate all of the documents in a project.
 	 */
-	validate?: (args: {
-		config: Config
-		documents: CollectedGraphQLDocument[]
-	}) => Promise<void> | void
+	validate?: (args: { config: Config; documents: Document[] }) => Promise<void> | void
 
 	/**
 	 * A hook to transform the documents after they are validated.
 	 */
-	after_validate?: (args: {
-		config: Config
-		documents: CollectedGraphQLDocument[]
-	}) => Promise<void> | void
+	afterValidate?: (args: { config: Config; documents: Document[] }) => Promise<void> | void
 
 	/**
 	 * A hook to transform the documents before documents are generated.
 	 */
-	transform_before_generate?: (args: {
-		config: Config
-		documents: CollectedGraphQLDocument[]
-	}) => Promise<void> | void
+	beforeGenerate?: (args: { config: Config; documents: Document[] }) => Promise<void> | void
 
 	/**
 	 * A hook to embed metadata at the root of the artifact.
 	 */
-	artifact_data?: (args: {
-		config: Config
-		document: CollectedGraphQLDocument
-	}) => Record<string, any>
+	artifactData?: (args: { config: Config; document: Document }) => Record<string, any>
 
 	/**
 	 * A hook to customize the hash generated for your document.
 	 */
-	hash?: (args: { config: Config; document: CollectedGraphQLDocument }) => string
+	hash?: (args: { config: Config; document: Document }) => string
 
 	/**
 	 * A hook to customize the return type of the graphql function. If you need to add an import to the file
 	 * in order to resolve the import, you can use the `ensure_import` utility.
 	 */
-	graphql_tag_return?: (args: {
+	graphqlTagReturn?: (args: {
 		config: Config
-		document: CollectedGraphQLDocument
-		ensure_import: (import_args: { identifier: string; module: string }) => void
+		document: Document
+		ensureImport: (import_args: { identifier: string; module: string }) => void
 	}) => string | undefined
 
 	/**
 	 * A hook to modify the root `index.js` of the generated runtime.
 	 */
-	index_file?: ModuleIndexTransform
+	indexFile?: ModuleIndexTransform
 
 	/**
 	 * A hook to generate custom files for every document in a project.
@@ -240,20 +225,20 @@ export type PluginHooks = {
 	/**
 	 * A hook to modify the generated artifact before it is persisted
 	 */
-	artifact_end?: (args: { config: Config; document: CollectedGraphQLDocument }) => void
+	artifactEnd?: (args: { config: Config; document: Document }) => void
 
 	/**
 	 * Specify the plugins that should be added to the user's client because
 	 * of this plugin.
 	 */
-	client_plugins?:
+	clientPlugins?:
 		| Record<string, null | Record<string, any>>
 		| ((config: ConfigFile, pluginConfig: any) => Record<string, null | Record<string, any>>)
 
 	/**
 	 * A hook to transform the source file to support desired APIs.
 	 */
-	transform_file?: (page: TransformPage) => Promise<{ code: string }> | { code: string }
+	transformFile?: (page: TransformPage) => Promise<{ code: string }> | { code: string }
 
 	vite?: {
 		// these type definitions are copy and pasted from the vite ones
@@ -288,19 +273,19 @@ export type PluginHooks = {
 type ModuleIndexTransform = (arg: {
 	config: Config
 	content: string
-	export_default_as(args: { module: string; as: string }): string
-	export_star_from(args: { module: string }): string
-	plugin_root: string
+	exportDefaultAs(args: { module: string; as: string }): string
+	exportStarFrom(args: { module: string }): string
+	pluginRoot: string
 	typedef: boolean
-	documents: CollectedGraphQLDocument[]
+	documents: Document[]
 }) => string
 
 export type GenerateHook = (args: GenerateHookInput) => Promise<void> | void
 
 export type GenerateHookInput = {
 	config: Config
-	documents: CollectedGraphQLDocument[]
-	plugin_root: string
+	documents: Document[]
+	pluginRoot: string
 }
 
 export type PluginConfig = { configPath?: string } & Partial<ConfigFile>

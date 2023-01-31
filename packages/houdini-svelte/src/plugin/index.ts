@@ -35,12 +35,12 @@ export const pluginHooks = async (): Promise<PluginHooks> => ({
 
 	extensions: ['.svelte'],
 
-	include_runtime: {
+	includeRuntime: {
 		esm: '../runtime-esm',
 		commonjs: '../runtime-cjs',
 	},
 
-	transform_runtime: {
+	transformRuntime: {
 		'adapter.js': ({ content }) => {
 			// dedicated sveltekit adapter.
 			const sveltekit_adapter = `import { browser, building } from '$app/environment'
@@ -62,31 +62,27 @@ export const error = svelteKitError
 			return framework === 'kit' ? sveltekit_adapter : content
 		},
 
-		[path.join('imports', 'client.js')]: ({ config: cfg }) => {
-			const config = plugin_config(cfg)
+		'client.js': ({ config, content }) => {
 			// the path to the network file
 			const networkFilePath = path.join(
-				cfg.pluginRuntimeDirectory('houdini-svelte'),
-				'imports',
-				'clientImport.js'
+				config.pluginRuntimeDirectory('houdini-svelte'),
+				'network.js'
 			)
 			// the relative path
 			const relativePath = path.relative(
 				path.dirname(networkFilePath),
-				path.join(cfg.projectRoot, config.client ?? 'src/client')
+				path.join(config.projectRoot, plugin_config(config).client)
 			)
-			return `import client from "${relativePath}"
 
-export default client
-`
+			return content.replace('HOUDINI_CLIENT_PATH', relativePath)
 		},
 	},
 
 	// add custom artifact data to the artifact document
-	artifact_data: artifactData,
+	artifactData: artifactData,
 
 	// custom logic to pull a graphql document out of a svelte file
-	extract_documents: extract,
+	extractDocuments: extract,
 
 	// we have some custom document validation logic
 	validate,
@@ -99,7 +95,7 @@ export default client
 		})
 	},
 
-	graphql_tag_return({ config, document: doc, ensure_import }) {
+	graphqlTagReturn({ config, document: doc, ensureImport: ensure_import }) {
 		// if we're supposed to generate a store then add an overloaded declaration
 		if (doc.generateStore) {
 			// make sure we are importing the store
@@ -118,20 +114,20 @@ export default client
 	},
 
 	// we need to add the exports to the index files (this one file processes index.js and index.d.ts)
-	index_file({ config, content, export_star_from, plugin_root }) {
+	indexFile({ config, content, exportStarFrom, pluginRoot }) {
 		const storesDir =
 			'./' +
-			path.relative(config.rootDir, stores_directory(plugin_root)).split(path.sep).join('/')
+			path.relative(config.rootDir, stores_directory(pluginRoot)).split(path.sep).join('/')
 
-		return content + export_star_from({ module: storesDir })
+		return content + exportStarFrom({ module: storesDir })
 	},
 
 	/**
 	 * Transform
 	 */
 
-	// transform a file's contents. changes here aren't seen by extract_documents
-	transform_file(page) {
+	// transform a file's contents. changes here aren't seen by extractDocuments
+	transformFile(page) {
 		return apply_transforms(framework, page)
 	},
 
@@ -150,7 +146,7 @@ export default client
 	 * Setup
 	 */
 
-	async after_load({ config: cfg }) {
+	async afterLoad({ config: cfg }) {
 		_config = cfg
 		const cfgPlugin = plugin_config(cfg)
 

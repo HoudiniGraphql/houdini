@@ -4,7 +4,7 @@ import fs from 'fs/promises'
 
 import { colors } from './colors.js'
 
-test('render _diagrams', async ({ page }) => {
+test('rendering diagrams', async ({ page }) => {
 	await page.goto('http://localhost:3078/_diagrams')
 
 	// wait for the diagram to be rendered

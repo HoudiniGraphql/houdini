@@ -4,7 +4,7 @@ import { fs, path } from 'houdini'
 
 import type { Framework } from '../../kit'
 import { type_route_dir, stores_directory_name, store_suffix, walk_routes } from '../../kit'
-import { houdini_after_load_fn, houdini_before_load_fn, houdini_on_error_fn } from '../../naming'
+import { houdini_afterLoad_fn, houdini_before_load_fn, houdini_on_error_fn } from '../../naming'
 import { route_params } from '../../routing'
 
 export default async function svelteKitGenerator(
@@ -65,11 +65,11 @@ export default async function svelteKitGenerator(
 
 				// Util bools for ensuring no unnecessary types
 				const beforePageLoad = pageExports.includes(houdini_before_load_fn)
-				const afterPageLoad = pageExports.includes(houdini_after_load_fn)
+				const afterPageLoad = pageExports.includes(houdini_afterLoad_fn)
 				const onPageError = pageExports.includes(houdini_on_error_fn)
 
 				const beforeLayoutLoad = layoutExports.includes(houdini_before_load_fn)
-				const afterLayoutLoad = layoutExports.includes(houdini_after_load_fn)
+				const afterLayoutLoad = layoutExports.includes(houdini_afterLoad_fn)
 				const onLayoutError = layoutExports.includes(houdini_on_error_fn)
 
 				const layout_append_VariablesFunction = append_VariablesFunction(
@@ -321,7 +321,7 @@ function append_afterLoad(
 ) {
 	return afterLoad
 		? `
-type AfterLoadReturn = Awaited<ReturnType<typeof import('./+${type.toLowerCase()}').${houdini_after_load_fn}>>;
+type AfterLoadReturn = Awaited<ReturnType<typeof import('./+${type.toLowerCase()}').${houdini_afterLoad_fn}>>;
 type AfterLoadData = {
 	${internal_append_afterLoad(queries)}
 };

@@ -6,10 +6,11 @@
 <style>
 	.container {
 		border-radius: 10px;
-		background-color: #bc791b;
+		background-color: var(--warning);
 		margin-bottom: 60px;
 		margin-top: 30px;
 		padding: 10px 30px 0 30px;
+		color: var(--warning-text);
 	}
 
 	h3 {

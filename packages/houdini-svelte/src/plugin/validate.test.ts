@@ -1,4 +1,4 @@
-import type { CollectedGraphQLDocument } from 'houdini'
+import type { Document } from 'houdini'
 import { pipelineTest } from 'houdini/test'
 import { describe, test } from 'vitest'
 
@@ -78,7 +78,7 @@ type Row =
 			title: string
 			pass: true
 			documents: string[]
-			check?: (docs: CollectedGraphQLDocument[]) => void
+			check?: (docs: Document[]) => void
 	  }
 	| {
 			title: string

@@ -1,14 +1,39 @@
 import type { GenerateHookInput } from 'houdini'
-import { cleanupFiles, fs, ArtifactKind, path } from 'houdini'
+import { ArtifactKind, cleanupFiles, fs, path } from 'houdini'
 
-import { global_stores_directory } from '../../kit'
+import { global_stores_directory, plugin_config } from '../../kit'
 import { fragmentStore } from './fragment'
 import { mutationStore } from './mutation'
 import { queryStore } from './query'
 import { subscriptionStore } from './subscription'
 
+const is_store_needed = (
+	kindExpected: ArtifactKind,
+	kindDocument: ArtifactKind,
+	generate: ('query' | 'mutation' | 'subscription' | 'fragment')[] | 'all'
+) => {
+	if (kindExpected === kindDocument) {
+		// build association between ArtifactKind and Literal
+		const kindLiteral: Record<
+			ArtifactKind,
+			'query' | 'mutation' | 'subscription' | 'fragment'
+		> = {
+			HoudiniQuery: 'query',
+			HoudiniMutation: 'mutation',
+			HoudiniSubscription: 'subscription',
+			HoudiniFragment: 'fragment',
+		}
+
+		if (generate === 'all' || generate.includes(kindLiteral[kindExpected])) {
+			return true
+		}
+	}
+	return false
+}
+
 export default async function storesGenerator(input: GenerateHookInput) {
-	const { documents } = input
+	const { documents, config } = input
+	const generate = plugin_config(config).generate
 
 	const listOfStores: (string | null)[] = []
 
@@ -19,13 +44,13 @@ export default async function storesGenerator(input: GenerateHookInput) {
 				return
 			}
 
-			if (doc.kind === ArtifactKind.Query) {
+			if (is_store_needed(ArtifactKind.Query, doc.kind, generate)) {
 				listOfStores.push(await queryStore(input, doc))
-			} else if (doc.kind === ArtifactKind.Mutation) {
+			} else if (is_store_needed(ArtifactKind.Mutation, doc.kind, generate)) {
 				listOfStores.push(await mutationStore(input, doc))
-			} else if (doc.kind === ArtifactKind.Subscription) {
+			} else if (is_store_needed(ArtifactKind.Subscription, doc.kind, generate)) {
 				listOfStores.push(await subscriptionStore(input, doc))
-			} else if (doc.kind === ArtifactKind.Fragment) {
+			} else if (is_store_needed(ArtifactKind.Fragment, doc.kind, generate)) {
 				listOfStores.push(await fragmentStore(input, doc))
 			}
 		})
@@ -35,9 +60,9 @@ export default async function storesGenerator(input: GenerateHookInput) {
 		.filter((c) => c !== null)
 		.sort((a, b) => (a + '').localeCompare(b + '')) as string[]
 	const dataIndex = listOfStoresOrdered.map((c) => `export * from './${c}'`).join(`\n`)
-	await fs.writeFile(path.join(global_stores_directory(input.plugin_root), `index.js`), dataIndex)
+	await fs.writeFile(path.join(global_stores_directory(input.pluginRoot), `index.js`), dataIndex)
 
-	const storePath = global_stores_directory(input.plugin_root)
+	const storePath = global_stores_directory(input.pluginRoot)
 
 	await fs.writeFile(path.join(storePath, `index.d.ts`), dataIndex)
 

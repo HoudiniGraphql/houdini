@@ -1,8 +1,8 @@
-import type { Config, CollectedGraphQLDocument } from '../../../lib'
+import type { Config, Document } from '../../../lib'
 import { fs, path } from '../../../lib'
 import { cjsIndexFilePreamble, exportDefaultFrom } from '../../utils'
 
-export default async function writeIndexFile(config: Config, docs: CollectedGraphQLDocument[]) {
+export default async function writeIndexFile(config: Config, docs: Document[]) {
 	const docsToGenerate = docs
 		.filter((doc) => doc.generateArtifact)
 		.sort((a, b) => a.name.localeCompare(b.name))

@@ -1,7 +1,7 @@
 import { test, expect, describe } from 'vitest'
 
 import { runPipeline } from '../../../codegen'
-import type { CollectedGraphQLDocument } from '../../../lib'
+import type { Document } from '../../../lib'
 import { fs } from '../../../lib'
 import { mockCollectedDoc, testConfig } from '../../../test'
 
@@ -10,7 +10,7 @@ const config = testConfig()
 
 test('generates an artifact for every document', async function () {
 	// the documents to test
-	const docs: CollectedGraphQLDocument[] = [
+	const docs: Document[] = [
 		mockCollectedDoc(`query TestQuery { version }`),
 		mockCollectedDoc(`fragment TestFragment on User { firstName }`),
 	]
@@ -27,7 +27,7 @@ test('generates an artifact for every document', async function () {
 
 test('adds kind, name, and raw, response, and selection', async function () {
 	// the documents to test
-	const docs: CollectedGraphQLDocument[] = [
+	const docs: Document[] = [
 		mockCollectedDoc(`query TestQuery { version }`),
 		mockCollectedDoc(`fragment TestFragment on User { firstName }`),
 	]
@@ -40,7 +40,7 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "8e483259f3d69f416c01b6106c0440fa0f916abb4cadb75273f8226a1ff0a5e2",
+		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 		    "raw": \`query TestQuery {
 		  version
@@ -69,7 +69,7 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		export default {
 		    "name": "TestFragment",
 		    "kind": "HoudiniFragment",
-		    "hash": "29c40b5d9f6b0cd77fc3fb46fc1338be4960369a01651d5149c2442a33b48686",
+		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 		    "raw": \`fragment TestFragment on User {
 		  firstName
@@ -94,7 +94,7 @@ test('adds kind, name, and raw, response, and selection', async function () {
 
 test('selection includes fragments', async function () {
 	// the documents to test
-	const selectionDocs: CollectedGraphQLDocument[] = [
+	const selectionDocs: Document[] = [
 		mockCollectedDoc(`query TestQuery { user { ...TestFragment } }`),
 		mockCollectedDoc(`fragment TestFragment on User { firstName }`),
 	]
@@ -107,7 +107,7 @@ test('selection includes fragments', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "044fab13113127071c8219ec4d31f8141844de8e106a7d05e38e0da37287cff8",
+		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 		    "raw": \`query TestQuery {
 		  user {
@@ -150,14 +150,14 @@ test('selection includes fragments', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=044fab13113127071c8219ec4d31f8141844de8e106a7d05e38e0da37287cff8";
+		"HoudiniHash=2d52c61126b6514cd0f51584ae220d583c1df1db1090d2b44da83b7f59a4022c";
 	`)
 
 	expect(selectionDocs[1]).toMatchInlineSnapshot(`
 		export default {
 		    "name": "TestFragment",
 		    "kind": "HoudiniFragment",
-		    "hash": "29c40b5d9f6b0cd77fc3fb46fc1338be4960369a01651d5149c2442a33b48686",
+		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 		    "raw": \`fragment TestFragment on User {
 		  firstName
@@ -194,7 +194,7 @@ test('internal directives are scrubbed', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "2ca86ee49a5956fff859ec8e7d13ab04718c010b642d5990defeb8214a546fbc",
+		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 		    "raw": \`query TestQuery {
 		  user {
@@ -237,7 +237,7 @@ test('internal directives are scrubbed', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=2ca86ee49a5956fff859ec8e7d13ab04718c010b642d5990defeb8214a546fbc";
+		"HoudiniHash=d602ba63b61c244225db2524918578e52cc0c1b06a512b56064deb7d176f8e30";
 	`)
 })
 
@@ -261,7 +261,7 @@ test('variables only used by internal directives are scrubbed', async function (
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "bcf9dba98155557377232493c5ca1d412a8eee0e198db52162b48c4e20d666ad",
+		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 		    "raw": \`query TestQuery {
 		  user {
@@ -312,7 +312,7 @@ test('variables only used by internal directives are scrubbed', async function (
 		    "partial": false
 		};
 
-		"HoudiniHash=bcf9dba98155557377232493c5ca1d412a8eee0e198db52162b48c4e20d666ad";
+		"HoudiniHash=d602ba63b61c244225db2524918578e52cc0c1b06a512b56064deb7d176f8e30";
 	`)
 })
 
@@ -330,7 +330,7 @@ test('overlapping query and fragment selection', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "2b2b7a4583cf63472e32761a48d08eb7dc91696801383dabf2592e71a030aa53",
+		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 		    "raw": \`query TestQuery {
 		  user {
@@ -374,7 +374,7 @@ test('overlapping query and fragment selection', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=2b2b7a4583cf63472e32761a48d08eb7dc91696801383dabf2592e71a030aa53";
+		"HoudiniHash=89ff86b7807db8c5395ab994977ca62e2af6a50b78add45f306d6730faa17cdf";
 	`)
 })
 test('interface to interface inline fragment', async function () {
@@ -395,7 +395,7 @@ test('interface to interface inline fragment', async function () {
 		export default {
 		    "name": "MyQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "1523b7370764395a57e1a2434ea2e40290ac99d80a27c92438f8f053c0055998",
+		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 		    "raw": \`query MyQuery($id: ID!) {
 		  node(id: $id) {
@@ -502,7 +502,7 @@ test('paginate over unions', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "d6ca2db811e0a7abc42c807692a571c8fdce242e5c2cfede85972d00b1eadaba",
+		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 		    "refetch": {
 		        "path": ["entitiesByCursor"],
@@ -681,7 +681,7 @@ test('paginate over unions', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=d6ca2db811e0a7abc42c807692a571c8fdce242e5c2cfede85972d00b1eadaba";
+		"HoudiniHash=b26bb5299170a9094b17439a57a84037c883f9ddf4f61856efa5c5dd55754eb0";
 	`)
 })
 
@@ -699,7 +699,7 @@ test('overlapping query and fragment nested selection', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "f6eac6c179b0586180a17258646ae970409e055f4b3598d0e786b03d700c46d7",
+		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 		    "raw": \`query TestQuery {
 		  friends {
@@ -793,7 +793,7 @@ test('overlapping query and fragment nested selection', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=f6eac6c179b0586180a17258646ae970409e055f4b3598d0e786b03d700c46d7";
+		"HoudiniHash=a1ca3fe91bf6c0261f2a5036090c045c9393ecdb35553d2ee9859a4840ead59b";
 	`)
 })
 
@@ -825,7 +825,7 @@ test('selections with interfaces', async function () {
 		export default {
 		    "name": "Friends",
 		    "kind": "HoudiniQuery",
-		    "hash": "359c4d6ceae8e5a5411fa160c2ffaf61e714d7c82a0f1816244f8a83291a2863",
+		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 		    "raw": \`query Friends {
 		  friends {
@@ -951,7 +951,7 @@ test('selections with unions', async function () {
 		export default {
 		    "name": "Friends",
 		    "kind": "HoudiniQuery",
-		    "hash": "512c81f0e5ea88525b407c9978620c931d4e8bc41317d9bd6eeaf3338fe40c6c",
+		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 		    "raw": \`query Friends {
 		  entities {
@@ -1078,7 +1078,7 @@ test('selections with overlapping unions', async function () {
 		export default {
 		    "name": "Friends",
 		    "kind": "HoudiniQuery",
-		    "hash": "ac41a4527ca4141590bf31197f24b51cac54aad71c19ad0aba7843f2514a5700",
+		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 		    "raw": \`query Friends {
 		  friends {
@@ -1183,7 +1183,7 @@ test('selections with overlapping unions', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=ac41a4527ca4141590bf31197f24b51cac54aad71c19ad0aba7843f2514a5700";
+		"HoudiniHash=894976dc2741930d9138b88a86b5ba55fd0d0041efd8a9157a239a322dd8438d";
 	`)
 })
 
@@ -1218,7 +1218,7 @@ test('selections with unions of abstract types', async function () {
 		export default {
 		    "name": "Friends",
 		    "kind": "HoudiniQuery",
-		    "hash": "d6251b9fad69d4c2395d036e1ba4eb8047be3b01e69670feaca6344b6214f218",
+		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 		    "raw": \`query Friends {
 		  friends {
@@ -1328,7 +1328,7 @@ test('selections with unions of abstract types', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=d6251b9fad69d4c2395d036e1ba4eb8047be3b01e69670feaca6344b6214f218";
+		"HoudiniHash=d366177caa0b71276d02cc9e8c1ce9acc88d29587e3c25af6340df116c779b39";
 	`)
 })
 
@@ -1362,7 +1362,7 @@ test('selections with concrete types matching multiple abstract types', async fu
 		export default {
 		    "name": "Friends",
 		    "kind": "HoudiniQuery",
-		    "hash": "cb2649f407c51a76f03a222c15a6c16e36cc96dabf48465765a6c58d7d3345cb",
+		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 		    "raw": \`query Friends {
 		  friends {
@@ -1526,7 +1526,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "B",
 			    "kind": "HoudiniMutation",
-			    "hash": "38005b47351eb4e6e14e3c13a8d0d206dac09bf80d6fa3c103a060a3990edd37",
+			    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 			    "raw": \`mutation B {
 			  addFriend {
@@ -1605,7 +1605,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "7bddb252a5c941ed1e040edcbf56dca758bf43f9a641d0644bd74610dd815804",
+			    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -1663,7 +1663,7 @@ describe('mutation artifacts', function () {
 			    }
 			};
 
-			"HoudiniHash=7bddb252a5c941ed1e040edcbf56dca758bf43f9a641d0644bd74610dd815804";
+			"HoudiniHash=7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2";
 		`)
 	})
 
@@ -1694,7 +1694,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "1ace165aa94ed9e7726f83aee9fc23a1bf3bc6943b21e5a6eb79d325bda2037d",
+			    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -1753,7 +1753,7 @@ describe('mutation artifacts', function () {
 			    }
 			};
 
-			"HoudiniHash=1ace165aa94ed9e7726f83aee9fc23a1bf3bc6943b21e5a6eb79d325bda2037d";
+			"HoudiniHash=7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2";
 		`)
 	})
 
@@ -1788,7 +1788,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "7bddb252a5c941ed1e040edcbf56dca758bf43f9a641d0644bd74610dd815804",
+			    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -1847,7 +1847,7 @@ describe('mutation artifacts', function () {
 			    }
 			};
 
-			"HoudiniHash=7bddb252a5c941ed1e040edcbf56dca758bf43f9a641d0644bd74610dd815804";
+			"HoudiniHash=7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2";
 		`)
 	})
 
@@ -1882,7 +1882,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "7bddb252a5c941ed1e040edcbf56dca758bf43f9a641d0644bd74610dd815804",
+			    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -1940,7 +1940,7 @@ describe('mutation artifacts', function () {
 			    }
 			};
 
-			"HoudiniHash=7bddb252a5c941ed1e040edcbf56dca758bf43f9a641d0644bd74610dd815804";
+			"HoudiniHash=7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2";
 		`)
 	})
 
@@ -1972,7 +1972,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "990e2965b8831a841ccfe9bebf7229ea00166868476b328f770b116130c3f42d",
+			    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -2030,7 +2030,7 @@ describe('mutation artifacts', function () {
 			    }
 			};
 
-			"HoudiniHash=990e2965b8831a841ccfe9bebf7229ea00166868476b328f770b116130c3f42d";
+			"HoudiniHash=e01f8a23cc33c10c4ee3745c041ee97f428b3b4676a5d8d681124f75b09306da";
 		`)
 	})
 
@@ -2062,7 +2062,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "53d67f88e1abda8015c60186a94958017c49f87557a4f73d294a29f93ceb9b27",
+			    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -2113,7 +2113,7 @@ describe('mutation artifacts', function () {
 			    }
 			};
 
-			"HoudiniHash=53d67f88e1abda8015c60186a94958017c49f87557a4f73d294a29f93ceb9b27";
+			"HoudiniHash=9dc41329a7176f813b623958a68c2752d391151a4f3b1f9b8198f6c487e931a4";
 		`)
 	})
 
@@ -2143,7 +2143,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "6c4aa888de2c2a05141a862b3a1170cf72d4886803aab0c6c661d1dce8e959a0",
+			    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 			    "raw": \`mutation A {
 			  deleteUser(id: "1234") {
@@ -2178,7 +2178,7 @@ describe('mutation artifacts', function () {
 			    }
 			};
 
-			"HoudiniHash=6c4aa888de2c2a05141a862b3a1170cf72d4886803aab0c6c661d1dce8e959a0";
+			"HoudiniHash=b9e1e926be309c06c868dc2472c082b6829f93ae55e000317a1066378590a85d";
 		`)
 	})
 
@@ -2208,7 +2208,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "7307440390e78bff1b686f1acdbfba92b20c43beef6b33085702c688b2a7ed2a",
+			    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 			    "raw": \`mutation A {
 			  deleteUser(id: "1234") {
@@ -2249,7 +2249,7 @@ describe('mutation artifacts', function () {
 			    }
 			};
 
-			"HoudiniHash=7307440390e78bff1b686f1acdbfba92b20c43beef6b33085702c688b2a7ed2a";
+			"HoudiniHash=b9e1e926be309c06c868dc2472c082b6829f93ae55e000317a1066378590a85d";
 		`)
 	})
 
@@ -2281,7 +2281,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "b28d7083542a75e7c9feb094bd5fd450406f32c28f89aa4ebc69be85cf4eb38d",
+			    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -2344,7 +2344,7 @@ describe('mutation artifacts', function () {
 			    }
 			};
 
-			"HoudiniHash=b28d7083542a75e7c9feb094bd5fd450406f32c28f89aa4ebc69be85cf4eb38d";
+			"HoudiniHash=7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2";
 		`)
 	})
 
@@ -2376,7 +2376,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "f863fc8aa42ab14affba68ba24af2bfe87ccdc9edbc10f838515c76ed5064a4d",
+			    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -2439,7 +2439,7 @@ describe('mutation artifacts', function () {
 			    }
 			};
 
-			"HoudiniHash=f863fc8aa42ab14affba68ba24af2bfe87ccdc9edbc10f838515c76ed5064a4d";
+			"HoudiniHash=7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2";
 		`)
 	})
 
@@ -2471,7 +2471,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "87e994c2b3548fe3da2df882cbc1b6263cbf9328032b796a7044c96fde59d579",
+			    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -2534,7 +2534,7 @@ describe('mutation artifacts', function () {
 			    }
 			};
 
-			"HoudiniHash=87e994c2b3548fe3da2df882cbc1b6263cbf9328032b796a7044c96fde59d579";
+			"HoudiniHash=7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2";
 		`)
 	})
 
@@ -2566,7 +2566,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "0480120cec7ca6a7b187d0203fd645dd75baa9236247c8e8943d194d7b1935e3",
+			    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -2630,7 +2630,7 @@ describe('mutation artifacts', function () {
 			    }
 			};
 
-			"HoudiniHash=0480120cec7ca6a7b187d0203fd645dd75baa9236247c8e8943d194d7b1935e3";
+			"HoudiniHash=7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2";
 		`)
 	})
 
@@ -2662,7 +2662,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "5fe91970d4442ed25b70b5d6e41e5b0e319a17460edc3ac3cdcd2ec25623a81d",
+			    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -2726,7 +2726,7 @@ describe('mutation artifacts', function () {
 			    }
 			};
 
-			"HoudiniHash=5fe91970d4442ed25b70b5d6e41e5b0e319a17460edc3ac3cdcd2ec25623a81d";
+			"HoudiniHash=7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2";
 		`)
 	})
 
@@ -2758,7 +2758,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "30a2a341bbaa9077aa45ab36bb40438e75ce0ae8b76d9163e9ed3ad6d2d6871f",
+			    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -2822,7 +2822,7 @@ describe('mutation artifacts', function () {
 			    }
 			};
 
-			"HoudiniHash=30a2a341bbaa9077aa45ab36bb40438e75ce0ae8b76d9163e9ed3ad6d2d6871f";
+			"HoudiniHash=7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2";
 		`)
 	})
 
@@ -2854,7 +2854,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "04a71dfa4434b13a8673632d09f7daa80ef30dd8ed6ad83cf141d6fff35ceb93",
+			    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -2918,7 +2918,7 @@ describe('mutation artifacts', function () {
 			    }
 			};
 
-			"HoudiniHash=04a71dfa4434b13a8673632d09f7daa80ef30dd8ed6ad83cf141d6fff35ceb93";
+			"HoudiniHash=7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2";
 		`)
 	})
 
@@ -2950,7 +2950,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "22bfd731c29a9db2cbe06a44ab3aca2bf51e4d756732469270a7988d31431b34",
+			    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -3014,7 +3014,7 @@ describe('mutation artifacts', function () {
 			    }
 			};
 
-			"HoudiniHash=22bfd731c29a9db2cbe06a44ab3aca2bf51e4d756732469270a7988d31431b34";
+			"HoudiniHash=7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2";
 		`)
 	})
 
@@ -3051,7 +3051,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
-			    "hash": "ccbdb79d543a528bcbf836ed8f339e5e848ddda14122467be3c0a0084970989a",
+			    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 			    "raw": \`query TestQuery($value: String!) {
 			  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
@@ -3126,7 +3126,7 @@ describe('mutation artifacts', function () {
 			    "partial": false
 			};
 
-			"HoudiniHash=ccbdb79d543a528bcbf836ed8f339e5e848ddda14122467be3c0a0084970989a";
+			"HoudiniHash=d773bead4120baa620dc05347fba277faaa5bb555e10943507a393eaa3399c52";
 		`)
 	})
 
@@ -3158,7 +3158,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "992d537a3acd5a04aa2fe46eb0ec470fa98e3e6c2b86c1fa309c788d7aff5b5d",
+			    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -3222,7 +3222,7 @@ describe('mutation artifacts', function () {
 			    }
 			};
 
-			"HoudiniHash=992d537a3acd5a04aa2fe46eb0ec470fa98e3e6c2b86c1fa309c788d7aff5b5d";
+			"HoudiniHash=7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2";
 		`)
 	})
 
@@ -3254,7 +3254,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
-			    "hash": "1c46f4ffe75f795e3e541537d487ed68d4fbfff0c56fb2868f69a1f1c6f91a68",
+			    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 			    "raw": \`query TestQuery {
 			  users(stringValue: "foo") {
@@ -3306,7 +3306,7 @@ describe('mutation artifacts', function () {
 			    "partial": false
 			};
 
-			"HoudiniHash=1c46f4ffe75f795e3e541537d487ed68d4fbfff0c56fb2868f69a1f1c6f91a68";
+			"HoudiniHash=2997353b3d1f04e02b9d211bb4f4069b63f8536b7f1eb686fc74fd8b3dab8dbd";
 		`)
 	})
 
@@ -3342,7 +3342,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
-			    "hash": "e7c8527dff05fb4987ebc30613d6826c73c0cc47c62f212feb00bd43356c00dc",
+			    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 			    "refetch": {
 			        "path": ["usersByCursor"],
@@ -3509,7 +3509,7 @@ describe('mutation artifacts', function () {
 			    "partial": false
 			};
 
-			"HoudiniHash=e7c8527dff05fb4987ebc30613d6826c73c0cc47c62f212feb00bd43356c00dc";
+			"HoudiniHash=6fe0aeaa708161553cd04645834b38c4ce625fce10c46056efcff9a97988d358";
 		`)
 	})
 
@@ -3537,7 +3537,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
-			    "hash": "ccbdb79d543a528bcbf836ed8f339e5e848ddda14122467be3c0a0084970989a",
+			    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 			    "raw": \`query TestQuery($value: String!) {
 			  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
@@ -3612,7 +3612,7 @@ describe('mutation artifacts', function () {
 			    "partial": false
 			};
 
-			"HoudiniHash=ccbdb79d543a528bcbf836ed8f339e5e848ddda14122467be3c0a0084970989a";
+			"HoudiniHash=d773bead4120baa620dc05347fba277faaa5bb555e10943507a393eaa3399c52";
 		`)
 	})
 
@@ -3642,7 +3642,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
-			    "hash": "ccbdb79d543a528bcbf836ed8f339e5e848ddda14122467be3c0a0084970989a",
+			    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 			    "raw": \`query TestQuery($value: String!) {
 			  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
@@ -3717,14 +3717,14 @@ describe('mutation artifacts', function () {
 			    "partial": false
 			};
 
-			"HoudiniHash=ccbdb79d543a528bcbf836ed8f339e5e848ddda14122467be3c0a0084970989a";
+			"HoudiniHash=d773bead4120baa620dc05347fba277faaa5bb555e10943507a393eaa3399c52";
 		`)
 	})
 })
 
 test('custom scalar shows up in artifact', async function () {
 	// the documents to test
-	const docs: CollectedGraphQLDocument[] = [
+	const docs: Document[] = [
 		mockCollectedDoc(`query TestQuery { version }`),
 		mockCollectedDoc(`fragment TestFragment on User { firstName }`),
 	]
@@ -3762,7 +3762,7 @@ test('custom scalar shows up in artifact', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "b8314df1f7d924f76e6dfe6e7e3c8efd593db931c67c892311e97a9ec1d429b4",
+		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 		    "raw": \`query TestQuery {
 		  allItems {
@@ -3801,7 +3801,7 @@ test('custom scalar shows up in artifact', async function () {
 
 test('operation inputs', async function () {
 	// the documents to test
-	const docs: CollectedGraphQLDocument[] = [
+	const docs: Document[] = [
 		mockCollectedDoc(`query TestQuery { version }`),
 		mockCollectedDoc(`fragment TestFragment on User { firstName }`),
 	]
@@ -3867,7 +3867,7 @@ test('operation inputs', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "f39d9c24c97c9c3cdcd916272e7ffb9d79cb4ad08ec294c829d647d4238c7e6b",
+		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 		    "raw": \`query TestQuery($id: ID, $filter: UserFilter, $filterList: [UserFilter!], $enumArg: MyEnum) {
 		  user(id: $id, filter: $filter, filterList: $filterList, enumArg: $enumArg) {
@@ -3954,7 +3954,7 @@ describe('subscription artifacts', function () {
 			export default {
 			    "name": "B",
 			    "kind": "HoudiniSubscription",
-			    "hash": "755fb65bebc83835db68921b7e193809246fb6f9ee2e37cc66d7314b91a501e7",
+			    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 			    "raw": \`subscription B {
 			  newUser {
@@ -4006,12 +4006,12 @@ describe('subscription artifacts', function () {
 	})
 })
 
-test('some artifact_data added to artifact specific to plugins', async function () {
+test('some artifactData added to artifact specific to plugins', async function () {
 	config.plugins = [
 		{
 			name: 'plugin-tmp1',
 			filepath: '',
-			artifact_data: () => {
+			artifactData: () => {
 				return {
 					added_stuff: { yop: 'true' },
 				}
@@ -4024,7 +4024,7 @@ test('some artifact_data added to artifact specific to plugins', async function 
 	]
 
 	// the documents to test
-	const docs: CollectedGraphQLDocument[] = [mockCollectedDoc(`query TestQuery { version }`)]
+	const docs: Document[] = [mockCollectedDoc(`query TestQuery { version }`)]
 
 	// execute the generator
 	await runPipeline(config, docs)
@@ -4035,7 +4035,7 @@ test('some artifact_data added to artifact specific to plugins', async function 
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "8e483259f3d69f416c01b6106c0440fa0f916abb4cadb75273f8226a1ff0a5e2",
+		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 		    "raw": \`query TestQuery {
 		  version

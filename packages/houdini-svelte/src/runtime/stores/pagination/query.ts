@@ -2,7 +2,7 @@ import type { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime
 import type { Subscriber } from 'svelte/store'
 import { derived } from 'svelte/store'
 
-import { getClient } from '../../client'
+import { getClient, initClient } from '../../client'
 import type {
 	ClientFetchParams,
 	LoadEventFetchParams,
@@ -30,22 +30,28 @@ export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> ex
 	// all paginated stores need to have a flag to distinguish from other query stores
 	paginated = true
 
-	#handlers: CursorHandlers<_Data, _Input>
-
 	constructor(config: StoreConfig<_Data, _Input, QueryArtifact>) {
 		super(config)
+	}
+
+	#_handlers: CursorHandlers<_Data, _Input> | null = null
+	get #handlers(): CursorHandlers<_Data, _Input> {
+		if (this.#_handlers) {
+			return this.#_handlers
+		}
 
 		// we're going to use a separate observer for the page loading
 		const paginationObserver = getClient().observe<_Data, _Input>({
 			artifact: this.artifact,
 		})
 
-		this.#handlers = cursorHandlers<_Data, _Input>({
+		this.#_handlers = cursorHandlers<_Data, _Input>({
 			artifact: this.artifact,
 			observer: this.observer,
 			storeName: this.name,
 			fetch: super.fetch.bind(this),
 			fetchUpdate: async (args, updates) => {
+				await initClient()
 				return paginationObserver.send({
 					...args,
 					variables: {
@@ -57,6 +63,8 @@ export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> ex
 				})
 			},
 		})
+
+		return this.#_handlers
 	}
 
 	fetch(params?: RequestEventFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
@@ -100,22 +108,40 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input extends {}> ex
 	// all paginated stores need to have a flag to distinguish from other query stores
 	paginated = true
 
-	protected handlers: OffsetHandlers<_Data, _Input, QueryResult<_Data, _Input>>
+	async loadNextPage(
+		args?: Parameters<
+			OffsetHandlers<_Data, _Input, QueryResult<_Data, _Input>>['loadNextPage']
+		>[0]
+	) {
+		return this.#handlers.loadNextPage.call(this, args)
+	}
 
-	constructor(config: StoreConfig<_Data, _Input, QueryArtifact>) {
-		super(config)
+	fetch(params?: RequestEventFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
+	fetch(params?: LoadEventFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
+	fetch(params?: ClientFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
+	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
+	fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
+		return this.#handlers.fetch.call(this, args)
+	}
 
+	#_handlers: OffsetHandlers<_Data, _Input, QueryResult<_Data, _Input>> | null = null
+	get #handlers(): OffsetHandlers<_Data, _Input, QueryResult<_Data, _Input>> {
+		if (this.#_handlers) {
+			return this.#_handlers
+		}
+
+		// we're going to use a separate observer for the page loading
 		// we're going to use a separate observer for the page loading
 		const paginationObserver = getClient().observe<_Data, _Input>({
 			artifact: this.artifact,
 		})
-
-		this.handlers = offsetHandlers<_Data, _Input>({
+		this.#_handlers = offsetHandlers<_Data, _Input>({
 			artifact: this.artifact,
 			observer: this.observer,
 			storeName: this.name,
 			fetch: super.fetch,
 			fetchUpdate: async (args) => {
+				await initClient()
 				return paginationObserver.send({
 					...args,
 					variables: {
@@ -127,21 +153,6 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input extends {}> ex
 				})
 			},
 		})
-	}
-
-	async loadNextPage(
-		args?: Parameters<
-			OffsetHandlers<_Data, _Input, QueryResult<_Data, _Input>>['loadNextPage']
-		>[0]
-	) {
-		return this.handlers.loadNextPage.call(this, args)
-	}
-
-	fetch(params?: RequestEventFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
-	fetch(params?: LoadEventFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
-	fetch(params?: ClientFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
-	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
-	fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
-		return this.handlers.fetch.call(this, args)
+		return this.#_handlers
 	}
 }

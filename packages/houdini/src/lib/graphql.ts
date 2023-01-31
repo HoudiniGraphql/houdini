@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import * as graphql from 'graphql'
 
-import type { CollectedGraphQLDocument, Config } from '.'
+import type { Document, Config } from '.'
 import { HoudiniError } from './error'
 import * as path from './path'
 
@@ -24,13 +24,16 @@ export function hashDocument({
 	document,
 }: {
 	config: Config
-	document: string | CollectedGraphQLDocument
+	document: string | Document
 }): string {
 	// if we were given an AST document, print it first
-	const docString = typeof document === 'string' ? document : graphql.print(document.document)
+	const docString = typeof document === 'string' ? document : document.artifact?.raw
 
 	// hash the string
-	return crypto.createHash('sha256').update(docString).digest('hex')
+	return crypto
+		.createHash('sha256')
+		.update(docString ?? '')
+		.digest('hex')
 }
 
 type GraphQLParentType =

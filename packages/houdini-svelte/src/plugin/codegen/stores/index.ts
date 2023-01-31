@@ -35,7 +35,7 @@ export default async function storesGenerator(input: GenerateHookInput) {
 		.filter((c) => c !== null)
 		.sort((a, b) => (a + '').localeCompare(b + '')) as string[]
 	const dataIndex = listOfStoresOrdered.map((c) => `export * from './${c}'`).join(`\n`)
-	await fs.writeFile(path.join(stores_directory(input.plugin_root), `index.js`), dataIndex)
+	await fs.writeFile(path.join(stores_directory(input.pluginRoot), `index.js`), dataIndex)
 
 	const dataIndexDTs = `import type { DataSource } from '$houdini/runtime'
 
@@ -47,7 +47,7 @@ export type Result<DataType> = {
 	error?: Error | null
 }`
 
-	const storePath = stores_directory(input.plugin_root)
+	const storePath = stores_directory(input.pluginRoot)
 
 	await fs.writeFile(path.join(storePath, `index.d.ts`), dataIndexDTs + `\n` + dataIndex)
 
