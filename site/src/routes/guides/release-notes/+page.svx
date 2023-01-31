@@ -337,15 +337,15 @@ as stale using the [programmatic api](/api/cache#stale-data) or as a [global lif
 If you rely on global query stores you have to opt-in to their generation. Please keep
 in m ind that global query stores are dangerous when used with SSR:
 
-```deff:title=houdini.config.js
-export default {
-    plugins: {
-        'houdini-svelte': {},
-        'houdini-plugin-svelte-global-stores': {
-            generate: 'all',
-        }
-    }
-}
+```diff:title=houdini.config.js
+  export default {
+      plugins: {
+          'houdini-svelte': {},
+          'houdini-plugin-svelte-global-stores': {
++             generate: 'all',
+          }
+      }
+  }
 ```
 
 ## 0.20.0
