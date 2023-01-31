@@ -332,6 +332,22 @@ need their event passed explicitly.
 One of the longest running tickets has finally been closed! You can now mark specific fields, types, or specific records
 as stale using the [programmatic api](/api/cache#stale-data) or as a [global lifetime](/api/config#field-values).
 
+### `houdini-plugin-svelte-global-stores` no longer generates query stores by default
+
+If you rely on global query stores you have to opt-in to their generation. Please keep
+in m ind that global query stores are dangerous when used with SSR:
+
+```deff:title=houdini.config.js
+export default {
+    plugins: {
+        'houdini-svelte': {},
+        'houdini-plugin-svelte-global-stores': {
+            generate: 'all',
+        }
+    }
+}
+```
+
 ## 0.20.0
 
 This release was originally planned to be `1.0` but we have some exciting stuff planned
