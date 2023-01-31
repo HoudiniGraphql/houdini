@@ -69,7 +69,7 @@ export class QueryStore<_Data extends GraphQLObject, _Input extends {}> extends 
 	fetch(params?: ClientFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
-		await this.#setup()
+		this.#setup(false)
 
 		// validate and prepare the request context for the current environment (client vs server)
 		// make a shallow copy of the args so we don't mutate the arguments that the user hands us
@@ -156,20 +156,22 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 
 	// setting up is synchronous at first so that #unsubscribe
 	// is a "thread safe" way to prevent multiple setups from happening
-	async #setup() {
+	#setup(init: boolean = true) {
 		// if we've already setup, don't do anything
 		if (this.#unsubscribe) {
 			return
 		}
-
 		this.#unsubscribe = this.observer.subscribe((value) => {
 			this.#store.set(value)
 		})
 
-		return await this.observer.send({
-			setup: true,
-			variables: get(this.observer).variables,
-		})
+		// only initialize when told to
+		if (init) {
+			return this.observer.send({
+				setup: true,
+				variables: get(this.observer).variables,
+			})
+		}
 	}
 
 	subscribe(...args: Parameters<Readable<QueryResult<_Data, _Input>>['subscribe']>) {
