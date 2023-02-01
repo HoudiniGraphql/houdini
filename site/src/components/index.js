@@ -9,5 +9,6 @@ export { default as Highlight } from './Highlight.svelte'
 export { default as Emoji } from './Emoji.svelte'
 export { default as Zoomable } from './Zoomable.svelte'
 export { default as Logo } from './Logo.svelte'
+export { default as OgCard } from './OgCard.svelte'
 
 export * from './search'
