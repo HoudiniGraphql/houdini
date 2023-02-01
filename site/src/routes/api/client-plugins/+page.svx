@@ -64,12 +64,50 @@ While preparing the request, plugins are iterated over in the order they are pas
 has been provided, its value is sent in reverse order through the list of plugins we've visited to potentially
 modify the response. For more information on this, please read the section on [Enter vs Exit hooks](#enter-vs-exit-hooks).
 
-## Create Your First Plugin
 
-If you are brand new to working with client plugins, we recommend creating a
-few very simple ones before getting too deep in the explanation:
+## Writing a Plugin
+
+A client plugin is defined as a function that returns an object with a fixed set of keys defining the "hooks" that you want
+to use:
+
+```javascript:title=src/plugins/custom_plugin.js
+import { plugin } from 'houdini'
+
+const sayHello: ClientPlugin = () => {
+    return {
+        start(ctx, { next }) {
+			// ...
+        }
+    }
+}
+```
+
 
 <AuthoringPluginsDive />
+
+<DeepDive title="Composing Plugins">
+
+Client plugins can be defined as a composition of many different sets of hooks.
+Your plugin can return any combination of hooks, null or lists of hooks -
+allowing you to easily toggle functionality depending on configuration values:
+
+```javascript:title=src/plugins/custom_plugin.js
+import { plugin } from 'houdini'
+import externalPlugin from 'third-party'
+
+const sayHello: ClientPlugin = () => {
+    return [
+		{
+			start(ctx, { next }) {
+				// ...
+			},
+    	},
+		externalPlugin
+	]
+}
+```
+
+</DeepDive>
 
 ## Enter vs Exit Hooks
 

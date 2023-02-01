@@ -216,3 +216,5 @@ export type RequestPayload<GraphQLObject = any> = {
 		  }[]
 		| null
 }
+
+export type NestedList<_Result = string> = (_Result | null | NestedList<_Result>)[]

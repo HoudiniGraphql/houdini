@@ -1,5 +1,5 @@
+import { flatten } from '../lib/flatten'
 import type { GraphQLValue } from '../lib/types'
-import { flattenList } from './stuff'
 
 // NOTE: the current implementation of delete is slow. it should try to compare the
 // type of the id being deleted with the type contained in the linked list so that
@@ -178,7 +178,7 @@ export class InMemoryStorage {
 		}
 	}
 
-	writeLink(id: string, field: string, value: string | LinkedList) {
+	writeLink(id: string, field: string, value: string | NestedList) {
 		// write to the top most layer
 		return this.topLayer.writeLink(id, field, value)
 	}
@@ -309,10 +309,10 @@ export class Layer {
 		return this.id
 	}
 
-	writeLink(id: string, field: string, value: null | string | LinkedList): LayerID {
+	writeLink(id: string, field: string, value: null | string | NestedList): LayerID {
 		// if any of the values in this link are flagged to be deleted, undelete it
 		const valueList = Array.isArray(value) ? value : [value]
-		for (const value of flattenList(valueList)) {
+		for (const value of flatten(valueList)) {
 			if (!value) {
 				continue
 			}
@@ -510,13 +510,13 @@ export class Layer {
 	}
 }
 
-type GraphQLField = GraphQLValue | LinkedList
+type GraphQLField = GraphQLValue | NestedList
 
 type EntityMap<_Value> = { [id: string]: { [field: string]: _Value } }
 
 type EntityFieldMap = EntityMap<GraphQLField>
 
-type LinkMap = EntityMap<string | null | LinkedList>
+type LinkMap = EntityMap<string | null | NestedList>
 
 type OperationMap = {
 	[id: string]: {
@@ -526,7 +526,7 @@ type OperationMap = {
 	}
 }
 
-type LinkedList<_Result = string> = (_Result | null | LinkedList<_Result>)[]
+type NestedList<_Result = string> = (_Result | null | NestedList<_Result>)[]
 
 type InsertOperation = {
 	kind: OperationKind.insert
