@@ -51,6 +51,7 @@ export function addReferencedInputTypes(
 			sourceModule: '$houdini/graphql/enums',
 			importKind: 'type',
 		})
+
 		return
 	}
 
@@ -66,7 +67,7 @@ export function addReferencedInputTypes(
 		members.push(
 			AST.tsPropertySignature(
 				AST.identifier(field.name),
-				AST.tsTypeAnnotation(tsTypeReference(config, missingScalars, field)),
+				AST.tsTypeAnnotation(tsTypeReference(config, missingScalars, field, body)),
 				graphql.isNullableType(field.type)
 			)
 		)
