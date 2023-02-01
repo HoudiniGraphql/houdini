@@ -153,7 +153,7 @@ const simpleFetchPlugin: ClientPlugin = () => {
     return {
         async network(ctx, { resolve, next }) {
             const result = await fetch('...', {
-                body: JSON.strinify({ query: ctx.text })
+                body: JSON.stringify({ query: ctx.text })
             })
 
             // in reality we need to pass more here
@@ -322,7 +322,7 @@ to your hooks. For a full summary, please refer to the the `ClientPluginEnterHan
 ## Type Definitions
 
 The best source of truth for the type definitions are exported from your `$houdini`
-package. You can see them [here](https://github.com/HoudiniGraphql/houdini/tree/main/packages/houdini/src/runtime/client/DocumentStore.ts). They've been summarized below for reference but this copy may be out of date.
+package. You can see them [here](https://github.com/HoudiniGraphql/houdini/blob/main/packages/houdini/src/runtime/client/documentStore.ts). They've been summarized below for reference but this copy may be out of date.
 If you find a discrepancy, please let us know on GitHub.
 
 ```typescript
