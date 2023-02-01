@@ -125,7 +125,7 @@ If your application uses subscriptions, you'll need to import the
 ```diff:title=src/client.ts
   import { createClient } from 'graphql-ws'
   import { browser } from '$app/environment'
-+ import { subscriptionPlugin } from '$houdini/plugins'
++ import { subscription } from '$houdini/plugins'
 
 -  let socketClient = browser
 -  	? new createClient({
@@ -137,7 +137,7 @@ If your application uses subscriptions, you'll need to import the
 + export default new HoudiniClient({
 +     url: '...',
 +     plugins: [
-+         subscriptionPlugin(({ session }) => createClient({
++         subscription(({ session }) => createClient({
 +             url: 'ws://api.url',
 +             connectionParams: {
 +                 headers: {

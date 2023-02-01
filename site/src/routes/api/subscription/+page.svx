@@ -52,13 +52,13 @@ client and pass it directly:
 
 ```typescript:title=src/client.ts&typescriptToggle=true
 import { createClient } from 'graphql-ws'
-import { subscriptionPlugin } from '$houdini/plugins'
+import { subscription } from '$houdini/plugins'
 
 // prettier-ignore
 export default new HoudiniClient({
   url: "...",
   plugins: [
-    subscriptionPlugin(() => new createClient({
+    subscription(() => new createClient({
       url: 'ws://api.url'
     }))
   ]
@@ -73,7 +73,7 @@ you will have to slightly modify the above block:
 ```typescript:title=src/client.ts&typescriptToggle=true
 import { SubscriptionClient } from 'subscriptions-transport-ws'
 import { browser } from '$app/environment'
-import { subscriptionPlugin } from '$houdini/plugins'
+import { subscription } from '$houdini/plugins'
 
   // prettier-ignore
 function createClient() {
@@ -97,7 +97,7 @@ function createClient() {
 export default new HoudiniClient({
   url: "...",
   plugins: [
-    subscriptionPlugin(createClient)
+    subscription(createClient)
   ]
 })
 ```
@@ -109,7 +109,7 @@ If your server supports the latest Server-Side events, you can use them to power
 ```typescript:title=src/client.ts&typescriptToggle=true
 import { SubscriptionClient } from 'subscriptions-transport-ws'
 import { browser } from '$app/environment'
-import { subscriptionPlugin } from '$houdini/plugins'
+import { subscription } from '$houdini/plugins'
 
   // prettier-ignore
 function sseSockets() {
@@ -131,7 +131,7 @@ function sseSockets() {
 export default new HoudiniClient({
   url: "...",
   plugins: [
-    subscriptionPlugin(sseSockets)
+    subscription(sseSockets)
   ]
 })
 ```
@@ -146,13 +146,13 @@ something like:
 
 ```typescript:title=src/client.ts&typescriptToggle=true
 import { createClient } from 'graphql-ws'
-import { subscriptionPlugin } from '$houdini/plugins'
+import { subscription } from '$houdini/plugins'
 
 // prettier-ignore
 export default new HoudiniClient({
   url: "...",
   plugins: [
-    subscriptionPlugin(({ session }) => new createClient({
+    subscription(({ session }) => new createClient({
       url: 'ws://api.url',
       connectionParams: () => {
         return {

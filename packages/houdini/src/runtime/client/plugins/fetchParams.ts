@@ -3,7 +3,7 @@ import type { ClientPlugin, ClientPluginContext } from '../documentStore'
 
 export type FetchParamFn = (ctx: FetchParamsInput) => Required<ClientPluginContext>['fetchParams']
 
-export const fetchParamsPlugin: (fn?: FetchParamFn) => ClientPlugin =
+export const fetchParams: (fn?: FetchParamFn) => ClientPlugin =
 	(fn = () => ({})) =>
 	() => ({
 		beforeNetwork(ctx, { next, marshalVariables }) {
