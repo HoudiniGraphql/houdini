@@ -32,6 +32,13 @@
 
 ## 1.0.0-next.2
 
+## 0.20.4
+
+### Patch Changes
+
+-   Updated dependencies []:
+    -   houdini@0.20.4
+
 ## 0.20.3
 
 ## 0.20.2

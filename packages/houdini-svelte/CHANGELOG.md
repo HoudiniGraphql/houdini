@@ -59,6 +59,15 @@
 
 -   [#838](https://github.com/HoudiniGraphql/houdini/pull/838) [`d275adc`](https://github.com/HoudiniGraphql/houdini/commit/d275adc97dd97c49a8e35159d41e638128d8ad69) Thanks [@jycouet](https://github.com/jycouet)! - Default fetching when `@manual_load` is applied to a query
 
+## 0.20.4
+
+### Patch Changes
+
+-   [#868](https://github.com/HoudiniGraphql/houdini/pull/868) [`9808b74`](https://github.com/HoudiniGraphql/houdini/commit/9808b74176bc36fd847372ca7973605c725a5e51) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug preventing server.js and page.gql files from coexisting
+
+-   Updated dependencies []:
+    -   houdini@0.20.4
+
 ## 0.20.3
 
 ## 0.20.2
