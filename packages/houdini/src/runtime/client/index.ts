@@ -1,9 +1,8 @@
 /// <reference path="../../../../../houdini.d.ts" />
 import { flatten } from '../lib/flatten'
 import type { DocumentArtifact, GraphQLObject, NestedList } from '../lib/types'
-import type { ClientPlugin } from './documentStore'
+import type { ClientPlugin, ClientHooks } from './documentStore'
 import { DocumentStore } from './documentStore'
-import type { ClientHooks } from './documentStore'
 import {
 	fetchParamsPlugin,
 	fetchPlugin,
