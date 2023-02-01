@@ -1,5 +1,5 @@
-import os from 'os'
-import path from 'path'
+import os from 'node:os'
+import path from 'node:path'
 
 // this package is meant to enforce posix conventions whenever
 // performing path-related tasks since in general we don't actually

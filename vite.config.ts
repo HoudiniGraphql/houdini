@@ -13,5 +13,8 @@ export default defineConfig({
 			'houdini/codegen': path.resolve('./packages/houdini/src/codegen'),
 			houdini: path.resolve('./packages/houdini/src/lib'),
 		},
+		coverage: {
+			provider: 'c8',
+		},
 	},
 })
