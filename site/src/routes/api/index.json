@@ -3,7 +3,7 @@
 	"pages": [
 		"welcome",
 		"query",
-		"fragments",
+		"fragment",
 		"mutation",
 		"subscription",
 		"graphql",
@@ -12,7 +12,7 @@
 		"client-plugins",
 		"codegen-plugins",
 		"config",
-		"vite",
-		"cli"
+		"vite-plugin",
+		"command-line"
 	]
 }

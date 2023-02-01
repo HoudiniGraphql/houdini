@@ -115,7 +115,7 @@ cache.get('User', { id: '1' }).read({
 })
 ```
 
-For more information about fragment variables, head over to the [fragment api reference](/api/fragments#fragment-arguments).
+For more information about fragment variables, head over to the [fragment api reference](/api/fragment#fragment-arguments).
 
 ## Updating Cache Values
 
@@ -202,7 +202,7 @@ cache.get('User', { id: '1' }).write({
 })
 ```
 
-For more information about fragment variables, head over to the [fragment api reference](/api/fragments#fragment-arguments).
+For more information about fragment variables, head over to the [fragment api reference](/api/fragment#fragment-arguments).
 
 ### Updating Relationships
 

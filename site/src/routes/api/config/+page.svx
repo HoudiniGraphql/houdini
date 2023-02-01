@@ -3,7 +3,7 @@ title: Config
 description: A description of every valid configuration value for Houdini.
 ---
 
-# Config File
+# Config
 
 All configuration for your houdini application is defined in a single file that is imported by both the runtime and the command-line tool (called `houdini.config.js`). Because of this, you must make sure that any imports and logic are resolvable in both environments. This means that if you rely on process.env or other node-specifics you will have to use a plugin to replace the expression with something that can run in the browser.
 
