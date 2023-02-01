@@ -1,6 +1,6 @@
 {
     "name": "houdini-svelte",
-    "version": "1.0.0-next.7",
+    "version": "1.0.0-next.8",
     "description": "The svelte plugin for houdini",
     "keywords": [
         "typescript",
@@ -25,7 +25,7 @@
     "devDependencies": {
         "@types/minimatch": "^5.1.2",
         "scripts": "workspace:^",
-        "vitest": "^0.23.4"
+        "vitest": "^0.28.3"
     },
     "dependencies": {
         "@kitql/helper": "^0.5.0",

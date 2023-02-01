@@ -32,9 +32,5 @@ export default async function (args: { headers: string[] }) {
 	}
 
 	// Write the schema
-	await pullSchema(
-		apiURL,
-		config.schemaPath ? config.schemaPath : path.resolve(targetPath, 'schema.json'),
-		headers
-	)
+	await pullSchema(apiURL, config.schemaPath ?? path.resolve(targetPath, 'schema.json'), headers)
 }

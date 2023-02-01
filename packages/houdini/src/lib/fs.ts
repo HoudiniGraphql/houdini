@@ -1,8 +1,8 @@
 import fsExtra from 'fs-extra'
-import fs from 'fs/promises'
 import { glob as G } from 'glob'
 import { fs as memfs, vol } from 'memfs'
-import { promisify } from 'util'
+import fs from 'node:fs/promises'
+import { promisify } from 'node:util'
 
 import { houdini_mode } from './constants'
 import * as path from './path'

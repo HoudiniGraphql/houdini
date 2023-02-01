@@ -1,6 +1,6 @@
 {
     "name": "houdini",
-    "version": "1.0.0-next.7",
+    "version": "1.0.0-next.8",
     "description": "The disappearing GraphQL clients",
     "keywords": [
         "typescript",
@@ -20,16 +20,16 @@
         "typedefs": "scripts typedefs"
     },
     "devDependencies": {
-        "@trivago/prettier-plugin-sort-imports": "^3.3.0",
+        "@trivago/prettier-plugin-sort-imports": "^4.0.0",
         "@types/glob": "^8.0.0",
         "@types/minimatch": "^5.1.2",
         "@types/node": "^18.7.23",
-        "prettier": "^2.5.1",
+        "prettier": "^2.8.3",
         "rollup": "^3.7.4",
         "scripts": "workspace:^",
         "turbo": "^1.5.4",
         "vite": "^4.0.4",
-        "vitest": "^0.23.4"
+        "vitest": "^0.28.3"
     },
     "dependencies": {
         "@babel/parser": "^7.20.5",

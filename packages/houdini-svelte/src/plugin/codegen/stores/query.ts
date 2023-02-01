@@ -1,7 +1,6 @@
 import type * as graphql from 'graphql'
 import type { Document, GenerateHookInput } from 'houdini'
-import { path } from 'houdini'
-import { operation_requires_variables, fs } from 'houdini'
+import { fs, operation_requires_variables, path } from 'houdini'
 
 import type { HoudiniSvelteConfig } from '../..'
 import { stores_directory, store_name } from '../../kit'
