@@ -17,5 +17,5 @@
 </form>
 
 <div id="result">
-  {form?.addUser?.name || 'No user added'}
+  {form?.data?.addUser?.name || 'No user added'}
 </div>
