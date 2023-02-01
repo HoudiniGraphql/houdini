@@ -531,7 +531,7 @@ type IteratorState = {
 	}
 }
 
-export type ClientPlugin = () => ClientHooks | (ClientHooks | ClientPlugin | null)[]
+export type ClientPlugin = () => ClientHooks | null | (ClientHooks | ClientPlugin | null)[]
 
 export type ClientHooks = {
 	start?: ClientPluginEnterPhase

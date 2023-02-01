@@ -106,6 +106,11 @@ export function createPluginHooks(plugins: ClientPlugin[]): ClientHooks[] {
 		// invoke the plugin
 		const result = plugin()
 
+		// ignore null results
+		if (!result) {
+			return hooks
+		}
+
 		// if we just have a single value, we're done
 		if (!Array.isArray(result)) {
 			return hooks.concat(result)
