@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { graphql, type PreprocessorTestQueryVarsStore } from '$houdini';
+  import { graphql } from '$houdini';
 
   $: result = graphql(`
     query PreprocessorTestQueryVars($id: ID!) @load {
