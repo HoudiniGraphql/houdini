@@ -3,12 +3,6 @@
 
 	export let title = 'Houdini'
 	export let description = 'The disappearing GraphQL client for SvelteKit'
-	export let url = 'https://houdinigraphql.com'
-
-	// TODO JYC: do we want to keep the url in params? Or we could take $page.url.href?
-	const getUrl = () => {
-		return $page.url.href
-	}
 
 	const getTitle = (_title: string) => {
 		if (_title.toLocaleLowerCase().startsWith('houdini')) {
@@ -32,7 +26,7 @@
 
 	<!-- Open Graph -->
 	<meta property="og:type" content="website" />
-	<meta property="og:url" content={getUrl()} />
+	<meta property="og:url" content={$page.url.href} />
 	<meta property="og:title" content={getTitle(title)} />
 	<meta property="og:description" content={description} />
 	<meta property="og:image" content={getImg()} />
@@ -46,5 +40,5 @@
 	<meta name="twitter:description" content={description} />
 	<meta name="twitter:image" content={getImg()} />
 	<meta property="twitter:domain" content={$page.url.origin} />
-	<meta property="twitter:url" content={getUrl()} />
+	<meta property="twitter:url" content={$page.url.href} />
 </svelte:head>

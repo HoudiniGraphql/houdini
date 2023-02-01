@@ -108,7 +108,7 @@
 	})
 </script>
 
-<SEO {title} url={`https://www.houdinigraphql.com${link}`} {description} />
+<SEO {title} {description} />
 
 <SearchDialog />
 
