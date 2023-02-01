@@ -1,6 +1,6 @@
 import { beforeEach, expect, test, vi } from 'vitest'
 
-import { HoudiniClient } from '..'
+import { createPluginHooks, HoudiniClient } from '..'
 import { testConfigFile } from '../../../test'
 import { Cache } from '../../cache/cache'
 import { CachePolicy } from '../../lib'
@@ -294,7 +294,7 @@ export function createStore(plugins: ClientPlugin[]): DocumentStore<any, any> {
 	})
 
 	return new DocumentStore({
-		pipeline: plugins,
+		pipeline: createPluginHooks(plugins),
 		client,
 		cache: true,
 		artifact: {

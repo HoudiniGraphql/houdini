@@ -1,7 +1,7 @@
-import type { SubscriptionSelection, ListWhen, SubscriptionSpec } from '../lib/types'
-import type { Cache, LinkedList } from './cache'
+import { flatten } from '../lib/flatten'
+import type { SubscriptionSelection, ListWhen, SubscriptionSpec, NestedList } from '../lib/types'
+import type { Cache } from './cache'
 import { rootID } from './cache'
-import { flattenList } from './stuff'
 
 export class ListManager {
 	rootID: string
@@ -330,7 +330,7 @@ export class List {
 				embeddedConnectionID,
 				'edges'
 			)
-			for (const edge of flattenList(edges as LinkedList) || []) {
+			for (const edge of flatten(edges as NestedList) || []) {
 				if (!edge) {
 					continue
 				}
@@ -354,7 +354,7 @@ export class List {
 
 		// if the id is not contained in the list, dont notify anyone
 		let value = this.cache._internal_unstable.storage.get(parentID, targetKey)
-			.value as LinkedList
+			.value as NestedList
 		if (!value || !value.includes(targetID)) {
 			return
 		}
@@ -455,11 +455,11 @@ export class List {
 
 		// grab the underlying value from the cache
 		let value = this.cache._internal_unstable.storage.get(this.recordID, this.key).value as
-			| LinkedList
+			| NestedList
 			| string
 
 		if (!this.connection) {
-			entries = flattenList(value as LinkedList)
+			entries = flatten(value as NestedList)
 		} else {
 			// connections need to reference the edges field for the list of entries
 			entries = this.cache._internal_unstable.storage.get(value as string, 'edges')

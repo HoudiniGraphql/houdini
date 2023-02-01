@@ -1,7 +1,13 @@
+import { flatten } from '../lib/flatten'
 import { getFieldsForType } from '../lib/selection'
-import type { GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '../lib/types'
-import type { Cache, LinkedList } from './cache'
-import { evaluateKey, flattenList } from './stuff'
+import type {
+	GraphQLValue,
+	SubscriptionSelection,
+	SubscriptionSpec,
+	NestedList,
+} from '../lib/types'
+import type { Cache } from './cache'
+import { evaluateKey } from './stuff'
 
 export type FieldSelection = [
 	SubscriptionSpec,
@@ -84,7 +90,7 @@ export class InMemorySubscriptions {
 				)
 				let children = !Array.isArray(linkedRecord)
 					? [linkedRecord]
-					: flattenList(linkedRecord) || []
+					: flatten(linkedRecord) || []
 
 				// add the subscriber to every child
 				for (const child of children) {
@@ -249,7 +255,7 @@ export class InMemorySubscriptions {
 					// figure out who else needs subscribers
 					const children = !Array.isArray(link)
 						? ([link] as string[])
-						: flattenList(link as string[])
+						: flatten(link as string[])
 
 					for (const linkedRecord of children) {
 						// avoid null records
@@ -314,7 +320,7 @@ export class InMemorySubscriptions {
 			// if its not a list, wrap it as one so we can dry things up
 			const links = !Array.isArray(previousValue)
 				? [previousValue as string]
-				: flattenList(previousValue as LinkedList)
+				: flatten(previousValue as NestedList)
 
 			for (const link of links) {
 				if (link !== null) {
@@ -381,7 +387,7 @@ export class InMemorySubscriptions {
 
 			// if the value is a single link , wrap it in a list. otherwise, flatten the link list
 			const nextTargets = Array.isArray(value)
-				? flattenList(value as LinkedList)
+				? flatten(value as NestedList)
 				: [value as string]
 
 			for (const id of nextTargets) {

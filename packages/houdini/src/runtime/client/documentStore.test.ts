@@ -1,14 +1,14 @@
 import { sleep } from '@kitql/helper'
 import { test, expect, vi, beforeEach } from 'vitest'
 
-import { HoudiniClient } from '.'
+import { createPluginHooks, HoudiniClient } from '.'
 import { setMockConfig } from '../lib/config'
 import type { GraphQLObject } from '../lib/types'
 import { ArtifactKind, DataSource } from '../lib/types'
 import type { ClientPlugin } from './documentStore'
 import { DocumentStore } from './documentStore'
 
-function createStore(
+export function createStore(
 	plugins: ClientPlugin[],
 	fetching: boolean | undefined = undefined
 ): DocumentStore<GraphQLObject, Record<string, any>> {
@@ -18,7 +18,7 @@ function createStore(
 
 	return new DocumentStore({
 		client,
-		pipeline: plugins,
+		pipeline: createPluginHooks(plugins),
 		artifact: {
 			kind: ArtifactKind.Query,
 			hash: '1234',
@@ -49,7 +49,7 @@ function createStoreMutation(
 
 	return new DocumentStore({
 		client,
-		pipeline: plugins,
+		pipeline: createPluginHooks(plugins),
 		artifact: {
 			kind: ArtifactKind.Mutation,
 			hash: '1234',

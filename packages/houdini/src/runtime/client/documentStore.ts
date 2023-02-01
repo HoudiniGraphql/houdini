@@ -31,7 +31,7 @@ export class DocumentStore<
 	#configFile: ConfigFile
 
 	// the list of instantiated plugins
-	#plugins: ReturnType<ClientPlugin>[]
+	#plugins: ClientHooks[]
 
 	// we need to track the last set of variables used so we can
 	// detect if they have changed
@@ -50,8 +50,8 @@ export class DocumentStore<
 		fetching,
 	}: {
 		artifact: DocumentArtifact
-		plugins?: ClientPlugin[]
-		pipeline?: ClientPlugin[]
+		plugins?: ClientHooks[]
+		pipeline?: ClientHooks[]
 		client: HoudiniClient | null
 		cache?: boolean
 		initialValue?: _Data | null
@@ -89,17 +89,15 @@ export class DocumentStore<
 		this.#lastVariables = null
 		this.#configFile = getCurrentConfig()
 
-		this.#plugins = (
-			pipeline ?? [
-				// cache policy needs to always come first so that it can be the first fetch_enter to fire
-				cachePolicyPlugin({
-					enabled: cache,
-					setFetching: (fetching: boolean) =>
-						this.update((state) => ({ ...state, fetching })),
-				}),
-				...(plugins ?? []),
-			]
-		).map((factory) => factory())
+		this.#plugins = pipeline ?? [
+			// cache policy needs to always come first so that it can be the first fetch_enter to fire
+			cachePolicyPlugin({
+				enabled: cache,
+				setFetching: (fetching: boolean) =>
+					this.update((state) => ({ ...state, fetching })),
+			})() as ClientHooks,
+			...(plugins ?? []),
+		]
 	}
 
 	// used by the client to send a new set of variables to the pipeline
@@ -532,7 +530,9 @@ type IteratorState = {
 	}
 }
 
-export type ClientPlugin = () => {
+export type ClientPlugin = () => ClientHooks | null | (ClientHooks | ClientPlugin | null)[]
+
+export type ClientHooks = {
 	start?: ClientPluginEnterPhase
 	beforeNetwork?: ClientPluginEnterPhase
 	network?: ClientPluginEnterPhase
