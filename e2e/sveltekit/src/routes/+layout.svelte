@@ -17,7 +17,7 @@
     return { key, value: (routes as Record<string, string>)[key] };
   });
 
-  const info = graphql(`
+  $: info = graphql(`
     query LayoutSession @load {
       session
     }
