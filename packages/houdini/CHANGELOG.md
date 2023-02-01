@@ -1,5 +1,13 @@
 # houdini
 
+## 1.0.0-next.8
+
+### Patch Changes
+
+-   [#865](https://github.com/HoudiniGraphql/houdini/pull/865) [`3872a56`](https://github.com/HoudiniGraphql/houdini/commit/3872a5603b791e2530b3617bf61422e7444a483e) Thanks [@jycouet](https://github.com/jycouet)! - on schema change, revalidate all document. No need to restart vite to pick up changes.
+
+-   [#870](https://github.com/HoudiniGraphql/houdini/pull/870) [`c00531f`](https://github.com/HoudiniGraphql/houdini/commit/c00531f9e5e4e57281d845816a3c92ec17faf6b8) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Client plugins can return hooks, null, or list of hooks
+
 ## 1.0.0-next.7
 
 ## 1.0.0-next.6
