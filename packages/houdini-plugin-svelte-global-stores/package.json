@@ -28,14 +28,10 @@
     },
     "dependencies": {
         "@sveltejs/kit": "1.0.0",
-        "graphql": "^15.8.0",
         "houdini": "workspace:^",
         "houdini-svelte": "workspace:^",
         "recast": "^0.23.1",
         "svelte": "^3.55.0"
-    },
-    "peerDependencies": {
-        "graphql": "^14.0.0 || ^15.0.0"
     },
     "files": [
         "build"

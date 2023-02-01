@@ -38,9 +38,6 @@
         "svelte": "^3.55.0",
         "vite": "^4.0.4"
     },
-    "peerDependencies": {
-        "graphql": "^14.0.0 || ^15.0.0"
-    },
     "files": [
         "build"
     ],

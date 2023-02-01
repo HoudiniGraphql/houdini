@@ -269,7 +269,6 @@ importers:
   packages/houdini-plugin-svelte-global-stores:
     specifiers:
       '@sveltejs/kit': 1.0.0
-      graphql: ^15.8.0
       houdini: workspace:^
       houdini-svelte: workspace:^
       recast: ^0.23.1
@@ -278,7 +277,6 @@ importers:
       vitest: ^0.28.3
     dependencies:
       '@sveltejs/kit': 1.0.0_svelte@3.55.0+vite@4.0.4
-      graphql: 15.8.0
       houdini: link:../houdini
       houdini-svelte: link:../houdini-svelte
       recast: 0.23.1
