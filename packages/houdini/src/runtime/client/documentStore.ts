@@ -12,7 +12,6 @@ import type {
 	GraphQLObject,
 	QueryArtifact,
 	SubscriptionSpec,
-	NestedList,
 } from '../lib/types'
 import { ArtifactKind } from '../lib/types'
 import { cachePolicyPlugin } from './plugins'

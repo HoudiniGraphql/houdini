@@ -1,7 +1,7 @@
 import { expect, vi, test } from 'vitest'
 
 import { DataSource } from '../lib'
-import { ClientPlugin } from './documentStore'
+import type { ClientPlugin } from './documentStore'
 import { createStore } from './documentStore.test'
 
 test('createPluginHooks', async function () {
