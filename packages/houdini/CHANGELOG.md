@@ -1,5 +1,15 @@
 # houdini
 
+## 1.0.0-next.9
+
+### Major Changes
+
+-   [#872](https://github.com/HoudiniGraphql/houdini/pull/872) [`de44252`](https://github.com/HoudiniGraphql/houdini/commit/de442526e7518cc575e8f00b94767fa3d45e6f91) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Renamed subscriptionsPlugin to subscription
+
+### Patch Changes
+
+-   [#872](https://github.com/HoudiniGraphql/houdini/pull/872) [`de44252`](https://github.com/HoudiniGraphql/houdini/commit/de442526e7518cc575e8f00b94767fa3d45e6f91) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Enums are generated as a constant object instead of a typescript enum
+
 ## 1.0.0-next.8
 
 ### ⚠️ Breaking Changes
