@@ -3,6 +3,7 @@ import { flatten } from '../lib/flatten'
 import type { DocumentArtifact, GraphQLObject, NestedList } from '../lib/types'
 import type { ClientPlugin } from './documentStore'
 import { DocumentStore } from './documentStore'
+import type { ClientHooks } from './documentStore'
 import {
 	fetchParamsPlugin,
 	fetchPlugin,
@@ -91,10 +92,41 @@ export class HoudiniClient {
 		return new DocumentStore({
 			client: this,
 			artifact,
-			plugins: this.#plugins,
+			plugins: createPluginHooks(this.#plugins),
 			cache,
 			initialValue,
 			fetching,
 		})
 	}
+}
+
+// createPluginHooks instantiates the client plugins
+export function createPluginHooks(plugins: ClientPlugin[]): ClientHooks[] {
+	return plugins.reduce((hooks, plugin) => {
+		// invoke the plugin
+		const result = plugin()
+
+		// if we just have a single value, we're done
+		if (!Array.isArray(result)) {
+			return hooks.concat(result)
+		}
+
+		// add every value to the list
+		for (const value of result) {
+			// ignore any nulls
+			if (!value) {
+				continue
+			}
+
+			// if the result is a plugin, walk down
+			if (typeof value === 'function') {
+				return hooks.concat(createPluginHooks([value]))
+			}
+
+			// we know that value is a hook
+			hooks.push(value)
+		}
+
+		return hooks
+	}, [] as ClientHooks[])
 }
