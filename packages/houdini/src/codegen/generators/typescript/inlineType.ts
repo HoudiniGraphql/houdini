@@ -4,6 +4,7 @@ import * as recast from 'recast'
 
 import type { Config } from '../../../lib'
 import { ensureImports, HoudiniError, TypeWrapper, unwrapType } from '../../../lib'
+import { enumReference } from './typeReference'
 import { nullableField, readonlyProperty, scalarPropertyValue } from './types'
 
 const AST = recast.types.builders
@@ -68,10 +69,7 @@ export function inlineType({
 			visitedTypes.add(type.name)
 		}
 
-		result = AST.tsTypeReference(
-			AST.identifier('ValueOf'),
-			AST.tsTypeParameterInstantiation([AST.tsTypeQuery(AST.identifier(type.name))])
-		)
+		result = enumReference(config, body, type.name)
 	}
 	// if we are looking at something with a selection set
 	else if (selections) {

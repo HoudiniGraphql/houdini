@@ -31,18 +31,7 @@ export function tsTypeReference(
 	}
 	//  enums need to be passed to ValueOf
 	else if (graphql.isEnumType(type)) {
-		// if we looking at an enum we need ValueOf<enum>
-		ensureImports({
-			config,
-			body,
-			import: ['ValueOf'],
-			importKind: 'type',
-			sourceModule: '$houdini/runtime/lib/types',
-		})
-		result = AST.tsTypeReference(
-			AST.identifier('ValueOf'),
-			AST.tsTypeParameterInstantiation([AST.tsTypeQuery(AST.identifier(type.name))])
-		)
+		result = enumReference(config, body, type.name)
 	}
 	// we're looking at an object
 	else {
@@ -63,4 +52,19 @@ export function tsTypeReference(
 	}
 
 	return result
+}
+
+export function enumReference(config: Config, body: StatementKind[], name: string) {
+	// if we looking at an enum we need ValueOf<enum>
+	ensureImports({
+		config,
+		body,
+		import: ['ValueOf'],
+		importKind: 'type',
+		sourceModule: '$houdini/runtime/lib/types',
+	})
+	return AST.tsTypeReference(
+		AST.identifier('ValueOf'),
+		AST.tsTypeParameterInstantiation([AST.tsTypeQuery(AST.identifier(name))])
+	)
 }
