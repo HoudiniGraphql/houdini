@@ -5,7 +5,8 @@ export function handleError({ error, event }) {
 	const dead_links_redirect_to = {
 		'/api/fragments': '/api/fragment',
 		'/api/vite': '/api/vite-plugin',
-		'/api/cli': '/api/command-line'
+		'/api/cli': '/api/command-line',
+		'/intro/fragments': '/intro/reusing-parts-of-a-query'
 	}
 
 	// If we have a value, let's redirect
