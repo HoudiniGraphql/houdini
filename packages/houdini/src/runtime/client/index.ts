@@ -1,5 +1,6 @@
 /// <reference path="../../../../../houdini.d.ts" />
-import type { DocumentArtifact, GraphQLObject } from '../lib/types'
+import { flatten } from '../lib/flatten'
+import type { DocumentArtifact, GraphQLObject, NestedList } from '../lib/types'
 import type { ClientPlugin } from './documentStore'
 import { DocumentStore } from './documentStore'
 import {
@@ -20,8 +21,8 @@ export { fetchPlugin, mutationPlugin, queryPlugin, subscriptionPlugin } from './
 type ConstructorArgs = {
 	url: string
 	fetchParams?: FetchParamFn
-	plugins?: ClientPlugin[]
-	pipeline?: ClientPlugin[]
+	plugins?: NestedList<ClientPlugin>
+	pipeline?: NestedList<ClientPlugin>
 	throwOnError?: ThrowOnErrorParams
 }
 
@@ -51,26 +52,30 @@ export class HoudiniClient {
 		}
 
 		// a few middlewares _have_ to run to setup the pipeline
-		this.#plugins = ([] as ClientPlugin[]).concat(
-			// if they specified a throw behavior
-			throwOnError ? [throwOnErrorPlugin(throwOnError)] : [],
-			fetchParamsPlugin(fetchParams),
-			// if the user wants to specify the entire pipeline, let them do so
-			pipeline ??
-				// the user doesn't have a specific pipeline so we should just add their desired plugins
-				// to the standard set
-				[
-					// make sure that queries and mutations always work
-					queryPlugin,
-					mutationPlugin,
-				].concat(
-					// add the specified middlewares
-					plugins ?? [],
-					// and any middlewares we got from plugins
-					pluginsFromPlugins,
-					// if they provided a fetch function, use it as the body for the fetch middleware
-					fetchPlugin()
-				)
+		this.#plugins = flatten(
+			([] as NestedList<ClientPlugin>).concat(
+				// if they specified a throw behavior
+				throwOnError ? [throwOnErrorPlugin(throwOnError)] : [],
+				fetchParamsPlugin(fetchParams),
+				// if the user wants to specify the entire pipeline, let them do so
+				pipeline ??
+					// the user doesn't have a specific pipeline so we should just add their desired plugins
+					// to the standard set
+					(
+						[
+							// make sure that queries and mutations always work
+							queryPlugin,
+							mutationPlugin,
+						] as NestedList<ClientPlugin>
+					).concat(
+						// add the specified middlewares
+						plugins ?? [],
+						// and any middlewares we got from plugins
+						pluginsFromPlugins,
+						// if they provided a fetch function, use it as the body for the fetch middleware
+						fetchPlugin()
+					)
+			)
 		)
 
 		// save the state values

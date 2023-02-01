@@ -2,10 +2,12 @@ import { computeKey } from '../lib'
 import type { ConfigFile } from '../lib/config'
 import { computeID, defaultConfigValues, keyFieldsForType } from '../lib/config'
 import { deepEquals } from '../lib/deepEquals'
+import { flatten } from '../lib/flatten'
 import { getFieldsForType } from '../lib/selection'
 import type {
 	GraphQLObject,
 	GraphQLValue,
+	NestedList,
 	SubscriptionSelection,
 	SubscriptionSpec,
 } from '../lib/types'
@@ -16,7 +18,7 @@ import { SchemaManager } from './schema'
 import { StaleManager } from './staleManager'
 import type { Layer, LayerID } from './storage'
 import { InMemoryStorage } from './storage'
-import { evaluateKey, flattenList } from './stuff'
+import { evaluateKey } from './stuff'
 import { InMemorySubscriptions, type FieldSelection } from './subscription'
 
 export class Cache {
@@ -404,7 +406,7 @@ class CacheInternal {
 					continue
 				}
 
-				const previousLinks = flattenList<string>([previousValue as string | string[]])
+				const previousLinks = flatten<string>([previousValue as string | string[]])
 
 				for (const link of previousLinks) {
 					this.subscriptions.remove(link, fieldSelection, specs, variables)
@@ -526,7 +528,7 @@ class CacheInternal {
 				// the new list of IDs for this link will start with an existing value
 
 				// build up the list of linked ids
-				let linkedIDs: LinkedList = []
+				let linkedIDs: NestedList = []
 
 				// it could be a list of lists, in order to recreate the list of lists we need
 				// we need to track two sets of IDs, the ids of the embedded records and
@@ -876,7 +878,7 @@ class CacheInternal {
 				const listValue = this.hydrateNestedList({
 					fields: fieldSelection,
 					variables,
-					linkedList: value as LinkedList,
+					linkedList: value as NestedList,
 					stepsFromConnection: nextStep,
 				})
 
@@ -977,13 +979,13 @@ class CacheInternal {
 	}: {
 		fields: SubscriptionSelection
 		variables?: {}
-		linkedList: LinkedList
+		linkedList: NestedList
 		stepsFromConnection: number | null
-	}): { data: LinkedList<GraphQLValue>; partial: boolean; stale: boolean; hasData: boolean } {
+	}): { data: NestedList<GraphQLValue>; partial: boolean; stale: boolean; hasData: boolean } {
 		// the linked list could be a deeply nested thing, we need to call getData for each record
 		// we can't mutate the lists because that would change the id references in the listLinks map
 		// to the corresponding record. can't have that now, can we?
-		const result: LinkedList<GraphQLValue> = []
+		const result: NestedList<GraphQLValue> = []
 		let partialData = false
 		let stale = false
 		let hasValues = false
@@ -1070,9 +1072,9 @@ class CacheInternal {
 		fields: SubscriptionSelection
 		layer: Layer
 		forceNotify?: boolean
-	}): { nestedIDs: LinkedList; newIDs: (string | null)[] } {
+	}): { nestedIDs: NestedList; newIDs: (string | null)[] } {
 		// build up the two lists
-		const nestedIDs: LinkedList = []
+		const nestedIDs: NestedList = []
 		const newIDs: (string | null)[] = []
 
 		for (const [i, entry] of value.entries()) {
@@ -1178,5 +1180,3 @@ class CacheInternal {
 
 // fields on the root of the data store are keyed with a fixed id
 export const rootID = '_ROOT_'
-
-export type LinkedList<_Result = string> = (_Result | null | LinkedList<_Result>)[]
