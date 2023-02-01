@@ -1,8 +1,8 @@
-import type { TSTypeKind } from 'ast-types/lib/gen/kinds'
+import type { StatementKind, TSTypeKind } from 'ast-types/lib/gen/kinds'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import type { Config } from '../../../lib'
+import { Config, ensureImports } from '../../../lib'
 import { TypeWrapper, unwrapType } from '../../../lib'
 import { nullableField, scalarPropertyValue } from './types'
 
@@ -18,7 +18,8 @@ export function tsTypeReference(
 			| graphql.GraphQLInputType
 			| graphql.GraphQLNamedType
 			| graphql.TypeNode
-	}
+	},
+	body: StatementKind[]
 ): TSTypeKind {
 	const { type, wrappers } = unwrapType(config, definition.type)
 
@@ -27,6 +28,21 @@ export function tsTypeReference(
 	// if we're looking at a scalar
 	if (graphql.isScalarType(type)) {
 		result = scalarPropertyValue(config, missingScalars, type)
+	}
+	//  enums need to be passed to ValueOf
+	else if (graphql.isEnumType(type)) {
+		// if we looking at an enum we need ValueOf<enum>
+		ensureImports({
+			config,
+			body,
+			import: ['ValueOf'],
+			importKind: 'type',
+			sourceModule: '$houdini/runtime/lib/types',
+		})
+		result = AST.tsTypeReference(
+			AST.identifier('ValueOf'),
+			AST.tsTypeParameterInstantiation([AST.tsTypeReference(AST.identifier(type.name))])
+		)
 	}
 	// we're looking at an object
 	else {

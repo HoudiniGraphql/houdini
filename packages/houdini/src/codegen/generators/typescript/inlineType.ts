@@ -45,6 +45,15 @@ export function inlineType({
 	}
 	// we could have encountered an enum
 	else if (graphql.isEnumType(type)) {
+		const [valueOf] = ensureImports({
+			config,
+			// @ts-ignore
+			body,
+			importKind: 'type',
+			import: ['ValueOf'],
+			sourceModule: '$houdini/runtime/lib/types',
+		})
+
 		// have we seen the enum before
 		if (!visitedTypes.has(type.name)) {
 			ensureImports({
@@ -59,7 +68,10 @@ export function inlineType({
 			visitedTypes.add(type.name)
 		}
 
-		result = AST.tsTypeReference(AST.identifier(type.name))
+		result = AST.tsTypeReference(
+			AST.identifier(valueOf),
+			AST.tsTypeParameterInstantiation([AST.tsTypeReference(AST.identifier(type.name))])
+		)
 	}
 	// if we are looking at something with a selection set
 	else if (selections) {
