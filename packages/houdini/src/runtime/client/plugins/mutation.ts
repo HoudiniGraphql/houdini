@@ -4,7 +4,7 @@ import type { SubscriptionSpec } from '../../lib/types'
 import { ArtifactKind } from '../../lib/types'
 import { documentPlugin } from '../utils'
 
-export const mutationPlugin = documentPlugin(ArtifactKind.Mutation, () => {
+export const mutation = documentPlugin(ArtifactKind.Mutation, () => {
 	return {
 		async start(ctx, { next, marshalVariables }) {
 			// treat a mutation like it has an optimistic layer regardless of

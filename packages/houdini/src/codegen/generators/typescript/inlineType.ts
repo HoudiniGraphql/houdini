@@ -4,6 +4,7 @@ import * as recast from 'recast'
 
 import type { Config } from '../../../lib'
 import { ensureImports, HoudiniError, TypeWrapper, unwrapType } from '../../../lib'
+import { enumReference } from './typeReference'
 import { nullableField, readonlyProperty, scalarPropertyValue } from './types'
 
 const AST = recast.types.builders
@@ -45,6 +46,15 @@ export function inlineType({
 	}
 	// we could have encountered an enum
 	else if (graphql.isEnumType(type)) {
+		ensureImports({
+			config,
+			// @ts-ignore
+			body,
+			importKind: 'type',
+			import: ['ValueOf'],
+			sourceModule: '$houdini/runtime/lib/types',
+		})
+
 		// have we seen the enum before
 		if (!visitedTypes.has(type.name)) {
 			ensureImports({
@@ -59,7 +69,7 @@ export function inlineType({
 			visitedTypes.add(type.name)
 		}
 
-		result = AST.tsTypeReference(AST.identifier(type.name))
+		result = enumReference(config, body, type.name)
 	}
 	// if we are looking at something with a selection set
 	else if (selections) {

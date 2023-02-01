@@ -47,9 +47,9 @@ export default async function definitionsGenerator(config: Config) {
 		.sort((a, b) => a.name.value.localeCompare(b.name.value))
 		.map(
 			(definition) => `
-export declare enum ${definition.name.value} {
-${definition.values?.map((value) => `    ${value.name.value} = "${value.name.value}"`).join(',\n')}
-}
+export const ${definition.name.value} = {
+${definition.values?.map((value) => `    ${value.name.value}: "${value.name.value}"`).join(',\n')}
+} as const
  `
 		)
 		.join('')

@@ -111,6 +111,7 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			import { MyEnum } from "$houdini/graphql/enums";
+			import type { ValueOf } from "$houdini/runtime/lib/types";
 
 			export type TestFragment = {
 			    readonly "shape"?: TestFragment$data;
@@ -122,7 +123,7 @@ describe('typescript', function () {
 			export type TestFragment$data = {
 			    readonly firstName: string;
 			    readonly nickname: string | null;
-			    readonly enumValue: MyEnum | null;
+			    readonly enumValue: ValueOf<typeof MyEnum> | null;
 			};
 		`)
 	})
@@ -352,6 +353,7 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
+			import type { ValueOf } from "$houdini/runtime/lib/types";
 			import type { MyEnum } from "$houdini/graphql/enums";
 
 			export type MyQuery = {
@@ -367,7 +369,7 @@ describe('typescript', function () {
 
 			export type MyQuery$input = {
 			    id: string;
-			    enum?: MyEnum | null | undefined;
+			    enum?: ValueOf<typeof MyEnum> | null | undefined;
 			};
 		`)
 	})
@@ -452,6 +454,7 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
+			import type { ValueOf } from "$houdini/runtime/lib/types";
 			import type { MyEnum } from "$houdini/graphql/enums";
 
 			export type MyMutation = {
@@ -478,7 +481,7 @@ describe('typescript', function () {
 			    listRequired: (string)[];
 			    nullList?: (string | null | undefined)[] | null | undefined;
 			    recursive?: UserFilter | null | undefined;
-			    enum?: MyEnum | null | undefined;
+			    enum?: ValueOf<typeof MyEnum> | null | undefined;
 			};
 
 			export type MyMutation$input = {
@@ -575,6 +578,7 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
+			import type { ValueOf } from "$houdini/runtime/lib/types";
 			import type { MyEnum } from "$houdini/graphql/enums";
 
 			export type MyQuery = {
@@ -601,7 +605,7 @@ describe('typescript', function () {
 			    listRequired: (string)[];
 			    nullList?: (string | null | undefined)[] | null | undefined;
 			    recursive?: UserFilter | null | undefined;
-			    enum?: MyEnum | null | undefined;
+			    enum?: ValueOf<typeof MyEnum> | null | undefined;
 			};
 
 			export type MyQuery$input = {
@@ -1165,6 +1169,7 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
+			import type { ValueOf } from "$houdini/runtime/lib/types";
 			import type { MyEnum } from "$houdini/graphql/enums";
 
 			export type MyMutation = {
@@ -1195,7 +1200,7 @@ describe('typescript', function () {
 			    listRequired: (string)[];
 			    nullList?: (string | null | undefined)[] | null | undefined;
 			    recursive?: UserFilter | null | undefined;
-			    enum?: MyEnum | null | undefined;
+			    enum?: ValueOf<typeof MyEnum> | null | undefined;
 			};
 
 			export type MyMutation$input = {
