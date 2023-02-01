@@ -41,7 +41,7 @@ export function tsTypeReference(
 		})
 		result = AST.tsTypeReference(
 			AST.identifier('ValueOf'),
-			AST.tsTypeParameterInstantiation([AST.tsTypeReference(AST.identifier(type.name))])
+			AST.tsTypeParameterInstantiation([AST.tsTypeQuery(AST.identifier(type.name))])
 		)
 	}
 	// we're looking at an object

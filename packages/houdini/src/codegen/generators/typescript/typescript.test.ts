@@ -123,7 +123,7 @@ describe('typescript', function () {
 			export type TestFragment$data = {
 			    readonly firstName: string;
 			    readonly nickname: string | null;
-			    readonly enumValue: ValueOf<MyEnum> | null;
+			    readonly enumValue: ValueOf<typeof MyEnum> | null;
 			};
 		`)
 	})
@@ -369,7 +369,7 @@ describe('typescript', function () {
 
 			export type MyQuery$input = {
 			    id: string;
-			    enum?: ValueOf<MyEnum> | null | undefined;
+			    enum?: ValueOf<typeof MyEnum> | null | undefined;
 			};
 		`)
 	})
@@ -481,7 +481,7 @@ describe('typescript', function () {
 			    listRequired: (string)[];
 			    nullList?: (string | null | undefined)[] | null | undefined;
 			    recursive?: UserFilter | null | undefined;
-			    enum?: ValueOf<MyEnum> | null | undefined;
+			    enum?: ValueOf<typeof MyEnum> | null | undefined;
 			};
 
 			export type MyMutation$input = {
@@ -605,7 +605,7 @@ describe('typescript', function () {
 			    listRequired: (string)[];
 			    nullList?: (string | null | undefined)[] | null | undefined;
 			    recursive?: UserFilter | null | undefined;
-			    enum?: ValueOf<MyEnum> | null | undefined;
+			    enum?: ValueOf<typeof MyEnum> | null | undefined;
 			};
 
 			export type MyQuery$input = {
@@ -1200,7 +1200,7 @@ describe('typescript', function () {
 			    listRequired: (string)[];
 			    nullList?: (string | null | undefined)[] | null | undefined;
 			    recursive?: UserFilter | null | undefined;
-			    enum?: ValueOf<MyEnum> | null | undefined;
+			    enum?: ValueOf<typeof MyEnum> | null | undefined;
 			};
 
 			export type MyMutation$input = {

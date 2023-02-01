@@ -70,7 +70,7 @@ export function inlineType({
 
 		result = AST.tsTypeReference(
 			AST.identifier('ValueOf'),
-			AST.tsTypeParameterInstantiation([AST.tsTypeReference(AST.identifier(type.name))])
+			AST.tsTypeParameterInstantiation([AST.tsTypeQuery(AST.identifier(type.name))])
 		)
 	}
 	// if we are looking at something with a selection set
