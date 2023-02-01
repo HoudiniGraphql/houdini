@@ -1,7 +1,7 @@
 <script lang="ts">
   import { graphql } from '$houdini';
 
-  const store = graphql(`
+  $: store = graphql(`
     query fetching_route_1 @load {
       user(id: 1, snapshot: "fetching_route_1", delay: 200) {
         id

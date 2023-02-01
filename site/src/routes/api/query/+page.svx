@@ -105,7 +105,7 @@ As described in the [Working with GraphQL guide](/guides/working-with-graphql), 
 get houdini to create a load function for your route:
 
 - export `_houdini_load` from your `+page.js` file
-- adding `@load` to an inline query in `+page.svelte`
+- adding `@load` to an inline query in `+page.svelte` (remember to use `$:`)
 - `+page.gql` file in your route directory
 
 Regardless of which pattern you are using, you will quickly need to customize your query's behavior. This could be because you need to add variables to the query, or maybe you need to perform some logic before and/or after the data is fetched.

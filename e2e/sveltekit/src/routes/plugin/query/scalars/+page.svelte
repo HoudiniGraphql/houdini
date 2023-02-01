@@ -1,7 +1,7 @@
 <script>
   import { graphql } from '$houdini';
 
-  const result = graphql`
+  $: result = graphql`
     query PreprocessorTestQueryScalars @load {
       user(id: "1", snapshot: "preprocess-query-scalars") {
         id

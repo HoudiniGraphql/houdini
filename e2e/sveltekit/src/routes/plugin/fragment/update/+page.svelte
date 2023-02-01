@@ -1,12 +1,7 @@
 <script lang="ts">
-  import {
-    fragment,
-    graphql,
-    type FragmentUpdateTestQueryStore,
-    type UserFragmentTestFragment
-  } from '$houdini';
+  import { fragment, graphql, type UserFragmentTestFragment } from '$houdini';
 
-  const userInfo: FragmentUpdateTestQueryStore = graphql`
+  $: userInfo = graphql(`
     query FragmentUpdateTestQuery($id: ID!) @load {
       node(id: $id) {
         ... on User {
@@ -14,7 +9,7 @@
         }
       }
     }
-  `;
+  `);
 
   $: user = fragment<UserFragmentTestFragment>(
     $userInfo.data?.node ?? null,

@@ -7,7 +7,7 @@ describe('kit route processor', function () {
 		const route = await route_test({
 			component: `
 				<script>
-					const store = graphql(\`
+					$: store = graphql(\`
 						query TestQuery @load {
 							viewer {
 								oid
@@ -64,7 +64,7 @@ describe('kit route processor', function () {
 		const route = await route_test({
 			component: `
 				<script>
-					const result = graphql\`
+					$: result = graphql\`
 						query TestQuery @load {
 							viewer {
 								id
@@ -121,7 +121,7 @@ describe('kit route processor', function () {
 		const route = await route_test({
 			component: `
 				<script>
-					const result = graphql\`
+					$: result = graphql\`
 						query TestQuery {
 							viewer {
 								id
@@ -151,7 +151,7 @@ describe('kit route processor', function () {
 				`,
 			component: `
 					<script>
-						const result = graphql\`
+						$: result = graphql\`
 							query TestQuery1 @load {
 								viewer {
 									id
@@ -173,14 +173,14 @@ describe('kit route processor', function () {
 		const route = await route_test({
 			component: `
 				<script>
-					const data1 = graphql\`
+					$: data1 = graphql\`
 						query TestQuery1 @load {
 							viewer {
 								id
 							}
 						}
 					\`
-					const data2 = graphql\`
+					$: data2 = graphql\`
 						query TestQuery2 @load {
 							viewer {
 								id
@@ -257,7 +257,7 @@ describe('kit route processor', function () {
 				`,
 			component: `
 					<script>
-						const data1 = graphql\`
+						$: data1 = graphql\`
 							query TestQuery($test: Boolean!) @load {
 								viewer {
 									id
@@ -327,7 +327,7 @@ describe('kit route processor', function () {
 		const route = await route_test({
 			component: `
 					<script>
-						const test = graphql\`
+						$: test = graphql\`
 							query TestQuery @load {
 								viewer {
 									id
@@ -378,7 +378,7 @@ describe('kit route processor', function () {
 		const route = await route_test({
 			component: `
 				<script>
-					const result = graphql\`
+					$: result = graphql\`
 						query TestQuery @load {
 							viewer {
 								id
@@ -637,7 +637,7 @@ test('beforeLoad hook', async function () {
 		`,
 		component: `
 				<script>
-					const result = graphql\`
+					$: result = graphql\`
 						query TestQuery($test: Boolean!) @load {
 							viewer {
 								id
@@ -727,20 +727,20 @@ test('beforeLoad hook - multiple queries', async function () {
 		`,
 		component: `
 				<script>
-					const { data: data1 } = graphql\`
+					$: ({ data: data1 } = graphql\`
 						query TestQuery1 @load {
 							viewer {
 								id
 							}
 						}
-					\`
-					const { data: data2 } = graphql\`
+					\`)
+					$: ({ data: data2 } = graphql\`
 						query TestQuery2 @load {
 							viewer {
 								id
 							}
 						}
-					\`
+					\`)
 				</script>
 			`,
 	})
@@ -821,7 +821,7 @@ test('afterLoad hook', async function () {
 		`,
 		component: `
 				<script>
-					const result = graphql\`
+					$: result = graphql\`
 						query TestQuery($test: Boolean!) @load {
 							viewer {
 								id
@@ -912,20 +912,20 @@ test('afterLoad hook - multiple queries', async function () {
 		`,
 		component: `
 			<script>
-				const { data: data1 } = graphql\`
+				$:( { data: data1 } = graphql\`
 					query TestQuery1 @load {
 						viewer {
 							id
 						}
 					}
-				\`
-				const { data: data2 } = graphql\`
+				\`)
+				$:( { data: data2 } = graphql\`
 					query TestQuery2 @load {
 						viewer {
 							id
 						}
 					}
-				\`
+				\`)
 			</script>
 		`,
 	})
@@ -1011,7 +1011,7 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		`,
 		component: `
 			<script>
-				const result = graphql\`
+				$: result = graphql\`
 					query TestQuery($test: Boolean!) @load {
 						viewer {
 							id
@@ -1204,7 +1204,7 @@ test('layout inline query', async function () {
 	const route = await route_test({
 		layout: `
 			<script>
-				const result = graphql\`
+				$: result = graphql\`
 					query TestQuery @load {
 						viewer {
 							id
@@ -1276,7 +1276,7 @@ test('inline function query', async function () {
 	const route = await route_test({
 		component: `
 			<script>
-				const result = graphql(\`
+				$: result = graphql(\`
 					query TestQuery @load {
 						viewer {
 							id
@@ -1344,7 +1344,7 @@ test('onError hook', async function () {
 		`,
 		component: `
 				<script>
-					const result = graphql\`
+					$: result = graphql\`
 						query TestQuery($test: Boolean!) @load {
 							viewer {
 								id
@@ -1565,7 +1565,7 @@ test('existing loads with parens', async function () {
 			`,
 		component: `
 				<script>
-					const result = graphql\`
+					$: result = graphql\`
 						query TestQuery1 @load {
 							viewer {
 								id

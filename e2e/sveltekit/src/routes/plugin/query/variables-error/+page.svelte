@@ -1,13 +1,13 @@
 <script lang="ts">
-  import { graphql, type PreprocessorTestQueryErrorStore } from '$houdini';
+  import { graphql } from '$houdini';
 
-  const result: PreprocessorTestQueryErrorStore = graphql`
+  $: result = graphql(`
     query PreprocessorTestQueryError($id: ID!) @load {
       user(id: $id, snapshot: "preprocess-query-variable") {
         name
       }
     }
-  `;
+  `);
 </script>
 
 <div id="result">

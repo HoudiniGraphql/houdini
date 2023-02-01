@@ -1,13 +1,13 @@
 <script lang="ts">
-  import { graphql, type PreprocessorTestQuery1Store } from '$houdini';
+  import { graphql } from '$houdini';
 
-  const result: PreprocessorTestQuery1Store = graphql`
+  $: result = graphql(`
     query PreprocessorTestQuery1 @load {
       user(id: "1", snapshot: "preprocess-query-simple") {
         name
       }
     }
-  `;
+  `);
 </script>
 
 <div id="result">
