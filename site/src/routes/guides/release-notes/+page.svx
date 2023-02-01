@@ -257,13 +257,15 @@ For more information, check out the [new docs page](/api/cache)
 
 We removed `@manual_load` since using `graphql` in your `.svelte` files will not cause the query to be automatically loaded. You must now
 opt into automatically loading for queries defined inside of your components using the `@load` directive.
+SvelteKit routes using this pattern must define their inline queries as reactive statements.
 This change only affects `.svelte` files.
 
 ```diff:title=src/routes/+page.svelte
   <script>
       import { graphql } from '$houdini'
 
-      const UserList = graphql(`
+-      const UserList = graphql(`
++      $: UserList = graphql(`
 -         query UserList {
 +         query UserList @load {
               users {

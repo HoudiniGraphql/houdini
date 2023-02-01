@@ -1,14 +1,14 @@
 <script lang="ts">
-  import { graphql, OptimisticUserQueryStore, GQL_UpdateUser } from '$houdini';
+  import { graphql, GQL_UpdateUser } from '$houdini';
   import { stry } from '@kitql/helper';
 
-  const query: OptimisticUserQueryStore = graphql`
+  $: query = graphql(`
     query OptimisticUserQuery @load {
       user(id: "1", snapshot: "update-user-mutation") {
         name
       }
     }
-  `;
+  `);
 
   async function add() {
     await GQL_UpdateUser.mutate(
