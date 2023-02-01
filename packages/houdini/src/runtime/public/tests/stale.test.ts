@@ -98,7 +98,7 @@ const h_GetFieldTime = (
 }
 
 /**   2/ Tests    */
-test('info doesn t exist in the stale manager, return undefined (not stale)', async function () {
+test("info doesn't exist in the stale manager, return undefined (not stale)", async function () {
 	const cache = testCache()
 
 	// let's have a look at something that  was never seen before, it should be undefined
@@ -227,7 +227,7 @@ test('Mark a record field stale when args', async function () {
 
 	// mark a field stale
 	// @ts-expect-error: generated type definitions are busted locally
-	user1.markStale({ field: 'id', when: { id: '1' } })
+	user1.markStale('id', { when: { id: '1' } })
 
 	// check data state of stale
 	expect(h_GetFieldTime(cache, h_GetUserRecord('1', 'id(id: "1")'))).toBe(null)
