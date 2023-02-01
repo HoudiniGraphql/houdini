@@ -3,7 +3,7 @@ import * as graphql from 'graphql'
 import * as recast from 'recast'
 
 import { ensureImports, TypeWrapper, unwrapType } from '../../../lib'
-import { Config } from '../../../lib'
+import type { Config } from '../../../lib'
 import { nullableField, scalarPropertyValue } from './types'
 
 const AST = recast.types.builders
