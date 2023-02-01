@@ -63,15 +63,15 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
 ## 🕹&nbsp;&nbsp;Example
 
 For a detailed example, you can check out the todo list in the [example directory](./example) or the [final version](https://github.com/HoudiniGraphql/intro/tree/final) of the 
-Pokédex application from the [Getting Started guide](https://www.houdinigraphql.com/intro/welcome). 
+Pokédex application from the [Getting Started guide](https://www.houdinigraphql.com/intro). 
 
 ## 📚&nbsp;&nbsp;Documentation
 
-For documentation, please visit the [api reference](https://www.houdinigraphql.com/api/welcome) on the website.
+For documentation, please visit the [api reference](https://www.houdinigraphql.com/api) on the website.
 
 ## 🚀&nbsp;&nbsp;Getting Started
 
-For an in-depth guide to getting started with Houdini, check out the [guide on the our website](https://www.houdinigraphql.com/intro/welcome).
+For an in-depth guide to getting started with Houdini, check out the [guide on the our website](https://www.houdinigraphql.com/intro).
 
 ## ✏️&nbsp;&nbsp;Contributing
 

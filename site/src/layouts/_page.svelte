@@ -59,8 +59,15 @@
 		}
 	})
 
+	// count the number of / in a string
+	// This will remove top level categories from the list of files
+	function countSlashes(str) {
+		return (str.match(/\//g) || []).length
+	}
+
 	// show the files associated with the current category
-	$: currentFiles = categories[currentCategory]?.files || []
+	$: currentFiles =
+		categories[currentCategory]?.files.filter((c) => countSlashes(c.slug) !== 1) || []
 	$: index = currentFiles.findIndex((file) => {
 		return file.title === title
 	})

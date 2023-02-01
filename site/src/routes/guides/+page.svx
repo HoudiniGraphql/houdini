@@ -1,0 +1,14 @@
+---
+title: Guides
+description: A list of guides to walk through Houdini
+---
+
+# Welcome to Guides
+
+Unlock the Power of Data with Houdini. 
+Here, you will experience a new level of ease and efficiency in your application's data handling. 
+Say goodbye to the hassle of complex coding and hello to seamless integration with Houdini's **intuitive** API. 
+With a range of options and the ability to customize, you can shape your data flow to fit your specific needs. 
+Learn the secrets of streamlining your application's data management
+
+Start your journey today by reading all these guides.

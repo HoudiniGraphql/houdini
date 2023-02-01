@@ -117,7 +117,7 @@ export default {
 `
 </script>
 
-# Houdini API Reference
+# Welcome to API Reference
 
 Every GraphQL document in your Houdini application is driven by a Svelte store with specific methods for performing each task.
 

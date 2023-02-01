@@ -230,12 +230,12 @@ const store = graphql(`
 
 ### More Information
 
-For more information on each store type, please visit the [api docs](/api/welcome).
+For more information on each store type, please visit the [api docs](/api).
 
 ## Loading Data
 
 For the rest of the guide, we are going to focus on [SvelteKit routes](https://kit.svelte.dev/docs/routing). If you want more information on
-fragments, mutations, or subscriptions, you can head over to the <a href="/api/welcome/" target="_blank" rel="noreferrer">api docs</a> and come
+fragments, mutations, or subscriptions, you can head over to the <a href="/api" target="_blank" rel="noreferrer">api docs</a> and come
 back.
 
 Once you have your store, the next step is to start using it. Usually, your route's `.svelte` files will receive their stores as props. This often looks something like:

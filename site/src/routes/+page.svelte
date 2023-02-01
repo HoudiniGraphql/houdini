@@ -19,9 +19,9 @@
 			</div>
 		</div>
 		<nav>
-			<a data-sveltekit-preload-data href="/intro/welcome">Get Started</a>
-			<a data-sveltekit-preload-data href="/guides/faq" class="hide-thin">Guides</a>
-			<a data-sveltekit-preload-data href="/api/welcome" class="hide-thinner">API Docs</a>
+			<a data-sveltekit-preload-data href="/intro">Get Started</a>
+			<a data-sveltekit-preload-data href="/guides" class="hide-thin">Guides</a>
+			<a data-sveltekit-preload-data href="/api" class="hide-thinner">API Docs</a>
 			<a
 				data-sveltekit-preload-data
 				href="https://github.com/sponsors/HoudiniGraphql"
@@ -62,7 +62,7 @@
 				<div class="hero-dive-in">
 					<p>Dive in:</p>
 					<nav class="framework-links">
-						<a data-sveltekit-preload-data href="/intro/welcome">
+						<a data-sveltekit-preload-data href="/intro">
 							<img src="/images/svelte.svg" width="20px" aria-hidden="true" />
 							SvelteKit
 						</a>
@@ -138,7 +138,7 @@
 			</Block>
 		</div>
 		<div class="cta-container">
-			<a href="/intro/welcome">
+			<a href="/intro">
 				<button> Get Started </button>
 			</a>
 		</div>

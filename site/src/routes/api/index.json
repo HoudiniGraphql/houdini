@@ -1,7 +1,6 @@
 {
 	"name": "API",
 	"pages": [
-		"welcome",
 		"query",
 		"fragment",
 		"mutation",
