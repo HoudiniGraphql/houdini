@@ -1,23 +1,12 @@
 <script>
-	import { browser } from '$app/environment'
-	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
 	import { Logo } from '~/components'
+	import { QSLink } from '~/components/QSLink'
 
-	let subTitle = $page.url.searchParams.get('s') || ''
-	let nicer = false
+	let subTitle = QSLink(page, 'sub')
+	let style = QSLink(page, 'style')
 
-	$: browser && subTitle && updateQS()
-
-	function updateQS() {
-		if (subTitle) {
-			$page.url.searchParams.set('s', subTitle)
-		} else {
-			$page.url.searchParams.delete('s')
-		}
-
-		goto($page.url.href, { replaceState: true, keepFocus: true })
-	}
+	$: nicer = $style !== 'for_ci'
 </script>
 
 <div class={nicer ? 'content-nice' : 'content'}>
@@ -31,15 +20,17 @@
 
 			<div>
 				<div id="title">Houdini</div>
-				<div id="subTitle">{subTitle.replace('graphql', 'GraphQL').replace(/-/g, ' ')}</div>
+				<div id="subTitle">{$subTitle?.replace('graphql', 'GraphQL').replace(/-/g, ' ') ?? ''}</div>
 			</div>
 		</div>
 	</div>
 
-	<input type="text" bind:value={subTitle} placeholder="Sub Title" />
 	<div>
-		<input id="nicer" type="checkbox" bind:checked={nicer} />
-		<label for="nicer">Nicer</label>
+		<input type="text" bind:value={$subTitle} placeholder="Sub Title" />
+		<select bind:value={$style}>
+			<option value="for_ci">For CI</option>
+			<option value={null}>Styled</option>
+		</select>
 	</div>
 </div>
 
@@ -54,6 +45,12 @@
 	}
 
 	input {
+		margin-bottom: 2rem;
+		font-size: xx-large;
+		font-size: 24px;
+	}
+
+	select {
 		margin-bottom: 2rem;
 		font-size: xx-large;
 		font-size: 24px;

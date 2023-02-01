@@ -12,7 +12,7 @@ const getSubFolders = async (main: string) => {
 
 test('rendering og images', async ({ page }) => {
 	// get all folders and format them
-	const folders = (
+	const pagesMetadata = (
 		await Promise.all(
 			mainFolders.map(async (main) => {
 				return getSubFolders(main)
@@ -26,10 +26,10 @@ test('rendering og images', async ({ page }) => {
 		})
 
 	// let's add also the default one
-	folders.push({ fileName: 'houdini', param: '' })
+	pagesMetadata.push({ fileName: 'houdini', param: '' })
 
-	for (const folder of folders) {
-		await page.goto(`http://localhost:3078/_og?s=${folder.param}`)
+	for (const folder of pagesMetadata) {
+		await page.goto(`/_og?sub=${folder.param}&style=for_ci`)
 		await expect(page).toHaveScreenshot(`${folder.fileName}.png`, {
 			clip: {
 				x: 0,
