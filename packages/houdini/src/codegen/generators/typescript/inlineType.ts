@@ -45,7 +45,7 @@ export function inlineType({
 	}
 	// we could have encountered an enum
 	else if (graphql.isEnumType(type)) {
-		const [valueOf] = ensureImports({
+		ensureImports({
 			config,
 			// @ts-ignore
 			body,
@@ -69,7 +69,7 @@ export function inlineType({
 		}
 
 		result = AST.tsTypeReference(
-			AST.identifier(valueOf),
+			AST.identifier('ValueOf'),
 			AST.tsTypeParameterInstantiation([AST.tsTypeReference(AST.identifier(type.name))])
 		)
 	}
