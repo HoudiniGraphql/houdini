@@ -117,8 +117,11 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 	 */
 	markStale<_Type extends TypeNames<Def>, _Field extends TypeFieldNames<Def, _Type>>(
 		type?: _Type,
-		options: { field?: _Field; when?: ArgType<Def, _Type, _Field> } = {}
+		options?: {
+			field?: _Field
+			when?: ArgType<Def, _Type, _Field>
+		}
 	): void {
-		return this._internal_unstable.markTypeStale(type, options)
+		return this._internal_unstable.markTypeStale(type ? { ...options, type } : undefined)
 	}
 }

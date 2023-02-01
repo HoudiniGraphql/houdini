@@ -201,6 +201,7 @@ export function extractFiles(value: any) {
 		if (isExtractableFile(value)) {
 			const filePaths = files.get(value)
 
+			// eslint-disable-next-line @typescript-eslint/no-unused-expressions
 			filePaths ? filePaths.push(path) : files.set(value, [path])
 
 			return null

@@ -228,7 +228,7 @@ test('stale', async function () {
 	})
 
 	//  mark stale
-	cache.markTypeStale('User')
+	cache.markTypeStale({ type: 'User' })
 
 	const ret2 = await store.send({ policy: CachePolicy.CacheOrNetwork })
 

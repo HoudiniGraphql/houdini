@@ -1,7 +1,7 @@
 import { logGreen } from '@kitql/helper'
-import { execSync } from 'child_process'
 import { getIntrospectionQuery } from 'graphql'
 import fetch from 'node-fetch'
+import { execSync } from 'node:child_process'
 import prompts from 'prompts'
 
 import { fs, parseJSON, path, pullSchema } from '../lib'
