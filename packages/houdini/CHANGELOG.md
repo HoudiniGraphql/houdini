@@ -1,5 +1,11 @@
 # houdini
 
+## 1.0.0-next.10
+
+### ⚠️ Breaking Changes
+
+-   [#871](https://github.com/HoudiniGraphql/houdini/pull/871) [`fd7b46c`](https://github.com/HoudiniGraphql/houdini/commit/fd7b46c4ab5392e643a6e6bb243697147d13fd2b) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Inline queries in routes with @load need a reactive marker
+
 ## 1.0.0-next.9
 
 ### Major Changes
