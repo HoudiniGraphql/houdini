@@ -19,6 +19,7 @@ $houdini
 build/**
 dist/**
 .next/**
+coverage
 
 vite.config.js.timestamp-*
 

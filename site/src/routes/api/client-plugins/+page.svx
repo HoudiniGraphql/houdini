@@ -21,6 +21,16 @@ or even add support for entirely new network capabilities like
 > to configure the client to suit your needs without using any plugins. For more
 > information, check out the [Client docs](/api/client).
 
+<Warning>
+
+The client plugin API is still considered unstable. We reserve the ability to change its
+structure with any minor version update. We recognize this isn't proper semantic versioning but
+it will ultimately lead us to a better place faster.
+
+By building a plugin, you acknowledge this and accept the responsibility of not breaking your users' projects.
+
+</Warning>
+
 ## Overview
 
 In Houdini, every document in your app is backed by an observable value we call a "Document Store".

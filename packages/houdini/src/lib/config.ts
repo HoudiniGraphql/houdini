@@ -1,7 +1,7 @@
 import { mergeSchemas } from '@graphql-tools/schema'
 import * as graphql from 'graphql'
 import minimatch from 'minimatch'
-import { fileURLToPath, pathToFileURL } from 'url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import type { ConfigFile } from '../runtime/lib'
 import { CachePolicy } from '../runtime/lib'

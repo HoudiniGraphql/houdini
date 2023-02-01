@@ -1,5 +1,5 @@
-import type { Config } from 'houdini'
-import { parseJS, type Maybe, type Script, find_graphql } from 'houdini'
+import { parseJS, find_graphql } from 'houdini'
+import type { Config, Maybe, Script } from 'houdini'
 import * as svelte from 'svelte/compiler'
 
 export default async function ({
