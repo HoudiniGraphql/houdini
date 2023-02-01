@@ -1,36 +1,26 @@
 import { test, expect } from '@playwright/test'
 import { mkdirp } from 'fs-extra'
 import fs from 'fs/promises'
+import path from 'path'
 
-const mainFolders = ['api', 'guides', 'intro']
-
-const getSubFolders = async (main: string) => {
-	return (await fs.readdir(`./src/routes/${main}`)).map((sub) => {
-		return { main, sub }
-	})
-}
-
+// if test is failing remove the folder "/site/static/images/og" and generate it fully again
+// It will fail a second time because creating all images, but then everything should be in sync and you shouold see a nice diff in git
 test('rendering og images', async ({ page }) => {
-	// get all folders and format them
-	const pagesMetadata = (
+	// go over all main folders and retreinve all files with the extention .svx
+	const all_svx_files = (
 		await Promise.all(
-			mainFolders.map(async (main) => {
-				return getSubFolders(main)
+			['api', 'guides', 'intro'].map(async (main) => {
+				return await getPageSvxFiles(`./src/routes/${main}`, main)
 			})
 		)
-	)
-		.flatMap((c) => c)
-		.filter((c) => c.sub !== 'index.json')
-		.map((c) => {
-			return { fileName: `houdini-${c.main}-${c.sub}`, param: c.sub }
-		})
+	).flatMap((c) => c)
 
 	// let's add also the default one
-	pagesMetadata.push({ fileName: 'houdini', param: '' })
+	all_svx_files.push({ imageLink: 'houdini.png', title: '' })
 
-	for (const folder of pagesMetadata) {
-		await page.goto(`/_og?sub=${folder.param}&style=for_ci`)
-		await expect(page).toHaveScreenshot(`${folder.fileName}.png`, {
+	for (const info of all_svx_files) {
+		await page.goto(`/_og?sub=${info.title}&style=for_ci`)
+		await expect(page).toHaveScreenshot(`${info.imageLink}`, {
 			clip: {
 				x: 0,
 				y: 0,
@@ -40,13 +30,38 @@ test('rendering og images', async ({ page }) => {
 			}
 		})
 	}
-
-	// // copy all files to the public folder
-	// await mkdirp('./static/images/og')
-	// for (const folder of folders) {
-	// 	await fs.copyFile(
-	// 		`./src/routes/_og/og.e2e.ts-snapshots/${folder.fileName}-chromium-linux.png`,
-	// 		`./static/images/og/${folder.fileName}.png`
-	// 	)
-	// }
 })
+
+const getPageSvxFiles = async (dir, main) => {
+	let results = []
+	const files = await fs.readdir(dir)
+
+	for (const file of files) {
+		const filePath = path.join(dir, file)
+		const stat = await fs.stat(filePath)
+
+		if (stat.isDirectory()) {
+			results = results.concat(await getPageSvxFiles(filePath, main))
+		} else if (file === '+page.svx') {
+			const content = await fs.readFile(filePath, 'utf-8')
+
+			const svxTitleLine = content.split('\n')[1]
+
+			if (svxTitleLine.startsWith('title: ')) {
+				const title = svxTitleLine.replace('title: ', '').trim()
+				const shortLink = filePath.replace('src/routes/', '').replace('/+page.svx', '')
+				results.push({
+					main,
+					path: filePath,
+					title,
+					shortLink,
+					imageLink: `houdini-${shortLink.replace('/', '-')}.png`
+				})
+			} else {
+				expect(`File ${filePath} should have in line 2 something like`).toBe('title: My title')
+			}
+		}
+	}
+
+	return results
+}
