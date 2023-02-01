@@ -2,7 +2,7 @@ import type { RequestPayload } from '../../lib/types'
 import { DataSource } from '../../lib/types'
 import type { ClientPlugin, ClientPluginContext } from '../documentStore'
 
-export const fetchPlugin = (target?: RequestHandler | string): ClientPlugin => {
+export const fetch = (target?: RequestHandler | string): ClientPlugin => {
 	return () => {
 		return {
 			async network(ctx, { client, resolve, marshalVariables }) {

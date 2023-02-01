@@ -156,6 +156,7 @@ test('generates type definitions for the imperative API', async function () {
 		import type { Record } from "./public/record";
 		import { TestQueryNoArgs$result, TestQueryNoArgs$input } from "../artifacts/TestQueryNoArgs";
 		import { TestQuery$result, TestQuery$input } from "../artifacts/TestQuery";
+		import type { ValueOf } from "$houdini/runtime/lib/types";
 		import type { MyEnum } from "$houdini/graphql/enums";
 		import { UserInfoWithArguments$input } from "../artifacts/UserInfoWithArguments";
 		import { UserInfoWithArguments$data } from "../artifacts/UserInfoWithArguments";
@@ -174,7 +175,7 @@ test('generates type definitions for the imperative API', async function () {
 		    listRequired: (string)[];
 		    nullList?: (string | null | undefined)[] | null | undefined;
 		    recursive?: UserFilter | null | undefined;
-		    enum?: MyEnum | null | undefined;
+		    enum?: ValueOf<typeof MyEnum> | null | undefined;
 		};
 
 		export declare type CacheTypeDef = {
@@ -188,7 +189,7 @@ test('generates type definitions for the imperative API', async function () {
 		                        id?: string | null | undefined;
 		                        filter?: UserFilter | null | undefined;
 		                        filterList?: (UserFilter)[] | null | undefined;
-		                        enumArg?: MyEnum | null | undefined;
+		                        enumArg?: ValueOf<typeof MyEnum> | null | undefined;
 		                    };
 		                };
 		                users: {

@@ -3,7 +3,7 @@ import { ArtifactKind, DataSource } from '../../lib/types'
 import type { ClientPluginContext } from '../documentStore'
 import { documentPlugin } from '../utils'
 
-export function subscriptionPlugin(factory: SubscriptionHandler) {
+export function subscription(factory: SubscriptionHandler) {
 	return documentPlugin(ArtifactKind.Subscription, () => {
 		// the unsubscribe hook for the active subscription
 		let clearSubscription: null | (() => void) = null

@@ -4,18 +4,11 @@ import * as typeScriptParser from 'recast/parsers/typescript'
 import { test, expect } from 'vitest'
 
 import { runPipeline } from '../..'
-import type { Document } from '../../../lib'
 import { fs, path } from '../../../lib'
-import { mockCollectedDoc, testConfig } from '../../../test'
+import { testConfig } from '../../../test'
 
 // the config to use in tests
 const config = testConfig()
-
-// the documents to test
-const docs: Document[] = [
-	mockCollectedDoc(`query TestQuery { version }`),
-	mockCollectedDoc(`fragment TestFragment on User { firstName }`),
-]
 
 test('generates runtime definitions for each enum', async function () {
 	// execute the generator
@@ -29,15 +22,15 @@ test('generates runtime definitions for each enum', async function () {
 	}).program
 
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		export declare enum TestEnum1 {
-		    Value1 = "Value1",
-		    Value2 = "Value2"
-		}
+		export const TestEnum1 = {
+		    Value1: "Value1",
+		    Value2: "Value2"
+		} as const
 		 
-		export declare enum TestEnum2 {
-		    Value3 = "Value3",
-		    Value2 = "Value2"
-		}
+		export const TestEnum2 = {
+		    Value3: "Value3",
+		    Value2: "Value2"
+		} as const
 	`)
 
 	// load the contents of the type definitions file

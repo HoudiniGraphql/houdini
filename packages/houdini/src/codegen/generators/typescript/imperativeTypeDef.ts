@@ -52,7 +52,7 @@ export default async function imperativeCacheTypef(config: Config, docs: Documen
 			),
 			AST.tsPropertySignature(
 				AST.identifier('lists'),
-				AST.tsTypeAnnotation(listDefinitions(config, docs))
+				AST.tsTypeAnnotation(listDefinitions(config, body, docs))
 			),
 			AST.tsPropertySignature(
 				AST.identifier('queries'),
@@ -222,7 +222,7 @@ function typeDefinitions(
 										const prop = AST.tsPropertySignature(
 											AST.identifier(arg.name),
 											AST.tsTypeAnnotation(
-												tsTypeReference(config, new Set(), arg)
+												tsTypeReference(config, new Set(), arg, body)
 											)
 										)
 
@@ -281,6 +281,7 @@ function typeDefinitions(
 
 function listDefinitions(
 	config: Config,
+	body: StatementKind[],
 	docs: Document[]
 ): recast.types.namedTypes.TSTypeLiteral | recast.types.namedTypes.TSNeverKeyword {
 	// we need to look at every document for a list definition
@@ -364,7 +365,8 @@ function listDefinitions(
 																tsTypeReference(
 																	config,
 																	new Set(),
-																	arg
+																	arg,
+																	body
 																)
 															)
 														)

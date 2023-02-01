@@ -14,7 +14,7 @@ import type {
 	SubscriptionSpec,
 } from '../lib/types'
 import { ArtifactKind } from '../lib/types'
-import { cachePolicyPlugin } from './plugins'
+import { cachePolicy } from './plugins'
 
 // the list of states to step in what direction
 const steps = {
@@ -91,7 +91,7 @@ export class DocumentStore<
 
 		this.#plugins = pipeline ?? [
 			// cache policy needs to always come first so that it can be the first fetch_enter to fire
-			cachePolicyPlugin({
+			cachePolicy({
 				enabled: cache,
 				setFetching: (fetching: boolean) =>
 					this.update((state) => ({ ...state, fetching })),
