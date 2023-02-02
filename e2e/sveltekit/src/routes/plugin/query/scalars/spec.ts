@@ -1,6 +1,6 @@
 import { routes } from '../../../../lib/utils/routes.js';
 import {
-  expectToBe,
+  expect_to_be,
   goto,
   navSelector,
   clientSideNavigation,
@@ -18,6 +18,6 @@ test.describe('query preprocessor variables', () => {
     await expect_0_gql(page, navSelector(routes.Plugin_query_scalars));
 
     // ISO compare to not have timezone issues
-    await expectToBe(page, '1955-03-19T00:00:00.000Z', 'div[id=result-date]');
+    await expect_to_be(page, '1955-03-19T00:00:00.000Z', 'div[id=result-date]');
   });
 });

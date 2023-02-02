@@ -1,0 +1,6 @@
+query PartialOff @cache(partial: false) {
+  user(id: "1", snapshot: "partial-off") {
+    id
+    birthDate
+  }
+}

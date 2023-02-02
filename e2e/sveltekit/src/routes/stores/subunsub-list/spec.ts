@@ -3,7 +3,7 @@ import { routes } from '../../../lib/utils/routes.js';
 import {
   clientSideNavigation,
   expect_1_gql,
-  expectToBe,
+  expect_to_be,
   goto_expect_n_gql
 } from '../../../lib/utils/testsHelper.js';
 
@@ -12,7 +12,7 @@ test.describe('SubUnsub Page', () => {
     // Go to the list and subscribe to the list
     await goto_expect_n_gql(page, routes.Stores_subunsub_list, 1);
 
-    await expectToBe(
+    await expect_to_be(
       page,
       'list-store-user-subunsub:1 - Bruce Willis list-store-user-subunsub:2 - Samuel Jackson list-store-user-subunsub:3 - Morgan Freeman list-store-user-subunsub:4 - Tom Hanks',
       'ul'
@@ -27,7 +27,7 @@ test.describe('SubUnsub Page', () => {
     // Go back to the list page and check that the data are updated
     await clientSideNavigation(page, routes.Stores_subunsub_list);
 
-    expectToBe(
+    expect_to_be(
       page,
       'list-store-user-subunsub:1 - JYC & Alec! list-store-user-subunsub:2 - Samuel Jackson list-store-user-subunsub:3 - Morgan Freeman list-store-user-subunsub:4 - Tom Hanks',
       'ul'

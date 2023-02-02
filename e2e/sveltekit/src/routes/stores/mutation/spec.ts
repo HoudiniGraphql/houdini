@@ -1,7 +1,7 @@
 import { sleep, stry } from '@kitql/helper';
 import { expect, test } from '@playwright/test';
 import { routes } from '../../../lib/utils/routes.js';
-import { expectToBe, goto, locator_click } from '../../../lib/utils/testsHelper.js';
+import { expect_to_be, goto, locator_click } from '../../../lib/utils/testsHelper.js';
 
 test.describe('Mutation Page', () => {
   test('No GraphQL request & default data in the store', async ({ page }) => {
@@ -16,7 +16,7 @@ test.describe('Mutation Page', () => {
       stale: false,
       source: null
     };
-    await expectToBe(page, stry(defaultStoreValues) ?? '', '[id="store-value"]');
+    await expect_to_be(page, stry(defaultStoreValues) ?? '', '[id="store-value"]');
   });
 
   test('Add User + Optimistic + Result', async ({ page }) => {
@@ -26,7 +26,7 @@ test.describe('Mutation Page', () => {
     // Await the click to have optimisticResponse data in the store
     await locator_click(page, `button[id="mutate"]`);
 
-    await expectToBe(page, '...optimisticResponse... I could have guessed JYC!');
+    await expect_to_be(page, '...optimisticResponse... I could have guessed JYC!');
 
     // 2 Real Response
     await sleep(2000); // The fake delai is of 1 sec

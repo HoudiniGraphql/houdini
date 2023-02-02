@@ -3,7 +3,7 @@ import { routes } from '../../../lib/utils/routes.js';
 import {
   expect_n_gql,
   expect_0_gql,
-  expectToBe,
+  expect_to_be,
   goto,
   navSelector
 } from '../../../lib/utils/testsHelper.js';
@@ -16,7 +16,7 @@ test.describe('SSR Page', () => {
   test('expect the hello result (from another *.graphql file)', async ({ page }) => {
     await goto(page, routes.Stores_SSR);
 
-    await expectToBe(page, 'Hello World! // From Houdini!');
+    await expect_to_be(page, 'Hello World! // From Houdini!');
   });
 
   test('Right Data in <li> elements (SSR)', async ({ page }) => {

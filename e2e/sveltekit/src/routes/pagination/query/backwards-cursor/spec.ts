@@ -3,7 +3,7 @@ import { routes } from '../../../../lib/utils/routes.js';
 import {
   expect_1_gql,
   expect_0_gql,
-  expectToBe,
+  expect_to_be,
   expectToContain,
   goto
 } from '../../../../lib/utils/testsHelper.js';
@@ -12,13 +12,13 @@ test.describe('backwards cursor paginatedQuery', () => {
   test('loadPreviousPage', async ({ page }) => {
     await goto(page, routes.Pagination_query_backwards_cursor);
 
-    await expectToBe(page, 'Eddie Murphy, Clint Eastwood');
+    await expect_to_be(page, 'Eddie Murphy, Clint Eastwood');
 
     // wait for the api response
     await expect_1_gql(page, 'button[id=previous]');
 
     // make sure we got the new content
-    await expectToBe(page, 'Will Smith, Harrison Ford, Eddie Murphy, Clint Eastwood');
+    await expect_to_be(page, 'Will Smith, Harrison Ford, Eddie Murphy, Clint Eastwood');
   });
 
   test('refetch', async ({ page }) => {
@@ -48,11 +48,11 @@ test.describe('backwards cursor paginatedQuery', () => {
       // wait for the request to resolve
       await expect_1_gql(page, 'button[id=previous]');
       // check the page info
-      await expectToBe(page, data[i]);
+      await expect_to_be(page, data[i]);
     }
 
     // make sure we have all of the data loaded
-    await expectToBe(page, data[2]);
+    await expect_to_be(page, data[2]);
 
     await expectToContain(page, `"hasPreviousPage":false`);
 

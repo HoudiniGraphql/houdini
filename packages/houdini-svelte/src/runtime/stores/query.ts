@@ -108,12 +108,9 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 		// we might not want to actually wait for the fetch to resolve
 		const fakeAwait = clientStarted && isBrowser && !params?.blocking
 
-		// if a) the cache does not have the network only policy,
-		// AND b) we are in a fakeAwait scenario (in a real await,
-		// we will wait for the real fetch to happen anyway and fill the store)
-		// then, we are safe to try to load it from the cache before we worry about
-		// performing a network request. This makes sure the cache gets a cached
-		// value during client side navigation (fake awaits)
+		// we want to try to load cached data before we potentially fake the await
+		// this makes sure that the UI feels snappy as we click between cached pages
+		// (no loaders)
 		if (policy !== CachePolicy.NetworkOnly && fakeAwait) {
 			await this.observer.send({
 				fetch: context.fetch,
@@ -121,6 +118,9 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 				metadata: params.metadata,
 				session: context.session,
 				policy: CachePolicy.CacheOnly,
+				// if the CacheOnly request doesn't give us anything,
+				// don't update the store
+				silenceEcho: true,
 			})
 		}
 

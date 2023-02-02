@@ -1,5 +1,5 @@
 import { routes } from '../../../lib/utils/routes.js';
-import { expect_1_gql, goto, expectToBe } from '../../../lib/utils/testsHelper.js';
+import { expect_1_gql, goto, expect_to_be } from '../../../lib/utils/testsHelper.js';
 import { test } from '@playwright/test';
 
 test.describe('mutation store', function () {
@@ -10,7 +10,7 @@ test.describe('mutation store', function () {
     await expect_1_gql(page, 'button[id=mutate]');
 
     // make sure that the result updated with unmarshaled data
-    await expectToBe(
+    await expect_to_be(
       page,
       '{"updateUser":{"id":"update-user-mutation:6","name":"Harrison Ford","birthDate":"1986-11-07T00:00:00.000Z"}}'
     );
