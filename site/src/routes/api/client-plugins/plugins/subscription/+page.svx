@@ -1,3 +1,7 @@
+---
+title: subscription
+---
+
 # `subscription`
 
 This plugin defines the default behavior for subscriptions in Houdini.

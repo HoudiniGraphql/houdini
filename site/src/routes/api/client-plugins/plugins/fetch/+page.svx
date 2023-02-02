@@ -1,3 +1,7 @@
+---
+title: fetch
+---
+
 # `fetch`
 
 This plugin resolves the chain by sending a standard HTTP request to the
