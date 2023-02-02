@@ -90,8 +90,8 @@
 		// reset the category
 		let value = null
 
+		const headers = document.getElementsByTagName('h2')
 		// @ts-ignore
-		const headers: HTMLHeadingElement[] = document.getElementsByTagName('h2')
 		for (const element of headers) {
 			// the current category is the last element that's above the half
 			// way point on the screen
