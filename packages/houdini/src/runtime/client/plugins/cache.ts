@@ -48,7 +48,7 @@ export const cachePolicy =
 							return resolve(ctx, {
 								fetching: false,
 								variables: ctx.variables ?? null,
-								data: value.data,
+								data: allowed ? value.data : null,
 								errors: null,
 								source: DataSource.Cache,
 								partial: value.partial,
