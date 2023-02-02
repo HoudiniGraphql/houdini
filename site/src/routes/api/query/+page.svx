@@ -415,10 +415,10 @@ equivalent of the load function.
 Using the `@load` directive instructs Houdini to load that query automatically by generating
 the appropriate `load` function.
 
-## Endpoints
+## Server only load
 
-Using a query store inside of an endpoint looks very similar to the `load` function: just pass the event you
-are handed in your route function:
+Using a query store inside of server only load function looks very similar to the usual `load` function: 
+just pass the event you are handed in your route function:
 
 ```typescript:typescriptToggle=true
 import { MyQueryStore } from '$houdini'
@@ -430,7 +430,30 @@ export const load: PageServerLoad = async (event) => {
 
 	return { data }
 }
+
 ```
+
+Note that like this you will not have a store in your svelte file but directly your json data in `export let data`.
+
+## API route / endpoint
+
+Using a query store inside of an API route (or endpoint) look like this:
+
+```typescript:typescriptToggle=true
+import { json } from '@sveltejs/kit';
+import { MyQueryStore } from '$houdini'
+import type { RequestHandler } from './$types';
+
+export const GET: RequestHandler = async (event) => {
+	const myQuery = new MyQueryStore()
+	const { data } = await myQuery.fetch({ event })
+
+	return json(data);
+}
+```
+
+Note that like this you will not have a store in your svelte files, you will need to fetch data on your own. 
+More info in the [SvelteKit Doc](https://kit.svelte.dev/docs/routing#server).
 
 ## Passing Metadata
 
