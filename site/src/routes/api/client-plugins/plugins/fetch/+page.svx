@@ -1,0 +1,52 @@
+# `fetch`
+
+This plugin resolves the chain by sending a standard HTTP request to the
+configured URL value. This is included in your plugins by default and
+is most commonly used when defining a custom pipeline.
+
+- Type: `(handler: string | RequestHandler) => ClientPlugin`
+
+```typescript:title=src/client.ts
+import { HoudiniClient } from '$houdini'
+import { fetch } from '$houdini/plugins'
+
+export default new HoudiniClient({
+    url: "...",
+    pipeline: [
+        fetch()
+    ]
+})
+```
+
+If you want to do something very custom you can pass `fetch` a function to use
+
+```typescript:title=src/client.ts
+import { HoudiniClient } from '$houdini'
+import { fetch } from '$houdini/plugins'
+import type { RequestHandler } from './$houdini'
+
+const fetchFn: RequestHandler = async ({ fetch, text, variables }) => {
+    // make sure to use the fetch you were handed in case the user
+    // needs a specific one
+    const result = await fetch("...", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session?.user.token}`,
+        },
+        body: JSON.stringify({
+            query: text,
+            variables,
+        }),
+    })
+
+    return await result.json()
+}
+
+export default new HoudiniClient({
+    url: "...",
+    pipeline: [
+        fetch(fetchFn)
+    ]
+})
+```
