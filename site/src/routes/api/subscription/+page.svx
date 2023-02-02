@@ -3,7 +3,7 @@ title: Subscription
 description: Subscriptions in Houdini
 ---
 
-# Subscriptions
+# Subscription
 
 Listen for real-time updates from your server using GraphQL Subscriptions.
 

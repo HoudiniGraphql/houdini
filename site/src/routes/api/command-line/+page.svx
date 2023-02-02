@@ -3,7 +3,7 @@ title: Command Line
 description: A listing of all of the commands and arguments provided by the Houdini cli
 ---
 
-# Command Line Tools
+# Command Line
 
 Houdini comes with a powerful command-line interface used to do things like start a new project, generate your runtime, etc. Any command can take the `--help` flag to print help for that command.
 
