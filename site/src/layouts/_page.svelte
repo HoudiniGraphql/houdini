@@ -278,10 +278,6 @@
 		z-index: 10;
 	}
 
-	nav button:nth-child(1) {
-		margin-left: 30px;
-	}
-
 	h1 {
 		font-size: 30px;
 		font-family: 'Hind', sans-serif;
@@ -299,8 +295,7 @@
 		cursor: pointer;
 	}
 
-	nav a,
-	nav button {
+	nav a {
 		background: none;
 		border: none;
 		padding-bottom: 10px;
@@ -310,11 +305,6 @@
 		padding-left: 10px;
 		padding-right: 10px;
 		margin-right: 5px;
-	}
-
-	nav button {
-		height: 32px;
-		cursor: pointer;
 	}
 
 	nav a {
@@ -332,15 +322,14 @@
 		display: flex;
 		margin-bottom: 1.25rem;
 		flex-shrink: 0;
+		padding-left: 2.5rem;
 	}
 
-	nav a:hover,
-	nav button:hover {
+	nav a:hover {
 		color: var(--saturated);
 	}
 
-	nav a.current,
-	nav button.current {
+	nav a.current {
 		border-bottom: 3px solid var(--saturated);
 	}
 
@@ -380,10 +369,6 @@
 		background: var(--discreet2);
 		border-top-right-radius: 10px;
 		border-bottom-right-radius: 10px;
-	}
-
-	nav > button {
-		display: none;
 	}
 
 	nav > a {
@@ -541,10 +526,6 @@
 
 		nav {
 			margin-bottom: 1rem;
-		}
-
-		nav > button {
-			display: flex;
 		}
 
 		a.current {
