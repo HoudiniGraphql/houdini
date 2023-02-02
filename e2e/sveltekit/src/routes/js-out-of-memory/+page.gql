@@ -1,0 +1,11 @@
+query MyAnimalQuery {
+  animal(id: "some_id") {
+    id
+
+    ...AnimalDetails
+
+    ... on Cat {
+      ...CatThings
+    }
+  }
+}

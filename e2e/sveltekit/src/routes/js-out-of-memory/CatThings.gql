@@ -1,0 +1,7 @@
+fragment CatThings on Cat {
+  id
+  name
+  nrOfGlassesKnockedOver
+
+  ...AnimalDetails
+}
