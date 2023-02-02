@@ -19,7 +19,7 @@ Some things worth mentioning:
 
 - It's recommended to name these lists with a different casing convention than the rest of your
   application to distinguish the generated fragments from those in your codebase.
-- Sometimes the runtime needs a little help to hunt down the list you want to mutate. For more information on how to use `@parentID` to help, [see the GraphQL docs](/api/graphql#parentidvalue-string).
+- Sometimes the runtime needs a little help to hunt down the list you want to mutate. For more information on how to use `@parentID` to help, [see the GraphQL docs](/api/graphql-magic#parentidvalue-string).
 
 ### Inserting a record
 

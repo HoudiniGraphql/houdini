@@ -1,5 +1,5 @@
 ---
-title: Client
+title: HoudiniClient
 description: Documentation for the HoudiniClient, the core runtime abstraction
 ---
 
