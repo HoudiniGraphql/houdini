@@ -112,6 +112,7 @@ ol {
 p > code,
 li > code,
 h3 > code,
+h1 > code,
 h4 > code {
 	/* background: #ffffff; */
 	/* padding: 2px 6px; */
@@ -131,6 +132,11 @@ h4 > code {
 .message p a {
 	color: white !important;
 	text-decoration: underline !important;
+}
+
+h1 > code {
+	font-size: 40px;
+	margin-bottom: 30px;
 }
 
 h3 > code {
