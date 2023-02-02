@@ -15,7 +15,7 @@
 
 		<div>
 			<div id="title">Houdini</div>
-			<div id="subTitle">{subTitle?.replace('graphql', 'GraphQL').replace(/-/g, ' ') ?? ''}</div>
+			<div id="subTitle">{subTitle ?? ''}</div>
 		</div>
 	</div>
 </div>
@@ -85,7 +85,6 @@
 		font-weight: 500;
 		font-size: 80px;
 		color: var(--highlight);
-		text-transform: capitalize;
 		/* The perfect value! */
 		width: 604px;
 	}
