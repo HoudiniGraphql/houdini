@@ -94,10 +94,6 @@ file is never imported there are no performance implications.
 
 Every plugin and editor is different so we can't give you an exact answer but Houdini will write 2 files inside of the `$houdini` directory that contain all of the schema definitions that it relies on. Be default these files are located at `$houdini/graphql/schema.graphql` and `$houdini/graphql/documents.gql`. You can configure this value in your [config file](/api/config) with `definitionsPath`.
 
-### When will version `1.0` be released?
-
-Quick answer is when SvelteKit gets to `1.0`. Until then, we want to be able to break the API in order to create the most convenient experience for the majority of users.
-
 ### Does Houdini support Framework X?
 
 At the moment, Houdini only support SvelteKit and vanilla Svelte projects. If you are interested in integrating Houdini into another framework, please reach out! We are very interested in adding support for additional frameworks, we just don't have an abundance of time 😅
