@@ -1,0 +1,46 @@
+# `subscription`
+
+This plugin defines the default behavior for subscriptions in Houdini.
+It resolves on `start` when not in the browser.
+
+- Type: `(handler: SubscriptionHandler) => ClientPlugin`
+
+```typescript:title=src/client.ts
+import { HoudiniClient } from '$houdini'
+import { subscription } from '$houdini/plugins'
+
+export default new HoudiniClient({
+    url: "...",
+    pipeline: [
+        subscription
+    ]
+})
+```
+
+## Definitions
+
+Here is a potentially out of date type definition. The most up to date
+definition is exported from your runtime.
+
+```typescript
+type SubscriptionHandler = (ctx: ClientPluginContext) => {
+	subscribe: (
+		payload: { query: string; variables?: {} },
+		handlers: {
+			next: (payload: NextPayload) => void
+			error: (data: {}) => void
+			complete: () => void
+		}
+	) => () => void
+}
+
+type NextPayload = {
+	data?: {} | null
+	errors?: readonly { message: string }[]
+}
+```
+
+## Examples
+
+For examples of setting up the plugin using different clients, check
+out the [API Docs](/api/subscription).

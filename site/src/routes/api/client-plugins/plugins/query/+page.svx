@@ -1,0 +1,18 @@
+# `mutation`
+
+This plugin defines the core behavior for mutations including
+optimistic responses.
+
+- Type: `ClientPlugin`
+
+```typescript:title=src/client.ts
+import { HoudiniClient } from '$houdini'
+import { mutation } from '$houdini/plugins'
+
+export default new HoudiniClient({
+    url: "...",
+    pipeline: [
+        mutation
+    ]
+})
+```
