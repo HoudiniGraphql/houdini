@@ -44,7 +44,7 @@ export const cachePolicy =
 							(artifact.kind === ArtifactKind.Query && artifact.partial)
 
 						// if the policy is cacheOnly and we got this far, we need to return null (no network request will be sent)
-						if (policy === CachePolicy.CacheOnly) {
+						if (allowed && policy === CachePolicy.CacheOnly) {
 							return resolve(ctx, {
 								fetching: false,
 								variables: ctx.variables ?? null,

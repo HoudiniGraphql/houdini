@@ -3,7 +3,7 @@
   export let data: PageData;
 
   $: ({ PartialOff } = data);
-  $: console.log($PartialOff.partial);
+  $: console.info($PartialOff.partial);
 </script>
 
 parent:
