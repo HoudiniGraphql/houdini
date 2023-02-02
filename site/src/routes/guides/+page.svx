@@ -10,20 +10,19 @@ Need help or guidance using Houdini? You are in the right place!
 This section contains posts that cover fundamental principles to help you build your projects.
 
 - [Release Notes](/guides/release-notes) - a summary of the updates for every major and minor
-version
+  version
 - [F.A.Q.](/guides/faq) - Answers to common questions such as "Can I use queries in endpoints?"
 - [Plugin Directory](/guides/plugin-directory) - A list of plugins you can add to your houdini project
 - [Working with GraphQL](/guides/working-with-graphql) - An overview of the different ways you can leverage GraphQL
 - [Setting up Your Project](/guides/setting-up-your-project) - Instructions for setting up your project
 - [Pagination](/guides/pagination) - An overview of Houdini's support for loading long lists of data
 - [Caching Data](/guides/caching-data) - A summary of Houdini's caching behavior
-- [Authentication](/guies/authentication) - An overview of Houdini's session and authentication infrastructure
-- [Uploading Files](/guies/uploading-files) - A guide on handling file uploads via mutations
-- [Persisted Queries](/guies/persisted-queries) - A guide on persisted queries (including APQ)
-- [Typescript](/guies/typescript) - An overview of the TypeScript API
+- [Authentication](/guides/authentication) - An overview of Houdini's session and authentication infrastructure
+- [Uploading Files](/guides/uploading-files) - A guide on handling file uploads via mutations
+- [Persisted Queries](/guides/persisted-queries) - A guide on persisted queries (including APQ)
+- [Typescript](/guides/typescript) - An overview of the TypeScript API
 - [Contributing Guide](/guides/contributing) - A guide written for people looking to contribute to Houdini
 - [Architecture](/guides/architecture) - An overview of Houdini's architecture for people building plugins
-
 
 Our goal is for you to experience a new level of ease and efficiency in your application's data handling. Do not hesitate to give us any feedback if
 something was confusing or felt weird.
