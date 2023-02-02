@@ -3,9 +3,9 @@ title: Vite Plugin
 description: A summary of configuration values for Houdini's kit plugin
 ---
 
-# SvelteKit Plugin
+# Vite Plugin
 
-Houdini's SvelteKit plugin is responsible for generating the code necessary to
+Houdini's Vite Plugin is responsible for generating the code necessary to
 power [its GraphQL APIs](/guides/working-with-graphql). Adding it to your project
 is done in your vite config file. Make sure that Houdini's plugin comes before SvelteKit:
 

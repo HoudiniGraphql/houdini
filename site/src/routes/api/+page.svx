@@ -91,7 +91,7 @@ const codegenPluginExample = `
 plugin('plugin_name', async () =>  {
     return {
         generate({ documents }) {
-            // generate something 
+            // generate something
         }
     }
 })
@@ -117,7 +117,7 @@ export default {
 `
 </script>
 
-# Houdini API Reference
+# Welcome to API Reference
 
 Every GraphQL document in your Houdini application is driven by a Svelte store with specific methods for performing each task.
 
@@ -133,7 +133,7 @@ example={queryExample}
 <APIShowcase
 title="fragment"
 description="Reuse part of a query"
-href="/api/fragments"
+href="/api/fragment"
 example={fragmentExample}
 />
 
@@ -154,9 +154,9 @@ example={subscriptionExample}
 ## Runtime APIs
 
 <APIShowcase
-title="Extra Bits"
+title="GraphQL Magic"
 description="A summary of the custom things houdini lets you do in your graphql documents"
-href="/api/graphql"
+href="/api/graphql-magic"
 example={graphqlExample}
 />
 
@@ -200,14 +200,14 @@ example={configExample}
 <APIShowcase
 title="Vite Plugin"
 description="A powerful tool to enable Houdini's declarative API in your svelte+vite projects"
-href="/api/vite"
+href="/api/vite-plugin"
 example={pluginExample}
 />
 
 <APIShowcase
 title="Command Line"
 description="Command line tool commands and arguments"
-href="/api/cli"
+href="/api/command-line"
 example={cliExample}
 language="bash"
 />

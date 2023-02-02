@@ -1,9 +1,9 @@
 ---
-title: Fragments
+title: Fragment
 description: Fragments in Houdini
 ---
 
-# Fragments
+# Fragment
 
 Specify the data requirements for a Svelte component.
 

@@ -1,18 +1,17 @@
 {
 	"name": "API",
 	"pages": [
-		"welcome",
 		"query",
-		"fragments",
+		"fragment",
 		"mutation",
 		"subscription",
-		"graphql",
+		"graphql-magic",
 		"client",
 		"cache",
 		"client-plugins",
 		"codegen-plugins",
 		"config",
-		"vite",
-		"cli"
+		"vite-plugin",
+		"command-line"
 	]
 }

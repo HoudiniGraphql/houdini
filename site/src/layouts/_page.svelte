@@ -5,6 +5,7 @@
 	import throttle from 'lodash/throttle.js'
 	import { browser } from '$app/environment'
 	import Toolbar from '~/components/Toolbar.svelte'
+	import Logo from '~/components/Logo.svelte'
 
 	export let title = ''
 	export let link = ''
@@ -19,8 +20,6 @@
 	$: lang = browser
 		? document.cookie.match('(^|;)\\s*' + 'lang' + '\\s*=\\s*([^;]+)')?.pop() || 'js'
 		: data?.lang
-
-	$: logo_src = ui_theme === 0 ? '/images/logo.svg' : '/images/logo-dark.svg'
 
 	// the list of files we can render
 	// @ts-ignore
@@ -60,13 +59,21 @@
 		}
 	})
 
-	// show the files associated with the current category
-	$: currentFiles = categories[currentCategory]?.files || []
-	$: index = currentFiles.findIndex((file) => {
+	// count the number of / in a string
+	// This will remove top level categories from the list of files
+	function countSlashes(str) {
+		return (str.match(/\//g) || []).length
+	}
+
+	// show the files associated with the current category (ignoring the index)
+	$: pages = categories[currentCategory]?.files ?? []
+	$: index = pages.findIndex((file) => {
 		return file.title === title
 	})
-	$: previous = currentFiles[index]?.previous
-	$: next = currentFiles[index]?.next
+	$: previous = pages[index]?.previous
+	$: next = pages[index]?.next
+
+	$: withoutIndex = pages.filter((c) => countSlashes(c.slug) !== 1)
 
 	// when the searching state toggles on the browser, hide the body's scroll
 	$: {
@@ -83,9 +90,8 @@
 		// reset the category
 		let value = null
 
-		/** @type { HTMLHeadingElement[] }*/
-		// @ts-ignore
 		const headers = document.getElementsByTagName('h2')
+		// @ts-ignore
 		for (const element of headers) {
 			// the current category is the last element that's above the half
 			// way point on the screen
@@ -109,7 +115,7 @@
 	})
 </script>
 
-<SEO {title} url={`https://www.houdinigraphql.com${link}`} {description} />
+<SEO {title} {description} />
 
 <SearchDialog />
 
@@ -131,9 +137,11 @@
 					{/if}
 				</buton>
 				<a href="/">
-					<img class="logo" src={logo_src} style="margin-top: -4px" />
-					<span class="logo-text">Houdini</span></a
-				>
+					<div style="display: flex; align-items: center; gap: 7px">
+						<Logo size={30} color={ui_theme === 0 ? 'white' : 'black'} />
+						<span class="logo-text">Houdini</span>
+					</div>
+				</a>
 				<SearchInput id="nav-search-input" />
 				<Toolbar bind:ui_theme bind:lang />
 			</h1>
@@ -160,7 +168,7 @@
 		</div>
 		<SearchInput id="left-nav-search-input" />
 		<div class:hidden={!menuOpen} role="list">
-			{#each currentFiles as file}
+			{#each withoutIndex as file}
 				<a
 					class="nav"
 					role="listitem"

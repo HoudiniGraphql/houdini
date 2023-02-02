@@ -1,5 +1,5 @@
 ---
-title: Mutations
+title: Mutation
 description: Mutations in Houdini
 ---
 
@@ -7,7 +7,7 @@ description: Mutations in Houdini
 	import ListOperations from '~/sections/list-operations.svx'
 </script>
 
-# Mutations
+# Mutation
 
 Send a mutation to the server and updating your client-side cache with any changes.
 
