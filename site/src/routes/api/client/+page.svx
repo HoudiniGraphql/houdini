@@ -141,26 +141,26 @@ of plugins is follows:
 
 ```typescript:title=
 import {
-    throwOnErrorPlugin,
-    fetchParamsPlugin,
-    queryPlugin,
-    mutationPlugins,
-    fetchPlugin
+    throwOnError,
+    fetchParams,
+    query,
+    mutations,
+    fetch
 } from '$houdini/plugins'
 
 const plugins = [
     // client-level config always works
     // these two plugins are only passed if the config value is added
-    throwOnErrorPlugin,
-    fetchParamsPlugin,
+    throwOnError,
+    fetchParams,
     // queries and mutations will always work
-    queryPlugin,
-    mutationPlugin,
+    query,
+    mutation,
     // your plugins can wrap the injected ones
-    ...specifiedPlugins,
-    ...injectedPlugins,
+    ...specified,
+    ...injected,
     // fetch will always exist as a fallback to resolve your pipeline
-    fetchPlugin
+    fetch
 ]
 ```
 

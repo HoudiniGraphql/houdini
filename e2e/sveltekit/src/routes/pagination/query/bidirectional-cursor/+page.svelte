@@ -1,7 +1,7 @@
 <script lang="ts">
   import { CachePolicy, graphql } from '$houdini';
 
-  const result = graphql(`
+  $: result = graphql(`
     query BidirectionalCursorPaginationQuery @load {
       usersConnection(
         after: "YXJyYXljb25uZWN0aW9uOjE="

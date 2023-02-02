@@ -1,7 +1,7 @@
 <script lang="ts">
   import { graphql, CachePolicy } from '$houdini';
 
-  const result = graphql(`
+  $: result = graphql(`
     query OffsetPaginationQuery @load {
       usersList(limit: 2, snapshot: "pagination-query-offset") @paginate {
         name

@@ -98,13 +98,14 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 	 * @param field
 	 * @param when
 	 */
-	markStale<Field extends TypeFieldNames<Def, Type>>({
-		field,
-		when,
-	}: {
-		field?: Field
-		when?: ArgType<Def, Type, Field>
-	} = {}): void {
+	markStale<Field extends TypeFieldNames<Def, Type>>(
+		field?: Field,
+		{
+			when,
+		}: {
+			when?: ArgType<Def, Type, Field>
+		} = {}
+	): void {
 		// mark the record
 		this.#cache._internal_unstable.markRecordStale(this.#id, { field, when })
 	}

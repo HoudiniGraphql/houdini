@@ -230,7 +230,7 @@ cache.markStale()
 cache.markStale('UserNodes')
 
 // Mark all type 'UserNodes' field 'totalCount' stale
-cache.markStale('UserNodes', 'totalCount')
+cache.markStale('UserNodes', { field: 'totalCount' })
 
 // Mark the User 1 stale
 const user = cache.get('User', { id: '1' })
@@ -238,9 +238,9 @@ user.markStale()
 
 // Mark the User 1 field name stale
 const user = cache.get('User', { id: '1' })
-user.markStale({ field: 'name' })
+user.markStale('name')
 
 // Mark the name field when the pattern field argument is 'capitalize'
 const user = cache.get('User', { id: '1' })
-user.markStale({ field: 'name', when: { pattern: 'capitalize' } })
+user.markStale('name', { when: { pattern: 'capitalize' } })
 ```

@@ -68,14 +68,3 @@ export function scalarPropertyValue(
 		}
 	}
 }
-
-export function enumDeclaration(type: graphql.GraphQLEnumType) {
-	return AST.tsEnumDeclaration(
-		AST.identifier(type.name),
-		type
-			.getValues()
-			.map((value) =>
-				AST.tsEnumMember(AST.identifier(value.name), AST.stringLiteral(value.name))
-			)
-	)
-}

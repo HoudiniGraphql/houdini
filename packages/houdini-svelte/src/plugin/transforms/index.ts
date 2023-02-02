@@ -7,15 +7,12 @@ import { parseSvelte } from '../extract'
 import type { Framework } from '../kit'
 import query from './componentQuery'
 import kit from './kit'
-import reactive from './reactive'
 import tags from './tags'
 import type { SvelteTransformPage } from './types'
 
 // tags must be processed last so we don't lose the graphql tags we look for
 // context must go last since it looks for GQL_ imports
-// reactiveQueries must go first since it looks for inline queries that
-// are destroyed by the sveltekit and query processors
-const pipeline = [reactive, kit, query, tags]
+const pipeline = [kit, query, tags]
 
 export default async function apply_transforms(
 	framework: Framework,

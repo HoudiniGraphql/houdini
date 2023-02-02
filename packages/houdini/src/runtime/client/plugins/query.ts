@@ -3,7 +3,7 @@ import { type SubscriptionSpec, ArtifactKind, DataSource } from '../../lib/types
 import type { ClientPlugin } from '../documentStore'
 import { documentPlugin } from '../utils'
 
-export const queryPlugin: ClientPlugin = documentPlugin(ArtifactKind.Query, function () {
+export const query: ClientPlugin = documentPlugin(ArtifactKind.Query, function () {
 	// track the bits of state we need to hold onto
 	let subscriptionSpec: SubscriptionSpec | null = null
 

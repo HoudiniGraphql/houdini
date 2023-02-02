@@ -2,7 +2,7 @@ import type { RequestPayload } from '../../lib/types'
 import { DataSource } from '../../lib/types'
 import type { ClientPlugin, ClientPluginContext } from '../documentStore'
 
-export const fetchPlugin = (target?: RequestHandler | string): ClientPlugin => {
+export const fetch = (target?: RequestHandler | string): ClientPlugin => {
 	return () => {
 		return {
 			async network(ctx, { client, resolve, marshalVariables }) {
@@ -201,6 +201,7 @@ export function extractFiles(value: any) {
 		if (isExtractableFile(value)) {
 			const filePaths = files.get(value)
 
+			// eslint-disable-next-line @typescript-eslint/no-unused-expressions
 			filePaths ? filePaths.push(path) : files.set(value, [path])
 
 			return null

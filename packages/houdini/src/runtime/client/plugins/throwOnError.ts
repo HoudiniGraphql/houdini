@@ -7,7 +7,7 @@ export type ThrowOnErrorParams = {
 	error?: (errors: NonNullable<QueryResult<any, any>['errors']>) => unknown
 }
 
-export const throwOnErrorPlugin =
+export const throwOnError =
 	({ operations, error }: ThrowOnErrorParams): ClientPlugin =>
 	() => {
 		// build a map of artifact kinds we will throw on

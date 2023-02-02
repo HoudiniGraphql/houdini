@@ -5,7 +5,7 @@ import { component_test } from '../../test'
 test('no variables', async function () {
 	const route = await component_test(
 		`
-            const value = graphql\`
+            $: value = graphql\`
                 query TestQuery @load {
                     viewer {
                         id
@@ -51,7 +51,7 @@ test('with variables', async function () {
             export const prop2 = 'goodbye'
             export let prop3, prop4
 
-            const result = graphql\`
+            $: result = graphql\`
                 query TestQuery($test: String!) @load {
                     users(stringValue: $test) {
                         id
@@ -115,7 +115,7 @@ test('graphql function', async function () {
             export const prop2 = 'goodbye'
             export let prop3, prop4
 
-            const result = graphql(\`
+            $: result = graphql(\`
                 query TestQuery($test: String!) @load {
                     users(stringValue: $test) {
                         id
@@ -221,8 +221,7 @@ test("imperative cache inside mutation doesn't confuse anything", async function
 		import { cache } from "$houdini";
 
 		function onClick() {
-		    $:
-		    query = new TestQueryStore();
+		    const query = new TestQueryStore();
 
 		    cache.read({
 		        query
@@ -240,7 +239,7 @@ test('missing variables', async function () {
             export const prop2 = 'goodbye'
             export let prop3, prop4
 
-            const result = graphql\`
+            $: result = graphql\`
                 query TestQuery($test: String!) @load {
                     users(stringValue: $test) {
                         id

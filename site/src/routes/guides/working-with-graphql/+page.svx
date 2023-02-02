@@ -379,6 +379,29 @@ Another way to get a generated load for your route queries, is to add `@load` to
 
 This is the recommended approach for non-route components that don't care about server-side rendering.
 
+<Warning>
+
+Route components that use an inline query must use a reactive
+statement when defining their store:
+
+```svelte:title=src/routes/users/+page.svelte&typescriptToggle=true
+<script lang="ts">
+    import { graphql } from '$houdini'
+
+    $: info = graphql(`
+        query UserInfo @load {
+            viewer {
+                firstName
+            }
+        }
+    `)
+</script>
+
+{$info.data.viewer.firstName}
+```
+
+</Warning>
+
 Inline queries also work well for simple routes since we can co-locate our data needs close to the query without
 having to move between files. Unfortunately, the moment we want to do anything extra (variables, hooks, etc), that logic has to be
 defined inside of `+page.js` so routes using this pattern can feel a little scattered at times.

@@ -1,6 +1,6 @@
 import { beforeEach, expect, test, vi } from 'vitest'
 
-import { HoudiniClient } from '..'
+import { createPluginHooks, HoudiniClient } from '..'
 import { testConfigFile } from '../../../test'
 import { Cache } from '../../cache/cache'
 import { CachePolicy } from '../../lib'
@@ -8,7 +8,7 @@ import { setMockConfig } from '../../lib/config'
 import { ArtifactKind, DataSource } from '../../lib/types'
 import type { ClientPlugin } from '../documentStore'
 import { DocumentStore } from '../documentStore'
-import { cachePolicyPlugin } from './cache'
+import { cachePolicy } from './cache'
 
 /**
  * Testing the cache plugin
@@ -22,7 +22,7 @@ test('NetworkOnly', async function () {
 	const spy = vi.fn()
 
 	const store = createStore([
-		cachePolicyPlugin({
+		cachePolicy({
 			enabled: true,
 			setFetching: spy,
 			cache: new Cache(config),
@@ -71,7 +71,7 @@ test('CacheOrNetwork', async function () {
 	const spy = vi.fn()
 
 	const store = createStore([
-		cachePolicyPlugin({
+		cachePolicy({
 			enabled: true,
 			setFetching: spy,
 			cache: new Cache(config),
@@ -120,7 +120,7 @@ test('CacheOnly', async function () {
 	const spy = vi.fn()
 
 	const store = createStore([
-		cachePolicyPlugin({
+		cachePolicy({
 			enabled: true,
 			setFetching: spy,
 			cache: new Cache(config),
@@ -187,7 +187,7 @@ test('stale', async function () {
 	const cache = new Cache(config)
 
 	const store = createStore([
-		cachePolicyPlugin({
+		cachePolicy({
 			enabled: true,
 			setFetching,
 			cache,
@@ -228,7 +228,7 @@ test('stale', async function () {
 	})
 
 	//  mark stale
-	cache.markTypeStale('User')
+	cache.markTypeStale({ type: 'User' })
 
 	const ret2 = await store.send({ policy: CachePolicy.CacheOrNetwork })
 
@@ -294,7 +294,7 @@ export function createStore(plugins: ClientPlugin[]): DocumentStore<any, any> {
 	})
 
 	return new DocumentStore({
-		pipeline: plugins,
+		pipeline: createPluginHooks(plugins),
 		client,
 		cache: true,
 		artifact: {

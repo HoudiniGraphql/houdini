@@ -289,7 +289,7 @@ async function generateOperationTypeDefs(
 								return AST.tsPropertySignature(
 									AST.identifier(definition.variable.name.value),
 									AST.tsTypeAnnotation(
-										tsTypeReference(config, missingScalars, definition)
+										tsTypeReference(config, missingScalars, definition, body)
 									),
 									definition.type.kind !== 'NonNullType'
 								)
@@ -379,7 +379,12 @@ async function generateFragmentTypeDefs(
 									return AST.tsPropertySignature(
 										AST.identifier(definition.variable.name.value),
 										AST.tsTypeAnnotation(
-											tsTypeReference(config, missingScalars, definition)
+											tsTypeReference(
+												config,
+												missingScalars,
+												definition,
+												body
+											)
 										),
 										definition.type.kind !== 'NonNullType'
 									)

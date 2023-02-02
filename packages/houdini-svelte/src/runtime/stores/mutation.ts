@@ -1,6 +1,5 @@
 import type { DocumentStore } from '$houdini/runtime/client'
-import type { MutationArtifact } from '$houdini/runtime/lib/types'
-import type { GraphQLObject } from '$houdini/runtime/lib/types'
+import type { MutationArtifact, GraphQLObject, QueryResult } from '$houdini/runtime/lib/types'
 import type { RequestEvent } from '@sveltejs/kit'
 
 import { initClient } from '../client'
@@ -27,7 +26,7 @@ export class MutationStore<
 			fetch?: typeof globalThis.fetch
 			event?: RequestEvent
 		} & MutationConfig<_Data, _Input, _Optimistic> = {}
-	): Promise<_Data> {
+	): Promise<QueryResult<_Data, _Input>> {
 		await initClient()
 
 		const { context } = await fetchParams(this.artifact, this.artifact.name, {
@@ -36,17 +35,15 @@ export class MutationStore<
 			event,
 		})
 
-		return (
-			await this.observer.send({
-				variables,
-				fetch: context.fetch,
-				metadata,
-				session: context.session,
-				stuff: {
-					...mutationConfig,
-				},
-			})
-		).data!
+		return await this.observer.send({
+			variables,
+			fetch: context.fetch,
+			metadata,
+			session: context.session,
+			stuff: {
+				...mutationConfig,
+			},
+		})
 	}
 
 	subscribe(...args: Parameters<DocumentStore<_Data, _Input>['subscribe']>) {

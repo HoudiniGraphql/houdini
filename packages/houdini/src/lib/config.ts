@@ -1,7 +1,7 @@
 import { mergeSchemas } from '@graphql-tools/schema'
 import * as graphql from 'graphql'
 import minimatch from 'minimatch'
-import { fileURLToPath, pathToFileURL } from 'url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import type { ConfigFile } from '../runtime/lib'
 import { CachePolicy } from '../runtime/lib'
@@ -744,17 +744,20 @@ let pendingConfigPromise: Promise<Config> | null = null
 export async function getConfig({
 	configPath = DEFAULT_CONFIG_PATH,
 	noSchema,
+	forceReload,
 	...extraConfig
-}: PluginConfig & { noSchema?: boolean } = {}): Promise<Config> {
-	if (_config) {
-		return _config
-	}
+}: PluginConfig & { noSchema?: boolean; forceReload?: boolean } = {}): Promise<Config> {
+	// if we force a reload, we will bypass this part
+	if (!forceReload) {
+		if (_config) {
+			return _config
+		}
 
-	// if we have a pending promise, return the result of that
-	if (pendingConfigPromise) {
-		return await pendingConfigPromise
+		// if we have a pending promise, return the result of that
+		if (pendingConfigPromise) {
+			return await pendingConfigPromise
+		}
 	}
-
 	// there isn't a pending config so let's make one to claim
 	let resolve: (cfg: Config | PromiseLike<Config>) => void = () => {}
 	let reject = (message?: any) => {}

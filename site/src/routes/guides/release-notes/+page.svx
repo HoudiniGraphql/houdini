@@ -125,7 +125,7 @@ If your application uses subscriptions, you'll need to import the
 ```diff:title=src/client.ts
   import { createClient } from 'graphql-ws'
   import { browser } from '$app/environment'
-+ import { subscriptions } from '$houdini/plugins'
++ import { subscription } from '$houdini/plugins'
 
 -  let socketClient = browser
 -  	? new createClient({
@@ -137,7 +137,7 @@ If your application uses subscriptions, you'll need to import the
 + export default new HoudiniClient({
 +     url: '...',
 +     plugins: [
-+         subscriptions(({ session }) => createClient({
++         subscription(({ session }) => createClient({
 +             url: 'ws://api.url',
 +             connectionParams: {
 +                 headers: {
@@ -206,6 +206,29 @@ need to pass a new config to your client:
 
 </DeepDive>
 
+### Mutation return value changed
+
+Because of the change in Houdini's default error handling, mutations were brought
+in line with query behavior and return the full query result with `data`, `errors`,
+etc.
+
+```diff:title=src/components/AddFriend.svelte
+<script>
+    const mutation = graphql(`
+        mutation AddFriend {
+            addFriend {
+                ...
+            }
+        }
+    `)
+
+    async function onClick() {
+-       const { addFriend } = await mutation.mutate()
++       const { data: { addFriend } } = await mutation.mutate()
+    }
+</script>
+```
+
 ### Grouped `apiUrl`, `schemaPollHeaders`, and `schemaPollInterval` together
 
 In order to clarify the difference between the `apiUrl` config value and the
@@ -257,13 +280,15 @@ For more information, check out the [new docs page](/api/cache)
 
 We removed `@manual_load` since using `graphql` in your `.svelte` files will not cause the query to be automatically loaded. You must now
 opt into automatically loading for queries defined inside of your components using the `@load` directive.
+SvelteKit routes using this pattern must define their inline queries as reactive statements.
 This change only affects `.svelte` files.
 
 ```diff:title=src/routes/+page.svelte
   <script>
       import { graphql } from '$houdini'
 
-      const UserList = graphql(`
+-      const UserList = graphql(`
++      $: UserList = graphql(`
 -         query UserList {
 +         query UserList @load {
               users {

@@ -6,6 +6,7 @@
 	"type": "module",
 	"scripts": {
 		"tests": "vitest",
+		"tests:ui": "vitest --ui --coverage",
 		"test": "pnpm run tests",
 		"build:all": "turbo build",
 		"build": "turbo build --filter=\"./packages/*\"",
@@ -25,23 +26,25 @@
 		"postpack": "pinst --enable"
 	},
 	"devDependencies": {
-		"@changesets/changelog-git": "^0.1.13",
-		"@changesets/changelog-github": "^0.4.7",
-		"@changesets/cli": "^2.25.0",
+		"@changesets/changelog-git": "^0.1.14",
+		"@changesets/changelog-github": "^0.4.8",
+		"@changesets/cli": "^2.26.0",
 		"@playwright/test": "1.30.0",
-		"@theguild/eslint-config": "^0.1.0",
-		"@trivago/prettier-plugin-sort-imports": "^3.3.0",
+		"@theguild/eslint-config": "^0.8.0",
+		"@trivago/prettier-plugin-sort-imports": "^4.0.0",
+		"@vitest/coverage-c8": "^0.28.3",
+		"@vitest/ui": "^0.28.3",
 		"eslint-plugin-unused-imports": "^2.0.0",
 		"graphql": "^15.8.0",
-		"prettier": "^2.7.0",
-		"turbo": "^1.5.5",
+		"prettier": "^2.8.3",
+		"turbo": "^1.7.1",
 		"typescript": "^4.9",
 		"vite": "^4.0.4",
-		"vitest": "^0.23.4"
+		"vitest": "^0.28.3"
 	},
 	"dependencies": {
 		"fs-extra": "^10.1.0",
-		"jest-snapshot": "^29.1.2",
+		"jest-snapshot": "^29.4.1",
 		"memfs": "^3.4.7",
 		"recast": "^0.23.1"
 	}

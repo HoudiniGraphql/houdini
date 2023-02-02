@@ -1,13 +1,14 @@
 /// <reference path="../../../../../houdini.d.ts" />
-import type { DocumentArtifact, GraphQLObject } from '../lib/types'
-import type { ClientPlugin } from './documentStore'
+import { flatten } from '../lib/flatten'
+import type { DocumentArtifact, GraphQLObject, NestedList } from '../lib/types'
+import type { ClientPlugin, ClientHooks } from './documentStore'
 import { DocumentStore } from './documentStore'
 import {
-	fetchParamsPlugin,
-	fetchPlugin,
-	mutationPlugin,
-	queryPlugin,
-	throwOnErrorPlugin,
+	fetchParams as fetchParamsPlugin,
+	fetch as fetchPlugin,
+	mutation as mutationPlugin,
+	query as queryPlugin,
+	throwOnError as throwOnErrorPlugin,
 	type FetchParamFn,
 	type ThrowOnErrorParams,
 } from './plugins'
@@ -15,13 +16,13 @@ import pluginsFromPlugins from './plugins/injectedPlugins'
 
 // export the plugin constructors
 export { DocumentStore, type ClientPlugin } from './documentStore'
-export { fetchPlugin, mutationPlugin, queryPlugin, subscriptionPlugin } from './plugins'
+export { fetch, mutation, query, subscription } from './plugins'
 
 type ConstructorArgs = {
 	url: string
 	fetchParams?: FetchParamFn
-	plugins?: ClientPlugin[]
-	pipeline?: ClientPlugin[]
+	plugins?: NestedList<ClientPlugin>
+	pipeline?: NestedList<ClientPlugin>
 	throwOnError?: ThrowOnErrorParams
 }
 
@@ -51,26 +52,30 @@ export class HoudiniClient {
 		}
 
 		// a few middlewares _have_ to run to setup the pipeline
-		this.#plugins = ([] as ClientPlugin[]).concat(
-			// if they specified a throw behavior
-			throwOnError ? [throwOnErrorPlugin(throwOnError)] : [],
-			fetchParamsPlugin(fetchParams),
-			// if the user wants to specify the entire pipeline, let them do so
-			pipeline ??
-				// the user doesn't have a specific pipeline so we should just add their desired plugins
-				// to the standard set
-				[
-					// make sure that queries and mutations always work
-					queryPlugin,
-					mutationPlugin,
-				].concat(
-					// add the specified middlewares
-					plugins ?? [],
-					// and any middlewares we got from plugins
-					pluginsFromPlugins,
-					// if they provided a fetch function, use it as the body for the fetch middleware
-					fetchPlugin()
-				)
+		this.#plugins = flatten(
+			([] as NestedList<ClientPlugin>).concat(
+				// if they specified a throw behavior
+				throwOnError ? [throwOnErrorPlugin(throwOnError)] : [],
+				fetchParamsPlugin(fetchParams),
+				// if the user wants to specify the entire pipeline, let them do so
+				pipeline ??
+					// the user doesn't have a specific pipeline so we should just add their desired plugins
+					// to the standard set
+					(
+						[
+							// make sure that queries and mutations always work
+							queryPlugin,
+							mutationPlugin,
+						] as NestedList<ClientPlugin>
+					).concat(
+						// add the specified middlewares
+						plugins ?? [],
+						// and any middlewares we got from plugins
+						pluginsFromPlugins,
+						// if they provided a fetch function, use it as the body for the fetch middleware
+						fetchPlugin()
+					)
+			)
 		)
 
 		// save the state values
@@ -86,10 +91,46 @@ export class HoudiniClient {
 		return new DocumentStore({
 			client: this,
 			artifact,
-			plugins: this.#plugins,
+			plugins: createPluginHooks(this.#plugins),
 			cache,
 			initialValue,
 			fetching,
 		})
 	}
+}
+
+// createPluginHooks instantiates the client plugins
+export function createPluginHooks(plugins: ClientPlugin[]): ClientHooks[] {
+	return plugins.reduce((hooks, plugin) => {
+		// invoke the plugin
+		const result = plugin()
+
+		// ignore null results
+		if (!result) {
+			return hooks
+		}
+
+		// if we just have a single value, we're done
+		if (!Array.isArray(result)) {
+			return hooks.concat(result)
+		}
+
+		// add every value to the list
+		for (const value of result) {
+			// ignore any nulls
+			if (!value) {
+				continue
+			}
+
+			// if the result is a plugin, walk down
+			if (typeof value === 'function') {
+				return hooks.concat(createPluginHooks([value]))
+			}
+
+			// we know that value is a hook
+			hooks.push(value)
+		}
+
+		return hooks
+	}, [] as ClientHooks[])
 }

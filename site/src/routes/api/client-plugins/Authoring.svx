@@ -6,9 +6,7 @@ layout: blank
     import { DeepDive, Warning } from '~/components'
     </script>
 
-<DeepDive title="Get Started Creating Plugins">
-
-## Your First Client Plugin
+<DeepDive title="Creating Your First Plugin">
 
 Let's start off simple and create a plugin to log something every time we send a query. If you don't have
 a project to test in, you can always use the [`final` branch](https://github.com/HoudiniGraphql/intro/tree/final)

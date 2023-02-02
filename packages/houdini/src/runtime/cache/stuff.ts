@@ -1,26 +1,4 @@
 import type { GraphQLValue } from '../lib/types'
-import type { LinkedList } from './cache'
-
-export function flattenList<T>(source: LinkedList<T>): T[] {
-	const flat: T[] = []
-
-	// we need to flatten the list links
-	const unvisited = [source || []]
-	while (unvisited.length > 0) {
-		const target = unvisited.shift() as T[]
-
-		for (const id of target) {
-			if (Array.isArray(id)) {
-				unvisited.push(id)
-				continue
-			}
-
-			flat.push(id)
-		}
-	}
-
-	return flat
-}
 
 // given a raw key and a set of variables, generate the fully qualified key
 export function evaluateKey(key: string, variables: { [key: string]: GraphQLValue } = {}): string {

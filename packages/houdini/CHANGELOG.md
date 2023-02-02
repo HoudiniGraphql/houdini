@@ -1,5 +1,31 @@
 # houdini
 
+## 1.0.0-next.10
+
+### ⚠️ Breaking Changes
+
+-   [#871](https://github.com/HoudiniGraphql/houdini/pull/871) [`fd7b46c`](https://github.com/HoudiniGraphql/houdini/commit/fd7b46c4ab5392e643a6e6bb243697147d13fd2b) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Inline queries in routes with @load need a reactive marker
+
+## 1.0.0-next.9
+
+### Major Changes
+
+-   [#872](https://github.com/HoudiniGraphql/houdini/pull/872) [`de44252`](https://github.com/HoudiniGraphql/houdini/commit/de442526e7518cc575e8f00b94767fa3d45e6f91) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Renamed subscriptionsPlugin to subscription
+
+### Patch Changes
+
+-   [#872](https://github.com/HoudiniGraphql/houdini/pull/872) [`de44252`](https://github.com/HoudiniGraphql/houdini/commit/de442526e7518cc575e8f00b94767fa3d45e6f91) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Enums are generated as a constant object instead of a typescript enum
+
+## 1.0.0-next.8
+
+### ⚠️ Breaking Changes
+
+-   [#870](https://github.com/HoudiniGraphql/houdini/pull/870) [`c00531f`](https://github.com/HoudiniGraphql/houdini/commit/c00531f9e5e4e57281d845816a3c92ec17faf6b8) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Client plugins can return hooks, null, or list of hooks
+
+### ✨ Features
+
+-   [#865](https://github.com/HoudiniGraphql/houdini/pull/865) [`3872a56`](https://github.com/HoudiniGraphql/houdini/commit/3872a5603b791e2530b3617bf61422e7444a483e) Thanks [@jycouet](https://github.com/jycouet)! - on schema change, revalidate all document. No need to restart vite to pick up changes.
+
 ## 1.0.0-next.7
 
 ## 1.0.0-next.6
@@ -37,6 +63,8 @@
 ### ⚠️ Breaking Changes
 
 -   [#838](https://github.com/HoudiniGraphql/houdini/pull/838) [`d275adc`](https://github.com/HoudiniGraphql/houdini/commit/d275adc97dd97c49a8e35159d41e638128d8ad69) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Implemented new ClientPlugin architecture for HoudiniClient
+
+## 0.20.4
 
 ## 0.20.3
 

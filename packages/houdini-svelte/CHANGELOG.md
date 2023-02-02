@@ -1,5 +1,26 @@
 # houdini-svelte
 
+## 1.0.0-next.10
+
+### Patch Changes
+
+-   Updated dependencies [[`fd7b46c`](https://github.com/HoudiniGraphql/houdini/commit/fd7b46c4ab5392e643a6e6bb243697147d13fd2b)]:
+    -   houdini@1.0.0-next.10
+
+## 1.0.0-next.9
+
+### Patch Changes
+
+-   Updated dependencies [[`de44252`](https://github.com/HoudiniGraphql/houdini/commit/de442526e7518cc575e8f00b94767fa3d45e6f91), [`de44252`](https://github.com/HoudiniGraphql/houdini/commit/de442526e7518cc575e8f00b94767fa3d45e6f91)]:
+    -   houdini@1.0.0-next.9
+
+## 1.0.0-next.8
+
+### Dependency Changes
+
+-   Updated dependencies [[`3872a56`](https://github.com/HoudiniGraphql/houdini/commit/3872a5603b791e2530b3617bf61422e7444a483e), [`c00531f`](https://github.com/HoudiniGraphql/houdini/commit/c00531f9e5e4e57281d845816a3c92ec17faf6b8)]:
+    -   houdini@1.0.0-next.8
+
 ## 1.0.0-next.7
 
 ### 🐛 Fixes
@@ -58,6 +79,15 @@
 ### ⚠️ Breaking Changes
 
 -   [#838](https://github.com/HoudiniGraphql/houdini/pull/838) [`d275adc`](https://github.com/HoudiniGraphql/houdini/commit/d275adc97dd97c49a8e35159d41e638128d8ad69) Thanks [@jycouet](https://github.com/jycouet)! - Default fetching when `@manual_load` is applied to a query
+
+## 0.20.4
+
+### Patch Changes
+
+-   [#868](https://github.com/HoudiniGraphql/houdini/pull/868) [`9808b74`](https://github.com/HoudiniGraphql/houdini/commit/9808b74176bc36fd847372ca7973605c725a5e51) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug preventing server.js and page.gql files from coexisting
+
+-   Updated dependencies []:
+    -   houdini@0.20.4
 
 ## 0.20.3
 
