@@ -2,7 +2,7 @@
 
 ## 1.0.0-next.12
 
-### Patch Changes
+### 🐛 Fixes
 
 -   [#882](https://github.com/HoudiniGraphql/houdini/pull/882) [`b9f7c24`](https://github.com/HoudiniGraphql/houdini/commit/b9f7c241c540b12a0352b4db2c6be63df5ea54d7) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix issue when loading routes with partial data
 
