@@ -156,7 +156,7 @@ example={subscriptionExample}
 <APIShowcase
 title="Augmented GraphQL"
 description="A summary of the custom things houdini lets you do in your graphql documents"
-href="/api/augmented-graphql"
+href="/api/graphql-magic"
 example={graphqlExample}
 />
 

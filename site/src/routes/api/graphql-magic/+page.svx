@@ -1,9 +1,9 @@
 ---
-title: Augmented GraphQL
+title: GraphQL Magic
 description: The GraphQL API provided by Houdini
 ---
 
-# Augmented GraphQL
+# GraphQL Magic
 
 Houdini adds a number of runtime definitions to your GraphQL schema in order to support its declarative API.
 
