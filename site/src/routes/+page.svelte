@@ -3,6 +3,7 @@
 	import CodeSample from './CodeSample.svelte'
 	import Block from './Block.svelte'
 	import Logos from './Logos.svelte'
+	import Logo from '~/components/Logo.svelte'
 </script>
 
 <SEO />
@@ -12,13 +13,15 @@
 <article>
 	<header>
 		<div class="logo">
-			<img src="/images/logo.svg" style="margin-top: -4px" alt="The Houdini Logo" />
-			Houdini
+			<div style="display: flex; align-items: center; gap: 7px">
+				<Logo size={30} />
+				<span class="logo-text">Houdini</span>
+			</div>
 		</div>
 		<nav>
-			<a data-sveltekit-preload-data href="/intro/welcome">Get Started</a>
-			<a data-sveltekit-preload-data href="/guides/faq" class="hide-thin">Guides</a>
-			<a data-sveltekit-preload-data href="/api/welcome" class="hide-thinner">API Docs</a>
+			<a data-sveltekit-preload-data href="/intro">Get Started</a>
+			<a data-sveltekit-preload-data href="/guides" class="hide-thin">Guides</a>
+			<a data-sveltekit-preload-data href="/api" class="hide-thinner">API Docs</a>
 			<a
 				data-sveltekit-preload-data
 				href="https://github.com/sponsors/HoudiniGraphql"
@@ -59,7 +62,7 @@
 				<div class="hero-dive-in">
 					<p>Dive in:</p>
 					<nav class="framework-links">
-						<a data-sveltekit-preload-data href="/intro/welcome">
+						<a data-sveltekit-preload-data href="/intro">
 							<img src="/images/svelte.svg" width="20px" aria-hidden="true" />
 							SvelteKit
 						</a>
@@ -135,7 +138,7 @@
 			</Block>
 		</div>
 		<div class="cta-container">
-			<a href="/intro/welcome">
+			<a href="/intro">
 				<button> Get Started </button>
 			</a>
 		</div>

@@ -7,7 +7,7 @@ importers:
       '@changesets/changelog-git': ^0.1.14
       '@changesets/changelog-github': ^0.4.8
       '@changesets/cli': ^2.26.0
-      '@playwright/test': 1.28.1
+      '@playwright/test': 1.30.0
       '@theguild/eslint-config': ^0.8.0
       '@trivago/prettier-plugin-sort-imports': ^4.0.0
       '@vitest/coverage-c8': ^0.28.3
@@ -32,7 +32,7 @@ importers:
       '@changesets/changelog-git': 0.1.14
       '@changesets/changelog-github': 0.4.8
       '@changesets/cli': 2.26.0
-      '@playwright/test': 1.28.1
+      '@playwright/test': 1.30.0
       '@theguild/eslint-config': 0.8.0_zkdaqh7it7uc4cvz2haft7rc6u
       '@trivago/prettier-plugin-sort-imports': 4.0.0_7yjediqwct5rofa5licti4izue
       '@vitest/coverage-c8': 0.28.3_@vitest+ui@0.28.3
@@ -40,7 +40,7 @@ importers:
       eslint-plugin-unused-imports: 2.0.0_eslint@8.33.0
       graphql: 15.8.0
       prettier: 2.8.3
-      turbo: 1.7.1
+      turbo: 1.7.2
       typescript: 4.9.4
       vite: 4.0.4
       vitest: 0.28.3_@vitest+ui@0.28.3
@@ -95,7 +95,7 @@ importers:
   e2e/sveltekit:
     specifiers:
       '@kitql/helper': ^0.5.0
-      '@playwright/test': 1.28.1
+      '@playwright/test': 1.30.0
       '@sveltejs/adapter-auto': 1.0.2
       '@sveltejs/kit': 1.3.9
       '@typescript-eslint/eslint-plugin': ^5.50.0
@@ -120,7 +120,7 @@ importers:
       vite-plugin-lib-reporter: ^0.0.6
     devDependencies:
       '@kitql/helper': 0.5.0
-      '@playwright/test': 1.28.1
+      '@playwright/test': 1.30.0
       '@sveltejs/adapter-auto': 1.0.2_@sveltejs+kit@1.3.9
       '@sveltejs/kit': 1.3.9_svelte@3.55.1+vite@4.0.4
       '@typescript-eslint/eslint-plugin': 5.50.0_76vvhd3gblptb4ivs7yxfrmpvi
@@ -340,7 +340,7 @@ importers:
   site:
     specifiers:
       '@babel/parser': ^7.20.7
-      '@playwright/test': 1.28.1
+      '@playwright/test': 1.30.0
       '@sveltejs/adapter-vercel': 1.0.6
       '@sveltejs/kit': 1.3.9
       '@typescript-eslint/eslint-plugin': ^5.50.0
@@ -394,7 +394,7 @@ importers:
       vite-plugin-replace: 0.1.1_vite@4.0.4
     devDependencies:
       '@babel/parser': 7.20.7
-      '@playwright/test': 1.28.1
+      '@playwright/test': 1.30.0
       '@sveltejs/adapter-vercel': 1.0.6_@sveltejs+kit@1.3.9
       '@sveltejs/kit': 1.3.9_svelte@3.55.1+vite@4.0.4
       '@typescript-eslint/eslint-plugin': 5.50.0_ce5y2gf7dcf2syqm3ypo44ata4
@@ -1733,13 +1733,13 @@ packages:
       tslib: 2.4.1
     dev: true
 
-  /@playwright/test/1.28.1:
-    resolution: {integrity: sha512-xN6spdqrNlwSn9KabIhqfZR7IWjPpFK1835tFNgjrlysaSezuX8PYUwaz38V/yI8TJLG9PkAMEXoHRXYXlpTPQ==}
+  /@playwright/test/1.30.0:
+    resolution: {integrity: sha512-SVxkQw1xvn/Wk/EvBnqWIq6NLo1AppwbYOjNLmyU0R1RoQ3rLEBtmjTnElcnz8VEtn11fptj1ECxK0tgURhajw==}
     engines: {node: '>=14'}
     hasBin: true
     dependencies:
       '@types/node': 18.11.15
-      playwright-core: 1.28.1
+      playwright-core: 1.30.0
     dev: true
 
   /@polka/url/1.0.0-next.21:
@@ -7401,8 +7401,8 @@ packages:
       pathe: 1.1.0
     dev: true
 
-  /playwright-core/1.28.1:
-    resolution: {integrity: sha512-3PixLnGPno0E8rSBJjtwqTwJe3Yw72QwBBBxNoukIj3lEeBNXwbNiKrNuB1oyQgTBw5QHUhNO3SteEtHaMK6ag==}
+  /playwright-core/1.30.0:
+    resolution: {integrity: sha512-7AnRmTCf+GVYhHbLJsGUtskWTE33SwMZkybJ0v6rqR1boxq2x36U7p1vDRV7HO2IwTZgmycracLxPEJI49wu4g==}
     engines: {node: '>=14'}
     hasBin: true
     dev: true
@@ -8599,8 +8599,8 @@ packages:
     dev: true
     optional: true
 
-  /turbo-darwin-64/1.7.1:
-    resolution: {integrity: sha512-H2txI1gkCQpav+5qGVxB4RzPTTqgDmzbXaJXbjYDR8cS0X/Oq5STea6fRTfumYR2x86Gr3co0V4fQfwILnfvYg==}
+  /turbo-darwin-64/1.7.2:
+    resolution: {integrity: sha512-Sml3WR8MSu80W+gS8SnoKNImcDOlIX7zlvezzds65mW11yGniIFfZ18aKWGOm92Nj2SvXCQ2+UmyGghbFaHNmQ==}
     cpu: [x64]
     os: [darwin]
     requiresBuild: true
@@ -8615,8 +8615,8 @@ packages:
     dev: true
     optional: true
 
-  /turbo-darwin-arm64/1.7.1:
-    resolution: {integrity: sha512-T7yLTMAdnwfaF9H3uBizztLld1aK/gYiNubpl4HCbMsE/aYEbITtNx1dAFQnjRiPHS4dNYK4gIKc9nnAsnfkxg==}
+  /turbo-darwin-arm64/1.7.2:
+    resolution: {integrity: sha512-JnlgGLScboUJGJxvmSsF+5xkImEDTMPg2FHzX4n8AMB9az9ZlPQAMtc+xu4p6Xp9eaykKiV2RG81YS3H0fxDLA==}
     cpu: [arm64]
     os: [darwin]
     requiresBuild: true
@@ -8631,8 +8631,8 @@ packages:
     dev: true
     optional: true
 
-  /turbo-linux-64/1.7.1:
-    resolution: {integrity: sha512-kQw+jEpEVUskfPy+7rMF5x6e9Za9AbdD9P7bSo1JuV+tZgUOaFc5iC9Zyj26qhc0Zzl4qZecZ9YccNbZKZ9yCQ==}
+  /turbo-linux-64/1.7.2:
+    resolution: {integrity: sha512-vbLJw6ovG+lpiPqxniscBjljKJ2jbsHuKp8uK4j/wqgp68wAVKeAZW77GGDAUgDb88XH6Kvhh2hcizL+iWduww==}
     cpu: [x64]
     os: [linux]
     requiresBuild: true
@@ -8647,8 +8647,8 @@ packages:
     dev: true
     optional: true
 
-  /turbo-linux-arm64/1.7.1:
-    resolution: {integrity: sha512-PLe0XBJ/YEmiQh+jDcmTRZlxVtkY0CerAu/AKE/c9hCnp6shYqG+peyyuCEzIssUCij2A5yhVd7SIOTQGDzFrQ==}
+  /turbo-linux-arm64/1.7.2:
+    resolution: {integrity: sha512-zLnuS8WdHonKL74KqOopOH/leBOWumlVGF8/8hldbDPq0mwY+6myRR5/5LdveB51rkG4UJh/sQ94xV67tjBoyw==}
     cpu: [arm64]
     os: [linux]
     requiresBuild: true
@@ -8663,8 +8663,8 @@ packages:
     dev: true
     optional: true
 
-  /turbo-windows-64/1.7.1:
-    resolution: {integrity: sha512-70ndrkQomG4JlAAaflVL+Io1msItHiZUq/zf88Nk4z30QSqqC0Zl4rOpUPE3v1IYSO48bUabshySZa9/aTPHhw==}
+  /turbo-windows-64/1.7.2:
+    resolution: {integrity: sha512-oE5PMoXjmR09okvVzteFb6FjA6yo+nMsacsgKH2yLNq4sOrVo9tG98JkRurOv5+L6ZQ3yGXPxWHiqeH7hLkAVQ==}
     cpu: [x64]
     os: [win32]
     requiresBuild: true
@@ -8679,8 +8679,8 @@ packages:
     dev: true
     optional: true
 
-  /turbo-windows-arm64/1.7.1:
-    resolution: {integrity: sha512-344XY2SrugfHtIe06Vbi17yZ4SRkPvWghvO/gUgUkgSZN06oYj0SHN2+z8pnLkBTfgkt2zBm2cqFFpVFwa8F2A==}
+  /turbo-windows-arm64/1.7.2:
+    resolution: {integrity: sha512-mdTUJk23acRv5qxA/yEstYhM1VFenVE3FDrssxGRFq7S80smtCGK1xUd4BEDDzDlVXOqBohmM5jRh9516rcjPQ==}
     cpu: [arm64]
     os: [win32]
     requiresBuild: true
@@ -8700,17 +8700,17 @@ packages:
       turbo-windows-arm64: 1.6.3
     dev: true
 
-  /turbo/1.7.1:
-    resolution: {integrity: sha512-0ngDU5+2/wLuvTKpc2ZyDtO6aPeHTa6ASlQGySCx+lwSDiE4fCkRVvNINDtT1HgdO/bEo2CQkLoen/Qjf7wWiQ==}
+  /turbo/1.7.2:
+    resolution: {integrity: sha512-YR/x3GZEx0C1RV6Yvuw/HB1Ixx3upM6ZTTa4WqKz9WtLWN8u2g+u2h5KpG5YtjCS3wl/8zVXgHf2WiMK6KIghg==}
     hasBin: true
     requiresBuild: true
     optionalDependencies:
-      turbo-darwin-64: 1.7.1
-      turbo-darwin-arm64: 1.7.1
-      turbo-linux-64: 1.7.1
-      turbo-linux-arm64: 1.7.1
-      turbo-windows-64: 1.7.1
-      turbo-windows-arm64: 1.7.1
+      turbo-darwin-64: 1.7.2
+      turbo-darwin-arm64: 1.7.2
+      turbo-linux-64: 1.7.2
+      turbo-linux-arm64: 1.7.2
+      turbo-windows-64: 1.7.2
+      turbo-windows-arm64: 1.7.2
     dev: true
 
   /type-check/0.4.0:
