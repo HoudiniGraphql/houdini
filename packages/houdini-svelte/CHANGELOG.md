@@ -1,5 +1,16 @@
 # houdini-svelte
 
+## 1.0.0-next.11
+
+### Major Changes
+
+-   [#879](https://github.com/HoudiniGraphql/houdini/pull/879) [`ab96b1c`](https://github.com/HoudiniGraphql/houdini/commit/ab96b1cbdeb33385a36cd72ff5e7a1d04447577b) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - MutationStore.mutate returns full payload
+
+### Patch Changes
+
+-   Updated dependencies []:
+    -   houdini@1.0.0-next.11
+
 ## 1.0.0-next.10
 
 ### Patch Changes
