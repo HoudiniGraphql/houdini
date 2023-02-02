@@ -147,15 +147,6 @@
 			</h1>
 			<nav class:hidden={!menuOpen}>
 				{#each categoryNames as category}
-					<button
-						on:click={() => (currentCategory = category)}
-						class:current={currentCategory === category}
-						aria-hidden
-					>
-						{categories[category].name}
-					</button>
-				{/each}
-				{#each categoryNames as category}
 					<a
 						href={categories[category].index.slug}
 						class:current={currentCategory === category}
@@ -550,10 +541,6 @@
 
 		nav {
 			margin-bottom: 1rem;
-		}
-
-		nav > a {
-			display: none;
 		}
 
 		nav > button {

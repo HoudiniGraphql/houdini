@@ -7,23 +7,21 @@ description: A list of frequently asked questions when working with Houdini
 
 Here are some answers to common questions you might have while working with Houdini
 
-### Can I use queries in endpoints?
-
-Yep! You can use queries or any document anywhere you can use a svelte store. Just define your query in an external file and use the store api as described in [Query Store](/api/query#endpoints) api docs.
-
 ### Can I define graphql documents in external files?
 
 Yes! You'll just have to rely on the store apis for your documents and write your route's loads manually.
 For more information on using your document's stores check out [Working with GraphQL](/guides/working-with-graphql) guide.
 
-### Are `+server` files supported?
-
-Unforunately, `+server` have additional constraints that make them a unique challenge to support (not impossible, just tricky). This is also an area of SvelteKit that is
-rapidly changing and so we are opting to not officially support `+server` files until things stabilize a bit more. Sorry for the inconvinience!
-
 ### What's the best way to add a GraphQL endpoint to my application?
 
 Simple answer, we recommend [KitQL](https://www.kitql.dev/). For more information about our collaboration, head over to this [blog post](https://www.the-guild.dev/blog/houdini-and-kitql).
+
+### Can I use queries in server only load or endpoints?
+
+Short answer: Yep!
+Just define your query in an external file and use the store api as described in [Server only load](/api/query#server-only-load) or [API route / endpoint](/api/query#api-route--endpoint).
+
+Note that today, these two options returns only `json` data _(not a store)_.
 
 ### How does the plugin generate loads?
 
@@ -94,10 +92,20 @@ file is never imported there are no performance implications.
 
 Every plugin and editor is different so we can't give you an exact answer but Houdini will write 2 files inside of the `$houdini` directory that contain all of the schema definitions that it relies on. Be default these files are located at `$houdini/graphql/schema.graphql` and `$houdini/graphql/documents.gql`. You can configure this value in your [config file](/api/config) with `definitionsPath`.
 
-### When will version `1.0` be released?
-
-Quick answer is when SvelteKit gets to `1.0`. Until then, we want to be able to break the API in order to create the most convenient experience for the majority of users.
-
 ### Does Houdini support Framework X?
 
 At the moment, Houdini only support SvelteKit and vanilla Svelte projects. If you are interested in integrating Houdini into another framework, please reach out! We are very interested in adding support for additional frameworks, we just don't have an abundance of time 😅
+
+### Why "Houdini"?
+
+Because the famous `Harry Houdini` was a magician and this library is making GraphQL complexity disappearing.
+What a nice magic trick! 🎩
+
+### How can you help?
+
+You can help in various ways:
+ - Add a [star](https://github.com/HoudiniGraphql/houdini) to your github repo, it always helps in terms of visibility.
+ - Join us on [discord](https://discord.gg/Gd8vfvxpsD) to share tips & tricks, anwser questions, ... be part of the community.
+ - [Contribute](guides/contributing) to the code base. From fixing a typo to adding the support of a new framework!
+ - [Sponsor](https://github.com/sponsors/HoudiniGraphql) us to keep the project growing.
+
