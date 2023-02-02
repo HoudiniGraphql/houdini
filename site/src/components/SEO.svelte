@@ -15,6 +15,8 @@
 		const [part0, part1, part2] = $page.url.pathname.split('/')
 		if (part1 && part2) {
 			return `${$page.url.origin}/images/og/houdini-${part1}-${part2}.png`
+		} else if (part1) {
+			return `${$page.url.origin}/images/og/houdini-${part1}.png`
 		}
 		return `${$page.url.origin}/images/og/houdini.png`
 	}
