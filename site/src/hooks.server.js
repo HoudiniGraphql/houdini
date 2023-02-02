@@ -6,7 +6,8 @@ export function handleError({ error, event }) {
 		'/api/fragments': '/api/fragment',
 		'/api/vite': '/api/vite-plugin',
 		'/api/cli': '/api/command-line',
-		'/intro/fragments': '/intro/reusing-parts-of-a-query'
+		'/intro/fragments': '/intro/reusing-parts-of-a-query',
+		'/api/graphql': '/api/augmented-graphql'
 	}
 
 	// If we have a value, let's redirect

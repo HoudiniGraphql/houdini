@@ -5,7 +5,7 @@
 		"fragment",
 		"mutation",
 		"subscription",
-		"graphql",
+		"augmented-graphql",
 		"client",
 		"cache",
 		"client-plugins",

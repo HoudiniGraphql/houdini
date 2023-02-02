@@ -1,9 +1,9 @@
 ---
-title: GraphQL
+title: Augmented GraphQL
 description: The GraphQL API provided by Houdini
 ---
 
-# GraphQL API
+# Augmented GraphQL
 
 Houdini adds a number of runtime definitions to your GraphQL schema in order to support its declarative API.
 
