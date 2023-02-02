@@ -25,5 +25,5 @@ version
 - [Architecture](/guides/architecture) - An overview of Houdini's architecture for people building plugins
 
 
-Our goal is for you to eperience a new level of ease and efficiency in your application's data handling. Do not hesitate to give us any feedback if
+Our goal is for you to experience a new level of ease and efficiency in your application's data handling. Do not hesitate to give us any feedback if
 something was confusing or felt weird.

@@ -65,14 +65,15 @@
 		return (str.match(/\//g) || []).length
 	}
 
-	// show the files associated with the current category
-	$: currentFiles =
-		categories[currentCategory]?.files.filter((c) => countSlashes(c.slug) !== 1) || []
-	$: index = currentFiles.findIndex((file) => {
+	// show the files associated with the current category (ignoring the index)
+	$: pages = categories[currentCategory]?.files ?? []
+	$: index = pages.findIndex((file) => {
 		return file.title === title
 	})
-	$: previous = currentFiles[index]?.previous
-	$: next = currentFiles[index]?.next
+	$: previous = pages[index]?.previous
+	$: next = pages[index]?.next
+
+	$: withoutIndex = pages.filter((c) => countSlashes(c.slug) !== 1)
 
 	// when the searching state toggles on the browser, hide the body's scroll
 	$: {
@@ -89,9 +90,8 @@
 		// reset the category
 		let value = null
 
-		/** @type { HTMLHeadingElement[] }*/
 		// @ts-ignore
-		const headers = document.getElementsByTagName('h2')
+		const headers: HTMLHeadingElement[] = document.getElementsByTagName('h2')
 		for (const element of headers) {
 			// the current category is the last element that's above the half
 			// way point on the screen
@@ -168,7 +168,7 @@
 		</div>
 		<SearchInput id="left-nav-search-input" />
 		<div class:hidden={!menuOpen} role="list">
-			{#each currentFiles as file}
+			{#each withoutIndex as file}
 				<a
 					class="nav"
 					role="listitem"

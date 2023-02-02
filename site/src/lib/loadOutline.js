@@ -102,7 +102,10 @@ export async function loadOutline() {
 							api: 'API'
 						}[category] || category,
 					// set the first file as the default
-					index: files[0],
+					index: {
+						...files[0],
+						next: files[1]
+					},
 					// add the prev and next references
 					files: files.map((file, i) => ({
 						...file,
