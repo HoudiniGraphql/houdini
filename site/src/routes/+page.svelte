@@ -462,6 +462,10 @@
 			gap: 64px;
 		}
 
+		article {
+			padding: 48px;
+		}
+
 		.hero {
 			flex-direction: column;
 		}
@@ -492,6 +496,9 @@
 	}
 
 	@media (max-width: 850px) {
+		article {
+			padding: 42px;
+		}
 		.selling-points {
 			grid-template-columns: 1fr;
 		}
@@ -510,6 +517,9 @@
 	}
 
 	@media (max-width: 777px) {
+		article {
+			padding: 36px;
+		}
 		.framework-links {
 			display: grid;
 			grid-template-columns: 1fr 1fr;
@@ -522,12 +532,18 @@
 	}
 
 	@media (max-width: 700px) {
+		article {
+			padding: 24px;
+		}
 		.hide-thin {
 			display: none;
 		}
 	}
 
 	@media (max-width: 650px) {
+		article {
+			padding: 12px;
+		}
 		.hide-thinner {
 			display: none;
 		}
