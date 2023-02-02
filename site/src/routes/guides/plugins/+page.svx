@@ -5,10 +5,85 @@ description: A summary of the available plugins for Houdini applications
 
 # Plugins
 
-This document contains a summary of the available plugins for your application. If you have a
+Houdini plugins are broken up into 2 categories:
+
+- [Codegen plugins](/api/codegen-plugins) let you hook into Houdini's static processing.
+- [Client plugins](/api/client-plugins) let you customize the runtime behavior of your application.
+
+This document contains a summary of some plugins that are available for your application. If you have a
 plugin that you would like us to add to this list, please reach out on Discord or GitHub.
 
-## Available Plugins
+## Built-In Client Plugins
+
+Houdini provides some client plugins by default (accessible through `$houdini/plugins`)
+
+```typescript:title=src/client.ts&typescriptToggle=true
+import { HoudiniClient } from '$houdini'
+import { subscription } from '$houdini/plugins'
+
+export default new HoudiniClient({
+    url: ' ',
+    plugins: [
+        subscription(/* ... */)
+    ]
+})
+```
+
+### `fetch`
+
+- Type: `(handler: string | RequestHandler) => ClientPlugin`
+
+This plugin resolves the chain by sending a standard HTTP request to the
+configured URL value. This is included in your plugins by default.
+
+```typescript:title=src/client.ts
+import { HoudiniClient } from '$houdini'
+import { fetch } from '$houdini/plugins'
+
+export default new HoudiniClient({
+    url: "...",
+    pipeline: [
+        fetch()
+    ]
+})
+```
+
+If you want to do something very custom you can pass `fetch` a function to use
+
+```typescript:title=src/client.ts
+import { HoudiniClient } from '$houdini'
+import { fetch } from '$houdini/plugins'
+import type { RequestHandler } from './$houdini'
+
+const fetchFn: RequestHandler = async ({ fetch, text, variables }) => {
+    // make sure to use the fetch you were handed in case the user
+    // needs a specific one
+    const result = await fetch("...", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session?.user.token}`,
+        },
+        body: JSON.stringify({
+            query: text,
+            variables,
+        }),
+    })
+
+    return await result.json()
+}
+
+export default new HoudiniClient({
+    url: "...",
+    pipeline: [
+        fetch(fetchFn)
+    ]
+})
+```
+
+## Community Client Plugins
+
+## Codegen Plugins
 
 - `houdini-svelte`: Svelte bindings for the core houdini framework
 - `houdini-plugin-svelte-global-stores`: Add global stores to `$houdini`. For more information on the plugin or valid config parameters, visit the project [here](https://github.com/HoudiniGraphql/houdini/tree/main/packages/houdini-plugin-svelte-global-stores).
