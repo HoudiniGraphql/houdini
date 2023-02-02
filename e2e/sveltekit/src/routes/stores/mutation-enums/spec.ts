@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import { routes } from '../../../lib/utils/routes.js';
-import { expect_1_gql, expectToBe, goto } from '../../../lib/utils/testsHelper.js';
+import { expect_1_gql, expect_to_be, goto } from '../../../lib/utils/testsHelper.js';
 
 test.describe('mutation store', function () {
   test('can pass enums to mutations', async function ({ page }) {
@@ -10,9 +10,9 @@ test.describe('mutation store', function () {
     await expect_1_gql(page, 'button[id=mutate]');
 
     // make sure that the result updated with unmarshaled data
-    await expectToBe(page, 'true');
+    await expect_to_be(page, 'true');
 
     // make sure that the result updated with unmarshaled data
-    await expectToBe(page, '["COOL","NICE"]', 'div[id=result-type]');
+    await expect_to_be(page, '["COOL","NICE"]', 'div[id=result-type]');
   });
 });

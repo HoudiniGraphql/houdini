@@ -1,13 +1,13 @@
 import { expect, test } from '@playwright/test';
 import { routes } from '../../lib/utils/routes.js';
-import { expectToBe, expect_1_gql, goto } from '../../lib/utils/testsHelper.js';
+import { expect_to_be, expect_1_gql, goto } from '../../lib/utils/testsHelper.js';
 
 test.describe('union-result', () => {
   test('Get two stores and not resetting', async ({ page }) => {
     await goto(page, routes.union_result);
 
     // When we arrive on the page, we expect to see null in the result div
-    await expectToBe(page, 'null');
+    await expect_to_be(page, 'null');
 
     // we click on the button to getAllUsers
     await expect_1_gql(page, 'button[id="getAllUsers"]');
@@ -54,7 +54,7 @@ test.describe('union-result', () => {
     };
 
     // expect data (of AllUsers) to be displayed
-    await expectToBe(page, JSON.stringify(data, null, 2));
+    await expect_to_be(page, JSON.stringify(data, null, 2));
 
     // we click on the button to getAllUsers
     const res = await expect_1_gql(page, 'button[id="getUser"]');
@@ -65,6 +65,6 @@ test.describe('union-result', () => {
     );
 
     // expect data (of AllUsers) to still be here and displayed
-    await expectToBe(page, JSON.stringify(data, null, 2));
+    await expect_to_be(page, JSON.stringify(data, null, 2));
   });
 });

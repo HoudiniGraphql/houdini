@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import { routes } from '../../../lib/utils/routes.js';
-import { expectToBe, expect_0_gql } from '../../../lib/utils/testsHelper.js';
+import { expect_to_be, expect_0_gql } from '../../../lib/utils/testsHelper.js';
 
 test.describe('SSR Session Page', () => {
   test('No GraphQL request & Should display the session token', async ({ page }) => {
@@ -8,6 +8,6 @@ test.describe('SSR Session Page', () => {
 
     await expect_0_gql(page);
 
-    await expectToBe(page, '1234-Houdini-Token-5678');
+    await expect_to_be(page, '1234-Houdini-Token-5678');
   });
 });

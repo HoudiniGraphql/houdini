@@ -1,5 +1,5 @@
 import { routes } from '../../../lib/utils/routes.js';
-import { expect_1_gql, goto, expectToBe } from '../../../lib/utils/testsHelper.js';
+import { expect_1_gql, goto, expect_to_be } from '../../../lib/utils/testsHelper.js';
 import { test } from '@playwright/test';
 
 test.describe('mutation store upload', function () {
@@ -10,6 +10,6 @@ test.describe('mutation store upload', function () {
     await expect_1_gql(page, 'button[id=mutate]');
 
     // make sure that the return data is equal file content ("Houdini")
-    await expectToBe(page, '{"singleUpload":"Houdini"}');
+    await expect_to_be(page, '{"singleUpload":"Houdini"}');
   });
 });

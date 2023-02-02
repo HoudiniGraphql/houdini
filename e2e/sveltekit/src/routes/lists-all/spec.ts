@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import { routes } from '../../lib/utils/routes.js';
-import { expectToBe, expect_n_gql, goto } from '../../lib/utils/testsHelper.js';
+import { expect_to_be, expect_n_gql, goto } from '../../lib/utils/testsHelper.js';
 
 test.describe('lists-all', () => {
   test('With 3 lists to append', async ({ page }) => {
@@ -14,7 +14,7 @@ test.describe('lists-all', () => {
     await expect_n_gql(page, 'input[type="number"]', 1, 'press_ArrowUp');
 
     // expect to have the righ data
-    await expectToBe(
+    await expect_to_be(
       page,
       'Bruce WillisSamuel JacksonMorgan FreemanTom HanksWill SmithHarrison FordEddie MurphyClint Eastwood'
     );
@@ -23,7 +23,7 @@ test.describe('lists-all', () => {
     await expect_n_gql(page, 'text=Add User', 1);
 
     // expect to have the data added
-    await expectToBe(
+    await expect_to_be(
       page,
       'Omar SyBruce WillisSamuel JacksonMorgan FreemanTom HanksWill SmithHarrison FordEddie MurphyClint Eastwood'
     );
@@ -36,7 +36,7 @@ test.describe('lists-all', () => {
     await expect_n_gql(page, 'input[type="number"]', 0, 'press_ArrowDown');
 
     // expect the data to still contain the new actor
-    await expectToBe(
+    await expect_to_be(
       page,
       'Omar SyBruce WillisSamuel JacksonMorgan FreemanTom HanksWill SmithHarrison FordEddie MurphyClint Eastwood'
     );

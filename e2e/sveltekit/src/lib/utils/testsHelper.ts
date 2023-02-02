@@ -191,7 +191,7 @@ export async function goto_expect_n_gql(page: Page, url: string, n: number): Pro
 /**
  * @param selector @default div[id=result]
  */
-export async function expectToBe(
+export async function expect_to_be(
   page: Page,
   toBe: string,
   selector = 'div[id=result]',
