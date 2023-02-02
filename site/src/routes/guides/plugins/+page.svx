@@ -3,6 +3,10 @@ title: Plugins
 description: A summary of the available plugins for Houdini applications
 ---
 
+<script>
+    import { DeepDive } from '~/components'
+</script>
+
 # Plugins
 
 Houdini plugins are broken up into 2 categories:
@@ -48,6 +52,8 @@ export default new HoudiniClient({
 })
 ```
 
+<DeepDive title="Customizing the Behavior">
+
 If you want to do something very custom you can pass `fetch` a function to use
 
 ```typescript:title=src/client.ts
@@ -80,6 +86,8 @@ export default new HoudiniClient({
     ]
 })
 ```
+
+</DeepDive>
 
 ## Community Client Plugins
 
