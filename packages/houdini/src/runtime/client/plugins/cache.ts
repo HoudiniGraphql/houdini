@@ -15,7 +15,7 @@ export const cachePolicy =
 	}): ClientPlugin =>
 	() => {
 		return {
-			network(ctx, { next, resolve, marshalVariables }) {
+			network(ctx, { initialValue, next, resolve, marshalVariables }) {
 				const { policy, artifact } = ctx
 				let useCache = false
 				// enforce cache policies for queries
@@ -44,14 +44,15 @@ export const cachePolicy =
 							(artifact.kind === ArtifactKind.Query && artifact.partial)
 
 						// if the policy is cacheOnly and we got this far, we need to return null (no network request will be sent)
-						if (allowed && policy === CachePolicy.CacheOnly) {
+						if (policy === CachePolicy.CacheOnly) {
+							// if we're not allowed to send back what we want to,
 							return resolve(ctx, {
 								fetching: false,
 								variables: ctx.variables ?? null,
-								data: allowed ? value.data : null,
+								data: allowed ? value.data : initialValue.data,
 								errors: null,
 								source: DataSource.Cache,
-								partial: value.partial,
+								partial: allowed ? value.partial : false,
 								stale: value.stale,
 							})
 						}

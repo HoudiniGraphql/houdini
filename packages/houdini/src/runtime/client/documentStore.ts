@@ -110,6 +110,7 @@ export class DocumentStore<
 		stuff,
 		cacheParams,
 		setup = false,
+		silenceEcho = false,
 	}: {
 		fetch?: Fetch
 		variables?: Record<string, any> | null
@@ -119,6 +120,7 @@ export class DocumentStore<
 		stuff?: Partial<App.Stuff>
 		cacheParams?: ClientPluginContext['cacheParams']
 		setup?: boolean
+		silenceEcho?: boolean
 	} = {}) {
 		// start off with the initial context
 		let context = new ClientPluginContextWrapper({
@@ -155,6 +157,7 @@ export class DocumentStore<
 				setup,
 				currentStep: 0,
 				index: 0,
+				silenceEcho,
 				promise: {
 					resolved: false,
 					resolve,
@@ -374,6 +377,10 @@ export class DocumentStore<
 		this.#lastContext = ctx.context.draft()
 		this.#lastVariables = this.#lastContext.stuff.inputs.marshaled
 
+		// if the final value is partial and we aren't supposed to send one back, don't update anything
+		if (ctx.silenceEcho && finalValue.data === this.state.data) {
+			return
+		}
 		// the latest value should be written to the store
 		this.set(finalValue)
 	}
@@ -523,6 +530,7 @@ type IteratorState = {
 	index: number
 	setup: boolean
 	currentStep: number
+	silenceEcho: boolean
 	promise: {
 		resolved: boolean
 		resolve(val: any): void

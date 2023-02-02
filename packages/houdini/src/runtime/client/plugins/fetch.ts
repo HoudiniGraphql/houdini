@@ -64,7 +64,7 @@ const defaultFetch = (
 	// if there is no configured url, we can't use this plugin
 	if (!url) {
 		throw new Error(
-			'Could not find configured client url. Please specify one in your houdini.config.js file.'
+			'Could not find configured client url. Please specify one in your HoudiniClient constructor.'
 		)
 	}
 
