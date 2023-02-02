@@ -31,6 +31,8 @@ export const routes = {
   Stores_Comp_disable_auto_fetch: '/stores/comp_disable_auto_fetch',
 
   Stores_Partial_List: '/stores/partial/partial_List',
+  Stores_Partial_Off: '/stores/partial-off',
+  Stores_Partial_Off_Child: '/stores/partial-off/child',
   Stores_Pagination_query_forward_cursor: '/stores/pagination/query/forward-cursor',
 
   Plugin_query_simple: '/plugin/query/simple',
