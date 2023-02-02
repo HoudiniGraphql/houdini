@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
 import { routes } from '../../../../lib/utils/routes.js';
 import {
-  expectToBe,
+  expect_to_be,
   expectToContain,
   expect_1_gql,
   goto
@@ -11,7 +11,7 @@ test.describe('bidirectional cursor paginated fragment', () => {
   test('backwards and then forwards', async ({ page }) => {
     await goto(page, routes.Pagination_fragment_bidirectional_cursor);
 
-    await expectToBe(page, 'Morgan Freeman, Tom Hanks');
+    await expect_to_be(page, 'Morgan Freeman, Tom Hanks');
 
     /// Click on the previous button
 
@@ -19,7 +19,7 @@ test.describe('bidirectional cursor paginated fragment', () => {
     await expect_1_gql(page, 'button[id=previous]');
 
     // make sure we got the new content
-    await expectToBe(page, 'Bruce Willis, Samuel Jackson, Morgan Freeman, Tom Hanks');
+    await expect_to_be(page, 'Bruce Willis, Samuel Jackson, Morgan Freeman, Tom Hanks');
 
     // there should be a next page
     await expectToContain(page, `"hasNextPage":true`);
@@ -37,7 +37,7 @@ test.describe('bidirectional cursor paginated fragment', () => {
     await expectToContain(page, `"hasNextPage":true`);
 
     // make sure we got the new content
-    await expectToBe(
+    await expect_to_be(
       page,
       'Bruce Willis, Samuel Jackson, Morgan Freeman, Tom Hanks, Will Smith, Harrison Ford'
     );
@@ -53,7 +53,7 @@ test.describe('bidirectional cursor paginated fragment', () => {
     await expectToContain(page, `"hasNextPage":false`);
 
     // make sure we got the new content
-    await expectToBe(
+    await expect_to_be(
       page,
       'Bruce Willis, Samuel Jackson, Morgan Freeman, Tom Hanks, Will Smith, Harrison Ford, Eddie Murphy, Clint Eastwood'
     );
@@ -62,7 +62,7 @@ test.describe('bidirectional cursor paginated fragment', () => {
   test('forwards then backwards and then forwards again', async ({ page }) => {
     await goto(page, routes.Pagination_fragment_bidirectional_cursor);
 
-    await expectToBe(page, 'Morgan Freeman, Tom Hanks');
+    await expect_to_be(page, 'Morgan Freeman, Tom Hanks');
 
     /// Click on the next button
 
@@ -75,7 +75,7 @@ test.describe('bidirectional cursor paginated fragment', () => {
     await expectToContain(page, `"hasNextPage":true`);
 
     // make sure we got the new content
-    await expectToBe(page, 'Morgan Freeman, Tom Hanks, Will Smith, Harrison Ford');
+    await expect_to_be(page, 'Morgan Freeman, Tom Hanks, Will Smith, Harrison Ford');
 
     /// Click on the previous button
 
@@ -83,7 +83,7 @@ test.describe('bidirectional cursor paginated fragment', () => {
     await expect_1_gql(page, 'button[id=previous]');
 
     // make sure we got the new content
-    await expectToBe(
+    await expect_to_be(
       page,
       'Bruce Willis, Samuel Jackson, Morgan Freeman, Tom Hanks, Will Smith, Harrison Ford'
     );
@@ -104,7 +104,7 @@ test.describe('bidirectional cursor paginated fragment', () => {
     await expectToContain(page, `"hasNextPage":false`);
 
     // make sure we got the new content
-    await expectToBe(
+    await expect_to_be(
       page,
       'Bruce Willis, Samuel Jackson, Morgan Freeman, Tom Hanks, Will Smith, Harrison Ford, Eddie Murphy, Clint Eastwood'
     );

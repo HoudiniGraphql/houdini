@@ -359,7 +359,8 @@ export const _UserInfoVariables: UserInfoVariables = ({ params }) => {
 
 ### Inline Queries
 
-Another way to get a generated load for your route queries, is to add `@load` to a query inside of your `+page.svelte`:
+Another way to get a generated load for queries, is to add `@load` to the document inside of a
+svelte component:
 
 ```svelte:title=src/lib/UserList.svelte&typescriptToggle=true
 <script lang="ts">
@@ -434,7 +435,7 @@ You can now define a `+page.svelte` file that looks like the following and your 
 {$UserInfo.data.viewer.firstName}
 ```
 
-Keep in mind, if you want to define variable functions or hooks, those will go in `+page.js`.
+Remember, if you want to define variable functions or hooks, those will go in `+page.js`.
 
 ### Layout Queries
 

@@ -45,7 +45,6 @@ export const cachePolicy =
 
 						// if the policy is cacheOnly and we got this far, we need to return null (no network request will be sent)
 						if (policy === CachePolicy.CacheOnly) {
-							// if we're not allowed to send back what we want to,
 							return resolve(ctx, {
 								fetching: false,
 								variables: ctx.variables ?? null,

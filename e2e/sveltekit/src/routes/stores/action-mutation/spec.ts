@@ -1,13 +1,13 @@
 import { sleep } from '@kitql/helper';
 import { test } from '@playwright/test';
 import { routes } from '../../../lib/utils/routes.js';
-import { expectToBe, goto } from '../../../lib/utils/testsHelper.js';
+import { expect_to_be, goto } from '../../../lib/utils/testsHelper.js';
 
 test.describe('action-mutation', () => {
   test('happy path action-mutation ', async ({ page }) => {
     await goto(page, routes.Stores_action_mutation);
 
-    await expectToBe(page, 'No user added');
+    await expect_to_be(page, 'No user added');
 
     // click the button
     await Promise.all([
@@ -16,7 +16,7 @@ test.describe('action-mutation', () => {
     ]);
 
     // a start should be displayed
-    await expectToBe(page, '*', 'span[id=name-error]');
+    await expect_to_be(page, '*', 'span[id=name-error]');
 
     // fill the input
     await page.getByLabel('Name').fill('My New Name');
@@ -31,6 +31,6 @@ test.describe('action-mutation', () => {
     await sleep(500);
 
     // check that we have the right data
-    await expectToBe(page, 'My New Name');
+    await expect_to_be(page, 'My New Name');
   });
 });
