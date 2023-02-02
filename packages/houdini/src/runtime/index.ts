@@ -3,7 +3,7 @@ import type { Cache as InternalCache } from './cache/cache'
 import type { CacheTypeDef } from './generated'
 import { Cache } from './public'
 
-export { HoudiniClient } from './client'
+export * from './client'
 export * from './lib'
 
 // this template tag gets removed by the preprocessor so it should never be invoked.
