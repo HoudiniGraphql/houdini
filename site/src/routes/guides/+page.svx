@@ -5,24 +5,25 @@ description: A list of guides to walk through Houdini
 
 # Welcome to Guides
 
-You want to discover Houdini in a guided way? You are in the right place!
+Need help or guidance using Houdini? You are in the right place!
 
-You will find here, some fondamentals principles to help you building a consistent app.
+This section contains posts that cover fundamental principles to help you build your projects.
 
-Maybe you want to start right off the bat with all [F.A.Q.](/guides/faq) that where answered over the time to 
-give you ideas on how to build your app.
-If you are already a Houdini lover, and want to enjoy the latest flavor, you can read [Release Notes](/guides/release-notes) to see what's new.
+- [Release Notes](/guides/release-notes) - a summary of the updates for every major and minor
+version
+- [F.A.Q.](/guides/faq) - Answers to common questions such as "Can I use queries in endpoints?"
+- [Plugins](/guides/plugins) - A list of plugins you can add to your houdini project
+- [Working with GraphQL](/guides/working-with-graphql) - An overview of the different ways you can leverage GraphQL
+- [Setting up Your Project](/guides/setting-up-your-project) - Instructions for setting up your project
+- [Pagination](/guides/pagination) - An overview of Houdini's support for loading long lists of data
+- [Caching Data](/guides/caching-data) - A summary of Houdini's caching behavior
+- [Authentication](/guies/authentication) - An overview of Houdini's session and authentication infrastructure
+- [Uploading Files](/guies/uploading-files) - A guide on handling file uploads via mutations
+- [Persisted Queries](/guies/persisted-queries) - A guide on persisted queries (including APQ)
+- [Typescript](/guies/typescript) - An overview of the TypeScript API
+- [Contributing Guide](/guides/contributing) - A guide written for people looking to contribute to Houdini
+- [Architecture](/guides/architecture) - An overview of Houdini's architecture for people building plugins
 
-After that, we strongly belive that what makes a greate library is it's community. It might be interesting to check out [Plugins](/guides/plugins) 
-to see what other people are doing with Houdini. It might help you too! By the way, you can also be part of the community by [Contributing](/guides/contributing).
-For that, the [Architecture](/guides/architecture) might be useful to understand how Houdini is built.
 
-To have an idea of you we think it's the best way to build an app, you can read [Working with Graphql](/guides/best-practices) 
-where we gathered all the best practices we have. We are going over all exciting features of Houdini, from [Pagination](/guides/pagination) 
-to [Caching](/guides/caching-data) not forgeting [authentication](/guides/authentication) and [Uploading Files](/guides/uploading-files) that 
-are also very important, and available out of the box!
-
-Finaly, to kick off things you will want to [Set up your project](/guidessetting-up-your-project) with or without [Typescript](/guides/typescript)... 
-It's as you prefer!
-
-Our goal is for you to eperience a new level of ease and efficiency in your application's data handling. Do not hesitate to give us any feedback.
+Our goal is for you to eperience a new level of ease and efficiency in your application's data handling. Do not hesitate to give us any feedback if
+something was confusing or felt weird.
