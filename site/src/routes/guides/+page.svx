@@ -5,10 +5,24 @@ description: A list of guides to walk through Houdini
 
 # Welcome to Guides
 
-Unlock the Power of Data with Houdini. 
-Here, you will experience a new level of ease and efficiency in your application's data handling. 
-Say goodbye to the hassle of complex coding and hello to seamless integration with Houdini's **intuitive** API. 
-With a range of options and the ability to customize, you can shape your data flow to fit your specific needs. 
-Learn the secrets of streamlining your application's data management
+You want to discover Houdini in a guided way? You are in the right place!
 
-Start your journey today by reading all these guides.
+You will find here, some fondamentals principles to help you building a consistent app.
+
+Maybe you want to start right off the bat with all [F.A.Q.](/guides/faq) that where answered over the time to 
+give you ideas on how to build your app.
+If you are already a Houdini lover, and want to enjoy the latest flavor, you can read [Release Notes](/guides/release-notes) to see what's new.
+
+After that, we strongly belive that what makes a greate library is it's community. It might be interesting to check out [Plugins](/guides/plugins) 
+to see what other people are doing with Houdini. It might help you too! By the way, you can also be part of the community by [Contributing](/guides/contributing).
+For that, the [Architecture](/guides/architecture) might be useful to understand how Houdini is built.
+
+To have an idea of you we think it's the best way to build an app, you can read [Working with Graphql](/guides/best-practices) 
+where we gathered all the best practices we have. We are going over all exciting features of Houdini, from [Pagination](/guides/pagination) 
+to [Caching](/guides/caching-data) not forgeting [authentication](/guides/authentication) and [Uploading Files](/guides/uploading-files) that 
+are also very important, and available out of the box!
+
+Finaly, to kick off things you will want to [Set up your project](/guidessetting-up-your-project) with or without [Typescript](/guides/typescript)... 
+It's as you prefer!
+
+Our goal is for you to eperience a new level of ease and efficiency in your application's data handling. Do not hesitate to give us any feedback.
