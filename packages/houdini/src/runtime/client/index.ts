@@ -4,12 +4,12 @@ import type { DocumentArtifact, GraphQLObject, NestedList } from '../lib/types'
 import type { ClientPlugin, ClientHooks } from './documentStore'
 import { DocumentStore } from './documentStore'
 import {
-	fetchParams as fetchParamsPlugin,
 	fetch as fetchPlugin,
 	mutation as mutationPlugin,
 	query as queryPlugin,
 	throwOnError as throwOnErrorPlugin,
 	type FetchParamFn,
+	fetchParams as fetchParamsPlugin,
 	type ThrowOnErrorParams,
 } from './plugins'
 import pluginsFromPlugins from './plugins/injectedPlugins'

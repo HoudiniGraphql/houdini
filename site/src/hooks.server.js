@@ -7,7 +7,8 @@ export function handleError({ error, event }) {
 		'/api/vite': '/api/vite-plugin',
 		'/api/cli': '/api/command-line',
 		'/intro/fragments': '/intro/reusing-parts-of-a-query',
-		'/api/graphql': '/api/graphql-magic'
+		'/api/graphql': '/api/graphql-magic',
+		'/guides/plugin': '/guides/plugin-directory'
 	}
 
 	// If we have a value, let's redirect
