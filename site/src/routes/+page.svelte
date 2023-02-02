@@ -462,10 +462,6 @@
 			gap: 64px;
 		}
 
-		article {
-			padding: 48px;
-		}
-
 		.hero {
 			flex-direction: column;
 		}
@@ -541,9 +537,6 @@
 	}
 
 	@media (max-width: 650px) {
-		article {
-			padding: 12px;
-		}
 		.hide-thinner {
 			display: none;
 		}
