@@ -91,7 +91,7 @@ const codegenPluginExample = `
 plugin('plugin_name', async () =>  {
     return {
         generate({ documents }) {
-            // generate something 
+            // generate something
         }
     }
 })
@@ -154,7 +154,7 @@ example={subscriptionExample}
 ## Runtime APIs
 
 <APIShowcase
-title="Augmented GraphQL"
+title="GraphQL Magic"
 description="A summary of the custom things houdini lets you do in your graphql documents"
 href="/api/graphql-magic"
 example={graphqlExample}
