@@ -34,7 +34,7 @@
     import { graphql } from '$houdini'
 
     const AllItems = graphql(`
-        query AllItems {
+        query AllItems @load {
             items {
                 text
             }
