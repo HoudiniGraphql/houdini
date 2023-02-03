@@ -228,7 +228,9 @@ filesystemPromises.readFile = async (path, options): Promise<any> => {
 		try {
 			return await _readFile(path, options)
 		} catch {
-			return '<slot />'
+			return typeof options === 'string' || options?.encoding
+				? empty_layout
+				: Buffer.from(empty_layout)
 		}
 	}
 
