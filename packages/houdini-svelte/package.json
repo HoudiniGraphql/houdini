@@ -35,6 +35,7 @@
         "graphql": "^15.8.0",
         "houdini": "workspace:^",
         "recast": "^0.23.1",
+        "rollup": "^3.7.4",
         "svelte": "^3.55.1",
         "vite": "^4.0.4"
     },

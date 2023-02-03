@@ -381,7 +381,7 @@ export default function artifactGenerator(stats: {
 
 					// check if the artifact exists
 					const match = existingArtifact && existingArtifact.match(/"HoudiniHash=(\w+)"/)
-					if (match && match[1] !== hash({ config, document: doc })) {
+					if (match && match[1] !== artifact.hash) {
 						stats.changed.push(artifact.name)
 					}
 
