@@ -1,6 +1,7 @@
 import { parseJS, runPipeline, formatErrors } from 'houdini'
 import type { TransformPage } from 'houdini/vite'
 import * as recast from 'recast'
+import type { SourceMapInput } from 'rollup'
 
 import type { ParsedFile } from '../extract'
 import { parseSvelte } from '../extract'
@@ -17,7 +18,7 @@ const pipeline = [kit, query, tags]
 export default async function apply_transforms(
 	framework: Framework,
 	page: TransformPage
-): Promise<{ code: string }> {
+): Promise<{ code: string; map?: SourceMapInput }> {
 	// a single transform might need to do different things to the module and
 	// instance scripts so we're going to pull them out, push them through separately,
 	// and then join them back together
@@ -30,7 +31,7 @@ export default async function apply_transforms(
 			script = await parseJS(page.content)
 		}
 	} catch (e) {
-		return { code: page.content }
+		return { code: page.content, map: page.map }
 	}
 
 	// if the route script is nill we can just use an empty program
@@ -63,13 +64,16 @@ export default async function apply_transforms(
 	}
 
 	// print the result
-	const printedScript = recast.print(result.script).code
+	const { code, map } = recast.print(result.script, {
+		inputSourceMap: page.map?.toString(),
+	})
 
 	return {
 		// if we're transforming a svelte file, we need to replace the script's inner contents
 		code: !page.filepath.endsWith('.svelte')
-			? printedScript
-			: replace_tag_content(page.content, script.start, script.end, printedScript),
+			? code
+			: replace_tag_content(page.content, script.start, script.end, code),
+		map,
 	}
 }
 
