@@ -1,5 +1,14 @@
 # houdini-svelte
 
+## 1.0.0-next.15
+
+### 🐛 Fixes
+
+-   [#895](https://github.com/HoudiniGraphql/houdini/pull/895) [`d03ce3b`](https://github.com/HoudiniGraphql/houdini/commit/d03ce3ba3ab70bc3e94d81b87a1b1111cf206a50) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix sourcemaps
+
+-   Updated dependencies []:
+    -   houdini@1.0.0-next.15
+
 ## 1.0.0-next.14
 
 ### Patch Changes
