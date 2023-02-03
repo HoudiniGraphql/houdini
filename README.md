@@ -1,7 +1,7 @@
 <div align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset=".github/assets/logo_w.png">
-    <img style="max-height:200px" alt="Houdini's logo (dark or light)" src="./logo_b.png">
+    <img style="max-height:200px" alt="Houdini's logo (dark or light)" src=".github/assets/logo_b.png">
   </picture>
 
   <br />
