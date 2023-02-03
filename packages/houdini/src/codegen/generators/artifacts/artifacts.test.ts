@@ -4068,3 +4068,138 @@ test('some artifactData added to artifact specific to plugins', async function (
 		"HoudiniHash=8e483259f3d69f416c01b6106c0440fa0f916abb4cadb75273f8226a1ff0a5e2";
 	`)
 })
+
+test('nested recursive fragments', async function () {
+	// the documents to test
+	const docs: Document[] = [
+		mockCollectedDoc(`
+			query MyAnimalQuery {
+				node(id: "some_id") {
+					id
+
+					...NodeDetails
+
+					... on User {
+						...UserThings
+					}
+				}
+			}
+		`),
+		mockCollectedDoc(`
+			fragment UserThings on User {
+				id
+				name
+
+				...NodeDetails
+			}
+		`),
+		mockCollectedDoc(`
+			fragment NodeDetails on Node {
+				id
+
+				... on User {
+					id
+				}
+			}
+		`),
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "MyAnimalQuery",
+		    "kind": "HoudiniQuery",
+		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+
+		    "raw": \`query MyAnimalQuery {
+		  node(id: "some_id") {
+		    id
+		    ...NodeDetails
+		    ... on User {
+		      ...UserThings
+		    }
+		    __typename
+		  }
+		}
+
+		fragment NodeDetails on Node {
+		  id
+		  ... on User {
+		    id
+		  }
+		}
+
+		fragment UserThings on User {
+		  id
+		  name
+		  ...NodeDetails
+		}
+		\`,
+
+		    "rootType": "Query",
+
+		    "selection": {
+		        "fields": {
+		            "node": {
+		                "type": "Node",
+		                "keyRaw": "node(id: \\"some_id\\")",
+		                "nullable": true,
+
+		                "selection": {
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename"
+		                        }
+		                    },
+
+		                    "abstractFields": {
+		                        "fields": {
+		                            "User": {
+		                                "id": {
+		                                    "type": "ID",
+		                                    "keyRaw": "id"
+		                                },
+
+		                                "name": {
+		                                    "type": "String",
+		                                    "keyRaw": "name"
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename"
+		                                }
+		                            }
+		                        },
+
+		                        "typeMap": {}
+		                    }
+		                },
+
+		                "abstract": true
+		            }
+		        }
+		    },
+
+		    "plugin_data": {
+		        "plugin-tmp1": {
+		            "added_stuff": {
+		                "yop": "true"
+		            }
+		        }
+		    },
+
+		    "policy": "CacheOrNetwork",
+		    "partial": false
+		};
+
+		"HoudiniHash=e9f7a1f9d6bc08c4b811af38914ba9311471ad1e31dc943c142b676c2f1c36c9";
+	`)
+})
