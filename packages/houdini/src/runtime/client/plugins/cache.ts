@@ -15,7 +15,7 @@ export const cachePolicy =
 	}): ClientPlugin =>
 	() => {
 		return {
-			network(ctx, { next, resolve, marshalVariables }) {
+			network(ctx, { initialValue, next, resolve, marshalVariables }) {
 				const { policy, artifact } = ctx
 				let useCache = false
 				// enforce cache policies for queries
@@ -48,10 +48,10 @@ export const cachePolicy =
 							return resolve(ctx, {
 								fetching: false,
 								variables: ctx.variables ?? null,
-								data: value.data,
+								data: allowed ? value.data : initialValue.data,
 								errors: null,
 								source: DataSource.Cache,
-								partial: value.partial,
+								partial: allowed ? value.partial : false,
 								stale: value.stale,
 							})
 						}

@@ -3,7 +3,7 @@ import { routes } from '../../../../lib/utils/routes.js';
 import {
   expect_1_gql,
   expect_0_gql,
-  expectToBe,
+  expect_to_be,
   expectToContain,
   goto
 } from '../../../../lib/utils/testsHelper.js';
@@ -12,13 +12,13 @@ test.describe('forwards cursor paginatedFragment', () => {
   test('loadNextPage', async ({ page }) => {
     await goto(page, routes.Pagination_fragment_forward_cursor);
 
-    await expectToBe(page, 'Bruce Willis, Samuel Jackson');
+    await expect_to_be(page, 'Bruce Willis, Samuel Jackson');
 
     // wait for the api response
     await expect_1_gql(page, 'button[id=next]');
 
     // make sure we got the new content
-    await expectToBe(page, 'Bruce Willis, Samuel Jackson, Morgan Freeman, Tom Hanks');
+    await expect_to_be(page, 'Bruce Willis, Samuel Jackson, Morgan Freeman, Tom Hanks');
   });
 
   test('page info tracks connection state', async ({ page }) => {
@@ -36,11 +36,11 @@ test.describe('forwards cursor paginatedFragment', () => {
       await expect_1_gql(page, 'button[id=next]');
 
       // check the page info
-      await expectToBe(page, data[i]);
+      await expect_to_be(page, data[i]);
     }
 
     // make sure we have all of the data loaded
-    await expectToBe(page, data[2]);
+    await expect_to_be(page, data[2]);
 
     await expectToContain(page, `"hasNextPage":false`);
 

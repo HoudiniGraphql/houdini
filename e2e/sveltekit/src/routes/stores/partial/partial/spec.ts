@@ -1,7 +1,7 @@
 import { routes } from '../../../../lib/utils/routes.js';
 import {
   clientSideNavigation,
-  expectToBe,
+  expect_to_be,
   goto,
   locator_click
 } from '../../../../lib/utils/testsHelper.js';
@@ -23,8 +23,8 @@ test.describe('Partial Pages', () => {
     await sleep(2345);
 
     // Check that we have 2 fields
-    expectToBe(page, 'Partial:2', 'div[id="id"]');
-    expectToBe(page, 'Samuel Jackson', 'div[id="name"]');
+    expect_to_be(page, 'Partial:2', 'div[id="id"]');
+    expect_to_be(page, 'Samuel Jackson', 'div[id="name"]');
 
     // go back to the list
     await clientSideNavigation(page, routes.Stores_Partial_List);
@@ -33,12 +33,12 @@ test.describe('Partial Pages', () => {
     await locator_click(page, 'a[id="f_2"]');
 
     // Click on the link and check directly the 3 divs
-    expectToBe(page, 'Partial:2', 'div[id="id"]');
-    expectToBe(page, 'Samuel Jackson', 'div[id="name"]');
-    expectToBe(page, 'undefined', 'div[id="birthDate"]');
+    expect_to_be(page, 'Partial:2', 'div[id="id"]');
+    expect_to_be(page, 'Samuel Jackson', 'div[id="name"]');
+    expect_to_be(page, 'undefined', 'div[id="birthDate"]');
 
     // Wait a bit so that the server respond and birthDate is displayed
     await sleep(2345);
-    expectToBe(page, '1948-12-21T00:00:00.000Z', 'div[id="birthDate"]');
+    expect_to_be(page, '1948-12-21T00:00:00.000Z', 'div[id="birthDate"]');
   });
 });

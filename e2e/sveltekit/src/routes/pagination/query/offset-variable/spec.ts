@@ -1,18 +1,18 @@
 import { expect, test } from '@playwright/test';
 import { routes } from '../../../../lib/utils/routes.js';
-import { expect_1_gql, expectToBe, goto } from '../../../../lib/utils/testsHelper.js';
+import { expect_1_gql, expect_to_be, goto } from '../../../../lib/utils/testsHelper.js';
 
 test.describe('offset paginatedQuery', () => {
   test('loadNextPage', async ({ page }) => {
     await goto(page, routes.Pagination_query_offset_variable);
 
-    await expectToBe(page, 'Bruce Willis, Samuel Jackson');
+    await expect_to_be(page, 'Bruce Willis, Samuel Jackson');
 
     // wait for the api response
     await expect_1_gql(page, 'button[id=next]');
 
     // make sure we got the new content
-    await expectToBe(page, 'Bruce Willis, Samuel Jackson, Morgan Freeman, Tom Hanks');
+    await expect_to_be(page, 'Bruce Willis, Samuel Jackson, Morgan Freeman, Tom Hanks');
   });
 
   test('refetch', async ({ page }) => {
