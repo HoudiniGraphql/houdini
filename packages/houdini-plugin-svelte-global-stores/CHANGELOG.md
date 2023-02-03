@@ -2,7 +2,7 @@
 
 ## 1.0.0-next.15
 
-### Patch Changes
+### Dependency Changes
 
 -   Updated dependencies [[`d03ce3b`](https://github.com/HoudiniGraphql/houdini/commit/d03ce3ba3ab70bc3e94d81b87a1b1111cf206a50)]:
     -   houdini-svelte@1.0.0-next.15
@@ -10,7 +10,7 @@
 
 ## 1.0.0-next.14
 
-### Patch Changes
+### Dependency Changes
 
 -   Updated dependencies [[`beca7c6`](https://github.com/HoudiniGraphql/houdini/commit/beca7c6d04747040c5dc1b1067978a0886e6ca77)]:
     -   houdini-svelte@1.0.0-next.14
