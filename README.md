@@ -1,5 +1,5 @@
 <div align="center">
-  <img alt="houdini" height="200" src=".github/assets/houdini-v5.png" />
+  <img alt="houdini" height="200" src=".github/assets/houdini-v6.png" />
 
   <br />
   <br />
@@ -62,7 +62,7 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
 
 ## 🕹&nbsp;&nbsp;Example
 
-For a detailed example, you can check out the todo list in the [example directory](./example) or the [final version](https://github.com/HoudiniGraphql/intro/tree/final) of the 
+For a detailed example, you can check out the [example-sveltekit-todo](https://github.com/HoudiniGraphql/example-sveltekit-todo) or the [final version](https://github.com/HoudiniGraphql/intro/tree/final) of the 
 Pokédex application from the [Getting Started guide](https://www.houdinigraphql.com/intro). 
 
 ## 📚&nbsp;&nbsp;Documentation
@@ -71,9 +71,8 @@ For documentation, please visit the [api reference](https://www.houdinigraphql.c
 
 ## 🚀&nbsp;&nbsp;Getting Started
 
-For an in-depth guide to getting started with Houdini, check out the [guide on the our website](https://www.houdinigraphql.com/intro).
+For an in-depth guide to getting started with Houdini, check out the [guide on our website](https://www.houdinigraphql.com/intro).
 
 ## ✏️&nbsp;&nbsp;Contributing
 
-If you are interested in helping out, the [contributing guide](https://www.houdinigraphql.com/guides/contributing) should provide some guidance. If you need something more
-specific, feel free to reach out to @AlecAivazis on the Svelte discord. There's lots to help with regardless of how deep you want to dive or how much time you can spend 🙂
+If you are interested in helping out, the [contributing guide](https://www.houdinigraphql.com/guides/contributing) should provide some guidance. If you need something more specific, feel free to reach out on our [discord](https://discord.gg/Gd8vfvxpsD) _(we are online almost 24/7 like @AlecAivazis and others)_. There's lots to help with regardless of how deep you want to dive or how much time you can spend 🙂
