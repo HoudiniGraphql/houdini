@@ -1,5 +1,11 @@
 # houdini-svelte
 
+## 1.0.0-next.13
+
+### 🐛 Fixes
+
+-   [#887](https://github.com/HoudiniGraphql/houdini/pull/887) [`9824f77`](https://github.com/HoudiniGraphql/houdini/commit/9824f77f88015ca7eb03ee988700b72cd3651cdf) Thanks [@fehnomenal](https://github.com/fehnomenal)! - Fix typings of generated variable function for component queries
+
 ## 1.0.0-next.12
 
 ### Patch Changes

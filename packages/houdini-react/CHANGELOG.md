@@ -1,8 +1,15 @@
 # houdini-react
 
+## 1.0.0-next.13
+
+### Dependency Changes
+
+-   Updated dependencies [[`fcba9f0`](https://github.com/HoudiniGraphql/houdini/commit/fcba9f0589ac6c066f95623d819cd9ea05d151a9)]:
+    -   houdini@1.0.0-next.13
+
 ## 1.0.0-next.12
 
-### Patch Changes
+### Dependency Changes
 
 -   Updated dependencies [[`b9f7c24`](https://github.com/HoudiniGraphql/houdini/commit/b9f7c241c540b12a0352b4db2c6be63df5ea54d7)]:
     -   houdini@1.0.0-next.12
@@ -16,14 +23,14 @@
 
 ## 1.0.0-next.10
 
-### Patch Changes
+### Dependency Changes
 
 -   Updated dependencies [[`fd7b46c`](https://github.com/HoudiniGraphql/houdini/commit/fd7b46c4ab5392e643a6e6bb243697147d13fd2b)]:
     -   houdini@1.0.0-next.10
 
 ## 1.0.0-next.9
 
-### Patch Changes
+### Dependency Changes
 
 -   Updated dependencies [[`de44252`](https://github.com/HoudiniGraphql/houdini/commit/de442526e7518cc575e8f00b94767fa3d45e6f91), [`de44252`](https://github.com/HoudiniGraphql/houdini/commit/de442526e7518cc575e8f00b94767fa3d45e6f91)]:
     -   houdini@1.0.0-next.9
