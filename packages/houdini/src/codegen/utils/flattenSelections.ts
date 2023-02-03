@@ -1,4 +1,4 @@
-import type * as graphql from 'graphql'
+import type graphql from 'graphql'
 
 import type { Config } from '../../lib'
 import { HoudiniError } from '../../lib'
@@ -188,7 +188,13 @@ class FieldCollection {
 				}
 
 				// convert the selection to a real selection set
-				fragment.astNode.selectionSet.selections = fragment.selection.toSelectionSet()
+				fragment.astNode = {
+					...fragment.astNode,
+					selectionSet: {
+						...fragment.astNode.selectionSet,
+						selections: fragment.selection.toSelectionSet(),
+					},
+				}
 
 				// return the value
 				return [fragment.astNode]

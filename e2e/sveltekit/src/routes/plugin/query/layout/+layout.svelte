@@ -13,3 +13,5 @@
 <div id="result">
   {$result.data?.user.name}
 </div>
+
+<slot />
