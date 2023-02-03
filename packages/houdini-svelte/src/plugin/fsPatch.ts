@@ -2,6 +2,7 @@ import type { PluginHooks } from 'houdini'
 import { fs, path } from 'houdini'
 import type { PathLike } from 'node:fs'
 import filesystem, { Dirent } from 'node:fs'
+import filesystemPromises from 'node:fs/promises'
 
 import { _config } from '.'
 import type { Framework } from './kit'
@@ -215,6 +216,31 @@ Object.defineProperty(globalThis, 'fs', {
 	configurable: true,
 	enumerable: true,
 	value: filesystem,
+})
+
+// patch the promise util to detect a mocked layout
+const _readFile = filesystemPromises.readFile
+
+filesystemPromises.readFile = async (path, options): Promise<any> => {
+	// this is +layout.svelte because source map validations are by file name
+	// make sure there is always a +layout.svelte
+	if (path.toString().endsWith('+layout.svelte')) {
+		try {
+			return await _readFile(path, options)
+		} catch {
+			return typeof options === 'string' || options?.encoding
+				? empty_layout
+				: Buffer.from(empty_layout)
+		}
+	}
+
+	return _readFile(path, options)
+}
+
+Object.defineProperty(globalThis, 'fs/promises', {
+	configurable: true,
+	enumerable: true,
+	value: filesystemPromises,
 })
 
 function virtual_file(name: string, options: Parameters<typeof filesystem.readdirSync>[1]) {

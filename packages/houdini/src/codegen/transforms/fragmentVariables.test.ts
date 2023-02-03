@@ -43,7 +43,7 @@ test('pass argument values to generated fragments', async function () {
 		export default {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
-		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+		    "hash": "fb97ee7e3f483801de403f425fcd2b4ed5c1357ffc3d73394e34c23b278552b1",
 
 		    "raw": \`query AllUsers {
 		  ...QueryFragment_10b3uv
@@ -80,7 +80,7 @@ test('pass argument values to generated fragments', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=c346b9eaafaa74d18a267a74706e193e8080b9533d994d6e8489d7e5b534ee41";
+		"HoudiniHash=fb97ee7e3f483801de403f425fcd2b4ed5c1357ffc3d73394e34c23b278552b1";
 	`)
 })
 
@@ -120,7 +120,7 @@ test("nullable arguments with no values don't show up in the query", async funct
 		export default {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
-		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+		    "hash": "774e85c1a749388df97ed5768006535072408ceea2a7bba3c835553e2d65e5bd",
 
 		    "raw": \`query AllUsers {
 		  ...QueryFragment
@@ -157,7 +157,7 @@ test("nullable arguments with no values don't show up in the query", async funct
 		    "partial": false
 		};
 
-		"HoudiniHash=19b6a6cc9d06ab798cbf4b0a9530e07a3473b78e7d964cc9d6557d8240ed9012";
+		"HoudiniHash=774e85c1a749388df97ed5768006535072408ceea2a7bba3c835553e2d65e5bd";
 	`)
 })
 
@@ -197,7 +197,7 @@ test("fragment arguments with default values don't rename the fragment", async f
 		export default {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
-		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+		    "hash": "774e85c1a749388df97ed5768006535072408ceea2a7bba3c835553e2d65e5bd",
 
 		    "raw": \`query AllUsers {
 		  ...QueryFragment
@@ -234,7 +234,7 @@ test("fragment arguments with default values don't rename the fragment", async f
 		    "partial": false
 		};
 
-		"HoudiniHash=3835ee68277547d738cc8fd5051fe98799b5bd470516146906fa0f134a2b3891";
+		"HoudiniHash=774e85c1a749388df97ed5768006535072408ceea2a7bba3c835553e2d65e5bd";
 	`)
 })
 
@@ -282,7 +282,7 @@ test('thread query variables to inner fragments', async function () {
 		export default {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
-		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+		    "hash": "7add8faa7fad1d3ba59adacc533e8e1ab6f92b4805a48b14665eb35591e96bb0",
 
 		    "raw": \`query AllUsers($name: String!) {
 		  ...QueryFragment_VDHGm
@@ -331,7 +331,7 @@ test('thread query variables to inner fragments', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=8fa4273ab75455c901e7de893f72a28af4c001afbf204ceca2fd7ab30b7ff372";
+		"HoudiniHash=7add8faa7fad1d3ba59adacc533e8e1ab6f92b4805a48b14665eb35591e96bb0";
 	`)
 })
 
@@ -379,7 +379,7 @@ test('inner fragment with intermediate default value', async function () {
 		export default {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
-		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+		    "hash": "774e85c1a749388df97ed5768006535072408ceea2a7bba3c835553e2d65e5bd",
 
 		    "raw": \`query AllUsers {
 		  ...QueryFragment
@@ -420,7 +420,7 @@ test('inner fragment with intermediate default value', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=d5753a3cae56b8133c72527cdccdd0c001effb48104b98806ac62dd9afeeb259";
+		"HoudiniHash=774e85c1a749388df97ed5768006535072408ceea2a7bba3c835553e2d65e5bd";
 	`)
 })
 
@@ -468,7 +468,7 @@ test("default values don't overwrite unless explicitly passed", async function (
 		export default {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
-		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+		    "hash": "774e85c1a749388df97ed5768006535072408ceea2a7bba3c835553e2d65e5bd",
 
 		    "raw": \`query AllUsers {
 		  ...QueryFragment
@@ -509,7 +509,7 @@ test("default values don't overwrite unless explicitly passed", async function (
 		    "partial": false
 		};
 
-		"HoudiniHash=b155b401cdbdfe0f63dd47575fbcfb2aa90678e7530b93476c4efe559405cf4f";
+		"HoudiniHash=774e85c1a749388df97ed5768006535072408ceea2a7bba3c835553e2d65e5bd";
 	`)
 })
 
@@ -549,7 +549,7 @@ test('default arguments', async function () {
 		export default {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
-		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+		    "hash": "774e85c1a749388df97ed5768006535072408ceea2a7bba3c835553e2d65e5bd",
 
 		    "raw": \`query AllUsers {
 		  ...QueryFragment
@@ -586,7 +586,7 @@ test('default arguments', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=5c4a8d1fe2e117286ecdfbd273bf1beb2f71a0a3fd9ea6bc84fe97c394c1a836";
+		"HoudiniHash=774e85c1a749388df97ed5768006535072408ceea2a7bba3c835553e2d65e5bd";
 	`)
 })
 
@@ -613,7 +613,7 @@ test('persists fragment variables in artifact', async function () {
 		export default {
 		    "name": "QueryFragment",
 		    "kind": "HoudiniFragment",
-		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+		    "hash": "6c327bb344ded7bcdfa0cb250d5139bb8e18d5618335b4e621a06576cb10a67f",
 
 		    "raw": \`fragment QueryFragment on Query {
 		  users(boolValue: $cool, stringValue: $name) {
@@ -652,6 +652,6 @@ test('persists fragment variables in artifact', async function () {
 		    }
 		};
 
-		"HoudiniHash=1e4bddf3d9bb482ea6eb5fc83b890908b9b4eee4d81523a65d990e10af66f2dd";
+		"HoudiniHash=6c327bb344ded7bcdfa0cb250d5139bb8e18d5618335b4e621a06576cb10a67f";
 	`)
 })

@@ -30,7 +30,7 @@ test('pagination arguments stripped from key', async function () {
 		export default {
 		    "name": "PaginatedFragment",
 		    "kind": "HoudiniFragment",
-		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+		    "hash": "2d5c4759a3afcc9c400670d48e718bd99a5063d53c50dab779f51455e5b2f566",
 
 		    "refetch": {
 		        "path": ["friendsByCursor"],
@@ -166,7 +166,7 @@ test('pagination arguments stripped from key', async function () {
 		    }
 		};
 
-		"HoudiniHash=6d646ff828f2db18e4c3565cac182da80c45967954b61a8e0dcdc3a2041724c6";
+		"HoudiniHash=2d5c4759a3afcc9c400670d48e718bd99a5063d53c50dab779f51455e5b2f566";
 	`)
 })
 
@@ -190,7 +190,7 @@ test('offset based pagination marks appropriate field', async function () {
 		export default {
 		    "name": "PaginatedFragment",
 		    "kind": "HoudiniFragment",
-		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+		    "hash": "80c97a259c558a65e1998f7e817c6e433b2c3b5d6cad4c2ae2803324fe8e5f58",
 
 		    "refetch": {
 		        "path": ["friendsByOffset"],
@@ -240,7 +240,7 @@ test('offset based pagination marks appropriate field', async function () {
 		    }
 		};
 
-		"HoudiniHash=61656f834b4f2afccdd42328b499f288fc9776befbef14154133565e0ac7e8b6";
+		"HoudiniHash=80c97a259c558a65e1998f7e817c6e433b2c3b5d6cad4c2ae2803324fe8e5f58";
 	`)
 })
 
@@ -276,7 +276,7 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		export default {
 		    "name": "ScalarPagination",
 		    "kind": "HoudiniQuery",
-		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+		    "hash": "9e2c500b01d31185266042250d637f928613b87afe976f04d02975d00b843a21",
 
 		    "refetch": {
 		        "path": ["user", "friendsByCursorScalar"],
@@ -472,7 +472,7 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		    "partial": false
 		};
 
-		"HoudiniHash=52d1832ab8d47b638e7f73bf90390ffd2e3a41ec194f0cc821ebe51ad792d771";
+		"HoudiniHash=9e2c500b01d31185266042250d637f928613b87afe976f04d02975d00b843a21";
 	`)
 })
 
@@ -519,7 +519,7 @@ test("sibling aliases don't get marked", async function () {
 		export default {
 		    "name": "PaginatedFragment",
 		    "kind": "HoudiniFragment",
-		    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+		    "hash": "7f9e237a0da97d7d704cde79d32f61fe252451fb96c89e19cb21e3f447d5e40d",
 
 		    "refetch": {
 		        "path": ["friendsByCursor"],
@@ -775,6 +775,6 @@ test("sibling aliases don't get marked", async function () {
 		    }
 		};
 
-		"HoudiniHash=1a925fd7ed0822f150c0d9bbcdfd73b902a0551af06dc6cbe64488cc7fecf069";
+		"HoudiniHash=7f9e237a0da97d7d704cde79d32f61fe252451fb96c89e19cb21e3f447d5e40d";
 	`)
 })

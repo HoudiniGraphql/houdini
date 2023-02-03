@@ -666,7 +666,7 @@ test('embeds node pagination query as a separate document', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=4ff3c0d7d0bc3f812896dd71dc3ff18e3066fe2459502a99fab163508be90b7a";
+		"HoudiniHash=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 	`)
 })
 
@@ -877,7 +877,7 @@ test('embeds custom pagination query as a separate document', async function () 
 		    "partial": false
 		};
 
-		"HoudiniHash=c5970407ebf288fcad596b8eacf0093c3992c8b16a5044e4f38317c8d73245aa";
+		"HoudiniHash=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 	`)
 })
 
@@ -1550,7 +1550,7 @@ test('generated query has same refetch spec', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=f1eb3c2bde855b70a59c4cccd29ddf014bbd0ff8a49f214af22974d698730a31";
+		"HoudiniHash=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 	`)
 })
 

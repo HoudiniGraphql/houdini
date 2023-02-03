@@ -1,3 +1,4 @@
+import type { SourceMapInput } from 'rollup'
 import type { Plugin as VitePlugin } from 'vite'
 
 import generate from '../codegen'
@@ -58,6 +59,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				watch_file: this.addWatchFile,
 				config: config,
 				filepath,
+				map: this.getCombinedSourcemap(),
 			}
 
 			// run the plugin pipeline
@@ -65,11 +67,12 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				if (!plugin.transformFile) {
 					continue
 				}
-				const { code } = await plugin.transformFile(ctx)
+				const { code, map } = await plugin.transformFile(ctx)
 				ctx.content = code
+				ctx.map = map
 			}
 
-			return { code: ctx.content }
+			return { code: ctx.content, map: ctx.map }
 		},
 
 		async load(id, opts, ...rest) {
@@ -109,6 +112,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 export interface TransformPage {
 	config: Config
 	content: string
+	map?: SourceMapInput
 	filepath: string
 	watch_file: (path: string) => void
 }
