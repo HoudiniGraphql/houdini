@@ -244,3 +244,116 @@ user.markStale('name')
 const user = cache.get('User', { id: '1' })
 user.markStale('name', { when: { pattern: 'capitalize' } })
 ```
+
+## Programmatic API
+
+There are times where Houdini’s automatic cache updates or list operation fragments are not sufficient.
+For those times, Houdini provides a programatic API for interacting with the cache directly. For more
+information, check out the [Cache API reference](/api/cache)
+.
+
+```typescript
+import { cache } from '$houdini'
+
+const user = cache.get('User', { id: '1' })
+
+user.write({
+	fragment: graphql(`
+		fragment UserInfo on User {
+			firstName
+		}
+	`),
+	data: {
+		firstName: 'New name'
+	}
+})
+```
+
+### Query Hints
+
+One interesting application of the programatic API is to provide hints for the runtime before performing
+a query which enables more cache hits and therefore a snappier experience.
+
+This pattern is best understood by example so here's a schema:
+
+```graphql
+type Query {
+	user(name: String!): User
+	users: [User!]!
+}
+
+type User {
+	id: ID!
+	name: String!
+}
+```
+
+For the sake of argument, imagine that there are two different views in our application:
+a list of users and a user profile page. The user page is driven by a query that resembles this:
+
+```graphql
+query UserList {
+	users {
+		id
+		name
+	}
+}
+```
+
+And the user profile view uses a query that takes the name and returns the user information:
+
+```graphql:title
+query UserProfile($name: String!) {
+	user(name: $name) {
+		id
+		name
+	}
+}
+```
+
+Now we want to show a link from the list view to a detail view of the specific user:
+
+```jsx
+// in a loop over users...
+
+<a href={`/users/${user.name}/`}>
+```
+
+When we render this link, Houdini's cache already knows the `id` and `name` of the user
+that is providing the data. However, when we click on the link, Houdini won't be able to
+use cached data for the `UserProfile` query because it does not know the value of
+`user(name: "Steve")`. Since we know the answer when generating the link, we can provide
+Houdini with the information before the link resolves:
+
+```jsx
+import { cache, graphql }  from "$houdini"
+
+function primeCache(user) {
+    // prime the cache to know the id of the uesr we are resolving
+    cache.write({
+        query: graphql(`
+            query UserProfileHint($name: String!) {
+                user(name: $name) {
+                    id
+                }
+            }
+        `),
+        data: {
+            user: {
+                id: user.id,
+            }
+        },
+        variables: {
+            name: user.name,
+        }
+    })
+}
+
+// in a loop over users...
+
+<a href={`/users/${user.name}/`} onClick={() => primeCache(user)}>
+```
+
+With this setup, we let the cache know that the value of `user(name: "Steve")`
+points to a `User` with a particular `id` and we can use the cached `name`
+value.
