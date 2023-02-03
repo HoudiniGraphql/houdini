@@ -75,6 +75,24 @@ Here is a summary of the possible configuration values:
 - `quietQueryErrors` (optional, default: `false`): With this enabled, errors in your query will not be thrown as exceptions. You will have to handle error state in your route components or by hand in your load (or the onError hook)
 - `static` (optional, default: `false`): A flag to remove the session infrastructure from your application
 
+### Client Location
+
+Your client must be discoverable by the svelte code generation logic. By default, it looks at `src/client.{js,ts}`
+but if your client is defined elsewhere, you will need to configure the `houdini-svelte` plugin to point to the
+correct location:
+
+```javascript:title=houdini.config.js
+export default {
+    // ...
+    plugins: {
+        'houdini-svelte': {
+            client: "./src/lib/graphql/client",
+        }
+    }
+
+}
+```
+
 ## Custom Scalars
 
 Configuring your runtime to handle custom scalars is done under the `scalars` key in your config:
