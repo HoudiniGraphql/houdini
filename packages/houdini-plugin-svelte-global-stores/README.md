@@ -1,5 +1,5 @@
 <div align="center">
-  <img alt="houdini" height="200" src="https://raw.githubusercontent.com/HoudiniGraphql/houdini/main/.github/assets/houdini-v5.png" />
+  <img alt="houdini" height="200" src="https://raw.githubusercontent.com/HoudiniGraphql/houdini/main/.github/assets/houdini-v6.png" />
   <br />
   <br />
   <strong>
