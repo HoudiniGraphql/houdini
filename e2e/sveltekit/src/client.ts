@@ -16,9 +16,16 @@ const logMetadata: ClientPlugin = () => ({
 export default new HoudiniClient({
   url: 'http://localhost:4000/graphql',
   fetchParams({ session }) {
+    // if we're ever unauthenticated, a request was sent that didn't thread
+    // the session through so let's error
+    if (!session?.user?.token) {
+      console.log(session);
+      throw new Error('Did not encounter session');
+    }
+
     return {
       headers: {
-        Authorization: `Bearer ${session?.user?.token}` // session usage example
+        Authorization: `Bearer ${session.user.token}`
       }
     };
   },

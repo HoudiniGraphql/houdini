@@ -111,17 +111,7 @@ export class DocumentStore<
 		cacheParams,
 		setup = false,
 		silenceEcho = false,
-	}: {
-		fetch?: Fetch
-		variables?: Record<string, any> | null
-		metadata?: App.Metadata | null
-		session?: App.Session | null
-		policy?: CachePolicy
-		stuff?: Partial<App.Stuff>
-		cacheParams?: ClientPluginContext['cacheParams']
-		setup?: boolean
-		silenceEcho?: boolean
-	} = {}) {
+	}: SendParams = {}) {
 		// start off with the initial context
 		let context = new ClientPluginContextWrapper({
 			config: this.#configFile!,
@@ -610,4 +600,16 @@ export type ClientPluginExitHandlers = Omit<ClientPluginEnterHandlers, 'resolve'
 /** Exit handlers are the same as enter handles but don't need to resolve with a specific value */
 export type ClientPluginErrorHandlers = ClientPluginEnterHandlers & {
 	error: unknown
+}
+
+export type SendParams = {
+	fetch?: Fetch
+	variables?: Record<string, any> | null
+	metadata?: App.Metadata | null
+	session?: App.Session | null
+	policy?: CachePolicy
+	stuff?: Partial<App.Stuff>
+	cacheParams?: ClientPluginContext['cacheParams']
+	setup?: boolean
+	silenceEcho?: boolean
 }
