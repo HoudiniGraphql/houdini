@@ -1,5 +1,14 @@
 # houdini-svelte
 
+## 1.0.0-next.14
+
+### Patch Changes
+
+-   [#892](https://github.com/HoudiniGraphql/houdini/pull/892) [`beca7c6`](https://github.com/HoudiniGraphql/houdini/commit/beca7c6d04747040c5dc1b1067978a0886e6ca77) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug in pagination handlers
+
+-   Updated dependencies []:
+    -   houdini@1.0.0-next.14
+
 ## 1.0.0-next.13
 
 ### 🐛 Fixes
