@@ -1,5 +1,8 @@
 <div align="center">
-  <img alt="houdini" height="200" src=".github/assets/houdini-v6.png" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/logo_w.png">
+    <img style="max-height:200px" alt="Houdini's logo (dark or light)" src="./logo_b.png">
+  </picture>
 
   <br />
   <br />
