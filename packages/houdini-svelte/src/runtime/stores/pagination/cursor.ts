@@ -1,4 +1,5 @@
 import type { DocumentStore } from '$houdini/runtime/client'
+import type { SendParams } from '$houdini/runtime/client/documentStore'
 import { CachePolicy } from '$houdini/runtime/lib'
 import { getCurrentConfig } from '$houdini/runtime/lib/config'
 import { siteURL } from '$houdini/runtime/lib/constants'
@@ -7,6 +8,7 @@ import type { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime
 import type { Writable } from 'svelte/store'
 import { get, writable } from 'svelte/store'
 
+import { getSession } from '../../session'
 import type { QueryStoreFetchParams } from '../query'
 import { fetchParams } from '../query'
 import type { FetchFn } from './fetch'
@@ -24,10 +26,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 	storeName: string
 	observer: DocumentStore<_Data, _Input>
 	fetch: FetchFn<_Data, _Input>
-	fetchUpdate: (
-		arg: Parameters<FetchFn<_Data, _Input>>[0],
-		updates: string[]
-	) => ReturnType<FetchFn<_Data, _Input>>
+	fetchUpdate: (arg: SendParams, updates: string[]) => ReturnType<FetchFn<_Data, _Input>>
 }): CursorHandlers<_Data, _Input> {
 	const pageInfo = writable<PageInfo>(extractPageInfo(get(observer).data, artifact.refetch!.path))
 
@@ -69,6 +68,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 				fetch,
 				metadata,
 				policy: CachePolicy.NetworkOnly,
+				session: await getSession(),
 			},
 			// if we are adding to the start of the list, prepend the result
 			[where === 'start' ? 'prepend' : 'append']

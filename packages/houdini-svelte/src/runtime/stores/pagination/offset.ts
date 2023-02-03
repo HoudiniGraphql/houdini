@@ -1,9 +1,11 @@
 import type { DocumentStore } from '$houdini/runtime/client'
+import type { SendParams } from '$houdini/runtime/client/documentStore'
 import { CachePolicy } from '$houdini/runtime/lib'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import type { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
 import { get } from 'svelte/store'
 
+import { getSession } from '../../session'
 import type { QueryStoreFetchParams } from '../query'
 import { fetchParams } from '../query'
 import type { FetchFn } from './fetch'
@@ -18,7 +20,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends {}>({
 }: {
 	artifact: QueryArtifact
 	fetch: FetchFn<_Data, _Input>
-	fetchUpdate: FetchFn<_Data, _Input>
+	fetchUpdate: (arg: SendParams) => ReturnType<FetchFn<_Data, _Input>>
 	storeName: string
 	observer: DocumentStore<_Data, _Input>
 }) {
@@ -65,6 +67,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends {}>({
 				fetch,
 				metadata,
 				policy: CachePolicy.NetworkOnly,
+				session: await getSession(),
 			})
 
 			// add the page size to the offset so we load the next page next time
