@@ -67,8 +67,9 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				if (!plugin.transformFile) {
 					continue
 				}
-				const { code } = await plugin.transformFile(ctx)
+				const { code, map } = await plugin.transformFile(ctx)
 				ctx.content = code
+				ctx.map = map
 			}
 
 			return { code: ctx.content, map: ctx.map }
@@ -111,7 +112,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 export interface TransformPage {
 	config: Config
 	content: string
-	map: SourceMapInput
+	map?: SourceMapInput
 	filepath: string
 	watch_file: (path: string) => void
 }

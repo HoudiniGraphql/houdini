@@ -65,7 +65,8 @@ export default async function apply_transforms(
 
 	// print the result
 	const { code, map } = recast.print(result.script, {
-		inputSourceMap: page.map?.toString(),
+		// @ts-ignore
+		inputSourceMap: page.map,
 	})
 
 	return {

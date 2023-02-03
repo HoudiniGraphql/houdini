@@ -6,6 +6,7 @@ import type {
 	ObjectHook,
 	PluginContext,
 	ResolveIdResult,
+	SourceMapInput,
 } from 'rollup'
 
 import type { ConfigFile } from '../runtime/lib/config'
@@ -238,7 +239,11 @@ export type PluginHooks = {
 	/**
 	 * A hook to transform the source file to support desired APIs.
 	 */
-	transformFile?: (page: TransformPage) => Promise<{ code: string }> | { code: string }
+	transformFile?: (
+		page: TransformPage
+	) =>
+		| Promise<{ code: string; map?: SourceMapInput | string }>
+		| { code: string; map?: SourceMapInput | string }
 
 	vite?: {
 		// these type definitions are copy and pasted from the vite ones
