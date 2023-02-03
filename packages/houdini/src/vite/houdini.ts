@@ -1,4 +1,4 @@
-import { SourceMapInput } from 'rollup'
+import type { SourceMapInput } from 'rollup'
 import type { Plugin as VitePlugin } from 'vite'
 
 import generate from '../codegen'
