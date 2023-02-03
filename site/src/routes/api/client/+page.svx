@@ -73,24 +73,6 @@ type GraphqlError = {
 }
 ```
 
-## Location
-
-Your client must be discoverable by the svelte code generation logic. By default, it looks at `src/client.{js,ts}`
-but if your client is defined elsewhere, you will need to configure the `houdini-svelte` plugin to point to the
-correct location:
-
-```javascript:title=houdini.config.js
-export default {
-    // ...
-    plugins: {
-        'houdini-svelte': {
-            client: "./src/lib/graphql/client",
-        }
-    }
-
-}
-```
-
 ## Error Handling
 
 There are 2 ways you can handle errors in GraphQL: you can either have documents throw an exception if an
