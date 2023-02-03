@@ -62,7 +62,6 @@ type Query {
 	cities: [City]!
 	userNodesResult(snapshot: String!, forceMessage: Boolean!): UserNodesResult!
 	userResult(id: ID!, snapshot: String!, forceMessage: Boolean!): UserResult!
-    animal(id: ID!): Animal!
 }
 
 type Subscription {
@@ -118,26 +117,4 @@ union UserResult = User | Message1
 
 type Message1 {
 	message: String!
-}
-
-interface Animal {
-    id: ID!
-    name: String!
-    description: String!
-}
-
-type Dog implements Animal {
-    id: ID!
-    name: String!
-    description: String!
-
-    howToBark: String!
-}
-
-type Cat implements Animal {
-    id: ID!
-    name: String!
-    description: String!
-
-    nrOfGlassesKnockedOver: Int!
 }

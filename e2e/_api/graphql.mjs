@@ -185,26 +185,7 @@ export const resolvers = {
 				(c) => c.id === `${args.snapshot}:${args.id}`
 			)
 			return { ...user, __typename: 'User' }
-        },
-        animal: async (_, args) => {
-            if (args.id === "some_cat") {
-                return {
-                    id: "some_cat",
-                    name: "Some Cat",
-                    description: "It really is just some cat",
-                    nrOfGlassesKnockedOver: 278,
-                    __typename: "Cat",
-                }
-            }
-
-            return {
-                id: "some_dog",
-                name: "Some Dog",
-                description: "It's a dog!",
-                howToBark: "Open mouth, and make a sound",
-                __typename: "Dog",
-            }
-        }
+		},
 	},
 
 	User: {
