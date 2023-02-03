@@ -2,7 +2,7 @@
 
 ## 1.0.0-next.13
 
-### Patch Changes
+### 🐛 Fixes
 
 -   [#889](https://github.com/HoudiniGraphql/houdini/pull/889) [`fcba9f0`](https://github.com/HoudiniGraphql/houdini/commit/fcba9f0589ac6c066f95623d819cd9ea05d151a9) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix out of memory error with nested recursive fragments
 
