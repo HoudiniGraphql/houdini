@@ -1,5 +1,14 @@
 # houdini-svelte
 
+## 1.0.0-next.16
+
+### Patch Changes
+
+-   [#897](https://github.com/HoudiniGraphql/houdini/pull/897) [`1298fef`](https://github.com/HoudiniGraphql/houdini/commit/1298fef24b7a0b8e377b1de4ff2892317516c75f) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Invalid integer route paramters get unmarshaled as undefined
+
+-   Updated dependencies []:
+    -   houdini@1.0.0-next.16
+
 ## 1.0.0-next.15
 
 ### 🐛 Fixes
