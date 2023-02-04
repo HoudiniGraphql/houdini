@@ -15,7 +15,7 @@ import { get } from 'svelte/store'
 
 import type { PluginArtifactData } from '../../plugin/artifactData'
 import { clientStarted, isBrowser } from '../adapter'
-import { initClient } from '../client'
+import { getClient, initClient } from '../client'
 import { getSession } from '../session'
 import { BaseStore } from './base'
 
@@ -157,21 +157,32 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 	// setting up is synchronous at first so that #unsubscribe
 	// is a "thread safe" way to prevent multiple setups from happening
 	#setup(init: boolean = true) {
-		// if we've already setup, don't do anything
-		if (this.#unsubscribe) {
-			return
+		// if we have to initialize the client, do so
+		let initPromise: Promise<any> = Promise.resolve()
+		try {
+			getClient()
+		} catch {
+			initPromise = initClient()
 		}
-		this.#unsubscribe = this.observer.subscribe((value) => {
-			this.#store.set(value)
-		})
 
-		// only initialize when told to
-		if (init) {
-			return this.observer.send({
-				setup: true,
-				variables: get(this.observer).variables,
+		initPromise.then(() => {
+			// if we've already setup, don't do anything
+			if (this.#unsubscribe) {
+				return
+			}
+
+			this.#unsubscribe = this.observer.subscribe((value) => {
+				this.#store.set(value)
 			})
-		}
+
+			// only initialize when told to
+			if (init) {
+				return this.observer.send({
+					setup: true,
+					variables: get(this.observer).variables,
+				})
+			}
+		})
 	}
 
 	subscribe(...args: Parameters<Readable<QueryResult<_Data, _Input>>['subscribe']>) {
