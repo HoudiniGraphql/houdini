@@ -1,5 +1,14 @@
 # houdini-svelte
 
+## 1.0.0-next.17
+
+### Patch Changes
+
+-   [#899](https://github.com/HoudiniGraphql/houdini/pull/899) [`f92da71`](https://github.com/HoudiniGraphql/houdini/commit/f92da71240347e3c67a54c463aed554a0a369b80) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fixed issue when isolated components wouldn't have initialized the client
+
+-   Updated dependencies []:
+    -   houdini@1.0.0-next.17
+
 ## 1.0.0-next.16
 
 ### 🐛 Fixes
