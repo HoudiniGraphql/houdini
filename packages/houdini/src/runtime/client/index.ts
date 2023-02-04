@@ -88,6 +88,7 @@ export class HoudiniClient {
 		initialValue,
 		fetching = false,
 	}: ObserveParams<_Data>): DocumentStore<_Data, _Input> {
+		console.log('observing', artifact.name, fetching)
 		return new DocumentStore({
 			client: this,
 			artifact,

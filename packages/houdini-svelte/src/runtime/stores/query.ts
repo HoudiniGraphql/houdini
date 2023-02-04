@@ -49,15 +49,15 @@ export class QueryStore<_Data extends GraphQLObject, _Input extends {}> extends 
 	constructor({ artifact, storeName, variables }: StoreConfig<_Data, _Input, QueryArtifact>) {
 		// all queries should be with fetching: true by default (because auto fetching)
 		// except for manual queries, which should be false, it will be manualy triggered
-		const fetching =
-			artifact.plugin_data?.['houdini-svelte'].isManualLoad === true ? false : true
+		const fetching = !(artifact.pluginData?.['houdini-svelte'].isManualLoad === true)
+
 		super({ artifact, fetching })
 
 		this.storeName = storeName
 		this.variables = variables
 		// we pass null here so that the store is a zombie - we will never
 		// send a request until the client has loaded
-		this.#store = new DocumentStore({ artifact, client: null })
+		this.#store = new DocumentStore({ artifact, client: null, fetching })
 	}
 
 	/**
@@ -184,6 +184,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 
 			// only initialize when told to
 			if (init) {
+				console.log('setup')
 				return this.observer.send({
 					setup: true,
 					variables: get(this.observer).variables,
