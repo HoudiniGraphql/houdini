@@ -271,10 +271,10 @@ user.write({
 
 ### Query Hints
 
-One interesting application of the programatic API is to provide hints for the runtime before performing
-a query which enables more cache hits and therefore a snappier experience.
+One interesting application of the programmatic API is to provide hints for the runtime before performing
+a query. This creates a snappier experience since you are more likely to load cached data.
 
-This pattern is best understood by example so here's a schema:
+Let's see this in action. Let's pretend we are building an application with the following schema:
 
 ```graphql
 type Query {
@@ -288,8 +288,8 @@ type User {
 }
 ```
 
-For the sake of argument, imagine that there are two different views in our application:
-a list of users and a user profile page. The user page is driven by a query that resembles this:
+Image that there are two different views in our application:
+a list of users and a user profile page. The list page is driven by this query:
 
 ```graphql
 query UserList {
