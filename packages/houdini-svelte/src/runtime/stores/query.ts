@@ -184,7 +184,6 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 
 			// only initialize when told to
 			if (init) {
-				console.log('setup')
 				return this.observer.send({
 					setup: true,
 					variables: get(this.observer).variables,

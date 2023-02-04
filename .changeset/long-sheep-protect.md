@@ -1,0 +1,5 @@
+---
+'houdini': patch
+---
+
+Remove logs
