@@ -2,7 +2,9 @@ import { loadContent } from './src/lib/loadContent.js'
 import { loadOutline } from './src/lib/loadOutline.js'
 import { sveltekit } from '@sveltejs/kit/vite'
 import path from 'path'
-import { replaceCodePlugin } from 'vite-plugin-replace'
+
+let _outline
+let _content
 
 /** @type {import('vite').UserConfig} */
 const config = {
@@ -14,12 +16,20 @@ const config = {
 	},
 	plugins: [
 		sveltekit(),
-		replaceCodePlugin({
-			replacements: [
-				{ from: 'REPLACE_WITH_OUTLINE', to: JSON.stringify(await loadOutline()) },
-				{ from: 'REPLACE_WITH_CONTENT', to: JSON.stringify(await loadContent()) }
-			]
-		})
+		{
+			async transform(code) {
+				if (!_outline) {
+					_outline = JSON.stringify(await loadOutline())
+					_content = JSON.stringify(await loadOutline())
+				}
+
+				return {
+					code: code
+						.replace('REPLACE_WITH_OUTLINE', _outline)
+						.replace('REPLACE_WITH_CONTENT', _content)
+				}
+			}
+		}
 	]
 }
 

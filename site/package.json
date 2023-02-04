@@ -54,7 +54,6 @@
 		"svelte": "^3.55.1",
 		"svelte-preprocess": "^5.0.0",
 		"unist-util-visit": "^4.1.1",
-		"vite": "^4.0.4",
-		"vite-plugin-replace": "^0.1.1"
+		"vite": "^4.0.4"
 	}
 }
