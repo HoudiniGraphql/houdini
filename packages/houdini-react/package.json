@@ -1,6 +1,6 @@
 {
     "name": "houdini-react",
-    "version": "1.0.0-next.15",
+    "version": "1.0.0-next.16",
     "private": true,
     "description": "The React plugin for houdini",
     "keywords": [
