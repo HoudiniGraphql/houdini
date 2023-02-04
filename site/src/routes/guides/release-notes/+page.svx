@@ -17,7 +17,7 @@ This is a huge milestone for the project and we're so thankful to
 everyone that made it possible. As I'm sure you're expecting, this version brings a
 lot of changes so please read through this document carefully.
 
-### Client Plugins
+### `HoudiniClient` has been restructured
 
 Houdini's runtime logic (document subscriptions, network calls, etc) has been completely rewritten using a new
 composable architecture that allows you to add new functionality (like [Live Queries](https://the-guild.dev/blog/subscriptions-and-live-queries-real-time-with-graphql)) or change most aspects of your
@@ -28,11 +28,7 @@ We won't go into too much detail about how to use the new system here but
 you will need to change your client file. For more information on the new architecture,
 you can check out the [Client Plugin documentation](/api/client-plugins).
 
-It's a bit hard to give you an exact example to follow but here are a few situations you might fall into:
-
-<DeepDive title="Simple Client" >
-
-In the simplest case,
+It's a bit hard to give you an exact example to follow but In the simplest case,
 your entire fetch function can be replaced with a single configuration value:
 
 ```diff:title=src/client.ts
@@ -67,7 +63,8 @@ your entire fetch function can be replaced with a single configuration value:
 
 ```
 
-</DeepDive>
+If you are currently doing something more complicated in your client file,
+here are a few other examples that might apply:
 
 <DeepDive title="Client with Authentication" >
 
