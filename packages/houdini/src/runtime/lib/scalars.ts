@@ -199,8 +199,12 @@ export function isScalar(config: ConfigFile, type: string) {
 export function parseScalar(
 	config: ConfigFile,
 	type: string,
-	value: string
+	value?: string
 ): string | number | boolean | undefined {
+	if (typeof value === 'undefined') {
+		return undefined
+	}
+
 	if (type === 'Boolean') {
 		return value === 'true'
 	}
