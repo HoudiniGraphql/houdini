@@ -85,6 +85,7 @@ export const cachePolicy =
 					}, 0)
 				}
 
+				console.log('cache setting fetch')
 				// if we got this far, we are resolving something against the network
 				// dont set the fetching state to true if we accepted a cache value
 				setFetching(!useCache)

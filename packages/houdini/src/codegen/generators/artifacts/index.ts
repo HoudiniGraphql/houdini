@@ -294,7 +294,7 @@ export default function artifactGenerator(stats: {
 						{}
 					)
 					if (Object.keys(plugin_data).length > 0) {
-						artifact.plugin_data = plugin_data
+						artifact.pluginData = plugin_data
 					}
 
 					// if the document has inputs describe their types in the artifact so we can

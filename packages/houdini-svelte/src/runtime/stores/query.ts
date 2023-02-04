@@ -15,7 +15,7 @@ import { get } from 'svelte/store'
 
 import type { PluginArtifactData } from '../../plugin/artifactData'
 import { clientStarted, isBrowser } from '../adapter'
-import { initClient } from '../client'
+import { getClient, initClient } from '../client'
 import { getSession } from '../session'
 import { BaseStore } from './base'
 
@@ -49,15 +49,15 @@ export class QueryStore<_Data extends GraphQLObject, _Input extends {}> extends 
 	constructor({ artifact, storeName, variables }: StoreConfig<_Data, _Input, QueryArtifact>) {
 		// all queries should be with fetching: true by default (because auto fetching)
 		// except for manual queries, which should be false, it will be manualy triggered
-		const fetching =
-			artifact.plugin_data?.['houdini-svelte'].isManualLoad === true ? false : true
+		const fetching = artifact.pluginData?.['houdini-svelte'].isManualLoad !== true
+
 		super({ artifact, fetching })
 
 		this.storeName = storeName
 		this.variables = variables
 		// we pass null here so that the store is a zombie - we will never
 		// send a request until the client has loaded
-		this.#store = new DocumentStore({ artifact, client: null })
+		this.#store = new DocumentStore({ artifact, client: null, fetching })
 	}
 
 	/**
@@ -154,24 +154,43 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 		return this.artifact.name
 	}
 
+	// ** WARNING: THERE IS UNTESTED BEHAVIOR HERE **
+	//
+	// it's tricky to set up the e2e tests to create a component
+	// that is isolated from any fetches so i'm just leaving this big
+	// ugly comment for future us. If we modify this block, we have to
+	// make sure that this scenario works: https://github.com/HoudiniGraphql/houdini/pull/871#issuecomment-1416808842
+	//
 	// setting up is synchronous at first so that #unsubscribe
 	// is a "thread safe" way to prevent multiple setups from happening
 	#setup(init: boolean = true) {
-		// if we've already setup, don't do anything
-		if (this.#unsubscribe) {
-			return
+		// if we have to initialize the client, do so
+		let initPromise: Promise<any> = Promise.resolve()
+		try {
+			getClient()
+		} catch {
+			initPromise = initClient()
 		}
-		this.#unsubscribe = this.observer.subscribe((value) => {
-			this.#store.set(value)
-		})
 
-		// only initialize when told to
-		if (init) {
-			return this.observer.send({
-				setup: true,
-				variables: get(this.observer).variables,
+		initPromise.then(() => {
+			// if we've already setup, don't do anything
+			if (this.#unsubscribe) {
+				return
+			}
+
+			this.#unsubscribe = this.observer.subscribe((value) => {
+				this.#store.set(value)
 			})
-		}
+
+			// only initialize when told to
+			if (init) {
+				console.log('setup')
+				return this.observer.send({
+					setup: true,
+					variables: get(this.observer).variables,
+				})
+			}
+		})
 	}
 
 	subscribe(...args: Parameters<Readable<QueryResult<_Data, _Input>>['subscribe']>) {
