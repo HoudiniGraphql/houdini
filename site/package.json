@@ -41,6 +41,7 @@
 		"typescript": "^4.9"
 	},
 	"dependencies": {
+		"@sveltejs/adapter-auto": "1.0.2",
 		"feather-icons": "^4.28.0",
 		"flexsearch": "^0.7.31",
 		"lodash": "^4.17.21",
