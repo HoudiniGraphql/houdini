@@ -154,6 +154,13 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 		return this.artifact.name
 	}
 
+	// ** WARNING: THERE IS UNTESTED BEHAVIOR HERE **
+	//
+	// it's tricky to set up the e2e tests to create a component
+	// that is isolated from any fetches so i'm just leaving this big
+	// ugly comment for future us. If we modify this block, we have to
+	// make sure that this scenario works: https://github.com/HoudiniGraphql/houdini/pull/871#issuecomment-1416808842
+	//
 	// setting up is synchronous at first so that #unsubscribe
 	// is a "thread safe" way to prevent multiple setups from happening
 	#setup(init: boolean = true) {
