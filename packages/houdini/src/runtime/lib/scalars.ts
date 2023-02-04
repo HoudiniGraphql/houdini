@@ -199,8 +199,12 @@ export function isScalar(config: ConfigFile, type: string) {
 export function parseScalar(
 	config: ConfigFile,
 	type: string,
-	value: string
-): string | number | boolean {
+	value?: string
+): string | number | boolean | undefined {
+	if (typeof value === 'undefined') {
+		return undefined
+	}
+
 	if (type === 'Boolean') {
 		return value === 'true'
 	}
@@ -211,10 +215,18 @@ export function parseScalar(
 		return value
 	}
 	if (type === 'Int') {
-		return parseInt(value, 10)
+		const result = parseInt(value, 10)
+		if (Number.isNaN(result)) {
+			return undefined
+		}
+		return result
 	}
 	if (type === 'Float') {
-		return parseFloat(value)
+		const result = parseFloat(value)
+		if (Number.isNaN(result)) {
+			return undefined
+		}
+		return result
 	}
 
 	// if we have a special parse function, use it
