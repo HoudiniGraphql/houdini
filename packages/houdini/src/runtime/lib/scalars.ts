@@ -212,14 +212,14 @@ export function parseScalar(
 	}
 	if (type === 'Int') {
 		const result = parseInt(value, 10)
-		if (isNaN(result)) {
+		if (Number.isNaN(result)) {
 			return undefined
 		}
 		return result
 	}
 	if (type === 'Float') {
 		const result = parseFloat(value)
-		if (isNaN(result)) {
+		if (Number.isNaN(result)) {
 			return undefined
 		}
 		return result
