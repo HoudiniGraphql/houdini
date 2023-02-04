@@ -1,5 +1,11 @@
 # houdini
 
+## 1.0.0-next.18
+
+### Patch Changes
+
+-   [#871](https://github.com/HoudiniGraphql/houdini/pull/871) [`1ba7c77`](https://github.com/HoudiniGraphql/houdini/commit/1ba7c7778b1eb38e3f4b770d620c00bae3d9848c) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Remove logs
+
 ## 1.0.0-next.17
 
 ## 1.0.0-next.16
