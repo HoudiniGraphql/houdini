@@ -4053,7 +4053,7 @@ test('some artifactData added to artifact specific to plugins', async function (
 		        }
 		    },
 
-		    "plugin_data": {
+		    "pluginData": {
 		        "plugin-tmp1": {
 		            "added_stuff": {
 		                "yop": "true"
@@ -4188,7 +4188,7 @@ test('nested recursive fragments', async function () {
 		        }
 		    },
 
-		    "plugin_data": {
+		    "pluginData": {
 		        "plugin-tmp1": {
 		            "added_stuff": {
 		                "yop": "true"
