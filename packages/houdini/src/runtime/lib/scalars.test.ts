@@ -957,6 +957,18 @@ describe('parseScalar', function () {
 			expected: 1,
 		},
 		{
+			title: 'invalid Int',
+			type: 'Int',
+			value: '',
+			expected: undefined,
+		},
+		{
+			title: 'invalid Float',
+			type: 'Float',
+			value: '',
+			expected: undefined,
+		},
+		{
 			title: 'Boolean',
 			type: 'Boolean',
 			value: 'true',
