@@ -59,9 +59,7 @@ export class DocumentStore<
 	}) {
 		// if fetching is set, respect the value
 		// if fetching is not set, we should default fetching on queries and not on the rest.
-		if (fetching === undefined) {
-			fetching = artifact.kind === ArtifactKind.Query
-		}
+		fetching ??= artifact.kind === ArtifactKind.Query
 
 		// the initial store state
 		const initialState: QueryResult<_Data, _Input> = {
@@ -291,6 +289,7 @@ export class DocumentStore<
 		if (direction === 'forward') {
 			// if we triggering a setup cycle phase
 			if (ctx.setup) {
+				console.log('going backwards - setup')
 				return this.#step(
 					'backwards',
 					{

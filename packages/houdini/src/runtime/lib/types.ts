@@ -98,7 +98,7 @@ export type BaseCompiledDocument = {
 		paginated: boolean
 		direction: 'forward' | 'backward' | 'both'
 	}
-	plugin_data?: Record<string, any>
+	pluginData?: Record<string, any>
 }
 
 export type HoudiniFetchContext = {
