@@ -274,7 +274,7 @@ user.write({
 One interesting application of the programmatic API is to provide hints for the runtime before performing
 a query. This creates a snappier experience since you are more likely to load cached data.
 
-Let's see this in action. Let's pretend we are building an application with the following schema:
+Let's see this in action. Pretend we are building an application with the following schema:
 
 ```graphql
 type Query {
@@ -288,8 +288,8 @@ type User {
 }
 ```
 
-Image that there are two different views in our application:
-a list of users and a user profile page. The list page is driven by this query:
+Now, imagine that there are two different views in our application:
+a list of users and a user profile page. The list is driven by this query:
 
 ```graphql
 query UserList {
