@@ -289,7 +289,6 @@ export class DocumentStore<
 		if (direction === 'forward') {
 			// if we triggering a setup cycle phase
 			if (ctx.setup) {
-				console.log('going backwards - setup')
 				return this.#step(
 					'backwards',
 					{
