@@ -29,6 +29,7 @@ export const routes = {
   Stores_Endpoint_Mutation: '/stores/endpoint-mutation',
   Stores_Session: '/stores/session',
   Stores_Comp_disable_auto_fetch: '/stores/comp_disable_auto_fetch',
+  Stores_Comp_init: '/stores/component_init',
 
   Stores_Partial_List: '/stores/partial/partial_List',
   Stores_Partial_Off: '/stores/partial-off',
