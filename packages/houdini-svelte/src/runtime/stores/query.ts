@@ -49,7 +49,7 @@ export class QueryStore<_Data extends GraphQLObject, _Input extends {}> extends 
 	constructor({ artifact, storeName, variables }: StoreConfig<_Data, _Input, QueryArtifact>) {
 		// all queries should be with fetching: true by default (because auto fetching)
 		// except for manual queries, which should be false, it will be manualy triggered
-		const fetching = !(artifact.pluginData?.['houdini-svelte'].isManualLoad === true)
+		const fetching = artifact.pluginData?.['houdini-svelte'].isManualLoad !== true
 
 		super({ artifact, fetching })
 
