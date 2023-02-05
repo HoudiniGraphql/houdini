@@ -1,7 +1,7 @@
 import type { GraphQLSchema } from 'graphql'
 
 import config from '../imports/config'
-import type { CachePolicy } from './types'
+import type { CachePolicies } from './types'
 
 let mockConfig: ConfigFile | null = null
 
@@ -107,7 +107,7 @@ export type ConfigFile = {
 	/**
 	 * The default cache policy to use for queries. For more information: https://www.houdinigraphql.com/guides/caching-data
 	 */
-	defaultCachePolicy?: CachePolicy
+	defaultCachePolicy?: CachePolicies
 
 	/**
 	 * Specifies whether or not the cache should always use partial data. For more information: https://www.houdinigraphql.com/guides/caching-data#partial-data

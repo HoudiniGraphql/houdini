@@ -1,4 +1,4 @@
-import type { ArtifactKind } from '../../lib/types'
+import type { ArtifactKinds } from '../../lib/types'
 import type {
 	ClientPlugin,
 	ClientPluginExitPhase,
@@ -6,7 +6,7 @@ import type {
 	ClientHooks,
 } from '../documentStore'
 
-export const documentPlugin = (kind: ArtifactKind, source: () => ClientHooks): ClientPlugin => {
+export const documentPlugin = (kind: ArtifactKinds, source: () => ClientHooks): ClientPlugin => {
 	return () => {
 		// pull out the hooks we care about
 		const sourceHandlers = source()

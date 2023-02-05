@@ -1,7 +1,7 @@
 import { logGreen, logYellow } from '@kitql/helper'
 import * as graphql from 'graphql'
 
-import type { Config, Document } from '../../lib'
+import type { Config, Document, LogLevels } from '../../lib'
 import {
 	definitionFromAncestors,
 	LogLevel,
@@ -1104,7 +1104,7 @@ export function getAndVerifyNodeInterface(config: Config): graphql.GraphQLInterf
 }
 
 let nbInvalidNodeFieldMessageDisplayed = 0
-function displayInvalidNodeFieldMessage(logLevel: LogLevel) {
+function displayInvalidNodeFieldMessage(logLevel: LogLevels) {
 	// We want to display the message only once.
 	if (nbInvalidNodeFieldMessageDisplayed === 0) {
 		if (logLevel === LogLevel.Full) {
