@@ -1,9 +1,13 @@
-export enum CachePolicy {
-	CacheOrNetwork = 'CacheOrNetwork',
-	CacheOnly = 'CacheOnly',
-	NetworkOnly = 'NetworkOnly',
-	CacheAndNetwork = 'CacheAndNetwork',
-}
+export const CachePolicy = {
+	CacheOrNetwork: 'CacheOrNetwork',
+	CacheOnly: 'CacheOnly',
+	NetworkOnly: 'NetworkOnly',
+	CacheAndNetwork: 'CacheAndNetwork',
+} as const
+
+type ValuesOf<Target> = Target[keyof Target]
+
+export type CachePolicies = ValuesOf<typeof CachePolicy>
 
 declare global {
 	namespace App {
@@ -38,51 +42,49 @@ export type DocumentArtifact =
 	| MutationArtifact
 	| SubscriptionArtifact
 
-export enum ArtifactKind {
-	Query = 'HoudiniQuery',
-	Subscription = 'HoudiniSubscription',
-	Mutation = 'HoudiniMutation',
-	Fragment = 'HoudiniFragment',
-}
+export const ArtifactKind = {
+	Query: 'HoudiniQuery',
+	Subscription: 'HoudiniSubscription',
+	Mutation: 'HoudiniMutation',
+	Fragment: 'HoudiniFragment',
+} as const
+
+export type ArtifactKinds = ValuesOf<typeof ArtifactKind>
 
 export const CompiledFragmentKind = ArtifactKind.Fragment
 export const CompiledMutationKind = ArtifactKind.Mutation
 export const CompiledQueryKind = ArtifactKind.Query
 export const CompiledSubscriptionKind = ArtifactKind.Subscription
 
-export type CompiledDocumentKind = ArtifactKind
+export type CompiledDocumentKind = ArtifactKinds
 
-export type QueryArtifact = BaseCompiledDocument & {
-	kind: ArtifactKind.Query
-	policy?: CachePolicy
+export type QueryArtifact = BaseCompiledDocument<'HoudiniQuery'> & {
+	policy?: CachePolicies
 	partial?: boolean
 }
 
-export type MutationArtifact = BaseCompiledDocument & {
-	kind: ArtifactKind.Mutation
-}
+export type MutationArtifact = BaseCompiledDocument<'HoudiniMutation'>
 
-export type FragmentArtifact = BaseCompiledDocument & {
-	kind: ArtifactKind.Fragment
-}
+export type FragmentArtifact = BaseCompiledDocument<'HoudiniFragment'>
 
-export type SubscriptionArtifact = BaseCompiledDocument & {
-	kind: ArtifactKind.Subscription
-}
+export type SubscriptionArtifact = BaseCompiledDocument<'HoudiniSubscription'>
 
-export enum RefetchUpdateMode {
-	append = 'append',
-	prepend = 'prepend',
-	replace = 'replace',
-}
+export const RefetchUpdateMode = {
+	append: 'append',
+	prepend: 'prepend',
+	replace: 'replace',
+} as const
+
+export type RefetchUpdateModes = ValuesOf<typeof RefetchUpdateMode>
 
 export type InputObject = {
 	fields: Record<string, string>
 	types: Record<string, Record<string, string>>
 }
 
-export type BaseCompiledDocument = {
+export type BaseCompiledDocument<_Kind extends ArtifactKinds> = {
 	name: string
+	kind: _Kind
 	raw: string
 	hash: string
 	selection: SubscriptionSelection
@@ -112,20 +114,22 @@ export type ListWhen = {
 	must_not?: Filter
 }
 
-export enum DataSource {
+export const DataSource = {
 	/**
 	 * from the browser cache
 	 */
-	Cache = 'cache',
+	Cache: 'cache',
 	/**
 	 * from a browser side `fetch`
 	 */
-	Network = 'network',
+	Network: 'network',
 	/**
 	 * from a server side `fetch`
 	 */
-	Ssr = 'ssr',
-}
+	Ssr: 'ssr',
+} as const
+
+export type DataSources = ValuesOf<typeof DataSource>
 
 export type MutationOperation = {
 	action: 'insert' | 'remove' | 'delete' | 'toggle'
@@ -195,7 +199,7 @@ export type SubscriptionSpec = {
 
 export type FetchQueryResult<_Data> = {
 	result: RequestPayload<_Data | null>
-	source: DataSource | null
+	source: DataSources | null
 }
 
 export type QueryResult<_Data = GraphQLObject, _Input = Record<string, any>> = {
@@ -204,7 +208,7 @@ export type QueryResult<_Data = GraphQLObject, _Input = Record<string, any>> = {
 	fetching: boolean
 	partial: boolean
 	stale: boolean
-	source: DataSource | null
+	source: DataSources | null
 	variables: _Input | null
 }
 

@@ -5,7 +5,7 @@ import { runPipeline } from '../codegen'
 import type { Document } from '../lib'
 import { Config, fs, path } from '../lib'
 import type { ConfigFile } from '../runtime/lib/config'
-import { ArtifactKind } from '../runtime/lib/types'
+import { ArtifactKind, type ArtifactKinds } from '../runtime/lib/types'
 
 export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {}): ConfigFile {
 	return {
@@ -310,7 +310,7 @@ export function mockCollectedDoc(query: string): Document {
 	const operations = parsed.definitions
 
 	// figure out the document kind
-	let kind = ArtifactKind.Fragment
+	let kind: ArtifactKinds = ArtifactKind.Fragment
 	if (operations.length === 1) {
 		// the document kind depends on the artifact
 		// query
