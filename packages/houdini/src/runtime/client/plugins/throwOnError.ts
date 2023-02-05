@@ -1,4 +1,4 @@
-import type { QueryResult } from '../../lib'
+import type { QueryResult, ArtifactKinds } from '../../lib'
 import { ArtifactKind } from '../../lib'
 import type { ClientPlugin } from '../documentStore'
 
@@ -12,7 +12,7 @@ export const throwOnError =
 	() => {
 		// build a map of artifact kinds we will throw on
 		const all = operations.includes('all')
-		const throwOnKind = (kind: ArtifactKind) =>
+		const throwOnKind = (kind: ArtifactKinds) =>
 			all ||
 			{
 				[ArtifactKind.Query]: operations.includes('query'),

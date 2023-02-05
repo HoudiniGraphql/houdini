@@ -36,7 +36,7 @@ export class InMemoryStorage {
 		return layer
 	}
 
-	insert(id: string, field: string, location: OperationLocation, target: string) {
+	insert(id: string, field: string, location: OperationLocations, target: string) {
 		return this.topLayer.insert(id, field, location, target)
 	}
 
@@ -421,7 +421,7 @@ export class Layer {
 		}
 	}
 
-	insert(id: string, field: string, where: OperationLocation, target: string) {
+	insert(id: string, field: string, where: OperationLocations, target: string) {
 		// add an insert operation for the field
 		this.addFieldOperation(id, field, {
 			kind: OperationKind.insert,
@@ -529,18 +529,18 @@ type OperationMap = {
 type NestedList<_Result = string> = (_Result | null | NestedList<_Result>)[]
 
 type InsertOperation = {
-	kind: OperationKind.insert
-	location: OperationLocation
+	kind: 'insert'
+	location: OperationLocations
 	id: string
 }
 
 type RemoveOperation = {
-	kind: OperationKind.remove
+	kind: 'remove'
 	id: string
 }
 
 type DeleteOperation = {
-	kind: OperationKind.delete
+	kind: 'delete'
 	target: string
 }
 
@@ -560,15 +560,21 @@ function isRemoveOperation(value: GraphQLField | Operation): value is RemoveOper
 
 type Operation = ListOperation | DeleteOperation
 
-export enum OperationLocation {
-	start = 'start',
-	end = 'end',
-}
+type ValuesOf<Target> = Target[keyof Target]
 
-export enum OperationKind {
-	delete = 'delete',
-	insert = 'insert',
-	remove = 'remove',
-}
+export const OperationLocation = {
+	start: 'start',
+	end: 'end',
+} as const
+
+export type OperationLocations = ValuesOf<typeof OperationLocation>
+
+export const OperationKind = {
+	delete: 'delete',
+	insert: 'insert',
+	remove: 'remove',
+} as const
+
+export type OperationKinds = ValuesOf<typeof OperationKind>
 
 export type LayerID = number

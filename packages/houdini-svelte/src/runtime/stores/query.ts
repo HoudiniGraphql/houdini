@@ -7,6 +7,7 @@ import type {
 	MutationArtifact,
 	QueryArtifact,
 	QueryResult,
+	CachePolicies,
 } from '$houdini/runtime/lib/types'
 import { ArtifactKind, CachePolicy, CompiledQueryKind } from '$houdini/runtime/lib/types'
 import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
@@ -236,7 +237,7 @@ export async function fetchParams<_Data extends GraphQLObject, _Input>(
 	params?: QueryStoreFetchParams<_Data, _Input>
 ): Promise<{
 	context: FetchContext
-	policy: CachePolicy | undefined
+	policy: CachePolicies | undefined
 	params: QueryStoreFetchParams<_Data, _Input>
 }> {
 	// figure out the right policy
@@ -311,7 +312,7 @@ type FetchGlobalParams<_Data extends GraphQLObject, _Input> = {
 	 * a request will always be sent, even if the variables are the same as the last call
 	 * to fetch.
 	 */
-	policy?: CachePolicy
+	policy?: CachePolicies
 
 	/**
 	 * An object that will be passed to the fetch function.
