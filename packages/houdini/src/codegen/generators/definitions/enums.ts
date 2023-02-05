@@ -43,16 +43,25 @@ export default async function definitionsGenerator(config: Config) {
 	).code
 
 	// generate the type definitions
-	const typeDefinitions = enums
-		.sort((a, b) => a.name.value.localeCompare(b.name.value))
-		.map(
-			(definition) => `
-export const ${definition.name.value} = {
-${definition.values?.map((value) => `    ${value.name.value}: "${value.name.value}"`).join(',\n')}
-} as const
+	const typeDefinitions =
+		`
+type ValuesOf<T> = T[keyof T]
+	` +
+		enums
+			.sort((a, b) => a.name.value.localeCompare(b.name.value))
+			.map((definition) => {
+				const name = definition.name.value
+				const values = definition.values
+
+				return `
+export declare const ${name}: {
+${values?.map((value) => `    readonly ${value.name.value}: "${value.name.value}"`).join(',\n')}
+}
+
+export ${name}$options = ValuesOf<typeof ${name}>
  `
-		)
-		.join('')
+			})
+			.join('')
 
 	// the index file for the definitions directory
 	const definitionsIndex = `
