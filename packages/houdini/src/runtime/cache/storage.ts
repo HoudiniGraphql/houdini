@@ -529,18 +529,18 @@ type OperationMap = {
 type NestedList<_Result = string> = (_Result | null | NestedList<_Result>)[]
 
 type InsertOperation = {
-	kind: typeof OperationKind['insert']
+	kind: 'insert'
 	location: OperationLocations
 	id: string
 }
 
 type RemoveOperation = {
-	kind: typeof OperationKind['remove']
+	kind: 'remove'
 	id: string
 }
 
 type DeleteOperation = {
-	kind: typeof OperationKind['delete']
+	kind: 'delete'
 	target: string
 }
 

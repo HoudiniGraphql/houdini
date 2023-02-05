@@ -58,23 +58,16 @@ export const CompiledSubscriptionKind = ArtifactKind.Subscription
 
 export type CompiledDocumentKind = ArtifactKinds
 
-export type QueryArtifact = BaseCompiledDocument & {
-	kind: typeof ArtifactKind['Query']
+export type QueryArtifact = BaseCompiledDocument<'HoudiniQuery'> & {
 	policy?: CachePolicies
 	partial?: boolean
 }
 
-export type MutationArtifact = BaseCompiledDocument & {
-	kind: typeof ArtifactKind['Mutation']
-}
+export type MutationArtifact = BaseCompiledDocument<'HoudiniMutation'>
 
-export type FragmentArtifact = BaseCompiledDocument & {
-	kind: typeof ArtifactKind['Fragment']
-}
+export type FragmentArtifact = BaseCompiledDocument<'HoudiniFragment'>
 
-export type SubscriptionArtifact = BaseCompiledDocument & {
-	kind: typeof ArtifactKind['Subscription']
-}
+export type SubscriptionArtifact = BaseCompiledDocument<'HoudiniSubscription'>
 
 export const RefetchUpdateMode = {
 	append: 'append',
@@ -89,8 +82,9 @@ export type InputObject = {
 	types: Record<string, Record<string, string>>
 }
 
-export type BaseCompiledDocument = {
+export type BaseCompiledDocument<_Kind extends ArtifactKinds> = {
 	name: string
+	kind: _Kind
 	raw: string
 	hash: string
 	selection: SubscriptionSelection
