@@ -1,5 +1,11 @@
 # houdini
 
+## 1.0.0-next.19
+
+### Patch Changes
+
+-   [#902](https://github.com/HoudiniGraphql/houdini/pull/902) [`d2a06fa`](https://github.com/HoudiniGraphql/houdini/commit/d2a06faaa9a5586aaaa7ae8ac1fa193365ea9acb) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - QoL improvements for plugin authors
+
 ## 1.0.0-next.18
 
 ### Patch Changes
