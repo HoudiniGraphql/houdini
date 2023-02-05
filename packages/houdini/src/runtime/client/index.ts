@@ -102,6 +102,10 @@ export class HoudiniClient {
 // createPluginHooks instantiates the client plugins
 export function createPluginHooks(plugins: ClientPlugin[]): ClientHooks[] {
 	return plugins.reduce((hooks, plugin) => {
+		if (typeof plugin !== 'function') {
+			throw new Error("Encountered client plugin that's not a function")
+		}
+
 		// invoke the plugin
 		const result = plugin()
 
