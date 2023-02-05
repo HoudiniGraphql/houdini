@@ -296,4 +296,5 @@ export type GenerateHookInput = {
 export type PluginConfig = { configPath?: string } & Partial<ConfigFile>
 
 export * from '../runtime/lib/types'
+export * from '../runtime/client'
 export * from '../runtime/lib/config'
