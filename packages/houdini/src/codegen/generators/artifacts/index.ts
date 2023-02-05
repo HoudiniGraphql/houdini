@@ -284,7 +284,7 @@ export default function artifactGenerator(stats: {
 							// add the specified artifact data (if it exists)
 							const result = { ...prev }
 							const dataToAdd = plugin.artifactData({ config, document: doc }) ?? {}
-							if (Object.keys(dataToAdd).length > 0) {
+							if (Object.keys(dataToAdd)) {
 								result[plugin.name] = dataToAdd
 							}
 

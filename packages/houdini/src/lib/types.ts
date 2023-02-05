@@ -203,7 +203,7 @@ export type PluginHooks = {
 	/**
 	 * A hook to embed metadata at the root of the artifact.
 	 */
-	artifactData?: (args: { config: Config; document: Document }) => Record<string, any>
+	artifactData?: (args: { config: Config; document: Document }) => Record<string, any> | void
 
 	/**
 	 * A hook to customize the hash generated for your document.
