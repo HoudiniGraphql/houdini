@@ -5,7 +5,7 @@ import { runPipeline } from '../codegen'
 import type { Document } from '../lib'
 import { Config, fs, path } from '../lib'
 import type { ConfigFile } from '../runtime/lib/config'
-import { ArtifactKind, ArtifactKinds } from '../runtime/lib/types'
+import { ArtifactKind, type ArtifactKinds } from '../runtime/lib/types'
 
 export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {}): ConfigFile {
 	return {

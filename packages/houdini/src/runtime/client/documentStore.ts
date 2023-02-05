@@ -6,7 +6,6 @@ import { deepEquals } from '../lib/deepEquals'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 import { Writable } from '../lib/store'
 import type {
-	CachePolicy,
 	DocumentArtifact,
 	QueryResult,
 	GraphQLObject,

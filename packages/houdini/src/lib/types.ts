@@ -87,7 +87,7 @@ export type Document = {
 	/**
 	 * Refetch logic that has been built up throughout the pipeline
 	 */
-	refetch?: BaseCompiledDocument['refetch']
+	refetch?: BaseCompiledDocument<'HoudiniQuery'>['refetch']
 }
 
 export const LogLevel = {

@@ -1,11 +1,10 @@
 import { logGreen, logYellow } from '@kitql/helper'
 import * as graphql from 'graphql'
 
-import type { Config, Document } from '../../lib'
+import type { Config, Document, LogLevels } from '../../lib'
 import {
 	definitionFromAncestors,
 	LogLevel,
-	LogLevels,
 	parentTypeFromAncestors,
 	HoudiniError,
 	siteURL,
