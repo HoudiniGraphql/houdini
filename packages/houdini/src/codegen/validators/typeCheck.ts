@@ -5,6 +5,7 @@ import type { Config, Document } from '../../lib'
 import {
 	definitionFromAncestors,
 	LogLevel,
+	LogLevels,
 	parentTypeFromAncestors,
 	HoudiniError,
 	siteURL,
@@ -1104,7 +1105,7 @@ export function getAndVerifyNodeInterface(config: Config): graphql.GraphQLInterf
 }
 
 let nbInvalidNodeFieldMessageDisplayed = 0
-function displayInvalidNodeFieldMessage(logLevel: LogLevel) {
+function displayInvalidNodeFieldMessage(logLevel: LogLevels) {
 	// We want to display the message only once.
 	if (nbInvalidNodeFieldMessageDisplayed === 0) {
 		if (logLevel === LogLevel.Full) {

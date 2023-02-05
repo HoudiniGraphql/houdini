@@ -3,7 +3,7 @@ import * as graphql from 'graphql'
 import minimatch from 'minimatch'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
-import type { ConfigFile } from '../runtime/lib'
+import type { CachePolicies, ConfigFile } from '../runtime/lib'
 import { CachePolicy } from '../runtime/lib'
 import { computeID, defaultConfigValues, keyFieldsForType } from '../runtime/lib/config'
 import { houdini_mode } from './constants'
@@ -13,7 +13,7 @@ import * as fs from './fs'
 import { pullSchema } from './introspection'
 import * as path from './path'
 import { plugin } from './plugin'
-import type { PluginConfig, PluginHooks, PluginInit } from './types'
+import type { LogLevels, PluginConfig, PluginHooks, PluginInit } from './types'
 import { LogLevel } from './types'
 
 // @ts-ignore
@@ -36,7 +36,7 @@ export class Config {
 	scalars?: ConfigFile['scalars']
 	module: 'commonjs' | 'esm' = 'esm'
 	cacheBufferSize?: number
-	defaultCachePolicy: CachePolicy
+	defaultCachePolicy: CachePolicies
 	defaultPartial: boolean
 	internalListPosition: 'first' | 'last'
 	defaultListTarget: 'all' | null = null
@@ -45,7 +45,7 @@ export class Config {
 	defaultKeys: string[] = ['id']
 	typeConfig: ConfigFile['types']
 	configFile: ConfigFile
-	logLevel: LogLevel
+	logLevel: LogLevels
 	defaultFragmentMasking: 'enable' | 'disable' = 'enable'
 	configIsRoute: ((filepath: string) => boolean) | null = null
 	routesDir: string
@@ -100,7 +100,7 @@ export class Config {
 		}
 
 		// validate the log level value
-		if (logLevel && !Object.values(LogLevel).includes(logLevel.toLowerCase() as LogLevel)) {
+		if (logLevel && !Object.values(LogLevel).includes(logLevel.toLowerCase() as LogLevels)) {
 			console.warn(
 				`⚠️ Invalid log level provided. Valid values are: ${JSON.stringify(
 					Object.values(LogLevel)
@@ -124,7 +124,7 @@ export class Config {
 		this.internalListPosition = defaultListPosition === 'append' ? 'last' : 'first'
 		this.defaultListTarget = defaultListTarget
 		this.definitionsFolder = definitionsPath
-		this.logLevel = ((logLevel as LogLevel) || LogLevel.Summary).toLowerCase() as LogLevel
+		this.logLevel = ((logLevel as LogLevels) || LogLevel.Summary).toLowerCase() as LogLevels
 		this.defaultFragmentMasking = defaultFragmentMasking
 		this.routesDir = path.join(this.projectRoot, 'src', 'routes')
 		this.schemaPollInterval = watchSchema?.interval ?? 2000

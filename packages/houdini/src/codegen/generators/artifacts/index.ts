@@ -1,7 +1,7 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import type { Config, Document, DocumentArtifact, CachePolicy } from '../../../lib'
+import type { Config, Document, DocumentArtifact, CachePolicies } from '../../../lib'
 import {
 	getRootType,
 	hashDocument,
@@ -321,7 +321,7 @@ export default function artifactGenerator(stats: {
 
 							const policy = args[config.cachePolicyArg]
 							if (policy && policy.value.kind === 'EnumValue' && policy.value.value) {
-								artifact.policy = policy.value.value as CachePolicy
+								artifact.policy = policy.value.value as CachePolicies
 							} else {
 								artifact.policy = config.defaultCachePolicy
 							}

@@ -10,7 +10,12 @@ import type {
 } from 'rollup'
 
 import type { ConfigFile } from '../runtime/lib/config'
-import type { ArtifactKind, BaseCompiledDocument, DocumentArtifact } from '../runtime/lib/types'
+import type {
+	ArtifactKinds,
+	BaseCompiledDocument,
+	DocumentArtifact,
+	ValueOf,
+} from '../runtime/lib/types'
 import type { TransformPage } from '../vite/houdini'
 import type { Config } from './config'
 
@@ -39,7 +44,7 @@ export type Document = {
 	/**
 	 * A field you can use to distinguish documents by type (query, mutation, subscription, fragment)
 	 */
-	kind: ArtifactKind
+	kind: ArtifactKinds
 
 	/**
 	 * The artifact generated for the document. This will only have a value in the last phase
@@ -85,12 +90,14 @@ export type Document = {
 	refetch?: BaseCompiledDocument['refetch']
 }
 
-export enum LogLevel {
-	Full = 'full',
-	Summary = 'summary',
-	ShortSummary = 'short-summary',
-	Quiet = 'quiet',
-}
+export const LogLevel = {
+	Full: 'full',
+	Summary: 'summary',
+	ShortSummary: 'short-summary',
+	Quiet: 'quiet',
+} as const
+
+export type LogLevels = ValueOf<typeof LogLevel>
 
 export type Plugin = (
 	args?: PluginConfig

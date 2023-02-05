@@ -1,4 +1,4 @@
-import type { GenerateHookInput } from 'houdini'
+import type { GenerateHookInput, ArtifactKinds } from 'houdini'
 import { ArtifactKind, cleanupFiles, fs, path } from 'houdini'
 
 import { global_stores_directory, plugin_config } from '../../kit'
@@ -8,14 +8,14 @@ import { queryStore } from './query'
 import { subscriptionStore } from './subscription'
 
 const is_store_needed = (
-	kindExpected: ArtifactKind,
-	kindDocument: ArtifactKind,
+	kindExpected: ArtifactKinds,
+	kindDocument: ArtifactKinds,
 	generate: ('query' | 'mutation' | 'subscription' | 'fragment')[] | 'all'
 ) => {
 	if (kindExpected === kindDocument) {
-		// build association between ArtifactKind and Literal
+		// build association between ArtifactKinds and Literal
 		const kindLiteral: Record<
-			ArtifactKind,
+			ArtifactKinds,
 			'query' | 'mutation' | 'subscription' | 'fragment'
 		> = {
 			HoudiniQuery: 'query',

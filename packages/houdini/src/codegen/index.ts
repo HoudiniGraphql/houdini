@@ -1,8 +1,8 @@
 import * as graphql from 'graphql'
 
-import type { Config, PluginHooks, Document } from '../lib'
+import type { Config, PluginHooks, Document, LogLevels } from '../lib'
 import { runPipeline as run, LogLevel, find_graphql, parseJS, HoudiniError, fs, path } from '../lib'
-import { ArtifactKind } from '../runtime/lib/types'
+import { ArtifactKind, ArtifactKinds } from '../runtime/lib/types'
 import * as generators from './generators'
 import * as transforms from './transforms'
 import * as validators from './validators'
@@ -151,7 +151,7 @@ export async function runPipeline(config: Config, docs: Document[]) {
 		console.log(`💡 No operation found. If that's unexpected, please check your config.`)
 	}
 	// print summaries of the changes
-	else if ([LogLevel.Summary, LogLevel.ShortSummary].includes(config.logLevel)) {
+	else if (config.logLevel == LogLevel.Summary || config.logLevel == LogLevel.ShortSummary) {
 		// if we have any unchanged artifacts
 		if (unchanged > 0 && printMessage && !config.pluginMode) {
 			console.log(`📃 Unchanged: ${unchanged}`)
@@ -333,7 +333,7 @@ async function processGraphQLDocument(
 	}
 
 	// figure out the document kind
-	let kind = ArtifactKind.Fragment
+	let kind: ArtifactKinds = ArtifactKind.Fragment
 	if (operations.length === 1) {
 		// the document kind depends on the artifact
 
@@ -374,7 +374,7 @@ async function processGraphQLDocument(
 function logStyled(
 	kind: 'CREATED' | 'UPDATED' | 'DELETED',
 	stat: string[],
-	logLevel: LogLevel,
+	logLevel: LogLevels,
 	plugin: boolean
 ) {
 	if (stat.length > 0) {

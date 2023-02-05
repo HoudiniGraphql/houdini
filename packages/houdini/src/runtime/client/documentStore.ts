@@ -12,6 +12,7 @@ import type {
 	GraphQLObject,
 	QueryArtifact,
 	SubscriptionSpec,
+	CachePolicies,
 } from '../lib/types'
 import { ArtifactKind } from '../lib/types'
 import { cachePolicy } from './plugins'
@@ -545,7 +546,7 @@ export type ClientPluginContext = {
 	text: string
 	hash: string
 	artifact: DocumentArtifact
-	policy?: CachePolicy
+	policy?: CachePolicies
 	fetch?: Fetch
 	variables?: Record<string, any>
 	metadata?: App.Metadata | null
@@ -605,7 +606,7 @@ export type SendParams = {
 	variables?: Record<string, any> | null
 	metadata?: App.Metadata | null
 	session?: App.Session | null
-	policy?: CachePolicy
+	policy?: CachePolicies
 	stuff?: Partial<App.Stuff>
 	cacheParams?: ClientPluginContext['cacheParams']
 	setup?: boolean
