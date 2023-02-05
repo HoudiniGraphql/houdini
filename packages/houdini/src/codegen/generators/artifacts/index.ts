@@ -274,28 +274,16 @@ export default function artifactGenerator(stats: {
 					}
 
 					// adding artifactData of plugins (only if any information is present)
-					const plugin_data = config.plugins.reduce<Record<string, any>>(
-						(prev, plugin) => {
-							// if the plugin doesn't provide any artifact data, ignore it
-							if (!plugin.artifactData) {
-								return prev
-							}
-
-							// add the specified artifact data (if it exists)
-							const result = { ...prev }
-							const dataToAdd = plugin.artifactData({ config, document: doc }) ?? {}
-							if (Object.keys(dataToAdd).length > 0) {
-								result[plugin.name] = dataToAdd
-							}
-
-							// we're done
-							return result
-						},
-						{}
-					)
-					if (Object.keys(plugin_data).length > 0) {
-						artifact.pluginData = plugin_data
+					artifact.pluginData = {}
+					for (const plugin of config.plugins) {
+						if (!plugin.artifactData) {
+							continue
+						}
+						artifact.pluginData[plugin.name] =
+							plugin.artifactData({ config, document: doc }) ?? {}
 					}
+
+					console.log(artifact.pluginData)
 
 					// if the document has inputs describe their types in the artifact so we can
 					// marshal and unmarshal scalars

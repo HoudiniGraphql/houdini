@@ -4,6 +4,10 @@
 	"scripts": {
 		"dev": "vite dev",
 		"build": "svelte-kit sync && svelte-package",
+		"build:": "cd ../../ && ((run build && cd -) || (cd - && exit 1))",
+		"build:dev": "pnpm build: && pnpm dev",
+		"build:test": "pnpm build: && pnpm test",
+		"build:build": "pnpm build: && pnpm build",
 		"prepublishOnly": "echo 'Did you mean to publish `./package/`, instead of `./`?' && exit 1",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
