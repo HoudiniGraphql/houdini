@@ -2,7 +2,7 @@
 
 ## 1.0.0-next.20
 
-### Patch Changes
+### 🐛 Fixes
 
 -   [#904](https://github.com/HoudiniGraphql/houdini/pull/904) [`7cd3ee1`](https://github.com/HoudiniGraphql/houdini/commit/7cd3ee121510499ae0faba978a2e1cecb8b5e065) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Export $options type for the union of all valid string values
 
