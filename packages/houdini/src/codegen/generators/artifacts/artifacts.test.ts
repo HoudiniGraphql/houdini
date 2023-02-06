@@ -4077,7 +4077,9 @@ describe('subscription artifacts', function () {
 })
 
 test('some artifactData added to artifact specific to plugins', async function () {
-	config.plugins = [
+	const localConfig = testConfig()
+
+	localConfig.plugins = [
 		{
 			name: 'plugin-tmp1',
 			filepath: '',
@@ -4097,7 +4099,7 @@ test('some artifactData added to artifact specific to plugins', async function (
 	const docs: Document[] = [mockCollectedDoc(`query TestQuery { version }`)]
 
 	// execute the generator
-	await runPipeline(config, docs)
+	await runPipeline(localConfig, docs)
 
 	// load the contents of the file
 	// We should have nothing related to plugin-tmp2
@@ -4258,18 +4260,139 @@ test('nested recursive fragments', async function () {
 		        }
 		    },
 
-		    "pluginData": {
-		        "plugin-tmp1": {
-		            "added_stuff": {
-		                "yop": "true"
-		            }
-		        }
-		    },
-
+		    "pluginData": {},
 		    "policy": "CacheOrNetwork",
 		    "partial": false
 		};
 
 		"HoudiniHash=5bffb5d88b4646c49637e5f92f601ee632823009b7bf5fdfafb1f107b5fc35cd";
+	`)
+})
+
+test('leave @include and @skip alone', async function () {
+	// the documents to test
+	const docs: Document[] = [
+		mockCollectedDoc(`
+			query MyAnimalQuery {
+				node(id: "some_id") {
+					id @skip(if: true)
+
+					...NodeDetails @include(if:true)
+
+					... on User {
+						...UserThings
+					}
+				}
+			}
+		`),
+		mockCollectedDoc(`
+			fragment UserThings on User {
+				id
+				name
+
+				...NodeDetails
+			}
+		`),
+		mockCollectedDoc(`
+			fragment NodeDetails on Node {
+				id
+
+				... on User {
+					id
+				}
+			}
+		`),
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "MyAnimalQuery",
+		    "kind": "HoudiniQuery",
+		    "hash": "f9b92afffa2f1293ef0f6bc9dab29194e0b9232e6f7a9acd0a435c7a4dc05cb2",
+
+		    "raw": \`query MyAnimalQuery {
+		  node(id: "some_id") {
+		    id @skip(if: true)
+		    ...NodeDetails @include(if: true)
+		    ... on User {
+		      ...UserThings
+		    }
+		    __typename
+		  }
+		}
+
+		fragment NodeDetails on Node {
+		  id
+		  ... on User {
+		    id
+		  }
+		}
+
+		fragment UserThings on User {
+		  id
+		  name
+		  ...NodeDetails
+		}
+		\`,
+
+		    "rootType": "Query",
+
+		    "selection": {
+		        "fields": {
+		            "node": {
+		                "type": "Node",
+		                "keyRaw": "node(id: \\"some_id\\")",
+		                "nullable": true,
+
+		                "selection": {
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename"
+		                        }
+		                    },
+
+		                    "abstractFields": {
+		                        "fields": {
+		                            "User": {
+		                                "id": {
+		                                    "type": "ID",
+		                                    "keyRaw": "id"
+		                                },
+
+		                                "name": {
+		                                    "type": "String",
+		                                    "keyRaw": "name"
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename"
+		                                }
+		                            }
+		                        },
+
+		                        "typeMap": {}
+		                    }
+		                },
+
+		                "abstract": true
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+		    "policy": "CacheOrNetwork",
+		    "partial": false
+		};
+
+		"HoudiniHash=f9b92afffa2f1293ef0f6bc9dab29194e0b9232e6f7a9acd0a435c7a4dc05cb2";
 	`)
 })
