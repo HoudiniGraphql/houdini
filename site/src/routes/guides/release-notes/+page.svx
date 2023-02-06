@@ -370,6 +370,37 @@ in m ind that global query stores are dangerous when used with SSR:
   }
 ```
 
+### Enum representation changed
+
+Houdini now relies on hardcoded strings for enums. You can still use the `MyEnum` objects like you have been but now
+you can pass strings or object values:
+
+```
+import { MyEnum } from '$houdini'
+
+function onClick() {
+	// could use a utility object
+	update.mutate({ variables: { input: MyEnum.Value1 } })
+	// or pass a string directly
+	update.mutate({ variables: { input: 'Value1' } })
+}
+```
+
+A side effect of this change is that yif ou need to refer to the list of all values for
+a particular enum, you can't use the enum type directly. Instead you have to use the `$options` variation on your enum:
+
+```diff
+  import type { MyEnum } from '$houdini'
++ import type { MyEnum$options } from '$houdini'
+
+- function example(val: MyEnum) {
++ function example(val: MyEnum$options) {
+      console.log(val)
+  }
+
+  example(MyEnum.Value1)
+```
+
 ## 0.20.0
 
 This release was originally planned to be `1.0` but we have some exciting stuff planned

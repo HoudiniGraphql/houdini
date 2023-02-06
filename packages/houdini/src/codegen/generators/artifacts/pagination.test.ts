@@ -154,6 +154,8 @@ test('pagination arguments stripped from key', async function () {
 		        }
 		    },
 
+		    "pluginData": {},
+
 		    "input": {
 		        "fields": {
 		            "first": "Int",
@@ -229,6 +231,8 @@ test('offset based pagination marks appropriate field', async function () {
 		            }
 		        }
 		    },
+
+		    "pluginData": {},
 
 		    "input": {
 		        "fields": {
@@ -456,6 +460,8 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		            }
 		        }
 		    },
+
+		    "pluginData": {},
 
 		    "input": {
 		        "fields": {
@@ -762,6 +768,8 @@ test("sibling aliases don't get marked", async function () {
 		            }
 		        }
 		    },
+
+		    "pluginData": {},
 
 		    "input": {
 		        "fields": {

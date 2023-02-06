@@ -61,6 +61,7 @@ test("doesn't include directives defined in plugins", async function () {
 		        }
 		    },
 
+		    "pluginData": {},
 		    "policy": "CacheOrNetwork",
 		    "partial": false
 		};
@@ -124,6 +125,7 @@ test('plugins can customize the hash', async function () {
 		        }
 		    },
 
+		    "pluginData": {},
 		    "policy": "CacheOrNetwork",
 		    "partial": false
 		};

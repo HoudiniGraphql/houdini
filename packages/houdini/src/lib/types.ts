@@ -138,10 +138,9 @@ export type PluginHooks = {
 	transformRuntime?: Record<string, (args: { config: Config; content: string }) => string>
 
 	/**
-	 * Used to modify any values that the user passed to their config files. Configuration values
-	 * that you return will be deeply merged with the previous value.
+	 * An module with an default export that sets configuration values.
 	 */
-	config?: (old: ConfigFile) => ConfigFile | Promise<ConfigFile>
+	config?: string
 
 	/**
 	 *
@@ -304,3 +303,4 @@ export type PluginConfig = { configPath?: string } & Partial<ConfigFile>
 
 export * from '../runtime/lib/types'
 export * from '../runtime/lib/config'
+export * from '../runtime/client'

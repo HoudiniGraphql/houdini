@@ -22,15 +22,21 @@ test('generates runtime definitions for each enum', async function () {
 	}).program
 
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		export const TestEnum1 = {
-		    Value1: "Value1",
-		    Value2: "Value2"
-		} as const
+		type ValuesOf<T> = T[keyof T]
+			
+		export declare const TestEnum1: {
+		    readonly Value1: "Value1";
+		    readonly Value2: "Value2";
+		}
+
+		export type TestEnum1$options = ValuesOf<typeof TestEnum1>
 		 
-		export const TestEnum2 = {
-		    Value3: "Value3",
-		    Value2: "Value2"
-		} as const
+		export declare const TestEnum2: {
+		    readonly Value3: "Value3";
+		    readonly Value2: "Value2";
+		}
+
+		export type TestEnum2$options = ValuesOf<typeof TestEnum2>
 	`)
 
 	// load the contents of the type definitions file

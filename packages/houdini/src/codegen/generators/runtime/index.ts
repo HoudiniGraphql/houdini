@@ -4,6 +4,7 @@ import { siteURL as SITE_URL, fs, HoudiniError, path, houdini_mode } from '../..
 import generateGraphqlReturnTypes from './graphqlFunction'
 import injectPlugins from './injectPlugins'
 import { generatePluginIndex } from './pluginIndex'
+import { injectConfig } from './runtimeConfig'
 
 export default async function runtimeGenerator(config: Config, docs: Document[]) {
 	const importStatement =
@@ -25,6 +26,10 @@ export default async function runtimeGenerator(config: Config, docs: Document[])
 			// update the link to the site for error messages
 			[path.join(config.runtimeSource, 'lib', 'constants.js')]: (content) => {
 				return content.replace('SITE_URL', SITE_URL)
+			},
+			// update the plugin config export
+			[path.join(config.runtimeSource, 'imports', 'pluginConfig.js')]: (content) => {
+				return injectConfig({ config, importStatement, exportStatement, content })
 			},
 			// make sure the config import points to the correct file
 			[path.join(config.runtimeSource, 'imports', 'config.js')]: (content) => {
