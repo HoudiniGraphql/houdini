@@ -1,6 +1,7 @@
 import type { GraphQLSchema } from 'graphql'
 
 import config from '../imports/config'
+import pluginConfigs from '../imports/pluginConfig'
 import type { CachePolicies } from './types'
 
 let mockConfig: ConfigFile | null = null
@@ -46,13 +47,31 @@ export function computeID(configFile: ConfigFile, type: string, data: any): stri
 	return id.slice(0, -2)
 }
 
+// only compute the config file once
+let _configFile: ConfigFile | null = null
+
 export function getCurrentConfig(): ConfigFile {
 	const mockConfig = getMockConfig()
 	if (mockConfig) {
 		return mockConfig
 	}
 
-	return defaultConfigValues(config)
+	if (_configFile) {
+		return _configFile
+	}
+
+	// we have to compute the config file. start with the default values
+	// iterate over every plugin config value and merge the result
+	let configFile = defaultConfigValues(config)
+	for (const pluginConfig of pluginConfigs) {
+		configFile = pluginConfig(configFile)
+	}
+
+	// save the result for later
+	_configFile = configFile
+
+	// we're done
+	return configFile
 }
 
 // the values we can take in from the config file

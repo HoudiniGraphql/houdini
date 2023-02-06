@@ -652,6 +652,8 @@ test('embeds node pagination query as a separate document', async function () {
 		        }
 		    },
 
+		    "pluginData": {},
+
 		    "input": {
 		        "fields": {
 		            "first": "Int",
@@ -861,6 +863,8 @@ test('embeds custom pagination query as a separate document', async function () 
 		            }
 		        }
 		    },
+
+		    "pluginData": {},
 
 		    "input": {
 		        "fields": {
@@ -1534,6 +1538,8 @@ test('generated query has same refetch spec', async function () {
 		            }
 		        }
 		    },
+
+		    "pluginData": {},
 
 		    "input": {
 		        "fields": {

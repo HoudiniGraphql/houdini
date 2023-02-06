@@ -124,8 +124,8 @@ mutation FavoriteBand($input: FavoriteBandInput!, $userID: String!) {
 
 ## Enums
 
-Houdini generates runtime representations of every enum in your schema. They can be imported directly from
-`$houdini`:
+Houdini generates runtime representations of every enum in your schema. When passing enum values as inputs to your requests
+you can use a raw string value or use a utility object if you prefer:
 
 ```javascript
 import { MyEnum } from '$houdini'
@@ -137,6 +137,22 @@ const update = graphql(`
 `)
 
 function onClick() {
+	// could use a utility object
 	update.mutate({ variables: { input: MyEnum.Value1 } })
+	// or pass a string directly
+	update.mutate({ variables: { input: 'Value1' } })
+}
+```
+
+### Enum Value Types
+
+Sometimes you want to define the types for function or component and you need to refer to the list of all values for
+a particular enum. To do this, import the `$options` variation on your enum:
+
+```typescript
+import type { MyEnum$options } from '$houdini'
+
+function (val: MyEnum$options) {
+
 }
 ```

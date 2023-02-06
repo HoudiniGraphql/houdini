@@ -645,9 +645,14 @@ export class Config {
 	isInternalDirective(name: string): boolean {
 		// an internal directive is one that was defined in the new schema
 		const internalDirectives =
-			this.#newSchemaInstance?.getDirectives().map((directive) => directive.name) ?? []
+			this.#newSchemaInstance?.getDirectives().reduce<string[]>((list, directive) => {
+				return list.concat(directive.name)
+			}, []) ?? []
 
-		return internalDirectives.includes(name) || this.isDeleteDirective(name)
+		return (
+			!defaultDirectives.includes(name) &&
+			(internalDirectives.includes(name) || this.isDeleteDirective(name))
+		)
 	}
 
 	isListFragment(name: string): boolean {
@@ -820,7 +825,16 @@ export async function getConfig({
 		// pass the config file through all of the plugins
 		for (const plugin of plugins) {
 			if (plugin.config) {
-				configFile = deepMerge(configPath, configFile, await plugin.config(configFile))
+				try {
+					const configFactory = await import(plugin.config)
+					const newValue =
+						typeof configFactory === 'function'
+							? configFactory(configFile)
+							: configFactory
+					configFile = deepMerge(configPath, configFile, newValue)
+				} catch {
+					console.log('could not load config file' + plugin.config)
+				}
 			}
 		}
 
@@ -1075,3 +1089,6 @@ async function loadSchemaFile(schemaPath: string): Promise<graphql.GraphQLSchema
 	}
 	return graphql.buildClientSchema(jsonContents)
 }
+
+const emptySchema = graphql.buildSchema('type Query { hello: String }')
+const defaultDirectives = emptySchema.getDirectives().map((dir) => dir.name)

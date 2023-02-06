@@ -76,6 +76,7 @@ test('pass argument values to generated fragments', async function () {
 		        }
 		    },
 
+		    "pluginData": {},
 		    "policy": "CacheOrNetwork",
 		    "partial": false
 		};
@@ -153,6 +154,7 @@ test("nullable arguments with no values don't show up in the query", async funct
 		        }
 		    },
 
+		    "pluginData": {},
 		    "policy": "CacheOrNetwork",
 		    "partial": false
 		};
@@ -230,6 +232,7 @@ test("fragment arguments with default values don't rename the fragment", async f
 		        }
 		    },
 
+		    "pluginData": {},
 		    "policy": "CacheOrNetwork",
 		    "partial": false
 		};
@@ -318,6 +321,8 @@ test('thread query variables to inner fragments', async function () {
 		            }
 		        }
 		    },
+
+		    "pluginData": {},
 
 		    "input": {
 		        "fields": {
@@ -416,6 +421,7 @@ test('inner fragment with intermediate default value', async function () {
 		        }
 		    },
 
+		    "pluginData": {},
 		    "policy": "CacheOrNetwork",
 		    "partial": false
 		};
@@ -505,6 +511,7 @@ test("default values don't overwrite unless explicitly passed", async function (
 		        }
 		    },
 
+		    "pluginData": {},
 		    "policy": "CacheOrNetwork",
 		    "partial": false
 		};
@@ -582,6 +589,7 @@ test('default arguments', async function () {
 		        }
 		    },
 
+		    "pluginData": {},
 		    "policy": "CacheOrNetwork",
 		    "partial": false
 		};
@@ -641,6 +649,8 @@ test('persists fragment variables in artifact', async function () {
 		            }
 		        }
 		    },
+
+		    "pluginData": {},
 
 		    "input": {
 		        "fields": {

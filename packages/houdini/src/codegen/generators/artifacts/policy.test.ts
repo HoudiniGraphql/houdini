@@ -75,6 +75,7 @@ test('cache policy is persisted in artifact', async function () {
 		        }
 		    },
 
+		    "pluginData": {},
 		    "policy": "CacheAndNetwork",
 		    "partial": false
 		};
@@ -156,6 +157,7 @@ test('can change default cache policy', async function () {
 		        }
 		    },
 
+		    "pluginData": {},
 		    "policy": "NetworkOnly",
 		    "partial": false
 		};
@@ -232,6 +234,7 @@ test('partial opt-in is persisted', async function () {
 		        }
 		    },
 
+		    "pluginData": {},
 		    "policy": "CacheAndNetwork",
 		    "partial": true
 		};
@@ -313,6 +316,7 @@ test('can set default partial opt-in', async function () {
 		        }
 		    },
 
+		    "pluginData": {},
 		    "policy": "CacheAndNetwork",
 		    "partial": true
 		};
