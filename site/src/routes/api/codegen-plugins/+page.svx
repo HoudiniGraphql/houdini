@@ -189,37 +189,24 @@ Defines whether your plugin runs before or after "core" plugins like `houdini-sv
 
 ### `config`
 
-- Type: `(old: ConfigFile) => ConfigFile`
+- Type: `string`
+- Value must point to a module that's globally resolvable (3rd party package, alias, etc)
+- Module value must be a function that takes an old config and returns the updated one.
+  You are free to update the provided value just make sure to return it.
 - Can return a `Promise` as well
 - Plugins might overwrite each other
 
-Used to modify any values that the user passed to their config files.
-Configuration values that you return will be deeply merged with the previous
-value. If you just want to look at the config values, we recommend using
-[afterLoad](#afterLoad) which will have the final set of values after all `config`
-hooks have run.
+Used to modify any values that the user passed to their config files. In order to
+ensure that this file is always safe to import on the client, we ask that you
+define your custom config in an export of your plugin. We'll make sure to import
+and apply the function.
 
 ```javascript:title=plugin_name/src/index.js
 import { plugin } from 'houdini'
 
 export default plugin('plugin_name', async () => {
     return {
-        config() {
-            return {
-                // add scalar config
-                scalars: {
-                    DateTime: {
-                        type: 'Date',
-                        unmarshal(val) {
-                            return new Date(val)
-                        },
-                        marshal(date) {
-                            return date.getTime()
-                        }
-                    }
-                }
-            }
-        }
+        config: 'plugin_name/config',
     }
 })
 ```
