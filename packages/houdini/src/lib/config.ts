@@ -820,7 +820,16 @@ export async function getConfig({
 		// pass the config file through all of the plugins
 		for (const plugin of plugins) {
 			if (plugin.config) {
-				configFile = deepMerge(configPath, configFile, await plugin.config(configFile))
+				try {
+					const configFactory = await import(plugin.config)
+					const newValue =
+						typeof configFactory === 'function'
+							? configFactory(configFile)
+							: configFactory
+					configFile = deepMerge(configPath, configFile, newValue)
+				} catch {
+					console.log('could not load config file' + plugin.config)
+				}
 			}
 		}
 
