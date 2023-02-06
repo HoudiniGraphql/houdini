@@ -128,7 +128,7 @@ jobs:
               with:
                   path: |
                       ~/.cache/ms-playwright
-                  key: cache-playwright-${{ matrix.os }}-1.28.0
+                  key: cache-playwright-${{ matrix.os }}-1.30.0
 
             - name: Cache playwright binaries (windows)
               uses: actions/cache@v3
@@ -136,7 +136,7 @@ jobs:
               with:
                   path: |
                       %USERPROFILE%\AppData\Local\ms-playwright
-                  key: cache-playwright-${{ matrix.os }}-1.28.0
+                  key: cache-playwright-${{ matrix.os }}-1.30.0
 
             - name: Build packages
               run: pnpm run compile
@@ -239,7 +239,7 @@ jobs:
     #           with:
     #               path: |
     #                   ~/.cache/ms-playwright
-    #               key: cache-playwright-${{ matrix.os }}-1.28.0
+    #               key: cache-playwright-${{ matrix.os }}-1.30.0
 
     #         - name: Cache playwright binaries (windows)
     #           uses: actions/cache@v3
@@ -247,7 +247,7 @@ jobs:
     #           with:
     #               path: |
     #                   %USERPROFILE%\AppData\Local\ms-playwright
-    #               key: cache-playwright-${{ matrix.os }}-1.28.0
+    #               key: cache-playwright-${{ matrix.os }}-1.30.0
 
     #         - name: Build packages
     #           run: pnpm run compile
