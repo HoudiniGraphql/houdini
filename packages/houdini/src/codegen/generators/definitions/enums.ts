@@ -55,10 +55,10 @@ type ValuesOf<T> = T[keyof T]
 
 				return `
 export declare const ${name}: {
-${values?.map((value) => `    readonly ${value.name.value}: "${value.name.value}"`).join(',\n')}
+${values?.map((value) => `    readonly ${value.name.value}: "${value.name.value}";`).join('\n')}
 }
 
-export ${name}$options = ValuesOf<typeof ${name}>
+export type ${name}$options = ValuesOf<typeof ${name}>
  `
 			})
 			.join('')
