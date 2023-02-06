@@ -12,6 +12,13 @@ on:
         branches:
             - 'main'
 
+
+env:
+  # Playwright uses this env var for the browser install path. See:
+  # https://playwright.dev/docs/ci#directories-to-cache
+  # It makes most sense to default this to something cross-platform
+  PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/ms-playwright
+
 jobs:
     format:
         name: Formatting
@@ -102,6 +109,8 @@ jobs:
               with:
                 node-version: 16.17.0
 
+            # pnpm
+
             - uses: pnpm/action-setup@v2.0.1
               name: Install pnpm
               id: pnpm-install
@@ -112,6 +121,7 @@ jobs:
               id: pnpm-cache
               run: |
                 echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
+
             - uses: actions/cache@v3
               name: Setup pnpm cache
               with:
@@ -119,30 +129,32 @@ jobs:
                 key: ${{ matrix.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
                 restore-keys: |
                   ${{ matrix.os }}-pnpm-store-
+
             - name: Install dependencies
               run: pnpm install
 
-            - name: Cache playwright binaries (ubuntu)
-              uses: actions/cache@v3
-              if: matrix.os == 'ubuntu-latest'
-              with:
-                  path: |
-                      ~/.cache/ms-playwright
-                  key: cache-playwright-${{ matrix.os }}-1.28.0
+            # Playwright
+            
+            # Use Playwright version as part of the cache key
+            # AFAIK this is a x-platform way to get your installed Playwright version.
+            # Be sure to be diligent in specifying ^, ~, or locked versions.
+            - run: |
+                echo "PLAYWRIGHT_VERSION=$(node -e "process.stdout.write(require('@playwright/test/package.json').version)")" >> $GITHUB_OUTPUT
+              id: playwright-version
 
-            - name: Cache playwright binaries (windows)
-              uses: actions/cache@v3
-              if: matrix.os == 'windows-latest'
+            - uses: actions/cache@v3
+              id: playwright-cache
               with:
-                  path: |
-                      %USERPROFILE%\AppData\Local\ms-playwright
-                  key: cache-playwright-${{ matrix.os }}-1.28.0
+                key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.PLAYWRIGHT_VERSION }}
+                path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
+
+            - run: pnpm playwright install
+              if: steps.playwright-cache.outputs.cache-hit != 'true'
+
+            # Run tests
 
             - name: Build packages
               run: pnpm run compile
-
-            - name: Install Playwright
-              run: pnpm playwright install --with-deps
 
             - name: End-to-End Tests sveltekit
               run: pnpm run --filter sveltekit build && pnpm --filter sveltekit tests
@@ -239,7 +251,7 @@ jobs:
     #           with:
     #               path: |
     #                   ~/.cache/ms-playwright
-    #               key: cache-playwright-${{ matrix.os }}-1.28.0
+    #               key: cache-playwright-${{ matrix.os }}-1.30.0
 
     #         - name: Cache playwright binaries (windows)
     #           uses: actions/cache@v3
@@ -247,7 +259,7 @@ jobs:
     #           with:
     #               path: |
     #                   %USERPROFILE%\AppData\Local\ms-playwright
-    #               key: cache-playwright-${{ matrix.os }}-1.28.0
+    #               key: cache-playwright-${{ matrix.os }}-1.30.0
 
     #         - name: Build packages
     #           run: pnpm run compile
