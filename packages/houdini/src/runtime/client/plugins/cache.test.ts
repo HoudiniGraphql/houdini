@@ -44,7 +44,7 @@ test('NetworkOnly', async function () {
 		},
 		errors: null,
 		fetching: false,
-		variables: null,
+		variables: {},
 		source: 'network',
 		partial: false,
 		stale: false,
@@ -60,7 +60,7 @@ test('NetworkOnly', async function () {
 		},
 		errors: null,
 		fetching: false,
-		variables: null,
+		variables: {},
 		source: 'network',
 		partial: false,
 		stale: false,
@@ -93,7 +93,7 @@ test('CacheOrNetwork', async function () {
 		},
 		errors: null,
 		fetching: false,
-		variables: null,
+		variables: {},
 		source: 'network',
 		partial: false,
 		stale: false,
@@ -154,7 +154,7 @@ test('CacheOnly', async function () {
 		},
 		errors: null,
 		fetching: false,
-		variables: null,
+		variables: {},
 		source: 'network',
 		partial: false,
 		stale: false,
@@ -213,7 +213,7 @@ test('stale', async function () {
 		partial: false,
 		source: 'network',
 		stale: false,
-		variables: null,
+		variables: {},
 	})
 
 	// intermediate returns
@@ -224,7 +224,7 @@ test('stale', async function () {
 		partial: false,
 		source: null,
 		stale: false,
-		variables: null,
+		variables: {},
 	})
 
 	//  mark stale
@@ -280,7 +280,7 @@ test('stale', async function () {
 		partial: false,
 		source: 'network',
 		stale: false,
-		variables: null,
+		variables: {},
 	})
 })
 
@@ -342,7 +342,7 @@ function fakeFetch({
 		},
 		errors: null,
 		fetching: false,
-		variables: null,
+		variables: {},
 		source: DataSource.Network,
 		partial: false,
 		stale: false,
