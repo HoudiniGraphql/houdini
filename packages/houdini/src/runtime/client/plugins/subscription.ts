@@ -72,7 +72,7 @@ export function subscription(factory: SubscriptionHandler) {
 								partial: true,
 								stale: false,
 								source: DataSource.Network,
-								variables: ctx.variables ?? null,
+								variables: ctx.variables ?? {},
 							})
 						},
 						error(data) {
@@ -84,7 +84,7 @@ export function subscription(factory: SubscriptionHandler) {
 								data: null,
 								errors: [data as Error],
 								fetching: false,
-								variables: ctx.variables ?? null,
+								variables: ctx.variables ?? {},
 							})
 						},
 						complete() {},
