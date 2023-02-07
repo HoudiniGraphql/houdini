@@ -69,7 +69,7 @@ export class DocumentStore<
 			stale: false,
 			source: null,
 			fetching,
-			variables: {},
+			variables: null,
 		}
 
 		super(initialState, () => {
@@ -116,7 +116,7 @@ export class DocumentStore<
 			text: this.#artifact.raw,
 			hash: this.#artifact.hash,
 			policy: policy ?? (this.#artifact as QueryArtifact).policy,
-			variables: {},
+			variables: null,
 			metadata,
 			session,
 			fetch,
@@ -135,7 +135,7 @@ export class DocumentStore<
 
 		// assign variables to take advantage of the setter on variables
 		const draft = context.draft()
-		draft.variables = variables ?? {}
+		draft.variables = variables ?? null
 		context = context.apply(draft, false)
 
 		// walk through the plugins to get the first result
@@ -413,7 +413,7 @@ class ClientPluginContextWrapper {
 				ctx.stuff = val
 			},
 			get variables() {
-				return ctx.variables ?? {}
+				return ctx.variables ?? null
 			},
 			set variables(val: Required<ClientPluginContext>['variables']) {
 				Object.assign(ctx, applyVariables(ctx, { variables: val }))
@@ -547,7 +547,7 @@ export type ClientPluginContext = {
 	artifact: DocumentArtifact
 	policy?: CachePolicies
 	fetch?: Fetch
-	variables?: Record<string, any>
+	variables?: Record<string, any> | null
 	metadata?: App.Metadata | null
 	session?: App.Session | null
 	fetchParams?: RequestInit

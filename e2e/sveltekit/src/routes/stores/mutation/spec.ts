@@ -11,7 +11,7 @@ test.describe('Mutation Page', () => {
       data: null,
       errors: null,
       fetching: false,
-      variables: {},
+      variables: null,
       partial: false,
       stale: false,
       source: null

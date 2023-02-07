@@ -47,7 +47,7 @@ export const cachePolicy =
 						if (policy === CachePolicy.CacheOnly) {
 							return resolve(ctx, {
 								fetching: false,
-								variables: ctx.variables ?? {},
+								variables: ctx.variables ?? null,
 								data: allowed ? value.data : initialValue.data,
 								errors: null,
 								source: DataSource.Cache,
@@ -61,7 +61,7 @@ export const cachePolicy =
 						if (useCache) {
 							resolve(ctx, {
 								fetching: false,
-								variables: ctx.variables ?? {},
+								variables: ctx.variables ?? null,
 								data: value.data,
 								errors: null,
 								source: DataSource.Cache,
