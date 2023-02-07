@@ -1,5 +1,11 @@
 # houdini
 
+## 1.0.0-next.21
+
+### Patch Changes
+
+-   [#908](https://github.com/HoudiniGraphql/houdini/pull/908) [`413a7b0`](https://github.com/HoudiniGraphql/houdini/commit/413a7b09e7872f661c0a64264cd056bb0021d502) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Use {} as the default/empty/unset value for Query.variables
+
 ## 1.0.0-next.20
 
 ### 🐛 Fixes
