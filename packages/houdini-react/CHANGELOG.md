@@ -1,5 +1,12 @@
 # houdini-react
 
+## 1.0.0-next.22
+
+### Patch Changes
+
+-   Updated dependencies [[`881c84e`](https://github.com/HoudiniGraphql/houdini/commit/881c84ed6b0db8428049e2e7bb1c76343ef9360c)]:
+    -   houdini@1.0.0-next.22
+
 ## 1.0.0-next.21
 
 ### Patch Changes
