@@ -117,7 +117,7 @@ test('middleware pipeline happy path', async function () {
 					partial: false,
 					stale: false,
 					source: DataSource.Cache,
-					variables: {},
+					variables: null,
 				})
 			},
 			afterNetwork(ctx, { resolve }) {
@@ -183,7 +183,7 @@ test('middleware pipeline happy path', async function () {
 		partial: false,
 		stale: false,
 		source: DataSource.Cache,
-		variables: {},
+		variables: null,
 	})
 })
 
@@ -218,7 +218,7 @@ test('terminate short-circuits pipeline', async function () {
 					partial: false,
 					stale: false,
 					source: DataSource.Cache,
-					variables: {},
+					variables: null,
 				})
 			},
 			end(ctx, { resolve }) {
@@ -230,7 +230,7 @@ test('terminate short-circuits pipeline', async function () {
 					partial: false,
 					stale: false,
 					source: DataSource.Cache,
-					variables: {},
+					variables: null,
 				})
 			},
 			network(ctx, { next }) {
@@ -288,7 +288,7 @@ test('uneven lists phases', async function () {
 				partial: false,
 				stale: false,
 				source: DataSource.Cache,
-				variables: {},
+				variables: null,
 			})
 		},
 	})
@@ -303,7 +303,7 @@ test('uneven lists phases', async function () {
 					partial: false,
 					stale: false,
 					source: DataSource.Cache,
-					variables: {},
+					variables: null,
 				})
 			},
 			afterNetwork(ctx, { resolve }) {
@@ -340,7 +340,7 @@ test('can call resolve multiple times to set multiple values', async function ()
 				partial: false,
 				stale: false,
 				source: DataSource.Cache,
-				variables: {},
+				variables: null,
 			})
 			sleep(100).then(() =>
 				resolve(ctx, {
@@ -350,7 +350,7 @@ test('can call resolve multiple times to set multiple values', async function ()
 					partial: false,
 					stale: false,
 					source: DataSource.Cache,
-					variables: {},
+					variables: null,
 				})
 			)
 		},
@@ -374,7 +374,7 @@ test('can call resolve multiple times to set multiple values', async function ()
 		partial: false,
 		stale: false,
 		source: DataSource.Cache,
-		variables: {},
+		variables: null,
 	})
 	expect(fn).toHaveBeenNthCalledWith(2, {
 		data: { hello: 'world' },
@@ -383,7 +383,7 @@ test('can call resolve multiple times to set multiple values', async function ()
 		partial: false,
 		stale: false,
 		source: DataSource.Cache,
-		variables: {},
+		variables: null,
 	})
 	expect(fn).toHaveBeenNthCalledWith(3, {
 		fetching: true,
@@ -392,7 +392,7 @@ test('can call resolve multiple times to set multiple values', async function ()
 		data: { hello: 'another-world' },
 		errors: [],
 		source: DataSource.Cache,
-		variables: {},
+		variables: null,
 	})
 })
 
@@ -439,7 +439,7 @@ test('middlewares can set fetch params', async function () {
 				partial: false,
 				stale: false,
 				source: DataSource.Cache,
-				variables: {},
+				variables: null,
 			})
 		},
 	})
@@ -469,7 +469,7 @@ test('exit can replay a pipeline', async function () {
 					partial: false,
 					stale: false,
 					source: DataSource.Cache,
-					variables: {},
+					variables: null,
 				})
 			}
 		},
@@ -486,7 +486,7 @@ test('exit can replay a pipeline', async function () {
 					partial: false,
 					stale: false,
 					source: DataSource.Cache,
-					variables: {},
+					variables: null,
 				})
 				return
 			}
@@ -498,7 +498,7 @@ test('exit can replay a pipeline', async function () {
 				partial: false,
 				stale: false,
 				source: DataSource.Cache,
-				variables: {},
+				variables: null,
 			})
 		},
 	})
@@ -514,7 +514,7 @@ test('exit can replay a pipeline', async function () {
 		partial: false,
 		stale: false,
 		source: DataSource.Cache,
-		variables: {},
+		variables: null,
 	})
 })
 
@@ -553,7 +553,7 @@ test('plugins can update variables', async function () {
 					partial: false,
 					stale: false,
 					source: DataSource.Cache,
-					variables: {},
+					variables: null,
 				})
 			},
 		}
@@ -592,7 +592,7 @@ test('can detect changed variables from inputs', async function () {
 					partial: false,
 					stale: false,
 					source: DataSource.Cache,
-					variables: {},
+					variables: null,
 				})
 			},
 		}
@@ -653,7 +653,7 @@ test('can pass new variables in a spread', async function () {
 					partial: false,
 					stale: false,
 					source: DataSource.Cache,
-					variables: {},
+					variables: null,
 				})
 			},
 		}
@@ -696,7 +696,7 @@ test('can update variables and then check if they were updated', async function 
 					partial: false,
 					stale: false,
 					source: DataSource.Cache,
-					variables: {},
+					variables: null,
 				})
 			},
 		}
@@ -795,7 +795,7 @@ test('can set observer state from hook', async function () {
 				partial: false,
 				stale: false,
 				source: DataSource.Network,
-				variables: {},
+				variables: null,
 			})
 		},
 	})
@@ -819,7 +819,7 @@ test('can set observer state from hook', async function () {
 		partial: false,
 		stale: false,
 		source: null,
-		variables: {},
+		variables: null,
 	})
 
 	// the third should have the final result
@@ -830,7 +830,7 @@ test('can set observer state from hook', async function () {
 		partial: false,
 		stale: false,
 		source: DataSource.Network,
-		variables: {},
+		variables: null,
 	})
 })
 
@@ -885,7 +885,7 @@ test("sending a setup message doesn't trigger the network steps", async function
 				partial: false,
 				stale: false,
 				source: DataSource.Cache,
-				variables: {},
+				variables: null,
 			})
 		},
 		afterNetwork(ctx, { resolve }) {
@@ -928,7 +928,7 @@ test('in a query, if fetching is set to false, return with false', async functio
 				partial: false,
 				stale: false,
 				source: DataSource.Cache,
-				variables: {},
+				variables: null,
 			})
 		},
 	})
@@ -951,7 +951,7 @@ test('in a query, if fetching is set to false, return with false', async functio
 		partial: false,
 		stale: false,
 		source: null,
-		variables: {},
+		variables: null,
 	})
 })
 
@@ -965,7 +965,7 @@ test('in a mutation, fetching should be false', async function () {
 				partial: false,
 				stale: false,
 				source: DataSource.Cache,
-				variables: {},
+				variables: null,
 			})
 		},
 	})
@@ -988,7 +988,7 @@ test('in a mutation, fetching should be false', async function () {
 		partial: false,
 		stale: false,
 		source: null,
-		variables: {},
+		variables: null,
 	})
 })
 
@@ -1077,7 +1077,7 @@ test('throw hooks can resolve the plugin instead', async function () {
 				partial: false,
 				stale: false,
 				source: DataSource.Cache,
-				variables: {},
+				variables: null,
 			})
 		},
 	})
@@ -1104,7 +1104,7 @@ test('throw hooks can resolve the plugin instead', async function () {
 		partial: false,
 		stale: false,
 		source: DataSource.Cache,
-		variables: {},
+		variables: null,
 	})
 
 	// make sure the spy was called in the correct order
@@ -1120,7 +1120,7 @@ test('throw hooks can replay the plugin instead', async function () {
 		partial: false,
 		stale: false,
 		source: DataSource.Cache,
-		variables: {},
+		variables: null,
 	}
 	const fn = vi.fn()
 
