@@ -69,7 +69,7 @@ export class DocumentStore<
 			stale: false,
 			source: null,
 			fetching,
-			variables: null,
+			variables: {},
 		}
 
 		super(initialState, () => {

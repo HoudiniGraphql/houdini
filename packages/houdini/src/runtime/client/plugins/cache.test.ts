@@ -342,7 +342,7 @@ function fakeFetch({
 		},
 		errors: null,
 		fetching: false,
-		variables: null,
+		variables: {},
 		source: DataSource.Network,
 		partial: false,
 		stale: false,
