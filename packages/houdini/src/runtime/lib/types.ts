@@ -209,7 +209,7 @@ export type QueryResult<_Data = GraphQLObject, _Input = Record<string, any>> = {
 	partial: boolean
 	stale: boolean
 	source: DataSources | null
-	variables: _Input | {}
+	variables: _Input | null
 }
 
 export type RequestPayload<GraphQLObject = any> = {

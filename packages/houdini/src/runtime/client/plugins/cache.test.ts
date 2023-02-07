@@ -44,7 +44,7 @@ test('NetworkOnly', async function () {
 		},
 		errors: null,
 		fetching: false,
-		variables: {},
+		variables: null,
 		source: 'network',
 		partial: false,
 		stale: false,
@@ -60,7 +60,7 @@ test('NetworkOnly', async function () {
 		},
 		errors: null,
 		fetching: false,
-		variables: {},
+		variables: null,
 		source: 'network',
 		partial: false,
 		stale: false,
@@ -93,7 +93,7 @@ test('CacheOrNetwork', async function () {
 		},
 		errors: null,
 		fetching: false,
-		variables: {},
+		variables: null,
 		source: 'network',
 		partial: false,
 		stale: false,
@@ -109,7 +109,7 @@ test('CacheOrNetwork', async function () {
 		},
 		errors: null,
 		fetching: false,
-		variables: {},
+		variables: null,
 		source: 'cache',
 		partial: false,
 		stale: false,
@@ -135,7 +135,7 @@ test('CacheOnly', async function () {
 		data: null,
 		errors: null,
 		fetching: false,
-		variables: {},
+		variables: null,
 		source: 'cache',
 		partial: false,
 		stale: false,
@@ -154,7 +154,7 @@ test('CacheOnly', async function () {
 		},
 		errors: null,
 		fetching: false,
-		variables: {},
+		variables: null,
 		source: 'network',
 		partial: false,
 		stale: false,
@@ -173,7 +173,7 @@ test('CacheOnly', async function () {
 		},
 		errors: null,
 		fetching: false,
-		variables: {},
+		variables: null,
 		source: 'cache',
 		partial: false,
 		stale: false,
@@ -213,7 +213,7 @@ test('stale', async function () {
 		partial: false,
 		source: 'network',
 		stale: false,
-		variables: {},
+		variables: null,
 	})
 
 	// intermediate returns
@@ -224,7 +224,7 @@ test('stale', async function () {
 		partial: false,
 		source: null,
 		stale: false,
-		variables: {},
+		variables: null,
 	})
 
 	//  mark stale
@@ -246,7 +246,7 @@ test('stale', async function () {
 		partial: false,
 		source: 'cache',
 		stale: true,
-		variables: {},
+		variables: null,
 	})
 
 	// intermediate returns
@@ -263,7 +263,7 @@ test('stale', async function () {
 		partial: false,
 		source: 'cache',
 		stale: true,
-		variables: {},
+		variables: null,
 	})
 
 	// Doing a real network call in the end and returning the new data & stale false
@@ -280,7 +280,7 @@ test('stale', async function () {
 		partial: false,
 		source: 'network',
 		stale: false,
-		variables: {},
+		variables: null,
 	})
 })
 
@@ -342,7 +342,7 @@ function fakeFetch({
 		},
 		errors: null,
 		fetching: false,
-		variables: {},
+		variables: null,
 		source: DataSource.Network,
 		partial: false,
 		stale: false,
