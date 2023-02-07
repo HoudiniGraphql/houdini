@@ -386,7 +386,7 @@ function onClick() {
 }
 ```
 
-A side effect of this change is that yif ou need to refer to the list of all values for
+A side effect of this change is that if you need to refer to the list of all values for
 a particular enum, you can't use the enum type directly. Instead you have to use the `$options` variation on your enum:
 
 ```diff
