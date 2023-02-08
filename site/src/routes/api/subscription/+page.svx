@@ -58,7 +58,7 @@ import { subscription } from '$houdini/plugins'
 export default new HoudiniClient({
   url: "...",
   plugins: [
-    subscription(() => new createClient({
+    subscription(() => createClient({
       url: 'ws://api.url'
     }))
   ]
@@ -152,7 +152,7 @@ import { subscription } from '$houdini/plugins'
 export default new HoudiniClient({
   url: "...",
   plugins: [
-    subscription(({ session }) => new createClient({
+    subscription(({ session }) => createClient({
       url: 'ws://api.url',
       connectionParams: () => {
         return {
