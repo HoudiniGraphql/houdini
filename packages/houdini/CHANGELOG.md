@@ -1,5 +1,11 @@
 # houdini
 
+## 1.0.0-next.23
+
+### Patch Changes
+
+-   [#912](https://github.com/HoudiniGraphql/houdini/pull/912) [`9468bb5`](https://github.com/HoudiniGraphql/houdini/commit/9468bb5bae8199df749747506ba3c1291428de46) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Pass session to subscription.listen
+
 ## 1.0.0
 
 For a better overview of the changes in this release, please visit the
