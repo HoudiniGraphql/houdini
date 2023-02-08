@@ -1,5 +1,7 @@
 # houdini-svelte
 
+## 1.0.0
+
 For a better overview of the changes in this release, please visit the
 [Release Notes](http://www.houdinigraphql.com/guides/release-notes).
 
