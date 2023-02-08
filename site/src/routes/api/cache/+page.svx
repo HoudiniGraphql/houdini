@@ -47,7 +47,7 @@ const user = cache.get('User', { id: '1' })
 Once you have the reference, you can query any cached fields or related records using the `read` method on the record:
 
 ```typescript
-import { cache } from '$houdini'
+import { cache, graphql } from '$houdini'
 
 const user = cache.get('User', { id: '1' })
 
@@ -65,7 +65,7 @@ console.log(`hello ${info.data.firstName}!`)
 To extract values from the root of your cache (the Query type), use the `read` method on the cache:
 
 ```typescript
-import { cache } from '$houdini'
+import { cache, graphql } from '$houdini'
 
 const allUsers = cache.read({
 	query: graphql(`
@@ -84,7 +84,7 @@ Your documents can use variables to read dynamic fields to match any situation. 
 both queries and fragments:
 
 ```typescript
-import { cache } from '$houdini'
+import { cache, graphql } from '$houdini'
 
 // read data from the root of your api
 cache.read({
@@ -122,7 +122,7 @@ For more information about fragment variables, head over to the [fragment api re
 To update your cache's data, you can use the `write` method on any record:
 
 ```typescript
-import { cache } from '$houdini'
+import { cache, graphql } from '$houdini'
 
 const user = cache.get('User', { id: '1' })
 
@@ -141,7 +141,7 @@ user.write({
 Just like `read`, there is also a way to write values to the root of your api:
 
 ```typescript
-import { cache } from '$houdini'
+import { cache, graphql } from '$houdini'
 
 cache.write({
 	query: graphql(`
@@ -163,7 +163,7 @@ Your documents can use variables to write dynamic fields to match any situation.
 both queries and fragments
 
 ```typescript
-import { cache } from '$houdini'
+import { cache, graphql } from '$houdini'
 
 // update data at the root of your api
 cache.write({
@@ -211,7 +211,7 @@ on the record. You can use the same API in order to change a link between two
 records.
 
 ```typescript
-import { cache } from '$houdini'
+import { cache, graphql } from '$houdini'
 
 const user = cache.get('User', { id: '1' })
 

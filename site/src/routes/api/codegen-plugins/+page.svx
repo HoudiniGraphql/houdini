@@ -193,7 +193,6 @@ Defines whether your plugin runs before or after "core" plugins like `houdini-sv
 - Value must point to a module that's globally resolvable (3rd party package, alias, etc)
 - Module value must be a function that takes an old config and returns the updated one.
   You are free to update the provided value just make sure to return it.
-- Can return a `Promise` as well
 - Plugins might overwrite each other
 
 Used to modify any values that the user passed to their config files. In order to
@@ -333,7 +332,7 @@ export default plugin('plugin_name', async () => {
 - Plugin values are concattenated together
 
 Teaches the pipeline how to extract graphql documents out of your application source code
-given its filepath and the file contents. You can return `null` or an empty string to indicate
+given its filepath and the file contents. You can return `null` or an empty list to indicate
 that you didn't find any graphql documents. This step is responsible for actually parsing your
 source code and extracting the string values of the `graphql` function.
 
@@ -670,7 +669,7 @@ export default plugin('plugin_name', async () => {
 - The first value provided by a plugin is used
 
 Customizes the return type of the graphql function. If you need to add an import to the file
-in order to resolve the import, you can use the `ensure_import` utility. Here is an example
+in order to resolve the import, you can use the `ensureImport` utility. Here is an example
 from `houdini-svelte` which maps the result of `graphql` to the store that was generated for
 the document:
 
@@ -681,7 +680,7 @@ export default {
 
 		// if we're supposed to generate a store then add
         // an overloaded declaration
-		if (artifact.plugin_data['houdini-svelte'].generate) {
+		if (artifact.pluginData['houdini-svelte'].generate) {
 			// use the name of the store as the return value
             const store = store_name({ name })
 
