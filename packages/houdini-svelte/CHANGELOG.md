@@ -1,11 +1,6 @@
 # houdini-svelte
 
-## 1.0.0-next.23
-
-### Patch Changes
-
--   Updated dependencies [[`9468bb5`](https://github.com/HoudiniGraphql/houdini/commit/9468bb5bae8199df749747506ba3c1291428de46)]:
-    -   houdini@1.0.0-next.23
+## 1.0.0
 
 For a better overview of the changes in this release, please visit the
 [Release Notes](http://www.houdinigraphql.com/guides/release-notes).
