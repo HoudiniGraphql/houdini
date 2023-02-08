@@ -45,7 +45,7 @@ export default new HoudiniClient({
 ## Automatic
 
 An approach to Persisted Queries, popularized by Apollo, is known as
-[APQ (Automatic Persisted Queries)](https://www.apollographql.com/docs/apollo-server/performance/apq/).
+[Automatic Persisted Queries (APQ)](https://www.apollographql.com/docs/apollo-server/performance/apq/).
 This involves first sending a query's hash and if its unrecognized, sending the full
 query string. The easiest way to do this is to define a [client plugin](/api/client-plugins).
 This might look something like:
