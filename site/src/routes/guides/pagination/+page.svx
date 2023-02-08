@@ -13,6 +13,8 @@ arguments and mimics the mechanisms provided by most database engines. Cursor-ba
 is a bi-directional strategy that relies on `first`/`after` or `last`/`before` arguments and
 is designed to handle modern pagination features such a infinite scrolling.
 
+## Paginated Queries
+
 Regardless of the strategy used, houdini follows a simple pattern: mark the field with
 `@paginate`, and provide the "page size" via the `first`, `last` or `limit` arguments to the field.
 Once you've done that, you can wire up your query however you prefer. For example, an inline query

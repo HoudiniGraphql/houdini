@@ -329,7 +329,7 @@ Houdini with the information before the link resolves:
 import { cache, graphql }  from "$houdini"
 
 function primeCache(user) {
-    // prime the cache to know the id of the uesr we are resolving
+    // prime the cache to know the id of the user we are resolving
     cache.write({
         query: graphql(`
             query UserProfileHint($name: String!) {

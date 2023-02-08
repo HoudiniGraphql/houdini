@@ -64,7 +64,6 @@ While preparing the request, plugins are iterated over in the order they are pas
 has been provided, its value is sent in reverse order through the list of plugins we've visited to potentially
 modify the response. For more information on this, please read the section on [Enter vs Exit hooks](#enter-vs-exit-hooks).
 
-
 ## Writing a Plugin
 
 A client plugin is defined as a function that returns an object with a fixed set of keys defining the "hooks" that you want
@@ -82,7 +81,6 @@ const sayHello: ClientPlugin = () => {
 }
 ```
 
-
 <AuthoringPluginsDive />
 
 <DeepDive title="Composing Plugins">
@@ -95,14 +93,14 @@ allowing you to easily toggle functionality depending on configuration values:
 import { plugin } from 'houdini'
 import externalPlugin from 'third-party'
 
-const sayHello: ClientPlugin = () => {
+const sayHello: ClientPlugin = (config) => () => {
     return [
 		{
 			start(ctx, { next }) {
 				// ...
 			},
     	},
-		externalPlugin
+		config.value ? externalPlugin : null
 	]
 }
 ```
@@ -151,13 +149,13 @@ import type { ClientPlugin } from '$houdini'
 
 const simpleFetchPlugin: ClientPlugin = () => {
     return {
-        async network(ctx, { resolve, next }) {
+        async network(ctx, { resolve }) {
             const result = await fetch('...', {
                 body: JSON.stringify({ query: ctx.text })
             })
 
-            // in reality we need to pass more here
-            // see Type Defintions for more information
+            // in reality we need to pass more information here.
+            // see Type Definitions for more information
             resolve(ctx, {
                 data: result.data
             })
