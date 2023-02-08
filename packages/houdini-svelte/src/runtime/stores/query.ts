@@ -226,7 +226,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 
 // the parameters we will be passed from the generator
 export type StoreConfig<_Data extends GraphQLObject, _Input, _Artifact> = {
-	artifact: _Artifact & { plugin_data: { 'houdini-svelte': PluginArtifactData } }
+	artifact: _Artifact & { pluginData: { 'houdini-svelte': PluginArtifactData } }
 	storeName: string
 	variables: boolean
 }

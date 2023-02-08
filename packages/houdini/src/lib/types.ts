@@ -211,7 +211,7 @@ export type PluginHooks = {
 
 	/**
 	 * A hook to customize the return type of the graphql function. If you need to add an import to the file
-	 * in order to resolve the import, you can use the `ensure_import` utility.
+	 * in order to resolve the import, you can use the `ensureImport` utility.
 	 */
 	graphqlTagReturn?: (args: {
 		config: Config

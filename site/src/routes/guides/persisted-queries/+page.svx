@@ -15,8 +15,8 @@ houdini provides a query's hash to the fetch function for you to use.
 ## Fixed List
 
 The simplest solution for persisted queries it to generate a fixed mapping of hash to
-query for every document that your client will send. To support this, you can pass
-the `--output` flag to the `generate` command and provide a path to save the map:
+query for every document that your client will send. If that is good enough for your situation,
+pass the `--output` flag to the `generate` command and provide a path to save the map:
 
 ```bash
 npx houdini generate --output ./queries.json
@@ -24,10 +24,9 @@ npx houdini generate --output ./queries.json
 npx houdini generate -o ./queries.json
 ```
 
-Once this map has been created, you will have to make it available to your server somehow.
-
-Once your serer has this list, instead of sending the full operation text with every request, you can now simply
-pass the hash under whatever field name your API is configured to use:
+Assuming you've made this list available to your server somehow, you can now simply
+pass the hash under whatever field name your API is configured to use instead of
+sending the full operation text with every request:
 
 ```typescript:title=src/client.ts&typescriptToggle=true
 export default new HoudiniClient({
@@ -43,11 +42,10 @@ export default new HoudiniClient({
 })
 ```
 
-
 ## Automatic
 
 An approach to Persisted Queries, popularized by Apollo, is known as
-[Automatic Persisted Queries](https://www.apollographql.com/docs/apollo-server/performance/apq/).
+[APQ (Automatic Persisted Queries)](https://www.apollographql.com/docs/apollo-server/performance/apq/).
 This involves first sending a query's hash and if its unrecognized, sending the full
 query string. The easiest way to do this is to define a [client plugin](/api/client-plugins).
 This might look something like:

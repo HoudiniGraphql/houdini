@@ -20,7 +20,7 @@ const config = {
 			async transform(code) {
 				if (!_outline) {
 					_outline = JSON.stringify(await loadOutline())
-					_content = JSON.stringify(await loadOutline())
+					_content = JSON.stringify(await loadContent())
 				}
 
 				return {
