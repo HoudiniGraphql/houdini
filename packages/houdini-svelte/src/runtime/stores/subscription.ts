@@ -4,6 +4,7 @@ import { CompiledSubscriptionKind } from '$houdini/runtime/lib/types'
 import type { GraphQLObject } from 'houdini'
 
 import { initClient } from '../client'
+import { getSession } from '../session'
 import { BaseStore } from './base'
 
 export class SubscriptionStore<_Data extends GraphQLObject, _Input extends {}> extends BaseStore<
@@ -21,8 +22,12 @@ export class SubscriptionStore<_Data extends GraphQLObject, _Input extends {}> e
 		return this.observer?.subscribe(...args)
 	}
 
-	async listen(variables?: _Input) {
+	async listen(variables?: _Input, args?: { metadata: App.Metadata }) {
 		await initClient()
-		this.observer.send({ variables })
+		this.observer.send({
+			variables,
+			session: await getSession(),
+			metadata: args?.metadata,
+		})
 	}
 }
