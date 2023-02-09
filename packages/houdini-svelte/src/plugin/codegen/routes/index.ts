@@ -179,7 +179,6 @@ export default async function svelteKitGenerator(
 				typeExports = typeExports
 					//we define the loadInput, checks if any queries have imports
 					.concat(append_loadInput([...layoutQueries, ...pageQueries]))
-					// .concat(append_loadInput(pageQueries))
 					//define beforeLoad and afterLoad types layout always first
 					.concat(layout_append_beforeLoad)
 					.concat(page_append_beforeLoad)
