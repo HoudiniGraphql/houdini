@@ -170,10 +170,10 @@ For more information on the Connection model, check out [this blog post](https:/
 ## Paginated Queries
 
 Interacting with a paginated query is pretty similar to everything we've been doing so far.
-Just add decorate the paginated field with the `@paginate` directive. Go ahead and change the `+page.gql` file to look like this:
+Just decorate the paginated field with the `@paginate` directive. Go ahead and change the `+page.gql` file to look like this:
 
 ```graphql:title=src/routes/[[id]]/+page.gql
-query Info($id: Int!) {
+query Info($id: Int! = 1) {
     species(id: $id) {
         name
         flavor_text
@@ -247,8 +247,8 @@ In most situations houdini's automatic appending is great since it covers popula
 <div id="move-summary">
     <MoveDisplay move={$Info.data.species.moves.edges[moveIndex].node} />
     <div id="move-controls">
-        <UpButton disabled={!hasPrevMove} on:click={Info.loadPrevMove} />
-        <DownButton disabled={!hasNextMove} on:click={Info.loadNextMove} />
+        <UpButton disabled={!hasPrevMove} on:click={loadPrevMove} />
+        <DownButton disabled={!hasNextMove} on:click={loadNextMove} />
     </div>
 </div>
 ```
