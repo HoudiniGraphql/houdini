@@ -37,7 +37,7 @@ This example defines a mutation document named `SetFavorite` that invokes the `t
 Before we explain how to use mutations in Houdini, we need a way to visualize if a species is one of our favorites. To start, add the `favorite` to the route's query. It should now look something like:
 
 ```graphql:title=src/routes/[[id]]/+page.gql
-query Info($id: Int!) {
+query Info($id: Int! = 1) {
 	species(id: $id) {
 		name
 		flavor_text
@@ -115,14 +115,16 @@ It wouldn't be possible to look up this list's new value in the payload of `togg
 Before we get too far, let's add a place in our UI to show us the list of favorites. First, open up the `+page.gql` file and add the following block:
 
 ```diff:title=src/routes/[[id]]/+page.gql
- query Info {
-     species(id: 1) {
+ query Info($id: Int! = 1) {
+     species(id: $id) {
          id
          name
          flavor_text
-         sprites {
-             front
+         favorite
+         evolution_chain {
+             ...SpeciesPreview
          }
+         ...SpriteInfo
      }
 +    favorites @list(name:"FavoriteSpecies") {
 +        ...FavoritePreview
@@ -130,14 +132,14 @@ Before we get too far, let's add a place in our UI to show us the list of favori
  }
 ```
 
-Then, open up `src/routes/[[id]]/+page.svelte`, add imports for `FavoritePreview` and `FavoriteContainer`, and some components to visualize the list:
+Then, open up `src/routes/[[id]]/+page.svelte`, add imports for `FavoritePreview` and `FavoritesContainer`, and some components to visualize the list:
 
 ```svelte:title=src/routes/[[id]]/+page.svelte&typescriptToggle=true
 <script lang="ts">
-    import { FavoritePreview, FavoriteContainer } from '$houdini'
+    import { FavoritePreview, FavoritesContainer } from '$houdini'
 </script>
 
-<!-- this should go in the root of your component -->
+<!-- this should go in the root of your component, just before the Container -->
 <FavoritesContainer>
 	{#each $favorites.data.favorites as favorite}
 		<FavoritePreview species={favorite} />
