@@ -78,9 +78,9 @@ Defining a fragment inside of your component looks a lot like the query from bef
 ```svelte:title=src/components/Sprite.svelte&typescriptToggle=true
 <script lang="ts">
     import { fragment, graphql } from '$houdini'
-    import type { SprintInfo } from '$houdini'
+    import type { SpriteInfo } from '$houdini'
 
-    export let species: SprintInfo
+    export let species: SpriteInfo
 
     // prettier-ignore
     $: info = fragment(species, graphql(`
@@ -143,7 +143,7 @@ It's worth mentioning explicitly that you are free to mix and match fragments ho
 
 Before we add anything to our route, let's update the component defined in `src/components/SpeciesPreview` to use the new fragment we just added to `Sprite`. You might want to give it a try without looking ahead but either way, here's what it should look like now:
 
-```svelte:title=src/components/Sprite.svelte&typescriptToggle=true
+```svelte:title=src/components/SpeciesPreview.svelte&typescriptToggle=true
 <script lang="ts">
     import { graphql, fragment } from '$houdini'
     import { Sprite, Display } from '.'
