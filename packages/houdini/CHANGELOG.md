@@ -2,53 +2,32 @@
 
 ## 1.0.0
 
-### Major Changes
+For a better overview of the changes in this release, please visit the
+[Release Notes](http://www.houdinigraphql.com/guides/release-notes).
 
--   [#871](https://github.com/HoudiniGraphql/houdini/pull/871) [`7e2977ff`](https://github.com/HoudiniGraphql/houdini/commit/7e2977ff5f1e737aebbb606e473708036f303d02) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Implemented new ClientPlugin architecture for HoudiniClient
+### ⚠️ Breaking Changes
 
--   [#871](https://github.com/HoudiniGraphql/houdini/pull/871) [`69d6cddd`](https://github.com/HoudiniGraphql/houdini/commit/69d6cddd2103805f78e34f26f9a6197d58439e5a) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Normalize codegen plugin hook name casing
+-   [#871](https://github.com/HoudiniGraphql/houdini/pull/871) [`fd7b46c`](https://github.com/HoudiniGraphql/houdini/commit/fd7b46c4ab5392e643a6e6bb243697147d13fd2b) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Inline queries in routes with @load need a reactive marker
 
--   [#871](https://github.com/HoudiniGraphql/houdini/pull/871) [`fb23a7af`](https://github.com/HoudiniGraphql/houdini/commit/fb23a7af84d00bda5783f081a22989f359a46fa5) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Grouped `apiUrl`, `schemaPollHeaders`, and `schemaPollInterval` together
+-   [#872](https://github.com/HoudiniGraphql/houdini/pull/872) [`de44252`](https://github.com/HoudiniGraphql/houdini/commit/de442526e7518cc575e8f00b94767fa3d45e6f91) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Enums are generated as a constant object instead of a typescript enum. You can use the $options type for the union of all valid string values
 
--   [#871](https://github.com/HoudiniGraphql/houdini/pull/871) [`6cb993b9`](https://github.com/HoudiniGraphql/houdini/commit/6cb993b933f7b4c73f84beeca16bd4d498bcd375) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Renamed subscriptionsPlugin to subscription
+-   [#858](https://github.com/HoudiniGraphql/houdini/pull/858) [`fad070f`](https://github.com/HoudiniGraphql/houdini/commit/fad070f04bd82acdcd71ecdaed52783f468b5216) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Restructured codegen plugins
 
--   [#871](https://github.com/HoudiniGraphql/houdini/pull/871) [`71ac8f80`](https://github.com/HoudiniGraphql/houdini/commit/71ac8f808a481ff238c4f68d6ee1bdd545b69ec3) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Inline queries in routes with @load need a reactive marker
+-   [#842](https://github.com/HoudiniGraphql/houdini/pull/842) [`d468143`](https://github.com/HoudiniGraphql/houdini/commit/d46814386d6ab8609aad01a10aeb028e6a829ecb) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Grouped `apiUrl`, `schemaPollHeaders`, and `schemaPollInterval` together
 
--   [#871](https://github.com/HoudiniGraphql/houdini/pull/871) [`6897c8ef`](https://github.com/HoudiniGraphql/houdini/commit/6897c8efbb0ce5ff4ed96622e072f122746b8511) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Restructured codegen plugins
+-   [#841](https://github.com/HoudiniGraphql/houdini/pull/841) [`55e750c`](https://github.com/HoudiniGraphql/houdini/commit/55e750c8c90121ba021c597fa9c66364bc2dca8d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Restructure programmatic cache api
 
-### Minor Changes
+-   [#838](https://github.com/HoudiniGraphql/houdini/pull/838) [`d275adc`](https://github.com/HoudiniGraphql/houdini/commit/d275adc97dd97c49a8e35159d41e638128d8ad69) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Implemented new ClientPlugin architecture for HoudiniClient
 
--   [#871](https://github.com/HoudiniGraphql/houdini/pull/871) [`71ad83dc`](https://github.com/HoudiniGraphql/houdini/commit/71ad83dc38d6ea8566604fd3bb5f27d4db7501b9) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add support for marking data as stale
+### ✨ Features
 
--   [#871](https://github.com/HoudiniGraphql/houdini/pull/871) [`b9bd43a0`](https://github.com/HoudiniGraphql/houdini/commit/b9bd43a0d68dd77fa57520d32d2d25d779d306f2) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Restructure programmatic cache api
+-   [#849](https://github.com/HoudiniGraphql/houdini/pull/849) [`c7d4008`](https://github.com/HoudiniGraphql/houdini/commit/c7d4008f67dd9e25cab4e3816d0459ad6ff7c436) Thanks [@jycouet](https://github.com/jycouet)! - Add support for marking data as stale
 
-### Patch Changes
+-   [#865](https://github.com/HoudiniGraphql/houdini/pull/865) [`3872a56`](https://github.com/HoudiniGraphql/houdini/commit/3872a5603b791e2530b3617bf61422e7444a483e) Thanks [@jycouet](https://github.com/jycouet)! - on schema change, revalidate all document. No need to restart vite to pick up changes.
 
--   [#871](https://github.com/HoudiniGraphql/houdini/pull/871) [`881b894c`](https://github.com/HoudiniGraphql/houdini/commit/881b894c45fc1b15860f147b25c263b0f8aea17e) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - QoL improvements for plugin authors
+### 🐛 Fixes
 
--   [#871](https://github.com/HoudiniGraphql/houdini/pull/871) [`b54215aa`](https://github.com/HoudiniGraphql/houdini/commit/b54215aaaa7902bd56a0c4b5ebdce9261c97c774) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Pass session to subscription.listen
-
--   [#871](https://github.com/HoudiniGraphql/houdini/pull/871) [`7e2977ff`](https://github.com/HoudiniGraphql/houdini/commit/7e2977ff5f1e737aebbb606e473708036f303d02) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - in queries when we have a manual load, fetching is false by default otherwise true
-
--   [#871](https://github.com/HoudiniGraphql/houdini/pull/871) [`48fad9b9`](https://github.com/HoudiniGraphql/houdini/commit/48fad9b9b3917fb81659879214faa9ebc1350dc2) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Use {} as the default/empty/unset value for Query.variables
-
--   [#871](https://github.com/HoudiniGraphql/houdini/pull/871) [`6cb993b9`](https://github.com/HoudiniGraphql/houdini/commit/6cb993b933f7b4c73f84beeca16bd4d498bcd375) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Enums are generated as a constant object instead of a typescript enum
-
--   [#871](https://github.com/HoudiniGraphql/houdini/pull/871) [`ced3b007`](https://github.com/HoudiniGraphql/houdini/commit/ced3b0076de378882873a66e13200315d34beddb) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix issue when loading routes with partial data
-
--   [#871](https://github.com/HoudiniGraphql/houdini/pull/871) [`358aa62c`](https://github.com/HoudiniGraphql/houdini/commit/358aa62c7ff79d8d695ab663ef326e476e79b98b) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Remove logs
-
--   [#871](https://github.com/HoudiniGraphql/houdini/pull/871) [`2c7daa48`](https://github.com/HoudiniGraphql/houdini/commit/2c7daa48f4adc16de5bea88d8b93db335ba24972) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - on schema change, revalidate all document. No need to restart vite to pick up changes.
-
--   [#871](https://github.com/HoudiniGraphql/houdini/pull/871) [`ecca66ba`](https://github.com/HoudiniGraphql/houdini/commit/ecca66bac8b48913dd5cc6f6e4c362dc00fc32e2) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Query variables can be null again
-
--   [#871](https://github.com/HoudiniGraphql/houdini/pull/871) [`ca4caac2`](https://github.com/HoudiniGraphql/houdini/commit/ca4caac236042ac1157ce13b1f230acb1e7c48d3) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix out of memory error with nested recursive fragments
-
--   [#871](https://github.com/HoudiniGraphql/houdini/pull/871) [`f1de22ea`](https://github.com/HoudiniGraphql/houdini/commit/f1de22ea2f1eeb98893ebbe0ff2daff8736f302a) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Export $options type for the union of all valid string values
-
--   [#871](https://github.com/HoudiniGraphql/houdini/pull/871) [`309eda69`](https://github.com/HoudiniGraphql/houdini/commit/309eda69d65ef9fee42808cf0146102f4a9953d3) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Client plugins can return hooks, null, or list of hooks
-
--   [#871](https://github.com/HoudiniGraphql/houdini/pull/871) [`2ff76057`](https://github.com/HoudiniGraphql/houdini/commit/2ff76057dd90a31affdf93681a53d3387e01b1b6) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fixed pageInfo behavior when prepending and append values
+-   [#889](https://github.com/HoudiniGraphql/houdini/pull/889) [`fcba9f0`](https://github.com/HoudiniGraphql/houdini/commit/fcba9f0589ac6c066f95623d819cd9ea05d151a9) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix out of memory error with nested recursive fragments
 
 ## 0.20.4
 
