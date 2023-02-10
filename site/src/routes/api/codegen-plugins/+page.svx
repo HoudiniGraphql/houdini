@@ -327,7 +327,7 @@ export default plugin('plugin_name', async () => {
 
 ### `extractDocuments`
 
-- Type: `({ config: Config, path: string, content: string }) => string[] | null`
+- Type: `({ config: Config, filepath: string, content: string }) => string[] | null`
 - Can return a `Promise` as well
 - Plugin values are concattenated together
 
