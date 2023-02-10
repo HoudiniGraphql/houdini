@@ -1,5 +1,34 @@
 # houdini
 
+## 1.0.0
+
+For a better overview of the changes in this release, please visit the
+[Release Notes](http://www.houdinigraphql.com/guides/release-notes).
+
+### ⚠️ Breaking Changes
+
+-   [#871](https://github.com/HoudiniGraphql/houdini/pull/871) [`fd7b46c`](https://github.com/HoudiniGraphql/houdini/commit/fd7b46c4ab5392e643a6e6bb243697147d13fd2b) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Inline queries in routes with @load need a reactive marker
+
+-   [#872](https://github.com/HoudiniGraphql/houdini/pull/872) [`de44252`](https://github.com/HoudiniGraphql/houdini/commit/de442526e7518cc575e8f00b94767fa3d45e6f91) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Enums are generated as a constant object instead of a typescript enum. You can use the $options type for the union of all valid string values
+
+-   [#858](https://github.com/HoudiniGraphql/houdini/pull/858) [`fad070f`](https://github.com/HoudiniGraphql/houdini/commit/fad070f04bd82acdcd71ecdaed52783f468b5216) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Restructured codegen plugins
+
+-   [#842](https://github.com/HoudiniGraphql/houdini/pull/842) [`d468143`](https://github.com/HoudiniGraphql/houdini/commit/d46814386d6ab8609aad01a10aeb028e6a829ecb) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Grouped `apiUrl`, `schemaPollHeaders`, and `schemaPollInterval` together
+
+-   [#841](https://github.com/HoudiniGraphql/houdini/pull/841) [`55e750c`](https://github.com/HoudiniGraphql/houdini/commit/55e750c8c90121ba021c597fa9c66364bc2dca8d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Restructure programmatic cache api
+
+-   [#838](https://github.com/HoudiniGraphql/houdini/pull/838) [`d275adc`](https://github.com/HoudiniGraphql/houdini/commit/d275adc97dd97c49a8e35159d41e638128d8ad69) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Implemented new ClientPlugin architecture for HoudiniClient
+
+### ✨ Features
+
+-   [#849](https://github.com/HoudiniGraphql/houdini/pull/849) [`c7d4008`](https://github.com/HoudiniGraphql/houdini/commit/c7d4008f67dd9e25cab4e3816d0459ad6ff7c436) Thanks [@jycouet](https://github.com/jycouet)! - Add support for marking data as stale
+
+-   [#865](https://github.com/HoudiniGraphql/houdini/pull/865) [`3872a56`](https://github.com/HoudiniGraphql/houdini/commit/3872a5603b791e2530b3617bf61422e7444a483e) Thanks [@jycouet](https://github.com/jycouet)! - on schema change, revalidate all document. No need to restart vite to pick up changes.
+
+### 🐛 Fixes
+
+-   [#889](https://github.com/HoudiniGraphql/houdini/pull/889) [`fcba9f0`](https://github.com/HoudiniGraphql/houdini/commit/fcba9f0589ac6c066f95623d819cd9ea05d151a9) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix out of memory error with nested recursive fragments
+
 ## 0.20.4
 
 ## 0.20.3

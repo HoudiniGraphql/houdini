@@ -1,5 +1,30 @@
 # houdini-svelte
 
+## 1.0.0
+
+For a better overview of the changes in this release, please visit the
+[Release Notes](http://www.houdinigraphql.com/guides/release-notes).
+
+### ⚠️ Breaking Changes
+
+-   [#879](https://github.com/HoudiniGraphql/houdini/pull/879) [`ab96b1c`](https://github.com/HoudiniGraphql/houdini/commit/ab96b1cbdeb33385a36cd72ff5e7a1d04447577b) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - MutationStore.mutate returns full payload
+
+-   [#846](https://github.com/HoudiniGraphql/houdini/pull/846) [`3245233`](https://github.com/HoudiniGraphql/houdini/commit/32452332c446a6a779a687bd80e2278f1e66ceef) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - removed the config values for specify custom cursor stores for a specific direction
+
+-   [#841](https://github.com/HoudiniGraphql/houdini/pull/841) [`55e750c`](https://github.com/HoudiniGraphql/houdini/commit/55e750c8c90121ba021c597fa9c66364bc2dca8d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Removed `@manual_load` since queries defined inline in a component are no longer automatically loaded. In order to opt into generated loads for your inline queries, use the `@load` directive
+
+### ✨ Features
+
+-   [#846](https://github.com/HoudiniGraphql/houdini/pull/846) [`3245233`](https://github.com/HoudiniGraphql/houdini/commit/32452332c446a6a779a687bd80e2278f1e66ceef) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Added support for bidirectional pagination when using connections
+
+-   [#847](https://github.com/HoudiniGraphql/houdini/pull/847) [`308ed34`](https://github.com/HoudiniGraphql/houdini/commit/308ed34af9be4913a1d5c9ac998ff53599601667) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add event argument to mutation for server-side operations
+
+### 🐛 Fixes
+
+-   [#897](https://github.com/HoudiniGraphql/houdini/pull/897) [`1298fef`](https://github.com/HoudiniGraphql/houdini/commit/1298fef24b7a0b8e377b1de4ff2892317516c75f) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Invalid integer route paramters get unmarshaled as undefined
+
+-   [#895](https://github.com/HoudiniGraphql/houdini/pull/895) [`d03ce3b`](https://github.com/HoudiniGraphql/houdini/commit/d03ce3ba3ab70bc3e94d81b87a1b1111cf206a50) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix sourcemaps
+
 ## 0.20.4
 
 ### Patch Changes

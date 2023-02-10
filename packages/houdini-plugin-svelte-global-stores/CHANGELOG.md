@@ -1,5 +1,14 @@
 # houdini-plugin-svelte-global-stores
 
+## 1.0.0
+
+For a better overview of the changes in this release, please visit the
+[Release Notes](http://www.houdinigraphql.com/guides/release-notes).
+
+### ⚠️ Breaking Changes
+
+-   [#852](https://github.com/HoudiniGraphql/houdini/pull/852) [`65a355e`](https://github.com/HoudiniGraphql/houdini/commit/65a355e68a2c68329356a4d639adf3e1328aa435) Thanks [@jycouet](https://github.com/jycouet)! - by default global stores of type 'query' will not be generated. You have to opt-in to generate them in houdini.config.js
+
 ## 0.20.4
 
 ### Patch Changes
