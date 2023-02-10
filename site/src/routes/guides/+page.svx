@@ -9,7 +9,7 @@ Need help or guidance using Houdini? You are in the right place!
 
 This section contains posts that cover fundamental principles to help you build your projects.
 
-- [Release Notes](/guides/release-notes) - a summary of the updates for every major and minor
+- [Release Notes](/guides/release-notes) - A summary of the updates for every major and minor
   version
 - [F.A.Q.](/guides/faq) - Answers to common questions such as "Why Houdini?"
 - [Plugin Directory](/guides/plugin-directory) - A list of plugins you can add to your houdini project
