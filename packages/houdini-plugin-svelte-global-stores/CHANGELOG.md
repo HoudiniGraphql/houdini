@@ -1,5 +1,13 @@
 # houdini-plugin-svelte-global-stores
 
+## 1.0.0-next.24
+
+### Patch Changes
+
+-   Updated dependencies [[`c45caf1`](https://github.com/HoudiniGraphql/houdini/commit/c45caf1835cd28559d13bb1176ee2c8544b6da45)]:
+    -   houdini-svelte@1.0.0-next.24
+    -   houdini@1.0.0-next.24
+
 ## 1.0.0
 
 For a better overview of the changes in this release, please visit the

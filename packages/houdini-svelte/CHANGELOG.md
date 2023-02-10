@@ -1,5 +1,14 @@
 # houdini-svelte
 
+## 1.0.0-next.24
+
+### Patch Changes
+
+-   [#917](https://github.com/HoudiniGraphql/houdini/pull/917) [`c45caf1`](https://github.com/HoudiniGraphql/houdini/commit/c45caf1835cd28559d13bb1176ee2c8544b6da45) Thanks [@sjcobb2022](https://github.com/sjcobb2022)! - Fixed layout and page queries seperate LoadInput
+
+-   Updated dependencies []:
+    -   houdini@1.0.0-next.24
+
 ## 1.0.0
 
 For a better overview of the changes in this release, please visit the
