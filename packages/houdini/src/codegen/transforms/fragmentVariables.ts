@@ -272,7 +272,7 @@ export function withArguments(
 
 export type FragmentArgument = {
 	name: string
-	type: string
+	type: graphql.TypeNode
 	required: boolean
 	defaultValue: graphql.ValueNode | null
 }
@@ -431,22 +431,9 @@ export function fragmentArgumentsDefinitions(
 
 	// we have a list of the arguments
 	return args.map<graphql.VariableDefinitionNode>((arg) => {
-		const innerType: graphql.NamedTypeNode = {
-			kind: 'NamedType',
-			name: {
-				kind: 'Name',
-				value: arg.type,
-			},
-		}
-
 		return {
 			kind: 'VariableDefinition',
-			type: arg.required
-				? innerType
-				: {
-						kind: 'NonNullType',
-						type: innerType,
-				  },
+			type: arg.type,
 			variable: {
 				kind: 'Variable',
 				name: {

@@ -598,6 +598,84 @@ test('default arguments', async function () {
 	`)
 })
 
+test('list arguments', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+				query AllUsers {
+                    ...QueryFragment @with(ids: ["1"])
+				}
+			`
+		),
+		mockCollectedDoc(
+			`
+				fragment QueryFragment on Query
+                @arguments(ids: {type: "[String]"}) {
+                    nodes(ids: $ids) {
+						id
+					}
+				}
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	const queryContents = await fs.readFile(path.join(config.artifactPath(docs[0].document)))
+	expect(queryContents).toBeTruthy()
+	// parse the contents
+	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
+		parser: typeScriptParser,
+	}).program
+	// verify contents
+	expect(parsedQuery).toMatchInlineSnapshot(`
+		export default {
+		    "name": "AllUsers",
+		    "kind": "HoudiniQuery",
+		    "hash": "774e85c1a749388df97ed5768006535072408ceea2a7bba3c835553e2d65e5bd",
+
+		    "raw": \`query AllUsers {
+		  ...QueryFragment
+		}
+
+		fragment QueryFragment on Query {
+		  users(boolValue: true, stringValue: "Hello") {
+		    id
+		  }
+		}
+		\`,
+
+		    "rootType": "Query",
+
+		    "selection": {
+		        "fields": {
+		            "users": {
+		                "type": "User",
+		                "keyRaw": "users(boolValue: true, stringValue: \\"Hello\\")",
+
+		                "selection": {
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
+		                        }
+		                    }
+		                }
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+		    "policy": "CacheOrNetwork",
+		    "partial": false
+		};
+
+		"HoudiniHash=774e85c1a749388df97ed5768006535072408ceea2a7bba3c835553e2d65e5bd";
+	`)
+})
+
 test('persists fragment variables in artifact', async function () {
 	const docs = [
 		mockCollectedDoc(

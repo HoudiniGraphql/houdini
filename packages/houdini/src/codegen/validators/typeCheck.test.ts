@@ -1,8 +1,10 @@
+import * as graphql from 'graphql'
 import { test, expect, describe } from 'vitest'
 
 import type { Config } from '../../lib'
 import type { Document } from '../../lib/types'
 import { pipelineTest, testConfig } from '../../test'
+import { valueIsType } from './typeCheck'
 
 // since generation will catch a lot of these errors for us, the goal of these tests is to make sure
 // errors are caught __before__ we get to the generation stage. This means that our failure tests
@@ -648,6 +650,55 @@ const table: Row[] = [
 		],
 	},
 	{
+		title: 'list of strings passed to fragment argument type argument (woof)',
+		pass: false,
+		documents: [
+			`
+			fragment NodePaginatedA on Query @arguments(
+				ids: { type: [String] }
+			) {
+				nodes(ids: $ids) {
+					id
+				}
+			}
+			`,
+			`
+			fragment NodePaginatedB on Query @arguments(
+				ids: { type: [String] }
+			) {
+				nodes(ids: $ids) {
+					id
+				}
+			}
+			`,
+		],
+	},
+	{
+		title: 'must pass list to list fragment arguments',
+		pass: false,
+		documents: [
+			`
+			fragment Fragment on Query @arguments(
+				ids: { type: [String] }
+			) {
+				nodes(ids: $ids) {
+					id
+				}
+			}
+			`,
+			`
+			query QueryWithFragmentA {
+				...Fragment @with(ids: "A")
+			}
+			`,
+			`
+			query QueryWithFragmentB {
+				...Fragment @with(ids: "A")
+			}
+			`,
+		],
+	},
+	{
 		title: '@paginate cursor happy path',
 		pass: true,
 		documents: [
@@ -1018,5 +1069,124 @@ for (const { title, pass, documents, check, partial_config, nb_of_fail } of tabl
 		)
 	})
 }
+
+describe('valueIsType', function () {
+	const table: {
+		title: string
+		equal: boolean
+		value: graphql.ValueNode
+		type: graphql.TypeNode
+	}[] = [
+		{
+			title: 'NamedTypes - Positive',
+			equal: true,
+			value: {
+				kind: 'StringValue',
+				value: '1234',
+			},
+			type: {
+				kind: 'NamedType',
+				name: {
+					kind: 'Name',
+					value: 'String',
+				},
+			},
+		},
+		{
+			title: 'NamedTypes - Negative',
+			equal: false,
+			value: {
+				kind: 'IntValue',
+				value: '1234',
+			},
+			type: {
+				kind: 'NamedType',
+				name: {
+					kind: 'Name',
+					value: 'String',
+				},
+			},
+		},
+		{
+			title: 'List of Scalars - Positive',
+			equal: true,
+			value: {
+				kind: 'ListValue',
+				values: [
+					{
+						kind: 'IntValue',
+						value: '1',
+					},
+				],
+			},
+			type: {
+				kind: 'ListType',
+				type: {
+					kind: 'NamedType',
+					name: {
+						kind: 'Name',
+						value: 'Int',
+					},
+				},
+			},
+		},
+		{
+			title: 'List of Scalars - Negative',
+			equal: false,
+			value: {
+				kind: 'ListValue',
+				values: [
+					{
+						kind: 'StringValue',
+						value: '1',
+					},
+				],
+			},
+			type: {
+				kind: 'ListType',
+				type: {
+					kind: 'NamedType',
+					name: {
+						kind: 'Name',
+						value: 'Int',
+					},
+				},
+			},
+		},
+		{
+			title: 'Mixed Lists',
+			equal: false,
+			value: {
+				kind: 'ListValue',
+				values: [
+					{
+						kind: 'StringValue',
+						value: '1',
+					},
+					{
+						kind: 'IntValue',
+						value: '1',
+					},
+				],
+			},
+			type: {
+				kind: 'ListType',
+				type: {
+					kind: 'NamedType',
+					name: {
+						kind: 'Name',
+						value: 'String',
+					},
+				},
+			},
+		},
+	]
+
+	for (const row of table) {
+		test(row.title, function () {
+			expect(valueIsType(testConfig(), row.value, row.type)).toEqual(row.equal)
+		})
+	}
+})
 
 test.todo('@list on root list with no id fails')

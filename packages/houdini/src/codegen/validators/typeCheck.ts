@@ -712,32 +712,21 @@ function validateFragmentArguments(
 				// every argument corresponds to one defined in the fragment
 				else {
 					// zip together the provided argument with the one in the fragment definition
-					const zipped: [graphql.ArgumentNode, string][] = appliedArgumentNames.map(
-						(name) => [
+					const zipped: [graphql.ArgumentNode, graphql.TypeNode][] =
+						appliedArgumentNames.map((name) => [
 							appliedArguments[name],
 							fragmentArguments[fragmentName].find((arg) => arg.name === name)!.type,
-						]
-					)
+						])
 
 					for (const [applied, target] of zipped) {
-						// TODO: validate these types
-						// if the applied value is a variable, list, or object don't validate it
-						if (
-							applied.value.kind === graphql.Kind.VARIABLE ||
-							applied.value.kind === graphql.Kind.LIST ||
-							applied.value.kind === graphql.Kind.OBJECT
-						) {
-							continue
-						}
-
-						// the applied value isn't a variable
-						const appliedType = applied.value.kind.substring(
-							0,
-							applied.value.kind.length - 'Value'.length
-						)
-
 						// if the two don't match up, its not a valid argument type
-						if (appliedType !== target) {
+						if (!valueIsType(config, applied.value, target)) {
+							// the applied value isn't a variable
+							const appliedType = applied.value.kind.substring(
+								0,
+								applied.value.kind.length - 'Value'.length
+							)
+
 							ctx.reportError(
 								new graphql.GraphQLError(
 									`Invalid argument type. Expected ${target}, found ${appliedType}`
@@ -749,6 +738,67 @@ function validateFragmentArguments(
 			},
 		}
 	}
+}
+
+// returns true if two type nodes are equal
+export function valueIsType(
+	config: Config,
+	value: graphql.ValueNode,
+	targetType: graphql.TypeNode
+): boolean {
+	// if we were passed null then we can answer the question
+	if (value.kind === 'NullValue') {
+		// the value is correct if the targe type is not non-null
+		return targetType.kind !== 'NonNullType'
+	}
+
+	// we know we aren't passing a null value
+
+	// let's shed a non-null
+	if (targetType.kind === 'NonNullType') {
+		targetType = targetType.type
+	}
+
+	// process list values
+	if (value.kind === 'ListValue') {
+		// if the target type is not a list we're done
+		if (targetType.kind !== 'ListType') {
+			return false
+		}
+		const listType = targetType.type
+
+		// if we weren't expecting a list value, we're done
+		return value.values.every((value) => valueIsType(config, value, listType))
+	}
+
+	// we have scalar values so we need to make sure that the type match
+	if (value.kind === 'BooleanValue') {
+		return targetType.kind === 'NamedType' && targetType.name.value === 'Boolean'
+	}
+	if (value.kind === 'StringValue') {
+		return targetType.kind === 'NamedType' && targetType.name.value === 'String'
+	}
+	if (value.kind === 'IntValue') {
+		return targetType.kind === 'NamedType' && targetType.name.value === 'Int'
+	}
+	if (value.kind === 'FloatValue') {
+		return targetType.kind === 'NamedType' && targetType.name.value === 'Float'
+	}
+	if (value.kind === 'EnumValue' && targetType.kind === 'NamedType') {
+		// we need to look up the target type in the schema and see if the enum matches
+		const enumType = config.schema.getType(targetType.name.value)
+
+		// if the targe type isn't an enum, then we have a problem
+		if (!graphql.isEnumType(enumType)) {
+			return false
+		}
+
+		// its a valid value if its a possible value of the enum
+		return enumType.getValues().some((enumValue) => enumValue.value === value.value)
+	}
+
+	// if we got this far we dont recognize the situation so skip it
+	return false
 }
 
 function paginateArgs(config: Config, filepath: string) {
