@@ -679,7 +679,7 @@ const table: Row[] = [
 		documents: [
 			`
 			fragment Fragment on Query @arguments(
-				ids: { type: [String] }
+				ids: { type: "[String]" }
 			) {
 				nodes(ids: $ids) {
 					id

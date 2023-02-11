@@ -1,11 +1,13 @@
 import type { ProgramKind } from 'ast-types/lib/gen/kinds'
+import * as graphql from 'graphql'
 import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
-import { test, expect } from 'vitest'
+import { test, expect, describe } from 'vitest'
 
 import { runPipeline } from '../../codegen'
 import { fs, path } from '../../lib'
 import { testConfig, mockCollectedDoc } from '../../test'
+import { parseArgumentTypeString } from './fragmentVariables'
 
 test('pass argument values to generated fragments', async function () {
 	const docs = [
@@ -634,15 +636,16 @@ test('list arguments', async function () {
 		export default {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
-		    "hash": "774e85c1a749388df97ed5768006535072408ceea2a7bba3c835553e2d65e5bd",
+		    "hash": "f67cc1c3f5ad8a2d241316a5a1e163616f79db7d2396d7a76750a34038b48fef",
 
 		    "raw": \`query AllUsers {
-		  ...QueryFragment
+		  ...QueryFragment_4AWlIw
 		}
 
-		fragment QueryFragment on Query {
-		  users(boolValue: true, stringValue: "Hello") {
+		fragment QueryFragment_4AWlIw on Query {
+		  nodes(ids: ["1"]) {
 		    id
+		    __typename
 		  }
 		}
 		\`,
@@ -651,18 +654,25 @@ test('list arguments', async function () {
 
 		    "selection": {
 		        "fields": {
-		            "users": {
-		                "type": "User",
-		                "keyRaw": "users(boolValue: true, stringValue: \\"Hello\\")",
+		            "nodes": {
+		                "type": "Node",
+		                "keyRaw": "nodes(ids: [\\"1\\"])",
 
 		                "selection": {
 		                    "fields": {
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id"
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename"
 		                        }
 		                    }
-		                }
+		                },
+
+		                "abstract": true
 		            }
 		        }
 		    },
@@ -672,7 +682,7 @@ test('list arguments', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=774e85c1a749388df97ed5768006535072408ceea2a7bba3c835553e2d65e5bd";
+		"HoudiniHash=f67cc1c3f5ad8a2d241316a5a1e163616f79db7d2396d7a76750a34038b48fef";
 	`)
 })
 
@@ -742,4 +752,95 @@ test('persists fragment variables in artifact', async function () {
 
 		"HoudiniHash=6c327bb344ded7bcdfa0cb250d5139bb8e18d5618335b4e621a06576cb10a67f";
 	`)
+})
+
+describe('parse argument type string', function () {
+	const table: {
+		title: string
+		input: string
+		expected: graphql.TypeNode
+	}[] = [
+		{
+			title: 'named types',
+			input: 'String',
+			expected: {
+				kind: 'NamedType',
+				name: {
+					kind: 'Name',
+					value: 'String',
+				},
+			},
+		},
+		{
+			title: 'non-null type',
+			input: 'String!',
+			expected: {
+				kind: 'NonNullType',
+				type: {
+					kind: 'NamedType',
+					name: {
+						kind: 'Name',
+						value: 'String',
+					},
+				},
+			},
+		},
+		{
+			title: 'list',
+			input: '[String]',
+			expected: {
+				kind: 'ListType',
+				type: {
+					kind: 'NamedType',
+					name: {
+						kind: 'Name',
+						value: 'String',
+					},
+				},
+			},
+		},
+		{
+			title: 'non-null list',
+			input: '[String]!',
+			expected: {
+				kind: 'NonNullType',
+				type: {
+					kind: 'ListType',
+					type: {
+						kind: 'NamedType',
+						name: {
+							kind: 'Name',
+							value: 'String',
+						},
+					},
+				},
+			},
+		},
+		{
+			title: 'non-null list of non-null named typesnon-null list of non-null named types',
+			input: '[String!]!',
+			expected: {
+				kind: 'NonNullType',
+				type: {
+					kind: 'ListType',
+					type: {
+						kind: 'NonNullType',
+						type: {
+							kind: 'NamedType',
+							name: {
+								kind: 'Name',
+								value: 'String',
+							},
+						},
+					},
+				},
+			},
+		},
+	]
+
+	for (const row of table) {
+		test(row.title, function () {
+			expect(parseArgumentTypeString(row.input)).toEqual(row.expected)
+		})
+	}
 })

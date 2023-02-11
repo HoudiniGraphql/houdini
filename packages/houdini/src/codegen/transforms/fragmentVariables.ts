@@ -309,19 +309,11 @@ export function fragmentArguments(
 					return []
 				}
 
-				let type = typeArg.value
+				let type = parseArgumentTypeString(typeArg.value)
 				let name = arg.name.value
-				let required = false
+				let required = type.kind === 'NonNullType'
 				let defaultValue =
 					arg.value.fields?.find((arg) => arg.name.value === 'default')?.value || null
-
-				// if the name of the type ends in a ! we need to mark it as required
-				if (type[type.length - 1] === '!') {
-					type = type.slice(0, -1)
-					required = true
-					// there is no default value for a required argument
-					defaultValue = null
-				}
 
 				return [
 					{
@@ -333,6 +325,46 @@ export function fragmentArguments(
 				]
 			}) || []
 	)
+}
+
+// parseArgumentTypeString parses strings like [String!]! and turns
+// them into the corresponding graphql AST
+export function parseArgumentTypeString(input: string): graphql.TypeNode {
+	// because of the structure of the string, we can start at the end of the input
+	// thanks chat gpt! it was struggling to pull off the actual implementation
+	// this was helpful insight
+
+	// if we are dealing with a non-null
+	if (input[input.length - 1] === '!') {
+		const inner = parseArgumentTypeString(input.substring(0, input.length - 1))
+		if (inner.kind === 'NonNullType') {
+			throw new Error('invalid type' + input)
+		}
+
+		return {
+			kind: 'NonNullType',
+			type: inner,
+		}
+	}
+
+	// if we are dealing with a list
+	if (input[input.length - 1] === ']') {
+		const inner = parseArgumentTypeString(input.substring(1, input.length - 1))
+
+		return {
+			kind: 'ListType',
+			type: inner,
+		}
+	}
+
+	// we are dealing with a name
+	return {
+		kind: 'NamedType',
+		name: {
+			kind: 'Name',
+			value: input,
+		},
+	}
 }
 
 function collectDefaultArgumentValues(

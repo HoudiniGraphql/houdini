@@ -36,7 +36,7 @@ export default async function typeCheck(config: Config, docs: Document[]): Promi
 
 	// before we can validate everything, we need to look for the valid list names and
 	// check if they need a parent specification (if they fall inside of a fragment on something other than Query)
-	for (const { document: parsed, filename } of docs) {
+	for (const { document: parsed, originalString, filename } of docs) {
 		graphql.visit(parsed, {
 			[graphql.Kind.FRAGMENT_DEFINITION](definition) {
 				fragments[definition.name.value] = definition
@@ -365,9 +365,10 @@ export default async function typeCheck(config: Config, docs: Document[]): Promi
 				noUnusedFragmentArguments(config)
 			)
 
-	for (const { filename, document: parsed } of docs) {
+	for (const { filename, document: parsed, originalString } of docs) {
 		// validate the document
 		for (const error of graphql.validate(config.schema, parsed, rules(filename))) {
+			console.log(originalString)
 			errors.push(
 				new HoudiniError({
 					filepath: filename,
@@ -721,15 +722,9 @@ function validateFragmentArguments(
 					for (const [applied, target] of zipped) {
 						// if the two don't match up, its not a valid argument type
 						if (!valueIsType(config, applied.value, target)) {
-							// the applied value isn't a variable
-							const appliedType = applied.value.kind.substring(
-								0,
-								applied.value.kind.length - 'Value'.length
-							)
-
 							ctx.reportError(
 								new graphql.GraphQLError(
-									`Invalid argument type. Expected ${target}, found ${appliedType}`
+									`Invalid argument type. Expected ${target}, found ${applied.value.kind}`
 								)
 							)
 						}
@@ -795,6 +790,11 @@ export function valueIsType(
 
 		// its a valid value if its a possible value of the enum
 		return enumType.getValues().some((enumValue) => enumValue.value === value.value)
+	}
+
+	// if its a variable, let's just say yes
+	if (value.kind === 'Variable') {
+		return true
 	}
 
 	// if we got this far we dont recognize the situation so skip it
