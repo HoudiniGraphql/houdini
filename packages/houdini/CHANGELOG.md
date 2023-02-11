@@ -1,5 +1,15 @@
 # houdini
 
+## 1.0.1
+
+### ✨ Features
+
+-   [#921](https://github.com/HoudiniGraphql/houdini/pull/921) [`0f8f7ba`](https://github.com/HoudiniGraphql/houdini/commit/0f8f7ba626caabe847e2a94d467fe965184c0afa) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Improved type validation for fragment arguments
+
+### 🐛 Fixes
+
+-   [#921](https://github.com/HoudiniGraphql/houdini/pull/921) [`0f8f7ba`](https://github.com/HoudiniGraphql/houdini/commit/0f8f7ba626caabe847e2a94d467fe965184c0afa) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix parsing logic for fragment argument types
+
 ## 1.0.0
 
 For a better overview of the changes in this release, please visit the
