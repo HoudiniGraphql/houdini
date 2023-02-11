@@ -5,12 +5,37 @@ description: A guide for setting up your Houdini project
 
 # Setting Up Your Project
 
-This guide should walk you through all of the steps necessary to add Houdini to an existing
-project.
+This guide contains two different approaches to add Houdini to your project. The first one uses
+a script that will configure everything for you. The second is more manual, explaining
+all of the necessary steps.
 
-## Installation
+## Init Script
 
-houdini is available on npm and should be installed as a dev dependency:
+Once you have a SvelteKit Project (either an existing one or by following [these instructions](https://kit.svelte.dev/docs/creating-a-project),
+you can run the following command to add Houdini to your project. Just follow questions and the tool will
+configure everything for you (setup url, get schema, prepare project files, etc).
+
+```bash
+npx houdini@latest init
+```
+
+> This will send a request to your API to download your schema definition. If you need
+> headers to authenticate this request, you can pass them in with the `--headers`
+> flag (abbreviated `-h`). For example,
+> `npx houdini init -h Authorization="Bearer MyToken"`.
+
+And that's it! You should be all set with everything you need to work with Houdini.
+
+_If something went wrong, or you need to update your project by hand for some reason,
+check the next chapter that describes each framework and technology specificities._
+
+## Manual Installation
+
+### Project Setup
+
+**Step 1: Install the Package**
+
+The base package `houdini` is available on npm and should be installed as a dev dependency:
 
 ```bash
 yarn add -D houdini
@@ -20,27 +45,40 @@ npm install --save-dev houdini
 pnpm install --save-dev houdini
 ```
 
-## Starting a New Project
+**Step 2: Create houdini.config**
 
-Adding houdini to an existing project can easily be done with the provided command-line tool.
-If you don't already have an existing app, visit [this link](https://kit.svelte.dev/docs)
-for help setting one up.
+You need a `houdini.config.js` file to configure your project. This file should be like:
 
-Once you have a project and want to add houdini, execute the following command which will create a few necessary files, as well as pull down a json
-representation of your API's schema:
+```javascript:title=houdini.config.js
+/** @type {import('houdini').ConfigFile} */
+const config = {
+    "plugins": {
+        // add your plugins here
+    }
+}
 
-```bash
-npx houdini init
+export default config
 ```
 
-> This will send a request to your API to download your schema definition. If you need
-> headers to authenticate this request, you can pass them in with the `--headers`
-> flag (abbreviated `-h`). For example,
-> `npx houdini init -h Authorization="Bearer MyToken"`.
+_More information about the config file can be found [here](/api/config)._
 
-And that's it! You should be all set with everything you need to work with Houdini. If something
-went wrong, or you need to update your project by hand for some reason, here are the framework and
-technology specific steps you need to take:
+**Step 3: create HoudiniClient**
+
+You need a `/src/client.js` to be used by houdini. This file should be like:
+
+```javascript:title=client.js
+import { HoudiniClient } from '$houdini';
+
+export default new HoudiniClient({
+    url: 'https://[YOUR_URL_HERE]/graphql'
+})
+```
+
+_More information about the client file can be found [here](/api/client)._
+
+**Step 4: gitignore**
+
+Optional: You can add `$houdini` to your `.gitignore` as it will be only generated content.
 
 ### SvelteKit
 
@@ -52,6 +90,19 @@ yarn add -D houdini-svelte
 npm install --save-dev houdini-svelte
 # or
 pnpm install --save-dev houdini-svelte
+```
+
+Then, we need to add `houdini-svelte` plugin to the `houdini.config.js` file
+
+```javascript:title=houdini.config.js
+/** @type {import('houdini').ConfigFile} */
+const config = {
+    "plugins": {
+        "houdini-svelte": {}
+    }
+}
+
+export default config
 ```
 
 Then, we need to add houdini's plugin to your `vite.config.js`. Make sure that `houdini` comes before `sveltekit`:
@@ -92,6 +143,19 @@ yarn add -D houdini-svelte
 npm install --save-dev houdini-svelte
 # or
 pnpm install --save-dev houdini-svelte
+```
+
+Then, we need to add `houdini-svelte` plugin to the `houdini.config.js` file
+
+```javascript:title=houdini.config.js
+/** @type {import('houdini').ConfigFile} */
+const config = {
+    "plugins": {
+        "houdini-svelte": {}
+    }
+}
+
+export default config
 ```
 
 If you are using vite, you should use the `houdini/vite` plugin even if you aren't using kit.
@@ -139,5 +203,19 @@ We recommend the following extensions for your editor to take full advantage of 
 - [IntelliJ - GraphQL](https://plugins.jetbrains.com/plugin/8097-graphql)
 - [Vim - vim-graphql](https://github.com/jparise/vim-graphql)
 - [VSCode - GraphQL: Language Feature Support](https://marketplace.visualstudio.com/items?itemName=GraphQL.vscode-graphql)
+
+To take the full advantage of these extensions, you should add a file in the root like:
+
+```yaml:title=.graphqlrc.yaml
+projects:
+  default:
+    schema:
+      - ./schema.graphql
+      - ./$houdini/graphql/schema.graphql
+    documents:
+      - '**/*.gql'
+      - '**/*.svelte'
+      - ./$houdini/graphql/documents.gql
+```
 
 If you want to add another suggestion, please open a PR or contact us.
