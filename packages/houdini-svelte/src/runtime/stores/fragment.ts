@@ -22,18 +22,29 @@ export class FragmentStore<_Data extends GraphQLObject, _Input = {}> {
 		this.name = storeName
 	}
 
-	get(initialValue: _Data | null) {
+	get(initialValue: _Data): FragmentStoreInstance<_Data> | FragmentStoreInstance<_Data>
+	get(
+		initialValue: _Data | null
+	): FragmentStoreInstance<_Data> | FragmentStoreInstance<_Data | null>
+	get(
+		initialValue: _Data | null
+	): FragmentStoreInstance<_Data> | FragmentStoreInstance<_Data | null> {
 		// at the moment a fragment store doesn't really do anything
 		// but we're going to keep it wrapped in a store so we can eventually
 		// optimize the updates
-		let store = writable(initialValue) as Writable<_Data | null>
+		let store = writable(initialValue) as Writable<_Data>
 
 		return {
 			kind: CompiledFragmentKind,
-			subscribe: (...args: Parameters<Readable<_Data | null>['subscribe']>) => {
+			subscribe: (...args: Parameters<Readable<_Data>['subscribe']>) => {
 				return store.subscribe(...args)
 			},
-			update: (val: _Data | null) => store?.set(val),
+			update: (val: _Data) => store?.set(val),
 		}
 	}
+}
+
+export type FragmentStoreInstance<_Data> = Readable<_Data> & {
+	kind: typeof CompiledFragmentKind
+	update: Writable<_Data>['set']
 }
