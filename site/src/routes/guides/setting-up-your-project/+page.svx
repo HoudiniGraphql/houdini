@@ -5,15 +5,15 @@ description: A guide for setting up your Houdini project
 
 # Setting Up Your Project
 
-This guide contains two approaches to add Houdini in your project. The first one is through 
-a script that will configure everything for you. The second one is more manual, explaining
-all the necessary steps.
+This guide contains two different approaches to add Houdini to your project. The first one uses
+a script that will configure everything for you. The second is more manual, explaining
+all of the necessary steps.
 
 ## Init Script
 
-Either in a [new SvelteKit](https://kit.svelte.dev/docs/creating-a-project) project or existing once, 
-you can run the following command to add Houdini to your project. Just follow questions, and the tool will 
-configure everything for you _(setup url, get schema, prepare conf files, ...)_.
+Once you have a SvelteKit Project (either an existing one or by following [these instructions](https://kit.svelte.dev/docs/creating-a-project),
+you can run the following command to add Houdini to your project. Just follow questions and the tool will
+configure everything for you (setup url, get schema, prepare project files, etc).
 
 ```bash
 npx houdini@latest init
@@ -24,16 +24,16 @@ npx houdini@latest init
 > flag (abbreviated `-h`). For example,
 > `npx houdini init -h Authorization="Bearer MyToken"`.
 
-And that's it! You should be all set with everything you need to work with Houdini. 
+And that's it! You should be all set with everything you need to work with Houdini.
 
-_If something went wrong, or you need to update your project by hand for some reason, 
+_If something went wrong, or you need to update your project by hand for some reason,
 check the next chapter that describes each framework and technology specificities._
 
 ## Manual Installation
 
-### Base
+### Project Setup
 
-**1/ package**
+**Step 1: Install the Package**
 
 The base package `houdini` is available on npm and should be installed as a dev dependency:
 
@@ -45,9 +45,9 @@ npm install --save-dev houdini
 pnpm install --save-dev houdini
 ```
 
-**2/ houdini.config**
+**Step 2: Create houdini.config**
 
-You need a `houdini.config.js` file to configure your project. This file should be like: 
+You need a `houdini.config.js` file to configure your project. This file should be like:
 
 ```javascript:title=houdini.config.js
 /** @type {import('houdini').ConfigFile} */
@@ -59,11 +59,12 @@ const config = {
 
 export default config
 ```
+
 _More information about the config file can be found [here](/api/config)._
 
-**3/ HoudiniClient**
+**Step 3: create HoudiniClient**
 
-You need a `/src/client.js` to be used by houdini. This file should be like: 
+You need a `/src/client.js` to be used by houdini. This file should be like:
 
 ```javascript:title=client.js
 import { HoudiniClient } from '$houdini';
@@ -72,9 +73,10 @@ export default new HoudiniClient({
     url: 'https://[YOUR_URL_HERE]/graphql'
 })
 ```
+
 _More information about the client file can be found [here](/api/client)._
 
-**4/ gitignore**
+**Step 4: gitignore**
 
 Optional: You can add `$houdini` to your `.gitignore` as it will be only generated content.
 
@@ -202,7 +204,8 @@ We recommend the following extensions for your editor to take full advantage of 
 - [Vim - vim-graphql](https://github.com/jparise/vim-graphql)
 - [VSCode - GraphQL: Language Feature Support](https://marketplace.visualstudio.com/items?itemName=GraphQL.vscode-graphql)
 
-To take the full advantage of these extensions, you should add a file in the root like: 
+To take the full advantage of these extensions, you should add a file in the root like:
+
 ```yaml:title=.graphqlrc.yaml
 projects:
   default:
