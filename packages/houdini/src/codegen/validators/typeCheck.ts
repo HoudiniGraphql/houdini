@@ -779,6 +779,11 @@ export function valueIsType(
 	if (value.kind === 'FloatValue') {
 		return targetType.kind === 'NamedType' && targetType.name.value === 'Float'
 	}
+	if (value.kind === 'ObjectValue' && targetType.kind === 'NamedType') {
+		// if we are passing an object value as a type we have to trust it as a valid
+		// value for a scalar
+		return true
+	}
 	if (value.kind === 'EnumValue' && targetType.kind === 'NamedType') {
 		// we need to look up the target type in the schema and see if the enum matches
 		const enumType = config.schema.getType(targetType.name.value)
