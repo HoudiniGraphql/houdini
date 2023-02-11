@@ -310,16 +310,14 @@ export function fragmentArguments(
 				}
 
 				let type = parseArgumentTypeString(typeArg.value)
-				let name = arg.name.value
-				let required = type.kind === 'NonNullType'
 				let defaultValue =
 					arg.value.fields?.find((arg) => arg.name.value === 'default')?.value || null
 
 				return [
 					{
-						name,
+						name: arg.name.value,
 						type,
-						required,
+						required: type.kind === 'NonNullType',
 						defaultValue,
 					},
 				]
