@@ -1,4 +1,4 @@
-import * as graphql from 'graphql'
+import type * as graphql from 'graphql'
 import { test, expect, describe } from 'vitest'
 
 import type { Config } from '../../lib'

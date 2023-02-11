@@ -1,5 +1,5 @@
 import type { ProgramKind } from 'ast-types/lib/gen/kinds'
-import * as graphql from 'graphql'
+import type * as graphql from 'graphql'
 import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { test, expect, describe } from 'vitest'
