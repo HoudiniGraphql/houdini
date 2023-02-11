@@ -329,8 +329,6 @@ export function fragmentArguments(
 // them into the corresponding graphql AST
 export function parseArgumentTypeString(input: string): graphql.TypeNode {
 	// because of the structure of the string, we can start at the end of the input
-	// thanks chat gpt! it was struggling to pull off the actual implementation
-	// this was helpful insight
 
 	// if we are dealing with a non-null
 	if (input[input.length - 1] === '!') {
