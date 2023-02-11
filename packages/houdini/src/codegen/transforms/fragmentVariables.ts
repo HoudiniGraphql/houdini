@@ -272,7 +272,7 @@ export function withArguments(
 
 export type FragmentArgument = {
 	name: string
-	type: string
+	type: graphql.TypeNode
 	required: boolean
 	defaultValue: graphql.ValueNode | null
 }
@@ -309,30 +309,58 @@ export function fragmentArguments(
 					return []
 				}
 
-				let type = typeArg.value
-				let name = arg.name.value
-				let required = false
+				let type = parseArgumentTypeString(typeArg.value)
 				let defaultValue =
 					arg.value.fields?.find((arg) => arg.name.value === 'default')?.value || null
 
-				// if the name of the type ends in a ! we need to mark it as required
-				if (type[type.length - 1] === '!') {
-					type = type.slice(0, -1)
-					required = true
-					// there is no default value for a required argument
-					defaultValue = null
-				}
-
 				return [
 					{
-						name,
+						name: arg.name.value,
 						type,
-						required,
+						required: type.kind === 'NonNullType',
 						defaultValue,
 					},
 				]
 			}) || []
 	)
+}
+
+// parseArgumentTypeString parses strings like [String!]! and turns
+// them into the corresponding graphql AST
+export function parseArgumentTypeString(input: string): graphql.TypeNode {
+	// because of the structure of the string, we can start at the end of the input
+
+	// if we are dealing with a non-null
+	if (input[input.length - 1] === '!') {
+		const inner = parseArgumentTypeString(input.substring(0, input.length - 1))
+		if (inner.kind === 'NonNullType') {
+			throw new Error('invalid type' + input)
+		}
+
+		return {
+			kind: 'NonNullType',
+			type: inner,
+		}
+	}
+
+	// if we are dealing with a list
+	if (input[input.length - 1] === ']') {
+		const inner = parseArgumentTypeString(input.substring(1, input.length - 1))
+
+		return {
+			kind: 'ListType',
+			type: inner,
+		}
+	}
+
+	// we are dealing with a name
+	return {
+		kind: 'NamedType',
+		name: {
+			kind: 'Name',
+			value: input,
+		},
+	}
 }
 
 function collectDefaultArgumentValues(
@@ -431,22 +459,9 @@ export function fragmentArgumentsDefinitions(
 
 	// we have a list of the arguments
 	return args.map<graphql.VariableDefinitionNode>((arg) => {
-		const innerType: graphql.NamedTypeNode = {
-			kind: 'NamedType',
-			name: {
-				kind: 'Name',
-				value: arg.type,
-			},
-		}
-
 		return {
 			kind: 'VariableDefinition',
-			type: arg.required
-				? innerType
-				: {
-						kind: 'NonNullType',
-						type: innerType,
-				  },
+			type: arg.type,
 			variable: {
 				kind: 'Variable',
 				name: {

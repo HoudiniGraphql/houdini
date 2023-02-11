@@ -71,6 +71,7 @@ export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {})
 				entitiesByCursor(first: Int, after: String, last: Int, before: String): EntityConnection!
 				node(id: ID!): Node
 				customIdList: [CustomIdType]!
+				nodes(ids: [ID!]!): [Node!]!
 			}
 
 			type PageInfo {
