@@ -368,7 +368,6 @@ export default async function typeCheck(config: Config, docs: Document[]): Promi
 	for (const { filename, document: parsed, originalString } of docs) {
 		// validate the document
 		for (const error of graphql.validate(config.schema, parsed, rules(filename))) {
-			console.log(originalString)
 			errors.push(
 				new HoudiniError({
 					filepath: filename,
