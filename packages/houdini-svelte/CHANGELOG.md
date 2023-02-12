@@ -1,5 +1,14 @@
 # houdini-svelte
 
+## 1.0.2
+
+### Patch Changes
+
+-   [#925](https://github.com/HoudiniGraphql/houdini/pull/925) [`2d86f6e`](https://github.com/HoudiniGraphql/houdini/commit/2d86f6eac523e6eb2739d3f5e8feab041b669391) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix fragment type definitions when parent is not-null
+
+-   Updated dependencies []:
+    -   houdini@1.0.2
+
 ## 1.0.1
 
 ### Dependency Changes
