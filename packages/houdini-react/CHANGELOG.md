@@ -2,7 +2,7 @@
 
 ## 1.0.2
 
-### Patch Changes
+### Dependency Changes
 
 -   Updated dependencies []:
     -   houdini@1.0.2

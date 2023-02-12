@@ -2,7 +2,7 @@
 
 ## 1.0.2
 
-### Patch Changes
+### Dependency Changes
 
 -   Updated dependencies [[`2d86f6e`](https://github.com/HoudiniGraphql/houdini/commit/2d86f6eac523e6eb2739d3f5e8feab041b669391)]:
     -   houdini-svelte@1.0.2
