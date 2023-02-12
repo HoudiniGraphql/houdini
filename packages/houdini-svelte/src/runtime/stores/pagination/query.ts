@@ -12,7 +12,6 @@ import type {
 	StoreConfig,
 } from '../query'
 import { QueryStore } from '../query'
-import type {} from './cursor'
 import { cursorHandlers } from './cursor'
 import { offsetHandlers } from './offset'
 import { extractPageInfo, type PageInfo } from './pageInfo'
