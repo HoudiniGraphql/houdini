@@ -1,5 +1,6 @@
-import type { FetchQueryResult } from '$houdini/runtime/lib/types'
+import type { FetchQueryResult, CompiledFragmentKind } from '$houdini/runtime/lib/types'
 import type { LoadEvent } from '@sveltejs/kit'
+import type { Readable, Writable } from 'svelte/store'
 
 export type QueryInputs<_Data> = FetchQueryResult<_Data> & { variables: { [key: string]: any } }
 
@@ -37,4 +38,9 @@ export type KitLoadResponse = {
 	props?: Record<string, any>
 	context?: Record<string, any>
 	maxage?: number
+}
+
+export type FragmentStoreInstance<_Data> = Readable<_Data> & {
+	kind: typeof CompiledFragmentKind
+	update: Writable<_Data>['set']
 }
