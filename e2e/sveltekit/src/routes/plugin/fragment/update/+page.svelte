@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { fragment, graphql, type UserFragmentTestFragment } from '$houdini';
+  import { fragment, graphql } from '$houdini';
 
   $: userInfo = graphql(`
     query FragmentUpdateTestQuery($id: ID!) @load {
