@@ -8,7 +8,7 @@ import type { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime
 import { get, writable } from 'svelte/store'
 
 import { getSession } from '../../session'
-import { CursorHandlers } from '../../types'
+import type { CursorHandlers } from '../../types'
 import type { QueryStoreFetchParams } from '../query'
 import { fetchParams } from '../query'
 import type { FetchFn } from './fetch'
@@ -224,7 +224,7 @@ If you think this is an error, please open an issue on GitHub`)
 					)
 				) {
 					console.warn(`⚠️ Encountered a fetch() in the middle of the connection.
-Make sure to pass a cursor value by hand that includes the current set (ie the entry before startCursor)					
+Make sure to pass a cursor value by hand that includes the current set (ie the entry before startCursor)
 `)
 					return observer.state
 				}

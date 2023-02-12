@@ -7,8 +7,8 @@ import type {
 import type { LoadEvent } from '@sveltejs/kit'
 import type { Readable, Writable } from 'svelte/store'
 
-import { QueryStoreFetchParams } from './stores'
-import { PageInfo } from './stores/pagination/pageInfo'
+import type { QueryStoreFetchParams } from './stores'
+import type { PageInfo } from './stores/pagination/pageInfo'
 
 export type QueryInputs<_Data> = FetchQueryResult<_Data> & { variables: { [key: string]: any } }
 

@@ -3,7 +3,7 @@ import type { Subscriber } from 'svelte/store'
 import { derived } from 'svelte/store'
 
 import { getClient, initClient } from '../../client'
-import { CursorHandlers, OffsetHandlers } from '../../types'
+import type { CursorHandlers, OffsetHandlers } from '../../types'
 import type {
 	ClientFetchParams,
 	LoadEventFetchParams,
