@@ -157,7 +157,7 @@ test('generates types for paginated fragments', async function () {
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		import { TestFragment$input, TestFragment$data } from "../../artifacts/TestFragment";
 		import { TestFragmentStore } from "../stores/TestFragment";
-		import type { OffsetFragmentStoreInstance } from "./types";
+		import type { CursorFragmentStoreInstance } from "./types";
 		import { Fragment } from "$houdini/runtime/lib/types";
 		import { Readable } from "svelte/store";
 		import { FragmentStore } from "./stores";
@@ -170,7 +170,7 @@ test('generates types for paginated fragments', async function () {
 		        };
 		    },
 		    document: TestFragmentStore
-		): OffsetFragmentStoreInstance<TestFragment$data>;
+		): CursorFragmentStoreInstance<TestFragment$data>;
 
 		export function fragment(
 		    initialValue: {
@@ -179,7 +179,7 @@ test('generates types for paginated fragments', async function () {
 		        };
 		    } | null,
 		    document: TestFragmentStore
-		): OffsetFragmentStoreInstance<TestFragment$data | null, TestFragment$input>;
+		): CursorFragmentStoreInstance<TestFragment$data | null, TestFragment$input>;
 
 		export declare function fragment<_Fragment extends Fragment<any>>(ref: _Fragment, fragment: FragmentStore<_Fragment["shape"]>): Readable<NonNullable<_Fragment["shape"]>> & {
 		    data: Readable<_Fragment>;
@@ -196,7 +196,7 @@ test('generates types for paginated fragments', async function () {
 		        };
 		    },
 		    document: TestFragmentStore
-		): OffsetFragmentStoreInstance<TestFragment$data>;
+		): CursorFragmentStoreInstance<TestFragment$data>;
 
 		export function paginatedFragment(
 		    initialValue: {
@@ -205,7 +205,7 @@ test('generates types for paginated fragments', async function () {
 		        };
 		    } | null,
 		    document: TestFragmentStore
-		): OffsetFragmentStoreInstance<TestFragment$data | null, TestFragment$input>;
+		): CursorFragmentStoreInstance<TestFragment$data | null, TestFragment$input>;
 
 		export declare function paginatedFragment<_Fragment extends Fragment<any>>(
 		    initialValue: _Fragment | null,
