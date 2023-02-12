@@ -1,5 +1,12 @@
 # houdini-react
 
+## 1.0.2
+
+### Dependency Changes
+
+-   Updated dependencies []:
+    -   houdini@1.0.2
+
 ## 1.0.1
 
 ### Dependency Changes
