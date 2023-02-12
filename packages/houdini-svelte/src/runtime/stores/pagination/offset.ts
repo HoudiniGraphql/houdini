@@ -106,13 +106,3 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends {}>({
 		},
 	}
 }
-
-export type OffsetHandlers<_Data extends GraphQLObject, _Input, _ReturnType> = {
-	loadNextPage: (args?: {
-		limit?: number
-		offset?: number
-		metadata?: {}
-		fetch?: typeof globalThis.fetch
-	}) => Promise<void>
-	fetch(args?: QueryStoreFetchParams<_Data, _Input> | undefined): Promise<_ReturnType>
-}

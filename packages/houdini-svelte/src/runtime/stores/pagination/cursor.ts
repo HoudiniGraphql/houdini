@@ -5,10 +5,10 @@ import { getCurrentConfig } from '$houdini/runtime/lib/config'
 import { siteURL } from '$houdini/runtime/lib/constants'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import type { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
-import type { Writable } from 'svelte/store'
 import { get, writable } from 'svelte/store'
 
 import { getSession } from '../../session'
+import type { CursorHandlers } from '../../types'
 import type { QueryStoreFetchParams } from '../query'
 import { fetchParams } from '../query'
 import type { FetchFn } from './fetch'
@@ -224,7 +224,7 @@ If you think this is an error, please open an issue on GitHub`)
 					)
 				) {
 					console.warn(`⚠️ Encountered a fetch() in the middle of the connection.
-Make sure to pass a cursor value by hand that includes the current set (ie the entry before startCursor)					
+Make sure to pass a cursor value by hand that includes the current set (ie the entry before startCursor)
 `)
 					return observer.state
 				}
@@ -261,23 +261,4 @@ Make sure to pass a cursor value by hand that includes the current set (ie the e
 			return result
 		},
 	}
-}
-
-export type CursorHandlers<_Data extends GraphQLObject, _Input> = {
-	loadNextPage: (args?: {
-		first?: number
-		after?: string
-		fetch?: typeof globalThis.fetch
-		metadata: {}
-	}) => Promise<void>
-	loadPreviousPage: (args?: {
-		last?: number
-		before?: string
-		fetch?: typeof globalThis.fetch
-		metadata?: {}
-	}) => Promise<void>
-	pageInfo: Writable<PageInfo>
-	fetch(
-		args?: QueryStoreFetchParams<_Data, _Input> | undefined
-	): Promise<QueryResult<_Data, _Input>>
 }

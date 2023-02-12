@@ -36,7 +36,7 @@ export async function pipeline_test(
 	const config = await test_config(extra_config)
 
 	// the first thing to do is to create the list of collected documents
-	const docs: Document[] = documents.map(mockCollectedDoc)
+	const docs: Document[] = documents.map((doc) => mockCollectedDoc(doc))
 
 	// apply the transforms
 	await runPipeline(config, docs)

@@ -1,5 +1,14 @@
-import type { FetchQueryResult } from '$houdini/runtime/lib/types'
+import type {
+	FetchQueryResult,
+	CompiledFragmentKind,
+	QueryResult,
+	GraphQLObject,
+} from '$houdini/runtime/lib/types'
 import type { LoadEvent } from '@sveltejs/kit'
+import type { Readable, Writable } from 'svelte/store'
+
+import type { QueryStoreFetchParams } from './stores'
+import type { PageInfo } from './stores/pagination/pageInfo'
 
 export type QueryInputs<_Data> = FetchQueryResult<_Data> & { variables: { [key: string]: any } }
 
@@ -37,4 +46,56 @@ export type KitLoadResponse = {
 	props?: Record<string, any>
 	context?: Record<string, any>
 	maxage?: number
+}
+
+export type FragmentStoreInstance<_Data> = Readable<_Data> & {
+	kind: typeof CompiledFragmentKind
+	update: Writable<_Data>['set']
+}
+
+type Reshape<_Data, _Input> = Omit<QueryResult<_Data, _Input>, 'data'> & { data: _Data }
+
+export type CursorFragmentStoreInstance<_Data extends GraphQLObject, _Input> = {
+	kind: typeof CompiledFragmentKind
+	data: Readable<_Data>
+	subscribe: Readable<Reshape<_Data, _Input> & { pageInfo: PageInfo }>['subscribe']
+	fetching: Readable<boolean>
+} & CursorHandlers<_Data, _Input>
+
+export type OffsetFragmentStoreInstance<_Data extends GraphQLObject, _Input> = {
+	kind: typeof CompiledFragmentKind
+	data: Readable<_Data>
+	subscribe: Readable<Reshape<_Data, _Input>>['subscribe']
+	fetching: Readable<boolean>
+} & OffsetHandlers<_Data, _Input>
+
+export type CursorHandlers<_Data extends GraphQLObject, _Input> = {
+	loadNextPage: (args?: {
+		first?: number
+		after?: string
+		fetch?: typeof globalThis.fetch
+		metadata: {}
+	}) => Promise<void>
+	loadPreviousPage: (args?: {
+		last?: number
+		before?: string
+		fetch?: typeof globalThis.fetch
+		metadata?: {}
+	}) => Promise<void>
+	pageInfo: Writable<PageInfo>
+	fetch(
+		args?: QueryStoreFetchParams<_Data, _Input> | undefined
+	): Promise<QueryResult<_Data, _Input>>
+}
+
+export type OffsetHandlers<_Data extends GraphQLObject, _Input> = {
+	loadNextPage: (args?: {
+		limit?: number
+		offset?: number
+		metadata?: {}
+		fetch?: typeof globalThis.fetch
+	}) => Promise<void>
+	fetch(
+		args?: QueryStoreFetchParams<_Data, _Input> | undefined
+	): Promise<QueryResult<_Data, _Input>>
 }

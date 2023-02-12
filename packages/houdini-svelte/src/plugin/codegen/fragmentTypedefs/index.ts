@@ -1,4 +1,4 @@
-import type { StatementKind } from 'ast-types/lib/gen/kinds'
+import type { StatementKind, TSTypeKind } from 'ast-types/lib/gen/kinds'
 import type { Document } from 'houdini'
 import { parseJS, path, fs, ArtifactKind, ensureImports } from 'houdini'
 import * as recast from 'recast'
@@ -107,16 +107,24 @@ export default async function fragmentTypedefs(input: PluginGenerateInput) {
 					AST.tsTypeReference(AST.identifier(store))
 				)
 
-				// the return value
-				const return_value = AST.tsTypeReference(
-					AST.identifier('ReturnType'),
-					AST.tsTypeParameterInstantiation([
-						AST.tsIndexedAccessType(
-							AST.tsTypeReference(AST.identifier(store)),
-							AST.tsLiteralType(AST.stringLiteral('get'))
-						),
-					])
-				)
+				// if we are generated the paginated definition we need to
+				// return the correct value
+				let store_type = 'FragmentStoreInstance'
+				if (doc.refetch?.paginated) {
+					if (doc.refetch.method === 'cursor') {
+						store_type = 'CursorFragmentStoreInstance'
+					} else {
+						store_type = 'OffsetFragmentStoreInstance'
+					}
+				}
+
+				ensureImports({
+					config: input.config,
+					body: contents!.script.body!,
+					sourceModule: './types',
+					import: [store_type],
+					importKind: 'type',
+				})
 
 				// make sure the store is imported
 				ensureImports({
@@ -125,6 +133,40 @@ export default async function fragmentTypedefs(input: PluginGenerateInput) {
 					sourceModule: import_path,
 					import: [store],
 				})
+				const shapeID = `${doc.name}$data`
+				const inputID = `${doc.name}$input`
+				ensureImports({
+					config: input.config,
+					body: contents!.script.body!,
+					sourceModule: '../../../artifacts/' + doc.name,
+					import: [inputID, shapeID],
+				})
+
+				const typeParams: TSTypeKind[] = []
+				if (doc.refetch?.paginated) {
+					typeParams.push(AST.tsTypeReference(AST.identifier(inputID)))
+				}
+
+				// the return value for no null input
+				const return_value = AST.tsTypeReference(
+					AST.identifier(store_type),
+					AST.tsTypeParameterInstantiation([
+						AST.tsTypeReference(AST.identifier(shapeID)),
+						...typeParams,
+					])
+				)
+
+				// the return value if there is a null input
+				const null_return_value = AST.tsTypeReference(
+					AST.identifier(store_type),
+					AST.tsTypeParameterInstantiation([
+						AST.tsUnionType([
+							AST.tsTypeReference(AST.identifier(shapeID)),
+							AST.tsNullKeyword(),
+						]),
+						...typeParams,
+					])
+				)
 
 				// if the user passes the string, return the correct store
 				return [
@@ -139,9 +181,7 @@ export default async function fragmentTypedefs(input: PluginGenerateInput) {
 						AST.tsDeclareFunction(
 							AST.identifier(which),
 							[initial_value_or_null_input, document_input],
-							AST.tsTypeAnnotation(
-								AST.tsUnionType([return_value, AST.tsNullKeyword()])
-							)
+							AST.tsTypeAnnotation(null_return_value)
 						)
 					),
 				]
