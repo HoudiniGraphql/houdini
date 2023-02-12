@@ -138,16 +138,11 @@ export default async function fragmentTypedefs(input: PluginGenerateInput) {
 				ensureImports({
 					config: input.config,
 					body: contents!.script.body!,
-					sourceModule: '../../artifacts/' + doc.name,
+					sourceModule: '../../../artifacts/' + doc.name,
 					import: [inputID, shapeID],
 				})
 
-				const typeParams: TSTypeKind[] = [
-					AST.tsUnionType([
-						AST.tsTypeReference(AST.identifier(shapeID)),
-						AST.tsNullKeyword(),
-					]),
-				]
+				const typeParams: TSTypeKind[] = []
 				if (doc.refetch?.paginated) {
 					typeParams.push(AST.tsTypeReference(AST.identifier(inputID)))
 				}
@@ -155,13 +150,22 @@ export default async function fragmentTypedefs(input: PluginGenerateInput) {
 				// the return value for no null input
 				const return_value = AST.tsTypeReference(
 					AST.identifier(store_type),
-					AST.tsTypeParameterInstantiation([AST.tsTypeReference(AST.identifier(shapeID))])
+					AST.tsTypeParameterInstantiation([
+						AST.tsTypeReference(AST.identifier(shapeID)),
+						...typeParams,
+					])
 				)
 
 				// the return value if there is a null input
 				const null_return_value = AST.tsTypeReference(
 					AST.identifier(store_type),
-					AST.tsTypeParameterInstantiation(typeParams)
+					AST.tsTypeParameterInstantiation([
+						AST.tsUnionType([
+							AST.tsTypeReference(AST.identifier(shapeID)),
+							AST.tsNullKeyword(),
+						]),
+						...typeParams,
+					])
 				)
 
 				// if the user passes the string, return the correct store

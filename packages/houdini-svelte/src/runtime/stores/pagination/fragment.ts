@@ -195,7 +195,8 @@ export class FragmentStoreOffset<
 		// add the offset handlers
 		return {
 			kind: CompiledFragmentKind,
-			data: derived(observer, ($value) => $value.data),
+			data: derived(observer, ($value) => $value.data!),
+			// @ts-ignore
 			subscribe: observer.subscribe.bind(observer),
 			fetch: handlers.fetch,
 			loadNextPage: handlers.loadNextPage,

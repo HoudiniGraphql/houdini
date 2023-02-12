@@ -10,7 +10,7 @@
   `);
 
   $: fragmentResult = paginatedFragment(
-    $queryResult.data?.user ?? null,
+    $queryResult.data!.user,
     graphql(`
       fragment OffsetFragment on User {
         friendsList(limit: 2) @paginate {
@@ -22,7 +22,7 @@
 </script>
 
 <div id="result">
-  {$fragmentResult?.data?.friendsList.map((node) => node?.name).join(', ')}
+  {$fragmentResult.data.friendsList.map((node) => node?.name).join(', ')}
 </div>
 
 <button id="next" on:click={() => fragmentResult?.loadNextPage()}>next</button>

@@ -47,7 +47,7 @@ test('generates types for fragments', async function () {
 
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		import { TestFragment$input, TestFragment$data } from "../../artifacts/TestFragment";
+		import { TestFragment$input, TestFragment$data } from "../../../artifacts/TestFragment";
 		import { TestFragmentStore } from "../stores/TestFragment";
 		import type { FragmentStoreInstance } from "./types";
 		import { Fragment } from "$houdini/runtime/lib/types";
@@ -155,7 +155,7 @@ test('generates types for paginated fragments', async function () {
 
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		import { TestFragment$input, TestFragment$data } from "../../artifacts/TestFragment";
+		import { TestFragment$input, TestFragment$data } from "../../../artifacts/TestFragment";
 		import { TestFragmentStore } from "../stores/TestFragment";
 		import type { CursorFragmentStoreInstance } from "./types";
 		import { Fragment } from "$houdini/runtime/lib/types";
@@ -170,7 +170,7 @@ test('generates types for paginated fragments', async function () {
 		        };
 		    },
 		    document: TestFragmentStore
-		): CursorFragmentStoreInstance<TestFragment$data>;
+		): CursorFragmentStoreInstance<TestFragment$data, TestFragment$input>;
 
 		export function fragment(
 		    initialValue: {
@@ -196,7 +196,7 @@ test('generates types for paginated fragments', async function () {
 		        };
 		    },
 		    document: TestFragmentStore
-		): CursorFragmentStoreInstance<TestFragment$data>;
+		): CursorFragmentStoreInstance<TestFragment$data, TestFragment$input>;
 
 		export function paginatedFragment(
 		    initialValue: {

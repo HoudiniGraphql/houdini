@@ -26,11 +26,11 @@
 </script>
 
 <div id="result">
-  {$fragmentResult?.data?.friendsConnection.edges.map(({ node }) => node?.name).join(', ')}
+  {$fragmentResult.data?.friendsConnection.edges.map(({ node }) => node?.name).join(', ')}
 </div>
 
 <div id="pageInfo">
-  {JSON.stringify($fragmentResult?.pageInfo)}
+  {JSON.stringify($fragmentResult.pageInfo)}
 </div>
 
 <button id="previous" on:click={() => fragmentResult?.loadPreviousPage()}>previous</button>

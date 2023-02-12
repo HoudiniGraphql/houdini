@@ -53,17 +53,19 @@ export type FragmentStoreInstance<_Data> = Readable<_Data> & {
 	update: Writable<_Data>['set']
 }
 
+type Reshape<_Data, _Input> = Omit<QueryResult<_Data, _Input>, 'data'> & { data: _Data }
+
 export type CursorFragmentStoreInstance<_Data extends GraphQLObject, _Input> = {
 	kind: typeof CompiledFragmentKind
 	data: Readable<_Data>
-	subscribe: Readable<QueryResult<_Data, _Input>>['subscribe']
+	subscribe: Readable<Reshape<_Data, _Input> & { pageInfo: PageInfo }>['subscribe']
 	fetching: Readable<boolean>
 } & CursorHandlers<_Data, _Input>
 
 export type OffsetFragmentStoreInstance<_Data extends GraphQLObject, _Input> = {
 	kind: typeof CompiledFragmentKind
-	data: Readable<_Data | null>
-	subscribe: Readable<QueryResult<_Data, _Input>>['subscribe']
+	data: Readable<_Data>
+	subscribe: Readable<Reshape<_Data, _Input>>['subscribe']
 	fetching: Readable<boolean>
 } & OffsetHandlers<_Data, _Input>
 
