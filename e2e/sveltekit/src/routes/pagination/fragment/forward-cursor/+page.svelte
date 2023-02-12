@@ -10,6 +10,7 @@
   `);
 
   $: fragmentResult = paginatedFragment(
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     $queryResult.data!.user,
     graphql(`
       fragment ForwardsCursorFragment on User {
