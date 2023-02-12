@@ -3,6 +3,7 @@ import type { Subscriber } from 'svelte/store'
 import { derived } from 'svelte/store'
 
 import { getClient, initClient } from '../../client'
+import { CursorHandlers, OffsetHandlers } from '../../types'
 import type {
 	ClientFetchParams,
 	LoadEventFetchParams,
@@ -11,9 +12,8 @@ import type {
 	StoreConfig,
 } from '../query'
 import { QueryStore } from '../query'
-import type { CursorHandlers } from './cursor'
+import type {} from './cursor'
 import { cursorHandlers } from './cursor'
-import type { OffsetHandlers } from './offset'
 import { offsetHandlers } from './offset'
 import { extractPageInfo, type PageInfo } from './pageInfo'
 
@@ -108,11 +108,7 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input extends {}> ex
 	// all paginated stores need to have a flag to distinguish from other query stores
 	paginated = true
 
-	async loadNextPage(
-		args?: Parameters<
-			OffsetHandlers<_Data, _Input, QueryResult<_Data, _Input>>['loadNextPage']
-		>[0]
-	) {
+	async loadNextPage(args?: Parameters<OffsetHandlers<_Data, _Input>['loadNextPage']>[0]) {
 		return this.#handlers.loadNextPage.call(this, args)
 	}
 
@@ -124,8 +120,8 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input extends {}> ex
 		return this.#handlers.fetch.call(this, args)
 	}
 
-	#_handlers: OffsetHandlers<_Data, _Input, QueryResult<_Data, _Input>> | null = null
-	get #handlers(): OffsetHandlers<_Data, _Input, QueryResult<_Data, _Input>> {
+	#_handlers: OffsetHandlers<_Data, _Input> | null = null
+	get #handlers(): OffsetHandlers<_Data, _Input> {
 		if (this.#_handlers) {
 			return this.#_handlers
 		}

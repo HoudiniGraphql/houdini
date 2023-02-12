@@ -1,4 +1,4 @@
-import type { StatementKind } from 'ast-types/lib/gen/kinds'
+import type { StatementKind, TSTypeKind } from 'ast-types/lib/gen/kinds'
 import type { Document } from 'houdini'
 import { parseJS, path, fs, ArtifactKind, ensureImports } from 'houdini'
 import * as recast from 'recast'
@@ -107,11 +107,22 @@ export default async function fragmentTypedefs(input: PluginGenerateInput) {
 					AST.tsTypeReference(AST.identifier(store))
 				)
 
+				// if we are generated the paginated definition we need to
+				// return the correct value
+				let store_type = 'FragmentStoreInstance'
+				if (doc.refetch?.paginated) {
+					if (doc.refetch.method === 'cursor') {
+						store_type = 'CursorFragmentStoreInstance'
+					} else {
+						store_type = 'OffsetFragmentStoreInstance'
+					}
+				}
+
 				ensureImports({
 					config: input.config,
 					body: contents!.script.body!,
 					sourceModule: './types',
-					import: ['FragmentStoreInstance'],
+					import: [store_type],
 					importKind: 'type',
 				})
 
@@ -123,28 +134,34 @@ export default async function fragmentTypedefs(input: PluginGenerateInput) {
 					import: [store],
 				})
 				const shapeID = `${doc.name}$data`
+				const inputID = `${doc.name}$input`
 				ensureImports({
 					config: input.config,
 					body: contents!.script.body!,
 					sourceModule: '../../artifacts/' + doc.name,
-					import: [shapeID],
+					import: [inputID, shapeID],
 				})
+
+				const typeParams: TSTypeKind[] = [
+					AST.tsUnionType([
+						AST.tsTypeReference(AST.identifier(shapeID)),
+						AST.tsNullKeyword(),
+					]),
+				]
+				if (doc.refetch?.paginated) {
+					typeParams.push(AST.tsTypeReference(AST.identifier(inputID)))
+				}
 
 				// the return value for no null input
 				const return_value = AST.tsTypeReference(
-					AST.identifier('FragmentStoreInstance'),
+					AST.identifier(store_type),
 					AST.tsTypeParameterInstantiation([AST.tsTypeReference(AST.identifier(shapeID))])
 				)
 
 				// the return value if there is a null input
 				const null_return_value = AST.tsTypeReference(
-					AST.identifier('FragmentStoreInstance'),
-					AST.tsTypeParameterInstantiation([
-						AST.tsUnionType([
-							AST.tsTypeReference(AST.identifier(shapeID)),
-							AST.tsNullKeyword(),
-						]),
-					])
+					AST.identifier(store_type),
+					AST.tsTypeParameterInstantiation(typeParams)
 				)
 
 				// if the user passes the string, return the correct store

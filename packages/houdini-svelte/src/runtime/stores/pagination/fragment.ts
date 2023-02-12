@@ -12,8 +12,8 @@ import type { Readable, Subscriber } from 'svelte/store'
 import { derived, get } from 'svelte/store'
 
 import { getClient, initClient } from '../../client'
+import type { CursorHandlers, OffsetFragmentStoreInstance } from '../../types'
 import type { StoreConfig } from '../query'
-import type { CursorHandlers } from './cursor'
 import { cursorHandlers } from './cursor'
 import { offsetHandlers } from './offset'
 import { extractPageInfo, type PageInfo } from './pageInfo'
@@ -158,7 +158,7 @@ export class FragmentStoreOffset<
 	_Data extends GraphQLObject,
 	_Input extends Record<string, any>
 > extends BasePaginatedFragmentStore<_Data, _Input> {
-	get(initialValue: _Data | null) {
+	get(initialValue: _Data | null): OffsetFragmentStoreInstance<_Data, _Input> {
 		const observer = getClient().observe<_Data, _Input>({
 			artifact: this.paginationArtifact,
 			initialValue,

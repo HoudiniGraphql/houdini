@@ -269,7 +269,7 @@ export function pipelineTest(
 ) {
 	return async () => {
 		// the first thing to do is to create the list of collected documents
-		const docs: Document[] = documents.map(mockCollectedDoc)
+		const docs: Document[] = documents.map((doc) => mockCollectedDoc(doc))
 
 		// we need to trap if we didn't fail
 		let error: Error[] = []
@@ -301,7 +301,7 @@ export function pipelineTest(
 	}
 }
 
-export function mockCollectedDoc(query: string): Document {
+export function mockCollectedDoc(query: string, data?: Partial<Document>): Document {
 	const parsed = graphql.parse(query)
 
 	// look at the first definition in the pile for the name
@@ -344,6 +344,7 @@ export function mockCollectedDoc(query: string): Document {
 		generateStore: true,
 		originalString: query,
 		artifact: null,
+		...data,
 	}
 }
 
