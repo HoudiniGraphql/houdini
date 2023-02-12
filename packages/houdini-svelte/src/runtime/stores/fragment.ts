@@ -22,13 +22,7 @@ export class FragmentStore<_Data extends GraphQLObject, _Input = {}> {
 		this.name = storeName
 	}
 
-	get(initialValue: _Data): FragmentStoreInstance<_Data> | FragmentStoreInstance<_Data>
-	get(
-		initialValue: _Data | null
-	): FragmentStoreInstance<_Data> | FragmentStoreInstance<_Data | null>
-	get(
-		initialValue: _Data | null
-	): FragmentStoreInstance<_Data> | FragmentStoreInstance<_Data | null> {
+	get(initialValue: _Data): FragmentStoreInstance<_Data> | FragmentStoreInstance<_Data> {
 		// at the moment a fragment store doesn't really do anything
 		// but we're going to keep it wrapped in a store so we can eventually
 		// optimize the updates
