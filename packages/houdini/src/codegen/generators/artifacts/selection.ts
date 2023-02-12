@@ -16,6 +16,7 @@ export default function selection({
 	filepath,
 	rootType,
 	selections,
+	originalSelectionSet,
 	operations,
 	path = [],
 	includeFragments,
@@ -26,6 +27,7 @@ export default function selection({
 	filepath: string
 	rootType: string
 	selections: readonly graphql.SelectionNode[]
+	originalSelectionSet: readonly graphql.SelectionNode[]
 	operations: { [path: string]: MutationOperation[] }
 	path?: string[]
 	includeFragments: boolean
@@ -69,11 +71,20 @@ export default function selection({
 					path,
 					includeFragments,
 					document,
+					originalSelectionSet: [],
 				})
 			)
 		}
 		// inline fragments should be merged with the parent
 		else if (field.kind === 'InlineFragment') {
+			// find the field selection in the original document
+			const originalMatch =
+				originalSelectionSet?.find(
+					(selection): selection is graphql.InlineFragmentNode =>
+						selection.kind === 'InlineFragment' &&
+						selection.typeCondition?.name.value === field.typeCondition?.name.value
+				)?.selectionSet?.selections ?? []
+
 			// if the type condition doesn't exist or matches the parent type,
 			// just merge it
 			if (!field.typeCondition || field.typeCondition.name.value === rootType) {
@@ -90,6 +101,7 @@ export default function selection({
 						path,
 						includeFragments,
 						document,
+						originalSelectionSet: originalMatch,
 					}).fields || {}
 				)
 			}
@@ -167,12 +179,28 @@ export default function selection({
 						path,
 						includeFragments,
 						document,
+						originalSelectionSet: originalMatch,
 					}).fields,
 				}
 			}
 		}
 		// fields need their own entry
 		else if (field.kind === 'Field') {
+			// find the field selection in the original document
+			const originalMatch =
+				originalSelectionSet?.find((selection): selection is graphql.FieldNode => {
+					if (selection.kind !== 'Field') {
+						return false
+					}
+
+					// if the the field has an alias, find the matching alias
+					if (field.alias) {
+						return selection.alias?.value == field.alias?.value
+					}
+
+					return selection.name?.value == field.name?.value
+				})?.selectionSet?.selections ?? []
+
 			// look up the field
 			const type = config.schema.getType(rootType) as graphql.GraphQLObjectType
 			if (!type) {
@@ -199,6 +227,9 @@ export default function selection({
 			const fieldObj: Required<SubscriptionSelection>['fields']['field'] = {
 				type: typeName,
 				keyRaw: fieldKey(config, field),
+				// the field is masked if there the corresponding field can't be found
+				// in the parent
+				hidden: !originalMatch,
 			}
 
 			if (nullable) {
@@ -282,6 +313,7 @@ export default function selection({
 					includeFragments,
 					document,
 					inConnection: connectionState,
+					originalSelectionSet: originalMatch,
 				})
 			}
 

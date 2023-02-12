@@ -168,6 +168,7 @@ export type SubscriptionSelection = {
 				type: string
 			}
 			updates?: string[]
+			hidden?: boolean
 			filters?: {
 				[key: string]: {
 					kind: 'Boolean' | 'String' | 'Float' | 'Int' | 'Variable'

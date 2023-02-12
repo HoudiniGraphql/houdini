@@ -113,7 +113,12 @@ export default function artifactGenerator(stats: {
 				// and an artifact for every document
 				docs.map(async (doc) => {
 					// pull out the info we need from the collected doc
-					const { document, name, generateArtifact: generateArtifact } = doc
+					const {
+						document,
+						name,
+						generateArtifact: generateArtifact,
+						originalParsed,
+					} = doc
 					// if the document is generated, don't write it to disk - it's use is to provide definitions
 					// for the other transforms
 					if (!generateArtifact) {
@@ -171,6 +176,7 @@ export default function artifactGenerator(stats: {
 
 					let rootType: string | undefined = ''
 					let selectionSet: graphql.SelectionSetNode
+					let originalSelectionSet: graphql.SelectionSetNode | null = null
 
 					// if we are generating the artifact for an operation
 					if (docKind !== ArtifactKind.Fragment) {
@@ -196,6 +202,9 @@ export default function artifactGenerator(stats: {
 
 						// use this selection set
 						selectionSet = operation.selectionSet
+						if (originalParsed.definitions[0].kind === 'OperationDefinition') {
+							originalSelectionSet = originalParsed.definitions[0].selectionSet
+						}
 					}
 					// we are looking at a fragment so use its selection set and type for the subscribe index
 					else {
@@ -212,6 +221,13 @@ export default function artifactGenerator(stats: {
 						}
 						rootType = matchingFragment.typeCondition.name.value
 						selectionSet = matchingFragment.selectionSet
+						if (originalParsed.definitions[0].kind === 'FragmentDefinition') {
+							originalSelectionSet = originalParsed.definitions[0].selectionSet
+						}
+					}
+
+					if (!originalSelectionSet) {
+						throw new Error('Not original selection set!')
 					}
 
 					// if there are inputs to the operation
@@ -246,6 +262,15 @@ export default function artifactGenerator(stats: {
 						applyFragments: docKind !== 'HoudiniFragment',
 					})
 
+					const originalMerged = flattenSelections({
+						config,
+						filepath: doc.filename,
+						selections: originalSelectionSet.selections,
+						fragmentDefinitions: {},
+						ignoreMaskDisable: false,
+						applyFragments: false,
+					})
+
 					// generate a hash of the document that we can use to detect changes
 					// start building up the artifact
 					let artifact: DocumentArtifact = {
@@ -259,6 +284,7 @@ export default function artifactGenerator(stats: {
 							config,
 							filepath: doc.filename,
 							rootType,
+							originalSelectionSet: originalMerged,
 							selections: mergedSelection,
 							operations: operationsByPath(
 								config,

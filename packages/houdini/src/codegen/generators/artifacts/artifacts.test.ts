@@ -53,7 +53,8 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		        "fields": {
 		            "version": {
 		                "type": "Int",
-		                "keyRaw": "version"
+		                "keyRaw": "version",
+		                "hidden": false
 		            }
 		        }
 		    },
@@ -83,7 +84,8 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		        "fields": {
 		            "firstName": {
 		                "type": "String",
-		                "keyRaw": "firstName"
+		                "keyRaw": "firstName",
+		                "hidden": false
 		            }
 		        }
 		    },
@@ -131,17 +133,20 @@ test('selection includes fragments', async function () {
 		            "user": {
 		                "type": "User",
 		                "keyRaw": "user",
+		                "hidden": false,
 
 		                "selection": {
 		                    "fields": {
 		                        "firstName": {
 		                            "type": "String",
-		                            "keyRaw": "firstName"
+		                            "keyRaw": "firstName",
+		                            "hidden": false
 		                        },
 
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
+		                            "keyRaw": "id",
+		                            "hidden": false
 		                        }
 		                    }
 		                }
@@ -174,7 +179,8 @@ test('selection includes fragments', async function () {
 		        "fields": {
 		            "firstName": {
 		                "type": "String",
-		                "keyRaw": "firstName"
+		                "keyRaw": "firstName",
+		                "hidden": false
 		            }
 		        }
 		    },
@@ -221,17 +227,20 @@ test('internal directives are scrubbed', async function () {
 		            "user": {
 		                "type": "User",
 		                "keyRaw": "user",
+		                "hidden": false,
 
 		                "selection": {
 		                    "fields": {
 		                        "firstName": {
 		                            "type": "String",
-		                            "keyRaw": "firstName"
+		                            "keyRaw": "firstName",
+		                            "hidden": false
 		                        },
 
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
+		                            "keyRaw": "id",
+		                            "hidden": false
 		                        }
 		                    }
 		                }
@@ -289,17 +298,20 @@ test('variables only used by internal directives are scrubbed', async function (
 		            "user": {
 		                "type": "User",
 		                "keyRaw": "user",
+		                "hidden": false,
 
 		                "selection": {
 		                    "fields": {
 		                        "firstName": {
 		                            "type": "String",
-		                            "keyRaw": "firstName"
+		                            "keyRaw": "firstName",
+		                            "hidden": false
 		                        },
 
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
+		                            "keyRaw": "id",
+		                            "hidden": false
 		                        }
 		                    }
 		                }
@@ -361,17 +373,20 @@ test('overlapping query and fragment selection', async function () {
 		            "user": {
 		                "type": "User",
 		                "keyRaw": "user",
+		                "hidden": false,
 
 		                "selection": {
 		                    "fields": {
 		                        "firstName": {
 		                            "type": "String",
-		                            "keyRaw": "firstName"
+		                            "keyRaw": "firstName",
+		                            "hidden": false
 		                        },
 
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
+		                            "keyRaw": "id",
+		                            "hidden": false
 		                        }
 		                    }
 		                }
@@ -425,6 +440,7 @@ test('interface to interface inline fragment', async function () {
 		            "node": {
 		                "type": "Node",
 		                "keyRaw": "node(id: $id)",
+		                "hidden": false,
 		                "nullable": true,
 
 		                "selection": {
@@ -433,17 +449,20 @@ test('interface to interface inline fragment', async function () {
 		                            "Friend": {
 		                                "name": {
 		                                    "type": "String",
-		                                    "keyRaw": "name"
+		                                    "keyRaw": "name",
+		                                    "hidden": false
 		                                },
 
 		                                "id": {
 		                                    "type": "ID",
-		                                    "keyRaw": "id"
+		                                    "keyRaw": "id",
+		                                    "hidden": false
 		                                },
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "hidden": false
 		                                }
 		                            }
 		                        },
@@ -457,12 +476,14 @@ test('interface to interface inline fragment', async function () {
 		                    "fields": {
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
+		                            "keyRaw": "id",
+		                            "hidden": false
 		                        },
 
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "keyRaw": "__typename",
+		                            "hidden": false
 		                        }
 		                    }
 		                },
@@ -559,6 +580,7 @@ test('paginate over unions', async function () {
 		            "entitiesByCursor": {
 		                "type": "EntityConnection",
 		                "keyRaw": "entitiesByCursor::paginated",
+		                "hidden": false,
 
 		                "list": {
 		                    "name": "All_Users",
@@ -571,6 +593,7 @@ test('paginate over unions', async function () {
 		                        "edges": {
 		                            "type": "EntityEdge",
 		                            "keyRaw": "edges",
+		                            "hidden": false,
 		                            "updates": ["append", "prepend"],
 
 		                            "selection": {
@@ -578,6 +601,7 @@ test('paginate over unions', async function () {
 		                                    "node": {
 		                                        "type": "Entity",
 		                                        "keyRaw": "node",
+		                                        "hidden": false,
 		                                        "nullable": true,
 
 		                                        "selection": {
@@ -586,12 +610,14 @@ test('paginate over unions', async function () {
 		                                                    "User": {
 		                                                        "firstName": {
 		                                                            "type": "String",
-		                                                            "keyRaw": "firstName"
+		                                                            "keyRaw": "firstName",
+		                                                            "hidden": false
 		                                                        },
 
 		                                                        "__typename": {
 		                                                            "type": "String",
-		                                                            "keyRaw": "__typename"
+		                                                            "keyRaw": "__typename",
+		                                                            "hidden": false
 		                                                        }
 		                                                    }
 		                                                },
@@ -602,7 +628,8 @@ test('paginate over unions', async function () {
 		                                            "fields": {
 		                                                "__typename": {
 		                                                    "type": "String",
-		                                                    "keyRaw": "__typename"
+		                                                    "keyRaw": "__typename",
+		                                                    "hidden": false
 		                                                }
 		                                            }
 		                                        },
@@ -612,7 +639,8 @@ test('paginate over unions', async function () {
 
 		                                    "cursor": {
 		                                        "type": "String",
-		                                        "keyRaw": "cursor"
+		                                        "keyRaw": "cursor",
+		                                        "hidden": false
 		                                    }
 		                                }
 		                            }
@@ -621,30 +649,35 @@ test('paginate over unions', async function () {
 		                        "pageInfo": {
 		                            "type": "PageInfo",
 		                            "keyRaw": "pageInfo",
+		                            "hidden": false,
 
 		                            "selection": {
 		                                "fields": {
 		                                    "hasPreviousPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasPreviousPage",
+		                                        "hidden": false,
 		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "hasNextPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasNextPage",
+		                                        "hidden": false,
 		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "startCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "startCursor",
+		                                        "hidden": false,
 		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "endCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "endCursor",
+		                                        "hidden": false,
 		                                        "updates": ["append", "prepend"]
 		                                    }
 		                                }
@@ -742,6 +775,7 @@ test('overlapping query and fragment nested selection', async function () {
 		            "friends": {
 		                "type": "Friend",
 		                "keyRaw": "friends",
+		                "hidden": false,
 
 		                "selection": {
 		                    "abstractFields": {
@@ -749,18 +783,21 @@ test('overlapping query and fragment nested selection', async function () {
 		                            "User": {
 		                                "firstName": {
 		                                    "type": "String",
-		                                    "keyRaw": "firstName"
+		                                    "keyRaw": "firstName",
+		                                    "hidden": false
 		                                },
 
 		                                "friends": {
 		                                    "type": "User",
 		                                    "keyRaw": "friends",
+		                                    "hidden": false,
 
 		                                    "selection": {
 		                                        "fields": {
 		                                            "id": {
 		                                                "type": "ID",
-		                                                "keyRaw": "id"
+		                                                "keyRaw": "id",
+		                                                "hidden": false
 		                                            }
 		                                        }
 		                                    }
@@ -768,7 +805,8 @@ test('overlapping query and fragment nested selection', async function () {
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "hidden": false
 		                                }
 		                            }
 		                        },
@@ -779,18 +817,21 @@ test('overlapping query and fragment nested selection', async function () {
 		                    "fields": {
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "keyRaw": "__typename",
+		                            "hidden": false
 		                        },
 
 		                        "friends": {
 		                            "type": "User",
 		                            "keyRaw": "friends",
+		                            "hidden": false,
 
 		                            "selection": {
 		                                "fields": {
 		                                    "id": {
 		                                        "type": "ID",
-		                                        "keyRaw": "id"
+		                                        "keyRaw": "id",
+		                                        "hidden": false
 		                                    }
 		                                }
 		                            }
@@ -866,6 +907,7 @@ test('selections with interfaces', async function () {
 		            "friends": {
 		                "type": "Friend",
 		                "keyRaw": "friends",
+		                "hidden": false,
 
 		                "selection": {
 		                    "abstractFields": {
@@ -873,23 +915,27 @@ test('selections with interfaces', async function () {
 		                            "Cat": {
 		                                "id": {
 		                                    "type": "ID",
-		                                    "keyRaw": "id"
+		                                    "keyRaw": "id",
+		                                    "hidden": false
 		                                },
 
 		                                "owner": {
 		                                    "type": "User",
 		                                    "keyRaw": "owner",
+		                                    "hidden": false,
 
 		                                    "selection": {
 		                                        "fields": {
 		                                            "firstName": {
 		                                                "type": "String",
-		                                                "keyRaw": "firstName"
+		                                                "keyRaw": "firstName",
+		                                                "hidden": false
 		                                            },
 
 		                                            "id": {
 		                                                "type": "ID",
-		                                                "keyRaw": "id"
+		                                                "keyRaw": "id",
+		                                                "hidden": false
 		                                            }
 		                                        }
 		                                    }
@@ -897,19 +943,22 @@ test('selections with interfaces', async function () {
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "hidden": false
 		                                }
 		                            },
 
 		                            "Ghost": {
 		                                "name": {
 		                                    "type": "String",
-		                                    "keyRaw": "name"
+		                                    "keyRaw": "name",
+		                                    "hidden": false
 		                                },
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "hidden": false
 		                                }
 		                            }
 		                        },
@@ -920,7 +969,8 @@ test('selections with interfaces', async function () {
 		                    "fields": {
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "keyRaw": "__typename",
+		                            "hidden": false
 		                        }
 		                    }
 		                },
@@ -993,6 +1043,7 @@ test('selections with unions', async function () {
 		            "entities": {
 		                "type": "Entity",
 		                "keyRaw": "entities",
+		                "hidden": false,
 
 		                "selection": {
 		                    "abstractFields": {
@@ -1000,23 +1051,27 @@ test('selections with unions', async function () {
 		                            "Cat": {
 		                                "id": {
 		                                    "type": "ID",
-		                                    "keyRaw": "id"
+		                                    "keyRaw": "id",
+		                                    "hidden": false
 		                                },
 
 		                                "owner": {
 		                                    "type": "User",
 		                                    "keyRaw": "owner",
+		                                    "hidden": false,
 
 		                                    "selection": {
 		                                        "fields": {
 		                                            "firstName": {
 		                                                "type": "String",
-		                                                "keyRaw": "firstName"
+		                                                "keyRaw": "firstName",
+		                                                "hidden": false
 		                                            },
 
 		                                            "id": {
 		                                                "type": "ID",
-		                                                "keyRaw": "id"
+		                                                "keyRaw": "id",
+		                                                "hidden": false
 		                                            }
 		                                        }
 		                                    }
@@ -1024,19 +1079,22 @@ test('selections with unions', async function () {
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "hidden": false
 		                                }
 		                            },
 
 		                            "Ghost": {
 		                                "name": {
 		                                    "type": "String",
-		                                    "keyRaw": "name"
+		                                    "keyRaw": "name",
+		                                    "hidden": false
 		                                },
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "hidden": false
 		                                }
 		                            }
 		                        },
@@ -1047,7 +1105,8 @@ test('selections with unions', async function () {
 		                    "fields": {
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "keyRaw": "__typename",
+		                            "hidden": false
 		                        }
 		                    }
 		                },
@@ -1122,6 +1181,7 @@ test('selections with overlapping unions', async function () {
 		            "friends": {
 		                "type": "Friend",
 		                "keyRaw": "friends",
+		                "hidden": false,
 
 		                "selection": {
 		                    "abstractFields": {
@@ -1129,23 +1189,27 @@ test('selections with overlapping unions', async function () {
 		                            "Cat": {
 		                                "id": {
 		                                    "type": "ID",
-		                                    "keyRaw": "id"
+		                                    "keyRaw": "id",
+		                                    "hidden": false
 		                                },
 
 		                                "owner": {
 		                                    "type": "User",
 		                                    "keyRaw": "owner",
+		                                    "hidden": false,
 
 		                                    "selection": {
 		                                        "fields": {
 		                                            "firstName": {
 		                                                "type": "String",
-		                                                "keyRaw": "firstName"
+		                                                "keyRaw": "firstName",
+		                                                "hidden": false
 		                                            },
 
 		                                            "id": {
 		                                                "type": "ID",
-		                                                "keyRaw": "id"
+		                                                "keyRaw": "id",
+		                                                "hidden": false
 		                                            }
 		                                        }
 		                                    }
@@ -1153,24 +1217,28 @@ test('selections with overlapping unions', async function () {
 
 		                                "name": {
 		                                    "type": "String",
-		                                    "keyRaw": "name"
+		                                    "keyRaw": "name",
+		                                    "hidden": false
 		                                },
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "hidden": false
 		                                }
 		                            },
 
 		                            "Ghost": {
 		                                "name": {
 		                                    "type": "String",
-		                                    "keyRaw": "name"
+		                                    "keyRaw": "name",
+		                                    "hidden": false
 		                                },
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "hidden": false
 		                                }
 		                            }
 		                        },
@@ -1181,12 +1249,14 @@ test('selections with overlapping unions', async function () {
 		                    "fields": {
 		                        "name": {
 		                            "type": "String",
-		                            "keyRaw": "name"
+		                            "keyRaw": "name",
+		                            "hidden": false
 		                        },
 
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "keyRaw": "__typename",
+		                            "hidden": false
 		                        }
 		                    }
 		                },
@@ -1264,6 +1334,7 @@ test('selections with unions of abstract types', async function () {
 		            "friends": {
 		                "type": "Friend",
 		                "keyRaw": "friends",
+		                "hidden": false,
 
 		                "selection": {
 		                    "abstractFields": {
@@ -1271,12 +1342,14 @@ test('selections with unions of abstract types', async function () {
 		                            "Node": {
 		                                "id": {
 		                                    "type": "ID",
-		                                    "keyRaw": "id"
+		                                    "keyRaw": "id",
+		                                    "hidden": false
 		                                },
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "hidden": false
 		                                }
 		                            },
 
@@ -1284,17 +1357,20 @@ test('selections with unions of abstract types', async function () {
 		                                "owner": {
 		                                    "type": "User",
 		                                    "keyRaw": "owner",
+		                                    "hidden": false,
 
 		                                    "selection": {
 		                                        "fields": {
 		                                            "firstName": {
 		                                                "type": "String",
-		                                                "keyRaw": "firstName"
+		                                                "keyRaw": "firstName",
+		                                                "hidden": false
 		                                            },
 
 		                                            "id": {
 		                                                "type": "ID",
-		                                                "keyRaw": "id"
+		                                                "keyRaw": "id",
+		                                                "hidden": false
 		                                            }
 		                                        }
 		                                    }
@@ -1302,24 +1378,28 @@ test('selections with unions of abstract types', async function () {
 
 		                                "id": {
 		                                    "type": "ID",
-		                                    "keyRaw": "id"
+		                                    "keyRaw": "id",
+		                                    "hidden": false
 		                                },
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "hidden": false
 		                                }
 		                            },
 
 		                            "Ghost": {
 		                                "name": {
 		                                    "type": "String",
-		                                    "keyRaw": "name"
+		                                    "keyRaw": "name",
+		                                    "hidden": false
 		                                },
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "hidden": false
 		                                }
 		                            }
 		                        },
@@ -1332,7 +1412,8 @@ test('selections with unions of abstract types', async function () {
 		                    "fields": {
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "keyRaw": "__typename",
+		                            "hidden": false
 		                        }
 		                    }
 		                },
@@ -1409,6 +1490,7 @@ test('selections with concrete types matching multiple abstract types', async fu
 		            "friends": {
 		                "type": "Friend",
 		                "keyRaw": "friends",
+		                "hidden": false,
 
 		                "selection": {
 		                    "abstractFields": {
@@ -1416,35 +1498,41 @@ test('selections with concrete types matching multiple abstract types', async fu
 		                            "Node": {
 		                                "id": {
 		                                    "type": "ID",
-		                                    "keyRaw": "id"
+		                                    "keyRaw": "id",
+		                                    "hidden": false
 		                                },
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "hidden": false
 		                                }
 		                            },
 
 		                            "Ghost": {
 		                                "aka": {
 		                                    "type": "String",
-		                                    "keyRaw": "aka"
+		                                    "keyRaw": "aka",
+		                                    "hidden": false
 		                                },
 
 		                                "cats": {
 		                                    "type": "Cat",
 		                                    "keyRaw": "cats",
+		                                    "hidden": false,
 
 		                                    "selection": {
 		                                        "fields": {
 		                                            "name": {
 		                                                "type": "String",
-		                                                "keyRaw": "name"
+		                                                "keyRaw": "name",
+		                                                "hidden": false
 		                                            },
 
 		                                            "id": {
 		                                                "type": "ID",
-		                                                "keyRaw": "id"
+		                                                "keyRaw": "id",
+		                                                "hidden": false
 		                                            }
 		                                        }
 		                                    }
@@ -1452,30 +1540,35 @@ test('selections with concrete types matching multiple abstract types', async fu
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "hidden": false
 		                                }
 		                            },
 
 		                            "User": {
 		                                "id": {
 		                                    "type": "ID",
-		                                    "keyRaw": "id"
+		                                    "keyRaw": "id",
+		                                    "hidden": false
 		                                },
 
 		                                "cats": {
 		                                    "type": "Cat",
 		                                    "keyRaw": "cats",
+		                                    "hidden": false,
 
 		                                    "selection": {
 		                                        "fields": {
 		                                            "name": {
 		                                                "type": "String",
-		                                                "keyRaw": "name"
+		                                                "keyRaw": "name",
+		                                                "hidden": false
 		                                            },
 
 		                                            "id": {
 		                                                "type": "ID",
-		                                                "keyRaw": "id"
+		                                                "keyRaw": "id",
+		                                                "hidden": false
 		                                            }
 		                                        }
 		                                    }
@@ -1483,7 +1576,8 @@ test('selections with concrete types matching multiple abstract types', async fu
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "hidden": false
 		                                }
 		                            }
 		                        },
@@ -1496,7 +1590,8 @@ test('selections with concrete types matching multiple abstract types', async fu
 		                    "fields": {
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "keyRaw": "__typename",
+		                            "hidden": false
 		                        }
 		                    }
 		                },
@@ -1565,23 +1660,27 @@ describe('mutation artifacts', function () {
 			            "addFriend": {
 			                "type": "AddFriendOutput",
 			                "keyRaw": "addFriend",
+			                "hidden": false,
 
 			                "selection": {
 			                    "fields": {
 			                        "friend": {
 			                            "type": "User",
 			                            "keyRaw": "friend",
+			                            "hidden": false,
 
 			                            "selection": {
 			                                "fields": {
 			                                    "firstName": {
 			                                        "type": "String",
-			                                        "keyRaw": "firstName"
+			                                        "keyRaw": "firstName",
+			                                        "hidden": false
 			                                    },
 
 			                                    "id": {
 			                                        "type": "ID",
-			                                        "keyRaw": "id"
+			                                        "keyRaw": "id",
+			                                        "hidden": false
 			                                    }
 			                                }
 			                            }
@@ -1651,12 +1750,14 @@ describe('mutation artifacts', function () {
 			            "addFriend": {
 			                "type": "AddFriendOutput",
 			                "keyRaw": "addFriend",
+			                "hidden": false,
 
 			                "selection": {
 			                    "fields": {
 			                        "friend": {
 			                            "type": "User",
 			                            "keyRaw": "friend",
+			                            "hidden": false,
 
 			                            "operations": [{
 			                                "action": "insert",
@@ -1668,12 +1769,14 @@ describe('mutation artifacts', function () {
 			                                "fields": {
 			                                    "id": {
 			                                        "type": "ID",
-			                                        "keyRaw": "id"
+			                                        "keyRaw": "id",
+			                                        "hidden": false
 			                                    },
 
 			                                    "firstName": {
 			                                        "type": "String",
-			                                        "keyRaw": "firstName"
+			                                        "keyRaw": "firstName",
+			                                        "hidden": false
 			                                    }
 			                                }
 			                            }
@@ -1742,12 +1845,14 @@ describe('mutation artifacts', function () {
 			            "addFriend": {
 			                "type": "AddFriendOutput",
 			                "keyRaw": "addFriend",
+			                "hidden": false,
 
 			                "selection": {
 			                    "fields": {
 			                        "friend": {
 			                            "type": "User",
 			                            "keyRaw": "friend",
+			                            "hidden": false,
 
 			                            "operations": [{
 			                                "action": "insert",
@@ -1760,12 +1865,14 @@ describe('mutation artifacts', function () {
 			                                "fields": {
 			                                    "id": {
 			                                        "type": "ID",
-			                                        "keyRaw": "id"
+			                                        "keyRaw": "id",
+			                                        "hidden": false
 			                                    },
 
 			                                    "firstName": {
 			                                        "type": "String",
-			                                        "keyRaw": "firstName"
+			                                        "keyRaw": "firstName",
+			                                        "hidden": false
 			                                    }
 			                                }
 			                            }
@@ -1838,12 +1945,14 @@ describe('mutation artifacts', function () {
 			            "addFriend": {
 			                "type": "AddFriendOutput",
 			                "keyRaw": "addFriend",
+			                "hidden": false,
 
 			                "selection": {
 			                    "fields": {
 			                        "friend": {
 			                            "type": "User",
 			                            "keyRaw": "friend",
+			                            "hidden": false,
 
 			                            "operations": [{
 			                                "action": "insert",
@@ -1856,12 +1965,14 @@ describe('mutation artifacts', function () {
 			                                "fields": {
 			                                    "id": {
 			                                        "type": "ID",
-			                                        "keyRaw": "id"
+			                                        "keyRaw": "id",
+			                                        "hidden": false
 			                                    },
 
 			                                    "firstName": {
 			                                        "type": "String",
-			                                        "keyRaw": "firstName"
+			                                        "keyRaw": "firstName",
+			                                        "hidden": false
 			                                    }
 			                                }
 			                            }
@@ -1934,12 +2045,14 @@ describe('mutation artifacts', function () {
 			            "addFriend": {
 			                "type": "AddFriendOutput",
 			                "keyRaw": "addFriend",
+			                "hidden": false,
 
 			                "selection": {
 			                    "fields": {
 			                        "friend": {
 			                            "type": "User",
 			                            "keyRaw": "friend",
+			                            "hidden": false,
 
 			                            "operations": [{
 			                                "action": "insert",
@@ -1951,12 +2064,14 @@ describe('mutation artifacts', function () {
 			                                "fields": {
 			                                    "id": {
 			                                        "type": "ID",
-			                                        "keyRaw": "id"
+			                                        "keyRaw": "id",
+			                                        "hidden": false
 			                                    },
 
 			                                    "firstName": {
 			                                        "type": "String",
-			                                        "keyRaw": "firstName"
+			                                        "keyRaw": "firstName",
+			                                        "hidden": false
 			                                    }
 			                                }
 			                            }
@@ -2026,12 +2141,14 @@ describe('mutation artifacts', function () {
 			            "addFriend": {
 			                "type": "AddFriendOutput",
 			                "keyRaw": "addFriend",
+			                "hidden": false,
 
 			                "selection": {
 			                    "fields": {
 			                        "friend": {
 			                            "type": "User",
 			                            "keyRaw": "friend",
+			                            "hidden": false,
 
 			                            "operations": [{
 			                                "action": "toggle",
@@ -2043,12 +2160,14 @@ describe('mutation artifacts', function () {
 			                                "fields": {
 			                                    "id": {
 			                                        "type": "ID",
-			                                        "keyRaw": "id"
+			                                        "keyRaw": "id",
+			                                        "hidden": false
 			                                    },
 
 			                                    "firstName": {
 			                                        "type": "String",
-			                                        "keyRaw": "firstName"
+			                                        "keyRaw": "firstName",
+			                                        "hidden": false
 			                                    }
 			                                }
 			                            }
@@ -2117,12 +2236,14 @@ describe('mutation artifacts', function () {
 			            "addFriend": {
 			                "type": "AddFriendOutput",
 			                "keyRaw": "addFriend",
+			                "hidden": false,
 
 			                "selection": {
 			                    "fields": {
 			                        "friend": {
 			                            "type": "User",
 			                            "keyRaw": "friend",
+			                            "hidden": false,
 
 			                            "operations": [{
 			                                "action": "remove",
@@ -2133,7 +2254,8 @@ describe('mutation artifacts', function () {
 			                                "fields": {
 			                                    "id": {
 			                                        "type": "ID",
-			                                        "keyRaw": "id"
+			                                        "keyRaw": "id",
+			                                        "hidden": false
 			                                    }
 			                                }
 			                            }
@@ -2193,12 +2315,14 @@ describe('mutation artifacts', function () {
 			            "deleteUser": {
 			                "type": "DeleteUserOutput",
 			                "keyRaw": "deleteUser(id: \\"1234\\")",
+			                "hidden": false,
 
 			                "selection": {
 			                    "fields": {
 			                        "userID": {
 			                            "type": "ID",
 			                            "keyRaw": "userID",
+			                            "hidden": false,
 
 			                            "operations": [{
 			                                "action": "delete",
@@ -2260,12 +2384,14 @@ describe('mutation artifacts', function () {
 			            "deleteUser": {
 			                "type": "DeleteUserOutput",
 			                "keyRaw": "deleteUser(id: \\"1234\\")",
+			                "hidden": false,
 
 			                "selection": {
 			                    "fields": {
 			                        "userID": {
 			                            "type": "ID",
 			                            "keyRaw": "userID",
+			                            "hidden": false,
 
 			                            "operations": [{
 			                                "action": "delete",
@@ -2343,12 +2469,14 @@ describe('mutation artifacts', function () {
 			            "addFriend": {
 			                "type": "AddFriendOutput",
 			                "keyRaw": "addFriend",
+			                "hidden": false,
 
 			                "selection": {
 			                    "fields": {
 			                        "friend": {
 			                            "type": "User",
 			                            "keyRaw": "friend",
+			                            "hidden": false,
 
 			                            "operations": [{
 			                                "action": "insert",
@@ -2365,12 +2493,14 @@ describe('mutation artifacts', function () {
 			                                "fields": {
 			                                    "id": {
 			                                        "type": "ID",
-			                                        "keyRaw": "id"
+			                                        "keyRaw": "id",
+			                                        "hidden": false
 			                                    },
 
 			                                    "firstName": {
 			                                        "type": "String",
-			                                        "keyRaw": "firstName"
+			                                        "keyRaw": "firstName",
+			                                        "hidden": false
 			                                    }
 			                                }
 			                            }
@@ -2440,12 +2570,14 @@ describe('mutation artifacts', function () {
 			            "addFriend": {
 			                "type": "AddFriendOutput",
 			                "keyRaw": "addFriend",
+			                "hidden": false,
 
 			                "selection": {
 			                    "fields": {
 			                        "friend": {
 			                            "type": "User",
 			                            "keyRaw": "friend",
+			                            "hidden": false,
 
 			                            "operations": [{
 			                                "action": "insert",
@@ -2462,12 +2594,14 @@ describe('mutation artifacts', function () {
 			                                "fields": {
 			                                    "id": {
 			                                        "type": "ID",
-			                                        "keyRaw": "id"
+			                                        "keyRaw": "id",
+			                                        "hidden": false
 			                                    },
 
 			                                    "firstName": {
 			                                        "type": "String",
-			                                        "keyRaw": "firstName"
+			                                        "keyRaw": "firstName",
+			                                        "hidden": false
 			                                    }
 			                                }
 			                            }
@@ -2537,12 +2671,14 @@ describe('mutation artifacts', function () {
 			            "addFriend": {
 			                "type": "AddFriendOutput",
 			                "keyRaw": "addFriend",
+			                "hidden": false,
 
 			                "selection": {
 			                    "fields": {
 			                        "friend": {
 			                            "type": "User",
 			                            "keyRaw": "friend",
+			                            "hidden": false,
 
 			                            "operations": [{
 			                                "action": "insert",
@@ -2559,12 +2695,14 @@ describe('mutation artifacts', function () {
 			                                "fields": {
 			                                    "id": {
 			                                        "type": "ID",
-			                                        "keyRaw": "id"
+			                                        "keyRaw": "id",
+			                                        "hidden": false
 			                                    },
 
 			                                    "firstName": {
 			                                        "type": "String",
-			                                        "keyRaw": "firstName"
+			                                        "keyRaw": "firstName",
+			                                        "hidden": false
 			                                    }
 			                                }
 			                            }
@@ -2634,12 +2772,14 @@ describe('mutation artifacts', function () {
 			            "addFriend": {
 			                "type": "AddFriendOutput",
 			                "keyRaw": "addFriend",
+			                "hidden": false,
 
 			                "selection": {
 			                    "fields": {
 			                        "friend": {
 			                            "type": "User",
 			                            "keyRaw": "friend",
+			                            "hidden": false,
 
 			                            "operations": [{
 			                                "action": "insert",
@@ -2657,12 +2797,14 @@ describe('mutation artifacts', function () {
 			                                "fields": {
 			                                    "id": {
 			                                        "type": "ID",
-			                                        "keyRaw": "id"
+			                                        "keyRaw": "id",
+			                                        "hidden": false
 			                                    },
 
 			                                    "firstName": {
 			                                        "type": "String",
-			                                        "keyRaw": "firstName"
+			                                        "keyRaw": "firstName",
+			                                        "hidden": false
 			                                    }
 			                                }
 			                            }
@@ -2732,12 +2874,14 @@ describe('mutation artifacts', function () {
 			            "addFriend": {
 			                "type": "AddFriendOutput",
 			                "keyRaw": "addFriend",
+			                "hidden": false,
 
 			                "selection": {
 			                    "fields": {
 			                        "friend": {
 			                            "type": "User",
 			                            "keyRaw": "friend",
+			                            "hidden": false,
 
 			                            "operations": [{
 			                                "action": "insert",
@@ -2755,12 +2899,14 @@ describe('mutation artifacts', function () {
 			                                "fields": {
 			                                    "id": {
 			                                        "type": "ID",
-			                                        "keyRaw": "id"
+			                                        "keyRaw": "id",
+			                                        "hidden": false
 			                                    },
 
 			                                    "firstName": {
 			                                        "type": "String",
-			                                        "keyRaw": "firstName"
+			                                        "keyRaw": "firstName",
+			                                        "hidden": false
 			                                    }
 			                                }
 			                            }
@@ -2830,12 +2976,14 @@ describe('mutation artifacts', function () {
 			            "addFriend": {
 			                "type": "AddFriendOutput",
 			                "keyRaw": "addFriend",
+			                "hidden": false,
 
 			                "selection": {
 			                    "fields": {
 			                        "friend": {
 			                            "type": "User",
 			                            "keyRaw": "friend",
+			                            "hidden": false,
 
 			                            "operations": [{
 			                                "action": "insert",
@@ -2853,12 +3001,14 @@ describe('mutation artifacts', function () {
 			                                "fields": {
 			                                    "id": {
 			                                        "type": "ID",
-			                                        "keyRaw": "id"
+			                                        "keyRaw": "id",
+			                                        "hidden": false
 			                                    },
 
 			                                    "firstName": {
 			                                        "type": "String",
-			                                        "keyRaw": "firstName"
+			                                        "keyRaw": "firstName",
+			                                        "hidden": false
 			                                    }
 			                                }
 			                            }
@@ -2928,12 +3078,14 @@ describe('mutation artifacts', function () {
 			            "addFriend": {
 			                "type": "AddFriendOutput",
 			                "keyRaw": "addFriend",
+			                "hidden": false,
 
 			                "selection": {
 			                    "fields": {
 			                        "friend": {
 			                            "type": "User",
 			                            "keyRaw": "friend",
+			                            "hidden": false,
 
 			                            "operations": [{
 			                                "action": "insert",
@@ -2951,12 +3103,14 @@ describe('mutation artifacts', function () {
 			                                "fields": {
 			                                    "id": {
 			                                        "type": "ID",
-			                                        "keyRaw": "id"
+			                                        "keyRaw": "id",
+			                                        "hidden": false
 			                                    },
 
 			                                    "firstName": {
 			                                        "type": "String",
-			                                        "keyRaw": "firstName"
+			                                        "keyRaw": "firstName",
+			                                        "hidden": false
 			                                    }
 			                                }
 			                            }
@@ -3026,12 +3180,14 @@ describe('mutation artifacts', function () {
 			            "addFriend": {
 			                "type": "AddFriendOutput",
 			                "keyRaw": "addFriend",
+			                "hidden": false,
 
 			                "selection": {
 			                    "fields": {
 			                        "friend": {
 			                            "type": "User",
 			                            "keyRaw": "friend",
+			                            "hidden": false,
 
 			                            "operations": [{
 			                                "action": "insert",
@@ -3049,12 +3205,14 @@ describe('mutation artifacts', function () {
 			                                "fields": {
 			                                    "id": {
 			                                        "type": "ID",
-			                                        "keyRaw": "id"
+			                                        "keyRaw": "id",
+			                                        "hidden": false
 			                                    },
 
 			                                    "firstName": {
 			                                        "type": "String",
-			                                        "keyRaw": "firstName"
+			                                        "keyRaw": "firstName",
+			                                        "hidden": false
 			                                    }
 			                                }
 			                            }
@@ -3122,6 +3280,7 @@ describe('mutation artifacts', function () {
 			            "users": {
 			                "type": "User",
 			                "keyRaw": "users(boolValue: true, floatValue: 1.2, intValue: 1, stringValue: $value)",
+			                "hidden": false,
 
 			                "list": {
 			                    "name": "All_Users",
@@ -3133,12 +3292,14 @@ describe('mutation artifacts', function () {
 			                    "fields": {
 			                        "firstName": {
 			                            "type": "String",
-			                            "keyRaw": "firstName"
+			                            "keyRaw": "firstName",
+			                            "hidden": false
 			                        },
 
 			                        "id": {
 			                            "type": "ID",
-			                            "keyRaw": "id"
+			                            "keyRaw": "id",
+			                            "hidden": false
 			                        }
 			                    }
 			                },
@@ -3238,12 +3399,14 @@ describe('mutation artifacts', function () {
 			            "addFriend": {
 			                "type": "AddFriendOutput",
 			                "keyRaw": "addFriend",
+			                "hidden": false,
 
 			                "selection": {
 			                    "fields": {
 			                        "friend": {
 			                            "type": "User",
 			                            "keyRaw": "friend",
+			                            "hidden": false,
 
 			                            "operations": [{
 			                                "action": "insert",
@@ -3261,12 +3424,14 @@ describe('mutation artifacts', function () {
 			                                "fields": {
 			                                    "id": {
 			                                        "type": "ID",
-			                                        "keyRaw": "id"
+			                                        "keyRaw": "id",
+			                                        "hidden": false
 			                                    },
 
 			                                    "firstName": {
 			                                        "type": "String",
-			                                        "keyRaw": "firstName"
+			                                        "keyRaw": "firstName",
+			                                        "hidden": false
 			                                    }
 			                                }
 			                            }
@@ -3329,6 +3494,7 @@ describe('mutation artifacts', function () {
 			            "users": {
 			                "type": "User",
 			                "keyRaw": "users(stringValue: \\"foo\\")",
+			                "hidden": false,
 
 			                "list": {
 			                    "name": "All_Users",
@@ -3340,12 +3506,14 @@ describe('mutation artifacts', function () {
 			                    "fields": {
 			                        "firstName": {
 			                            "type": "String",
-			                            "keyRaw": "firstName"
+			                            "keyRaw": "firstName",
+			                            "hidden": false
 			                        },
 
 			                        "id": {
 			                            "type": "ID",
-			                            "keyRaw": "id"
+			                            "keyRaw": "id",
+			                            "hidden": false
 			                        }
 			                    }
 			                },
@@ -3444,6 +3612,7 @@ describe('mutation artifacts', function () {
 			            "usersByCursor": {
 			                "type": "UserConnection",
 			                "keyRaw": "usersByCursor::paginated",
+			                "hidden": false,
 
 			                "list": {
 			                    "name": "All_Users",
@@ -3456,6 +3625,7 @@ describe('mutation artifacts', function () {
 			                        "edges": {
 			                            "type": "UserEdge",
 			                            "keyRaw": "edges",
+			                            "hidden": false,
 			                            "updates": ["append", "prepend"],
 
 			                            "selection": {
@@ -3463,23 +3633,27 @@ describe('mutation artifacts', function () {
 			                                    "node": {
 			                                        "type": "User",
 			                                        "keyRaw": "node",
+			                                        "hidden": false,
 			                                        "nullable": true,
 
 			                                        "selection": {
 			                                            "fields": {
 			                                                "firstName": {
 			                                                    "type": "String",
-			                                                    "keyRaw": "firstName"
+			                                                    "keyRaw": "firstName",
+			                                                    "hidden": false
 			                                                },
 
 			                                                "id": {
 			                                                    "type": "ID",
-			                                                    "keyRaw": "id"
+			                                                    "keyRaw": "id",
+			                                                    "hidden": false
 			                                                },
 
 			                                                "__typename": {
 			                                                    "type": "String",
-			                                                    "keyRaw": "__typename"
+			                                                    "keyRaw": "__typename",
+			                                                    "hidden": false
 			                                                }
 			                                            }
 			                                        }
@@ -3487,7 +3661,8 @@ describe('mutation artifacts', function () {
 
 			                                    "cursor": {
 			                                        "type": "String",
-			                                        "keyRaw": "cursor"
+			                                        "keyRaw": "cursor",
+			                                        "hidden": false
 			                                    }
 			                                }
 			                            }
@@ -3496,30 +3671,35 @@ describe('mutation artifacts', function () {
 			                        "pageInfo": {
 			                            "type": "PageInfo",
 			                            "keyRaw": "pageInfo",
+			                            "hidden": false,
 
 			                            "selection": {
 			                                "fields": {
 			                                    "hasPreviousPage": {
 			                                        "type": "Boolean",
 			                                        "keyRaw": "hasPreviousPage",
+			                                        "hidden": false,
 			                                        "updates": ["append", "prepend"]
 			                                    },
 
 			                                    "hasNextPage": {
 			                                        "type": "Boolean",
 			                                        "keyRaw": "hasNextPage",
+			                                        "hidden": false,
 			                                        "updates": ["append", "prepend"]
 			                                    },
 
 			                                    "startCursor": {
 			                                        "type": "String",
 			                                        "keyRaw": "startCursor",
+			                                        "hidden": false,
 			                                        "updates": ["append", "prepend"]
 			                                    },
 
 			                                    "endCursor": {
 			                                        "type": "String",
 			                                        "keyRaw": "endCursor",
+			                                        "hidden": false,
 			                                        "updates": ["append", "prepend"]
 			                                    }
 			                                }
@@ -3615,6 +3795,7 @@ describe('mutation artifacts', function () {
 			            "users": {
 			                "type": "User",
 			                "keyRaw": "users(boolValue: true, floatValue: 1.2, intValue: 1, stringValue: $value)",
+			                "hidden": false,
 
 			                "list": {
 			                    "name": "All_Users",
@@ -3626,12 +3807,14 @@ describe('mutation artifacts', function () {
 			                    "fields": {
 			                        "firstName": {
 			                            "type": "String",
-			                            "keyRaw": "firstName"
+			                            "keyRaw": "firstName",
+			                            "hidden": false
 			                        },
 
 			                        "id": {
 			                            "type": "ID",
-			                            "keyRaw": "id"
+			                            "keyRaw": "id",
+			                            "hidden": false
 			                        }
 			                    }
 			                },
@@ -3722,6 +3905,7 @@ describe('mutation artifacts', function () {
 			            "users": {
 			                "type": "User",
 			                "keyRaw": "users(boolValue: true, floatValue: 1.2, intValue: 1, stringValue: $value)",
+			                "hidden": false,
 
 			                "list": {
 			                    "name": "All_Users",
@@ -3733,12 +3917,14 @@ describe('mutation artifacts', function () {
 			                    "fields": {
 			                        "firstName": {
 			                            "type": "String",
-			                            "keyRaw": "firstName"
+			                            "keyRaw": "firstName",
+			                            "hidden": false
 			                        },
 
 			                        "id": {
 			                            "type": "ID",
-			                            "keyRaw": "id"
+			                            "keyRaw": "id",
+			                            "hidden": false
 			                        }
 			                    }
 			                },
@@ -3843,12 +4029,14 @@ test('custom scalar shows up in artifact', async function () {
 		            "allItems": {
 		                "type": "TodoItem",
 		                "keyRaw": "allItems",
+		                "hidden": false,
 
 		                "selection": {
 		                    "fields": {
 		                        "createdAt": {
 		                            "type": "DateTime",
-		                            "keyRaw": "createdAt"
+		                            "keyRaw": "createdAt",
+		                            "hidden": false
 		                        }
 		                    }
 		                }
@@ -3949,13 +4137,15 @@ test('operation inputs', async function () {
 		            "user": {
 		                "type": "User",
 		                "keyRaw": "user(enumArg: $enumArg, filter: $filter, filterList: $filterList, id: $id)",
+		                "hidden": false,
 		                "nullable": true,
 
 		                "selection": {
 		                    "fields": {
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
+		                            "keyRaw": "id",
+		                            "hidden": false
 		                        }
 		                    }
 		                }
@@ -4041,23 +4231,27 @@ describe('subscription artifacts', function () {
 			            "newUser": {
 			                "type": "NewUserResult",
 			                "keyRaw": "newUser",
+			                "hidden": false,
 
 			                "selection": {
 			                    "fields": {
 			                        "user": {
 			                            "type": "User",
 			                            "keyRaw": "user",
+			                            "hidden": false,
 
 			                            "selection": {
 			                                "fields": {
 			                                    "firstName": {
 			                                        "type": "String",
-			                                        "keyRaw": "firstName"
+			                                        "keyRaw": "firstName",
+			                                        "hidden": false
 			                                    },
 
 			                                    "id": {
 			                                        "type": "ID",
-			                                        "keyRaw": "id"
+			                                        "keyRaw": "id",
+			                                        "hidden": false
 			                                    }
 			                                }
 			                            }
@@ -4120,7 +4314,8 @@ test('some artifactData added to artifact specific to plugins', async function (
 		        "fields": {
 		            "version": {
 		                "type": "Int",
-		                "keyRaw": "version"
+		                "keyRaw": "version",
+		                "hidden": false
 		            }
 		        }
 		    },
@@ -4216,18 +4411,21 @@ test('nested recursive fragments', async function () {
 		            "node": {
 		                "type": "Node",
 		                "keyRaw": "node(id: \\"some_id\\")",
+		                "hidden": false,
 		                "nullable": true,
 
 		                "selection": {
 		                    "fields": {
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
+		                            "keyRaw": "id",
+		                            "hidden": false
 		                        },
 
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "keyRaw": "__typename",
+		                            "hidden": false
 		                        }
 		                    },
 
@@ -4236,17 +4434,20 @@ test('nested recursive fragments', async function () {
 		                            "User": {
 		                                "id": {
 		                                    "type": "ID",
-		                                    "keyRaw": "id"
+		                                    "keyRaw": "id",
+		                                    "hidden": false
 		                                },
 
 		                                "name": {
 		                                    "type": "String",
-		                                    "keyRaw": "name"
+		                                    "keyRaw": "name",
+		                                    "hidden": true
 		                                },
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "hidden": false
 		                                }
 		                            }
 		                        },
@@ -4344,18 +4545,21 @@ test('leave @include and @skip alone', async function () {
 		            "node": {
 		                "type": "Node",
 		                "keyRaw": "node(id: \\"some_id\\")",
+		                "hidden": false,
 		                "nullable": true,
 
 		                "selection": {
 		                    "fields": {
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
+		                            "keyRaw": "id",
+		                            "hidden": false
 		                        },
 
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "keyRaw": "__typename",
+		                            "hidden": false
 		                        }
 		                    },
 
@@ -4364,17 +4568,20 @@ test('leave @include and @skip alone', async function () {
 		                            "User": {
 		                                "id": {
 		                                    "type": "ID",
-		                                    "keyRaw": "id"
+		                                    "keyRaw": "id",
+		                                    "hidden": false
 		                                },
 
 		                                "name": {
 		                                    "type": "String",
-		                                    "keyRaw": "name"
+		                                    "keyRaw": "name",
+		                                    "hidden": false
 		                                },
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "hidden": false
 		                                }
 		                            }
 		                        },

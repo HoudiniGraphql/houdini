@@ -48,18 +48,21 @@ test('cache policy is persisted in artifact', async function () {
 		            "user": {
 		                "type": "User",
 		                "keyRaw": "user",
+		                "hidden": false,
 
 		                "selection": {
 		                    "fields": {
 		                        "friends": {
 		                            "type": "User",
 		                            "keyRaw": "friends",
+		                            "hidden": false,
 
 		                            "selection": {
 		                                "fields": {
 		                                    "id": {
 		                                        "type": "ID",
-		                                        "keyRaw": "id"
+		                                        "keyRaw": "id",
+		                                        "hidden": false
 		                                    }
 		                                }
 		                            }
@@ -67,7 +70,8 @@ test('cache policy is persisted in artifact', async function () {
 
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
+		                            "keyRaw": "id",
+		                            "hidden": false
 		                        }
 		                    }
 		                }
@@ -130,18 +134,21 @@ test('can change default cache policy', async function () {
 		            "user": {
 		                "type": "User",
 		                "keyRaw": "user",
+		                "hidden": false,
 
 		                "selection": {
 		                    "fields": {
 		                        "friends": {
 		                            "type": "User",
 		                            "keyRaw": "friends",
+		                            "hidden": false,
 
 		                            "selection": {
 		                                "fields": {
 		                                    "id": {
 		                                        "type": "ID",
-		                                        "keyRaw": "id"
+		                                        "keyRaw": "id",
+		                                        "hidden": false
 		                                    }
 		                                }
 		                            }
@@ -149,7 +156,8 @@ test('can change default cache policy', async function () {
 
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
+		                            "keyRaw": "id",
+		                            "hidden": false
 		                        }
 		                    }
 		                }
@@ -207,18 +215,21 @@ test('partial opt-in is persisted', async function () {
 		            "user": {
 		                "type": "User",
 		                "keyRaw": "user",
+		                "hidden": false,
 
 		                "selection": {
 		                    "fields": {
 		                        "friends": {
 		                            "type": "User",
 		                            "keyRaw": "friends",
+		                            "hidden": false,
 
 		                            "selection": {
 		                                "fields": {
 		                                    "id": {
 		                                        "type": "ID",
-		                                        "keyRaw": "id"
+		                                        "keyRaw": "id",
+		                                        "hidden": false
 		                                    }
 		                                }
 		                            }
@@ -226,7 +237,8 @@ test('partial opt-in is persisted', async function () {
 
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
+		                            "keyRaw": "id",
+		                            "hidden": false
 		                        }
 		                    }
 		                }
@@ -289,18 +301,21 @@ test('can set default partial opt-in', async function () {
 		            "user": {
 		                "type": "User",
 		                "keyRaw": "user",
+		                "hidden": false,
 
 		                "selection": {
 		                    "fields": {
 		                        "friends": {
 		                            "type": "User",
 		                            "keyRaw": "friends",
+		                            "hidden": false,
 
 		                            "selection": {
 		                                "fields": {
 		                                    "id": {
 		                                        "type": "ID",
-		                                        "keyRaw": "id"
+		                                        "keyRaw": "id",
+		                                        "hidden": false
 		                                    }
 		                                }
 		                            }
@@ -308,7 +323,8 @@ test('can set default partial opt-in', async function () {
 
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
+		                            "keyRaw": "id",
+		                            "hidden": false
 		                        }
 		                    }
 		                }

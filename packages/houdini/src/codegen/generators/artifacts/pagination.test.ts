@@ -78,12 +78,14 @@ test('pagination arguments stripped from key', async function () {
 		            "friendsByCursor": {
 		                "type": "UserConnection",
 		                "keyRaw": "friendsByCursor(filter: \\"hello\\")::paginated",
+		                "hidden": false,
 
 		                "selection": {
 		                    "fields": {
 		                        "edges": {
 		                            "type": "UserEdge",
 		                            "keyRaw": "edges",
+		                            "hidden": false,
 		                            "updates": ["append", "prepend"],
 
 		                            "selection": {
@@ -91,18 +93,21 @@ test('pagination arguments stripped from key', async function () {
 		                                    "node": {
 		                                        "type": "User",
 		                                        "keyRaw": "node",
+		                                        "hidden": false,
 		                                        "nullable": true,
 
 		                                        "selection": {
 		                                            "fields": {
 		                                                "id": {
 		                                                    "type": "ID",
-		                                                    "keyRaw": "id"
+		                                                    "keyRaw": "id",
+		                                                    "hidden": false
 		                                                },
 
 		                                                "__typename": {
 		                                                    "type": "String",
-		                                                    "keyRaw": "__typename"
+		                                                    "keyRaw": "__typename",
+		                                                    "hidden": false
 		                                                }
 		                                            }
 		                                        }
@@ -110,7 +115,8 @@ test('pagination arguments stripped from key', async function () {
 
 		                                    "cursor": {
 		                                        "type": "String",
-		                                        "keyRaw": "cursor"
+		                                        "keyRaw": "cursor",
+		                                        "hidden": false
 		                                    }
 		                                }
 		                            }
@@ -119,30 +125,35 @@ test('pagination arguments stripped from key', async function () {
 		                        "pageInfo": {
 		                            "type": "PageInfo",
 		                            "keyRaw": "pageInfo",
+		                            "hidden": false,
 
 		                            "selection": {
 		                                "fields": {
 		                                    "hasPreviousPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasPreviousPage",
+		                                        "hidden": false,
 		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "hasNextPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasNextPage",
+		                                        "hidden": false,
 		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "startCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "startCursor",
+		                                        "hidden": false,
 		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "endCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "endCursor",
+		                                        "hidden": false,
 		                                        "updates": ["append", "prepend"]
 		                                    }
 		                                }
@@ -218,13 +229,15 @@ test('offset based pagination marks appropriate field', async function () {
 		            "friendsByOffset": {
 		                "type": "User",
 		                "keyRaw": "friendsByOffset(filter: \\"hello\\")::paginated",
+		                "hidden": false,
 		                "updates": ["append"],
 
 		                "selection": {
 		                    "fields": {
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
+		                            "keyRaw": "id",
+		                            "hidden": false
 		                        }
 		                    }
 		                }
@@ -338,18 +351,21 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		            "user": {
 		                "type": "User",
 		                "keyRaw": "user",
+		                "hidden": false,
 
 		                "selection": {
 		                    "fields": {
 		                        "friendsByCursorScalar": {
 		                            "type": "UserConnection",
 		                            "keyRaw": "friendsByCursorScalar(filter: \\"hello\\")::paginated",
+		                            "hidden": false,
 
 		                            "selection": {
 		                                "fields": {
 		                                    "edges": {
 		                                        "type": "UserEdge",
 		                                        "keyRaw": "edges",
+		                                        "hidden": false,
 		                                        "updates": ["append", "prepend"],
 
 		                                        "selection": {
@@ -357,6 +373,7 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		                                                "node": {
 		                                                    "type": "User",
 		                                                    "keyRaw": "node",
+		                                                    "hidden": false,
 		                                                    "nullable": true,
 
 		                                                    "selection": {
@@ -364,25 +381,29 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		                                                            "friendsByCursor": {
 		                                                                "type": "UserConnection",
 		                                                                "keyRaw": "friendsByCursor",
+		                                                                "hidden": false,
 
 		                                                                "selection": {
 		                                                                    "fields": {
 		                                                                        "edges": {
 		                                                                            "type": "UserEdge",
 		                                                                            "keyRaw": "edges",
+		                                                                            "hidden": false,
 
 		                                                                            "selection": {
 		                                                                                "fields": {
 		                                                                                    "node": {
 		                                                                                        "type": "User",
 		                                                                                        "keyRaw": "node",
+		                                                                                        "hidden": false,
 		                                                                                        "nullable": true,
 
 		                                                                                        "selection": {
 		                                                                                            "fields": {
 		                                                                                                "id": {
 		                                                                                                    "type": "ID",
-		                                                                                                    "keyRaw": "id"
+		                                                                                                    "keyRaw": "id",
+		                                                                                                    "hidden": false
 		                                                                                                }
 		                                                                                            }
 		                                                                                        }
@@ -396,12 +417,14 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 
 		                                                            "id": {
 		                                                                "type": "ID",
-		                                                                "keyRaw": "id"
+		                                                                "keyRaw": "id",
+		                                                                "hidden": false
 		                                                            },
 
 		                                                            "__typename": {
 		                                                                "type": "String",
-		                                                                "keyRaw": "__typename"
+		                                                                "keyRaw": "__typename",
+		                                                                "hidden": false
 		                                                            }
 		                                                        }
 		                                                    }
@@ -409,7 +432,8 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 
 		                                                "cursor": {
 		                                                    "type": "String",
-		                                                    "keyRaw": "cursor"
+		                                                    "keyRaw": "cursor",
+		                                                    "hidden": false
 		                                                }
 		                                            }
 		                                        }
@@ -418,30 +442,35 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		                                    "pageInfo": {
 		                                        "type": "PageInfo",
 		                                        "keyRaw": "pageInfo",
+		                                        "hidden": false,
 
 		                                        "selection": {
 		                                            "fields": {
 		                                                "hasPreviousPage": {
 		                                                    "type": "Boolean",
 		                                                    "keyRaw": "hasPreviousPage",
+		                                                    "hidden": false,
 		                                                    "updates": ["append", "prepend"]
 		                                                },
 
 		                                                "hasNextPage": {
 		                                                    "type": "Boolean",
 		                                                    "keyRaw": "hasNextPage",
+		                                                    "hidden": false,
 		                                                    "updates": ["append", "prepend"]
 		                                                },
 
 		                                                "startCursor": {
 		                                                    "type": "String",
 		                                                    "keyRaw": "startCursor",
+		                                                    "hidden": false,
 		                                                    "updates": ["append", "prepend"]
 		                                                },
 
 		                                                "endCursor": {
 		                                                    "type": "String",
 		                                                    "keyRaw": "endCursor",
+		                                                    "hidden": false,
 		                                                    "updates": ["append", "prepend"]
 		                                                }
 		                                            }
@@ -453,7 +482,8 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
+		                            "keyRaw": "id",
+		                            "hidden": false
 		                        }
 		                    }
 		                }
@@ -594,12 +624,14 @@ test("sibling aliases don't get marked", async function () {
 		            "friendsByCursor": {
 		                "type": "UserConnection",
 		                "keyRaw": "friendsByCursor(filter: \\"hello\\")::paginated",
+		                "hidden": false,
 
 		                "selection": {
 		                    "fields": {
 		                        "edges": {
 		                            "type": "UserEdge",
 		                            "keyRaw": "edges",
+		                            "hidden": false,
 		                            "updates": ["append", "prepend"],
 
 		                            "selection": {
@@ -607,6 +639,7 @@ test("sibling aliases don't get marked", async function () {
 		                                    "node": {
 		                                        "type": "User",
 		                                        "keyRaw": "node",
+		                                        "hidden": false,
 		                                        "nullable": true,
 
 		                                        "selection": {
@@ -614,25 +647,29 @@ test("sibling aliases don't get marked", async function () {
 		                                                "friendsByCursor": {
 		                                                    "type": "UserConnection",
 		                                                    "keyRaw": "friendsByCursor",
+		                                                    "hidden": false,
 
 		                                                    "selection": {
 		                                                        "fields": {
 		                                                            "edges": {
 		                                                                "type": "UserEdge",
 		                                                                "keyRaw": "edges",
+		                                                                "hidden": false,
 
 		                                                                "selection": {
 		                                                                    "fields": {
 		                                                                        "node": {
 		                                                                            "type": "User",
 		                                                                            "keyRaw": "node",
+		                                                                            "hidden": false,
 		                                                                            "nullable": true,
 
 		                                                                            "selection": {
 		                                                                                "fields": {
 		                                                                                    "id": {
 		                                                                                        "type": "ID",
-		                                                                                        "keyRaw": "id"
+		                                                                                        "keyRaw": "id",
+		                                                                                        "hidden": false
 		                                                                                    }
 		                                                                                }
 		                                                                            }
@@ -646,12 +683,14 @@ test("sibling aliases don't get marked", async function () {
 
 		                                                "id": {
 		                                                    "type": "ID",
-		                                                    "keyRaw": "id"
+		                                                    "keyRaw": "id",
+		                                                    "hidden": false
 		                                                },
 
 		                                                "__typename": {
 		                                                    "type": "String",
-		                                                    "keyRaw": "__typename"
+		                                                    "keyRaw": "__typename",
+		                                                    "hidden": false
 		                                                }
 		                                            }
 		                                        }
@@ -659,7 +698,8 @@ test("sibling aliases don't get marked", async function () {
 
 		                                    "cursor": {
 		                                        "type": "String",
-		                                        "keyRaw": "cursor"
+		                                        "keyRaw": "cursor",
+		                                        "hidden": false
 		                                    }
 		                                }
 		                            }
@@ -668,30 +708,35 @@ test("sibling aliases don't get marked", async function () {
 		                        "pageInfo": {
 		                            "type": "PageInfo",
 		                            "keyRaw": "pageInfo",
+		                            "hidden": false,
 
 		                            "selection": {
 		                                "fields": {
 		                                    "hasPreviousPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasPreviousPage",
+		                                        "hidden": false,
 		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "hasNextPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasNextPage",
+		                                        "hidden": false,
 		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "startCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "startCursor",
+		                                        "hidden": false,
 		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "endCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "endCursor",
+		                                        "hidden": false,
 		                                        "updates": ["append", "prepend"]
 		                                    }
 		                                }
@@ -704,18 +749,21 @@ test("sibling aliases don't get marked", async function () {
 		            "friends": {
 		                "type": "UserConnection",
 		                "keyRaw": "friends(filter: \\"hello\\", first: 10)",
+		                "hidden": false,
 
 		                "selection": {
 		                    "fields": {
 		                        "edges": {
 		                            "type": "UserEdge",
 		                            "keyRaw": "edges",
+		                            "hidden": false,
 
 		                            "selection": {
 		                                "fields": {
 		                                    "node": {
 		                                        "type": "User",
 		                                        "keyRaw": "node",
+		                                        "hidden": false,
 		                                        "nullable": true,
 
 		                                        "selection": {
@@ -723,25 +771,29 @@ test("sibling aliases don't get marked", async function () {
 		                                                "friendsByCursor": {
 		                                                    "type": "UserConnection",
 		                                                    "keyRaw": "friendsByCursor",
+		                                                    "hidden": false,
 
 		                                                    "selection": {
 		                                                        "fields": {
 		                                                            "edges": {
 		                                                                "type": "UserEdge",
 		                                                                "keyRaw": "edges",
+		                                                                "hidden": false,
 
 		                                                                "selection": {
 		                                                                    "fields": {
 		                                                                        "node": {
 		                                                                            "type": "User",
 		                                                                            "keyRaw": "node",
+		                                                                            "hidden": false,
 		                                                                            "nullable": true,
 
 		                                                                            "selection": {
 		                                                                                "fields": {
 		                                                                                    "id": {
 		                                                                                        "type": "ID",
-		                                                                                        "keyRaw": "id"
+		                                                                                        "keyRaw": "id",
+		                                                                                        "hidden": false
 		                                                                                    }
 		                                                                                }
 		                                                                            }
@@ -755,7 +807,8 @@ test("sibling aliases don't get marked", async function () {
 
 		                                                "id": {
 		                                                    "type": "ID",
-		                                                    "keyRaw": "id"
+		                                                    "keyRaw": "id",
+		                                                    "hidden": false
 		                                                }
 		                                            }
 		                                        }
