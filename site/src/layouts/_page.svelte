@@ -508,6 +508,9 @@
 		aside.open {
 			height: 100%;
 			position: fixed;
+			overflow-x: hidden;
+			overflow-y: auto;
+			overscroll-behavior: contain;
 		}
 
 		h1 {
