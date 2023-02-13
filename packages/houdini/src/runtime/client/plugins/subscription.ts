@@ -3,20 +3,18 @@ import { ArtifactKind, DataSource } from '../../lib/types'
 import type { ClientPluginContext } from '../documentStore'
 import { documentPlugin } from '../utils'
 
+// we need to re-run the subscription if the following object has changed.
+// this is only safe because this plugin only operates on the client
+let check: {
+	fetchParams: RequestInit
+	session: App.Session
+	metadata: App.Metadata
+} | null = null
+
 export function subscription(factory: SubscriptionHandler) {
 	return documentPlugin(ArtifactKind.Subscription, () => {
 		// the unsubscribe hook for the active subscription
 		let clearSubscription: null | (() => void) = null
-
-		// when we detect a new fetchParams we need to recreate the socket client
-		let socketClient: ReturnType<SubscriptionHandler> | null = null
-
-		// we need to re-run the subscription if the following object has changed
-		let check: {
-			fetchParams: RequestInit
-			session: App.Session
-			metadata: App.Metadata
-		} | null = null
 
 		return {
 			start(ctx, { resolve, next, initialValue }) {
@@ -29,7 +27,7 @@ export function subscription(factory: SubscriptionHandler) {
 				// its safe to keep going
 				next(ctx)
 			},
-			network(ctx, { resolve, initialValue, variablesChanged, marshalVariables }) {
+			async network(ctx, { resolve, initialValue, variablesChanged, marshalVariables }) {
 				const checkValue = {
 					fetchParams: ctx.fetchParams ?? {},
 					session: ctx.session ?? {},
@@ -47,18 +45,17 @@ export function subscription(factory: SubscriptionHandler) {
 				// we need to use this as the new check value
 				check = checkValue
 
+				// if the session has changed then recreate the client
+				if (sessionChange) {
+					await loadClient(ctx, factory)
+				}
+
 				// if we got this far, we need to clear the subscription before we
 				// create a new one
 				clearSubscription?.()
 
-				// if the socket client hasn't been made yet then do so with the current context
-				// if the session has also changed then recreate the client
-				if (!socketClient || sessionChange) {
-					socketClient = factory(ctx)
-				}
-
 				// start listening for the new subscription
-				clearSubscription = socketClient.subscribe(
+				clearSubscription = client.subscribe(
 					{
 						query: ctx.artifact.raw,
 						variables: marshalVariables(ctx),
@@ -98,7 +95,9 @@ export function subscription(factory: SubscriptionHandler) {
 	})
 }
 
-export type SubscriptionHandler = (ctx: ClientPluginContext) => {
+export type SubscriptionHandler = (ctx: ClientPluginContext) => SubscriptionClient
+
+export type SubscriptionClient = {
 	subscribe: (
 		payload: { query: string; variables?: {} },
 		handlers: {
@@ -107,4 +106,39 @@ export type SubscriptionHandler = (ctx: ClientPluginContext) => {
 			complete: () => void
 		}
 	) => () => void
+}
+
+// if 2 subscriptions start at the same time we don't want to create
+// multiple clients. We'll make a global promise that we will use to
+// coordinate across invocations of the plugin. This is only safe to do
+// without considering user-sessions on the server because this plugin
+// ensures that it only runs on the browser in the start phase
+let pendingCreate: Promise<void> | null = null
+
+// the actual client
+let client: SubscriptionClient
+
+function loadClient(
+	ctx: ClientPluginContext,
+	factory: (ctx: ClientPluginContext) => SubscriptionClient
+): Promise<void> {
+	// if we are currently loading a client, just wait for that
+	if (pendingCreate) {
+		return pendingCreate
+	}
+
+	// we aren't currently loading the client so we're safe to do that
+	// and register the effort to coordinate other subscriptions
+	pendingCreate = new Promise((resolve) => {
+		// update the client reference
+		client = factory(ctx)
+
+		// we're done
+		resolve()
+
+		// we're done with the create
+		pendingCreate = null
+	})
+
+	return pendingCreate
 }
