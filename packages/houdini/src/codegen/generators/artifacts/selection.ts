@@ -187,8 +187,8 @@ export default function selection({
 		// fields need their own entry
 		else if (field.kind === 'Field') {
 			// find the field selection in the original document
-			const originalMatch =
-				originalSelectionSet?.find((selection): selection is graphql.FieldNode => {
+			const originalMatch = originalSelectionSet?.find(
+				(selection): selection is graphql.FieldNode => {
 					if (selection.kind !== 'Field') {
 						return false
 					}
@@ -199,7 +199,12 @@ export default function selection({
 					}
 
 					return selection.name?.value == field.name?.value
-				})?.selectionSet?.selections ?? []
+				}
+			)
+
+			if (field.name.value === 'name') {
+				console.log({ originalMatch })
+			}
 
 			// look up the field
 			const type = config.schema.getType(rootType) as graphql.GraphQLObjectType
@@ -313,7 +318,7 @@ export default function selection({
 					includeFragments,
 					document,
 					inConnection: connectionState,
-					originalSelectionSet: originalMatch,
+					originalSelectionSet: originalMatch?.selectionSet?.selections ?? [],
 				})
 			}
 

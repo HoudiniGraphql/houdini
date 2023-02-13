@@ -7,17 +7,17 @@ import selection from './selection'
 
 test('fragments of unions inject correctly', function () {
 	const document = graphql.parse(`
-        query { 
+        query {
             entities {
                 ...EntityInfo
             }
         }
 
-        fragment EntityInfo on Entity { 
-            ... on User { 
+        fragment EntityInfo on Entity {
+            ... on User {
                 firstName
             }
-            ... on Cat { 
+            ... on Cat {
                 name
             }
         }
@@ -49,11 +49,12 @@ test('fragments of unions inject correctly', function () {
 		selections: flat,
 		includeFragments: false,
 		document: mockCollectedDoc(`
-        query Query { 
+        query Query {
             entities {
                 ...EntityInfo
             }
         }`),
+		originalSelectionSet: [],
 	})
 
 	expect(artifactSelection).toMatchInlineSnapshot(`

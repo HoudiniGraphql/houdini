@@ -140,13 +140,13 @@ test('selection includes fragments', async function () {
 		                        "firstName": {
 		                            "type": "String",
 		                            "keyRaw": "firstName",
-		                            "hidden": false
+		                            "hidden": true
 		                        },
 
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id",
-		                            "hidden": false
+		                            "hidden": true
 		                        }
 		                    }
 		                }
@@ -234,13 +234,13 @@ test('internal directives are scrubbed', async function () {
 		                        "firstName": {
 		                            "type": "String",
 		                            "keyRaw": "firstName",
-		                            "hidden": false
+		                            "hidden": true
 		                        },
 
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id",
-		                            "hidden": false
+		                            "hidden": true
 		                        }
 		                    }
 		                }
@@ -305,13 +305,13 @@ test('variables only used by internal directives are scrubbed', async function (
 		                        "firstName": {
 		                            "type": "String",
 		                            "keyRaw": "firstName",
-		                            "hidden": false
+		                            "hidden": true
 		                        },
 
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id",
-		                            "hidden": false
+		                            "hidden": true
 		                        }
 		                    }
 		                }
@@ -380,13 +380,13 @@ test('overlapping query and fragment selection', async function () {
 		                        "firstName": {
 		                            "type": "String",
 		                            "keyRaw": "firstName",
-		                            "hidden": false
+		                            "hidden": true
 		                        },
 
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id",
-		                            "hidden": false
+		                            "hidden": true
 		                        }
 		                    }
 		                }
@@ -456,13 +456,13 @@ test('interface to interface inline fragment', async function () {
 		                                "id": {
 		                                    "type": "ID",
 		                                    "keyRaw": "id",
-		                                    "hidden": false
+		                                    "hidden": true
 		                                },
 
 		                                "__typename": {
 		                                    "type": "String",
 		                                    "keyRaw": "__typename",
-		                                    "hidden": false
+		                                    "hidden": true
 		                                }
 		                            }
 		                        },
@@ -477,13 +477,13 @@ test('interface to interface inline fragment', async function () {
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id",
-		                            "hidden": false
+		                            "hidden": true
 		                        },
 
 		                        "__typename": {
 		                            "type": "String",
 		                            "keyRaw": "__typename",
-		                            "hidden": false
+		                            "hidden": true
 		                        }
 		                    }
 		                },
@@ -617,7 +617,7 @@ test('paginate over unions', async function () {
 		                                                        "__typename": {
 		                                                            "type": "String",
 		                                                            "keyRaw": "__typename",
-		                                                            "hidden": false
+		                                                            "hidden": true
 		                                                        }
 		                                                    }
 		                                                },
@@ -629,7 +629,7 @@ test('paginate over unions', async function () {
 		                                                "__typename": {
 		                                                    "type": "String",
 		                                                    "keyRaw": "__typename",
-		                                                    "hidden": false
+		                                                    "hidden": true
 		                                                }
 		                                            }
 		                                        },
@@ -640,7 +640,7 @@ test('paginate over unions', async function () {
 		                                    "cursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "cursor",
-		                                        "hidden": false
+		                                        "hidden": true
 		                                    }
 		                                }
 		                            }
@@ -649,35 +649,35 @@ test('paginate over unions', async function () {
 		                        "pageInfo": {
 		                            "type": "PageInfo",
 		                            "keyRaw": "pageInfo",
-		                            "hidden": false,
+		                            "hidden": true,
 
 		                            "selection": {
 		                                "fields": {
 		                                    "hasPreviousPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasPreviousPage",
-		                                        "hidden": false,
+		                                        "hidden": true,
 		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "hasNextPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasNextPage",
-		                                        "hidden": false,
+		                                        "hidden": true,
 		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "startCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "startCursor",
-		                                        "hidden": false,
+		                                        "hidden": true,
 		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "endCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "endCursor",
-		                                        "hidden": false,
+		                                        "hidden": true,
 		                                        "updates": ["append", "prepend"]
 		                                    }
 		                                }
@@ -790,14 +790,14 @@ test('overlapping query and fragment nested selection', async function () {
 		                                "friends": {
 		                                    "type": "User",
 		                                    "keyRaw": "friends",
-		                                    "hidden": false,
+		                                    "hidden": true,
 
 		                                    "selection": {
 		                                        "fields": {
 		                                            "id": {
 		                                                "type": "ID",
 		                                                "keyRaw": "id",
-		                                                "hidden": false
+		                                                "hidden": true
 		                                            }
 		                                        }
 		                                    }
@@ -806,7 +806,7 @@ test('overlapping query and fragment nested selection', async function () {
 		                                "__typename": {
 		                                    "type": "String",
 		                                    "keyRaw": "__typename",
-		                                    "hidden": false
+		                                    "hidden": true
 		                                }
 		                            }
 		                        },
@@ -818,20 +818,20 @@ test('overlapping query and fragment nested selection', async function () {
 		                        "__typename": {
 		                            "type": "String",
 		                            "keyRaw": "__typename",
-		                            "hidden": false
+		                            "hidden": true
 		                        },
 
 		                        "friends": {
 		                            "type": "User",
 		                            "keyRaw": "friends",
-		                            "hidden": false,
+		                            "hidden": true,
 
 		                            "selection": {
 		                                "fields": {
 		                                    "id": {
 		                                        "type": "ID",
 		                                        "keyRaw": "id",
-		                                        "hidden": false
+		                                        "hidden": true
 		                                    }
 		                                }
 		                            }
@@ -935,7 +935,7 @@ test('selections with interfaces', async function () {
 		                                            "id": {
 		                                                "type": "ID",
 		                                                "keyRaw": "id",
-		                                                "hidden": false
+		                                                "hidden": true
 		                                            }
 		                                        }
 		                                    }
@@ -944,7 +944,7 @@ test('selections with interfaces', async function () {
 		                                "__typename": {
 		                                    "type": "String",
 		                                    "keyRaw": "__typename",
-		                                    "hidden": false
+		                                    "hidden": true
 		                                }
 		                            },
 
@@ -958,7 +958,7 @@ test('selections with interfaces', async function () {
 		                                "__typename": {
 		                                    "type": "String",
 		                                    "keyRaw": "__typename",
-		                                    "hidden": false
+		                                    "hidden": true
 		                                }
 		                            }
 		                        },
@@ -970,7 +970,7 @@ test('selections with interfaces', async function () {
 		                        "__typename": {
 		                            "type": "String",
 		                            "keyRaw": "__typename",
-		                            "hidden": false
+		                            "hidden": true
 		                        }
 		                    }
 		                },
@@ -1071,7 +1071,7 @@ test('selections with unions', async function () {
 		                                            "id": {
 		                                                "type": "ID",
 		                                                "keyRaw": "id",
-		                                                "hidden": false
+		                                                "hidden": true
 		                                            }
 		                                        }
 		                                    }
@@ -1080,7 +1080,7 @@ test('selections with unions', async function () {
 		                                "__typename": {
 		                                    "type": "String",
 		                                    "keyRaw": "__typename",
-		                                    "hidden": false
+		                                    "hidden": true
 		                                }
 		                            },
 
@@ -1094,7 +1094,7 @@ test('selections with unions', async function () {
 		                                "__typename": {
 		                                    "type": "String",
 		                                    "keyRaw": "__typename",
-		                                    "hidden": false
+		                                    "hidden": true
 		                                }
 		                            }
 		                        },
@@ -1106,7 +1106,7 @@ test('selections with unions', async function () {
 		                        "__typename": {
 		                            "type": "String",
 		                            "keyRaw": "__typename",
-		                            "hidden": false
+		                            "hidden": true
 		                        }
 		                    }
 		                },
@@ -1209,7 +1209,7 @@ test('selections with overlapping unions', async function () {
 		                                            "id": {
 		                                                "type": "ID",
 		                                                "keyRaw": "id",
-		                                                "hidden": false
+		                                                "hidden": true
 		                                            }
 		                                        }
 		                                    }
@@ -1224,7 +1224,7 @@ test('selections with overlapping unions', async function () {
 		                                "__typename": {
 		                                    "type": "String",
 		                                    "keyRaw": "__typename",
-		                                    "hidden": false
+		                                    "hidden": true
 		                                }
 		                            },
 
@@ -1238,7 +1238,7 @@ test('selections with overlapping unions', async function () {
 		                                "__typename": {
 		                                    "type": "String",
 		                                    "keyRaw": "__typename",
-		                                    "hidden": false
+		                                    "hidden": true
 		                                }
 		                            }
 		                        },
@@ -1256,7 +1256,7 @@ test('selections with overlapping unions', async function () {
 		                        "__typename": {
 		                            "type": "String",
 		                            "keyRaw": "__typename",
-		                            "hidden": false
+		                            "hidden": true
 		                        }
 		                    }
 		                },
@@ -1349,7 +1349,7 @@ test('selections with unions of abstract types', async function () {
 		                                "__typename": {
 		                                    "type": "String",
 		                                    "keyRaw": "__typename",
-		                                    "hidden": false
+		                                    "hidden": true
 		                                }
 		                            },
 
@@ -1370,7 +1370,7 @@ test('selections with unions of abstract types', async function () {
 		                                            "id": {
 		                                                "type": "ID",
 		                                                "keyRaw": "id",
-		                                                "hidden": false
+		                                                "hidden": true
 		                                            }
 		                                        }
 		                                    }
@@ -1385,7 +1385,7 @@ test('selections with unions of abstract types', async function () {
 		                                "__typename": {
 		                                    "type": "String",
 		                                    "keyRaw": "__typename",
-		                                    "hidden": false
+		                                    "hidden": true
 		                                }
 		                            },
 
@@ -1399,7 +1399,7 @@ test('selections with unions of abstract types', async function () {
 		                                "__typename": {
 		                                    "type": "String",
 		                                    "keyRaw": "__typename",
-		                                    "hidden": false
+		                                    "hidden": true
 		                                }
 		                            }
 		                        },
@@ -1413,7 +1413,7 @@ test('selections with unions of abstract types', async function () {
 		                        "__typename": {
 		                            "type": "String",
 		                            "keyRaw": "__typename",
-		                            "hidden": false
+		                            "hidden": true
 		                        }
 		                    }
 		                },
@@ -1505,7 +1505,7 @@ test('selections with concrete types matching multiple abstract types', async fu
 		                                "__typename": {
 		                                    "type": "String",
 		                                    "keyRaw": "__typename",
-		                                    "hidden": false
+		                                    "hidden": true
 		                                }
 		                            },
 
@@ -1532,7 +1532,7 @@ test('selections with concrete types matching multiple abstract types', async fu
 		                                            "id": {
 		                                                "type": "ID",
 		                                                "keyRaw": "id",
-		                                                "hidden": false
+		                                                "hidden": true
 		                                            }
 		                                        }
 		                                    }
@@ -1541,7 +1541,7 @@ test('selections with concrete types matching multiple abstract types', async fu
 		                                "__typename": {
 		                                    "type": "String",
 		                                    "keyRaw": "__typename",
-		                                    "hidden": false
+		                                    "hidden": true
 		                                }
 		                            },
 
@@ -1568,7 +1568,7 @@ test('selections with concrete types matching multiple abstract types', async fu
 		                                            "id": {
 		                                                "type": "ID",
 		                                                "keyRaw": "id",
-		                                                "hidden": false
+		                                                "hidden": true
 		                                            }
 		                                        }
 		                                    }
@@ -1577,7 +1577,7 @@ test('selections with concrete types matching multiple abstract types', async fu
 		                                "__typename": {
 		                                    "type": "String",
 		                                    "keyRaw": "__typename",
-		                                    "hidden": false
+		                                    "hidden": true
 		                                }
 		                            }
 		                        },
@@ -1591,7 +1591,7 @@ test('selections with concrete types matching multiple abstract types', async fu
 		                        "__typename": {
 		                            "type": "String",
 		                            "keyRaw": "__typename",
-		                            "hidden": false
+		                            "hidden": true
 		                        }
 		                    }
 		                },
@@ -1680,7 +1680,7 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    }
 			                                }
 			                            }
@@ -1770,13 +1770,13 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    },
 
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    }
 			                                }
 			                            }
@@ -1866,13 +1866,13 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    },
 
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    }
 			                                }
 			                            }
@@ -1966,13 +1966,13 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    },
 
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    }
 			                                }
 			                            }
@@ -2065,13 +2065,13 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    },
 
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    }
 			                                }
 			                            }
@@ -2161,13 +2161,13 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    },
 
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    }
 			                                }
 			                            }
@@ -2255,7 +2255,7 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    }
 			                                }
 			                            }
@@ -2494,13 +2494,13 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    },
 
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    }
 			                                }
 			                            }
@@ -2595,13 +2595,13 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    },
 
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    }
 			                                }
 			                            }
@@ -2696,13 +2696,13 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    },
 
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    }
 			                                }
 			                            }
@@ -2798,13 +2798,13 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    },
 
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    }
 			                                }
 			                            }
@@ -2900,13 +2900,13 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    },
 
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    }
 			                                }
 			                            }
@@ -3002,13 +3002,13 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    },
 
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    }
 			                                }
 			                            }
@@ -3104,13 +3104,13 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    },
 
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    }
 			                                }
 			                            }
@@ -3206,13 +3206,13 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    },
 
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    }
 			                                }
 			                            }
@@ -3299,7 +3299,7 @@ describe('mutation artifacts', function () {
 			                        "id": {
 			                            "type": "ID",
 			                            "keyRaw": "id",
-			                            "hidden": false
+			                            "hidden": true
 			                        }
 			                    }
 			                },
@@ -3425,13 +3425,13 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    },
 
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    }
 			                                }
 			                            }
@@ -3513,7 +3513,7 @@ describe('mutation artifacts', function () {
 			                        "id": {
 			                            "type": "ID",
 			                            "keyRaw": "id",
-			                            "hidden": false
+			                            "hidden": true
 			                        }
 			                    }
 			                },
@@ -3647,13 +3647,13 @@ describe('mutation artifacts', function () {
 			                                                "id": {
 			                                                    "type": "ID",
 			                                                    "keyRaw": "id",
-			                                                    "hidden": false
+			                                                    "hidden": true
 			                                                },
 
 			                                                "__typename": {
 			                                                    "type": "String",
 			                                                    "keyRaw": "__typename",
-			                                                    "hidden": false
+			                                                    "hidden": true
 			                                                }
 			                                            }
 			                                        }
@@ -3662,7 +3662,7 @@ describe('mutation artifacts', function () {
 			                                    "cursor": {
 			                                        "type": "String",
 			                                        "keyRaw": "cursor",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    }
 			                                }
 			                            }
@@ -3671,35 +3671,35 @@ describe('mutation artifacts', function () {
 			                        "pageInfo": {
 			                            "type": "PageInfo",
 			                            "keyRaw": "pageInfo",
-			                            "hidden": false,
+			                            "hidden": true,
 
 			                            "selection": {
 			                                "fields": {
 			                                    "hasPreviousPage": {
 			                                        "type": "Boolean",
 			                                        "keyRaw": "hasPreviousPage",
-			                                        "hidden": false,
+			                                        "hidden": true,
 			                                        "updates": ["append", "prepend"]
 			                                    },
 
 			                                    "hasNextPage": {
 			                                        "type": "Boolean",
 			                                        "keyRaw": "hasNextPage",
-			                                        "hidden": false,
+			                                        "hidden": true,
 			                                        "updates": ["append", "prepend"]
 			                                    },
 
 			                                    "startCursor": {
 			                                        "type": "String",
 			                                        "keyRaw": "startCursor",
-			                                        "hidden": false,
+			                                        "hidden": true,
 			                                        "updates": ["append", "prepend"]
 			                                    },
 
 			                                    "endCursor": {
 			                                        "type": "String",
 			                                        "keyRaw": "endCursor",
-			                                        "hidden": false,
+			                                        "hidden": true,
 			                                        "updates": ["append", "prepend"]
 			                                    }
 			                                }
@@ -3814,7 +3814,7 @@ describe('mutation artifacts', function () {
 			                        "id": {
 			                            "type": "ID",
 			                            "keyRaw": "id",
-			                            "hidden": false
+			                            "hidden": true
 			                        }
 			                    }
 			                },
@@ -3924,7 +3924,7 @@ describe('mutation artifacts', function () {
 			                        "id": {
 			                            "type": "ID",
 			                            "keyRaw": "id",
-			                            "hidden": false
+			                            "hidden": true
 			                        }
 			                    }
 			                },
@@ -4251,7 +4251,7 @@ describe('subscription artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": false
+			                                        "hidden": true
 			                                    }
 			                                }
 			                            }
@@ -4425,7 +4425,7 @@ test('nested recursive fragments', async function () {
 		                        "__typename": {
 		                            "type": "String",
 		                            "keyRaw": "__typename",
-		                            "hidden": false
+		                            "hidden": true
 		                        }
 		                    },
 
@@ -4435,7 +4435,7 @@ test('nested recursive fragments', async function () {
 		                                "id": {
 		                                    "type": "ID",
 		                                    "keyRaw": "id",
-		                                    "hidden": false
+		                                    "hidden": true
 		                                },
 
 		                                "name": {
@@ -4447,7 +4447,7 @@ test('nested recursive fragments', async function () {
 		                                "__typename": {
 		                                    "type": "String",
 		                                    "keyRaw": "__typename",
-		                                    "hidden": false
+		                                    "hidden": true
 		                                }
 		                            }
 		                        },
@@ -4553,13 +4553,13 @@ test('leave @include and @skip alone', async function () {
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id",
-		                            "hidden": false
+		                            "hidden": true
 		                        },
 
 		                        "__typename": {
 		                            "type": "String",
 		                            "keyRaw": "__typename",
-		                            "hidden": false
+		                            "hidden": true
 		                        }
 		                    },
 
@@ -4569,19 +4569,19 @@ test('leave @include and @skip alone', async function () {
 		                                "id": {
 		                                    "type": "ID",
 		                                    "keyRaw": "id",
-		                                    "hidden": false
+		                                    "hidden": true
 		                                },
 
 		                                "name": {
 		                                    "type": "String",
 		                                    "keyRaw": "name",
-		                                    "hidden": false
+		                                    "hidden": true
 		                                },
 
 		                                "__typename": {
 		                                    "type": "String",
 		                                    "keyRaw": "__typename",
-		                                    "hidden": false
+		                                    "hidden": true
 		                                }
 		                            }
 		                        },
