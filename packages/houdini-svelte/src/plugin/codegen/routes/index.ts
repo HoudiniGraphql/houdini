@@ -2,6 +2,7 @@ import type { OperationDefinitionNode } from 'graphql'
 import type { Config, GenerateHookInput } from 'houdini'
 import { fs, path } from 'houdini'
 
+import type { HoudiniSvelteConfig } from '../..'
 import type { Framework } from '../../kit'
 import { type_route_dir, stores_directory_name, store_suffix, walk_routes } from '../../kit'
 import { houdini_afterLoad_fn, houdini_before_load_fn, houdini_on_error_fn } from '../../naming'
@@ -47,6 +48,20 @@ export default async function svelteKitGenerator(
 					layoutNames.push(layout.name!.value)
 					uniqueLayoutQueries.push(layout)
 				}
+			}
+
+			if (
+				// User uses layout/page queries
+				(uniquePageQueries.length > 0 || uniqueLayoutQueries.length > 0) &&
+				// Include path doesn't include js
+				!config.include.some((path) => path.includes('js')) &&
+				// And the plugin isn't configured to run in static mode
+				!(config.pluginConfig('houdini-svelte') as HoudiniSvelteConfig).static
+			) {
+				console.error(
+					`⚠️ You are using at least one page/layout query but aren't "include"ing .js files in your config. \n 
+					This will cause houdini to not pick up the generated files and prevent it from working as expected.`
+				)
 			}
 
 			// read the svelte-kit $types.d.ts file into a string
