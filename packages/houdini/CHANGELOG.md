@@ -2,11 +2,11 @@
 
 ## 1.0.3
 
-### Patch Changes
+### 🐛 Fixes
 
 -   [#933](https://github.com/HoudiniGraphql/houdini/pull/933) [`c9a6c86`](https://github.com/HoudiniGraphql/houdini/commit/c9a6c86ca8873f6fe52591b17aeeecc2e6a02014) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug causing multiple websocket clients to be created
 
--   [#935](https://github.com/HoudiniGraphql/houdini/pull/935) [`64af71b`](https://github.com/HoudiniGraphql/houdini/commit/64af71b11bd5f07ff2d035a72d483bcf69834bf3) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix issue when passing Cookie headers through cli
+-   [#935](https://github.com/HoudiniGraphql/houdini/pull/935) [`64af71b`](https://github.com/HoudiniGraphql/houdini/commit/64af71b11bd5f07ff2d035a72d483bcf69834bf3) Thanks [@yaroslavros/](https://github.com/yaroslavros)! - Fix issue when passing Cookie headers through cli
 
 ## 1.0.2
 
