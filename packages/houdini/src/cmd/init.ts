@@ -27,7 +27,7 @@ export default async function init(
 	let headers = {}
 	if ((args.headers ?? []).length > 0) {
 		headers = args.headers!.reduce((total, header) => {
-			const [key, value] = header.split('=')
+			const [key, value] = header.split(/=(.*)/s)
 			return {
 				...total,
 				[key]: value,
