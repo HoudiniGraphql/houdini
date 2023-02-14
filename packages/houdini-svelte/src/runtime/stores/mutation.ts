@@ -1,4 +1,3 @@
-import type { DocumentStore } from '$houdini/runtime/client'
 import type { MutationArtifact, GraphQLObject, QueryResult } from '$houdini/runtime/lib/types'
 import type { RequestEvent } from '@sveltejs/kit'
 
@@ -44,11 +43,6 @@ export class MutationStore<
 				...mutationConfig,
 			},
 		})
-	}
-
-	subscribe(...args: Parameters<DocumentStore<_Data, _Input>['subscribe']>) {
-		// use it's value
-		return this.observer.subscribe(...args)
 	}
 }
 
