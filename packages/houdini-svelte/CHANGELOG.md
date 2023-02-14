@@ -2,9 +2,11 @@
 
 ## 1.0.4
 
-### Patch Changes
+### ✨ Features
 
 -   [#937](https://github.com/HoudiniGraphql/houdini/pull/937) [`8e18042`](https://github.com/HoudiniGraphql/houdini/commit/8e1804227ee056f3b51c00f04832f4f997fdf1bc) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add unlisten method to subscription store
+
+### Dependency Changes
 
 -   Updated dependencies [[`8e18042`](https://github.com/HoudiniGraphql/houdini/commit/8e1804227ee056f3b51c00f04832f4f997fdf1bc)]:
     -   houdini@1.0.4
