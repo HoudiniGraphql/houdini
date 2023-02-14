@@ -1,4 +1,4 @@
-import { DocumentStore, ObserveParams } from '$houdini/runtime/client'
+import { DocumentStore, type ObserveParams } from '$houdini/runtime/client'
 import type { GraphQLObject, DocumentArtifact, QueryResult } from '$houdini/runtime/lib/types'
 import { get } from 'svelte/store'
 import type { Readable } from 'svelte/store'
