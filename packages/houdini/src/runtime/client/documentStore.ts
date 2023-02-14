@@ -77,9 +77,7 @@ export class DocumentStore<
 			// cleanup
 			return () => {
 				this.#lastVariables = null
-				for (const plugin of this.#plugins) {
-					plugin.cleanup?.(this.#lastContext!)
-				}
+				this.cleanup()
 			}
 		})
 		this.#artifact = artifact
@@ -158,6 +156,12 @@ export class DocumentStore<
 			// start walking down the chain
 			this.#step('forward', state)
 		})
+	}
+
+	async cleanup() {
+		for (const plugin of this.#plugins) {
+			plugin.cleanup?.(this.#lastContext!)
+		}
 	}
 
 	#step(direction: 'error', ctx: IteratorState, value: unknown): void

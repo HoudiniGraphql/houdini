@@ -7,7 +7,6 @@ import type { CachePolicies, ConfigFile } from '../runtime/lib'
 import { CachePolicy } from '../runtime/lib'
 import { computeID, defaultConfigValues, keyFieldsForType } from '../runtime/lib/config'
 import { houdini_mode } from './constants'
-import { deepMerge } from './deepMerge'
 import { HoudiniError } from './error'
 import * as fs from './fs'
 import { pullSchema } from './introspection'
@@ -826,14 +825,15 @@ export async function getConfig({
 		for (const plugin of plugins) {
 			if (plugin.config) {
 				try {
-					const configFactory = await import(plugin.config)
-					const newValue =
-						typeof configFactory === 'function'
-							? configFactory(configFile)
-							: configFactory
-					configFile = deepMerge(configPath, configFile, newValue)
+					const configFactory = (await import(plugin.config)).default
+					if (configFactory) {
+						configFile =
+							typeof configFactory === 'function'
+								? configFactory(configFile)
+								: configFactory
+					}
 				} catch {
-					console.log('could not load config file' + plugin.config)
+					console.log('could not load config file ' + plugin.config)
 				}
 			}
 		}
