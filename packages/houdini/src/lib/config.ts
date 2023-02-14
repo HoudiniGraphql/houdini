@@ -831,7 +831,7 @@ export async function getConfig({
 						typeof configFactory === 'function'
 							? configFactory(configFile)
 							: configFactory
-				} catch (e) {
+				} catch {
 					console.log('could not load config file ' + plugin.config)
 				}
 			}
