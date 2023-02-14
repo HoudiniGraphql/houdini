@@ -1,4 +1,3 @@
-import type { DocumentStore } from '$houdini/runtime/client'
 import type { SubscriptionArtifact } from '$houdini/runtime/lib/types'
 import { CompiledSubscriptionKind } from '$houdini/runtime/lib/types'
 import type { GraphQLObject } from 'houdini'
@@ -16,10 +15,6 @@ export class SubscriptionStore<_Data extends GraphQLObject, _Input extends {}> e
 
 	constructor({ artifact }: { artifact: SubscriptionArtifact }) {
 		super({ artifact })
-	}
-
-	subscribe(...args: Parameters<DocumentStore<_Data, _Input>['subscribe']>) {
-		return this.observer?.subscribe(...args)
 	}
 
 	async listen(variables?: _Input, args?: { metadata: App.Metadata }) {

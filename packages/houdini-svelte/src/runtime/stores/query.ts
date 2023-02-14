@@ -1,4 +1,3 @@
-import { DocumentStore } from '$houdini/runtime/client'
 import type { FetchContext } from '$houdini/runtime/client/plugins/fetch'
 import * as log from '$houdini/runtime/lib/log'
 import type {
@@ -11,12 +10,11 @@ import type {
 } from '$houdini/runtime/lib/types'
 import { ArtifactKind, CachePolicy, CompiledQueryKind } from '$houdini/runtime/lib/types'
 import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
-import type { Readable } from 'svelte/store'
 import { get } from 'svelte/store'
 
 import type { PluginArtifactData } from '../../plugin/artifactData'
 import { clientStarted, isBrowser } from '../adapter'
-import { getClient, initClient } from '../client'
+import { initClient } from '../client'
 import { getSession } from '../session'
 import { BaseStore } from './base'
 
@@ -34,18 +32,8 @@ export class QueryStore<_Data extends GraphQLObject, _Input extends {}> extends 
 	// if there is a load in progress when the CSF triggers we need to stop it
 	protected loadPending = false
 
-	// in order to clear the store's value when unmounting, we need to track how many concurrent subscribers
-	// we have. when this number is 0, we need to clear the store
-	protected subscriberCount = 0
-
 	// the string identifying the store
 	protected storeName: string
-
-	// loading the client is an asynchronous process so we need something for users to subscribe
-	// to while we load the client. this means we need 2 different document stores, one that
-	// the user subscribes to and one that we actually get results from.
-	#store: DocumentStore<_Data, _Input>
-	#unsubscribe: (() => void) | null = null
 
 	constructor({ artifact, storeName, variables }: StoreConfig<_Data, _Input, QueryArtifact>) {
 		// all queries should be with fetching: true by default (because auto fetching)
@@ -56,9 +44,6 @@ export class QueryStore<_Data extends GraphQLObject, _Input extends {}> extends 
 
 		this.storeName = storeName
 		this.variables = variables
-		// we pass null here so that the store is a zombie - we will never
-		// send a request until the client has loaded
-		this.#store = new DocumentStore({ artifact, client: null, fetching })
 	}
 
 	/**
@@ -70,7 +55,7 @@ export class QueryStore<_Data extends GraphQLObject, _Input extends {}> extends 
 	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
 		await initClient()
-		await this.#setup(false)
+		this.setup()
 
 		// validate and prepare the request context for the current environment (client vs server)
 		// make a shallow copy of the args so we don't mutate the arguments that the user hands us
@@ -149,78 +134,6 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 
 		// the store will have been updated already since we waited for the response
 		return get(this.observer)
-	}
-
-	get name() {
-		return this.artifact.name
-	}
-
-	// ** WARNING: THERE IS UNTESTED BEHAVIOR HERE **
-	//
-	// it's tricky to set up the e2e tests to create a component
-	// that is isolated from any fetches so i'm just leaving this big
-	// ugly comment for future us. If we modify this block, we have to
-	// make sure that this scenario works: https://github.com/HoudiniGraphql/houdini/pull/871#issuecomment-1416808842
-	//
-	// setting up is synchronous at first so that #unsubscribe
-	// is a "thread safe" way to prevent multiple setups from happening
-	#setup(init: boolean = true) {
-		// if we have to initialize the client, do so
-		let initPromise: Promise<any> = Promise.resolve()
-		try {
-			getClient()
-		} catch {
-			initPromise = initClient()
-		}
-
-		initPromise.then(() => {
-			// if we've already setup, don't do anything
-			if (this.#unsubscribe) {
-				return
-			}
-
-			this.#unsubscribe = this.observer.subscribe((value) => {
-				this.#store.set(value)
-			})
-
-			// only initialize when told to
-			if (init) {
-				return this.observer.send({
-					setup: true,
-					variables: get(this.observer).variables,
-				})
-			}
-		})
-	}
-
-	subscribe(...args: Parameters<Readable<QueryResult<_Data, _Input>>['subscribe']>) {
-		const bubbleUp = this.#store.subscribe(...args)
-
-		// make sure that the store is always listening to the cache (on the browser)
-		if (isBrowser && (this.subscriberCount === 0 || !this.#unsubscribe)) {
-			// make sure the query is listening
-			this.#setup()
-		}
-
-		// we have a new subscriber
-		this.subscriberCount = (this.subscriberCount ?? 0) + 1
-
-		// Handle unsubscribe
-		return () => {
-			// we lost a subscriber
-			this.subscriberCount--
-
-			// don't clear the store state on the server (breaks SSR)
-			// or when there is still an active subscriber
-			if (this.subscriberCount <= 0) {
-				// unsubscribe from the actual document store
-				this.#unsubscribe?.()
-				this.#unsubscribe = null
-
-				// unsubscribe from the local store
-				bubbleUp()
-			}
-		}
 	}
 }
 
