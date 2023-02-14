@@ -25,4 +25,9 @@ export class SubscriptionStore<_Data extends GraphQLObject, _Input extends {}> e
 			metadata: args?.metadata,
 		})
 	}
+
+	async unlisten() {
+		await initClient()
+		await this.observer.cleanup()
+	}
 }
