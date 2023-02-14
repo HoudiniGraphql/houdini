@@ -826,10 +826,12 @@ export async function getConfig({
 			if (plugin.config) {
 				try {
 					const configFactory = (await import(plugin.config)).default
-					configFile =
-						typeof configFactory === 'function'
-							? configFactory(configFile)
-							: configFactory
+					if (configFactory) {
+						configFile =
+							typeof configFactory === 'function'
+								? configFactory(configFile)
+								: configFactory
+					}
 				} catch {
 					console.log('could not load config file ' + plugin.config)
 				}
