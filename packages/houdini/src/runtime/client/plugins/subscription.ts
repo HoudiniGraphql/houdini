@@ -90,6 +90,8 @@ export function subscription(factory: SubscriptionHandler) {
 			},
 			cleanup() {
 				clearSubscription?.()
+				// clear the check so we already recreate the connection next time
+				check = null
 			},
 		}
 	})
