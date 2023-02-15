@@ -469,14 +469,14 @@ test('embeds node pagination query as a separate document', async function () {
 		                                "friendsByForwardsCursor": {
 		                                    "type": "UserConnection",
 		                                    "keyRaw": "friendsByForwardsCursor::paginated",
-		                                    "hidden": false,
+		                                    "hidden": true,
 
 		                                    "selection": {
 		                                        "fields": {
 		                                            "edges": {
 		                                                "type": "UserEdge",
 		                                                "keyRaw": "edges",
-		                                                "hidden": false,
+		                                                "hidden": true,
 		                                                "updates": ["append", "prepend", "append", "prepend"],
 
 		                                                "selection": {
@@ -484,7 +484,7 @@ test('embeds node pagination query as a separate document', async function () {
 		                                                        "node": {
 		                                                            "type": "User",
 		                                                            "keyRaw": "node",
-		                                                            "hidden": false,
+		                                                            "hidden": true,
 		                                                            "nullable": true,
 
 		                                                            "selection": {
@@ -498,7 +498,7 @@ test('embeds node pagination query as a separate document', async function () {
 		                                                                    "__typename": {
 		                                                                        "type": "String",
 		                                                                        "keyRaw": "__typename",
-		                                                                        "hidden": false
+		                                                                        "hidden": true
 		                                                                    }
 		                                                                }
 		                                                            }
@@ -507,7 +507,7 @@ test('embeds node pagination query as a separate document', async function () {
 		                                                        "cursor": {
 		                                                            "type": "String",
 		                                                            "keyRaw": "cursor",
-		                                                            "hidden": false
+		                                                            "hidden": true
 		                                                        }
 		                                                    }
 		                                                }
@@ -516,35 +516,35 @@ test('embeds node pagination query as a separate document', async function () {
 		                                            "pageInfo": {
 		                                                "type": "PageInfo",
 		                                                "keyRaw": "pageInfo",
-		                                                "hidden": false,
+		                                                "hidden": true,
 
 		                                                "selection": {
 		                                                    "fields": {
 		                                                        "hasPreviousPage": {
 		                                                            "type": "Boolean",
 		                                                            "keyRaw": "hasPreviousPage",
-		                                                            "hidden": false,
+		                                                            "hidden": true,
 		                                                            "updates": ["append", "prepend", "append", "prepend"]
 		                                                        },
 
 		                                                        "hasNextPage": {
 		                                                            "type": "Boolean",
 		                                                            "keyRaw": "hasNextPage",
-		                                                            "hidden": false,
+		                                                            "hidden": true,
 		                                                            "updates": ["append", "prepend", "append", "prepend"]
 		                                                        },
 
 		                                                        "startCursor": {
 		                                                            "type": "String",
 		                                                            "keyRaw": "startCursor",
-		                                                            "hidden": false,
+		                                                            "hidden": true,
 		                                                            "updates": ["append", "prepend", "append", "prepend"]
 		                                                        },
 
 		                                                        "endCursor": {
 		                                                            "type": "String",
 		                                                            "keyRaw": "endCursor",
-		                                                            "hidden": false,
+		                                                            "hidden": true,
 		                                                            "updates": ["append", "prepend", "append", "prepend"]
 		                                                        }
 		                                                    }
@@ -557,7 +557,7 @@ test('embeds node pagination query as a separate document', async function () {
 		                                "__typename": {
 		                                    "type": "String",
 		                                    "keyRaw": "__typename",
-		                                    "hidden": false
+		                                    "hidden": true
 		                                },
 
 		                                "id": {
@@ -587,14 +587,14 @@ test('embeds node pagination query as a separate document', async function () {
 		                        "friendsByForwardsCursor": {
 		                            "type": "UserConnection",
 		                            "keyRaw": "friendsByForwardsCursor::paginated",
-		                            "hidden": false,
+		                            "hidden": true,
 
 		                            "selection": {
 		                                "fields": {
 		                                    "edges": {
 		                                        "type": "UserEdge",
 		                                        "keyRaw": "edges",
-		                                        "hidden": false,
+		                                        "hidden": true,
 		                                        "updates": ["append", "prepend"],
 
 		                                        "selection": {
@@ -602,7 +602,7 @@ test('embeds node pagination query as a separate document', async function () {
 		                                                "node": {
 		                                                    "type": "User",
 		                                                    "keyRaw": "node",
-		                                                    "hidden": false,
+		                                                    "hidden": true,
 		                                                    "nullable": true,
 
 		                                                    "selection": {
@@ -616,7 +616,7 @@ test('embeds node pagination query as a separate document', async function () {
 		                                                            "__typename": {
 		                                                                "type": "String",
 		                                                                "keyRaw": "__typename",
-		                                                                "hidden": false
+		                                                                "hidden": true
 		                                                            }
 		                                                        }
 		                                                    }
@@ -625,7 +625,7 @@ test('embeds node pagination query as a separate document', async function () {
 		                                                "cursor": {
 		                                                    "type": "String",
 		                                                    "keyRaw": "cursor",
-		                                                    "hidden": false
+		                                                    "hidden": true
 		                                                }
 		                                            }
 		                                        }
@@ -634,35 +634,35 @@ test('embeds node pagination query as a separate document', async function () {
 		                                    "pageInfo": {
 		                                        "type": "PageInfo",
 		                                        "keyRaw": "pageInfo",
-		                                        "hidden": false,
+		                                        "hidden": true,
 
 		                                        "selection": {
 		                                            "fields": {
 		                                                "hasPreviousPage": {
 		                                                    "type": "Boolean",
 		                                                    "keyRaw": "hasPreviousPage",
-		                                                    "hidden": false,
+		                                                    "hidden": true,
 		                                                    "updates": ["append", "prepend"]
 		                                                },
 
 		                                                "hasNextPage": {
 		                                                    "type": "Boolean",
 		                                                    "keyRaw": "hasNextPage",
-		                                                    "hidden": false,
+		                                                    "hidden": true,
 		                                                    "updates": ["append", "prepend"]
 		                                                },
 
 		                                                "startCursor": {
 		                                                    "type": "String",
 		                                                    "keyRaw": "startCursor",
-		                                                    "hidden": false,
+		                                                    "hidden": true,
 		                                                    "updates": ["append", "prepend"]
 		                                                },
 
 		                                                "endCursor": {
 		                                                    "type": "String",
 		                                                    "keyRaw": "endCursor",
-		                                                    "hidden": false,
+		                                                    "hidden": true,
 		                                                    "updates": ["append", "prepend"]
 		                                                }
 		                                            }
@@ -793,14 +793,14 @@ test('embeds custom pagination query as a separate document', async function () 
 		                        "friendsConnection": {
 		                            "type": "GhostConnection",
 		                            "keyRaw": "friendsConnection::paginated",
-		                            "hidden": false,
+		                            "hidden": true,
 
 		                            "selection": {
 		                                "fields": {
 		                                    "edges": {
 		                                        "type": "GhostEdge",
 		                                        "keyRaw": "edges",
-		                                        "hidden": false,
+		                                        "hidden": true,
 		                                        "updates": ["append", "prepend", "append", "prepend"],
 
 		                                        "selection": {
@@ -808,7 +808,7 @@ test('embeds custom pagination query as a separate document', async function () 
 		                                                "node": {
 		                                                    "type": "Ghost",
 		                                                    "keyRaw": "node",
-		                                                    "hidden": false,
+		                                                    "hidden": true,
 		                                                    "nullable": true,
 
 		                                                    "selection": {
@@ -828,7 +828,7 @@ test('embeds custom pagination query as a separate document', async function () 
 		                                                            "__typename": {
 		                                                                "type": "String",
 		                                                                "keyRaw": "__typename",
-		                                                                "hidden": false
+		                                                                "hidden": true
 		                                                            }
 		                                                        }
 		                                                    }
@@ -837,7 +837,7 @@ test('embeds custom pagination query as a separate document', async function () 
 		                                                "cursor": {
 		                                                    "type": "String",
 		                                                    "keyRaw": "cursor",
-		                                                    "hidden": false
+		                                                    "hidden": true
 		                                                }
 		                                            }
 		                                        }
@@ -846,35 +846,35 @@ test('embeds custom pagination query as a separate document', async function () 
 		                                    "pageInfo": {
 		                                        "type": "PageInfo",
 		                                        "keyRaw": "pageInfo",
-		                                        "hidden": false,
+		                                        "hidden": true,
 
 		                                        "selection": {
 		                                            "fields": {
 		                                                "hasPreviousPage": {
 		                                                    "type": "Boolean",
 		                                                    "keyRaw": "hasPreviousPage",
-		                                                    "hidden": false,
+		                                                    "hidden": true,
 		                                                    "updates": ["append", "prepend", "append", "prepend"]
 		                                                },
 
 		                                                "hasNextPage": {
 		                                                    "type": "Boolean",
 		                                                    "keyRaw": "hasNextPage",
-		                                                    "hidden": false,
+		                                                    "hidden": true,
 		                                                    "updates": ["append", "prepend", "append", "prepend"]
 		                                                },
 
 		                                                "startCursor": {
 		                                                    "type": "String",
 		                                                    "keyRaw": "startCursor",
-		                                                    "hidden": false,
+		                                                    "hidden": true,
 		                                                    "updates": ["append", "prepend", "append", "prepend"]
 		                                                },
 
 		                                                "endCursor": {
 		                                                    "type": "String",
 		                                                    "keyRaw": "endCursor",
-		                                                    "hidden": false,
+		                                                    "hidden": true,
 		                                                    "updates": ["append", "prepend", "append", "prepend"]
 		                                                }
 		                                            }
@@ -1506,14 +1506,14 @@ test('generated query has same refetch spec', async function () {
 		            "usersByCursor": {
 		                "type": "UserConnection",
 		                "keyRaw": "usersByCursor::paginated",
-		                "hidden": false,
+		                "hidden": true,
 
 		                "selection": {
 		                    "fields": {
 		                        "edges": {
 		                            "type": "UserEdge",
 		                            "keyRaw": "edges",
-		                            "hidden": false,
+		                            "hidden": true,
 		                            "updates": ["append", "prepend", "append", "prepend"],
 
 		                            "selection": {
@@ -1521,7 +1521,7 @@ test('generated query has same refetch spec', async function () {
 		                                    "node": {
 		                                        "type": "User",
 		                                        "keyRaw": "node",
-		                                        "hidden": false,
+		                                        "hidden": true,
 		                                        "nullable": true,
 
 		                                        "selection": {
@@ -1535,7 +1535,7 @@ test('generated query has same refetch spec', async function () {
 		                                                "__typename": {
 		                                                    "type": "String",
 		                                                    "keyRaw": "__typename",
-		                                                    "hidden": false
+		                                                    "hidden": true
 		                                                }
 		                                            }
 		                                        }
@@ -1544,7 +1544,7 @@ test('generated query has same refetch spec', async function () {
 		                                    "cursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "cursor",
-		                                        "hidden": false
+		                                        "hidden": true
 		                                    }
 		                                }
 		                            }
@@ -1553,35 +1553,35 @@ test('generated query has same refetch spec', async function () {
 		                        "pageInfo": {
 		                            "type": "PageInfo",
 		                            "keyRaw": "pageInfo",
-		                            "hidden": false,
+		                            "hidden": true,
 
 		                            "selection": {
 		                                "fields": {
 		                                    "hasPreviousPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasPreviousPage",
-		                                        "hidden": false,
+		                                        "hidden": true,
 		                                        "updates": ["append", "prepend", "append", "prepend"]
 		                                    },
 
 		                                    "hasNextPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasNextPage",
-		                                        "hidden": false,
+		                                        "hidden": true,
 		                                        "updates": ["append", "prepend", "append", "prepend"]
 		                                    },
 
 		                                    "startCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "startCursor",
-		                                        "hidden": false,
+		                                        "hidden": true,
 		                                        "updates": ["append", "prepend", "append", "prepend"]
 		                                    },
 
 		                                    "endCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "endCursor",
-		                                        "hidden": false,
+		                                        "hidden": true,
 		                                        "updates": ["append", "prepend", "append", "prepend"]
 		                                    }
 		                                }

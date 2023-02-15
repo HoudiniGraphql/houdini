@@ -107,7 +107,7 @@ test('pagination arguments stripped from key', async function () {
 		                                                "__typename": {
 		                                                    "type": "String",
 		                                                    "keyRaw": "__typename",
-		                                                    "hidden": false
+		                                                    "hidden": true
 		                                                }
 		                                            }
 		                                        }
@@ -116,7 +116,7 @@ test('pagination arguments stripped from key', async function () {
 		                                    "cursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "cursor",
-		                                        "hidden": false
+		                                        "hidden": true
 		                                    }
 		                                }
 		                            }
@@ -125,35 +125,35 @@ test('pagination arguments stripped from key', async function () {
 		                        "pageInfo": {
 		                            "type": "PageInfo",
 		                            "keyRaw": "pageInfo",
-		                            "hidden": false,
+		                            "hidden": true,
 
 		                            "selection": {
 		                                "fields": {
 		                                    "hasPreviousPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasPreviousPage",
-		                                        "hidden": false,
+		                                        "hidden": true,
 		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "hasNextPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasNextPage",
-		                                        "hidden": false,
+		                                        "hidden": true,
 		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "startCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "startCursor",
-		                                        "hidden": false,
+		                                        "hidden": true,
 		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "endCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "endCursor",
-		                                        "hidden": false,
+		                                        "hidden": true,
 		                                        "updates": ["append", "prepend"]
 		                                    }
 		                                }
@@ -424,7 +424,7 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		                                                            "__typename": {
 		                                                                "type": "String",
 		                                                                "keyRaw": "__typename",
-		                                                                "hidden": false
+		                                                                "hidden": true
 		                                                            }
 		                                                        }
 		                                                    }
@@ -433,7 +433,7 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		                                                "cursor": {
 		                                                    "type": "String",
 		                                                    "keyRaw": "cursor",
-		                                                    "hidden": false
+		                                                    "hidden": true
 		                                                }
 		                                            }
 		                                        }
@@ -442,35 +442,35 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		                                    "pageInfo": {
 		                                        "type": "PageInfo",
 		                                        "keyRaw": "pageInfo",
-		                                        "hidden": false,
+		                                        "hidden": true,
 
 		                                        "selection": {
 		                                            "fields": {
 		                                                "hasPreviousPage": {
 		                                                    "type": "Boolean",
 		                                                    "keyRaw": "hasPreviousPage",
-		                                                    "hidden": false,
+		                                                    "hidden": true,
 		                                                    "updates": ["append", "prepend"]
 		                                                },
 
 		                                                "hasNextPage": {
 		                                                    "type": "Boolean",
 		                                                    "keyRaw": "hasNextPage",
-		                                                    "hidden": false,
+		                                                    "hidden": true,
 		                                                    "updates": ["append", "prepend"]
 		                                                },
 
 		                                                "startCursor": {
 		                                                    "type": "String",
 		                                                    "keyRaw": "startCursor",
-		                                                    "hidden": false,
+		                                                    "hidden": true,
 		                                                    "updates": ["append", "prepend"]
 		                                                },
 
 		                                                "endCursor": {
 		                                                    "type": "String",
 		                                                    "keyRaw": "endCursor",
-		                                                    "hidden": false,
+		                                                    "hidden": true,
 		                                                    "updates": ["append", "prepend"]
 		                                                }
 		                                            }
@@ -690,7 +690,7 @@ test("sibling aliases don't get marked", async function () {
 		                                                "__typename": {
 		                                                    "type": "String",
 		                                                    "keyRaw": "__typename",
-		                                                    "hidden": false
+		                                                    "hidden": true
 		                                                }
 		                                            }
 		                                        }
@@ -699,7 +699,7 @@ test("sibling aliases don't get marked", async function () {
 		                                    "cursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "cursor",
-		                                        "hidden": false
+		                                        "hidden": true
 		                                    }
 		                                }
 		                            }
@@ -708,35 +708,35 @@ test("sibling aliases don't get marked", async function () {
 		                        "pageInfo": {
 		                            "type": "PageInfo",
 		                            "keyRaw": "pageInfo",
-		                            "hidden": false,
+		                            "hidden": true,
 
 		                            "selection": {
 		                                "fields": {
 		                                    "hasPreviousPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasPreviousPage",
-		                                        "hidden": false,
+		                                        "hidden": true,
 		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "hasNextPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasNextPage",
-		                                        "hidden": false,
+		                                        "hidden": true,
 		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "startCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "startCursor",
-		                                        "hidden": false,
+		                                        "hidden": true,
 		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "endCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "endCursor",
-		                                        "hidden": false,
+		                                        "hidden": true,
 		                                        "updates": ["append", "prepend"]
 		                                    }
 		                                }

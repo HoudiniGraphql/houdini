@@ -1589,3 +1589,68 @@ test('reading an empty list counts as data', function () {
 		},
 	})
 })
+
+test('ignores hidden fields', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				nullable: true,
+				selection: {
+					fields: {
+						id: {
+							keyRaw: 'id',
+							type: 'String',
+						},
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							hidden: true,
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										keyRaw: 'firstName',
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// write the user data without the nested value
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: [],
+			},
+		},
+	})
+
+	expect(
+		cache.read({
+			selection,
+		})
+	).toEqual({
+		partial: false,
+		stale: false,
+		data: {
+			viewer: {
+				id: '1',
+			},
+		},
+	})
+})

@@ -146,7 +146,7 @@ test('selection includes fragments', async function () {
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id",
-		                            "hidden": true
+		                            "hidden": false
 		                        }
 		                    }
 		                }
@@ -240,7 +240,7 @@ test('internal directives are scrubbed', async function () {
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id",
-		                            "hidden": true
+		                            "hidden": false
 		                        }
 		                    }
 		                }
@@ -311,7 +311,7 @@ test('variables only used by internal directives are scrubbed', async function (
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id",
-		                            "hidden": true
+		                            "hidden": false
 		                        }
 		                    }
 		                }
@@ -380,13 +380,13 @@ test('overlapping query and fragment selection', async function () {
 		                        "firstName": {
 		                            "type": "String",
 		                            "keyRaw": "firstName",
-		                            "hidden": true
+		                            "hidden": false
 		                        },
 
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id",
-		                            "hidden": true
+		                            "hidden": false
 		                        }
 		                    }
 		                }
@@ -456,7 +456,7 @@ test('interface to interface inline fragment', async function () {
 		                                "id": {
 		                                    "type": "ID",
 		                                    "keyRaw": "id",
-		                                    "hidden": true
+		                                    "hidden": false
 		                                },
 
 		                                "__typename": {
@@ -477,7 +477,7 @@ test('interface to interface inline fragment', async function () {
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id",
-		                            "hidden": true
+		                            "hidden": false
 		                        },
 
 		                        "__typename": {
@@ -797,7 +797,7 @@ test('overlapping query and fragment nested selection', async function () {
 		                                            "id": {
 		                                                "type": "ID",
 		                                                "keyRaw": "id",
-		                                                "hidden": true
+		                                                "hidden": false
 		                                            }
 		                                        }
 		                                    }
@@ -831,7 +831,7 @@ test('overlapping query and fragment nested selection', async function () {
 		                                    "id": {
 		                                        "type": "ID",
 		                                        "keyRaw": "id",
-		                                        "hidden": true
+		                                        "hidden": false
 		                                    }
 		                                }
 		                            }
@@ -935,7 +935,7 @@ test('selections with interfaces', async function () {
 		                                            "id": {
 		                                                "type": "ID",
 		                                                "keyRaw": "id",
-		                                                "hidden": true
+		                                                "hidden": false
 		                                            }
 		                                        }
 		                                    }
@@ -1071,7 +1071,7 @@ test('selections with unions', async function () {
 		                                            "id": {
 		                                                "type": "ID",
 		                                                "keyRaw": "id",
-		                                                "hidden": true
+		                                                "hidden": false
 		                                            }
 		                                        }
 		                                    }
@@ -1209,7 +1209,7 @@ test('selections with overlapping unions', async function () {
 		                                            "id": {
 		                                                "type": "ID",
 		                                                "keyRaw": "id",
-		                                                "hidden": true
+		                                                "hidden": false
 		                                            }
 		                                        }
 		                                    }
@@ -1370,7 +1370,7 @@ test('selections with unions of abstract types', async function () {
 		                                            "id": {
 		                                                "type": "ID",
 		                                                "keyRaw": "id",
-		                                                "hidden": true
+		                                                "hidden": false
 		                                            }
 		                                        }
 		                                    }
@@ -1532,7 +1532,7 @@ test('selections with concrete types matching multiple abstract types', async fu
 		                                            "id": {
 		                                                "type": "ID",
 		                                                "keyRaw": "id",
-		                                                "hidden": true
+		                                                "hidden": false
 		                                            }
 		                                        }
 		                                    }
@@ -1568,7 +1568,7 @@ test('selections with concrete types matching multiple abstract types', async fu
 		                                            "id": {
 		                                                "type": "ID",
 		                                                "keyRaw": "id",
-		                                                "hidden": true
+		                                                "hidden": false
 		                                            }
 		                                        }
 		                                    }
@@ -1680,7 +1680,7 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": true
+			                                        "hidden": false
 			                                    }
 			                                }
 			                            }
@@ -1770,7 +1770,7 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": true
+			                                        "hidden": false
 			                                    },
 
 			                                    "firstName": {
@@ -1866,7 +1866,7 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": true
+			                                        "hidden": false
 			                                    },
 
 			                                    "firstName": {
@@ -1966,7 +1966,7 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": true
+			                                        "hidden": false
 			                                    },
 
 			                                    "firstName": {
@@ -2065,7 +2065,7 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": true
+			                                        "hidden": false
 			                                    },
 
 			                                    "firstName": {
@@ -2161,7 +2161,7 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": true
+			                                        "hidden": false
 			                                    },
 
 			                                    "firstName": {
@@ -2255,7 +2255,7 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": true
+			                                        "hidden": false
 			                                    }
 			                                }
 			                            }
@@ -2494,7 +2494,7 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": true
+			                                        "hidden": false
 			                                    },
 
 			                                    "firstName": {
@@ -2595,7 +2595,7 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": true
+			                                        "hidden": false
 			                                    },
 
 			                                    "firstName": {
@@ -2696,7 +2696,7 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": true
+			                                        "hidden": false
 			                                    },
 
 			                                    "firstName": {
@@ -2798,7 +2798,7 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": true
+			                                        "hidden": false
 			                                    },
 
 			                                    "firstName": {
@@ -2900,7 +2900,7 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": true
+			                                        "hidden": false
 			                                    },
 
 			                                    "firstName": {
@@ -3002,7 +3002,7 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": true
+			                                        "hidden": false
 			                                    },
 
 			                                    "firstName": {
@@ -3104,7 +3104,7 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": true
+			                                        "hidden": false
 			                                    },
 
 			                                    "firstName": {
@@ -3206,7 +3206,7 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": true
+			                                        "hidden": false
 			                                    },
 
 			                                    "firstName": {
@@ -3299,7 +3299,7 @@ describe('mutation artifacts', function () {
 			                        "id": {
 			                            "type": "ID",
 			                            "keyRaw": "id",
-			                            "hidden": true
+			                            "hidden": false
 			                        }
 			                    }
 			                },
@@ -3425,7 +3425,7 @@ describe('mutation artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": true
+			                                        "hidden": false
 			                                    },
 
 			                                    "firstName": {
@@ -3513,7 +3513,7 @@ describe('mutation artifacts', function () {
 			                        "id": {
 			                            "type": "ID",
 			                            "keyRaw": "id",
-			                            "hidden": true
+			                            "hidden": false
 			                        }
 			                    }
 			                },
@@ -3647,7 +3647,7 @@ describe('mutation artifacts', function () {
 			                                                "id": {
 			                                                    "type": "ID",
 			                                                    "keyRaw": "id",
-			                                                    "hidden": true
+			                                                    "hidden": false
 			                                                },
 
 			                                                "__typename": {
@@ -3814,7 +3814,7 @@ describe('mutation artifacts', function () {
 			                        "id": {
 			                            "type": "ID",
 			                            "keyRaw": "id",
-			                            "hidden": true
+			                            "hidden": false
 			                        }
 			                    }
 			                },
@@ -3924,7 +3924,7 @@ describe('mutation artifacts', function () {
 			                        "id": {
 			                            "type": "ID",
 			                            "keyRaw": "id",
-			                            "hidden": true
+			                            "hidden": false
 			                        }
 			                    }
 			                },
@@ -4251,7 +4251,7 @@ describe('subscription artifacts', function () {
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
-			                                        "hidden": true
+			                                        "hidden": false
 			                                    }
 			                                }
 			                            }
@@ -4435,7 +4435,7 @@ test('nested recursive fragments', async function () {
 		                                "id": {
 		                                    "type": "ID",
 		                                    "keyRaw": "id",
-		                                    "hidden": true
+		                                    "hidden": false
 		                                },
 
 		                                "name": {
@@ -4553,7 +4553,7 @@ test('leave @include and @skip alone', async function () {
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id",
-		                            "hidden": true
+		                            "hidden": false
 		                        },
 
 		                        "__typename": {
@@ -4569,7 +4569,7 @@ test('leave @include and @skip alone', async function () {
 		                                "id": {
 		                                    "type": "ID",
 		                                    "keyRaw": "id",
-		                                    "hidden": true
+		                                    "hidden": false
 		                                },
 
 		                                "name": {

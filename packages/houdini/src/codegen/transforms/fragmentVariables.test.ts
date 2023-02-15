@@ -65,7 +65,7 @@ test('pass argument values to generated fragments', async function () {
 		            "users": {
 		                "type": "User",
 		                "keyRaw": "users(stringValue: \\"Hello\\")",
-		                "hidden": false,
+		                "hidden": true,
 
 		                "selection": {
 		                    "fields": {
@@ -145,7 +145,7 @@ test("nullable arguments with no values don't show up in the query", async funct
 		            "users": {
 		                "type": "User",
 		                "keyRaw": "users",
-		                "hidden": false,
+		                "hidden": true,
 
 		                "selection": {
 		                    "fields": {
@@ -225,7 +225,7 @@ test("fragment arguments with default values don't rename the fragment", async f
 		            "users": {
 		                "type": "User",
 		                "keyRaw": "users(stringValue: \\"Hello\\")",
-		                "hidden": false,
+		                "hidden": true,
 
 		                "selection": {
 		                    "fields": {
@@ -317,7 +317,7 @@ test('thread query variables to inner fragments', async function () {
 		            "users": {
 		                "type": "User",
 		                "keyRaw": "users(stringValue: $name)",
-		                "hidden": false,
+		                "hidden": true,
 
 		                "selection": {
 		                    "fields": {
@@ -418,7 +418,7 @@ test('inner fragment with intermediate default value', async function () {
 		            "users": {
 		                "type": "User",
 		                "keyRaw": "users(intValue: 2, stringValue: \\"Hello\\")",
-		                "hidden": false,
+		                "hidden": true,
 
 		                "selection": {
 		                    "fields": {
@@ -510,7 +510,7 @@ test("default values don't overwrite unless explicitly passed", async function (
 		            "users": {
 		                "type": "User",
 		                "keyRaw": "users(intValue: 10, stringValue: \\"Goodbye\\")",
-		                "hidden": false,
+		                "hidden": true,
 
 		                "selection": {
 		                    "fields": {
@@ -590,7 +590,7 @@ test('default arguments', async function () {
 		            "users": {
 		                "type": "User",
 		                "keyRaw": "users(boolValue: true, stringValue: \\"Hello\\")",
-		                "hidden": false,
+		                "hidden": true,
 
 		                "selection": {
 		                    "fields": {
@@ -671,7 +671,7 @@ test('list arguments', async function () {
 		            "nodes": {
 		                "type": "Node",
 		                "keyRaw": "nodes(ids: [\\"1\\"])",
-		                "hidden": false,
+		                "hidden": true,
 
 		                "selection": {
 		                    "fields": {
@@ -684,7 +684,7 @@ test('list arguments', async function () {
 		                        "__typename": {
 		                            "type": "String",
 		                            "keyRaw": "__typename",
-		                            "hidden": false
+		                            "hidden": true
 		                        }
 		                    }
 		                },

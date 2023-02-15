@@ -1,7 +1,13 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import type { Config, Document, DocumentArtifact, CachePolicies } from '../../../lib'
+import type {
+	Config,
+	Document,
+	DocumentArtifact,
+	CachePolicies,
+	SubscriptionSelection,
+} from '../../../lib'
 import {
 	getRootType,
 	hashDocument,
@@ -262,15 +268,6 @@ export default function artifactGenerator(stats: {
 						applyFragments: docKind !== 'HoudiniFragment',
 					})
 
-					const originalMerged = flattenSelections({
-						config,
-						filepath: doc.filename,
-						selections: originalSelectionSet.selections,
-						fragmentDefinitions: {},
-						ignoreMaskDisable: false,
-						applyFragments: false,
-					})
-
 					// generate a hash of the document that we can use to detect changes
 					// start building up the artifact
 					let artifact: DocumentArtifact = {
@@ -284,7 +281,6 @@ export default function artifactGenerator(stats: {
 							config,
 							filepath: doc.filename,
 							rootType,
-							originalSelectionSet: originalMerged,
 							selections: mergedSelection,
 							operations: operationsByPath(
 								config,
@@ -297,7 +293,30 @@ export default function artifactGenerator(stats: {
 							includeFragments: docKind !== 'HoudiniFragment',
 							document: doc,
 						}),
+						pluginData: {},
 					}
+
+					// apply the visibility mask to the artifact so that only
+					// fields in the direct selection are visible
+					applyMask(
+						config,
+						artifact.selection,
+						selection({
+							config,
+							filepath: doc.filename,
+							rootType,
+							operations: {},
+							includeFragments: false,
+							document: doc,
+							selections: flattenSelections({
+								config,
+								filepath: doc.filename,
+								selections: originalSelectionSet.selections,
+								fragmentDefinitions: {},
+								applyFragments: false,
+							}),
+						})
+					)
 
 					// adding artifactData of plugins (only if any information is present)
 					artifact.pluginData = {}
@@ -405,5 +424,62 @@ export default function artifactGenerator(stats: {
 
 		// cleanup files that are no more necessary!
 		stats.deleted = await cleanupFiles(config.artifactDirectory, listOfArtifacts)
+	}
+}
+
+// applyMask takes 2 selections. the first is the target whose selection should be updated
+// according to the fields in the second selection
+function applyMask(config: Config, target: SubscriptionSelection, mask: SubscriptionSelection) {
+	// we might need to map types from this fragment onto the possible types of the parent query
+	// we need to look at every field in the mask and mark it as visible in the target
+	for (const [fieldName, value] of Object.entries(mask.fields ?? {})) {
+		const targetSelection = target.fields?.[fieldName]
+
+		// if the field is not recognized in the target, ignore it
+		if (!targetSelection || !mask.fields) {
+			continue
+		}
+
+		// the field is present in the mask so mark it visible
+		targetSelection.hidden = false
+
+		if (targetSelection.selection && value.selection) {
+			applyMask(config, targetSelection.selection, value.selection)
+		}
+	}
+
+	// we've gone through all of the fields, now we need to go through the abstract fields
+	for (const [type, selection] of Object.entries(mask.abstractFields?.fields ?? {})) {
+		// applying the abstract fields object is a little trickier since we need to map the
+		// mask type onto all of the possible types that it could be
+		if (!selection) {
+			continue
+		}
+
+		// if the type is present in both selections, apply that first
+		if (target.abstractFields?.fields[type]) {
+			applyMask(config, { fields: target.abstractFields.fields[type] }, { fields: selection })
+		}
+
+		// look up the type in the schema so we can figure out if its abstract
+		const targetType = config.schema.getType(type)
+		if (!targetType) {
+			continue
+		}
+
+		// if we have an abstract type then we need to look for overlap with the other entries in the
+		// target's abstract selection
+		if (graphql.isAbstractType(targetType)) {
+			// we need the list of possible types to look for overlaps
+			for (const possible of config.schema.getPossibleTypes(targetType)) {
+				if (target.abstractFields?.fields[possible.name]) {
+					applyMask(
+						config,
+						{ fields: target.abstractFields.fields[possible.name] },
+						{ fields: selection }
+					)
+				}
+			}
+		}
 	}
 }

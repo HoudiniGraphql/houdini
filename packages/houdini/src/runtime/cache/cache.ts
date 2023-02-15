@@ -801,8 +801,13 @@ class CacheInternal {
 		// look at every field in the parentFields
 		for (const [
 			attributeName,
-			{ type, keyRaw, selection: fieldSelection, nullable, list },
+			{ type, keyRaw, selection: fieldSelection, nullable, list, hidden },
 		] of Object.entries(targetSelection)) {
+			// skip masked fields when reading values
+			if (hidden) {
+				continue
+			}
+
 			const key = evaluateKey(keyRaw, variables)
 
 			// look up the value in our store

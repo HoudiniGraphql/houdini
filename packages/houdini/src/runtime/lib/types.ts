@@ -100,7 +100,7 @@ export type BaseCompiledDocument<_Kind extends ArtifactKinds> = {
 		paginated: boolean
 		direction: 'forward' | 'backward' | 'both'
 	}
-	pluginData?: Record<string, any>
+	pluginData: Record<string, any>
 }
 
 export type HoudiniFetchContext = {

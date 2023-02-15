@@ -38,7 +38,7 @@ export class QueryStore<_Data extends GraphQLObject, _Input extends {}> extends 
 	constructor({ artifact, storeName, variables }: StoreConfig<_Data, _Input, QueryArtifact>) {
 		// all queries should be with fetching: true by default (because auto fetching)
 		// except for manual queries, which should be false, it will be manualy triggered
-		const fetching = artifact.pluginData?.['houdini-svelte'].isManualLoad !== true
+		const fetching = artifact.pluginData['houdini-svelte']?.isManualLoad !== true
 
 		super({ artifact, fetching })
 
@@ -55,7 +55,7 @@ export class QueryStore<_Data extends GraphQLObject, _Input extends {}> extends 
 	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
 		await initClient()
-		this.setup()
+		this.setup(false)
 
 		// validate and prepare the request context for the current environment (client vs server)
 		// make a shallow copy of the args so we don't mutate the arguments that the user hands us
