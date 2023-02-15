@@ -2,9 +2,14 @@ import type { OperationDefinitionNode } from 'graphql'
 import type { Config, GenerateHookInput } from 'houdini'
 import { fs, path } from 'houdini'
 
-import type { HoudiniSvelteConfig } from '../..'
-import { Framework, plugin_config } from '../../kit'
-import { type_route_dir, stores_directory_name, store_suffix, walk_routes } from '../../kit'
+import type { Framework } from '../../kit'
+import {
+	type_route_dir,
+	stores_directory_name,
+	store_suffix,
+	walk_routes,
+	plugin_config,
+} from '../../kit'
 import { houdini_afterLoad_fn, houdini_before_load_fn, houdini_on_error_fn } from '../../naming'
 import { route_params } from '../../routing'
 
