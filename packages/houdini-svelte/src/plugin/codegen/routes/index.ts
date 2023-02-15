@@ -3,7 +3,7 @@ import type { Config, GenerateHookInput } from 'houdini'
 import { fs, path } from 'houdini'
 
 import type { HoudiniSvelteConfig } from '../..'
-import type { Framework } from '../../kit'
+import { Framework, plugin_config } from '../../kit'
 import { type_route_dir, stores_directory_name, store_suffix, walk_routes } from '../../kit'
 import { houdini_afterLoad_fn, houdini_before_load_fn, houdini_on_error_fn } from '../../naming'
 import { route_params } from '../../routing'
@@ -56,7 +56,7 @@ export default async function svelteKitGenerator(
 				// Include path doesn't include js
 				!config.include.some((path) => path.includes('js')) &&
 				// And the plugin isn't configured to run in static mode
-				!(config.pluginConfig('houdini-svelte') as HoudiniSvelteConfig).static
+				!plugin_config(config).static
 			) {
 				console.error(
 					`⚠️ You are using at least one page/layout query but aren't "include"ing .js files in your config. \n 
