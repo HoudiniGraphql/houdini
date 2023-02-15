@@ -201,8 +201,10 @@ export default function selection({
 			const fieldObj: Required<SubscriptionSelection>['fields']['field'] = {
 				type: typeName,
 				keyRaw: fieldKey(config, field),
-				// type keys are never hidden
-				hidden: !keys.includes(field.name.value),
+			}
+
+			if (keys.includes(field.name.value)) {
+				fieldObj.visible = true
 			}
 
 			if (nullable) {

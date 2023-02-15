@@ -48,17 +48,18 @@ test("doesn't include directives defined in plugins", async function () {
 		            "users": {
 		                "type": "User",
 		                "keyRaw": "users(stringValue: \\"asdf\\")",
-		                "hidden": false,
 
 		                "selection": {
 		                    "fields": {
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id",
-		                            "hidden": false
+		                            "visible": true
 		                        }
 		                    }
-		                }
+		                },
+
+		                "visible": true
 		            }
 		        }
 		    },
@@ -114,17 +115,18 @@ test('plugins can customize the hash', async function () {
 		            "users": {
 		                "type": "User",
 		                "keyRaw": "users(stringValue: \\"asdf\\")",
-		                "hidden": false,
 
 		                "selection": {
 		                    "fields": {
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id",
-		                            "hidden": false
+		                            "visible": true
 		                        }
 		                    }
-		                }
+		                },
+
+		                "visible": true
 		            }
 		        }
 		    },

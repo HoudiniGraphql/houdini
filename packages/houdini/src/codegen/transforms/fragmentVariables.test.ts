@@ -65,14 +65,13 @@ test('pass argument values to generated fragments', async function () {
 		            "users": {
 		                "type": "User",
 		                "keyRaw": "users(stringValue: \\"Hello\\")",
-		                "hidden": true,
 
 		                "selection": {
 		                    "fields": {
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id",
-		                            "hidden": false
+		                            "visible": true
 		                        }
 		                    }
 		                }
@@ -145,14 +144,13 @@ test("nullable arguments with no values don't show up in the query", async funct
 		            "users": {
 		                "type": "User",
 		                "keyRaw": "users",
-		                "hidden": true,
 
 		                "selection": {
 		                    "fields": {
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id",
-		                            "hidden": false
+		                            "visible": true
 		                        }
 		                    }
 		                }
@@ -225,14 +223,13 @@ test("fragment arguments with default values don't rename the fragment", async f
 		            "users": {
 		                "type": "User",
 		                "keyRaw": "users(stringValue: \\"Hello\\")",
-		                "hidden": true,
 
 		                "selection": {
 		                    "fields": {
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id",
-		                            "hidden": false
+		                            "visible": true
 		                        }
 		                    }
 		                }
@@ -317,14 +314,13 @@ test('thread query variables to inner fragments', async function () {
 		            "users": {
 		                "type": "User",
 		                "keyRaw": "users(stringValue: $name)",
-		                "hidden": true,
 
 		                "selection": {
 		                    "fields": {
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id",
-		                            "hidden": false
+		                            "visible": true
 		                        }
 		                    }
 		                }
@@ -418,14 +414,13 @@ test('inner fragment with intermediate default value', async function () {
 		            "users": {
 		                "type": "User",
 		                "keyRaw": "users(intValue: 2, stringValue: \\"Hello\\")",
-		                "hidden": true,
 
 		                "selection": {
 		                    "fields": {
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id",
-		                            "hidden": false
+		                            "visible": true
 		                        }
 		                    }
 		                }
@@ -510,14 +505,13 @@ test("default values don't overwrite unless explicitly passed", async function (
 		            "users": {
 		                "type": "User",
 		                "keyRaw": "users(intValue: 10, stringValue: \\"Goodbye\\")",
-		                "hidden": true,
 
 		                "selection": {
 		                    "fields": {
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id",
-		                            "hidden": false
+		                            "visible": true
 		                        }
 		                    }
 		                }
@@ -590,14 +584,13 @@ test('default arguments', async function () {
 		            "users": {
 		                "type": "User",
 		                "keyRaw": "users(boolValue: true, stringValue: \\"Hello\\")",
-		                "hidden": true,
 
 		                "selection": {
 		                    "fields": {
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id",
-		                            "hidden": false
+		                            "visible": true
 		                        }
 		                    }
 		                }
@@ -671,20 +664,18 @@ test('list arguments', async function () {
 		            "nodes": {
 		                "type": "Node",
 		                "keyRaw": "nodes(ids: [\\"1\\"])",
-		                "hidden": true,
 
 		                "selection": {
 		                    "fields": {
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id",
-		                            "hidden": false
+		                            "visible": true
 		                        },
 
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename",
-		                            "hidden": true
+		                            "keyRaw": "__typename"
 		                        }
 		                    }
 		                },
@@ -742,17 +733,18 @@ test('persists fragment variables in artifact', async function () {
 		            "users": {
 		                "type": "User",
 		                "keyRaw": "users(boolValue: $cool, stringValue: $name)",
-		                "hidden": false,
 
 		                "selection": {
 		                    "fields": {
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id",
-		                            "hidden": false
+		                            "visible": true
 		                        }
 		                    }
-		                }
+		                },
+
+		                "visible": true
 		            }
 		        }
 		    },

@@ -63,22 +63,19 @@ test('fragments of unions inject correctly', function () {
 		        "entities": {
 		            "type": "Entity",
 		            "keyRaw": "entities",
-		            "hidden": true,
 		            "selection": {
 		                "abstractFields": {
 		                    "fields": {
 		                        "User": {
 		                            "firstName": {
 		                                "type": "String",
-		                                "keyRaw": "firstName",
-		                                "hidden": true
+		                                "keyRaw": "firstName"
 		                            }
 		                        },
 		                        "Cat": {
 		                            "name": {
 		                                "type": "String",
-		                                "keyRaw": "name",
-		                                "hidden": true
+		                                "keyRaw": "name"
 		                            }
 		                        }
 		                    },

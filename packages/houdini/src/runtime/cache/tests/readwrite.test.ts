@@ -1590,7 +1590,7 @@ test('reading an empty list counts as data', function () {
 	})
 })
 
-test('ignores hidden fields', function () {
+test('only shows visible fields', function () {
 	// instantiate the cache
 	const cache = new Cache(config)
 

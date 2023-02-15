@@ -441,7 +441,7 @@ function applyMask(config: Config, target: SubscriptionSelection, mask: Subscrip
 		}
 
 		// the field is present in the mask so mark it visible
-		targetSelection.hidden = false
+		targetSelection.visible = true
 
 		if (targetSelection.selection && value.selection) {
 			applyMask(config, targetSelection.selection, value.selection)
