@@ -303,23 +303,28 @@ export function createStore(plugins: ClientPlugin[]): DocumentStore<any, any> {
 			raw: 'RAW_TEXT',
 			name: 'TestArtifact',
 			rootType: 'Query',
+			pluginData: {},
 			selection: {
 				fields: {
 					viewer: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'viewer',
 						selection: {
 							fields: {
 								id: {
 									type: 'ID',
+									visible: true,
 									keyRaw: 'id',
 								},
 								firstName: {
 									type: 'String',
+									visible: true,
 									keyRaw: 'firstName',
 								},
 								__typename: {
 									type: 'String',
+									visible: true,
 									keyRaw: '__typename',
 								},
 							},

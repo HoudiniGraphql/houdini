@@ -21,15 +21,18 @@ test('write selection to root', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 					},
@@ -71,12 +74,14 @@ test('write abstract fields of matching type', function () {
 		fields: {
 			viewer: {
 				type: 'Node',
+				visible: true,
 				keyRaw: 'viewer',
 				abstract: true,
 				selection: {
 					fields: {
 						__typename: {
 							type: 'String',
+							visible: true,
 							keyRaw: '__typename',
 						},
 					},
@@ -86,14 +91,17 @@ test('write abstract fields of matching type', function () {
 							User: {
 								__typename: {
 									type: 'String',
+									visible: true,
 									keyRaw: '__typename',
 								},
 								id: {
 									type: 'ID',
+									visible: true,
 									keyRaw: 'id',
 								},
 								firstName: {
 									type: 'String',
+									visible: true,
 									keyRaw: 'firstName',
 								},
 							},
@@ -139,12 +147,14 @@ test('use abstract type map when it applies', function () {
 		fields: {
 			viewer: {
 				type: 'Node',
+				visible: true,
 				keyRaw: 'viewer',
 				abstract: true,
 				selection: {
 					fields: {
 						__typename: {
 							type: 'String',
+							visible: true,
 							keyRaw: '__typename',
 						},
 					},
@@ -156,14 +166,17 @@ test('use abstract type map when it applies', function () {
 							Node: {
 								__typename: {
 									type: 'String',
+									visible: true,
 									keyRaw: '__typename',
 								},
 								id: {
 									type: 'ID',
+									visible: true,
 									keyRaw: 'id',
 								},
 								firstName: {
 									type: 'String',
+									visible: true,
 									keyRaw: 'firstName',
 								},
 							},
@@ -209,16 +222,19 @@ test('ignore abstract fields of unmatched type', function () {
 		fields: {
 			viewer: {
 				type: 'Node',
+				visible: true,
 				keyRaw: 'viewer',
 				abstract: true,
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						__typename: {
 							type: 'String',
+							visible: true,
 							keyRaw: '__typename',
 						},
 					},
@@ -228,28 +244,34 @@ test('ignore abstract fields of unmatched type', function () {
 							User: {
 								id: {
 									type: 'ID',
+									visible: true,
 									keyRaw: 'id',
 								},
 								__typename: {
 									type: 'String',
+									visible: true,
 									keyRaw: '__typename',
 								},
 								firstName: {
 									type: 'String',
+									visible: true,
 									keyRaw: 'firstName',
 								},
 							},
 							NotUser: {
 								id: {
 									type: 'ID',
+									visible: true,
 									keyRaw: 'id',
 								},
 								__typename: {
 									type: 'String',
+									visible: true,
 									keyRaw: '__typename',
 								},
 								lastName: {
 									type: 'String',
+									visible: true,
 									keyRaw: 'lastName',
 								},
 							},
@@ -271,16 +293,19 @@ test('ignore abstract fields of unmatched type', function () {
 				fields: {
 					viewer: {
 						type: 'Node',
+						visible: true,
 						keyRaw: 'viewer',
 						abstract: true,
 						selection: {
 							fields: {
 								id: {
 									type: 'ID',
+									visible: true,
 									keyRaw: 'id',
 								},
 								firstName: {
 									type: 'String',
+									visible: true,
 									keyRaw: 'firstName',
 									nullable: true,
 								},
@@ -307,28 +332,34 @@ test('linked records with updates', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						parent: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'parent',
 							selection: {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -345,20 +376,24 @@ test('linked records with updates', function () {
 		fields: {
 			id: {
 				type: 'ID',
+				visible: true,
 				keyRaw: 'id',
 			},
 			firstName: {
 				type: 'String',
+				visible: true,
 				keyRaw: 'firstName',
 			},
 			parent: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'parent',
 				nullable: true,
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 					},
@@ -437,28 +472,34 @@ test('linked lists', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							selection: {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -520,19 +561,23 @@ test('list as value with args', function () {
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					selection: {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 							firstName: {
 								type: 'String',
+								visible: true,
 								keyRaw: 'firstName',
 							},
 							favoriteColors: {
 								type: 'String',
+								visible: true,
 								keyRaw: 'favoriteColors(where: "foo")',
 							},
 						},
@@ -556,6 +601,7 @@ test('list as value with args', function () {
 				fields: {
 					favoriteColors: {
 						type: 'String',
+						visible: true,
 						keyRaw: 'favoriteColors(where: "foo")',
 					},
 				},
@@ -584,20 +630,24 @@ test('writing abstract objects', function () {
 			fields: {
 				viewer: {
 					type: 'Node',
+					visible: true,
 					abstract: true,
 					keyRaw: 'viewer',
 					selection: {
 						fields: {
 							__typename: {
 								type: 'String',
+								visible: true,
 								keyRaw: '__typename',
 							},
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 							firstName: {
 								type: 'String',
+								visible: true,
 								keyRaw: 'firstName',
 							},
 						},
@@ -616,14 +666,17 @@ test('writing abstract objects', function () {
 				fields: {
 					__typename: {
 						type: 'String',
+						visible: true,
 						keyRaw: '__typename',
 					},
 					id: {
 						type: 'ID',
+						visible: true,
 						keyRaw: 'id',
 					},
 					firstName: {
 						type: 'String',
+						visible: true,
 						keyRaw: 'firstName',
 					},
 				},
@@ -660,20 +713,24 @@ test('writing abstract lists', function () {
 			fields: {
 				nodes: {
 					type: 'Node',
+					visible: true,
 					abstract: true,
 					keyRaw: 'nodes',
 					selection: {
 						fields: {
 							__typename: {
 								type: 'String',
+								visible: true,
 								keyRaw: '__typename',
 							},
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 							firstName: {
 								type: 'String',
+								visible: true,
 								keyRaw: 'firstName',
 							},
 						},
@@ -692,14 +749,17 @@ test('writing abstract lists', function () {
 				fields: {
 					__typename: {
 						type: 'String',
+						visible: true,
 						keyRaw: '__typename',
 					},
 					id: {
 						type: 'ID',
+						visible: true,
 						keyRaw: 'id',
 					},
 					firstName: {
 						type: 'String',
+						visible: true,
 						keyRaw: 'firstName',
 					},
 				},
@@ -721,15 +781,18 @@ test('can pull enum from cached values', function () {
 		fields: {
 			node: {
 				type: 'Node',
+				visible: true,
 				keyRaw: 'node',
 				selection: {
 					fields: {
 						enumValue: {
 							type: 'MyEnum',
+							visible: true,
 							keyRaw: 'enumValue',
 						},
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 					},
@@ -766,28 +829,34 @@ test('can store and retrieve lists with null values', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							selection: {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -841,28 +910,34 @@ test('can store and retrieve lists of lists of records', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							selection: {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -940,29 +1015,35 @@ test('can store and retrieve links with null values', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				nullable: true,
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							selection: {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -996,28 +1077,34 @@ test('can write list of just null', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							selection: {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -1060,12 +1147,14 @@ test('null-value cascade from field value', function () {
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					selection: {
 						fields: {
 							id: {
 								keyRaw: 'id',
 								type: 'String',
+								visible: true,
 							},
 						},
 					},
@@ -1085,6 +1174,7 @@ test('null-value cascade from field value', function () {
 				fields: {
 					viewer: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'viewer',
 						nullable: true,
 						selection: {
@@ -1092,6 +1182,7 @@ test('null-value cascade from field value', function () {
 								id: {
 									keyRaw: 'id',
 									type: 'String',
+									visible: true,
 								},
 							},
 						},
@@ -1111,6 +1202,7 @@ test('null-value cascade from field value', function () {
 				fields: {
 					viewer: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'viewer',
 						nullable: true,
 						selection: {
@@ -1118,10 +1210,12 @@ test('null-value cascade from field value', function () {
 								firstName: {
 									keyRaw: 'firstName',
 									type: 'String',
+									visible: true,
 								},
 								id: {
 									keyRaw: 'id',
 									type: 'String',
+									visible: true,
 								},
 							},
 						},
@@ -1143,16 +1237,19 @@ test('null-value field', function () {
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					selection: {
 						fields: {
 							id: {
 								keyRaw: 'id',
 								type: 'String',
+								visible: true,
 							},
 							firstName: {
 								keyRaw: 'firstName',
 								type: 'String',
+								visible: true,
 							},
 						},
 					},
@@ -1173,6 +1270,7 @@ test('null-value field', function () {
 				fields: {
 					viewer: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'viewer',
 						nullable: true,
 						selection: {
@@ -1180,6 +1278,7 @@ test('null-value field', function () {
 								id: {
 									keyRaw: 'id',
 									type: 'String',
+									visible: true,
 								},
 							},
 						},
@@ -1199,6 +1298,7 @@ test('null-value field', function () {
 				fields: {
 					viewer: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'viewer',
 						nullable: true,
 						selection: {
@@ -1206,6 +1306,7 @@ test('null-value field', function () {
 								firstName: {
 									keyRaw: 'firstName',
 									type: 'String',
+									visible: true,
 									nullable: true,
 								},
 							},
@@ -1231,12 +1332,14 @@ test('null-value cascade from object value', function () {
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					selection: {
 						fields: {
 							id: {
 								keyRaw: 'id',
 								type: 'String',
+								visible: true,
 							},
 						},
 					},
@@ -1257,6 +1360,7 @@ test('null-value cascade from object value', function () {
 				fields: {
 					viewer: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'viewer',
 						nullable: true,
 						selection: {
@@ -1264,10 +1368,12 @@ test('null-value cascade from object value', function () {
 								id: {
 									keyRaw: 'id',
 									type: 'String',
+									visible: true,
 								},
 								parent: {
 									keyRaw: 'parent',
 									type: 'User',
+									visible: true,
 								},
 							},
 						},
@@ -1290,6 +1396,7 @@ test('null-value cascade from object value', function () {
 				fields: {
 					viewer: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'viewer',
 						nullable: true,
 						selection: {
@@ -1297,10 +1404,12 @@ test('null-value cascade from object value', function () {
 								id: {
 									keyRaw: 'id',
 									type: 'String',
+									visible: true,
 								},
 								parent: {
 									keyRaw: 'parent',
 									type: 'User',
+									visible: true,
 									nullable: true,
 								},
 							},
@@ -1331,12 +1440,14 @@ test('null-value cascade to root', function () {
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					selection: {
 						fields: {
 							id: {
 								keyRaw: 'id',
 								type: 'String',
+								visible: true,
 							},
 						},
 					},
@@ -1357,16 +1468,19 @@ test('null-value cascade to root', function () {
 				fields: {
 					viewer: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'viewer',
 						selection: {
 							fields: {
 								id: {
 									keyRaw: 'id',
 									type: 'String',
+									visible: true,
 								},
 								parent: {
 									keyRaw: 'parent',
 									type: 'User',
+									visible: true,
 								},
 							},
 						},
@@ -1387,6 +1501,7 @@ test('null-value cascade to root', function () {
 				fields: {
 					viewer: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'viewer',
 						nullable: true,
 						selection: {
@@ -1394,10 +1509,12 @@ test('null-value cascade to root', function () {
 								parent: {
 									keyRaw: 'parent',
 									type: 'User',
+									visible: true,
 								},
 								id: {
 									keyRaw: 'id',
 									type: 'String',
+									visible: true,
 								},
 							},
 						},
@@ -1420,6 +1537,7 @@ test('must have a single value in order to use partial data', function () {
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					nullable: true,
 					selection: {
@@ -1427,6 +1545,7 @@ test('must have a single value in order to use partial data', function () {
 							id: {
 								keyRaw: 'id',
 								type: 'String',
+								visible: true,
 							},
 						},
 					},
@@ -1446,6 +1565,7 @@ test('must have a single value in order to use partial data', function () {
 				fields: {
 					viewer: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'viewer',
 						nullable: true,
 						selection: {
@@ -1453,6 +1573,7 @@ test('must have a single value in order to use partial data', function () {
 								parent: {
 									keyRaw: 'parent',
 									type: 'User',
+									visible: true,
 								},
 							},
 						},
@@ -1472,6 +1593,7 @@ test('must have a single value in order to use partial data', function () {
 				fields: {
 					viewer: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'viewer',
 						nullable: true,
 						selection: {
@@ -1479,10 +1601,12 @@ test('must have a single value in order to use partial data', function () {
 								id: {
 									keyRaw: 'id',
 									type: 'String',
+									visible: true,
 								},
 								parent: {
 									keyRaw: 'parent',
 									type: 'User',
+									visible: true,
 								},
 							},
 						},
@@ -1509,6 +1633,7 @@ test('reading an empty list counts as data', function () {
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					nullable: true,
 					selection: {
@@ -1516,19 +1641,23 @@ test('reading an empty list counts as data', function () {
 							id: {
 								keyRaw: 'id',
 								type: 'String',
+								visible: true,
 							},
 
 							friends: {
 								type: 'User',
+								visible: true,
 								keyRaw: 'friends',
 								selection: {
 									fields: {
 										id: {
 											type: 'ID',
+											visible: true,
 											keyRaw: 'id',
 										},
 										firstName: {
 											type: 'String',
+											visible: true,
 											keyRaw: 'firstName',
 										},
 									},
@@ -1553,21 +1682,25 @@ test('reading an empty list counts as data', function () {
 				fields: {
 					viewer: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'viewer',
 						nullable: true,
 						selection: {
 							fields: {
 								friends: {
 									type: 'User',
+									visible: true,
 									keyRaw: 'friends',
 									selection: {
 										fields: {
 											id: {
 												type: 'ID',
+												visible: true,
 												keyRaw: 'id',
 											},
 											firstName: {
 												type: 'String',
+												visible: true,
 												keyRaw: 'firstName',
 											},
 										},
@@ -1590,7 +1723,7 @@ test('reading an empty list counts as data', function () {
 	})
 })
 
-test('only shows visible fields', function () {
+test('does not show visible fields', function () {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -1598,6 +1731,7 @@ test('only shows visible fields', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				nullable: true,
 				selection: {
@@ -1605,19 +1739,22 @@ test('only shows visible fields', function () {
 						id: {
 							keyRaw: 'id',
 							type: 'String',
+							visible: true,
 						},
 						friends: {
 							type: 'User',
 							keyRaw: 'friends',
-							hidden: true,
+							visible: false,
 							selection: {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},

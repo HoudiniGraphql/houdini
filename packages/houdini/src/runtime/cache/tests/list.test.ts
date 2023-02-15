@@ -15,29 +15,35 @@ test('prepend linked lists update', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							updates: [RefetchUpdateMode.prepend],
 							selection: {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -78,16 +84,19 @@ test('prepend linked lists update', function () {
 				fields: {
 					friends: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'friends',
 						updates: [RefetchUpdateMode.prepend],
 						selection: {
 							fields: {
 								id: {
 									type: 'ID',
+									visible: true,
 									keyRaw: 'id',
 								},
 								firstName: {
 									type: 'String',
+									visible: true,
 									keyRaw: 'firstName',
 								},
 							},
@@ -138,16 +147,19 @@ test('prepend linked lists update', function () {
 				fields: {
 					friends: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'friends',
 						updates: [RefetchUpdateMode.prepend],
 						selection: {
 							fields: {
 								id: {
 									type: 'ID',
+									visible: true,
 									keyRaw: 'id',
 								},
 								firstName: {
 									type: 'String',
+									visible: true,
 									keyRaw: 'firstName',
 								},
 							},
@@ -187,15 +199,18 @@ test('append in list', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							list: {
 								name: 'All_Users',
@@ -206,10 +221,12 @@ test('append in list', function () {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -251,8 +268,8 @@ test('append in list', function () {
 	cache.list('All_Users').append(
 		{
 			fields: {
-				id: { type: 'ID', keyRaw: 'id' },
-				firstName: { type: 'String', keyRaw: 'firstName' },
+				id: { visible: true, type: 'ID', keyRaw: 'id' },
+				firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
 			},
 		},
 		{
@@ -287,15 +304,18 @@ test('prepend in list', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							list: {
 								name: 'All_Users',
@@ -306,10 +326,12 @@ test('prepend in list', function () {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -351,8 +373,8 @@ test('prepend in list', function () {
 	cache.list('All_Users').prepend(
 		{
 			fields: {
-				id: { type: 'ID', keyRaw: 'id' },
-				firstName: { type: 'String', keyRaw: 'firstName' },
+				id: { visible: true, type: 'ID', keyRaw: 'id' },
+				firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
 			},
 		},
 		{
@@ -387,15 +409,18 @@ test('remove from connection', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							list: {
 								name: 'All_Users',
@@ -406,25 +431,30 @@ test('remove from connection', function () {
 								fields: {
 									edges: {
 										type: 'UserEdge',
+										visible: true,
 										keyRaw: 'edges',
 										selection: {
 											fields: {
 												node: {
 													type: 'Node',
+													visible: true,
 													keyRaw: 'node',
 													abstract: true,
 													selection: {
 														fields: {
 															__typename: {
 																type: 'String',
+																visible: true,
 																keyRaw: '__typename',
 															},
 															id: {
 																type: 'ID',
+																visible: true,
 																keyRaw: 'id',
 															},
 															firstName: {
 																type: 'String',
+																visible: true,
 																keyRaw: 'firstName',
 															},
 														},
@@ -518,15 +548,18 @@ test('element removed from list can be added back', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							list: {
 								name: 'All_Users',
@@ -537,25 +570,30 @@ test('element removed from list can be added back', function () {
 								fields: {
 									edges: {
 										type: 'UserEdge',
+										visible: true,
 										keyRaw: 'edges',
 										selection: {
 											fields: {
 												node: {
 													type: 'Node',
+													visible: true,
 													keyRaw: 'node',
 													abstract: true,
 													selection: {
 														fields: {
 															__typename: {
 																type: 'String',
+																visible: true,
 																keyRaw: '__typename',
 															},
 															id: {
 																type: 'ID',
+																visible: true,
 																keyRaw: 'id',
 															},
 															firstName: {
 																type: 'String',
+																visible: true,
 																keyRaw: 'firstName',
 															},
 														},
@@ -622,10 +660,12 @@ test('element removed from list can be added back', function () {
 				id: {
 					keyRaw: 'id',
 					type: 'String',
+					visible: true,
 				},
 				firstName: {
 					keyRaw: 'firstName',
 					type: 'String',
+					visible: true,
 				},
 			},
 		},
@@ -670,15 +710,18 @@ test('append in connection', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							list: {
 								name: 'All_Users',
@@ -689,25 +732,30 @@ test('append in connection', function () {
 								fields: {
 									edges: {
 										type: 'UserEdge',
+										visible: true,
 										keyRaw: 'edges',
 										selection: {
 											fields: {
 												node: {
 													type: 'Node',
+													visible: true,
 													keyRaw: 'node',
 													abstract: true,
 													selection: {
 														fields: {
 															__typename: {
 																type: 'String',
+																visible: true,
 																keyRaw: '__typename',
 															},
 															id: {
 																type: 'ID',
+																visible: true,
 																keyRaw: 'id',
 															},
 															firstName: {
 																type: 'String',
+																visible: true,
 																keyRaw: 'firstName',
 															},
 														},
@@ -760,8 +808,8 @@ test('append in connection', function () {
 	cache.list('All_Users').append(
 		{
 			fields: {
-				id: { type: 'ID', keyRaw: 'id' },
-				firstName: { type: 'String', keyRaw: 'firstName' },
+				id: { visible: true, type: 'ID', keyRaw: 'id' },
+				firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
 			},
 		},
 		{
@@ -804,15 +852,18 @@ test("prepending update doesn't overwrite endCursor and hasNext Page", function 
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							list: {
 								name: 'All_Users',
@@ -823,26 +874,31 @@ test("prepending update doesn't overwrite endCursor and hasNext Page", function 
 								fields: {
 									pageInfo: {
 										type: 'PageInfo',
+										visible: true,
 										keyRaw: 'pageInfo',
 										selection: {
 											fields: {
 												hasNextPage: {
 													type: 'Boolean',
+													visible: true,
 													keyRaw: 'hasNextPage',
 													updates: ['prepend'],
 												},
 												hasPreviousPage: {
 													type: 'Boolean',
+													visible: true,
 													keyRaw: 'hasPreviousPage',
 													updates: ['prepend'],
 												},
 												startCursor: {
 													type: 'String',
+													visible: true,
 													keyRaw: 'startCursor',
 													updates: ['prepend'],
 												},
 												endCursor: {
 													type: 'String',
+													visible: true,
 													keyRaw: 'endCursor',
 													updates: ['prepend'],
 												},
@@ -851,26 +907,31 @@ test("prepending update doesn't overwrite endCursor and hasNext Page", function 
 									},
 									edges: {
 										type: 'UserEdge',
+										visible: true,
 										keyRaw: 'edges',
 										updates: ['prepend'],
 										selection: {
 											fields: {
 												node: {
 													type: 'Node',
+													visible: true,
 													keyRaw: 'node',
 													abstract: true,
 													selection: {
 														fields: {
 															__typename: {
 																type: 'String',
+																visible: true,
 																keyRaw: '__typename',
 															},
 															id: {
 																type: 'ID',
+																visible: true,
 																keyRaw: 'id',
 															},
 															firstName: {
 																type: 'String',
+																visible: true,
 																keyRaw: 'firstName',
 															},
 														},
@@ -1003,15 +1064,18 @@ test("append update doesn't overwrite startCursor and hasPrevious Page", functio
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							list: {
 								name: 'All_Users',
@@ -1022,26 +1086,31 @@ test("append update doesn't overwrite startCursor and hasPrevious Page", functio
 								fields: {
 									pageInfo: {
 										type: 'PageInfo',
+										visible: true,
 										keyRaw: 'pageInfo',
 										selection: {
 											fields: {
 												hasNextPage: {
 													type: 'Boolean',
+													visible: true,
 													keyRaw: 'hasNextPage',
 													updates: ['append'],
 												},
 												hasPreviousPage: {
 													type: 'Boolean',
+													visible: true,
 													keyRaw: 'hasPreviousPage',
 													updates: ['append'],
 												},
 												startCursor: {
 													type: 'String',
+													visible: true,
 													keyRaw: 'startCursor',
 													updates: ['append'],
 												},
 												endCursor: {
 													type: 'String',
+													visible: true,
 													keyRaw: 'endCursor',
 													updates: ['append'],
 												},
@@ -1050,26 +1119,31 @@ test("append update doesn't overwrite startCursor and hasPrevious Page", functio
 									},
 									edges: {
 										type: 'UserEdge',
+										visible: true,
 										keyRaw: 'edges',
 										updates: ['append'],
 										selection: {
 											fields: {
 												node: {
 													type: 'Node',
+													visible: true,
 													keyRaw: 'node',
 													abstract: true,
 													selection: {
 														fields: {
 															__typename: {
 																type: 'String',
+																visible: true,
 																keyRaw: '__typename',
 															},
 															id: {
 																type: 'ID',
+																visible: true,
 																keyRaw: 'id',
 															},
 															firstName: {
 																type: 'String',
+																visible: true,
 																keyRaw: 'firstName',
 															},
 														},
@@ -1202,15 +1276,18 @@ test('append in connection', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							list: {
 								name: 'All_Users',
@@ -1221,25 +1298,30 @@ test('append in connection', function () {
 								fields: {
 									edges: {
 										type: 'UserEdge',
+										visible: true,
 										keyRaw: 'edges',
 										selection: {
 											fields: {
 												node: {
 													type: 'Node',
+													visible: true,
 													keyRaw: 'node',
 													abstract: true,
 													selection: {
 														fields: {
 															__typename: {
 																type: 'String',
+																visible: true,
 																keyRaw: '__typename',
 															},
 															id: {
 																type: 'ID',
+																visible: true,
 																keyRaw: 'id',
 															},
 															firstName: {
 																type: 'String',
+																visible: true,
 																keyRaw: 'firstName',
 															},
 														},
@@ -1292,8 +1374,8 @@ test('append in connection', function () {
 	cache.list('All_Users').append(
 		{
 			fields: {
-				id: { type: 'ID', keyRaw: 'id' },
-				firstName: { type: 'String', keyRaw: 'firstName' },
+				id: { visible: true, type: 'ID', keyRaw: 'id' },
+				firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
 			},
 		},
 		{
@@ -1336,15 +1418,18 @@ test('inserting data with an update overwrites a record inserted with list.appen
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							list: {
 								name: 'All_Users',
@@ -1355,25 +1440,30 @@ test('inserting data with an update overwrites a record inserted with list.appen
 								fields: {
 									edges: {
 										type: 'UserEdge',
+										visible: true,
 										keyRaw: 'edges',
 										selection: {
 											fields: {
 												node: {
 													type: 'Node',
+													visible: true,
 													keyRaw: 'node',
 													abstract: true,
 													selection: {
 														fields: {
 															__typename: {
 																type: 'String',
+																visible: true,
 																keyRaw: '__typename',
 															},
 															id: {
 																type: 'ID',
+																visible: true,
 																keyRaw: 'id',
 															},
 															firstName: {
 																type: 'String',
+																visible: true,
 																keyRaw: 'firstName',
 															},
 														},
@@ -1426,8 +1516,8 @@ test('inserting data with an update overwrites a record inserted with list.appen
 	cache.list('All_Users').append(
 		{
 			fields: {
-				id: { type: 'ID', keyRaw: 'id' },
-				firstName: { type: 'String', keyRaw: 'firstName' },
+				id: { visible: true, type: 'ID', keyRaw: 'id' },
+				firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
 			},
 		},
 		{
@@ -1461,47 +1551,57 @@ test('inserting data with an update overwrites a record inserted with list.appen
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					selection: {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 							firstName: {
 								type: 'String',
+								visible: true,
 								keyRaw: 'firstName',
 							},
 							friends: {
 								type: 'User',
+								visible: true,
 								keyRaw: 'friends',
 								selection: {
 									fields: {
 										edges: {
 											type: 'UserEdge',
+											visible: true,
 											keyRaw: 'edges',
 											updates: [RefetchUpdateMode.append],
 											selection: {
 												fields: {
 													cursor: {
 														type: 'String',
+														visible: true,
 														keyRaw: 'cursor',
 													},
 													node: {
 														type: 'User',
+														visible: true,
 														keyRaw: 'node',
 														selection: {
 															fields: {
 																__typename: {
 																	type: 'String',
+																	visible: true,
 																	keyRaw: '__typename',
 																},
 																id: {
 																	type: 'ID',
+																	visible: true,
 																	keyRaw: 'id',
 																},
 																firstName: {
 																	type: 'String',
+																	visible: true,
 																	keyRaw: 'firstName',
 																},
 															},
@@ -1554,15 +1654,18 @@ test('list filter - must_not positive', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							list: {
 								name: 'All_Users',
@@ -1579,10 +1682,12 @@ test('list filter - must_not positive', function () {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -1627,8 +1732,8 @@ test('list filter - must_not positive', function () {
 		.prepend(
 			{
 				fields: {
-					id: { type: 'ID', keyRaw: 'id' },
-					firstName: { type: 'String', keyRaw: 'firstName' },
+					id: { visible: true, type: 'ID', keyRaw: 'id' },
+					firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
 				},
 			},
 			{
@@ -1663,15 +1768,18 @@ test('list filter - must_not negative', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							list: {
 								name: 'All_Users',
@@ -1688,10 +1796,12 @@ test('list filter - must_not negative', function () {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -1736,8 +1846,8 @@ test('list filter - must_not negative', function () {
 		.prepend(
 			{
 				fields: {
-					id: { type: 'ID', keyRaw: 'id' },
-					firstName: { type: 'String', keyRaw: 'firstName' },
+					id: { visible: true, type: 'ID', keyRaw: 'id' },
+					firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
 				},
 			},
 			{
@@ -1758,15 +1868,18 @@ test('list filter - must positive', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							list: {
 								name: 'All_Users',
@@ -1783,10 +1896,12 @@ test('list filter - must positive', function () {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -1831,8 +1946,8 @@ test('list filter - must positive', function () {
 		.prepend(
 			{
 				fields: {
-					id: { type: 'ID', keyRaw: 'id' },
-					firstName: { type: 'String', keyRaw: 'firstName' },
+					id: { visible: true, type: 'ID', keyRaw: 'id' },
+					firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
 				},
 			},
 			{
@@ -1867,15 +1982,18 @@ test('list filter - must negative', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							list: {
 								name: 'All_Users',
@@ -1892,10 +2010,12 @@ test('list filter - must negative', function () {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -1940,8 +2060,8 @@ test('list filter - must negative', function () {
 		.prepend(
 			{
 				fields: {
-					id: { type: 'ID', keyRaw: 'id' },
-					firstName: { type: 'String', keyRaw: 'firstName' },
+					id: { visible: true, type: 'ID', keyRaw: 'id' },
+					firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
 				},
 			},
 			{
@@ -1962,15 +2082,18 @@ test('remove from list', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							list: {
 								name: 'All_Users',
@@ -1981,10 +2104,12 @@ test('remove from list', function () {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -2048,15 +2173,18 @@ test('delete node', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							list: {
 								name: 'All_Users',
@@ -2067,10 +2195,12 @@ test('delete node', function () {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -2135,15 +2265,18 @@ test('delete node from connection', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							list: {
 								name: 'All_Users',
@@ -2154,25 +2287,30 @@ test('delete node from connection', function () {
 								fields: {
 									edges: {
 										type: 'UserEdge',
+										visible: true,
 										keyRaw: 'edges',
 										selection: {
 											fields: {
 												node: {
 													type: 'Node',
+													visible: true,
 													keyRaw: 'node',
 													abstract: true,
 													selection: {
 														fields: {
 															__typename: {
 																type: 'String',
+																visible: true,
 																keyRaw: '__typename',
 															},
 															id: {
 																type: 'ID',
+																visible: true,
 																keyRaw: 'id',
 															},
 															firstName: {
 																type: 'String',
+																visible: true,
 																keyRaw: 'firstName',
 															},
 														},
@@ -2252,11 +2390,13 @@ test('append operation', function () {
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					selection: {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 						},
@@ -2279,6 +2419,7 @@ test('append operation', function () {
 				fields: {
 					friends: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'friends',
 						list: {
 							name: 'All_Users',
@@ -2289,10 +2430,12 @@ test('append operation', function () {
 							fields: {
 								id: {
 									type: 'ID',
+									visible: true,
 									keyRaw: 'id',
 								},
 								firstName: {
 									type: 'String',
+									visible: true,
 									keyRaw: 'firstName',
 								},
 							},
@@ -2313,6 +2456,7 @@ test('append operation', function () {
 			fields: {
 				newUser: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'newUser',
 					operations: [
 						{
@@ -2324,6 +2468,7 @@ test('append operation', function () {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 						},
@@ -2352,11 +2497,13 @@ test('append from list', function () {
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					selection: {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 						},
@@ -2379,6 +2526,7 @@ test('append from list', function () {
 				fields: {
 					friends: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'friends',
 						list: {
 							name: 'All_Users',
@@ -2389,10 +2537,12 @@ test('append from list', function () {
 							fields: {
 								id: {
 									type: 'ID',
+									visible: true,
 									keyRaw: 'id',
 								},
 								firstName: {
 									type: 'String',
+									visible: true,
 									keyRaw: 'firstName',
 								},
 							},
@@ -2413,6 +2563,7 @@ test('append from list', function () {
 			fields: {
 				newUser: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'newUser',
 					operations: [
 						{
@@ -2424,6 +2575,7 @@ test('append from list', function () {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 						},
@@ -2450,15 +2602,18 @@ test('toggle list', function () {
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					selection: {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 							friends: {
 								type: 'User',
+								visible: true,
 								keyRaw: 'friends',
 								list: {
 									name: 'All_Users',
@@ -2469,10 +2624,12 @@ test('toggle list', function () {
 									fields: {
 										id: {
 											type: 'ID',
+											visible: true,
 											keyRaw: 'id',
 										},
 										firstName: {
 											type: 'String',
+											visible: true,
 											keyRaw: 'firstName',
 										},
 									},
@@ -2499,6 +2656,7 @@ test('toggle list', function () {
 				fields: {
 					friends: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'friends',
 						list: {
 							name: 'All_Users',
@@ -2509,10 +2667,12 @@ test('toggle list', function () {
 							fields: {
 								id: {
 									type: 'ID',
+									visible: true,
 									keyRaw: 'id',
 								},
 								firstName: {
 									type: 'String',
+									visible: true,
 									keyRaw: 'firstName',
 								},
 							},
@@ -2530,6 +2690,7 @@ test('toggle list', function () {
 		fields: {
 			newUser: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'newUser',
 				operations: [
 					{
@@ -2541,6 +2702,7 @@ test('toggle list', function () {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 					},
@@ -2573,11 +2735,13 @@ test('append when operation', function () {
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					selection: {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 						},
@@ -2600,6 +2764,7 @@ test('append when operation', function () {
 				fields: {
 					friends: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'friends',
 						list: {
 							name: 'All_Users',
@@ -2616,10 +2781,12 @@ test('append when operation', function () {
 							fields: {
 								id: {
 									type: 'ID',
+									visible: true,
 									keyRaw: 'id',
 								},
 								firstName: {
 									type: 'String',
+									visible: true,
 									keyRaw: 'firstName',
 								},
 							},
@@ -2640,6 +2807,7 @@ test('append when operation', function () {
 			fields: {
 				newUser: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'newUser',
 					operations: [
 						{
@@ -2656,6 +2824,7 @@ test('append when operation', function () {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 						},
@@ -2684,11 +2853,13 @@ test('prepend when operation', function () {
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					selection: {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 						},
@@ -2711,6 +2882,7 @@ test('prepend when operation', function () {
 				fields: {
 					friends: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'friends',
 						list: {
 							name: 'All_Users',
@@ -2727,10 +2899,12 @@ test('prepend when operation', function () {
 							fields: {
 								id: {
 									type: 'ID',
+									visible: true,
 									keyRaw: 'id',
 								},
 								firstName: {
 									type: 'String',
+									visible: true,
 									keyRaw: 'firstName',
 								},
 							},
@@ -2751,6 +2925,7 @@ test('prepend when operation', function () {
 			fields: {
 				newUser: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'newUser',
 					operations: [
 						{
@@ -2768,6 +2943,7 @@ test('prepend when operation', function () {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 						},
@@ -2796,24 +2972,29 @@ test('prepend operation', function () {
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					selection: {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 							friends: {
 								type: 'User',
+								visible: true,
 								keyRaw: 'friends',
 								selection: {
 									fields: {
 										id: {
 											type: 'String',
+											visible: true,
 											keyRaw: 'id',
 										},
 										firstName: {
 											type: 'String',
+											visible: true,
 											keyRaw: 'firstName',
 										},
 									},
@@ -2845,6 +3026,7 @@ test('prepend operation', function () {
 				fields: {
 					friends: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'friends',
 						list: {
 							name: 'All_Users',
@@ -2855,10 +3037,12 @@ test('prepend operation', function () {
 							fields: {
 								id: {
 									type: 'ID',
+									visible: true,
 									keyRaw: 'id',
 								},
 								firstName: {
 									type: 'String',
+									visible: true,
 									keyRaw: 'firstName',
 								},
 							},
@@ -2879,6 +3063,7 @@ test('prepend operation', function () {
 			fields: {
 				newUser: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'newUser',
 					operations: [
 						{
@@ -2891,6 +3076,7 @@ test('prepend operation', function () {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 						},
@@ -2919,24 +3105,29 @@ test('remove operation', function () {
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					selection: {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 							friends: {
 								type: 'User',
+								visible: true,
 								keyRaw: 'friends',
 								selection: {
 									fields: {
 										id: {
 											type: 'ID',
+											visible: true,
 											keyRaw: 'id',
 										},
 										firstName: {
 											type: 'String',
+											visible: true,
 											keyRaw: 'firstName',
 										},
 									},
@@ -2963,6 +3154,7 @@ test('remove operation', function () {
 				fields: {
 					friends: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'friends',
 						list: {
 							name: 'All_Users',
@@ -2973,10 +3165,12 @@ test('remove operation', function () {
 							fields: {
 								id: {
 									type: 'ID',
+									visible: true,
 									keyRaw: 'id',
 								},
 								firstName: {
 									type: 'String',
+									visible: true,
 									keyRaw: 'firstName',
 								},
 							},
@@ -2997,6 +3191,7 @@ test('remove operation', function () {
 			fields: {
 				newUser: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'newUser',
 					operations: [
 						{
@@ -3008,6 +3203,7 @@ test('remove operation', function () {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 						},
@@ -3036,24 +3232,29 @@ test('remove operation from list', function () {
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					selection: {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 							friends: {
 								type: 'User',
+								visible: true,
 								keyRaw: 'friends',
 								selection: {
 									fields: {
 										id: {
 											type: 'ID',
+											visible: true,
 											keyRaw: 'id',
 										},
 										firstName: {
 											type: 'String',
+											visible: true,
 											keyRaw: 'firstName',
 										},
 									},
@@ -3083,6 +3284,7 @@ test('remove operation from list', function () {
 				fields: {
 					friends: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'friends',
 						list: {
 							name: 'All_Users',
@@ -3093,10 +3295,12 @@ test('remove operation from list', function () {
 							fields: {
 								id: {
 									type: 'ID',
+									visible: true,
 									keyRaw: 'id',
 								},
 								firstName: {
 									type: 'String',
+									visible: true,
 									keyRaw: 'firstName',
 								},
 							},
@@ -3117,6 +3321,7 @@ test('remove operation from list', function () {
 			fields: {
 				newUser: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'newUser',
 					operations: [
 						{
@@ -3128,6 +3333,7 @@ test('remove operation from list', function () {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 						},
@@ -3154,24 +3360,29 @@ test('delete operation', function () {
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					selection: {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 							friends: {
 								type: 'User',
+								visible: true,
 								keyRaw: 'friends',
 								selection: {
 									fields: {
 										id: {
 											type: 'ID',
+											visible: true,
 											keyRaw: 'id',
 										},
 										firstName: {
 											type: 'String',
+											visible: true,
 											keyRaw: 'firstName',
 										},
 									},
@@ -3198,6 +3409,7 @@ test('delete operation', function () {
 				fields: {
 					friends: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'friends',
 						list: {
 							name: 'All_Users',
@@ -3208,10 +3420,12 @@ test('delete operation', function () {
 							fields: {
 								id: {
 									type: 'ID',
+									visible: true,
 									keyRaw: 'id',
 								},
 								firstName: {
 									type: 'String',
+									visible: true,
 									keyRaw: 'firstName',
 								},
 							},
@@ -3232,11 +3446,13 @@ test('delete operation', function () {
 			fields: {
 				deleteUser: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'deleteUser',
 					selection: {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 								operations: [
 									{
@@ -3273,24 +3489,29 @@ test('delete operation from list', function () {
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					selection: {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 							friends: {
 								type: 'User',
+								visible: true,
 								keyRaw: 'friends',
 								selection: {
 									fields: {
 										id: {
 											type: 'ID',
+											visible: true,
 											keyRaw: 'id',
 										},
 										firstName: {
 											type: 'String',
+											visible: true,
 											keyRaw: 'firstName',
 										},
 									},
@@ -3320,6 +3541,7 @@ test('delete operation from list', function () {
 				fields: {
 					friends: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'friends',
 						list: {
 							name: 'All_Users',
@@ -3330,10 +3552,12 @@ test('delete operation from list', function () {
 							fields: {
 								id: {
 									type: 'ID',
+									visible: true,
 									keyRaw: 'id',
 								},
 								firstName: {
 									type: 'String',
+									visible: true,
 									keyRaw: 'firstName',
 								},
 							},
@@ -3354,11 +3578,13 @@ test('delete operation from list', function () {
 			fields: {
 				deleteUser: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'deleteUser',
 					selection: {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 								operations: [
 									{
@@ -3396,15 +3622,18 @@ test('delete operation from connection', function () {
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					selection: {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 							friends: {
 								type: 'User',
+								visible: true,
 								keyRaw: 'friends',
 								list: {
 									name: 'All_Users',
@@ -3415,25 +3644,30 @@ test('delete operation from connection', function () {
 									fields: {
 										edges: {
 											type: 'UserEdge',
+											visible: true,
 											keyRaw: 'edges',
 											selection: {
 												fields: {
 													node: {
 														type: 'Node',
+														visible: true,
 														keyRaw: 'node',
 														abstract: true,
 														selection: {
 															fields: {
 																__typename: {
 																	type: 'String',
+																	visible: true,
 																	keyRaw: '__typename',
 																},
 																id: {
 																	type: 'ID',
+																	visible: true,
 																	keyRaw: 'id',
 																},
 																firstName: {
 																	type: 'String',
+																	visible: true,
 																	keyRaw: 'firstName',
 																},
 															},
@@ -3468,6 +3702,7 @@ test('delete operation from connection', function () {
 				fields: {
 					friends: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'friends',
 						list: {
 							name: 'All_Users',
@@ -3478,25 +3713,30 @@ test('delete operation from connection', function () {
 							fields: {
 								edges: {
 									type: 'UserEdge',
+									visible: true,
 									keyRaw: 'edges',
 									selection: {
 										fields: {
 											node: {
 												type: 'Node',
+												visible: true,
 												keyRaw: 'node',
 												abstract: true,
 												selection: {
 													fields: {
 														__typename: {
 															type: 'String',
+															visible: true,
 															keyRaw: '__typename',
 														},
 														id: {
 															type: 'ID',
+															visible: true,
 															keyRaw: 'id',
 														},
 														firstName: {
 															type: 'String',
+															visible: true,
 															keyRaw: 'firstName',
 														},
 													},
@@ -3523,11 +3763,13 @@ test('delete operation from connection', function () {
 			fields: {
 				deleteUser: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'deleteUser',
 					selection: {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 								operations: [
 									{
@@ -3561,29 +3803,35 @@ test('disabled linked lists update', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							updates: [RefetchUpdateMode.append],
 							selection: {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -3684,29 +3932,35 @@ test('append linked lists update', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							updates: [RefetchUpdateMode.append],
 							selection: {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -3816,19 +4070,23 @@ test('writing a scalar marked with a disabled update overwrites', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						friends: {
 							type: 'Int',
+							visible: true,
 							keyRaw: 'friends',
 							updates: [RefetchUpdateMode.append],
 						},
@@ -3889,19 +4147,23 @@ test('writing a scalar marked with a prepend', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						friends: {
 							type: 'Int',
+							visible: true,
 							keyRaw: 'friends',
 							updates: [RefetchUpdateMode.prepend],
 						},
@@ -3963,19 +4225,23 @@ test('writing a scalar marked with an append', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						friends: {
 							type: 'Int',
+							visible: true,
 							keyRaw: 'friends',
 							updates: [RefetchUpdateMode.append],
 						},
@@ -4041,6 +4307,7 @@ test('list operations fail silently', function () {
 				fields: {
 					newUser: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'newUser',
 						operations: [
 							{
@@ -4052,6 +4319,7 @@ test('list operations fail silently', function () {
 							fields: {
 								id: {
 									type: 'ID',
+									visible: true,
 									keyRaw: 'id',
 								},
 							},
@@ -4076,15 +4344,18 @@ test('when conditions look for all matching lists', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							// the key takes an argument so that we can have multiple
 							// lists tracked in the cache
 							keyRaw: 'friends(filter: true, foo: $var)',
@@ -4108,10 +4379,12 @@ test('when conditions look for all matching lists', function () {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -4193,8 +4466,8 @@ test('when conditions look for all matching lists', function () {
 		.append(
 			{
 				fields: {
-					id: { type: 'ID', keyRaw: 'id' },
-					firstName: { type: 'String', keyRaw: 'firstName' },
+					id: { visible: true, type: 'ID', keyRaw: 'id' },
+					firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
 				},
 			},
 			{
@@ -4231,6 +4504,7 @@ test('parentID must be passed if there are multiple instances of a list handler'
 		fields: {
 			friends: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'friends',
 				list: {
 					name: 'All_Users',
@@ -4241,10 +4515,12 @@ test('parentID must be passed if there are multiple instances of a list handler'
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 					},
@@ -4259,11 +4535,13 @@ test('parentID must be passed if there are multiple instances of a list handler'
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					selection: {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 							...friendsSelection.fields,
@@ -4312,6 +4590,7 @@ test('parentID must be passed if there are multiple instances of a list handler'
 		fields: {
 			user: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'user',
 				operations: [
 					{
@@ -4323,10 +4602,12 @@ test('parentID must be passed if there are multiple instances of a list handler'
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 					},
@@ -4338,6 +4619,7 @@ test('parentID must be passed if there are multiple instances of a list handler'
 		fields: {
 			user: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'user',
 				operations: [
 					{
@@ -4353,10 +4635,12 @@ test('parentID must be passed if there are multiple instances of a list handler'
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 					},
@@ -4392,19 +4676,23 @@ test('append in abstract list', function () {
 		fields: {
 			viewer: {
 				type: 'Node',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						__typename: {
 							type: 'String',
+							visible: true,
 							keyRaw: '__typename',
 						},
 						friends: {
 							type: 'Node',
+							visible: true,
 							keyRaw: 'friends',
 							list: {
 								name: 'All_Nodes',
@@ -4415,14 +4703,17 @@ test('append in abstract list', function () {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 									__typename: {
 										type: 'String',
+										visible: true,
 										keyRaw: '__typename',
 									},
 								},
@@ -4466,8 +4757,8 @@ test('append in abstract list', function () {
 	cache.list('All_Nodes').append(
 		{
 			fields: {
-				id: { type: 'ID', keyRaw: 'id' },
-				firstName: { type: 'String', keyRaw: 'firstName' },
+				id: { visible: true, type: 'ID', keyRaw: 'id' },
+				firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
 			},
 		},
 		{
@@ -4506,33 +4797,40 @@ test('list operations on interface fields without a well defined parent update t
 		fields: {
 			viewer: {
 				type: 'Node',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						__typename: {
 							type: 'String',
+							visible: true,
 							keyRaw: '__typename',
 						},
 						friends: {
 							type: 'Node',
+							visible: true,
 							keyRaw: 'friends',
 							abstract: true,
 							selection: {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									__typename: {
 										type: 'String',
+										visible: true,
 										keyRaw: '__typename',
 									},
 									notFriends: {
 										type: 'Node',
+										visible: true,
 										keyRaw: 'notFriends',
 										abstract: true,
 										list: {
@@ -4544,14 +4842,17 @@ test('list operations on interface fields without a well defined parent update t
 											fields: {
 												id: {
 													type: 'ID',
+													visible: true,
 													keyRaw: 'id',
 												},
 												firstName: {
 													type: 'String',
+													visible: true,
 													keyRaw: 'firstName',
 												},
 												__typename: {
 													type: 'String',
+													visible: true,
 													keyRaw: '__typename',
 												},
 											},
@@ -4617,14 +4918,17 @@ test('list operations on interface fields without a well defined parent update t
 			fields: {
 				id: {
 					type: 'ID',
+					visible: true,
 					keyRaw: 'id',
 				},
 				firstName: {
 					type: 'String',
+					visible: true,
 					keyRaw: 'firstName',
 				},
 				__typename: {
 					type: 'String',
+					visible: true,
 					keyRaw: '__typename',
 				},
 			},
@@ -4683,11 +4987,13 @@ test("parentID ignores single lists that don't match", function () {
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					selection: {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 						},
@@ -4710,6 +5016,7 @@ test("parentID ignores single lists that don't match", function () {
 				fields: {
 					friends: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'friends',
 						list: {
 							name: 'All_Users',
@@ -4720,10 +5027,12 @@ test("parentID ignores single lists that don't match", function () {
 							fields: {
 								id: {
 									type: 'ID',
+									visible: true,
 									keyRaw: 'id',
 								},
 								firstName: {
 									type: 'String',
+									visible: true,
 									keyRaw: 'firstName',
 								},
 							},
@@ -4744,6 +5053,7 @@ test("parentID ignores single lists that don't match", function () {
 			fields: {
 				newUser: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'newUser',
 					operations: [
 						{
@@ -4759,6 +5069,7 @@ test("parentID ignores single lists that don't match", function () {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 						},

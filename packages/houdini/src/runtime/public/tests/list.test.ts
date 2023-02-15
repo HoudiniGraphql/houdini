@@ -10,45 +10,54 @@ test('list.append accepts record proxies', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							list: {
 								name: 'All_Pets',
 								connection: true,
 								type: 'User',
+								visible: true,
 							},
 							selection: {
 								fields: {
 									edges: {
 										type: 'UserEdge',
+										visible: true,
 										keyRaw: 'edges',
 										updates: ['append'],
 										selection: {
 											fields: {
 												node: {
 													type: 'Node',
+													visible: true,
 													keyRaw: 'node',
 													abstract: true,
 													selection: {
 														fields: {
 															__typename: {
 																type: 'String',
+																visible: true,
 																keyRaw: '__typename',
 															},
 															id: {
 																type: 'ID',
+																visible: true,
 																keyRaw: 'id',
 															},
 															firstName: {
 																type: 'String',
+																visible: true,
 																keyRaw: 'firstName',
 															},
 														},
@@ -111,6 +120,7 @@ test('list.append accepts record proxies', function () {
 			fields: {
 				firstName: {
 					type: 'String',
+					visible: true,
 					keyRaw: 'firstName',
 				},
 			},
@@ -162,44 +172,53 @@ test('list.prepend accepts record proxies', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							list: {
 								name: 'All_Pets',
 								connection: true,
 								type: 'User',
+								visible: true,
 							},
 							selection: {
 								fields: {
 									edges: {
 										type: 'UserEdge',
+										visible: true,
 										keyRaw: 'edges',
 										selection: {
 											fields: {
 												node: {
 													type: 'Node',
+													visible: true,
 													keyRaw: 'node',
 													abstract: true,
 													selection: {
 														fields: {
 															__typename: {
 																type: 'String',
+																visible: true,
 																keyRaw: '__typename',
 															},
 															id: {
 																type: 'ID',
+																visible: true,
 																keyRaw: 'id',
 															},
 															firstName: {
 																type: 'String',
+																visible: true,
 																keyRaw: 'firstName',
 															},
 														},
@@ -262,6 +281,7 @@ test('list.prepend accepts record proxies', function () {
 			fields: {
 				firstName: {
 					type: 'String',
+					visible: true,
 					keyRaw: 'firstName',
 				},
 			},
@@ -314,15 +334,18 @@ test('list when must', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							list: {
 								name: 'All_Users',
@@ -339,10 +362,12 @@ test('list when must', function () {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -386,6 +411,7 @@ test('list when must', function () {
 			fields: {
 				firstName: {
 					type: 'String',
+					visible: true,
 					keyRaw: 'firstName',
 				},
 			},
@@ -427,15 +453,18 @@ test('can remove record', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							list: {
 								name: 'All_Users',
@@ -446,10 +475,12 @@ test('can remove record', function () {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -514,15 +545,18 @@ test('can toggle records', function () {
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					selection: {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 							friends: {
 								type: 'User',
+								visible: true,
 								keyRaw: 'friends',
 								list: {
 									name: 'All_Users',
@@ -533,10 +567,12 @@ test('can toggle records', function () {
 									fields: {
 										id: {
 											type: 'ID',
+											visible: true,
 											keyRaw: 'id',
 										},
 										firstName: {
 											type: 'String',
+											visible: true,
 											keyRaw: 'firstName',
 										},
 									},
@@ -563,6 +599,7 @@ test('can toggle records', function () {
 				fields: {
 					friends: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'friends',
 						list: {
 							name: 'All_Users',
@@ -573,10 +610,12 @@ test('can toggle records', function () {
 							fields: {
 								id: {
 									type: 'ID',
+									visible: true,
 									keyRaw: 'id',
 								},
 								firstName: {
 									type: 'String',
+									visible: true,
 									keyRaw: 'firstName',
 								},
 							},
@@ -618,24 +657,29 @@ test('can remove record from all lists', function () {
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					selection: {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 							friends: {
 								type: 'User',
+								visible: true,
 								keyRaw: 'friends',
 								selection: {
 									fields: {
 										id: {
 											type: 'ID',
+											visible: true,
 											keyRaw: 'id',
 										},
 										firstName: {
 											type: 'String',
+											visible: true,
 											keyRaw: 'firstName',
 										},
 									},
@@ -662,6 +706,7 @@ test('can remove record from all lists', function () {
 				fields: {
 					friends: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'friends',
 						list: {
 							name: 'All_Users',
@@ -672,10 +717,12 @@ test('can remove record from all lists', function () {
 							fields: {
 								id: {
 									type: 'ID',
+									visible: true,
 									keyRaw: 'id',
 								},
 								firstName: {
 									type: 'String',
+									visible: true,
 									keyRaw: 'firstName',
 								},
 							},

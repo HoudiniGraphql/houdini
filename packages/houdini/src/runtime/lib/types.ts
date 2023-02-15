@@ -168,7 +168,7 @@ export type SubscriptionSelection = {
 				type: string
 			}
 			updates?: string[]
-			visible?: boolean
+			visible: boolean
 			filters?: {
 				[key: string]: {
 					kind: 'Boolean' | 'String' | 'Float' | 'Int' | 'Variable'

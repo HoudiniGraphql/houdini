@@ -12,14 +12,17 @@ const h_SetUserInCache = (cache: Cache<CacheTypeDefTest>, id: string) => {
 		raw: 'string',
 		hash: 'string',
 		rootType: 'string',
+		pluginData: {},
 		selection: {
 			fields: {
 				id: {
 					type: 'String',
+					visible: true,
 					keyRaw: 'id',
 				},
 				firstName: {
 					type: 'String',
+					visible: true,
 					keyRaw: 'firstName',
 				},
 			},
@@ -44,6 +47,7 @@ const h_SetUserInCache = (cache: Cache<CacheTypeDefTest>, id: string) => {
 const h_GetUserRecord = (id: string, field: string = 'id') => {
 	return {
 		type: 'User',
+		visible: true,
 		id: `User:${id}`,
 		field,
 	}
@@ -56,10 +60,12 @@ const h_SetCatInCache = (cache: Cache<CacheTypeDefTest>, id: string) => {
 		raw: 'string',
 		hash: 'string',
 		rootType: 'string',
+		pluginData: {},
 		selection: {
 			fields: {
 				id: {
 					type: 'String',
+					visible: true,
 					keyRaw: 'id',
 				},
 			},
@@ -85,6 +91,7 @@ const h_SetCatInCache = (cache: Cache<CacheTypeDefTest>, id: string) => {
 const h_GetCatRecord = (id: string) => {
 	return {
 		type: 'Cat',
+		visible: true,
 		id: `Cat:${id}`,
 		field: 'id',
 	}

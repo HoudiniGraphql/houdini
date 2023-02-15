@@ -15,15 +15,18 @@ test('writing a selection loads the schema information', function () {
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					selection: {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 							firstName: {
 								type: 'String',
+								visible: true,
 								keyRaw: 'firstName(id: "1")',
 							},
 						},

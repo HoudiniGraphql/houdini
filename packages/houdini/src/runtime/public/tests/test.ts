@@ -165,6 +165,7 @@ export const testFragment = (selection: SubscriptionSelection): { artifact: Frag
 		name: '',
 		rootType: 'User',
 		selection,
+		pluginData: {},
 	},
 })
 
@@ -176,5 +177,6 @@ export const testQuery = (selection: SubscriptionSelection): { artifact: QueryAr
 		name: '',
 		rootType: 'Query',
 		selection,
+		pluginData: {},
 	},
 })

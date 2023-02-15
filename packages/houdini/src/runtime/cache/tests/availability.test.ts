@@ -14,29 +14,35 @@ test('not partial', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							nullable: true,
 							selection: {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -86,28 +92,34 @@ test('not partial with empty list', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							selection: {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -151,28 +163,34 @@ test('partial with missing linked record', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						parent: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'parent',
 							selection: {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -215,28 +233,34 @@ test('partial with missing single field', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							selection: {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -272,24 +296,29 @@ test('partial missing data inside of linked list', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							selection: {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -326,15 +355,18 @@ test('missing cursor of item in connection from operation should not trigger nul
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							list: {
 								name: 'All_Users',
@@ -345,30 +377,36 @@ test('missing cursor of item in connection from operation should not trigger nul
 								fields: {
 									edges: {
 										type: 'UserEdge',
+										visible: true,
 										keyRaw: 'edges',
 										selection: {
 											fields: {
 												cursor: {
 													type: 'Node',
+													visible: true,
 													keyRaw: 'cursor',
 													nullable: false,
 												},
 												node: {
 													type: 'Node',
+													visible: true,
 													keyRaw: 'node',
 													abstract: true,
 													selection: {
 														fields: {
 															__typename: {
 																type: 'String',
+																visible: true,
 																keyRaw: '__typename',
 															},
 															id: {
 																type: 'ID',
+																visible: true,
 																keyRaw: 'id',
 															},
 															firstName: {
 																type: 'String',
+																visible: true,
 																keyRaw: 'firstName',
 															},
 														},
@@ -420,14 +458,17 @@ test('missing cursor of item in connection from operation should not trigger nul
 			fields: {
 				__typename: {
 					type: 'String',
+					visible: true,
 					keyRaw: '__typename',
 				},
 				id: {
 					type: 'ID',
+					visible: true,
 					keyRaw: 'id',
 				},
 				firstName: {
 					type: 'String',
+					visible: true,
 					keyRaw: 'firstName',
 				},
 			},
