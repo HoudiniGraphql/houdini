@@ -18,7 +18,7 @@
 		<Icon name="search" strokeWidth="3px" />
 		<span>Search</span>
 	</div>
-	<span class="column" aria-hidden="true">
+	<span class="column" id="search-keycombo" aria-hidden="true">
 		{modifier} + K
 	</span>
 </button>
@@ -46,6 +46,12 @@
 			flex-grow: 1;
 		}
 	}
+
+    @media (max-width: 480px) {
+        #search-keycombo {
+            display: none;
+        }
+    }
 
 	span {
 		margin-left: 10px;
