@@ -93,7 +93,7 @@ export const cachePolicy =
 				return next(ctx)
 			},
 			afterNetwork(ctx, { resolve, value, marshalVariables }) {
-				// if we have data coming in from the cache, we should write it and mvoe on
+				// if we have data coming in from the cache, we should write it and move on
 				if (
 					value.source !== DataSource.Cache &&
 					enabled &&
