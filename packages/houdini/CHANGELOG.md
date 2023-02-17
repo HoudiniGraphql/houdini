@@ -1,5 +1,13 @@
 # houdini
 
+## 1.0.5
+
+### 🐛 Fixes
+
+-   [#940](https://github.com/HoudiniGraphql/houdini/pull/940) [`f69f9f1`](https://github.com/HoudiniGraphql/houdini/commit/f69f9f1b12cf9bca5d0112db2e78c4d4e94b4845) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug when relistening on a subscription
+
+-   [#947](https://github.com/HoudiniGraphql/houdini/pull/947) [`92c533e`](https://github.com/HoudiniGraphql/houdini/commit/92c533e2ba0aae7ceaebe7407691ff36482a71f4) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix behavior for CacheAndNetwork policies
+
 ## 1.0.4
 
 ### ✨ Features
