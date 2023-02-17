@@ -2,7 +2,7 @@
 
 ## 1.0.5
 
-### Patch Changes
+### 🐛 Fixes
 
 -   [#940](https://github.com/HoudiniGraphql/houdini/pull/940) [`f69f9f1`](https://github.com/HoudiniGraphql/houdini/commit/f69f9f1b12cf9bca5d0112db2e78c4d4e94b4845) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug when relistening on a subscription
 
