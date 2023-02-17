@@ -532,6 +532,7 @@ test('paginate over unions', async function () {
 		      node {
 		        ... on User {
 		          firstName
+		          id
 		        }
 		        __typename
 		      }
@@ -587,6 +588,11 @@ test('paginate over unions', async function () {
 		                                                        "firstName": {
 		                                                            "type": "String",
 		                                                            "keyRaw": "firstName"
+		                                                        },
+
+		                                                        "id": {
+		                                                            "type": "ID",
+		                                                            "keyRaw": "id"
 		                                                        },
 
 		                                                        "__typename": {
@@ -719,6 +725,7 @@ test('overlapping query and fragment nested selection', async function () {
 		  friends {
 		    ... on User {
 		      firstName
+		      id
 		    }
 		    ...A
 		    __typename
@@ -750,6 +757,11 @@ test('overlapping query and fragment nested selection', async function () {
 		                                "firstName": {
 		                                    "type": "String",
 		                                    "keyRaw": "firstName"
+		                                },
+
+		                                "id": {
+		                                    "type": "ID",
+		                                    "keyRaw": "id"
 		                                },
 
 		                                "friends": {
@@ -853,6 +865,7 @@ test('selections with interfaces', async function () {
 		    }
 		    ... on Ghost {
 		      name
+		      aka
 		    }
 		    __typename
 		  }
@@ -905,6 +918,11 @@ test('selections with interfaces', async function () {
 		                                "name": {
 		                                    "type": "String",
 		                                    "keyRaw": "name"
+		                                },
+
+		                                "aka": {
+		                                    "type": "String",
+		                                    "keyRaw": "aka"
 		                                },
 
 		                                "__typename": {
@@ -980,6 +998,7 @@ test('selections with unions', async function () {
 		    }
 		    ... on Ghost {
 		      name
+		      aka
 		    }
 		    __typename
 		  }
@@ -1032,6 +1051,11 @@ test('selections with unions', async function () {
 		                                "name": {
 		                                    "type": "String",
 		                                    "keyRaw": "name"
+		                                },
+
+		                                "aka": {
+		                                    "type": "String",
+		                                    "keyRaw": "aka"
 		                                },
 
 		                                "__typename": {
@@ -1109,6 +1133,7 @@ test('selections with overlapping unions', async function () {
 		    }
 		    ... on Ghost {
 		      name
+		      aka
 		    }
 		    __typename
 		  }
@@ -1166,6 +1191,11 @@ test('selections with overlapping unions', async function () {
 		                                "name": {
 		                                    "type": "String",
 		                                    "keyRaw": "name"
+		                                },
+
+		                                "aka": {
+		                                    "type": "String",
+		                                    "keyRaw": "aka"
 		                                },
 
 		                                "__typename": {
@@ -1247,10 +1277,12 @@ test('selections with unions of abstract types', async function () {
 		          firstName
 		          id
 		        }
+		        id
 		      }
 		    }
 		    ... on Ghost {
 		      name
+		      aka
 		    }
 		    __typename
 		  }
@@ -1315,6 +1347,11 @@ test('selections with unions of abstract types', async function () {
 		                                "name": {
 		                                    "type": "String",
 		                                    "keyRaw": "name"
+		                                },
+
+		                                "aka": {
+		                                    "type": "String",
+		                                    "keyRaw": "aka"
 		                                },
 
 		                                "__typename": {
@@ -1396,6 +1433,7 @@ test('selections with concrete types matching multiple abstract types', async fu
 		    }
 		    ... on Ghost {
 		      aka
+		      name
 		    }
 		    __typename
 		  }
@@ -1429,6 +1467,11 @@ test('selections with concrete types matching multiple abstract types', async fu
 		                                "aka": {
 		                                    "type": "String",
 		                                    "keyRaw": "aka"
+		                                },
+
+		                                "name": {
+		                                    "type": "String",
+		                                    "keyRaw": "name"
 		                                },
 
 		                                "cats": {
@@ -4190,6 +4233,7 @@ test('nested recursive fragments', async function () {
 		    ...NodeDetails
 		    ... on User {
 		      ...UserThings
+		      id
 		    }
 		    __typename
 		  }
@@ -4318,6 +4362,7 @@ test('leave @include and @skip alone', async function () {
 		    ...NodeDetails @include(if: true)
 		    ... on User {
 		      ...UserThings
+		      id
 		    }
 		    __typename
 		  }
