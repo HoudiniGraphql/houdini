@@ -33,11 +33,11 @@ test('adds __typename on interface selection sets under query', async function (
 		    }
 		    ... on Ghost {
 		      name
+		      aka
 		    }
 		    __typename
 		  }
 		}
-
 	`)
 })
 
@@ -116,10 +116,10 @@ test('adds __typename on unions', async function () {
 		    }
 		    ... on Ghost {
 		      name
+		      aka
 		    }
 		    __typename
 		  }
 		}
-
 	`)
 })

@@ -91,3 +91,35 @@ test('adds custom id fields to selection sets of objects with them', async funct
 
 	`)
 })
+
+test('adds id fields to inline fragments', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+				query Friends {
+					entities {
+						... on User { 
+							name
+						}
+					}
+				}
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		query Friends {
+		  entities {
+		    ... on User {
+		      name
+		      id
+		    }
+		    __typename
+		  }
+		}
+	`)
+})
