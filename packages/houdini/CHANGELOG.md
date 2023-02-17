@@ -2,7 +2,7 @@
 
 ## 1.0.6
 
-### Patch Changes
+### 🦋 Feature/Fix
 
 -   [#948](https://github.com/HoudiniGraphql/houdini/pull/948) [`8fd052c`](https://github.com/HoudiniGraphql/houdini/commit/8fd052c1d59fbb37e17da1bc42ae386a660440ed) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add id to the generated selections of inline fragments
 
