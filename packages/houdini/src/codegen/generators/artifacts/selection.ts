@@ -307,6 +307,22 @@ export default function selection({
 				fieldObj.abstract = true
 			}
 
+			// if the field has any fragment spreads in it, we need to record that
+			if (field.selectionSet) {
+				const fragmentSpreads = field.selectionSet.selections.filter(
+					(selection): selection is graphql.FragmentSpreadNode =>
+						selection.kind === 'FragmentSpread'
+				)
+				if (fragmentSpreads.length > 0) {
+					fieldObj.fragments = fragmentSpreads.reduce((spreads, spread) => {
+						return {
+							...spreads,
+							[spread.name.value]: {},
+						}
+					}, {})
+				}
+			}
+
 			// add the field data we computed
 			object.fields = {
 				...object.fields,

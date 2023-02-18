@@ -20,6 +20,7 @@ declare global {
 				changed: boolean
 			}
 			optimisticResponse?: GraphQLObject
+			parentID?: string
 		}
 	}
 }
@@ -168,15 +169,17 @@ export type SubscriptionSelection = {
 				type: string
 			}
 			updates?: string[]
-			visible: boolean
-			filters?: {
-				[key: string]: {
+			visible?: boolean
+			filters?: Record<
+				string,
+				{
 					kind: 'Boolean' | 'String' | 'Float' | 'Int' | 'Variable'
 					value: string | number | boolean
 				}
-			}
+			>
 			selection?: SubscriptionSelection
 			abstract?: boolean
+			fragments?: Record<string, GraphQLObject>
 		}
 	}
 	abstractFields?: {

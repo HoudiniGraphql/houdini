@@ -118,6 +118,7 @@ export async function runPipeline(config: Config, docs: Document[]) {
 		)
 	} catch (e) {
 		error = e as Error
+		error.message ??= JSON.stringify(e)
 	}
 
 	/// Summary

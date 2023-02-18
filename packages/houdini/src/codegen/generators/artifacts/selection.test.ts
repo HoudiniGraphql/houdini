@@ -54,7 +54,6 @@ test('fragments of unions inject correctly', function () {
                 ...EntityInfo
             }
         }`),
-		originalSelectionSet: [],
 	})
 
 	expect(artifactSelection).toMatchInlineSnapshot(`

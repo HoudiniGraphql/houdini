@@ -7,6 +7,7 @@ import {
 	fetch as fetchPlugin,
 	mutation as mutationPlugin,
 	query as queryPlugin,
+	fragment as fragmentPlugin,
 	throwOnError as throwOnErrorPlugin,
 	type FetchParamFn,
 	fetchParams as fetchParamsPlugin,
@@ -63,9 +64,10 @@ export class HoudiniClient {
 					// to the standard set
 					(
 						[
-							// make sure that queries and mutations always work
+							// make sure that documents always work
 							queryPlugin,
 							mutationPlugin,
+							fragmentPlugin,
 						] as NestedList<ClientPlugin>
 					).concat(
 						// add the specified middlewares
