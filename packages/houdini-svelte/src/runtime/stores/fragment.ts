@@ -26,7 +26,9 @@ export class FragmentStore<_Data extends GraphQLObject, _Input = {}> {
 		this.name = storeName
 	}
 
-	get(initialValue: _Data | null): FragmentStoreInstance<_Data | null> {
+	get(
+		initialValue: _Data | null
+	): FragmentStoreInstance<_Data | null> & { initialValue: _Data | null } {
 		// we have to compute the id of the parent
 		const parentID = cache._internal_unstable.id(this.artifact.rootType, initialValue)
 
@@ -54,10 +56,12 @@ Please ensure that you have passed a record that has ${this.artifact.name} mixed
 		// build up a document store that we will use to subscribe the fragment to cache updates
 		const store = getClient().observe<_Data, {}>({ artifact: this.artifact, initialValue })
 		if (variables && parentID) {
+			console.log('listening', parentID, variables, this.artifact.selection)
 			store.send({ variables, setup: true, stuff: { parentID } })
 		}
 
 		return {
+			initialValue,
 			kind: CompiledFragmentKind,
 			subscribe: derived([store], ([$store]) => $store?.data).subscribe,
 			update: (val: _Data | null) => store?.set({ ...store.state, data: val }),

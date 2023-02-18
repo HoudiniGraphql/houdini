@@ -364,7 +364,7 @@ test('embeds pagination query as a separate document', async function () {
 	// load the contents of the file
 	expect(docs[1]?.document).toMatchInlineSnapshot(`
 		query UserFriends_Pagination_Query($first: Int = 10, $after: String) {
-		  ...UserFriends_jrGTj @with(first: $first, after: $after)
+		  ...UserFriends_jrGTj @with(first: $first, after: $after) @mask_disable
 		}
 
 		fragment UserFriends_jrGTj on Query @arguments(first: {type: "Int", default: 10}, after: {type: "String"}) {

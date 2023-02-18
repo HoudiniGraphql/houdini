@@ -13,6 +13,7 @@ import { derived, get } from 'svelte/store'
 
 import { getClient, initClient } from '../../client'
 import type { CursorHandlers, OffsetFragmentStoreInstance } from '../../types'
+import { FragmentStore } from '../fragment'
 import type { StoreConfig } from '../query'
 import { cursorHandlers } from './cursor'
 import { offsetHandlers } from './offset'
@@ -31,10 +32,12 @@ class BasePaginatedFragmentStore<_Data extends GraphQLObject, _Input> {
 	protected paginationArtifact: QueryArtifact
 	name: string
 	kind = CompiledFragmentKind
+	artifact: FragmentArtifact
 
 	constructor(config: FragmentStoreConfig<_Data, _Input>) {
 		this.paginationArtifact = config.paginationArtifact
 		this.name = config.storeName
+		this.artifact = config.artifact
 	}
 
 	protected queryVariables(store: Readable<FragmentPaginatedResult<_Data, unknown>>): _Input {
@@ -75,13 +78,18 @@ export class FragmentStoreCursor<
 > extends BasePaginatedFragmentStore<_Data, _Input> {
 	// we want to add the cursor-based fetch to the return value of get
 	get(initialValue: _Data | null) {
-		const store = getClient().observe<_Data, _Input>({
-			artifact: this.paginationArtifact,
-			initialValue: initialValue ?? null,
+		const base = new FragmentStore<_Data, _Input>({
+			artifact: this.artifact,
+			storeName: this.name,
 		})
+		const store = base.get(initialValue)
 
 		// generate the pagination handlers
-		const handlers = this.storeHandlers(store)
+		const paginationStore = getClient().observe<_Data, _Input>({
+			artifact: this.paginationArtifact,
+			initialValue: store.initialValue,
+		})
+		const handlers = this.storeHandlers(paginationStore)
 
 		const subscribe = (
 			run: Subscriber<FragmentPaginatedResult<_Data, { pageInfo: PageInfo }>>,
@@ -91,26 +99,26 @@ export class FragmentStoreCursor<
 				  ) => void)
 				| undefined
 		): (() => void) => {
-			const combined = derived(
-				[store],
-				([$parent]) =>
-					({
-						...$parent,
-						pageInfo: extractPageInfo(
-							$parent.data,
-							this.paginationArtifact.refetch!.path
-						),
-					} as FragmentPaginatedResult<_Data, { pageInfo: PageInfo }>)
-			)
+			const combined = derived([store, paginationStore], ([$parent, $pagination]) => {
+				console.log($pagination?.data)
+				return {
+					...$pagination,
+					data: $parent,
+					pageInfo: extractPageInfo(
+						$pagination?.data,
+						this.paginationArtifact.refetch!.path
+					),
+				} as FragmentPaginatedResult<_Data, { pageInfo: PageInfo }>
+			})
 
 			return combined.subscribe(run, invalidate)
 		}
 
 		return {
 			kind: CompiledFragmentKind,
-			data: derived(store, ($value) => $value.data),
+			data: derived(store, ($value) => $value),
 			subscribe: subscribe,
-			fetching: derived(store, ($store) => $store.fetching),
+			fetching: derived([paginationStore], ([$store]) => $store.fetching),
 			fetch: handlers.fetch,
 			pageInfo: handlers.pageInfo,
 
@@ -159,6 +167,13 @@ export class FragmentStoreOffset<
 	_Input extends Record<string, any>
 > extends BasePaginatedFragmentStore<_Data, _Input> {
 	get(initialValue: _Data | null): OffsetFragmentStoreInstance<_Data, _Input> {
+		const base = new FragmentStore<_Data, _Input>({
+			artifact: this.artifact,
+			storeName: this.name,
+		})
+		const store = base.get(initialValue)
+
+		// generate the pagination handlers
 		const observer = getClient().observe<_Data, _Input>({
 			artifact: this.paginationArtifact,
 			initialValue,
@@ -197,7 +212,7 @@ export class FragmentStoreOffset<
 			kind: CompiledFragmentKind,
 			data: derived(observer, ($value) => $value.data!),
 			// @ts-ignore
-			subscribe: observer.subscribe.bind(observer),
+			subscribe: store.subscribe,
 			fetch: handlers.fetch,
 			loadNextPage: handlers.loadNextPage,
 			fetching: derived(observer, ($store) => $store.fetching),
