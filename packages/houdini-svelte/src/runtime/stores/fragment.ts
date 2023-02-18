@@ -7,6 +7,7 @@ import type {
 import { CompiledFragmentKind, fragmentKey } from '$houdini/runtime/lib/types'
 import { derived } from 'svelte/store'
 
+import { isBrowser } from '../adapter'
 import { getClient } from '../client'
 import type { FragmentStoreInstance } from '../types'
 
@@ -29,13 +30,20 @@ export class FragmentStore<_Data extends GraphQLObject, _Input = {}> {
 		// we have to compute the id of the parent
 		const parentID = cache._internal_unstable.id(this.artifact.rootType, initialValue)
 
-		// @ts-expect-error
+		// @ts-expect-error: typescript can't guarantee that the fragment key is defined
+		// but if its not, then the fragment wasn't mixed into the right thing
 		// the variables for the fragment live on the initial value's $fragment key
 		const variables = initialValue?.[fragmentKey]?.[this.artifact.name]
+		if (!variables && isBrowser) {
+			console.warn(
+				`⚠️ Parent does not contain the information for this fragment. Something is wrong.
+Please ensure that you have passed a record that has ${this.artifact.name} mixed into it.`
+			)
+		}
 
 		// on the client, we want to ensure that we apply masking to the initial value by
 		// loading the value from cache
-		if (initialValue && parentID && typeof globalThis.window !== 'undefined') {
+		if (initialValue && parentID && isBrowser) {
 			initialValue = cache.read({
 				selection: this.artifact.selection,
 				parent: parentID,
@@ -45,7 +53,6 @@ export class FragmentStore<_Data extends GraphQLObject, _Input = {}> {
 
 		// build up a document store that we will use to subscribe the fragment to cache updates
 		const store = getClient().observe<_Data, {}>({ artifact: this.artifact, initialValue })
-
 		if (variables && parentID) {
 			store.send({ variables, setup: true, stuff: { parentID } })
 		}
