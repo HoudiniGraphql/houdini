@@ -267,7 +267,6 @@ export default function artifactGenerator(stats: {
 						selections: selectionSet.selections,
 						fragmentDefinitions,
 						ignoreMaskDisable: docKind === 'HoudiniQuery',
-						applyFragments: docKind !== 'HoudiniFragment',
 					})
 
 					// generate a hash of the document that we can use to detect changes
@@ -315,7 +314,6 @@ export default function artifactGenerator(stats: {
 								filepath: doc.filename,
 								selections: originalSelectionSet.selections,
 								fragmentDefinitions,
-								applyFragments: false,
 							}),
 						})
 					)

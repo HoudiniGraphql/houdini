@@ -8,14 +8,12 @@ export function flattenSelections({
 	filepath,
 	selections,
 	fragmentDefinitions,
-	applyFragments,
 	ignoreMaskDisable,
 }: {
 	config: Config
 	filepath: string
 	selections: readonly graphql.SelectionNode[]
 	fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode }
-	applyFragments: boolean
 	ignoreMaskDisable?: boolean
 }): readonly graphql.SelectionNode[] {
 	// collect all of the fields together
@@ -24,7 +22,6 @@ export function flattenSelections({
 		filepath,
 		selections,
 		fragmentDefinitions,
-		applyFragments,
 		ignoreMaskDisable: !!ignoreMaskDisable,
 	})
 
@@ -40,7 +37,6 @@ class FieldCollection {
 	fields: { [name: string]: Field<graphql.FieldNode> }
 	inlineFragments: { [typeName: string]: Field<graphql.InlineFragmentNode> }
 	fragmentSpreads: { [fragmentName: string]: graphql.FragmentSpreadNode }
-	applyFragments: boolean
 	ignoreMaskDisable: boolean
 
 	constructor(args: {
@@ -48,12 +44,10 @@ class FieldCollection {
 		filepath: string
 		selections: readonly graphql.SelectionNode[]
 		fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode }
-		applyFragments: boolean
 		ignoreMaskDisable: boolean
 	}) {
 		this.config = args.config
 		this.fragmentDefinitions = args.fragmentDefinitions
-		this.applyFragments = args.applyFragments
 		this.ignoreMaskDisable = args.ignoreMaskDisable
 
 		this.fields = {}
@@ -126,7 +120,10 @@ class FieldCollection {
 
 		// the only thing that's left is external fragment spreads
 		if (selection.kind === 'FragmentSpread') {
-			// find whether to include fragment fields
+			// we need to figure out if we want to include this fragment's selection in
+			// the final result.
+
+			// the default behavior depends on wether masking is enabled or disabled
 			let includeFragments = this.config.defaultFragmentMasking === 'disable'
 
 			// Check if locally enable
@@ -145,15 +142,20 @@ class FieldCollection {
 				includeFragments = true
 			}
 
+			// we might need to ignore any disables
+			// for example, queries need to _always_ have their full selection
+			// so the result can be written to the cache
 			if (this.ignoreMaskDisable) {
 				includeFragments = true
 			}
 
 			// we're finished if we're not supposed to include fragments in the selection
-			if (!includeFragments || !this.applyFragments) {
+			if (!includeFragments) {
 				return
 			}
 
+			// we need to include the fragment selection in the final result
+			// look up the definition of the fragment
 			const definition = this.fragmentDefinitions[selection.name.value]
 			if (!definition) {
 				throw new HoudiniError({
@@ -280,7 +282,6 @@ class FieldCollection {
 			fragmentDefinitions: this.fragmentDefinitions,
 			selections: [],
 			filepath: this.filepath,
-			applyFragments: this.applyFragments,
 			ignoreMaskDisable: this.ignoreMaskDisable,
 		})
 	}

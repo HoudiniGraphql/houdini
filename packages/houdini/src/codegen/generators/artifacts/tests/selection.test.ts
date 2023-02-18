@@ -38,7 +38,6 @@ test('fragments of unions inject correctly', function () {
 		)!.selectionSet.selections,
 		fragmentDefinitions,
 		ignoreMaskDisable: true,
-		applyFragments: true,
 	})
 
 	const artifactSelection = selection({
