@@ -8,7 +8,7 @@ export const fetch = (target?: RequestHandler | string): ClientPlugin => {
 			async network(ctx, { client, initialValue, resolve, marshalVariables }) {
 				// there is no fetch for a fragment
 				if (ctx.artifact.kind === ArtifactKind.Fragment) {
-					resolve(ctx, initialValue)
+					return resolve(ctx, initialValue)
 				}
 
 				// figure out which fetch to use
