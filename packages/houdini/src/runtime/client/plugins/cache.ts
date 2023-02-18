@@ -3,6 +3,8 @@ import { Cache } from '../../cache/cache'
 import { ArtifactKind, CachePolicy, DataSource } from '../../lib/types'
 import type { ClientPlugin } from '../documentStore'
 
+const serverSide = typeof globalThis.window === 'undefined'
+
 export const cachePolicy =
 	({
 		enabled,
@@ -103,7 +105,7 @@ export const cachePolicy =
 					!ctx.cacheParams?.disableWrite
 				) {
 					const targetCache =
-						typeof globalThis.window === 'undefined' && serverSideFallback
+						serverSide && serverSideFallback
 							? new Cache({ disabled: false })
 							: localCache
 
@@ -126,6 +128,7 @@ export const cachePolicy =
 						data: targetCache.read({
 							selection: ctx.artifact.selection,
 							variables: marshalVariables(ctx),
+							ignoreMasking: serverSide,
 						}).data,
 					}
 				}

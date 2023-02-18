@@ -35,7 +35,7 @@ export class FragmentStore<_Data extends GraphQLObject, _Input = {}> {
 
 		// on the client, we want to ensure that we apply masking to the initial value by
 		// loading the value from cache
-		if (initialValue && parentID) {
+		if (initialValue && parentID && typeof globalThis.window !== 'undefined') {
 			initialValue = cache.read({
 				selection: this.artifact.selection,
 				parent: parentID,

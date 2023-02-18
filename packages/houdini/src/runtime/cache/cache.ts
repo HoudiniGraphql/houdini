@@ -774,11 +774,13 @@ class CacheInternal {
 		parent = rootID,
 		variables,
 		stepsFromConnection = null,
+		ignoreMasking,
 	}: {
 		selection: SubscriptionSelection
 		parent?: string
 		variables?: {}
 		stepsFromConnection?: number | null
+		ignoreMasking?: boolean
 	}): { data: GraphQLObject | null; partial: boolean; stale: boolean; hasData: boolean } {
 		// we could be asking for values of null
 		if (parent === null) {
@@ -818,7 +820,7 @@ class CacheInternal {
 			{ type, keyRaw, selection: fieldSelection, nullable, list, visible },
 		] of Object.entries(targetSelection)) {
 			// skip masked fields when reading values
-			if (!visible) {
+			if (!visible && !ignoreMasking) {
 				continue
 			}
 
@@ -926,6 +928,7 @@ class CacheInternal {
 					selection: fieldSelection,
 					variables,
 					stepsFromConnection: nextStep,
+					ignoreMasking,
 				})
 
 				// save the object value
@@ -995,11 +998,13 @@ class CacheInternal {
 		variables,
 		linkedList,
 		stepsFromConnection,
+		ignoreMasking,
 	}: {
 		fields: SubscriptionSelection
 		variables?: {}
 		linkedList: NestedList
 		stepsFromConnection: number | null
+		ignoreMasking?: boolean
 	}): { data: NestedList<GraphQLValue>; partial: boolean; stale: boolean; hasData: boolean } {
 		// the linked list could be a deeply nested thing, we need to call getData for each record
 		// we can't mutate the lists because that would change the id references in the listLinks map
@@ -1017,6 +1022,7 @@ class CacheInternal {
 					variables,
 					linkedList: entry,
 					stepsFromConnection,
+					ignoreMasking,
 				})
 				result.push(nestedValue.data)
 				if (nestedValue.partial) {
@@ -1042,6 +1048,7 @@ class CacheInternal {
 				selection: fields,
 				variables,
 				stepsFromConnection,
+				ignoreMasking,
 			})
 
 			result.push(data)
