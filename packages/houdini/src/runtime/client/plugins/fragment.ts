@@ -55,9 +55,10 @@ export const fragment: ClientPlugin = documentPlugin(ArtifactKind.Fragment, func
 			next(ctx)
 		},
 
-		// there are no network requests that get sent. send() always returns the initial value
-		network(ctx, { resolve, initialValue }) {
-			resolve(ctx, initialValue)
+		cleanup() {
+			if (subscriptionSpec) {
+				cache.unsubscribe(subscriptionSpec, subscriptionSpec.variables?.())
+			}
 		},
 	}
 })

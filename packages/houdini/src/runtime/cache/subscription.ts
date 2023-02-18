@@ -50,7 +50,17 @@ export class InMemorySubscriptions {
 
 		// walk down the selection
 		for (const fieldSelection of Object.values(targetSelection || {})) {
-			const { keyRaw, selection: innerSelection, type, list, filters } = fieldSelection
+			const {
+				keyRaw,
+				selection: innerSelection,
+				type,
+				list,
+				filters,
+				visible,
+			} = fieldSelection
+			if (!visible) {
+				continue
+			}
 
 			const key = evaluateKey(keyRaw, variables)
 
