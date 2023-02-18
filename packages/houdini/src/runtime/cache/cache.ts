@@ -4,12 +4,15 @@ import { computeID, defaultConfigValues, keyFieldsForType } from '../lib/config'
 import { deepEquals } from '../lib/deepEquals'
 import { flatten } from '../lib/flatten'
 import { getFieldsForType } from '../lib/selection'
-import type {
+import {
+	fragmentKey,
 	GraphQLObject,
 	GraphQLValue,
 	NestedList,
 	SubscriptionSelection,
 	SubscriptionSpec,
+	ValueMap,
+	ValueNode,
 } from '../lib/types'
 import { GarbageCollector } from './gc'
 import type { ListCollection } from './lists'
@@ -27,7 +30,7 @@ export class Cache {
 	// label accomplishes this but would not prevent someone using vanilla js
 	_internal_unstable: CacheInternal
 
-	constructor(config?: ConfigFile) {
+	constructor(config?: ConfigFile & { disabled?: boolean }) {
 		this._internal_unstable = new CacheInternal({
 			cache: this,
 			storage: new InMemoryStorage(),
@@ -36,6 +39,7 @@ export class Cache {
 			lifetimes: new GarbageCollector(this),
 			staleManager: new StaleManager(this),
 			schema: new SchemaManager(this),
+			disabled: config?.disabled ?? typeof globalThis.window === 'undefined',
 		})
 
 		if (config) {
@@ -216,6 +220,7 @@ class CacheInternal {
 		lifetimes,
 		staleManager,
 		schema,
+		disabled,
 	}: {
 		storage: InMemoryStorage
 		subscriptions: InMemorySubscriptions
@@ -224,6 +229,7 @@ class CacheInternal {
 		lifetimes: GarbageCollector
 		staleManager: StaleManager
 		schema: SchemaManager
+		disabled: boolean
 	}) {
 		this.storage = storage
 		this.subscriptions = subscriptions
@@ -234,7 +240,7 @@ class CacheInternal {
 		this.schema = schema
 
 		// the cache should always be disabled on the server, unless we're testing
-		this._disabled = typeof globalThis.window === 'undefined'
+		this._disabled = disabled
 		try {
 			if (process.env.HOUDINI_TEST === 'true') {
 				this._disabled = false
@@ -780,6 +786,14 @@ class CacheInternal {
 		}
 
 		const target = {} as GraphQLObject
+		if (selection.fragments) {
+			target[fragmentKey] = Object.fromEntries(
+				Object.entries(selection.fragments).map(([key, value]) => [
+					key,
+					evaluateFragmentVariables(value, variables ?? {}),
+				])
+			)
+		}
 
 		// we need to track if we have a partial data set which means we have _something_ but not everything
 		let hasData = false
@@ -1180,6 +1194,49 @@ class CacheInternal {
 		if (this.storage.layerCount === 1) {
 			this.storage.topLayer.removeUndefinedFields()
 		}
+	}
+}
+
+export function evaluateFragmentVariables(variables: ValueMap, args: GraphQLObject) {
+	return Object.fromEntries(
+		Object.entries(variables).map(([key, value]) => [key, fragmentVariableValue(value, args)])
+	)
+}
+
+function fragmentVariableValue(value: ValueNode, args: GraphQLObject): GraphQLValue {
+	if (value.kind === 'StringValue') {
+		return value.value
+	}
+	if (value.kind === 'BooleanValue') {
+		return value.value
+	}
+	if (value.kind === 'EnumValue') {
+		return value.value
+	}
+	if (value.kind === 'FloatValue') {
+		return parseFloat(value.value)
+	}
+	if (value.kind === 'IntValue') {
+		return parseInt(value.value, 10)
+	}
+	if (value.kind === 'NullValue') {
+		return null
+	}
+	if (value.kind === 'Variable') {
+		return args[value.name.value]
+	}
+	if (value.kind === 'ListValue') {
+		return value.values.map((value) => fragmentVariableValue(value, args))
+	}
+
+	if (value.kind === 'ObjectValue') {
+		return value.fields.reduce(
+			(obj, field) => ({
+				...obj,
+				[field.name.value]: fragmentVariableValue(field.value, args),
+			}),
+			{}
+		)
 	}
 }
 

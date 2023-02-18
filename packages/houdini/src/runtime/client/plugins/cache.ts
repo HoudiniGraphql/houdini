@@ -1,5 +1,5 @@
 import cache from '../../cache'
-import type { Cache } from '../../cache/cache'
+import { Cache } from '../../cache/cache'
 import { ArtifactKind, CachePolicy, DataSource } from '../../lib/types'
 import type { ClientPlugin } from '../documentStore'
 
@@ -8,10 +8,12 @@ export const cachePolicy =
 		enabled,
 		setFetching,
 		cache: localCache = cache,
+		serverSideFallback = true,
 	}: {
 		enabled: boolean
 		setFetching: (val: boolean) => void
 		cache?: Cache
+		serverSideFallback?: boolean
 	}): ClientPlugin =>
 	() => {
 		return {
@@ -100,14 +102,32 @@ export const cachePolicy =
 					value.data &&
 					!ctx.cacheParams?.disableWrite
 				) {
+					const targetCache =
+						typeof globalThis.window === 'undefined' && serverSideFallback
+							? new Cache({ disabled: false })
+							: localCache
+
 					// write the result of the mutation to the cache
-					localCache.write({
+					targetCache.write({
 						...ctx.cacheParams,
 						layer: ctx.cacheParams?.layer?.id,
 						selection: ctx.artifact.selection,
 						data: value.data,
 						variables: marshalVariables(ctx),
 					})
+
+					// we need to embed the fragment context values in our response
+					// and apply masking other value transforms. In order to do that,
+					// we're goin to read back what we just wrote. This only incurs
+					// extra computation on the server-side since we have to write the values
+					// before we can read them (instead of just transforming the value directly)
+					value = {
+						...value,
+						data: targetCache.read({
+							selection: ctx.artifact.selection,
+							variables: marshalVariables(ctx),
+						}).data,
+					}
 				}
 
 				// we're done. don't change the result value

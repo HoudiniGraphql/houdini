@@ -115,7 +115,7 @@ describe('typescript', function () {
 
 			export type TestFragment = {
 			    readonly "shape"?: TestFragment$data;
-			    readonly "$fragments": {
+			    readonly " $fragments": {
 			        "TestFragment": true;
 			    };
 			};
@@ -152,7 +152,7 @@ describe('typescript', function () {
 
 			export type TestFragment = {
 			    readonly "shape"?: TestFragment$data;
-			    readonly "$fragments": {
+			    readonly " $fragments": {
 			        "TestFragment": true;
 			    };
 			};
@@ -189,7 +189,7 @@ describe('typescript', function () {
 
 			export type TestFragment = {
 			    readonly "shape"?: TestFragment$data;
-			    readonly "$fragments": {
+			    readonly " $fragments": {
 			        "TestFragment": true;
 			    };
 			};
@@ -222,7 +222,7 @@ describe('typescript', function () {
 		).toMatchInlineSnapshot(`
 			export type TestFragment = {
 			    readonly "shape"?: TestFragment$data;
-			    readonly "$fragments": {
+			    readonly " $fragments": {
 			        "TestFragment": true;
 			    };
 			};
@@ -256,7 +256,7 @@ describe('typescript', function () {
 		).toMatchInlineSnapshot(`
 			export type TestFragment = {
 			    readonly "shape"?: TestFragment$data;
-			    readonly "$fragments": {
+			    readonly " $fragments": {
 			        "TestFragment": true;
 			    };
 			};
@@ -291,7 +291,7 @@ describe('typescript', function () {
 		).toMatchInlineSnapshot(`
 			export type TestFragment = {
 			    readonly "shape"?: TestFragment$data;
-			    readonly "$fragments": {
+			    readonly " $fragments": {
 			        "TestFragment": true;
 			    };
 			};
@@ -581,8 +581,8 @@ describe('typescript', function () {
 			export type MyMutation$result = {
 			    readonly doThing: {
 			        readonly firstName: string;
-			        readonly $fragments: {
-			            TestFragment: true;
+			        readonly  $fragments: {
+			            TestFragment: {};
 			        };
 			    } | null;
 			};
@@ -700,8 +700,8 @@ describe('typescript', function () {
 
 			export type MyQuery$result = {
 			    readonly user: {
-			        readonly $fragments: {
-			            Foo: true;
+			        readonly  $fragments: {
+			            Foo: {};
 			        };
 			    } | null;
 			};
@@ -739,8 +739,8 @@ describe('typescript', function () {
 			export type MyQuery$result = {
 			    readonly user: {
 			        readonly firstName: string;
-			        readonly $fragments: {
-			            Foo: true;
+			        readonly  $fragments: {
+			            Foo: {};
 			        };
 			    };
 			};
@@ -1217,9 +1217,9 @@ describe('typescript', function () {
 			export type MyMutation$result = {
 			    readonly doThing: {
 			        readonly id: string;
-			        readonly $fragments: {
-			            My_Users_remove: true;
-			            My_Users_insert: true;
+			        readonly  $fragments: {
+			            My_Users_remove: {};
+			            My_Users_insert: {};
 			        };
 			    } | null;
 			};
@@ -1314,13 +1314,13 @@ describe('typescript', function () {
 			        readonly friends: ({
 			            readonly id: string;
 			            readonly firstName: string;
-			            readonly $fragments: {
-			                UserBase: true;
+			            readonly  $fragments: {
+			                UserBase: {};
 			            };
 			        } | null)[] | null;
-			        readonly $fragments: {
-			            UserBase: true;
-			            UserMore: true;
+			        readonly  $fragments: {
+			            UserBase: {};
+			            UserMore: {};
 			        };
 			    } | null;
 			};
@@ -1383,9 +1383,9 @@ describe('typescript', function () {
 			    readonly user: {
 			        readonly id: string;
 			        readonly firstName: string;
-			        readonly $fragments: {
-			            UserBase: true;
-			            UserMore: true;
+			        readonly  $fragments: {
+			            UserBase: {};
+			            UserMore: {};
 			        };
 			    } | null;
 			};
@@ -1400,15 +1400,15 @@ describe('typescript', function () {
 		).toMatchInlineSnapshot(`
 			export type UserMore = {
 			    readonly "shape"?: UserMore$data;
-			    readonly "$fragments": {
+			    readonly " $fragments": {
 			        "UserMore": true;
 			    };
 			};
 
 			export type UserMore$data = {
 			    readonly friends: ({
-			        readonly $fragments: {
-			            UserBase: true;
+			        readonly  $fragments: {
+			            UserBase: {};
 			        };
 			    } | null)[] | null;
 			};
@@ -1470,13 +1470,13 @@ describe('typescript', function () {
 			        readonly friends: ({
 			            readonly id: string;
 			            readonly firstName: string;
-			            readonly $fragments: {
-			                UserBase: true;
+			            readonly  $fragments: {
+			                UserBase: {};
 			            };
 			        } | null)[] | null;
-			        readonly $fragments: {
-			            UserBase: true;
-			            UserMore: true;
+			        readonly  $fragments: {
+			            UserBase: {};
+			            UserMore: {};
 			        };
 			    } | null;
 			};
@@ -1491,7 +1491,7 @@ describe('typescript', function () {
 		).toMatchInlineSnapshot(`
 			export type UserMore = {
 			    readonly "shape"?: UserMore$data;
-			    readonly "$fragments": {
+			    readonly " $fragments": {
 			        "UserMore": true;
 			    };
 			};
@@ -1500,8 +1500,8 @@ describe('typescript', function () {
 			    readonly friends: ({
 			        readonly id: string;
 			        readonly firstName: string;
-			        readonly $fragments: {
-			            UserBase: true;
+			        readonly  $fragments: {
+			            UserBase: {};
 			        };
 			    } | null)[] | null;
 			};

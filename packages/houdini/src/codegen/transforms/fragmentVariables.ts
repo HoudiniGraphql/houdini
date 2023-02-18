@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
 
-import type { Config, Document } from '../../lib'
+import type { Config, Document, ValueMap } from '../../lib'
 import { HoudiniError, ArtifactKind } from '../../lib'
 import { murmurHash } from '../utils'
 import type { FragmentDependency } from './composeQueries'
@@ -70,8 +70,6 @@ export default async function fragmentVariables(
 	})
 }
 
-type ValueMap = Record<string, graphql.ValueNode>
-
 export function inlineFragmentArgs({
 	config,
 	filepath,
@@ -121,6 +119,11 @@ export function inlineFragmentArgs({
 
 			// generate a fragment name based on the arguments passed
 			const newFragmentName = `${node.name.value}${hash}`
+			config.registerFragmentVariablesHash({
+				hash: newFragmentName,
+				fragment: node.name.value,
+				args,
+			})
 
 			// if we haven't handled the referenced fragment
 			if (!visitedFragments.has(newFragmentName)) {

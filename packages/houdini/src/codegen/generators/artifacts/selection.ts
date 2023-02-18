@@ -289,6 +289,25 @@ export default function selection({
 					document,
 					inConnection: connectionState,
 				})
+
+				// if the field has any fragment spreads in it, we need to record that
+				if (field.selectionSet) {
+					const fragmentSpreads = field.selectionSet.selections.filter(
+						(selection): selection is graphql.FragmentSpreadNode =>
+							selection.kind === 'FragmentSpread'
+					)
+					if (fragmentSpreads.length > 0) {
+						fieldObj.selection.fragments = fragmentSpreads.reduce((spreads, spread) => {
+							const { fragment, args } = config.getFragmentVariablesHash(
+								spread.name.value
+							)
+							return {
+								...spreads,
+								[fragment]: args ?? {},
+							}
+						}, {})
+					}
+				}
 			}
 
 			// any arguments on the list field can act as a filter
@@ -305,22 +324,6 @@ export default function selection({
 			// if we are looking at an interface
 			if (graphql.isInterfaceType(fieldType) || graphql.isUnionType(fieldType)) {
 				fieldObj.abstract = true
-			}
-
-			// if the field has any fragment spreads in it, we need to record that
-			if (field.selectionSet) {
-				const fragmentSpreads = field.selectionSet.selections.filter(
-					(selection): selection is graphql.FragmentSpreadNode =>
-						selection.kind === 'FragmentSpread'
-				)
-				if (fragmentSpreads.length > 0) {
-					fieldObj.fragments = fragmentSpreads.reduce((spreads, spread) => {
-						return {
-							...spreads,
-							[spread.name.value]: {},
-						}
-					}, {})
-				}
 			}
 
 			// add the field data we computed

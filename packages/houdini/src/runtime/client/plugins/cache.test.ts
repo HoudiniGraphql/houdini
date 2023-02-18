@@ -23,9 +23,10 @@ test('NetworkOnly', async function () {
 
 	const store = createStore([
 		cachePolicy({
+			serverSideFallback: false,
 			enabled: true,
 			setFetching: spy,
-			cache: new Cache(config),
+			cache: new Cache({ ...config, disabled: false }),
 		}),
 		fakeFetch({}),
 	])
@@ -72,9 +73,10 @@ test('CacheOrNetwork', async function () {
 
 	const store = createStore([
 		cachePolicy({
+			serverSideFallback: false,
 			enabled: true,
 			setFetching: spy,
-			cache: new Cache(config),
+			cache: new Cache({ ...config, disabled: false }),
 		}),
 		fakeFetch({}),
 	])
@@ -121,9 +123,10 @@ test('CacheOnly', async function () {
 
 	const store = createStore([
 		cachePolicy({
+			serverSideFallback: false,
 			enabled: true,
 			setFetching: spy,
-			cache: new Cache(config),
+			cache: new Cache({ ...config, disabled: false }),
 		}),
 		fakeFetch({}),
 	])
@@ -184,10 +187,11 @@ test('stale', async function () {
 	const setFetching = vi.fn()
 	const fn = vi.fn()
 
-	const cache = new Cache(config)
+	const cache = new Cache({ ...config, disabled: false })
 
 	const store = createStore([
 		cachePolicy({
+			serverSideFallback: false,
 			enabled: true,
 			setFetching,
 			cache,

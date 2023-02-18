@@ -1791,3 +1791,193 @@ test('does not show visible fields', function () {
 		},
 	})
 })
+
+test('recreates fragment references', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				nullable: true,
+				selection: {
+					fragments: {
+						TestFragment: {
+							value: {
+								kind: 'StringValue',
+								value: 'hello!',
+							},
+						},
+					},
+					fields: {
+						id: {
+							keyRaw: 'id',
+							type: 'String',
+							visible: true,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// write the user data without the nested value
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+			},
+		},
+	})
+
+	expect(
+		cache.read({
+			selection,
+		})
+	).toEqual({
+		partial: false,
+		stale: false,
+		data: {
+			viewer: {
+				id: '1',
+				' $fragments': {
+					TestFragment: {
+						value: 'hello!',
+					},
+				},
+			},
+		},
+	})
+})
+
+test('recreates fragment references on root', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fragments: {
+			TestFragment: {
+				value: {
+					kind: 'StringValue',
+					value: 'hello!',
+				},
+			},
+		},
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				nullable: true,
+				selection: {
+					fields: {
+						id: {
+							keyRaw: 'id',
+							type: 'String',
+							visible: true,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// write the user data without the nested value
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+			},
+		},
+	})
+
+	expect(
+		cache.read({
+			selection,
+		})
+	).toEqual({
+		partial: false,
+		stale: false,
+		data: {
+			viewer: {
+				id: '1',
+			},
+			' $fragments': {
+				TestFragment: {
+					value: 'hello!',
+				},
+			},
+		},
+	})
+})
+
+test('recreates fragment references with variables', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				nullable: true,
+				selection: {
+					fragments: {
+						TestFragment: {
+							value: {
+								kind: 'Variable',
+								name: {
+									kind: 'Name',
+									value: 'my-variable',
+								},
+							},
+						},
+					},
+					fields: {
+						id: {
+							keyRaw: 'id',
+							type: 'String',
+							visible: true,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// write the user data without the nested value
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+			},
+		},
+	})
+
+	expect(
+		cache.read({
+			selection,
+			variables: { 'my-variable': 'hello!' },
+		})
+	).toEqual({
+		partial: false,
+		stale: false,
+		data: {
+			viewer: {
+				' $fragments': {
+					TestFragment: {
+						value: 'hello!',
+					},
+				},
+				id: '1',
+			},
+		},
+	})
+})

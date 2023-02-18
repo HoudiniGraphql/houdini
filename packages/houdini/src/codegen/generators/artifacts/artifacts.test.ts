@@ -146,11 +146,11 @@ test('selection includes fragments', async function () {
 		                            "keyRaw": "id",
 		                            "visible": true
 		                        }
-		                    }
-		                },
+		                    },
 
-		                "fragments": {
-		                    "TestFragment": {}
+		                    "fragments": {
+		                        "TestFragment": {}
+		                    }
 		                },
 
 		                "visible": true
@@ -244,11 +244,11 @@ test('internal directives are scrubbed', async function () {
 		                            "keyRaw": "id",
 		                            "visible": true
 		                        }
-		                    }
-		                },
+		                    },
 
-		                "fragments": {
-		                    "A": {}
+		                    "fragments": {
+		                        "A": {}
+		                    }
 		                },
 
 		                "visible": true
@@ -319,11 +319,11 @@ test('variables only used by internal directives are scrubbed', async function (
 		                            "keyRaw": "id",
 		                            "visible": true
 		                        }
-		                    }
-		                },
+		                    },
 
-		                "fragments": {
-		                    "A": {}
+		                    "fragments": {
+		                        "A": {}
+		                    }
 		                },
 
 		                "visible": true
@@ -399,11 +399,11 @@ test('overlapping query and fragment selection', async function () {
 		                            "keyRaw": "id",
 		                            "visible": true
 		                        }
-		                    }
-		                },
+		                    },
 
-		                "fragments": {
-		                    "A": {}
+		                    "fragments": {
+		                        "A": {}
+		                    }
 		                },
 
 		                "visible": true
@@ -840,15 +840,14 @@ test('overlapping query and fragment nested selection', async function () {
 		                                }
 		                            }
 		                        }
+		                    },
+
+		                    "fragments": {
+		                        "A": {}
 		                    }
 		                },
 
 		                "abstract": true,
-
-		                "fragments": {
-		                    "A": {}
-		                },
-
 		                "visible": true
 		            }
 		        }
@@ -1776,11 +1775,11 @@ describe('mutation artifacts', function () {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName"
 			                                    }
-			                                }
-			                            },
+			                                },
 
-			                            "fragments": {
-			                                "All_Users_insert": {}
+			                                "fragments": {
+			                                    "All_Users_insert": {}
+			                                }
 			                            },
 
 			                            "visible": true
@@ -1877,11 +1876,11 @@ describe('mutation artifacts', function () {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName"
 			                                    }
-			                                }
-			                            },
+			                                },
 
-			                            "fragments": {
-			                                "All_Users_insert": {}
+			                                "fragments": {
+			                                    "All_Users_insert": {}
+			                                }
 			                            },
 
 			                            "visible": true
@@ -1982,11 +1981,11 @@ describe('mutation artifacts', function () {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName"
 			                                    }
-			                                }
-			                            },
+			                                },
 
-			                            "fragments": {
-			                                "All_Users_insert": {}
+			                                "fragments": {
+			                                    "All_Users_insert": {}
+			                                }
 			                            },
 
 			                            "visible": true
@@ -2086,11 +2085,11 @@ describe('mutation artifacts', function () {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName"
 			                                    }
-			                                }
-			                            },
+			                                },
 
-			                            "fragments": {
-			                                "All_Users_insert": {}
+			                                "fragments": {
+			                                    "All_Users_insert": {}
+			                                }
 			                            },
 
 			                            "visible": true
@@ -2187,11 +2186,11 @@ describe('mutation artifacts', function () {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName"
 			                                    }
-			                                }
-			                            },
+			                                },
 
-			                            "fragments": {
-			                                "All_Users_toggle": {}
+			                                "fragments": {
+			                                    "All_Users_toggle": {}
+			                                }
 			                            },
 
 			                            "visible": true
@@ -2281,11 +2280,11 @@ describe('mutation artifacts', function () {
 			                                        "keyRaw": "id",
 			                                        "visible": true
 			                                    }
-			                                }
-			                            },
+			                                },
 
-			                            "fragments": {
-			                                "All_Users_remove": {}
+			                                "fragments": {
+			                                    "All_Users_remove": {}
+			                                }
 			                            },
 
 			                            "visible": true
@@ -2535,11 +2534,11 @@ describe('mutation artifacts', function () {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName"
 			                                    }
-			                                }
-			                            },
+			                                },
 
-			                            "fragments": {
-			                                "All_Users_insert": {}
+			                                "fragments": {
+			                                    "All_Users_insert": {}
+			                                }
 			                            },
 
 			                            "visible": true
@@ -2641,11 +2640,11 @@ describe('mutation artifacts', function () {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName"
 			                                    }
-			                                }
-			                            },
+			                                },
 
-			                            "fragments": {
-			                                "All_Users_insert": {}
+			                                "fragments": {
+			                                    "All_Users_insert": {}
+			                                }
 			                            },
 
 			                            "visible": true
@@ -2747,11 +2746,11 @@ describe('mutation artifacts', function () {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName"
 			                                    }
-			                                }
-			                            },
+			                                },
 
-			                            "fragments": {
-			                                "All_Users_insert": {}
+			                                "fragments": {
+			                                    "All_Users_insert": {}
+			                                }
 			                            },
 
 			                            "visible": true
@@ -2854,11 +2853,11 @@ describe('mutation artifacts', function () {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName"
 			                                    }
-			                                }
-			                            },
+			                                },
 
-			                            "fragments": {
-			                                "All_Users_insert": {}
+			                                "fragments": {
+			                                    "All_Users_insert": {}
+			                                }
 			                            },
 
 			                            "visible": true
@@ -2961,11 +2960,11 @@ describe('mutation artifacts', function () {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName"
 			                                    }
-			                                }
-			                            },
+			                                },
 
-			                            "fragments": {
-			                                "All_Users_insert": {}
+			                                "fragments": {
+			                                    "All_Users_insert": {}
+			                                }
 			                            },
 
 			                            "visible": true
@@ -3068,11 +3067,11 @@ describe('mutation artifacts', function () {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName"
 			                                    }
-			                                }
-			                            },
+			                                },
 
-			                            "fragments": {
-			                                "All_Users_insert": {}
+			                                "fragments": {
+			                                    "All_Users_insert": {}
+			                                }
 			                            },
 
 			                            "visible": true
@@ -3175,11 +3174,11 @@ describe('mutation artifacts', function () {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName"
 			                                    }
-			                                }
-			                            },
+			                                },
 
-			                            "fragments": {
-			                                "All_Users_insert": {}
+			                                "fragments": {
+			                                    "All_Users_insert": {}
+			                                }
 			                            },
 
 			                            "visible": true
@@ -3282,11 +3281,11 @@ describe('mutation artifacts', function () {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName"
 			                                    }
-			                                }
-			                            },
+			                                },
 
-			                            "fragments": {
-			                                "All_Users_insert": {}
+			                                "fragments": {
+			                                    "All_Users_insert": {}
+			                                }
 			                            },
 
 			                            "visible": true
@@ -3507,11 +3506,11 @@ describe('mutation artifacts', function () {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName"
 			                                    }
-			                                }
-			                            },
+			                                },
 
-			                            "fragments": {
-			                                "All_Users_insert": {}
+			                                "fragments": {
+			                                    "All_Users_insert": {}
+			                                }
 			                            },
 
 			                            "visible": true
@@ -4509,6 +4508,11 @@ test('nested recursive fragments', async function () {
 		                        "__typename": {
 		                            "type": "String",
 		                            "keyRaw": "__typename"
+		                        },
+
+		                        "name": {
+		                            "type": "String",
+		                            "keyRaw": "name"
 		                        }
 		                    },
 
@@ -4534,15 +4538,15 @@ test('nested recursive fragments', async function () {
 		                        },
 
 		                        "typeMap": {}
+		                    },
+
+		                    "fragments": {
+		                        "NodeDetails": {},
+		                        "UserThings": {}
 		                    }
 		                },
 
 		                "abstract": true,
-
-		                "fragments": {
-		                    "NodeDetails": {}
-		                },
-
 		                "visible": true
 		            }
 		        }
@@ -4566,19 +4570,7 @@ test('leave @include and @skip alone', async function () {
 					id @skip(if: true)
 
 					...NodeDetails @include(if:true)
-
-					... on User {
-						...UserThings
-					}
 				}
-			}
-		`),
-		mockCollectedDoc(`
-			fragment UserThings on User {
-				id
-				name
-
-				...NodeDetails
 			}
 		`),
 		mockCollectedDoc(`
@@ -4598,15 +4590,12 @@ test('leave @include and @skip alone', async function () {
 		export default {
 		    "name": "MyAnimalQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "f9b92afffa2f1293ef0f6bc9dab29194e0b9232e6f7a9acd0a435c7a4dc05cb2",
+		    "hash": "45c8890ba76a34c30028cbaa75e8ba78ca8884a3651a5c1f77d103969eff5855",
 
 		    "raw": \`query MyAnimalQuery {
 		  node(id: "some_id") {
 		    id @skip(if: true)
 		    ...NodeDetails @include(if: true)
-		    ... on User {
-		      ...UserThings
-		    }
 		    __typename
 		  }
 		}
@@ -4616,12 +4605,6 @@ test('leave @include and @skip alone', async function () {
 		  ... on User {
 		    id
 		  }
-		}
-
-		fragment UserThings on User {
-		  id
-		  name
-		  ...NodeDetails
 		}
 		\`,
 
@@ -4657,11 +4640,6 @@ test('leave @include and @skip alone', async function () {
 		                                    "visible": true
 		                                },
 
-		                                "name": {
-		                                    "type": "String",
-		                                    "keyRaw": "name"
-		                                },
-
 		                                "__typename": {
 		                                    "type": "String",
 		                                    "keyRaw": "__typename"
@@ -4670,15 +4648,14 @@ test('leave @include and @skip alone', async function () {
 		                        },
 
 		                        "typeMap": {}
+		                    },
+
+		                    "fragments": {
+		                        "NodeDetails": {}
 		                    }
 		                },
 
 		                "abstract": true,
-
-		                "fragments": {
-		                    "NodeDetails": {}
-		                },
-
 		                "visible": true
 		            }
 		        }
@@ -4689,7 +4666,7 @@ test('leave @include and @skip alone', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=f9b92afffa2f1293ef0f6bc9dab29194e0b9232e6f7a9acd0a435c7a4dc05cb2";
+		"HoudiniHash=45c8890ba76a34c30028cbaa75e8ba78ca8884a3651a5c1f77d103969eff5855";
 	`)
 })
 
@@ -4699,7 +4676,7 @@ test('fragment references are embedded in artifact', async function () {
 		mockCollectedDoc(`
 			query MyAnimalQuery {
 				node(id: "some_id") {
-					id 
+					id
 
 					...NodeDetails
 
@@ -4723,7 +4700,7 @@ test('fragment references are embedded in artifact', async function () {
 		export default {
 		    "name": "MyAnimalQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "e3e82f3f7b385857b19771106474633d225d241dd7b1ce6799581fb84e73d7e4",
+		    "hash": "3756d5c29fa6c05ef3636a9ccaf165e6f7800cc5d91d7faf40f51c8bb1a73f57",
 
 		    "raw": \`query MyAnimalQuery {
 		  node(id: "some_id") {
@@ -4781,15 +4758,14 @@ test('fragment references are embedded in artifact', async function () {
 		                        },
 
 		                        "typeMap": {}
+		                    },
+
+		                    "fragments": {
+		                        "NodeDetails": {}
 		                    }
 		                },
 
 		                "abstract": true,
-
-		                "fragments": {
-		                    "NodeDetails": {}
-		                },
-
 		                "visible": true
 		            }
 		        }
@@ -4800,7 +4776,7 @@ test('fragment references are embedded in artifact', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=e3e82f3f7b385857b19771106474633d225d241dd7b1ce6799581fb84e73d7e4";
+		"HoudiniHash=3756d5c29fa6c05ef3636a9ccaf165e6f7800cc5d91d7faf40f51c8bb1a73f57";
 	`)
 })
 
@@ -4810,7 +4786,7 @@ test('fragment variables are embedded in artifact', async function () {
 		mockCollectedDoc(`
 			query MyAnimalQuery {
 				node(id: "some_id") {
-					id 
+					id
 
 					...NodeDetails @with(name: "Foo")
 
@@ -4832,7 +4808,7 @@ test('fragment variables are embedded in artifact', async function () {
 		export default {
 		    "name": "MyAnimalQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "bd88451df4b5053cd2133ffd76182627003d5d1381c266344ba2b966f8ac1e11",
+		    "hash": "4d99b02b23912f16dadbfed535b986d022fb0fb604e3a2155c443b3de92ad6f7",
 
 		    "raw": \`query MyAnimalQuery {
 		  node(id: "some_id") {
@@ -4895,15 +4871,20 @@ test('fragment variables are embedded in artifact', async function () {
 		                            "type": "String",
 		                            "keyRaw": "__typename"
 		                        }
+		                    },
+
+		                    "fragments": {
+		                        "NodeDetails": {
+		                            "name": {
+		                                "kind": "StringValue",
+		                                "value": "Foo",
+		                                "block": false
+		                            }
+		                        }
 		                    }
 		                },
 
 		                "abstract": true,
-
-		                "fragments": {
-		                    "NodeDetails_32RKor": {}
-		                },
-
 		                "visible": true
 		            }
 		        }
@@ -4914,6 +4895,129 @@ test('fragment variables are embedded in artifact', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=bd88451df4b5053cd2133ffd76182627003d5d1381c266344ba2b966f8ac1e11";
+		"HoudiniHash=4d99b02b23912f16dadbfed535b986d022fb0fb604e3a2155c443b3de92ad6f7";
+	`)
+})
+
+test('fragment references in inline fragment', async function () {
+	// the documents to test
+	const docs: Document[] = [
+		mockCollectedDoc(`
+			query FragmentUpdateTestQuery($id: ID!) @load {
+				node(id: $id) {
+					... on User {
+						...UserFragmentTestFragment
+					}
+				}
+			}
+		`),
+		mockCollectedDoc(`
+			fragment UserFragmentTestFragment on User {
+				name
+			}
+		`),
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "FragmentUpdateTestQuery",
+		    "kind": "HoudiniQuery",
+		    "hash": "04aacf4e247cf38d5f9c588e4aa2a9f2a4ff2b1db84f2d4c7637a367a0d037fd",
+
+		    "raw": \`query FragmentUpdateTestQuery($id: ID!) {
+		  node(id: $id) {
+		    ... on User {
+		      ...UserFragmentTestFragment
+		    }
+		    id
+		    __typename
+		  }
+		}
+
+		fragment UserFragmentTestFragment on User {
+		  name
+		}
+		\`,
+
+		    "rootType": "Query",
+
+		    "selection": {
+		        "fields": {
+		            "node": {
+		                "type": "Node",
+		                "keyRaw": "node(id: $id)",
+		                "nullable": true,
+
+		                "selection": {
+		                    "abstractFields": {
+		                        "fields": {
+		                            "User": {
+		                                "name": {
+		                                    "type": "String",
+		                                    "keyRaw": "name"
+		                                },
+
+		                                "id": {
+		                                    "type": "ID",
+		                                    "keyRaw": "id",
+		                                    "visible": true
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename"
+		                                }
+		                            }
+		                        },
+
+		                        "typeMap": {}
+		                    },
+
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id",
+		                            "visible": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename"
+		                        },
+
+		                        "name": {
+		                            "type": "String",
+		                            "keyRaw": "name"
+		                        }
+		                    },
+
+		                    "fragments": {
+		                        "UserFragmentTestFragment": {}
+		                    }
+		                },
+
+		                "abstract": true,
+		                "visible": true
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+
+		    "input": {
+		        "fields": {
+		            "id": "ID"
+		        },
+
+		        "types": {}
+		    },
+
+		    "policy": "CacheOrNetwork",
+		    "partial": false
+		};
+
+		"HoudiniHash=04aacf4e247cf38d5f9c588e4aa2a9f2a4ff2b1db84f2d4c7637a367a0d037fd";
 	`)
 })

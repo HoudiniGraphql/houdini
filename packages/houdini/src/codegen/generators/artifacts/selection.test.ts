@@ -79,6 +79,9 @@ test('fragments of unions inject correctly', function () {
 		                        }
 		                    },
 		                    "typeMap": {}
+		                },
+		                "fragments": {
+		                    "EntityInfo": {}
 		                }
 		            },
 		            "abstract": true

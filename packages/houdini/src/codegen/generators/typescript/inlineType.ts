@@ -9,7 +9,7 @@ import { nullableField, readonlyProperty, scalarPropertyValue } from './types'
 
 const AST = recast.types.builders
 
-export const fragmentKey = '$fragments'
+export const fragmentKey = ' $fragments'
 
 export function inlineType({
 	config,
@@ -237,9 +237,7 @@ export function inlineType({
 								(fragmentSpreads || []).map((fragmentSpread) =>
 									AST.tsPropertySignature(
 										AST.identifier(fragmentSpread.name.value),
-										AST.tsTypeAnnotation(
-											AST.tsLiteralType(AST.booleanLiteral(true))
-										)
+										AST.tsTypeAnnotation(AST.tsTypeLiteral([]))
 									)
 								)
 							)

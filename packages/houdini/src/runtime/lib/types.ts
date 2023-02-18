@@ -157,6 +157,7 @@ export type GraphQLValue =
 	| undefined
 
 export type SubscriptionSelection = {
+	fragments?: Record<string, ValueMap>
 	fields?: {
 		[fieldName: string]: {
 			type: string
@@ -179,7 +180,6 @@ export type SubscriptionSelection = {
 			>
 			selection?: SubscriptionSelection
 			abstract?: boolean
-			fragments?: Record<string, GraphQLObject>
 		}
 	}
 	abstractFields?: {
@@ -228,3 +228,73 @@ export type RequestPayload<GraphQLObject = any> = {
 export type NestedList<_Result = string> = (_Result | null | NestedList<_Result>)[]
 
 export type ValueOf<Parent> = Parent[keyof Parent]
+
+export const fragmentKey = ' $fragments'
+
+export type ValueNode =
+	| VariableNode
+	| IntValueNode
+	| FloatValueNode
+	| StringValueNode
+	| BooleanValueNode
+	| NullValueNode
+	| EnumValueNode
+	| ListValueNode
+	| ObjectValueNode
+
+export type ValueMap = Record<string, ValueNode>
+
+interface IntValueNode {
+	readonly kind: 'IntValue'
+	readonly value: string
+}
+
+interface FloatValueNode {
+	readonly kind: 'FloatValue'
+	readonly value: string
+}
+
+interface StringValueNode {
+	readonly kind: 'StringValue'
+	readonly value: string
+}
+
+interface BooleanValueNode {
+	readonly kind: 'BooleanValue'
+	readonly value: boolean
+}
+
+interface NullValueNode {
+	readonly kind: 'NullValue'
+}
+
+interface EnumValueNode {
+	readonly kind: 'EnumValue'
+	readonly value: string
+}
+
+interface ListValueNode {
+	readonly kind: 'ListValue'
+	readonly values: ReadonlyArray<ValueNode>
+}
+
+interface ObjectValueNode {
+	readonly kind: 'ObjectValue'
+	readonly fields: ReadonlyArray<ObjectFieldNode>
+}
+
+interface ObjectFieldNode {
+	readonly kind: 'ObjectField'
+	readonly name: NameNode
+	readonly value: ValueNode
+}
+
+interface NameNode {
+	readonly kind: 'Name'
+	readonly value: string
+}
+
+interface VariableNode {
+	readonly kind: 'Variable'
+	readonly name: NameNode
+}

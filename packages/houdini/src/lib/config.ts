@@ -12,7 +12,7 @@ import * as fs from './fs'
 import { pullSchema } from './introspection'
 import * as path from './path'
 import { plugin } from './plugin'
-import type { LogLevels, PluginConfig, PluginHooks, PluginInit } from './types'
+import type { LogLevels, PluginConfig, PluginHooks, PluginInit, ValueMap } from './types'
 import { LogLevel } from './types'
 
 // @ts-ignore
@@ -129,6 +129,7 @@ export class Config {
 		this.schemaPollInterval = watchSchema?.interval ?? 2000
 		this.schemaPollHeaders = watchSchema?.headers ?? {}
 		this.rootDir = path.join(this.projectRoot, '$houdini')
+		this.#fragmentVariableMaps = {}
 
 		// hold onto the key config
 		if (defaultKeys) {
@@ -651,6 +652,28 @@ export class Config {
 		return (
 			!defaultDirectives.includes(name) &&
 			(internalDirectives.includes(name) || this.isDeleteDirective(name))
+		)
+	}
+
+	#fragmentVariableMaps: Record<string, { args: ValueMap | null; fragment: string }>
+	registerFragmentVariablesHash({
+		hash,
+		args,
+		fragment,
+	}: {
+		hash: string
+		args: ValueMap | null
+		fragment: string
+	}) {
+		this.#fragmentVariableMaps[hash] = { args, fragment }
+	}
+	getFragmentVariablesHash(hash: string) {
+		return (
+			this.#fragmentVariableMaps[hash] ?? {
+				fragment: hash,
+				args: {},
+				hash,
+			}
 		)
 	}
 

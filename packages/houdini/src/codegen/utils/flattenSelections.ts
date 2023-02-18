@@ -95,6 +95,12 @@ class FieldCollection {
 				this.fields[key].selection.add(subselect)
 			}
 
+			// the application of the fragment has been validated already so track it
+			// so we can recreate
+			this.fields[key].selection.fragmentSpreads = this.collectFragmentSpreads(
+				selection.selectionSet?.selections ?? []
+			)
+
 			// we're done
 			return
 		}
@@ -120,10 +126,6 @@ class FieldCollection {
 
 		// the only thing that's left is external fragment spreads
 		if (selection.kind === 'FragmentSpread') {
-			// the application of the fragment has been validated already so track it
-			// so we can recreate
-			this.fragmentSpreads[selection.name.value] = selection
-
 			// find whether to include fragment fields
 			let includeFragments = this.config.defaultFragmentMasking === 'disable'
 
@@ -177,6 +179,39 @@ class FieldCollection {
 				},
 			})
 		}
+	}
+
+	// collectFragmentSpreads pulls fragment spreads out of deeply nested inline fragments
+	collectFragmentSpreads(
+		selections: readonly graphql.SelectionNode[],
+		result: {
+			[fragmentName: string]: graphql.FragmentSpreadNode
+		} = {}
+	): {
+		[fragmentName: string]: graphql.FragmentSpreadNode
+	} {
+		// loop over the selection set
+		for (const selection of selections) {
+			// ignore any fields
+			if (selection.kind === 'Field') {
+				continue
+			}
+
+			// inline fragments should get looped over
+			if (selection.kind === 'InlineFragment') {
+				this.collectFragmentSpreads(selection.selectionSet.selections, result)
+				continue
+			}
+
+			// and fragment spreads should be added
+			if (selection.kind === 'FragmentSpread') {
+				result[selection.name.value] = selection
+				continue
+			}
+		}
+
+		// we're done
+		return result
 	}
 
 	toSelectionSet(): graphql.SelectionNode[] {

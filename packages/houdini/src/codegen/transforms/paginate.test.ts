@@ -649,6 +649,28 @@ test('embeds node pagination query as a separate document', async function () {
 		                                }
 		                            }
 		                        }
+		                    },
+
+		                    "fragments": {
+		                        "UserFriends": {
+		                            "first": {
+		                                "kind": "Variable",
+
+		                                "name": {
+		                                    "kind": "Name",
+		                                    "value": "first"
+		                                }
+		                            },
+
+		                            "after": {
+		                                "kind": "Variable",
+
+		                                "name": {
+		                                    "kind": "Name",
+		                                    "value": "after"
+		                                }
+		                            }
+		                        }
 		                    }
 		                },
 
@@ -868,6 +890,28 @@ test('embeds custom pagination query as a separate document', async function () 
 		                            "type": "String",
 		                            "keyRaw": "aka",
 		                            "visible": true
+		                        }
+		                    },
+
+		                    "fragments": {
+		                        "UserGhost": {
+		                            "first": {
+		                                "kind": "Variable",
+
+		                                "name": {
+		                                    "kind": "Name",
+		                                    "value": "first"
+		                                }
+		                            },
+
+		                            "after": {
+		                                "kind": "Variable",
+
+		                                "name": {
+		                                    "kind": "Name",
+		                                    "value": "after"
+		                                }
+		                            }
 		                        }
 		                    }
 		                },
@@ -1482,7 +1526,7 @@ test('generated query has same refetch spec', async function () {
 		                        "edges": {
 		                            "type": "UserEdge",
 		                            "keyRaw": "edges",
-		                            "updates": ["append", "prepend", "append", "prepend"],
+		                            "updates": ["append", "prepend"],
 
 		                            "selection": {
 		                                "fields": {
@@ -1524,25 +1568,25 @@ test('generated query has same refetch spec', async function () {
 		                                    "hasPreviousPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasPreviousPage",
-		                                        "updates": ["append", "prepend", "append", "prepend"]
+		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "hasNextPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasNextPage",
-		                                        "updates": ["append", "prepend", "append", "prepend"]
+		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "startCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "startCursor",
-		                                        "updates": ["append", "prepend", "append", "prepend"]
+		                                        "updates": ["append", "prepend"]
 		                                    },
 
 		                                    "endCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "endCursor",
-		                                        "updates": ["append", "prepend", "append", "prepend"]
+		                                        "updates": ["append", "prepend"]
 		                                    }
 		                                }
 		                            }

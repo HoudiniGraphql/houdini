@@ -304,3 +304,5 @@ export type PluginConfig = { configPath?: string } & Partial<ConfigFile>
 export * from '../runtime/lib/types'
 export * from '../runtime/lib/config'
 export * from '../runtime/client'
+
+export type ValueMap = Record<string, graphql.ValueNode>

@@ -4,9 +4,10 @@ import type {
 	HoudiniFetchContext,
 } from '$houdini/runtime/lib/types'
 import { CompiledFragmentKind } from '$houdini/runtime/lib/types'
-import { writable } from 'svelte/store'
-import type { Readable, Writable } from 'svelte/store'
+import { Readable } from 'svelte/store'
+import { derived } from 'svelte/store'
 
+import { getClient } from '../client'
 import type { FragmentStoreInstance } from '../types'
 
 // a fragment store exists in multiple places in a given application so we
@@ -28,14 +29,14 @@ export class FragmentStore<_Data extends GraphQLObject, _Input = {}> {
 		// at the moment a fragment store doesn't really do anything
 		// but we're going to keep it wrapped in a store so we can eventually
 		// optimize the updates
-		let store = writable(initialValue) as Writable<_Data | null>
+		const store = getClient().observe<_Data, {}>({ artifact: this.artifact, initialValue })
+		// the variables for the fragment live on the initial value's $fragment key
+		console.group(initialValue)
 
 		return {
 			kind: CompiledFragmentKind,
-			subscribe: (...args: Parameters<Readable<_Data | null>['subscribe']>) => {
-				return store.subscribe(...args)
-			},
-			update: (val: _Data | null) => store?.set(val),
+			subscribe: derived([store], ([$store]) => $store?.data).subscribe,
+			update: (val: _Data | null) => store?.set({ ...store.state, data: val }),
 		}
 	}
 }
