@@ -1,5 +1,11 @@
 # houdini
 
+## 1.0.7
+
+### Patch Changes
+
+-   [#950](https://github.com/HoudiniGraphql/houdini/pull/950) [`52326b5`](https://github.com/HoudiniGraphql/houdini/commit/52326b5b54c1e722d398031e4b61281379cb8820) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - @include and @skip now add "undefined" to the generated TypeScript type
+
 ## 1.0.6
 
 ### 🦋 Feature/Fix
