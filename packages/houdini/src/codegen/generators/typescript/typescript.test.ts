@@ -1508,6 +1508,43 @@ describe('typescript', function () {
 		`)
 	})
 
+	test('@include and @skip directives add undefined to the type union', async function () {
+		const doc = mockCollectedDoc(`
+		    query MyQuery {
+		        user {
+		            id
+		            firstName @include(if: true)
+		            admin @skip(if: true)
+		        }
+		    }
+		`)
+
+		await runPipeline(config, [doc])
+
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document))
+
+		expect(
+			recast.parse(fileContents!, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+			export type MyQuery = {
+			    readonly "input": MyQuery$input;
+			    readonly "result": MyQuery$result | undefined;
+			};
+
+			export type MyQuery$result = {
+			    readonly user: {
+			        readonly id: string;
+			        readonly firstName: string | undefined;
+			        readonly admin: boolean | null | undefined;
+			    } | null;
+			};
+
+			export type MyQuery$input = null;
+		`)
+	})
+
 	test.todo('fragments on interfaces')
 
 	test.todo('intersections with __typename in subselection')
