@@ -2,7 +2,7 @@
 
 ## 1.0.7
 
-### Patch Changes
+### Dependency Changes
 
 -   Updated dependencies [[`52326b5`](https://github.com/HoudiniGraphql/houdini/commit/52326b5b54c1e722d398031e4b61281379cb8820)]:
     -   houdini@1.0.7
