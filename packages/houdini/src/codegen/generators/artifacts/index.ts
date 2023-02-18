@@ -184,6 +184,19 @@ export default function artifactGenerator(stats: {
 					let selectionSet: graphql.SelectionSetNode
 					let originalSelectionSet: graphql.SelectionSetNode | null = null
 
+					const fragmentDefinitions = doc.document.definitions
+						.filter<graphql.FragmentDefinitionNode>(
+							(definition): definition is graphql.FragmentDefinitionNode =>
+								definition.kind === 'FragmentDefinition'
+						)
+						.reduce(
+							(prev, definition) => ({
+								...prev,
+								[definition.name.value]: definition,
+							}),
+							{}
+						)
+
 					// if we are generating the artifact for an operation
 					if (docKind !== ArtifactKind.Fragment) {
 						// find the operation
@@ -252,18 +265,7 @@ export default function artifactGenerator(stats: {
 						config,
 						filepath: doc.filename,
 						selections: selectionSet.selections,
-						fragmentDefinitions: doc.document.definitions
-							.filter<graphql.FragmentDefinitionNode>(
-								(definition): definition is graphql.FragmentDefinitionNode =>
-									definition.kind === 'FragmentDefinition'
-							)
-							.reduce(
-								(prev, definition) => ({
-									...prev,
-									[definition.name.value]: definition,
-								}),
-								{}
-							),
+						fragmentDefinitions,
 						ignoreMaskDisable: docKind === 'HoudiniQuery',
 						applyFragments: docKind !== 'HoudiniFragment',
 					})
@@ -312,7 +314,7 @@ export default function artifactGenerator(stats: {
 								config,
 								filepath: doc.filename,
 								selections: originalSelectionSet.selections,
-								fragmentDefinitions: {},
+								fragmentDefinitions,
 								applyFragments: false,
 							}),
 						})

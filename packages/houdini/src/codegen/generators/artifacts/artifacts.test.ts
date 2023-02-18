@@ -5021,3 +5021,124 @@ test('fragment references in inline fragment', async function () {
 		"HoudiniHash=04aacf4e247cf38d5f9c588e4aa2a9f2a4ff2b1db84f2d4c7637a367a0d037fd";
 	`)
 })
+
+test('masking disabled', async function () {
+	// the documents to test
+	const docs: Document[] = [
+		mockCollectedDoc(`
+			query FragmentUpdateTestQuery($id: ID!) @load {
+				node(id: $id) {
+					...UserFragmentTestFragment @mask_disable
+				}
+			}
+		`),
+		mockCollectedDoc(`
+			fragment UserFragmentTestFragment on User {
+				name
+			}
+		`),
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "FragmentUpdateTestQuery",
+		    "kind": "HoudiniQuery",
+		    "hash": "77d79038702f2dbb57f3af777b214fedb15c7ec5bcd99c2e2fe2146ae8770ded",
+
+		    "raw": \`query FragmentUpdateTestQuery($id: ID!) {
+		  node(id: $id) {
+		    ...UserFragmentTestFragment
+		    id
+		    __typename
+		  }
+		}
+
+		fragment UserFragmentTestFragment on User {
+		  name
+		}
+		\`,
+
+		    "rootType": "Query",
+
+		    "selection": {
+		        "fields": {
+		            "node": {
+		                "type": "Node",
+		                "keyRaw": "node(id: $id)",
+		                "nullable": true,
+
+		                "selection": {
+		                    "abstractFields": {
+		                        "fields": {
+		                            "User": {
+		                                "name": {
+		                                    "type": "String",
+		                                    "keyRaw": "name",
+		                                    "visible": true
+		                                },
+
+		                                "id": {
+		                                    "type": "ID",
+		                                    "keyRaw": "id",
+		                                    "visible": true
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename"
+		                                }
+		                            }
+		                        },
+
+		                        "typeMap": {}
+		                    },
+
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id",
+		                            "visible": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename"
+		                        },
+
+		                        "name": {
+		                            "type": "String",
+		                            "keyRaw": "name",
+		                            "visible": true
+		                        }
+		                    },
+
+		                    "fragments": {
+		                        "UserFragmentTestFragment": {}
+		                    }
+		                },
+
+		                "abstract": true,
+		                "visible": true
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+
+		    "input": {
+		        "fields": {
+		            "id": "ID"
+		        },
+
+		        "types": {}
+		    },
+
+		    "policy": "CacheOrNetwork",
+		    "partial": false
+		};
+
+		"HoudiniHash=77d79038702f2dbb57f3af777b214fedb15c7ec5bcd99c2e2fe2146ae8770ded";
+	`)
+})
