@@ -100,7 +100,6 @@ export class FragmentStoreCursor<
 				| undefined
 		): (() => void) => {
 			const combined = derived([store, paginationStore], ([$parent, $pagination]) => {
-				console.log($pagination?.data)
 				return {
 					...$pagination,
 					data: $parent,

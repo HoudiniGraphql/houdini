@@ -5,6 +5,7 @@
     query FragmentUpdateTestQuery($id: ID!) @load {
       node(id: $id) {
         ... on User {
+          birthDate
           ...UserFragmentTestFragment
         }
       }

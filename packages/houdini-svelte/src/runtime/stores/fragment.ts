@@ -56,7 +56,6 @@ Please ensure that you have passed a record that has ${this.artifact.name} mixed
 		// build up a document store that we will use to subscribe the fragment to cache updates
 		const store = getClient().observe<_Data, {}>({ artifact: this.artifact, initialValue })
 		if (variables && parentID) {
-			console.log('listening', parentID, variables, this.artifact.selection)
 			store.send({ variables, setup: true, stuff: { parentID } })
 		}
 
