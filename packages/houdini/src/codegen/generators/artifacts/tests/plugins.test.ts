@@ -1,7 +1,7 @@
 import { test, expect } from 'vitest'
 
-import { runPipeline } from '../../../codegen'
-import { mockCollectedDoc, testConfig } from '../../../test'
+import { runPipeline } from '../../../../codegen'
+import { mockCollectedDoc, testConfig } from '../../../../test'
 
 test("doesn't include directives defined in plugins", async function () {
 	const config = testConfig()
