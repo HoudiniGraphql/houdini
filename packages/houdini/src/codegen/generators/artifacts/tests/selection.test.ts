@@ -46,7 +46,6 @@ test('fragments of unions inject correctly', function () {
 		rootType: 'Query',
 		operations: {},
 		selections: flat,
-		includeFragments: false,
 		document: mockCollectedDoc(`
         query Query {
             entities {

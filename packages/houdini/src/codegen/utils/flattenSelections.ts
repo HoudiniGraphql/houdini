@@ -161,7 +161,10 @@ class FieldCollection {
 				throw new HoudiniError({
 					filepath: this.filepath,
 					message:
-						'Could not find referenced fragment definition: ' + selection.name.value,
+						'Could not find referenced fragment definition: ' +
+						selection.name.value +
+						'\n' +
+						JSON.stringify(Object.keys(this.fragmentDefinitions), null, 4),
 				})
 			}
 

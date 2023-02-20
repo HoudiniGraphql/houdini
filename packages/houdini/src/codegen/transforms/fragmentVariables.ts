@@ -112,6 +112,9 @@ export function inlineFragmentArgs({
 		FragmentSpread(node) {
 			// look at the fragment spread to see if there are any default arguments
 			// that haven't been overridden by with
+			if (!fragmentDefinitions[node.name.value]) {
+				throw new Error('Could not find definition for fragment' + node.name.value)
+			}
 			const { definition } = fragmentDefinitions[node.name.value]
 
 			// we have to apply arguments to the fragment definitions

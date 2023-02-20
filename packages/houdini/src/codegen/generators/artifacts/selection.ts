@@ -18,7 +18,6 @@ export default function selection({
 	selections,
 	operations,
 	path = [],
-	includeFragments,
 	document,
 	inConnection,
 }: {
@@ -28,7 +27,6 @@ export default function selection({
 	selections: readonly graphql.SelectionNode[]
 	operations: { [path: string]: MutationOperation[] }
 	path?: string[]
-	includeFragments: boolean
 	document: Document
 	inConnection?: boolean
 }): SubscriptionSelection {
@@ -42,38 +40,8 @@ export default function selection({
 	const abstractTypes: string[] = []
 
 	for (const field of selections) {
-		// ignore fragment spreads
-		if (field.kind === 'FragmentSpread' && includeFragments) {
-			// look up the fragment definition
-			const fragmentDefinition = document.document.definitions.find(
-				(defn) => defn.kind === 'FragmentDefinition' && defn.name.value === field.name.value
-			) as graphql.FragmentDefinitionNode
-			if (!fragmentDefinition) {
-				throw new HoudiniError({
-					filepath,
-					message:
-						'selection: could not find definition for fragment ' + field.name.value,
-				})
-			}
-
-			// merge the fragments selection into ours
-			object = deepMerge(
-				filepath,
-				object,
-				selection({
-					config,
-					filepath,
-					rootType: fragmentDefinition.typeCondition.name.value,
-					operations,
-					selections: fragmentDefinition.selectionSet.selections,
-					path,
-					includeFragments,
-					document,
-				})
-			)
-		}
 		// inline fragments should be merged with the parent
-		else if (field.kind === 'InlineFragment') {
+		if (field.kind === 'InlineFragment') {
 			// if the type condition doesn't exist or matches the parent type,
 			// just merge it
 			if (!field.typeCondition || field.typeCondition.name.value === rootType) {
@@ -88,7 +56,6 @@ export default function selection({
 						operations,
 						selections: field.selectionSet.selections,
 						path,
-						includeFragments,
 						document,
 					}).fields || {}
 				)
@@ -165,7 +132,6 @@ export default function selection({
 						operations,
 						selections: field.selectionSet.selections,
 						path,
-						includeFragments,
 						document,
 					}).fields,
 				}
@@ -285,7 +251,6 @@ export default function selection({
 					selections: field.selectionSet.selections,
 					operations,
 					path: pathSoFar,
-					includeFragments,
 					document,
 					inConnection: connectionState,
 				})

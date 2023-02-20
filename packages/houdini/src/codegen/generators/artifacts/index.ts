@@ -260,15 +260,6 @@ export default function artifactGenerator(stats: {
 						inputs = fragmentArgumentsDefinitions(config, doc.filename, fragments[0])
 					}
 
-					// in order to simplify the selection generation, we want to merge fragments together
-					const mergedSelection = flattenSelections({
-						config,
-						filepath: doc.filename,
-						selections: selectionSet.selections,
-						fragmentDefinitions,
-						ignoreMaskDisable: docKind === 'HoudiniQuery',
-					})
-
 					// generate a hash of the document that we can use to detect changes
 					// start building up the artifact
 					let artifact: DocumentArtifact = {
@@ -282,7 +273,14 @@ export default function artifactGenerator(stats: {
 							config,
 							filepath: doc.filename,
 							rootType,
-							selections: mergedSelection,
+							// in order to simplify the selection generation, we want to merge fragments together
+							selections: flattenSelections({
+								config,
+								filepath: doc.filename,
+								selections: selectionSet.selections,
+								fragmentDefinitions,
+								ignoreMaskDisable: docKind !== 'HoudiniFragment',
+							}),
 							operations: operationsByPath(
 								config,
 								doc.filename,
@@ -291,7 +289,6 @@ export default function artifactGenerator(stats: {
 							),
 							// do not include used fragments if we are rendering the selection
 							// for a fragment document
-							includeFragments: docKind !== 'HoudiniFragment',
 							document: doc,
 						}),
 						pluginData: {},
@@ -307,12 +304,11 @@ export default function artifactGenerator(stats: {
 							filepath: doc.filename,
 							rootType,
 							operations: {},
-							includeFragments: false,
 							document: doc,
 							selections: flattenSelections({
 								config,
 								filepath: doc.filename,
-								selections: originalSelectionSet.selections,
+								selections: selectionSet.selections,
 								fragmentDefinitions,
 							}),
 						})

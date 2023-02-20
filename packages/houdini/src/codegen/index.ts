@@ -83,8 +83,7 @@ export async function runPipeline(config: Config, docs: Document[]) {
 				validators.plugins,
 				...wrapHook(validate),
 				...wrapHook(afterValidate),
-				transforms.addID,
-				transforms.typename,
+				transforms.addFields,
 				// list transform must go before fragment variables
 				// so that the mutation fragments are defined before they get mixed in
 				transforms.list,

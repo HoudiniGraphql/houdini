@@ -824,21 +824,6 @@ test('overlapping query and fragment nested selection', async function () {
 		                        "__typename": {
 		                            "type": "String",
 		                            "keyRaw": "__typename"
-		                        },
-
-		                        "friends": {
-		                            "type": "User",
-		                            "keyRaw": "friends",
-
-		                            "selection": {
-		                                "fields": {
-		                                    "id": {
-		                                        "type": "ID",
-		                                        "keyRaw": "id",
-		                                        "visible": true
-		                                    }
-		                                }
-		                            }
 		                        }
 		                    },
 
@@ -1765,15 +1750,15 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
-			                                    },
-
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -1866,15 +1851,15 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
-			                                    },
-
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -1971,15 +1956,15 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
-			                                    },
-
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -2075,15 +2060,15 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
-			                                    },
-
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -2176,15 +2161,15 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
-			                                    },
-
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -2524,15 +2509,15 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
-			                                    },
-
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -2630,15 +2615,15 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
-			                                    },
-
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -2736,15 +2721,15 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
-			                                    },
-
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -2843,15 +2828,15 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
-			                                    },
-
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -2950,15 +2935,15 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
-			                                    },
-
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -3057,15 +3042,15 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
-			                                    },
-
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -3164,15 +3149,15 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
-			                                    },
-
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -3271,15 +3256,15 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
-			                                    },
-
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -3496,15 +3481,15 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
-			                                    },
-
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -4508,11 +4493,6 @@ test('nested recursive fragments', async function () {
 		                        "__typename": {
 		                            "type": "String",
 		                            "keyRaw": "__typename"
-		                        },
-
-		                        "name": {
-		                            "type": "String",
-		                            "keyRaw": "name"
 		                        }
 		                    },
 
@@ -4985,11 +4965,6 @@ test('fragment references in inline fragment', async function () {
 		                        "__typename": {
 		                            "type": "String",
 		                            "keyRaw": "__typename"
-		                        },
-
-		                        "name": {
-		                            "type": "String",
-		                            "keyRaw": "name"
 		                        }
 		                    },
 
@@ -5105,12 +5080,6 @@ test('masking disabled', async function () {
 		                        "__typename": {
 		                            "type": "String",
 		                            "keyRaw": "__typename"
-		                        },
-
-		                        "name": {
-		                            "type": "String",
-		                            "keyRaw": "name",
-		                            "visible": true
 		                        }
 		                    },
 
