@@ -37,10 +37,7 @@ test.describe('bidirectional cursor single page paginated query', () => {
     await expectToContain(page, `"hasNextPage":true`);
 
     // make sure we got the new content
-    await expect_to_be(
-      page,
-      'Morgan Freeman, Tom Hanks'
-    );
+    await expect_to_be(page, 'Morgan Freeman, Tom Hanks');
 
     /// Click on the next button
 
@@ -53,10 +50,7 @@ test.describe('bidirectional cursor single page paginated query', () => {
     await expectToContain(page, `"hasNextPage":true`);
 
     // make sure we got the new content
-    await expect_to_be(
-      page,
-      'Will Smith, Harrison Ford'
-    );
+    await expect_to_be(page, 'Will Smith, Harrison Ford');
 
     /// Click on the next button
 
@@ -69,10 +63,7 @@ test.describe('bidirectional cursor single page paginated query', () => {
     await expectToContain(page, `"hasNextPage":false`);
 
     // make sure we got the new content
-    await expect_to_be(
-        page,
-        'Eddie Murphy, Clint Eastwood'
-    );
+    await expect_to_be(page, 'Eddie Murphy, Clint Eastwood');
   });
 
   test('forwards then backwards and then forwards again', async ({ page }) => {
@@ -99,10 +90,7 @@ test.describe('bidirectional cursor single page paginated query', () => {
     await expect_1_gql(page, 'button[id=previous]');
 
     // make sure we got the new content
-    await expect_to_be(
-      page,
-      'Morgan Freeman, Tom Hanks'
-    );
+    await expect_to_be(page, 'Morgan Freeman, Tom Hanks');
 
     // there should be a next page
     await expectToContain(page, `"hasNextPage":true`);
@@ -115,10 +103,7 @@ test.describe('bidirectional cursor single page paginated query', () => {
     await expect_1_gql(page, 'button[id=previous]');
 
     // make sure we got the new content
-    await expect_to_be(
-        page,
-        'Bruce Willis, Samuel Jackson'
-    );
+    await expect_to_be(page, 'Bruce Willis, Samuel Jackson');
 
     // there should be a next page
     await expectToContain(page, `"hasNextPage":true`);
