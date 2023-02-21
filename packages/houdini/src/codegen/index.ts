@@ -83,7 +83,6 @@ export async function runPipeline(config: Config, docs: Document[]) {
 				validators.plugins,
 				...wrapHook(validate),
 				...wrapHook(afterValidate),
-				transforms.addFields,
 				// list transform must go before fragment variables
 				// so that the mutation fragments are defined before they get mixed in
 				transforms.list,
@@ -91,6 +90,7 @@ export async function runPipeline(config: Config, docs: Document[]) {
 				// so that the variable definitions get hashed
 				transforms.paginate,
 				transforms.fragmentVariables,
+				transforms.addFields,
 				transforms.composeQueries,
 				...wrapHook(beforeGenerate),
 				// generators

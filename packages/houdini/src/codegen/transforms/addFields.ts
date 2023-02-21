@@ -12,69 +12,86 @@ export default async function addID(config: Config, documents: Document[]): Prom
 
 	// visit every document
 	for (const doc of documents) {
-		// find the definition in the document
-		const definition = config.extractDefinition(doc.document)
+		for (const definition of doc.document.definitions) {
+			// figure out the root of the fragment definition
+			let rootType: string | undefined = ''
+			let name = doc.name
+			if (definition.kind === 'FragmentDefinition') {
+				rootType = definition.typeCondition.name.value
+				name = definition.name.value
+			} else if (definition.kind === 'OperationDefinition') {
+				if (definition.operation === 'query') {
+					rootType = config.schema.getQueryType()?.name
+				} else if (definition.operation === 'mutation') {
+					rootType = config.schema.getMutationType()?.name
+				} else if (definition.operation === 'subscription') {
+					rootType = config.schema.getSubscriptionType()?.name
+				}
+			}
 
-		// figure out the root of the fragment definition
-		let rootType: string | undefined = ''
-		if (definition.kind === 'FragmentDefinition') {
-			rootType = definition.typeCondition.name.value
-		} else if (definition.operation === 'query') {
-			rootType = config.schema.getQueryType()?.name
-		} else if (definition.operation === 'mutation') {
-			rootType = config.schema.getMutationType()?.name
-		} else if (definition.operation === 'subscription') {
-			rootType = config.schema.getSubscriptionType()?.name
-		}
-		if (!rootType) {
-			throw {
-				filepath: doc.filename,
-				message: 'Could not fine root type for ' + doc.name,
+			// not all definitions that we run into are useful. directive definitions
+			// need to be ignored
+			if (
+				!rootType ||
+				(definition.kind !== 'FragmentDefinition' &&
+					definition.kind !== 'OperationDefinition') ||
+				!definition.selectionSet
+			) {
+				continue
+			}
+
+			// build up a fragment definition that has every field
+			const fragmentDefinition: graphql.FragmentDefinitionNode = {
+				kind: 'FragmentDefinition',
+				name: {
+					kind: 'Name',
+					value: `${name}__houdini__extra__fields`,
+				},
+				typeCondition: {
+					kind: 'NamedType',
+					name: {
+						kind: 'Name',
+						value: rootType,
+					},
+				},
+				selectionSet: definition.selectionSet,
+			}
+
+			// in order for our utilities to work we need to wrap the definition in a document
+			const newSelection = addFields(config, doc, {
+				kind: graphql.Kind.DOCUMENT,
+				definitions: [fragmentDefinition],
+			}).definitions[0]!.selectionSet
+
+			// @ts-expect-error: its read only
+			// add the selection to the definition
+			fragmentDefinition.selectionSet = {
+				kind: 'SelectionSet',
+				selections: newSelection.selections.concat({
+					kind: 'Field',
+					name: {
+						kind: 'Name',
+						value: '__typename',
+					},
+				}),
+			}
+
+			// if there are selections to add, then do it
+			if (fragmentDefinition.selectionSet.selections.length > 0) {
+				definition.selectionSet.selections = definition.selectionSet.selections.concat([
+					{
+						kind: 'FragmentSpread',
+						name: {
+							kind: 'Name',
+							value: fragmentDefinition.name.value,
+						},
+					},
+				])
+
+				// add the definition to the list
+				definitions.push(fragmentDefinition)
 			}
 		}
-
-		// build up a fragment definition that has every field
-		const fragmentDefinition: graphql.FragmentDefinitionNode = {
-			kind: 'FragmentDefinition',
-			name: {
-				kind: 'Name',
-				value: `${doc.name}__houdini__extra__fields`,
-			},
-			typeCondition: {
-				kind: 'NamedType',
-				name: {
-					kind: 'Name',
-					value: rootType,
-				},
-			},
-			selectionSet: definition.selectionSet,
-		}
-
-		// in order for our utilities to work we need to wrap the definition in a document
-		let wrapped = {
-			kind: graphql.Kind.DOCUMENT,
-			definitions: [fragmentDefinition],
-		}
-		// @ts-expect-error: iTs ReAdOnLy
-		fragmentDefinition.selectionSet = addFields(
-			config,
-			doc,
-			wrapped
-		).definitions[0]!.selectionSet
-
-		// update the document (graphql.visit is pure)
-		definition.selectionSet.selections = definition.selectionSet.selections.concat([
-			{
-				kind: 'FragmentSpread',
-				name: {
-					kind: 'Name',
-					value: fragmentDefinition.name.value,
-				},
-			},
-		])
-
-		// add the definition to the list
-		definitions.push(fragmentDefinition)
 	}
 	const docWithDefs: graphql.DocumentNode = {
 		kind: graphql.Kind.DOCUMENT,
@@ -187,6 +204,18 @@ function addKeysToSelection(
 
 	// add the id fields for the given type
 	const selections = [...node.selectionSet!.selections]
+		.filter(
+			(selection) =>
+				selection.kind !== 'FragmentSpread' &&
+				(selection.kind !== 'Field' || selection.selectionSet)
+		)
+		.concat({
+			kind: 'Field',
+			name: {
+				kind: 'Name',
+				value: '__typename',
+			},
+		})
 
 	for (const keyField of keyFields) {
 		// add a selection for the field to the selection set

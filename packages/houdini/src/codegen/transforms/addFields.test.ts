@@ -70,6 +70,7 @@ test("doesn't add id if there isn't one", async function () {
 		    legends {
 		      name
 		    }
+		    name
 		    aka
 		  }
 		}
@@ -103,6 +104,7 @@ test('adds custom id fields to selection sets of objects with them', async funct
 
 		fragment Friends__houdini__extra__fields on Query {
 		  ghost {
+		    name
 		    aka
 		  }
 		}
