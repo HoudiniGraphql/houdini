@@ -1,7 +1,7 @@
 {
 	"name": "houdini-monorepo",
 	"private": true,
-	"version": "1.x.x",
+	"version": "1",
 	"description": "The disappearing graphql client for SvelteKit",
 	"type": "module",
 	"scripts": {
