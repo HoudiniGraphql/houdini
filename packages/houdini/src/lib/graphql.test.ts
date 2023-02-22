@@ -302,6 +302,9 @@ describe('flattenSelection', function () {
 			{
 			  friends {
 			    ... on Friend {
+			      ... on User {
+			        id
+			      }
 			      name
 			    }
 			    ...Foo

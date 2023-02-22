@@ -37,6 +37,10 @@ test('insert fragments on query selection set', async function () {
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		mutation UpdateUser {
 		  updateUser {
+		    ... on User {
+		      firstName
+		      id
+		    }
 		    id
 		    ...User_Friends_insert
 		  }
@@ -81,6 +85,9 @@ test('delete fragments on query selection set', async function () {
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		mutation UpdateUser {
 		  updateUser {
+		    ... on User {
+		      id
+		    }
 		    id
 		    ...User_Friends_remove
 		  }
@@ -122,6 +129,10 @@ test('list fragments on fragment selection set', async function () {
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		mutation UpdateUser {
 		  updateUser {
+		    ... on User {
+		      firstName
+		      id
+		    }
 		    id
 		    ...User_Friends_insert @prepend @parentID(value: "1234")
 		  }
@@ -275,6 +286,10 @@ test('includes `id` in list fragment', async function () {
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		mutation UpdateUser {
 		  updateUser {
+		    ... on User {
+		      id
+		      firstName
+		    }
 		    id
 		    ...User_Friends_insert @prepend @parentID(value: "1234")
 		  }
@@ -374,6 +389,13 @@ test('includes node selection on connection', async function () {
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		mutation UpdateUser {
 		  updateUser {
+		    ... on User {
+		      id
+		      firstName
+		      friends {
+		        id
+		      }
+		    }
 		    id
 		    ...User_Friends_insert @prepend @parentID(value: "1234")
 		  }
@@ -559,6 +581,13 @@ test('paginate with name also gets treated as a list', async function () {
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		mutation UpdateUser {
 		  updateUser {
+		    ... on User {
+		      id
+		      firstName
+		      friends {
+		        id
+		      }
+		    }
 		    id
 		    ...User_Friends_insert @prepend @parentID(value: "1234")
 		  }

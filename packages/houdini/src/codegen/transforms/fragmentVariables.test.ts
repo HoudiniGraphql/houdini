@@ -55,14 +55,6 @@ test('pass argument values to generated fragments', async function () {
 		  users(stringValue: "Hello") {
 		    id
 		  }
-		  ...QueryFragment_10b3uv__houdini__extra__fields
-		}
-
-		fragment QueryFragment_10b3uv__houdini__extra__fields on Query {
-		  users(stringValue: "Hello") {
-		    id
-		    id
-		  }
 		}
 		\`,
 
@@ -142,14 +134,6 @@ test("nullable arguments with no values don't show up in the query", async funct
 		  users {
 		    id
 		  }
-		  ...QueryFragment__houdini__extra__fields
-		}
-
-		fragment QueryFragment__houdini__extra__fields on Query {
-		  users {
-		    id
-		    id
-		  }
 		}
 		\`,
 
@@ -227,14 +211,6 @@ test("fragment arguments with default values don't rename the fragment", async f
 
 		fragment QueryFragment on Query {
 		  users(stringValue: "Hello") {
-		    id
-		  }
-		  ...QueryFragment__houdini__extra__fields
-		}
-
-		fragment QueryFragment__houdini__extra__fields on Query {
-		  users(stringValue: "Hello") {
-		    id
 		    id
 		  }
 		}
@@ -326,14 +302,6 @@ test('thread query variables to inner fragments', async function () {
 
 		fragment InnerFragment_VDHGm on Query {
 		  users(stringValue: $name) {
-		    id
-		  }
-		  ...InnerFragment_VDHGm__houdini__extra__fields
-		}
-
-		fragment InnerFragment_VDHGm__houdini__extra__fields on Query {
-		  users(stringValue: $name) {
-		    id
 		    id
 		  }
 		}
@@ -436,14 +404,6 @@ test('inner fragment with intermediate default value', async function () {
 		  users(stringValue: "Hello", intValue: 2) {
 		    id
 		  }
-		  ...InnerFragment_10b3uv__houdini__extra__fields
-		}
-
-		fragment InnerFragment_10b3uv__houdini__extra__fields on Query {
-		  users(stringValue: "Hello", intValue: 2) {
-		    id
-		    id
-		  }
 		}
 		\`,
 
@@ -535,14 +495,6 @@ test("default values don't overwrite unless explicitly passed", async function (
 		  users(stringValue: "Goodbye", intValue: 10) {
 		    id
 		  }
-		  ...InnerFragment_2geNXY__houdini__extra__fields
-		}
-
-		fragment InnerFragment_2geNXY__houdini__extra__fields on Query {
-		  users(stringValue: "Goodbye", intValue: 10) {
-		    id
-		    id
-		  }
 		}
 		\`,
 
@@ -620,14 +572,6 @@ test('default arguments', async function () {
 
 		fragment QueryFragment on Query {
 		  users(boolValue: true, stringValue: "Hello") {
-		    id
-		  }
-		  ...QueryFragment__houdini__extra__fields
-		}
-
-		fragment QueryFragment__houdini__extra__fields on Query {
-		  users(boolValue: true, stringValue: "Hello") {
-		    id
 		    id
 		  }
 		}
@@ -708,14 +652,7 @@ test('list arguments', async function () {
 		fragment QueryFragment_4AWlIw on Query {
 		  nodes(ids: ["1"]) {
 		    id
-		  }
-		  ...QueryFragment_4AWlIw__houdini__extra__fields
-		}
-
-		fragment QueryFragment_4AWlIw__houdini__extra__fields on Query {
-		  nodes(ids: ["1"]) {
-		    id
-		    id
+		    __typename
 		  }
 		}
 		\`,
@@ -734,6 +671,11 @@ test('list arguments', async function () {
 		                            "type": "ID",
 		                            "keyRaw": "id",
 		                            "visible": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename"
 		                        }
 		                    }
 		                },
@@ -781,7 +723,6 @@ test('persists fragment variables in artifact', async function () {
 		  users(boolValue: $cool, stringValue: $name) {
 		    id
 		  }
-		  ...QueryFragment__houdini__extra__fields
 		}
 		\`,
 
