@@ -45,11 +45,6 @@ test('adds kind, name, and raw, response, and selection', async function () {
 
 		    "raw": \`query TestQuery {
 		  version
-		  ...TestQuery__houdini__extra__fields
-		}
-
-		fragment TestQuery__houdini__extra__fields on Query {
-		  __typename
 		}
 		\`,
 
@@ -57,11 +52,6 @@ test('adds kind, name, and raw, response, and selection', async function () {
 
 		    "selection": {
 		        "fields": {
-		            "__typename": {
-		                "type": "String",
-		                "keyRaw": "__typename"
-		            },
-
 		            "version": {
 		                "type": "Int",
 		                "keyRaw": "version",
@@ -86,7 +76,6 @@ test('adds kind, name, and raw, response, and selection', async function () {
 
 		    "raw": \`fragment TestFragment on User {
 		  firstName
-		  ...TestFragment__houdini__extra__fields
 		}
 		\`,
 
@@ -499,7 +488,8 @@ test('interface to interface inline fragment', async function () {
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            }
 		                        },
@@ -519,7 +509,8 @@ test('interface to interface inline fragment', async function () {
 
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "keyRaw": "__typename",
+		                            "visible": true
 		                        }
 		                    }
 		                },
@@ -592,6 +583,7 @@ test('paginate over unions', async function () {
 		      node {
 		        ... on User {
 		          firstName
+		          id
 		        }
 		        __typename
 		      }
@@ -650,9 +642,16 @@ test('paginate over unions', async function () {
 		                                                            "visible": true
 		                                                        },
 
+		                                                        "id": {
+		                                                            "type": "ID",
+		                                                            "keyRaw": "id",
+		                                                            "visible": true
+		                                                        },
+
 		                                                        "__typename": {
 		                                                            "type": "String",
-		                                                            "keyRaw": "__typename"
+		                                                            "keyRaw": "__typename",
+		                                                            "visible": true
 		                                                        }
 		                                                    }
 		                                                },
@@ -663,7 +662,8 @@ test('paginate over unions', async function () {
 		                                            "fields": {
 		                                                "__typename": {
 		                                                    "type": "String",
-		                                                    "keyRaw": "__typename"
+		                                                    "keyRaw": "__typename",
+		                                                    "visible": true
 		                                                }
 		                                            }
 		                                        },
@@ -674,7 +674,8 @@ test('paginate over unions', async function () {
 
 		                                    "cursor": {
 		                                        "type": "String",
-		                                        "keyRaw": "cursor"
+		                                        "keyRaw": "cursor",
+		                                        "visible": true
 		                                    }
 		                                }
 		                            },
@@ -691,28 +692,34 @@ test('paginate over unions', async function () {
 		                                    "hasPreviousPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasPreviousPage",
-		                                        "updates": ["append", "prepend"]
+		                                        "updates": ["append", "prepend"],
+		                                        "visible": true
 		                                    },
 
 		                                    "hasNextPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasNextPage",
-		                                        "updates": ["append", "prepend"]
+		                                        "updates": ["append", "prepend"],
+		                                        "visible": true
 		                                    },
 
 		                                    "startCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "startCursor",
-		                                        "updates": ["append", "prepend"]
+		                                        "updates": ["append", "prepend"],
+		                                        "visible": true
 		                                    },
 
 		                                    "endCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "endCursor",
-		                                        "updates": ["append", "prepend"]
+		                                        "updates": ["append", "prepend"],
+		                                        "visible": true
 		                                    }
 		                                }
-		                            }
+		                            },
+
+		                            "visible": true
 		                        }
 		                    }
 		                },
@@ -787,6 +794,7 @@ test('overlapping query and fragment nested selection', async function () {
 		  friends {
 		    ... on User {
 		      firstName
+		      id
 		    }
 		    ...A
 		    __typename
@@ -821,6 +829,12 @@ test('overlapping query and fragment nested selection', async function () {
 		                                    "visible": true
 		                                },
 
+		                                "id": {
+		                                    "type": "ID",
+		                                    "keyRaw": "id",
+		                                    "visible": true
+		                                },
+
 		                                "friends": {
 		                                    "type": "User",
 		                                    "keyRaw": "friends",
@@ -838,7 +852,8 @@ test('overlapping query and fragment nested selection', async function () {
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            }
 		                        },
@@ -849,7 +864,8 @@ test('overlapping query and fragment nested selection', async function () {
 		                    "fields": {
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "keyRaw": "__typename",
+		                            "visible": true
 		                        }
 		                    },
 
@@ -916,6 +932,7 @@ test('selections with interfaces', async function () {
 		    }
 		    ... on Ghost {
 		      name
+		      aka
 		    }
 		    __typename
 		  }
@@ -965,7 +982,8 @@ test('selections with interfaces', async function () {
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            },
 
@@ -976,9 +994,16 @@ test('selections with interfaces', async function () {
 		                                    "visible": true
 		                                },
 
+		                                "aka": {
+		                                    "type": "String",
+		                                    "keyRaw": "aka",
+		                                    "visible": true
+		                                },
+
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            }
 		                        },
@@ -989,7 +1014,8 @@ test('selections with interfaces', async function () {
 		                    "fields": {
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "keyRaw": "__typename",
+		                            "visible": true
 		                        }
 		                    }
 		                },
@@ -1052,6 +1078,7 @@ test('selections with unions', async function () {
 		    }
 		    ... on Ghost {
 		      name
+		      aka
 		    }
 		    __typename
 		  }
@@ -1101,7 +1128,8 @@ test('selections with unions', async function () {
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            },
 
@@ -1112,9 +1140,16 @@ test('selections with unions', async function () {
 		                                    "visible": true
 		                                },
 
+		                                "aka": {
+		                                    "type": "String",
+		                                    "keyRaw": "aka",
+		                                    "visible": true
+		                                },
+
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            }
 		                        },
@@ -1125,7 +1160,8 @@ test('selections with unions', async function () {
 		                    "fields": {
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "keyRaw": "__typename",
+		                            "visible": true
 		                        }
 		                    }
 		                },
@@ -1185,27 +1221,15 @@ test('selections with overlapping unions', async function () {
 		      id
 		      owner {
 		        firstName
+		        id
 		      }
 		    }
 		    ... on Ghost {
 		      name
+		      aka
 		    }
-		  }
-		  ...Friends__houdini__extra__fields
-		}
-
-		fragment Friends__houdini__extra__fields on Query {
-		  friends {
 		    __typename
-		    ... on Cat {
-		      id
-		    }
-		    ... on Ghost {
-		      name
-			  aka
-		    }
 		  }
-		  __typename
 		}
 		\`,
 
@@ -1218,19 +1242,6 @@ test('selections with overlapping unions', async function () {
 		                "keyRaw": "friends",
 
 		                "selection": {
-		                    "fields": {
-		                        "__typename": {
-		                            "type": "String",
-		                            "keyRaw": "__typename"
-		                        },
-
-		                        "name": {
-		                            "type": "String",
-		                            "keyRaw": "name",
-		                            "visible": true
-		                        }
-		                    },
-
 		                    "abstractFields": {
 		                        "fields": {
 		                            "Cat": {
@@ -1250,6 +1261,12 @@ test('selections with overlapping unions', async function () {
 		                                                "type": "String",
 		                                                "keyRaw": "firstName",
 		                                                "visible": true
+		                                            },
+
+		                                            "id": {
+		                                                "type": "ID",
+		                                                "keyRaw": "id",
+		                                                "visible": true
 		                                            }
 		                                        }
 		                                    },
@@ -1257,14 +1274,15 @@ test('selections with overlapping unions', async function () {
 		                                    "visible": true
 		                                },
 
-		                                "__typename": {
-		                                    "type": "String",
-		                                    "keyRaw": "__typename"
-		                                },
-
 		                                "name": {
 		                                    "type": "String",
 		                                    "keyRaw": "name",
+		                                    "visible": true
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename",
 		                                    "visible": true
 		                                }
 		                            },
@@ -1276,24 +1294,40 @@ test('selections with overlapping unions', async function () {
 		                                    "visible": true
 		                                },
 
+		                                "aka": {
+		                                    "type": "String",
+		                                    "keyRaw": "aka",
+		                                    "visible": true
+		                                },
+
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            }
 		                        },
 
 		                        "typeMap": {}
+		                    },
+
+		                    "fields": {
+		                        "name": {
+		                            "type": "String",
+		                            "keyRaw": "name",
+		                            "visible": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename",
+		                            "visible": true
+		                        }
 		                    }
 		                },
 
 		                "abstract": true,
 		                "visible": true
-		            },
-
-		            "__typename": {
-		                "type": "String",
-		                "keyRaw": "__typename"
 		            }
 		        }
 		    },
@@ -1351,10 +1385,12 @@ test('selections with unions of abstract types', async function () {
 		          firstName
 		          id
 		        }
+		        id
 		      }
 		    }
 		    ... on Ghost {
 		      name
+		      aka
 		    }
 		    __typename
 		  }
@@ -1381,7 +1417,8 @@ test('selections with unions of abstract types', async function () {
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            },
 
@@ -1417,7 +1454,8 @@ test('selections with unions of abstract types', async function () {
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            },
 
@@ -1428,9 +1466,16 @@ test('selections with unions of abstract types', async function () {
 		                                    "visible": true
 		                                },
 
+		                                "aka": {
+		                                    "type": "String",
+		                                    "keyRaw": "aka",
+		                                    "visible": true
+		                                },
+
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            }
 		                        },
@@ -1443,7 +1488,8 @@ test('selections with unions of abstract types', async function () {
 		                    "fields": {
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "keyRaw": "__typename",
+		                            "visible": true
 		                        }
 		                    }
 		                },
@@ -1510,6 +1556,7 @@ test('selections with concrete types matching multiple abstract types', async fu
 		    }
 		    ... on Ghost {
 		      aka
+		      name
 		    }
 		    __typename
 		  }
@@ -1536,7 +1583,8 @@ test('selections with concrete types matching multiple abstract types', async fu
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            },
 
@@ -1544,6 +1592,12 @@ test('selections with concrete types matching multiple abstract types', async fu
 		                                "aka": {
 		                                    "type": "String",
 		                                    "keyRaw": "aka",
+		                                    "visible": true
+		                                },
+
+		                                "name": {
+		                                    "type": "String",
+		                                    "keyRaw": "name",
 		                                    "visible": true
 		                                },
 
@@ -1572,7 +1626,8 @@ test('selections with concrete types matching multiple abstract types', async fu
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            },
 
@@ -1608,7 +1663,8 @@ test('selections with concrete types matching multiple abstract types', async fu
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            }
 		                        },
@@ -1621,7 +1677,8 @@ test('selections with concrete types matching multiple abstract types', async fu
 		                    "fields": {
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "keyRaw": "__typename",
+		                            "visible": true
 		                        }
 		                    }
 		                },
@@ -1680,19 +1737,9 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      firstName
-			    }
-			  }
-			  ...B__houdini__extra__fields
-			}
-
-			fragment B__houdini__extra__fields on Mutation {
-			  addFriend {
-			    friend {
 			      id
-			      __typename
 			    }
 			  }
-			  __typename
 			}
 			\`,
 
@@ -1712,20 +1759,15 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "id": {
-			                                        "type": "ID",
-			                                        "keyRaw": "id",
-			                                        "visible": true
-			                                    },
-
-			                                    "__typename": {
-			                                        "type": "String",
-			                                        "keyRaw": "__typename"
-			                                    },
-
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName",
+			                                        "visible": true
+			                                    },
+
+			                                    "id": {
+			                                        "type": "ID",
+			                                        "keyRaw": "id",
 			                                        "visible": true
 			                                    }
 			                                }
@@ -1737,11 +1779,6 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
-			            },
-
-			            "__typename": {
-			                "type": "String",
-			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -1789,36 +1826,14 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_insert
+			      id
 			    }
 			  }
-			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_insert on User {
 			  firstName
 			  id
-			  ...All_Users_toggle__houdini__extra__fields
-			  ...All_Users_insert__houdini__extra__fields
-			}
-
-			fragment A__houdini__extra__fields on Mutation {
-			  addFriend {
-			    friend {
-			      id
-			      __typename
-			    }
-			  }
-			  __typename
-			}
-
-			fragment All_Users_toggle__houdini__extra__fields on User {
-			  id
-			  __typename
-			}
-
-			fragment All_Users_insert__houdini__extra__fields on User {
-			  id
-			  __typename
 			}
 			\`,
 
@@ -1844,20 +1859,15 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
-			                                    },
-
-			                                    "__typename": {
-			                                        "type": "String",
-			                                        "keyRaw": "__typename"
-			                                    },
-
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -1872,11 +1882,6 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
-			            },
-
-			            "__typename": {
-			                "type": "String",
-			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -1923,36 +1928,14 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_insert
+			      id
 			    }
 			  }
-			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_insert on User {
 			  firstName
 			  id
-			  ...All_Users_toggle__houdini__extra__fields
-			  ...All_Users_insert__houdini__extra__fields
-			}
-
-			fragment A__houdini__extra__fields on Mutation {
-			  addFriend {
-			    friend {
-			      id
-			      __typename
-			    }
-			  }
-			  __typename
-			}
-
-			fragment All_Users_toggle__houdini__extra__fields on User {
-			  id
-			  __typename
-			}
-
-			fragment All_Users_insert__houdini__extra__fields on User {
-			  id
-			  __typename
 			}
 			\`,
 
@@ -1979,20 +1962,15 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
-			                                    },
-
-			                                    "__typename": {
-			                                        "type": "String",
-			                                        "keyRaw": "__typename"
-			                                    },
-
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -2007,11 +1985,6 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
-			            },
-
-			            "__typename": {
-			                "type": "String",
-			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -2062,36 +2035,14 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_insert
+			      id
 			    }
 			  }
-			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_insert on User {
 			  firstName
 			  id
-			  ...All_Users_toggle__houdini__extra__fields
-			  ...All_Users_insert__houdini__extra__fields
-			}
-
-			fragment A__houdini__extra__fields on Mutation {
-			  addFriend {
-			    friend {
-			      id
-			      __typename
-			    }
-			  }
-			  __typename
-			}
-
-			fragment All_Users_toggle__houdini__extra__fields on User {
-			  id
-			  __typename
-			}
-
-			fragment All_Users_insert__houdini__extra__fields on User {
-			  id
-			  __typename
 			}
 			\`,
 
@@ -2118,20 +2069,15 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
-			                                    },
-
-			                                    "__typename": {
-			                                        "type": "String",
-			                                        "keyRaw": "__typename"
-			                                    },
-
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -2146,11 +2092,6 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
-			            },
-
-			            "__typename": {
-			                "type": "String",
-			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -2201,36 +2142,14 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_insert
+			      id
 			    }
 			  }
-			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_insert on User {
 			  firstName
 			  id
-			  ...All_Users_toggle__houdini__extra__fields
-			  ...All_Users_insert__houdini__extra__fields
-			}
-
-			fragment A__houdini__extra__fields on Mutation {
-			  addFriend {
-			    friend {
-			      id
-			      __typename
-			    }
-			  }
-			  __typename
-			}
-
-			fragment All_Users_toggle__houdini__extra__fields on User {
-			  id
-			  __typename
-			}
-
-			fragment All_Users_insert__houdini__extra__fields on User {
-			  id
-			  __typename
 			}
 			\`,
 
@@ -2256,20 +2175,15 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
-			                                    },
-
-			                                    "__typename": {
-			                                        "type": "String",
-			                                        "keyRaw": "__typename"
-			                                    },
-
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -2284,11 +2198,6 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
-			            },
-
-			            "__typename": {
-			                "type": "String",
-			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -2336,36 +2245,14 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_toggle
+			      id
 			    }
 			  }
-			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_toggle on User {
 			  firstName
 			  id
-			  ...All_Users_insert__houdini__extra__fields
-			  ...All_Users_toggle__houdini__extra__fields
-			}
-
-			fragment A__houdini__extra__fields on Mutation {
-			  addFriend {
-			    friend {
-			      id
-			      __typename
-			    }
-			  }
-			  __typename
-			}
-
-			fragment All_Users_insert__houdini__extra__fields on User {
-			  id
-			  __typename
-			}
-
-			fragment All_Users_toggle__houdini__extra__fields on User {
-			  id
-			  __typename
 			}
 			\`,
 
@@ -2391,20 +2278,15 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
-			                                    },
-
-			                                    "__typename": {
-			                                        "type": "String",
-			                                        "keyRaw": "__typename"
-			                                    },
-
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -2419,11 +2301,6 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
-			            },
-
-			            "__typename": {
-			                "type": "String",
-			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -2471,29 +2348,13 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_remove
+			      id
 			    }
 			  }
-			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_remove on User {
 			  id
-			  ...All_Users_remove__houdini__extra__fields
-			}
-
-			fragment A__houdini__extra__fields on Mutation {
-			  addFriend {
-			    friend {
-			      id
-			      __typename
-			    }
-			  }
-			  __typename
-			}
-
-			fragment All_Users_remove__houdini__extra__fields on User {
-			  id
-			  __typename
 			}
 			\`,
 
@@ -2522,11 +2383,6 @@ describe('mutation artifacts', function () {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
-			                                    },
-
-			                                    "__typename": {
-			                                        "type": "String",
-			                                        "keyRaw": "__typename"
 			                                    }
 			                                },
 
@@ -2541,11 +2397,6 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
-			            },
-
-			            "__typename": {
-			                "type": "String",
-			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -2591,14 +2442,6 @@ describe('mutation artifacts', function () {
 			  deleteUser(id: "1234") {
 			    userID
 			  }
-			  ...A__houdini__extra__fields
-			}
-
-			fragment A__houdini__extra__fields on Mutation {
-			  deleteUser(id: "1234") {
-			    userID
-			  }
-			  __typename
 			}
 			\`,
 
@@ -2627,11 +2470,6 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
-			            },
-
-			            "__typename": {
-			                "type": "String",
-			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -2677,14 +2515,6 @@ describe('mutation artifacts', function () {
 			  deleteUser(id: "1234") {
 			    userID
 			  }
-			  ...A__houdini__extra__fields
-			}
-
-			fragment A__houdini__extra__fields on Mutation {
-			  deleteUser(id: "1234") {
-			    userID
-			  }
-			  __typename
 			}
 			\`,
 
@@ -2719,11 +2549,6 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
-			            },
-
-			            "__typename": {
-			                "type": "String",
-			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -2771,36 +2596,14 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_insert
+			      id
 			    }
 			  }
-			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_insert on User {
 			  firstName
 			  id
-			  ...All_Users_toggle__houdini__extra__fields
-			  ...All_Users_insert__houdini__extra__fields
-			}
-
-			fragment A__houdini__extra__fields on Mutation {
-			  addFriend {
-			    friend {
-			      id
-			      __typename
-			    }
-			  }
-			  __typename
-			}
-
-			fragment All_Users_toggle__houdini__extra__fields on User {
-			  id
-			  __typename
-			}
-
-			fragment All_Users_insert__houdini__extra__fields on User {
-			  id
-			  __typename
 			}
 			\`,
 
@@ -2831,20 +2634,15 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
-			                                    },
-
-			                                    "__typename": {
-			                                        "type": "String",
-			                                        "keyRaw": "__typename"
-			                                    },
-
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -2859,11 +2657,6 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
-			            },
-
-			            "__typename": {
-			                "type": "String",
-			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -2911,36 +2704,14 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_insert
+			      id
 			    }
 			  }
-			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_insert on User {
 			  firstName
 			  id
-			  ...All_Users_toggle__houdini__extra__fields
-			  ...All_Users_insert__houdini__extra__fields
-			}
-
-			fragment A__houdini__extra__fields on Mutation {
-			  addFriend {
-			    friend {
-			      id
-			      __typename
-			    }
-			  }
-			  __typename
-			}
-
-			fragment All_Users_toggle__houdini__extra__fields on User {
-			  id
-			  __typename
-			}
-
-			fragment All_Users_insert__houdini__extra__fields on User {
-			  id
-			  __typename
 			}
 			\`,
 
@@ -2971,20 +2742,15 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
-			                                    },
-
-			                                    "__typename": {
-			                                        "type": "String",
-			                                        "keyRaw": "__typename"
-			                                    },
-
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -2999,11 +2765,6 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
-			            },
-
-			            "__typename": {
-			                "type": "String",
-			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -3051,36 +2812,14 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_insert
+			      id
 			    }
 			  }
-			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_insert on User {
 			  firstName
 			  id
-			  ...All_Users_toggle__houdini__extra__fields
-			  ...All_Users_insert__houdini__extra__fields
-			}
-
-			fragment A__houdini__extra__fields on Mutation {
-			  addFriend {
-			    friend {
-			      id
-			      __typename
-			    }
-			  }
-			  __typename
-			}
-
-			fragment All_Users_toggle__houdini__extra__fields on User {
-			  id
-			  __typename
-			}
-
-			fragment All_Users_insert__houdini__extra__fields on User {
-			  id
-			  __typename
 			}
 			\`,
 
@@ -3111,20 +2850,15 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
-			                                    },
-
-			                                    "__typename": {
-			                                        "type": "String",
-			                                        "keyRaw": "__typename"
-			                                    },
-
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -3139,11 +2873,6 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
-			            },
-
-			            "__typename": {
-			                "type": "String",
-			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -3191,36 +2920,14 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_insert
+			      id
 			    }
 			  }
-			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_insert on User {
 			  firstName
 			  id
-			  ...All_Users_toggle__houdini__extra__fields
-			  ...All_Users_insert__houdini__extra__fields
-			}
-
-			fragment A__houdini__extra__fields on Mutation {
-			  addFriend {
-			    friend {
-			      id
-			      __typename
-			    }
-			  }
-			  __typename
-			}
-
-			fragment All_Users_toggle__houdini__extra__fields on User {
-			  id
-			  __typename
-			}
-
-			fragment All_Users_insert__houdini__extra__fields on User {
-			  id
-			  __typename
 			}
 			\`,
 
@@ -3252,20 +2959,15 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
-			                                    },
-
-			                                    "__typename": {
-			                                        "type": "String",
-			                                        "keyRaw": "__typename"
-			                                    },
-
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -3280,11 +2982,6 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
-			            },
-
-			            "__typename": {
-			                "type": "String",
-			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -3332,36 +3029,14 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_insert
+			      id
 			    }
 			  }
-			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_insert on User {
 			  firstName
 			  id
-			  ...All_Users_toggle__houdini__extra__fields
-			  ...All_Users_insert__houdini__extra__fields
-			}
-
-			fragment A__houdini__extra__fields on Mutation {
-			  addFriend {
-			    friend {
-			      id
-			      __typename
-			    }
-			  }
-			  __typename
-			}
-
-			fragment All_Users_toggle__houdini__extra__fields on User {
-			  id
-			  __typename
-			}
-
-			fragment All_Users_insert__houdini__extra__fields on User {
-			  id
-			  __typename
 			}
 			\`,
 
@@ -3393,20 +3068,15 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
-			                                    },
-
-			                                    "__typename": {
-			                                        "type": "String",
-			                                        "keyRaw": "__typename"
-			                                    },
-
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -3421,11 +3091,6 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
-			            },
-
-			            "__typename": {
-			                "type": "String",
-			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -3473,36 +3138,14 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_insert
+			      id
 			    }
 			  }
-			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_insert on User {
 			  firstName
 			  id
-			  ...All_Users_toggle__houdini__extra__fields
-			  ...All_Users_insert__houdini__extra__fields
-			}
-
-			fragment A__houdini__extra__fields on Mutation {
-			  addFriend {
-			    friend {
-			      id
-			      __typename
-			    }
-			  }
-			  __typename
-			}
-
-			fragment All_Users_toggle__houdini__extra__fields on User {
-			  id
-			  __typename
-			}
-
-			fragment All_Users_insert__houdini__extra__fields on User {
-			  id
-			  __typename
 			}
 			\`,
 
@@ -3534,20 +3177,15 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
-			                                    },
-
-			                                    "__typename": {
-			                                        "type": "String",
-			                                        "keyRaw": "__typename"
-			                                    },
-
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -3562,11 +3200,6 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
-			            },
-
-			            "__typename": {
-			                "type": "String",
-			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -3614,36 +3247,14 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_insert
+			      id
 			    }
 			  }
-			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_insert on User {
 			  firstName
 			  id
-			  ...All_Users_toggle__houdini__extra__fields
-			  ...All_Users_insert__houdini__extra__fields
-			}
-
-			fragment A__houdini__extra__fields on Mutation {
-			  addFriend {
-			    friend {
-			      id
-			      __typename
-			    }
-			  }
-			  __typename
-			}
-
-			fragment All_Users_toggle__houdini__extra__fields on User {
-			  id
-			  __typename
-			}
-
-			fragment All_Users_insert__houdini__extra__fields on User {
-			  id
-			  __typename
 			}
 			\`,
 
@@ -3675,20 +3286,15 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
-			                                    },
-
-			                                    "__typename": {
-			                                        "type": "String",
-			                                        "keyRaw": "__typename"
-			                                    },
-
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -3703,11 +3309,6 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
-			            },
-
-			            "__typename": {
-			                "type": "String",
-			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -3755,36 +3356,14 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_insert
+			      id
 			    }
 			  }
-			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_insert on User {
 			  firstName
 			  id
-			  ...All_Users_toggle__houdini__extra__fields
-			  ...All_Users_insert__houdini__extra__fields
-			}
-
-			fragment A__houdini__extra__fields on Mutation {
-			  addFriend {
-			    friend {
-			      id
-			      __typename
-			    }
-			  }
-			  __typename
-			}
-
-			fragment All_Users_toggle__houdini__extra__fields on User {
-			  id
-			  __typename
-			}
-
-			fragment All_Users_insert__houdini__extra__fields on User {
-			  id
-			  __typename
 			}
 			\`,
 
@@ -3816,20 +3395,15 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
-			                                    },
-
-			                                    "__typename": {
-			                                        "type": "String",
-			                                        "keyRaw": "__typename"
-			                                    },
-
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -3844,11 +3418,6 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
-			            },
-
-			            "__typename": {
-			                "type": "String",
-			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -3900,16 +3469,8 @@ describe('mutation artifacts', function () {
 			    "raw": \`query TestQuery($value: String!) {
 			  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
 			    firstName
-			  }
-			  ...TestQuery__houdini__extra__fields
-			}
-
-			fragment TestQuery__houdini__extra__fields on Query {
-			  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
 			    id
-			    __typename
 			  }
-			  __typename
 			}
 			\`,
 
@@ -3929,20 +3490,15 @@ describe('mutation artifacts', function () {
 
 			                "selection": {
 			                    "fields": {
-			                        "id": {
-			                            "type": "ID",
-			                            "keyRaw": "id",
-			                            "visible": true
-			                        },
-
-			                        "__typename": {
-			                            "type": "String",
-			                            "keyRaw": "__typename"
-			                        },
-
 			                        "firstName": {
 			                            "type": "String",
 			                            "keyRaw": "firstName",
+			                            "visible": true
+			                        },
+
+			                        "id": {
+			                            "type": "ID",
+			                            "keyRaw": "id",
 			                            "visible": true
 			                        }
 			                    }
@@ -3971,11 +3527,6 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
-			            },
-
-			            "__typename": {
-			                "type": "String",
-			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -4034,36 +3585,14 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_insert
+			      id
 			    }
 			  }
-			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_insert on User {
 			  firstName
 			  id
-			  ...All_Users_toggle__houdini__extra__fields
-			  ...All_Users_insert__houdini__extra__fields
-			}
-
-			fragment A__houdini__extra__fields on Mutation {
-			  addFriend {
-			    friend {
-			      id
-			      __typename
-			    }
-			  }
-			  __typename
-			}
-
-			fragment All_Users_toggle__houdini__extra__fields on User {
-			  id
-			  __typename
-			}
-
-			fragment All_Users_insert__houdini__extra__fields on User {
-			  id
-			  __typename
 			}
 			\`,
 
@@ -4095,20 +3624,15 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
-			                                    },
-
-			                                    "__typename": {
-			                                        "type": "String",
-			                                        "keyRaw": "__typename"
-			                                    },
-
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -4123,11 +3647,6 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
-			            },
-
-			            "__typename": {
-			                "type": "String",
-			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -4174,16 +3693,8 @@ describe('mutation artifacts', function () {
 			    "raw": \`query TestQuery {
 			  users(stringValue: "foo") {
 			    firstName
-			  }
-			  ...TestQuery__houdini__extra__fields
-			}
-
-			fragment TestQuery__houdini__extra__fields on Query {
-			  users(stringValue: "foo") {
 			    id
-			    __typename
 			  }
-			  __typename
 			}
 			\`,
 
@@ -4203,20 +3714,15 @@ describe('mutation artifacts', function () {
 
 			                "selection": {
 			                    "fields": {
-			                        "id": {
-			                            "type": "ID",
-			                            "keyRaw": "id",
-			                            "visible": true
-			                        },
-
-			                        "__typename": {
-			                            "type": "String",
-			                            "keyRaw": "__typename"
-			                        },
-
 			                        "firstName": {
 			                            "type": "String",
 			                            "keyRaw": "firstName",
+			                            "visible": true
+			                        },
+
+			                        "id": {
+			                            "type": "ID",
+			                            "keyRaw": "id",
 			                            "visible": true
 			                        }
 			                    }
@@ -4230,11 +3736,6 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
-			            },
-
-			            "__typename": {
-			                "type": "String",
-			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -4299,6 +3800,7 @@ describe('mutation artifacts', function () {
 			    edges {
 			      node {
 			        firstName
+			        id
 			      }
 			    }
 			    edges {
@@ -4314,32 +3816,6 @@ describe('mutation artifacts', function () {
 			      endCursor
 			    }
 			  }
-			  ...TestQuery__houdini__extra__fields
-			}
-
-			fragment TestQuery__houdini__extra__fields on Query {
-			  usersByCursor(first: $first, after: $after, last: $last, before: $before) {
-			    edges {
-			      node {
-			        id
-			        __typename
-			      }
-			    }
-			    edges {
-			      cursor
-			      node {
-			        id
-			        __typename
-			      }
-			    }
-			    pageInfo {
-			      hasPreviousPage
-			      hasNextPage
-			      startCursor
-			      endCursor
-			    }
-			  }
-			  __typename
 			}
 			\`,
 
@@ -4373,6 +3849,12 @@ describe('mutation artifacts', function () {
 
 			                                        "selection": {
 			                                            "fields": {
+			                                                "firstName": {
+			                                                    "type": "String",
+			                                                    "keyRaw": "firstName",
+			                                                    "visible": true
+			                                                },
+
 			                                                "id": {
 			                                                    "type": "ID",
 			                                                    "keyRaw": "id",
@@ -4382,12 +3864,6 @@ describe('mutation artifacts', function () {
 			                                                "__typename": {
 			                                                    "type": "String",
 			                                                    "keyRaw": "__typename",
-			                                                    "visible": true
-			                                                },
-
-			                                                "firstName": {
-			                                                    "type": "String",
-			                                                    "keyRaw": "firstName",
 			                                                    "visible": true
 			                                                }
 			                                            }
@@ -4471,11 +3947,6 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
-			            },
-
-			            "__typename": {
-			                "type": "String",
-			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -4532,16 +4003,8 @@ describe('mutation artifacts', function () {
 			    "raw": \`query TestQuery($value: String!) {
 			  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
 			    firstName
-			  }
-			  ...TestQuery__houdini__extra__fields
-			}
-
-			fragment TestQuery__houdini__extra__fields on Query {
-			  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
 			    id
-			    __typename
 			  }
-			  __typename
 			}
 			\`,
 
@@ -4561,20 +4024,15 @@ describe('mutation artifacts', function () {
 
 			                "selection": {
 			                    "fields": {
-			                        "id": {
-			                            "type": "ID",
-			                            "keyRaw": "id",
-			                            "visible": true
-			                        },
-
-			                        "__typename": {
-			                            "type": "String",
-			                            "keyRaw": "__typename"
-			                        },
-
 			                        "firstName": {
 			                            "type": "String",
 			                            "keyRaw": "firstName",
+			                            "visible": true
+			                        },
+
+			                        "id": {
+			                            "type": "ID",
+			                            "keyRaw": "id",
 			                            "visible": true
 			                        }
 			                    }
@@ -4603,11 +4061,6 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
-			            },
-
-			            "__typename": {
-			                "type": "String",
-			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -4663,16 +4116,8 @@ describe('mutation artifacts', function () {
 			    "raw": \`query TestQuery($value: String!) {
 			  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
 			    firstName
-			  }
-			  ...TestQuery__houdini__extra__fields
-			}
-
-			fragment TestQuery__houdini__extra__fields on Query {
-			  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
 			    id
-			    __typename
 			  }
-			  __typename
 			}
 			\`,
 
@@ -4692,20 +4137,15 @@ describe('mutation artifacts', function () {
 
 			                "selection": {
 			                    "fields": {
-			                        "id": {
-			                            "type": "ID",
-			                            "keyRaw": "id",
-			                            "visible": true
-			                        },
-
-			                        "__typename": {
-			                            "type": "String",
-			                            "keyRaw": "__typename"
-			                        },
-
 			                        "firstName": {
 			                            "type": "String",
 			                            "keyRaw": "firstName",
+			                            "visible": true
+			                        },
+
+			                        "id": {
+			                            "type": "ID",
+			                            "keyRaw": "id",
 			                            "visible": true
 			                        }
 			                    }
@@ -4734,11 +4174,6 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
-			            },
-
-			            "__typename": {
-			                "type": "String",
-			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -4810,14 +4245,6 @@ test('custom scalar shows up in artifact', async function () {
 		  allItems {
 		    createdAt
 		  }
-		  ...TestQuery__houdini__extra__fields
-		}
-
-		fragment TestQuery__houdini__extra__fields on Query {
-		  allItems {
-		    createdAt
-		  }
-		  __typename
 		}
 		\`,
 
@@ -4840,11 +4267,6 @@ test('custom scalar shows up in artifact', async function () {
 		                },
 
 		                "visible": true
-		            },
-
-		            "__typename": {
-		                "type": "String",
-		                "keyRaw": "__typename"
 		            }
 		        }
 		    },
@@ -4934,15 +4356,6 @@ test('operation inputs', async function () {
 		  user(id: $id, filter: $filter, filterList: $filterList, enumArg: $enumArg) {
 		    id
 		  }
-		  ...TestQuery__houdini__extra__fields
-		}
-
-		fragment TestQuery__houdini__extra__fields on Query {
-		  user(id: $id, filter: $filter, filterList: $filterList, enumArg: $enumArg) {
-		    id
-		    __typename
-		  }
-		  __typename
 		}
 		\`,
 
@@ -4961,21 +4374,11 @@ test('operation inputs', async function () {
 		                            "type": "ID",
 		                            "keyRaw": "id",
 		                            "visible": true
-		                        },
-
-		                        "__typename": {
-		                            "type": "String",
-		                            "keyRaw": "__typename"
 		                        }
 		                    }
 		                },
 
 		                "visible": true
-		            },
-
-		            "__typename": {
-		                "type": "String",
-		                "keyRaw": "__typename"
 		            }
 		        }
 		    },
@@ -5047,19 +4450,9 @@ describe('subscription artifacts', function () {
 			  newUser {
 			    user {
 			      firstName
-			    }
-			  }
-			  ...B__houdini__extra__fields
-			}
-
-			fragment B__houdini__extra__fields on Subscription {
-			  newUser {
-			    user {
 			      id
-			      __typename
 			    }
 			  }
-			  __typename
 			}
 			\`,
 
@@ -5079,20 +4472,15 @@ describe('subscription artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "id": {
-			                                        "type": "ID",
-			                                        "keyRaw": "id",
-			                                        "visible": true
-			                                    },
-
-			                                    "__typename": {
-			                                        "type": "String",
-			                                        "keyRaw": "__typename"
-			                                    },
-
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName",
+			                                        "visible": true
+			                                    },
+
+			                                    "id": {
+			                                        "type": "ID",
+			                                        "keyRaw": "id",
 			                                        "visible": true
 			                                    }
 			                                }
@@ -5104,11 +4492,6 @@ describe('subscription artifacts', function () {
 			                },
 
 			                "visible": true
-			            },
-
-			            "__typename": {
-			                "type": "String",
-			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -5157,11 +4540,6 @@ test('some artifactData added to artifact specific to plugins', async function (
 
 		    "raw": \`query TestQuery {
 		  version
-		  ...TestQuery__houdini__extra__fields
-		}
-
-		fragment TestQuery__houdini__extra__fields on Query {
-		  __typename
 		}
 		\`,
 
@@ -5169,11 +4547,6 @@ test('some artifactData added to artifact specific to plugins', async function (
 
 		    "selection": {
 		        "fields": {
-		            "__typename": {
-		                "type": "String",
-		                "keyRaw": "__typename"
-		            },
-
 		            "version": {
 		                "type": "Int",
 		                "keyRaw": "version",
@@ -5249,9 +4622,10 @@ test('nested recursive fragments', async function () {
 		    ...NodeDetails
 		    ... on User {
 		      ...UserThings
+		      id
 		    }
+		    __typename
 		  }
-		  ...MyAnimalQuery__houdini__extra__fields
 		}
 
 		fragment NodeDetails on Node {
@@ -5259,40 +4633,12 @@ test('nested recursive fragments', async function () {
 		  ... on User {
 		    id
 		  }
-		  ...NodeDetails__houdini__extra__fields
 		}
 
 		fragment UserThings on User {
 		  id
 		  name
 		  ...NodeDetails
-		  ...UserThings__houdini__extra__fields
-		}
-
-		fragment MyAnimalQuery__houdini__extra__fields on Query {
-		  node(id: "some_id") {
-		    ... on User {
-		      id
-		      __typename
-		    }
-		    id
-		    __typename
-		  }
-		  __typename
-		}
-
-		fragment NodeDetails__houdini__extra__fields on Node {
-		  ... on User {
-		    id
-		    __typename
-		  }
-		  id
-		  __typename
-		}
-
-		fragment UserThings__houdini__extra__fields on User {
-		  id
-		  __typename
 		}
 		\`,
 
@@ -5315,14 +4661,15 @@ test('nested recursive fragments', async function () {
 		                                    "visible": true
 		                                },
 
-		                                "__typename": {
-		                                    "type": "String",
-		                                    "keyRaw": "__typename"
-		                                },
-
 		                                "name": {
 		                                    "type": "String",
 		                                    "keyRaw": "name"
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            }
 		                        },
@@ -5339,7 +4686,8 @@ test('nested recursive fragments', async function () {
 
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "keyRaw": "__typename",
+		                            "visible": true
 		                        }
 		                    },
 
@@ -5351,11 +4699,6 @@ test('nested recursive fragments', async function () {
 
 		                "abstract": true,
 		                "visible": true
-		            },
-
-		            "__typename": {
-		                "type": "String",
-		                "keyRaw": "__typename"
 		            }
 		        }
 		    },
@@ -5406,8 +4749,8 @@ test('leave @include and @skip alone', async function () {
 		  node(id: "some_id") {
 		    id @skip(if: true)
 		    ...NodeDetails @include(if: true)
+		    __typename
 		  }
-		  ...MyAnimalQuery__houdini__extra__fields
 		}
 
 		fragment NodeDetails on Node {
@@ -5415,24 +4758,6 @@ test('leave @include and @skip alone', async function () {
 		  ... on User {
 		    id
 		  }
-		  ...NodeDetails__houdini__extra__fields
-		}
-
-		fragment MyAnimalQuery__houdini__extra__fields on Query {
-		  node(id: "some_id") {
-		    id
-		    __typename
-		  }
-		  __typename
-		}
-
-		fragment NodeDetails__houdini__extra__fields on Node {
-		  ... on User {
-		    id
-		    __typename
-		  }
-		  id
-		  __typename
 		}
 		\`,
 
@@ -5455,7 +4780,8 @@ test('leave @include and @skip alone', async function () {
 
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "keyRaw": "__typename",
+		                            "visible": true
 		                        }
 		                    },
 
@@ -5485,11 +4811,6 @@ test('leave @include and @skip alone', async function () {
 
 		                "abstract": true,
 		                "visible": true
-		            },
-
-		            "__typename": {
-		                "type": "String",
-		                "keyRaw": "__typename"
 		            }
 		        }
 		    },
@@ -5541,8 +4862,8 @@ test('fragment references are embedded in artifact', async function () {
 		  node(id: "some_id") {
 		    id
 		    ...NodeDetails
+		    __typename
 		  }
-		  ...MyAnimalQuery__houdini__extra__fields
 		}
 
 		fragment NodeDetails on Node {
@@ -5550,24 +4871,6 @@ test('fragment references are embedded in artifact', async function () {
 		  ... on User {
 		    id
 		  }
-		  ...NodeDetails__houdini__extra__fields
-		}
-
-		fragment MyAnimalQuery__houdini__extra__fields on Query {
-		  node(id: "some_id") {
-		    id
-		    __typename
-		  }
-		  __typename
-		}
-
-		fragment NodeDetails__houdini__extra__fields on Node {
-		  ... on User {
-		    id
-		    __typename
-		  }
-		  id
-		  __typename
 		}
 		\`,
 
@@ -5590,7 +4893,8 @@ test('fragment references are embedded in artifact', async function () {
 
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "keyRaw": "__typename",
+		                            "visible": true
 		                        }
 		                    },
 
@@ -5620,11 +4924,6 @@ test('fragment references are embedded in artifact', async function () {
 
 		                "abstract": true,
 		                "visible": true
-		            },
-
-		            "__typename": {
-		                "type": "String",
-		                "keyRaw": "__typename"
 		            }
 		        }
 		    },
@@ -5673,32 +4972,15 @@ test('fragment variables are embedded in artifact', async function () {
 		  node(id: "some_id") {
 		    id
 		    ...NodeDetails_32RKor
+		    __typename
 		  }
-		  ...MyAnimalQuery__houdini__extra__fields
 		}
 
 		fragment NodeDetails_32RKor on Node {
 		  ... on User {
 		    field(filter: "Foo")
-		  }
-		  ...NodeDetails_32RKor__houdini__extra__fields
-		}
-
-		fragment MyAnimalQuery__houdini__extra__fields on Query {
-		  node(id: "some_id") {
 		    id
-		    __typename
 		  }
-		  __typename
-		}
-
-		fragment NodeDetails_32RKor__houdini__extra__fields on Node {
-		  ... on User {
-		    id
-		    __typename
-		  }
-		  id
-		  __typename
 		}
 		\`,
 
@@ -5712,19 +4994,6 @@ test('fragment variables are embedded in artifact', async function () {
 		                "nullable": true,
 
 		                "selection": {
-		                    "fields": {
-		                        "id": {
-		                            "type": "ID",
-		                            "keyRaw": "id",
-		                            "visible": true
-		                        },
-
-		                        "__typename": {
-		                            "type": "String",
-		                            "keyRaw": "__typename"
-		                        }
-		                    },
-
 		                    "abstractFields": {
 		                        "fields": {
 		                            "User": {
@@ -5750,6 +5019,20 @@ test('fragment variables are embedded in artifact', async function () {
 		                        "typeMap": {}
 		                    },
 
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id",
+		                            "visible": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename",
+		                            "visible": true
+		                        }
+		                    },
+
 		                    "fragments": {
 		                        "NodeDetails": {
 		                            "name": {
@@ -5763,11 +5046,6 @@ test('fragment variables are embedded in artifact', async function () {
 
 		                "abstract": true,
 		                "visible": true
-		            },
-
-		            "__typename": {
-		                "type": "String",
-		                "keyRaw": "__typename"
 		            }
 		        }
 		    },
@@ -5814,31 +5092,15 @@ test('fragment references in inline fragment', async function () {
 		  node(id: $id) {
 		    ... on User {
 		      ...UserFragmentTestFragment
-		    }
-		  }
-		  ...FragmentUpdateTestQuery__houdini__extra__fields
-		}
-
-		fragment UserFragmentTestFragment on User {
-		  name
-		  ...UserFragmentTestFragment__houdini__extra__fields
-		}
-
-		fragment FragmentUpdateTestQuery__houdini__extra__fields on Query {
-		  node(id: $id) {
-		    ... on User {
 		      id
-		      __typename
 		    }
 		    id
 		    __typename
 		  }
-		  __typename
 		}
 
-		fragment UserFragmentTestFragment__houdini__extra__fields on User {
-		  id
-		  __typename
+		fragment UserFragmentTestFragment on User {
+		  name
 		}
 		\`,
 
@@ -5861,14 +5123,15 @@ test('fragment references in inline fragment', async function () {
 		                                    "visible": true
 		                                },
 
-		                                "__typename": {
-		                                    "type": "String",
-		                                    "keyRaw": "__typename"
-		                                },
-
 		                                "name": {
 		                                    "type": "String",
 		                                    "keyRaw": "name"
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            }
 		                        },
@@ -5885,7 +5148,8 @@ test('fragment references in inline fragment', async function () {
 
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "keyRaw": "__typename",
+		                            "visible": true
 		                        }
 		                    },
 
@@ -5896,11 +5160,6 @@ test('fragment references in inline fragment', async function () {
 
 		                "abstract": true,
 		                "visible": true
-		            },
-
-		            "__typename": {
-		                "type": "String",
-		                "keyRaw": "__typename"
 		            }
 		        }
 		    },
@@ -5954,26 +5213,13 @@ test('masking disabled', async function () {
 		    "raw": \`query FragmentUpdateTestQuery($id: ID!) {
 		  node(id: $id) {
 		    ...UserFragmentTestFragment
+		    id
+		    __typename
 		  }
-		  ...FragmentUpdateTestQuery__houdini__extra__fields
 		}
 
 		fragment UserFragmentTestFragment on User {
 		  name
-		  ...UserFragmentTestFragment__houdini__extra__fields
-		}
-
-		fragment FragmentUpdateTestQuery__houdini__extra__fields on Query {
-		  node(id: $id) {
-		    id
-		    __typename
-		  }
-		  __typename
-		}
-
-		fragment UserFragmentTestFragment__houdini__extra__fields on User {
-		  id
-		  __typename
 		}
 		\`,
 
@@ -5987,6 +5233,32 @@ test('masking disabled', async function () {
 		                "nullable": true,
 
 		                "selection": {
+		                    "abstractFields": {
+		                        "fields": {
+		                            "User": {
+		                                "name": {
+		                                    "type": "String",
+		                                    "keyRaw": "name",
+		                                    "visible": true
+		                                },
+
+		                                "id": {
+		                                    "type": "ID",
+		                                    "keyRaw": "id",
+		                                    "visible": true
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
+		                                }
+		                            }
+		                        },
+
+		                        "typeMap": {}
+		                    },
+
 		                    "fields": {
 		                        "id": {
 		                            "type": "ID",
@@ -5996,33 +5268,9 @@ test('masking disabled', async function () {
 
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "keyRaw": "__typename",
+		                            "visible": true
 		                        }
-		                    },
-
-		                    "abstractFields": {
-		                        "fields": {
-		                            "User": {
-		                                "id": {
-		                                    "type": "ID",
-		                                    "keyRaw": "id",
-		                                    "visible": true
-		                                },
-
-		                                "__typename": {
-		                                    "type": "String",
-		                                    "keyRaw": "__typename"
-		                                },
-
-		                                "name": {
-		                                    "type": "String",
-		                                    "keyRaw": "name",
-		                                    "visible": true
-		                                }
-		                            }
-		                        },
-
-		                        "typeMap": {}
 		                    },
 
 		                    "fragments": {
@@ -6032,11 +5280,6 @@ test('masking disabled', async function () {
 
 		                "abstract": true,
 		                "visible": true
-		            },
-
-		            "__typename": {
-		                "type": "String",
-		                "keyRaw": "__typename"
 		            }
 		        }
 		    },
