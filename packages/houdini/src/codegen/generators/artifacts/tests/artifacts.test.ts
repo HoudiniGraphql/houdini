@@ -5025,13 +5025,26 @@ test('masking disabled', async function () {
 		    "raw": \`query FragmentUpdateTestQuery($id: ID!) {
 		  node(id: $id) {
 		    ...UserFragmentTestFragment
-		    id
-		    __typename
 		  }
+		  ...FragmentUpdateTestQuery__houdini__extra__fields
 		}
 
 		fragment UserFragmentTestFragment on User {
 		  name
+		  ...UserFragmentTestFragment__houdini__extra__fields
+		}
+
+		fragment FragmentUpdateTestQuery__houdini__extra__fields on Query {
+		  node(id: $id) {
+		    id
+		    __typename
+		  }
+		  __typename
+		}
+
+		fragment UserFragmentTestFragment__houdini__extra__fields on User {
+		  id
+		  __typename
 		}
 		\`,
 
@@ -5045,31 +5058,6 @@ test('masking disabled', async function () {
 		                "nullable": true,
 
 		                "selection": {
-		                    "abstractFields": {
-		                        "fields": {
-		                            "User": {
-		                                "name": {
-		                                    "type": "String",
-		                                    "keyRaw": "name",
-		                                    "visible": true
-		                                },
-
-		                                "id": {
-		                                    "type": "ID",
-		                                    "keyRaw": "id",
-		                                    "visible": true
-		                                },
-
-		                                "__typename": {
-		                                    "type": "String",
-		                                    "keyRaw": "__typename"
-		                                }
-		                            }
-		                        },
-
-		                        "typeMap": {}
-		                    },
-
 		                    "fields": {
 		                        "id": {
 		                            "type": "ID",
@@ -5079,8 +5067,35 @@ test('masking disabled', async function () {
 
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "keyRaw": "__typename",
+		                            "visible": true
 		                        }
+		                    },
+
+		                    "abstractFields": {
+		                        "fields": {
+		                            "User": {
+		                                "id": {
+		                                    "type": "ID",
+		                                    "keyRaw": "id",
+		                                    "visible": true
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
+		                                },
+
+		                                "name": {
+		                                    "type": "String",
+		                                    "keyRaw": "name",
+		                                    "visible": true
+		                                }
+		                            }
+		                        },
+
+		                        "typeMap": {}
 		                    },
 
 		                    "fragments": {
@@ -5089,6 +5104,12 @@ test('masking disabled', async function () {
 		                },
 
 		                "abstract": true,
+		                "visible": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename",
 		                "visible": true
 		            }
 		        }

@@ -36,8 +36,20 @@ test('cache policy is persisted in artifact', async function () {
 		    friends {
 		      id
 		    }
+		  }
+		  ...CachedFriends__houdini__extra__fields
+		}
+
+		fragment CachedFriends__houdini__extra__fields on Query {
+		  user {
+		    friends {
+		      __typename
+		      id
+		    }
+		    __typename
 		    id
 		  }
+		  __typename
 		}
 		\`,
 
@@ -57,6 +69,11 @@ test('cache policy is persisted in artifact', async function () {
 
 		                            "selection": {
 		                                "fields": {
+		                                    "__typename": {
+		                                        "type": "String",
+		                                        "keyRaw": "__typename"
+		                                    },
+
 		                                    "id": {
 		                                        "type": "ID",
 		                                        "keyRaw": "id",
@@ -68,6 +85,11 @@ test('cache policy is persisted in artifact', async function () {
 		                            "visible": true
 		                        },
 
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename"
+		                        },
+
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id",
@@ -77,6 +99,11 @@ test('cache policy is persisted in artifact', async function () {
 		                },
 
 		                "visible": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename"
 		            }
 		        }
 		    },
@@ -124,8 +151,20 @@ test('can change default cache policy', async function () {
 		    friends {
 		      id
 		    }
+		  }
+		  ...CachedFriends__houdini__extra__fields
+		}
+
+		fragment CachedFriends__houdini__extra__fields on Query {
+		  user {
+		    friends {
+		      __typename
+		      id
+		    }
+		    __typename
 		    id
 		  }
+		  __typename
 		}
 		\`,
 
@@ -145,6 +184,11 @@ test('can change default cache policy', async function () {
 
 		                            "selection": {
 		                                "fields": {
+		                                    "__typename": {
+		                                        "type": "String",
+		                                        "keyRaw": "__typename"
+		                                    },
+
 		                                    "id": {
 		                                        "type": "ID",
 		                                        "keyRaw": "id",
@@ -156,6 +200,11 @@ test('can change default cache policy', async function () {
 		                            "visible": true
 		                        },
 
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename"
+		                        },
+
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id",
@@ -165,6 +214,11 @@ test('can change default cache policy', async function () {
 		                },
 
 		                "visible": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename"
 		            }
 		        }
 		    },
@@ -207,8 +261,20 @@ test('partial opt-in is persisted', async function () {
 		    friends {
 		      id
 		    }
+		  }
+		  ...CachedFriends__houdini__extra__fields
+		}
+
+		fragment CachedFriends__houdini__extra__fields on Query {
+		  user {
+		    friends {
+		      __typename
+		      id
+		    }
+		    __typename
 		    id
 		  }
+		  __typename
 		}
 		\`,
 
@@ -228,6 +294,11 @@ test('partial opt-in is persisted', async function () {
 
 		                            "selection": {
 		                                "fields": {
+		                                    "__typename": {
+		                                        "type": "String",
+		                                        "keyRaw": "__typename"
+		                                    },
+
 		                                    "id": {
 		                                        "type": "ID",
 		                                        "keyRaw": "id",
@@ -239,6 +310,11 @@ test('partial opt-in is persisted', async function () {
 		                            "visible": true
 		                        },
 
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename"
+		                        },
+
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id",
@@ -248,6 +324,11 @@ test('partial opt-in is persisted', async function () {
 		                },
 
 		                "visible": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename"
 		            }
 		        }
 		    },
@@ -295,8 +376,20 @@ test('can set default partial opt-in', async function () {
 		    friends {
 		      id
 		    }
+		  }
+		  ...CachedFriends__houdini__extra__fields
+		}
+
+		fragment CachedFriends__houdini__extra__fields on Query {
+		  user {
+		    friends {
+		      __typename
+		      id
+		    }
+		    __typename
 		    id
 		  }
+		  __typename
 		}
 		\`,
 
@@ -316,6 +409,11 @@ test('can set default partial opt-in', async function () {
 
 		                            "selection": {
 		                                "fields": {
+		                                    "__typename": {
+		                                        "type": "String",
+		                                        "keyRaw": "__typename"
+		                                    },
+
 		                                    "id": {
 		                                        "type": "ID",
 		                                        "keyRaw": "id",
@@ -327,6 +425,11 @@ test('can set default partial opt-in', async function () {
 		                            "visible": true
 		                        },
 
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename"
+		                        },
+
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id",
@@ -336,6 +439,11 @@ test('can set default partial opt-in', async function () {
 		                },
 
 		                "visible": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename"
 		            }
 		        }
 		    },

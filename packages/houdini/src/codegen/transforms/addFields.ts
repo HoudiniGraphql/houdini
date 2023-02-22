@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
 
-import { ArtifactKind, Config, Document } from '../../lib'
+import { ArtifactKind, Config, deepMerge, Document } from '../../lib'
 import { parentTypeFromAncestors, unwrapType } from '../../lib'
 
 // We need to add some fields to every document in order to streamline operations.
@@ -181,14 +181,24 @@ function addFields(config: Config, doc: Document, document: graphql.DocumentNode
 			// add the appropriate fields to the selection
 			return addKeysToSelection(config, node, fragmentType)
 		},
+		FragmentDefinition: {
+			leave(node) {
+				// we know the type from the type condition
+				const fragmentType = config.schema.getType(node.typeCondition.name.value)
+				if (!fragmentType) {
+					return
+				}
+
+				// add the appropriate fields to the selection
+				return addKeysToSelection(config, node, fragmentType)
+			},
+		},
 	})
 }
 
-function addKeysToSelection(
-	config: Config,
-	node: graphql.FieldNode | graphql.InlineFragmentNode,
-	fieldType: graphql.GraphQLNamedType
-): graphql.FieldNode | graphql.InlineFragmentNode | undefined {
+function addKeysToSelection<
+	T extends graphql.FieldNode | graphql.InlineFragmentNode | graphql.FragmentDefinitionNode
+>(config: Config, node: T, fieldType: graphql.GraphQLNamedType): T | undefined {
 	// if the type does not have an id field ignore it
 	if (!graphql.isObjectType(fieldType) && !graphql.isInterfaceType(fieldType)) {
 		return
@@ -203,19 +213,14 @@ function addKeysToSelection(
 	}
 
 	// add the id fields for the given type
-	const selections = [...node.selectionSet!.selections]
-		.filter(
-			(selection) =>
-				selection.kind !== 'FragmentSpread' &&
-				(selection.kind !== 'Field' || selection.selectionSet)
-		)
-		.concat({
-			kind: 'Field',
-			name: {
-				kind: 'Name',
-				value: '__typename',
-			},
-		})
+	const selections = [...node.selectionSet!.selections].filter(
+		(selection) =>
+			selection.kind !== 'FragmentSpread' &&
+			(selection.kind !== 'Field' || selection.selectionSet)
+	)
+
+	// add __typename to the list of keys
+	keyFields.push('__typename')
 
 	for (const keyField of keyFields) {
 		// add a selection for the field to the selection set
