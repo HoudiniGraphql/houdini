@@ -41,7 +41,7 @@ export default async function addID(config: Config, documents: Document[]): Prom
 			}
 
 			// build up a fragment definition that has every field
-			const fragmentDefinition: graphql.FragmentDefinitionNode = {
+			let fragmentDefinition: graphql.FragmentDefinitionNode = addFields(config, doc, {
 				kind: 'FragmentDefinition',
 				name: {
 					kind: 'Name',
@@ -54,27 +54,28 @@ export default async function addID(config: Config, documents: Document[]): Prom
 						value: rootType,
 					},
 				},
-				selectionSet: definition.selectionSet,
+				selectionSet: { ...definition.selectionSet },
+			})
+
+			// if there is no typename field then add one
+			const hasTypename = fragmentDefinition.selectionSet.selections.find(
+				(sel) => sel.kind === 'Field' && sel.name.value === '__typename'
+			)
+			if (!hasTypename) {
+				fragmentDefinition.selectionSet.selections =
+					fragmentDefinition.selectionSet.selections.concat({
+						kind: 'Field',
+						name: {
+							kind: 'Name',
+							value: '__typename',
+						},
+					})
 			}
 
-			// in order for our utilities to work we need to wrap the definition in a document
-			const newSelection = addFields(config, doc, {
-				kind: graphql.Kind.DOCUMENT,
-				definitions: [fragmentDefinition],
-			}).definitions[0]!.selectionSet
-
-			// @ts-expect-error: its read only
 			// add the selection to the definition
-			fragmentDefinition.selectionSet = {
-				kind: 'SelectionSet',
-				selections: newSelection.selections.concat({
-					kind: 'Field',
-					name: {
-						kind: 'Name',
-						value: '__typename',
-					},
-				}),
-			}
+			fragmentDefinition =
+				addKeysToSelection(config, fragmentDefinition, config.schema.getType(rootType)!) ??
+				fragmentDefinition
 
 			// if there are selections to add, then do it
 			if (fragmentDefinition.selectionSet.selections.length > 0) {
@@ -112,7 +113,11 @@ export default async function addID(config: Config, documents: Document[]): Prom
 	})
 }
 
-function addFields(config: Config, doc: Document, document: graphql.DocumentNode) {
+function addFields<_Document extends graphql.ASTNode>(
+	config: Config,
+	doc: Document,
+	document: _Document
+): _Document {
 	return graphql.visit(document, {
 		Field(node, key, parent, path, ancestors): graphql.ASTNode | undefined {
 			// if we are looking at a leaf type
@@ -181,18 +186,6 @@ function addFields(config: Config, doc: Document, document: graphql.DocumentNode
 			// add the appropriate fields to the selection
 			return addKeysToSelection(config, node, fragmentType)
 		},
-		FragmentDefinition: {
-			leave(node) {
-				// we know the type from the type condition
-				const fragmentType = config.schema.getType(node.typeCondition.name.value)
-				if (!fragmentType) {
-					return
-				}
-
-				// add the appropriate fields to the selection
-				return addKeysToSelection(config, node, fragmentType)
-			},
-		},
 	})
 }
 
@@ -208,7 +201,8 @@ function addKeysToSelection<
 	const keyFields = config.keyFieldsForType(fieldType.name)
 
 	// if there is no id field of the type
-	if (keyFields.find((key) => !fieldType.getFields()[key])) {
+	const missing = keyFields.find((key) => !fieldType.getFields()[key])
+	if (missing) {
 		return
 	}
 
@@ -219,10 +213,7 @@ function addKeysToSelection<
 			(selection.kind !== 'Field' || selection.selectionSet)
 	)
 
-	// add __typename to the list of keys
-	keyFields.push('__typename')
-
-	for (const keyField of keyFields) {
+	for (const keyField of keyFields.concat('__typename')) {
 		// add a selection for the field to the selection set
 		selections.push({
 			kind: graphql.Kind.FIELD,
@@ -237,7 +228,7 @@ function addKeysToSelection<
 	return {
 		...node,
 		selectionSet: {
-			...node.selectionSet!,
+			...node.selectionSet,
 			selections,
 		},
 	}

@@ -368,7 +368,10 @@ export class Config {
 	}
 
 	keyFieldsForType(type: string) {
-		return keyFieldsForType(this.configFile, type)
+		// the only type that doesn't have a well defined ID is the root query type
+		return this.schema.getQueryType()?.name === type
+			? []
+			: keyFieldsForType(this.configFile, type)
 	}
 
 	computeID(type: string, data: any): string {

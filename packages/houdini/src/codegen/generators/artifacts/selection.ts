@@ -361,8 +361,8 @@ function mergeSelection({
 				if (object.abstractFields.fields[typeName]) {
 					object.abstractFields!.fields[typeName] = deepMerge(
 						filepath,
-						object.abstractFields.fields[typeName] || {},
-						object.abstractFields.fields[possible]!
+						object.abstractFields.fields[typeName] ?? {},
+						object.abstractFields.fields[possible] ?? {}
 					)
 
 					// there was in fact overlap between the mapped type and another abstract selection

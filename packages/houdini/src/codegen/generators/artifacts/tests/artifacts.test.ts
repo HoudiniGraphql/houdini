@@ -5,10 +5,9 @@ import type { Document } from '../../../../lib'
 import { fs } from '../../../../lib'
 import { mockCollectedDoc, testConfig } from '../../../../test'
 
-// the config to use in tests
-const config = testConfig()
-
 test('generates an artifact for every document', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	// the documents to test
 	const docs: Document[] = [
 		mockCollectedDoc(`query TestQuery { version }`),
@@ -26,6 +25,8 @@ test('generates an artifact for every document', async function () {
 })
 
 test('adds kind, name, and raw, response, and selection', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	// the documents to test
 	const docs: Document[] = [
 		mockCollectedDoc(`query TestQuery { version }`),
@@ -44,6 +45,11 @@ test('adds kind, name, and raw, response, and selection', async function () {
 
 		    "raw": \`query TestQuery {
 		  version
+		  ...TestQuery__houdini__extra__fields
+		}
+
+		fragment TestQuery__houdini__extra__fields on Query {
+		  __typename
 		}
 		\`,
 
@@ -51,6 +57,11 @@ test('adds kind, name, and raw, response, and selection', async function () {
 
 		    "selection": {
 		        "fields": {
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename"
+		            },
+
 		            "version": {
 		                "type": "Int",
 		                "keyRaw": "version",
@@ -75,6 +86,7 @@ test('adds kind, name, and raw, response, and selection', async function () {
 
 		    "raw": \`fragment TestFragment on User {
 		  firstName
+		  ...TestFragment__houdini__extra__fields
 		}
 		\`,
 
@@ -98,6 +110,8 @@ test('adds kind, name, and raw, response, and selection', async function () {
 })
 
 test('selection includes fragments', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	// the documents to test
 	const selectionDocs: Document[] = [
 		mockCollectedDoc(`query TestQuery { user { ...TestFragment } }`),
@@ -197,6 +211,8 @@ test('selection includes fragments', async function () {
 })
 
 test('internal directives are scrubbed', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	const docs = [
 		mockCollectedDoc(`fragment A on User { firstName }`),
 		mockCollectedDoc(`query TestQuery { user { ...A @prepend } }`),
@@ -266,6 +282,8 @@ test('internal directives are scrubbed', async function () {
 })
 
 test('variables only used by internal directives are scrubbed', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	const docs = [
 		mockCollectedDoc(`fragment A on User { firstName }`),
 		mockCollectedDoc(
@@ -350,6 +368,8 @@ test('variables only used by internal directives are scrubbed', async function (
 })
 
 test('overlapping query and fragment selection', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	const docs = [
 		mockCollectedDoc(`fragment A on User { firstName }`),
 		mockCollectedDoc(`query TestQuery { user { firstName ...A @prepend } }`),
@@ -420,6 +440,8 @@ test('overlapping query and fragment selection', async function () {
 	`)
 })
 test('interface to interface inline fragment', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	const docs = [
 		mockCollectedDoc(`query MyQuery($id: ID!) {
 			node(id: $id) {
@@ -527,6 +549,8 @@ test('interface to interface inline fragment', async function () {
 })
 
 test('paginate over unions', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	const docs = [
 		mockCollectedDoc(
 			`query TestQuery {
@@ -742,6 +766,8 @@ test('paginate over unions', async function () {
 })
 
 test('overlapping query and fragment nested selection', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	const docs = [
 		mockCollectedDoc(`fragment A on User { friends { ... on User { id } } }`),
 		mockCollectedDoc(`query TestQuery {  friends {... on User { firstName } ...A @prepend } }`),
@@ -848,6 +874,8 @@ test('overlapping query and fragment nested selection', async function () {
 })
 
 test('selections with interfaces', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	const cfg = testConfig({ module: 'esm' })
 	const docs = [
 		mockCollectedDoc(
@@ -982,6 +1010,8 @@ test('selections with interfaces', async function () {
 })
 
 test('selections with unions', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	const cfg = testConfig({ module: 'esm' })
 	const docs = [
 		mockCollectedDoc(
@@ -1116,6 +1146,8 @@ test('selections with unions', async function () {
 })
 
 test('selections with overlapping unions', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	const cfg = testConfig({ module: 'esm' })
 	const docs = [
 		mockCollectedDoc(
@@ -1153,14 +1185,27 @@ test('selections with overlapping unions', async function () {
 		      id
 		      owner {
 		        firstName
-		        id
 		      }
 		    }
 		    ... on Ghost {
 		      name
 		    }
-		    __typename
 		  }
+		  ...Friends__houdini__extra__fields
+		}
+
+		fragment Friends__houdini__extra__fields on Query {
+		  friends {
+		    __typename
+		    ... on Cat {
+		      id
+		    }
+		    ... on Ghost {
+		      name
+			  aka
+		    }
+		  }
+		  __typename
 		}
 		\`,
 
@@ -1173,6 +1218,19 @@ test('selections with overlapping unions', async function () {
 		                "keyRaw": "friends",
 
 		                "selection": {
+		                    "fields": {
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename"
+		                        },
+
+		                        "name": {
+		                            "type": "String",
+		                            "keyRaw": "name",
+		                            "visible": true
+		                        }
+		                    },
+
 		                    "abstractFields": {
 		                        "fields": {
 		                            "Cat": {
@@ -1192,12 +1250,6 @@ test('selections with overlapping unions', async function () {
 		                                                "type": "String",
 		                                                "keyRaw": "firstName",
 		                                                "visible": true
-		                                            },
-
-		                                            "id": {
-		                                                "type": "ID",
-		                                                "keyRaw": "id",
-		                                                "visible": true
 		                                            }
 		                                        }
 		                                    },
@@ -1205,15 +1257,15 @@ test('selections with overlapping unions', async function () {
 		                                    "visible": true
 		                                },
 
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename"
+		                                },
+
 		                                "name": {
 		                                    "type": "String",
 		                                    "keyRaw": "name",
 		                                    "visible": true
-		                                },
-
-		                                "__typename": {
-		                                    "type": "String",
-		                                    "keyRaw": "__typename"
 		                                }
 		                            },
 
@@ -1232,24 +1284,16 @@ test('selections with overlapping unions', async function () {
 		                        },
 
 		                        "typeMap": {}
-		                    },
-
-		                    "fields": {
-		                        "name": {
-		                            "type": "String",
-		                            "keyRaw": "name",
-		                            "visible": true
-		                        },
-
-		                        "__typename": {
-		                            "type": "String",
-		                            "keyRaw": "__typename"
-		                        }
 		                    }
 		                },
 
 		                "abstract": true,
 		                "visible": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename"
 		            }
 		        }
 		    },
@@ -1264,6 +1308,8 @@ test('selections with overlapping unions', async function () {
 })
 
 test('selections with unions of abstract types', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	const cfg = testConfig({ module: 'esm' })
 	const docs = [
 		mockCollectedDoc(
@@ -1418,6 +1464,8 @@ test('selections with unions of abstract types', async function () {
 })
 
 test('selections with concrete types matching multiple abstract types', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	const cfg = testConfig({ module: 'esm' })
 	const docs = [
 		mockCollectedDoc(
@@ -1595,6 +1643,8 @@ test('selections with concrete types matching multiple abstract types', async fu
 
 describe('mutation artifacts', function () {
 	test('empty operation list', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const cfg = testConfig({ module: 'esm' })
 
 		const docs = [
@@ -1630,9 +1680,19 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      firstName
-			      id
 			    }
 			  }
+			  ...B__houdini__extra__fields
+			}
+
+			fragment B__houdini__extra__fields on Mutation {
+			  addFriend {
+			    friend {
+			      id
+			      __typename
+			    }
+			  }
+			  __typename
 			}
 			\`,
 
@@ -1652,15 +1712,20 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName",
-			                                        "visible": true
-			                                    },
-
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
+			                                        "visible": true
+			                                    },
+
+			                                    "__typename": {
+			                                        "type": "String",
+			                                        "keyRaw": "__typename"
+			                                    },
+
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName",
 			                                        "visible": true
 			                                    }
 			                                }
@@ -1672,6 +1737,11 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
+			            },
+
+			            "__typename": {
+			                "type": "String",
+			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -1684,6 +1754,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('insert operation', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -1717,14 +1789,36 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_insert
-			      id
 			    }
 			  }
+			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_insert on User {
 			  firstName
 			  id
+			  ...All_Users_toggle__houdini__extra__fields
+			  ...All_Users_insert__houdini__extra__fields
+			}
+
+			fragment A__houdini__extra__fields on Mutation {
+			  addFriend {
+			    friend {
+			      id
+			      __typename
+			    }
+			  }
+			  __typename
+			}
+
+			fragment All_Users_toggle__houdini__extra__fields on User {
+			  id
+			  __typename
+			}
+
+			fragment All_Users_insert__houdini__extra__fields on User {
+			  id
+			  __typename
 			}
 			\`,
 
@@ -1750,15 +1844,20 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
-			                                    },
-
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
+			                                    },
+
+			                                    "__typename": {
+			                                        "type": "String",
+			                                        "keyRaw": "__typename"
+			                                    },
+
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -1773,6 +1872,11 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
+			            },
+
+			            "__typename": {
+			                "type": "String",
+			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -1785,6 +1889,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('insert operation allList', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -1817,14 +1923,36 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_insert
-			      id
 			    }
 			  }
+			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_insert on User {
 			  firstName
 			  id
+			  ...All_Users_toggle__houdini__extra__fields
+			  ...All_Users_insert__houdini__extra__fields
+			}
+
+			fragment A__houdini__extra__fields on Mutation {
+			  addFriend {
+			    friend {
+			      id
+			      __typename
+			    }
+			  }
+			  __typename
+			}
+
+			fragment All_Users_toggle__houdini__extra__fields on User {
+			  id
+			  __typename
+			}
+
+			fragment All_Users_insert__houdini__extra__fields on User {
+			  id
+			  __typename
 			}
 			\`,
 
@@ -1851,15 +1979,20 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
-			                                    },
-
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
+			                                    },
+
+			                                    "__typename": {
+			                                        "type": "String",
+			                                        "keyRaw": "__typename"
+			                                    },
+
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -1874,6 +2007,11 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
+			            },
+
+			            "__typename": {
+			                "type": "String",
+			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -1886,6 +2024,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('insert operation allList by default in config', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -1922,14 +2062,36 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_insert
-			      id
 			    }
 			  }
+			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_insert on User {
 			  firstName
 			  id
+			  ...All_Users_toggle__houdini__extra__fields
+			  ...All_Users_insert__houdini__extra__fields
+			}
+
+			fragment A__houdini__extra__fields on Mutation {
+			  addFriend {
+			    friend {
+			      id
+			      __typename
+			    }
+			  }
+			  __typename
+			}
+
+			fragment All_Users_toggle__houdini__extra__fields on User {
+			  id
+			  __typename
+			}
+
+			fragment All_Users_insert__houdini__extra__fields on User {
+			  id
+			  __typename
 			}
 			\`,
 
@@ -1956,15 +2118,20 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
-			                                    },
-
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
+			                                    },
+
+			                                    "__typename": {
+			                                        "type": "String",
+			                                        "keyRaw": "__typename"
+			                                    },
+
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -1979,6 +2146,11 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
+			            },
+
+			            "__typename": {
+			                "type": "String",
+			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -1991,6 +2163,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('insert operation cosition first by default in config', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -2027,14 +2201,36 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_insert
-			      id
 			    }
 			  }
+			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_insert on User {
 			  firstName
 			  id
+			  ...All_Users_toggle__houdini__extra__fields
+			  ...All_Users_insert__houdini__extra__fields
+			}
+
+			fragment A__houdini__extra__fields on Mutation {
+			  addFriend {
+			    friend {
+			      id
+			      __typename
+			    }
+			  }
+			  __typename
+			}
+
+			fragment All_Users_toggle__houdini__extra__fields on User {
+			  id
+			  __typename
+			}
+
+			fragment All_Users_insert__houdini__extra__fields on User {
+			  id
+			  __typename
 			}
 			\`,
 
@@ -2060,15 +2256,20 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
-			                                    },
-
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
+			                                    },
+
+			                                    "__typename": {
+			                                        "type": "String",
+			                                        "keyRaw": "__typename"
+			                                    },
+
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -2083,6 +2284,11 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
+			            },
+
+			            "__typename": {
+			                "type": "String",
+			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -2095,6 +2301,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('toggle operation', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -2128,14 +2336,36 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_toggle
-			      id
 			    }
 			  }
+			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_toggle on User {
 			  firstName
 			  id
+			  ...All_Users_insert__houdini__extra__fields
+			  ...All_Users_toggle__houdini__extra__fields
+			}
+
+			fragment A__houdini__extra__fields on Mutation {
+			  addFriend {
+			    friend {
+			      id
+			      __typename
+			    }
+			  }
+			  __typename
+			}
+
+			fragment All_Users_insert__houdini__extra__fields on User {
+			  id
+			  __typename
+			}
+
+			fragment All_Users_toggle__houdini__extra__fields on User {
+			  id
+			  __typename
 			}
 			\`,
 
@@ -2161,15 +2391,20 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
-			                                    },
-
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
+			                                    },
+
+			                                    "__typename": {
+			                                        "type": "String",
+			                                        "keyRaw": "__typename"
+			                                    },
+
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -2184,6 +2419,11 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
+			            },
+
+			            "__typename": {
+			                "type": "String",
+			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -2196,6 +2436,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('remove operation', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -2229,13 +2471,29 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_remove
-			      id
 			    }
 			  }
+			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_remove on User {
 			  id
+			  ...All_Users_remove__houdini__extra__fields
+			}
+
+			fragment A__houdini__extra__fields on Mutation {
+			  addFriend {
+			    friend {
+			      id
+			      __typename
+			    }
+			  }
+			  __typename
+			}
+
+			fragment All_Users_remove__houdini__extra__fields on User {
+			  id
+			  __typename
 			}
 			\`,
 
@@ -2264,6 +2522,11 @@ describe('mutation artifacts', function () {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
+			                                    },
+
+			                                    "__typename": {
+			                                        "type": "String",
+			                                        "keyRaw": "__typename"
 			                                    }
 			                                },
 
@@ -2278,6 +2541,11 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
+			            },
+
+			            "__typename": {
+			                "type": "String",
+			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -2290,6 +2558,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('delete operation', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -2321,6 +2591,14 @@ describe('mutation artifacts', function () {
 			  deleteUser(id: "1234") {
 			    userID
 			  }
+			  ...A__houdini__extra__fields
+			}
+
+			fragment A__houdini__extra__fields on Mutation {
+			  deleteUser(id: "1234") {
+			    userID
+			  }
+			  __typename
 			}
 			\`,
 
@@ -2349,6 +2627,11 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
+			            },
+
+			            "__typename": {
+			                "type": "String",
+			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -2361,6 +2644,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('delete operation with condition', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -2392,6 +2677,14 @@ describe('mutation artifacts', function () {
 			  deleteUser(id: "1234") {
 			    userID
 			  }
+			  ...A__houdini__extra__fields
+			}
+
+			fragment A__houdini__extra__fields on Mutation {
+			  deleteUser(id: "1234") {
+			    userID
+			  }
+			  __typename
 			}
 			\`,
 
@@ -2426,6 +2719,11 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
+			            },
+
+			            "__typename": {
+			                "type": "String",
+			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -2438,6 +2736,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('parentID - prepend', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -2471,14 +2771,36 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_insert
-			      id
 			    }
 			  }
+			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_insert on User {
 			  firstName
 			  id
+			  ...All_Users_toggle__houdini__extra__fields
+			  ...All_Users_insert__houdini__extra__fields
+			}
+
+			fragment A__houdini__extra__fields on Mutation {
+			  addFriend {
+			    friend {
+			      id
+			      __typename
+			    }
+			  }
+			  __typename
+			}
+
+			fragment All_Users_toggle__houdini__extra__fields on User {
+			  id
+			  __typename
+			}
+
+			fragment All_Users_insert__houdini__extra__fields on User {
+			  id
+			  __typename
 			}
 			\`,
 
@@ -2509,15 +2831,20 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
-			                                    },
-
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
+			                                    },
+
+			                                    "__typename": {
+			                                        "type": "String",
+			                                        "keyRaw": "__typename"
+			                                    },
+
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -2532,6 +2859,11 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
+			            },
+
+			            "__typename": {
+			                "type": "String",
+			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -2544,6 +2876,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('parentID - append', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -2577,14 +2911,36 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_insert
-			      id
 			    }
 			  }
+			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_insert on User {
 			  firstName
 			  id
+			  ...All_Users_toggle__houdini__extra__fields
+			  ...All_Users_insert__houdini__extra__fields
+			}
+
+			fragment A__houdini__extra__fields on Mutation {
+			  addFriend {
+			    friend {
+			      id
+			      __typename
+			    }
+			  }
+			  __typename
+			}
+
+			fragment All_Users_toggle__houdini__extra__fields on User {
+			  id
+			  __typename
+			}
+
+			fragment All_Users_insert__houdini__extra__fields on User {
+			  id
+			  __typename
 			}
 			\`,
 
@@ -2615,15 +2971,20 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
-			                                    },
-
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
+			                                    },
+
+			                                    "__typename": {
+			                                        "type": "String",
+			                                        "keyRaw": "__typename"
+			                                    },
+
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -2638,6 +2999,11 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
+			            },
+
+			            "__typename": {
+			                "type": "String",
+			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -2650,6 +3016,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('parentID - parentID directive', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -2683,14 +3051,36 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_insert
-			      id
 			    }
 			  }
+			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_insert on User {
 			  firstName
 			  id
+			  ...All_Users_toggle__houdini__extra__fields
+			  ...All_Users_insert__houdini__extra__fields
+			}
+
+			fragment A__houdini__extra__fields on Mutation {
+			  addFriend {
+			    friend {
+			      id
+			      __typename
+			    }
+			  }
+			  __typename
+			}
+
+			fragment All_Users_toggle__houdini__extra__fields on User {
+			  id
+			  __typename
+			}
+
+			fragment All_Users_insert__houdini__extra__fields on User {
+			  id
+			  __typename
 			}
 			\`,
 
@@ -2721,15 +3111,20 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
-			                                    },
-
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
+			                                    },
+
+			                                    "__typename": {
+			                                        "type": "String",
+			                                        "keyRaw": "__typename"
+			                                    },
+
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -2744,6 +3139,11 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
+			            },
+
+			            "__typename": {
+			                "type": "String",
+			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -2756,6 +3156,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('must - prepend', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -2789,14 +3191,36 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_insert
-			      id
 			    }
 			  }
+			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_insert on User {
 			  firstName
 			  id
+			  ...All_Users_toggle__houdini__extra__fields
+			  ...All_Users_insert__houdini__extra__fields
+			}
+
+			fragment A__houdini__extra__fields on Mutation {
+			  addFriend {
+			    friend {
+			      id
+			      __typename
+			    }
+			  }
+			  __typename
+			}
+
+			fragment All_Users_toggle__houdini__extra__fields on User {
+			  id
+			  __typename
+			}
+
+			fragment All_Users_insert__houdini__extra__fields on User {
+			  id
+			  __typename
 			}
 			\`,
 
@@ -2828,15 +3252,20 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
-			                                    },
-
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
+			                                    },
+
+			                                    "__typename": {
+			                                        "type": "String",
+			                                        "keyRaw": "__typename"
+			                                    },
+
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -2851,6 +3280,11 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
+			            },
+
+			            "__typename": {
+			                "type": "String",
+			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -2863,6 +3297,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('must - append', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -2896,14 +3332,36 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_insert
-			      id
 			    }
 			  }
+			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_insert on User {
 			  firstName
 			  id
+			  ...All_Users_toggle__houdini__extra__fields
+			  ...All_Users_insert__houdini__extra__fields
+			}
+
+			fragment A__houdini__extra__fields on Mutation {
+			  addFriend {
+			    friend {
+			      id
+			      __typename
+			    }
+			  }
+			  __typename
+			}
+
+			fragment All_Users_toggle__houdini__extra__fields on User {
+			  id
+			  __typename
+			}
+
+			fragment All_Users_insert__houdini__extra__fields on User {
+			  id
+			  __typename
 			}
 			\`,
 
@@ -2935,15 +3393,20 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
-			                                    },
-
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
+			                                    },
+
+			                                    "__typename": {
+			                                        "type": "String",
+			                                        "keyRaw": "__typename"
+			                                    },
+
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -2958,6 +3421,11 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
+			            },
+
+			            "__typename": {
+			                "type": "String",
+			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -2970,6 +3438,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('must - directive', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -3003,14 +3473,36 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_insert
-			      id
 			    }
 			  }
+			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_insert on User {
 			  firstName
 			  id
+			  ...All_Users_toggle__houdini__extra__fields
+			  ...All_Users_insert__houdini__extra__fields
+			}
+
+			fragment A__houdini__extra__fields on Mutation {
+			  addFriend {
+			    friend {
+			      id
+			      __typename
+			    }
+			  }
+			  __typename
+			}
+
+			fragment All_Users_toggle__houdini__extra__fields on User {
+			  id
+			  __typename
+			}
+
+			fragment All_Users_insert__houdini__extra__fields on User {
+			  id
+			  __typename
 			}
 			\`,
 
@@ -3042,15 +3534,20 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
-			                                    },
-
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
+			                                    },
+
+			                                    "__typename": {
+			                                        "type": "String",
+			                                        "keyRaw": "__typename"
+			                                    },
+
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -3065,6 +3562,11 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
+			            },
+
+			            "__typename": {
+			                "type": "String",
+			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -3077,6 +3579,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('must_not - prepend', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -3110,14 +3614,36 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_insert
-			      id
 			    }
 			  }
+			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_insert on User {
 			  firstName
 			  id
+			  ...All_Users_toggle__houdini__extra__fields
+			  ...All_Users_insert__houdini__extra__fields
+			}
+
+			fragment A__houdini__extra__fields on Mutation {
+			  addFriend {
+			    friend {
+			      id
+			      __typename
+			    }
+			  }
+			  __typename
+			}
+
+			fragment All_Users_toggle__houdini__extra__fields on User {
+			  id
+			  __typename
+			}
+
+			fragment All_Users_insert__houdini__extra__fields on User {
+			  id
+			  __typename
 			}
 			\`,
 
@@ -3149,15 +3675,20 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
-			                                    },
-
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
+			                                    },
+
+			                                    "__typename": {
+			                                        "type": "String",
+			                                        "keyRaw": "__typename"
+			                                    },
+
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -3172,6 +3703,11 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
+			            },
+
+			            "__typename": {
+			                "type": "String",
+			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -3184,6 +3720,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('must_not - append', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -3217,14 +3755,36 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_insert
-			      id
 			    }
 			  }
+			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_insert on User {
 			  firstName
 			  id
+			  ...All_Users_toggle__houdini__extra__fields
+			  ...All_Users_insert__houdini__extra__fields
+			}
+
+			fragment A__houdini__extra__fields on Mutation {
+			  addFriend {
+			    friend {
+			      id
+			      __typename
+			    }
+			  }
+			  __typename
+			}
+
+			fragment All_Users_toggle__houdini__extra__fields on User {
+			  id
+			  __typename
+			}
+
+			fragment All_Users_insert__houdini__extra__fields on User {
+			  id
+			  __typename
 			}
 			\`,
 
@@ -3256,15 +3816,20 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
-			                                    },
-
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
+			                                    },
+
+			                                    "__typename": {
+			                                        "type": "String",
+			                                        "keyRaw": "__typename"
+			                                    },
+
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -3279,6 +3844,11 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
+			            },
+
+			            "__typename": {
+			                "type": "String",
+			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -3291,6 +3861,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('list filters', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -3328,8 +3900,16 @@ describe('mutation artifacts', function () {
 			    "raw": \`query TestQuery($value: String!) {
 			  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
 			    firstName
-			    id
 			  }
+			  ...TestQuery__houdini__extra__fields
+			}
+
+			fragment TestQuery__houdini__extra__fields on Query {
+			  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
+			    id
+			    __typename
+			  }
+			  __typename
 			}
 			\`,
 
@@ -3349,15 +3929,20 @@ describe('mutation artifacts', function () {
 
 			                "selection": {
 			                    "fields": {
-			                        "firstName": {
-			                            "type": "String",
-			                            "keyRaw": "firstName",
-			                            "visible": true
-			                        },
-
 			                        "id": {
 			                            "type": "ID",
 			                            "keyRaw": "id",
+			                            "visible": true
+			                        },
+
+			                        "__typename": {
+			                            "type": "String",
+			                            "keyRaw": "__typename"
+			                        },
+
+			                        "firstName": {
+			                            "type": "String",
+			                            "keyRaw": "firstName",
 			                            "visible": true
 			                        }
 			                    }
@@ -3386,6 +3971,11 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
+			            },
+
+			            "__typename": {
+			                "type": "String",
+			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -3409,6 +3999,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('must_not - directive', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -3442,14 +4034,36 @@ describe('mutation artifacts', function () {
 			  addFriend {
 			    friend {
 			      ...All_Users_insert
-			      id
 			    }
 			  }
+			  ...A__houdini__extra__fields
 			}
 
 			fragment All_Users_insert on User {
 			  firstName
 			  id
+			  ...All_Users_toggle__houdini__extra__fields
+			  ...All_Users_insert__houdini__extra__fields
+			}
+
+			fragment A__houdini__extra__fields on Mutation {
+			  addFriend {
+			    friend {
+			      id
+			      __typename
+			    }
+			  }
+			  __typename
+			}
+
+			fragment All_Users_toggle__houdini__extra__fields on User {
+			  id
+			  __typename
+			}
+
+			fragment All_Users_insert__houdini__extra__fields on User {
+			  id
+			  __typename
 			}
 			\`,
 
@@ -3481,15 +4095,20 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName"
-			                                    },
-
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
 			                                        "visible": true
+			                                    },
+
+			                                    "__typename": {
+			                                        "type": "String",
+			                                        "keyRaw": "__typename"
+			                                    },
+
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
 			                                    }
 			                                },
 
@@ -3504,6 +4123,11 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
+			            },
+
+			            "__typename": {
+			                "type": "String",
+			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -3516,6 +4140,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('tracks list name', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -3548,8 +4174,16 @@ describe('mutation artifacts', function () {
 			    "raw": \`query TestQuery {
 			  users(stringValue: "foo") {
 			    firstName
-			    id
 			  }
+			  ...TestQuery__houdini__extra__fields
+			}
+
+			fragment TestQuery__houdini__extra__fields on Query {
+			  users(stringValue: "foo") {
+			    id
+			    __typename
+			  }
+			  __typename
 			}
 			\`,
 
@@ -3569,15 +4203,20 @@ describe('mutation artifacts', function () {
 
 			                "selection": {
 			                    "fields": {
-			                        "firstName": {
-			                            "type": "String",
-			                            "keyRaw": "firstName",
-			                            "visible": true
-			                        },
-
 			                        "id": {
 			                            "type": "ID",
 			                            "keyRaw": "id",
+			                            "visible": true
+			                        },
+
+			                        "__typename": {
+			                            "type": "String",
+			                            "keyRaw": "__typename"
+			                        },
+
+			                        "firstName": {
+			                            "type": "String",
+			                            "keyRaw": "firstName",
 			                            "visible": true
 			                        }
 			                    }
@@ -3591,6 +4230,11 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
+			            },
+
+			            "__typename": {
+			                "type": "String",
+			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -3605,6 +4249,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('tracks paginate name', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -3653,7 +4299,6 @@ describe('mutation artifacts', function () {
 			    edges {
 			      node {
 			        firstName
-			        id
 			      }
 			    }
 			    edges {
@@ -3669,6 +4314,32 @@ describe('mutation artifacts', function () {
 			      endCursor
 			    }
 			  }
+			  ...TestQuery__houdini__extra__fields
+			}
+
+			fragment TestQuery__houdini__extra__fields on Query {
+			  usersByCursor(first: $first, after: $after, last: $last, before: $before) {
+			    edges {
+			      node {
+			        id
+			        __typename
+			      }
+			    }
+			    edges {
+			      cursor
+			      node {
+			        id
+			        __typename
+			      }
+			    }
+			    pageInfo {
+			      hasPreviousPage
+			      hasNextPage
+			      startCursor
+			      endCursor
+			    }
+			  }
+			  __typename
 			}
 			\`,
 
@@ -3702,12 +4373,6 @@ describe('mutation artifacts', function () {
 
 			                                        "selection": {
 			                                            "fields": {
-			                                                "firstName": {
-			                                                    "type": "String",
-			                                                    "keyRaw": "firstName",
-			                                                    "visible": true
-			                                                },
-
 			                                                "id": {
 			                                                    "type": "ID",
 			                                                    "keyRaw": "id",
@@ -3716,7 +4381,14 @@ describe('mutation artifacts', function () {
 
 			                                                "__typename": {
 			                                                    "type": "String",
-			                                                    "keyRaw": "__typename"
+			                                                    "keyRaw": "__typename",
+			                                                    "visible": true
+			                                                },
+
+			                                                "firstName": {
+			                                                    "type": "String",
+			                                                    "keyRaw": "firstName",
+			                                                    "visible": true
 			                                                }
 			                                            }
 			                                        },
@@ -3726,7 +4398,8 @@ describe('mutation artifacts', function () {
 
 			                                    "cursor": {
 			                                        "type": "String",
-			                                        "keyRaw": "cursor"
+			                                        "keyRaw": "cursor",
+			                                        "visible": true
 			                                    }
 			                                }
 			                            },
@@ -3743,28 +4416,34 @@ describe('mutation artifacts', function () {
 			                                    "hasPreviousPage": {
 			                                        "type": "Boolean",
 			                                        "keyRaw": "hasPreviousPage",
-			                                        "updates": ["append", "prepend"]
+			                                        "updates": ["append", "prepend"],
+			                                        "visible": true
 			                                    },
 
 			                                    "hasNextPage": {
 			                                        "type": "Boolean",
 			                                        "keyRaw": "hasNextPage",
-			                                        "updates": ["append", "prepend"]
+			                                        "updates": ["append", "prepend"],
+			                                        "visible": true
 			                                    },
 
 			                                    "startCursor": {
 			                                        "type": "String",
 			                                        "keyRaw": "startCursor",
-			                                        "updates": ["append", "prepend"]
+			                                        "updates": ["append", "prepend"],
+			                                        "visible": true
 			                                    },
 
 			                                    "endCursor": {
 			                                        "type": "String",
 			                                        "keyRaw": "endCursor",
-			                                        "updates": ["append", "prepend"]
+			                                        "updates": ["append", "prepend"],
+			                                        "visible": true
 			                                    }
 			                                }
-			                            }
+			                            },
+
+			                            "visible": true
 			                        }
 			                    }
 			                },
@@ -3792,6 +4471,11 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
+			            },
+
+			            "__typename": {
+			                "type": "String",
+			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -3818,6 +4502,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('field args', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`query TestQuery($value: String!) {
@@ -3846,8 +4532,16 @@ describe('mutation artifacts', function () {
 			    "raw": \`query TestQuery($value: String!) {
 			  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
 			    firstName
-			    id
 			  }
+			  ...TestQuery__houdini__extra__fields
+			}
+
+			fragment TestQuery__houdini__extra__fields on Query {
+			  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
+			    id
+			    __typename
+			  }
+			  __typename
 			}
 			\`,
 
@@ -3867,15 +4561,20 @@ describe('mutation artifacts', function () {
 
 			                "selection": {
 			                    "fields": {
-			                        "firstName": {
-			                            "type": "String",
-			                            "keyRaw": "firstName",
-			                            "visible": true
-			                        },
-
 			                        "id": {
 			                            "type": "ID",
 			                            "keyRaw": "id",
+			                            "visible": true
+			                        },
+
+			                        "__typename": {
+			                            "type": "String",
+			                            "keyRaw": "__typename"
+			                        },
+
+			                        "firstName": {
+			                            "type": "String",
+			                            "keyRaw": "firstName",
 			                            "visible": true
 			                        }
 			                    }
@@ -3904,6 +4603,11 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
+			            },
+
+			            "__typename": {
+			                "type": "String",
+			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -3927,6 +4631,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('sveltekit', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const cfg = testConfig({ module: 'esm' })
 
 		const docs = [
@@ -3957,8 +4663,16 @@ describe('mutation artifacts', function () {
 			    "raw": \`query TestQuery($value: String!) {
 			  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
 			    firstName
-			    id
 			  }
+			  ...TestQuery__houdini__extra__fields
+			}
+
+			fragment TestQuery__houdini__extra__fields on Query {
+			  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
+			    id
+			    __typename
+			  }
+			  __typename
 			}
 			\`,
 
@@ -3978,15 +4692,20 @@ describe('mutation artifacts', function () {
 
 			                "selection": {
 			                    "fields": {
-			                        "firstName": {
-			                            "type": "String",
-			                            "keyRaw": "firstName",
-			                            "visible": true
-			                        },
-
 			                        "id": {
 			                            "type": "ID",
 			                            "keyRaw": "id",
+			                            "visible": true
+			                        },
+
+			                        "__typename": {
+			                            "type": "String",
+			                            "keyRaw": "__typename"
+			                        },
+
+			                        "firstName": {
+			                            "type": "String",
+			                            "keyRaw": "firstName",
 			                            "visible": true
 			                        }
 			                    }
@@ -4015,6 +4734,11 @@ describe('mutation artifacts', function () {
 			                },
 
 			                "visible": true
+			            },
+
+			            "__typename": {
+			                "type": "String",
+			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -4039,6 +4763,8 @@ describe('mutation artifacts', function () {
 })
 
 test('custom scalar shows up in artifact', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	// the documents to test
 	const docs: Document[] = [
 		mockCollectedDoc(`query TestQuery { version }`),
@@ -4084,6 +4810,14 @@ test('custom scalar shows up in artifact', async function () {
 		  allItems {
 		    createdAt
 		  }
+		  ...TestQuery__houdini__extra__fields
+		}
+
+		fragment TestQuery__houdini__extra__fields on Query {
+		  allItems {
+		    createdAt
+		  }
+		  __typename
 		}
 		\`,
 
@@ -4106,6 +4840,11 @@ test('custom scalar shows up in artifact', async function () {
 		                },
 
 		                "visible": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename"
 		            }
 		        }
 		    },
@@ -4120,6 +4859,8 @@ test('custom scalar shows up in artifact', async function () {
 })
 
 test('operation inputs', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	// the documents to test
 	const docs: Document[] = [
 		mockCollectedDoc(`query TestQuery { version }`),
@@ -4193,6 +4934,15 @@ test('operation inputs', async function () {
 		  user(id: $id, filter: $filter, filterList: $filterList, enumArg: $enumArg) {
 		    id
 		  }
+		  ...TestQuery__houdini__extra__fields
+		}
+
+		fragment TestQuery__houdini__extra__fields on Query {
+		  user(id: $id, filter: $filter, filterList: $filterList, enumArg: $enumArg) {
+		    id
+		    __typename
+		  }
+		  __typename
 		}
 		\`,
 
@@ -4211,11 +4961,21 @@ test('operation inputs', async function () {
 		                            "type": "ID",
 		                            "keyRaw": "id",
 		                            "visible": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename"
 		                        }
 		                    }
 		                },
 
 		                "visible": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename"
 		            }
 		        }
 		    },
@@ -4259,6 +5019,8 @@ test('operation inputs', async function () {
 
 describe('subscription artifacts', function () {
 	test('happy path', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`subscription B {
@@ -4285,9 +5047,19 @@ describe('subscription artifacts', function () {
 			  newUser {
 			    user {
 			      firstName
-			      id
 			    }
 			  }
+			  ...B__houdini__extra__fields
+			}
+
+			fragment B__houdini__extra__fields on Subscription {
+			  newUser {
+			    user {
+			      id
+			      __typename
+			    }
+			  }
+			  __typename
 			}
 			\`,
 
@@ -4307,15 +5079,20 @@ describe('subscription artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "firstName": {
-			                                        "type": "String",
-			                                        "keyRaw": "firstName",
-			                                        "visible": true
-			                                    },
-
 			                                    "id": {
 			                                        "type": "ID",
 			                                        "keyRaw": "id",
+			                                        "visible": true
+			                                    },
+
+			                                    "__typename": {
+			                                        "type": "String",
+			                                        "keyRaw": "__typename"
+			                                    },
+
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName",
 			                                        "visible": true
 			                                    }
 			                                }
@@ -4327,6 +5104,11 @@ describe('subscription artifacts', function () {
 			                },
 
 			                "visible": true
+			            },
+
+			            "__typename": {
+			                "type": "String",
+			                "keyRaw": "__typename"
 			            }
 			        }
 			    },
@@ -4340,6 +5122,7 @@ describe('subscription artifacts', function () {
 })
 
 test('some artifactData added to artifact specific to plugins', async function () {
+	// the config to use in tests
 	const localConfig = testConfig()
 
 	localConfig.plugins = [
@@ -4374,6 +5157,11 @@ test('some artifactData added to artifact specific to plugins', async function (
 
 		    "raw": \`query TestQuery {
 		  version
+		  ...TestQuery__houdini__extra__fields
+		}
+
+		fragment TestQuery__houdini__extra__fields on Query {
+		  __typename
 		}
 		\`,
 
@@ -4381,6 +5169,11 @@ test('some artifactData added to artifact specific to plugins', async function (
 
 		    "selection": {
 		        "fields": {
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename"
+		            },
+
 		            "version": {
 		                "type": "Int",
 		                "keyRaw": "version",
@@ -4406,6 +5199,8 @@ test('some artifactData added to artifact specific to plugins', async function (
 })
 
 test('nested recursive fragments', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	// the documents to test
 	const docs: Document[] = [
 		mockCollectedDoc(`
@@ -4455,8 +5250,8 @@ test('nested recursive fragments', async function () {
 		    ... on User {
 		      ...UserThings
 		    }
-		    __typename
 		  }
+		  ...MyAnimalQuery__houdini__extra__fields
 		}
 
 		fragment NodeDetails on Node {
@@ -4464,12 +5259,40 @@ test('nested recursive fragments', async function () {
 		  ... on User {
 		    id
 		  }
+		  ...NodeDetails__houdini__extra__fields
 		}
 
 		fragment UserThings on User {
 		  id
 		  name
 		  ...NodeDetails
+		  ...UserThings__houdini__extra__fields
+		}
+
+		fragment MyAnimalQuery__houdini__extra__fields on Query {
+		  node(id: "some_id") {
+		    ... on User {
+		      id
+		      __typename
+		    }
+		    id
+		    __typename
+		  }
+		  __typename
+		}
+
+		fragment NodeDetails__houdini__extra__fields on Node {
+		  ... on User {
+		    id
+		    __typename
+		  }
+		  id
+		  __typename
+		}
+
+		fragment UserThings__houdini__extra__fields on User {
+		  id
+		  __typename
 		}
 		\`,
 
@@ -4483,6 +5306,30 @@ test('nested recursive fragments', async function () {
 		                "nullable": true,
 
 		                "selection": {
+		                    "abstractFields": {
+		                        "fields": {
+		                            "User": {
+		                                "id": {
+		                                    "type": "ID",
+		                                    "keyRaw": "id",
+		                                    "visible": true
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename"
+		                                },
+
+		                                "name": {
+		                                    "type": "String",
+		                                    "keyRaw": "name"
+		                                }
+		                            }
+		                        },
+
+		                        "typeMap": {}
+		                    },
+
 		                    "fields": {
 		                        "id": {
 		                            "type": "ID",
@@ -4496,30 +5343,6 @@ test('nested recursive fragments', async function () {
 		                        }
 		                    },
 
-		                    "abstractFields": {
-		                        "fields": {
-		                            "User": {
-		                                "id": {
-		                                    "type": "ID",
-		                                    "keyRaw": "id",
-		                                    "visible": true
-		                                },
-
-		                                "name": {
-		                                    "type": "String",
-		                                    "keyRaw": "name"
-		                                },
-
-		                                "__typename": {
-		                                    "type": "String",
-		                                    "keyRaw": "__typename"
-		                                }
-		                            }
-		                        },
-
-		                        "typeMap": {}
-		                    },
-
 		                    "fragments": {
 		                        "NodeDetails": {},
 		                        "UserThings": {}
@@ -4528,6 +5351,11 @@ test('nested recursive fragments', async function () {
 
 		                "abstract": true,
 		                "visible": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename"
 		            }
 		        }
 		    },
@@ -4542,6 +5370,8 @@ test('nested recursive fragments', async function () {
 })
 
 test('leave @include and @skip alone', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	// the documents to test
 	const docs: Document[] = [
 		mockCollectedDoc(`
@@ -4576,8 +5406,8 @@ test('leave @include and @skip alone', async function () {
 		  node(id: "some_id") {
 		    id @skip(if: true)
 		    ...NodeDetails @include(if: true)
-		    __typename
 		  }
+		  ...MyAnimalQuery__houdini__extra__fields
 		}
 
 		fragment NodeDetails on Node {
@@ -4585,6 +5415,24 @@ test('leave @include and @skip alone', async function () {
 		  ... on User {
 		    id
 		  }
+		  ...NodeDetails__houdini__extra__fields
+		}
+
+		fragment MyAnimalQuery__houdini__extra__fields on Query {
+		  node(id: "some_id") {
+		    id
+		    __typename
+		  }
+		  __typename
+		}
+
+		fragment NodeDetails__houdini__extra__fields on Node {
+		  ... on User {
+		    id
+		    __typename
+		  }
+		  id
+		  __typename
 		}
 		\`,
 
@@ -4637,6 +5485,11 @@ test('leave @include and @skip alone', async function () {
 
 		                "abstract": true,
 		                "visible": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename"
 		            }
 		        }
 		    },
@@ -4651,6 +5504,8 @@ test('leave @include and @skip alone', async function () {
 })
 
 test('fragment references are embedded in artifact', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	// the documents to test
 	const docs: Document[] = [
 		mockCollectedDoc(`
@@ -4686,8 +5541,8 @@ test('fragment references are embedded in artifact', async function () {
 		  node(id: "some_id") {
 		    id
 		    ...NodeDetails
-		    __typename
 		  }
+		  ...MyAnimalQuery__houdini__extra__fields
 		}
 
 		fragment NodeDetails on Node {
@@ -4695,6 +5550,24 @@ test('fragment references are embedded in artifact', async function () {
 		  ... on User {
 		    id
 		  }
+		  ...NodeDetails__houdini__extra__fields
+		}
+
+		fragment MyAnimalQuery__houdini__extra__fields on Query {
+		  node(id: "some_id") {
+		    id
+		    __typename
+		  }
+		  __typename
+		}
+
+		fragment NodeDetails__houdini__extra__fields on Node {
+		  ... on User {
+		    id
+		    __typename
+		  }
+		  id
+		  __typename
 		}
 		\`,
 
@@ -4747,6 +5620,11 @@ test('fragment references are embedded in artifact', async function () {
 
 		                "abstract": true,
 		                "visible": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename"
 		            }
 		        }
 		    },
@@ -4761,13 +5639,14 @@ test('fragment references are embedded in artifact', async function () {
 })
 
 test('fragment variables are embedded in artifact', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	// the documents to test
 	const docs: Document[] = [
 		mockCollectedDoc(`
 			query MyAnimalQuery {
 				node(id: "some_id") {
 					id
-
 					...NodeDetails @with(name: "Foo")
 
 				}
@@ -4788,20 +5667,38 @@ test('fragment variables are embedded in artifact', async function () {
 		export default {
 		    "name": "MyAnimalQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "4d99b02b23912f16dadbfed535b986d022fb0fb604e3a2155c443b3de92ad6f7",
+		    "hash": "444c42cc7214c06f0976b8a252e4f1c1fcba074d1afc1543acf0fc88f56e4f31",
 
 		    "raw": \`query MyAnimalQuery {
 		  node(id: "some_id") {
 		    id
 		    ...NodeDetails_32RKor
-		    __typename
 		  }
+		  ...MyAnimalQuery__houdini__extra__fields
 		}
 
 		fragment NodeDetails_32RKor on Node {
 		  ... on User {
 		    field(filter: "Foo")
 		  }
+		  ...NodeDetails_32RKor__houdini__extra__fields
+		}
+
+		fragment MyAnimalQuery__houdini__extra__fields on Query {
+		  node(id: "some_id") {
+		    id
+		    __typename
+		  }
+		  __typename
+		}
+
+		fragment NodeDetails_32RKor__houdini__extra__fields on Node {
+		  ... on User {
+		    id
+		    __typename
+		  }
+		  id
+		  __typename
 		}
 		\`,
 
@@ -4815,6 +5712,19 @@ test('fragment variables are embedded in artifact', async function () {
 		                "nullable": true,
 
 		                "selection": {
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id",
+		                            "visible": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename"
+		                        }
+		                    },
+
 		                    "abstractFields": {
 		                        "fields": {
 		                            "User": {
@@ -4840,19 +5750,6 @@ test('fragment variables are embedded in artifact', async function () {
 		                        "typeMap": {}
 		                    },
 
-		                    "fields": {
-		                        "id": {
-		                            "type": "ID",
-		                            "keyRaw": "id",
-		                            "visible": true
-		                        },
-
-		                        "__typename": {
-		                            "type": "String",
-		                            "keyRaw": "__typename"
-		                        }
-		                    },
-
 		                    "fragments": {
 		                        "NodeDetails": {
 		                            "name": {
@@ -4866,6 +5763,11 @@ test('fragment variables are embedded in artifact', async function () {
 
 		                "abstract": true,
 		                "visible": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename"
 		            }
 		        }
 		    },
@@ -4875,11 +5777,13 @@ test('fragment variables are embedded in artifact', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=4d99b02b23912f16dadbfed535b986d022fb0fb604e3a2155c443b3de92ad6f7";
+		"HoudiniHash=444c42cc7214c06f0976b8a252e4f1c1fcba074d1afc1543acf0fc88f56e4f31";
 	`)
 })
 
 test('fragment references in inline fragment', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	// the documents to test
 	const docs: Document[] = [
 		mockCollectedDoc(`
@@ -4911,13 +5815,30 @@ test('fragment references in inline fragment', async function () {
 		    ... on User {
 		      ...UserFragmentTestFragment
 		    }
-		    id
-		    __typename
 		  }
+		  ...FragmentUpdateTestQuery__houdini__extra__fields
 		}
 
 		fragment UserFragmentTestFragment on User {
 		  name
+		  ...UserFragmentTestFragment__houdini__extra__fields
+		}
+
+		fragment FragmentUpdateTestQuery__houdini__extra__fields on Query {
+		  node(id: $id) {
+		    ... on User {
+		      id
+		      __typename
+		    }
+		    id
+		    __typename
+		  }
+		  __typename
+		}
+
+		fragment UserFragmentTestFragment__houdini__extra__fields on User {
+		  id
+		  __typename
 		}
 		\`,
 
@@ -4934,11 +5855,6 @@ test('fragment references in inline fragment', async function () {
 		                    "abstractFields": {
 		                        "fields": {
 		                            "User": {
-		                                "name": {
-		                                    "type": "String",
-		                                    "keyRaw": "name"
-		                                },
-
 		                                "id": {
 		                                    "type": "ID",
 		                                    "keyRaw": "id",
@@ -4948,6 +5864,11 @@ test('fragment references in inline fragment', async function () {
 		                                "__typename": {
 		                                    "type": "String",
 		                                    "keyRaw": "__typename"
+		                                },
+
+		                                "name": {
+		                                    "type": "String",
+		                                    "keyRaw": "name"
 		                                }
 		                            }
 		                        },
@@ -4975,6 +5896,11 @@ test('fragment references in inline fragment', async function () {
 
 		                "abstract": true,
 		                "visible": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename"
 		            }
 		        }
 		    },
@@ -4998,6 +5924,9 @@ test('fragment references in inline fragment', async function () {
 })
 
 test('masking disabled', async function () {
+	// the config to use in tests
+	const config = testConfig()
+
 	// the documents to test
 	const docs: Document[] = [
 		mockCollectedDoc(`
@@ -5067,8 +5996,7 @@ test('masking disabled', async function () {
 
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename",
-		                            "visible": true
+		                            "keyRaw": "__typename"
 		                        }
 		                    },
 
@@ -5083,8 +6011,7 @@ test('masking disabled', async function () {
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename",
-		                                    "visible": true
+		                                    "keyRaw": "__typename"
 		                                },
 
 		                                "name": {
@@ -5109,8 +6036,7 @@ test('masking disabled', async function () {
 
 		            "__typename": {
 		                "type": "String",
-		                "keyRaw": "__typename",
-		                "visible": true
+		                "keyRaw": "__typename"
 		            }
 		        }
 		    },
