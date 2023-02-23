@@ -401,7 +401,7 @@ export class Config {
 		) as graphql.FragmentDefinitionNode[]
 		if (fragmentDefinitions.length) {
 			// join all of the fragment definitions into one
-			return fragmentDefinitions.map((fragment) => fragment.name.value).join('_')
+			return fragmentDefinitions[0].name.value
 		}
 
 		// we don't know how to generate a name for this document

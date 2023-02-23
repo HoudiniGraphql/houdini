@@ -17,14 +17,15 @@ export default async function includeFragmentDefinitions(
 ): Promise<void> {
 	// we will need to add the same fragment definitions to multiple operations so lets compute
 	// a single mapping that we'll reference later from the list of documents
-	const fragments = collectFragments(config, documents)
+	const fragments = collectDefinitions(config, documents)
 
 	// visit every document and add any fragment definitions that are missing
 	for (const [index, { name, document, filename }] of documents.entries()) {
-		// look for the operation in this document
+		// look for definition in this document
 		const operation = document.definitions.find(
-			({ kind }) => kind === GraphqlKinds.OPERATION_DEFINITION
-		) as graphql.OperationDefinitionNode
+			(def): def is graphql.OperationDefinitionNode | graphql.FragmentDefinitionNode =>
+				def.kind === GraphqlKinds.OPERATION_DEFINITION || def.kind === 'FragmentDefinition'
+		)
 
 		// if there isn't one we don't care about this document
 		if (!operation) {
@@ -39,6 +40,8 @@ export default async function includeFragmentDefinitions(
 		)
 
 		// add every required fragment to the document
+		// we need the "primary" definition to be first in the list
+		// so that fragments can be included
 		documents[index].document = {
 			...document,
 			definitions: [
@@ -49,7 +52,7 @@ export default async function includeFragmentDefinitions(
 	}
 }
 
-export function collectFragments(
+export function collectDefinitions(
 	config: Config,
 	docs: Document[]
 ): Record<string, FragmentDependency> {
