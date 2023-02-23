@@ -78,6 +78,7 @@ test('pagination arguments stripped from key', async function () {
 		            "friendsByCursor": {
 		                "type": "UserConnection",
 		                "keyRaw": "friendsByCursor(filter: \\"hello\\")::paginated",
+		                "paginateMode": "Infinite",
 
 		                "selection": {
 		                    "fields": {
@@ -218,6 +219,7 @@ test('offset based pagination marks appropriate field', async function () {
 		            "friendsByOffset": {
 		                "type": "User",
 		                "keyRaw": "friendsByOffset(filter: \\"hello\\")::paginated",
+		                "paginateMode": "Infinite",
 		                "updates": ["append"],
 
 		                "selection": {
@@ -344,6 +346,7 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		                        "friendsByCursorScalar": {
 		                            "type": "UserConnection",
 		                            "keyRaw": "friendsByCursorScalar(filter: \\"hello\\")::paginated",
+		                            "paginateMode": "Infinite",
 
 		                            "selection": {
 		                                "fields": {
@@ -594,6 +597,7 @@ test("sibling aliases don't get marked", async function () {
 		            "friendsByCursor": {
 		                "type": "UserConnection",
 		                "keyRaw": "friendsByCursor(filter: \\"hello\\")::paginated",
+		                "paginateMode": "Infinite",
 
 		                "selection": {
 		                    "fields": {

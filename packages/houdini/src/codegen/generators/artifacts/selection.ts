@@ -1,10 +1,11 @@
 import * as graphql from 'graphql'
 
 import type { Config, Document } from '../../../lib'
-import { getRootType, HoudiniError, deepMerge } from '../../../lib'
+import { deepMerge, getRootType, HoudiniError } from '../../../lib'
 import {
-	type MutationOperation,
 	RefetchUpdateMode,
+	type MutationOperation,
+	type PaginateModes,
 	type SubscriptionSelection,
 } from '../../../runtime/lib/types'
 import { connectionSelection } from '../../transforms/list'
@@ -231,6 +232,20 @@ export default function selection({
 					connection,
 					type: connectionType.name,
 				}
+			}
+
+			const paginateDirective = field.directives?.find(
+				(directive) => config.paginateDirective === directive.name.value
+			)
+			if (paginateDirective) {
+				const paginateModeArg = paginateDirective?.arguments?.find(
+					(arg) => arg.name.value === config.paginateModeArg
+				)
+				let paginateMode: PaginateModes = config.defaultPaginateMode
+				if (paginateModeArg && paginateModeArg.value.kind === 'EnumValue') {
+					paginateMode = paginateModeArg.value.value as PaginateModes
+				}
+				fieldObj.paginate = { mode: paginateMode }
 			}
 
 			// if the field is marked for pagination we want to leave something behind

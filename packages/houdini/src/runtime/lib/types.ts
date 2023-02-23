@@ -174,6 +174,9 @@ export type SubscriptionSelection = {
 				connection: boolean
 				type: string
 			}
+			paginate?: {
+				mode: PaginateModes
+			}
 			updates?: string[]
 			filters?: {
 				[key: string]: {

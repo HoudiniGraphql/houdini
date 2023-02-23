@@ -469,6 +469,10 @@ test('embeds node pagination query as a separate document', async function () {
 		                                    "type": "UserConnection",
 		                                    "keyRaw": "friendsByForwardsCursor::paginated",
 
+		                                    "paginate": {
+		                                        "mode": "Infinite"
+		                                    },
+
 		                                    "selection": {
 		                                        "fields": {
 		                                            "edges": {
@@ -571,6 +575,10 @@ test('embeds node pagination query as a separate document', async function () {
 		                        "friendsByForwardsCursor": {
 		                            "type": "UserConnection",
 		                            "keyRaw": "friendsByForwardsCursor::paginated",
+
+		                            "paginate": {
+		                                "mode": "Infinite"
+		                            },
 
 		                            "selection": {
 		                                "fields": {
@@ -765,6 +773,10 @@ test('embeds custom pagination query as a separate document', async function () 
 		                        "friendsConnection": {
 		                            "type": "GhostConnection",
 		                            "keyRaw": "friendsConnection::paginated",
+
+		                            "paginate": {
+		                                "mode": "Infinite"
+		                            },
 
 		                            "selection": {
 		                                "fields": {
@@ -1464,6 +1476,10 @@ test('generated query has same refetch spec', async function () {
 		                "type": "UserConnection",
 		                "keyRaw": "usersByCursor::paginated",
 
+		                "paginate": {
+		                    "mode": "Infinite"
+		                },
+
 		                "selection": {
 		                    "fields": {
 		                        "edges": {
@@ -1622,5 +1638,170 @@ test('refetch specification with initial offset', async function () {
 		    "direction": "forward",
 		    "start": 10
 		}
+	`)
+})
+
+test('default defaultPaginateMode to PageByPage', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`fragment UserFriends on Query {
+				usersByCursor(first: 10) @paginate {
+					edges {
+						node {
+							id
+						}
+					}
+				}
+			}
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig({ defaultPaginateMode: 'PageByPage' })
+	await runPipeline(config, docs)
+
+	// load the contents of the file
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "UserFriends",
+		    "kind": "HoudiniFragment",
+		    "hash": "c0276291ccf0e89ecf3e2c0fd68314703c62c8dca06915e602f931297be94c3c",
+
+		    "refetch": {
+		        "path": ["usersByCursor"],
+		        "method": "cursor",
+		        "pageSize": 10,
+		        "embedded": false,
+		        "targetType": "Query",
+		        "paginated": true,
+		        "direction": "both"
+		    },
+
+		    "raw": \`fragment UserFriends on Query {
+		  usersByCursor(first: $first, after: $after, last: $last, before: $before) {
+		    edges {
+		      node {
+		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
+		        __typename
+		      }
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
+		}
+		\`,
+
+		    "rootType": "Query",
+
+		    "selection": {
+		        "fields": {
+		            "usersByCursor": {
+		                "type": "UserConnection",
+		                "keyRaw": "usersByCursor::paginated",
+
+		                "paginate": {
+		                    "mode": "PageByPage"
+		                },
+
+		                "selection": {
+		                    "fields": {
+		                        "edges": {
+		                            "type": "UserEdge",
+		                            "keyRaw": "edges",
+		                            "updates": ["append", "prepend"],
+
+		                            "selection": {
+		                                "fields": {
+		                                    "node": {
+		                                        "type": "User",
+		                                        "keyRaw": "node",
+		                                        "nullable": true,
+
+		                                        "selection": {
+		                                            "fields": {
+		                                                "id": {
+		                                                    "type": "ID",
+		                                                    "keyRaw": "id"
+		                                                },
+
+		                                                "__typename": {
+		                                                    "type": "String",
+		                                                    "keyRaw": "__typename"
+		                                                }
+		                                            }
+		                                        }
+		                                    },
+
+		                                    "cursor": {
+		                                        "type": "String",
+		                                        "keyRaw": "cursor"
+		                                    }
+		                                }
+		                            }
+		                        },
+
+		                        "pageInfo": {
+		                            "type": "PageInfo",
+		                            "keyRaw": "pageInfo",
+
+		                            "selection": {
+		                                "fields": {
+		                                    "hasPreviousPage": {
+		                                        "type": "Boolean",
+		                                        "keyRaw": "hasPreviousPage",
+		                                        "updates": ["append", "prepend"]
+		                                    },
+
+		                                    "hasNextPage": {
+		                                        "type": "Boolean",
+		                                        "keyRaw": "hasNextPage",
+		                                        "updates": ["append", "prepend"]
+		                                    },
+
+		                                    "startCursor": {
+		                                        "type": "String",
+		                                        "keyRaw": "startCursor",
+		                                        "updates": ["append", "prepend"]
+		                                    },
+
+		                                    "endCursor": {
+		                                        "type": "String",
+		                                        "keyRaw": "endCursor",
+		                                        "updates": ["append", "prepend"]
+		                                    }
+		                                }
+		                            }
+		                        }
+		                    }
+		                }
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+
+		    "input": {
+		        "fields": {
+		            "first": "Int",
+		            "after": "String",
+		            "last": "Int",
+		            "before": "String"
+		        },
+
+		        "types": {}
+		    }
+		};
+
+		"HoudiniHash=c0276291ccf0e89ecf3e2c0fd68314703c62c8dca06915e602f931297be94c3c";
 	`)
 })
