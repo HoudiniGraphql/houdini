@@ -174,7 +174,7 @@ export default async function typeCheck(config: Config, docs: Document[]): Promi
 
 				// look up the name of the list
 				const nameArg = directive.arguments?.find(
-					({ name }) => name.value === config.listNameArg
+					({ name }) => name.value === config.listOrPaginateNameArg
 				)
 
 				if (!nameArg) {

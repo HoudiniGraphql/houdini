@@ -29,7 +29,9 @@ export default async function addListFragments(
 				// if we found a @list applied (or a @paginate which implies a @list )
 				if ([config.listDirective, config.paginateDirective].includes(node.name.value)) {
 					// look up the name passed to the directive
-					const nameArg = node.arguments?.find((arg) => arg.name.value === 'name')
+					const nameArg = node.arguments?.find(
+						(arg) => arg.name.value === config.listOrPaginateNameArg
+					)
 
 					// if we need to use an error relative to this node
 					let error = {

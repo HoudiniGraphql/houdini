@@ -536,7 +536,7 @@ export class Config {
 		return 'allLists'
 	}
 
-	get listNameArg() {
+	get listOrPaginateNameArg() {
 		return 'name'
 	}
 
@@ -580,8 +580,8 @@ export class Config {
 		return 'paginate'
 	}
 
-	get paginateNameArg() {
-		return 'name'
+	get paginateModeArg() {
+		return 'mode'
 	}
 
 	get cacheDirective() {
@@ -638,7 +638,7 @@ export class Config {
 
 	isInternalEnum(node: graphql.EnumTypeDefinitionNode): boolean {
 		// if we are looking at an enum, it could be CachePolicy
-		return node.name.value === 'CachePolicy'
+		return node.name.value === 'CachePolicy' || node.name.value === 'PaginateMode'
 	}
 
 	isInternalDirective(name: string): boolean {

@@ -215,7 +215,9 @@ export default function selection({
 			const listDirective = field.directives?.find((directive) =>
 				[config.listDirective, config.paginateDirective].includes(directive.name.value)
 			)
-			const nameArg = listDirective?.arguments?.find((arg) => arg.name.value === 'name')
+			const nameArg = listDirective?.arguments?.find(
+				(arg) => arg.name.value === config.listOrPaginateNameArg
+			)
 			if (nameArg && nameArg.value.kind === 'StringValue') {
 				const { connection, type: connectionType } = connectionSelection(
 					config,

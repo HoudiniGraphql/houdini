@@ -45,7 +45,7 @@ export default function artifactGenerator(stats: {
 
 					// get the name of the list
 					const nameArg = node.arguments?.find(
-						(arg) => arg.name.value === config.listNameArg
+						(arg) => arg.name.value === config.listOrPaginateNameArg
 					)
 					if (!nameArg || nameArg.value.kind !== 'StringValue') {
 						throw new HoudiniError({

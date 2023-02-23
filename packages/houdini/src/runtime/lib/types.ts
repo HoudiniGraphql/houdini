@@ -5,6 +5,11 @@ export const CachePolicy = {
 	CacheAndNetwork: 'CacheAndNetwork',
 } as const
 
+export const PaginateMode = {
+	Infinite: 'Infinite',
+	PageByPage: 'PageByPage',
+} as const
+
 type ValuesOf<Target> = Target[keyof Target]
 
 export type CachePolicies = ValuesOf<typeof CachePolicy>
