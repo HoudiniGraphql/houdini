@@ -1,3 +1,5 @@
+type ValuesOf<Target> = Target[keyof Target]
+
 export const CachePolicy = {
 	CacheOrNetwork: 'CacheOrNetwork',
 	CacheOnly: 'CacheOnly',
@@ -5,14 +7,14 @@ export const CachePolicy = {
 	CacheAndNetwork: 'CacheAndNetwork',
 } as const
 
+export type CachePolicies = ValuesOf<typeof CachePolicy>
+
 export const PaginateMode = {
 	Infinite: 'Infinite',
 	PageByPage: 'PageByPage',
 } as const
 
-type ValuesOf<Target> = Target[keyof Target]
-
-export type CachePolicies = ValuesOf<typeof CachePolicy>
+export type PaginateModes = ValuesOf<typeof PaginateMode>
 
 declare global {
 	namespace App {

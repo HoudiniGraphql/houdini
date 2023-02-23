@@ -47,6 +47,7 @@ By default, your config file can contain the following values:
 - `logLevel` (optional, default: `"summary"`): Specifies the style of logging houdini will use when generating your file. One of "quiet", "full", "summary", or "short-summary".
 - `defaultFragmentMasking` (optional, default: `enable`): `"enable"` to mask fragment and use collocated data requirement as best or `"disable"` to access fragment data directly in operation. Can be overridden individually at fragment level.
 - `defaultListTarget` (optional): Can be set to `all` for all list operations to ignore parent ID and affect all lists with the name.
+- `defaultPaginateMode` (optional, default: `"Infinite"`): The default mode for pagination. One of `"Infinite"` or `"PageByPage"`.
 - `defaultListPosition` (optional, default: "first"): One of `"first"` or `"last"` to indicate the default location for list operations.
 - `plugins` (optional): An object containing the set of plugins you want to add to your houdini application. The keys are plugin names, the values are plugin-specific configuration. The actual plugin API is undocumented and considered unstable while we try out various things internally. For an overview of your framework plugin's specific configuration, see below.
 
