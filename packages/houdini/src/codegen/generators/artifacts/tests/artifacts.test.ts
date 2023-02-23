@@ -648,11 +648,6 @@ test('paginate over unions', async function () {
 		                                                            "visible": true
 		                                                        },
 
-		                                                        "id": {
-		                                                            "type": "ID",
-		                                                            "keyRaw": "id"
-		                                                        },
-
 		                                                        "__typename": {
 		                                                            "type": "String",
 		                                                            "keyRaw": "__typename",
@@ -840,11 +835,6 @@ test('overlapping query and fragment nested selection', async function () {
 		                                    "visible": true
 		                                },
 
-		                                "id": {
-		                                    "type": "ID",
-		                                    "keyRaw": "id"
-		                                },
-
 		                                "friends": {
 		                                    "type": "User",
 		                                    "keyRaw": "friends",
@@ -1010,11 +1000,6 @@ test('selections with interfaces', async function () {
 		                                    "visible": true
 		                                },
 
-		                                "aka": {
-		                                    "type": "String",
-		                                    "keyRaw": "aka"
-		                                },
-
 		                                "__typename": {
 		                                    "type": "String",
 		                                    "keyRaw": "__typename",
@@ -1159,11 +1144,6 @@ test('selections with unions', async function () {
 		                                    "type": "String",
 		                                    "keyRaw": "aka",
 		                                    "visible": true
-		                                },
-
-		                                "aka": {
-		                                    "type": "String",
-		                                    "keyRaw": "aka"
 		                                },
 
 		                                "__typename": {
@@ -1318,11 +1298,6 @@ test('selections with overlapping unions', async function () {
 		                                    "type": "String",
 		                                    "keyRaw": "aka",
 		                                    "visible": true
-		                                },
-
-		                                "aka": {
-		                                    "type": "String",
-		                                    "keyRaw": "aka"
 		                                },
 
 		                                "__typename": {
@@ -1497,11 +1472,6 @@ test('selections with unions of abstract types', async function () {
 		                                    "visible": true
 		                                },
 
-		                                "aka": {
-		                                    "type": "String",
-		                                    "keyRaw": "aka"
-		                                },
-
 		                                "__typename": {
 		                                    "type": "String",
 		                                    "keyRaw": "__typename",
@@ -1629,11 +1599,6 @@ test('selections with concrete types matching multiple abstract types', async fu
 		                                    "type": "String",
 		                                    "keyRaw": "name",
 		                                    "visible": true
-		                                },
-
-		                                "name": {
-		                                    "type": "String",
-		                                    "keyRaw": "name"
 		                                },
 
 		                                "cats": {

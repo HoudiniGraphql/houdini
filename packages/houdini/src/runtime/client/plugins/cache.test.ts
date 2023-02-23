@@ -126,6 +126,7 @@ test('CacheAndNetwork', async function () {
 			enabled: true,
 			setFetching: () => {},
 			cache: new Cache(config),
+			serverSideFallback: false,
 		}),
 		fakeFetch({}),
 	])
