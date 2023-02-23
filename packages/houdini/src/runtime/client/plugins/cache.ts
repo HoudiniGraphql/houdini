@@ -75,7 +75,13 @@ export const cachePolicy =
 						}
 
 						// if we used the cache data and there's no followup necessary, we're done
-						if (useCache && !value.partial && !value.stale) {
+						if (
+							useCache &&
+							!value.partial &&
+							!value.stale &&
+							// if the policy is CacheAndNetwork then we don't want to stop here regardless
+							ctx.policy !== 'CacheAndNetwork'
+						) {
 							return
 						}
 					}

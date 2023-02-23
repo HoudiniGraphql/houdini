@@ -292,13 +292,7 @@ class CacheInternal {
 		for (const [field, value] of Object.entries(data)) {
 			// grab the selection info we care about
 			if (!selection || !targetSelection[field]) {
-				throw new Error(
-					'Could not find field listing in selection for ' +
-						field +
-						' @ ' +
-						JSON.stringify(selection) +
-						''
-				)
+				continue
 			}
 
 			// look up the field in our schema

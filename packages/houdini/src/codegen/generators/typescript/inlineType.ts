@@ -205,6 +205,19 @@ export function inlineType({
 					allOptional,
 				})
 
+				// check if we have an @include or @skip directive
+				const hasIncludeOrSkipDirective =
+					selection.directives &&
+					selection.directives.filter(
+						(directive) =>
+							directive.name.value === 'include' || directive.name.value === 'skip'
+					).length > 0
+
+				// if we do, add "undefined" to the type union
+				if (hasIncludeOrSkipDirective) {
+					attributeType = AST.tsUnionType([attributeType, AST.tsUndefinedKeyword()])
+				}
+
 				// we're done
 				const prop = readonlyProperty(
 					AST.tsPropertySignature(

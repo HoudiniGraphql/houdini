@@ -118,6 +118,69 @@ test('CacheOrNetwork', async function () {
 	})
 })
 
+test('CacheAndNetwork', async function () {
+	const spy = vi.fn()
+
+	const store = createStore([
+		cachePolicy({
+			enabled: true,
+			setFetching: () => {},
+			cache: new Cache(config),
+		}),
+		fakeFetch({}),
+	])
+	store.subscribe(spy)
+	await store.send({ policy: CachePolicy.CacheAndNetwork })
+	await store.send({ policy: CachePolicy.CacheAndNetwork })
+
+	expect(spy).toHaveBeenNthCalledWith(2, {
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				__typename: 'User',
+			},
+		},
+		errors: null,
+		fetching: false,
+		variables: null,
+		source: 'network',
+		partial: false,
+		stale: false,
+	})
+
+	expect(spy).toHaveBeenNthCalledWith(3, {
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				__typename: 'User',
+			},
+		},
+		errors: null,
+		fetching: false,
+		variables: null,
+		source: 'cache',
+		partial: false,
+		stale: false,
+	})
+	expect(spy).toHaveBeenNthCalledWith(4, {
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				__typename: 'User',
+			},
+		},
+		errors: null,
+		fetching: false,
+		variables: null,
+		source: 'network',
+		partial: false,
+		stale: false,
+	})
+})
+
 test('CacheOnly', async function () {
 	const spy = vi.fn()
 
