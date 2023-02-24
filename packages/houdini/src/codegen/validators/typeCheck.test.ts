@@ -92,7 +92,9 @@ const table: Row[] = [
 			`
                 mutation MutationM {
 					addFriend {
-						...Friends_insert
+						friend {
+							...Friends_insert
+						}
 					}
                 }
             `,
@@ -133,12 +135,16 @@ const table: Row[] = [
       }`,
 			`mutation MutationM1 {
 					addFriend {
-						...Friends_insert
+						friend {
+							...Friends_insert
+						}
 					}
       }`,
 			`mutation MutationM2 {
 				addFriend {
-					...Friends_insert
+					friend {
+						...Friends_insert
+					}
 				}
 		}`,
 		],
