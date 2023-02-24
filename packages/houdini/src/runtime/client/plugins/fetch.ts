@@ -1,5 +1,5 @@
-import { ArtifactKind, RequestPayload } from '../../lib/types'
-import { DataSource } from '../../lib/types'
+import { ArtifactKind, DataSource } from '../../lib/types'
+import type { RequestPayload } from '../../lib/types'
 import type { ClientPlugin, ClientPluginContext } from '../documentStore'
 
 export const fetch = (target?: RequestHandler | string): ClientPlugin => {

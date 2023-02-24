@@ -4,8 +4,7 @@ import { computeID, defaultConfigValues, keyFieldsForType } from '../lib/config'
 import { deepEquals } from '../lib/deepEquals'
 import { flatten } from '../lib/flatten'
 import { getFieldsForType } from '../lib/selection'
-import {
-	fragmentKey,
+import type {
 	GraphQLObject,
 	GraphQLValue,
 	NestedList,
@@ -14,6 +13,7 @@ import {
 	ValueMap,
 	ValueNode,
 } from '../lib/types'
+import { fragmentKey } from '../lib/types'
 import { GarbageCollector } from './gc'
 import type { ListCollection } from './lists'
 import { ListManager } from './lists'

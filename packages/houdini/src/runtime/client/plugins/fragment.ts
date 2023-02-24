@@ -1,6 +1,6 @@
 import cache from '../../cache'
 import { type SubscriptionSpec, ArtifactKind, DataSource } from '../../lib/types'
-import { ClientPlugin } from '../documentStore'
+import type { ClientPlugin } from '../documentStore'
 import { documentPlugin } from '../utils'
 
 // the purpose of the fragment plugin is to provide fine-reactivity for cache updates

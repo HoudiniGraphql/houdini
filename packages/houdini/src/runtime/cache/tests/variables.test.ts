@@ -1,7 +1,6 @@
 import { test, expect, describe } from 'vitest'
 
-import { GraphQLObject } from '../../lib/types'
-import { ValueMap } from '../../lib/types'
+import type { GraphQLObject, ValueMap } from '../../lib/types'
 import { evaluateFragmentVariables } from '../cache'
 
 describe('evaluateFragmentVariables', function () {
