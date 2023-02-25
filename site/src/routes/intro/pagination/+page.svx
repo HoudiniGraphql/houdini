@@ -219,11 +219,11 @@ In most situations houdini's automatic appending is great since it covers popula
 
     let moveIndex = 0
     $: hasPrevMove = moveIndex > 0
-    $: hasNextMove = moveIndex < $Info.data.species.moves.edges.length - 1 || $pageInfo.hasNextPage
+    $: hasNextMove = moveIndex < $Info.data.species.moves.edges.length - 1 || $Info.pageInfo.hasNextPage
 
     const loadNextMove = async () => {
         // if we haven't already seen this page
-        if (!$Info.data.species.moves.edges[moveIndex + 1] && $pageInfo.hasNextPage) {
+        if (!$Info.data.species.moves.edges[moveIndex + 1] && $Info.pageInfo.hasNextPage) {
             // load the next page of data
             await Info.loadNextPage()
         }
