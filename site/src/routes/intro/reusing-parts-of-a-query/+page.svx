@@ -25,8 +25,8 @@ query Info($id: Int! = 1) {
 ```svelte:title=src/routes/[[id]]/+page.svelte
 <Sprite
     id="species-sprite"
-    src={$info.data.species.sprites.front}
-    speciesName={$info.data.species.name}
+    src={$Info.data.species.sprites.front}
+    speciesName={$Info.data.species.name}
 />
 ```
 
@@ -95,8 +95,8 @@ Defining a fragment inside of your component looks a lot like the query from bef
 
 <div id={$$props.id} class="sprite">
     <img
-        src={$info.sprites.front}
-        alt={`${$info.name} sprite`}
+        src={$Info.sprites.front}
+        alt={`${$Info.name} sprite`}
         height="100%"
     />
 </div>
@@ -118,7 +118,7 @@ query Info($id: Int! = 1) {
 And change the instance of `Sprite` to look like:
 
 ```svelte:title=src/routes/[[id]]/+page.svelte
-<Sprite id="species-sprite" species={$info.data.species} />
+<Sprite id="species-sprite" species={$Info.data.species} />
 ```
 
 Once that's all done, there shouldn't be any noticeable change in your browser.
@@ -131,7 +131,7 @@ That was pretty quick so let's review what we just did:
 
 1. Instead of asking for those bits of data directly as two individual props, the component now has a single prop, `species`, which we pass to the `fragment` function we imported from houdini in order to get the data we need. Notice we don't use this prop for anything in our component except to pass it into houdini, this ensures we are only using data we asked for in our fragment.
 
-1. We then updated the route's query to use the fragment we defined in the component and passed the `$info.data.species` reference we got from the query into our `Sprite` component as the new prop.
+1. We then updated the route's query to use the fragment we defined in the component and passed the `$Info.data.species` reference we got from the query into our `Sprite` component as the new prop.
 
 Notice how our route is no longer tightly coupled to any of `Sprite`'s implementation? All that the route knows is that `Sprite` needs a `Species`, so it just had to connect the dots and let `Sprite` take care of the rest.
 
@@ -196,12 +196,12 @@ Next, copy and paste the following code above the `nav` in the right panel. You'
 </script>
 
 <div id="species-evolution-chain">
-    {#each $info.data.species.evolution_chain as form, i}
+    {#each $Info.data.species.evolution_chain as form, i}
         <SpeciesPreview species={form} number={i + 1} />
     {/each}
     <!-- if there are less than three species in the chain, leave a placeholder behind -->
-    {#each Array.from({ length: 3 - $info.data.species.evolution_chain?.length }) as _, i}
-        <SpeciesPreviewPlaceholder number={$info.data.species.evolution_chain.length + i + 1} />
+    {#each Array.from({ length: 3 - $Info.data.species.evolution_chain?.length }) as _, i}
+        <SpeciesPreviewPlaceholder number={$Info.data.species.evolution_chain.length + i + 1} />
     {/each}
 </div>
 ```
