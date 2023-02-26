@@ -115,10 +115,15 @@ export const cachePolicy =
 							? new Cache({ disabled: false })
 							: localCache
 
+					let layer
+					if (!serverSide && ctx.cacheParams?.layer) {
+						layer = ctx.cacheParams.layer.id
+					}
+
 					// write the result of the mutation to the cache
 					targetCache.write({
 						...ctx.cacheParams,
-						layer: ctx.cacheParams?.layer?.id,
+						layer,
 						selection: ctx.artifact.selection,
 						data: value.data,
 						variables: marshalVariables(ctx),
