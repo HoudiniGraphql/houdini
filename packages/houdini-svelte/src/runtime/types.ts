@@ -51,7 +51,6 @@ export type KitLoadResponse = {
 export type FragmentStoreInstance<_Data, _Input> = Readable<_Data> & {
 	variables: _Input
 	kind: typeof CompiledFragmentKind
-	update: Writable<_Data>['set']
 }
 
 type Reshape<_Data, _Input> = Omit<QueryResult<_Data, _Input>, 'data'> & { data: _Data }

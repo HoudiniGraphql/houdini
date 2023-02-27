@@ -231,7 +231,6 @@ export class FragmentStoreOffset<
 			invalidate?: ((value?: FragmentPaginatedResult<_Data> | undefined) => void) | undefined
 		): (() => void) => {
 			const combined = derived([store, paginationStore], ([$parent, $pagination]) => {
-				console.log({ $parent, $pagination })
 				return {
 					...$pagination,
 					data: $parent,

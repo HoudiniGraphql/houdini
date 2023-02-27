@@ -39,7 +39,7 @@ export class BaseStore<
 	}
 
 	#observer: DocumentStore<_Data, _Input> | null = null
-	protected get observer(): DocumentStore<_Data, _Input> {
+	get observer(): DocumentStore<_Data, _Input> {
 		if (this.#observer) {
 			return this.#observer
 		}

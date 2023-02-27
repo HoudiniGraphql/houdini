@@ -12,11 +12,12 @@ import { derived } from 'svelte/store'
 import { isBrowser } from '../adapter'
 import { getClient } from '../client'
 import type { FragmentStoreInstance } from '../types'
+import { BaseStore } from './base'
 
 // a fragment store exists in multiple places in a given application so we
 // can't just return a store directly, the user has to load the version of the
 // fragment store for the object the store has been mixed into
-export class FragmentStore<_Data extends GraphQLObject, _Input = {}> {
+export class FragmentStore<_Data extends GraphQLObject, _Input extends {} = {}> {
 	artifact: FragmentArtifact
 	name: string
 	kind = CompiledFragmentKind
@@ -58,9 +59,12 @@ Please ensure that you have passed a record that has ${this.artifact.name} mixed
 		}
 
 		// build up a document store that we will use to subscribe the fragment to cache updates
-		const store = getClient().observe<_Data, {}>({ artifact: this.artifact, initialValue })
+		const store = new BaseStore<_Data, _Input>({
+			artifact: this.artifact,
+			initialValue,
+		})
 		if (parentID) {
-			store.send({ variables, setup: true, stuff: { parentID } })
+			store.observer.send({ variables, setup: true, stuff: { parentID } })
 		}
 
 		return {
@@ -72,8 +76,7 @@ Please ensure that you have passed a record that has ${this.artifact.name} mixed
 				rootType: this.artifact.rootType,
 			}) as _Input,
 			kind: CompiledFragmentKind,
-			subscribe: derived([store], ([$store]) => $store?.data).subscribe,
-			update: (val: _Data | null) => store?.set({ ...store.state, data: val }),
+			subscribe: derived([store], ([$store]) => $store.data).subscribe,
 		}
 	}
 }
