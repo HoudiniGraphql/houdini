@@ -74,7 +74,7 @@ export type CursorHandlers<_Data extends GraphQLObject, _Input> = {
 		first?: number
 		after?: string
 		fetch?: typeof globalThis.fetch
-		metadata: {}
+		metadata?: {}
 	}) => Promise<void>
 	loadPreviousPage: (args?: {
 		last?: number
