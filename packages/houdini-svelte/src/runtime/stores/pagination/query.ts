@@ -46,7 +46,7 @@ export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> ex
 
 		this.#_handlers = cursorHandlers<_Data, _Input>({
 			artifact: this.artifact,
-			observer: this.observer,
+			initialValue: get(this.observer).data,
 			getState: () => get(this.observer).data,
 			getVariables: () => get(this.observer).variables!,
 			storeName: this.name,
@@ -137,6 +137,8 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input extends {}> ex
 			observer: this.observer,
 			storeName: this.name,
 			fetch: super.fetch,
+			getState: () => get(this.observer).data,
+			getVariables: () => get(this.observer).variables!,
 			fetchUpdate: async (args) => {
 				await initClient()
 				return paginationObserver.send({

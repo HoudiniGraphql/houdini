@@ -13,23 +13,24 @@ import { countPage, missingPageSizeError } from './pageInfo'
 
 export function offsetHandlers<_Data extends GraphQLObject, _Input extends {}>({
 	artifact,
-	observer,
 	fetch,
 	fetchUpdate,
 	storeName,
+	getState,
+	getVariables,
 }: {
 	artifact: QueryArtifact
 	fetch: FetchFn<_Data, _Input>
 	fetchUpdate: (arg: SendParams) => ReturnType<FetchFn<_Data, _Input>>
 	storeName: string
 	observer: DocumentStore<_Data, _Input>
+	getState: () => _Data | null
+	getVariables: () => _Input
 }) {
-	const getValue = () => get(observer)
-
 	// we need to track the most recent offset for this handler
 	let getOffset = () =>
 		(artifact.refetch?.start as number) ||
-		countPage(artifact.refetch!.path, getValue().data) ||
+		countPage(artifact.refetch!.path, getState()) ||
 		artifact.refetch!.pageSize
 
 	let currentOffset = getOffset() ?? 0
@@ -48,12 +49,14 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends {}>({
 		} = {}) => {
 			// build up the variables to pass to the query
 			const queryVariables: Record<string, any> = {
-				...getValue().variables,
+				...getVariables(),
 				offset: offset ?? getOffset(),
 			}
 			if (limit || limit === 0) {
 				queryVariables.limit = limit
 			}
+
+			console.log({ queryVariables })
 
 			// if we made it this far without a limit argument and there's no default page size,
 			// they made a mistake
@@ -82,7 +85,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends {}>({
 			const { variables } = params ?? {}
 
 			// if the input is different than the query variables then we just do everything like normal
-			if (variables && !deepEquals(getValue().variables, variables)) {
+			if (variables && !deepEquals(getVariables(), variables)) {
 				return fetch.call(this, params)
 			}
 

@@ -93,6 +93,7 @@ export class FragmentStoreCursor<
 
 		const handlers = this.storeHandlers(
 			paginationStore,
+			initialValue,
 			() => get(store),
 			// the variables that are needed for this query are the store's values and the ids
 			() => store.variables
@@ -133,6 +134,7 @@ export class FragmentStoreCursor<
 
 	protected storeHandlers(
 		observer: DocumentStore<_Data, _Input>,
+		initialValue: _Data | null,
 		getState: () => _Data | null,
 		getVariables: () => _Input
 	): CursorHandlers<_Data, _Input> {
@@ -167,7 +169,7 @@ export class FragmentStoreCursor<
 					},
 				})
 			},
-			observer,
+			initialValue,
 			storeName: this.name,
 		})
 	}
@@ -185,7 +187,7 @@ export class FragmentStoreOffset<
 		const store = base.get(initialValue)
 
 		// generate the pagination handlers
-		const observer = getClient().observe<_Data, _Input>({
+		const paginationStore = getClient().observe<_Data, _Input>({
 			artifact: this.paginationArtifact,
 			initialValue,
 		})
@@ -194,9 +196,11 @@ export class FragmentStoreOffset<
 
 		// create the offset handlers we'll add to the store
 		const handlers = offsetHandlers<_Data, _Input>({
+			getState,
+			getVariables: () => store.variables,
 			artifact: this.paginationArtifact,
 			fetch: async (args) => {
-				return observer.send({
+				return paginationStore.send({
 					...args,
 					session: await getSession(),
 					variables: {
@@ -206,7 +210,7 @@ export class FragmentStoreOffset<
 				})
 			},
 			fetchUpdate: async (args) => {
-				return observer.send({
+				return paginationStore.send({
 					...args,
 					session: await getSession(),
 					variables: {
@@ -218,19 +222,34 @@ export class FragmentStoreOffset<
 					},
 				})
 			},
-			observer,
+			observer: paginationStore,
 			storeName: this.name,
 		})
+
+		const subscribe = (
+			run: Subscriber<FragmentPaginatedResult<_Data>>,
+			invalidate?: ((value?: FragmentPaginatedResult<_Data> | undefined) => void) | undefined
+		): (() => void) => {
+			const combined = derived([store, paginationStore], ([$parent, $pagination]) => {
+				console.log({ $parent, $pagination })
+				return {
+					...$pagination,
+					data: $parent,
+				} as FragmentPaginatedResult<_Data>
+			})
+
+			return combined.subscribe(run, invalidate)
+		}
 
 		// add the offset handlers
 		return {
 			kind: CompiledFragmentKind,
-			data: derived(observer, ($value) => $value.data!),
+			data: derived(paginationStore, ($value) => $value.data!),
 			// @ts-ignore
-			subscribe: store.subscribe,
+			subscribe,
 			fetch: handlers.fetch,
 			loadNextPage: handlers.loadNextPage,
-			fetching: derived(observer, ($store) => $store.fetching),
+			fetching: derived(paginationStore, ($store) => $store.fetching),
 		}
 	}
 }

@@ -68,6 +68,7 @@ test('pagination arguments stripped from key', async function () {
 		      endCursor
 		    }
 		  }
+		  id
 		}
 		\`,
 
@@ -165,6 +166,12 @@ test('pagination arguments stripped from key', async function () {
 		                },
 
 		                "visible": true
+		            },
+
+		            "id": {
+		                "type": "ID",
+		                "keyRaw": "id",
+		                "visible": true
 		            }
 		        }
 		    },
@@ -223,6 +230,7 @@ test('offset based pagination marks appropriate field', async function () {
 		  friendsByOffset(limit: $limit, filter: "hello", offset: $offset) {
 		    id
 		  }
+		  id
 		}
 		\`,
 
@@ -245,6 +253,12 @@ test('offset based pagination marks appropriate field', async function () {
 		                    }
 		                },
 
+		                "visible": true
+		            },
+
+		            "id": {
+		                "type": "ID",
+		                "keyRaw": "id",
 		                "visible": true
 		            }
 		        }
@@ -627,6 +641,7 @@ test("sibling aliases don't get marked", async function () {
 		      }
 		    }
 		  }
+		  id
 		}
 		\`,
 
@@ -843,6 +858,12 @@ test("sibling aliases don't get marked", async function () {
 		                    }
 		                },
 
+		                "visible": true
+		            },
+
+		            "id": {
+		                "type": "ID",
+		                "keyRaw": "id",
 		                "visible": true
 		            }
 		        }

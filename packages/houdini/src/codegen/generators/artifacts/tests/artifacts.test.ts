@@ -76,6 +76,7 @@ test('adds kind, name, and raw, response, and selection', async function () {
 
 		    "raw": \`fragment TestFragment on User {
 		  firstName
+		  id
 		}
 		\`,
 
@@ -86,6 +87,12 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		            "firstName": {
 		                "type": "String",
 		                "keyRaw": "firstName",
+		                "visible": true
+		            },
+
+		            "id": {
+		                "type": "ID",
+		                "keyRaw": "id",
 		                "visible": true
 		            }
 		        }
@@ -126,6 +133,7 @@ test('selection includes fragments', async function () {
 
 		fragment TestFragment on User {
 		  firstName
+		  id
 		}
 		\`,
 
@@ -177,6 +185,7 @@ test('selection includes fragments', async function () {
 
 		    "raw": \`fragment TestFragment on User {
 		  firstName
+		  id
 		}
 		\`,
 
@@ -187,6 +196,12 @@ test('selection includes fragments', async function () {
 		            "firstName": {
 		                "type": "String",
 		                "keyRaw": "firstName",
+		                "visible": true
+		            },
+
+		            "id": {
+		                "type": "ID",
+		                "keyRaw": "id",
 		                "visible": true
 		            }
 		        }
@@ -226,6 +241,7 @@ test('internal directives are scrubbed', async function () {
 
 		fragment A on User {
 		  firstName
+		  id
 		}
 		\`,
 
@@ -303,6 +319,7 @@ test('variables only used by internal directives are scrubbed', async function (
 
 		fragment A on User {
 		  firstName
+		  id
 		}
 		\`,
 
@@ -384,6 +401,7 @@ test('overlapping query and fragment selection', async function () {
 
 		fragment A on User {
 		  firstName
+		  id
 		}
 		\`,
 
@@ -808,6 +826,7 @@ test('overlapping query and fragment nested selection', async function () {
 		    }
 		    id
 		  }
+		  id
 		}
 		\`,
 
@@ -4981,6 +5000,7 @@ test('fragment variables are embedded in artifact', async function () {
 		    field(filter: "Foo")
 		    id
 		  }
+		  id
 		}
 		\`,
 
@@ -4994,6 +5014,20 @@ test('fragment variables are embedded in artifact', async function () {
 		                "nullable": true,
 
 		                "selection": {
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id",
+		                            "visible": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename",
+		                            "visible": true
+		                        }
+		                    },
+
 		                    "abstractFields": {
 		                        "fields": {
 		                            "User": {
@@ -5017,20 +5051,6 @@ test('fragment variables are embedded in artifact', async function () {
 		                        },
 
 		                        "typeMap": {}
-		                    },
-
-		                    "fields": {
-		                        "id": {
-		                            "type": "ID",
-		                            "keyRaw": "id",
-		                            "visible": true
-		                        },
-
-		                        "__typename": {
-		                            "type": "String",
-		                            "keyRaw": "__typename",
-		                            "visible": true
-		                        }
 		                    },
 
 		                    "fragments": {
@@ -5101,6 +5121,7 @@ test('fragment references in inline fragment', async function () {
 
 		fragment UserFragmentTestFragment on User {
 		  name
+		  id
 		}
 		\`,
 
@@ -5220,6 +5241,7 @@ test('masking disabled', async function () {
 
 		fragment UserFragmentTestFragment on User {
 		  name
+		  id
 		}
 		\`,
 

@@ -18,7 +18,7 @@ import { countPage, extractPageInfo, missingPageSizeError } from './pageInfo'
 export function cursorHandlers<_Data extends GraphQLObject, _Input extends Record<string, any>>({
 	artifact,
 	storeName,
-	observer,
+	initialValue,
 	fetchUpdate: parentFetchUpdate,
 	fetch: parentFetch,
 	getState,
@@ -26,13 +26,13 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 }: {
 	artifact: QueryArtifact
 	storeName: string
-	observer: DocumentStore<_Data, _Input>
 	fetch: FetchFn<_Data, _Input>
 	getState: () => _Data | null
 	getVariables: () => _Input
+	initialValue: _Data | null
 	fetchUpdate: (arg: SendParams, updates: string[]) => ReturnType<FetchFn<_Data, _Input>>
 }): CursorHandlers<_Data, _Input> {
-	const pageInfo = writable<PageInfo>(extractPageInfo(get(observer).data, artifact.refetch!.path))
+	const pageInfo = writable<PageInfo>(extractPageInfo(initialValue, artifact.refetch!.path))
 
 	// dry up the page-loading logic
 	const loadPage = async ({
@@ -233,7 +233,6 @@ If you think this is an error, please open an issue on GitHub`)
 					console.warn(`⚠️ Encountered a fetch() in the middle of the connection.
 Make sure to pass a cursor value by hand that includes the current set (ie the entry before startCursor)
 `)
-					return observer.state
 				}
 
 				// if we are loading the first boundary

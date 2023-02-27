@@ -449,6 +449,7 @@ test('embeds node pagination query as a separate document', async function () {
 		      endCursor
 		    }
 		  }
+		  id
 		}
 		\`,
 
@@ -557,15 +558,15 @@ test('embeds node pagination query as a separate document', async function () {
 		                                    "visible": true
 		                                },
 
-		                                "__typename": {
-		                                    "type": "String",
-		                                    "keyRaw": "__typename",
-		                                    "visible": true
-		                                },
-
 		                                "id": {
 		                                    "type": "ID",
 		                                    "keyRaw": "id",
+		                                    "visible": true
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename",
 		                                    "visible": true
 		                                }
 		                            }
@@ -714,6 +715,8 @@ test('embeds custom pagination query as a separate document', async function () 
 		      endCursor
 		    }
 		  }
+		  name
+		  aka
 		}
 		\`,
 
@@ -825,12 +828,6 @@ test('embeds custom pagination query as a separate document', async function () 
 		                            "visible": true
 		                        },
 
-		                        "__typename": {
-		                            "type": "String",
-		                            "keyRaw": "__typename",
-		                            "visible": true
-		                        },
-
 		                        "name": {
 		                            "type": "String",
 		                            "keyRaw": "name",
@@ -840,6 +837,12 @@ test('embeds custom pagination query as a separate document', async function () 
 		                        "aka": {
 		                            "type": "String",
 		                            "keyRaw": "aka",
+		                            "visible": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename",
 		                            "visible": true
 		                        }
 		                    },

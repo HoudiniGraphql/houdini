@@ -251,8 +251,8 @@ test("fragment with list doesn't clutter its definition", async function () {
 		  friends @list(name: "Friends") {
 		    id
 		  }
+		  id
 		}
-
 	`)
 })
 
@@ -348,6 +348,7 @@ test('connections marked with list directive get cursor information', async func
 		      endCursor
 		    }
 		  }
+		  id
 		}
 	`)
 })
@@ -457,6 +458,7 @@ test('list flags connections', async function () {
 		      endCursor
 		    }
 		  }
+		  id
 		}
 	`)
 })
