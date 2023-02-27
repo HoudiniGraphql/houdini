@@ -13,7 +13,7 @@
 
   $: user = fragment(
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    $userInfo.data!.node!,
+    $userInfo.data?.node!,
     graphql(`
       fragment UserFragmentTestFragment on User {
         name
