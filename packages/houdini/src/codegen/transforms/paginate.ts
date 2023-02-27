@@ -2,7 +2,7 @@ import * as graphql from 'graphql'
 
 import type { Config, Document } from '../../lib'
 import { HoudiniError, parentTypeFromAncestors, unwrapType, wrapType } from '../../lib'
-import { ArtifactKind, PaginateModes } from '../../runtime/lib/types'
+import { ArtifactKind, type PaginateModes } from '../../runtime/lib/types'
 
 // the paginate transform is responsible for preparing a fragment marked for pagination
 // to be embedded in the query that will be used to fetch additional data. That means it
