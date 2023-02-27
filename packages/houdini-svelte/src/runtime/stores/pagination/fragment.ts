@@ -12,6 +12,7 @@ import type { Readable, Subscriber } from 'svelte/store'
 import { derived, get } from 'svelte/store'
 
 import { getClient, initClient } from '../../client'
+import { getSession } from '../../session'
 import type { CursorHandlers, OffsetFragmentStoreInstance } from '../../types'
 import { FragmentStore } from '../fragment'
 import type { StoreConfig } from '../query'
@@ -40,7 +41,7 @@ class BasePaginatedFragmentStore<_Data extends GraphQLObject, _Input> {
 		this.artifact = config.artifact
 	}
 
-	protected queryVariables(store: Readable<FragmentPaginatedResult<_Data, unknown>>): _Input {
+	protected queryVariables(getState: () => _Data | null): _Input {
 		const config = getCurrentConfig()
 
 		const { targetType } = this.paginationArtifact.refetch || {}
@@ -54,7 +55,7 @@ class BasePaginatedFragmentStore<_Data extends GraphQLObject, _Input> {
 		// if we have a specific function to use when computing the variables
 		// then we need to collect those fields
 		let idVariables = {}
-		const value = get(store).data
+		const value = getState()
 		if (typeConfig.resolve?.arguments) {
 			// @ts-ignore
 			idVariables = (typeConfig.resolve!.arguments?.(value) || {}) as _Input
@@ -89,7 +90,13 @@ export class FragmentStoreCursor<
 			artifact: this.paginationArtifact,
 			initialValue: store.initialValue,
 		})
-		const handlers = this.storeHandlers(paginationStore)
+
+		const handlers = this.storeHandlers(
+			paginationStore,
+			() => get(store),
+			// the variables that are needed for this query are the store's values and the ids
+			() => store.variables
+		)
 
 		const subscribe = (
 			run: Subscriber<FragmentPaginatedResult<_Data, { pageInfo: PageInfo }>>,
@@ -100,13 +107,6 @@ export class FragmentStoreCursor<
 				| undefined
 		): (() => void) => {
 			const combined = derived([store, paginationStore], ([$parent, $pagination]) => {
-				console.log({
-					path: this.paginationArtifact.refetch!.path,
-					$parent,
-					$pagination: $pagination?.data,
-					pageInfo: extractPageInfo($parent, this.paginationArtifact.refetch!.path),
-				})
-
 				return {
 					...$pagination,
 					data: $parent,
@@ -133,18 +133,22 @@ export class FragmentStoreCursor<
 
 	protected storeHandlers(
 		observer: DocumentStore<_Data, _Input>,
-		getState: () => _Data | null
+		getState: () => _Data | null,
+		getVariables: () => _Input
 	): CursorHandlers<_Data, _Input> {
 		return cursorHandlers<_Data, _Input>({
+			getState,
+			getVariables,
 			artifact: this.paginationArtifact,
 			fetchUpdate: async (args, updates) => {
 				await initClient()
 
 				return observer.send({
+					session: await getSession(),
 					...args,
 					variables: {
 						...args?.variables,
-						...this.queryVariables(observer),
+						...this.queryVariables(getState),
 					},
 					cacheParams: {
 						applyUpdates: updates,
@@ -155,10 +159,11 @@ export class FragmentStoreCursor<
 				await initClient()
 
 				return await observer.send({
+					session: await getSession(),
 					...args,
 					variables: {
 						...args?.variables,
-						...this.queryVariables(observer),
+						...this.queryVariables(getState),
 					},
 				})
 			},
@@ -185,14 +190,17 @@ export class FragmentStoreOffset<
 			initialValue,
 		})
 
+		const getState = () => get(store)
+
 		// create the offset handlers we'll add to the store
 		const handlers = offsetHandlers<_Data, _Input>({
 			artifact: this.paginationArtifact,
 			fetch: async (args) => {
 				return observer.send({
 					...args,
+					session: await getSession(),
 					variables: {
-						...this.queryVariables(observer),
+						...this.queryVariables(getState),
 						...args?.variables,
 					},
 				})
@@ -200,8 +208,9 @@ export class FragmentStoreOffset<
 			fetchUpdate: async (args) => {
 				return observer.send({
 					...args,
+					session: await getSession(),
 					variables: {
-						...this.queryVariables(observer),
+						...this.queryVariables(getState),
 						...args?.variables,
 					},
 					cacheParams: {

@@ -1,4 +1,6 @@
 import cache from '$houdini/runtime/cache'
+import { getCurrentConfig } from '$houdini/runtime/lib/config'
+import { marshalInputs } from '$houdini/runtime/lib/scalars'
 import type {
 	GraphQLObject,
 	FragmentArtifact,
@@ -28,7 +30,7 @@ export class FragmentStore<_Data extends GraphQLObject, _Input = {}> {
 
 	get(
 		initialValue: _Data | null
-	): FragmentStoreInstance<_Data | null> & { initialValue: _Data | null } {
+	): FragmentStoreInstance<_Data | null, _Input> & { initialValue: _Data | null } {
 		// we have to compute the id of the parent
 		const parentID = initialValue
 			? cache._internal_unstable.id(this.artifact.rootType, initialValue)
@@ -38,7 +40,7 @@ export class FragmentStore<_Data extends GraphQLObject, _Input = {}> {
 		// but if its not, then the fragment wasn't mixed into the right thing
 		// the variables for the fragment live on the initial value's $fragment key
 		const variables = initialValue?.[fragmentKey]?.[this.artifact.name]
-		if (!variables && isBrowser) {
+		if (initialValue?.[fragmentKey] && !variables && isBrowser) {
 			console.warn(
 				`⚠️ Parent does not contain the information for this fragment. Something is wrong.
 Please ensure that you have passed a record that has ${this.artifact.name} mixed into it.`
@@ -63,6 +65,12 @@ Please ensure that you have passed a record that has ${this.artifact.name} mixed
 
 		return {
 			initialValue,
+			variables: marshalInputs({
+				artifact: this.artifact,
+				input: variables,
+				config: getCurrentConfig(),
+				rootType: this.artifact.rootType,
+			}) as _Input,
 			kind: CompiledFragmentKind,
 			subscribe: derived([store], ([$store]) => $store?.data).subscribe,
 			update: (val: _Data | null) => store?.set({ ...store.state, data: val }),

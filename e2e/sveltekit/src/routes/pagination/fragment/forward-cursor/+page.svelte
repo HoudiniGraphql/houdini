@@ -11,7 +11,7 @@
 
   $: fragmentResult = paginatedFragment(
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    $queryResult.data!.user,
+    $queryResult.data?.user,
     graphql(`
       fragment ForwardsCursorFragment on User {
         friendsConnection(first: 2) @paginate {
@@ -24,22 +24,14 @@
       }
     `)
   );
-
-  $: console.log(fragmentResult.loadNextPage);
 </script>
 
 <div id="result">
-  {$fragmentResult.data.friendsConnection.edges.map(({ node }) => node?.name).join(', ')}
+  {$fragmentResult.data?.friendsConnection.edges.map(({ node }) => node?.name).join(', ')}
 </div>
 
 <div id="pageInfo">
   {JSON.stringify($fragmentResult.pageInfo)}
 </div>
 
-<button
-  id="next"
-  on:click={() => {
-    console.log('next');
-    fragmentResult?.loadNextPage();
-  }}>next</button
->
+<button id="next" on:click={() => fragmentResult?.loadNextPage()}>next</button>

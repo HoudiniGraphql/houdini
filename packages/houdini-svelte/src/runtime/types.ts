@@ -48,7 +48,8 @@ export type KitLoadResponse = {
 	maxage?: number
 }
 
-export type FragmentStoreInstance<_Data> = Readable<_Data> & {
+export type FragmentStoreInstance<_Data, _Input> = Readable<_Data> & {
+	variables: _Input
 	kind: typeof CompiledFragmentKind
 	update: Writable<_Data>['set']
 }

@@ -1,5 +1,5 @@
 import type { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
-import type { Subscriber } from 'svelte/store'
+import { get, Subscriber } from 'svelte/store'
 import { derived } from 'svelte/store'
 
 import { getClient, initClient } from '../../client'
@@ -47,6 +47,8 @@ export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> ex
 		this.#_handlers = cursorHandlers<_Data, _Input>({
 			artifact: this.artifact,
 			observer: this.observer,
+			getState: () => get(this.observer).data,
+			getVariables: () => get(this.observer).variables!,
 			storeName: this.name,
 			fetch: super.fetch.bind(this),
 			fetchUpdate: async (args, updates) => {
