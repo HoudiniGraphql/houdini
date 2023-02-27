@@ -13,10 +13,10 @@ import { countPage, missingPageSizeError } from './pageInfo'
 
 export function offsetHandlers<_Data extends GraphQLObject, _Input extends {}>({
 	artifact,
-	observer,
-	fetch,
-	fetchUpdate,
 	storeName,
+	observer,
+	fetch: parentFetch,
+	fetchUpdate: parentFetchUpdate,
 }: {
 	artifact: QueryArtifact
 	fetch: FetchFn<_Data, _Input>
@@ -61,14 +61,31 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends {}>({
 				throw missingPageSizeError('loadNextPage')
 			}
 
+			// Get the Pagination Mode
+			let isPageByPage = false
+			for (const field in artifact.selection.fields) {
+				if (artifact.selection.fields[field].paginate?.mode === 'PageByPage') {
+					isPageByPage = true
+					break
+				}
+			}
+
 			// send the query
-			await fetchUpdate({
-				variables: queryVariables as _Input,
-				fetch,
-				metadata,
-				policy: CachePolicy.NetworkOnly,
-				session: await getSession(),
-			})
+			isPageByPage
+				? await parentFetch({
+						variables: queryVariables as _Input,
+						fetch,
+						metadata,
+						policy: CachePolicy.NetworkOnly, // we want to use the cache policy of the artifact, not this! :o
+						// session: await getSession(), // Hum?
+				  })
+				: await parentFetchUpdate({
+						variables: queryVariables as _Input,
+						fetch,
+						metadata,
+						policy: CachePolicy.NetworkOnly,
+						session: await getSession(),
+				  })
 
 			// add the page size to the offset so we load the next page next time
 			const pageSize = queryVariables.limit || artifact.refetch!.pageSize
@@ -83,7 +100,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends {}>({
 
 			// if the input is different than the query variables then we just do everything like normal
 			if (variables && !deepEquals(getValue().variables, variables)) {
-				return fetch.call(this, params)
+				return parentFetch.call(this, params)
 			}
 
 			// we are updating the current set of items, count the number of items that currently exist
@@ -99,7 +116,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends {}>({
 			}
 
 			// send the query
-			return await fetch.call(this, {
+			return await parentFetch.call(this, {
 				...params,
 				variables: queryVariables as _Input,
 			})

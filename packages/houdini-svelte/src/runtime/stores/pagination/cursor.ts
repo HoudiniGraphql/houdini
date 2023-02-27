@@ -19,8 +19,8 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 	artifact,
 	storeName,
 	observer,
-	fetchUpdate: parentFetchUpdate,
 	fetch: parentFetch,
+	fetchUpdate: parentFetchUpdate,
 }: {
 	artifact: QueryArtifact
 	storeName: string
@@ -61,18 +61,35 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 			throw missingPageSizeError(functionName)
 		}
 
+		// Get the Pagination Mode
+		let isPageByPage = false
+		for (const field in artifact.selection.fields) {
+			if (artifact.selection.fields[field].paginate?.mode === 'PageByPage') {
+				isPageByPage = true
+				break
+			}
+		}
+
 		// send the query
-		const { data } = await parentFetchUpdate(
-			{
-				variables: loadVariables,
-				fetch,
-				metadata,
-				policy: CachePolicy.NetworkOnly,
-				session: await getSession(),
-			},
-			// if we are adding to the start of the list, prepend the result
-			[where === 'start' ? 'prepend' : 'append']
-		)
+		const { data } = isPageByPage
+			? await parentFetch({
+					variables: loadVariables,
+					fetch,
+					metadata,
+					policy: CachePolicy.NetworkOnly, // we want to use the cache policy of the artifact, not this! :o
+					// session: await getSession(), // Hum?
+			  })
+			: await parentFetchUpdate(
+					{
+						variables: loadVariables,
+						fetch,
+						metadata,
+						policy: CachePolicy.NetworkOnly,
+						session: await getSession(),
+					},
+					// if we are adding to the start of the list, prepend the result
+					[where === 'start' ? 'prepend' : 'append']
+			  )
 
 		// if the query is embedded in a node field (paginated fragments)
 		// make sure we look down one more for the updated page info
