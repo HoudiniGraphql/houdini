@@ -55,8 +55,6 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends {}>({
 				queryVariables.limit = limit
 			}
 
-			console.log({ queryVariables })
-
 			// if we made it this far without a limit argument and there's no default page size,
 			// they made a mistake
 			if (!queryVariables.limit && !artifact.refetch!.pageSize) {
