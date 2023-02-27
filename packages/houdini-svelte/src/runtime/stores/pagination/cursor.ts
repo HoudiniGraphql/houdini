@@ -70,8 +70,6 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 					variables: loadVariables,
 					fetch,
 					metadata,
-					policy: CachePolicy.NetworkOnly, // we want to use the cache policy of the artifact, not this! :o
-					// session: await getSession(), // Hum?
 			  })
 			: await parentFetchUpdate(
 					{

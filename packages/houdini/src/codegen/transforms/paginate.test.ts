@@ -470,7 +470,7 @@ test('embeds node pagination query as a separate document', async function () {
 		                            "User": {
 		                                "friendsByForwardsCursor": {
 		                                    "type": "UserConnection",
-		                                    "keyRaw": "friendsByForwardsCursor::paginated",
+		                                    "keyRaw": "friendsByForwardsCursor(after: $after, first: $first)::paginated",
 
 		                                    "selection": {
 		                                        "fields": {
@@ -573,7 +573,7 @@ test('embeds node pagination query as a separate document', async function () {
 
 		                        "friendsByForwardsCursor": {
 		                            "type": "UserConnection",
-		                            "keyRaw": "friendsByForwardsCursor::paginated",
+		                            "keyRaw": "friendsByForwardsCursor(after: $after, first: $first)::paginated",
 
 		                            "selection": {
 		                                "fields": {
@@ -768,7 +768,7 @@ test('embeds custom pagination query as a separate document', async function () 
 		                    "fields": {
 		                        "friendsConnection": {
 		                            "type": "GhostConnection",
-		                            "keyRaw": "friendsConnection::paginated",
+		                            "keyRaw": "friendsConnection(after: $after, first: $first)::paginated",
 
 		                            "selection": {
 		                                "fields": {
@@ -1470,7 +1470,7 @@ test('generated query has same refetch spec', async function () {
 		        "fields": {
 		            "usersByCursor": {
 		                "type": "UserConnection",
-		                "keyRaw": "usersByCursor::paginated",
+		                "keyRaw": "usersByCursor(after: $after, before: $before, first: $first, last: $last)::paginated",
 
 		                "selection": {
 		                    "fields": {
@@ -1702,7 +1702,7 @@ test('default defaultPaginateMode to PageByPage', async function () {
 		        "fields": {
 		            "usersByCursor": {
 		                "type": "UserConnection",
-		                "keyRaw": "usersByCursor::paginated",
+		                "keyRaw": "usersByCursor(after: $after, before: $before, first: $first, last: $last)::paginated",
 
 		                "selection": {
 		                    "fields": {

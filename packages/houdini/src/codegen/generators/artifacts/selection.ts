@@ -5,7 +5,6 @@ import { deepMerge, getRootType, HoudiniError } from '../../../lib'
 import {
 	RefetchUpdateMode,
 	type MutationOperation,
-	type PaginateModes,
 	type SubscriptionSelection,
 } from '../../../runtime/lib/types'
 import { connectionSelection } from '../../transforms/list'

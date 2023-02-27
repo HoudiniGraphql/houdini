@@ -560,7 +560,7 @@ test('paginate over unions', async function () {
 		        "fields": {
 		            "entitiesByCursor": {
 		                "type": "EntityConnection",
-		                "keyRaw": "entitiesByCursor::paginated",
+		                "keyRaw": "entitiesByCursor(after: $after, before: $before, first: $first, last: $last)::paginated",
 
 		                "list": {
 		                    "name": "All_Users",
@@ -3488,7 +3488,7 @@ describe('mutation artifacts', function () {
 			        "fields": {
 			            "usersByCursor": {
 			                "type": "UserConnection",
-			                "keyRaw": "usersByCursor::paginated",
+			                "keyRaw": "usersByCursor(after: $after, before: $before, first: $first, last: $last)::paginated",
 
 			                "list": {
 			                    "name": "All_Users",
@@ -3694,7 +3694,7 @@ describe('mutation artifacts', function () {
 			        "fields": {
 			            "usersByCursor": {
 			                "type": "UserConnection",
-			                "keyRaw": "usersByCursor::paginated",
+			                "keyRaw": "usersByCursor(after: $after, before: $before, first: $first, last: $last)::paginated",
 
 			                "list": {
 			                    "name": "All_Users",

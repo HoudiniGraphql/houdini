@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
 
-import type { Config } from '../../../lib'
+import type { Config, PaginateModes } from '../../../lib'
 
 // we need to generate a static key that we can use to index this field in the cache.
 // this needs to be a unique hash driven by the field's attribute and arguments
@@ -17,10 +17,22 @@ export default function fieldKey(config: Config, field: graphql.FieldNode): stri
 	).selectionSet.selections[0] as graphql.FieldNode
 
 	// if the field is paginated, we need to strip away any args
-	const paginated = !!field.directives?.find(
+	let paginateMode: PaginateModes = config.defaultPaginateMode
+	const paginatedDirective = field.directives?.find(
 		(directive) => directive.name.value === config.paginateDirective
 	)
-	const paginationArgs = ['first', 'after', 'last', 'before', 'limit', 'offset']
+	if (paginatedDirective) {
+		const paginateModeArg = paginatedDirective?.arguments?.find(
+			(arg) => arg.name.value === config.paginateModeArg
+		)
+		if (paginateModeArg && paginateModeArg.value.kind === 'EnumValue') {
+			paginateMode = paginateModeArg.value.value as PaginateModes
+		}
+	}
+
+	// if we are in PageByPageMode, don't strip away any args
+	const paginationArgs =
+		paginateMode === 'PageByPage' ? [] : ['first', 'after', 'last', 'before', 'limit', 'offset']
 
 	const argObj = (secondParse.arguments || []).reduce<{ [key: string]: string }>((acc, arg) => {
 		// the query already contains a serialized version of the argument so just pull it out of the
@@ -29,7 +41,7 @@ export default function fieldKey(config: Config, field: graphql.FieldNode): stri
 		const end = arg.value.loc?.end
 
 		// if the field is paginated, ignore the pagination args in the key
-		if (paginated && paginationArgs.includes(arg.name.value)) {
+		if (paginatedDirective && paginationArgs.includes(arg.name.value)) {
 			return acc
 		}
 
@@ -53,7 +65,7 @@ export default function fieldKey(config: Config, field: graphql.FieldNode): stri
 			: attributeName
 
 	// if the field is paginated, key it differently so other documents can ask for the non paginated value without conflict
-	if (paginated) {
+	if (paginatedDirective) {
 		key = key + '::paginated'
 	}
 
