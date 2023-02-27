@@ -10,7 +10,6 @@ import { CompiledFragmentKind, fragmentKey } from '$houdini/runtime/lib/types'
 import { derived } from 'svelte/store'
 
 import { isBrowser } from '../adapter'
-import { getClient } from '../client'
 import type { FragmentStoreInstance } from '../types'
 import { BaseStore } from './base'
 

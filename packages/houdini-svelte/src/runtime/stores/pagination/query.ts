@@ -1,6 +1,6 @@
 import type { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
-import { get, Subscriber } from 'svelte/store'
-import { derived } from 'svelte/store'
+import { get, derived } from 'svelte/store'
+import type { Subscriber } from 'svelte/store'
 
 import { getClient, initClient } from '../../client'
 import type { CursorHandlers, OffsetHandlers } from '../../types'

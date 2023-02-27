@@ -1,11 +1,10 @@
-import type { DocumentStore } from '$houdini/runtime/client'
 import type { SendParams } from '$houdini/runtime/client/documentStore'
 import { CachePolicy } from '$houdini/runtime/lib'
 import { getCurrentConfig } from '$houdini/runtime/lib/config'
 import { siteURL } from '$houdini/runtime/lib/constants'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import type { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
-import { get, writable } from 'svelte/store'
+import { writable } from 'svelte/store'
 
 import { getSession } from '../../session'
 import type { CursorHandlers } from '../../types'

@@ -33,6 +33,7 @@ export class BaseStore<
 			artifact: params.artifact,
 			client: null,
 			fetching: params.fetching,
+			initialValue: params.initialValue,
 		})
 
 		this.#params = params
