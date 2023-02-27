@@ -758,7 +758,6 @@ class CacheInternal {
 			}
 		}
 
-		// return the list of subscribers that need to be updated because of this change
 		return toNotify
 	}
 

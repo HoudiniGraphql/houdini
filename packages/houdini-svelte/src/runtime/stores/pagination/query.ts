@@ -134,7 +134,6 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input extends {}> ex
 		})
 		this.#_handlers = offsetHandlers<_Data, _Input>({
 			artifact: this.artifact,
-			observer: this.observer,
 			storeName: this.name,
 			fetch: super.fetch,
 			getState: () => get(this.observer).data,

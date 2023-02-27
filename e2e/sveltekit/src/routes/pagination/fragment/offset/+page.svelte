@@ -11,7 +11,7 @@
 
   $: fragmentResult = paginatedFragment(
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    $queryResult.data!.user,
+    $queryResult.data?.user,
     graphql(`
       fragment OffsetFragment on User {
         friendsList(limit: 2) @paginate {
@@ -23,7 +23,7 @@
 </script>
 
 <div id="result">
-  {$fragmentResult.data.friendsList.map((node) => node?.name).join(', ')}
+  {$fragmentResult.data?.friendsList.map((node) => node?.name).join(', ')}
 </div>
 
 <button id="next" on:click={() => fragmentResult?.loadNextPage()}>next</button>

@@ -189,7 +189,7 @@ export class FragmentStoreOffset<
 		// generate the pagination handlers
 		const paginationStore = getClient().observe<_Data, _Input>({
 			artifact: this.paginationArtifact,
-			initialValue,
+			initialValue: store.initialValue,
 		})
 
 		const getState = () => get(store)
@@ -210,9 +210,10 @@ export class FragmentStoreOffset<
 				})
 			},
 			fetchUpdate: async (args) => {
+				await initClient()
 				return paginationStore.send({
-					...args,
 					session: await getSession(),
+					...args,
 					variables: {
 						...this.queryVariables(getState),
 						...args?.variables,
@@ -222,7 +223,6 @@ export class FragmentStoreOffset<
 					},
 				})
 			},
-			observer: paginationStore,
 			storeName: this.name,
 		})
 

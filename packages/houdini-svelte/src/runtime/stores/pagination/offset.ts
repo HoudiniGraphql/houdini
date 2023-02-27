@@ -23,7 +23,6 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends {}>({
 	fetch: FetchFn<_Data, _Input>
 	fetchUpdate: (arg: SendParams) => ReturnType<FetchFn<_Data, _Input>>
 	storeName: string
-	observer: DocumentStore<_Data, _Input>
 	getState: () => _Data | null
 	getVariables: () => _Input
 }) {

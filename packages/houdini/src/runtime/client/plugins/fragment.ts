@@ -19,6 +19,7 @@ export const fragment: ClientPlugin = documentPlugin(ArtifactKind.Fragment, func
 
 			// if the variables have changed we need to setup a new subscription with the cache
 			if (variablesChanged(ctx)) {
+				console.log('subscribing', ctx.stuff.parentID)
 				// if the variables changed we need to unsubscribe from the old fields and
 				// listen to the new ones
 				if (subscriptionSpec) {
@@ -35,6 +36,7 @@ export const fragment: ClientPlugin = documentPlugin(ArtifactKind.Fragment, func
 					variables: () => variables,
 					parentID: ctx.stuff.parentID,
 					set: (newValue) => {
+						console.log('fragment value', newValue)
 						resolve(ctx, {
 							data: newValue,
 							errors: null,
