@@ -62,13 +62,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 		}
 
 		// Get the Pagination Mode
-		let isPageByPage = false
-		for (const field in artifact.selection.fields) {
-			if (artifact.selection.fields[field].paginate?.mode === 'PageByPage') {
-				isPageByPage = true
-				break
-			}
-		}
+		let isPageByPage = artifact.refetch?.mode === 'PageByPage'
 
 		// send the query
 		const { data } = isPageByPage

@@ -234,20 +234,6 @@ export default function selection({
 				}
 			}
 
-			const paginateDirective = field.directives?.find(
-				(directive) => config.paginateDirective === directive.name.value
-			)
-			if (paginateDirective) {
-				const paginateModeArg = paginateDirective?.arguments?.find(
-					(arg) => arg.name.value === config.paginateModeArg
-				)
-				let paginateMode: PaginateModes = config.defaultPaginateMode
-				if (paginateModeArg && paginateModeArg.value.kind === 'EnumValue') {
-					paginateMode = paginateModeArg.value.value as PaginateModes
-				}
-				fieldObj.paginate = { mode: paginateMode }
-			}
-
 			// if the field is marked for pagination we want to leave something behind
 			// so that cache.write can perform the necessary inserts when appropriate
 			const paginated = field.directives?.find(

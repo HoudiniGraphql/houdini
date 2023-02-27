@@ -2,7 +2,7 @@ import * as graphql from 'graphql'
 
 import type { Config, Document } from '../../lib'
 import { HoudiniError, parentTypeFromAncestors, unwrapType, wrapType } from '../../lib'
-import { ArtifactKind } from '../../runtime/lib/types'
+import { ArtifactKind, PaginateModes } from '../../runtime/lib/types'
 
 // the paginate transform is responsible for preparing a fragment marked for pagination
 // to be embedded in the query that will be used to fetch additional data. That means it
@@ -161,6 +161,8 @@ export default async function paginate(config: Config, documents: Document[]): P
 			// remember if we found a fragment or operation
 			let fragment = ''
 
+			let paginateMode: PaginateModes = config.defaultPaginateMode
+
 			doc.document = graphql.visit(doc.document, {
 				// if we are dealing with a query, we'll need to add the variables to the definition
 				OperationDefinition(node) {
@@ -253,6 +255,16 @@ export default async function paginate(config: Config, documents: Document[]): P
 					}
 				},
 				Directive(node) {
+					// override the paginate mode if we see the paginate directive
+					if (node.name.value === config.paginateDirective) {
+						const paginateModeArg = node?.arguments?.find(
+							(arg) => arg.name.value === config.paginateModeArg
+						)
+						if (paginateModeArg && paginateModeArg.value.kind === 'EnumValue') {
+							paginateMode = paginateModeArg.value.value as PaginateModes
+						}
+					}
+
 					// if we are not looking at the arguments directive, ignore it
 					if (node.name.value !== config.argumentsDirective) {
 						return
@@ -325,6 +337,7 @@ export default async function paginate(config: Config, documents: Document[]): P
 				paginated: true,
 				direction,
 				start,
+				mode: paginateMode,
 			}
 
 			// if we're not paginating a fragment, there's nothing more to do. we mutated

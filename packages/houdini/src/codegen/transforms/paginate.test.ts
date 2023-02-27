@@ -55,7 +55,8 @@ test('adds pagination info to full', async function () {
 		    "embedded": false,
 		    "targetType": "Query",
 		    "paginated": true,
-		    "direction": "both"
+		    "direction": "both",
+		    "mode": "Infinite"
 		}
 	`)
 })
@@ -91,7 +92,8 @@ test('paginated fragments on node pull data from one field deeper', async functi
 		    "embedded": true,
 		    "targetType": "Node",
 		    "paginated": true,
-		    "direction": "both"
+		    "direction": "both",
+		    "mode": "Infinite"
 		}
 	`)
 })
@@ -422,7 +424,8 @@ test('embeds node pagination query as a separate document', async function () {
 		        "embedded": true,
 		        "targetType": "Node",
 		        "paginated": true,
-		        "direction": "forward"
+		        "direction": "forward",
+		        "mode": "Infinite"
 		    },
 
 		    "raw": \`query UserFriends_Pagination_Query($first: Int = 10, $after: String, $id: ID!) {
@@ -468,10 +471,6 @@ test('embeds node pagination query as a separate document', async function () {
 		                                "friendsByForwardsCursor": {
 		                                    "type": "UserConnection",
 		                                    "keyRaw": "friendsByForwardsCursor::paginated",
-
-		                                    "paginate": {
-		                                        "mode": "Infinite"
-		                                    },
 
 		                                    "selection": {
 		                                        "fields": {
@@ -575,10 +574,6 @@ test('embeds node pagination query as a separate document', async function () {
 		                        "friendsByForwardsCursor": {
 		                            "type": "UserConnection",
 		                            "keyRaw": "friendsByForwardsCursor::paginated",
-
-		                            "paginate": {
-		                                "mode": "Infinite"
-		                            },
 
 		                            "selection": {
 		                                "fields": {
@@ -728,7 +723,8 @@ test('embeds custom pagination query as a separate document', async function () 
 		        "embedded": true,
 		        "targetType": "Ghost",
 		        "paginated": true,
-		        "direction": "forward"
+		        "direction": "forward",
+		        "mode": "Infinite"
 		    },
 
 		    "raw": \`query UserGhost_Pagination_Query($first: Int = 10, $after: String, $name: String!, $aka: String!) {
@@ -773,10 +769,6 @@ test('embeds custom pagination query as a separate document', async function () 
 		                        "friendsConnection": {
 		                            "type": "GhostConnection",
 		                            "keyRaw": "friendsConnection::paginated",
-
-		                            "paginate": {
-		                                "mode": "Infinite"
-		                            },
 
 		                            "selection": {
 		                                "fields": {
@@ -1328,7 +1320,8 @@ test('refetch specification with backwards pagination', async function () {
 		    "embedded": false,
 		    "targetType": "Query",
 		    "paginated": true,
-		    "direction": "both"
+		    "direction": "both",
+		    "mode": "Infinite"
 		}
 	`)
 })
@@ -1365,7 +1358,8 @@ test('refetch entry with initial backwards', async function () {
 		    "targetType": "Query",
 		    "paginated": true,
 		    "direction": "both",
-		    "start": "1234"
+		    "start": "1234",
+		    "mode": "Infinite"
 		}
 	`)
 })
@@ -1402,7 +1396,8 @@ test('refetch entry with initial forwards', async function () {
 		    "targetType": "Query",
 		    "paginated": true,
 		    "direction": "both",
-		    "start": "1234"
+		    "start": "1234",
+		    "mode": "Infinite"
 		}
 	`)
 })
@@ -1442,7 +1437,8 @@ test('generated query has same refetch spec', async function () {
 		        "targetType": "Query",
 		        "paginated": true,
 		        "direction": "both",
-		        "start": "1234"
+		        "start": "1234",
+		        "mode": "Infinite"
 		    },
 
 		    "raw": \`query UserFriends_Pagination_Query($first: Int = 10, $after: String = "1234", $last: Int, $before: String) {
@@ -1475,10 +1471,6 @@ test('generated query has same refetch spec', async function () {
 		            "usersByCursor": {
 		                "type": "UserConnection",
 		                "keyRaw": "usersByCursor::paginated",
-
-		                "paginate": {
-		                    "mode": "Infinite"
-		                },
 
 		                "selection": {
 		                    "fields": {
@@ -1603,7 +1595,8 @@ test('refetch specification with offset pagination', async function () {
 		    "embedded": false,
 		    "targetType": "Query",
 		    "paginated": true,
-		    "direction": "forward"
+		    "direction": "forward",
+		    "mode": "Infinite"
 		}
 	`)
 })
@@ -1636,7 +1629,8 @@ test('refetch specification with initial offset', async function () {
 		    "targetType": "Query",
 		    "paginated": true,
 		    "direction": "forward",
-		    "start": 10
+		    "start": 10,
+		    "mode": "Infinite"
 		}
 	`)
 })
@@ -1675,7 +1669,8 @@ test('default defaultPaginateMode to PageByPage', async function () {
 		        "embedded": false,
 		        "targetType": "Query",
 		        "paginated": true,
-		        "direction": "both"
+		        "direction": "both",
+		        "mode": "PageByPage"
 		    },
 
 		    "raw": \`fragment UserFriends on Query {
@@ -1708,10 +1703,6 @@ test('default defaultPaginateMode to PageByPage', async function () {
 		            "usersByCursor": {
 		                "type": "UserConnection",
 		                "keyRaw": "usersByCursor::paginated",
-
-		                "paginate": {
-		                    "mode": "PageByPage"
-		                },
 
 		                "selection": {
 		                    "fields": {

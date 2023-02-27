@@ -523,7 +523,8 @@ test('paginate over unions', async function () {
 		        "embedded": false,
 		        "targetType": "Query",
 		        "paginated": true,
-		        "direction": "both"
+		        "direction": "both",
+		        "mode": "Infinite"
 		    },
 
 		    "raw": \`query TestQuery($first: Int = 10, $after: String, $last: Int, $before: String) {
@@ -565,10 +566,6 @@ test('paginate over unions', async function () {
 		                    "name": "All_Users",
 		                    "connection": true,
 		                    "type": "Entity"
-		                },
-
-		                "paginate": {
-		                    "mode": "Infinite"
 		                },
 
 		                "selection": {
@@ -3457,7 +3454,8 @@ describe('mutation artifacts', function () {
 			        "embedded": false,
 			        "targetType": "Query",
 			        "paginated": true,
-			        "direction": "both"
+			        "direction": "both",
+			        "mode": "Infinite"
 			    },
 
 			    "raw": \`query TestQuery($first: Int = 10, $after: String, $last: Int, $before: String) {
@@ -3496,10 +3494,6 @@ describe('mutation artifacts', function () {
 			                    "name": "All_Users",
 			                    "connection": true,
 			                    "type": "User"
-			                },
-
-			                "paginate": {
-			                    "mode": "Infinite"
 			                },
 
 			                "selection": {
@@ -3666,7 +3660,8 @@ describe('mutation artifacts', function () {
 			        "embedded": false,
 			        "targetType": "Query",
 			        "paginated": true,
-			        "direction": "both"
+			        "direction": "both",
+			        "mode": "PageByPage"
 			    },
 
 			    "raw": \`query TestQuery($first: Int = 10, $after: String, $last: Int, $before: String) {
@@ -3705,10 +3700,6 @@ describe('mutation artifacts', function () {
 			                    "name": "All_Users",
 			                    "connection": true,
 			                    "type": "User"
-			                },
-
-			                "paginate": {
-			                    "mode": "PageByPage"
 			                },
 
 			                "selection": {

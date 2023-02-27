@@ -39,7 +39,8 @@ test('pagination arguments stripped from key', async function () {
 		        "embedded": true,
 		        "targetType": "Node",
 		        "paginated": true,
-		        "direction": "both"
+		        "direction": "both",
+		        "mode": "Infinite"
 		    },
 
 		    "raw": \`fragment PaginatedFragment on User {
@@ -78,10 +79,6 @@ test('pagination arguments stripped from key', async function () {
 		            "friendsByCursor": {
 		                "type": "UserConnection",
 		                "keyRaw": "friendsByCursor(filter: \\"hello\\")::paginated",
-
-		                "paginate": {
-		                    "mode": "Infinite"
-		                },
 
 		                "selection": {
 		                    "fields": {
@@ -205,7 +202,8 @@ test('offset based pagination marks appropriate field', async function () {
 		        "embedded": true,
 		        "targetType": "Node",
 		        "paginated": true,
-		        "direction": "forward"
+		        "direction": "forward",
+		        "mode": "Infinite"
 		    },
 
 		    "raw": \`fragment PaginatedFragment on User {
@@ -222,11 +220,6 @@ test('offset based pagination marks appropriate field', async function () {
 		            "friendsByOffset": {
 		                "type": "User",
 		                "keyRaw": "friendsByOffset(filter: \\"hello\\")::paginated",
-
-		                "paginate": {
-		                    "mode": "Infinite"
-		                },
-
 		                "updates": ["append"],
 
 		                "selection": {
@@ -298,7 +291,8 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		        "embedded": false,
 		        "targetType": "Query",
 		        "paginated": true,
-		        "direction": "both"
+		        "direction": "both",
+		        "mode": "Infinite"
 		    },
 
 		    "raw": \`query ScalarPagination($first: Int = 10, $after: Cursor, $last: Int, $before: Cursor) {
@@ -353,10 +347,6 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		                        "friendsByCursorScalar": {
 		                            "type": "UserConnection",
 		                            "keyRaw": "friendsByCursorScalar(filter: \\"hello\\")::paginated",
-
-		                            "paginate": {
-		                                "mode": "Infinite"
-		                            },
 
 		                            "selection": {
 		                                "fields": {
@@ -547,7 +537,8 @@ test("sibling aliases don't get marked", async function () {
 		        "embedded": true,
 		        "targetType": "Node",
 		        "paginated": true,
-		        "direction": "both"
+		        "direction": "both",
+		        "mode": "Infinite"
 		    },
 
 		    "raw": \`fragment PaginatedFragment on User {
@@ -607,10 +598,6 @@ test("sibling aliases don't get marked", async function () {
 		            "friendsByCursor": {
 		                "type": "UserConnection",
 		                "keyRaw": "friendsByCursor(filter: \\"hello\\")::paginated",
-
-		                "paginate": {
-		                    "mode": "Infinite"
-		                },
 
 		                "selection": {
 		                    "fields": {

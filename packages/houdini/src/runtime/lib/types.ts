@@ -106,6 +106,7 @@ export type BaseCompiledDocument<_Kind extends ArtifactKinds> = {
 		targetType: string
 		paginated: boolean
 		direction: 'forward' | 'backward' | 'both'
+		mode: PaginateModes
 	}
 	pluginData?: Record<string, any>
 }
@@ -173,9 +174,6 @@ export type SubscriptionSelection = {
 				name: string
 				connection: boolean
 				type: string
-			}
-			paginate?: {
-				mode: PaginateModes
 			}
 			updates?: string[]
 			filters?: {
