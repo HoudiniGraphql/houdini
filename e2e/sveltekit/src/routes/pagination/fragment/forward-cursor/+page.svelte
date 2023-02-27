@@ -24,6 +24,8 @@
       }
     `)
   );
+
+  $: console.log(fragmentResult.loadNextPage);
 </script>
 
 <div id="result">
@@ -34,4 +36,10 @@
   {JSON.stringify($fragmentResult.pageInfo)}
 </div>
 
-<button id="next" on:click={() => fragmentResult?.loadNextPage()}>next</button>
+<button
+  id="next"
+  on:click={() => {
+    console.log('next');
+    fragmentResult?.loadNextPage();
+  }}>next</button
+>

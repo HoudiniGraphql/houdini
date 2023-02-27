@@ -100,13 +100,17 @@ export class FragmentStoreCursor<
 				| undefined
 		): (() => void) => {
 			const combined = derived([store, paginationStore], ([$parent, $pagination]) => {
+				console.log({
+					path: this.paginationArtifact.refetch!.path,
+					$parent,
+					$pagination: $pagination?.data,
+					pageInfo: extractPageInfo($parent, this.paginationArtifact.refetch!.path),
+				})
+
 				return {
 					...$pagination,
 					data: $parent,
-					pageInfo: extractPageInfo(
-						$pagination?.data,
-						this.paginationArtifact.refetch!.path
-					),
+					pageInfo: extractPageInfo($parent, this.paginationArtifact.refetch!.path),
 				} as FragmentPaginatedResult<_Data, { pageInfo: PageInfo }>
 			})
 
@@ -127,7 +131,10 @@ export class FragmentStoreCursor<
 		}
 	}
 
-	protected storeHandlers(observer: DocumentStore<_Data, _Input>): CursorHandlers<_Data, _Input> {
+	protected storeHandlers(
+		observer: DocumentStore<_Data, _Input>,
+		getState: () => _Data | null
+	): CursorHandlers<_Data, _Input> {
 		return cursorHandlers<_Data, _Input>({
 			artifact: this.paginationArtifact,
 			fetchUpdate: async (args, updates) => {

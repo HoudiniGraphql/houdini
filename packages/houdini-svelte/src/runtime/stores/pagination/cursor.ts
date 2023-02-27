@@ -61,6 +61,8 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 			throw missingPageSizeError(functionName)
 		}
 
+		console.log('fetching')
+
 		// send the query
 		const { data } = await parentFetchUpdate(
 			{
@@ -73,6 +75,8 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 			// if we are adding to the start of the list, prepend the result
 			[where === 'start' ? 'prepend' : 'append']
 		)
+
+		console.log({ data })
 
 		// if the query is embedded in a node field (paginated fragments)
 		// make sure we look down one more for the updated page info
@@ -94,6 +98,14 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 		pageInfo.set(extractPageInfo(data, resultPath))
 	}
 
+	const getPageInfo = () => {
+		const path = artifact.refetch?.embedded
+			? ['node', ...artifact.refetch.path]
+			: artifact.refetch?.path
+		console.log({ path, data: getState().data })
+		return extractPageInfo(getState().data, artifact.refetch?.path ?? [])
+	}
+
 	return {
 		loadNextPage: async ({
 			first,
@@ -111,8 +123,10 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 If you think this is an error, please open an issue on GitHub`)
 				return
 			}
+
 			// we need to find the connection object holding the current page info
-			const currentPageInfo = extractPageInfo(getState().data, artifact.refetch!.path)
+			const currentPageInfo = getPageInfo()
+			console.log(currentPageInfo)
 			// if there is no next page, we're done
 			if (!currentPageInfo.hasNextPage) {
 				return
@@ -125,6 +139,8 @@ If you think this is an error, please open an issue on GitHub`)
 				before: null,
 				last: null,
 			}
+
+			console.log('loading next page')
 
 			// load the page
 			return await loadPage({
@@ -154,7 +170,7 @@ If you think this is an error, please open an issue on GitHub`)
 			}
 
 			// we need to find the connection object holding the current page info
-			const currentPageInfo = extractPageInfo(getState().data, artifact.refetch!.path)
+			const currentPageInfo = getPageInfo()
 
 			// if there is no next page, we're done
 			if (!currentPageInfo.hasPreviousPage) {

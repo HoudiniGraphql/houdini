@@ -30,7 +30,9 @@ export class FragmentStore<_Data extends GraphQLObject, _Input = {}> {
 		initialValue: _Data | null
 	): FragmentStoreInstance<_Data | null> & { initialValue: _Data | null } {
 		// we have to compute the id of the parent
-		const parentID = cache._internal_unstable.id(this.artifact.rootType, initialValue)
+		const parentID = initialValue
+			? cache._internal_unstable.id(this.artifact.rootType, initialValue)
+			: initialValue
 
 		// @ts-expect-error: typescript can't guarantee that the fragment key is defined
 		// but if its not, then the fragment wasn't mixed into the right thing
