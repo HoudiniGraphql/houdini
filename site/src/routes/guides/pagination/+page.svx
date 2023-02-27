@@ -13,6 +13,14 @@ arguments and mimics the mechanisms provided by most database engines. Cursor-ba
 is a bi-directional strategy that relies on `first`/`after` or `last`/`before` arguments and
 is designed to handle modern pagination features such a infinite scrolling.
 
+In addition, Houdini supports two pagination modes: `Infinite` and `PageByPage`. 
+You can set the default mode in your [houdini config](/api/config#fields) and/or
+override it on a per-paginate directive basis by passing the `mode` argument.
+`Infinite` mode will be used a scenario where you want to keep a growing list in the same store 
+(refers to infinite scrolling).
+`PageByPage` mode will be used in a scenario where you want to display x items per page 
+and update the store when switching to page 2, 3, ...
+
 ## Paginated Queries
 
 Regardless of the strategy used, houdini follows a simple pattern: mark the field with
