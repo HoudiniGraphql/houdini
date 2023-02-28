@@ -65,23 +65,14 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends {}>({
 			let isPageByPage = artifact.refetch?.mode === 'PageByPage'
 
 			// send the query
-			if (isPageByPage) {
-				await parentFetch({
-					variables: queryVariables as _Input,
-					fetch,
-					metadata,
-					policy: CachePolicy.NetworkOnly, // we want to use the cache policy of the artifact, not this! :o
-					// session: await getSession(), // Hum?
-				})
-			} else {
-				await parentFetchUpdate({
-					variables: queryVariables as _Input,
-					fetch,
-					metadata,
-					policy: CachePolicy.NetworkOnly,
-					session: await getSession(),
-				})
-			}
+			const targetFetch = isPageByPage ? parentFetch : parentFetchUpdate
+			await targetFetch({
+				variables: queryVariables as _Input,
+				fetch,
+				metadata,
+				policy: isPageByPage ? artifact.policy : CachePolicy.NetworkOnly,
+				session: await getSession(),
+			})
 
 			// add the page size to the offset so we load the next page next time
 			const pageSize = queryVariables.limit || artifact.refetch!.pageSize

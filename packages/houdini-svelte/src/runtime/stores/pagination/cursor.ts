@@ -65,23 +65,17 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 		let isPageByPage = artifact.refetch?.mode === 'PageByPage'
 
 		// send the query
-		const { data } = isPageByPage
-			? await parentFetch({
-					variables: loadVariables,
-					fetch,
-					metadata,
-			  })
-			: await parentFetchUpdate(
-					{
-						variables: loadVariables,
-						fetch,
-						metadata,
-						policy: CachePolicy.NetworkOnly,
-						session: await getSession(),
-					},
-					// if we are adding to the start of the list, prepend the result
-					[where === 'start' ? 'prepend' : 'append']
-			  )
+		const targetFetch = isPageByPage ? parentFetch : parentFetchUpdate
+		const { data } = await targetFetch(
+			{
+				variables: loadVariables,
+				fetch,
+				metadata,
+				policy: isPageByPage ? artifact.policy : CachePolicy.NetworkOnly,
+				session: await getSession(),
+			},
+			isPageByPage ? [] : [where === 'start' ? 'prepend' : 'append']
+		)
 
 		// if the query is embedded in a node field (paginated fragments)
 		// make sure we look down one more for the updated page info
