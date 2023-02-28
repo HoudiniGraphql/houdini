@@ -27,7 +27,6 @@
         "prettier": "^2.8.3",
         "rollup": "^3.7.4",
         "scripts": "workspace:^",
-        "turbo": "^1.5.4",
         "vite": "^4.1.1",
         "vitest": "^0.28.3"
     },

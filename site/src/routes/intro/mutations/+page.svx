@@ -140,7 +140,7 @@ Then, open up `src/routes/[[id]]/+page.svelte`, add imports for `FavoritePreview
 
 <!-- this should go in the root of your component, just before the Container -->
 <FavoritesContainer>
-	{#each $favorites.data.favorites as favorite}
+	{#each $Info.data.favorites as favorite}
 		<FavoritePreview species={favorite} />
 	{:else}
 		<p>
@@ -166,7 +166,9 @@ mutation ToggleFavorite($id: Int!) {
 
 Go head, save the file and try clicking on the star. You should see the species pop in and out of the list of favorites.
 
-If you look closely at the mutation you'll notice that we are using a fragment in the payload that you never defined. That fragment name follows a very specific form and acts a special instruction to the Houdini runtime to toggle the object referenced by the `species` field in the mutation in or out of the list named `FavoriteSpecies`. We didn't even have to worry about asking for all of the right fields, once we told Houdini which list we wanted to add it to, it was able to take care of the rest. This was the reason for the `@list` decorator in the query above: we needed a way to identify the field as a target for a list operation. If we had named that list `AllFavorites` instead, the query would reference `AllFavorites_toggle`.
+If you look closely at the mutation you'll notice that we are using a fragment in the payload that you never defined. That fragment name follows a very specific form (`ListName_operation`) and it acts as a special instruction to the Houdini runtime. That fragment name references the `name` specified with the `@list` decorator and then an operation that you want to perform on the list is appended to the end of the fragment name. So the `FavoriteSpecies_toggle` fragment name will toggle the object that is referenced by the `species` field in the mutation, which will add or remove the object in the list named `FavoriteSpecies`.
+
+We didn't even have to worry about asking for all of the right fields, once we told Houdini which list we wanted to add it to, it was able to take care of the rest. This was the reason for the `@list` decorator in the query above: we needed a way to identify the field as a target for a list operation. If we had named that list `AllFavorites` instead, the query would reference `AllFavorites_toggle`.
 
 `toggle` is not the only operation you can perform on a list. Houdini also supports `insert` and `remove` as well as more advanced features such as specifying conditions for these operations. For more information, check out the [mutations docs](/api/mutation#lists).
 

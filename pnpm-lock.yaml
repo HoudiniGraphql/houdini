@@ -18,7 +18,7 @@ importers:
             memfs: ^3.4.7
             prettier: ^2.8.3
             recast: ^0.23.1
-            turbo: ^1.7.1
+            turbo: ^1.8.1
             typescript: ^4.9
             vite: ^4.1.1
             vitest: ^0.28.3
@@ -39,7 +39,7 @@ importers:
             eslint-plugin-unused-imports: 2.0.0_eslint@8.33.0
             graphql: 15.8.0
             prettier: 2.8.3
-            turbo: 1.7.2
+            turbo: 1.8.3
             typescript: 4.9.4
             vite: 4.1.1
             vitest: 0.28.3_@vitest+ui@0.28.3
@@ -59,7 +59,7 @@ importers:
             graphql: 15.8.0
             graphql-relay: 0.10.0_graphql@15.8.0
             graphql-ws: 5.11.2_graphql@15.8.0
-            graphql-yoga: 3.4.0_graphql@15.8.0
+            graphql-yoga: 3.4.0_l5ldqtd2ymgrkm4qlxjuv5xwgy
             ws: 8.11.0
 
     e2e/next:
@@ -193,7 +193,6 @@ importers:
             recast: ^0.23.1
             rollup: ^3.7.4
             scripts: workspace:^
-            turbo: ^1.5.4
             vite: ^4.1.1
             vite-plugin-watch-and-run: ^1.1.0
             vitest: ^0.28.3
@@ -228,7 +227,6 @@ importers:
             prettier: 2.8.3
             rollup: 3.7.4
             scripts: link:../_scripts
-            turbo: 1.6.3
             vite: 4.1.1_@types+node@18.11.15
             vitest: 0.28.3
 
@@ -345,7 +343,7 @@ importers:
             unist-util-visit: ^4.1.1
             vite: ^4.1.1
         dependencies:
-            '@sveltejs/adapter-auto': 2.0.0_@sveltejs+kit@1.8.3
+            '@sveltejs/adapter-auto': 2.0.0_@sveltejs+kit@1.5.0
             feather-icons: 4.29.0
             flexsearch: 0.7.31
             lodash: 4.17.21
@@ -363,8 +361,8 @@ importers:
         devDependencies:
             '@babel/parser': 7.20.7
             '@playwright/test': 1.30.0
-            '@sveltejs/adapter-vercel': 2.1.0_@sveltejs+kit@1.8.3
-            '@sveltejs/kit': 1.8.3_svelte@3.55.1+vite@4.1.1
+            '@sveltejs/adapter-vercel': 2.1.0_@sveltejs+kit@1.5.0
+            '@sveltejs/kit': 1.5.0_svelte@3.55.1+vite@4.1.1
             '@typescript-eslint/eslint-plugin': 5.50.0_ce5y2gf7dcf2syqm3ypo44ata4
             '@typescript-eslint/parser': 5.50.0_zkdaqh7it7uc4cvz2haft7rc6u
             eslint: 8.33.0
@@ -2205,7 +2203,7 @@ packages:
             import-meta-resolve: 2.2.0
         dev: true
 
-    /@sveltejs/adapter-auto/2.0.0_@sveltejs+kit@1.8.3:
+    /@sveltejs/adapter-auto/2.0.0_@sveltejs+kit@1.5.0:
         resolution:
             {
                 integrity: sha512-b+gkHFZgD771kgV3aO4avHFd7y1zhmMYy9i6xOK7m/rwmwaRO8gnF5zBc0Rgca80B2PMU1bKNxyBTHA14OzUAQ==,
@@ -2213,11 +2211,11 @@ packages:
         peerDependencies:
             '@sveltejs/kit': ^1.0.0
         dependencies:
-            '@sveltejs/kit': 1.8.3_svelte@3.55.1+vite@4.1.1
+            '@sveltejs/kit': 1.5.0_svelte@3.55.1+vite@4.1.1
             import-meta-resolve: 2.2.0
         dev: false
 
-    /@sveltejs/adapter-vercel/2.1.0_@sveltejs+kit@1.8.3:
+    /@sveltejs/adapter-vercel/2.1.0_@sveltejs+kit@1.5.0:
         resolution:
             {
                 integrity: sha512-cK0R40ALUNDQG9OhaDBYtU55eob6CD1BXCcVSoC1N+GOq/N6FQaMkWXFVGLl98Ja0EZwoZeFAwf2m0Pnc3uq2Q==,
@@ -2225,7 +2223,7 @@ packages:
         peerDependencies:
             '@sveltejs/kit': ^1.5.0
         dependencies:
-            '@sveltejs/kit': 1.8.3_svelte@3.55.1+vite@4.1.1
+            '@sveltejs/kit': 1.5.0_svelte@3.55.1+vite@4.1.1
             '@vercel/nft': 0.22.6
             esbuild: 0.16.17
         transitivePeerDependencies:
@@ -2263,10 +2261,10 @@ packages:
         transitivePeerDependencies:
             - supports-color
 
-    /@sveltejs/kit/1.8.3_svelte@3.55.1+vite@4.1.1:
+    /@sveltejs/kit/1.5.0_svelte@3.55.1+vite@4.1.1:
         resolution:
             {
-                integrity: sha512-32tiLy5PPpt2lquK2p53/5wR+ghAXw0HymIBEezmwmwtzx7Xf36xw3RG3fDYQ9gyzon89T+JRweXgAv/qhhvSQ==,
+                integrity: sha512-AkWgCO9i2djZjTqCgIQJ5XfnSzRINowh2w2Gk9wDRuTwxKizSuYe3jNvds/HCDDGHo8XE5E0yWNC9j2XxbrX+g==,
             }
         engines: { node: ^16.14 || >=18 }
         hasBin: true
@@ -2281,14 +2279,14 @@ packages:
             devalue: 4.3.0
             esm-env: 1.0.0
             kleur: 4.1.5
-            magic-string: 0.29.0
+            magic-string: 0.27.0
             mime: 3.0.0
             sade: 1.8.1
             set-cookie-parser: 2.5.1
             sirv: 2.0.2
             svelte: 3.55.1
             tiny-glob: 0.2.9
-            undici: 5.20.0
+            undici: 5.18.0
             vite: 4.1.1
         transitivePeerDependencies:
             - supports-color
@@ -3169,7 +3167,7 @@ packages:
             form-data-encoder: 1.7.2
             formdata-node: 4.4.1
             node-fetch: 2.6.7
-            undici: 5.14.0
+            undici: 5.20.0
             urlpattern-polyfill: 6.0.2
             web-streams-polyfill: 3.2.1
         transitivePeerDependencies:
@@ -7180,7 +7178,7 @@ packages:
             graphql: 15.8.0
         dev: false
 
-    /graphql-yoga/3.4.0_graphql@15.8.0:
+    /graphql-yoga/3.4.0_l5ldqtd2ymgrkm4qlxjuv5xwgy:
         resolution:
             {
                 integrity: sha512-Cjx60mmpoK1qL/sLdM285VdAOQyJBKLuC6oMZrfO8QleneNtu0nDOM6Efv5m0IrRYSONEMtIYA7eNr0u/cCBfg==,
@@ -7195,13 +7193,13 @@ packages:
             '@graphql-tools/schema': 9.0.12_graphql@15.8.0
             '@graphql-tools/utils': 9.1.3_graphql@15.8.0
             '@graphql-yoga/subscription': 3.1.0
-            '@types/node': 18.11.15
             '@whatwg-node/fetch': 0.6.2
             '@whatwg-node/server': 0.5.8_@types+node@18.11.15
             dset: 3.1.2
             graphql: 15.8.0
             tslib: 2.4.1
         transitivePeerDependencies:
+            - '@types/node'
             - encoding
         dev: false
 
@@ -8549,15 +8547,6 @@ packages:
         resolution:
             {
                 integrity: sha512-8UnnX2PeRAPZuN12svgR9j7M1uWMovg/CEnIwIG0LFkXSJJe4PdfUGiTGl8V9bsBHFUtfVINcSyYxd7q+kx9fA==,
-            }
-        engines: { node: '>=12' }
-        dependencies:
-            '@jridgewell/sourcemap-codec': 1.4.14
-
-    /magic-string/0.29.0:
-        resolution:
-            {
-                integrity: sha512-WcfidHrDjMY+eLjlU+8OvwREqHwpgCeKVBUpQ3OhYYuvfaYCUgcbuBzappNzZvg/v8onU3oQj+BYpkOJe9Iw4Q==,
             }
         engines: { node: '>=12' }
         dependencies:
@@ -11774,10 +11763,10 @@ packages:
             yargs: 17.6.2
         dev: true
 
-    /turbo-darwin-64/1.6.3:
+    /turbo-darwin-64/1.8.3:
         resolution:
             {
-                integrity: sha512-QmDIX0Yh1wYQl0bUS0gGWwNxpJwrzZU2GIAYt3aOKoirWA2ecnyb3R6ludcS1znfNV2MfunP+l8E3ncxUHwtjA==,
+                integrity: sha512-bLM084Wr17VAAY/EvCWj7+OwYHvI9s/NdsvlqGp8iT5HEYVimcornCHespgJS/yvZDfC+mX9EQkn3V2JmYgGGw==,
             }
         cpu: [x64]
         os: [darwin]
@@ -11785,21 +11774,10 @@ packages:
         dev: true
         optional: true
 
-    /turbo-darwin-64/1.7.2:
+    /turbo-darwin-arm64/1.8.3:
         resolution:
             {
-                integrity: sha512-Sml3WR8MSu80W+gS8SnoKNImcDOlIX7zlvezzds65mW11yGniIFfZ18aKWGOm92Nj2SvXCQ2+UmyGghbFaHNmQ==,
-            }
-        cpu: [x64]
-        os: [darwin]
-        requiresBuild: true
-        dev: true
-        optional: true
-
-    /turbo-darwin-arm64/1.6.3:
-        resolution:
-            {
-                integrity: sha512-75DXhFpwE7CinBbtxTxH08EcWrxYSPFow3NaeFwsG8aymkWXF+U2aukYHJA6I12n9/dGqf7yRXzkF0S/9UtdyQ==,
+                integrity: sha512-4oZjXtzakopMK110kue3z/hqu3WLv+eDLZOX1NGdo49gqca9BeD8GbH+sXpAp6tqyeuzpss+PIliVYuyt7LgbA==,
             }
         cpu: [arm64]
         os: [darwin]
@@ -11807,21 +11785,10 @@ packages:
         dev: true
         optional: true
 
-    /turbo-darwin-arm64/1.7.2:
+    /turbo-linux-64/1.8.3:
         resolution:
             {
-                integrity: sha512-JnlgGLScboUJGJxvmSsF+5xkImEDTMPg2FHzX4n8AMB9az9ZlPQAMtc+xu4p6Xp9eaykKiV2RG81YS3H0fxDLA==,
-            }
-        cpu: [arm64]
-        os: [darwin]
-        requiresBuild: true
-        dev: true
-        optional: true
-
-    /turbo-linux-64/1.6.3:
-        resolution:
-            {
-                integrity: sha512-O9uc6J0yoRPWdPg9THRQi69K6E2iZ98cRHNvus05lZbcPzZTxJYkYGb5iagCmCW/pq6fL4T4oLWAd6evg2LGQA==,
+                integrity: sha512-uvX2VKotf5PU14FCxJA5iHItPQno2JWzerMd+g3/h/Asay6dvxvtVjc39MQeGT0H5njSvzVKFkT+3/5q8lgOEg==,
             }
         cpu: [x64]
         os: [linux]
@@ -11829,21 +11796,10 @@ packages:
         dev: true
         optional: true
 
-    /turbo-linux-64/1.7.2:
+    /turbo-linux-arm64/1.8.3:
         resolution:
             {
-                integrity: sha512-vbLJw6ovG+lpiPqxniscBjljKJ2jbsHuKp8uK4j/wqgp68wAVKeAZW77GGDAUgDb88XH6Kvhh2hcizL+iWduww==,
-            }
-        cpu: [x64]
-        os: [linux]
-        requiresBuild: true
-        dev: true
-        optional: true
-
-    /turbo-linux-arm64/1.6.3:
-        resolution:
-            {
-                integrity: sha512-dCy667qqEtZIhulsRTe8hhWQNCJO0i20uHXv7KjLHuFZGCeMbWxB8rsneRoY+blf8+QNqGuXQJxak7ayjHLxiA==,
+                integrity: sha512-E1p+oH3XKMaPS4rqWhYsL4j2Pzc0d/9P5KU7Kn1kqVLo2T3iRA7n2KVULEieUNE0nTH+aIJPXYXOpqCI5wFJaA==,
             }
         cpu: [arm64]
         os: [linux]
@@ -11851,21 +11807,10 @@ packages:
         dev: true
         optional: true
 
-    /turbo-linux-arm64/1.7.2:
+    /turbo-windows-64/1.8.3:
         resolution:
             {
-                integrity: sha512-zLnuS8WdHonKL74KqOopOH/leBOWumlVGF8/8hldbDPq0mwY+6myRR5/5LdveB51rkG4UJh/sQ94xV67tjBoyw==,
-            }
-        cpu: [arm64]
-        os: [linux]
-        requiresBuild: true
-        dev: true
-        optional: true
-
-    /turbo-windows-64/1.6.3:
-        resolution:
-            {
-                integrity: sha512-lKRqwL3mrVF09b9KySSaOwetehmGknV9EcQTF7d2dxngGYYX1WXoQLjFP9YYH8ZV07oPm+RUOAKSCQuDuMNhiA==,
+                integrity: sha512-cnzAytHtoLXd0J7aNzRpZFpL/GTjcBmkvAPlbOdf/Pl1iwS4qzGrudZQ+OM1lmLgLIfBPIavsGHBknTwTNib4A==,
             }
         cpu: [x64]
         os: [win32]
@@ -11873,21 +11818,10 @@ packages:
         dev: true
         optional: true
 
-    /turbo-windows-64/1.7.2:
+    /turbo-windows-arm64/1.8.3:
         resolution:
             {
-                integrity: sha512-oE5PMoXjmR09okvVzteFb6FjA6yo+nMsacsgKH2yLNq4sOrVo9tG98JkRurOv5+L6ZQ3yGXPxWHiqeH7hLkAVQ==,
-            }
-        cpu: [x64]
-        os: [win32]
-        requiresBuild: true
-        dev: true
-        optional: true
-
-    /turbo-windows-arm64/1.6.3:
-        resolution:
-            {
-                integrity: sha512-BXY1sDPEA1DgPwuENvDCD8B7Hb0toscjus941WpL8CVd10hg9pk/MWn9CNgwDO5Q9ks0mw+liDv2EMnleEjeNA==,
+                integrity: sha512-ulIiItNm2w/zYJdD5/oAzjzNns1IjbpweRzpsE8tLXaWwo6+fnXXkyloUug0IUhcd2k6fJXfoiDZfygqpOVuXg==,
             }
         cpu: [arm64]
         os: [win32]
@@ -11895,47 +11829,20 @@ packages:
         dev: true
         optional: true
 
-    /turbo-windows-arm64/1.7.2:
+    /turbo/1.8.3:
         resolution:
             {
-                integrity: sha512-mdTUJk23acRv5qxA/yEstYhM1VFenVE3FDrssxGRFq7S80smtCGK1xUd4BEDDzDlVXOqBohmM5jRh9516rcjPQ==,
-            }
-        cpu: [arm64]
-        os: [win32]
-        requiresBuild: true
-        dev: true
-        optional: true
-
-    /turbo/1.6.3:
-        resolution:
-            {
-                integrity: sha512-FtfhJLmEEtHveGxW4Ye/QuY85AnZ2ZNVgkTBswoap7UMHB1+oI4diHPNyqrQLG4K1UFtCkjOlVoLsllUh/9QRw==,
+                integrity: sha512-zGrkU1EuNFmkq6iky6LcMqD4h0OLE8XysVFxQWRIZbcTNnf0XAycbsbeEyiJpiWeqb7qtg2bVuY9EYcNoNhVuQ==,
             }
         hasBin: true
         requiresBuild: true
         optionalDependencies:
-            turbo-darwin-64: 1.6.3
-            turbo-darwin-arm64: 1.6.3
-            turbo-linux-64: 1.6.3
-            turbo-linux-arm64: 1.6.3
-            turbo-windows-64: 1.6.3
-            turbo-windows-arm64: 1.6.3
-        dev: true
-
-    /turbo/1.7.2:
-        resolution:
-            {
-                integrity: sha512-YR/x3GZEx0C1RV6Yvuw/HB1Ixx3upM6ZTTa4WqKz9WtLWN8u2g+u2h5KpG5YtjCS3wl/8zVXgHf2WiMK6KIghg==,
-            }
-        hasBin: true
-        requiresBuild: true
-        optionalDependencies:
-            turbo-darwin-64: 1.7.2
-            turbo-darwin-arm64: 1.7.2
-            turbo-linux-64: 1.7.2
-            turbo-linux-arm64: 1.7.2
-            turbo-windows-64: 1.7.2
-            turbo-windows-arm64: 1.7.2
+            turbo-darwin-64: 1.8.3
+            turbo-darwin-arm64: 1.8.3
+            turbo-linux-64: 1.8.3
+            turbo-linux-arm64: 1.8.3
+            turbo-windows-64: 1.8.3
+            turbo-windows-arm64: 1.8.3
         dev: true
 
     /type-check/0.4.0:
@@ -12030,20 +11937,19 @@ packages:
             which-boxed-primitive: 1.0.2
         dev: true
 
-    /undici/5.14.0:
-        resolution:
-            {
-                integrity: sha512-yJlHYw6yXPPsuOH0x2Ib1Km61vu4hLiRRQoafs+WUgX1vO64vgnxiCEN9dpIrhZyHFsai3F0AEj4P9zy19enEQ==,
-            }
-        engines: { node: '>=12.18' }
-        dependencies:
-            busboy: 1.6.0
-        dev: false
-
     /undici/5.16.0:
         resolution:
             {
                 integrity: sha512-KWBOXNv6VX+oJQhchXieUznEmnJMqgXMbs0xxH2t8q/FUAWSJvOSr/rMaZKnX5RIVq7JDn0JbP4BOnKG2SGXLQ==,
+            }
+        engines: { node: '>=12.18' }
+        dependencies:
+            busboy: 1.6.0
+
+    /undici/5.18.0:
+        resolution:
+            {
+                integrity: sha512-1iVwbhonhFytNdg0P4PqyIAXbdlVZVebtPDvuM36m66mRw4OGrCm2MYynJv/UENFLdP13J1nPVQzVE2zTs1OeA==,
             }
         engines: { node: '>=12.18' }
         dependencies:
@@ -12057,6 +11963,7 @@ packages:
         engines: { node: '>=12.18' }
         dependencies:
             busboy: 1.6.0
+        dev: false
 
     /unified/10.1.2:
         resolution:
