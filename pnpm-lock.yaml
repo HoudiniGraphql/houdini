@@ -97,15 +97,17 @@ importers:
       '@sveltejs/vite-plugin-svelte': ^2.0.2
       '@tsconfig/svelte': ^3.0.0
       houdini: workspace:^
+      houdini-svelte: workspace:^
       svelte: ^3.55.1
       svelte-check: ^2.10.3
       tslib: ^2.5.0
       typescript: ^4.9.3
-      vite: ^4.1.0
+      vite: ^4.1.1
     devDependencies:
       '@sveltejs/vite-plugin-svelte': 2.0.2_svelte@3.55.1+vite@4.1.1
       '@tsconfig/svelte': 3.0.0
       houdini: link:../../packages/houdini
+      houdini-svelte: link:../../packages/houdini-svelte
       svelte: 3.55.1
       svelte-check: 2.10.3_svelte@3.55.1
       tslib: 2.5.0
