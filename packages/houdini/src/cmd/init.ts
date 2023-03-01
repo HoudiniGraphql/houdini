@@ -396,6 +396,7 @@ export default defineConfig({
 
 	const viteConfigSvelte = `import { svelte } from '@sveltejs/vite-plugin-svelte'
 import houdini from 'houdini/vite'
+import * as path from 'path'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
@@ -403,7 +404,7 @@ export default defineConfig({
 
 	resolve: {
 		alias: {
-			$houdini: './$houdini',
+			$houdini: path.resolve('$houdini'),
 		},
 	},
 })	

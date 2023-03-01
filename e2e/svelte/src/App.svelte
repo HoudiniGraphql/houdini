@@ -5,8 +5,8 @@
 	import svelteLogo from './assets/svelte.svg'
 	import Counter from './lib/Counter.svelte'
 
-	const hello = graphql(`
-		query Hello {
+	const store = graphql(`
+		query Hello @load {
 			hello
 		}
 	`)
@@ -21,10 +21,10 @@
 			<img src={svelteLogo} class="logo svelte" alt="Svelte Logo" />
 		</a>
 		<a href="https://www.houdinigraphql.com/" target="_blank" rel="noreferrer">
-			<img src={houdiniLogo} class="logo svelte" alt="Houdini Logo" />
+			<img src={houdiniLogo} class="logo houdini" alt="Houdini Logo" />
 		</a>
 	</div>
-	<h1>Vite + Svelte</h1>
+	<h1>{JSON.stringify($store.data?.hello, null, 2)}</h1>
 
 	<div class="card">
 		<Counter />
@@ -51,6 +51,9 @@
 	}
 	.logo.svelte:hover {
 		filter: drop-shadow(0 0 2em #ff3e00aa);
+	}
+	.logo.houdini:hover {
+		filter: drop-shadow(0 0 2em #855aff);
 	}
 	.read-the-docs {
 		color: #888;

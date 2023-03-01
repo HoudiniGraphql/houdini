@@ -43,7 +43,7 @@ export const pluginHooks = async (): Promise<PluginHooks> => ({
 		'adapter.js': ({ content }) => {
 			// dedicated sveltekit adapter.
 			const sveltekit_adapter = `import { browser, building } from '$app/environment'
-import { error as svelteKitError } from '@sveltejs/kit'
+import { error as svelteKitError, redirect as svelteKitRedirect } from '@sveltejs/kit'
 
 export const isBrowser = browser
 
@@ -56,6 +56,7 @@ export function setClientStarted() {
 export const isPrerender = building
 
 export const error = svelteKitError
+export const redirect = svelteKitRedirect
 `
 
 			return framework === 'kit' ? sveltekit_adapter : content
@@ -175,6 +176,11 @@ export const error = svelteKitError
 		// try to import the kit module
 		try {
 			await import('@sveltejs/kit')
+			// TODO => Find a good idea to detect if we are using SvelteKit or Svelte
+			//   1/ Seems that await import('@sveltejs/kit') is not enough (depending on package manager)
+			//   2/ I was hoping that vite plugins would help... knowing which framework is used, but didn't find a good thing
+			//   3/ reading the vite config file? To see plugins import?
+			//   4/ Bring back a flag in the config?
 			framework = 'kit'
 		} catch {}
 	},
