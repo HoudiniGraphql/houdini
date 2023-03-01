@@ -64,7 +64,7 @@ type FetchParamsInput = {
 
 type ThrowOnErrorParams = {
 	operations: ('all' | 'query' | 'mutation' | 'subscription')[]
-	error?: (errors: GraphqlError[]) => unknown
+	error?: (errors: GraphqlError[], ctx: ClientPluginContext) => unknown
 }
 
 type GraphqlError = {
