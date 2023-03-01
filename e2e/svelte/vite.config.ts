@@ -4,4 +4,10 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
 	plugins: [houdini(), svelte()],
-})	
+
+	resolve: {
+		alias: {
+			$houdini: './$houdini',
+		},
+	},
+})

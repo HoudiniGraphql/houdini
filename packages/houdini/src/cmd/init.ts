@@ -227,7 +227,7 @@ export default async function init(
 	if (framework === 'kit') {
 		await updateSvelteConfig(targetPath, typescript)
 	} else if (framework === 'svelte') {
-		await updateSvelteMainJs(targetPath)
+		await updateSvelteMainJs(targetPath, typescript)
 	}
 	await updateViteConfig(targetPath, framework, typescript)
 	await tjsConfig(targetPath, framework)
@@ -400,6 +400,12 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
 	plugins: [houdini(), svelte()],
+
+	resolve: {
+		alias: {
+			$houdini: './$houdini',
+		},
+	},
 })	
 `
 
@@ -463,10 +469,10 @@ export default config;
 	})
 }
 
-async function updateSvelteMainJs(targetPath: string) {
-	const svelteMainJsPath = path.join(targetPath, 'main.js')
+async function updateSvelteMainJs(targetPath: string, typescript: boolean) {
+	const svelteMainJsPath = path.join(targetPath, 'src', typescript ? 'main.ts' : 'main.js')
 
-	const newContent = `import client from "../client";
+	const newContent = `import client from "./client";
 import './app.css'
 import App from './App.svelte'
 
