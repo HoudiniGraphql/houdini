@@ -1,10 +1,13 @@
 import type { QueryResult, ArtifactKinds } from '../../lib'
 import { ArtifactKind } from '../../lib'
-import type { ClientPlugin } from '../documentStore'
+import type { ClientPlugin, ClientPluginContext } from '../documentStore'
 
 export type ThrowOnErrorParams = {
 	operations: ('all' | 'query' | 'mutation' | 'subscription')[]
-	error?: (errors: NonNullable<QueryResult<any, any>['errors']>) => unknown
+	error?: (
+		errors: NonNullable<QueryResult<any, any>['errors']>,
+		ctx: ClientPluginContext
+	) => unknown
 }
 
 export const throwOnError =
@@ -25,7 +28,7 @@ export const throwOnError =
 			async end(ctx, { value, resolve }) {
 				// if we are supposed to throw and there are errors
 				if (value.errors && value.errors.length > 0 && throwOnKind(ctx.artifact.kind)) {
-					const result = await (error ?? defaultErrorFn)(value.errors)
+					const result = await (error ?? defaultErrorFn)(value.errors, ctx)
 					throw result
 				}
 

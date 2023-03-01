@@ -92,7 +92,8 @@ export default new HoudiniClient({
         // query, mutation, subscription, and all
         operations: ['all'],
         // the function to call
-        error: (errors) => error(500,
+        error: (errors, ctx) => error(500,
+            `(${ctx.artifact.name}): ` +
             errors.map((err) => err.message).join('. ') + '.'
         )
     }
