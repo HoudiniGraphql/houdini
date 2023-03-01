@@ -173,12 +173,12 @@ test('pagination arguments stripped from key', async function () {
 	`)
 })
 
-test('pagination arguments stays in key as it s a PageByPage Mode', async function () {
+test('pagination arguments stays in key as it s a SinglePage Mode', async function () {
 	const docs = [
 		mockCollectedDoc(
 			`
             fragment PaginatedFragment on User {
-                friendsByCursor(first:10, filter: "hello") @paginate(mode: PageByPage) {
+                friendsByCursor(first:10, filter: "hello") @paginate(mode: SinglePage) {
                     edges {
                         node {
                             id
@@ -197,7 +197,7 @@ test('pagination arguments stays in key as it s a PageByPage Mode', async functi
 		export default {
 		    "name": "PaginatedFragment",
 		    "kind": "HoudiniFragment",
-		    "hash": "d4cd9049f9b2f5cbc930350c492dbff708b1d29691ae7907f328bb21cc86ccb1",
+		    "hash": "e826a62f4d540f02ed7358a9516e439e05b316a7e0035343fc928f296aedf2ea",
 
 		    "refetch": {
 		        "path": ["friendsByCursor"],
@@ -207,7 +207,7 @@ test('pagination arguments stays in key as it s a PageByPage Mode', async functi
 		        "targetType": "Node",
 		        "paginated": true,
 		        "direction": "both",
-		        "mode": "PageByPage"
+		        "mode": "SinglePage"
 		    },
 
 		    "raw": \`fragment PaginatedFragment on User {
@@ -336,7 +336,7 @@ test('pagination arguments stays in key as it s a PageByPage Mode', async functi
 		    }
 		};
 
-		"HoudiniHash=d4cd9049f9b2f5cbc930350c492dbff708b1d29691ae7907f328bb21cc86ccb1";
+		"HoudiniHash=e826a62f4d540f02ed7358a9516e439e05b316a7e0035343fc928f296aedf2ea";
 	`)
 })
 

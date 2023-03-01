@@ -1635,7 +1635,7 @@ test('refetch specification with initial offset', async function () {
 	`)
 })
 
-test('default defaultPaginateMode to PageByPage', async function () {
+test('default defaultPaginateMode to SinglePage', async function () {
 	const docs = [
 		mockCollectedDoc(
 			`fragment UserFriends on Query {
@@ -1652,7 +1652,7 @@ test('default defaultPaginateMode to PageByPage', async function () {
 	]
 
 	// run the pipeline
-	const config = testConfig({ defaultPaginateMode: 'PageByPage' })
+	const config = testConfig({ defaultPaginateMode: 'SinglePage' })
 	await runPipeline(config, docs)
 
 	// load the contents of the file
@@ -1670,7 +1670,7 @@ test('default defaultPaginateMode to PageByPage', async function () {
 		        "targetType": "Query",
 		        "paginated": true,
 		        "direction": "both",
-		        "mode": "PageByPage"
+		        "mode": "SinglePage"
 		    },
 
 		    "raw": \`fragment UserFriends on Query {

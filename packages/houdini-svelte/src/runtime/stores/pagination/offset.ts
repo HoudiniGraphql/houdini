@@ -62,15 +62,15 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends {}>({
 			}
 
 			// Get the Pagination Mode
-			let isPageByPage = artifact.refetch?.mode === 'PageByPage'
+			let isSinglePage = artifact.refetch?.mode === 'SinglePage'
 
 			// send the query
-			const targetFetch = isPageByPage ? parentFetch : parentFetchUpdate
+			const targetFetch = isSinglePage ? parentFetch : parentFetchUpdate
 			await targetFetch({
 				variables: queryVariables as _Input,
 				fetch,
 				metadata,
-				policy: isPageByPage ? artifact.policy : CachePolicy.NetworkOnly,
+				policy: isSinglePage ? artifact.policy : CachePolicy.NetworkOnly,
 				session: await getSession(),
 			})
 

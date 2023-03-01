@@ -11,7 +11,7 @@ export type CachePolicies = ValuesOf<typeof CachePolicy>
 
 export const PaginateMode = {
 	Infinite: 'Infinite',
-	PageByPage: 'PageByPage',
+	SinglePage: 'SinglePage',
 } as const
 
 export type PaginateModes = ValuesOf<typeof PaginateMode>

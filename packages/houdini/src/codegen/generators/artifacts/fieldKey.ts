@@ -30,9 +30,9 @@ export default function fieldKey(config: Config, field: graphql.FieldNode): stri
 		}
 	}
 
-	// if we are in PageByPageMode, don't strip away any args
+	// if we are in SinglePageMode, don't strip away any args
 	const paginationArgs =
-		paginateMode === 'PageByPage' ? [] : ['first', 'after', 'last', 'before', 'limit', 'offset']
+		paginateMode === 'SinglePage' ? [] : ['first', 'after', 'last', 'before', 'limit', 'offset']
 
 	const argObj = (secondParse.arguments || []).reduce<{ [key: string]: string }>((acc, arg) => {
 		// the query already contains a serialized version of the argument so just pull it out of the

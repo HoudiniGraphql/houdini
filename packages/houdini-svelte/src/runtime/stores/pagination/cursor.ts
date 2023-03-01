@@ -62,19 +62,19 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 		}
 
 		// Get the Pagination Mode
-		let isPageByPage = artifact.refetch?.mode === 'PageByPage'
+		let isSinglePage = artifact.refetch?.mode === 'SinglePage'
 
 		// send the query
-		const targetFetch = isPageByPage ? parentFetch : parentFetchUpdate
+		const targetFetch = isSinglePage ? parentFetch : parentFetchUpdate
 		const { data } = await targetFetch(
 			{
 				variables: loadVariables,
 				fetch,
 				metadata,
-				policy: isPageByPage ? artifact.policy : CachePolicy.NetworkOnly,
+				policy: isSinglePage ? artifact.policy : CachePolicy.NetworkOnly,
 				session: await getSession(),
 			},
-			isPageByPage ? [] : [where === 'start' ? 'prepend' : 'append']
+			isSinglePage ? [] : [where === 'start' ? 'prepend' : 'append']
 		)
 
 		// if the query is embedded in a node field (paginated fragments)

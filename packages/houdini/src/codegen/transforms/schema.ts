@@ -20,7 +20,7 @@ enum CachePolicy {
 
 enum PaginateMode {
 	${PaginateMode.Infinite}
-	${PaginateMode.PageByPage}
+	${PaginateMode.SinglePage}
 }
 
 """

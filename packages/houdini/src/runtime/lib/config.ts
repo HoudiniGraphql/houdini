@@ -149,7 +149,7 @@ export type ConfigFile = {
 	defaultListTarget?: 'all' | null
 
 	/**
-	 * Specifies whether the default paginate mode is Infinite or Page by Page. (default: `Infinite`)
+	 * Specifies whether the default paginate mode is Infinite or SinglePage. (default: `Infinite`)
 	 */
 	defaultPaginateMode?: PaginateModes
 

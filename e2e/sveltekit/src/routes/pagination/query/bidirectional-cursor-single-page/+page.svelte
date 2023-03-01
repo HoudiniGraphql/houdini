@@ -14,7 +14,7 @@
         last: $last
         before: $before
         snapshot: "pagination-query-bidiriectional-cursor-single-page"
-      ) @paginate(mode: PageByPage) {
+      ) @paginate(mode: SinglePage) {
         edges {
           node {
             name

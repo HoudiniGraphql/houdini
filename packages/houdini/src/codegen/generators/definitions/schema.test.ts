@@ -30,7 +30,7 @@ test('adds internal documents to schema', async function () {
 
 			enum PaginateMode {
 			  Infinite
-			  PageByPage
+			  SinglePage
 			}
 
 			"""
@@ -109,7 +109,7 @@ test('list operations are included', async function () {
 
 			enum PaginateMode {
 			  Infinite
-			  PageByPage
+			  SinglePage
 			}
 
 			"""
@@ -207,7 +207,7 @@ test('list operations are included but delete directive should not be in when we
 
 			enum PaginateMode {
 			  Infinite
-			  PageByPage
+			  SinglePage
 			}
 
 			"""
@@ -318,7 +318,7 @@ test("writing twice doesn't duplicate definitions", async function () {
 
 			enum PaginateMode {
 			  Infinite
-			  PageByPage
+			  SinglePage
 			}
 
 			"""

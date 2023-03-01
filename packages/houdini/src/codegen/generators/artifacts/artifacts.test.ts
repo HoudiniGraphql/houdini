@@ -3632,7 +3632,7 @@ describe('mutation artifacts', function () {
 			),
 			mockCollectedDoc(
 				`query TestQuery {
-					usersByCursor(first: 10) @paginate(name: "All_Users", mode: PageByPage) {
+					usersByCursor(first: 10) @paginate(name: "All_Users", mode: SinglePage) {
 						edges {
 							node {
 								firstName
@@ -3651,7 +3651,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
-			    "hash": "2d9fa98696af474d7416e30be7133a2a17049240288b9bb04b9ac8441d61a8ae",
+			    "hash": "930593f99a19ddef0943d66ce3c4539f18938a25410028bfd4cf68554552f1d0",
 
 			    "refetch": {
 			        "path": ["usersByCursor"],
@@ -3661,7 +3661,7 @@ describe('mutation artifacts', function () {
 			        "targetType": "Query",
 			        "paginated": true,
 			        "direction": "both",
-			        "mode": "PageByPage"
+			        "mode": "SinglePage"
 			    },
 
 			    "raw": \`query TestQuery($first: Int = 10, $after: String, $last: Int, $before: String) {
@@ -3821,7 +3821,7 @@ describe('mutation artifacts', function () {
 			    "partial": false
 			};
 
-			"HoudiniHash=2d9fa98696af474d7416e30be7133a2a17049240288b9bb04b9ac8441d61a8ae";
+			"HoudiniHash=930593f99a19ddef0943d66ce3c4539f18938a25410028bfd4cf68554552f1d0";
 		`)
 	})
 
