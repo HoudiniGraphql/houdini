@@ -229,7 +229,7 @@ export default async function init(
 	} else if (framework === 'svelte') {
 		await updateSvelteMainJs(targetPath)
 	}
-	await updateViteConfig(targetPath, framework)
+	await updateViteConfig(targetPath, framework, typescript)
 	await tjsConfig(targetPath, framework)
 
 	// we're done!
@@ -380,29 +380,29 @@ async function tjsConfig(targetPath: string, framework: 'kit' | 'svelte') {
 	return false
 }
 
-async function updateViteConfig(targetPath: string, framework: 'kit' | 'svelte') {
-	const viteConfigPath = path.join(targetPath, 'vite.config.js')
+async function updateViteConfig(
+	targetPath: string,
+	framework: 'kit' | 'svelte',
+	typescript: boolean
+) {
+	const viteConfigPath = path.join(targetPath, typescript ? 'vite.config.ts' : 'vite.config.js')
 
-	const viteConfigKit = `import { sveltekit } from '@sveltejs/kit/vite';
-import houdini from 'houdini/vite';
+	const viteConfigKit = `import { sveltekit } from '@sveltejs/kit/vite'
+import houdini from 'houdini/vite'
+import { defineConfig } from 'vite'
 
-/** @type {import('vite').UserConfig} */
-const config = {
-	plugins: [houdini(), sveltekit()],
-}
-
-export default config;
+export default defineConfig({
+	plugins: [houdini(), sveltekit()]
+});
 `
 
-	const viteConfigSvelte = `import { svelte } from '@sveltejs/vite-plugin-svelte';
-import houdini from 'houdini/vite';
+	const viteConfigSvelte = `import { svelte } from '@sveltejs/vite-plugin-svelte'
+import houdini from 'houdini/vite'
+import { defineConfig } from 'vite'
 
-/** @type {import('vite').UserConfig} */
-const config = {
+export default defineConfig({
 	plugins: [houdini(), svelte()],
-}
-
-export default config;
+})	
 `
 
 	let content
