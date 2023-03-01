@@ -31,8 +31,7 @@ export default new HoudiniClient({
   },
   throwOnError: {
     operations: ['all'],
-    error: (errors, ctx) =>
-      error(500, `(${ctx.artifact.name}): ` + errors.map((error) => error.message).join('. ') + '.')
+    error: (errors) => error(500, errors.map((error) => error.message).join('. ') + '.')
   },
   plugins: [logMetadata]
 });
