@@ -469,7 +469,6 @@ async function updateSvelteMainJs(targetPath: string) {
 	const newContent = `import client from "../client";
 import './app.css'
 import App from './App.svelte'
-import { logGreen } from '@kitql/helper'
 
 client.init();
 
