@@ -95,8 +95,8 @@ Defining a fragment inside of your component looks a lot like the query from bef
 
 <div id={$$props.id} class="sprite">
     <img
-        src={$Info.sprites.front}
-        alt={`${$Info.name} sprite`}
+        src={$info.sprites.front}
+        alt={`${$info.name} sprite`}
         height="100%"
     />
 </div>
@@ -151,7 +151,7 @@ Before we add anything to our route, let's update the component defined in `src/
     import type { SpeciesPreview } from '$houdini'
 
     export let species: SpeciesPreview
-    export let num: number
+    export let number: number
 
 	// prettier-ignore
     $: preview = fragment(species, graphql(`
@@ -165,7 +165,7 @@ Before we add anything to our route, let's update the component defined in `src/
 </script>
 
 <a href={$preview.id}>
-    <Number value={num} />
+    <Number value={number} />
     <Sprite {species} />
     <Display>
         {$preview.name}
