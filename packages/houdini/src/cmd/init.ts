@@ -216,7 +216,7 @@ export default async function init(
 		module,
 		url: is_remote_endpoint ? url : null,
 	})
-	await fs.writeFile(houdiniClientPath, networkFile(url, typescript))
+	await fs.writeFile(houdiniClientPath, networkFile(url))
 	await graphqlRCFile(targetPath)
 	await gitIgnore(targetPath)
 
@@ -251,18 +251,16 @@ export default async function init(
 `)
 }
 
-const networkFile = (url: string, typescript: boolean) => `import { HoudiniClient${
-	typescript ? ', type RequestHandler' : ''
-} } from '$houdini';
+const networkFile = (url: string) => `import { HoudiniClient } from '$houdini';
 
 export default new HoudiniClient({
     url: '${url}'
-	
+
     // uncomment this to configure the network call (for things like authentication)
-	// for more information, please visit here: https://www.houdinigraphql.com/guides/authentication
+    // for more information, please visit here: https://www.houdinigraphql.com/guides/authentication
     // fetchParams({ session }) { 
     //     return { 
-	//         headers: {
+    //         headers: {
     //             Authentication: \`Bearer \${session.token}\`,
     //         }
     //     }
