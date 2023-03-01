@@ -92,6 +92,26 @@ importers:
       houdini-react: link:../../packages/houdini-react
       typescript: 4.9.4
 
+  e2e/svelte:
+    specifiers:
+      '@sveltejs/vite-plugin-svelte': ^2.0.2
+      '@tsconfig/svelte': ^3.0.0
+      houdini: workspace:^
+      svelte: ^3.55.1
+      svelte-check: ^2.10.3
+      tslib: ^2.5.0
+      typescript: ^4.9.3
+      vite: ^4.1.0
+    devDependencies:
+      '@sveltejs/vite-plugin-svelte': 2.0.2_svelte@3.55.1+vite@4.1.1
+      '@tsconfig/svelte': 3.0.0
+      houdini: link:../../packages/houdini
+      svelte: 3.55.1
+      svelte-check: 2.10.3_svelte@3.55.1
+      tslib: 2.5.0
+      typescript: 4.9.4
+      vite: 4.1.1
+
   e2e/sveltekit:
     specifiers:
       '@kitql/helper': ^0.5.0
@@ -1895,7 +1915,7 @@ packages:
       open: 8.4.0
       picocolors: 1.0.0
       tiny-glob: 0.2.9
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: true
 
   /@playwright/test/1.30.0:
@@ -2045,6 +2065,10 @@ packages:
       prettier: 2.8.3
     transitivePeerDependencies:
       - supports-color
+    dev: true
+
+  /@tsconfig/svelte/3.0.0:
+    resolution: {integrity: sha512-pYrtLtOwku/7r1i9AMONsJMVYAtk3hzOfiGNekhtq5tYBGA7unMve8RvUclKLMT3PrihvJqUmzsRGh0RP84hKg==}
     dev: true
 
   /@types/acorn/4.0.6:
@@ -2878,7 +2902,7 @@ packages:
     resolution: {integrity: sha512-6t10qk83GOG8p0vKmaCr8eiilZwO171AvbROMtvvNiwrTly62t+7XkA8RdIIVbpMhCASAsxgAzdRSwh6nw/5Dg==}
     engines: {node: '>=4'}
     dependencies:
-      tslib: 2.4.1
+      tslib: 2.5.0
 
   /astral-regex/2.0.0:
     resolution: {integrity: sha512-Z7tMw1ytTXt5jqMcOP+OQteU1VuNK9Y02uuJtKQ1Sv69jXQKKg5cibLwGJow8yzZP+eAc18EmLGPal0bp36rvQ==}
@@ -4464,7 +4488,7 @@ packages:
       remark-parse: 10.0.1
       remark-stringify: 10.0.2
       synckit: 0.8.4
-      tslib: 2.4.1
+      tslib: 2.5.0
       unified: 10.1.2
       unist-util-visit: 4.1.1
       uvu: 0.5.6
@@ -4687,7 +4711,7 @@ packages:
       remark-mdx: 2.2.1
       remark-parse: 10.0.1
       remark-stringify: 10.0.2
-      tslib: 2.4.1
+      tslib: 2.5.0
       unified: 10.1.2
       vfile: 5.3.6
     transitivePeerDependencies:
@@ -7845,7 +7869,7 @@ packages:
       ast-types: 0.16.1
       esprima: 4.0.1
       source-map: 0.6.1
-      tslib: 2.4.1
+      tslib: 2.5.0
 
   /redent/3.0.0:
     resolution: {integrity: sha512-6tDA8g98We0zd0GvVeMT9arEOnTw9qM03L9cJXaCjrip1OO764RDBLBfrB4cwzNGDj5OA5ioymC9GkizgWJDUg==}
@@ -8512,6 +8536,34 @@ packages:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
 
+  /svelte-check/2.10.3_svelte@3.55.1:
+    resolution: {integrity: sha512-Nt1aWHTOKFReBpmJ1vPug0aGysqPwJh2seM1OvICfM2oeyaA62mOiy5EvkXhltGfhCcIQcq2LoE0l1CwcWPjlw==}
+    hasBin: true
+    peerDependencies:
+      svelte: ^3.24.0
+    dependencies:
+      '@jridgewell/trace-mapping': 0.3.17
+      chokidar: 3.5.3
+      fast-glob: 3.2.12
+      import-fresh: 3.3.0
+      picocolors: 1.0.0
+      sade: 1.8.1
+      svelte: 3.55.1
+      svelte-preprocess: 4.10.7_atrrhq7vg4ekua4nnyrpuardle
+      typescript: 4.9.4
+    transitivePeerDependencies:
+      - '@babel/core'
+      - coffeescript
+      - less
+      - node-sass
+      - postcss
+      - postcss-load-config
+      - pug
+      - sass
+      - stylus
+      - sugarss
+    dev: true
+
   /svelte-check/3.0.1_svelte@3.55.1:
     resolution: {integrity: sha512-7YpHYWv6V2qhcvVeAlXixUPAlpLCXB1nZEQK0EItB3PtuYmENhKclbc5uKSJTodTwWR1y+4stKGcbH30k6A3Yw==}
     hasBin: true
@@ -8551,6 +8603,57 @@ packages:
     resolution: {integrity: sha512-8HmnhTxLgf2nqNTW22FwzzXHepdN7gLXH5mBU1zhZX93JXyq/OOLsgbWhX9Hv9JNUlYknwq/ZE54iMrEFaH5BA==}
     dependencies:
       zencrypt: 0.0.7
+    dev: true
+
+  /svelte-preprocess/4.10.7_atrrhq7vg4ekua4nnyrpuardle:
+    resolution: {integrity: sha512-sNPBnqYD6FnmdBrUmBCaqS00RyCsCpj2BG58A1JBswNF7b0OKviwxqVrOL/CKyJrLSClrSeqQv5BXNg2RUbPOw==}
+    engines: {node: '>= 9.11.2'}
+    requiresBuild: true
+    peerDependencies:
+      '@babel/core': ^7.10.2
+      coffeescript: ^2.5.1
+      less: ^3.11.3 || ^4.0.0
+      node-sass: '*'
+      postcss: ^7 || ^8
+      postcss-load-config: ^2.1.0 || ^3.0.0 || ^4.0.0
+      pug: ^3.0.0
+      sass: ^1.26.8
+      stylus: ^0.55.0
+      sugarss: ^2.0.0
+      svelte: ^3.23.0
+      typescript: ^3.9.5 || ^4.0.0
+    peerDependenciesMeta:
+      '@babel/core':
+        optional: true
+      coffeescript:
+        optional: true
+      less:
+        optional: true
+      node-sass:
+        optional: true
+      postcss:
+        optional: true
+      postcss-load-config:
+        optional: true
+      pug:
+        optional: true
+      sass:
+        optional: true
+      stylus:
+        optional: true
+      sugarss:
+        optional: true
+      typescript:
+        optional: true
+    dependencies:
+      '@types/pug': 2.0.6
+      '@types/sass': 1.43.1
+      detect-indent: 6.1.0
+      magic-string: 0.25.9
+      sorcery: 0.10.0
+      strip-indent: 3.0.0
+      svelte: 3.55.1
+      typescript: 4.9.4
     dev: true
 
   /svelte-preprocess/5.0.0_atrrhq7vg4ekua4nnyrpuardle:
@@ -8609,7 +8712,7 @@ packages:
     engines: {node: ^14.18.0 || >=16.0.0}
     dependencies:
       '@pkgr/utils': 2.3.1
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: true
 
   /tapable/2.2.1:
@@ -8741,6 +8844,9 @@ packages:
 
   /tslib/2.4.1:
     resolution: {integrity: sha512-tGyy4dAjRIEwI7BzsB0lynWgOpfqjUdq91XXAlIWD2OwKBH7oCl/GZG/HT4BOHrTlPMOASlMQ7veyTqpmRcrNA==}
+
+  /tslib/2.5.0:
+    resolution: {integrity: sha512-336iVw3rtn2BUK7ORdIAHTyxHGRIHVReokCR3XjbckJMK7ms8FysBfhLR8IXnAgy7T0PTPNBWKiH514FOW/WSg==}
 
   /tsutils/3.21.0_typescript@4.9.4:
     resolution: {integrity: sha512-mHKK3iUXL+3UF6xL5k0PEhKRUBKPBCv/+RkEOpjRWxxx27KKRBmmA60A9pgOUvMi8GKhRMPEmjBRPzs2W7O1OA==}
