@@ -94,6 +94,7 @@ importers:
 
   e2e/svelte:
     specifiers:
+      '@kitql/helper': ^0.5.0
       '@playwright/test': 1.30.0
       '@sveltejs/vite-plugin-svelte': ^2.0.2
       '@tsconfig/svelte': ^3.0.0
@@ -108,6 +109,7 @@ importers:
       typescript: ^4.9.3
       vite: ^4.1.1
     devDependencies:
+      '@kitql/helper': 0.5.0
       '@playwright/test': 1.30.0
       '@sveltejs/vite-plugin-svelte': 2.0.2_svelte@3.55.1+vite@4.1.1
       '@tsconfig/svelte': 3.0.0

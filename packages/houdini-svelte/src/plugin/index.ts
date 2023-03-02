@@ -1,5 +1,5 @@
-import type { PluginHooks, Config } from 'houdini'
-import { plugin, HoudiniError, path, fs } from 'houdini'
+import type { Config, PluginHooks } from 'houdini'
+import { detectFromPackageJSON, fs, HoudiniError, path, plugin } from 'houdini'
 import * as url from 'node:url'
 import { loadEnv } from 'vite'
 
@@ -11,8 +11,8 @@ import {
 	plugin_config,
 	resolve_relative,
 	stores_directory,
-	store_name,
 	store_import_path,
+	store_name,
 	type Framework,
 } from './kit'
 import apply_transforms from './transforms'
@@ -173,16 +173,9 @@ export const redirect = svelteKitRedirect
 			})
 		}
 
-		// try to import the kit module
-		try {
-			await import('@sveltejs/kit')
-			// TODO => Find a good idea to detect if we are using SvelteKit or Svelte
-			//   1/ Seems that await import('@sveltejs/kit') is not enough (depending on package manager)
-			//   2/ I was hoping that vite plugins would help... knowing which framework is used, but didn't find a good thing
-			//   3/ reading the vite config file? To see plugins import?
-			//   4/ Bring back a flag in the config?
-			framework = 'kit'
-		} catch {}
+		// detect if we are in a svelte or sveltekit project
+		const detected = await detectFromPackageJSON(process.cwd())
+		framework = detected.framework === 'kit' ? 'kit' : 'svelte'
 	},
 
 	async env({ config }) {

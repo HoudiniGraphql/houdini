@@ -24,7 +24,7 @@
 			<img src={houdiniLogo} class="logo houdini" alt="Houdini Logo" />
 		</a>
 	</div>
-	<h1>{JSON.stringify($store.data?.hello, null, 2)}</h1>
+	<h2>{$store.data?.hello}</h2>
 
 	<div class="card">
 		<Counter />
