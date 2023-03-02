@@ -1,7 +1,7 @@
 {
 	"name": "e2e-api",
 	"private": true,
-	"version": "1.0.0",
+	"version": "0.0.1",
 	"description": "",
 	"bin": "./server.mjs",
 	"keywords": [],

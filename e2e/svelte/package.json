@@ -1,7 +1,7 @@
 {
 	"name": "svelte",
 	"private": true,
-	"version": "0.0.0",
+	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
 		"web": "vite --port 3016",
