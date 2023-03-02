@@ -4,14 +4,21 @@
 	"version": "0.0.0",
 	"type": "module",
 	"scripts": {
-		"dev": "vite",
+		"web": "vite --port 3006",
+		"api": "cross-env TZ=utc e2e-api",
+		"dev": "concurrently \"pnpm run web\" \"pnpm run api\" -n \"web,api\" -c \"green,magenta\"",
 		"build": "vite build",
-		"preview": "vite preview",
+		"tests": "playwright test ",
+		"preview": "vite preview --port 3006",
 		"check": "svelte-check --tsconfig ./tsconfig.json"
 	},
 	"devDependencies": {
+		"@playwright/test": "1.30.0",
 		"@sveltejs/vite-plugin-svelte": "^2.0.2",
 		"@tsconfig/svelte": "^3.0.0",
+		"concurrently": "7.1.0",
+		"cross-env": "^7.0.3",
+		"e2e-api": "workspace:^",
 		"houdini": "workspace:^",
 		"houdini-svelte": "workspace:^",
 		"svelte": "^3.55.1",

@@ -94,8 +94,12 @@ importers:
 
   e2e/svelte:
     specifiers:
+      '@playwright/test': 1.30.0
       '@sveltejs/vite-plugin-svelte': ^2.0.2
       '@tsconfig/svelte': ^3.0.0
+      concurrently: 7.1.0
+      cross-env: ^7.0.3
+      e2e-api: workspace:^
       houdini: workspace:^
       houdini-svelte: workspace:^
       svelte: ^3.55.1
@@ -104,8 +108,12 @@ importers:
       typescript: ^4.9.3
       vite: ^4.1.1
     devDependencies:
+      '@playwright/test': 1.30.0
       '@sveltejs/vite-plugin-svelte': 2.0.2_svelte@3.55.1+vite@4.1.1
       '@tsconfig/svelte': 3.0.0
+      concurrently: 7.1.0
+      cross-env: 7.0.3
+      e2e-api: link:../_api
       houdini: link:../../packages/houdini
       houdini-svelte: link:../../packages/houdini-svelte
       svelte: 3.55.1
@@ -1045,13 +1053,13 @@ packages:
       '@envelop/core': 3.0.4
       graphql: 15.8.0
       lru-cache: 6.0.0
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: false
 
   /@envelop/types/3.0.1:
     resolution: {integrity: sha512-Ok62K1K+rlS+wQw77k8Pis8+1/h7+/9Wk5Fgcc2U6M5haEWsLFAHcHsk8rYlnJdEUl2Y3yJcCSOYbt1dyTaU5w==}
     dependencies:
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: false
 
   /@envelop/validation-cache/5.0.5_j6i6lclrzilzz6orexmuccsxju:
@@ -1063,7 +1071,7 @@ packages:
       '@envelop/core': 3.0.4
       graphql: 15.8.0
       lru-cache: 6.0.0
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: false
 
   /@esbuild/android-arm/0.15.18:
@@ -1511,7 +1519,7 @@ packages:
       '@graphql-typed-document-node/core': 3.1.1_graphql@15.8.0
       '@repeaterjs/repeater': 3.0.4
       graphql: 15.8.0
-      tslib: 2.4.1
+      tslib: 2.5.0
       value-or-promise: 1.0.12
     dev: false
 
@@ -1522,7 +1530,7 @@ packages:
     dependencies:
       '@graphql-tools/utils': 9.1.3_graphql@15.8.0
       graphql: 15.8.0
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: false
 
   /@graphql-tools/schema/9.0.12_graphql@15.8.0:
@@ -1543,7 +1551,7 @@ packages:
       graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
     dependencies:
       graphql: 15.8.0
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: false
 
   /@graphql-tools/utils/9.1.4_graphql@15.8.0:
@@ -1552,7 +1560,7 @@ packages:
       graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
     dependencies:
       graphql: 15.8.0
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: false
 
   /@graphql-typed-document-node/core/3.1.1_graphql@15.8.0:
@@ -1569,14 +1577,14 @@ packages:
       '@graphql-yoga/typed-event-target': 1.0.0
       '@repeaterjs/repeater': 3.0.4
       '@whatwg-node/events': 0.0.2
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: false
 
   /@graphql-yoga/typed-event-target/1.0.0:
     resolution: {integrity: sha512-Mqni6AEvl3VbpMtKw+TIjc9qS9a8hKhiAjFtqX488yq5oJtj9TkNlFTIacAVS3vnPiswNsmDiQqvwUOcJgi1DA==}
     dependencies:
       '@repeaterjs/repeater': 3.0.4
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: false
 
   /@humanwhocodes/config-array/0.11.8:
@@ -1887,14 +1895,14 @@ packages:
     dependencies:
       asn1js: 3.0.5
       pvtsutils: 1.3.2
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: false
 
   /@peculiar/json-schema/1.1.12:
     resolution: {integrity: sha512-coUfuoMeIB7B8/NMekxaDzLhaYmp0HZNPEjYRm9goRou8UZIC3z21s0sL9AWoCw4EG876QyO3kYrc61WNF9B/w==}
     engines: {node: '>=8.0.0'}
     dependencies:
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: false
 
   /@peculiar/webcrypto/1.4.1:
@@ -1904,7 +1912,7 @@ packages:
       '@peculiar/asn1-schema': 2.3.3
       '@peculiar/json-schema': 1.1.12
       pvtsutils: 1.3.2
-      tslib: 2.4.1
+      tslib: 2.5.0
       webcrypto-core: 1.7.5
     dev: false
 
@@ -2020,7 +2028,7 @@ packages:
   /@swc/helpers/0.4.14:
     resolution: {integrity: sha512-4C7nX/dvpzB7za4Ql9K81xK3HPxCpHMgwTZVyf+9JQ6VUbn9jjZVN7/Nkdz/Ugzs2CSjqnL/UPXroiVBVHUWUw==}
     dependencies:
-      tslib: 2.4.1
+      tslib: 2.5.0
 
   /@theguild/eslint-config/0.8.0_zkdaqh7it7uc4cvz2haft7rc6u:
     resolution: {integrity: sha512-OAXxluL5yA0z85t+zIJf4tibzOfEhY/RyD4AaI7NJc8iZ88mDIBasdiErBFhlRMa4GLfg6hvKdqeI6x/2ZGf7Q==}
@@ -2671,7 +2679,7 @@ packages:
     dependencies:
       '@types/node': 18.11.15
       '@whatwg-node/fetch': 0.6.2
-      tslib: 2.4.1
+      tslib: 2.5.0
     transitivePeerDependencies:
       - encoding
     dev: false
@@ -2881,7 +2889,7 @@ packages:
     dependencies:
       pvtsutils: 1.3.2
       pvutils: 1.1.3
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: false
 
   /assert/2.0.0:
@@ -7745,7 +7753,7 @@ packages:
   /pvtsutils/1.3.2:
     resolution: {integrity: sha512-+Ipe2iNUyrZz+8K/2IOo+kKikdtfhRKzNpQbruF2URmqPtoqAs8g3xS7TJvFF2GcPXjh7DkqMnpVveRFq4PgEQ==}
     dependencies:
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: false
 
   /pvutils/1.1.3:
@@ -8091,7 +8099,7 @@ packages:
   /rxjs/7.6.0:
     resolution: {integrity: sha512-DDa7d8TFNUalGC9VqXvQ1euWNN7sc63TrUCuM9J998+ViviahMIjKSOU7rfcgFOF+FCD71BhDRv4hrFz+ImDLQ==}
     dependencies:
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: true
 
   /sade/1.8.1:
@@ -9443,7 +9451,7 @@ packages:
       '@peculiar/json-schema': 1.1.12
       asn1js: 3.0.5
       pvtsutils: 1.3.2
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: false
 
   /webidl-conversions/3.0.1:
