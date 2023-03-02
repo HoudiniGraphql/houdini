@@ -197,10 +197,15 @@ query Info($id: Int! = 1) {
 }
 ```
 
-At the surface, a paginated query store is basically the same thing as a normal query except for a few extra utilities.
-They're pretty self-explanatory but just in case there's any confusion: `loadNextPage` is an async function that will load the next
-page and append the result of the field tagged with `@paginate` to the existing value in our cache and
-there is a `pageInfo` value on the store that contains an object with meta data about the current page.
+At the surface, a paginated query store is basically the same thing as a normal query except for a few extra utilities
+to take adantage of common use cases.
+
+The First use case, is an `Infinite` list. Imagine you have a list and when you arrive at the bottom of it, 
+you want to load more items _(in the same list)_. With Houdini, you will simply call the `loadNextPage` function and it will
+append next items to the list.
+The Second use case, is a `SinglePage` view. Imagine you display 15 items by 15 items, and you click on page 2, 3, etc to 
+see next items. Same thing, you will simply call the `loadNextPage` function and it will replace the list with the next items.
+You can define the `Infinite` or `SinglePage` behavior by passing the `mode` option to the `@paginate` directive.
 For a more in-depth summary of what you can do with `@paginate`, you can check out the [Pagination Guide](/guides/pagination).
 
 It's time to add some visuals. Add an import for the `MoveDisplay` component and copy the following block
@@ -210,54 +215,54 @@ as the second child in the right panel (between `div#species-evolution-chain` an
 <MoveDisplay move={$Info.data.species.moves.edges[0].node} />
 ```
 
-In most situations houdini's automatic appending is great since it covers popular patterns like infinite scrolling or any kind of list that just keeps growing. Unfortunately, we are only showing one move at a time so we can't just display all of the information we're holding onto in memory. Also, the user might want to step back in the list and we won't need to load the next or previous page if we already have it loaded. In order to address this, we need hold onto a bit of local state that will track the index of the move on display. When we load the next move we will first check if we already have the element loaded and if not, we will trigger `loadNextPage` to grab it and then update our state to display the new result.
+In our situation, since we want to display 1 move by 1 move, we will simply take advantage of `mode: SinglePage` in the 
+`@paginate` directive. Like this, we will be able to see each move 1 by 1 with the help of `loadNextPage` and `loadPreviousPage` functions.
+
+```graphql:title=src/routes/[[id]]/+page.gql
+query Info($id: Int = 1) {
+    
+    # ...
+
+    moves(first: 1) @paginate(mode: SinglePage) {
+        edges {
+            node {
+                ...MoveDisplay
+            }
+        }
+    }
+
+    # ...
+}
+
+```
 
 ```svelte:title=src/routes/[[id]]/+page.svelte&typescriptToggle=true
 <script lang="ts">
-    import { navigating } from '$app/stores'
     import { UpButton, DownButton } from '~/components'
-
-    let moveIndex = 0
-    $: hasPrevMove = moveIndex > 0
-    $: hasNextMove = moveIndex < $Info.data.species.moves.edges.length - 1 || $Info.pageInfo.hasNextPage
-
-    const loadNextMove = async () => {
-        // if we haven't already seen this page
-        if (!$Info.data.species.moves.edges[moveIndex + 1] && $Info.pageInfo.hasNextPage) {
-            // load the next page of data
-            await Info.loadNextPage()
-        }
-
-        // its safe to increment the move index
-        moveIndex += 1
-    }
-
-    const loadPrevMove = () => {
-        moveIndex--
-    }
-
-    // when we navigate to another species, reset the move index
-    navigating.subscribe(() => {
-        moveIndex = 0
-    })
 </script>
 
 <!-- Use this instead of the move display we added earlier -->
 <div id="move-summary">
     <MoveDisplay move={$Info.data.species.moves.edges[moveIndex].node} />
     <div id="move-controls">
-        <UpButton disabled={!hasPrevMove} on:click={loadPrevMove} />
-        <DownButton disabled={!hasNextMove} on:click={loadNextMove} />
+        <UpButton
+            disabled={!$Info.pageInfo.hasPreviousPage}
+            on:click={async () => await Info.loadPreviousPage()}
+        />
+        <DownButton
+            disabled={!$Info.pageInfo.hasNextPage}
+            on:click={async () => await Info.loadNextPage()}
+        />
     </div>
 </div>
 ```
 
 You can now verify that it all works by opening the network tab and clicking on the up and down arrows. You should only see network requests being sent when loading a move we haven't seen before.
 
-Admittedly this example is a little bit complicated for a first-time introduction into pagination but hopefully it illustrates just how much we can do with houdini's API. Most of the time, you will just be able to use `loadNextPage` and `pageInfo` directly without all of the extra state management.
-
 ## That's it!
 
-This is the last topic we wanted to cover as part of the guide! Thank you so much for getting all the way through - we really appreciate the dedication. If there were any sections that were confusing, or changes you think would be helpful, please open up a discussion on GitHub.
+This is the last topic we wanted to cover as part of the guide! Thank you so much for getting all the way through - 
+we really appreciate the dedication. You can 🪄 [share your achievement](http://twitter.com/intent/tweet?text=I%20just%20completed%20Houdini%27s%20guide%20%F0%9F%8E%A9%0A%F0%9F%AA%84%20And%20it%20was%20%5BYOUR%20MESSAGE%5D%0A%0AHandling%20data%20like%20a%20pro%21%20%0AWhat%20about%20you%3F%20%F0%9F%AB%B5%0Ahttps%3A%2F%2Fwww.houdinigraphql.com%2Fintro%0A%0A%F0%9F%91%80%20%40AlecAivazis%20%40jycouet) to help us!
+If there were any sections that were confusing, or changes you think would be helpful, please open up a discussion on GitHub.
 
 If you want to read more about what Houdini can do, we recommending checking out the [Working with GraphQL](/guides/working-with-graphql) guide next.
