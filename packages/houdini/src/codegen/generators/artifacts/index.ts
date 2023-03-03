@@ -1,15 +1,15 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import type { Config, Document, DocumentArtifact, CachePolicies } from '../../../lib'
+import type { CachePolicies, Config, Document, DocumentArtifact } from '../../../lib'
 import {
+	ArtifactKind,
+	cleanupFiles,
+	fs,
 	getRootType,
 	hashDocument,
 	HoudiniError,
 	parentTypeFromAncestors,
-	fs,
-	cleanupFiles,
-	ArtifactKind,
 } from '../../../lib'
 import { flattenSelections, moduleExport } from '../../utils'
 import { fragmentArgumentsDefinitions } from '.././../transforms/fragmentVariables'
@@ -45,7 +45,7 @@ export default function artifactGenerator(stats: {
 
 					// get the name of the list
 					const nameArg = node.arguments?.find(
-						(arg) => arg.name.value === config.listNameArg
+						(arg) => arg.name.value === config.listOrPaginateNameArg
 					)
 					if (!nameArg || nameArg.value.kind !== 'StringValue') {
 						throw new HoudiniError({

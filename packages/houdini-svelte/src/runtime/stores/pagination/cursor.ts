@@ -19,8 +19,8 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 	artifact,
 	storeName,
 	observer,
-	fetchUpdate: parentFetchUpdate,
 	fetch: parentFetch,
+	fetchUpdate: parentFetchUpdate,
 }: {
 	artifact: QueryArtifact
 	storeName: string
@@ -61,17 +61,20 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 			throw missingPageSizeError(functionName)
 		}
 
+		// Get the Pagination Mode
+		let isSinglePage = artifact.refetch?.mode === 'SinglePage'
+
 		// send the query
-		const { data } = await parentFetchUpdate(
+		const targetFetch = isSinglePage ? parentFetch : parentFetchUpdate
+		const { data } = await targetFetch(
 			{
 				variables: loadVariables,
 				fetch,
 				metadata,
-				policy: CachePolicy.NetworkOnly,
+				policy: isSinglePage ? artifact.policy : CachePolicy.NetworkOnly,
 				session: await getSession(),
 			},
-			// if we are adding to the start of the list, prepend the result
-			[where === 'start' ? 'prepend' : 'append']
+			isSinglePage ? [] : [where === 'start' ? 'prepend' : 'append']
 		)
 
 		// if the query is embedded in a node field (paginated fragments)

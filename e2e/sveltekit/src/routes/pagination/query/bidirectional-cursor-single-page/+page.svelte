@@ -14,7 +14,7 @@
         last: $last
         before: $before
         snapshot: "pagination-query-bidiriectional-cursor-single-page"
-      ) {
+      ) @paginate(mode: SinglePage) {
         edges {
           node {
             name
@@ -41,30 +41,14 @@
 
 <button
   id="previous"
-  on:click={() =>
-    result.fetch({
-      variables: {
-        last: 2,
-        before: $result.data?.usersConnection.pageInfo.startCursor,
-        first: null,
-        after: null
-      }
-    })}
+  on:click={() => result.loadPreviousPage({ last: 2 })}
   disabled={!$result.data?.usersConnection.pageInfo.hasPreviousPage}
 >
   previous
 </button>
 <button
   id="next"
-  on:click={() =>
-    result.fetch({
-      variables: {
-        last: null,
-        before: null,
-        after: $result.data?.usersConnection.pageInfo.endCursor,
-        first: 2
-      }
-    })}
+  on:click={() => result.loadNextPage({ first: 2 })}
   disabled={!$result.data?.usersConnection.pageInfo.hasNextPage}
 >
   next

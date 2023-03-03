@@ -1,3 +1,5 @@
+type ValuesOf<Target> = Target[keyof Target]
+
 export const CachePolicy = {
 	CacheOrNetwork: 'CacheOrNetwork',
 	CacheOnly: 'CacheOnly',
@@ -5,9 +7,14 @@ export const CachePolicy = {
 	CacheAndNetwork: 'CacheAndNetwork',
 } as const
 
-type ValuesOf<Target> = Target[keyof Target]
-
 export type CachePolicies = ValuesOf<typeof CachePolicy>
+
+export const PaginateMode = {
+	Infinite: 'Infinite',
+	SinglePage: 'SinglePage',
+} as const
+
+export type PaginateModes = ValuesOf<typeof PaginateMode>
 
 declare global {
 	namespace App {
@@ -99,6 +106,7 @@ export type BaseCompiledDocument<_Kind extends ArtifactKinds> = {
 		targetType: string
 		paginated: boolean
 		direction: 'forward' | 'backward' | 'both'
+		mode: PaginateModes
 	}
 	pluginData?: Record<string, any>
 }
