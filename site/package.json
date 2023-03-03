@@ -42,6 +42,7 @@
 	},
 	"dependencies": {
 		"@sveltejs/adapter-auto": "^2.0.0",
+		"@sveltejs/adapter-netlify": "^2.0.5",
 		"feather-icons": "^4.28.0",
 		"flexsearch": "^0.7.31",
 		"lodash": "^4.17.21",
