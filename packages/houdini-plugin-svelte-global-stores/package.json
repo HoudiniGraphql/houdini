@@ -27,7 +27,7 @@
         "vitest": "^0.28.3"
     },
     "dependencies": {
-        "@sveltejs/kit": "^1.3.9",
+        "@sveltejs/kit": "^1.9.3",
         "houdini": "workspace:^",
         "houdini-svelte": "workspace:^",
         "recast": "^0.23.1",
