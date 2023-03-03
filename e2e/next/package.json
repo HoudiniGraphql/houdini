@@ -1,5 +1,5 @@
 {
-	"name": "next",
+	"name": "e2e-next",
 	"version": "0.0.1",
 	"private": true,
 	"scripts": {
@@ -11,7 +11,7 @@
 	},
 	"dependencies": {
 		"cross-env": "^7.0.3",
-		"next": "^0.0.1",
+		"next": "^13.1.0",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0"
 	},
