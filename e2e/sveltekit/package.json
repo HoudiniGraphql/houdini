@@ -1,5 +1,5 @@
 {
-  "name": "sveltekit",
+  "name": "e2e-sveltekit",
   "version": "0.0.1",
   "private": true,
   "type": "module",
