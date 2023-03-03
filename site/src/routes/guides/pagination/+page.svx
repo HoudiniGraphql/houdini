@@ -13,14 +13,6 @@ arguments and mimics the mechanisms provided by most database engines. Cursor-ba
 is a bi-directional strategy that relies on `first`/`after` or `last`/`before` arguments and
 is designed to handle modern pagination features such a infinite scrolling.
 
-In addition, Houdini supports two pagination modes: `Infinite` and `SinglePage`. 
-You can set the default mode in your [houdini config](/api/config#fields) and/or
-override it on a per-paginate directive basis by passing the `mode` argument.
-`Infinite` mode will be used a scenario where you want to keep a growing list in the same store 
-(refers to infinite scrolling).
-`SinglePage` mode will be used in a scenario where you want to display x items per page 
-and update the store when switching to page 2, 3, ...
-
 ## Paginated Queries
 
 Regardless of the strategy used, houdini follows a simple pattern: mark the field with
@@ -145,6 +137,17 @@ so it can be looked up in the api. You can read more information about the `Node
 Keep in mind, this is only a requirement for paginated fragments. If your application only uses paginated queries,
 you do not need to implement the Node interface and resolver.
 
+## Pagination Modes
+
+Houdini supports two different "modes" of pagination: `Infinite` and `SinglePage`.
+You can set the default mode in your [houdini config](/api/config#fields) and/or
+override it on a per-paginate directive basis by passing the `mode` argument:
+
+- `Infinite` should be result when the results of loading one page should be added to the
+existing value (ie, for an infinite scrolling interface).
+- `SinglePage` should used in a scenario where you want to display the items, one page at a
+time.
+
 ## Mutation Operations
 
 A paginated field can be marked as a potential target for a mutation operation by passing
@@ -166,3 +169,4 @@ const userWithFriends = paginatedFragment(
 	`)
 )
 ```
+
