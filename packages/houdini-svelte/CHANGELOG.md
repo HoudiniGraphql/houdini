@@ -1,5 +1,15 @@
 # houdini-svelte
 
+## 1.0.8
+
+### ✨ Features
+
+-   [#958](https://github.com/HoudiniGraphql/houdini/pull/958) [`8e2f8e0`](https://github.com/HoudiniGraphql/houdini/commit/8e2f8e0d5b96f34a01dfcbc510ab1b0c3cfa9822) Thanks [@jycouet](https://github.com/jycouet)! - paginate directive now supports a SinglePage mode (in addition to the Infinite one already present)
+
+### 🐛 Fixes
+
+-   [#964](https://github.com/HoudiniGraphql/houdini/pull/964) [`b223c60`](https://github.com/HoudiniGraphql/houdini/commit/b223c6079bb4a19d5708ad7daf905fe913dbec1e) Thanks [@jycouet](https://github.com/jycouet)! - fix framework detection
+
 ## 1.0.7
 
 ### Dependency Changes

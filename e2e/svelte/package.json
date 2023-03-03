@@ -1,5 +1,5 @@
 {
-	"name": "svelte",
+	"name": "e2e-svelte",
 	"private": true,
 	"version": "0.0.1",
 	"type": "module",
@@ -23,7 +23,7 @@
 		"e2e-api": "workspace:^",
 		"houdini": "workspace:^",
 		"houdini-svelte": "workspace:^",
-		"svelte": "^3.55.1",
+		"svelte": "^0.0.1",
 		"svelte-check": "^2.10.3",
 		"tslib": "^2.5.0",
 		"typescript": "^4.9.3",
