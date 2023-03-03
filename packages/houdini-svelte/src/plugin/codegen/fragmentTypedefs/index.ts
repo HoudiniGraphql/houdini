@@ -80,14 +80,12 @@ export default async function fragmentTypedefs(input: PluginGenerateInput) {
 				// build up the documentInput with the query string as a hard coded value
 				const fragment_map = AST.tsTypeLiteral([
 					AST.tsPropertySignature(
-						AST.identifier('$fragments'),
+						AST.identifier(' $fragments'),
 						AST.tsTypeAnnotation(
 							AST.tsTypeLiteral([
 								AST.tsPropertySignature(
 									AST.identifier(doc.name),
-									AST.tsTypeAnnotation(
-										AST.tsLiteralType(AST.booleanLiteral(true))
-									)
+									AST.tsTypeAnnotation(AST.tsAnyKeyword())
 								),
 							])
 						)

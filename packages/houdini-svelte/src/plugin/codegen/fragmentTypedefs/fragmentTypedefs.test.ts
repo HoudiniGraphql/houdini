@@ -58,7 +58,7 @@ test('generates types for fragments', async function () {
 		export function fragment(
 		    initialValue: {
 		        $fragments: {
-		            TestFragment: true;
+		            TestFragment: any;
 		        };
 		    },
 		    document: TestFragmentStore
@@ -67,7 +67,7 @@ test('generates types for fragments', async function () {
 		export function fragment(
 		    initialValue: {
 		        $fragments: {
-		            TestFragment: true;
+		            TestFragment: any;
 		        };
 		    } | null,
 		    document: TestFragmentStore
@@ -166,7 +166,7 @@ test('generates types for paginated fragments', async function () {
 		export function fragment(
 		    initialValue: {
 		        $fragments: {
-		            TestFragment: true;
+		            TestFragment: any;
 		        };
 		    },
 		    document: TestFragmentStore
@@ -175,7 +175,7 @@ test('generates types for paginated fragments', async function () {
 		export function fragment(
 		    initialValue: {
 		        $fragments: {
-		            TestFragment: true;
+		            TestFragment: any;
 		        };
 		    } | null,
 		    document: TestFragmentStore
@@ -192,7 +192,7 @@ test('generates types for paginated fragments', async function () {
 		export function paginatedFragment(
 		    initialValue: {
 		        $fragments: {
-		            TestFragment: true;
+		            TestFragment: any;
 		        };
 		    },
 		    document: TestFragmentStore
@@ -201,7 +201,7 @@ test('generates types for paginated fragments', async function () {
 		export function paginatedFragment(
 		    initialValue: {
 		        $fragments: {
-		            TestFragment: true;
+		            TestFragment: any;
 		        };
 		    } | null,
 		    document: TestFragmentStore
