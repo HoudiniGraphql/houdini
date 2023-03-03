@@ -92,6 +92,38 @@ importers:
       houdini-react: link:../../packages/houdini-react
       typescript: 4.9.4
 
+  e2e/svelte:
+    specifiers:
+      '@kitql/helper': ^0.5.0
+      '@playwright/test': 1.30.0
+      '@sveltejs/vite-plugin-svelte': ^2.0.2
+      '@tsconfig/svelte': ^3.0.0
+      concurrently: 7.1.0
+      cross-env: ^7.0.3
+      e2e-api: workspace:^
+      houdini: workspace:^
+      houdini-svelte: workspace:^
+      svelte: ^3.55.1
+      svelte-check: ^2.10.3
+      tslib: ^2.5.0
+      typescript: ^4.9.3
+      vite: ^4.1.1
+    devDependencies:
+      '@kitql/helper': 0.5.0
+      '@playwright/test': 1.30.0
+      '@sveltejs/vite-plugin-svelte': 2.0.2_svelte@3.55.1+vite@4.1.1
+      '@tsconfig/svelte': 3.0.0
+      concurrently: 7.1.0
+      cross-env: 7.0.3
+      e2e-api: link:../_api
+      houdini: link:../../packages/houdini
+      houdini-svelte: link:../../packages/houdini-svelte
+      svelte: 3.55.1
+      svelte-check: 2.10.3_svelte@3.55.1
+      tslib: 2.5.0
+      typescript: 4.9.4
+      vite: 4.1.1
+
   e2e/sveltekit:
     specifiers:
       '@kitql/helper': ^0.5.0
@@ -1023,13 +1055,13 @@ packages:
       '@envelop/core': 3.0.4
       graphql: 15.8.0
       lru-cache: 6.0.0
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: false
 
   /@envelop/types/3.0.1:
     resolution: {integrity: sha512-Ok62K1K+rlS+wQw77k8Pis8+1/h7+/9Wk5Fgcc2U6M5haEWsLFAHcHsk8rYlnJdEUl2Y3yJcCSOYbt1dyTaU5w==}
     dependencies:
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: false
 
   /@envelop/validation-cache/5.0.5_j6i6lclrzilzz6orexmuccsxju:
@@ -1041,7 +1073,7 @@ packages:
       '@envelop/core': 3.0.4
       graphql: 15.8.0
       lru-cache: 6.0.0
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: false
 
   /@esbuild/android-arm/0.15.18:
@@ -1489,7 +1521,7 @@ packages:
       '@graphql-typed-document-node/core': 3.1.1_graphql@15.8.0
       '@repeaterjs/repeater': 3.0.4
       graphql: 15.8.0
-      tslib: 2.4.1
+      tslib: 2.5.0
       value-or-promise: 1.0.12
     dev: false
 
@@ -1500,7 +1532,7 @@ packages:
     dependencies:
       '@graphql-tools/utils': 9.1.3_graphql@15.8.0
       graphql: 15.8.0
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: false
 
   /@graphql-tools/schema/9.0.12_graphql@15.8.0:
@@ -1521,7 +1553,7 @@ packages:
       graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
     dependencies:
       graphql: 15.8.0
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: false
 
   /@graphql-tools/utils/9.1.4_graphql@15.8.0:
@@ -1530,7 +1562,7 @@ packages:
       graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
     dependencies:
       graphql: 15.8.0
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: false
 
   /@graphql-typed-document-node/core/3.1.1_graphql@15.8.0:
@@ -1547,14 +1579,14 @@ packages:
       '@graphql-yoga/typed-event-target': 1.0.0
       '@repeaterjs/repeater': 3.0.4
       '@whatwg-node/events': 0.0.2
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: false
 
   /@graphql-yoga/typed-event-target/1.0.0:
     resolution: {integrity: sha512-Mqni6AEvl3VbpMtKw+TIjc9qS9a8hKhiAjFtqX488yq5oJtj9TkNlFTIacAVS3vnPiswNsmDiQqvwUOcJgi1DA==}
     dependencies:
       '@repeaterjs/repeater': 3.0.4
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: false
 
   /@humanwhocodes/config-array/0.11.8:
@@ -1865,14 +1897,14 @@ packages:
     dependencies:
       asn1js: 3.0.5
       pvtsutils: 1.3.2
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: false
 
   /@peculiar/json-schema/1.1.12:
     resolution: {integrity: sha512-coUfuoMeIB7B8/NMekxaDzLhaYmp0HZNPEjYRm9goRou8UZIC3z21s0sL9AWoCw4EG876QyO3kYrc61WNF9B/w==}
     engines: {node: '>=8.0.0'}
     dependencies:
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: false
 
   /@peculiar/webcrypto/1.4.1:
@@ -1882,7 +1914,7 @@ packages:
       '@peculiar/asn1-schema': 2.3.3
       '@peculiar/json-schema': 1.1.12
       pvtsutils: 1.3.2
-      tslib: 2.4.1
+      tslib: 2.5.0
       webcrypto-core: 1.7.5
     dev: false
 
@@ -1895,7 +1927,7 @@ packages:
       open: 8.4.0
       picocolors: 1.0.0
       tiny-glob: 0.2.9
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: true
 
   /@playwright/test/1.30.0:
@@ -1998,7 +2030,7 @@ packages:
   /@swc/helpers/0.4.14:
     resolution: {integrity: sha512-4C7nX/dvpzB7za4Ql9K81xK3HPxCpHMgwTZVyf+9JQ6VUbn9jjZVN7/Nkdz/Ugzs2CSjqnL/UPXroiVBVHUWUw==}
     dependencies:
-      tslib: 2.4.1
+      tslib: 2.5.0
 
   /@theguild/eslint-config/0.8.0_zkdaqh7it7uc4cvz2haft7rc6u:
     resolution: {integrity: sha512-OAXxluL5yA0z85t+zIJf4tibzOfEhY/RyD4AaI7NJc8iZ88mDIBasdiErBFhlRMa4GLfg6hvKdqeI6x/2ZGf7Q==}
@@ -2045,6 +2077,10 @@ packages:
       prettier: 2.8.3
     transitivePeerDependencies:
       - supports-color
+    dev: true
+
+  /@tsconfig/svelte/3.0.0:
+    resolution: {integrity: sha512-pYrtLtOwku/7r1i9AMONsJMVYAtk3hzOfiGNekhtq5tYBGA7unMve8RvUclKLMT3PrihvJqUmzsRGh0RP84hKg==}
     dev: true
 
   /@types/acorn/4.0.6:
@@ -2645,7 +2681,7 @@ packages:
     dependencies:
       '@types/node': 18.11.15
       '@whatwg-node/fetch': 0.6.2
-      tslib: 2.4.1
+      tslib: 2.5.0
     transitivePeerDependencies:
       - encoding
     dev: false
@@ -2855,7 +2891,7 @@ packages:
     dependencies:
       pvtsutils: 1.3.2
       pvutils: 1.1.3
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: false
 
   /assert/2.0.0:
@@ -2878,7 +2914,7 @@ packages:
     resolution: {integrity: sha512-6t10qk83GOG8p0vKmaCr8eiilZwO171AvbROMtvvNiwrTly62t+7XkA8RdIIVbpMhCASAsxgAzdRSwh6nw/5Dg==}
     engines: {node: '>=4'}
     dependencies:
-      tslib: 2.4.1
+      tslib: 2.5.0
 
   /astral-regex/2.0.0:
     resolution: {integrity: sha512-Z7tMw1ytTXt5jqMcOP+OQteU1VuNK9Y02uuJtKQ1Sv69jXQKKg5cibLwGJow8yzZP+eAc18EmLGPal0bp36rvQ==}
@@ -4464,7 +4500,7 @@ packages:
       remark-parse: 10.0.1
       remark-stringify: 10.0.2
       synckit: 0.8.4
-      tslib: 2.4.1
+      tslib: 2.5.0
       unified: 10.1.2
       unist-util-visit: 4.1.1
       uvu: 0.5.6
@@ -4687,7 +4723,7 @@ packages:
       remark-mdx: 2.2.1
       remark-parse: 10.0.1
       remark-stringify: 10.0.2
-      tslib: 2.4.1
+      tslib: 2.5.0
       unified: 10.1.2
       vfile: 5.3.6
     transitivePeerDependencies:
@@ -7719,7 +7755,7 @@ packages:
   /pvtsutils/1.3.2:
     resolution: {integrity: sha512-+Ipe2iNUyrZz+8K/2IOo+kKikdtfhRKzNpQbruF2URmqPtoqAs8g3xS7TJvFF2GcPXjh7DkqMnpVveRFq4PgEQ==}
     dependencies:
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: false
 
   /pvutils/1.1.3:
@@ -7845,7 +7881,7 @@ packages:
       ast-types: 0.16.1
       esprima: 4.0.1
       source-map: 0.6.1
-      tslib: 2.4.1
+      tslib: 2.5.0
 
   /redent/3.0.0:
     resolution: {integrity: sha512-6tDA8g98We0zd0GvVeMT9arEOnTw9qM03L9cJXaCjrip1OO764RDBLBfrB4cwzNGDj5OA5ioymC9GkizgWJDUg==}
@@ -8065,7 +8101,7 @@ packages:
   /rxjs/7.6.0:
     resolution: {integrity: sha512-DDa7d8TFNUalGC9VqXvQ1euWNN7sc63TrUCuM9J998+ViviahMIjKSOU7rfcgFOF+FCD71BhDRv4hrFz+ImDLQ==}
     dependencies:
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: true
 
   /sade/1.8.1:
@@ -8512,6 +8548,34 @@ packages:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
 
+  /svelte-check/2.10.3_svelte@3.55.1:
+    resolution: {integrity: sha512-Nt1aWHTOKFReBpmJ1vPug0aGysqPwJh2seM1OvICfM2oeyaA62mOiy5EvkXhltGfhCcIQcq2LoE0l1CwcWPjlw==}
+    hasBin: true
+    peerDependencies:
+      svelte: ^3.24.0
+    dependencies:
+      '@jridgewell/trace-mapping': 0.3.17
+      chokidar: 3.5.3
+      fast-glob: 3.2.12
+      import-fresh: 3.3.0
+      picocolors: 1.0.0
+      sade: 1.8.1
+      svelte: 3.55.1
+      svelte-preprocess: 4.10.7_atrrhq7vg4ekua4nnyrpuardle
+      typescript: 4.9.4
+    transitivePeerDependencies:
+      - '@babel/core'
+      - coffeescript
+      - less
+      - node-sass
+      - postcss
+      - postcss-load-config
+      - pug
+      - sass
+      - stylus
+      - sugarss
+    dev: true
+
   /svelte-check/3.0.1_svelte@3.55.1:
     resolution: {integrity: sha512-7YpHYWv6V2qhcvVeAlXixUPAlpLCXB1nZEQK0EItB3PtuYmENhKclbc5uKSJTodTwWR1y+4stKGcbH30k6A3Yw==}
     hasBin: true
@@ -8551,6 +8615,57 @@ packages:
     resolution: {integrity: sha512-8HmnhTxLgf2nqNTW22FwzzXHepdN7gLXH5mBU1zhZX93JXyq/OOLsgbWhX9Hv9JNUlYknwq/ZE54iMrEFaH5BA==}
     dependencies:
       zencrypt: 0.0.7
+    dev: true
+
+  /svelte-preprocess/4.10.7_atrrhq7vg4ekua4nnyrpuardle:
+    resolution: {integrity: sha512-sNPBnqYD6FnmdBrUmBCaqS00RyCsCpj2BG58A1JBswNF7b0OKviwxqVrOL/CKyJrLSClrSeqQv5BXNg2RUbPOw==}
+    engines: {node: '>= 9.11.2'}
+    requiresBuild: true
+    peerDependencies:
+      '@babel/core': ^7.10.2
+      coffeescript: ^2.5.1
+      less: ^3.11.3 || ^4.0.0
+      node-sass: '*'
+      postcss: ^7 || ^8
+      postcss-load-config: ^2.1.0 || ^3.0.0 || ^4.0.0
+      pug: ^3.0.0
+      sass: ^1.26.8
+      stylus: ^0.55.0
+      sugarss: ^2.0.0
+      svelte: ^3.23.0
+      typescript: ^3.9.5 || ^4.0.0
+    peerDependenciesMeta:
+      '@babel/core':
+        optional: true
+      coffeescript:
+        optional: true
+      less:
+        optional: true
+      node-sass:
+        optional: true
+      postcss:
+        optional: true
+      postcss-load-config:
+        optional: true
+      pug:
+        optional: true
+      sass:
+        optional: true
+      stylus:
+        optional: true
+      sugarss:
+        optional: true
+      typescript:
+        optional: true
+    dependencies:
+      '@types/pug': 2.0.6
+      '@types/sass': 1.43.1
+      detect-indent: 6.1.0
+      magic-string: 0.25.9
+      sorcery: 0.10.0
+      strip-indent: 3.0.0
+      svelte: 3.55.1
+      typescript: 4.9.4
     dev: true
 
   /svelte-preprocess/5.0.0_atrrhq7vg4ekua4nnyrpuardle:
@@ -8609,7 +8724,7 @@ packages:
     engines: {node: ^14.18.0 || >=16.0.0}
     dependencies:
       '@pkgr/utils': 2.3.1
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: true
 
   /tapable/2.2.1:
@@ -8741,6 +8856,9 @@ packages:
 
   /tslib/2.4.1:
     resolution: {integrity: sha512-tGyy4dAjRIEwI7BzsB0lynWgOpfqjUdq91XXAlIWD2OwKBH7oCl/GZG/HT4BOHrTlPMOASlMQ7veyTqpmRcrNA==}
+
+  /tslib/2.5.0:
+    resolution: {integrity: sha512-336iVw3rtn2BUK7ORdIAHTyxHGRIHVReokCR3XjbckJMK7ms8FysBfhLR8IXnAgy7T0PTPNBWKiH514FOW/WSg==}
 
   /tsutils/3.21.0_typescript@4.9.4:
     resolution: {integrity: sha512-mHKK3iUXL+3UF6xL5k0PEhKRUBKPBCv/+RkEOpjRWxxx27KKRBmmA60A9pgOUvMi8GKhRMPEmjBRPzs2W7O1OA==}
@@ -9335,7 +9453,7 @@ packages:
       '@peculiar/json-schema': 1.1.12
       asn1js: 3.0.5
       pvtsutils: 1.3.2
-      tslib: 2.4.1
+      tslib: 2.5.0
     dev: false
 
   /webidl-conversions/3.0.1:

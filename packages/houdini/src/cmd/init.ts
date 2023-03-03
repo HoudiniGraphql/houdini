@@ -4,7 +4,7 @@ import fetch from 'node-fetch'
 import { execSync } from 'node:child_process'
 import prompts from 'prompts'
 
-import { fs, parseJSON, path, pullSchema } from '../lib'
+import { detectTools, fs, parseJSON, path, pullSchema } from '../lib'
 import type { ConfigFile } from '../runtime/lib/config'
 
 // the init command is responsible for scaffolding a few files
@@ -35,7 +35,7 @@ export default async function init(
 		}, {})
 	}
 
-	// if no path was given, we	'll use cwd
+	// if no path was given, we'll use cwd
 	const targetPath = _path ? path.resolve(_path) : process.cwd()
 
 	// git check
@@ -216,7 +216,7 @@ export default async function init(
 		module,
 		url: is_remote_endpoint ? url : null,
 	})
-	await fs.writeFile(houdiniClientPath, networkFile(url, typescript))
+	await fs.writeFile(houdiniClientPath, networkFile(url))
 	await graphqlRCFile(targetPath)
 	await gitIgnore(targetPath)
 
@@ -227,9 +227,9 @@ export default async function init(
 	if (framework === 'kit') {
 		await updateSvelteConfig(targetPath, typescript)
 	} else if (framework === 'svelte') {
-		await updateSvelteMainJs(targetPath)
+		await updateSvelteMainJs(targetPath, typescript)
 	}
-	await updateViteConfig(targetPath, framework)
+	await updateViteConfig(targetPath, framework, typescript)
 	await tjsConfig(targetPath, framework)
 
 	// we're done!
@@ -251,18 +251,16 @@ export default async function init(
 `)
 }
 
-const networkFile = (url: string, typescript: boolean) => `import { HoudiniClient${
-	typescript ? ', type RequestHandler' : ''
-} } from '$houdini';
+const networkFile = (url: string) => `import { HoudiniClient } from '$houdini';
 
 export default new HoudiniClient({
     url: '${url}'
-	
+
     // uncomment this to configure the network call (for things like authentication)
-	// for more information, please visit here: https://www.houdinigraphql.com/guides/authentication
+    // for more information, please visit here: https://www.houdinigraphql.com/guides/authentication
     // fetchParams({ session }) { 
     //     return { 
-	//         headers: {
+    //         headers: {
     //             Authentication: \`Bearer \${session.token}\`,
     //         }
     //     }
@@ -380,29 +378,36 @@ async function tjsConfig(targetPath: string, framework: 'kit' | 'svelte') {
 	return false
 }
 
-async function updateViteConfig(targetPath: string, framework: 'kit' | 'svelte') {
-	const viteConfigPath = path.join(targetPath, 'vite.config.js')
+async function updateViteConfig(
+	targetPath: string,
+	framework: 'kit' | 'svelte',
+	typescript: boolean
+) {
+	const viteConfigPath = path.join(targetPath, typescript ? 'vite.config.ts' : 'vite.config.js')
 
-	const viteConfigKit = `import { sveltekit } from '@sveltejs/kit/vite';
-import houdini from 'houdini/vite';
+	const viteConfigKit = `import { sveltekit } from '@sveltejs/kit/vite'
+import houdini from 'houdini/vite'
+import { defineConfig } from 'vite'
 
-/** @type {import('vite').UserConfig} */
-const config = {
-	plugins: [houdini(), sveltekit()],
-}
-
-export default config;
+export default defineConfig({
+	plugins: [houdini(), sveltekit()]
+});
 `
 
-	const viteConfigSvelte = `import { svelte } from '@sveltejs/vite-plugin-svelte';
-import houdini from 'houdini/vite';
+	const viteConfigSvelte = `import { svelte } from '@sveltejs/vite-plugin-svelte'
+import houdini from 'houdini/vite'
+import * as path from 'path'
+import { defineConfig } from 'vite'
 
-/** @type {import('vite').UserConfig} */
-const config = {
+export default defineConfig({
 	plugins: [houdini(), svelte()],
-}
 
-export default config;
+	resolve: {
+		alias: {
+			$houdini: path.resolve('$houdini'),
+		},
+	},
+})	
 `
 
 	let content
@@ -465,13 +470,12 @@ export default config;
 	})
 }
 
-async function updateSvelteMainJs(targetPath: string) {
-	const svelteMainJsPath = path.join(targetPath, 'main.js')
+async function updateSvelteMainJs(targetPath: string, typescript: boolean) {
+	const svelteMainJsPath = path.join(targetPath, 'src', typescript ? 'main.ts' : 'main.js')
 
-	const newContent = `import client from "../client";
+	const newContent = `import client from "./client";
 import './app.css'
 import App from './App.svelte'
-import { logGreen } from '@kitql/helper'
 
 client.init();
 
@@ -534,66 +538,6 @@ async function gitIgnore(targetPath: string) {
 
 	if (!existing.includes('\n$houdini\n')) {
 		await fs.writeFile(filepath, existing + '\n$houdini\n')
-	}
-}
-
-type DetectedTools = {
-	typescript: boolean
-	framework: 'kit' | 'sapper' | 'svelte'
-	module: 'esm' | 'commonjs'
-	package_manager: 'npm' | 'yarn' | 'pnpm'
-}
-
-async function detectTools(cwd: string): Promise<DetectedTools> {
-	// if there's no package.json then there's nothing we can detect
-	try {
-		const packageJSONFile = await fs.readFile(path.join(cwd, 'package.json'))
-		if (packageJSONFile) {
-			var packageJSON = JSON.parse(packageJSONFile)
-		} else {
-			throw new Error('not found')
-		}
-	} catch {
-		throw new Error(
-			'❌ houdini init must target an existing node project (with a package.json)'
-		)
-	}
-
-	// grab the dev dependencies
-	const { devDependencies, dependencies } = packageJSON
-
-	const hasDependency = (dep: string) => Boolean(devDependencies?.[dep] || dependencies?.[dep])
-
-	let framework: 'svelte' | 'kit' = 'svelte'
-	if (hasDependency('@sveltejs/kit')) {
-		framework = 'kit'
-	}
-
-	let typescript = false
-	try {
-		await fs.stat(path.join(cwd, 'tsconfig.json'))
-		typescript = true
-	} catch {}
-
-	// package manager?
-	let package_manager: 'npm' | 'yarn' | 'pnpm' = 'npm'
-	let dir = cwd
-	do {
-		if (fs.existsSync(path.join(dir, 'pnpm-lock.yaml'))) {
-			package_manager = 'pnpm'
-			break
-		}
-		if (fs.existsSync(path.join(dir, 'yarn.lock'))) {
-			package_manager = 'yarn'
-			break
-		}
-	} while (dir !== (dir = path.dirname(dir)))
-
-	return {
-		typescript,
-		framework,
-		module: packageJSON['type'] === 'module' ? 'esm' : 'commonjs',
-		package_manager,
 	}
 }
 

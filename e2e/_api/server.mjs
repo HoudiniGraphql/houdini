@@ -1,3 +1,4 @@
+import { logGreen } from '@kitql/helper'
 import { useServer } from 'graphql-ws/lib/use/ws'
 import { createYoga, createSchema } from 'graphql-yoga'
 import { createServer } from 'node:http'
@@ -80,6 +81,14 @@ mutation AddUser {
 		},
 		wsServer
 	)
+
+	httpServer.prependOnceListener('error', (err) => {
+		if (err.code === 'EADDRINUSE') {
+			console.info(logGreen(` 🧐 Port 4000 is already in use.`))
+			console.info(logGreen(` ✅ API probably started by another e2e test, It's all good.`))
+			process.exit(0)
+		}
+	})
 
 	httpServer.listen(4000, () => {
 		console.info('Server is running on http://localhost:4000/graphql')

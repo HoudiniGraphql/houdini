@@ -91,11 +91,12 @@ jobs:
             - name: Tests
               run: pnpm run tests
 
-    e2e_sveltekit:
+    e2e_tests:
         name: End-to-End Tests
         strategy:
             matrix:
                 os: [ubuntu-latest, windows-latest]
+                framework: [svelte, sveltekit]
         runs-on: ${{ matrix.os }}
 
         steps:
@@ -156,8 +157,8 @@ jobs:
             - name: Build packages
               run: pnpm run compile
 
-            - name: End-to-End Tests sveltekit
-              run: pnpm run --filter sveltekit build && pnpm --filter sveltekit tests
+            - name: End-to-End Tests ${{ matrix.framework }}
+              run: pnpm run --filter ${{ matrix.framework }} build && pnpm --filter ${{ matrix.framework }} tests
 
     e2e_sveltekit_linter:
         name: End-to-End Linter
