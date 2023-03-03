@@ -264,7 +264,7 @@ importers:
 
     packages/houdini-plugin-svelte-global-stores:
         specifiers:
-            '@sveltejs/kit': ^1.3.9
+            '@sveltejs/kit': ^1.9.3
             houdini: workspace:^
             houdini-svelte: workspace:^
             recast: ^0.23.1
@@ -272,7 +272,7 @@ importers:
             svelte: ^0.0.1
             vitest: ^0.28.3
         dependencies:
-            '@sveltejs/kit': 1.3.9_svelte@3.55.1+vite@4.1.1
+            '@sveltejs/kit': 1.9.3_svelte@3.55.1+vite@4.1.1
             houdini: link:../houdini
             houdini-svelte: link:../houdini-svelte
             recast: 0.23.1
@@ -307,7 +307,7 @@ importers:
     packages/houdini-svelte:
         specifiers:
             '@kitql/helper': ^0.5.0
-            '@sveltejs/kit': ^1.3.9
+            '@sveltejs/kit': ^1.9.3
             '@types/minimatch': ^5.1.2
             ast-types: ^0.16.1
             estree-walker: ^3.0.1
@@ -321,7 +321,7 @@ importers:
             vitest: ^0.28.3
         dependencies:
             '@kitql/helper': 0.5.0
-            '@sveltejs/kit': 1.3.9_svelte@3.55.1+vite@4.1.1
+            '@sveltejs/kit': 1.9.3_svelte@3.55.1+vite@4.1.1
             ast-types: 0.16.1
             estree-walker: 3.0.1
             graphql: 15.8.0
@@ -2556,6 +2556,37 @@ packages:
             vite: 4.1.1
         transitivePeerDependencies:
             - supports-color
+
+    /@sveltejs/kit/1.9.3_svelte@3.55.1+vite@4.1.1:
+        resolution:
+            {
+                integrity: sha512-rh9FbGfS8w328JZSZmG/ahabBbE50TisHvfz4sVNU3IM3AOhgUAv3EhAJ2dij9R8uARbDHRTY8jOQbIPjcKBZQ==,
+            }
+        engines: { node: ^16.14 || >=18 }
+        hasBin: true
+        requiresBuild: true
+        peerDependencies:
+            svelte: ^3.54.0
+            vite: ^4.0.0
+        dependencies:
+            '@sveltejs/vite-plugin-svelte': 2.0.2_svelte@3.55.1+vite@4.1.1
+            '@types/cookie': 0.5.1
+            cookie: 0.5.0
+            devalue: 4.3.0
+            esm-env: 1.0.0
+            kleur: 4.1.5
+            magic-string: 0.30.0
+            mime: 3.0.0
+            sade: 1.8.1
+            set-cookie-parser: 2.5.1
+            sirv: 2.0.2
+            svelte: 3.55.1
+            tiny-glob: 0.2.9
+            undici: 5.20.0
+            vite: 4.1.1
+        transitivePeerDependencies:
+            - supports-color
+        dev: false
 
     /@sveltejs/vite-plugin-svelte/2.0.2_svelte@3.55.1+vite@4.1.1:
         resolution:
@@ -5227,6 +5258,13 @@ packages:
             {
                 integrity: sha512-JG6Q248aN0pgFL57e3zqTVeFraBe+5W2ugvv1mLXsJP6YYIYJhRZhAl7QP8haJrqob6X10F9NEkuCvNILZTPeQ==,
             }
+
+    /devalue/4.3.0:
+        resolution:
+            {
+                integrity: sha512-n94yQo4LI3w7erwf84mhRUkUJfhLoCZiLyoOZ/QFsDbcWNZePrLwbQpvZBUG2TNxwV3VjCKPxkiiQA6pe3TrTA==,
+            }
+        dev: false
 
     /diff-sequences/29.3.1:
         resolution:
@@ -8852,6 +8890,16 @@ packages:
         dependencies:
             '@jridgewell/sourcemap-codec': 1.4.14
 
+    /magic-string/0.30.0:
+        resolution:
+            {
+                integrity: sha512-LA+31JYDJLs82r2ScLrlz1GjSgu66ZV518eyWT+S8VhyQn/JL0u9MeBOvQMGYiPk1DBiSN9DDMOcXvigJZaViQ==,
+            }
+        engines: { node: '>=12' }
+        dependencies:
+            '@jridgewell/sourcemap-codec': 1.4.14
+        dev: false
+
     /make-dir/3.1.0:
         resolution:
             {
@@ -12346,6 +12394,16 @@ packages:
         engines: { node: '>=12.18' }
         dependencies:
             busboy: 1.6.0
+
+    /undici/5.20.0:
+        resolution:
+            {
+                integrity: sha512-J3j60dYzuo6Eevbawwp1sdg16k5Tf768bxYK4TUJRH7cBM4kFCbf3mOnM/0E3vQYXvpxITbbWmBafaDbxLDz3g==,
+            }
+        engines: { node: '>=12.18' }
+        dependencies:
+            busboy: 1.6.0
+        dev: false
 
     /unified/10.1.2:
         resolution:
