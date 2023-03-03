@@ -244,7 +244,7 @@ export function inlineType({
 			result.members.push(
 				readonlyProperty(
 					AST.tsPropertySignature(
-						AST.identifier(fragmentKey),
+						AST.stringLiteral(fragmentKey),
 						AST.tsTypeAnnotation(
 							AST.tsTypeLiteral(
 								(fragmentSpreads || []).map((fragmentSpread) =>

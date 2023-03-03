@@ -1,5 +1,5 @@
 import type { StatementKind, TSTypeKind } from 'ast-types/lib/gen/kinds'
-import type { Document } from 'houdini'
+import { Document, fragmentKey } from 'houdini'
 import { parseJS, path, fs, ArtifactKind, ensureImports } from 'houdini'
 import * as recast from 'recast'
 
@@ -80,7 +80,7 @@ export default async function fragmentTypedefs(input: PluginGenerateInput) {
 				// build up the documentInput with the query string as a hard coded value
 				const fragment_map = AST.tsTypeLiteral([
 					AST.tsPropertySignature(
-						AST.identifier(' $fragments'),
+						AST.stringLiteral(fragmentKey),
 						AST.tsTypeAnnotation(
 							AST.tsTypeLiteral([
 								AST.tsPropertySignature(

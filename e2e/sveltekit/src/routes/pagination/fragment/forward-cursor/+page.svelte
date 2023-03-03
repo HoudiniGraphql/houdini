@@ -11,7 +11,7 @@
 
   $: fragmentResult = paginatedFragment(
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    $queryResult.data?.user,
+    $queryResult.data?.user ?? null,
     graphql(`
       fragment ForwardsCursorFragment on User {
         friendsConnection(first: 2) @paginate {
