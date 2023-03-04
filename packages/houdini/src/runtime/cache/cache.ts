@@ -1,5 +1,5 @@
 import { computeKey } from '../lib'
-import type { ConfigFile } from '../lib/config'
+import { ConfigFile, getCurrentConfig } from '../lib/config'
 import { computeID, defaultConfigValues, keyFieldsForType } from '../lib/config'
 import { deepEquals } from '../lib/deepEquals'
 import { flatten } from '../lib/flatten'
@@ -30,7 +30,7 @@ export class Cache {
 	// label accomplishes this but would not prevent someone using vanilla js
 	_internal_unstable: CacheInternal
 
-	constructor(config?: ConfigFile & { disabled?: boolean }) {
+	constructor({ disabled, ...config }: ConfigFile & { disabled?: boolean } = {}) {
 		this._internal_unstable = new CacheInternal({
 			cache: this,
 			storage: new InMemoryStorage(),
@@ -39,10 +39,10 @@ export class Cache {
 			lifetimes: new GarbageCollector(this),
 			staleManager: new StaleManager(this),
 			schema: new SchemaManager(this),
-			disabled: config?.disabled ?? typeof globalThis.window === 'undefined',
+			disabled: disabled ?? typeof globalThis.window === 'undefined',
 		})
 
-		if (config) {
+		if (Object.keys(config).length > 0) {
 			this.setConfig(defaultConfigValues(config))
 		}
 	}
@@ -191,19 +191,17 @@ export class Cache {
 	getFieldTime(id: string, field: string) {
 		return this._internal_unstable.staleManager.getFieldTime(id, field)
 	}
+
+	config(): ConfigFile {
+		return this._internal_unstable.config
+	}
 }
 
 class CacheInternal {
 	// for server-side requests we need to be able to flag the cache as disabled so we dont write to it
 	private _disabled = false
 
-	config: ConfigFile = defaultConfigValues({
-		plugins: {
-			'houdini-svelte': {
-				client: '',
-			},
-		},
-	})
+	_config?: ConfigFile
 	storage: InMemoryStorage
 	subscriptions: InMemorySubscriptions
 	lists: ListManager
@@ -221,6 +219,7 @@ class CacheInternal {
 		staleManager,
 		schema,
 		disabled,
+		config,
 	}: {
 		storage: InMemoryStorage
 		subscriptions: InMemorySubscriptions
@@ -230,6 +229,7 @@ class CacheInternal {
 		staleManager: StaleManager
 		schema: SchemaManager
 		disabled: boolean
+		config?: ConfigFile
 	}) {
 		this.storage = storage
 		this.subscriptions = subscriptions
@@ -238,6 +238,7 @@ class CacheInternal {
 		this.lifetimes = lifetimes
 		this.staleManager = staleManager
 		this.schema = schema
+		this._config = config
 
 		// the cache should always be disabled on the server, unless we're testing
 		this._disabled = disabled
@@ -250,8 +251,12 @@ class CacheInternal {
 		}
 	}
 
+	get config(): ConfigFile {
+		return this._config ?? getCurrentConfig()
+	}
+
 	setConfig(config: ConfigFile) {
-		this.config = config
+		this._config = config
 	}
 
 	writeSelection({
@@ -814,7 +819,6 @@ class CacheInternal {
 		] of Object.entries(targetSelection)) {
 			// skip masked fields when reading values
 			if (!visible && !ignoreMasking) {
-				console.log('skipping', keyRaw, visible, ignoreMasking)
 				continue
 			}
 
