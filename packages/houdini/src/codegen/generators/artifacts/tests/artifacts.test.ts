@@ -3994,6 +3994,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('tracks paginate mode', async function () {
+		const config = testConfig()
+
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
