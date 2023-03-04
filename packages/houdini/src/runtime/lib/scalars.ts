@@ -129,66 +129,6 @@ export function marshalInputs<T>({
 	)
 }
 
-export function unmarshalSelection(
-	config: ConfigFile,
-	selection: SubscriptionSelection,
-	data: any
-): {} | null | undefined {
-	if (data === null || typeof data === 'undefined') {
-		return data
-	}
-
-	// if we are looking at a list
-	if (Array.isArray(data)) {
-		// unmarshal every entry in the list
-		return data.map((val) => unmarshalSelection(config, selection, val))
-	}
-
-	const targetSelection = getFieldsForType(selection, data['__typename'] as string)
-
-	// we're looking at an object, build it up from the current input
-	return Object.fromEntries(
-		Object.entries(data as {}).map(([fieldName, value]) => {
-			// look up the type for the field
-			const { type, selection } = targetSelection[fieldName]
-			// if we don't have type information for this field, just use it directly
-			// it's most likely a non-custom scalars or enums
-			if (!type) {
-				return [fieldName, value]
-			}
-
-			// if there is a sub selection, walk down the selection
-			if (selection) {
-				return [
-					fieldName,
-					// unmarshalSelection({ artifact, config, input: value, rootType: type }),
-					unmarshalSelection(config, selection, value),
-				]
-			}
-			if (value === null) {
-				return [fieldName, value]
-			}
-			// is the type something that requires marshaling
-			if (config.scalars?.[type]?.marshal) {
-				const unmarshalFn = config.scalars[type]?.unmarshal
-				if (!unmarshalFn) {
-					throw new Error(
-						`scalar type ${type} is missing an \`unmarshal\` function. see https://github.com/AlecAivazis/houdini#%EF%B8%8Fcustom-scalars`
-					)
-				}
-				if (Array.isArray(value)) {
-					return [fieldName, value.map(unmarshalFn)]
-				}
-				return [fieldName, unmarshalFn(value)]
-			}
-
-			// if the type doesn't require marshaling and isn't a referenced type
-			// then the type is a scalar that doesn't require marshaling
-			return [fieldName, value]
-		})
-	)
-}
-
 // we can't use config.isScalar because that would require bundling in ~/common
 export function isScalar(config: ConfigFile, type: string) {
 	return ['String', 'Boolean', 'Float', 'ID', 'Int']

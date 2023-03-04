@@ -1,6 +1,6 @@
 import { computeKey } from '../lib'
-import { ConfigFile, getCurrentConfig } from '../lib/config'
-import { computeID, defaultConfigValues, keyFieldsForType } from '../lib/config'
+import type { ConfigFile } from '../lib/config'
+import { computeID, defaultConfigValues, keyFieldsForType, getCurrentConfig } from '../lib/config'
 import { deepEquals } from '../lib/deepEquals'
 import { flatten } from '../lib/flatten'
 import { getFieldsForType } from '../lib/selection'

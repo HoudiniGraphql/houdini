@@ -3,7 +3,7 @@ import type { Layer } from '../cache/storage'
 import type { ConfigFile } from '../lib/config'
 import { getCurrentConfig } from '../lib/config'
 import { deepEquals } from '../lib/deepEquals'
-import { marshalInputs, unmarshalSelection } from '../lib/scalars'
+import { marshalInputs } from '../lib/scalars'
 import { Writable } from '../lib/store'
 import type {
 	DocumentArtifact,
