@@ -1,7 +1,7 @@
 import { logGreen, logYellow } from '@kitql/helper'
 import * as graphql from 'graphql'
 
-import type { Config, Document, LogLevels } from '../../lib'
+import type { Config, Document, LogLevels, PaginateModes } from '../../lib'
 import {
 	definitionFromAncestors,
 	LogLevel,
@@ -174,7 +174,7 @@ export default async function typeCheck(config: Config, docs: Document[]): Promi
 
 				// look up the name of the list
 				const nameArg = directive.arguments?.find(
-					({ name }) => name.value === config.listNameArg
+					({ name }) => name.value === config.listOrPaginateNameArg
 				)
 
 				if (!nameArg) {
@@ -902,7 +902,16 @@ function paginateArgs(config: Config, filepath: string) {
 						)
 					}
 
-					if (forward && backwards) {
+					// paginateMode
+					const paginateModeArg = node?.arguments?.find(
+						(arg) => arg.name.value === config.paginateModeArg
+					)
+					let paginateMode: PaginateModes = config.defaultPaginateMode
+					if (paginateModeArg && paginateModeArg.value.kind === 'EnumValue') {
+						paginateMode = paginateModeArg.value.value as PaginateModes
+					}
+
+					if (forward && backwards && paginateMode === 'Infinite') {
 						ctx.reportError(
 							new graphql.GraphQLError(
 								`A field with cursor pagination cannot go forwards an backwards simultaneously`

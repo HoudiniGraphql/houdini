@@ -19,8 +19,8 @@
 	"devDependencies": {
 		"@babel/parser": "^7.20.7",
 		"@playwright/test": "1.30.0",
-		"@sveltejs/adapter-vercel": "^2.0.2",
-		"@sveltejs/kit": "1.5.0",
+		"@sveltejs/adapter-vercel": "1.0.6",
+		"@sveltejs/kit": "1.9.3",
 		"@typescript-eslint/eslint-plugin": "^5.50.0",
 		"@typescript-eslint/parser": "^5.50.0",
 		"eslint": "^8.33.0",
@@ -42,6 +42,7 @@
 	},
 	"dependencies": {
 		"@sveltejs/adapter-auto": "^2.0.0",
+		"@sveltejs/adapter-netlify": "^2.0.5",
 		"feather-icons": "^4.28.0",
 		"flexsearch": "^0.7.31",
 		"lodash": "^4.17.21",

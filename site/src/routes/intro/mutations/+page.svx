@@ -135,7 +135,7 @@ Then, open up `src/routes/[[id]]/+page.svelte`, add imports for `FavoritePreview
 
 ```svelte:title=src/routes/[[id]]/+page.svelte&typescriptToggle=true
 <script lang="ts">
-    import { FavoritePreview, FavoritesContainer } from '$houdini'
+    import { FavoritePreview, FavoritesContainer } from '~/components'
 </script>
 
 <!-- this should go in the root of your component, just before the Container -->

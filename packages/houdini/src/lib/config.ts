@@ -3,8 +3,8 @@ import * as graphql from 'graphql'
 import minimatch from 'minimatch'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
-import type { CachePolicies, ConfigFile } from '../runtime/lib'
-import { CachePolicy } from '../runtime/lib'
+import type { CachePolicies, ConfigFile, PaginateModes } from '../runtime/lib'
+import { CachePolicy, PaginateMode } from '../runtime/lib'
 import { computeID, defaultConfigValues, keyFieldsForType } from '../runtime/lib/config'
 import { houdini_mode } from './constants'
 import { HoudiniError } from './error'
@@ -39,6 +39,7 @@ export class Config {
 	defaultPartial: boolean
 	internalListPosition: 'first' | 'last'
 	defaultListTarget: 'all' | null = null
+	defaultPaginateMode: PaginateModes
 	definitionsFolder?: string
 	newDocuments: string = ''
 	defaultKeys: string[] = ['id']
@@ -83,6 +84,7 @@ export class Config {
 			defaultPartial = false,
 			defaultListPosition = 'append',
 			defaultListTarget = null,
+			defaultPaginateMode = PaginateMode.Infinite,
 			defaultKeys,
 			types = {},
 			logLevel,
@@ -122,6 +124,7 @@ export class Config {
 		this.defaultPartial = defaultPartial
 		this.internalListPosition = defaultListPosition === 'append' ? 'last' : 'first'
 		this.defaultListTarget = defaultListTarget
+		this.defaultPaginateMode = defaultPaginateMode
 		this.definitionsFolder = definitionsPath
 		this.logLevel = ((logLevel as LogLevels) || LogLevel.Summary).toLowerCase() as LogLevels
 		this.defaultFragmentMasking = defaultFragmentMasking
@@ -540,7 +543,7 @@ export class Config {
 		return 'allLists'
 	}
 
-	get listNameArg() {
+	get listOrPaginateNameArg() {
 		return 'name'
 	}
 
@@ -584,8 +587,8 @@ export class Config {
 		return 'paginate'
 	}
 
-	get paginateNameArg() {
-		return 'name'
+	get paginateModeArg() {
+		return 'mode'
 	}
 
 	get cacheDirective() {
@@ -642,7 +645,7 @@ export class Config {
 
 	isInternalEnum(node: graphql.EnumTypeDefinitionNode): boolean {
 		// if we are looking at an enum, it could be CachePolicy
-		return node.name.value === 'CachePolicy'
+		return node.name.value === 'CachePolicy' || node.name.value === 'PaginateMode'
 	}
 
 	isInternalDirective(name: string): boolean {

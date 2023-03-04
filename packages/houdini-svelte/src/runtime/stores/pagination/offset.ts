@@ -11,11 +11,11 @@ import { countPage, missingPageSizeError } from './pageInfo'
 
 export function offsetHandlers<_Data extends GraphQLObject, _Input extends {}>({
 	artifact,
-	fetch,
-	fetchUpdate,
 	storeName,
 	getState,
 	getVariables,
+	fetch: parentFetch,
+	fetchUpdate: parentFetchUpdate,
 }: {
 	artifact: QueryArtifact
 	fetch: FetchFn<_Data, _Input>
@@ -59,12 +59,16 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends {}>({
 				throw missingPageSizeError('loadNextPage')
 			}
 
+			// Get the Pagination Mode
+			let isSinglePage = artifact.refetch?.mode === 'SinglePage'
+
 			// send the query
-			await fetchUpdate({
+			const targetFetch = isSinglePage ? parentFetch : parentFetchUpdate
+			await targetFetch({
 				variables: queryVariables as _Input,
 				fetch,
 				metadata,
-				policy: CachePolicy.NetworkOnly,
+				policy: isSinglePage ? artifact.policy : CachePolicy.NetworkOnly,
 				session: await getSession(),
 			})
 
@@ -81,7 +85,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends {}>({
 
 			// if the input is different than the query variables then we just do everything like normal
 			if (variables && !deepEquals(getVariables(), variables)) {
-				return fetch.call(this, params)
+				return parentFetch.call(this, params)
 			}
 
 			// we are updating the current set of items, count the number of items that currently exist
@@ -97,7 +101,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends {}>({
 			}
 
 			// send the query
-			return await fetch.call(this, {
+			return await parentFetch.call(this, {
 				...params,
 				variables: queryVariables as _Input,
 			})

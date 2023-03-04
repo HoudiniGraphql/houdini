@@ -55,7 +55,8 @@ test('adds pagination info to full', async function () {
 		    "embedded": false,
 		    "targetType": "Query",
 		    "paginated": true,
-		    "direction": "both"
+		    "direction": "both",
+		    "mode": "Infinite"
 		}
 	`)
 })
@@ -91,7 +92,8 @@ test('paginated fragments on node pull data from one field deeper', async functi
 		    "embedded": true,
 		    "targetType": "Node",
 		    "paginated": true,
-		    "direction": "both"
+		    "direction": "both",
+		    "mode": "Infinite"
 		}
 	`)
 })
@@ -422,7 +424,8 @@ test('embeds node pagination query as a separate document', async function () {
 		        "embedded": true,
 		        "targetType": "Node",
 		        "paginated": true,
-		        "direction": "forward"
+		        "direction": "forward",
+		        "mode": "Infinite"
 		    },
 
 		    "raw": \`query UserFriends_Pagination_Query($first: Int = 10, $after: String, $id: ID!) {
@@ -686,7 +689,8 @@ test('embeds custom pagination query as a separate document', async function () 
 		        "embedded": true,
 		        "targetType": "Ghost",
 		        "paginated": true,
-		        "direction": "forward"
+		        "direction": "forward",
+		        "mode": "Infinite"
 		    },
 
 		    "raw": \`query UserGhost_Pagination_Query($first: Int = 10, $after: String, $name: String!, $aka: String!) {
@@ -1327,7 +1331,8 @@ test('refetch specification with backwards pagination', async function () {
 		    "embedded": false,
 		    "targetType": "Query",
 		    "paginated": true,
-		    "direction": "both"
+		    "direction": "both",
+		    "mode": "Infinite"
 		}
 	`)
 })
@@ -1364,7 +1369,8 @@ test('refetch entry with initial backwards', async function () {
 		    "targetType": "Query",
 		    "paginated": true,
 		    "direction": "both",
-		    "start": "1234"
+		    "start": "1234",
+		    "mode": "Infinite"
 		}
 	`)
 })
@@ -1401,7 +1407,8 @@ test('refetch entry with initial forwards', async function () {
 		    "targetType": "Query",
 		    "paginated": true,
 		    "direction": "both",
-		    "start": "1234"
+		    "start": "1234",
+		    "mode": "Infinite"
 		}
 	`)
 })
@@ -1441,7 +1448,8 @@ test('generated query has same refetch spec', async function () {
 		        "targetType": "Query",
 		        "paginated": true,
 		        "direction": "both",
-		        "start": "1234"
+		        "start": "1234",
+		        "mode": "Infinite"
 		    },
 
 		    "raw": \`query UserFriends_Pagination_Query($first: Int = 10, $after: String = "1234", $last: Int, $before: String) {
@@ -1613,7 +1621,8 @@ test('refetch specification with offset pagination', async function () {
 		    "embedded": false,
 		    "targetType": "Query",
 		    "paginated": true,
-		    "direction": "forward"
+		    "direction": "forward",
+		    "mode": "Infinite"
 		}
 	`)
 })
@@ -1646,7 +1655,170 @@ test('refetch specification with initial offset', async function () {
 		    "targetType": "Query",
 		    "paginated": true,
 		    "direction": "forward",
-		    "start": 10
+		    "start": 10,
+		    "mode": "Infinite"
 		}
+	`)
+})
+
+test('default defaultPaginateMode to SinglePage', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`fragment UserFriends on Query {
+				usersByCursor(first: 10) @paginate {
+					edges {
+						node {
+							id
+						}
+					}
+				}
+			}
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig({ defaultPaginateMode: 'SinglePage' })
+	await runPipeline(config, docs)
+
+	// load the contents of the file
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "UserFriends",
+		    "kind": "HoudiniFragment",
+		    "hash": "c0276291ccf0e89ecf3e2c0fd68314703c62c8dca06915e602f931297be94c3c",
+
+		    "refetch": {
+		        "path": ["usersByCursor"],
+		        "method": "cursor",
+		        "pageSize": 10,
+		        "embedded": false,
+		        "targetType": "Query",
+		        "paginated": true,
+		        "direction": "both",
+		        "mode": "SinglePage"
+		    },
+
+		    "raw": \`fragment UserFriends on Query {
+		  usersByCursor(first: $first, after: $after, last: $last, before: $before) {
+		    edges {
+		      node {
+		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
+		        __typename
+		      }
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
+		}
+		\`,
+
+		    "rootType": "Query",
+
+		    "selection": {
+		        "fields": {
+		            "usersByCursor": {
+		                "type": "UserConnection",
+		                "keyRaw": "usersByCursor(after: $after, before: $before, first: $first, last: $last)::paginated",
+
+		                "selection": {
+		                    "fields": {
+		                        "edges": {
+		                            "type": "UserEdge",
+		                            "keyRaw": "edges",
+		                            "updates": ["append", "prepend"],
+
+		                            "selection": {
+		                                "fields": {
+		                                    "node": {
+		                                        "type": "User",
+		                                        "keyRaw": "node",
+		                                        "nullable": true,
+
+		                                        "selection": {
+		                                            "fields": {
+		                                                "id": {
+		                                                    "type": "ID",
+		                                                    "keyRaw": "id"
+		                                                },
+
+		                                                "__typename": {
+		                                                    "type": "String",
+		                                                    "keyRaw": "__typename"
+		                                                }
+		                                            }
+		                                        }
+		                                    },
+
+		                                    "cursor": {
+		                                        "type": "String",
+		                                        "keyRaw": "cursor"
+		                                    }
+		                                }
+		                            }
+		                        },
+
+		                        "pageInfo": {
+		                            "type": "PageInfo",
+		                            "keyRaw": "pageInfo",
+
+		                            "selection": {
+		                                "fields": {
+		                                    "hasPreviousPage": {
+		                                        "type": "Boolean",
+		                                        "keyRaw": "hasPreviousPage",
+		                                        "updates": ["append", "prepend"]
+		                                    },
+
+		                                    "hasNextPage": {
+		                                        "type": "Boolean",
+		                                        "keyRaw": "hasNextPage",
+		                                        "updates": ["append", "prepend"]
+		                                    },
+
+		                                    "startCursor": {
+		                                        "type": "String",
+		                                        "keyRaw": "startCursor",
+		                                        "updates": ["append", "prepend"]
+		                                    },
+
+		                                    "endCursor": {
+		                                        "type": "String",
+		                                        "keyRaw": "endCursor",
+		                                        "updates": ["append", "prepend"]
+		                                    }
+		                                }
+		                            }
+		                        }
+		                    }
+		                }
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+
+		    "input": {
+		        "fields": {
+		            "first": "Int",
+		            "after": "String",
+		            "last": "Int",
+		            "before": "String"
+		        },
+
+		        "types": {}
+		    }
+		};
+
+		"HoudiniHash=c0276291ccf0e89ecf3e2c0fd68314703c62c8dca06915e602f931297be94c3c";
 	`)
 })

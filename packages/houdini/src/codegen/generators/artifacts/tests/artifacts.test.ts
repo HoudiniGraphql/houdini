@@ -592,7 +592,8 @@ test('paginate over unions', async function () {
 		        "embedded": false,
 		        "targetType": "Query",
 		        "paginated": true,
-		        "direction": "both"
+		        "direction": "both",
+		        "mode": "Infinite"
 		    },
 
 		    "raw": \`query TestQuery($first: Int = 10, $after: String, $last: Int, $before: String) {
@@ -3811,7 +3812,8 @@ describe('mutation artifacts', function () {
 			        "embedded": false,
 			        "targetType": "Query",
 			        "paginated": true,
-			        "direction": "both"
+			        "direction": "both",
+			        "mode": "Infinite"
 			    },
 
 			    "raw": \`query TestQuery($first: Int = 10, $after: String, $last: Int, $before: String) {
@@ -3988,6 +3990,212 @@ describe('mutation artifacts', function () {
 			};
 
 			"HoudiniHash=9aec53bb0325a811ba8adfc41b04524f0ed859aa1b0f9d5e04d4bc02f639e52f";
+		`)
+	})
+
+	test('tracks paginate mode', async function () {
+		const docs = [
+			mockCollectedDoc(
+				`mutation A {
+					addFriend {
+						friend {
+							...All_Users_insert @prepend @parentID(value: "1234")
+						}
+					}
+				}`
+			),
+			mockCollectedDoc(
+				`query TestQuery {
+					usersByCursor(first: 10) @paginate(name: "All_Users", mode: SinglePage) {
+						edges {
+							node {
+								firstName
+							}
+						}
+					}
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, docs)
+
+		// load the contents of the file
+		expect(docs[1]).toMatchInlineSnapshot(`
+			export default {
+			    "name": "TestQuery",
+			    "kind": "HoudiniQuery",
+			    "hash": "930593f99a19ddef0943d66ce3c4539f18938a25410028bfd4cf68554552f1d0",
+
+			    "refetch": {
+			        "path": ["usersByCursor"],
+			        "method": "cursor",
+			        "pageSize": 10,
+			        "embedded": false,
+			        "targetType": "Query",
+			        "paginated": true,
+			        "direction": "both",
+			        "mode": "SinglePage"
+			    },
+
+			    "raw": \`query TestQuery($first: Int = 10, $after: String, $last: Int, $before: String) {
+			  usersByCursor(first: $first, after: $after, last: $last, before: $before) {
+			    edges {
+			      node {
+			        firstName
+			        id
+			      }
+			    }
+			    edges {
+			      cursor
+			      node {
+			        __typename
+			      }
+			    }
+			    pageInfo {
+			      hasPreviousPage
+			      hasNextPage
+			      startCursor
+			      endCursor
+			    }
+			  }
+			}
+			\`,
+
+			    "rootType": "Query",
+
+			    "selection": {
+			        "fields": {
+			            "usersByCursor": {
+			                "type": "UserConnection",
+			                "keyRaw": "usersByCursor(after: $after, before: $before, first: $first, last: $last)::paginated",
+
+			                "list": {
+			                    "name": "All_Users",
+			                    "connection": true,
+			                    "type": "User"
+			                },
+
+			                "selection": {
+			                    "fields": {
+			                        "edges": {
+			                            "type": "UserEdge",
+			                            "keyRaw": "edges",
+			                            "updates": ["append", "prepend"],
+
+			                            "selection": {
+			                                "fields": {
+			                                    "node": {
+			                                        "type": "User",
+			                                        "keyRaw": "node",
+			                                        "nullable": true,
+
+			                                        "selection": {
+			                                            "fields": {
+			                                                "firstName": {
+			                                                    "type": "String",
+			                                                    "keyRaw": "firstName"
+			                                                },
+
+			                                                "id": {
+			                                                    "type": "ID",
+			                                                    "keyRaw": "id"
+			                                                },
+
+			                                                "__typename": {
+			                                                    "type": "String",
+			                                                    "keyRaw": "__typename"
+			                                                }
+			                                            }
+			                                        }
+			                                    },
+
+			                                    "cursor": {
+			                                        "type": "String",
+			                                        "keyRaw": "cursor"
+			                                    }
+			                                }
+			                            }
+			                        },
+
+			                        "pageInfo": {
+			                            "type": "PageInfo",
+			                            "keyRaw": "pageInfo",
+
+			                            "selection": {
+			                                "fields": {
+			                                    "hasPreviousPage": {
+			                                        "type": "Boolean",
+			                                        "keyRaw": "hasPreviousPage",
+			                                        "updates": ["append", "prepend"]
+			                                    },
+
+			                                    "hasNextPage": {
+			                                        "type": "Boolean",
+			                                        "keyRaw": "hasNextPage",
+			                                        "updates": ["append", "prepend"]
+			                                    },
+
+			                                    "startCursor": {
+			                                        "type": "String",
+			                                        "keyRaw": "startCursor",
+			                                        "updates": ["append", "prepend"]
+			                                    },
+
+			                                    "endCursor": {
+			                                        "type": "String",
+			                                        "keyRaw": "endCursor",
+			                                        "updates": ["append", "prepend"]
+			                                    }
+			                                }
+			                            }
+			                        }
+			                    }
+			                },
+
+			                "filters": {
+			                    "first": {
+			                        "kind": "Variable",
+			                        "value": "first"
+			                    },
+
+			                    "after": {
+			                        "kind": "Variable",
+			                        "value": "after"
+			                    },
+
+			                    "last": {
+			                        "kind": "Variable",
+			                        "value": "last"
+			                    },
+
+			                    "before": {
+			                        "kind": "Variable",
+			                        "value": "before"
+			                    }
+			                }
+			            }
+			        }
+			    },
+
+			    "pluginData": {},
+
+			    "input": {
+			        "fields": {
+			            "first": "Int",
+			            "after": "String",
+			            "last": "Int",
+			            "before": "String"
+			        },
+
+			        "types": {}
+			    },
+
+			    "policy": "CacheOrNetwork",
+			    "partial": false
+			};
+
+			"HoudiniHash=930593f99a19ddef0943d66ce3c4539f18938a25410028bfd4cf68554552f1d0";
 		`)
 	})
 

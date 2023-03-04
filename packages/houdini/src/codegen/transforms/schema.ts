@@ -2,7 +2,7 @@ import * as graphql from 'graphql'
 
 import type { Config, Document } from '../../lib'
 import { siteURL } from '../../lib'
-import { CachePolicy } from '../../runtime/lib/types'
+import { CachePolicy, PaginateMode } from '../../runtime/lib/types'
 
 // graphqlExtensions adds a few different things to the graphql schema
 export default async function graphqlExtensions(
@@ -18,17 +18,22 @@ enum CachePolicy {
 	${CachePolicy.NetworkOnly}
 }
 
+enum PaginateMode {
+	${PaginateMode.Infinite}
+	${PaginateMode.SinglePage}
+}
+
 """
 	@${config.listDirective} is used to mark a field for the runtime as a place to add or remove
 	entities in mutations
 """
-directive @${config.listDirective}(${config.listNameArg}: String!, connection: Boolean) on FIELD
+directive @${config.listDirective}(${config.listOrPaginateNameArg}: String!, connection: Boolean) on FIELD
 
 """
 	@${config.paginateDirective} is used to to mark a field for pagination.
 	More info in the [doc](${siteURL}/guides/pagination).
 """
-directive @${config.paginateDirective}(${config.paginateNameArg}: String) on FIELD
+directive @${config.paginateDirective}(${config.listOrPaginateNameArg}: String, ${config.paginateModeArg}: PaginateMode) on FIELD
 
 """
 	@${config.listPrependDirective} is used to tell the runtime to add the result to the end of the list

@@ -1,10 +1,10 @@
 import * as graphql from 'graphql'
 
 import type { Config, Document } from '../../../lib'
-import { getRootType, HoudiniError, deepMerge } from '../../../lib'
+import { deepMerge, getRootType, HoudiniError } from '../../../lib'
 import {
-	type MutationOperation,
 	RefetchUpdateMode,
+	type MutationOperation,
 	type SubscriptionSelection,
 } from '../../../runtime/lib/types'
 import { connectionSelection } from '../../transforms/list'
@@ -204,7 +204,9 @@ function prepareSelection({
 			const listDirective = field.directives?.find((directive) =>
 				[config.listDirective, config.paginateDirective].includes(directive.name.value)
 			)
-			const nameArg = listDirective?.arguments?.find((arg) => arg.name.value === 'name')
+			const nameArg = listDirective?.arguments?.find(
+				(arg) => arg.name.value === config.listOrPaginateNameArg
+			)
 			if (nameArg && nameArg.value.kind === 'StringValue') {
 				const { connection, type: connectionType } = connectionSelection(
 					config,

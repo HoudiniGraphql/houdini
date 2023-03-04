@@ -1,5 +1,5 @@
-import type { PluginHooks, Config } from 'houdini'
-import { plugin, HoudiniError, path, fs } from 'houdini'
+import type { Config, PluginHooks } from 'houdini'
+import { detectFromPackageJSON, fs, HoudiniError, path, plugin } from 'houdini'
 import * as url from 'node:url'
 import { loadEnv } from 'vite'
 
@@ -11,8 +11,8 @@ import {
 	plugin_config,
 	resolve_relative,
 	stores_directory,
-	store_name,
 	store_import_path,
+	store_name,
 	type Framework,
 } from './kit'
 import apply_transforms from './transforms'
@@ -43,7 +43,7 @@ export const pluginHooks = async (): Promise<PluginHooks> => ({
 		'adapter.js': ({ content }) => {
 			// dedicated sveltekit adapter.
 			const sveltekit_adapter = `import { browser, building } from '$app/environment'
-import { error as svelteKitError } from '@sveltejs/kit'
+import { error as svelteKitError, redirect as svelteKitRedirect } from '@sveltejs/kit'
 
 export const isBrowser = browser
 
@@ -56,6 +56,7 @@ export function setClientStarted() {
 export const isPrerender = building
 
 export const error = svelteKitError
+export const redirect = svelteKitRedirect
 `
 
 			return framework === 'kit' ? sveltekit_adapter : content
@@ -172,11 +173,9 @@ export const error = svelteKitError
 			})
 		}
 
-		// try to import the kit module
-		try {
-			await import('@sveltejs/kit')
-			framework = 'kit'
-		} catch {}
+		// detect if we are in a svelte or sveltekit project
+		const detected = await detectFromPackageJSON(process.cwd())
+		framework = detected.framework === 'kit' ? 'kit' : 'svelte'
 	},
 
 	async env({ config }) {

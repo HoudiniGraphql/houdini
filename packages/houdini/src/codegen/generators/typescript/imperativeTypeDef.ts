@@ -299,7 +299,9 @@ function listDefinitions(
 				}
 
 				// we only care about processing lists with names (and only once)
-				const nameArg = node.arguments?.find((arg) => arg.name.value === 'name')
+				const nameArg = node.arguments?.find(
+					(arg) => arg.name.value === config.listOrPaginateNameArg
+				)
 				const nameValue = (nameArg?.value as graphql.StringValueNode)?.value || ''
 				if (!nameValue || visitedLists.has(nameValue)) {
 					return

@@ -39,7 +39,8 @@ test('pagination arguments stripped from key', async function () {
 		        "embedded": true,
 		        "targetType": "Node",
 		        "paginated": true,
-		        "direction": "both"
+		        "direction": "both",
+		        "mode": "Infinite"
 		    },
 
 		    "raw": \`fragment PaginatedFragment on User {
@@ -194,6 +195,173 @@ test('pagination arguments stripped from key', async function () {
 	`)
 })
 
+test('pagination arguments stays in key as it s a SinglePage Mode', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+            fragment PaginatedFragment on User {
+                friendsByCursor(first:10, filter: "hello") @paginate(mode: SinglePage) {
+                    edges {
+                        node {
+                            id
+                        }
+                    }
+                }
+            }
+        `
+		),
+	]
+
+	await runPipeline(config, docs)
+
+	// look at the artifact for the generated pagination query
+	await expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "PaginatedFragment",
+		    "kind": "HoudiniFragment",
+		    "hash": "e826a62f4d540f02ed7358a9516e439e05b316a7e0035343fc928f296aedf2ea",
+
+		    "refetch": {
+		        "path": ["friendsByCursor"],
+		        "method": "cursor",
+		        "pageSize": 10,
+		        "embedded": true,
+		        "targetType": "Node",
+		        "paginated": true,
+		        "direction": "both",
+		        "mode": "SinglePage"
+		    },
+
+		    "raw": \`fragment PaginatedFragment on User {
+		  friendsByCursor(
+		    first: $first
+		    filter: "hello"
+		    after: $after
+		    last: $last
+		    before: $before
+		  ) {
+		    edges {
+		      node {
+		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
+		        __typename
+		      }
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
+		}
+		\`,
+
+		    "rootType": "User",
+
+		    "selection": {
+		        "fields": {
+		            "friendsByCursor": {
+		                "type": "UserConnection",
+		                "keyRaw": "friendsByCursor(after: $after, before: $before, filter: \\"hello\\", first: $first, last: $last)::paginated",
+
+		                "selection": {
+		                    "fields": {
+		                        "edges": {
+		                            "type": "UserEdge",
+		                            "keyRaw": "edges",
+		                            "updates": ["append", "prepend"],
+
+		                            "selection": {
+		                                "fields": {
+		                                    "node": {
+		                                        "type": "User",
+		                                        "keyRaw": "node",
+		                                        "nullable": true,
+
+		                                        "selection": {
+		                                            "fields": {
+		                                                "id": {
+		                                                    "type": "ID",
+		                                                    "keyRaw": "id"
+		                                                },
+
+		                                                "__typename": {
+		                                                    "type": "String",
+		                                                    "keyRaw": "__typename"
+		                                                }
+		                                            }
+		                                        }
+		                                    },
+
+		                                    "cursor": {
+		                                        "type": "String",
+		                                        "keyRaw": "cursor"
+		                                    }
+		                                }
+		                            }
+		                        },
+
+		                        "pageInfo": {
+		                            "type": "PageInfo",
+		                            "keyRaw": "pageInfo",
+
+		                            "selection": {
+		                                "fields": {
+		                                    "hasPreviousPage": {
+		                                        "type": "Boolean",
+		                                        "keyRaw": "hasPreviousPage",
+		                                        "updates": ["append", "prepend"]
+		                                    },
+
+		                                    "hasNextPage": {
+		                                        "type": "Boolean",
+		                                        "keyRaw": "hasNextPage",
+		                                        "updates": ["append", "prepend"]
+		                                    },
+
+		                                    "startCursor": {
+		                                        "type": "String",
+		                                        "keyRaw": "startCursor",
+		                                        "updates": ["append", "prepend"]
+		                                    },
+
+		                                    "endCursor": {
+		                                        "type": "String",
+		                                        "keyRaw": "endCursor",
+		                                        "updates": ["append", "prepend"]
+		                                    }
+		                                }
+		                            }
+		                        }
+		                    }
+		                }
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+
+		    "input": {
+		        "fields": {
+		            "first": "Int",
+		            "after": "String",
+		            "last": "Int",
+		            "before": "String"
+		        },
+
+		        "types": {}
+		    }
+		};
+
+		"HoudiniHash=e826a62f4d540f02ed7358a9516e439e05b316a7e0035343fc928f296aedf2ea";
+	`)
+})
+
 test('offset based pagination marks appropriate field', async function () {
 	const docs = [
 		mockCollectedDoc(
@@ -223,7 +391,8 @@ test('offset based pagination marks appropriate field', async function () {
 		        "embedded": true,
 		        "targetType": "Node",
 		        "paginated": true,
-		        "direction": "forward"
+		        "direction": "forward",
+		        "mode": "Infinite"
 		    },
 
 		    "raw": \`fragment PaginatedFragment on User {
@@ -321,7 +490,8 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		        "embedded": false,
 		        "targetType": "Query",
 		        "paginated": true,
-		        "direction": "both"
+		        "direction": "both",
+		        "mode": "Infinite"
 		    },
 
 		    "raw": \`query ScalarPagination($first: Int = 10, $after: Cursor, $last: Int, $before: Cursor) {
@@ -591,7 +761,8 @@ test("sibling aliases don't get marked", async function () {
 		        "embedded": true,
 		        "targetType": "Node",
 		        "paginated": true,
-		        "direction": "both"
+		        "direction": "both",
+		        "mode": "Infinite"
 		    },
 
 		    "raw": \`fragment PaginatedFragment on User {

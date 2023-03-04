@@ -2,7 +2,7 @@ import type { GraphQLSchema } from 'graphql'
 
 import config from '../imports/config'
 import pluginConfigs from '../imports/pluginConfig'
-import type { CachePolicies } from './types'
+import type { CachePolicies, PaginateModes } from './types'
 
 let mockConfig: ConfigFile | null = null
 
@@ -147,6 +147,11 @@ export type ConfigFile = {
 	 * Specifies whether mutation should apply a specific target list. When you set `all`, it's like adding the directive `@allLists` to all _insert fragment (default: `null`)
 	 */
 	defaultListTarget?: 'all' | null
+
+	/**
+	 * Specifies whether the default paginate mode is Infinite or SinglePage. (default: `Infinite`)
+	 */
+	defaultPaginateMode?: PaginateModes
 
 	/**
 	 * A list of fields to use when computing a record’s id. The default value is ['id']. For more information: https://www.houdinigraphql.com/guides/caching-data#custom-ids
