@@ -814,6 +814,7 @@ class CacheInternal {
 		] of Object.entries(targetSelection)) {
 			// skip masked fields when reading values
 			if (!visible && !ignoreMasking) {
+				console.log('skipping', keyRaw, visible, ignoreMasking)
 				continue
 			}
 
@@ -894,6 +895,7 @@ class CacheInternal {
 					variables,
 					linkedList: value as NestedList,
 					stepsFromConnection: nextStep,
+					ignoreMasking,
 				})
 
 				// save the hydrated list
