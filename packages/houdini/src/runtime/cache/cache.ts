@@ -87,6 +87,7 @@ export class Cache {
 						parent: spec.parentID || rootID,
 						selection: spec.selection,
 						variables: spec.variables?.() || {},
+						ignoreMasking: false,
 					}).data
 				)
 			}
@@ -894,6 +895,7 @@ class CacheInternal {
 					variables,
 					linkedList: value as NestedList,
 					stepsFromConnection: nextStep,
+					ignoreMasking: !!ignoreMasking,
 				})
 
 				// save the hydrated list
@@ -997,7 +999,7 @@ class CacheInternal {
 		variables?: {}
 		linkedList: NestedList
 		stepsFromConnection: number | null
-		ignoreMasking?: boolean
+		ignoreMasking: boolean
 	}): { data: NestedList<GraphQLValue>; partial: boolean; stale: boolean; hasData: boolean } {
 		// the linked list could be a deeply nested thing, we need to call getData for each record
 		// we can't mutate the lists because that would change the id references in the listLinks map
