@@ -6,20 +6,18 @@
   // And it can be undefined... because : <UserName user={$GQL_Page_User.data?.user} />
   export let user: UserName | undefined;
 
-  $: data =
-    user &&
-    fragment(
-      user,
-      graphql(/* GraphQL */ `
-        fragment UserName on User {
-          name
-        }
-      `)
-    );
+  $: frag = fragment(
+    user ?? null,
+    graphql(`
+      fragment UserName on User {
+        name
+      }
+    `)
+  );
 </script>
 
-{#if $data}
-  {$data.name}
+{#if $frag}
+  {$frag.name}
 {:else}
   <Loading />
 {/if}
