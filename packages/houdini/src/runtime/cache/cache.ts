@@ -791,7 +791,10 @@ class CacheInternal {
 			target[fragmentKey] = Object.fromEntries(
 				Object.entries(selection.fragments).map(([key, value]) => [
 					key,
-					evaluateFragmentVariables(value, variables ?? {}),
+					{
+						parent,
+						variables: evaluateFragmentVariables(value, variables ?? {}),
+					},
 				])
 			)
 		}

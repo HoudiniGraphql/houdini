@@ -2,7 +2,7 @@ import { test, expect } from 'vitest'
 
 import { testConfigFile } from '../../../test'
 import type { SubscriptionSelection } from '../../lib'
-import { Cache } from '../cache'
+import { Cache, rootID } from '../cache'
 
 const config = testConfigFile()
 
@@ -1846,7 +1846,10 @@ test('recreates fragment references', function () {
 				id: '1',
 				' $fragments': {
 					TestFragment: {
-						value: 'hello!',
+						parent: 'User:1',
+						variables: {
+							value: 'hello!',
+						},
 					},
 				},
 			},
@@ -1909,7 +1912,10 @@ test('recreates fragment references on root', function () {
 			},
 			' $fragments': {
 				TestFragment: {
-					value: 'hello!',
+					parent: rootID,
+					variables: {
+						value: 'hello!',
+					},
 				},
 			},
 		},
@@ -1973,7 +1979,10 @@ test('recreates fragment references with variables', function () {
 			viewer: {
 				' $fragments': {
 					TestFragment: {
-						value: 'hello!',
+						parent: 'User:1',
+						variables: {
+							value: 'hello!',
+						},
 					},
 				},
 				id: '1',

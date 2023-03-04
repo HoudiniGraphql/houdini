@@ -31,16 +31,11 @@ export class FragmentStore<_Data extends GraphQLObject, _Input extends {} = {}> 
 	get(
 		initialValue: _Data | null
 	): FragmentStoreInstance<_Data | null, _Input> & { initialValue: _Data | null } {
-		// we have to compute the id of the parent
-		const parentID = initialValue
-			? cache._internal_unstable.id(this.artifact.rootType, initialValue)
-			: initialValue
-
 		// @ts-expect-error: typescript can't guarantee that the fragment key is defined
 		// but if its not, then the fragment wasn't mixed into the right thing
 		// the variables for the fragment live on the initial value's $fragment key
-		const variables = initialValue?.[fragmentKey]?.[this.artifact.name]
-		if (initialValue?.[fragmentKey] && !variables && isBrowser) {
+		const { variables, parent } = initialValue?.[fragmentKey]?.[this.artifact.name] ?? {}
+		if (initialValue?.[fragmentKey] && (!variables || !parent) && isBrowser) {
 			console.warn(
 				`⚠️ Parent does not contain the information for this fragment. Something is wrong.
 Please ensure that you have passed a record that has ${this.artifact.name} mixed into it.`
@@ -49,10 +44,10 @@ Please ensure that you have passed a record that has ${this.artifact.name} mixed
 
 		// on the client, we want to ensure that we apply masking to the initial value by
 		// loading the value from cache
-		if (initialValue && parentID && isBrowser) {
+		if (initialValue && parent && isBrowser) {
 			initialValue = cache.read({
 				selection: this.artifact.selection,
-				parent: parentID,
+				parent,
 				variables,
 			}).data as _Data
 		}
@@ -62,8 +57,8 @@ Please ensure that you have passed a record that has ${this.artifact.name} mixed
 			artifact: this.artifact,
 			initialValue,
 		})
-		if (parentID) {
-			store.observer.send({ variables, setup: true, stuff: { parentID } })
+		if (parent) {
+			store.observer.send({ variables, setup: true, stuff: { parentID: parent } })
 		}
 
 		return {

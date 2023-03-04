@@ -28,6 +28,7 @@ const artifact: QueryArtifact = {
 	kind: ArtifactKind.Query,
 	hash: 'hash',
 	raw: 'does not matter',
+	pluginData: {},
 	selection: {
 		fields: {
 			items: {
