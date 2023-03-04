@@ -3,7 +3,7 @@ import type { Layer } from '../cache/storage'
 import type { ConfigFile } from '../lib/config'
 import { getCurrentConfig } from '../lib/config'
 import { deepEquals } from '../lib/deepEquals'
-import { marshalInputs, unmarshalSelection } from '../lib/scalars'
+import { marshalInputs } from '../lib/scalars'
 import { Writable } from '../lib/store'
 import type {
 	DocumentArtifact,
@@ -346,21 +346,9 @@ export class DocumentStore<
 			)
 		}
 
-		// convert the raw value into something we can give to the user
-		let data = value!.data
-		try {
-			data = unmarshalSelection(this.#configFile!, this.#artifact.selection, data) ?? null
-		} catch {}
-
-		// build up the final state
-		const finalValue = {
-			...value,
-			data,
-		} as QueryResult<_Data, _Input>
-
 		// if the promise hasn't been resolved yet, do it
 		if (!ctx.promise.resolved) {
-			ctx.promise.resolve(finalValue)
+			ctx.promise.resolve(value)
 
 			// make sure we dont resolve it again
 			ctx.promise.resolved = true
@@ -370,11 +358,11 @@ export class DocumentStore<
 		this.#lastVariables = this.#lastContext.stuff.inputs.marshaled
 
 		// if the final value is partial and we aren't supposed to send one back, don't update anything
-		if (ctx.silenceEcho && finalValue.data === this.state.data) {
+		if (ctx.silenceEcho && value.data === this.state.data) {
 			return
 		}
 		// the latest value should be written to the store
-		this.set(finalValue)
+		this.set(value)
 	}
 }
 

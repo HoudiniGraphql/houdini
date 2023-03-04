@@ -116,7 +116,7 @@ describe('typescript', function () {
 			export type TestFragment = {
 			    readonly "shape"?: TestFragment$data;
 			    readonly " $fragments": {
-			        "TestFragment": true;
+			        "TestFragment": any;
 			    };
 			};
 
@@ -153,7 +153,7 @@ describe('typescript', function () {
 			export type TestFragment = {
 			    readonly "shape"?: TestFragment$data;
 			    readonly " $fragments": {
-			        "TestFragment": true;
+			        "TestFragment": any;
 			    };
 			};
 
@@ -190,7 +190,7 @@ describe('typescript', function () {
 			export type TestFragment = {
 			    readonly "shape"?: TestFragment$data;
 			    readonly " $fragments": {
-			        "TestFragment": true;
+			        "TestFragment": any;
 			    };
 			};
 
@@ -223,7 +223,7 @@ describe('typescript', function () {
 			export type TestFragment = {
 			    readonly "shape"?: TestFragment$data;
 			    readonly " $fragments": {
-			        "TestFragment": true;
+			        "TestFragment": any;
 			    };
 			};
 
@@ -257,7 +257,7 @@ describe('typescript', function () {
 			export type TestFragment = {
 			    readonly "shape"?: TestFragment$data;
 			    readonly " $fragments": {
-			        "TestFragment": true;
+			        "TestFragment": any;
 			    };
 			};
 
@@ -292,7 +292,7 @@ describe('typescript', function () {
 			export type TestFragment = {
 			    readonly "shape"?: TestFragment$data;
 			    readonly " $fragments": {
-			        "TestFragment": true;
+			        "TestFragment": any;
 			    };
 			};
 
@@ -1401,7 +1401,7 @@ describe('typescript', function () {
 			export type UserMore = {
 			    readonly "shape"?: UserMore$data;
 			    readonly " $fragments": {
-			        "UserMore": true;
+			        "UserMore": any;
 			    };
 			};
 
@@ -1492,7 +1492,7 @@ describe('typescript', function () {
 			export type UserMore = {
 			    readonly "shape"?: UserMore$data;
 			    readonly " $fragments": {
-			        "UserMore": true;
+			        "UserMore": any;
 			    };
 			};
 

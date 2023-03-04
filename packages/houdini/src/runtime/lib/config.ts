@@ -37,7 +37,6 @@ export function keyFieldsForType(configFile: ConfigFile, type: string) {
 
 export function computeID(configFile: ConfigFile, type: string, data: any): string {
 	const fields = keyFieldsForType(configFile, type)
-
 	let id = ''
 
 	for (const field of fields) {

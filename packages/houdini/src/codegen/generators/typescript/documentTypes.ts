@@ -420,9 +420,7 @@ async function generateFragmentTypeDefs(
 									AST.tsTypeLiteral([
 										AST.tsPropertySignature(
 											AST.stringLiteral(propTypeName),
-											AST.tsTypeAnnotation(
-												AST.tsLiteralType(AST.booleanLiteral(true))
-											)
+											AST.tsTypeAnnotation(AST.tsAnyKeyword())
 										),
 									])
 								)

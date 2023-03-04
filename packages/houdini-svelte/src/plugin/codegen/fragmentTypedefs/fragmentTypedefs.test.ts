@@ -69,7 +69,7 @@ test('generates types for fragments', async function () {
 		        " $fragments": {
 		            TestFragment: any;
 		        };
-		    } | null,
+		    } | null | undefined,
 		    document: TestFragmentStore
 		): FragmentStoreInstance<TestFragment$data | null>;
 
@@ -177,7 +177,7 @@ test('generates types for paginated fragments', async function () {
 		        " $fragments": {
 		            TestFragment: any;
 		        };
-		    } | null,
+		    } | null | undefined,
 		    document: TestFragmentStore
 		): CursorFragmentStoreInstance<TestFragment$data | null, TestFragment$input>;
 
@@ -203,7 +203,7 @@ test('generates types for paginated fragments', async function () {
 		        " $fragments": {
 		            TestFragment: any;
 		        };
-		    } | null,
+		    } | null | undefined,
 		    document: TestFragmentStore
 		): CursorFragmentStoreInstance<TestFragment$data | null, TestFragment$input>;
 
