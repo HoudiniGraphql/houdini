@@ -4096,28 +4096,36 @@ describe('mutation artifacts', function () {
 			                                            "fields": {
 			                                                "firstName": {
 			                                                    "type": "String",
-			                                                    "keyRaw": "firstName"
+			                                                    "keyRaw": "firstName",
+			                                                    "visible": true
 			                                                },
 
 			                                                "id": {
 			                                                    "type": "ID",
-			                                                    "keyRaw": "id"
+			                                                    "keyRaw": "id",
+			                                                    "visible": true
 			                                                },
 
 			                                                "__typename": {
 			                                                    "type": "String",
-			                                                    "keyRaw": "__typename"
+			                                                    "keyRaw": "__typename",
+			                                                    "visible": true
 			                                                }
 			                                            }
-			                                        }
+			                                        },
+
+			                                        "visible": true
 			                                    },
 
 			                                    "cursor": {
 			                                        "type": "String",
-			                                        "keyRaw": "cursor"
+			                                        "keyRaw": "cursor",
+			                                        "visible": true
 			                                    }
 			                                }
-			                            }
+			                            },
+
+			                            "visible": true
 			                        },
 
 			                        "pageInfo": {
@@ -4129,28 +4137,34 @@ describe('mutation artifacts', function () {
 			                                    "hasPreviousPage": {
 			                                        "type": "Boolean",
 			                                        "keyRaw": "hasPreviousPage",
-			                                        "updates": ["append", "prepend"]
+			                                        "updates": ["append", "prepend"],
+			                                        "visible": true
 			                                    },
 
 			                                    "hasNextPage": {
 			                                        "type": "Boolean",
 			                                        "keyRaw": "hasNextPage",
-			                                        "updates": ["append", "prepend"]
+			                                        "updates": ["append", "prepend"],
+			                                        "visible": true
 			                                    },
 
 			                                    "startCursor": {
 			                                        "type": "String",
 			                                        "keyRaw": "startCursor",
-			                                        "updates": ["append", "prepend"]
+			                                        "updates": ["append", "prepend"],
+			                                        "visible": true
 			                                    },
 
 			                                    "endCursor": {
 			                                        "type": "String",
 			                                        "keyRaw": "endCursor",
-			                                        "updates": ["append", "prepend"]
+			                                        "updates": ["append", "prepend"],
+			                                        "visible": true
 			                                    }
 			                                }
-			                            }
+			                            },
+
+			                            "visible": true
 			                        }
 			                    }
 			                },
@@ -4175,7 +4189,9 @@ describe('mutation artifacts', function () {
 			                        "kind": "Variable",
 			                        "value": "before"
 			                    }
-			                }
+			                },
+
+			                "visible": true
 			            }
 			        }
 			    },

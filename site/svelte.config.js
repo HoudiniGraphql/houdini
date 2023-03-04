@@ -1,4 +1,4 @@
-import adapter from '@sveltejs/adapter-vercel'
+import adapter from '@sveltejs/adapter-netlify'
 import { mdsvex } from 'mdsvex'
 import path from 'path'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
