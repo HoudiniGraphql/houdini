@@ -581,7 +581,7 @@ describe('typescript', function () {
 			export type MyMutation$result = {
 			    readonly doThing: {
 			        readonly firstName: string;
-			        readonly  $fragments: {
+			        readonly " $fragments": {
 			            TestFragment: {};
 			        };
 			    } | null;
@@ -700,7 +700,7 @@ describe('typescript', function () {
 
 			export type MyQuery$result = {
 			    readonly user: {
-			        readonly  $fragments: {
+			        readonly " $fragments": {
 			            Foo: {};
 			        };
 			    } | null;
@@ -739,7 +739,7 @@ describe('typescript', function () {
 			export type MyQuery$result = {
 			    readonly user: {
 			        readonly firstName: string;
-			        readonly  $fragments: {
+			        readonly " $fragments": {
 			            Foo: {};
 			        };
 			    };
@@ -1217,7 +1217,7 @@ describe('typescript', function () {
 			export type MyMutation$result = {
 			    readonly doThing: {
 			        readonly id: string;
-			        readonly  $fragments: {
+			        readonly " $fragments": {
 			            My_Users_remove: {};
 			            My_Users_insert: {};
 			        };
@@ -1314,11 +1314,11 @@ describe('typescript', function () {
 			        readonly friends: ({
 			            readonly id: string;
 			            readonly firstName: string;
-			            readonly  $fragments: {
+			            readonly " $fragments": {
 			                UserBase: {};
 			            };
 			        } | null)[] | null;
-			        readonly  $fragments: {
+			        readonly " $fragments": {
 			            UserBase: {};
 			            UserMore: {};
 			        };
@@ -1383,7 +1383,7 @@ describe('typescript', function () {
 			    readonly user: {
 			        readonly id: string;
 			        readonly firstName: string;
-			        readonly  $fragments: {
+			        readonly " $fragments": {
 			            UserBase: {};
 			            UserMore: {};
 			        };
@@ -1407,7 +1407,7 @@ describe('typescript', function () {
 
 			export type UserMore$data = {
 			    readonly friends: ({
-			        readonly  $fragments: {
+			        readonly " $fragments": {
 			            UserBase: {};
 			        };
 			    } | null)[] | null;
@@ -1470,11 +1470,11 @@ describe('typescript', function () {
 			        readonly friends: ({
 			            readonly id: string;
 			            readonly firstName: string;
-			            readonly  $fragments: {
+			            readonly " $fragments": {
 			                UserBase: {};
 			            };
 			        } | null)[] | null;
-			        readonly  $fragments: {
+			        readonly " $fragments": {
 			            UserBase: {};
 			            UserMore: {};
 			        };
@@ -1500,7 +1500,7 @@ describe('typescript', function () {
 			    readonly friends: ({
 			        readonly id: string;
 			        readonly firstName: string;
-			        readonly  $fragments: {
+			        readonly " $fragments": {
 			            UserBase: {};
 			        };
 			    } | null)[] | null;
