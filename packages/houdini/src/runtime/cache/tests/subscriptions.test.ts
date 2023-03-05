@@ -2245,6 +2245,76 @@ test('overlapping subscriptions', function () {
 	expect(set2).toHaveBeenCalledTimes(2)
 })
 
+test('ignore hidden fields', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				nullable: true,
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							visible: true,
+							keyRaw: 'id',
+						},
+						favoriteColors: {
+							type: 'String',
+							keyRaw: 'favoriteColors',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// write some data
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				__typename: 'User',
+				id: '1',
+				firstName: 'bob',
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = vi.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		selection,
+		set,
+	})
+
+	// write to the favoriteColors field to make sure we didn't get an update
+	cache.write({
+		selection: {
+			fields: {
+				favoriteColors: {
+					type: 'String',
+					keyRaw: 'favoriteColors',
+				},
+			},
+		},
+		data: {
+			favoriteColors: ['blue'],
+		},
+		parent: 'User:1',
+	})
+
+	// make sure we didn't call the update
+	expect(set).not.toHaveBeenCalled()
+})
+
 test.todo('can write to and resolve layers')
 
 test.todo("resolving a layer with the same value as the most recent doesn't notify subscribers")
