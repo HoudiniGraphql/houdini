@@ -1,5 +1,11 @@
 # houdini-svelte
 
+## 1.0.9
+
+### 🐛 Fixes
+
+-   [#971](https://github.com/HoudiniGraphql/houdini/pull/971) [`cb96d192`](https://github.com/HoudiniGraphql/houdini/commit/cb96d192419610f29a1ae029e8ceb9fbb9fbfec2) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix svelte dependency
+
 ## 1.0.8
 
 ### ✨ Features
