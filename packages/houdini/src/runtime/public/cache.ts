@@ -1,5 +1,5 @@
 import type { Cache as _Cache } from '../cache/cache'
-import { marshalInputs, type QueryArtifact } from '../lib'
+import { getCurrentConfig, marshalInputs, type QueryArtifact } from '../lib'
 import { ListCollection } from './list'
 import { Record } from './record'
 import type {
@@ -53,7 +53,7 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 	}
 
 	get config() {
-		return this._internal_unstable._internal_unstable.config
+		return getCurrentConfig()
 	}
 
 	list<Name extends ValidLists<Def>>(
