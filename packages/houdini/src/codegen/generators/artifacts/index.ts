@@ -478,7 +478,7 @@ function applyMask(config: Config, target: SubscriptionSelection, mask: Subscrip
 
 		// if the type maps to another type in the selection, use the mapped type
 		const mappedType = target.abstractFields?.typeMap[type]
-		if (target.abstractFields && mappedType) {
+		if (target.abstractFields && mappedType && target.abstractFields.fields[mappedType]) {
 			applyMask(
 				config,
 				{ fields: target.abstractFields.fields[mappedType] },
