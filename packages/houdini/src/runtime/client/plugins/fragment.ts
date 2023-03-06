@@ -18,7 +18,7 @@ export const fragment: ClientPlugin = documentPlugin(ArtifactKind.Fragment, func
 			}
 
 			// if the variables have changed we need to setup a new subscription with the cache
-			if (variablesChanged(ctx)) {
+			if (variablesChanged(ctx) && !ctx.cacheParams?.disableSubscriptions) {
 				// if the variables changed we need to unsubscribe from the old fields and
 				// listen to the new ones
 				if (subscriptionSpec) {

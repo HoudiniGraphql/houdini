@@ -25,7 +25,7 @@ export const query: ClientPlugin = documentPlugin(ArtifactKind.Query, function (
 		// before the promise resolves
 		end(ctx, { resolve, marshalVariables, variablesChanged }) {
 			// if the variables have changed we need to setup a new subscription with the cache
-			if (variablesChanged(ctx)) {
+			if (variablesChanged(ctx) && !ctx.cacheParams?.disableSubscriptions) {
 				// if the variables changed we need to unsubscribe from the old fields and
 				// listen to the new ones
 				if (subscriptionSpec) {

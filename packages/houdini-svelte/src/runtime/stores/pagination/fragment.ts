@@ -154,6 +154,7 @@ export class FragmentStoreCursor<
 					},
 					cacheParams: {
 						applyUpdates: updates,
+						disableSubscriptions: true,
 					},
 				})
 			},
@@ -166,6 +167,9 @@ export class FragmentStoreCursor<
 					variables: {
 						...args?.variables,
 						...this.queryVariables(getState),
+					},
+					cacheParams: {
+						disableSubscriptions: true,
 					},
 				})
 			},
@@ -207,6 +211,9 @@ export class FragmentStoreOffset<
 						...this.queryVariables(getState),
 						...args?.variables,
 					},
+					cacheParams: {
+						disableSubscriptions: true,
+					},
 				})
 			},
 			fetchUpdate: async (args) => {
@@ -219,6 +226,7 @@ export class FragmentStoreOffset<
 						...args?.variables,
 					},
 					cacheParams: {
+						disableSubscriptions: true,
 						applyUpdates: ['append'],
 					},
 				})
