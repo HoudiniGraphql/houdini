@@ -112,6 +112,7 @@ describe('typescript', function () {
 		).toMatchInlineSnapshot(`
 			import { MyEnum } from "$houdini/graphql/enums";
 			import type { ValueOf } from "$houdini/runtime/lib/types";
+			export type TestFragment$input = {};
 
 			export type TestFragment = {
 			    readonly "shape"?: TestFragment$data;
@@ -220,6 +221,8 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
+			export type TestFragment$input = {};
+
 			export type TestFragment = {
 			    readonly "shape"?: TestFragment$data;
 			    readonly " $fragments": {
@@ -254,6 +257,8 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
+			export type TestFragment$input = {};
+
 			export type TestFragment = {
 			    readonly "shape"?: TestFragment$data;
 			    readonly " $fragments": {
@@ -289,6 +294,8 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
+			export type TestFragment$input = {};
+
 			export type TestFragment = {
 			    readonly "shape"?: TestFragment$data;
 			    readonly " $fragments": {
@@ -1398,6 +1405,8 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
+			export type UserMore$input = {};
+
 			export type UserMore = {
 			    readonly "shape"?: UserMore$data;
 			    readonly " $fragments": {
@@ -1489,6 +1498,8 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
+			export type UserMore$input = {};
+
 			export type UserMore = {
 			    readonly "shape"?: UserMore$data;
 			    readonly " $fragments": {

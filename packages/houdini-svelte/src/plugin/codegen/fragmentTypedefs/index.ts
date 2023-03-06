@@ -140,10 +140,7 @@ export default async function fragmentTypedefs(input: PluginGenerateInput) {
 					import: [inputID, shapeID],
 				})
 
-				const typeParams: TSTypeKind[] = []
-				if (doc.refetch?.paginated) {
-					typeParams.push(AST.tsTypeReference(AST.identifier(inputID)))
-				}
+				const typeParams: TSTypeKind[] = [AST.tsTypeReference(AST.identifier(inputID))]
 
 				// the return value for no null input
 				const return_value = AST.tsTypeReference(

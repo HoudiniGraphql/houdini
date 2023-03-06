@@ -62,7 +62,7 @@ test('generates types for fragments', async function () {
 		        };
 		    },
 		    document: TestFragmentStore
-		): FragmentStoreInstance<TestFragment$data>;
+		): FragmentStoreInstance<TestFragment$data, TestFragment$input>;
 
 		export function fragment(
 		    initialValue: {
@@ -71,7 +71,7 @@ test('generates types for fragments', async function () {
 		        };
 		    } | null | undefined,
 		    document: TestFragmentStore
-		): FragmentStoreInstance<TestFragment$data | null>;
+		): FragmentStoreInstance<TestFragment$data | null, TestFragment$input>;
 
 		export declare function fragment<_Fragment extends Fragment<any>>(ref: _Fragment, fragment: FragmentStore<_Fragment["shape"]>): Readable<NonNullable<_Fragment["shape"]>> & {
 		    data: Readable<_Fragment>;
