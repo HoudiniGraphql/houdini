@@ -1610,6 +1610,9 @@ test('overlapping fragments', async function () {
 		export type UserBase$data = {
 		    readonly id: string;
 		    readonly firstName: string;
+		    readonly " $fragments": {
+		        UserMore: {};
+		    };
 		};
 	`)
 })

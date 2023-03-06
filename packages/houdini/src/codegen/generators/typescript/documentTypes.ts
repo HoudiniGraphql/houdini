@@ -1,6 +1,6 @@
 import { logCyan, logGreen } from '@kitql/helper'
 import type { StatementKind } from 'ast-types/lib/gen/kinds'
-import type * as graphql from 'graphql'
+import * as graphql from 'graphql'
 import * as recast from 'recast'
 
 import type { Config, Document } from '../../../lib'
@@ -68,6 +68,7 @@ export async function generateDocumentTypes(config: Config, docs: Document[]) {
 					filepath: filename,
 					selections: definition.selectionSet.selections,
 					fragmentDefinitions,
+					keepFragmentSpreadNodes: true,
 				})
 
 				if (definition?.kind === 'OperationDefinition') {

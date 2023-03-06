@@ -9,12 +9,14 @@ export function flattenSelections({
 	selections,
 	fragmentDefinitions,
 	ignoreMaskDisable,
+	keepFragmentSpreadNodes,
 }: {
 	config: Config
 	filepath: string
 	selections: readonly graphql.SelectionNode[]
 	fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode }
 	ignoreMaskDisable?: boolean
+	keepFragmentSpreadNodes?: boolean
 }): readonly graphql.SelectionNode[] {
 	// collect all of the fields together
 	const fields = new FieldCollection({
@@ -23,6 +25,7 @@ export function flattenSelections({
 		selections,
 		fragmentDefinitions,
 		ignoreMaskDisable: !!ignoreMaskDisable,
+		keepFragmentSpreadNodes: !!keepFragmentSpreadNodes,
 	})
 
 	// convert the flat fields into a selection set
@@ -38,6 +41,7 @@ class FieldCollection {
 	inlineFragments: { [typeName: string]: Field<graphql.InlineFragmentNode> }
 	fragmentSpreads: { [fragmentName: string]: graphql.FragmentSpreadNode }
 	ignoreMaskDisable: boolean
+	keepFragmentSpreadNodes: boolean
 
 	constructor(args: {
 		config: Config
@@ -45,10 +49,12 @@ class FieldCollection {
 		selections: readonly graphql.SelectionNode[]
 		fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode }
 		ignoreMaskDisable: boolean
+		keepFragmentSpreadNodes: boolean
 	}) {
 		this.config = args.config
 		this.fragmentDefinitions = args.fragmentDefinitions
 		this.ignoreMaskDisable = args.ignoreMaskDisable
+		this.keepFragmentSpreadNodes = args.keepFragmentSpreadNodes
 
 		this.fields = {}
 		this.inlineFragments = {}
@@ -183,6 +189,11 @@ class FieldCollection {
 					selections: [...definition.selectionSet.selections],
 				},
 			})
+
+			// make sure we leave this fragment in the selection behind
+			if (this.keepFragmentSpreadNodes) {
+				this.fragmentSpreads[selection.name.value] = selection
+			}
 		}
 	}
 
@@ -286,6 +297,7 @@ class FieldCollection {
 			selections: [],
 			filepath: this.filepath,
 			ignoreMaskDisable: this.ignoreMaskDisable,
+			keepFragmentSpreadNodes: this.keepFragmentSpreadNodes,
 		})
 	}
 }
