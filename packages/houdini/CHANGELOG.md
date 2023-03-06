@@ -2,7 +2,7 @@
 
 ## 1.0.10
 
-### Patch Changes
+### 🐛 Fixes
 
 -   [#974](https://github.com/HoudiniGraphql/houdini/pull/974) [`38a54b8f`](https://github.com/HoudiniGraphql/houdini/commit/38a54b8f6858e35bb6bdf7a09c357959675a555a) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix cache instability flag verification
 
