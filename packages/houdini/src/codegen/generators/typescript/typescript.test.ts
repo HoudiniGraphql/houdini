@@ -1562,3 +1562,54 @@ describe('typescript', function () {
 
 	test.todo('inline fragments')
 })
+
+test('overlapping fragments', async function () {
+	const configWithoutMasking = testConfig({
+		defaultFragmentMasking: 'disable',
+		schema: config.schema,
+	})
+
+	const docs = [
+		mockCollectedDoc(`
+			fragment UserBase on User {
+				id
+				firstName
+				...UserMore
+			}
+		`),
+		mockCollectedDoc(`
+			fragment UserMore on User {
+				id
+				firstName
+			}
+		`),
+	]
+
+	// execute the generator
+	await runPipeline(configWithoutMasking, docs)
+
+	// look up the files in the artifact directory
+	const fragmentFileContents = await fs.readFile(
+		configWithoutMasking.artifactTypePath(docs[0].document)
+	)
+
+	expect(
+		recast.parse(fragmentFileContents!, {
+			parser: typeScriptParser,
+		})
+	).toMatchInlineSnapshot(`
+		export type UserBase$input = {};
+
+		export type UserBase = {
+		    readonly "shape"?: UserBase$data;
+		    readonly " $fragments": {
+		        "UserBase": any;
+		    };
+		};
+
+		export type UserBase$data = {
+		    readonly id: string;
+		    readonly firstName: string;
+		};
+	`)
+})

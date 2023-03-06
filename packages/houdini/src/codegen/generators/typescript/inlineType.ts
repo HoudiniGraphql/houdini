@@ -176,14 +176,23 @@ export function inlineType({
 			}
 		}
 
+		// build up the unique set of attribute names
+		const fields: graphql.FieldNode[] = Object.values(
+			selectedFields
+				.filter((field): field is graphql.FieldNode => field.kind === 'Field')
+				.reduce(
+					(sel, field) => ({
+						...sel,
+						[field.alias?.value ?? field.name.value]: field,
+					}),
+					{}
+				)
+		)
+
 		// turn the set of selected fields into their own type
 		result = AST.tsTypeLiteral([
 			// every field gets an entry in the object
-			...(
-				(selectedFields || []).filter(
-					(field) => field.kind === 'Field'
-				) as graphql.FieldNode[]
-			).map((selection) => {
+			...fields.map((selection) => {
 				// grab the type info for the selection
 				const { field } = selectionTypeInfo(config.schema, filepath, rootObj, selection)
 

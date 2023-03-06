@@ -1,6 +1,6 @@
 import { logCyan, logGreen } from '@kitql/helper'
 import type { StatementKind } from 'ast-types/lib/gen/kinds'
-import type * as graphql from 'graphql'
+import * as graphql from 'graphql'
 import * as recast from 'recast'
 
 import type { Config, Document } from '../../../lib'
@@ -359,8 +359,6 @@ async function generateFragmentTypeDefs(
 		if (!type) {
 			throw new Error('Should not get here')
 		}
-
-		let extraExports: recast.types.namedTypes.ExportNamedDeclaration[] = []
 
 		// a fragment's inputs are always {} unless it has been tagged with the arguments directive
 		let directive = definition.directives?.find(
