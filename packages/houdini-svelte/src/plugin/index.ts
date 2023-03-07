@@ -174,7 +174,7 @@ export const redirect = svelteKitRedirect
 		}
 
 		// detect if we are in a svelte or sveltekit project
-		const detected = await detectFromPackageJSON(process.cwd())
+		const detected = await detectFromPackageJSON(cfg.projectRoot)
 		framework = detected.framework === 'kit' ? 'kit' : 'svelte'
 	},
 
