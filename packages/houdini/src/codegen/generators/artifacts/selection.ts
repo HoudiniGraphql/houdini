@@ -275,25 +275,6 @@ function prepareSelection({
 					typeMap,
 					abstractTypes,
 				})
-
-				// if the field has any fragment spreads in it, we need to record that
-				if (field.selectionSet) {
-					const fragmentSpreads = field.selectionSet.selections.filter(
-						(selection): selection is graphql.FragmentSpreadNode =>
-							selection.kind === 'FragmentSpread'
-					)
-					if (fragmentSpreads.length > 0) {
-						fieldObj.selection.fragments = fragmentSpreads.reduce((spreads, spread) => {
-							const { fragment, args } = config.getFragmentVariablesHash(
-								spread.name.value
-							)
-							return {
-								...spreads,
-								[fragment]: args ?? {},
-							}
-						}, {})
-					}
-				}
 			}
 
 			// any arguments on the list field can act as a filter
@@ -321,6 +302,14 @@ function prepareSelection({
 			object.fields = {
 				...object.fields,
 				[attributeName]: fieldObj,
+			}
+		}
+		// fragment spreads need to be added to the object
+		else if (field.kind === 'FragmentSpread') {
+			const { fragment, args } = config.getFragmentVariablesHash(field.name.value)
+			object.fragments = {
+				...object.fragments,
+				[fragment]: args ?? {},
 			}
 		}
 	}

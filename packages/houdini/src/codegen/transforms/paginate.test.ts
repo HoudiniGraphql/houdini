@@ -1570,6 +1570,46 @@ test('generated query has same refetch spec', async function () {
 
 		                "visible": true
 		            }
+		        },
+
+		        "fragments": {
+		            "UserFriends": {
+		                "first": {
+		                    "kind": "Variable",
+
+		                    "name": {
+		                        "kind": "Name",
+		                        "value": "first"
+		                    }
+		                },
+
+		                "after": {
+		                    "kind": "Variable",
+
+		                    "name": {
+		                        "kind": "Name",
+		                        "value": "after"
+		                    }
+		                },
+
+		                "last": {
+		                    "kind": "Variable",
+
+		                    "name": {
+		                        "kind": "Name",
+		                        "value": "last"
+		                    }
+		                },
+
+		                "before": {
+		                    "kind": "Variable",
+
+		                    "name": {
+		                        "kind": "Name",
+		                        "value": "before"
+		                    }
+		                }
+		            }
 		        }
 		    },
 

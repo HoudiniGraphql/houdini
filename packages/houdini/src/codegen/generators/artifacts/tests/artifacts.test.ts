@@ -5549,3 +5549,72 @@ test('masking disabled', async function () {
 		"HoudiniHash=77d79038702f2dbb57f3af777b214fedb15c7ec5bcd99c2e2fe2146ae8770ded";
 	`)
 })
+
+test('fragment nested in root', async function () {
+	// the config to use in tests
+	const config = testConfig()
+	// the documents to test
+	const docs: Document[] = [
+		mockCollectedDoc(`
+			fragment UserBase on User {
+				id
+				firstName
+				...UserMore
+			}
+		`),
+		mockCollectedDoc(`
+			fragment UserMore on User {
+				id
+				firstName
+			}
+		`),
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "UserBase",
+		    "kind": "HoudiniFragment",
+		    "hash": "05ec5090d31f77c3f2bdcbd26aff116588f63d4b3789ae752759dd172974a628",
+
+		    "raw": \`fragment UserBase on User {
+		  id
+		  firstName
+		  ...UserMore
+		}
+
+		fragment UserMore on User {
+		  id
+		  firstName
+		}
+		\`,
+
+		    "rootType": "User",
+
+		    "selection": {
+		        "fields": {
+		            "id": {
+		                "type": "ID",
+		                "keyRaw": "id",
+		                "visible": true
+		            },
+
+		            "firstName": {
+		                "type": "String",
+		                "keyRaw": "firstName",
+		                "visible": true
+		            }
+		        },
+
+		        "fragments": {
+		            "UserMore": {}
+		        }
+		    },
+
+		    "pluginData": {}
+		};
+
+		"HoudiniHash=05ec5090d31f77c3f2bdcbd26aff116588f63d4b3789ae752759dd172974a628";
+	`)
+})

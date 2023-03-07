@@ -76,6 +76,16 @@ test('pass argument values to generated fragments', async function () {
 		                    }
 		                }
 		            }
+		        },
+
+		        "fragments": {
+		            "QueryFragment": {
+		                "name": {
+		                    "kind": "StringValue",
+		                    "value": "Hello",
+		                    "block": false
+		                }
+		            }
 		        }
 		    },
 
@@ -155,6 +165,10 @@ test("nullable arguments with no values don't show up in the query", async funct
 		                    }
 		                }
 		            }
+		        },
+
+		        "fragments": {
+		            "QueryFragment": {}
 		        }
 		    },
 
@@ -234,6 +248,10 @@ test("fragment arguments with default values don't rename the fragment", async f
 		                    }
 		                }
 		            }
+		        },
+
+		        "fragments": {
+		            "QueryFragment": {}
 		        }
 		    },
 
@@ -322,6 +340,19 @@ test('thread query variables to inner fragments', async function () {
 		                            "keyRaw": "id",
 		                            "visible": true
 		                        }
+		                    }
+		                }
+		            }
+		        },
+
+		        "fragments": {
+		            "QueryFragment": {
+		                "name": {
+		                    "kind": "Variable",
+
+		                    "name": {
+		                        "kind": "Name",
+		                        "value": "name"
 		                    }
 		                }
 		            }
@@ -425,6 +456,10 @@ test('inner fragment with intermediate default value', async function () {
 		                    }
 		                }
 		            }
+		        },
+
+		        "fragments": {
+		            "QueryFragment": {}
 		        }
 		    },
 
@@ -516,6 +551,10 @@ test("default values don't overwrite unless explicitly passed", async function (
 		                    }
 		                }
 		            }
+		        },
+
+		        "fragments": {
+		            "QueryFragment": {}
 		        }
 		    },
 
@@ -595,6 +634,10 @@ test('default arguments', async function () {
 		                    }
 		                }
 		            }
+		        },
+
+		        "fragments": {
+		            "QueryFragment": {}
 		        }
 		    },
 
@@ -682,6 +725,10 @@ test('list arguments', async function () {
 
 		                "abstract": true
 		            }
+		        },
+
+		        "fragments": {
+		            "QueryFragment": {}
 		        }
 		    },
 

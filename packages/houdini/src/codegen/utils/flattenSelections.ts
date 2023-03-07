@@ -155,6 +155,11 @@ class FieldCollection {
 				includeFragments = true
 			}
 
+			// make sure we leave this fragment in the selection behind
+			if (this.keepFragmentSpreadNodes) {
+				this.fragmentSpreads[selection.name.value] = selection
+			}
+
 			// we're finished if we're not supposed to include fragments in the selection
 			if (!includeFragments) {
 				return
@@ -189,11 +194,6 @@ class FieldCollection {
 					selections: [...definition.selectionSet.selections],
 				},
 			})
-
-			// make sure we leave this fragment in the selection behind
-			if (this.keepFragmentSpreadNodes) {
-				this.fragmentSpreads[selection.name.value] = selection
-			}
 		}
 	}
 

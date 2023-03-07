@@ -671,7 +671,17 @@ export class Config {
 		args: ValueMap | null
 		fragment: string
 	}) {
-		this.#fragmentVariableMaps[hash] = { args, fragment }
+		this.#fragmentVariableMaps[hash] = {
+			args: args
+				? {
+						kind: args.kind,
+						value: args.value,
+						fields: args.fields,
+						name: args.name,
+				  }
+				: null,
+			fragment,
+		}
 	}
 	getFragmentVariablesHash(hash: string) {
 		return (

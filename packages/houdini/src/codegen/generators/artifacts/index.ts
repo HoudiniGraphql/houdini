@@ -294,6 +294,7 @@ export default function artifactGenerator(stats: {
 								selections: selectionSet.selections,
 								fragmentDefinitions,
 								ignoreMaskDisable: docKind !== 'HoudiniFragment',
+								keepFragmentSpreadNodes: true,
 							}),
 							operations: operationsByPath(
 								config,
