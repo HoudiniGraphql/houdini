@@ -672,14 +672,7 @@ export class Config {
 		fragment: string
 	}) {
 		this.#fragmentVariableMaps[hash] = {
-			args: args
-				? {
-						kind: args.kind,
-						value: args.value,
-						fields: args.fields,
-						name: args.name,
-				  }
-				: null,
+			args: this.#serializeValueMap(args),
 			fragment,
 		}
 	}
@@ -691,6 +684,47 @@ export class Config {
 				hash,
 			}
 		)
+	}
+
+	#serializeValueMap(map: ValueMap | null): ValueMap | null {
+		if (!map) {
+			return null
+		}
+
+		return Object.fromEntries(
+			Object.entries(map).map(([key, input]) => {
+				// the value we are setting depends on the value of the input
+				const result = {
+					kind: input.kind,
+				}
+				if (typeof input === 'object') {
+					if ('value' in input) {
+						// @ts-ignore
+						result.value = input.value
+					}
+					if ('values' in input) {
+						// @ts-ignore
+						result.values = input.values.map(
+							(value) => this.#serializeValueMap({ foo: value })!.foo!
+						)
+					}
+					if ('name' in input) {
+						// @ts-ignore
+						result.name = input.name
+					}
+
+					if ('fields' in input) {
+						// @ts-ignore
+						result.fields = input.fields.map((field) => ({
+							name: field.name,
+							value: this.#serializeValueMap({ foo: field.value })!.foo!,
+						}))
+					}
+				}
+
+				return [key, result]
+			})
+		) as ValueMap
 	}
 
 	isListFragment(name: string): boolean {

@@ -5283,8 +5283,7 @@ test('fragment variables are embedded in artifact', async function () {
 		                        "NodeDetails": {
 		                            "name": {
 		                                "kind": "StringValue",
-		                                "value": "Foo",
-		                                "block": false
+		                                "value": "Foo"
 		                            }
 		                        }
 		                    }

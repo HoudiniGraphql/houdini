@@ -82,8 +82,7 @@ test('pass argument values to generated fragments', async function () {
 		            "QueryFragment": {
 		                "name": {
 		                    "kind": "StringValue",
-		                    "value": "Hello",
-		                    "block": false
+		                    "value": "Hello"
 		                }
 		            }
 		        }
@@ -728,7 +727,16 @@ test('list arguments', async function () {
 		        },
 
 		        "fragments": {
-		            "QueryFragment": {}
+		            "QueryFragment": {
+		                "ids": {
+		                    "kind": "ListValue",
+
+		                    "values": [{
+		                        "kind": "StringValue",
+		                        "value": "1"
+		                    }]
+		                }
+		            }
 		        }
 		    },
 
