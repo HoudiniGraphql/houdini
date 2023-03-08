@@ -2,9 +2,11 @@
 
 ## 1.0.11
 
-### Patch Changes
+### ✨ Features
 
 -   [#976](https://github.com/HoudiniGraphql/houdini/pull/976) [`bfccee26`](https://github.com/HoudiniGraphql/houdini/commit/bfccee2691e199302afe773cf9505bc0a249872d) Thanks [@jycouet](https://github.com/jycouet)! - add "framework" config setting to overwrite the auto-detection
+
+### Dependency Changes
 
 -   Updated dependencies []:
     -   houdini@1.0.11
