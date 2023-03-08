@@ -32,6 +32,7 @@ type Mutation {
 	deleteCity(city: ID!): City!
 	deleteLibrary(library: ID!): Library!
 	deleteBook(book: ID!): Book!
+	updateRentedBook(userId: String!, bookId: Int!, rate: Int!): RentedBook
 }
 
 interface Node {
@@ -62,6 +63,7 @@ type Query {
 	cities: [City]!
 	userNodesResult(snapshot: String!, forceMessage: Boolean!): UserNodesResult!
 	userResult(id: ID!, snapshot: String!, forceMessage: Boolean!): UserResult!
+	rentedBooks: [RentedBook!]!
 }
 
 type Subscription {
@@ -110,6 +112,12 @@ type City {
 	id: ID!
 	name: String!
 	libraries: [Library]!
+}
+
+type RentedBook {
+	userId: String!
+	bookId: Int!
+	rate: Int!
 }
 
 union UserNodesResult = UserNodes | Message1
