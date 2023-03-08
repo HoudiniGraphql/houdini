@@ -75,6 +75,7 @@ Here is a summary of the possible configuration values:
 - `layoutQueryFilename` (optional, default: `+layout.gql`): The name of the file used to define layout queries.
 - `quietQueryErrors` (optional, default: `false`): With this enabled, errors in your query will not be thrown as exceptions. You will have to handle error state in your route components or by hand in your load (or the onError hook)
 - `static` (optional, default: `false`): A flag to remove the session infrastructure from your application
+- `framework` (optional, default: `undefined`): It should be automatically detected but you can override it here with `kit` or `svelte`
 
 ### Client Location
 

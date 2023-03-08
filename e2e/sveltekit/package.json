@@ -1,5 +1,5 @@
 {
-  "name": "e2e-sveltekit",
+  "name": "e2e-kit",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -47,8 +47,5 @@
     "typescript": "^4.9",
     "vite": "^4.1.1",
     "vite-plugin-lib-reporter": "^0.0.6"
-  },
-  "dependencies": {
-    "@sveltejs/adapter-netlify": "^2.0.5"
   }
 }
