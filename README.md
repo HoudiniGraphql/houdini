@@ -8,7 +8,7 @@
   <br />
 
   <strong>
-    The disappearing GraphQL client for SvelteKit.
+    The disappearing GraphQL client.
   </strong>
   <br />
   <br />
