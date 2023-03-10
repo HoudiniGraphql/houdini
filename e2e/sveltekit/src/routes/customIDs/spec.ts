@@ -9,18 +9,18 @@ test.describe('customIDs', () => {
     // expect to have the righ data
     await expect_to_be(
       page,
-      'User: 1 - Book: 0 - Rate: 10 User: 5 - Book: 5 - Rate: 8 User: 1 - Book: 1 - Rate: 77'
+      'User: 1 - Book: 0 - Rate: 10 User: 5 - Book: 5 - Rate: 8 User: 1 - Book: 1 - Rate: 9'
     );
 
-    const ret = await expect_1_gql(page, 'button[id=u9]');
+    const ret = await expect_1_gql(page, 'button[id=u77]');
 
     // graphql result (with the customIds added & the rate to 77)
-    expect(ret).toBe(`{"data":{"updateRentedBook":{"bookId":1,"rate":9,"userId":"1"}}}`);
+    expect(ret).toBe(`{"data":{"updateRentedBook":{"bookId":1,"rate":77,"userId":"1"}}}`);
 
     // displayed result with the updated value to 77
     await expect_to_be(
       page,
-      'User: 1 - Book: 0 - Rate: 10 User: 5 - Book: 5 - Rate: 8 User: 1 - Book: 1 - Rate: 9'
+      'User: 1 - Book: 0 - Rate: 10 User: 5 - Book: 5 - Rate: 8 User: 1 - Book: 1 - Rate: 77'
     );
   });
 });
