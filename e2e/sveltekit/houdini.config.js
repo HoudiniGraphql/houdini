@@ -22,6 +22,13 @@ const config = {
       type: 'File'
     }
   },
+
+  types: {
+    RentedBook: {
+      keys: ['userId', 'bookId']
+    }
+  },
+
   plugins: {
     'houdini-plugin-svelte-global-stores': {
       generate: ['query', 'mutation', 'subscription', 'fragment']

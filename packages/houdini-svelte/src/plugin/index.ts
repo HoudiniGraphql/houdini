@@ -173,9 +173,14 @@ export const redirect = svelteKitRedirect
 			})
 		}
 
-		// detect if we are in a svelte or sveltekit project
-		const detected = await detectFromPackageJSON(process.cwd())
-		framework = detected.framework === 'kit' ? 'kit' : 'svelte'
+		// if it's specified in the config then use that hardcoded value
+		if (cfgPlugin.framework) {
+			framework = cfgPlugin.framework
+		} else {
+			// detect if we are in a svelte or sveltekit project
+			const detected = await detectFromPackageJSON(cfg.projectRoot)
+			framework = detected.framework === 'kit' ? 'kit' : 'svelte'
+		}
 	},
 
 	async env({ config }) {
@@ -235,6 +240,12 @@ export type HoudiniSvelteConfig = {
 	 * @default false
 	 */
 	static?: boolean
+
+	/**
+	 * set the framework to use. It should be automatically detected but you can override it here.
+	 * @default undefined
+	 */
+	framework: 'kit' | 'svelte' | undefined
 
 	/**
 	 * Override the classes used when building stores for documents. Values should take the form package.export
