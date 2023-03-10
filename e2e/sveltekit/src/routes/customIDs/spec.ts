@@ -15,9 +15,7 @@ test.describe('customIDs', () => {
     const ret = await expect_1_gql(page, 'button[id=u77]');
 
     // graphql result (with the customIds added & the rate to 77)
-    expect(ret).toBe(
-      `{\"data\":{\"updateRentedBook\":{\"bookId\":1,\"rate\":77,\"userId\":\"1\"}}}`
-    );
+    expect(ret).toBe(`{"data":{"updateRentedBook":{"bookId":1,"rate":77,"userId":"1"}}}`);
 
     // displayed result with the updated value to 77
     await expect_to_be(
