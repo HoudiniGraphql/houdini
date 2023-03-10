@@ -96,7 +96,7 @@ export class FragmentStoreCursor<
 			initialValue,
 			() => get(store),
 			// the variables that are needed for this query are the store's values and the ids
-			() => store.variables
+			() => store.variables as _Input
 		)
 
 		const subscribe = (
@@ -201,7 +201,7 @@ export class FragmentStoreOffset<
 		// create the offset handlers we'll add to the store
 		const handlers = offsetHandlers<_Data, _Input>({
 			getState,
-			getVariables: () => store.variables,
+			getVariables: () => store.variables as _Input,
 			artifact: this.paginationArtifact,
 			fetch: async (args) => {
 				return paginationStore.send({
