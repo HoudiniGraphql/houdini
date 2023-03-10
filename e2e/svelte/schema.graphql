@@ -43,6 +43,7 @@ type Mutation {
 	deleteLibrary(library: ID!): Library!
 	multipleUpload(files: [File!]!): [String!]!
 	singleUpload(file: File!): String!
+	updateRentedBook(bookId: Int!, rate: Int!, userId: String!): RentedBook
 	updateUser(birthDate: DateTime, delay: Int, id: ID!, name: String, snapshot: String!): User!
 }
 
@@ -67,6 +68,7 @@ type Query {
 	cities: [City]!
 	hello: String!
 	node(id: ID!): Node
+	rentedBooks: [RentedBook!]!
 	session: String
 	user(delay: Int, forceNullDate: Boolean, id: ID!, snapshot: String!, tmp: Boolean): User!
 	userNodes(limit: Int = 4, offset: Int, snapshot: String!): UserNodes!
@@ -80,6 +82,12 @@ type Query {
 		snapshot: String!
 	): UserConnection!
 	usersList(limit: Int = 4, offset: Int, snapshot: String!): [User!]!
+}
+
+type RentedBook {
+	bookId: Int!
+	rate: Int!
+	userId: String!
 }
 
 type Subscription {
