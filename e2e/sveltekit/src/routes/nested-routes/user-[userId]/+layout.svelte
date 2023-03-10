@@ -28,8 +28,7 @@
 <a class:active={isPageActive('3', $page)} href={TabLinkKeepingContext('3', $page.url)}>user-3</a>
 
 <h3>
-  Page:
-  <UserName user={$Layout_User.data?.user} />,
+  <UserName user={$Layout_User.data?.user} />
   <UserName_2 user={$Layout_User.data?.user} />
 </h3>
 
