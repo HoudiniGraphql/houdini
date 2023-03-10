@@ -96,7 +96,7 @@ jobs:
         strategy:
             matrix:
                 os: [ubuntu-latest, windows-latest]
-                framework: [svelte, sveltekit]
+                framework: [e2e-svelte, e2e-kit]
         runs-on: ${{ matrix.os }}
 
         steps:
@@ -199,14 +199,14 @@ jobs:
               run: pnpm run build
 
             - name: Build kit assets
-              run: pnpm --filter sveltekit run build
+              run: pnpm --filter e2e-kit run build
 
             # needs to run after build & houdini generate
             - name: End-to-End lint
-              run: pnpm --filter sveltekit run lint
+              run: pnpm --filter e2e-kit run lint
 
             - name: End-to-End check
-              run: pnpm --filter sveltekit run check
+              run: pnpm --filter e2e-kit run check
 
     # site_render:
     #     name: Site render
