@@ -1,7 +1,13 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import type { CachePolicies, Config, Document, DocumentArtifact } from '../../../lib'
+import type {
+	Config,
+	Document,
+	DocumentArtifact,
+	CachePolicies,
+	SubscriptionSelection,
+} from '../../../lib'
 import {
 	ArtifactKind,
 	cleanupFiles,
@@ -113,7 +119,12 @@ export default function artifactGenerator(stats: {
 				// and an artifact for every document
 				docs.map(async (doc) => {
 					// pull out the info we need from the collected doc
-					const { document, name, generateArtifact: generateArtifact } = doc
+					const {
+						document,
+						name,
+						generateArtifact: generateArtifact,
+						originalParsed,
+					} = doc
 					// if the document is generated, don't write it to disk - it's use is to provide definitions
 					// for the other transforms
 					if (!generateArtifact) {
@@ -171,6 +182,20 @@ export default function artifactGenerator(stats: {
 
 					let rootType: string | undefined = ''
 					let selectionSet: graphql.SelectionSetNode
+					let originalSelectionSet: graphql.SelectionSetNode | null = null
+
+					const fragmentDefinitions = doc.document.definitions
+						.filter<graphql.FragmentDefinitionNode>(
+							(definition): definition is graphql.FragmentDefinitionNode =>
+								definition.kind === 'FragmentDefinition'
+						)
+						.reduce(
+							(prev, definition) => ({
+								...prev,
+								[definition.name.value]: definition,
+							}),
+							{}
+						)
 
 					// if we are generating the artifact for an operation
 					if (docKind !== ArtifactKind.Fragment) {
@@ -196,6 +221,9 @@ export default function artifactGenerator(stats: {
 
 						// use this selection set
 						selectionSet = operation.selectionSet
+						if (originalParsed.definitions[0].kind === 'OperationDefinition') {
+							originalSelectionSet = originalParsed.definitions[0].selectionSet
+						}
 					}
 					// we are looking at a fragment so use its selection set and type for the subscribe index
 					else {
@@ -212,6 +240,13 @@ export default function artifactGenerator(stats: {
 						}
 						rootType = matchingFragment.typeCondition.name.value
 						selectionSet = matchingFragment.selectionSet
+						if (originalParsed.definitions[0].kind === 'FragmentDefinition') {
+							originalSelectionSet = originalParsed.definitions[0].selectionSet
+						}
+					}
+
+					if (!originalSelectionSet) {
+						throw new Error('Not original selection set!')
 					}
 
 					// if there are inputs to the operation
@@ -225,25 +260,18 @@ export default function artifactGenerator(stats: {
 						inputs = fragmentArgumentsDefinitions(config, doc.filename, fragments[0])
 					}
 
-					// in order to simplify the selection generation, we want to merge fragments together
-					const mergedSelection = flattenSelections({
+					const mask = selection({
 						config,
 						filepath: doc.filename,
-						selections: selectionSet.selections,
-						fragmentDefinitions: doc.document.definitions
-							.filter<graphql.FragmentDefinitionNode>(
-								(definition): definition is graphql.FragmentDefinitionNode =>
-									definition.kind === 'FragmentDefinition'
-							)
-							.reduce(
-								(prev, definition) => ({
-									...prev,
-									[definition.name.value]: definition,
-								}),
-								{}
-							),
-						ignoreMaskDisable: docKind === 'HoudiniQuery',
-						applyFragments: docKind !== 'HoudiniFragment',
+						rootType,
+						operations: {},
+						document: doc,
+						selections: flattenSelections({
+							config,
+							filepath: doc.filename,
+							selections: selectionSet.selections,
+							fragmentDefinitions,
+						}),
 					})
 
 					// generate a hash of the document that we can use to detect changes
@@ -259,7 +287,15 @@ export default function artifactGenerator(stats: {
 							config,
 							filepath: doc.filename,
 							rootType,
-							selections: mergedSelection,
+							// in order to simplify the selection generation, we want to merge fragments together
+							selections: flattenSelections({
+								config,
+								filepath: doc.filename,
+								selections: selectionSet.selections,
+								fragmentDefinitions,
+								ignoreMaskDisable: docKind !== 'HoudiniFragment',
+								keepFragmentSpreadNodes: true,
+							}),
 							operations: operationsByPath(
 								config,
 								doc.filename,
@@ -268,10 +304,14 @@ export default function artifactGenerator(stats: {
 							),
 							// do not include used fragments if we are rendering the selection
 							// for a fragment document
-							includeFragments: docKind !== 'HoudiniFragment',
 							document: doc,
 						}),
+						pluginData: {},
 					}
+
+					// apply the visibility mask to the artifact so that only
+					// fields in the direct selection are visible
+					applyMask(config, artifact.selection, mask)
 
 					// adding artifactData of plugins (only if any information is present)
 					artifact.pluginData = {}
@@ -379,5 +419,72 @@ export default function artifactGenerator(stats: {
 
 		// cleanup files that are no more necessary!
 		stats.deleted = await cleanupFiles(config.artifactDirectory, listOfArtifacts)
+	}
+}
+
+// applyMask takes 2 selections. the first is the target whose selection should be updated
+// according to the fields in the second selection
+function applyMask(config: Config, target: SubscriptionSelection, mask: SubscriptionSelection) {
+	// we might need to map types from this fragment onto the possible types of the parent query
+	// we need to look at every field in the mask and mark it as visible in the target
+	for (const [fieldName, value] of Object.entries(mask.fields ?? {})) {
+		const targetSelection = target.fields?.[fieldName]
+
+		// if the field is not recognized in the target, ignore it
+		if (!targetSelection || !mask.fields) {
+			continue
+		}
+
+		// the field is present in the mask so mark it visible
+		targetSelection.visible = true
+
+		if (targetSelection.selection && value.selection) {
+			applyMask(config, targetSelection.selection, value.selection)
+		}
+	}
+
+	// we've gone through all of the fields, now we need to go through the abstract fields
+	for (const [type, selection] of Object.entries(mask.abstractFields?.fields ?? {})) {
+		// applying the abstract fields object is a little trickier since we need to map the
+		// mask type onto all of the possible types that it could be
+		if (!selection) {
+			continue
+		}
+
+		// if the type is present in both selections, apply that first
+		if (target.abstractFields?.fields[type]) {
+			applyMask(config, { fields: target.abstractFields.fields[type] }, { fields: selection })
+		}
+
+		// look up the type in the schema so we can figure out if its abstract
+		const targetType = config.schema.getType(type)
+		if (!targetType) {
+			continue
+		}
+
+		// if we have an abstract type then we need to look for overlap with the other entries in the
+		// target's abstract selection
+		if (graphql.isAbstractType(targetType)) {
+			// we need the list of possible types to look for overlaps
+			for (const possible of config.schema.getPossibleTypes(targetType)) {
+				if (target.abstractFields?.fields[possible.name]) {
+					applyMask(
+						config,
+						{ fields: target.abstractFields.fields[possible.name] },
+						{ fields: selection }
+					)
+				}
+			}
+		}
+
+		// if the type maps to another type in the selection, use the mapped type
+		const mappedType = target.abstractFields?.typeMap[type]
+		if (target.abstractFields && mappedType && target.abstractFields.fields[mappedType]) {
+			applyMask(
+				config,
+				{ fields: target.abstractFields.fields[mappedType] },
+				{ fields: selection }
+			)
+		}
 	}
 }

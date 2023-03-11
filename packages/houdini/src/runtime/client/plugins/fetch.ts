@@ -1,11 +1,16 @@
+import { ArtifactKind, DataSource } from '../../lib/types'
 import type { RequestPayload } from '../../lib/types'
-import { DataSource } from '../../lib/types'
 import type { ClientPlugin, ClientPluginContext } from '../documentStore'
 
 export const fetch = (target?: RequestHandler | string): ClientPlugin => {
 	return () => {
 		return {
-			async network(ctx, { client, resolve, marshalVariables }) {
+			async network(ctx, { client, initialValue, resolve, marshalVariables }) {
+				// there is no fetch for a fragment
+				if (ctx.artifact.kind === ArtifactKind.Fragment) {
+					return resolve(ctx, initialValue)
+				}
+
 				// figure out which fetch to use
 				const fetch = ctx.fetch ?? globalThis.fetch
 

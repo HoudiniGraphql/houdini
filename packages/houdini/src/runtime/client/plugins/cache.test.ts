@@ -23,9 +23,10 @@ test('NetworkOnly', async function () {
 
 	const store = createStore([
 		cachePolicy({
+			serverSideFallback: false,
 			enabled: true,
 			setFetching: spy,
-			cache: new Cache(config),
+			cache: new Cache({ ...config, disabled: false }),
 		}),
 		fakeFetch({}),
 	])
@@ -72,9 +73,10 @@ test('CacheOrNetwork', async function () {
 
 	const store = createStore([
 		cachePolicy({
+			serverSideFallback: false,
 			enabled: true,
 			setFetching: spy,
-			cache: new Cache(config),
+			cache: new Cache({ ...config, disabled: false }),
 		}),
 		fakeFetch({}),
 	])
@@ -124,6 +126,7 @@ test('CacheAndNetwork', async function () {
 			enabled: true,
 			setFetching: () => {},
 			cache: new Cache(config),
+			serverSideFallback: false,
 		}),
 		fakeFetch({}),
 	])
@@ -184,9 +187,10 @@ test('CacheOnly', async function () {
 
 	const store = createStore([
 		cachePolicy({
+			serverSideFallback: false,
 			enabled: true,
 			setFetching: spy,
-			cache: new Cache(config),
+			cache: new Cache({ ...config, disabled: false }),
 		}),
 		fakeFetch({}),
 	])
@@ -247,10 +251,11 @@ test('stale', async function () {
 	const setFetching = vi.fn()
 	const fn = vi.fn()
 
-	const cache = new Cache(config)
+	const cache = new Cache({ ...config, disabled: false })
 
 	const store = createStore([
 		cachePolicy({
+			serverSideFallback: false,
 			enabled: true,
 			setFetching,
 			cache,
@@ -366,23 +371,28 @@ export function createStore(plugins: ClientPlugin[]): DocumentStore<any, any> {
 			raw: 'RAW_TEXT',
 			name: 'TestArtifact',
 			rootType: 'Query',
+			pluginData: {},
 			selection: {
 				fields: {
 					viewer: {
 						type: 'User',
+						visible: true,
 						keyRaw: 'viewer',
 						selection: {
 							fields: {
 								id: {
 									type: 'ID',
+									visible: true,
 									keyRaw: 'id',
 								},
 								firstName: {
 									type: 'String',
+									visible: true,
 									keyRaw: 'firstName',
 								},
 								__typename: {
 									type: 'String',
+									visible: true,
 									keyRaw: '__typename',
 								},
 							},

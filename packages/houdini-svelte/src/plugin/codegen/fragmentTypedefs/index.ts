@@ -1,6 +1,6 @@
 import type { StatementKind, TSTypeKind } from 'ast-types/lib/gen/kinds'
 import type { Document } from 'houdini'
-import { parseJS, path, fs, ArtifactKind, ensureImports } from 'houdini'
+import { fragmentKey, parseJS, path, fs, ArtifactKind, ensureImports } from 'houdini'
 import * as recast from 'recast'
 
 import type { PluginGenerateInput } from '..'
@@ -80,14 +80,12 @@ export default async function fragmentTypedefs(input: PluginGenerateInput) {
 				// build up the documentInput with the query string as a hard coded value
 				const fragment_map = AST.tsTypeLiteral([
 					AST.tsPropertySignature(
-						AST.identifier('$fragments'),
+						AST.stringLiteral(fragmentKey),
 						AST.tsTypeAnnotation(
 							AST.tsTypeLiteral([
 								AST.tsPropertySignature(
 									AST.identifier(doc.name),
-									AST.tsTypeAnnotation(
-										AST.tsLiteralType(AST.booleanLiteral(true))
-									)
+									AST.tsTypeAnnotation(AST.tsAnyKeyword())
 								),
 							])
 						)
@@ -98,7 +96,7 @@ export default async function fragmentTypedefs(input: PluginGenerateInput) {
 				initial_value_input.typeAnnotation = AST.tsTypeAnnotation(fragment_map)
 				const initial_value_or_null_input = AST.identifier('initialValue')
 				initial_value_or_null_input.typeAnnotation = AST.tsTypeAnnotation(
-					AST.tsUnionType([fragment_map, AST.tsNullKeyword()])
+					AST.tsUnionType([fragment_map, AST.tsNullKeyword(), AST.tsUndefinedKeyword()])
 				)
 
 				// regardless of the input value, we need to pass the document store
@@ -142,10 +140,7 @@ export default async function fragmentTypedefs(input: PluginGenerateInput) {
 					import: [inputID, shapeID],
 				})
 
-				const typeParams: TSTypeKind[] = []
-				if (doc.refetch?.paginated) {
-					typeParams.push(AST.tsTypeReference(AST.identifier(inputID)))
-				}
+				const typeParams: TSTypeKind[] = [AST.tsTypeReference(AST.identifier(inputID))]
 
 				// the return value for no null input
 				const return_value = AST.tsTypeReference(

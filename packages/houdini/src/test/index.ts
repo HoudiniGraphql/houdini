@@ -282,7 +282,7 @@ export function pipelineTest(
 			if (shouldPass) {
 				// console.error(docs)
 				console.error(e)
-				throw 'pipeline failed when it should have passed'
+				throw 'pipeline failed when it should have passed. ' + e
 			}
 			error = e as Error[]
 		}

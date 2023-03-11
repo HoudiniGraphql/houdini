@@ -10,36 +10,44 @@ test('can read fragment', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						__typename: {
 							type: 'String',
+							visible: true,
 							keyRaw: '__typename',
 						},
 						parent: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'parent',
 							selection: {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 									__typename: {
 										type: 'String',
+										visible: true,
 										keyRaw: '__typename',
 									},
 								},
@@ -96,36 +104,44 @@ test('can writeFragments', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						__typename: {
 							type: 'String',
+							visible: true,
 							keyRaw: '__typename',
 						},
 						parent: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'parent',
 							selection: {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 									__typename: {
 										type: 'String',
+										visible: true,
 										keyRaw: '__typename',
 									},
 								},
@@ -160,10 +176,12 @@ test('can writeFragments', function () {
 		raw: 'string',
 		hash: 'string',
 		rootType: 'string',
+		pluginData: {},
 		selection: {
 			fields: {
 				firstName: {
 					type: 'String',
+					visible: true,
 					keyRaw: 'firstName',
 				},
 			},
@@ -201,10 +219,12 @@ test('can read and write variables', function () {
 		raw: 'string',
 		hash: 'string',
 		rootType: 'string',
+		pluginData: {},
 		selection: {
 			fields: {
 				firstName: {
 					type: 'String',
+					visible: true,
 					keyRaw: 'firstName(pattern: $pattern)',
 				},
 			},
@@ -233,6 +253,7 @@ test('can read and write variables', function () {
 					firstName: {
 						keyRaw: 'firstName(pattern: "foo")',
 						type: 'String',
+						visible: true,
 					},
 				},
 			},

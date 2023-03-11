@@ -21,6 +21,14 @@ let cityId = 1
 let libraryId = 1
 let bookId = 1
 
+const dataBooks = [
+	{ id: bookId++, title: 'Callimachus Pinakes' },
+	{ id: bookId++, title: 'Kutubkhana-i-lskandriyya' },
+	{ id: bookId++, title: 'Analyze your own personality' },
+	{ id: bookId++, title: 'Homer' },
+	{ id: bookId++, title: 'The Hellenistic History' },
+]
+
 // Allow the "database" to be persistent and mutable
 let cities = [
 	{
@@ -30,15 +38,12 @@ let cities = [
 			{
 				id: libraryId++,
 				name: 'The Library of Alexandria',
-				books: [
-					{ id: bookId++, title: 'Callimachus Pinakes' },
-					{ id: bookId++, title: 'Kutubkhana-i-lskandriyya' },
-				],
+				books: [dataBooks[0], dataBooks[1]],
 			},
 			{
 				id: libraryId++,
 				name: 'Bibliotheca Alexandrina',
-				books: [{ id: bookId++, title: 'Analyze your own personality' }],
+				books: [dataBooks[2]],
 			},
 		],
 	},
@@ -49,17 +54,14 @@ let cities = [
 			{
 				id: libraryId++,
 				name: 'The Imperial Library of Constantinople',
-				books: [
-					{ id: bookId++, title: 'Homer' },
-					{ id: bookId++, title: 'The Hellenistic History' },
-				],
+				books: [dataBooks[3], dataBooks[4]],
 			},
 		],
 	},
 ]
 
 // example data
-const data = [
+const dataUsers = [
 	{ id: '1', name: 'Bruce Willis', birthDate: new Date(1955, 2, 19) },
 	{ id: '2', name: 'Samuel Jackson', birthDate: new Date(1948, 11, 21) },
 	{ id: '3', name: 'Morgan Freeman', birthDate: new Date(1937, 5, 0) },
@@ -69,18 +71,24 @@ const data = [
 	{ id: '7', name: 'Eddie Murphy', birthDate: new Date(1961, 3, 3) },
 	{ id: '8', name: 'Clint Eastwood', birthDate: new Date(1930, 5, 31) },
 ]
-const snapshots = {}
 
-function getSnapshot(snapshot) {
-	if (!snapshots[snapshot]) {
-		snapshots[snapshot] = data.map((user) => ({
+let dataRentedBooks = [
+	{ userId: '1', bookId: 0, rate: 10 },
+	{ userId: '5', bookId: 5, rate: 8 },
+	{ userId: '1', bookId: 1, rate: 9 },
+]
+
+const userSnapshots = {}
+function getUserSnapshot(snapshot) {
+	if (!userSnapshots[snapshot]) {
+		userSnapshots[snapshot] = dataUsers.map((user) => ({
 			...user,
 			id: `${snapshot}:${user.id}`,
 			snapshot,
 		}))
 	}
 
-	return snapshots[snapshot]
+	return userSnapshots[snapshot]
 }
 
 async function processFile(file) {
@@ -99,10 +107,10 @@ export const resolvers = {
 			return 'Hello World! // From Houdini!'
 		},
 		usersList: (_, args) => {
-			return [...getSnapshot(args.snapshot)].splice(args.offset || 0, args.limit)
+			return [...getUserSnapshot(args.snapshot)].splice(args.offset || 0, args.limit)
 		},
 		userNodes: (_, args) => {
-			const allData = [...getSnapshot(args.snapshot)]
+			const allData = [...getUserSnapshot(args.snapshot)]
 			return {
 				totalCount: allData.length,
 				nodes: allData.splice(args.offset || 0, args.limit),
@@ -121,7 +129,7 @@ export const resolvers = {
 			throw new GraphQLError('No authorization found', { code: 403 })
 		},
 		usersConnection(_, args) {
-			return connectionFromArray(getSnapshot(args.snapshot), args)
+			return connectionFromArray(getUserSnapshot(args.snapshot), args)
 		},
 		user: async (_, args) => {
 			// simulate network delay
@@ -129,7 +137,7 @@ export const resolvers = {
 				await sleep(args.delay)
 			}
 
-			const user = getSnapshot(args.snapshot).find(
+			const user = getUserSnapshot(args.snapshot).find(
 				(c) => c.id === `${args.snapshot}:${args.id}`
 			)
 
@@ -147,7 +155,7 @@ export const resolvers = {
 		},
 		node(_, { id: nodeID }) {
 			const [snapshot, id] = nodeID.split(':')
-			const list = getSnapshot(snapshot)
+			const list = getUserSnapshot(snapshot)
 			const user = list.find((u) => u.id === nodeID)
 
 			return {
@@ -166,7 +174,7 @@ export const resolvers = {
 				}
 			}
 
-			const allData = [...getSnapshot(args.snapshot)]
+			const allData = [...getUserSnapshot(args.snapshot)]
 			return {
 				totalCount: allData.length,
 				nodes: allData.splice(args.offset || 0, args.limit || 10),
@@ -181,28 +189,31 @@ export const resolvers = {
 				}
 			}
 
-			const user = getSnapshot(args.snapshot).find(
+			const user = getUserSnapshot(args.snapshot).find(
 				(c) => c.id === `${args.snapshot}:${args.id}`
 			)
 			return { ...user, __typename: 'User' }
+		},
+		rentedBooks: async (_, args) => {
+			return dataRentedBooks
 		},
 	},
 
 	User: {
 		friendsList: (user, args) => {
-			return [...getSnapshot(user.snapshot)].splice(args.offset || 0, args.limit)
+			return [...getUserSnapshot(user.snapshot)].splice(args.offset || 0, args.limit)
 		},
 		friendsConnection(user, args) {
-			return connectionFromArray(getSnapshot(user.snapshot), args)
+			return connectionFromArray(getUserSnapshot(user.snapshot), args)
 		},
 		usersConnection: (user, args) => {
-			return connectionFromArray(getSnapshot(user.snapshot), args)
+			return connectionFromArray(getUserSnapshot(user.snapshot), args)
 		},
 	},
 
 	Mutation: {
 		addUser: async (_, args) => {
-			const list = getSnapshot(args.snapshot)
+			const list = getUserSnapshot(args.snapshot)
 			if (args.delay) {
 				await sleep(args.delay)
 			}
@@ -221,7 +232,7 @@ export const resolvers = {
 				await sleep(args.delay)
 			}
 
-			const list = getSnapshot(args.snapshot)
+			const list = getUserSnapshot(args.snapshot)
 			const userIndex = list.findIndex((c) => c.id === `${args.snapshot}:${args.id}`)
 			if (userIndex === -1) {
 				throw new GraphQLError('User not found', { code: 404 })
@@ -327,6 +338,27 @@ export const resolvers = {
 			const book = library.books.find((book) => book.id === bookId)
 			library.books = library.books.filter((book) => book.id !== bookId)
 			return book
+		},
+		updateRentedBook: (_, args) => {
+			const { userId, bookId, rate } = args
+
+			const found = dataRentedBooks.filter((c) => c.bookId === bookId && c.userId === userId)
+
+			if (found && found.length > 0) {
+				const updated = {
+					userId,
+					bookId,
+					rate,
+				}
+				dataRentedBooks = [
+					...dataRentedBooks.filter((c) => !(c.bookId === bookId && c.userId === userId)),
+					updated,
+				]
+
+				return updated
+			}
+
+			throw new GraphQLError('RentedBook not found', { code: 403 })
 		},
 	},
 

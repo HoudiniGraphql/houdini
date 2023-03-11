@@ -1,18 +1,26 @@
+import cache from '$houdini/runtime/cache'
+import { getCurrentConfig } from '$houdini/runtime/lib/config'
+import { marshalInputs } from '$houdini/runtime/lib/scalars'
 import type {
 	GraphQLObject,
 	FragmentArtifact,
 	HoudiniFetchContext,
 } from '$houdini/runtime/lib/types'
-import { CompiledFragmentKind } from '$houdini/runtime/lib/types'
-import { writable } from 'svelte/store'
-import type { Readable, Writable } from 'svelte/store'
+import { CompiledFragmentKind, fragmentKey } from '$houdini/runtime/lib/types'
+import { derived } from 'svelte/store'
 
+import { isBrowser } from '../adapter'
 import type { FragmentStoreInstance } from '../types'
+import { BaseStore } from './base'
 
 // a fragment store exists in multiple places in a given application so we
 // can't just return a store directly, the user has to load the version of the
 // fragment store for the object the store has been mixed into
-export class FragmentStore<_Data extends GraphQLObject, _Input = {}> {
+export class FragmentStore<
+	_Data extends GraphQLObject,
+	_ReferenceType extends {},
+	_Input extends {} = {}
+> {
 	artifact: FragmentArtifact
 	name: string
 	kind = CompiledFragmentKind
@@ -24,18 +32,52 @@ export class FragmentStore<_Data extends GraphQLObject, _Input = {}> {
 		this.name = storeName
 	}
 
-	get(initialValue: _Data | null): FragmentStoreInstance<_Data | null> {
-		// at the moment a fragment store doesn't really do anything
-		// but we're going to keep it wrapped in a store so we can eventually
-		// optimize the updates
-		let store = writable(initialValue) as Writable<_Data | null>
+	get(
+		initialValue: _Data | { [fragmentKey]: _ReferenceType } | null
+	): FragmentStoreInstance<_Data | null, _Input> & { initialValue: _Data | null } {
+		// @ts-expect-error: typescript can't guarantee that the fragment key is defined
+		// but if its not, then the fragment wasn't mixed into the right thing
+		// the variables for the fragment live on the initial value's $fragment key
+		const { variables, parent } = initialValue?.[fragmentKey]?.[this.artifact.name] ?? {}
+		if (initialValue && fragmentKey in initialValue && (!variables || !parent) && isBrowser) {
+			console.warn(
+				`⚠️ Parent does not contain the information for this fragment. Something is wrong.
+Please ensure that you have passed a record that has ${this.artifact.name} mixed into it.`
+			)
+		}
+
+		// if we got this far then we are safe to use the fields on the object
+		let data = initialValue as _Data | null
+
+		// on the client, we want to ensure that we apply masking to the initial value by
+		// loading the value from cache
+		if (initialValue && parent && isBrowser) {
+			data = cache.read({
+				selection: this.artifact.selection,
+				parent,
+				variables,
+			}).data as _Data
+		}
+
+		// build up a document store that we will use to subscribe the fragment to cache updates
+		const store = new BaseStore<_Data, _Input>({
+			artifact: this.artifact,
+			initialValue: data,
+		})
+		if (parent) {
+			store.observer.send({ variables, setup: true, stuff: { parentID: parent } })
+		}
 
 		return {
+			initialValue: data,
+			variables: marshalInputs({
+				artifact: this.artifact,
+				input: variables,
+				config: getCurrentConfig(),
+				rootType: this.artifact.rootType,
+			}) as _Input,
 			kind: CompiledFragmentKind,
-			subscribe: (...args: Parameters<Readable<_Data | null>['subscribe']>) => {
-				return store.subscribe(...args)
-			},
-			update: (val: _Data | null) => store?.set(val),
+			subscribe: derived([store], ([$store]) => $store.data).subscribe,
 		}
 	}
 }

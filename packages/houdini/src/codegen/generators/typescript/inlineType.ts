@@ -9,7 +9,7 @@ import { nullableField, readonlyProperty, scalarPropertyValue } from './types'
 
 const AST = recast.types.builders
 
-export const fragmentKey = '$fragments'
+export const fragmentKey = ' $fragments'
 
 export function inlineType({
 	config,
@@ -176,14 +176,23 @@ export function inlineType({
 			}
 		}
 
+		// build up the unique set of attribute names
+		const fields: graphql.FieldNode[] = Object.values(
+			selectedFields
+				.filter((field): field is graphql.FieldNode => field.kind === 'Field')
+				.reduce(
+					(sel, field) => ({
+						...sel,
+						[field.alias?.value ?? field.name.value]: field,
+					}),
+					{}
+				)
+		)
+
 		// turn the set of selected fields into their own type
 		result = AST.tsTypeLiteral([
 			// every field gets an entry in the object
-			...(
-				(selectedFields || []).filter(
-					(field) => field.kind === 'Field'
-				) as graphql.FieldNode[]
-			).map((selection) => {
+			...fields.map((selection) => {
 				// grab the type info for the selection
 				const { field } = selectionTypeInfo(config.schema, filepath, rootObj, selection)
 
@@ -244,15 +253,13 @@ export function inlineType({
 			result.members.push(
 				readonlyProperty(
 					AST.tsPropertySignature(
-						AST.identifier(fragmentKey),
+						AST.stringLiteral(fragmentKey),
 						AST.tsTypeAnnotation(
 							AST.tsTypeLiteral(
 								(fragmentSpreads || []).map((fragmentSpread) =>
 									AST.tsPropertySignature(
 										AST.identifier(fragmentSpread.name.value),
-										AST.tsTypeAnnotation(
-											AST.tsLiteralType(AST.booleanLiteral(true))
-										)
+										AST.tsTypeAnnotation(AST.tsTypeLiteral([]))
 									)
 								)
 							)

@@ -1,7 +1,7 @@
 import { test, expect } from 'vitest'
 
-import { runPipeline } from '../../../codegen'
-import { mockCollectedDoc, testConfig } from '../../../test'
+import { runPipeline } from '../../../../codegen'
+import { mockCollectedDoc, testConfig } from '../../../../test'
 
 test("doesn't include directives defined in plugins", async function () {
 	const config = testConfig()
@@ -53,10 +53,13 @@ test("doesn't include directives defined in plugins", async function () {
 		                    "fields": {
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
+		                            "keyRaw": "id",
+		                            "visible": true
 		                        }
 		                    }
-		                }
+		                },
+
+		                "visible": true
 		            }
 		        }
 		    },
@@ -117,10 +120,13 @@ test('plugins can customize the hash', async function () {
 		                    "fields": {
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
+		                            "keyRaw": "id",
+		                            "visible": true
 		                        }
 		                    }
-		                }
+		                },
+
+		                "visible": true
 		            }
 		        }
 		    },

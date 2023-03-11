@@ -8,21 +8,21 @@ import type { FragmentStorePaginated } from './stores/pagination/fragment'
 // if the reference type was nullable
 export function fragment<_Fragment extends Fragment<any>>(
 	ref: _Fragment,
-	fragment: FragmentStore<_Fragment['shape']>
+	fragment: FragmentStore<_Fragment['shape'], {}>
 ): Readable<NonNullable<_Fragment['shape']>> & {
 	data: Readable<_Fragment>
 	artifact: FragmentArtifact
 }
 export function fragment<_Fragment extends Fragment<any>>(
 	ref: _Fragment | null,
-	fragment: FragmentStore<_Fragment['shape']>
+	fragment: FragmentStore<_Fragment['shape'], {}>
 ): Readable<NonNullable<_Fragment['shape']> | null> & {
 	data: Readable<_Fragment | null>
 	artifact: FragmentArtifact
 }
 export function fragment<_Fragment extends Fragment<any>>(
 	ref: _Fragment | null,
-	store: FragmentStore<_Fragment['shape']>
+	store: FragmentStore<_Fragment['shape'], {}>
 ) {
 	// make sure we got a query document
 	if (store.kind !== 'HoudiniFragment') {
@@ -41,17 +41,17 @@ export function fragment<_Fragment extends Fragment<any>>(
 
 export function paginatedFragment<_Fragment extends Fragment<any>>(
 	initialValue: _Fragment | null,
-	document: FragmentStore<_Fragment['shape']>
+	document: FragmentStore<_Fragment['shape'], {}>
 ): FragmentStorePaginated<_Fragment['shape'], {}>
 
 export function paginatedFragment<_Fragment extends Fragment<any>>(
 	initialValue: _Fragment,
-	document: FragmentStore<_Fragment['shape']>
+	document: FragmentStore<_Fragment['shape'], {}>
 ): FragmentStorePaginated<_Fragment['shape'], {}>
 
 export function paginatedFragment<_Fragment extends Fragment<any>>(
 	initialValue: _Fragment | null,
-	store: FragmentStore<_Fragment['shape']>
+	store: FragmentStore<_Fragment['shape'], {}>
 ): FragmentStorePaginated<_Fragment['shape'], {}> {
 	// make sure we got a query document
 	if (store.kind !== 'HoudiniFragment') {

@@ -1,17 +1,21 @@
 import cache from '../../cache'
-import type { Cache } from '../../cache/cache'
+import { Cache } from '../../cache/cache'
 import { ArtifactKind, CachePolicy, DataSource } from '../../lib/types'
 import type { ClientPlugin } from '../documentStore'
+
+const serverSide = typeof globalThis.window === 'undefined'
 
 export const cachePolicy =
 	({
 		enabled,
 		setFetching,
 		cache: localCache = cache,
+		serverSideFallback = true,
 	}: {
 		enabled: boolean
 		setFetching: (val: boolean) => void
 		cache?: Cache
+		serverSideFallback?: boolean
 	}): ClientPlugin =>
 	() => {
 		return {
@@ -99,21 +103,45 @@ export const cachePolicy =
 				return next(ctx)
 			},
 			afterNetwork(ctx, { resolve, value, marshalVariables }) {
-				// if we have data coming in from the cache, we should write it and mvoe on
+				// if we have data coming in from the cache, we should write it and move on
 				if (
 					value.source !== DataSource.Cache &&
 					enabled &&
 					value.data &&
 					!ctx.cacheParams?.disableWrite
 				) {
+					const targetCache =
+						serverSide && serverSideFallback
+							? new Cache({ disabled: false })
+							: localCache
+
+					let layer
+					if (!serverSide && ctx.cacheParams?.layer) {
+						layer = ctx.cacheParams.layer.id
+					}
+
 					// write the result of the mutation to the cache
-					localCache.write({
+					targetCache.write({
 						...ctx.cacheParams,
-						layer: ctx.cacheParams?.layer?.id,
+						layer,
 						selection: ctx.artifact.selection,
 						data: value.data,
 						variables: marshalVariables(ctx),
 					})
+
+					// we need to embed the fragment context values in our response
+					// and apply masking other value transforms. In order to do that,
+					// we're goin to read back what we just wrote. This only incurs
+					// extra computation on the server-side since we have to write the values
+					// before we can read them (instead of just transforming the value directly)
+					value = {
+						...value,
+						data: targetCache.read({
+							selection: ctx.artifact.selection,
+							variables: marshalVariables(ctx),
+							ignoreMasking: serverSide,
+						}).data,
+					}
 				}
 
 				// we're done. don't change the result value

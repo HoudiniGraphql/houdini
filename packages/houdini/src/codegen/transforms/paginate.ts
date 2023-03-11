@@ -369,6 +369,13 @@ export default async function paginate(config: Config, documents: Document[]): P
 								variableAsArgument(name)
 							),
 						},
+						{
+							kind: graphql.Kind.DIRECTIVE,
+							name: {
+								kind: 'Name',
+								value: config.maskDisableDirective,
+							},
+						},
 					],
 				},
 			] as graphql.SelectionNode[]

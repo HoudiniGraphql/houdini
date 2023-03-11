@@ -21,7 +21,6 @@ dist/**
 .next/**
 coverage
 
-vite.config.js.timestamp-*
-vite.config.ts.timestamp-*
+vite.config.*.timestamp-*
 
 .vercel

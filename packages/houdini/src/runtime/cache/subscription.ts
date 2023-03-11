@@ -50,7 +50,17 @@ export class InMemorySubscriptions {
 
 		// walk down the selection
 		for (const fieldSelection of Object.values(targetSelection || {})) {
-			const { keyRaw, selection: innerSelection, type, list, filters } = fieldSelection
+			const {
+				keyRaw,
+				selection: innerSelection,
+				type,
+				list,
+				filters,
+				visible,
+			} = fieldSelection
+			if (!visible) {
+				continue
+			}
 
 			const key = evaluateKey(keyRaw, variables)
 
@@ -157,10 +167,6 @@ export class InMemorySubscriptions {
 
 		// reset the lifetime for the key
 		this.cache._internal_unstable.lifetimes.resetLifetime(id, key)
-
-		// if this field is marked as a list, register it. this will overwrite existing list handlers
-		// so that they can get up to date filters
-		const { selection: innerSelection } = selection[1]?.[key] ?? {}
 	}
 
 	registerList({

@@ -14,10 +14,12 @@ test('adequate ticks of garbage collector clear unsubscribed data', function () 
 		fields: {
 			id: {
 				type: 'ID',
+				visible: true,
 				keyRaw: 'id',
 			},
 			firstName: {
 				type: 'String',
+				visible: true,
 				keyRaw: 'firstName',
 			},
 		},
@@ -28,6 +30,7 @@ test('adequate ticks of garbage collector clear unsubscribed data', function () 
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					selection: userFields,
 				},
@@ -64,15 +67,18 @@ test("subscribed data shouldn't be garbage collected", function () {
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					selection: {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 							firstName: {
 								type: 'String',
+								visible: true,
 								keyRaw: 'firstName',
 							},
 						},
@@ -95,11 +101,13 @@ test("subscribed data shouldn't be garbage collected", function () {
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					selection: {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 						},
@@ -121,6 +129,7 @@ test("subscribed data shouldn't be garbage collected", function () {
 				fields: {
 					id: {
 						type: 'ID',
+						visible: true,
 						keyRaw: 'id',
 					},
 				},
@@ -138,15 +147,18 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					selection: {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 							firstName: {
 								type: 'String',
+								visible: true,
 								keyRaw: 'firstName',
 							},
 						},
@@ -176,11 +188,13 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					selection: {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 						},
@@ -203,11 +217,13 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 			fields: {
 				viewer: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'viewer',
 					selection: {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 						},
@@ -230,6 +246,7 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 				fields: {
 					id: {
 						type: 'ID',
+						visible: true,
 						keyRaw: 'id',
 					},
 				},
@@ -247,6 +264,7 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 				fields: {
 					id: {
 						type: 'ID',
+						visible: true,
 						keyRaw: 'id',
 					},
 				},
@@ -266,15 +284,18 @@ test('ticks of gc delete list handlers', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							// the key takes an argument so that we can have multiple
 							// lists tracked in the cache
 							keyRaw: 'friends',
@@ -287,10 +308,12 @@ test('ticks of gc delete list handlers', function () {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},

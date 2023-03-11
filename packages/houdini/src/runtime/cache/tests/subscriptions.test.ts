@@ -15,19 +15,23 @@ test('root subscribe - field change', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						favoriteColors: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'favoriteColors',
 						},
 					},
@@ -87,19 +91,23 @@ test('root subscribe - linked object changed', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						favoriteColors: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'favoriteColors(where: "foo")',
 							nullable: true,
 						},
@@ -158,6 +166,7 @@ test('root subscribe - linked object changed', function () {
 			fields: {
 				firstName: {
 					type: 'String',
+					visible: true,
 					keyRaw: 'firstName',
 				},
 			},
@@ -191,20 +200,24 @@ test("subscribing to null object doesn't explode", function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						favoriteColors: {
 							nullable: true,
 							type: 'String',
+							visible: true,
 							keyRaw: 'favoriteColors(where: "foo")',
 						},
 					},
@@ -260,20 +273,24 @@ test('overwriting a reference with null clears its subscribers', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				nullable: true,
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						favoriteColors: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'favoriteColors(where: "foo")',
 						},
 					},
@@ -328,25 +345,30 @@ test('overwriting a linked list with null clears its subscribers', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							nullable: true,
 							selection: {
 								fields: {
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 								},
@@ -393,6 +415,7 @@ test('overwriting a linked list with null clears its subscribers', function () {
 			fields: {
 				id: {
 					type: 'String',
+					visible: true,
 					keyRaw: 'id',
 				},
 				friends: selection.fields!.viewer.selection!.fields!.friends,
@@ -426,24 +449,29 @@ test('root subscribe - linked list lost entry', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							selection: {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -525,24 +553,29 @@ test("subscribing to list with null values doesn't explode", function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							selection: {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -618,24 +651,29 @@ test('root subscribe - linked list reorder', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							selection: {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -725,19 +763,23 @@ test('unsubscribe', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						favoriteColors: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'favoriteColors(where: "foo")',
 						},
 					},
@@ -786,15 +828,18 @@ test('subscribe to new list nodes', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							list: {
 								name: 'All_Users',
@@ -805,10 +850,12 @@ test('subscribe to new list nodes', function () {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -852,10 +899,12 @@ test('subscribe to new list nodes', function () {
 			fields: {
 				id: {
 					type: 'String',
+					visible: true,
 					keyRaw: 'id',
 				},
 				firstName: {
 					type: 'String',
+					visible: true,
 					keyRaw: 'firstName',
 				},
 			},
@@ -907,10 +956,12 @@ test('subscribe to new list nodes', function () {
 			fields: {
 				id: {
 					type: 'String',
+					visible: true,
 					keyRaw: 'id',
 				},
 				firstName: {
 					type: 'String',
+					visible: true,
 					keyRaw: 'firstName',
 				},
 			},
@@ -949,15 +1000,18 @@ test('variables in query and subscription', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends(filter: $filter)',
 							list: {
 								name: 'All_Users',
@@ -968,10 +1022,12 @@ test('variables in query and subscription', function () {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -1068,15 +1124,18 @@ test('deleting a node removes nested subscriptions', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							list: {
 								name: 'All_Users',
@@ -1087,10 +1146,12 @@ test('deleting a node removes nested subscriptions', function () {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -1146,19 +1207,23 @@ test('same record twice in a query survives one unsubscribe (reference counting)
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							list: {
 								name: 'All_Users',
@@ -1169,10 +1234,12 @@ test('same record twice in a query survives one unsubscribe (reference counting)
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 								},
@@ -1237,34 +1304,41 @@ test('embedded references', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							selection: {
 								fields: {
 									edges: {
 										type: 'UserEdge',
+										visible: true,
 										keyRaw: 'edges',
 										selection: {
 											fields: {
 												node: {
 													type: 'User',
+													visible: true,
 													keyRaw: 'node',
 													selection: {
 														fields: {
 															id: {
 																type: 'ID',
+																visible: true,
 																keyRaw: 'id',
 															},
 															firstName: {
 																type: 'String',
+																visible: true,
 																keyRaw: 'firstName',
 															},
 														},
@@ -1329,15 +1403,18 @@ test('embedded references', function () {
 			fields: {
 				user: {
 					type: 'User',
+					visible: true,
 					keyRaw: 'user',
 					selection: {
 						fields: {
 							id: {
 								type: 'ID',
+								visible: true,
 								keyRaw: 'id',
 							},
 							firstName: {
 								type: 'String',
+								visible: true,
 								keyRaw: 'firstName',
 							},
 						},
@@ -1385,41 +1462,50 @@ test('self-referencing linked lists can be unsubscribed (avoid infinite recursio
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						friends: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friends',
 							selection: {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 									friends: {
 										type: 'User',
+										visible: true,
 										keyRaw: 'friends',
 										selection: {
 											fields: {
 												id: {
 													type: 'ID',
+													visible: true,
 													keyRaw: 'id',
 												},
 												firstName: {
 													type: 'String',
+													visible: true,
 													keyRaw: 'firstName',
 												},
 											},
@@ -1478,54 +1564,66 @@ test('self-referencing links can be unsubscribed (avoid infinite recursion)', fu
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						friend: {
 							type: 'User',
+							visible: true,
 							keyRaw: 'friend',
 							selection: {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									firstName: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'firstName',
 									},
 									friend: {
 										type: 'User',
+										visible: true,
 										keyRaw: 'friend',
 										selection: {
 											fields: {
 												id: {
 													type: 'ID',
+													visible: true,
 													keyRaw: 'id',
 												},
 												firstName: {
 													type: 'String',
+													visible: true,
 													keyRaw: 'firstName',
 												},
 												friend: {
 													type: 'User',
+													visible: true,
 													keyRaw: 'friend',
 													selection: {
 														fields: {
 															id: {
 																type: 'ID',
+																visible: true,
 																keyRaw: 'id',
 															},
 															firstName: {
 																type: 'String',
+																visible: true,
 																keyRaw: 'firstName',
 															},
 														},
@@ -1587,19 +1685,23 @@ test('overwriting a value in an optimistic layer triggers subscribers', function
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						favoriteColors: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'favoriteColors',
 						},
 					},
@@ -1663,19 +1765,23 @@ test('clearing a display layer updates subscribers', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						favoriteColors: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'favoriteColors',
 						},
 					},
@@ -1763,6 +1869,7 @@ test('ensure parent type is properly passed for nested lists', function () {
 		fields: {
 			cities: {
 				type: 'City',
+				visible: true,
 				keyRaw: 'cities',
 				list: {
 					name: 'City_List',
@@ -1774,14 +1881,17 @@ test('ensure parent type is properly passed for nested lists', function () {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						name: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'name',
 						},
 						libraries: {
 							type: 'Library',
+							visible: true,
 							keyRaw: 'libraries',
 							list: {
 								name: 'Library_List',
@@ -1792,14 +1902,17 @@ test('ensure parent type is properly passed for nested lists', function () {
 								fields: {
 									id: {
 										type: 'ID',
+										visible: true,
 										keyRaw: 'id',
 									},
 									name: {
 										type: 'String',
+										visible: true,
 										keyRaw: 'name',
 									},
 									books: {
 										type: 'Book',
+										visible: true,
 										keyRaw: 'books',
 										list: {
 											name: 'Book_List',
@@ -1810,10 +1923,12 @@ test('ensure parent type is properly passed for nested lists', function () {
 											fields: {
 												id: {
 													type: 'ID',
+													visible: true,
 													keyRaw: 'id',
 												},
 												title: {
 													type: 'String',
+													visible: true,
 													keyRaw: 'title',
 												},
 											},
@@ -1884,20 +1999,24 @@ test('subscribe to abstract fields of matching type', function () {
 		fields: {
 			viewer: {
 				type: 'Node',
+				visible: true,
 				keyRaw: 'viewer',
 				abstract: true,
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						__typename: {
 							type: 'String',
+							visible: true,
 							keyRaw: '__typename',
 						},
 					},
@@ -1907,18 +2026,22 @@ test('subscribe to abstract fields of matching type', function () {
 							User: {
 								__typename: {
 									type: 'String',
+									visible: true,
 									keyRaw: '__typename',
 								},
 								id: {
 									type: 'ID',
+									visible: true,
 									keyRaw: 'id',
 								},
 								firstName: {
 									type: 'String',
+									visible: true,
 									keyRaw: 'firstName',
 								},
 								favoriteColors: {
 									type: 'String',
+									visible: true,
 									keyRaw: 'favoriteColors',
 								},
 							},
@@ -1983,16 +2106,19 @@ test('overlapping subscriptions', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				nullable: true,
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						favoriteColors: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'favoriteColors',
 						},
 					},
@@ -2005,16 +2131,19 @@ test('overlapping subscriptions', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+				visible: true,
 				keyRaw: 'viewer',
 				nullable: true,
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 					},
@@ -2073,10 +2202,12 @@ test('overlapping subscriptions', function () {
 			fields: {
 				id: {
 					type: 'ID',
+					visible: true,
 					keyRaw: 'id',
 				},
 				favoriteColors: {
 					type: 'String',
+					visible: true,
 					keyRaw: 'favoriteColors',
 				},
 			},
@@ -2096,10 +2227,12 @@ test('overlapping subscriptions', function () {
 			fields: {
 				id: {
 					type: 'ID',
+					visible: true,
 					keyRaw: 'id',
 				},
 				firstName: {
 					type: 'String',
+					visible: true,
 					keyRaw: 'firstName',
 				},
 			},
@@ -2110,6 +2243,76 @@ test('overlapping subscriptions', function () {
 		},
 	})
 	expect(set2).toHaveBeenCalledTimes(2)
+})
+
+test('ignore hidden fields', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				nullable: true,
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							visible: true,
+							keyRaw: 'id',
+						},
+						favoriteColors: {
+							type: 'String',
+							keyRaw: 'favoriteColors',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// write some data
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				__typename: 'User',
+				id: '1',
+				firstName: 'bob',
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = vi.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		selection,
+		set,
+	})
+
+	// write to the favoriteColors field to make sure we didn't get an update
+	cache.write({
+		selection: {
+			fields: {
+				favoriteColors: {
+					type: 'String',
+					keyRaw: 'favoriteColors',
+				},
+			},
+		},
+		data: {
+			favoriteColors: ['blue'],
+		},
+		parent: 'User:1',
+	})
+
+	// make sure we didn't call the update
+	expect(set).not.toHaveBeenCalled()
 })
 
 test.todo('can write to and resolve layers')

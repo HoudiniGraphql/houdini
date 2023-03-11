@@ -112,11 +112,12 @@ describe('typescript', function () {
 		).toMatchInlineSnapshot(`
 			import { MyEnum } from "$houdini/graphql/enums";
 			import type { ValueOf } from "$houdini/runtime/lib/types";
+			export type TestFragment$input = {};
 
 			export type TestFragment = {
 			    readonly "shape"?: TestFragment$data;
-			    readonly "$fragments": {
-			        "TestFragment": true;
+			    readonly " $fragments": {
+			        "TestFragment": any;
 			    };
 			};
 
@@ -152,8 +153,8 @@ describe('typescript', function () {
 
 			export type TestFragment = {
 			    readonly "shape"?: TestFragment$data;
-			    readonly "$fragments": {
-			        "TestFragment": true;
+			    readonly " $fragments": {
+			        "TestFragment": any;
 			    };
 			};
 
@@ -189,8 +190,8 @@ describe('typescript', function () {
 
 			export type TestFragment = {
 			    readonly "shape"?: TestFragment$data;
-			    readonly "$fragments": {
-			        "TestFragment": true;
+			    readonly " $fragments": {
+			        "TestFragment": any;
 			    };
 			};
 
@@ -220,10 +221,12 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
+			export type TestFragment$input = {};
+
 			export type TestFragment = {
 			    readonly "shape"?: TestFragment$data;
-			    readonly "$fragments": {
-			        "TestFragment": true;
+			    readonly " $fragments": {
+			        "TestFragment": any;
 			    };
 			};
 
@@ -254,10 +257,12 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
+			export type TestFragment$input = {};
+
 			export type TestFragment = {
 			    readonly "shape"?: TestFragment$data;
-			    readonly "$fragments": {
-			        "TestFragment": true;
+			    readonly " $fragments": {
+			        "TestFragment": any;
 			    };
 			};
 
@@ -289,10 +294,12 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
+			export type TestFragment$input = {};
+
 			export type TestFragment = {
 			    readonly "shape"?: TestFragment$data;
-			    readonly "$fragments": {
-			        "TestFragment": true;
+			    readonly " $fragments": {
+			        "TestFragment": any;
 			    };
 			};
 
@@ -581,8 +588,8 @@ describe('typescript', function () {
 			export type MyMutation$result = {
 			    readonly doThing: {
 			        readonly firstName: string;
-			        readonly $fragments: {
-			            TestFragment: true;
+			        readonly " $fragments": {
+			            TestFragment: {};
 			        };
 			    } | null;
 			};
@@ -700,8 +707,8 @@ describe('typescript', function () {
 
 			export type MyQuery$result = {
 			    readonly user: {
-			        readonly $fragments: {
-			            Foo: true;
+			        readonly " $fragments": {
+			            Foo: {};
 			        };
 			    } | null;
 			};
@@ -739,8 +746,8 @@ describe('typescript', function () {
 			export type MyQuery$result = {
 			    readonly user: {
 			        readonly firstName: string;
-			        readonly $fragments: {
-			            Foo: true;
+			        readonly " $fragments": {
+			            Foo: {};
 			        };
 			    };
 			};
@@ -1217,9 +1224,9 @@ describe('typescript', function () {
 			export type MyMutation$result = {
 			    readonly doThing: {
 			        readonly id: string;
-			        readonly $fragments: {
-			            My_Users_remove: true;
-			            My_Users_insert: true;
+			        readonly " $fragments": {
+			            My_Users_remove: {};
+			            My_Users_insert: {};
 			        };
 			    } | null;
 			};
@@ -1314,13 +1321,13 @@ describe('typescript', function () {
 			        readonly friends: ({
 			            readonly id: string;
 			            readonly firstName: string;
-			            readonly $fragments: {
-			                UserBase: true;
+			            readonly " $fragments": {
+			                UserBase: {};
 			            };
 			        } | null)[] | null;
-			        readonly $fragments: {
-			            UserBase: true;
-			            UserMore: true;
+			        readonly " $fragments": {
+			            UserBase: {};
+			            UserMore: {};
 			        };
 			    } | null;
 			};
@@ -1383,9 +1390,9 @@ describe('typescript', function () {
 			    readonly user: {
 			        readonly id: string;
 			        readonly firstName: string;
-			        readonly $fragments: {
-			            UserBase: true;
-			            UserMore: true;
+			        readonly " $fragments": {
+			            UserBase: {};
+			            UserMore: {};
 			        };
 			    } | null;
 			};
@@ -1398,17 +1405,19 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
+			export type UserMore$input = {};
+
 			export type UserMore = {
 			    readonly "shape"?: UserMore$data;
-			    readonly "$fragments": {
-			        "UserMore": true;
+			    readonly " $fragments": {
+			        "UserMore": any;
 			    };
 			};
 
 			export type UserMore$data = {
 			    readonly friends: ({
-			        readonly $fragments: {
-			            UserBase: true;
+			        readonly " $fragments": {
+			            UserBase: {};
 			        };
 			    } | null)[] | null;
 			};
@@ -1470,13 +1479,13 @@ describe('typescript', function () {
 			        readonly friends: ({
 			            readonly id: string;
 			            readonly firstName: string;
-			            readonly $fragments: {
-			                UserBase: true;
+			            readonly " $fragments": {
+			                UserBase: {};
 			            };
 			        } | null)[] | null;
-			        readonly $fragments: {
-			            UserBase: true;
-			            UserMore: true;
+			        readonly " $fragments": {
+			            UserBase: {};
+			            UserMore: {};
 			        };
 			    } | null;
 			};
@@ -1489,10 +1498,12 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
+			export type UserMore$input = {};
+
 			export type UserMore = {
 			    readonly "shape"?: UserMore$data;
-			    readonly "$fragments": {
-			        "UserMore": true;
+			    readonly " $fragments": {
+			        "UserMore": any;
 			    };
 			};
 
@@ -1500,8 +1511,8 @@ describe('typescript', function () {
 			    readonly friends: ({
 			        readonly id: string;
 			        readonly firstName: string;
-			        readonly $fragments: {
-			            UserBase: true;
+			        readonly " $fragments": {
+			            UserBase: {};
 			        };
 			    } | null)[] | null;
 			};
@@ -1550,4 +1561,58 @@ describe('typescript', function () {
 	test.todo('intersections with __typename in subselection')
 
 	test.todo('inline fragments')
+})
+
+test('overlapping fragments', async function () {
+	const configWithoutMasking = testConfig({
+		defaultFragmentMasking: 'disable',
+		schema: config.schema,
+	})
+
+	const docs = [
+		mockCollectedDoc(`
+			fragment UserBase on User {
+				id
+				firstName
+				...UserMore
+			}
+		`),
+		mockCollectedDoc(`
+			fragment UserMore on User {
+				id
+				firstName
+			}
+		`),
+	]
+
+	// execute the generator
+	await runPipeline(configWithoutMasking, docs)
+
+	// look up the files in the artifact directory
+	const fragmentFileContents = await fs.readFile(
+		configWithoutMasking.artifactTypePath(docs[0].document)
+	)
+
+	expect(
+		recast.parse(fragmentFileContents!, {
+			parser: typeScriptParser,
+		})
+	).toMatchInlineSnapshot(`
+		export type UserBase$input = {};
+
+		export type UserBase = {
+		    readonly "shape"?: UserBase$data;
+		    readonly " $fragments": {
+		        "UserBase": any;
+		    };
+		};
+
+		export type UserBase$data = {
+		    readonly id: string;
+		    readonly firstName: string;
+		    readonly " $fragments": {
+		        UserMore: {};
+		    };
+		};
+	`)
 })

@@ -45,13 +45,23 @@ export default async function addID(config: Config, documents: Document[]): Prom
 				// add the appropriate fields to the selection
 				return addKeysToSelection(config, node, fragmentType)
 			},
+			FragmentDefinition(node) {
+				// we can grab the type from the definition
+				const fragmentType = config.schema.getType(node.typeCondition.name.value)
+				if (!fragmentType) {
+					return
+				}
+
+				// add the appropriate fields to the selection
+				return addKeysToSelection(config, node, fragmentType)
+			},
 		})
 	}
 }
 
 function addKeysToSelection(
 	config: Config,
-	node: graphql.FieldNode | graphql.InlineFragmentNode,
+	node: graphql.FieldNode | graphql.InlineFragmentNode | graphql.FragmentDefinitionNode,
 	fieldType: graphql.GraphQLNamedType
 ) {
 	// if there is no selection set, don't worry about it

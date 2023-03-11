@@ -1,8 +1,8 @@
 import { test, expect } from 'vitest'
 
-import { runPipeline } from '../..'
-import { CachePolicy } from '../../../runtime/lib'
-import { testConfig, mockCollectedDoc } from '../../../test'
+import { runPipeline } from '../../..'
+import { CachePolicy } from '../../../../runtime/lib'
+import { testConfig, mockCollectedDoc } from '../../../../test'
 
 // the config to use in tests
 const config = testConfig()
@@ -59,18 +59,24 @@ test('cache policy is persisted in artifact', async function () {
 		                                "fields": {
 		                                    "id": {
 		                                        "type": "ID",
-		                                        "keyRaw": "id"
+		                                        "keyRaw": "id",
+		                                        "visible": true
 		                                    }
 		                                }
-		                            }
+		                            },
+
+		                            "visible": true
 		                        },
 
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
+		                            "keyRaw": "id",
+		                            "visible": true
 		                        }
 		                    }
-		                }
+		                },
+
+		                "visible": true
 		            }
 		        }
 		    },
@@ -141,18 +147,24 @@ test('can change default cache policy', async function () {
 		                                "fields": {
 		                                    "id": {
 		                                        "type": "ID",
-		                                        "keyRaw": "id"
+		                                        "keyRaw": "id",
+		                                        "visible": true
 		                                    }
 		                                }
-		                            }
+		                            },
+
+		                            "visible": true
 		                        },
 
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
+		                            "keyRaw": "id",
+		                            "visible": true
 		                        }
 		                    }
-		                }
+		                },
+
+		                "visible": true
 		            }
 		        }
 		    },
@@ -218,18 +230,24 @@ test('partial opt-in is persisted', async function () {
 		                                "fields": {
 		                                    "id": {
 		                                        "type": "ID",
-		                                        "keyRaw": "id"
+		                                        "keyRaw": "id",
+		                                        "visible": true
 		                                    }
 		                                }
-		                            }
+		                            },
+
+		                            "visible": true
 		                        },
 
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
+		                            "keyRaw": "id",
+		                            "visible": true
 		                        }
 		                    }
-		                }
+		                },
+
+		                "visible": true
 		            }
 		        }
 		    },
@@ -300,18 +318,24 @@ test('can set default partial opt-in', async function () {
 		                                "fields": {
 		                                    "id": {
 		                                        "type": "ID",
-		                                        "keyRaw": "id"
+		                                        "keyRaw": "id",
+		                                        "visible": true
 		                                    }
 		                                }
-		                            }
+		                            },
+
+		                            "visible": true
 		                        },
 
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
+		                            "keyRaw": "id",
+		                            "visible": true
 		                        }
 		                    }
-		                }
+		                },
+
+		                "visible": true
 		            }
 		        }
 		    },

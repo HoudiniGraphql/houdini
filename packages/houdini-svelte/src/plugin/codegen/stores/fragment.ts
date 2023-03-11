@@ -47,18 +47,17 @@ export class ${storeName} extends ${store_class} {
 `
 
 	const _data = `${artifactName}$data`
+	const _input = `${artifactName}$input`
 
 	// the type definitions for the store
-	const typeDefs = `import type { ${_data}, ${store_class}, QueryStoreFetchParams} from '$houdini'
+	const typeDefs = `import type { ${_data}, ${_input}, ${store_class}, QueryStoreFetchParams} from '$houdini'
 
-export declare class ${storeName} extends ${store_class}<${_data}, {}> {
+export declare class ${storeName} extends ${store_class}<${_data}, { ${doc.name}: any }, ${_input}> {
 	constructor() {
 		// @ts-ignore
 		super({})
 	}
 }
-
-export declare const load_${artifactName}: (params: QueryStoreFetchParams<${_data}, {}>) => Promise<${storeName}>
 `
 
 	// write the store contents to disk

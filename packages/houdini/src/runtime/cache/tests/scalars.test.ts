@@ -28,15 +28,21 @@ test('extracting data with custom scalars unmarshals the value', () => {
 		fields: {
 			node: {
 				type: 'Node',
+
+				visible: true,
 				keyRaw: 'node',
 				selection: {
 					fields: {
 						date: {
 							type: 'DateTime',
+
+							visible: true,
 							keyRaw: 'date',
 						},
 						id: {
 							type: 'ID',
+
+							visible: true,
 							keyRaw: 'id',
 						},
 					},
@@ -73,15 +79,21 @@ test('can store and retrieve lists of lists of scalars', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+
+							visible: true,
 							keyRaw: 'id',
 						},
 						strings: {
 							type: 'String',
+
+							visible: true,
 							keyRaw: 'strings',
 						},
 					},
@@ -118,19 +130,27 @@ test('can write list of scalars', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						friends: {
 							type: 'Int',
+
+							visible: true,
 							keyRaw: 'friends',
 						},
 					},
@@ -169,21 +189,26 @@ test('writing a scalar marked with replace', function () {
 		fields: {
 			viewer: {
 				type: 'User',
+
+				visible: true,
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
 							type: 'ID',
+							visible: true,
 							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
+							visible: true,
 							keyRaw: 'firstName',
 						},
 						friends: {
 							type: 'Int',
 							keyRaw: 'friends',
-							update: RefetchUpdateMode.append,
+							visible: true,
+							updates: [RefetchUpdateMode.append],
 						},
 					},
 				},

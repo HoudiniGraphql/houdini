@@ -1,14 +1,13 @@
 import { test, expect, describe } from 'vitest'
 
-import { runPipeline } from '../../../codegen'
-import type { Document } from '../../../lib'
-import { fs } from '../../../lib'
-import { mockCollectedDoc, testConfig } from '../../../test'
-
-// the config to use in tests
-const config = testConfig()
+import { runPipeline } from '../../..'
+import type { Document } from '../../../../lib'
+import { fs } from '../../../../lib'
+import { mockCollectedDoc, testConfig } from '../../../../test'
 
 test('generates an artifact for every document', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	// the documents to test
 	const docs: Document[] = [
 		mockCollectedDoc(`query TestQuery { version }`),
@@ -26,6 +25,8 @@ test('generates an artifact for every document', async function () {
 })
 
 test('adds kind, name, and raw, response, and selection', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	// the documents to test
 	const docs: Document[] = [
 		mockCollectedDoc(`query TestQuery { version }`),
@@ -53,7 +54,8 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		        "fields": {
 		            "version": {
 		                "type": "Int",
-		                "keyRaw": "version"
+		                "keyRaw": "version",
+		                "visible": true
 		            }
 		        }
 		    },
@@ -74,6 +76,7 @@ test('adds kind, name, and raw, response, and selection', async function () {
 
 		    "raw": \`fragment TestFragment on User {
 		  firstName
+		  id
 		}
 		\`,
 
@@ -83,7 +86,14 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		        "fields": {
 		            "firstName": {
 		                "type": "String",
-		                "keyRaw": "firstName"
+		                "keyRaw": "firstName",
+		                "visible": true
+		            },
+
+		            "id": {
+		                "type": "ID",
+		                "keyRaw": "id",
+		                "visible": true
 		            }
 		        }
 		    },
@@ -96,6 +106,8 @@ test('adds kind, name, and raw, response, and selection', async function () {
 })
 
 test('selection includes fragments', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	// the documents to test
 	const selectionDocs: Document[] = [
 		mockCollectedDoc(`query TestQuery { user { ...TestFragment } }`),
@@ -121,6 +133,7 @@ test('selection includes fragments', async function () {
 
 		fragment TestFragment on User {
 		  firstName
+		  id
 		}
 		\`,
 
@@ -141,10 +154,17 @@ test('selection includes fragments', async function () {
 
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
+		                            "keyRaw": "id",
+		                            "visible": true
 		                        }
+		                    },
+
+		                    "fragments": {
+		                        "TestFragment": {}
 		                    }
-		                }
+		                },
+
+		                "visible": true
 		            }
 		        }
 		    },
@@ -165,6 +185,7 @@ test('selection includes fragments', async function () {
 
 		    "raw": \`fragment TestFragment on User {
 		  firstName
+		  id
 		}
 		\`,
 
@@ -174,7 +195,14 @@ test('selection includes fragments', async function () {
 		        "fields": {
 		            "firstName": {
 		                "type": "String",
-		                "keyRaw": "firstName"
+		                "keyRaw": "firstName",
+		                "visible": true
+		            },
+
+		            "id": {
+		                "type": "ID",
+		                "keyRaw": "id",
+		                "visible": true
 		            }
 		        }
 		    },
@@ -187,6 +215,8 @@ test('selection includes fragments', async function () {
 })
 
 test('internal directives are scrubbed', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	const docs = [
 		mockCollectedDoc(`fragment A on User { firstName }`),
 		mockCollectedDoc(`query TestQuery { user { ...A @prepend } }`),
@@ -211,6 +241,7 @@ test('internal directives are scrubbed', async function () {
 
 		fragment A on User {
 		  firstName
+		  id
 		}
 		\`,
 
@@ -231,10 +262,17 @@ test('internal directives are scrubbed', async function () {
 
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
+		                            "keyRaw": "id",
+		                            "visible": true
 		                        }
+		                    },
+
+		                    "fragments": {
+		                        "A": {}
 		                    }
-		                }
+		                },
+
+		                "visible": true
 		            }
 		        }
 		    },
@@ -249,6 +287,8 @@ test('internal directives are scrubbed', async function () {
 })
 
 test('variables only used by internal directives are scrubbed', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	const docs = [
 		mockCollectedDoc(`fragment A on User { firstName }`),
 		mockCollectedDoc(
@@ -279,6 +319,7 @@ test('variables only used by internal directives are scrubbed', async function (
 
 		fragment A on User {
 		  firstName
+		  id
 		}
 		\`,
 
@@ -299,10 +340,17 @@ test('variables only used by internal directives are scrubbed', async function (
 
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
+		                            "keyRaw": "id",
+		                            "visible": true
 		                        }
+		                    },
+
+		                    "fragments": {
+		                        "A": {}
 		                    }
-		                }
+		                },
+
+		                "visible": true
 		            }
 		        }
 		    },
@@ -326,6 +374,8 @@ test('variables only used by internal directives are scrubbed', async function (
 })
 
 test('overlapping query and fragment selection', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	const docs = [
 		mockCollectedDoc(`fragment A on User { firstName }`),
 		mockCollectedDoc(`query TestQuery { user { firstName ...A @prepend } }`),
@@ -351,6 +401,7 @@ test('overlapping query and fragment selection', async function () {
 
 		fragment A on User {
 		  firstName
+		  id
 		}
 		\`,
 
@@ -366,15 +417,23 @@ test('overlapping query and fragment selection', async function () {
 		                    "fields": {
 		                        "firstName": {
 		                            "type": "String",
-		                            "keyRaw": "firstName"
+		                            "keyRaw": "firstName",
+		                            "visible": true
 		                        },
 
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
+		                            "keyRaw": "id",
+		                            "visible": true
 		                        }
+		                    },
+
+		                    "fragments": {
+		                        "A": {}
 		                    }
-		                }
+		                },
+
+		                "visible": true
 		            }
 		        }
 		    },
@@ -388,6 +447,8 @@ test('overlapping query and fragment selection', async function () {
 	`)
 })
 test('interface to interface inline fragment', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	const docs = [
 		mockCollectedDoc(`query MyQuery($id: ID!) {
 			node(id: $id) {
@@ -433,17 +494,20 @@ test('interface to interface inline fragment', async function () {
 		                            "Friend": {
 		                                "name": {
 		                                    "type": "String",
-		                                    "keyRaw": "name"
+		                                    "keyRaw": "name",
+		                                    "visible": true
 		                                },
 
 		                                "id": {
 		                                    "type": "ID",
-		                                    "keyRaw": "id"
+		                                    "keyRaw": "id",
+		                                    "visible": true
 		                                },
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            }
 		                        },
@@ -457,17 +521,20 @@ test('interface to interface inline fragment', async function () {
 		                    "fields": {
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
+		                            "keyRaw": "id",
+		                            "visible": true
 		                        },
 
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "keyRaw": "__typename",
+		                            "visible": true
 		                        }
 		                    }
 		                },
 
-		                "abstract": true
+		                "abstract": true,
+		                "visible": true
 		            }
 		        }
 		    },
@@ -491,6 +558,8 @@ test('interface to interface inline fragment', async function () {
 })
 
 test('paginate over unions', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	const docs = [
 		mockCollectedDoc(
 			`query TestQuery {
@@ -588,17 +657,20 @@ test('paginate over unions', async function () {
 		                                                    "User": {
 		                                                        "firstName": {
 		                                                            "type": "String",
-		                                                            "keyRaw": "firstName"
+		                                                            "keyRaw": "firstName",
+		                                                            "visible": true
 		                                                        },
 
 		                                                        "id": {
 		                                                            "type": "ID",
-		                                                            "keyRaw": "id"
+		                                                            "keyRaw": "id",
+		                                                            "visible": true
 		                                                        },
 
 		                                                        "__typename": {
 		                                                            "type": "String",
-		                                                            "keyRaw": "__typename"
+		                                                            "keyRaw": "__typename",
+		                                                            "visible": true
 		                                                        }
 		                                                    }
 		                                                },
@@ -609,20 +681,25 @@ test('paginate over unions', async function () {
 		                                            "fields": {
 		                                                "__typename": {
 		                                                    "type": "String",
-		                                                    "keyRaw": "__typename"
+		                                                    "keyRaw": "__typename",
+		                                                    "visible": true
 		                                                }
 		                                            }
 		                                        },
 
-		                                        "abstract": true
+		                                        "abstract": true,
+		                                        "visible": true
 		                                    },
 
 		                                    "cursor": {
 		                                        "type": "String",
-		                                        "keyRaw": "cursor"
+		                                        "keyRaw": "cursor",
+		                                        "visible": true
 		                                    }
 		                                }
-		                            }
+		                            },
+
+		                            "visible": true
 		                        },
 
 		                        "pageInfo": {
@@ -634,28 +711,34 @@ test('paginate over unions', async function () {
 		                                    "hasPreviousPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasPreviousPage",
-		                                        "updates": ["append", "prepend"]
+		                                        "updates": ["append", "prepend"],
+		                                        "visible": true
 		                                    },
 
 		                                    "hasNextPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasNextPage",
-		                                        "updates": ["append", "prepend"]
+		                                        "updates": ["append", "prepend"],
+		                                        "visible": true
 		                                    },
 
 		                                    "startCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "startCursor",
-		                                        "updates": ["append", "prepend"]
+		                                        "updates": ["append", "prepend"],
+		                                        "visible": true
 		                                    },
 
 		                                    "endCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "endCursor",
-		                                        "updates": ["append", "prepend"]
+		                                        "updates": ["append", "prepend"],
+		                                        "visible": true
 		                                    }
 		                                }
-		                            }
+		                            },
+
+		                            "visible": true
 		                        }
 		                    }
 		                },
@@ -680,7 +763,9 @@ test('paginate over unions', async function () {
 		                        "kind": "Variable",
 		                        "value": "before"
 		                    }
-		                }
+		                },
+
+		                "visible": true
 		            }
 		        }
 		    },
@@ -707,6 +792,8 @@ test('paginate over unions', async function () {
 })
 
 test('overlapping query and fragment nested selection', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	const docs = [
 		mockCollectedDoc(`fragment A on User { friends { ... on User { id } } }`),
 		mockCollectedDoc(`query TestQuery {  friends {... on User { firstName } ...A @prepend } }`),
@@ -740,6 +827,7 @@ test('overlapping query and fragment nested selection', async function () {
 		    }
 		    id
 		  }
+		  id
 		}
 		\`,
 
@@ -757,12 +845,14 @@ test('overlapping query and fragment nested selection', async function () {
 		                            "User": {
 		                                "firstName": {
 		                                    "type": "String",
-		                                    "keyRaw": "firstName"
+		                                    "keyRaw": "firstName",
+		                                    "visible": true
 		                                },
 
 		                                "id": {
 		                                    "type": "ID",
-		                                    "keyRaw": "id"
+		                                    "keyRaw": "id",
+		                                    "visible": true
 		                                },
 
 		                                "friends": {
@@ -773,7 +863,8 @@ test('overlapping query and fragment nested selection', async function () {
 		                                        "fields": {
 		                                            "id": {
 		                                                "type": "ID",
-		                                                "keyRaw": "id"
+		                                                "keyRaw": "id",
+		                                                "visible": true
 		                                            }
 		                                        }
 		                                    }
@@ -781,7 +872,8 @@ test('overlapping query and fragment nested selection', async function () {
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            }
 		                        },
@@ -792,26 +884,18 @@ test('overlapping query and fragment nested selection', async function () {
 		                    "fields": {
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
-		                        },
-
-		                        "friends": {
-		                            "type": "User",
-		                            "keyRaw": "friends",
-
-		                            "selection": {
-		                                "fields": {
-		                                    "id": {
-		                                        "type": "ID",
-		                                        "keyRaw": "id"
-		                                    }
-		                                }
-		                            }
+		                            "keyRaw": "__typename",
+		                            "visible": true
 		                        }
+		                    },
+
+		                    "fragments": {
+		                        "A": {}
 		                    }
 		                },
 
-		                "abstract": true
+		                "abstract": true,
+		                "visible": true
 		            }
 		        }
 		    },
@@ -826,6 +910,8 @@ test('overlapping query and fragment nested selection', async function () {
 })
 
 test('selections with interfaces', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	const cfg = testConfig({ module: 'esm' })
 	const docs = [
 		mockCollectedDoc(
@@ -887,7 +973,8 @@ test('selections with interfaces', async function () {
 		                            "Cat": {
 		                                "id": {
 		                                    "type": "ID",
-		                                    "keyRaw": "id"
+		                                    "keyRaw": "id",
+		                                    "visible": true
 		                                },
 
 		                                "owner": {
@@ -898,37 +985,45 @@ test('selections with interfaces', async function () {
 		                                        "fields": {
 		                                            "firstName": {
 		                                                "type": "String",
-		                                                "keyRaw": "firstName"
+		                                                "keyRaw": "firstName",
+		                                                "visible": true
 		                                            },
 
 		                                            "id": {
 		                                                "type": "ID",
-		                                                "keyRaw": "id"
+		                                                "keyRaw": "id",
+		                                                "visible": true
 		                                            }
 		                                        }
-		                                    }
+		                                    },
+
+		                                    "visible": true
 		                                },
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            },
 
 		                            "Ghost": {
 		                                "name": {
 		                                    "type": "String",
-		                                    "keyRaw": "name"
+		                                    "keyRaw": "name",
+		                                    "visible": true
 		                                },
 
 		                                "aka": {
 		                                    "type": "String",
-		                                    "keyRaw": "aka"
+		                                    "keyRaw": "aka",
+		                                    "visible": true
 		                                },
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            }
 		                        },
@@ -939,12 +1034,14 @@ test('selections with interfaces', async function () {
 		                    "fields": {
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "keyRaw": "__typename",
+		                            "visible": true
 		                        }
 		                    }
 		                },
 
-		                "abstract": true
+		                "abstract": true,
+		                "visible": true
 		            }
 		        }
 		    },
@@ -959,6 +1056,8 @@ test('selections with interfaces', async function () {
 })
 
 test('selections with unions', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	const cfg = testConfig({ module: 'esm' })
 	const docs = [
 		mockCollectedDoc(
@@ -1020,7 +1119,8 @@ test('selections with unions', async function () {
 		                            "Cat": {
 		                                "id": {
 		                                    "type": "ID",
-		                                    "keyRaw": "id"
+		                                    "keyRaw": "id",
+		                                    "visible": true
 		                                },
 
 		                                "owner": {
@@ -1031,37 +1131,45 @@ test('selections with unions', async function () {
 		                                        "fields": {
 		                                            "firstName": {
 		                                                "type": "String",
-		                                                "keyRaw": "firstName"
+		                                                "keyRaw": "firstName",
+		                                                "visible": true
 		                                            },
 
 		                                            "id": {
 		                                                "type": "ID",
-		                                                "keyRaw": "id"
+		                                                "keyRaw": "id",
+		                                                "visible": true
 		                                            }
 		                                        }
-		                                    }
+		                                    },
+
+		                                    "visible": true
 		                                },
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            },
 
 		                            "Ghost": {
 		                                "name": {
 		                                    "type": "String",
-		                                    "keyRaw": "name"
+		                                    "keyRaw": "name",
+		                                    "visible": true
 		                                },
 
 		                                "aka": {
 		                                    "type": "String",
-		                                    "keyRaw": "aka"
+		                                    "keyRaw": "aka",
+		                                    "visible": true
 		                                },
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            }
 		                        },
@@ -1072,12 +1180,14 @@ test('selections with unions', async function () {
 		                    "fields": {
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "keyRaw": "__typename",
+		                            "visible": true
 		                        }
 		                    }
 		                },
 
-		                "abstract": true
+		                "abstract": true,
+		                "visible": true
 		            }
 		        }
 		    },
@@ -1092,6 +1202,8 @@ test('selections with unions', async function () {
 })
 
 test('selections with overlapping unions', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	const cfg = testConfig({ module: 'esm' })
 	const docs = [
 		mockCollectedDoc(
@@ -1155,7 +1267,8 @@ test('selections with overlapping unions', async function () {
 		                            "Cat": {
 		                                "id": {
 		                                    "type": "ID",
-		                                    "keyRaw": "id"
+		                                    "keyRaw": "id",
+		                                    "visible": true
 		                                },
 
 		                                "owner": {
@@ -1166,42 +1279,51 @@ test('selections with overlapping unions', async function () {
 		                                        "fields": {
 		                                            "firstName": {
 		                                                "type": "String",
-		                                                "keyRaw": "firstName"
+		                                                "keyRaw": "firstName",
+		                                                "visible": true
 		                                            },
 
 		                                            "id": {
 		                                                "type": "ID",
-		                                                "keyRaw": "id"
+		                                                "keyRaw": "id",
+		                                                "visible": true
 		                                            }
 		                                        }
-		                                    }
+		                                    },
+
+		                                    "visible": true
 		                                },
 
 		                                "name": {
 		                                    "type": "String",
-		                                    "keyRaw": "name"
+		                                    "keyRaw": "name",
+		                                    "visible": true
 		                                },
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            },
 
 		                            "Ghost": {
 		                                "name": {
 		                                    "type": "String",
-		                                    "keyRaw": "name"
+		                                    "keyRaw": "name",
+		                                    "visible": true
 		                                },
 
 		                                "aka": {
 		                                    "type": "String",
-		                                    "keyRaw": "aka"
+		                                    "keyRaw": "aka",
+		                                    "visible": true
 		                                },
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            }
 		                        },
@@ -1212,17 +1334,20 @@ test('selections with overlapping unions', async function () {
 		                    "fields": {
 		                        "name": {
 		                            "type": "String",
-		                            "keyRaw": "name"
+		                            "keyRaw": "name",
+		                            "visible": true
 		                        },
 
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "keyRaw": "__typename",
+		                            "visible": true
 		                        }
 		                    }
 		                },
 
-		                "abstract": true
+		                "abstract": true,
+		                "visible": true
 		            }
 		        }
 		    },
@@ -1237,6 +1362,8 @@ test('selections with overlapping unions', async function () {
 })
 
 test('selections with unions of abstract types', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	const cfg = testConfig({ module: 'esm' })
 	const docs = [
 		mockCollectedDoc(
@@ -1304,12 +1431,14 @@ test('selections with unions of abstract types', async function () {
 		                            "Node": {
 		                                "id": {
 		                                    "type": "ID",
-		                                    "keyRaw": "id"
+		                                    "keyRaw": "id",
+		                                    "visible": true
 		                                },
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            },
 
@@ -1322,42 +1451,51 @@ test('selections with unions of abstract types', async function () {
 		                                        "fields": {
 		                                            "firstName": {
 		                                                "type": "String",
-		                                                "keyRaw": "firstName"
+		                                                "keyRaw": "firstName",
+		                                                "visible": true
 		                                            },
 
 		                                            "id": {
 		                                                "type": "ID",
-		                                                "keyRaw": "id"
+		                                                "keyRaw": "id",
+		                                                "visible": true
 		                                            }
 		                                        }
-		                                    }
+		                                    },
+
+		                                    "visible": true
 		                                },
 
 		                                "id": {
 		                                    "type": "ID",
-		                                    "keyRaw": "id"
+		                                    "keyRaw": "id",
+		                                    "visible": true
 		                                },
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            },
 
 		                            "Ghost": {
 		                                "name": {
 		                                    "type": "String",
-		                                    "keyRaw": "name"
+		                                    "keyRaw": "name",
+		                                    "visible": true
 		                                },
 
 		                                "aka": {
 		                                    "type": "String",
-		                                    "keyRaw": "aka"
+		                                    "keyRaw": "aka",
+		                                    "visible": true
 		                                },
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            }
 		                        },
@@ -1370,12 +1508,14 @@ test('selections with unions of abstract types', async function () {
 		                    "fields": {
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "keyRaw": "__typename",
+		                            "visible": true
 		                        }
 		                    }
 		                },
 
-		                "abstract": true
+		                "abstract": true,
+		                "visible": true
 		            }
 		        }
 		    },
@@ -1390,6 +1530,8 @@ test('selections with unions of abstract types', async function () {
 })
 
 test('selections with concrete types matching multiple abstract types', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	const cfg = testConfig({ module: 'esm' })
 	const docs = [
 		mockCollectedDoc(
@@ -1455,24 +1597,28 @@ test('selections with concrete types matching multiple abstract types', async fu
 		                            "Node": {
 		                                "id": {
 		                                    "type": "ID",
-		                                    "keyRaw": "id"
+		                                    "keyRaw": "id",
+		                                    "visible": true
 		                                },
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            },
 
 		                            "Ghost": {
 		                                "aka": {
 		                                    "type": "String",
-		                                    "keyRaw": "aka"
+		                                    "keyRaw": "aka",
+		                                    "visible": true
 		                                },
 
 		                                "name": {
 		                                    "type": "String",
-		                                    "keyRaw": "name"
+		                                    "keyRaw": "name",
+		                                    "visible": true
 		                                },
 
 		                                "cats": {
@@ -1483,27 +1629,33 @@ test('selections with concrete types matching multiple abstract types', async fu
 		                                        "fields": {
 		                                            "name": {
 		                                                "type": "String",
-		                                                "keyRaw": "name"
+		                                                "keyRaw": "name",
+		                                                "visible": true
 		                                            },
 
 		                                            "id": {
 		                                                "type": "ID",
-		                                                "keyRaw": "id"
+		                                                "keyRaw": "id",
+		                                                "visible": true
 		                                            }
 		                                        }
-		                                    }
+		                                    },
+
+		                                    "visible": true
 		                                },
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            },
 
 		                            "User": {
 		                                "id": {
 		                                    "type": "ID",
-		                                    "keyRaw": "id"
+		                                    "keyRaw": "id",
+		                                    "visible": true
 		                                },
 
 		                                "cats": {
@@ -1514,20 +1666,25 @@ test('selections with concrete types matching multiple abstract types', async fu
 		                                        "fields": {
 		                                            "name": {
 		                                                "type": "String",
-		                                                "keyRaw": "name"
+		                                                "keyRaw": "name",
+		                                                "visible": true
 		                                            },
 
 		                                            "id": {
 		                                                "type": "ID",
-		                                                "keyRaw": "id"
+		                                                "keyRaw": "id",
+		                                                "visible": true
 		                                            }
 		                                        }
-		                                    }
+		                                    },
+
+		                                    "visible": true
 		                                },
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            }
 		                        },
@@ -1540,12 +1697,14 @@ test('selections with concrete types matching multiple abstract types', async fu
 		                    "fields": {
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "keyRaw": "__typename",
+		                            "visible": true
 		                        }
 		                    }
 		                },
 
-		                "abstract": true
+		                "abstract": true,
+		                "visible": true
 		            }
 		        }
 		    },
@@ -1561,6 +1720,8 @@ test('selections with concrete types matching multiple abstract types', async fu
 
 describe('mutation artifacts', function () {
 	test('empty operation list', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const cfg = testConfig({ module: 'esm' })
 
 		const docs = [
@@ -1620,18 +1781,24 @@ describe('mutation artifacts', function () {
 			                                "fields": {
 			                                    "firstName": {
 			                                        "type": "String",
-			                                        "keyRaw": "firstName"
+			                                        "keyRaw": "firstName",
+			                                        "visible": true
 			                                    },
 
 			                                    "id": {
 			                                        "type": "ID",
-			                                        "keyRaw": "id"
+			                                        "keyRaw": "id",
+			                                        "visible": true
 			                                    }
 			                                }
-			                            }
+			                            },
+
+			                            "visible": true
 			                        }
 			                    }
-			                }
+			                },
+
+			                "visible": true
 			            }
 			        }
 			    },
@@ -1644,6 +1811,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('insert operation', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -1710,20 +1879,29 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "id": {
-			                                        "type": "ID",
-			                                        "keyRaw": "id"
-			                                    },
-
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName"
+			                                    },
+
+			                                    "id": {
+			                                        "type": "ID",
+			                                        "keyRaw": "id",
+			                                        "visible": true
 			                                    }
+			                                },
+
+			                                "fragments": {
+			                                    "All_Users_insert": {}
 			                                }
-			                            }
+			                            },
+
+			                            "visible": true
 			                        }
 			                    }
-			                }
+			                },
+
+			                "visible": true
 			            }
 			        }
 			    },
@@ -1736,6 +1914,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('insert operation allList', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -1802,20 +1982,29 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "id": {
-			                                        "type": "ID",
-			                                        "keyRaw": "id"
-			                                    },
-
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName"
+			                                    },
+
+			                                    "id": {
+			                                        "type": "ID",
+			                                        "keyRaw": "id",
+			                                        "visible": true
 			                                    }
+			                                },
+
+			                                "fragments": {
+			                                    "All_Users_insert": {}
 			                                }
-			                            }
+			                            },
+
+			                            "visible": true
 			                        }
 			                    }
-			                }
+			                },
+
+			                "visible": true
 			            }
 			        }
 			    },
@@ -1828,6 +2017,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('insert operation allList by default in config', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -1898,20 +2089,29 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "id": {
-			                                        "type": "ID",
-			                                        "keyRaw": "id"
-			                                    },
-
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName"
+			                                    },
+
+			                                    "id": {
+			                                        "type": "ID",
+			                                        "keyRaw": "id",
+			                                        "visible": true
 			                                    }
+			                                },
+
+			                                "fragments": {
+			                                    "All_Users_insert": {}
 			                                }
-			                            }
+			                            },
+
+			                            "visible": true
 			                        }
 			                    }
-			                }
+			                },
+
+			                "visible": true
 			            }
 			        }
 			    },
@@ -1924,6 +2124,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('insert operation cosition first by default in config', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -1993,20 +2195,29 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "id": {
-			                                        "type": "ID",
-			                                        "keyRaw": "id"
-			                                    },
-
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName"
+			                                    },
+
+			                                    "id": {
+			                                        "type": "ID",
+			                                        "keyRaw": "id",
+			                                        "visible": true
 			                                    }
+			                                },
+
+			                                "fragments": {
+			                                    "All_Users_insert": {}
 			                                }
-			                            }
+			                            },
+
+			                            "visible": true
 			                        }
 			                    }
-			                }
+			                },
+
+			                "visible": true
 			            }
 			        }
 			    },
@@ -2019,6 +2230,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('toggle operation', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -2085,20 +2298,29 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "id": {
-			                                        "type": "ID",
-			                                        "keyRaw": "id"
-			                                    },
-
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName"
+			                                    },
+
+			                                    "id": {
+			                                        "type": "ID",
+			                                        "keyRaw": "id",
+			                                        "visible": true
 			                                    }
+			                                },
+
+			                                "fragments": {
+			                                    "All_Users_toggle": {}
 			                                }
-			                            }
+			                            },
+
+			                            "visible": true
 			                        }
 			                    }
-			                }
+			                },
+
+			                "visible": true
 			            }
 			        }
 			    },
@@ -2111,6 +2333,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('remove operation', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -2177,13 +2401,22 @@ describe('mutation artifacts', function () {
 			                                "fields": {
 			                                    "id": {
 			                                        "type": "ID",
-			                                        "keyRaw": "id"
+			                                        "keyRaw": "id",
+			                                        "visible": true
 			                                    }
+			                                },
+
+			                                "fragments": {
+			                                    "All_Users_remove": {}
 			                                }
-			                            }
+			                            },
+
+			                            "visible": true
 			                        }
 			                    }
-			                }
+			                },
+
+			                "visible": true
 			            }
 			        }
 			    },
@@ -2196,6 +2429,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('delete operation', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -2247,10 +2482,14 @@ describe('mutation artifacts', function () {
 			                            "operations": [{
 			                                "action": "delete",
 			                                "type": "User"
-			                            }]
+			                            }],
+
+			                            "visible": true
 			                        }
 			                    }
-			                }
+			                },
+
+			                "visible": true
 			            }
 			        }
 			    },
@@ -2263,6 +2502,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('delete operation with condition', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -2320,10 +2561,14 @@ describe('mutation artifacts', function () {
 			                                        "stringValue": "foo"
 			                                    }
 			                                }
-			                            }]
+			                            }],
+
+			                            "visible": true
 			                        }
 			                    }
-			                }
+			                },
+
+			                "visible": true
 			            }
 			        }
 			    },
@@ -2336,6 +2581,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('parentID - prepend', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -2407,20 +2654,29 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "id": {
-			                                        "type": "ID",
-			                                        "keyRaw": "id"
-			                                    },
-
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName"
+			                                    },
+
+			                                    "id": {
+			                                        "type": "ID",
+			                                        "keyRaw": "id",
+			                                        "visible": true
 			                                    }
+			                                },
+
+			                                "fragments": {
+			                                    "All_Users_insert": {}
 			                                }
-			                            }
+			                            },
+
+			                            "visible": true
 			                        }
 			                    }
-			                }
+			                },
+
+			                "visible": true
 			            }
 			        }
 			    },
@@ -2433,6 +2689,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('parentID - append', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -2504,20 +2762,29 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "id": {
-			                                        "type": "ID",
-			                                        "keyRaw": "id"
-			                                    },
-
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName"
+			                                    },
+
+			                                    "id": {
+			                                        "type": "ID",
+			                                        "keyRaw": "id",
+			                                        "visible": true
 			                                    }
+			                                },
+
+			                                "fragments": {
+			                                    "All_Users_insert": {}
 			                                }
-			                            }
+			                            },
+
+			                            "visible": true
 			                        }
 			                    }
-			                }
+			                },
+
+			                "visible": true
 			            }
 			        }
 			    },
@@ -2530,6 +2797,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('parentID - parentID directive', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -2601,20 +2870,29 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "id": {
-			                                        "type": "ID",
-			                                        "keyRaw": "id"
-			                                    },
-
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName"
+			                                    },
+
+			                                    "id": {
+			                                        "type": "ID",
+			                                        "keyRaw": "id",
+			                                        "visible": true
 			                                    }
+			                                },
+
+			                                "fragments": {
+			                                    "All_Users_insert": {}
 			                                }
-			                            }
+			                            },
+
+			                            "visible": true
 			                        }
 			                    }
-			                }
+			                },
+
+			                "visible": true
 			            }
 			        }
 			    },
@@ -2627,6 +2905,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('must - prepend', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -2699,20 +2979,29 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "id": {
-			                                        "type": "ID",
-			                                        "keyRaw": "id"
-			                                    },
-
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName"
+			                                    },
+
+			                                    "id": {
+			                                        "type": "ID",
+			                                        "keyRaw": "id",
+			                                        "visible": true
 			                                    }
+			                                },
+
+			                                "fragments": {
+			                                    "All_Users_insert": {}
 			                                }
-			                            }
+			                            },
+
+			                            "visible": true
 			                        }
 			                    }
-			                }
+			                },
+
+			                "visible": true
 			            }
 			        }
 			    },
@@ -2725,6 +3014,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('must - append', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -2797,20 +3088,29 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "id": {
-			                                        "type": "ID",
-			                                        "keyRaw": "id"
-			                                    },
-
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName"
+			                                    },
+
+			                                    "id": {
+			                                        "type": "ID",
+			                                        "keyRaw": "id",
+			                                        "visible": true
 			                                    }
+			                                },
+
+			                                "fragments": {
+			                                    "All_Users_insert": {}
 			                                }
-			                            }
+			                            },
+
+			                            "visible": true
 			                        }
 			                    }
-			                }
+			                },
+
+			                "visible": true
 			            }
 			        }
 			    },
@@ -2823,6 +3123,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('must - directive', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -2895,20 +3197,29 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "id": {
-			                                        "type": "ID",
-			                                        "keyRaw": "id"
-			                                    },
-
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName"
+			                                    },
+
+			                                    "id": {
+			                                        "type": "ID",
+			                                        "keyRaw": "id",
+			                                        "visible": true
 			                                    }
+			                                },
+
+			                                "fragments": {
+			                                    "All_Users_insert": {}
 			                                }
-			                            }
+			                            },
+
+			                            "visible": true
 			                        }
 			                    }
-			                }
+			                },
+
+			                "visible": true
 			            }
 			        }
 			    },
@@ -2921,6 +3232,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('must_not - prepend', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -2993,20 +3306,29 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "id": {
-			                                        "type": "ID",
-			                                        "keyRaw": "id"
-			                                    },
-
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName"
+			                                    },
+
+			                                    "id": {
+			                                        "type": "ID",
+			                                        "keyRaw": "id",
+			                                        "visible": true
 			                                    }
+			                                },
+
+			                                "fragments": {
+			                                    "All_Users_insert": {}
 			                                }
-			                            }
+			                            },
+
+			                            "visible": true
 			                        }
 			                    }
-			                }
+			                },
+
+			                "visible": true
 			            }
 			        }
 			    },
@@ -3019,6 +3341,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('must_not - append', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -3091,20 +3415,29 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "id": {
-			                                        "type": "ID",
-			                                        "keyRaw": "id"
-			                                    },
-
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName"
+			                                    },
+
+			                                    "id": {
+			                                        "type": "ID",
+			                                        "keyRaw": "id",
+			                                        "visible": true
 			                                    }
+			                                },
+
+			                                "fragments": {
+			                                    "All_Users_insert": {}
 			                                }
-			                            }
+			                            },
+
+			                            "visible": true
 			                        }
 			                    }
-			                }
+			                },
+
+			                "visible": true
 			            }
 			        }
 			    },
@@ -3117,6 +3450,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('list filters', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -3177,12 +3512,14 @@ describe('mutation artifacts', function () {
 			                    "fields": {
 			                        "firstName": {
 			                            "type": "String",
-			                            "keyRaw": "firstName"
+			                            "keyRaw": "firstName",
+			                            "visible": true
 			                        },
 
 			                        "id": {
 			                            "type": "ID",
-			                            "keyRaw": "id"
+			                            "keyRaw": "id",
+			                            "visible": true
 			                        }
 			                    }
 			                },
@@ -3207,7 +3544,9 @@ describe('mutation artifacts', function () {
 			                        "kind": "Int",
 			                        "value": 1
 			                    }
-			                }
+			                },
+
+			                "visible": true
 			            }
 			        }
 			    },
@@ -3231,6 +3570,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('must_not - directive', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -3303,20 +3644,29 @@ describe('mutation artifacts', function () {
 
 			                            "selection": {
 			                                "fields": {
-			                                    "id": {
-			                                        "type": "ID",
-			                                        "keyRaw": "id"
-			                                    },
-
 			                                    "firstName": {
 			                                        "type": "String",
 			                                        "keyRaw": "firstName"
+			                                    },
+
+			                                    "id": {
+			                                        "type": "ID",
+			                                        "keyRaw": "id",
+			                                        "visible": true
 			                                    }
+			                                },
+
+			                                "fragments": {
+			                                    "All_Users_insert": {}
 			                                }
-			                            }
+			                            },
+
+			                            "visible": true
 			                        }
 			                    }
-			                }
+			                },
+
+			                "visible": true
 			            }
 			        }
 			    },
@@ -3329,6 +3679,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('tracks list name', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -3384,12 +3736,14 @@ describe('mutation artifacts', function () {
 			                    "fields": {
 			                        "firstName": {
 			                            "type": "String",
-			                            "keyRaw": "firstName"
+			                            "keyRaw": "firstName",
+			                            "visible": true
 			                        },
 
 			                        "id": {
 			                            "type": "ID",
-			                            "keyRaw": "id"
+			                            "keyRaw": "id",
+			                            "visible": true
 			                        }
 			                    }
 			                },
@@ -3399,7 +3753,9 @@ describe('mutation artifacts', function () {
 			                        "kind": "String",
 			                        "value": "foo"
 			                    }
-			                }
+			                },
+
+			                "visible": true
 			            }
 			        }
 			    },
@@ -3414,6 +3770,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('tracks paginate name', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -3514,28 +3872,36 @@ describe('mutation artifacts', function () {
 			                                            "fields": {
 			                                                "firstName": {
 			                                                    "type": "String",
-			                                                    "keyRaw": "firstName"
+			                                                    "keyRaw": "firstName",
+			                                                    "visible": true
 			                                                },
 
 			                                                "id": {
 			                                                    "type": "ID",
-			                                                    "keyRaw": "id"
+			                                                    "keyRaw": "id",
+			                                                    "visible": true
 			                                                },
 
 			                                                "__typename": {
 			                                                    "type": "String",
-			                                                    "keyRaw": "__typename"
+			                                                    "keyRaw": "__typename",
+			                                                    "visible": true
 			                                                }
 			                                            }
-			                                        }
+			                                        },
+
+			                                        "visible": true
 			                                    },
 
 			                                    "cursor": {
 			                                        "type": "String",
-			                                        "keyRaw": "cursor"
+			                                        "keyRaw": "cursor",
+			                                        "visible": true
 			                                    }
 			                                }
-			                            }
+			                            },
+
+			                            "visible": true
 			                        },
 
 			                        "pageInfo": {
@@ -3547,28 +3913,34 @@ describe('mutation artifacts', function () {
 			                                    "hasPreviousPage": {
 			                                        "type": "Boolean",
 			                                        "keyRaw": "hasPreviousPage",
-			                                        "updates": ["append", "prepend"]
+			                                        "updates": ["append", "prepend"],
+			                                        "visible": true
 			                                    },
 
 			                                    "hasNextPage": {
 			                                        "type": "Boolean",
 			                                        "keyRaw": "hasNextPage",
-			                                        "updates": ["append", "prepend"]
+			                                        "updates": ["append", "prepend"],
+			                                        "visible": true
 			                                    },
 
 			                                    "startCursor": {
 			                                        "type": "String",
 			                                        "keyRaw": "startCursor",
-			                                        "updates": ["append", "prepend"]
+			                                        "updates": ["append", "prepend"],
+			                                        "visible": true
 			                                    },
 
 			                                    "endCursor": {
 			                                        "type": "String",
 			                                        "keyRaw": "endCursor",
-			                                        "updates": ["append", "prepend"]
+			                                        "updates": ["append", "prepend"],
+			                                        "visible": true
 			                                    }
 			                                }
-			                            }
+			                            },
+
+			                            "visible": true
 			                        }
 			                    }
 			                },
@@ -3593,7 +3965,9 @@ describe('mutation artifacts', function () {
 			                        "kind": "Variable",
 			                        "value": "before"
 			                    }
-			                }
+			                },
+
+			                "visible": true
 			            }
 			        }
 			    },
@@ -3620,6 +3994,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('tracks paginate mode', async function () {
+		const config = testConfig()
+
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -3720,28 +4096,36 @@ describe('mutation artifacts', function () {
 			                                            "fields": {
 			                                                "firstName": {
 			                                                    "type": "String",
-			                                                    "keyRaw": "firstName"
+			                                                    "keyRaw": "firstName",
+			                                                    "visible": true
 			                                                },
 
 			                                                "id": {
 			                                                    "type": "ID",
-			                                                    "keyRaw": "id"
+			                                                    "keyRaw": "id",
+			                                                    "visible": true
 			                                                },
 
 			                                                "__typename": {
 			                                                    "type": "String",
-			                                                    "keyRaw": "__typename"
+			                                                    "keyRaw": "__typename",
+			                                                    "visible": true
 			                                                }
 			                                            }
-			                                        }
+			                                        },
+
+			                                        "visible": true
 			                                    },
 
 			                                    "cursor": {
 			                                        "type": "String",
-			                                        "keyRaw": "cursor"
+			                                        "keyRaw": "cursor",
+			                                        "visible": true
 			                                    }
 			                                }
-			                            }
+			                            },
+
+			                            "visible": true
 			                        },
 
 			                        "pageInfo": {
@@ -3753,28 +4137,34 @@ describe('mutation artifacts', function () {
 			                                    "hasPreviousPage": {
 			                                        "type": "Boolean",
 			                                        "keyRaw": "hasPreviousPage",
-			                                        "updates": ["append", "prepend"]
+			                                        "updates": ["append", "prepend"],
+			                                        "visible": true
 			                                    },
 
 			                                    "hasNextPage": {
 			                                        "type": "Boolean",
 			                                        "keyRaw": "hasNextPage",
-			                                        "updates": ["append", "prepend"]
+			                                        "updates": ["append", "prepend"],
+			                                        "visible": true
 			                                    },
 
 			                                    "startCursor": {
 			                                        "type": "String",
 			                                        "keyRaw": "startCursor",
-			                                        "updates": ["append", "prepend"]
+			                                        "updates": ["append", "prepend"],
+			                                        "visible": true
 			                                    },
 
 			                                    "endCursor": {
 			                                        "type": "String",
 			                                        "keyRaw": "endCursor",
-			                                        "updates": ["append", "prepend"]
+			                                        "updates": ["append", "prepend"],
+			                                        "visible": true
 			                                    }
 			                                }
-			                            }
+			                            },
+
+			                            "visible": true
 			                        }
 			                    }
 			                },
@@ -3799,7 +4189,9 @@ describe('mutation artifacts', function () {
 			                        "kind": "Variable",
 			                        "value": "before"
 			                    }
-			                }
+			                },
+
+			                "visible": true
 			            }
 			        }
 			    },
@@ -3826,6 +4218,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('field args', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`query TestQuery($value: String!) {
@@ -3877,12 +4271,14 @@ describe('mutation artifacts', function () {
 			                    "fields": {
 			                        "firstName": {
 			                            "type": "String",
-			                            "keyRaw": "firstName"
+			                            "keyRaw": "firstName",
+			                            "visible": true
 			                        },
 
 			                        "id": {
 			                            "type": "ID",
-			                            "keyRaw": "id"
+			                            "keyRaw": "id",
+			                            "visible": true
 			                        }
 			                    }
 			                },
@@ -3907,7 +4303,9 @@ describe('mutation artifacts', function () {
 			                        "kind": "Int",
 			                        "value": 1
 			                    }
-			                }
+			                },
+
+			                "visible": true
 			            }
 			        }
 			    },
@@ -3931,6 +4329,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('sveltekit', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const cfg = testConfig({ module: 'esm' })
 
 		const docs = [
@@ -3984,12 +4384,14 @@ describe('mutation artifacts', function () {
 			                    "fields": {
 			                        "firstName": {
 			                            "type": "String",
-			                            "keyRaw": "firstName"
+			                            "keyRaw": "firstName",
+			                            "visible": true
 			                        },
 
 			                        "id": {
 			                            "type": "ID",
-			                            "keyRaw": "id"
+			                            "keyRaw": "id",
+			                            "visible": true
 			                        }
 			                    }
 			                },
@@ -4014,7 +4416,9 @@ describe('mutation artifacts', function () {
 			                        "kind": "Int",
 			                        "value": 1
 			                    }
-			                }
+			                },
+
+			                "visible": true
 			            }
 			        }
 			    },
@@ -4039,6 +4443,8 @@ describe('mutation artifacts', function () {
 })
 
 test('custom scalar shows up in artifact', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	// the documents to test
 	const docs: Document[] = [
 		mockCollectedDoc(`query TestQuery { version }`),
@@ -4099,10 +4505,13 @@ test('custom scalar shows up in artifact', async function () {
 		                    "fields": {
 		                        "createdAt": {
 		                            "type": "DateTime",
-		                            "keyRaw": "createdAt"
+		                            "keyRaw": "createdAt",
+		                            "visible": true
 		                        }
 		                    }
-		                }
+		                },
+
+		                "visible": true
 		            }
 		        }
 		    },
@@ -4117,6 +4526,8 @@ test('custom scalar shows up in artifact', async function () {
 })
 
 test('operation inputs', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	// the documents to test
 	const docs: Document[] = [
 		mockCollectedDoc(`query TestQuery { version }`),
@@ -4206,10 +4617,13 @@ test('operation inputs', async function () {
 		                    "fields": {
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
+		                            "keyRaw": "id",
+		                            "visible": true
 		                        }
 		                    }
-		                }
+		                },
+
+		                "visible": true
 		            }
 		        }
 		    },
@@ -4253,6 +4667,8 @@ test('operation inputs', async function () {
 
 describe('subscription artifacts', function () {
 	test('happy path', async function () {
+		// the config to use in tests
+		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`subscription B {
@@ -4303,18 +4719,24 @@ describe('subscription artifacts', function () {
 			                                "fields": {
 			                                    "firstName": {
 			                                        "type": "String",
-			                                        "keyRaw": "firstName"
+			                                        "keyRaw": "firstName",
+			                                        "visible": true
 			                                    },
 
 			                                    "id": {
 			                                        "type": "ID",
-			                                        "keyRaw": "id"
+			                                        "keyRaw": "id",
+			                                        "visible": true
 			                                    }
 			                                }
-			                            }
+			                            },
+
+			                            "visible": true
 			                        }
 			                    }
-			                }
+			                },
+
+			                "visible": true
 			            }
 			        }
 			    },
@@ -4328,6 +4750,7 @@ describe('subscription artifacts', function () {
 })
 
 test('some artifactData added to artifact specific to plugins', async function () {
+	// the config to use in tests
 	const localConfig = testConfig()
 
 	localConfig.plugins = [
@@ -4371,7 +4794,8 @@ test('some artifactData added to artifact specific to plugins', async function (
 		        "fields": {
 		            "version": {
 		                "type": "Int",
-		                "keyRaw": "version"
+		                "keyRaw": "version",
+		                "visible": true
 		            }
 		        }
 		    },
@@ -4393,6 +4817,8 @@ test('some artifactData added to artifact specific to plugins', async function (
 })
 
 test('nested recursive fragments', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	// the documents to test
 	const docs: Document[] = [
 		mockCollectedDoc(`
@@ -4471,24 +4897,13 @@ test('nested recursive fragments', async function () {
 		                "nullable": true,
 
 		                "selection": {
-		                    "fields": {
-		                        "id": {
-		                            "type": "ID",
-		                            "keyRaw": "id"
-		                        },
-
-		                        "__typename": {
-		                            "type": "String",
-		                            "keyRaw": "__typename"
-		                        }
-		                    },
-
 		                    "abstractFields": {
 		                        "fields": {
 		                            "User": {
 		                                "id": {
 		                                    "type": "ID",
-		                                    "keyRaw": "id"
+		                                    "keyRaw": "id",
+		                                    "visible": true
 		                                },
 
 		                                "name": {
@@ -4498,16 +4913,37 @@ test('nested recursive fragments', async function () {
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            }
 		                        },
 
 		                        "typeMap": {}
+		                    },
+
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id",
+		                            "visible": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename",
+		                            "visible": true
+		                        }
+		                    },
+
+		                    "fragments": {
+		                        "NodeDetails": {},
+		                        "UserThings": {}
 		                    }
 		                },
 
-		                "abstract": true
+		                "abstract": true,
+		                "visible": true
 		            }
 		        }
 		    },
@@ -4522,6 +4958,8 @@ test('nested recursive fragments', async function () {
 })
 
 test('leave @include and @skip alone', async function () {
+	// the config to use in tests
+	const config = testConfig()
 	// the documents to test
 	const docs: Document[] = [
 		mockCollectedDoc(`
@@ -4530,19 +4968,7 @@ test('leave @include and @skip alone', async function () {
 					id @skip(if: true)
 
 					...NodeDetails @include(if:true)
-
-					... on User {
-						...UserThings
-					}
 				}
-			}
-		`),
-		mockCollectedDoc(`
-			fragment UserThings on User {
-				id
-				name
-
-				...NodeDetails
 			}
 		`),
 		mockCollectedDoc(`
@@ -4562,16 +4988,12 @@ test('leave @include and @skip alone', async function () {
 		export default {
 		    "name": "MyAnimalQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "f9b92afffa2f1293ef0f6bc9dab29194e0b9232e6f7a9acd0a435c7a4dc05cb2",
+		    "hash": "45c8890ba76a34c30028cbaa75e8ba78ca8884a3651a5c1f77d103969eff5855",
 
 		    "raw": \`query MyAnimalQuery {
 		  node(id: "some_id") {
 		    id @skip(if: true)
 		    ...NodeDetails @include(if: true)
-		    ... on User {
-		      ...UserThings
-		      id
-		    }
 		    __typename
 		  }
 		}
@@ -4581,12 +5003,6 @@ test('leave @include and @skip alone', async function () {
 		  ... on User {
 		    id
 		  }
-		}
-
-		fragment UserThings on User {
-		  id
-		  name
-		  ...NodeDetails
 		}
 		\`,
 
@@ -4603,12 +5019,14 @@ test('leave @include and @skip alone', async function () {
 		                    "fields": {
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
+		                            "keyRaw": "id",
+		                            "visible": true
 		                        },
 
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "keyRaw": "__typename",
+		                            "visible": true
 		                        }
 		                    },
 
@@ -4617,12 +5035,8 @@ test('leave @include and @skip alone', async function () {
 		                            "User": {
 		                                "id": {
 		                                    "type": "ID",
-		                                    "keyRaw": "id"
-		                                },
-
-		                                "name": {
-		                                    "type": "String",
-		                                    "keyRaw": "name"
+		                                    "keyRaw": "id",
+		                                    "visible": true
 		                                },
 
 		                                "__typename": {
@@ -4633,10 +5047,15 @@ test('leave @include and @skip alone', async function () {
 		                        },
 
 		                        "typeMap": {}
+		                    },
+
+		                    "fragments": {
+		                        "NodeDetails": {}
 		                    }
 		                },
 
-		                "abstract": true
+		                "abstract": true,
+		                "visible": true
 		            }
 		        }
 		    },
@@ -4646,6 +5065,555 @@ test('leave @include and @skip alone', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=f9b92afffa2f1293ef0f6bc9dab29194e0b9232e6f7a9acd0a435c7a4dc05cb2";
+		"HoudiniHash=45c8890ba76a34c30028cbaa75e8ba78ca8884a3651a5c1f77d103969eff5855";
+	`)
+})
+
+test('fragment references are embedded in artifact', async function () {
+	// the config to use in tests
+	const config = testConfig()
+	// the documents to test
+	const docs: Document[] = [
+		mockCollectedDoc(`
+			query MyAnimalQuery {
+				node(id: "some_id") {
+					id
+
+					...NodeDetails
+
+				}
+			}
+		`),
+		mockCollectedDoc(`
+			fragment NodeDetails on Node {
+				id
+
+				... on User {
+					id
+				}
+			}
+		`),
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "MyAnimalQuery",
+		    "kind": "HoudiniQuery",
+		    "hash": "3756d5c29fa6c05ef3636a9ccaf165e6f7800cc5d91d7faf40f51c8bb1a73f57",
+
+		    "raw": \`query MyAnimalQuery {
+		  node(id: "some_id") {
+		    id
+		    ...NodeDetails
+		    __typename
+		  }
+		}
+
+		fragment NodeDetails on Node {
+		  id
+		  ... on User {
+		    id
+		  }
+		}
+		\`,
+
+		    "rootType": "Query",
+
+		    "selection": {
+		        "fields": {
+		            "node": {
+		                "type": "Node",
+		                "keyRaw": "node(id: \\"some_id\\")",
+		                "nullable": true,
+
+		                "selection": {
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id",
+		                            "visible": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename",
+		                            "visible": true
+		                        }
+		                    },
+
+		                    "abstractFields": {
+		                        "fields": {
+		                            "User": {
+		                                "id": {
+		                                    "type": "ID",
+		                                    "keyRaw": "id",
+		                                    "visible": true
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename"
+		                                }
+		                            }
+		                        },
+
+		                        "typeMap": {}
+		                    },
+
+		                    "fragments": {
+		                        "NodeDetails": {}
+		                    }
+		                },
+
+		                "abstract": true,
+		                "visible": true
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+		    "policy": "CacheOrNetwork",
+		    "partial": false
+		};
+
+		"HoudiniHash=3756d5c29fa6c05ef3636a9ccaf165e6f7800cc5d91d7faf40f51c8bb1a73f57";
+	`)
+})
+
+test('fragment variables are embedded in artifact', async function () {
+	// the config to use in tests
+	const config = testConfig()
+	// the documents to test
+	const docs: Document[] = [
+		mockCollectedDoc(`
+			query MyAnimalQuery {
+				node(id: "some_id") {
+					id
+					...NodeDetails @with(name: "Foo")
+
+				}
+			}
+		`),
+		mockCollectedDoc(`
+			fragment NodeDetails on Node @arguments(name: { type: "String" }){
+				... on User {
+					field(filter: $name)
+				}
+			}
+		`),
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "MyAnimalQuery",
+		    "kind": "HoudiniQuery",
+		    "hash": "444c42cc7214c06f0976b8a252e4f1c1fcba074d1afc1543acf0fc88f56e4f31",
+
+		    "raw": \`query MyAnimalQuery {
+		  node(id: "some_id") {
+		    id
+		    ...NodeDetails_32RKor
+		    __typename
+		  }
+		}
+
+		fragment NodeDetails_32RKor on Node {
+		  ... on User {
+		    field(filter: "Foo")
+		    id
+		  }
+		  id
+		}
+		\`,
+
+		    "rootType": "Query",
+
+		    "selection": {
+		        "fields": {
+		            "node": {
+		                "type": "Node",
+		                "keyRaw": "node(id: \\"some_id\\")",
+		                "nullable": true,
+
+		                "selection": {
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id",
+		                            "visible": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename",
+		                            "visible": true
+		                        }
+		                    },
+
+		                    "abstractFields": {
+		                        "fields": {
+		                            "User": {
+		                                "field": {
+		                                    "type": "String",
+		                                    "keyRaw": "field(filter: \\"Foo\\")",
+		                                    "nullable": true
+		                                },
+
+		                                "id": {
+		                                    "type": "ID",
+		                                    "keyRaw": "id",
+		                                    "visible": true
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename"
+		                                }
+		                            }
+		                        },
+
+		                        "typeMap": {}
+		                    },
+
+		                    "fragments": {
+		                        "NodeDetails": {
+		                            "name": {
+		                                "kind": "StringValue",
+		                                "value": "Foo"
+		                            }
+		                        }
+		                    }
+		                },
+
+		                "abstract": true,
+		                "visible": true
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+		    "policy": "CacheOrNetwork",
+		    "partial": false
+		};
+
+		"HoudiniHash=444c42cc7214c06f0976b8a252e4f1c1fcba074d1afc1543acf0fc88f56e4f31";
+	`)
+})
+
+test('fragment references in inline fragment', async function () {
+	// the config to use in tests
+	const config = testConfig()
+	// the documents to test
+	const docs: Document[] = [
+		mockCollectedDoc(`
+			query FragmentUpdateTestQuery($id: ID!) @load {
+				node(id: $id) {
+					... on User {
+						...UserFragmentTestFragment
+					}
+				}
+			}
+		`),
+		mockCollectedDoc(`
+			fragment UserFragmentTestFragment on User {
+				name
+			}
+		`),
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "FragmentUpdateTestQuery",
+		    "kind": "HoudiniQuery",
+		    "hash": "04aacf4e247cf38d5f9c588e4aa2a9f2a4ff2b1db84f2d4c7637a367a0d037fd",
+
+		    "raw": \`query FragmentUpdateTestQuery($id: ID!) {
+		  node(id: $id) {
+		    ... on User {
+		      ...UserFragmentTestFragment
+		      id
+		    }
+		    id
+		    __typename
+		  }
+		}
+
+		fragment UserFragmentTestFragment on User {
+		  name
+		  id
+		}
+		\`,
+
+		    "rootType": "Query",
+
+		    "selection": {
+		        "fields": {
+		            "node": {
+		                "type": "Node",
+		                "keyRaw": "node(id: $id)",
+		                "nullable": true,
+
+		                "selection": {
+		                    "abstractFields": {
+		                        "fields": {
+		                            "User": {
+		                                "id": {
+		                                    "type": "ID",
+		                                    "keyRaw": "id",
+		                                    "visible": true
+		                                },
+
+		                                "name": {
+		                                    "type": "String",
+		                                    "keyRaw": "name"
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
+		                                }
+		                            }
+		                        },
+
+		                        "typeMap": {}
+		                    },
+
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id",
+		                            "visible": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename",
+		                            "visible": true
+		                        }
+		                    },
+
+		                    "fragments": {
+		                        "UserFragmentTestFragment": {}
+		                    }
+		                },
+
+		                "abstract": true,
+		                "visible": true
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+
+		    "input": {
+		        "fields": {
+		            "id": "ID"
+		        },
+
+		        "types": {}
+		    },
+
+		    "policy": "CacheOrNetwork",
+		    "partial": false
+		};
+
+		"HoudiniHash=04aacf4e247cf38d5f9c588e4aa2a9f2a4ff2b1db84f2d4c7637a367a0d037fd";
+	`)
+})
+
+test('masking disabled', async function () {
+	// the config to use in tests
+	const config = testConfig()
+
+	// the documents to test
+	const docs: Document[] = [
+		mockCollectedDoc(`
+			query FragmentUpdateTestQuery($id: ID!) @load {
+				node(id: $id) {
+					...UserFragmentTestFragment @mask_disable
+				}
+			}
+		`),
+		mockCollectedDoc(`
+			fragment UserFragmentTestFragment on User {
+				name
+			}
+		`),
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "FragmentUpdateTestQuery",
+		    "kind": "HoudiniQuery",
+		    "hash": "77d79038702f2dbb57f3af777b214fedb15c7ec5bcd99c2e2fe2146ae8770ded",
+
+		    "raw": \`query FragmentUpdateTestQuery($id: ID!) {
+		  node(id: $id) {
+		    ...UserFragmentTestFragment
+		    id
+		    __typename
+		  }
+		}
+
+		fragment UserFragmentTestFragment on User {
+		  name
+		  id
+		}
+		\`,
+
+		    "rootType": "Query",
+
+		    "selection": {
+		        "fields": {
+		            "node": {
+		                "type": "Node",
+		                "keyRaw": "node(id: $id)",
+		                "nullable": true,
+
+		                "selection": {
+		                    "abstractFields": {
+		                        "fields": {
+		                            "User": {
+		                                "name": {
+		                                    "type": "String",
+		                                    "keyRaw": "name",
+		                                    "visible": true
+		                                },
+
+		                                "id": {
+		                                    "type": "ID",
+		                                    "keyRaw": "id",
+		                                    "visible": true
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
+		                                }
+		                            }
+		                        },
+
+		                        "typeMap": {}
+		                    },
+
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id",
+		                            "visible": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename",
+		                            "visible": true
+		                        }
+		                    },
+
+		                    "fragments": {
+		                        "UserFragmentTestFragment": {}
+		                    }
+		                },
+
+		                "abstract": true,
+		                "visible": true
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+
+		    "input": {
+		        "fields": {
+		            "id": "ID"
+		        },
+
+		        "types": {}
+		    },
+
+		    "policy": "CacheOrNetwork",
+		    "partial": false
+		};
+
+		"HoudiniHash=77d79038702f2dbb57f3af777b214fedb15c7ec5bcd99c2e2fe2146ae8770ded";
+	`)
+})
+
+test('fragment nested in root', async function () {
+	// the config to use in tests
+	const config = testConfig()
+	// the documents to test
+	const docs: Document[] = [
+		mockCollectedDoc(`
+			fragment UserBase on User {
+				id
+				firstName
+				...UserMore
+			}
+		`),
+		mockCollectedDoc(`
+			fragment UserMore on User {
+				id
+				firstName
+			}
+		`),
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "UserBase",
+		    "kind": "HoudiniFragment",
+		    "hash": "05ec5090d31f77c3f2bdcbd26aff116588f63d4b3789ae752759dd172974a628",
+
+		    "raw": \`fragment UserBase on User {
+		  id
+		  firstName
+		  ...UserMore
+		}
+
+		fragment UserMore on User {
+		  id
+		  firstName
+		}
+		\`,
+
+		    "rootType": "User",
+
+		    "selection": {
+		        "fields": {
+		            "id": {
+		                "type": "ID",
+		                "keyRaw": "id",
+		                "visible": true
+		            },
+
+		            "firstName": {
+		                "type": "String",
+		                "keyRaw": "firstName",
+		                "visible": true
+		            }
+		        },
+
+		        "fragments": {
+		            "UserMore": {}
+		        }
+		    },
+
+		    "pluginData": {}
+		};
+
+		"HoudiniHash=05ec5090d31f77c3f2bdcbd26aff116588f63d4b3789ae752759dd172974a628";
 	`)
 })

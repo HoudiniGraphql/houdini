@@ -8,15 +8,15 @@ export function flattenSelections({
 	filepath,
 	selections,
 	fragmentDefinitions,
-	applyFragments,
 	ignoreMaskDisable,
+	keepFragmentSpreadNodes,
 }: {
 	config: Config
 	filepath: string
 	selections: readonly graphql.SelectionNode[]
 	fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode }
-	applyFragments: boolean
 	ignoreMaskDisable?: boolean
+	keepFragmentSpreadNodes?: boolean
 }): readonly graphql.SelectionNode[] {
 	// collect all of the fields together
 	const fields = new FieldCollection({
@@ -24,8 +24,8 @@ export function flattenSelections({
 		filepath,
 		selections,
 		fragmentDefinitions,
-		applyFragments,
 		ignoreMaskDisable: !!ignoreMaskDisable,
+		keepFragmentSpreadNodes: !!keepFragmentSpreadNodes,
 	})
 
 	// convert the flat fields into a selection set
@@ -40,21 +40,21 @@ class FieldCollection {
 	fields: { [name: string]: Field<graphql.FieldNode> }
 	inlineFragments: { [typeName: string]: Field<graphql.InlineFragmentNode> }
 	fragmentSpreads: { [fragmentName: string]: graphql.FragmentSpreadNode }
-	applyFragments: boolean
 	ignoreMaskDisable: boolean
+	keepFragmentSpreadNodes: boolean
 
 	constructor(args: {
 		config: Config
 		filepath: string
 		selections: readonly graphql.SelectionNode[]
 		fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode }
-		applyFragments: boolean
 		ignoreMaskDisable: boolean
+		keepFragmentSpreadNodes: boolean
 	}) {
 		this.config = args.config
 		this.fragmentDefinitions = args.fragmentDefinitions
-		this.applyFragments = args.applyFragments
 		this.ignoreMaskDisable = args.ignoreMaskDisable
+		this.keepFragmentSpreadNodes = args.keepFragmentSpreadNodes
 
 		this.fields = {}
 		this.inlineFragments = {}
@@ -95,6 +95,12 @@ class FieldCollection {
 				this.fields[key].selection.add(subselect)
 			}
 
+			// the application of the fragment has been validated already so track it
+			// so we can recreate
+			this.fields[key].selection.fragmentSpreads = this.collectFragmentSpreads(
+				selection.selectionSet?.selections ?? []
+			)
+
 			// we're done
 			return
 		}
@@ -120,11 +126,10 @@ class FieldCollection {
 
 		// the only thing that's left is external fragment spreads
 		if (selection.kind === 'FragmentSpread') {
-			// the application of the fragment has been validated already so track it
-			// so we can recreate
-			this.fragmentSpreads[selection.name.value] = selection
+			// we need to figure out if we want to include this fragment's selection in
+			// the final result.
 
-			// find whether to include fragment fields
+			// the default behavior depends on wether masking is enabled or disabled
 			let includeFragments = this.config.defaultFragmentMasking === 'disable'
 
 			// Check if locally enable
@@ -143,21 +148,34 @@ class FieldCollection {
 				includeFragments = true
 			}
 
+			// we might need to ignore any disables
+			// for example, queries need to _always_ have their full selection
+			// so the result can be written to the cache
 			if (this.ignoreMaskDisable) {
 				includeFragments = true
 			}
 
+			// make sure we leave this fragment in the selection behind
+			if (this.keepFragmentSpreadNodes) {
+				this.fragmentSpreads[selection.name.value] = selection
+			}
+
 			// we're finished if we're not supposed to include fragments in the selection
-			if (!includeFragments || !this.applyFragments) {
+			if (!includeFragments) {
 				return
 			}
 
+			// we need to include the fragment selection in the final result
+			// look up the definition of the fragment
 			const definition = this.fragmentDefinitions[selection.name.value]
 			if (!definition) {
 				throw new HoudiniError({
 					filepath: this.filepath,
 					message:
-						'Could not find referenced fragment definition: ' + selection.name.value,
+						'Could not find referenced fragment definition: ' +
+						selection.name.value +
+						'\n' +
+						JSON.stringify(Object.keys(this.fragmentDefinitions), null, 4),
 				})
 			}
 
@@ -177,6 +195,39 @@ class FieldCollection {
 				},
 			})
 		}
+	}
+
+	// collectFragmentSpreads pulls fragment spreads out of deeply nested inline fragments
+	collectFragmentSpreads(
+		selections: readonly graphql.SelectionNode[],
+		result: {
+			[fragmentName: string]: graphql.FragmentSpreadNode
+		} = {}
+	): {
+		[fragmentName: string]: graphql.FragmentSpreadNode
+	} {
+		// loop over the selection set
+		for (const selection of selections) {
+			// ignore any fields
+			if (selection.kind === 'Field') {
+				continue
+			}
+
+			// inline fragments should get looped over
+			if (selection.kind === 'InlineFragment') {
+				this.collectFragmentSpreads(selection.selectionSet.selections, result)
+				continue
+			}
+
+			// and fragment spreads should be added
+			if (selection.kind === 'FragmentSpread') {
+				result[selection.name.value] = selection
+				continue
+			}
+		}
+
+		// we're done
+		return result
 	}
 
 	toSelectionSet(): graphql.SelectionNode[] {
@@ -245,8 +296,8 @@ class FieldCollection {
 			fragmentDefinitions: this.fragmentDefinitions,
 			selections: [],
 			filepath: this.filepath,
-			applyFragments: this.applyFragments,
 			ignoreMaskDisable: this.ignoreMaskDisable,
+			keepFragmentSpreadNodes: this.keepFragmentSpreadNodes,
 		})
 	}
 }

@@ -3,27 +3,20 @@ import { type SubscriptionSpec, ArtifactKind, DataSource } from '../../lib/types
 import type { ClientPlugin } from '../documentStore'
 import { documentPlugin } from '../utils'
 
-export const query: ClientPlugin = documentPlugin(ArtifactKind.Query, function () {
+// the purpose of the fragment plugin is to provide fine-reactivity for cache updates
+// there are no network requests that get sent. send() always returns the initial value
+export const fragment: ClientPlugin = documentPlugin(ArtifactKind.Fragment, function () {
 	// track the bits of state we need to hold onto
 	let subscriptionSpec: SubscriptionSpec | null = null
 
-	// remember the last variables we were called with
-	let lastVariables: Record<string, any> | null = null
-
-	// the function to call when a query is sent
 	return {
-		start(ctx, { next }) {
-			// make sure to include the last variables as well as the new ones
-			ctx.variables = {
-				...lastVariables,
-				...ctx.variables,
+		// establish the cache subscription
+		start(ctx, { next, resolve, variablesChanged, marshalVariables }) {
+			// if there's no parent id, there's nothing to do
+			if (!ctx.stuff.parentID) {
+				return next(ctx)
 			}
-			next(ctx)
-		},
 
-		// patch subscriptions on the way out so that we don't get a cache update
-		// before the promise resolves
-		end(ctx, { resolve, marshalVariables, variablesChanged }) {
 			// if the variables have changed we need to setup a new subscription with the cache
 			if (variablesChanged(ctx) && !ctx.cacheParams?.disableSubscriptions) {
 				// if the variables changed we need to unsubscribe from the old fields and
@@ -32,14 +25,15 @@ export const query: ClientPlugin = documentPlugin(ArtifactKind.Query, function (
 					cache.unsubscribe(subscriptionSpec, subscriptionSpec.variables?.() || {})
 				}
 
-				// track the new variables
-				lastVariables = { ...marshalVariables(ctx) }
+				// we need to subscribe with the marshaled variables
+				const variables = marshalVariables(ctx)
 
 				// save the new subscription spec
 				subscriptionSpec = {
 					rootType: ctx.artifact.rootType,
 					selection: ctx.artifact.selection,
-					variables: () => lastVariables,
+					variables: () => variables,
+					parentID: ctx.stuff.parentID,
 					set: (newValue) => {
 						resolve(ctx, {
 							data: newValue,
@@ -48,22 +42,22 @@ export const query: ClientPlugin = documentPlugin(ArtifactKind.Query, function (
 							partial: false,
 							stale: false,
 							source: DataSource.Cache,
-							variables: ctx.variables ?? {},
+							variables,
 						})
 					},
 				}
 
 				// make sure we subscribe to the new values
-				cache.subscribe(subscriptionSpec, lastVariables)
+				cache.subscribe(subscriptionSpec, variables)
 			}
 
-			// we are done
-			resolve(ctx)
+			// we're done
+			next(ctx)
 		},
+
 		cleanup() {
 			if (subscriptionSpec) {
 				cache.unsubscribe(subscriptionSpec, subscriptionSpec.variables?.())
-				lastVariables = null
 			}
 		},
 	}

@@ -383,6 +383,7 @@ export class List {
 					parent: spec.parentID || this.manager.rootID,
 					selection: spec.selection,
 					variables: spec.variables?.() || {},
+					ignoreMasking: false,
 				}).data
 			)
 		}

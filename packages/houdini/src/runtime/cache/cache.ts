@@ -1,6 +1,6 @@
 import { computeKey } from '../lib'
 import type { ConfigFile } from '../lib/config'
-import { computeID, defaultConfigValues, keyFieldsForType } from '../lib/config'
+import { computeID, defaultConfigValues, keyFieldsForType, getCurrentConfig } from '../lib/config'
 import { deepEquals } from '../lib/deepEquals'
 import { flatten } from '../lib/flatten'
 import { getFieldsForType } from '../lib/selection'
@@ -10,7 +10,10 @@ import type {
 	NestedList,
 	SubscriptionSelection,
 	SubscriptionSpec,
+	ValueMap,
+	ValueNode,
 } from '../lib/types'
+import { fragmentKey } from '../lib/types'
 import { GarbageCollector } from './gc'
 import type { ListCollection } from './lists'
 import { ListManager } from './lists'
@@ -27,7 +30,7 @@ export class Cache {
 	// label accomplishes this but would not prevent someone using vanilla js
 	_internal_unstable: CacheInternal
 
-	constructor(config?: ConfigFile) {
+	constructor({ disabled, ...config }: ConfigFile & { disabled?: boolean } = {}) {
 		this._internal_unstable = new CacheInternal({
 			cache: this,
 			storage: new InMemoryStorage(),
@@ -36,9 +39,10 @@ export class Cache {
 			lifetimes: new GarbageCollector(this),
 			staleManager: new StaleManager(this),
 			schema: new SchemaManager(this),
+			disabled: disabled ?? typeof globalThis.window === 'undefined',
 		})
 
-		if (config) {
+		if (Object.keys(config).length > 0) {
 			this.setConfig(defaultConfigValues(config))
 		}
 	}
@@ -83,6 +87,7 @@ export class Cache {
 						parent: spec.parentID || rootID,
 						selection: spec.selection,
 						variables: spec.variables?.() || {},
+						ignoreMasking: false,
 					}).data
 				)
 			}
@@ -187,19 +192,17 @@ export class Cache {
 	getFieldTime(id: string, field: string) {
 		return this._internal_unstable.staleManager.getFieldTime(id, field)
 	}
+
+	config(): ConfigFile {
+		return this._internal_unstable.config
+	}
 }
 
 class CacheInternal {
 	// for server-side requests we need to be able to flag the cache as disabled so we dont write to it
 	private _disabled = false
 
-	config: ConfigFile = defaultConfigValues({
-		plugins: {
-			'houdini-svelte': {
-				client: '',
-			},
-		},
-	})
+	_config?: ConfigFile
 	storage: InMemoryStorage
 	subscriptions: InMemorySubscriptions
 	lists: ListManager
@@ -216,6 +219,8 @@ class CacheInternal {
 		lifetimes,
 		staleManager,
 		schema,
+		disabled,
+		config,
 	}: {
 		storage: InMemoryStorage
 		subscriptions: InMemorySubscriptions
@@ -224,6 +229,8 @@ class CacheInternal {
 		lifetimes: GarbageCollector
 		staleManager: StaleManager
 		schema: SchemaManager
+		disabled: boolean
+		config?: ConfigFile
 	}) {
 		this.storage = storage
 		this.subscriptions = subscriptions
@@ -232,9 +239,10 @@ class CacheInternal {
 		this.lifetimes = lifetimes
 		this.staleManager = staleManager
 		this.schema = schema
+		this._config = config
 
 		// the cache should always be disabled on the server, unless we're testing
-		this._disabled = typeof globalThis.window === 'undefined'
+		this._disabled = disabled
 		try {
 			if (process.env.HOUDINI_TEST === 'true') {
 				this._disabled = false
@@ -244,8 +252,12 @@ class CacheInternal {
 		}
 	}
 
+	get config(): ConfigFile {
+		return this._config ?? getCurrentConfig()
+	}
+
 	setConfig(config: ConfigFile) {
-		this.config = config
+		this._config = config
 	}
 
 	writeSelection({
@@ -752,7 +764,6 @@ class CacheInternal {
 			}
 		}
 
-		// return the list of subscribers that need to be updated because of this change
 		return toNotify
 	}
 
@@ -762,11 +773,13 @@ class CacheInternal {
 		parent = rootID,
 		variables,
 		stepsFromConnection = null,
+		ignoreMasking,
 	}: {
 		selection: SubscriptionSelection
 		parent?: string
 		variables?: {}
 		stepsFromConnection?: number | null
+		ignoreMasking?: boolean
 	}): { data: GraphQLObject | null; partial: boolean; stale: boolean; hasData: boolean } {
 		// we could be asking for values of null
 		if (parent === null) {
@@ -774,6 +787,17 @@ class CacheInternal {
 		}
 
 		const target = {} as GraphQLObject
+		if (selection.fragments) {
+			target[fragmentKey] = Object.fromEntries(
+				Object.entries(selection.fragments).map(([key, value]) => [
+					key,
+					{
+						parent,
+						variables: evaluateFragmentVariables(value, variables ?? {}),
+					},
+				])
+			)
+		}
 
 		// we need to track if we have a partial data set which means we have _something_ but not everything
 		let hasData = false
@@ -795,8 +819,13 @@ class CacheInternal {
 		// look at every field in the parentFields
 		for (const [
 			attributeName,
-			{ type, keyRaw, selection: fieldSelection, nullable, list },
+			{ type, keyRaw, selection: fieldSelection, nullable, list, visible },
 		] of Object.entries(targetSelection)) {
+			// skip masked fields when reading values
+			if (!visible && !ignoreMasking) {
+				continue
+			}
+
 			const key = evaluateKey(keyRaw, variables)
 
 			// look up the value in our store
@@ -874,6 +903,7 @@ class CacheInternal {
 					variables,
 					linkedList: value as NestedList,
 					stepsFromConnection: nextStep,
+					ignoreMasking: !!ignoreMasking,
 				})
 
 				// save the hydrated list
@@ -901,6 +931,7 @@ class CacheInternal {
 					selection: fieldSelection,
 					variables,
 					stepsFromConnection: nextStep,
+					ignoreMasking,
 				})
 
 				// save the object value
@@ -970,11 +1001,13 @@ class CacheInternal {
 		variables,
 		linkedList,
 		stepsFromConnection,
+		ignoreMasking,
 	}: {
 		fields: SubscriptionSelection
 		variables?: {}
 		linkedList: NestedList
 		stepsFromConnection: number | null
+		ignoreMasking: boolean
 	}): { data: NestedList<GraphQLValue>; partial: boolean; stale: boolean; hasData: boolean } {
 		// the linked list could be a deeply nested thing, we need to call getData for each record
 		// we can't mutate the lists because that would change the id references in the listLinks map
@@ -992,6 +1025,7 @@ class CacheInternal {
 					variables,
 					linkedList: entry,
 					stepsFromConnection,
+					ignoreMasking,
 				})
 				result.push(nestedValue.data)
 				if (nestedValue.partial) {
@@ -1017,6 +1051,7 @@ class CacheInternal {
 				selection: fields,
 				variables,
 				stepsFromConnection,
+				ignoreMasking,
 			})
 
 			result.push(data)
@@ -1169,6 +1204,49 @@ class CacheInternal {
 		if (this.storage.layerCount === 1) {
 			this.storage.topLayer.removeUndefinedFields()
 		}
+	}
+}
+
+export function evaluateFragmentVariables(variables: ValueMap, args: GraphQLObject) {
+	return Object.fromEntries(
+		Object.entries(variables).map(([key, value]) => [key, fragmentVariableValue(value, args)])
+	)
+}
+
+function fragmentVariableValue(value: ValueNode, args: GraphQLObject): GraphQLValue {
+	if (value.kind === 'StringValue') {
+		return value.value
+	}
+	if (value.kind === 'BooleanValue') {
+		return value.value
+	}
+	if (value.kind === 'EnumValue') {
+		return value.value
+	}
+	if (value.kind === 'FloatValue') {
+		return parseFloat(value.value)
+	}
+	if (value.kind === 'IntValue') {
+		return parseInt(value.value, 10)
+	}
+	if (value.kind === 'NullValue') {
+		return null
+	}
+	if (value.kind === 'Variable') {
+		return args[value.name.value]
+	}
+	if (value.kind === 'ListValue') {
+		return value.values.map((value) => fragmentVariableValue(value, args))
+	}
+
+	if (value.kind === 'ObjectValue') {
+		return value.fields.reduce(
+			(obj, field) => ({
+				...obj,
+				[field.name.value]: fragmentVariableValue(field.value, args),
+			}),
+			{}
+		)
 	}
 }
 

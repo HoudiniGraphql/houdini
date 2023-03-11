@@ -33,13 +33,14 @@ export class BaseStore<
 			artifact: params.artifact,
 			client: null,
 			fetching: params.fetching,
+			initialValue: params.initialValue,
 		})
 
 		this.#params = params
 	}
 
 	#observer: DocumentStore<_Data, _Input> | null = null
-	protected get observer(): DocumentStore<_Data, _Input> {
+	get observer(): DocumentStore<_Data, _Input> {
 		if (this.#observer) {
 			return this.#observer
 		}

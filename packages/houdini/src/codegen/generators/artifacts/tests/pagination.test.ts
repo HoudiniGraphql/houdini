@@ -1,7 +1,7 @@
 import { test, expect } from 'vitest'
 
-import { runPipeline } from '../..'
-import { testConfig, mockCollectedDoc } from '../../../test'
+import { runPipeline } from '../../..'
+import { testConfig, mockCollectedDoc } from '../../../../test'
 
 // the config to use in tests
 const config = testConfig()
@@ -69,6 +69,7 @@ test('pagination arguments stripped from key', async function () {
 		      endCursor
 		    }
 		  }
+		  id
 		}
 		\`,
 
@@ -98,23 +99,30 @@ test('pagination arguments stripped from key', async function () {
 		                                            "fields": {
 		                                                "id": {
 		                                                    "type": "ID",
-		                                                    "keyRaw": "id"
+		                                                    "keyRaw": "id",
+		                                                    "visible": true
 		                                                },
 
 		                                                "__typename": {
 		                                                    "type": "String",
-		                                                    "keyRaw": "__typename"
+		                                                    "keyRaw": "__typename",
+		                                                    "visible": true
 		                                                }
 		                                            }
-		                                        }
+		                                        },
+
+		                                        "visible": true
 		                                    },
 
 		                                    "cursor": {
 		                                        "type": "String",
-		                                        "keyRaw": "cursor"
+		                                        "keyRaw": "cursor",
+		                                        "visible": true
 		                                    }
 		                                }
-		                            }
+		                            },
+
+		                            "visible": true
 		                        },
 
 		                        "pageInfo": {
@@ -126,31 +134,45 @@ test('pagination arguments stripped from key', async function () {
 		                                    "hasPreviousPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasPreviousPage",
-		                                        "updates": ["append", "prepend"]
+		                                        "updates": ["append", "prepend"],
+		                                        "visible": true
 		                                    },
 
 		                                    "hasNextPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasNextPage",
-		                                        "updates": ["append", "prepend"]
+		                                        "updates": ["append", "prepend"],
+		                                        "visible": true
 		                                    },
 
 		                                    "startCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "startCursor",
-		                                        "updates": ["append", "prepend"]
+		                                        "updates": ["append", "prepend"],
+		                                        "visible": true
 		                                    },
 
 		                                    "endCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "endCursor",
-		                                        "updates": ["append", "prepend"]
+		                                        "updates": ["append", "prepend"],
+		                                        "visible": true
 		                                    }
 		                                }
-		                            }
+		                            },
+
+		                            "visible": true
 		                        }
 		                    }
-		                }
+		                },
+
+		                "visible": true
+		            },
+
+		            "id": {
+		                "type": "ID",
+		                "keyRaw": "id",
+		                "visible": true
 		            }
 		        }
 		    },
@@ -236,6 +258,7 @@ test('pagination arguments stays in key as it s a SinglePage Mode', async functi
 		      endCursor
 		    }
 		  }
+		  id
 		}
 		\`,
 
@@ -265,23 +288,30 @@ test('pagination arguments stays in key as it s a SinglePage Mode', async functi
 		                                            "fields": {
 		                                                "id": {
 		                                                    "type": "ID",
-		                                                    "keyRaw": "id"
+		                                                    "keyRaw": "id",
+		                                                    "visible": true
 		                                                },
 
 		                                                "__typename": {
 		                                                    "type": "String",
-		                                                    "keyRaw": "__typename"
+		                                                    "keyRaw": "__typename",
+		                                                    "visible": true
 		                                                }
 		                                            }
-		                                        }
+		                                        },
+
+		                                        "visible": true
 		                                    },
 
 		                                    "cursor": {
 		                                        "type": "String",
-		                                        "keyRaw": "cursor"
+		                                        "keyRaw": "cursor",
+		                                        "visible": true
 		                                    }
 		                                }
-		                            }
+		                            },
+
+		                            "visible": true
 		                        },
 
 		                        "pageInfo": {
@@ -293,31 +323,45 @@ test('pagination arguments stays in key as it s a SinglePage Mode', async functi
 		                                    "hasPreviousPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasPreviousPage",
-		                                        "updates": ["append", "prepend"]
+		                                        "updates": ["append", "prepend"],
+		                                        "visible": true
 		                                    },
 
 		                                    "hasNextPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasNextPage",
-		                                        "updates": ["append", "prepend"]
+		                                        "updates": ["append", "prepend"],
+		                                        "visible": true
 		                                    },
 
 		                                    "startCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "startCursor",
-		                                        "updates": ["append", "prepend"]
+		                                        "updates": ["append", "prepend"],
+		                                        "visible": true
 		                                    },
 
 		                                    "endCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "endCursor",
-		                                        "updates": ["append", "prepend"]
+		                                        "updates": ["append", "prepend"],
+		                                        "visible": true
 		                                    }
 		                                }
-		                            }
+		                            },
+
+		                            "visible": true
 		                        }
 		                    }
-		                }
+		                },
+
+		                "visible": true
+		            },
+
+		            "id": {
+		                "type": "ID",
+		                "keyRaw": "id",
+		                "visible": true
 		            }
 		        }
 		    },
@@ -377,6 +421,7 @@ test('offset based pagination marks appropriate field', async function () {
 		  friendsByOffset(limit: $limit, filter: "hello", offset: $offset) {
 		    id
 		  }
+		  id
 		}
 		\`,
 
@@ -393,10 +438,19 @@ test('offset based pagination marks appropriate field', async function () {
 		                    "fields": {
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
+		                            "keyRaw": "id",
+		                            "visible": true
 		                        }
 		                    }
-		                }
+		                },
+
+		                "visible": true
+		            },
+
+		            "id": {
+		                "type": "ID",
+		                "keyRaw": "id",
+		                "visible": true
 		            }
 		        }
 		    },
@@ -552,37 +606,51 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		                                                                                            "fields": {
 		                                                                                                "id": {
 		                                                                                                    "type": "ID",
-		                                                                                                    "keyRaw": "id"
+		                                                                                                    "keyRaw": "id",
+		                                                                                                    "visible": true
 		                                                                                                }
 		                                                                                            }
-		                                                                                        }
+		                                                                                        },
+
+		                                                                                        "visible": true
 		                                                                                    }
 		                                                                                }
-		                                                                            }
+		                                                                            },
+
+		                                                                            "visible": true
 		                                                                        }
 		                                                                    }
-		                                                                }
+		                                                                },
+
+		                                                                "visible": true
 		                                                            },
 
 		                                                            "id": {
 		                                                                "type": "ID",
-		                                                                "keyRaw": "id"
+		                                                                "keyRaw": "id",
+		                                                                "visible": true
 		                                                            },
 
 		                                                            "__typename": {
 		                                                                "type": "String",
-		                                                                "keyRaw": "__typename"
+		                                                                "keyRaw": "__typename",
+		                                                                "visible": true
 		                                                            }
 		                                                        }
-		                                                    }
+		                                                    },
+
+		                                                    "visible": true
 		                                                },
 
 		                                                "cursor": {
 		                                                    "type": "String",
-		                                                    "keyRaw": "cursor"
+		                                                    "keyRaw": "cursor",
+		                                                    "visible": true
 		                                                }
 		                                            }
-		                                        }
+		                                        },
+
+		                                        "visible": true
 		                                    },
 
 		                                    "pageInfo": {
@@ -594,39 +662,50 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		                                                "hasPreviousPage": {
 		                                                    "type": "Boolean",
 		                                                    "keyRaw": "hasPreviousPage",
-		                                                    "updates": ["append", "prepend"]
+		                                                    "updates": ["append", "prepend"],
+		                                                    "visible": true
 		                                                },
 
 		                                                "hasNextPage": {
 		                                                    "type": "Boolean",
 		                                                    "keyRaw": "hasNextPage",
-		                                                    "updates": ["append", "prepend"]
+		                                                    "updates": ["append", "prepend"],
+		                                                    "visible": true
 		                                                },
 
 		                                                "startCursor": {
 		                                                    "type": "String",
 		                                                    "keyRaw": "startCursor",
-		                                                    "updates": ["append", "prepend"]
+		                                                    "updates": ["append", "prepend"],
+		                                                    "visible": true
 		                                                },
 
 		                                                "endCursor": {
 		                                                    "type": "String",
 		                                                    "keyRaw": "endCursor",
-		                                                    "updates": ["append", "prepend"]
+		                                                    "updates": ["append", "prepend"],
+		                                                    "visible": true
 		                                                }
 		                                            }
-		                                        }
+		                                        },
+
+		                                        "visible": true
 		                                    }
 		                                }
-		                            }
+		                            },
+
+		                            "visible": true
 		                        },
 
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
+		                            "keyRaw": "id",
+		                            "visible": true
 		                        }
 		                    }
-		                }
+		                },
+
+		                "visible": true
 		            }
 		        }
 		    },
@@ -755,6 +834,7 @@ test("sibling aliases don't get marked", async function () {
 		      }
 		    }
 		  }
+		  id
 		}
 		\`,
 
@@ -803,37 +883,51 @@ test("sibling aliases don't get marked", async function () {
 		                                                                                "fields": {
 		                                                                                    "id": {
 		                                                                                        "type": "ID",
-		                                                                                        "keyRaw": "id"
+		                                                                                        "keyRaw": "id",
+		                                                                                        "visible": true
 		                                                                                    }
 		                                                                                }
-		                                                                            }
+		                                                                            },
+
+		                                                                            "visible": true
 		                                                                        }
 		                                                                    }
-		                                                                }
+		                                                                },
+
+		                                                                "visible": true
 		                                                            }
 		                                                        }
-		                                                    }
+		                                                    },
+
+		                                                    "visible": true
 		                                                },
 
 		                                                "id": {
 		                                                    "type": "ID",
-		                                                    "keyRaw": "id"
+		                                                    "keyRaw": "id",
+		                                                    "visible": true
 		                                                },
 
 		                                                "__typename": {
 		                                                    "type": "String",
-		                                                    "keyRaw": "__typename"
+		                                                    "keyRaw": "__typename",
+		                                                    "visible": true
 		                                                }
 		                                            }
-		                                        }
+		                                        },
+
+		                                        "visible": true
 		                                    },
 
 		                                    "cursor": {
 		                                        "type": "String",
-		                                        "keyRaw": "cursor"
+		                                        "keyRaw": "cursor",
+		                                        "visible": true
 		                                    }
 		                                }
-		                            }
+		                            },
+
+		                            "visible": true
 		                        },
 
 		                        "pageInfo": {
@@ -845,31 +939,39 @@ test("sibling aliases don't get marked", async function () {
 		                                    "hasPreviousPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasPreviousPage",
-		                                        "updates": ["append", "prepend"]
+		                                        "updates": ["append", "prepend"],
+		                                        "visible": true
 		                                    },
 
 		                                    "hasNextPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasNextPage",
-		                                        "updates": ["append", "prepend"]
+		                                        "updates": ["append", "prepend"],
+		                                        "visible": true
 		                                    },
 
 		                                    "startCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "startCursor",
-		                                        "updates": ["append", "prepend"]
+		                                        "updates": ["append", "prepend"],
+		                                        "visible": true
 		                                    },
 
 		                                    "endCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "endCursor",
-		                                        "updates": ["append", "prepend"]
+		                                        "updates": ["append", "prepend"],
+		                                        "visible": true
 		                                    }
 		                                }
-		                            }
+		                            },
+
+		                            "visible": true
 		                        }
 		                    }
-		                }
+		                },
+
+		                "visible": true
 		            },
 
 		            "friends": {
@@ -912,30 +1014,50 @@ test("sibling aliases don't get marked", async function () {
 		                                                                                "fields": {
 		                                                                                    "id": {
 		                                                                                        "type": "ID",
-		                                                                                        "keyRaw": "id"
+		                                                                                        "keyRaw": "id",
+		                                                                                        "visible": true
 		                                                                                    }
 		                                                                                }
-		                                                                            }
+		                                                                            },
+
+		                                                                            "visible": true
 		                                                                        }
 		                                                                    }
-		                                                                }
+		                                                                },
+
+		                                                                "visible": true
 		                                                            }
 		                                                        }
-		                                                    }
+		                                                    },
+
+		                                                    "visible": true
 		                                                },
 
 		                                                "id": {
 		                                                    "type": "ID",
-		                                                    "keyRaw": "id"
+		                                                    "keyRaw": "id",
+		                                                    "visible": true
 		                                                }
 		                                            }
-		                                        }
+		                                        },
+
+		                                        "visible": true
 		                                    }
 		                                }
-		                            }
+		                            },
+
+		                            "visible": true
 		                        }
 		                    }
-		                }
+		                },
+
+		                "visible": true
+		            },
+
+		            "id": {
+		                "type": "ID",
+		                "keyRaw": "id",
+		                "visible": true
 		            }
 		        }
 		    },

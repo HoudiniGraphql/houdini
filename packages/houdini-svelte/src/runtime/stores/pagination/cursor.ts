@@ -1,11 +1,10 @@
-import type { DocumentStore } from '$houdini/runtime/client'
 import type { SendParams } from '$houdini/runtime/client/documentStore'
 import { CachePolicy } from '$houdini/runtime/lib'
 import { getCurrentConfig } from '$houdini/runtime/lib/config'
 import { siteURL } from '$houdini/runtime/lib/constants'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import type { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
-import { get, writable } from 'svelte/store'
+import { writable } from 'svelte/store'
 
 import { getSession } from '../../session'
 import type { CursorHandlers } from '../../types'
@@ -18,19 +17,21 @@ import { countPage, extractPageInfo, missingPageSizeError } from './pageInfo'
 export function cursorHandlers<_Data extends GraphQLObject, _Input extends Record<string, any>>({
 	artifact,
 	storeName,
-	observer,
-	fetch: parentFetch,
+	initialValue,
 	fetchUpdate: parentFetchUpdate,
+	fetch: parentFetch,
+	getState,
+	getVariables,
 }: {
 	artifact: QueryArtifact
 	storeName: string
-	observer: DocumentStore<_Data, _Input>
 	fetch: FetchFn<_Data, _Input>
+	getState: () => _Data | null
+	getVariables: () => _Input
+	initialValue: _Data | null
 	fetchUpdate: (arg: SendParams, updates: string[]) => ReturnType<FetchFn<_Data, _Input>>
 }): CursorHandlers<_Data, _Input> {
-	const pageInfo = writable<PageInfo>(extractPageInfo(get(observer).data, artifact.refetch!.path))
-
-	const getState = () => get(observer)
+	const pageInfo = writable<PageInfo>(extractPageInfo(initialValue, artifact.refetch!.path))
 
 	// dry up the page-loading logic
 	const loadPage = async ({
@@ -52,7 +53,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 
 		// build up the variables to pass to the query
 		const loadVariables: _Input = {
-			...getState().variables,
+			...getVariables(),
 			...input,
 		}
 
@@ -97,6 +98,10 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 		pageInfo.set(extractPageInfo(data, resultPath))
 	}
 
+	const getPageInfo = () => {
+		return extractPageInfo(getState(), artifact.refetch?.path ?? [])
+	}
+
 	return {
 		loadNextPage: async ({
 			first,
@@ -114,8 +119,9 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 If you think this is an error, please open an issue on GitHub`)
 				return
 			}
+
 			// we need to find the connection object holding the current page info
-			const currentPageInfo = extractPageInfo(getState().data, artifact.refetch!.path)
+			const currentPageInfo = getPageInfo()
 			// if there is no next page, we're done
 			if (!currentPageInfo.hasNextPage) {
 				return
@@ -157,7 +163,7 @@ If you think this is an error, please open an issue on GitHub`)
 			}
 
 			// we need to find the connection object holding the current page info
-			const currentPageInfo = extractPageInfo(getState().data, artifact.refetch!.path)
+			const currentPageInfo = getPageInfo()
 
 			// if there is no next page, we're done
 			if (!currentPageInfo.hasPreviousPage) {
@@ -192,13 +198,13 @@ If you think this is an error, please open an issue on GitHub`)
 			const { variables } = params ?? {}
 
 			// if the input is different than the query variables then we just do everything like normal
-			if (variables && !deepEquals(getState().variables, variables)) {
+			if (variables && !deepEquals(getVariables(), variables)) {
 				return await parentFetch(params)
 			}
 
 			// we need to find the connection object holding the current page info
 			try {
-				var currentPageInfo = extractPageInfo(getState().data, artifact.refetch!.path)
+				var currentPageInfo = extractPageInfo(getState(), artifact.refetch!.path)
 			} catch {
 				// if there was any issue getting the page info, just fetch like normal
 				return await parentFetch(params)
@@ -210,7 +216,7 @@ If you think this is an error, please open an issue on GitHub`)
 			// we are updating the current set of items, count the number of items that currently exist
 			// and ask for the full data set
 			const count =
-				countPage(artifact.refetch!.path.concat('edges'), getState().data) ||
+				countPage(artifact.refetch!.path.concat('edges'), getState()) ||
 				artifact.refetch!.pageSize
 
 			// if there are more records than the first page, we need fetch to load everything
@@ -229,7 +235,6 @@ If you think this is an error, please open an issue on GitHub`)
 					console.warn(`⚠️ Encountered a fetch() in the middle of the connection.
 Make sure to pass a cursor value by hand that includes the current set (ie the entry before startCursor)
 `)
-					return observer.state
 				}
 
 				// if we are loading the first boundary

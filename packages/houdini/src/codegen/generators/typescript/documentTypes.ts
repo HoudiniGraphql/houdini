@@ -68,7 +68,7 @@ export async function generateDocumentTypes(config: Config, docs: Document[]) {
 					filepath: filename,
 					selections: definition.selectionSet.selections,
 					fragmentDefinitions,
-					applyFragments: definition.kind === 'OperationDefinition',
+					keepFragmentSpreadNodes: true,
 				})
 
 				if (definition?.kind === 'OperationDefinition') {
@@ -361,43 +361,31 @@ async function generateFragmentTypeDefs(
 			throw new Error('Should not get here')
 		}
 
-		let extraExports: recast.types.namedTypes.ExportNamedDeclaration[] = []
-		// if we are looking at fragments, the inputs to the fragment
-		// are defined with the arguments directive
+		// a fragment's inputs are always {} unless it has been tagged with the arguments directive
 		let directive = definition.directives?.find(
 			(directive) => directive.name.value === config.argumentsDirective
 		)
-		if (directive) {
-			extraExports.push(
-				AST.exportNamedDeclaration(
-					AST.tsTypeAliasDeclaration(
-						AST.identifier(inputTypeName),
-						AST.tsTypeLiteral(
-							(fragmentArgumentsDefinitions(config, filepath, definition) || []).map(
-								(definition: graphql.VariableDefinitionNode) => {
-									// add a property describing the variable to the root object
-									return AST.tsPropertySignature(
-										AST.identifier(definition.variable.name.value),
-										AST.tsTypeAnnotation(
-											tsTypeReference(
-												config,
-												missingScalars,
-												definition,
-												body
-											)
-										),
-										definition.type.kind !== 'NonNullType'
-									)
-								}
+		let inputValue = !directive
+			? AST.tsTypeLiteral([])
+			: AST.tsTypeLiteral(
+					(fragmentArgumentsDefinitions(config, filepath, definition) || []).map(
+						(definition: graphql.VariableDefinitionNode) => {
+							// add a property describing the variable to the root object
+							return AST.tsPropertySignature(
+								AST.identifier(definition.variable.name.value),
+								AST.tsTypeAnnotation(
+									tsTypeReference(config, missingScalars, definition, body)
+								),
+								definition.type.kind !== 'NonNullType'
 							)
-						)
+						}
 					)
-				)
-			)
-		}
+			  )
 
 		body.push(
-			...extraExports,
+			AST.exportNamedDeclaration(
+				AST.tsTypeAliasDeclaration(AST.identifier(inputTypeName), inputValue)
+			),
 			// we need to add a type that will act as the entry point for the fragment
 			// and be assigned to the prop that holds the reference passed from
 			// the fragment's parent
@@ -421,9 +409,7 @@ async function generateFragmentTypeDefs(
 									AST.tsTypeLiteral([
 										AST.tsPropertySignature(
 											AST.stringLiteral(propTypeName),
-											AST.tsTypeAnnotation(
-												AST.tsLiteralType(AST.booleanLiteral(true))
-											)
+											AST.tsTypeAnnotation(AST.tsAnyKeyword())
 										),
 									])
 								)

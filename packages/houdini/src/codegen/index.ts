@@ -92,7 +92,7 @@ export async function runPipeline(config: Config, docs: Document[]) {
 				// so that the variable definitions get hashed
 				transforms.paginate,
 				transforms.fragmentVariables,
-				transforms.composeQueries,
+				transforms.collectDefinitions,
 				...wrapHook(beforeGenerate),
 				// generators
 				generators.artifacts(artifactStats),

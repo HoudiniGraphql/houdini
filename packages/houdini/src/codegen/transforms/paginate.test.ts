@@ -366,7 +366,7 @@ test('embeds pagination query as a separate document', async function () {
 	// load the contents of the file
 	expect(docs[1]?.document).toMatchInlineSnapshot(`
 		query UserFriends_Pagination_Query($first: Int = 10, $after: String) {
-		  ...UserFriends_jrGTj @with(first: $first, after: $after)
+		  ...UserFriends_jrGTj @with(first: $first, after: $after) @mask_disable
 		}
 
 		fragment UserFriends_jrGTj on Query @arguments(first: {type: "Int", default: 10}, after: {type: "String"}) {
@@ -410,7 +410,7 @@ test('embeds node pagination query as a separate document', async function () {
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	// load the contents of the file
+	// load the contents of the artifact generated for the document we added to the list
 	await expect(docs[1]).toMatchInlineSnapshot(`
 		export default {
 		    "name": "UserFriends_Pagination_Query",
@@ -452,6 +452,7 @@ test('embeds node pagination query as a separate document', async function () {
 		      endCursor
 		    }
 		  }
+		  id
 		}
 		\`,
 
@@ -477,7 +478,7 @@ test('embeds node pagination query as a separate document', async function () {
 		                                            "edges": {
 		                                                "type": "UserEdge",
 		                                                "keyRaw": "edges",
-		                                                "updates": ["append", "prepend", "append", "prepend"],
+		                                                "updates": ["append", "prepend"],
 
 		                                                "selection": {
 		                                                    "fields": {
@@ -490,23 +491,30 @@ test('embeds node pagination query as a separate document', async function () {
 		                                                                "fields": {
 		                                                                    "id": {
 		                                                                        "type": "ID",
-		                                                                        "keyRaw": "id"
+		                                                                        "keyRaw": "id",
+		                                                                        "visible": true
 		                                                                    },
 
 		                                                                    "__typename": {
 		                                                                        "type": "String",
-		                                                                        "keyRaw": "__typename"
+		                                                                        "keyRaw": "__typename",
+		                                                                        "visible": true
 		                                                                    }
 		                                                                }
-		                                                            }
+		                                                            },
+
+		                                                            "visible": true
 		                                                        },
 
 		                                                        "cursor": {
 		                                                            "type": "String",
-		                                                            "keyRaw": "cursor"
+		                                                            "keyRaw": "cursor",
+		                                                            "visible": true
 		                                                        }
 		                                                    }
-		                                                }
+		                                                },
+
+		                                                "visible": true
 		                                            },
 
 		                                            "pageInfo": {
@@ -518,41 +526,51 @@ test('embeds node pagination query as a separate document', async function () {
 		                                                        "hasPreviousPage": {
 		                                                            "type": "Boolean",
 		                                                            "keyRaw": "hasPreviousPage",
-		                                                            "updates": ["append", "prepend", "append", "prepend"]
+		                                                            "updates": ["append", "prepend"],
+		                                                            "visible": true
 		                                                        },
 
 		                                                        "hasNextPage": {
 		                                                            "type": "Boolean",
 		                                                            "keyRaw": "hasNextPage",
-		                                                            "updates": ["append", "prepend", "append", "prepend"]
+		                                                            "updates": ["append", "prepend"],
+		                                                            "visible": true
 		                                                        },
 
 		                                                        "startCursor": {
 		                                                            "type": "String",
 		                                                            "keyRaw": "startCursor",
-		                                                            "updates": ["append", "prepend", "append", "prepend"]
+		                                                            "updates": ["append", "prepend"],
+		                                                            "visible": true
 		                                                        },
 
 		                                                        "endCursor": {
 		                                                            "type": "String",
 		                                                            "keyRaw": "endCursor",
-		                                                            "updates": ["append", "prepend", "append", "prepend"]
+		                                                            "updates": ["append", "prepend"],
+		                                                            "visible": true
 		                                                        }
 		                                                    }
-		                                                }
+		                                                },
+
+		                                                "visible": true
 		                                            }
 		                                        }
-		                                    }
-		                                },
+		                                    },
 
-		                                "__typename": {
-		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "visible": true
 		                                },
 
 		                                "id": {
 		                                    "type": "ID",
-		                                    "keyRaw": "id"
+		                                    "keyRaw": "id",
+		                                    "visible": true
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            }
 		                        },
@@ -563,94 +581,42 @@ test('embeds node pagination query as a separate document', async function () {
 		                    "fields": {
 		                        "__typename": {
 		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "keyRaw": "__typename",
+		                            "visible": true
 		                        },
 
 		                        "id": {
 		                            "type": "ID",
-		                            "keyRaw": "id"
-		                        },
+		                            "keyRaw": "id",
+		                            "visible": true
+		                        }
+		                    },
 
-		                        "friendsByForwardsCursor": {
-		                            "type": "UserConnection",
-		                            "keyRaw": "friendsByForwardsCursor::paginated",
+		                    "fragments": {
+		                        "UserFriends": {
+		                            "first": {
+		                                "kind": "Variable",
 
-		                            "selection": {
-		                                "fields": {
-		                                    "edges": {
-		                                        "type": "UserEdge",
-		                                        "keyRaw": "edges",
-		                                        "updates": ["append", "prepend"],
+		                                "name": {
+		                                    "kind": "Name",
+		                                    "value": "first"
+		                                }
+		                            },
 
-		                                        "selection": {
-		                                            "fields": {
-		                                                "node": {
-		                                                    "type": "User",
-		                                                    "keyRaw": "node",
-		                                                    "nullable": true,
+		                            "after": {
+		                                "kind": "Variable",
 
-		                                                    "selection": {
-		                                                        "fields": {
-		                                                            "id": {
-		                                                                "type": "ID",
-		                                                                "keyRaw": "id"
-		                                                            },
-
-		                                                            "__typename": {
-		                                                                "type": "String",
-		                                                                "keyRaw": "__typename"
-		                                                            }
-		                                                        }
-		                                                    }
-		                                                },
-
-		                                                "cursor": {
-		                                                    "type": "String",
-		                                                    "keyRaw": "cursor"
-		                                                }
-		                                            }
-		                                        }
-		                                    },
-
-		                                    "pageInfo": {
-		                                        "type": "PageInfo",
-		                                        "keyRaw": "pageInfo",
-
-		                                        "selection": {
-		                                            "fields": {
-		                                                "hasPreviousPage": {
-		                                                    "type": "Boolean",
-		                                                    "keyRaw": "hasPreviousPage",
-		                                                    "updates": ["append", "prepend"]
-		                                                },
-
-		                                                "hasNextPage": {
-		                                                    "type": "Boolean",
-		                                                    "keyRaw": "hasNextPage",
-		                                                    "updates": ["append", "prepend"]
-		                                                },
-
-		                                                "startCursor": {
-		                                                    "type": "String",
-		                                                    "keyRaw": "startCursor",
-		                                                    "updates": ["append", "prepend"]
-		                                                },
-
-		                                                "endCursor": {
-		                                                    "type": "String",
-		                                                    "keyRaw": "endCursor",
-		                                                    "updates": ["append", "prepend"]
-		                                                }
-		                                            }
-		                                        }
-		                                    }
+		                                "name": {
+		                                    "kind": "Name",
+		                                    "value": "after"
 		                                }
 		                            }
 		                        }
 		                    }
 		                },
 
-		                "abstract": true
+		                "abstract": true,
+		                "visible": true
 		            }
 		        }
 		    },
@@ -753,6 +719,8 @@ test('embeds custom pagination query as a separate document', async function () 
 		      endCursor
 		    }
 		  }
+		  name
+		  aka
 		}
 		\`,
 
@@ -775,7 +743,7 @@ test('embeds custom pagination query as a separate document', async function () 
 		                                    "edges": {
 		                                        "type": "GhostEdge",
 		                                        "keyRaw": "edges",
-		                                        "updates": ["append", "prepend", "append", "prepend"],
+		                                        "updates": ["append", "prepend"],
 
 		                                        "selection": {
 		                                            "fields": {
@@ -788,28 +756,36 @@ test('embeds custom pagination query as a separate document', async function () 
 		                                                        "fields": {
 		                                                            "name": {
 		                                                                "type": "String",
-		                                                                "keyRaw": "name"
+		                                                                "keyRaw": "name",
+		                                                                "visible": true
 		                                                            },
 
 		                                                            "aka": {
 		                                                                "type": "String",
-		                                                                "keyRaw": "aka"
+		                                                                "keyRaw": "aka",
+		                                                                "visible": true
 		                                                            },
 
 		                                                            "__typename": {
 		                                                                "type": "String",
-		                                                                "keyRaw": "__typename"
+		                                                                "keyRaw": "__typename",
+		                                                                "visible": true
 		                                                            }
 		                                                        }
-		                                                    }
+		                                                    },
+
+		                                                    "visible": true
 		                                                },
 
 		                                                "cursor": {
 		                                                    "type": "String",
-		                                                    "keyRaw": "cursor"
+		                                                    "keyRaw": "cursor",
+		                                                    "visible": true
 		                                                }
 		                                            }
-		                                        }
+		                                        },
+
+		                                        "visible": true
 		                                    },
 
 		                                    "pageInfo": {
@@ -821,49 +797,84 @@ test('embeds custom pagination query as a separate document', async function () 
 		                                                "hasPreviousPage": {
 		                                                    "type": "Boolean",
 		                                                    "keyRaw": "hasPreviousPage",
-		                                                    "updates": ["append", "prepend", "append", "prepend"]
+		                                                    "updates": ["append", "prepend"],
+		                                                    "visible": true
 		                                                },
 
 		                                                "hasNextPage": {
 		                                                    "type": "Boolean",
 		                                                    "keyRaw": "hasNextPage",
-		                                                    "updates": ["append", "prepend", "append", "prepend"]
+		                                                    "updates": ["append", "prepend"],
+		                                                    "visible": true
 		                                                },
 
 		                                                "startCursor": {
 		                                                    "type": "String",
 		                                                    "keyRaw": "startCursor",
-		                                                    "updates": ["append", "prepend", "append", "prepend"]
+		                                                    "updates": ["append", "prepend"],
+		                                                    "visible": true
 		                                                },
 
 		                                                "endCursor": {
 		                                                    "type": "String",
 		                                                    "keyRaw": "endCursor",
-		                                                    "updates": ["append", "prepend", "append", "prepend"]
+		                                                    "updates": ["append", "prepend"],
+		                                                    "visible": true
 		                                                }
 		                                            }
-		                                        }
+		                                        },
+
+		                                        "visible": true
 		                                    }
 		                                }
-		                            }
-		                        },
+		                            },
 
-		                        "__typename": {
-		                            "type": "String",
-		                            "keyRaw": "__typename"
+		                            "visible": true
 		                        },
 
 		                        "name": {
 		                            "type": "String",
-		                            "keyRaw": "name"
+		                            "keyRaw": "name",
+		                            "visible": true
 		                        },
 
 		                        "aka": {
 		                            "type": "String",
-		                            "keyRaw": "aka"
+		                            "keyRaw": "aka",
+		                            "visible": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename",
+		                            "visible": true
+		                        }
+		                    },
+
+		                    "fragments": {
+		                        "UserGhost": {
+		                            "first": {
+		                                "kind": "Variable",
+
+		                                "name": {
+		                                    "kind": "Name",
+		                                    "value": "first"
+		                                }
+		                            },
+
+		                            "after": {
+		                                "kind": "Variable",
+
+		                                "name": {
+		                                    "kind": "Name",
+		                                    "value": "after"
+		                                }
+		                            }
 		                        }
 		                    }
-		                }
+		                },
+
+		                "visible": true
 		            }
 		        }
 		    },
@@ -1477,7 +1488,7 @@ test('generated query has same refetch spec', async function () {
 		                        "edges": {
 		                            "type": "UserEdge",
 		                            "keyRaw": "edges",
-		                            "updates": ["append", "prepend", "append", "prepend"],
+		                            "updates": ["append", "prepend"],
 
 		                            "selection": {
 		                                "fields": {
@@ -1490,23 +1501,30 @@ test('generated query has same refetch spec', async function () {
 		                                            "fields": {
 		                                                "id": {
 		                                                    "type": "ID",
-		                                                    "keyRaw": "id"
+		                                                    "keyRaw": "id",
+		                                                    "visible": true
 		                                                },
 
 		                                                "__typename": {
 		                                                    "type": "String",
-		                                                    "keyRaw": "__typename"
+		                                                    "keyRaw": "__typename",
+		                                                    "visible": true
 		                                                }
 		                                            }
-		                                        }
+		                                        },
+
+		                                        "visible": true
 		                                    },
 
 		                                    "cursor": {
 		                                        "type": "String",
-		                                        "keyRaw": "cursor"
+		                                        "keyRaw": "cursor",
+		                                        "visible": true
 		                                    }
 		                                }
-		                            }
+		                            },
+
+		                            "visible": true
 		                        },
 
 		                        "pageInfo": {
@@ -1518,29 +1536,77 @@ test('generated query has same refetch spec', async function () {
 		                                    "hasPreviousPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasPreviousPage",
-		                                        "updates": ["append", "prepend", "append", "prepend"]
+		                                        "updates": ["append", "prepend"],
+		                                        "visible": true
 		                                    },
 
 		                                    "hasNextPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasNextPage",
-		                                        "updates": ["append", "prepend", "append", "prepend"]
+		                                        "updates": ["append", "prepend"],
+		                                        "visible": true
 		                                    },
 
 		                                    "startCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "startCursor",
-		                                        "updates": ["append", "prepend", "append", "prepend"]
+		                                        "updates": ["append", "prepend"],
+		                                        "visible": true
 		                                    },
 
 		                                    "endCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "endCursor",
-		                                        "updates": ["append", "prepend", "append", "prepend"]
+		                                        "updates": ["append", "prepend"],
+		                                        "visible": true
 		                                    }
 		                                }
-		                            }
+		                            },
+
+		                            "visible": true
 		                        }
+		                    }
+		                },
+
+		                "visible": true
+		            }
+		        },
+
+		        "fragments": {
+		            "UserFriends": {
+		                "first": {
+		                    "kind": "Variable",
+
+		                    "name": {
+		                        "kind": "Name",
+		                        "value": "first"
+		                    }
+		                },
+
+		                "after": {
+		                    "kind": "Variable",
+
+		                    "name": {
+		                        "kind": "Name",
+		                        "value": "after"
+		                    }
+		                },
+
+		                "last": {
+		                    "kind": "Variable",
+
+		                    "name": {
+		                        "kind": "Name",
+		                        "value": "last"
+		                    }
+		                },
+
+		                "before": {
+		                    "kind": "Variable",
+
+		                    "name": {
+		                        "kind": "Name",
+		                        "value": "before"
 		                    }
 		                }
 		            }
@@ -1722,23 +1788,30 @@ test('default defaultPaginateMode to SinglePage', async function () {
 		                                            "fields": {
 		                                                "id": {
 		                                                    "type": "ID",
-		                                                    "keyRaw": "id"
+		                                                    "keyRaw": "id",
+		                                                    "visible": true
 		                                                },
 
 		                                                "__typename": {
 		                                                    "type": "String",
-		                                                    "keyRaw": "__typename"
+		                                                    "keyRaw": "__typename",
+		                                                    "visible": true
 		                                                }
 		                                            }
-		                                        }
+		                                        },
+
+		                                        "visible": true
 		                                    },
 
 		                                    "cursor": {
 		                                        "type": "String",
-		                                        "keyRaw": "cursor"
+		                                        "keyRaw": "cursor",
+		                                        "visible": true
 		                                    }
 		                                }
-		                            }
+		                            },
+
+		                            "visible": true
 		                        },
 
 		                        "pageInfo": {
@@ -1750,31 +1823,39 @@ test('default defaultPaginateMode to SinglePage', async function () {
 		                                    "hasPreviousPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasPreviousPage",
-		                                        "updates": ["append", "prepend"]
+		                                        "updates": ["append", "prepend"],
+		                                        "visible": true
 		                                    },
 
 		                                    "hasNextPage": {
 		                                        "type": "Boolean",
 		                                        "keyRaw": "hasNextPage",
-		                                        "updates": ["append", "prepend"]
+		                                        "updates": ["append", "prepend"],
+		                                        "visible": true
 		                                    },
 
 		                                    "startCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "startCursor",
-		                                        "updates": ["append", "prepend"]
+		                                        "updates": ["append", "prepend"],
+		                                        "visible": true
 		                                    },
 
 		                                    "endCursor": {
 		                                        "type": "String",
 		                                        "keyRaw": "endCursor",
-		                                        "updates": ["append", "prepend"]
+		                                        "updates": ["append", "prepend"],
+		                                        "visible": true
 		                                    }
 		                                }
-		                            }
+		                            },
+
+		                            "visible": true
 		                        }
 		                    }
-		                }
+		                },
+
+		                "visible": true
 		            }
 		        }
 		    },

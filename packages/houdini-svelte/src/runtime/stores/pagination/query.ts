@@ -1,6 +1,6 @@
 import type { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
+import { get, derived } from 'svelte/store'
 import type { Subscriber } from 'svelte/store'
-import { derived } from 'svelte/store'
 
 import { getClient, initClient } from '../../client'
 import type { CursorHandlers, OffsetHandlers } from '../../types'
@@ -46,7 +46,9 @@ export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> ex
 
 		this.#_handlers = cursorHandlers<_Data, _Input>({
 			artifact: this.artifact,
-			observer: this.observer,
+			initialValue: get(this.observer).data,
+			getState: () => get(this.observer).data,
+			getVariables: () => get(this.observer).variables!,
 			storeName: this.name,
 			fetch: super.fetch.bind(this),
 			fetchUpdate: async (args, updates) => {
@@ -132,9 +134,10 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input extends {}> ex
 		})
 		this.#_handlers = offsetHandlers<_Data, _Input>({
 			artifact: this.artifact,
-			observer: this.observer,
 			storeName: this.name,
 			fetch: super.fetch,
+			getState: () => get(this.observer).data,
+			getVariables: () => get(this.observer).variables!,
 			fetchUpdate: async (args) => {
 				await initClient()
 				return paginationObserver.send({

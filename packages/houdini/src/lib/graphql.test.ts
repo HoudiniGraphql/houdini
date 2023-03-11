@@ -182,7 +182,7 @@ function getSelections(doc: string): readonly graphql.SelectionNode[] {
 function testFlatten(doc: string, applyFragments: boolean = true): graphql.OperationDefinitionNode {
 	const flat = flattenSelections({
 		config,
-		applyFragments: true,
+		applyFragments,
 		filepath: '',
 		fragmentDefinitions,
 		selections: getSelections(doc),
@@ -278,6 +278,36 @@ describe('flattenSelection', function () {
 			      id
 			      name
 			    }
+			  }
+			}
+		`)
+	})
+
+	test('flattens referenced fragments', function () {
+		expect(
+			testFlatten(
+				`
+				{
+					friends {
+						... on Friend {
+							name
+							... Foo
+						}
+					}
+				}
+			`,
+				false
+			)
+		).toMatchInlineSnapshot(`
+			{
+			  friends {
+			    ... on Friend {
+			      ... on User {
+			        id
+			      }
+			      name
+			    }
+			    ...Foo
 			  }
 			}
 		`)

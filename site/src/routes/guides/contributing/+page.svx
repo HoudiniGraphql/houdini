@@ -49,7 +49,7 @@ tasks that operate on the strings found in a project. These tasks fall into thre
   has a unique name so that the preprocessor can reliably import the correct artifact.
 - **Transforms** are defined in [packages/houdini/src/codegen/transforms](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini/src/codegen/transforms) and
   modify the actual documents that the user provides. For example, the
-  [composeQueries transform](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini/src/codegen/transforms/composeQueries.ts) is responsible for adding
+  [collectDefinitions transform](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini/src/codegen/transforms/collectDefinitions.ts) is responsible for adding
   any definitions for fragments used by an operation so they can be included in the network request.
 - **Generators** are defined in [packages/houdini/src/codegen/generators](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini/src/codegen/generators)
   and write things to disk. For example, the [typescript generator](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini/src/codegen/generators/typescript/index.ts)
@@ -62,7 +62,7 @@ Most of these are added temporarily by the [schema transform](https://github.com
 are eventually removed from the document to prevent the server from encountering anything unknown. The fragments used for
 list mutations are currently generated in a [separate transform](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini/src/codegen/transforms/list.ts).
 Since the operation fragments are passed along to the server as part of the
-[composeQueries transform](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini/src/codegen/transforms/composeQueries.ts) they don't need to be removed
+[collectDefinitions transform](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini/src/codegen/transforms/collectDefinitions.ts) they don't need to be removed
 and are used to make sure the server returns the data needed for the operation. Whether they are removed from
 the final query or not, the [artifact generator](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini/src/codegen/generators/artifacts/index.ts) looks for these
 internal schema elements to encode additional information in the document's artifact that tells the runtime how to
@@ -192,7 +192,7 @@ The steps for updating the `generate` function to support this feature can be br
 
 1. Add the `list` directive to the projects schema. As mentioned earlier, this is done in the
    [schema transform](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini/src/codegen/transforms/schema.ts#L29).
-1. Define the operation fragment somewhere that the [composeQueries transform](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini/src/codegen/transforms/composeQueries.ts)
+1. Define the operation fragment somewhere that the [collectDefinitions transform](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini/src/codegen/transforms/collectDefinitions.ts)
    can pick it up to include in the mutation query when its sent to the server. This happens in the
    [list transform](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini/src/codegen/transforms/list.ts).
 1. When generating the artifacts for the query,

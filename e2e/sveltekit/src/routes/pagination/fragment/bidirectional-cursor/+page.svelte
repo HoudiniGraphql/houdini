@@ -11,7 +11,7 @@
 
   $: fragmentResult = paginatedFragment(
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    $queryResult.data!.user,
+    $queryResult.data?.user,
     graphql(`
       fragment BidirectionalCursorFragment on User {
         usersConnection(after: "YXJyYXljb25uZWN0aW9uOjE=", first: 2) @paginate {
@@ -27,7 +27,7 @@
 </script>
 
 <div id="result">
-  {$fragmentResult.data.usersConnection.edges.map(({ node }) => node?.name).join(', ')}
+  {$fragmentResult.data?.usersConnection.edges.map(({ node }) => node?.name).join(', ')}
 </div>
 
 <div id="pageInfo">

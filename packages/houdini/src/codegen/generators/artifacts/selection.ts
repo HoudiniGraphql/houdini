@@ -11,16 +11,32 @@ import { connectionSelection } from '../../transforms/list'
 import fieldKey from './fieldKey'
 import { convertValue } from './utils'
 
-export default function selection({
+// we're going to generate the selection in two passes. the first will create the various field selections
+// and then the second will map the concrete selections onto the abstract ones
+export default function (
+	args: Omit<Parameters<typeof prepareSelection>[0], 'typeMap' | 'abstractTypes'>
+) {
+	const typeMap: Record<string, string[]> = {}
+	const abstractTypes: string[] = []
+	return mergeSelection({
+		object: prepareSelection({ ...args, typeMap, abstractTypes }),
+		filepath: args.filepath,
+		typeMap,
+		abstractTypes,
+	})
+}
+
+function prepareSelection({
 	config,
 	filepath,
 	rootType,
 	selections,
 	operations,
 	path = [],
-	includeFragments,
 	document,
 	inConnection,
+	typeMap,
+	abstractTypes,
 }: {
 	config: Config
 	filepath: string
@@ -28,52 +44,17 @@ export default function selection({
 	selections: readonly graphql.SelectionNode[]
 	operations: { [path: string]: MutationOperation[] }
 	path?: string[]
-	includeFragments: boolean
 	document: Document
 	inConnection?: boolean
+	typeMap: Record<string, string[]>
+	abstractTypes: string[]
 }): SubscriptionSelection {
 	// we need to build up an object that contains every field in the selection
 	let object: SubscriptionSelection = {}
 
-	// build up a type map of parent to abstract types
-	const typeMap: Record<string, string[]> = {}
-	// in order to clean up the abstract selection we need to track
-	// the abstract types that end up as keys in the typeMap
-	const abstractTypes: string[] = []
-
 	for (const field of selections) {
-		// ignore fragment spreads
-		if (field.kind === 'FragmentSpread' && includeFragments) {
-			// look up the fragment definition
-			const fragmentDefinition = document.document.definitions.find(
-				(defn) => defn.kind === 'FragmentDefinition' && defn.name.value === field.name.value
-			) as graphql.FragmentDefinitionNode
-			if (!fragmentDefinition) {
-				throw new HoudiniError({
-					filepath,
-					message:
-						'selection: could not find definition for fragment ' + field.name.value,
-				})
-			}
-
-			// merge the fragments selection into ours
-			object = deepMerge(
-				filepath,
-				object,
-				selection({
-					config,
-					filepath,
-					rootType: fragmentDefinition.typeCondition.name.value,
-					operations,
-					selections: fragmentDefinition.selectionSet.selections,
-					path,
-					includeFragments,
-					document,
-				})
-			)
-		}
 		// inline fragments should be merged with the parent
-		else if (field.kind === 'InlineFragment') {
+		if (field.kind === 'InlineFragment') {
 			// if the type condition doesn't exist or matches the parent type,
 			// just merge it
 			if (!field.typeCondition || field.typeCondition.name.value === rootType) {
@@ -81,15 +62,16 @@ export default function selection({
 				object.fields = deepMerge(
 					filepath,
 					object.fields || {},
-					selection({
+					prepareSelection({
 						config,
 						filepath,
 						rootType: field.typeCondition?.name.value || rootType,
 						operations,
 						selections: field.selectionSet.selections,
 						path,
-						includeFragments,
 						document,
+						typeMap,
+						abstractTypes,
 					}).fields || {}
 				)
 			}
@@ -158,15 +140,16 @@ export default function selection({
 				// can compare its concrete __typename
 				object.abstractFields.fields = {
 					...object.abstractFields.fields,
-					[field.typeCondition.name.value]: selection({
+					[field.typeCondition.name.value]: prepareSelection({
 						config,
 						filepath,
 						rootType: field.typeCondition?.name.value || rootType,
 						operations,
 						selections: field.selectionSet.selections,
 						path,
-						includeFragments,
 						document,
+						typeMap,
+						abstractTypes,
 					}).fields,
 				}
 			}
@@ -195,10 +178,16 @@ export default function selection({
 			// make sure we include the attribute in the path
 			const pathSoFar = path.concat(attributeName)
 
+			const keys = config.keyFieldsForType(rootType)
+
 			// the object holding data for this field
-			const fieldObj: Required<SubscriptionSelection>['fields']['field'] = {
+			let fieldObj: Required<SubscriptionSelection>['fields']['field'] = {
 				type: typeName,
 				keyRaw: fieldKey(config, field),
+			}
+
+			if (keys.includes(field.name.value)) {
+				fieldObj.visible = true
 			}
 
 			if (nullable) {
@@ -274,16 +263,17 @@ export default function selection({
 				const connectionState =
 					(paginated && document.refetch?.method === 'cursor') || continueConnection
 
-				fieldObj.selection = selection({
+				fieldObj.selection = prepareSelection({
 					config,
 					filepath,
 					rootType: typeName,
 					selections: field.selectionSet.selections,
 					operations,
 					path: pathSoFar,
-					includeFragments,
 					document,
 					inConnection: connectionState,
+					typeMap,
+					abstractTypes,
 				})
 			}
 
@@ -303,15 +293,44 @@ export default function selection({
 				fieldObj.abstract = true
 			}
 
+			// if there is an existing value, merge them
+			if (object.fields?.[attributeName]) {
+				fieldObj = deepMerge(filepath, object.fields[attributeName], fieldObj)
+			}
+
 			// add the field data we computed
 			object.fields = {
 				...object.fields,
 				[attributeName]: fieldObj,
 			}
 		}
+		// fragment spreads need to be added to the object
+		else if (field.kind === 'FragmentSpread') {
+			const { fragment, args } = config.getFragmentVariablesHash(field.name.value)
+			object.fragments = {
+				...object.fragments,
+				[fragment]: args ?? {},
+			}
+		}
 	}
 
-	// if the field has fields and abstract fields, we need to merge them
+	return object
+}
+
+function mergeSelection({
+	filepath,
+	object,
+	typeMap,
+	abstractTypes,
+}: {
+	filepath: string
+	object: SubscriptionSelection
+	typeMap: Record<string, string[]>
+	abstractTypes: string[]
+}): SubscriptionSelection {
+	// we need to visit every selection in the artifact and
+	// make sure that concrete values are always applied on the
+	// abstract selections
 	if (
 		Object.keys(object.fields || {}).length > 0 &&
 		object.abstractFields &&
@@ -333,8 +352,8 @@ export default function selection({
 				if (object.abstractFields.fields[typeName]) {
 					object.abstractFields!.fields[typeName] = deepMerge(
 						filepath,
-						object.abstractFields.fields[typeName] || {},
-						object.abstractFields.fields[possible]!
+						object.abstractFields.fields[typeName] ?? {},
+						object.abstractFields.fields[possible] ?? {}
 					)
 
 					// there was in fact overlap between the mapped type and another abstract selection
@@ -360,7 +379,6 @@ export default function selection({
 				delete typeMap[type]
 			}
 		}
-
 		// make sure that every abstract type is also processing the concrete selection
 		for (const [type, sel] of Object.entries(object.abstractFields?.fields || {})) {
 			object.abstractFields!.fields[type] = deepMerge(filepath, sel || {}, object.fields!)
@@ -381,5 +399,34 @@ export default function selection({
 		}
 	}
 
+	// now that we've cleaned up this local node, we need to walk down and do the same
+	for (const [key, value] of Object.entries(object.fields ?? {})) {
+		const selection = value.selection
+		if (selection) {
+			mergeSelection({
+				filepath,
+				typeMap,
+				abstractTypes,
+				object: selection,
+			})
+		}
+	}
+
+	// and walk down the abstract selections too
+	for (const [type, selection] of Object.entries(object.abstractFields?.fields ?? {})) {
+		for (const [key, value] of Object.entries(selection ?? {})) {
+			const selection = value.selection
+			if (selection) {
+				mergeSelection({
+					filepath,
+					typeMap,
+					abstractTypes,
+					object: selection,
+				})
+			}
+		}
+	}
+
+	// we're done
 	return object
 }

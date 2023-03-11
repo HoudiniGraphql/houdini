@@ -12,7 +12,7 @@ import * as fs from './fs'
 import { pullSchema } from './introspection'
 import * as path from './path'
 import { plugin } from './plugin'
-import type { LogLevels, PluginConfig, PluginHooks, PluginInit } from './types'
+import type { LogLevels, PluginConfig, PluginHooks, PluginInit, ValueMap } from './types'
 import { LogLevel } from './types'
 
 // @ts-ignore
@@ -132,6 +132,7 @@ export class Config {
 		this.schemaPollInterval = watchSchema?.interval ?? 2000
 		this.schemaPollHeaders = watchSchema?.headers ?? {}
 		this.rootDir = path.join(this.projectRoot, '$houdini')
+		this.#fragmentVariableMaps = {}
 
 		// hold onto the key config
 		if (defaultKeys) {
@@ -370,7 +371,10 @@ export class Config {
 	}
 
 	keyFieldsForType(type: string) {
-		return keyFieldsForType(this.configFile, type)
+		// the only type that doesn't have a well defined ID is the root query type
+		return this.schema.getQueryType()?.name === type
+			? []
+			: keyFieldsForType(this.configFile, type)
 	}
 
 	computeID(type: string, data: any): string {
@@ -400,7 +404,7 @@ export class Config {
 		) as graphql.FragmentDefinitionNode[]
 		if (fragmentDefinitions.length) {
 			// join all of the fragment definitions into one
-			return fragmentDefinitions.map((fragment) => fragment.name.value).join('_')
+			return fragmentDefinitions[0].name.value
 		}
 
 		// we don't know how to generate a name for this document
@@ -655,6 +659,72 @@ export class Config {
 			!defaultDirectives.includes(name) &&
 			(internalDirectives.includes(name) || this.isDeleteDirective(name))
 		)
+	}
+
+	#fragmentVariableMaps: Record<string, { args: ValueMap | null; fragment: string }>
+	registerFragmentVariablesHash({
+		hash,
+		args,
+		fragment,
+	}: {
+		hash: string
+		args: ValueMap | null
+		fragment: string
+	}) {
+		this.#fragmentVariableMaps[hash] = {
+			args: this.#serializeValueMap(args),
+			fragment,
+		}
+	}
+	getFragmentVariablesHash(hash: string) {
+		return (
+			this.#fragmentVariableMaps[hash] ?? {
+				fragment: hash,
+				args: {},
+				hash,
+			}
+		)
+	}
+
+	#serializeValueMap(map: ValueMap | null): ValueMap | null {
+		if (!map) {
+			return null
+		}
+
+		return Object.fromEntries(
+			Object.entries(map).map(([key, input]) => {
+				// the value we are setting depends on the value of the input
+				const result = {
+					kind: input.kind,
+				}
+				if (typeof input === 'object') {
+					if ('value' in input) {
+						// @ts-ignore
+						result.value = input.value
+					}
+					if ('values' in input) {
+						// @ts-ignore
+						result.values = input.values.map(
+							(value) => this.#serializeValueMap({ foo: value })!.foo!
+						)
+					}
+					if ('name' in input) {
+						// @ts-ignore
+						result.name = input.name
+					}
+
+					if ('fields' in input) {
+						// @ts-ignore
+						result.fields = input.fields.map((field) => ({
+							name: field.name,
+							value: this.#serializeValueMap({ foo: field.value })!.foo!,
+						}))
+					}
+				}
+
+				return [key, result]
+			})
+		) as ValueMap
 	}
 
 	isListFragment(name: string): boolean {

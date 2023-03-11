@@ -1,10 +1,10 @@
 import * as graphql from 'graphql'
 
-import type { Config, Document } from '../../lib'
+import type { Config, Document, ValueMap } from '../../lib'
 import { HoudiniError, ArtifactKind } from '../../lib'
 import { murmurHash } from '../utils'
-import type { FragmentDependency } from './composeQueries'
-import { collectFragments } from './composeQueries'
+import type { FragmentDependency } from './collectDefinitions'
+import { collectDefinitions } from './collectDefinitions'
 
 const GraphqlKinds = graphql.Kind
 
@@ -14,7 +14,7 @@ export default async function fragmentVariables(
 	documents: Document[]
 ): Promise<void> {
 	// collect all of the defined fragments
-	const fragments = collectFragments(config, documents)
+	const fragments = collectDefinitions(config, documents)
 
 	// we're going to generate new fragment definitions that have the argument values
 	// replaced inline. In order to pull this off, we might need to string operation
@@ -70,8 +70,6 @@ export default async function fragmentVariables(
 	})
 }
 
-type ValueMap = Record<string, graphql.ValueNode>
-
 export function inlineFragmentArgs({
 	config,
 	filepath,
@@ -114,6 +112,9 @@ export function inlineFragmentArgs({
 		FragmentSpread(node) {
 			// look at the fragment spread to see if there are any default arguments
 			// that haven't been overridden by with
+			if (!fragmentDefinitions[node.name.value]) {
+				throw new Error('Could not find definition for fragment' + node.name.value)
+			}
 			const { definition } = fragmentDefinitions[node.name.value]
 
 			// we have to apply arguments to the fragment definitions
@@ -121,6 +122,11 @@ export function inlineFragmentArgs({
 
 			// generate a fragment name based on the arguments passed
 			const newFragmentName = `${node.name.value}${hash}`
+			config.registerFragmentVariablesHash({
+				hash: newFragmentName,
+				fragment: node.name.value,
+				args,
+			})
 
 			// if we haven't handled the referenced fragment
 			if (!visitedFragments.has(newFragmentName)) {

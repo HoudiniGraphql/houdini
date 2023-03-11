@@ -2,6 +2,7 @@
   import { page } from '$app/stores';
   import type { Page } from '@sveltejs/kit';
   import UserName from '../UserName.svelte';
+  import UserName_2 from '../UserName_2.svelte';
 
   import type { LayoutData } from './$houdini';
 
@@ -26,7 +27,10 @@
 <a class:active={isPageActive('2', $page)} href={TabLinkKeepingContext('2', $page.url)}>user-2</a>
 <a class:active={isPageActive('3', $page)} href={TabLinkKeepingContext('3', $page.url)}>user-3</a>
 
-<h3>Page: <UserName user={$Layout_User.data?.user} /></h3>
+<h3>
+  <UserName user={$Layout_User.data?.user} />
+  <UserName_2 user={$Layout_User.data?.user} />
+</h3>
 
 <div class="ml">
   <a class:active={isTabActive('birth', $page.url)} href="./birth">Birth</a>

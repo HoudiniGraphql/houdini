@@ -57,21 +57,21 @@ test('generates types for fragments', async function () {
 
 		export function fragment(
 		    initialValue: {
-		        $fragments: {
-		            TestFragment: true;
+		        " $fragments": {
+		            TestFragment: any;
 		        };
 		    },
 		    document: TestFragmentStore
-		): FragmentStoreInstance<TestFragment$data>;
+		): FragmentStoreInstance<TestFragment$data, TestFragment$input>;
 
 		export function fragment(
 		    initialValue: {
-		        $fragments: {
-		            TestFragment: true;
+		        " $fragments": {
+		            TestFragment: any;
 		        };
-		    } | null,
+		    } | null | undefined,
 		    document: TestFragmentStore
-		): FragmentStoreInstance<TestFragment$data | null>;
+		): FragmentStoreInstance<TestFragment$data | null, TestFragment$input>;
 
 		export declare function fragment<_Fragment extends Fragment<any>>(ref: _Fragment, fragment: FragmentStore<_Fragment["shape"]>): Readable<NonNullable<_Fragment["shape"]>> & {
 		    data: Readable<_Fragment>;
@@ -165,8 +165,8 @@ test('generates types for paginated fragments', async function () {
 
 		export function fragment(
 		    initialValue: {
-		        $fragments: {
-		            TestFragment: true;
+		        " $fragments": {
+		            TestFragment: any;
 		        };
 		    },
 		    document: TestFragmentStore
@@ -174,10 +174,10 @@ test('generates types for paginated fragments', async function () {
 
 		export function fragment(
 		    initialValue: {
-		        $fragments: {
-		            TestFragment: true;
+		        " $fragments": {
+		            TestFragment: any;
 		        };
-		    } | null,
+		    } | null | undefined,
 		    document: TestFragmentStore
 		): CursorFragmentStoreInstance<TestFragment$data | null, TestFragment$input>;
 
@@ -191,8 +191,8 @@ test('generates types for paginated fragments', async function () {
 
 		export function paginatedFragment(
 		    initialValue: {
-		        $fragments: {
-		            TestFragment: true;
+		        " $fragments": {
+		            TestFragment: any;
 		        };
 		    },
 		    document: TestFragmentStore
@@ -200,10 +200,10 @@ test('generates types for paginated fragments', async function () {
 
 		export function paginatedFragment(
 		    initialValue: {
-		        $fragments: {
-		            TestFragment: true;
+		        " $fragments": {
+		            TestFragment: any;
 		        };
-		    } | null,
+		    } | null | undefined,
 		    document: TestFragmentStore
 		): CursorFragmentStoreInstance<TestFragment$data | null, TestFragment$input>;
 

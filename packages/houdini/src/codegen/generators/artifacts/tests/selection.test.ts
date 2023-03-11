@@ -1,23 +1,23 @@
 import * as graphql from 'graphql'
 import { test, expect } from 'vitest'
 
-import { mockCollectedDoc, testConfig } from '../../../test'
-import { flattenSelections } from '../../utils'
-import selection from './selection'
+import { mockCollectedDoc, testConfig } from '../../../../test'
+import { flattenSelections } from '../../../utils'
+import selection from '../selection'
 
 test('fragments of unions inject correctly', function () {
 	const document = graphql.parse(`
-        query { 
+        query {
             entities {
                 ...EntityInfo
             }
         }
 
-        fragment EntityInfo on Entity { 
-            ... on User { 
+        fragment EntityInfo on Entity {
+            ... on User {
                 firstName
             }
-            ... on Cat { 
+            ... on Cat {
                 name
             }
         }
@@ -38,7 +38,6 @@ test('fragments of unions inject correctly', function () {
 		)!.selectionSet.selections,
 		fragmentDefinitions,
 		ignoreMaskDisable: true,
-		applyFragments: true,
 	})
 
 	const artifactSelection = selection({
@@ -47,9 +46,8 @@ test('fragments of unions inject correctly', function () {
 		rootType: 'Query',
 		operations: {},
 		selections: flat,
-		includeFragments: false,
 		document: mockCollectedDoc(`
-        query Query { 
+        query Query {
             entities {
                 ...EntityInfo
             }
@@ -79,6 +77,9 @@ test('fragments of unions inject correctly', function () {
 		                        }
 		                    },
 		                    "typeMap": {}
+		                },
+		                "fragments": {
+		                    "EntityInfo": {}
 		                }
 		            },
 		            "abstract": true
