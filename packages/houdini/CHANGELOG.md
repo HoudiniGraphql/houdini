@@ -1,5 +1,11 @@
 # houdini
 
+## 1.1.0
+
+### Minor Changes
+
+-   [#954](https://github.com/HoudiniGraphql/houdini/pull/954) [`f94b6ca`](https://github.com/HoudiniGraphql/houdini/commit/f94b6caf8bda21fdbe22b466dc01cb8f8f40448f) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Improve performance by using fragments for fine-grain reactivity
+
 ## 1.0.11
 
 ## 1.0.10
