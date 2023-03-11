@@ -123,7 +123,7 @@ importers:
             typescript: 4.9.4
             vite: 4.1.1
 
-    e2e/sveltekit:
+    e2e/kit:
         specifiers:
             '@kitql/helper': ^0.5.0
             '@playwright/test': 1.30.0
