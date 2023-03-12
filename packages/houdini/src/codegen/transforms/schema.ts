@@ -96,6 +96,11 @@ directive @${config.maskEnableDirective} on FRAGMENT_SPREAD
 	@${config.maskDisableDirective} to disable masking on fragment (overwriting the global conf)
 """
 directive @${config.maskDisableDirective} on FRAGMENT_SPREAD
+
+"""
+	@${config.requiredDirective} makes a nullable field always non-null by making the parent null when the field is
+"""
+directive @${config.requiredDirective} on FIELD
 `
 
 	// add each custom schema to the internal value

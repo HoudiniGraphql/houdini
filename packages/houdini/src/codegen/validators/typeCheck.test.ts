@@ -1029,6 +1029,46 @@ const table: Row[] = [
 			`,
 		],
 	},
+	{
+		title: '@required may not be used on query arguments',
+		pass: false,
+		documents: [
+			`
+			query QueryA($id: ID! @required) {
+				node(id: $id) {
+					name
+				}
+			}
+			`,
+			`
+			query QueryB($id: ID! @required) {
+				node(id: $id) {
+					name
+				}
+			}
+			`,
+		],
+	},
+	{
+		title: '@required may not be used on non-nullable fields',
+		pass: false,
+		documents: [
+			`
+			query QueryA {
+				user {
+					name @required
+				}
+			}
+			`,
+			`
+			query QueryB {
+				user {
+					name @required
+				}
+			}
+			`,
+		],
+	},
 ]
 
 type Row =

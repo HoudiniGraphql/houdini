@@ -208,7 +208,16 @@ function prepareSelection({
 			}
 
 			if (nullable) {
-				fieldObj.nullable = true
+				fieldObj.serverNullable = true
+				fieldObj.clientNullable = true
+			}
+
+			const requiredDirective = field.directives?.find(
+				(directive) => directive.name.value == config.requiredDirective
+			)
+			if (requiredDirective) {
+				fieldObj.clientNullable = false
+				fieldObj.bubbleNullability = true
 			}
 
 			// is there an operation for this field
@@ -292,6 +301,15 @@ function prepareSelection({
 					typeMap,
 					abstractTypes,
 				})
+
+				// bubble nullability up
+				if (
+					Object.values(fieldObj.selection?.fields ?? {}).some(
+						(field) => field.bubbleNullability
+					)
+				) {
+					fieldObj.clientNullable = true
+				}
 			}
 
 			// any arguments on the list field can act as a filter

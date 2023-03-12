@@ -349,6 +349,7 @@ export default async function typeCheck(config: Config, docs: Document[]): Promi
 					listTypes,
 					fragments,
 				}),
+				validateRequiredDirective(config, filepath),
 				// checkMutationOperation
 				checkMutationOperation(config),
 				// checkMaskDirective
@@ -386,7 +387,52 @@ export default async function typeCheck(config: Config, docs: Document[]): Promi
 	return
 }
 
-//
+function validateRequiredDirective(config: Config, filepath: string) {
+	function isClientNullable(node: graphql.FieldNode, ignoreCurrent: boolean): boolean {
+		const hasRequiredDirective = node.directives?.some(
+			({ name }) => name.value === config.requiredDirective
+		)
+		return (
+			(!ignoreCurrent && hasRequiredDirective) ||
+			node.selectionSet?.selections.some(
+				(node) => node.kind == 'Field' && isClientNullable(node, false)
+			) == true
+		)
+	}
+
+	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
+		return {
+			Field(node, _, __, ___, ancestors) {
+				if (!node.directives?.some(({ name }) => name.value === config.requiredDirective))
+					return
+
+				const parentType = parentTypeFromAncestors(config.schema, filepath, ancestors)
+
+				// Check that we're on an object type, not an argument or interface type
+				if (!graphql.isObjectType(parentType)) {
+					ctx.reportError(
+						new graphql.GraphQLError(
+							`@${config.requiredDirective} may only be used on objects, not arguments`
+						)
+					)
+					return
+				}
+
+				const type = parentType.getFields()[node.name.value].type
+				const isServerNullable = !graphql.isNonNullType(type)
+				const isAlreadyClientNullable = isClientNullable(node, true)
+				if (!isServerNullable && !isAlreadyClientNullable) {
+					ctx.reportError(
+						new graphql.GraphQLError(
+							`@${config.requiredDirective} may only be used on nullable fields`
+						)
+					)
+					return
+				}
+			},
+		}
+	}
+}
 
 // build up the custom rule that requires parentID on all list directives
 // applied to list fragment spreads whose name does not appear in `freeLists`

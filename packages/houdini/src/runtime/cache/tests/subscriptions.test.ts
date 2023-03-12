@@ -109,7 +109,7 @@ test('root subscribe - linked object changed', function () {
 							type: 'String',
 							visible: true,
 							keyRaw: 'favoriteColors(where: "foo")',
-							nullable: true,
+							clientNullable: true,
 						},
 					},
 				},
@@ -215,7 +215,7 @@ test("subscribing to null object doesn't explode", function () {
 							keyRaw: 'firstName',
 						},
 						favoriteColors: {
-							nullable: true,
+							clientNullable: true,
 							type: 'String',
 							visible: true,
 							keyRaw: 'favoriteColors(where: "foo")',
@@ -275,7 +275,7 @@ test('overwriting a reference with null clears its subscribers', function () {
 				type: 'User',
 				visible: true,
 				keyRaw: 'viewer',
-				nullable: true,
+				clientNullable: true,
 				selection: {
 					fields: {
 						id: {
@@ -358,7 +358,7 @@ test('overwriting a linked list with null clears its subscribers', function () {
 							type: 'User',
 							visible: true,
 							keyRaw: 'friends',
-							nullable: true,
+							clientNullable: true,
 							selection: {
 								fields: {
 									firstName: {
@@ -2108,7 +2108,7 @@ test('overlapping subscriptions', function () {
 				type: 'User',
 				visible: true,
 				keyRaw: 'viewer',
-				nullable: true,
+				clientNullable: true,
 				selection: {
 					fields: {
 						id: {
@@ -2133,7 +2133,7 @@ test('overlapping subscriptions', function () {
 				type: 'User',
 				visible: true,
 				keyRaw: 'viewer',
-				nullable: true,
+				clientNullable: true,
 				selection: {
 					fields: {
 						id: {
@@ -2255,7 +2255,7 @@ test('ignore hidden fields', function () {
 				type: 'User',
 				visible: true,
 				keyRaw: 'viewer',
-				nullable: true,
+				clientNullable: true,
 				selection: {
 					fields: {
 						id: {

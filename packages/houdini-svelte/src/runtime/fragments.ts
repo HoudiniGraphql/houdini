@@ -9,14 +9,14 @@ import type { FragmentStorePaginated } from './stores/pagination/fragment'
 export function fragment<_Fragment extends Fragment<any>>(
 	ref: _Fragment,
 	fragment: FragmentStore<_Fragment['shape'], {}>
-): Readable<NonNullable<_Fragment['shape']>> & {
+): Readable<Exclude<_Fragment['shape'], undefined>> & {
 	data: Readable<_Fragment>
 	artifact: FragmentArtifact
 }
 export function fragment<_Fragment extends Fragment<any>>(
 	ref: _Fragment | null,
 	fragment: FragmentStore<_Fragment['shape'], {}>
-): Readable<NonNullable<_Fragment['shape']> | null> & {
+): Readable<Exclude<_Fragment['shape'], undefined> | null> & {
 	data: Readable<_Fragment | null>
 	artifact: FragmentArtifact
 }

@@ -307,7 +307,7 @@ test('ignore abstract fields of unmatched type', function () {
 									type: 'String',
 									visible: true,
 									keyRaw: 'firstName',
-									nullable: true,
+									clientNullable: true,
 								},
 							},
 						},
@@ -388,7 +388,7 @@ test('linked records with updates', function () {
 				type: 'User',
 				visible: true,
 				keyRaw: 'parent',
-				nullable: true,
+				clientNullable: true,
 				selection: {
 					fields: {
 						id: {
@@ -1017,7 +1017,7 @@ test('can store and retrieve links with null values', function () {
 				type: 'User',
 				visible: true,
 				keyRaw: 'viewer',
-				nullable: true,
+				clientNullable: true,
 				selection: {
 					fields: {
 						id: {
@@ -1176,7 +1176,7 @@ test('null-value cascade from field value', function () {
 						type: 'User',
 						visible: true,
 						keyRaw: 'viewer',
-						nullable: true,
+						clientNullable: true,
 						selection: {
 							fields: {
 								id: {
@@ -1204,7 +1204,7 @@ test('null-value cascade from field value', function () {
 						type: 'User',
 						visible: true,
 						keyRaw: 'viewer',
-						nullable: true,
+						clientNullable: true,
 						selection: {
 							fields: {
 								firstName: {
@@ -1272,7 +1272,7 @@ test('null-value field', function () {
 						type: 'User',
 						visible: true,
 						keyRaw: 'viewer',
-						nullable: true,
+						clientNullable: true,
 						selection: {
 							fields: {
 								id: {
@@ -1300,14 +1300,14 @@ test('null-value field', function () {
 						type: 'User',
 						visible: true,
 						keyRaw: 'viewer',
-						nullable: true,
+						clientNullable: true,
 						selection: {
 							fields: {
 								firstName: {
 									keyRaw: 'firstName',
 									type: 'String',
 									visible: true,
-									nullable: true,
+									clientNullable: true,
 								},
 							},
 						},
@@ -1362,7 +1362,7 @@ test('null-value cascade from object value', function () {
 						type: 'User',
 						visible: true,
 						keyRaw: 'viewer',
-						nullable: true,
+						clientNullable: true,
 						selection: {
 							fields: {
 								id: {
@@ -1398,7 +1398,7 @@ test('null-value cascade from object value', function () {
 						type: 'User',
 						visible: true,
 						keyRaw: 'viewer',
-						nullable: true,
+						clientNullable: true,
 						selection: {
 							fields: {
 								id: {
@@ -1410,7 +1410,7 @@ test('null-value cascade from object value', function () {
 									keyRaw: 'parent',
 									type: 'User',
 									visible: true,
-									nullable: true,
+									clientNullable: true,
 								},
 							},
 						},
@@ -1503,7 +1503,7 @@ test('null-value cascade to root', function () {
 						type: 'User',
 						visible: true,
 						keyRaw: 'viewer',
-						nullable: true,
+						clientNullable: true,
 						selection: {
 							fields: {
 								parent: {
@@ -1539,7 +1539,7 @@ test('must have a single value in order to use partial data', function () {
 					type: 'User',
 					visible: true,
 					keyRaw: 'viewer',
-					nullable: true,
+					clientNullable: true,
 					selection: {
 						fields: {
 							id: {
@@ -1567,7 +1567,7 @@ test('must have a single value in order to use partial data', function () {
 						type: 'User',
 						visible: true,
 						keyRaw: 'viewer',
-						nullable: true,
+						clientNullable: true,
 						selection: {
 							fields: {
 								parent: {
@@ -1595,7 +1595,7 @@ test('must have a single value in order to use partial data', function () {
 						type: 'User',
 						visible: true,
 						keyRaw: 'viewer',
-						nullable: true,
+						clientNullable: true,
 						selection: {
 							fields: {
 								id: {
@@ -1635,7 +1635,7 @@ test('reading an empty list counts as data', function () {
 					type: 'User',
 					visible: true,
 					keyRaw: 'viewer',
-					nullable: true,
+					clientNullable: true,
 					selection: {
 						fields: {
 							id: {
@@ -1684,7 +1684,7 @@ test('reading an empty list counts as data', function () {
 						type: 'User',
 						visible: true,
 						keyRaw: 'viewer',
-						nullable: true,
+						clientNullable: true,
 						selection: {
 							fields: {
 								friends: {
@@ -1802,7 +1802,7 @@ test('recreates fragment references', function () {
 				type: 'User',
 				visible: true,
 				keyRaw: 'viewer',
-				nullable: true,
+				clientNullable: true,
 				selection: {
 					fragments: {
 						TestFragment: {
@@ -1875,7 +1875,7 @@ test('recreates fragment references on root', function () {
 				type: 'User',
 				visible: true,
 				keyRaw: 'viewer',
-				nullable: true,
+				clientNullable: true,
 				selection: {
 					fields: {
 						id: {
@@ -1932,7 +1932,7 @@ test('recreates fragment references with variables', function () {
 				type: 'User',
 				visible: true,
 				keyRaw: 'viewer',
-				nullable: true,
+				clientNullable: true,
 				selection: {
 					fragments: {
 						TestFragment: {
