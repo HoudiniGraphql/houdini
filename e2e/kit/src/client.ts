@@ -1,5 +1,7 @@
 import { HoudiniClient, type ClientPlugin } from '$houdini';
+import { createClient } from 'graphql-ws';
 import { error } from '@sveltejs/kit';
+import { subscription } from '$houdini/plugins';
 
 // in order to verify that we send metadata, we need something that will log the metadata after
 const logMetadata: ClientPlugin = () => ({
@@ -33,5 +35,12 @@ export default new HoudiniClient({
     operations: ['all'],
     error: (errors) => error(500, errors.map((error) => error.message).join('. ') + '.')
   },
-  plugins: [logMetadata]
+  plugins: [
+    logMetadata,
+    subscription(() =>
+      createClient({
+        url: 'ws://localhost:4000/graphql'
+      })
+    )
+  ]
 });

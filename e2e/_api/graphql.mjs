@@ -2,9 +2,12 @@ import { sleep } from '@kitql/helper'
 import fs from 'fs-extra'
 import { GraphQLError } from 'graphql'
 import { GraphQLScalarType, Kind } from 'graphql'
+import { createPubSub } from 'graphql-yoga'
 import path from 'path'
 
 import { connectionFromArray } from './util.mjs'
+
+const pubSub = createPubSub()
 
 const sourceFiles = ['schema.graphql', 'schema-hello.graphql']
 export const typeDefs = sourceFiles.map((filepath) => {
@@ -198,7 +201,13 @@ export const resolvers = {
 			return dataRentedBooks
 		},
 	},
-
+	Subscription: {
+		userUpdate: {
+			// subscribe to the randomNumber event
+			subscribe: (_, { id, snapshot }) => pubSub.subscribe('userUpdate', id + ':' + snapshot),
+			resolve: (payload) => payload,
+		},
+	},
 	User: {
 		friendsList: (user, args) => {
 			return [...getUserSnapshot(user.snapshot)].splice(args.offset || 0, args.limit)
@@ -243,6 +252,9 @@ export const resolvers = {
 			if (args.name) {
 				list[userIndex].name = args.name
 			}
+
+			pubSub.publish('userUpdate', args.id + ':' + args.snapshot, list[userIndex])
+
 			return list[userIndex]
 		},
 		singleUpload: async (_, { file }) => {
