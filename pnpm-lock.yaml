@@ -62,6 +62,61 @@ importers:
             graphql-yoga: 3.4.0_graphql@16.6.0
             ws: 8.11.0
 
+    e2e/kit:
+        specifiers:
+            '@kitql/helper': ^0.5.0
+            '@playwright/test': 1.30.0
+            '@sveltejs/adapter-auto': 2.0.0
+            '@sveltejs/kit': 1.9.3
+            '@typescript-eslint/eslint-plugin': ^5.50.0
+            '@typescript-eslint/parser': ^5.50.0
+            concurrently: 7.1.0
+            cross-env: ^7.0.3
+            e2e-api: workspace:^
+            eslint: ^8.3.0
+            eslint-config-prettier: ^8.6.0
+            eslint-plugin-svelte3: ^4.0.0
+            graphql-ws: ^5.8.2
+            houdini: workspace:^
+            houdini-plugin-svelte-global-stores: workspace:^
+            houdini-svelte: workspace:^
+            prettier: ^2.8.3
+            prettier-plugin-svelte: ^2.9.0
+            svelte: 3.55.1
+            svelte-check: ^3.0.1
+            svelte-preprocess: ^5.0.0
+            tslib: ^2.3.1
+            typescript: ^4.9
+            vite: ^4.1.4
+            vite-plugin-lib-reporter: ^0.0.6
+        dependencies:
+            graphql-ws: 5.11.2_graphql@16.6.0
+        devDependencies:
+            '@kitql/helper': 0.5.0
+            '@playwright/test': 1.30.0
+            '@sveltejs/adapter-auto': 2.0.0_@sveltejs+kit@1.9.3
+            '@sveltejs/kit': 1.9.3_svelte@3.55.1+vite@4.1.1
+            '@typescript-eslint/eslint-plugin': 5.50.0_76vvhd3gblptb4ivs7yxfrmpvi
+            '@typescript-eslint/parser': 5.50.0_ha6vam6werchizxrnqvarmz2zu
+            concurrently: 7.1.0
+            cross-env: 7.0.3
+            e2e-api: link:../_api
+            eslint: 8.29.0
+            eslint-config-prettier: 8.6.0_eslint@8.29.0
+            eslint-plugin-svelte3: 4.0.0_i4dh6snvwxwcv4az3izwklnwdu
+            houdini: link:../../packages/houdini
+            houdini-plugin-svelte-global-stores: link:../../packages/houdini-plugin-svelte-global-stores
+            houdini-svelte: link:../../packages/houdini-svelte
+            prettier: 2.8.3
+            prettier-plugin-svelte: 2.9.0_kdmmghgdi3ngrsq6otxkjilbry
+            svelte: 3.55.1
+            svelte-check: 3.0.1_svelte@3.55.1
+            svelte-preprocess: 5.0.0_atrrhq7vg4ekua4nnyrpuardle
+            tslib: 2.4.1
+            typescript: 4.9.4
+            vite: 4.1.1
+            vite-plugin-lib-reporter: 0.0.6
+
     e2e/next:
         specifiers:
             '@types/node': ^18.7.23
@@ -122,58 +177,6 @@ importers:
             tslib: 2.5.0
             typescript: 4.9.4
             vite: 4.1.1
-
-    e2e/kit:
-        specifiers:
-            '@kitql/helper': ^0.5.0
-            '@playwright/test': 1.30.0
-            '@sveltejs/adapter-auto': 2.0.0
-            '@sveltejs/kit': 1.9.3
-            '@typescript-eslint/eslint-plugin': ^5.50.0
-            '@typescript-eslint/parser': ^5.50.0
-            concurrently: 7.1.0
-            cross-env: ^7.0.3
-            e2e-api: workspace:^
-            eslint: ^8.3.0
-            eslint-config-prettier: ^8.6.0
-            eslint-plugin-svelte3: ^4.0.0
-            houdini: workspace:^
-            houdini-plugin-svelte-global-stores: workspace:^
-            houdini-svelte: workspace:^
-            prettier: ^2.8.3
-            prettier-plugin-svelte: ^2.9.0
-            svelte: 3.55.1
-            svelte-check: ^3.0.1
-            svelte-preprocess: ^5.0.0
-            tslib: ^2.3.1
-            typescript: ^4.9
-            vite: ^4.1.4
-            vite-plugin-lib-reporter: ^0.0.6
-        devDependencies:
-            '@kitql/helper': 0.5.0
-            '@playwright/test': 1.30.0
-            '@sveltejs/adapter-auto': 2.0.0_@sveltejs+kit@1.9.3
-            '@sveltejs/kit': 1.9.3_svelte@3.55.1+vite@4.1.1
-            '@typescript-eslint/eslint-plugin': 5.50.0_76vvhd3gblptb4ivs7yxfrmpvi
-            '@typescript-eslint/parser': 5.50.0_ha6vam6werchizxrnqvarmz2zu
-            concurrently: 7.1.0
-            cross-env: 7.0.3
-            e2e-api: link:../_api
-            eslint: 8.29.0
-            eslint-config-prettier: 8.6.0_eslint@8.29.0
-            eslint-plugin-svelte3: 4.0.0_i4dh6snvwxwcv4az3izwklnwdu
-            houdini: link:../../packages/houdini
-            houdini-plugin-svelte-global-stores: link:../../packages/houdini-plugin-svelte-global-stores
-            houdini-svelte: link:../../packages/houdini-svelte
-            prettier: 2.8.3
-            prettier-plugin-svelte: 2.9.0_kdmmghgdi3ngrsq6otxkjilbry
-            svelte: 3.55.1
-            svelte-check: 3.0.1_svelte@3.55.1
-            svelte-preprocess: 5.0.0_atrrhq7vg4ekua4nnyrpuardle
-            tslib: 2.4.1
-            typescript: 4.9.4
-            vite: 4.1.1
-            vite-plugin-lib-reporter: 0.0.6
 
     packages/_scripts:
         specifiers:
