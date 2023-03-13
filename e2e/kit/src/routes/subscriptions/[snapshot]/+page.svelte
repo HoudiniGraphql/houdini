@@ -27,9 +27,14 @@
 </script>
 
 <button id="listen" on:click={() => updates.listen()}>listen</button>
+<button id="unlisten" on:click={() => updates.unlisten()}>unlisten</button>
 
 <button id="mutate-foo" on:click={() => update.mutate({ name: 'foo' })}>foo</button>
 <button id="mutate-bar" on:click={() => update.mutate({ name: 'bar' })}>bar</button>
+
+<div id="fetching">
+  {$updates.fetching}
+</div>
 
 <div id="result">
   {$List.data?.user.name}
