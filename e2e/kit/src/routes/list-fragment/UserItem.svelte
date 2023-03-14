@@ -8,7 +8,7 @@
       fragment UserListItem on User {
         id
         name
-        birthDate
+        enumValue
       }
     `)
   );
@@ -16,6 +16,6 @@
 
 {#if $data}
   <li>
-    {$data.name} - {$data.birthDate}
+    {$data.name} - {$data.enumValue}
   </li>
 {/if}
