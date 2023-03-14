@@ -40,7 +40,7 @@
     "houdini-svelte": "workspace:^",
     "prettier": "^2.8.3",
     "prettier-plugin-svelte": "^2.9.0",
-    "svelte": "3.55.1",
+    "svelte": "^3.56.0",
     "svelte-check": "^3.0.1",
     "svelte-preprocess": "^5.0.0",
     "tslib": "^2.3.1",
