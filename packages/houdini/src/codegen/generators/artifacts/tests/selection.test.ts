@@ -180,6 +180,11 @@ test('fragments in lists', async function () {
 
 		                                        "selection": {
 		                                            "fields": {
+		                                                "firstName": {
+		                                                    "type": "String",
+		                                                    "keyRaw": "firstName"
+		                                                },
+
 		                                                "id": {
 		                                                    "type": "ID",
 		                                                    "keyRaw": "id",
@@ -190,12 +195,6 @@ test('fragments in lists', async function () {
 		                                                    "type": "String",
 		                                                    "keyRaw": "__typename",
 		                                                    "visible": true
-		                                                },
-
-		                                                "firstName": {
-		                                                    "type": "String",
-		                                                    "keyRaw": "firstName",
-		                                                    "visible": false
 		                                                }
 		                                            }
 		                                        },

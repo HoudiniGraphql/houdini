@@ -1,4 +1,4 @@
-import type graphql from 'graphql'
+import graphql from 'graphql'
 
 import type { Config } from '../../lib'
 import { HoudiniError } from '../../lib'
@@ -252,14 +252,28 @@ class FieldCollection {
 			})
 			.concat(
 				Object.values(this.fields).map((field) => {
-					if (field.astNode.selectionSet) {
-						field.astNode.selectionSet.selections = field.selection.toSelectionSet()
+					return {
+						...field.astNode,
+						selectionSet: field.astNode.selectionSet
+							? {
+									kind: 'SelectionSet',
+									selections: field.selection.toSelectionSet(),
+							  }
+							: undefined,
 					}
-
-					return field.astNode
 				})
 			)
-			.concat(Object.values(this.fragmentSpreads))
+			.concat(
+				Object.values(this.fragmentSpreads).map<graphql.FragmentSpreadNode>((spread) => {
+					return {
+						kind: 'FragmentSpread',
+						name: {
+							kind: 'Name',
+							value: spread.name.value,
+						},
+					}
+				})
+			)
 	}
 
 	walkInlineFragment(selection: graphql.InlineFragmentNode) {

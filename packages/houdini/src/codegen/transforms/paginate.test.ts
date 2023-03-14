@@ -1461,9 +1461,13 @@ test('generated query has same refetch spec', async function () {
 		    edges {
 		      node {
 		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
 		        __typename
 		      }
-		      cursor
 		    }
 		    pageInfo {
 		      hasPreviousPage

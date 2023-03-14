@@ -260,6 +260,7 @@ export default function artifactGenerator(stats: {
 						inputs = fragmentArgumentsDefinitions(config, doc.filename, fragments[0])
 					}
 
+					console.log(rawString)
 					const mask = selection({
 						config,
 						filepath: doc.filename,
