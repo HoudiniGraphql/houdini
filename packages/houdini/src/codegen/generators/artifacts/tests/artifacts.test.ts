@@ -1721,7 +1721,6 @@ test('selections with concrete types matching multiple abstract types', async fu
 describe('mutation artifacts', function () {
 	test('empty operation list', async function () {
 		// the config to use in tests
-		const config = testConfig()
 		const cfg = testConfig({ module: 'esm' })
 
 		const docs = [
