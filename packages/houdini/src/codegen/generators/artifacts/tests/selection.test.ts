@@ -196,6 +196,10 @@ test('fragments in lists', async function () {
 		                                                    "keyRaw": "__typename",
 		                                                    "visible": true
 		                                                }
+		                                            },
+
+		                                            "fragments": {
+		                                                "UserTest": {}
 		                                            }
 		                                        },
 

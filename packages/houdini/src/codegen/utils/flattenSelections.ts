@@ -97,9 +97,10 @@ class FieldCollection {
 
 			// the application of the fragment has been validated already so track it
 			// so we can recreate
-			this.fields[key].selection.fragmentSpreads = this.collectFragmentSpreads(
-				selection.selectionSet?.selections ?? []
-			)
+			this.fields[key].selection.fragmentSpreads = {
+				...this.collectFragmentSpreads(selection.selectionSet?.selections ?? []),
+				...this.fields[key].selection.fragmentSpreads,
+			}
 
 			// we're done
 			return
