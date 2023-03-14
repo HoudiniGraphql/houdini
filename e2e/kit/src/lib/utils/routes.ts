@@ -7,11 +7,12 @@ export const routes = {
   fetching_with_load: '/fetching/with_load',
   fetching_without_load: '/fetching/without_load',
   fetching_route_1: '/fetching/route_1',
-  lists_all: '/lists-all?limit=15',
   union_result: '/union-result',
-  list_fragment: '/list-fragment',
   customIDs: '/customIDs',
   subscriptions_happyPath: '/subscriptions/happyPath',
+
+  Lists_all: '/lists/all?limit=15',
+  Lists_fragment: '/lists/fragment',
 
   Stores_SSR: '/stores/ssr',
   Stores_Network: '/stores/network',
