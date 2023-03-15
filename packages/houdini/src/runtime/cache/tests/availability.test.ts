@@ -32,7 +32,7 @@ test('not partial', function () {
 							type: 'User',
 							visible: true,
 							keyRaw: 'friends',
-							clientNullable: true,
+							nullable: true,
 							selection: {
 								fields: {
 									id: {
@@ -385,7 +385,7 @@ test('missing cursor of item in connection from operation should not trigger nul
 													type: 'Node',
 													visible: true,
 													keyRaw: 'cursor',
-													clientNullable: false,
+													nullable: false,
 												},
 												node: {
 													type: 'Node',

@@ -524,8 +524,7 @@ test('interface to interface inline fragment', async function () {
 		            "node": {
 		                "type": "Node",
 		                "keyRaw": "node(id: $id)",
-		                "serverNullable": true,
-		                "clientNullable": true,
+		                "nullable": true,
 
 		                "selection": {
 		                    "abstractFields": {
@@ -704,8 +703,7 @@ test('paginate over unions', async function () {
 		                                    "node": {
 		                                        "type": "Entity",
 		                                        "keyRaw": "node",
-		                                        "serverNullable": true,
-		                                        "clientNullable": true,
+		                                        "nullable": true,
 
 		                                        "selection": {
 		                                            "abstractFields": {
@@ -3979,8 +3977,7 @@ describe('mutation artifacts', function () {
 			                                    "node": {
 			                                        "type": "User",
 			                                        "keyRaw": "node",
-			                                        "serverNullable": true,
-			                                        "clientNullable": true,
+			                                        "nullable": true,
 
 			                                        "selection": {
 			                                            "fields": {
@@ -4225,8 +4222,7 @@ describe('mutation artifacts', function () {
 			                                    "node": {
 			                                        "type": "User",
 			                                        "keyRaw": "node",
-			                                        "serverNullable": true,
-			                                        "clientNullable": true,
+			                                        "nullable": true,
 
 			                                        "selection": {
 			                                            "fields": {
@@ -4769,8 +4765,7 @@ test('operation inputs', async function () {
 		            "user": {
 		                "type": "User",
 		                "keyRaw": "user(enumArg: $enumArg, filter: $filter, filterList: $filterList, id: $id)",
-		                "serverNullable": true,
-		                "clientNullable": true,
+		                "nullable": true,
 
 		                "selection": {
 		                    "fields": {
@@ -5055,8 +5050,7 @@ test('nested recursive fragments', async function () {
 		            "node": {
 		                "type": "Node",
 		                "keyRaw": "node(id: \\"some_id\\")",
-		                "serverNullable": true,
-		                "clientNullable": true,
+		                "nullable": true,
 
 		                "selection": {
 		                    "fields": {
@@ -5176,8 +5170,7 @@ test('leave @include and @skip alone', async function () {
 		            "node": {
 		                "type": "Node",
 		                "keyRaw": "node(id: \\"some_id\\")",
-		                "serverNullable": true,
-		                "clientNullable": true,
+		                "nullable": true,
 
 		                "selection": {
 		                    "fields": {
@@ -5314,8 +5307,7 @@ test('fragment references are embedded in artifact', async function () {
 		            "node": {
 		                "type": "Node",
 		                "keyRaw": "node(id: \\"some_id\\")",
-		                "serverNullable": true,
-		                "clientNullable": true,
+		                "nullable": true,
 
 		                "selection": {
 		                    "fields": {
@@ -5428,8 +5420,7 @@ test('fragment variables are embedded in artifact', async function () {
 		            "node": {
 		                "type": "Node",
 		                "keyRaw": "node(id: \\"some_id\\")",
-		                "serverNullable": true,
-		                "clientNullable": true,
+		                "nullable": true,
 
 		                "selection": {
 		                    "fields": {
@@ -5452,8 +5443,7 @@ test('fragment variables are embedded in artifact', async function () {
 		                                "field": {
 		                                    "type": "String",
 		                                    "keyRaw": "field(filter: \\"Foo\\")",
-		                                    "serverNullable": true,
-		                                    "clientNullable": true
+		                                    "nullable": true
 		                                },
 
 		                                "id": {
@@ -5552,8 +5542,7 @@ test('fragment references in inline fragment', async function () {
 		            "node": {
 		                "type": "Node",
 		                "keyRaw": "node(id: $id)",
-		                "serverNullable": true,
-		                "clientNullable": true,
+		                "nullable": true,
 
 		                "selection": {
 		                    "abstractFields": {
@@ -5674,8 +5663,7 @@ test('masking disabled', async function () {
 		            "node": {
 		                "type": "Node",
 		                "keyRaw": "node(id: $id)",
-		                "serverNullable": true,
-		                "clientNullable": true,
+		                "nullable": true,
 
 		                "selection": {
 		                    "abstractFields": {
@@ -5896,8 +5884,7 @@ test('client nullability', async function () {
 		            "node": {
 		                "type": "Node",
 		                "keyRaw": "node(id: $id)",
-		                "serverNullable": true,
-		                "clientNullable": true,
+		                "nullable": true,
 
 		                "selection": {
 		                    "abstractFields": {
@@ -5906,8 +5893,7 @@ test('client nullability', async function () {
 		                                "name": {
 		                                    "type": "String",
 		                                    "keyRaw": "name",
-		                                    "serverNullable": true,
-		                                    "clientNullable": false,
+		                                    "nullable": false,
 		                                    "bubbleNullability": true
 		                                },
 
@@ -5933,14 +5919,13 @@ test('client nullability', async function () {
 		                                            "name": {
 		                                                "type": "String",
 		                                                "keyRaw": "name",
-		                                                "serverNullable": true,
-		                                                "clientNullable": false,
+		                                                "nullable": false,
 		                                                "bubbleNullability": true
 		                                            }
 		                                        }
 		                                    },
 
-		                                    "clientNullable": true
+		                                    "nullable": true
 		                                },
 
 		                                "name": {

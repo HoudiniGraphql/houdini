@@ -503,8 +503,7 @@ test('embeds node pagination query as a separate document', async function () {
 		            "node": {
 		                "type": "Node",
 		                "keyRaw": "node(id: $id)",
-		                "serverNullable": true,
-		                "clientNullable": true,
+		                "nullable": true,
 
 		                "selection": {
 		                    "abstractFields": {
@@ -531,8 +530,7 @@ test('embeds node pagination query as a separate document', async function () {
 		                                                        "node": {
 		                                                            "type": "User",
 		                                                            "keyRaw": "node",
-		                                                            "serverNullable": true,
-		                                                            "clientNullable": true,
+		                                                            "nullable": true,
 
 		                                                            "selection": {
 		                                                                "fields": {
@@ -807,8 +805,7 @@ test('embeds custom pagination query as a separate document', async function () 
 		                                                "node": {
 		                                                    "type": "Ghost",
 		                                                    "keyRaw": "node",
-		                                                    "serverNullable": true,
-		                                                    "clientNullable": true,
+		                                                    "nullable": true,
 
 		                                                    "selection": {
 		                                                        "fields": {
@@ -1595,8 +1592,7 @@ test('generated query has same refetch spec', async function () {
 		                                    "node": {
 		                                        "type": "User",
 		                                        "keyRaw": "node",
-		                                        "serverNullable": true,
-		                                        "clientNullable": true,
+		                                        "nullable": true,
 
 		                                        "selection": {
 		                                            "fields": {
@@ -1895,8 +1891,7 @@ test('default defaultPaginateMode to SinglePage', async function () {
 		                                    "node": {
 		                                        "type": "User",
 		                                        "keyRaw": "node",
-		                                        "serverNullable": true,
-		                                        "clientNullable": true,
+		                                        "nullable": true,
 
 		                                        "selection": {
 		                                            "fields": {

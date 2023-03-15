@@ -170,8 +170,7 @@ export type SubscriptionSelection = {
 	fields?: {
 		[fieldName: string]: {
 			type: string
-			serverNullable?: boolean
-			clientNullable?: boolean
+			nullable?: boolean
 			bubbleNullability?: boolean
 			keyRaw: string
 			operations?: MutationOperation[]

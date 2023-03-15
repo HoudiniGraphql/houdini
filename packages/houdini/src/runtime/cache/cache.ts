@@ -303,7 +303,6 @@ class CacheInternal {
 				operations,
 				abstract: isAbstract,
 				updates,
-				serverNullable,
 			} = targetSelection[field]
 			const key = evaluateKey(keyRaw, variables)
 
@@ -822,7 +821,7 @@ class CacheInternal {
 		// look at every field in the parentFields
 		for (const [
 			attributeName,
-			{ type, keyRaw, selection: fieldSelection, clientNullable, list, visible, directives },
+			{ type, keyRaw, selection: fieldSelection, nullable, list, visible, directives },
 		] of Object.entries(targetSelection)) {
 			// skip masked fields when reading values
 			if (!visible && !ignoreMasking && !fullCheck) {
@@ -983,7 +982,7 @@ class CacheInternal {
 
 			// regardless of how the field was processed, if we got a null value assigned
 			// and the field is not nullable, we need to cascade up
-			if (fieldTarget[attributeName] === null && !clientNullable && !embeddedCursor) {
+			if (fieldTarget[attributeName] === null && !nullable && !embeddedCursor) {
 				cascadeNull = true
 			}
 		}

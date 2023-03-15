@@ -13,7 +13,7 @@ test('client-side nullability', function () {
 		fields: {
 			viewer: {
 				type: 'User',
-				clientNullable: true,
+				nullable: true,
 				visible: true,
 				keyRaw: 'viewer',
 				selection: {

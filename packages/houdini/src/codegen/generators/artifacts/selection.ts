@@ -208,15 +208,14 @@ function prepareSelection({
 			}
 
 			if (nullable) {
-				fieldObj.serverNullable = true
-				fieldObj.clientNullable = true
+				fieldObj.nullable = true
 			}
 
 			const requiredDirective = field.directives?.find(
 				(directive) => directive.name.value == config.requiredDirective
 			)
 			if (requiredDirective) {
-				fieldObj.clientNullable = false
+				fieldObj.nullable = false
 				fieldObj.bubbleNullability = true
 			}
 
@@ -308,7 +307,7 @@ function prepareSelection({
 						(field) => field.bubbleNullability
 					)
 				) {
-					fieldObj.clientNullable = true
+					fieldObj.nullable = true
 				}
 			}
 
