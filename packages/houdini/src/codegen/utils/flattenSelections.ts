@@ -97,9 +97,10 @@ class FieldCollection {
 
 			// the application of the fragment has been validated already so track it
 			// so we can recreate
-			this.fields[key].selection.fragmentSpreads = this.collectFragmentSpreads(
-				selection.selectionSet?.selections ?? []
-			)
+			this.fields[key].selection.fragmentSpreads = {
+				...this.collectFragmentSpreads(selection.selectionSet?.selections ?? []),
+				...this.fields[key].selection.fragmentSpreads,
+			}
 
 			// we're done
 			return
@@ -252,14 +253,29 @@ class FieldCollection {
 			})
 			.concat(
 				Object.values(this.fields).map((field) => {
-					if (field.astNode.selectionSet) {
-						field.astNode.selectionSet.selections = field.selection.toSelectionSet()
+					return {
+						...field.astNode,
+						selectionSet: field.astNode.selectionSet
+							? {
+									kind: 'SelectionSet',
+									selections: field.selection.toSelectionSet(),
+							  }
+							: undefined,
 					}
-
-					return field.astNode
 				})
 			)
-			.concat(Object.values(this.fragmentSpreads))
+			.concat(
+				Object.values(this.fragmentSpreads).map<graphql.FragmentSpreadNode>((spread) => {
+					return {
+						kind: 'FragmentSpread',
+						name: {
+							kind: 'Name',
+							value: spread.name.value,
+						},
+						directives: spread.directives,
+					}
+				})
+			)
 	}
 
 	walkInlineFragment(selection: graphql.InlineFragmentNode) {
