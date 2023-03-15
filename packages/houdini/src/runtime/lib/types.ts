@@ -171,7 +171,8 @@ export type SubscriptionSelection = {
 		[fieldName: string]: {
 			type: string
 			nullable?: boolean
-			bubbleNullability?: boolean
+			// @required directive (bubbles nullability up)
+			required?: boolean
 			keyRaw: string
 			operations?: MutationOperation[]
 			list?: {

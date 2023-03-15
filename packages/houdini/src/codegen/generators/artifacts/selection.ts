@@ -216,7 +216,7 @@ function prepareSelection({
 			)
 			if (requiredDirective) {
 				fieldObj.nullable = false
-				fieldObj.bubbleNullability = true
+				fieldObj.required = true
 			}
 
 			// is there an operation for this field
@@ -303,9 +303,7 @@ function prepareSelection({
 
 				// bubble nullability up
 				if (
-					Object.values(fieldObj.selection?.fields ?? {}).some(
-						(field) => field.bubbleNullability
-					)
+					Object.values(fieldObj.selection?.fields ?? {}).some((field) => field.required)
 				) {
 					fieldObj.nullable = true
 				}
