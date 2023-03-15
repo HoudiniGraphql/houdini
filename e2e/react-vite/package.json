@@ -4,6 +4,10 @@
 	"version": "0.0.0",
 	"type": "module",
 	"scripts": {
+		"build:": "cd ../../ && ((run build && cd -) || (cd - && exit 1))",
+		"build:dev": "pnpm build: && pnpm dev",
+		"build:test": "pnpm build: && pnpm test",
+		"build:build": "pnpm build: && pnpm build",
 		"dev": "vite",
 		"build": "tsc && vite build",
 		"preview": "vite preview"

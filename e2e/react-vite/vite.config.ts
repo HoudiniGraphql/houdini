@@ -9,6 +9,7 @@ export default defineConfig({
 	resolve: {
 		alias: {
 			$houdini: path.resolve('.', '/$houdini'),
+			'$houdini/*': path.resolve('.', '/$houdini', '*'),
 		},
 	},
 })

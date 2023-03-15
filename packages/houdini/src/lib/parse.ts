@@ -1,17 +1,22 @@
-import { parse as parseJavascript } from '@babel/parser'
+import { parse as parseJavascript, type ParserOptions } from '@babel/parser'
 
+import { deepMerge } from './deepMerge'
 import type { Maybe, Script } from './types'
 
 export type ParsedFile = Maybe<{ script: Script; start: number; end: number }>
 
-export async function parseJS(str: string): Promise<ParsedFile> {
+export async function parseJS(str: string, config?: Partial<ParserOptions>): Promise<ParsedFile> {
+	const defaultConfig: ParserOptions = {
+		plugins: ['typescript'],
+		sourceType: 'module',
+	}
 	return {
 		start: 0,
 		// @ts-ignore
-		script: parseJavascript(str || '', {
-			plugins: ['typescript'],
-			sourceType: 'module',
-		}).program,
+		script: parseJavascript(
+			str || '',
+			config ? deepMerge('', defaultConfig, config) : defaultConfig
+		).program,
 		end: str.length,
 	}
 }

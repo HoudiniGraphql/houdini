@@ -261,7 +261,10 @@ async function collectDocuments(config: Config): Promise<Document[]> {
 					}
 				}
 			} catch (err) {
-				throw new HoudiniError({ ...(err as HoudiniError), filepath })
+				throw {
+					message: (err as Error).message,
+					filepath,
+				}
 			}
 		})
 	)

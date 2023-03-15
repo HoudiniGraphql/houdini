@@ -16,7 +16,8 @@
 		"noEmit": true,
 		"jsx": "react-jsx",
 		"paths": {
-			"$houdini": ["./$houdini"]
+			"$houdini": ["./$houdini"],
+			"$houdini/*": ["./$houdini/*"]
 		}
 	},
 	"include": ["src"],

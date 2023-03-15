@@ -16,7 +16,7 @@ export function deepMerge<T>(filepath: string, ...targets: T[]): T {
 	} catch (e) {
 		throw new HoudiniError({
 			filepath,
-			message: 'could not merge: ' + targets,
+			message: 'could not merge: ' + JSON.stringify(targets, null, 4),
 			description: (e as Error).message,
 		})
 	}
