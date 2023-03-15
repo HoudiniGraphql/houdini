@@ -1,17 +1,19 @@
 {
-	"mode": "pre",
-	"tag": "next",
-	"initialVersions": {
-		"e2e-api": "0.0.1",
-		"e2e-kit": "0.0.1",
-		"e2e-next": "0.0.1",
-		"e2e-svelte": "0.0.1",
-		"scripts": "1.0.0",
-		"houdini": "1.1.0",
-		"houdini-plugin-svelte-global-stores": "1.1.0",
-		"houdini-react": "1.1.0",
-		"houdini-svelte": "1.1.0",
-		"site": "0.0.1"
-	},
-	"changesets": []
+  "mode": "pre",
+  "tag": "next",
+  "initialVersions": {
+    "e2e-api": "0.0.1",
+    "e2e-kit": "0.0.1",
+    "e2e-next": "0.0.1",
+    "e2e-svelte": "0.0.1",
+    "scripts": "1.0.0",
+    "houdini": "1.1.0",
+    "houdini-plugin-svelte-global-stores": "1.1.0",
+    "houdini-react": "1.1.0",
+    "houdini-svelte": "1.1.0",
+    "site": "0.0.1"
+  },
+  "changesets": [
+    "fast-spoons-join"
+  ]
 }
