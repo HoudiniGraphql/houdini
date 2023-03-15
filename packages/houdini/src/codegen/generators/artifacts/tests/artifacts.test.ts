@@ -1721,7 +1721,6 @@ test('selections with concrete types matching multiple abstract types', async fu
 describe('mutation artifacts', function () {
 	test('empty operation list', async function () {
 		// the config to use in tests
-		const config = testConfig()
 		const cfg = testConfig({ module: 'esm' })
 
 		const docs = [
@@ -4897,6 +4896,20 @@ test('nested recursive fragments', async function () {
 		                "nullable": true,
 
 		                "selection": {
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id",
+		                            "visible": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename",
+		                            "visible": true
+		                        }
+		                    },
+
 		                    "abstractFields": {
 		                        "fields": {
 		                            "User": {
@@ -4920,20 +4933,6 @@ test('nested recursive fragments', async function () {
 		                        },
 
 		                        "typeMap": {}
-		                    },
-
-		                    "fields": {
-		                        "id": {
-		                            "type": "ID",
-		                            "keyRaw": "id",
-		                            "visible": true
-		                        },
-
-		                        "__typename": {
-		                            "type": "String",
-		                            "keyRaw": "__typename",
-		                            "visible": true
-		                        }
 		                    },
 
 		                    "fragments": {
@@ -5363,15 +5362,15 @@ test('fragment references in inline fragment', async function () {
 		                    "abstractFields": {
 		                        "fields": {
 		                            "User": {
+		                                "name": {
+		                                    "type": "String",
+		                                    "keyRaw": "name"
+		                                },
+
 		                                "id": {
 		                                    "type": "ID",
 		                                    "keyRaw": "id",
 		                                    "visible": true
-		                                },
-
-		                                "name": {
-		                                    "type": "String",
-		                                    "keyRaw": "name"
 		                                },
 
 		                                "__typename": {
