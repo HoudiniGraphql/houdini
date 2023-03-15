@@ -272,6 +272,7 @@ class FieldCollection {
 							kind: 'Name',
 							value: spread.name.value,
 						},
+						directives: spread.directives,
 					}
 				})
 			)
