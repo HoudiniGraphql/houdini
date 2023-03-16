@@ -31,9 +31,13 @@ test('adds pagination info to full', async function () {
 		    edges {
 		      node {
 		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
 		        __typename
 		      }
-		      cursor
 		    }
 		    pageInfo {
 		      hasPreviousPage
@@ -154,9 +158,13 @@ test('paginate adds forwards cursor args to the full cursor fragment', async fun
 		    edges {
 		      node {
 		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
 		        __typename
 		      }
-		      cursor
 		    }
 		    pageInfo {
 		      hasPreviousPage
@@ -197,9 +205,13 @@ test('paginate adds backwards cursor args to the full cursor fragment', async fu
 		    edges {
 		      node {
 		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
 		        __typename
 		      }
-		      cursor
 		    }
 		    pageInfo {
 		      hasPreviousPage
@@ -240,9 +252,13 @@ test('paginate adds forwards cursor args to the fragment', async function () {
 		    edges {
 		      node {
 		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
 		        __typename
 		      }
-		      cursor
 		    }
 		    pageInfo {
 		      hasPreviousPage
@@ -283,9 +299,13 @@ test('paginate adds backwards cursor args to the fragment', async function () {
 		    edges {
 		      node {
 		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
 		        __typename
 		      }
-		      cursor
 		    }
 		    pageInfo {
 		      hasPreviousPage
@@ -327,9 +347,13 @@ test('sets before with default value', async function () {
 		    edges {
 		      node {
 		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
 		        __typename
 		      }
-		      cursor
 		    }
 		    pageInfo {
 		      hasPreviousPage
@@ -374,9 +398,13 @@ test('embeds pagination query as a separate document', async function () {
 		    edges {
 		      node {
 		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
 		        __typename
 		      }
-		      cursor
 		    }
 		    pageInfo {
 		      hasPreviousPage
@@ -441,9 +469,13 @@ test('embeds node pagination query as a separate document', async function () {
 		    edges {
 		      node {
 		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
 		        __typename
 		      }
-		      cursor
 		    }
 		    pageInfo {
 		      hasPreviousPage
@@ -708,9 +740,13 @@ test('embeds custom pagination query as a separate document', async function () 
 		      node {
 		        name
 		        aka
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
 		        __typename
 		      }
-		      cursor
 		    }
 		    pageInfo {
 		      hasPreviousPage
@@ -928,9 +964,13 @@ test('query with forwards cursor paginate', async function () {
 		    edges {
 		      node {
 		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
 		        __typename
 		      }
-		      cursor
 		    }
 		    pageInfo {
 		      hasPreviousPage
@@ -971,9 +1011,13 @@ test('query with custom first args', async function () {
 		    edges {
 		      node {
 		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
 		        __typename
 		      }
-		      cursor
 		    }
 		    pageInfo {
 		      hasPreviousPage
@@ -1014,9 +1058,13 @@ test('query with backwards cursor paginate', async function () {
 		    edges {
 		      node {
 		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
 		        __typename
 		      }
-		      cursor
 		    }
 		    pageInfo {
 		      hasPreviousPage
@@ -1085,9 +1133,13 @@ test('query with backwards cursor on full paginate', async function () {
 		    edges {
 		      node {
 		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
 		        __typename
 		      }
-		      cursor
 		    }
 		    pageInfo {
 		      hasPreviousPage
@@ -1128,9 +1180,13 @@ test('query with forwards cursor on full paginate', async function () {
 		    edges {
 		      node {
 		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
 		        __typename
 		      }
-		      cursor
 		    }
 		    pageInfo {
 		      hasPreviousPage
@@ -1171,9 +1227,13 @@ test("don't generate unsupported directions", async function () {
 		    edges {
 		      node {
 		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
 		        __typename
 		      }
-		      cursor
 		    }
 		    pageInfo {
 		      hasPreviousPage
@@ -1214,9 +1274,13 @@ test("forwards cursor paginated query doesn't overlap variables", async function
 		    edges {
 		      node {
 		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
 		        __typename
 		      }
-		      cursor
 		    }
 		    pageInfo {
 		      hasPreviousPage
@@ -1257,9 +1321,13 @@ test("backwards cursor paginated query doesn't overlap variables", async functio
 		    edges {
 		      node {
 		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
 		        __typename
 		      }
-		      cursor
 		    }
 		    pageInfo {
 		      hasPreviousPage
@@ -1461,9 +1529,13 @@ test('generated query has same refetch spec', async function () {
 		    edges {
 		      node {
 		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
 		        __typename
 		      }
-		      cursor
 		    }
 		    pageInfo {
 		      hasPreviousPage

@@ -1,10 +1,10 @@
 import { test } from '@playwright/test';
-import { routes } from '../../lib/utils/routes.js';
-import { expect_to_be, expect_n_gql, goto } from '../../lib/utils/testsHelper.js';
+import { routes } from '../../../lib/utils/routes.js';
+import { expect_to_be, expect_n_gql, goto } from '../../../lib/utils/testsHelper.js';
 
 test.describe('lists-all', () => {
   test('With 3 lists to append', async ({ page }) => {
-    await goto(page, routes.lists_all);
+    await goto(page, routes.Lists_all);
 
     // select the input
     await page.locator('input[type="number"]').click();
