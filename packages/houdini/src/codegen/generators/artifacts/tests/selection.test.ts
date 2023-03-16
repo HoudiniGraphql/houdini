@@ -424,10 +424,10 @@ test('concrete selection applies mask over abstract selection', async function (
 		                                                "visible": true
 		                                            }
 		                                        }
-		                                    }
-		                                },
-										
-		                                "visible": true
+		                                    },
+
+		                                    "visible": true
+		                                }
 		                            }
 		                        },
 

@@ -433,10 +433,10 @@ function applyMask(config: Config, target: SubscriptionSelection, mask: Subscrip
 	// the concrete selection of the mask acts as a mask for all of the abstract selections
 	// so we want to build up a list of all of the fields at this level and apply the mask
 	const targetFields = Object.entries(target.fields ?? {}).concat(
-		// @ts-ignore
-		Object.values(target.abstractFields?.fields ?? {}).map((typeMap) => Object.entries(typeMap))
+		Object.values(target.abstractFields?.fields ?? {})
+			// @ts-ignore
+			.flatMap((typeMap) => Object.entries(typeMap))
 	)
-
 	for (const [fieldName, value] of Object.entries(mask.fields ?? {})) {
 		for (const [potentialFieldName, targetSelection] of targetFields) {
 			if (fieldName !== potentialFieldName) {
@@ -444,7 +444,7 @@ function applyMask(config: Config, target: SubscriptionSelection, mask: Subscrip
 			}
 
 			// if the field is not recognized in the target, ignore it
-			if (!targetSelection || !mask.fields) {
+			if (!targetSelection) {
 				continue
 			}
 

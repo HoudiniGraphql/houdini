@@ -822,7 +822,6 @@ class CacheInternal {
 		const typename = this.storage.get(parent, '__typename').value as string
 		// collect all of the fields that we need to write
 		let targetSelection = getFieldsForType(selection, typename)
-		console.log(typename, targetSelection)
 
 		// look at every field in the parentFields
 		for (const [
@@ -838,8 +837,6 @@ class CacheInternal {
 
 			// look up the value in our store
 			const { value } = this.storage.get(parent, key)
-
-			console.log({ parent, key, value })
 
 			// If we have an explicite null, that mean that it's stale and the we should do a network call
 			const dt_field = this.staleManager.getFieldTime(parent, key)
@@ -967,8 +964,6 @@ class CacheInternal {
 				cascadeNull = true
 			}
 		}
-
-		console.log({ target, cascadeNull, hasData })
 
 		return {
 			data: cascadeNull ? null : target,

@@ -5082,7 +5082,8 @@ test('leave @include and @skip alone', async function () {
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            }
 		                        },
@@ -5196,7 +5197,8 @@ test('fragment references are embedded in artifact', async function () {
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            }
 		                        },
@@ -5314,7 +5316,8 @@ test('fragment variables are embedded in artifact', async function () {
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            }
 		                        },
