@@ -19,6 +19,7 @@ export const routes = {
   Stores_SSR_UserId_2: '/stores/ssr-2',
   Stores_Prefetch_UserId_2: '/stores/prefetch-2',
   Stores_Mutation: '/stores/mutation',
+  Stores_Mutation_Opti_List: '/stores/mutation-opti-list',
   Stores_Mutation_Update: '/stores/mutation-update',
   Stores_Mutation_Scalars: '/stores/mutation-scalars',
   Stores_Mutation_Scalar_Single_Upload: '/stores/mutation-scalar-single-upload',
