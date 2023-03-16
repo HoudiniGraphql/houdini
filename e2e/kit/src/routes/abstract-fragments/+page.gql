@@ -1,0 +1,11 @@
+query TestQuery {
+  monkeys {
+    pageInfo {
+      hasPreviousPage
+      hasNextPage
+      startCursor
+      endCursor
+    }
+    ...AnimalsList
+  }
+}

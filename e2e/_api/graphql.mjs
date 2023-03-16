@@ -200,6 +200,15 @@ export const resolvers = {
 		rentedBooks: async (_, args) => {
 			return dataRentedBooks
 		},
+		monkeys(_, args) {
+			return connectionFromArray(
+				[
+					{ id: '1', name: 'Terk', hasBanana: true, __typename: 'Monkey' },
+					{ id: '2', name: 'King Louie', hasBanana: false, __typename: 'Monkey' },
+				],
+				args
+			)
+		},
 	},
 	Subscription: {
 		userUpdate: {
