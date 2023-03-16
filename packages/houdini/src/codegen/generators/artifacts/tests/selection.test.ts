@@ -148,6 +148,7 @@ test('fragments in lists', async function () {
 		fragment UserTest on User {
 		  firstName
 		  id
+		  __typename
 		}
 		\`,
 

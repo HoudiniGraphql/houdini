@@ -128,6 +128,19 @@ export const cachePolicy =
 						data: value.data,
 						variables: marshalVariables(ctx),
 					})
+					console.log('writing value', {
+						data: value.data,
+						selection: ctx.artifact.selection,
+					})
+
+					console.log(
+						'read value',
+						targetCache.read({
+							selection: ctx.artifact.selection,
+							variables: marshalVariables(ctx),
+							ignoreMasking: serverSide,
+						}).data
+					)
 
 					// we need to embed the fragment context values in our response
 					// and apply masking other value transforms. In order to do that,

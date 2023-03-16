@@ -260,20 +260,6 @@ export default function artifactGenerator(stats: {
 						inputs = fragmentArgumentsDefinitions(config, doc.filename, fragments[0])
 					}
 
-					const mask = selection({
-						config,
-						filepath: doc.filename,
-						rootType,
-						operations: {},
-						document: doc,
-						selections: flattenSelections({
-							config,
-							filepath: doc.filename,
-							selections: selectionSet.selections,
-							fragmentDefinitions,
-						}),
-					})
-
 					// generate a hash of the document that we can use to detect changes
 					// start building up the artifact
 					let artifact: DocumentArtifact = {
@@ -311,7 +297,23 @@ export default function artifactGenerator(stats: {
 
 					// apply the visibility mask to the artifact so that only
 					// fields in the direct selection are visible
-					applyMask(config, artifact.selection, mask)
+					applyMask(
+						config,
+						artifact.selection,
+						selection({
+							config,
+							filepath: doc.filename,
+							rootType,
+							operations: {},
+							document: doc,
+							selections: flattenSelections({
+								config,
+								filepath: doc.filename,
+								selections: selectionSet.selections,
+								fragmentDefinitions,
+							}),
+						})
+					)
 
 					// adding artifactData of plugins (only if any information is present)
 					artifact.pluginData = {}
