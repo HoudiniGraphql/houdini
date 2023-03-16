@@ -1,5 +1,5 @@
 query AbstractQueryTest {
-  node(id: "User:1") {
+  user(id: "1", snapshot: "test-fragment") {
     ...AbstractFragmentTestChild
   }
 }

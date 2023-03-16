@@ -8,5 +8,5 @@
 </script>
 
 <div id="result">
-  <AbstractFragmentTestChild user={$AbstractQueryTest.data?.node} />
+  <AbstractFragmentTestChild user={$AbstractQueryTest.data?.user} />
 </div>
