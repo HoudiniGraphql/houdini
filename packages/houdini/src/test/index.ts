@@ -72,6 +72,7 @@ export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {})
 				node(id: ID!): Node
 				customIdList: [CustomIdType]!
 				nodes(ids: [ID!]!): [Node!]!
+    			monkeys: MonkeyConnection!
 			}
 
 			type PageInfo {
@@ -151,6 +152,37 @@ export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {})
 
 			interface IsGhost {
 				aka: String!
+			}
+			
+			interface Animal implements Node {
+				id: ID!
+				name: String!
+			}
+
+			type Monkey implements Node & Animal {
+				id: ID!
+				name: String!
+				hasBanana: Boolean!
+			}
+
+			interface AnimalConnection {
+				edges: [AnimalEdge!]!
+				pageInfo: PageInfo!
+			}
+
+			interface AnimalEdge {
+				cursor: String
+				node: Animal
+			}
+
+			type MonkeyConnection implements AnimalConnection {
+				edges: [MonkeyEdge!]!
+				pageInfo: PageInfo!
+			}
+
+			type MonkeyEdge implements AnimalEdge {
+				cursor: String
+				node: Monkey
 			}
 
 			union Entity = User | Cat | Ghost

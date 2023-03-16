@@ -429,19 +429,31 @@ export default function artifactGenerator(stats: {
 function applyMask(config: Config, target: SubscriptionSelection, mask: SubscriptionSelection) {
 	// we might need to map types from this fragment onto the possible types of the parent query
 	// we need to look at every field in the mask and mark it as visible in the target
+
+	// the concrete selection of the mask acts as a mask for all of the abstract selections
+	// so we want to build up a list of all of the fields at this level and apply the mask
+	const targetFields = Object.entries(target.fields ?? {}).concat(
+		// @ts-ignore
+		Object.values(target.abstractFields?.fields ?? {}).map((typeMap) => Object.entries(typeMap))
+	)
+
 	for (const [fieldName, value] of Object.entries(mask.fields ?? {})) {
-		const targetSelection = target.fields?.[fieldName]
+		for (const [potentialFieldName, targetSelection] of targetFields) {
+			if (fieldName !== potentialFieldName) {
+				continue
+			}
 
-		// if the field is not recognized in the target, ignore it
-		if (!targetSelection || !mask.fields) {
-			continue
-		}
+			// if the field is not recognized in the target, ignore it
+			if (!targetSelection || !mask.fields) {
+				continue
+			}
 
-		// the field is present in the mask so mark it visible
-		targetSelection.visible = true
+			// the field is present in the mask so mark it visible
+			targetSelection.visible = true
 
-		if (targetSelection.selection && value.selection) {
-			applyMask(config, targetSelection.selection, value.selection)
+			if (targetSelection.selection && value.selection) {
+				applyMask(config, targetSelection.selection, value.selection)
+			}
 		}
 	}
 

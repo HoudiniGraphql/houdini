@@ -268,3 +268,226 @@ test('fragments in lists', async function () {
 		"HoudiniHash=6409e8b842cbd3f943db27ab1d214eec514c1c9689d5e0dc32d37e2574edec81";
 	`)
 })
+
+test('concrete selection applies mask over abstract selection', async function () {
+	// the config to use in tests
+	const config = testConfig()
+	const docs = [
+		mockCollectedDoc(
+			`query MonkeyListQuery {
+				monkeys {
+					pageInfo {
+					hasPreviousPage
+					hasNextPage
+					startCursor
+					endCursor
+					}
+					...AnimalsList
+				}
+			}`
+		),
+		mockCollectedDoc(
+			`fragment AnimalsList on AnimalConnection {
+				edges {
+					node {
+						id
+						name
+					}
+				}
+			}`
+		),
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
+
+	// load the contents of the file
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "MonkeyListQuery",
+		    "kind": "HoudiniQuery",
+		    "hash": "89c94f9d620d10fccfc1015a29590d05b9fb2adee3a0b895f00c14b62d279ce9",
+
+		    "raw": \`query MonkeyListQuery {
+		  monkeys {
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		    ...AnimalsList
+		  }
+		}
+
+		fragment AnimalsList on AnimalConnection {
+		  edges {
+		    node {
+		      id
+		      name
+		      __typename
+		    }
+		    __typename
+		  }
+		  __typename
+		}
+		\`,
+
+		    "rootType": "Query",
+
+		    "selection": {
+		        "fields": {
+		            "monkeys": {
+		                "type": "MonkeyConnection",
+		                "keyRaw": "monkeys",
+
+		                "selection": {
+		                    "abstractFields": {
+		                        "fields": {
+		                            "AnimalConnection": {
+		                                "edges": {
+		                                    "type": "AnimalEdge",
+		                                    "keyRaw": "edges",
+
+		                                    "selection": {
+		                                        "fields": {
+		                                            "node": {
+		                                                "type": "Animal",
+		                                                "keyRaw": "node",
+		                                                "nullable": true,
+
+		                                                "selection": {
+		                                                    "fields": {
+		                                                        "id": {
+		                                                            "type": "ID",
+		                                                            "keyRaw": "id",
+		                                                            "visible": true
+		                                                        },
+
+		                                                        "name": {
+		                                                            "type": "String",
+		                                                            "keyRaw": "name"
+		                                                        },
+
+		                                                        "__typename": {
+		                                                            "type": "String",
+		                                                            "keyRaw": "__typename"
+		                                                        }
+		                                                    }
+		                                                },
+
+		                                                "abstract": true
+		                                            },
+
+		                                            "__typename": {
+		                                                "type": "String",
+		                                                "keyRaw": "__typename"
+		                                            }
+		                                        }
+		                                    },
+
+		                                    "abstract": true
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename"
+		                                },
+
+		                                "pageInfo": {
+		                                    "type": "PageInfo",
+		                                    "keyRaw": "pageInfo",
+
+		                                    "selection": {
+		                                        "fields": {
+		                                            "hasPreviousPage": {
+		                                                "type": "Boolean",
+		                                                "keyRaw": "hasPreviousPage",
+		                                                "visible": true
+		                                            },
+
+		                                            "hasNextPage": {
+		                                                "type": "Boolean",
+		                                                "keyRaw": "hasNextPage",
+		                                                "visible": true
+		                                            },
+
+		                                            "startCursor": {
+		                                                "type": "String",
+		                                                "keyRaw": "startCursor",
+		                                                "visible": true
+		                                            },
+
+		                                            "endCursor": {
+		                                                "type": "String",
+		                                                "keyRaw": "endCursor",
+		                                                "visible": true
+		                                            }
+		                                        }
+		                                    }
+		                                },
+										
+		                                "visible": true
+		                            }
+		                        },
+
+		                        "typeMap": {
+		                            "MonkeyConnection": "AnimalConnection"
+		                        }
+		                    },
+
+		                    "fields": {
+		                        "pageInfo": {
+		                            "type": "PageInfo",
+		                            "keyRaw": "pageInfo",
+
+		                            "selection": {
+		                                "fields": {
+		                                    "hasPreviousPage": {
+		                                        "type": "Boolean",
+		                                        "keyRaw": "hasPreviousPage",
+		                                        "visible": true
+		                                    },
+
+		                                    "hasNextPage": {
+		                                        "type": "Boolean",
+		                                        "keyRaw": "hasNextPage",
+		                                        "visible": true
+		                                    },
+
+		                                    "startCursor": {
+		                                        "type": "String",
+		                                        "keyRaw": "startCursor",
+		                                        "visible": true
+		                                    },
+
+		                                    "endCursor": {
+		                                        "type": "String",
+		                                        "keyRaw": "endCursor",
+		                                        "visible": true
+		                                    }
+		                                }
+		                            },
+
+		                            "visible": true
+		                        }
+		                    },
+
+		                    "fragments": {
+		                        "AnimalsList": {}
+		                    }
+		                },
+
+		                "visible": true
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+		    "policy": "CacheOrNetwork",
+		    "partial": false
+		};
+
+		"HoudiniHash=89c94f9d620d10fccfc1015a29590d05b9fb2adee3a0b895f00c14b62d279ce9";
+	`)
+})
