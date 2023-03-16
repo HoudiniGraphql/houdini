@@ -10,6 +10,7 @@ export const routes = {
   union_result: '/union-result',
   customIDs: '/customIDs',
   subscriptions_happyPath: '/subscriptions/happyPath',
+  abstractFragments: '/abstractFragments',
 
   Lists_all: '/lists/all?limit=15',
   Lists_fragment: '/lists/fragment',

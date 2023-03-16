@@ -1,0 +1,5 @@
+query AbstractQueryTest {
+  node(id: "User:1") {
+    ...AbstractFragmentTestChild
+  }
+}
