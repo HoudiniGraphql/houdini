@@ -2,6 +2,7 @@ import { flatten } from '../lib/flatten'
 import type { SubscriptionSelection, ListWhen, SubscriptionSpec, NestedList } from '../lib/types'
 import type { Cache } from './cache'
 import { rootID } from './cache'
+import { Layer } from './storage'
 
 export class ListManager {
 	rootID: string
@@ -192,19 +193,40 @@ export class List {
 		return this.manager.lists.get(this.name)!.get(this.recordID)!.when(when)
 	}
 
-	append(selection: SubscriptionSelection, data: {}, variables: {} = {}) {
-		return this.addToList(selection, data, variables, 'last')
+	append({
+		selection,
+		data,
+		variables = {},
+		layer,
+	}: {
+		selection: SubscriptionSelection
+		data: {}
+		variables?: {}
+		layer?: Layer
+	}) {
+		return this.addToList(selection, data, variables, 'last', layer)
 	}
 
-	prepend(selection: SubscriptionSelection, data: {}, variables: {} = {}) {
-		return this.addToList(selection, data, variables, 'first')
+	prepend({
+		selection,
+		data,
+		variables = {},
+		layer,
+	}: {
+		selection: SubscriptionSelection
+		data: {}
+		variables?: {}
+		layer?: Layer
+	}) {
+		return this.addToList(selection, data, variables, 'first', layer)
 	}
 
 	addToList(
 		selection: SubscriptionSelection,
 		data: {},
 		variables: {} = {},
-		where: 'first' | 'last'
+		where: 'first' | 'last',
+		layer?: Layer
 	) {
 		// figure out the type we're adding
 		const listType = this.listType(data)
@@ -297,6 +319,7 @@ export class List {
 			variables,
 			parent: this.recordID,
 			applyUpdates: [where === 'first' ? 'prepend' : 'append'],
+			layer: layer?.id,
 		})
 	}
 
@@ -437,15 +460,22 @@ export class List {
 		return ok
 	}
 
-	toggleElement(
-		selection: SubscriptionSelection,
-		data: {},
-		variables: {} = {},
+	toggleElement({
+		selection,
+		data,
+		variables = {},
+		layer,
+		where,
+	}: {
+		selection: SubscriptionSelection
+		data: {}
+		variables?: {}
+		layer?: Layer
 		where: 'first' | 'last'
-	) {
-		// if we dont have something to remove, then add it instead
+	}) {
+		// if we don't have something to remove, then add it instead
 		if (!this.remove(data, variables)) {
-			this.addToList(selection, data, variables, where)
+			this.addToList(selection, data, variables, where, layer)
 		}
 	}
 

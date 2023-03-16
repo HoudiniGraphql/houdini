@@ -713,7 +713,8 @@ class CacheInternal {
 								fieldSelection,
 								target,
 								variables,
-								operation.position || 'last'
+								operation.position || 'last',
+								layer
 							)
 					}
 
@@ -753,12 +754,13 @@ class CacheInternal {
 						this.cache
 							.list(operation.list, parentID, operation.target === 'all')
 							.when(operation.when)
-							.toggleElement(
-								fieldSelection,
-								target,
+							.toggleElement({
+								selection: fieldSelection,
+								data: target,
 								variables,
-								operation.position || 'last'
-							)
+								where: operation.position || 'last',
+								layer,
+							})
 					}
 				}
 			}

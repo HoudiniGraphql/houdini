@@ -149,7 +149,6 @@ test('prepend linked lists update', function () {
 						type: 'User',
 						visible: true,
 						keyRaw: 'friends',
-						updates: [RefetchUpdateMode.prepend],
 						selection: {
 							fields: {
 								id: {
@@ -265,18 +264,18 @@ test('append in list', function () {
 	})
 
 	// insert an element into the list (no parent ID)
-	cache.list('All_Users').append(
-		{
+	cache.list('All_Users').append({
+		selection: {
 			fields: {
 				id: { visible: true, type: 'ID', keyRaw: 'id' },
 				firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
 			},
 		},
-		{
+		data: {
 			id: '3',
 			firstName: 'mary',
-		}
-	)
+		},
+	})
 
 	// make sure we got the new value
 	expect(set).toHaveBeenCalledWith({
@@ -370,18 +369,18 @@ test('prepend in list', function () {
 	})
 
 	// insert an element into the list (no parent ID)
-	cache.list('All_Users').prepend(
-		{
+	cache.list('All_Users').prepend({
+		selection: {
 			fields: {
 				id: { visible: true, type: 'ID', keyRaw: 'id' },
 				firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
 			},
 		},
-		{
+		data: {
 			id: '3',
 			firstName: 'mary',
-		}
-	)
+		},
+	})
 
 	// make sure we got the new value
 	expect(set).toHaveBeenCalledWith({
@@ -654,8 +653,8 @@ test('element removed from list can be added back', function () {
 		id: '2',
 	})
 
-	cache.list('All_Users').append(
-		{
+	cache.list('All_Users').append({
+		selection: {
 			fields: {
 				id: {
 					keyRaw: 'id',
@@ -669,13 +668,12 @@ test('element removed from list can be added back', function () {
 				},
 			},
 		},
-		{
+		data: {
 			__typename: 'User',
 			id: '2',
 			firstName: 'jane2',
 		},
-		{}
-	)
+	})
 
 	expect(set).toHaveBeenNthCalledWith(2, {
 		viewer: {
@@ -805,18 +803,18 @@ test('append in connection', function () {
 	})
 
 	// insert an element into the list (no parent ID)
-	cache.list('All_Users').append(
-		{
+	cache.list('All_Users').append({
+		selection: {
 			fields: {
 				id: { visible: true, type: 'ID', keyRaw: 'id' },
 				firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
 			},
 		},
-		{
+		data: {
 			id: '3',
 			firstName: 'mary',
-		}
-	)
+		},
+	})
 
 	// make sure we got the new value
 	expect(set).toHaveBeenCalledWith({
@@ -1371,18 +1369,18 @@ test('append in connection', function () {
 	})
 
 	// insert an element into the list (no parent ID)
-	cache.list('All_Users').append(
-		{
+	cache.list('All_Users').append({
+		selection: {
 			fields: {
 				id: { visible: true, type: 'ID', keyRaw: 'id' },
 				firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
 			},
 		},
-		{
+		data: {
 			id: '3',
 			firstName: 'mary',
-		}
-	)
+		},
+	})
 
 	// make sure we got the new value
 	expect(set).toHaveBeenCalledWith({
@@ -1513,18 +1511,18 @@ test('inserting data with an update overwrites a record inserted with list.appen
 	})
 
 	// insert an element into the list (no parent ID)
-	cache.list('All_Users').append(
-		{
+	cache.list('All_Users').append({
+		selection: {
 			fields: {
 				id: { visible: true, type: 'ID', keyRaw: 'id' },
 				firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
 			},
 		},
-		{
+		data: {
 			id: '3',
 			firstName: 'mary',
-		}
-	)
+		},
+	})
 
 	// insert a record with a query update
 	cache.write({
@@ -1729,18 +1727,18 @@ test('list filter - must_not positive', function () {
 	cache
 		.list('All_Users')
 		.when({ must_not: { foo: 'not-bar' } })
-		.prepend(
-			{
+		.prepend({
+			selection: {
 				fields: {
 					id: { visible: true, type: 'ID', keyRaw: 'id' },
 					firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
 				},
 			},
-			{
+			data: {
 				id: '3',
 				firstName: 'mary',
-			}
-		)
+			},
+		})
 
 	// make sure we got the new value
 	expect(set).toHaveBeenCalledWith({
@@ -1843,18 +1841,18 @@ test('list filter - must_not negative', function () {
 	cache
 		.list('All_Users')
 		.when({ must_not: { foo: 'bar' } })
-		.prepend(
-			{
+		.prepend({
+			selection: {
 				fields: {
 					id: { visible: true, type: 'ID', keyRaw: 'id' },
 					firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
 				},
 			},
-			{
+			data: {
 				id: '3',
 				firstName: 'mary',
-			}
-		)
+			},
+		})
 
 	// make sure we got the new value
 	expect(set).not.toHaveBeenCalled()
@@ -1943,18 +1941,18 @@ test('list filter - must positive', function () {
 	cache
 		.list('All_Users')
 		.when({ must: { foo: 'bar' } })
-		.prepend(
-			{
+		.prepend({
+			selection: {
 				fields: {
 					id: { visible: true, type: 'ID', keyRaw: 'id' },
 					firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
 				},
 			},
-			{
+			data: {
 				id: '3',
 				firstName: 'mary',
-			}
-		)
+			},
+		})
 
 	// make sure we got the new value
 	expect(set).toHaveBeenCalledWith({
@@ -2057,18 +2055,18 @@ test('list filter - must negative', function () {
 	cache
 		.list('All_Users')
 		.when({ must: { foo: 'not-bar' } })
-		.prepend(
-			{
+		.prepend({
+			selection: {
 				fields: {
 					id: { visible: true, type: 'ID', keyRaw: 'id' },
 					firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
 				},
 			},
-			{
+			data: {
 				id: '3',
 				firstName: 'mary',
-			}
-		)
+			},
+		})
 
 	// make sure we got the new value
 	expect(set).not.toHaveBeenCalled()
@@ -4463,21 +4461,21 @@ test('when conditions look for all matching lists', function () {
 	cache
 		.list('All_Users')
 		.when({ must: { filter: true } })
-		.append(
-			{
+		.append({
+			selection: {
 				fields: {
 					id: { visible: true, type: 'ID', keyRaw: 'id' },
 					firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
 				},
 			},
-			{
+			data: {
 				id: '3',
 				firstName: 'mathew',
 			},
-			{
+			variables: {
 				var: 'hello',
-			}
-		)
+			},
+		})
 
 	expect(cache.read({ selection, variables: { var: 'world' } }).data).toEqual({
 		viewer: {
@@ -4754,19 +4752,19 @@ test('append in abstract list', function () {
 	})
 
 	// insert an element into the list (no parent ID)
-	cache.list('All_Nodes').append(
-		{
+	cache.list('All_Nodes').append({
+		selection: {
 			fields: {
 				id: { visible: true, type: 'ID', keyRaw: 'id' },
 				firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
 			},
 		},
-		{
+		data: {
 			id: '3',
 			firstName: 'mary',
 			__typename: 'User',
-		}
-	)
+		},
+	})
 
 	// make sure we got the new value
 	expect(set).toHaveBeenCalledWith({
@@ -4913,8 +4911,8 @@ test('list operations on interface fields without a well defined parent update t
 	})
 
 	// insert into the not friends list for user 3
-	cache.list('Not_Friends', '3').append(
-		{
+	cache.list('Not_Friends', '3').append({
+		selection: {
 			fields: {
 				id: {
 					type: 'ID',
@@ -4933,12 +4931,12 @@ test('list operations on interface fields without a well defined parent update t
 				},
 			},
 		},
-		{
+		data: {
 			id: '5',
 			firstName: 'Billy',
 			__typename: 'User',
-		}
-	)
+		},
+	})
 
 	expect(set).toHaveBeenCalledWith({
 		viewer: {
@@ -5086,4 +5084,113 @@ test("parentID ignores single lists that don't match", function () {
 
 	// make sure we just added to the list
 	expect([...cache.list('All_Users', '1')]).toHaveLength(0)
+})
+
+test('inserting in list at a specific layer affects just that layer', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	// create a list we will add to
+	cache.write({
+		selection: {
+			fields: {
+				viewer: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								visible: true,
+								keyRaw: 'id',
+							},
+						},
+					},
+				},
+			},
+		},
+		data: {
+			viewer: {
+				id: '1',
+			},
+		},
+	})
+
+	// subscribe to the data to register the list
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: {
+				fields: {
+					friends: {
+						type: 'User',
+						visible: true,
+						keyRaw: 'friends',
+						list: {
+							name: 'All_Users',
+							connection: false,
+							type: 'User',
+						},
+						selection: {
+							fields: {
+								id: {
+									type: 'ID',
+									visible: true,
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									visible: true,
+									keyRaw: 'firstName',
+								},
+							},
+						},
+					},
+				},
+			},
+			parentID: cache._internal_unstable.id('User', '1')!,
+			set: vi.fn(),
+		},
+		{}
+	)
+
+	// create a layer that we will write against
+	const layer = cache._internal_unstable.storage.createLayer(true)
+	// write some data to the specific layer
+	cache.write({
+		selection: {
+			fields: {
+				newUser: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'newUser',
+					operations: [
+						{
+							action: 'insert',
+							list: 'All_Users',
+						},
+					],
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								visible: true,
+								keyRaw: 'id',
+							},
+						},
+					},
+				},
+			},
+		},
+		layer: layer.id,
+		data: {
+			newUser: {
+				id: '3',
+			},
+		},
+	})
+
+	// make sure the layer has what we expect
+	expect(layer.links['User:1'].friends).toEqual(['User:3'])
 })
