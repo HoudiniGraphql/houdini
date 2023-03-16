@@ -47,6 +47,24 @@ export default async function addTypename(config: Config, documents: Document[])
 					}
 				}
 			},
+			FragmentDefinition(node) {
+				return {
+					...node,
+					selectionSet: {
+						...node.selectionSet,
+						selections: [
+							...node.selectionSet.selections,
+							{
+								kind: graphql.Kind.FIELD,
+								name: {
+									kind: graphql.Kind.NAME,
+									value: '__typename',
+								},
+							},
+						],
+					},
+				}
+			},
 		})
 	}
 }

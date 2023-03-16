@@ -1,5 +1,0 @@
-query AbstractQueryTest {
-  user(id: "1", snapshot: "test-fragment") {
-    ...AbstractFragmentTestChild
-  }
-}

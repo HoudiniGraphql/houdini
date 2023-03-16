@@ -1,4 +1,4 @@
-query TestQuery {
+query MonkeyListQuery {
   monkeys {
     pageInfo {
       hasPreviousPage

@@ -3,13 +3,13 @@
   import TestAnimal from './AnimalsList.svelte';
 
   export let data: PageData;
-  $: ({ TestQuery } = data);
+  $: ({ MonkeyListQuery } = data);
 </script>
 
 data:
-<pre>{JSON.stringify($TestQuery.data, undefined, 2)}</pre>
+<pre>{JSON.stringify($MonkeyListQuery, undefined, 2)}</pre>
 
-{#if $TestQuery.data?.monkeys}
+{#if $MonkeyListQuery.data?.monkeys}
   fragment:
-  <TestAnimal connection={$TestQuery.data?.monkeys} />
+  <TestAnimal connection={$MonkeyListQuery.data?.monkeys} />
 {/if}

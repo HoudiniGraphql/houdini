@@ -16,5 +16,13 @@ export function getFieldsForType(
 		}
 	}
 
+	console.log(
+		JSON.stringify(
+			{ __typename: `${JSON.stringify(__typename)}`, selection, targetSelection },
+			null,
+			4
+		)
+	)
+
 	return targetSelection
 }
