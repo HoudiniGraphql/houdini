@@ -2,21 +2,16 @@
 
 ## 1.1.1
 
-### Patch Changes
+### 🐛 Fixes
 
 -   [#988](https://github.com/HoudiniGraphql/houdini/pull/988) [`a217c0c6`](https://github.com/HoudiniGraphql/houdini/commit/a217c0c6e0d8e2298d511db855f7df0e06539069) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix subscription fetching state tracking
 
+-   [#954](https://github.com/HoudiniGraphql/houdini/pull/992) [`712bf948`](https://github.com/HoudiniGraphql/houdini/tree/712bf9483e8bdd0f3c2c063ffbbd3b0e9f0267a8) Thanks [@AlecAivazis](https://github.com/AlecAivazis) and [@SeppahBaws](https://github.com/SeppahBaws)! - Fix bug with fragments mixed into fields decorated with `@list`.
+
+### Dependency Updates
+
 -   Updated dependencies [[`54e8c453`](https://github.com/HoudiniGraphql/houdini/commit/54e8c4535ce7b9d0d29f9ef4073e173652bf0cb3)]:
     -   houdini@1.1.1
-
-## 1.1.1-next.0
-
-### Patch Changes
-
--   [#988](https://github.com/HoudiniGraphql/houdini/pull/988) [`a217c0c`](https://github.com/HoudiniGraphql/houdini/commit/a217c0c6e0d8e2298d511db855f7df0e06539069) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix subscription fetching state tracking
-
--   Updated dependencies []:
-    -   houdini@1.1.1-next.0
 
 ## 1.1.0
 
@@ -24,7 +19,7 @@
 
 -   [#954](https://github.com/HoudiniGraphql/houdini/pull/954) [`f94b6ca`](https://github.com/HoudiniGraphql/houdini/commit/f94b6caf8bda21fdbe22b466dc01cb8f8f40448f) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Improve performance by using fragments for fine-grain reactivity
 
-### Patch Changes
+### Dependency Updates
 
 -   Updated dependencies [[`f94b6ca`](https://github.com/HoudiniGraphql/houdini/commit/f94b6caf8bda21fdbe22b466dc01cb8f8f40448f)]:
     -   houdini@1.1.0
