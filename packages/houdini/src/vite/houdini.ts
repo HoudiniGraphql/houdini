@@ -72,8 +72,6 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				ctx.map = map
 			}
 
-			console.log(ctx.content)
-
 			return { code: ctx.content, map: ctx.map }
 		},
 

@@ -10,7 +10,7 @@
   // svelte-ignore unused-export-let
   export let id = '';
 
-  const result = graphql(`
+  $: result = graphql(`
     query ComponentQueryTest($id: ID!) @load {
       user(id: $id, snapshot: "preprocess-query-variable") {
         name
