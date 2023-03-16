@@ -1,5 +1,11 @@
 # houdini
 
+## 1.1.1
+
+### Patch Changes
+
+-   [#995](https://github.com/HoudiniGraphql/houdini/pull/995) [`54e8c453`](https://github.com/HoudiniGraphql/houdini/commit/54e8c4535ce7b9d0d29f9ef4073e173652bf0cb3) Thanks [@fnimick](https://github.com/fnimick)! - Add explicit error for multiple operations/fragments in a single document
+
 ## 1.1.1-next.0
 
 ## 1.1.0

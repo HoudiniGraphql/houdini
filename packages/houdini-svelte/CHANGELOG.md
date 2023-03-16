@@ -1,5 +1,14 @@
 # houdini-svelte
 
+## 1.1.1
+
+### Patch Changes
+
+-   [#988](https://github.com/HoudiniGraphql/houdini/pull/988) [`a217c0c6`](https://github.com/HoudiniGraphql/houdini/commit/a217c0c6e0d8e2298d511db855f7df0e06539069) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix subscription fetching state tracking
+
+-   Updated dependencies [[`54e8c453`](https://github.com/HoudiniGraphql/houdini/commit/54e8c4535ce7b9d0d29f9ef4073e173652bf0cb3)]:
+    -   houdini@1.1.1
+
 ## 1.1.1-next.0
 
 ### Patch Changes
