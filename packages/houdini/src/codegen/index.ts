@@ -306,30 +306,32 @@ async function processGraphQLDocument(
 ): Promise<Document> {
 	const parsedDoc = graphql.parse(document)
 
-	// look for the operation
+	// look for the operations and/or fragments
 	const operations = parsedDoc.definitions.filter(
 		({ kind }) => kind === graphql.Kind.OPERATION_DEFINITION
 	)
-	// there are no operations, so its a fragment
 	const fragments = parsedDoc.definitions.filter(
 		({ kind }) => kind === graphql.Kind.FRAGMENT_DEFINITION
 	)
-	// if there is more than one operation, throw an error
+
+	// if there is more than one operation or fragment, throw an error
 	if (operations.length > 1) {
 		throw new HoudiniError({
 			filepath,
 			message: 'Operation documents can only have one operation',
 		})
 	}
-	// we are looking at a fragment document
-	else {
-		// if there is more than one fragment, throw an error
-		if (fragments.length > 1) {
-			throw new HoudiniError({
-				filepath,
-				message: 'Fragment documents can only have one fragment',
-			})
-		}
+	if (fragments.length > 1) {
+		throw new HoudiniError({
+			filepath,
+			message: 'Fragment documents can only have one fragment',
+		})
+	}
+	if (operations.length + fragments.length > 1) {
+		throw new HoudiniError({
+			filepath,
+			message: 'Cannot mix operations and fragments in a single document',
+		})
 	}
 
 	// figure out the document kind
