@@ -6,34 +6,41 @@ import { libReporter } from 'vite-plugin-lib-reporter';
 const config = {
   plugins: [
     houdini(),
-    sveltekit()
+    sveltekit(),
 
     // This plugin is checking build sizes by lib.
     // It's not required for Houdini to work.
     // If there is a config change needed, please comment it and let us know.
-    // libReporter([
-    //   {
-    //     name: 'houdini runtime core',
-    //     includes: ['$houdini/runtime', 'src/client.ts'],
-    //     excludes: [
-    //       'vite/preload-helper',
-    //       '$houdini/index.js',
-    //       'houdini.config.js',
-    //       'src/client.ts',
-    //       'sveltejs'
-    //     ]
-    //   },
-    //   {
-    //     name: 'houdini runtime svelte',
-    //     includes: ['$houdini/plugins/houdini-svelte/runtime', 'src/client.ts'],
-    //     excludes: ['vite/preload-helper', '$houdini/runtime', '$houdini/index.js', 'svelte']
-    //   },
-    //   {
-    //     name: 'houdini full e2e',
-    //     includes: ['$houdini', 'src/client.ts', 'houdini.config.js'],
-    //     excludes: ['vite/preload-helper', 'svelte']
-    //   }
-    // ])
+    libReporter([
+      {
+        name: 'houdini runtime core',
+        includes: ['$houdini/runtime'],
+        excludes: [
+          '$houdini/index.js',
+          '$houdini/plugins/index.js',
+          'houdini.config.js',
+          'graphql-ws',
+          'svelte'
+        ]
+      },
+      {
+        name: 'houdini runtime svelte',
+        includes: ['$houdini/plugins/houdini-svelte/runtime', 'src/client.ts'],
+        excludes: [
+          '$houdini/runtime',
+          '$houdini/index.js',
+          '$houdini/plugins/index.js',
+          'graphql-ws',
+          'vite/preload-helper',
+          'svelte'
+        ]
+      },
+      {
+        name: 'houdini full e2e',
+        includes: ['$houdini', 'src/client.ts', 'houdini.config.js'],
+        excludes: ['graphql-ws', 'vite/preload-helper', 'svelte']
+      }
+    ])
   ]
 };
 

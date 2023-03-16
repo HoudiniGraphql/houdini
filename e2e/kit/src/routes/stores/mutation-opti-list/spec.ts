@@ -1,5 +1,5 @@
-import { sleep, stry } from '@kitql/helper';
-import { expect, test } from '@playwright/test';
+import { sleep } from '@kitql/helper';
+import { test } from '@playwright/test';
 import { routes } from '../../../lib/utils/routes.js';
 import { expect_to_be, goto, locator_click } from '../../../lib/utils/testsHelper.js';
 
