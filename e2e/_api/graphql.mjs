@@ -218,7 +218,7 @@ export const resolvers = {
 		usersConnection: (user, args) => {
 			return connectionFromArray(getUserSnapshot(user.snapshot), args)
 		},
-		enumValue: () => 'Value1'
+		enumValue: () => 'Value1',
 	},
 
 	Mutation: {
