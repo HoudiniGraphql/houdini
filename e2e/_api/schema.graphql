@@ -64,8 +64,8 @@ type Query {
 	userNodesResult(snapshot: String!, forceMessage: Boolean!): UserNodesResult!
 	userResult(id: ID!, snapshot: String!, forceMessage: Boolean!): UserResult!
 	rentedBooks: [RentedBook!]!
-    animals: AnimalConnection!
-    monkeys: MonkeyConnection!
+	animals: AnimalConnection!
+	monkeys: MonkeyConnection!
 }
 
 type Subscription {
@@ -85,34 +85,34 @@ type User implements Node {
 }
 
 interface Animal implements Node {
-    id: ID!
-    name: String!
+	id: ID!
+	name: String!
 }
 
 type Monkey implements Node & Animal {
-    id: ID!
-    name: String!
-    hasBanana: Boolean!
+	id: ID!
+	name: String!
+	hasBanana: Boolean!
 }
 
 interface AnimalConnection {
-    edges: [AnimalEdge!]!
-    pageInfo: PageInfo!
+	edges: [AnimalEdge!]!
+	pageInfo: PageInfo!
 }
 
 interface AnimalEdge {
-    cursor: String
-    node: Animal
+	cursor: String
+	node: Animal
 }
 
 type MonkeyConnection implements AnimalConnection {
-    edges: [MonkeyEdge!]!
-    pageInfo: PageInfo!
+	edges: [MonkeyEdge!]!
+	pageInfo: PageInfo!
 }
 
 type MonkeyEdge implements AnimalEdge {
-    cursor: String
-    node: Monkey
+	cursor: String
+	node: Monkey
 }
 
 type UserConnection {
