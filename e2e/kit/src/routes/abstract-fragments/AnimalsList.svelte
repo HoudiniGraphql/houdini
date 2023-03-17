@@ -9,7 +9,6 @@
         edges {
           node {
             id
-            name
           }
         }
       }
@@ -17,4 +16,4 @@
   );
 </script>
 
-<pre>{JSON.stringify($data, undefined, 2)}</pre>
+{$data.edges.map(({ node }) => node?.id).join(',')}

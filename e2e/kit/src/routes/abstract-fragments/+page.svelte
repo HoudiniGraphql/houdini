@@ -10,6 +10,7 @@ data:
 <pre>{JSON.stringify($MonkeyListQuery, undefined, 2)}</pre>
 
 {#if $MonkeyListQuery.data?.monkeys}
-  fragment:
-  <TestAnimal connection={$MonkeyListQuery.data?.monkeys} />
+  <div id="result">
+    <TestAnimal connection={$MonkeyListQuery.data?.monkeys} />
+  </div>
 {/if}
