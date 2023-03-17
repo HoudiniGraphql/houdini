@@ -2,7 +2,7 @@
 
 ## 1.1.2
 
-### Patch Changes
+### 🐛 Fixes
 
 -   [#1000](https://github.com/HoudiniGraphql/houdini/pull/1000) [`09c35bb6`](https://github.com/HoudiniGraphql/houdini/commit/09c35bb60a605894c8360037e757280f0b899bc3) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug with fragments that rely on abstract selections
 
