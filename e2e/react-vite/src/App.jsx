@@ -17,9 +17,9 @@ function Child() {
 	return <div>{JSON.stringify(data)}</div>
 }
 
-function useQuery(artifact) {
+function useQuery(artifact, variables = null) {
 	// hold onto an observer we'll use
-	const observer = React.useRef(client.observe({ artifact }))
+	const observer = React.useRef(client.observe({ artifact, fetching: true }))
 
 	// get a safe reference to the cache
 	const storeValue = React.useSyncExternalStore(
@@ -27,8 +27,11 @@ function useQuery(artifact) {
 		() => observer.current.state
 	)
 
-	//
+	React.useEffect(() => {
+		observer.current.send({ variables })
+	}, [variables])
 
+	// pass the store onto the user
 	return storeValue
 }
 
