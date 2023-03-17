@@ -241,6 +241,7 @@ test("fragment with list doesn't clutter its definition", async function () {
 		    id
 		  }
 		  id
+		  __typename
 		}
 	`)
 })
@@ -338,6 +339,7 @@ test('connections marked with list directive get cursor information', async func
 		    }
 		  }
 		  id
+		  __typename
 		}
 	`)
 })
@@ -445,6 +447,7 @@ test('list flags connections', async function () {
 		    }
 		  }
 		  id
+		  __typename
 		}
 	`)
 })

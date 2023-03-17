@@ -51,10 +51,18 @@ test.describe('SSR Page', () => {
     await goto(page, routes.Home);
 
     const listStr = await expect_n_gql(page, navSelector(routes.Stores_SSR), 2);
-    const expected = [
-      `{"data":{"hello":"Hello World! // From Houdini!"}}`,
-      `{"data":{"usersList":[{"id":"store-user-query:1","name":"Bruce Willis","birthDate":-466732800000},{"id":"store-user-query:2","name":"Samuel Jackson","birthDate":-663638400000},{"id":"store-user-query:3","name":"Morgan Freeman","birthDate":-1028419200000},{"id":"store-user-query:4","name":"Tom Hanks","birthDate":-425433600000}]}}`
-    ];
-    expect(listStr).toStrictEqual(expected);
+    expect([JSON.parse(listStr[0]), JSON.parse(listStr[1])]).toMatchObject([
+      { data: { hello: 'Hello World! // From Houdini!' } },
+      {
+        data: {
+          usersList: [
+            { id: 'store-user-query:1', name: 'Bruce Willis', birthDate: -466732800000 },
+            { id: 'store-user-query:2', name: 'Samuel Jackson', birthDate: -663638400000 },
+            { id: 'store-user-query:3', name: 'Morgan Freeman', birthDate: -1028419200000 },
+            { id: 'store-user-query:4', name: 'Tom Hanks', birthDate: -425433600000 }
+          ]
+        }
+      }
+    ]);
   });
 });

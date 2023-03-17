@@ -1,3 +1,18 @@
+interface Animal implements Node {
+	id: ID!
+	name: String!
+}
+
+interface AnimalConnection {
+	edges: [AnimalEdge!]!
+	pageInfo: PageInfo!
+}
+
+interface AnimalEdge {
+	cursor: String
+	node: Animal
+}
+
 type Book {
 	id: ID!
 	title: String!
@@ -24,6 +39,22 @@ type Library {
 
 type Message1 {
 	message: String!
+}
+
+type Monkey implements Animal & Node {
+	hasBanana: Boolean!
+	id: ID!
+	name: String!
+}
+
+type MonkeyConnection implements AnimalConnection {
+	edges: [MonkeyEdge!]!
+	pageInfo: PageInfo!
+}
+
+type MonkeyEdge implements AnimalEdge {
+	cursor: String
+	node: Monkey
 }
 
 type Mutation {
@@ -64,9 +95,11 @@ type PageInfo {
 }
 
 type Query {
+	animals: AnimalConnection!
 	avgYearsBirthDate: Float!
 	cities: [City]!
 	hello: String!
+	monkeys: MonkeyConnection!
 	node(id: ID!): Node
 	rentedBooks: [RentedBook!]!
 	session: String

@@ -46,6 +46,7 @@ test('adds pagination info to full', async function () {
 		      endCursor
 		    }
 		  }
+		  __typename
 		}
 	`)
 
@@ -125,8 +126,8 @@ test("doesn't add pagination info to offset pagination", async function () {
 		  usersByOffset(limit: $limit, offset: $offset) @paginate {
 		    id
 		  }
+		  __typename
 		}
-
 	`)
 })
 
@@ -173,6 +174,7 @@ test('paginate adds forwards cursor args to the full cursor fragment', async fun
 		      endCursor
 		    }
 		  }
+		  __typename
 		}
 	`)
 })
@@ -220,6 +222,7 @@ test('paginate adds backwards cursor args to the full cursor fragment', async fu
 		      endCursor
 		    }
 		  }
+		  __typename
 		}
 	`)
 })
@@ -267,6 +270,7 @@ test('paginate adds forwards cursor args to the fragment', async function () {
 		      endCursor
 		    }
 		  }
+		  __typename
 		}
 	`)
 })
@@ -314,6 +318,7 @@ test('paginate adds backwards cursor args to the fragment', async function () {
 		      endCursor
 		    }
 		  }
+		  __typename
 		}
 	`)
 })
@@ -362,6 +367,7 @@ test('sets before with default value', async function () {
 		      endCursor
 		    }
 		  }
+		  __typename
 		}
 	`)
 })
@@ -413,6 +419,7 @@ test('embeds pagination query as a separate document', async function () {
 		      endCursor
 		    }
 		  }
+		  __typename
 		}
 	`)
 })
@@ -485,6 +492,7 @@ test('embeds node pagination query as a separate document', async function () {
 		    }
 		  }
 		  id
+		  __typename
 		}
 		\`,
 
@@ -757,6 +765,7 @@ test('embeds custom pagination query as a separate document', async function () 
 		  }
 		  name
 		  aka
+		  __typename
 		}
 		\`,
 
@@ -1544,6 +1553,7 @@ test('generated query has same refetch spec', async function () {
 		      endCursor
 		    }
 		  }
+		  __typename
 		}
 		\`,
 
@@ -1640,6 +1650,12 @@ test('generated query has same refetch spec', async function () {
 		                    }
 		                },
 
+		                "visible": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename",
 		                "visible": true
 		            }
 		        },
@@ -1831,6 +1847,7 @@ test('default defaultPaginateMode to SinglePage', async function () {
 		      endCursor
 		    }
 		  }
+		  __typename
 		}
 		\`,
 
@@ -1927,6 +1944,12 @@ test('default defaultPaginateMode to SinglePage', async function () {
 		                    }
 		                },
 
+		                "visible": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename",
 		                "visible": true
 		            }
 		        }

@@ -55,6 +55,7 @@ test('pass argument values to generated fragments', async function () {
 		  users(stringValue: "Hello") {
 		    id
 		  }
+		  __typename
 		}
 		\`,
 
@@ -75,6 +76,11 @@ test('pass argument values to generated fragments', async function () {
 		                        }
 		                    }
 		                }
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename"
 		            }
 		        },
 
@@ -143,6 +149,7 @@ test("nullable arguments with no values don't show up in the query", async funct
 		  users {
 		    id
 		  }
+		  __typename
 		}
 		\`,
 
@@ -163,6 +170,11 @@ test("nullable arguments with no values don't show up in the query", async funct
 		                        }
 		                    }
 		                }
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename"
 		            }
 		        },
 
@@ -226,6 +238,7 @@ test("fragment arguments with default values don't rename the fragment", async f
 		  users(stringValue: "Hello") {
 		    id
 		  }
+		  __typename
 		}
 		\`,
 
@@ -246,6 +259,11 @@ test("fragment arguments with default values don't rename the fragment", async f
 		                        }
 		                    }
 		                }
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename"
 		            }
 		        },
 
@@ -315,12 +333,14 @@ test('thread query variables to inner fragments', async function () {
 
 		fragment QueryFragment_VDHGm on Query {
 		  ...InnerFragment_VDHGm
+		  __typename
 		}
 
 		fragment InnerFragment_VDHGm on Query {
 		  users(stringValue: $name) {
 		    id
 		  }
+		  __typename
 		}
 		\`,
 
@@ -341,6 +361,11 @@ test('thread query variables to inner fragments', async function () {
 		                        }
 		                    }
 		                }
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename"
 		            }
 		        },
 
@@ -428,12 +453,14 @@ test('inner fragment with intermediate default value', async function () {
 
 		fragment QueryFragment on Query {
 		  ...InnerFragment_10b3uv
+		  __typename
 		}
 
 		fragment InnerFragment_10b3uv on Query {
 		  users(stringValue: "Hello", intValue: 2) {
 		    id
 		  }
+		  __typename
 		}
 		\`,
 
@@ -454,6 +481,11 @@ test('inner fragment with intermediate default value', async function () {
 		                        }
 		                    }
 		                }
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename"
 		            }
 		        },
 
@@ -523,12 +555,14 @@ test("default values don't overwrite unless explicitly passed", async function (
 
 		fragment QueryFragment on Query {
 		  ...InnerFragment_2geNXY
+		  __typename
 		}
 
 		fragment InnerFragment_2geNXY on Query {
 		  users(stringValue: "Goodbye", intValue: 10) {
 		    id
 		  }
+		  __typename
 		}
 		\`,
 
@@ -549,6 +583,11 @@ test("default values don't overwrite unless explicitly passed", async function (
 		                        }
 		                    }
 		                }
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename"
 		            }
 		        },
 
@@ -612,6 +651,7 @@ test('default arguments', async function () {
 		  users(boolValue: true, stringValue: "Hello") {
 		    id
 		  }
+		  __typename
 		}
 		\`,
 
@@ -632,6 +672,11 @@ test('default arguments', async function () {
 		                        }
 		                    }
 		                }
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename"
 		            }
 		        },
 
@@ -696,6 +741,7 @@ test('list arguments', async function () {
 		    id
 		    __typename
 		  }
+		  __typename
 		}
 		\`,
 
@@ -723,6 +769,11 @@ test('list arguments', async function () {
 		                },
 
 		                "abstract": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename"
 		            }
 		        },
 
@@ -778,6 +829,7 @@ test('persists fragment variables in artifact', async function () {
 		  users(boolValue: $cool, stringValue: $name) {
 		    id
 		  }
+		  __typename
 		}
 		\`,
 
@@ -799,6 +851,12 @@ test('persists fragment variables in artifact', async function () {
 		                    }
 		                },
 
+		                "visible": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename",
 		                "visible": true
 		            }
 		        }

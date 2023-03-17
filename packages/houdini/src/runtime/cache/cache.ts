@@ -322,6 +322,16 @@ class CacheInternal {
 				link: !!fieldSelection,
 			})
 
+			// if there is a __typename field, then we should use that as the type
+			if (
+				value &&
+				typeof value === 'object' &&
+				'__typename' in value &&
+				value['__typename']
+			) {
+				linkedType = value['__typename'] as string
+			}
+
 			// the current set of subscribers
 			const currentSubscribers = this.subscriptions.get(parent, key)
 			const specs = currentSubscribers.map((sub) => sub[0])
@@ -435,9 +445,6 @@ class CacheInternal {
 							'Encountered interface type without __typename in the payload'
 						)
 					}
-
-					// we need to look at the __typename field in the response for the type
-					linkedType = value.__typename as string
 				}
 
 				// figure out if this is an embedded object or a linked one by looking for all of the fields marked as
@@ -802,7 +809,7 @@ class CacheInternal {
 		}
 
 		// we need to track if we have a partial data set which means we have _something_ but not everything
-		let hasData = false
+		let hasData = !!selection.fragments
 		// if we run into a single missing value we will flip this since it means we have a partial result
 		let partial = false
 
@@ -1154,18 +1161,14 @@ class CacheInternal {
 					(field) => typeof (entry as GraphQLObject)[field] === 'undefined'
 				).length > 0
 
-			const typename = entryObj.__typename as string | undefined
-
 			let innerType = linkedType
-			// if we ran into an interface
-			if (abstract) {
-				// make sure we have a __typename field
-				if (!typename) {
-					throw new Error('Encountered interface type without __typename in the payload')
-				}
 
-				// we need to look at the __typename field in the response for the type
-				innerType = typename as string
+			const typename = entryObj.__typename as string | undefined
+			if (typename) {
+				innerType = typename
+				// make sure we have a __typename field if we have an abstract value
+			} else if (abstract) {
+				throw new Error('Encountered interface type without __typename in the payload')
 			}
 
 			// if this isn't an embedded reference, use the entry's id in the link list
