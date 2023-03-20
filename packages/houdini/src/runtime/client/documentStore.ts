@@ -40,6 +40,9 @@ export class DocumentStore<
 	// we need the last context value we've seen in order to pass it during cleanup
 	#lastContext: ClientPluginContext | null = null
 
+	// a reference to the earliest resolving open promise that the store has sent
+	pendingPromise: { then: (val: any) => void } | null = null
+
 	constructor({
 		artifact,
 		plugins,
@@ -137,7 +140,7 @@ export class DocumentStore<
 		context = context.apply(draft, false)
 
 		// walk through the plugins to get the first result
-		return await new Promise<QueryResult<_Data, _Input>>((resolve, reject) => {
+		const promise = new Promise<QueryResult<_Data, _Input>>((resolve, reject) => {
 			// the initial state of the iterator
 			const state: IteratorState = {
 				setup,
@@ -148,14 +151,21 @@ export class DocumentStore<
 					resolved: false,
 					resolve,
 					reject,
+					then: (...args) => promise.then(...args),
 				},
 				// patch the context with new variables
 				context,
 			}
 
+			if (this.pendingPromise === null) {
+				this.pendingPromise = state.promise
+			}
+
 			// start walking down the chain
 			this.#step('forward', state)
 		})
+
+		return await promise
 	}
 
 	async cleanup() {
@@ -515,6 +525,7 @@ type IteratorState = {
 		resolved: boolean
 		resolve(val: any): void
 		reject(val: any): void
+		then(val: any): any
 	}
 }
 

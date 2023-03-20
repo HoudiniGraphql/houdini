@@ -1,4 +1,4 @@
-import { find_graphql, parseJS } from 'houdini'
+import { ensureArtifactImport, find_graphql, parseJS } from 'houdini'
 import type { TransformPage } from 'houdini/vite'
 import * as recast from 'recast'
 import type { SourceMapInput } from 'rollup'
@@ -23,8 +23,13 @@ export async function transformFile(
 
 	// for now, just replace them with a string
 	await find_graphql(page.config, parsed?.script, {
-		tag({ node, parsedDocument }) {
-			node.replaceWith(AST.stringLiteral(parsedDocument.definitions[0].kind))
+		tag({ node, parsedDocument, artifact }) {
+			const artifactID = ensureArtifactImport({
+				config: page.config,
+				artifact,
+				body: parsed.script.body,
+			})
+			node.replaceWith(AST.identifier(artifactID))
 		},
 	})
 
