@@ -11,6 +11,10 @@ export function useQuery(artifact: DocumentArtifact, variables: any = null) {
 	// this hook so we need to store it locally
 	let localData = null
 	if (!storeValue.data && !storeValue.errors && artifact.kind === ArtifactKind.Query) {
+		// TODO: this fires _way_ too often in the simple cases. we need to figure out how to prevent
+		// unnecessary rerenders.
+
+		// read the data from cache (to see if this is the response to a suspense)
 		const { data, partial } = cache.read({
 			query: { artifact },
 		})
