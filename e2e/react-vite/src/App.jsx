@@ -24,12 +24,24 @@ function Child() {
 }
 
 function useQuerySuspense(artifact, variables = null) {
-	const mount = React.useRef(null)
 	const [storeValue, observer] = useLiveDocument(artifact, variables)
+
+	// when we first render we need to suspend and fetch
+	const count = React.useRef(0)
+	if (count.current === 0) {
+		throw new Promise((resolve, reject) => {
+			console.log('suspending')
+			observer.send({ variables }).then(() => {
+				count.current = 1
+
+				resolve()
+			})
+		})
+	}
 
 	// if the store is fetching then we need to suspend until the
 	// store is ready for us
-	if (storeValue.fetching) {
+	if (storeValue.fetching && observer.pendingPromise) {
 		throw observer.pendingPromise
 	}
 
@@ -55,7 +67,7 @@ function useLiveDocument(artifact, variables) {
 
 function useDocumentStore(artifact) {
 	// hold onto an observer we'll use
-	const { current: observer } = React.useRef(client.observe({ artifact }))
+	const { current: observer } = React.useRef(client.observe({ artifact, fetching: true }))
 
 	// get a safe reference to the cache
 	const storeValue = React.useSyncExternalStore(
@@ -64,4 +76,18 @@ function useDocumentStore(artifact) {
 	)
 
 	return [storeValue, observer]
+}
+
+function unwrapPromise() {
+	let resolve, reject
+	const promise = new Promise((res, rej) => {
+		resolve = res
+		reject = rej
+	})
+
+	return {
+		resolve,
+		reject,
+		then,
+	}
 }
