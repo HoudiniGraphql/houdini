@@ -315,20 +315,24 @@ importers:
             '@babel/parser': ^7.19.3
             '@types/estraverse': ^5.1.2
             '@types/next': ^9.0.0
+            '@types/react': ^18.0.28
             '@types/rollup': ^0.54.0
             estraverse: ^5.3.0
             graphql: ^15.8.0
             houdini: workspace:^
             next: ^13.0.1
+            react: ^18.2.0
             recast: ^0.23.1
             rollup: ^3.7.4
             scripts: workspace:^
         dependencies:
             '@babel/parser': 7.20.7
+            '@types/react': 18.0.28
             '@types/rollup': 0.54.0
             estraverse: 5.3.0
             graphql: 15.8.0
             houdini: link:../houdini
+            react: 18.2.0
             recast: 0.23.1
             rollup: 3.14.0
         devDependencies:
@@ -2870,7 +2874,6 @@ packages:
             {
                 integrity: sha512-JCB8C6SnDoQf0cNycqd/35A7MjcnK+ZTqE7judS6o7utxUCg6imJg3QK2qzHKszlTjcj2cn+NwMB2i96ubpj7w==,
             }
-        dev: true
 
     /@types/pug/2.0.6:
         resolution:
@@ -2907,7 +2910,6 @@ packages:
             '@types/prop-types': 15.7.5
             '@types/scheduler': 0.16.2
             csstype: 3.1.1
-        dev: true
 
     /@types/rollup/0.54.0:
         resolution:
@@ -2932,7 +2934,6 @@ packages:
             {
                 integrity: sha512-hppQEBDmlwhFAXKJX2KnWLYu5yMfi91yazPb2l+lbJiwW+wdo1gNeRA+3RgNSO39WYX2euey41KEwnqesU2Jew==,
             }
-        dev: true
 
     /@types/semver/6.2.3:
         resolution:
@@ -4492,7 +4493,6 @@ packages:
             {
                 integrity: sha512-DJR/VvkAvSZW9bTouZue2sSxDwdTN92uHjqeKVm+0dAqdfNykRzQ95tay8aXMBAAPpUiq4Qcug2L7neoRh2Egw==,
             }
-        dev: true
 
     /csv-generate/3.4.3:
         resolution:

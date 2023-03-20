@@ -9,6 +9,11 @@ const HoudiniReactPlugin = plugin('houdini-react', async () => ({
 	// add the jsx extensions
 	extensions: ['.jsx', '.tsx'],
 
+	includeRuntime: {
+		esm: '../runtime-esm',
+		commonjs: '../runtime-cjs',
+	},
+
 	// we need to teach the codegen how to get graphql documents from jsx files
 	extractDocuments,
 

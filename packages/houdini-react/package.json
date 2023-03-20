@@ -28,10 +28,12 @@
     },
     "dependencies": {
         "@babel/parser": "^7.19.3",
+        "@types/react": "^18.0.28",
         "@types/rollup": "^0.54.0",
         "estraverse": "^5.3.0",
         "graphql": "^15.8.0",
         "houdini": "workspace:^",
+        "react": "^18.2.0",
         "recast": "^0.23.1",
         "rollup": "^3.7.4"
     },

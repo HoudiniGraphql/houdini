@@ -6,7 +6,7 @@ export default new HoudiniClient({
 	plugins: [
 		() => ({
 			network(ctx, { next }) {
-				setTimeout(() => next(ctx), 150)
+				setTimeout(() => next(ctx), 500)
 			},
 		}),
 	],
