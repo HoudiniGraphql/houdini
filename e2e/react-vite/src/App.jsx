@@ -13,30 +13,81 @@ export default function App() {
 }
 
 function Child() {
-	const data = useQuery(MyQuery)
-	return <div>{JSON.stringify(data)}</div>
+	const { data } = useQuerySuspense(
+		graphql(`
+			query MyQuery {
+				hello
+			}
+		`)
+	)
+	return <div>{data?.hello}</div>
 }
 
-function useQuery(artifact, variables = null) {
-	// hold onto an observer we'll use
-	const observer = React.useRef(client.observe({ artifact, fetching: true }))
+function useQuerySuspense(artifact, variables = null) {
+	const [storeValue, observer] = useLiveDocument(artifact, variables)
 
-	// get a safe reference to the cache
-	const storeValue = React.useSyncExternalStore(
-		observer.current.subscribe.bind(observer.current),
-		() => observer.current.state
-	)
+	// when we first render we need to suspend and fetch
+	const count = React.useRef(0)
+	if (count.current === 0) {
+		throw new Promise((resolve, reject) => {
+			console.log('suspending')
+			observer.send({ variables }).then(() => {
+				count.current = 1
 
-	React.useEffect(() => {
-		observer.current.send({ variables })
-	}, [variables])
+				resolve()
+			})
+		})
+	}
 
-	// pass the store onto the user
+	// if the store is fetching then we need to suspend until the
+	// store is ready for us
+	if (storeValue.fetching && observer.pendingPromise) {
+		throw observer.pendingPromise
+	}
+
 	return storeValue
 }
 
-graphql(`
-	query MyQuery {
-		hello
+function useQuery(artifact, variables = null) {
+	const [storeValue] = useLiveDocument(artifact, variables)
+	return storeValue
+}
+
+function useLiveDocument(artifact, variables) {
+	// grab the document store for the artifact
+	const [storeValue, observer] = useDocumentStore(artifact)
+
+	// whenever the variables change, we need to retrigger the query
+	React.useEffect(() => {
+		observer.send({ variables })
+	}, [variables])
+
+	return [storeValue, observer]
+}
+
+function useDocumentStore(artifact) {
+	// hold onto an observer we'll use
+	const { current: observer } = React.useRef(client.observe({ artifact, fetching: true }))
+
+	// get a safe reference to the cache
+	const storeValue = React.useSyncExternalStore(
+		observer.subscribe.bind(observer),
+		() => observer.state
+	)
+
+	return [storeValue, observer]
+}
+
+function unwrapPromise() {
+	let resolve, reject
+	const promise = new Promise((res, rej) => {
+		resolve = res
+		reject = rej
+	})
+
+	return {
+		resolve,
+		reject,
+		then,
 	}
-`)
+}
