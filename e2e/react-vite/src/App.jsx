@@ -1,5 +1,5 @@
 import { graphql } from '$houdini'
-import MyQuery from '$houdini/artifacts/MyQuery'
+import { cache } from '$houdini'
 import * as React from 'react'
 
 import client from './client'
@@ -13,30 +13,38 @@ export default function App() {
 }
 
 function Child() {
-	const { data } = useQuerySuspense(
+	const [data] = useQuery(
 		graphql(`
 			query MyQuery {
 				hello
 			}
 		`)
 	)
-	return <div>{data?.hello}</div>
+
+	return <div>{data.hello}</div>
 }
 
-function useQuerySuspense(artifact, variables = null) {
+function useQuery(artifact, variables = null) {
 	const [storeValue, observer] = useLiveDocument(artifact, variables)
 
-	// when we first render we need to suspend and fetch
-	const count = React.useRef(0)
-	if (count.current === 0) {
-		throw new Promise((resolve, reject) => {
-			console.log('suspending')
-			observer.send({ variables }).then(() => {
-				count.current = 1
-
-				resolve()
-			})
+	// if we don't have any data in the observer yet, see if we can load from the cache
+	// if we do have the data in the cache then we want to use that value as the result of
+	// this hook so we need to store it locally
+	let localData = null
+	if (!storeValue.data) {
+		const { data } = cache.read({
+			query: { artifact },
 		})
+
+		// if we can't load from the cache then we have to suspend until we can
+		// NOTE: this is the bit that prevents infinite suspense loops. By suspending until
+		// send() is finished, data won't be null next time we come back here
+		if (data === null) {
+			throw observer.send({ variables })
+		}
+
+		// use the cache version for the first non-suspense'd mount of this hook
+		localData = data
 	}
 
 	// if the store is fetching then we need to suspend until the
@@ -45,12 +53,10 @@ function useQuerySuspense(artifact, variables = null) {
 		throw observer.pendingPromise
 	}
 
-	return storeValue
-}
-
-function useQuery(artifact, variables = null) {
-	const [storeValue] = useLiveDocument(artifact, variables)
-	return storeValue
+	// by preferring the store value over the local instance we make sure that any
+	// updates that show up do not get blocked by the cache read we did when the component
+	// mounts
+	return [storeValue.data ?? localData]
 }
 
 function useLiveDocument(artifact, variables) {
@@ -76,18 +82,4 @@ function useDocumentStore(artifact) {
 	)
 
 	return [storeValue, observer]
-}
-
-function unwrapPromise() {
-	let resolve, reject
-	const promise = new Promise((res, rej) => {
-		resolve = res
-		reject = rej
-	})
-
-	return {
-		resolve,
-		reject,
-		then,
-	}
 }
