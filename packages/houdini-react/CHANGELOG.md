@@ -2,7 +2,7 @@
 
 ## 1.1.3
 
-### Patch Changes
+### Dependency Changes
 
 -   Updated dependencies []:
     -   houdini@1.1.3
