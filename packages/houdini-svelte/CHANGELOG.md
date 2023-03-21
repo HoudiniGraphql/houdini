@@ -1,5 +1,16 @@
 # houdini-svelte
 
+## 1.1.3
+
+### 🐛 Fixes
+
+-   [#1011](https://github.com/HoudiniGraphql/houdini/pull/1011) [`d1529363`](https://github.com/HoudiniGraphql/houdini/commit/d1529363ce63e7b015f508142d080a08c94ed350) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix initialization issue in paginated queries
+
+### Dependency Changes
+
+-   Updated dependencies []:
+    -   houdini@1.1.3
+
 ## 1.1.2
 
 ### Dependency Changes
