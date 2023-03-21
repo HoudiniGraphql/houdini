@@ -5,7 +5,10 @@ import React from 'react'
 import { useLiveDocument } from './useLiveDocument'
 
 export function useQuery(artifact: DocumentArtifact, variables: any = null) {
-	const [storeValue, observer] = useLiveDocument(artifact, variables)
+	const [storeValue, observer] = useLiveDocument({
+		artifact,
+		variables,
+	})
 
 	// if we don't have any data in the observer yet, see if we can load from the cache.
 	// if we do have the data in the cache then we want to use that value as the result of

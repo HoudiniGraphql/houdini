@@ -16,7 +16,7 @@ import {
 import pluginsFromPlugins from './plugins/injectedPlugins'
 
 // export the plugin constructors
-export { DocumentStore, type ClientPlugin } from './documentStore'
+export { DocumentStore, type ClientPlugin, type SendParams } from './documentStore'
 export { fetch, mutation, query, subscription } from './plugins'
 
 type ConstructorArgs = {
