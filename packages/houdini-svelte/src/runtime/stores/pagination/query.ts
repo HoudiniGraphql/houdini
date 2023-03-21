@@ -136,7 +136,6 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input extends {}> ex
 		await initClient()
 
 		// we're going to use a separate observer for the page loading
-		// we're going to use a separate observer for the page loading
 		const paginationObserver = getClient().observe<_Data, _Input>({
 			artifact: this.artifact,
 		})
