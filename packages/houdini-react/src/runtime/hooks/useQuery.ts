@@ -42,7 +42,12 @@ export function useQuery(artifact: DocumentArtifact, variables: any = null) {
 			Boolean(cachedValue.data) &&
 			(!cachedValue.partial || (artifact.kind === ArtifactKind.Query && artifact.partial))
 		if (!allowed) {
-			throw observer.send({ variables })
+			throw observer.send({
+				variables,
+				// TODO: session/metadata
+				session: {},
+				metadata: {},
+			})
 		}
 
 		// use the cache version for the first non-suspense'd mount of this hook

@@ -1,9 +1,9 @@
-import type { DocumentArtifact, QueryResult } from '$houdini/lib/types'
-import type { DocumentStore, SendParams, ObserveParams } from '$houdini/runtime/client'
+import type { QueryResult } from '$houdini/lib/types'
+import type { DocumentStore, SendParams } from '$houdini/runtime/client'
 import { GraphQLObject } from 'houdini'
 import * as React from 'react'
 
-import { useHoudiniClient } from './useHoudiniClient'
+import { useDocumentStore, type UseDocumentStoreParams } from './useDocumentStore'
 
 export function useLiveDocument<
 	_Data extends GraphQLObject = GraphQLObject,
@@ -13,30 +13,21 @@ export function useLiveDocument<
 	variables,
 	send,
 	...observeParams
-}: {
-	artifact: DocumentArtifact
-	variables?: _Input
+}: UseDocumentStoreParams<_Data> & {
+	variables: _Input
 	send?: Partial<SendParams>
-} & Partial<ObserveParams<_Data>>): [QueryResult<_Data, _Input>, DocumentStore<_Data, _Input>] {
-	const client = useHoudiniClient()
-
-	// hold onto an observer we'll use
-	const { current: observer } = React.useRef(
-		client.observe<_Data, _Input>({
-			artifact,
-			...observeParams,
-		})
-	)
-
-	// get a safe reference to the cache
-	const storeValue = React.useSyncExternalStore(
-		observer.subscribe.bind(observer),
-		() => observer.state
-	)
+}): [QueryResult<_Data, _Input>, DocumentStore<_Data, _Input>] {
+	const [storeValue, observer] = useDocumentStore<_Data, _Input>({ artifact, ...observeParams })
 
 	// whenever the variables change, we need to retrigger the query
 	React.useEffect(() => {
-		observer.send({ variables })
+		observer.send({
+			variables,
+			// TODO: session/metadata
+			session: {},
+			metadata: {},
+			...send,
+		})
 	}, [variables])
 
 	return [storeValue, observer]
