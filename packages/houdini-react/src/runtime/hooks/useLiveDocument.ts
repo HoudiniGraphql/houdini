@@ -28,6 +28,9 @@ export function useLiveDocument<
 			metadata: {},
 			...send,
 		})
+		return () => {
+			observer.cleanup()
+		}
 	}, [variables ?? {}, send ?? {}])
 
 	return [storeValue, observer]

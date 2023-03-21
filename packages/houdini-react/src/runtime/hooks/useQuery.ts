@@ -1,10 +1,10 @@
 import { cache } from '$houdini/runtime'
-import { type DocumentArtifact, ArtifactKind } from '$houdini/runtime/lib/types'
+import { type QueryArtifact, ArtifactKind } from '$houdini/runtime/lib/types'
 import React from 'react'
 
 import { useLiveDocument } from './useLiveDocument'
 
-export function useQuery(artifact: DocumentArtifact, variables: any = null) {
+export function useQuery(artifact: QueryArtifact, variables: any = null) {
 	const [storeValue, observer] = useLiveDocument({
 		artifact,
 		variables,
@@ -62,6 +62,6 @@ export function useQuery(artifact: DocumentArtifact, variables: any = null) {
 
 	// by preferring the store value over the local instance we make sure that any
 	// updates that show up do not get blocked by the cache read we did when the component
-	// mounts
+	// mounted
 	return [storeValue.data ?? localData]
 }

@@ -1,8 +1,4 @@
-import {
-	type MutationArtifact,
-	type GraphQLObject,
-	type QueryResult,
-} from '$houdini/runtime/lib/types'
+import type { MutationArtifact, GraphQLObject, QueryResult } from '$houdini/runtime/lib/types'
 
 import { useDocumentStore } from './useDocumentStore'
 
