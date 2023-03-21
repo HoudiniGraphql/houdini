@@ -34,10 +34,17 @@ export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> ex
 	}
 
 	#_handlers: CursorHandlers<_Data, _Input> | null = null
-	get #handlers(): CursorHandlers<_Data, _Input> {
+	async #handlers(): Promise<CursorHandlers<_Data, _Input>> {
+		await initClient()
+
 		if (this.#_handlers) {
 			return this.#_handlers
 		}
+
+		// we're going to use a separate observer for the page loading
+		const paginationObserver = getClient().observe<_Data, _Input>({
+			artifact: this.artifact,
+		})
 
 		this.#_handlers = cursorHandlers<_Data, _Input>({
 			artifact: this.artifact,
@@ -47,13 +54,6 @@ export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> ex
 			storeName: this.name,
 			fetch: super.fetch.bind(this),
 			fetchUpdate: async (args, updates) => {
-				await initClient()
-
-				// we're going to use a separate observer for the page loading
-				const paginationObserver = getClient().observe<_Data, _Input>({
-					artifact: this.artifact,
-				})
-
 				return paginationObserver.send({
 					...args,
 					cacheParams: {
@@ -73,17 +73,17 @@ export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> ex
 	fetch(params?: ClientFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
-		return this.#handlers!.fetch.call(this, args)
+		return (await this.#handlers()).fetch.call(this, args)
 	}
 
 	async loadPreviousPage(
 		args?: Parameters<Required<CursorHandlers<_Data, _Input>>['loadPreviousPage']>[0]
 	) {
-		return this.#handlers.loadPreviousPage(args)
+		return (await this.#handlers()).loadPreviousPage(args)
 	}
 
 	async loadNextPage(args?: Parameters<CursorHandlers<_Data, _Input>['loadNextPage']>[0]) {
-		return this.#handlers.loadNextPage(args)
+		return (await this.#handlers()).loadNextPage(args)
 	}
 
 	subscribe(
