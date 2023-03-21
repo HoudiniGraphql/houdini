@@ -1,19 +1,49 @@
 import { cache } from '$houdini/runtime'
-import { type QueryArtifact, ArtifactKind } from '$houdini/runtime/lib/types'
+import {
+	type QueryArtifact,
+	ArtifactKind,
+	GraphQLObject,
+	CachePolicies,
+	QueryResult,
+} from '$houdini/runtime/lib/types'
 import React from 'react'
 
 import { useLiveDocument } from './useLiveDocument'
 
-export function useQuery(artifact: QueryArtifact, variables: any = null) {
-	const [storeValue, observer] = useLiveDocument({
+type QueryFetch<_Data extends GraphQLObject = GraphQLObject, _Input extends {} = []> = (args?: {
+	variables?: _Input
+	policy?: CachePolicies
+	metadata?: App.Metadata
+}) => Promise<QueryResult<_Data, _Input>>
+
+type UseQueryConfig = {
+	policy?: CachePolicies
+	metadata?: App.Metadata
+}
+
+export function useQuery<_Data extends GraphQLObject = GraphQLObject, _Input extends {} = []>(
+	artifact: QueryArtifact,
+	variables: any = null,
+	config: UseQueryConfig = {}
+): [
+	_Data,
+	{
+		partial: boolean
+		fetch: QueryFetch<_Data, _Input>
+	}
+] {
+	const [storeValue, observer] = useLiveDocument<_Data, _Input>({
 		artifact,
 		variables,
+		send: {
+			metadata: config?.metadata,
+		},
 	})
 
 	// if we don't have any data in the observer yet, see if we can load from the cache.
 	// if we do have the data in the cache then we want to use that value as the result of
 	// this hook so we need to use it without going to the network
-	let localData = null
+	let localData: _Data | null = null
 
 	// memoize the cached value so that we only look it up when necessary
 	// TODO: this fires _way_ too often in the simple cases. we need to figure out how to prevent
@@ -51,7 +81,7 @@ export function useQuery(artifact: QueryArtifact, variables: any = null) {
 		}
 
 		// use the cache version for the first non-suspense'd mount of this hook
-		localData = cachedValue.data
+		localData = cachedValue.data as unknown as _Data
 	}
 
 	// if the store is fetching then we need to suspend until the
@@ -60,8 +90,14 @@ export function useQuery(artifact: QueryArtifact, variables: any = null) {
 		throw observer.pendingPromise
 	}
 
-	// by preferring the store value over the local instance we make sure that any
-	// updates that show up do not get blocked by the cache read we did when the component
-	// mounted
-	return [storeValue.data ?? localData]
+	const fetchQuery: QueryFetch<_Data, _Input> = ({ variables, policy, metadata } = {}) => {
+		return observer.send({
+			variables,
+			policy,
+			metadata,
+		})
+	}
+
+	// make sure we prefer the latest store value instead of the initial version we loaded on mount
+	return [storeValue.data ?? localData!, { fetch: fetchQuery, partial: storeValue.partial }]
 }
