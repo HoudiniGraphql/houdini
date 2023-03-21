@@ -74,17 +74,20 @@ export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> ex
 	fetch(params?: ClientFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
-		return (await this.#handlers()).fetch.call(this, args)
+		const handlers = await this.#handlers()
+		return await handlers.fetch.call(this, args)
 	}
 
 	async loadPreviousPage(
 		args?: Parameters<Required<CursorHandlers<_Data, _Input>>['loadPreviousPage']>[0]
 	) {
-		return (await this.#handlers()).loadPreviousPage(args)
+		const handlers = await this.#handlers()
+		return await handlers.loadPreviousPage(args)
 	}
 
 	async loadNextPage(args?: Parameters<CursorHandlers<_Data, _Input>['loadNextPage']>[0]) {
-		return (await this.#handlers()).loadNextPage(args)
+		const handlers = await this.#handlers()
+		return await handlers.loadNextPage(args)
 	}
 
 	subscribe(
@@ -111,7 +114,8 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input extends {}> ex
 	paginated = true
 
 	async loadNextPage(args?: Parameters<OffsetHandlers<_Data, _Input>['loadNextPage']>[0]) {
-		return (await this.#handlers()).loadNextPage.call(this, args)
+		const handlers = await this.#handlers()
+		return await handlers.loadNextPage.call(this, args)
 	}
 
 	fetch(params?: RequestEventFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
@@ -119,7 +123,8 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input extends {}> ex
 	fetch(params?: ClientFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
-		return (await this.#handlers()).fetch.call(this, args)
+		const handlers = await this.#handlers()
+		return await handlers.fetch.call(this, args)
 	}
 
 	#_handlers: OffsetHandlers<_Data, _Input> | null = null
