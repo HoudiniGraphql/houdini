@@ -34,10 +34,13 @@ export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> ex
 	}
 
 	#_handlers: CursorHandlers<_Data, _Input> | null = null
-	get #handlers(): CursorHandlers<_Data, _Input> {
+	async #handlers(): Promise<CursorHandlers<_Data, _Input>> {
 		if (this.#_handlers) {
 			return this.#_handlers
 		}
+
+		// initialize the client before we compute the handlers
+		await initClient()
 
 		// we're going to use a separate observer for the page loading
 		const paginationObserver = getClient().observe<_Data, _Input>({
@@ -52,14 +55,12 @@ export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> ex
 			storeName: this.name,
 			fetch: super.fetch.bind(this),
 			fetchUpdate: async (args, updates) => {
-				await initClient()
 				return paginationObserver.send({
 					...args,
-					variables: {
-						...args?.variables,
-					},
 					cacheParams: {
 						applyUpdates: updates,
+						disableSubscriptions: true,
+						...args?.cacheParams,
 					},
 				})
 			},
@@ -73,17 +74,20 @@ export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> ex
 	fetch(params?: ClientFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
-		return this.#handlers!.fetch.call(this, args)
+		const handlers = await this.#handlers()
+		return await handlers.fetch.call(this, args)
 	}
 
 	async loadPreviousPage(
 		args?: Parameters<Required<CursorHandlers<_Data, _Input>>['loadPreviousPage']>[0]
 	) {
-		return this.#handlers.loadPreviousPage(args)
+		const handlers = await this.#handlers()
+		return await handlers.loadPreviousPage(args)
 	}
 
 	async loadNextPage(args?: Parameters<CursorHandlers<_Data, _Input>['loadNextPage']>[0]) {
-		return this.#handlers.loadNextPage(args)
+		const handlers = await this.#handlers()
+		return await handlers.loadNextPage(args)
 	}
 
 	subscribe(
@@ -110,24 +114,27 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input extends {}> ex
 	paginated = true
 
 	async loadNextPage(args?: Parameters<OffsetHandlers<_Data, _Input>['loadNextPage']>[0]) {
-		return this.#handlers.loadNextPage.call(this, args)
+		const handlers = await this.#handlers()
+		return await handlers.loadNextPage.call(this, args)
 	}
 
 	fetch(params?: RequestEventFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	fetch(params?: LoadEventFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	fetch(params?: ClientFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
-	fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
-		return this.#handlers.fetch.call(this, args)
+	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
+		const handlers = await this.#handlers()
+		return await handlers.fetch.call(this, args)
 	}
 
 	#_handlers: OffsetHandlers<_Data, _Input> | null = null
-	get #handlers(): OffsetHandlers<_Data, _Input> {
+	async #handlers(): Promise<OffsetHandlers<_Data, _Input>> {
 		if (this.#_handlers) {
 			return this.#_handlers
 		}
+		// initialize the client before we compute the handlers
+		await initClient()
 
-		// we're going to use a separate observer for the page loading
 		// we're going to use a separate observer for the page loading
 		const paginationObserver = getClient().observe<_Data, _Input>({
 			artifact: this.artifact,
