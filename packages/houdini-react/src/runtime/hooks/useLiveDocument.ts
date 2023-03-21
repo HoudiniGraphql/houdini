@@ -1,8 +1,8 @@
 import type { QueryResult } from '$houdini/lib/types'
 import type { DocumentStore, SendParams } from '$houdini/runtime/client'
 import { GraphQLObject } from 'houdini'
-import * as React from 'react'
 
+import useDeepCompareEffect from './useDeepCompareEffect'
 import { useDocumentStore, type UseDocumentStoreParams } from './useDocumentStore'
 
 export function useLiveDocument<
@@ -20,7 +20,7 @@ export function useLiveDocument<
 	const [storeValue, observer] = useDocumentStore<_Data, _Input>({ artifact, ...observeParams })
 
 	// whenever the variables change, we need to retrigger the query
-	React.useEffect(() => {
+	useDeepCompareEffect(() => {
 		observer.send({
 			variables,
 			// TODO: session/metadata
@@ -28,7 +28,7 @@ export function useLiveDocument<
 			metadata: {},
 			...send,
 		})
-	}, [variables])
+	}, [variables ?? {}, send ?? {}])
 
 	return [storeValue, observer]
 }

@@ -147,6 +147,7 @@ importers:
         specifiers:
             '@types/react': ^18.0.27
             '@types/react-dom': ^18.0.10
+            '@types/use-deep-compare-effect': ^1.5.1
             '@vitejs/plugin-react': ^3.1.0
             concurrently: 7.1.0
             cross-env: ^7.0.3
@@ -156,12 +157,15 @@ importers:
             react: ^18.2.0
             react-dom: ^18.2.0
             typescript: ^4.9.3
+            use-deep-compare-effect: ^1.8.1
             vite: ^4.1.0
         dependencies:
+            '@types/use-deep-compare-effect': 1.5.1_react@18.2.0
             houdini: link:../../packages/houdini
             houdini-react: link:../../packages/houdini-react
             react: 18.2.0
             react-dom: 18.2.0_react@18.2.0
+            use-deep-compare-effect: 1.8.1_react@18.2.0
         devDependencies:
             '@types/react': 18.0.28
             '@types/react-dom': 18.0.11
@@ -1054,7 +1058,6 @@ packages:
         engines: { node: '>=6.9.0' }
         dependencies:
             regenerator-runtime: 0.13.11
-        dev: true
 
     /@babel/template/7.20.7:
         resolution:
@@ -2961,6 +2964,18 @@ packages:
             {
                 integrity: sha512-PBjIUxZHOuj0R15/xuwJYjFi+KZdNFrehocChv4g5hu6aFroHue8m0lBP0POdK2nKzbw0cgV1mws8+V/JAcEkQ==,
             }
+
+    /@types/use-deep-compare-effect/1.5.1_react@18.2.0:
+        resolution:
+            {
+                integrity: sha512-IpPu2lOV4HWjuzncETLsPpeYKJEOfYHbx6Bn7leBwp5X+a8TBmd4jIBcMQJ5F+WXz/lYkeKphmB4uUij3W4Gdg==,
+            }
+        deprecated: This is a stub types definition. use-deep-compare-effect provides its own type definitions, so you do not need this installed.
+        dependencies:
+            use-deep-compare-effect: 1.8.1_react@18.2.0
+        transitivePeerDependencies:
+            - react
+        dev: false
 
     /@types/yargs-parser/21.0.0:
         resolution:
@@ -5102,7 +5117,6 @@ packages:
                 integrity: sha512-0je+qPKHEMohvfRTCEo3CrPG6cAzAYgmzKyxRiYSSDkS6eGJdyVJm7WaYA5ECaAD9wLB2T4EEeymA5aFVcYXCA==,
             }
         engines: { node: '>=6' }
-        dev: true
 
     /detect-indent/6.1.0:
         resolution:
@@ -10484,7 +10498,6 @@ packages:
             {
                 integrity: sha512-kY1AZVr2Ra+t+piVaJ4gxaFaReZVH40AKNo7UCX6W+dEwBo/2oZJzqfuN1qLq1oL45o56cPaTXELwrTh8Fpggg==,
             }
-        dev: true
 
     /regexp-tree/0.1.24:
         resolution:
@@ -12176,6 +12189,20 @@ packages:
             }
         dependencies:
             braces: 3.0.2
+        dev: false
+
+    /use-deep-compare-effect/1.8.1_react@18.2.0:
+        resolution:
+            {
+                integrity: sha512-kbeNVZ9Zkc0RFGpfMN3MNfaKNvcLNyxOAAd9O4CBZ+kCBXXscn9s/4I+8ytUER4RDpEYs5+O6Rs4PqiZ+rHr5Q==,
+            }
+        engines: { node: '>=10', npm: '>=6' }
+        peerDependencies:
+            react: '>=16.13'
+        dependencies:
+            '@babel/runtime': 7.20.7
+            dequal: 2.0.3
+            react: 18.2.0
         dev: false
 
     /util-deprecate/1.0.2:
