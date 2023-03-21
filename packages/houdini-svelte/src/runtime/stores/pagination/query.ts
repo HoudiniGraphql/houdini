@@ -39,11 +39,6 @@ export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> ex
 			return this.#_handlers
 		}
 
-		// we're going to use a separate observer for the page loading
-		const paginationObserver = getClient().observe<_Data, _Input>({
-			artifact: this.artifact,
-		})
-
 		this.#_handlers = cursorHandlers<_Data, _Input>({
 			artifact: this.artifact,
 			initialValue: get(this.observer).data,
@@ -53,6 +48,12 @@ export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> ex
 			fetch: super.fetch.bind(this),
 			fetchUpdate: async (args, updates) => {
 				await initClient()
+
+				// we're going to use a separate observer for the page loading
+				const paginationObserver = getClient().observe<_Data, _Input>({
+					artifact: this.artifact,
+				})
+
 				return paginationObserver.send({
 					...args,
 					variables: {
@@ -60,6 +61,7 @@ export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> ex
 					},
 					cacheParams: {
 						applyUpdates: updates,
+						disableSubscriptions: true,
 					},
 				})
 			},
