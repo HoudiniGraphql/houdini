@@ -56,12 +56,10 @@ export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> ex
 
 				return paginationObserver.send({
 					...args,
-					variables: {
-						...args?.variables,
-					},
 					cacheParams: {
 						applyUpdates: updates,
 						disableSubscriptions: true,
+						...args?.cacheParams,
 					},
 				})
 			},
