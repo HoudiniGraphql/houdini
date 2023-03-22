@@ -950,8 +950,7 @@ test('overlapping query and fragment nested selection', async function () {
 
 test('selections with interfaces', async function () {
 	// the config to use in tests
-	const config = testConfig()
-	const cfg = testConfig({ module: 'esm' })
+	const config = testConfig({ module: 'esm' })
 	const docs = [
 		mockCollectedDoc(
 			`query Friends {
@@ -971,7 +970,7 @@ test('selections with interfaces', async function () {
 	]
 
 	// execute the generator
-	await runPipeline(cfg, docs)
+	await runPipeline(config, docs)
 
 	// load the contents of the file
 	expect(docs[0]).toMatchInlineSnapshot(`
@@ -1096,8 +1095,7 @@ test('selections with interfaces', async function () {
 
 test('selections with unions', async function () {
 	// the config to use in tests
-	const config = testConfig()
-	const cfg = testConfig({ module: 'esm' })
+	const config = testConfig({ module: 'esm' })
 	const docs = [
 		mockCollectedDoc(
 			`query Friends {
@@ -1117,7 +1115,7 @@ test('selections with unions', async function () {
 	]
 
 	// execute the generator
-	await runPipeline(cfg, docs)
+	await runPipeline(config, docs)
 
 	// verify contents
 	expect(docs[0]).toMatchInlineSnapshot(`
@@ -1242,8 +1240,7 @@ test('selections with unions', async function () {
 
 test('selections with overlapping unions', async function () {
 	// the config to use in tests
-	const config = testConfig()
-	const cfg = testConfig({ module: 'esm' })
+	const config = testConfig({ module: 'esm' })
 	const docs = [
 		mockCollectedDoc(
 			`query Friends {
@@ -1264,7 +1261,7 @@ test('selections with overlapping unions', async function () {
 	]
 
 	// execute the generator
-	await runPipeline(cfg, docs)
+	await runPipeline(config, docs)
 
 	// verify contents
 	expect(docs[0]).toMatchInlineSnapshot(`
@@ -1402,8 +1399,7 @@ test('selections with overlapping unions', async function () {
 
 test('selections with unions of abstract types', async function () {
 	// the config to use in tests
-	const config = testConfig()
-	const cfg = testConfig({ module: 'esm' })
+	const config = testConfig({ module: 'esm' })
 	const docs = [
 		mockCollectedDoc(
 			`query Friends {
@@ -1426,7 +1422,7 @@ test('selections with unions of abstract types', async function () {
 	]
 
 	// execute the generator
-	await runPipeline(cfg, docs)
+	await runPipeline(config, docs)
 
 	// verify contents
 	expect(docs[0]).toMatchInlineSnapshot(`
@@ -1570,8 +1566,7 @@ test('selections with unions of abstract types', async function () {
 
 test('selections with concrete types matching multiple abstract types', async function () {
 	// the config to use in tests
-	const config = testConfig()
-	const cfg = testConfig({ module: 'esm' })
+	const config = testConfig({ module: 'esm' })
 	const docs = [
 		mockCollectedDoc(
 			`query Friends {
@@ -1593,7 +1588,7 @@ test('selections with concrete types matching multiple abstract types', async fu
 	]
 
 	// execute the generator
-	await runPipeline(cfg, docs)
+	await runPipeline(config, docs)
 
 	// verify contents
 	expect(docs[0]).toMatchInlineSnapshot(`
@@ -1760,7 +1755,7 @@ test('selections with concrete types matching multiple abstract types', async fu
 describe('mutation artifacts', function () {
 	test('empty operation list', async function () {
 		// the config to use in tests
-		const cfg = testConfig({ module: 'esm' })
+		const config = testConfig({ module: 'esm' })
 
 		const docs = [
 			mockCollectedDoc(
@@ -1782,7 +1777,7 @@ describe('mutation artifacts', function () {
 		]
 
 		// execute the generator
-		await runPipeline(cfg, docs)
+		await runPipeline(config, docs)
 
 		// load the contents of the file
 		expect(docs[0]).toMatchInlineSnapshot(`
@@ -2056,7 +2051,6 @@ describe('mutation artifacts', function () {
 
 	test('insert operation allList by default in config', async function () {
 		// the config to use in tests
-		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -2162,8 +2156,6 @@ describe('mutation artifacts', function () {
 	})
 
 	test('insert operation cosition first by default in config', async function () {
-		// the config to use in tests
-		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -2176,13 +2168,14 @@ describe('mutation artifacts', function () {
 			),
 			mockCollectedDoc(
 				`query TestQuery {
-					users(stringValue: "foo") @list(name: "All_Users") {
+						users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
 					}
 				}`
 			),
 		]
 
+		// the config to use in tests
 		let configUpdate = testConfig()
 		configUpdate.internalListPosition = 'first'
 
@@ -4368,8 +4361,7 @@ describe('mutation artifacts', function () {
 
 	test('sveltekit', async function () {
 		// the config to use in tests
-		const config = testConfig()
-		const cfg = testConfig({ module: 'esm' })
+		const config = testConfig({ module: 'esm' })
 
 		const docs = [
 			mockCollectedDoc(
@@ -4387,7 +4379,7 @@ describe('mutation artifacts', function () {
 		]
 
 		// execute the generator
-		await runPipeline(cfg, docs)
+		await runPipeline(config, docs)
 
 		// load the contents of the file
 		expect(docs[0]).toMatchInlineSnapshot(`
@@ -4481,8 +4473,6 @@ describe('mutation artifacts', function () {
 })
 
 test('custom scalar shows up in artifact', async function () {
-	// the config to use in tests
-	const config = testConfig()
 	// the documents to test
 	const docs: Document[] = [
 		mockCollectedDoc(`query TestQuery { version }`),
@@ -4564,8 +4554,6 @@ test('custom scalar shows up in artifact', async function () {
 })
 
 test('operation inputs', async function () {
-	// the config to use in tests
-	const config = testConfig()
 	// the documents to test
 	const docs: Document[] = [
 		mockCollectedDoc(`query TestQuery { version }`),
