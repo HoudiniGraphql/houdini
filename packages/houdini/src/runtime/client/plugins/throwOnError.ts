@@ -25,6 +25,24 @@ export const throwOnError =
 			}[kind]
 
 		return {
+			async start(ctx, { next }) {
+				// add a warning if the config is wrong
+				if (throwOnKind(ctx.artifact.kind) && ctx.artifact.kind === ArtifactKind.Query) {
+					// if explicitly set to not_always_blocking, we can't throw, so warn the user.
+					if (ctx.config.defaultBlockingMode === 'not_always_blocking') {
+						console.error(
+							'[Houdini][client-plugin] throwOnError with operation "all" or "query", is not compatible with defaultBlockingMode set to "not_always_blocking"'
+						)
+					}
+					// if it's not explicitly set, we can't throw, so warn the user to add in the config.
+					else if (ctx.config.defaultBlockingMode !== 'always_blocking') {
+						console.error(
+							'[Houdini][client-plugin] throwOnError can work properly only if you set defaultBlockingMode to "always_blocking" in the config'
+						)
+					}
+				}
+				next(ctx)
+			},
 			async end(ctx, { value, resolve }) {
 				// if we are supposed to throw and there are errors
 				if (value.errors && value.errors.length > 0 && throwOnKind(ctx.artifact.kind)) {
