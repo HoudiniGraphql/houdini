@@ -1,3 +1,5 @@
+import type { QueryStoreFetchParams } from '../query'
+
 type ValuesOf<Target> = Target[keyof Target]
 
 export const CachePolicy = {
@@ -251,6 +253,47 @@ export type ValueNode =
 	| ObjectValueNode
 
 export type ValueMap = Record<string, ValueNode>
+
+export type FetchFn<_Data extends GraphQLObject, _Input = any> = (
+	params?: QueryStoreFetchParams<_Data, _Input>
+) => Promise<QueryResult<_Data, _Input>>
+
+export type CursorHandlers<_Data extends GraphQLObject, _Input> = {
+	loadNextPage: (args?: {
+		first?: number
+		after?: string
+		fetch?: typeof globalThis.fetch
+		metadata?: {}
+	}) => Promise<void>
+	loadPreviousPage: (args?: {
+		last?: number
+		before?: string
+		fetch?: typeof globalThis.fetch
+		metadata?: {}
+	}) => Promise<void>
+	fetch(
+		args?: QueryStoreFetchParams<_Data, _Input> | undefined
+	): Promise<QueryResult<_Data, _Input>>
+}
+
+export type OffsetHandlers<_Data extends GraphQLObject, _Input> = {
+	loadNextPage: (args?: {
+		limit?: number
+		offset?: number
+		metadata?: {}
+		fetch?: typeof globalThis.fetch
+	}) => Promise<void>
+	fetch(
+		args?: QueryStoreFetchParams<_Data, _Input> | undefined
+	): Promise<QueryResult<_Data, _Input>>
+}
+
+export type PageInfo = {
+	startCursor: string | null
+	endCursor: string | null
+	hasNextPage: boolean
+	hasPreviousPage: boolean
+}
 
 interface IntValueNode {
 	readonly kind: 'IntValue'

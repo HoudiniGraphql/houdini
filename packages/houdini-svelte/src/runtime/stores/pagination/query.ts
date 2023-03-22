@@ -1,9 +1,17 @@
-import type { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
+import { extractPageInfo } from '$houdini/runtime/lib/pageInfo'
+import { cursorHandlers, offsetHandlers } from '$houdini/runtime/lib/pagination'
+import type {
+	GraphQLObject,
+	QueryArtifact,
+	QueryResult,
+	CursorHandlers,
+	OffsetHandlers,
+	PageInfo,
+} from '$houdini/runtime/lib/types'
 import { get, derived } from 'svelte/store'
 import type { Subscriber } from 'svelte/store'
 
 import { getClient, initClient } from '../../client'
-import type { CursorHandlers, OffsetHandlers } from '../../types'
 import type {
 	ClientFetchParams,
 	LoadEventFetchParams,
@@ -12,9 +20,6 @@ import type {
 	StoreConfig,
 } from '../query'
 import { QueryStore } from '../query'
-import { cursorHandlers } from './cursor'
-import { offsetHandlers } from './offset'
-import { extractPageInfo, type PageInfo } from './pageInfo'
 
 export type CursorStoreResult<_Data extends GraphQLObject, _Input extends {}> = QueryResult<
 	_Data,
@@ -46,7 +51,6 @@ export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> ex
 
 		this.#_handlers = cursorHandlers<_Data, _Input>({
 			artifact: this.artifact,
-			initialValue: get(this.observer).data,
 			getState: () => get(this.observer).data,
 			getVariables: () => get(this.observer).variables!,
 			storeName: this.name,

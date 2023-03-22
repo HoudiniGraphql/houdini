@@ -3,12 +3,14 @@ import type {
 	CompiledFragmentKind,
 	QueryResult,
 	GraphQLObject,
+	CursorHandlers,
+	OffsetHandlers,
+	PageInfo,
 } from '$houdini/runtime/lib/types'
 import type { LoadEvent } from '@sveltejs/kit'
 import type { Readable, Writable } from 'svelte/store'
 
 import type { QueryStoreFetchParams } from './stores'
-import type { PageInfo } from './stores/pagination/pageInfo'
 
 export type QueryInputs<_Data> = FetchQueryResult<_Data> & { variables: { [key: string]: any } }
 
@@ -68,34 +70,3 @@ export type OffsetFragmentStoreInstance<_Data extends GraphQLObject, _Input> = {
 	subscribe: Readable<Reshape<_Data, _Input>>['subscribe']
 	fetching: Readable<boolean>
 } & OffsetHandlers<_Data, _Input>
-
-export type CursorHandlers<_Data extends GraphQLObject, _Input> = {
-	loadNextPage: (args?: {
-		first?: number
-		after?: string
-		fetch?: typeof globalThis.fetch
-		metadata?: {}
-	}) => Promise<void>
-	loadPreviousPage: (args?: {
-		last?: number
-		before?: string
-		fetch?: typeof globalThis.fetch
-		metadata?: {}
-	}) => Promise<void>
-	pageInfo: Writable<PageInfo>
-	fetch(
-		args?: QueryStoreFetchParams<_Data, _Input> | undefined
-	): Promise<QueryResult<_Data, _Input>>
-}
-
-export type OffsetHandlers<_Data extends GraphQLObject, _Input> = {
-	loadNextPage: (args?: {
-		limit?: number
-		offset?: number
-		metadata?: {}
-		fetch?: typeof globalThis.fetch
-	}) => Promise<void>
-	fetch(
-		args?: QueryStoreFetchParams<_Data, _Input> | undefined
-	): Promise<QueryResult<_Data, _Input>>
-}
