@@ -15,7 +15,7 @@ export function useFragment<
 	// @ts-expect-error: typescript can't guarantee that the fragment key is defined
 	// but if its not, then the fragment wasn't mixed into the right thing
 	// the variables for the fragment live on the initial value's $fragment key
-	const { variables, parent } = reference?.[fragmentKey]?.[artifact.name] ?? {}
+	const { variables, parent } = reference?.[fragmentKey]?.[document.artifact.name] ?? {}
 	if (reference && fragmentKey in reference && (!variables || !parent)) {
 		console.warn(
 			`⚠️ Parent does not contain the information for this fragment. Something is wrong.
