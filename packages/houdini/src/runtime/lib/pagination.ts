@@ -1,14 +1,10 @@
-import { CachePolicy } from '.'
-import { getSession } from '../../session'
 import type { SendParams } from '../client/documentStore'
-import type { GraphQLObject, QueryArtifact, QueryResult } from '../lib/types'
-import type { QueryStoreFetchParams } from '../query'
-import { fetchParams } from '../query'
 import { getCurrentConfig } from './config'
 import { siteURL } from './constants'
 import { deepEquals } from './deepEquals'
 import { countPage, extractPageInfo, missingPageSizeError } from './pageInfo'
-import type { CursorHandlers, FetchFn } from './types'
+import { CachePolicy } from './types'
+import type { CursorHandlers, FetchFn, GraphQLObject, QueryArtifact, QueryResult } from './types'
 
 export function cursorHandlers<_Data extends GraphQLObject, _Input extends Record<string, any>>({
 	artifact,
@@ -17,6 +13,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 	fetch: parentFetch,
 	getState,
 	getVariables,
+	getSession,
 }: {
 	artifact: QueryArtifact
 	storeName: string
@@ -24,6 +21,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 	getState: () => _Data | null
 	getVariables: () => _Input
 	fetchUpdate: (arg: SendParams, updates: string[]) => ReturnType<FetchFn<_Data, _Input>>
+	getSession: () => Promise<App.Session>
 }): Omit<CursorHandlers<_Data, _Input>, 'pageInfo'> {
 	// dry up the page-loading logic
 	const loadPage = async ({
@@ -58,8 +56,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 		let isSinglePage = artifact.refetch?.mode === 'SinglePage'
 
 		// send the query
-		const targetFetch = isSinglePage ? parentFetch : parentFetchUpdate
-		const { data } = await targetFetch(
+		await (isSinglePage ? parentFetch : parentFetchUpdate)(
 			{
 				variables: loadVariables,
 				fetch,
@@ -263,6 +260,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends {}>({
 	getVariables,
 	fetch: parentFetch,
 	fetchUpdate: parentFetchUpdate,
+	getSession,
 }: {
 	artifact: QueryArtifact
 	fetch: FetchFn<_Data, _Input>
@@ -270,6 +268,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends {}>({
 	storeName: string
 	getState: () => _Data | null
 	getVariables: () => _Input
+	getSession: () => Promise<App.Session>
 }) {
 	// we need to track the most recent offset for this handler
 	let getOffset = () =>
