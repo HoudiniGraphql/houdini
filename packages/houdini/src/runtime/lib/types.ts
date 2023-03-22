@@ -1,5 +1,3 @@
-import type { QueryStoreFetchParams } from '../query'
-
 type ValuesOf<Target> = Target[keyof Target]
 
 export const CachePolicy = {
@@ -254,8 +252,26 @@ export type ValueNode =
 
 export type ValueMap = Record<string, ValueNode>
 
+export type FetchParams<_Input> = {
+	variables?: _Input
+
+	/**
+	 * The policy to use when performing the fetch. If set to CachePolicy.NetworkOnly,
+	 * a request will always be sent, even if the variables are the same as the last call
+	 * to fetch.
+	 */
+	policy?: CachePolicies
+
+	/**
+	 * An object that will be passed to the fetch function.
+	 * You can do what you want with it!
+	 */
+	// @ts-ignore
+	metadata?: App.Metadata
+}
+
 export type FetchFn<_Data extends GraphQLObject, _Input = any> = (
-	params?: QueryStoreFetchParams<_Data, _Input>
+	params?: FetchParams<_Input>
 ) => Promise<QueryResult<_Data, _Input>>
 
 export type CursorHandlers<_Data extends GraphQLObject, _Input> = {
@@ -271,9 +287,7 @@ export type CursorHandlers<_Data extends GraphQLObject, _Input> = {
 		fetch?: typeof globalThis.fetch
 		metadata?: {}
 	}) => Promise<void>
-	fetch(
-		args?: QueryStoreFetchParams<_Data, _Input> | undefined
-	): Promise<QueryResult<_Data, _Input>>
+	fetch(args?: FetchParams<_Input> | undefined): Promise<QueryResult<_Data, _Input>>
 }
 
 export type OffsetHandlers<_Data extends GraphQLObject, _Input> = {
@@ -283,9 +297,7 @@ export type OffsetHandlers<_Data extends GraphQLObject, _Input> = {
 		metadata?: {}
 		fetch?: typeof globalThis.fetch
 	}) => Promise<void>
-	fetch(
-		args?: QueryStoreFetchParams<_Data, _Input> | undefined
-	): Promise<QueryResult<_Data, _Input>>
+	fetch(args?: FetchParams<_Input> | undefined): Promise<QueryResult<_Data, _Input>>
 }
 
 export type PageInfo = {

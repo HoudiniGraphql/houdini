@@ -3,7 +3,7 @@ import { getCurrentConfig } from './config'
 import { siteURL } from './constants'
 import { deepEquals } from './deepEquals'
 import { countPage, extractPageInfo, missingPageSizeError } from './pageInfo'
-import { CachePolicy } from './types'
+import { CachePolicy, FetchParams } from './types'
 import type { CursorHandlers, FetchFn, GraphQLObject, QueryArtifact, QueryResult } from './types'
 
 export function cursorHandlers<_Data extends GraphQLObject, _Input extends Record<string, any>>({
@@ -174,17 +174,14 @@ If you think this is an error, please open an issue on GitHub`)
 				where: 'start',
 			})
 		},
-		async fetch(
-			args?: QueryStoreFetchParams<_Data, _Input>
-		): Promise<QueryResult<_Data, _Input>> {
-			// validate and prepare the request context for the current environment (client vs server)
-			const { params } = await fetchParams(artifact, storeName, args)
+		async fetch(args?: FetchParams<_Input>): Promise<QueryResult<_Data, _Input>> {
+			// const { params } = await fetchParams(artifact, storeName, args)
 
-			const { variables } = params ?? {}
+			const { variables } = args ?? {}
 
 			// if the input is different than the query variables then we just do everything like normal
 			if (variables && !deepEquals(getVariables(), variables)) {
-				return await parentFetch(params)
+				return await parentFetch(args)
 			}
 
 			// we need to find the connection object holding the current page info
@@ -192,7 +189,7 @@ If you think this is an error, please open an issue on GitHub`)
 				var currentPageInfo = extractPageInfo(getState(), artifact.refetch!.path)
 			} catch {
 				// if there was any issue getting the page info, just fetch like normal
-				return await parentFetch(params)
+				return await parentFetch(args)
 			}
 
 			// build up the variables to pass to the query
@@ -244,7 +241,7 @@ Make sure to pass a cursor value by hand that includes the current set (ie the e
 
 			// send the query
 			const result = await parentFetch({
-				...params,
+				...args,
 				variables: queryVariables as _Input,
 			})
 
@@ -322,12 +319,8 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends {}>({
 			const pageSize = queryVariables.limit || artifact.refetch!.pageSize
 			currentOffset = offset + pageSize
 		},
-		async fetch(
-			args?: QueryStoreFetchParams<_Data, _Input>
-		): Promise<QueryResult<_Data, _Input>> {
-			const { params } = await fetchParams(artifact, storeName, args)
-
-			const { variables } = params ?? {}
+		async fetch(params: FetchParams<_Input> = {}): Promise<QueryResult<_Data, _Input>> {
+			const { variables } = params
 
 			// if the input is different than the query variables then we just do everything like normal
 			if (variables && !deepEquals(getVariables(), variables)) {

@@ -12,13 +12,14 @@ import { get, derived } from 'svelte/store'
 import type { Subscriber } from 'svelte/store'
 
 import { getClient, initClient } from '../../client'
+import { getSession } from '../../session'
 import type {
 	ClientFetchParams,
 	LoadEventFetchParams,
 	QueryStoreFetchParams,
 	RequestEventFetchParams,
-	StoreConfig,
-} from '../query'
+} from '../../types'
+import { fetchParams, StoreConfig } from '../query'
 import { QueryStore } from '../query'
 
 export type CursorStoreResult<_Data extends GraphQLObject, _Input extends {}> = QueryResult<
@@ -58,6 +59,7 @@ export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> ex
 			getVariables: () => get(this.observer).variables!,
 			storeName: this.name,
 			fetch: super.fetch.bind(this),
+			getSession: getSession,
 			fetchUpdate: async (args, updates) => {
 				return paginationObserver.send({
 					...args,
@@ -78,8 +80,9 @@ export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> ex
 	fetch(params?: ClientFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
+		const { params } = await fetchParams(this.artifact, this.storeName, args)
 		const handlers = await this.#handlers()
-		return await handlers.fetch.call(this, args)
+		return await handlers.fetch.call(this, params)
 	}
 
 	async loadPreviousPage(
@@ -149,6 +152,7 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input extends {}> ex
 			fetch: super.fetch,
 			getState: () => get(this.observer).data,
 			getVariables: () => get(this.observer).variables!,
+			getSession: getSession,
 			fetchUpdate: async (args) => {
 				await initClient()
 				return paginationObserver.send({
