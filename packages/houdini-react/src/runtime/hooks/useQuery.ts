@@ -4,34 +4,21 @@ import {
 	ArtifactKind,
 	GraphQLObject,
 	CachePolicies,
-	QueryResult,
 } from '$houdini/runtime/lib/types'
 import React from 'react'
 
 import { useLiveDocument } from './useLiveDocument'
+import { QueryMeta, useQueryMeta } from './useQueryMeta'
 
-type QueryFetch<_Data extends GraphQLObject = GraphQLObject, _Input extends {} = []> = (args?: {
-	variables?: _Input
-	policy?: CachePolicies
-	metadata?: App.Metadata
-}) => Promise<QueryResult<_Data, _Input>>
-
-type UseQueryConfig = {
-	policy?: CachePolicies
-	metadata?: App.Metadata
-}
-
-export function useQuery<_Data extends GraphQLObject = GraphQLObject, _Input extends {} = []>(
-	artifact: QueryArtifact,
+export function useQuery<
+	_Artifact extends QueryArtifact,
+	_Data extends GraphQLObject = GraphQLObject,
+	_Input extends {} = []
+>(
+	artifact: _Artifact,
 	variables: any = null,
 	config: UseQueryConfig = {}
-): [
-	_Data,
-	{
-		partial: boolean
-		fetch: QueryFetch<_Data, _Input>
-	}
-] {
+): [_Data, QueryMeta<_Artifact, _Data, _Input>] {
 	const [storeValue, observer] = useLiveDocument<_Data, _Input>({
 		artifact,
 		variables,
@@ -90,14 +77,18 @@ export function useQuery<_Data extends GraphQLObject = GraphQLObject, _Input ext
 		throw observer.pendingPromise
 	}
 
-	const fetchQuery: QueryFetch<_Data, _Input> = ({ variables, policy, metadata } = {}) => {
-		return observer.send({
-			variables,
-			policy,
-			metadata,
-		})
-	}
+	// compute the meta object for this artifact
+	const queryMeta = useQueryMeta<_Artifact, _Data, _Input>({
+		artifact,
+		observer,
+		storeValue,
+	})
 
 	// make sure we prefer the latest store value instead of the initial version we loaded on mount
-	return [storeValue.data ?? localData!, { fetch: fetchQuery, partial: storeValue.partial }]
+	return [storeValue.data ?? localData!, queryMeta]
+}
+
+type UseQueryConfig = {
+	policy?: CachePolicies
+	metadata?: App.Metadata
 }

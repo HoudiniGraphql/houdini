@@ -42,6 +42,10 @@ Please ensure that you have passed a record that has ${artifact.name} mixed into
 			stuff: {
 				parentID: parent,
 			},
+			// setup = true?
+			// we don't need to do the first read because we
+			// have an initial value...
+			// does Boolean(initialValue) === { setup: true }
 		},
 	})
 
