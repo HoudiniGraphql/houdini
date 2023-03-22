@@ -1,12 +1,43 @@
 # houdini-svelte
 
+## 1.1.3
+
+### 🐛 Fixes
+
+-   [#1011](https://github.com/HoudiniGraphql/houdini/pull/1011) [`d1529363`](https://github.com/HoudiniGraphql/houdini/commit/d1529363ce63e7b015f508142d080a08c94ed350) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix initialization issue in paginated queries
+
+### Dependency Changes
+
+-   Updated dependencies []:
+    -   houdini@1.1.3
+
+## 1.1.2
+
+### Dependency Changes
+
+-   Updated dependencies [[`09c35bb6`](https://github.com/HoudiniGraphql/houdini/commit/09c35bb60a605894c8360037e757280f0b899bc3), [`f7fd8777`](https://github.com/HoudiniGraphql/houdini/commit/f7fd87770178014f49d6f50f86a7402269642f21)]:
+    -   houdini@1.1.2
+
+## 1.1.1
+
+### 🐛 Fixes
+
+-   [#988](https://github.com/HoudiniGraphql/houdini/pull/988) [`a217c0c6`](https://github.com/HoudiniGraphql/houdini/commit/a217c0c6e0d8e2298d511db855f7df0e06539069) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix subscription fetching state tracking
+
+-   [#954](https://github.com/HoudiniGraphql/houdini/pull/992) [`712bf948`](https://github.com/HoudiniGraphql/houdini/tree/712bf9483e8bdd0f3c2c063ffbbd3b0e9f0267a8) Thanks [@AlecAivazis](https://github.com/AlecAivazis) and [@SeppahBaws](https://github.com/SeppahBaws)! - Fix bug with fragments mixed into fields decorated with `@list`.
+
+### Dependency Changes
+
+-   Updated dependencies [[`54e8c453`](https://github.com/HoudiniGraphql/houdini/commit/54e8c4535ce7b9d0d29f9ef4073e173652bf0cb3)]:
+    -   houdini@1.1.1
+
 ## 1.1.0
 
 ### ✨ Features
 
 -   [#954](https://github.com/HoudiniGraphql/houdini/pull/954) [`f94b6ca`](https://github.com/HoudiniGraphql/houdini/commit/f94b6caf8bda21fdbe22b466dc01cb8f8f40448f) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Improve performance by using fragments for fine-grain reactivity
 
-### Patch Changes
+### Dependency Updates
 
 -   Updated dependencies [[`f94b6ca`](https://github.com/HoudiniGraphql/houdini/commit/f94b6caf8bda21fdbe22b466dc01cb8f8f40448f)]:
     -   houdini@1.1.0

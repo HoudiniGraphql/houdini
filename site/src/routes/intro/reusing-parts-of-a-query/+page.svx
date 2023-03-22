@@ -166,7 +166,7 @@ Before we add anything to our route, let's update the component defined in `src/
 
 <a href={$preview.id}>
     <Number value={number} />
-    <Sprite {species} />
+    <Sprite species={$preview} />
     <Display>
         {$preview.name}
     </Display>

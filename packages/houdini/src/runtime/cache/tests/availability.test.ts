@@ -453,8 +453,8 @@ test('missing cursor of item in connection from operation should not trigger nul
 
 	// add some data to the cache with an incomplete set of values for an element
 	// inside of a list
-	cache.list('All_Users').prepend(
-		{
+	cache.list('All_Users').prepend({
+		selection: {
 			fields: {
 				__typename: {
 					type: 'String',
@@ -473,12 +473,12 @@ test('missing cursor of item in connection from operation should not trigger nul
 				},
 			},
 		},
-		{
+		data: {
 			__typename: 'User',
 			id: '2',
 			firstName: 'Sally',
-		}
-	)
+		},
+	})
 
 	expect(cache.read({ selection })).not.toMatchObject({
 		data: {

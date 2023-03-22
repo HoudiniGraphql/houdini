@@ -70,6 +70,7 @@ test('pagination arguments stripped from key', async function () {
 		    }
 		  }
 		  id
+		  __typename
 		}
 		\`,
 
@@ -173,6 +174,12 @@ test('pagination arguments stripped from key', async function () {
 		                "type": "ID",
 		                "keyRaw": "id",
 		                "visible": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename",
+		                "visible": true
 		            }
 		        }
 		    },
@@ -259,6 +266,7 @@ test('pagination arguments stays in key as it s a SinglePage Mode', async functi
 		    }
 		  }
 		  id
+		  __typename
 		}
 		\`,
 
@@ -362,6 +370,12 @@ test('pagination arguments stays in key as it s a SinglePage Mode', async functi
 		                "type": "ID",
 		                "keyRaw": "id",
 		                "visible": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename",
+		                "visible": true
 		            }
 		        }
 		    },
@@ -422,6 +436,7 @@ test('offset based pagination marks appropriate field', async function () {
 		    id
 		  }
 		  id
+		  __typename
 		}
 		\`,
 
@@ -450,6 +465,12 @@ test('offset based pagination marks appropriate field', async function () {
 		            "id": {
 		                "type": "ID",
 		                "keyRaw": "id",
+		                "visible": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename",
 		                "visible": true
 		            }
 		        }
@@ -835,6 +856,7 @@ test("sibling aliases don't get marked", async function () {
 		    }
 		  }
 		  id
+		  __typename
 		}
 		\`,
 
@@ -1057,6 +1079,12 @@ test("sibling aliases don't get marked", async function () {
 		            "id": {
 		                "type": "ID",
 		                "keyRaw": "id",
+		                "visible": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename",
 		                "visible": true
 		            }
 		        }

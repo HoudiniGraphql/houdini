@@ -97,7 +97,6 @@ jobs:
             matrix:
                 os: [ubuntu-latest, windows-latest]
                 framework: [e2e-svelte, e2e-kit]
-            fail-fast: false
         runs-on: ${{ matrix.os }}
 
         steps:

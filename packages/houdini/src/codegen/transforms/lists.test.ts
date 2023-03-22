@@ -37,12 +37,8 @@ test('insert fragments on query selection set', async function () {
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		mutation UpdateUser {
 		  updateUser {
-		    ... on User {
-		      firstName
-		      id
-		    }
-		    id
 		    ...User_Friends_insert
+		    id
 		  }
 		}
 
@@ -85,11 +81,8 @@ test('delete fragments on query selection set', async function () {
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		mutation UpdateUser {
 		  updateUser {
-		    ... on User {
-		      id
-		    }
-		    id
 		    ...User_Friends_remove
+		    id
 		  }
 		}
 
@@ -129,12 +122,8 @@ test('list fragments on fragment selection set', async function () {
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		mutation UpdateUser {
 		  updateUser {
-		    ... on User {
-		      firstName
-		      id
-		    }
-		    id
 		    ...User_Friends_insert @prepend @parentID(value: "1234")
+		    id
 		  }
 		}
 
@@ -252,6 +241,7 @@ test("fragment with list doesn't clutter its definition", async function () {
 		    id
 		  }
 		  id
+		  __typename
 		}
 	`)
 })
@@ -286,12 +276,8 @@ test('includes `id` in list fragment', async function () {
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		mutation UpdateUser {
 		  updateUser {
-		    ... on User {
-		      id
-		      firstName
-		    }
-		    id
 		    ...User_Friends_insert @prepend @parentID(value: "1234")
+		    id
 		  }
 		}
 
@@ -337,9 +323,13 @@ test('connections marked with list directive get cursor information', async func
 		        friends {
 		          id
 		        }
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
 		        __typename
 		      }
-		      cursor
 		    }
 		    pageInfo {
 		      hasPreviousPage
@@ -349,6 +339,7 @@ test('connections marked with list directive get cursor information', async func
 		    }
 		  }
 		  id
+		  __typename
 		}
 	`)
 })
@@ -390,15 +381,8 @@ test('includes node selection on connection', async function () {
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		mutation UpdateUser {
 		  updateUser {
-		    ... on User {
-		      id
-		      firstName
-		      friends {
-		        id
-		      }
-		    }
-		    id
 		    ...User_Friends_insert @prepend @parentID(value: "1234")
+		    id
 		  }
 		}
 
@@ -447,9 +431,13 @@ test('list flags connections', async function () {
 		        friends {
 		          id
 		        }
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
 		        __typename
 		      }
-		      cursor
 		    }
 		    pageInfo {
 		      hasPreviousPage
@@ -459,6 +447,7 @@ test('list flags connections', async function () {
 		    }
 		  }
 		  id
+		  __typename
 		}
 	`)
 })
@@ -583,15 +572,8 @@ test('paginate with name also gets treated as a list', async function () {
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		mutation UpdateUser {
 		  updateUser {
-		    ... on User {
-		      id
-		      firstName
-		      friends {
-		        id
-		      }
-		    }
-		    id
 		    ...User_Friends_insert @prepend @parentID(value: "1234")
+		    id
 		  }
 		}
 

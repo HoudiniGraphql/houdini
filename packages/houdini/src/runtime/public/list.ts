@@ -39,7 +39,10 @@ export class ListCollection<Def extends CacheTypeDef, ListName extends ValidList
 		const { selection, data } = this.#listOperationPayload(records)
 		for (const entry of data) {
 			if (entry) {
-				this.#collection.append(selection, entry)
+				this.#collection.append({
+					selection,
+					data: entry,
+				})
 			}
 		}
 	}
@@ -52,7 +55,10 @@ export class ListCollection<Def extends CacheTypeDef, ListName extends ValidList
 		const { selection, data } = this.#listOperationPayload(records)
 		for (const entry of data) {
 			if (entry) {
-				this.#collection.prepend(selection, entry)
+				this.#collection.prepend({
+					selection,
+					data: entry,
+				})
 			}
 		}
 	}
@@ -65,7 +71,11 @@ export class ListCollection<Def extends CacheTypeDef, ListName extends ValidList
 		const { selection, data } = this.#listOperationPayload(records)
 		for (const entry of data) {
 			if (entry) {
-				this.#collection.toggleElement(selection, entry, {}, where)
+				this.#collection.toggleElement({
+					selection,
+					data: entry,
+					where,
+				})
 			}
 		}
 	}

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { routes } from '../../lib/utils/routes.js';
-import { expect_to_be, expect_n_gql, goto, expect_1_gql } from '../../lib/utils/testsHelper.js';
+import { expect_1_gql, expect_to_be, goto } from '../../lib/utils/testsHelper.js';
 
 test.describe('customIDs', () => {
   test('Mutation should update the cache', async ({ page }) => {

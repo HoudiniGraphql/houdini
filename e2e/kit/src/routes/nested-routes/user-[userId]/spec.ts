@@ -14,7 +14,8 @@ test.describe('+Layout.gql', () => {
     await goto(page, routes.Home);
 
     const listStr = await expect_n_gql(page, navSelector(routes.nested_routes), 1);
-    const expected = [`{"data":{"user":{"id":"Page_User:2","name":"Samuel Jackson"}}}`];
-    expect(listStr).toStrictEqual(expected);
+    expect(JSON.parse(listStr[0])).toMatchObject({
+      data: { user: { id: 'Page_User:2', name: 'Samuel Jackson' } }
+    });
   });
 });

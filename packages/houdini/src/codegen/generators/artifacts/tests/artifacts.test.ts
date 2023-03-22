@@ -77,6 +77,7 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		    "raw": \`fragment TestFragment on User {
 		  firstName
 		  id
+		  __typename
 		}
 		\`,
 
@@ -93,6 +94,12 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		            "id": {
 		                "type": "ID",
 		                "keyRaw": "id",
+		                "visible": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename",
 		                "visible": true
 		            }
 		        }
@@ -134,6 +141,7 @@ test('selection includes fragments', async function () {
 		fragment TestFragment on User {
 		  firstName
 		  id
+		  __typename
 		}
 		\`,
 
@@ -156,6 +164,11 @@ test('selection includes fragments', async function () {
 		                            "type": "ID",
 		                            "keyRaw": "id",
 		                            "visible": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename"
 		                        }
 		                    },
 
@@ -186,6 +199,7 @@ test('selection includes fragments', async function () {
 		    "raw": \`fragment TestFragment on User {
 		  firstName
 		  id
+		  __typename
 		}
 		\`,
 
@@ -202,6 +216,12 @@ test('selection includes fragments', async function () {
 		            "id": {
 		                "type": "ID",
 		                "keyRaw": "id",
+		                "visible": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename",
 		                "visible": true
 		            }
 		        }
@@ -242,6 +262,7 @@ test('internal directives are scrubbed', async function () {
 		fragment A on User {
 		  firstName
 		  id
+		  __typename
 		}
 		\`,
 
@@ -264,6 +285,11 @@ test('internal directives are scrubbed', async function () {
 		                            "type": "ID",
 		                            "keyRaw": "id",
 		                            "visible": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename"
 		                        }
 		                    },
 
@@ -320,6 +346,7 @@ test('variables only used by internal directives are scrubbed', async function (
 		fragment A on User {
 		  firstName
 		  id
+		  __typename
 		}
 		\`,
 
@@ -342,6 +369,11 @@ test('variables only used by internal directives are scrubbed', async function (
 		                            "type": "ID",
 		                            "keyRaw": "id",
 		                            "visible": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename"
 		                        }
 		                    },
 
@@ -402,6 +434,7 @@ test('overlapping query and fragment selection', async function () {
 		fragment A on User {
 		  firstName
 		  id
+		  __typename
 		}
 		\`,
 
@@ -425,6 +458,11 @@ test('overlapping query and fragment selection', async function () {
 		                            "type": "ID",
 		                            "keyRaw": "id",
 		                            "visible": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename"
 		                        }
 		                    },
 
@@ -828,6 +866,7 @@ test('overlapping query and fragment nested selection', async function () {
 		    id
 		  }
 		  id
+		  __typename
 		}
 		\`,
 
@@ -1721,7 +1760,6 @@ test('selections with concrete types matching multiple abstract types', async fu
 describe('mutation artifacts', function () {
 	test('empty operation list', async function () {
 		// the config to use in tests
-		const config = testConfig()
 		const cfg = testConfig({ module: 'esm' })
 
 		const docs = [
@@ -4878,12 +4916,14 @@ test('nested recursive fragments', async function () {
 		  ... on User {
 		    id
 		  }
+		  __typename
 		}
 
 		fragment UserThings on User {
 		  id
 		  name
 		  ...NodeDetails
+		  __typename
 		}
 		\`,
 
@@ -4897,6 +4937,20 @@ test('nested recursive fragments', async function () {
 		                "nullable": true,
 
 		                "selection": {
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id",
+		                            "visible": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename",
+		                            "visible": true
+		                        }
+		                    },
+
 		                    "abstractFields": {
 		                        "fields": {
 		                            "User": {
@@ -4920,20 +4974,6 @@ test('nested recursive fragments', async function () {
 		                        },
 
 		                        "typeMap": {}
-		                    },
-
-		                    "fields": {
-		                        "id": {
-		                            "type": "ID",
-		                            "keyRaw": "id",
-		                            "visible": true
-		                        },
-
-		                        "__typename": {
-		                            "type": "String",
-		                            "keyRaw": "__typename",
-		                            "visible": true
-		                        }
 		                    },
 
 		                    "fragments": {
@@ -5003,6 +5043,7 @@ test('leave @include and @skip alone', async function () {
 		  ... on User {
 		    id
 		  }
+		  __typename
 		}
 		\`,
 
@@ -5041,7 +5082,8 @@ test('leave @include and @skip alone', async function () {
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            }
 		                        },
@@ -5116,6 +5158,7 @@ test('fragment references are embedded in artifact', async function () {
 		  ... on User {
 		    id
 		  }
+		  __typename
 		}
 		\`,
 
@@ -5154,7 +5197,8 @@ test('fragment references are embedded in artifact', async function () {
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            }
 		                        },
@@ -5227,6 +5271,7 @@ test('fragment variables are embedded in artifact', async function () {
 		    id
 		  }
 		  id
+		  __typename
 		}
 		\`,
 
@@ -5271,7 +5316,8 @@ test('fragment variables are embedded in artifact', async function () {
 
 		                                "__typename": {
 		                                    "type": "String",
-		                                    "keyRaw": "__typename"
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                }
 		                            }
 		                        },
@@ -5347,6 +5393,7 @@ test('fragment references in inline fragment', async function () {
 		fragment UserFragmentTestFragment on User {
 		  name
 		  id
+		  __typename
 		}
 		\`,
 
@@ -5363,15 +5410,15 @@ test('fragment references in inline fragment', async function () {
 		                    "abstractFields": {
 		                        "fields": {
 		                            "User": {
+		                                "name": {
+		                                    "type": "String",
+		                                    "keyRaw": "name"
+		                                },
+
 		                                "id": {
 		                                    "type": "ID",
 		                                    "keyRaw": "id",
 		                                    "visible": true
-		                                },
-
-		                                "name": {
-		                                    "type": "String",
-		                                    "keyRaw": "name"
 		                                },
 
 		                                "__typename": {
@@ -5467,6 +5514,7 @@ test('masking disabled', async function () {
 		fragment UserFragmentTestFragment on User {
 		  name
 		  id
+		  __typename
 		}
 		\`,
 
@@ -5581,11 +5629,13 @@ test('fragment nested in root', async function () {
 		  id
 		  firstName
 		  ...UserMore
+		  __typename
 		}
 
 		fragment UserMore on User {
 		  id
 		  firstName
+		  __typename
 		}
 		\`,
 
@@ -5602,6 +5652,12 @@ test('fragment nested in root', async function () {
 		            "firstName": {
 		                "type": "String",
 		                "keyRaw": "firstName",
+		                "visible": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename",
 		                "visible": true
 		            }
 		        },

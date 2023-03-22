@@ -1,5 +1,21 @@
 # houdini
 
+## 1.1.3
+
+## 1.1.2
+
+### 🐛 Fixes
+
+-   [#1000](https://github.com/HoudiniGraphql/houdini/pull/1000) [`09c35bb6`](https://github.com/HoudiniGraphql/houdini/commit/09c35bb60a605894c8360037e757280f0b899bc3) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug with fragments that rely on abstract selections
+
+-   [#966](https://github.com/HoudiniGraphql/houdini/pull/966) [`f7fd8777`](https://github.com/HoudiniGraphql/houdini/commit/f7fd87770178014f49d6f50f86a7402269642f21) Thanks [@jycouet](https://github.com/jycouet)! - Fix bug when reverting optimistic responses containing list operations
+
+## 1.1.1
+
+### ✨ Features
+
+-   [#995](https://github.com/HoudiniGraphql/houdini/pull/995) [`54e8c453`](https://github.com/HoudiniGraphql/houdini/commit/54e8c4535ce7b9d0d29f9ef4073e173652bf0cb3) Thanks [@fnimick](https://github.com/fnimick)! - Add explicit error for multiple operations/fragments in a single document
+
 ## 1.1.0
 
 ### ✨ Features

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { graphql } from '$houdini';
 
-  export function _FragmentQueryVarsVariables({ props }: { props: { id?: string } }) {
+  export function _ComponentQueryTestVariables({ props }: { props: { id?: string } }) {
     return {
       id: props.id || '3'
     };
@@ -11,7 +11,7 @@
   export let id = '';
 
   $: result = graphql(`
-    query FragmentQueryVars($id: ID!) @load {
+    query ComponentQueryTest($id: ID!) @load {
       user(id: $id, snapshot: "preprocess-query-variable") {
         name
       }
