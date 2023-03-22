@@ -1,8 +1,8 @@
 import cache from '$houdini/runtime/cache'
-import type { GraphQLObject, FragmentArtifact } from '$houdini/runtime/lib/types'
+import type { GraphQLObject, FragmentArtifact, QueryArtifact } from '$houdini/runtime/lib/types'
 import { fragmentKey } from '$houdini/runtime/lib/types'
 
-import { useLiveDocument } from './useLiveDocument'
+import { useDocumentSubscription } from './useDocumentSubscription'
 
 export function useFragment<
 	_Data extends GraphQLObject,
@@ -37,7 +37,7 @@ Please ensure that you have passed a record that has ${document.artifact.name} m
 	}
 
 	// we're ready to setup the live document
-	const [storeValue] = useLiveDocument<_Data, _Input>({
+	const [storeValue] = useDocumentSubscription<FragmentArtifact, _Data, _Input>({
 		artifact: document.artifact,
 		variables,
 		initialValue,

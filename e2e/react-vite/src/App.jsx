@@ -14,7 +14,7 @@ export default function App() {
 }
 
 function Query() {
-	const [data] = useQuery(
+	const data = useQuery(
 		graphql(`
 			query MyQuery {
 				user(id: "1", snapshot: "react-vite-e2e") {

@@ -1,11 +1,12 @@
-import type { QueryResult } from '$houdini/lib/types'
+import type { DocumentArtifact, QueryResult } from '$houdini/lib/types'
 import type { DocumentStore, SendParams } from '$houdini/runtime/client'
 import { GraphQLObject } from 'houdini'
 
 import useDeepCompareEffect from './useDeepCompareEffect'
 import { useDocumentStore, type UseDocumentStoreParams } from './useDocumentStore'
 
-export function useLiveDocument<
+export function useDocumentSubscription<
+	_Artifact extends DocumentArtifact = DocumentArtifact,
 	_Data extends GraphQLObject = GraphQLObject,
 	_Input extends {} = {}
 >({
@@ -13,7 +14,7 @@ export function useLiveDocument<
 	variables,
 	send,
 	...observeParams
-}: UseDocumentStoreParams<_Data> & {
+}: UseDocumentStoreParams<_Artifact, _Data> & {
 	variables: _Input
 	send?: Partial<SendParams>
 }): [QueryResult<_Data, _Input>, DocumentStore<_Data, _Input>] {

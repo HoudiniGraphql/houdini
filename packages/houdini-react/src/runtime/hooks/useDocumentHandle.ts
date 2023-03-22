@@ -16,7 +16,7 @@ import React from 'react'
 
 import { useDocumentStore } from './useDocumentStore'
 
-export function useQueryMeta<
+export function useDocumentHandle<
 	_Artifact extends QueryArtifact,
 	_Data extends GraphQLObject,
 	_Input extends Record<string, any>
@@ -28,17 +28,13 @@ export function useQueryMeta<
 	artifact: DocumentArtifact
 	observer: DocumentStore<_Data, _Input>
 	storeValue: QueryResult<_Data, _Input>
-}): QueryMeta<_Artifact, _Data, _Input> {
+}): DocumentHandle<_Artifact, _Data, _Input> {
 	// we need a document store for loading forward and backward
 	const [forwardValue, forwardObserver] = useDocumentStore({ artifact })
 	const [backwardValue, backwardObserver] = useDocumentStore({ artifact })
 
-	return React.useMemo(() => {
-		// only consider queries
-		if (artifact.kind !== ArtifactKind.Query) {
-			return {}
-		}
-
+	// @ts-expect-error: avoiding an as DocumentHandle<_Artifact, _Data, _Input>
+	return React.useMemo<DocumentHandle<_Artifact, _Data, _Input>>(() => {
 		const fetchQuery: FetchFn<_Data, _Input> = ({ variables, policy, metadata } = {}) => {
 			return observer.send({
 				variables,
@@ -47,8 +43,8 @@ export function useQueryMeta<
 			})
 		}
 
-		// if the artifact does not support pagination, we're done
-		if (!artifact.refetch?.paginated) {
+		// only consider paginated queries
+		if (artifact.kind !== ArtifactKind.Query || !artifact.refetch?.paginated) {
 			return {
 				fetch: fetchQuery,
 				partial: storeValue.partial,
@@ -60,7 +56,7 @@ export function useQueryMeta<
 
 		// if the artifact supports cursor pagination, then add the cursor handlers
 		if (artifact.refetch.method === 'cursor') {
-			const handlers = cursorHandlers({
+			const handlers = cursorHandlers<_Data, _Input>({
 				artifact,
 				getState: () => storeValue.data,
 				getVariables: () => storeValue.variables!,
@@ -80,6 +76,7 @@ export function useQueryMeta<
 			})
 
 			return {
+				fetch: handlers.fetch,
 				partial: storeValue.partial,
 				loadNext: handlers.loadNextPage,
 				isLoadingNext: forwardValue.fetching,
@@ -112,6 +109,7 @@ export function useQueryMeta<
 			})
 
 			return {
+				fetch: handlers.fetch,
 				partial: storeValue.partial,
 				loadNext: handlers.loadNextPage,
 				isLoadingNext: forwardValue.fetching,
@@ -119,19 +117,22 @@ export function useQueryMeta<
 		}
 
 		// we don't want to add anything
-		return {}
+		return {
+			fetch: fetchQuery,
+			partial: storeValue.partial,
+		}
 	}, [
 		artifact,
 		observer,
 		storeValue,
-		forwardValue,
+		forwardValue.fetching,
 		forwardObserver,
-		backwardValue,
+		backwardValue.fetching,
 		backwardObserver,
-	]) as QueryMeta<_Artifact, _Data, _Input>
+	])
 }
 
-export type QueryMeta<
+export type DocumentHandle<
 	_Artifact extends QueryArtifact,
 	_Data extends GraphQLObject = GraphQLObject,
 	_Input extends {} = []

@@ -1,4 +1,5 @@
 export { useQuery } from './useQuery'
+export { useQueryHandle, type UseQueryConfig } from './useQueryHandle'
 export { useFragment } from './useFragment'
 export { useFragmentHandle } from './useFragmentHandle'
 export { useMutation } from './useMutation'

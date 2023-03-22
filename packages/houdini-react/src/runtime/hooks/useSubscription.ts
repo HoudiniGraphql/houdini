@@ -1,6 +1,6 @@
 import { SubscriptionArtifact, GraphQLObject } from '$houdini/runtime/lib/types'
 
-import { useLiveDocument } from './useLiveDocument'
+import { useDocumentSubscription } from './useDocumentSubscription'
 
 // a hook to subscribe to a subscription artifact
 export function useSubscription<_Result extends GraphQLObject, _Input extends {}>(
@@ -8,7 +8,7 @@ export function useSubscription<_Result extends GraphQLObject, _Input extends {}
 	variables: _Input
 ) {
 	// a subscription is basically just a live document
-	const [storeValue, observer] = useLiveDocument({
+	const [storeValue, observer] = useDocumentSubscription({
 		artifact,
 		variables: variables,
 	})
