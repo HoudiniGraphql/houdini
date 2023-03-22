@@ -1,8 +1,7 @@
-import { ensureArtifactImport, find_graphql, needsRefetchArtifact, parseJS } from 'houdini'
+import { ensureArtifactImport, find_graphql, parseJS } from 'houdini'
 import type { TransformPage } from 'houdini/vite'
 import * as recast from 'recast'
 import type { SourceMapInput } from 'rollup'
-import config from 'src/runtime/imports/config'
 
 const AST = recast.types.builders
 
