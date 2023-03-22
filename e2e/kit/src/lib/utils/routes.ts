@@ -14,6 +14,7 @@ export const routes = {
 
   Lists_all: '/lists/all?limit=15',
   Lists_fragment: '/lists/fragment',
+  blocking: '/blocking',
 
   Stores_SSR: '/stores/ssr',
   Stores_Network: '/stores/network',
