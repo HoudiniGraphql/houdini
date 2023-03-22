@@ -437,7 +437,7 @@ Note that like this you will not have a store in your svelte file but directly y
 
 ## API route / endpoint
 
-Using a query store inside of an API route (or endpoint) look like this:
+Using a query store inside of an API route (or endpoint) looks like this:
 
 ```typescript:typescriptToggle=true
 import { json } from '@sveltejs/kit';
