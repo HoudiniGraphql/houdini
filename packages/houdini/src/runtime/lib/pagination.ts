@@ -17,11 +17,11 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 }: {
 	artifact: QueryArtifact
 	storeName: string
-	fetch: FetchFn<_Data, _Input>
 	getState: () => _Data | null
 	getVariables: () => _Input
-	fetchUpdate: (arg: SendParams, updates: string[]) => ReturnType<FetchFn<_Data, _Input>>
 	getSession: () => Promise<App.Session>
+	fetch: FetchFn<_Data, _Input>
+	fetchUpdate: (arg: SendParams, updates: string[]) => ReturnType<FetchFn<_Data, _Input>>
 }): Omit<CursorHandlers<_Data, _Input>, 'pageInfo'> {
 	// dry up the page-loading logic
 	const loadPage = async ({
@@ -175,8 +175,6 @@ If you think this is an error, please open an issue on GitHub`)
 			})
 		},
 		async fetch(args?: FetchParams<_Input>): Promise<QueryResult<_Data, _Input>> {
-			// const { params } = await fetchParams(artifact, storeName, args)
-
 			const { variables } = args ?? {}
 
 			// if the input is different than the query variables then we just do everything like normal

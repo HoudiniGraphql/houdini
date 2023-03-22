@@ -8,11 +8,10 @@ import type {
 	PageInfo,
 	CachePolicies,
 	HoudiniFetchContext,
+	FetchParams,
 } from '$houdini/runtime/lib/types'
 import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
 import type { Readable } from 'svelte/store'
-
-import type { QueryStoreFetchParams } from './stores'
 
 export type QueryInputs<_Data> = FetchQueryResult<_Data> & { variables: { [key: string]: any } }
 
@@ -73,23 +72,7 @@ export type OffsetFragmentStoreInstance<_Data extends GraphQLObject, _Input> = {
 	fetching: Readable<boolean>
 } & OffsetHandlers<_Data, _Input>
 
-type FetchGlobalParams<_Data extends GraphQLObject, _Input> = {
-	variables?: _Input
-
-	/**
-	 * The policy to use when performing the fetch. If set to CachePolicy.NetworkOnly,
-	 * a request will always be sent, even if the variables are the same as the last call
-	 * to fetch.
-	 */
-	policy?: CachePolicies
-
-	/**
-	 * An object that will be passed to the fetch function.
-	 * You can do what you want with it!
-	 */
-	// @ts-ignore
-	metadata?: App.Metadata
-
+type FetchGlobalParams<_Data extends GraphQLObject, _Input> = FetchParams<_Input> & {
 	/**
 	 * Set to true if you want the promise to pause while it's resolving.
 	 * Only enable this if you know what you are doing. This will cause route

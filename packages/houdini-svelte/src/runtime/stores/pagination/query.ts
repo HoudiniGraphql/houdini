@@ -80,9 +80,8 @@ export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> ex
 	fetch(params?: ClientFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
-		const { params } = await fetchParams(this.artifact, this.storeName, args)
 		const handlers = await this.#handlers()
-		return await handlers.fetch.call(this, params)
+		return await handlers.fetch.call(this, args)
 	}
 
 	async loadPreviousPage(
