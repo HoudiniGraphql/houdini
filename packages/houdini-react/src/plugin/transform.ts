@@ -23,13 +23,19 @@ export async function transformFile(
 
 	// for now, just replace them with a string
 	await find_graphql(page.config, parsed?.script, {
-		tag({ node, parsedDocument, artifact }) {
+		tag({ node, artifact }) {
 			const artifactID = ensureArtifactImport({
 				config: page.config,
 				artifact,
 				body: parsed.script.body,
 			})
-			node.replaceWith(AST.identifier(artifactID))
+
+			// we are going to replace the query with an object
+			const properties = [
+				AST.objectProperty(AST.stringLiteral('artifact'), AST.identifier(artifactID)),
+			]
+
+			node.replaceWith(AST.objectExpression(properties))
 		},
 	})
 

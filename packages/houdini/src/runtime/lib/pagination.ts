@@ -22,7 +22,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 	getSession: () => Promise<App.Session>
 	fetch: FetchFn<_Data, _Input>
 	fetchUpdate: (arg: SendParams, updates: string[]) => ReturnType<FetchFn<_Data, _Input>>
-}): Omit<CursorHandlers<_Data, _Input>, 'pageInfo'> {
+}): CursorHandlers<_Data, _Input> {
 	// dry up the page-loading logic
 	const loadPage = async ({
 		pageSizeVar,

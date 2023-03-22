@@ -14,7 +14,11 @@ export function useMutation<
 	_Result extends GraphQLObject,
 	_Input extends {},
 	_Optimistic extends GraphQLObject
->(artifact: MutationArtifact): [MutationHandler<_Result, _Input, _Optimistic>, boolean] {
+>({
+	artifact,
+}: {
+	artifact: MutationArtifact
+}): [MutationHandler<_Result, _Input, _Optimistic>, boolean] {
 	// build the live document we'll use to send values
 	const [storeValue, observer] = useDocumentStore<_Result, _Input>({ artifact })
 

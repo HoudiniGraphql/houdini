@@ -4,7 +4,7 @@ import * as React from 'react'
 // This file is largely a copy and paste from Kent C. Dodd's use-deep-compare-effect (appropriate license at the bottom).
 // It has been copied locally in order to avoid any awkward third party peer dependencies
 // on generated files (which would make the install annoying). The deep equals library has
-// also been changed to use one that was already included in the runtime (avoiding the extra bundle)
+// also been changed to use one that was already included in the runtime (avoiding the extra bundle size)
 
 type UseEffectParams = Parameters<typeof React.useEffect>
 type EffectCallback = UseEffectParams[0]

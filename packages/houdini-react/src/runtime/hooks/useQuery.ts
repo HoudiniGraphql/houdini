@@ -15,7 +15,7 @@ export function useQuery<
 	_Data extends GraphQLObject = GraphQLObject,
 	_Input extends {} = []
 >(
-	artifact: _Artifact,
+	{ artifact }: { artifact: QueryArtifact },
 	variables: any = null,
 	config: UseQueryConfig = {}
 ): [_Data, QueryMeta<_Artifact, _Data, _Input>] {

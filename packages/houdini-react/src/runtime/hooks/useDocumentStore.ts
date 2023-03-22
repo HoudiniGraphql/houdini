@@ -5,17 +5,24 @@ import * as React from 'react'
 
 import { useHoudiniClient } from './useHoudiniClient'
 
-export type UseDocumentStoreParams<_Data extends GraphQLObject> = {
-	artifact: DocumentArtifact
+export type UseDocumentStoreParams<
+	_Data extends GraphQLObject,
+	_Artifact extends DocumentArtifact
+> = {
+	artifact: _Artifact
 } & Partial<ObserveParams<_Data>>
 
 export function useDocumentStore<
 	_Data extends GraphQLObject = GraphQLObject,
-	_Input extends {} = {}
+	_Input extends {} = {},
+	_Artifact extends DocumentArtifact = DocumentArtifact
 >({
 	artifact,
 	...observeParams
-}: UseDocumentStoreParams<_Data>): [QueryResult<_Data, _Input>, DocumentStore<_Data, _Input>] {
+}: UseDocumentStoreParams<_Data, _Artifact>): [
+	QueryResult<_Data, _Input>,
+	DocumentStore<_Data, _Input>
+] {
 	const client = useHoudiniClient()
 
 	// hold onto an observer we'll use

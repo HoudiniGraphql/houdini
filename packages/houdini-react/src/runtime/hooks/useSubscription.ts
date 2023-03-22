@@ -4,7 +4,7 @@ import { useLiveDocument } from './useLiveDocument'
 
 // a hook to subscribe to a subscription artifact
 export function useSubscription<_Result extends GraphQLObject, _Input extends {}>(
-	artifact: SubscriptionArtifact,
+	{ artifact }: { artifact: SubscriptionArtifact },
 	variables: _Input
 ) {
 	// a subscription is basically just a live document
