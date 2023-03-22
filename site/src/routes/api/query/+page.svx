@@ -266,7 +266,7 @@ export const load: PageLoad = async (event) => {
 ```
 
 In case you were wondering, the `load_` prefix is there so you can autocomplete your loads by just typing `load_<tab>`.
-Anyway, with this in place, your route will recieve props for each of the stores that you have loaded:
+Anyway, with this in place, your route will receive props for each of the stores that you have loaded:
 
 ```svelte:title=src/routes/myRoute.svelte&typescriptToggle=true
 <script lang="ts">
