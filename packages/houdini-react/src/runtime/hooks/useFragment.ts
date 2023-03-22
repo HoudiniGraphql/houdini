@@ -1,5 +1,5 @@
 import cache from '$houdini/runtime/cache'
-import type { GraphQLObject, FragmentArtifact, QueryArtifact } from '$houdini/runtime/lib/types'
+import type { GraphQLObject, FragmentArtifact } from '$houdini/runtime/lib/types'
 import { fragmentKey } from '$houdini/runtime/lib/types'
 
 import { useDocumentSubscription } from './useDocumentSubscription'
