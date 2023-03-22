@@ -1,7 +1,8 @@
-import { ensureArtifactImport, find_graphql, parseJS } from 'houdini'
+import { ensureArtifactImport, find_graphql, needsRefetchArtifact, parseJS } from 'houdini'
 import type { TransformPage } from 'houdini/vite'
 import * as recast from 'recast'
 import type { SourceMapInput } from 'rollup'
+import config from 'src/runtime/imports/config'
 
 const AST = recast.types.builders
 
@@ -23,7 +24,7 @@ export async function transformFile(
 
 	// for now, just replace them with a string
 	await find_graphql(page.config, parsed?.script, {
-		tag({ node, artifact }) {
+		tag({ node, artifact, parsedDocument }) {
 			const artifactID = ensureArtifactImport({
 				config: page.config,
 				artifact,
@@ -35,6 +36,24 @@ export async function transformFile(
 				AST.objectProperty(AST.stringLiteral('artifact'), AST.identifier(artifactID)),
 			]
 
+			// if the query is paginated or refetchable then we need to add a reference to the refetch artifact
+			if (page.config.needsRefetchArtifact(parsedDocument)) {
+				const refetchArtifact = ensureArtifactImport({
+					config: page.config,
+					artifact: {
+						name: page.config.paginationQueryName(artifact.name),
+					},
+					body: parsed.script.body,
+				})
+				properties.push(
+					AST.objectProperty(
+						AST.stringLiteral('refetchArtifact'),
+						AST.identifier(refetchArtifact)
+					)
+				)
+			}
+
+			// replace the graphql function with the object
 			node.replaceWith(AST.objectExpression(properties))
 		},
 	})

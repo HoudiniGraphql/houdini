@@ -6,6 +6,7 @@ import { defineConfig } from 'vite'
 // https://vitejs.dev/config/
 export default defineConfig({
 	plugins: [houdini(), react()],
+	// TODO: the vite plugin should do this
 	resolve: {
 		alias: {
 			$houdini: path.resolve('.', '/$houdini'),

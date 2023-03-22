@@ -661,6 +661,21 @@ export class Config {
 		)
 	}
 
+	// we need a function that walks down a graphql query and detects the use of a directive config.paginateDirective
+	needsRefetchArtifact(document: graphql.DocumentNode) {
+		let needsArtifact = false
+
+		graphql.visit(document, {
+			Directive: (node) => {
+				if ([this.paginateDirective].includes(node.name.value)) {
+					needsArtifact = true
+				}
+			},
+		})
+
+		return needsArtifact
+	}
+
 	#fragmentVariableMaps: Record<string, { args: ValueMap | null; fragment: string }>
 	registerFragmentVariablesHash({
 		hash,
