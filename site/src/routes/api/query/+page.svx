@@ -112,7 +112,7 @@ Regardless of which pattern you are using, you will quickly need to customize yo
 
 ### Query Variables
 
-The simplest way to pass values for your query inputs is to use route parameters. If houdini sees that the name for a route paramter matches the
+The simplest way to pass values for your query inputs is to use route parameters. If houdini sees that the name for a route parameter matches the
 name of a query's input, it will attempt to parse the value and pass it to your query.
 
 Sometimes your query variables cannot be directly pulled from your route's path. In those cases, you can export a function
