@@ -153,7 +153,6 @@ export async function generateDocumentTypes(config: Config, docs: Document[]) {
 
 		// if the plugin generated a runtime
 		if (plugin.includeRuntime) {
-			console.log('skipping over plugin for index.d.ts', plugin.name)
 			indexContent += exportStarFrom({
 				module:
 					'./' +

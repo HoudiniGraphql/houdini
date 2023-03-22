@@ -1,4 +1,4 @@
-import { useQuery, useFragment, graphql, HoudiniProvider } from '$houdini'
+import { useQuery, useFragment, graphql, HoudiniProvider, type UserInfo } from '$houdini'
 import * as React from 'react'
 
 import client from './client'
@@ -27,7 +27,7 @@ function Query() {
 	return <Fragment user={data.user} />
 }
 
-function Fragment({ user }) {
+function Fragment({ user }: { user: UserInfo }) {
 	const data = useFragment(
 		user,
 		graphql(`
