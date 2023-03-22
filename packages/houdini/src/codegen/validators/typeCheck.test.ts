@@ -1029,6 +1029,15 @@ const table: Row[] = [
 			`,
 		],
 	},
+	{
+		title: '@blocking @no_blocking on a query',
+		pass: false,
+		documents: [
+			`query TestQuery @blocking @no_blocking {
+					version
+			}`,
+		],
+	},
 ]
 
 type Row =

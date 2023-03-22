@@ -333,6 +333,7 @@ export default function artifactGenerator(stats: {
 
 					// add the cache policy to query documents
 					if (artifact.kind === 'HoudiniQuery') {
+						// cache
 						const cacheDirective = operations[0].directives?.find(
 							(directive) => directive.name.value === config.cacheDirective
 						)
@@ -364,6 +365,32 @@ export default function artifactGenerator(stats: {
 						} else {
 							artifact.policy = config.defaultCachePolicy
 							artifact.partial = config.defaultPartial
+						}
+
+						// blocking strategy
+						// when can it be true?
+						// 1. default blocking always_blocking & no no_blocking directive
+						// 2. default blocking not_always_blocking & blocking directive
+						if (config.defaultBlockingMode === 'always_blocking') {
+							const no_blockingDirective = operations[0].directives?.find(
+								(directive) => directive.name.value === config.no_blockingDirective
+							)
+							if (no_blockingDirective) {
+								// here, it's not locking
+							} else {
+								artifact.alwaysBlocking = true
+							}
+						} else if (config.defaultBlockingMode === 'not_always_blocking') {
+							const blockingDirective = operations[0].directives?.find(
+								(directive) => directive.name.value === config.blockingDirective
+							)
+							if (blockingDirective) {
+								artifact.alwaysBlocking = true
+							}
+						} else {
+							throw new Error(
+								`Unknown default blocking mode ${config.defaultBlockingMode}`
+							)
 						}
 					}
 

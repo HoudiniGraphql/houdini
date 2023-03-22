@@ -5661,3 +5661,133 @@ test('fragment nested in root', async function () {
 		"HoudiniHash=05ec5090d31f77c3f2bdcbd26aff116588f63d4b3789ae752759dd172974a628";
 	`)
 })
+
+describe('blocking', () => {
+	test('default blocking', async function () {
+		// the config to use in tests
+		const config = testConfig({ defaultBlockingMode: 'always_blocking' })
+
+		const docs = [mockCollectedDoc(`query TestQuery { version }`)]
+
+		// execute the generator
+		await runPipeline(config, docs)
+
+		// load the contents of the file
+		expect(docs[0]).toMatchInlineSnapshot(`
+			export default {
+			    "name": "TestQuery",
+			    "kind": "HoudiniQuery",
+			    "hash": "4e7afee5e8aa689ee7f58f61f60955769c29fe630b05a32ca2a5d8f61620afe3",
+
+			    "raw": \`query TestQuery {
+			  version
+			}
+			\`,
+
+			    "rootType": "Query",
+
+			    "selection": {
+			        "fields": {
+			            "version": {
+			                "type": "Int",
+			                "keyRaw": "version",
+			                "visible": true
+			            }
+			        }
+			    },
+
+			    "pluginData": {},
+			    "policy": "CacheOrNetwork",
+			    "partial": false,
+			    "alwaysBlocking": true
+			};
+
+			"HoudiniHash=4e7afee5e8aa689ee7f58f61f60955769c29fe630b05a32ca2a5d8f61620afe3";
+		`)
+	})
+
+	test('default blocking & no_blocking directive', async function () {
+		// the config to use in tests
+		const config = testConfig({ defaultBlockingMode: 'always_blocking' })
+
+		const docs = [mockCollectedDoc(`query TestQuery @no_blocking { version }`)]
+
+		// execute the generator
+		await runPipeline(config, docs)
+
+		// load the contents of the file
+		expect(docs[0]).toMatchInlineSnapshot(`
+			export default {
+			    "name": "TestQuery",
+			    "kind": "HoudiniQuery",
+			    "hash": "083440a97adcc555fdd09e027c641c50c4835fef7edee6cf3c00afa326dd4a1b",
+
+			    "raw": \`query TestQuery {
+			  version
+			}
+			\`,
+
+			    "rootType": "Query",
+
+			    "selection": {
+			        "fields": {
+			            "version": {
+			                "type": "Int",
+			                "keyRaw": "version",
+			                "visible": true
+			            }
+			        }
+			    },
+
+			    "pluginData": {},
+			    "policy": "CacheOrNetwork",
+			    "partial": false
+			};
+
+			"HoudiniHash=083440a97adcc555fdd09e027c641c50c4835fef7edee6cf3c00afa326dd4a1b";
+		`)
+	})
+
+	test('directive blocking', async function () {
+		// the config to use in tests
+		const config = testConfig()
+
+		const docs = [mockCollectedDoc(`query TestQuery @blocking { version }`)]
+
+		// execute the generator
+		await runPipeline(config, docs)
+
+		// load the contents of the file
+		expect(docs[0]).toMatchInlineSnapshot(`
+			export default {
+			    "name": "TestQuery",
+			    "kind": "HoudiniQuery",
+			    "hash": "32aa2f538b4b885a895cb9fd057e2de52359d2bbbbc32d949fd24b35bf34ea81",
+
+			    "raw": \`query TestQuery {
+			  version
+			}
+			\`,
+
+			    "rootType": "Query",
+
+			    "selection": {
+			        "fields": {
+			            "version": {
+			                "type": "Int",
+			                "keyRaw": "version",
+			                "visible": true
+			            }
+			        }
+			    },
+
+			    "pluginData": {},
+			    "policy": "CacheOrNetwork",
+			    "partial": false,
+			    "alwaysBlocking": true
+			};
+
+			"HoudiniHash=32aa2f538b4b885a895cb9fd057e2de52359d2bbbbc32d949fd24b35bf34ea81";
+		`)
+	})
+})

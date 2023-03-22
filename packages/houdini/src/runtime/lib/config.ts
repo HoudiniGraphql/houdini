@@ -153,6 +153,11 @@ export type ConfigFile = {
 	defaultPaginateMode?: PaginateModes
 
 	/**
+	 * Specifies whether the default blocking mode is blocking or not. (default: `not_always_blocking`)
+	 */
+	defaultBlockingMode?: 'not_always_blocking' | 'always_blocking'
+
+	/**
 	 * A list of fields to use when computing a record’s id. The default value is ['id']. For more information: https://www.houdinigraphql.com/guides/caching-data#custom-ids
 	 */
 	defaultKeys?: string[]

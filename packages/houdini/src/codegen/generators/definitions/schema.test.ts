@@ -78,6 +78,12 @@ test('adds internal documents to schema', async function () {
 			"""@load is used to disable automatic fetch (no load, no auto fetch in component), you will have to do it manually."""
 			directive @load on QUERY
 
+			"""@blocking is used to always await the fetch."""
+			directive @blocking on QUERY
+
+			"""@no_blocking is used to not always await the fetch (in CSR for example). Note that "throwOnError" will not throw in this case."""
+			directive @no_blocking on QUERY
+
 			"""@mask_enable to enable masking on fragment (overwriting the global conf)"""
 			directive @mask_enable on FRAGMENT_SPREAD
 
@@ -156,6 +162,12 @@ test('list operations are included', async function () {
 
 			"""@load is used to disable automatic fetch (no load, no auto fetch in component), you will have to do it manually."""
 			directive @load on QUERY
+
+			"""@blocking is used to always await the fetch."""
+			directive @blocking on QUERY
+
+			"""@no_blocking is used to not always await the fetch (in CSR for example). Note that "throwOnError" will not throw in this case."""
+			directive @no_blocking on QUERY
 
 			"""@mask_enable to enable masking on fragment (overwriting the global conf)"""
 			directive @mask_enable on FRAGMENT_SPREAD
@@ -254,6 +266,12 @@ test('list operations are included but delete directive should not be in when we
 
 			"""@load is used to disable automatic fetch (no load, no auto fetch in component), you will have to do it manually."""
 			directive @load on QUERY
+
+			"""@blocking is used to always await the fetch."""
+			directive @blocking on QUERY
+
+			"""@no_blocking is used to not always await the fetch (in CSR for example). Note that "throwOnError" will not throw in this case."""
+			directive @no_blocking on QUERY
 
 			"""@mask_enable to enable masking on fragment (overwriting the global conf)"""
 			directive @mask_enable on FRAGMENT_SPREAD
@@ -365,6 +383,12 @@ test("writing twice doesn't duplicate definitions", async function () {
 
 			"""@load is used to disable automatic fetch (no load, no auto fetch in component), you will have to do it manually."""
 			directive @load on QUERY
+
+			"""@blocking is used to always await the fetch."""
+			directive @blocking on QUERY
+
+			"""@no_blocking is used to not always await the fetch (in CSR for example). Note that "throwOnError" will not throw in this case."""
+			directive @no_blocking on QUERY
 
 			"""@mask_enable to enable masking on fragment (overwriting the global conf)"""
 			directive @mask_enable on FRAGMENT_SPREAD

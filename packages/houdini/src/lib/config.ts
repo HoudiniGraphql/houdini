@@ -40,6 +40,7 @@ export class Config {
 	internalListPosition: 'first' | 'last'
 	defaultListTarget: 'all' | null = null
 	defaultPaginateMode: PaginateModes
+	defaultBlockingMode: 'not_always_blocking' | 'always_blocking'
 	definitionsFolder?: string
 	newDocuments: string = ''
 	defaultKeys: string[] = ['id']
@@ -85,6 +86,7 @@ export class Config {
 			defaultListPosition = 'append',
 			defaultListTarget = null,
 			defaultPaginateMode = PaginateMode.Infinite,
+			defaultBlockingMode = 'not_always_blocking',
 			defaultKeys,
 			types = {},
 			logLevel,
@@ -125,6 +127,7 @@ export class Config {
 		this.internalListPosition = defaultListPosition === 'append' ? 'last' : 'first'
 		this.defaultListTarget = defaultListTarget
 		this.defaultPaginateMode = defaultPaginateMode
+		this.defaultBlockingMode = defaultBlockingMode
 		this.definitionsFolder = definitionsPath
 		this.logLevel = ((logLevel as LogLevels) || LogLevel.Summary).toLowerCase() as LogLevels
 		this.defaultFragmentMasking = defaultFragmentMasking
@@ -501,7 +504,7 @@ export class Config {
 
 	/*
 
-		GraphqQL conventions
+		GraphQL conventions
 
 	*/
 	get loadDirective() {
@@ -530,6 +533,14 @@ export class Config {
 
 	get listParentDirective() {
 		return 'parentID'
+	}
+
+	get blockingDirective() {
+		return 'blocking'
+	}
+
+	get no_blockingDirective() {
+		return 'no_blocking'
 	}
 
 	/**
