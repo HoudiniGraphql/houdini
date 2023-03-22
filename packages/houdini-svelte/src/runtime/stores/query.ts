@@ -86,6 +86,11 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 			params.blocking = true
 		}
 
+		// if it's set in the artifact (by default_config or directive), let's respect it.
+		if (this.artifact.alwaysBlocking) {
+			params.blocking = true
+		}
+
 		// the fetch is happening in a load
 		if (isLoadFetch) {
 			this.loadPending = true
