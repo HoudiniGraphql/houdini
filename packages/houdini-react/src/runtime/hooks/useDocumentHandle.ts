@@ -46,7 +46,8 @@ export function useDocumentHandle<
 		// only consider paginated queries
 		if (artifact.kind !== ArtifactKind.Query || !artifact.refetch?.paginated) {
 			return {
-				fetch: fetchQuery,
+				data: storeValue.data,
+				refetch: fetchQuery,
 				partial: storeValue.partial,
 			}
 		}
@@ -76,7 +77,8 @@ export function useDocumentHandle<
 			})
 
 			return {
-				fetch: handlers.fetch,
+				data: storeValue.data,
+				refetch: handlers.fetch,
 				partial: storeValue.partial,
 				loadNext: handlers.loadNextPage,
 				isLoadingNext: forwardValue.fetching,
@@ -109,7 +111,8 @@ export function useDocumentHandle<
 			})
 
 			return {
-				fetch: handlers.fetch,
+				data: storeValue.data,
+				refetch: handlers.fetch,
 				partial: storeValue.partial,
 				loadNext: handlers.loadNextPage,
 				isLoadingNext: forwardValue.fetching,
@@ -118,7 +121,8 @@ export function useDocumentHandle<
 
 		// we don't want to add anything
 		return {
-			fetch: fetchQuery,
+			data: storeValue.data,
+			refetch: fetchQuery,
 			partial: storeValue.partial,
 		}
 	}, [
@@ -137,8 +141,9 @@ export type DocumentHandle<
 	_Data extends GraphQLObject = GraphQLObject,
 	_Input extends {} = []
 > = {
+	data: _Data
 	partial: boolean
-	fetch: FetchFn<_Data, _Input>
+	refetch: FetchFn<_Data, _Input>
 } & RefetchHandlers<_Artifact, _Data, _Input>
 
 type RefetchHandlers<_Artifact extends QueryArtifact, _Data extends GraphQLObject, _Input> =

@@ -16,7 +16,7 @@ export function useFragmentHandle<
 >(
 	reference: _Data | { [fragmentKey]: _ReferenceType } | null,
 	document: { artifact: FragmentArtifact; refetchArtifact?: QueryArtifact }
-): [_Data | null, DocumentHandle<_PaginationArtifact, _Data, _Input>] {
+): DocumentHandle<_PaginationArtifact, _Data, _Input> {
 	// get the fragment values
 	const data = useFragment<_Data, _ReferenceType, _Input>(reference, document)
 
@@ -31,5 +31,8 @@ export function useFragmentHandle<
 		artifact: document.refetchArtifact ?? document.artifact,
 	})
 
-	return [data, handle]
+	return {
+		...handle,
+		data,
+	}
 }

@@ -18,7 +18,7 @@ export function useQueryHandle<
 	{ artifact }: { artifact: QueryArtifact },
 	variables: any = null,
 	config: UseQueryConfig = {}
-): [_Data, DocumentHandle<_Artifact, _Data, _Input>] {
+): DocumentHandle<_Artifact, _Data, _Input> {
 	const [storeValue, observer] = useDocumentSubscription<QueryArtifact, _Data, _Input>({
 		artifact,
 		variables,
@@ -85,7 +85,10 @@ export function useQueryHandle<
 	})
 
 	// make sure we prefer the latest store value instead of the initial version we loaded on mount
-	return [storeValue.data ?? localData!, handle]
+	return {
+		...handle,
+		data: handle.data ?? localData!,
+	}
 }
 
 export type UseQueryConfig = {

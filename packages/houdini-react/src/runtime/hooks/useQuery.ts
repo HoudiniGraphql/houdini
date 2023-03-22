@@ -7,6 +7,6 @@ export function useQuery<
 	_Data extends GraphQLObject = GraphQLObject,
 	_Input extends {} = []
 >(args: Parameters<typeof useQueryHandle>[0]): _Data {
-	const [data] = useQueryHandle<_Artifact, _Data, _Input>(args)
+	const { data } = useQueryHandle<_Artifact, _Data, _Input>(args)
 	return data
 }
