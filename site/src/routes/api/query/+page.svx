@@ -296,7 +296,11 @@ export const load: PageLoad = async (event) => {
 ```
 
 If you are defining a manual load and need to look at the result of the fetch, we recommend _not_ using the `load_`
-utility but instead defining your load explicitly:
+utility but one of the 3 options:
+
+- Use the `blocking: true` parameter in the `fetch` method (you can check the deep dive "Blocking Navigation" bellow)
+- Use the `@blocking` directive to block the request until the query is complete
+- Use the `_houdini_afterLoad` hook to block the request until the query is complete
 
 ```typescript:typescriptToggle=true
 import { MyQueryStore } from '$houdini'

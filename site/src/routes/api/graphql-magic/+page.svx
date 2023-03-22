@@ -81,6 +81,14 @@ mutation NewItem($input: AddItemInput!) {
 
 A field marked with `@paginate` is updated with calls to the page loaders returned by the pagination function. For more information on pagination check out the [guide](/guides/pagination). If you pass a value for the `name` argument, the underlying list can be updated using the [operation fragments](/api/mutation#lists).
 
+### `@blocking`
+
+A query marked with `@blocking` will always await the fetch.
+
+### `@no_blocking`
+
+A query marked with `@no_blocking` is used to not always await the fetch (in CSR for example). Note that "throwOnError" will not throw in this case.
+
 ### `@[TypeName]_delete`
 
 `@[TypeName]_delete` (ie, something like `@User_delete`) is used to delete the user with an id found in the body of a subscription or mutation. Like the operation fragments, this directive can be applied to lists or singular values. For more information see the [mutation docs](/api/mutation#lists).
