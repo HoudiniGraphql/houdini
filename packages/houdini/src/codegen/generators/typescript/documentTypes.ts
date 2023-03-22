@@ -7,6 +7,7 @@ import type { Config, Document } from '../../../lib'
 import { HoudiniError, siteURL, fs, path } from '../../../lib'
 import { fragmentArgumentsDefinitions } from '../../transforms/fragmentVariables'
 import { flattenSelections } from '../../utils'
+import { serializeValue } from '../artifacts/utils'
 import { addReferencedInputTypes } from './addReferencedInputTypes'
 import { fragmentKey, inlineType } from './inlineType'
 import { tsTypeReference } from './typeReference'
@@ -42,6 +43,7 @@ export async function generateDocumentTypes(config: Config, docs: Document[]) {
 				name,
 				filename,
 				generateArtifact: generateArtifact,
+				artifact,
 			}) => {
 				if (!generateArtifact) {
 					return
@@ -95,6 +97,12 @@ export async function generateDocumentTypes(config: Config, docs: Document[]) {
 					)
 				}
 
+				// add the document's artifact as the file's default export
+				program.body.push(
+					// the typescript AST representing a default export in typescript
+					AST.exportDefaultDeclaration(serializeValue(artifact))
+				)
+
 				// write the file contents
 				await fs.writeFile(typeDefPath, recast.print(program).code)
 
@@ -131,21 +139,21 @@ export async function generateDocumentTypes(config: Config, docs: Document[]) {
 	const exportStarFrom = ({ module }: { module: string }) => `\nexport * from "${module}"\n`
 	let indexContent = recast.print(typeIndex).code
 	for (const plugin of config.plugins) {
-		if (!plugin.indexFile) {
-			continue
+		if (plugin.indexFile) {
+			indexContent = plugin.indexFile({
+				config,
+				content: indexContent,
+				exportDefaultAs,
+				exportStarFrom,
+				pluginRoot: config.pluginDirectory(plugin.name),
+				typedef: true,
+				documents: docs,
+			})
 		}
-		indexContent = plugin.indexFile({
-			config,
-			content: indexContent,
-			exportDefaultAs,
-			exportStarFrom,
-			pluginRoot: config.pluginDirectory(plugin.name),
-			typedef: true,
-			documents: docs,
-		})
 
 		// if the plugin generated a runtime
 		if (plugin.includeRuntime) {
+			console.log('skipping over plugin for index.d.ts', plugin.name)
 			indexContent += exportStarFrom({
 				module:
 					'./' +

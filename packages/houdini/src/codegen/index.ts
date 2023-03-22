@@ -100,6 +100,9 @@ export async function runPipeline(config: Config, docs: Document[]) {
 				generators.indexFile,
 				// typescript generator needs to go after the runtime one
 				// so that the imperative cache definitions always survive
+				// this also ensures that we have the artifact generated already
+				// which lets us define it as the default export for the appropriate
+				// definition file.
 				generators.typescript,
 				generators.persistOutput,
 				generators.definitions,

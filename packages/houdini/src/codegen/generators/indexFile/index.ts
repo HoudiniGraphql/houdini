@@ -55,10 +55,6 @@ export default async function writeIndexFile(config: Config, docs: Document[]) {
 				module: relative(config.pluginRuntimeDirectory(plugin.name)),
 			})
 		}
-
-		if (!plugin.indexFile) {
-			continue
-		}
 	}
 
 	// write the index file that exports the runtime
