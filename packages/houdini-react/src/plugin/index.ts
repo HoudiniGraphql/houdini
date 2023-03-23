@@ -9,10 +9,14 @@ const HoudiniReactPlugin = plugin('houdini-react', async () => ({
 	// add the jsx extensions
 	extensions: ['.jsx', '.tsx'],
 
+	// include the runtime
 	includeRuntime: {
 		esm: '../runtime-esm',
 		commonjs: '../runtime-cjs',
 	},
+
+	// transform the type definitions to have overloaded signatures for
+	// every document in the project
 
 	// we need to teach the codegen how to get graphql documents from jsx files
 	extractDocuments,
@@ -31,7 +35,7 @@ const HoudiniReactPlugin = plugin('houdini-react', async () => ({
 			})
 
 			// and use the store as the return value
-			return `{ artifact: ${variableName}}`
+			return `{ artifact: ${variableName} }`
 		}
 	},
 }))
