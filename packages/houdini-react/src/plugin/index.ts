@@ -19,6 +19,21 @@ const HoudiniReactPlugin = plugin('houdini-react', async () => ({
 
 	// convert the graphql template tags into references to their artifact
 	transformFile,
+
+	graphqlTagReturn({ config, document: doc, ensureImport: ensure_import }) {
+		// if we're supposed to generate a store then add an overloaded declaration
+		if (doc.generateStore) {
+			const variableName = `${doc.name}Artifact`
+
+			ensure_import({
+				identifier: variableName,
+				module: config.artifactImportPath(doc.name).replaceAll('$houdini', '..'),
+			})
+
+			// and use the store as the return value
+			return variableName
+		}
+	},
 }))
 
 export default HoudiniReactPlugin

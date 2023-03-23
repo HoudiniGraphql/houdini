@@ -1,5 +1,10 @@
 import { logCyan, logGreen } from '@kitql/helper'
-import type { StatementKind } from 'ast-types/lib/gen/kinds'
+import type {
+	ExpressionKind,
+	ObjectExpressionKind,
+	StatementKind,
+	TSTypeKind,
+} from 'ast-types/lib/gen/kinds'
 import type * as graphql from 'graphql'
 import * as recast from 'recast'
 
@@ -100,7 +105,12 @@ export async function generateDocumentTypes(config: Config, docs: Document[]) {
 				// add the document's artifact as the file's default export
 				program.body.push(
 					// the typescript AST representing a default export in typescript
-					AST.exportDefaultDeclaration(serializeValue(artifact))
+					AST.exportNamedDeclaration(
+						AST.tsTypeAliasDeclaration(
+							AST.identifier(`${name}Artifact`),
+							convertToTs(serializeValue(artifact))
+						)
+					)
 				)
 
 				// write the file contents
@@ -191,6 +201,50 @@ ${[...missingScalars]
 
 For more information, please visit this link: ${siteURL}/api/config#custom-scalars`)
 	}
+}
+
+function convertToTs(source: ExpressionKind): TSTypeKind {
+	// if the source is an object
+	if (source.type === 'ObjectExpression') {
+		return AST.tsTypeLiteral(
+			source.properties.reduce<recast.types.namedTypes.TSPropertySignature[]>(
+				(props, prop) => {
+					if (
+						prop.type !== 'ObjectProperty' ||
+						(prop.key.type !== 'StringLiteral' && prop.key.type === 'Identifier')
+					) {
+						return props
+					}
+
+					return [
+						...props,
+						AST.tsPropertySignature(
+							prop.key,
+							AST.tsTypeAnnotation(convertToTs(prop.value as ExpressionKind))
+						),
+					]
+				},
+				[]
+			)
+		)
+	}
+
+	if (source.type === 'ArrayExpression') {
+		return AST.tsTupleType(
+			source.elements.map((element) => convertToTs(element as ExpressionKind))
+		)
+	}
+
+	if (source.type === 'Literal' && typeof source.value === 'boolean') {
+		return AST.tsLiteralType(AST.booleanLiteral(source.value))
+	}
+
+	if (source.type === 'Literal' && typeof source.value === 'number') {
+		return AST.tsLiteralType(AST.numericLiteral(source.value))
+	}
+
+	// @ts-ignore
+	return AST.tsLiteralType(source)
 }
 
 async function generateOperationTypeDefs(
