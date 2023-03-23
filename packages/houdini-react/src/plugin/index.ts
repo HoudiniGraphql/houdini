@@ -47,7 +47,7 @@ const HoudiniReactPlugin = plugin('houdini-react', async () => ({
 					documents: documents[ArtifactKind.Query] ?? [],
 					importIdentifiers: (doc) => [`${doc.name}$result`, `${doc.name}$input`],
 					signature: (doc) =>
-						`function useQuery(document: { artifact: { name : "${doc.name}" } }, variables?: ${doc.name}$input, config?: UseQueryConfig): ${doc.name}$result`,
+						`export function useQuery(document: { artifact: { name : "${doc.name}" } }, variables?: ${doc.name}$input, config?: UseQueryConfig): ${doc.name}$result`,
 				}),
 			'hooks/useQueryHandle.d.ts': ({ config, content }) =>
 				addOverload({
@@ -62,7 +62,7 @@ const HoudiniReactPlugin = plugin('houdini-react', async () => ({
 						`${doc.name}$input`,
 					],
 					signature: (doc) =>
-						`function useQueryHandle(document: { artifact: { name : "${doc.name}" } }, variables?: ${doc.name}$input, config?: UseQueryConfig): DocumentHandle<${doc.name}$artifact, ${doc.name}$result, ${doc.name}$input>`,
+						`export function useQueryHandle(document: { artifact: { name : "${doc.name}" } }, variables?: ${doc.name}$input, config?: UseQueryConfig): DocumentHandle<${doc.name}$artifact, ${doc.name}$result, ${doc.name}$input>`,
 				}),
 			'hooks/useFragment.d.ts': ({ config, content }) =>
 				addOverload({
@@ -72,7 +72,7 @@ const HoudiniReactPlugin = plugin('houdini-react', async () => ({
 					documents: documents[ArtifactKind.Fragment] ?? [],
 					importIdentifiers: (doc) => [`${doc.name}$data`],
 					signature: (doc) =>
-						`function useFragment(reference: { readonly "${fragmentKey}": { ${doc.name}: any } }, document: { artifact: { name : "${doc.name}" } }): ${doc.name}$data`,
+						`export function useFragment(reference: { readonly "${fragmentKey}": { ${doc.name}: any } }, document: { artifact: { name : "${doc.name}" } }): ${doc.name}$data`,
 				}),
 			'hooks/useFragmentHandle.d.ts': ({ config, content }) =>
 				addOverload({
@@ -87,7 +87,7 @@ const HoudiniReactPlugin = plugin('houdini-react', async () => ({
 						`${doc.name}$input`,
 					],
 					signature: (doc) =>
-						`function useFragmentHandle(reference: { readonly "${fragmentKey}": { ${doc.name}: any } }, document: { artifact: { name : "${doc.name}" } }): DocumentHandle<${doc.name}$artifact, ${doc.name}$result, ${doc.name}$input>`,
+						`export function useFragmentHandle(reference: { readonly "${fragmentKey}": { ${doc.name}: any } }, document: { artifact: { name : "${doc.name}" } }): DocumentHandle<${doc.name}$artifact, ${doc.name}$result, ${doc.name}$input>`,
 				}),
 			'hooks/useMutation.d.ts': ({ config, content }) =>
 				addOverload({
@@ -101,16 +101,28 @@ const HoudiniReactPlugin = plugin('houdini-react', async () => ({
 						`${doc.name}$optimistic`,
 					],
 					signature: (doc) =>
-						`function useMutation(document: { artifact: { name : "${doc.name}" } }): [MutationHandler<${doc.name}$result, ${doc.name}$input, ${doc.name}$optimistic>, boolean]`,
+						`export function useMutation(document: { artifact: { name : "${doc.name}" } }): [MutationHandler<${doc.name}$result, ${doc.name}$input, ${doc.name}$optimistic>, boolean]`,
 				}),
-			// 'hooks/useSubscription.ts': ({ config, content }) =>
-			// 	addOverload({
-			// 		config,
-			// 		content,
-			// 		name: 'useSubscription',
-			// 		documents: documents[ArtifactKind.Query] ?? [],
-			// 		returnValue: 'string',
-			// 	}),
+			'hooks/useSubscription.d.ts': ({ config, content }) =>
+				addOverload({
+					config,
+					content,
+					name: 'useSubscription',
+					documents: documents[ArtifactKind.Subscription] ?? [],
+					importIdentifiers: (doc) => [`${doc.name}$result`, `${doc.name}$input`],
+					signature: (doc) =>
+						`export function useSubscription(document: { artifact: { name : "${doc.name}" } }, variables?: ${doc.name}$input): ${doc.name}$result`,
+				}),
+			'hooks/useSubscriptionHandle.d.ts': ({ config, content }) =>
+				addOverload({
+					config,
+					content,
+					name: 'useSubscriptionHandle',
+					documents: documents[ArtifactKind.Subscription] ?? [],
+					importIdentifiers: (doc) => [`${doc.name}$result`, `${doc.name}$input`],
+					signature: (doc) =>
+						`export function useSubscriptionHandle(document: { artifact: { name : "${doc.name}" } }, variables?: ${doc.name}$input): SubscriptionHandle<${doc.name}$result, ${doc.name}$input>`,
+				}),
 		}
 	},
 
