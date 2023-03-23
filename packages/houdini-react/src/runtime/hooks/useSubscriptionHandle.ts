@@ -3,6 +3,8 @@ import { SubscriptionArtifact, GraphQLObject } from '$houdini/runtime/lib/types'
 import { useDocumentSubscription } from './useDocumentSubscription'
 
 export type SubscriptionHandle<_Result extends GraphQLObject, _Input extends {} | null> = {
+	data: _Result | null
+	errors: { message: string }[] | null
 	variables: _Input
 	listen: (args: { variables?: _Input }) => void
 	unlisten: () => void
@@ -20,13 +22,12 @@ export function useSubscriptionHandle<_Result extends GraphQLObject, _Input exte
 		variables,
 	})
 
-	return [
-		storeValue.data,
-		{
-			fetching: storeValue.fetching,
-			variables,
-			unlisten: observer.cleanup,
-			listen: observer.send,
-		},
-	]
+	return {
+		data: storeValue.data,
+		errors: storeValue.errors,
+		fetching: storeValue.fetching,
+		variables,
+		unlisten: observer.cleanup,
+		listen: observer.send,
+	}
 }

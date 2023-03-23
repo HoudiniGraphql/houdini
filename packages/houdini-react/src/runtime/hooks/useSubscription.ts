@@ -7,6 +7,6 @@ export function useSubscription<_Result extends GraphQLObject, _Input extends {}
 	document: { artifact: SubscriptionArtifact },
 	variables: _Input
 ) {
-	const [data] = useSubscriptionHandle(document, variables)
+	const { data } = useSubscriptionHandle(document, variables)
 	return data
 }
