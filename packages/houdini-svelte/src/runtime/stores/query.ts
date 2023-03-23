@@ -124,6 +124,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 			session: context.session,
 			policy: policy,
 			stuff: {},
+			blocking: !fakeAwait,
 		})
 
 		// if we have to track when the fetch is done,

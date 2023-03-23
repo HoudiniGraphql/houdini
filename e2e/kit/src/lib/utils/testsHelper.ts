@@ -211,6 +211,6 @@ export async function expectToContain(page: Page, toBe: string, selector = 'div[
   expect(result, `element "${selector}" must CONTAIN 👇`).toContain(toBe);
 }
 
-export async function waitForConsoleInfo(page: Page) {
-  return await page.waitForEvent('console', { predicate: (msg) => msg.type() === 'info' });
+export async function waitForConsole(page: Page, type: 'info' | 'error' = 'info') {
+  return await page.waitForEvent('console', { predicate: (msg) => msg.type() === type });
 }
