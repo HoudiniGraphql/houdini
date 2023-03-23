@@ -1,4 +1,11 @@
-import { useQuery, useFragment, graphql, HoudiniProvider, type UserInfo } from '$houdini'
+import {
+	useQuery,
+	useFragment,
+	graphql,
+	HoudiniProvider,
+	type UserInfo,
+	useMutation,
+} from '$houdini'
 import * as React from 'react'
 
 import client from './client'

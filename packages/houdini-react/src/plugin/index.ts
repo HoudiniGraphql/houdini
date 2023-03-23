@@ -89,14 +89,20 @@ const HoudiniReactPlugin = plugin('houdini-react', async () => ({
 					signature: (doc) =>
 						`function useFragmentHandle(reference: { readonly "${fragmentKey}": { ${doc.name}: any } }, document: { artifact: { name : "${doc.name}" } }): DocumentHandle<${doc.name}$artifact, ${doc.name}$result, ${doc.name}$input>`,
 				}),
-			// 'hooks/useMutation.ts': ({ config, content }) =>
-			// 	addOverload({
-			// 		config,
-			// 		content,
-			// 		name: 'useMutation',
-			// 		documents: documents[ArtifactKind.Mutation] ?? [],
-			// 		returnValue: 'string',
-			// 	}),
+			'hooks/useMutation.d.ts': ({ config, content }) =>
+				addOverload({
+					config,
+					content,
+					name: 'useMutation',
+					documents: documents[ArtifactKind.Mutation] ?? [],
+					importIdentifiers: (doc) => [
+						`${doc.name}$result`,
+						`${doc.name}$input`,
+						`${doc.name}$optimistic`,
+					],
+					signature: (doc) =>
+						`function useMutation(document: { artifact: { name : "${doc.name}" } }): [MutationHandler<${doc.name}$result, ${doc.name}$input, ${doc.name}$optimistic>, boolean]`,
+				}),
 			// 'hooks/useSubscription.ts': ({ config, content }) =>
 			// 	addOverload({
 			// 		config,
