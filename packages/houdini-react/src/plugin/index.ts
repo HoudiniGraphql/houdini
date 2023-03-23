@@ -1,4 +1,5 @@
-import { plugin } from 'houdini'
+import { ArtifactKind, ArtifactKinds, plugin, type Document, type Config } from 'houdini'
+import path from 'path'
 
 import { extractDocuments } from './extract'
 import { transformFile } from './transform'
@@ -13,6 +14,90 @@ const HoudiniReactPlugin = plugin('houdini-react', async () => ({
 	includeRuntime: {
 		esm: '../runtime-esm',
 		commonjs: '../runtime-cjs',
+	},
+
+	// we need to add overloaded definitions for every hook that
+	// returns the appropriate type for each document
+	transformRuntime: (docs) => {
+		// we need to group every document by type
+		const documents: { [Kind in ArtifactKinds]?: Document[] } = {}
+		for (const doc of docs) {
+			if (!doc.generateStore) {
+				continue
+			}
+			if (!documents[doc.kind]) {
+				documents[doc.kind] = []
+			}
+			documents[doc.kind]!.push(doc)
+		}
+
+		return {
+			'hooks/useQuery.d.ts': ({ config, content }) =>
+				addOverload({
+					config,
+					content,
+					name: 'useQuery',
+					documents: documents[ArtifactKind.Query] ?? [],
+					importIdentifiers: (doc) => [`${doc.name}$result`, `${doc.name}$input`],
+					signature: (doc) =>
+						`function useQuery(document: { artifact: { name : "${doc.name}" } }, variables?: ${doc.name}$input, config?: UseQueryConfig): ${doc.name}$result`,
+				}),
+			'hooks/useQueryHandle.d.ts': ({ config, content }) =>
+				addOverload({
+					config,
+					content,
+					name: 'useQueryHandle',
+					documents: documents[ArtifactKind.Query] ?? [],
+					preamble: 'import { DocumentHandle } from "./useDocumentHandle"',
+					importIdentifiers: (doc) => [
+						`${doc.name}$result`,
+						`${doc.name}$artifact`,
+						`${doc.name}$input`,
+					],
+					signature: (doc) =>
+						`function useQueryHandle(document: { artifact: { name : "${doc.name}" } }, variables?: ${doc.name}$input, config?: UseQueryConfig): DocumentHandle<${doc.name}$artifact, ${doc.name}$result, ${doc.name}$input>`,
+				}),
+			// 'hooks/useFragment.d.ts': ({ config, content }) =>
+			// 	addOverload({
+			// 		config,
+			// 		content,
+			// 		name: 'useFragment',
+			// 		documents: documents[ArtifactKind.Fragment] ?? [],
+			// 		importIdentifiers: (doc) => [`${doc.name}$result`],
+			// 		signature: (doc) => `${doc.name}$result`,
+			// 	}),
+			// 'hooks/useFragmentHandle.d.ts': ({ config, content }) =>
+			// 	addOverload({
+			// 		config,
+			// 		content,
+			// 		name: 'useFragmentHandle',
+			// 		documents: documents[ArtifactKind.Fragment] ?? [],
+			// 		preamble: 'import { DocumentHandle } from "./useDocumentHandle"',
+			// 		importIdentifiers: (doc) => [
+			// 			`${doc.name}$result`,
+			// 			`${doc.name}$artifact`,
+			// 			`${doc.name}$input`,
+			// 		],
+			// 		signature: (doc) =>
+			// 			`DocumentHandle<${doc.name}$artifact, ${doc.name}$result, ${doc.name}$input>`,
+			// 	}),
+			// 'hooks/useMutation.ts': ({ config, content }) =>
+			// 	addOverload({
+			// 		config,
+			// 		content,
+			// 		name: 'useMutation',
+			// 		documents: documents[ArtifactKind.Mutation] ?? [],
+			// 		returnValue: 'string',
+			// 	}),
+			// 'hooks/useSubscription.ts': ({ config, content }) =>
+			// 	addOverload({
+			// 		config,
+			// 		content,
+			// 		name: 'useSubscription',
+			// 		documents: documents[ArtifactKind.Query] ?? [],
+			// 		returnValue: 'string',
+			// 	}),
+		}
 	},
 
 	// transform the type definitions to have overloaded signatures for
@@ -39,6 +124,56 @@ const HoudiniReactPlugin = plugin('houdini-react', async () => ({
 		}
 	},
 }))
+
+function addOverload({
+	config,
+	content,
+	name,
+	documents,
+	signature,
+	preamble,
+	importIdentifiers,
+}: {
+	config: Config
+	content: string
+	name: string
+	documents: Document[]
+	signature: (doc: Document) => string
+	preamble?: string
+	importIdentifiers: (doc: Document) => string[]
+}): string {
+	// find the index of the function's definition
+	let definitionIndex = content.indexOf(`export declare function ${name}`)
+	if (definitionIndex === -1) {
+		return content
+	}
+
+	// lets start off by importing all of the necessary types for each artifact
+	const docImports = documents
+		.filter((doc) => doc.generateStore)
+		.map(
+			(doc) => `
+import type { ${importIdentifiers(doc).join(', ')} } from '${path.relative(
+				path.relative(
+					config.projectRoot,
+					path.join(config.pluginRuntimeDirectory('houdini-react'), 'hooks')
+				),
+				config.artifactImportPath(doc.name)
+			)}'
+	`
+		)
+		.join('\n')
+
+	return `${docImports}
+${preamble}
+${
+	content.slice(0, definitionIndex) +
+	documents.map(signature).join('\n') +
+	'\n' +
+	content.slice(definitionIndex)
+}
+`
+}
 
 export default HoudiniReactPlugin
 
