@@ -1,4 +1,11 @@
-import { ArtifactKind, ArtifactKinds, plugin, type Document, type Config } from 'houdini'
+import {
+	ArtifactKind,
+	ArtifactKinds,
+	plugin,
+	type Document,
+	type Config,
+	fragmentKey,
+} from 'houdini'
 import path from 'path'
 
 import { extractDocuments } from './extract'
@@ -57,30 +64,31 @@ const HoudiniReactPlugin = plugin('houdini-react', async () => ({
 					signature: (doc) =>
 						`function useQueryHandle(document: { artifact: { name : "${doc.name}" } }, variables?: ${doc.name}$input, config?: UseQueryConfig): DocumentHandle<${doc.name}$artifact, ${doc.name}$result, ${doc.name}$input>`,
 				}),
-			// 'hooks/useFragment.d.ts': ({ config, content }) =>
-			// 	addOverload({
-			// 		config,
-			// 		content,
-			// 		name: 'useFragment',
-			// 		documents: documents[ArtifactKind.Fragment] ?? [],
-			// 		importIdentifiers: (doc) => [`${doc.name}$result`],
-			// 		signature: (doc) => `${doc.name}$result`,
-			// 	}),
-			// 'hooks/useFragmentHandle.d.ts': ({ config, content }) =>
-			// 	addOverload({
-			// 		config,
-			// 		content,
-			// 		name: 'useFragmentHandle',
-			// 		documents: documents[ArtifactKind.Fragment] ?? [],
-			// 		preamble: 'import { DocumentHandle } from "./useDocumentHandle"',
-			// 		importIdentifiers: (doc) => [
-			// 			`${doc.name}$result`,
-			// 			`${doc.name}$artifact`,
-			// 			`${doc.name}$input`,
-			// 		],
-			// 		signature: (doc) =>
-			// 			`DocumentHandle<${doc.name}$artifact, ${doc.name}$result, ${doc.name}$input>`,
-			// 	}),
+			'hooks/useFragment.d.ts': ({ config, content }) =>
+				addOverload({
+					config,
+					content,
+					name: 'useFragment',
+					documents: documents[ArtifactKind.Fragment] ?? [],
+					importIdentifiers: (doc) => [`${doc.name}$data`],
+					signature: (doc) =>
+						`function useFragment(reference: { readonly "${fragmentKey}": { ${doc.name}: any } }, document: { artifact: { name : "${doc.name}" } }): ${doc.name}$data`,
+				}),
+			'hooks/useFragmentHandle.d.ts': ({ config, content }) =>
+				addOverload({
+					config,
+					content,
+					name: 'useFragmentHandle',
+					documents: documents[ArtifactKind.Fragment] ?? [],
+					preamble: 'import { DocumentHandle } from "./useDocumentHandle"',
+					importIdentifiers: (doc) => [
+						`${doc.name}$data`,
+						`${doc.name}$artifact`,
+						`${doc.name}$input`,
+					],
+					signature: (doc) =>
+						`function useFragmentHandle(reference: { readonly "${fragmentKey}": { ${doc.name}: any } }, document: { artifact: { name : "${doc.name}" } }): DocumentHandle<${doc.name}$artifact, ${doc.name}$result, ${doc.name}$input>`,
+				}),
 			// 'hooks/useMutation.ts': ({ config, content }) =>
 			// 	addOverload({
 			// 		config,
@@ -165,7 +173,7 @@ import type { ${importIdentifiers(doc).join(', ')} } from '${path.relative(
 		.join('\n')
 
 	return `${docImports}
-${preamble}
+${preamble ?? ''}
 ${
 	content.slice(0, definitionIndex) +
 	documents.map(signature).join('\n') +
