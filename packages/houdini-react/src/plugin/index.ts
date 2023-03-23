@@ -23,7 +23,7 @@ const HoudiniReactPlugin = plugin('houdini-react', async () => ({
 	graphqlTagReturn({ config, document: doc, ensureImport: ensure_import }) {
 		// if we're supposed to generate a store then add an overloaded declaration
 		if (doc.generateStore) {
-			const variableName = `${doc.name}Artifact`
+			const variableName = `${doc.name}$artifact`
 
 			ensure_import({
 				identifier: variableName,
@@ -31,7 +31,7 @@ const HoudiniReactPlugin = plugin('houdini-react', async () => ({
 			})
 
 			// and use the store as the return value
-			return variableName
+			return `{ artifact: ${variableName}}`
 		}
 	},
 }))

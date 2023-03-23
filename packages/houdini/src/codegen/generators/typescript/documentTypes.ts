@@ -107,7 +107,7 @@ export async function generateDocumentTypes(config: Config, docs: Document[]) {
 					// the typescript AST representing a default export in typescript
 					AST.exportNamedDeclaration(
 						AST.tsTypeAliasDeclaration(
-							AST.identifier(`${name}Artifact`),
+							AST.identifier(`${name}$artifact`),
 							convertToTs(serializeValue(artifact))
 						)
 					)
@@ -204,7 +204,7 @@ For more information, please visit this link: ${siteURL}/api/config#custom-scala
 }
 
 function convertToTs(source: ExpressionKind): TSTypeKind {
-	// if the source is an object
+	// convert the values of objects
 	if (source.type === 'ObjectExpression') {
 		return AST.tsTypeLiteral(
 			source.properties.reduce<recast.types.namedTypes.TSPropertySignature[]>(
@@ -229,18 +229,22 @@ function convertToTs(source: ExpressionKind): TSTypeKind {
 		)
 	}
 
+	// convert every element in an array
 	if (source.type === 'ArrayExpression') {
 		return AST.tsTupleType(
 			source.elements.map((element) => convertToTs(element as ExpressionKind))
 		)
 	}
 
+	// handle literal types
 	if (source.type === 'Literal' && typeof source.value === 'boolean') {
 		return AST.tsLiteralType(AST.booleanLiteral(source.value))
 	}
-
 	if (source.type === 'Literal' && typeof source.value === 'number') {
 		return AST.tsLiteralType(AST.numericLiteral(source.value))
+	}
+	if (source.type === 'Literal' && typeof source.value === 'string') {
+		return AST.tsLiteralType(AST.stringLiteral(source.value))
 	}
 
 	// @ts-ignore

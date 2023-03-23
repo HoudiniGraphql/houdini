@@ -127,7 +127,7 @@ describe('typescript', function () {
 			    readonly enumValue: ValueOf<typeof MyEnum> | null;
 			};
 
-			export type TestFragmentArtifact = {
+			export type TestFragment$artifact = {
 			    "name": "TestFragment";
 			    "kind": "HoudiniFragment";
 			    "hash": "fec5e49042a021e67a5f04a339f3729793fedbf7df83c2119a6ad932f91727f8";
@@ -211,7 +211,7 @@ describe('typescript', function () {
 			    } | null;
 			};
 
-			export type TestFragmentArtifact = {
+			export type TestFragment$artifact = {
 			    "name": "TestFragment";
 			    "kind": "HoudiniFragment";
 			    "hash": "03f5a3344390dfa1b642c7038bbdb5f6bfadbb645886b0d1ce658fc77e90668e";
@@ -300,7 +300,7 @@ describe('typescript', function () {
 			    } | null;
 			};
 
-			export type TestFragmentArtifact = {
+			export type TestFragment$artifact = {
 			    "name": "TestFragment";
 			    "kind": "HoudiniFragment";
 			    "hash": "9c72207c02a37626ffd0f6397ab2a573d88486792caad6f52c785555a6a6343b";
@@ -388,7 +388,7 @@ describe('typescript', function () {
 			    } | null;
 			};
 
-			export type TestFragmentArtifact = {
+			export type TestFragment$artifact = {
 			    "name": "TestFragment";
 			    "kind": "HoudiniFragment";
 			    "hash": "c05ae5e22dd26c00fbc088277ca96ded6e01a0a6c540eb040ee91d10655b4575";
@@ -482,7 +482,7 @@ describe('typescript', function () {
 			    readonly weight: number | null;
 			};
 
-			export type TestFragmentArtifact = {
+			export type TestFragment$artifact = {
 			    "name": "TestFragment";
 			    "kind": "HoudiniFragment";
 			    "hash": "268c6ce8de2ed68662e4da519dc541b6aae4232671449895e23cee88b25120cd";
@@ -572,7 +572,7 @@ describe('typescript', function () {
 			    } | null)[] | null;
 			};
 
-			export type TestFragmentArtifact = {
+			export type TestFragment$artifact = {
 			    "name": "TestFragment";
 			    "kind": "HoudiniFragment";
 			    "hash": "60afdef644bced9aae26a086b7dbf33dc7b8b51c45ddc2fc4571a0bb72f2d660";
@@ -660,7 +660,7 @@ describe('typescript', function () {
 
 			export type MyQuery$input = null;
 
-			export type MyQueryArtifact = {
+			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
 			    "hash": "75599daf9b89690cac0df70674158875f4908fd3405b0a12510bb0803161dd01";
@@ -737,7 +737,7 @@ describe('typescript', function () {
 
 			export type MyQuery$input = null;
 
-			export type MyQueryArtifact = {
+			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
 			    "hash": "802f49d218bd0db35a4f4eec151e9db62490086a3e61818659f7a283548427b6";
@@ -817,7 +817,7 @@ describe('typescript', function () {
 			    enum?: ValueOf<typeof MyEnum> | null | undefined;
 			};
 
-			export type MyQueryArtifact = {
+			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
 			    "hash": "d4c90d48b80c460939fd7dca6b99122fdd276812c20176b37679cfaf08c2efcf";
@@ -908,7 +908,7 @@ describe('typescript', function () {
 
 			export type MyTestQuery$input = null;
 
-			export type MyTestQueryArtifact = {
+			export type MyTestQuery$artifact = {
 			    "name": "MyTestQuery";
 			    "kind": "HoudiniQuery";
 			    "hash": "a628c9dfeecde5337a5439aee8f7c4d0111783f9fd456841a54f485db49f756d";
@@ -1051,7 +1051,7 @@ describe('typescript', function () {
 			    } | null;
 			};
 
-			export type MyMutationArtifact = {
+			export type MyMutation$artifact = {
 			    "name": "MyMutation";
 			    "kind": "HoudiniMutation";
 			    "hash": "ca24beb22d7dfdbf5e50bc7ca446037f0812deeca00c13d3ce745a9f492f69b7";
@@ -1183,7 +1183,7 @@ describe('typescript', function () {
 			    } | null;
 			};
 
-			export type MyMutationArtifact = {
+			export type MyMutation$artifact = {
 			    "name": "MyMutation";
 			    "kind": "HoudiniMutation";
 			    "hash": "32e4d8c37e92a71ccb13fe49e001735829f33af4f42687fb138c6547c4cc4749";
@@ -1290,7 +1290,7 @@ describe('typescript', function () {
 			    filter: UserFilter;
 			};
 
-			export type MyQueryArtifact = {
+			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
 			    "hash": "3db625201d1054e50b978a3a87dc954aef3b8284070cdd0c1f667a2ccada232f";
@@ -1411,7 +1411,7 @@ describe('typescript', function () {
 
 			export type MyQuery$input = null;
 
-			export type MyQueryArtifact = {
+			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
 			    "hash": "e07594825d2da2a5eaae6efa277dc4dfd0f3416a08827dfc505c88a0c5650068";
@@ -1503,7 +1503,7 @@ describe('typescript', function () {
 
 			export type MyQuery$input = null;
 
-			export type MyQueryArtifact = {
+			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
 			    "hash": "e07594825d2da2a5eaae6efa277dc4dfd0f3416a08827dfc505c88a0c5650068";
@@ -1605,7 +1605,7 @@ describe('typescript', function () {
 
 			export type MyQuery$input = null;
 
-			export type MyQueryArtifact = {
+			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
 			    "hash": "07886277853f6b1ef2d195030db19d20fc69006937a247cfebe208017c289335";
@@ -1729,7 +1729,7 @@ describe('typescript', function () {
 
 			export type MyQuery$input = null;
 
-			export type MyQueryArtifact = {
+			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
 			    "hash": "b5705e689c230262aea65553c5366ca16aa85ffb6be532a5a83fe0c29319b632";
@@ -1851,7 +1851,7 @@ describe('typescript', function () {
 
 			export type MyQuery$input = null;
 
-			export type MyQueryArtifact = {
+			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
 			    "hash": "21a52db58ea979321a735e60ac37878e5675cc15589e1f54cd6ea8ad51a9c359";
@@ -1991,7 +1991,7 @@ describe('typescript', function () {
 
 			export type MyQuery$input = null;
 
-			export type MyQueryArtifact = {
+			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
 			    "hash": "c25bd32ae0bce403ccc8003f26d309858560a9a931b3994b25ea90a5e78f12e3";
@@ -2140,7 +2140,7 @@ describe('typescript', function () {
 
 			export type MyQuery$input = null;
 
-			export type MyQueryArtifact = {
+			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
 			    "hash": "87075eb7baf6814d4d50014581034fbdaa8ba700214a568670261e5b428597a0";
@@ -2236,7 +2236,7 @@ describe('typescript', function () {
 			    date: Date;
 			};
 
-			export type MyQueryArtifact = {
+			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
 			    "hash": "dabe70c216f3d5d1c8acddccf9e2d8b14257649861747f941b9c64cfd6311022";
@@ -2317,7 +2317,7 @@ describe('typescript', function () {
 
 			export type MyQuery$input = null;
 
-			export type MyQueryArtifact = {
+			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
 			    "hash": "a173496c64d9d074e03787939bc79e046f8362a606857fa387447c5f3a250ab7";
@@ -2408,7 +2408,7 @@ describe('typescript', function () {
 
 			export type MyQuery$input = null;
 
-			export type MyQueryArtifact = {
+			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
 			    "hash": "38d331a2d7f0611a5ed00d57a0f3b4ef5c5cde865f69cb1b09559db85211ea2e";
@@ -2583,7 +2583,7 @@ describe('typescript', function () {
 			    } | null;
 			};
 
-			export type MyMutationArtifact = {
+			export type MyMutation$artifact = {
 			    "name": "MyMutation";
 			    "kind": "HoudiniMutation";
 			    "hash": "609440bd4c48c2082cadf4d900ab6f3636c576ce469a14c00383896c0a093d36";
@@ -2744,7 +2744,7 @@ describe('typescript', function () {
 
 			export type MyQuery$input = null;
 
-			export type MyQueryArtifact = {
+			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
 			    "hash": "53a8f654096f13904d5dc6300ce727748bf3ed0388e19984ef8ac7dc17515385";
@@ -2903,7 +2903,7 @@ describe('typescript', function () {
 
 			export type MyQuery$input = null;
 
-			export type MyQueryArtifact = {
+			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
 			    "hash": "c387cedf90314a9b3fb48a4d2f47ed1ba1c4e12e3da2eb9ac6fc1220adfa2e8d";
@@ -3017,7 +3017,7 @@ describe('typescript', function () {
 			    } | null)[] | null;
 			};
 
-			export type UserMoreArtifact = {
+			export type UserMore$artifact = {
 			    "name": "UserMore";
 			    "kind": "HoudiniFragment";
 			    "hash": "dd15a529e927b628fe52e5479f698a5b3a65bae59380ff08e767cfb8bdf1c745";
@@ -3142,7 +3142,7 @@ describe('typescript', function () {
 
 			export type MyQuery$input = null;
 
-			export type MyQueryArtifact = {
+			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
 			    "hash": "ec1246bc6b1083a74cefb176a260fbc3171a820cffd8e9cd747cdce7488d3665";
@@ -3260,7 +3260,7 @@ describe('typescript', function () {
 			    } | null)[] | null;
 			};
 
-			export type UserMoreArtifact = {
+			export type UserMore$artifact = {
 			    "name": "UserMore";
 			    "kind": "HoudiniFragment";
 			    "hash": "dd15a529e927b628fe52e5479f698a5b3a65bae59380ff08e767cfb8bdf1c745";
@@ -3362,7 +3362,7 @@ describe('typescript', function () {
 
 			export type MyQuery$input = null;
 
-			export type MyQueryArtifact = {
+			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
 			    "hash": "2d7de7172ca60367f8319c3e20c939584616da3953e8723a9c5bf55117a24897";
@@ -3471,7 +3471,7 @@ test('overlapping fragments', async function () {
 		    };
 		};
 
-		export type UserBaseArtifact = {
+		export type UserBase$artifact = {
 		    "name": "UserBase";
 		    "kind": "HoudiniFragment";
 		    "hash": "05ec5090d31f77c3f2bdcbd26aff116588f63d4b3789ae752759dd172974a628";
