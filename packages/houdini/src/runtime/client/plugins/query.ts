@@ -35,11 +35,12 @@ export const query: ClientPlugin = documentPlugin(ArtifactKind.Query, function (
 				// track the new variables
 				lastVariables = { ...marshalVariables(ctx) }
 
+				const variables = lastVariables
 				// save the new subscription spec
 				subscriptionSpec = {
 					rootType: ctx.artifact.rootType,
 					selection: ctx.artifact.selection,
-					variables: () => lastVariables,
+					variables: () => variables,
 					set: (newValue) => {
 						resolve(ctx, {
 							data: newValue,

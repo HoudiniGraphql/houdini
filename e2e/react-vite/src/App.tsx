@@ -1,4 +1,4 @@
-import { useQuery, useFragment, graphql, HoudiniProvider, type UserInfo } from '$houdini'
+import { useQueryHandle, useFragment, graphql, HoudiniProvider, type UserInfo } from '$houdini'
 import * as React from 'react'
 
 import client from './client'
@@ -14,17 +14,45 @@ export default function App() {
 }
 
 function Query() {
-	const data = useQuery(
+	const { data, refetch, variables } = useQueryHandle(
 		graphql(`
-			query MyQuery {
-				user(id: "1", snapshot: "react-vite-e2e") {
+			query MyQuery($id: ID!) {
+				user(id: $id, snapshot: "react-vite-e2e") {
+					id
 					...UserInfo
 				}
 			}
-		`)
+		`),
+		{
+			id: '1',
+		}
 	)
 
-	return <Fragment user={data.user} />
+	return (
+		<>
+			<button
+				onClick={() =>
+					refetch({
+						variables: { id: '2' },
+					})
+				}
+			>
+				fetch user 2
+			</button>
+			<button
+				onClick={() =>
+					refetch({
+						variables: { id: '3' },
+					})
+				}
+			>
+				fetch user 3
+			</button>
+
+			<div>{JSON.stringify(variables)}</div>
+			<Fragment user={data.user} />
+		</>
+	)
 }
 
 function Fragment({ user }: { user: UserInfo }) {
@@ -36,6 +64,8 @@ function Fragment({ user }: { user: UserInfo }) {
 			}
 		`)
 	)
+
+	console.log('fragment data', data)
 
 	return <div>{data.name}</div>
 }

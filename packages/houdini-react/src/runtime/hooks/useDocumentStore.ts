@@ -21,12 +21,13 @@ export function useDocumentStore<
 	...observeParams
 }: UseDocumentStoreParams<_Artifact, _Data>): [
 	QueryResult<_Data, _Input>,
-	DocumentStore<_Data, _Input>
+	DocumentStore<_Data, _Input>,
+	(store: DocumentStore<_Data, _Input>) => void
 ] {
 	const client = useHoudiniClient()
 
 	// hold onto an observer we'll use
-	const { current: observer } = React.useRef(
+	const [observer, setObserver] = React.useState(
 		client.observe<_Data, _Input>({
 			artifact,
 			...observeParams,
@@ -39,5 +40,5 @@ export function useDocumentStore<
 		() => observer.state
 	)
 
-	return [storeValue, observer]
+	return [storeValue, observer, setObserver]
 }

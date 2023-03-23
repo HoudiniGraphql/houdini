@@ -25,7 +25,8 @@ export const cachePolicy =
 				// enforce cache policies for queries
 				if (
 					enabled &&
-					artifact.kind === ArtifactKind.Query &&
+					(artifact.kind === ArtifactKind.Query ||
+						artifact.kind === ArtifactKind.Fragment) &&
 					!ctx.cacheParams?.disableRead
 				) {
 					// this function is called as the first step in requesting data. If the policy prefers
@@ -39,6 +40,7 @@ export const cachePolicy =
 						const value = localCache.read({
 							selection: artifact.selection,
 							variables: marshalVariables(ctx),
+							parent: ctx.stuff?.parentID,
 						})
 
 						// we can only use the result if its not a partial result

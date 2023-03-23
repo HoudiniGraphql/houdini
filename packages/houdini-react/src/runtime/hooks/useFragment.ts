@@ -1,7 +1,10 @@
 import cache from '$houdini/runtime/cache'
-import type { GraphQLObject, FragmentArtifact } from '$houdini/runtime/lib/types'
+import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import { fragmentKey } from '$houdini/runtime/lib/types'
+import type { GraphQLObject, FragmentArtifact } from '$houdini/runtime/lib/types'
+import * as React from 'react'
 
+import { useDeepCompareMemoize } from './useDeepCompareEffect'
 import { useDocumentSubscription } from './useDocumentSubscription'
 
 export function useFragment<
@@ -19,23 +22,22 @@ export function useFragment<
 	)
 
 	// if we got this far then we are safe to use the fields on the object
-	let initialValue = reference as _Data | null
+	let cachedValue = reference as _Data | null
 
 	// on the client, we want to ensure that we apply masking to the initial value by
 	// loading the value from cache
 	if (reference && parent) {
-		initialValue = cache.read({
+		cachedValue = cache.read({
 			selection: document.artifact.selection,
 			parent,
 			variables,
 		}).data as _Data
 	}
 
-	// we're ready to setup the live document
-	const [storeValue] = useDocumentSubscription<FragmentArtifact, _Data, _Input>({
+	const observeParams = {
 		artifact: document.artifact,
 		variables,
-		initialValue,
+		initialValue: cachedValue,
 		send: {
 			stuff: {
 				parentID: parent,
@@ -45,10 +47,38 @@ export function useFragment<
 			// have an initial value...
 			// does Boolean(initialValue) === { setup: true }
 		},
-	})
+	}
 
-	// and use the value
-	return storeValue.data
+	// we're ready to setup the live document
+	const [storeValue] = useDocumentSubscription<FragmentArtifact, _Data, _Input>(observeParams)
+
+	// the parent has changed, we need to use initialValue for this render
+	// if we don't, then there is a very brief flash where we will show the old data
+	// before the store has had a chance to update
+	const lastReference = React.useRef<{ parent: string; variables: _Input } | null>(null)
+	return React.useMemo(() => {
+		// if the parent reference has changed we need to always prefer the cached value
+		const parentChange =
+			storeValue.parent !== parent ||
+			!deepEquals({ parent, variables }, lastReference.current)
+		if (parentChange) {
+			// make sure we keep track of the last reference we used
+			lastReference.current = { parent, variables: { ...variables } }
+
+			// and use the cached value
+			return cachedValue
+		}
+
+		return storeValue.data
+	}, [
+		useDeepCompareMemoize({
+			parent,
+			variables,
+			cachedValue,
+			storeValue: storeValue.data,
+			storeParent: storeValue.parent,
+		}),
+	])
 }
 
 export function fragmentReference<_Data extends GraphQLObject, _Input, _ReferenceType extends {}>(

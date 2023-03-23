@@ -1,6 +1,7 @@
 import type { DocumentArtifact, QueryResult } from '$houdini/lib/types'
 import type { DocumentStore, SendParams } from '$houdini/runtime/client'
 import { GraphQLObject } from 'houdini'
+import * as React from 'react'
 
 import useDeepCompareEffect from './useDeepCompareEffect'
 import { useDocumentStore, type UseDocumentStoreParams } from './useDocumentStore'
@@ -17,8 +18,15 @@ export function useDocumentSubscription<
 }: UseDocumentStoreParams<_Artifact, _Data> & {
 	variables: _Input
 	send?: Partial<SendParams>
-}): [QueryResult<_Data, _Input>, DocumentStore<_Data, _Input>] {
-	const [storeValue, observer] = useDocumentStore<_Data, _Input>({ artifact, ...observeParams })
+}): [
+	QueryResult<_Data, _Input> & { parent?: string | null },
+	DocumentStore<_Data, _Input>,
+	(store: DocumentStore<_Data, _Input>) => void
+] {
+	const [storeValue, observer, setObserver] = useDocumentStore<_Data, _Input>({
+		artifact,
+		...observeParams,
+	})
 
 	// whenever the variables change, we need to retrigger the query
 	useDeepCompareEffect(() => {
@@ -32,7 +40,14 @@ export function useDocumentSubscription<
 		return () => {
 			observer.cleanup()
 		}
-	}, [variables ?? {}, send ?? {}])
+	}, [observer, variables ?? {}, send ?? {}])
 
-	return [storeValue, observer]
+	return [
+		{
+			parent: send?.stuff?.parentID,
+			...storeValue,
+		},
+		observer,
+		setObserver,
+	]
 }

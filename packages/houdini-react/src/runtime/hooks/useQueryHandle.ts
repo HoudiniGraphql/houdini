@@ -1,4 +1,4 @@
-import { cache } from '$houdini/runtime'
+import cache from '$houdini/runtime/cache'
 import {
 	type QueryArtifact,
 	ArtifactKind,
@@ -7,6 +7,7 @@ import {
 } from '$houdini/runtime/lib/types'
 import React from 'react'
 
+import { useDeepCompareMemoize } from './useDeepCompareEffect'
 import { DocumentHandle, useDocumentHandle } from './useDocumentHandle'
 import { useDocumentSubscription } from './useDocumentSubscription'
 
@@ -35,14 +36,15 @@ export function useQueryHandle<
 	// memoize the cached value so that we only look it up when necessary
 	// TODO: this fires _way_ too often in the simple cases. we need to figure out how to prevent
 	// unnecessary rerenders.
+	const stableVariables = useDeepCompareMemoize(variables)
 	const cachedValue = React.useMemo(() => {
 		return (
 			!storeValue.data &&
 			!storeValue.errors &&
 			artifact.kind === ArtifactKind.Query &&
-			cache.read({ query: { artifact, variables } })
+			cache.read({ selection: artifact.selection, variables })
 		)
-	}, [Boolean(storeValue.data), Boolean(storeValue.errors), artifact.kind, variables])
+	}, [Boolean(storeValue.data), Boolean(storeValue.errors), artifact.kind, stableVariables])
 	if (cachedValue) {
 		// TODO: what to do about cache policy here?
 		//       we rely on the cache as the way to look up values after suspending (since can't get the resolved values)
@@ -87,6 +89,7 @@ export function useQueryHandle<
 	// make sure we prefer the latest store value instead of the initial version we loaded on mount
 	return {
 		...handle,
+		variables: storeValue.variables,
 		data: handle.data ?? localData!,
 	}
 }
