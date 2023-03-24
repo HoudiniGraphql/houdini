@@ -1,4 +1,5 @@
-import { ConfigFile, path } from 'houdini'
+import type { ConfigFile } from 'houdini'
+import { path } from 'houdini'
 import { testConfig } from 'houdini/test'
 import { describe, expect, test } from 'vitest'
 

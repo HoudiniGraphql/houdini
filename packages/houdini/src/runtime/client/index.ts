@@ -1,18 +1,16 @@
 /// <reference path="../../../../../houdini.d.ts" />
 import { flatten } from '../lib/flatten'
 import type { DocumentArtifact, GraphQLObject, NestedList } from '../lib/types'
-import type { ClientPlugin, ClientHooks } from './documentStore'
+import type { ClientHooks, ClientPlugin } from './documentStore'
 import { DocumentStore } from './documentStore'
+import type { FetchParamFn, ThrowOnErrorOperations, ThrowOnErrorParams } from './plugins'
 import {
 	fetch as fetchPlugin,
+	fetchParams as fetchParamsPlugin,
+	fragment as fragmentPlugin,
 	mutation as mutationPlugin,
 	query as queryPlugin,
-	fragment as fragmentPlugin,
 	throwOnError as throwOnErrorPlugin,
-	type FetchParamFn,
-	fetchParams as fetchParamsPlugin,
-	type ThrowOnErrorParams,
-	ThrowOnErrorOperations,
 } from './plugins'
 import pluginsFromPlugins from './plugins/injectedPlugins'
 

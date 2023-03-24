@@ -13,7 +13,7 @@ import { ArtifactKind, CachePolicy, CompiledQueryKind } from '$houdini/runtime/l
 import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
 import { get } from 'svelte/store'
 
-import { HoudiniSvelteConfig } from '../../plugin'
+import type { HoudiniSvelteConfig } from '../../plugin'
 import type { PluginArtifactData } from '../../plugin/artifactData'
 import { clientStarted, isBrowser } from '../adapter'
 import { initClient } from '../client'
