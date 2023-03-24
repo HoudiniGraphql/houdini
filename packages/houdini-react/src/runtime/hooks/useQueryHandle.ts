@@ -7,9 +7,9 @@ import {
 } from '$houdini/runtime/lib/types'
 import React from 'react'
 
-import { useDeepCompareMemoize } from './useDeepCompareEffect'
+import useDeepCompareEffect, { useDeepCompareMemoize } from './useDeepCompareEffect'
 import { DocumentHandle, useDocumentHandle } from './useDocumentHandle'
-import { useDocumentSubscription } from './useDocumentSubscription'
+import { useDocumentStore } from './useDocumentStore'
 
 export function useQueryHandle<
 	_Artifact extends QueryArtifact,
@@ -20,12 +20,8 @@ export function useQueryHandle<
 	variables: any = null,
 	config: UseQueryConfig = {}
 ): DocumentHandle<_Artifact, _Data, _Input> {
-	const [storeValue, observer] = useDocumentSubscription<QueryArtifact, _Data, _Input>({
+	const [storeValue, observer] = useDocumentStore<_Data, _Input>({
 		artifact,
-		variables,
-		send: {
-			metadata: config?.metadata,
-		},
 	})
 
 	// if we don't have any data in the observer yet, see if we can load from the cache.
@@ -86,6 +82,18 @@ export function useQueryHandle<
 		storeValue,
 	})
 
+	// whenever the variables change, we need to retrigger the query
+	useDeepCompareEffect(() => {
+		handle.fetch({
+			variables: variables ?? {},
+			metadata: config?.metadata,
+			policy: config?.policy,
+		})
+		return () => {
+			observer.cleanup()
+		}
+	}, [variables ?? {}, config ?? {}])
+
 	// make sure we prefer the latest store value instead of the initial version we loaded on mount
 	return {
 		...handle,
@@ -97,4 +105,5 @@ export function useQueryHandle<
 export type UseQueryConfig = {
 	policy?: CachePolicies
 	metadata?: App.Metadata
+	fetchKey?: any
 }
