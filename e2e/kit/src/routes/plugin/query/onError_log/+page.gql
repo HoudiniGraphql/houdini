@@ -1,5 +1,0 @@
-query PreprocessorOnErrorTestQueryLog {
-  user(id: "1000", snapshot: "preprocess-on-error-test-simple") {
-    name
-  }
-}
