@@ -1,3 +1,5 @@
+import * as log from '$houdini/runtime/lib/log'
+
 import type { QueryResult, ArtifactKinds } from '../../lib'
 import { ArtifactKind } from '../../lib'
 import type { ClientPlugin, ClientPluginContext } from '../documentStore'
@@ -29,29 +31,22 @@ export const throwOnError =
 		return {
 			async start(ctx, { next }) {
 				// add a warning if the config is wrong
-				if (throwOnKind(ctx.artifact.kind)) {
-					// TODO
+				if (operations.includes('all') || operations.includes('query')) {
 					// if explicitly set to not_always_blocking, we can't throw, so warn the user.
-					// if (ctx.config.defaultBlockingMode === 'not_always_blocking') {
-					// 	console.warn(
-					// 		'[Houdini][client-plugin] throwOnError with operation "all" or "query", is not compatible with defaultBlockingMode set to "not_always_blocking"'
-					// 	)
-					// }
+					const config_not_always_blocking =
+						(ctx.config.plugins as any)['houdini-svelte']?.defaultBlockingMode ===
+						'not_always_blocking'
+					if (config_not_always_blocking) {
+						log.info(
+							'[Houdini] ⚠️ throwOnError with operation "all" or "query", is not compatible with defaultBlockingMode set to "not_always_blocking"'
+						)
+					}
 				}
 				next(ctx)
 			},
 			async end(ctx, { value, resolve }) {
 				// if we are supposed to throw and there are errors
 				if (value.errors && value.errors.length > 0 && throwOnKind(ctx.artifact.kind)) {
-					// TODO
-					// We can't properly throw, so warn the user.
-					// if (ctx.blocking === false) {
-					// 	console.error(
-					// 		'[Houdini][client-plugin] throwOnError can work properly only if you block the query (by config or directive or args)'
-					// 	)
-					// }
-
-					// and throw
 					const result = await (error ?? defaultErrorFn)(value.errors, ctx)
 					throw result
 				}
