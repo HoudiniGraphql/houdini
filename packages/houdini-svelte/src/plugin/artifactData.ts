@@ -32,12 +32,13 @@ export function artifactData({
 				({ kind }) => kind === graphql.Kind.OPERATION_DEFINITION
 			) as graphql.OperationDefinitionNode[]
 
-			const blockingDirective = operations[0].directives?.find(
+			// blocking directives
+			const blockingDirective = operations[0]?.directives?.find(
 				(directive) => directive.name.value === config.blockingDirective
 			)
 			set_blocking = blockingDirective ? true : false
 
-			const no_blockingDirective = operations[0].directives?.find(
+			const no_blockingDirective = operations[0]?.directives?.find(
 				(directive) => directive.name.value === config.no_blockingDirective
 			)
 			set_no_blocking = no_blockingDirective ? true : false
