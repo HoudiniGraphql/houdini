@@ -29,24 +29,38 @@ export function useDocumentHandle<
 	observer: DocumentStore<_Data, _Input>
 	storeValue: QueryResult<_Data, _Input>
 }): DocumentHandle<_Artifact, _Data, _Input> {
-	// we need a document store for loading forward and backward
-	const [forwardValue, forwardObserver] = useDocumentStore({ artifact })
-	const [backwardValue, backwardObserver] = useDocumentStore({ artifact })
+	const [forwardPending, setForwardPending] = React.useState(false)
+	const [backwardPending, setBackwardPending] = React.useState(false)
+	const [fetchPending, setFetchPending] = React.useState(false)
 
 	// @ts-expect-error: avoiding an as DocumentHandle<_Artifact, _Data, _Input>
 	return React.useMemo<DocumentHandle<_Artifact, _Data, _Input>>(() => {
-		const fetchQuery: FetchFn<_Data, _Input> = ({ variables, policy, metadata } = {}) => {
-			return observer.send({
-				variables,
-				policy,
-				metadata,
-			})
+		const wrapLoad = <_Result>(
+			setLoading: (val: boolean) => void,
+			fn: (value: any) => Promise<_Result>
+		) => {
+			return async (value: any) => {
+				setLoading(true)
+				const result = await fn(value)
+				setLoading(false)
+				return result
+			}
 		}
+
+		const fetchQuery = wrapLoad(setFetchPending, (args) => {
+			return observer.send({
+				...args,
+				stuff: {
+					silenceLoading: true,
+				},
+			})
+		})
 
 		// only consider paginated queries
 		if (artifact.kind !== ArtifactKind.Query || !artifact.refetch?.paginated) {
 			return {
 				data: storeValue.data,
+				loading: fetchPending,
 				refetch: fetchQuery,
 				partial: storeValue.partial,
 			}
@@ -63,9 +77,13 @@ export function useDocumentHandle<
 				getVariables: () => storeValue.variables!,
 				storeName: artifact.name,
 				fetch: fetchQuery,
-				fetchUpdate: async (args, updates) => {
+				fetchUpdate: (args, updates) => {
 					return observer.send({
 						...args,
+						stuff: {
+							// silenceLoading: true,
+							...args.stuff,
+						},
 						cacheParams: {
 							disableSubscriptions: true,
 							applyUpdates: updates,
@@ -78,12 +96,13 @@ export function useDocumentHandle<
 
 			return {
 				data: storeValue.data,
+				loading: fetchPending,
 				refetch: handlers.fetch,
 				partial: storeValue.partial,
-				loadNext: handlers.loadNextPage,
-				isLoadingNext: forwardValue.fetching,
-				loadPrevious: handlers.loadPreviousPage,
-				isLoadingPrevious: backwardValue.fetching,
+				loadNext: wrapLoad(setForwardPending, handlers.loadNextPage),
+				isLoadingNext: forwardPending,
+				loadPrevious: wrapLoad(setBackwardPending, handlers.loadPreviousPage),
+				isLoadingPrevious: backwardPending,
 				pageInfo: extractPageInfo(storeValue.data, artifact.refetch!.path),
 			}
 		}
@@ -103,6 +122,9 @@ export function useDocumentHandle<
 							applyUpdates: updates,
 							...args?.cacheParams,
 						},
+						stuff: {
+							// silenceLoading: true,
+						},
 					})
 				},
 
@@ -112,10 +134,11 @@ export function useDocumentHandle<
 
 			return {
 				data: storeValue.data,
+				loading: fetchPending,
 				refetch: handlers.fetch,
 				partial: storeValue.partial,
-				loadNext: handlers.loadNextPage,
-				isLoadingNext: forwardValue.fetching,
+				loadNext: wrapLoad(setForwardPending, handlers.loadNextPage),
+				isLoadingNext: forwardPending,
 			}
 		}
 
@@ -125,15 +148,7 @@ export function useDocumentHandle<
 			refetch: fetchQuery,
 			partial: storeValue.partial,
 		}
-	}, [
-		artifact,
-		observer,
-		storeValue,
-		forwardValue.fetching,
-		forwardObserver,
-		backwardValue.fetching,
-		backwardObserver,
-	])
+	}, [artifact, observer, storeValue, true, true])
 }
 
 export type DocumentHandle<
@@ -142,6 +157,7 @@ export type DocumentHandle<
 	_Input extends {} = []
 > = {
 	data: _Data
+	loading: boolean
 	partial: boolean
 	refetch: FetchFn<_Data, _Input>
 	variables: _Input

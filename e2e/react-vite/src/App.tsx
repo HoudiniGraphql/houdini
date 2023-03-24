@@ -14,7 +14,9 @@ export default function App() {
 }
 
 function Query() {
-	const { data, refetch, variables } = useQueryHandle(
+	const [localVariables, setLocalVariables] = React.useState({ id: '1' })
+
+	const { data, refetch, loading, variables } = useQueryHandle(
 		graphql(`
 			query MyQuery($id: ID!) {
 				user(id: $id, snapshot: "react-vite-e2e") {
@@ -23,31 +25,24 @@ function Query() {
 				}
 			}
 		`),
-		{
-			id: '1',
-		}
+		localVariables
 	)
 
 	return (
 		<>
-			<button
-				onClick={() =>
-					refetch({
-						variables: { id: '2' },
-					})
-				}
-			>
-				fetch user 2
-			</button>
-			<button
-				onClick={() =>
-					refetch({
-						variables: { id: '3' },
-					})
-				}
-			>
-				fetch user 3
-			</button>
+			<div>
+				<button onClick={() => setLocalVariables({ id: '2' })}>
+					fetch user 2 (suspend)
+				</button>
+				<button onClick={() => setLocalVariables({ id: '3' })}>
+					fetch user 3 (suspend)
+				</button>
+			</div>
+			<div>
+				<button onClick={() => refetch({ variables: { id: '2' } })}>fetch user 2</button>
+				<button onClick={() => refetch({ variables: { id: '3' } })}>fetch user 3</button>
+				{loading && 'pending fetch'}
+			</div>
 
 			<div>{JSON.stringify(variables)}</div>
 			<Fragment user={data.user} />
