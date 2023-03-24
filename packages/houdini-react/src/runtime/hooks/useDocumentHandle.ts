@@ -26,10 +26,9 @@ export function useDocumentHandle<
 	artifact: DocumentArtifact
 	observer: DocumentStore<_Data, _Input>
 	storeValue: QueryResult<_Data, _Input>
-}): DocumentHandle<_Artifact, _Data, _Input> {
+}): DocumentHandle<_Artifact, _Data, _Input> & { fetch: FetchFn<_Data, _Input> } {
 	const [forwardPending, setForwardPending] = React.useState(false)
 	const [backwardPending, setBackwardPending] = React.useState(false)
-	const [fetchPending, setFetchPending] = React.useState(false)
 
 	// @ts-expect-error: avoiding an as DocumentHandle<_Artifact, _Data, _Input>
 	return React.useMemo<DocumentHandle<_Artifact, _Data, _Input>>(() => {
@@ -45,21 +44,13 @@ export function useDocumentHandle<
 			}
 		}
 
-		const fetchQuery = wrapLoad(setFetchPending, (args) => {
-			return observer.send({
-				...args,
-				stuff: {
-					silenceLoading: true,
-				},
-			})
-		})
+		const fetchQuery: FetchFn<_Data, _Input> = (args) => observer.send(args)
 
 		// only consider paginated queries
 		if (artifact.kind !== ArtifactKind.Query || !artifact.refetch?.paginated) {
 			return {
 				data: storeValue.data,
-				loading: fetchPending,
-				refetch: fetchQuery,
+				fetch: fetchQuery,
 				partial: storeValue.partial,
 			}
 		}
@@ -94,8 +85,7 @@ export function useDocumentHandle<
 
 			return {
 				data: storeValue.data,
-				loading: fetchPending,
-				refetch: handlers.fetch,
+				fetch: handlers.fetch,
 				partial: storeValue.partial,
 				loadNext: wrapLoad(setForwardPending, handlers.loadNextPage),
 				isLoadingNext: forwardPending,
@@ -132,8 +122,7 @@ export function useDocumentHandle<
 
 			return {
 				data: storeValue.data,
-				loading: fetchPending,
-				refetch: handlers.fetch,
+				fetch: handlers.fetch,
 				partial: storeValue.partial,
 				loadNext: wrapLoad(setForwardPending, handlers.loadNextPage),
 				isLoadingNext: forwardPending,
@@ -143,6 +132,7 @@ export function useDocumentHandle<
 		// we don't want to add anything
 		return {
 			data: storeValue.data,
+			fetch: fetchQuery,
 			refetch: fetchQuery,
 			partial: storeValue.partial,
 		}
@@ -155,10 +145,7 @@ export type DocumentHandle<
 	_Input extends {} = []
 > = {
 	data: _Data
-	loading: boolean
 	partial: boolean
-	refetch: FetchFn<_Data, _Input>
-	variables: _Input
 } & RefetchHandlers<_Artifact, _Data, _Input>
 
 type RefetchHandlers<_Artifact extends QueryArtifact, _Data extends GraphQLObject, _Input> =
