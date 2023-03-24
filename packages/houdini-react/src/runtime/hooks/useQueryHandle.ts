@@ -63,9 +63,9 @@ export function useQueryHandle<
 		if (!allowed) {
 			throw observer.send({
 				variables,
+				metadata: config?.metadata,
 				// TODO: session/metadata
 				session: {},
-				metadata: {},
 			})
 		}
 

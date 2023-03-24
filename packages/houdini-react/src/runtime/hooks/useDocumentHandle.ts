@@ -14,8 +14,6 @@ import {
 } from '$houdini/runtime/lib/types'
 import React from 'react'
 
-import { useDocumentStore } from './useDocumentStore'
-
 export function useDocumentHandle<
 	_Artifact extends QueryArtifact,
 	_Data extends GraphQLObject,
@@ -81,7 +79,7 @@ export function useDocumentHandle<
 					return observer.send({
 						...args,
 						stuff: {
-							// silenceLoading: true,
+							silenceLoading: true,
 							...args.stuff,
 						},
 						cacheParams: {
@@ -123,7 +121,7 @@ export function useDocumentHandle<
 							...args?.cacheParams,
 						},
 						stuff: {
-							// silenceLoading: true,
+							silenceLoading: true,
 						},
 					})
 				},
