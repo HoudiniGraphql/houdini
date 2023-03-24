@@ -12,6 +12,7 @@ import {
 	type FetchParamFn,
 	fetchParams as fetchParamsPlugin,
 	type ThrowOnErrorParams,
+	ThrowOnErrorOperations,
 } from './plugins'
 import pluginsFromPlugins from './plugins/injectedPlugins'
 
@@ -44,6 +45,9 @@ export class HoudiniClient {
 	// the list of plugins for the client
 	#plugins: ClientPlugin[]
 
+	// expose operations settings
+	throwOnError_operations: ThrowOnErrorOperations[]
+
 	constructor({ url, fetchParams, plugins, pipeline, throwOnError }: ConstructorArgs) {
 		// if we were given plugins and pipeline there's an error
 		if (plugins && pipeline) {
@@ -51,6 +55,8 @@ export class HoudiniClient {
 				'A client cannot be given a pipeline and a list of plugins at the same time.'
 			)
 		}
+
+		this.throwOnError_operations = throwOnError?.operations ?? []
 
 		// a few middlewares _have_ to run to setup the pipeline
 		this.#plugins = flatten(

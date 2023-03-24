@@ -1,17 +1,19 @@
 import type { FetchContext } from '$houdini/runtime/client/plugins/fetch'
+import { getCurrentConfig } from '$houdini/runtime/lib/config'
 import * as log from '$houdini/runtime/lib/log'
 import type {
+	CachePolicies,
 	GraphQLObject,
 	HoudiniFetchContext,
 	MutationArtifact,
 	QueryArtifact,
 	QueryResult,
-	CachePolicies,
 } from '$houdini/runtime/lib/types'
 import { ArtifactKind, CachePolicy, CompiledQueryKind } from '$houdini/runtime/lib/types'
 import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
 import { get } from 'svelte/store'
 
+import { HoudiniSvelteConfig } from '../../plugin'
 import type { PluginArtifactData } from '../../plugin/artifactData'
 import { clientStarted, isBrowser } from '../adapter'
 import { initClient } from '../client'
@@ -54,7 +56,8 @@ export class QueryStore<_Data extends GraphQLObject, _Input extends {}> extends 
 	fetch(params?: ClientFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
-		await initClient()
+		const client = await initClient()
+
 		this.setup(false)
 
 		// validate and prepare the request context for the current environment (client vs server)
@@ -86,9 +89,41 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 			params.blocking = true
 		}
 
-		// if it's set in the artifact (by default_config or directive), let's respect it.
-		if (this.artifact.alwaysBlocking) {
-			params.blocking = true
+		// blocking
+		const config = getCurrentConfig()
+		const config_svelte = (config.plugins as any)['houdini-svelte'] as HoudiniSvelteConfig
+		const pluginArtifact = this.artifact.pluginData['houdini-svelte'] as
+			| PluginArtifactData
+			| undefined
+
+		// Blocking strategy... step by step... Let's respect the order & priority
+		let need_to_block = false
+		// 1/ Check config
+		if (config_svelte.defaultBlockingMode === 'always_blocking') {
+			need_to_block = true
+		}
+
+		// 2/ ThrowOnError
+		if (
+			client.throwOnError_operations.includes('all') ||
+			client.throwOnError_operations.includes('query')
+		) {
+			need_to_block = true
+		}
+
+		// 3/ Artifact
+		if (pluginArtifact?.set_blocking) {
+			need_to_block = true
+		}
+		if (pluginArtifact?.set_no_blocking) {
+			need_to_block = false
+		}
+
+		// 4/ params
+		if (params?.blocking === true) {
+			need_to_block = true
+		} else if (params?.blocking === false) {
+			need_to_block = false
 		}
 
 		// the fetch is happening in a load
@@ -97,7 +132,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 		}
 
 		// we might not want to actually wait for the fetch to resolve
-		const fakeAwait = clientStarted && isBrowser && !params?.blocking
+		const fakeAwait = clientStarted && isBrowser && !need_to_block
 
 		// we want to try to load cached data before we potentially fake the await
 		// this makes sure that the UI feels snappy as we click between cached pages
@@ -124,7 +159,6 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 			session: context.session,
 			policy: policy,
 			stuff: {},
-			blocking: !fakeAwait,
 		})
 
 		// if we have to track when the fetch is done,

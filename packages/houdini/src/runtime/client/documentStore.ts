@@ -107,7 +107,6 @@ export class DocumentStore<
 		cacheParams,
 		setup = false,
 		silenceEcho = false,
-		blocking,
 	}: SendParams = {}) {
 		// start off with the initial context
 		let context = new ClientPluginContextWrapper({
@@ -130,7 +129,6 @@ export class DocumentStore<
 			artifact: this.#artifact,
 			lastVariables: this.#lastVariables,
 			cacheParams,
-			blocking,
 		})
 
 		// assign variables to take advantage of the setter on variables
@@ -555,7 +553,6 @@ export type ClientPluginContext = {
 		applyUpdates?: string[]
 	}
 	stuff: App.Stuff
-	blocking?: boolean
 }
 
 type ClientPluginPhase<Handlers> = (
@@ -606,5 +603,4 @@ export type SendParams = {
 	cacheParams?: ClientPluginContext['cacheParams']
 	setup?: boolean
 	silenceEcho?: boolean
-	blocking?: boolean
 }

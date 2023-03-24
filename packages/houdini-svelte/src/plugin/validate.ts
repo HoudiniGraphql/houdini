@@ -4,7 +4,7 @@ import { HoudiniError } from 'houdini'
 import { store_name } from './kit'
 
 // uniqueDocumentNames verifies that the documents all have unique names
-export default async function validateDocuments({
+export async function validate({
 	config,
 	documents,
 }: {

@@ -88,16 +88,6 @@ directive @${config.cacheDirective}(${config.cachePolicyArg}: CachePolicy, ${con
 directive @${config.loadDirective} on QUERY
 
 """
-	@${config.blockingDirective} is used to always await the fetch.
-"""
-directive @${config.blockingDirective} on QUERY
-
-"""
-	@${config.no_blockingDirective} is used to not always await the fetch (in CSR for example). Note that "throwOnError" will not throw in this case.
-"""
-directive @${config.no_blockingDirective} on QUERY
-
-"""
 	@${config.maskEnableDirective} to enable masking on fragment (overwriting the global conf)
 """
 directive @${config.maskEnableDirective} on FRAGMENT_SPREAD

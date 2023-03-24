@@ -16,7 +16,7 @@ import {
 	type Framework,
 } from './kit'
 import apply_transforms from './transforms'
-import validate from './validate'
+import { validate } from './validate'
 
 let framework: Framework = 'svelte'
 
@@ -83,6 +83,20 @@ export const redirect = svelteKitRedirect
 
 	// custom logic to pull a graphql document out of a svelte file
 	extractDocuments: extract,
+
+	schema({ config }) {
+		return `
+"""
+	@${config.blockingDirective} is used to always await the fetch.
+"""
+directive @${config.blockingDirective} on QUERY
+
+"""
+	@${config.no_blockingDirective} is used to not always await the fetch (in CSR for example). Note that "throwOnError" will not throw in this case.
+"""
+directive @${config.no_blockingDirective} on QUERY
+`
+	},
 
 	// we have some custom document validation logic
 	validate,
@@ -222,6 +236,11 @@ export type HoudiniSvelteConfig = {
 	 * @default `./src/client.ts`
 	 */
 	client?: string
+
+	/**
+	 * Specifies whether the default blocking mode is blocking or not. (default: `not_always_blocking`)
+	 */
+	defaultBlockingMode?: 'not_always_blocking' | 'always_blocking'
 
 	/**
 	 * The name of the file used to define page queries.

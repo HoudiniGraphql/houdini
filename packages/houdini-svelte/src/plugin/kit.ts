@@ -363,6 +363,7 @@ export function plugin_config(config: Config): Required<HoudiniSvelteConfig> {
 
 	return {
 		client: './src/client',
+		defaultBlockingMode: 'not_always_blocking',
 		pageQueryFilename: '+page.gql',
 		layoutQueryFilename: '+layout.gql',
 		static: false,

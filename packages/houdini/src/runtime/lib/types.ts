@@ -98,7 +98,6 @@ export type BaseCompiledDocument<_Kind extends ArtifactKinds> = {
 	selection: SubscriptionSelection
 	rootType: string
 	input?: InputObject
-	alwaysBlocking?: boolean
 	refetch?: {
 		path: string[]
 		method: 'cursor' | 'offset'
