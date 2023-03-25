@@ -192,6 +192,9 @@ export type SubscriptionSelection = {
 			>
 			selection?: SubscriptionSelection
 			abstract?: boolean
+			// If set, this is an abstract type with at least one abstract field made non-nullable by
+			// @required. This means that it needs to always be non-null even if there is no useful data.
+			abstractHasRequired?: boolean
 		}
 	}
 	abstractFields?: {

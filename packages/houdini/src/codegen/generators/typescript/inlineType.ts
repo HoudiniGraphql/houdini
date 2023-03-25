@@ -289,6 +289,7 @@ export function inlineType({
 		const inlineFragmentSelections: {
 			type: graphql.GraphQLNamedType
 			tsType: TSTypeKind
+			hasRequiredField: bool
 		}[] = Object.entries(inlineFragments).flatMap(([typeName, fragment]) => {
 			const fragmentRootType = config.schema.getType(typeName)
 			if (!fragmentRootType) {
@@ -349,15 +350,22 @@ export function inlineType({
 				)
 			}
 
+			// check if the fragment has fields with @required set so we can account for it later
+			const hasRequiredField = fragment.some((sel) =>
+				sel.directives?.some(
+					(directive) => directive.name.value === config.requiredDirective
+				)
+			)
+
 			// we're done massaging the type
-			return [{ type: fragmentRootType, tsType: fragmentType }]
+			return [{ type: fragmentRootType, tsType: fragmentType, hasRequiredField }]
 		})
 
 		//
 		if (Object.keys(inlineFragmentSelections).length > 0) {
 			// // build up the discriminated type
 			let selectionTypes = Object.entries(inlineFragmentSelections).map(
-				([typeName, { type, tsType }]) => {
+				([typeName, { type, tsType, hasRequiredField }]) => {
 					// the selection for a concrete type is really the intersection of itself
 					// with every abstract type it implements. go over every fragment belonging
 					// to an abstract type and check if this type implements it.
@@ -380,6 +388,29 @@ export function inlineType({
 					)
 				}
 			)
+
+			let anySelectionHasRequiredField = Object.values(inlineFragmentSelections).some(
+				({ hasRequiredField }) => hasRequiredField
+			)
+			if (anySelectionHasRequiredField) {
+				selectionTypes.push(
+					AST.tsParenthesizedType(
+						AST.tsTypeLiteral([
+							readonlyProperty(
+								AST.tsPropertySignature(
+									AST.identifier('__typename'),
+									AST.tsTypeAnnotation(
+										AST.tsLiteralType(
+											AST.stringLiteral('required field missing')
+										)
+									)
+								),
+								allowReadonly
+							),
+						])
+					)
+				)
+			}
 
 			// build up the list of fragment types
 			result = AST.tsIntersectionType([

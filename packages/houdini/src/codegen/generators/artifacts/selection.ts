@@ -323,6 +323,13 @@ function prepareSelection({
 			// if we are looking at an interface
 			if (graphql.isInterfaceType(fieldType) || graphql.isUnionType(fieldType)) {
 				fieldObj.abstract = true
+				if (
+					Object.values(fieldObj.selection?.abstractFields?.fields ?? {}).some((fields) =>
+						Object.values(fields ?? {}).some((field) => field.required)
+					)
+				) {
+					fieldObj.abstractHasRequired = true
+				}
 			}
 
 			// if there is an existing value, merge them

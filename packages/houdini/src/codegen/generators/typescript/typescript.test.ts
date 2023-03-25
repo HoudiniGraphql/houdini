@@ -3650,6 +3650,111 @@ describe('typescript', function () {
 		`)
 	})
 
+	test('@required in fragments', async function () {
+		// the document to test
+		const doc = mockCollectedDoc(`
+			fragment MyFragmentInterfaceA on Node {
+				... on User {
+					nickname @required					
+				}
+			}
+			fragment MyFragmentInterfaceB on Node {
+				__typename
+				... on User {
+					nickname @required					
+				}
+			}
+			fragment MyFragmentUnionA on Entity {
+				... on User {
+					nickname @required					
+				}
+			}
+			fragment MyFragmentUnionB on Node {
+				__typename
+				... on User {
+					nickname @required					
+				}
+			}
+		`)
+
+		// execute the generator
+		await runPipeline(config, [doc])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document))
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents!, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+			export type MyFragmentInterfaceA$input = {};
+
+			export type MyFragmentInterfaceA = {
+			    readonly "shape"?: MyFragmentInterfaceA$data;
+			    readonly " $fragments": {
+			        "MyFragmentInterfaceA": any;
+			    };
+			};
+
+			export type MyFragmentInterfaceA$data = {} & (({
+			    readonly nickname: string;
+			    readonly __typename: "User";
+			}) | ({
+			    readonly __typename: "required field missing";
+			}));
+
+			export type MyFragmentInterfaceB$input = {};
+
+			export type MyFragmentInterfaceB = {
+			    readonly "shape"?: MyFragmentInterfaceB$data;
+			    readonly " $fragments": {
+			        "MyFragmentInterfaceB": any;
+			    };
+			};
+
+			export type MyFragmentInterfaceB$data = {} & (({
+			    readonly nickname: string;
+			    readonly __typename: "User";
+			}) | ({
+			    readonly __typename: "required field missing";
+			}));
+
+			export type MyFragmentUnionA$input = {};
+
+			export type MyFragmentUnionA = {
+			    readonly "shape"?: MyFragmentUnionA$data;
+			    readonly " $fragments": {
+			        "MyFragmentUnionA": any;
+			    };
+			};
+
+			export type MyFragmentUnionA$data = {} & (({
+			    readonly nickname: string;
+			    readonly __typename: "User";
+			}) | ({
+			    readonly __typename: "required field missing";
+			}));
+
+			export type MyFragmentUnionB$input = {};
+
+			export type MyFragmentUnionB = {
+			    readonly "shape"?: MyFragmentUnionB$data;
+			    readonly " $fragments": {
+			        "MyFragmentUnionB": any;
+			    };
+			};
+
+			export type MyFragmentUnionB$data = {} & (({
+			    readonly nickname: string;
+			    readonly __typename: "User";
+			}) | ({
+			    readonly __typename: "required field missing";
+			}));
+		`)
+	})
+
 	test.todo('fragments on interfaces')
 
 	test.todo('intersections with __typename in subselection')

@@ -5988,6 +5988,7 @@ test('client nullability', async function () {
 		                },
 
 		                "abstract": true,
+		                "abstractHasRequired": true,
 		                "visible": true
 		            }
 		        }

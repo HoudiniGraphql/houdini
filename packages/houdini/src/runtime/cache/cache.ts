@@ -821,7 +821,16 @@ class CacheInternal {
 		// look at every field in the parentFields
 		for (const [
 			attributeName,
-			{ type, keyRaw, selection: fieldSelection, nullable, list, visible, directives },
+			{
+				type,
+				keyRaw,
+				selection: fieldSelection,
+				nullable,
+				list,
+				visible,
+				directives,
+				abstractHasRequired,
+			},
 		] of Object.entries(targetSelection)) {
 			// skip masked fields when reading values
 			if (!visible && !ignoreMasking && !fullCheck) {
@@ -980,10 +989,16 @@ class CacheInternal {
 				}
 			}
 
-			// regardless of how the field was processed, if we got a null value assigned
-			// and the field is not nullable, we need to cascade up
 			if (fieldTarget[attributeName] === null && !nullable && !embeddedCursor) {
-				cascadeNull = true
+				// if we got a null value assigned and the field is not nullable, we need to cascade up
+				// except when it's an abstract type with @required children - then we return a dummy object
+				if (abstractHasRequired) {
+					target[attributeName] = {
+						__typename: 'required field missing',
+					}
+				} else {
+					cascadeNull = true
+				}
 			}
 		}
 
