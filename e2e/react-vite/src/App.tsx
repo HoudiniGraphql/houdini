@@ -15,6 +15,7 @@ export default function App() {
 
 function Query() {
 	const [variables, setVariables] = React.useState({ id: '1' })
+	const [pending, start] = React.useTransition()
 
 	const data = useQuery(
 		graphql(`
@@ -31,8 +32,17 @@ function Query() {
 	return (
 		<>
 			<div>
-				<button onClick={() => setVariables({ id: '2' })}>fetch user 2 (suspend)</button>
+				<button
+					onClick={() =>
+						start(() => {
+							setVariables({ id: '2' })
+						})
+					}
+				>
+					fetch user 2 (no suspense)
+				</button>
 				<button onClick={() => setVariables({ id: '3' })}>fetch user 3 (suspend)</button>
+				{pending && 'pending'}
 			</div>
 
 			<Fragment user={data.user} />

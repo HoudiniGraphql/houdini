@@ -28,6 +28,7 @@ declare global {
 			}
 			optimisticResponse?: GraphQLObject
 			parentID?: string
+			silenceLoading?: boolean
 		}
 	}
 }

@@ -69,10 +69,6 @@ export function useDocumentHandle<
 				fetchUpdate: (args, updates) => {
 					return observer.send({
 						...args,
-						stuff: {
-							silenceLoading: true,
-							...args.stuff,
-						},
 						cacheParams: {
 							disableSubscriptions: true,
 							applyUpdates: updates,
@@ -109,9 +105,6 @@ export function useDocumentHandle<
 							disableSubscriptions: true,
 							applyUpdates: updates,
 							...args?.cacheParams,
-						},
-						stuff: {
-							silenceLoading: true,
 						},
 					})
 				},

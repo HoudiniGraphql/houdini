@@ -356,6 +356,12 @@ export class DocumentStore<
 			)
 		}
 
+		// don't update the store if the final value is partial and we aren't supposed to send one back, don't update anything
+		if (!ctx.silenceEcho || value.data !== this.state.data) {
+			// the latest value should be written to the store
+			this.set(value)
+		}
+
 		// if the promise hasn't been resolved yet, do it
 		if (!ctx.promise.resolved) {
 			ctx.promise.resolve(value)
@@ -366,13 +372,6 @@ export class DocumentStore<
 
 		this.#lastContext = ctx.context.draft()
 		this.#lastVariables = this.#lastContext.stuff.inputs.marshaled
-
-		// if the final value is partial and we aren't supposed to send one back, don't update anything
-		if (ctx.silenceEcho && value.data === this.state.data) {
-			return
-		}
-		// the latest value should be written to the store
-		this.set(value)
 	}
 }
 

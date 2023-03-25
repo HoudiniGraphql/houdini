@@ -99,7 +99,9 @@ export const cachePolicy =
 
 				// if we got this far, we are resolving something against the network
 				// dont set the fetching state to true if we accepted a cache value
-				setFetching(!useCache)
+				if (!ctx.stuff?.silenceLoading) {
+					setFetching(!useCache)
+				}
 
 				// move on
 				return next(ctx)
