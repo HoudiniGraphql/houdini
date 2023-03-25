@@ -55,10 +55,15 @@ function Fragment({ user }: { user: UserInfo }) {
 		user,
 		graphql(`
 			fragment UserInfo on User {
+				id
 				name
 			}
 		`)
 	)
 
-	return <div>{data.name}</div>
+	return (
+		<div>
+			{data.id}: {data.name}
+		</div>
+	)
 }

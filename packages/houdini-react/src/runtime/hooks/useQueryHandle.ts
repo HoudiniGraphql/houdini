@@ -1,9 +1,9 @@
+import cache from '$houdini/runtime/cache'
+import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import { type QueryArtifact, GraphQLObject, CachePolicies } from '$houdini/runtime/lib/types'
-import { QueryResult } from 'houdini'
 import React from 'react'
 
 import { createCache } from '../lib/cache'
-import useDeepCompareEffect from './useDeepCompareEffect'
 import { DocumentHandle, useDocumentHandle } from './useDocumentHandle'
 import { useDocumentStore } from './useDocumentStore'
 
@@ -68,9 +68,12 @@ export function useQueryHandle<
 	// see if we have an entry in the cache for the identifier
 	const suspenseValue = promiseCache.get(identifier)
 
+	// if the promise has resolved, let's use that for our first render
+	let result = handle.data
+
 	// if we haven't loaded this value in awhile then we need to throw a promise
 	// that we will catch when its done
-	if (!suspenseValue) {
+	if (!suspenseValue || !deepEquals(storeValue.variables, variables)) {
 		// we are going to cache the promise and then throw it
 		// when it resolves the cached value will be updated
 		// and it will be picked up in the next render
@@ -80,40 +83,49 @@ export function useQueryHandle<
 		const suspenseUnit: QuerySuspenseUnit = {
 			then: loadPromise.then.bind(loadPromise),
 			resolve,
+			// @ts-ignore
+			variables,
 		}
 
 		// @ts-ignore
 		promiseCache.set(identifier, suspenseUnit)
 
-		// the suspense unit gives react something to hold onto
-		// and it acts as a place for us to register a callback on
-		// send to update the cache before resolving the suspense
-		observer
-			.send({
-				variables,
-				stuff: {
-					silenceLoading: true,
-				},
-			})
-			.then((value) => {
-				// the final value
-				suspenseUnit.resolved = {
-					...handle,
-					data: value.data,
-					partia: value.partial,
-				}
+		// before we suspend, let's see if we can read from the cache
+		const cachedData = cache.read({ selection: artifact.selection, variables })
 
-				suspenseUnit.resolve()
-			})
+		if (!cachedData.data || (cachedData.partial && !artifact.partial)) {
+			// the suspense unit gives react something to hold onto
+			// and it acts as a place for us to register a callback on
+			// send to update the cache before resolving the suspense
+			observer
+				.send({
+					variables,
+					stuff: {
+						silenceLoading: true,
+					},
+				})
+				.then((value) => {
+					// the final value
+					suspenseUnit.resolved = {
+						...handle,
+						data: value.data,
+						partia: value.partial,
+						artifact,
+					}
 
-		throw suspenseUnit
+					suspenseUnit.resolve()
+				})
+
+			throw suspenseUnit
+		}
+
+		// @ts-ignore
+		result = cachedData.data
 	}
 	// if the promise is still pending, we're still waiting
-	if (suspenseValue && !suspenseValue.resolved) {
+	if (!result && suspenseValue && !suspenseValue.resolved) {
 		throw suspenseValue
 	}
-	// if the promise has resolved, let's use that for our first render
-	let result = handle.data
 	if (!result && suspenseValue?.resolved) {
 		return suspenseValue.resolved as DocumentHandle<_Artifact, _Data, _Input>
 	}
