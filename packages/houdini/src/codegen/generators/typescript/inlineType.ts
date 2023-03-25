@@ -204,11 +204,9 @@ export function inlineType({
 
 				// for @required, we force the field to be non-null but the
 				// current type has to become nullable if it isn't already
-				const hasRequiredDirective =
-					selection.directives &&
-					selection.directives.some(
-						(directive) => directive.name.value === config.requiredDirective
-					)
+				const hasRequiredDirective = selection.directives?.some(
+					(directive) => directive.name.value === config.requiredDirective
+				)
 
 				if (hasRequiredDirective) {
 					forceNullable = true

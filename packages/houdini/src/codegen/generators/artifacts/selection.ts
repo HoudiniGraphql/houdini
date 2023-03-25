@@ -303,7 +303,7 @@ function prepareSelection({
 
 				// bubble nullability up
 				if (
-					Object.values(fieldObj.selection?.fields ?? {}).some((field) => field.required)
+					Object.values(fieldObj.selection.fields ?? {}).some((field) => field.required)
 				) {
 					fieldObj.nullable = true
 				}
