@@ -5823,6 +5823,7 @@ test('client nullability', async function () {
 				node(id: $id) {
 					...LegendWithRequiredName
 					...GhostWithRequiredLegendName
+					...GhostWithRequiredLegendAndLegendName
 				}
 			}
 		`),
@@ -5853,12 +5854,13 @@ test('client nullability', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "ffc5b1e3cd00f93539929e88ce8c820f23b36b351914553fe636851609861ab8",
+		    "hash": "af75250492a0d9641ccd671e492c657d6f7f64def49509b1d34612d58caf76ed",
 
 		    "raw": \`query TestQuery($id: ID!) {
 		  node(id: $id) {
 		    ...LegendWithRequiredName
 		    ...GhostWithRequiredLegendName
+		    ...GhostWithRequiredLegendAndLegendName
 		    id
 		    __typename
 		  }
@@ -5869,6 +5871,14 @@ test('client nullability', async function () {
 		}
 
 		fragment GhostWithRequiredLegendName on Ghost {
+		  legends {
+		    name
+		  }
+		  name
+		  aka
+		}
+
+		fragment GhostWithRequiredLegendAndLegendName on Ghost {
 		  legends {
 		    name
 		  }
@@ -5894,7 +5904,7 @@ test('client nullability', async function () {
 		                                    "type": "String",
 		                                    "keyRaw": "name",
 		                                    "nullable": false,
-		                                    "bubbleNullability": true
+		                                    "required": true
 		                                },
 
 		                                "id": {
@@ -5920,7 +5930,7 @@ test('client nullability', async function () {
 		                                                "type": "String",
 		                                                "keyRaw": "name",
 		                                                "nullable": false,
-		                                                "bubbleNullability": true
+		                                                "required": true
 		                                            }
 		                                        }
 		                                    },
@@ -5972,7 +5982,8 @@ test('client nullability', async function () {
 
 		                    "fragments": {
 		                        "LegendWithRequiredName": {},
-		                        "GhostWithRequiredLegendName": {}
+		                        "GhostWithRequiredLegendName": {},
+		                        "GhostWithRequiredLegendAndLegendName": {}
 		                    }
 		                },
 
@@ -5996,6 +6007,6 @@ test('client nullability', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=ffc5b1e3cd00f93539929e88ce8c820f23b36b351914553fe636851609861ab8";
+		"HoudiniHash=af75250492a0d9641ccd671e492c657d6f7f64def49509b1d34612d58caf76ed";
 	`)
 })
