@@ -87,6 +87,11 @@ export const redirect = svelteKitRedirect
 	schema({ config }) {
 		return `
 """
+	@${config.loadDirective} is used to disable automatic fetch (no load, no auto fetch in component), you will have to do it manually.
+"""
+directive @${config.loadDirective} on QUERY
+
+"""
 	@${config.blockingDirective} is used to always await the fetch.
 """
 directive @${config.blockingDirective} on QUERY

@@ -18,6 +18,246 @@ export async function test_config(extraConfig: Partial<ConfigFile> = {}) {
 	return config
 }
 
+describe('load', () => {
+	test('fragment references in inline fragment', async function () {
+		// the documents to test
+		const docs = [
+			`query FragmentUpdateTestQuery($id: ID!) @load {
+				node(id: $id) {
+					... on User {
+						...UserFragmentTestFragment
+					}
+				}
+			}`,
+			`fragment UserFragmentTestFragment on User {
+				name
+			}`,
+		]
+
+		// execute the generator
+		const results = await pipeline_test(docs)
+		expect(results.docs[0]).toMatchInlineSnapshot(`
+			export default {
+			    "name": "FragmentUpdateTestQuery",
+			    "kind": "HoudiniQuery",
+			    "hash": "57e4f75a0ab4e90b69c877a6b842f213362dc5c050227faf7635d8641b4da434",
+
+			    "raw": \`query FragmentUpdateTestQuery($id: ID!) {
+			  node(id: $id) {
+			    ... on User {
+			      ...UserFragmentTestFragment
+			      id
+			    }
+			    id
+			    __typename
+			  }
+			}
+
+			fragment UserFragmentTestFragment on User {
+			  name
+			  id
+			  __typename
+			}
+			\`,
+
+			    "rootType": "Query",
+
+			    "selection": {
+			        "fields": {
+			            "node": {
+			                "type": "Node",
+			                "keyRaw": "node(id: $id)",
+			                "nullable": true,
+
+			                "selection": {
+			                    "abstractFields": {
+			                        "fields": {
+			                            "User": {
+			                                "name": {
+			                                    "type": "String",
+			                                    "keyRaw": "name"
+			                                },
+
+			                                "id": {
+			                                    "type": "ID",
+			                                    "keyRaw": "id",
+			                                    "visible": true
+			                                },
+
+			                                "__typename": {
+			                                    "type": "String",
+			                                    "keyRaw": "__typename",
+			                                    "visible": true
+			                                }
+			                            }
+			                        },
+
+			                        "typeMap": {}
+			                    },
+
+			                    "fields": {
+			                        "id": {
+			                            "type": "ID",
+			                            "keyRaw": "id",
+			                            "visible": true
+			                        },
+
+			                        "__typename": {
+			                            "type": "String",
+			                            "keyRaw": "__typename",
+			                            "visible": true
+			                        }
+			                    },
+
+			                    "fragments": {
+			                        "UserFragmentTestFragment": {}
+			                    }
+			                },
+
+			                "abstract": true,
+			                "visible": true
+			            }
+			        }
+			    },
+
+			    "pluginData": {
+			        "test": {}
+			    },
+
+			    "input": {
+			        "fields": {
+			            "id": "ID"
+			        },
+
+			        "types": {}
+			    },
+
+			    "policy": "CacheOrNetwork",
+			    "partial": false
+			};
+
+			"HoudiniHash=57e4f75a0ab4e90b69c877a6b842f213362dc5c050227faf7635d8641b4da434";
+		`)
+	})
+
+	test('masking disabled', async function () {
+		// the documents to test
+		const docs = [
+			`query FragmentUpdateTestQuery($id: ID!) @load {
+				node(id: $id) {
+					...UserFragmentTestFragment @mask_disable
+				}
+			}`,
+			`fragment UserFragmentTestFragment on User {
+				name
+			}`,
+		]
+
+		// execute the generator
+		const results = await pipeline_test(docs)
+		expect(results.docs[0]).toMatchInlineSnapshot(`
+			export default {
+			    "name": "FragmentUpdateTestQuery",
+			    "kind": "HoudiniQuery",
+			    "hash": "ee6919cdb8f30d9c00ec8e3b9feb22993958dd0d018452d523f264a37b32119f",
+
+			    "raw": \`query FragmentUpdateTestQuery($id: ID!) {
+			  node(id: $id) {
+			    ...UserFragmentTestFragment
+			    id
+			    __typename
+			  }
+			}
+
+			fragment UserFragmentTestFragment on User {
+			  name
+			  id
+			  __typename
+			}
+			\`,
+
+			    "rootType": "Query",
+
+			    "selection": {
+			        "fields": {
+			            "node": {
+			                "type": "Node",
+			                "keyRaw": "node(id: $id)",
+			                "nullable": true,
+
+			                "selection": {
+			                    "abstractFields": {
+			                        "fields": {
+			                            "User": {
+			                                "name": {
+			                                    "type": "String",
+			                                    "keyRaw": "name",
+			                                    "visible": true
+			                                },
+
+			                                "id": {
+			                                    "type": "ID",
+			                                    "keyRaw": "id",
+			                                    "visible": true
+			                                },
+
+			                                "__typename": {
+			                                    "type": "String",
+			                                    "keyRaw": "__typename",
+			                                    "visible": true
+			                                }
+			                            }
+			                        },
+
+			                        "typeMap": {}
+			                    },
+
+			                    "fields": {
+			                        "id": {
+			                            "type": "ID",
+			                            "keyRaw": "id",
+			                            "visible": true
+			                        },
+
+			                        "__typename": {
+			                            "type": "String",
+			                            "keyRaw": "__typename",
+			                            "visible": true
+			                        }
+			                    },
+
+			                    "fragments": {
+			                        "UserFragmentTestFragment": {}
+			                    }
+			                },
+
+			                "abstract": true,
+			                "visible": true
+			            }
+			        }
+			    },
+
+			    "pluginData": {
+			        "test": {}
+			    },
+
+			    "input": {
+			        "fields": {
+			            "id": "ID"
+			        },
+
+			        "types": {}
+			    },
+
+			    "policy": "CacheOrNetwork",
+			    "partial": false
+			};
+
+			"HoudiniHash=ee6919cdb8f30d9c00ec8e3b9feb22993958dd0d018452d523f264a37b32119f";
+		`)
+	})
+})
+
 describe('blocking', () => {
 	test('blocking directive', async function () {
 		const docs = [`query TestQuery @blocking { version }`]
