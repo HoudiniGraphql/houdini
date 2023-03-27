@@ -27,21 +27,9 @@ export function artifactData({
 				isManualLoad = false
 			}
 
-			// look for the operation
-			const operations = document.document.definitions.filter(
-				({ kind }) => kind === graphql.Kind.OPERATION_DEFINITION
-			) as graphql.OperationDefinitionNode[]
-
 			// blocking directives
-			const blockingDirective = operations[0]?.directives?.find(
-				(directive) => directive.name.value === config.blockingDirective
-			)
-			set_blocking = blockingDirective ? true : false
-
-			const no_blockingDirective = operations[0]?.directives?.find(
-				(directive) => directive.name.value === config.no_blockingDirective
-			)
-			set_no_blocking = no_blockingDirective ? true : false
+			set_blocking = node.name.value === config.blockingDirective ? true : false
+			set_no_blocking = node.name.value === config.no_blockingDirective ? true : false
 		},
 	})
 
