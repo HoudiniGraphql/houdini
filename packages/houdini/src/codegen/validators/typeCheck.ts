@@ -541,7 +541,7 @@ function knownArguments(config: Config) {
 						config.listAppendDirective,
 						config.listPrependDirective,
 						config.blockingDirective,
-						config.no_blockingDirective,
+						config.unblockingDirective,
 					].includes(directiveName)
 				) {
 					return false
@@ -1092,7 +1092,7 @@ function checkBlockingDirectives(config: Config) {
 	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
 		return {
 			Directive(node, _, __, ___, ancestors) {
-				const blockingDirectives = [config.blockingDirective, config.no_blockingDirective]
+				const blockingDirectives = [config.blockingDirective, config.unblockingDirective]
 
 				// If we don't have blockingDirectives, let's go out
 				if (!blockingDirectives.includes(node.name.value)) {
@@ -1108,11 +1108,11 @@ function checkBlockingDirectives(config: Config) {
 				// if we have both blocking and no blocking directives let's report an error
 				if (
 					listDirective.includes(config.blockingDirective) &&
-					listDirective.includes(config.no_blockingDirective)
+					listDirective.includes(config.unblockingDirective)
 				) {
 					ctx.reportError(
 						new graphql.GraphQLError(
-							`You can't apply both @${config.blockingDirective} and @${config.no_blockingDirective} at the same time`
+							`You can't apply both @${config.blockingDirective} and @${config.unblockingDirective} at the same time`
 						)
 					)
 					return

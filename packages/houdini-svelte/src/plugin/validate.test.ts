@@ -41,13 +41,13 @@ const table: Row[] = [
 		documents: [`query Version { version }`],
 	},
 	{
-		title: '@blocking @no_blocking on a query',
+		title: '@blocking @unblocking on a query',
 		pass: false,
 		documents: [
-			`query TestQuery @blocking @no_blocking {
+			`query TestQuery @blocking @unblocking {
 					version
 			}`,
-			`query TestQuery2 @blocking @no_blocking {
+			`query TestQuery2 @blocking @unblocking {
 				version
 		}`,
 		],

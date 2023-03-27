@@ -85,9 +85,9 @@ A field marked with `@paginate` is updated with calls to the page loaders return
 
 A query marked with `@blocking` will always await the fetch.
 
-### `@no_blocking`
+### `@unblocking`
 
-A query marked with `@no_blocking` is used to not always await the fetch (in CSR for example). Note that "throwOnError" will not throw in this case.
+A query marked with `@unblocking` is used to not always await the fetch (in CSR for example). Note that "throwOnError" will not throw in this case.
 
 ### `@[TypeName]_delete`
 

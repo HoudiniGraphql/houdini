@@ -305,7 +305,7 @@ describe('blocking', () => {
 	})
 
 	test('no blocking directive', async function () {
-		const docs = [`query TestQuery @no_blocking { version }`]
+		const docs = [`query TestQuery @unblocking { version }`]
 
 		// execute the generator
 		const { docs: results } = await pipeline_test(docs)
@@ -315,7 +315,7 @@ describe('blocking', () => {
 			export default {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
-			    "hash": "083440a97adcc555fdd09e027c641c50c4835fef7edee6cf3c00afa326dd4a1b",
+			    "hash": "5c98c77dddf65bc2636a90b46c34eb78cd32469e187accbe54adb0d55dd889dd",
 
 			    "raw": \`query TestQuery {
 			  version
@@ -337,7 +337,7 @@ describe('blocking', () => {
 			    "pluginData": {
 			        "test": {
 			            "isManualLoad": true,
-			            "set_no_blocking": true
+			            "set_unblocking": true
 			        }
 			    },
 
@@ -345,7 +345,7 @@ describe('blocking', () => {
 			    "partial": false
 			};
 
-			"HoudiniHash=083440a97adcc555fdd09e027c641c50c4835fef7edee6cf3c00afa326dd4a1b";
+			"HoudiniHash=5c98c77dddf65bc2636a90b46c34eb78cd32469e187accbe54adb0d55dd889dd";
 		`)
 	})
 })

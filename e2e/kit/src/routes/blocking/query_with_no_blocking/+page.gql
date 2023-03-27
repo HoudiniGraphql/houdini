@@ -1,6 +1,0 @@
-query query_with_no_blocking @no_blocking {
-  user(id: 1, snapshot: "with_no_blocking", delay: 1000) {
-    id
-    name
-  }
-}

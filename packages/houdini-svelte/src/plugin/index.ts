@@ -97,9 +97,9 @@ directive @${config.loadDirective} on QUERY
 directive @${config.blockingDirective} on QUERY
 
 """
-	@${config.no_blockingDirective} is used to not always await the fetch (in CSR for example). Note that "throwOnError" will not throw in this case.
+	@${config.unblockingDirective} is used to not always await the fetch (in CSR for example). Note that "throwOnError" will not throw in this case.
 """
-directive @${config.no_blockingDirective} on QUERY
+directive @${config.unblockingDirective} on QUERY
 `
 	},
 

@@ -1,9 +1,9 @@
 <script lang="ts">
   import { graphql } from '$houdini';
 
-  // we have to setup @no_blocking here as the global throwOnError will make every query blocking otherwise
+  // we have to setup @unblocking here as the global throwOnError will make every query blocking otherwise
   const store = graphql(`
-    query fetching_w @load @no_blocking {
+    query fetching_w @load @unblocking {
       user(id: 1, snapshot: "fetching_w", delay: 200) {
         id
         name
