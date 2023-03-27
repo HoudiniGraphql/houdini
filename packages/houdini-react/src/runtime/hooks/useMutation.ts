@@ -18,7 +18,7 @@ export function useMutation<
 	artifact,
 }: {
 	artifact: MutationArtifact
-}): [MutationHandler<_Result, _Input, _Optimistic>, boolean] {
+}): [boolean, MutationHandler<_Result, _Input, _Optimistic>] {
 	// build the live document we'll use to send values
 	const [storeValue, observer] = useDocumentStore<_Result, _Input>({ artifact })
 
@@ -42,5 +42,5 @@ export function useMutation<
 			},
 		})
 
-	return [mutate, pending]
+	return [pending, mutate]
 }

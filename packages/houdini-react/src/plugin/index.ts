@@ -72,7 +72,8 @@ const HoudiniReactPlugin = plugin('houdini-react', async () => ({
 					documents: documents[ArtifactKind.Fragment] ?? [],
 					importIdentifiers: (doc) => [`${doc.name}$data`],
 					signature: (doc) =>
-						`export function useFragment(reference: { readonly "${fragmentKey}": { ${doc.name}: any } }, document: { artifact: { name : "${doc.name}" } }): ${doc.name}$data`,
+						`export function useFragment(reference: { readonly "${fragmentKey}": { ${doc.name}: any } }, document: { artifact: { name : "${doc.name}" } }): ${doc.name}$data
+export function useFragment(reference: { readonly "${fragmentKey}": { ${doc.name}: any } } | null, document: { artifact: { name : "${doc.name}" } }): ${doc.name}$data | null`,
 				}),
 			'hooks/useFragmentHandle.d.ts': ({ config, content }) =>
 				addOverload({
@@ -87,7 +88,8 @@ const HoudiniReactPlugin = plugin('houdini-react', async () => ({
 						`${doc.name}$input`,
 					],
 					signature: (doc) =>
-						`export function useFragmentHandle(reference: { readonly "${fragmentKey}": { ${doc.name}: any } }, document: { artifact: { name : "${doc.name}" } }): DocumentHandle<${doc.name}$artifact, ${doc.name}$result, ${doc.name}$input>`,
+						`export function useFragmentHandle(reference: { readonly "${fragmentKey}": { ${doc.name}: any } }, document: { artifact: { name : "${doc.name}" } }): DocumentHandle<${doc.name}$artifact, ${doc.name}$result, ${doc.name}$input>
+export function useFragmentHandle(reference: { readonly "${fragmentKey}": { ${doc.name}: any } } | null, document: { artifact: { name : "${doc.name}" } }): DocumentHandle<${doc.name}$artifact, ${doc.name}$result | null, ${doc.name}$input>`,
 				}),
 			'hooks/useMutation.d.ts': ({ config, content }) =>
 				addOverload({

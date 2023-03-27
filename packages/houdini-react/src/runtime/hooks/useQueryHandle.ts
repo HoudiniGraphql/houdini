@@ -97,9 +97,10 @@ export function useQueryHandle<
 			// the suspense unit gives react something to hold onto
 			// and it acts as a place for us to register a callback on
 			// send to update the cache before resolving the suspense
-			observer
-				.send({
+			handle
+				.fetch({
 					variables,
+					// @ts-ignore: this is actually allowed... 🤫
 					stuff: {
 						silenceLoading: true,
 					},
@@ -122,15 +123,17 @@ export function useQueryHandle<
 		// @ts-ignore
 		result = cachedData.data
 	}
+
 	// if the promise is still pending, we're still waiting
 	if (!result && suspenseValue && !suspenseValue.resolved) {
 		throw suspenseValue
 	}
+
+	// make sure we prefer the latest store value instead of the initial version we loaded on mount
 	if (!result && suspenseValue?.resolved) {
 		return suspenseValue.resolved as DocumentHandle<_Artifact, _Data, _Input>
 	}
 
-	// make sure we prefer the latest store value instead of the initial version we loaded on mount
 	return {
 		...handle,
 		variables: storeValue.variables,
