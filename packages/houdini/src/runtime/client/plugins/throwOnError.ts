@@ -1,6 +1,4 @@
-import * as log from '$houdini/runtime/lib/log'
-
-import type { QueryResult, ArtifactKinds } from '../../lib'
+import type { ArtifactKinds, QueryResult } from '../../lib'
 import { ArtifactKind } from '../../lib'
 import type { ClientPlugin, ClientPluginContext } from '../documentStore'
 
