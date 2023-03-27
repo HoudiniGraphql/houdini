@@ -44,7 +44,7 @@ export class HoudiniClient {
 	#plugins: ClientPlugin[]
 
 	// expose operations settings
-	throwOnError_operations: ThrowOnErrorOperations[]
+	readonly throwOnError_operations: ThrowOnErrorOperations[]
 
 	constructor({ url, fetchParams, plugins, pipeline, throwOnError }: ConstructorArgs) {
 		// if we were given plugins and pipeline there's an error
