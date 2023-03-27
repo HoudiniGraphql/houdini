@@ -84,9 +84,9 @@ export function useDocumentHandle<
 				fetch: handlers.fetch,
 				partial: storeValue.partial,
 				loadNext: wrapLoad(setForwardPending, handlers.loadNextPage),
-				isLoadingNext: forwardPending,
+				loadNextPending: forwardPending,
 				loadPrevious: wrapLoad(setBackwardPending, handlers.loadPreviousPage),
-				isLoadingPrevious: backwardPending,
+				loadPreviousPending: backwardPending,
 				pageInfo: extractPageInfo(storeValue.data, artifact.refetch!.path),
 			}
 		}
@@ -118,7 +118,7 @@ export function useDocumentHandle<
 				fetch: handlers.fetch,
 				partial: storeValue.partial,
 				loadNext: wrapLoad(setForwardPending, handlers.loadNextPage),
-				isLoadingNext: forwardPending,
+				loadNextPending: forwardPending,
 			}
 		}
 
@@ -148,16 +148,16 @@ type RefetchHandlers<_Artifact extends QueryArtifact, _Data extends GraphQLObjec
 	}
 		? {
 				loadNext: CursorHandlers<_Data, _Input>['loadNextPage']
-				isLoadingNext: boolean
+				loadNextPending: boolean
 				loadPrevious: CursorHandlers<_Data, _Input>['loadPreviousPage']
-				isLoadingPrevious: boolean
+				loadPreviousPending: boolean
 				pageInfo: PageInfo
 		  }
 		: // offset pagination
 		_Artifact extends { refetch: { paginated: true; method: 'offset' } }
 		? {
 				loadNext: OffsetHandlers<_Data, _Input>['loadNextPage']
-				isLoadingNext: boolean
+				loadNextPending: boolean
 		  }
 		: // the artifact does not support a known pagination method, don't add anything
 		  {}
