@@ -103,7 +103,7 @@ export function useFragmentHandle(reference: { readonly "${fragmentKey}": { ${do
 						`${doc.name}$optimistic`,
 					],
 					signature: (doc) =>
-						`export function useMutation(document: { artifact: { name : "${doc.name}" } }): [MutationHandler<${doc.name}$result, ${doc.name}$input, ${doc.name}$optimistic>, boolean]`,
+						`export function useMutation(document: { artifact: { name : "${doc.name}" } }): [boolean, MutationHandler<${doc.name}$result, ${doc.name}$input, ${doc.name}$optimistic>]`,
 				}),
 			'hooks/useSubscription.d.ts': ({ config, content }) =>
 				addOverload({
