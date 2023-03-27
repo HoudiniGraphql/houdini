@@ -29,21 +29,6 @@ export const throwOnError =
 			}[kind]
 
 		return {
-			async start(ctx, { next }) {
-				// add a warning if the config is wrong
-				if (operations.includes('all') || operations.includes('query')) {
-					// if explicitly set to not_always_blocking, we can't throw, so warn the user.
-					const config_not_always_blocking =
-						(ctx.config.plugins as any)['houdini-svelte']?.defaultBlockingMode ===
-						'not_always_blocking'
-					if (config_not_always_blocking) {
-						log.info(
-							'[Houdini] ⚠️ throwOnError with operation "all" or "query", is not compatible with defaultBlockingMode set to "not_always_blocking"'
-						)
-					}
-				}
-				next(ctx)
-			},
 			async end(ctx, { value, resolve }) {
 				// if we are supposed to throw and there are errors
 				if (value.errors && value.errors.length > 0 && throwOnKind(ctx.artifact.kind)) {
