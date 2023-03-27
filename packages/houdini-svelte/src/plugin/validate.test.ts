@@ -1,75 +1,44 @@
 import type { Document } from 'houdini'
 import { pipelineTest } from 'houdini/test'
-import { describe, test } from 'vitest'
+import { describe, expect, test } from 'vitest'
 
 import { test_config } from '../test'
 
 const table: Row[] = [
 	{
-		title: 'QueryStore',
+		title: 'Forbiden name Query',
 		pass: false,
-		documents: [
-			`
-                query Query {
-                    version
-                }
-            `,
-		],
+		documents: [`query Query { version }`],
+		nb_of_fail: 1,
 	},
 	{
-		title: 'MutationStore',
+		title: 'Forbiden name Mutation',
 		pass: false,
-		documents: [
-			`
-                query Mutation {
-                    version
-                }
-            `,
-		],
+		documents: [`query Mutation { version }`],
+		nb_of_fail: 1,
 	},
 	{
-		title: 'SubscriptionStore',
+		title: 'Forbiden name Subscription',
 		pass: false,
-		documents: [
-			`
-                query Subscription {
-                    version
-                }
-            `,
-		],
+		documents: [`query Subscription { version }`],
+		nb_of_fail: 1,
 	},
 	{
-		title: 'FragmentStore',
+		title: 'Forbiden name Fragment',
 		pass: false,
-		documents: [
-			`
-                query Fragment {
-                    version
-                }
-            `,
-		],
+		documents: [`query Fragment { version }`],
+		nb_of_fail: 1,
 	},
 	{
-		title: 'BaseStore',
+		title: 'Forbiden name Base',
 		pass: false,
-		documents: [
-			`
-                query Base {
-                    version
-                }
-            `,
-		],
+		documents: [`query Base { version }`],
+		nb_of_fail: 1,
 	},
 	{
 		title: 'Perfect name',
 		pass: true,
-		documents: [
-			`
-                query Version {
-                    version
-                }
-            `,
-		],
+		documents: [`query Version { version }`],
 	},
 	{
 		title: '@blocking @no_blocking on a query',
@@ -78,16 +47,11 @@ const table: Row[] = [
 			`query TestQuery @blocking @no_blocking {
 					version
 			}`,
+			`query TestQuery2 @blocking @no_blocking {
+				version
+		}`,
 		],
-	},
-	{
-		title: '@blocking @no_blocking on a query',
-		pass: false,
-		documents: [
-			`query TestQuery @blocking @no_blocking {
-					version
-			}`,
-		],
+		nb_of_fail: 4,
 	},
 ]
 
@@ -97,17 +61,33 @@ type Row =
 			pass: true
 			documents: string[]
 			check?: (docs: Document[]) => void
+			nb_of_fail?: number
 	  }
 	| {
 			title: string
 			pass: false
 			documents: string[]
 			check?: (result: Error | Error[]) => void
+			nb_of_fail?: number
 	  }
 
 describe('validate checks', async function () {
 	// run the tests
-	for (const { title, pass, documents, check } of table) {
-		test(title, pipelineTest(await test_config(), documents, pass, check))
+	for (const { title, pass, documents, check, nb_of_fail } of table) {
+		test(
+			title,
+			pipelineTest(
+				await test_config(),
+				documents,
+				pass,
+				pass
+					? undefined
+					: check ||
+							function (e: Error | Error[]) {
+								// We want to check that all errors are grouped into 1 throw
+								expect(e).toHaveLength(nb_of_fail || 2)
+							}
+			)
+		)
 	}
 })
