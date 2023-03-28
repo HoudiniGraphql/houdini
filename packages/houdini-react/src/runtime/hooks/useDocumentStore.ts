@@ -27,18 +27,27 @@ export function useDocumentStore<
 	const client = useHoudiniClient()
 
 	// hold onto an observer we'll use
-	const [observer, setObserver] = React.useState(
+	let [observer, setObserver] = React.useState(
 		client.observe<_Data, _Input>({
 			artifact,
 			...observeParams,
 		})
 	)
 
-	// get a safe reference to the cache
-	const storeValue = React.useSyncExternalStore(
-		observer.subscribe.bind(observer),
-		() => observer.state
+	const box = React.useRef(observer.state)
+
+	const subscribe: any = React.useCallback(
+		(fn: () => void) => {
+			return observer.subscribe((val) => {
+				box.current = val
+				fn()
+			})
+		},
+		[observer]
 	)
 
-	return [storeValue, observer, setObserver]
+	// get a safe reference to the cache
+	const storeValue = React.useSyncExternalStore(subscribe, () => box.current)
+
+	return [storeValue!, observer, setObserver]
 }
