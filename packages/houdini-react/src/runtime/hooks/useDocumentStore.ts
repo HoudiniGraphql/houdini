@@ -27,7 +27,7 @@ export function useDocumentStore<
 	const client = useHoudiniClient()
 
 	// hold onto an observer we'll use
-	let [observer, setObserver] = React.useState(
+	let [observer, setObserver] = React.useState(() =>
 		client.observe<_Data, _Input>({
 			artifact,
 			...observeParams,
