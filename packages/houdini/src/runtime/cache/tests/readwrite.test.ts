@@ -2246,3 +2246,70 @@ test('skip directive - negative', function () {
 		},
 	})
 })
+
+test('can perform full query check while retrieving masked value', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				nullable: true,
+				selection: {
+					fields: {
+						id: {
+							keyRaw: 'id',
+							type: 'String',
+							visible: true,
+						},
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							visible: false,
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										visible: true,
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										visible: true,
+										keyRaw: 'firstName',
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// write the user data without the nested value
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+			},
+		},
+	})
+
+	expect(
+		cache.read({
+			selection,
+			fullCheck: true,
+		})
+	).toEqual({
+		partial: true,
+		stale: false,
+		data: {
+			viewer: null,
+		},
+	})
+})

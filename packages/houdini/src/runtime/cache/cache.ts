@@ -783,13 +783,22 @@ class CacheInternal {
 		variables,
 		stepsFromConnection = null,
 		ignoreMasking,
+		fullCheck = false,
 	}: {
 		selection: SubscriptionSelection
 		parent?: string
 		variables?: {}
 		stepsFromConnection?: number | null
 		ignoreMasking?: boolean
-	}): { data: GraphQLObject | null; partial: boolean; stale: boolean; hasData: boolean } {
+		// if this is true then we are ignoring masking and checking the full selection for
+		// data. we will still return the masked value if we have it.
+		fullCheck?: boolean
+	}): {
+		data: GraphQLObject | null
+		partial: boolean
+		stale: boolean
+		hasData: boolean
+	} {
 		// we could be asking for values of null
 		if (parent === null) {
 			return { data: null, partial: false, stale: false, hasData: true }
@@ -831,7 +840,7 @@ class CacheInternal {
 			{ type, keyRaw, selection: fieldSelection, nullable, list, visible, directives },
 		] of Object.entries(targetSelection)) {
 			// skip masked fields when reading values
-			if (!visible && !ignoreMasking) {
+			if (!visible && !ignoreMasking && !fullCheck) {
 				continue
 			}
 
@@ -855,6 +864,10 @@ class CacheInternal {
 					continue
 				}
 			}
+
+			// we can't write to the target if we are masking the field
+			// but in order to simplify the logic, we're still going to write to _something_
+			const fieldTarget = visible || ignoreMasking ? target : {}
 
 			const key = evaluateKey(keyRaw, variables)
 
@@ -901,7 +914,7 @@ class CacheInternal {
 			// ignore embedded cursors, they will get handled with the other scalars
 			if (typeof value === 'undefined' || value === null) {
 				// set the value to null
-				target[attributeName] = null
+				fieldTarget[attributeName] = null
 
 				// if we didn't just write undefined, there is officially some data in this object
 				if (typeof value !== 'undefined') {
@@ -915,11 +928,11 @@ class CacheInternal {
 				const fnUnmarshal = this.config?.scalars?.[type]?.unmarshal
 				if (fnUnmarshal) {
 					// pass the primitive value to the unmarshal function
-					target[attributeName] = fnUnmarshal(value) as GraphQLValue
+					fieldTarget[attributeName] = fnUnmarshal(value) as GraphQLValue
 				}
 				// the field does not have an unmarshal function
 				else {
-					target[attributeName] = value
+					fieldTarget[attributeName] = value
 				}
 
 				hasData = true
@@ -934,10 +947,11 @@ class CacheInternal {
 					linkedList: value as NestedList,
 					stepsFromConnection: nextStep,
 					ignoreMasking: !!ignoreMasking,
+					fullCheck,
 				})
 
 				// save the hydrated list
-				target[attributeName] = listValue.data
+				fieldTarget[attributeName] = listValue.data
 
 				// the linked value could have partial results
 				if (listValue.partial) {
@@ -962,10 +976,11 @@ class CacheInternal {
 					variables,
 					stepsFromConnection: nextStep,
 					ignoreMasking,
+					fullCheck,
 				})
 
 				// save the object value
-				target[attributeName] = objectFields.data
+				fieldTarget[attributeName] = objectFields.data
 
 				// the linked value could have partial results
 				if (objectFields.partial) {
@@ -983,7 +998,7 @@ class CacheInternal {
 
 			// regardless of how the field was processed, if we got a null value assigned
 			// and the field is not nullable, we need to cascade up
-			if (target[attributeName] === null && !nullable && !embeddedCursor) {
+			if (fieldTarget[attributeName] === null && !nullable && !embeddedCursor) {
 				cascadeNull = true
 			}
 		}
@@ -1032,12 +1047,14 @@ class CacheInternal {
 		linkedList,
 		stepsFromConnection,
 		ignoreMasking,
+		fullCheck,
 	}: {
 		fields: SubscriptionSelection
 		variables?: {}
 		linkedList: NestedList
 		stepsFromConnection: number | null
 		ignoreMasking: boolean
+		fullCheck?: boolean
 	}): { data: NestedList<GraphQLValue>; partial: boolean; stale: boolean; hasData: boolean } {
 		// the linked list could be a deeply nested thing, we need to call getData for each record
 		// we can't mutate the lists because that would change the id references in the listLinks map
@@ -1056,6 +1073,7 @@ class CacheInternal {
 					linkedList: entry,
 					stepsFromConnection,
 					ignoreMasking,
+					fullCheck,
 				})
 				result.push(nestedValue.data)
 				if (nestedValue.partial) {
@@ -1082,6 +1100,7 @@ class CacheInternal {
 				variables,
 				stepsFromConnection,
 				ignoreMasking,
+				fullCheck,
 			})
 
 			result.push(data)

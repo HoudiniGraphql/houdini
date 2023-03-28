@@ -6,7 +6,7 @@
       city(id: "1") {
         id
         name
-        
+
         # ...CityDetails
       }
     }

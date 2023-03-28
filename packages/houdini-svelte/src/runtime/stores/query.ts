@@ -57,6 +57,8 @@ export class QueryStore<_Data extends GraphQLObject, _Input extends {}> extends 
 		await initClient()
 		this.setup(false)
 
+		console.log('fetching', this.storeName, args)
+
 		// validate and prepare the request context for the current environment (client vs server)
 		// make a shallow copy of the args so we don't mutate the arguments that the user hands us
 		const { policy, params, context } = await fetchParams(this.artifact, this.storeName, args)

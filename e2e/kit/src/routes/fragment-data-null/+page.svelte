@@ -3,7 +3,7 @@
   import CityDetails from './CityDetails.svelte';
 
   $: store = graphql(`
-    query Test @load {
+    query FragmentDataNullPageQuery @load @cache(partial: false) {
       city(id: "1") {
         id
         name
