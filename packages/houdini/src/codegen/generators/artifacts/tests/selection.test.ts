@@ -97,16 +97,16 @@ test('fragments in lists', async function () {
 		mockCollectedDoc(
 			`query TestQuery {
 				usersByCursor @list(name: "All_Users") {
-					edges { 
-						node { 
+					edges {
+						node {
 							...UserTest
 						}
-					}	
+					}
 				}
 			}`
 		),
 		mockCollectedDoc(
-			`fragment UserTest on User { 
+			`fragment UserTest on User {
 				firstName
 			}`
 		),

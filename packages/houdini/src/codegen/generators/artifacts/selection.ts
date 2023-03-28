@@ -173,6 +173,7 @@ function prepareSelection({
 				fieldType = getRootType(typeRef)
 				nullable = !graphql.isNonNullType(typeRef)
 			}
+
 			const typeName = fieldType.toString()
 
 			// make sure we include the attribute in the path
@@ -184,6 +185,22 @@ function prepareSelection({
 			let fieldObj: Required<SubscriptionSelection>['fields']['field'] = {
 				type: typeName,
 				keyRaw: fieldKey(config, field),
+			}
+
+			// add directive meta data
+			if (field.directives && field.directives.length > 0) {
+				fieldObj.directives = field.directives?.map((directive) => ({
+					name: directive.name.value,
+					arguments: (directive.arguments ?? []).reduce(
+						(acc, arg) => ({
+							...acc,
+							[arg.name.value]: config.serializeValueMap({ field: arg.value })![
+								'field'
+							],
+						}),
+						{}
+					),
+				}))
 			}
 
 			if (keys.includes(field.name.value)) {
