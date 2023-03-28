@@ -52,13 +52,11 @@ Please ensure that you have passed a record that has ${this.artifact.name} mixed
 		// on the client, we want to ensure that we apply masking to the initial value by
 		// loading the value from cache
 		if (initialValue && parent && isBrowser) {
-			console.log('masking', this.artifact.name, 'on', parent, '@', variables)
 			data = cache.read({
 				selection: this.artifact.selection,
 				parent,
 				variables,
 			}).data as _Data
-			console.log('result', data)
 		}
 
 		// build up a document store that we will use to subscribe the fragment to cache updates

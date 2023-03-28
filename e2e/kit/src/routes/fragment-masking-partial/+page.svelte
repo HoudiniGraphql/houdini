@@ -18,5 +18,7 @@
 
 {#if $store?.data}
   <p>{$store.data.city.name} - id: {$store.data.city.id}</p>
-  <CityDetails city={$store.data.city} />
+  <div id="result">
+    <CityDetails city={$store.data.city} />
+  </div>
 {/if}

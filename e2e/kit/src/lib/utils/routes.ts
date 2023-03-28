@@ -2,7 +2,7 @@ export const routes = {
   Home: '/',
   GraphQL: 'http://localhost:4000/graphql',
 
-  // features
+  // edge cases
   nested_routes: '/nested-routes',
   fetching_with_load: '/fetching/with_load',
   fetching_without_load: '/fetching/without_load',
@@ -11,7 +11,7 @@ export const routes = {
   customIDs: '/customIDs',
   subscriptions_happyPath: '/subscriptions/happyPath',
   abstractFragments: '/abstract-fragments',
-  fragment_data_null: '/fragment-data-null',
+  fragment_masking_partial: '/fragment-masking-partial',
 
   Lists_all: '/lists/all?limit=15',
   Lists_fragment: '/lists/fragment',

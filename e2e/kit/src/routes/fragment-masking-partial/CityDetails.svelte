@@ -18,8 +18,6 @@
   );
 </script>
 
-<h3>inside CityDetails.svelte</h3>
 {#if $data}
-  <p>Libraries in {$data.name}:</p>
+  <p>{JSON.stringify($data)}</p>
 {/if}
-<p>{JSON.stringify($data)}</p>
