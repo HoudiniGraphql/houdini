@@ -73,11 +73,11 @@ export function useQueryHandle<
 
 	// if we haven't loaded this value in awhile then we need to throw a promise
 	// that we will catch when its done
-	const variablesChanged = !deepEquals(storeValue.variables, {
+	const merge = {
 		...storeValue.variables,
 		...variables,
-	})
-	if (!suspenseValue || variablesChanged) {
+	}
+	if (!suspenseValue) {
 		// we are going to cache the promise and then throw it
 		// when it resolves the cached value will be updated
 		// and it will be picked up in the next render
@@ -94,38 +94,30 @@ export function useQueryHandle<
 		// @ts-ignore
 		promiseCache.set(identifier, suspenseUnit)
 
-		// before we suspend, let's see if we can read from the cache
-		const cachedData = cache.read({ selection: artifact.selection, variables })
+		// the suspense unit gives react something to hold onto
+		// and it acts as a place for us to register a callback on
+		// send to update the cache before resolving the suspense
+		handle
+			.fetch({
+				variables: merge,
+				// @ts-ignore: this is actually allowed... 🤫
+				stuff: {
+					silenceLoading: true,
+				},
+			})
+			.then((value) => {
+				// the final value
+				suspenseUnit.resolved = {
+					...handle,
+					data: value.data,
+					partia: value.partial,
+					artifact,
+				}
 
-		if (!cachedData.data || (cachedData.partial && !artifact.partial)) {
-			// the suspense unit gives react something to hold onto
-			// and it acts as a place for us to register a callback on
-			// send to update the cache before resolving the suspense
-			handle
-				.fetch({
-					variables,
-					// @ts-ignore: this is actually allowed... 🤫
-					stuff: {
-						silenceLoading: true,
-					},
-				})
-				.then((value) => {
-					// the final value
-					suspenseUnit.resolved = {
-						...handle,
-						data: value.data,
-						partia: value.partial,
-						artifact,
-					}
+				suspenseUnit.resolve()
+			})
 
-					suspenseUnit.resolve()
-				})
-
-			throw suspenseUnit
-		}
-
-		// @ts-ignore
-		result = cachedData.data
+		throw suspenseUnit
 	}
 
 	// if the promise is still pending, we're still waiting
