@@ -835,7 +835,7 @@ class CacheInternal {
 				continue
 			}
 
-			// some directives like @if and @include prevent the value from being in the
+			// some directives like @skip and @include prevent the value from being in the
 			// selection
 			const includeDirective = directives?.find((d) => {
 				return d.name === 'include'
