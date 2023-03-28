@@ -1990,3 +1990,259 @@ test('recreates fragment references with variables', function () {
 		},
 	})
 })
+
+test('include directive - positive', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				nullable: true,
+				selection: {
+					fields: {
+						id: {
+							keyRaw: 'id',
+							type: 'String',
+							visible: true,
+						},
+						firstName: {
+							keyRaw: 'firstName',
+							type: 'String',
+							visible: true,
+							directives: [
+								{
+									name: 'include',
+									arguments: {
+										if: {
+											kind: 'BooleanValue',
+											value: false,
+										},
+									},
+								},
+							],
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// write the user data without the nested value
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+			},
+		},
+	})
+
+	expect(
+		cache.read({
+			selection,
+		})
+	).toEqual({
+		partial: false,
+		stale: false,
+		data: {
+			viewer: {
+				id: '1',
+			},
+		},
+	})
+})
+
+test('include directive - negative', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				nullable: true,
+				selection: {
+					fields: {
+						id: {
+							keyRaw: 'id',
+							type: 'String',
+							visible: true,
+						},
+						firstName: {
+							keyRaw: 'firstName',
+							type: 'String',
+							visible: true,
+							directives: [
+								{
+									name: 'include',
+									arguments: {
+										if: {
+											kind: 'BooleanValue',
+											value: true,
+										},
+									},
+								},
+							],
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// write the user data without the nested value
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+			},
+		},
+	})
+
+	expect(
+		cache.read({
+			selection,
+		})
+	).toEqual({
+		partial: true,
+		stale: false,
+		data: {
+			viewer: null,
+		},
+	})
+})
+
+test('skip directive - positive', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				nullable: true,
+				selection: {
+					fields: {
+						id: {
+							keyRaw: 'id',
+							type: 'String',
+							visible: true,
+						},
+						firstName: {
+							keyRaw: 'firstName',
+							type: 'String',
+							visible: true,
+							directives: [
+								{
+									name: 'skip',
+									arguments: {
+										if: {
+											kind: 'BooleanValue',
+											value: true,
+										},
+									},
+								},
+							],
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// write the user data without the nested value
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+			},
+		},
+	})
+
+	expect(
+		cache.read({
+			selection,
+		})
+	).toEqual({
+		partial: false,
+		stale: false,
+		data: {
+			viewer: {
+				id: '1',
+			},
+		},
+	})
+})
+
+test('skip directive - negative', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				nullable: true,
+				selection: {
+					fields: {
+						id: {
+							keyRaw: 'id',
+							type: 'String',
+							visible: true,
+						},
+						firstName: {
+							keyRaw: 'firstName',
+							type: 'String',
+							visible: true,
+							directives: [
+								{
+									name: 'skip',
+									arguments: {
+										if: {
+											kind: 'BooleanValue',
+											value: false,
+										},
+									},
+								},
+							],
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// write the user data without the nested value
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+			},
+		},
+	})
+
+	expect(
+		cache.read({
+			selection,
+		})
+	).toEqual({
+		partial: true,
+		stale: false,
+		data: {
+			viewer: null,
+		},
+	})
+})

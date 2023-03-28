@@ -828,11 +828,32 @@ class CacheInternal {
 		// look at every field in the parentFields
 		for (const [
 			attributeName,
-			{ type, keyRaw, selection: fieldSelection, nullable, list, visible },
+			{ type, keyRaw, selection: fieldSelection, nullable, list, visible, directives },
 		] of Object.entries(targetSelection)) {
 			// skip masked fields when reading values
 			if (!visible && !ignoreMasking) {
 				continue
+			}
+
+			// some directives like @if and @include prevent the value from being in the
+			// selection
+			const includeDirective = directives?.find((d) => {
+				return d.name === 'include'
+			})
+			if (includeDirective) {
+				// if the `if` argument evaluates to false, skip the field
+				if (!evaluateFragmentVariables(includeDirective.arguments, variables ?? {})['if']) {
+					continue
+				}
+			}
+			const skipDirective = directives?.find((d) => {
+				return d.name === 'skip'
+			})
+			if (skipDirective) {
+				// if the `if` argument evaluates to false, skip the field
+				if (evaluateFragmentVariables(skipDirective.arguments, variables ?? {})['if']) {
+					continue
+				}
 			}
 
 			const key = evaluateKey(keyRaw, variables)
