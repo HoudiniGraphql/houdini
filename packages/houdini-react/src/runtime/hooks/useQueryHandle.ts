@@ -69,11 +69,15 @@ export function useQueryHandle<
 	const suspenseValue = promiseCache.get(identifier)
 
 	// if the promise has resolved, let's use that for our first render
-	let result = handle.data
+	let result = storeValue.data
 
 	// if we haven't loaded this value in awhile then we need to throw a promise
 	// that we will catch when its done
-	if (!suspenseValue || !deepEquals(storeValue.variables, variables)) {
+	const variablesChanged = !deepEquals(storeValue.variables, {
+		...storeValue.variables,
+		...variables,
+	})
+	if (!suspenseValue || variablesChanged) {
 		// we are going to cache the promise and then throw it
 		// when it resolves the cached value will be updated
 		// and it will be picked up in the next render

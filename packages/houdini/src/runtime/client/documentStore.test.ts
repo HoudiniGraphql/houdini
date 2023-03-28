@@ -33,6 +33,7 @@ export function createStore(
 					date2: 'Date',
 				},
 			},
+			pluginData: {},
 		},
 		// turn off the cache since we aren't pushing actual graphql documents through by default
 		cache: false,
@@ -57,6 +58,7 @@ function createStoreMutation(
 			name: 'TestArtifact_Mutation',
 			rootType: 'Mutation',
 			selection: {},
+			pluginData: {},
 		},
 		// turn off the cache since we aren't pushing actual graphql documents through by default
 		cache: false,
