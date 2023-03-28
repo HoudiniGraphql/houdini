@@ -82,6 +82,11 @@ test('pagination arguments stripped from key', async function () {
 		                "type": "UserConnection",
 		                "keyRaw": "friendsByCursor(filter: \\"hello\\")::paginated",
 
+		                "directives": [{
+		                    "name": "paginate",
+		                    "arguments": {}
+		                }],
+
 		                "selection": {
 		                    "fields": {
 		                        "edges": {
@@ -278,6 +283,17 @@ test('pagination arguments stays in key as it s a SinglePage Mode', async functi
 		                "type": "UserConnection",
 		                "keyRaw": "friendsByCursor(after: $after, before: $before, filter: \\"hello\\", first: $first, last: $last)::paginated",
 
+		                "directives": [{
+		                    "name": "paginate",
+
+		                    "arguments": {
+		                        "mode": {
+		                            "kind": "EnumValue",
+		                            "value": "SinglePage"
+		                        }
+		                    }
+		                }],
+
 		                "selection": {
 		                    "fields": {
 		                        "edges": {
@@ -447,6 +463,12 @@ test('offset based pagination marks appropriate field', async function () {
 		            "friendsByOffset": {
 		                "type": "User",
 		                "keyRaw": "friendsByOffset(filter: \\"hello\\")::paginated",
+
+		                "directives": [{
+		                    "name": "paginate",
+		                    "arguments": {}
+		                }],
+
 		                "updates": ["append"],
 
 		                "selection": {
@@ -589,6 +611,11 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		                        "friendsByCursorScalar": {
 		                            "type": "UserConnection",
 		                            "keyRaw": "friendsByCursorScalar(filter: \\"hello\\")::paginated",
+
+		                            "directives": [{
+		                                "name": "paginate",
+		                                "arguments": {}
+		                            }],
 
 		                            "selection": {
 		                                "fields": {
@@ -867,6 +894,11 @@ test("sibling aliases don't get marked", async function () {
 		            "friendsByCursor": {
 		                "type": "UserConnection",
 		                "keyRaw": "friendsByCursor(filter: \\"hello\\")::paginated",
+
+		                "directives": [{
+		                    "name": "paginate",
+		                    "arguments": {}
+		                }],
 
 		                "selection": {
 		                    "fields": {

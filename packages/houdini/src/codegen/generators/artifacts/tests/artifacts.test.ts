@@ -669,6 +669,22 @@ test('paginate over unions', async function () {
 		                "type": "EntityConnection",
 		                "keyRaw": "entitiesByCursor::paginated",
 
+		                "directives": [{
+		                    "name": "paginate",
+
+		                    "arguments": {
+		                        "name": {
+		                            "kind": "StringValue",
+		                            "value": "All_Users"
+		                        },
+
+		                        "connection": {
+		                            "kind": "BooleanValue",
+		                            "value": true
+		                        }
+		                    }
+		                }],
+
 		                "list": {
 		                    "name": "All_Users",
 		                    "connection": true,
@@ -2517,6 +2533,11 @@ describe('mutation artifacts', function () {
 			                            "type": "ID",
 			                            "keyRaw": "userID",
 
+			                            "directives": [{
+			                                "name": "User_delete",
+			                                "arguments": {}
+			                            }],
+
 			                            "operations": [{
 			                                "action": "delete",
 			                                "type": "User"
@@ -2589,6 +2610,20 @@ describe('mutation artifacts', function () {
 			                        "userID": {
 			                            "type": "ID",
 			                            "keyRaw": "userID",
+
+			                            "directives": [{
+			                                "name": "User_delete",
+			                                "arguments": {}
+			                            }, {
+			                                "name": "when",
+
+			                                "arguments": {
+			                                    "stringValue": {
+			                                        "kind": "StringValue",
+			                                        "value": "foo"
+			                                    }
+			                                }
+			                            }],
 
 			                            "operations": [{
 			                                "action": "delete",
@@ -3540,6 +3575,17 @@ describe('mutation artifacts', function () {
 			                "type": "User",
 			                "keyRaw": "users(boolValue: true, floatValue: 1.2, intValue: 1, stringValue: $value)",
 
+			                "directives": [{
+			                    "name": "list",
+
+			                    "arguments": {
+			                        "name": {
+			                            "kind": "StringValue",
+			                            "value": "All_Users"
+			                        }
+			                    }
+			                }],
+
 			                "list": {
 			                    "name": "All_Users",
 			                    "connection": false,
@@ -3764,6 +3810,17 @@ describe('mutation artifacts', function () {
 			                "type": "User",
 			                "keyRaw": "users(stringValue: \\"foo\\")",
 
+			                "directives": [{
+			                    "name": "list",
+
+			                    "arguments": {
+			                        "name": {
+			                            "kind": "StringValue",
+			                            "value": "All_Users"
+			                        }
+			                    }
+			                }],
+
 			                "list": {
 			                    "name": "All_Users",
 			                    "connection": false,
@@ -3885,6 +3942,22 @@ describe('mutation artifacts', function () {
 			            "usersByCursor": {
 			                "type": "UserConnection",
 			                "keyRaw": "usersByCursor::paginated",
+
+			                "directives": [{
+			                    "name": "paginate",
+
+			                    "arguments": {
+			                        "name": {
+			                            "kind": "StringValue",
+			                            "value": "All_Users"
+			                        },
+
+			                        "connection": {
+			                            "kind": "BooleanValue",
+			                            "value": true
+			                        }
+			                    }
+			                }],
 
 			                "list": {
 			                    "name": "All_Users",
@@ -4110,6 +4183,27 @@ describe('mutation artifacts', function () {
 			                "type": "UserConnection",
 			                "keyRaw": "usersByCursor(after: $after, before: $before, first: $first, last: $last)::paginated",
 
+			                "directives": [{
+			                    "name": "paginate",
+
+			                    "arguments": {
+			                        "name": {
+			                            "kind": "StringValue",
+			                            "value": "All_Users"
+			                        },
+
+			                        "mode": {
+			                            "kind": "EnumValue",
+			                            "value": "SinglePage"
+			                        },
+
+			                        "connection": {
+			                            "kind": "BooleanValue",
+			                            "value": true
+			                        }
+			                    }
+			                }],
+
 			                "list": {
 			                    "name": "All_Users",
 			                    "connection": true,
@@ -4299,6 +4393,17 @@ describe('mutation artifacts', function () {
 			                "type": "User",
 			                "keyRaw": "users(boolValue: true, floatValue: 1.2, intValue: 1, stringValue: $value)",
 
+			                "directives": [{
+			                    "name": "list",
+
+			                    "arguments": {
+			                        "name": {
+			                            "kind": "StringValue",
+			                            "value": "All_Users"
+			                        }
+			                    }
+			                }],
+
 			                "list": {
 			                    "name": "All_Users",
 			                    "connection": false,
@@ -4411,6 +4516,17 @@ describe('mutation artifacts', function () {
 			            "users": {
 			                "type": "User",
 			                "keyRaw": "users(boolValue: true, floatValue: 1.2, intValue: 1, stringValue: $value)",
+
+			                "directives": [{
+			                    "name": "list",
+
+			                    "arguments": {
+			                        "name": {
+			                            "kind": "StringValue",
+			                            "value": "All_Users"
+			                        }
+			                    }
+			                }],
 
 			                "list": {
 			                    "name": "All_Users",
@@ -5061,7 +5177,18 @@ test('leave @include and @skip alone', async function () {
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id",
-		                            "visible": true
+		                            "visible": true,
+
+		                            "directives": [{
+		                                "name": "skip",
+
+		                                "arguments": {
+		                                    "if": {
+		                                        "kind": "BooleanValue",
+		                                        "value": true
+		                                    }
+		                                }
+		                            }]
 		                        },
 
 		                        "__typename": {
@@ -5077,7 +5204,18 @@ test('leave @include and @skip alone', async function () {
 		                                "id": {
 		                                    "type": "ID",
 		                                    "keyRaw": "id",
-		                                    "visible": true
+		                                    "visible": true,
+
+		                                    "directives": [{
+		                                        "name": "skip",
+
+		                                        "arguments": {
+		                                            "if": {
+		                                                "kind": "BooleanValue",
+		                                                "value": true
+		                                            }
+		                                        }
+		                                    }]
 		                                },
 
 		                                "__typename": {
