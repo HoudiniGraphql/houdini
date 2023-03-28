@@ -36,9 +36,14 @@ export function useQueryHandle<
 ): DocumentHandle<_Artifact, _Data, _Input> {
 	// figure out the identifier so we know what to look for
 	const identifier = queryIdentifier({ artifact, variables, config })
+
+	// see if we have an entry in the cache for the identifier
+	const suspenseValue = promiseCache.get(identifier)
+
 	// grab the document store
 	const [storeValue, observer] = useDocumentStore<_Data, _Input>({
 		artifact,
+		initialValue: (suspenseValue?.resolved?.data ?? {}) as _Data,
 	})
 
 	// compute the imperative handle for this artifact
@@ -63,20 +68,9 @@ export function useQueryHandle<
 		}
 	}, [observer])
 
-	// the value of this hook is by default, the
-
-	// see if we have an entry in the cache for the identifier
-	const suspenseValue = promiseCache.get(identifier)
-
 	// if the promise has resolved, let's use that for our first render
 	let result = storeValue.data
 
-	// if we haven't loaded this value in awhile then we need to throw a promise
-	// that we will catch when its done
-	const merge = {
-		...storeValue.variables,
-		...variables,
-	}
 	if (!suspenseValue) {
 		// we are going to cache the promise and then throw it
 		// when it resolves the cached value will be updated
@@ -99,7 +93,7 @@ export function useQueryHandle<
 		// send to update the cache before resolving the suspense
 		handle
 			.fetch({
-				variables: merge,
+				variables,
 				// @ts-ignore: this is actually allowed... 🤫
 				stuff: {
 					silenceLoading: true,
