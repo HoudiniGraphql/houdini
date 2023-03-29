@@ -4,6 +4,7 @@ import { GraphQLObject } from 'houdini'
 import * as React from 'react'
 
 import { useHoudiniClient } from './useHoudiniClient'
+import { useIsMountedRef } from './useIsMounted'
 
 export type UseDocumentStoreParams<
 	_Artifact extends DocumentArtifact,
@@ -25,6 +26,7 @@ export function useDocumentStore<
 	(store: DocumentStore<_Data, _Input>) => void
 ] {
 	const client = useHoudiniClient()
+	const isMountedRef = useIsMountedRef()
 
 	// hold onto an observer we'll use
 	let [observer, setObserver] = React.useState(
@@ -40,7 +42,9 @@ export function useDocumentStore<
 		(fn: () => void) => {
 			return observer.subscribe((val) => {
 				box.current = val
-				fn()
+				if (isMountedRef.current) {
+					fn()
+				}
 			})
 		},
 		[observer]

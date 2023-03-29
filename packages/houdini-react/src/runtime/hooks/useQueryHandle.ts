@@ -1,11 +1,11 @@
-import cache from '$houdini/runtime/cache'
-import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import { type QueryArtifact, GraphQLObject, CachePolicies } from '$houdini/runtime/lib/types'
 import React from 'react'
 
 import { createCache } from '../lib/cache'
 import { DocumentHandle, useDocumentHandle } from './useDocumentHandle'
 import { useDocumentStore } from './useDocumentStore'
+import { useHoudiniClient } from './useHoudiniClient'
+import { useIsMountedRef } from './useIsMounted'
 
 // Suspense requires a way to throw a promise that resolves to a place
 // we can put when we go back on a susequent render. This means that we have to have
@@ -40,11 +40,39 @@ export function useQueryHandle<
 	// see if we have an entry in the cache for the identifier
 	const suspenseValue = promiseCache.get(identifier)
 
-	// grab the document store
-	const [storeValue, observer] = useDocumentStore<_Data, _Input>({
-		artifact,
-		initialValue: (suspenseValue?.resolved?.data ?? {}) as _Data,
-	})
+	const client = useHoudiniClient()
+
+	const isMountedRef = useIsMountedRef()
+
+	// hold onto an observer we'll use
+	let [observer] = React.useState(
+		client.observe<_Data, _Input>({
+			artifact,
+			initialValue: (suspenseValue?.resolved?.data ?? {}) as _Data,
+		})
+	)
+
+	// a ref flag we'll enable before throwing so that we don't update while suspend
+	const suspenseTracker = React.useRef(false)
+
+	// a stable box to put the store's value
+	const box = React.useRef(observer.state)
+
+	// a stable subscribe function for the document store
+	const subscribe: any = React.useCallback(
+		(fn: () => void) => {
+			return observer.subscribe((val) => {
+				box.current = val
+				if (isMountedRef.current && !suspenseTracker.current) {
+					fn()
+				}
+			})
+		},
+		[observer]
+	)
+
+	// get a safe reference to the cache
+	const storeValue = React.useSyncExternalStore(subscribe, () => box.current)
 
 	// compute the imperative handle for this artifact
 	const handle = useDocumentHandle<_Artifact, _Data, _Input>({
@@ -110,12 +138,13 @@ export function useQueryHandle<
 
 				suspenseUnit.resolve()
 			})
-
+		suspenseTracker.current = true
 		throw suspenseUnit
 	}
 
 	// if the promise is still pending, we're still waiting
 	if (!result && suspenseValue && !suspenseValue.resolved) {
+		suspenseTracker.current = true
 		throw suspenseValue
 	}
 
