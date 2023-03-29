@@ -1,5 +1,12 @@
 # houdini-svelte
 
+## 1.1.4-react.0
+
+### Patch Changes
+
+-   Updated dependencies []:
+    -   houdini@1.1.4-react.0
+
 ## 1.1.3
 
 ### 🐛 Fixes
