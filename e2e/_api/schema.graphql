@@ -46,6 +46,10 @@ type PageInfo {
 	startCursor: String
 }
 
+input UserNameFilter {
+    name: String!
+}
+
 type Query {
 	avgYearsBirthDate: Float!
 	node(id: ID!): Node
@@ -59,6 +63,7 @@ type Query {
 	): UserConnection!
 	usersList(limit: Int = 4, offset: Int, snapshot: String!): [User!]!
 	userNodes(limit: Int = 4, offset: Int, snapshot: String!): UserNodes!
+    userSearch(filter: UserNameFilter!, snapshot: String!): [User!]!
 	session: String
 	cities: [City]!
 	userNodesResult(snapshot: String!, forceMessage: Boolean!): UserNodesResult!
@@ -77,6 +82,8 @@ type User implements Node {
 	friendsConnection(after: String, before: String, first: Int, last: Int): UserConnection!
 	"This is the same list as what's used globally. its here to tests fragments"
 	usersConnection(after: String, before: String, first: Int, last: Int): UserConnection!
+    "This is the same list as what's used globally. its here to tests fragments"
+    userSearch(filter: UserNameFilter!, snapshot: String!): [User!]!
 	friendsList(limit: Int, offset: Int): [User!]!
 	id: ID!
 	name: String!

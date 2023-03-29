@@ -44,6 +44,8 @@ export const routes = {
   Stores_Pagination_query_forward_cursor: '/stores/pagination/query/forward-cursor',
   Stores_Directives: '/stores/directives',
 
+  Stores_Fragment_arguments: '/stores/fragment-arguments',
+
   Plugin_query_simple: '/plugin/query/simple',
   Plugin_query_variable_1: '/plugin/query/variable-1',
   Plugin_query_variable_2: '/plugin/query/variable-2',

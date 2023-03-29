@@ -197,6 +197,11 @@ export const resolvers = {
 			)
 			return { ...user, __typename: 'User' }
 		},
+		userSearch: async (_, args) => {
+			const allUsers = [...getUserSnapshot(args.snapshot)]
+
+			return allUsers.filter((user) => user.name.toLowerCase().includes(args.filter.name.toLowerCase()))
+		},
 		rentedBooks: async (_, args) => {
 			return dataRentedBooks
 		},
@@ -226,6 +231,11 @@ export const resolvers = {
 		},
 		usersConnection: (user, args) => {
 			return connectionFromArray(getUserSnapshot(user.snapshot), args)
+        },
+        userSearch: (_, args) => {
+			const allUsers = [...getUserSnapshot(args.snapshot)]
+
+			return allUsers.filter((user) => user.name.toLowerCase().includes(args.filter.name.toLowerCase()))
 		},
 		enumValue: () => 'Value1',
 	},
