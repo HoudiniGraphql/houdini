@@ -1,5 +1,16 @@
 # houdini-react
 
+## 1.2.0-react.1
+
+### Minor Changes
+
+-   [`1d1f54c8`](https://github.com/HoudiniGraphql/houdini/commit/1d1f54c83cfddd17f3bf6e50def0adc03d9a43d0) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Remove private flag
+
+### Patch Changes
+
+-   Updated dependencies []:
+    -   houdini@1.2.0-react.1
+
 ## 1.1.4-react.0
 
 ### Patch Changes
