@@ -1,5 +1,13 @@
 # houdini-plugin-svelte-global-stores
 
+## 1.1.4-react.0
+
+### Patch Changes
+
+-   Updated dependencies []:
+    -   houdini@1.1.4-react.0
+    -   houdini-svelte@1.1.4-react.0
+
 ## 1.1.3
 
 ### Dependency Changes

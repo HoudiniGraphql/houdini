@@ -14,5 +14,5 @@
 		"houdini-svelte": "1.1.3",
 		"site": "0.0.1"
 	},
-	"changesets": []
+	"changesets": ["rotten-scissors-pull"]
 }

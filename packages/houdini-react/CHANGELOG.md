@@ -1,5 +1,14 @@
 # houdini-react
 
+## 1.1.4-react.0
+
+### Patch Changes
+
+-   [`a8a9b30e`](https://github.com/HoudiniGraphql/houdini/commit/a8a9b30ebe84fbd372eea76ccef793cc9506523b) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - first version
+
+-   Updated dependencies []:
+    -   houdini@1.1.4-react.0
+
 ## 1.1.3
 
 ### Dependency Changes
