@@ -238,7 +238,7 @@ query Info($id: Int = 1) {
 
 <!-- Use this instead of the move display we added earlier -->
 <div id="move-summary">
-    <MoveDisplay move={$Info.data.species.moves.edges[moveIndex].node} />
+    <MoveDisplay move={$Info.data.species.moves.edges[0].node} />
     <div id="move-controls">
         <UpButton
             disabled={!$Info.pageInfo.hasPreviousPage}
