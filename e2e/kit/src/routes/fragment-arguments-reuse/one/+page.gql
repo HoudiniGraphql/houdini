@@ -1,0 +1,7 @@
+query FragmentsReuseQueryOne($userId: ID!, $search: String!) {
+  user(id: $userId, snapshot: "FragmentReuse") {
+    name
+
+    ...SearchUser @with(search: $search)
+  }
+}
