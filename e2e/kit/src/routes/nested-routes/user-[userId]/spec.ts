@@ -6,7 +6,7 @@ test.describe('+Layout.gql', () => {
   test('No GraphQL request & response happen (SSR)', async ({ page }) => {
     await goto(page, routes.nested_routes);
     const result = await page.locator('h3').textContent({ timeout: 2997 });
-    expect(result?.replaceAll('\n', '').replaceAll(/\w+/g, ' ')).toBe(
+    expect(result?.replaceAll('\n', '').replaceAll(/\s+/g, ' ')).toBe(
       'Samuel Jackson Samuel Jackson'
     );
   });
