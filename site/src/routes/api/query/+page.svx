@@ -295,13 +295,6 @@ export const load: PageLoad = async (event) => {
 }
 ```
 
-If you need to look at the result of the fetch, we recommend _not_ using the `load_`
-utility but one of the 3 options:
-
-- Use the `blocking: true` parameter in the `fetch` method _(you can check the deep dive "Blocking Navigation" bellow)_
-- Use the `@blocking` directive to block the request until the query is complete
-- Use the `_houdini_afterLoad` hook to block the request until the query is complete
-
 <DeepDive title="Loading multiple stores simultaneously">
 
 Be careful when loading multiple stores at once.
@@ -344,16 +337,26 @@ The above example will provide 3 props to your route: `MyQuery` containing an in
 
 </DeepDive>
 
-<DeepDive title="Blocking Navigation">
+## Loading state
 
-If we're not careful, the above code will cause every route transition to
-block while the store waits for the server. While this sounds great
-for server-side rendered views, this is usually not what we want for
-client-side transitions. In order to accommodate this, awaiting
-`fetch` or a loader does not actually wait for the promise to resolve when
-the request happens on the browser. This means that if you want to
-do something with the response, you have to pass `blocking: true`
-which will make the `await` behave like normal:
+Your needs regarding _Loading state_ concept can vary depending on 
+your application, use case, scenario... Fortunatly, Houdini gives you 
+some APIs to handle many different situations. We call it the `"blocking"` concept.
+
+Basically, Houdini gives you the ability to wait the await of the fetch or not.
+In other word, are we `blocking` next steps (while retriving data) or not.
+
+By default, Houdini will block fetches on the server (to satify SSR) 
+and not not block on client navigation.
+But you ca tune this behavior at various levels:
+
+1. By configuration with the parameter [defaultRouteBlocking](/api/config#svelte-plugin).
+1. If you have [throwOnError](/api/client#error-handling) set with operations "all" or "query", Houdini will always block.
+1. If you have a `_houdini_afterLoad` or `_houdini_onError` set, Houdini will always block.
+1. By using the `@blocking` / `@unblocking` directives you can overwrite the behavior.
+1. By passing the arg `blocking` in the fetch function you can overwrite the behavior.
+
+Here is an example of overwriting:
 
 ```typescript:typescriptToggle=true
 import { redirect } from '@sveltejs/kit'
@@ -371,8 +374,6 @@ export const load: PageLoad = async (event) => {
 	return {}
 }
 ```
-
-</DeepDive>
 
 ## Components Queries
 
