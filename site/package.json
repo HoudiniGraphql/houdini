@@ -16,6 +16,7 @@
 	"lint-staged": {
 		"src/**/*.svelte": "npm run format"
 	},
+	"packageManager": "pnpm@8.0.0",
 	"devDependencies": {
 		"@babel/parser": "^7.20.7",
 		"@playwright/test": "1.30.0",
