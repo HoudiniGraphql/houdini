@@ -1,5 +1,15 @@
 # houdini
 
+## 1.1.4
+
+### Patch Changes
+
+-   [#1027](https://github.com/HoudiniGraphql/houdini/pull/1027) [`184a8417`](https://github.com/HoudiniGraphql/houdini/commit/184a84170bc803c37cd25993c9877a2187c91da3) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug when fragment arguments are nested in objects
+
+-   [#1022](https://github.com/HoudiniGraphql/houdini/pull/1022) [`16b8b882`](https://github.com/HoudiniGraphql/houdini/commit/16b8b882c66c96942bd5f4f3fddaffc62a30d8fa) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug causing fragment masking to confuse partial cache hits
+
+-   [#1019](https://github.com/HoudiniGraphql/houdini/pull/1019) [`dfc4295a`](https://github.com/HoudiniGraphql/houdini/commit/dfc4295a5bc20fdcc24b671f1faa910b5e91ba61) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug with include and skip directives
+
 ## 1.1.3
 
 ## 1.1.2
