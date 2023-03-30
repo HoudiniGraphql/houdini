@@ -167,14 +167,6 @@ export const resolvers = {
 		cities: () => {
 			return cities
 		},
-		city: async (_, args) => {
-			const city = cities.find((city) => `${city.id}` === args.id)
-
-			if (!city) {
-				throw new GraphQLError('City not found', { code: 404 })
-			}
-			return city
-		},
 		userNodesResult: async (_, args) => {
 			if (args.forceMessage) {
 				return {
