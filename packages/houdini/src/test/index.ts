@@ -65,7 +65,7 @@ export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {})
 				usersByCursor(first: Int, after: String, last: Int, before: String): UserConnection!
 				usersByBackwardsCursor(last: Int, before: String): UserConnection!
 				usersByForwardsCursor(first: Int, after: String): UserConnection!
-				usersByOffset(offset: Int, limit: Int): [User!]!
+				usersByOffset(offset: Int, limit: Int, filter: UserFilter): [User!]!
 				friendsByCursor(first: Int, after: String, last: Int, before: String): FriendConnection!
 				ghostsByCursor(first: Int, after: String, last: Int, before: String): IsGhostConnection!
 				entitiesByCursor(first: Int, after: String, last: Int, before: String): EntityConnection!
@@ -73,6 +73,10 @@ export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {})
 				customIdList: [CustomIdType]!
 				nodes(ids: [ID!]!): [Node!]!
     			monkeys: MonkeyConnection!
+			}
+
+			input UserFilter {
+				name: String
 			}
 
 			type PageInfo {
@@ -153,7 +157,7 @@ export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {})
 			interface IsGhost {
 				aka: String!
 			}
-			
+
 			interface Animal implements Node {
 				id: ID!
 				name: String!

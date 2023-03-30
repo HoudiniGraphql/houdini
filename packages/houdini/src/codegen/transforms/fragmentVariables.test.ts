@@ -968,3 +968,86 @@ describe('parse argument type string', function () {
 		})
 	}
 })
+
+test('test', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+				fragment QueryFragment on Query
+                @arguments(name: {type: "String!"}) {
+                    usersByOffset(filter: {name: $name}) {
+						id
+					}
+				}
+			`
+		),
+		mockCollectedDoc(
+			`
+				query TestQuery {
+					...QueryFragment @with(name: "Foo")
+				}
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "QueryFragment",
+		    "kind": "HoudiniFragment",
+		    "hash": "31652f414668396d9323f8273febbf1ea84d1c410a79c6866e9212bdb0a9a98f",
+
+		    "raw": \`fragment QueryFragment on Query {
+		  users(boolValue: $cool, stringValue: $name) {
+		    id
+		  }
+		  __typename
+		}
+		\`,
+
+		    "rootType": "Query",
+
+		    "selection": {
+		        "fields": {
+		            "users": {
+		                "type": "User",
+		                "keyRaw": "users(boolValue: $cool, stringValue: $name)",
+
+		                "selection": {
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id",
+		                            "visible": true
+		                        }
+		                    }
+		                },
+
+		                "visible": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename",
+		                "visible": true
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+
+		    "input": {
+		        "fields": {
+		            "name": "String"
+		        },
+
+		        "types": {}
+		    }
+		};
+
+		"HoudiniHash=31652f414668396d9323f8273febbf1ea84d1c410a79c6866e9212bdb0a9a98f";
+	`)
+})

@@ -119,12 +119,7 @@ export default function artifactGenerator(stats: {
 				// and an artifact for every document
 				docs.map(async (doc) => {
 					// pull out the info we need from the collected doc
-					const {
-						document,
-						name,
-						generateArtifact: generateArtifact,
-						originalParsed,
-					} = doc
+					const { document, name, generateArtifact, originalParsed, originalString } = doc
 					// if the document is generated, don't write it to disk - it's use is to provide definitions
 					// for the other transforms
 					if (!generateArtifact) {
@@ -231,11 +226,10 @@ export default function artifactGenerator(stats: {
 						// is the one with the matching name
 						const matchingFragment = fragments.find(
 							(fragment) => fragment.name.value === name
-                        )
-                        if (name.includes("UserSearch")) {
-                            console.log("searching this `name.value`:", JSON.stringify(fragments));
-                            console.log("for:", name);
-                        }
+						)
+						if (name.includes('UserSearch')) {
+							console.log('searching `name.value`', name, ':', originalString)
+						}
 						if (!matchingFragment) {
 							throw new HoudiniError({
 								filepath: doc.filename,
