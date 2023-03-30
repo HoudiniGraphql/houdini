@@ -227,9 +227,6 @@ export default function artifactGenerator(stats: {
 						const matchingFragment = fragments.find(
 							(fragment) => fragment.name.value === name
 						)
-						if (name.includes('UserSearch')) {
-							console.log('searching `name.value`', name, ':', originalString)
-						}
 						if (!matchingFragment) {
 							throw new HoudiniError({
 								filepath: doc.filename,
