@@ -24,6 +24,7 @@
         "@types/glob": "^8.0.0",
         "@types/minimatch": "^5.1.2",
         "@types/node": "^18.7.23",
+        "@types/ungap__structured-clone": "^0.3.0",
         "prettier": "^2.8.3",
         "rollup": "^3.7.4",
         "scripts": "workspace:^",

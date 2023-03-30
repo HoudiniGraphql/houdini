@@ -211,6 +211,7 @@ importers:
             '@types/minimatch': ^5.1.2
             '@types/node': ^18.7.23
             '@types/prompts': ^2.0.14
+            '@types/ungap__structured-clone': ^0.3.0
             '@ungap/structured-clone': ^1.0.2
             ast-types: ^0.16.1
             commander: ^9.4.0
@@ -261,6 +262,7 @@ importers:
             '@types/glob': 8.0.0
             '@types/minimatch': 5.1.2
             '@types/node': 18.11.15
+            '@types/ungap__structured-clone': 0.3.0
             prettier: 2.8.3
             rollup: 3.7.4
             scripts: link:../_scripts
@@ -2788,6 +2790,13 @@ packages:
                 integrity: sha512-Hl219/BT5fLAaz6NDkSuhzasy49dwQS/DSdu4MdggFB8zcXv7vflBI3xp7FEmkmdDkBUI2bPUNeMttp2knYdxw==,
             }
         dev: false
+
+    /@types/ungap__structured-clone/0.3.0:
+        resolution:
+            {
+                integrity: sha512-eBWREUhVUGPze+bUW22AgUr05k8u+vETzuYdLYSvWqGTUe0KOf+zVnOB1qER5wMcw8V6D9Ar4DfJmVvD1yu0kQ==,
+            }
+        dev: true
 
     /@types/unist/2.0.6:
         resolution:
