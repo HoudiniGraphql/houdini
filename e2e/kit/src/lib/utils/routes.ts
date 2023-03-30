@@ -2,7 +2,7 @@ export const routes = {
   Home: '/',
   GraphQL: 'http://localhost:4000/graphql',
 
-  // features
+  // edge cases
   nested_routes: '/nested-routes',
   fetching_with_load: '/fetching/with_load',
   fetching_without_load: '/fetching/without_load',
@@ -11,6 +11,7 @@ export const routes = {
   customIDs: '/customIDs',
   subscriptions_happyPath: '/subscriptions/happyPath',
   abstractFragments: '/abstract-fragments',
+  fragment_masking_partial: '/fragment-masking-partial',
 
   Lists_all: '/lists/all?limit=15',
   Lists_fragment: '/lists/fragment',
@@ -43,6 +44,7 @@ export const routes = {
   Stores_Partial_Off_Child: '/stores/partial-off/child',
   Stores_Connection_Fragment: '/stores/connection-fragment',
   Stores_Pagination_query_forward_cursor: '/stores/pagination/query/forward-cursor',
+  Stores_Directives: '/stores/directives',
 
   Plugin_query_simple: '/plugin/query/simple',
   Plugin_query_variable_1: '/plugin/query/variable-1',

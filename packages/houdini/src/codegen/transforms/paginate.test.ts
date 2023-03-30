@@ -513,6 +513,11 @@ test('embeds node pagination query as a separate document', async function () {
 		                                    "type": "UserConnection",
 		                                    "keyRaw": "friendsByForwardsCursor::paginated",
 
+		                                    "directives": [{
+		                                        "name": "paginate",
+		                                        "arguments": {}
+		                                    }],
+
 		                                    "selection": {
 		                                        "fields": {
 		                                            "edges": {
@@ -782,6 +787,11 @@ test('embeds custom pagination query as a separate document', async function () 
 		                        "friendsConnection": {
 		                            "type": "GhostConnection",
 		                            "keyRaw": "friendsConnection::paginated",
+
+		                            "directives": [{
+		                                "name": "paginate",
+		                                "arguments": {}
+		                            }],
 
 		                            "selection": {
 		                                "fields": {
@@ -1565,6 +1575,11 @@ test('generated query has same refetch spec', async function () {
 		                "type": "UserConnection",
 		                "keyRaw": "usersByCursor::paginated",
 
+		                "directives": [{
+		                    "name": "paginate",
+		                    "arguments": {}
+		                }],
+
 		                "selection": {
 		                    "fields": {
 		                        "edges": {
@@ -1858,6 +1873,11 @@ test('default defaultPaginateMode to SinglePage', async function () {
 		            "usersByCursor": {
 		                "type": "UserConnection",
 		                "keyRaw": "usersByCursor(after: $after, before: $before, first: $first, last: $last)::paginated",
+
+		                "directives": [{
+		                    "name": "paginate",
+		                    "arguments": {}
+		                }],
 
 		                "selection": {
 		                    "fields": {

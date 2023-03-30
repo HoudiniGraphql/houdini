@@ -968,3 +968,147 @@ describe('parse argument type string', function () {
 		})
 	}
 })
+
+test('variables referenced deeply in objects', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+				fragment QueryFragment on Query
+                @arguments(name: {type: "String!"}) {
+                    usersByOffset(filter: {name: $name}) {
+						id
+					}
+				}
+			`
+		),
+		mockCollectedDoc(
+			`
+				query TestQuery {
+					...QueryFragment @with(name: "Foo")
+				}
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "QueryFragment",
+		    "kind": "HoudiniFragment",
+		    "hash": "f21383b76145c5c42b10436ccde99cb9f0a7156d4209149b2d94a01c8445e88c",
+
+		    "raw": \`fragment QueryFragment on Query {
+		  usersByOffset(filter: {name: $name}) {
+		    id
+		  }
+		  __typename
+		}
+		\`,
+
+		    "rootType": "Query",
+
+		    "selection": {
+		        "fields": {
+		            "usersByOffset": {
+		                "type": "User",
+		                "keyRaw": "usersByOffset(filter: {name: $name})",
+
+		                "selection": {
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id",
+		                            "visible": true
+		                        }
+		                    }
+		                },
+
+		                "visible": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename",
+		                "visible": true
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+
+		    "input": {
+		        "fields": {
+		            "name": "String"
+		        },
+
+		        "types": {}
+		    }
+		};
+
+		"HoudiniHash=f21383b76145c5c42b10436ccde99cb9f0a7156d4209149b2d94a01c8445e88c";
+	`)
+
+	expect(docs[1]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "TestQuery",
+		    "kind": "HoudiniQuery",
+		    "hash": "bfcbae34fee98e0c32493bd3445ab074fdccff7c7b3721245047202887a842e9",
+
+		    "raw": \`query TestQuery {
+		  ...QueryFragment_32RKor
+		}
+
+		fragment QueryFragment_32RKor on Query {
+		  usersByOffset(filter: {name: $name}) {
+		    id
+		  }
+		  __typename
+		}
+		\`,
+
+		    "rootType": "Query",
+
+		    "selection": {
+		        "fields": {
+		            "usersByOffset": {
+		                "type": "User",
+		                "keyRaw": "usersByOffset(filter: {name: $name})",
+
+		                "selection": {
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id",
+		                            "visible": true
+		                        }
+		                    }
+		                }
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename"
+		            }
+		        },
+
+		        "fragments": {
+		            "QueryFragment": {
+		                "name": {
+		                    "kind": "StringValue",
+		                    "value": "Foo"
+		                }
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+		    "policy": "CacheOrNetwork",
+		    "partial": false
+		};
+
+		"HoudiniHash=bfcbae34fee98e0c32493bd3445ab074fdccff7c7b3721245047202887a842e9";
+	`)
+})

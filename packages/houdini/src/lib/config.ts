@@ -680,7 +680,7 @@ export class Config {
 		fragment: string
 	}) {
 		this.#fragmentVariableMaps[hash] = {
-			args: this.#serializeValueMap(args),
+			args: this.serializeValueMap(args),
 			fragment,
 		}
 	}
@@ -694,7 +694,7 @@ export class Config {
 		)
 	}
 
-	#serializeValueMap(map: ValueMap | null): ValueMap | null {
+	serializeValueMap(map: ValueMap | null): ValueMap | null {
 		if (!map) {
 			return null
 		}
@@ -713,7 +713,7 @@ export class Config {
 					if ('values' in input) {
 						// @ts-ignore
 						result.values = input.values.map(
-							(value) => this.#serializeValueMap({ foo: value })!.foo!
+							(value) => this.serializeValueMap({ foo: value })!.foo!
 						)
 					}
 					if ('name' in input) {
@@ -725,7 +725,7 @@ export class Config {
 						// @ts-ignore
 						result.fields = input.fields.map((field) => ({
 							name: field.name,
-							value: this.#serializeValueMap({ foo: field.value })!.foo!,
+							value: this.serializeValueMap({ foo: field.value })!.foo!,
 						}))
 					}
 				}

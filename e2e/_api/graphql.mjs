@@ -4,6 +4,7 @@ import { GraphQLError } from 'graphql'
 import { GraphQLScalarType, Kind } from 'graphql'
 import { createPubSub } from 'graphql-yoga'
 import path from 'path'
+import url from 'url'
 
 import { connectionFromArray } from './util.mjs'
 
@@ -11,10 +12,7 @@ const pubSub = createPubSub()
 
 const sourceFiles = ['schema.graphql', 'schema-hello.graphql']
 export const typeDefs = sourceFiles.map((filepath) => {
-	let filepathToUse = path.join('.', filepath)
-	if (!fs.existsSync(filepathToUse)) {
-		filepathToUse = path.join('../_api', filepath)
-	}
+	const filepathToUse = path.join(path.dirname(url.fileURLToPath(import.meta.url)), filepath)
 	return fs.readFileSync(path.resolve(filepathToUse), 'utf-8')
 })
 
@@ -197,8 +195,18 @@ export const resolvers = {
 			)
 			return { ...user, __typename: 'User' }
 		},
+		userSearch: async (_, args) => {
+			const allUsers = [...getUserSnapshot(args.snapshot)]
+
+			return allUsers.filter((user) =>
+				user.name.toLowerCase().includes(args.filter.name.toLowerCase())
+			)
+		},
 		rentedBooks: async (_, args) => {
 			return dataRentedBooks
+		},
+		city(_, { id }) {
+			return cities.find((c) => c.id.toString() === id)
 		},
 		monkeys(_, args) {
 			return connectionFromArray(
@@ -226,6 +234,13 @@ export const resolvers = {
 		},
 		usersConnection: (user, args) => {
 			return connectionFromArray(getUserSnapshot(user.snapshot), args)
+		},
+		userSearch: (_, args) => {
+			const allUsers = [...getUserSnapshot(args.snapshot)]
+
+			return allUsers.filter((user) =>
+				user.name.toLowerCase().includes(args.filter.name.toLowerCase())
+			)
 		},
 		enumValue: () => 'Value1',
 	},
