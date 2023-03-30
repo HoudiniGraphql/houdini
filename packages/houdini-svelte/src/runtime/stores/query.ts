@@ -104,15 +104,15 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 			client.throwOnError_operations.includes('query')
 		) {
 			// if explicitly set to not_always_blocking, we can't throw, so warn the user.
-			if (config_svelte.defaultBlockingMode === 'not_always_blocking') {
+			if (config_svelte.defaultRouteBlocking === false) {
 				log.info(
-					'[Houdini] ⚠️ throwOnError with operation "all" or "query", is not compatible with defaultBlockingMode set to "not_always_blocking"'
+					'[Houdini] ⚠️ throwOnError with operation "all" or "query", is not compatible with defaultRouteBlocking set to "false"'
 				)
 			}
 		}
 
 		// 1/ Check config
-		if (config_svelte.defaultBlockingMode === 'always_blocking') {
+		if (config_svelte.defaultRouteBlocking === true) {
 			need_to_block = true
 		}
 

@@ -243,9 +243,9 @@ export type HoudiniSvelteConfig = {
 	client?: string
 
 	/**
-	 * Specifies whether the default blocking mode is blocking or not. (default: `not_always_blocking`)
+	 * Specifies whether the client side routing is blocking or not. (default: `false`)
 	 */
-	defaultBlockingMode?: 'not_always_blocking' | 'always_blocking'
+	defaultRouteBlocking?: boolean
 
 	/**
 	 * The name of the file used to define page queries.
