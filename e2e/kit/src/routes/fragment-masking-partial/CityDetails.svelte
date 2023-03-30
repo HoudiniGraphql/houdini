@@ -1,7 +1,7 @@
 <script lang="ts">
   import { fragment, graphql, type CityDetails } from '$houdini';
 
-  export let city: CityDetails;
+  export let city: CityDetails | null;
 
   $: data = fragment(
     city,

@@ -17,7 +17,7 @@
 <h3>inside +page.svelte</h3>
 
 {#if $store?.data}
-  <p>{$store.data.city.name} - id: {$store.data.city.id}</p>
+  <p>{$store.data.city?.name} - id: {$store.data.city?.id}</p>
   <div id="result">
     <CityDetails city={$store.data.city} />
   </div>
