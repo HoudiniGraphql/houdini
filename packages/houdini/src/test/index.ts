@@ -65,7 +65,7 @@ export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {})
 				usersByCursor(first: Int, after: String, last: Int, before: String): UserConnection!
 				usersByBackwardsCursor(last: Int, before: String): UserConnection!
 				usersByForwardsCursor(first: Int, after: String): UserConnection!
-				usersByOffset(offset: Int, limit: Int, filter: UserFilter): [User!]!
+				usersByOffset(offset: Int, limit: Int, stringFilter: String, filter: UserFilter): [User!]!
 				friendsByCursor(first: Int, after: String, last: Int, before: String): FriendConnection!
 				ghostsByCursor(first: Int, after: String, last: Int, before: String): IsGhostConnection!
 				entitiesByCursor(first: Int, after: String, last: Int, before: String): EntityConnection!
