@@ -205,6 +205,9 @@ export const resolvers = {
 		rentedBooks: async (_, args) => {
 			return dataRentedBooks
 		},
+		city(_, { id }) {
+			return cities.find((c) => c.id.toString() === id)
+		},
 		monkeys(_, args) {
 			return connectionFromArray(
 				[
