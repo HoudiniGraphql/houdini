@@ -2,7 +2,7 @@
 
 ## 1.1.4
 
-### Patch Changes
+### 🐛 Fixes
 
 -   [#1027](https://github.com/HoudiniGraphql/houdini/pull/1027) [`184a8417`](https://github.com/HoudiniGraphql/houdini/commit/184a84170bc803c37cd25993c9877a2187c91da3) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug when fragment arguments are nested in objects
 
