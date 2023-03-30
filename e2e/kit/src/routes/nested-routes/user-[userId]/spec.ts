@@ -5,7 +5,8 @@ import { expect_to_be, expect_n_gql, goto, navSelector } from '../../../lib/util
 test.describe('+Layout.gql', () => {
   test('No GraphQL request & response happen (SSR)', async ({ page }) => {
     await goto(page, routes.nested_routes);
-    await expect_to_be(page, 'Samuel Jackson Samuel Jackson', 'h3');
+    const result = await page.locator('h3').textContent({ timeout: 2997 });
+    expect(result?.replaceAll('\n', '')).toBe('Samuel Jackson Samuel Jackson');
   });
 
   test('From HOME, navigate to page (only 1 graphql queries should happen, not more!)', async ({
