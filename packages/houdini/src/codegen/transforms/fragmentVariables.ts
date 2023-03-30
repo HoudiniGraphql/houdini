@@ -198,18 +198,18 @@ function inlineFragmentArgs({
 							definitions: localDefinitions,
 						}
 					}
+				}
 
-					// if we changed the name of the fragment
-					if (node.name.value !== newFragmentName) {
-						// replace the fragment spread with one that references the generated fragment
-						return {
-							...node,
-							name: {
-								kind: 'Name',
-								value: newFragmentName,
-							},
-						} as graphql.FragmentSpreadNode
-					}
+				// if we changed the name of the fragment
+				if (node.name.value !== newFragmentName) {
+					// replace the fragment spread with one that references the generated fragment
+					return {
+						...node,
+						name: {
+							kind: 'Name',
+							value: newFragmentName,
+						},
+					} as graphql.FragmentSpreadNode
 				}
 			},
 			// look at every time something is used as an argument
