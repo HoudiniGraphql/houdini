@@ -2,7 +2,7 @@
 
 ## 1.1.5
 
-### Patch Changes
+### Dependency Changes
 
 -   Updated dependencies [[`5305a2ad`](https://github.com/HoudiniGraphql/houdini/commit/5305a2ad36e692d47f5fb4cfa2c5a2e4d9ef3d4d), [`5a6e188d`](https://github.com/HoudiniGraphql/houdini/commit/5a6e188d88a4b7f84511a84ddc1bcc2c1ff59f5f), [`be51b0f5`](https://github.com/HoudiniGraphql/houdini/commit/be51b0f5e5fdde4f48288bfcede2c46b4bddf01f)]:
     -   houdini@1.1.5

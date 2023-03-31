@@ -2,7 +2,7 @@
 
 ## 1.1.5
 
-### Patch Changes
+### 🐛 Fixes
 
 -   [#1032](https://github.com/HoudiniGraphql/houdini/pull/1032) [`5305a2ad`](https://github.com/HoudiniGraphql/houdini/commit/5305a2ad36e692d47f5fb4cfa2c5a2e4d9ef3d4d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix template files created by init command
 
