@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
-import { Config, Document, definitionFromAncestors } from 'houdini'
-import { HoudiniError } from 'houdini'
+import type { Config, Document } from 'houdini'
+import { HoudiniError, definitionFromAncestors } from 'houdini'
 
 import { store_name } from './kit'
 
