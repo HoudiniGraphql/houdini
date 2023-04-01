@@ -1,39 +1,20 @@
-import type { Document } from 'houdini'
-import { pipelineTest } from 'houdini/test'
+import { pipelineTest, Row } from 'houdini/test'
 import { describe, expect, test } from 'vitest'
 
 import { test_config } from '../test'
 
 const table: Row[] = [
 	{
-		title: 'Forbiden name Query',
+		title: 'Forbiden names Query/Mutation/Subscription/Fragment/Base',
 		pass: false,
-		documents: [`query Query { version }`],
-		nb_of_fail: 1,
-	},
-	{
-		title: 'Forbiden name Mutation',
-		pass: false,
-		documents: [`query Mutation { version }`],
-		nb_of_fail: 1,
-	},
-	{
-		title: 'Forbiden name Subscription',
-		pass: false,
-		documents: [`query Subscription { version }`],
-		nb_of_fail: 1,
-	},
-	{
-		title: 'Forbiden name Fragment',
-		pass: false,
-		documents: [`query Fragment { version }`],
-		nb_of_fail: 1,
-	},
-	{
-		title: 'Forbiden name Base',
-		pass: false,
-		documents: [`query Base { version }`],
-		nb_of_fail: 1,
+		documents: [
+			`query Mutation { version }`,
+			`query Query { version }`,
+			`query Subscription { version }`,
+			`query Fragment { version }`,
+			`query Base { version }`,
+		],
+		nb_of_fail: 5,
 	},
 	{
 		title: 'Perfect name',
@@ -55,22 +36,6 @@ const table: Row[] = [
 	},
 ]
 
-type Row =
-	| {
-			title: string
-			pass: true
-			documents: string[]
-			check?: (docs: Document[]) => void
-			nb_of_fail?: number
-	  }
-	| {
-			title: string
-			pass: false
-			documents: string[]
-			check?: (result: Error | Error[]) => void
-			nb_of_fail?: number
-	  }
-
 describe('validate checks', async function () {
 	// run the tests
 	for (const { title, pass, documents, check, nb_of_fail } of table) {
@@ -84,8 +49,14 @@ describe('validate checks', async function () {
 					? undefined
 					: check ||
 							function (e: Error | Error[]) {
+								const nb_of_fail_to_use = nb_of_fail || 2
+
+								// We should always have at least 2 fail tests, to ensure that the error is caught in bulk
+								expect(nb_of_fail_to_use).toBeGreaterThanOrEqual(2)
+
 								// We want to check that all errors are grouped into 1 throw
-								expect(e).toHaveLength(nb_of_fail || 2)
+								// having an array with at least 2 errors
+								expect(e).toHaveLength(nb_of_fail_to_use)
 							}
 			)
 		)

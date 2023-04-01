@@ -117,7 +117,8 @@ export async function runPipeline(config: Config, docs: Document[]) {
 			docs
 		)
 	} catch (e) {
-		error = e as Error
+		// flatten the error array
+		error = Array.isArray(e) && e.length === 1 ? e[0] : e
 	}
 
 	/// Summary

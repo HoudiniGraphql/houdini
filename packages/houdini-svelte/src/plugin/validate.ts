@@ -40,10 +40,7 @@ export async function validate({
 	}
 
 	if (errors.length > 0) {
-		throw new HoudiniError({
-			filepath: errors[0].filepath,
-			message: errors[0].message,
-		})
+		throw errors
 	}
 
 	// we're done here

@@ -1,9 +1,7 @@
 import type * as graphql from 'graphql'
-import { test, expect, describe } from 'vitest'
+import { describe, expect, test } from 'vitest'
 
-import type { Config } from '../../lib'
-import type { Document } from '../../lib/types'
-import { pipelineTest, testConfig } from '../../test'
+import { Row, pipelineTest, testConfig } from '../../test'
 import { valueIsType } from './typeCheck'
 
 // since generation will catch a lot of these errors for us, the goal of these tests is to make sure
@@ -1031,27 +1029,9 @@ const table: Row[] = [
 	},
 ]
 
-type Row =
-	| {
-			title: string
-			pass: true
-			documents: string[]
-			check?: (docs: Document[]) => void
-			partial_config?: Partial<Config>
-			nb_of_fail?: number
-	  }
-	| {
-			title: string
-			pass: false
-			documents: string[]
-			check?: (result: Error | Error[]) => void
-			partial_config?: Partial<Config>
-			nb_of_fail?: number
-	  }
-
-// run the tests
-for (const { title, pass, documents, check, partial_config, nb_of_fail } of table) {
-	describe('type check', function () {
+describe('type check', function () {
+	// run the tests
+	for (const { title, pass, documents, check, partial_config, nb_of_fail } of table) {
 		test(
 			title,
 			pipelineTest(
@@ -1064,7 +1044,7 @@ for (const { title, pass, documents, check, partial_config, nb_of_fail } of tabl
 							function (e: Error | Error[]) {
 								const nb_of_fail_to_use = nb_of_fail || 2
 
-								// We should always have at least 2 fail tests!
+								// We should always have at least 2 fail tests, to ensure that the error is caught in bulk
 								expect(nb_of_fail_to_use).toBeGreaterThanOrEqual(2)
 
 								// We want to check that all errors are grouped into 1 throw
@@ -1073,8 +1053,8 @@ for (const { title, pass, documents, check, partial_config, nb_of_fail } of tabl
 							}
 			)
 		)
-	})
-}
+	}
+})
 
 describe('valueIsType', function () {
 	const table: {

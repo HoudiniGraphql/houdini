@@ -25,10 +25,7 @@ export default async function uniqueDocumentNames(config: Config, docs: Document
 
 	// if we got errors
 	if (errors.length > 0) {
-		throw new HoudiniError({
-			filepath: errors[0].description,
-			message: errors[0].message,
-		})
+		throw errors
 	}
 
 	// we're done here
