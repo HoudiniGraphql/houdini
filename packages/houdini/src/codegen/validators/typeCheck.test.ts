@@ -1,7 +1,8 @@
 import type * as graphql from 'graphql'
 import { describe, expect, test } from 'vitest'
 
-import { Row, pipelineTest, testConfig } from '../../test'
+import type { Row } from '../../test'
+import { pipelineTest, testConfig } from '../../test'
 import { valueIsType } from './typeCheck'
 
 // since generation will catch a lot of these errors for us, the goal of these tests is to make sure
@@ -13,104 +14,84 @@ const table: Row[] = [
 		title: 'allows documents that satisfy schema',
 		pass: true,
 		documents: [
-			`
-                query QueryA {
-                    version
-                }
-            `,
+			`query QueryA {
+				version
+			}`,
 		],
 	},
 	{
 		title: 'allows documents spread across multiple sources',
 		pass: true,
 		documents: [
-			`
-                query QueryA {
-                    user {
-                        ...FragmentA
-                    }
-                }
-            `,
-			`
-                fragment FragmentA on User {
-                    firstName
-                }
-            `,
+			`query QueryA {
+				user {
+					...FragmentA
+				}
+			}`,
+			`fragment FragmentA on User {
+				firstName
+			}`,
 		],
 	},
 	{
 		title: 'unknown types in fragments',
 		pass: false,
 		documents: [
-			`
-                fragment FragmentA on Foo {
-                    bar
-                }
-            `,
-			`
-                fragment FragmentA2 on Foo {
-                    bar
-                }
-            `,
+			`fragment FragmentA on Foo {
+				bar
+			}`,
+			`fragment FragmentA2 on Foo {
+				bar
+			}`,
 		],
 	},
 	{
 		title: 'unknown fields in queries',
 		pass: false,
 		documents: [
-			`
-                query one {
-                    user {
-                        foo
-                    }
-                }
-            `,
-			`
-                query two {
-                    user {
-                        foo
-                    }
-                }
-            `,
+			`query one {
+				user {
+					foo
+				}
+			}`,
+			`query two {
+				user {
+					foo
+				}
+			}`,
 		],
 	},
 	{
 		title: '@list on query',
 		pass: true,
 		documents: [
-			`
-                query TestQuery {
-					user {
-						friends @list(name: "Friends") {
-							id
-						}
+			`query TestQuery {
+				user {
+					friends @list(name: "Friends") {
+						id
 					}
-                }
-            `,
-			`
-                mutation MutationM {
-					addFriend {
-						friend {
-							...Friends_insert
-						}
+				}
+			}`,
+			`mutation MutationM {
+				addFriend {
+					friend {
+						...Friends_insert
 					}
-                }
-            `,
+				}
+			}`,
 		],
 	},
 	{
 		title: '@list on query on field that doesn t exist',
 		pass: false,
 		documents: [
-			`
-                query TestQuery {
-					user {
-						friends_NOT_EXISTING_FIELD @list(name: "Friends") {
-							id
-						}
+			`query TestQuery {
+				user {
+					friends_NOT_EXISTING_FIELD @list(name: "Friends") {
+						id
 					}
-                }
-            `,
+				}
+			}`,
 		],
 		check: (e: any) => {
 			expect(e.message).toMatchInlineSnapshot(

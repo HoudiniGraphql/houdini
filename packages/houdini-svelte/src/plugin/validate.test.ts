@@ -1,4 +1,5 @@
-import { pipelineTest, Row } from 'houdini/test'
+import type { Row } from 'houdini/test'
+import { pipelineTest } from 'houdini/test'
 import { describe, expect, test } from 'vitest'
 
 import { test_config } from '../test'

@@ -334,8 +334,6 @@ export default async function typeCheck(config: Config, docs: Document[]): Promi
 				checkMutationOperation(config),
 				// checkMaskDirectives
 				checkMaskDirectives(config),
-				// checkBlockingDirectives
-				checkBlockingDirectives(config),
 				// pagination directive can only show up on nodes or the query type
 				nodeDirectives(config, [config.paginateDirective]),
 				// this replaces KnownArgumentNamesRule
@@ -1079,43 +1077,6 @@ function checkMaskDirectives(config: Config) {
 					ctx.reportError(
 						new graphql.GraphQLError(
 							`You can't apply both @${config.maskEnableDirective} and @${config.maskDisableDirective} at the same time`
-						)
-					)
-					return
-				}
-			},
-		}
-	}
-}
-
-function checkBlockingDirectives(config: Config) {
-	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
-		return {
-			Directive(node, _, __, ___, ancestors) {
-				const blockingDirectives = [
-					config.blockingDirective,
-					config.blockingDisableDirective,
-				]
-
-				// If we don't have blockingDirectives, let's go out
-				if (!blockingDirectives.includes(node.name.value)) {
-					return
-				}
-
-				// get definition
-				const { definition } = definitionFromAncestors(ancestors)
-
-				// list directives
-				const listDirective = definition.directives?.map((c) => c.name.value) ?? []
-
-				// if we have both blocking and no blocking directives let's report an error
-				if (
-					listDirective.includes(config.blockingDirective) &&
-					listDirective.includes(config.blockingDisableDirective)
-				) {
-					ctx.reportError(
-						new graphql.GraphQLError(
-							`You can't apply both @${config.blockingDirective} and @${config.blockingDisableDirective} at the same time`
 						)
 					)
 					return
