@@ -4,15 +4,15 @@ import { routes } from '../../lib/utils/routes.js';
 import { clientSideNavigation, expect_to_be, goto } from '../../lib/utils/testsHelper.js';
 
 test.describe('blocking', () => {
-  test('CSR unblocking', async ({ page }) => {
+  test('CSR blocking_disable', async ({ page }) => {
     await goto(page, routes.blocking);
 
     // click on the link
-    await clientSideNavigation(page, '/blocking/query_with_unblocking');
+    await clientSideNavigation(page, '/blocking/query_with_blocking_disable');
 
     // should move to the next page with the right h2
     const h2 = await page.innerText('h2');
-    expect(h2).toBe('query_with_unblocking');
+    expect(h2).toBe('query_with_blocking_disable');
 
     // we should have no data
     await expect_to_be(page, 'undefined-undefined');
@@ -21,7 +21,7 @@ test.describe('blocking', () => {
     await sleep(1500);
 
     // check that we have data now
-    await expect_to_be(page, 'with_unblocking:1-Bruce Willis');
+    await expect_to_be(page, 'with_blocking_disable:1-Bruce Willis');
   });
 
   test('CSR blocking', async ({ page }) => {

@@ -128,7 +128,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 		if (pluginArtifact?.set_blocking) {
 			need_to_block = true
 		}
-		if (pluginArtifact?.set_unblocking) {
+		if (pluginArtifact?.set_blocking_disable) {
 			need_to_block = false
 		}
 

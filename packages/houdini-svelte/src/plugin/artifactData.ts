@@ -4,7 +4,7 @@ import type { Document, Config } from 'houdini'
 export type PluginArtifactData = {
 	isManualLoad?: boolean
 	set_blocking?: boolean
-	set_unblocking?: boolean
+	set_blocking_disable?: boolean
 }
 
 export function artifactData({
@@ -17,7 +17,7 @@ export function artifactData({
 	// put together the type information for the filter for every list
 	let isManualLoad = true
 	let set_blocking = false
-	let set_unblocking = false
+	let set_blocking_disable = false
 
 	graphql.visit(document.document, {
 		// look for any field marked with a list
@@ -29,7 +29,8 @@ export function artifactData({
 
 			// blocking directives
 			set_blocking = node.name.value === config.blockingDirective ? true : false
-			set_unblocking = node.name.value === config.unblockingDirective ? true : false
+			set_blocking_disable =
+				node.name.value === config.blockingDisableDirective ? true : false
 		},
 	})
 
@@ -46,10 +47,10 @@ export function artifactData({
 			set_blocking,
 		}
 	}
-	if (set_unblocking) {
+	if (set_blocking_disable) {
 		toReturn = {
 			...toReturn,
-			set_unblocking: set_unblocking,
+			set_blocking_disable,
 		}
 	}
 

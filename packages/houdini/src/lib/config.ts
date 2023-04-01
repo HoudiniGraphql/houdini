@@ -536,8 +536,8 @@ export class Config {
 		return 'blocking'
 	}
 
-	get unblockingDirective() {
-		return 'unblocking'
+	get blockingDisableDirective() {
+		return 'blocking_disable'
 	}
 
 	/**
