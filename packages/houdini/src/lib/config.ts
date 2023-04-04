@@ -1084,7 +1084,7 @@ async function pluginPath(plugin_name: string, config_path: string): Promise<str
 
 			// this directly returns the ESM export of the corresponding module, thanks to the PnP API
 			// it will throw if the module isn't found in the project's dependencies
-			return pnp.resolveRequest(plugin_name, config_path, { conditions: ['import'] })
+			return pnp.resolveRequest(plugin_name, config_path, { conditions: new Set(['import']) })
 		}
 
 		// otherwise we have to hunt the module down relative to the current path
