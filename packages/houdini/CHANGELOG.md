@@ -1,5 +1,11 @@
 # houdini
 
+## 1.1.6
+
+### 🐛 Fixes
+
+-   [#1036](https://github.com/HoudiniGraphql/houdini/pull/1036) [`f0c11433`](https://github.com/HoudiniGraphql/houdini/commit/f0c11433a1403e9e0a2d53031f23483fa3e486df) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Make sure fragment arguments get marshaled properly
+
 ## 1.1.5
 
 ### 🐛 Fixes
