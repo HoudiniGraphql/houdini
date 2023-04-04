@@ -8,61 +8,6 @@ import { ArtifactKind, DataSource } from '../lib/types'
 import type { ClientPlugin } from './documentStore'
 import { DocumentStore } from './documentStore'
 
-export function createStore(
-	plugins: ClientPlugin[],
-	fetching: boolean | undefined = undefined
-): DocumentStore<GraphQLObject, Record<string, any>> {
-	const client = new HoudiniClient({
-		url: 'URL',
-	})
-
-	return new DocumentStore({
-		client,
-		pipeline: createPluginHooks(plugins),
-		artifact: {
-			kind: ArtifactKind.Query,
-			hash: '1234',
-			raw: 'RAW_TEXT',
-			name: 'TestArtifact',
-			rootType: 'Query',
-			selection: {},
-			input: {
-				types: {},
-				fields: {
-					date1: 'Date',
-					date2: 'Date',
-				},
-			},
-		},
-		// turn off the cache since we aren't pushing actual graphql documents through by default
-		cache: false,
-		fetching,
-	})
-}
-
-function createStoreMutation(
-	plugins: ClientPlugin[]
-): DocumentStore<GraphQLObject, Record<string, any>> {
-	const client = new HoudiniClient({
-		url: 'URL',
-	})
-
-	return new DocumentStore({
-		client,
-		pipeline: createPluginHooks(plugins),
-		artifact: {
-			kind: ArtifactKind.Mutation,
-			hash: '1234',
-			raw: 'RAW_TEXT',
-			name: 'TestArtifact_Mutation',
-			rootType: 'Mutation',
-			selection: {},
-		},
-		// turn off the cache since we aren't pushing actual graphql documents through by default
-		cache: false,
-	})
-}
-
 beforeEach(() => {
 	setMockConfig({
 		scalars: {
@@ -1171,3 +1116,138 @@ test('throw hooks can replay the plugin instead', async function () {
 	expect(fn).toHaveBeenNthCalledWith(1, 3, 'oh no!')
 	expect(fn).not.toHaveBeenCalledTimes(2)
 })
+
+test('track variable changes for fragments', async function () {
+	// a spy to track changes
+	const spy = vi.fn()
+
+	// a plugin to detect changes
+	const changePlugin: ClientPlugin = () => {
+		return {
+			start(ctx, { next, variablesChanged }) {
+				spy(variablesChanged(ctx))
+				next(ctx)
+			},
+			network(ctx, { resolve }) {
+				resolve(ctx, {
+					data: { hello: 'world' },
+					errors: [],
+					fetching: true,
+					partial: false,
+					stale: false,
+					source: DataSource.Cache,
+					variables: null,
+				})
+			},
+		}
+	}
+
+	// instantiate a store we'll perform multiple queries with
+	const store = createFragmentStore([changePlugin])
+
+	// send one set of variables
+	await store.send()
+	expect(spy).toHaveBeenNthCalledWith(1, true)
+
+	// send another empty set of variables
+	await store.send()
+	expect(spy).toHaveBeenNthCalledWith(2, false)
+
+	// send with a known set
+	await store.send({ variables: { hello: 'world' } })
+	expect(spy).toHaveBeenNthCalledWith(3, true)
+
+	// send with the same est
+	await store.send({ variables: { hello: 'world' } })
+	expect(spy).toHaveBeenNthCalledWith(4, false)
+})
+
+export function createStore(
+	plugins: ClientPlugin[],
+	fetching: boolean | undefined = undefined
+): DocumentStore<GraphQLObject, Record<string, any>> {
+	const client = new HoudiniClient({
+		url: 'URL',
+	})
+
+	return new DocumentStore({
+		client,
+		pipeline: createPluginHooks(plugins),
+		artifact: {
+			kind: ArtifactKind.Query,
+			hash: '1234',
+			raw: 'RAW_TEXT',
+			name: 'TestArtifact',
+			rootType: 'Query',
+			selection: {},
+			input: {
+				types: {},
+				fields: {
+					date1: 'Date',
+					date2: 'Date',
+				},
+			},
+			pluginData: {},
+		},
+		// turn off the cache since we aren't pushing actual graphql documents through by default
+		cache: false,
+		fetching,
+	})
+}
+
+export function createFragmentStore(
+	plugins: ClientPlugin[],
+	fetching: boolean | undefined = undefined
+): DocumentStore<GraphQLObject, Record<string, any>> {
+	const client = new HoudiniClient({
+		url: 'URL',
+	})
+
+	return new DocumentStore({
+		client,
+		pipeline: createPluginHooks(plugins),
+		artifact: {
+			kind: ArtifactKind.Fragment,
+			hash: '1234',
+			raw: 'RAW_TEXT',
+			name: 'TestArtifact',
+			rootType: 'Query',
+			selection: {},
+			input: {
+				types: {},
+				fields: {
+					date1: 'Date',
+					date2: 'Date',
+				},
+			},
+			pluginData: {},
+		},
+		// turn off the cache since we aren't pushing actual graphql documents through by default
+		cache: false,
+		fetching,
+	})
+}
+
+function createStoreMutation(
+	plugins: ClientPlugin[]
+): DocumentStore<GraphQLObject, Record<string, any>> {
+	const client = new HoudiniClient({
+		url: 'URL',
+	})
+
+	return new DocumentStore({
+		client,
+		pipeline: createPluginHooks(plugins),
+		artifact: {
+			kind: ArtifactKind.Mutation,
+			hash: '1234',
+			raw: 'RAW_TEXT',
+			name: 'TestArtifact_Mutation',
+			rootType: 'Mutation',
+			selection: {},
+			pluginData: {},
+		},
+		// turn off the cache since we aren't pushing actual graphql documents through by default
+		cache: false,
+	})
+}
