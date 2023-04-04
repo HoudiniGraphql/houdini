@@ -446,7 +446,7 @@ class ClientPluginContextWrapper {
 		// - or if there are no values to begin with
 		const firstInit = !ctx.stuff.inputs || !ctx.stuff.inputs.init
 		const hasChanged = Object.keys(changed).length > 0 || firstInit
-		if (artifact.kind !== ArtifactKind.Fragment && hasChanged) {
+		if (hasChanged) {
 			// only marshal the changed variables so we don't double marshal
 			const newVariables = {
 				...ctx.stuff.inputs?.marshaled,
