@@ -2,7 +2,7 @@
 
 ## 1.1.7
 
-### Patch Changes
+### ✨ Features
 
 -   [#1037](https://github.com/HoudiniGraphql/houdini/pull/1037) [`151a107`](https://github.com/HoudiniGraphql/houdini/commit/151a10718b92fb97eec6e94ea12efc7f98928755) Thanks [@devunt](https://github.com/devunt)! - Add support for Yarn's PnP mode
 
