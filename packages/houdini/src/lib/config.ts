@@ -581,6 +581,10 @@ export class Config {
 		return `_delete`
 	}
 
+	get loadingDirective() {
+		return `loading`
+	}
+
 	get whenDirective() {
 		return 'when'
 	}

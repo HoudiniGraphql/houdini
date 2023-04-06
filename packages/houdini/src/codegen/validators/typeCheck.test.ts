@@ -1029,6 +1029,62 @@ const table: Row[] = [
 			`,
 		],
 	},
+	{
+		title: 'unreachable @loading',
+		pass: false,
+		documents: [
+			`
+			fragment GhostPaginatedA on Ghost {
+				friendsConnection {
+					edges {
+						node @loading {
+							name
+						}
+					}
+				}
+			}
+			`,
+			`
+			fragment GhostPaginatedB on Ghost {
+				friendsConnection {
+					edges {
+						node @loading {
+							name
+						}
+					}
+				}
+			}
+			`,
+		],
+	},
+	{
+		title: '@loading happy path',
+		pass: true,
+		documents: [
+			`
+			fragment GhostPaginatedA on Ghost {
+				friendsConnection @loading {
+					edges @loading {
+						node @loading {
+							name
+						}
+					}
+				}
+			}
+			`,
+			`
+			fragment GhostPaginatedB on Ghost {
+				friendsConnection @loading {
+					edges @loading {
+						node @loading {
+							name
+						}
+					}
+				}
+			}
+			`,
+		],
+	},
 ]
 
 type Row =

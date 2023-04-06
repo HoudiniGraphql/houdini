@@ -96,6 +96,11 @@ directive @${config.maskEnableDirective} on FRAGMENT_SPREAD
 	@${config.maskDisableDirective} to disable masking on fragment (overwriting the global conf)
 """
 directive @${config.maskDisableDirective} on FRAGMENT_SPREAD
+
+"""
+	@${config.loadingDirective} is used to shape the value of your documents while they are loading
+"""
+directive @${config.loadingDirective} on QUERY | FRAGMENT_DEFINITION | FIELD | FRAGMENT_SPREAD
 `
 
 	// add each custom schema to the internal value

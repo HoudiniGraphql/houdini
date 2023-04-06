@@ -362,7 +362,9 @@ export default async function typeCheck(config: Config, docs: Document[]): Promi
 				// make sure there are pagination args on fields marked with @paginate
 				paginateArgs(config, filepath),
 				// make sure every argument defined in a fragment is used
-				noUnusedFragmentArguments(config)
+				noUnusedFragmentArguments(config),
+				// make sure that @loading is used correctly
+				validateLoadingDirective(config)
 			)
 
 	for (const { filename, document: parsed, originalString } of docs) {
@@ -1098,6 +1100,31 @@ function checkMaskDirective(config: Config) {
 					)
 					return
 				}
+			},
+		}
+	}
+}
+
+function validateLoadingDirective(config: Config) {
+	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
+		return {
+			Field(node) {
+				// we only care about fields with the loading directive
+				const loadingDirective = node.directives?.find(
+					(d) => d.name.value === config.loadingDirective
+				)
+				if (!loadingDirective) {
+					return
+				}
+
+				// a loading directive is consider valid only if the parent is a field
+				// with @loading
+				// or the root of the definition (fragment or operation definition nodes)
+				ctx.reportError(
+					new graphql.GraphQLError(
+						`@${config.loadingDirective} can only be applied on a field at the root of a document or on one whose parent also has @${config.loadingDirective}`
+					)
+				)
 			},
 		}
 	}
