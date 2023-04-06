@@ -296,6 +296,8 @@ test('stale', async function () {
 
 	// intermediate returns
 	expect(fn).toHaveBeenNthCalledWith(1, {
+		// this doesn't have the loading state because `setFetching` doesn't actually
+		//
 		data: null,
 		errors: null,
 		fetching: true,
@@ -364,9 +366,7 @@ test('stale', async function () {
 
 test('loading states when fetching is true', async function () {
 	// create the store
-	const store = createStore({
-		plugins: [fakeFetch()],
-	})
+	const store = createStore()
 
 	// listen for changes in the store state
 	const fn = vi.fn()
@@ -413,14 +413,19 @@ test('loading states when fetching is true', async function () {
 /**
  * Utilities for testing the cache plugin
  */
-export function createStore(args: Partial<HoudiniClientConstructorArgs>): DocumentStore<any, any> {
+export function createStore(
+	args: Partial<HoudiniClientConstructorArgs> = {}
+): DocumentStore<any, any> {
+	// if we dont have anything passed, just use the fake fetch as the plugin
+	if (!args.plugins && !args.pipeline) {
+		args.plugins = [fakeFetch({})]
+	}
+
 	// instantiate the client
 	const client = new HoudiniClient({
 		url: 'URL',
 		...args,
 	})
-
-	// build up the store
 
 	return new DocumentStore({
 		plugins: args.plugins ? createPluginHooks(client.plugins) : undefined,
