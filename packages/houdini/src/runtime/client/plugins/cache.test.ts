@@ -422,7 +422,10 @@ export function createStore(args: Partial<HoudiniClientConstructorArgs>): Docume
 
 	// build up the store
 
-	return client.observe({
+	return new DocumentStore({
+		plugins: args.plugins ? createPluginHooks(client.plugins) : undefined,
+		pipeline: args.pipeline ? createPluginHooks(client.plugins) : undefined,
+		client,
 		artifact: {
 			kind: ArtifactKind.Query,
 			hash: '7777',

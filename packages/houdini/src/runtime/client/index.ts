@@ -42,7 +42,7 @@ export class HoudiniClient {
 	url: string
 
 	// the list of plugins for the client
-	#plugins: ClientPlugin[]
+	readonly plugins: ClientPlugin[]
 
 	constructor({
 		url,
@@ -59,7 +59,7 @@ export class HoudiniClient {
 		}
 
 		// a few middlewares _have_ to run to setup the pipeline
-		this.#plugins = flatten(
+		this.plugins = flatten(
 			([] as NestedList<ClientPlugin>).concat(
 				// if they specified a throw behavior
 				throwOnError ? [throwOnErrorPlugin(throwOnError)] : [],
@@ -99,7 +99,7 @@ export class HoudiniClient {
 		return new DocumentStore({
 			client: this,
 			artifact,
-			plugins: createPluginHooks(this.#plugins),
+			plugins: createPluginHooks(this.plugins),
 			cache,
 			initialValue,
 			fetching,
