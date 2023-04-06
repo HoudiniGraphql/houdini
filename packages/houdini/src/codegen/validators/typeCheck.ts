@@ -1,7 +1,7 @@
 import { logGreen, logYellow } from '@kitql/helper'
 import * as graphql from 'graphql'
 
-import type { Config, Document, LogLevels, PaginateModes } from '../../lib'
+import { Config, Document, LogLevels, PaginateModes, parentField } from '../../lib'
 import {
 	definitionFromAncestors,
 	LogLevel,
@@ -1108,7 +1108,7 @@ function checkMaskDirective(config: Config) {
 function validateLoadingDirective(config: Config) {
 	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
 		return {
-			Field(node, _, parent) {
+			Field(node, _, __, ___, ancestors) {
 				// we only care about fields with the loading directive
 				const loadingDirective = node.directives?.find(
 					(d) => d.name.value === config.loadingDirective
@@ -1117,20 +1117,19 @@ function validateLoadingDirective(config: Config) {
 					return
 				}
 
-				// if the parent is a list then we need to look at the first one
-				if (Array.isArray(parent)) {
-					parent = parent[0]
-				}
+				const parent = parentField(ancestors)
 
 				// if the parent is a definition of some kind, we're okay
-				if (['OperationDefinition', 'FragmentDefinition'].includes(parent.kind)) {
+				if (
+					!parent ||
+					['OperationDefinition', 'FragmentDefinition'].includes(parent.kind)
+				) {
 					return
 				}
+				// @ts-ignore
 				if (!parent || parent.kind !== 'Field') {
 					return
 				}
-
-				console.log(parent)
 
 				// the loading directive is considered valid if the parent _has_ the directive applied
 				const parentLoading = parent.directives?.find(
@@ -1143,8 +1142,6 @@ function validateLoadingDirective(config: Config) {
 							`@${config.loadingDirective} can only be applied on a field at the root of a document or on one whose parent also has @${config.loadingDirective}`
 						)
 					)
-				} else {
-					console.log(parent.name.value, parent.directives)
 				}
 			},
 		}

@@ -1034,7 +1034,7 @@ const table: Row[] = [
 		pass: false,
 		documents: [
 			`
-			fragment GhostPaginatedA on Ghost {
+			fragment LoadingDirectiveA on Ghost {
 				friendsConnection {
 					edges {
 						node @loading {
@@ -1045,7 +1045,7 @@ const table: Row[] = [
 			}
 			`,
 			`
-			fragment GhostPaginatedB on Ghost {
+			fragment LoadingDirectiveB on Ghost {
 				friendsConnection {
 					edges {
 						node @loading {
@@ -1062,7 +1062,7 @@ const table: Row[] = [
 		pass: true,
 		documents: [
 			`
-			fragment GhostPaginatedA on Ghost {
+			fragment LoadingDirectiveA on Ghost {
 				friendsConnection @loading {
 					edges @loading {
 						node @loading {
@@ -1073,7 +1073,7 @@ const table: Row[] = [
 			}
 			`,
 			`
-			fragment GhostPaginatedB on Ghost {
+			fragment LoadingDirectiveB on Ghost {
 				friendsConnection @loading {
 					edges @loading {
 						node @loading {

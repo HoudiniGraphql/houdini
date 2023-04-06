@@ -41,6 +41,34 @@ type GraphQLParentType =
 	| graphql.GraphQLInputObjectType
 	| graphql.GraphQLInterfaceType
 
+export function parentField(
+	ancestors: readonly any[]
+):
+	| graphql.FieldNode
+	| graphql.InlineFragmentNode
+	| graphql.OperationDefinitionNode
+	| graphql.FragmentDefinitionNode
+	| null {
+	return walkParentField([...ancestors].sort(() => -1))
+}
+
+function walkParentField(
+	ancestors: any[]
+):
+	| graphql.FieldNode
+	| graphql.InlineFragmentNode
+	| graphql.OperationDefinitionNode
+	| graphql.FragmentDefinitionNode
+	| null {
+	let head = ancestors.shift()
+	// if it was an array or a selection set, skip it
+	if (Array.isArray(head) || head.kind === 'SelectionSet') {
+		return walkParentField(ancestors)
+	}
+
+	return head
+}
+
 export function parentTypeFromAncestors(
 	schema: graphql.GraphQLSchema,
 	filepath: string,
