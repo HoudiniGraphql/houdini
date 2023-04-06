@@ -89,8 +89,19 @@ export class DocumentStore<
 			// cache policy needs to always come first so that it can be the first fetch_enter to fire
 			cachePolicy({
 				enabled: cache,
-				setFetching: (fetching: boolean) =>
-					this.update((state) => ({ ...state, fetching })),
+				setFetching: (fetching, data) => {
+					this.update((state) => {
+						const newState = { ...state, fetching }
+
+						// when we set the fetching state to true, we should also generate the appropriate
+						// loading state for the document
+						if (fetching && data) {
+							newState.data = data
+						}
+
+						return newState
+					})
+				},
 			})() as ClientHooks,
 			...(plugins ?? []),
 		]

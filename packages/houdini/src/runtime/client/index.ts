@@ -19,7 +19,7 @@ import pluginsFromPlugins from './plugins/injectedPlugins'
 export { DocumentStore, type ClientPlugin } from './documentStore'
 export { fetch, mutation, query, subscription } from './plugins'
 
-type ConstructorArgs = {
+export type HoudiniClientConstructorArgs = {
 	url: string
 	fetchParams?: FetchParamFn
 	plugins?: NestedList<ClientPlugin>
@@ -44,7 +44,13 @@ export class HoudiniClient {
 	// the list of plugins for the client
 	#plugins: ClientPlugin[]
 
-	constructor({ url, fetchParams, plugins, pipeline, throwOnError }: ConstructorArgs) {
+	constructor({
+		url,
+		fetchParams,
+		plugins,
+		pipeline,
+		throwOnError,
+	}: HoudiniClientConstructorArgs) {
 		// if we were given plugins and pipeline there's an error
 		if (plugins && pipeline) {
 			throw new Error(

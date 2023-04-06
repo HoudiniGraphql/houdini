@@ -32,7 +32,8 @@ export function defaultConfigValues(file: ConfigFile): ConfigFile {
 }
 
 export function keyFieldsForType(configFile: ConfigFile, type: string) {
-	return configFile.types?.[type]?.keys || configFile.defaultKeys!
+	const withDefault = defaultConfigValues(configFile)
+	return withDefault.types?.[type]?.keys || withDefault.defaultKeys!
 }
 
 export function computeID(configFile: ConfigFile, type: string, data: any): string {

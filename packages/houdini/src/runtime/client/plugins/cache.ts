@@ -13,7 +13,7 @@ export const cachePolicy =
 		serverSideFallback = true,
 	}: {
 		enabled: boolean
-		setFetching: (val: boolean) => void
+		setFetching: (val: boolean, data?: any) => void
 		cache?: Cache
 		serverSideFallback?: boolean
 	}): ClientPlugin =>
@@ -97,8 +97,16 @@ export const cachePolicy =
 				}
 
 				// if we got this far, we are resolving something against the network
-				// dont set the fetching state to true if we accepted a cache value
-				setFetching(!useCache)
+				// don't set the fetching state to true if we accepted a cache value
+				let fetchingState = null
+				if (!useCache && 'enableLoadingState' in artifact && artifact.enableLoadingState) {
+					fetchingState = localCache.read({
+						selection: artifact.selection,
+						variables: marshalVariables(ctx),
+						loading: true,
+					}).data
+				}
+				setFetching(!useCache, fetchingState)
 
 				// move on
 				return next(ctx)
