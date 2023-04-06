@@ -1108,7 +1108,7 @@ function checkMaskDirective(config: Config) {
 function validateLoadingDirective(config: Config) {
 	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
 		return {
-			Field(node) {
+			Field(node, _, parent) {
 				// we only care about fields with the loading directive
 				const loadingDirective = node.directives?.find(
 					(d) => d.name.value === config.loadingDirective
@@ -1117,14 +1117,35 @@ function validateLoadingDirective(config: Config) {
 					return
 				}
 
-				// a loading directive is consider valid only if the parent is a field
-				// with @loading
-				// or the root of the definition (fragment or operation definition nodes)
-				ctx.reportError(
-					new graphql.GraphQLError(
-						`@${config.loadingDirective} can only be applied on a field at the root of a document or on one whose parent also has @${config.loadingDirective}`
-					)
+				// if the parent is a list then we need to look at the first one
+				if (Array.isArray(parent)) {
+					parent = parent[0]
+				}
+
+				// if the parent is a definition of some kind, we're okay
+				if (['OperationDefinition', 'FragmentDefinition'].includes(parent.kind)) {
+					return
+				}
+				if (!parent || parent.kind !== 'Field') {
+					return
+				}
+
+				console.log(parent)
+
+				// the loading directive is considered valid if the parent _has_ the directive applied
+				const parentLoading = parent.directives?.find(
+					(d) => d.name.value === config.loadingDirective
 				)
+
+				if (!parentLoading) {
+					ctx.reportError(
+						new graphql.GraphQLError(
+							`@${config.loadingDirective} can only be applied on a field at the root of a document or on one whose parent also has @${config.loadingDirective}`
+						)
+					)
+				} else {
+					console.log(parent.name.value, parent.directives)
+				}
 			},
 		}
 	}
