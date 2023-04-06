@@ -2,6 +2,7 @@ import { test, expect } from 'vitest'
 
 import { testConfigFile } from '../../../test'
 import type { SubscriptionSelection } from '../../lib'
+import { LoadingValue } from '../../lib'
 import { Cache, rootID } from '../cache'
 
 const config = testConfigFile()
@@ -2318,6 +2319,71 @@ test('can perform full query check while retrieving masked value', function () {
 		stale: false,
 		data: {
 			viewer: null,
+		},
+	})
+})
+
+test('can generate loading state with nested objects', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				visible: true,
+				loading: { kind: 'continue' },
+				selection: {
+					fields: {
+						id: {
+							keyRaw: 'id',
+							type: 'String',
+							visible: true,
+							loading: { kind: 'value' },
+						},
+						parent: {
+							type: 'User',
+							keyRaw: 'parent',
+							visible: true,
+							loading: { kind: 'continue' },
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										visible: true,
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										visible: true,
+										keyRaw: 'firstName',
+										loading: { kind: 'value' },
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	expect(
+		cache.read({
+			selection,
+			loading: true,
+		})
+	).toEqual({
+		partial: false,
+		stale: false,
+		data: {
+			viewer: {
+				id: LoadingValue,
+				parent: {
+					firstName: LoadingValue,
+				},
+			},
 		},
 	})
 })

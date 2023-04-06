@@ -1,4 +1,4 @@
-import { computeKey } from '../lib'
+import { computeKey, LoadingValue } from '../lib'
 import type { ConfigFile } from '../lib/config'
 import { computeID, defaultConfigValues, keyFieldsForType, getCurrentConfig } from '../lib/config'
 import { deepEquals } from '../lib/deepEquals'
@@ -784,12 +784,14 @@ class CacheInternal {
 		stepsFromConnection = null,
 		ignoreMasking,
 		fullCheck = false,
+		loading: generateLoading,
 	}: {
 		selection: SubscriptionSelection
 		parent?: string
 		variables?: {}
 		stepsFromConnection?: number | null
 		ignoreMasking?: boolean
+		loading?: boolean
 		// if this is true then we are ignoring masking and checking the full selection for
 		// data. we will still return the masked value if we have it.
 		fullCheck?: boolean
@@ -807,13 +809,17 @@ class CacheInternal {
 		const target = {} as GraphQLObject
 		if (selection.fragments) {
 			target[fragmentKey] = Object.fromEntries(
-				Object.entries(selection.fragments).map(([key, value]) => [
-					key,
-					{
-						parent,
-						variables: evaluateFragmentVariables(value.arguments, variables ?? {}),
-					},
-				])
+				Object.entries(selection.fragments)
+					// only include the fragments that are marked loading
+					// if we are generating the loading state
+					.filter(([, value]) => !generateLoading || value.loading)
+					.map(([key, value]) => [
+						key,
+						{
+							parent,
+							variables: evaluateFragmentVariables(value.arguments, variables ?? {}),
+						},
+					])
 			)
 		}
 
@@ -837,7 +843,16 @@ class CacheInternal {
 		// look at every field in the parentFields
 		for (const [
 			attributeName,
-			{ type, keyRaw, selection: fieldSelection, nullable, list, visible, directives },
+			{
+				type,
+				keyRaw,
+				selection: fieldSelection,
+				nullable,
+				list,
+				visible,
+				directives,
+				loading: fieldLoading,
+			},
 		] of Object.entries(targetSelection)) {
 			// skip masked fields when reading values
 			if (!visible && !ignoreMasking && !fullCheck) {
@@ -870,6 +885,11 @@ class CacheInternal {
 			const fieldTarget = visible || ignoreMasking ? target : {}
 
 			const key = evaluateKey(keyRaw, variables)
+
+			// if we are generating a loading state and this field is not meant to be included, skip it
+			if (generateLoading && !fieldLoading) {
+				continue
+			}
 
 			// look up the value in our store
 			const { value } = this.storage.get(parent, key)
@@ -910,9 +930,18 @@ class CacheInternal {
 				partial = true
 			}
 
+			// if we are generating a loading state and we're supposed to stop here, do so
+			if (generateLoading && fieldLoading?.kind === 'value') {
+				// @ts-ignore: we're violating the contract knowingly
+				fieldTarget[attributeName] = LoadingValue
+				hasData = true
+			}
+
 			// if we dont have a value to return, use null (we check for non-null fields at the end)
 			// ignore embedded cursors, they will get handled with the other scalars
-			if (typeof value === 'undefined' || value === null) {
+			// NOTE: we don't care about a null value when generating the loading state
+			// since we will turn lists into lists, objects into objects, etc.
+			else if ((!generateLoading && typeof value === 'undefined') || value === null) {
 				// set the value to null
 				fieldTarget[attributeName] = null
 
@@ -948,6 +977,7 @@ class CacheInternal {
 					stepsFromConnection: nextStep,
 					ignoreMasking: !!ignoreMasking,
 					fullCheck,
+					loading: generateLoading,
 				})
 
 				// save the hydrated list
@@ -977,8 +1007,8 @@ class CacheInternal {
 					stepsFromConnection: nextStep,
 					ignoreMasking,
 					fullCheck,
+					loading: generateLoading,
 				})
-
 				// save the object value
 				fieldTarget[attributeName] = objectFields.data
 
@@ -1007,7 +1037,7 @@ class CacheInternal {
 			data: cascadeNull ? null : target,
 			// our value is considered true if there is some data but not everything
 			// has a full value
-			partial: hasData && partial,
+			partial: !generateLoading && hasData && partial,
 			stale: hasData && stale,
 			hasData,
 		}
@@ -1048,6 +1078,7 @@ class CacheInternal {
 		stepsFromConnection,
 		ignoreMasking,
 		fullCheck,
+		loading,
 	}: {
 		fields: SubscriptionSelection
 		variables?: {}
@@ -1055,6 +1086,7 @@ class CacheInternal {
 		stepsFromConnection: number | null
 		ignoreMasking: boolean
 		fullCheck?: boolean
+		loading?: boolean
 	}): { data: NestedList<GraphQLValue>; partial: boolean; stale: boolean; hasData: boolean } {
 		// the linked list could be a deeply nested thing, we need to call getData for each record
 		// we can't mutate the lists because that would change the id references in the listLinks map
@@ -1074,6 +1106,7 @@ class CacheInternal {
 					stepsFromConnection,
 					ignoreMasking,
 					fullCheck,
+					loading,
 				})
 				result.push(nestedValue.data)
 				if (nestedValue.partial) {
@@ -1101,6 +1134,7 @@ class CacheInternal {
 				stepsFromConnection,
 				ignoreMasking,
 				fullCheck,
+				loading,
 			})
 
 			result.push(data)

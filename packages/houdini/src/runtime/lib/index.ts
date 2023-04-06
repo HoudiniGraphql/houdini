@@ -6,3 +6,5 @@ export * from './scalars'
 export * from './types'
 export * from './store'
 export * from './key'
+
+export const LoadingValue = Symbol('_houdini_loading_')
