@@ -2360,6 +2360,26 @@ test('can generate loading state with nested objects', function () {
 										keyRaw: 'firstName',
 										loading: { kind: 'value' },
 									},
+									friend: {
+										type: 'User',
+										keyRaw: 'friend',
+										visible: true,
+										loading: { kind: 'value' },
+										selection: {
+											fields: {
+												id: {
+													type: 'ID',
+													visible: true,
+													keyRaw: 'id',
+												},
+												firstName: {
+													type: 'String',
+													visible: true,
+													keyRaw: 'firstName',
+												},
+											},
+										},
+									},
 								},
 							},
 						},
@@ -2382,6 +2402,7 @@ test('can generate loading state with nested objects', function () {
 				id: LoadingValue,
 				parent: {
 					firstName: LoadingValue,
+					friend: LoadingValue,
 				},
 			},
 		},
