@@ -313,6 +313,7 @@ function prepareSelection({
 			if (loadingDirective) {
 				// the value we assign depends on wether this is the deepest
 				// selection in this branch with @loading
+				// NOTE: this logic is copied and pasted in the index.js for the artifact loading state
 				const childFields = Object.values(fieldObj.selection?.fields ?? {}).concat(
 					Object.values(fieldObj.selection?.abstractFields?.fields ?? {}).flatMap(
 						(fieldMap) => Object.values(fieldMap ?? {})

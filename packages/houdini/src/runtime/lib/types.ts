@@ -69,11 +69,14 @@ export type CompiledDocumentKind = ArtifactKinds
 export type QueryArtifact = BaseCompiledDocument<'HoudiniQuery'> & {
 	policy?: CachePolicies
 	partial?: boolean
+	enableLoadingState?: boolean
 }
 
 export type MutationArtifact = BaseCompiledDocument<'HoudiniMutation'>
 
-export type FragmentArtifact = BaseCompiledDocument<'HoudiniFragment'>
+export type FragmentArtifact = BaseCompiledDocument<'HoudiniFragment'> & {
+	enableLoadingState?: boolean
+}
 
 export type SubscriptionArtifact = BaseCompiledDocument<'HoudiniSubscription'>
 

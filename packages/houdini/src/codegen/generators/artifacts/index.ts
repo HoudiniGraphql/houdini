@@ -7,6 +7,7 @@ import type {
 	DocumentArtifact,
 	CachePolicies,
 	SubscriptionSelection,
+	QueryArtifact,
 } from '../../../lib'
 import {
 	ArtifactKind,
@@ -307,6 +308,21 @@ export default function artifactGenerator(stats: {
 							}),
 						})
 					)
+
+					// if we are looking at a query or fragment then we need to add
+					// the loading state flag
+					if (docKind === 'HoudiniQuery' || docKind === 'HoudiniFragment') {
+						// NOTE: this logic is copied and pasted in the selection.js to track continue behavior
+						const childFields = Object.values(artifact.selection?.fields ?? {}).concat(
+							Object.values(artifact.selection?.abstractFields?.fields ?? {}).flatMap(
+								(fieldMap) => Object.values(fieldMap ?? {})
+							)
+						)
+
+						if (childFields.some((field) => field.loading)) {
+							;(artifact as QueryArtifact).enableLoadingState = true
+						}
+					}
 
 					// adding artifactData of plugins (only if any information is present)
 					artifact.pluginData = {}

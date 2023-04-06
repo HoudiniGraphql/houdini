@@ -758,6 +758,7 @@ test('persists loading behavior in selection', async function () {
 		    },
 
 		    "pluginData": {},
+		    "enableLoadingState": true,
 		    "policy": "CacheOrNetwork",
 		    "partial": false
 		};
