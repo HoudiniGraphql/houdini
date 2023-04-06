@@ -80,7 +80,9 @@ test('fragments of unions inject correctly', function () {
 		                    "typeMap": {}
 		                },
 		                "fragments": {
-		                    "EntityInfo": {}
+		                    "EntityInfo": {
+		                        "arguments": {}
+		                    }
 		                }
 		            },
 		            "abstract": true
@@ -216,7 +218,9 @@ test('fragments in lists', async function () {
 		                                            },
 
 		                                            "fragments": {
-		                                                "UserTest": {}
+		                                                "UserTest": {
+		                                                    "arguments": {}
+		                                                }
 		                                            }
 		                                        },
 
@@ -490,7 +494,9 @@ test('concrete selection applies mask over abstract selection', async function (
 		                    },
 
 		                    "fragments": {
-		                        "AnimalsList": {}
+		                        "AnimalsList": {
+		                            "arguments": {}
+		                        }
 		                    }
 		                },
 
@@ -505,5 +511,257 @@ test('concrete selection applies mask over abstract selection', async function (
 		};
 
 		"HoudiniHash=89c94f9d620d10fccfc1015a29590d05b9fb2adee3a0b895f00c14b62d279ce9";
+	`)
+})
+
+test('persists loading behavior in selection', async function () {
+	// the config to use in tests
+	const config = testConfig()
+	const docs = [
+		mockCollectedDoc(
+			`query MonkeyListQuery {
+				monkeys @loading {
+					pageInfo @loading {
+						hasPreviousPage
+						hasNextPage
+						startCursor
+						endCursor
+					}
+					...AnimalsList @loading
+				}
+			}`
+		),
+		mockCollectedDoc(
+			`fragment AnimalsList on AnimalConnection {
+				edges {
+					node {
+						id
+						name
+					}
+				}
+			}`
+		),
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
+
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "MonkeyListQuery",
+		    "kind": "HoudiniQuery",
+		    "hash": "9283d1c1a5755e8562f4e365f05f30cc1a37223fd93ba276eabf77971a15b387",
+
+		    "raw": \`query MonkeyListQuery {
+		  monkeys {
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		    ...AnimalsList
+		  }
+		}
+
+		fragment AnimalsList on AnimalConnection {
+		  edges {
+		    node {
+		      id
+		      name
+		      __typename
+		    }
+		    __typename
+		  }
+		  __typename
+		}
+		\`,
+
+		    "rootType": "Query",
+
+		    "selection": {
+		        "fields": {
+		            "monkeys": {
+		                "type": "MonkeyConnection",
+		                "keyRaw": "monkeys",
+
+		                "directives": [{
+		                    "name": "loading",
+		                    "arguments": {}
+		                }],
+
+		                "selection": {
+		                    "abstractFields": {
+		                        "fields": {
+		                            "AnimalConnection": {
+		                                "edges": {
+		                                    "type": "AnimalEdge",
+		                                    "keyRaw": "edges",
+
+		                                    "selection": {
+		                                        "fields": {
+		                                            "node": {
+		                                                "type": "Animal",
+		                                                "keyRaw": "node",
+		                                                "nullable": true,
+
+		                                                "selection": {
+		                                                    "fields": {
+		                                                        "id": {
+		                                                            "type": "ID",
+		                                                            "keyRaw": "id",
+		                                                            "visible": true
+		                                                        },
+
+		                                                        "name": {
+		                                                            "type": "String",
+		                                                            "keyRaw": "name"
+		                                                        },
+
+		                                                        "__typename": {
+		                                                            "type": "String",
+		                                                            "keyRaw": "__typename"
+		                                                        }
+		                                                    }
+		                                                },
+
+		                                                "abstract": true
+		                                            },
+
+		                                            "__typename": {
+		                                                "type": "String",
+		                                                "keyRaw": "__typename"
+		                                            }
+		                                        }
+		                                    },
+
+		                                    "abstract": true
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename"
+		                                },
+
+		                                "pageInfo": {
+		                                    "type": "PageInfo",
+		                                    "keyRaw": "pageInfo",
+
+		                                    "directives": [{
+		                                        "name": "loading",
+		                                        "arguments": {}
+		                                    }],
+
+		                                    "selection": {
+		                                        "fields": {
+		                                            "hasPreviousPage": {
+		                                                "type": "Boolean",
+		                                                "keyRaw": "hasPreviousPage",
+		                                                "visible": true
+		                                            },
+
+		                                            "hasNextPage": {
+		                                                "type": "Boolean",
+		                                                "keyRaw": "hasNextPage",
+		                                                "visible": true
+		                                            },
+
+		                                            "startCursor": {
+		                                                "type": "String",
+		                                                "keyRaw": "startCursor",
+		                                                "visible": true
+		                                            },
+
+		                                            "endCursor": {
+		                                                "type": "String",
+		                                                "keyRaw": "endCursor",
+		                                                "visible": true
+		                                            }
+		                                        }
+		                                    },
+
+		                                    "loading": {
+		                                        "kind": "value"
+		                                    },
+
+		                                    "visible": true
+		                                }
+		                            }
+		                        },
+
+		                        "typeMap": {
+		                            "MonkeyConnection": "AnimalConnection"
+		                        }
+		                    },
+
+		                    "fields": {
+		                        "pageInfo": {
+		                            "type": "PageInfo",
+		                            "keyRaw": "pageInfo",
+
+		                            "directives": [{
+		                                "name": "loading",
+		                                "arguments": {}
+		                            }],
+
+		                            "selection": {
+		                                "fields": {
+		                                    "hasPreviousPage": {
+		                                        "type": "Boolean",
+		                                        "keyRaw": "hasPreviousPage",
+		                                        "visible": true
+		                                    },
+
+		                                    "hasNextPage": {
+		                                        "type": "Boolean",
+		                                        "keyRaw": "hasNextPage",
+		                                        "visible": true
+		                                    },
+
+		                                    "startCursor": {
+		                                        "type": "String",
+		                                        "keyRaw": "startCursor",
+		                                        "visible": true
+		                                    },
+
+		                                    "endCursor": {
+		                                        "type": "String",
+		                                        "keyRaw": "endCursor",
+		                                        "visible": true
+		                                    }
+		                                }
+		                            },
+
+		                            "loading": {
+		                                "kind": "value"
+		                            },
+
+		                            "visible": true
+		                        }
+		                    },
+
+		                    "fragments": {
+		                        "AnimalsList": {
+		                            "arguments": {},
+		                            "loading": true
+		                        }
+		                    }
+		                },
+
+		                "loading": {
+		                    "kind": "continue"
+		                },
+
+		                "visible": true
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+		    "policy": "CacheOrNetwork",
+		    "partial": false
+		};
+
+		"HoudiniHash=9283d1c1a5755e8562f4e365f05f30cc1a37223fd93ba276eabf77971a15b387";
 	`)
 })

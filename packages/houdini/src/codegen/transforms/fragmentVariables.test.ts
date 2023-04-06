@@ -86,9 +86,11 @@ test('pass argument values to generated fragments', async function () {
 
 		        "fragments": {
 		            "QueryFragment": {
-		                "name": {
-		                    "kind": "StringValue",
-		                    "value": "Hello"
+		                "arguments": {
+		                    "name": {
+		                        "kind": "StringValue",
+		                        "value": "Hello"
+		                    }
 		                }
 		            }
 		        }
@@ -179,7 +181,9 @@ test("nullable arguments with no values don't show up in the query", async funct
 		        },
 
 		        "fragments": {
-		            "QueryFragment": {}
+		            "QueryFragment": {
+		                "arguments": {}
+		            }
 		        }
 		    },
 
@@ -268,7 +272,9 @@ test("fragment arguments with default values don't rename the fragment", async f
 		        },
 
 		        "fragments": {
-		            "QueryFragment": {}
+		            "QueryFragment": {
+		                "arguments": {}
+		            }
 		        }
 		    },
 
@@ -371,12 +377,14 @@ test('thread query variables to inner fragments', async function () {
 
 		        "fragments": {
 		            "QueryFragment": {
-		                "name": {
-		                    "kind": "Variable",
-
+		                "arguments": {
 		                    "name": {
-		                        "kind": "Name",
-		                        "value": "name"
+		                        "kind": "Variable",
+
+		                        "name": {
+		                            "kind": "Name",
+		                            "value": "name"
+		                        }
 		                    }
 		                }
 		            }
@@ -490,7 +498,9 @@ test('inner fragment with intermediate default value', async function () {
 		        },
 
 		        "fragments": {
-		            "QueryFragment": {}
+		            "QueryFragment": {
+		                "arguments": {}
+		            }
 		        }
 		    },
 
@@ -592,7 +602,9 @@ test("default values don't overwrite unless explicitly passed", async function (
 		        },
 
 		        "fragments": {
-		            "QueryFragment": {}
+		            "QueryFragment": {
+		                "arguments": {}
+		            }
 		        }
 		    },
 
@@ -681,7 +693,9 @@ test('default arguments', async function () {
 		        },
 
 		        "fragments": {
-		            "QueryFragment": {}
+		            "QueryFragment": {
+		                "arguments": {}
+		            }
 		        }
 		    },
 
@@ -779,13 +793,15 @@ test('list arguments', async function () {
 
 		        "fragments": {
 		            "QueryFragment": {
-		                "ids": {
-		                    "kind": "ListValue",
+		                "arguments": {
+		                    "ids": {
+		                        "kind": "ListValue",
 
-		                    "values": [{
-		                        "kind": "StringValue",
-		                        "value": "1"
-		                    }]
+		                        "values": [{
+		                            "kind": "StringValue",
+		                            "value": "1"
+		                        }]
+		                    }
 		                }
 		            }
 		        }
@@ -1096,9 +1112,11 @@ test('variables referenced deeply in objects', async function () {
 
 		        "fragments": {
 		            "QueryFragment": {
-		                "name": {
-		                    "kind": "StringValue",
-		                    "value": "Foo"
+		                "arguments": {
+		                    "name": {
+		                        "kind": "StringValue",
+		                        "value": "Foo"
+		                    }
 		                }
 		            }
 		        }
@@ -1190,9 +1208,11 @@ test('can use the same fragment/argument combo multiple times', async function (
 
 		        "fragments": {
 		            "QueryFragment": {
-		                "name": {
-		                    "kind": "StringValue",
-		                    "value": "Foo"
+		                "arguments": {
+		                    "name": {
+		                        "kind": "StringValue",
+		                        "value": "Foo"
+		                    }
 		                }
 		            }
 		        }
@@ -1250,9 +1270,11 @@ test('can use the same fragment/argument combo multiple times', async function (
 
 		        "fragments": {
 		            "QueryFragment": {
-		                "name": {
-		                    "kind": "StringValue",
-		                    "value": "Foo"
+		                "arguments": {
+		                    "name": {
+		                        "kind": "StringValue",
+		                        "value": "Foo"
+		                    }
 		                }
 		            }
 		        }

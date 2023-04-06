@@ -811,7 +811,7 @@ class CacheInternal {
 					key,
 					{
 						parent,
-						variables: evaluateFragmentVariables(value, variables ?? {}),
+						variables: evaluateFragmentVariables(value.arguments, variables ?? {}),
 					},
 				])
 			)

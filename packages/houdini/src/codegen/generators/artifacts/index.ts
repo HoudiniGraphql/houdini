@@ -267,6 +267,7 @@ export default function artifactGenerator(stats: {
 						selection: selection({
 							config,
 							filepath: doc.filename,
+							document: doc,
 							rootType,
 							// in order to simplify the selection generation, we want to merge fragments together
 							selections: flattenSelections({
@@ -283,9 +284,6 @@ export default function artifactGenerator(stats: {
 								operations[0],
 								filterTypes
 							),
-							// do not include used fragments if we are rendering the selection
-							// for a fragment document
-							document: doc,
 						}),
 						pluginData: {},
 					}

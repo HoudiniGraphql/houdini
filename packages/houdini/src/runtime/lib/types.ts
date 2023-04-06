@@ -165,7 +165,7 @@ export type GraphQLValue =
 	| undefined
 
 export type SubscriptionSelection = {
-	fragments?: Record<string, ValueMap>
+	fragments?: Record<string, { arguments: ValueMap; loading?: boolean }>
 	fields?: {
 		[fieldName: string]: {
 			type: string
@@ -177,6 +177,7 @@ export type SubscriptionSelection = {
 				connection: boolean
 				type: string
 			}
+			loading?: { kind: 'continue' } | { kind: 'value'; value?: any }
 			directives?: { name: string; arguments: ValueMap }[]
 			updates?: string[]
 			visible?: boolean

@@ -305,6 +305,27 @@ function prepareSelection({
 				)
 			}
 
+			// if we have a loading directive present on the field then we need to
+			// encode the correct behavior
+			const loadingDirective = field.directives?.find(
+				(d) => d.name.value === config.loadingDirective
+			)
+			if (loadingDirective) {
+				// the value we assign depends on wether this is the deepest
+				// selection in this branch with @loading
+				const childFields = Object.values(fieldObj.selection?.fields ?? {}).concat(
+					Object.values(fieldObj.selection?.abstractFields?.fields ?? {}).flatMap(
+						(fieldMap) => Object.values(fieldMap ?? {})
+					)
+				)
+				let deepestChild = !childFields.some((field) => field.loading)
+				fieldObj.loading = deepestChild
+					? {
+							kind: 'value',
+					  }
+					: { kind: 'continue' }
+			}
+
 			// if we are looking at an interface
 			if (graphql.isInterfaceType(fieldType) || graphql.isUnionType(fieldType)) {
 				fieldObj.abstract = true
@@ -326,7 +347,14 @@ function prepareSelection({
 			const { fragment, args } = config.getFragmentVariablesHash(field.name.value)
 			object.fragments = {
 				...object.fragments,
-				[fragment]: args ?? {},
+				[fragment]: {
+					arguments: args ?? {},
+				},
+			}
+
+			// assign the loading state if necessary
+			if (!!field.directives?.find((d) => d.name.value === config.loadingDirective)) {
+				object.fragments[fragment].loading = true
 			}
 		}
 	}
