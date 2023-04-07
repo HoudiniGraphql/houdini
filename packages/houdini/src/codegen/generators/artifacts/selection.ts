@@ -370,7 +370,12 @@ function prepareSelection({
 	}
 
 	// add the types we're supposed to load as
-	if (loadingTypes.length > 0) {
+	if (loadingTypes.length > 1) {
+		throw {
+			filepath,
+			message: `@${config.loadingDirective} can only be on one branch of an abstract selection.`,
+		}
+	} else if (loadingTypes.length === 1) {
 		object.loadingTypes = loadingTypes
 	}
 

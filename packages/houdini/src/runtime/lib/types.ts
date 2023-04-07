@@ -312,3 +312,5 @@ interface VariableNode {
 	readonly kind: 'Variable'
 	readonly name: NameNode
 }
+
+export const LoadingValue = Symbol('_houdini_loading_')

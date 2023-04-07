@@ -47,6 +47,7 @@ test('@loading on fragment - happy path', async function () {
 			parser: typeScriptParser,
 		})
 	).toMatchInlineSnapshot(`
+		import { LoadingValue } from "$houdini/runtime/lib/types";
 		export type UserBase$input = {};
 
 		export type UserBase = {
@@ -66,13 +67,11 @@ test('@loading on fragment - happy path', async function () {
 		        } | null;
 		    } | null;
 		} | {
-			readonly user {
-				readonly firstName: LoadingValue;
-				readonly parent: {
-					readonly id: LoadingValue
-					readonly parent: LoadingValue
-				};
-			}
+		    readonly firstName: LoadingValue;
+		    readonly parent: {
+		        readonly id: LoadingValue;
+		        readonly parent: LoadingValue;
+		    };
 		};
 	`)
 })
@@ -105,6 +104,8 @@ test('@loading on query - happy path', async function () {
 			parser: typeScriptParser,
 		})
 	).toMatchInlineSnapshot(`
+		import { LoadingValue } from "$houdini/runtime/lib/types";
+
 		export type UserQuery = {
 		    readonly "input": UserQuery$input;
 		    readonly "result": UserQuery$result | undefined;
@@ -121,13 +122,13 @@ test('@loading on query - happy path', async function () {
 		        } | null;
 		    } | null;
 		} | {
-			readonly user {
-				readonly firstName: LoadingValue;
-				readonly parent: {
-					readonly id: LoadingValue
-					readonly parent: LoadingValue
-				};
-			}
+		    readonly user: {
+		        readonly firstName: LoadingValue;
+		        readonly parent: {
+		            readonly id: LoadingValue;
+		            readonly parent: LoadingValue;
+		        };
+		    };
 		};
 
 		export type UserQuery$input = null;

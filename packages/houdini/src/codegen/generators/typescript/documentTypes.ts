@@ -236,6 +236,7 @@ async function generateOperationTypeDefs(
 	// if we are looking at a query then we should add the loading state
 	if (artifact.kind === 'HoudiniQuery') {
 		resultType = withLoadingState({
+			body,
 			base: resultType,
 			config,
 			artifact,
@@ -440,6 +441,7 @@ async function generateFragmentTypeDefs(
 					withLoadingState({
 						config,
 						artifact,
+						body,
 						base: inlineType({
 							config,
 							filepath,
