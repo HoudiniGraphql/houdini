@@ -876,7 +876,12 @@ test('loading state on mixed abstract type', async function () {
 		                                    },
 
 		                                    "loading": {
-		                                        "kind": "continue"
+		                                        "kind": "continue",
+
+		                                        "list": {
+		                                            "depth": 1,
+		                                            "count": 3
+		                                        }
 		                                    },
 
 		                                    "visible": true
@@ -924,7 +929,12 @@ test('loading state on mixed abstract type', async function () {
 		                            },
 
 		                            "loading": {
-		                                "kind": "continue"
+		                                "kind": "continue",
+
+		                                "list": {
+		                                    "depth": 1,
+		                                    "count": 3
+		                                }
 		                            },
 
 		                            "visible": true
@@ -941,7 +951,12 @@ test('loading state on mixed abstract type', async function () {
 		                },
 
 		                "loading": {
-		                    "kind": "continue"
+		                    "kind": "continue",
+
+		                    "list": {
+		                        "depth": 1,
+		                        "count": 3
+		                    }
 		                },
 
 		                "abstract": true,
@@ -970,8 +985,8 @@ test('loading state on inline fragments', async function () {
 					... on User @loading {
 						firstName @loading
 					}
-					... on Cat @loading {
-						name @loading
+					... on Cat  {
+						name 
 					}
 				}
 			}`
@@ -985,7 +1000,7 @@ test('loading state on inline fragments', async function () {
 		export default {
 		    "name": "Query",
 		    "kind": "HoudiniQuery",
-		    "hash": "f22627b545cab6185ae10ea60be8e02b7cde67cce7f72a878bf93251c350204f",
+		    "hash": "2d150cff71880d74b32c9ad056fb36960b0a44daf3d4876ed804f0145c691edf",
 
 		    "raw": \`query Query {
 		  entities {
@@ -1052,16 +1067,6 @@ test('loading state on inline fragments', async function () {
 		                                "name": {
 		                                    "type": "String",
 		                                    "keyRaw": "name",
-
-		                                    "directives": [{
-		                                        "name": "loading",
-		                                        "arguments": {}
-		                                    }],
-
-		                                    "loading": {
-		                                        "kind": "value"
-		                                    },
-
 		                                    "visible": true
 		                                },
 
@@ -1090,11 +1095,16 @@ test('loading state on inline fragments', async function () {
 		                        }
 		                    },
 
-		                    "loadingTypes": ["User", "Cat"]
+		                    "loadingTypes": ["User"]
 		                },
 
 		                "loading": {
-		                    "kind": "continue"
+		                    "kind": "continue",
+
+		                    "list": {
+		                        "depth": 1,
+		                        "count": 3
+		                    }
 		                },
 
 		                "abstract": true,
@@ -1109,6 +1119,6 @@ test('loading state on inline fragments', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=f22627b545cab6185ae10ea60be8e02b7cde67cce7f72a878bf93251c350204f";
+		"HoudiniHash=2d150cff71880d74b32c9ad056fb36960b0a44daf3d4876ed804f0145c691edf";
 	`)
 })

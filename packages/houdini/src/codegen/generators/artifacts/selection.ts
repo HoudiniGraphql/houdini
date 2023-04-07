@@ -1,15 +1,19 @@
 import * as graphql from 'graphql'
+import * as recast from 'recast'
 
-import type { Config, Document } from '../../../lib'
+import { Config, Document, TypeWrapper, unwrapType } from '../../../lib'
 import { deepMerge, getRootType, HoudiniError } from '../../../lib'
 import {
 	RefetchUpdateMode,
 	type MutationOperation,
 	type SubscriptionSelection,
+	type LoadingSpec,
 } from '../../../runtime/lib/types'
 import { connectionSelection } from '../../transforms/list'
 import fieldKey from './fieldKey'
 import { convertValue } from './utils'
+
+const AST = recast.types.builders
 
 // we're going to generate the selection in two passes. the first will create the various field selections
 // and then the second will map the concrete selections onto the abstract ones
@@ -329,11 +333,31 @@ function prepareSelection({
 					)
 				)
 				let deepestChild = !childFields.some((field) => field.loading)
-				fieldObj.loading = deepestChild
+				const loadingValue: LoadingSpec = deepestChild
 					? {
 							kind: 'value',
 					  }
 					: { kind: 'continue' }
+
+				// look up the type of the field so we can wrap it up in lists if necessary
+				const parentType = config.schema.getType(rootType)!
+				if (graphql.isObjectType(parentType) || graphql.isInterfaceType(parentType)) {
+					const fieldType = parentType.getFields()[field.name.value]?.type
+					if (fieldType) {
+						// if we are wrapped in a list, we need to embed the necessary data
+						const listCount = unwrapType(config, fieldType).wrappers.filter(
+							(w) => w === TypeWrapper.List
+						).length
+						if (listCount > 0) {
+							loadingValue.list = {
+								depth: listCount,
+								count: 3,
+							}
+						}
+					}
+				}
+
+				fieldObj.loading = loadingValue
 			}
 
 			// if we are looking at an interface

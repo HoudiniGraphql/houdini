@@ -904,6 +904,11 @@ class CacheInternal {
 				stale = true
 			}
 
+			// a loading state has no real values
+			if (generateLoading) {
+				value === undefined
+			}
+
 			// in order to avoid falsey identifying the `cursor` field of a connection edge
 			// as missing non-nullable data (and therefor cascading null to the response) we need to
 			// count the number of steps since we saw a connection field and if we are at the
@@ -1028,6 +1033,16 @@ class CacheInternal {
 				if (objectFields.hasData) {
 					hasData = true
 				}
+			}
+
+			// if we are generating a loading value then we might need to wrap up the result
+			if (generateLoading && fieldLoading?.list) {
+				fieldTarget[attributeName] = wrapInLists(
+					Array.from<GraphQLValue>({ length: fieldLoading.list.count }).fill(
+						fieldTarget[attributeName]
+					),
+					fieldLoading.list.depth - 1
+				)
 			}
 
 			// regardless of how the field was processed, if we got a null value assigned
@@ -1294,6 +1309,13 @@ export function evaluateFragmentVariables(variables: ValueMap, args: GraphQLObje
 	return Object.fromEntries(
 		Object.entries(variables).map(([key, value]) => [key, fragmentVariableValue(value, args)])
 	)
+}
+
+function wrapInLists<T>(target: T, count: number = 0): T | NestedList<T> {
+	if (count === 0) {
+		return target
+	}
+	return wrapInLists([target], count - 1)
 }
 
 function fragmentVariableValue(value: ValueNode, args: GraphQLObject): GraphQLValue {

@@ -170,7 +170,7 @@ test('@loading on list', async function () {
 		        readonly id: string;
 		    })[];
 		} | {
-		    readonly users: LoadingType;
+		    readonly users: (LoadingType)[];
 		};
 
 		export type UserQuery$input = null;

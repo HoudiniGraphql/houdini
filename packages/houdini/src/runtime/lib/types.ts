@@ -167,6 +167,10 @@ export type GraphQLValue =
 	| GraphQLValue[]
 	| undefined
 
+export type LoadingSpec =
+	| { kind: 'continue'; list?: { depth: number; count: number } }
+	| { kind: 'value'; value?: any; list?: { depth: number; count: number } }
+
 export type SubscriptionSelection = {
 	loadingTypes?: string[]
 	fragments?: Record<string, { arguments: ValueMap; loading?: boolean }>
@@ -181,7 +185,7 @@ export type SubscriptionSelection = {
 				connection: boolean
 				type: string
 			}
-			loading?: { kind: 'continue' } | { kind: 'value'; value?: any }
+			loading?: LoadingSpec
 			directives?: { name: string; arguments: ValueMap }[]
 			updates?: string[]
 			visible?: boolean
