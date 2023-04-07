@@ -822,6 +822,7 @@ class CacheInternal {
 						{
 							parent,
 							variables: evaluateFragmentVariables(value.arguments, variables ?? {}),
+							loading: generateLoading,
 						},
 					])
 			)
