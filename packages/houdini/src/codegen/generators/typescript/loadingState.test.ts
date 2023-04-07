@@ -219,7 +219,7 @@ test('generated types include fragment loading state', async function () {
 		    })[];
 		} | {
 		    readonly users: {
-		        readonly  $fragments: {
+		        readonly " $fragments": {
 		            UserBase: {};
 		        };
 		    }[];
