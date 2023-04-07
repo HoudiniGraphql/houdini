@@ -9,6 +9,7 @@ import {
 	SubscriptionSelection,
 	unwrapType,
 	TypeWrapper,
+	fragmentKey,
 } from '../../../lib'
 import { getFieldsForType } from '../../../runtime/lib/selection'
 import { readonlyProperty } from './types'
@@ -54,22 +55,22 @@ function loadingState(args: {
 	// we need to figure out the selection for the type
 	const selection = getFieldsForType(args.selection, args.parentType, true)
 
+	// make sure we've imported the loading value from the runtime
+	ensureImports({
+		config: args.config,
+		body: args.body,
+		import: ['LoadingType'],
+		sourceModule: '$houdini/runtime/lib/types',
+	})
+
 	// we now need to convert the selection into an object with the appropriate field
-	return AST.tsTypeLiteral(
+	const result = AST.tsTypeLiteral(
 		Object.entries(selection).reduce<TSPropertySignatureKind[]>(
 			(rest, [attributeName, value]) => {
 				// if the value does not have a loading configuration, skip it
 				if (!value.loading) {
 					return rest
 				}
-
-				// make sure we've imported the loading value from the runtime
-				ensureImports({
-					config: args.config,
-					body: args.body,
-					import: ['LoadingType'],
-					sourceModule: '$houdini/runtime/lib/types',
-				})
 
 				// the type for this key depends on its loading state
 				let keyType: TSTypeKind | null = null
@@ -94,7 +95,7 @@ function loadingState(args: {
 				// if the loading state requires a list then we need to wrap the type up
 				if (value.loading.list) {
 					for (const _ of Array.from({ length: value.loading.list.depth })) {
-						keyType = AST.tsArrayType(AST.tsParenthesizedType(keyType))
+						keyType = AST.tsArrayType(keyType)
 					}
 				}
 
@@ -112,4 +113,27 @@ function loadingState(args: {
 			[]
 		)
 	)
+
+	// if we have fragments we need to add those
+	if (args.selection.fragments) {
+		result.members.push(
+			readonlyProperty(
+				AST.tsPropertySignature(
+					AST.stringLiteral(fragmentKey),
+					AST.tsTypeAnnotation(
+						AST.tsTypeLiteral(
+							Object.keys(args.selection.fragments).map((name) => {
+								return AST.tsPropertySignature(
+									AST.identifier(name),
+									AST.tsTypeAnnotation(AST.tsTypeLiteral([]))
+								)
+							})
+						)
+					)
+				)
+			)
+		)
+	}
+
+	return result
 }

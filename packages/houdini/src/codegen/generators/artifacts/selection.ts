@@ -332,7 +332,10 @@ function prepareSelection({
 						(fieldMap) => Object.values(fieldMap ?? {})
 					)
 				)
-				let deepestChild = !childFields.some((field) => field.loading)
+				const loadingFragments =
+					Object.values(fieldObj.selection?.fragments ?? {}).length > 0 &&
+					Object.values(fieldObj.selection?.fragments!).some((f) => f.loading)
+				let deepestChild = !childFields.some((field) => field.loading) && !loadingFragments
 				const loadingValue: LoadingSpec = deepestChild
 					? {
 							kind: 'value',

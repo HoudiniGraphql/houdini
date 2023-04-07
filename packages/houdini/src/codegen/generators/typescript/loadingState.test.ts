@@ -170,7 +170,59 @@ test('@loading on list', async function () {
 		        readonly id: string;
 		    })[];
 		} | {
-		    readonly users: (LoadingType)[];
+		    readonly users: LoadingType[];
+		};
+
+		export type UserQuery$input = null;
+	`)
+})
+
+test('generated types include fragment loading state', async function () {
+	const docs = [
+		mockCollectedDoc(`
+			query UserQuery {
+				users @loading {
+					...UserBase @loading
+				}
+			}
+		`),
+		mockCollectedDoc(`
+			fragment UserBase on User {
+				firstName
+			}
+		`),
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
+
+	// look up the files in the artifact directory
+	const fragmentFileContents = await fs.readFile(config.artifactTypePath(docs[0].document))
+
+	expect(
+		recast.parse(fragmentFileContents!, {
+			parser: typeScriptParser,
+		})
+	).toMatchInlineSnapshot(`
+		import { LoadingType } from "$houdini/runtime/lib/types";
+
+		export type UserQuery = {
+		    readonly "input": UserQuery$input;
+		    readonly "result": UserQuery$result | undefined;
+		};
+
+		export type UserQuery$result = {
+		    readonly users: ({
+		        readonly " $fragments": {
+		            UserBase: {};
+		        };
+		    })[];
+		} | {
+		    readonly users: {
+		        readonly  $fragments: {
+		            UserBase: {};
+		        };
+		    }[];
 		};
 
 		export type UserQuery$input = null;
