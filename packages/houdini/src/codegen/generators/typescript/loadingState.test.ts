@@ -10,6 +10,7 @@ const config = testConfig({
 	schema: `
 		type Query {
 			user: User
+			users: [User!]!
 		}
 
 		type User {
@@ -47,7 +48,7 @@ test('@loading on fragment - happy path', async function () {
 			parser: typeScriptParser,
 		})
 	).toMatchInlineSnapshot(`
-		import { LoadingValue } from "$houdini/runtime/lib/types";
+		import { LoadingType } from "$houdini/runtime/lib/types";
 		export type UserBase$input = {};
 
 		export type UserBase = {
@@ -67,10 +68,10 @@ test('@loading on fragment - happy path', async function () {
 		        } | null;
 		    } | null;
 		} | {
-		    readonly firstName: LoadingValue;
+		    readonly firstName: LoadingType;
 		    readonly parent: {
-		        readonly id: LoadingValue;
-		        readonly parent: LoadingValue;
+		        readonly id: LoadingType;
+		        readonly parent: LoadingType;
 		    };
 		};
 	`)
@@ -104,7 +105,7 @@ test('@loading on query - happy path', async function () {
 			parser: typeScriptParser,
 		})
 	).toMatchInlineSnapshot(`
-		import { LoadingValue } from "$houdini/runtime/lib/types";
+		import { LoadingType } from "$houdini/runtime/lib/types";
 
 		export type UserQuery = {
 		    readonly "input": UserQuery$input;
@@ -123,12 +124,53 @@ test('@loading on query - happy path', async function () {
 		    } | null;
 		} | {
 		    readonly user: {
-		        readonly firstName: LoadingValue;
+		        readonly firstName: LoadingType;
 		        readonly parent: {
-		            readonly id: LoadingValue;
-		            readonly parent: LoadingValue;
+		            readonly id: LoadingType;
+		            readonly parent: LoadingType;
 		        };
 		    };
+		};
+
+		export type UserQuery$input = null;
+	`)
+})
+
+test('@loading on list', async function () {
+	const docs = [
+		mockCollectedDoc(`
+			query UserQuery {
+				users @loading {
+					id
+				}
+			}
+		`),
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
+
+	// look up the files in the artifact directory
+	const fragmentFileContents = await fs.readFile(config.artifactTypePath(docs[0].document))
+
+	expect(
+		recast.parse(fragmentFileContents!, {
+			parser: typeScriptParser,
+		})
+	).toMatchInlineSnapshot(`
+		import { LoadingType } from "$houdini/runtime/lib/types";
+
+		export type UserQuery = {
+		    readonly "input": UserQuery$input;
+		    readonly "result": UserQuery$result | undefined;
+		};
+
+		export type UserQuery$result = {
+		    readonly users: ({
+		        readonly id: string;
+		    })[];
+		} | {
+		    readonly users: LoadingType;
 		};
 
 		export type UserQuery$input = null;

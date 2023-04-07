@@ -1,4 +1,5 @@
 import { StatementKind, TSPropertySignatureKind, TSTypeKind } from 'ast-types/lib/gen/kinds'
+import * as graphql from 'graphql'
 import * as recast from 'recast'
 
 import { Config, DocumentArtifact, ensureImports, SubscriptionSelection } from '../../../lib'
@@ -62,39 +63,35 @@ function loadingState(args: {
 				sourceModule: '$houdini/runtime/lib/types',
 			})
 
-			// if the field is marked to generate a loading value, we're done
+			// the type for this key depends on its loading state
+			let keyType: TSTypeKind | null = null
 			if (value.loading.kind === 'value') {
-				return [
-					...rest,
-					readonlyProperty(
-						AST.tsPropertySignature(
-							AST.identifier(key),
-							AST.tsTypeAnnotation(AST.tsTypeReference(AST.identifier('LoadingType')))
-						)
-					),
-				]
+				keyType = AST.tsTypeReference(AST.identifier('LoadingType'))
+			}
+			// if we have to continue down, then that's the value we'll use
+			if (value.loading.kind === 'continue' && value.selection) {
+				keyType = loadingState({
+					config: args.config,
+					selection: value.selection,
+					parentType: value.type,
+					body: args.body,
+				})
 			}
 
-			// if there is no selection at this point, skip it
-			if (!value.selection) {
+			// if we couldn't identify the fields type by now, skip it
+			if (!keyType) {
 				return rest
 			}
 
-			// TODO: we need to figure out if we're a list or not
+			const fieldType = args.config.schema.getType(args.parentType)
+			if (graphql.isNamedType(fieldType)) {
+				console.log({ fieldType })
+			}
+
 			return [
 				...rest,
 				readonlyProperty(
-					AST.tsPropertySignature(
-						AST.identifier(key),
-						AST.tsTypeAnnotation(
-							loadingState({
-								config: args.config,
-								selection: value.selection,
-								parentType: value.type,
-								body: args.body,
-							})
-						)
-					)
+					AST.tsPropertySignature(AST.identifier(key), AST.tsTypeAnnotation(keyType))
 				),
 			]
 		}, [])

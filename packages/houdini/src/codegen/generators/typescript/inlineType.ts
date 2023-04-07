@@ -379,6 +379,10 @@ export function inlineType({
 		throw Error('Could not convert selection to typescript')
 	}
 
+	return wrapType(wrappers, result, root)
+}
+
+export function wrapType(wrappers: TypeWrapper[], result: TSTypeKind, root: boolean) {
 	// we need to wrap the result in the right combination of nullable, list, and non-null markers
 	for (const toWrap of wrappers) {
 		if (!root && toWrap === TypeWrapper.Nullable) {
