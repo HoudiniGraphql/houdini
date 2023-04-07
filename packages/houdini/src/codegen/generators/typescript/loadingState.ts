@@ -5,6 +5,11 @@ import { Config, DocumentArtifact } from '../../../lib'
 
 const AST = recast.types.builders
 
+// so the general approach to adding the loading state is to add the base type to a union
+// with the type that describes the loading state. this makes it easy for the user to build
+// loading UIs by just looking at a single value. If any value is LoadingValue then typescript
+// will be able to infer the rest of the loading fields
+
 export function withLoadingState(args: {
 	config: Config
 	artifact: DocumentArtifact
