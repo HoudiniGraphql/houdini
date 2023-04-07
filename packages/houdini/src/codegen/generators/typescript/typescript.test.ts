@@ -7,7 +7,7 @@ import { fs } from '../../../lib'
 import { testConfig, mockCollectedDoc } from '../../../test'
 
 // the config to use in tests
-export const config = testConfig({
+const config = testConfig({
 	schema: `
 		enum MyEnum {
 			Hello

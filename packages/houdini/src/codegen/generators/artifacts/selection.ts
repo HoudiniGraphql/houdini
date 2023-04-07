@@ -352,9 +352,18 @@ function prepareSelection({
 							(w) => w === TypeWrapper.List
 						).length
 						if (listCount > 0) {
+							// look for the count arg
+							const countArg = loadingDirective.arguments?.find(
+								(arg) => arg.name.value === 'count'
+							)
+							let countValue = 3
+							if (countArg?.value.kind === 'IntValue') {
+								countValue = parseInt(countArg.value.value)
+							}
+
 							loadingValue.list = {
 								depth: listCount,
-								count: 3,
+								count: countValue,
 							}
 						}
 					}

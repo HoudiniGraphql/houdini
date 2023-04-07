@@ -475,7 +475,7 @@ test('loading state on inline fragments', async function () {
 						firstName @loading
 					}
 					... on Cat  {
-						name 
+						name
 					}
 				}
 			}`
@@ -489,7 +489,7 @@ test('loading state on inline fragments', async function () {
 		export default {
 		    "name": "Query",
 		    "kind": "HoudiniQuery",
-		    "hash": "2d150cff71880d74b32c9ad056fb36960b0a44daf3d4876ed804f0145c691edf",
+		    "hash": "2ca3deab85a6f576b67d7e71f9e4d8a79831efc103b14e7d6cc6bbef451a54d2",
 
 		    "raw": \`query Query {
 		  entities {
@@ -608,7 +608,7 @@ test('loading state on inline fragments', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=2d150cff71880d74b32c9ad056fb36960b0a44daf3d4876ed804f0145c691edf";
+		"HoudiniHash=2ca3deab85a6f576b67d7e71f9e4d8a79831efc103b14e7d6cc6bbef451a54d2";
 	`)
 })
 
@@ -624,7 +624,7 @@ test('loading state on inline fragments', async function () {
 			}`
 		),
 		mockCollectedDoc(`
-            fragment Info on Entity {            
+            fragment Info on Entity {
                 ... on User @loading {
                     firstName @loading
                 }
@@ -740,5 +740,159 @@ test('loading state on inline fragments', async function () {
 		};
 
 		"HoudiniHash=afd7c4eff63b6b0cd95dd87566a6c0a99089e66412aed0ae111b511c8f29de4b";
+	`)
+})
+
+test('persist count in loading spec', async function () {
+	// the config to use in tests
+	const config = testConfig()
+	const docs = [
+		mockCollectedDoc(
+			`query Query {
+				entities @loading(count: 5) {
+					... on User @loading {
+						firstName @loading
+					}
+					... on Cat  {
+						name
+					}
+				}
+			}`
+		),
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
+
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "Query",
+		    "kind": "HoudiniQuery",
+		    "hash": "3947712af714fc77cea2b4f87481140e2f864f534b037a040e791c8214659700",
+
+		    "raw": \`query Query {
+		  entities {
+		    ... on User {
+		      firstName
+		      id
+		    }
+		    ... on Cat {
+		      name
+		      id
+		    }
+		    __typename
+		  }
+		}
+		\`,
+
+		    "rootType": "Query",
+
+		    "selection": {
+		        "fields": {
+		            "entities": {
+		                "type": "Entity",
+		                "keyRaw": "entities",
+
+		                "directives": [{
+		                    "name": "loading",
+
+		                    "arguments": {
+		                        "count": {
+		                            "kind": "IntValue",
+		                            "value": "5"
+		                        }
+		                    }
+		                }],
+
+		                "selection": {
+		                    "abstractFields": {
+		                        "fields": {
+		                            "User": {
+		                                "firstName": {
+		                                    "type": "String",
+		                                    "keyRaw": "firstName",
+
+		                                    "directives": [{
+		                                        "name": "loading",
+		                                        "arguments": {}
+		                                    }],
+
+		                                    "loading": {
+		                                        "kind": "value"
+		                                    },
+
+		                                    "visible": true
+		                                },
+
+		                                "id": {
+		                                    "type": "ID",
+		                                    "keyRaw": "id",
+		                                    "visible": true
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
+		                                }
+		                            },
+
+		                            "Cat": {
+		                                "name": {
+		                                    "type": "String",
+		                                    "keyRaw": "name",
+		                                    "visible": true
+		                                },
+
+		                                "id": {
+		                                    "type": "ID",
+		                                    "keyRaw": "id",
+		                                    "visible": true
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
+		                                }
+		                            }
+		                        },
+
+		                        "typeMap": {}
+		                    },
+
+		                    "fields": {
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename",
+		                            "visible": true
+		                        }
+		                    },
+
+		                    "loadingTypes": ["User"]
+		                },
+
+		                "loading": {
+		                    "kind": "continue",
+
+		                    "list": {
+		                        "depth": 1,
+		                        "count": 5
+		                    }
+		                },
+
+		                "abstract": true,
+		                "visible": true
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+		    "enableLoadingState": true,
+		    "policy": "CacheOrNetwork",
+		    "partial": false
+		};
+
+		"HoudiniHash=3947712af714fc77cea2b4f87481140e2f864f534b037a040e791c8214659700";
 	`)
 })
