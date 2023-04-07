@@ -4,6 +4,8 @@ import { HoudiniError, definitionFromAncestors } from 'houdini'
 
 import { store_name } from './kit'
 
+// const directivesErrors: HoudiniError[] = []
+
 // uniqueDocumentNames verifies that the documents all have unique names
 export async function validate({
 	config,
@@ -12,6 +14,7 @@ export async function validate({
 	config: Config
 	documents: Document[]
 }): Promise<void> {
+	// Validation 1
 	// all forbiddenNames
 	const forbiddenNames = [
 		'QueryStore',
@@ -40,58 +43,11 @@ export async function validate({
 		}
 	}
 
-	// build up the list of rules we'll apply to every document
-	const rules = (filepath: string) =>
-		[...graphql.specifiedRules]
-			.filter(
-				// remove rules that conflict with houdini
-				(rule) =>
-					![
-						// fragments are defined on their own so unused fragments are a fact of life
-						graphql.NoUnusedFragmentsRule,
-						// query documents don't contain the fragments they use so we can't enforce
-						// that we know every fragment. this is replaced with a more appropriate version
-						// down below
-						graphql.KnownFragmentNamesRule,
-						// some of the documents (ie the injected ones) will contain directive definitions
-						// and therefor not be explicitly executable
-						graphql.ExecutableDefinitionsRule,
-						// list include directives that aren't defined by the schema. this
-						// is replaced with a more appropriate version down below
-						graphql.KnownDirectivesRule,
-						// a few directives such at @arguments and @with don't have static names. this is
-						// replaced with a more flexible version below
-						graphql.KnownArgumentNamesRule,
-					].includes(rule)
-			)
-			.concat(
-				// checkBlockingDirectives
-				checkBlockingDirectives(config)
-			)
-
+	// Validation 2
+	// Blocking directives
 	for (const { filename, document: parsed } of documents) {
 		// validate the document
-		for (const error of graphql.validate(config.schema, parsed, rules(filename))) {
-			errors.push(
-				new HoudiniError({
-					filepath: filename,
-					message: error.message,
-				})
-			)
-		}
-	}
-
-	if (errors.length > 0) {
-		throw errors
-	}
-
-	// we're done here
-	return
-}
-
-function checkBlockingDirectives(config: Config) {
-	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
-		return {
+		graphql.visit(parsed, {
 			Directive(node, _, __, ___, ancestors) {
 				const blockingDirectives = [
 					config.blockingDirective,
@@ -114,14 +70,23 @@ function checkBlockingDirectives(config: Config) {
 					listDirective.includes(config.blockingDirective) &&
 					listDirective.includes(config.blockingDisableDirective)
 				) {
-					ctx.reportError(
-						new graphql.GraphQLError(
-							`You can't apply both @${config.blockingDirective} and @${config.blockingDisableDirective} at the same time`
-						)
+					errors.push(
+						new HoudiniError({
+							filepath: filename,
+							message: `You can't apply both @${config.blockingDirective} and @${config.blockingDisableDirective} at the same time`,
+						})
 					)
-					return
 				}
+
+				return
 			},
-		}
+		})
 	}
+
+	if (errors.length > 0) {
+		throw errors
+	}
+
+	// we're done here
+	return
 }
