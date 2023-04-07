@@ -2,15 +2,21 @@
   import { LoadingValue } from '$houdini';
   import type { PageData } from './$houdini';
   export let data: PageData;
+  import CityInfoWithLoadingState from './CityInfoWithLoadingState.svelte';
 
   $: ({ LoadingStateTestQuery } = data);
-  $: user = $LoadingStateTestQuery.data?.user!;
+  $: city = $LoadingStateTestQuery.data?.city!;
 </script>
 
-<div id="result">
-  {#if user.name === LoadingValue}
-    loading!
-  {:else}
-    not loading
-  {/if}
+<div class="city">
+  <h1>
+    {#if city.name === LoadingValue}
+      loading...
+    {:else}
+      {city.name}
+    {/if}
+  </h1>
+  <div>
+    <CityInfoWithLoadingState {city} />
+  </div>
 </div>

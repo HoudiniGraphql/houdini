@@ -91,6 +91,11 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 			this.loadPending = true
 		}
 
+		// if the query has a loading state, we never block for the request on the client
+		if (isBrowser && this.artifact.enableLoadingState) {
+			params.blocking = false
+		}
+
 		// we might not want to actually wait for the fetch to resolve
 		const fakeAwait = clientStarted && isBrowser && !params?.blocking
 

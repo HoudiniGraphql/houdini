@@ -66,7 +66,7 @@ type Query {
 	userSearch(filter: UserNameFilter!, snapshot: String!): [User!]!
 	session: String
 	cities: [City]!
-	city(id: ID!): City
+	city(id: ID!, delay: Int): City
 	userNodesResult(snapshot: String!, forceMessage: Boolean!): UserNodesResult!
 	userResult(id: ID!, snapshot: String!, forceMessage: Boolean!): UserResult!
 	rentedBooks: [RentedBook!]!
