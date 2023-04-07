@@ -28,7 +28,7 @@ export async function marshalSelection({
 		return await Promise.all(data.map((val) => marshalSelection({ selection, data: val })))
 	}
 
-	const targetSelection = getFieldsForType(selection, data['__typename'] as string)
+	const targetSelection = getFieldsForType(selection, data['__typename'] as string, false)
 
 	// we're looking at an object, build it up from the current input
 	return Object.fromEntries(

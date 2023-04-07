@@ -46,7 +46,7 @@ export class InMemorySubscriptions {
 		// figure out the correct selection
 		const __typename = this.cache._internal_unstable.storage.get(parent, '__typename')
 			.value as string
-		let targetSelection = getFieldsForType(selection, __typename)
+		let targetSelection = getFieldsForType(selection, __typename, false)
 
 		// walk down the selection
 		for (const fieldSelection of Object.values(targetSelection || {})) {
@@ -70,7 +70,7 @@ export class InMemorySubscriptions {
 				// figure out the correct selection
 				const __typename = this.cache._internal_unstable.storage.get(parent, '__typename')
 					.value as string
-				targetSelection = getFieldsForType(innerSelection, __typename)
+				targetSelection = getFieldsForType(innerSelection, __typename, false)
 			}
 			this.addFieldSubscription({
 				id: parent,
@@ -232,7 +232,7 @@ export class InMemorySubscriptions {
 
 				// figure out the selection for the field we are writing
 				const fieldSelection = innerSelection
-					? getFieldsForType(innerSelection, parentType)
+					? getFieldsForType(innerSelection, parentType, false)
 					: undefined
 
 				this.addFieldSubscription({
@@ -274,7 +274,7 @@ export class InMemorySubscriptions {
 							linkedRecord,
 							'__typename'
 						).value as string
-						let targetSelection = getFieldsForType(childSelection, __typename)
+						let targetSelection = getFieldsForType(childSelection, __typename, false)
 						// insert the subscriber
 						this.addMany({
 							parent: linkedRecord,
@@ -307,7 +307,7 @@ export class InMemorySubscriptions {
 		// figure out the correct selection
 		const __typename = this.cache._internal_unstable.storage.get(id, '__typename')
 			.value as string
-		let targetSelection = getFieldsForType(selection, __typename)
+		let targetSelection = getFieldsForType(selection, __typename, false)
 
 		// look at the fields for ones corresponding to links
 		for (const fieldSelection of Object.values(targetSelection || {})) {

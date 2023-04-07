@@ -1,0 +1,6 @@
+query LoadingStateTestQuery {
+  user(id: "1", snapshot: "loading-state-test", delay: 2000) @loading {
+    id @loading
+    name @loading
+  }
+}
