@@ -2408,3 +2408,69 @@ test('can generate loading state with nested objects', function () {
 		},
 	})
 })
+
+test('generate abstract loading states', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				visible: true,
+				loading: { kind: 'continue' },
+				selection: {
+					loadingTypes: ['User', 'Cat'],
+					abstractFields: {
+						typeMap: {},
+						fields: {
+							User: {
+								id: {
+									keyRaw: 'id',
+									type: 'String',
+									visible: true,
+								},
+								parent: {
+									type: 'User',
+									keyRaw: 'parent',
+									visible: true,
+									loading: { kind: 'value' },
+								},
+							},
+							Cat: {
+								id: {
+									keyRaw: 'id',
+									type: 'String',
+									visible: true,
+								},
+								name: {
+									type: 'String',
+									keyRaw: 'name',
+									visible: true,
+									loading: { kind: 'value' },
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	expect(
+		cache.read({
+			selection,
+			loading: true,
+		})
+	).toEqual({
+		partial: false,
+		stale: false,
+		data: {
+			viewer: {
+				name: LoadingValue,
+				parent: LoadingValue,
+			},
+		},
+	})
+})

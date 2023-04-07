@@ -1085,6 +1085,54 @@ const table: Row[] = [
 			`,
 		],
 	},
+	{
+		title: '@loading must fall on inline fragment',
+		pass: false,
+		documents: [
+			`
+			query A {
+				entity @loading {
+					... on User {
+						firstName @loading
+					}
+				}
+			}
+			`,
+			`
+			query B {
+				entity @loading {
+					... on User {
+						firstName @loading
+					}
+				}
+			}
+			`,
+		],
+	},
+	{
+		title: '@loading on inline fragment',
+		pass: true,
+		documents: [
+			`
+			query A {
+				entity @loading {
+					... on User @loading {
+						firstName @loading
+					}
+				}
+			}
+			`,
+			`
+			query B {
+				entity @loading {
+					... on User @loading {
+						firstName @loading
+					}
+				}
+			}
+			`,
+		],
+	},
 ]
 
 type Row =

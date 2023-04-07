@@ -168,6 +168,7 @@ export type GraphQLValue =
 	| undefined
 
 export type SubscriptionSelection = {
+	loadingTypes?: string[]
 	fragments?: Record<string, { arguments: ValueMap; loading?: boolean }>
 	fields?: {
 		[fieldName: string]: {

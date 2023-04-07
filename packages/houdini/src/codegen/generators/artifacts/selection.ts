@@ -52,6 +52,10 @@ function prepareSelection({
 	// we need to build up an object that contains every field in the selection
 	let object: SubscriptionSelection = {}
 
+	// if we run into an inline fragment with the loading directive we want
+	// to consider it a loading type
+	const loadingTypes: string[] = []
+
 	for (const field of selections) {
 		// inline fragments should be merged with the parent
 		if (field.kind === 'InlineFragment') {
@@ -140,10 +144,10 @@ function prepareSelection({
 				// can compare its concrete __typename
 				object.abstractFields.fields = {
 					...object.abstractFields.fields,
-					[field.typeCondition.name.value]: prepareSelection({
+					[typeConditionName]: prepareSelection({
 						config,
 						filepath,
-						rootType: field.typeCondition?.name.value || rootType,
+						rootType: typeConditionName || rootType,
 						operations,
 						selections: field.selectionSet.selections,
 						path,
@@ -151,6 +155,11 @@ function prepareSelection({
 						typeMap,
 						abstractTypes,
 					}).fields,
+				}
+
+				// look for the loading directive
+				if (field.directives?.find((d) => d.name.value === config.loadingDirective)) {
+					loadingTypes.push(typeConditionName)
 				}
 			}
 		}
@@ -358,6 +367,11 @@ function prepareSelection({
 				object.fragments[fragment].loading = true
 			}
 		}
+	}
+
+	// add the types we're supposed to load as
+	if (loadingTypes.length > 0) {
+		object.loadingTypes = loadingTypes
 	}
 
 	return object

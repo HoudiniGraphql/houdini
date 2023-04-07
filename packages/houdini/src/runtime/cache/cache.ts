@@ -292,7 +292,11 @@ class CacheInternal {
 		// normal field one
 
 		// collect all of the fields that we need to write
-		let targetSelection = getFieldsForType(selection, data['__typename'] as string | undefined)
+		let targetSelection = getFieldsForType(
+			selection,
+			data['__typename'] as string | undefined,
+			false
+		)
 
 		// data is an object with fields that we need to write to the store
 		for (const [field, value] of Object.entries(data)) {
@@ -838,7 +842,7 @@ class CacheInternal {
 		// if we have abstract fields, grab the __typename and include them in the list
 		const typename = this.storage.get(parent, '__typename').value as string
 		// collect all of the fields that we need to write
-		let targetSelection = getFieldsForType(selection, typename)
+		let targetSelection = getFieldsForType(selection, typename, !!generateLoading)
 
 		// look at every field in the parentFields
 		for (const [

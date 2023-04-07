@@ -766,3 +766,349 @@ test('persists loading behavior in selection', async function () {
 		"HoudiniHash=9283d1c1a5755e8562f4e365f05f30cc1a37223fd93ba276eabf77971a15b387";
 	`)
 })
+test('loading state on mixed abstract type', async function () {
+	// the config to use in tests
+	const config = testConfig()
+	const docs = [
+		mockCollectedDoc(
+			`query Query {
+				catOwners @loading {
+					cats @loading{
+						id @loading
+					}
+					... on User @loading {
+						firstName @loading
+					}
+				}
+			}`
+		),
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
+
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "Query",
+		    "kind": "HoudiniQuery",
+		    "hash": "f3ed974f02969cd4ab64d39108227cd25523ff042d6f46358fb907c8e7b383dc",
+
+		    "raw": \`query Query {
+		  catOwners {
+		    cats {
+		      id
+		    }
+		    ... on User {
+		      firstName
+		      id
+		    }
+		    __typename
+		  }
+		}
+		\`,
+
+		    "rootType": "Query",
+
+		    "selection": {
+		        "fields": {
+		            "catOwners": {
+		                "type": "CatOwner",
+		                "keyRaw": "catOwners",
+
+		                "directives": [{
+		                    "name": "loading",
+		                    "arguments": {}
+		                }],
+
+		                "selection": {
+		                    "abstractFields": {
+		                        "fields": {
+		                            "User": {
+		                                "firstName": {
+		                                    "type": "String",
+		                                    "keyRaw": "firstName",
+
+		                                    "directives": [{
+		                                        "name": "loading",
+		                                        "arguments": {}
+		                                    }],
+
+		                                    "loading": {
+		                                        "kind": "value"
+		                                    },
+
+		                                    "visible": true
+		                                },
+
+		                                "id": {
+		                                    "type": "ID",
+		                                    "keyRaw": "id",
+		                                    "visible": true
+		                                },
+
+		                                "cats": {
+		                                    "type": "Cat",
+		                                    "keyRaw": "cats",
+
+		                                    "directives": [{
+		                                        "name": "loading",
+		                                        "arguments": {}
+		                                    }],
+
+		                                    "selection": {
+		                                        "fields": {
+		                                            "id": {
+		                                                "type": "ID",
+		                                                "keyRaw": "id",
+
+		                                                "directives": [{
+		                                                    "name": "loading",
+		                                                    "arguments": {}
+		                                                }],
+
+		                                                "visible": true,
+
+		                                                "loading": {
+		                                                    "kind": "value"
+		                                                }
+		                                            }
+		                                        }
+		                                    },
+
+		                                    "loading": {
+		                                        "kind": "continue"
+		                                    },
+
+		                                    "visible": true
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
+		                                }
+		                            }
+		                        },
+
+		                        "typeMap": {}
+		                    },
+
+		                    "fields": {
+		                        "cats": {
+		                            "type": "Cat",
+		                            "keyRaw": "cats",
+
+		                            "directives": [{
+		                                "name": "loading",
+		                                "arguments": {}
+		                            }],
+
+		                            "selection": {
+		                                "fields": {
+		                                    "id": {
+		                                        "type": "ID",
+		                                        "keyRaw": "id",
+
+		                                        "directives": [{
+		                                            "name": "loading",
+		                                            "arguments": {}
+		                                        }],
+
+		                                        "visible": true,
+
+		                                        "loading": {
+		                                            "kind": "value"
+		                                        }
+		                                    }
+		                                }
+		                            },
+
+		                            "loading": {
+		                                "kind": "continue"
+		                            },
+
+		                            "visible": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename",
+		                            "visible": true
+		                        }
+		                    },
+
+		                    "loadingTypes": ["User"]
+		                },
+
+		                "loading": {
+		                    "kind": "continue"
+		                },
+
+		                "abstract": true,
+		                "visible": true
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+		    "enableLoadingState": true,
+		    "policy": "CacheOrNetwork",
+		    "partial": false
+		};
+
+		"HoudiniHash=f3ed974f02969cd4ab64d39108227cd25523ff042d6f46358fb907c8e7b383dc";
+	`)
+})
+
+test('loading state on inline fragments', async function () {
+	// the config to use in tests
+	const config = testConfig()
+	const docs = [
+		mockCollectedDoc(
+			`query Query {
+				entities @loading {
+					... on User @loading {
+						firstName @loading
+					}
+					... on Cat @loading {
+						name @loading
+					}
+				}
+			}`
+		),
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
+
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "Query",
+		    "kind": "HoudiniQuery",
+		    "hash": "f22627b545cab6185ae10ea60be8e02b7cde67cce7f72a878bf93251c350204f",
+
+		    "raw": \`query Query {
+		  entities {
+		    ... on User {
+		      firstName
+		      id
+		    }
+		    ... on Cat {
+		      name
+		      id
+		    }
+		    __typename
+		  }
+		}
+		\`,
+
+		    "rootType": "Query",
+
+		    "selection": {
+		        "fields": {
+		            "entities": {
+		                "type": "Entity",
+		                "keyRaw": "entities",
+
+		                "directives": [{
+		                    "name": "loading",
+		                    "arguments": {}
+		                }],
+
+		                "selection": {
+		                    "abstractFields": {
+		                        "fields": {
+		                            "User": {
+		                                "firstName": {
+		                                    "type": "String",
+		                                    "keyRaw": "firstName",
+
+		                                    "directives": [{
+		                                        "name": "loading",
+		                                        "arguments": {}
+		                                    }],
+
+		                                    "loading": {
+		                                        "kind": "value"
+		                                    },
+
+		                                    "visible": true
+		                                },
+
+		                                "id": {
+		                                    "type": "ID",
+		                                    "keyRaw": "id",
+		                                    "visible": true
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
+		                                }
+		                            },
+
+		                            "Cat": {
+		                                "name": {
+		                                    "type": "String",
+		                                    "keyRaw": "name",
+
+		                                    "directives": [{
+		                                        "name": "loading",
+		                                        "arguments": {}
+		                                    }],
+
+		                                    "loading": {
+		                                        "kind": "value"
+		                                    },
+
+		                                    "visible": true
+		                                },
+
+		                                "id": {
+		                                    "type": "ID",
+		                                    "keyRaw": "id",
+		                                    "visible": true
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
+		                                }
+		                            }
+		                        },
+
+		                        "typeMap": {}
+		                    },
+
+		                    "fields": {
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename",
+		                            "visible": true
+		                        }
+		                    },
+
+		                    "loadingTypes": ["User", "Cat"]
+		                },
+
+		                "loading": {
+		                    "kind": "continue"
+		                },
+
+		                "abstract": true,
+		                "visible": true
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+		    "enableLoadingState": true,
+		    "policy": "CacheOrNetwork",
+		    "partial": false
+		};
+
+		"HoudiniHash=f22627b545cab6185ae10ea60be8e02b7cde67cce7f72a878bf93251c350204f";
+	`)
+})

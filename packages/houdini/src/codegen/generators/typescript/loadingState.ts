@@ -1,7 +1,7 @@
 import type { TSTypeKind } from 'ast-types/lib/gen/kinds'
 import * as recast from 'recast'
 
-import { Config, DocumentArtifact } from '../../../lib'
+import { Config, DocumentArtifact, SubscriptionSelection } from '../../../lib'
 
 const AST = recast.types.builders
 
@@ -21,9 +21,28 @@ export function withLoadingState(args: {
 	}
 
 	// we have a loading state so our final type is a union of the base type and the loading state
-	return AST.tsUnionType([args.base, loadingState(args.config, args.artifact)])
+	return AST.tsUnionType([
+		args.base,
+		loadingState({
+			parentType: args.artifact.rootType,
+			config: args.config,
+			selection: args.artifact.selection,
+		}),
+	])
 }
 
-function loadingState(config: Config, artifact: DocumentArtifact): TSTypeKind {
+// the generated loading state is a concrete, non-null object
+// that has all of the fields marked with the loadingDirective
+function loadingState({
+	config,
+	selection,
+	parentType,
+}: {
+	config: Config
+	selection: SubscriptionSelection
+	parentType: string
+}): TSTypeKind {
+	//
+
 	return AST.tsNeverKeyword()
 }

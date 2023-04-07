@@ -1126,10 +1126,6 @@ function validateLoadingDirective(config: Config) {
 				) {
 					return
 				}
-				// @ts-ignore
-				if (!parent || parent.kind !== 'Field') {
-					return
-				}
 
 				// the loading directive is considered valid if the parent _has_ the directive applied
 				const parentLoading = parent.directives?.find(

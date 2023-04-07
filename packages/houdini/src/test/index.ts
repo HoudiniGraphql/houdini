@@ -56,12 +56,14 @@ export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {})
 
 			type Query {
 				user: User!
+				entity: Entity!
 				version: Int!
 				ghost: Ghost!
 				ghosts: GhostConnection!
 				friends: [Friend!]!
 				users(boolValue: Boolean, intValue: Int, floatValue: Float, stringValue: String!): [User!]!
 				entities: [Entity!]!
+				catOwners: [CatOwner!]!
 				usersByCursor(first: Int, after: String, last: Int, before: String): UserConnection!
 				usersByBackwardsCursor(last: Int, before: String): UserConnection!
 				usersByForwardsCursor(first: Int, after: String): UserConnection!

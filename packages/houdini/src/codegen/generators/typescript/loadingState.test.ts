@@ -4,8 +4,21 @@ import { test, expect } from 'vitest'
 
 import { runPipeline } from '../..'
 import { fs } from '../../../lib'
-import { mockCollectedDoc } from '../../../test'
-import { config } from './typescript.test'
+import { mockCollectedDoc, testConfig } from '../../../test'
+
+const config = testConfig({
+	schema: `
+		type Query {
+			user: User
+		}
+
+		type User {
+			id: ID!
+			firstName: String!
+			parent: User
+		}
+	`,
+})
 
 test('@loading on fragment - happy path', async function () {
 	const docs = [
@@ -13,9 +26,9 @@ test('@loading on fragment - happy path', async function () {
 			fragment UserBase on User {
 				id
 				firstName @loading
-				parent @loading { 
+				parent @loading {
 					id @loading
-					parent @loading { 
+					parent @loading {
 						id
 					}
 				}
@@ -52,7 +65,15 @@ test('@loading on fragment - happy path', async function () {
 		            readonly id: string;
 		        } | null;
 		    } | null;
-		} | never;
+		} | {
+			readonly user {
+				readonly firstName: LoadingValue;
+				readonly parent: {
+					readonly id: LoadingValue
+					readonly parent: LoadingValue
+				};
+			}
+		};
 	`)
 })
 
@@ -60,11 +81,11 @@ test('@loading on query - happy path', async function () {
 	const docs = [
 		mockCollectedDoc(`
 			query UserQuery {
-				user(id: "1") @loading {
+				user @loading {
 					firstName @loading
-					parent @loading { 
+					parent @loading {
 						id @loading
-						parent @loading { 
+						parent @loading {
 							id
 						}
 					}
@@ -99,7 +120,15 @@ test('@loading on query - happy path', async function () {
 		            } | null;
 		        } | null;
 		    } | null;
-		} | never;
+		} | {
+			readonly user {
+				readonly firstName: LoadingValue;
+				readonly parent: {
+					readonly id: LoadingValue
+					readonly parent: LoadingValue
+				};
+			}
+		};
 
 		export type UserQuery$input = null;
 	`)
