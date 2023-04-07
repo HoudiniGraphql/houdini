@@ -58,7 +58,7 @@ function loadingState(args: {
 			ensureImports({
 				config: args.config,
 				body: args.body,
-				import: ['LoadingValue'],
+				import: ['LoadingType'],
 				sourceModule: '$houdini/runtime/lib/types',
 			})
 
@@ -69,9 +69,7 @@ function loadingState(args: {
 					readonlyProperty(
 						AST.tsPropertySignature(
 							AST.identifier(key),
-							AST.tsTypeAnnotation(
-								AST.tsTypeReference(AST.identifier('LoadingValue'))
-							)
+							AST.tsTypeAnnotation(AST.tsTypeReference(AST.identifier('LoadingType')))
 						)
 					),
 				]

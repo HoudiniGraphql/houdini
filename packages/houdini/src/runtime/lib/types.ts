@@ -313,4 +313,6 @@ interface VariableNode {
 	readonly name: NameNode
 }
 
-export const LoadingValue = Symbol('_houdini_loading_')
+export type LoadingType = { _houdini_loading_: true }
+
+export const LoadingValue: LoadingType = { _houdini_loading_: true }
