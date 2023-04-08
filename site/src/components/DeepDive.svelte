@@ -2,6 +2,7 @@
 	import { Icon } from '.'
 	export let title
 	export let style = ''
+	export let label = 'Deep Dive'
 
 	let expanded = false
 </script>
@@ -9,7 +10,7 @@
 <div class="container-deepdive" {style}>
 	<button on:click={() => (expanded = !expanded)}>
 		<Icon name={expanded ? 'chevron-down' : 'chevron-right'} class="graphql-explained-icon" />
-		Deep Dive: {title}
+		{label}: {title}
 	</button>
 	{#if expanded}
 		<div class="content">
