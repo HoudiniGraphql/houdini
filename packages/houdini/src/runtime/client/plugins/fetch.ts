@@ -32,61 +32,31 @@ export const fetch = (target?: RequestHandler | string): ClientPlugin => {
 					}
 				}
 
-				try {
-					const result = await fetchFn({
-						// wrap the user's fetch function so we can identify SSR by checking
-						// the response.url
-						fetch: (url: URL | RequestInfo, args: RequestInit | undefined) => {
-							// figure out if we need to do something special for multipart uploads
-							const newArgs = handleMultipart(fetchParams, args) ?? args
+				const result = await fetchFn({
+					// wrap the user's fetch function so we can identify SSR by checking
+					// the response.url
+					fetch: (url: URL | RequestInfo, args: RequestInit | undefined) => {
+						// figure out if we need to do something special for multipart uploads
+						const newArgs = handleMultipart(fetchParams, args) ?? args
 
-							// use the new args if they exist, otherwise the old ones are good
-							return fetch(url, newArgs)
-						},
-						metadata: ctx.metadata,
-						session: ctx.session || {},
-						...fetchParams,
-					})
+						// use the new args if they exist, otherwise the old ones are good
+						return fetch(url, newArgs)
+					},
+					metadata: ctx.metadata,
+					session: ctx.session || {},
+					...fetchParams,
+				})
 
-					// return the result
-					resolve(ctx, {
-						fetching: false,
-						variables: ctx.variables ?? {},
-						data: result.data,
-						errors: !result.errors || result.errors.length === 0 ? null : result.errors,
-						partial: false,
-						stale: false,
-						source: DataSource.Network,
-					})
-				} catch (error: unknown) {
-					if (error instanceof Error) {
-						// return the error
-						resolve(ctx, {
-							fetching: false,
-							variables: ctx.variables ?? {},
-							data: null,
-							errors: [
-								{
-									message: JSON.stringify(
-										{
-											name: error.name,
-											message: error.message,
-											stack: error.stack,
-										},
-										null,
-										2
-									),
-								},
-							],
-							partial: false,
-							stale: false,
-							source: DataSource.Network,
-						})
-					}
-
-					// If the error is not an instance of Error, rethrow it
-					throw error
-				}
+				// return the result
+				resolve(ctx, {
+					fetching: false,
+					variables: ctx.variables ?? {},
+					data: result.data,
+					errors: !result.errors || result.errors.length === 0 ? null : result.errors,
+					partial: false,
+					stale: false,
+					source: DataSource.Network,
+				})
 			},
 		}
 	}
