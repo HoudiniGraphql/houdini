@@ -1,7 +1,16 @@
 import * as graphql from 'graphql'
 
 import type { Config, PluginHooks, Document, LogLevels } from '../lib'
-import { runPipeline as run, LogLevel, find_graphql, parseJS, HoudiniError, fs, path } from '../lib'
+import {
+	runPipeline as run,
+	LogLevel,
+	find_graphql,
+	parseJS,
+	HoudiniError,
+	fs,
+	path,
+	houdini_mode,
+} from '../lib'
 import { ArtifactKind, type ArtifactKinds } from '../runtime/lib/types'
 import * as generators from './generators'
 import * as transforms from './transforms'
@@ -120,8 +129,12 @@ export async function runPipeline(config: Config, docs: Document[]) {
 			docs
 		)
 	} catch (e) {
-		// flatten the error array
-		error = Array.isArray(e) && e.length === 1 ? e[0] : e
+		if (houdini_mode.is_testing) {
+			// flatten the error array
+			error = Array.isArray(e) && e.length === 1 ? e[0] : e
+		} else {
+			error = e as Error
+		}
 	}
 
 	/// Summary
