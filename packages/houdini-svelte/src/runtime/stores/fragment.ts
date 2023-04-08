@@ -35,11 +35,13 @@ export class FragmentStore<
 	get(
 		initialValue: _Data | { [fragmentKey]: _ReferenceType } | null
 	): FragmentStoreInstance<_Data | null, _Input> & { initialValue: _Data | null } {
-		const { variables, parent, loading } =
+		const { variables, parent } =
 			// @ts-expect-error: typescript can't guarantee that the fragment key is defined
 			// but if its not, then the fragment wasn't mixed into the right thing
 			// the variables for the fragment live on the initial value's $fragment key
-			initialValue?.[fragmentKey]?.[this.artifact.name] ?? {}
+			initialValue?.[fragmentKey]?.values?.[this.artifact.name] ?? {}
+		// @ts-expect-error: see above.
+		const { loading } = initialValue?.[fragmentKey] ?? {}
 		if (
 			!loading &&
 			initialValue &&

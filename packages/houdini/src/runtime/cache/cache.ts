@@ -812,20 +812,25 @@ class CacheInternal {
 
 		const target = {} as GraphQLObject
 		if (selection.fragments) {
-			target[fragmentKey] = Object.fromEntries(
-				Object.entries(selection.fragments)
-					// only include the fragments that are marked loading
-					// if we are generating the loading state
-					.filter(([, value]) => !generateLoading || value.loading)
-					.map(([key, value]) => [
-						key,
-						{
-							parent,
-							variables: evaluateFragmentVariables(value.arguments, variables ?? {}),
-							loading: generateLoading,
-						},
-					])
-			)
+			target[fragmentKey] = {
+				loading: Boolean(generateLoading),
+				values: Object.fromEntries(
+					Object.entries(selection.fragments)
+						// only include the fragments that are marked loading
+						// if we are generating the loading state
+						.filter(([, value]) => !generateLoading || value.loading)
+						.map(([key, value]) => [
+							key,
+							{
+								parent,
+								variables: evaluateFragmentVariables(
+									value.arguments,
+									variables ?? {}
+								),
+							},
+						])
+				),
+			}
 		}
 
 		// we need to track if we have a partial data set which means we have _something_ but not everything

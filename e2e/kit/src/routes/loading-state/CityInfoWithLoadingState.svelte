@@ -1,5 +1,11 @@
 <script lang="ts">
-  import { fragment, graphql, type CityInfoWithLoadingState, LoadingValue } from '$houdini';
+  import {
+    fragment,
+    fragmentFetching,
+    graphql,
+    type CityInfoWithLoadingState,
+    LoadingValue
+  } from '$houdini';
 
   export let city: CityInfoWithLoadingState;
 
@@ -15,6 +21,7 @@
       }
     `)
   );
+  $: cityFetching = fragmentFetching(city);
 </script>
 
 <ul>
@@ -28,3 +35,7 @@
     </li>
   {/each}
 </ul>
+
+<div id="city-fetching">
+  {cityFetching}
+</div>

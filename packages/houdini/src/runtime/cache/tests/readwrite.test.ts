@@ -1849,10 +1849,13 @@ test('recreates fragment references', function () {
 			viewer: {
 				id: '1',
 				' $fragments': {
-					TestFragment: {
-						parent: 'User:1',
-						variables: {
-							value: 'hello!',
+					loading: false,
+					values: {
+						TestFragment: {
+							parent: 'User:1',
+							variables: {
+								value: 'hello!',
+							},
 						},
 					},
 				},
@@ -1917,10 +1920,13 @@ test('recreates fragment references on root', function () {
 				id: '1',
 			},
 			' $fragments': {
-				TestFragment: {
-					parent: rootID,
-					variables: {
-						value: 'hello!',
+				loading: false,
+				values: {
+					TestFragment: {
+						parent: rootID,
+						variables: {
+							value: 'hello!',
+						},
 					},
 				},
 			},
@@ -1987,10 +1993,13 @@ test('recreates fragment references with variables', function () {
 		data: {
 			viewer: {
 				' $fragments': {
-					TestFragment: {
-						parent: 'User:1',
-						variables: {
-							value: 'hello!',
+					loading: false,
+					values: {
+						TestFragment: {
+							parent: 'User:1',
+							variables: {
+								value: 'hello!',
+							},
 						},
 					},
 				},
