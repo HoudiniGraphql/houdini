@@ -14,7 +14,8 @@ export async function validate({
 	config: Config
 	documents: Document[]
 }): Promise<void> {
-	// Validation 1
+	const errors: HoudiniError[] = []
+
 	// all forbiddenNames
 	const forbiddenNames = [
 		'QueryStore',
@@ -24,10 +25,8 @@ export async function validate({
 		'BaseStore',
 	]
 
-	const errors: HoudiniError[] = []
-
-	for (let i = 0; i < documents.length; i++) {
-		const doc = documents[i]
+	for (const doc of documents) {
+		// Validation => Names
 		if (forbiddenNames.includes(store_name({ config, name: doc.name }))) {
 			errors.push(
 				new HoudiniError({
@@ -41,13 +40,9 @@ export async function validate({
 				})
 			)
 		}
-	}
 
-	// Validation 2
-	// Blocking directives
-	for (const { filename, document: parsed } of documents) {
-		// validate the document
-		graphql.visit(parsed, {
+		// Validation => Directives
+		graphql.visit(doc.document, {
 			Directive(node, _, __, ___, ancestors) {
 				const blockingDirectives = [
 					config.blockingDirective,
@@ -72,7 +67,7 @@ export async function validate({
 				) {
 					errors.push(
 						new HoudiniError({
-							filepath: filename,
+							filepath: doc.filename,
 							message: `You can't apply both @${config.blockingDirective} and @${config.blockingDisableDirective} at the same time`,
 						})
 					)
