@@ -130,10 +130,9 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 		}
 
 		// 3/ Artifact
-		if (pluginArtifact?.set_blocking) {
+		if (pluginArtifact?.set_blocking === true) {
 			need_to_block = true
-		}
-		if (pluginArtifact?.set_blocking_disable) {
+		} else if (pluginArtifact?.set_blocking === false) {
 			need_to_block = false
 		}
 
