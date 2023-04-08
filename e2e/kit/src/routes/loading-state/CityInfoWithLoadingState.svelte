@@ -39,3 +39,7 @@
 <div id="city-fetching">
   {cityFetching}
 </div>
+
+<div id="result">
+  {JSON.stringify($data.libraries)}
+</div>
