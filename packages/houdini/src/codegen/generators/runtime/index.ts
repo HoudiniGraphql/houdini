@@ -49,14 +49,18 @@ ${exportStatement('config')}
 		}),
 		...config.plugins
 			.filter((plugin) => plugin.includeRuntime)
-			.map((plugin) => generatePluginRuntime(config, plugin)),
+			.map((plugin) => generatePluginRuntime(config, docs, plugin)),
 		generatePluginIndex({ config, exportStatement: exportStar }),
 	])
 
 	await generateGraphqlReturnTypes(config, docs)
 }
 
-async function generatePluginRuntime(config: Config, plugin: Config['plugins'][number]) {
+async function generatePluginRuntime(
+	config: Config,
+	docs: Document[],
+	plugin: Config['plugins'][number]
+) {
 	if (houdini_mode.is_testing || !plugin.includeRuntime) {
 		return
 	}
@@ -80,12 +84,16 @@ async function generatePluginRuntime(config: Config, plugin: Config['plugins'][n
 
 	// copy the runtime
 	const pluginDir = config.pluginRuntimeDirectory(plugin.name)
+	let transformMap = plugin.transformRuntime ?? {}
+	if (transformMap && typeof transformMap === 'function') {
+		transformMap = transformMap(docs)
+	}
 	await fs.mkdirp(pluginDir)
 	await fs.recursiveCopy(
 		runtime_path,
 		pluginDir,
 		Object.fromEntries(
-			Object.entries(plugin.transformRuntime ?? {}).map(([key, value]) => [
+			Object.entries(transformMap).map(([key, value]) => [
 				path.join(runtime_path, key),
 				(content) => value({ config, content }),
 			])

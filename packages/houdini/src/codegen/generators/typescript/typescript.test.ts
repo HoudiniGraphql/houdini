@@ -126,6 +126,53 @@ describe('typescript', function () {
 			    readonly nickname: string | null;
 			    readonly enumValue: ValueOf<typeof MyEnum> | null;
 			};
+
+			export type TestFragment$artifact = {
+			    "name": "TestFragment";
+			    "kind": "HoudiniFragment";
+			    "hash": "fec5e49042a021e67a5f04a339f3729793fedbf7df83c2119a6ad932f91727f8";
+			    "raw": \`fragment TestFragment on User {
+			  firstName
+			  nickname
+			  enumValue
+			  id
+			  __typename
+			}
+			\`;
+			    "rootType": "User";
+			    "selection": {
+			        "fields": {
+			            "firstName": {
+			                "type": "String";
+			                "keyRaw": "firstName";
+			                "visible": true;
+			            };
+			            "nickname": {
+			                "type": "String";
+			                "keyRaw": "nickname";
+			                "nullable": true;
+			                "visible": true;
+			            };
+			            "enumValue": {
+			                "type": "MyEnum";
+			                "keyRaw": "enumValue";
+			                "nullable": true;
+			                "visible": true;
+			            };
+			            "id": {
+			                "type": "ID";
+			                "keyRaw": "id";
+			                "visible": true;
+			            };
+			            "__typename": {
+			                "type": "String";
+			                "keyRaw": "__typename";
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			};
 		`)
 	})
 
@@ -162,6 +209,58 @@ describe('typescript', function () {
 			    readonly user: {
 			        readonly age: number | null;
 			    } | null;
+			};
+
+			export type TestFragment$artifact = {
+			    "name": "TestFragment";
+			    "kind": "HoudiniFragment";
+			    "hash": "03f5a3344390dfa1b642c7038bbdb5f6bfadbb645886b0d1ce658fc77e90668e";
+			    "raw": \`fragment TestFragment on Query {
+			  user(id: $name) {
+			    age
+			    id
+			  }
+			  __typename
+			}
+			\`;
+			    "rootType": "Query";
+			    "selection": {
+			        "fields": {
+			            "user": {
+			                "type": "User";
+			                "keyRaw": "user(id: $name)";
+			                "nullable": true;
+			                "selection": {
+			                    "fields": {
+			                        "age": {
+			                            "type": "Int";
+			                            "keyRaw": "age";
+			                            "nullable": true;
+			                            "visible": true;
+			                        };
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "visible": true;
+			            };
+			            "__typename": {
+			                "type": "String";
+			                "keyRaw": "__typename";
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "input": {
+			        "fields": {
+			            "name": "ID";
+			        };
+			        "types": {};
+			    };
 			};
 		`)
 	})
@@ -200,6 +299,58 @@ describe('typescript', function () {
 			        readonly age: number | null;
 			    } | null;
 			};
+
+			export type TestFragment$artifact = {
+			    "name": "TestFragment";
+			    "kind": "HoudiniFragment";
+			    "hash": "9c72207c02a37626ffd0f6397ab2a573d88486792caad6f52c785555a6a6343b";
+			    "raw": \`fragment TestFragment on Query {
+			  user(id: $name) {
+			    age
+			    id
+			  }
+			  __typename
+			}
+			\`;
+			    "rootType": "Query";
+			    "selection": {
+			        "fields": {
+			            "user": {
+			                "type": "User";
+			                "keyRaw": "user(id: $name)";
+			                "nullable": true;
+			                "selection": {
+			                    "fields": {
+			                        "age": {
+			                            "type": "Int";
+			                            "keyRaw": "age";
+			                            "nullable": true;
+			                            "visible": true;
+			                        };
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "visible": true;
+			            };
+			            "__typename": {
+			                "type": "String";
+			                "keyRaw": "__typename";
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "input": {
+			        "fields": {
+			            "name": "ID";
+			        };
+			        "types": {};
+			    };
+			};
 		`)
 	})
 
@@ -235,6 +386,63 @@ describe('typescript', function () {
 			    readonly parent: {
 			        readonly firstName: string;
 			    } | null;
+			};
+
+			export type TestFragment$artifact = {
+			    "name": "TestFragment";
+			    "kind": "HoudiniFragment";
+			    "hash": "c05ae5e22dd26c00fbc088277ca96ded6e01a0a6c540eb040ee91d10655b4575";
+			    "raw": \`fragment TestFragment on User {
+			  firstName
+			  parent {
+			    firstName
+			    id
+			  }
+			  id
+			  __typename
+			}
+			\`;
+			    "rootType": "User";
+			    "selection": {
+			        "fields": {
+			            "firstName": {
+			                "type": "String";
+			                "keyRaw": "firstName";
+			                "visible": true;
+			            };
+			            "parent": {
+			                "type": "User";
+			                "keyRaw": "parent";
+			                "nullable": true;
+			                "selection": {
+			                    "fields": {
+			                        "firstName": {
+			                            "type": "String";
+			                            "keyRaw": "firstName";
+			                            "visible": true;
+			                        };
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "visible": true;
+			            };
+			            "id": {
+			                "type": "ID";
+			                "keyRaw": "id";
+			                "visible": true;
+			            };
+			            "__typename": {
+			                "type": "String";
+			                "keyRaw": "__typename";
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
 			};
 		`)
 	})
@@ -273,6 +481,60 @@ describe('typescript', function () {
 			    readonly id: string;
 			    readonly weight: number | null;
 			};
+
+			export type TestFragment$artifact = {
+			    "name": "TestFragment";
+			    "kind": "HoudiniFragment";
+			    "hash": "268c6ce8de2ed68662e4da519dc541b6aae4232671449895e23cee88b25120cd";
+			    "raw": \`fragment TestFragment on User {
+			  firstName
+			  admin
+			  age
+			  id
+			  weight
+			  __typename
+			}
+			\`;
+			    "rootType": "User";
+			    "selection": {
+			        "fields": {
+			            "firstName": {
+			                "type": "String";
+			                "keyRaw": "firstName";
+			                "visible": true;
+			            };
+			            "admin": {
+			                "type": "Boolean";
+			                "keyRaw": "admin";
+			                "nullable": true;
+			                "visible": true;
+			            };
+			            "age": {
+			                "type": "Int";
+			                "keyRaw": "age";
+			                "nullable": true;
+			                "visible": true;
+			            };
+			            "id": {
+			                "type": "ID";
+			                "keyRaw": "id";
+			                "visible": true;
+			            };
+			            "weight": {
+			                "type": "Float";
+			                "keyRaw": "weight";
+			                "nullable": true;
+			                "visible": true;
+			            };
+			            "__typename": {
+			                "type": "String";
+			                "keyRaw": "__typename";
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			};
 		`)
 	})
 
@@ -309,6 +571,63 @@ describe('typescript', function () {
 			        readonly firstName: string;
 			    } | null)[] | null;
 			};
+
+			export type TestFragment$artifact = {
+			    "name": "TestFragment";
+			    "kind": "HoudiniFragment";
+			    "hash": "60afdef644bced9aae26a086b7dbf33dc7b8b51c45ddc2fc4571a0bb72f2d660";
+			    "raw": \`fragment TestFragment on User {
+			  firstName
+			  friends {
+			    firstName
+			    id
+			  }
+			  id
+			  __typename
+			}
+			\`;
+			    "rootType": "User";
+			    "selection": {
+			        "fields": {
+			            "firstName": {
+			                "type": "String";
+			                "keyRaw": "firstName";
+			                "visible": true;
+			            };
+			            "friends": {
+			                "type": "User";
+			                "keyRaw": "friends";
+			                "nullable": true;
+			                "selection": {
+			                    "fields": {
+			                        "firstName": {
+			                            "type": "String";
+			                            "keyRaw": "firstName";
+			                            "visible": true;
+			                        };
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "visible": true;
+			            };
+			            "id": {
+			                "type": "ID";
+			                "keyRaw": "id";
+			                "visible": true;
+			            };
+			            "__typename": {
+			                "type": "String";
+			                "keyRaw": "__typename";
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			};
 		`)
 	})
 
@@ -340,6 +659,47 @@ describe('typescript', function () {
 			};
 
 			export type MyQuery$input = null;
+
+			export type MyQuery$artifact = {
+			    "name": "MyQuery";
+			    "kind": "HoudiniQuery";
+			    "hash": "75599daf9b89690cac0df70674158875f4908fd3405b0a12510bb0803161dd01";
+			    "raw": \`query MyQuery {
+			  user {
+			    firstName
+			    id
+			  }
+			}
+			\`;
+			    "rootType": "Query";
+			    "selection": {
+			        "fields": {
+			            "user": {
+			                "type": "User";
+			                "keyRaw": "user";
+			                "nullable": true;
+			                "selection": {
+			                    "fields": {
+			                        "firstName": {
+			                            "type": "String";
+			                            "keyRaw": "firstName";
+			                            "visible": true;
+			                        };
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "policy": "CacheOrNetwork";
+			    "partial": false;
+			};
 		`)
 	})
 
@@ -376,6 +736,47 @@ describe('typescript', function () {
 			};
 
 			export type MyQuery$input = null;
+
+			export type MyQuery$artifact = {
+			    "name": "MyQuery";
+			    "kind": "HoudiniQuery";
+			    "hash": "802f49d218bd0db35a4f4eec151e9db62490086a3e61818659f7a283548427b6";
+			    "raw": \`query MyQuery {
+			  users {
+			    firstName
+			    id
+			  }
+			}
+			\`;
+			    "rootType": "Query";
+			    "selection": {
+			        "fields": {
+			            "users": {
+			                "type": "User";
+			                "keyRaw": "users";
+			                "nullable": true;
+			                "selection": {
+			                    "fields": {
+			                        "firstName": {
+			                            "type": "String";
+			                            "keyRaw": "firstName";
+			                            "visible": true;
+			                        };
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "policy": "CacheOrNetwork";
+			    "partial": false;
+			};
 		`)
 	})
 
@@ -414,6 +815,54 @@ describe('typescript', function () {
 			export type MyQuery$input = {
 			    id: string;
 			    enum?: ValueOf<typeof MyEnum> | null | undefined;
+			};
+
+			export type MyQuery$artifact = {
+			    "name": "MyQuery";
+			    "kind": "HoudiniQuery";
+			    "hash": "d4c90d48b80c460939fd7dca6b99122fdd276812c20176b37679cfaf08c2efcf";
+			    "raw": \`query MyQuery($id: ID!, $enum: MyEnum) {
+			  user(id: $id, enumArg: $enum) {
+			    firstName
+			    id
+			  }
+			}
+			\`;
+			    "rootType": "Query";
+			    "selection": {
+			        "fields": {
+			            "user": {
+			                "type": "User";
+			                "keyRaw": "user(enumArg: $enum, id: $id)";
+			                "nullable": true;
+			                "selection": {
+			                    "fields": {
+			                        "firstName": {
+			                            "type": "String";
+			                            "keyRaw": "firstName";
+			                            "visible": true;
+			                        };
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "input": {
+			        "fields": {
+			            "id": "ID";
+			            "enum": "MyEnum";
+			        };
+			        "types": {};
+			    };
+			    "policy": "CacheOrNetwork";
+			    "partial": false;
 			};
 		`)
 	})
@@ -458,6 +907,64 @@ describe('typescript', function () {
 			};
 
 			export type MyTestQuery$input = null;
+
+			export type MyTestQuery$artifact = {
+			    "name": "MyTestQuery";
+			    "kind": "HoudiniQuery";
+			    "hash": "a628c9dfeecde5337a5439aee8f7c4d0111783f9fd456841a54f485db49f756d";
+			    "raw": \`query MyTestQuery {
+			  entity {
+			    ... on Node {
+			      id
+			    }
+			    __typename
+			  }
+			}
+			\`;
+			    "rootType": "Query";
+			    "selection": {
+			        "fields": {
+			            "entity": {
+			                "type": "Entity";
+			                "keyRaw": "entity";
+			                "selection": {
+			                    "abstractFields": {
+			                        "fields": {
+			                            "Node": {
+			                                "id": {
+			                                    "type": "ID";
+			                                    "keyRaw": "id";
+			                                    "visible": true;
+			                                };
+			                                "__typename": {
+			                                    "type": "String";
+			                                    "keyRaw": "__typename";
+			                                    "visible": true;
+			                                };
+			                            };
+			                        };
+			                        "typeMap": {
+			                            "Cat": "Node";
+			                            "User": "Node";
+			                        };
+			                    };
+			                    "fields": {
+			                        "__typename": {
+			                            "type": "String";
+			                            "keyRaw": "__typename";
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "abstract": true;
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "policy": "CacheOrNetwork";
+			    "partial": false;
+			};
 		`)
 	})
 
@@ -543,6 +1050,80 @@ describe('typescript', function () {
 			        readonly firstName?: string;
 			    } | null;
 			};
+
+			export type MyMutation$artifact = {
+			    "name": "MyMutation";
+			    "kind": "HoudiniMutation";
+			    "hash": "ca24beb22d7dfdbf5e50bc7ca446037f0812deeca00c13d3ce745a9f492f69b7";
+			    "raw": \`mutation MyMutation($filter: UserFilter, $filterList: [UserFilter!]!, $id: ID!, $firstName: String!, $admin: Boolean, $age: Int, $weight: Float) {
+			  doThing(
+			    filter: $filter
+			    list: $filterList
+			    id: $id
+			    firstName: $firstName
+			    admin: $admin
+			    age: $age
+			    weight: $weight
+			  ) {
+			    firstName
+			    id
+			  }
+			}
+			\`;
+			    "rootType": "Mutation";
+			    "selection": {
+			        "fields": {
+			            "doThing": {
+			                "type": "User";
+			                "keyRaw": "doThing(admin: $admin, age: $age, filter: $filter, firstName: $firstName, id: $id, list: $filterList, weight: $weight)";
+			                "nullable": true;
+			                "selection": {
+			                    "fields": {
+			                        "firstName": {
+			                            "type": "String";
+			                            "keyRaw": "firstName";
+			                            "visible": true;
+			                        };
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "input": {
+			        "fields": {
+			            "filter": "UserFilter";
+			            "filterList": "UserFilter";
+			            "id": "ID";
+			            "firstName": "String";
+			            "admin": "Boolean";
+			            "age": "Int";
+			            "weight": "Float";
+			        };
+			        "types": {
+			            "NestedUserFilter": {
+			                "id": "ID";
+			                "firstName": "String";
+			                "admin": "Boolean";
+			                "age": "Int";
+			                "weight": "Float";
+			            };
+			            "UserFilter": {
+			                "middle": "NestedUserFilter";
+			                "listRequired": "String";
+			                "nullList": "String";
+			                "recursive": "UserFilter";
+			                "enum": "MyEnum";
+			            };
+			        };
+			    };
+			};
 		`)
 	})
 
@@ -601,6 +1182,59 @@ describe('typescript', function () {
 			        readonly firstName?: string;
 			    } | null;
 			};
+
+			export type MyMutation$artifact = {
+			    "name": "MyMutation";
+			    "kind": "HoudiniMutation";
+			    "hash": "32e4d8c37e92a71ccb13fe49e001735829f33af4f42687fb138c6547c4cc4749";
+			    "raw": \`mutation MyMutation {
+			  doThing(list: [], id: "1", firstName: "hello") {
+			    firstName
+			    ...TestFragment
+			    id
+			  }
+			}
+
+			fragment TestFragment on User {
+			  firstName
+			  id
+			  __typename
+			}
+			\`;
+			    "rootType": "Mutation";
+			    "selection": {
+			        "fields": {
+			            "doThing": {
+			                "type": "User";
+			                "keyRaw": "doThing(firstName: \\"hello\\", id: \\"1\\", list: [])";
+			                "nullable": true;
+			                "selection": {
+			                    "fields": {
+			                        "firstName": {
+			                            "type": "String";
+			                            "keyRaw": "firstName";
+			                            "visible": true;
+			                        };
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                        "__typename": {
+			                            "type": "String";
+			                            "keyRaw": "__typename";
+			                        };
+			                    };
+			                    "fragments": {
+			                        "TestFragment": {};
+			                    };
+			                };
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			};
 		`)
 	})
 
@@ -654,6 +1288,68 @@ describe('typescript', function () {
 
 			export type MyQuery$input = {
 			    filter: UserFilter;
+			};
+
+			export type MyQuery$artifact = {
+			    "name": "MyQuery";
+			    "kind": "HoudiniQuery";
+			    "hash": "3db625201d1054e50b978a3a87dc954aef3b8284070cdd0c1f667a2ccada232f";
+			    "raw": \`query MyQuery($filter: UserFilter!) {
+			  user(filter: $filter) {
+			    firstName
+			    id
+			  }
+			}
+			\`;
+			    "rootType": "Query";
+			    "selection": {
+			        "fields": {
+			            "user": {
+			                "type": "User";
+			                "keyRaw": "user(filter: $filter)";
+			                "nullable": true;
+			                "selection": {
+			                    "fields": {
+			                        "firstName": {
+			                            "type": "String";
+			                            "keyRaw": "firstName";
+			                            "visible": true;
+			                        };
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "input": {
+			        "fields": {
+			            "filter": "UserFilter";
+			        };
+			        "types": {
+			            "NestedUserFilter": {
+			                "id": "ID";
+			                "firstName": "String";
+			                "admin": "Boolean";
+			                "age": "Int";
+			                "weight": "Float";
+			            };
+			            "UserFilter": {
+			                "middle": "NestedUserFilter";
+			                "listRequired": "String";
+			                "nullList": "String";
+			                "recursive": "UserFilter";
+			                "enum": "MyEnum";
+			            };
+			        };
+			    };
+			    "policy": "CacheOrNetwork";
+			    "partial": false;
 			};
 		`)
 	})
@@ -714,6 +1410,59 @@ describe('typescript', function () {
 			};
 
 			export type MyQuery$input = null;
+
+			export type MyQuery$artifact = {
+			    "name": "MyQuery";
+			    "kind": "HoudiniQuery";
+			    "hash": "e07594825d2da2a5eaae6efa277dc4dfd0f3416a08827dfc505c88a0c5650068";
+			    "raw": \`query MyQuery {
+			  user {
+			    ...Foo
+			    id
+			  }
+			}
+
+			fragment Foo on User {
+			  firstName
+			  id
+			  __typename
+			}
+			\`;
+			    "rootType": "Query";
+			    "selection": {
+			        "fields": {
+			            "user": {
+			                "type": "User";
+			                "keyRaw": "user";
+			                "nullable": true;
+			                "selection": {
+			                    "fields": {
+			                        "firstName": {
+			                            "type": "String";
+			                            "keyRaw": "firstName";
+			                        };
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                        "__typename": {
+			                            "type": "String";
+			                            "keyRaw": "__typename";
+			                        };
+			                    };
+			                    "fragments": {
+			                        "Foo": {};
+			                    };
+			                };
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "policy": "CacheOrNetwork";
+			    "partial": false;
+			};
 		`)
 	})
 
@@ -753,6 +1502,60 @@ describe('typescript', function () {
 			};
 
 			export type MyQuery$input = null;
+
+			export type MyQuery$artifact = {
+			    "name": "MyQuery";
+			    "kind": "HoudiniQuery";
+			    "hash": "e07594825d2da2a5eaae6efa277dc4dfd0f3416a08827dfc505c88a0c5650068";
+			    "raw": \`query MyQuery {
+			  user {
+			    ...Foo
+			    id
+			  }
+			}
+
+			fragment Foo on User {
+			  firstName
+			  id
+			  __typename
+			}
+			\`;
+			    "rootType": "Query";
+			    "selection": {
+			        "fields": {
+			            "user": {
+			                "type": "User";
+			                "keyRaw": "user";
+			                "selection": {
+			                    "fields": {
+			                        "firstName": {
+			                            "type": "String";
+			                            "keyRaw": "firstName";
+			                            "visible": true;
+			                        };
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                        "__typename": {
+			                            "type": "String";
+			                            "keyRaw": "__typename";
+			                            "visible": true;
+			                        };
+			                    };
+			                    "fragments": {
+			                        "Foo": {};
+			                    };
+			                };
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "policy": "CacheOrNetwork";
+			    "partial": false;
+			};
 		`)
 	})
 
@@ -801,6 +1604,82 @@ describe('typescript', function () {
 			};
 
 			export type MyQuery$input = null;
+
+			export type MyQuery$artifact = {
+			    "name": "MyQuery";
+			    "kind": "HoudiniQuery";
+			    "hash": "07886277853f6b1ef2d195030db19d20fc69006937a247cfebe208017c289335";
+			    "raw": \`query MyQuery {
+			  nodes {
+			    ... on User {
+			      id
+			    }
+			    ... on Cat {
+			      id
+			    }
+			    id
+			    __typename
+			  }
+			}
+			\`;
+			    "rootType": "Query";
+			    "selection": {
+			        "fields": {
+			            "nodes": {
+			                "type": "Node";
+			                "keyRaw": "nodes";
+			                "selection": {
+			                    "abstractFields": {
+			                        "fields": {
+			                            "User": {
+			                                "id": {
+			                                    "type": "ID";
+			                                    "keyRaw": "id";
+			                                    "visible": true;
+			                                };
+			                                "__typename": {
+			                                    "type": "String";
+			                                    "keyRaw": "__typename";
+			                                    "visible": true;
+			                                };
+			                            };
+			                            "Cat": {
+			                                "id": {
+			                                    "type": "ID";
+			                                    "keyRaw": "id";
+			                                    "visible": true;
+			                                };
+			                                "__typename": {
+			                                    "type": "String";
+			                                    "keyRaw": "__typename";
+			                                    "visible": true;
+			                                };
+			                            };
+			                        };
+			                        "typeMap": {};
+			                    };
+			                    "fields": {
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                        "__typename": {
+			                            "type": "String";
+			                            "keyRaw": "__typename";
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "abstract": true;
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "policy": "CacheOrNetwork";
+			    "partial": false;
+			};
 		`)
 	})
 
@@ -849,6 +1728,77 @@ describe('typescript', function () {
 			};
 
 			export type MyQuery$input = null;
+
+			export type MyQuery$artifact = {
+			    "name": "MyQuery";
+			    "kind": "HoudiniQuery";
+			    "hash": "b5705e689c230262aea65553c5366ca16aa85ffb6be532a5a83fe0c29319b632";
+			    "raw": \`query MyQuery {
+			  entities {
+			    ... on User {
+			      id
+			    }
+			    ... on Cat {
+			      id
+			    }
+			    __typename
+			  }
+			}
+			\`;
+			    "rootType": "Query";
+			    "selection": {
+			        "fields": {
+			            "entities": {
+			                "type": "Entity";
+			                "keyRaw": "entities";
+			                "nullable": true;
+			                "selection": {
+			                    "abstractFields": {
+			                        "fields": {
+			                            "User": {
+			                                "id": {
+			                                    "type": "ID";
+			                                    "keyRaw": "id";
+			                                    "visible": true;
+			                                };
+			                                "__typename": {
+			                                    "type": "String";
+			                                    "keyRaw": "__typename";
+			                                    "visible": true;
+			                                };
+			                            };
+			                            "Cat": {
+			                                "id": {
+			                                    "type": "ID";
+			                                    "keyRaw": "id";
+			                                    "visible": true;
+			                                };
+			                                "__typename": {
+			                                    "type": "String";
+			                                    "keyRaw": "__typename";
+			                                    "visible": true;
+			                                };
+			                            };
+			                        };
+			                        "typeMap": {};
+			                    };
+			                    "fields": {
+			                        "__typename": {
+			                            "type": "String";
+			                            "keyRaw": "__typename";
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "abstract": true;
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "policy": "CacheOrNetwork";
+			    "partial": false;
+			};
 		`)
 	})
 
@@ -900,6 +1850,94 @@ describe('typescript', function () {
 			};
 
 			export type MyQuery$input = null;
+
+			export type MyQuery$artifact = {
+			    "name": "MyQuery";
+			    "kind": "HoudiniQuery";
+			    "hash": "21a52db58ea979321a735e60ac37878e5675cc15589e1f54cd6ea8ad51a9c359";
+			    "raw": \`query MyQuery {
+			  nodes {
+			    id
+			    ... on User {
+			      firstName
+			      id
+			    }
+			    ... on Cat {
+			      kitty
+			      id
+			    }
+			    __typename
+			  }
+			}
+			\`;
+			    "rootType": "Query";
+			    "selection": {
+			        "fields": {
+			            "nodes": {
+			                "type": "Node";
+			                "keyRaw": "nodes";
+			                "selection": {
+			                    "abstractFields": {
+			                        "fields": {
+			                            "User": {
+			                                "firstName": {
+			                                    "type": "String";
+			                                    "keyRaw": "firstName";
+			                                    "visible": true;
+			                                };
+			                                "id": {
+			                                    "type": "ID";
+			                                    "keyRaw": "id";
+			                                    "visible": true;
+			                                };
+			                                "__typename": {
+			                                    "type": "String";
+			                                    "keyRaw": "__typename";
+			                                    "visible": true;
+			                                };
+			                            };
+			                            "Cat": {
+			                                "kitty": {
+			                                    "type": "Boolean";
+			                                    "keyRaw": "kitty";
+			                                    "visible": true;
+			                                };
+			                                "id": {
+			                                    "type": "ID";
+			                                    "keyRaw": "id";
+			                                    "visible": true;
+			                                };
+			                                "__typename": {
+			                                    "type": "String";
+			                                    "keyRaw": "__typename";
+			                                    "visible": true;
+			                                };
+			                            };
+			                        };
+			                        "typeMap": {};
+			                    };
+			                    "fields": {
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                        "__typename": {
+			                            "type": "String";
+			                            "keyRaw": "__typename";
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "abstract": true;
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "policy": "CacheOrNetwork";
+			    "partial": false;
+			};
 		`)
 	})
 
@@ -952,6 +1990,97 @@ describe('typescript', function () {
 			};
 
 			export type MyQuery$input = null;
+
+			export type MyQuery$artifact = {
+			    "name": "MyQuery";
+			    "kind": "HoudiniQuery";
+			    "hash": "c25bd32ae0bce403ccc8003f26d309858560a9a931b3994b25ea90a5e78f12e3";
+			    "raw": \`query MyQuery {
+			  entities {
+			    ... on Animal {
+			      isAnimal
+			    }
+			    ... on User {
+			      firstName
+			      id
+			    }
+			    ... on Cat {
+			      kitty
+			      id
+			    }
+			    __typename
+			  }
+			}
+			\`;
+			    "rootType": "Query";
+			    "selection": {
+			        "fields": {
+			            "entities": {
+			                "type": "Entity";
+			                "keyRaw": "entities";
+			                "nullable": true;
+			                "selection": {
+			                    "abstractFields": {
+			                        "fields": {
+			                            "User": {
+			                                "firstName": {
+			                                    "type": "String";
+			                                    "keyRaw": "firstName";
+			                                    "visible": true;
+			                                };
+			                                "id": {
+			                                    "type": "ID";
+			                                    "keyRaw": "id";
+			                                    "visible": true;
+			                                };
+			                                "__typename": {
+			                                    "type": "String";
+			                                    "keyRaw": "__typename";
+			                                    "visible": true;
+			                                };
+			                            };
+			                            "Cat": {
+			                                "kitty": {
+			                                    "type": "Boolean";
+			                                    "keyRaw": "kitty";
+			                                    "visible": true;
+			                                };
+			                                "id": {
+			                                    "type": "ID";
+			                                    "keyRaw": "id";
+			                                    "visible": true;
+			                                };
+			                                "isAnimal": {
+			                                    "type": "Boolean";
+			                                    "keyRaw": "isAnimal";
+			                                    "visible": true;
+			                                };
+			                                "__typename": {
+			                                    "type": "String";
+			                                    "keyRaw": "__typename";
+			                                    "visible": true;
+			                                };
+			                            };
+			                        };
+			                        "typeMap": {};
+			                    };
+			                    "fields": {
+			                        "__typename": {
+			                            "type": "String";
+			                            "keyRaw": "__typename";
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "abstract": true;
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "policy": "CacheOrNetwork";
+			    "partial": false;
+			};
 		`)
 	})
 
@@ -1010,6 +2139,40 @@ describe('typescript', function () {
 			};
 
 			export type MyQuery$input = null;
+
+			export type MyQuery$artifact = {
+			    "name": "MyQuery";
+			    "kind": "HoudiniQuery";
+			    "hash": "87075eb7baf6814d4d50014581034fbdaa8ba700214a568670261e5b428597a0";
+			    "raw": \`query MyQuery {
+			  allItems {
+			    createdAt
+			  }
+			}
+			\`;
+			    "rootType": "Query";
+			    "selection": {
+			        "fields": {
+			            "allItems": {
+			                "type": "TodoItem";
+			                "keyRaw": "allItems";
+			                "selection": {
+			                    "fields": {
+			                        "createdAt": {
+			                            "type": "DateTime";
+			                            "keyRaw": "createdAt";
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "policy": "CacheOrNetwork";
+			    "partial": false;
+			};
 		`)
 	})
 
@@ -1072,6 +2235,46 @@ describe('typescript', function () {
 			export type MyQuery$input = {
 			    date: Date;
 			};
+
+			export type MyQuery$artifact = {
+			    "name": "MyQuery";
+			    "kind": "HoudiniQuery";
+			    "hash": "dabe70c216f3d5d1c8acddccf9e2d8b14257649861747f941b9c64cfd6311022";
+			    "raw": \`query MyQuery($date: DateTime!) {
+			  allItems(createdAt: $date) {
+			    createdAt
+			  }
+			}
+			\`;
+			    "rootType": "Query";
+			    "selection": {
+			        "fields": {
+			            "allItems": {
+			                "type": "TodoItem";
+			                "keyRaw": "allItems(createdAt: $date)";
+			                "selection": {
+			                    "fields": {
+			                        "createdAt": {
+			                            "type": "DateTime";
+			                            "keyRaw": "createdAt";
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "input": {
+			        "fields": {
+			            "date": "DateTime";
+			        };
+			        "types": {};
+			    };
+			    "policy": "CacheOrNetwork";
+			    "partial": false;
+			};
 		`)
 	})
 
@@ -1113,6 +2316,53 @@ describe('typescript', function () {
 			};
 
 			export type MyQuery$input = null;
+
+			export type MyQuery$artifact = {
+			    "name": "MyQuery";
+			    "kind": "HoudiniQuery";
+			    "hash": "a173496c64d9d074e03787939bc79e046f8362a606857fa387447c5f3a250ab7";
+			    "raw": \`query MyQuery {
+			  listOfLists {
+			    firstName
+			    nickname
+			    id
+			  }
+			}
+			\`;
+			    "rootType": "Query";
+			    "selection": {
+			        "fields": {
+			            "listOfLists": {
+			                "type": "User";
+			                "keyRaw": "listOfLists";
+			                "selection": {
+			                    "fields": {
+			                        "firstName": {
+			                            "type": "String";
+			                            "keyRaw": "firstName";
+			                            "visible": true;
+			                        };
+			                        "nickname": {
+			                            "type": "String";
+			                            "keyRaw": "nickname";
+			                            "nullable": true;
+			                            "visible": true;
+			                        };
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "policy": "CacheOrNetwork";
+			    "partial": false;
+			};
 		`)
 	})
 
@@ -1157,6 +2407,76 @@ describe('typescript', function () {
 			};
 
 			export type MyQuery$input = null;
+
+			export type MyQuery$artifact = {
+			    "name": "MyQuery";
+			    "kind": "HoudiniQuery";
+			    "hash": "38d331a2d7f0611a5ed00d57a0f3b4ef5c5cde865f69cb1b09559db85211ea2e";
+			    "raw": \`query MyQuery {
+			  user {
+			    parent {
+			      firstName
+			      firstName
+			      id
+			    }
+			    parent {
+			      nickname
+			      id
+			    }
+			    id
+			  }
+			}
+			\`;
+			    "rootType": "Query";
+			    "selection": {
+			        "fields": {
+			            "user": {
+			                "type": "User";
+			                "keyRaw": "user";
+			                "nullable": true;
+			                "selection": {
+			                    "fields": {
+			                        "parent": {
+			                            "type": "User";
+			                            "keyRaw": "parent";
+			                            "nullable": true;
+			                            "selection": {
+			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String";
+			                                        "keyRaw": "firstName";
+			                                        "visible": true;
+			                                    };
+			                                    "id": {
+			                                        "type": "ID";
+			                                        "keyRaw": "id";
+			                                        "visible": true;
+			                                    };
+			                                    "nickname": {
+			                                        "type": "String";
+			                                        "keyRaw": "nickname";
+			                                        "nullable": true;
+			                                        "visible": true;
+			                                    };
+			                                };
+			                            };
+			                            "visible": true;
+			                        };
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "policy": "CacheOrNetwork";
+			    "partial": false;
+			};
 		`)
 	})
 
@@ -1261,6 +2581,96 @@ describe('typescript', function () {
 			    readonly doThing?: {
 			        readonly id?: string;
 			    } | null;
+			};
+
+			export type MyMutation$artifact = {
+			    "name": "MyMutation";
+			    "kind": "HoudiniMutation";
+			    "hash": "609440bd4c48c2082cadf4d900ab6f3636c576ce469a14c00383896c0a093d36";
+			    "raw": \`mutation MyMutation($filter: UserFilter, $filterList: [UserFilter!]!, $id: ID!, $firstName: String!, $admin: Boolean, $age: Int, $weight: Float) {
+			  doThing(
+			    filter: $filter
+			    list: $filterList
+			    id: $id
+			    firstName: $firstName
+			    admin: $admin
+			    age: $age
+			    weight: $weight
+			  ) {
+			    ...My_Users_remove
+			    ...My_Users_insert
+			    id
+			  }
+			}
+
+			fragment My_Users_remove on User {
+			  id
+			}
+
+			fragment My_Users_insert on User {
+			  id
+			}
+			\`;
+			    "rootType": "Mutation";
+			    "selection": {
+			        "fields": {
+			            "doThing": {
+			                "type": "User";
+			                "keyRaw": "doThing(admin: $admin, age: $age, filter: $filter, firstName: $firstName, id: $id, list: $filterList, weight: $weight)";
+			                "nullable": true;
+			                "operations": [{
+			                    "action": "remove";
+			                    "list": "My_Users";
+			                }, {
+			                    "action": "insert";
+			                    "list": "My_Users";
+			                    "position": "last";
+			                }];
+			                "selection": {
+			                    "fields": {
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                    };
+			                    "fragments": {
+			                        "My_Users_remove": {};
+			                        "My_Users_insert": {};
+			                    };
+			                };
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "input": {
+			        "fields": {
+			            "filter": "UserFilter";
+			            "filterList": "UserFilter";
+			            "id": "ID";
+			            "firstName": "String";
+			            "admin": "Boolean";
+			            "age": "Int";
+			            "weight": "Float";
+			        };
+			        "types": {
+			            "NestedUserFilter": {
+			                "id": "ID";
+			                "firstName": "String";
+			                "admin": "Boolean";
+			                "age": "Int";
+			                "weight": "Float";
+			            };
+			            "UserFilter": {
+			                "middle": "NestedUserFilter";
+			                "listRequired": "String";
+			                "nullList": "String";
+			                "recursive": "UserFilter";
+			                "enum": "MyEnum";
+			            };
+			        };
+			    };
 			};
 		`)
 	})
@@ -1452,6 +2862,100 @@ describe('typescript', function () {
 			};
 
 			export type MyQuery$input = null;
+
+			export type MyQuery$artifact = {
+			    "name": "MyQuery";
+			    "kind": "HoudiniQuery";
+			    "hash": "53a8f654096f13904d5dc6300ce727748bf3ed0388e19984ef8ac7dc17515385";
+			    "raw": \`query MyQuery {
+			  user {
+			    ...UserBase
+			    ...UserMore
+			    id
+			  }
+			}
+
+			fragment UserBase on User {
+			  id
+			  firstName
+			  __typename
+			}
+
+			fragment UserMore on User {
+			  friends {
+			    ...UserBase
+			    id
+			  }
+			  id
+			  __typename
+			}
+			\`;
+			    "rootType": "Query";
+			    "selection": {
+			        "fields": {
+			            "user": {
+			                "type": "User";
+			                "keyRaw": "user";
+			                "nullable": true;
+			                "selection": {
+			                    "fields": {
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                        "firstName": {
+			                            "type": "String";
+			                            "keyRaw": "firstName";
+			                            "visible": true;
+			                        };
+			                        "__typename": {
+			                            "type": "String";
+			                            "keyRaw": "__typename";
+			                            "visible": true;
+			                        };
+			                        "friends": {
+			                            "type": "User";
+			                            "keyRaw": "friends";
+			                            "nullable": true;
+			                            "selection": {
+			                                "fields": {
+			                                    "id": {
+			                                        "type": "ID";
+			                                        "keyRaw": "id";
+			                                        "visible": true;
+			                                    };
+			                                    "firstName": {
+			                                        "type": "String";
+			                                        "keyRaw": "firstName";
+			                                        "visible": true;
+			                                    };
+			                                    "__typename": {
+			                                        "type": "String";
+			                                        "keyRaw": "__typename";
+			                                        "visible": true;
+			                                    };
+			                                };
+			                                "fragments": {
+			                                    "UserBase": {};
+			                                };
+			                            };
+			                            "visible": true;
+			                        };
+			                    };
+			                    "fragments": {
+			                        "UserBase": {};
+			                        "UserMore": {};
+			                    };
+			                };
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "policy": "CacheOrNetwork";
+			    "partial": false;
+			};
 		`)
 	})
 
@@ -1517,6 +3021,97 @@ describe('typescript', function () {
 			};
 
 			export type MyQuery$input = null;
+
+			export type MyQuery$artifact = {
+			    "name": "MyQuery";
+			    "kind": "HoudiniQuery";
+			    "hash": "c387cedf90314a9b3fb48a4d2f47ed1ba1c4e12e3da2eb9ac6fc1220adfa2e8d";
+			    "raw": \`query MyQuery {
+			  user {
+			    ...UserBase
+			    ...UserMore
+			    id
+			  }
+			}
+
+			fragment UserBase on User {
+			  id
+			  firstName
+			  __typename
+			}
+
+			fragment UserMore on User {
+			  friends {
+			    ...UserBase
+			    id
+			  }
+			  id
+			  __typename
+			}
+			\`;
+			    "rootType": "Query";
+			    "selection": {
+			        "fields": {
+			            "user": {
+			                "type": "User";
+			                "keyRaw": "user";
+			                "nullable": true;
+			                "selection": {
+			                    "fields": {
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                        "firstName": {
+			                            "type": "String";
+			                            "keyRaw": "firstName";
+			                            "visible": true;
+			                        };
+			                        "__typename": {
+			                            "type": "String";
+			                            "keyRaw": "__typename";
+			                            "visible": true;
+			                        };
+			                        "friends": {
+			                            "type": "User";
+			                            "keyRaw": "friends";
+			                            "nullable": true;
+			                            "selection": {
+			                                "fields": {
+			                                    "id": {
+			                                        "type": "ID";
+			                                        "keyRaw": "id";
+			                                        "visible": true;
+			                                    };
+			                                    "firstName": {
+			                                        "type": "String";
+			                                        "keyRaw": "firstName";
+			                                    };
+			                                    "__typename": {
+			                                        "type": "String";
+			                                        "keyRaw": "__typename";
+			                                    };
+			                                };
+			                                "fragments": {
+			                                    "UserBase": {};
+			                                };
+			                            };
+			                        };
+			                    };
+			                    "fragments": {
+			                        "UserBase": {};
+			                        "UserMore": {};
+			                    };
+			                };
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "policy": "CacheOrNetwork";
+			    "partial": false;
+			};
 		`)
 
 		expect(
@@ -1539,6 +3134,61 @@ describe('typescript', function () {
 			            UserBase: {};
 			        };
 			    } | null)[] | null;
+			};
+
+			export type UserMore$artifact = {
+			    "name": "UserMore";
+			    "kind": "HoudiniFragment";
+			    "hash": "dd15a529e927b628fe52e5479f698a5b3a65bae59380ff08e767cfb8bdf1c745";
+			    "raw": \`fragment UserMore on User {
+			  friends {
+			    ...UserBase
+			    id
+			  }
+			  id
+			  __typename
+			}
+
+			fragment UserBase on User {
+			  id
+			  firstName
+			  __typename
+			}
+			\`;
+			    "rootType": "User";
+			    "selection": {
+			        "fields": {
+			            "friends": {
+			                "type": "User";
+			                "keyRaw": "friends";
+			                "nullable": true;
+			                "selection": {
+			                    "fields": {
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                    };
+			                    "fragments": {
+			                        "UserBase": {};
+			                    };
+			                };
+			                "visible": true;
+			            };
+			            "id": {
+			                "type": "ID";
+			                "keyRaw": "id";
+			                "visible": true;
+			            };
+			            "__typename": {
+			                "type": "String";
+			                "keyRaw": "__typename";
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
 			};
 		`)
 	})
@@ -1610,6 +3260,99 @@ describe('typescript', function () {
 			};
 
 			export type MyQuery$input = null;
+
+			export type MyQuery$artifact = {
+			    "name": "MyQuery";
+			    "kind": "HoudiniQuery";
+			    "hash": "ec1246bc6b1083a74cefb176a260fbc3171a820cffd8e9cd747cdce7488d3665";
+			    "raw": \`query MyQuery {
+			  user {
+			    ...UserBase
+			    ...UserMore
+			    id
+			  }
+			}
+
+			fragment UserBase on User {
+			  id
+			  firstName
+			  __typename
+			}
+
+			fragment UserMore on User {
+			  friends {
+			    ...UserBase
+			    id
+			  }
+			  id
+			  __typename
+			}
+			\`;
+			    "rootType": "Query";
+			    "selection": {
+			        "fields": {
+			            "user": {
+			                "type": "User";
+			                "keyRaw": "user";
+			                "nullable": true;
+			                "selection": {
+			                    "fields": {
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                        "firstName": {
+			                            "type": "String";
+			                            "keyRaw": "firstName";
+			                        };
+			                        "__typename": {
+			                            "type": "String";
+			                            "keyRaw": "__typename";
+			                            "visible": true;
+			                        };
+			                        "friends": {
+			                            "type": "User";
+			                            "keyRaw": "friends";
+			                            "nullable": true;
+			                            "selection": {
+			                                "fields": {
+			                                    "id": {
+			                                        "type": "ID";
+			                                        "keyRaw": "id";
+			                                        "visible": true;
+			                                    };
+			                                    "firstName": {
+			                                        "type": "String";
+			                                        "keyRaw": "firstName";
+			                                        "visible": true;
+			                                    };
+			                                    "__typename": {
+			                                        "type": "String";
+			                                        "keyRaw": "__typename";
+			                                        "visible": true;
+			                                    };
+			                                };
+			                                "fragments": {
+			                                    "UserBase": {};
+			                                };
+			                            };
+			                            "visible": true;
+			                        };
+			                    };
+			                    "fragments": {
+			                        "UserBase": {};
+			                        "UserMore": {};
+			                    };
+			                };
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "policy": "CacheOrNetwork";
+			    "partial": false;
+			};
 		`)
 
 		expect(
@@ -1634,6 +3377,71 @@ describe('typescript', function () {
 			            UserBase: {};
 			        };
 			    } | null)[] | null;
+			};
+
+			export type UserMore$artifact = {
+			    "name": "UserMore";
+			    "kind": "HoudiniFragment";
+			    "hash": "dd15a529e927b628fe52e5479f698a5b3a65bae59380ff08e767cfb8bdf1c745";
+			    "raw": \`fragment UserMore on User {
+			  friends {
+			    ...UserBase
+			    id
+			  }
+			  id
+			  __typename
+			}
+
+			fragment UserBase on User {
+			  id
+			  firstName
+			  __typename
+			}
+			\`;
+			    "rootType": "User";
+			    "selection": {
+			        "fields": {
+			            "friends": {
+			                "type": "User";
+			                "keyRaw": "friends";
+			                "nullable": true;
+			                "selection": {
+			                    "fields": {
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                        "firstName": {
+			                            "type": "String";
+			                            "keyRaw": "firstName";
+			                            "visible": true;
+			                        };
+			                        "__typename": {
+			                            "type": "String";
+			                            "keyRaw": "__typename";
+			                            "visible": true;
+			                        };
+			                    };
+			                    "fragments": {
+			                        "UserBase": {};
+			                    };
+			                };
+			                "visible": true;
+			            };
+			            "id": {
+			                "type": "ID";
+			                "keyRaw": "id";
+			                "visible": true;
+			            };
+			            "__typename": {
+			                "type": "String";
+			                "keyRaw": "__typename";
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
 			};
 		`)
 	})
@@ -1672,6 +3480,72 @@ describe('typescript', function () {
 			};
 
 			export type MyQuery$input = null;
+
+			export type MyQuery$artifact = {
+			    "name": "MyQuery";
+			    "kind": "HoudiniQuery";
+			    "hash": "2d7de7172ca60367f8319c3e20c939584616da3953e8723a9c5bf55117a24897";
+			    "raw": \`query MyQuery {
+			  user {
+			    id
+			    firstName @include(if: true)
+			    admin @skip(if: true)
+			  }
+			}
+			\`;
+			    "rootType": "Query";
+			    "selection": {
+			        "fields": {
+			            "user": {
+			                "type": "User";
+			                "keyRaw": "user";
+			                "nullable": true;
+			                "selection": {
+			                    "fields": {
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                        "firstName": {
+			                            "type": "String";
+			                            "keyRaw": "firstName";
+			                            "directives": [{
+			                                "name": "include";
+			                                "arguments": {
+			                                    "if": {
+			                                        "kind": "BooleanValue";
+			                                        "value": true;
+			                                    };
+			                                };
+			                            }];
+			                            "visible": true;
+			                        };
+			                        "admin": {
+			                            "type": "Boolean";
+			                            "keyRaw": "admin";
+			                            "directives": [{
+			                                "name": "skip";
+			                                "arguments": {
+			                                    "if": {
+			                                        "kind": "BooleanValue";
+			                                        "value": true;
+			                                    };
+			                                };
+			                            }];
+			                            "nullable": true;
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "policy": "CacheOrNetwork";
+			    "partial": false;
+			};
 		`)
 	})
 
@@ -1732,6 +3606,49 @@ test('overlapping fragments', async function () {
 		    readonly " $fragments": {
 		        UserMore: {};
 		    };
+		};
+
+		export type UserBase$artifact = {
+		    "name": "UserBase";
+		    "kind": "HoudiniFragment";
+		    "hash": "05ec5090d31f77c3f2bdcbd26aff116588f63d4b3789ae752759dd172974a628";
+		    "raw": \`fragment UserBase on User {
+		  id
+		  firstName
+		  ...UserMore
+		  __typename
+		}
+
+		fragment UserMore on User {
+		  id
+		  firstName
+		  __typename
+		}
+		\`;
+		    "rootType": "User";
+		    "selection": {
+		        "fields": {
+		            "id": {
+		                "type": "ID";
+		                "keyRaw": "id";
+		                "visible": true;
+		            };
+		            "firstName": {
+		                "type": "String";
+		                "keyRaw": "firstName";
+		                "visible": true;
+		            };
+		            "__typename": {
+		                "type": "String";
+		                "keyRaw": "__typename";
+		                "visible": true;
+		            };
+		        };
+		        "fragments": {
+		            "UserMore": {};
+		        };
+		    };
+		    "pluginData": {};
 		};
 	`)
 })

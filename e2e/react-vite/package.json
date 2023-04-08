@@ -1,0 +1,33 @@
+{
+	"name": "e2e-react-vite",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"build:": "cd ../../ && ((run build && cd -) || (cd - && exit 1))",
+		"build:dev": "pnpm build: && pnpm dev",
+		"build:test": "pnpm build: && pnpm test",
+		"build:build": "pnpm build: && pnpm build",
+		"web": "vite ",
+		"api": "cross-env TZ=utc e2e-api",
+		"dev": "concurrently \"pnpm run web\" \"pnpm run api\" -n \"web,api\" -c \"green,magenta\"",
+		"build": "tsc && vite build",
+		"preview": "vite preview"
+	},
+	"dependencies": {
+		"houdini": "workspace:^",
+		"houdini-react": "workspace:^",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0"
+	},
+	"devDependencies": {
+		"@types/react": "^18.0.27",
+		"@types/react-dom": "^18.0.10",
+		"@vitejs/plugin-react": "^3.1.0",
+		"concurrently": "7.1.0",
+		"cross-env": "^7.0.3",
+		"e2e-api": "workspace:^",
+		"typescript": "^4.9.3",
+		"vite": "^4.1.0"
+	}
+}

@@ -129,7 +129,7 @@ export class Config {
 		this.logLevel = ((logLevel as LogLevels) || LogLevel.Summary).toLowerCase() as LogLevels
 		this.defaultFragmentMasking = defaultFragmentMasking
 		this.routesDir = path.join(this.projectRoot, 'src', 'routes')
-		this.schemaPollInterval = watchSchema?.interval ?? 2000
+		this.schemaPollInterval = watchSchema?.interval === undefined ? 2000 : watchSchema.interval
 		this.schemaPollHeaders = watchSchema?.headers ?? {}
 		this.rootDir = path.join(this.projectRoot, '$houdini')
 		this.#fragmentVariableMaps = {}
@@ -343,10 +343,28 @@ export class Config {
 	get runtimeSource() {
 		// when running in the real world, scripts are nested in a sub directory of build, in tests they aren't nested
 		// under /src so we need to figure out how far up to go to find the appropriately compiled runtime
-		const relative = houdini_mode.is_testing
-			? path.join(currentDir, '..', '..')
-			: // start here and go to parent until we find the node_modules/houdini folder
-			  findModule('houdini', path.join(path.dirname(this.filepath)))
+		let relative: string
+		if (houdini_mode.is_testing) {
+			relative = path.join(currentDir, '..', '..')
+		} else if (process.versions.pnp) {
+			// we are in a PnP environment
+			// retrieve the PnP API (Yarn injects the `findPnpApi` into `node:module` builtin module in runtime)
+			const { findPnpApi } = require('node:module')
+
+			// this will traverse the file system to find the closest `.pnp.cjs` file and return the PnP API based on it
+			const pnp = findPnpApi(this.filepath)
+
+			// this will return the houdini package location (it will be inside the .zip file)
+			// it will throw if the module isn't found in the project's dependencies, but it should be there
+			// this will be something like `.yarn/cache/houdini-npm-bcb9b12a88-c0f1080ca8.zip/node_modules/houdini/`
+			// it is inside the .zip archive, but since Yarn dynamically patches `fs` module to add support for reading
+			// files from the .zip archives, we can just use the path as-is
+			// https://yarnpkg.com/features/pnp#packages-are-stored-inside-zip-archives-how-can-i-access-their-files
+			relative = pnp.resolveToUnqualified('houdini', this.filepath)
+		} else {
+			// start here and go to parent until we find the node_modules/houdini folder
+			relative = findModule('houdini', path.join(path.dirname(this.filepath)))
+		}
 
 		const which = this.module === 'esm' ? 'esm' : 'cjs'
 
@@ -667,6 +685,21 @@ export class Config {
 			!defaultDirectives.includes(name) &&
 			(internalDirectives.includes(name) || this.isDeleteDirective(name))
 		)
+	}
+
+	// we need a function that walks down a graphql query and detects the use of a directive config.paginateDirective
+	needsRefetchArtifact(document: graphql.DocumentNode) {
+		let needsArtifact = false
+
+		graphql.visit(document, {
+			Directive: (node) => {
+				if ([this.paginateDirective].includes(node.name.value)) {
+					needsArtifact = true
+				}
+			},
+		})
+
+		return needsArtifact
 	}
 
 	#fragmentVariableMaps: Record<string, { args: ValueMap | null; fragment: string }>
@@ -1063,6 +1096,20 @@ export const orderedPlugins = (plugins: PluginMeta[]) => {
 
 async function pluginPath(plugin_name: string, config_path: string): Promise<string> {
 	try {
+		// check if we are in a PnP environment
+		if (process.versions.pnp) {
+			// retrieve the PnP API (Yarn injects the `findPnpApi` into `node:module` builtin module in runtime)
+			const { findPnpApi } = require('node:module')
+
+			// this will traverse the file system to find the closest `.pnp.cjs` file and return the PnP API based on it
+			// normally it will reside at the same level with `houdini.config.js` file, so it is unlikely that traversing the whole file system will happen
+			const pnp = findPnpApi(config_path)
+
+			// this directly returns the ESM export of the corresponding module, thanks to the PnP API
+			// it will throw if the module isn't found in the project's dependencies
+			return pnp.resolveRequest(plugin_name, config_path, { conditions: new Set(['import']) })
+		}
+
 		// otherwise we have to hunt the module down relative to the current path
 		const pluginDirectory = findModule(plugin_name, config_path)
 

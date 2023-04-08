@@ -477,8 +477,6 @@ async function updateSvelteMainJs(targetPath: string, typescript: boolean) {
 import './app.css'
 import App from './App.svelte'
 
-client.init();
-
 const app = new App({
 	target: document.getElementById('app')
 })

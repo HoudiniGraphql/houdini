@@ -1,6 +1,6 @@
 {
     "name": "houdini-react",
-    "version": "1.1.4",
+    "version": "1.1.7",
     "private": true,
     "description": "The React plugin for houdini",
     "keywords": [
@@ -28,10 +28,15 @@
     },
     "dependencies": {
         "@babel/parser": "^7.19.3",
+        "@types/react": "^18.0.28",
+        "@types/rollup": "^0.54.0",
         "estraverse": "^5.3.0",
         "graphql": "^15.8.0",
         "houdini": "workspace:^",
-        "recast": "^0.23.1"
+        "react": "^18.2.0",
+        "recast": "^0.23.1",
+        "rollup": "^3.7.4",
+        "use-deep-compare-effect": "^1.8.1"
     },
     "files": [
         "build"

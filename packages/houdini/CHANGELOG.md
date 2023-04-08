@@ -1,5 +1,27 @@
 # houdini
 
+## 1.1.7
+
+### ✨ Features
+
+-   [#1037](https://github.com/HoudiniGraphql/houdini/pull/1037) [`151a107`](https://github.com/HoudiniGraphql/houdini/commit/151a10718b92fb97eec6e94ea12efc7f98928755) Thanks [@devunt](https://github.com/devunt)! - Add support for Yarn's PnP mode
+
+## 1.1.6
+
+### 🐛 Fixes
+
+-   [#1036](https://github.com/HoudiniGraphql/houdini/pull/1036) [`f0c11433`](https://github.com/HoudiniGraphql/houdini/commit/f0c11433a1403e9e0a2d53031f23483fa3e486df) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Make sure fragment arguments get marshaled properly
+
+## 1.1.5
+
+### 🐛 Fixes
+
+-   [#1032](https://github.com/HoudiniGraphql/houdini/pull/1032) [`5305a2ad`](https://github.com/HoudiniGraphql/houdini/commit/5305a2ad36e692d47f5fb4cfa2c5a2e4d9ef3d4d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix template files created by init command
+
+-   [#1031](https://github.com/HoudiniGraphql/houdini/pull/1031) [`5a6e188d`](https://github.com/HoudiniGraphql/houdini/commit/5a6e188d88a4b7f84511a84ddc1bcc2c1ff59f5f) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug with fragment arguments when the same fragment/argument combo was multiple times
+
+-   [#1033](https://github.com/HoudiniGraphql/houdini/pull/1033) [`be51b0f5`](https://github.com/HoudiniGraphql/houdini/commit/be51b0f5e5fdde4f48288bfcede2c46b4bddf01f) Thanks [@devunt](https://github.com/devunt)! - Fix passing `null` over `watchSchema.interval` in the configuration does not work as expected
+
 ## 1.1.4
 
 ### 🐛 Fixes

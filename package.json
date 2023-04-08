@@ -9,7 +9,7 @@
 		"tests:ui": "vitest --ui --coverage",
 		"test": "pnpm run tests",
 		"build:all": "turbo build",
-		"build": "turbo build --filter=\"./packages/*\"",
+		"build": "turbo run build --filter=\"./packages/*\"",
 		"dev": "turbo dev --filter=\"./packages/*\"",
 		"compile:all": "turbo compile",
 		"compile": "turbo compile --filter=\"./packages/*\"",

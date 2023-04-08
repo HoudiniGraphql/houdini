@@ -25,7 +25,8 @@ export const cachePolicy =
 				// enforce cache policies for queries
 				if (
 					enabled &&
-					artifact.kind === ArtifactKind.Query &&
+					(artifact.kind === ArtifactKind.Query ||
+						artifact.kind === ArtifactKind.Fragment) &&
 					!ctx.cacheParams?.disableRead
 				) {
 					// this function is called as the first step in requesting data. If the policy prefers
@@ -98,7 +99,9 @@ export const cachePolicy =
 
 				// if we got this far, we are resolving something against the network
 				// dont set the fetching state to true if we accepted a cache value
-				setFetching(!useCache)
+				if (!ctx.stuff?.silenceLoading) {
+					setFetching(!useCache)
+				}
 
 				// move on
 				return next(ctx)

@@ -1,5 +1,5 @@
 import { logCyan, logGreen } from '@kitql/helper'
-import type { StatementKind } from 'ast-types/lib/gen/kinds'
+import type { ExpressionKind, StatementKind, TSTypeKind } from 'ast-types/lib/gen/kinds'
 import type * as graphql from 'graphql'
 import * as recast from 'recast'
 
@@ -7,6 +7,7 @@ import type { Config, Document } from '../../../lib'
 import { HoudiniError, siteURL, fs, path } from '../../../lib'
 import { fragmentArgumentsDefinitions } from '../../transforms/fragmentVariables'
 import { flattenSelections } from '../../utils'
+import { serializeValue } from '../artifacts/utils'
 import { addReferencedInputTypes } from './addReferencedInputTypes'
 import { fragmentKey, inlineType } from './inlineType'
 import { tsTypeReference } from './typeReference'
@@ -42,6 +43,7 @@ export async function generateDocumentTypes(config: Config, docs: Document[]) {
 				name,
 				filename,
 				generateArtifact: generateArtifact,
+				artifact,
 			}) => {
 				if (!generateArtifact) {
 					return
@@ -95,6 +97,17 @@ export async function generateDocumentTypes(config: Config, docs: Document[]) {
 					)
 				}
 
+				// add the document's artifact as the file's default export
+				program.body.push(
+					// the typescript AST representing a default export in typescript
+					AST.exportNamedDeclaration(
+						AST.tsTypeAliasDeclaration(
+							AST.identifier(`${name}$artifact`),
+							convertToTs(serializeValue(artifact))
+						)
+					)
+				)
+
 				// write the file contents
 				await fs.writeFile(typeDefPath, recast.print(program).code)
 
@@ -131,18 +144,17 @@ export async function generateDocumentTypes(config: Config, docs: Document[]) {
 	const exportStarFrom = ({ module }: { module: string }) => `\nexport * from "${module}"\n`
 	let indexContent = recast.print(typeIndex).code
 	for (const plugin of config.plugins) {
-		if (!plugin.indexFile) {
-			continue
+		if (plugin.indexFile) {
+			indexContent = plugin.indexFile({
+				config,
+				content: indexContent,
+				exportDefaultAs,
+				exportStarFrom,
+				pluginRoot: config.pluginDirectory(plugin.name),
+				typedef: true,
+				documents: docs,
+			})
 		}
-		indexContent = plugin.indexFile({
-			config,
-			content: indexContent,
-			exportDefaultAs,
-			exportStarFrom,
-			pluginRoot: config.pluginDirectory(plugin.name),
-			typedef: true,
-			documents: docs,
-		})
 
 		// if the plugin generated a runtime
 		if (plugin.includeRuntime) {
@@ -184,6 +196,54 @@ ${[...missingScalars]
 
 For more information, please visit this link: ${siteURL}/api/config#custom-scalars`)
 	}
+}
+
+function convertToTs(source: ExpressionKind): TSTypeKind {
+	// convert the values of objects
+	if (source.type === 'ObjectExpression') {
+		return AST.tsTypeLiteral(
+			source.properties.reduce<recast.types.namedTypes.TSPropertySignature[]>(
+				(props, prop) => {
+					if (
+						prop.type !== 'ObjectProperty' ||
+						(prop.key.type !== 'StringLiteral' && prop.key.type === 'Identifier')
+					) {
+						return props
+					}
+
+					return [
+						...props,
+						AST.tsPropertySignature(
+							prop.key,
+							AST.tsTypeAnnotation(convertToTs(prop.value as ExpressionKind))
+						),
+					]
+				},
+				[]
+			)
+		)
+	}
+
+	// convert every element in an array
+	if (source.type === 'ArrayExpression') {
+		return AST.tsTupleType(
+			source.elements.map((element) => convertToTs(element as ExpressionKind))
+		)
+	}
+
+	// handle literal types
+	if (source.type === 'Literal' && typeof source.value === 'boolean') {
+		return AST.tsLiteralType(AST.booleanLiteral(source.value))
+	}
+	if (source.type === 'Literal' && typeof source.value === 'number') {
+		return AST.tsLiteralType(AST.numericLiteral(source.value))
+	}
+	if (source.type === 'Literal' && typeof source.value === 'string') {
+		return AST.tsLiteralType(AST.stringLiteral(source.value))
+	}
+
+	// @ts-ignore
+	return AST.tsLiteralType(source)
 }
 
 async function generateOperationTypeDefs(

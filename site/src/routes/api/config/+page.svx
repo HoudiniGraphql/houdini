@@ -17,10 +17,10 @@ export default {
         DateTime: {
             type: 'Date',
             unmarshal(val) {
-                return new Date(val)
+                return val ? new Date(val) : null
             },
             marshal(date) {
-                return date.getTime()
+                return date && date.getTime()
             }
         }
 	}
@@ -110,16 +110,19 @@ export default {
 			type: 'Date',
 			// turn the api's response into that type
 			unmarshal(val) {
-				return new Date(val)
+				return val ? new Date(val) : null
 			},
 			// turn the value into something the API can use
 			marshal(date) {
-				return date.getTime()
+				return date && date.getTime()
 			}
 		}
 	}
 }
 ```
+
+Please note that your marshal/unmarshal functions are also called with null
+values, and these must be handled appropriately.
 
 ## Schema Polling
 
