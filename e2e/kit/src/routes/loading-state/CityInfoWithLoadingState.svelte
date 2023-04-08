@@ -3,8 +3,8 @@
     fragment,
     fragmentFetching,
     graphql,
-    type CityInfoWithLoadingState,
-    LoadingValue
+    LoadingValue,
+    type CityInfoWithLoadingState
   } from '$houdini';
 
   export let city: CityInfoWithLoadingState;

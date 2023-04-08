@@ -896,3 +896,167 @@ test('persist count in loading spec', async function () {
 		"HoudiniHash=3947712af714fc77cea2b4f87481140e2f864f534b037a040e791c8214659700";
 	`)
 })
+
+test('loading state on definitions', async function () {
+	// the config to use in tests
+	const config = testConfig()
+	const docs = [
+		mockCollectedDoc(
+			`query Query @loading {
+				entities {
+					... on User {
+						firstName
+					}
+					... on Cat  {
+						name
+					}
+				}
+			}`
+		),
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
+
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "Query",
+		    "kind": "HoudiniQuery",
+		    "hash": "a24fb766d682cde39dcc54c587cce6380b9aef13f258d912d4b11ddbaa5f58ae",
+
+		    "raw": \`query Query {
+		  entities {
+		    ... on User {
+		      firstName
+		      id
+		    }
+		    ... on Cat {
+		      name
+		      id
+		    }
+		    __typename
+		  }
+		}
+		\`,
+
+		    "rootType": "Query",
+
+		    "selection": {
+		        "fields": {
+		            "entities": {
+		                "type": "Entity",
+		                "keyRaw": "entities",
+
+		                "selection": {
+		                    "abstractFields": {
+		                        "fields": {
+		                            "User": {
+		                                "firstName": {
+		                                    "type": "String",
+		                                    "keyRaw": "firstName",
+
+		                                    "loading": {
+		                                        "kind": "value"
+		                                    },
+
+		                                    "visible": true
+		                                },
+
+		                                "id": {
+		                                    "type": "ID",
+		                                    "keyRaw": "id",
+		                                    "visible": true,
+
+		                                    "loading": {
+		                                        "kind": "value"
+		                                    }
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename",
+
+		                                    "loading": {
+		                                        "kind": "value"
+		                                    },
+
+		                                    "visible": true
+		                                }
+		                            },
+
+		                            "Cat": {
+		                                "name": {
+		                                    "type": "String",
+		                                    "keyRaw": "name",
+
+		                                    "loading": {
+		                                        "kind": "value"
+		                                    },
+
+		                                    "visible": true
+		                                },
+
+		                                "id": {
+		                                    "type": "ID",
+		                                    "keyRaw": "id",
+		                                    "visible": true,
+
+		                                    "loading": {
+		                                        "kind": "value"
+		                                    }
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename",
+
+		                                    "loading": {
+		                                        "kind": "value"
+		                                    },
+
+		                                    "visible": true
+		                                }
+		                            }
+		                        },
+
+		                        "typeMap": {}
+		                    },
+
+		                    "fields": {
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename",
+
+		                            "loading": {
+		                                "kind": "value"
+		                            },
+
+		                            "visible": true
+		                        }
+		                    }
+		                },
+
+		                "loading": {
+		                    "kind": "continue",
+
+		                    "list": {
+		                        "depth": 1,
+		                        "count": 3
+		                    }
+		                },
+
+		                "abstract": true,
+		                "visible": true
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+		    "enableLoadingState": true,
+		    "policy": "CacheOrNetwork",
+		    "partial": false
+		};
+
+		"HoudiniHash=a24fb766d682cde39dcc54c587cce6380b9aef13f258d912d4b11ddbaa5f58ae";
+	`)
+})

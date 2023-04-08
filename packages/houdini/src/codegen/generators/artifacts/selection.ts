@@ -41,6 +41,7 @@ function prepareSelection({
 	inConnection,
 	typeMap,
 	abstractTypes,
+	globalLoading,
 }: {
 	config: Config
 	filepath: string
@@ -52,6 +53,7 @@ function prepareSelection({
 	inConnection?: boolean
 	typeMap: Record<string, string[]>
 	abstractTypes: string[]
+	globalLoading?: boolean
 }): SubscriptionSelection {
 	// we need to build up an object that contains every field in the selection
 	let object: SubscriptionSelection = {}
@@ -80,6 +82,7 @@ function prepareSelection({
 						document,
 						typeMap,
 						abstractTypes,
+						globalLoading,
 					}).fields || {}
 				)
 			}
@@ -158,6 +161,7 @@ function prepareSelection({
 						document,
 						typeMap,
 						abstractTypes,
+						globalLoading,
 					}).fields,
 				}
 
@@ -304,6 +308,7 @@ function prepareSelection({
 					inConnection: connectionState,
 					typeMap,
 					abstractTypes,
+					globalLoading,
 				})
 			}
 
@@ -323,7 +328,7 @@ function prepareSelection({
 			const loadingDirective = field.directives?.find(
 				(d) => d.name.value === config.loadingDirective
 			)
-			if (loadingDirective) {
+			if (globalLoading || loadingDirective) {
 				// the value we assign depends on wether this is the deepest
 				// selection in this branch with @loading
 				// NOTE: this logic is copied and pasted in the index.js for the artifact loading state
@@ -353,7 +358,7 @@ function prepareSelection({
 						).length
 						if (listCount > 0) {
 							// look for the count arg
-							const countArg = loadingDirective.arguments?.find(
+							const countArg = loadingDirective?.arguments?.find(
 								(arg) => arg.name.value === 'count'
 							)
 							let countValue = 3

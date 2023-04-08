@@ -256,6 +256,22 @@ export default function artifactGenerator(stats: {
 						inputs = fragmentArgumentsDefinitions(config, doc.filename, fragments[0])
 					}
 
+					// we need to look for global loading toggles on queries and fragments
+					let globalLoading = false
+					if (docKind === 'HoudiniFragment') {
+						globalLoading = Boolean(
+							fragments[0]?.directives?.find(
+								(dir) => dir.name.value === config.loadingDirective
+							)
+						)
+					} else if (docKind === 'HoudiniQuery') {
+						globalLoading = Boolean(
+							operations[0]?.directives?.find(
+								(dir) => dir.name.value === config.loadingDirective
+							)
+						)
+					}
+
 					// generate a hash of the document that we can use to detect changes
 					// start building up the artifact
 					let artifact: DocumentArtifact = {
@@ -270,6 +286,7 @@ export default function artifactGenerator(stats: {
 							filepath: doc.filename,
 							document: doc,
 							rootType,
+							globalLoading,
 							// in order to simplify the selection generation, we want to merge fragments together
 							selections: flattenSelections({
 								config,
