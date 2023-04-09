@@ -35,10 +35,13 @@ export function useFragment<
 		}).data as _Data
 	}
 
-	const observeParams = {
+	// we're ready to setup the live document
+	const [storeValue] = useDocumentSubscription<FragmentArtifact, _Data, _Input>({
 		artifact: document.artifact,
 		variables,
 		initialValue: cachedValue,
+		// dont subscribe to anything if we are loading
+		disabled: loading,
 		send: {
 			stuff: {
 				parentID: parent,
@@ -48,10 +51,7 @@ export function useFragment<
 			// have an initial value...
 			// does Boolean(initialValue) === { setup: true }
 		},
-	}
-
-	// we're ready to setup the live document
-	const [storeValue] = useDocumentSubscription<FragmentArtifact, _Data, _Input>(observeParams)
+	})
 
 	// the parent has changed, we need to use initialValue for this render
 	// if we don't, then there is a very brief flash where we will show the old data
