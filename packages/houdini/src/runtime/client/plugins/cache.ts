@@ -25,7 +25,8 @@ export const cachePolicy =
 				// enforce cache policies for queries
 				if (
 					enabled &&
-					artifact.kind === ArtifactKind.Query &&
+					(artifact.kind === ArtifactKind.Query ||
+						artifact.kind === ArtifactKind.Fragment) &&
 					!ctx.cacheParams?.disableRead
 				) {
 					// this function is called as the first step in requesting data. If the policy prefers
@@ -97,17 +98,23 @@ export const cachePolicy =
 				}
 
 				// if we got this far, we are resolving something against the network
-				// don't set the fetching state to true if we accepted a cache value
-				let fetchingState = null
-				if (!useCache && 'enableLoadingState' in artifact && artifact.enableLoadingState) {
-					fetchingState = localCache.read({
-						selection: artifact.selection,
-						variables: marshalVariables(ctx),
-						loading: true,
-					}).data
+				// dont set the fetching state to true if we accepted a cache value
+				if (!ctx.stuff?.silenceLoading) {
+					// don't set the fetching state to true if we accepted a cache value
+					let fetchingState = null
+					if (
+						!useCache &&
+						'enableLoadingState' in artifact &&
+						artifact.enableLoadingState
+					) {
+						fetchingState = localCache.read({
+							selection: artifact.selection,
+							variables: marshalVariables(ctx),
+							loading: true,
+						}).data
+					}
+					setFetching(!useCache, fetchingState)
 				}
-				setFetching(!useCache, fetchingState)
-
 				// move on
 				return next(ctx)
 			},

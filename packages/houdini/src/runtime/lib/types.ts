@@ -28,6 +28,7 @@ declare global {
 			}
 			optimisticResponse?: GraphQLObject
 			parentID?: string
+			silenceLoading?: boolean
 		}
 	}
 }
@@ -261,6 +262,61 @@ export type ValueNode =
 	| ObjectValueNode
 
 export type ValueMap = Record<string, ValueNode>
+
+export type FetchParams<_Input> = {
+	variables?: _Input
+
+	/**
+	 * The policy to use when performing the fetch. If set to CachePolicy.NetworkOnly,
+	 * a request will always be sent, even if the variables are the same as the last call
+	 * to fetch.
+	 */
+	policy?: CachePolicies
+
+	/**
+	 * An object that will be passed to the fetch function.
+	 * You can do what you want with it!
+	 */
+	// @ts-ignore
+	metadata?: App.Metadata
+}
+
+export type FetchFn<_Data extends GraphQLObject, _Input = any> = (
+	params?: FetchParams<_Input>
+) => Promise<QueryResult<_Data, _Input>>
+
+export type CursorHandlers<_Data extends GraphQLObject, _Input> = {
+	loadNextPage: (args?: {
+		first?: number
+		after?: string
+		fetch?: typeof globalThis.fetch
+		metadata?: {}
+	}) => Promise<void>
+	loadPreviousPage: (args?: {
+		last?: number
+		before?: string
+		fetch?: typeof globalThis.fetch
+		metadata?: {}
+	}) => Promise<void>
+	fetch(args?: FetchParams<_Input> | undefined): Promise<QueryResult<_Data, _Input>>
+}
+
+export type OffsetHandlers<_Data extends GraphQLObject, _Input> = {
+	loadNextPage: (args?: {
+		limit?: number
+		offset?: number
+		metadata?: {}
+		fetch?: typeof globalThis.fetch
+	}) => Promise<void>
+	fetch(args?: FetchParams<_Input> | undefined): Promise<QueryResult<_Data, _Input>>
+}
+
+export type PageInfo = {
+	startCursor: string | null
+	endCursor: string | null
+	hasNextPage: boolean
+	hasPreviousPage: boolean
+}
 
 interface IntValueNode {
 	readonly kind: 'IntValue'

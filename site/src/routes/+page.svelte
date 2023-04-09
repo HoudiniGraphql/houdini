@@ -141,6 +141,12 @@
 			<a href="/intro">
 				<button> Get Started </button>
 			</a>
+			<a href="https://www.netlify.com">
+				<img
+					src="https://www.netlify.com/v3/img/components/netlify-color-accent.svg"
+					alt="Deploys by Netlify"
+				/>
+			</a>
 		</div>
 	</main>
 </article>
@@ -417,8 +423,10 @@
 
 	.cta-container {
 		display: flex;
-		flex-direction: row;
+		flex-direction: column;
 		justify-content: center;
+		align-items: center;
+		gap: 300px;
 	}
 
 	.cta-container button {

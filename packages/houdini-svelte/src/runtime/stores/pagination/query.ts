@@ -1,20 +1,26 @@
-import type { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
+import { extractPageInfo } from '$houdini/runtime/lib/pageInfo'
+import { cursorHandlers, offsetHandlers } from '$houdini/runtime/lib/pagination'
+import type {
+	GraphQLObject,
+	QueryArtifact,
+	QueryResult,
+	CursorHandlers,
+	OffsetHandlers,
+	PageInfo,
+} from '$houdini/runtime/lib/types'
 import { get, derived } from 'svelte/store'
 import type { Subscriber } from 'svelte/store'
 
 import { getClient, initClient } from '../../client'
-import type { CursorHandlers, OffsetHandlers } from '../../types'
+import { getSession } from '../../session'
 import type {
 	ClientFetchParams,
 	LoadEventFetchParams,
 	QueryStoreFetchParams,
 	RequestEventFetchParams,
-	StoreConfig,
-} from '../query'
+} from '../../types'
+import type { StoreConfig } from '../query'
 import { QueryStore } from '../query'
-import { cursorHandlers } from './cursor'
-import { offsetHandlers } from './offset'
-import { extractPageInfo, type PageInfo } from './pageInfo'
 
 export type CursorStoreResult<_Data extends GraphQLObject, _Input extends {}> = QueryResult<
 	_Data,
@@ -49,11 +55,10 @@ export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> ex
 
 		this.#_handlers = cursorHandlers<_Data, _Input>({
 			artifact: this.artifact,
-			initialValue: get(this.observer).data,
 			getState: () => get(this.observer).data,
 			getVariables: () => get(this.observer).variables!,
-			storeName: this.name,
 			fetch: super.fetch.bind(this),
+			getSession: getSession,
 			fetchUpdate: async (args, updates) => {
 				return paginationObserver.send({
 					...args,
@@ -145,6 +150,7 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input extends {}> ex
 			fetch: super.fetch,
 			getState: () => get(this.observer).data,
 			getVariables: () => get(this.observer).variables!,
+			getSession: getSession,
 			fetchUpdate: async (args) => {
 				await initClient()
 				return paginationObserver.send({
