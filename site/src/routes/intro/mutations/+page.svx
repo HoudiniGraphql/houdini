@@ -87,7 +87,7 @@ With that in place we can now define a function that will invoke the `toggleFavo
 A mutation store provides a `mutate` method to trigger your mutation. It takes an object with fields to match the mutation's input and returns a promise that will resolve with the response from the mutation. With that in place, we can now configure the button we added earlier to call this function:
 
 ```svelte:title=src/routes/[[id]]/+page.svelte
-<button on:click={() => toggleFavorite.mutate({
+<button id="favorite" on:click={() => toggleFavorite.mutate({
 	id: $Info.data.species.id
 })}>
 ```

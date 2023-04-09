@@ -27,7 +27,6 @@ query Info {
 
 ```svelte:title=src/routes/+page.svelte&typescriptToggle=true
 <script lang="ts">
-    import { graphql } from '$houdini'
     import { Container, Display, Sprite, Panel } from '~/components'
     import type { PageData } from './$houdini'
 

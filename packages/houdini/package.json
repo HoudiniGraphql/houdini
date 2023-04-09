@@ -1,6 +1,6 @@
 {
     "name": "houdini",
-    "version": "1.2.0-react.1",
+    "version": "1.1.7",
     "description": "The disappearing GraphQL clients",
     "keywords": [
         "typescript",
@@ -24,6 +24,7 @@
         "@types/glob": "^8.0.0",
         "@types/minimatch": "^5.1.2",
         "@types/node": "^18.7.23",
+        "@types/ungap__structured-clone": "^0.3.0",
         "prettier": "^2.8.3",
         "rollup": "^3.7.4",
         "scripts": "workspace:^",
@@ -38,6 +39,7 @@
         "@types/fs-extra": "^9.0.13",
         "@types/micromatch": "^4.0.2",
         "@types/prompts": "^2.0.14",
+        "@ungap/structured-clone": "^1.0.2",
         "ast-types": "^0.16.1",
         "commander": "^9.4.0",
         "deepmerge": "^4.2.2",

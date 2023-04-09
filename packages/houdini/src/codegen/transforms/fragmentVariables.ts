@@ -1,3 +1,4 @@
+import structuredClone from '@ungap/structured-clone'
 import * as graphql from 'graphql'
 
 import type { Config, Document, ValueMap } from '../../lib'
@@ -70,7 +71,7 @@ export default async function fragmentVariables(
 	})
 }
 
-export function inlineFragmentArgs({
+function inlineFragmentArgs({
 	config,
 	filepath,
 	fragmentDefinitions,
@@ -106,90 +107,96 @@ export function inlineFragmentArgs({
 		document as graphql.FragmentDefinitionNode
 	).reduce<Record<string, FragmentArgument>>((acc, arg) => ({ ...acc, [arg.name]: arg }), {})
 
-	const result = graphql.visit(document, {
-		// every time we run into a fragment spread we might need to replace it
-		// with a version that incorporates the current scope's variable values
-		FragmentSpread(node) {
-			// look at the fragment spread to see if there are any default arguments
-			// that haven't been overridden by with
-			if (!fragmentDefinitions[node.name.value]) {
-				throw new Error('Could not find definition for fragment' + node.name.value)
-			}
-			const { definition } = fragmentDefinitions[node.name.value]
+	const result = structuredClone(
+		graphql.visit(document, {
+			// every time we run into a fragment spread we might need to replace it
+			// with a version that incorporates the current scope's variable values
+			FragmentSpread(node) {
+				// look at the fragment spread to see if there are any default arguments
+				// that haven't been overridden by with
+				if (!fragmentDefinitions[node.name.value]) {
+					throw new Error('Could not find definition for fragment' + node.name.value)
+				}
+				const { definition } = fragmentDefinitions[node.name.value]
 
-			// we have to apply arguments to the fragment definitions
-			let { args, hash } = collectWithArguments(config, filepath, node, scope)
+				// we have to apply arguments to the fragment definitions
+				let { args, hash } = collectWithArguments(config, filepath, node, scope)
 
-			// generate a fragment name based on the arguments passed
-			const newFragmentName = `${node.name.value}${hash}`
-			config.registerFragmentVariablesHash({
-				hash: newFragmentName,
-				fragment: node.name.value,
-				args,
-			})
+				// generate a fragment name based on the arguments passed
+				const newFragmentName = `${node.name.value}${hash}`
+				config.registerFragmentVariablesHash({
+					hash: newFragmentName,
+					fragment: node.name.value,
+					args,
+				})
 
-			// if we haven't handled the referenced fragment
-			if (!visitedFragments.has(newFragmentName)) {
-				// we need to walk down the referenced fragment definition
-				visitedFragments.add(newFragmentName)
+				// if we haven't handled the referenced fragment
+				if (!visitedFragments.has(newFragmentName)) {
+					// we need to walk down the referenced fragment definition
+					visitedFragments.add(newFragmentName)
 
-				// figure out the default arguments for the fragment
-				const defaultArguments = collectDefaultArgumentValues(config, filepath, definition)
-
-				// if there are local arguments we need to treat it like a new fragment
-				if (args) {
-					// assign any default values to the scope
-					for (const [field, value] of Object.entries(defaultArguments || {})) {
-						if (!args[field]) {
-							args[field] = value
-						}
-					}
-
-					generatedFragments[newFragmentName] = inlineFragmentArgs({
+					// figure out the default arguments for the fragment
+					const defaultArguments = collectDefaultArgumentValues(
 						config,
 						filepath,
-						fragmentDefinitions,
-						document: fragmentDefinitions[node.name.value].definition,
-						generatedFragments,
-						visitedFragments,
-						scope: args,
-						newName: newFragmentName,
-					})
-				}
-				// there are no local arguments to the fragment so we need to
-				// walk down the definition and apply any default args as well
-				// as look for internal fragment spreads for the referenced fragment
-				else {
-					// the document holding the fragment definition
-					const doc = fragmentDefinitions[node.name.value].document
-
-					// find the fragment definition in the document
-					const definitionIndex = doc.document.definitions.findIndex(
-						(definition) =>
-							definition.kind === 'FragmentDefinition' &&
-							definition.name.value === node.name.value
+						definition
 					)
 
-					// keep walking down the referenced fragment's selection
-					// and replace the definition in the document
-					const localDefinitions = [...doc.document.definitions]
-					localDefinitions.splice(definitionIndex, 1)
-					localDefinitions.push(
-						inlineFragmentArgs({
+					// if there are local arguments we need to treat it like a new fragment
+					if (args) {
+						// assign any default values to the scope
+						for (const [field, value] of Object.entries(defaultArguments || {})) {
+							if (!args[field]) {
+								args[field] = value
+							}
+						}
+
+						generatedFragments[newFragmentName] = inlineFragmentArgs({
 							config,
 							filepath,
 							fragmentDefinitions,
 							document: fragmentDefinitions[node.name.value].definition,
 							generatedFragments,
 							visitedFragments,
-							scope: defaultArguments,
-							newName: '',
+							scope: args,
+							newName: newFragmentName,
 						})
-					)
+					}
+					// there are no local arguments to the fragment so we need to
+					// walk down the definition and apply any default args as well
+					// as look for internal fragment spreads for the referenced fragment
+					else {
+						// the document holding the fragment definition
+						const doc = fragmentDefinitions[node.name.value].document
 
-					doc.document = {
-						...doc.document,
-						definitions: localDefinitions,
+						// find the fragment definition in the document
+						const definitionIndex = doc.document.definitions.findIndex(
+							(definition) =>
+								definition.kind === 'FragmentDefinition' &&
+								definition.name.value === node.name.value
+						)
+
+						const localDefinitions = [...doc.document.definitions]
+						localDefinitions.splice(definitionIndex, 1)
+						localDefinitions.push(
+							// keep walking down the referenced fragment's selection
+							// and replace the definition in the document
+							inlineFragmentArgs({
+								config,
+								filepath,
+								fragmentDefinitions,
+								document: fragmentDefinitions[node.name.value].definition,
+								generatedFragments,
+								visitedFragments,
+								scope: defaultArguments,
+								newName: '',
+							})
+						)
+
+						doc.document = {
+							...doc.document,
+							definitions: localDefinitions,
+						}
 					}
 				}
 
@@ -204,48 +211,48 @@ export function inlineFragmentArgs({
 						},
 					} as graphql.FragmentSpreadNode
 				}
-			}
-		},
-		// look at every time something is used as an argument
-		Argument(node) {
-			// if the argument is a variable we need to expand it to its value (passed from the parent)
-			const value = node.value
-			if (value.kind !== 'Variable') {
-				return
-			}
-
-			// if there's no scope we can't evaluate it
-			if (!scope) {
-				throw new HoudiniError({
-					filepath,
-					message:
-						node.name.value +
-						' is not defined in the current scope: ' +
-						JSON.stringify(scope),
-				})
-			}
-
-			// is the variable in scope
-			const newValue = scope[value.name.value]
-			// if it is just use it
-			if (newValue) {
-				return {
-					...node,
-					value: newValue,
+			},
+			// look at every time something is used as an argument
+			Argument(node) {
+				// if the argument is a variable we need to expand it to its value (passed from the parent)
+				const value = node.value
+				if (value.kind !== 'Variable') {
+					return
 				}
-			}
-			// if the argument is required
-			if (definitionArgs[value.name.value] && definitionArgs[value.name.value].required) {
-				throw new HoudiniError({
-					filepath,
-					message: 'Missing value for required arg: ' + value.name.value,
-				})
-			}
 
-			// if we got this far, theres no value for a non-required arg, remove the node
-			return null
-		},
-	})
+				// if there's no scope we can't evaluate it
+				if (!scope) {
+					throw new HoudiniError({
+						filepath,
+						message:
+							node.name.value +
+							' is not defined in the current scope: ' +
+							JSON.stringify(scope),
+					})
+				}
+
+				// is the variable in scope
+				const newValue = scope[value.name.value]
+				// if it is just use it
+				if (newValue) {
+					return {
+						...node,
+						value: newValue,
+					}
+				}
+				// if the argument is required
+				if (definitionArgs[value.name.value] && definitionArgs[value.name.value].required) {
+					throw new HoudiniError({
+						filepath,
+						message: 'Missing value for required arg: ' + value.name.value,
+					})
+				}
+
+				// if we got this far, theres no value for a non-required arg, remove the node
+				return null
+			},
+		})
+	)
 
 	// if we computed a new name for the fragment (because we got here as part of analyzing a fragment
 	// spread with @with), we need to change the name of the fragment

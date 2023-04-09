@@ -112,7 +112,7 @@ Regardless of which pattern you are using, you will quickly need to customize yo
 
 ### Query Variables
 
-The simplest way to pass values for your query inputs is to use route parameters. If houdini sees that the name for a route paramter matches the
+The simplest way to pass values for your query inputs is to use route parameters. If houdini sees that the name for a route parameter matches the
 name of a query's input, it will attempt to parse the value and pass it to your query.
 
 Sometimes your query variables cannot be directly pulled from your route's path. In those cases, you can export a function
@@ -224,7 +224,7 @@ export function _houdini_afterLoad({ data }: AfterLoadEvent) {
 
 #### `_houdini_onError`
 
-If defined, the load function will invoked this function instead of throwing an error when an error is received.
+If defined, the load function will invoke this function instead of throwing an error when an error is received.
 It receives three inputs: the load event, the inputs for each query, and the error that was encountered. Just like
 the other hooks, `onError` can return an object that provides props to the route. If you do define this hook, Houdini
 will have to block requests to the route in order to wait for the result. For more information about
@@ -266,7 +266,7 @@ export const load: PageLoad = async (event) => {
 ```
 
 In case you were wondering, the `load_` prefix is there so you can autocomplete your loads by just typing `load_<tab>`.
-Anyway, with this in place, your route will recieve props for each of the stores that you have loaded:
+Anyway, with this in place, your route will receive props for each of the stores that you have loaded:
 
 ```svelte:title=src/routes/myRoute.svelte&typescriptToggle=true
 <script lang="ts">
@@ -437,7 +437,7 @@ Note that like this you will not have a store in your svelte file but directly y
 
 ## API route / endpoint
 
-Using a query store inside of an API route (or endpoint) look like this:
+Using a query store inside of an API route (or endpoint) looks like this:
 
 ```typescript:typescriptToggle=true
 import { json } from '@sveltejs/kit';

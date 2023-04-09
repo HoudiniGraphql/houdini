@@ -40,7 +40,7 @@ export const cachePolicy =
 						const value = localCache.read({
 							selection: artifact.selection,
 							variables: marshalVariables(ctx),
-							parent: ctx.stuff?.parentID,
+							fullCheck: true,
 						})
 
 						// we can only use the result if its not a partial result

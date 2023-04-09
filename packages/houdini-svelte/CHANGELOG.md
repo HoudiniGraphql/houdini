@@ -1,18 +1,32 @@
 # houdini-svelte
 
-## 1.2.0-react.1
+## 1.1.7
 
-### Patch Changes
+### Dependency Changes
 
--   Updated dependencies []:
-    -   houdini@1.2.0-react.1
+-   Updated dependencies [[`151a107`](https://github.com/HoudiniGraphql/houdini/commit/151a10718b92fb97eec6e94ea12efc7f98928755)]:
+    -   houdini@1.1.7
 
-## 1.1.4-react.0
+## 1.1.6
 
-### Patch Changes
+### Dependency Changes
 
--   Updated dependencies []:
-    -   houdini@1.1.4-react.0
+-   Updated dependencies [[`f0c11433`](https://github.com/HoudiniGraphql/houdini/commit/f0c11433a1403e9e0a2d53031f23483fa3e486df)]:
+    -   houdini@1.1.6
+
+## 1.1.5
+
+### Dependency Changes
+
+-   Updated dependencies [[`5305a2ad`](https://github.com/HoudiniGraphql/houdini/commit/5305a2ad36e692d47f5fb4cfa2c5a2e4d9ef3d4d), [`5a6e188d`](https://github.com/HoudiniGraphql/houdini/commit/5a6e188d88a4b7f84511a84ddc1bcc2c1ff59f5f), [`be51b0f5`](https://github.com/HoudiniGraphql/houdini/commit/be51b0f5e5fdde4f48288bfcede2c46b4bddf01f)]:
+    -   houdini@1.1.5
+
+## 1.1.4
+
+### Dependency Changes
+
+-   Updated dependencies [[`184a8417`](https://github.com/HoudiniGraphql/houdini/commit/184a84170bc803c37cd25993c9877a2187c91da3), [`16b8b882`](https://github.com/HoudiniGraphql/houdini/commit/16b8b882c66c96942bd5f4f3fddaffc62a30d8fa), [`dfc4295a`](https://github.com/HoudiniGraphql/houdini/commit/dfc4295a5bc20fdcc24b671f1faa910b5e91ba61)]:
+    -   houdini@1.1.4
 
 ## 1.1.3
 

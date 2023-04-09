@@ -177,7 +177,7 @@ Once that's done, go back to the route we've been working with and update the qu
 
 ```graphql:title=src/routes/[[id]]/+page.gql
 query Info($id: Int!) {
-    species(id: $id) {
+    species(id: $id = 1) {
         name
         flavor_text
         evolution_chain {

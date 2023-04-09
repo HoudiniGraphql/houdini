@@ -97,16 +97,16 @@ test('fragments in lists', async function () {
 		mockCollectedDoc(
 			`query TestQuery {
 				usersByCursor @list(name: "All_Users") {
-					edges { 
-						node { 
+					edges {
+						node {
 							...UserTest
 						}
-					}	
+					}
 				}
 			}`
 		),
 		mockCollectedDoc(
-			`fragment UserTest on User { 
+			`fragment UserTest on User {
 				firstName
 			}`
 		),
@@ -120,7 +120,7 @@ test('fragments in lists', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "6409e8b842cbd3f943db27ab1d214eec514c1c9689d5e0dc32d37e2574edec81",
+		    "hash": "6c2ec570ec75b009aae97355f5b36acae92039a0bf1750fc62fe144f0898f403",
 
 		    "raw": \`query TestQuery {
 		  usersByCursor {
@@ -159,6 +159,22 @@ test('fragments in lists', async function () {
 		            "usersByCursor": {
 		                "type": "UserConnection",
 		                "keyRaw": "usersByCursor",
+
+		                "directives": [{
+		                    "name": "list",
+
+		                    "arguments": {
+		                        "name": {
+		                            "kind": "StringValue",
+		                            "value": "All_Users"
+		                        },
+
+		                        "connection": {
+		                            "kind": "BooleanValue",
+		                            "value": true
+		                        }
+		                    }
+		                }],
 
 		                "list": {
 		                    "name": "All_Users",
@@ -265,7 +281,7 @@ test('fragments in lists', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=6409e8b842cbd3f943db27ab1d214eec514c1c9689d5e0dc32d37e2574edec81";
+		"HoudiniHash=6c2ec570ec75b009aae97355f5b36acae92039a0bf1750fc62fe144f0898f403";
 	`)
 })
 

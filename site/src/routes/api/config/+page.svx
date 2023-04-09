@@ -17,10 +17,10 @@ export default {
         DateTime: {
             type: 'Date',
             unmarshal(val) {
-                return new Date(val)
+                return val ? new Date(val) : null
             },
             marshal(date) {
-                return date.getTime()
+                return date && date.getTime()
             }
         }
 	}
@@ -34,8 +34,8 @@ By default, your config file can contain the following values:
 - `include` (optional, default: `"src/**/*.{svelte,graphql,gql,ts,js}"`): a pattern (or list of patterns) to identify source code files.
 - `exclude` (optional): a pattern (or list of patterns) that filters out files that match the include pattern
 - `schemaPath` (optional, default: `"./schema.graphql"`): the path to the static representation of your schema, can be a glob pointing to multiple files
-- `watchSchema` (optional, an object): configure the development server to poll a remote url for changes in the schema. When a change is detected, the dev serer will automatically regenerate your runtime. For more information see [Schema Polling](#schema-polling).
-- `module` (optional, default: `"esm"`): One of `"esm"` or `"commonjs"`. Used to tell the artifact generator what kind of modules to create. (default: `esm`)
+- `watchSchema` (optional, an object): configure the development server to poll a remote url for changes in the schema. When a change is detected, the dev server will automatically regenerate your runtime. For more information see [Schema Polling](#schema-polling).
+- `module` (optional, default: `"esm"`): One of `"esm"` or `"commonjs"`. Used to tell the artifact generator what kind of modules to create.
 - `definitionsPath` (optional, default: `"$houdini/graphql"`): a path that the generator will use to write `schema.graphql` and `documents.gql` files containing all of the internal fragment and directive definitions used in the project.
 - `scalars` (optional): An object describing custom scalars for your project (see below).
 - `cacheBufferSize` (optional, default: `10`): The number of queries that must occur before a value is removed from the cache. For more information, see the [Caching Guide](/guides/caching-data).
@@ -109,16 +109,19 @@ export default {
 			type: 'Date',
 			// turn the api's response into that type
 			unmarshal(val) {
-				return new Date(val)
+				return val ? new Date(val) : null
 			},
 			// turn the value into something the API can use
 			marshal(date) {
-				return date.getTime()
+				return date && date.getTime()
 			}
 		}
 	}
 }
 ```
+
+Please note that your marshal/unmarshal functions are also called with null
+values, and these must be handled appropriately.
 
 ## Schema Polling
 

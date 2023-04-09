@@ -178,6 +178,7 @@ export type SubscriptionSelection = {
 				connection: boolean
 				type: string
 			}
+			directives?: { name: string; arguments: ValueMap }[]
 			updates?: string[]
 			visible?: boolean
 			filters?: Record<
