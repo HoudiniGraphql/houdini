@@ -1,6 +1,6 @@
 import { beforeEach, expect, test, vi } from 'vitest'
 
-import { createPluginHooks, HoudiniClient, HoudiniClientConstructorArgs } from '..'
+import { createPluginHooks, HoudiniClient, type HoudiniClientConstructorArgs } from '..'
 import { testConfigFile } from '../../../test'
 import { Cache } from '../../cache/cache'
 import { CachePolicy, LoadingValue } from '../../lib'

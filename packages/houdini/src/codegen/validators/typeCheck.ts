@@ -1,8 +1,8 @@
 import { logGreen, logYellow } from '@kitql/helper'
 import * as graphql from 'graphql'
 
-import { Config, Document, LogLevels, PaginateModes, parentField } from '../../lib'
 import {
+	parentField,
 	definitionFromAncestors,
 	LogLevel,
 	parentTypeFromAncestors,
@@ -10,6 +10,7 @@ import {
 	siteURL,
 	unwrapType,
 } from '../../lib'
+import type { Config, Document, LogLevels, PaginateModes } from '../../lib'
 import type { FragmentArgument } from '../transforms/fragmentVariables'
 import {
 	fragmentArguments as collectFragmentArguments,

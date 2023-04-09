@@ -902,7 +902,7 @@ class CacheInternal {
 			}
 
 			// look up the value in our store
-			const { value } = this.storage.get(parent, key)
+			let { value } = this.storage.get(parent, key)
 
 			// If we have an explicite null, that mean that it's stale and the we should do a network call
 			const dt_field = this.staleManager.getFieldTime(parent, key)
@@ -912,7 +912,7 @@ class CacheInternal {
 
 			// a loading state has no real values
 			if (generateLoading) {
-				value === undefined
+				value = undefined
 			}
 
 			// in order to avoid falsey identifying the `cursor` field of a connection edge

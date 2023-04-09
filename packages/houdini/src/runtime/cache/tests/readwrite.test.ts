@@ -2,7 +2,6 @@ import { test, expect } from 'vitest'
 
 import { testConfigFile } from '../../../test'
 import type { SubscriptionSelection } from '../../lib'
-import { LoadingValue } from '../../lib'
 import { Cache, rootID } from '../cache'
 
 const config = testConfigFile()

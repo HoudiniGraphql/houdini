@@ -1,8 +1,8 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import { Config, Document, TypeWrapper, unwrapType } from '../../../lib'
-import { deepMerge, getRootType, HoudiniError } from '../../../lib'
+import type { Config, Document } from '../../../lib'
+import { TypeWrapper, unwrapType, deepMerge, getRootType, HoudiniError } from '../../../lib'
 import {
 	RefetchUpdateMode,
 	type MutationOperation,
@@ -339,7 +339,7 @@ function prepareSelection({
 				)
 				const loadingFragments =
 					Object.values(fieldObj.selection?.fragments ?? {}).length > 0 &&
-					Object.values(fieldObj.selection?.fragments!).some((f) => f.loading)
+					Object.values(fieldObj.selection?.fragments ?? {}).some((f) => f.loading)
 				let deepestChild = !childFields.some((field) => field.loading) && !loadingFragments
 				const loadingValue: LoadingSpec = deepestChild
 					? {
@@ -404,7 +404,7 @@ function prepareSelection({
 			}
 
 			// assign the loading state if necessary
-			if (!!field.directives?.find((d) => d.name.value === config.loadingDirective)) {
+			if (field.directives?.find((d) => d.name.value === config.loadingDirective)) {
 				object.fragments[fragment].loading = true
 			}
 		}
