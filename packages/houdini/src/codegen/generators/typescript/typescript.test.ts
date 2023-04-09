@@ -3391,11 +3391,29 @@ describe('typescript', function () {
 			                        "firstName": {
 			                            "type": "String";
 			                            "keyRaw": "firstName";
+			                            "directives": [{
+			                                "name": "include";
+			                                "arguments": {
+			                                    "if": {
+			                                        "kind": "BooleanValue";
+			                                        "value": true;
+			                                    };
+			                                };
+			                            }];
 			                            "visible": true;
 			                        };
 			                        "admin": {
 			                            "type": "Boolean";
 			                            "keyRaw": "admin";
+			                            "directives": [{
+			                                "name": "skip";
+			                                "arguments": {
+			                                    "if": {
+			                                        "kind": "BooleanValue";
+			                                        "value": true;
+			                                    };
+			                                };
+			                            }];
 			                            "nullable": true;
 			                            "visible": true;
 			                        };
