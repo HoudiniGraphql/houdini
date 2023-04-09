@@ -2,4 +2,4 @@
 'houdini-react': minor
 ---
 
-Remove private flag
+Add suspense integration
