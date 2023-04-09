@@ -5,7 +5,7 @@
   import CityInfoWithLoadingState from './CityInfoWithLoadingState.svelte';
 
   $: ({ LoadingStateTestQuery } = data);
-  $: city = $LoadingStateTestQuery.data?.city!;
+  $: city = $LoadingStateTestQuery.data!.city!;
 </script>
 
 <div class="city">
