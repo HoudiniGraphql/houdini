@@ -1,38 +1,32 @@
-import type { SendParams } from '$houdini/runtime/client/documentStore'
-import { CachePolicy } from '$houdini/runtime/lib'
-import { getCurrentConfig } from '$houdini/runtime/lib/config'
-import { siteURL } from '$houdini/runtime/lib/constants'
-import { deepEquals } from '$houdini/runtime/lib/deepEquals'
-import type { GraphQLObject, QueryArtifact, QueryResult } from '$houdini/runtime/lib/types'
-import { writable } from 'svelte/store'
-
-import { getSession } from '../../session'
-import type { CursorHandlers } from '../../types'
-import type { QueryStoreFetchParams } from '../query'
-import { fetchParams } from '../query'
-import type { FetchFn } from './fetch'
-import type { PageInfo } from './pageInfo'
+import type { SendParams } from '../client/documentStore'
+import { getCurrentConfig } from './config'
+import { deepEquals } from './deepEquals'
 import { countPage, extractPageInfo, missingPageSizeError } from './pageInfo'
+import { CachePolicy } from './types'
+import type {
+	CursorHandlers,
+	FetchFn,
+	GraphQLObject,
+	QueryArtifact,
+	QueryResult,
+	FetchParams,
+} from './types'
 
 export function cursorHandlers<_Data extends GraphQLObject, _Input extends Record<string, any>>({
 	artifact,
-	storeName,
-	initialValue,
 	fetchUpdate: parentFetchUpdate,
 	fetch: parentFetch,
 	getState,
 	getVariables,
+	getSession,
 }: {
 	artifact: QueryArtifact
-	storeName: string
-	fetch: FetchFn<_Data, _Input>
 	getState: () => _Data | null
 	getVariables: () => _Input
-	initialValue: _Data | null
+	getSession: () => Promise<App.Session>
+	fetch: FetchFn<_Data, _Input>
 	fetchUpdate: (arg: SendParams, updates: string[]) => ReturnType<FetchFn<_Data, _Input>>
 }): CursorHandlers<_Data, _Input> {
-	const pageInfo = writable<PageInfo>(extractPageInfo(initialValue, artifact.refetch!.path))
-
 	// dry up the page-loading logic
 	const loadPage = async ({
 		pageSizeVar,
@@ -66,8 +60,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 		let isSinglePage = artifact.refetch?.mode === 'SinglePage'
 
 		// send the query
-		const targetFetch = isSinglePage ? parentFetch : parentFetchUpdate
-		const { data } = await targetFetch(
+		await (isSinglePage ? parentFetch : parentFetchUpdate)(
 			{
 				variables: loadVariables,
 				fetch,
@@ -77,25 +70,6 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 			},
 			isSinglePage ? [] : [where === 'start' ? 'prepend' : 'append']
 		)
-
-		// if the query is embedded in a node field (paginated fragments)
-		// make sure we look down one more for the updated page info
-		const resultPath = [...artifact.refetch!.path]
-		if (artifact.refetch!.embedded) {
-			const { targetType } = artifact.refetch!
-			// make sure we have a type config for the pagination target type
-			if (!config.types?.[targetType]?.resolve) {
-				throw new Error(
-					`Missing type resolve configuration for ${targetType}. For more information, see ${siteURL}/guides/pagination#paginated-fragments`
-				)
-			}
-
-			// make sure that we pull the value out of the correct query field
-			resultPath.unshift(config.types[targetType].resolve!.queryField)
-		}
-
-		// we need to find the connection object holding the current page info
-		pageInfo.set(extractPageInfo(data, resultPath))
 	}
 
 	const getPageInfo = () => {
@@ -114,12 +88,6 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 			fetch?: typeof globalThis.fetch
 			metadata?: {}
 		} = {}) => {
-			if (artifact.refetch?.direction === 'backward') {
-				console.warn(`⚠️ ${storeName}.loadNextPage was called but it does not support forwards pagination.
-If you think this is an error, please open an issue on GitHub`)
-				return
-			}
-
 			// we need to find the connection object holding the current page info
 			const currentPageInfo = getPageInfo()
 			// if there is no next page, we're done
@@ -156,12 +124,6 @@ If you think this is an error, please open an issue on GitHub`)
 			fetch?: typeof globalThis.fetch
 			metadata?: {}
 		} = {}) => {
-			if (artifact.refetch?.direction === 'forward') {
-				console.warn(`⚠️ ${storeName}.loadPreviousPage was called but it does not support backwards pagination.
-If you think this is an error, please open an issue on GitHub`)
-				return
-			}
-
 			// we need to find the connection object holding the current page info
 			const currentPageInfo = getPageInfo()
 
@@ -188,18 +150,12 @@ If you think this is an error, please open an issue on GitHub`)
 				where: 'start',
 			})
 		},
-		pageInfo,
-		async fetch(
-			args?: QueryStoreFetchParams<_Data, _Input>
-		): Promise<QueryResult<_Data, _Input>> {
-			// validate and prepare the request context for the current environment (client vs server)
-			const { params } = await fetchParams(artifact, storeName, args)
-
-			const { variables } = params ?? {}
+		async fetch(args?: FetchParams<_Input>): Promise<QueryResult<_Data, _Input>> {
+			const { variables } = args ?? {}
 
 			// if the input is different than the query variables then we just do everything like normal
 			if (variables && !deepEquals(getVariables(), variables)) {
-				return await parentFetch(params)
+				return await parentFetch(args)
 			}
 
 			// we need to find the connection object holding the current page info
@@ -207,7 +163,7 @@ If you think this is an error, please open an issue on GitHub`)
 				var currentPageInfo = extractPageInfo(getState(), artifact.refetch!.path)
 			} catch {
 				// if there was any issue getting the page info, just fetch like normal
-				return await parentFetch(params)
+				return await parentFetch(args)
 			}
 
 			// build up the variables to pass to the query
@@ -259,14 +215,109 @@ Make sure to pass a cursor value by hand that includes the current set (ie the e
 
 			// send the query
 			const result = await parentFetch({
-				...params,
+				...args,
 				variables: queryVariables as _Input,
 			})
 
-			// keep the page info store up to date
-			pageInfo.set(extractPageInfo(result.data, artifact.refetch!.path))
-
 			return result
+		},
+	}
+}
+
+export function offsetHandlers<_Data extends GraphQLObject, _Input extends {}>({
+	artifact,
+	storeName,
+	getState,
+	getVariables,
+	fetch: parentFetch,
+	fetchUpdate: parentFetchUpdate,
+	getSession,
+}: {
+	artifact: QueryArtifact
+	fetch: FetchFn<_Data, _Input>
+	fetchUpdate: (arg: SendParams) => ReturnType<FetchFn<_Data, _Input>>
+	storeName: string
+	getState: () => _Data | null
+	getVariables: () => _Input
+	getSession: () => Promise<App.Session>
+}) {
+	// we need to track the most recent offset for this handler
+	let getOffset = () =>
+		(artifact.refetch?.start as number) ||
+		countPage(artifact.refetch!.path, getState()) ||
+		artifact.refetch!.pageSize
+
+	let currentOffset = getOffset() ?? 0
+
+	return {
+		loadNextPage: async ({
+			limit,
+			offset,
+			fetch,
+			metadata,
+		}: {
+			limit?: number
+			offset?: number
+			fetch?: typeof globalThis.fetch
+			metadata?: {}
+		} = {}) => {
+			// build up the variables to pass to the query
+			const queryVariables: Record<string, any> = {
+				...getVariables(),
+				offset: offset ?? getOffset(),
+			}
+			if (limit || limit === 0) {
+				queryVariables.limit = limit
+			}
+
+			// if we made it this far without a limit argument and there's no default page size,
+			// they made a mistake
+			if (!queryVariables.limit && !artifact.refetch!.pageSize) {
+				throw missingPageSizeError('loadNextPage')
+			}
+
+			// Get the Pagination Mode
+			let isSinglePage = artifact.refetch?.mode === 'SinglePage'
+
+			// send the query
+			const targetFetch = isSinglePage ? parentFetch : parentFetchUpdate
+			await targetFetch({
+				variables: queryVariables as _Input,
+				fetch,
+				metadata,
+				policy: isSinglePage ? artifact.policy : CachePolicy.NetworkOnly,
+				session: await getSession(),
+			})
+
+			// add the page size to the offset so we load the next page next time
+			const pageSize = queryVariables.limit || artifact.refetch!.pageSize
+			currentOffset = offset + pageSize
+		},
+		async fetch(params: FetchParams<_Input> = {}): Promise<QueryResult<_Data, _Input>> {
+			const { variables } = params
+
+			// if the input is different than the query variables then we just do everything like normal
+			if (variables && !deepEquals(getVariables(), variables)) {
+				return parentFetch.call(this, params)
+			}
+
+			// we are updating the current set of items, count the number of items that currently exist
+			// and ask for the full data set
+			const count = currentOffset || getOffset()
+
+			// build up the variables to pass to the query
+			const queryVariables: Record<string, any> = {}
+
+			// if there are more records than the first page, we need fetch to load everything
+			if (!artifact.refetch!.pageSize || count > artifact.refetch!.pageSize) {
+				queryVariables.limit = count
+			}
+
+			// send the query
+			return await parentFetch.call(this, {
+				...params,
+				variables: queryVariables as _Input,
+			})
 		},
 	}
 }

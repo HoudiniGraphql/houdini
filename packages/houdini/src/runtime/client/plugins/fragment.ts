@@ -1,4 +1,5 @@
 import cache from '../../cache'
+import { deepEquals } from '../../lib/deepEquals'
 import { type SubscriptionSpec, ArtifactKind, DataSource } from '../../lib/types'
 import type { ClientPlugin } from '../documentStore'
 import { documentPlugin } from '../utils'
@@ -9,6 +10,9 @@ export const fragment: ClientPlugin = documentPlugin(ArtifactKind.Fragment, func
 	// track the bits of state we need to hold onto
 	let subscriptionSpec: SubscriptionSpec | null = null
 
+	// we need to track the last parents and variables used so we can re-subscribe
+	let lastReference: { parent: string; variables: any } | null = null
+
 	return {
 		// establish the cache subscription
 		start(ctx, { next, resolve, variablesChanged, marshalVariables }) {
@@ -17,8 +21,17 @@ export const fragment: ClientPlugin = documentPlugin(ArtifactKind.Fragment, func
 				return next(ctx)
 			}
 
+			// the object describing the current parent reference
+			const currentReference = {
+				parent: ctx.stuff.parentID,
+				variables: marshalVariables(ctx),
+			}
+
 			// if the variables have changed we need to setup a new subscription with the cache
-			if (variablesChanged(ctx) && !ctx.cacheParams?.disableSubscriptions) {
+			if (
+				!ctx.cacheParams?.disableSubscriptions &&
+				(!deepEquals(lastReference, currentReference) || variablesChanged(ctx))
+			) {
 				// if the variables changed we need to unsubscribe from the old fields and
 				// listen to the new ones
 				if (subscriptionSpec) {
@@ -49,6 +62,8 @@ export const fragment: ClientPlugin = documentPlugin(ArtifactKind.Fragment, func
 
 				// make sure we subscribe to the new values
 				cache.subscribe(subscriptionSpec, variables)
+
+				lastReference = currentReference
 			}
 
 			// we're done

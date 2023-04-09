@@ -1,6 +1,6 @@
 {
 	"exclude": ["node_modules"],
-	"include": ["packages/**/*.ts"],
+	"include": ["packages/**/*.ts", "packages/houdini-react/src/runtime/context.tsx"],
 	"compilerOptions": {
 		"moduleResolution": "node",
 		"module": "es2020",
@@ -22,6 +22,7 @@
 		"paths": {
 			"$houdini": ["../houdini/src"],
 			"$houdini/*": ["../houdini/src/*"]
-		}
+		},
+		"jsx": "react"
 	}
 }

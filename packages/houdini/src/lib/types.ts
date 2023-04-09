@@ -135,7 +135,11 @@ export type PluginHooks = {
 	 * Transform the plugin's runtime while houdini is copying it .
 	 * You must have passed a value to includeRuntime for this hook to matter.
 	 */
-	transformRuntime?: Record<string, (args: { config: Config; content: string }) => string>
+	transformRuntime?:
+		| Record<string, (args: { config: Config; content: string }) => string>
+		| ((
+				docs: Document[]
+		  ) => Record<string, (args: { config: Config; content: string }) => string>)
 
 	/**
 	 * An module with an default export that sets configuration values.
