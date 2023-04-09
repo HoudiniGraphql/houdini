@@ -1,5 +1,16 @@
 # houdini-react
 
+## 1.2.0
+
+### Minor Changes
+
+-   [#1044](https://github.com/HoudiniGraphql/houdini/pull/1044) [`987a6f2`](https://github.com/HoudiniGraphql/houdini/commit/987a6f24b3fd453dafdbc03ae2de610a8c4cd257) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add suspense integration
+
+### Patch Changes
+
+-   Updated dependencies []:
+    -   houdini@1.2.0
+
 ## 1.1.7
 
 ### Dependency Changes
