@@ -1,14 +1,19 @@
 import type { SendParams } from '../client/documentStore'
 import { getCurrentConfig } from './config'
-import { siteURL } from './constants'
 import { deepEquals } from './deepEquals'
 import { countPage, extractPageInfo, missingPageSizeError } from './pageInfo'
-import { CachePolicy, FetchParams } from './types'
-import type { CursorHandlers, FetchFn, GraphQLObject, QueryArtifact, QueryResult } from './types'
+import { CachePolicy } from './types'
+import type {
+	CursorHandlers,
+	FetchFn,
+	GraphQLObject,
+	QueryArtifact,
+	QueryResult,
+	FetchParams,
+} from './types'
 
 export function cursorHandlers<_Data extends GraphQLObject, _Input extends Record<string, any>>({
 	artifact,
-	storeName,
 	fetchUpdate: parentFetchUpdate,
 	fetch: parentFetch,
 	getState,
@@ -16,7 +21,6 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 	getSession,
 }: {
 	artifact: QueryArtifact
-	storeName: string
 	getState: () => _Data | null
 	getVariables: () => _Input
 	getSession: () => Promise<App.Session>
@@ -66,22 +70,6 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Recor
 			},
 			isSinglePage ? [] : [where === 'start' ? 'prepend' : 'append']
 		)
-
-		// if the query is embedded in a node field (paginated fragments)
-		// make sure we look down one more for the updated page info
-		const resultPath = [...artifact.refetch!.path]
-		if (artifact.refetch!.embedded) {
-			const { targetType } = artifact.refetch!
-			// make sure we have a type config for the pagination target type
-			if (!config.types?.[targetType]?.resolve) {
-				throw new Error(
-					`Missing type resolve configuration for ${targetType}. For more information, see ${siteURL}/guides/pagination#paginated-fragments`
-				)
-			}
-
-			// make sure that we pull the value out of the correct query field
-			resultPath.unshift(config.types[targetType].resolve!.queryField)
-		}
 	}
 
 	const getPageInfo = () => {

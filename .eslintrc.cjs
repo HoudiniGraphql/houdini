@@ -52,5 +52,5 @@ module.exports = {
 		sourceType: 'module',
 		ecmaVersion: 2020,
 	},
-	plugins: ['unused-imports'],
+	plugins: ['unused-imports', 'react', 'react-hooks'],
 }

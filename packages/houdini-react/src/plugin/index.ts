@@ -1,12 +1,6 @@
-import {
-	ArtifactKind,
-	ArtifactKinds,
-	plugin,
-	type Document,
-	type Config,
-	fragmentKey,
-} from 'houdini'
-import path from 'path'
+import { ArtifactKind, plugin, fragmentKey } from 'houdini'
+import type { ArtifactKinds, Document, Config } from 'houdini'
+import path from 'node:path'
 
 import { extractDocuments } from './extract'
 import { transformFile } from './transform'

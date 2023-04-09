@@ -6,7 +6,6 @@ import type {
 	CursorHandlers,
 	OffsetHandlers,
 	PageInfo,
-	CachePolicies,
 	HoudiniFetchContext,
 	FetchParams,
 } from '$houdini/runtime/lib/types'

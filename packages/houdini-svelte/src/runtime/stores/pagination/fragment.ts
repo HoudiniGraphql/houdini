@@ -9,8 +9,9 @@ import type {
 	HoudiniFetchContext,
 	QueryArtifact,
 	PageInfo,
+	CursorHandlers,
 } from '$houdini/runtime/lib/types'
-import { CompiledFragmentKind, CursorHandlers } from '$houdini/runtime/lib/types'
+import { CompiledFragmentKind } from '$houdini/runtime/lib/types'
 import type { Readable, Subscriber } from 'svelte/store'
 import { derived, get } from 'svelte/store'
 
@@ -171,7 +172,6 @@ export class FragmentStoreCursor<
 				})
 			},
 			getSession,
-			storeName: this.name,
 		})
 	}
 }

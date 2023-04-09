@@ -1,9 +1,9 @@
-import { type QueryArtifact, GraphQLObject, CachePolicies } from '$houdini/runtime/lib/types'
+import type { GraphQLObject, CachePolicies, QueryArtifact } from '$houdini/runtime/lib/types'
 import React from 'react'
 
 import { createCache } from '../lib/cache'
-import { DocumentHandle, useDocumentHandle } from './useDocumentHandle'
-import { useDocumentStore } from './useDocumentStore'
+import type { DocumentHandle } from './useDocumentHandle'
+import { useDocumentHandle } from './useDocumentHandle'
 import { useHoudiniClient } from './useHoudiniClient'
 import { useIsMountedRef } from './useIsMounted'
 

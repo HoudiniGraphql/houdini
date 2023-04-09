@@ -1,10 +1,5 @@
 import { logCyan, logGreen } from '@kitql/helper'
-import type {
-	ExpressionKind,
-	ObjectExpressionKind,
-	StatementKind,
-	TSTypeKind,
-} from 'ast-types/lib/gen/kinds'
+import type { ExpressionKind, StatementKind, TSTypeKind } from 'ast-types/lib/gen/kinds'
 import type * as graphql from 'graphql'
 import * as recast from 'recast'
 

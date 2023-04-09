@@ -1,8 +1,8 @@
-import { DocumentStore } from '$houdini/runtime/client'
+import type { DocumentStore } from '$houdini/runtime/client'
 import { extractPageInfo } from '$houdini/runtime/lib/pageInfo'
 import { cursorHandlers, offsetHandlers } from '$houdini/runtime/lib/pagination'
-import {
-	type QueryArtifact,
+import { ArtifactKind } from '$houdini/runtime/lib/types'
+import type {
 	GraphQLObject,
 	CursorHandlers,
 	OffsetHandlers,
@@ -10,7 +10,7 @@ import {
 	FetchFn,
 	QueryResult,
 	DocumentArtifact,
-	ArtifactKind,
+	QueryArtifact,
 } from '$houdini/runtime/lib/types'
 import React from 'react'
 
@@ -64,7 +64,6 @@ export function useDocumentHandle<
 				artifact,
 				getState: () => storeValue.data,
 				getVariables: () => storeValue.variables!,
-				storeName: artifact.name,
 				fetch: fetchQuery,
 				fetchUpdate: (args, updates) => {
 					return observer.send({

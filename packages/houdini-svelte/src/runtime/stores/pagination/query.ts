@@ -19,7 +19,7 @@ import type {
 	QueryStoreFetchParams,
 	RequestEventFetchParams,
 } from '../../types'
-import { fetchParams, StoreConfig } from '../query'
+import type { StoreConfig } from '../query'
 import { QueryStore } from '../query'
 
 export type CursorStoreResult<_Data extends GraphQLObject, _Input extends {}> = QueryResult<
@@ -57,7 +57,6 @@ export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> ex
 			artifact: this.artifact,
 			getState: () => get(this.observer).data,
 			getVariables: () => get(this.observer).variables!,
-			storeName: this.name,
 			fetch: super.fetch.bind(this),
 			getSession: getSession,
 			fetchUpdate: async (args, updates) => {

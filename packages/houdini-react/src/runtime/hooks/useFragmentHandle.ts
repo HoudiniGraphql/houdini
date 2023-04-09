@@ -1,5 +1,9 @@
-import type { GraphQLObject, FragmentArtifact, QueryArtifact } from '$houdini/runtime/lib/types'
-import { fragmentKey } from '$houdini/runtime/lib/types'
+import type {
+	GraphQLObject,
+	FragmentArtifact,
+	QueryArtifact,
+	fragmentKey,
+} from '$houdini/runtime/lib/types'
 
 import { useDocumentHandle, type DocumentHandle } from './useDocumentHandle'
 import { useDocumentStore } from './useDocumentStore'

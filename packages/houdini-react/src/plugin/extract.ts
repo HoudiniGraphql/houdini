@@ -1,4 +1,5 @@
-import { Config, find_graphql, parseJS } from 'houdini'
+import type { Config } from 'houdini'
+import { find_graphql, parseJS } from 'houdini'
 
 export async function extractDocuments({
 	content,
