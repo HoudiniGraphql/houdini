@@ -9,7 +9,7 @@ import { nullableField, readonlyProperty, scalarPropertyValue } from './types'
 
 const AST = recast.types.builders
 
-export const fragmentKey = ' $fragments'
+export const fragmentKey = ' $fragments' as const
 
 export function inlineType({
 	config,
