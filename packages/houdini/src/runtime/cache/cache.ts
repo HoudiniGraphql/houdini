@@ -993,7 +993,9 @@ class CacheInternal {
 				// if we got a null value assigned and the field is not nullable, we need to cascade up
 				// except when it's an abstract type with @required children - then we return a dummy object
 				if (abstractHasRequired) {
-					target[attributeName] = {}
+					target[attributeName] = {
+						__typename: "@required field missing; don't match this",
+					}
 				} else {
 					cascadeNull = true
 				}

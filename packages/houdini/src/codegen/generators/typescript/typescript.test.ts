@@ -1602,7 +1602,9 @@ describe('typescript', function () {
 			    }) | ({
 			        readonly id: string;
 			        readonly __typename: "Cat";
-			    }) | ({})))[];
+			    }) | ({
+			        readonly __typename: "non-exhaustive; don't match this";
+			    })))[];
 			};
 
 			export type MyQuery$input = null;
@@ -1848,7 +1850,9 @@ describe('typescript', function () {
 			    }) | ({
 			        readonly kitty: boolean;
 			        readonly __typename: "Cat";
-			    }) | ({})))[];
+			    }) | ({
+			        readonly __typename: "non-exhaustive; don't match this";
+			    })))[];
 			};
 
 			export type MyQuery$input = null;
@@ -3702,7 +3706,9 @@ describe('typescript', function () {
 			export type MyFragmentInterfaceA$data = {} & (({
 			    readonly nickname: string;
 			    readonly __typename: "User";
-			}) | ({}));
+			}) | ({
+			    readonly __typename: "non-exhaustive; don't match this";
+			}));
 
 			export type MyFragmentInterfaceB$input = {};
 
@@ -3716,7 +3722,9 @@ describe('typescript', function () {
 			export type MyFragmentInterfaceB$data = {} & (({
 			    readonly nickname: string;
 			    readonly __typename: "User";
-			}) | ({}));
+			}) | ({
+			    readonly __typename: "non-exhaustive; don't match this";
+			}));
 
 			export type MyFragmentUnionA$input = {};
 
@@ -3730,7 +3738,9 @@ describe('typescript', function () {
 			export type MyFragmentUnionA$data = {} & (({
 			    readonly nickname: string;
 			    readonly __typename: "User";
-			}) | ({}));
+			}) | ({
+			    readonly __typename: "non-exhaustive; don't match this";
+			}));
 
 			export type MyFragmentUnionB$input = {};
 
@@ -3744,7 +3754,68 @@ describe('typescript', function () {
 			export type MyFragmentUnionB$data = {} & (({
 			    readonly nickname: string;
 			    readonly __typename: "User";
-			}) | ({}));
+			}) | ({
+			    readonly __typename: "non-exhaustive; don't match this";
+			}));
+
+			export type MyFragmentInterfaceA$artifact = {
+			    "name": "MyFragmentInterfaceA";
+			    "kind": "HoudiniFragment";
+			    "hash": "bc60a9949f88173f4043cb5ddcaf15f2c8952c567061ae43d784c307711e3023";
+			    "raw": \`fragment MyFragmentInterfaceA on Node {
+			  ... on User {
+			    nickname
+			    id
+			  }
+			  id
+			  __typename
+			}
+			\`;
+			    "rootType": "Node";
+			    "selection": {
+			        "abstractFields": {
+			            "fields": {
+			                "User": {
+			                    "nickname": {
+			                        "type": "String";
+			                        "keyRaw": "nickname";
+			                        "directives": [{
+			                            "name": "required";
+			                            "arguments": {};
+			                        }];
+			                        "nullable": false;
+			                        "required": true;
+			                        "visible": true;
+			                    };
+			                    "id": {
+			                        "type": "ID";
+			                        "keyRaw": "id";
+			                        "visible": true;
+			                    };
+			                    "__typename": {
+			                        "type": "String";
+			                        "keyRaw": "__typename";
+			                        "visible": true;
+			                    };
+			                };
+			            };
+			            "typeMap": {};
+			        };
+			        "fields": {
+			            "id": {
+			                "type": "ID";
+			                "keyRaw": "id";
+			                "visible": true;
+			            };
+			            "__typename": {
+			                "type": "String";
+			                "keyRaw": "__typename";
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			};
 		`)
 	})
 
@@ -3789,8 +3860,64 @@ describe('typescript', function () {
 			    readonly id: string;
 			    readonly __typename: "Cat";
 			}));
+
+			export type MyFragmentA$artifact = {
+			    "name": "MyFragmentA";
+			    "kind": "HoudiniFragment";
+			    "hash": "d09a04381ac3bb81f8476fba9fad5f9a73ee66c4824a7b267d8f3215e4aa0e91";
+			    "raw": \`fragment MyFragmentA on Entity {
+			  ... on User {
+			    id
+			  }
+			  ... on Cat {
+			    id
+			  }
+			  __typename
+			}
+			\`;
+			    "rootType": "Entity";
+			    "selection": {
+			        "abstractFields": {
+			            "fields": {
+			                "User": {
+			                    "id": {
+			                        "type": "ID";
+			                        "keyRaw": "id";
+			                        "visible": true;
+			                    };
+			                    "__typename": {
+			                        "type": "String";
+			                        "keyRaw": "__typename";
+			                        "visible": true;
+			                    };
+			                };
+			                "Cat": {
+			                    "id": {
+			                        "type": "ID";
+			                        "keyRaw": "id";
+			                        "visible": true;
+			                    };
+			                    "__typename": {
+			                        "type": "String";
+			                        "keyRaw": "__typename";
+			                        "visible": true;
+			                    };
+			                };
+			            };
+			            "typeMap": {};
+			        };
+			        "fields": {
+			            "__typename": {
+			                "type": "String";
+			                "keyRaw": "__typename";
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			};
 		`)
-		expect(fileContents!).not.toContain('| ({}))')
+		expect(fileContents!).not.toContain('non-exhaustive')
 	})
 
 	test('exhaustive inline fragment with @required does have {} in union', async function () {
@@ -3833,9 +3960,91 @@ describe('typescript', function () {
 			}) | ({
 			    readonly nickname: string;
 			    readonly __typename: "Cat";
-			}) | ({}));
+			}) | ({
+			    readonly __typename: "non-exhaustive; don't match this";
+			}));
+
+			export type MyFragmentA$artifact = {
+			    "name": "MyFragmentA";
+			    "kind": "HoudiniFragment";
+			    "hash": "aa3aa32f06fd5591ec03eb0038052b86910b7fab015978193a2f1117c5959496";
+			    "raw": \`fragment MyFragmentA on Entity {
+			  ... on User {
+			    nickname
+			    id
+			  }
+			  ... on Cat {
+			    nickname
+			    id
+			  }
+			  __typename
+			}
+			\`;
+			    "rootType": "Entity";
+			    "selection": {
+			        "abstractFields": {
+			            "fields": {
+			                "User": {
+			                    "nickname": {
+			                        "type": "String";
+			                        "keyRaw": "nickname";
+			                        "directives": [{
+			                            "name": "required";
+			                            "arguments": {};
+			                        }];
+			                        "nullable": false;
+			                        "required": true;
+			                        "visible": true;
+			                    };
+			                    "id": {
+			                        "type": "ID";
+			                        "keyRaw": "id";
+			                        "visible": true;
+			                    };
+			                    "__typename": {
+			                        "type": "String";
+			                        "keyRaw": "__typename";
+			                        "visible": true;
+			                    };
+			                };
+			                "Cat": {
+			                    "nickname": {
+			                        "type": "String";
+			                        "keyRaw": "nickname";
+			                        "directives": [{
+			                            "name": "required";
+			                            "arguments": {};
+			                        }];
+			                        "nullable": false;
+			                        "required": true;
+			                        "visible": true;
+			                    };
+			                    "id": {
+			                        "type": "ID";
+			                        "keyRaw": "id";
+			                        "visible": true;
+			                    };
+			                    "__typename": {
+			                        "type": "String";
+			                        "keyRaw": "__typename";
+			                        "visible": true;
+			                    };
+			                };
+			            };
+			            "typeMap": {};
+			        };
+			        "fields": {
+			            "__typename": {
+			                "type": "String";
+			                "keyRaw": "__typename";
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			};
 		`)
-		expect(fileContents!).toContain('| ({}))')
+		expect(fileContents!).toContain('non-exhaustive')
 	})
 
 	test('non-exhaustive inline fragment does have {} in union', async function () {
@@ -3873,9 +4082,52 @@ describe('typescript', function () {
 			export type MyFragmentA$data = {} & (({
 			    readonly id: string;
 			    readonly __typename: "User";
-			}) | ({}));
+			}) | ({
+			    readonly __typename: "non-exhaustive; don't match this";
+			}));
+
+			export type MyFragmentA$artifact = {
+			    "name": "MyFragmentA";
+			    "kind": "HoudiniFragment";
+			    "hash": "596e52f0588fe87da259217ec508ba4da62be7f9e09aeabc6d89b8a372860cc8";
+			    "raw": \`fragment MyFragmentA on Entity {
+			  ... on User {
+			    id
+			  }
+			  __typename
+			}
+			\`;
+			    "rootType": "Entity";
+			    "selection": {
+			        "abstractFields": {
+			            "fields": {
+			                "User": {
+			                    "id": {
+			                        "type": "ID";
+			                        "keyRaw": "id";
+			                        "visible": true;
+			                    };
+			                    "__typename": {
+			                        "type": "String";
+			                        "keyRaw": "__typename";
+			                        "visible": true;
+			                    };
+			                };
+			            };
+			            "typeMap": {};
+			        };
+			        "fields": {
+			            "__typename": {
+			                "type": "String";
+			                "keyRaw": "__typename";
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			};
 		`)
-		expect(fileContents!).toContain('| ({}))')
+		expect(fileContents!).toContain('non-exhaustive')
 	})
 
 	test.todo('fragments on interfaces')

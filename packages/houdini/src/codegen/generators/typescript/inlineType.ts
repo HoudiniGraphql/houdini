@@ -433,8 +433,23 @@ export function inlineType({
 				(sel) => sel.hasRequiredField
 			)
 			if (!areAllTypenamesCovered || anySelectionHasRequiredField) {
-				// add {} to the union to account for getting a type we didn't expect
-				selectionTypes.push(AST.tsParenthesizedType(AST.tsTypeLiteral([])))
+				selectionTypes.push(
+					AST.tsParenthesizedType(
+						AST.tsTypeLiteral([
+							readonlyProperty(
+								AST.tsPropertySignature(
+									AST.identifier('__typename'),
+									AST.tsTypeAnnotation(
+										AST.tsLiteralType(
+											AST.stringLiteral("non-exhaustive; don't match this")
+										)
+									)
+								),
+								allowReadonly
+							),
+						])
+					)
+				)
 			}
 
 			// build up the list of fragment types
