@@ -57,6 +57,7 @@ const config = testConfig({
 
 		type Cat implements Node & Animal {
 			id: ID!
+			nickname: String
 			kitty: Boolean!
 			isAnimal: Boolean!
 		}
@@ -1601,7 +1602,7 @@ describe('typescript', function () {
 			    }) | ({
 			        readonly id: string;
 			        readonly __typename: "Cat";
-			    })))[];
+			    }) | ({})))[];
 			};
 
 			export type MyQuery$input = null;
@@ -1847,7 +1848,7 @@ describe('typescript', function () {
 			    }) | ({
 			        readonly kitty: boolean;
 			        readonly __typename: "Cat";
-			    })))[];
+			    }) | ({})))[];
 			};
 
 			export type MyQuery$input = null;
@@ -3655,24 +3656,24 @@ describe('typescript', function () {
 		const doc = mockCollectedDoc(`
 			fragment MyFragmentInterfaceA on Node {
 				... on User {
-					nickname @required					
+					nickname @required
 				}
 			}
 			fragment MyFragmentInterfaceB on Node {
 				__typename
 				... on User {
-					nickname @required					
+					nickname @required
 				}
 			}
 			fragment MyFragmentUnionA on Entity {
 				... on User {
-					nickname @required					
+					nickname @required
 				}
 			}
 			fragment MyFragmentUnionB on Node {
 				__typename
 				... on User {
-					nickname @required					
+					nickname @required
 				}
 			}
 		`)
@@ -3701,9 +3702,7 @@ describe('typescript', function () {
 			export type MyFragmentInterfaceA$data = {} & (({
 			    readonly nickname: string;
 			    readonly __typename: "User";
-			}) | ({
-			    readonly __typename: "required field missing";
-			}));
+			}) | ({}));
 
 			export type MyFragmentInterfaceB$input = {};
 
@@ -3717,9 +3716,7 @@ describe('typescript', function () {
 			export type MyFragmentInterfaceB$data = {} & (({
 			    readonly nickname: string;
 			    readonly __typename: "User";
-			}) | ({
-			    readonly __typename: "required field missing";
-			}));
+			}) | ({}));
 
 			export type MyFragmentUnionA$input = {};
 
@@ -3733,9 +3730,7 @@ describe('typescript', function () {
 			export type MyFragmentUnionA$data = {} & (({
 			    readonly nickname: string;
 			    readonly __typename: "User";
-			}) | ({
-			    readonly __typename: "required field missing";
-			}));
+			}) | ({}));
 
 			export type MyFragmentUnionB$input = {};
 
@@ -3749,10 +3744,138 @@ describe('typescript', function () {
 			export type MyFragmentUnionB$data = {} & (({
 			    readonly nickname: string;
 			    readonly __typename: "User";
+			}) | ({}));
+		`)
+	})
+
+	test('exhaustive inline fragment does not have {} in union', async function () {
+		// the document to test
+		const doc = mockCollectedDoc(`
+			fragment MyFragmentA on Entity {
+				... on User {
+					id
+				}
+				... on Cat {
+					id
+				}
+			}
+		`)
+
+		// execute the generator
+		await runPipeline(config, [doc])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document))
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents!, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+			export type MyFragmentA$input = {};
+
+			export type MyFragmentA = {
+			    readonly "shape"?: MyFragmentA$data;
+			    readonly " $fragments": {
+			        "MyFragmentA": any;
+			    };
+			};
+
+			export type MyFragmentA$data = {} & (({
+			    readonly id: string;
+			    readonly __typename: "User";
 			}) | ({
-			    readonly __typename: "required field missing";
+			    readonly id: string;
+			    readonly __typename: "Cat";
 			}));
 		`)
+		expect(fileContents!).not.toContain('| ({}))')
+	})
+
+	test('exhaustive inline fragment with @required does have {} in union', async function () {
+		// the document to test
+		const doc = mockCollectedDoc(`
+			fragment MyFragmentA on Entity {
+				... on User {
+					nickname @required
+				}
+				... on Cat {
+					nickname @required
+				}
+			}
+		`)
+
+		// execute the generator
+		await runPipeline(config, [doc])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document))
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents!, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+			export type MyFragmentA$input = {};
+
+			export type MyFragmentA = {
+			    readonly "shape"?: MyFragmentA$data;
+			    readonly " $fragments": {
+			        "MyFragmentA": any;
+			    };
+			};
+
+			export type MyFragmentA$data = {} & (({
+			    readonly nickname: string;
+			    readonly __typename: "User";
+			}) | ({
+			    readonly nickname: string;
+			    readonly __typename: "Cat";
+			}) | ({}));
+		`)
+		expect(fileContents!).toContain('| ({}))')
+	})
+
+	test('non-exhaustive inline fragment does have {} in union', async function () {
+		// the document to test
+		const doc = mockCollectedDoc(`
+			fragment MyFragmentA on Entity {
+				... on User {
+					id
+				}
+				# Cat is missing
+			}
+		`)
+
+		// execute the generator
+		await runPipeline(config, [doc])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document))
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents!, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+			export type MyFragmentA$input = {};
+
+			export type MyFragmentA = {
+			    readonly "shape"?: MyFragmentA$data;
+			    readonly " $fragments": {
+			        "MyFragmentA": any;
+			    };
+			};
+
+			export type MyFragmentA$data = {} & (({
+			    readonly id: string;
+			    readonly __typename: "User";
+			}) | ({}));
+		`)
+		expect(fileContents!).toContain('| ({}))')
 	})
 
 	test.todo('fragments on interfaces')

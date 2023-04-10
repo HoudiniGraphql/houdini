@@ -289,7 +289,8 @@ export function inlineType({
 		const inlineFragmentSelections: {
 			type: graphql.GraphQLNamedType
 			tsType: TSTypeKind
-			hasRequiredField: bool
+			coveredTypenames: string[]
+			hasRequiredField: boolean
 		}[] = Object.entries(inlineFragments).flatMap(([typeName, fragment]) => {
 			const fragmentRootType = config.schema.getType(typeName)
 			if (!fragmentRootType) {
@@ -350,6 +351,27 @@ export function inlineType({
 				)
 			}
 
+			function interfaceCoveredTypenames(
+				interfaceType: graphql.GraphQLInterfaceType
+			): string[] {
+				let { objects, interfaces } = config.schema.getImplementations(interfaceType)
+				return [
+					...interfaces.flatMap(interfaceCoveredTypenames),
+					...objects.map((type) => type.name),
+				]
+			}
+
+			let coveredTypenames: string[]
+			if (graphql.isInterfaceType(fragmentRootType)) {
+				coveredTypenames = interfaceCoveredTypenames(fragmentRootType)
+			} else if (graphql.isUnionType(fragmentRootType)) {
+				coveredTypenames = fragmentRootType.getTypes().map((type) => type.name)
+			} else if (graphql.isObjectType(fragmentRootType)) {
+				coveredTypenames = [fragmentRootType.name]
+			} else {
+				throw Error('unreachable code')
+			}
+
 			// check if the fragment has fields with @required set so we can account for it later
 			const hasRequiredField = fragment.some((sel) =>
 				sel.directives?.some(
@@ -358,14 +380,21 @@ export function inlineType({
 			)
 
 			// we're done massaging the type
-			return [{ type: fragmentRootType, tsType: fragmentType, hasRequiredField }]
+			return [
+				{
+					type: fragmentRootType,
+					tsType: fragmentType,
+					coveredTypenames,
+					hasRequiredField,
+				},
+			]
 		})
 
 		//
 		if (Object.keys(inlineFragmentSelections).length > 0) {
 			// // build up the discriminated type
 			let selectionTypes = Object.entries(inlineFragmentSelections).map(
-				([typeName, { type, tsType, hasRequiredField }]) => {
+				([typeName, { type, tsType }]) => {
 					// the selection for a concrete type is really the intersection of itself
 					// with every abstract type it implements. go over every fragment belonging
 					// to an abstract type and check if this type implements it.
@@ -389,27 +418,23 @@ export function inlineType({
 				}
 			)
 
-			let anySelectionHasRequiredField = Object.values(inlineFragmentSelections).some(
-				({ hasRequiredField }) => hasRequiredField
+			const parentIsUnionOrInterface =
+				!graphql.isInterfaceType(type) && !graphql.isUnionType(type)
+			const possibleTypenames = parentIsUnionOrInterface
+				? [parent.name]
+				: config.schema.getPossibleTypes(type).map((type) => type.name)
+			const coveredTypenames = new Set(
+				Object.values(inlineFragmentSelections).flatMap((sel) => sel.coveredTypenames)
 			)
-			if (anySelectionHasRequiredField) {
-				selectionTypes.push(
-					AST.tsParenthesizedType(
-						AST.tsTypeLiteral([
-							readonlyProperty(
-								AST.tsPropertySignature(
-									AST.identifier('__typename'),
-									AST.tsTypeAnnotation(
-										AST.tsLiteralType(
-											AST.stringLiteral('required field missing')
-										)
-									)
-								),
-								allowReadonly
-							),
-						])
-					)
-				)
+			const areAllTypenamesCovered = possibleTypenames.every((name) =>
+				coveredTypenames.has(name)
+			)
+			let anySelectionHasRequiredField = Object.values(inlineFragmentSelections).some(
+				(sel) => sel.hasRequiredField
+			)
+			if (!areAllTypenamesCovered || anySelectionHasRequiredField) {
+				// add {} to the union to account for getting a type we didn't expect
+				selectionTypes.push(AST.tsParenthesizedType(AST.tsTypeLiteral([])))
 			}
 
 			// build up the list of fragment types
