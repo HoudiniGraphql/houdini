@@ -49,12 +49,14 @@ test.describe('required-field', () => {
           withRequired: {
             name: 'Bruce Willis',
             birthDate: '1955-03-19T00:00:00.000Z',
-            id: 'user-required:1'
+            id: 'user-required:1',
+            __typename: 'User'
           },
           withoutRequired: {
             name: 'Bruce Willis',
             birthDate: '1955-03-19T00:00:00.000Z',
-            id: 'user-required:1'
+            id: 'user-required:1',
+            __typename: 'User'
           }
         },
         null,
@@ -89,7 +91,8 @@ test.describe('required-field', () => {
           withoutRequired: {
             name: 'Samuel Jackson',
             birthDate: null,
-            id: 'user-required:2'
+            id: 'user-required:2',
+            __typename: 'User'
           }
         },
         null,
