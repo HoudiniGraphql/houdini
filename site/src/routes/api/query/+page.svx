@@ -337,18 +337,20 @@ The above example will provide 3 props to your route: `MyQuery` containing an in
 
 </DeepDive>
 
-## Loading state
+## Loading States
 
-Your needs regarding _Loading state_ concept can vary depending on 
-your application, use case, scenario... Fortunatly, Houdini gives you 
-some APIs to handle many different situations. We call it the `"blocking"` concept.
+By default, SvelteKit blocks navigation while your queries fetch. While this is great for
+rendering your application for the initial request, it
+makes it impossible to build loading states for client-side navigation that have
+[been shown](https://pencilandpaper.io/articles/ux-pattern-analysis-loading-feedback/)
+to improve perceived loading time.
 
-Basically, Houdini gives you the ability to wait the await of the fetch or not.
-In other word, are we `blocking` next steps (while retriving data) or not.
+In order to circumvent this, your query's do not actually block by default.
+For some applications, this
+is not the desired behavior and so Houdini allows you to configure the behavior the
+blocking nature of your query's fetches using a combination of directives and configuration values.
 
-By default, Houdini will block fetches on the server (to satify SSR) 
-and not not block on client navigation.
-But you ca tune this behavior at various levels:
+<DeepDive title="Ways to configure blocking behavior">
 
 1. By configuration with the parameter [defaultRouteBlocking](/api/config#svelte-plugin).
 1. If you have [throwOnError](/api/client#error-handling) set with operations "all" or "query", Houdini will always block.
@@ -356,7 +358,9 @@ But you ca tune this behavior at various levels:
 1. By using the `@blocking` / `@blocking_disable` directives you can overwrite the behavior.
 1. By passing the arg `blocking` in the fetch function you can overwrite the behavior.
 
-Here is an example of overwriting:
+</DeepDive>
+
+<DeepDive label="Example" title="Blocking on Load">
 
 ```typescript:typescriptToggle=true
 import { redirect } from '@sveltejs/kit'
@@ -373,6 +377,29 @@ export const load: PageLoad = async (event) => {
 
 	return {}
 }
+```
+
+</DeepDive>
+
+### Rendering a Loading State
+
+The easiest way to detect when your query is waiting on a network request is to
+look at the `fetching` value in the response:
+
+```svelte:title=src/routes/myRoute.svelte&typescriptToggle=true
+<script lang="ts">
+	import type { PageData } from './$houdini'
+	export let data: PageData
+
+	$: ({ MyQuery } = data)
+</script>
+
+{#if MyQuery.fetching}
+	loading...
+{:else}
+	{$MyQuery.data....}
+{/if}
+
 ```
 
 ## Components Queries
@@ -407,7 +434,7 @@ the appropriate `load` function.
 
 ## Server only load
 
-Using a query store inside of server only load function looks very similar to the usual `load` function: 
+Using a query store inside of server only load function looks very similar to the usual `load` function:
 just pass the event you are handed in your route function:
 
 ```typescript:typescriptToggle=true
@@ -442,7 +469,7 @@ export const GET: RequestHandler = async (event) => {
 }
 ```
 
-Note that like this you will not have a store in your svelte files, you will need to fetch data on your own. 
+Note that like this you will not have a store in your svelte files, you will need to fetch data on your own.
 More info in the [SvelteKit Doc](https://kit.svelte.dev/docs/routing#server).
 
 ## Passing Metadata
