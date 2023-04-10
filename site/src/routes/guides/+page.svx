@@ -16,6 +16,7 @@ This section contains posts that cover fundamental principles to help you build 
 - [Working with GraphQL](/guides/working-with-graphql) - An overview of the different ways you can leverage GraphQL
 - [Setting up Your Project](/guides/setting-up-your-project) - Instructions for setting up your project
 - [Pagination](/guides/pagination) - An overview of Houdini's support for loading long lists of data
+- [Loading States](/guides/loading-states) - An overview of the strategies you can use when building loading states.
 - [Caching Data](/guides/caching-data) - A summary of Houdini's caching behavior
 - [Authentication](/guides/authentication) - An overview of Houdini's session and authentication infrastructure
 - [Uploading Files](/guides/uploading-files) - A guide on handling file uploads via mutations
