@@ -70,7 +70,7 @@ export default {
 Here is a summary of the possible configuration values:
 
 - `client` (optional, default: `"./src/client"`): a relative path (from houdini.config.js) to a file that exports your houdini client as its default.
-- `defaultRouteBlocking` (optional, default: `false`): Specifies whether the client side routing is blocking or not.
+- `defaultRouteBlocking` (optional, default: `false`): Specifies the default blocking behavior for client-side navigation. For more information, please visit [this section of the docs](https://houdinigraphql.com/api/query#manual-loading).
 - `projectDir` (optional, default: `process.cwd()`): an absolute path pointing to your SvelteKit project (useful for monorepos)
 - `pageQueryFilename` (optional, default: `"+page.gql"`): The name of the file used to define page queries.
 - `layoutQueryFilename` (optional, default: `"+layout.gql"`): The name of the file used to define layout queries.
