@@ -3470,6 +3470,59 @@ describe('typescript', function () {
 			};
 
 			export type MyQuery$input = null;
+
+			export type MyQuery$artifact = {
+			    "name": "MyQuery";
+			    "kind": "HoudiniQuery";
+			    "hash": "05f293c4f36a9af1871b49f3384c5d4b3df8adbdd5606f7b644732ef98332643";
+			    "raw": \`query MyQuery {
+			  user {
+			    id
+			    firstName
+			    nickname
+			  }
+			}
+			\`;
+			    "rootType": "Query";
+			    "selection": {
+			        "fields": {
+			            "user": {
+			                "type": "User";
+			                "keyRaw": "user";
+			                "nullable": true;
+			                "selection": {
+			                    "fields": {
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                        "firstName": {
+			                            "type": "String";
+			                            "keyRaw": "firstName";
+			                            "visible": true;
+			                        };
+			                        "nickname": {
+			                            "type": "String";
+			                            "keyRaw": "nickname";
+			                            "directives": [{
+			                                "name": "required";
+			                                "arguments": {};
+			                            }];
+			                            "nullable": false;
+			                            "required": true;
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "policy": "CacheOrNetwork";
+			    "partial": false;
+			};
 		`)
 	})
 
@@ -3511,6 +3564,77 @@ describe('typescript', function () {
 			};
 
 			export type MyQuery$input = null;
+
+			export type MyQuery$artifact = {
+			    "name": "MyQuery";
+			    "kind": "HoudiniQuery";
+			    "hash": "f4dd7e1b48b761fb27453140bad46af3456e492f5915919ec1fd526e5ee33522";
+			    "raw": \`query MyQuery {
+			  user {
+			    parent {
+			      id
+			      firstName
+			      nickname
+			    }
+			    id
+			  }
+			}
+			\`;
+			    "rootType": "Query";
+			    "selection": {
+			        "fields": {
+			            "user": {
+			                "type": "User";
+			                "keyRaw": "user";
+			                "nullable": true;
+			                "selection": {
+			                    "fields": {
+			                        "parent": {
+			                            "type": "User";
+			                            "keyRaw": "parent";
+			                            "directives": [{
+			                                "name": "required";
+			                                "arguments": {};
+			                            }];
+			                            "nullable": false;
+			                            "required": true;
+			                            "selection": {
+			                                "fields": {
+			                                    "id": {
+			                                        "type": "ID";
+			                                        "keyRaw": "id";
+			                                        "visible": true;
+			                                    };
+			                                    "firstName": {
+			                                        "type": "String";
+			                                        "keyRaw": "firstName";
+			                                        "visible": true;
+			                                    };
+			                                    "nickname": {
+			                                        "type": "String";
+			                                        "keyRaw": "nickname";
+			                                        "nullable": true;
+			                                        "visible": true;
+			                                    };
+			                                };
+			                            };
+			                            "visible": true;
+			                        };
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "policy": "CacheOrNetwork";
+			    "partial": false;
+			};
 		`)
 	})
 
@@ -3552,6 +3676,82 @@ describe('typescript', function () {
 			};
 
 			export type MyQuery$input = null;
+
+			export type MyQuery$artifact = {
+			    "name": "MyQuery";
+			    "kind": "HoudiniQuery";
+			    "hash": "a6373f8f571b82b59909f99fa18e310c36f3cc4f89a7b6432fafba72c9a82ebf";
+			    "raw": \`query MyQuery {
+			  user {
+			    parent {
+			      id
+			      firstName
+			      nickname
+			    }
+			    id
+			  }
+			}
+			\`;
+			    "rootType": "Query";
+			    "selection": {
+			        "fields": {
+			            "user": {
+			                "type": "User";
+			                "keyRaw": "user";
+			                "nullable": true;
+			                "selection": {
+			                    "fields": {
+			                        "parent": {
+			                            "type": "User";
+			                            "keyRaw": "parent";
+			                            "directives": [{
+			                                "name": "required";
+			                                "arguments": {};
+			                            }];
+			                            "nullable": true;
+			                            "required": true;
+			                            "selection": {
+			                                "fields": {
+			                                    "id": {
+			                                        "type": "ID";
+			                                        "keyRaw": "id";
+			                                        "visible": true;
+			                                    };
+			                                    "firstName": {
+			                                        "type": "String";
+			                                        "keyRaw": "firstName";
+			                                        "visible": true;
+			                                    };
+			                                    "nickname": {
+			                                        "type": "String";
+			                                        "keyRaw": "nickname";
+			                                        "directives": [{
+			                                            "name": "required";
+			                                            "arguments": {};
+			                                        }];
+			                                        "nullable": false;
+			                                        "required": true;
+			                                        "visible": true;
+			                                    };
+			                                };
+			                            };
+			                            "visible": true;
+			                        };
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "policy": "CacheOrNetwork";
+			    "partial": false;
+			};
 		`)
 	})
 
@@ -3593,6 +3793,77 @@ describe('typescript', function () {
 			};
 
 			export type MyQuery$input = null;
+
+			export type MyQuery$artifact = {
+			    "name": "MyQuery";
+			    "kind": "HoudiniQuery";
+			    "hash": "82e367b10d22e01e8dbee48f6864a06a3dc692730b3cf770c7d9abbe4d6f67e6";
+			    "raw": \`query MyQuery {
+			  user {
+			    parentRequired {
+			      id
+			      firstName
+			      nickname
+			    }
+			    id
+			  }
+			}
+			\`;
+			    "rootType": "Query";
+			    "selection": {
+			        "fields": {
+			            "user": {
+			                "type": "User";
+			                "keyRaw": "user";
+			                "nullable": true;
+			                "selection": {
+			                    "fields": {
+			                        "parentRequired": {
+			                            "type": "User";
+			                            "keyRaw": "parentRequired";
+			                            "selection": {
+			                                "fields": {
+			                                    "id": {
+			                                        "type": "ID";
+			                                        "keyRaw": "id";
+			                                        "visible": true;
+			                                    };
+			                                    "firstName": {
+			                                        "type": "String";
+			                                        "keyRaw": "firstName";
+			                                        "visible": true;
+			                                    };
+			                                    "nickname": {
+			                                        "type": "String";
+			                                        "keyRaw": "nickname";
+			                                        "directives": [{
+			                                            "name": "required";
+			                                            "arguments": {};
+			                                        }];
+			                                        "nullable": false;
+			                                        "required": true;
+			                                        "visible": true;
+			                                    };
+			                                };
+			                            };
+			                            "nullable": true;
+			                            "visible": true;
+			                        };
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "policy": "CacheOrNetwork";
+			    "partial": false;
+			};
 		`)
 	})
 
@@ -3652,6 +3923,128 @@ describe('typescript', function () {
 			        readonly nickname: string;
 			    } | null;
 			} | null;
+
+			export type MyFragment$artifact = {
+			    "name": "MyFragment";
+			    "kind": "HoudiniFragment";
+			    "hash": "1c4a5110bb2d7ade3b3a143798ea3c9d3d1a7ed27008bfb784fd9b686db6b777";
+			    "raw": \`fragment MyFragment on User {
+			  id
+			  firstName
+			  nickname
+			  parent {
+			    id
+			    firstName
+			    nickname
+			  }
+			  parentRequired {
+			    id
+			    firstName
+			    nickname
+			  }
+			  __typename
+			}
+			\`;
+			    "rootType": "User";
+			    "selection": {
+			        "fields": {
+			            "id": {
+			                "type": "ID";
+			                "keyRaw": "id";
+			                "visible": true;
+			            };
+			            "firstName": {
+			                "type": "String";
+			                "keyRaw": "firstName";
+			                "visible": true;
+			            };
+			            "nickname": {
+			                "type": "String";
+			                "keyRaw": "nickname";
+			                "directives": [{
+			                    "name": "required";
+			                    "arguments": {};
+			                }];
+			                "nullable": false;
+			                "required": true;
+			                "visible": true;
+			            };
+			            "parent": {
+			                "type": "User";
+			                "keyRaw": "parent";
+			                "directives": [{
+			                    "name": "required";
+			                    "arguments": {};
+			                }];
+			                "nullable": true;
+			                "required": true;
+			                "selection": {
+			                    "fields": {
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                        "firstName": {
+			                            "type": "String";
+			                            "keyRaw": "firstName";
+			                            "visible": true;
+			                        };
+			                        "nickname": {
+			                            "type": "String";
+			                            "keyRaw": "nickname";
+			                            "directives": [{
+			                                "name": "required";
+			                                "arguments": {};
+			                            }];
+			                            "nullable": false;
+			                            "required": true;
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "visible": true;
+			            };
+			            "parentRequired": {
+			                "type": "User";
+			                "keyRaw": "parentRequired";
+			                "selection": {
+			                    "fields": {
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                        "firstName": {
+			                            "type": "String";
+			                            "keyRaw": "firstName";
+			                            "visible": true;
+			                        };
+			                        "nickname": {
+			                            "type": "String";
+			                            "keyRaw": "nickname";
+			                            "directives": [{
+			                                "name": "required";
+			                                "arguments": {};
+			                            }];
+			                            "nullable": false;
+			                            "required": true;
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "nullable": true;
+			                "visible": true;
+			            };
+			            "__typename": {
+			                "type": "String";
+			                "keyRaw": "__typename";
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			};
 		`)
 	})
 

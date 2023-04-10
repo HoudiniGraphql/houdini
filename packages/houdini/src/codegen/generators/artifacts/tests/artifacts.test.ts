@@ -5868,6 +5868,7 @@ test('client nullability', async function () {
 
 		fragment LegendWithRequiredName on Legend {
 		  name
+		  __typename
 		}
 
 		fragment GhostWithRequiredLegendName on Ghost {
@@ -5876,6 +5877,7 @@ test('client nullability', async function () {
 		  }
 		  name
 		  aka
+		  __typename
 		}
 
 		fragment GhostWithRequiredLegendAndLegendName on Ghost {
@@ -5884,6 +5886,7 @@ test('client nullability', async function () {
 		  }
 		  name
 		  aka
+		  __typename
 		}
 		\`,
 
@@ -5903,19 +5906,26 @@ test('client nullability', async function () {
 		                                "name": {
 		                                    "type": "String",
 		                                    "keyRaw": "name",
+
+		                                    "directives": [{
+		                                        "name": "required",
+		                                        "arguments": {}
+		                                    }],
+
 		                                    "nullable": false,
 		                                    "required": true
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
 		                                },
 
 		                                "id": {
 		                                    "type": "ID",
 		                                    "keyRaw": "id",
 		                                    "visible": true
-		                                },
-
-		                                "__typename": {
-		                                    "type": "String",
-		                                    "keyRaw": "__typename"
 		                                }
 		                            },
 
@@ -5929,6 +5939,12 @@ test('client nullability', async function () {
 		                                            "name": {
 		                                                "type": "String",
 		                                                "keyRaw": "name",
+
+		                                                "directives": [{
+		                                                    "name": "required",
+		                                                    "arguments": {}
+		                                                }],
+
 		                                                "nullable": false,
 		                                                "required": true
 		                                            }
@@ -5950,15 +5966,16 @@ test('client nullability', async function () {
 		                                    "visible": true
 		                                },
 
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
+		                                },
+
 		                                "id": {
 		                                    "type": "ID",
 		                                    "keyRaw": "id",
 		                                    "visible": true
-		                                },
-
-		                                "__typename": {
-		                                    "type": "String",
-		                                    "keyRaw": "__typename"
 		                                }
 		                            }
 		                        },
