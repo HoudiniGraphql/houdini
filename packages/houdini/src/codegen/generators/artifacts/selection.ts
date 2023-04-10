@@ -404,7 +404,10 @@ function prepareSelection({
 			}
 
 			// assign the loading state if necessary
-			if (field.directives?.find((d) => d.name.value === config.loadingDirective)) {
+			if (
+				globalLoading ||
+				field.directives?.find((d) => d.name.value === config.loadingDirective)
+			) {
 				object.fragments[fragment].loading = true
 			}
 		}
