@@ -394,7 +394,7 @@ importers:
             eslint-config-prettier: ^8.6.0
             eslint-plugin-svelte3: ^4.0.0
             estree-walker: ^3.0.1
-            feather-icons: ^4.28.0
+            feather-icons: ^4.29.0
             flexsearch: ^0.7.31
             gatsby-remark-code-titles: ^1.1.0
             husky: ^7.0.4

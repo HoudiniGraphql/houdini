@@ -3,5 +3,23 @@ title: Loading States
 description: An overview of the tools that houdini provides to help construct loading states for your application.
 ---
 
+<script>
+    import LoadingPokedex from '~/components/pokedex/LoadingState.svelte'
+</script>
+
 # Loading States
 
+At some point, your users are going to be waiting for data to load from the server. This could be because they
+don't live in a place with state-of-the-art internet service or maybe they just stepped into a tunnel. Regardless,
+you are going to want to show them _something_ while your request loads.
+
+This guide will go over all of the tools that Houdini provides to help you build interfaces for your loading states.
+
+## A Concrete Example
+
+Before we get too far, let's look at a concrete example so we can have a goal in mind. For this guide,
+we're going to be building a loading screen for the Pokédex that we constructed in the [Getting Started](/intro) guide:
+
+<p>
+    <LoadingPokedex />
+</p>

@@ -1,0 +1,153 @@
+:root {
+	--pokedex-red: #e61515;
+	--pokedex-shadow: #891313;
+}
+
+#pokedex #species-name {
+	font-size: 28px;
+	letter-spacing: 4px;
+	text-transform: capitalize;
+	height: 45px;
+	box-sizing: border-box;
+	display: flex;
+	justify-content: space-between;
+}
+
+#pokedex #species-sprite {
+	height: 250px;
+	flex-grow: 1;
+}
+
+#pokedex #species-flavor_text {
+	font-size: 20px;
+	height: 3em;
+}
+
+#pokedex nav {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+#pokedex nav a {
+	width: 45%;
+	height: 40px;
+	background-color: black;
+	border-radius: 3px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-size: 24px;
+	text-decoration: none;
+
+	border-top: 2px solid #3a3a3a;
+	border-right: 2px solid #3a3a3a;
+	color: white;
+	font-family: 'VT323';
+	box-sizing: border-box;
+}
+
+#pokedex nav a[disabled='true'] {
+	background-color: #3a3a3a;
+	border-top: none;
+	border-right: none;
+	color: #727272;
+}
+
+#pokedex a[disabled='true'] {
+	pointer-events: none;
+}
+
+.sprite {
+	display: flex;
+	image-rendering: pixelated;
+	border-radius: 5px;
+	margin: 10px 0;
+	box-sizing: border-box;
+	align-items: center;
+	justify-content: center;
+}
+
+.sprite:not(.transparentBackground) {
+	border: inset #9aa28b 3px;
+	background: linear-gradient(
+		15deg,
+		#cad5b5 64%,
+		#dde2d4 70%,
+		#dde2d4 81%,
+		#fff 86%,
+		#dde2d4 89%,
+		#dde2d4 100%
+	);
+}
+
+#pokedex #species-evolution-chain {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+#pokedex a {
+	text-decoration: none;
+}
+
+#pokedex #favorite {
+	position: absolute;
+	top: 10%;
+	right: 54.5%;
+	background: none;
+	display: inline-block;
+	border: none;
+	margin: 0;
+	padding: 0;
+	cursor: pointer;
+}
+
+#pokedex #favorite-star {
+	height: 50px !important;
+	width: 50px !important;
+	stroke-width: 1px;
+}
+
+.arrow-button {
+	height: 40px;
+	width: 40px;
+	font-size: 37px;
+	border: groove grey 3px;
+	border-radius: 50%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	text-shadow: #e78181 -1px 1px;
+	cursor: pointer;
+	transform: rotate(60deg);
+	background: none;
+}
+
+.arrow-button svg {
+	transform: rotate(-60deg) !important;
+}
+
+#pokedex #move-summary {
+	display: flex;
+	flex-direction: row;
+}
+
+#pokedex #move-summary ~ nav {
+	position: absolute;
+	bottom: 18px;
+	left: 54%;
+	right: 20px;
+}
+
+#pokedex #move-display {
+	flex-grow: 1;
+}
+
+#pokedex #move-controls {
+	margin: 0 10px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	align-items: center;
+}
