@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { fragment, graphql, type CityInfoWithLoadingState, LoadingValue } from '$houdini';
+  import { fragment, graphql, type CityInfoWithLoadingState, PendingValue } from '$houdini';
 
   export let city: CityInfoWithLoadingState;
 
@@ -20,7 +20,7 @@
 <ul>
   {#each $data.libraries as library}
     <li>
-      {#if library === LoadingValue}
+      {#if library === PendingValue}
         loading...
       {:else}
         {library?.name}
