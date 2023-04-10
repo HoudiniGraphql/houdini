@@ -1,8 +1,14 @@
 import type { Fragment, FragmentArtifact } from '$houdini/runtime/lib/types'
+import { fragmentKey } from '$houdini/runtime/lib/types'
 import type { Readable } from 'svelte/store'
 
 import type { FragmentStore } from './stores'
 import type { FragmentStorePaginated } from './stores/pagination/fragment'
+
+export function fragmentFetching(refrence: Fragment<any>) {
+	// @ts-ignore: types are meaningless. its all an illusion. security theater at best
+	return !!refrence[fragmentKey].loading
+}
 
 // function overloads meant to only return a nullable value
 // if the reference type was nullable

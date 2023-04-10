@@ -2,20 +2,25 @@ import type { FetchContext } from '$houdini/runtime/client/plugins/fetch'
 import * as log from '$houdini/runtime/lib/log'
 import type {
 	GraphQLObject,
-	HoudiniFetchContext,
 	MutationArtifact,
 	QueryArtifact,
 	QueryResult,
 	CachePolicies,
 } from '$houdini/runtime/lib/types'
 import { ArtifactKind, CachePolicy, CompiledQueryKind } from '$houdini/runtime/lib/types'
-import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
+import type { LoadEvent } from '@sveltejs/kit'
 import { get } from 'svelte/store'
 
 import type { PluginArtifactData } from '../../plugin/artifactData'
 import { clientStarted, isBrowser } from '../adapter'
 import { initClient } from '../client'
 import { getSession } from '../session'
+import type {
+	ClientFetchParams,
+	LoadEventFetchParams,
+	QueryStoreFetchParams,
+	RequestEventFetchParams,
+} from '../types'
 import { BaseStore } from './base'
 
 export class QueryStore<_Data extends GraphQLObject, _Input extends {}> extends BaseStore<
@@ -221,78 +226,3 @@ export async function load(${log.yellow('event')}: LoadEvent) {
 // in a server-side mutation:
 await mutation.mutate({ ... }, ${log.yellow('{ event }')})
 `
-
-type FetchGlobalParams<_Data extends GraphQLObject, _Input> = {
-	variables?: _Input
-
-	/**
-	 * The policy to use when performing the fetch. If set to CachePolicy.NetworkOnly,
-	 * a request will always be sent, even if the variables are the same as the last call
-	 * to fetch.
-	 */
-	policy?: CachePolicies
-
-	/**
-	 * An object that will be passed to the fetch function.
-	 * You can do what you want with it!
-	 */
-	// @ts-ignore
-	metadata?: App.Metadata
-
-	/**
-	 * Set to true if you want the promise to pause while it's resolving.
-	 * Only enable this if you know what you are doing. This will cause route
-	 * transitions to pause while loading data.
-	 */
-	blocking?: boolean
-
-	/**
-	 * A function to call after the fetch happens (whether fake or not)
-	 */
-	then?: (val: _Data | null) => void | Promise<void>
-}
-
-export type LoadEventFetchParams<_Data extends GraphQLObject, _Input> = FetchGlobalParams<
-	_Data,
-	_Input
-> & {
-	/**
-	 * Directly the `even` param coming from the `load` function
-	 */
-	event?: LoadEvent
-}
-
-export type RequestEventFetchParams<_Data extends GraphQLObject, _Input> = FetchGlobalParams<
-	_Data,
-	_Input
-> & {
-	/**
-	 * A RequestEvent should be provided when the store is being used in an endpoint.
-	 * When this happens, fetch also needs to be provided
-	 */
-	event?: RequestEvent
-	/**
-	 * The fetch function to use when using this store in an endpoint.
-	 */
-	fetch?: LoadEvent['fetch']
-}
-
-export type ClientFetchParams<_Data extends GraphQLObject, _Input> = FetchGlobalParams<
-	_Data,
-	_Input
-> & {
-	/**
-	 * An object containing all of the current info necessary for a
-	 * client-side fetch. Must be called in component initialization with
-	 * something like this: `const context = getHoudiniFetchContext()`
-	 */
-	context?: HoudiniFetchContext
-}
-
-export type QueryStoreFetchParams<_Data extends GraphQLObject, _Input> =
-	| QueryStoreLoadParams<_Data, _Input>
-	| ClientFetchParams<_Data, _Input>
-
-export type QueryStoreLoadParams<_Data extends GraphQLObject, _Input> =
-	| LoadEventFetchParams<_Data, _Input>
-	| RequestEventFetchParams<_Data, _Input>

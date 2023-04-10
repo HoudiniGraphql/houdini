@@ -11,5 +11,5 @@ test('loading state', async ({ page }) => {
   await clientSideNavigation(page, routes.loading_state);
 
   // make sure we see the loading state value
-  await expect_to_be(page, 'loading!');
+  await expect_to_be(page, JSON.stringify([null, null, null]));
 });

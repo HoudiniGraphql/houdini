@@ -812,20 +812,25 @@ class CacheInternal {
 
 		const target = {} as GraphQLObject
 		if (selection.fragments) {
-			target[fragmentKey] = Object.fromEntries(
-				Object.entries(selection.fragments)
-					// only include the fragments that are marked loading
-					// if we are generating the loading state
-					.filter(([, value]) => !generateLoading || value.loading)
-					.map(([key, value]) => [
-						key,
-						{
-							parent,
-							variables: evaluateFragmentVariables(value.arguments, variables ?? {}),
-							loading: generateLoading,
-						},
-					])
-			)
+			target[fragmentKey] = {
+				loading: Boolean(generateLoading),
+				values: Object.fromEntries(
+					Object.entries(selection.fragments)
+						// only include the fragments that are marked loading
+						// if we are generating the loading state
+						.filter(([, value]) => !generateLoading || value.loading)
+						.map(([key, value]) => [
+							key,
+							{
+								parent,
+								variables: evaluateFragmentVariables(
+									value.arguments,
+									variables ?? {}
+								),
+							},
+						])
+				),
+			}
 		}
 
 		// we need to track if we have a partial data set which means we have _something_ but not everything
@@ -897,7 +902,7 @@ class CacheInternal {
 			}
 
 			// look up the value in our store
-			const { value } = this.storage.get(parent, key)
+			let { value } = this.storage.get(parent, key)
 
 			// If we have an explicite null, that mean that it's stale and the we should do a network call
 			const dt_field = this.staleManager.getFieldTime(parent, key)
@@ -907,7 +912,7 @@ class CacheInternal {
 
 			// a loading state has no real values
 			if (generateLoading) {
-				value === undefined
+				value = undefined
 			}
 
 			// in order to avoid falsey identifying the `cursor` field of a connection edge

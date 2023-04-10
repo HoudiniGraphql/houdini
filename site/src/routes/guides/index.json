@@ -7,6 +7,7 @@
 		"working-with-graphql",
 		"setting-up-your-project",
 		"pagination",
+		"loading-states",
 		"caching-data",
 		"authentication",
 		"uploading-files",

@@ -593,6 +593,7 @@ export default plugin('plugin_name', async () => {
 ### `transformRuntime`
 
 - Type: `Record<string, ({ config: Config; content: string }) => string>`
+  or `(docs: Document[]) => Record<string, ({ config: Config; content: string }) => string>`
 
 Transforms the plugin's runtime while houdini is copying it. The keys of
 the object are paths in your runtime (relative to the `includeRuntime`
@@ -615,6 +616,30 @@ export default plugin('plugin_name', async () => {
         transformRuntime: {
             ['lib/constants.js']: ({ content }) {
                 return content.replace("THIS", plugin_variable)
+            }
+        }
+    }
+})
+```
+
+If you need to transform files based on the documents in your application,
+you can also pass a function that returns an object. This function will
+be called with the list of documents in your application.
+
+```typescript:title=plugin_name/src/index.ts
+import { plugin } from 'houdini'
+
+const plugin_variable = "1234"
+
+export default plugin('plugin_name', async () => {
+    return {
+        // this must be set
+        includeRuntime: "../runtime",
+
+        // replace value in {pluginRoot}/lib/constants.js
+        transformRuntime: (docs) => {
+            ['lib/constants.js']: ({ content }) {
+                return content.replace("LENGTH", docs.length)
             }
         }
     }

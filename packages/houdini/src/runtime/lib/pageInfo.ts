@@ -1,15 +1,8 @@
-import { siteURL } from '$houdini/runtime/lib/constants'
-import type { GraphQLObject } from '$houdini/runtime/lib/types'
+import { siteURL } from './constants'
+import type { GraphQLObject, PageInfo } from './types'
 
 export function nullPageInfo(): PageInfo {
 	return { startCursor: null, endCursor: null, hasNextPage: false, hasPreviousPage: false }
-}
-
-export type PageInfo = {
-	startCursor: string | null
-	endCursor: string | null
-	hasNextPage: boolean
-	hasPreviousPage: boolean
 }
 
 export function missingPageSizeError(fnName: string) {

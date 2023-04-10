@@ -1,14 +1,11 @@
-import { StatementKind, TSPropertySignatureKind, TSTypeKind } from 'ast-types/lib/gen/kinds'
-import * as graphql from 'graphql'
+import type { StatementKind, TSPropertySignatureKind, TSTypeKind } from 'ast-types/lib/gen/kinds'
 import * as recast from 'recast'
 
 import {
-	Config,
-	DocumentArtifact,
+	type Config,
+	type DocumentArtifact,
 	ensureImports,
-	SubscriptionSelection,
-	unwrapType,
-	TypeWrapper,
+	type SubscriptionSelection,
 	fragmentKey,
 } from '../../../lib'
 import { getFieldsForType } from '../../../runtime/lib/selection'

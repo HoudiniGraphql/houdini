@@ -100,6 +100,9 @@ export async function runPipeline(config: Config, docs: Document[]) {
 				generators.indexFile,
 				// typescript generator needs to go after the runtime one
 				// so that the imperative cache definitions always survive
+				// this also ensures that we have the artifact generated already
+				// which lets us define it as the default export for the appropriate
+				// definition file.
 				generators.typescript,
 				generators.persistOutput,
 				generators.definitions,
@@ -117,6 +120,7 @@ export async function runPipeline(config: Config, docs: Document[]) {
 			docs
 		)
 	} catch (e) {
+		console.log(e)
 		error = e as Error
 	}
 
@@ -261,7 +265,10 @@ async function collectDocuments(config: Config): Promise<Document[]> {
 					}
 				}
 			} catch (err) {
-				throw new HoudiniError({ ...(err as HoudiniError), filepath })
+				throw {
+					message: (err as Error).message,
+					filepath,
+				}
 			}
 		})
 	)
