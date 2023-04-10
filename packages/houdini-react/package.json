@@ -44,10 +44,12 @@
     "exports": {
         "./package.json": "./package.json",
         "./next": {
+            "types": "./build/next/index.d.ts",
             "import": "./build/next-esm/index.js",
             "require": "./build/next-cjs/index.js"
         },
         ".": {
+            "types": "./build/plugin/index.d.ts",
             "import": "./build/plugin-esm/index.js",
             "require": "./build/plugin-cjs/index.js"
         }
