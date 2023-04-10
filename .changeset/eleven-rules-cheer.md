@@ -2,4 +2,4 @@
 'houdini': patch
 ---
 
-add blocking strategies (config & directives)
+Add additional configuration values and directives to control route's blocking behavior.
