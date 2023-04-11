@@ -1,6 +1,5 @@
-import { ArtifactKind, ensureArtifactImport, find_graphql, parseJS } from 'houdini'
+import { ArtifactKind, ensureArtifactImport, find_graphql, parseJS, recast } from 'houdini'
 import type { TransformPage } from 'houdini/vite'
-import * as recast from 'recast'
 import type { SourceMapInput } from 'rollup'
 
 const AST = recast.types.builders
@@ -13,10 +12,7 @@ export async function transformFile(
 		return { code: page.content, map: page.map }
 	}
 	// parse the content and look for an invocation of the graphql function
-	const parsed = await parseJS(page.content, {
-		plugins: ['typescript', 'jsx'],
-		sourceType: 'module',
-	})
+	const parsed = await parseJS(page.content)
 	if (!parsed) {
 		return { code: page.content, map: page.map }
 	}

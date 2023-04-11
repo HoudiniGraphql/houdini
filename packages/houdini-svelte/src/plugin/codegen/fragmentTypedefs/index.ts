@@ -1,7 +1,6 @@
 import type { StatementKind, TSTypeKind } from 'ast-types/lib/gen/kinds'
 import type { Document } from 'houdini'
-import { fragmentKey, parseJS, path, fs, ArtifactKind, ensureImports } from 'houdini'
-import * as recast from 'recast'
+import { fragmentKey, parseJS, path, fs, ArtifactKind, ensureImports, recast } from 'houdini'
 
 import type { PluginGenerateInput } from '..'
 import { stores_directory_name, store_name } from '../../kit'

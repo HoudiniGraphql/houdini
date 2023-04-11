@@ -1,6 +1,5 @@
-import { parseJS, runPipeline, formatErrors } from 'houdini'
+import { parseJS, runPipeline, formatErrors, recast } from 'houdini'
 import type { TransformPage } from 'houdini/vite'
-import * as recast from 'recast'
 import type { SourceMapInput } from 'rollup'
 
 import type { ParsedFile } from '../extract'

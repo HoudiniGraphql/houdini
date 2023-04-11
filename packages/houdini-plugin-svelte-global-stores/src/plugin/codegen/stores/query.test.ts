@@ -1,5 +1,4 @@
-import { fs, path } from 'houdini'
-import * as recast from 'recast'
+import { fs, path, recast } from 'houdini'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { expect, test } from 'vitest'
 

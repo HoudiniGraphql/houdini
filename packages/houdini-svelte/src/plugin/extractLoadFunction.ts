@@ -1,9 +1,8 @@
 import { logYellow } from '@kitql/helper'
 import type { ExpressionKind } from 'ast-types/lib/gen/kinds'
 import * as graphql from 'graphql'
-import type { Config } from 'houdini'
+import type { Config, recast } from 'houdini'
 import { fs, parseJS, path } from 'houdini'
-import type * as recast from 'recast'
 import { transformWithEsbuild } from 'vite'
 
 import type { HoudiniRouteScript } from './kit'

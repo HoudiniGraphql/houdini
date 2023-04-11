@@ -1,5 +1,5 @@
+import { recast } from 'houdini'
 import { find_exported_fn, find_insert_index, ensure_imports } from 'houdini/vite'
-import * as recast from 'recast'
 
 import { is_root_layout_script, is_root_layout_server } from '../../kit'
 import type { SvelteTransformPage } from '../types'

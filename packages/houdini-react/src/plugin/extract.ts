@@ -19,9 +19,7 @@ export async function extractDocuments({
 	}
 
 	// parse the content
-	const parsed = await parseJS(content, {
-		plugins: ['typescript', 'jsx'],
-	})
+	const parsed = await parseJS(content)
 	if (!parsed?.script) {
 		return []
 	}
