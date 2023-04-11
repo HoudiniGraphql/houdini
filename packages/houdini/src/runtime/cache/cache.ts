@@ -1,4 +1,4 @@
-import { computeKey, LoadingValue } from '../lib'
+import { computeKey, PendingValue } from '../lib'
 import type { ConfigFile } from '../lib/config'
 import { computeID, defaultConfigValues, keyFieldsForType, getCurrentConfig } from '../lib/config'
 import { deepEquals } from '../lib/deepEquals'
@@ -948,7 +948,7 @@ class CacheInternal {
 			// if we are generating a loading state and we're supposed to stop here, do so
 			if (generateLoading && fieldLoading?.kind === 'value') {
 				// @ts-ignore: we're violating the contract knowingly
-				fieldTarget[attributeName] = LoadingValue
+				fieldTarget[attributeName] = PendingValue
 				hasData = true
 			}
 

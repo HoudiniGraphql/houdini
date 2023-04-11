@@ -2,7 +2,7 @@ import { test, expect } from 'vitest'
 
 import { testConfigFile } from '../../../test'
 import type { SubscriptionSelection } from '../../lib'
-import { LoadingValue } from '../../lib'
+import { PendingValue } from '../../lib'
 import { Cache } from '../cache'
 
 const config = testConfigFile()
@@ -83,10 +83,10 @@ test('can generate loading state with nested objects', function () {
 		stale: false,
 		data: {
 			viewer: {
-				id: LoadingValue,
+				id: PendingValue,
 				parent: {
-					firstName: LoadingValue,
-					friend: LoadingValue,
+					firstName: PendingValue,
+					friend: PendingValue,
 				},
 			},
 		},
@@ -134,19 +134,19 @@ test('can generate loading state with lists', function () {
 		data: {
 			users: [
 				{
-					firstName: LoadingValue,
+					firstName: PendingValue,
 				},
 				{
-					firstName: LoadingValue,
+					firstName: PendingValue,
 				},
 				{
-					firstName: LoadingValue,
+					firstName: PendingValue,
 				},
 				{
-					firstName: LoadingValue,
+					firstName: PendingValue,
 				},
 				{
-					firstName: LoadingValue,
+					firstName: PendingValue,
 				},
 			],
 		},
@@ -195,19 +195,19 @@ test('can generate loading state with multi-dimensional lists', function () {
 			users: [
 				[
 					{
-						firstName: LoadingValue,
+						firstName: PendingValue,
 					},
 					{
-						firstName: LoadingValue,
+						firstName: PendingValue,
 					},
 					{
-						firstName: LoadingValue,
+						firstName: PendingValue,
 					},
 					{
-						firstName: LoadingValue,
+						firstName: PendingValue,
 					},
 					{
-						firstName: LoadingValue,
+						firstName: PendingValue,
 					},
 				],
 			],
@@ -253,7 +253,7 @@ test('can generate loading state with lists of loading values', function () {
 		partial: false,
 		stale: false,
 		data: {
-			users: [LoadingValue, LoadingValue, LoadingValue, LoadingValue, LoadingValue],
+			users: [PendingValue, PendingValue, PendingValue, PendingValue, PendingValue],
 		},
 	})
 })
@@ -317,8 +317,8 @@ test('generate abstract loading states', function () {
 		stale: false,
 		data: {
 			viewer: {
-				name: LoadingValue,
-				parent: LoadingValue,
+				name: PendingValue,
+				parent: PendingValue,
 			},
 		},
 	})

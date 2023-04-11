@@ -372,6 +372,6 @@ interface VariableNode {
 	readonly kind: 'Variable'
 	readonly name: NameNode
 }
-export const LoadingValue = Symbol('houdini_loading')
+export const PendingValue = Symbol('houdini_loading')
 
-export type LoadingType = typeof LoadingValue
+export type LoadingType = typeof PendingValue

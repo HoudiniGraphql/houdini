@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { LoadingValue } from '$houdini';
+  import { PendingValue } from '$houdini';
   import type { PageData } from './$houdini';
   export let data: PageData;
   import CityInfoWithLoadingState from './CityInfoWithLoadingState.svelte';
@@ -10,7 +10,7 @@
 
 <div class="city">
   <h1>
-    {#if city.name === LoadingValue}
+    {#if city.name === PendingValue}
       loading...
     {:else}
       {city.name}

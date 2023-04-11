@@ -3,7 +3,7 @@
     fragment,
     fragmentFetching,
     graphql,
-    LoadingValue,
+    PendingValue,
     type CityInfoWithLoadingState
   } from '$houdini';
 
@@ -27,7 +27,7 @@
 <ul>
   {#each $data.libraries as library}
     <li>
-      {#if library === LoadingValue}
+      {#if library === PendingValue}
         loading...
       {:else}
         {library?.name}

@@ -3,7 +3,7 @@ import { beforeEach, expect, test, vi } from 'vitest'
 import { createPluginHooks, HoudiniClient, type HoudiniClientConstructorArgs } from '..'
 import { testConfigFile } from '../../../test'
 import { Cache } from '../../cache/cache'
-import { CachePolicy, LoadingValue } from '../../lib'
+import { CachePolicy, PendingValue } from '../../lib'
 import { setMockConfig } from '../../lib/config'
 import { ArtifactKind, DataSource } from '../../lib/types'
 import type { ClientPlugin } from '../documentStore'
@@ -381,7 +381,7 @@ test('loading states when fetching is true', async function () {
 	expect(fn).toHaveBeenNthCalledWith(2, {
 		data: {
 			viewer: {
-				firstName: LoadingValue,
+				firstName: PendingValue,
 			},
 		},
 		errors: null,
