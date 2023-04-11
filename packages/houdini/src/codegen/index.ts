@@ -89,8 +89,8 @@ export async function runPipeline(config: Config, docs: Document[]) {
 				validators.typeCheck,
 				validators.uniqueNames,
 				validators.noIDAlias,
+				// this replaces wrapHook(validate) to group them up
 				validators.plugins,
-				...wrapHook(validate),
 				...wrapHook(afterValidate),
 				transforms.addID,
 				transforms.typename,
@@ -129,12 +129,7 @@ export async function runPipeline(config: Config, docs: Document[]) {
 			docs
 		)
 	} catch (e) {
-		if (houdini_mode.is_testing) {
-			// flatten the error array
-			error = Array.isArray(e) && e.length === 1 ? e[0] : e
-		} else {
-			error = e as Error
-		}
+		error = e as Error
 	}
 
 	/// Summary
