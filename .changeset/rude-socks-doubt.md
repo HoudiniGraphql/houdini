@@ -2,7 +2,6 @@
 'houdini-plugin-svelte-global-stores': patch
 'houdini-svelte': patch
 'houdini-react': patch
-'scripts': patch
 'houdini': patch
 ---
 
