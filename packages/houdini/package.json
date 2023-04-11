@@ -62,18 +62,22 @@
     "exports": {
         "./package.json": "./package.json",
         "./codegen": {
+            "types": "./build/codegen/index.d.ts",
             "import": "./build/codegen-esm/index.js",
             "require": "./build/codegen-cjs/index.js"
         },
         ".": {
+            "types": "./build/lib/index.d.ts",
             "import": "./build/lib-esm/index.js",
             "require": "./build/lib-cjs/index.js"
         },
         "./test": {
+            "types": "./build/test/index.d.ts",
             "import": "./build/test-esm/index.js",
             "require": "./build/test-cjs/index.js"
         },
         "./vite": {
+            "types": "./build/vite/index.d.ts",
             "import": "./build/vite-esm/index.js",
             "require": "./build/vite-cjs/index.js"
         }

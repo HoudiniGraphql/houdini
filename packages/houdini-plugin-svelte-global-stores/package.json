@@ -39,10 +39,12 @@
     "exports": {
         "./package.json": "./package.json",
         ".": {
+            "types": "./build/plugin/index.d.ts",
             "import": "./build/plugin-esm/index.js",
             "require": "./build/plugin-cjs/index.js"
         },
         "./test": {
+            "types": "./build/test/index.d.ts",
             "import": "./build/test-esm/index.js",
             "require": "./build/test-cjs/index.js"
         }
