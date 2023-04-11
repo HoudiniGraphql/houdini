@@ -1,7 +1,6 @@
 import type { DocumentArtifact, QueryResult } from '$houdini/lib/types'
 import type { DocumentStore, SendParams } from '$houdini/runtime/client'
 import type { GraphQLObject } from 'houdini'
-import React from 'react'
 
 import useDeepCompareEffect from './useDeepCompareEffect'
 import { useDocumentStore, type UseDocumentStoreParams } from './useDocumentStore'

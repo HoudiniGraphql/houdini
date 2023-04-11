@@ -1226,7 +1226,9 @@ describe('typescript', function () {
 			                        };
 			                    };
 			                    "fragments": {
-			                        "TestFragment": {};
+			                        "TestFragment": {
+			                            "arguments": {};
+			                        };
 			                    };
 			                };
 			                "visible": true;
@@ -1452,7 +1454,9 @@ describe('typescript', function () {
 			                        };
 			                    };
 			                    "fragments": {
-			                        "Foo": {};
+			                        "Foo": {
+			                            "arguments": {};
+			                        };
 			                    };
 			                };
 			                "visible": true;
@@ -1545,7 +1549,9 @@ describe('typescript', function () {
 			                        };
 			                    };
 			                    "fragments": {
-			                        "Foo": {};
+			                        "Foo": {
+			                            "arguments": {};
+			                        };
 			                    };
 			                };
 			                "visible": true;
@@ -2635,8 +2641,12 @@ describe('typescript', function () {
 			                        };
 			                    };
 			                    "fragments": {
-			                        "My_Users_remove": {};
-			                        "My_Users_insert": {};
+			                        "My_Users_remove": {
+			                            "arguments": {};
+			                        };
+			                        "My_Users_insert": {
+			                            "arguments": {};
+			                        };
 			                    };
 			                };
 			                "visible": true;
@@ -2818,15 +2828,21 @@ describe('typescript', function () {
 			                                    };
 			                                };
 			                                "fragments": {
-			                                    "UserBase": {};
+			                                    "UserBase": {
+			                                        "arguments": {};
+			                                    };
 			                                };
 			                            };
 			                            "visible": true;
 			                        };
 			                    };
 			                    "fragments": {
-			                        "UserBase": {};
-			                        "UserMore": {};
+			                        "UserBase": {
+			                            "arguments": {};
+			                        };
+			                        "UserMore": {
+			                            "arguments": {};
+			                        };
 			                    };
 			                };
 			                "visible": true;
@@ -2975,14 +2991,20 @@ describe('typescript', function () {
 			                                    };
 			                                };
 			                                "fragments": {
-			                                    "UserBase": {};
+			                                    "UserBase": {
+			                                        "arguments": {};
+			                                    };
 			                                };
 			                            };
 			                        };
 			                    };
 			                    "fragments": {
-			                        "UserBase": {};
-			                        "UserMore": {};
+			                        "UserBase": {
+			                            "arguments": {};
+			                        };
+			                        "UserMore": {
+			                            "arguments": {};
+			                        };
 			                    };
 			                };
 			                "visible": true;
@@ -3052,7 +3074,9 @@ describe('typescript', function () {
 			                        };
 			                    };
 			                    "fragments": {
-			                        "UserBase": {};
+			                        "UserBase": {
+			                            "arguments": {};
+			                        };
 			                    };
 			                };
 			                "visible": true;
@@ -3215,15 +3239,21 @@ describe('typescript', function () {
 			                                    };
 			                                };
 			                                "fragments": {
-			                                    "UserBase": {};
+			                                    "UserBase": {
+			                                        "arguments": {};
+			                                    };
 			                                };
 			                            };
 			                            "visible": true;
 			                        };
 			                    };
 			                    "fragments": {
-			                        "UserBase": {};
-			                        "UserMore": {};
+			                        "UserBase": {
+			                            "arguments": {};
+			                        };
+			                        "UserMore": {
+			                            "arguments": {};
+			                        };
 			                    };
 			                };
 			                "visible": true;
@@ -3305,7 +3335,9 @@ describe('typescript', function () {
 			                        };
 			                    };
 			                    "fragments": {
-			                        "UserBase": {};
+			                        "UserBase": {
+			                            "arguments": {};
+			                        };
 			                    };
 			                };
 			                "visible": true;
@@ -3526,7 +3558,9 @@ test('overlapping fragments', async function () {
 		            };
 		        };
 		        "fragments": {
-		            "UserMore": {};
+		            "UserMore": {
+		                "arguments": {};
+		            };
 		        };
 		    };
 		    "pluginData": {};
