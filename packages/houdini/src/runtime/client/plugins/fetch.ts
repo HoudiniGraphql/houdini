@@ -16,6 +16,7 @@ export const fetch = (target?: RequestHandler | string): ClientPlugin => {
 
 				// build up the params object
 				const fetchParams: FetchParams = {
+					name: ctx.artifact.name,
 					text: ctx.text,
 					hash: ctx.hash,
 					variables: marshalVariables(ctx),
@@ -73,11 +74,11 @@ const defaultFetch = (
 		)
 	}
 
-	return async ({ fetch, text, variables }) => {
+	return async ({ fetch, name, text, variables }) => {
 		// regular fetch (Server & Client)
 		const result = await fetch(url, {
 			method: 'POST',
-			body: JSON.stringify({ query: text, variables }),
+			body: JSON.stringify({ operationName: name, query: text, variables }),
 			...params,
 			headers: {
 				Accept: 'application/graphql+json, application/json',
@@ -115,6 +116,7 @@ export type RequestHandler<_Data = any> = (
 ) => Promise<RequestPayload<_Data>>
 
 export type FetchParams = {
+	name: string
 	text: string
 	hash: string
 	variables: { [key: string]: any }
