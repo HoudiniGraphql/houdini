@@ -57,6 +57,7 @@ export function subscription(factory: SubscriptionHandler) {
 				// start listening for the new subscription
 				clearSubscription = client.subscribe(
 					{
+						operationName: ctx.artifact.name,
 						query: ctx.artifact.raw,
 						variables: marshalVariables(ctx),
 					},
@@ -101,7 +102,7 @@ export type SubscriptionHandler = (ctx: ClientPluginContext) => SubscriptionClie
 
 export type SubscriptionClient = {
 	subscribe: (
-		payload: { query: string; variables?: {} },
+		payload: { operationName: string; query: string; variables?: {} },
 		handlers: {
 			next: (payload: { data?: {} | null; errors?: readonly { message: string }[] }) => void
 			error: (data: {}) => void
