@@ -1,4 +1,4 @@
-<div id={$$props.id} class={$$props.class}>
+<div id={$$props.id} class={$$props.class} style={$$props.style}>
 	<slot />
 </div>
 

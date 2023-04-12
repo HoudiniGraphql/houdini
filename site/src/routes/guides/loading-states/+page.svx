@@ -18,7 +18,8 @@ This guide will go over all of the tools that Houdini provides to help you build
 ## A Concrete Example
 
 Before we get too far, let's look at a concrete example so we can have a goal in mind. For this guide,
-we're going to be building a loading screen for the Pokédex that we constructed in the [Getting Started](/intro) guide:
+we're going to be building a loading screen for the Pokédex that we constructed in the [Getting Started](/intro) guide.
+Here's the goal:
 
 <p>
     <LoadingPokedex />

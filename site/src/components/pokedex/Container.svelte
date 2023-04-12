@@ -51,8 +51,8 @@
 	#pokedex {
 		display: flex;
 		flex-direction: row;
-		height: 600px;
-		width: 800px;
+		height: 500px;
+		width: 667px;
 		flex-shrink: 0;
 		align-items: flex-end;
 		margin: 0 auto;
