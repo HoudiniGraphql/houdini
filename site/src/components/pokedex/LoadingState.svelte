@@ -4,9 +4,21 @@
 	import Display from './Display.svelte'
 </script>
 
-<Container>
-	<Panel slot="left">
-		<Display style="height:30px" />
-	</Panel>
-	<Panel slot="right" />
-</Container>
+<div class="container">
+	<Container>
+		<Panel slot="left">
+			<Display style="height:30px" />
+		</Panel>
+		<Panel slot="right">
+			<Display style="height:30px" />
+		</Panel>
+	</Container>
+</div>
+
+<style>
+	.container {
+		display: flex;
+		flex-direction: row;
+		justify-content: center;
+	}
+</style>
