@@ -1,7 +1,7 @@
 ---
-'houdini-svelte': minor
-'houdini-react': minor
-'houdini': minor
+'houdini-svelte': patch
+'houdini-react': patch
+'houdini': patch
 ---
 
 Centralize JS code parsing/printing mechanism into core
