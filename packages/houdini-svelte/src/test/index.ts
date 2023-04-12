@@ -187,7 +187,7 @@ export async function test_transform_svelte(filepath: string, content: string) {
 	})
 
 	// return both
-	return (await parseSvelte(result.code)) ?? null
+	return (await parseSvelte(result.code))?.script ?? null
 }
 
 export async function test_transform_js(filepath: string, content: string) {
