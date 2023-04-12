@@ -83,7 +83,7 @@ test('generates types for inline layout queries', async function () {
 	expect(queryContents).toBeTruthy()
 
 	//the parser doesn't work right but the type imports are correct.
-	const parsedQuery = (await parseJS(queryContents!))?.script
+	const parsedQuery = await parseJS(queryContents!)
 
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
@@ -153,7 +153,7 @@ test('generates types for inline page queries', async function () {
 	expect(queryContents).toBeTruthy()
 
 	//the parser doesn't work right but the type imports are correct.
-	const parsedQuery = (await parseJS(queryContents!))?.script
+	const parsedQuery = await parseJS(queryContents!)
 
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
@@ -221,7 +221,7 @@ query MyLayoutQuery {
 	)
 	expect(queryContents).toBeTruthy()
 
-	const parsedQuery = (await parseJS(queryContents!))?.script
+	const parsedQuery = await parseJS(queryContents!)
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		import type * as Kit from '@sveltejs/kit';
@@ -288,7 +288,7 @@ query MyPageQuery {
 	)
 	expect(queryContents).toBeTruthy()
 
-	const parsedQuery = (await parseJS(queryContents!))?.script
+	const parsedQuery = await parseJS(queryContents!)
 
 	//verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
@@ -372,7 +372,7 @@ test('generates types for layout onError', async function () {
 	)
 	expect(queryContents).toBeTruthy()
 
-	const parsedQuery = (await parseJS(queryContents!))?.script
+	const parsedQuery = await parseJS(queryContents!)
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		import type * as Kit from '@sveltejs/kit';
@@ -465,7 +465,7 @@ test('generates types for page onError', async function () {
 	)
 	expect(queryContents).toBeTruthy()
 
-	const parsedQuery = (await parseJS(queryContents!))?.script
+	const parsedQuery = await parseJS(queryContents!)
 
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
@@ -559,7 +559,7 @@ test('generates types for layout beforeLoad', async function () {
 	)
 	expect(queryContents).toBeTruthy()
 
-	const parsedQuery = (await parseJS(queryContents!))?.script
+	const parsedQuery = await parseJS(queryContents!)
 
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
@@ -653,7 +653,7 @@ test('generates types for page beforeLoad', async function () {
 	)
 	expect(queryContents).toBeTruthy()
 
-	const parsedQuery = (await parseJS(queryContents!))?.script
+	const parsedQuery = await parseJS(queryContents!)
 
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
@@ -747,7 +747,7 @@ test('generates types for layout afterLoad', async function () {
 	)
 	expect(queryContents).toBeTruthy()
 
-	const parsedQuery = (await parseJS(queryContents!))?.script
+	const parsedQuery = await parseJS(queryContents!)
 
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
@@ -850,7 +850,7 @@ test('generates types for page afterLoad', async function () {
 	)
 	expect(queryContents).toBeTruthy()
 
-	const parsedQuery = (await parseJS(queryContents!))?.script
+	const parsedQuery = await parseJS(queryContents!)
 
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
@@ -934,7 +934,7 @@ test('Marks required query arguments as optional if the url param provides it', 
 		path.join(type_route_dir(config), '[userID]', '$houdini.d.ts')
 	)
 	expect(queryContents).toBeTruthy()
-	const parsedQuery = (await parseJS(queryContents!))?.script
+	const parsedQuery = await parseJS(queryContents!)
 
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`

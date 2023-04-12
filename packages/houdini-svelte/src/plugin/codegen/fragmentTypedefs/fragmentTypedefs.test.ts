@@ -43,7 +43,7 @@ test('generates types for fragments', async function () {
 	expect(queryContents).toBeTruthy()
 
 	//the parser doesn't work right but the type imports are correct.
-	const parsedQuery = (await parseJS(queryContents!))?.script
+	const parsedQuery = await parseJS(queryContents!)
 
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
@@ -151,7 +151,7 @@ test('generates types for paginated fragments', async function () {
 	expect(queryContents).toBeTruthy()
 
 	//the parser doesn't work right but the type imports are correct.
-	const parsedQuery = (await parseJS(queryContents!))?.script
+	const parsedQuery = await parseJS(queryContents!)
 
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`

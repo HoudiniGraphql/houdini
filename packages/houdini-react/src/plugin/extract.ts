@@ -20,12 +20,9 @@ export async function extractDocuments({
 
 	// parse the content
 	const parsed = await parseJS(content)
-	if (!parsed?.script) {
-		return []
-	}
 
 	// use the houdini utility to search for the graphql functions
-	await find_graphql(config, parsed.script, {
+	await find_graphql(config, parsed, {
 		tag(tag) {
 			documents.push(tag.tagContent)
 		},

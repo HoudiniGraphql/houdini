@@ -1,8 +1,9 @@
-import { parseJS, runPipeline, formatErrors, recast } from 'houdini'
+import type { Script } from 'houdini'
+import { printJS, parseJS, runPipeline, formatErrors } from 'houdini'
 import type { TransformPage } from 'houdini/vite'
+import * as recast from 'recast'
 import type { SourceMapInput } from 'rollup'
 
-import type { ParsedFile } from '../extract'
 import { parseSvelte } from '../extract'
 import type { Framework } from '../kit'
 import query from './componentQuery'
@@ -21,11 +22,16 @@ export default async function apply_transforms(
 	// a single transform might need to do different things to the module and
 	// instance scripts so we're going to pull them out, push them through separately,
 	// and then join them back together
-	let script: ParsedFile | null = null
+	let script: Script | null = null
+	let position: { start: number; end: number } | null = null
 
 	try {
 		if (page.filepath.endsWith('.svelte')) {
-			script = await parseSvelte(page.content)
+			const res = await parseSvelte(page.content)
+			if (res) {
+				script = res.script
+				position = res.position
+			}
 		} else {
 			script = await parseJS(page.content)
 		}
@@ -35,11 +41,7 @@ export default async function apply_transforms(
 
 	// if the route script is nill we can just use an empty program
 	if (script === null) {
-		script = {
-			start: 0,
-			end: 0,
-			script: recast.types.builders.program([]),
-		}
+		script = recast.types.builders.program([])
 	}
 
 	// if we didn't get a script out of this, there's nothing to do
@@ -51,7 +53,7 @@ export default async function apply_transforms(
 	const result: SvelteTransformPage = {
 		...page,
 		framework,
-		...script,
+		script,
 	}
 
 	// send the scripts through the pipeline
@@ -63,16 +65,17 @@ export default async function apply_transforms(
 	}
 
 	// print the result
-	const { code, map } = recast.print(result.script, {
+	const { code, map } = await printJS(result.script, {
 		// @ts-ignore
 		inputSourceMap: page.map,
 	})
 
 	return {
 		// if we're transforming a svelte file, we need to replace the script's inner contents
-		code: !page.filepath.endsWith('.svelte')
-			? code
-			: replace_tag_content(page.content, script.start, script.end, code),
+		code:
+			!page.filepath.endsWith('.svelte') || !position
+				? code
+				: replace_tag_content(page.content, position.start, position.end, code),
 		map,
 	}
 }

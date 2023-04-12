@@ -1,5 +1,6 @@
 import type { Config } from 'houdini'
-import { find_graphql, recast } from 'houdini'
+import { find_graphql } from 'houdini'
+import * as recast from 'recast'
 
 import { store_import } from '../kit'
 import type { SvelteTransformPage } from './types'

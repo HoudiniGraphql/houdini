@@ -137,9 +137,9 @@ export async function route_test({
 	// return both
 	return {
 		component: (await parseSvelte(component_result.code))?.script ?? null,
-		script: (await parseJS(script_result.code))?.script ?? null,
+		script: await parseJS(script_result.code),
 		layout: (await parseSvelte(layout_result.code))?.script ?? null,
-		layout_script: (await parseJS(layout_script_result.code))?.script ?? null,
+		layout_script: await parseJS(layout_script_result.code),
 	}
 }
 
@@ -187,7 +187,7 @@ export async function test_transform_svelte(filepath: string, content: string) {
 	})
 
 	// return both
-	return (await parseSvelte(result.code))?.script ?? null
+	return (await parseSvelte(result.code)) ?? null
 }
 
 export async function test_transform_js(filepath: string, content: string) {
@@ -208,5 +208,5 @@ export async function test_transform_js(filepath: string, content: string) {
 	})
 
 	// return both
-	return (await parseJS(result.code))?.script ?? null
+	return (await parseJS(result.code)) ?? null
 }

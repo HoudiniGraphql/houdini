@@ -4,7 +4,7 @@ import type * as graphql from 'graphql'
 import * as recast from 'recast'
 
 import type { Config, Document } from '../../../lib'
-import { HoudiniError, siteURL, fs, path } from '../../../lib'
+import { printJS, HoudiniError, siteURL, fs, path } from '../../../lib'
 import { fragmentArgumentsDefinitions } from '../../transforms/fragmentVariables'
 import { flattenSelections } from '../../utils'
 import { serializeValue } from '../artifacts/utils'
@@ -109,7 +109,8 @@ export async function generateDocumentTypes(config: Config, docs: Document[]) {
 				)
 
 				// write the file contents
-				await fs.writeFile(typeDefPath, recast.print(program).code)
+				const { code } = await printJS(program)
+				await fs.writeFile(typeDefPath, code)
 
 				typePaths.push(typeDefPath)
 			}
@@ -142,7 +143,7 @@ export async function generateDocumentTypes(config: Config, docs: Document[]) {
 	const exportDefaultAs = ({ module, as }: { module: string; as: string }) =>
 		`\nexport { default as ${as} } from "${module}"\n`
 	const exportStarFrom = ({ module }: { module: string }) => `\nexport * from "${module}"\n`
-	let indexContent = recast.print(typeIndex).code
+	let { code: indexContent } = await printJS(typeIndex)
 	for (const plugin of config.plugins) {
 		if (plugin.indexFile) {
 			indexContent = plugin.indexFile({

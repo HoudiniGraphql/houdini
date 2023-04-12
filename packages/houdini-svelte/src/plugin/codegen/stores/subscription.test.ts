@@ -1,6 +1,6 @@
 import type { Document } from 'houdini'
-import { fs, path, recast } from 'houdini'
 import { mockCollectedDoc } from 'houdini/test'
+import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { test, expect } from 'vitest'
 

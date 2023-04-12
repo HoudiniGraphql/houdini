@@ -2,7 +2,7 @@ import * as graphql from 'graphql'
 import * as recast from 'recast'
 
 import type { Config } from '../../../lib'
-import { fs, path } from '../../../lib'
+import { fs, path, printJS } from '../../../lib'
 import { moduleExport } from '../../utils'
 
 const AST = recast.types.builders
@@ -20,7 +20,7 @@ export default async function definitionsGenerator(config: Config) {
 	).filter((def) => !config.isInternalEnum(def))
 
 	// generate the runtime definitions
-	const runtimeDefinitions = recast.print(
+	const { code: runtimeDefinitions } = await printJS(
 		AST.program(
 			enums.map((defn) => {
 				const name = defn.name.value
@@ -40,7 +40,7 @@ export default async function definitionsGenerator(config: Config) {
 				)
 			})
 		)
-	).code
+	)
 
 	// generate the type definitions
 	const typeDefinitions =

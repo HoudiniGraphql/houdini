@@ -9,6 +9,7 @@ import type {
 	SubscriptionSelection,
 } from '../../../lib'
 import {
+	printJS,
 	ArtifactKind,
 	cleanupFiles,
 	fs,
@@ -396,7 +397,8 @@ export default function artifactGenerator(stats: {
 					}
 
 					// write the result to the artifact path we're configured to write to
-					await fs.writeFile(artifactPath, recast.print(file).code)
+					const { code } = await printJS(file)
+					await fs.writeFile(artifactPath, code)
 					listOfArtifacts.push(config.documentName(document))
 
 					if (!countDocument) {
