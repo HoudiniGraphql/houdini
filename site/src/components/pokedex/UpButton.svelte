@@ -1,8 +1,14 @@
 <script>
-    import { Icon } from '.'
-    export let disabled 
+	import Icon from './Icon.svelte'
+	export let disabled
 </script>
 
-<button class="arrow-button" on:click {disabled}> 
-    <Icon name="arrow-up" />
+<button class="arrow-button" on:click {disabled}>
+	<Icon name="arrow-up" />
 </button>
+
+<style>
+	button {
+		cursor: default;
+	}
+</style>

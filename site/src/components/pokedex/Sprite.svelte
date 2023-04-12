@@ -2,8 +2,7 @@
 	export let loading = false
 </script>
 
-<div id={$$props.id} class="container" style={$$props.style}>
-	<slot />
+<div class="container" {...$$props}>
 	{#if loading}
 		<div class="shine" />
 	{/if}
@@ -11,12 +10,25 @@
 
 <style>
 	.container {
-		background: linear-gradient(14deg, rgb(165, 205, 83) 60%, rgb(193, 217, 144) 65%);
-		padding: 5px;
-		border-radius: 3px;
-		font-family: 'VT323';
-		border: inset #879a65 3px;
-		color: black;
+		display: flex;
+		image-rendering: pixelated;
+		border: inset #9aa28b 3px;
+		border-radius: 5px;
+		margin: 10px 0;
+		box-sizing: border-box;
+		width: 100%;
+		height: 100%;
+		background: linear-gradient(
+			15deg,
+			#cad5b5 64%,
+			#dde2d4 70%,
+			#dde2d4 81%,
+			#fff 86%,
+			#dde2d4 89%,
+			#dde2d4 100%
+		);
+		align-items: center;
+		justify-content: center;
 	}
 
 	@keyframes displayShimmer {
@@ -34,7 +46,7 @@
 		background-image: linear-gradient(
 			to right,
 			rgba(0, 0, 0, 0) 0%,
-			rgb(213, 243, 153) 20%,
+			rgb(214, 227, 208) 20%,
 			rgba(0, 0, 0, 0) 40%
 		);
 		background-repeat: no-repeat;

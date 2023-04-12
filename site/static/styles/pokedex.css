@@ -29,7 +29,7 @@
 	justify-content: space-between;
 }
 
-#pokedex nav a {
+#pokedex nav button {
 	width: 45%;
 	height: 40px;
 	background-color: black;
@@ -47,7 +47,7 @@
 	box-sizing: border-box;
 }
 
-#pokedex nav a[disabled='true'] {
+#pokedex nav button:disabled {
 	background-color: #3a3a3a;
 	border-top: none;
 	border-right: none;
