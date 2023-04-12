@@ -31,22 +31,16 @@ export default async function apply_transforms(
 			if (res) {
 				script = res.script
 				position = res.position
+			} else {
+				// if the route script is nill we can just use an empty program
+				script = recast.types.builders.program([])
+				position = { start: 0, end: 0 }
 			}
 		} else {
 			script = await parseJS(page.content)
 		}
 	} catch (e) {
 		return { code: page.content, map: page.map }
-	}
-
-	// if the route script is nill we can just use an empty program
-	if (script === null) {
-		script = recast.types.builders.program([])
-	}
-
-	// if we didn't get a script out of this, there's nothing to do
-	if (!script) {
-		return { code: page.content }
 	}
 
 	// wrap everything up in an object we'll thread through the transforms
@@ -72,10 +66,9 @@ export default async function apply_transforms(
 
 	return {
 		// if we're transforming a svelte file, we need to replace the script's inner contents
-		code:
-			!page.filepath.endsWith('.svelte') || !position
-				? code
-				: replace_tag_content(page.content, position.start, position.end, code),
+		code: !page.filepath.endsWith('.svelte')
+			? code
+			: replace_tag_content(page.content, position!.start, position!.end, code),
 		map,
 	}
 }
