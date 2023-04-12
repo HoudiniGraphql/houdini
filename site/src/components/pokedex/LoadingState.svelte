@@ -22,7 +22,7 @@
 		<Panel slot="left">
 			<Display style="height:30px" loading />
 			<Sprite style="flex-grow: 1" loading />
-			<Display style="height:30px" loading />
+			<Display style="height:78px" loading />
 		</Panel>
 		<Panel slot="right">
 			<div class="right-container">

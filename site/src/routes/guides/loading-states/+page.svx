@@ -23,3 +23,5 @@ we're going to be building a loading screen for the Pokédex that we constructed
 <p>
     <LoadingPokedex />
 </p>
+
+[Here](https://houdini-intro.pages.dev) is a link to the deployed demo if you want to see a working version.
