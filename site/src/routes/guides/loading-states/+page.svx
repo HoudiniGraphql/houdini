@@ -550,14 +550,14 @@ to the component is a pending value:
         }
     `))
 
-    $: loading = fragmentPending(species)
+    $: pending = fragmentPending(species)
 </script>
 
 <div class="row">
-    <Button disabled={loading || $data.id <= 1}>
+    <Button disabled={pending || $data.id <= 1}>
         Previous
     </Button>
-    <Button disabled={loading || $data.id >= 151}>
+    <Button disabled={pending || $data.id >= 151}>
         Next
     </Button>
 </div>
