@@ -66,7 +66,7 @@ query SpeciesInfo($id: Int = 1) {
     let { SpeciesInfo } = data
     $: ({ SpeciesInfo } = data)
 
-    $: species = SpeciesInfo.data.species
+    $: species = $SpeciesInfo.data.species
 </script>
 
 <Container>
@@ -83,7 +83,7 @@ query SpeciesInfo($id: Int = 1) {
         <div class="evolution-chain">
             {#each species.evolutionChain.edges as { node }, i }
                 <div class="evolution-form">
-                    <Number value={number + 1} />
+                    <Number value={i + 1} />
                     <Sprite style="height: 96px;" species={node} />
                     <Display>
                         {node.name}
@@ -100,3 +100,109 @@ query SpeciesInfo($id: Int = 1) {
 Just in case it's not clear: the `evolutionChain` list corresponds to the 3 columns
 in the top right of the loading screen above. If it helps, you can look at a deployed
 version of the application [here](http://houdini-intro.pages.dev).
+
+## The Simplest Solution
+
+If you followed along in the [Getting Started Guide](/intro) then you know that this example
+has a serious issue: if we click on the `next` button then our application will crash. This is
+because `data` is `null` when the query is loading a new value which causes
+`$SpeciesInfo.data.species` to explode. The easiest way to protect against
+this is to check the `fetching` value of the store and render your loading state.
+
+Sorry in advanced about the length of the following example but it highlights the primary points
+we're trying to illustrate: this approach duplicates a _lot_ of logic and structure.
+
+```svelte:title=src/routes/[[id]]/+page.svelte&typescriptToggle=true
+<script lang="ts">
+    import type { PageData } from './$houdini'
+    // prettier-ignore
+    import {
+        Container,
+        Panel,
+        Sprite,
+        Display,
+        MoveList,
+        UpDownButtons,
+        Button,
+        Number,
+    } from '~/components'
+
+    export let data: PageData
+
+    let { SpeciesInfo } = data
+    $: ({ SpeciesInfo } = data)
+
+    $: species = $SpeciesInfo.data.species
+</script>
+
+{#if $SpeciesInfo.fetching}
+    <Container>
+        <Panel slot="left">
+            <Display height={30} loading />
+            <Sprite style="flex-grow:1" loading />
+            <Display height={120} loading/>
+        </Panel>
+        <Panel slot="right">
+            <div class="evolution-chain">
+                {#each Array.from({length: 3}) as _, i }
+                    <div class="evolution-form">
+                        <Number value={i + 1} />
+                        <Sprite height={96} loading />
+                        <Display height={30} loading />
+                    </div>
+                {/each}
+            </div>
+            <div class="row">
+                <Display height={400} loading />
+                <UpDownButtons disabled />
+            </div>
+            <div class="row">
+                <Button disabled>Previous</Button>
+                <Button disabled>Next</Button>
+            </div>
+        </Panel>
+    </Container>
+{:else}
+    <Container>
+        <Panel slot="left">
+            <Display>
+                {species.name}
+            </Display>
+            <Sprite {species} />
+            <Display>
+                {species.description}
+            </Display>
+        </Panel>
+        <Panel slot="right">
+            <div class="evolution-chain">
+                {#each species.evolutionChain.edges as { node }, i }
+                    <div class="evolution-form">
+                        <Number value={number + 1} />
+                        <Sprite style="height: 96px;" species={node} />
+                        <Display>
+                            {node.name}
+                        </Display>
+                    </div>
+                {/each}
+            </div>
+            <MoveList {species} />
+            <NavButtons {species} />
+        </Panel>
+    </Container>
+{/if}
+```
+
+There are 2 major problems with this:
+
+1. Even if we sprinkled a bunch of `#if $data` everywhere, we _have_ to duplicate the logic for the evolution chain since we don't have a list to iterate over
+   to render the boxes.
+1. We had to break the abstraction created by the `MoveList` and `NavButtons` components since we needed to
+   duplicate their structure here (something this component is supposed to know nothing about).
+
+Houdini solves both of these problems with a single directive: `@loading`.
+
+## Loading State Structure
+
+Let's look at how we can use it to address the first point by using the `@loading` directive.
+
+
