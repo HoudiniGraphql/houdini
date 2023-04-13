@@ -288,10 +288,10 @@ inside of your component:
 
 Since our document contains `@loading`, `data` is no longer `null` when fetching.
 It's a small win but it means we can remove the `?` in the definition for `species`. It also means
-we don't have to check for `fetching` any more and can start to unify our loading and final UIs
+we don't have to check for `fetching` anymore and can start to unify our loading and final UIs
 by sprinkling in `if`s that check for values in our query results.
 
-That being said, if your first thought was "that doesn't seem much different" than you are correct. Having
+That being said, if your first thought was "that doesn't seem much different" then you are correct. Having
 just a single `@loading` directive at the top of your document is pretty much the same as what we had before. The real
 power starts to show when you start to start to use it multiple times in the same document. You see,
 Houdini will walk down your query and build your loading state as long as it encounters the directive. The deepest fields
