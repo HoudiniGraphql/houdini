@@ -181,12 +181,13 @@ filesystem.readdirSync = function (
 		result.push(virtual_file('+page.js', options))
 	}
 
-	// if there is a layout file but no layout.js, we need to make one
-	if (contains('+layout.svelte', '+layout.gql') && !contains('+layout.ts', '+layout.js')) {
+	const posix_filepath = path.posixify(filepath.toString())
+	
+	// there needs to always be a root load function that passes the session down
+	// also, if there is a layout file but no layout.js, we need to make one
+	if ((is_root_route(posix_filepath) || contains('+layout.svelte', '+layout.gql')) && !contains('+layout.ts', '+layout.js')) {
 		result.push(virtual_file('+layout.js', options))
 	}
-
-	const posix_filepath = path.posixify(filepath.toString())
 
 	// if we are in looking inside of src/routes and there's no +layout.svelte file
 	// we need to create one
@@ -201,11 +202,6 @@ filesystem.readdirSync = function (
 		!plugin_config(_config).static
 	) {
 		result.push(virtual_file('+layout.server.js', options))
-	}
-
-	// there needs to always be a root load function that passes the session down
-	if (is_root_route(posix_filepath) && !contains('+layout.js', '+layout.ts')) {
-		result.push(virtual_file('+layout.js', options))
 	}
 
 	// we're done modifying the results
