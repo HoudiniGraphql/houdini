@@ -431,7 +431,7 @@ and because of how we used `@loading` we can compare our values to `PendingValue
 If you're still not quite sure how this works please check out the DeepDive above. If it's still confusing, join us
 on discord and open a question - we'd love to help.
 
-Problem #1 solved. You can use `@loading` to create the most convinient shape for your exact needs. When it falls on
+Problem #1 solved. You can use `@loading` to create the most convenient shape for your exact needs. When it falls on
 lists, Houdini will even create lists with the appropriate values so you always have something to iterate over. This leaves
 us with one more thing to clean up: our route is still duplicating the structure of its sub-components.
 
@@ -571,4 +571,4 @@ Thanks for making it all the way through this guide! I hope you found it useful 
 power of treating your loading states as a first class concern in your fragments. These examples could be taken
 further by breaking the route into separate components with fragments that own each section of the UI and
 its loading state and I encourage you to do so in your own application. I think you'll find that being able
-to reuse these bits of UI will make your designers happier and that your application will look better with less effort.
+to reuse these bits of UI will make your designers happier and your application will look better with less effort.
