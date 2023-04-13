@@ -531,7 +531,7 @@ Just like with the query, the only thing we had to do is use `@loading` on a val
 compare against to render our loading state.
 
 If you don't really care which field, randomly picking one
-can feel awkward and open up potential bugs if you accidentally remove the directive. To help with this,
+can feel awkward and open up potential bugs if you accidentally remove the field. To help with this,
 Houdini also provides a utility named `fragmentPending` that you can use to check if the reference that was given
 to the component is a pending value:
 
