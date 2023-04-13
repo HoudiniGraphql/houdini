@@ -1,7 +1,7 @@
 <script lang="ts">
   import {
     fragment,
-    fragmentFetching,
+    fragmentPending,
     graphql,
     PendingValue,
     type CityInfoWithLoadingState
@@ -21,7 +21,7 @@
       }
     `)
   );
-  $: cityFetching = fragmentFetching(city);
+  $: cityFetching = fragmentPending(city);
 </script>
 
 <ul>

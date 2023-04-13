@@ -241,7 +241,7 @@
 		padding-left: max(0px, env(safe-area-inset-left));
 		padding-right: max(10px, calc(10px + env(safe-area-inset-right)));
 		margin-right: 50px;
-		width: 360px;
+		width: 330px;
 		display: flex;
 		flex-direction: column;
 		flex-shrink: 0;
@@ -405,7 +405,7 @@
 	}
 
 	.doc-gutter {
-		margin-left: 410px;
+		margin-left: 380px;
 	}
 
 	article {

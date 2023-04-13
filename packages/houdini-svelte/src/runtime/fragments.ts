@@ -5,7 +5,7 @@ import type { Readable } from 'svelte/store'
 import type { FragmentStore } from './stores'
 import type { FragmentStorePaginated } from './stores/pagination/fragment'
 
-export function fragmentFetching(refrence: Fragment<any>) {
+export function fragmentPending(refrence: Fragment<any>) {
 	// @ts-ignore: types are meaningless. its all an illusion. security theater at best
 	return !!refrence[fragmentKey].loading
 }
