@@ -24,4 +24,79 @@ we're going to be building a loading screen for the Pokédex that we constructed
     <LoadingPokedex />
 </p>
 
-[Here](https://houdini-intro.pages.dev) is a link to the deployed demo if you want to see a working version.
+For the sake of this guide, you can imagine that the Pokedex is built using the following route:
+
+```graphql:title=src/routes/[[id]]/+page.qgl
+query SpeciesInfo($id: Int = 1) {
+    species(id: $id) {
+        name
+        description
+        evolutionChain {
+            edges {
+                node {
+                    name
+                    ...Sprite
+                }
+            }
+        }
+
+        ...Sprite
+        ...EvolutionChain
+        ...NavButtons
+    }
+}
+```
+
+```svelte:title=src/routes/[[id]]/+page.svelte&typescriptToggle=true
+<script lang="ts">
+    import type { PageData } from './$houdini'
+    // prettier-ignore
+    import {
+        Container,
+        Panel,
+        Sprite,
+        Display,
+        MoveList,
+        NavButtons,
+        Number,
+    } from '~/components'
+
+    export let data: PageData
+
+    let { SpeciesInfo } = data
+    $: ({ SpeciesInfo } = data)
+
+    $: species = SpeciesInfo.data.species
+</script>
+
+<Container>
+    <Panel slot="left">
+        <Display>
+            {species.name}
+        </Display>
+        <Sprite {species} />
+        <Display>
+            {species.description}
+        </Display>
+    </Panel>
+    <Panel slot="right">
+        <div class="evolution-chain">
+            {#each species.evolutionChain.edges as { node }, i }
+                <div class="evolution-form">
+                    <Number value={number + 1} />
+                    <Sprite style="height: 96px;" species={node} />
+                    <Display>
+                        {node.name}
+                    </Display>
+                </div>
+            {/each}
+        </div>
+        <MoveList {species} />
+        <NavButtons {species} />
+    </Panel>
+</Container>
+```
+
+Just in case it's not clear: the `evolutionChain` list corresponds to the 3 columns
+in the top right of the loading screen above. If it helps, you can look at a deployed
+version of the application [here](http://houdini-intro.pages.dev).
