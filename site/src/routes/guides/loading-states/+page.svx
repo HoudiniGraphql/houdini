@@ -565,6 +565,31 @@ to the component is a pending value:
 
 Keep in mind that the value you pass to `fragmentPending` is the same value you pass to `fragment`.
 
+<DeepDive title="This is Getting Pretty Repetitive">
+
+If you find yourself wanting `@loading` on every field in your document (fragment or query), you
+can put it on the document definition to implicitly add it to every field:
+
+```graphql:title=src/routes/[[id]]/+page.gql
+query SpeciesInfo($id: Int = 1) @loading {
+    species(id: $id)  {
+        name
+        description
+        evolutionChain {
+            name
+            ...Sprite_species
+        }
+
+        ...Sprite_species
+        ...MoveList_species
+        ...NavButtons_species
+    }
+}
+
+```
+
+</DeepDive>
+
 ## Final Thoughts
 
 Thanks for making it all the way through this guide! I hope you found it useful and that it illustrated the
