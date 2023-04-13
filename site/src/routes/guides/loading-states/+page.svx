@@ -175,8 +175,8 @@ we're trying to illustrate: this approach duplicates a _lot_ of logic and struct
 
 There are 2 major problems with this:
 
-1. We basically have to build our layout twice. Even if we relied heavily on the `?` operator or sprinkled a bunch of `#if $data` everywhere, we _must_ duplicate the logic for the evolution chain since we don't have a list to iterate over
-   to render the boxes.
+1. We basically have to build our layout twice. Even if we relied heavily on the `?` operator or sprinkled a bunch of `#if $SpeciesInfo.fetching` everywhere, we still _must_ duplicate the logic for the evolution chain since when
+   `data` is null, there is no natural list to iterate over to render the boxes.
 1. We had to break the abstraction created by the `MoveList` and `NavButtons` components since we needed to
    duplicate their structure here (something this component is supposed to know nothing about).
 
