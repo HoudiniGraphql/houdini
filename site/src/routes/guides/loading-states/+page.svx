@@ -424,7 +424,7 @@ again for quick reference:
     </div>
 ```
 
-See that `species.evoluationChain` is always safe to iterate over?? This let us pull out all of the repeated
+See that `species.evolutionChain` is always safe to iterate over?? This let us pull out all of the repeated
 structure and only differentiate the 2 cases where it actually matters. Pretty cool huh? Houdini makes
 sure that there is always _something_ we can use to render
 and because of how we used `@loading` we can compare our values to `PendingValue` where its most convinient.
