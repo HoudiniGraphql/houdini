@@ -5,6 +5,7 @@ description: An overview of the tools that houdini provides to help construct lo
 
 <script>
     import LoadingPokedex from '~/components/pokedex/LoadingState.svelte'
+    import { DeepDive } from '~/components'
 </script>
 
 # Loading States
@@ -66,7 +67,7 @@ query SpeciesInfo($id: Int = 1) {
     let { SpeciesInfo } = data
     $: ({ SpeciesInfo } = data)
 
-    $: species = $SpeciesInfo.data.species
+    $: species = $SpeciesInfo.data?.species
 </script>
 
 <Container>
@@ -132,7 +133,7 @@ we're trying to illustrate: this approach duplicates a _lot_ of logic and struct
     let { SpeciesInfo } = data
     $: ({ SpeciesInfo } = data)
 
-    $: species = $SpeciesInfo.data.species
+    $: species = $SpeciesInfo.data?.species
 </script>
 
 {#if $SpeciesInfo.fetching}
@@ -204,4 +205,289 @@ But don't worry - Houdini solves both of these problems with a single directive:
 
 ## Loading State Structure
 
-Let's look at how we can use it to address the first point by using the `@loading` directive.
+Let's look at how we can address the first point by using the `@loading` directive. Simply put, the `@loading` directive
+is used to describe the desired shape of your loading state. While a network request is pending, the `data` value will contain every
+field with `@loading` starting from the top. Let's start off simple and see what happens if we just put `@loading` at the top of
+our query like this:
+
+```graphql
+query SpeciesInfo($id: Int = 1) {
+    species(id: $id) @loading {
+        name
+        description
+        evolutionChain {
+            edges {
+                node {
+                    name
+                    ...Sprite
+                }
+            }
+        }
+
+        ...Sprite
+        ...EvolutionChain
+        ...NavButtons
+    }
+}
+```
+
+If you log the result while fetching, then you'll see that `data` looks something like:
+
+```typescript
+import { PendingValue } from '$houdini'
+
+{
+    species: PendingValue
+}
+```
+
+Notice that we didn't get an object with every field in it. That's because we only put `@loading`
+on the `species` field. Also, see the value? It might seem a little strange at first, but rather
+than leaving `undefined` or something else, you are given a symbol that you can easily compare
+against inside of your component:
+
+```svelte:title=src/routes/[[id]]/+page.svelte&typescriptToggle=true
+<script lang="ts">
+    import type { PageData } from './$houdini'
+    // prettier-ignore
+    import {
+        Container,
+        Panel,
+        Sprite,
+        Display,
+        MoveList,
+        NavButtons,
+        Number,
+    } from '~/components'
+
+    export let data: PageData
+
+    let { SpeciesInfo } = data
+    $: ({ SpeciesInfo } = data)
+
+    $: species = $SpeciesInfo.data.species
+</script>
+
+<Container>
+    <Panel slot="left">
+        {#if species === PendingValue}
+            <Display height={30} loading />
+            <Sprite style="flex-grow:1" loading />
+            <Display height={120} loading/>
+        {:else}
+            <Display>
+                {species.name}
+            </Display>
+            <Sprite {species} />
+            <Display>
+                {species.description}
+            </Display>
+        {/if}
+    </Panel>
+    <Panel slot="right">
+        {#if species === PendingValue}
+            <div class="evolution-chain">
+                {#each Array.from({length: 3}) as _, i }
+                    <div class="evolution-form">
+                        <Number value={i + 1} />
+                        <Sprite height={96} loading />
+                        <Display height={30} loading />
+                    </div>
+                {/each}
+            </div>
+            <div class="row">
+                <Display height={400} loading />
+                <UpDownButtons disabled />
+            </div>
+            <div class="row">
+                <Button disabled>Previous</Button>
+                <Button disabled>Next</Button>
+            </div>
+        {:else}
+            <div class="evolution-chain">
+                {#each species.evolutionChain.edges as { node }, i }
+                    <div class="evolution-form">
+                        <Number value={i + 1} />
+                        <Sprite style="height: 96px;" species={node} />
+                        <Display>
+                            {node.name}
+                        </Display>
+                    </div>
+                {/each}
+            </div>
+            <MoveList {species} />
+            <NavButtons {species} />
+        {/if}
+    </Panel>
+</Container>
+```
+
+Now that we added `@loading` to the `species` object, `data` is no longer `null` when fetching.
+It's a small win but it means we can remove the `?` in the definition for `species`. It also means
+we don't have to check for `fetching` any more and can start to unify our loading and final UIs
+by sprinkling in `if`s that check for values in our query results.
+
+If your first thought was "that doesn't seem much different" than you are correct. Having
+just a single `@loading` directive at the top of your document is pretty much the same as the first situation. The real
+power starts to shine when you start to start to use it multiple times in the same document. You see,
+Houdini will keep building up your loading state as long as it encounters the directive. The deepest fields
+that are tagged with `@loading` will be set to the sentinel `PendingValue`.
+
+Let's see this in action:
+
+```graphql
+query SpeciesInfo($id: Int = 1) {
+    species(id: $id) @loading {
+        name @loading
+        description
+        evolutionChain @loading {
+            edges @loading(count: 3) {
+                node @loading {
+                    name
+                    ...Sprite
+                }
+            }
+        }
+
+        ...Sprite
+        ...EvolutionChain
+        ...NavButtons
+    }
+}
+```
+
+```svelte:title=src/routes/[[id]]/+page.svelte&typescriptToggle=true
+<script lang="ts">
+    import type { PageData } from './$houdini'
+    // prettier-ignore
+    import {
+        Container,
+        Panel,
+        Sprite,
+        Display,
+        MoveList,
+        NavButtons,
+        Number,
+    } from '~/components'
+
+    export let data: PageData
+
+    let { SpeciesInfo } = data
+    $: ({ SpeciesInfo } = data)
+
+    $: species = $SpeciesInfo.data.species
+</script>
+
+<Container>
+    <Panel slot="left">
+        {#if species.name === PendingValue}
+            <Display height={30} loading />
+            <Sprite style="flex-grow:1" loading />
+            <Display height={120} loading/>
+        {:else}
+            <Display>
+                {species.name}
+            </Display>
+            <Sprite {species} />
+            <Display>
+                {species.description}
+            </Display>
+        {/if}
+    </Panel>
+    <Panel slot="right">
+        <div class="evolution-chain">
+            {#each species.evolutionChain.edges as { node }, i }
+                <div class="evolution-form">
+                    <Number value={i + 1} />
+                    {#if node !== PendingValue}
+                        <Sprite style="height: 96px;" species={node} />
+                        <Display>{node.name}</Display>
+                    {:else}
+                        <Sprite height={96} loading />
+                        <Display height={30} loading />
+                    {/if}
+                </div>
+            {/each}
+        </div>
+        {#if species === PendingValue}
+            <div class="row">
+                <Display height={400} loading />
+                <UpDownButtons disabled />
+            </div>
+            <div class="row">
+                <Button disabled>Previous</Button>
+                <Button disabled>Next</Button>
+            </div>
+        {:else}
+            <MoveList {species} />
+            <NavButtons {species} />
+        {/if}
+    </Panel>
+</Container>
+```
+
+<DeepDive title="What is the Shape of This Loading State?">
+
+The shape follows the same rules as before: intermediate objects and lists
+will get the appropriate type and the last field tagged with `@loading` gets
+set to `PendingValue`. In this case, the user specified the number of elements that
+should be added to the loaded state:
+
+```typescript
+import { PendingValue } from '$houdini'
+
+{
+    species: {
+        name: PendingValue,
+        evolutionChain: {
+            edges: [
+                {
+                    node: PendingValue,
+                },
+                {
+                    node: PendingValue,
+                },
+                {
+                    node: PendingValue,
+                }
+            ]
+        }
+    }
+}
+```
+
+</DeepDive>
+
+Things are slightly different now that we have multiple `@loading`. One difference
+is that `species` is **always and object**. This means logic that accesses its value doesn't
+have to hide inside of an `if` statement. The loading state is starting to reflect enough of our
+final UI that we can loosen our guards.
+
+However, that's a tiny win compared to what we were able to do with our evolution chain. Here it is
+again for quick reference:
+
+```svelte
+    <div class="evolution-chain">
+        {#each species.evolutionChain.edges as { node }, i }
+            <div class="evolution-form">
+                <Number value={i + 1} />
+                {#if node !== PendingValue}
+                    <Sprite style="height: 96px;" species={node} />
+                    <Display>{node.name}</Display>
+                {:else}
+                    <Sprite height={96} loading />
+                    <Display height={30} loading />
+                {/if}
+            </div>
+        {/each}
+    </div>
+```
+
+See that `species.evoluationChain.edges` is always safe to iterate over?? This let us pull out all of the repeated structure and only differentiate the 2 cases where
+it actually matters. Pretty cool huh? Houdini makes sure that there is always _something_ we can use to render
+and because of how we used `@loading` we can compare our values to `PendingValue` where its most convinient.
+If you're still not quite sure how this works please check out the DeepDive above. If its still confusing, join us
+on discord and open a question - we'd love to help.
+
+Problem #1 solved. You can use `@loading` to create the most convinient shape for your exact needs. When it falls on
+lists, Houdini will create lists with the appropriate values so you always have something to iterate over.
