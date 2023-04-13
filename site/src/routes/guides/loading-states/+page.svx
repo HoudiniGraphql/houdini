@@ -402,7 +402,7 @@ know if we are loading:
 
 Things are slightly different now that we have multiple applications of `@loading`.
 `data.species` is always safe to use which means our loading value is starting to reflect the final query value
-and we can start to loosen our guards.
+and we can loosen our guards.
 
 However, that's a tiny win compared to what we were able to do with the evolution chain. Here it is
 again for quick reference:
