@@ -1,4 +1,4 @@
-import { ArtifactKind, ensureArtifactImport, find_graphql, parseJS } from 'houdini'
+import { ArtifactKind, ensureArtifactImport, find_graphql, parseJS, printJS } from 'houdini'
 import type { TransformPage } from 'houdini/vite'
 import * as recast from 'recast'
 import type { SourceMapInput } from 'rollup'
@@ -13,21 +13,15 @@ export async function transformFile(
 		return { code: page.content, map: page.map }
 	}
 	// parse the content and look for an invocation of the graphql function
-	const parsed = await parseJS(page.content, {
-		plugins: ['typescript', 'jsx'],
-		sourceType: 'module',
-	})
-	if (!parsed) {
-		return { code: page.content, map: page.map }
-	}
+	const script = await parseJS(page.content)
 
 	// for now, just replace them with a string
-	await find_graphql(page.config, parsed?.script, {
+	await find_graphql(page.config, script, {
 		tag({ node, artifact, parsedDocument }) {
 			const artifactID = ensureArtifactImport({
 				config: page.config,
 				artifact,
-				body: parsed.script.body,
+				body: script.body,
 			})
 
 			// we are going to replace the query with an object
@@ -47,7 +41,7 @@ export async function transformFile(
 						artifact: {
 							name: refetchArtifactName,
 						},
-						body: parsed.script.body,
+						body: script.body,
 					})
 				}
 
@@ -64,5 +58,5 @@ export async function transformFile(
 		},
 	})
 
-	return recast.print(parsed.script)
+	return printJS(script)
 }

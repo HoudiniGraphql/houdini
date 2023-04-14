@@ -37,7 +37,7 @@ export async function extract_load_function(
 	if (transformed === null) {
 		return nil
 	}
-	const parsed = (await parseJS(transformed))?.script
+	const parsed = await parseJS(transformed)
 	if (!parsed) {
 		return nil
 	}

@@ -15,8 +15,10 @@ export default async function ({
 		return documents
 	}
 
+	const { script } = parsedFile
+
 	// look for graphql documents like normal
-	await find_graphql(config, parsedFile.script, {
+	await find_graphql(config, script, {
 		tag({ tagContent }) {
 			documents.push(tagContent)
 		},
@@ -26,7 +28,15 @@ export default async function ({
 	return documents
 }
 
-export async function parseSvelte(str: string): Promise<ParsedFile> {
+type EmbeddedScript = {
+	script: Script
+	position: {
+		start: number
+		end: number
+	}
+}
+
+export async function parseSvelte(str: string): Promise<Maybe<EmbeddedScript>> {
 	// parsing a file happens in two steps:
 	// - first we use svelte's parser to find the bounds of the script tag
 	// - then we run the contents through babel to parse it
@@ -66,13 +76,13 @@ export async function parseSvelte(str: string): Promise<ParsedFile> {
 	// we're done here
 	const scriptParsed = await parseJS(string)
 
-	return scriptParsed
-		? {
-				script: scriptParsed.script,
-				start: greaterThanIndex,
-				end: lessThanIndex,
-		  }
-		: null
+	return {
+		script: scriptParsed,
+		position: {
+			start: greaterThanIndex,
+			end: lessThanIndex,
+		},
+	}
 }
 
 function findScriptInnerBounds({
@@ -118,5 +128,3 @@ function findScriptInnerBounds({
 
 	return [greaterThanIndex + 1, lessThanIndex]
 }
-
-export type ParsedFile = Maybe<{ script: Script; start: number; end: number }>
