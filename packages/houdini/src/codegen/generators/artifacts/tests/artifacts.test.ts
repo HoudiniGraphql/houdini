@@ -966,8 +966,7 @@ test('overlapping query and fragment nested selection', async function () {
 
 test('selections with interfaces', async function () {
 	// the config to use in tests
-	const config = testConfig()
-	const cfg = testConfig({ module: 'esm' })
+	const config = testConfig({ module: 'esm' })
 	const docs = [
 		mockCollectedDoc(
 			`query Friends {
@@ -987,7 +986,7 @@ test('selections with interfaces', async function () {
 	]
 
 	// execute the generator
-	await runPipeline(cfg, docs)
+	await runPipeline(config, docs)
 
 	// load the contents of the file
 	expect(docs[0]).toMatchInlineSnapshot(`
@@ -1112,8 +1111,7 @@ test('selections with interfaces', async function () {
 
 test('selections with unions', async function () {
 	// the config to use in tests
-	const config = testConfig()
-	const cfg = testConfig({ module: 'esm' })
+	const config = testConfig({ module: 'esm' })
 	const docs = [
 		mockCollectedDoc(
 			`query Friends {
@@ -1133,7 +1131,7 @@ test('selections with unions', async function () {
 	]
 
 	// execute the generator
-	await runPipeline(cfg, docs)
+	await runPipeline(config, docs)
 
 	// verify contents
 	expect(docs[0]).toMatchInlineSnapshot(`
@@ -1258,8 +1256,7 @@ test('selections with unions', async function () {
 
 test('selections with overlapping unions', async function () {
 	// the config to use in tests
-	const config = testConfig()
-	const cfg = testConfig({ module: 'esm' })
+	const config = testConfig({ module: 'esm' })
 	const docs = [
 		mockCollectedDoc(
 			`query Friends {
@@ -1280,7 +1277,7 @@ test('selections with overlapping unions', async function () {
 	]
 
 	// execute the generator
-	await runPipeline(cfg, docs)
+	await runPipeline(config, docs)
 
 	// verify contents
 	expect(docs[0]).toMatchInlineSnapshot(`
@@ -1418,8 +1415,7 @@ test('selections with overlapping unions', async function () {
 
 test('selections with unions of abstract types', async function () {
 	// the config to use in tests
-	const config = testConfig()
-	const cfg = testConfig({ module: 'esm' })
+	const config = testConfig({ module: 'esm' })
 	const docs = [
 		mockCollectedDoc(
 			`query Friends {
@@ -1442,7 +1438,7 @@ test('selections with unions of abstract types', async function () {
 	]
 
 	// execute the generator
-	await runPipeline(cfg, docs)
+	await runPipeline(config, docs)
 
 	// verify contents
 	expect(docs[0]).toMatchInlineSnapshot(`
@@ -1586,8 +1582,7 @@ test('selections with unions of abstract types', async function () {
 
 test('selections with concrete types matching multiple abstract types', async function () {
 	// the config to use in tests
-	const config = testConfig()
-	const cfg = testConfig({ module: 'esm' })
+	const config = testConfig({ module: 'esm' })
 	const docs = [
 		mockCollectedDoc(
 			`query Friends {
@@ -1609,7 +1604,7 @@ test('selections with concrete types matching multiple abstract types', async fu
 	]
 
 	// execute the generator
-	await runPipeline(cfg, docs)
+	await runPipeline(config, docs)
 
 	// verify contents
 	expect(docs[0]).toMatchInlineSnapshot(`
@@ -1776,7 +1771,7 @@ test('selections with concrete types matching multiple abstract types', async fu
 describe('mutation artifacts', function () {
 	test('empty operation list', async function () {
 		// the config to use in tests
-		const cfg = testConfig({ module: 'esm' })
+		const config = testConfig({ module: 'esm' })
 
 		const docs = [
 			mockCollectedDoc(
@@ -1798,7 +1793,7 @@ describe('mutation artifacts', function () {
 		]
 
 		// execute the generator
-		await runPipeline(cfg, docs)
+		await runPipeline(config, docs)
 
 		// load the contents of the file
 		expect(docs[0]).toMatchInlineSnapshot(`
@@ -2072,7 +2067,6 @@ describe('mutation artifacts', function () {
 
 	test('insert operation allList by default in config', async function () {
 		// the config to use in tests
-		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -2178,8 +2172,6 @@ describe('mutation artifacts', function () {
 	})
 
 	test('insert operation cosition first by default in config', async function () {
-		// the config to use in tests
-		const config = testConfig()
 		const docs = [
 			mockCollectedDoc(
 				`mutation A {
@@ -2192,13 +2184,14 @@ describe('mutation artifacts', function () {
 			),
 			mockCollectedDoc(
 				`query TestQuery {
-					users(stringValue: "foo") @list(name: "All_Users") {
+						users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
 					}
 				}`
 			),
 		]
 
+		// the config to use in tests
 		let configUpdate = testConfig()
 		configUpdate.internalListPosition = 'first'
 
@@ -4473,8 +4466,7 @@ describe('mutation artifacts', function () {
 
 	test('sveltekit', async function () {
 		// the config to use in tests
-		const config = testConfig()
-		const cfg = testConfig({ module: 'esm' })
+		const config = testConfig({ module: 'esm' })
 
 		const docs = [
 			mockCollectedDoc(
@@ -4492,7 +4484,7 @@ describe('mutation artifacts', function () {
 		]
 
 		// execute the generator
-		await runPipeline(cfg, docs)
+		await runPipeline(config, docs)
 
 		// load the contents of the file
 		expect(docs[0]).toMatchInlineSnapshot(`
@@ -4597,8 +4589,6 @@ describe('mutation artifacts', function () {
 })
 
 test('custom scalar shows up in artifact', async function () {
-	// the config to use in tests
-	const config = testConfig()
 	// the documents to test
 	const docs: Document[] = [
 		mockCollectedDoc(`query TestQuery { version }`),
@@ -4680,8 +4670,6 @@ test('custom scalar shows up in artifact', async function () {
 })
 
 test('operation inputs', async function () {
-	// the config to use in tests
-	const config = testConfig()
 	// the documents to test
 	const docs: Document[] = [
 		mockCollectedDoc(`query TestQuery { version }`),
@@ -5485,253 +5473,6 @@ test('fragment variables are embedded in artifact', async function () {
 		};
 
 		"HoudiniHash=444c42cc7214c06f0976b8a252e4f1c1fcba074d1afc1543acf0fc88f56e4f31";
-	`)
-})
-
-test('fragment references in inline fragment', async function () {
-	// the config to use in tests
-	const config = testConfig()
-	// the documents to test
-	const docs: Document[] = [
-		mockCollectedDoc(`
-			query FragmentUpdateTestQuery($id: ID!) @load {
-				node(id: $id) {
-					... on User {
-						...UserFragmentTestFragment
-					}
-				}
-			}
-		`),
-		mockCollectedDoc(`
-			fragment UserFragmentTestFragment on User {
-				name
-			}
-		`),
-	]
-
-	// execute the generator
-	await runPipeline(config, docs)
-	expect(docs[0]).toMatchInlineSnapshot(`
-		export default {
-		    "name": "FragmentUpdateTestQuery",
-		    "kind": "HoudiniQuery",
-		    "hash": "04aacf4e247cf38d5f9c588e4aa2a9f2a4ff2b1db84f2d4c7637a367a0d037fd",
-
-		    "raw": \`query FragmentUpdateTestQuery($id: ID!) {
-		  node(id: $id) {
-		    ... on User {
-		      ...UserFragmentTestFragment
-		      id
-		    }
-		    id
-		    __typename
-		  }
-		}
-
-		fragment UserFragmentTestFragment on User {
-		  name
-		  id
-		  __typename
-		}
-		\`,
-
-		    "rootType": "Query",
-
-		    "selection": {
-		        "fields": {
-		            "node": {
-		                "type": "Node",
-		                "keyRaw": "node(id: $id)",
-		                "nullable": true,
-
-		                "selection": {
-		                    "abstractFields": {
-		                        "fields": {
-		                            "User": {
-		                                "name": {
-		                                    "type": "String",
-		                                    "keyRaw": "name"
-		                                },
-
-		                                "id": {
-		                                    "type": "ID",
-		                                    "keyRaw": "id",
-		                                    "visible": true
-		                                },
-
-		                                "__typename": {
-		                                    "type": "String",
-		                                    "keyRaw": "__typename",
-		                                    "visible": true
-		                                }
-		                            }
-		                        },
-
-		                        "typeMap": {}
-		                    },
-
-		                    "fields": {
-		                        "id": {
-		                            "type": "ID",
-		                            "keyRaw": "id",
-		                            "visible": true
-		                        },
-
-		                        "__typename": {
-		                            "type": "String",
-		                            "keyRaw": "__typename",
-		                            "visible": true
-		                        }
-		                    },
-
-		                    "fragments": {
-		                        "UserFragmentTestFragment": {}
-		                    }
-		                },
-
-		                "abstract": true,
-		                "visible": true
-		            }
-		        }
-		    },
-
-		    "pluginData": {},
-
-		    "input": {
-		        "fields": {
-		            "id": "ID"
-		        },
-
-		        "types": {}
-		    },
-
-		    "policy": "CacheOrNetwork",
-		    "partial": false
-		};
-
-		"HoudiniHash=04aacf4e247cf38d5f9c588e4aa2a9f2a4ff2b1db84f2d4c7637a367a0d037fd";
-	`)
-})
-
-test('masking disabled', async function () {
-	// the config to use in tests
-	const config = testConfig()
-
-	// the documents to test
-	const docs: Document[] = [
-		mockCollectedDoc(`
-			query FragmentUpdateTestQuery($id: ID!) @load {
-				node(id: $id) {
-					...UserFragmentTestFragment @mask_disable
-				}
-			}
-		`),
-		mockCollectedDoc(`
-			fragment UserFragmentTestFragment on User {
-				name
-			}
-		`),
-	]
-
-	// execute the generator
-	await runPipeline(config, docs)
-	expect(docs[0]).toMatchInlineSnapshot(`
-		export default {
-		    "name": "FragmentUpdateTestQuery",
-		    "kind": "HoudiniQuery",
-		    "hash": "77d79038702f2dbb57f3af777b214fedb15c7ec5bcd99c2e2fe2146ae8770ded",
-
-		    "raw": \`query FragmentUpdateTestQuery($id: ID!) {
-		  node(id: $id) {
-		    ...UserFragmentTestFragment
-		    id
-		    __typename
-		  }
-		}
-
-		fragment UserFragmentTestFragment on User {
-		  name
-		  id
-		  __typename
-		}
-		\`,
-
-		    "rootType": "Query",
-
-		    "selection": {
-		        "fields": {
-		            "node": {
-		                "type": "Node",
-		                "keyRaw": "node(id: $id)",
-		                "nullable": true,
-
-		                "selection": {
-		                    "abstractFields": {
-		                        "fields": {
-		                            "User": {
-		                                "name": {
-		                                    "type": "String",
-		                                    "keyRaw": "name",
-		                                    "visible": true
-		                                },
-
-		                                "id": {
-		                                    "type": "ID",
-		                                    "keyRaw": "id",
-		                                    "visible": true
-		                                },
-
-		                                "__typename": {
-		                                    "type": "String",
-		                                    "keyRaw": "__typename",
-		                                    "visible": true
-		                                }
-		                            }
-		                        },
-
-		                        "typeMap": {}
-		                    },
-
-		                    "fields": {
-		                        "id": {
-		                            "type": "ID",
-		                            "keyRaw": "id",
-		                            "visible": true
-		                        },
-
-		                        "__typename": {
-		                            "type": "String",
-		                            "keyRaw": "__typename",
-		                            "visible": true
-		                        }
-		                    },
-
-		                    "fragments": {
-		                        "UserFragmentTestFragment": {}
-		                    }
-		                },
-
-		                "abstract": true,
-		                "visible": true
-		            }
-		        }
-		    },
-
-		    "pluginData": {},
-
-		    "input": {
-		        "fields": {
-		            "id": "ID"
-		        },
-
-		        "types": {}
-		    },
-
-		    "policy": "CacheOrNetwork",
-		    "partial": false
-		};
-
-		"HoudiniHash=77d79038702f2dbb57f3af777b214fedb15c7ec5bcd99c2e2fe2146ae8770ded";
 	`)
 })
 

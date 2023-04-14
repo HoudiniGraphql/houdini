@@ -295,24 +295,6 @@ export const load: PageLoad = async (event) => {
 }
 ```
 
-If you are defining a manual load and need to look at the result of the fetch, we recommend _not_ using the `load_`
-utility but instead defining your load explicitly:
-
-```typescript:typescriptToggle=true
-import { MyQueryStore } from '$houdini'
-import type { PageLoad } from './$houdini'
-
-export const load: PageLoad = async (event) => {
-	const MyQuery = new MyQueryStore()
-
-	const result = await MyQuery.fetch({ event })
-
-	console.log('do something with', result)
-
-	return { MyQuery }
-}
-```
-
 <DeepDive title="Loading multiple stores simultaneously">
 
 Be careful when loading multiple stores at once.
@@ -355,16 +337,30 @@ The above example will provide 3 props to your route: `MyQuery` containing an in
 
 </DeepDive>
 
-<DeepDive title="Blocking Navigation">
+## Loading States
 
-If we're not careful, the above code will cause every route transition to
-block while the store waits for the server. While this sounds great
-for server-side rendered views, this is usually not what we want for
-client-side transitions. In order to accommodate this, awaiting
-`fetch` or a loader does not actually wait for the promise to resolve when
-the request happens on the browser. This means that if you want to
-do something with the response, you have to pass `blocking: true`
-which will make the `await` behave like normal:
+By default, SvelteKit blocks navigation while your queries fetch. While this is great for
+rendering your application for the initial request, it
+makes it impossible to build loading states for client-side navigation that have
+[been shown](https://pencilandpaper.io/articles/ux-pattern-analysis-loading-feedback/)
+to improve perceived loading time.
+
+In order to circumvent this, your query's do not actually block by default.
+For some applications, this
+is not the desired behavior and so Houdini allows you to configure the behavior the
+blocking nature of your query's fetches using a combination of directives and configuration values.
+
+<DeepDive title="Ways to configure blocking behavior">
+
+1. By configuration with the parameter [defaultRouteBlocking](/api/config#svelte-plugin).
+1. If you have [throwOnError](/api/client#error-handling) set with operations "all" or "query", Houdini will always block.
+1. If you have a `_houdini_afterLoad` or `_houdini_onError` set, Houdini will always block.
+1. By using the `@blocking` / `@blocking_disable` directives you can overwrite the behavior.
+1. By passing the arg `blocking` in the fetch function you can overwrite the behavior.
+
+</DeepDive>
+
+<DeepDive label="Example" title="Blocking on Load">
 
 ```typescript:typescriptToggle=true
 import { redirect } from '@sveltejs/kit'
@@ -384,6 +380,27 @@ export const load: PageLoad = async (event) => {
 ```
 
 </DeepDive>
+
+### Rendering a Loading State
+
+The easiest way to detect when your query is waiting on a network request is to
+look at the `fetching` value in the response:
+
+```svelte:title=src/routes/myRoute.svelte&typescriptToggle=true
+<script lang="ts">
+	import type { PageData } from './$houdini'
+	export let data: PageData
+
+	$: ({ MyQuery } = data)
+</script>
+
+{#if MyQuery.fetching}
+	loading...
+{:else}
+	{$MyQuery.data....}
+{/if}
+
+```
 
 ## Components Queries
 
@@ -417,7 +434,7 @@ the appropriate `load` function.
 
 ## Server only load
 
-Using a query store inside of server only load function looks very similar to the usual `load` function: 
+Using a query store inside of server only load function looks very similar to the usual `load` function:
 just pass the event you are handed in your route function:
 
 ```typescript:typescriptToggle=true
@@ -452,7 +469,7 @@ export const GET: RequestHandler = async (event) => {
 }
 ```
 
-Note that like this you will not have a store in your svelte files, you will need to fetch data on your own. 
+Note that like this you will not have a store in your svelte files, you will need to fetch data on your own.
 More info in the [SvelteKit Doc](https://kit.svelte.dev/docs/routing#server).
 
 ## Passing Metadata

@@ -4,15 +4,12 @@ import {
   clientSideNavigation,
   goto,
   locator_click,
-  waitForConsoleInfo
+  waitForConsole
 } from '../../lib/utils/testsHelper.js';
 
 test.describe('fetching', () => {
   test('with_load SSR', async ({ page }) => {
-    const [msg] = await Promise.all([
-      waitForConsoleInfo(page),
-      goto(page, routes.fetching_with_load)
-    ]);
+    const [msg] = await Promise.all([waitForConsole(page), goto(page, routes.fetching_with_load)]);
 
     expect(msg.text()).toBe('with_load - fetching: false');
   });
@@ -22,13 +19,13 @@ test.describe('fetching', () => {
 
     // Switch page and check directly the first console log
     const [msg] = await Promise.all([
-      waitForConsoleInfo(page),
+      waitForConsole(page),
       clientSideNavigation(page, routes.fetching_with_load)
     ]);
     expect(msg.text()).toBe('with_load - fetching: true');
 
     // wait for the fetching false
-    const msg2 = await waitForConsoleInfo(page);
+    const msg2 = await waitForConsole(page);
     expect(msg2.text()).toBe('with_load - fetching: false');
   });
 
@@ -37,25 +34,25 @@ test.describe('fetching', () => {
 
     // Switch page and check the first console log
     const [msg] = await Promise.all([
-      waitForConsoleInfo(page),
+      waitForConsole(page),
       clientSideNavigation(page, routes.fetching_without_load)
     ]);
     expect(msg.text()).toBe('without_load - fetching: false');
 
     const [msg2] = await Promise.all([
-      waitForConsoleInfo(page),
+      waitForConsole(page),
       // manual fetch
       locator_click(page, 'button')
     ]);
     expect(msg2.text()).toBe('without_load - fetching: true');
 
     // wait for the fetching false
-    const msg3 = await waitForConsoleInfo(page);
+    const msg3 = await waitForConsole(page);
     expect(msg3.text()).toBe('without_load - fetching: false');
 
     // second click should not refetch... so fetching should be false
     const [msg4] = await Promise.all([
-      waitForConsoleInfo(page),
+      waitForConsole(page),
       // manual fetch
       locator_click(page, 'button')
     ]);
@@ -67,7 +64,7 @@ test.describe('fetching', () => {
 
     // Switch page and check the first console log
     const [msg] = await Promise.all([
-      page.waitForEvent('console', { predicate: (msg) => msg.type() === 'info' }),
+      waitForConsole(page),
       clientSideNavigation(page, './route_2')
     ]);
 

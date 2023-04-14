@@ -519,7 +519,7 @@ export class Config {
 
 	/*
 
-		GraphqQL conventions
+		GraphQL conventions
 
 	*/
 	get loadDirective() {
@@ -548,6 +548,14 @@ export class Config {
 
 	get listParentDirective() {
 		return 'parentID'
+	}
+
+	get blockingDirective() {
+		return 'blocking'
+	}
+
+	get blockingDisableDirective() {
+		return 'blocking_disable'
 	}
 
 	/**

@@ -80,8 +80,8 @@ export async function runPipeline(config: Config, docs: Document[]) {
 				validators.typeCheck,
 				validators.uniqueNames,
 				validators.noIDAlias,
+				// this replaces wrapHook(validate) to group them up
 				validators.plugins,
-				...wrapHook(validate),
 				...wrapHook(afterValidate),
 				transforms.addID,
 				transforms.typename,

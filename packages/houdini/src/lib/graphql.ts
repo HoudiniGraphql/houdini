@@ -171,7 +171,7 @@ export function definitionFromAncestors(ancestors: readonly any[]) {
 		definition = parents.shift()
 	}
 
-	return definition
+	return { parents, definition }
 }
 
 export function formatErrors(e: unknown, afterError?: (e: Error) => void) {

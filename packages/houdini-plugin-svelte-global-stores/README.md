@@ -1,6 +1,6 @@
 <div align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/HoudiniGraphql/houdini/main/.github/assetss/logo_l.svg">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/HoudiniGraphql/houdini/main/.github/assets/logo_l.svg">
     <img height="140" alt="Houdini's logo (dark or light)" src="https://raw.githubusercontent.com/HoudiniGraphql/houdini/main/.github/assets/logo_d.svg">
   </picture>
   <br />

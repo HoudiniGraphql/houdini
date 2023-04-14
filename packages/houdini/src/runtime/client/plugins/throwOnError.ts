@@ -1,9 +1,11 @@
-import type { QueryResult, ArtifactKinds } from '../../lib'
+import type { ArtifactKinds, QueryResult } from '../../lib'
 import { ArtifactKind } from '../../lib'
 import type { ClientPlugin, ClientPluginContext } from '../documentStore'
 
+export type ThrowOnErrorOperations = 'all' | 'query' | 'mutation' | 'subscription'
+
 export type ThrowOnErrorParams = {
-	operations: ('all' | 'query' | 'mutation' | 'subscription')[]
+	operations: ThrowOnErrorOperations[]
 	error?: (
 		errors: NonNullable<QueryResult<any, any>['errors']>,
 		ctx: ClientPluginContext

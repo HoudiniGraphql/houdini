@@ -328,6 +328,7 @@ export default function artifactGenerator(stats: {
 
 					// add the cache policy to query documents
 					if (artifact.kind === 'HoudiniQuery') {
+						// cache
 						const cacheDirective = operations[0].directives?.find(
 							(directive) => directive.name.value === config.cacheDirective
 						)

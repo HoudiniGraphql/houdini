@@ -35,7 +35,7 @@ describe('kit route processor', function () {
 			    promises.push(load_TestQuery({
 			        "variables": inputs["TestQuery"],
 			        "event": context,
-			        "blocking": false
+			        "blocking": undefined
 			    }));
 
 			    let result = {};
@@ -98,7 +98,7 @@ describe('kit route processor', function () {
 			    promises.push(load_TestQuery({
 			        "variables": inputs["TestQuery"],
 			        "event": context,
-			        "blocking": false
+			        "blocking": undefined
 			    }));
 
 			    let result = {};
@@ -219,7 +219,7 @@ describe('kit route processor', function () {
 			    promises.push(load_TestQuery1({
 			        "variables": inputs["TestQuery1"],
 			        "event": context,
-			        "blocking": false
+			        "blocking": undefined
 			    }));
 
 			    inputs["TestQuery2"] = {};
@@ -227,7 +227,7 @@ describe('kit route processor', function () {
 			    promises.push(load_TestQuery2({
 			        "variables": inputs["TestQuery2"],
 			        "event": context,
-			        "blocking": false
+			        "blocking": undefined
 			    }));
 
 			    let result = {};
@@ -304,7 +304,7 @@ describe('kit route processor', function () {
 			    promises.push(load_TestQuery({
 			        "variables": inputs["TestQuery"],
 			        "event": context,
-			        "blocking": false
+			        "blocking": undefined
 			    }));
 
 			    let result = {};
@@ -448,7 +448,7 @@ describe('kit route processor', function () {
 			    promises.push(load_MyQuery1({
 			        "variables": inputs["MyQuery1"],
 			        "event": context,
-			        "blocking": false
+			        "blocking": undefined
 			    }));
 
 			    inputs["MyQuery2"] = await __houdini___MyQuery2Variables(houdiniConfig, context);
@@ -456,7 +456,7 @@ describe('kit route processor', function () {
 			    promises.push(load_MyQuery2({
 			        "variables": inputs["MyQuery2"],
 			        "event": context,
-			        "blocking": false
+			        "blocking": undefined
 			    }));
 
 			    inputs["TestQuery"] = {};
@@ -464,7 +464,7 @@ describe('kit route processor', function () {
 			    promises.push(load_TestQuery({
 			        "variables": inputs["TestQuery"],
 			        "event": context,
-			        "blocking": false
+			        "blocking": undefined
 			    }));
 
 			    let result = {};
@@ -511,7 +511,7 @@ describe('kit route processor', function () {
 			    promises.push(load_TestPageQuery({
 			        "variables": inputs["TestPageQuery"],
 			        "event": context,
-			        "blocking": false
+			        "blocking": undefined
 			    }));
 
 			    let result = {};
@@ -595,7 +595,7 @@ describe('kit route processor', function () {
 			    promises.push(load_TestLayoutQuery({
 			        "variables": inputs["TestLayoutQuery"],
 			        "event": context,
-			        "blocking": false
+			        "blocking": undefined
 			    }));
 
 			    let result = {};
@@ -693,7 +693,7 @@ test('beforeLoad hook', async function () {
 		    promises.push(load_TestQuery({
 		        "variables": inputs["TestQuery"],
 		        "event": context,
-		        "blocking": false
+		        "blocking": undefined
 		    }));
 
 		    let result = {};
@@ -779,7 +779,7 @@ test('beforeLoad hook - multiple queries', async function () {
 		    promises.push(load_TestQuery1({
 		        "variables": inputs["TestQuery1"],
 		        "event": context,
-		        "blocking": false
+		        "blocking": undefined
 		    }));
 
 		    inputs["TestQuery2"] = {};
@@ -787,7 +787,7 @@ test('beforeLoad hook - multiple queries', async function () {
 		    promises.push(load_TestQuery2({
 		        "variables": inputs["TestQuery2"],
 		        "event": context,
-		        "blocking": false
+		        "blocking": undefined
 		    }));
 
 		    let result = {};
@@ -1156,7 +1156,7 @@ test('layout loads', async function () {
 		    promises.push(load_MyQuery1({
 		        "variables": inputs["MyQuery1"],
 		        "event": context,
-		        "blocking": false
+		        "blocking": undefined
 		    }));
 
 		    inputs["MyQuery2"] = await __houdini___MyQuery2Variables(houdiniConfig, context);
@@ -1164,7 +1164,7 @@ test('layout loads', async function () {
 		    promises.push(load_MyQuery2({
 		        "variables": inputs["MyQuery2"],
 		        "event": context,
-		        "blocking": false
+		        "blocking": undefined
 		    }));
 
 		    let result = {};
@@ -1248,7 +1248,7 @@ test('layout inline query', async function () {
 		    promises.push(load_TestQuery({
 		        "variables": inputs["TestQuery"],
 		        "event": context,
-		        "blocking": false
+		        "blocking": undefined
 		    }));
 
 		    let result = {};
@@ -1310,7 +1310,7 @@ test('inline function query', async function () {
 		    promises.push(load_TestQuery({
 		        "variables": inputs["TestQuery"],
 		        "event": context,
-		        "blocking": false
+		        "blocking": undefined
 		    }));
 
 		    let result = {};
@@ -1458,7 +1458,7 @@ test('route params, no variable function', async function () {
 		    promises.push(load_UserInfo({
 		        "variables": inputs["UserInfo"],
 		        "event": context,
-		        "blocking": false
+		        "blocking": undefined
 		    }));
 
 		    let result = {};
@@ -1536,7 +1536,7 @@ test('route params with variable function', async function () {
 		    promises.push(load_UserInfo({
 		        "variables": inputs["UserInfo"],
 		        "event": context,
-		        "blocking": false
+		        "blocking": undefined
 		    }));
 
 		    let result = {};
