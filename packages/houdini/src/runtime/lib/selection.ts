@@ -1,4 +1,4 @@
-import type { GraphQLObject, SubscriptionSelection } from './types'
+import type { SubscriptionSelection } from './types'
 
 export function getFieldsForType(
 	selection: SubscriptionSelection,
@@ -43,7 +43,7 @@ function deepMerge(...objects: (Record<string, any> | undefined)[]) {
 			continue
 		}
 		for (let prop in obj) {
-			if (obj.hasOwnProperty(prop)) {
+			if (prop in obj) {
 				const val = obj[prop]
 
 				if (typeof val === 'object' && val !== null && !Array.isArray(val)) {
