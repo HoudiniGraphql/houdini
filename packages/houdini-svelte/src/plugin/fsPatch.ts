@@ -182,10 +182,13 @@ filesystem.readdirSync = function (
 	}
 
 	const posix_filepath = path.posixify(filepath.toString())
-	
+
 	// there needs to always be a root load function that passes the session down
 	// also, if there is a layout file but no layout.js, we need to make one
-	if ((is_root_route(posix_filepath) || contains('+layout.svelte', '+layout.gql')) && !contains('+layout.ts', '+layout.js')) {
+	if (
+		(is_root_route(posix_filepath) || contains('+layout.svelte', '+layout.gql')) &&
+		!contains('+layout.ts', '+layout.js')
+	) {
 		result.push(virtual_file('+layout.js', options))
 	}
 
