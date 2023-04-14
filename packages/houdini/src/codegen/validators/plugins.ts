@@ -17,6 +17,6 @@ export default async function validatePlugins(config: Config, documents: Documen
 	}
 
 	if (errors.length > 0) {
-		throw errors
+		throw errors.flat()
 	}
 }

@@ -1,17 +1,16 @@
 /// <reference path="../../../../../houdini.d.ts" />
 import { flatten } from '../lib/flatten'
 import type { DocumentArtifact, GraphQLObject, NestedList } from '../lib/types'
-import type { ClientPlugin, ClientHooks } from './documentStore'
+import type { ClientHooks, ClientPlugin } from './documentStore'
 import { DocumentStore } from './documentStore'
+import type { FetchParamFn, ThrowOnErrorOperations, ThrowOnErrorParams } from './plugins'
 import {
 	fetch as fetchPlugin,
+	fetchParams as fetchParamsPlugin,
+	fragment as fragmentPlugin,
 	mutation as mutationPlugin,
 	query as queryPlugin,
-	fragment as fragmentPlugin,
 	throwOnError as throwOnErrorPlugin,
-	type FetchParamFn,
-	fetchParams as fetchParamsPlugin,
-	type ThrowOnErrorParams,
 } from './plugins'
 import pluginsFromPlugins from './plugins/injectedPlugins'
 
@@ -44,6 +43,9 @@ export class HoudiniClient {
 	// the list of plugins for the client
 	readonly plugins: ClientPlugin[]
 
+	// expose operations settings
+	readonly throwOnError_operations: ThrowOnErrorOperations[]
+
 	constructor({
 		url,
 		fetchParams,
@@ -57,6 +59,8 @@ export class HoudiniClient {
 				'A client cannot be given a pipeline and a list of plugins at the same time.'
 			)
 		}
+
+		this.throwOnError_operations = throwOnError?.operations ?? []
 
 		// a few middlewares _have_ to run to setup the pipeline
 		this.plugins = flatten(

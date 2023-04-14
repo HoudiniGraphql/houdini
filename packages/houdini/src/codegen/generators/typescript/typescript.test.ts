@@ -2685,6 +2685,127 @@ describe('typescript', function () {
 		`)
 	})
 
+	test('masking disabled', async function () {
+		const unmaskedConfig = testConfig({})
+
+		// the documents to test
+		// the document to test
+		const docs = [
+			mockCollectedDoc(`query FragmentUpdateTestQuery($id: ID!) {
+				node(id: $id) {
+					...UserFragmentTestFragment @mask_disable
+				}
+			}`),
+			mockCollectedDoc(`fragment UserFragmentTestFragment on User {
+				name
+			}`),
+		]
+
+		// execute the generator
+		await runPipeline(unmaskedConfig, docs)
+
+		expect(docs[0]).toMatchInlineSnapshot(`
+			export default {
+			    "name": "FragmentUpdateTestQuery",
+			    "kind": "HoudiniQuery",
+			    "hash": "af4a3a796a91fef5a4625b3b886bedeeef1e1698a1aa9a22bdbf2d65c9c0d4f5",
+
+			    "raw": \`query FragmentUpdateTestQuery($id: ID!) {
+			  node(id: $id) {
+			    ...UserFragmentTestFragment
+			    id
+			    __typename
+			  }
+			}
+
+			fragment UserFragmentTestFragment on User {
+			  name
+			  id
+			  __typename
+			}
+			\`,
+
+			    "rootType": "Query",
+
+			    "selection": {
+			        "fields": {
+			            "node": {
+			                "type": "Node",
+			                "keyRaw": "node(id: $id)",
+			                "nullable": true,
+
+			                "selection": {
+			                    "abstractFields": {
+			                        "fields": {
+			                            "User": {
+			                                "name": {
+			                                    "type": "String",
+			                                    "keyRaw": "name",
+			                                    "visible": true
+			                                },
+
+			                                "id": {
+			                                    "type": "ID",
+			                                    "keyRaw": "id",
+			                                    "visible": true
+			                                },
+
+			                                "__typename": {
+			                                    "type": "String",
+			                                    "keyRaw": "__typename",
+			                                    "visible": true
+			                                }
+			                            }
+			                        },
+
+			                        "typeMap": {}
+			                    },
+
+			                    "fields": {
+			                        "id": {
+			                            "type": "ID",
+			                            "keyRaw": "id",
+			                            "visible": true
+			                        },
+
+			                        "__typename": {
+			                            "type": "String",
+			                            "keyRaw": "__typename",
+			                            "visible": true
+			                        }
+			                    },
+
+			                    "fragments": {
+			                        "UserFragmentTestFragment": {
+			                            "arguments": {}
+			                        }
+			                    }
+			                },
+
+			                "abstract": true,
+			                "visible": true
+			            }
+			        }
+			    },
+
+			    "pluginData": {},
+
+			    "input": {
+			        "fields": {
+			            "id": "ID"
+			        },
+
+			        "types": {}
+			    },
+
+			    "policy": "CacheOrNetwork",
+			    "partial": false
+			};
+
+			"HoudiniHash=af4a3a796a91fef5a4625b3b886bedeeef1e1698a1aa9a22bdbf2d65c9c0d4f5";
+		`)
+	})
+
 	test('disable default fragment masking', async function () {
 		const configWithoutMasking = testConfig({
 			defaultFragmentMasking: 'disable',

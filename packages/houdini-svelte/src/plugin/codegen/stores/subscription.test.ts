@@ -16,8 +16,8 @@ test('generates a store for every subscription', async function () {
 
 	// the documents to test
 	const docs: Document[] = [
-		mockCollectedDoc(`subscription TestSubscription1 { newUser { id }  }`),
-		mockCollectedDoc(`subscription TestSubscription2 { newUser { id }  }`),
+		mockCollectedDoc(`subscription TestSubscription1 { newUser { id } }`),
+		mockCollectedDoc(`subscription TestSubscription2 { newUser { id } }`),
 	]
 
 	// execute the generator

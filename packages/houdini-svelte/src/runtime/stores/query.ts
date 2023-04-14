@@ -1,16 +1,18 @@
 import type { FetchContext } from '$houdini/runtime/client/plugins/fetch'
+import { getCurrentConfig } from '$houdini/runtime/lib/config'
 import * as log from '$houdini/runtime/lib/log'
 import type {
+	CachePolicies,
 	GraphQLObject,
 	MutationArtifact,
 	QueryArtifact,
 	QueryResult,
-	CachePolicies,
 } from '$houdini/runtime/lib/types'
 import { ArtifactKind, CachePolicy, CompiledQueryKind } from '$houdini/runtime/lib/types'
 import type { LoadEvent } from '@sveltejs/kit'
 import { get } from 'svelte/store'
 
+import type { HoudiniSvelteConfig } from '../../plugin'
 import type { PluginArtifactData } from '../../plugin/artifactData'
 import { clientStarted, isBrowser } from '../adapter'
 import { initClient } from '../client'
@@ -59,7 +61,8 @@ export class QueryStore<_Data extends GraphQLObject, _Input extends {}> extends 
 	fetch(params?: ClientFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
-		await initClient()
+		const client = await initClient()
+
 		this.setup(false)
 
 		// validate and prepare the request context for the current environment (client vs server)
@@ -91,6 +94,55 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 			params.blocking = true
 		}
 
+		// blocking
+		const config = getCurrentConfig()
+		const config_svelte = (config.plugins as any)['houdini-svelte'] as HoudiniSvelteConfig
+		const pluginArtifact = this.artifact.pluginData['houdini-svelte'] as
+			| PluginArtifactData
+			| undefined
+
+		// Blocking strategy... step by step... Let's respect the order & priority
+		let need_to_block = false
+		// 0/ Check if the config make sense
+		if (
+			client.throwOnError_operations.includes('all') ||
+			client.throwOnError_operations.includes('query')
+		) {
+			// if explicitly set to not_always_blocking, we can't throw, so warn the user.
+			if (config_svelte.defaultRouteBlocking === false) {
+				log.info(
+					'[Houdini] ⚠️ throwOnError with operation "all" or "query", is not compatible with defaultRouteBlocking set to "false"'
+				)
+			}
+		}
+
+		// 1/ Check config
+		if (config_svelte.defaultRouteBlocking === true) {
+			need_to_block = true
+		}
+
+		// 2/ ThrowOnError
+		if (
+			client.throwOnError_operations.includes('all') ||
+			client.throwOnError_operations.includes('query')
+		) {
+			need_to_block = true
+		}
+
+		// 3/ Artifact
+		if (pluginArtifact?.set_blocking === true) {
+			need_to_block = true
+		} else if (pluginArtifact?.set_blocking === false) {
+			need_to_block = false
+		}
+
+		// 4/ params
+		if (params?.blocking === true) {
+			need_to_block = true
+		} else if (params?.blocking === false) {
+			need_to_block = false
+		}
+
 		// the fetch is happening in a load
 		if (isLoadFetch) {
 			this.loadPending = true
@@ -102,7 +154,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 		}
 
 		// we might not want to actually wait for the fetch to resolve
-		const fakeAwait = clientStarted && isBrowser && !params?.blocking
+		const fakeAwait = clientStarted && isBrowser && !need_to_block
 
 		// we want to try to load cached data before we potentially fake the await
 		// this makes sure that the UI feels snappy as we click between cached pages

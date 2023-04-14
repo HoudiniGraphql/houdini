@@ -39,10 +39,10 @@ export default async function typeCheck(config: Config, docs: Document[]): Promi
 	// check if they need a parent specification (if they fall inside of a fragment on something other than Query)
 	for (const { document: parsed, originalString, filename } of docs) {
 		graphql.visit(parsed, {
-			[graphql.Kind.FRAGMENT_DEFINITION](definition) {
+			FragmentDefinition(definition) {
 				fragments[definition.name.value] = definition
 			},
-			[graphql.Kind.DIRECTIVE](directive, _, parent, __, ancestors) {
+			Directive(directive, _, parent, __, ancestors) {
 				// only consider @paginate or @list
 				if (
 					![config.listDirective, config.paginateDirective].includes(directive.name.value)
@@ -50,26 +50,7 @@ export default async function typeCheck(config: Config, docs: Document[]): Promi
 					return
 				}
 
-				// in order to look up field type information we have to start at the parent
-				// and work our way down
-				// note:  the top-most parent is always gonna be a document so we ignore it
-				let parents = [...ancestors] as (
-					| graphql.FieldNode
-					| graphql.InlineFragmentNode
-					| graphql.FragmentDefinitionNode
-					| graphql.OperationDefinitionNode
-					| graphql.SelectionSetNode
-				)[]
-				parents.shift()
-
-				// the first meaningful parent is a definition of some kind
-				let definition = parents.shift() as
-					| graphql.FragmentDefinitionNode
-					| graphql.OperationDefinitionNode
-				while (Array.isArray(definition) && definition) {
-					// @ts-ignore
-					definition = parents.shift()
-				}
+				const { parents, definition } = definitionFromAncestors(ancestors)
 
 				// look at the list of ancestors to see if we required a parent ID
 				let needsParent = false
@@ -352,8 +333,8 @@ export default async function typeCheck(config: Config, docs: Document[]): Promi
 				}),
 				// checkMutationOperation
 				checkMutationOperation(config),
-				// checkMaskDirective
-				checkMaskDirective(config),
+				// checkMaskDirectives
+				checkMaskDirectives(config),
 				// pagination directive can only show up on nodes or the query type
 				nodeDirectives(config, [config.paginateDirective]),
 				// this replaces KnownArgumentNamesRule
@@ -560,6 +541,8 @@ function knownArguments(config: Config) {
 						config.whenNotDirective,
 						config.listAppendDirective,
 						config.listPrependDirective,
+						config.blockingDirective,
+						config.blockingDisableDirective,
 					].includes(directiveName)
 				) {
 					return false
@@ -833,7 +816,7 @@ function paginateArgs(config: Config, filepath: string) {
 				alreadyPaginated = true
 
 				// find the definition containing the directive
-				const definition = definitionFromAncestors(ancestors)
+				const { definition } = definitionFromAncestors(ancestors)
 
 				// look at the fragment arguments
 				const definitionArgs = collectFragmentArguments(
@@ -1012,7 +995,7 @@ function nodeDirectives(config: Config, directives: string[]) {
 				}
 
 				// look through the ancestor list for the definition node
-				let definition = definitionFromAncestors(ancestors)
+				let { definition } = definitionFromAncestors(ancestors)
 
 				// if the definition points to an operation, it must point to a query
 				let definitionType = ''
@@ -1081,7 +1064,7 @@ function checkMutationOperation(config: Config) {
 	}
 }
 
-function checkMaskDirective(config: Config) {
+function checkMaskDirectives(config: Config) {
 	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
 		return {
 			FragmentSpread(node, _, __, ___, ancestors) {

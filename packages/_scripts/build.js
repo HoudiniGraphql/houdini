@@ -1,9 +1,9 @@
 import esbuild from 'esbuild'
 import { replace } from 'esbuild-plugin-replace'
-import fs from 'fs/promises'
 import glob from 'glob'
-import path from 'path'
-import { promisify } from 'util'
+import fs from 'node:fs/promises'
+import path from 'node:path'
+import { promisify } from 'node:util'
 
 // the relevant directories
 const build_dir = path.join(process.cwd(), 'build')
@@ -38,6 +38,7 @@ export default async function ({ plugin }) {
 			// when there's a plugin directory, that is the main entry point
 			package_json.main = './build/plugin-cjs/index.js'
 			package_json.exports['.'] = {
+				types: './build/plugin/index.d.ts',
 				import: './build/plugin-esm/index.js',
 				require: './build/plugin-cjs/index.js',
 			}
@@ -49,6 +50,7 @@ export default async function ({ plugin }) {
 			// when there's a plugin directory, that is the main entry point
 			package_json.main = `./build/${dirname}-cjs/index.js`
 			package_json.exports[`.`] = {
+				types: `./build/${dirname}/index.d.ts`,
 				import: `./build/${dirname}-esm/index.js`,
 				require: `./build/${dirname}-cjs/index.js`,
 			}
@@ -68,6 +70,7 @@ export default async function ({ plugin }) {
 		else {
 			await build({ package_json, source: dir, plugin })
 			package_json.exports['./' + dirname] = {
+				types: `./build/${dirname}/index.d.ts`,
 				import: `./build/${dirname}-esm/index.js`,
 				require: `./build/${dirname}-cjs/index.js`,
 			}

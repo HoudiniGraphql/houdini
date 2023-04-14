@@ -75,9 +75,6 @@ test('adds internal documents to schema', async function () {
 			"""@cache is used to specify cache rules for a query"""
 			directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
-			"""@load is used to disable automatic fetch (no load, no auto fetch in component), you will have to do it manually."""
-			directive @load on QUERY
-
 			"""@mask_enable to enable masking on fragment (overwriting the global conf)"""
 			directive @mask_enable on FRAGMENT_SPREAD
 
@@ -156,9 +153,6 @@ test('list operations are included', async function () {
 
 			"""@cache is used to specify cache rules for a query"""
 			directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
-
-			"""@load is used to disable automatic fetch (no load, no auto fetch in component), you will have to do it manually."""
-			directive @load on QUERY
 
 			"""@mask_enable to enable masking on fragment (overwriting the global conf)"""
 			directive @mask_enable on FRAGMENT_SPREAD
@@ -257,9 +251,6 @@ test('list operations are included but delete directive should not be in when we
 
 			"""@cache is used to specify cache rules for a query"""
 			directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
-
-			"""@load is used to disable automatic fetch (no load, no auto fetch in component), you will have to do it manually."""
-			directive @load on QUERY
 
 			"""@mask_enable to enable masking on fragment (overwriting the global conf)"""
 			directive @mask_enable on FRAGMENT_SPREAD
@@ -371,9 +362,6 @@ test("writing twice doesn't duplicate definitions", async function () {
 
 			"""@cache is used to specify cache rules for a query"""
 			directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
-
-			"""@load is used to disable automatic fetch (no load, no auto fetch in component), you will have to do it manually."""
-			directive @load on QUERY
 
 			"""@mask_enable to enable masking on fragment (overwriting the global conf)"""
 			directive @mask_enable on FRAGMENT_SPREAD

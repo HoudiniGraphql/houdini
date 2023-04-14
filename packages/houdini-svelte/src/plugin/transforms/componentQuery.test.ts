@@ -23,9 +23,7 @@ test('no variables', async function () {
 		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { marshalInputs } from "$houdini/runtime/lib/scalars";
 		const _houdini_TestQuery = new TestQueryStore();
-
-		$:
-		value = _houdini_TestQuery;
+		$: value = _houdini_TestQuery
 
 		$:
 		isBrowser && _houdini_TestQuery.fetch({
@@ -69,19 +67,17 @@ test('with variables', async function () {
 		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { marshalInputs } from "$houdini/runtime/lib/scalars";
 		const _houdini_TestQuery = new TestQueryStore();
-
 		export function _TestQueryVariables() {
 		    return {
-		        hello: "world"
-		    };
+		        hello: 'world'
+		    }
 		}
 
-		export let prop1 = "hello";
-		export const prop2 = "goodbye";
-		export let prop3, prop4;
+		export let prop1 = 'hello'
+		export const prop2 = 'goodbye'
+		export let prop3, prop4
 
-		$:
-		result = _houdini_TestQuery;
+		$: result = _houdini_TestQuery
 
 		$:
 		isBrowser && _houdini_TestQuery.fetch({
@@ -133,19 +129,17 @@ test('graphql function', async function () {
 		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { marshalInputs } from "$houdini/runtime/lib/scalars";
 		const _houdini_TestQuery = new TestQueryStore();
-
 		export function _TestQueryVariables() {
 		    return {
-		        hello: "world"
-		    };
+		        hello: 'world'
+		    }
 		}
 
-		export let prop1 = "hello";
-		export const prop2 = "goodbye";
-		export let prop3, prop4;
+		export let prop1 = 'hello'
+		export const prop2 = 'goodbye'
+		export let prop3, prop4
 
-		$:
-		result = _houdini_TestQuery;
+		$: result = _houdini_TestQuery
 
 		$:
 		isBrowser && _houdini_TestQuery.fetch({
@@ -186,11 +180,11 @@ test("imperative cache doesn't confuse the load generator", async function () {
 	// make sure we added the right stuff
 	expect(route).toMatchInlineSnapshot(`
 		import { TestQueryStore } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
-		import { cache } from "$houdini";
+		import { cache } from '$houdini'
 
 		cache.read({
 		    query: new TestQueryStore()
-		});
+		})
 	`)
 })
 
@@ -218,14 +212,14 @@ test("imperative cache inside mutation doesn't confuse anything", async function
 	// make sure we added the right stuff
 	expect(route).toMatchInlineSnapshot(`
 		import { TestQueryStore } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
-		import { cache } from "$houdini";
+		import { cache } from '$houdini'
 
 		function onClick() {
-		    const query = new TestQueryStore();
+		    const query = new TestQueryStore()
 
 		    cache.read({
 		        query
-		    });
+		    })
 		}
 	`)
 })

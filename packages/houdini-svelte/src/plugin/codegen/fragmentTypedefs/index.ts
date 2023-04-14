@@ -1,6 +1,6 @@
 import type { StatementKind, TSTypeKind } from 'ast-types/lib/gen/kinds'
 import type { Document } from 'houdini'
-import { fragmentKey, parseJS, path, fs, ArtifactKind, ensureImports } from 'houdini'
+import { printJS, fragmentKey, parseJS, path, fs, ArtifactKind, ensureImports } from 'houdini'
 import * as recast from 'recast'
 
 import type { PluginGenerateInput } from '..'
@@ -42,13 +42,10 @@ export default async function fragmentTypedefs(input: PluginGenerateInput) {
 		'fragments.d.ts'
 	)
 
-	const contents = await parseJS((await fs.readFile(target_path)) || '')!
-	if (!contents) {
-		return
-	}
+	const script = await parseJS((await fs.readFile(target_path)) || '')!
 
 	function insert_exports(which: string, statements: StatementKind[]) {
-		for (const [i, expression] of [...(contents!.script.body ?? [])].entries()) {
+		for (const [i, expression] of [...script.body].entries()) {
 			if (
 				expression.type !== 'ExportNamedDeclaration' ||
 				expression.declaration?.type !== 'TSDeclareFunction' ||
@@ -58,7 +55,7 @@ export default async function fragmentTypedefs(input: PluginGenerateInput) {
 			}
 
 			// it should return the right thing
-			contents!.script.body.splice(i, 0, ...statements)
+			script.body.splice(i, 0, ...statements)
 
 			// we're done
 			break
@@ -118,7 +115,7 @@ export default async function fragmentTypedefs(input: PluginGenerateInput) {
 
 				ensureImports({
 					config: input.config,
-					body: contents!.script.body!,
+					body: script.body,
 					sourceModule: './types',
 					import: [store_type],
 					importKind: 'type',
@@ -127,7 +124,7 @@ export default async function fragmentTypedefs(input: PluginGenerateInput) {
 				// make sure the store is imported
 				ensureImports({
 					config: input.config,
-					body: contents!.script.body!,
+					body: script.body,
 					sourceModule: import_path,
 					import: [store],
 				})
@@ -135,7 +132,7 @@ export default async function fragmentTypedefs(input: PluginGenerateInput) {
 				const inputID = `${doc.name}$input`
 				ensureImports({
 					config: input.config,
-					body: contents!.script.body!,
+					body: script.body,
 					sourceModule: '../../../artifacts/' + doc.name,
 					import: [inputID, shapeID],
 				})
@@ -185,5 +182,6 @@ export default async function fragmentTypedefs(input: PluginGenerateInput) {
 	}
 
 	// write the updated file
-	await fs.writeFile(target_path, recast.prettyPrint(contents.script).code)
+	const { code } = await printJS(script)
+	await fs.writeFile(target_path, code)
 }

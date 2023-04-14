@@ -43,17 +43,17 @@ test('generates types for fragments', async function () {
 	expect(queryContents).toBeTruthy()
 
 	//the parser doesn't work right but the type imports are correct.
-	const parsedQuery = (await parseJS(queryContents!))?.script
+	const parsedQuery = await parseJS(queryContents!)
 
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		import { TestFragment$input, TestFragment$data } from "../../../artifacts/TestFragment";
 		import { TestFragmentStore } from "../stores/TestFragment";
 		import type { FragmentStoreInstance } from "./types";
-		import { Fragment } from "$houdini/runtime/lib/types";
-		import { Readable } from "svelte/store";
-		import { FragmentStore } from "./stores";
-		import type { FragmentStorePaginated } from "./stores/pagination/fragment";
+		import { Fragment } from '$houdini/runtime/lib/types';
+		import { Readable } from 'svelte/store';
+		import { FragmentStore } from './stores';
+		import type { FragmentStorePaginated } from './stores/pagination/fragment';
 
 		export function fragment(
 		    initialValue: {
@@ -73,20 +73,14 @@ test('generates types for fragments', async function () {
 		    document: TestFragmentStore
 		): FragmentStoreInstance<TestFragment$data | null, TestFragment$input>;
 
-		export declare function fragment<_Fragment extends Fragment<any>>(ref: _Fragment, fragment: FragmentStore<_Fragment["shape"]>): Readable<NonNullable<_Fragment["shape"]>> & {
+		export declare function fragment<_Fragment extends Fragment<any>>(ref: _Fragment, fragment: FragmentStore<_Fragment['shape']>): Readable<NonNullable<_Fragment['shape']>> & {
 		    data: Readable<_Fragment>;
 		};
-
-		export declare function fragment<_Fragment extends Fragment<any>>(ref: _Fragment | null, fragment: FragmentStore<_Fragment["shape"]>): Readable<NonNullable<_Fragment["shape"]> | null> & {
+		export declare function fragment<_Fragment extends Fragment<any>>(ref: _Fragment | null, fragment: FragmentStore<_Fragment['shape']>): Readable<NonNullable<_Fragment['shape']> | null> & {
 		    data: Readable<_Fragment | null>;
 		};
-
-		export declare function paginatedFragment<_Fragment extends Fragment<any>>(
-		    initialValue: _Fragment | null,
-		    document: FragmentStore<_Fragment["shape"]>
-		): FragmentStorePaginated<_Fragment["shape"], {}>;
-
-		export declare function paginatedFragment<_Fragment extends Fragment<any>>(initialValue: _Fragment, document: FragmentStore<_Fragment["shape"]>): FragmentStorePaginated<_Fragment["shape"], {}>;
+		export declare function paginatedFragment<_Fragment extends Fragment<any>>(initialValue: _Fragment | null, document: FragmentStore<_Fragment['shape']>): FragmentStorePaginated<_Fragment['shape'], {}>;
+		export declare function paginatedFragment<_Fragment extends Fragment<any>>(initialValue: _Fragment, document: FragmentStore<_Fragment['shape']>): FragmentStorePaginated<_Fragment['shape'], {}>;
 	`)
 })
 
@@ -151,17 +145,17 @@ test('generates types for paginated fragments', async function () {
 	expect(queryContents).toBeTruthy()
 
 	//the parser doesn't work right but the type imports are correct.
-	const parsedQuery = (await parseJS(queryContents!))?.script
+	const parsedQuery = await parseJS(queryContents!)
 
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		import { TestFragment$input, TestFragment$data } from "../../../artifacts/TestFragment";
 		import { TestFragmentStore } from "../stores/TestFragment";
 		import type { CursorFragmentStoreInstance } from "./types";
-		import { Fragment } from "$houdini/runtime/lib/types";
-		import { Readable } from "svelte/store";
-		import { FragmentStore } from "./stores";
-		import type { FragmentStorePaginated } from "./stores/pagination/fragment";
+		import { Fragment } from '$houdini/runtime/lib/types';
+		import { Readable } from 'svelte/store';
+		import { FragmentStore } from './stores';
+		import type { FragmentStorePaginated } from './stores/pagination/fragment';
 
 		export function fragment(
 		    initialValue: {
@@ -181,11 +175,10 @@ test('generates types for paginated fragments', async function () {
 		    document: TestFragmentStore
 		): CursorFragmentStoreInstance<TestFragment$data | null, TestFragment$input>;
 
-		export declare function fragment<_Fragment extends Fragment<any>>(ref: _Fragment, fragment: FragmentStore<_Fragment["shape"]>): Readable<NonNullable<_Fragment["shape"]>> & {
+		export declare function fragment<_Fragment extends Fragment<any>>(ref: _Fragment, fragment: FragmentStore<_Fragment['shape']>): Readable<NonNullable<_Fragment['shape']>> & {
 		    data: Readable<_Fragment>;
 		};
-
-		export declare function fragment<_Fragment extends Fragment<any>>(ref: _Fragment | null, fragment: FragmentStore<_Fragment["shape"]>): Readable<NonNullable<_Fragment["shape"]> | null> & {
+		export declare function fragment<_Fragment extends Fragment<any>>(ref: _Fragment | null, fragment: FragmentStore<_Fragment['shape']>): Readable<NonNullable<_Fragment['shape']> | null> & {
 		    data: Readable<_Fragment | null>;
 		};
 
@@ -207,11 +200,7 @@ test('generates types for paginated fragments', async function () {
 		    document: TestFragmentStore
 		): CursorFragmentStoreInstance<TestFragment$data | null, TestFragment$input>;
 
-		export declare function paginatedFragment<_Fragment extends Fragment<any>>(
-		    initialValue: _Fragment | null,
-		    document: FragmentStore<_Fragment["shape"]>
-		): FragmentStorePaginated<_Fragment["shape"], {}>;
-
-		export declare function paginatedFragment<_Fragment extends Fragment<any>>(initialValue: _Fragment, document: FragmentStore<_Fragment["shape"]>): FragmentStorePaginated<_Fragment["shape"], {}>;
+		export declare function paginatedFragment<_Fragment extends Fragment<any>>(initialValue: _Fragment | null, document: FragmentStore<_Fragment['shape']>): FragmentStorePaginated<_Fragment['shape'], {}>;
+		export declare function paginatedFragment<_Fragment extends Fragment<any>>(initialValue: _Fragment, document: FragmentStore<_Fragment['shape']>): FragmentStorePaginated<_Fragment['shape'], {}>;
 	`)
 })

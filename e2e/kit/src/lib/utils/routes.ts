@@ -16,6 +16,7 @@ export const routes = {
 
   Lists_all: '/lists/all?limit=15',
   Lists_fragment: '/lists/fragment',
+  blocking: '/blocking',
 
   Stores_SSR: '/stores/ssr',
   Stores_Network: '/stores/network',
@@ -56,6 +57,7 @@ export const routes = {
   Plugin_query_beforeLoad: '/plugin/query/beforeLoad',
   Plugin_query_afterLoad: '/plugin/query/afterLoad',
   Plugin_query_onError: '/plugin/query/onError',
+  Plugin_query_onError_log: '/plugin/query/onError_log',
   Plugin_query_layout: '/plugin/query/layout',
   Plugin_query_inferInput_userRoute_params: '/plugin/query/infer-input/user-testSnapshot-1',
   Plugin_query_inferInput_optional: '/plugin/query/infer-input/optional',

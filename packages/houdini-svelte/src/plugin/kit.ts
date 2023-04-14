@@ -2,7 +2,7 @@ import * as graphql from 'graphql'
 import type { Config } from 'houdini'
 import { find_graphql, fs, path } from 'houdini'
 import { ensure_imports } from 'houdini/vite'
-import type recast from 'recast'
+import type * as recast from 'recast'
 
 import type { HoudiniSvelteConfig } from '.'
 import { parseSvelte } from './extract'
@@ -176,7 +176,9 @@ export async function walk_routes(
 				continue
 			}
 
-			await find_graphql(config, parsed.script, {
+			const { script } = parsed
+
+			await find_graphql(config, script, {
 				where: (tag) => {
 					try {
 						return !!config.extractQueryDefinition(tag)
@@ -204,8 +206,10 @@ export async function walk_routes(
 				continue
 			}
 
+			const { script } = parsed
+
 			// look for any graphql tags and push into queries.
-			await find_graphql(config, parsed.script, {
+			await find_graphql(config, script, {
 				where: (tag) => {
 					try {
 						return !!config.extractQueryDefinition(tag)
@@ -363,6 +367,7 @@ export function plugin_config(config: Config): Required<HoudiniSvelteConfig> {
 
 	return {
 		client: './src/client',
+		defaultRouteBlocking: false,
 		pageQueryFilename: '+page.gql',
 		layoutQueryFilename: '+layout.gql',
 		static: false,

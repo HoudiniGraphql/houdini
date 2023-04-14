@@ -10,6 +10,7 @@ import type {
 	QueryArtifact,
 } from '../../../lib'
 import {
+	printJS,
 	ArtifactKind,
 	cleanupFiles,
 	fs,
@@ -359,6 +360,7 @@ export default function artifactGenerator(stats: {
 
 					// add the cache policy to query documents
 					if (artifact.kind === 'HoudiniQuery') {
+						// cache
 						const cacheDirective = operations[0].directives?.find(
 							(directive) => directive.name.value === config.cacheDirective
 						)
@@ -426,7 +428,8 @@ export default function artifactGenerator(stats: {
 					}
 
 					// write the result to the artifact path we're configured to write to
-					await fs.writeFile(artifactPath, recast.print(file).code)
+					const { code } = await printJS(file)
+					await fs.writeFile(artifactPath, code)
 					listOfArtifacts.push(config.documentName(document))
 
 					if (!countDocument) {

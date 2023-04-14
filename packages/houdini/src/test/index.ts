@@ -395,3 +395,21 @@ export function clearMock() {
 	fs.mkdirpSync(path.join(process.cwd(), 'src', 'lib'))
 	config.createDirectories()
 }
+
+export type Row =
+	| {
+			title: string
+			pass: true
+			documents: string[]
+			check?: (docs: Document[]) => void
+			partial_config?: Partial<Config>
+			nb_of_fail?: number
+	  }
+	| {
+			title: string
+			pass: false
+			documents: string[]
+			check?: (result: Error | Error[]) => void
+			partial_config?: Partial<Config>
+			nb_of_fail?: number
+	  }

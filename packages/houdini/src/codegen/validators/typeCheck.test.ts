@@ -1,8 +1,7 @@
 import type * as graphql from 'graphql'
-import { test, expect, describe } from 'vitest'
+import { describe, expect, test } from 'vitest'
 
-import type { Config } from '../../lib'
-import type { Document } from '../../lib/types'
+import type { Row } from '../../test'
 import { pipelineTest, testConfig } from '../../test'
 import { valueIsType } from './typeCheck'
 
@@ -15,104 +14,84 @@ const table: Row[] = [
 		title: 'allows documents that satisfy schema',
 		pass: true,
 		documents: [
-			`
-                query QueryA {
-                    version
-                }
-            `,
+			`query QueryA {
+				version
+			}`,
 		],
 	},
 	{
 		title: 'allows documents spread across multiple sources',
 		pass: true,
 		documents: [
-			`
-                query QueryA {
-                    user {
-                        ...FragmentA
-                    }
-                }
-            `,
-			`
-                fragment FragmentA on User {
-                    firstName
-                }
-            `,
+			`query QueryA {
+				user {
+					...FragmentA
+				}
+			}`,
+			`fragment FragmentA on User {
+				firstName
+			}`,
 		],
 	},
 	{
 		title: 'unknown types in fragments',
 		pass: false,
 		documents: [
-			`
-                fragment FragmentA on Foo {
-                    bar
-                }
-            `,
-			`
-                fragment FragmentA2 on Foo {
-                    bar
-                }
-            `,
+			`fragment FragmentA on Foo {
+				bar
+			}`,
+			`fragment FragmentA2 on Foo {
+				bar
+			}`,
 		],
 	},
 	{
 		title: 'unknown fields in queries',
 		pass: false,
 		documents: [
-			`
-                query one {
-                    user {
-                        foo
-                    }
-                }
-            `,
-			`
-                query two {
-                    user {
-                        foo
-                    }
-                }
-            `,
+			`query one {
+				user {
+					foo
+				}
+			}`,
+			`query two {
+				user {
+					foo
+				}
+			}`,
 		],
 	},
 	{
 		title: '@list on query',
 		pass: true,
 		documents: [
-			`
-                query TestQuery {
-					user {
-						friends @list(name: "Friends") {
-							id
-						}
+			`query TestQuery {
+				user {
+					friends @list(name: "Friends") {
+						id
 					}
-                }
-            `,
-			`
-                mutation MutationM {
-					addFriend {
-						friend {
-							...Friends_insert
-						}
+				}
+			}`,
+			`mutation MutationM {
+				addFriend {
+					friend {
+						...Friends_insert
 					}
-                }
-            `,
+				}
+			}`,
 		],
 	},
 	{
 		title: '@list on query on field that doesn t exist',
 		pass: false,
 		documents: [
-			`
-                query TestQuery {
-					user {
-						friends_NOT_EXISTING_FIELD @list(name: "Friends") {
-							id
-						}
+			`query TestQuery {
+				user {
+					friends_NOT_EXISTING_FIELD @list(name: "Friends") {
+						id
 					}
-                }
-            `,
+				}
+			}`,
 		],
 		check: (e: any) => {
 			expect(e.message).toMatchInlineSnapshot(
@@ -1135,27 +1114,9 @@ const table: Row[] = [
 	},
 ]
 
-type Row =
-	| {
-			title: string
-			pass: true
-			documents: string[]
-			check?: (docs: Document[]) => void
-			partial_config?: Partial<Config>
-			nb_of_fail?: number
-	  }
-	| {
-			title: string
-			pass: false
-			documents: string[]
-			check?: (result: Error | Error[]) => void
-			partial_config?: Partial<Config>
-			nb_of_fail?: number
-	  }
-
-// run the tests
-for (const { title, pass, documents, check, partial_config, nb_of_fail } of table) {
-	describe('type check', function () {
+describe('type check', function () {
+	// run the tests
+	for (const { title, pass, documents, check, partial_config, nb_of_fail } of table) {
 		test(
 			title,
 			pipelineTest(
@@ -1168,7 +1129,7 @@ for (const { title, pass, documents, check, partial_config, nb_of_fail } of tabl
 							function (e: Error | Error[]) {
 								const nb_of_fail_to_use = nb_of_fail || 2
 
-								// We should always have at least 2 fail tests!
+								// We should always have at least 2 fail tests, to ensure that the error is caught in bulk
 								expect(nb_of_fail_to_use).toBeGreaterThanOrEqual(2)
 
 								// We want to check that all errors are grouped into 1 throw
@@ -1177,8 +1138,8 @@ for (const { title, pass, documents, check, partial_config, nb_of_fail } of tabl
 							}
 			)
 		)
-	})
-}
+	}
+})
 
 describe('valueIsType', function () {
 	const table: {

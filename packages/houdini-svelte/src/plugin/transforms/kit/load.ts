@@ -33,7 +33,7 @@ import type { SvelteTransformPage } from '../types'
 
 const AST = recast.types.builders
 
-type ExportNamedDeclaration = ReturnType<(typeof recast.types.builders)['exportNamedDeclaration']>
+type ExportNamedDeclaration = ReturnType<typeof recast.types.builders['exportNamedDeclaration']>
 
 export default async function kit_load_generator(page: SvelteTransformPage) {
 	// if this isn't a route, move on
@@ -300,7 +300,9 @@ function add_load({
 							AST.objectProperty(AST.literal('event'), AST.identifier('context')),
 							AST.objectProperty(
 								AST.literal('blocking'),
-								AST.booleanLiteral(afterLoad || on_error)
+								afterLoad || on_error
+									? AST.booleanLiteral(true)
+									: AST.identifier('undefined')
 							),
 						]),
 					]),
