@@ -464,7 +464,7 @@ test('loading state on mixed abstract type', async function () {
 	`)
 })
 
-test('loading state on inline fragments', async function () {
+test('loading state on multiple branches of an abstract selection', async function () {
 	// the config to use in tests
 	const config = testConfig()
 	const docs = [
@@ -474,8 +474,8 @@ test('loading state on inline fragments', async function () {
 					... on User @loading {
 						firstName @loading
 					}
-					... on Cat  {
-						name
+					... on Cat @loading {
+						name @loading
 					}
 				}
 			}`
@@ -489,7 +489,7 @@ test('loading state on inline fragments', async function () {
 		export default {
 		    "name": "Query",
 		    "kind": "HoudiniQuery",
-		    "hash": "2ca3deab85a6f576b67d7e71f9e4d8a79831efc103b14e7d6cc6bbef451a54d2",
+		    "hash": "f22627b545cab6185ae10ea60be8e02b7cde67cce7f72a878bf93251c350204f",
 
 		    "raw": \`query Query {
 		  entities {
@@ -556,6 +556,16 @@ test('loading state on inline fragments', async function () {
 		                                "name": {
 		                                    "type": "String",
 		                                    "keyRaw": "name",
+
+		                                    "directives": [{
+		                                        "name": "loading",
+		                                        "arguments": {}
+		                                    }],
+
+		                                    "loading": {
+		                                        "kind": "value"
+		                                    },
+
 		                                    "visible": true
 		                                },
 
@@ -584,7 +594,7 @@ test('loading state on inline fragments', async function () {
 		                        }
 		                    },
 
-		                    "loadingTypes": ["User"]
+		                    "loadingTypes": ["User", "Cat"]
 		                },
 
 		                "loading": {
@@ -608,7 +618,7 @@ test('loading state on inline fragments', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=2ca3deab85a6f576b67d7e71f9e4d8a79831efc103b14e7d6cc6bbef451a54d2";
+		"HoudiniHash=f22627b545cab6185ae10ea60be8e02b7cde67cce7f72a878bf93251c350204f";
 	`)
 })
 

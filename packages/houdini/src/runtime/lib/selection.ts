@@ -1,4 +1,4 @@
-import type { SubscriptionSelection } from './types'
+import type { GraphQLObject, SubscriptionSelection } from './types'
 
 export function getFieldsForType(
 	selection: SubscriptionSelection,
@@ -8,8 +8,7 @@ export function getFieldsForType(
 	// if we are loading, then we either have loading types or we return the base fields
 	if (loading) {
 		if (selection.loadingTypes && selection.loadingTypes.length > 0) {
-			return Object.assign(
-				{},
+			return deepMerge(
 				...selection.loadingTypes.map((type) => selection.abstractFields?.fields[type])
 			)
 		}
@@ -33,4 +32,28 @@ export function getFieldsForType(
 	}
 
 	return targetSelection
+}
+
+// This function performs a very simple deep merge that shouldn't be used in an open ended response.
+// It's not resilient to things like circular references so it should really only be used for loading states (for now).
+function deepMerge(...objects: (Record<string, any> | undefined)[]) {
+	const mergedObj: Record<string, any> = {}
+	for (let obj of objects) {
+		if (!obj) {
+			continue
+		}
+		for (let prop in obj) {
+			if (obj.hasOwnProperty(prop)) {
+				const val = obj[prop]
+
+				if (typeof val === 'object' && val !== null && !Array.isArray(val)) {
+					mergedObj[prop] = deepMerge((mergedObj[prop] as Record<string, any>) || {}, val)
+				} else {
+					mergedObj[prop] = val
+				}
+			}
+		}
+	}
+
+	return mergedObj
 }
