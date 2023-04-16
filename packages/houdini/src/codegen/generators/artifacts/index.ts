@@ -259,15 +259,9 @@ export default function artifactGenerator(stats: {
 
 					// we need to look for global loading toggles on queries and fragments
 					let globalLoading = false
-					if (docKind === 'HoudiniFragment') {
+					if (['HoudiniFragment', 'HoudiniQuery'].includes(docKind)) {
 						globalLoading = Boolean(
-							fragments[0]?.directives?.find(
-								(dir) => dir.name.value === config.loadingDirective
-							)
-						)
-					} else if (docKind === 'HoudiniQuery') {
-						globalLoading = Boolean(
-							operations[0]?.directives?.find(
+							(fragments[0] ?? operations[0])?.directives?.find(
 								(dir) => dir.name.value === config.loadingDirective
 							)
 						)
