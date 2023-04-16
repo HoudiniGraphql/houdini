@@ -1,5 +1,4 @@
 import type { Fragment, FragmentArtifact } from '$houdini/runtime/lib/types'
-import { fragmentKey } from '$houdini/runtime/lib/types'
 import type { Readable } from 'svelte/store'
 
 import type { FragmentStore } from './stores'
