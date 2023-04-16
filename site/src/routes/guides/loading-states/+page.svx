@@ -533,41 +533,6 @@ Pretty straightforward, right? So what did this take? Well, not much. Here's a r
 Just like with the query, the only thing we had to do is use `@loading` on a value that we could
 compare against to render our loading state.
 
-If you don't really care which field, randomly picking one
-can feel awkward and open up potential bugs if you accidentally remove the field. To help with this,
-Houdini also provides a utility named `fragmentPending` that you can use to check if the reference that was given
-to the component is a pending value:
-
-```svelte:title=src/components/NavButtons.svelte&typescriptToggle=true
-<script lang="ts">
-    import { fragmentPending } from '$houdini'
-    import type { NavButtons_species } from '$houdini'
-
-    export let species: NavButtons_species
-
-    // prettier-ignore
-
-    $: data = fragment(species, graphql(`
-        fragment NavButtons_species on Species {
-            id
-        }
-    `))
-
-    $: pending = fragmentPending(species)
-</script>
-
-<div class="row">
-    <Button disabled={pending || $data.id <= 1}>
-        Previous
-    </Button>
-    <Button disabled={pending || $data.id >= 151}>
-        Next
-    </Button>
-</div>
-```
-
-Keep in mind that the value you pass to `fragmentPending` is the same value you pass to `fragment`.
-
 <DeepDive title="This is Getting Pretty Repetitive">
 
 If you find yourself wanting `@loading` on every field in your document (fragment or query), you
