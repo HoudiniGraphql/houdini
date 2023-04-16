@@ -956,6 +956,9 @@ class CacheInternal {
 			// ignore embedded cursors, they will get handled with the other scalars
 			// NOTE: we don't care about a null value when generating the loading state
 			// since we will turn lists into lists, objects into objects, etc.
+			// the !generateLoading here makes sure that we treat loading undefined and normal undefined differently
+			// we force all loading values to be undefined a few lines above so we never overwrite
+			// the pending value here.
 			else if ((!generateLoading && typeof value === 'undefined') || value === null) {
 				// set the value to null
 				fieldTarget[attributeName] = null
