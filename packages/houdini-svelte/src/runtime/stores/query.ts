@@ -150,7 +150,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 
 		// if the query has a loading state, we never block for the request on the client
 		if (isBrowser && this.artifact.enableLoadingState) {
-			params.blocking = false
+			need_to_block = false
 		}
 
 		// we might not want to actually wait for the fetch to resolve
