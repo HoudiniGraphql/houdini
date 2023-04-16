@@ -1113,18 +1113,39 @@ const table: Row[] = [
 		title: '@required may not be used on non-nullable fields',
 		pass: false,
 		documents: [
-			`
-			query QueryA {
+			`query QueryA {
 				user {
 					name @required
+				}
+			}`,
+			`query QueryB {
+				user {
+					name @required
+				}
+			}`,
+		],
+	},
+	{
+		title: '@loading on inline fragment',
+		pass: true,
+		documents: [
+			`
+			query A {
+				entity @loading {
+					... on User @loading {
+						firstName @loading
+					}
 				}
 			}
 			`,
 			`
-			query QueryB {
-				user {
-					name @required
+			query B {
+				entity @loading {
+					... on User @loading {
+						firstName @loading
+					}
 				}
+			}
 			`,
 		],
 	},
