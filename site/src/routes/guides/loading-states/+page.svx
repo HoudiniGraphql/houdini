@@ -12,9 +12,10 @@ description: An overview of the tools that houdini provides to help construct lo
 
 At some point, your users are going to be waiting for data to load from the server. This could be because they
 don't live in a place with state-of-the-art internet service or maybe they just stepped into a tunnel. Regardless,
-you are going to want to show them _something_ while your request loads.
+you are going to want to show them _something_ while your request loads. These loading states are sometimes referred
+to as "Skeleton UIs" and usually display placeholder elements while the actual content is being loaded.
 
-This guide will go over all of the tools that Houdini provides to help you build interfaces for your loading states.
+This guide will go over all of the tools that Houdini provides to help you build these interfaces.
 
 ## A Concrete Example
 
@@ -100,8 +101,8 @@ version of the application [here](http://houdini-intro.pages.dev).
 
 ## The Simplest Solution
 
-If you followed along in the [Getting Started Guide](/intro) then you know that this example
-has a serious issue: if we click on the `next` button then our application will crash. This is
+If you followed along in the [Getting Started Guide](/intro) then you know that if we click on the
+`next` button in that example then our application will crash. This is
 because `data` is `null` when the query is loading a new value which causes
 `$SpeciesInfo.data.species` to explode. The easiest way to protect against
 this is to check the `fetching` value of the store and render your loading state.
@@ -425,11 +426,13 @@ again for quick reference:
 ```
 
 See that `species.evolutionChain` is always safe to iterate over?? This let us pull out all of the repeated
-structure and only differentiate the 2 cases where it actually matters. Pretty cool huh? Houdini makes
-sure that there is always _something_ we can use to render
+structure and only differentiate the 2 cases where it actually matters. Pretty cool huh?
+
+Houdini makes sure that there is always _something_ we can use to render
 and because of how we used `@loading` we can compare our values to `PendingValue` where its most convinient.
 If you're still not quite sure how this works please check out the DeepDive above. If it's still confusing, join us
-on discord and open a question - we'd love to help.
+on discord and open a question - we'd love to help. It's also worth mentioning that `3` is the default value for `count`
+so it wasn't actually necessary here.
 
 Problem #1 solved. You can use `@loading` to create the most convenient shape for your exact needs. When it falls on
 lists, Houdini will even create lists with the appropriate values so you always have something to iterate over. This leaves
