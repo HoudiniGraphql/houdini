@@ -23,6 +23,7 @@ export function inlineType({
 	missingScalars,
 	includeFragments,
 	allOptional,
+	forceNonNull,
 }: {
 	config: Config
 	filepath: string
@@ -35,11 +36,13 @@ export function inlineType({
 	missingScalars: Set<string>
 	includeFragments: boolean
 	allOptional?: boolean
+	forceNonNull?: boolean
 }): TSTypeKind {
 	// start unwrapping non-nulls and lists (we'll wrap it back up before we return)
 	const { type, wrappers } = unwrapType(config, rootType)
 
 	let result: TSTypeKind
+	let forceNullable = false
 	// if we are looking at a scalar field
 	if (graphql.isScalarType(type)) {
 		result = scalarPropertyValue(config, missingScalars, type as graphql.GraphQLNamedType)
@@ -199,6 +202,16 @@ export function inlineType({
 				// figure out the response name
 				const attributeName = selection.alias?.value || selection.name.value
 
+				// for @required, we force the field to be non-null but the
+				// current type has to become nullable if it isn't already
+				const hasRequiredDirective = selection.directives?.some(
+					(directive) => directive.name.value === config.requiredDirective
+				)
+
+				if (hasRequiredDirective) {
+					forceNullable = true
+				}
+
 				// figure out the corresponding typescript type
 				let attributeType = inlineType({
 					config,
@@ -212,6 +225,7 @@ export function inlineType({
 					missingScalars,
 					includeFragments,
 					allOptional,
+					forceNonNull: hasRequiredDirective,
 				})
 
 				// check if we have an @include or @skip directive
@@ -275,6 +289,8 @@ export function inlineType({
 		const inlineFragmentSelections: {
 			type: graphql.GraphQLNamedType
 			tsType: TSTypeKind
+			coveredTypenames: string[]
+			hasRequiredField: boolean
 		}[] = Object.entries(inlineFragments).flatMap(([typeName, fragment]) => {
 			const fragmentRootType = config.schema.getType(typeName)
 			if (!fragmentRootType) {
@@ -335,8 +351,43 @@ export function inlineType({
 				)
 			}
 
+			function interfaceCoveredTypenames(
+				interfaceType: graphql.GraphQLInterfaceType
+			): string[] {
+				let { objects, interfaces } = config.schema.getImplementations(interfaceType)
+				return [
+					...interfaces.flatMap(interfaceCoveredTypenames),
+					...objects.map((type) => type.name),
+				]
+			}
+
+			let coveredTypenames: string[]
+			if (graphql.isInterfaceType(fragmentRootType)) {
+				coveredTypenames = interfaceCoveredTypenames(fragmentRootType)
+			} else if (graphql.isUnionType(fragmentRootType)) {
+				coveredTypenames = fragmentRootType.getTypes().map((type) => type.name)
+			} else if (graphql.isObjectType(fragmentRootType)) {
+				coveredTypenames = [fragmentRootType.name]
+			} else {
+				throw Error('unreachable code')
+			}
+
+			// check if the fragment has fields with @required set so we can account for it later
+			const hasRequiredField = fragment.some((sel) =>
+				sel.directives?.some(
+					(directive) => directive.name.value === config.requiredDirective
+				)
+			)
+
 			// we're done massaging the type
-			return [{ type: fragmentRootType, tsType: fragmentType }]
+			return [
+				{
+					type: fragmentRootType,
+					tsType: fragmentType,
+					coveredTypenames,
+					hasRequiredField,
+				},
+			]
 		})
 
 		//
@@ -367,6 +418,40 @@ export function inlineType({
 				}
 			)
 
+			const parentIsUnionOrInterface =
+				!graphql.isInterfaceType(type) && !graphql.isUnionType(type)
+			const possibleTypenames = parentIsUnionOrInterface
+				? [parent.name]
+				: config.schema.getPossibleTypes(type).map((type) => type.name)
+			const coveredTypenames = new Set(
+				Object.values(inlineFragmentSelections).flatMap((sel) => sel.coveredTypenames)
+			)
+			const areAllTypenamesCovered = possibleTypenames.every((name) =>
+				coveredTypenames.has(name)
+			)
+			let anySelectionHasRequiredField = Object.values(inlineFragmentSelections).some(
+				(sel) => sel.hasRequiredField
+			)
+			if (!areAllTypenamesCovered || anySelectionHasRequiredField) {
+				selectionTypes.push(
+					AST.tsParenthesizedType(
+						AST.tsTypeLiteral([
+							readonlyProperty(
+								AST.tsPropertySignature(
+									AST.identifier('__typename'),
+									AST.tsTypeAnnotation(
+										AST.tsLiteralType(
+											AST.stringLiteral("non-exhaustive; don't match this")
+										)
+									)
+								),
+								allowReadonly
+							),
+						])
+					)
+				)
+			}
+
 			// build up the list of fragment types
 			result = AST.tsIntersectionType([
 				result,
@@ -379,9 +464,15 @@ export function inlineType({
 		throw Error('Could not convert selection to typescript')
 	}
 
+	if (forceNullable && !wrappers.includes(TypeWrapper.Nullable)) {
+		wrappers.push(TypeWrapper.Nullable)
+	}
+
 	// we need to wrap the result in the right combination of nullable, list, and non-null markers
 	for (const toWrap of wrappers) {
-		if (!root && toWrap === TypeWrapper.Nullable) {
+		// the root field should be non-nullable except if forceNullable is set
+		// forceNonNull overrides the previous preference
+		if (toWrap === TypeWrapper.Nullable && !(root && !forceNullable) && !forceNonNull) {
 			result = nullableField(result)
 		}
 		// if its a non-null we don't need to add anything

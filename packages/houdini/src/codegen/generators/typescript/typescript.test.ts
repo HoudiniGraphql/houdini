@@ -57,6 +57,7 @@ const config = testConfig({
 
 		type Cat implements Node & Animal {
 			id: ID!
+			nickname: String
 			kitty: Boolean!
 			isAnimal: Boolean!
 		}
@@ -81,6 +82,7 @@ const config = testConfig({
 			firstName: String!
 			nickname: String
 			parent: User
+			parentRequired: User!
 			friends: [User]
 			enumValue: MyEnum
 
@@ -1600,6 +1602,8 @@ describe('typescript', function () {
 			    }) | ({
 			        readonly id: string;
 			        readonly __typename: "Cat";
+			    }) | ({
+			        readonly __typename: "non-exhaustive; don't match this";
 			    })))[];
 			};
 
@@ -1846,6 +1850,8 @@ describe('typescript', function () {
 			    }) | ({
 			        readonly kitty: boolean;
 			        readonly __typename: "Cat";
+			    }) | ({
+			        readonly __typename: "non-exhaustive; don't match this";
 			    })))[];
 			};
 
@@ -3547,6 +3553,1093 @@ describe('typescript', function () {
 			    "partial": false;
 			};
 		`)
+	})
+
+	test('@required directive removes nullability from field', async function () {
+		const doc = mockCollectedDoc(`
+			query MyQuery {
+				user {
+					id
+					firstName
+					nickname @required
+				}
+			}
+		`)
+
+		await runPipeline(config, [doc])
+
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document))
+
+		expect(
+			recast.parse(fileContents!, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+			export type MyQuery = {
+			    readonly "input": MyQuery$input;
+			    readonly "result": MyQuery$result | undefined;
+			};
+
+			export type MyQuery$result = {
+			    readonly user: {
+			        readonly id: string;
+			        readonly firstName: string;
+			        readonly nickname: string;
+			    } | null;
+			};
+
+			export type MyQuery$input = null;
+
+			export type MyQuery$artifact = {
+			    "name": "MyQuery";
+			    "kind": "HoudiniQuery";
+			    "hash": "05f293c4f36a9af1871b49f3384c5d4b3df8adbdd5606f7b644732ef98332643";
+			    "raw": \`query MyQuery {
+			  user {
+			    id
+			    firstName
+			    nickname
+			  }
+			}
+			\`;
+			    "rootType": "Query";
+			    "selection": {
+			        "fields": {
+			            "user": {
+			                "type": "User";
+			                "keyRaw": "user";
+			                "nullable": true;
+			                "selection": {
+			                    "fields": {
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                        "firstName": {
+			                            "type": "String";
+			                            "keyRaw": "firstName";
+			                            "visible": true;
+			                        };
+			                        "nickname": {
+			                            "type": "String";
+			                            "keyRaw": "nickname";
+			                            "directives": [{
+			                                "name": "required";
+			                                "arguments": {};
+			                            }];
+			                            "nullable": false;
+			                            "required": true;
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "policy": "CacheOrNetwork";
+			    "partial": false;
+			};
+		`)
+	})
+
+	test('@required directive adds nullability to parent', async function () {
+		const doc = mockCollectedDoc(`
+			query MyQuery {
+				user {
+					parent @required {
+						id
+						firstName
+						nickname
+					}
+				}
+			}
+		`)
+
+		await runPipeline(config, [doc])
+
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document))
+
+		expect(
+			recast.parse(fileContents!, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+			export type MyQuery = {
+			    readonly "input": MyQuery$input;
+			    readonly "result": MyQuery$result | undefined;
+			};
+
+			export type MyQuery$result = {
+			    readonly user: {
+			        readonly parent: {
+			            readonly id: string;
+			            readonly firstName: string;
+			            readonly nickname: string | null;
+			        };
+			    } | null;
+			};
+
+			export type MyQuery$input = null;
+
+			export type MyQuery$artifact = {
+			    "name": "MyQuery";
+			    "kind": "HoudiniQuery";
+			    "hash": "f4dd7e1b48b761fb27453140bad46af3456e492f5915919ec1fd526e5ee33522";
+			    "raw": \`query MyQuery {
+			  user {
+			    parent {
+			      id
+			      firstName
+			      nickname
+			    }
+			    id
+			  }
+			}
+			\`;
+			    "rootType": "Query";
+			    "selection": {
+			        "fields": {
+			            "user": {
+			                "type": "User";
+			                "keyRaw": "user";
+			                "nullable": true;
+			                "selection": {
+			                    "fields": {
+			                        "parent": {
+			                            "type": "User";
+			                            "keyRaw": "parent";
+			                            "directives": [{
+			                                "name": "required";
+			                                "arguments": {};
+			                            }];
+			                            "nullable": false;
+			                            "required": true;
+			                            "selection": {
+			                                "fields": {
+			                                    "id": {
+			                                        "type": "ID";
+			                                        "keyRaw": "id";
+			                                        "visible": true;
+			                                    };
+			                                    "firstName": {
+			                                        "type": "String";
+			                                        "keyRaw": "firstName";
+			                                        "visible": true;
+			                                    };
+			                                    "nickname": {
+			                                        "type": "String";
+			                                        "keyRaw": "nickname";
+			                                        "nullable": true;
+			                                        "visible": true;
+			                                    };
+			                                };
+			                            };
+			                            "visible": true;
+			                        };
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "policy": "CacheOrNetwork";
+			    "partial": false;
+			};
+		`)
+	})
+
+	test('@required directive works recursively', async function () {
+		const doc = mockCollectedDoc(`
+			query MyQuery {
+				user {
+					parent @required {
+						id
+						firstName
+						nickname @required
+					}
+				}
+			}
+		`)
+
+		await runPipeline(config, [doc])
+
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document))
+
+		expect(
+			recast.parse(fileContents!, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+			export type MyQuery = {
+			    readonly "input": MyQuery$input;
+			    readonly "result": MyQuery$result | undefined;
+			};
+
+			export type MyQuery$result = {
+			    readonly user: {
+			        readonly parent: {
+			            readonly id: string;
+			            readonly firstName: string;
+			            readonly nickname: string;
+			        };
+			    } | null;
+			};
+
+			export type MyQuery$input = null;
+
+			export type MyQuery$artifact = {
+			    "name": "MyQuery";
+			    "kind": "HoudiniQuery";
+			    "hash": "a6373f8f571b82b59909f99fa18e310c36f3cc4f89a7b6432fafba72c9a82ebf";
+			    "raw": \`query MyQuery {
+			  user {
+			    parent {
+			      id
+			      firstName
+			      nickname
+			    }
+			    id
+			  }
+			}
+			\`;
+			    "rootType": "Query";
+			    "selection": {
+			        "fields": {
+			            "user": {
+			                "type": "User";
+			                "keyRaw": "user";
+			                "nullable": true;
+			                "selection": {
+			                    "fields": {
+			                        "parent": {
+			                            "type": "User";
+			                            "keyRaw": "parent";
+			                            "directives": [{
+			                                "name": "required";
+			                                "arguments": {};
+			                            }];
+			                            "nullable": true;
+			                            "required": true;
+			                            "selection": {
+			                                "fields": {
+			                                    "id": {
+			                                        "type": "ID";
+			                                        "keyRaw": "id";
+			                                        "visible": true;
+			                                    };
+			                                    "firstName": {
+			                                        "type": "String";
+			                                        "keyRaw": "firstName";
+			                                        "visible": true;
+			                                    };
+			                                    "nickname": {
+			                                        "type": "String";
+			                                        "keyRaw": "nickname";
+			                                        "directives": [{
+			                                            "name": "required";
+			                                            "arguments": {};
+			                                        }];
+			                                        "nullable": false;
+			                                        "required": true;
+			                                        "visible": true;
+			                                    };
+			                                };
+			                            };
+			                            "visible": true;
+			                        };
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "policy": "CacheOrNetwork";
+			    "partial": false;
+			};
+		`)
+	})
+
+	test('@required directive makes non-nullable parent nullable', async function () {
+		const doc = mockCollectedDoc(`
+			query MyQuery {
+				user {
+					parentRequired {
+						id
+						firstName
+						nickname @required
+					}
+				}
+			}
+		`)
+
+		await runPipeline(config, [doc])
+
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document))
+
+		expect(
+			recast.parse(fileContents!, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+			export type MyQuery = {
+			    readonly "input": MyQuery$input;
+			    readonly "result": MyQuery$result | undefined;
+			};
+
+			export type MyQuery$result = {
+			    readonly user: {
+			        readonly parentRequired: {
+			            readonly id: string;
+			            readonly firstName: string;
+			            readonly nickname: string;
+			        } | null;
+			    } | null;
+			};
+
+			export type MyQuery$input = null;
+
+			export type MyQuery$artifact = {
+			    "name": "MyQuery";
+			    "kind": "HoudiniQuery";
+			    "hash": "82e367b10d22e01e8dbee48f6864a06a3dc692730b3cf770c7d9abbe4d6f67e6";
+			    "raw": \`query MyQuery {
+			  user {
+			    parentRequired {
+			      id
+			      firstName
+			      nickname
+			    }
+			    id
+			  }
+			}
+			\`;
+			    "rootType": "Query";
+			    "selection": {
+			        "fields": {
+			            "user": {
+			                "type": "User";
+			                "keyRaw": "user";
+			                "nullable": true;
+			                "selection": {
+			                    "fields": {
+			                        "parentRequired": {
+			                            "type": "User";
+			                            "keyRaw": "parentRequired";
+			                            "selection": {
+			                                "fields": {
+			                                    "id": {
+			                                        "type": "ID";
+			                                        "keyRaw": "id";
+			                                        "visible": true;
+			                                    };
+			                                    "firstName": {
+			                                        "type": "String";
+			                                        "keyRaw": "firstName";
+			                                        "visible": true;
+			                                    };
+			                                    "nickname": {
+			                                        "type": "String";
+			                                        "keyRaw": "nickname";
+			                                        "directives": [{
+			                                            "name": "required";
+			                                            "arguments": {};
+			                                        }];
+			                                        "nullable": false;
+			                                        "required": true;
+			                                        "visible": true;
+			                                    };
+			                                };
+			                            };
+			                            "nullable": true;
+			                            "visible": true;
+			                        };
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			    "policy": "CacheOrNetwork";
+			    "partial": false;
+			};
+		`)
+	})
+
+	test('@required in fragments', async function () {
+		// the document to test
+		const doc = mockCollectedDoc(`
+			fragment MyFragment on User {
+				id
+				firstName
+				nickname @required
+				parent @required {
+					id
+					firstName
+					nickname @required
+				}
+				parentRequired {
+					id
+					firstName
+					nickname @required
+				}
+			}
+		`)
+
+		// execute the generator
+		await runPipeline(config, [doc])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document))
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents!, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+			export type MyFragment$input = {};
+
+			export type MyFragment = {
+			    readonly "shape"?: MyFragment$data;
+			    readonly " $fragments": {
+			        "MyFragment": any;
+			    };
+			};
+
+			export type MyFragment$data = {
+			    readonly id: string;
+			    readonly firstName: string;
+			    readonly nickname: string;
+			    readonly parent: {
+			        readonly id: string;
+			        readonly firstName: string;
+			        readonly nickname: string;
+			    };
+			    readonly parentRequired: {
+			        readonly id: string;
+			        readonly firstName: string;
+			        readonly nickname: string;
+			    } | null;
+			} | null;
+
+			export type MyFragment$artifact = {
+			    "name": "MyFragment";
+			    "kind": "HoudiniFragment";
+			    "hash": "1c4a5110bb2d7ade3b3a143798ea3c9d3d1a7ed27008bfb784fd9b686db6b777";
+			    "raw": \`fragment MyFragment on User {
+			  id
+			  firstName
+			  nickname
+			  parent {
+			    id
+			    firstName
+			    nickname
+			  }
+			  parentRequired {
+			    id
+			    firstName
+			    nickname
+			  }
+			  __typename
+			}
+			\`;
+			    "rootType": "User";
+			    "selection": {
+			        "fields": {
+			            "id": {
+			                "type": "ID";
+			                "keyRaw": "id";
+			                "visible": true;
+			            };
+			            "firstName": {
+			                "type": "String";
+			                "keyRaw": "firstName";
+			                "visible": true;
+			            };
+			            "nickname": {
+			                "type": "String";
+			                "keyRaw": "nickname";
+			                "directives": [{
+			                    "name": "required";
+			                    "arguments": {};
+			                }];
+			                "nullable": false;
+			                "required": true;
+			                "visible": true;
+			            };
+			            "parent": {
+			                "type": "User";
+			                "keyRaw": "parent";
+			                "directives": [{
+			                    "name": "required";
+			                    "arguments": {};
+			                }];
+			                "nullable": true;
+			                "required": true;
+			                "selection": {
+			                    "fields": {
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                        "firstName": {
+			                            "type": "String";
+			                            "keyRaw": "firstName";
+			                            "visible": true;
+			                        };
+			                        "nickname": {
+			                            "type": "String";
+			                            "keyRaw": "nickname";
+			                            "directives": [{
+			                                "name": "required";
+			                                "arguments": {};
+			                            }];
+			                            "nullable": false;
+			                            "required": true;
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "visible": true;
+			            };
+			            "parentRequired": {
+			                "type": "User";
+			                "keyRaw": "parentRequired";
+			                "selection": {
+			                    "fields": {
+			                        "id": {
+			                            "type": "ID";
+			                            "keyRaw": "id";
+			                            "visible": true;
+			                        };
+			                        "firstName": {
+			                            "type": "String";
+			                            "keyRaw": "firstName";
+			                            "visible": true;
+			                        };
+			                        "nickname": {
+			                            "type": "String";
+			                            "keyRaw": "nickname";
+			                            "directives": [{
+			                                "name": "required";
+			                                "arguments": {};
+			                            }];
+			                            "nullable": false;
+			                            "required": true;
+			                            "visible": true;
+			                        };
+			                    };
+			                };
+			                "nullable": true;
+			                "visible": true;
+			            };
+			            "__typename": {
+			                "type": "String";
+			                "keyRaw": "__typename";
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			};
+		`)
+	})
+
+	test('@required in fragments', async function () {
+		// the document to test
+		const doc = mockCollectedDoc(`
+			fragment MyFragmentInterfaceA on Node {
+				... on User {
+					nickname @required
+				}
+			}
+			fragment MyFragmentInterfaceB on Node {
+				__typename
+				... on User {
+					nickname @required
+				}
+			}
+			fragment MyFragmentUnionA on Entity {
+				... on User {
+					nickname @required
+				}
+			}
+			fragment MyFragmentUnionB on Node {
+				__typename
+				... on User {
+					nickname @required
+				}
+			}
+		`)
+
+		// execute the generator
+		await runPipeline(config, [doc])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document))
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents!, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+			export type MyFragmentInterfaceA$input = {};
+
+			export type MyFragmentInterfaceA = {
+			    readonly "shape"?: MyFragmentInterfaceA$data;
+			    readonly " $fragments": {
+			        "MyFragmentInterfaceA": any;
+			    };
+			};
+
+			export type MyFragmentInterfaceA$data = {} & (({
+			    readonly nickname: string;
+			    readonly __typename: "User";
+			}) | ({
+			    readonly __typename: "non-exhaustive; don't match this";
+			}));
+
+			export type MyFragmentInterfaceB$input = {};
+
+			export type MyFragmentInterfaceB = {
+			    readonly "shape"?: MyFragmentInterfaceB$data;
+			    readonly " $fragments": {
+			        "MyFragmentInterfaceB": any;
+			    };
+			};
+
+			export type MyFragmentInterfaceB$data = {} & (({
+			    readonly nickname: string;
+			    readonly __typename: "User";
+			}) | ({
+			    readonly __typename: "non-exhaustive; don't match this";
+			}));
+
+			export type MyFragmentUnionA$input = {};
+
+			export type MyFragmentUnionA = {
+			    readonly "shape"?: MyFragmentUnionA$data;
+			    readonly " $fragments": {
+			        "MyFragmentUnionA": any;
+			    };
+			};
+
+			export type MyFragmentUnionA$data = {} & (({
+			    readonly nickname: string;
+			    readonly __typename: "User";
+			}) | ({
+			    readonly __typename: "non-exhaustive; don't match this";
+			}));
+
+			export type MyFragmentUnionB$input = {};
+
+			export type MyFragmentUnionB = {
+			    readonly "shape"?: MyFragmentUnionB$data;
+			    readonly " $fragments": {
+			        "MyFragmentUnionB": any;
+			    };
+			};
+
+			export type MyFragmentUnionB$data = {} & (({
+			    readonly nickname: string;
+			    readonly __typename: "User";
+			}) | ({
+			    readonly __typename: "non-exhaustive; don't match this";
+			}));
+
+			export type MyFragmentInterfaceA$artifact = {
+			    "name": "MyFragmentInterfaceA";
+			    "kind": "HoudiniFragment";
+			    "hash": "bc60a9949f88173f4043cb5ddcaf15f2c8952c567061ae43d784c307711e3023";
+			    "raw": \`fragment MyFragmentInterfaceA on Node {
+			  ... on User {
+			    nickname
+			    id
+			  }
+			  id
+			  __typename
+			}
+			\`;
+			    "rootType": "Node";
+			    "selection": {
+			        "abstractFields": {
+			            "fields": {
+			                "User": {
+			                    "nickname": {
+			                        "type": "String";
+			                        "keyRaw": "nickname";
+			                        "directives": [{
+			                            "name": "required";
+			                            "arguments": {};
+			                        }];
+			                        "nullable": false;
+			                        "required": true;
+			                        "visible": true;
+			                    };
+			                    "id": {
+			                        "type": "ID";
+			                        "keyRaw": "id";
+			                        "visible": true;
+			                    };
+			                    "__typename": {
+			                        "type": "String";
+			                        "keyRaw": "__typename";
+			                        "visible": true;
+			                    };
+			                };
+			            };
+			            "typeMap": {};
+			        };
+			        "fields": {
+			            "id": {
+			                "type": "ID";
+			                "keyRaw": "id";
+			                "visible": true;
+			            };
+			            "__typename": {
+			                "type": "String";
+			                "keyRaw": "__typename";
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			};
+		`)
+	})
+
+	test('exhaustive inline fragment does not have {} in union', async function () {
+		// the document to test
+		const doc = mockCollectedDoc(`
+			fragment MyFragmentA on Entity {
+				... on User {
+					id
+				}
+				... on Cat {
+					id
+				}
+			}
+		`)
+
+		// execute the generator
+		await runPipeline(config, [doc])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document))
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents!, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+			export type MyFragmentA$input = {};
+
+			export type MyFragmentA = {
+			    readonly "shape"?: MyFragmentA$data;
+			    readonly " $fragments": {
+			        "MyFragmentA": any;
+			    };
+			};
+
+			export type MyFragmentA$data = {} & (({
+			    readonly id: string;
+			    readonly __typename: "User";
+			}) | ({
+			    readonly id: string;
+			    readonly __typename: "Cat";
+			}));
+
+			export type MyFragmentA$artifact = {
+			    "name": "MyFragmentA";
+			    "kind": "HoudiniFragment";
+			    "hash": "d09a04381ac3bb81f8476fba9fad5f9a73ee66c4824a7b267d8f3215e4aa0e91";
+			    "raw": \`fragment MyFragmentA on Entity {
+			  ... on User {
+			    id
+			  }
+			  ... on Cat {
+			    id
+			  }
+			  __typename
+			}
+			\`;
+			    "rootType": "Entity";
+			    "selection": {
+			        "abstractFields": {
+			            "fields": {
+			                "User": {
+			                    "id": {
+			                        "type": "ID";
+			                        "keyRaw": "id";
+			                        "visible": true;
+			                    };
+			                    "__typename": {
+			                        "type": "String";
+			                        "keyRaw": "__typename";
+			                        "visible": true;
+			                    };
+			                };
+			                "Cat": {
+			                    "id": {
+			                        "type": "ID";
+			                        "keyRaw": "id";
+			                        "visible": true;
+			                    };
+			                    "__typename": {
+			                        "type": "String";
+			                        "keyRaw": "__typename";
+			                        "visible": true;
+			                    };
+			                };
+			            };
+			            "typeMap": {};
+			        };
+			        "fields": {
+			            "__typename": {
+			                "type": "String";
+			                "keyRaw": "__typename";
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			};
+		`)
+		expect(fileContents!).not.toContain('non-exhaustive')
+	})
+
+	test('exhaustive inline fragment with @required does have {} in union', async function () {
+		// the document to test
+		const doc = mockCollectedDoc(`
+			fragment MyFragmentA on Entity {
+				... on User {
+					nickname @required
+				}
+				... on Cat {
+					nickname @required
+				}
+			}
+		`)
+
+		// execute the generator
+		await runPipeline(config, [doc])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document))
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents!, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+			export type MyFragmentA$input = {};
+
+			export type MyFragmentA = {
+			    readonly "shape"?: MyFragmentA$data;
+			    readonly " $fragments": {
+			        "MyFragmentA": any;
+			    };
+			};
+
+			export type MyFragmentA$data = {} & (({
+			    readonly nickname: string;
+			    readonly __typename: "User";
+			}) | ({
+			    readonly nickname: string;
+			    readonly __typename: "Cat";
+			}) | ({
+			    readonly __typename: "non-exhaustive; don't match this";
+			}));
+
+			export type MyFragmentA$artifact = {
+			    "name": "MyFragmentA";
+			    "kind": "HoudiniFragment";
+			    "hash": "aa3aa32f06fd5591ec03eb0038052b86910b7fab015978193a2f1117c5959496";
+			    "raw": \`fragment MyFragmentA on Entity {
+			  ... on User {
+			    nickname
+			    id
+			  }
+			  ... on Cat {
+			    nickname
+			    id
+			  }
+			  __typename
+			}
+			\`;
+			    "rootType": "Entity";
+			    "selection": {
+			        "abstractFields": {
+			            "fields": {
+			                "User": {
+			                    "nickname": {
+			                        "type": "String";
+			                        "keyRaw": "nickname";
+			                        "directives": [{
+			                            "name": "required";
+			                            "arguments": {};
+			                        }];
+			                        "nullable": false;
+			                        "required": true;
+			                        "visible": true;
+			                    };
+			                    "id": {
+			                        "type": "ID";
+			                        "keyRaw": "id";
+			                        "visible": true;
+			                    };
+			                    "__typename": {
+			                        "type": "String";
+			                        "keyRaw": "__typename";
+			                        "visible": true;
+			                    };
+			                };
+			                "Cat": {
+			                    "nickname": {
+			                        "type": "String";
+			                        "keyRaw": "nickname";
+			                        "directives": [{
+			                            "name": "required";
+			                            "arguments": {};
+			                        }];
+			                        "nullable": false;
+			                        "required": true;
+			                        "visible": true;
+			                    };
+			                    "id": {
+			                        "type": "ID";
+			                        "keyRaw": "id";
+			                        "visible": true;
+			                    };
+			                    "__typename": {
+			                        "type": "String";
+			                        "keyRaw": "__typename";
+			                        "visible": true;
+			                    };
+			                };
+			            };
+			            "typeMap": {};
+			        };
+			        "fields": {
+			            "__typename": {
+			                "type": "String";
+			                "keyRaw": "__typename";
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			};
+		`)
+		expect(fileContents!).toContain('non-exhaustive')
+	})
+
+	test('non-exhaustive inline fragment does have {} in union', async function () {
+		// the document to test
+		const doc = mockCollectedDoc(`
+			fragment MyFragmentA on Entity {
+				... on User {
+					id
+				}
+				# Cat is missing
+			}
+		`)
+
+		// execute the generator
+		await runPipeline(config, [doc])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document))
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents!, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+			export type MyFragmentA$input = {};
+
+			export type MyFragmentA = {
+			    readonly "shape"?: MyFragmentA$data;
+			    readonly " $fragments": {
+			        "MyFragmentA": any;
+			    };
+			};
+
+			export type MyFragmentA$data = {} & (({
+			    readonly id: string;
+			    readonly __typename: "User";
+			}) | ({
+			    readonly __typename: "non-exhaustive; don't match this";
+			}));
+
+			export type MyFragmentA$artifact = {
+			    "name": "MyFragmentA";
+			    "kind": "HoudiniFragment";
+			    "hash": "596e52f0588fe87da259217ec508ba4da62be7f9e09aeabc6d89b8a372860cc8";
+			    "raw": \`fragment MyFragmentA on Entity {
+			  ... on User {
+			    id
+			  }
+			  __typename
+			}
+			\`;
+			    "rootType": "Entity";
+			    "selection": {
+			        "abstractFields": {
+			            "fields": {
+			                "User": {
+			                    "id": {
+			                        "type": "ID";
+			                        "keyRaw": "id";
+			                        "visible": true;
+			                    };
+			                    "__typename": {
+			                        "type": "String";
+			                        "keyRaw": "__typename";
+			                        "visible": true;
+			                    };
+			                };
+			            };
+			            "typeMap": {};
+			        };
+			        "fields": {
+			            "__typename": {
+			                "type": "String";
+			                "keyRaw": "__typename";
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			};
+		`)
+		expect(fileContents!).toContain('non-exhaustive')
 	})
 
 	test.todo('fragments on interfaces')

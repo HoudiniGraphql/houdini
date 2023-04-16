@@ -5552,3 +5552,220 @@ test('fragment nested in root', async function () {
 		"HoudiniHash=05ec5090d31f77c3f2bdcbd26aff116588f63d4b3789ae752759dd172974a628";
 	`)
 })
+
+test('client nullability', async function () {
+	// the config to use in tests
+	const config = testConfig()
+
+	// the documents to test
+	const docs: Document[] = [
+		mockCollectedDoc(`
+			query TestQuery($id: ID!) @load {
+				node(id: $id) {
+					...LegendWithRequiredName
+					...GhostWithRequiredLegendName
+					...GhostWithRequiredLegendAndLegendName
+				}
+			}
+		`),
+		mockCollectedDoc(`
+			fragment LegendWithRequiredName on Legend {
+				name @required
+			}
+		`),
+		mockCollectedDoc(`
+			fragment GhostWithRequiredLegendName on Ghost {
+				legends {
+					name @required
+				}
+			}
+		`),
+		mockCollectedDoc(`
+			fragment GhostWithRequiredLegendAndLegendName on Ghost {
+				legends @required {
+					name @required
+				}
+			}
+		`),
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "TestQuery",
+		    "kind": "HoudiniQuery",
+		    "hash": "af75250492a0d9641ccd671e492c657d6f7f64def49509b1d34612d58caf76ed",
+
+		    "raw": \`query TestQuery($id: ID!) {
+		  node(id: $id) {
+		    ...LegendWithRequiredName
+		    ...GhostWithRequiredLegendName
+		    ...GhostWithRequiredLegendAndLegendName
+		    id
+		    __typename
+		  }
+		}
+
+		fragment LegendWithRequiredName on Legend {
+		  name
+		  __typename
+		}
+
+		fragment GhostWithRequiredLegendName on Ghost {
+		  legends {
+		    name
+		  }
+		  name
+		  aka
+		  __typename
+		}
+
+		fragment GhostWithRequiredLegendAndLegendName on Ghost {
+		  legends {
+		    name
+		  }
+		  name
+		  aka
+		  __typename
+		}
+		\`,
+
+		    "rootType": "Query",
+
+		    "selection": {
+		        "fields": {
+		            "node": {
+		                "type": "Node",
+		                "keyRaw": "node(id: $id)",
+		                "nullable": true,
+
+		                "selection": {
+		                    "abstractFields": {
+		                        "fields": {
+		                            "Legend": {
+		                                "name": {
+		                                    "type": "String",
+		                                    "keyRaw": "name",
+
+		                                    "directives": [{
+		                                        "name": "required",
+		                                        "arguments": {}
+		                                    }],
+
+		                                    "nullable": false,
+		                                    "required": true
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
+		                                },
+
+		                                "id": {
+		                                    "type": "ID",
+		                                    "keyRaw": "id",
+		                                    "visible": true
+		                                }
+		                            },
+
+		                            "Ghost": {
+		                                "legends": {
+		                                    "type": "Legend",
+		                                    "keyRaw": "legends",
+
+		                                    "selection": {
+		                                        "fields": {
+		                                            "name": {
+		                                                "type": "String",
+		                                                "keyRaw": "name",
+
+		                                                "directives": [{
+		                                                    "name": "required",
+		                                                    "arguments": {}
+		                                                }],
+
+		                                                "nullable": false,
+		                                                "required": true
+		                                            }
+		                                        }
+		                                    },
+
+		                                    "nullable": true
+		                                },
+
+		                                "name": {
+		                                    "type": "String",
+		                                    "keyRaw": "name",
+		                                    "visible": true
+		                                },
+
+		                                "aka": {
+		                                    "type": "String",
+		                                    "keyRaw": "aka",
+		                                    "visible": true
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
+		                                },
+
+		                                "id": {
+		                                    "type": "ID",
+		                                    "keyRaw": "id",
+		                                    "visible": true
+		                                }
+		                            }
+		                        },
+
+		                        "typeMap": {}
+		                    },
+
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id",
+		                            "visible": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename",
+		                            "visible": true
+		                        }
+		                    },
+
+		                    "fragments": {
+		                        "LegendWithRequiredName": {},
+		                        "GhostWithRequiredLegendName": {},
+		                        "GhostWithRequiredLegendAndLegendName": {}
+		                    }
+		                },
+
+		                "abstract": true,
+		                "abstractHasRequired": true,
+		                "visible": true
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+
+		    "input": {
+		        "fields": {
+		            "id": "ID"
+		        },
+
+		        "types": {}
+		    },
+
+		    "policy": "CacheOrNetwork",
+		    "partial": false
+		};
+
+		"HoudiniHash=af75250492a0d9641ccd671e492c657d6f7f64def49509b1d34612d58caf76ed";
+	`)
+})

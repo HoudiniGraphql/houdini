@@ -1,0 +1,6 @@
+query UserRequiredFragments($id: ID!, $forceNullDate: Boolean!) {
+  user(id: $id, snapshot: "user-required", forceNullDate: $forceNullDate) {
+    ...UserWithRequired
+    ...UserWithoutRequired
+  }
+}

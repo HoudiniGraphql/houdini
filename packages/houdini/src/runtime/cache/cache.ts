@@ -17,7 +17,6 @@ import { fragmentKey } from '../lib/types'
 import { GarbageCollector } from './gc'
 import type { ListCollection } from './lists'
 import { ListManager } from './lists'
-import { SchemaManager } from './schema'
 import { StaleManager } from './staleManager'
 import type { Layer, LayerID } from './storage'
 import { InMemoryStorage } from './storage'
@@ -38,7 +37,6 @@ export class Cache {
 			lists: new ListManager(this, rootID),
 			lifetimes: new GarbageCollector(this),
 			staleManager: new StaleManager(this),
-			schema: new SchemaManager(this),
 			disabled: disabled ?? typeof globalThis.window === 'undefined',
 		})
 
@@ -209,7 +207,6 @@ class CacheInternal {
 	cache: Cache
 	lifetimes: GarbageCollector
 	staleManager: StaleManager
-	schema: SchemaManager
 
 	constructor({
 		storage,
@@ -218,7 +215,6 @@ class CacheInternal {
 		cache,
 		lifetimes,
 		staleManager,
-		schema,
 		disabled,
 		config,
 	}: {
@@ -228,7 +224,6 @@ class CacheInternal {
 		cache: Cache
 		lifetimes: GarbageCollector
 		staleManager: StaleManager
-		schema: SchemaManager
 		disabled: boolean
 		config?: ConfigFile
 	}) {
@@ -238,7 +233,6 @@ class CacheInternal {
 		this.cache = cache
 		this.lifetimes = lifetimes
 		this.staleManager = staleManager
-		this.schema = schema
 		this._config = config
 
 		// the cache should always be disabled on the server, unless we're testing
@@ -309,18 +303,8 @@ class CacheInternal {
 				operations,
 				abstract: isAbstract,
 				updates,
-				nullable,
 			} = targetSelection[field]
 			const key = evaluateKey(keyRaw, variables)
-
-			// save the type information
-			this.schema.setFieldType({
-				parent,
-				key: keyRaw,
-				type: linkedType,
-				nullable,
-				link: !!fieldSelection,
-			})
 
 			// if there is a __typename field, then we should use that as the type
 			if (
@@ -837,7 +821,16 @@ class CacheInternal {
 		// look at every field in the parentFields
 		for (const [
 			attributeName,
-			{ type, keyRaw, selection: fieldSelection, nullable, list, visible, directives },
+			{
+				type,
+				keyRaw,
+				selection: fieldSelection,
+				nullable,
+				list,
+				visible,
+				directives,
+				abstractHasRequired,
+			},
 		] of Object.entries(targetSelection)) {
 			// skip masked fields when reading values
 			if (!visible && !ignoreMasking && !fullCheck) {
@@ -996,10 +989,16 @@ class CacheInternal {
 				}
 			}
 
-			// regardless of how the field was processed, if we got a null value assigned
-			// and the field is not nullable, we need to cascade up
 			if (fieldTarget[attributeName] === null && !nullable && !embeddedCursor) {
-				cascadeNull = true
+				// if we got a null value assigned and the field is not nullable, we need to cascade up
+				// except when it's an abstract type with @required children - then we return a dummy object
+				if (abstractHasRequired) {
+					target[attributeName] = {
+						__typename: "@required field missing; don't match this",
+					}
+				} else {
+					cascadeNull = true
+				}
 			}
 		}
 

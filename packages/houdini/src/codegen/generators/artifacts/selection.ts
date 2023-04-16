@@ -211,6 +211,14 @@ function prepareSelection({
 				fieldObj.nullable = true
 			}
 
+			const requiredDirective = field.directives?.find(
+				(directive) => directive.name.value == config.requiredDirective
+			)
+			if (requiredDirective) {
+				fieldObj.nullable = false
+				fieldObj.required = true
+			}
+
 			// is there an operation for this field
 			const operationKey = pathSoFar.join(',')
 			if (operations[operationKey]) {
@@ -292,6 +300,13 @@ function prepareSelection({
 					typeMap,
 					abstractTypes,
 				})
+
+				// bubble nullability up
+				if (
+					Object.values(fieldObj.selection.fields ?? {}).some((field) => field.required)
+				) {
+					fieldObj.nullable = true
+				}
 			}
 
 			// any arguments on the list field can act as a filter
@@ -308,6 +323,13 @@ function prepareSelection({
 			// if we are looking at an interface
 			if (graphql.isInterfaceType(fieldType) || graphql.isUnionType(fieldType)) {
 				fieldObj.abstract = true
+				if (
+					Object.values(fieldObj.selection?.abstractFields?.fields ?? {}).some((fields) =>
+						Object.values(fields ?? {}).some((field) => field.required)
+					)
+				) {
+					fieldObj.abstractHasRequired = true
+				}
 			}
 
 			// if there is an existing value, merge them
