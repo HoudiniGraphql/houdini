@@ -108,7 +108,7 @@ because `data` is `null` when the query is loading a new value which causes
 this is to check the `fetching` value of the store and render your loading state.
 
 Sorry in advanced about the length of the following example but it highlights one of the primary points
-we're trying to illustrate: this approach duplicates a _lot_ of logic and structure.
+I'm trying to illustrate: this approach duplicates a _lot_ of logic and structure.
 
 ```svelte:title=src/routes/[[id]]/+page.svelte&typescriptToggle=true
 <script lang="ts">
