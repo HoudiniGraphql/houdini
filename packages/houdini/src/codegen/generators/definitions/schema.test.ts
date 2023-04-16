@@ -83,6 +83,9 @@ test('adds internal documents to schema', async function () {
 
 			"""@loading is used to shape the value of your documents while they are loading"""
 			directive @loading(count: Int) on QUERY | FRAGMENT_DEFINITION | FIELD | FRAGMENT_SPREAD
+
+			"""@required makes a nullable field always non-null by making the parent null when the field is"""
+			directive @required on FIELD
 		`)
 })
 
@@ -162,6 +165,9 @@ test('list operations are included', async function () {
 
 			"""@loading is used to shape the value of your documents while they are loading"""
 			directive @loading(count: Int) on QUERY | FRAGMENT_DEFINITION | FIELD | FRAGMENT_SPREAD
+
+			"""@required makes a nullable field always non-null by making the parent null when the field is"""
+			directive @required on FIELD
 
 			directive @User_delete repeatable on FIELD
 		`)
@@ -260,6 +266,9 @@ test('list operations are included but delete directive should not be in when we
 
 			"""@loading is used to shape the value of your documents while they are loading"""
 			directive @loading(count: Int) on QUERY | FRAGMENT_DEFINITION | FIELD | FRAGMENT_SPREAD
+
+			"""@required makes a nullable field always non-null by making the parent null when the field is"""
+			directive @required on FIELD
 
 			directive @User_delete repeatable on FIELD
 		`)
@@ -371,5 +380,8 @@ test("writing twice doesn't duplicate definitions", async function () {
 
 			"""@loading is used to shape the value of your documents while they are loading"""
 			directive @loading(count: Int) on QUERY | FRAGMENT_DEFINITION | FIELD | FRAGMENT_SPREAD
+
+			"""@required makes a nullable field always non-null by making the parent null when the field is"""
+			directive @required on FIELD
 		`)
 })

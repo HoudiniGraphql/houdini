@@ -179,6 +179,8 @@ export type SubscriptionSelection = {
 		[fieldName: string]: {
 			type: string
 			nullable?: boolean
+			// @required directive (bubbles nullability up)
+			required?: boolean
 			keyRaw: string
 			operations?: MutationOperation[]
 			list?: {
@@ -199,6 +201,9 @@ export type SubscriptionSelection = {
 			>
 			selection?: SubscriptionSelection
 			abstract?: boolean
+			// If set, this is an abstract type with at least one abstract field made non-nullable by
+			// @required. This means that it needs to always be non-null even if there is no useful data.
+			abstractHasRequired?: boolean
 		}
 	}
 	abstractFields?: {

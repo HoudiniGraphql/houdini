@@ -1037,6 +1037,27 @@ const table: Row[] = [
 		],
 	},
 	{
+		title: '@required may not be used on query arguments',
+		pass: false,
+		documents: [
+			`
+			query QueryA($id: ID! @required) {
+				node(id: $id) {
+					name
+
+				}
+			}
+			`,
+			`
+			query QueryB($id: ID! @required) {
+				node(id: $id) {
+					name
+				}
+			}
+			`,
+		],
+	},
+	{
 		title: '@loading happy path',
 		pass: true,
 		documents: [
@@ -1089,26 +1110,21 @@ const table: Row[] = [
 		],
 	},
 	{
-		title: '@loading on inline fragment',
-		pass: true,
+		title: '@required may not be used on non-nullable fields',
+		pass: false,
 		documents: [
 			`
-			query A {
-				entity @loading {
-					... on User @loading {
-						firstName @loading
-					}
+			query QueryA {
+				user {
+					name @required
 				}
 			}
 			`,
 			`
-			query B {
-				entity @loading {
-					... on User @loading {
-						firstName @loading
-					}
+			query QueryB {
+				user {
+					name @required
 				}
-			}
 			`,
 		],
 	},
