@@ -1,5 +1,23 @@
 # houdini
 
+## 1.2.0-next.0
+
+### Minor Changes
+
+-   [#1043](https://github.com/HoudiniGraphql/houdini/pull/1043) [`d92bfc0`](https://github.com/HoudiniGraphql/houdini/commit/d92bfc02e8419914d6c347714d08b0251f6081e9) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add loading directive to help construct loading interfaces
+
+-   [#987](https://github.com/HoudiniGraphql/houdini/pull/987) [`7d624fe`](https://github.com/HoudiniGraphql/houdini/commit/7d624fec9417152ec2560b36efbcc21bd694e378) Thanks [@tadeokondrak](https://github.com/tadeokondrak)! - Add @required directive to force nullable fields to bubble up
+
+### Patch Changes
+
+-   [#1016](https://github.com/HoudiniGraphql/houdini/pull/1016) [`31e8f6d`](https://github.com/HoudiniGraphql/houdini/commit/31e8f6d8072ebc7e30921b9cc811b5b568f03017) Thanks [@jycouet](https://github.com/jycouet)! - Add additional configuration values and directives to control route's blocking behavior.
+
+-   [#1050](https://github.com/HoudiniGraphql/houdini/pull/1050) [`8e8b214`](https://github.com/HoudiniGraphql/houdini/commit/8e8b2148973f0f36a726bc5a79e5107ce79123c6) Thanks [@devunt](https://github.com/devunt)! - Centralize JS code parsing/printing mechanism into core
+
+-   [#1048](https://github.com/HoudiniGraphql/houdini/pull/1048) [`184ddbd`](https://github.com/HoudiniGraphql/houdini/commit/184ddbdf0e82da56b479c5009f105f04fd6ac00e) Thanks [@mpellegrini](https://github.com/mpellegrini)! - Include explicit types export conditions in package.json exports
+
+-   [#1049](https://github.com/HoudiniGraphql/houdini/pull/1049) [`7161781`](https://github.com/HoudiniGraphql/houdini/commit/71617814116ce4ead9fce2c7aeef2391a952f8a5) Thanks [@devunt](https://github.com/devunt)! - Send `operationName` along with the `query` and `variables` by default.
+
 ## 1.1.7
 
 ### ✨ Features
