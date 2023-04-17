@@ -87,7 +87,15 @@ A query marked with `@blocking` will always await the fetch.
 
 ### `@blocking_disable`
 
-A query marked with `@blocking_disable` is used to not always await the fetch (in CSR for example). Note that "throwOnError" will not throw in this case.
+A query marked with `@blocking_disable` won't block while the fetch resolves when navigating on the client. Keep in mind this will prevent `throwOnError` from capturing the error.
+
+### `@loading(count: Int)`
+
+Used to define the shape of your loading state. For more information, please visit [this guide](/guides/loading-states).
+
+### `@required`
+
+Customizes the behavior of null values at runtime. When a value is null that's marked with `@required`, the parent object is set to `null` instead. For more information, check out [this post](https://relay.dev/blog/2023/01/03/resilient-relay-apps/) on the relay blog.
 
 ### `@[TypeName]_delete`
 
