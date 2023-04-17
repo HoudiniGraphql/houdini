@@ -4,6 +4,7 @@ import { cursorHandlers, offsetHandlers } from '$houdini/runtime/lib/pagination'
 import { ArtifactKind } from '$houdini/runtime/lib/types'
 import type {
 	GraphQLObject,
+	GraphQLVariables,
 	CursorHandlers,
 	OffsetHandlers,
 	PageInfo,
@@ -17,7 +18,7 @@ import React from 'react'
 export function useDocumentHandle<
 	_Artifact extends QueryArtifact,
 	_Data extends GraphQLObject,
-	_Input extends Record<string, any>
+	_Input extends GraphQLVariables
 >({
 	artifact,
 	observer,
@@ -134,7 +135,7 @@ export function useDocumentHandle<
 export type DocumentHandle<
 	_Artifact extends QueryArtifact,
 	_Data extends GraphQLObject = GraphQLObject,
-	_Input extends {} = []
+	_Input extends GraphQLVariables = GraphQLVariables
 > = {
 	data: _Data
 	partial: boolean

@@ -168,6 +168,8 @@ export type GraphQLValue =
 	| GraphQLValue[]
 	| undefined
 
+export type GraphQLVariables = { [key: string]: any } | null
+
 export type LoadingSpec =
 	| { kind: 'continue'; list?: { depth: number; count: number } }
 	| { kind: 'value'; value?: any; list?: { depth: number; count: number } }
@@ -230,7 +232,7 @@ export type FetchQueryResult<_Data> = {
 	source: DataSources | null
 }
 
-export type QueryResult<_Data = GraphQLObject, _Input = Record<string, any>> = {
+export type QueryResult<_Data = GraphQLObject, _Input = GraphQLVariables> = {
 	data: _Data | null
 	errors: { message: string }[] | null
 	fetching: boolean

@@ -1,4 +1,9 @@
-import type { GraphQLObject, CachePolicies, QueryArtifact } from '$houdini/runtime/lib/types'
+import type {
+	GraphQLObject,
+	CachePolicies,
+	QueryArtifact,
+	GraphQLVariables,
+} from '$houdini/runtime/lib/types'
 import React from 'react'
 
 import { createCache } from '../lib/cache'
@@ -28,7 +33,7 @@ type QuerySuspenseUnit = {
 export function useQueryHandle<
 	_Artifact extends QueryArtifact,
 	_Data extends GraphQLObject = GraphQLObject,
-	_Input extends {} = []
+	_Input extends GraphQLVariables = GraphQLVariables
 >(
 	{ artifact }: { artifact: QueryArtifact },
 	variables: any = null,

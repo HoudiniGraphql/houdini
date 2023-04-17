@@ -1,7 +1,5 @@
-import type { GraphQLValue } from '../lib/types'
-
 // given a raw key and a set of variables, generate the fully qualified key
-export function evaluateKey(key: string, variables: { [key: string]: GraphQLValue } = {}): string {
+export function evaluateKey(key: string, variables: Record<string, any> | null = null): string {
 	// accumulate the evaluated key
 	let evaluated = ''
 	// accumulate a variable name that we're evaluating
@@ -22,7 +20,7 @@ export function evaluateKey(key: string, variables: { [key: string]: GraphQLValu
 			// need to clean up and add before continuing with the string
 
 			// look up the variable and add the result (varName starts with a $)
-			const value = variables[varName.slice(1)]
+			const value = variables?.[varName.slice(1)]
 
 			evaluated += typeof value !== 'undefined' ? JSON.stringify(value) : 'undefined'
 

@@ -1,4 +1,4 @@
-import type { DocumentArtifact, QueryResult } from '$houdini/lib/types'
+import type { DocumentArtifact, GraphQLVariables, QueryResult } from '$houdini/lib/types'
 import type { DocumentStore, SendParams } from '$houdini/runtime/client'
 import type { GraphQLObject } from 'houdini'
 
@@ -8,7 +8,7 @@ import { useDocumentStore, type UseDocumentStoreParams } from './useDocumentStor
 export function useDocumentSubscription<
 	_Artifact extends DocumentArtifact = DocumentArtifact,
 	_Data extends GraphQLObject = GraphQLObject,
-	_Input extends {} = {}
+	_Input extends GraphQLVariables = GraphQLVariables
 >({
 	artifact,
 	variables,

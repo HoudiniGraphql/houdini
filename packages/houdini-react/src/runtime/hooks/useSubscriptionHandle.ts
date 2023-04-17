@@ -1,8 +1,12 @@
-import type { SubscriptionArtifact, GraphQLObject } from '$houdini/runtime/lib/types'
+import type {
+	SubscriptionArtifact,
+	GraphQLObject,
+	GraphQLVariables,
+} from '$houdini/runtime/lib/types'
 
 import { useDocumentSubscription } from './useDocumentSubscription'
 
-export type SubscriptionHandle<_Result extends GraphQLObject, _Input extends {} | null> = {
+export type SubscriptionHandle<_Result extends GraphQLObject, _Input extends GraphQLVariables> = {
 	data: _Result | null
 	errors: { message: string }[] | null
 	variables: _Input
@@ -12,10 +16,10 @@ export type SubscriptionHandle<_Result extends GraphQLObject, _Input extends {} 
 }
 
 // a hook to subscribe to a subscription artifact
-export function useSubscriptionHandle<_Result extends GraphQLObject, _Input extends {}>(
-	{ artifact }: { artifact: SubscriptionArtifact },
-	variables: _Input
-) {
+export function useSubscriptionHandle<
+	_Result extends GraphQLObject,
+	_Input extends GraphQLVariables
+>({ artifact }: { artifact: SubscriptionArtifact }, variables: _Input) {
 	// a subscription is basically just a live document
 	const [storeValue, observer] = useDocumentSubscription({
 		artifact,

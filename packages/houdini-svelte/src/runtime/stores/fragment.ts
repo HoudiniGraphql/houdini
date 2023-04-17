@@ -5,6 +5,7 @@ import type {
 	GraphQLObject,
 	FragmentArtifact,
 	HoudiniFetchContext,
+	GraphQLVariables,
 } from '$houdini/runtime/lib/types'
 import { CompiledFragmentKind, fragmentKey } from '$houdini/runtime/lib/types'
 import { derived } from 'svelte/store'
@@ -19,7 +20,7 @@ import { BaseStore } from './base'
 export class FragmentStore<
 	_Data extends GraphQLObject,
 	_ReferenceType extends {},
-	_Input extends {} = {}
+	_Input extends GraphQLVariables = GraphQLVariables
 > {
 	artifact: FragmentArtifact
 	name: string

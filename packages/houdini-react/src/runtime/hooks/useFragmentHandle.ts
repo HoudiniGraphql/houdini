@@ -3,6 +3,7 @@ import type {
 	FragmentArtifact,
 	QueryArtifact,
 	fragmentKey,
+	GraphQLVariables,
 } from '$houdini/runtime/lib/types'
 
 import { useDocumentHandle, type DocumentHandle } from './useDocumentHandle'
@@ -16,7 +17,7 @@ export function useFragmentHandle<
 	_Data extends GraphQLObject,
 	_ReferenceType extends {},
 	_PaginationArtifact extends QueryArtifact,
-	_Input extends {} = {}
+	_Input extends GraphQLVariables = GraphQLVariables
 >(
 	reference: _Data | { [fragmentKey]: _ReferenceType } | null,
 	document: { artifact: FragmentArtifact; refetchArtifact?: QueryArtifact }
