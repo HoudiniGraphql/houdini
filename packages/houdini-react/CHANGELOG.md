@@ -2,11 +2,11 @@
 
 ## 1.2.0-next.0
 
-### Minor Changes
+### ✨ Features
 
 -   [#1044](https://github.com/HoudiniGraphql/houdini/pull/1044) [`987a6f2`](https://github.com/HoudiniGraphql/houdini/commit/987a6f24b3fd453dafdbc03ae2de610a8c4cd257) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add suspense integration
 
-### Patch Changes
+### Dependency Changes
 
 -   [#1050](https://github.com/HoudiniGraphql/houdini/pull/1050) [`8e8b214`](https://github.com/HoudiniGraphql/houdini/commit/8e8b2148973f0f36a726bc5a79e5107ce79123c6) Thanks [@devunt](https://github.com/devunt)! - Centralize JS code parsing/printing mechanism into core
 
