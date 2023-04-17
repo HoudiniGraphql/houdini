@@ -639,21 +639,23 @@ test('embeds node pagination query as a separate document', async function () {
 
 		                    "fragments": {
 		                        "UserFriends": {
-		                            "first": {
-		                                "kind": "Variable",
+		                            "arguments": {
+		                                "first": {
+		                                    "kind": "Variable",
 
-		                                "name": {
-		                                    "kind": "Name",
-		                                    "value": "first"
-		                                }
-		                            },
+		                                    "name": {
+		                                        "kind": "Name",
+		                                        "value": "first"
+		                                    }
+		                                },
 
-		                            "after": {
-		                                "kind": "Variable",
+		                                "after": {
+		                                    "kind": "Variable",
 
-		                                "name": {
-		                                    "kind": "Name",
-		                                    "value": "after"
+		                                    "name": {
+		                                        "kind": "Name",
+		                                        "value": "after"
+		                                    }
 		                                }
 		                            }
 		                        }
@@ -908,21 +910,23 @@ test('embeds custom pagination query as a separate document', async function () 
 
 		                    "fragments": {
 		                        "UserGhost": {
-		                            "first": {
-		                                "kind": "Variable",
+		                            "arguments": {
+		                                "first": {
+		                                    "kind": "Variable",
 
-		                                "name": {
-		                                    "kind": "Name",
-		                                    "value": "first"
-		                                }
-		                            },
+		                                    "name": {
+		                                        "kind": "Name",
+		                                        "value": "first"
+		                                    }
+		                                },
 
-		                            "after": {
-		                                "kind": "Variable",
+		                                "after": {
+		                                    "kind": "Variable",
 
-		                                "name": {
-		                                    "kind": "Name",
-		                                    "value": "after"
+		                                    "name": {
+		                                        "kind": "Name",
+		                                        "value": "after"
+		                                    }
 		                                }
 		                            }
 		                        }
@@ -1677,39 +1681,41 @@ test('generated query has same refetch spec', async function () {
 
 		        "fragments": {
 		            "UserFriends": {
-		                "first": {
-		                    "kind": "Variable",
+		                "arguments": {
+		                    "first": {
+		                        "kind": "Variable",
 
-		                    "name": {
-		                        "kind": "Name",
-		                        "value": "first"
-		                    }
-		                },
+		                        "name": {
+		                            "kind": "Name",
+		                            "value": "first"
+		                        }
+		                    },
 
-		                "after": {
-		                    "kind": "Variable",
+		                    "after": {
+		                        "kind": "Variable",
 
-		                    "name": {
-		                        "kind": "Name",
-		                        "value": "after"
-		                    }
-		                },
+		                        "name": {
+		                            "kind": "Name",
+		                            "value": "after"
+		                        }
+		                    },
 
-		                "last": {
-		                    "kind": "Variable",
+		                    "last": {
+		                        "kind": "Variable",
 
-		                    "name": {
-		                        "kind": "Name",
-		                        "value": "last"
-		                    }
-		                },
+		                        "name": {
+		                            "kind": "Name",
+		                            "value": "last"
+		                        }
+		                    },
 
-		                "before": {
-		                    "kind": "Variable",
+		                    "before": {
+		                        "kind": "Variable",
 
-		                    "name": {
-		                        "kind": "Name",
-		                        "value": "before"
+		                        "name": {
+		                            "kind": "Name",
+		                            "value": "before"
+		                        }
 		                    }
 		                }
 		            }

@@ -7,6 +7,7 @@ import type {
 	DocumentArtifact,
 	CachePolicies,
 	SubscriptionSelection,
+	QueryArtifact,
 } from '../../../lib'
 import {
 	printJS,
@@ -256,6 +257,16 @@ export default function artifactGenerator(stats: {
 						inputs = fragmentArgumentsDefinitions(config, doc.filename, fragments[0])
 					}
 
+					// we need to look for global loading toggles on queries and fragments
+					let globalLoading = false
+					if (['HoudiniFragment', 'HoudiniQuery'].includes(docKind)) {
+						globalLoading = Boolean(
+							(fragments[0] ?? operations[0])?.directives?.find(
+								(dir) => dir.name.value === config.loadingDirective
+							)
+						)
+					}
+
 					// generate a hash of the document that we can use to detect changes
 					// start building up the artifact
 					let artifact: DocumentArtifact = {
@@ -268,7 +279,9 @@ export default function artifactGenerator(stats: {
 						selection: selection({
 							config,
 							filepath: doc.filename,
+							document: doc,
 							rootType,
+							globalLoading,
 							// in order to simplify the selection generation, we want to merge fragments together
 							selections: flattenSelections({
 								config,
@@ -284,9 +297,6 @@ export default function artifactGenerator(stats: {
 								operations[0],
 								filterTypes
 							),
-							// do not include used fragments if we are rendering the selection
-							// for a fragment document
-							document: doc,
 						}),
 						pluginData: {},
 					}
@@ -310,6 +320,21 @@ export default function artifactGenerator(stats: {
 							}),
 						})
 					)
+
+					// if we are looking at a query or fragment then we need to add
+					// the loading state flag
+					if (docKind === 'HoudiniQuery' || docKind === 'HoudiniFragment') {
+						// NOTE: this logic is copied and pasted in the selection.js to track continue behavior
+						const childFields = Object.values(artifact.selection?.fields ?? {}).concat(
+							Object.values(artifact.selection?.abstractFields?.fields ?? {}).flatMap(
+								(fieldMap) => Object.values(fieldMap ?? {})
+							)
+						)
+
+						if (childFields.some((field) => field.loading)) {
+							;(artifact as QueryArtifact).enableLoadingState = true
+						}
+					}
 
 					// adding artifactData of plugins (only if any information is present)
 					artifact.pluginData = {}

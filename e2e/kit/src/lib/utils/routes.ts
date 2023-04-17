@@ -12,6 +12,7 @@ export const routes = {
   subscriptions_happyPath: '/subscriptions/happyPath',
   abstractFragments: '/abstract-fragments',
   fragment_masking_partial: '/fragment-masking-partial',
+  loading_state: '/loading-state',
   required_field: '/required-field',
 
   Lists_all: '/lists/all?limit=15',

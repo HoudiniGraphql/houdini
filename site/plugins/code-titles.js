@@ -41,7 +41,7 @@ export function codeTitles() {
 			parent.children.splice(index, 0, titleNode)
 
 			// remove any prettier ignore lines
-			node.value = node.value.replaceAll(/\s+\/\/ prettier-ignore/g, '\n').replaceAll('\t', '    ')
+			node.value = node.value.replaceAll(/\n\s+\/\/ prettier-ignore/g, '').replaceAll('\t', '    ')
 
 			/*
 			 * Reset to just the language

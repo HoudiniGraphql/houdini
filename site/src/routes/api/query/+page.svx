@@ -381,7 +381,7 @@ export const load: PageLoad = async (event) => {
 
 </DeepDive>
 
-### Rendering a Loading State
+### A Simple Loading State
 
 The easiest way to detect when your query is waiting on a network request is to
 look at the `fetching` value in the response:
@@ -401,6 +401,11 @@ look at the `fetching` value in the response:
 {/if}
 
 ```
+
+### Fine-Grain Loading States
+
+For an overview of building reusable loading states that avoid duplicating your
+applications structure multiple times, please visit the [Loading State](/guides/loading-states) guide.
 
 ## Components Queries
 

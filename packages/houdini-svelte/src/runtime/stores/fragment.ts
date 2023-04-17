@@ -35,11 +35,20 @@ export class FragmentStore<
 	get(
 		initialValue: _Data | { [fragmentKey]: _ReferenceType } | null
 	): FragmentStoreInstance<_Data | null, _Input> & { initialValue: _Data | null } {
-		// @ts-expect-error: typescript can't guarantee that the fragment key is defined
-		// but if its not, then the fragment wasn't mixed into the right thing
-		// the variables for the fragment live on the initial value's $fragment key
-		const { variables, parent } = initialValue?.[fragmentKey]?.[this.artifact.name] ?? {}
-		if (initialValue && fragmentKey in initialValue && (!variables || !parent) && isBrowser) {
+		const { variables, parent } =
+			// @ts-expect-error: typescript can't guarantee that the fragment key is defined
+			// but if its not, then the fragment wasn't mixed into the right thing
+			// the variables for the fragment live on the initial value's $fragment key
+			initialValue?.[fragmentKey]?.values?.[this.artifact.name] ?? {}
+		// @ts-expect-error: see above.
+		const { loading } = initialValue?.[fragmentKey] ?? {}
+		if (
+			!loading &&
+			initialValue &&
+			fragmentKey in initialValue &&
+			(!variables || !parent) &&
+			isBrowser
+		) {
 			console.warn(
 				`⚠️ Parent does not contain the information for this fragment. Something is wrong.
 Please ensure that you have passed a record that has ${this.artifact.name} mixed into it.`
@@ -51,11 +60,12 @@ Please ensure that you have passed a record that has ${this.artifact.name} mixed
 
 		// on the client, we want to ensure that we apply masking to the initial value by
 		// loading the value from cache
-		if (initialValue && parent && isBrowser) {
+		if (loading || (initialValue && parent && isBrowser)) {
 			data = cache.read({
 				selection: this.artifact.selection,
 				parent,
 				variables,
+				loading,
 			}).data as _Data
 		}
 
@@ -64,7 +74,7 @@ Please ensure that you have passed a record that has ${this.artifact.name} mixed
 			artifact: this.artifact,
 			initialValue: data,
 		})
-		if (parent) {
+		if (!loading && parent) {
 			store.observer.send({ variables, setup: true, stuff: { parentID: parent } })
 		}
 

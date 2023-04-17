@@ -9,7 +9,7 @@ import { nullableField, readonlyProperty, scalarPropertyValue } from './types'
 
 const AST = recast.types.builders
 
-export const fragmentKey = ' $fragments'
+export const fragmentKey = ' $fragments' as const
 
 export function inlineType({
 	config,
@@ -464,6 +464,16 @@ export function inlineType({
 		throw Error('Could not convert selection to typescript')
 	}
 
+	return wrapType(wrappers, result, root, forceNullable, forceNonNull)
+}
+
+export function wrapType(
+	wrappers: TypeWrapper[],
+	result: TSTypeKind,
+	root: boolean,
+	forceNullable?: boolean,
+	forceNonNull?: boolean
+) {
 	if (forceNullable && !wrappers.includes(TypeWrapper.Nullable)) {
 		wrappers.push(TypeWrapper.Nullable)
 	}

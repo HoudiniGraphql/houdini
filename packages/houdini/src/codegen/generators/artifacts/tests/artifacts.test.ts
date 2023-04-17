@@ -173,7 +173,9 @@ test('selection includes fragments', async function () {
 		                    },
 
 		                    "fragments": {
-		                        "TestFragment": {}
+		                        "TestFragment": {
+		                            "arguments": {}
+		                        }
 		                    }
 		                },
 
@@ -294,7 +296,9 @@ test('internal directives are scrubbed', async function () {
 		                    },
 
 		                    "fragments": {
-		                        "A": {}
+		                        "A": {
+		                            "arguments": {}
+		                        }
 		                    }
 		                },
 
@@ -378,7 +382,9 @@ test('variables only used by internal directives are scrubbed', async function (
 		                    },
 
 		                    "fragments": {
-		                        "A": {}
+		                        "A": {
+		                            "arguments": {}
+		                        }
 		                    }
 		                },
 
@@ -467,7 +473,9 @@ test('overlapping query and fragment selection', async function () {
 		                    },
 
 		                    "fragments": {
-		                        "A": {}
+		                        "A": {
+		                            "arguments": {}
+		                        }
 		                    }
 		                },
 
@@ -945,7 +953,9 @@ test('overlapping query and fragment nested selection', async function () {
 		                    },
 
 		                    "fragments": {
-		                        "A": {}
+		                        "A": {
+		                            "arguments": {}
+		                        }
 		                    }
 		                },
 
@@ -1941,7 +1951,9 @@ describe('mutation artifacts', function () {
 			                                },
 
 			                                "fragments": {
-			                                    "All_Users_insert": {}
+			                                    "All_Users_insert": {
+			                                        "arguments": {}
+			                                    }
 			                                }
 			                            },
 
@@ -2044,7 +2056,9 @@ describe('mutation artifacts', function () {
 			                                },
 
 			                                "fragments": {
-			                                    "All_Users_insert": {}
+			                                    "All_Users_insert": {
+			                                        "arguments": {}
+			                                    }
 			                                }
 			                            },
 
@@ -2150,7 +2164,9 @@ describe('mutation artifacts', function () {
 			                                },
 
 			                                "fragments": {
-			                                    "All_Users_insert": {}
+			                                    "All_Users_insert": {
+			                                        "arguments": {}
+			                                    }
 			                                }
 			                            },
 
@@ -2255,7 +2271,9 @@ describe('mutation artifacts', function () {
 			                                },
 
 			                                "fragments": {
-			                                    "All_Users_insert": {}
+			                                    "All_Users_insert": {
+			                                        "arguments": {}
+			                                    }
 			                                }
 			                            },
 
@@ -2358,7 +2376,9 @@ describe('mutation artifacts', function () {
 			                                },
 
 			                                "fragments": {
-			                                    "All_Users_toggle": {}
+			                                    "All_Users_toggle": {
+			                                        "arguments": {}
+			                                    }
 			                                }
 			                            },
 
@@ -2454,7 +2474,9 @@ describe('mutation artifacts', function () {
 			                                },
 
 			                                "fragments": {
-			                                    "All_Users_remove": {}
+			                                    "All_Users_remove": {
+			                                        "arguments": {}
+			                                    }
 			                                }
 			                            },
 
@@ -2733,7 +2755,9 @@ describe('mutation artifacts', function () {
 			                                },
 
 			                                "fragments": {
-			                                    "All_Users_insert": {}
+			                                    "All_Users_insert": {
+			                                        "arguments": {}
+			                                    }
 			                                }
 			                            },
 
@@ -2841,7 +2865,9 @@ describe('mutation artifacts', function () {
 			                                },
 
 			                                "fragments": {
-			                                    "All_Users_insert": {}
+			                                    "All_Users_insert": {
+			                                        "arguments": {}
+			                                    }
 			                                }
 			                            },
 
@@ -2949,7 +2975,9 @@ describe('mutation artifacts', function () {
 			                                },
 
 			                                "fragments": {
-			                                    "All_Users_insert": {}
+			                                    "All_Users_insert": {
+			                                        "arguments": {}
+			                                    }
 			                                }
 			                            },
 
@@ -3058,7 +3086,9 @@ describe('mutation artifacts', function () {
 			                                },
 
 			                                "fragments": {
-			                                    "All_Users_insert": {}
+			                                    "All_Users_insert": {
+			                                        "arguments": {}
+			                                    }
 			                                }
 			                            },
 
@@ -3167,7 +3197,9 @@ describe('mutation artifacts', function () {
 			                                },
 
 			                                "fragments": {
-			                                    "All_Users_insert": {}
+			                                    "All_Users_insert": {
+			                                        "arguments": {}
+			                                    }
 			                                }
 			                            },
 
@@ -3276,7 +3308,9 @@ describe('mutation artifacts', function () {
 			                                },
 
 			                                "fragments": {
-			                                    "All_Users_insert": {}
+			                                    "All_Users_insert": {
+			                                        "arguments": {}
+			                                    }
 			                                }
 			                            },
 
@@ -3385,7 +3419,9 @@ describe('mutation artifacts', function () {
 			                                },
 
 			                                "fragments": {
-			                                    "All_Users_insert": {}
+			                                    "All_Users_insert": {
+			                                        "arguments": {}
+			                                    }
 			                                }
 			                            },
 
@@ -3494,7 +3530,9 @@ describe('mutation artifacts', function () {
 			                                },
 
 			                                "fragments": {
-			                                    "All_Users_insert": {}
+			                                    "All_Users_insert": {
+			                                        "arguments": {}
+			                                    }
 			                                }
 			                            },
 
@@ -3734,7 +3772,9 @@ describe('mutation artifacts', function () {
 			                                },
 
 			                                "fragments": {
-			                                    "All_Users_insert": {}
+			                                    "All_Users_insert": {
+			                                        "arguments": {}
+			                                    }
 			                                }
 			                            },
 
@@ -5081,8 +5121,13 @@ test('nested recursive fragments', async function () {
 		                    },
 
 		                    "fragments": {
-		                        "NodeDetails": {},
-		                        "UserThings": {}
+		                        "NodeDetails": {
+		                            "arguments": {}
+		                        },
+
+		                        "UserThings": {
+		                            "arguments": {}
+		                        }
 		                    }
 		                },
 
@@ -5218,7 +5263,9 @@ test('leave @include and @skip alone', async function () {
 		                    },
 
 		                    "fragments": {
-		                        "NodeDetails": {}
+		                        "NodeDetails": {
+		                            "arguments": {}
+		                        }
 		                    }
 		                },
 
@@ -5333,7 +5380,9 @@ test('fragment references are embedded in artifact', async function () {
 		                    },
 
 		                    "fragments": {
-		                        "NodeDetails": {}
+		                        "NodeDetails": {
+		                            "arguments": {}
+		                        }
 		                    }
 		                },
 
@@ -5453,9 +5502,11 @@ test('fragment variables are embedded in artifact', async function () {
 
 		                    "fragments": {
 		                        "NodeDetails": {
-		                            "name": {
-		                                "kind": "StringValue",
-		                                "value": "Foo"
+		                            "arguments": {
+		                                "name": {
+		                                    "kind": "StringValue",
+		                                    "value": "Foo"
+		                                }
 		                            }
 		                        }
 		                    }
@@ -5542,7 +5593,9 @@ test('fragment nested in root', async function () {
 		        },
 
 		        "fragments": {
-		            "UserMore": {}
+		            "UserMore": {
+		                "arguments": {}
+		            }
 		        }
 		    },
 
@@ -5560,7 +5613,7 @@ test('client nullability', async function () {
 	// the documents to test
 	const docs: Document[] = [
 		mockCollectedDoc(`
-			query TestQuery($id: ID!) @load {
+			query TestQuery($id: ID!) {
 				node(id: $id) {
 					...LegendWithRequiredName
 					...GhostWithRequiredLegendName
@@ -5595,7 +5648,7 @@ test('client nullability', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "af75250492a0d9641ccd671e492c657d6f7f64def49509b1d34612d58caf76ed",
+		    "hash": "23216f6c7d045549667f3a1d5b156fe3924abc3cd1bbce9cfdcbc3394da6065c",
 
 		    "raw": \`query TestQuery($id: ID!) {
 		  node(id: $id) {
@@ -5739,9 +5792,17 @@ test('client nullability', async function () {
 		                    },
 
 		                    "fragments": {
-		                        "LegendWithRequiredName": {},
-		                        "GhostWithRequiredLegendName": {},
-		                        "GhostWithRequiredLegendAndLegendName": {}
+		                        "LegendWithRequiredName": {
+		                            "arguments": {}
+		                        },
+
+		                        "GhostWithRequiredLegendName": {
+		                            "arguments": {}
+		                        },
+
+		                        "GhostWithRequiredLegendAndLegendName": {
+		                            "arguments": {}
+		                        }
 		                    }
 		                },
 
@@ -5766,6 +5827,6 @@ test('client nullability', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=af75250492a0d9641ccd671e492c657d6f7f64def49509b1d34612d58caf76ed";
+		"HoudiniHash=23216f6c7d045549667f3a1d5b156fe3924abc3cd1bbce9cfdcbc3394da6065c";
 	`)
 })

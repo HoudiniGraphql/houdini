@@ -1,8 +1,8 @@
 import { logGreen, logYellow } from '@kitql/helper'
 import * as graphql from 'graphql'
 
-import type { Config, Document, LogLevels, PaginateModes } from '../../lib'
 import {
+	parentField,
 	definitionFromAncestors,
 	LogLevel,
 	parentTypeFromAncestors,
@@ -10,6 +10,7 @@ import {
 	siteURL,
 	unwrapType,
 } from '../../lib'
+import type { Config, Document, LogLevels, PaginateModes } from '../../lib'
 import type { FragmentArgument } from '../transforms/fragmentVariables'
 import {
 	fragmentArguments as collectFragmentArguments,
@@ -344,7 +345,9 @@ export default async function typeCheck(config: Config, docs: Document[]): Promi
 				// make sure there are pagination args on fields marked with @paginate
 				paginateArgs(config, filepath),
 				// make sure every argument defined in a fragment is used
-				noUnusedFragmentArguments(config)
+				noUnusedFragmentArguments(config),
+				// make sure that @loading is used correctly
+				validateLoadingDirective(config)
 			)
 
 	for (const { filename, document: parsed, originalString } of docs) {
@@ -1126,6 +1129,45 @@ function checkMaskDirectives(config: Config) {
 						)
 					)
 					return
+				}
+			},
+		}
+	}
+}
+
+function validateLoadingDirective(config: Config) {
+	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
+		return {
+			Field(node, _, __, ___, ancestors) {
+				// we only care about fields with the loading directive
+				const loadingDirective = node.directives?.find(
+					(d) => d.name.value === config.loadingDirective
+				)
+				if (!loadingDirective) {
+					return
+				}
+
+				const parent = parentField(ancestors)
+
+				// if the parent is a definition of some kind, we're okay
+				if (
+					!parent ||
+					['OperationDefinition', 'FragmentDefinition'].includes(parent.kind)
+				) {
+					return
+				}
+
+				// the loading directive is considered valid if the parent _has_ the directive applied
+				const parentLoading = parent.directives?.find(
+					(d) => d.name.value === config.loadingDirective
+				)
+
+				if (!parentLoading) {
+					ctx.reportError(
+						new graphql.GraphQLError(
+							`@${config.loadingDirective} can only be applied on a field at the root of a document or on one whose parent also has @${config.loadingDirective}`
+						)
+					)
 				}
 			},
 		}

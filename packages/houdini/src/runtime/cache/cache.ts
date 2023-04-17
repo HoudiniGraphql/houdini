@@ -1,4 +1,4 @@
-import { computeKey } from '../lib'
+import { computeKey, PendingValue } from '../lib'
 import type { ConfigFile } from '../lib/config'
 import { computeID, defaultConfigValues, keyFieldsForType, getCurrentConfig } from '../lib/config'
 import { deepEquals } from '../lib/deepEquals'
@@ -286,7 +286,11 @@ class CacheInternal {
 		// normal field one
 
 		// collect all of the fields that we need to write
-		let targetSelection = getFieldsForType(selection, data['__typename'] as string | undefined)
+		let targetSelection = getFieldsForType(
+			selection,
+			data['__typename'] as string | undefined,
+			false
+		)
 
 		// data is an object with fields that we need to write to the store
 		for (const [field, value] of Object.entries(data)) {
@@ -768,12 +772,14 @@ class CacheInternal {
 		stepsFromConnection = null,
 		ignoreMasking,
 		fullCheck = false,
+		loading: generateLoading,
 	}: {
 		selection: SubscriptionSelection
 		parent?: string
 		variables?: {}
 		stepsFromConnection?: number | null
 		ignoreMasking?: boolean
+		loading?: boolean
 		// if this is true then we are ignoring masking and checking the full selection for
 		// data. we will still return the masked value if we have it.
 		fullCheck?: boolean
@@ -790,15 +796,25 @@ class CacheInternal {
 
 		const target = {} as GraphQLObject
 		if (selection.fragments) {
-			target[fragmentKey] = Object.fromEntries(
-				Object.entries(selection.fragments).map(([key, value]) => [
-					key,
-					{
-						parent,
-						variables: evaluateFragmentVariables(value, variables ?? {}),
-					},
-				])
-			)
+			target[fragmentKey] = {
+				loading: Boolean(generateLoading),
+				values: Object.fromEntries(
+					Object.entries(selection.fragments)
+						// only include the fragments that are marked loading
+						// if we are generating the loading state
+						.filter(([, value]) => !generateLoading || value.loading)
+						.map(([key, value]) => [
+							key,
+							{
+								parent,
+								variables: evaluateFragmentVariables(
+									value.arguments,
+									variables ?? {}
+								),
+							},
+						])
+				),
+			}
 		}
 
 		// we need to track if we have a partial data set which means we have _something_ but not everything
@@ -816,7 +832,7 @@ class CacheInternal {
 		// if we have abstract fields, grab the __typename and include them in the list
 		const typename = this.storage.get(parent, '__typename').value as string
 		// collect all of the fields that we need to write
-		let targetSelection = getFieldsForType(selection, typename)
+		let targetSelection = getFieldsForType(selection, typename, !!generateLoading)
 
 		// look at every field in the parentFields
 		for (const [
@@ -829,6 +845,7 @@ class CacheInternal {
 				list,
 				visible,
 				directives,
+				loading: fieldLoading,
 				abstractHasRequired,
 			},
 		] of Object.entries(targetSelection)) {
@@ -864,13 +881,23 @@ class CacheInternal {
 
 			const key = evaluateKey(keyRaw, variables)
 
+			// if we are generating a loading state and this field is not meant to be included, skip it
+			if (generateLoading && !fieldLoading) {
+				continue
+			}
+
 			// look up the value in our store
-			const { value } = this.storage.get(parent, key)
+			let { value } = this.storage.get(parent, key)
 
 			// If we have an explicite null, that mean that it's stale and the we should do a network call
 			const dt_field = this.staleManager.getFieldTime(parent, key)
 			if (dt_field === null) {
 				stale = true
+			}
+
+			// a loading state has no real values
+			if (generateLoading) {
+				value = undefined
 			}
 
 			// in order to avoid falsey identifying the `cursor` field of a connection edge
@@ -903,9 +930,21 @@ class CacheInternal {
 				partial = true
 			}
 
+			// if we are generating a loading state and we're supposed to stop here, do so
+			if (generateLoading && fieldLoading?.kind === 'value') {
+				// @ts-ignore: we're violating the contract knowingly
+				fieldTarget[attributeName] = PendingValue
+				hasData = true
+			}
+
 			// if we dont have a value to return, use null (we check for non-null fields at the end)
 			// ignore embedded cursors, they will get handled with the other scalars
-			if (typeof value === 'undefined' || value === null) {
+			// NOTE: we don't care about a null value when generating the loading state
+			// since we will turn lists into lists, objects into objects, etc.
+			// the !generateLoading here makes sure that we treat loading undefined and normal undefined differently
+			// we force all loading values to be undefined a few lines above so we never overwrite
+			// the pending value here.
+			else if ((!generateLoading && typeof value === 'undefined') || value === null) {
 				// set the value to null
 				fieldTarget[attributeName] = null
 
@@ -941,6 +980,7 @@ class CacheInternal {
 					stepsFromConnection: nextStep,
 					ignoreMasking: !!ignoreMasking,
 					fullCheck,
+					loading: generateLoading,
 				})
 
 				// save the hydrated list
@@ -970,8 +1010,8 @@ class CacheInternal {
 					stepsFromConnection: nextStep,
 					ignoreMasking,
 					fullCheck,
+					loading: generateLoading,
 				})
-
 				// save the object value
 				fieldTarget[attributeName] = objectFields.data
 
@@ -989,6 +1029,18 @@ class CacheInternal {
 				}
 			}
 
+			// if we are generating a loading value then we might need to wrap up the result
+			if (generateLoading && fieldLoading?.list) {
+				fieldTarget[attributeName] = wrapInLists(
+					Array.from<GraphQLValue>({ length: fieldLoading.list.count }).fill(
+						fieldTarget[attributeName]
+					),
+					fieldLoading.list.depth - 1
+				)
+			}
+
+			// regardless of how the field was processed, if we got a null value assigned
+			// and the field is not nullable, we need to cascade up
 			if (fieldTarget[attributeName] === null && !nullable && !embeddedCursor) {
 				// if we got a null value assigned and the field is not nullable, we need to cascade up
 				// except when it's an abstract type with @required children - then we return a dummy object
@@ -1006,7 +1058,7 @@ class CacheInternal {
 			data: cascadeNull ? null : target,
 			// our value is considered true if there is some data but not everything
 			// has a full value
-			partial: hasData && partial,
+			partial: !generateLoading && hasData && partial,
 			stale: hasData && stale,
 			hasData,
 		}
@@ -1047,6 +1099,7 @@ class CacheInternal {
 		stepsFromConnection,
 		ignoreMasking,
 		fullCheck,
+		loading,
 	}: {
 		fields: SubscriptionSelection
 		variables?: {}
@@ -1054,6 +1107,7 @@ class CacheInternal {
 		stepsFromConnection: number | null
 		ignoreMasking: boolean
 		fullCheck?: boolean
+		loading?: boolean
 	}): { data: NestedList<GraphQLValue>; partial: boolean; stale: boolean; hasData: boolean } {
 		// the linked list could be a deeply nested thing, we need to call getData for each record
 		// we can't mutate the lists because that would change the id references in the listLinks map
@@ -1073,6 +1127,7 @@ class CacheInternal {
 					stepsFromConnection,
 					ignoreMasking,
 					fullCheck,
+					loading,
 				})
 				result.push(nestedValue.data)
 				if (nestedValue.partial) {
@@ -1100,6 +1155,7 @@ class CacheInternal {
 				stepsFromConnection,
 				ignoreMasking,
 				fullCheck,
+				loading,
 			})
 
 			result.push(data)
@@ -1255,6 +1311,13 @@ export function evaluateFragmentVariables(variables: ValueMap, args: GraphQLObje
 	return Object.fromEntries(
 		Object.entries(variables).map(([key, value]) => [key, fragmentVariableValue(value, args)])
 	)
+}
+
+function wrapInLists<T>(target: T, count: number = 0): T | NestedList<T> {
+	if (count === 0) {
+		return target
+	}
+	return wrapInLists([target], count - 1)
 }
 
 function fragmentVariableValue(value: ValueNode, args: GraphQLObject): GraphQLValue {

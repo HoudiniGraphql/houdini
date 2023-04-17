@@ -110,7 +110,9 @@ describe('load', () => {
 			                    },
 
 			                    "fragments": {
-			                        "UserFragmentTestFragment": {}
+			                        "UserFragmentTestFragment": {
+			                            "arguments": {}
+			                        }
 			                    }
 			                },
 

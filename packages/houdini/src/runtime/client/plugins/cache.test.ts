@@ -1,9 +1,9 @@
 import { beforeEach, expect, test, vi } from 'vitest'
 
-import { createPluginHooks, HoudiniClient } from '..'
+import { createPluginHooks, HoudiniClient, type HoudiniClientConstructorArgs } from '..'
 import { testConfigFile } from '../../../test'
 import { Cache } from '../../cache/cache'
-import { CachePolicy } from '../../lib'
+import { CachePolicy, PendingValue } from '../../lib'
 import { setMockConfig } from '../../lib/config'
 import { ArtifactKind, DataSource } from '../../lib/types'
 import type { ClientPlugin } from '../documentStore'
@@ -21,15 +21,17 @@ beforeEach(async () => {
 test('NetworkOnly', async function () {
 	const spy = vi.fn()
 
-	const store = createStore([
-		cachePolicy({
-			serverSideFallback: false,
-			enabled: true,
-			setFetching: spy,
-			cache: new Cache({ ...config, disabled: false }),
-		}),
-		fakeFetch({}),
-	])
+	const store = createStore({
+		pipeline: [
+			cachePolicy({
+				serverSideFallback: false,
+				enabled: true,
+				setFetching: spy,
+				cache: new Cache({ ...config, disabled: false }),
+			}),
+			fakeFetch({}),
+		],
+	})
 	const ret1 = await store.send({ policy: CachePolicy.NetworkOnly })
 	const ret2 = await store.send({ policy: CachePolicy.NetworkOnly })
 
@@ -71,15 +73,17 @@ test('NetworkOnly', async function () {
 test('CacheOrNetwork', async function () {
 	const spy = vi.fn()
 
-	const store = createStore([
-		cachePolicy({
-			serverSideFallback: false,
-			enabled: true,
-			setFetching: spy,
-			cache: new Cache({ ...config, disabled: false }),
-		}),
-		fakeFetch({}),
-	])
+	const store = createStore({
+		pipeline: [
+			cachePolicy({
+				serverSideFallback: false,
+				enabled: true,
+				setFetching: spy,
+				cache: new Cache({ ...config, disabled: false }),
+			}),
+			fakeFetch({}),
+		],
+	})
 	const ret1 = await store.send({ policy: CachePolicy.CacheOrNetwork })
 	const ret2 = await store.send({ policy: CachePolicy.CacheOrNetwork })
 
@@ -121,15 +125,17 @@ test('CacheOrNetwork', async function () {
 test('CacheAndNetwork', async function () {
 	const spy = vi.fn()
 
-	const store = createStore([
-		cachePolicy({
-			enabled: true,
-			setFetching: () => {},
-			cache: new Cache(config),
-			serverSideFallback: false,
-		}),
-		fakeFetch({}),
-	])
+	const store = createStore({
+		pipeline: [
+			cachePolicy({
+				enabled: true,
+				setFetching: () => {},
+				cache: new Cache(config),
+				serverSideFallback: false,
+			}),
+			fakeFetch({}),
+		],
+	})
 	store.subscribe(spy)
 	await store.send({ policy: CachePolicy.CacheAndNetwork })
 	await store.send({ policy: CachePolicy.CacheAndNetwork })
@@ -185,15 +191,17 @@ test('CacheAndNetwork', async function () {
 test('CacheOnly', async function () {
 	const spy = vi.fn()
 
-	const store = createStore([
-		cachePolicy({
-			serverSideFallback: false,
-			enabled: true,
-			setFetching: spy,
-			cache: new Cache({ ...config, disabled: false }),
-		}),
-		fakeFetch({}),
-	])
+	const store = createStore({
+		pipeline: [
+			cachePolicy({
+				serverSideFallback: false,
+				enabled: true,
+				setFetching: spy,
+				cache: new Cache({ ...config, disabled: false }),
+			}),
+			fakeFetch({}),
+		],
+	})
 	const ret1 = await store.send({ policy: CachePolicy.CacheOnly })
 
 	expect(spy).toHaveBeenCalledTimes(0)
@@ -253,15 +261,17 @@ test('stale', async function () {
 
 	const cache = new Cache({ ...config, disabled: false })
 
-	const store = createStore([
-		cachePolicy({
-			serverSideFallback: false,
-			enabled: true,
-			setFetching,
-			cache,
-		}),
-		fakeFetch({}),
-	])
+	const store = createStore({
+		pipeline: [
+			cachePolicy({
+				serverSideFallback: false,
+				enabled: true,
+				setFetching,
+				cache,
+			}),
+			fakeFetch({}),
+		],
+	})
 
 	store.subscribe(fn)
 
@@ -286,6 +296,8 @@ test('stale', async function () {
 
 	// intermediate returns
 	expect(fn).toHaveBeenNthCalledWith(1, {
+		// this doesn't have the loading state because `setFetching` doesn't actually
+		//
 		data: null,
 		errors: null,
 		fetching: true,
@@ -352,19 +364,73 @@ test('stale', async function () {
 	})
 })
 
+test('loading states when fetching is true', async function () {
+	// create the store
+	const store = createStore()
+
+	// listen for changes in the store state
+	const fn = vi.fn()
+	store.subscribe(fn)
+
+	// send the request
+	await store.send({ policy: CachePolicy.CacheOrNetwork })
+
+	// the first call to the spy is when we subscribe (skip call 1)
+
+	// the first real update (call 2) should be the loading state (fetching is true)
+	expect(fn).toHaveBeenNthCalledWith(2, {
+		data: {
+			viewer: {
+				firstName: PendingValue,
+			},
+		},
+		errors: null,
+		fetching: true,
+		partial: false,
+		source: null,
+		stale: false,
+		variables: null,
+	})
+
+	// the second update will have the actual value
+	expect(fn).toHaveBeenNthCalledWith(3, {
+		data: {
+			viewer: {
+				__typename: 'User',
+				firstName: 'bob',
+				id: '1',
+			},
+		},
+		errors: null,
+		fetching: false,
+		partial: false,
+		source: 'network',
+		stale: false,
+		variables: null,
+	})
+})
+
 /**
  * Utilities for testing the cache plugin
  */
-export function createStore(plugins: ClientPlugin[]): DocumentStore<any, any> {
+export function createStore(
+	args: Partial<HoudiniClientConstructorArgs> = {}
+): DocumentStore<any, any> {
+	// if we dont have anything passed, just use the fake fetch as the plugin
+	if (!args.plugins && !args.pipeline) {
+		args.plugins = [fakeFetch({})]
+	}
+
+	// instantiate the client
 	const client = new HoudiniClient({
 		url: 'URL',
-		pipeline: [...plugins],
+		...args,
 	})
 
 	return new DocumentStore({
-		pipeline: createPluginHooks(plugins),
+		plugins: args.plugins ? createPluginHooks(client.plugins) : undefined,
+		pipeline: args.pipeline ? createPluginHooks(client.plugins) : undefined,
 		client,
-		cache: true,
 		artifact: {
 			kind: ArtifactKind.Query,
 			hash: '7777',
@@ -372,12 +438,14 @@ export function createStore(plugins: ClientPlugin[]): DocumentStore<any, any> {
 			name: 'TestArtifact',
 			rootType: 'Query',
 			pluginData: {},
+			enableLoadingState: true,
 			selection: {
 				fields: {
 					viewer: {
 						type: 'User',
 						visible: true,
 						keyRaw: 'viewer',
+						loading: { kind: 'continue' },
 						selection: {
 							fields: {
 								id: {
@@ -389,6 +457,7 @@ export function createStore(plugins: ClientPlugin[]): DocumentStore<any, any> {
 									type: 'String',
 									visible: true,
 									keyRaw: 'firstName',
+									loading: { kind: 'value' },
 								},
 								__typename: {
 									type: 'String',
@@ -420,7 +489,7 @@ function fakeFetch({
 		partial: false,
 		stale: false,
 	},
-}) {
+} = {}) {
 	return (() => ({
 		network(ctx, { resolve }) {
 			resolve(ctx, { ...result })

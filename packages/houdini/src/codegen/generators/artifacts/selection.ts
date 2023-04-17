@@ -1,15 +1,19 @@
 import * as graphql from 'graphql'
+import * as recast from 'recast'
 
 import type { Config, Document } from '../../../lib'
-import { deepMerge, getRootType, HoudiniError } from '../../../lib'
+import { TypeWrapper, unwrapType, deepMerge, getRootType, HoudiniError } from '../../../lib'
 import {
 	RefetchUpdateMode,
 	type MutationOperation,
 	type SubscriptionSelection,
+	type LoadingSpec,
 } from '../../../runtime/lib/types'
 import { connectionSelection } from '../../transforms/list'
 import fieldKey from './fieldKey'
 import { convertValue } from './utils'
+
+const AST = recast.types.builders
 
 // we're going to generate the selection in two passes. the first will create the various field selections
 // and then the second will map the concrete selections onto the abstract ones
@@ -37,6 +41,7 @@ function prepareSelection({
 	inConnection,
 	typeMap,
 	abstractTypes,
+	globalLoading,
 }: {
 	config: Config
 	filepath: string
@@ -48,9 +53,14 @@ function prepareSelection({
 	inConnection?: boolean
 	typeMap: Record<string, string[]>
 	abstractTypes: string[]
+	globalLoading?: boolean
 }): SubscriptionSelection {
 	// we need to build up an object that contains every field in the selection
 	let object: SubscriptionSelection = {}
+
+	// if we run into an inline fragment with the loading directive we want
+	// to consider it a loading type
+	const loadingTypes: string[] = []
 
 	for (const field of selections) {
 		// inline fragments should be merged with the parent
@@ -72,6 +82,7 @@ function prepareSelection({
 						document,
 						typeMap,
 						abstractTypes,
+						globalLoading,
 					}).fields || {}
 				)
 			}
@@ -140,17 +151,23 @@ function prepareSelection({
 				// can compare its concrete __typename
 				object.abstractFields.fields = {
 					...object.abstractFields.fields,
-					[field.typeCondition.name.value]: prepareSelection({
+					[typeConditionName]: prepareSelection({
 						config,
 						filepath,
-						rootType: field.typeCondition?.name.value || rootType,
+						rootType: typeConditionName || rootType,
 						operations,
 						selections: field.selectionSet.selections,
 						path,
 						document,
 						typeMap,
 						abstractTypes,
+						globalLoading,
 					}).fields,
+				}
+
+				// look for the loading directive
+				if (field.directives?.find((d) => d.name.value === config.loadingDirective)) {
+					loadingTypes.push(typeConditionName)
 				}
 			}
 		}
@@ -299,6 +316,7 @@ function prepareSelection({
 					inConnection: connectionState,
 					typeMap,
 					abstractTypes,
+					globalLoading,
 				})
 
 				// bubble nullability up
@@ -318,6 +336,60 @@ function prepareSelection({
 					}),
 					{}
 				)
+			}
+
+			// if we have a loading directive present on the field then we need to
+			// encode the correct behavior
+			const loadingDirective = field.directives?.find(
+				(d) => d.name.value === config.loadingDirective
+			)
+			if (globalLoading || loadingDirective) {
+				// the value we assign depends on wether this is the deepest
+				// selection in this branch with @loading
+				// NOTE: this logic is copied and pasted in the index.js for the artifact loading state
+				const childFields = Object.values(fieldObj.selection?.fields ?? {}).concat(
+					Object.values(fieldObj.selection?.abstractFields?.fields ?? {}).flatMap(
+						(fieldMap) => Object.values(fieldMap ?? {})
+					)
+				)
+				const loadingFragments =
+					Object.values(fieldObj.selection?.fragments ?? {}).length > 0 &&
+					Object.values(fieldObj.selection?.fragments ?? {}).some((f) => f.loading)
+				let deepestChild = !childFields.some((field) => field.loading) && !loadingFragments
+				const loadingValue: LoadingSpec = deepestChild
+					? {
+							kind: 'value',
+					  }
+					: { kind: 'continue' }
+
+				// look up the type of the field so we can wrap it up in lists if necessary
+				const parentType = config.schema.getType(rootType)!
+				if (graphql.isObjectType(parentType) || graphql.isInterfaceType(parentType)) {
+					const fieldType = parentType.getFields()[field.name.value]?.type
+					if (fieldType) {
+						// if we are wrapped in a list, we need to embed the necessary data
+						const listCount = unwrapType(config, fieldType).wrappers.filter(
+							(w) => w === TypeWrapper.List
+						).length
+						if (listCount > 0) {
+							// look for the count arg
+							const countArg = loadingDirective?.arguments?.find(
+								(arg) => arg.name.value === 'count'
+							)
+							let countValue = 3
+							if (countArg?.value.kind === 'IntValue') {
+								countValue = parseInt(countArg.value.value)
+							}
+
+							loadingValue.list = {
+								depth: listCount,
+								count: countValue,
+							}
+						}
+					}
+				}
+
+				fieldObj.loading = loadingValue
 			}
 
 			// if we are looking at an interface
@@ -348,9 +420,24 @@ function prepareSelection({
 			const { fragment, args } = config.getFragmentVariablesHash(field.name.value)
 			object.fragments = {
 				...object.fragments,
-				[fragment]: args ?? {},
+				[fragment]: {
+					arguments: args ?? {},
+				},
+			}
+
+			// assign the loading state if necessary
+			if (
+				globalLoading ||
+				field.directives?.find((d) => d.name.value === config.loadingDirective)
+			) {
+				object.fragments[fragment].loading = true
 			}
 		}
+	}
+
+	// add the types we're supposed to load as
+	if (loadingTypes.length > 0) {
+		object.loadingTypes = loadingTypes
 	}
 
 	return object

@@ -70,11 +70,14 @@ export type CompiledDocumentKind = ArtifactKinds
 export type QueryArtifact = BaseCompiledDocument<'HoudiniQuery'> & {
 	policy?: CachePolicies
 	partial?: boolean
+	enableLoadingState?: boolean
 }
 
 export type MutationArtifact = BaseCompiledDocument<'HoudiniMutation'>
 
-export type FragmentArtifact = BaseCompiledDocument<'HoudiniFragment'>
+export type FragmentArtifact = BaseCompiledDocument<'HoudiniFragment'> & {
+	enableLoadingState?: boolean
+}
 
 export type SubscriptionArtifact = BaseCompiledDocument<'HoudiniSubscription'>
 
@@ -165,8 +168,13 @@ export type GraphQLValue =
 	| GraphQLValue[]
 	| undefined
 
+export type LoadingSpec =
+	| { kind: 'continue'; list?: { depth: number; count: number } }
+	| { kind: 'value'; value?: any; list?: { depth: number; count: number } }
+
 export type SubscriptionSelection = {
-	fragments?: Record<string, ValueMap>
+	loadingTypes?: string[]
+	fragments?: Record<string, { arguments: ValueMap; loading?: boolean }>
 	fields?: {
 		[fieldName: string]: {
 			type: string
@@ -180,6 +188,7 @@ export type SubscriptionSelection = {
 				connection: boolean
 				type: string
 			}
+			loading?: LoadingSpec
 			directives?: { name: string; arguments: ValueMap }[]
 			updates?: string[]
 			visible?: boolean
@@ -244,7 +253,7 @@ export type NestedList<_Result = string> = (_Result | null | NestedList<_Result>
 
 export type ValueOf<Parent> = Parent[keyof Parent]
 
-export const fragmentKey = ' $fragments'
+export const fragmentKey = ' $fragments' as const
 
 export type ValueNode =
 	| VariableNode
@@ -368,3 +377,6 @@ interface VariableNode {
 	readonly kind: 'Variable'
 	readonly name: NameNode
 }
+export const PendingValue = Symbol('houdini_loading')
+
+export type LoadingType = typeof PendingValue

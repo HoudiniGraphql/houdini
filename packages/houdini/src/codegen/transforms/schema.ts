@@ -93,6 +93,11 @@ directive @${config.maskEnableDirective} on FRAGMENT_SPREAD
 directive @${config.maskDisableDirective} on FRAGMENT_SPREAD
 
 """
+	@${config.loadingDirective} is used to shape the value of your documents while they are loading
+"""
+directive @${config.loadingDirective}(count: Int) on QUERY | FRAGMENT_DEFINITION | FIELD | FRAGMENT_SPREAD
+
+"""
 	@${config.requiredDirective} makes a nullable field always non-null by making the parent null when the field is
 """
 directive @${config.requiredDirective} on FIELD

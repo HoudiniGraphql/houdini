@@ -3,13 +3,14 @@ import type { ExpressionKind, StatementKind, TSTypeKind } from 'ast-types/lib/ge
 import type * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import type { Config, Document } from '../../../lib'
+import type { Config, Document, DocumentArtifact } from '../../../lib'
 import { printJS, HoudiniError, siteURL, fs, path } from '../../../lib'
 import { fragmentArgumentsDefinitions } from '../../transforms/fragmentVariables'
 import { flattenSelections } from '../../utils'
 import { serializeValue } from '../artifacts/utils'
 import { addReferencedInputTypes } from './addReferencedInputTypes'
 import { fragmentKey, inlineType } from './inlineType'
+import { withLoadingState } from './loadingState'
 import { tsTypeReference } from './typeReference'
 import { readonlyProperty } from './types'
 
@@ -82,7 +83,8 @@ export async function generateDocumentTypes(config: Config, docs: Document[]) {
 						definition,
 						selections,
 						visitedTypes,
-						missingScalars
+						missingScalars,
+						artifact!
 					)
 				} else {
 					// treat it as a fragment document
@@ -93,7 +95,8 @@ export async function generateDocumentTypes(config: Config, docs: Document[]) {
 						selections,
 						originalDocument.definitions,
 						visitedTypes,
-						missingScalars
+						missingScalars,
+						artifact!
 					)
 				}
 
@@ -254,7 +257,8 @@ async function generateOperationTypeDefs(
 	definition: graphql.OperationDefinitionNode,
 	selections: readonly graphql.SelectionNode[],
 	visitedTypes: Set<string>,
-	missingScalars: Set<string>
+	missingScalars: Set<string>,
+	artifact: DocumentArtifact
 ) {
 	let parentType: graphql.GraphQLCompositeType | null = null
 	if (definition.operation === 'query') {
@@ -275,6 +279,29 @@ async function generateOperationTypeDefs(
 
 	// dry
 	const hasInputs = definition.variableDefinitions && definition.variableDefinitions.length > 0
+
+	let resultType = inlineType({
+		config,
+		filepath,
+		rootType: parentType,
+		selections,
+		root: true,
+		allowReadonly: true,
+		visitedTypes,
+		body,
+		missingScalars,
+		includeFragments: true,
+	})
+
+	// if we are looking at a query then we should add the loading state
+	if (artifact.kind === 'HoudiniQuery') {
+		resultType = withLoadingState({
+			body,
+			base: resultType,
+			config,
+			artifact,
+		})
+	}
 
 	// add our types to the body
 	body.push(
@@ -307,21 +334,7 @@ async function generateOperationTypeDefs(
 		),
 		// export the type that describes the result
 		AST.exportNamedDeclaration(
-			AST.tsTypeAliasDeclaration(
-				AST.identifier(shapeTypeName),
-				inlineType({
-					config,
-					filepath,
-					rootType: parentType,
-					selections,
-					root: true,
-					allowReadonly: true,
-					visitedTypes,
-					body,
-					missingScalars,
-					includeFragments: true,
-				})
-			)
+			AST.tsTypeAliasDeclaration(AST.identifier(shapeTypeName), resultType)
 		)
 	)
 
@@ -400,7 +413,8 @@ async function generateFragmentTypeDefs(
 	selections: readonly graphql.SelectionNode[],
 	definitions: readonly graphql.DefinitionNode[],
 	visitedTypes: Set<string>,
-	missingScalars: Set<string>
+	missingScalars: Set<string>,
+	artifact: DocumentArtifact
 ) {
 	// every definition will contribute the same thing to the typedefs
 	for (const definition of definitions) {
@@ -484,17 +498,22 @@ async function generateFragmentTypeDefs(
 			AST.exportNamedDeclaration(
 				AST.tsTypeAliasDeclaration(
 					AST.identifier(shapeTypeName),
-					inlineType({
+					withLoadingState({
 						config,
-						filepath,
-						rootType: type,
-						selections,
-						root: true,
-						allowReadonly: true,
+						artifact,
 						body,
-						visitedTypes,
-						missingScalars,
-						includeFragments: true,
+						base: inlineType({
+							config,
+							filepath,
+							rootType: type,
+							selections,
+							root: true,
+							allowReadonly: true,
+							body,
+							visitedTypes,
+							missingScalars,
+							includeFragments: true,
+						}),
 					})
 				)
 			)

@@ -1009,6 +1009,34 @@ const table: Row[] = [
 		],
 	},
 	{
+		title: 'unreachable @loading',
+		pass: false,
+		documents: [
+			`
+			fragment LoadingDirectiveA on Ghost {
+				friendsConnection {
+					edges {
+						node @loading {
+							name
+						}
+					}
+				}
+			}
+			`,
+			`
+			fragment LoadingDirectiveB on Ghost {
+				friendsConnection {
+					edges {
+						node @loading {
+							name
+						}
+					}
+				}
+			}
+			`,
+		],
+	},
+	{
 		title: '@required may not be used on query arguments',
 		pass: false,
 		documents: [
@@ -1016,6 +1044,7 @@ const table: Row[] = [
 			query QueryA($id: ID! @required) {
 				node(id: $id) {
 					name
+
 				}
 			}
 			`,
@@ -1029,20 +1058,92 @@ const table: Row[] = [
 		],
 	},
 	{
-		title: '@required may not be used on non-nullable fields',
-		pass: false,
+		title: '@loading happy path',
+		pass: true,
 		documents: [
 			`
-			query QueryA {
-				user {
-					name @required
+			fragment LoadingDirectiveA on Ghost {
+				friendsConnection @loading {
+					edges @loading {
+						node @loading {
+							name
+						}
+					}
 				}
 			}
 			`,
 			`
-			query QueryB {
+			fragment LoadingDirectiveB on Ghost {
+				friendsConnection @loading {
+					edges @loading {
+						node @loading {
+							name
+						}
+					}
+				}
+			}
+			`,
+		],
+	},
+	{
+		title: '@loading must fall on inline fragment',
+		pass: false,
+		documents: [
+			`
+			query A {
+				entity @loading {
+					... on User {
+						firstName @loading
+					}
+				}
+			}
+			`,
+			`
+			query B {
+				entity @loading {
+					... on User {
+						firstName @loading
+					}
+				}
+			}
+			`,
+		],
+	},
+	{
+		title: '@required may not be used on non-nullable fields',
+		pass: false,
+		documents: [
+			`query QueryA {
 				user {
 					name @required
+				}
+			}`,
+			`query QueryB {
+				user {
+					name @required
+				}
+			}`,
+		],
+	},
+	{
+		title: '@loading on inline fragment',
+		pass: true,
+		documents: [
+			`
+			query A {
+				entity @loading {
+					... on User @loading {
+						firstName @loading
+					}
+				}
+			}
+			`,
+			`
+			query B {
+				entity @loading {
+					... on User @loading {
+						firstName @loading
+					}
 				}
 			}
 			`,

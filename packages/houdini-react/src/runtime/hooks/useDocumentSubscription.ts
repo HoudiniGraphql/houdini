@@ -13,9 +13,11 @@ export function useDocumentSubscription<
 	artifact,
 	variables,
 	send,
+	disabled,
 	...observeParams
 }: UseDocumentStoreParams<_Artifact, _Data> & {
 	variables: _Input
+	disabled?: boolean
 	send?: Partial<SendParams>
 }): [
 	QueryResult<_Data, _Input> & { parent?: string | null },
@@ -29,17 +31,22 @@ export function useDocumentSubscription<
 
 	// whenever the variables change, we need to retrigger the query
 	useDeepCompareEffect(() => {
-		observer.send({
-			variables,
-			// TODO: session/metadata
-			session: {},
-			metadata: {},
-			...send,
-		})
-		return () => {
-			observer.cleanup()
+		if (!disabled) {
+			observer.send({
+				variables,
+				// TODO: session/metadata
+				session: {},
+				metadata: {},
+				...send,
+			})
 		}
-	}, [observer, variables ?? {}, send ?? {}])
+
+		return () => {
+			if (!disabled) {
+				observer.cleanup()
+			}
+		}
+	}, [disabled, observer, variables ?? {}, send ?? {}])
 
 	return [
 		{

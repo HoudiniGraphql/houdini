@@ -80,7 +80,9 @@ test('fragments of unions inject correctly', function () {
 		                    "typeMap": {}
 		                },
 		                "fragments": {
-		                    "EntityInfo": {}
+		                    "EntityInfo": {
+		                        "arguments": {}
+		                    }
 		                }
 		            },
 		            "abstract": true
@@ -216,7 +218,9 @@ test('fragments in lists', async function () {
 		                                            },
 
 		                                            "fragments": {
-		                                                "UserTest": {}
+		                                                "UserTest": {
+		                                                    "arguments": {}
+		                                                }
 		                                            }
 		                                        },
 
@@ -490,7 +494,9 @@ test('concrete selection applies mask over abstract selection', async function (
 		                    },
 
 		                    "fragments": {
-		                        "AnimalsList": {}
+		                        "AnimalsList": {
+		                            "arguments": {}
+		                        }
 		                    }
 		                },
 
