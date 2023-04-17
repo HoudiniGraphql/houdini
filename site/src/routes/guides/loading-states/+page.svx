@@ -429,7 +429,7 @@ See that `species.evolutionChain` is always safe to iterate over?? This let us p
 structure and only differentiate the 2 cases where it actually matters. Pretty cool huh?
 
 Houdini makes sure that there is always _something_ we can use to render
-and because of how we used `@loading` we can compare our values to `PendingValue` where its most convinient.
+and because of how we used `@loading` we can compare our values to `PendingValue` where its most convenient.
 If you're still not quite sure how this works please check out the DeepDive above. If it's still confusing, join us
 on discord and open a question - we'd love to help. It's also worth mentioning that `3` is the default value for `count`
 so it wasn't actually necessary here.
