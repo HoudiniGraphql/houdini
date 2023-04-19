@@ -14,15 +14,22 @@ enum TypeOfUser {
 	COOL
 }
 
+enum ForceReturn {
+	NORMAL
+	NULL
+	ERROR
+}
+
 type Mutation {
 	addUser(
 		birthDate: DateTime!
 		name: String!
 		snapshot: String!
-		delay: Int
 		enumValue: MyEnum
 		types: [TypeOfUser!]
-	): User!
+		delay: Int
+		force: ForceReturn
+	): User
 	updateUser(id: ID!, name: String, snapshot: String!, birthDate: DateTime, delay: Int): User!
 	singleUpload(file: File!): String!
 	multipleUpload(files: [File!]!): [String!]!
@@ -31,7 +38,7 @@ type Mutation {
 	addBook(library: ID!, title: String!): Book!
 	deleteCity(city: ID!): City!
 	deleteLibrary(library: ID!): Library!
-	deleteBook(book: ID!): Book!
+	deleteBook(book: ID!, delay: Int, force: ForceReturn): Book
 	updateRentedBook(userId: String!, bookId: Int!, rate: Int!): RentedBook
 }
 
