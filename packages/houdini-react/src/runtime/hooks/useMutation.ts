@@ -1,4 +1,9 @@
-import type { MutationArtifact, GraphQLObject, QueryResult } from '$houdini/runtime/lib/types'
+import type {
+	MutationArtifact,
+	GraphQLObject,
+	QueryResult,
+	GraphQLVariables,
+} from '$houdini/runtime/lib/types'
 
 import { useDocumentStore } from './useDocumentStore'
 
@@ -12,7 +17,7 @@ export type MutationHandler<_Result, _Input, _Optimistic extends GraphQLObject> 
 
 export function useMutation<
 	_Result extends GraphQLObject,
-	_Input extends {},
+	_Input extends GraphQLVariables,
 	_Optimistic extends GraphQLObject
 >({
 	artifact,

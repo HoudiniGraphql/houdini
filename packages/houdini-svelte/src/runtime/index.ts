@@ -1,4 +1,4 @@
-import { QueryStore } from './stores'
+import type { QueryStore } from './stores'
 
 export * from './adapter'
 export * from './stores'

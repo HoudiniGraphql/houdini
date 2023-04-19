@@ -1,4 +1,9 @@
-import type { MutationArtifact, GraphQLObject, QueryResult } from '$houdini/runtime/lib/types'
+import type {
+	MutationArtifact,
+	GraphQLObject,
+	QueryResult,
+	GraphQLVariables,
+} from '$houdini/runtime/lib/types'
 import type { RequestEvent } from '@sveltejs/kit'
 
 import { initClient } from '../client'
@@ -7,7 +12,7 @@ import { fetchParams } from './query'
 
 export class MutationStore<
 	_Data extends GraphQLObject,
-	_Input extends {},
+	_Input extends GraphQLVariables,
 	_Optimistic extends GraphQLObject
 > extends BaseStore<_Data, _Input, MutationArtifact> {
 	kind = 'HoudiniMutation' as const

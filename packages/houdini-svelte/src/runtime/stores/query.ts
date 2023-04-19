@@ -3,6 +3,7 @@ import { getCurrentConfig } from '$houdini/runtime/lib/config'
 import * as log from '$houdini/runtime/lib/log'
 import type {
 	CachePolicies,
+	GraphQLVariables,
 	GraphQLObject,
 	MutationArtifact,
 	QueryArtifact,
@@ -25,11 +26,10 @@ import type {
 } from '../types'
 import { BaseStore } from './base'
 
-export class QueryStore<_Data extends GraphQLObject, _Input extends {}> extends BaseStore<
-	_Data,
-	_Input,
-	QueryArtifact
-> {
+export class QueryStore<
+	_Data extends GraphQLObject,
+	_Input extends GraphQLVariables
+> extends BaseStore<_Data, _Input, QueryArtifact> {
 	// whether the store requires variables for input
 	variables: boolean
 
