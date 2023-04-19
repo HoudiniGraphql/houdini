@@ -15,13 +15,17 @@
     "site": "0.0.1"
   },
   "changesets": [
+    "dirty-hornets-retire",
     "eleven-rules-cheer",
     "gentle-coats-itch",
     "green-camels-walk",
+    "mighty-pugs-matter",
     "mighty-rice-trade",
+    "pink-coins-ring",
     "pink-otters-cheer",
     "popular-rocks-join",
     "rude-socks-doubt",
+    "serious-pumas-explode",
     "twenty-months-cover"
   ]
 }
