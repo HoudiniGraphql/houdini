@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { graphql } from '$houdini';
+  import { graphql, type ForceReturn$options } from '$houdini';
 
   $: query = graphql(`
     query OptimisticUsersList @load {
@@ -10,16 +10,22 @@
   `);
 
   const addUser = graphql(`
-    mutation AddUserOptiList($name: String!, $birthDate: DateTime!) {
-      addUser(name: $name, birthDate: $birthDate, delay: 1000, snapshot: "mutation-opti-list") {
+    mutation AddUserOptiList($name: String!, $birthDate: DateTime!, $force: ForceReturn = NORMAL) {
+      addUser(
+        name: $name
+        birthDate: $birthDate
+        delay: 1000
+        snapshot: "mutation-opti-list"
+        force: $force
+      ) {
         ...OptimisticUsersList_insert
       }
     }
   `);
 
-  async function add() {
+  const add = async (force: ForceReturn$options = 'NORMAL') => {
     await addUser.mutate(
-      { name: 'JYC', birthDate: new Date('1986-11-07') },
+      { name: 'JYC', birthDate: new Date('1986-11-07'), force },
       {
         optimisticResponse: {
           addUser: {
@@ -29,12 +35,14 @@
         }
       }
     );
-  }
+  };
 </script>
 
 <h1>Mutation Opti List</h1>
 
-<button id="mutate" on:click={add}>Add User</button>
+<button id="mutate" on:click={() => add()}>Add User</button>
+<button id="mutate-null" on:click={() => add('NULL')}>Add User (null)</button>
+<button id="mutate-error" on:click={() => add('ERROR')}>Add User (error)</button>
 
 <div id="result">
   {$query.data?.usersList.map((user) => user.name).join(', ')}
