@@ -1,5 +1,4 @@
 import type { StatementKind, TSPropertySignatureKind, TSTypeKind } from 'ast-types/lib/gen/kinds'
-import { FragmentDefinitionNode, OperationDefinitionNode } from 'graphql'
 import * as recast from 'recast'
 
 import {
