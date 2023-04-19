@@ -553,8 +553,23 @@ query SpeciesInfo($id: Int = 1) @loading {
         ...NavButtons_species
     }
 }
-
 ```
+
+You can also use the `cascade` argument to attach `@loading` to a field and all of its children:
+
+```graphql:title=src/routes/[[id]]/+page.gql
+query SpeciesInfo($id: Int = 1) {
+    species(id: $id) @loading {
+        description
+        evolutionChain @loading(cascade: true) {
+            name
+            ...Sprite_species
+        }
+    }
+}
+```
+
+This implicitly marks `name` and `...Sprite_species` with `@loading` as well.
 
 </DeepDive>
 

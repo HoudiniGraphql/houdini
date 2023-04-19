@@ -394,7 +394,7 @@ export function connectionSelection(
 	const nodeSelection = edgesField.selectionSet?.selections.find(
 		(selection) => selection.kind === 'Field' && selection.name.value === 'node'
 	) as graphql.FieldNode
-	if (!nodeSelection.selectionSet) {
+	if (!nodeSelection?.selectionSet) {
 		return { selection, type, connection: false, error: missingNodeSelectionMessage(config) }
 	}
 

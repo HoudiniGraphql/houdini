@@ -1037,6 +1037,34 @@ const table: Row[] = [
 		],
 	},
 	{
+		title: 'floating @loading with global flag',
+		pass: true,
+		documents: [
+			`
+			fragment LoadingDirectiveA on Ghost @loading {
+				friendsConnection {
+					edges {
+						node @loading {
+							name
+						}
+					}
+				}
+			}
+			`,
+			`
+			fragment LoadingDirectiveB on Ghost @loading {
+				friendsConnection {
+					edges {
+						node @loading {
+							name
+						}
+					}
+				}
+			}
+			`,
+		],
+	},
+	{
 		title: '@required may not be used on query arguments',
 		pass: false,
 		documents: [

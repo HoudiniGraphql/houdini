@@ -70,13 +70,13 @@ export type CompiledDocumentKind = ArtifactKinds
 export type QueryArtifact = BaseCompiledDocument<'HoudiniQuery'> & {
 	policy?: CachePolicies
 	partial?: boolean
-	enableLoadingState?: boolean
+	enableLoadingState?: 'global' | 'local'
 }
 
 export type MutationArtifact = BaseCompiledDocument<'HoudiniMutation'>
 
 export type FragmentArtifact = BaseCompiledDocument<'HoudiniFragment'> & {
-	enableLoadingState?: boolean
+	enableLoadingState?: 'global' | 'local'
 }
 
 export type SubscriptionArtifact = BaseCompiledDocument<'HoudiniSubscription'>

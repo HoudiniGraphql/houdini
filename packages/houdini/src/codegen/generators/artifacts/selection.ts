@@ -298,6 +298,11 @@ function prepareSelection({
 				continueConnection = false
 			}
 
+			// look for a loading directive
+			const loadingDirective = field.directives?.find(
+				(d) => d.name.value === config.loadingDirective
+			)
+
 			// only add the field object if there are properties in it
 			if (field.selectionSet) {
 				// if this field was marked for cursor based pagination we need to mark
@@ -305,6 +310,17 @@ function prepareSelection({
 				const connectionState =
 					(paginated && document.refetch?.method === 'cursor') || continueConnection
 
+				let forceLoading = globalLoading
+				if (
+					(
+						loadingDirective?.arguments?.find(
+							(arg) =>
+								arg.name.value === 'cascade' && arg.value.kind === 'BooleanValue'
+						)?.value as graphql.BooleanValueNode
+					)?.value
+				) {
+					forceLoading = true
+				}
 				fieldObj.selection = prepareSelection({
 					config,
 					filepath,
@@ -316,7 +332,8 @@ function prepareSelection({
 					inConnection: connectionState,
 					typeMap,
 					abstractTypes,
-					globalLoading,
+					// the global loading flag could be enabled for our children if there is a @loading with cascade set to true
+					globalLoading: forceLoading,
 				})
 
 				// bubble nullability up
@@ -340,9 +357,6 @@ function prepareSelection({
 
 			// if we have a loading directive present on the field then we need to
 			// encode the correct behavior
-			const loadingDirective = field.directives?.find(
-				(d) => d.name.value === config.loadingDirective
-			)
 			if (globalLoading || loadingDirective) {
 				// the value we assign depends on wether this is the deepest
 				// selection in this branch with @loading

@@ -250,6 +250,7 @@ export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {})
 				dummy: String
 			}
 		`,
+		module: 'esm',
 
 		scalars: {
 			DateTime: {

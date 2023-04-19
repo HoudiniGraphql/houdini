@@ -8,9 +8,7 @@ import { fs, path } from '../../../lib'
 import { testConfig } from '../../../test'
 
 test('generates an index file for the plugin directory', async function () {
-	const config = testConfig({
-		module: 'esm',
-	})
+	const config = testConfig()
 	config.plugins = [
 		{
 			name: 'pluginWithClientPlugin',

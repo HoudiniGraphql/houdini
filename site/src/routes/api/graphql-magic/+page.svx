@@ -89,9 +89,9 @@ A query marked with `@blocking` will always await the fetch.
 
 A query marked with `@blocking_disable` won't block while the fetch resolves when navigating on the client. Keep in mind this will prevent `throwOnError` from capturing the error.
 
-### `@loading(count: Int)`
+### `@loading(count: Int, cascade: Boolean)`
 
-Used to define the shape of your loading state. For more information, please visit [this guide](/guides/loading-states).
+Used to define the shape of your loading state. For more information, please visit [this guide](/guides/loading-states). Setting `cascade` to `true` will implicitly add `@loading` the entire sub-selection under the marked field.
 
 ### `@required`
 

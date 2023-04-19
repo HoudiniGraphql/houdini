@@ -13,7 +13,7 @@ describe('parser tests', () => {
 		// parse the string
 		const result = await parseSvelte(doc)
 
-		expect(result?.script).toMatchInlineSnapshot("console.log('instance')")
+		expect(result?.script).toMatchInlineSnapshot('console.log("instance");')
 	})
 
 	test('happy path - start on first character', async () => {
@@ -23,7 +23,7 @@ describe('parser tests', () => {
 		// parse the string
 		const result = await parseSvelte(doc)
 
-		expect(result?.script).toMatchInlineSnapshot("console.log('module')")
+		expect(result?.script).toMatchInlineSnapshot('console.log("module");')
 	})
 
 	test('single quotes', async () => {
@@ -47,7 +47,11 @@ describe('parser tests', () => {
 		// parse the string
 		const result = await parseSvelte(doc)
 
-		expect(result?.script).toMatchInlineSnapshot('type Foo = { hello: string }')
+		expect(result?.script).toMatchInlineSnapshot(`
+			type Foo = {
+			    hello: string;
+			};
+		`)
 	})
 
 	test('nested script block', async () => {
@@ -77,7 +81,7 @@ describe('parser tests', () => {
 		// parse the string
 		const result = await parseSvelte(doc)
 
-		expect(result?.script).toMatchInlineSnapshot("console.log('script')")
+		expect(result?.script).toMatchInlineSnapshot('console.log("script");')
 	})
 
 	test("logic in script doesn't break things", async () => {
@@ -125,7 +129,7 @@ describe('parser tests', () => {
 		// parse the string
 		const result = await parseSvelte(doc)
 
-		expect(result?.script).toMatchInlineSnapshot("console.log('hello')")
+		expect(result?.script).toMatchInlineSnapshot('console.log("hello");')
 	})
 
 	test('comments', async () => {
@@ -144,7 +148,7 @@ describe('parser tests', () => {
 		// parse the string
 		const result = await parseSvelte(doc)
 
-		expect(result?.script).toMatchInlineSnapshot("console.log('hello')")
+		expect(result?.script).toMatchInlineSnapshot('console.log("hello");')
 	})
 
 	test("else in template doesn't break things", async () => {
@@ -237,7 +241,7 @@ describe('parser tests', () => {
 		// parse the string
 		const result = await parseSvelte(doc)
 
-		expect(result?.script).toMatchInlineSnapshot("console.log('hello')")
+		expect(result?.script).toMatchInlineSnapshot('console.log("hello");')
 	})
 
 	test("styling tag parse errors don't fail (postcss support)", async () => {

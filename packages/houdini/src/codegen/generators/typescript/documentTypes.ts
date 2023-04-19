@@ -38,86 +38,87 @@ export async function generateDocumentTypes(config: Config, docs: Document[]) {
 		// the generated types depend solely on user-provided information
 		// so we need to use the original document that we haven't mutated
 		// as part of the compiler
-		docs.map(
-			async ({
+		docs.map(async (document) => {
+			const {
 				originalParsed: originalDocument,
 				name,
 				filename,
 				generateArtifact: generateArtifact,
 				artifact,
-			}) => {
-				if (!generateArtifact) {
-					return
-				}
+			} = document
 
-				// the place to put the artifact's type definition
-				const typeDefPath = config.artifactTypePath(originalDocument)
+			if (!generateArtifact) {
+				return
+			}
 
-				// build up the program
-				const program = AST.program([])
+			// the place to put the artifact's type definition
+			const typeDefPath = config.artifactTypePath(originalDocument)
 
-				// if we have to define any types along the way, make sure we only do it once
-				const visitedTypes = new Set<string>()
+			// build up the program
+			const program = AST.program([])
 
-				// if there's an operation definition
-				let definition = originalDocument.definitions.find(
-					(def) =>
-						(def.kind === 'OperationDefinition' || def.kind === 'FragmentDefinition') &&
-						def.name?.value === name
-				) as graphql.OperationDefinitionNode | graphql.FragmentDefinitionNode
+			// if we have to define any types along the way, make sure we only do it once
+			const visitedTypes = new Set<string>()
 
-				const selections = flattenSelections({
+			// if there's an operation definition
+			let definition = originalDocument.definitions.find(
+				(def) =>
+					(def.kind === 'OperationDefinition' || def.kind === 'FragmentDefinition') &&
+					def.name?.value === name
+			) as graphql.OperationDefinitionNode | graphql.FragmentDefinitionNode
+
+			const selections = flattenSelections({
+				config,
+				filepath: filename,
+				selections: definition.selectionSet.selections,
+				fragmentDefinitions,
+				keepFragmentSpreadNodes: true,
+			})
+
+			if (definition?.kind === 'OperationDefinition') {
+				// treat it as an operation document
+				await generateOperationTypeDefs(
 					config,
-					filepath: filename,
-					selections: definition.selectionSet.selections,
-					fragmentDefinitions,
-					keepFragmentSpreadNodes: true,
-				})
+					filename,
+					document,
+					program.body,
+					definition,
+					selections,
+					visitedTypes,
+					missingScalars,
+					artifact!
+				)
+			} else {
+				// treat it as a fragment document
+				await generateFragmentTypeDefs(
+					config,
+					filename,
+					program.body,
+					selections,
+					originalDocument.definitions,
+					visitedTypes,
+					missingScalars,
+					document!
+				)
+			}
 
-				if (definition?.kind === 'OperationDefinition') {
-					// treat it as an operation document
-					await generateOperationTypeDefs(
-						config,
-						filename,
-						program.body,
-						definition,
-						selections,
-						visitedTypes,
-						missingScalars,
-						artifact!
-					)
-				} else {
-					// treat it as a fragment document
-					await generateFragmentTypeDefs(
-						config,
-						filename,
-						program.body,
-						selections,
-						originalDocument.definitions,
-						visitedTypes,
-						missingScalars,
-						artifact!
-					)
-				}
-
-				// add the document's artifact as the file's default export
-				program.body.push(
-					// the typescript AST representing a default export in typescript
-					AST.exportNamedDeclaration(
-						AST.tsTypeAliasDeclaration(
-							AST.identifier(`${name}$artifact`),
-							convertToTs(serializeValue(artifact))
-						)
+			// add the document's artifact as the file's default export
+			program.body.push(
+				// the typescript AST representing a default export in typescript
+				AST.exportNamedDeclaration(
+					AST.tsTypeAliasDeclaration(
+						AST.identifier(`${name}$artifact`),
+						convertToTs(serializeValue(artifact))
 					)
 				)
+			)
 
-				// write the file contents
-				const { code } = await printJS(program)
-				await fs.writeFile(typeDefPath, code)
+			// write the file contents
+			const { code } = await printJS(program)
+			await fs.writeFile(typeDefPath, code)
 
-				typePaths.push(typeDefPath)
-			}
-		)
+			typePaths.push(typeDefPath)
+		})
 	)
 
 	// now that we have every type generated, create an index file in the runtime root that exports the types
@@ -253,6 +254,7 @@ function convertToTs(source: ExpressionKind): TSTypeKind {
 async function generateOperationTypeDefs(
 	config: Config,
 	filepath: string,
+	document: Document,
 	body: StatementKind[],
 	definition: graphql.OperationDefinitionNode,
 	selections: readonly graphql.SelectionNode[],
@@ -299,7 +301,7 @@ async function generateOperationTypeDefs(
 			body,
 			base: resultType,
 			config,
-			artifact,
+			document,
 		})
 	}
 
@@ -414,7 +416,7 @@ async function generateFragmentTypeDefs(
 	definitions: readonly graphql.DefinitionNode[],
 	visitedTypes: Set<string>,
 	missingScalars: Set<string>,
-	artifact: DocumentArtifact
+	document: Document
 ) {
 	// every definition will contribute the same thing to the typedefs
 	for (const definition of definitions) {
@@ -500,7 +502,7 @@ async function generateFragmentTypeDefs(
 					AST.identifier(shapeTypeName),
 					withLoadingState({
 						config,
-						artifact,
+						document,
 						body,
 						base: inlineType({
 							config,
