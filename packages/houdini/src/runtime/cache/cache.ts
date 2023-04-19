@@ -713,6 +713,25 @@ class CacheInternal {
 							)
 					}
 
+					// the toggle operation
+					else if (
+						operation.action === 'toggle' &&
+						target instanceof Object &&
+						fieldSelection &&
+						operation.list
+					) {
+						this.cache
+							.list(operation.list, parentID, operation.target === 'all')
+							.when(operation.when)
+							.toggleElement({
+								selection: fieldSelection,
+								data: target,
+								variables,
+								where: operation.position || 'last',
+								layer,
+							})
+					}
+
 					// remove object from list
 					else if (
 						operation.action === 'remove' &&
@@ -737,25 +756,6 @@ class CacheInternal {
 							continue
 						}
 						this.cache.delete(targetID)
-					}
-
-					// the toggle operation
-					else if (
-						operation.action === 'toggle' &&
-						target instanceof Object &&
-						fieldSelection &&
-						operation.list
-					) {
-						this.cache
-							.list(operation.list, parentID, operation.target === 'all')
-							.when(operation.when)
-							.toggleElement({
-								selection: fieldSelection,
-								data: target,
-								variables,
-								where: operation.position || 'last',
-								layer,
-							})
 					}
 				}
 			}
