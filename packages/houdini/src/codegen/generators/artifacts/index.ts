@@ -261,9 +261,12 @@ export default function artifactGenerator(stats: {
 					let globalLoading = false
 					if (['HoudiniFragment', 'HoudiniQuery'].includes(docKind)) {
 						globalLoading = Boolean(
-							(fragments[0] ?? operations[0])?.directives?.find(
+							fragments[0]?.directives?.find(
 								(dir) => dir.name.value === config.loadingDirective
-							)
+							) ??
+								operations[0]?.directives?.find(
+									(dir) => dir.name.value === config.loadingDirective
+								)
 						)
 					}
 
@@ -331,8 +334,10 @@ export default function artifactGenerator(stats: {
 							)
 						)
 
-						if (childFields.some((field) => field.loading)) {
-							;(artifact as QueryArtifact).enableLoadingState = true
+						if (globalLoading || childFields.some((field) => field.loading)) {
+							;(artifact as QueryArtifact).enableLoadingState = globalLoading
+								? 'global'
+								: 'local'
 						}
 					}
 

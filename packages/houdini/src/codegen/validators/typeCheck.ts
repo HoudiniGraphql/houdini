@@ -1137,7 +1137,23 @@ function checkMaskDirectives(config: Config) {
 
 function validateLoadingDirective(config: Config) {
 	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
+		let global = false
+
 		return {
+			enter: {
+				OperationDefinition(node) {
+					// if the operation has the loading mutation its being applied globally
+					if (node.directives?.find((d) => d.name.value === config.loadingDirective)) {
+						global = true
+					}
+				},
+				FragmentDefinition(node) {
+					// if the operation has the loading mutation its being applied globally
+					if (node.directives?.find((d) => d.name.value === config.loadingDirective)) {
+						global = true
+					}
+				},
+			},
 			Field(node, _, __, ___, ancestors) {
 				// we only care about fields with the loading directive
 				const loadingDirective = node.directives?.find(
@@ -1162,7 +1178,7 @@ function validateLoadingDirective(config: Config) {
 					(d) => d.name.value === config.loadingDirective
 				)
 
-				if (!parentLoading) {
+				if (!parentLoading && !global) {
 					ctx.reportError(
 						new graphql.GraphQLError(
 							`@${config.loadingDirective} can only be applied on a field at the root of a document or on one whose parent also has @${config.loadingDirective}`

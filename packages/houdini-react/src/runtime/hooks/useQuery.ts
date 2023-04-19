@@ -1,4 +1,4 @@
-import type { GraphQLObject, QueryArtifact } from '$houdini/runtime/lib/types'
+import type { GraphQLVariables, GraphQLObject, QueryArtifact } from '$houdini/runtime/lib/types'
 
 import type { UseQueryConfig } from './useQueryHandle'
 import { useQueryHandle } from './useQueryHandle'
@@ -6,7 +6,7 @@ import { useQueryHandle } from './useQueryHandle'
 export function useQuery<
 	_Artifact extends QueryArtifact,
 	_Data extends GraphQLObject = GraphQLObject,
-	_Input extends {} = []
+	_Input extends GraphQLVariables = GraphQLVariables
 >(
 	document: { artifact: QueryArtifact },
 	variables: any = null,

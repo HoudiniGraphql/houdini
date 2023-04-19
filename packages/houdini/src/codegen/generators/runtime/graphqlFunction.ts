@@ -76,7 +76,8 @@ export default async function generateGraphqlReturnTypes(config: Config, docs: D
 			break
 		}
 
-		const { code } = await printJS(script, { pretty: true })
+		const { code } = await printJS(script, { reuseWhitespace: false })
+
 		await fs.writeFile(indexPath, code)
 	}
 }

@@ -26,35 +26,37 @@ describe('kit route processor', function () {
 			import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
 			export async function load(context) {
-			  const houdini_context = new RequestContext(context);
-			  const houdiniConfig = getCurrentConfig();
-			  const promises = [];
-			  const inputs = {};
-			  inputs["TestQuery"] = {};
+			    const houdini_context = new RequestContext(context);
+			    const houdiniConfig = getCurrentConfig();
+			    const promises = [];
+			    const inputs = {};
+			    inputs["TestQuery"] = {};
 
-			  promises.push(load_TestQuery({
-			    "variables": inputs["TestQuery"],
-			    "event": context,
-			    "blocking": undefined
-			  }));
+			    promises.push(load_TestQuery({
+			        "variables": inputs["TestQuery"],
+			        "event": context,
+			        "blocking": undefined
+			    }));
 
-			  let result = {};
+			    let result = {};
 
-			  try {
-			    result = Object.assign({}, ...(await Promise.all(promises)));
-			  } catch (err) {
-			    throw err;
-			  }
+			    try {
+			        result = Object.assign({}, ...(await Promise.all(promises)));
+			    } catch (err) {
+			        throw err;
+			    }
 
-			  return {
-			    ...houdini_context.returnValue,
-			    ...result
-			  };
+			    return {
+			        ...houdini_context.returnValue,
+			        ...result
+			    };
 			}
 		`)
 		expect(route.component).toMatchInlineSnapshot(`
 			export let data;
-			$: store = data.TestQuery
+
+			$:
+			store = data.TestQuery;
 		`)
 	})
 
@@ -76,7 +78,9 @@ describe('kit route processor', function () {
 		// make sure we added the right stuff
 		expect(route.component).toMatchInlineSnapshot(`
 			export let data;
-			$: result = data.TestQuery
+
+			$:
+			result = data.TestQuery;
 		`)
 		expect(route.script).toMatchInlineSnapshot(`
 			import { load_TestQuery } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
@@ -85,30 +89,30 @@ describe('kit route processor', function () {
 			import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
 			export async function load(context) {
-			  const houdini_context = new RequestContext(context);
-			  const houdiniConfig = getCurrentConfig();
-			  const promises = [];
-			  const inputs = {};
-			  inputs["TestQuery"] = {};
+			    const houdini_context = new RequestContext(context);
+			    const houdiniConfig = getCurrentConfig();
+			    const promises = [];
+			    const inputs = {};
+			    inputs["TestQuery"] = {};
 
-			  promises.push(load_TestQuery({
-			    "variables": inputs["TestQuery"],
-			    "event": context,
-			    "blocking": undefined
-			  }));
+			    promises.push(load_TestQuery({
+			        "variables": inputs["TestQuery"],
+			        "event": context,
+			        "blocking": undefined
+			    }));
 
-			  let result = {};
+			    let result = {};
 
-			  try {
-			    result = Object.assign({}, ...(await Promise.all(promises)));
-			  } catch (err) {
-			    throw err;
-			  }
+			    try {
+			        result = Object.assign({}, ...(await Promise.all(promises)));
+			    } catch (err) {
+			        throw err;
+			    }
 
-			  return {
-			    ...houdini_context.returnValue,
-			    ...result
-			  };
+			    return {
+			        ...houdini_context.returnValue,
+			        ...result
+			    };
 			}
 		`)
 	})
@@ -131,7 +135,9 @@ describe('kit route processor', function () {
 		// make sure we added the right stuff
 		expect(route.component).toMatchInlineSnapshot(`
 			import { TestQueryStore } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
-			$: result = new TestQueryStore()
+
+			$:
+			result = new TestQueryStore();
 		`)
 		expect(route.script).toMatchInlineSnapshot('')
 	})
@@ -159,9 +165,7 @@ describe('kit route processor', function () {
 		// make sure we added the right stuff
 		expect(route.script).toMatchInlineSnapshot(`
 			import _TestQuery1Artifact from "$houdini/artifacts/TestQuery1";
-			export async function load() {
-
-			}
+			export async function load() {}
 		`)
 	})
 
@@ -190,8 +194,12 @@ describe('kit route processor', function () {
 		// make sure we added the right stuff
 		expect(route.component).toMatchInlineSnapshot(`
 			export let data;
-			$: data1 = data.TestQuery1
-			$: data2 = data.TestQuery2
+
+			$:
+			data1 = data.TestQuery1;
+
+			$:
+			data2 = data.TestQuery2;
 		`)
 		expect(route.script).toMatchInlineSnapshot(`
 			import { load_TestQuery2 } from "$houdini/plugins/houdini-svelte/stores/TestQuery2";
@@ -202,38 +210,38 @@ describe('kit route processor', function () {
 			import _TestQuery1Artifact from "$houdini/artifacts/TestQuery1";
 
 			export async function load(context) {
-			  const houdini_context = new RequestContext(context);
-			  const houdiniConfig = getCurrentConfig();
-			  const promises = [];
-			  const inputs = {};
-			  inputs["TestQuery1"] = {};
+			    const houdini_context = new RequestContext(context);
+			    const houdiniConfig = getCurrentConfig();
+			    const promises = [];
+			    const inputs = {};
+			    inputs["TestQuery1"] = {};
 
-			  promises.push(load_TestQuery1({
-			    "variables": inputs["TestQuery1"],
-			    "event": context,
-			    "blocking": undefined
-			  }));
+			    promises.push(load_TestQuery1({
+			        "variables": inputs["TestQuery1"],
+			        "event": context,
+			        "blocking": undefined
+			    }));
 
-			  inputs["TestQuery2"] = {};
+			    inputs["TestQuery2"] = {};
 
-			  promises.push(load_TestQuery2({
-			    "variables": inputs["TestQuery2"],
-			    "event": context,
-			    "blocking": undefined
-			  }));
+			    promises.push(load_TestQuery2({
+			        "variables": inputs["TestQuery2"],
+			        "event": context,
+			        "blocking": undefined
+			    }));
 
-			  let result = {};
+			    let result = {};
 
-			  try {
-			    result = Object.assign({}, ...(await Promise.all(promises)));
-			  } catch (err) {
-			    throw err;
-			  }
+			    try {
+			        result = Object.assign({}, ...(await Promise.all(promises)));
+			    } catch (err) {
+			        throw err;
+			    }
 
-			  return {
-			    ...houdini_context.returnValue,
-			    ...result
-			  };
+			    return {
+			        ...houdini_context.returnValue,
+			        ...result
+			    };
 			}
 		`)
 	})
@@ -267,10 +275,11 @@ describe('kit route processor', function () {
 			import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
 			import { parseScalar, marshalInputs } from "$houdini/runtime/lib/scalars";
 			import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
+
 			export async function _TestQueryVariables(page) {
 			    return {
 			        test: true
-			    }
+			    };
 			}
 
 			async function __houdini___TestQueryVariables(config, event) {
@@ -338,7 +347,9 @@ describe('kit route processor', function () {
 			import { getCurrentConfig } from "$houdini/runtime/lib/config";
 			import { marshalInputs } from "$houdini/runtime/lib/scalars";
 			const _houdini_TestQuery = new TestQueryStore();
-			$: test = _houdini_TestQuery
+
+			$:
+			test = _houdini_TestQuery;
 
 			$:
 			isBrowser && _houdini_TestQuery.fetch({
@@ -395,7 +406,9 @@ describe('kit route processor', function () {
 
 		expect(route.component).toMatchInlineSnapshot(`
 			export let data;
-			$: result = data.TestQuery
+
+			$:
+			result = data.TestQuery;
 		`)
 		expect(route.script).toMatchInlineSnapshot(`
 			import { MyQuery2Store } from "$houdini/plugins/houdini-svelte/stores/MyQuery2";
@@ -408,15 +421,10 @@ describe('kit route processor', function () {
 			import _MyQuery2Artifact from "$houdini/artifacts/MyQuery2";
 			import { parseScalar, marshalInputs } from "$houdini/runtime/lib/scalars";
 			import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
-			const store1 = new MyQuery1Store()
-
-			const store2 = new MyQuery2Store()
-
-			export function _MyQuery2Variables() {
-
-			}
-
-			export const _houdini_load = [store1, store2]
+			const store1 = new MyQuery1Store();
+			const store2 = new MyQuery2Store();
+			export function _MyQuery2Variables() {}
+			export const _houdini_load = [store1, store2];
 
 			async function __houdini___MyQuery2Variables(config, event) {
 			    const result = {};
@@ -494,30 +502,30 @@ describe('kit route processor', function () {
 			import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
 
 			export async function load(context) {
-			  const houdini_context = new RequestContext(context);
-			  const houdiniConfig = getCurrentConfig();
-			  const promises = [];
-			  const inputs = {};
-			  inputs["TestPageQuery"] = {};
+			    const houdini_context = new RequestContext(context);
+			    const houdiniConfig = getCurrentConfig();
+			    const promises = [];
+			    const inputs = {};
+			    inputs["TestPageQuery"] = {};
 
-			  promises.push(load_TestPageQuery({
-			    "variables": inputs["TestPageQuery"],
-			    "event": context,
-			    "blocking": undefined
-			  }));
+			    promises.push(load_TestPageQuery({
+			        "variables": inputs["TestPageQuery"],
+			        "event": context,
+			        "blocking": undefined
+			    }));
 
-			  let result = {};
+			    let result = {};
 
-			  try {
-			    result = Object.assign({}, ...(await Promise.all(promises)));
-			  } catch (err) {
-			    throw err;
-			  }
+			    try {
+			        result = Object.assign({}, ...(await Promise.all(promises)));
+			    } catch (err) {
+			        throw err;
+			    }
 
-			  return {
-			    ...houdini_context.returnValue,
-			    ...result
-			  };
+			    return {
+			        ...houdini_context.returnValue,
+			        ...result
+			    };
 			}
 		`)
 
@@ -535,12 +543,12 @@ describe('kit route processor', function () {
 
 		expect(route.layout_script).toMatchInlineSnapshot(`
 			export async function load(event) {
-			  const __houdini__vite__plugin__return__value__ = {};
+			    const __houdini__vite__plugin__return__value__ = {};
 
-			  return {
-			    ...event.data,
-			    ...__houdini__vite__plugin__return__value__
-			  };
+			    return {
+			        ...event.data,
+			        ...__houdini__vite__plugin__return__value__
+			    };
 			}
 		`)
 	})
@@ -578,35 +586,35 @@ describe('kit route processor', function () {
 			import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
 
 			export async function load(context) {
-			  const houdini_context = new RequestContext(context);
-			  const houdiniConfig = getCurrentConfig();
-			  const promises = [];
-			  const inputs = {};
-			  inputs["TestLayoutQuery"] = {};
+			    const houdini_context = new RequestContext(context);
+			    const houdiniConfig = getCurrentConfig();
+			    const promises = [];
+			    const inputs = {};
+			    inputs["TestLayoutQuery"] = {};
 
-			  promises.push(load_TestLayoutQuery({
-			    "variables": inputs["TestLayoutQuery"],
-			    "event": context,
-			    "blocking": undefined
-			  }));
+			    promises.push(load_TestLayoutQuery({
+			        "variables": inputs["TestLayoutQuery"],
+			        "event": context,
+			        "blocking": undefined
+			    }));
 
-			  let result = {};
+			    let result = {};
 
-			  try {
-			    result = Object.assign({}, ...(await Promise.all(promises)));
-			  } catch (err) {
-			    throw err;
-			  }
+			    try {
+			        result = Object.assign({}, ...(await Promise.all(promises)));
+			    } catch (err) {
+			        throw err;
+			    }
 
-			  const __houdini__vite__plugin__return__value__ = {
-			    ...houdini_context.returnValue,
-			    ...result
-			  };
+			    const __houdini__vite__plugin__return__value__ = {
+			        ...houdini_context.returnValue,
+			        ...result
+			    };
 
-			  return {
-			    ...context.data,
-			    ...__houdini__vite__plugin__return__value__
-			  };
+			    return {
+			        ...context.data,
+			        ...__houdini__vite__plugin__return__value__
+			    };
 			}
 		`)
 	})
@@ -646,14 +654,15 @@ test('beforeLoad hook', async function () {
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
 		import { parseScalar, marshalInputs } from "$houdini/runtime/lib/scalars";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
-		export async function _houdini_beforeLoad(){
-		    return this.redirect(302, "/test")
+
+		export async function _houdini_beforeLoad() {
+		    return this.redirect(302, "/test");
 		}
 
 		export function _TestQueryVariables(page) {
 		    return {
 		        test: true
-		    }
+		    };
 		}
 
 		async function __houdini___TestQueryVariables(config, event) {
@@ -743,14 +752,15 @@ test('beforeLoad hook - multiple queries', async function () {
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
 		import _TestQuery2Artifact from "$houdini/artifacts/TestQuery2";
 		import _TestQuery1Artifact from "$houdini/artifacts/TestQuery1";
-		export async function _houdini_beforeLoad(){
-		    return this.redirect(302, "/test")
+
+		export async function _houdini_beforeLoad() {
+		    return this.redirect(302, "/test");
 		}
 
 		export function _TestQueryVariables(page) {
 		    return {
 		        test: true
-		    }
+		    };
 		}
 
 		export async function load(context) {
@@ -828,14 +838,15 @@ test('afterLoad hook', async function () {
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
 		import { parseScalar, marshalInputs } from "$houdini/runtime/lib/scalars";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
-		export async function _houdini_afterLoad(){
-		   return this.redirect(302, "/test")
+
+		export async function _houdini_afterLoad() {
+		    return this.redirect(302, "/test");
 		}
 
 		export function _TestQueryVariables(page) {
 		    return {
 		        test: true
-		    }
+		    };
 		}
 
 		async function __houdini___TestQueryVariables(config, event) {
@@ -926,14 +937,15 @@ test('afterLoad hook - multiple queries', async function () {
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
 		import _TestQuery2Artifact from "$houdini/artifacts/TestQuery2";
 		import _TestQuery1Artifact from "$houdini/artifacts/TestQuery1";
-		export async function _houdini_afterLoad(){
-		   return this.redirect(302, "/test")
+
+		export async function _houdini_afterLoad() {
+		    return this.redirect(302, "/test");
 		}
 
 		export function _TestQueryVariables(page) {
 		    return {
 		        test: true
-		    }
+		    };
 		}
 
 		export async function load(context) {
@@ -1016,18 +1028,19 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
 		import { parseScalar, marshalInputs } from "$houdini/runtime/lib/scalars";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
-		export async function _houdini_beforeLoad(){
-		return this.redirect(302, "/test")
+
+		export async function _houdini_beforeLoad() {
+		    return this.redirect(302, "/test");
 		}
 
-		export async function _houdini_afterLoad(){
-		   return this.redirect(302, "/test")
+		export async function _houdini_afterLoad() {
+		    return this.redirect(302, "/test");
 		}
 
 		export function _TestQueryVariables(page) {
 		    return {
 		        test: true
-		    }
+		    };
 		}
 
 		async function __houdini___TestQueryVariables(config, event) {
@@ -1116,15 +1129,10 @@ test('layout loads', async function () {
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
 		import _MyQuery2Artifact from "$houdini/artifacts/MyQuery2";
 		import { parseScalar, marshalInputs } from "$houdini/runtime/lib/scalars";
-		const store1 = new MyQuery1Store()
-
-		const store2 = new MyQuery2Store()
-
-		export function _MyQuery2Variables() {
-
-		}
-
-		export const _houdini_load = [store1, store2]
+		const store1 = new MyQuery1Store();
+		const store2 = new MyQuery2Store();
+		export function _MyQuery2Variables() {}
+		export const _houdini_load = [store1, store2];
 
 		async function __houdini___MyQuery2Variables(config, event) {
 		    const result = {};
@@ -1213,7 +1221,10 @@ test('layout inline query', async function () {
 		import { onMount } from "svelte";
 		import { setClientStarted } from "$houdini/plugins/houdini-svelte/runtime/adapter";
 		export let data;
-		$: result = data.TestQuery
+
+		$:
+		result = data.TestQuery;
+
 		onMount(() => setClientStarted());
 
 		page.subscribe(val => {
@@ -1228,35 +1239,35 @@ test('layout inline query', async function () {
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
 		export async function load(context) {
-		  const houdini_context = new RequestContext(context);
-		  const houdiniConfig = getCurrentConfig();
-		  const promises = [];
-		  const inputs = {};
-		  inputs["TestQuery"] = {};
+		    const houdini_context = new RequestContext(context);
+		    const houdiniConfig = getCurrentConfig();
+		    const promises = [];
+		    const inputs = {};
+		    inputs["TestQuery"] = {};
 
-		  promises.push(load_TestQuery({
-		    "variables": inputs["TestQuery"],
-		    "event": context,
-		    "blocking": undefined
-		  }));
+		    promises.push(load_TestQuery({
+		        "variables": inputs["TestQuery"],
+		        "event": context,
+		        "blocking": undefined
+		    }));
 
-		  let result = {};
+		    let result = {};
 
-		  try {
-		    result = Object.assign({}, ...(await Promise.all(promises)));
-		  } catch (err) {
-		    throw err;
-		  }
+		    try {
+		        result = Object.assign({}, ...(await Promise.all(promises)));
+		    } catch (err) {
+		        throw err;
+		    }
 
-		  const __houdini__vite__plugin__return__value__ = {
-		    ...houdini_context.returnValue,
-		    ...result
-		  };
+		    const __houdini__vite__plugin__return__value__ = {
+		        ...houdini_context.returnValue,
+		        ...result
+		    };
 
-		  return {
-		    ...context.data,
-		    ...__houdini__vite__plugin__return__value__
-		  };
+		    return {
+		        ...context.data,
+		        ...__houdini__vite__plugin__return__value__
+		    };
 		}
 	`)
 })
@@ -1278,7 +1289,9 @@ test('inline function query', async function () {
 
 	expect(route.component).toMatchInlineSnapshot(`
 		export let data;
-		$: result = data.TestQuery
+
+		$:
+		result = data.TestQuery;
 	`)
 
 	expect(route.script).toMatchInlineSnapshot(`
@@ -1288,30 +1301,30 @@ test('inline function query', async function () {
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
 		export async function load(context) {
-		  const houdini_context = new RequestContext(context);
-		  const houdiniConfig = getCurrentConfig();
-		  const promises = [];
-		  const inputs = {};
-		  inputs["TestQuery"] = {};
+		    const houdini_context = new RequestContext(context);
+		    const houdiniConfig = getCurrentConfig();
+		    const promises = [];
+		    const inputs = {};
+		    inputs["TestQuery"] = {};
 
-		  promises.push(load_TestQuery({
-		    "variables": inputs["TestQuery"],
-		    "event": context,
-		    "blocking": undefined
-		  }));
+		    promises.push(load_TestQuery({
+		        "variables": inputs["TestQuery"],
+		        "event": context,
+		        "blocking": undefined
+		    }));
 
-		  let result = {};
+		    let result = {};
 
-		  try {
-		    result = Object.assign({}, ...(await Promise.all(promises)));
-		  } catch (err) {
-		    throw err;
-		  }
+		    try {
+		        result = Object.assign({}, ...(await Promise.all(promises)));
+		    } catch (err) {
+		        throw err;
+		    }
 
-		  return {
-		    ...houdini_context.returnValue,
-		    ...result
-		  };
+		    return {
+		        ...houdini_context.returnValue,
+		        ...result
+		    };
 		}
 	`)
 })
@@ -1348,14 +1361,15 @@ test('onError hook', async function () {
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
 		import { parseScalar, marshalInputs } from "$houdini/runtime/lib/scalars";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
-		export async function _houdini_onError(){
-		   return this.redirect(302, "/test")
+
+		export async function _houdini_onError() {
+		    return this.redirect(302, "/test");
 		}
 
 		export function _TestQueryVariables(page) {
 		    return {
 		        test: true
-		    }
+		    };
 		}
 
 		async function __houdini___TestQueryVariables(config, event) {
@@ -1424,7 +1438,7 @@ test('route params, no variable function', async function () {
 		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
 		import { parseScalar, marshalInputs } from "$houdini/runtime/lib/scalars";
-		export const _houdini_load = new UserInfoStore()
+		export const _houdini_load = new UserInfoStore();
 
 		async function __houdini___UserInfoVariables(config, event) {
 		    const result = {
@@ -1490,12 +1504,12 @@ test('route params with variable function', async function () {
 		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
 		import _UserInfoArtifact from "$houdini/artifacts/UserInfo";
 		import { parseScalar, marshalInputs } from "$houdini/runtime/lib/scalars";
-		export const _houdini_load = new UserInfoStore()
+		export const _houdini_load = new UserInfoStore();
 
 		export function _UserInfoVariables(event) {
 		    return {
-		        userID: '1'
-		    }
+		        userID: "1"
+		    };
 		}
 
 		async function __houdini___UserInfoVariables(config, event) {
@@ -1567,6 +1581,8 @@ test('existing loads with parens', async function () {
 		import _TestQuery1Artifact from "$houdini/artifacts/TestQuery1";
 		import type { LayoutServerLoad } from "./$types";
 
-		export const load = (() => ({ test: "Hello" })) satisfies LayoutServerLoad;
+		export const load = (() => ({
+		    test: "Hello"
+		})) satisfies LayoutServerLoad;
 	`)
 })

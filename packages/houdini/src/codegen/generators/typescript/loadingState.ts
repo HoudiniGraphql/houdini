@@ -1,9 +1,10 @@
 import type { StatementKind, TSPropertySignatureKind, TSTypeKind } from 'ast-types/lib/gen/kinds'
+import { FragmentDefinitionNode, OperationDefinitionNode } from 'graphql'
 import * as recast from 'recast'
 
 import {
 	type Config,
-	type DocumentArtifact,
+	type Document,
 	ensureImports,
 	type SubscriptionSelection,
 	fragmentKey,
@@ -20,12 +21,15 @@ const AST = recast.types.builders
 
 export function withLoadingState(args: {
 	config: Config
-	artifact: DocumentArtifact
+	document: Document
 	base: TSTypeKind
 	body: StatementKind[]
 }): TSTypeKind {
 	// if the artifact does not have a loading state then we don't need to do anything
-	if (!('enableLoadingState' in args.artifact) || !args.artifact.enableLoadingState) {
+	if (
+		!('enableLoadingState' in args.document.artifact!) ||
+		!args.document.artifact!.enableLoadingState
+	) {
 		return args.base
 	}
 
@@ -33,10 +37,11 @@ export function withLoadingState(args: {
 	return AST.tsUnionType([
 		args.base,
 		loadingState({
-			parentType: args.artifact.rootType,
+			parentType: args.document.artifact!.rootType,
 			config: args.config,
-			selection: args.artifact.selection,
+			selection: args.document.artifact!.selection,
 			body: args.body,
+			global: args.document.artifact!.enableLoadingState === 'global',
 		}),
 	])
 }
@@ -48,6 +53,7 @@ function loadingState(args: {
 	selection: SubscriptionSelection
 	parentType: string
 	body: StatementKind[]
+	global: boolean
 }): TSTypeKind {
 	// we need to figure out the selection for the type
 	const selection = getFieldsForType(args.selection, args.parentType, true)
@@ -81,6 +87,7 @@ function loadingState(args: {
 						selection: value.selection,
 						parentType: value.type,
 						body: args.body,
+						global: args.global,
 					})
 				}
 

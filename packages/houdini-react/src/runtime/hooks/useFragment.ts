@@ -1,7 +1,7 @@
 import cache from '$houdini/runtime/cache'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import { fragmentKey } from '$houdini/runtime/lib/types'
-import type { GraphQLObject, FragmentArtifact } from '$houdini/runtime/lib/types'
+import type { GraphQLObject, GraphQLVariables, FragmentArtifact } from '$houdini/runtime/lib/types'
 import * as React from 'react'
 
 import { useDeepCompareMemoize } from './useDeepCompareEffect'
@@ -10,7 +10,7 @@ import { useDocumentSubscription } from './useDocumentSubscription'
 export function useFragment<
 	_Data extends GraphQLObject,
 	_ReferenceType extends {},
-	_Input extends {} = {}
+	_Input extends GraphQLVariables = GraphQLVariables
 >(
 	reference: _Data | { [fragmentKey]: _ReferenceType } | null,
 	document: { artifact: FragmentArtifact }

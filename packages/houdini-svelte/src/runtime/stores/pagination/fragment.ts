@@ -10,6 +10,7 @@ import type {
 	QueryArtifact,
 	PageInfo,
 	CursorHandlers,
+	GraphQLVariables,
 } from '$houdini/runtime/lib/types'
 import { CompiledFragmentKind } from '$houdini/runtime/lib/types'
 import type { Readable, Subscriber } from 'svelte/store'
@@ -76,11 +77,11 @@ class BasePaginatedFragmentStore<_Data extends GraphQLObject, _Input> {
 // both cursor paginated stores add a page info to their subscribe
 export class FragmentStoreCursor<
 	_Data extends GraphQLObject,
-	_Input extends Record<string, any>
+	_Input extends GraphQLVariables
 > extends BasePaginatedFragmentStore<_Data, _Input> {
 	// we want to add the cursor-based fetch to the return value of get
 	get(initialValue: _Data | null) {
-		const base = new FragmentStore<_Data, _Input>({
+		const base = new FragmentStore<_Data, {}, _Input>({
 			artifact: this.artifact,
 			storeName: this.name,
 		})
@@ -97,7 +98,7 @@ export class FragmentStoreCursor<
 			initialValue,
 			() => get(store),
 			// the variables that are needed for this query are the store's values and the ids
-			() => store.variables as _Input
+			() => store.variables as NonNullable<_Input>
 		)
 
 		const subscribe = (
@@ -134,7 +135,7 @@ export class FragmentStoreCursor<
 		observer: DocumentStore<_Data, _Input>,
 		initialValue: _Data | null,
 		getState: () => _Data | null,
-		getVariables: () => _Input
+		getVariables: () => NonNullable<_Input>
 	): CursorHandlers<_Data, _Input> {
 		return cursorHandlers<_Data, _Input>({
 			getState,
@@ -178,10 +179,10 @@ export class FragmentStoreCursor<
 
 export class FragmentStoreOffset<
 	_Data extends GraphQLObject,
-	_Input extends Record<string, any>
+	_Input extends GraphQLVariables
 > extends BasePaginatedFragmentStore<_Data, _Input> {
 	get(initialValue: _Data | null): OffsetFragmentStoreInstance<_Data, _Input> {
-		const base = new FragmentStore<_Data, _Input>({
+		const base = new FragmentStore<_Data, {}, _Input>({
 			artifact: this.artifact,
 			storeName: this.name,
 		})

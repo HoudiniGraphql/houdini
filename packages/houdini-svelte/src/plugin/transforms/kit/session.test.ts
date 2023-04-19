@@ -18,11 +18,11 @@ test('modifies root +layout.svelte with data prop', async function () {
 		import { extractSession, setClientSession } from "$houdini/plugins/houdini-svelte/runtime/session";
 		import { onMount } from "svelte";
 		import { setClientStarted } from "$houdini/plugins/houdini-svelte/runtime/adapter";
-		export let data
+		export let data;
 		onMount(() => setClientStarted());
 
 		page.subscribe(val => {
-		                setClientSession(extractSession(val.data));
+		    setClientSession(extractSession(val.data));
 		});
 	`)
 })
@@ -51,12 +51,12 @@ test('adds load to +layout.server.js', async function () {
 		import { buildSessionObject } from "$houdini/plugins/houdini-svelte/runtime/session";
 
 		export async function load(event) {
-		  const __houdini__vite__plugin__return__value__ = {};
+		    const __houdini__vite__plugin__return__value__ = {};
 
-		  return {
-		    ...buildSessionObject(event),
-		    ...__houdini__vite__plugin__return__value__
-		  };
+		    return {
+		        ...buildSessionObject(event),
+		        ...__houdini__vite__plugin__return__value__
+		    };
 		}
 	`)
 })
@@ -77,10 +77,11 @@ test('modifies existing load +layout.server.js', async function () {
 
 	expect(result).toMatchInlineSnapshot(`
 		import { buildSessionObject } from "$houdini/plugins/houdini-svelte/runtime/session";
+
 		export async function load(event) {
 		    "some random stuff that's valid javascript";
 		    const __houdini__vite__plugin__return__value__ = {
-		        hello: "world",
+		        hello: "world"
 		    };
 
 		    return {
@@ -103,6 +104,7 @@ test('modifies existing load +layout.server.js - no return', async function () {
 
 	expect(result).toMatchInlineSnapshot(`
 		import { buildSessionObject } from "$houdini/plugins/houdini-svelte/runtime/session";
+
 		export async function load(event) {
 		    "some random stuff that's valid javascript";
 		    const __houdini__vite__plugin__return__value__ = {};
@@ -130,14 +132,14 @@ test('modifies existing load +layout.server.js - satisfies operator', async func
 		import type { LayoutServerLoad } from "./$types";
 
 		export const load = (event => {
-		            const __houdini__vite__plugin__return__value__ = ({
-		                        test: "Hello"
-		            });
+		    const __houdini__vite__plugin__return__value__ = ({
+		        test: "Hello"
+		    });
 
-		            return {
-		                        ...buildSessionObject(event),
-		                        ...__houdini__vite__plugin__return__value__
-		            };
+		    return {
+		        ...buildSessionObject(event),
+		        ...__houdini__vite__plugin__return__value__
+		    };
 		}) satisfies LayoutServerLoad;
 	`)
 })
@@ -157,12 +159,18 @@ test('modifies existing load +layout.server.js - rest params', async function ()
 
 	expect(result).toMatchInlineSnapshot(`
 		import { buildSessionObject } from "$houdini/plugins/houdini-svelte/runtime/session";
+
 		export async function load(event) {
-		    let { foo, bar, ...baz } = event;
-		    console.log(foo)
+		    let {
+		        foo,
+		        bar,
+		        ...baz
+		    } = event;
+
+		    console.log(foo);
 
 		    const __houdini__vite__plugin__return__value__ = {
-		        some: 'value'
+		        some: "value"
 		    };
 
 		    return {
@@ -188,19 +196,25 @@ test('modifies existing load +layout.server.js - const arrow function', async fu
 
 	expect(result).toMatchInlineSnapshot(`
 		import { buildSessionObject } from "$houdini/plugins/houdini-svelte/runtime/session";
+
 		export const load = event => {
-		    let { foo, bar, ...baz } = event;
-		    console.log(foo)
+		    let {
+		        foo,
+		        bar,
+		        ...baz
+		    } = event;
+
+		    console.log(foo);
 
 		    const __houdini__vite__plugin__return__value__ = {
-		        some: 'value'
+		        some: "value"
 		    };
 
 		    return {
 		        ...buildSessionObject(event),
 		        ...__houdini__vite__plugin__return__value__
 		    };
-		}
+		};
 	`)
 })
 
@@ -219,19 +233,25 @@ test('modifies existing load +layout.server.js - const function', async function
 
 	expect(result).toMatchInlineSnapshot(`
 		import { buildSessionObject } from "$houdini/plugins/houdini-svelte/runtime/session";
+
 		export const load = function(event) {
-		    let { foo, bar, ...baz } = event;
-		    console.log(foo)
+		    let {
+		        foo,
+		        bar,
+		        ...baz
+		    } = event;
+
+		    console.log(foo);
 
 		    const __houdini__vite__plugin__return__value__ = {
-		        some: 'value'
+		        some: "value"
 		    };
 
 		    return {
 		        ...buildSessionObject(event),
 		        ...__houdini__vite__plugin__return__value__
 		    };
-		}
+		};
 	`)
 })
 
@@ -245,16 +265,17 @@ test('modifies existing load +layout.server.js - implicit return', async functio
 
 	expect(result).toMatchInlineSnapshot(`
 		import { buildSessionObject } from "$houdini/plugins/houdini-svelte/runtime/session";
-		export const load = event => {
-		            const __houdini__vite__plugin__return__value__ = ({
-		                        hello: 'world'
-		            });
 
-		            return {
-		                        ...buildSessionObject(event),
-		                        ...__houdini__vite__plugin__return__value__
-		            };
-		}
+		export const load = event => {
+		    const __houdini__vite__plugin__return__value__ = ({
+		        hello: "world"
+		    });
+
+		    return {
+		        ...buildSessionObject(event),
+		        ...__houdini__vite__plugin__return__value__
+		    };
+		};
 	`)
 })
 
@@ -263,12 +284,12 @@ test('passes session from root client-side layout', async function () {
 
 	expect(result).toMatchInlineSnapshot(`
 		export async function load(event) {
-		  const __houdini__vite__plugin__return__value__ = {};
+		    const __houdini__vite__plugin__return__value__ = {};
 
-		  return {
-		    ...event.data,
-		    ...__houdini__vite__plugin__return__value__
-		  };
+		    return {
+		        ...event.data,
+		        ...__houdini__vite__plugin__return__value__
+		    };
 		}
 	`)
 })

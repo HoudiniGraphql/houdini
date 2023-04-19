@@ -776,7 +776,7 @@ class CacheInternal {
 	}: {
 		selection: SubscriptionSelection
 		parent?: string
-		variables?: {}
+		variables?: {} | null
 		stepsFromConnection?: number | null
 		ignoreMasking?: boolean
 		loading?: boolean
@@ -1102,7 +1102,7 @@ class CacheInternal {
 		loading,
 	}: {
 		fields: SubscriptionSelection
-		variables?: {}
+		variables?: {} | null
 		linkedList: NestedList
 		stepsFromConnection: number | null
 		ignoreMasking: boolean

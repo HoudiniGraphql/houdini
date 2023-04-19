@@ -170,7 +170,7 @@ test('@loading on fragment - happy path', async function () {
 		        };
 		    };
 		    "pluginData": {};
-		    "enableLoadingState": true;
+		    "enableLoadingState": "local";
 		};
 	`)
 })
@@ -340,7 +340,7 @@ test('@loading on query - happy path', async function () {
 		        };
 		    };
 		    "pluginData": {};
-		    "enableLoadingState": true;
+		    "enableLoadingState": "local";
 		    "policy": "CacheOrNetwork";
 		    "partial": false;
 		};
@@ -427,7 +427,7 @@ test('@loading on list', async function () {
 		        };
 		    };
 		    "pluginData": {};
-		    "enableLoadingState": true;
+		    "enableLoadingState": "local";
 		    "policy": "CacheOrNetwork";
 		    "partial": false;
 		};
@@ -546,7 +546,134 @@ test('generated types include fragment loading state', async function () {
 		        };
 		    };
 		    "pluginData": {};
-		    "enableLoadingState": true;
+		    "enableLoadingState": "local";
+		    "policy": "CacheOrNetwork";
+		    "partial": false;
+		};
+	`)
+})
+
+test('global @loading on fragment', async function () {
+	const docs = [
+		mockCollectedDoc(`
+			query UserQuery @loading {
+				users {
+					...UserBase 
+				}
+			}
+		`),
+		mockCollectedDoc(`
+			fragment UserBase on User {
+				firstName
+			}
+		`),
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
+
+	// look up the files in the artifact directory
+	const queryContents = await fs.readFile(config.artifactTypePath(docs[0].document))
+
+	expect(
+		recast.parse(queryContents!, {
+			parser: typeScriptParser,
+		})
+	).toMatchInlineSnapshot(`
+		import { LoadingType } from "$houdini/runtime/lib/types";
+
+		export type UserQuery = {
+		    readonly "input": UserQuery$input;
+		    readonly "result": UserQuery$result | undefined;
+		};
+
+		export type UserQuery$result = {
+		    readonly users: ({
+		        readonly " $fragments": {
+		            UserBase: {};
+		        };
+		    })[];
+		} | {
+		    readonly users: {
+		        readonly firstName: LoadingType;
+		        readonly id: LoadingType;
+		        readonly __typename: LoadingType;
+		        readonly " $fragments": {
+		            UserBase: {};
+		        };
+		    }[];
+		};
+
+		export type UserQuery$input = null;
+
+		export type UserQuery$artifact = {
+		    "name": "UserQuery";
+		    "kind": "HoudiniQuery";
+		    "hash": "4284db1bb3496493232d8c5cce722f3ff87845a633ea2e6a01791f130da715b7";
+		    "raw": \`query UserQuery {
+		  users {
+		    ...UserBase
+		    id
+		  }
+		}
+
+		fragment UserBase on User {
+		  firstName
+		  id
+		  __typename
+		}
+		\`;
+		    "rootType": "Query";
+		    "selection": {
+		        "fields": {
+		            "users": {
+		                "type": "User";
+		                "keyRaw": "users";
+		                "selection": {
+		                    "fields": {
+		                        "firstName": {
+		                            "type": "String";
+		                            "keyRaw": "firstName";
+		                            "loading": {
+		                                "kind": "value";
+		                            };
+		                        };
+		                        "id": {
+		                            "type": "ID";
+		                            "keyRaw": "id";
+		                            "visible": true;
+		                            "loading": {
+		                                "kind": "value";
+		                            };
+		                        };
+		                        "__typename": {
+		                            "type": "String";
+		                            "keyRaw": "__typename";
+		                            "loading": {
+		                                "kind": "value";
+		                            };
+		                        };
+		                    };
+		                    "fragments": {
+		                        "UserBase": {
+		                            "arguments": {};
+		                            "loading": true;
+		                        };
+		                    };
+		                };
+		                "loading": {
+		                    "kind": "continue";
+		                    "list": {
+		                        "depth": 1;
+		                        "count": 3;
+		                    };
+		                };
+		                "visible": true;
+		            };
+		        };
+		    };
+		    "pluginData": {};
+		    "enableLoadingState": "global";
 		    "policy": "CacheOrNetwork";
 		    "partial": false;
 		};

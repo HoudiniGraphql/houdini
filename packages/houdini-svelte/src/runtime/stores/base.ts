@@ -1,5 +1,10 @@
 import { DocumentStore, type ObserveParams } from '$houdini/runtime/client'
-import type { GraphQLObject, DocumentArtifact, QueryResult } from '$houdini/runtime/lib/types'
+import type {
+	GraphQLObject,
+	DocumentArtifact,
+	QueryResult,
+	GraphQLVariables,
+} from '$houdini/runtime/lib/types'
 import { get } from 'svelte/store'
 import type { Readable } from 'svelte/store'
 
@@ -8,7 +13,7 @@ import { getClient, initClient } from '../client'
 
 export class BaseStore<
 	_Data extends GraphQLObject,
-	_Input extends {},
+	_Input extends GraphQLVariables,
 	_Artifact extends DocumentArtifact = DocumentArtifact
 > {
 	// the underlying data

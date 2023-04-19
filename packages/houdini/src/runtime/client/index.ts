@@ -1,6 +1,6 @@
 /// <reference path="../../../../../houdini.d.ts" />
 import { flatten } from '../lib/flatten'
-import type { DocumentArtifact, GraphQLObject, NestedList } from '../lib/types'
+import type { DocumentArtifact, GraphQLVariables, GraphQLObject, NestedList } from '../lib/types'
 import type { ClientHooks, ClientPlugin } from './documentStore'
 import { DocumentStore } from './documentStore'
 import type { FetchParamFn, ThrowOnErrorOperations, ThrowOnErrorParams } from './plugins'
@@ -94,7 +94,7 @@ export class HoudiniClient {
 		this.url = url
 	}
 
-	observe<_Data extends GraphQLObject, _Input extends Record<string, any>>({
+	observe<_Data extends GraphQLObject, _Input extends GraphQLVariables>({
 		artifact,
 		cache = true,
 		initialValue,

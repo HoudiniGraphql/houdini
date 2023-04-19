@@ -18,7 +18,7 @@ test('modifies root +layout.svelte to import adapter', async function () {
 		import { extractSession, setClientSession } from "$houdini/plugins/houdini-svelte/runtime/session";
 		import { onMount } from "svelte";
 		import { setClientStarted } from "$houdini/plugins/houdini-svelte/runtime/adapter";
-		export let data
+		export let data;
 		onMount(() => setClientStarted());
 
 		page.subscribe(val => {

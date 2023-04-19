@@ -12,6 +12,7 @@ import type {
 	QueryArtifact,
 	SubscriptionSpec,
 	CachePolicies,
+	GraphQLVariables,
 } from '../lib/types'
 import { ArtifactKind } from '../lib/types'
 import { cachePolicy } from './plugins'
@@ -24,7 +25,7 @@ const steps = {
 
 export class DocumentStore<
 	_Data extends GraphQLObject,
-	_Input extends Record<string, any>
+	_Input extends GraphQLVariables
 > extends Writable<QueryResult<_Data, _Input>> {
 	#artifact: DocumentArtifact
 	#client: HoudiniClient | null
@@ -513,13 +514,13 @@ class ClientPluginContextWrapper {
 	}
 }
 
-function marshalVariables<_Data extends GraphQLObject, _Input extends {}>(
+function marshalVariables<_Data extends GraphQLObject, _Input extends GraphQLVariables>(
 	ctx: ClientPluginContext
 ) {
 	return ctx.stuff.inputs?.marshaled ?? {}
 }
 
-function variablesChanged<_Data extends GraphQLObject, _Input extends {}>(
+function variablesChanged<_Data extends GraphQLObject, _Input extends GraphQLVariables>(
 	ctx: ClientPluginContext
 ) {
 	return ctx.stuff.inputs?.changed

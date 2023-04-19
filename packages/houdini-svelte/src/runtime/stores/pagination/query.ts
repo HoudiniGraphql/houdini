@@ -7,6 +7,7 @@ import type {
 	CursorHandlers,
 	OffsetHandlers,
 	PageInfo,
+	GraphQLVariables,
 } from '$houdini/runtime/lib/types'
 import { get, derived } from 'svelte/store'
 import type { Subscriber } from 'svelte/store'
@@ -22,16 +23,16 @@ import type {
 import type { StoreConfig } from '../query'
 import { QueryStore } from '../query'
 
-export type CursorStoreResult<_Data extends GraphQLObject, _Input extends {}> = QueryResult<
-	_Data,
-	_Input
-> & { pageInfo: PageInfo }
+export type CursorStoreResult<
+	_Data extends GraphQLObject,
+	_Input extends GraphQLVariables
+> = QueryResult<_Data, _Input> & { pageInfo: PageInfo }
 
 // both cursor paginated stores add a page info to their subscribe
-export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> extends QueryStore<
-	_Data,
-	_Input
-> {
+export class QueryStoreCursor<
+	_Data extends GraphQLObject,
+	_Input extends GraphQLVariables
+> extends QueryStore<_Data, _Input> {
 	// all paginated stores need to have a flag to distinguish from other query stores
 	paginated = true
 
@@ -111,10 +112,10 @@ export class QueryStoreCursor<_Data extends GraphQLObject, _Input extends {}> ex
 	}
 }
 
-export class QueryStoreOffset<_Data extends GraphQLObject, _Input extends {}> extends QueryStore<
-	_Data,
-	_Input
-> {
+export class QueryStoreOffset<
+	_Data extends GraphQLObject,
+	_Input extends GraphQLVariables
+> extends QueryStore<_Data, _Input> {
 	// all paginated stores need to have a flag to distinguish from other query stores
 	paginated = true
 
