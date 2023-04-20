@@ -1154,6 +1154,38 @@ function validateLoadingDirective(config: Config) {
 					}
 				},
 			},
+			FragmentSpread(node, _, __, ___, ancestors) {
+				// we only care about fields with the loading directive
+				const loadingDirective = node.directives?.find(
+					(d) => d.name.value === config.loadingDirective
+				)
+				if (!loadingDirective) {
+					return
+				}
+
+				const parent = parentField(ancestors)
+
+				// if the parent is a definition of some kind, we're okay
+				if (
+					!parent ||
+					['OperationDefinition', 'FragmentDefinition'].includes(parent.kind)
+				) {
+					return
+				}
+
+				// the loading directive is considered valid if the parent _has_ the directive applied
+				const parentLoading = parent.directives?.find(
+					(d) => d.name.value === config.loadingDirective
+				)
+
+				if (!parentLoading && !global) {
+					ctx.reportError(
+						new graphql.GraphQLError(
+							`@${config.loadingDirective} can only be applied on a field at the root of a document or on one whose parent also has @${config.loadingDirective}`
+						)
+					)
+				}
+			},
 			Field(node, _, __, ___, ancestors) {
 				// we only care about fields with the loading directive
 				const loadingDirective = node.directives?.find(

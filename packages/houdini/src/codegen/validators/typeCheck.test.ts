@@ -1114,6 +1114,31 @@ const table: Row[] = [
 		],
 	},
 	{
+		title: '@loading floating on fragment spread',
+		pass: false,
+		documents: [
+			`
+			fragment UserInfo on User {
+				id
+			}
+			`,
+			`
+			query A {
+				entity  {
+					...UserInfo @loading
+				}
+			}
+			`,
+			`
+			query B {
+				entity  {
+					...UserInfo @loading
+				}
+			}
+			`,
+		],
+	},
+	{
 		title: '@loading must fall on inline fragment',
 		pass: false,
 		documents: [
