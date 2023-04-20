@@ -61,6 +61,11 @@ let cities = [
 	},
 ]
 
+let monkeys = [
+	{ id: '1', name: 'Terk', hasBanana: true, __typename: 'Monkey' },
+	{ id: '2', name: 'King Louie', hasBanana: false, __typename: 'Monkey' },
+]
+
 // example data
 const dataUsers = [
 	{ id: '1', name: 'Bruce Willis', birthDate: new Date(1955, 2, 19) },
@@ -212,13 +217,11 @@ export const resolvers = {
 			return cities.find((c) => c.id.toString() === id)
 		},
 		monkeys(_, args) {
-			return connectionFromArray(
-				[
-					{ id: '1', name: 'Terk', hasBanana: true, __typename: 'Monkey' },
-					{ id: '2', name: 'King Louie', hasBanana: false, __typename: 'Monkey' },
-				],
-				args
-			)
+			return connectionFromArray(monkeys, args)
+		},
+		monkey(_, { id }) {
+			console.log('in monkey resolver')
+			return monkeys.find((m) => m.id.toString() === id)
 		},
 	},
 	Subscription: {
