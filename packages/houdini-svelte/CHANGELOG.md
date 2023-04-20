@@ -2,34 +2,6 @@
 
 ## 1.2.0
 
-### Minor Changes
-
--   [#987](https://github.com/HoudiniGraphql/houdini/pull/987) [`7d624fe`](https://github.com/HoudiniGraphql/houdini/commit/7d624fec9417152ec2560b36efbcc21bd694e378) Thanks [@tadeokondrak](https://github.com/tadeokondrak)! - Add @required directive to force nullable fields to bubble up
-
-### Patch Changes
-
--   [#1050](https://github.com/HoudiniGraphql/houdini/pull/1050) [`8e8b214`](https://github.com/HoudiniGraphql/houdini/commit/8e8b2148973f0f36a726bc5a79e5107ce79123c6) Thanks [@devunt](https://github.com/devunt)! - Centralize JS code parsing/printing mechanism into core
-
--   [#1053](https://github.com/HoudiniGraphql/houdini/pull/1053) [`5961ffe`](https://github.com/HoudiniGraphql/houdini/commit/5961ffedf135a7201beea777d8d3d4415a9ca37e) Thanks [@knd775](https://github.com/knd775)! - Fix duplicate virtual `+layout.js` files
-
--   [#1057](https://github.com/HoudiniGraphql/houdini/pull/1057) [`361e2b5`](https://github.com/HoudiniGraphql/houdini/commit/361e2b5a5b36b9db42f75486e0fedf39a778432c) Thanks [@devunt](https://github.com/devunt)! - Improved typings
-
--   [#1048](https://github.com/HoudiniGraphql/houdini/pull/1048) [`184ddbd`](https://github.com/HoudiniGraphql/houdini/commit/184ddbdf0e82da56b479c5009f105f04fd6ac00e) Thanks [@mpellegrini](https://github.com/mpellegrini)! - Include explicit types export conditions in package.json exports
-
--   Updated dependencies [[`635ba76`](https://github.com/HoudiniGraphql/houdini/commit/635ba76ef24f7d122315adce74cb94257bd59d68), [`46eb9c1`](https://github.com/HoudiniGraphql/houdini/commit/46eb9c110842ac3db5d3319a2cef4f1365bfa008), [`31e8f6d`](https://github.com/HoudiniGraphql/houdini/commit/31e8f6d8072ebc7e30921b9cc811b5b568f03017), [`d92bfc0`](https://github.com/HoudiniGraphql/houdini/commit/d92bfc02e8419914d6c347714d08b0251f6081e9), [`8e8b214`](https://github.com/HoudiniGraphql/houdini/commit/8e8b2148973f0f36a726bc5a79e5107ce79123c6), [`46eb9c1`](https://github.com/HoudiniGraphql/houdini/commit/46eb9c110842ac3db5d3319a2cef4f1365bfa008), [`361e2b5`](https://github.com/HoudiniGraphql/houdini/commit/361e2b5a5b36b9db42f75486e0fedf39a778432c), [`7d624fe`](https://github.com/HoudiniGraphql/houdini/commit/7d624fec9417152ec2560b36efbcc21bd694e378), [`184ddbd`](https://github.com/HoudiniGraphql/houdini/commit/184ddbdf0e82da56b479c5009f105f04fd6ac00e), [`46eb9c1`](https://github.com/HoudiniGraphql/houdini/commit/46eb9c110842ac3db5d3319a2cef4f1365bfa008), [`7161781`](https://github.com/HoudiniGraphql/houdini/commit/71617814116ce4ead9fce2c7aeef2391a952f8a5)]:
-    -   houdini@1.2.0
-
-## 1.2.0-next.1
-
-### Patch Changes
-
--   [#1057](https://github.com/HoudiniGraphql/houdini/pull/1057) [`361e2b5`](https://github.com/HoudiniGraphql/houdini/commit/361e2b5a5b36b9db42f75486e0fedf39a778432c) Thanks [@devunt](https://github.com/devunt)! - Improved typings
-
--   Updated dependencies [[`46eb9c1`](https://github.com/HoudiniGraphql/houdini/commit/46eb9c110842ac3db5d3319a2cef4f1365bfa008), [`46eb9c1`](https://github.com/HoudiniGraphql/houdini/commit/46eb9c110842ac3db5d3319a2cef4f1365bfa008), [`361e2b5`](https://github.com/HoudiniGraphql/houdini/commit/361e2b5a5b36b9db42f75486e0fedf39a778432c), [`46eb9c1`](https://github.com/HoudiniGraphql/houdini/commit/46eb9c110842ac3db5d3319a2cef4f1365bfa008)]:
-    -   houdini@1.2.0-next.1
-
-## 1.2.0-next.0
-
 ### ✨ Features
 
 -   [#987](https://github.com/HoudiniGraphql/houdini/pull/987) [`7d624fe`](https://github.com/HoudiniGraphql/houdini/commit/7d624fec9417152ec2560b36efbcc21bd694e378) Thanks [@tadeokondrak](https://github.com/tadeokondrak)! - Add @required directive to force nullable fields to bubble up
