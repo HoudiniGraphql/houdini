@@ -1,31 +1,31 @@
 {
-  "mode": "pre",
-  "tag": "next",
-  "initialVersions": {
-    "e2e-api": "0.0.1",
-    "e2e-kit": "0.0.1",
-    "e2e-next": "0.0.1",
-    "e2e-react-vite": "0.0.0",
-    "e2e-svelte": "0.0.1",
-    "scripts": "1.0.0",
-    "houdini": "1.1.7",
-    "houdini-plugin-svelte-global-stores": "1.1.7",
-    "houdini-react": "1.1.7",
-    "houdini-svelte": "1.1.7",
-    "site": "0.0.1"
-  },
-  "changesets": [
-    "dirty-hornets-retire",
-    "eleven-rules-cheer",
-    "gentle-coats-itch",
-    "green-camels-walk",
-    "mighty-pugs-matter",
-    "mighty-rice-trade",
-    "pink-coins-ring",
-    "pink-otters-cheer",
-    "popular-rocks-join",
-    "rude-socks-doubt",
-    "serious-pumas-explode",
-    "twenty-months-cover"
-  ]
+	"mode": "exit",
+	"tag": "next",
+	"initialVersions": {
+		"e2e-api": "0.0.1",
+		"e2e-kit": "0.0.1",
+		"e2e-next": "0.0.1",
+		"e2e-react-vite": "0.0.0",
+		"e2e-svelte": "0.0.1",
+		"scripts": "1.0.0",
+		"houdini": "1.1.7",
+		"houdini-plugin-svelte-global-stores": "1.1.7",
+		"houdini-react": "1.1.7",
+		"houdini-svelte": "1.1.7",
+		"site": "0.0.1"
+	},
+	"changesets": [
+		"dirty-hornets-retire",
+		"eleven-rules-cheer",
+		"gentle-coats-itch",
+		"green-camels-walk",
+		"mighty-pugs-matter",
+		"mighty-rice-trade",
+		"pink-coins-ring",
+		"pink-otters-cheer",
+		"popular-rocks-join",
+		"rude-socks-doubt",
+		"serious-pumas-explode",
+		"twenty-months-cover"
+	]
 }
