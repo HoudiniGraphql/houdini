@@ -1181,7 +1181,7 @@ function validateLoadingDirective(config: Config) {
 				if (!parentLoading && !global) {
 					ctx.reportError(
 						new graphql.GraphQLError(
-							`@${config.loadingDirective} can only be applied on a field at the root of a document or on one whose parent also has @${config.loadingDirective}`
+							`@${config.loadingDirective} can only be applied on a field or fragment spread at the root of a document or on one whose parent also has @${config.loadingDirective}`
 						)
 					)
 				}
@@ -1213,7 +1213,7 @@ function validateLoadingDirective(config: Config) {
 				if (!parentLoading && !global) {
 					ctx.reportError(
 						new graphql.GraphQLError(
-							`@${config.loadingDirective} can only be applied on a field at the root of a document or on one whose parent also has @${config.loadingDirective}`
+							`@${config.loadingDirective} can only be applied on a field or fragment spread at the root of a document or on one whose parent also has @${config.loadingDirective}`
 						)
 					)
 				}
