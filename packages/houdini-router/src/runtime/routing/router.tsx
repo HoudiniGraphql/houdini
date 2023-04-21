@@ -147,36 +147,46 @@ export function Router({ manifest }: { manifest: RouterManifest }) {
 	// in order for a child route to show, the parent layout's dependencies must
 	// either have a value we can use, or a loading state.
 
-	// there are 3 situations:
+	// there are 4 situations:
 	// - we already have an entry in the navigation suspense cache containing the
 	//   component, every artifact, and data to render.
 	// - we have an entry in the suspense cache containing the artifact, the component,
 	//   and we have _enough_ data to render the page's loading state. For some pages, this
 	//   might just require the artifact.
-	// - we are missing the artifact, don't have enough data for the loading state, or
-	//   we don't have an entry for this route in the cache at all. Whatever the reason,
-	//   we are not ready to render the UI. If there is something in progress, just throw the
-	//   pending one. if nothing is in progress, its a full load of a fresh page. Just throw the
-	//   page bundle loader
+	// - we are here but not ready to render the UI. This could happen because we are missing the artifact,
+	//   don't have enough data for the loading state. Whatever the reason, If there is something in progress, just throw the
+	//   pending one.
+	// - We don't have an entry for this route in the cache at all if nothing is in progress, its a
+	//   full load of a fresh page. Just throw the page bundle loader and it will resolve when its ready
 
 	// the value we will render
 	let result: React.ReactNode | null = null
 
-	// its simplest to accommodate those 3 cases in reverse.
-
 	// we have no cache entry for this route so we need to load the page bundle
 	// and then come back here when we have something to render
 	if (!cached) {
+		throw loadBundle({ manifest, id: match.page_id })
+	}
+	// before we go to far, if the value isn't even resolved yet then let's just wait on it
+	if (!cached.resolved || !cached.resolved.artifact) {
+		if (!cached.resolved?.artifact) {
+			console.log('early suspend without artifact!!!')
+		}
+
+		throw cached
 	}
 
-	// if we have a cached entry,
+	// we have a cached entry and it was resolved. clearly then someone thinks we have enough data to render something
 
-	// if we got this far and we dont have something to return, then we need to just
+	result = <div>page!</div>
+
+	// if we got this far and we don't have something to return, then we need to just
 	// wait on the cached value to be valid (we had a waterfall or an early suspend resolve!)
 	if (!result) {
 		throw cached
 	}
 
+	// render the page
 	return (
 		<Context.Provider
 			value={{
@@ -191,4 +201,21 @@ export function Router({ manifest }: { manifest: RouterManifest }) {
 
 export function useRouterContext() {
 	return useContext(Context)
+}
+
+// when we need to load a new page for the first time we need to throw something
+// that looks like a promise and has some state that we can mutate as information comes in from the server.
+// when enough data has come in to show _something_, then we will resolve the promise but still let the
+// data by mutated by other queries that might not be necessary to show the loading state.
+function loadBundle({ manifest, id }: { manifest: RouterManifest; id: string }) {
+	// there has to be a promise at the center of all of this
+	let resolve: (() => void) | null = null
+	let reject: (() => void) | null = null
+	const promise = new Promise<void>((res, rej) => {
+		resolve = res
+		reject = rej
+	})
+
+	// return the promise that will be resolved when we call resolve
+	return promise
 }
