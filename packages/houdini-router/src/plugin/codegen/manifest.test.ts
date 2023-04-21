@@ -262,18 +262,6 @@ describe('validate filesystem', async () => {
 	}
 })
 
-function mockView(deps: string[]) {
-	return `export default ({ ${deps.join(', ')} }) => <div>hello</div>`
-}
-
-function mockQuery(name: string) {
-	return `
-query ${name} {
-	id
-}
-	`
-}
-
 const testCases: {
 	name: string
 	source: string
@@ -374,4 +362,16 @@ for (const testCase of testCases) {
 		const props = await extractQueries(testCase.source)
 		expect(props).toEqual(testCase.expected)
 	})
+}
+
+function mockView(deps: string[]) {
+	return `export default ({ ${deps.join(', ')} }) => <div>hello</div>`
+}
+
+function mockQuery(name: string) {
+	return `
+query ${name} {
+	id
+}
+	`
 }
