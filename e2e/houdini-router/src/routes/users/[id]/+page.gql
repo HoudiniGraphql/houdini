@@ -1,0 +1,8 @@
+query UserInfo($id: ID!) {
+	node(id: $id, delay: 2000) @loading {
+		... on User {
+			id
+			name
+		}
+	}
+}

@@ -1,0 +1,46 @@
+{
+    "name": "houdini-router",
+    "version": "1.1.7",
+    "private": true,
+    "description": "The Router plugin for Houdini",
+    "keywords": [
+        "typescript",
+        "react",
+        "graphql",
+        "graphql-client"
+    ],
+    "homepage": "https://github.com/HoudiniGraphql/houdini",
+    "funding": "https://github.com/sponsors/HoudiniGraphql",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/HoudiniGraphql/houdini.git"
+    },
+    "license": "MIT",
+    "scripts": {
+        "compile": "scripts build --plugin",
+        "typedefs": "scripts typedefs --plugin"
+    },
+    "devDependencies": {
+        "scripts": "workspace:^"
+    },
+    "dependencies": {
+        "@babel/types": "^7.21.4",
+        "houdini": "workspace:^"
+    },
+    "files": [
+        "build"
+    ],
+    "exports": {
+        "./package.json": "./package.json",
+        ".": {
+            "types": "./build/plugin/index.d.ts",
+            "import": "./build/plugin-esm/index.js",
+            "require": "./build/plugin-cjs/index.js"
+        }
+    },
+    "typesVersions": {
+        "*": {}
+    },
+    "main": "./build/plugin-cjs/index.js",
+    "types": "./build/plugin/index.d.ts"
+}

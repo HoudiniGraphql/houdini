@@ -1,3 +1,4 @@
+import type { Dirent } from 'fs'
 import fsExtra from 'fs-extra'
 import { glob as G } from 'glob'
 import { fs as memfs, vol } from 'memfs'
@@ -184,18 +185,38 @@ export function existsSync(dirPath: string) {
 	return memfs.existsSync(dirPath)
 }
 
-export async function readdir(filepath: string): Promise<string[]> {
+export async function readdir(path: string, options?: never): Promise<string[]>
+
+export async function readdir(
+	path: string,
+	options?: fsExtra.ObjectEncodingOptions & {
+		withFileTypes: true
+	}
+): Promise<Dirent[]>
+export async function readdir(
+	filepath: string,
+	opts?:
+		| (fsExtra.ObjectEncodingOptions & {
+				withFileTypes?: boolean | undefined
+		  })
+		| BufferEncoding
+		| null
+): Promise<Dirent[] | string[]> {
 	// no mock in production
 	if (!houdini_mode.is_testing) {
-		return await fs.readdir(filepath)
-	}
-	if (filepath.includes('build/runtime')) {
-		return await fs.readdir(filepath)
+		// @ts-ignore
+		return await fs.readdir(filepath, opts)
 	}
 
+	if (filepath.includes('build/runtime')) {
+		// @ts-ignore
+		return await fs.readdir(filepath, opts)
+	}
 	try {
-		return memfs.readdirSync(filepath) as string[]
-	} catch {
+		// @ts-ignore
+		return memfs.readdirSync(filepath, opts) as string[]
+	} catch (e) {
+		console.log(e)
 		return []
 	}
 }
