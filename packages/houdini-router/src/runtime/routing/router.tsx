@@ -11,7 +11,6 @@ import { exec, RouteParam } from './match'
 // RouterManifest contains all of the information that the router needs
 // to decide what bundle to load and render for a given url
 export type RouterManifest = {
-	client: HoudiniClient
 	pages: Record<string, RouterPageManifest>
 }
 
@@ -23,7 +22,7 @@ export type RouterPageManifest = {
 
 	// loaders for the 3 units of information that we need to render a page
 	// and its loading state
-	load_query: Record<string, () => Promise<any>>
+	load_query: Record<string, (variables?: any) => Promise<any>>
 	load_artifact: Record<string, () => Promise<QueryArtifact>>
 	load_component: () => Promise<(props: any) => React.ReactNode>
 
