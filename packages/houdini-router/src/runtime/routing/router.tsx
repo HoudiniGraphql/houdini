@@ -64,7 +64,7 @@ type RouterSuspenseUnit = {
 	pending?: {
 		variables: GraphQLVariables
 		signal: AbortController
-	}
+	} | null
 
 	// the resolved key does not just hold onto one value but instead
 	// an object that describes the current state of the route.
@@ -221,12 +221,12 @@ export function Router({ manifest }: { manifest: RouterManifest }) {
 
 	// if we have enough data to render the full state and store instances for everything,
 	// we're good to go
-	if (data && Object.keys(match.load_query).every((key) => key in data && data[key].store)) {
+	if (data && ok_final({ required: match.required_queries, data })) {
 		result = render_page(cached.bundle)
 	}
 
 	// maybe we have enough data to render the loading state?
-	else if (match.required_queries.filter((query) => !(query in (data ?? {}))).length === 0) {
+	else if (ok_loadingState({ unit: cached, data })) {
 		result = render_loading_state(cached.bundle)
 	}
 
@@ -260,6 +260,7 @@ export function useRouterContext() {
 function load_bundle({
 	manifest,
 	id,
+	variables,
 }: {
 	manifest: RouterManifest
 	id: string
@@ -283,6 +284,10 @@ function load_bundle({
 		resolve,
 		reject,
 		required_queries: manifest.pages[id].required_queries,
+		pending: {
+			variables,
+			signal: new AbortController(),
+		},
 	}
 	// save this unit in the cache ASAP so we don't double up
 	nav_suspense_cache.set(id, unit)
@@ -373,11 +378,7 @@ function update_unit(
 
 	// check the unit is now finalized
 	const data = updated.bundle?.data
-	if (
-		data &&
-		Object.keys(updated.required_queries).every((key) => key in data && data[key].store) &&
-		updated.bundle?.Component
-	) {
+	if (ok_final({ required: updated.required_queries, data }) && updated.bundle?.Component) {
 		updated.bundle!.mode = 'final'
 	}
 
@@ -389,9 +390,15 @@ function update_unit(
 	// if the mode is finalized we are good to go
 	if (updated.bundle?.mode === 'final') {
 		updated.resolve()
+		updated.pending = null
+		return
 	}
 
-	//
+	// if the unit has enough information to render the loading
+	// state then we should do that.
+	if (ok_loadingState({ unit: updated, data })) {
+		updated.resolve()
+	}
 }
 
 function render_page(resolved: Required<RouterSuspenseUnit>['bundle']) {
@@ -403,4 +410,24 @@ function render_page(resolved: Required<RouterSuspenseUnit>['bundle']) {
 // either have a value we can use, or a loading state.
 function render_loading_state(resolved: Required<RouterSuspenseUnit>['bundle']) {
 	return <div>loading...!</div>
+}
+
+function ok_loadingState({
+	unit,
+	data,
+}: {
+	unit: RouterSuspenseUnit
+	data: Required<RouterSuspenseUnit>['bundle']['data']
+}) {
+	return unit.required_queries.filter((query) => !(query in (data ?? {}))).length === 0
+}
+
+function ok_final({
+	required,
+	data,
+}: {
+	required: string[]
+	data: Required<RouterSuspenseUnit>['bundle']['data']
+}) {
+	return data && Object.keys(required).every((key) => key in data && data[key].store)
 }
