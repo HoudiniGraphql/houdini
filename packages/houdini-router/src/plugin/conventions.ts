@@ -22,21 +22,12 @@ export function normalize_path(path: string) {
 	return path.replaceAll(/\//g, '__')
 }
 
-export async function mkdirp(config: Config) {
-	// we need to make the following directories:
-	// - a place for entry points to go
-
-	const base = config.pluginDirectory('houdini-router')
-
-	return Promise.all([fs.mkdirp(page_chunk_dir(config))])
+function page_bundle_dir(config: Config) {
+	return path.join(base_dir(config), 'bundles', 'pages')
 }
 
-function page_chunk_dir(config: Config) {
-	return path.join(base_dir(config), 'pages')
-}
-
-export function page_chunk_path(config: Config, id: string) {
-	return path.join(page_chunk_dir(config), id)
+export function page_bundle_path(config: Config, id: string) {
+	return path.join(page_bundle_dir(config), id)
 }
 
 function base_dir(config: Config) {

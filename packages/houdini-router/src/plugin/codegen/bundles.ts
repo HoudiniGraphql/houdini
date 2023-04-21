@@ -1,6 +1,6 @@
-import { Config } from 'houdini'
+import { Config, fs } from 'houdini'
 
-import { page_chunk_path } from '../conventions'
+import { page_bundle_path } from '../conventions'
 import type { ProjectManifest, PageManifest } from './manifest'
 
 // Only one page is visible at any given time. This means that the router is basically a big switch
@@ -15,17 +15,40 @@ import type { ProjectManifest, PageManifest } from './manifest'
 // It's imperative that we avoid waterfalls and load all of these things in parallel. This means that
 // we need to generate a file for each part and load them at the same time. Depending on the order in
 // which they resolve, we can render different things. For the rest of the flow, go to the router source.
-export async function generate_chunks({
+export async function generate_bundles({
 	config,
 	manifest,
 }: {
 	config: Config
 	manifest: ProjectManifest
 }) {
-	// every page needs a chunk directory made
+	// every page needs a bundle directory made
 	await Promise.all(
-		Object.entries(manifest.pages).map(([id, page]) => generate_page_chunk({ id, page }))
+		Object.entries(manifest.pages).map(([id, page]) =>
+			generate_page_bundle({ id, page, config, project: manifest })
+		)
 	)
 }
 
-function generate_page_chunk({ id, page }: { id: string; page: PageManifest }) {}
+type PageBundleInput = {
+	id: string
+	page: PageManifest
+	project: ProjectManifest
+	config: Config
+}
+
+async function generate_page_bundle(args: PageBundleInput) {
+	const bundle_path = page_bundle_path(args.config, args.id)
+
+	// the first thing we need to do is make sure that the page has a bundle directory
+	await fs.mkdirp(bundle_path)
+
+	// write the appropriate files in each bundle
+	await Promise.all([bundle_index(args)])
+}
+
+// the entry point that the router hooks into the orchestrate the page
+async function bundle_index(args: PageBundleInput) {}
+
+// the file that actually performs the query load
+async function bundle_load(args: PageBundleInput) {}
