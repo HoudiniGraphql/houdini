@@ -335,6 +335,9 @@ function load_bundle({ manifest, id }: { manifest: RouterManifest; id: string })
 		}))
 	})
 
+	// save this unit in the cache
+	nav_suspense_cache.set(id, unit)
+
 	// if we got this far we need to load the bundle so just throw the unit and let the
 	// loaders do their job.
 	throw unit
