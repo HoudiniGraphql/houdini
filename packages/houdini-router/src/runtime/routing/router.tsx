@@ -4,7 +4,7 @@ import { HoudiniClient } from '$houdini/runtime/client'
 import { DocumentStore } from '$houdini/runtime/client/documentStore'
 import { createLRUCache } from '$houdini/runtime/lib/lru'
 import type { QueryArtifact, GraphQLObject, GraphQLVariables } from '$houdini/runtime/lib/types'
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, Suspense, useContext, useEffect, useState } from 'react'
 
 import { exec, RouteParam } from './match'
 
@@ -15,10 +15,12 @@ export type RouterManifest = {
 }
 
 export type RouterPageManifest = {
+	id: string
+
 	// the url pattern to match against. created from './match/parse_page_pattern'
 	pattern: RegExp
+	// the params used to execute the pattern and extract the variables
 	params: RouteParam[]
-	id: string
 
 	// loaders for the 3 units of information that we need to render a page
 	// and its loading state
@@ -47,13 +49,15 @@ const Context = createContext<RouterContext>({
 // Since navigation can potentially suspend while component and/or data
 // is being fetched, we need a place to put things so that when we resolve
 // the suspended promises it can look up the value to use.
-//
+const nav_suspense_cache = createLRUCache<RouterSuspenseUnit>()
+
 // What is my cache key? If I use the raw url then I won't be able to distinguish
 // between different variables. If a url is loaded that _is_ the same pattern
-// but a different input then we might need to abort an existing fetch with the old variables
-// and load it with the new ones
+// but a different input then we need to set a flag so that the previous fetch doesn't
+// incorrectly resolve the suspension.
 
-const nav_suspense_cache = createLRUCache<RouterSuspenseUnit>()
+// The unit we are looking up when suspending has to track all of the state
+// necessary to load a page bundle. This includes the data, component, and artifact.
 type RouterSuspenseUnit = {
 	// the cache unit is an externally resolvable promise
 	then: (val: any) => any
@@ -68,6 +72,8 @@ type RouterSuspenseUnit = {
 		variables: GraphQLVariables
 		signal: AbortController
 	} | null
+
+	page: RouterPageManifest
 
 	// the resolved key does not just hold onto one value but instead
 	// an object that describes the current state of the route.
@@ -155,11 +161,9 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 		}
 
 		// we found a match!!
-		if (page.pattern.test(current)) {
-			match = page
-			matchVariables = exec(urlMatch, page.params) || {}
-			break
-		}
+		match = page
+		matchVariables = exec(urlMatch, page.params) || {}
+		break
 	}
 
 	// if there is no match we have a 404!
@@ -191,6 +195,8 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 
 	// the value we will render
 	let result: React.ReactNode | null = null
+
+	// TODO: change of variables on the current view
 
 	// we have no cache entry for this route so we need to load the page bundle
 	// and then come back here when we have something to render
@@ -224,20 +230,25 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 
 	// if we have enough data to render the full state and store instances for everything,
 	// we're good to go
-	if (data && ok_final({ required: match.required_queries, data })) {
-		result = render_page(cached.bundle)
+	if (ok_final({ required: match.required_queries, data })) {
+		result = render_final(cached.bundle)
 	}
 
 	// maybe we have enough data to render the loading state?
-	else if (ok_loadingState({ unit: cached, data })) {
-		result = render_loading_state(cached.bundle)
+	else if (ok_fallback({ unit: cached, data })) {
+		result = render_fallback(cached.bundle)
 	}
 
 	// if we got this far and we don't have something to return, then we need to just
 	// wait on the cached value to be valid (we had a waterfall or an early suspend resolve!)
-	else if (!result) {
+	if (!result) {
 		throw cached
 	}
+
+	// if we get this far we have to be okay to render the loading state
+	// if (!ok_fallback({ unit: cached, data })) {
+	// 	throw cached
+	// }
 
 	// render the page
 	return (
@@ -247,7 +258,9 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 				goto: setCurrent,
 			}}
 		>
-			<HoudiniProvider client={client}>{result}</HoudiniProvider>
+			<HoudiniProvider client={client}>
+				<Suspense fallback={render_fallback(cached.bundle)}>{result}</Suspense>
+			</HoudiniProvider>
 		</Context.Provider>
 	)
 }
@@ -285,6 +298,7 @@ function load_bundle({
 
 	// build up the suspense unit that we will cache
 	const unit: RouterSuspenseUnit = {
+		page: manifest.pages[id],
 		then: promise.then,
 		resolve,
 		reject,
@@ -426,30 +440,38 @@ function update_unit({
 
 	// if the unit has enough information to render the loading
 	// state then we should do that.
-	if (ok_loadingState({ unit: updated, data })) {
+	if (ok_fallback({ unit: updated, data })) {
 		updated.resolve()
 	}
-}
-
-function render_page(resolved: Required<RouterSuspenseUnit>['bundle']) {
-	return <div>hello!</div>
 }
 
 // the possible loading states for a route are constrained from the top down
 // in order for a child route to show, the parent layout's dependencies must
 // either have a value we can use, or a loading state.
-function render_loading_state(resolved: Required<RouterSuspenseUnit>['bundle']) {
+function render_fallback(resolved: Required<RouterSuspenseUnit>['bundle']) {
 	return <div>loading...!</div>
 }
 
-function ok_loadingState({
+function render_final(resolved: Required<RouterSuspenseUnit>['bundle']) {
+	return <div>hello!</div>
+}
+
+function ok_fallback({
 	unit,
 	data,
 }: {
 	unit: RouterSuspenseUnit
 	data: Required<RouterSuspenseUnit>['bundle']['data']
 }) {
-	return unit.required_queries.filter((query) => !(query in (data ?? {}))).length === 0
+	// we can't show the loading state if we are missing required data.
+	const has_data = unit.required_queries.filter((query) => !(query in (data ?? {}))).length === 0
+
+	// we also can't show the loading state if we are missing any artifacts
+	const has_artifacts = Object.keys(unit.page.load_artifact).every(
+		(art) => unit.bundle?.artifacts?.[art]
+	)
+
+	return has_data && has_artifacts
 }
 
 function ok_final({
