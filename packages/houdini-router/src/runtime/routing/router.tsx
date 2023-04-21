@@ -3,7 +3,7 @@ import { createLRUCache } from '$houdini/runtime/lib/lru'
 import type { QueryArtifact, GraphQLObject, GraphQLVariables } from '$houdini/runtime/lib/types'
 import React, { createContext, useContext, useEffect, useState } from 'react'
 
-import { RouteParam } from './match'
+import { exec, RouteParam } from './match'
 
 // RouterManifest contains all of the information that the router needs
 // to decide what bundle to load and render for a given url
@@ -143,6 +143,7 @@ export function Router({ manifest }: { manifest: RouterManifest }) {
 
 	// find the matching path (if it exists)
 	let match: RouterPageManifest | null = null
+	let matchVariables: Record<string, string> | null = null
 	for (const page of Object.values(manifest.pages)) {
 		// check if the current url matches
 		const urlMatch = current.match(page.pattern)
@@ -153,6 +154,7 @@ export function Router({ manifest }: { manifest: RouterManifest }) {
 		// we found a match!!
 		if (page.pattern.test(current)) {
 			match = page
+			matchVariables = exec(urlMatch, page.params) || {}
 			break
 		}
 	}
@@ -191,7 +193,7 @@ export function Router({ manifest }: { manifest: RouterManifest }) {
 	// and then come back here when we have something to render
 	if (!cached) {
 		// this might suspend
-		load_bundle({ manifest, id: match.id })
+		load_bundle({ manifest, id: match.id, variables: matchVariables ?? {} })
 		// or it might just prime the cache with good values somehow
 		cached = nav_suspense_cache.get(identifier)
 		if (!cached) {
@@ -255,7 +257,14 @@ export function useRouterContext() {
 // that looks like a promise and has some state that we can mutate as information comes in from the server.
 // when enough data has come in to show _something_, then we will resolve the promise but still let the
 // data by mutated by other queries that might not be necessary to show the loading state.
-function load_bundle({ manifest, id }: { manifest: RouterManifest; id: string }) {
+function load_bundle({
+	manifest,
+	id,
+}: {
+	manifest: RouterManifest
+	id: string
+	variables: Record<string, string>
+}) {
 	// there has to be a promise at the center of all of this
 	let resolve: (() => void) | null = null
 	let reject: (() => void) | null = null
@@ -275,6 +284,8 @@ function load_bundle({ manifest, id }: { manifest: RouterManifest; id: string })
 		reject,
 		required_queries: manifest.pages[id].required_queries,
 	}
+	// save this unit in the cache ASAP so we don't double up
+	nav_suspense_cache.set(id, unit)
 
 	// there are 3 things we have to do
 	// - load the artifacts
@@ -302,6 +313,7 @@ function load_bundle({ manifest, id }: { manifest: RouterManifest; id: string })
 
 	// load all of the data
 	for (const [key, loader] of Object.entries(manifest.pages[id].load_query)) {
+		// TOOD: pass variables to each query to load
 		loader().then(({ data }) => {
 			// add the loaded artifact to the suspense unit
 			update_unit(unit, (u) => ({
@@ -334,9 +346,6 @@ function load_bundle({ manifest, id }: { manifest: RouterManifest; id: string })
 			},
 		}))
 	})
-
-	// save this unit in the cache
-	nav_suspense_cache.set(id, unit)
 
 	// if we got this far we need to load the bundle so just throw the unit and let the
 	// loaders do their job.
