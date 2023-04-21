@@ -3,7 +3,7 @@ import { clearMock } from 'houdini/test'
 import { test, expect, describe } from 'vitest'
 
 import { test_config } from '../config'
-import { generate_manifest } from './manifest'
+import { load_manifest } from './manifest'
 import { extractQueries } from './manifest'
 
 test('empty routes dir generates empty manifest', async function () {
@@ -13,7 +13,7 @@ test('empty routes dir generates empty manifest', async function () {
 	await fs.mock({})
 
 	await expect(
-		generate_manifest({
+		load_manifest({
 			config,
 		})
 	).resolves.to.toMatchInlineSnapshot(`
@@ -54,7 +54,7 @@ test('nested route structure happy path', async function () {
 	})
 
 	await expect(
-		generate_manifest({
+		load_manifest({
 			config,
 		})
 	).resolves.toMatchInlineSnapshot(`
@@ -247,7 +247,7 @@ describe('validate filesystem', async () => {
 		test(testCase.name, async () => {
 			await fs.mock(testCase.filesystem)
 
-			const result = generate_manifest({
+			const result = load_manifest({
 				config,
 			})
 

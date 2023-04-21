@@ -136,10 +136,28 @@ export type PluginHooks = {
 	 * You must have passed a value to includeRuntime for this hook to matter.
 	 */
 	transformRuntime?:
-		| Record<string, (args: { config: Config; content: string }) => string>
+		| Record<
+				string,
+				(args: {
+					config: Config
+					content: string
+					importStatement: (where: string, as: string) => string
+					exportDefaultStatement: (val: string) => string
+					exportStarStatement: (val: string) => string
+				}) => string
+		  >
 		| ((
 				docs: Document[]
-		  ) => Record<string, (args: { config: Config; content: string }) => string>)
+		  ) => Record<
+				string,
+				(args: {
+					config: Config
+					content: string
+					importStatement: (where: string, as: string) => string
+					exportDefaultStatement: (val: string) => string
+					exportStarStatement: (val: string) => string
+				}) => string
+		  >)
 
 	/**
 	 * An module with an default export that sets configuration values.

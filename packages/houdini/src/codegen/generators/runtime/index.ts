@@ -49,18 +49,37 @@ ${exportStatement('config')}
 		}),
 		...config.plugins
 			.filter((plugin) => plugin.includeRuntime)
-			.map((plugin) => generatePluginRuntime(config, docs, plugin)),
+			.map((plugin) =>
+				generatePluginRuntime({
+					config,
+					docs,
+					plugin,
+					importStatement,
+					exportDefaultStatement: exportStatement,
+					exportStarStatement: exportStar,
+				})
+			),
 		generatePluginIndex({ config, exportStatement: exportStar }),
 	])
 
 	await generateGraphqlReturnTypes(config, docs)
 }
 
-async function generatePluginRuntime(
-	config: Config,
-	docs: Document[],
+async function generatePluginRuntime({
+	config,
+	docs,
+	plugin,
+	importStatement,
+	exportDefaultStatement,
+	exportStarStatement,
+}: {
+	config: Config
+	docs: Document[]
 	plugin: Config['plugins'][number]
-) {
+	importStatement: (where: string, as: string) => string
+	exportDefaultStatement: (val: string) => string
+	exportStarStatement: (val: string) => string
+}) {
 	if (houdini_mode.is_testing || !plugin.includeRuntime) {
 		return
 	}
@@ -95,7 +114,14 @@ async function generatePluginRuntime(
 		Object.fromEntries(
 			Object.entries(transformMap).map(([key, value]) => [
 				path.join(runtime_path, key),
-				(content) => value({ config, content }),
+				(content) =>
+					value({
+						config,
+						content,
+						importStatement,
+						exportDefaultStatement: exportDefaultStatement,
+						exportStarStatement: exportStarStatement,
+					}),
 			])
 		)
 	)

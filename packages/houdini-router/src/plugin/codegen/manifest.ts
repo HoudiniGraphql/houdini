@@ -11,8 +11,11 @@ import {
 	normalize_path,
 } from '../conventions'
 
-// we need to walk down the route directory and build up the manifest
-export async function generate_manifest(args: { config: Config }) {
+/**
+ * Walk down the routes directory and build a normalized description of the project's
+ * filesystem.
+ */
+export async function load_manifest(args: { config: Config }) {
 	// we'll start at the route directory and start building it up
 	return await walk_routes({
 		config: args.config,

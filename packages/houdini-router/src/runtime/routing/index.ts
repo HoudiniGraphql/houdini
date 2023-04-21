@@ -1,1 +1,2 @@
-export { Router } from './router'
+export { Link } from './link'
+export type { RouterManifest } from './router'
