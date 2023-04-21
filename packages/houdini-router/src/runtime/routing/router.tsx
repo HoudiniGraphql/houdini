@@ -67,7 +67,7 @@ export function Router({ manifest }: { manifest: RuntimeManifest }) {
 	//   and we have _enough_ data to render the page's loading state. For some pages, this
 	//   might just require the artifact.
 	// - we are missing the artifact, don't have enough data for the loading state, or
-	//   we dont have an entry for this route in the cache at all. Whatever the reaspn,
+	//   we don't have an entry for this route in the cache at all. Whatever the reason,
 	//   we are not ready to render the UI. If there is something in progress, just throw the
 	//   pending one. if nothing is in progress, its a full load of a fresh page. Just throw the
 	//   page bundle loader
