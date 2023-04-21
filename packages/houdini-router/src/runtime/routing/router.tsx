@@ -1,3 +1,6 @@
+// @ts-ignore: this comes from houdini-react
+import { HoudiniProvider } from '$houdini'
+import { HoudiniClient } from '$houdini/runtime/client'
 import { DocumentStore } from '$houdini/runtime/client/documentStore'
 import { createLRUCache } from '$houdini/runtime/lib/lru'
 import type { QueryArtifact, GraphQLObject, GraphQLVariables } from '$houdini/runtime/lib/types'
@@ -8,6 +11,7 @@ import { exec, RouteParam } from './match'
 // RouterManifest contains all of the information that the router needs
 // to decide what bundle to load and render for a given url
 export type RouterManifest = {
+	client: HoudiniClient
 	pages: Record<string, RouterPageManifest>
 }
 
@@ -108,7 +112,7 @@ type RouterSuspenseUnit = {
 //   going to. That means that when we don't have a component to render yet, we are going to
 //   render the suspense boundary with our fallback wrapping our fallback.
 //
-export function Router({ manifest }: { manifest: RouterManifest }) {
+export function Router({ manifest, client }: { manifest: RouterManifest; client: HoudiniClient }) {
 	//
 	// The first bit of this component is just setting up the basic state and event listeners
 	//
@@ -177,7 +181,7 @@ export function Router({ manifest }: { manifest: RouterManifest }) {
 	//
 	// - we already have an entry in the navigation suspense cache containing the
 	//   component, every artifact, and data to render.
-	// - we have an entry in the suspense cache containing the artifact, the component,
+	// - we have an entry in the suspense cache containing the artifact and
 	//   and we have _enough_ data to render the page's loading state. For some pages, this
 	//   might just require the artifact.
 	// - we are here but not ready to render the UI. This could happen because we are missing the artifact,
@@ -193,7 +197,7 @@ export function Router({ manifest }: { manifest: RouterManifest }) {
 	// and then come back here when we have something to render
 	if (!cached) {
 		// this might suspend
-		load_bundle({ manifest, id: match.id, variables: matchVariables ?? {} })
+		load_bundle({ manifest, id: match.id, variables: matchVariables ?? {}, client })
 		// or it might just prime the cache with good values somehow
 		cached = nav_suspense_cache.get(identifier)
 		if (!cached) {
@@ -244,7 +248,7 @@ export function Router({ manifest }: { manifest: RouterManifest }) {
 				goto: setCurrent,
 			}}
 		>
-			{result}
+			<HoudiniProvider client={client}>{result}</HoudiniProvider>
 		</Context.Provider>
 	)
 }
@@ -261,10 +265,12 @@ function load_bundle({
 	manifest,
 	id,
 	variables,
+	client,
 }: {
 	manifest: RouterManifest
 	id: string
 	variables: Record<string, string>
+	client: HoudiniClient
 }) {
 	// there has to be a promise at the center of all of this
 	let resolve: (() => void) | null = null
@@ -300,19 +306,23 @@ function load_bundle({
 		// load the artifact and save it in the unit
 		loader().then((artifact) => {
 			// add the loaded artifact to the suspense unit
-			update_unit(unit, (u) => ({
-				...u,
-				bundle: {
-					// this will get overwritten when appropriate.
-					// this way it always has the default value.
-					mode: 'loading',
-					...u.bundle,
-					artifacts: {
-						...u.bundle?.artifacts,
-						[key]: artifact,
+			update_unit({
+				base: unit,
+				client,
+				update: (u) => ({
+					...u,
+					bundle: {
+						// this will get overwritten when appropriate.
+						// this way it always has the default value.
+						mode: 'loading',
+						...u.bundle,
+						artifacts: {
+							...u.bundle?.artifacts,
+							[key]: artifact,
+						},
 					},
-				},
-			}))
+				}),
+			})
 		})
 	}
 
@@ -321,35 +331,43 @@ function load_bundle({
 		// TOOD: pass variables to each query to load
 		loader().then(({ data }) => {
 			// add the loaded artifact to the suspense unit
-			update_unit(unit, (u) => ({
-				...u,
-				bundle: {
-					// this will get overwritten when appropriate.
-					// this way it always has the default value.
-					mode: 'loading',
-					...u.bundle,
-					data: {
-						...u.bundle?.artifacts,
-						[key]: data,
+			update_unit({
+				base: unit,
+				client,
+				update: (u) => ({
+					...u,
+					bundle: {
+						// this will get overwritten when appropriate.
+						// this way it always has the default value.
+						mode: 'loading',
+						...u.bundle,
+						data: {
+							...u.bundle?.artifacts,
+							[key]: data,
+						},
 					},
-				},
-			}))
+				}),
+			})
 		})
 	}
 
 	// and finally, load the component
 	manifest.pages[id].load_component().then((component) => {
 		// add the loaded component to the suspense unit
-		update_unit(unit, (u) => ({
-			...u,
-			bundle: {
-				// this will get overwritten when appropriate.
-				// this way it always has the default value.
-				mode: 'loading',
-				...u.bundle,
-				Component: component,
-			},
-		}))
+		update_unit({
+			client,
+			base: unit,
+			update: (u) => ({
+				...u,
+				bundle: {
+					// this will get overwritten when appropriate.
+					// this way it always has the default value.
+					mode: 'loading',
+					...u.bundle,
+					Component: component,
+				},
+			}),
+		})
 	})
 
 	// if we got this far we need to load the bundle so just throw the unit and let the
@@ -366,15 +384,28 @@ function load_bundle({
 //
 // once we have the artifact and the data, we can create the document store with the initial values
 // from the queries.
-function update_unit(
-	base: RouterSuspenseUnit,
+function update_unit({
+	base,
+	update,
+	client,
+}: {
+	base: RouterSuspenseUnit
 	update: (old: RouterSuspenseUnit) => RouterSuspenseUnit
-) {
+	client: HoudiniClient
+}) {
 	// apply the update to one copy of base
 	const updated = update(base) as RouterSuspenseUnit
 
 	// zip every query result and artifact and make sure that our store definitions
-	// exist when appropriate
+	// exist when appropriate. since we only care about overlapping keys, we can
+	// just choose one and move on.
+	for (const [key, result] of Object.entries(updated.bundle?.data ?? {})) {
+		const artifact = updated.bundle?.artifacts?.[key]
+		if (result.store || !result.value || !artifact) {
+			continue
+		}
+		result.store = client.observe({ artifact, initialValue: result.value })
+	}
 
 	// check the unit is now finalized
 	const data = updated.bundle?.data
