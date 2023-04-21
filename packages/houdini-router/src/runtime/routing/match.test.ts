@@ -1,6 +1,6 @@
 import { test, expect, describe } from 'vitest'
 
-import { exec, route_params } from './match'
+import { exec, parse_page_pattern } from './match'
 
 describe('route_params', () => {
 	const testCases = [
@@ -89,7 +89,9 @@ describe('route_params', () => {
 
 	testCases.forEach(({ name, pattern, url, expected }) => {
 		test(name, () => {
-			const result = route_params(pattern)
+			// parse the route pattern
+			const result = parse_page_pattern(pattern)
+
 			// if we're not expected to match, make sure that's the case
 			if (!expected) {
 				expect(url).not.toMatch(result.pattern)

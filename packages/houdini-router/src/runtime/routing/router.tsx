@@ -2,7 +2,20 @@ import { createLRUCache } from '$houdini/runtime/lib/lru'
 import type { QueryArtifact, GraphQLObject, GraphQLVariables } from '$houdini/runtime/lib/types'
 import React, { createContext, useContext, useEffect, useState } from 'react'
 
-import { RuntimeManifest } from '../types'
+import { RouteParam } from './match'
+
+// RouterManifest contains all of the information that the router needs
+// to decide what bundle to load and render for a given url
+export type RouterManifest = {
+	pages: RouterPageManifest[]
+}
+
+export type RouterPageManifest = {
+	// the url pattern to match against. created from './match/parse_page_pattern'
+	pattern: RegExp
+	params: RouteParam[]
+	page_id: string
+}
 
 export type RouterContext = {
 	currentRoute: string
@@ -16,77 +29,7 @@ const Context = createContext<RouterContext>({
 	},
 })
 
-// The router component is the central entry point for the application. It is responsible
-// for keeping the browser's URL in sync with the application state. Thi means rendering
-// the appropriate component for a given url. It does this by matching the url against a manifest of pages.
-export function Router({ manifest }: { manifest: RuntimeManifest }) {
-	//
-	// The first bit of this component is just setting up the basic state and event listeners
-	//
-
-	// the current route is just a string in state.
-	const [current, setCurrent] = useState(() => {
-		return window.location.pathname
-	})
-
-	// whenever the route changes, we need to make sure the browser's stack is up to date
-	useEffect(() => {
-		if (window.location.pathname !== current) {
-			window.history.pushState({}, '', current)
-		}
-	}, [current])
-
-	// when we first mount we should start listening to the backbutton
-	useEffect(() => {
-		const onChange = (evt: PopStateEvent) => {
-			setCurrent(window.location.pathname)
-		}
-		window.addEventListener('popstate', onChange)
-		return () => {
-			window.removeEventListener('popstate', onChange)
-		}
-	}, [])
-
-	//
-	// Now that we have our routing state, we need to figure out what we are
-	// going to show.
-	//
-
-	// find the matching path (if it exists)
-
-	// compute the identifier for this navigation state
-
-	// the possible loading states for a route are constrained from the top down
-	// in order for a child route to show, the parent layout's dependencies must
-	// either have a value we can use, or a loading state.
-
-	// there are 3 situations:
-	// - we already have an entry in the navigation suspense cache containing the
-	//   component, every artifact, and data to render.
-	// - we have an entry in the suspense cache containing the artifact, the component,
-	//   and we have _enough_ data to render the page's loading state. For some pages, this
-	//   might just require the artifact.
-	// - we are missing the artifact, don't have enough data for the loading state, or
-	//   we don't have an entry for this route in the cache at all. Whatever the reason,
-	//   we are not ready to render the UI. If there is something in progress, just throw the
-	//   pending one. if nothing is in progress, its a full load of a fresh page. Just throw the
-	//   page bundle loader
-
-	return (
-		<Context.Provider
-			value={{
-				currentRoute: current,
-				goto: setCurrent,
-			}}
-		></Context.Provider>
-	)
-}
-
-export function useRouterContext() {
-	return useContext(Context)
-}
-
-// Since navigations can potentially suspend while component and/or data
+// Since navigation can potentially suspend while component and/or data
 // is being fetched, we need a place to put things so that when we resolve
 // the suspended promises it can look up the value to use.
 //
@@ -125,4 +68,127 @@ type RouterSuspenseUnit = {
 		// on the page
 		data?: Record<string, GraphQLObject>
 	}
+}
+
+// The router component is the central entry point for the application. It is responsible
+// for keeping the browser's URL in sync with the application state. Thi means rendering
+// the appropriate component for a given url. It does this by matching the url against a manifest of pages.
+//
+// In order to render, a particular route needs 3 things:
+// - the artifacts for every query that the view depends on
+// - the data for every query
+// - the actual component to render
+//
+export function Router({ manifest }: { manifest: RouterManifest }) {
+	//
+	// The first bit of this component is just setting up the basic state and event listeners
+	//
+
+	// the current route is just a string in state.
+	const [current, setCurrent] = useState(() => {
+		return window.location.pathname
+	})
+
+	// whenever the route changes, we need to make sure the browser's stack is up to date
+	useEffect(() => {
+		if (window.location.pathname !== current) {
+			window.history.pushState({}, '', current)
+		}
+	}, [current])
+
+	// when we first mount we should start listening to the backbutton
+	useEffect(() => {
+		const onChange = (evt: PopStateEvent) => {
+			setCurrent(window.location.pathname)
+		}
+		window.addEventListener('popstate', onChange)
+		return () => {
+			window.removeEventListener('popstate', onChange)
+		}
+	}, [])
+
+	//
+	// Now that we have our routing state, we need to figure out what we are
+	// going to show.
+	//
+
+	// find the matching path (if it exists)
+	let match: RouterPageManifest | null = null
+	for (const page of manifest.pages) {
+		// check if the current url matches
+		const urlMatch = current.match(page.pattern)
+		if (!urlMatch) {
+			continue
+		}
+
+		// we found a match!!
+		if (page.pattern.test(current)) {
+			match = page
+			break
+		}
+	}
+
+	// if there is no match we have a 404!
+	if (!match) {
+		throw new Error('404')
+	}
+
+	// we have a match. now we need to figure out what to show
+	// a given view is defined by the string pattern corresponding to
+	// its location on the file system.
+	const identifier = match.page_id
+	const cached = nav_suspense_cache.get(identifier)
+
+	// if there is a pending request for this route, we need to abort it
+	// since we are going to own the render now
+	cached?.pending?.signal.abort()
+
+	// the possible loading states for a route are constrained from the top down
+	// in order for a child route to show, the parent layout's dependencies must
+	// either have a value we can use, or a loading state.
+
+	// there are 3 situations:
+	// - we already have an entry in the navigation suspense cache containing the
+	//   component, every artifact, and data to render.
+	// - we have an entry in the suspense cache containing the artifact, the component,
+	//   and we have _enough_ data to render the page's loading state. For some pages, this
+	//   might just require the artifact.
+	// - we are missing the artifact, don't have enough data for the loading state, or
+	//   we don't have an entry for this route in the cache at all. Whatever the reason,
+	//   we are not ready to render the UI. If there is something in progress, just throw the
+	//   pending one. if nothing is in progress, its a full load of a fresh page. Just throw the
+	//   page bundle loader
+
+	// the value we will render
+	let result: React.ReactNode | null = null
+
+	// its simplest to accommodate those 3 cases in reverse.
+
+	// we have no cache entry for this route so we need to load the page bundle
+	// and then come back here when we have something to render
+	if (!cached) {
+	}
+
+	// if we have a cached entry,
+
+	// if we got this far and we dont have something to return, then we need to just
+	// wait on the cached value to be valid (we had a waterfall or an early suspend resolve!)
+	if (!result) {
+		throw cached
+	}
+
+	return (
+		<Context.Provider
+			value={{
+				currentRoute: current,
+				goto: setCurrent,
+			}}
+		>
+			{result}
+		</Context.Provider>
+	)
+}
+
+export function useRouterContext() {
+	return useContext(Context)
 }

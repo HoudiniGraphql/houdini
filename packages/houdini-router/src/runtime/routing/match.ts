@@ -18,7 +18,7 @@ export interface ParamMatcher {
 /**
  * Creates the regex pattern, extracts parameter names, and generates types for a route
  */
-export function route_params(id: string) {
+export function parse_page_pattern(id: string) {
 	const params: RouteParam[] = []
 
 	const pattern =
@@ -112,7 +112,7 @@ export function route_params(id: string) {
 						.join('')}/?$`
 			  )
 
-	return { pattern, params }
+	return { pattern, params, page_id: id }
 }
 
 /**
