@@ -381,6 +381,11 @@ function update_unit(
 		updated.bundle!.mode = 'final'
 	}
 
+	// if this is aborted, we're done
+	if (updated.pending?.signal.abort) {
+		return
+	}
+
 	// if the mode is finalized we are good to go
 	if (updated.bundle?.mode === 'final') {
 		updated.resolve()
