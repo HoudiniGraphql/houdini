@@ -1,3 +1,4 @@
+import { createLRUCache } from '$houdini/runtime/lib/lru'
 import type {
 	GraphQLObject,
 	CachePolicies,
@@ -6,7 +7,6 @@ import type {
 } from '$houdini/runtime/lib/types'
 import React from 'react'
 
-import { createCache } from '../lib/cache'
 import type { DocumentHandle } from './useDocumentHandle'
 import { useDocumentHandle } from './useDocumentHandle'
 import { useHoudiniClient } from './useHoudiniClient'
@@ -23,7 +23,7 @@ import { useIsMountedRef } from './useIsMounted'
 //
 // When the Component unmounts, we need to remove the entry from the cache (so we can load again)
 
-const promiseCache = createCache<QuerySuspenseUnit>()
+const promiseCache = createLRUCache<QuerySuspenseUnit>()
 type QuerySuspenseUnit = {
 	resolve: () => void
 	resolved?: DocumentHandle<QueryArtifact, GraphQLObject, {}>

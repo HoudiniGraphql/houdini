@@ -3,15 +3,6 @@
  * using javascript maps. It was copied under the MIT license found at the
  * bottom of the page.
  */
-export interface Cache<T> {
-	get(key: string): T | null
-	set(key: string, value: T): void
-	has(key: string): boolean
-	delete(key: string): void
-	size(): number
-	capacity(): number
-	clear(): void
-}
 
 /**
  * JS maps (both plain objects and Map) maintain key insertion
@@ -24,7 +15,7 @@ export interface Cache<T> {
  *
  * Get does the same: if the key is present, delete and reinsert it.
  */
-class LRUCache<T> implements Cache<T> {
+class LRUCache<T> {
 	_capacity: number
 	_map: Map<string, T>
 
@@ -74,7 +65,7 @@ class LRUCache<T> implements Cache<T> {
 	}
 }
 
-export function createCache<T>(capacity: number = 1000): LRUCache<T> {
+export function createLRUCache<T>(capacity: number = 1000): LRUCache<T> {
 	return new LRUCache<T>(capacity)
 }
 

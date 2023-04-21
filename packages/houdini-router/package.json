@@ -25,7 +25,9 @@
     },
     "dependencies": {
         "@babel/types": "^7.21.4",
-        "houdini": "workspace:^"
+        "@types/react": "^18.0.37",
+        "houdini": "workspace:^",
+        "react": "^18.2.0"
     },
     "files": [
         "build"
