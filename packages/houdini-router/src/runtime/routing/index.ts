@@ -1,1 +1,1 @@
-export { Router, type RuntimeManifest } from './router'
+export { Router } from './router'
