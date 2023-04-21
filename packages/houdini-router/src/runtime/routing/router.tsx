@@ -24,7 +24,7 @@ export type RouterPageManifest = {
 
 	// loaders for the 3 units of information that we need to render a page
 	// and its loading state
-	load_query: Record<string, (variables?: any) => Promise<any>>
+	load_query: Record<string, (client: HoudiniClient, variables?: any) => Promise<any>>
 	load_artifact: Record<string, () => Promise<QueryArtifact>>
 	load_component: () => Promise<(props: any) => React.ReactNode>
 
@@ -342,7 +342,7 @@ function load_bundle({
 	// load all of the data
 	for (const [key, loader] of Object.entries(manifest.pages[id].load_query)) {
 		// TOOD: pass variables to each query to load
-		loader().then(({ data }) => {
+		loader(client).then(({ data }) => {
 			// add the loaded artifact to the suspense unit
 			update_unit({
 				base: unit,
