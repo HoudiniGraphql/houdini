@@ -19,7 +19,7 @@ export async function extractDocuments({
 	}
 
 	// parse the content
-	const parsed = await parseJS(content)
+	const parsed = await parseJS(content, { plugins: ['jsx'] })
 
 	// use the houdini utility to search for the graphql functions
 	await find_graphql(config, parsed, {
