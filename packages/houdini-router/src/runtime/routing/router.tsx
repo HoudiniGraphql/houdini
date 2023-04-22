@@ -22,11 +22,10 @@ export type RouterPageManifest = {
 	// the params used to execute the pattern and extract the variables
 	params: RouteParam[]
 
-	// loaders for the 3 units of information that we need to render a page
+	// loaders for the information that we need to render a page
 	// and its loading state
-	load_query: Record<string, (client: HoudiniClient, variables?: any) => Promise<any>>
-	load_artifact: Record<string, () => Promise<QueryArtifact>>
-	load_component: () => Promise<(props: any) => React.ReactNode>
+	queries: Record<string, () => Promise<QueryArtifact>>
+	component: () => Promise<(props: any) => React.ReactNode>
 
 	// a page needs to know which queries its waiting on. If enough data has loaded
 	// to show the loading state (all of the required queries have values) then its
@@ -56,6 +55,10 @@ const nav_suspense_cache = createLRUCache<RouterSuspenseUnit>()
 // but a different input then we need to set a flag so that the previous fetch doesn't
 // incorrectly resolve the suspension.
 
+// We also need a second cache for artifacts so that we can avoid suspending to
+// load them if possible.
+const artifact_cache = createLRUCache<QueryArtifact>()
+
 // The unit we are looking up when suspending has to track all of the state
 // necessary to load a page bundle. This includes the data, component, and artifact.
 type RouterSuspenseUnit = {
@@ -68,12 +71,19 @@ type RouterSuspenseUnit = {
 
 	// if we try to load the same route with different variables twice,
 	// we need to prevent the old request from resolving the suspense unit
-	pending?: {
+	route_mutex?: {
 		variables: GraphQLVariables
 		signal: AbortController
 	} | null
 
+	// data can only be fetched once we have the artifact.
+	// this means that we need to track wether we have a
+	// pending request. if we don't have a pending request
+	// when we've loaded the artifact, we can fetch the data
+	pending: Record<string, AbortController | null>
+
 	page: RouterPageManifest
+	variables: GraphQLVariables
 
 	// the resolved key does not just hold onto one value but instead
 	// an object that describes the current state of the route.
@@ -95,8 +105,8 @@ type RouterSuspenseUnit = {
 		data?: Record<
 			string,
 			{
-				store: DocumentStore<GraphQLObject, GraphQLVariables>
-				value: GraphQLObject
+				store?: DocumentStore<GraphQLObject, GraphQLVariables>
+				value: GraphQLObject | null
 			}
 		>
 	}
@@ -178,7 +188,7 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 
 	// if there is a pending request for this route, we need to abort it
 	// since we are going to own the render now
-	cached?.pending?.signal.abort()
+	cached?.route_mutex?.signal.abort()
 
 	// there are 4 situations:
 	//
@@ -202,7 +212,7 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 	// and then come back here when we have something to render
 	if (!cached) {
 		// this might suspend
-		load_bundle({ manifest, id: match.id, variables: matchVariables ?? {}, client })
+		load_bundle({ manifest, id: identifier, variables: matchVariables ?? {}, client })
 		// or it might just prime the cache with good values somehow
 		cached = nav_suspense_cache.get(identifier)
 		if (!cached) {
@@ -231,12 +241,12 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 	// if we have enough data to render the full state and store instances for everything,
 	// we're good to go
 	if (ok_final({ required: match.required_queries, data })) {
-		result = render_final(cached.bundle)
+		result = render_final(cached)
 	}
 
 	// maybe we have enough data to render the loading state?
 	else if (ok_fallback({ unit: cached, data })) {
-		result = render_fallback(cached.bundle)
+		result = render_fallback(cached)
 	}
 
 	// if we got this far and we don't have something to return, then we need to just
@@ -259,7 +269,7 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 			}}
 		>
 			<HoudiniProvider client={client}>
-				<Suspense fallback={render_fallback(cached.bundle)}>{result}</Suspense>
+				<Suspense fallback={render_fallback(cached)}>{result}</Suspense>
 			</HoudiniProvider>
 		</Context.Provider>
 	)
@@ -299,14 +309,16 @@ function load_bundle({
 	// build up the suspense unit that we will cache
 	const unit: RouterSuspenseUnit = {
 		page: manifest.pages[id],
+		variables,
 		then: promise.then,
 		resolve,
 		reject,
 		required_queries: manifest.pages[id].required_queries,
-		pending: {
+		route_mutex: {
 			variables,
 			signal: new AbortController(),
 		},
+		pending: {},
 	}
 	// save this unit in the cache ASAP so we don't double up
 	nav_suspense_cache.set(id, unit)
@@ -315,9 +327,53 @@ function load_bundle({
 	// - load the artifacts
 	// - load the data
 	// - load the components
-	for (const [key, loader] of Object.entries(manifest.pages[id].load_artifact)) {
+	//
+	// but it's possible that we don't have to suspend to do it.
+	let suspend = false
+
+	// load the artifacts
+	const missing_artifacts: string[] = []
+
+	// bundle the found artifacts into a single update
+	const found_artifacts: Record<string, any> = {}
+	for (const key of Object.keys(manifest.pages[id].queries)) {
+		// if we have the artifact already, then we don't need to load it
+		if (artifact_cache.has(key)) {
+			found_artifacts[key] = artifact_cache.get(key)
+		} else {
+			missing_artifacts.push(key)
+		}
+	}
+
+	// this update might suspend (ie if we have all the artifacts and no data)
+	suspend ||= update_unit({
+		base: unit,
+		client,
+		update: (u) => ({
+			...u,
+			bundle: {
+				// this will get overwritten when appropriate.
+				// this way it always has the default value.
+				mode: 'loading',
+				...u.bundle,
+				artifacts: {
+					...u.bundle?.artifacts,
+					...found_artifacts,
+				},
+			},
+		}),
+	})
+
+	// load the missing artifacts
+	for (const key of missing_artifacts) {
+		// if there are missing artifacts, we have to suspend
+		suspend = true
+
+		// pull the loader out of the manifest
+		const load_artifact = manifest.pages[id].queries[key]
+
 		// load the artifact and save it in the unit
-		loader().then((artifact) => {
+		load_artifact().then((artifact) => {
 			// add the loaded artifact to the suspense unit
 			update_unit({
 				base: unit,
@@ -339,14 +395,18 @@ function load_bundle({
 		})
 	}
 
-	// load all of the data
-	for (const [key, loader] of Object.entries(manifest.pages[id].load_query)) {
-		// TOOD: pass variables to each query to load
-		loader(client).then(({ data }) => {
-			// add the loaded artifact to the suspense unit
+	// and finally, load the component
+
+	// check if the component is something we already know about
+
+	// if we have to load the component, we have to suspend
+	if (!unit.bundle?.Component) {
+		suspend = true
+		manifest.pages[id].component().then((component) => {
+			// add the loaded component to the suspense unit
 			update_unit({
-				base: unit,
 				client,
+				base: unit,
 				update: (u) => ({
 					...u,
 					bundle: {
@@ -354,38 +414,20 @@ function load_bundle({
 						// this way it always has the default value.
 						mode: 'loading',
 						...u.bundle,
-						data: {
-							...u.bundle?.artifacts,
-							[key]: data,
-						},
+						Component: component,
 					},
 				}),
 			})
 		})
 	}
 
-	// and finally, load the component
-	manifest.pages[id].load_component().then((component) => {
-		// add the loaded component to the suspense unit
-		update_unit({
-			client,
-			base: unit,
-			update: (u) => ({
-				...u,
-				bundle: {
-					// this will get overwritten when appropriate.
-					// this way it always has the default value.
-					mode: 'loading',
-					...u.bundle,
-					Component: component,
-				},
-			}),
-		})
-	})
+	// if we don't have all of the necessary information, we need to pause
+	// util the unit is ready to be continue
+	if (suspend) {
+		throw unit
+	}
 
-	// if we got this far we need to load the bundle so just throw the unit and let the
-	// loaders do their job.
-	throw unit
+	// if we dont have to suspend we can just move on (the suspense unit is already cached and updated)
 }
 
 // Data comes in from all sorts of different places. this function applies the
@@ -406,7 +448,12 @@ function update_unit({
 	update: (old: RouterSuspenseUnit) => RouterSuspenseUnit
 	client: HoudiniClient
 }) {
-	// apply the update to one copy of base
+	// we need to track if we have to suspend
+	let suspend = false
+
+	/**
+	 * Apply the updates
+	 */
 	const updated = update(base) as RouterSuspenseUnit
 
 	// zip every query result and artifact and make sure that our store definitions
@@ -420,22 +467,78 @@ function update_unit({
 		result.store = client.observe({ artifact, initialValue: result.value })
 	}
 
+	/**
+	 * Send any necessary requests
+	 */
+
+	// any artifact that we have that does not have a pending request should
+	// be triggered.
+	//
+	// note: this currently happens only once for any given route. it's assumed
+	// that once it's happened the store will be used for updates
+	for (const [key, artifact] of Object.entries(updated.bundle?.artifacts ?? {})) {
+		if (artifact && !updated.pending[key]) {
+			// we are about to send a new request
+			updated.pending[key] = new AbortController()
+			suspend = true
+
+			// TODO: AbortController on send()
+			// TODO: we can read from cache here before making an asynchronous network call
+
+			// send the request
+			const observer = client.observe({ artifact })
+			observer
+				.send({
+					variables: updated.variables,
+					cacheParams: { disableSubscriptions: true },
+				})
+				.then(({ data }) => {
+					// and clean up anything we did along the way
+					observer.cleanup()
+
+					// hold onto the value in the suspense unit
+					update_unit({
+						base: updated,
+						client,
+						update: (u) => ({
+							...u,
+							bundle: {
+								mode: 'loading',
+								...u.bundle,
+								data: {
+									...u.bundle?.data,
+									[key]: {
+										...u.bundle?.data?.[key],
+										value: data,
+									},
+								},
+							},
+						}),
+					})
+				})
+		}
+	}
+
+	/**
+	 * Clean up the unit
+	 */
+
 	// check the unit is now finalized
 	const data = updated.bundle?.data
 	if (ok_final({ required: updated.required_queries, data }) && updated.bundle?.Component) {
 		updated.bundle!.mode = 'final'
 	}
 
-	// if this is aborted, we're done
-	if (updated.pending?.signal.abort) {
-		return
+	// if this is aborted, we're done. don't suspend because of anything we did here.
+	if (updated.route_mutex?.signal.abort) {
+		return false
 	}
 
 	// if the mode is finalized we are good to go
 	if (updated.bundle?.mode === 'final') {
 		updated.resolve()
-		updated.pending = null
-		return
+		updated.route_mutex = null
+		return suspend
 	}
 
 	// if the unit has enough information to render the loading
@@ -443,16 +546,18 @@ function update_unit({
 	if (ok_fallback({ unit: updated, data })) {
 		updated.resolve()
 	}
+
+	return suspend
 }
 
 // the possible loading states for a route are constrained from the top down
 // in order for a child route to show, the parent layout's dependencies must
 // either have a value we can use, or a loading state.
-function render_fallback(resolved: Required<RouterSuspenseUnit>['bundle']) {
+function render_fallback(resolved: RouterSuspenseUnit) {
 	return <div>loading...!</div>
 }
 
-function render_final(resolved: Required<RouterSuspenseUnit>['bundle']) {
+function render_final(resolved: RouterSuspenseUnit) {
 	return <div>hello!</div>
 }
 
@@ -467,7 +572,7 @@ function ok_fallback({
 	const has_data = unit.required_queries.filter((query) => !(query in (data ?? {}))).length === 0
 
 	// we also can't show the loading state if we are missing any artifacts
-	const has_artifacts = Object.keys(unit.page.load_artifact).every(
+	const has_artifacts = Object.keys(unit.page.queries).every(
 		(art) => unit.bundle?.artifacts?.[art]
 	)
 

@@ -61,6 +61,7 @@ test('nested route structure happy path', async function () {
 		{
 		    "pages": {
 		        "__": {
+		            "id": "__",
 		            "queries": [
 		                "RootQuery"
 		            ],
@@ -70,6 +71,7 @@ test('nested route structure happy path', async function () {
 		            ]
 		        },
 		        "__subRoute": {
+		            "id": "__subRoute",
 		            "queries": [
 		                "SubQuery",
 		                "RootQuery"
@@ -81,6 +83,7 @@ test('nested route structure happy path', async function () {
 		            ]
 		        },
 		        "__another": {
+		            "id": "__another",
 		            "queries": [
 		                "MyQuery",
 		                "MyLayoutQuery"
@@ -92,6 +95,7 @@ test('nested route structure happy path', async function () {
 		            ]
 		        },
 		        "__subRoute__nested": {
+		            "id": "__subRoute__nested",
 		            "queries": [
 		                "FinalQuery"
 		            ],
@@ -104,11 +108,13 @@ test('nested route structure happy path', async function () {
 		    },
 		    "layouts": {
 		        "__": {
+		            "id": "__",
 		            "queries": [],
 		            "url": "/",
 		            "layouts": []
 		        },
 		        "__another__": {
+		            "id": "__another__",
 		            "queries": [
 		                "RootQuery"
 		            ],
@@ -118,6 +124,7 @@ test('nested route structure happy path', async function () {
 		            ]
 		        },
 		        "__subRoute__": {
+		            "id": "__subRoute__",
 		            "queries": [
 		                "RootQuery"
 		            ],

@@ -149,13 +149,16 @@ async function add_view(args: {
 		throw missing_queries
 	}
 
-	target[normalize_path(args.url)] = {
+	const id = normalize_path(args.url)
+
+	target[id] = {
+		id,
 		queries,
 		url: args.url,
 		layouts: args.layouts,
 	}
 
-	return target[normalize_path(args.url)]
+	return target[id]
 }
 
 async function add_query(args: {
@@ -282,6 +285,7 @@ export type ProjectManifest = {
 }
 
 export type PageManifest = {
+	id: string
 	/** the name of every query that the page depends on */
 	queries: string[]
 	/** the full url pattern of the page */

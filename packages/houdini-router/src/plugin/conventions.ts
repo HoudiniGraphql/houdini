@@ -1,13 +1,18 @@
 import { path, fs, Config } from 'houdini'
 
 /** The location of the directory where we put the files for a page bundle */
-export function page_bundle_path(config: Config, id: string) {
-	return path.join(page_bundle_dir(config), id)
+export function page_bundle_path(config: Config, id: string, base?: string) {
+	return path.join(page_bundle_dir(config, base), id)
 }
 
 /** The location of the project's router */
 export function router_path(config: Config) {
 	return path.join(base_dir(config), 'Router.jsx')
+}
+
+/** The location of the page component */
+export function page_bundle_component(config: Config, id: string, base?: string) {
+	return path.join(page_bundle_path(config, id, base), 'component.jsx')
 }
 
 /** Load the page query for the given route from disk */
@@ -37,8 +42,8 @@ export function normalize_path(path: string) {
 	return path.replaceAll(/\//g, '__')
 }
 
-function page_bundle_dir(config: Config) {
-	return path.join(base_dir(config), 'bundles', 'pages')
+export function page_bundle_dir(config: Config, base: string = base_dir(config)) {
+	return path.join(base, 'bundles', 'pages')
 }
 
 function base_dir(config: Config) {

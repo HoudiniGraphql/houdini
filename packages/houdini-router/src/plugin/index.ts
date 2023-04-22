@@ -2,7 +2,7 @@ import { path, plugin, type Plugin } from 'houdini'
 
 import generate from './codegen'
 import { load_manifest, type ProjectManifest } from './codegen/manifest'
-import { print_router_manifest } from './codegen/router'
+import { format_router_manifest } from './codegen/router'
 
 let manifest: ProjectManifest
 
@@ -44,9 +44,14 @@ export const hooks: Plugin = async () => ({
 ${exportDefaultStatement('client')}
 `
 		},
-		'manifest.js': ({ config }) => {
+		'manifest.js': ({ config, exportDefaultStatement, importStatement }) => {
 			// we need to generate a manifest for the runtime router
-			return print_router_manifest({ config, manifest })
+			return format_router_manifest({
+				config,
+				manifest,
+				exportDefaultStatement,
+				importStatement,
+			})
 		},
 	},
 })

@@ -3,7 +3,13 @@ import { test, expect } from 'vitest'
 
 import { test_config } from '../config'
 import { load_manifest } from './manifest'
-import { print_router_manifest } from './router'
+import { format_router_manifest } from './router'
+
+const importStatement = (where: string, as: string) => `import ${as} from '${where}'`
+
+const exportDefaultStatement = (as: string) => `export default ${as}`
+
+const exportStarStatement = (where: string) => `export * from '${where}'`
 
 test('happy path', async function () {
 	const config = await test_config()
@@ -14,7 +20,7 @@ test('happy path', async function () {
 			'+layout.tsx': 'export default ({children}) => <div>{children}</div>',
 			'+layout.gql': mockQuery('RootQuery'),
 			'+page.tsx': mockView(['RootQuery']),
-			subRoute: {
+			'[id]': {
 				'+layout.tsx': mockView(['RootQuery']),
 				'+layout.gql': mockQuery('SubQuery'),
 				'+page.tsx': mockView(['SubQuery', 'RootQuery']),
@@ -36,80 +42,72 @@ test('happy path', async function () {
 		config,
 	})
 
-	expect(print_router_manifest({ config, manifest })).toMatchInlineSnapshot(`
-		"\\"\\"__\\"\\": {
-				id: \\"__\\",
+	expect(format_router_manifest({ config, manifest, exportDefaultStatement, importStatement }))
+		.toMatchInlineSnapshot(`
+			"export default {
+				\\"__\\": {
+					id: \\"__\\",
+					pattern: /^\\\\/$/,
+					params: [],
 
-				pattern: /^\\\\/$/,
-				params: [],
+					required_queries: [],
+					
+					
+					queries: {
+						RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
+					},
 
-				required_queries: [],
-
-				load_query: {
-
-				},
-				load_artifact: {
-
-				},
-
-				load_component: () => import(\\"./\\")
-			}
-		}
-		\\"\\"__subRoute\\"\\": {
-				id: \\"__subRoute\\",
-
-				pattern: /^\\\\/subRoute\\\\/?$/,
-				params: [],
-
-				required_queries: [],
-
-				load_query: {
-
-				},
-				load_artifact: {
-
+					component: () => import(\\"../bundles/pages/__/component\\")
 				},
 
-				load_component: () => import(\\"./\\")
-			}
-		}
-		\\"\\"__another\\"\\": {
-				id: \\"__another\\",
+				\\"__[id]\\": {
+					id: \\"__[id]\\",
+					pattern: /^\\\\/([^/]+?)\\\\/?$/,
+					params: [{\\"name\\":\\"id\\",\\"optional\\":false,\\"rest\\":false,\\"chained\\":false}],
 
-				pattern: /^\\\\/another\\\\/?$/,
-				params: [],
+					required_queries: [],
+					
+					
+					queries: {
+						SubQuery: () => import(\\"../../../artifacts/SubQuery\\"),
+						RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
+					},
 
-				required_queries: [],
-
-				load_query: {
-
-				},
-				load_artifact: {
-
+					component: () => import(\\"../bundles/pages/__[id]/component\\")
 				},
 
-				load_component: () => import(\\"./\\")
-			}
-		}
-		\\"\\"__subRoute__nested\\"\\": {
-				id: \\"__subRoute__nested\\",
+				\\"__another\\": {
+					id: \\"__another\\",
+					pattern: /^\\\\/another\\\\/?$/,
+					params: [],
 
-				pattern: /^\\\\/subRoute\\\\/nested\\\\/?$/,
-				params: [],
+					required_queries: [],
+					
+					
+					queries: {
+						MyQuery: () => import(\\"../../../artifacts/MyQuery\\"),
+						MyLayoutQuery: () => import(\\"../../../artifacts/MyLayoutQuery\\")
+					},
 
-				required_queries: [],
-
-				load_query: {
-
-				},
-				load_artifact: {
-
+					component: () => import(\\"../bundles/pages/__another/component\\")
 				},
 
-				load_component: () => import(\\"./\\")
-			}
-		}"
-	`)
+				\\"__[id]__nested\\": {
+					id: \\"__[id]__nested\\",
+					pattern: /^\\\\/([^/]+?)\\\\/nested\\\\/?$/,
+					params: [{\\"name\\":\\"id\\",\\"optional\\":false,\\"rest\\":false,\\"chained\\":false}],
+
+					required_queries: [],
+					
+					
+					queries: {
+						FinalQuery: () => import(\\"../../../artifacts/FinalQuery\\")
+					},
+
+					component: () => import(\\"../bundles/pages/__[id]__nested/component\\")
+				},
+			}"
+		`)
 })
 
 function mockView(deps: string[]) {
