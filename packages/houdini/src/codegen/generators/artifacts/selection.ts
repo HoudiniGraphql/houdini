@@ -453,11 +453,6 @@ function prepareSelection({
 	if (loadingTypes.length > 0) {
 		object.loadingTypes = loadingTypes
 	}
-	if (document.name === 'MonkeyListQueryForNesting') {
-		console.log('-------')
-		// console.log(JSON.stringify(selections, null, 4))
-		console.log('returning:', JSON.stringify(object, null, 4))
-	}
 
 	return object
 }

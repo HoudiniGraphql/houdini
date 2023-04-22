@@ -220,7 +220,6 @@ export const resolvers = {
 			return connectionFromArray(monkeys, args)
 		},
 		monkey(_, { id }) {
-			console.log('in monkey resolver')
 			return monkeys.find((m) => m.id.toString() === id)
 		},
 	},
