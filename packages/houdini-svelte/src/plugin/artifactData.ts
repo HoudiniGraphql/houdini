@@ -13,8 +13,8 @@ export function artifactData({
 	config: Config
 	document: Document
 }): PluginArtifactData {
-	// put together the type information for the filter for every list
-	let isManualLoad = true
+	// only documents in svelte files require opting into a load
+	let isManualLoad = document.filename.endsWith('.svelte')
 	let set_blocking: boolean | undefined = undefined
 
 	graphql.visit(document.document, {
