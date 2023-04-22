@@ -1,6 +1,0 @@
-query MonkeyDetailQuery($id: ID!) {
-  monkey(id: $id) {
-    id
-    ...MonkeyDetail
-  }
-}
