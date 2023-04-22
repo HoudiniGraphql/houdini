@@ -103,7 +103,7 @@ function prepareSelection({
 				const typeConditionName = field.typeCondition!.name.value
 				const typeCondition = config.schema.getType(typeConditionName)!
 
-				// build up the list of types that we need to map to the typecondition's abstract selection
+				// build up the list of types that we need to map to the type condition's abstract selection
 				const possibleTypes: string[] = []
 
 				// if the type condition is not an interface or union then there's no need to map
@@ -452,6 +452,11 @@ function prepareSelection({
 	// add the types we're supposed to load as
 	if (loadingTypes.length > 0) {
 		object.loadingTypes = loadingTypes
+	}
+	if (document.name === 'MonkeyListQueryForNesting') {
+		console.log('-------')
+		// console.log(JSON.stringify(selections, null, 4))
+		console.log('returning:', JSON.stringify(object, null, 4))
 	}
 
 	return object

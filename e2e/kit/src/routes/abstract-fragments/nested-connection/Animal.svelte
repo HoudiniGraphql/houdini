@@ -2,6 +2,7 @@
   import { fragment, graphql, type AnimalProps } from '$houdini';
 
   export let connection: AnimalProps;
+
   $: data = fragment(
     connection,
     graphql(`

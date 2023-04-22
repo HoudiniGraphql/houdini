@@ -270,6 +270,50 @@ export default function artifactGenerator(stats: {
 						)
 					}
 
+					if (name === 'MonkeyListQueryForNesting') {
+						// console.log(
+						// 	graphql.print({
+						// 		kind: 'SelectionSet',
+						// 		selections: flattenSelections({
+						// 			config,
+						// 			filepath: doc.filename,
+						// 			selections: selectionSet.selections,
+						// 			fragmentDefinitions,
+						// 			ignoreMaskDisable: docKind !== 'HoudiniFragment',
+						// 			keepFragmentSpreadNodes: true,
+						// 		}),
+						// 	})
+						// )
+						// console.log(
+						// 	JSON.stringify(
+						// 		selection({
+						// 			config,
+						// 			filepath: doc.filename,
+						// 			document: doc,
+						// 			rootType,
+						// 			globalLoading,
+						// 			// in order to simplify the selection generation, we want to merge fragments together
+						// 			selections: flattenSelections({
+						// 				config,
+						// 				filepath: doc.filename,
+						// 				selections: selectionSet.selections,
+						// 				fragmentDefinitions,
+						// 				ignoreMaskDisable: docKind !== 'HoudiniFragment',
+						// 				keepFragmentSpreadNodes: true,
+						// 			}),
+						// 			operations: operationsByPath(
+						// 				config,
+						// 				doc.filename,
+						// 				operations[0],
+						// 				filterTypes
+						// 			),
+						// 		}),
+						// 		null,
+						// 		4
+						// 	)
+						// )
+					}
+
 					// generate a hash of the document that we can use to detect changes
 					// start building up the artifact
 					let artifact: DocumentArtifact = {
@@ -302,6 +346,11 @@ export default function artifactGenerator(stats: {
 							),
 						}),
 						pluginData: {},
+					}
+
+					if (name === 'MonkeyListQueryForNesting') {
+						console.log(JSON.stringify(artifact.selection, null, 4))
+						// ^^^^ ITS MISSING ITS ABSTRACT SELECTION
 					}
 
 					// apply the visibility mask to the artifact so that only

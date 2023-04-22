@@ -20,10 +20,18 @@
 
 <div>
   Animal ids:
-  {$data.edges?.map(({ node }) => node?.id).join(',')} &nbsp;&nbsp;&nbsp;&larr; this mysteriously works
+  {$data.edges?.map((edge) => edge?.node?.id).join(',')} &nbsp;&nbsp;&nbsp;&larr; this mysteriously works
   most of the time but failed me from time to time
 </div>
 <div>
   Animal names:
-  <Animal connection={$data} /> &nbsp;&nbsp;&nbsp;&larr; this doesn't work
+  <div id="result">
+    {#each $data.edges as edge}
+      {#if edge?.node}
+        <Animal connection={edge.node} /> {' '}
+      {:else}
+        {JSON.stringify(edge) + ' '}
+      {/if}
+    {/each}
+  </div>
 </div>

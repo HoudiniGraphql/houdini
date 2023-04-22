@@ -24,11 +24,9 @@ data:
 <pre>{JSON.stringify($MonkeyListQueryForNesting, undefined, 2)}</pre>
 
 {#if $MonkeyListQueryForNesting.data?.monkeys}
-  <div id="result">
-    <div>
-      Monkey ids: {$initialFragmentData?.edges?.map(({ node }) => node?.id).join(',')} &nbsp;&nbsp;&nbsp;&larr;
-      this works
-    </div>
-    <MonkeyList connection={$MonkeyListQueryForNesting.data?.monkeys} />
+  <div>
+    Monkey ids: {$initialFragmentData?.edges?.map(({ node }) => node?.id).join(',')} &nbsp;&nbsp;&nbsp;&larr;
+    this works
   </div>
+  <MonkeyList connection={$MonkeyListQueryForNesting.data?.monkeys} />
 {/if}
