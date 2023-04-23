@@ -24,8 +24,8 @@ export type RouterPageManifest = {
 
 	// loaders for the information that we need to render a page
 	// and its loading state
-	queries: Record<string, () => Promise<QueryArtifact>>
-	component: () => Promise<(props: any) => React.ReactNode>
+	queries: Record<string, () => Promise<{ default: QueryArtifact }>>
+	component: () => Promise<{ default: (props: any) => React.ReactNode }>
 
 	// a page needs to know which queries its waiting on. If enough data has loaded
 	// to show the loading state (all of the required queries have values) then its
@@ -373,7 +373,7 @@ function load_bundle({
 		const load_artifact = manifest.pages[id].queries[key]
 
 		// load the artifact and save it in the unit
-		load_artifact().then((artifact) => {
+		load_artifact().then(({ default: artifact }) => {
 			// add the loaded artifact to the suspense unit
 			update_unit({
 				base: unit,
@@ -402,7 +402,7 @@ function load_bundle({
 	// if we have to load the component, we have to suspend
 	if (!unit.bundle?.Component) {
 		suspend = true
-		manifest.pages[id].component().then((component) => {
+		manifest.pages[id].component().then(({ default: component }) => {
 			// add the loaded component to the suspense unit
 			update_unit({
 				client,

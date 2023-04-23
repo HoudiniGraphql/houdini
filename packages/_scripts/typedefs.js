@@ -16,7 +16,7 @@ export default async function generate_typedefs({ plugin }) {
 	)
 
 	// grab any non-tests file
-	const files = (await promisify(glob)('./src/**/*.ts', { nodir: true })).filter(
+	const files = (await promisify(glob)('./src/**/*.ts*', { nodir: true })).filter(
 		(path) => !path.endsWith('.test.ts')
 	)
 

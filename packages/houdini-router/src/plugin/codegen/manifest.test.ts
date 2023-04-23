@@ -38,7 +38,7 @@ test('nested route structure happy path', async function () {
 			subRoute: {
 				'+layout.tsx': mockView(['RootQuery']),
 				'+layout.gql': mockQuery('SubQuery'),
-				'+page.tsx': mockView(['SubQuery', 'RootQuery']),
+				'+page.jsx': mockView(['SubQuery', 'RootQuery']),
 				nested: {
 					'+page.gql': mockQuery('FinalQuery'),
 					'+page.tsx': mockView(['FinalQuery']),

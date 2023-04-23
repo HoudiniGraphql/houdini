@@ -120,6 +120,7 @@ export async function runPipeline(config: Config, docs: Document[]) {
 			docs
 		)
 	} catch (e) {
+		console.log(e)
 		error = e as Error
 	}
 

@@ -188,7 +188,7 @@ async function add_query(args: {
 }
 
 export async function extractQueries(source: string): Promise<string[]> {
-	const ast = await parseJS(source)
+	const ast = await parseJS(source, { plugins: ['jsx'] })
 
 	let defaultExportNode: t.Node | null = null
 	let defaultExportIdentifier: string | null = null

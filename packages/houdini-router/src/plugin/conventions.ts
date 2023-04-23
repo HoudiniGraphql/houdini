@@ -21,8 +21,11 @@ export function read_pageQuery(base: string) {
 }
 
 /** Load the page view for the given route from disk */
-export function read_pageView(base: string) {
-	return fs.readFile(path.join(base, '+page.tsx')) ?? fs.readFile(path.join(base, '+page.jsx'))
+export async function read_pageView(base: string) {
+	return (
+		(await fs.readFile(path.join(base, '+page.tsx'))) ??
+		(await fs.readFile(path.join(base, '+page.jsx')))
+	)
 }
 
 /** Load the layout query for the given route from disk */
@@ -43,7 +46,7 @@ export function normalize_path(path: string) {
 }
 
 export function page_bundle_dir(config: Config, base: string = base_dir(config)) {
-	return path.join(base, 'bundles', 'pages')
+	return path.join(base, 'pages')
 }
 
 function base_dir(config: Config) {
