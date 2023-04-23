@@ -1,4 +1,4 @@
-import type { ObjectPropertyKind, StatementKind, TSTypeKind } from 'ast-types/lib/gen/kinds'
+import type { StatementKind, TSTypeKind } from 'ast-types/lib/gen/kinds'
 import type { Document } from 'houdini'
 import { printJS, fragmentKey, parseJS, path, fs, ArtifactKind, ensureImports } from 'houdini'
 import * as recast from 'recast'
