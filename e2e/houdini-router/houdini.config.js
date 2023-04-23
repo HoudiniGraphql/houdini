@@ -1,5 +1,5 @@
-/// <references types="houdini-svelte">
-/// <references types="houdini-plugin-svelte-global-stores">
+/// <references types="houdini-react">
+/// <references types="houdini-router">
 
 /** @type {import('houdini').ConfigFile} */
 const config = {

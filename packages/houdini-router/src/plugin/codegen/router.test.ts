@@ -51,8 +51,8 @@ test('happy path', async function () {
 					params: [],
 
 					required_queries: [],
-					
-					
+
+
 					queries: {
 						RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
 					},
@@ -66,8 +66,8 @@ test('happy path', async function () {
 					params: [{\\"name\\":\\"id\\",\\"optional\\":false,\\"rest\\":false,\\"chained\\":false}],
 
 					required_queries: [],
-					
-					
+
+
 					queries: {
 						SubQuery: () => import(\\"../../../artifacts/SubQuery\\"),
 						RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
@@ -82,8 +82,8 @@ test('happy path', async function () {
 					params: [],
 
 					required_queries: [],
-					
-					
+
+
 					queries: {
 						MyQuery: () => import(\\"../../../artifacts/MyQuery\\"),
 						MyLayoutQuery: () => import(\\"../../../artifacts/MyLayoutQuery\\")
@@ -98,8 +98,8 @@ test('happy path', async function () {
 					params: [{\\"name\\":\\"id\\",\\"optional\\":false,\\"rest\\":false,\\"chained\\":false}],
 
 					required_queries: [],
-					
-					
+
+
 					queries: {
 						FinalQuery: () => import(\\"../../../artifacts/FinalQuery\\")
 					},

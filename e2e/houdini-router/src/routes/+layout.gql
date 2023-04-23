@@ -1,5 +1,3 @@
 query Session {
-	viewer @loading {
-		name
-	}
+	hello
 }
