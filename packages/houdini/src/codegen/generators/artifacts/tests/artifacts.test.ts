@@ -5941,13 +5941,13 @@ test('nested abstract fragments', async function () {
 		                        "fields": {
 		                            "MonkeyConnection": {
 		                                "edges": {
-		                                    "type": "MonkeyEdge",
+		                                    "type": "AnimalEdge",
 		                                    "keyRaw": "edges",
 
 		                                    "selection": {
 		                                        "fields": {
 		                                            "node": {
-		                                                "type": "Monkey",
+		                                                "type": "Animal",
 		                                                "keyRaw": "node",
 		                                                "nullable": true,
 
@@ -5962,12 +5962,31 @@ test('nested abstract fragments', async function () {
 		                                                            "type": "ID",
 		                                                            "keyRaw": "id",
 		                                                            "visible": true
+		                                                        },
+
+		                                                        "name": {
+		                                                            "type": "String",
+		                                                            "keyRaw": "name"
+		                                                        },
+
+		                                                        "__typename": {
+		                                                            "type": "String",
+		                                                            "keyRaw": "__typename"
 		                                                        }
 		                                                    }
-		                                                }
+		                                                },
+
+		                                                "abstract": true
+		                                            },
+
+		                                            "__typename": {
+		                                                "type": "String",
+		                                                "keyRaw": "__typename"
 		                                            }
 		                                        }
-		                                    }
+		                                    },
+
+		                                    "abstract": true
 		                                },
 
 		                                "__typename": {
@@ -6017,6 +6036,56 @@ test('nested abstract fragments', async function () {
 		                    },
 
 		                    "fields": {
+		                        "edges": {
+		                            "type": "AnimalEdge",
+		                            "keyRaw": "edges",
+
+		                            "selection": {
+		                                "fields": {
+		                                    "node": {
+		                                        "type": "Animal",
+		                                        "keyRaw": "node",
+		                                        "nullable": true,
+
+		                                        "selection": {
+		                                            "fields": {
+		                                                "name": {
+		                                                    "type": "String",
+		                                                    "keyRaw": "name"
+		                                                },
+
+		                                                "id": {
+		                                                    "type": "ID",
+		                                                    "keyRaw": "id",
+		                                                    "visible": true
+		                                                },
+
+		                                                "__typename": {
+		                                                    "type": "String",
+		                                                    "keyRaw": "__typename"
+		                                                }
+		                                            }
+		                                        },
+
+		                                        "abstract": true
+		                                    },
+
+		                                    "__typename": {
+		                                        "type": "String",
+		                                        "keyRaw": "__typename"
+		                                    }
+		                                }
+		                            },
+
+		                            "abstract": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename",
+		                            "visible": true
+		                        },
+
 		                        "pageInfo": {
 		                            "type": "PageInfo",
 		                            "keyRaw": "pageInfo",
@@ -6049,12 +6118,6 @@ test('nested abstract fragments', async function () {
 		                                }
 		                            },
 
-		                            "visible": true
-		                        },
-
-		                        "__typename": {
-		                            "type": "String",
-		                            "keyRaw": "__typename",
 		                            "visible": true
 		                        }
 		                    },
