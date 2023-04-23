@@ -159,7 +159,7 @@ class FieldCollection {
 		// the only thing that's left is external fragment spreads
 		if (selection.kind === 'FragmentSpread') {
 			// make sure we leave this fragment in the selection behind
-			if (this.keepFragmentSpreadNodes && (!external || includeFragments)) {
+			if (this.keepFragmentSpreadNodes && !external) {
 				this.fragmentSpreads[selection.name.value] = selection
 			}
 
