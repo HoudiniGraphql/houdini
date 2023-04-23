@@ -36,7 +36,7 @@ export class BaseStore<
 		if (typeof params.initialize === 'undefined') {
 			params.initialize = true
 		}
-		
+
 		// we pass null here so that the store is a zombie - we will never
 		// send a request until the client has loaded
 		this.#store = new DocumentStore({
