@@ -26,6 +26,7 @@ export function format_router_manifest({
 	// string and return it
 	return exportDefaultStatement(
 		`{
+			pages: {
 ${Object.entries(manifest.pages)
 	.map(([id, page]) => {
 		// parse the url pattern
@@ -37,7 +38,7 @@ ${Object.entries(manifest.pages)
 
 		// render the client-side version
 		return dedent(
-			'	',
+			'		',
 			`
 	${JSON.stringify(id)}: {
 		id: ${JSON.stringify(id)},
@@ -45,7 +46,7 @@ ${Object.entries(manifest.pages)
 		params: ${JSON.stringify(pattern_parsed.params)},
 
 		required_queries: [],
-		
+
 		${/* Every query that the page relies on needs an artifact */ ' '.trim()}
 		queries: {
 			${page.queries
@@ -63,6 +64,7 @@ ${Object.entries(manifest.pages)
 		)
 	})
 	.join('\n\n')}
+	}
 }`
 	)
 }

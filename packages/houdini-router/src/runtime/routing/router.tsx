@@ -62,6 +62,8 @@ const artifact_cache = createLRUCache<QueryArtifact>()
 // The unit we are looking up when suspending has to track all of the state
 // necessary to load a page bundle. This includes the data, component, and artifact.
 type RouterSuspenseUnit = {
+	id: string
+
 	// the cache unit is an externally resolvable promise
 	then: (val: any) => any
 	resolve: () => void
@@ -224,12 +226,12 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 	// ideally, we'd never get here because we should only have a resolved value
 	// that's good to render but there might be a bug...
 	if (!cached.bundle || !cached.bundle.artifacts || !cached.bundle.Component) {
-		if (!cached.bundle?.artifacts) {
-			console.log('early suspend without artifacts!!!')
-		}
-		if (!cached.bundle?.Component) {
-			console.log('early suspend without Component!!!')
-		}
+		// if (!cached.bundle?.artifacts) {
+		// 	console.log('early suspend without artifacts!!!')
+		// }
+		// if (!cached.bundle?.Component) {
+		// 	console.log('early suspend without Component!!!')
+		// }
 
 		// *sob*
 		throw cached
@@ -240,7 +242,7 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 
 	// if we have enough data to render the full state and store instances for everything,
 	// we're good to go
-	if (ok_final({ required: match.required_queries, data })) {
+	if (ok_final({ unit: cached })) {
 		result = render_final(cached)
 	}
 
@@ -308,9 +310,10 @@ function load_bundle({
 
 	// build up the suspense unit that we will cache
 	const unit: RouterSuspenseUnit = {
+		id,
 		page: manifest.pages[id],
 		variables,
-		then: promise.then,
+		then: promise.then.bind(promise),
 		resolve,
 		reject,
 		required_queries: manifest.pages[id].required_queries,
@@ -347,7 +350,7 @@ function load_bundle({
 
 	// this update might suspend (ie if we have all the artifacts and no data)
 	suspend ||= update_unit({
-		base: unit,
+		id,
 		client,
 		update: (u) => ({
 			...u,
@@ -376,7 +379,7 @@ function load_bundle({
 		load_artifact().then(({ default: artifact }) => {
 			// add the loaded artifact to the suspense unit
 			update_unit({
-				base: unit,
+				id: unit.id,
 				client,
 				update: (u) => ({
 					...u,
@@ -406,7 +409,7 @@ function load_bundle({
 			// add the loaded component to the suspense unit
 			update_unit({
 				client,
-				base: unit,
+				id: unit.id,
 				update: (u) => ({
 					...u,
 					bundle: {
@@ -440,11 +443,11 @@ function load_bundle({
 // once we have the artifact and the data, we can create the document store with the initial values
 // from the queries.
 function update_unit({
-	base,
+	id,
 	update,
 	client,
 }: {
-	base: RouterSuspenseUnit
+	id: string
 	update: (old: RouterSuspenseUnit) => RouterSuspenseUnit
 	client: HoudiniClient
 }) {
@@ -454,7 +457,8 @@ function update_unit({
 	/**
 	 * Apply the updates
 	 */
-	const updated = update(base) as RouterSuspenseUnit
+	const updated = update(nav_suspense_cache.get(id)!) as RouterSuspenseUnit
+	nav_suspense_cache.set(id, updated)
 
 	// zip every query result and artifact and make sure that our store definitions
 	// exist when appropriate. since we only care about overlapping keys, we can
@@ -496,9 +500,12 @@ function update_unit({
 					// and clean up anything we did along the way
 					observer.cleanup()
 
+					// get the lastest reference
+					const base = nav_suspense_cache.get(updated.id)!
+
 					// hold onto the value in the suspense unit
 					update_unit({
-						base: updated,
+						id: base.id,
 						client,
 						update: (u) => ({
 							...u,
@@ -525,14 +532,14 @@ function update_unit({
 
 	// check the unit is now finalized
 	const data = updated.bundle?.data
-	if (ok_final({ required: updated.required_queries, data }) && updated.bundle?.Component) {
+	if (ok_final({ unit: updated })) {
 		updated.bundle!.mode = 'final'
 	}
 
-	// if this is aborted, we're done. don't suspend because of anything we did here.
-	if (updated.route_mutex?.signal.abort) {
-		return false
-	}
+	// TODO: if this is aborted, we're done. don't suspend because of anything we did here.
+	// if (updated.route_mutex?.signal.abort) {
+	// return false
+	// }
 
 	// if the mode is finalized we are good to go
 	if (updated.bundle?.mode === 'final') {
@@ -579,12 +586,12 @@ function ok_fallback({
 	return has_data && has_artifacts
 }
 
-function ok_final({
-	required,
-	data,
-}: {
-	required: string[]
-	data: Required<RouterSuspenseUnit>['bundle']['data']
-}) {
-	return data && Object.keys(required).every((key) => key in data && data[key].store)
+function ok_final({ unit }: { unit: RouterSuspenseUnit }) {
+	const data = unit.bundle?.data
+
+	return !!(
+		data &&
+		Object.keys(unit.required_queries).every((key) => key in data && data[key].store) &&
+		unit.bundle?.Component
+	)
 }
