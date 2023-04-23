@@ -293,6 +293,7 @@ export default function artifactGenerator(stats: {
 								fragmentDefinitions,
 								ignoreMaskDisable: docKind !== 'HoudiniFragment',
 								keepFragmentSpreadNodes: true,
+								hoistFragments: true,
 							}),
 							operations: operationsByPath(
 								config,
