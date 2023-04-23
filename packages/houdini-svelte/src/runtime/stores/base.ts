@@ -32,6 +32,11 @@ export class BaseStore<
 	#unsubscribe: (() => void) | null = null
 
 	constructor(params: ObserveParams<_Data, _Artifact> & { initialize?: boolean }) {
+		// if we weren't given an initialization state, set it to true
+		if (typeof params.initialize === 'undefined') {
+			params.initialize = true
+		}
+
 		// we pass null here so that the store is a zombie - we will never
 		// send a request until the client has loaded
 		this.#store = new DocumentStore({

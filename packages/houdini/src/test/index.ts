@@ -75,6 +75,8 @@ export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {})
 				customIdList: [CustomIdType]!
 				nodes(ids: [ID!]!): [Node!]!
     			monkeys: MonkeyConnection!
+				animals(first: Int, after: String): AnimalConnection
+
 			}
 
 			input UserFilter {

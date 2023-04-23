@@ -14,14 +14,14 @@ export function fragment<_Fragment extends Fragment<any>>(
 	artifact: FragmentArtifact
 }
 export function fragment<_Fragment extends Fragment<any>>(
-	ref: _Fragment | null,
+	ref: _Fragment | null | undefined,
 	fragment: FragmentStore<_Fragment['shape'], {}>
 ): Readable<Exclude<_Fragment['shape'], undefined> | null> & {
 	data: Readable<_Fragment | null>
 	artifact: FragmentArtifact
 }
 export function fragment<_Fragment extends Fragment<any>>(
-	ref: _Fragment | null,
+	ref: _Fragment | null | undefined,
 	store: FragmentStore<_Fragment['shape'], {}>
 ) {
 	// make sure we got a query document
@@ -40,7 +40,7 @@ export function fragment<_Fragment extends Fragment<any>>(
 }
 
 export function paginatedFragment<_Fragment extends Fragment<any>>(
-	initialValue: _Fragment | null,
+	initialValue: _Fragment | null | undefined,
 	document: FragmentStore<_Fragment['shape'], {}>
 ): FragmentStorePaginated<_Fragment['shape'], {}>
 
@@ -50,7 +50,7 @@ export function paginatedFragment<_Fragment extends Fragment<any>>(
 ): FragmentStorePaginated<_Fragment['shape'], {}>
 
 export function paginatedFragment<_Fragment extends Fragment<any>>(
-	initialValue: _Fragment | null,
+	initialValue: _Fragment | null | undefined,
 	store: FragmentStore<_Fragment['shape'], {}>
 ): FragmentStorePaginated<_Fragment['shape'], {}> {
 	// make sure we got a query document
