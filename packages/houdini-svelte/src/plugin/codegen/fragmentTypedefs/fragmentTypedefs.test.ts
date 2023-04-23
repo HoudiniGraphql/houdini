@@ -60,6 +60,8 @@ test('generates types for fragments', async function () {
 		        " $fragments": {
 		            TestFragment: any;
 		        };
+		    } | {
+		        "__typename": "non-exhaustive; don't match this";
 		    },
 		    document: TestFragmentStore
 		): FragmentStoreInstance<TestFragment$data, TestFragment$input>;
@@ -69,7 +71,9 @@ test('generates types for fragments', async function () {
 		        " $fragments": {
 		            TestFragment: any;
 		        };
-		    } | null | undefined,
+		    } | null | undefined | {
+		        "__typename": "non-exhaustive; don't match this";
+		    },
 		    document: TestFragmentStore
 		): FragmentStoreInstance<TestFragment$data | null, TestFragment$input>;
 
@@ -168,6 +172,8 @@ test('generates types for paginated fragments', async function () {
 		        " $fragments": {
 		            TestFragment: any;
 		        };
+		    } | {
+		        "__typename": "non-exhaustive; don't match this";
 		    },
 		    document: TestFragmentStore
 		): CursorFragmentStoreInstance<TestFragment$data, TestFragment$input>;
@@ -177,7 +183,9 @@ test('generates types for paginated fragments', async function () {
 		        " $fragments": {
 		            TestFragment: any;
 		        };
-		    } | null | undefined,
+		    } | null | undefined | {
+		        "__typename": "non-exhaustive; don't match this";
+		    },
 		    document: TestFragmentStore
 		): CursorFragmentStoreInstance<TestFragment$data | null, TestFragment$input>;
 
@@ -194,6 +202,8 @@ test('generates types for paginated fragments', async function () {
 		        " $fragments": {
 		            TestFragment: any;
 		        };
+		    } | {
+		        "__typename": "non-exhaustive; don't match this";
 		    },
 		    document: TestFragmentStore
 		): CursorFragmentStoreInstance<TestFragment$data, TestFragment$input>;
@@ -203,7 +213,9 @@ test('generates types for paginated fragments', async function () {
 		        " $fragments": {
 		            TestFragment: any;
 		        };
-		    } | null | undefined,
+		    } | null | undefined | {
+		        "__typename": "non-exhaustive; don't match this";
+		    },
 		    document: TestFragmentStore
 		): CursorFragmentStoreInstance<TestFragment$data | null, TestFragment$input>;
 
