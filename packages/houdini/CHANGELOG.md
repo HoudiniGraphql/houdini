@@ -1,5 +1,13 @@
 # houdini
 
+## 1.2.1
+
+### 🐛 Fixes
+
+-   [#1067](https://github.com/HoudiniGraphql/houdini/pull/1067) [`5f3bc42`](https://github.com/HoudiniGraphql/houdini/commit/5f3bc42dcd1cf4f8dddd45e8064e5f3a994c6eeb) Thanks @HanielU! - Fix bug causing svelte files to be parsed as jsx
+
+-   [#1063](https://github.com/HoudiniGraphql/houdini/pull/1063) [`c0bc1fc`](https://github.com/HoudiniGraphql/houdini/commit/c0bc1fc46c571a4df5cae0b7c7a1f87589f11997) Thanks @scottBowles! - Fix bug when fragments spanned abstract boundaries inside of inline fragment
+
 ## 1.2.0
 
 ### ✨ Features
