@@ -1,15 +1,17 @@
 # houdini-svelte
 
-## 1.2.0-next.1
+## 1.2.1
 
-### Patch Changes
+### 🐛 Fixes
 
--   [#1057](https://github.com/HoudiniGraphql/houdini/pull/1057) [`361e2b5`](https://github.com/HoudiniGraphql/houdini/commit/361e2b5a5b36b9db42f75486e0fedf39a778432c) Thanks [@devunt](https://github.com/devunt)! - Improved typings
+-   [#1068](https://github.com/HoudiniGraphql/houdini/pull/1068) [`7e30f68`](https://github.com/HoudiniGraphql/houdini/commit/7e30f68c3de705ee44c98d194ccfca1110b549e9) Thanks @AlecAivazis! - Fix bug with lazy component queries causing them to subscribe to the cache before fetching
 
--   Updated dependencies [[`46eb9c1`](https://github.com/HoudiniGraphql/houdini/commit/46eb9c110842ac3db5d3319a2cef4f1365bfa008), [`46eb9c1`](https://github.com/HoudiniGraphql/houdini/commit/46eb9c110842ac3db5d3319a2cef4f1365bfa008), [`361e2b5`](https://github.com/HoudiniGraphql/houdini/commit/361e2b5a5b36b9db42f75486e0fedf39a778432c), [`46eb9c1`](https://github.com/HoudiniGraphql/houdini/commit/46eb9c110842ac3db5d3319a2cef4f1365bfa008)]:
-    -   houdini@1.2.0-next.1
+### Dependency Changes
 
-## 1.2.0-next.0
+-   Updated dependencies [[`5f3bc42`](https://github.com/HoudiniGraphql/houdini/commit/5f3bc42dcd1cf4f8dddd45e8064e5f3a994c6eeb), [`c0bc1fc`](https://github.com/HoudiniGraphql/houdini/commit/c0bc1fc46c571a4df5cae0b7c7a1f87589f11997)]:
+    -   houdini@1.2.1
+
+## 1.2.0
 
 ### ✨ Features
 

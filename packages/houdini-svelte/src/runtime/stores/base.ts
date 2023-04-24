@@ -17,7 +17,7 @@ export class BaseStore<
 	_Artifact extends DocumentArtifact = DocumentArtifact
 > {
 	// the underlying data
-	#params: ObserveParams<_Data, _Artifact>
+	#params: ObserveParams<_Data, _Artifact> & { initialize?: boolean }
 	get artifact() {
 		return this.#params.artifact
 	}
@@ -31,7 +31,12 @@ export class BaseStore<
 	#store: DocumentStore<_Data, _Input>
 	#unsubscribe: (() => void) | null = null
 
-	constructor(params: ObserveParams<_Data, _Artifact>) {
+	constructor(params: ObserveParams<_Data, _Artifact> & { initialize?: boolean }) {
+		// if we weren't given an initialization state, set it to true
+		if (typeof params.initialize === 'undefined') {
+			params.initialize = true
+		}
+
 		// we pass null here so that the store is a zombie - we will never
 		// send a request until the client has loaded
 		this.#store = new DocumentStore({
@@ -116,7 +121,7 @@ export class BaseStore<
 			})
 
 			// only initialize when told to
-			if (init) {
+			if (init && this.#params.initialize) {
 				return this.observer.send({
 					setup: true,
 					variables: get(this.observer).variables,

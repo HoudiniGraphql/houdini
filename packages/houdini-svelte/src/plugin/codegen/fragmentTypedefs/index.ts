@@ -89,11 +89,27 @@ export default async function fragmentTypedefs(input: PluginGenerateInput) {
 					),
 				])
 				// build up the 2 input options
+				const non_exhaustive = AST.tsTypeLiteral([
+					AST.tsPropertySignature(
+						AST.literal('__typename'),
+						AST.tsTypeAnnotation(
+							AST.tsLiteralType(AST.stringLiteral("non-exhaustive; don't match this"))
+						)
+					),
+				])
+
 				const initial_value_input = AST.identifier('initialValue')
-				initial_value_input.typeAnnotation = AST.tsTypeAnnotation(fragment_map)
+				initial_value_input.typeAnnotation = AST.tsTypeAnnotation(
+					AST.tsUnionType([fragment_map, non_exhaustive])
+				)
 				const initial_value_or_null_input = AST.identifier('initialValue')
 				initial_value_or_null_input.typeAnnotation = AST.tsTypeAnnotation(
-					AST.tsUnionType([fragment_map, AST.tsNullKeyword(), AST.tsUndefinedKeyword()])
+					AST.tsUnionType([
+						fragment_map,
+						AST.tsNullKeyword(),
+						AST.tsUndefinedKeyword(),
+						non_exhaustive,
+					])
 				)
 
 				// regardless of the input value, we need to pass the document store

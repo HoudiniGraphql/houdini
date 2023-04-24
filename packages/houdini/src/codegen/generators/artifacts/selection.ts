@@ -103,7 +103,7 @@ function prepareSelection({
 				const typeConditionName = field.typeCondition!.name.value
 				const typeCondition = config.schema.getType(typeConditionName)!
 
-				// build up the list of types that we need to map to the typecondition's abstract selection
+				// build up the list of types that we need to map to the type condition's abstract selection
 				const possibleTypes: string[] = []
 
 				// if the type condition is not an interface or union then there's no need to map

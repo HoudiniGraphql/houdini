@@ -11,6 +11,7 @@ export const routes = {
   customIDs: '/customIDs',
   subscriptions_happyPath: '/subscriptions/happyPath',
   abstractFragments: '/abstract-fragments',
+  abstractFragments_nestedConnection: '/abstract-fragments/nested-connection',
   fragment_masking_partial: '/fragment-masking-partial',
   loading_state: '/loading-state',
   required_field: '/required-field',
@@ -40,6 +41,7 @@ export const routes = {
   Stores_Session: '/stores/session',
   Stores_Comp_disable_auto_fetch: '/stores/comp_disable_auto_fetch',
   Stores_Comp_init: '/stores/component_init',
+  Stores_Component_no_load_no_setup: '/stores/component_no_load_no_setup',
 
   Stores_Partial_List: '/stores/partial/partial_List',
   Stores_Partial_Off: '/stores/partial-off',

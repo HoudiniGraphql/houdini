@@ -1,18 +1,14 @@
 # houdini
 
-## 1.2.0-next.1
+## 1.2.1
 
-### Patch Changes
+### 🐛 Fixes
 
--   [#1059](https://github.com/HoudiniGraphql/houdini/pull/1059) [`46eb9c1`](https://github.com/HoudiniGraphql/houdini/commit/46eb9c110842ac3db5d3319a2cef4f1365bfa008) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix generated types when using a global loading directive
+-   [#1067](https://github.com/HoudiniGraphql/houdini/pull/1067) [`5f3bc42`](https://github.com/HoudiniGraphql/houdini/commit/5f3bc42dcd1cf4f8dddd45e8064e5f3a994c6eeb) Thanks @HanielU! - Fix bug causing svelte files to be parsed as jsx
 
--   [#1059](https://github.com/HoudiniGraphql/houdini/pull/1059) [`46eb9c1`](https://github.com/HoudiniGraphql/houdini/commit/46eb9c110842ac3db5d3319a2cef4f1365bfa008) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add cascade arg to loading
+-   [#1063](https://github.com/HoudiniGraphql/houdini/pull/1063) [`c0bc1fc`](https://github.com/HoudiniGraphql/houdini/commit/c0bc1fc46c571a4df5cae0b7c7a1f87589f11997) Thanks @scottBowles! - Fix bug when fragments spanned abstract boundaries inside of inline fragment
 
--   [#1057](https://github.com/HoudiniGraphql/houdini/pull/1057) [`361e2b5`](https://github.com/HoudiniGraphql/houdini/commit/361e2b5a5b36b9db42f75486e0fedf39a778432c) Thanks [@devunt](https://github.com/devunt)! - Improved typings
-
--   [#1059](https://github.com/HoudiniGraphql/houdini/pull/1059) [`46eb9c1`](https://github.com/HoudiniGraphql/houdini/commit/46eb9c110842ac3db5d3319a2cef4f1365bfa008) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Allow @loading to float if its also attached globally
-
-## 1.2.0-next.0
+## 1.2.0
 
 ### ✨ Features
 

@@ -79,6 +79,7 @@ type Query {
 	rentedBooks: [RentedBook!]!
 	animals: AnimalConnection!
 	monkeys: MonkeyConnection!
+	monkey(id: ID!): Monkey
 }
 
 type Subscription {
