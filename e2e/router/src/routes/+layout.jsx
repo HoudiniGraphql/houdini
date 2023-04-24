@@ -17,7 +17,7 @@ export default function ({ Session, children }) {
 					<Link href="/user/3">User 3</Link>
 				</li>
 			</ul>
-			<div>{Session.viewer === null ? 'NO AUTH' : children}</div>
+			<div>{children}</div>
 		</div>
 	)
 }
