@@ -25,7 +25,7 @@ export type RouterPageManifest = {
 	// loaders for the information that we need to render a page
 	// and its loading state
 	queries: Record<string, () => Promise<{ default: QueryArtifact }>>
-	component: () => Promise<{ default: (props: any) => React.ReactNode }>
+	component: () => Promise<{ default: (props: any) => React.ReactElement }>
 
 	// a page needs to know which queries its waiting on. If enough data has loaded
 	// to show the loading state (all of the required queries have values) then its
@@ -97,7 +97,7 @@ type RouterSuspenseUnit = {
 		// when this has a value, we have a component that should be shown
 		// on the ui. It might be a React.lazy if we have a loading state
 		// and the artifact has loaded but we're still waiting on the data
-		Component?: (props: any) => React.ReactNode
+		Component?: (props: any) => React.ReactElement
 
 		// the artifacts for the the page all get set at once and are very static.
 		// could be deployed with different cache headers on a CDN
@@ -206,7 +206,7 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 	//   full load of a fresh page. Just throw the page bundle loader and it will resolve when its ready
 
 	// the value we will render
-	let result: React.ReactNode | null = null
+	let result: React.ReactElement | null = null
 
 	// TODO: change of variables on the current view
 
@@ -226,13 +226,6 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 	// ideally, we'd never get here because we should only have a resolved value
 	// that's good to render but there might be a bug...
 	if (!cached.bundle || !cached.bundle.artifacts || !cached.bundle.Component) {
-		// if (!cached.bundle?.artifacts) {
-		// 	console.log('early suspend without artifacts!!!')
-		// }
-		// if (!cached.bundle?.Component) {
-		// 	console.log('early suspend without Component!!!')
-		// }
-
 		// *sob*
 		throw cached
 	}
@@ -565,7 +558,15 @@ function render_fallback(resolved: RouterSuspenseUnit) {
 }
 
 function render_final(resolved: RouterSuspenseUnit) {
-	return <div>hello!</div>
+	const Component = resolved.bundle!.Component!
+	// in order to know the props to pass, we need to look at the queries
+	const props: Record<string, any> = {}
+	for (const query of Object.keys(resolved.page.queries)) {
+		props[query] = resolved.bundle?.data?.[query].value
+		props[`${query}$handle`] = resolved.bundle?.data?.[query].store
+	}
+
+	return <Component {...props} />
 }
 
 function ok_fallback({

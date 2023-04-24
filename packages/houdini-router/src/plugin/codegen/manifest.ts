@@ -146,7 +146,10 @@ async function add_view(args: {
 	// look for any queries that we are asking for that aren't available
 	const missing_queries = queries.filter((query) => !args.queries.includes(query))
 	if (missing_queries.length > 0) {
-		throw missing_queries
+		throw {
+			message: 'Missing Queries',
+			description: JSON.stringify(missing_queries),
+		}
 	}
 
 	const id = normalize_path(args.url)
