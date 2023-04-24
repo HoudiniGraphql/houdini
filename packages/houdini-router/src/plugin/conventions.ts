@@ -34,9 +34,10 @@ export function read_layoutQuery(base: string) {
 }
 
 /** Load the layout view for the given route from disk */
-export function read_layoutView(base: string) {
+export async function read_layoutView(base: string) {
 	return (
-		fs.readFile(path.join(base, '+layout.tsx')) ?? fs.readFile(path.join(base, '+layout.jsx'))
+		(await fs.readFile(path.join(base, '+layout.tsx'))) ??
+		(await fs.readFile(path.join(base, '+layout.jsx')))
 	)
 }
 

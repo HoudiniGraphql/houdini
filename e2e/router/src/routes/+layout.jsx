@@ -1,6 +1,6 @@
 import { Link } from '$houdini'
 
-export default function ({ Session, children }) {
+export default function ({ children }) {
 	return (
 		<div style={{ display: 'flex', flexDirection: 'row' }}>
 			<ul>
