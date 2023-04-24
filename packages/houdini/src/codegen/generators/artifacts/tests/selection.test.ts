@@ -38,7 +38,7 @@ test('fragments of unions inject correctly', function () {
 			(def): def is graphql.OperationDefinitionNode => def.kind === 'OperationDefinition'
 		)!.selectionSet.selections,
 		fragmentDefinitions,
-		ignoreMaskDisable: true,
+		applyFragments: true,
 	})
 
 	const artifactSelection = selection({
@@ -47,12 +47,15 @@ test('fragments of unions inject correctly', function () {
 		rootType: 'Query',
 		operations: {},
 		selections: flat,
+		includeFragments: true,
+
 		document: mockCollectedDoc(`
-        query Query {
-            entities {
-                ...EntityInfo
-            }
-        }`),
+			query Query {
+				entities {
+					...EntityInfo
+				}
+			}
+		`),
 	})
 
 	expect(artifactSelection).toMatchInlineSnapshot(`
