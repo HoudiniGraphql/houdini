@@ -45,67 +45,69 @@ test('happy path', async function () {
 	expect(format_router_manifest({ config, manifest, exportDefaultStatement, importStatement }))
 		.toMatchInlineSnapshot(`
 			"export default {
-				\\"__\\": {
-					id: \\"__\\",
-					pattern: /^\\\\/$/,
-					params: [],
+						pages: {
+					\\"__\\": {
+						id: \\"__\\",
+						pattern: /^\\\\/$/,
+						params: [],
 
-					required_queries: [],
+						required_queries: [],
 
+					
+						queries: {
+							RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
+						},
 
-					queries: {
-						RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
+						component: () => import(\\"../pages/__/component\\")
 					},
 
-					component: () => import(\\"../bundles/pages/__/component\\")
-				},
+					\\"____id__\\": {
+						id: \\"____id__\\",
+						pattern: /^\\\\/([^/]+?)\\\\/?$/,
+						params: [{\\"name\\":\\"id\\",\\"optional\\":false,\\"rest\\":false,\\"chained\\":false}],
 
-				\\"__[id]\\": {
-					id: \\"__[id]\\",
-					pattern: /^\\\\/([^/]+?)\\\\/?$/,
-					params: [{\\"name\\":\\"id\\",\\"optional\\":false,\\"rest\\":false,\\"chained\\":false}],
+						required_queries: [],
 
-					required_queries: [],
+					
+						queries: {
+							SubQuery: () => import(\\"../../../artifacts/SubQuery\\"),
+							RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
+						},
 
-
-					queries: {
-						SubQuery: () => import(\\"../../../artifacts/SubQuery\\"),
-						RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
+						component: () => import(\\"../pages/____id__/component\\")
 					},
 
-					component: () => import(\\"../bundles/pages/__[id]/component\\")
-				},
+					\\"__another\\": {
+						id: \\"__another\\",
+						pattern: /^\\\\/another\\\\/?$/,
+						params: [],
 
-				\\"__another\\": {
-					id: \\"__another\\",
-					pattern: /^\\\\/another\\\\/?$/,
-					params: [],
+						required_queries: [],
 
-					required_queries: [],
+					
+						queries: {
+							MyQuery: () => import(\\"../../../artifacts/MyQuery\\"),
+							MyLayoutQuery: () => import(\\"../../../artifacts/MyLayoutQuery\\")
+						},
 
-
-					queries: {
-						MyQuery: () => import(\\"../../../artifacts/MyQuery\\"),
-						MyLayoutQuery: () => import(\\"../../../artifacts/MyLayoutQuery\\")
+						component: () => import(\\"../pages/__another/component\\")
 					},
 
-					component: () => import(\\"../bundles/pages/__another/component\\")
-				},
+					\\"____id____nested\\": {
+						id: \\"____id____nested\\",
+						pattern: /^\\\\/([^/]+?)\\\\/nested\\\\/?$/,
+						params: [{\\"name\\":\\"id\\",\\"optional\\":false,\\"rest\\":false,\\"chained\\":false}],
 
-				\\"__[id]__nested\\": {
-					id: \\"__[id]__nested\\",
-					pattern: /^\\\\/([^/]+?)\\\\/nested\\\\/?$/,
-					params: [{\\"name\\":\\"id\\",\\"optional\\":false,\\"rest\\":false,\\"chained\\":false}],
+						required_queries: [],
 
-					required_queries: [],
+					
+						queries: {
+							FinalQuery: () => import(\\"../../../artifacts/FinalQuery\\")
+						},
 
-
-					queries: {
-						FinalQuery: () => import(\\"../../../artifacts/FinalQuery\\")
+						component: () => import(\\"../pages/____id____nested/component\\")
 					},
-
-					component: () => import(\\"../bundles/pages/__[id]__nested/component\\")
-				},
+				}
 			}"
 		`)
 })

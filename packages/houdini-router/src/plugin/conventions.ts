@@ -42,7 +42,16 @@ export function read_layoutView(base: string) {
 
 /** Transforms paths to ids */
 export function normalize_path(path: string) {
-	return path.replaceAll(/\//g, '__')
+	const special_chars = ['/', ']', '[']
+	let copy = ''
+	for (const char of path) {
+		if (special_chars.includes(char)) {
+			copy += '__'
+		} else {
+			copy += char
+		}
+	}
+	return copy
 }
 
 export function page_bundle_dir(config: Config, base: string = base_dir(config)) {

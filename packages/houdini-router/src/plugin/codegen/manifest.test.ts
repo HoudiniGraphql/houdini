@@ -67,19 +67,7 @@ test('nested route structure happy path', async function () {
 		            ],
 		            "url": "/",
 		            "layouts": [
-		                "/"
-		            ]
-		        },
-		        "__subRoute": {
-		            "id": "__subRoute",
-		            "queries": [
-		                "SubQuery",
-		                "RootQuery"
-		            ],
-		            "url": "/subRoute",
-		            "layouts": [
-		                "/",
-		                "/subRoute/"
+		                "__"
 		            ]
 		        },
 		        "__another": {
@@ -90,8 +78,20 @@ test('nested route structure happy path', async function () {
 		            ],
 		            "url": "/another",
 		            "layouts": [
-		                "/",
-		                "/another/"
+		                "__",
+		                "__another__"
+		            ]
+		        },
+		        "__subRoute": {
+		            "id": "__subRoute",
+		            "queries": [
+		                "SubQuery",
+		                "RootQuery"
+		            ],
+		            "url": "/subRoute",
+		            "layouts": [
+		                "__",
+		                "__subRoute__"
 		            ]
 		        },
 		        "__subRoute__nested": {
@@ -101,8 +101,8 @@ test('nested route structure happy path', async function () {
 		            ],
 		            "url": "/subRoute/nested",
 		            "layouts": [
-		                "/",
-		                "/subRoute/"
+		                "__",
+		                "__subRoute__"
 		            ]
 		        }
 		    },
@@ -120,7 +120,7 @@ test('nested route structure happy path', async function () {
 		            ],
 		            "url": "/another/",
 		            "layouts": [
-		                "/"
+		                "__"
 		            ]
 		        },
 		        "__subRoute__": {
@@ -130,7 +130,7 @@ test('nested route structure happy path', async function () {
 		            ],
 		            "url": "/subRoute/",
 		            "layouts": [
-		                "/"
+		                "__"
 		            ]
 		        }
 		    },

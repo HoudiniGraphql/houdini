@@ -1,6 +1,7 @@
 import { Config, fs, path } from 'houdini'
 
 import { page_bundle_component } from '../conventions'
+import { dedent } from '../dedent'
 import type { ProjectManifest, PageManifest } from './manifest'
 
 /**
@@ -45,6 +46,72 @@ async function generate_page_bundle(args: PageBundleInput) {
 	// the first thing we need to do is make sure that the page has a bundle directory
 	await fs.mkdirp(path.dirname(component_path))
 
-	// for now just write _something_
-	await fs.writeFile(component_path, 'export default () => <div>Hello</div>')
+	// build up the file source as a string
+	let source: string[] = []
+
+	// we need to add imports for every layout
+	const layout_components: Record<string, string> = {}
+	for (const layout_id of args.page.layouts) {
+		const layout = args.project.layouts[layout_id]
+
+		// generate the relative filepath from the component file
+		// to the layout
+		const layout_path = path.join(
+			args.config.pluginDirectory('houdini-router'),
+			'..',
+			'..',
+			'..',
+			'src',
+			'routes',
+			layout.url,
+			'+layout'
+		)
+		const relative_path = path.relative(path.dirname(component_path), layout_path)
+
+		// generate the local name for the layout component
+		const component_name = 'Layout_' + layout_id
+		layout_components[layout_id] = component_name
+
+		// add the import
+		source.push(`import ${component_name} from "${relative_path}"`)
+	}
+
+	// generate the relative filepath from the component file
+	// to the page
+	const page_path = path.join(
+		args.config.pluginDirectory('houdini-router'),
+		'..',
+		'..',
+		'..',
+		'src',
+		'routes',
+		args.page.url,
+		'+page'
+	)
+	// generate the local import for the page component
+	const relative_path = path.relative(path.dirname(component_path), page_path)
+	const page_component = 'Component_' + args.page.id
+	source.push(`import ${page_component} from "${relative_path}"`)
+
+	// in order to wrap up the layouts we're going to iterate over the list and build them up
+	let content = `<${page_component} ${args.page.queries.map(
+		(q) => `${q}={${q}} ${q}$handle={${q}$handle}`
+	)} />`
+	for (const layout of [...args.page.layouts].reverse()) {
+		const Layout = layout_components[layout]
+		content = dedent(`<${Layout}>
+			${content}
+		</${Layout}>
+		`)
+	}
+
+	// a page's entrypoint should take every query needed by a layout or
+	// page and passes it through
+	source.push(`export default ({ ${args.page.queries
+		.map((q) => [q, `${q}$handle`].join(', '))
+		.join('')} }) => (
+			${content}
+		)`)
+
+	await fs.writeFile(component_path, dedent(source.join('\n')))
 }

@@ -88,7 +88,7 @@ async function walk_routes(args: {
 			layouts: args.layouts,
 			queries: newLayoutQueries,
 		})
-		newLayouts = [...args.layouts, layout.url]
+		newLayouts = [...args.layouts, normalize_path(layout.url)]
 	}
 
 	// if we have a page query, add it
