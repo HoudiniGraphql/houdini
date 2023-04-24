@@ -72,7 +72,6 @@ export async function generateDocumentTypes(config: Config, docs: Document[]) {
 				filepath: filename,
 				selections: definition.selectionSet.selections,
 				fragmentDefinitions,
-				hoistFragments: true,
 			})
 
 			if (definition?.kind === 'OperationDefinition') {
