@@ -14,7 +14,7 @@
       addUser(
         name: $name
         birthDate: $birthDate
-        delay: 1000
+        delay: 500
         snapshot: "mutation-opti-list"
         force: $force
       ) {
