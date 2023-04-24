@@ -2,14 +2,7 @@ import * as graphql from 'graphql'
 import * as recast from 'recast'
 
 import type { Config, Document } from '../../../lib'
-import {
-	TypeWrapper,
-	unwrapType,
-	deepMerge,
-	getRootType,
-	HoudiniError,
-	ArtifactKind,
-} from '../../../lib'
+import { TypeWrapper, unwrapType, deepMerge, getRootType, HoudiniError } from '../../../lib'
 import {
 	RefetchUpdateMode,
 	type MutationOperation,
