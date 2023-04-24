@@ -119,10 +119,10 @@ export class ListManager {
 		this.listsByField.get(parentID)!.get(list.key)!.push(handler)
 	}
 
-	removeIDFromAllLists(id: string) {
+	removeIDFromAllLists(id: string, layer?: Layer) {
 		for (const fieldMap of this.lists.values()) {
 			for (const list of fieldMap.values()) {
-				list.removeID(id)
+				list.removeID(id, undefined, layer)
 			}
 		}
 	}
@@ -323,7 +323,7 @@ export class List {
 		})
 	}
 
-	removeID(id: string, variables: {} = {}) {
+	removeID(id: string, variables: {} = {}, layer?: Layer) {
 		// if there are conditions for this operation
 		if (!this.validateWhen()) {
 			return
@@ -396,7 +396,7 @@ export class List {
 		)
 
 		// remove the target from the parent
-		this.cache._internal_unstable.storage.remove(parentID, targetKey, targetID)
+		this.cache._internal_unstable.storage.remove(parentID, targetKey, targetID, layer)
 
 		// notify the subscribers about the change
 		for (const [spec] of subscribers) {
@@ -415,14 +415,14 @@ export class List {
 		return true
 	}
 
-	remove(data: {}, variables: {} = {}) {
+	remove(data: {}, variables: {} = {}, layer?: Layer) {
 		const targetID = this.cache._internal_unstable.id(this.listType(data), data)
 		if (!targetID) {
 			return
 		}
 
 		// figure out the id of the type we are adding
-		return this.removeID(targetID, variables)
+		return this.removeID(targetID, variables, layer)
 	}
 
 	listType(data: { __typename?: string }) {
@@ -474,7 +474,7 @@ export class List {
 		where: 'first' | 'last'
 	}) {
 		// if we don't have something to remove, then add it instead
-		if (!this.remove(data, variables)) {
+		if (!this.remove(data, variables, layer)) {
 			this.addToList(selection, data, variables, where, layer)
 		}
 	}

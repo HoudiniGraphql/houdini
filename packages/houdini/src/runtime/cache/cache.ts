@@ -147,13 +147,13 @@ export class Cache {
 	}
 
 	// remove the record from the cache's store and unsubscribe from it
-	delete(id: string) {
+	delete(id: string, layer?: Layer) {
 		// clean up any subscribers associated with the record before we destroy the actual values that will let us
 		// walk down
 		this._internal_unstable.subscriptions.removeAllSubscribers(id)
 
 		// make sure we remove the id from any lists that it appears in
-		this._internal_unstable.lists.removeIDFromAllLists(id)
+		this._internal_unstable.lists.removeIDFromAllLists(id, layer)
 
 		// delete the record from the store
 		this._internal_unstable.storage.delete(id)
@@ -742,7 +742,7 @@ class CacheInternal {
 						this.cache
 							.list(operation.list, parentID, operation.target === 'all')
 							.when(operation.when)
-							.remove(target, variables)
+							.remove(target, variables, layer)
 					}
 
 					// delete the target
@@ -755,7 +755,7 @@ class CacheInternal {
 						if (!targetID) {
 							continue
 						}
-						this.cache.delete(targetID)
+						this.cache.delete(targetID, layer)
 					}
 				}
 			}
