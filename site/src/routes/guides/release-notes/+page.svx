@@ -9,6 +9,23 @@ description: A guide to migrating your application to each breaking version of h
 
 # Release Notes
 
+## 1.2.0
+
+`1.2` brings a bunch of new directives to the pile:
+
+- `@loading` - define your route's loading states. For more information, check out [this guide](/guides/loading-states).
+- `@required` - control the nullability of your fields. For more information, check out [this guide](https://relay.dev/blog/2023/01/03/resilient-relay-apps/) on the Relay blog which describes the same directive.
+- `@blocking` - force the route to block as data is being fetched
+- `@blocking_disable` - force the route to not block as data is being fetched
+
+## 1.1.0
+
+While this first release after `1.0` should be entirely transparent to you, it's actually
+a pretty massive change under the hood. Previously, cache subscriptions were at the query
+level which meant that if one entry in a list of 10k changed, the whole list gets re-rendered.
+This release changes that so that fragments are individually responsible for subscribing to the cache.
+This means that only the one fragment that handles the updated row would re-render in the previous example.
+
 ## 1.0.0
 
 It's finally here! <Emoji name="partying-face" height={20} fallback="🥳" />
