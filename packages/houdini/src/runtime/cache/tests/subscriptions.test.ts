@@ -1861,6 +1861,205 @@ test('clearing a display layer updates subscribers', function () {
 	})
 })
 
+test('optimistic layer & lists', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	// selection for the list
+	const selectionList: SubscriptionSelection = {
+		fields: {
+			usersList: {
+				type: 'User',
+				keyRaw: 'usersList',
+				directives: [
+					{
+						name: 'list',
+						arguments: {
+							name: {
+								kind: 'StringValue',
+								value: 'OptimisticUsersList',
+							},
+						},
+					},
+				],
+				list: {
+					name: 'OptimisticUsersList',
+					connection: false,
+					type: 'User',
+				},
+				selection: {
+					fields: {
+						name: {
+							type: 'String',
+							keyRaw: 'name',
+							visible: true,
+						},
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+							visible: true,
+						},
+					},
+				},
+				visible: true,
+			},
+		},
+	}
+
+	// selection for adding a user
+	const selectionMutation: SubscriptionSelection = {
+		fields: {
+			addUser: {
+				type: 'User',
+				keyRaw: 'addUser',
+				nullable: true,
+				operations: [
+					{
+						action: 'insert',
+						list: 'OptimisticUsersList',
+						position: 'last',
+					},
+				],
+				selection: {
+					fields: {
+						name: {
+							type: 'String',
+							keyRaw: 'name',
+						},
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+							visible: true,
+						},
+					},
+					fragments: {
+						OptimisticUsersList_insert: {
+							arguments: {},
+						},
+					},
+				},
+				visible: true,
+			},
+		},
+	}
+
+	// write initial data
+	cache.write({
+		selection: selectionList,
+		data: {
+			userList: [
+				{
+					name: 'Bruce Willis',
+					id: 'mutation-opti-list:1',
+				},
+				{
+					name: 'Samuel Jackson',
+					id: 'mutation-opti-list:2',
+				},
+				{
+					name: 'Morgan Freeman',
+					id: 'mutation-opti-list:3',
+				},
+				{
+					name: 'Tom Hanks',
+					id: 'mutation-opti-list:4',
+				},
+				{
+					name: 'Will Smith',
+					id: 'mutation-opti-list:5',
+				},
+				{
+					name: 'Harrison Ford',
+					id: 'mutation-opti-list:6',
+				},
+				{
+					name: 'Eddie Murphy',
+					id: 'mutation-opti-list:7',
+				},
+				{
+					name: 'Clint Eastwood',
+					id: 'mutation-opti-list:8',
+				},
+			],
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = vi.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		selection: selectionList,
+		set,
+	})
+
+	// create an optimistic layer on top
+	const layer = cache._internal_unstable.storage.createLayer(true)
+
+	// somehow write a user to the cache with the same id, but a different name
+	cache.write({
+		selection: selectionMutation,
+		data: {
+			addUser: {
+				id: '??? id ???',
+				name: '...optimisticResponse... I could have guessed JYC!',
+			},
+		},
+		layer: layer.id,
+	})
+
+	// make sure that set got called with the full response
+	expect(set).toHaveBeenCalledWith({
+		usersList: [
+			{
+				id: '??? id ???',
+				name: '...optimisticResponse... I could have guessed JYC!',
+			},
+		],
+		WRONG: '// Should be the complete list here, no?',
+	})
+
+	// clear the layer
+	layer.clear()
+
+	// write the with the same values to the layer that were previously in place
+	cache.write({
+		selection: selectionMutation,
+		data: {
+			addUser: {
+				name: 'Alec',
+				id: 'mutation-opti-list:9',
+			},
+		},
+		layer: layer.id,
+	})
+
+	expect(set).toHaveBeenNthCalledWith(2, {
+		usersList: [
+			{
+				id: 'mutation-opti-list:9',
+				name: 'Alec',
+			},
+		],
+	})
+
+	expect(cache.read({ selection: selectionList })).toMatchInlineSnapshot(`
+		{
+		    "data": {
+		        "usersList": [
+		            {
+		                "name": "Alec",
+		                "id": "mutation-opti-list:9"
+		            }
+		        ]
+		    },
+		    "partial": false,
+		    "stale": false
+		}
+	`)
+})
+
 test('ensure parent type is properly passed for nested lists', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
