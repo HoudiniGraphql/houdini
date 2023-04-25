@@ -94,7 +94,7 @@ async function generate_page_bundle(args: PageBundleInput) {
 	source.push(`import ${Component} from "${relative_path}"`)
 
 	// in order to wrap up the layouts we're going to iterate over the list and build them up
-	let content = `<${Component} ${query_with_props({
+	let content = `<${Component} ${query_with_handle({
 		queries: args.page.queries,
 		value: true,
 	})} />`
@@ -102,7 +102,7 @@ async function generate_page_bundle(args: PageBundleInput) {
 		// wrap the content in an instance of the correct component
 		const Layout = layout_components[layout]
 
-		const props = query_with_props({
+		const props = query_with_handle({
 			queries: args.project.layouts[layout].queries,
 			value: true,
 			betweenPairs: ' ',
@@ -124,7 +124,7 @@ async function generate_page_bundle(args: PageBundleInput) {
 	// page and passes it through
 	source.push(`
 		export default ({ 
-			${query_with_props({
+			${query_with_handle({
 				queries,
 				betweenValues: ',',
 			})} 
@@ -139,7 +139,7 @@ async function generate_page_bundle(args: PageBundleInput) {
 	await fs.writeFile(component_path, formatted)
 }
 
-const query_with_props = ({
+const query_with_handle = ({
 	queries,
 	value,
 	betweenValues = ' ',
