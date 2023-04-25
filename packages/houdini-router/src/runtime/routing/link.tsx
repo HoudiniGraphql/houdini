@@ -3,12 +3,12 @@ import React, { useTransition } from 'react'
 import { useRouterContext } from './router'
 
 export function Link({
-	to,
+	href,
 	children,
 	style,
 	...props
 }: {
-	to: string
+	href: string
 	children: React.ReactNode
 	style?: React.CSSProperties
 }) {
@@ -23,12 +23,12 @@ export function Link({
 	const click = (e: React.SyntheticEvent) => {
 		e.preventDefault()
 		startTransition(() => {
-			goto(to)
+			goto(href)
 		})
 	}
 
 	return (
-		<a href={to} onClick={click} style={style} {...props}>
+		<a href={href} onClick={click} style={style} {...props}>
 			{children}
 		</a>
 	)

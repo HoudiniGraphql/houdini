@@ -1,8 +1,6 @@
 query UserInfo($id: ID!) {
-	node(id: $id) @loading {
-		... on User {
-			id
-			name
-		}
+	user(id: $id, snapshot: "hello") @loading {
+		id
+		name
 	}
 }
