@@ -364,7 +364,7 @@ function load_bundle({
 	for (const key of missing_artifacts) {
 		// if there are missing artifacts, we have to suspend
 		suspend = true
-
+		1
 		// pull the loader out of the manifest
 		const load_artifact = manifest.pages[id].documents[key]
 
@@ -593,7 +593,7 @@ function ok_final({ unit }: { unit: RouterSuspenseUnit }) {
 
 	return !!(
 		data &&
-		Object.keys(unit.required_queries).every((key) => key in data && data[key].store) &&
+		unit.required_queries.every((key) => key in data && data[key].store) &&
 		unit.bundle?.Component
 	)
 }

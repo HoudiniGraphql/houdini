@@ -102,11 +102,13 @@ async function generate_page_bundle(args: PageBundleInput) {
 		// wrap the content in an instance of the correct component
 		const Layout = layout_components[layout]
 
+		// compute the props
 		const props = query_with_handle({
 			queries: args.project.layouts[layout].queries,
 			value: true,
 			betweenPairs: ' ',
 		})
+
 		// make sure to pass the right props to the component
 		content = `
 			<${Layout} ${props}>

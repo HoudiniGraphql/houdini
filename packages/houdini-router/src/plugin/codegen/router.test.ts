@@ -125,6 +125,7 @@ test('happy path', async function () {
 
 						required_queries: [\\"RootQuery\\"],
 					}
+				}
 			}"
 		`)
 })

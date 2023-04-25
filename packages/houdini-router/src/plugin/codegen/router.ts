@@ -48,7 +48,7 @@ ${Object.entries(manifest.pages)
 		required_queries: ${JSON.stringify(page.queries)},
 
 		${/* Every query that the page relies on needs an artifact */ ' '.trim()}
-		queries: {
+		documents: {
 			${page.queries
 				.map((query) => {
 					// we need to compute the relative path to the artifact
@@ -80,6 +80,7 @@ ${Object.entries(manifest.layouts)
 		)
 	})
 	.join(',\n')}
+	}
 }`
 	)
 }
