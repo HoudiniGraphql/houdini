@@ -2,6 +2,7 @@
 import { HoudiniProvider } from '$houdini'
 import { HoudiniClient } from '$houdini/runtime/client'
 import { DocumentStore } from '$houdini/runtime/client/documentStore'
+import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import { createLRUCache } from '$houdini/runtime/lib/lru'
 import type { QueryArtifact, GraphQLObject, GraphQLVariables } from '$houdini/runtime/lib/types'
 import React, { createContext, Suspense, useContext, useEffect, useState } from 'react'
@@ -13,6 +14,8 @@ import { exec, RouteParam } from './match'
 export type RouterManifest = {
 	pages: Record<string, RouterPageManifest>
 }
+
+// TODO: WHEN TO CLEAN UP ROUTER CACHES??
 
 export type RouterPageManifest = {
 	id: string
@@ -50,14 +53,13 @@ const Context = createContext<RouterContext>({
 // the suspended promises it can look up the value to use.
 const nav_suspense_cache = createLRUCache<RouterSuspenseUnit>()
 
-// What is my cache key? If I use the raw url then I won't be able to distinguish
-// between different variables. If a url is loaded that _is_ the same pattern
-// but a different input then we need to set a flag so that the previous fetch doesn't
-// incorrectly resolve the suspension.
-
-// We also need a second cache for artifacts so that we can avoid suspending to
+// We also need a cache for artifacts so that we can avoid suspending to
 // load them if possible.
 const artifact_cache = createLRUCache<QueryArtifact>()
+
+// We also need a cache for component references so we can avoid suspending
+// when we load the same page multiple times
+const component_cache = createLRUCache<(props: any) => React.ReactElement>()
 
 // The unit we are looking up when suspending has to track all of the state
 // necessary to load a page bundle. This includes the data, component, and artifact.
@@ -202,17 +204,15 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 	// - we are here but not ready to render the UI. This could happen because we are missing the artifact,
 	//   don't have enough data for the loading state. Whatever the reason, If there is something in progress, just throw the
 	//   pending one.
-	// - We don't have an entry for this route in the cache at all if nothing is in progress, its a
-	//   full load of a fresh page. Just throw the page bundle loader and it will resolve when its ready
+	// - We don't have an entry for this route in the cache at all and nothing is in progress which means its a
+	//   full load of a fresh page. Just throw the page bundle loader and it will resolve when its ready.
 
 	// the value we will render
 	let result: React.ReactElement | null = null
 
-	// TODO: change of variables on the current view
-
 	// we have no cache entry for this route so we need to load the page bundle
 	// and then come back here when we have something to render
-	if (!cached) {
+	if (!cached || !deepEquals(matchVariables, cached.variables)) {
 		// this might suspend
 		load_bundle({ manifest, id: identifier, variables: matchVariables ?? {}, client })
 		// or it might just prime the cache with good values somehow
@@ -364,7 +364,7 @@ function load_bundle({
 	for (const key of missing_artifacts) {
 		// if there are missing artifacts, we have to suspend
 		suspend = true
-		1
+
 		// pull the loader out of the manifest
 		const load_artifact = manifest.pages[id].documents[key]
 
@@ -377,8 +377,6 @@ function load_bundle({
 				update: (u) => ({
 					...u,
 					bundle: {
-						// this will get overwritten when appropriate.
-						// this way it always has the default value.
 						mode: 'loading',
 						...u.bundle,
 						artifacts: {
@@ -394,11 +392,14 @@ function load_bundle({
 	// and finally, load the component
 
 	// check if the component is something we already know about
+	const Component = component_cache.get(id)
 
 	// if we have to load the component, we have to suspend
-	if (!unit.bundle?.Component) {
+	if (!Component) {
 		suspend = true
 		manifest.pages[id].component().then(({ default: component }) => {
+			component_cache.set(id, component)
+
 			// add the loaded component to the suspense unit
 			update_unit({
 				client,
@@ -406,14 +407,25 @@ function load_bundle({
 				update: (u) => ({
 					...u,
 					bundle: {
-						// this will get overwritten when appropriate.
-						// this way it always has the default value.
 						mode: 'loading',
 						...u.bundle,
 						Component: component,
 					},
 				}),
 			})
+		})
+	} else {
+		update_unit({
+			client,
+			id: unit.id,
+			update: (u) => ({
+				...u,
+				bundle: {
+					mode: 'loading',
+					...u.bundle,
+					Component,
+				},
+			}),
 		})
 	}
 
