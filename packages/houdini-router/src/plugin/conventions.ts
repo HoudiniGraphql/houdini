@@ -12,7 +12,7 @@ export function router_path(config: Config) {
 
 /** The location of the page component */
 export function page_bundle_component(config: Config, id: string, base?: string) {
-	return path.join(page_bundle_path(config, id, base), 'component.jsx')
+	return path.join(page_bundle_path(config, id, base), 'entry.jsx')
 }
 
 /** Load the page query for the given route from disk */
