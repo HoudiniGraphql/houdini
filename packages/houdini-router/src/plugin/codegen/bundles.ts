@@ -1,4 +1,4 @@
-import { Config, fs, path } from 'houdini'
+import { Config, fs, parseJS, printJS, path } from 'houdini'
 
 import { page_bundle_component } from '../conventions'
 import { dedent } from '../dedent'
@@ -90,28 +90,71 @@ async function generate_page_bundle(args: PageBundleInput) {
 	)
 	// generate the local import for the page component
 	const relative_path = path.relative(path.dirname(component_path), page_path)
-	const page_component = 'Component_' + args.page.id
-	source.push(`import ${page_component} from "${relative_path}"`)
+	const Component = 'Component_' + args.page.id
+	source.push(`import ${Component} from "${relative_path}"`)
 
 	// in order to wrap up the layouts we're going to iterate over the list and build them up
-	let content = `<${page_component} ${args.page.queries.map(
-		(q) => `${q}={${q}} ${q}$handle={${q}$handle}`
-	)} />`
+	let content = `<${Component} ${query_with_props({
+		queries: args.page.queries,
+		value: true,
+	})} />`
 	for (const layout of [...args.page.layouts].reverse()) {
+		// wrap the content in an instance of the correct component
 		const Layout = layout_components[layout]
-		content = dedent(`<${Layout}>
-			${content}
-		</${Layout}>
-		`)
+
+		const props = query_with_props({
+			queries: args.project.layouts[layout].queries,
+			value: true,
+			betweenPairs: ' ',
+		})
+		// make sure to pass the right props to the component
+		content = `
+			<${Layout} ${props}>
+				${content}
+			</${Layout}>
+		`
 	}
+
+	// the full list of queries is the page queries and the layout queries
+	const queries = args.page.queries.concat(
+		...args.page.layouts.map((l) => args.project.layouts[l].queries)
+	)
 
 	// a page's entrypoint should take every query needed by a layout or
 	// page and passes it through
-	source.push(`export default ({ ${args.page.queries
-		.map((q) => [q, `${q}$handle`].join(', '))
-		.join('')} }) => (
+	source.push(`
+		export default ({ 
+			${query_with_props({
+				queries,
+				betweenValues: ',',
+			})} 
+		}) => (
 			${content}
-		)`)
+		)
+	`)
 
-	await fs.writeFile(component_path, dedent(source.join('\n')))
+	// format the source so we don't embarrass ourselves
+	const formatted = (await printJS(await parseJS(source.join('\n'), { plugins: ['jsx'] }))).code
+
+	await fs.writeFile(component_path, formatted)
 }
+
+const query_with_props = ({
+	queries,
+	value,
+	betweenValues = ' ',
+	betweenPairs = ', ',
+}: {
+	queries: string[]
+	value?: boolean
+	betweenValues?: string
+	betweenPairs?: string
+}) =>
+	queries
+		.map(
+			(q) =>
+				`${q}${value ? `={${q}}` : ''}${betweenValues}${q}$handle${
+					value ? `={${q}$handle}` : ''
+				}`
+		)
+		.join(betweenPairs)

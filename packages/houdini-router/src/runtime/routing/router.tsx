@@ -24,7 +24,7 @@ export type RouterPageManifest = {
 
 	// loaders for the information that we need to render a page
 	// and its loading state
-	queries: Record<string, () => Promise<{ default: QueryArtifact }>>
+	documents: Record<string, () => Promise<{ default: QueryArtifact }>>
 	component: () => Promise<{ default: (props: any) => React.ReactElement }>
 
 	// a page needs to know which queries its waiting on. If enough data has loaded
@@ -146,7 +146,7 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 		}
 	}, [current])
 
-	// when we first mount we should start listening to the backbutton
+	// when we first mount we should start listening to the back button
 	useEffect(() => {
 		const onChange = (evt: PopStateEvent) => {
 			setCurrent(window.location.pathname)
@@ -332,7 +332,7 @@ function load_bundle({
 
 	// bundle the found artifacts into a single update
 	const found_artifacts: Record<string, any> = {}
-	for (const key of Object.keys(manifest.pages[id].queries)) {
+	for (const key of Object.keys(manifest.pages[id].documents)) {
 		// if we have the artifact already, then we don't need to load it
 		if (artifact_cache.has(key)) {
 			found_artifacts[key] = artifact_cache.get(key)
@@ -366,7 +366,7 @@ function load_bundle({
 		suspend = true
 
 		// pull the loader out of the manifest
-		const load_artifact = manifest.pages[id].queries[key]
+		const load_artifact = manifest.pages[id].documents[key]
 
 		// load the artifact and save it in the unit
 		load_artifact().then(({ default: artifact }) => {
@@ -423,7 +423,8 @@ function load_bundle({
 		throw unit
 	}
 
-	// if we dont have to suspend we can just move on (the suspense unit is already cached and updated)
+	// if we don't have to suspend we can just move on (the suspense unit is already cached and updated)
+	return
 }
 
 // Data comes in from all sorts of different places. this function applies the
@@ -493,7 +494,7 @@ function update_unit({
 					// and clean up anything we did along the way
 					observer.cleanup()
 
-					// get the lastest reference
+					// get the latest reference
 					const base = nav_suspense_cache.get(updated.id)!
 
 					// hold onto the value in the suspense unit
@@ -561,9 +562,9 @@ function render_final(resolved: RouterSuspenseUnit) {
 	const Component = resolved.bundle!.Component!
 	// in order to know the props to pass, we need to look at the queries
 	const props: Record<string, any> = {}
-	for (const query of Object.keys(resolved.page.queries)) {
-		props[query] = resolved.bundle?.data?.[query].value
-		props[`${query}$handle`] = resolved.bundle?.data?.[query].store
+	for (const name of Object.keys(resolved.page.documents)) {
+		props[name] = resolved.bundle?.data?.[name].value
+		props[`${name}$handle`] = resolved.bundle?.data?.[name].store
 	}
 
 	return <Component {...props} />
@@ -580,7 +581,7 @@ function ok_fallback({
 	const has_data = unit.required_queries.filter((query) => !(query in (data ?? {}))).length === 0
 
 	// we also can't show the loading state if we are missing any artifacts
-	const has_artifacts = Object.keys(unit.page.queries).every(
+	const has_artifacts = Object.keys(unit.page.documents).every(
 		(art) => unit.bundle?.artifacts?.[art]
 	)
 

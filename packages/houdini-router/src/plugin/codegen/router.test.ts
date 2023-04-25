@@ -51,7 +51,7 @@ test('happy path', async function () {
 						pattern: /^\\\\/$/,
 						params: [],
 
-						required_queries: [],
+						required_queries: [\\"RootQuery\\"],
 
 					
 						queries: {
@@ -66,7 +66,7 @@ test('happy path', async function () {
 						pattern: /^\\\\/([^/]+?)\\\\/?$/,
 						params: [{\\"name\\":\\"id\\",\\"optional\\":false,\\"rest\\":false,\\"chained\\":false}],
 
-						required_queries: [],
+						required_queries: [\\"SubQuery\\",\\"RootQuery\\"],
 
 					
 						queries: {
@@ -82,7 +82,7 @@ test('happy path', async function () {
 						pattern: /^\\\\/another\\\\/?$/,
 						params: [],
 
-						required_queries: [],
+						required_queries: [\\"MyQuery\\",\\"MyLayoutQuery\\"],
 
 					
 						queries: {
@@ -98,7 +98,7 @@ test('happy path', async function () {
 						pattern: /^\\\\/([^/]+?)\\\\/nested\\\\/?$/,
 						params: [{\\"name\\":\\"id\\",\\"optional\\":false,\\"rest\\":false,\\"chained\\":false}],
 
-						required_queries: [],
+						required_queries: [\\"FinalQuery\\"],
 
 					
 						queries: {
@@ -107,7 +107,24 @@ test('happy path', async function () {
 
 						component: () => import(\\"../pages/____id____nested/component\\")
 					},
-				}
+				},
+
+				layouts: { 
+					\\"__\\": {
+						id: \\"__\\",
+
+						required_queries: [],
+					},
+					\\"____id____\\": {
+						id: \\"____id____\\",
+
+						required_queries: [\\"RootQuery\\"],
+					},
+					\\"__another__\\": {
+						id: \\"__another__\\",
+
+						required_queries: [\\"RootQuery\\"],
+					}
 			}"
 		`)
 })

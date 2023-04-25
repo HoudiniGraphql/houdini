@@ -15,7 +15,7 @@ test('composes layouts and pages', async function () {
 			'+layout.tsx': 'export default ({children}) => <div>{children}</div>',
 			'+layout.gql': mockQuery('RootQuery'),
 			subRoute: {
-				'+layout.tsx': mockView(['RootQuery']),
+				'+layout.tsx': mockView(['RootQuery', 'SubQuery']),
 				'+layout.gql': mockQuery('SubQuery'),
 				nested: {
 					'+page.gql': mockQuery('FinalQuery'),
@@ -45,10 +45,18 @@ test('composes layouts and pages', async function () {
 		export default (
 		    {
 		        FinalQuery,
-		        FinalQuery$handle
+		        FinalQuery$handle,
+		        RootQuery,
+		        RootQuery$handle,
+		        SubQuery,
+		        SubQuery$handle
 		    }
 		) => (<Layout___>
-		    <Layout___subRoute__>
+		    <Layout___subRoute__
+		        RootQuery={RootQuery}
+		        RootQuery$handle={RootQuery$handle}
+		        SubQuery={SubQuery}
+		        SubQuery$handle={SubQuery$handle}>
 		        <Component___subRoute__nested FinalQuery={FinalQuery} FinalQuery$handle={FinalQuery$handle} />
 		    </Layout___subRoute__>
 		</Layout___>);

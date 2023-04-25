@@ -45,7 +45,7 @@ ${Object.entries(manifest.pages)
 		pattern: ${pattern_parsed.pattern},
 		params: ${JSON.stringify(pattern_parsed.params)},
 
-		required_queries: [],
+		required_queries: ${JSON.stringify(page.queries)},
 
 		${/* Every query that the page relies on needs an artifact */ ' '.trim()}
 		queries: {
@@ -64,7 +64,22 @@ ${Object.entries(manifest.pages)
 		)
 	})
 	.join('\n\n')}
-	}
+	},
+
+	layouts: { 
+${Object.entries(manifest.layouts)
+	.map(([id, layout]) => {
+		return dedent(
+			'		',
+			`
+	${JSON.stringify(id)}: {
+		id: ${JSON.stringify(id)},
+
+		required_queries: ${JSON.stringify(layout.queries)},
+	}`
+		)
+	})
+	.join(',\n')}
 }`
 	)
 }
