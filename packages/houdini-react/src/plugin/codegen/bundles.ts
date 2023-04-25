@@ -1,7 +1,6 @@
 import { Config, fs, parseJS, printJS, path } from 'houdini'
 
 import { page_bundle_component } from '../conventions'
-import { dedent } from '../dedent'
 import type { ProjectManifest, PageManifest } from './manifest'
 
 /**
@@ -125,11 +124,11 @@ async function generate_page_bundle(args: PageBundleInput) {
 	// a page's entrypoint should take every query needed by a layout or
 	// page and passes it through
 	source.push(`
-		export default ({ 
+		export default ({
 			${query_with_handle({
 				queries,
 				betweenValues: ',',
-			})} 
+			})}
 		}) => (
 			${content}
 		)

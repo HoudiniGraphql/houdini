@@ -54,11 +54,11 @@ test('happy path', async function () {
 						required_queries: [\\"RootQuery\\"],
 
 					
-						queries: {
+						documents: {
 							RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
 						},
 
-						component: () => import(\\"../pages/__/component\\")
+						component: () => import(\\"../pages/__/entry\\")
 					},
 
 					\\"____id__\\": {
@@ -69,12 +69,12 @@ test('happy path', async function () {
 						required_queries: [\\"SubQuery\\",\\"RootQuery\\"],
 
 					
-						queries: {
+						documents: {
 							SubQuery: () => import(\\"../../../artifacts/SubQuery\\"),
 							RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
 						},
 
-						component: () => import(\\"../pages/____id__/component\\")
+						component: () => import(\\"../pages/____id__/entry\\")
 					},
 
 					\\"__another\\": {
@@ -85,12 +85,12 @@ test('happy path', async function () {
 						required_queries: [\\"MyQuery\\",\\"MyLayoutQuery\\"],
 
 					
-						queries: {
+						documents: {
 							MyQuery: () => import(\\"../../../artifacts/MyQuery\\"),
 							MyLayoutQuery: () => import(\\"../../../artifacts/MyLayoutQuery\\")
 						},
 
-						component: () => import(\\"../pages/__another/component\\")
+						component: () => import(\\"../pages/__another/entry\\")
 					},
 
 					\\"____id____nested\\": {
@@ -101,15 +101,15 @@ test('happy path', async function () {
 						required_queries: [\\"FinalQuery\\"],
 
 					
-						queries: {
+						documents: {
 							FinalQuery: () => import(\\"../../../artifacts/FinalQuery\\")
 						},
 
-						component: () => import(\\"../pages/____id____nested/component\\")
+						component: () => import(\\"../pages/____id____nested/entry\\")
 					},
 				},
 
-				layouts: { 
+				layouts: {
 					\\"__\\": {
 						id: \\"__\\",
 

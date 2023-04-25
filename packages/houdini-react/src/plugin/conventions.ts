@@ -60,5 +60,5 @@ export function page_bundle_dir(config: Config, base: string = base_dir(config))
 }
 
 function base_dir(config: Config) {
-	return config.pluginDirectory('houdini-router')
+	return config.pluginDirectory('houdini-react')
 }

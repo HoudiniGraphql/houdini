@@ -66,7 +66,7 @@ ${Object.entries(manifest.pages)
 	.join('\n\n')}
 	},
 
-	layouts: { 
+	layouts: {
 ${Object.entries(manifest.layouts)
 	.map(([id, layout]) => {
 		return dedent(

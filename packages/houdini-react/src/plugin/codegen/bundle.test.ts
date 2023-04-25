@@ -1,7 +1,7 @@
 import { fs, parseJS } from 'houdini'
 import { test, expect } from 'vitest'
 
-import { test_config } from '../config'
+import { test_config } from '../../../../houdini-router/src/plugin/config'
 import { page_bundle_component } from '../conventions'
 import { generate_bundles } from './bundles'
 import { load_manifest } from './manifest'

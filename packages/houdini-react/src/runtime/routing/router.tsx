@@ -1,5 +1,3 @@
-// @ts-ignore: this comes from houdini-react
-import { HoudiniProvider } from '$houdini'
 import { HoudiniClient } from '$houdini/runtime/client'
 import { DocumentStore } from '$houdini/runtime/client/documentStore'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
@@ -7,6 +5,7 @@ import { createLRUCache } from '$houdini/runtime/lib/lru'
 import type { QueryArtifact, GraphQLObject, GraphQLVariables } from '$houdini/runtime/lib/types'
 import React, { createContext, Suspense, useContext, useEffect, useState } from 'react'
 
+import { HoudiniProvider } from '../context'
 import { exec, RouteParam } from './match'
 
 // RouterManifest contains all of the information that the router needs

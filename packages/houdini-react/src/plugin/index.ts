@@ -1,11 +1,16 @@
-import { ArtifactKind, plugin, fragmentKey } from 'houdini'
+import { ArtifactKind, plugin, Plugin, fragmentKey } from 'houdini'
 import type { ArtifactKinds, Document, Config } from 'houdini'
 import path from 'node:path'
 
+import generate from './codegen'
+import { load_manifest, type ProjectManifest } from './codegen/manifest'
+import { format_router_manifest } from './codegen/router'
 import { extractDocuments } from './extract'
 import { transformFile } from './transform'
 
-const HoudiniReactPlugin = plugin('houdini-react', async () => ({
+let manifest: ProjectManifest
+
+export const hooks: Plugin = async () => ({
 	order: 'core',
 
 	// add the jsx extensions
@@ -33,6 +38,34 @@ const HoudiniReactPlugin = plugin('houdini-react', async () => ({
 		}
 
 		return {
+			'client.js': ({ config, exportDefaultStatement, importStatement }) => {
+				// all we need to do is import the client from the fixed
+				// location and export as the default
+				const runtimeFilePath = path.join(
+					config.pluginRuntimeDirectory('houdini-router'),
+					'config.js'
+				)
+
+				// the relative path
+				const relativePath = path.relative(
+					path.dirname(runtimeFilePath),
+					path.join(config.projectRoot, 'src', '+client')
+				)
+
+				return `${importStatement(relativePath, 'client')}
+	${exportDefaultStatement('client')}
+	`
+			},
+			'manifest.js': ({ config, exportDefaultStatement, importStatement }) => {
+				// we need to generate a manifest for the runtime router
+				return format_router_manifest({
+					config,
+					manifest,
+					exportDefaultStatement,
+					importStatement,
+				})
+			},
+
 			'hooks/useQuery.d.ts': ({ config, content }) =>
 				addOverload({
 					config,
@@ -138,14 +171,27 @@ export function useFragmentHandle(reference: { readonly "${fragmentKey}": { ${do
 
 			ensure_import({
 				identifier: variableName,
-				module: config.artifactImportPath(doc.name).replaceAll('$houdini', '..'),
+				module: config.artifactImportPath(doc.name).replace(/\$houdini/g, '..'),
 			})
 
 			// and use the store as the return value
 			return `{ artifact: ${variableName} }`
 		}
 	},
-}))
+
+	// always make sure our definition of the manifest is up to date before
+	// we generate anything
+	async beforeGenerate({ config }) {
+		manifest = await load_manifest({ config })
+	},
+
+	generate(args) {
+		return generate({
+			...args,
+			manifest,
+		})
+	},
+})
 
 function addOverload({
 	config,
@@ -197,6 +243,6 @@ ${
 `
 }
 
-export default HoudiniReactPlugin
+export default plugin('houdini-react', hooks)
 
 export type HoudiniReactPluginConfig = {}

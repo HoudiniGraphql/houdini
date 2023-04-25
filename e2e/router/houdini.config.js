@@ -30,7 +30,6 @@ const config = {
 
 	plugins: {
 		'houdini-react': {},
-		'houdini-router': {},
 	},
 }
 
