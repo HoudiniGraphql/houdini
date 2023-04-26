@@ -270,8 +270,7 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 			}}
 		>
 			<HoudiniProvider client={client}>
-				result:
-				{result}
+				<Suspense fallback={render_fallback(cached)}>{result}</Suspense>
 			</HoudiniProvider>
 		</Context.Provider>
 	)
