@@ -32,7 +32,7 @@ export type RouterPageManifest = {
 	// a page needs to know which queries its waiting on. If enough data has loaded
 	// to show the loading state (all of the required queries have values) then its
 	// safe to resolve the query. This field tracks those names
-	required_queries: string[]
+	// required_queries: string[]
 }
 
 export type RouterContext = {
@@ -70,7 +70,7 @@ type RouterSuspenseUnit = {
 	resolve: () => void
 	reject: (err: any) => void
 
-	required_queries: string[]
+	// required_queries: string[]
 
 	// if we try to load the same route with different variables twice,
 	// we need to prevent the old request from resolving the suspense unit
@@ -191,7 +191,7 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 
 	// if there is a pending request for this route, we need to abort it
 	// since we are going to own the render now
-	cached?.route_mutex?.signal.abort()
+	// cached?.route_mutex?.signal.abort()
 
 	// there are 4 situations:
 	//
@@ -240,7 +240,8 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 
 	// if we have enough data to render the full state and store instances for everything,
 	// we're good to go
-	if (ok_final({ unit: cached })) {
+	const ok = ok_final({ unit: cached })
+	if (ok) {
 		result = render_final(cached)
 	}
 
@@ -269,7 +270,8 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 			}}
 		>
 			<HoudiniProvider client={client}>
-				<Suspense fallback={render_fallback(cached)}>{result}</Suspense>
+				result:
+				{result}
 			</HoudiniProvider>
 		</Context.Provider>
 	)
@@ -316,7 +318,6 @@ function load_bundle({
 		then: promise.then.bind(promise),
 		resolve,
 		reject,
-		required_queries: manifest.pages[id].required_queries,
 		route_mutex: {
 			variables,
 			signal: new AbortController(),
@@ -578,6 +579,7 @@ function render_final(resolved: RouterSuspenseUnit) {
 	const Component = resolved.bundle!.Component!
 	// in order to know the props to pass, we need to look at the queries
 	const props: Record<string, any> = {}
+
 	for (const name of Object.keys(resolved.page.documents)) {
 		props[name] = resolved.bundle?.data?.[name].value
 		props[`${name}$handle`] = resolved.bundle?.data?.[name].store
@@ -593,15 +595,12 @@ function ok_fallback({
 	unit: RouterSuspenseUnit
 	data: Required<RouterSuspenseUnit>['bundle']['data']
 }) {
-	// we can't show the loading state if we are missing required data.
-	const has_data = unit.required_queries.filter((query) => !(query in (data ?? {}))).length === 0
-
 	// we also can't show the loading state if we are missing any artifacts
 	const has_artifacts = Object.keys(unit.page.documents).every(
 		(art) => unit.bundle?.artifacts?.[art]
 	)
 
-	return has_data && has_artifacts
+	return false && has_artifacts
 }
 
 function ok_final({ unit }: { unit: RouterSuspenseUnit }) {
@@ -609,7 +608,7 @@ function ok_final({ unit }: { unit: RouterSuspenseUnit }) {
 
 	return !!(
 		data &&
-		unit.required_queries.every((key) => key in data && data[key].store) &&
+		Object.keys(unit.page.documents).every((key) => key in data && data[key].store) &&
 		unit.bundle?.Component
 	)
 }

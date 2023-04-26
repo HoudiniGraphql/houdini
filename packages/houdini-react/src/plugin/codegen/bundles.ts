@@ -151,7 +151,7 @@ const query_with_handle = ({
 	betweenValues?: string
 	betweenPairs?: string
 }) =>
-	queries
+	[...new Set(queries)]
 		.map(
 			(q) =>
 				`${q}${value ? `={${q}}` : ''}${betweenValues}${q}$handle${

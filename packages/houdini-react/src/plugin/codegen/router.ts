@@ -36,6 +36,11 @@ ${Object.entries(manifest.pages)
 		const path_parsed = path.parse(component_path)
 		component_path = path.join(path_parsed.dir, path_parsed.name)
 
+		// the list of
+		const queries = page.queries.concat(
+			page.layouts.flatMap((layout) => manifest.layouts[layout].queries)
+		)
+
 		// render the client-side version
 		return dedent(
 			'		',
@@ -45,11 +50,9 @@ ${Object.entries(manifest.pages)
 		pattern: ${pattern_parsed.pattern},
 		params: ${JSON.stringify(pattern_parsed.params)},
 
-		required_queries: ${JSON.stringify(page.queries)},
-
-		${/* Every query that the page relies on needs an artifact */ ' '.trim()}
+		${/* Every query that the page relies on needs an artifact */ ''}
 		documents: {
-			${page.queries
+			${queries
 				.map((query) => {
 					// we need to compute the relative path to the artifact
 					const artifact_path = config.artifactImportPath(query)
@@ -75,7 +78,7 @@ ${Object.entries(manifest.layouts)
 	${JSON.stringify(id)}: {
 		id: ${JSON.stringify(id)},
 
-		required_queries: ${JSON.stringify(layout.queries)},
+		queries: ${JSON.stringify(layout.queries)},
 	}`
 		)
 	})

@@ -1,8 +1,9 @@
 import { Link } from '$houdini'
 
-export default function ({ children }) {
+export default function ({ HelloRouter, children }) {
 	return (
 		<div style={{ display: 'flex', flexDirection: 'row' }}>
+			message: {HelloRouter.message}
 			<ul>
 				<li>
 					<Link href="/">Home</Link>

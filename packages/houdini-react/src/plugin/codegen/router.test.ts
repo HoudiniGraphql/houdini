@@ -51,8 +51,6 @@ test('happy path', async function () {
 						pattern: /^\\\\/$/,
 						params: [],
 
-						required_queries: [\\"RootQuery\\"],
-
 					
 						documents: {
 							RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
@@ -66,11 +64,10 @@ test('happy path', async function () {
 						pattern: /^\\\\/([^/]+?)\\\\/?$/,
 						params: [{\\"name\\":\\"id\\",\\"optional\\":false,\\"rest\\":false,\\"chained\\":false}],
 
-						required_queries: [\\"SubQuery\\",\\"RootQuery\\"],
-
 					
 						documents: {
 							SubQuery: () => import(\\"../../../artifacts/SubQuery\\"),
+							RootQuery: () => import(\\"../../../artifacts/RootQuery\\"),
 							RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
 						},
 
@@ -82,12 +79,11 @@ test('happy path', async function () {
 						pattern: /^\\\\/another\\\\/?$/,
 						params: [],
 
-						required_queries: [\\"MyQuery\\",\\"MyLayoutQuery\\"],
-
 					
 						documents: {
 							MyQuery: () => import(\\"../../../artifacts/MyQuery\\"),
-							MyLayoutQuery: () => import(\\"../../../artifacts/MyLayoutQuery\\")
+							MyLayoutQuery: () => import(\\"../../../artifacts/MyLayoutQuery\\"),
+							RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
 						},
 
 						component: () => import(\\"../pages/__another/entry\\")
@@ -98,11 +94,10 @@ test('happy path', async function () {
 						pattern: /^\\\\/([^/]+?)\\\\/nested\\\\/?$/,
 						params: [{\\"name\\":\\"id\\",\\"optional\\":false,\\"rest\\":false,\\"chained\\":false}],
 
-						required_queries: [\\"FinalQuery\\"],
-
 					
 						documents: {
-							FinalQuery: () => import(\\"../../../artifacts/FinalQuery\\")
+							FinalQuery: () => import(\\"../../../artifacts/FinalQuery\\"),
+							RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
 						},
 
 						component: () => import(\\"../pages/____id____nested/entry\\")
@@ -113,17 +108,17 @@ test('happy path', async function () {
 					\\"__\\": {
 						id: \\"__\\",
 
-						required_queries: [],
+						queries: [],
 					},
 					\\"____id____\\": {
 						id: \\"____id____\\",
 
-						required_queries: [\\"RootQuery\\"],
+						queries: [\\"RootQuery\\"],
 					},
 					\\"__another__\\": {
 						id: \\"__another__\\",
 
-						required_queries: [\\"RootQuery\\"],
+						queries: [\\"RootQuery\\"],
 					}
 				}
 			}"
