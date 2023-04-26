@@ -186,7 +186,7 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 
 	// we have a match. look check if the page bundle has been loaded enough for us
 	// to show something.
-	const identifier = match.id
+	const identifier = current
 	let cached = nav_suspense_cache.get(identifier)
 
 	// if there is a pending request for this route, we need to abort it
@@ -213,7 +213,13 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 	// and then come back here when we have something to render
 	if (!cached || !deepEquals(matchVariables, cached.variables)) {
 		// this might suspend
-		load_bundle({ manifest, id: identifier, variables: matchVariables ?? {}, client })
+		load_bundle({
+			id: match.id,
+			cache_key: identifier,
+			manifest,
+			variables: matchVariables ?? {},
+			client,
+		})
 		// or it might just prime the cache with good values somehow
 		cached = nav_suspense_cache.get(identifier)
 		if (!cached) {
@@ -279,11 +285,13 @@ export function useRouterContext() {
 // data by mutated by other queries that might not be necessary to show the loading state.
 function load_bundle({
 	manifest,
+	cache_key,
 	id,
 	variables,
 	client,
 }: {
 	manifest: RouterManifest
+	cache_key: string
 	id: string
 	variables: Record<string, string>
 	client: HoudiniClient
@@ -316,7 +324,7 @@ function load_bundle({
 		pending: {},
 	}
 	// save this unit in the cache ASAP so we don't double up
-	nav_suspense_cache.set(id, unit)
+	nav_suspense_cache.set(cache_key, unit)
 
 	// there are 3 things we have to do
 	// - load the artifacts
@@ -342,7 +350,7 @@ function load_bundle({
 
 	// this update might suspend (ie if we have all the artifacts and no data)
 	suspend ||= update_unit({
-		id,
+		cache_key,
 		client,
 		update: (u) => ({
 			...u,
@@ -371,7 +379,7 @@ function load_bundle({
 		load_artifact().then(({ default: artifact }) => {
 			// add the loaded artifact to the suspense unit
 			update_unit({
-				id: unit.id,
+				cache_key,
 				client,
 				update: (u) => ({
 					...u,
@@ -402,7 +410,7 @@ function load_bundle({
 			// add the loaded component to the suspense unit
 			update_unit({
 				client,
-				id: unit.id,
+				cache_key,
 				update: (u) => ({
 					...u,
 					bundle: {
@@ -416,7 +424,7 @@ function load_bundle({
 	} else {
 		update_unit({
 			client,
-			id: unit.id,
+			cache_key,
 			update: (u) => ({
 				...u,
 				bundle: {
@@ -448,11 +456,11 @@ function load_bundle({
 // once we have the artifact and the data, we can create the document store with the initial values
 // from the queries.
 function update_unit({
-	id,
+	cache_key,
 	update,
 	client,
 }: {
-	id: string
+	cache_key: string
 	update: (old: RouterSuspenseUnit) => RouterSuspenseUnit
 	client: HoudiniClient
 }) {
@@ -462,8 +470,8 @@ function update_unit({
 	/**
 	 * Apply the updates
 	 */
-	const updated = update(nav_suspense_cache.get(id)!) as RouterSuspenseUnit
-	nav_suspense_cache.set(id, updated)
+	const updated = update(nav_suspense_cache.get(cache_key)!) as RouterSuspenseUnit
+	nav_suspense_cache.set(cache_key, updated)
 
 	// zip every query result and artifact and make sure that our store definitions
 	// exist when appropriate. since we only care about overlapping keys, we can
@@ -505,12 +513,9 @@ function update_unit({
 					// and clean up anything we did along the way
 					observer.cleanup()
 
-					// get the latest reference
-					const base = nav_suspense_cache.get(updated.id)!
-
 					// hold onto the value in the suspense unit
 					update_unit({
-						id: base.id,
+						cache_key,
 						client,
 						update: (u) => ({
 							...u,

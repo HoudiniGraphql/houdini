@@ -44,10 +44,12 @@ export async function read_layoutView(base: string) {
 /** Transforms paths to ids */
 export function normalize_path(path: string) {
 	const special_chars = ['/', ']', '[']
+	const mask = '__'
+
 	let copy = ''
 	for (const char of path) {
 		if (special_chars.includes(char)) {
-			copy += '__'
+			copy += mask
 		} else {
 			copy += char
 		}
