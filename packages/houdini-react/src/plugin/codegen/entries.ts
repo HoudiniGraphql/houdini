@@ -17,7 +17,7 @@ import type { ProjectManifest, PageManifest } from './manifest'
  * we need to generate a file for each part and load them at the same time. Depending on the order in
  * which they resolve, we can render different things. For the rest of the flow, go to the router source.
  */
-export async function generate_bundles({
+export async function generate_entries({
 	config,
 	manifest,
 }: {

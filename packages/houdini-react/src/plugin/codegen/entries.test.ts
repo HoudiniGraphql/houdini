@@ -3,7 +3,7 @@ import { test, expect } from 'vitest'
 
 import { test_config } from '../config'
 import { page_bundle_component } from '../conventions'
-import { generate_bundles } from './bundles'
+import { generate_entries } from './entries'
 import { load_manifest } from './manifest'
 
 test('composes layouts and pages', async function () {
@@ -29,7 +29,7 @@ test('composes layouts and pages', async function () {
 	const manifest = await load_manifest({ config })
 
 	// generate the bundle for the nested page
-	await generate_bundles({ config, manifest })
+	await generate_entries({ config, manifest })
 
 	await expect(
 		parseJS(

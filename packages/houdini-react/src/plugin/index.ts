@@ -16,6 +16,12 @@ export const hooks: Plugin = async () => ({
 	// add the jsx extensions
 	extensions: ['.jsx', '.tsx'],
 
+	// always make sure our definition of the manifest is up to date before
+	// we generate anything
+	async beforeGenerate({ config }) {
+		manifest = await load_manifest({ config })
+	},
+
 	// include the runtime
 	includeRuntime: {
 		esm: '../runtime-esm',
@@ -177,12 +183,6 @@ export function useFragmentHandle(reference: { readonly "${fragmentKey}": { ${do
 			// and use the store as the return value
 			return `{ artifact: ${variableName} }`
 		}
-	},
-
-	// always make sure our definition of the manifest is up to date before
-	// we generate anything
-	async beforeGenerate({ config }) {
-		manifest = await load_manifest({ config })
 	},
 
 	generate(args) {

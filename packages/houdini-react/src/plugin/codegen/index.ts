@@ -1,6 +1,6 @@
 import type { GenerateHookInput } from 'houdini'
 
-import { generate_bundles } from './bundles'
+import { generate_entries } from './entries'
 import { ProjectManifest } from './manifest'
 
 /**
@@ -17,5 +17,5 @@ export default async function routerCodegen({
 	manifest,
 }: GenerateHookInput & { manifest: ProjectManifest }) {
 	// use the manifest to generate all of the necessary project files
-	await generate_bundles({ config, manifest })
+	await generate_entries({ config, manifest })
 }

@@ -32,7 +32,7 @@ export type RouterPageManifest = {
 	// a page needs to know which queries its waiting on. If enough data has loaded
 	// to show the loading state (all of the required queries have values) then its
 	// safe to resolve the query. This field tracks those names
-	// required_queries: string[]
+	required_queries: string[]
 }
 
 export type RouterContext = {
@@ -70,7 +70,7 @@ type RouterSuspenseUnit = {
 	resolve: () => void
 	reject: (err: any) => void
 
-	// required_queries: string[]
+	required_queries: string[]
 
 	// if we try to load the same route with different variables twice,
 	// we need to prevent the old request from resolving the suspense unit
@@ -186,12 +186,12 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 
 	// we have a match. look check if the page bundle has been loaded enough for us
 	// to show something.
-	const identifier = current
+	const identifier = match.id
 	let cached = nav_suspense_cache.get(identifier)
 
 	// if there is a pending request for this route, we need to abort it
 	// since we are going to own the render now
-	// cached?.route_mutex?.signal.abort()
+	cached?.route_mutex?.signal.abort()
 
 	// there are 4 situations:
 	//
@@ -213,13 +213,7 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 	// and then come back here when we have something to render
 	if (!cached || !deepEquals(matchVariables, cached.variables)) {
 		// this might suspend
-		load_bundle({
-			id: match.id,
-			cache_key: identifier,
-			manifest,
-			variables: matchVariables ?? {},
-			client,
-		})
+		load_bundle({ manifest, id: identifier, variables: matchVariables ?? {}, client })
 		// or it might just prime the cache with good values somehow
 		cached = nav_suspense_cache.get(identifier)
 		if (!cached) {
@@ -240,8 +234,7 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 
 	// if we have enough data to render the full state and store instances for everything,
 	// we're good to go
-	const ok = ok_final({ unit: cached })
-	if (ok) {
+	if (ok_final({ unit: cached })) {
 		result = render_final(cached)
 	}
 
@@ -286,13 +279,11 @@ export function useRouterContext() {
 // data by mutated by other queries that might not be necessary to show the loading state.
 function load_bundle({
 	manifest,
-	cache_key,
 	id,
 	variables,
 	client,
 }: {
 	manifest: RouterManifest
-	cache_key: string
 	id: string
 	variables: Record<string, string>
 	client: HoudiniClient
@@ -317,6 +308,7 @@ function load_bundle({
 		then: promise.then.bind(promise),
 		resolve,
 		reject,
+		required_queries: manifest.pages[id].required_queries,
 		route_mutex: {
 			variables,
 			signal: new AbortController(),
@@ -324,7 +316,7 @@ function load_bundle({
 		pending: {},
 	}
 	// save this unit in the cache ASAP so we don't double up
-	nav_suspense_cache.set(cache_key, unit)
+	nav_suspense_cache.set(id, unit)
 
 	// there are 3 things we have to do
 	// - load the artifacts
@@ -350,7 +342,7 @@ function load_bundle({
 
 	// this update might suspend (ie if we have all the artifacts and no data)
 	suspend ||= update_unit({
-		cache_key,
+		id,
 		client,
 		update: (u) => ({
 			...u,
@@ -379,7 +371,7 @@ function load_bundle({
 		load_artifact().then(({ default: artifact }) => {
 			// add the loaded artifact to the suspense unit
 			update_unit({
-				cache_key,
+				id: unit.id,
 				client,
 				update: (u) => ({
 					...u,
@@ -410,7 +402,7 @@ function load_bundle({
 			// add the loaded component to the suspense unit
 			update_unit({
 				client,
-				cache_key,
+				id: unit.id,
 				update: (u) => ({
 					...u,
 					bundle: {
@@ -424,7 +416,7 @@ function load_bundle({
 	} else {
 		update_unit({
 			client,
-			cache_key,
+			id: unit.id,
 			update: (u) => ({
 				...u,
 				bundle: {
@@ -456,11 +448,11 @@ function load_bundle({
 // once we have the artifact and the data, we can create the document store with the initial values
 // from the queries.
 function update_unit({
-	cache_key,
+	id,
 	update,
 	client,
 }: {
-	cache_key: string
+	id: string
 	update: (old: RouterSuspenseUnit) => RouterSuspenseUnit
 	client: HoudiniClient
 }) {
@@ -470,8 +462,8 @@ function update_unit({
 	/**
 	 * Apply the updates
 	 */
-	const updated = update(nav_suspense_cache.get(cache_key)!) as RouterSuspenseUnit
-	nav_suspense_cache.set(cache_key, updated)
+	const updated = update(nav_suspense_cache.get(id)!) as RouterSuspenseUnit
+	nav_suspense_cache.set(id, updated)
 
 	// zip every query result and artifact and make sure that our store definitions
 	// exist when appropriate. since we only care about overlapping keys, we can
@@ -513,9 +505,12 @@ function update_unit({
 					// and clean up anything we did along the way
 					observer.cleanup()
 
+					// get the latest reference
+					const base = nav_suspense_cache.get(updated.id)!
+
 					// hold onto the value in the suspense unit
 					update_unit({
-						cache_key,
+						id: base.id,
 						client,
 						update: (u) => ({
 							...u,
@@ -578,7 +573,6 @@ function render_final(resolved: RouterSuspenseUnit) {
 	const Component = resolved.bundle!.Component!
 	// in order to know the props to pass, we need to look at the queries
 	const props: Record<string, any> = {}
-
 	for (const name of Object.keys(resolved.page.documents)) {
 		props[name] = resolved.bundle?.data?.[name].value
 		props[`${name}$handle`] = resolved.bundle?.data?.[name].store
@@ -594,12 +588,15 @@ function ok_fallback({
 	unit: RouterSuspenseUnit
 	data: Required<RouterSuspenseUnit>['bundle']['data']
 }) {
+	// we can't show the loading state if we are missing required data.
+	const has_data = unit.required_queries.filter((query) => !(query in (data ?? {}))).length === 0
+
 	// we also can't show the loading state if we are missing any artifacts
 	const has_artifacts = Object.keys(unit.page.documents).every(
 		(art) => unit.bundle?.artifacts?.[art]
 	)
 
-	return false && has_artifacts
+	return has_data && has_artifacts
 }
 
 function ok_final({ unit }: { unit: RouterSuspenseUnit }) {
@@ -607,7 +604,7 @@ function ok_final({ unit }: { unit: RouterSuspenseUnit }) {
 
 	return !!(
 		data &&
-		Object.keys(unit.page.documents).every((key) => key in data && data[key].store) &&
+		unit.required_queries.every((key) => key in data && data[key].store) &&
 		unit.bundle?.Component
 	)
 }
