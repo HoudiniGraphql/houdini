@@ -25,6 +25,127 @@ test('happy path', async function () {
 				'+layout.gql': mockQuery('SubQuery'),
 				'+page.tsx': mockView(['SubQuery', 'RootQuery']),
 				nested: {
+					'+page.gql': mockQuery('FinalQuery', true),
+					'+page.tsx': mockView(['FinalQuery']),
+				},
+			},
+			another: {
+				'+layout.tsx': mockView(['RootQuery']),
+				'+page.gql': mockQuery('MyQuery'),
+				'+layout.gql': mockQuery('MyLayoutQuery', true),
+				'+page.tsx': mockView(['MyQuery', 'MyLayoutQuery']),
+			},
+		},
+	})
+
+	const manifest = await load_manifest({
+		config,
+	})
+
+	expect(format_router_manifest({ config, manifest, exportDefaultStatement, importStatement }))
+		.toMatchInlineSnapshot(`
+			"export default {
+						pages: {
+					\\"__\\": {
+						id: \\"__\\",
+						pattern: /^\\\\/$/,
+						params: [],
+
+					
+						documents: {
+							RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
+						},
+
+						loading: false,
+
+						component: () => import(\\"../pages/__/entry\\")
+					},
+
+					\\"____id__\\": {
+						id: \\"____id__\\",
+						pattern: /^\\\\/([^/]+?)\\\\/?$/,
+						params: [{\\"name\\":\\"id\\",\\"optional\\":false,\\"rest\\":false,\\"chained\\":false}],
+
+					
+						documents: {
+							SubQuery: () => import(\\"../../../artifacts/SubQuery\\"),
+							RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
+						},
+
+						loading: false,
+
+						component: () => import(\\"../pages/____id__/entry\\")
+					},
+
+					\\"__another\\": {
+						id: \\"__another\\",
+						pattern: /^\\\\/another\\\\/?$/,
+						params: [],
+
+					
+						documents: {
+							MyQuery: () => import(\\"../../../artifacts/MyQuery\\"),
+							MyLayoutQuery: () => import(\\"../../../artifacts/MyLayoutQuery\\"),
+							RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
+						},
+
+						loading: true,
+
+						component: () => import(\\"../pages/__another/entry\\")
+					},
+
+					\\"____id____nested\\": {
+						id: \\"____id____nested\\",
+						pattern: /^\\\\/([^/]+?)\\\\/nested\\\\/?$/,
+						params: [{\\"name\\":\\"id\\",\\"optional\\":false,\\"rest\\":false,\\"chained\\":false}],
+
+					
+						documents: {
+							FinalQuery: () => import(\\"../../../artifacts/FinalQuery\\"),
+							RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
+						},
+
+						loading: true,
+
+						component: () => import(\\"../pages/____id____nested/entry\\")
+					},
+				},
+
+				layouts: {
+					\\"__\\": {
+						id: \\"__\\",
+
+						queries: [],
+					},
+					\\"____id____\\": {
+						id: \\"____id____\\",
+
+						queries: [\\"RootQuery\\"],
+					},
+					\\"__another__\\": {
+						id: \\"__another__\\",
+
+						queries: [\\"RootQuery\\"],
+					}
+				}
+			}"
+		`)
+})
+
+test('loading state at root', async function () {
+	const config = await test_config()
+
+	// create the mock filesystem
+	await fs.mock({
+		[config.routesDir]: {
+			'+layout.tsx': 'export default ({children}) => <div>{children}</div>',
+			'+layout.gql': mockQuery('RootQuery', true),
+			'+page.tsx': mockView(['RootQuery']),
+			'[id]': {
+				'+layout.tsx': mockView(['RootQuery']),
+				'+layout.gql': mockQuery('SubQuery'),
+				'+page.tsx': mockView(['SubQuery', 'RootQuery']),
+				nested: {
 					'+page.gql': mockQuery('FinalQuery'),
 					'+page.tsx': mockView(['FinalQuery']),
 				},
@@ -56,6 +177,8 @@ test('happy path', async function () {
 							RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
 						},
 
+						loading: true,
+
 						component: () => import(\\"../pages/__/entry\\")
 					},
 
@@ -67,9 +190,10 @@ test('happy path', async function () {
 					
 						documents: {
 							SubQuery: () => import(\\"../../../artifacts/SubQuery\\"),
-							RootQuery: () => import(\\"../../../artifacts/RootQuery\\"),
 							RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
 						},
+
+						loading: true,
 
 						component: () => import(\\"../pages/____id__/entry\\")
 					},
@@ -86,6 +210,8 @@ test('happy path', async function () {
 							RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
 						},
 
+						loading: true,
+
 						component: () => import(\\"../pages/__another/entry\\")
 					},
 
@@ -99,6 +225,8 @@ test('happy path', async function () {
 							FinalQuery: () => import(\\"../../../artifacts/FinalQuery\\"),
 							RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
 						},
+
+						loading: true,
 
 						component: () => import(\\"../pages/____id____nested/entry\\")
 					},
@@ -129,9 +257,9 @@ function mockView(deps: string[]) {
 	return `export default ({ ${deps.join(', ')} }) => <div>hello</div>`
 }
 
-function mockQuery(name: string) {
+function mockQuery(name: string, loading?: boolean) {
 	return `
-query ${name} {
+query ${name} ${loading ? '@loading' : ''} {
 	id
 }
 	`

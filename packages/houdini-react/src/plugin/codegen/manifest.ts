@@ -70,6 +70,7 @@ async function walk_routes(args: {
 	// we have a layout query, so we need to add it to the context
 	if (layoutQueryContents) {
 		layoutQuery = await add_query({
+			config: args.config,
 			url: args.url,
 			project: args.project,
 			type: 'layout',
@@ -94,6 +95,7 @@ async function walk_routes(args: {
 	// if we have a page query, add it
 	if (pageQueryContents) {
 		pageQuery = await add_query({
+			config: args.config,
 			url: args.url,
 			project: args.project,
 			type: 'page',
@@ -165,6 +167,7 @@ async function add_view(args: {
 }
 
 async function add_query(args: {
+	config: Config
 	url: string
 	project: ProjectManifest
 	type: 'page' | 'layout'
@@ -181,10 +184,20 @@ async function add_query(args: {
 		throw new Error('No query found')
 	}
 
+	let loading = false
+	await graphql.visit(parsed, {
+		Directive(node) {
+			if (node.name.value === args.config.loadingDirective) {
+				loading = true
+			}
+		},
+	})
+
 	const target = args.type === 'page' ? args.project.page_queries : args.project.layout_queries
 	target[normalize_path(args.url)] = {
 		name: query.name.value,
 		url: args.url,
+		loading,
 	}
 
 	return target[normalize_path(args.url)]
@@ -302,4 +315,6 @@ export type QueryManifest = {
 	name: string
 	/** the url tied with the query */
 	url: string
+	/** wether the query uses the loading directive (ie, wants a fallback) */
+	loading: boolean
 }

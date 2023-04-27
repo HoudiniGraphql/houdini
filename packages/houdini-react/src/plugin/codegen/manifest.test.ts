@@ -33,14 +33,14 @@ test('nested route structure happy path', async function () {
 	await fs.mock({
 		[config.routesDir]: {
 			'+layout.tsx': 'export default ({children}) => <div>{children}</div>',
-			'+layout.gql': mockQuery('RootQuery'),
+			'+layout.gql': mockQuery('RootQuery', true),
 			'+page.tsx': mockView(['RootQuery']),
 			subRoute: {
 				'+layout.tsx': mockView(['RootQuery']),
 				'+layout.gql': mockQuery('SubQuery'),
 				'+page.jsx': mockView(['SubQuery', 'RootQuery']),
 				nested: {
-					'+page.gql': mockQuery('FinalQuery'),
+					'+page.gql': mockQuery('FinalQuery', true),
 					'+page.tsx': mockView(['FinalQuery']),
 				},
 			},
@@ -70,18 +70,6 @@ test('nested route structure happy path', async function () {
 		                "__"
 		            ]
 		        },
-		        "__another": {
-		            "id": "__another",
-		            "queries": [
-		                "MyQuery",
-		                "MyLayoutQuery"
-		            ],
-		            "url": "/another",
-		            "layouts": [
-		                "__",
-		                "__another__"
-		            ]
-		        },
 		        "__subRoute": {
 		            "id": "__subRoute",
 		            "queries": [
@@ -92,6 +80,18 @@ test('nested route structure happy path', async function () {
 		            "layouts": [
 		                "__",
 		                "__subRoute__"
+		            ]
+		        },
+		        "__another": {
+		            "id": "__another",
+		            "queries": [
+		                "MyQuery",
+		                "MyLayoutQuery"
+		            ],
+		            "url": "/another",
+		            "layouts": [
+		                "__",
+		                "__another__"
 		            ]
 		        },
 		        "__subRoute__nested": {
@@ -137,25 +137,30 @@ test('nested route structure happy path', async function () {
 		    "page_queries": {
 		        "__another__": {
 		            "name": "MyQuery",
-		            "url": "/another/"
+		            "url": "/another/",
+		            "loading": false
 		        },
 		        "__subRoute__nested__": {
 		            "name": "FinalQuery",
-		            "url": "/subRoute/nested/"
+		            "url": "/subRoute/nested/",
+		            "loading": true
 		        }
 		    },
 		    "layout_queries": {
 		        "__": {
 		            "name": "RootQuery",
-		            "url": "/"
+		            "url": "/",
+		            "loading": true
 		        },
 		        "__another__": {
 		            "name": "MyLayoutQuery",
-		            "url": "/another/"
+		            "url": "/another/",
+		            "loading": false
 		        },
 		        "__subRoute__": {
 		            "name": "SubQuery",
-		            "url": "/subRoute/"
+		            "url": "/subRoute/",
+		            "loading": false
 		        }
 		    }
 		}
@@ -375,9 +380,9 @@ function mockView(deps: string[]) {
 	return `export default ({ ${deps.join(', ')} }) => <div>hello</div>`
 }
 
-function mockQuery(name: string) {
+function mockQuery(name: string, loading?: boolean) {
 	return `
-query ${name} {
+query ${name} ${loading ? '@loading' : ''}{
 	id
 }
 	`

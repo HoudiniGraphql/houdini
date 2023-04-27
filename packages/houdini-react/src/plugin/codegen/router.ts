@@ -3,7 +3,7 @@ import { Config, path } from 'houdini'
 import { parse_page_pattern } from '../../runtime/routing/match'
 import { page_bundle_component } from '../conventions'
 import { dedent } from '../dedent'
-import { ProjectManifest } from './manifest'
+import { ProjectManifest, QueryManifest } from './manifest'
 
 export function format_router_manifest({
 	config,
@@ -36,10 +36,24 @@ ${Object.entries(manifest.pages)
 		const path_parsed = path.parse(component_path)
 		component_path = path.join(path_parsed.dir, path_parsed.name)
 
-		// the list of
-		const queries = page.queries.concat(
-			page.layouts.flatMap((layout) => manifest.layouts[layout].queries)
-		)
+		// the list of queries that the page cares about
+		const queries = [
+			...new Set(
+				page.queries.concat(
+					page.layouts.flatMap((layout) => manifest.layouts[layout].queries)
+				)
+			),
+		]
+
+		const query_name_map = Object.values(manifest.page_queries)
+			.concat(Object.values(manifest.layout_queries))
+			.reduce<Record<string, QueryManifest>>(
+				(map, q) => ({
+					...map,
+					[q.name]: q,
+				}),
+				{}
+			)
 
 		// render the client-side version
 		return dedent(
@@ -61,6 +75,8 @@ ${Object.entries(manifest.pages)
 				})
 				.join(',\n			')}
 		},
+
+		loading: ${JSON.stringify(queries.some((query) => query_name_map[query]?.loading))},
 
 		component: () => import("${component_path}")
 	},`
