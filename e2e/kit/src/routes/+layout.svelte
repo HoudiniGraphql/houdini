@@ -24,6 +24,10 @@
   `);
 </script>
 
+<svelte:head>
+  <title>Houdini • e2e • SvelteKit</title>
+</svelte:head>
+
 <slot />
 
 <Test />

@@ -1,5 +1,5 @@
-mutation DeleteBook($book: ID!) {
-  deleteBook(book: $book) {
+mutation DeleteBook($book: ID!, $force: ForceReturn = NORMAL) {
+  deleteBook(book: $book, force: $force, delay: 1000) {
     id @Book_delete
   }
 }
