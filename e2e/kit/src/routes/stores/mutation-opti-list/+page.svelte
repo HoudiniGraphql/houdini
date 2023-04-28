@@ -58,7 +58,7 @@
   const add = async (force: ForceReturn$options = 'NORMAL') => {
     await addUser.mutate(
       {
-        name: '...optimisticResponse... I could have guessed JYC!',
+        name: 'JYC',
         birthDate: new Date('1986-11-07'),
         force
       },
