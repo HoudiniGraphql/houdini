@@ -2179,7 +2179,7 @@ test('optimistic layer & lists & add null (optimistic will revert)', function ()
 	})
 
 	// clear the layer
-	layer.clear()
+	cache.clearLayer(layer.id)
 
 	// write the with the same values to the layer that were previously in place
 	cache.write({
