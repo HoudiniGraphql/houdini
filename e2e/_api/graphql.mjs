@@ -251,6 +251,9 @@ export const resolvers = {
 	},
 
 	Mutation: {
+		addNonNullUser(...args) {
+			return this.addUser(...args)
+		},
 		addUser: async (_, args) => {
 			if (args.delay) {
 				await sleep(args.delay)

@@ -285,16 +285,17 @@ export default function artifactGenerator(stats: {
 							document: doc,
 							rootType,
 							globalLoading,
+							includeFragments: doc.kind !== ArtifactKind.Fragment,
+
 							// in order to simplify the selection generation, we want to merge fragments together
 							selections: flattenSelections({
 								config,
 								filepath: doc.filename,
 								selections: selectionSet.selections,
 								fragmentDefinitions,
-								ignoreMaskDisable: docKind !== 'HoudiniFragment',
-								keepFragmentSpreadNodes: true,
-								hoistFragments: true,
+								applyFragments: doc.kind !== ArtifactKind.Fragment,
 							}),
+
 							operations: operationsByPath(
 								config,
 								doc.filename,

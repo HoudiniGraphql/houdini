@@ -2673,6 +2673,68 @@ test('ignore hidden fields', function () {
 	expect(set).not.toHaveBeenCalled()
 })
 
+test('clearing a layer should notify subscribers of displayed values', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				nullable: true,
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							visible: true,
+							keyRaw: 'id',
+						},
+						favoriteColors: {
+							type: 'String',
+							visible: true,
+							keyRaw: 'favoriteColors',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// create an optimistic layer that we will write to
+	const layer = cache._internal_unstable.storage.createLayer(true)
+
+	// write some data
+	cache.write({
+		layer: layer.id,
+		selection,
+		data: {
+			viewer: {
+				__typename: 'User',
+				id: '1',
+				favoriteColors: ['blue'],
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = vi.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		selection,
+		set,
+	})
+
+	// clear the layer
+	cache.clearLayer(layer.id)
+
+	// make sure our callback was invoked
+	expect(set).toHaveBeenCalledWith({ viewer: null })
+})
+
 test.todo('can write to and resolve layers')
 
 test.todo("resolving a layer with the same value as the most recent doesn't notify subscribers")

@@ -42,6 +42,7 @@ function prepareSelection({
 	typeMap,
 	abstractTypes,
 	globalLoading,
+	includeFragments,
 }: {
 	config: Config
 	filepath: string
@@ -54,6 +55,7 @@ function prepareSelection({
 	typeMap: Record<string, string[]>
 	abstractTypes: string[]
 	globalLoading?: boolean
+	includeFragments?: boolean
 }): SubscriptionSelection {
 	// we need to build up an object that contains every field in the selection
 	let object: SubscriptionSelection = {}
@@ -83,6 +85,7 @@ function prepareSelection({
 						typeMap,
 						abstractTypes,
 						globalLoading,
+						includeFragments,
 					}).fields || {}
 				)
 			}
@@ -162,6 +165,7 @@ function prepareSelection({
 						typeMap,
 						abstractTypes,
 						globalLoading,
+						includeFragments,
 					}).fields,
 				}
 
@@ -334,6 +338,7 @@ function prepareSelection({
 					abstractTypes,
 					// the global loading flag could be enabled for our children if there is a @loading with cascade set to true
 					globalLoading: forceLoading,
+					includeFragments,
 				})
 
 				// bubble nullability up

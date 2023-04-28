@@ -72,24 +72,7 @@ export class Cache {
 			.writeSelection({ ...args, layer })
 			.map((sub) => sub[0])
 
-		// the same spec will likely need to be updated multiple times, create the unique list by using the set
-		// function's identity
-		const notified: SubscriptionSpec['set'][] = []
-		for (const spec of subscribers.concat(notifySubscribers)) {
-			// if we haven't added the set yet
-			if (!notified.includes(spec.set)) {
-				notified.push(spec.set)
-				// trigger the update
-				spec.set(
-					this._internal_unstable.getSelection({
-						parent: spec.parentID || rootID,
-						selection: spec.selection,
-						variables: spec.variables?.() || {},
-						ignoreMasking: false,
-					}).data
-				)
-			}
-		}
+		this.#notifySubscribers(subscribers.concat(notifySubscribers))
 
 		// return the id to the caller so they can resolve the layer if it was optimistic
 		return subscribers
@@ -193,6 +176,92 @@ export class Cache {
 
 	config(): ConfigFile {
 		return this._internal_unstable.config
+	}
+
+	clearLayer(layerID: Layer['id']) {
+		// before we clear the layer we need to look at every field/link and see if it is
+		// the display layer. If it is the display layer than we need to notify
+		// any subscribers if the value changed after we are done clearing the layer
+		// the comparison to the previous value has to happen _after_ we clear the layer
+		// so that we can look at values before and after the clear (this took me too long to realize)
+
+		// find the layer
+		const layer = this._internal_unstable.storage.getLayer(layerID)
+		if (!layer) {
+			throw new Error('Cannot find layer with id: ' + layerID)
+		}
+
+		// we need to iterate over every field/link in the layer, look at the displayed value
+		// and see if the layer is the target
+		const allFields: DisplaySummary[] = []
+		for (const target of [layer.fields, layer.links]) {
+			for (const [id, fields] of Object.entries(target)) {
+				allFields.push(
+					...Object.entries(fields).map(([field, value]) => ({ id, field, value }))
+				)
+			}
+		}
+
+		// look at every pair and build up a list of the fields that we are display layers on.
+		const displayFields: DisplaySummary[] = []
+		for (const pair of allFields) {
+			// look up the current value
+			const { value, displayLayers } = this._internal_unstable.storage.get(
+				pair.id,
+				pair.field
+			)
+
+			// if the target layer is not the display layer, ignore the field (no need to notify anyone)
+			if (!displayLayers.includes(layerID)) {
+				continue
+			}
+
+			displayFields.push(pair)
+		}
+
+		// clear the layer
+		layer.clear()
+
+		// now we have to look at the display fields and compare their value with the current
+		// if the value changed then we need to notify the subscribers
+		const toNotify: SubscriptionSpec[] = []
+		for (const { id, field, value } of displayFields) {
+			// get the current value
+			const current = this._internal_unstable.storage.get(id, field).value
+			// if the value changed then we need to notify the subscribers
+			if (current !== value) {
+				toNotify.push(
+					...this._internal_unstable.subscriptions.get(id, field).map((sub) => sub[0])
+				)
+			}
+		}
+
+		this.#notifySubscribers(toNotify)
+	}
+
+	#notifySubscribers(subs: SubscriptionSpec[]) {
+		// if there's no one to notify, its a no-op
+		if (subs.length === 0) {
+			return
+		}
+		// the same spec will likely need to be updated multiple times, create the unique list by using the set
+		// function's identity
+		const notified: SubscriptionSpec['set'][] = []
+		for (const spec of subs) {
+			// if we haven't added the set yet
+			if (!notified.includes(spec.set)) {
+				notified.push(spec.set)
+				// trigger the update
+				spec.set(
+					this._internal_unstable.getSelection({
+						parent: spec.parentID || rootID,
+						selection: spec.selection,
+						variables: spec.variables?.() || {},
+						ignoreMasking: false,
+					}).data
+				)
+			}
+		}
 	}
 }
 
@@ -1359,3 +1428,5 @@ function fragmentVariableValue(value: ValueNode, args: GraphQLObject): GraphQLVa
 
 // fields on the root of the data store are keyed with a fixed id
 export const rootID = '_ROOT_'
+
+type DisplaySummary = { id: string; field: string; value: any }

@@ -30,6 +30,15 @@ type Mutation {
 		delay: Int
 		force: ForceReturn
 	): User
+	addNonNullUser(
+		birthDate: DateTime!
+		name: String!
+		snapshot: String!
+		enumValue: MyEnum
+		types: [TypeOfUser!]
+		delay: Int
+		force: ForceReturn
+	): User!
 	updateUser(id: ID!, name: String, snapshot: String!, birthDate: DateTime, delay: Int): User!
 	singleUpload(file: File!): String!
 	multipleUpload(files: [File!]!): [String!]!

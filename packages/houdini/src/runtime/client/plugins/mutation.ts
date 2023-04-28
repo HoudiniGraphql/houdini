@@ -54,12 +54,23 @@ export const mutation = documentPlugin(ArtifactKind.Mutation, () => {
 		},
 		afterNetwork(ctx, { resolve }) {
 			// before the cache sees the data, we need to clear the layer
-			ctx.cacheParams?.layer?.clear()
+			if (ctx.cacheParams?.layer) {
+				cache.clearLayer(ctx.cacheParams.layer.id)
+			}
 
 			// we're done
 			resolve(ctx)
 		},
 		end(ctx, { resolve, value }) {
+			const hasErrors = value.errors && value.errors.length > 0
+			// if there are errors, we need to clear the layer before resolving
+			if (hasErrors) {
+				// if the mutation failed, roll the layer back and delete it
+				if (ctx.cacheParams?.layer) {
+					cache.clearLayer(ctx.cacheParams.layer.id)
+				}
+			}
+
 			// merge the layer back into the cache
 			if (ctx.cacheParams?.layer) {
 				cache._internal_unstable.storage.resolveLayer(ctx.cacheParams.layer.id)

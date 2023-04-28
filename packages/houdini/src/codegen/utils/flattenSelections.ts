@@ -8,17 +8,13 @@ export function flattenSelections({
 	filepath,
 	selections,
 	fragmentDefinitions,
-	ignoreMaskDisable,
-	keepFragmentSpreadNodes,
-	hoistFragments,
+	applyFragments,
 }: {
 	config: Config
 	filepath: string
 	selections: readonly graphql.SelectionNode[]
 	fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode }
-	ignoreMaskDisable?: boolean
-	keepFragmentSpreadNodes?: boolean
-	hoistFragments?: boolean
+	applyFragments?: boolean
 }): readonly graphql.SelectionNode[] {
 	// collect all of the fields together
 	const fields = new FieldCollection({
@@ -26,9 +22,7 @@ export function flattenSelections({
 		filepath,
 		selections,
 		fragmentDefinitions,
-		ignoreMaskDisable: !!ignoreMaskDisable,
-		keepFragmentSpreadNodes: !!keepFragmentSpreadNodes,
-		hoistFragments,
+		applyFragments: !!applyFragments,
 	})
 
 	// convert the flat fields into a selection set
@@ -43,28 +37,22 @@ class FieldCollection {
 	fields: { [name: string]: Field<graphql.FieldNode> }
 	inlineFragments: { [typeName: string]: Field<graphql.InlineFragmentNode> }
 	fragmentSpreads: { [fragmentName: string]: graphql.FragmentSpreadNode }
-	ignoreMaskDisable: boolean
-	keepFragmentSpreadNodes: boolean
-	hoistFragments: boolean
+	applyFragments: boolean
 
 	constructor(args: {
 		config: Config
 		filepath: string
 		selections: readonly graphql.SelectionNode[]
 		fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode }
-		ignoreMaskDisable: boolean
-		keepFragmentSpreadNodes: boolean
-		hoistFragments?: boolean
+		applyFragments: boolean
 	}) {
 		this.config = args.config
 		this.fragmentDefinitions = args.fragmentDefinitions
-		this.ignoreMaskDisable = args.ignoreMaskDisable
-		this.keepFragmentSpreadNodes = args.keepFragmentSpreadNodes
+		this.applyFragments = args.applyFragments
 
 		this.fields = {}
 		this.inlineFragments = {}
 		this.fragmentSpreads = {}
-		this.hoistFragments = !!args.hoistFragments
 
 		this.filepath = args.filepath
 
@@ -86,14 +74,14 @@ class FieldCollection {
 		// the final result.
 
 		// the default behavior depends on wether masking is enabled or disabled
-		let includeFragments = this.config.defaultFragmentMasking === 'disable'
+		let include = this.config.defaultFragmentMasking === 'disable'
 
 		// Check if locally enable
 		const maskEnableDirective = selection.directives?.find(
 			({ name }) => name.value === this.config.maskEnableDirective
 		)
 		if (maskEnableDirective) {
-			includeFragments = false
+			include = false
 		}
 
 		// Check if locally disable
@@ -101,14 +89,7 @@ class FieldCollection {
 			({ name }) => name.value === this.config.maskDisableDirective
 		)
 		if (maskDisableDirective) {
-			includeFragments = true
-		}
-
-		// we might need to ignore any disables
-		// for example, queries need to _always_ have their full selection
-		// so the result can be written to the cache
-		if (this.ignoreMaskDisable) {
-			includeFragments = true
+			include = true
 		}
 
 		// how we handle the field depends on what kind of field it is
@@ -135,7 +116,7 @@ class FieldCollection {
 
 			// the application of the fragment has been validated already so track it
 			// so we can recreate
-			if (!external && includeFragments) {
+			if (this.applyFragments && !external) {
 				this.fields[key].selection.fragmentSpreads = {
 					...this.collectFragmentSpreads(selection.selectionSet?.selections ?? []),
 					...this.fields[key].selection.fragmentSpreads,
@@ -159,7 +140,7 @@ class FieldCollection {
 			// we need to look at the selection set flatten all of the nested
 			// inline fragments that could appear. every time we run into a new
 			// inline fragment we need to create a new key in the object to add fields to
-			this.walkInlineFragment({ selection, external, hoistFragments: this.hoistFragments })
+			this.walkInlineFragment({ selection, external })
 
 			// we're done
 			return
@@ -167,14 +148,9 @@ class FieldCollection {
 
 		// the only thing that's left is external fragment spreads
 		if (selection.kind === 'FragmentSpread') {
-			// make sure we leave this fragment in the selection behind
-			if (this.keepFragmentSpreadNodes && !external) {
+			if (!external || include) {
+				// make sure we leave this fragment in the selection behind
 				this.fragmentSpreads[selection.name.value] = selection
-			}
-
-			// we're finished if we're not supposed to include fragments in the selection
-			if (!includeFragments) {
-				return
 			}
 
 			// we need to include the fragment selection in the final result
@@ -193,23 +169,25 @@ class FieldCollection {
 
 			// instead of adding the field on directly, let's turn the external fragment into an inline fragment
 			// and process it like normal
-			this.add({
-				selection: {
-					kind: 'InlineFragment',
-					typeCondition: {
-						kind: 'NamedType',
-						name: {
-							kind: 'Name',
-							value: definition.typeCondition.name.value,
+			if (this.applyFragments || include) {
+				this.add({
+					selection: {
+						kind: 'InlineFragment',
+						typeCondition: {
+							kind: 'NamedType',
+							name: {
+								kind: 'Name',
+								value: definition.typeCondition.name.value,
+							},
+						},
+						selectionSet: {
+							kind: 'SelectionSet',
+							selections: [...definition.selectionSet.selections],
 						},
 					},
-					selectionSet: {
-						kind: 'SelectionSet',
-						selections: [...definition.selectionSet.selections],
-					},
-				},
-				external,
-			})
+					external: !include,
+				})
+			}
 		}
 	}
 
@@ -296,11 +274,9 @@ class FieldCollection {
 	walkInlineFragment({
 		selection,
 		external,
-		hoistFragments,
 	}: {
 		selection: graphql.InlineFragmentNode
 		external?: boolean
-		hoistFragments: boolean
 	}) {
 		// figure out the key of the field
 		const key = selection.typeCondition!.name.value
@@ -319,7 +295,6 @@ class FieldCollection {
 			// the only thing we need to treat specially is inline fragments with type conditions,
 			// otherwise just add it like normal to the inline fragment
 			if (
-				(subselect.kind === 'FragmentSpread' && !hoistFragments) ||
 				subselect.kind === 'Field' ||
 				(subselect.kind === 'InlineFragment' && !subselect.typeCondition)
 			) {
@@ -334,7 +309,7 @@ class FieldCollection {
 			else if (subselect.kind === 'FragmentSpread') {
 				this.add({
 					selection: subselect,
-					external: true,
+					external,
 				})
 				continue
 			}
@@ -342,7 +317,7 @@ class FieldCollection {
 			// we know the selection is an inline fragment with a type condition so
 			// flatten the selection into this one
 			else {
-				this.walkInlineFragment({ selection: subselect, external, hoistFragments })
+				this.walkInlineFragment({ selection: subselect, external })
 			}
 		}
 	}
@@ -353,9 +328,7 @@ class FieldCollection {
 			fragmentDefinitions: this.fragmentDefinitions,
 			selections: [],
 			filepath: this.filepath,
-			ignoreMaskDisable: this.ignoreMaskDisable,
-			keepFragmentSpreadNodes: this.keepFragmentSpreadNodes,
-			hoistFragments: this.hoistFragments,
+			applyFragments: this.applyFragments,
 		})
 	}
 }

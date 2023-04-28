@@ -17,9 +17,9 @@
 <button id="mutate" on:click={update}>Update User</button>
 
 <div id="result">
-  {JSON.stringify($GQL_EnumMutation.data?.addUser.enumValue === MyEnum.Value1)}
+  {JSON.stringify($GQL_EnumMutation.data?.addUser?.enumValue === MyEnum.Value1)}
 </div>
 
 <div id="result-type">
-  {JSON.stringify($GQL_EnumMutation.data?.addUser.types)}
+  {JSON.stringify($GQL_EnumMutation.data?.addUser?.types)}
 </div>

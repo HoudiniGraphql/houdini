@@ -6034,7 +6034,7 @@ test('client nullability', async function () {
 	`)
 })
 
-test('nested abstract fragments', async function () {
+test('nested abstract fragment on connection', async function () {
 	// the config to use in tests
 	const config = testConfig()
 
@@ -6344,5 +6344,299 @@ test('nested abstract fragments', async function () {
 		};
 
 		"HoudiniHash=5ffbbc9f49c89384d57cfdc0eda0fe097d251b216c6958707226dfa1090c454f";
+	`)
+})
+
+test('nested abstract fragments', async function () {
+	// the config to use in tests
+	const config = testConfig()
+
+	// the documents to test
+	const docs: Document[] = [
+		mockCollectedDoc(`
+			query AnimalsOverview {
+				animals { 
+					...AnimalsOverviewList
+				}
+			}
+		`),
+		mockCollectedDoc(`
+			fragment AnimalsOverviewList on AnimalConnection {
+				edges {
+					node {
+						... on Monkey {
+							...MonkeyFragment
+						}
+					}
+				}
+			}
+		`),
+		mockCollectedDoc(`
+			fragment MonkeyFragment on Monkey {
+				id
+				name
+				hasBanana
+			}
+		`),
+	]
+
+	await runPipeline(config, docs)
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "AnimalsOverview",
+		    "kind": "HoudiniQuery",
+		    "hash": "cf84a5195b5f72f4db2238369ff8189487b82b4703d4f4c32a8e86a3bcc6260b",
+
+		    "raw": \`query AnimalsOverview {
+		  animals {
+		    ...AnimalsOverviewList
+		    __typename
+		  }
+		}
+
+		fragment AnimalsOverviewList on AnimalConnection {
+		  edges {
+		    node {
+		      ... on Monkey {
+		        ...MonkeyFragment
+		        id
+		      }
+		      id
+		      __typename
+		    }
+		    __typename
+		  }
+		  __typename
+		}
+
+		fragment MonkeyFragment on Monkey {
+		  id
+		  name
+		  hasBanana
+		  __typename
+		}
+		\`,
+
+		    "rootType": "Query",
+
+		    "selection": {
+		        "fields": {
+		            "animals": {
+		                "type": "AnimalConnection",
+		                "keyRaw": "animals",
+		                "nullable": true,
+
+		                "selection": {
+		                    "fields": {
+		                        "edges": {
+		                            "type": "AnimalEdge",
+		                            "keyRaw": "edges",
+
+		                            "selection": {
+		                                "fields": {
+		                                    "node": {
+		                                        "type": "Animal",
+		                                        "keyRaw": "node",
+		                                        "nullable": true,
+
+		                                        "selection": {
+		                                            "abstractFields": {
+		                                                "fields": {
+		                                                    "Monkey": {
+		                                                        "id": {
+		                                                            "type": "ID",
+		                                                            "keyRaw": "id",
+		                                                            "visible": true
+		                                                        },
+
+		                                                        "name": {
+		                                                            "type": "String",
+		                                                            "keyRaw": "name"
+		                                                        },
+
+		                                                        "hasBanana": {
+		                                                            "type": "Boolean",
+		                                                            "keyRaw": "hasBanana"
+		                                                        },
+
+		                                                        "__typename": {
+		                                                            "type": "String",
+		                                                            "keyRaw": "__typename"
+		                                                        }
+		                                                    }
+		                                                },
+
+		                                                "typeMap": {}
+		                                            },
+
+		                                            "fields": {
+		                                                "id": {
+		                                                    "type": "ID",
+		                                                    "keyRaw": "id",
+		                                                    "visible": true
+		                                                },
+
+		                                                "__typename": {
+		                                                    "type": "String",
+		                                                    "keyRaw": "__typename"
+		                                                }
+		                                            }
+		                                        },
+
+		                                        "abstract": true
+		                                    },
+
+		                                    "__typename": {
+		                                        "type": "String",
+		                                        "keyRaw": "__typename"
+		                                    }
+		                                }
+		                            },
+
+		                            "abstract": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename",
+		                            "visible": true
+		                        }
+		                    },
+
+		                    "fragments": {
+		                        "AnimalsOverviewList": {
+		                            "arguments": {}
+		                        }
+		                    }
+		                },
+
+		                "abstract": true,
+		                "visible": true
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+		    "policy": "CacheOrNetwork",
+		    "partial": false
+		};
+
+		"HoudiniHash=cf84a5195b5f72f4db2238369ff8189487b82b4703d4f4c32a8e86a3bcc6260b";
+	`)
+
+	expect(docs[1]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "AnimalsOverviewList",
+		    "kind": "HoudiniFragment",
+		    "hash": "72091e952cf94a18193cee6cda1caf256f6439e4e202b319d876e9b3365ac319",
+
+		    "raw": \`fragment AnimalsOverviewList on AnimalConnection {
+		  edges {
+		    node {
+		      ... on Monkey {
+		        ...MonkeyFragment
+		        id
+		      }
+		      id
+		      __typename
+		    }
+		    __typename
+		  }
+		  __typename
+		}
+
+		fragment MonkeyFragment on Monkey {
+		  id
+		  name
+		  hasBanana
+		  __typename
+		}
+		\`,
+
+		    "rootType": "AnimalConnection",
+
+		    "selection": {
+		        "fields": {
+		            "edges": {
+		                "type": "AnimalEdge",
+		                "keyRaw": "edges",
+
+		                "selection": {
+		                    "fields": {
+		                        "node": {
+		                            "type": "Animal",
+		                            "keyRaw": "node",
+		                            "nullable": true,
+
+		                            "selection": {
+		                                "abstractFields": {
+		                                    "fields": {
+		                                        "Monkey": {
+		                                            "id": {
+		                                                "type": "ID",
+		                                                "keyRaw": "id",
+		                                                "visible": true
+		                                            },
+
+		                                            "__typename": {
+		                                                "type": "String",
+		                                                "keyRaw": "__typename",
+		                                                "visible": true
+		                                            }
+		                                        }
+		                                    },
+
+		                                    "typeMap": {}
+		                                },
+
+		                                "fields": {
+		                                    "id": {
+		                                        "type": "ID",
+		                                        "keyRaw": "id",
+		                                        "visible": true
+		                                    },
+
+		                                    "__typename": {
+		                                        "type": "String",
+		                                        "keyRaw": "__typename",
+		                                        "visible": true
+		                                    }
+		                                },
+
+		                                "fragments": {
+		                                    "MonkeyFragment": {
+		                                        "arguments": {}
+		                                    }
+		                                }
+		                            },
+
+		                            "abstract": true,
+		                            "visible": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename",
+		                            "visible": true
+		                        }
+		                    }
+		                },
+
+		                "abstract": true,
+		                "visible": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename",
+		                "visible": true
+		            }
+		        }
+		    },
+
+		    "pluginData": {}
+		};
+
+		"HoudiniHash=72091e952cf94a18193cee6cda1caf256f6439e4e202b319d876e9b3365ac319";
 	`)
 })

@@ -8,7 +8,7 @@ import type { GraphQLValue } from '../lib/types'
 
 export class InMemoryStorage {
 	private data: Layer[]
-	private idCount = 0
+	private idCount = 1
 	private rank = 0
 
 	constructor() {
