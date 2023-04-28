@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { graphql } from '$houdini';
+  import { graphql, type ForceReturn$options } from '$houdini';
 
   $: query = graphql(`
     query OptimisticUsersList @load {
@@ -10,16 +10,58 @@
   `);
 
   const addUser = graphql(`
-    mutation AddUserOptiList($name: String!, $birthDate: DateTime!) {
-      addUser(name: $name, birthDate: $birthDate, delay: 1000, snapshot: "mutation-opti-list") {
+    mutation AddUserOptiList($name: String!, $birthDate: DateTime!, $force: ForceReturn = NORMAL) {
+      addUser(
+        name: $name
+        birthDate: $birthDate
+        delay: 500
+        snapshot: "mutation-opti-list"
+        force: $force
+      ) {
         ...OptimisticUsersList_insert
       }
     }
   `);
 
-  async function add() {
+  const addNonNullUser = graphql(`
+    mutation AddNonNullUserOptiList(
+      $name: String!
+      $birthDate: DateTime!
+      $force: ForceReturn = NORMAL
+    ) {
+      addNonNullUser(
+        name: $name
+        birthDate: $birthDate
+        delay: 500
+        snapshot: "mutation-opti-list"
+        force: $force
+      ) {
+        ...OptimisticUsersList_insert
+      }
+    }
+  `);
+
+  const addNonNull = async (force: ForceReturn$options = 'NORMAL') => {
+    await addNonNullUser.mutate(
+      { name: 'JYC', birthDate: new Date('1986-11-07'), force },
+      {
+        optimisticResponse: {
+          addNonNullUser: {
+            id: '??? id ???',
+            name: '...optimisticResponse... I could have guessed JYC!'
+          }
+        }
+      }
+    );
+  };
+
+  const add = async (force: ForceReturn$options = 'NORMAL') => {
     await addUser.mutate(
-      { name: 'JYC', birthDate: new Date('1986-11-07') },
+      {
+        name: '...optimisticResponse... I could have guessed JYC!',
+        birthDate: new Date('1986-11-07'),
+        force
+      },
       {
         optimisticResponse: {
           addUser: {
@@ -29,12 +71,14 @@
         }
       }
     );
-  }
+  };
 </script>
 
 <h1>Mutation Opti List</h1>
 
-<button id="mutate" on:click={add}>Add User</button>
+<button id="mutate" on:click={() => add()}>Add User</button>
+<button id="mutate-null" on:click={() => add('NULL')}>Add User (null)</button>
+<button id="mutate-error" on:click={() => addNonNull('ERROR')}>Add User (error)</button>
 
 <div id="result">
   {$query.data?.usersList.map((user) => user.name).join(', ')}

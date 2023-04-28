@@ -7,7 +7,9 @@
     GQL_AddBook,
     GQL_DeleteCity,
     GQL_DeleteLibrary,
-    GQL_DeleteBook
+    GQL_DeleteBook,
+    type ForceReturn$options,
+    GQL_RemoveBook
   } from '$houdini';
 
   $: browser && GQL_Cities.fetch();
@@ -54,12 +56,32 @@
     target.value = '';
   };
 
+  const removeBook = (event: Event) => {
+    const target = event?.target as HTMLButtonElement;
+    if (!target.dataset.id) {
+      return;
+    }
+    GQL_RemoveBook.mutate(
+      {
+        book: target.dataset.id,
+        force: (target.dataset.force as ForceReturn$options) ?? 'NORMAL'
+      },
+      { optimisticResponse: { deleteBook: { id: target.dataset.id } } }
+    );
+  };
+
   const deleteBook = (event: Event) => {
     const target = event?.target as HTMLButtonElement;
     if (!target.dataset.id) {
       return;
     }
-    GQL_DeleteBook.mutate({ book: target.dataset.id });
+    GQL_DeleteBook.mutate(
+      {
+        book: target.dataset.id,
+        force: (target.dataset.force as ForceReturn$options) ?? 'NORMAL'
+      },
+      { optimisticResponse: { deleteBook: { id: target.dataset.id } } }
+    );
   };
 </script>
 
@@ -79,7 +101,20 @@
               {#each library?.books ?? [] as book}
                 <li>
                   {book?.id}: {book?.title}
+                  <button data-id={book?.id} on:click={removeBook}>Remove</button>
+                  <button data-id={book?.id} data-force="NULL" on:click={removeBook}
+                    >Remove (null)</button
+                  >
+                  <button data-id={book?.id} data-force="ERROR" on:click={removeBook}
+                    >Remove (error)</button
+                  >
                   <button data-id={book?.id} on:click={deleteBook}>Delete</button>
+                  <button data-id={book?.id} data-force="NULL" on:click={deleteBook}
+                    >Delete (null)</button
+                  >
+                  <button data-id={book?.id} data-force="ERROR" on:click={deleteBook}
+                    >Delete (error)</button
+                  >
                 </li>
               {/each}
               <li><input data-id={library?.id} on:change={addBook} /></li>
@@ -96,3 +131,10 @@
 </ul>
 
 <pre>{JSON.stringify($GQL_Cities?.data, null, 4)}</pre>
+
+<style>
+  button {
+    font-size: small;
+    padding: 0.5rem;
+  }
+</style>

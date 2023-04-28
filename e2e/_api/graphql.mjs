@@ -251,11 +251,25 @@ export const resolvers = {
 	},
 
 	Mutation: {
+		addNonNullUser(...args) {
+			return this.addUser(...args)
+		},
 		addUser: async (_, args) => {
-			const list = getUserSnapshot(args.snapshot)
 			if (args.delay) {
 				await sleep(args.delay)
 			}
+
+			if (args.force === 'NULL') {
+				// we don't want to handle a GraphQL error here. Just a null return
+				return null
+			}
+
+			if (args.force === 'ERROR') {
+				throw new GraphQLError('force ERROR!', { code: 501 })
+			}
+
+			const list = getUserSnapshot(args.snapshot)
+
 			const user = {
 				id: `${args.snapshot}:${list.length + 1}`,
 				name: args.name,
@@ -366,7 +380,20 @@ export const resolvers = {
 			city.libraries = city.libraries.filter((library) => library.id !== libraryId)
 			return library
 		},
-		deleteBook: (_, args) => {
+		deleteBook: async (_, args) => {
+			if (args.delay) {
+				await sleep(args.delay)
+			}
+
+			if (args.force === 'NULL') {
+				// we don't want to handle a GraphQL error here. Just a null return
+				return null
+			}
+
+			if (args.force === 'ERROR') {
+				throw new GraphQLError('force ERROR!', { code: 501 })
+			}
+
 			const bookId = Number.parseInt(args.book)
 			const city = cities.find((city) =>
 				city.libraries.find((library) => library.books.find((book) => book.id === bookId))
