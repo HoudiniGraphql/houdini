@@ -139,7 +139,7 @@ export class Cache {
 		this._internal_unstable.lists.removeIDFromAllLists(id, layer)
 
 		// delete the record from the store
-		this._internal_unstable.storage.delete(id)
+		this._internal_unstable.storage.delete(id, layer)
 	}
 
 	// set the cache's config
@@ -226,7 +226,6 @@ export class Cache {
 		for (const [id, operation] of Object.entries(layer.operations)) {
 			// if this is a delete operation,
 			if (operation.deleted) {
-				console.log('REVERTING DELETE OPERATION')
 				// add every active field for the id that we deleted
 				displayFields.push(
 					...this._internal_unstable.subscriptions
@@ -236,7 +235,7 @@ export class Cache {
 			}
 
 			// if the operation is a list, we need to look up the specific field for the corresponding lists
-			const fields = Object.keys(operation.fields)
+			const fields = Object.keys(operation.fields ?? {})
 			if (fields.length > 0) {
 				displayFields.push(...fields.map((field) => ({ id, field })))
 			}

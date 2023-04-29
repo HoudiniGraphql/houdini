@@ -353,8 +353,6 @@ export class Layer {
 	}
 
 	clear() {
-		// before we clear the data of the layer, look for any subscribers that need to be updated
-
 		// now that everything has been notified we can reset the data
 		this.links = {}
 		this.fields = {}
