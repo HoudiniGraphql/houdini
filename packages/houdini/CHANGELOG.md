@@ -1,5 +1,13 @@
 # houdini
 
+## 1.2.3
+
+### Patch Changes
+
+-   [#1075](https://github.com/HoudiniGraphql/houdini/pull/1075) [`1e98daf`](https://github.com/HoudiniGraphql/houdini/commit/1e98daff3dd420e86fb913a01d34644316c57955) Thanks [@jycouet](https://github.com/jycouet)! - it's now possible to use @allLists on \_remove fragment
+
+-   [#1075](https://github.com/HoudiniGraphql/houdini/pull/1075) [`1e98daf`](https://github.com/HoudiniGraphql/houdini/commit/1e98daff3dd420e86fb913a01d34644316c57955) Thanks [@jycouet](https://github.com/jycouet)! - Fix various issues reverting optimistic operations
+
 ## 1.2.2
 
 ### 🐛 Fixes
