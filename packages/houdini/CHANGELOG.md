@@ -2,17 +2,19 @@
 
 ## 1.2.3
 
-### Patch Changes
+### ✨ Features
 
--   [#1075](https://github.com/HoudiniGraphql/houdini/pull/1075) [`1e98daf`](https://github.com/HoudiniGraphql/houdini/commit/1e98daff3dd420e86fb913a01d34644316c57955) Thanks [@jycouet](https://github.com/jycouet)! - it's now possible to use @allLists on \_remove fragment
+-   #1075 [`1e98daf`](https://github.com/HoudiniGraphql/houdini/commit/1e98daff3dd420e86fb913a01d34644316c57955) Thanks @jycouet! - it's now possible to use @allLists on \_remove fragment
 
--   [#1075](https://github.com/HoudiniGraphql/houdini/pull/1075) [`1e98daf`](https://github.com/HoudiniGraphql/houdini/commit/1e98daff3dd420e86fb913a01d34644316c57955) Thanks [@jycouet](https://github.com/jycouet)! - Fix various issues reverting optimistic operations
+### 🐛 Fixes
+
+-   #1075 [`1e98daf`](https://github.com/HoudiniGraphql/houdini/commit/1e98daff3dd420e86fb913a01d34644316c57955) Thanks @jycouet! - Fix various issues reverting optimistic operations
 
 ## 1.2.2
 
 ### 🐛 Fixes
 
--   [#1070](https://github.com/HoudiniGraphql/houdini/pull/1070) [`6958699`](https://github.com/HoudiniGraphql/houdini/commit/6958699d8e685dd129cbcc09d2f9099c9353bd12) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug when fragment spread on abstract inline
+-   #1070 [`6958699`](https://github.com/HoudiniGraphql/houdini/commit/6958699d8e685dd129cbcc09d2f9099c9353bd12) Thanks @AlecAivazis! - Fix bug when fragment spread on abstract inline
 
 ## 1.2.1
 
