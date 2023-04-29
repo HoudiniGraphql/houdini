@@ -120,11 +120,8 @@ type RouterSuspenseUnit = {
 //
 // If the router has the necessary information to render a page, it will do so. otherwise it will suspend
 // while the page's bundle is loading. Depending on the order that information resolves for the
-// page assets, different components are shown:
+// page assets, different components are shown.
 //
-// - If the artifacts come before both of them and we don't have the required data, we can resolve the
-//   suspension and render the loading state (mode = "loading")
-// - When we are rendering the loading state, we want to do that by rendering a suspense boundary.
 // - In order to keep the tree shape stable, we want to always return a suspense boundary if we are ever
 //   going to. That means that when we don't have a component to render yet, we are going to
 //   render the suspense boundary with our fallback wrapping our fallback.
@@ -190,28 +187,23 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 
 	// if there is a pending request for this route, we need to abort it
 	// since we are going to own the render now
-	cached?.route_mutex?.signal.abort()
+	React.useEffect(() => {
+		cached?.route_mutex?.signal.abort()
+	}, [current])
 
-	// there are 4 situations:
+	// there are 3 situations:
 	//
 	// - we already have an entry in the navigation suspense cache containing the
 	//   component, every artifact, and data to render.
-	// - we have an entry in the suspense cache containing the artifact and
-	//   and we have _enough_ data to render the page's loading state. For some pages, this
-	//   might just require the artifact.
 	// - we are here but not ready to render the UI. This could happen because we are missing the artifact,
 	//   don't have enough data for the loading state. Whatever the reason, If there is something in progress, just throw the
 	//   pending one.
 	// - We don't have an entry for this route in the cache at all and nothing is in progress which means its a
 	//   full load of a fresh page. Just throw the page bundle loader and it will resolve when its ready.
 
-	// the value we will render
-	let result: React.ReactElement | null = null
-
 	// we have no cache entry for this route so we need to load the page bundle
 	// and then come back here when we have something to render
 	if (!cached || !deepEquals(matchVariables, cached.variables)) {
-		console.log('loading bundle')
 		// this might suspend
 		load_bundle({
 			manifest,
@@ -234,30 +226,11 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 		throw cached
 	}
 
-	// pull out the information we need
-	const { data } = cached.bundle
-
-	// if we have enough data to render the full state and store instances for everything,
-	// we're good to go
-	if (ok_final({ unit: cached })) {
-		result = render_final(cached)
-	}
-
-	// maybe we have enough data to render the loading state?
-	else if (ok_loading({ unit: cached, data })) {
-		result = render_loading(cached)
-	}
-
 	// if we got this far and we don't have something to return, then we need to just
 	// wait on the cached value to be valid (we had a waterfall or an early suspend resolve!)
-	if (!result) {
+	if (!ok_final({ unit: cached })) {
 		throw cached
 	}
-
-	// if we get this far we have to be okay to render the loading state
-	// if (!ok_fallback({ unit: cached, data })) {
-	// 	throw cached
-	// }
 
 	// render the page
 	return (
@@ -268,7 +241,9 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 			}}
 		>
 			<HoudiniProvider client={client}>
-				<Suspense fallback={render_fallback(cached)}>{result}</Suspense>
+				<Suspense fallback={render_fallback(cached)}>
+					<Page unit={cached} />
+				</Suspense>
 			</HoudiniProvider>
 		</Context.Provider>
 	)
@@ -533,15 +508,13 @@ function update_unit({
 	 */
 
 	// check the unit is now finalized
-	const data = unit.bundle?.data
 	if (ok_final({ unit: unit })) {
 		unit.bundle!.mode = 'final'
 	}
 
-	// TODO: if this is aborted, we're done. don't suspend because of anything we did here.
-	// if (updated.route_mutex?.signal.abort) {
-	// return false
-	// }
+	if (unit.route_mutex?.signal.signal.aborted) {
+		return false
+	}
 
 	// if the mode is finalized we are good to go
 	if (unit.bundle?.mode === 'final') {
@@ -550,84 +523,7 @@ function update_unit({
 		return suspend
 	}
 
-	// if the unit has enough information to render the loading
-	// state then we should do that.
-	if (ok_loading({ unit: unit, data })) {
-		unit.resolve()
-	}
-
 	return suspend
-}
-
-function render_fallback(resolved: RouterSuspenseUnit) {
-	return <div>loading...</div>
-}
-
-function render_final(resolved: RouterSuspenseUnit) {
-	const Component = resolved.bundle!.Component!
-	// in order to know the props to pass, we need to look at the queries
-	const props: Record<string, any> = {}
-	for (const name of Object.keys(resolved.page.documents)) {
-		props[name] = resolved.bundle?.data?.[name].value
-		props[`${name}$handle`] = resolved.bundle?.data?.[name].store
-	}
-
-	// if we are ever going to render a loading state there has to be
-	// a suspend here to match the one in render_loading
-	if (Object.values(resolved.page.documents).some((doc) => doc.loading)) {
-		return (
-			<Suspense fallback={render_fallback(resolved)}>
-				<Component {...props} />
-			</Suspense>
-		)
-	}
-
-	return <Component {...props} />
-}
-
-// in order for the loading state to update when the data is ready,
-// we need to leave behind a component that will show the fallback
-// but still be suspending. which means the child of the fallback
-// needs to suspend with the resolved unit
-function render_loading(resolved: RouterSuspenseUnit) {
-	return (
-		<Suspense fallback={render_fallback(resolved)}>
-			<ThrowUnit unit={resolved} />
-		</Suspense>
-	)
-}
-
-function ThrowUnit({ unit: { id } }: { unit: RouterSuspenseUnit }) {
-	// throw unit
-	const unit = nav_suspense_cache.get(id)!
-	if (!ok_final({ unit })) {
-		throw unit
-	}
-
-	return render_final(unit)
-}
-
-function ok_loading({
-	unit,
-	data,
-}: {
-	unit: RouterSuspenseUnit
-	data: Required<RouterSuspenseUnit>['bundle']['data']
-}) {
-	const required_queries = Object.entries(unit.page.documents).reduce(
-		(queries, [key, document]) => (!document.loading ? [...queries, key] : queries),
-		[] as string[]
-	)
-
-	// we can't show the loading state if we are missing required data.
-	const has_data = required_queries.filter((query) => !(query in (data ?? {}))).length === 0
-
-	// we also can't show the loading state if we are missing any artifacts
-	const has_artifacts = Object.keys(unit.page.documents).every(
-		(art) => unit.bundle?.artifacts?.[art]
-	)
-
-	return has_data && has_artifacts
 }
 
 function ok_final({ unit }: { unit: RouterSuspenseUnit }) {
@@ -637,4 +533,33 @@ function ok_final({ unit }: { unit: RouterSuspenseUnit }) {
 		Object.keys(unit.page.documents).every((key) => key in data && data[key].store) &&
 		unit.bundle?.Component
 	)
+}
+
+function render_fallback(unit: RouterSuspenseUnit) {
+	// TODO: +fallback.tsx
+	// if none of the documents are loading then we just return null for now
+	if (Object.values(unit.page.documents).map((doc) => doc.loading).length === 0) {
+		return null
+	}
+
+	return <Page unit={unit} loading />
+}
+
+function Page({ unit, loading }: { unit: RouterSuspenseUnit; loading?: boolean }) {
+	// pull out the component from the bundle
+	const Component = unit.bundle!.Component!
+	// build up the props to pass by looking at the queries
+	const props: Record<string, any> = {}
+	for (const name of Object.keys(unit.page.documents)) {
+		props[name] = unit.bundle?.data?.[name].value
+		props[`${name}$handle`] = unit.bundle?.data?.[name].store
+	}
+
+	// if we are loading then should overwrite any loading documents
+	// with generated loading states
+	if (loading) {
+		// TODO
+	}
+
+	return <Component {...props} />
 }
