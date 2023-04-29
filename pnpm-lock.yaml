@@ -403,7 +403,7 @@ importers:
             lint-staged: ^12.3.4
             lodash: ^4.17.21
             mdsvex: ^0.10.6
-            mermaid: ^9.3.0
+            mermaid: ^10.0.0
             node-html-parser: ^5.4.1
             prettier: ^2.8.3
             prettier-plugin-svelte: ^2.9.0
@@ -452,7 +452,7 @@ importers:
             gatsby-remark-code-titles: 1.1.0
             husky: 7.0.4
             lint-staged: 12.5.0
-            mermaid: 9.3.0
+            mermaid: 10.1.0
             prettier: 2.8.3
             prettier-plugin-svelte: 2.9.0_duz2vlilla6qnf7wkn4dqotijm
             recast: 0.23.1
@@ -2039,6 +2039,20 @@ packages:
         dependencies:
             '@jridgewell/resolve-uri': 3.1.0
             '@jridgewell/sourcemap-codec': 1.4.14
+
+    /@khanacademy/simple-markdown/0.8.6_wcqkhtmu7mswc6yz4uyexck3ty:
+        resolution:
+            {
+                integrity: sha512-mAUlR9lchzfqunR89pFvNI51jQKsMpJeWYsYWw0DQcUXczn/T/V6510utgvm7X0N3zN87j1SvuKk8cMbl9IAFw==,
+            }
+        peerDependencies:
+            react: 16.14.0
+            react-dom: 16.14.0
+        dependencies:
+            '@types/react': 18.0.37
+            react: 16.14.0
+            react-dom: 16.14.0_react@16.14.0
+        dev: true
 
     /@kitql/helper/0.5.0:
         resolution:
@@ -4421,6 +4435,24 @@ packages:
             }
         dev: true
 
+    /cose-base/1.0.3:
+        resolution:
+            {
+                integrity: sha512-s9whTXInMSgAp/NVXVNuVxVKzGH2qck3aQlVHxDCdAEPgtMKwc4Wq6/QKhgdEdgbLSi9rBTAcPoRa6JpiG4ksg==,
+            }
+        dependencies:
+            layout-base: 1.0.2
+        dev: true
+
+    /cose-base/2.2.0:
+        resolution:
+            {
+                integrity: sha512-AzlgcsCbUMymkADOJtQm3wO9S3ltPfYOFD5033keQn9NJzIbtnZj+UdBJe7DYml/8TdbtHJW3j58SOnKhWY/5g==,
+            }
+        dependencies:
+            layout-base: 2.0.1
+        dev: true
+
     /cosmiconfig/7.1.0:
         resolution:
             {
@@ -4527,6 +4559,41 @@ packages:
             csv-parse: 4.16.3
             csv-stringify: 5.6.5
             stream-transform: 2.1.3
+        dev: true
+
+    /cytoscape-cose-bilkent/4.1.0_cytoscape@3.24.0:
+        resolution:
+            {
+                integrity: sha512-wgQlVIUJF13Quxiv5e1gstZ08rnZj2XaLHGoFMYXz7SkNfCDOOteKBE6SYRfA9WxxI/iBc3ajfDoc6hb/MRAHQ==,
+            }
+        peerDependencies:
+            cytoscape: ^3.2.0
+        dependencies:
+            cose-base: 1.0.3
+            cytoscape: 3.24.0
+        dev: true
+
+    /cytoscape-fcose/2.2.0_cytoscape@3.24.0:
+        resolution:
+            {
+                integrity: sha512-ki1/VuRIHFCzxWNrsshHYPs6L7TvLu3DL+TyIGEsRcvVERmxokbf5Gdk7mFxZnTdiGtnA4cfSmjZJMviqSuZrQ==,
+            }
+        peerDependencies:
+            cytoscape: ^3.2.0
+        dependencies:
+            cose-base: 2.2.0
+            cytoscape: 3.24.0
+        dev: true
+
+    /cytoscape/3.24.0:
+        resolution:
+            {
+                integrity: sha512-W9fJMrAfr/zKFzDCpRR/wn6uoEQ7gfbJmxPK5DadXj69XyAhZYi1QXLOE+UXJfXVXxqGM1o1eeiIrtxrtB43zA==,
+            }
+        engines: { node: '>=0.10' }
+        dependencies:
+            heap: 0.2.7
+            lodash: 4.17.21
         dev: true
 
     /d3-array/3.2.2:
@@ -4870,10 +4937,10 @@ packages:
             d3-zoom: 3.0.0
         dev: true
 
-    /dagre-d3-es/7.0.6:
+    /dagre-d3-es/7.0.10:
         resolution:
             {
-                integrity: sha512-CaaE/nZh205ix+Up4xsnlGmpog5GGm81Upi2+/SBHxwNwrccBb3K51LzjZ1U6hgvOlAEUsVWf1xSTzCyKpJ6+Q==,
+                integrity: sha512-qTCQmEhcynucuaZgY5/+ti3X/rnszKZhEQH/ZdWdtP1tA/y3VoHJzcVrO9pjjJCNpigfscAtoUB5ONcd2wNn0A==,
             }
         dependencies:
             d3: 7.8.2
@@ -4908,6 +4975,13 @@ packages:
                 integrity: sha512-dDCnyH2WnnKusqvZZ6+jA1O51Ibt8ZMRNkDZdyAyK4YfbDwa/cEmuztzG5pk6hqlp9aSBPYcjOlktquahGwGeA==,
             }
         engines: { node: '>=0.11' }
+        dev: true
+
+    /dayjs/1.11.7:
+        resolution:
+            {
+                integrity: sha512-+Yw9U6YO5TQohxLcIkrXBeY73WP3ejHWVvx8XCk3gxvQDCTEmS48ZrSZCKciI7Bhl/uCMyxYtE9UqRILmFphkQ==,
+            }
         dev: true
 
     /debug/2.6.9:
@@ -5191,10 +5265,10 @@ packages:
             domelementtype: 2.3.0
         dev: false
 
-    /dompurify/2.4.1:
+    /dompurify/2.4.5:
         resolution:
             {
-                integrity: sha512-ewwFzHzrrneRjxzmK6oVz/rZn9VWspGFRDb4/rRtIsM1n36t9AKma/ye8syCpcw+XJ25kOK/hOG7t1j2I2yBqA==,
+                integrity: sha512-jggCCd+8Iqp4Tsz0nIvpcb22InKEBrGz5dw3EQJMs8HPJDsKbFIO3STYtAvCfDx26Muevn1MHVI0XxjgFfmiSA==,
             }
         dev: true
 
@@ -5237,6 +5311,13 @@ packages:
             {
                 integrity: sha512-M8WEXFuKXMYMVr45fo8mq0wUrrJHheiKZf6BArTKk9ZBYCKJEOU5H8cdWgDT+qCVZf7Na4lVUaZsA+h6uA9+PA==,
             }
+
+    /elkjs/0.8.2:
+        resolution:
+            {
+                integrity: sha512-L6uRgvZTH+4OF5NE/MBbzQx/WYpru1xCBE9respNj6qznEewGUIfhzmm7horWWxbNO2M0WckQypGctR8lH79xQ==,
+            }
+        dev: true
 
     /emoji-regex/8.0.0:
         resolution:
@@ -7260,6 +7341,13 @@ packages:
         hasBin: true
         dev: false
 
+    /heap/0.2.7:
+        resolution:
+            {
+                integrity: sha512-2bsegYkkHO+h/9MGbn6KWcE45cHZgPANo5LXF7EvWdT0yT2EguSVO1nDgU5c8+ZOPwp2vMNa7YFsJhVcDR9Sdg==,
+            }
+        dev: true
+
     /hosted-git-info/2.8.9:
         resolution:
             {
@@ -8245,6 +8333,20 @@ packages:
             language-subtag-registry: 0.3.22
         dev: true
 
+    /layout-base/1.0.2:
+        resolution:
+            {
+                integrity: sha512-8h2oVEZNktL4BH2JCOI90iD1yXwL6iNW7KcCKT2QZgQJR2vbqDsldCTPRU9NifTCqHZci57XvQQ15YTu+sTYPg==,
+            }
+        dev: true
+
+    /layout-base/2.0.1:
+        resolution:
+            {
+                integrity: sha512-dp3s92+uNI1hWIpPGH3jK2kxE2lMjdXdr+DH8ynZHpd6PUlH6x6cbuXnoMmiNumznqaNO31xu9e79F0uuZ0JFg==,
+            }
+        dev: true
+
     /levn/0.4.1:
         resolution:
             {
@@ -8729,22 +8831,31 @@ packages:
             - utf-8-validate
         dev: true
 
-    /mermaid/9.3.0:
+    /mermaid/10.1.0:
         resolution:
             {
-                integrity: sha512-mGl0BM19TD/HbU/LmlaZbjBi//tojelg8P/mxD6pPZTAYaI+VawcyBdqRsoUHSc7j71PrMdJ3HBadoQNdvP5cg==,
+                integrity: sha512-LYekSMNJygI1VnMizAPUddY95hZxOjwZxr7pODczILInO0dhQKuhXeu4sargtnuTwCilSuLS7Uiq/Qn7HTVrmA==,
             }
         dependencies:
             '@braintree/sanitize-url': 6.0.2
+            '@khanacademy/simple-markdown': 0.8.6_wcqkhtmu7mswc6yz4uyexck3ty
+            cytoscape: 3.24.0
+            cytoscape-cose-bilkent: 4.1.0_cytoscape@3.24.0
+            cytoscape-fcose: 2.2.0_cytoscape@3.24.0
             d3: 7.8.2
-            dagre-d3-es: 7.0.6
-            dompurify: 2.4.1
+            dagre-d3-es: 7.0.10
+            dayjs: 1.11.7
+            dompurify: 2.4.5
+            elkjs: 0.8.2
             khroma: 2.0.0
             lodash-es: 4.17.21
-            moment-mini: 2.29.4
             non-layered-tidy-tree-layout: 2.0.2
+            react: 16.14.0
+            react-dom: 16.14.0_react@16.14.0
             stylis: 4.1.3
+            ts-dedent: 2.2.0
             uuid: 9.0.0
+            web-worker: 1.2.0
         dev: true
 
     /micromark-core-commonmark/1.0.6:
@@ -9215,13 +9326,6 @@ packages:
             pathe: 1.1.0
             pkg-types: 1.0.1
             ufo: 1.0.1
-        dev: true
-
-    /moment-mini/2.29.4:
-        resolution:
-            {
-                integrity: sha512-uhXpYwHFeiTbY9KSgPPRoo1nt8OxNVdMVoTBYHfSEKeRkIkwGpO+gERmhuhBtzfaeOyTkykSrm2+noJBgqt3Hg==,
-            }
         dev: true
 
     /mri/1.2.0:
@@ -10159,6 +10263,21 @@ packages:
         engines: { node: '>=8' }
         dev: true
 
+    /react-dom/16.14.0_react@16.14.0:
+        resolution:
+            {
+                integrity: sha512-1gCeQXDLoIqMgqD3IO2Ah9bnf0w9kzhwN5q4FGnHZ67hBm9yePzB5JJAIQCc8x3pFnNlwFq4RidZggNAAkzWWw==,
+            }
+        peerDependencies:
+            react: ^16.14.0
+        dependencies:
+            loose-envify: 1.4.0
+            object-assign: 4.1.1
+            prop-types: 15.8.1
+            react: 16.14.0
+            scheduler: 0.19.1
+        dev: true
+
     /react-dom/18.2.0_react@18.2.0:
         resolution:
             {
@@ -10198,6 +10317,18 @@ packages:
                 integrity: sha512-wViHqhAd8OHeLS/IRMJjTSDHF3U9eWi62F/MledQGPdJGDhodXJ9PBLNGr6WWL7qlH12Mt3TyTpbS+hGXMjCzQ==,
             }
         engines: { node: '>=0.10.0' }
+        dev: true
+
+    /react/16.14.0:
+        resolution:
+            {
+                integrity: sha512-0X2CImDkJGApiAlcf0ODKIneSwBPhqJawOa5wCtKbu7ZECrmS26NvtSILynQ66cgkT/RJ4LidJOc3bUESwmU8g==,
+            }
+        engines: { node: '>=0.10.0' }
+        dependencies:
+            loose-envify: 1.4.0
+            object-assign: 4.1.1
+            prop-types: 15.8.1
         dev: true
 
     /react/18.2.0:
@@ -10658,6 +10789,16 @@ packages:
             graceful-fs: 4.2.10
             mkdirp: 0.5.6
             rimraf: 2.7.1
+
+    /scheduler/0.19.1:
+        resolution:
+            {
+                integrity: sha512-n/zwRWRYSUj0/3g/otKDRPMh6qv2SYMWNq85IEa8iZyAv8od9zDYpGSnpBEjNgcMNq6Scbu5KfIPxNF72R/2EA==,
+            }
+        dependencies:
+            loose-envify: 1.4.0
+            object-assign: 4.1.1
+        dev: true
 
     /scheduler/0.23.0:
         resolution:
@@ -11627,6 +11768,14 @@ packages:
                 integrity: sha512-AqTiAOLcj85xS7vQ8QkAV41hPDIJ71XJB4RCUrzo/1GM2CQwhkJGaf9Hgr7BOugMRpgGUrqRg/DrBDl4H40+8g==,
             }
 
+    /ts-dedent/2.2.0:
+        resolution:
+            {
+                integrity: sha512-q5W7tVM71e2xjHZTlgfTDoPF/SmqKG5hddq9SzR49CH2hayqRKJtQ4mtRlSxKaJlR/+9rEM+mnBHf7I2/BQcpQ==,
+            }
+        engines: { node: '>=6.10' }
+        dev: true
+
     /tsconfig-paths/3.14.1:
         resolution:
             {
@@ -12488,6 +12637,13 @@ packages:
             }
         engines: { node: '>= 14' }
         dev: false
+
+    /web-worker/1.2.0:
+        resolution:
+            {
+                integrity: sha512-PgF341avzqyx60neE9DD+XS26MMNMoUQRz9NOZwW32nPQrF6p77f1htcnjBSEV8BGMKZ16choqUG4hyI0Hx7mA==,
+            }
+        dev: true
 
     /webcrypto-core/1.7.5:
         resolution:
