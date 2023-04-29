@@ -1,3 +1,4 @@
+import type { Cache } from '$houdini/runtime/cache/cache'
 import { HoudiniClient } from '$houdini/runtime/client'
 import { DocumentStore } from '$houdini/runtime/client/documentStore'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
@@ -126,7 +127,15 @@ type RouterSuspenseUnit = {
 //   going to. That means that when we don't have a component to render yet, we are going to
 //   render the suspense boundary with our fallback wrapping our fallback.
 //
-export function Router({ manifest, client }: { manifest: RouterManifest; client: HoudiniClient }) {
+export function Router({
+	cache,
+	manifest,
+	client,
+}: {
+	cache: Cache
+	manifest: RouterManifest
+	client: HoudiniClient
+}) {
 	//
 	// The first bit of this component is just setting up the basic state and event listeners
 	//
@@ -210,6 +219,7 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 			id: identifier,
 			variables: matchVariables ?? {},
 			client,
+			cache,
 		})
 		// or it might just prime the cache with good values somehow
 		cached = nav_suspense_cache.get(identifier)
@@ -241,8 +251,8 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 			}}
 		>
 			<HoudiniProvider client={client}>
-				<Suspense fallback={render_fallback(cached)}>
-					<Page unit={cached} />
+				<Suspense fallback={render_fallback(cache, cached)}>
+					<Page cache={cache} unit={cached} />
 				</Suspense>
 			</HoudiniProvider>
 		</Context.Provider>
@@ -262,11 +272,13 @@ function load_bundle({
 	id,
 	variables,
 	client,
+	cache,
 }: {
 	manifest: RouterManifest
 	id: string
 	variables: Record<string, string>
 	client: HoudiniClient
+	cache: Cache
 }) {
 	// there has to be a promise at the center of all of this
 	let resolve: (() => void) | null = null
@@ -321,6 +333,7 @@ function load_bundle({
 
 	// this update might suspend (ie if we have all the artifacts and no data)
 	suspend ||= update_unit({
+		cache,
 		id,
 		client,
 		update: (u) => {
@@ -349,6 +362,7 @@ function load_bundle({
 		load_artifact().then(({ default: artifact }) => {
 			// add the loaded artifact to the suspense unit
 			update_unit({
+				cache,
 				id: unit.id,
 				client,
 				update: (u) => {
@@ -378,6 +392,7 @@ function load_bundle({
 
 			// add the loaded component to the suspense unit
 			update_unit({
+				cache,
 				client,
 				id: unit.id,
 				update: (u) => {
@@ -391,6 +406,7 @@ function load_bundle({
 		})
 	} else {
 		update_unit({
+			cache,
 			client,
 			id: unit.id,
 			update: (u) => {
@@ -427,10 +443,12 @@ function update_unit({
 	id,
 	update,
 	client,
+	cache,
 }: {
 	id: string
 	update: (old: RouterSuspenseUnit) => void
 	client: HoudiniClient
+	cache: Cache
 }) {
 	// we need to track if we have to suspend
 	let suspend = false
@@ -471,7 +489,7 @@ function update_unit({
 			// TODO: we can read from cache here before making an asynchronous network call
 
 			// send the request
-			const observer = client.observe({ artifact })
+			const observer = client.observe({ artifact, cache })
 			observer
 				.send({
 					variables: unit.variables,
@@ -483,6 +501,7 @@ function update_unit({
 
 					// hold onto the value in the suspense unit
 					update_unit({
+						cache,
 						id: unit.id,
 						client,
 						update: (u) => {
@@ -535,17 +554,25 @@ function ok_final({ unit }: { unit: RouterSuspenseUnit }) {
 	)
 }
 
-function render_fallback(unit: RouterSuspenseUnit) {
+function render_fallback(cache: Cache, unit: RouterSuspenseUnit) {
 	// TODO: +fallback.tsx
 	// if none of the documents are loading then we just return null for now
 	if (Object.values(unit.page.documents).map((doc) => doc.loading).length === 0) {
 		return null
 	}
 
-	return <Page unit={unit} loading />
+	return <Page cache={cache} unit={unit} loading />
 }
 
-function Page({ unit, loading }: { unit: RouterSuspenseUnit; loading?: boolean }) {
+function Page({
+	cache,
+	unit,
+	loading,
+}: {
+	cache: Cache
+	unit: RouterSuspenseUnit
+	loading?: boolean
+}) {
 	// pull out the component from the bundle
 	const Component = unit.bundle!.Component!
 	// build up the props to pass by looking at the queries
@@ -558,7 +585,11 @@ function Page({ unit, loading }: { unit: RouterSuspenseUnit; loading?: boolean }
 	// if we are loading then should overwrite any loading documents
 	// with generated loading states
 	if (loading) {
-		// TODO
+		for (const [name, document] of Object.entries(unit.page.documents)) {
+			if (!document.loading) {
+				continue
+			}
+		}
 	}
 
 	return <Component {...props} />

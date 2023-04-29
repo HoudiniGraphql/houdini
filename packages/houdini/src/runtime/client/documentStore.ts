@@ -1,4 +1,5 @@
 import type { HoudiniClient } from '.'
+import { Cache } from '../cache/cache'
 import type { Layer } from '../cache/storage'
 import type { ConfigFile } from '../lib/config'
 import { getCurrentConfig } from '../lib/config'
@@ -49,7 +50,8 @@ export class DocumentStore<
 		plugins,
 		pipeline,
 		client,
-		cache = true,
+		cache,
+		enableCache = true,
 		initialValue,
 		fetching,
 	}: {
@@ -57,7 +59,8 @@ export class DocumentStore<
 		plugins?: ClientHooks[]
 		pipeline?: ClientHooks[]
 		client: HoudiniClient | null
-		cache?: boolean
+		cache?: Cache
+		enableCache?: boolean
 		initialValue?: _Data | null
 		fetching?: boolean
 	}) {
@@ -92,7 +95,8 @@ export class DocumentStore<
 		this.#plugins = pipeline ?? [
 			// cache policy needs to always come first so that it can be the first fetch_enter to fire
 			cachePolicy({
-				enabled: cache,
+				cache,
+				enabled: enableCache,
 				setFetching: (fetching, data) => {
 					this.update((state) => {
 						const newState = { ...state, fetching }
