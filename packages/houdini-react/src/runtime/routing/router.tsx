@@ -211,6 +211,7 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 	// we have no cache entry for this route so we need to load the page bundle
 	// and then come back here when we have something to render
 	if (!cached || !deepEquals(matchVariables, cached.variables)) {
+		console.log('loading bundle')
 		// this might suspend
 		load_bundle({
 			manifest,
@@ -430,12 +431,12 @@ function load_bundle({
 	// if we don't have all of the necessary information, we need to pause
 	// util the unit is ready to be continue
 	if (suspend) {
-		console.log('suspending')
+		console.log('suspending', unit)
+		throw unit
 	}
 
 	// if we don't have to suspend we can just move on (the suspense unit is already cached and updated)
-	// return
-	throw unit
+	return
 }
 
 // Data comes in from all sorts of different places. this function applies the
@@ -569,6 +570,16 @@ function render_final(resolved: RouterSuspenseUnit) {
 	for (const name of Object.keys(resolved.page.documents)) {
 		props[name] = resolved.bundle?.data?.[name].value
 		props[`${name}$handle`] = resolved.bundle?.data?.[name].store
+	}
+
+	// if we are ever going to render a loading state there has to be
+	// a suspend here to match the one in render_loading
+	if (Object.values(resolved.page.documents).some((doc) => doc.loading)) {
+		return (
+			<Suspense fallback={render_fallback(resolved)}>
+				<Component {...props} />
+			</Suspense>
+		)
 	}
 
 	return <Component {...props} />
