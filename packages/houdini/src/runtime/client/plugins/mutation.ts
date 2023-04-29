@@ -85,7 +85,7 @@ export const mutation = documentPlugin(ArtifactKind.Mutation, () => {
 				const { layer } = ctx.cacheParams
 
 				// if the mutation failed, roll the layer back and delete it
-				layer.clear()
+				cache.clearLayer(layer.id)
 				cache._internal_unstable.storage.resolveLayer(layer.id)
 			}
 

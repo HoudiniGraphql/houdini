@@ -2179,7 +2179,7 @@ test('optimistic layer & lists & add null (optimistic will revert)', function ()
 	})
 
 	// clear the layer
-	layer.clear()
+	cache.clearLayer(layer.id)
 
 	// write the with the same values to the layer that were previously in place
 	cache.write({
@@ -2733,6 +2733,148 @@ test('clearing a layer should notify subscribers of displayed values', function 
 
 	// make sure our callback was invoked
 	expect(set).toHaveBeenCalledWith({ viewer: null })
+})
+
+test('reverting optimistic remove notifies subscribers', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const user3 = {
+		__typename: 'User',
+		id: '3',
+		firstName: 'jane',
+	}
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							visible: true,
+							keyRaw: 'id',
+						},
+						friends: {
+							type: 'User',
+							visible: true,
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: true,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									edges: {
+										type: 'UserEdge',
+										visible: true,
+										keyRaw: 'edges',
+										selection: {
+											fields: {
+												node: {
+													type: 'Node',
+													visible: true,
+													keyRaw: 'node',
+													abstract: true,
+													selection: {
+														fields: {
+															__typename: {
+																type: 'String',
+																visible: true,
+																keyRaw: '__typename',
+															},
+															id: {
+																type: 'ID',
+																visible: true,
+																keyRaw: 'id',
+															},
+															firstName: {
+																type: 'String',
+																visible: true,
+																keyRaw: 'firstName',
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '2',
+								firstName: 'jane',
+							},
+						},
+						{
+							node: user3,
+						},
+					],
+				},
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = vi.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection,
+	})
+
+	// make an optimistic layer that we will use to remove user 3 from the list
+	const layer = cache._internal_unstable.storage.createLayer(true)
+
+	// remove user 3 from the list
+	cache.list('All_Users').remove(user3, {}, layer)
+
+	// clear the layer
+	cache.clearLayer(layer.id)
+
+	// make sure our callback was invoked
+	expect(set).toHaveBeenCalledWith({
+		viewer: {
+			id: '1',
+			friends: {
+				edges: [
+					{
+						node: {
+							__typename: 'User',
+							id: '2',
+							firstName: 'jane',
+						},
+					},
+					{
+						node: user3,
+					},
+				],
+			},
+		},
+	})
 })
 
 test.todo('can write to and resolve layers')
