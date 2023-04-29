@@ -1861,6 +1861,364 @@ test('clearing a display layer updates subscribers', function () {
 	})
 })
 
+test('optimistic layer & lists & add ok', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	// selection for the list
+	const selectionList: SubscriptionSelection = {
+		fields: {
+			usersList: {
+				type: 'User',
+				keyRaw: 'usersList',
+				directives: [
+					{
+						name: 'list',
+						arguments: {
+							name: {
+								kind: 'StringValue',
+								value: 'OptimisticUsersList',
+							},
+						},
+					},
+				],
+				list: {
+					name: 'OptimisticUsersList',
+					connection: false,
+					type: 'User',
+				},
+				selection: {
+					fields: {
+						name: {
+							type: 'String',
+							keyRaw: 'name',
+							visible: true,
+						},
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+							visible: true,
+						},
+					},
+				},
+				visible: true,
+			},
+		},
+	}
+
+	// selection for adding a user
+	const selectionMutation: SubscriptionSelection = {
+		fields: {
+			addUser: {
+				type: 'User',
+				keyRaw: 'addUser',
+				nullable: true,
+				operations: [
+					{
+						action: 'insert',
+						list: 'OptimisticUsersList',
+						position: 'last',
+					},
+				],
+				selection: {
+					fields: {
+						name: {
+							type: 'String',
+							keyRaw: 'name',
+						},
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+							visible: true,
+						},
+					},
+					fragments: {
+						OptimisticUsersList_insert: {
+							arguments: {},
+						},
+					},
+				},
+				visible: true,
+			},
+		},
+	}
+
+	// write initial data
+	cache.write({
+		selection: selectionList,
+		data: {
+			usersList: [
+				{
+					id: 'mutation-opti-list:1',
+					name: 'Bruce Willis',
+				},
+				{
+					id: 'mutation-opti-list:2',
+					name: 'Samuel Jackson',
+				},
+			],
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const setOnQuery = vi.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		selection: selectionList,
+		set: setOnQuery,
+	})
+
+	// create an optimistic layer on top
+	const layer = cache._internal_unstable.storage.createLayer(true)
+
+	// somehow write a user to the cache with the same id, but a different name
+	cache.write({
+		selection: selectionMutation,
+		data: {
+			addUser: {
+				id: '??? id ???',
+				name: '...optimisticResponse... I could have guessed JYC!',
+			},
+		},
+		layer: layer.id,
+	})
+
+	// make sure that set got called with the full response
+	expect(setOnQuery).toHaveBeenCalledWith({
+		usersList: [
+			{
+				id: 'mutation-opti-list:1',
+				name: 'Bruce Willis',
+			},
+			{
+				id: 'mutation-opti-list:2',
+				name: 'Samuel Jackson',
+			},
+			{
+				id: '??? id ???',
+				name: '...optimisticResponse... I could have guessed JYC!',
+			},
+		],
+	})
+
+	// clear the layer
+	layer.clear()
+
+	// write the with the same values to the layer that were previously in place
+	cache.write({
+		selection: selectionMutation,
+		data: {
+			addUser: {
+				id: 'mutation-opti-list:9',
+				name: 'Alec',
+			},
+		},
+		layer: layer.id,
+	})
+
+	expect(setOnQuery).toHaveBeenNthCalledWith(2, {
+		usersList: [
+			{
+				id: 'mutation-opti-list:1',
+				name: 'Bruce Willis',
+			},
+			{
+				id: 'mutation-opti-list:2',
+				name: 'Samuel Jackson',
+			},
+			{
+				id: 'mutation-opti-list:9',
+				name: 'Alec',
+			},
+		],
+	})
+})
+
+test('optimistic layer & lists & add null (optimistic will revert)', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	// selection for the list
+	const selectionList: SubscriptionSelection = {
+		fields: {
+			usersList: {
+				type: 'User',
+				keyRaw: 'usersList',
+				directives: [
+					{
+						name: 'list',
+						arguments: {
+							name: {
+								kind: 'StringValue',
+								value: 'OptimisticUsersList',
+							},
+						},
+					},
+				],
+				list: {
+					name: 'OptimisticUsersList',
+					connection: false,
+					type: 'User',
+				},
+				selection: {
+					fields: {
+						name: {
+							type: 'String',
+							keyRaw: 'name',
+							visible: true,
+						},
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+							visible: true,
+						},
+					},
+				},
+				visible: true,
+			},
+		},
+	}
+
+	// selection for adding a user
+	const selectionMutation: SubscriptionSelection = {
+		fields: {
+			addUser: {
+				type: 'User',
+				keyRaw: 'addUser',
+				nullable: true,
+				operations: [
+					{
+						action: 'insert',
+						list: 'OptimisticUsersList',
+						position: 'last',
+					},
+				],
+				selection: {
+					fields: {
+						name: {
+							type: 'String',
+							keyRaw: 'name',
+						},
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+							visible: true,
+						},
+					},
+					fragments: {
+						OptimisticUsersList_insert: {
+							arguments: {},
+						},
+					},
+				},
+				visible: true,
+			},
+		},
+	}
+
+	// write initial data
+	cache.write({
+		selection: selectionList,
+		data: {
+			usersList: [
+				{
+					id: 'mutation-opti-list:1',
+					name: 'Bruce Willis',
+				},
+				{
+					id: 'mutation-opti-list:2',
+					name: 'Samuel Jackson',
+				},
+			],
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const setOnQuery = vi.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		selection: selectionList,
+		set: setOnQuery,
+	})
+
+	// create an optimistic layer on top
+	const layer = cache._internal_unstable.storage.createLayer(true)
+
+	// somehow write a user to the cache with the same id, but a different name
+	cache.write({
+		selection: selectionMutation,
+		data: {
+			addUser: {
+				id: '??? id ???',
+				name: '...optimisticResponse... I could have guessed JYC!',
+			},
+		},
+		layer: layer.id,
+	})
+
+	// make sure that set got called with the full response
+	expect(setOnQuery).toHaveBeenCalledWith({
+		usersList: [
+			{
+				id: 'mutation-opti-list:1',
+				name: 'Bruce Willis',
+			},
+			{
+				id: 'mutation-opti-list:2',
+				name: 'Samuel Jackson',
+			},
+			{
+				id: '??? id ???',
+				name: '...optimisticResponse... I could have guessed JYC!',
+			},
+		],
+	})
+
+	// clear the layer
+	cache.clearLayer(layer.id)
+
+	// write the with the same values to the layer that were previously in place
+	cache.write({
+		selection: selectionMutation,
+		data: {
+			addUser: null,
+		},
+		layer: layer.id,
+	})
+
+	// So we have the right data in cache.
+	expect(cache.read({ selection: selectionList }).data).toMatchObject({
+		usersList: [
+			{
+				id: 'mutation-opti-list:1',
+				name: 'Bruce Willis',
+			},
+			{
+				id: 'mutation-opti-list:2',
+				name: 'Samuel Jackson',
+			},
+		],
+	})
+
+	// Subscription should be call with the right data (element removed from the list)
+	expect(setOnQuery).toHaveBeenNthCalledWith(2, {
+		usersList: [
+			{
+				id: 'mutation-opti-list:1',
+				name: 'Bruce Willis',
+			},
+			{
+				id: 'mutation-opti-list:2',
+				name: 'Samuel Jackson',
+			},
+		],
+	})
+})
+
 test('ensure parent type is properly passed for nested lists', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
@@ -2375,6 +2733,148 @@ test('clearing a layer should notify subscribers of displayed values', function 
 
 	// make sure our callback was invoked
 	expect(set).toHaveBeenCalledWith({ viewer: null })
+})
+
+test('reverting optimistic remove notifies subscribers', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const user3 = {
+		__typename: 'User',
+		id: '3',
+		firstName: 'jane',
+	}
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							visible: true,
+							keyRaw: 'id',
+						},
+						friends: {
+							type: 'User',
+							visible: true,
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: true,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									edges: {
+										type: 'UserEdge',
+										visible: true,
+										keyRaw: 'edges',
+										selection: {
+											fields: {
+												node: {
+													type: 'Node',
+													visible: true,
+													keyRaw: 'node',
+													abstract: true,
+													selection: {
+														fields: {
+															__typename: {
+																type: 'String',
+																visible: true,
+																keyRaw: '__typename',
+															},
+															id: {
+																type: 'ID',
+																visible: true,
+																keyRaw: 'id',
+															},
+															firstName: {
+																type: 'String',
+																visible: true,
+																keyRaw: 'firstName',
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '2',
+								firstName: 'jane',
+							},
+						},
+						{
+							node: user3,
+						},
+					],
+				},
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = vi.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection,
+	})
+
+	// make an optimistic layer that we will use to remove user 3 from the list
+	const layer = cache._internal_unstable.storage.createLayer(true)
+
+	// remove user 3 from the list
+	cache.list('All_Users').remove(user3, {}, layer)
+
+	// clear the layer
+	cache.clearLayer(layer.id)
+
+	// make sure our callback was invoked
+	expect(set).toHaveBeenCalledWith({
+		viewer: {
+			id: '1',
+			friends: {
+				edges: [
+					{
+						node: {
+							__typename: 'User',
+							id: '2',
+							firstName: 'jane',
+						},
+					},
+					{
+						node: user3,
+					},
+				],
+			},
+		},
+	})
 })
 
 test.todo('can write to and resolve layers')

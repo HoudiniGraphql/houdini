@@ -130,16 +130,16 @@ export class Cache {
 	}
 
 	// remove the record from the cache's store and unsubscribe from it
-	delete(id: string) {
+	delete(id: string, layer?: Layer) {
 		// clean up any subscribers associated with the record before we destroy the actual values that will let us
 		// walk down
 		this._internal_unstable.subscriptions.removeAllSubscribers(id)
 
 		// make sure we remove the id from any lists that it appears in
-		this._internal_unstable.lists.removeIDFromAllLists(id)
+		this._internal_unstable.lists.removeIDFromAllLists(id, layer)
 
 		// delete the record from the store
-		this._internal_unstable.storage.delete(id)
+		this._internal_unstable.storage.delete(id, layer)
 	}
 
 	// set the cache's config
@@ -191,6 +191,9 @@ export class Cache {
 			throw new Error('Cannot find layer with id: ' + layerID)
 		}
 
+		// build up the list of everything we need to notify because of the clear
+		const toNotify: SubscriptionSpec[] = []
+
 		// we need to iterate over every field/link in the layer, look at the displayed value
 		// and see if the layer is the target
 		const allFields: DisplaySummary[] = []
@@ -206,10 +209,7 @@ export class Cache {
 		const displayFields: DisplaySummary[] = []
 		for (const pair of allFields) {
 			// look up the current value
-			const { value, displayLayers } = this._internal_unstable.storage.get(
-				pair.id,
-				pair.field
-			)
+			const { displayLayers } = this._internal_unstable.storage.get(pair.id, pair.field)
 
 			// if the target layer is not the display layer, ignore the field (no need to notify anyone)
 			if (!displayLayers.includes(layerID)) {
@@ -219,17 +219,44 @@ export class Cache {
 			displayFields.push(pair)
 		}
 
+		// before we clear, we need to consider operations. They come in 2 forms:
+		// - on a specific field/id (list mutations)
+		// - on just an id (record deletes)
+		// if we identify a global delete, then we need to look at _every subscriber_ for that id
+		for (const [id, operation] of Object.entries(layer.operations)) {
+			// if this is a delete operation,
+			if (operation.deleted) {
+				// add every active field for the id that we deleted
+				displayFields.push(
+					...this._internal_unstable.subscriptions
+						.activeFields(id)
+						.map((field) => ({ id, field }))
+				)
+			}
+
+			// if the operation is a list, we need to look up the specific field for the corresponding lists
+			const fields = Object.keys(operation.fields ?? {})
+			if (fields.length > 0) {
+				displayFields.push(...fields.map((field) => ({ id, field })))
+			}
+		}
+
 		// clear the layer
 		layer.clear()
 
 		// now we have to look at the display fields and compare their value with the current
 		// if the value changed then we need to notify the subscribers
-		const toNotify: SubscriptionSpec[] = []
-		for (const { id, field, value } of displayFields) {
-			// get the current value
-			const current = this._internal_unstable.storage.get(id, field).value
+		for (const display of displayFields) {
+			const { field, id } = display
+
+			// always notify changes from list operations. only silence changes that
+			// are specific values who didn't actually change.
+			const notify =
+				!('value' in display) ||
+				this._internal_unstable.storage.get(id, field).value !== display.value
+
 			// if the value changed then we need to notify the subscribers
-			if (current !== value) {
+			if (notify) {
 				toNotify.push(
 					...this._internal_unstable.subscriptions.get(id, field).map((sub) => sub[0])
 				)
@@ -782,32 +809,6 @@ class CacheInternal {
 							)
 					}
 
-					// remove object from list
-					else if (
-						operation.action === 'remove' &&
-						target instanceof Object &&
-						fieldSelection &&
-						operation.list
-					) {
-						this.cache
-							.list(operation.list, parentID, operation.target === 'all')
-							.when(operation.when)
-							.remove(target, variables)
-					}
-
-					// delete the target
-					else if (operation.action === 'delete' && operation.type) {
-						if (typeof target !== 'string') {
-							throw new Error('Cannot delete a record with a non-string ID')
-						}
-
-						const targetID = this.id(operation.type, target)
-						if (!targetID) {
-							continue
-						}
-						this.cache.delete(targetID)
-					}
-
 					// the toggle operation
 					else if (
 						operation.action === 'toggle' &&
@@ -825,6 +826,32 @@ class CacheInternal {
 								where: operation.position || 'last',
 								layer,
 							})
+					}
+
+					// remove object from list
+					else if (
+						operation.action === 'remove' &&
+						target instanceof Object &&
+						fieldSelection &&
+						operation.list
+					) {
+						this.cache
+							.list(operation.list, parentID, operation.target === 'all')
+							.when(operation.when)
+							.remove(target, variables, layer)
+					}
+
+					// delete the target
+					else if (operation.action === 'delete' && operation.type) {
+						if (typeof target !== 'string') {
+							throw new Error('Cannot delete a record with a non-string ID')
+						}
+
+						const targetID = this.id(operation.type, target)
+						if (!targetID) {
+							continue
+						}
+						this.cache.delete(targetID, layer)
 					}
 				}
 			}
@@ -1429,4 +1456,4 @@ function fragmentVariableValue(value: ValueNode, args: GraphQLObject): GraphQLVa
 // fields on the root of the data store are keyed with a fixed id
 export const rootID = '_ROOT_'
 
-type DisplaySummary = { id: string; field: string; value: any }
+type DisplaySummary = { id: string; field: string; value?: any }
