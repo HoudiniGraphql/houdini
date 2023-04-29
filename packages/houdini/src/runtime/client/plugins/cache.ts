@@ -131,20 +131,19 @@ export const cachePolicy =
 							? new Cache({ disabled: false })
 							: localCache
 
-					// layer coming from fetch
-					const layerFetched = targetCache._internal_unstable.storage.createLayer()
+					let layer
+					if (!serverSide && ctx.cacheParams?.layer) {
+						layer = ctx.cacheParams.layer.id
+					}
 
-					// write the real result to the cache & notify subscribers
+					// write the result of the mutation to the cache
 					targetCache.write({
 						...ctx.cacheParams,
-						layer: layerFetched.id,
+						layer,
 						selection: ctx.artifact.selection,
 						data: value.data,
 						variables: marshalVariables(ctx),
 					})
-
-					// resolve the layer
-					targetCache._internal_unstable.storage.resolveLayer(layerFetched.id)
 
 					// we need to embed the fragment context values in our response
 					// and apply masking other value transforms. In order to do that,

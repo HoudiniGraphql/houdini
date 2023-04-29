@@ -231,10 +231,7 @@ function operationObject({
 	}
 
 	// add target
-	if (
-		allLists &&
-		(operationKind === 'insert' || operationKind === 'toggle' || operationKind === 'remove')
-	) {
+	if (allLists && operationKind !== 'delete') {
 		operation.target = 'all'
 	}
 
