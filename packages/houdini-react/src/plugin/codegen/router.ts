@@ -71,12 +71,13 @@ ${Object.entries(manifest.pages)
 					// we need to compute the relative path to the artifact
 					const artifact_path = config.artifactImportPath(query)
 
-					return `${query}: () => import("${path.relative(from, artifact_path)}")`
+					return `${query}: {
+						artifact: () => import("${path.relative(from, artifact_path)}"),
+						loading: ${JSON.stringify(query_name_map[query]?.loading)}
+					}`
 				})
 				.join(',\n			')}
 		},
-
-		loading: ${JSON.stringify(queries.some((query) => query_name_map[query]?.loading))},
 
 		component: () => import("${component_path}")
 	},`

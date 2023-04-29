@@ -26,13 +26,14 @@ export type RouterPageManifest = {
 
 	// loaders for the information that we need to render a page
 	// and its loading state
-	documents: Record<string, () => Promise<{ default: QueryArtifact }>>
+	documents: Record<
+		string,
+		{
+			artifact: () => Promise<{ default: QueryArtifact }>
+			loading: boolean
+		}
+	>
 	component: () => Promise<{ default: (props: any) => React.ReactElement }>
-
-	// a page needs to know which queries its waiting on. If enough data has loaded
-	// to show the loading state (all of the required queries have values) then its
-	// safe to resolve the query. This field tracks those names
-	required_queries: string[]
 }
 
 export type RouterContext = {
@@ -69,8 +70,6 @@ type RouterSuspenseUnit = {
 	then: (val: any) => any
 	resolve: () => void
 	reject: (err: any) => void
-
-	required_queries: string[]
 
 	// if we try to load the same route with different variables twice,
 	// we need to prevent the old request from resolving the suspense unit
@@ -213,7 +212,12 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 	// and then come back here when we have something to render
 	if (!cached || !deepEquals(matchVariables, cached.variables)) {
 		// this might suspend
-		load_bundle({ manifest, id: identifier, variables: matchVariables ?? {}, client })
+		load_bundle({
+			manifest,
+			id: identifier,
+			variables: matchVariables ?? {},
+			client,
+		})
 		// or it might just prime the cache with good values somehow
 		cached = nav_suspense_cache.get(identifier)
 		if (!cached) {
@@ -239,8 +243,8 @@ export function Router({ manifest, client }: { manifest: RouterManifest; client:
 	}
 
 	// maybe we have enough data to render the loading state?
-	else if (ok_fallback({ unit: cached, data })) {
-		result = render_fallback(cached)
+	else if (ok_loading({ unit: cached, data })) {
+		result = render_loading(cached)
 	}
 
 	// if we got this far and we don't have something to return, then we need to just
@@ -308,7 +312,6 @@ function load_bundle({
 		then: promise.then.bind(promise),
 		resolve,
 		reject,
-		required_queries: manifest.pages[id].required_queries,
 		route_mutex: {
 			variables,
 			signal: new AbortController(),
@@ -344,9 +347,8 @@ function load_bundle({
 	suspend ||= update_unit({
 		id,
 		client,
-		update: (u) => ({
-			...u,
-			bundle: {
+		update: (u) => {
+			u.bundle = {
 				// this will get overwritten when appropriate.
 				// this way it always has the default value.
 				mode: 'loading',
@@ -355,8 +357,8 @@ function load_bundle({
 					...u.bundle?.artifacts,
 					...found_artifacts,
 				},
-			},
-		}),
+			}
+		},
 	})
 
 	// load the missing artifacts
@@ -365,7 +367,7 @@ function load_bundle({
 		suspend = true
 
 		// pull the loader out of the manifest
-		const load_artifact = manifest.pages[id].documents[key]
+		const load_artifact = manifest.pages[id].documents[key].artifact
 
 		// load the artifact and save it in the unit
 		load_artifact().then(({ default: artifact }) => {
@@ -373,17 +375,16 @@ function load_bundle({
 			update_unit({
 				id: unit.id,
 				client,
-				update: (u) => ({
-					...u,
-					bundle: {
+				update: (u) => {
+					u.bundle = {
 						mode: 'loading',
 						...u.bundle,
 						artifacts: {
 							...u.bundle?.artifacts,
 							[key]: artifact,
 						},
-					},
-				}),
+					}
+				},
 			})
 		})
 	}
@@ -403,39 +404,38 @@ function load_bundle({
 			update_unit({
 				client,
 				id: unit.id,
-				update: (u) => ({
-					...u,
-					bundle: {
+				update: (u) => {
+					u.bundle = {
 						mode: 'loading',
 						...u.bundle,
 						Component: component,
-					},
-				}),
+					}
+				},
 			})
 		})
 	} else {
 		update_unit({
 			client,
 			id: unit.id,
-			update: (u) => ({
-				...u,
-				bundle: {
+			update: (u) => {
+				u.bundle = {
 					mode: 'loading',
 					...u.bundle,
 					Component,
-				},
-			}),
+				}
+			},
 		})
 	}
 
 	// if we don't have all of the necessary information, we need to pause
 	// util the unit is ready to be continue
 	if (suspend) {
-		throw unit
+		console.log('suspending')
 	}
 
 	// if we don't have to suspend we can just move on (the suspense unit is already cached and updated)
-	return
+	// return
+	throw unit
 }
 
 // Data comes in from all sorts of different places. this function applies the
@@ -453,7 +453,7 @@ function update_unit({
 	client,
 }: {
 	id: string
-	update: (old: RouterSuspenseUnit) => RouterSuspenseUnit
+	update: (old: RouterSuspenseUnit) => void
 	client: HoudiniClient
 }) {
 	// we need to track if we have to suspend
@@ -462,14 +462,14 @@ function update_unit({
 	/**
 	 * Apply the updates
 	 */
-	const updated = update(nav_suspense_cache.get(id)!) as RouterSuspenseUnit
-	nav_suspense_cache.set(id, updated)
+	const unit = nav_suspense_cache.get(id)!
+	update(unit)
 
 	// zip every query result and artifact and make sure that our store definitions
 	// exist when appropriate. since we only care about overlapping keys, we can
 	// just choose one and move on.
-	for (const [key, result] of Object.entries(updated.bundle?.data ?? {})) {
-		const artifact = updated.bundle?.artifacts?.[key]
+	for (const [key, result] of Object.entries(unit.bundle?.data ?? {})) {
+		const artifact = unit.bundle?.artifacts?.[key]
 		if (result.store || !result.value || !artifact) {
 			continue
 		}
@@ -485,10 +485,10 @@ function update_unit({
 	//
 	// note: this currently happens only once for any given route. it's assumed
 	// that once it's happened the store will be used for updates
-	for (const [key, artifact] of Object.entries(updated.bundle?.artifacts ?? {})) {
-		if (artifact && !updated.pending[key]) {
+	for (const [key, artifact] of Object.entries(unit.bundle?.artifacts ?? {})) {
+		if (artifact && !unit.pending[key]) {
 			// we are about to send a new request
-			updated.pending[key] = new AbortController()
+			unit.pending[key] = new AbortController()
 			suspend = true
 
 			// TODO: AbortController on send()
@@ -498,23 +498,19 @@ function update_unit({
 			const observer = client.observe({ artifact })
 			observer
 				.send({
-					variables: updated.variables,
+					variables: unit.variables,
 					cacheParams: { disableSubscriptions: true },
 				})
 				.then(({ data }) => {
 					// and clean up anything we did along the way
 					observer.cleanup()
 
-					// get the latest reference
-					const base = nav_suspense_cache.get(updated.id)!
-
 					// hold onto the value in the suspense unit
 					update_unit({
-						id: base.id,
+						id: unit.id,
 						client,
-						update: (u) => ({
-							...u,
-							bundle: {
+						update: (u) => {
+							u.bundle = {
 								mode: 'loading',
 								...u.bundle,
 								data: {
@@ -524,8 +520,8 @@ function update_unit({
 										value: data,
 									},
 								},
-							},
-						}),
+							}
+						},
 					})
 				})
 		}
@@ -536,9 +532,9 @@ function update_unit({
 	 */
 
 	// check the unit is now finalized
-	const data = updated.bundle?.data
-	if (ok_final({ unit: updated })) {
-		updated.bundle!.mode = 'final'
+	const data = unit.bundle?.data
+	if (ok_final({ unit: unit })) {
+		unit.bundle!.mode = 'final'
 	}
 
 	// TODO: if this is aborted, we're done. don't suspend because of anything we did here.
@@ -547,26 +543,23 @@ function update_unit({
 	// }
 
 	// if the mode is finalized we are good to go
-	if (updated.bundle?.mode === 'final') {
-		updated.resolve()
-		updated.route_mutex = null
+	if (unit.bundle?.mode === 'final') {
+		unit.resolve()
+		unit.route_mutex = null
 		return suspend
 	}
 
 	// if the unit has enough information to render the loading
 	// state then we should do that.
-	if (ok_fallback({ unit: updated, data })) {
-		updated.resolve()
+	if (ok_loading({ unit: unit, data })) {
+		unit.resolve()
 	}
 
 	return suspend
 }
 
-// the possible loading states for a route are constrained from the top down
-// in order for a child route to show, the parent layout's dependencies must
-// either have a value we can use, or a loading state.
 function render_fallback(resolved: RouterSuspenseUnit) {
-	return <div>loading...!</div>
+	return <div>loading...</div>
 }
 
 function render_final(resolved: RouterSuspenseUnit) {
@@ -581,15 +574,42 @@ function render_final(resolved: RouterSuspenseUnit) {
 	return <Component {...props} />
 }
 
-function ok_fallback({
+// in order for the loading state to update when the data is ready,
+// we need to leave behind a component that will show the fallback
+// but still be suspending. which means the child of the fallback
+// needs to suspend with the resolved unit
+function render_loading(resolved: RouterSuspenseUnit) {
+	return (
+		<Suspense fallback={render_fallback(resolved)}>
+			<ThrowUnit unit={resolved} />
+		</Suspense>
+	)
+}
+
+function ThrowUnit({ unit: { id } }: { unit: RouterSuspenseUnit }) {
+	// throw unit
+	const unit = nav_suspense_cache.get(id)!
+	if (!ok_final({ unit })) {
+		throw unit
+	}
+
+	return render_final(unit)
+}
+
+function ok_loading({
 	unit,
 	data,
 }: {
 	unit: RouterSuspenseUnit
 	data: Required<RouterSuspenseUnit>['bundle']['data']
 }) {
+	const required_queries = Object.entries(unit.page.documents).reduce(
+		(queries, [key, document]) => (!document.loading ? [...queries, key] : queries),
+		[] as string[]
+	)
+
 	// we can't show the loading state if we are missing required data.
-	const has_data = unit.required_queries.filter((query) => !(query in (data ?? {}))).length === 0
+	const has_data = required_queries.filter((query) => !(query in (data ?? {}))).length === 0
 
 	// we also can't show the loading state if we are missing any artifacts
 	const has_artifacts = Object.keys(unit.page.documents).every(
@@ -601,10 +621,9 @@ function ok_fallback({
 
 function ok_final({ unit }: { unit: RouterSuspenseUnit }) {
 	const data = unit.bundle?.data
-
 	return !!(
 		data &&
-		unit.required_queries.every((key) => key in data && data[key].store) &&
+		Object.keys(unit.page.documents).every((key) => key in data && data[key].store) &&
 		unit.bundle?.Component
 	)
 }

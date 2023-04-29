@@ -53,10 +53,11 @@ test('happy path', async function () {
 
 					
 						documents: {
-							RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
+							RootQuery: {
+										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
+										loading: false
+									}
 						},
-
-						loading: false,
 
 						component: () => import(\\"../pages/__/entry\\")
 					},
@@ -68,11 +69,15 @@ test('happy path', async function () {
 
 					
 						documents: {
-							SubQuery: () => import(\\"../../../artifacts/SubQuery\\"),
-							RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
+							SubQuery: {
+										artifact: () => import(\\"../../../artifacts/SubQuery\\"),
+										loading: false
+									},
+							RootQuery: {
+										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
+										loading: false
+									}
 						},
-
-						loading: false,
 
 						component: () => import(\\"../pages/____id__/entry\\")
 					},
@@ -84,12 +89,19 @@ test('happy path', async function () {
 
 					
 						documents: {
-							MyQuery: () => import(\\"../../../artifacts/MyQuery\\"),
-							MyLayoutQuery: () => import(\\"../../../artifacts/MyLayoutQuery\\"),
-							RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
+							MyQuery: {
+										artifact: () => import(\\"../../../artifacts/MyQuery\\"),
+										loading: false
+									},
+							MyLayoutQuery: {
+										artifact: () => import(\\"../../../artifacts/MyLayoutQuery\\"),
+										loading: true
+									},
+							RootQuery: {
+										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
+										loading: false
+									}
 						},
-
-						loading: true,
 
 						component: () => import(\\"../pages/__another/entry\\")
 					},
@@ -101,11 +113,15 @@ test('happy path', async function () {
 
 					
 						documents: {
-							FinalQuery: () => import(\\"../../../artifacts/FinalQuery\\"),
-							RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
+							FinalQuery: {
+										artifact: () => import(\\"../../../artifacts/FinalQuery\\"),
+										loading: true
+									},
+							RootQuery: {
+										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
+										loading: false
+									}
 						},
-
-						loading: true,
 
 						component: () => import(\\"../pages/____id____nested/entry\\")
 					},
@@ -174,10 +190,11 @@ test('loading state at root', async function () {
 
 					
 						documents: {
-							RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
+							RootQuery: {
+										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
+										loading: true
+									}
 						},
-
-						loading: true,
 
 						component: () => import(\\"../pages/__/entry\\")
 					},
@@ -189,11 +206,15 @@ test('loading state at root', async function () {
 
 					
 						documents: {
-							SubQuery: () => import(\\"../../../artifacts/SubQuery\\"),
-							RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
+							SubQuery: {
+										artifact: () => import(\\"../../../artifacts/SubQuery\\"),
+										loading: false
+									},
+							RootQuery: {
+										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
+										loading: true
+									}
 						},
-
-						loading: true,
 
 						component: () => import(\\"../pages/____id__/entry\\")
 					},
@@ -205,12 +226,19 @@ test('loading state at root', async function () {
 
 					
 						documents: {
-							MyQuery: () => import(\\"../../../artifacts/MyQuery\\"),
-							MyLayoutQuery: () => import(\\"../../../artifacts/MyLayoutQuery\\"),
-							RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
+							MyQuery: {
+										artifact: () => import(\\"../../../artifacts/MyQuery\\"),
+										loading: false
+									},
+							MyLayoutQuery: {
+										artifact: () => import(\\"../../../artifacts/MyLayoutQuery\\"),
+										loading: false
+									},
+							RootQuery: {
+										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
+										loading: true
+									}
 						},
-
-						loading: true,
 
 						component: () => import(\\"../pages/__another/entry\\")
 					},
@@ -222,11 +250,15 @@ test('loading state at root', async function () {
 
 					
 						documents: {
-							FinalQuery: () => import(\\"../../../artifacts/FinalQuery\\"),
-							RootQuery: () => import(\\"../../../artifacts/RootQuery\\")
+							FinalQuery: {
+										artifact: () => import(\\"../../../artifacts/FinalQuery\\"),
+										loading: false
+									},
+							RootQuery: {
+										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
+										loading: true
+									}
 						},
-
-						loading: true,
 
 						component: () => import(\\"../pages/____id____nested/entry\\")
 					},
