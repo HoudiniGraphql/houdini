@@ -422,7 +422,6 @@ function load_bundle({
 	// if we don't have all of the necessary information, we need to pause
 	// util the unit is ready to be continue
 	if (suspend) {
-		console.log('suspending', unit)
 		throw unit
 	}
 
@@ -586,9 +585,17 @@ function Page({
 	// with generated loading states
 	if (loading) {
 		for (const [name, document] of Object.entries(unit.page.documents)) {
-			if (!document.loading) {
+			const selection = unit.bundle?.artifacts?.[name]?.selection
+
+			if (!document.loading || !selection) {
 				continue
 			}
+
+			// we need to apply loading states to the ones that support it
+			props[name] = cache.read({
+				selection,
+				loading: true,
+			})
 		}
 	}
 
