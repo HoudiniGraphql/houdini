@@ -92,6 +92,9 @@ function useLoadPage({
 			.then(() => {
 				data_cache.set(id, observer)
 			})
+			.catch((err) => {
+				// TODO: handle error
+			})
 	}
 
 	// in order to avoid waterfalls, we need to kick off APIs requests in parallel
@@ -111,16 +114,21 @@ function useLoadPage({
 	// any missing artifacts need to be loaded and then have their queries loaded
 	for (const artifact_id of missing_artifacts) {
 		// load the artifact
-		page.documents[artifact_id].artifact().then((mod) => {
-			// the artifact is the default export
-			const artifact = mod.default
+		page.documents[artifact_id]
+			.artifact()
+			.then((mod) => {
+				// the artifact is the default export
+				const artifact = mod.default
 
-			// save the artifact in the cache
-			artifact_cache.set(artifact_id, artifact)
+				// save the artifact in the cache
+				artifact_cache.set(artifact_id, artifact)
 
-			// now that we have the artifact, we can load the query too
-			load_query({ id: artifact.name, artifact })
-		})
+				// now that we have the artifact, we can load the query too
+				load_query({ id: artifact.name, artifact })
+			})
+			.catch((err) => {
+				// TODO: handle error
+			})
 	}
 
 	// we need to make sure that every artifact we found is loaded
