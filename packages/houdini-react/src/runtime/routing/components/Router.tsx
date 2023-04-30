@@ -2,9 +2,9 @@ import type { Cache } from '$houdini/runtime/cache/cache'
 import { DocumentStore, HoudiniClient } from '$houdini/runtime/client'
 import { GraphQLObject, GraphQLVariables } from '$houdini/runtime/lib/types'
 import { QueryArtifact } from '$houdini/runtime/lib/types'
-import React, { Suspense } from 'react'
+import React from 'react'
 
-import { SuspenseCache, suspense_cache } from '../lib/cache'
+import { SuspenseCache } from '../lib/cache'
 import { find_match } from '../lib/match'
 import type { NavigationContext, RouterManifest, RouterPageManifest } from '../lib/types'
 
@@ -90,29 +90,30 @@ function useLoadPage({
 		// send the request
 		const observer = client.observe({ artifact, cache })
 
-		// build up the promise that sends the query
-		const send_promise = observer
-			.send({
-				variables: variables,
-				cacheParams: { disableSubscriptions: true },
-			})
-			.then(() => {
-				data_cache.set(id, observer)
-			})
-			.catch((err) => {
-				// TODO: handle error
-				console.log(err)
-			})
-			// we're done processing
-			.finally(() => {
-				pending_cache.delete(id)
-			})
-
 		// add it to the pending cache
-		pending_cache.set(id, send_promise)
+		pending_cache.set(
+			id,
+			new Promise<void>((resolve, reject) =>
+				observer
+					.send({
+						variables: variables,
+						cacheParams: { disableSubscriptions: true },
+					})
+					.then(() => {
+						data_cache.set(id, observer)
+
+						resolve()
+					})
+					.catch(reject)
+					// we're done processing
+					.finally(() => {
+						pending_cache.delete(id)
+					})
+			)
+		)
 
 		// this promise is also what we want to do with the main invocation
-		return send_promise
+		return pending_cache.get(id)!
 	}
 
 	// in order to avoid waterfalls, we need to kick off APIs requests in parallel
@@ -251,4 +252,8 @@ export function useClient() {
 
 export function useCache() {
 	return useContext().cache
+}
+
+export function useDocumentStore(name: string) {
+	return useContext().data_cache.get(name)
 }

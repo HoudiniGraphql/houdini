@@ -12,10 +12,10 @@ export class SuspenseCache<_Data> extends LRUCache<_Data> {
 	// that means we need a place to put our callbacks
 	#callbacks: Map<string, { resolve: () => void; reject: () => void }[]> = new Map()
 
-	get(key: string) {
+	get(key: string): _Data {
 		// if there is a value, use that
 		if (super.has(key)) {
-			return super.get(key)
+			return super.get(key)!
 		}
 
 		// we don't have a value, so we need to throw a promise
@@ -24,6 +24,8 @@ export class SuspenseCache<_Data> extends LRUCache<_Data> {
 			this.#subscribe(key, resolve, reject)
 		})
 	}
+
+	// TODO: reject?
 
 	set(key: string, value: _Data) {
 		// perform the set like normal
