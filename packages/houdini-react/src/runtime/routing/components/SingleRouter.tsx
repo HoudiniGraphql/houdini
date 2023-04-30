@@ -42,6 +42,9 @@ type RouterSuspenseUnit = {
 	resolve: () => void
 	reject: (err: any) => void
 
+	page: RouterPageManifest
+	variables: GraphQLVariables
+
 	// if we try to load the same route with different variables twice,
 	// we need to prevent the old request from resolving the suspense unit
 	route_mutex?: {
@@ -54,9 +57,6 @@ type RouterSuspenseUnit = {
 	// pending request. if we don't have a pending request
 	// when we've loaded the artifact, we can fetch the data
 	pending: Record<string, AbortController | null>
-
-	page: RouterPageManifest
-	variables: GraphQLVariables
 
 	// the resolved key does not just hold onto one value but instead
 	// an object that describes the current state of the route.

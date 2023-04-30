@@ -67,10 +67,9 @@ function usePage(
 	const component_cache = useComponentPageCache()
 	let suspend = !component_cache.has(manifest.id)
 
-	// we have a specific cache for navigation coordination that we use to
-	// track things like the last known variables, coordinating suspensions
-	// while we load components, etc
+	// see if we have an entry for this navigation
 	const navigation_cache = useNavigationCache()
+	const nav_unit = navigation_cache.get(manifest.id)
 
 	// if we got this far, the component is allowed to start suspending while it waits for
 	// things to load
@@ -131,7 +130,18 @@ const useContext = () => {
 	return ctx
 }
 
-type NavigationSuspenseUnit = {}
+type NavigationSuspenseUnit = {
+	id: string
+
+	// the cache unit is an externally resolvable promise
+	then: (val: any) => any
+	resolve: () => void
+	reject: (err: any) => void
+
+	//
+	page: RouterPageManifest
+	variables: GraphQLVariables
+}
 
 // Utilities for pulling values from context
 
