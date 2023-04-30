@@ -1,10 +1,6 @@
 {
 	"exclude": ["node_modules"],
-	"include": [
-		"packages/**/*.ts",
-		"packages/houdini-react/src/runtime/context.tsx",
-		"packages/houdini-router/src/runtime/router.tsx"
-	],
+	"include": ["packages/**/*.ts", "packages/**/*.tsx"],
 	"compilerOptions": {
 		"moduleResolution": "node",
 		"module": "es2020",

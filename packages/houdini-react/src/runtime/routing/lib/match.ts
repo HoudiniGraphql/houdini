@@ -1,3 +1,7 @@
+import { GraphQLVariables } from '$houdini/runtime/lib/types'
+
+import { RouterManifest, RouterPageManifest } from './types'
+
 /**
  * This file is copied from the SvelteKit source code under the MIT license found at the bottom of the file
  */
@@ -13,6 +17,34 @@ export type RouteParam = {
 
 export interface ParamMatcher {
 	(param: string): boolean
+}
+
+// find the matching page given the current path
+export function find_match(
+	manifest: RouterManifest,
+	current: string
+): [RouterPageManifest, GraphQLVariables] {
+	// find the matching path (if it exists)
+	let match: RouterPageManifest | null = null
+	let matchVariables: GraphQLVariables = null
+	for (const page of Object.values(manifest.pages)) {
+		// check if the current url matches
+		const urlMatch = current.match(page.pattern)
+		if (!urlMatch) {
+			continue
+		}
+
+		// we found a match!!
+		match = page
+		matchVariables = exec(urlMatch, page.params) || {}
+		break
+	}
+
+	if (!match) {
+		throw new Error('404')
+	}
+
+	return [match, matchVariables]
 }
 
 /**
