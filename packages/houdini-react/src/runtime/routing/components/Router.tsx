@@ -38,13 +38,13 @@ export function Router({ manifest }: { manifest: RouterManifest }) {
 	// the only time this component will directly suspend (instead of one of its children)
 	// is if we don't have the component source. Dependencies on query results or artifacts
 	// will be resolved by the component itself
-	const { component_cache } = useContext()
 
 	// load the page assets (source, artifacts, data). this will suspend if the component is not available yet
 	// this hook embeds pending requests in context so that the component can suspend if necessary14
 	useLoadPage({ page, variables })
 
 	// if we get this far, it's safe to load the component
+	const { component_cache } = useContext()
 	const PageComponent = component_cache.get(page.id)!
 
 	// render the component embedded in the necessary context so it can orchestrate
@@ -74,17 +74,24 @@ function useLoadPage({
 	variables: GraphQLVariables
 }) {
 	// grab context values
-	const { client, cache, data_cache, component_cache, artifact_cache } = useContext()
+	const { client, cache, data_cache, component_cache, artifact_cache, pending_cache } =
+		useContext()
 
 	// the function to load a query using the cache references
-	async function load_query({ id, artifact }: { id: string; artifact: QueryArtifact }) {
-		// TODO: multiple pending requests. we can't set it to a pending state because then the subscribers will get the wrong value
+	function load_query({ id, artifact }: { id: string; artifact: QueryArtifact }): Promise<void> {
 		// TODO: AbortController on send()
 		// TODO: we can read from cache here before making an asynchronous network call
 
+		// if there is a pending request and we were asked to load, don't do anything
+		if (pending_cache.has(id)) {
+			return pending_cache.get(id)!
+		}
+
 		// send the request
 		const observer = client.observe({ artifact, cache })
-		return observer
+
+		// build up the promise that sends the query
+		const send_promise = observer
 			.send({
 				variables: variables,
 				cacheParams: { disableSubscriptions: true },
@@ -94,7 +101,18 @@ function useLoadPage({
 			})
 			.catch((err) => {
 				// TODO: handle error
+				console.log(err)
 			})
+			// we're done processing
+			.finally(() => {
+				pending_cache.delete(id)
+			})
+
+		// add it to the pending cache
+		pending_cache.set(id, send_promise)
+
+		// this promise is also what we want to do with the main invocation
+		return send_promise
 	}
 
 	// in order to avoid waterfalls, we need to kick off APIs requests in parallel
@@ -128,6 +146,7 @@ function useLoadPage({
 			})
 			.catch((err) => {
 				// TODO: handle error
+				console.log(err)
 			})
 	}
 
@@ -165,19 +184,28 @@ export function RouterContextProvider({
 	children,
 	client,
 	cache,
+	artifact_cache,
+	component_cache,
+	data_cache,
+	pending_cache,
 }: {
 	children: React.ReactElement
 	client: HoudiniClient
 	cache: Cache
+	artifact_cache: SuspenseCache<QueryArtifact>
+	component_cache: SuspenseCache<(props: any) => React.ReactElement>
+	data_cache: SuspenseCache<DocumentStore<GraphQLObject, GraphQLVariables>>
+	pending_cache: PendingCache
 }) {
 	return (
 		<Context.Provider
 			value={{
 				client,
 				cache,
-				artifact_cache: suspense_cache(),
-				component_cache: suspense_cache(),
-				data_cache: suspense_cache(),
+				artifact_cache,
+				component_cache,
+				data_cache,
+				pending_cache,
 			}}
 		>
 			{children}
@@ -199,7 +227,12 @@ type RouterContext = {
 
 	// Pages need a way to wait for data
 	data_cache: SuspenseCache<DocumentStore<GraphQLObject, GraphQLVariables>>
+
+	// A way to track pending requests for an artifact
+	pending_cache: PendingCache
 }
+
+export type PendingCache = SuspenseCache<Promise<void>>
 
 const Context = React.createContext<RouterContext | null>(null)
 
