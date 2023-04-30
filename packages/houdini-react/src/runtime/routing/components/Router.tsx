@@ -67,6 +67,11 @@ function usePage(
 	const component_cache = useComponentPageCache()
 	let suspend = !component_cache.has(manifest.id)
 
+	// we have a specific cache for navigation coordination that we use to
+	// track things like the last known variables, coordinating suspensions
+	// while we load components, etc
+	const navigation_cache = useNavigationCache()
+
 	// if we got this far, the component is allowed to start suspending while it waits for
 	// things to load
 	return {
@@ -93,6 +98,7 @@ export function RouterContextProvider({
 				client,
 				artifact_cache: createLRUCache(),
 				component_cache: createLRUCache(),
+				navigation_cache: createLRUCache(),
 			}}
 		>
 			<Suspense fallback={fallback}>{children}</Suspense>
@@ -110,6 +116,8 @@ type RouterContext = {
 	// We also need a cache for component references so we can avoid suspending
 	// when we load the same page multiple times
 	component_cache: LRUCache<(props: any) => React.ReactElement>
+
+	navigation_cache: LRUCache<NavigationSuspenseUnit>
 }
 
 const Context = React.createContext<RouterContext | null>(null)
@@ -122,6 +130,8 @@ const useContext = () => {
 
 	return ctx
 }
+
+type NavigationSuspenseUnit = {}
 
 // Utilities for pulling values from context
 
@@ -137,4 +147,8 @@ function useComponentPageCache() {
 /** Returns the cache of artifacts */
 function useArtifactCache() {
 	return useContext().artifact_cache
+}
+
+function useNavigationCache() {
+	return useContext().navigation_cache
 }
