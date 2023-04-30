@@ -1,8 +1,9 @@
 import { Router } from '$houdini'
-import React, { Component, Suspense } from 'react'
+import cache from '$houdini/runtime/cache'
+import React from 'react'
 import ReactDOM from 'react-dom/client'
 
-class ErrorBoundary extends Component<{ children: React.ReactNode }, { hasError: boolean }> {
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
 	constructor(props: any) {
 		super(props)
 		this.state = { hasError: false }
@@ -26,8 +27,6 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { hasError:
 
 ReactDOM.createRoot(document.getElementById('app')!).render(
 	<ErrorBoundary>
-		<Suspense fallback="root!">
-			<Router />
-		</Suspense>
+		<Router fallback="root!" cache={cache} />
 	</ErrorBoundary>
 )

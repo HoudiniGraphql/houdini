@@ -15,7 +15,7 @@
  *
  * Get does the same: if the key is present, delete and reinsert it.
  */
-class LRUCache<T> {
+export class LRUCache<T> {
 	_capacity: number
 	_map: Map<string, T>
 

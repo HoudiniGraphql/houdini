@@ -1,6 +1,6 @@
 import React, { useTransition } from 'react'
 
-import { useRouterContext } from './SingleRouter'
+import { useNavigationContext } from './Router'
 
 export function Link({
 	href,
@@ -13,7 +13,7 @@ export function Link({
 	style?: React.CSSProperties
 }) {
 	// grab the router context
-	const { goto } = useRouterContext()
+	const { goto } = useNavigationContext()
 
 	// the route navigation needs to happen in a transition
 	const [pending, startTransition] = useTransition()

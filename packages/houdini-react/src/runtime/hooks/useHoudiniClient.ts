@@ -1,7 +1,7 @@
 import type { HoudiniClient } from '$houdini/runtime/client'
 import * as React from 'react'
 
-import { HoudiniContext } from '../context'
+import { HoudiniContext } from '../routing/context'
 
 export function useHoudiniClient(): HoudiniClient {
 	const client = React.useContext(HoudiniContext)

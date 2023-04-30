@@ -27,7 +27,7 @@ export type RouterPageManifest = {
 	component: () => Promise<{ default: (props: any) => React.ReactElement }>
 }
 
-export type RouterContext = {
+export type NavigationContext = {
 	currentRoute: string
 	goto: (route: string) => void
 }
