@@ -1,10 +1,10 @@
 import type { Cache } from '$houdini/runtime/cache/cache'
-import { HoudiniClient } from '$houdini/runtime/client'
-import { createLRUCache, LRUCache } from '$houdini/runtime/lib/lru'
-import { GraphQLVariables } from '$houdini/runtime/lib/types'
+import { DocumentStore, HoudiniClient } from '$houdini/runtime/client'
+import { GraphQLObject, GraphQLVariables } from '$houdini/runtime/lib/types'
 import { QueryArtifact } from '$houdini/runtime/lib/types'
 import React, { Suspense } from 'react'
 
+import { SuspenseCache, suspense_cache } from '../lib/cache'
 import { find_match } from '../lib/match'
 import type { NavigationContext, RouterManifest, RouterPageManifest } from '../lib/types'
 
@@ -32,9 +32,20 @@ export function Router({ cache, manifest }: { cache: Cache; manifest: RouterMani
 		return window.location.pathname
 	})
 
-	// grab the important data for the matching page. this will suspend while we
-	// load the page's component.
-	const { Component } = usePage(...find_match(manifest, current))
+	// find the matching page for the current route
+	const [match, matchVariables] = find_match(manifest, current)
+
+	// the only time this component will directly suspend (instead of one of its children)
+	// is if we don't have the component source. Dependencies on query results or artifacts
+	// will be resolved by the component itself
+	const component_cache = useComponentPageCache()
+
+	// load the page assets (source, artifacts, data). this will suspend if the component is not available yet
+	// this hook embeds pending requests in context so that the component can suspend if necessary14
+	useLoadPage(match, matchVariables)
+
+	// if we get this far, it's safe to load the component
+	const Page = component_cache.get(match.id)!
 
 	// render the component embedded in the necessary context so it can orchestrate
 	// its needs
@@ -45,36 +56,59 @@ export function Router({ cache, manifest }: { cache: Cache; manifest: RouterMani
 				goto: setCurrent,
 			}}
 		>
-			<Component />
+			<Page />
 		</NavContext.Provider>
 	)
 }
 
 /**
- * Returns everything that's needed to render a page. It might potentially suspend
- * to load bundle information but query fetches and artifact loads won't be waited on til a page asks for it.
- * This way the we don't get network waterfalls but fallbacks aren't rendered until we can.
+ * useLoadPage is responsible for kicking off the network requests necessary to render the page.
+ * This includes loading the artifact, the component source, and any query results. This hook
+ * suspends if the component source is not available.
  */
-function usePage(
-	manifest: RouterPageManifest,
-	variables: GraphQLVariables
-): {
-	Component: (props: any) => React.ReactElement
-} {
-	// the only time this component will directly suspend (instead of one of its children)
-	// is if we dont have the component source. Dependencies on query results or artifacts
-	// will be resolved by the component itself
+function useLoadPage(page: RouterPageManifest, variables: GraphQLVariables) {
+	// grab the coordination
+	const artifact_cache = useArtifactCache()
 	const component_cache = useComponentPageCache()
-	let suspend = !component_cache.has(manifest.id)
+	const data_cache = useDataCache()
 
-	// see if we have an entry for this navigation
-	const navigation_cache = useNavigationCache()
-	const nav_unit = navigation_cache.get(manifest.id)
+	// the function to load a query using the cache references
+	async function load_query({
+		artifact,
+		client,
+	}: {
+		artifact: QueryArtifact
+		client: HoudiniClient
+	}) {}
 
-	// if we got this far, the component is allowed to start suspending while it waits for
-	// things to load
-	return {
-		Component: component_cache.get(manifest.id)!,
+	// in order to avoid waterfalls, we need to kick off APIs requests in parallel
+	// to use loading any missing artifacts or the page component.
+
+	// group the necessary based on wether we have their artifact or not
+	const missing_artifacts: string[] = []
+	const found_artifacts: Record<string, QueryArtifact> = {}
+	for (const key of Object.keys(page.documents)) {
+		if (artifact_cache.has(key)) {
+			found_artifacts[key] = artifact_cache.get(key)!
+		} else {
+			missing_artifacts.push(key)
+		}
+	}
+
+	// if we don't have the component then we need to load it, save it in the cache, and
+	// then suspend with a promise that will resolve once its in cache
+	if (!component_cache.has(page.id)) {
+		throw new Promise<void>((resolve, reject) => {
+			page.component()
+				.then((mod) => {
+					// save the component in the cache
+					component_cache.set(page.id, mod.default)
+
+					// we're done
+					resolve()
+				})
+				.catch(reject)
+		})
 	}
 }
 
@@ -95,9 +129,9 @@ export function RouterContextProvider({
 		<Context.Provider
 			value={{
 				client,
-				artifact_cache: createLRUCache(),
-				component_cache: createLRUCache(),
-				navigation_cache: createLRUCache(),
+				artifact_cache: suspense_cache(),
+				component_cache: suspense_cache(),
+				data_cache: suspense_cache(),
 			}}
 		>
 			<Suspense fallback={fallback}>{children}</Suspense>
@@ -110,13 +144,14 @@ type RouterContext = {
 
 	// We also need a cache for artifacts so that we can avoid suspending to
 	// load them if possible.
-	artifact_cache: LRUCache<QueryArtifact>
+	artifact_cache: SuspenseCache<QueryArtifact>
 
 	// We also need a cache for component references so we can avoid suspending
 	// when we load the same page multiple times
-	component_cache: LRUCache<(props: any) => React.ReactElement>
+	component_cache: SuspenseCache<(props: any) => React.ReactElement>
 
-	navigation_cache: LRUCache<NavigationSuspenseUnit>
+	// Pages need a way to wait for data
+	data_cache: SuspenseCache<[any, DocumentStore<GraphQLObject, GraphQLVariables>]>
 }
 
 const Context = React.createContext<RouterContext | null>(null)
@@ -130,19 +165,6 @@ const useContext = () => {
 	return ctx
 }
 
-type NavigationSuspenseUnit = {
-	id: string
-
-	// the cache unit is an externally resolvable promise
-	then: (val: any) => any
-	resolve: () => void
-	reject: (err: any) => void
-
-	//
-	page: RouterPageManifest
-	variables: GraphQLVariables
-}
-
 // Utilities for pulling values from context
 
 /** Returns the current client */
@@ -154,11 +176,13 @@ export function useClient() {
 function useComponentPageCache() {
 	return useContext().component_cache
 }
+
 /** Returns the cache of artifacts */
 function useArtifactCache() {
 	return useContext().artifact_cache
 }
 
-function useNavigationCache() {
-	return useContext().navigation_cache
+/** Returns the cache of results */
+function useDataCache() {
+	return useContext().data_cache
 }
