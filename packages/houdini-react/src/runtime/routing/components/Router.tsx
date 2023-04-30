@@ -26,26 +26,26 @@ const NavContext = React.createContext<NavigationContext>({
 // don't want network waterfalls. So we need to send the request for everything all
 // at once and then wrap the children in the necessary context so that when they render
 // they can grab what they need if its ready and suspend if not.
-export function Router({ cache, manifest }: { cache: Cache; manifest: RouterManifest }) {
+export function Router({ manifest }: { manifest: RouterManifest }) {
 	// the current route is just a string in state.
 	const [current, setCurrent] = React.useState(() => {
 		return window.location.pathname
 	})
 
 	// find the matching page for the current route
-	const [match, matchVariables] = find_match(manifest, current)
+	const [page, variables] = find_match(manifest, current)
 
 	// the only time this component will directly suspend (instead of one of its children)
 	// is if we don't have the component source. Dependencies on query results or artifacts
 	// will be resolved by the component itself
-	const component_cache = useComponentPageCache()
+	const { component_cache } = useContext()
 
 	// load the page assets (source, artifacts, data). this will suspend if the component is not available yet
 	// this hook embeds pending requests in context so that the component can suspend if necessary14
-	useLoadPage(match, matchVariables)
+	useLoadPage({ page, variables })
 
 	// if we get this far, it's safe to load the component
-	const Page = component_cache.get(match.id)!
+	const PageComponent = component_cache.get(page.id)!
 
 	// render the component embedded in the necessary context so it can orchestrate
 	// its needs
@@ -56,7 +56,7 @@ export function Router({ cache, manifest }: { cache: Cache; manifest: RouterMani
 				goto: setCurrent,
 			}}
 		>
-			<Page />
+			<PageComponent />
 		</NavContext.Provider>
 	)
 }
@@ -66,20 +66,33 @@ export function Router({ cache, manifest }: { cache: Cache; manifest: RouterMani
  * This includes loading the artifact, the component source, and any query results. This hook
  * suspends if the component source is not available.
  */
-function useLoadPage(page: RouterPageManifest, variables: GraphQLVariables) {
-	// grab the coordination
-	const artifact_cache = useArtifactCache()
-	const component_cache = useComponentPageCache()
-	const data_cache = useDataCache()
+function useLoadPage({
+	page,
+	variables,
+}: {
+	page: RouterPageManifest
+	variables: GraphQLVariables
+}) {
+	// grab context values
+	const { client, cache, data_cache, component_cache, artifact_cache } = useContext()
 
 	// the function to load a query using the cache references
-	async function load_query({
-		artifact,
-		client,
-	}: {
-		artifact: QueryArtifact
-		client: HoudiniClient
-	}) {}
+	async function load_query({ id, artifact }: { id: string; artifact: QueryArtifact }) {
+		// TODO: multiple pending requests. we can't set it to a pending state because then the subscribers will get the wrong value
+		// TODO: AbortController on send()
+		// TODO: we can read from cache here before making an asynchronous network call
+
+		// send the request
+		const observer = client.observe({ artifact, cache })
+		return observer
+			.send({
+				variables: variables,
+				cacheParams: { disableSubscriptions: true },
+			})
+			.then(() => {
+				data_cache.set(id, observer)
+			})
+	}
 
 	// in order to avoid waterfalls, we need to kick off APIs requests in parallel
 	// to use loading any missing artifacts or the page component.
@@ -92,6 +105,30 @@ function useLoadPage(page: RouterPageManifest, variables: GraphQLVariables) {
 			found_artifacts[key] = artifact_cache.get(key)!
 		} else {
 			missing_artifacts.push(key)
+		}
+	}
+
+	// any missing artifacts need to be loaded and then have their queries loaded
+	for (const artifact_id of missing_artifacts) {
+		// load the artifact
+		page.documents[artifact_id].artifact().then((mod) => {
+			// the artifact is the default export
+			const artifact = mod.default
+
+			// save the artifact in the cache
+			artifact_cache.set(artifact_id, artifact)
+
+			// now that we have the artifact, we can load the query too
+			load_query({ id: artifact.name, artifact })
+		})
+	}
+
+	// we need to make sure that every artifact we found is loaded
+	// or else we need to load the query
+	for (const artifact of Object.values(found_artifacts)) {
+		// if we don't have the query, load it
+		if (!data_cache.has(artifact.name)) {
+			load_query({ id: artifact.name, artifact })
 		}
 	}
 
@@ -118,29 +155,31 @@ export function useNavigationContext() {
 
 export function RouterContextProvider({
 	children,
-	fallback,
 	client,
+	cache,
 }: {
 	children: React.ReactElement
-	fallback: React.ReactElement
 	client: HoudiniClient
+	cache: Cache
 }) {
 	return (
 		<Context.Provider
 			value={{
 				client,
+				cache,
 				artifact_cache: suspense_cache(),
 				component_cache: suspense_cache(),
 				data_cache: suspense_cache(),
 			}}
 		>
-			<Suspense fallback={fallback}>{children}</Suspense>
+			{children}
 		</Context.Provider>
 	)
 }
 
 type RouterContext = {
 	client: HoudiniClient
+	cache: Cache
 
 	// We also need a cache for artifacts so that we can avoid suspending to
 	// load them if possible.
@@ -151,7 +190,7 @@ type RouterContext = {
 	component_cache: SuspenseCache<(props: any) => React.ReactElement>
 
 	// Pages need a way to wait for data
-	data_cache: SuspenseCache<[any, DocumentStore<GraphQLObject, GraphQLVariables>]>
+	data_cache: SuspenseCache<DocumentStore<GraphQLObject, GraphQLVariables>>
 }
 
 const Context = React.createContext<RouterContext | null>(null)
@@ -165,24 +204,10 @@ const useContext = () => {
 	return ctx
 }
 
-// Utilities for pulling values from context
-
-/** Returns the current client */
 export function useClient() {
 	return useContext().client
 }
 
-/** Returns the cache of page components */
-function useComponentPageCache() {
-	return useContext().component_cache
-}
-
-/** Returns the cache of artifacts */
-function useArtifactCache() {
-	return useContext().artifact_cache
-}
-
-/** Returns the cache of results */
-function useDataCache() {
-	return useContext().data_cache
+export function useCache() {
+	return useContext().cache
 }

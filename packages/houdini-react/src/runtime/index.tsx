@@ -10,10 +10,10 @@ import { Router as RouterImpl, RouterContextProvider } from './routing'
 export * from './hooks'
 export * from './routing'
 
-export function Router({ cache, fallback }: { cache: Cache; fallback: React.ReactElement }) {
+export function Router({ cache }: { cache: Cache }) {
 	return (
-		<RouterContextProvider client={client} fallback={fallback}>
-			<RouterImpl cache={cache} manifest={manifest} />
+		<RouterContextProvider client={client} cache={cache}>
+			<RouterImpl manifest={manifest} />
 		</RouterContextProvider>
 	)
 }
