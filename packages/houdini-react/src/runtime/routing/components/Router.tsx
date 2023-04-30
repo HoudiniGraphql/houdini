@@ -6,8 +6,8 @@ import { createLRUCache } from '$houdini/runtime/lib/lru'
 import type { QueryArtifact, GraphQLObject, GraphQLVariables } from '$houdini/runtime/lib/types'
 import React, { createContext, Suspense, useContext, useEffect, useState } from 'react'
 
-import { HoudiniProvider } from '../context'
-import { exec, RouteParam } from './match'
+import { HoudiniProvider } from '../../context'
+import { exec, RouteParam } from '../lib/match'
 
 // RouterManifest contains all of the information that the router needs
 // to decide what bundle to load and render for a given url
@@ -136,32 +136,10 @@ export function Router({
 	manifest: RouterManifest
 	client: HoudiniClient
 }) {
-	//
-	// The first bit of this component is just setting up the basic state and event listeners
-	//
-
 	// the current route is just a string in state.
 	const [current, setCurrent] = useState(() => {
 		return window.location.pathname
 	})
-
-	// whenever the route changes, we need to make sure the browser's stack is up to date
-	useEffect(() => {
-		if (window.location.pathname !== current) {
-			window.history.pushState({}, '', current)
-		}
-	}, [current])
-
-	// when we first mount we should start listening to the back button
-	useEffect(() => {
-		const onChange = (evt: PopStateEvent) => {
-			setCurrent(window.location.pathname)
-		}
-		window.addEventListener('popstate', onChange)
-		return () => {
-			window.removeEventListener('popstate', onChange)
-		}
-	}, [])
 
 	//
 	// Now that we have our routing state, we need to figure out what we are
@@ -241,6 +219,28 @@ export function Router({
 	if (!ok_final({ unit: cached })) {
 		throw cached
 	}
+
+	//
+	// Now that we know we aren't going to throw, let's set up the event listeners
+	//
+
+	// whenever the route changes, we need to make sure the browser's stack is up to date
+	useEffect(() => {
+		if (window.location.pathname !== current) {
+			window.history.pushState({}, '', current)
+		}
+	}, [current])
+
+	// when we first mount we should start listening to the back button
+	useEffect(() => {
+		const onChange = (evt: PopStateEvent) => {
+			setCurrent(window.location.pathname)
+		}
+		window.addEventListener('popstate', onChange)
+		return () => {
+			window.removeEventListener('popstate', onChange)
+		}
+	}, [])
 
 	// render the page
 	return (
