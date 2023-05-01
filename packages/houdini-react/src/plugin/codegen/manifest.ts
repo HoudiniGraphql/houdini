@@ -58,9 +58,9 @@ async function walk_routes(args: {
 
 	// read file contents
 	const [
-		layoutQueryContents,
+		[layoutQueryPath, layoutQueryContents],
 		[layoutViewPath, layoutViewContents],
-		pageQueryContents,
+		[pageQueryPath, pageQueryContents],
 		[pageViewPath, pageViewContents],
 	] = await Promise.all([
 		read_layoutQuery(args.filepath),
@@ -74,6 +74,7 @@ async function walk_routes(args: {
 	// we have a layout query, so we need to add it to the context
 	if (layoutQueryContents) {
 		layoutQuery = await add_query({
+			path: layoutQueryPath!,
 			config: args.config,
 			url: args.url,
 			project: args.project,
@@ -101,6 +102,7 @@ async function walk_routes(args: {
 	// if we have a page query, add it
 	if (pageQueryContents) {
 		pageQuery = await add_query({
+			path: pageQueryPath!,
 			config: args.config,
 			url: args.url,
 			project: args.project,
@@ -178,6 +180,7 @@ async function add_view(args: {
 }
 
 async function add_query(args: {
+	path: string
 	config: Config
 	url: string
 	project: ProjectManifest
@@ -206,6 +209,7 @@ async function add_query(args: {
 
 	const target = args.type === 'page' ? args.project.page_queries : args.project.layout_queries
 	target[normalize_path(args.url)] = {
+		path: path.relative(args.config.routesDir, args.path),
 		name: query.name.value,
 		url: args.url,
 		loading,
@@ -330,4 +334,6 @@ export type QueryManifest = {
 	url: string
 	/** wether the query uses the loading directive (ie, wants a fallback) */
 	loading: boolean
+	/** The filepath of the unit */
+	path: string
 }

@@ -1,6 +1,12 @@
 import { Config, fs, parseJS, printJS, path } from 'houdini'
 
-import { page_entry_path, page_unit_path, layout_unit_path } from '../conventions'
+import {
+	page_entry_path,
+	page_unit_path,
+	layout_unit_path,
+	is_layout,
+	fallback_unit_path,
+} from '../conventions'
 import type { ProjectManifest, PageManifest } from './manifest'
 
 export async function generate_entries({
@@ -17,6 +23,7 @@ export async function generate_entries({
 		...Object.entries(manifest.pages)
 			.concat(Object.entries(manifest.layouts))
 			.map(([id, page]) => generate_routing_units({ id, page, config, project: manifest })),
+		generate_fallbacks({ config, project: manifest }),
 	])
 }
 
@@ -30,7 +37,7 @@ type PageBundleInput = {
 /** Generates the component that passes query data to the actual component on the filesystem  */
 async function generate_routing_units(args: PageBundleInput) {
 	// look up the page manifest
-	const layout = args.page.path.endsWith('+layout.tsx') || args.page.path.endsWith('+layout.jsx')
+	const layout = is_layout(args.page.path)
 	const page = layout ? args.project.layouts[args.id] : args.project.pages[args.id]
 
 	const unit_path = layout
@@ -94,9 +101,7 @@ async function generate_page_entries(args: PageBundleInput) {
 	await fs.mkdirp(path.dirname(component_path))
 
 	// build up the file source as a string
-	let source: string[] = [
-		"import { Page, Fallback } from '$houdini/plugins/houdini-react/runtime/routing/components'",
-	]
+	let source: string[] = []
 
 	// we need to add imports for every layout
 	const layout_components: Record<string, string> = {}
@@ -120,16 +125,25 @@ async function generate_page_entries(args: PageBundleInput) {
 	// generate the local import for the page component
 	const relative_path = path.relative(path.dirname(component_path), page_path)
 	const Component = 'Page_' + args.page.id
+	const PageFallback = 'PageFallback_' + args.page.id
 	source.push(`import ${Component} from "${relative_path}"`)
 
 	// in order to wrap up the layouts we're going to iterate over the list and build them up
 	let content = `<${Component} />`
 	// if the layout has a loading state then wrap it in a fallback
 	if (args.project.page_queries[args.page.id]?.loading) {
+		const fallback_path = fallback_unit_path(args.config, 'page', args.page.id)
+		source.push(
+			`import ${PageFallback}  from "${path.relative(
+				page_path,
+				path.dirname(fallback_path)
+			)}"`
+		)
+
 		content = `
-			<Fallback Component={${Component}} queries={${JSON.stringify(args.page.queries)}}>
+			<${PageFallback}>
 				${content}
-			</Fallback>
+			</${PageFallback}>
 		`
 	}
 
@@ -144,15 +158,24 @@ async function generate_page_entries(args: PageBundleInput) {
 
 		// if the layout has a loading state then wrap it in a fallback
 		if (args.project.layout_queries[layout]?.loading) {
+			const LayoutFallback = 'LayoutFallback_' + args.page.id
+			const fallback_path = fallback_unit_path(args.config, 'layout', args.page.id)
+			source.push(
+				`import ${LayoutFallback}  from "${path.relative(
+					page_path,
+					path.dirname(fallback_path)
+				)}"`
+			)
+
 			// make sure to pass the right props to the component
 			const props = `Component={} queries={${JSON.stringify(
 				args.project.layouts[layout].queries
 			)}}`
 
 			content = `
-				<Fallback ${props}>
+				<${LayoutFallback}>
 					${content}
-				</Fallback>
+				</${LayoutFallback}>
 			`
 		}
 	}
@@ -169,4 +192,84 @@ async function generate_page_entries(args: PageBundleInput) {
 	const formatted = (await printJS(await parseJS(source.join('\n'), { plugins: ['jsx'] }))).code
 
 	await fs.writeFile(component_path, formatted)
+}
+
+async function generate_fallbacks({
+	config,
+	project,
+}: {
+	config: Config
+	project: ProjectManifest
+}) {
+	// look at every page and figure out if it needs a layout
+	for (const [id, page] of Object.entries(project.layouts).concat(
+		Object.entries(project.pages)
+	)) {
+		const layout = is_layout(page.path)
+		const which = layout ? 'layout' : 'page'
+
+		const fallback_path = fallback_unit_path(config, which, id)
+		const page_path = path.join(
+			config.pluginDirectory('houdini-router'),
+			'..',
+			'..',
+			'..',
+			'src',
+			'routes',
+			page.url,
+			'+' + (layout ? 'layout' : 'page')
+		)
+
+		// the first thing we need to do is make sure that the page has a bundle directory
+		await fs.mkdirp(path.dirname(fallback_path))
+
+		// build up the file source as a string
+		let source: string[] = [
+			"import { useRouterContext, useCache } from '$houdini/plugins/houdini-react/runtime/routing/components/Router'",
+			`import Component from '${page_path}'`,
+			"import { Suspense } from 'react'",
+		]
+
+		// the default export for the fallback suspends while it waits for the necessary
+		// artifacts and then wraps the children in a suspense boundary with a fallback
+		// that renders the component with its loading state
+		source.push(`
+			export default ({ children }) => {
+				const { artifact_cache } = useRouterContext()
+
+				${/* Grab references to every query we need*/ ''}
+				${page.queries.map((query) => `const ${query} = artifact_cache.get("${query}")`).join('\n')}
+
+				return (
+					<Suspense fallback={<Fallback queries={{${page.queries.join(',')}}}/>}>
+						{children}
+					</Suspense>
+				)
+			}
+		`)
+
+		// in order to avoid necessarily computing the loading state, we're going to do that in
+		// a separate function so that the computation only triggers when it mounts
+		source.push(`
+			const Fallback = ({queries}) => {
+				const cache = useCache()
+
+				const props = Object.entries(queries).reduce((prev, [name, artifact]) => ({
+					...prev,
+					[name]: cache.read({
+						selection: artifact.selection,
+						loading: true,
+					}).data
+				}), {})
+
+				return <Component {...props} />
+			}
+		`)
+
+		// format the source so we don't embarrass ourselves
+		const formatted = (await printJS(await parseJS(source.join('\n'), { plugins: ['jsx'] })))
+			.code
+
+		await fs.writeFile(fallback_path, formatted)
+	}
 }

@@ -44,7 +44,7 @@ export function Router({ manifest }: { manifest: RouterManifest }) {
 	useLoadPage({ page, variables })
 
 	// if we get this far, it's safe to load the component
-	const { component_cache } = useContext()
+	const { component_cache } = useRouterContext()
 	const PageComponent = component_cache.get(page.id)!
 
 	// render the component embedded in the necessary context so it can orchestrate
@@ -75,7 +75,7 @@ function useLoadPage({
 }) {
 	// grab context values
 	const { client, cache, data_cache, component_cache, artifact_cache, pending_cache } =
-		useContext()
+		useRouterContext()
 
 	// the function to load a query using the cache references
 	function load_query({ id, artifact }: { id: string; artifact: QueryArtifact }): Promise<void> {
@@ -237,7 +237,7 @@ export type PendingCache = SuspenseCache<Promise<void>>
 
 const Context = React.createContext<RouterContext | null>(null)
 
-const useContext = () => {
+export const useRouterContext = () => {
 	const ctx = React.useContext(Context)
 	if (!ctx) {
 		throw new Error('Could not find router context')
@@ -247,17 +247,17 @@ const useContext = () => {
 }
 
 export function useClient() {
-	return useContext().client
+	return useRouterContext().client
 }
 
 export function useCache() {
-	return useContext().cache
+	return useRouterContext().cache
 }
 
 export function useDocumentStore<_Data extends GraphQLObject, _Input extends GraphQLVariables>(
 	name: string
 ): [_Data, DocumentStore<_Data, _Input>] {
-	const store = useContext().data_cache.get(name)!
+	const store = useRouterContext().data_cache.get(name)!
 
 	// @ts-ignore
 	return [store.state.data!, store]

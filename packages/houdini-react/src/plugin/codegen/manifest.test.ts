@@ -143,11 +143,13 @@ test('nested route structure happy path', async function () {
 		    },
 		    "page_queries": {
 		        "__another": {
+		            "path": "another/+page.gql",
 		            "name": "MyQuery",
 		            "url": "/another/",
 		            "loading": false
 		        },
 		        "__subRoute__nested": {
+		            "path": "subRoute/nested/+page.gql",
 		            "name": "FinalQuery",
 		            "url": "/subRoute/nested/",
 		            "loading": true
@@ -155,16 +157,19 @@ test('nested route structure happy path', async function () {
 		    },
 		    "layout_queries": {
 		        "__": {
+		            "path": "+layout.gql",
 		            "name": "RootQuery",
 		            "url": "/",
 		            "loading": true
 		        },
 		        "__another": {
+		            "path": "another/+layout.gql",
 		            "name": "MyLayoutQuery",
 		            "url": "/another/",
 		            "loading": false
 		        },
 		        "__subRoute": {
+		            "path": "subRoute/+layout.gql",
 		            "name": "SubQuery",
 		            "url": "/subRoute/",
 		            "loading": false
