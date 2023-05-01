@@ -1,5 +1,7 @@
 import type { Cache } from '$houdini/runtime/cache/cache'
 import { DocumentStore, HoudiniClient } from '$houdini/runtime/client'
+import { deepEquals } from '$houdini/runtime/lib/deepEquals'
+import { LRUCache } from '$houdini/runtime/lib/lru'
 import { GraphQLObject, GraphQLVariables } from '$houdini/runtime/lib/types'
 import { QueryArtifact } from '$houdini/runtime/lib/types'
 import React from 'react'
@@ -47,6 +49,28 @@ export function Router({ manifest }: { manifest: RouterManifest }) {
 	const { component_cache } = useRouterContext()
 	const PageComponent = component_cache.get(page.id)!
 
+	//
+	// Now that we know we aren't going to throw, let's set up the event listeners
+	//
+
+	// whenever the route changes, we need to make sure the browser's stack is up to date
+	React.useEffect(() => {
+		if (window.location.pathname !== current) {
+			window.history.pushState({}, '', current)
+		}
+	}, [current])
+
+	// when we first mount we should start listening to the back button
+	React.useEffect(() => {
+		const onChange = (evt: PopStateEvent) => {
+			setCurrent(window.location.pathname)
+		}
+		window.addEventListener('popstate', onChange)
+		return () => {
+			window.removeEventListener('popstate', onChange)
+		}
+	}, [])
+
 	// render the component embedded in the necessary context so it can orchestrate
 	// its needs
 	return (
@@ -74,11 +98,21 @@ function useLoadPage({
 	variables: GraphQLVariables
 }) {
 	// grab context values
-	const { client, cache, data_cache, component_cache, artifact_cache, pending_cache } =
-		useRouterContext()
+	const {
+		client,
+		cache,
+		data_cache,
+		component_cache,
+		artifact_cache,
+		pending_cache,
+		last_variables,
+	} = useRouterContext()
 
 	// the function to load a query using the cache references
 	function load_query({ id, artifact }: { id: string; artifact: QueryArtifact }): Promise<void> {
+		// track the new variables
+		last_variables.set(page.id, variables)
+
 		// TODO: AbortController on send()
 		// TODO: we can read from cache here before making an asynchronous network call
 
@@ -93,7 +127,7 @@ function useLoadPage({
 		// add it to the pending cache
 		pending_cache.set(
 			id,
-			new Promise<void>((resolve, reject) =>
+			new Promise<void>((resolve, reject) => {
 				observer
 					.send({
 						variables: variables,
@@ -109,11 +143,16 @@ function useLoadPage({
 					.finally(() => {
 						pending_cache.delete(id)
 					})
-			)
+			})
 		)
 
 		// this promise is also what we want to do with the main invocation
 		return pending_cache.get(id)!
+	}
+
+	// if the variables have changed then we need to clear the data store (so we fetch again)
+	if (last_variables.has(page.id) && !deepEquals(last_variables.get(page.id), variables)) {
+		data_cache.clear()
 	}
 
 	// in order to avoid waterfalls, we need to kick off APIs requests in parallel
@@ -189,6 +228,7 @@ export function RouterContextProvider({
 	component_cache,
 	data_cache,
 	pending_cache,
+	last_variables,
 }: {
 	children: React.ReactElement
 	client: HoudiniClient
@@ -197,6 +237,7 @@ export function RouterContextProvider({
 	component_cache: SuspenseCache<(props: any) => React.ReactElement>
 	data_cache: SuspenseCache<DocumentStore<GraphQLObject, GraphQLVariables>>
 	pending_cache: PendingCache
+	last_variables: LRUCache<GraphQLVariables>
 }) {
 	return (
 		<Context.Provider
@@ -207,6 +248,7 @@ export function RouterContextProvider({
 				component_cache,
 				data_cache,
 				pending_cache,
+				last_variables,
 			}}
 		>
 			{children}
@@ -231,6 +273,9 @@ type RouterContext = {
 
 	// A way to track pending requests for an artifact
 	pending_cache: PendingCache
+
+	// A way to track the last known good variables
+	last_variables: LRUCache<GraphQLVariables>
 }
 
 export type PendingCache = SuspenseCache<Promise<void>>
