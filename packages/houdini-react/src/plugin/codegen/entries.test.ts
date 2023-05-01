@@ -41,10 +41,10 @@ test('composes layouts and pages', async function () {
 		{ plugins: ['jsx'] }
 	)
 	expect(page_entry).toMatchInlineSnapshot(`
-		import Layout___ from "../units/layouts/__.jsx";
-		import Layout___subRoute from "../units/layouts/__subRoute.jsx";
-		import Page___subRoute__nested from "../units/pages/__subRoute__nested.jsx";
-		import PageFallback___subRoute__nested from "../../fallbacks/page";
+		import Layout___ from "../layouts/__.jsx";
+		import Layout___subRoute from "../layouts/__subRoute.jsx";
+		import Page___subRoute__nested from "../pages/__subRoute__nested.jsx";
+		import PageFallback___subRoute__nested from "../fallbacks/page/__subRoute__nested.jsx";
 		import LayoutFallback___subRoute__nested from "../../fallbacks/layout";
 
 		export default () => (<LayoutFallback___subRoute__nested>
@@ -66,7 +66,7 @@ test('composes layouts and pages', async function () {
 	)
 	expect(page_unit).toMatchInlineSnapshot(`
 		import { useDocumentStore } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
-		import Component___subRoute__nested from "../../../../../src/routes/subRoute/nested/layout";
+		import Component___subRoute__nested from "../../../../../src/routes/subRoute/nested/+page";
 
 		export default (
 		    {
@@ -91,7 +91,7 @@ test('composes layouts and pages', async function () {
 	)
 	expect(root_layout_unit).toMatchInlineSnapshot(`
 		import { useDocumentStore } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
-		import Component___ from "../../../../../src/routes/layout";
+		import Component___ from "../../../../../src/routes/+layout";
 
 		export default (
 		    {
@@ -114,7 +114,7 @@ test('composes layouts and pages', async function () {
 	)
 	expect(deep_layout_unit).toMatchInlineSnapshot(`
 		import { useDocumentStore } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
-		import Component___subRoute from "../../../../../src/routes/subRoute/layout";
+		import Component___subRoute from "../../../../../src/routes/subRoute/+layout";
 
 		export default (
 		    {
@@ -145,7 +145,7 @@ test('composes layouts and pages', async function () {
 		}
 	)
 	expect(page_fallback).toMatchInlineSnapshot(`
-		import { useRouterContext, useCache } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
+		import { useRouterContext, useCache, useDocumentStore } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
 		import Component from "../../../../../src/routes/subRoute/nested/+page";
 		import { Suspense } from "react";
 
@@ -158,7 +158,7 @@ test('composes layouts and pages', async function () {
 		        artifact_cache
 		    } = useRouterContext();
 
-		    const FinalQuery = artifact_cache.get("FinalQuery");
+		    const FinalQuery_artifact = artifact_cache.get("FinalQuery");
 
 		    return (
 		        (<Suspense
@@ -199,7 +199,7 @@ test('composes layouts and pages', async function () {
 		}
 	)
 	expect(layout_fallback).toMatchInlineSnapshot(`
-		import { useRouterContext, useCache } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
+		import { useRouterContext, useCache, useDocumentStore } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
 		import Component from "../../../../../src/routes/+layout";
 		import { Suspense } from "react";
 

@@ -7,7 +7,7 @@ import {
 	is_layout,
 	fallback_unit_path,
 } from '../conventions'
-import type { ProjectManifest, PageManifest } from './manifest'
+import type { ProjectManifest, PageManifest, QueryManifest } from './manifest'
 
 export async function generate_entries({
 	config,
@@ -56,7 +56,7 @@ async function generate_routing_units(args: PageBundleInput) {
 		'src',
 		'routes',
 		page.url,
-		'+' + layout ? 'layout' : 'page'
+		'+' + (layout ? 'layout' : 'page')
 	)
 	const relative_path = path.relative(path.dirname(unit_path), page_path)
 
@@ -122,6 +122,7 @@ async function generate_page_entries(args: PageBundleInput) {
 	// generate the relative filepath from the component file
 	// to the page
 	const page_path = page_unit_path(args.config, args.page.id)
+
 	// generate the local import for the page component
 	const relative_path = path.relative(path.dirname(component_path), page_path)
 	const Component = 'Page_' + args.page.id
@@ -135,8 +136,8 @@ async function generate_page_entries(args: PageBundleInput) {
 		const fallback_path = fallback_unit_path(args.config, 'page', args.page.id)
 		source.push(
 			`import ${PageFallback}  from "${path.relative(
-				page_path,
-				path.dirname(fallback_path)
+				path.dirname(page_path),
+				fallback_path
 			)}"`
 		)
 
@@ -201,12 +202,35 @@ async function generate_fallbacks({
 	config: Config
 	project: ProjectManifest
 }) {
+	const query_map = Object.values(project.layout_queries)
+		.concat(Object.values(project.page_queries))
+		.reduce(
+			(prev, query) => ({ ...prev, [query.name]: query }),
+			{} as Record<string, QueryManifest>
+		)
+
 	// look at every page and figure out if it needs a layout
 	for (const [id, page] of Object.entries(project.layouts).concat(
 		Object.entries(project.pages)
 	)) {
 		const layout = is_layout(page.path)
 		const which = layout ? 'layout' : 'page'
+
+		// in order to generate the fallback, we need to know which queries are
+		// required and which can get loading states
+		const { required_queries, loading_queries } = page.queries.reduce(
+			(prev, query) => {
+				// look up the query
+				if (query_map[query].loading) {
+					prev.loading_queries.push(query)
+				} else {
+					prev.required_queries.push(query)
+				}
+
+				return prev
+			},
+			{ required_queries: [] as string[], loading_queries: [] as string[] }
+		)
 
 		const fallback_path = fallback_unit_path(config, which, id)
 		const page_path = path.join(
@@ -225,7 +249,7 @@ async function generate_fallbacks({
 
 		// build up the file source as a string
 		let source: string[] = [
-			"import { useRouterContext, useCache } from '$houdini/plugins/houdini-react/runtime/routing/components/Router'",
+			"import { useRouterContext, useCache, useDocumentStore } from '$houdini/plugins/houdini-react/runtime/routing/components/Router'",
 			`import Component from '${page_path}'`,
 			"import { Suspense } from 'react'",
 		]
@@ -238,10 +262,25 @@ async function generate_fallbacks({
 				const { artifact_cache } = useRouterContext()
 
 				${/* Grab references to every query we need*/ ''}
-				${page.queries.map((query) => `const ${query} = artifact_cache.get("${query}")`).join('\n')}
+				${page.queries
+					.map((query) => `const ${query}_artifact = artifact_cache.get("${query}")`)
+					.join('\n')}
+
+				${/* Make sure all of the required queries have resolved */ ''}
+				${required_queries
+					.map(
+						(query) =>
+							`const [${query}_data, ${query}_handle] = useDocumentStore("${query}")`
+					)
+					.join('\n')}
 
 				return (
-					<Suspense fallback={<Fallback queries={{${page.queries.join(',')}}}/>}>
+					<Suspense fallback={
+						<Fallback
+							required_queries={{${required_queries.map((q) => `${q}: ${q}_data `).join(',')}}}
+							loading_queries={{${loading_queries.map((q) => `${q}: ${q}_artifact `).join(',')}}}
+						/>
+					}>
 						{children}
 					</Suspense>
 				)
@@ -251,16 +290,16 @@ async function generate_fallbacks({
 		// in order to avoid necessarily computing the loading state, we're going to do that in
 		// a separate function so that the computation only triggers when it mounts
 		source.push(`
-			const Fallback = ({queries}) => {
+			const Fallback = ({ required_queries, loading_queries }) => {
 				const cache = useCache()
 
-				const props = Object.entries(queries).reduce((prev, [name, artifact]) => ({
+				let props = Object.entries(loading_queries).reduce((prev, [name, artifact]) => ({
 					...prev,
 					[name]: cache.read({
 						selection: artifact.selection,
 						loading: true,
 					}).data
-				}), {})
+				}), required_queries)
 
 				return <Component {...props} />
 			}

@@ -88,7 +88,7 @@ export function normalize_path(path: string) {
 }
 
 export function page_entries_dir(config: Config, base: string = base_dir(config)) {
-	return path.join(base, 'entries')
+	return path.join(base, 'units', 'entries')
 }
 
 function page_units_dir(config: Config, base: string = base_dir(config)) {
