@@ -9,8 +9,6 @@ const importStatement = (where: string, as: string) => `import ${as} from '${whe
 
 const exportDefaultStatement = (as: string) => `export default ${as}`
 
-const exportStarStatement = (where: string) => `export * from '${where}'`
-
 test('happy path', async function () {
 	const config = await test_config()
 
@@ -59,7 +57,7 @@ test('happy path', async function () {
 									}
 						},
 
-						component: () => import(\\"../pages/__/entry\\")
+						component: () => import(\\"../entries/__\\")
 					},
 
 					\\"____id__\\": {
@@ -79,7 +77,7 @@ test('happy path', async function () {
 									}
 						},
 
-						component: () => import(\\"../pages/____id__/entry\\")
+						component: () => import(\\"../entries/____id__\\")
 					},
 
 					\\"__another\\": {
@@ -103,7 +101,7 @@ test('happy path', async function () {
 									}
 						},
 
-						component: () => import(\\"../pages/__another/entry\\")
+						component: () => import(\\"../entries/__another\\")
 					},
 
 					\\"____id____nested\\": {
@@ -123,7 +121,7 @@ test('happy path', async function () {
 									}
 						},
 
-						component: () => import(\\"../pages/____id____nested/entry\\")
+						component: () => import(\\"../entries/____id____nested\\")
 					},
 				},
 
@@ -133,13 +131,13 @@ test('happy path', async function () {
 
 						queries: [],
 					},
-					\\"____id____\\": {
-						id: \\"____id____\\",
+					\\"____id__\\": {
+						id: \\"____id__\\",
 
 						queries: [\\"RootQuery\\"],
 					},
-					\\"__another__\\": {
-						id: \\"__another__\\",
+					\\"__another\\": {
+						id: \\"__another\\",
 
 						queries: [\\"RootQuery\\"],
 					}
@@ -196,7 +194,7 @@ test('loading state at root', async function () {
 									}
 						},
 
-						component: () => import(\\"../pages/__/entry\\")
+						component: () => import(\\"../entries/__\\")
 					},
 
 					\\"____id__\\": {
@@ -216,7 +214,7 @@ test('loading state at root', async function () {
 									}
 						},
 
-						component: () => import(\\"../pages/____id__/entry\\")
+						component: () => import(\\"../entries/____id__\\")
 					},
 
 					\\"__another\\": {
@@ -240,7 +238,7 @@ test('loading state at root', async function () {
 									}
 						},
 
-						component: () => import(\\"../pages/__another/entry\\")
+						component: () => import(\\"../entries/__another\\")
 					},
 
 					\\"____id____nested\\": {
@@ -260,7 +258,7 @@ test('loading state at root', async function () {
 									}
 						},
 
-						component: () => import(\\"../pages/____id____nested/entry\\")
+						component: () => import(\\"../entries/____id____nested\\")
 					},
 				},
 
@@ -270,13 +268,13 @@ test('loading state at root', async function () {
 
 						queries: [],
 					},
-					\\"____id____\\": {
-						id: \\"____id____\\",
+					\\"____id__\\": {
+						id: \\"____id__\\",
 
 						queries: [\\"RootQuery\\"],
 					},
-					\\"__another__\\": {
-						id: \\"__another__\\",
+					\\"__another\\": {
+						id: \\"__another\\",
 
 						queries: [\\"RootQuery\\"],
 					}

@@ -7,9 +7,9 @@ import type {
 } from '$houdini/runtime/lib/types'
 import React from 'react'
 
+import { useClient } from '../routing'
 import type { DocumentHandle } from './useDocumentHandle'
 import { useDocumentHandle } from './useDocumentHandle'
-import { useHoudiniClient } from './useHoudiniClient'
 import { useIsMountedRef } from './useIsMounted'
 
 // Suspense requires a way to throw a promise that resolves to a place
@@ -45,7 +45,7 @@ export function useQueryHandle<
 	// see if we have an entry in the cache for the identifier
 	const suspenseValue = promiseCache.get(identifier)
 
-	const client = useHoudiniClient()
+	const client = useClient()
 
 	const isMountedRef = useIsMountedRef()
 

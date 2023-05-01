@@ -1,7 +1,7 @@
 import { Config, path } from 'houdini'
 
-import { parse_page_pattern } from '../../runtime/routing/match'
-import { page_bundle_component } from '../conventions'
+import { parse_page_pattern } from '../../runtime/routing/lib/match'
+import { page_entry_path } from '../conventions'
 import { dedent } from '../dedent'
 import { ProjectManifest, QueryManifest } from './manifest'
 
@@ -32,7 +32,7 @@ ${Object.entries(manifest.pages)
 		// parse the url pattern
 		const pattern_parsed = parse_page_pattern(page.url)
 
-		let component_path = path.join(page_bundle_component(config, id, '..'))
+		let component_path = path.join(page_entry_path(config, page.id, '..'))
 		const path_parsed = path.parse(component_path)
 		component_path = path.join(path_parsed.dir, path_parsed.name)
 

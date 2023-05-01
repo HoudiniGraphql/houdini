@@ -254,6 +254,11 @@ export function useCache() {
 	return useContext().cache
 }
 
-export function useDocumentStore(name: string) {
-	return useContext().data_cache.get(name)
+export function useDocumentStore<_Data extends GraphQLObject, _Input extends GraphQLVariables>(
+	name: string
+): [_Data, DocumentStore<_Data, _Input>] {
+	const store = useContext().data_cache.get(name)!
+
+	// @ts-ignore
+	return [store.state.data!, store]
 }

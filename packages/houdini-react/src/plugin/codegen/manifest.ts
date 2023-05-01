@@ -57,13 +57,17 @@ async function walk_routes(args: {
 	let pageQuery: QueryManifest | null = null
 
 	// read file contents
-	const [layoutQueryContents, layoutViewContents, pageQueryContents, pageViewContents] =
-		await Promise.all([
-			read_layoutQuery(args.filepath),
-			read_layoutView(args.filepath),
-			read_pageQuery(args.filepath),
-			read_pageView(args.filepath),
-		])
+	const [
+		layoutQueryContents,
+		[layoutViewPath, layoutViewContents],
+		pageQueryContents,
+		[pageViewPath, pageViewContents],
+	] = await Promise.all([
+		read_layoutQuery(args.filepath),
+		read_layoutView(args.filepath),
+		read_pageQuery(args.filepath),
+		read_pageView(args.filepath),
+	])
 
 	// TODO: allow plugins to transform this content before we analyze it for information
 
@@ -83,11 +87,13 @@ async function walk_routes(args: {
 	if (layoutViewContents) {
 		layout = await add_view({
 			url: args.url,
+			path: layoutViewPath!,
 			project: args.project,
 			type: 'layout',
 			contents: layoutViewContents,
 			layouts: args.layouts,
 			queries: newLayoutQueries,
+			config: args.config,
 		})
 		newLayouts = [...args.layouts, normalize_path(layout.url)]
 	}
@@ -106,12 +112,14 @@ async function walk_routes(args: {
 	// if we have a page query, add it
 	if (pageViewContents) {
 		await add_view({
+			path: pageViewPath!,
 			url: args.url.substring(0, args.url.length - 1) || '/',
 			project: args.project,
 			type: 'page',
 			contents: pageViewContents,
 			layouts: newLayouts,
 			queries: pageQuery ? [...newLayoutQueries, pageQuery.name] : newLayoutQueries,
+			config: args.config,
 		})
 	}
 
@@ -136,12 +144,14 @@ async function walk_routes(args: {
 }
 
 async function add_view(args: {
+	path: string
 	url: string
 	project: ProjectManifest
 	type: 'page' | 'layout'
 	contents: string
 	layouts: string[]
 	queries: string[]
+	config: Config
 }) {
 	const target = args.type === 'page' ? args.project.pages : args.project.layouts
 	const queries = await extractQueries(args.contents)
@@ -161,6 +171,7 @@ async function add_view(args: {
 		queries,
 		url: args.url,
 		layouts: args.layouts,
+		path: path.relative(args.config.routesDir, args.path),
 	}
 
 	return target[id]
@@ -308,6 +319,8 @@ export type PageManifest = {
 	url: string
 	/** the ids of layouts that wrap this page */
 	layouts: string[]
+	/** The filepath of the unit */
+	path: string
 }
 
 export type QueryManifest = {

@@ -3,7 +3,7 @@ import type { DocumentStore, ObserveParams } from '$houdini/runtime/client'
 import type { GraphQLObject } from 'houdini'
 import * as React from 'react'
 
-import { useHoudiniClient } from './useHoudiniClient'
+import { useClient } from '../routing'
 import { useIsMountedRef } from './useIsMounted'
 
 export type UseDocumentStoreParams<
@@ -25,7 +25,7 @@ export function useDocumentStore<
 	DocumentStore<_Data, _Input>,
 	(store: DocumentStore<_Data, _Input>) => void
 ] {
-	const client = useHoudiniClient()
+	const client = useClient()
 	const isMountedRef = useIsMountedRef()
 
 	// hold onto an observer we'll use
