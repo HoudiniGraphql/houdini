@@ -46,7 +46,7 @@ export function Router({ manifest }: { manifest: RouterManifest }) {
 	useLoadPage({ page, variables })
 
 	// if we get this far, it's safe to load the component
-	const { component_cache } = useRouterContext()
+	const { component_cache, last_variables, data_cache } = useRouterContext()
 	const PageComponent = component_cache.get(page.id)!
 
 	//
@@ -70,6 +70,15 @@ export function Router({ manifest }: { manifest: RouterManifest }) {
 			window.removeEventListener('popstate', onChange)
 		}
 	}, [])
+
+	// TODO: cleanup navigation caches!!
+	// make sure that we clear up navigation caches
+	// React.useEffect(() => {
+	// 	return () => {
+	// 		last_variables.delete(page.id)
+	// 		data_cache.delete(page.id)
+	// 	}
+	// }, [page.id])
 
 	// render the component embedded in the necessary context so it can orchestrate
 	// its needs
