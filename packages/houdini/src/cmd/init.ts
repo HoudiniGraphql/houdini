@@ -211,6 +211,7 @@ export default async function init(
 		configPath,
 		schemaPath,
 		module,
+		frameworkInfo,
 		url: is_remote_endpoint ? url : null,
 	})
 	await fs.writeFile(houdiniClientPath, networkFile(url))
@@ -270,11 +271,13 @@ const writeConfigFile = async ({
 	configPath,
 	schemaPath,
 	module,
+	frameworkInfo,
 	url,
 }: {
 	configPath: string
 	schemaPath: string
 	module: 'esm' | 'commonjs'
+	frameworkInfo: HoudiniFrameworkInfo
 	url: string | null
 }): Promise<boolean> => {
 	const config: ConfigFile = {}
@@ -297,8 +300,20 @@ const writeConfigFile = async ({
 	}
 
 	// put plugins at the bottom
-	config.plugins = {
-		'houdini-svelte': {},
+	if (frameworkInfo.framework === 'svelte') {
+		config.plugins = {
+			'houdini-svelte': {
+				framework: 'svelte',
+			},
+		}
+	} else if (frameworkInfo.framework === 'kit') {
+		config.plugins = {
+			'houdini-svelte': {},
+		}
+	} else if (frameworkInfo.framework === 'react') {
+		config.plugins = {
+			'houdini-react': {},
+		}
 	}
 
 	// the actual config contents
