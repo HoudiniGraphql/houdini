@@ -23,7 +23,6 @@ export default async function (input: PluginGenerateInput) {
 	])
 }
 
-export type PluginGenerateInput = Omit<GenerateHookInput, 'config'> & {
-	config: Config
+export type PluginGenerateInput = GenerateHookInput & {
 	framework: 'kit' | 'svelte'
 }

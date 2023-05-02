@@ -1,0 +1,6 @@
+query UserInfo($id: ID!) {
+	user(id: $id, snapshot: "hello", delay: 500) @loading {
+		id
+		name
+	}
+}

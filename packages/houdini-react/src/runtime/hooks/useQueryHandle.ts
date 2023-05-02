@@ -1,3 +1,4 @@
+import { createLRUCache } from '$houdini/runtime/lib/lru'
 import type {
 	GraphQLObject,
 	CachePolicies,
@@ -6,10 +7,9 @@ import type {
 } from '$houdini/runtime/lib/types'
 import React from 'react'
 
-import { createCache } from '../lib/cache'
+import { useClient } from '../routing'
 import type { DocumentHandle } from './useDocumentHandle'
 import { useDocumentHandle } from './useDocumentHandle'
-import { useHoudiniClient } from './useHoudiniClient'
 import { useIsMountedRef } from './useIsMounted'
 
 // Suspense requires a way to throw a promise that resolves to a place
@@ -23,7 +23,7 @@ import { useIsMountedRef } from './useIsMounted'
 //
 // When the Component unmounts, we need to remove the entry from the cache (so we can load again)
 
-const promiseCache = createCache<QuerySuspenseUnit>()
+const promiseCache = createLRUCache<QuerySuspenseUnit>()
 type QuerySuspenseUnit = {
 	resolve: () => void
 	resolved?: DocumentHandle<QueryArtifact, GraphQLObject, {}>
@@ -45,7 +45,7 @@ export function useQueryHandle<
 	// see if we have an entry in the cache for the identifier
 	const suspenseValue = promiseCache.get(identifier)
 
-	const client = useHoudiniClient()
+	const client = useClient()
 
 	const isMountedRef = useIsMountedRef()
 

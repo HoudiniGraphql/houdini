@@ -438,7 +438,7 @@ export function createStore(
 			name: 'TestArtifact',
 			rootType: 'Query',
 			pluginData: {},
-			enableLoadingState: true,
+			enableLoadingState: 'local',
 			selection: {
 				fields: {
 					viewer: {
