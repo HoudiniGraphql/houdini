@@ -17,18 +17,10 @@ export default ({ url }) => <Shell><Router intialURL={url} {...router_cache()}/>
 `
 
 	const render_client = `
-import React from 'react'
-import ReactDOMServer from 'react-dom/server'
-import App from './App'
+import { hydrateRoot } from 'react-dom/client';
+import App from './App';
 
-export function render_server(request, response) {
-    const { pipe } = ReactDOMServer.renderToPipeableStream(<App url={request.url} />, {
-        onShellReady() {
-            response.setHeader('content-type', 'text/html')
-            pipe(response)
-        },
-    })
-}
+hydrateRoot(document, <App />);
 `
 
 	const render_server = `
@@ -38,6 +30,7 @@ import App from './App'
 
 export function render_server(request, response) {
     const { pipe } = ReactDOMServer.renderToPipeableStream(<App url={request.url} />, {
+        bootstrapScripts: ['/main.js'],
         onShellReady() {
             response.setHeader('content-type', 'text/html')
             pipe(response)
