@@ -7,6 +7,7 @@ import { load_manifest, type ProjectManifest } from './codegen/manifest'
 import { format_router_manifest } from './codegen/router'
 import { extractDocuments } from './extract'
 import { transformFile } from './transform'
+import vite_plugin from './vite'
 
 let manifest: ProjectManifest
 
@@ -27,6 +28,8 @@ export const hooks: Plugin = async () => ({
 		esm: '../runtime-esm',
 		commonjs: '../runtime-cjs',
 	},
+
+	vite: vite_plugin(() => manifest),
 
 	// we need to add overloaded definitions for every hook that
 	// returns the appropriate type for each document

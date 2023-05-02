@@ -324,12 +324,14 @@ importers:
             '@types/estraverse': ^5.1.2
             '@types/next': ^9.0.0
             '@types/react': ^18.0.28
+            '@types/react-dom': ^18.0.10
             '@types/rollup': ^0.54.0
             estraverse: ^5.3.0
             graphql: ^15.8.0
             houdini: workspace:^
             next: ^13.0.1
             react: ^18.2.0
+            react-streaming: ^0.3.9
             recast: ^0.23.1
             rollup: ^3.7.4
             scripts: workspace:^
@@ -343,12 +345,14 @@ importers:
             graphql: 15.8.0
             houdini: link:../houdini
             react: 18.2.0
+            react-streaming: 0.3.9_biqbaboplfbrettd7655fr4n2y
             recast: 0.23.1
             rollup: 3.14.0
             use-deep-compare-effect: 1.8.1_react@18.2.0
         devDependencies:
             '@types/estraverse': 5.1.2
             '@types/next': 9.0.0_biqbaboplfbrettd7655fr4n2y
+            '@types/react-dom': 18.0.11
             next: 13.1.1_biqbaboplfbrettd7655fr4n2y
             scripts: link:../_scripts
 
@@ -1132,6 +1136,13 @@ packages:
                 integrity: sha512-Tbsj02wXCbqGmzdnXNk0SOF19ChhRU70BsroIi4Pm6Ehp56in6vch94mfbdQ17DozxkL3BAVjbZ4Qc1a0HFRAg==,
             }
         dev: true
+
+    /@brillout/json-serializer/0.5.3:
+        resolution:
+            {
+                integrity: sha512-IxlOMD5gOM0WfFGdeR98jHKiC82Ad1tUnSjvLS5jnRkfMEKBI+YzHA32Umw8W3Ccp5N4fNEX229BW6RaRpxRWQ==,
+            }
+        dev: false
 
     /@changesets/apply-release-plan/6.1.3:
         resolution:
@@ -7963,6 +7974,14 @@ packages:
             }
         dev: true
 
+    /isbot-fast/1.2.0:
+        resolution:
+            {
+                integrity: sha512-twjuQzy2gKMDVfKGQyQqrx6Uy4opu/fiVUTTpdqtFsd7OQijIp5oXvb27n5EemYXaijh5fomndJt/SPRLsEdSg==,
+            }
+        engines: { node: '>=6.0.0' }
+        dev: false
+
     /isexe/2.0.0:
         resolution:
             {
@@ -10346,6 +10365,21 @@ packages:
             }
         engines: { node: '>=0.10.0' }
         dev: true
+
+    /react-streaming/0.3.9_biqbaboplfbrettd7655fr4n2y:
+        resolution:
+            {
+                integrity: sha512-P0sn1dXtJfKkJMZZoPAu3YaNi6008a8sUg58XvYb21nDepysKWC7YzZCQdEhw/dp0r5s3nxDcrUmXFHFiGaf7w==,
+            }
+        peerDependencies:
+            react: '>=18'
+            react-dom: '>=18'
+        dependencies:
+            '@brillout/json-serializer': 0.5.3
+            isbot-fast: 1.2.0
+            react: 18.2.0
+            react-dom: 18.2.0_react@18.2.0
+        dev: false
 
     /react/16.14.0:
         resolution:

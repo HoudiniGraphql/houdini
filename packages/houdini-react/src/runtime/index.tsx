@@ -15,12 +15,14 @@ export * from './routing'
 
 export function Router({
 	cache,
+	intialURL,
 	artifact_cache,
 	component_cache,
 	data_cache,
 	pending_cache,
 	last_variables,
 }: {
+	intialURL: string
 	cache: Cache
 } & RouterCache) {
 	return (
@@ -33,7 +35,7 @@ export function Router({
 			pending_cache={pending_cache}
 			last_variables={last_variables}
 		>
-			<RouterImpl manifest={manifest} />
+			<RouterImpl intialURL={intialURL} manifest={manifest} />
 		</RouterContextProvider>
 	)
 }
@@ -46,7 +48,7 @@ type RouterCache = {
 	pending_cache: PendingCache
 }
 
-export function routerCache(): RouterCache {
+export function router_cache(): RouterCache {
 	return {
 		artifact_cache: suspense_cache(),
 		component_cache: suspense_cache(),

@@ -28,10 +28,10 @@ const NavContext = React.createContext<NavigationContext>({
 // don't want network waterfalls. So we need to send the request for everything all
 // at once and then wrap the children in the necessary context so that when they render
 // they can grab what they need if its ready and suspend if not.
-export function Router({ manifest }: { manifest: RouterManifest }) {
+export function Router({ manifest, intialURL }: { manifest: RouterManifest; intialURL?: string }) {
 	// the current route is just a string in state.
 	const [current, setCurrent] = React.useState(() => {
-		return window.location.pathname
+		return intialURL || window.location.pathname
 	})
 
 	// find the matching page for the current route

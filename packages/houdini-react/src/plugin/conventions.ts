@@ -10,6 +10,18 @@ export function page_entry_path(config: Config, id: string, base?: string) {
 	return path.join(page_entries_dir(config, base), `${id}.jsx`)
 }
 
+export function render_client_path(config: Config, base?: string) {
+	return path.join(units_dir(config, base), 'render', 'client.jsx')
+}
+
+export function render_server_path(config: Config, base?: string) {
+	return path.join(units_dir(config, base), 'render', 'server.jsx')
+}
+
+export function render_app_path(config: Config, base?: string) {
+	return path.join(units_dir(config, base), 'render', 'App.jsx')
+}
+
 export function page_unit_path(config: Config, id: string, base?: string) {
 	return path.join(page_units_dir(config, base), `${id}.jsx`)
 }
@@ -64,6 +76,11 @@ export async function read_layoutView(base: string) {
 
 	return [null, null]
 }
+
+export function router_index_path(config: Config) {
+	return path.join(config.routesDir, '..', '+index.jsx')
+}
+
 export function is_layout(path: string) {
 	return path.endsWith('+layout.tsx') || path.endsWith('+layout.jsx')
 }
@@ -87,24 +104,24 @@ export function normalize_path(path: string) {
 	return copy
 }
 
-export function page_entries_dir(config: Config, base: string = base_dir(config)) {
-	return path.join(base, 'units', 'entries')
+export function page_entries_dir(config: Config, base?: string) {
+	return path.join(units_dir(config, base), 'entries')
 }
 
-function page_units_dir(config: Config, base: string = base_dir(config)) {
-	return path.join(base, 'units', 'pages')
+function page_units_dir(config: Config, base?: string) {
+	return path.join(units_dir(config, base), 'pages')
 }
 
-function layout_units_dir(config: Config, base: string = base_dir(config)) {
-	return path.join(base, 'units', 'layouts')
+function layout_units_dir(config: Config, base?: string) {
+	return path.join(units_dir(config, base), 'layouts')
 }
 
-function fallbacks_units_dir(
-	config: Config,
-	which: 'page' | 'layout',
-	base: string = base_dir(config)
-) {
-	return path.join(base, 'units', 'fallbacks', which)
+function fallbacks_units_dir(config: Config, which: 'page' | 'layout', base?: string) {
+	return path.join(units_dir(config, base), 'fallbacks', which)
+}
+
+function units_dir(config: Config, base: string = base_dir(config)) {
+	return path.join(base, 'units')
 }
 
 function base_dir(config: Config) {

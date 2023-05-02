@@ -8,6 +8,7 @@ import type {
 	ResolveIdResult,
 	SourceMapInput,
 } from 'rollup'
+import type { ServerHook, ViteDevServer } from 'vite'
 
 import type { ConfigFile } from '../runtime/lib/config'
 import type {
@@ -300,6 +301,15 @@ export type PluginHooks = {
 				}
 			) => Promise<LoadResult> | LoadResult
 		>
+		configureServer?:
+			| ObjectHook<
+					(
+						this: void,
+						server: ViteDevServer & { houdiniConfig: Config }
+					) => (() => void) | void | Promise<(() => void) | void>,
+					{}
+			  >
+			| undefined
 	}
 }
 
