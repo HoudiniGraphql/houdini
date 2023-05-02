@@ -1,8 +1,22 @@
 import { fs, path } from '.'
 
+export type HoudiniFrameworkInfo =
+	| {
+			framework: 'kit'
+			framework_specific?: undefined
+	  }
+	| {
+			framework: 'svelte'
+			framework_specific?: undefined
+	  }
+	| {
+			framework: 'react'
+			framework_specific: 'react' | 'react-swc'
+	  }
+
 type DetectedFromPackageTools = {
-	framework: 'kit' | 'sapper' | 'svelte'
 	module: 'esm' | 'commonjs'
+	frameworkInfo: HoudiniFrameworkInfo
 }
 
 export type DetectedTools = {
@@ -30,12 +44,17 @@ export async function detectFromPackageJSON(cwd: string): Promise<DetectedFromPa
 
 	const hasDependency = (dep: string) => Boolean(devDependencies?.[dep] || dependencies?.[dep])
 
-	let framework: 'svelte' | 'kit' = 'svelte'
+	let frameworkInfo: HoudiniFrameworkInfo = { framework: 'svelte' }
 	if (hasDependency('@sveltejs/kit')) {
-		framework = 'kit'
+		frameworkInfo = { framework: 'kit' }
+	} else if (hasDependency('@vitejs/plugin-react')) {
+		frameworkInfo = { framework: 'react', framework_specific: 'react' }
+	} else if (hasDependency('@vitejs/plugin-react-swc')) {
+		frameworkInfo = { framework: 'react', framework_specific: 'react-swc' }
 	}
+
 	return {
-		framework,
+		frameworkInfo,
 		module: packageJSON['type'] === 'module' ? 'esm' : 'commonjs',
 	}
 }

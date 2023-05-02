@@ -198,7 +198,7 @@ directive @${config.blockingDisableDirective} on QUERY
 		} else {
 			// detect if we are in a svelte or sveltekit project
 			const detected = await detectFromPackageJSON(cfg.projectRoot)
-			framework = detected.framework === 'kit' ? 'kit' : 'svelte'
+			framework = detected.frameworkInfo.framework === 'kit' ? 'kit' : 'svelte'
 		}
 	},
 

@@ -4,7 +4,7 @@ import fetch from 'node-fetch'
 import { execSync } from 'node:child_process'
 import prompts from 'prompts'
 
-import { detectTools, fs, parseJSON, path, pullSchema } from '../lib'
+import { HoudiniFrameworkInfo, detectTools, fs, parseJSON, path, pullSchema } from '../lib'
 import type { ConfigFile } from '../runtime/lib/config'
 
 // the init command is responsible for scaffolding a few files
@@ -155,17 +155,21 @@ export default async function init(
 	}
 
 	// try to detect which tools they are using
-	const { framework, typescript, module, package_manager } = await detectTools(targetPath)
+	const { frameworkInfo, typescript, module, package_manager } = await detectTools(targetPath)
 
 	// notify the users of what we detected
 	console.log()
 	console.log("🔎 Here's what we found:")
 
 	// framework
-	if (framework === 'kit') {
-		console.log('✨ SvelteKit')
-	} else {
+	if (frameworkInfo.framework === 'svelte') {
 		console.log('✨ Svelte')
+	} else if (frameworkInfo.framework === 'kit') {
+		console.log('✨ SvelteKit')
+	} else if (frameworkInfo.framework === 'react') {
+		console.log('✨ React')
+	} else {
+		throw new Error(`Unmanaged framework: "${JSON.stringify(frameworkInfo)}"`)
 	}
 
 	// module
@@ -185,13 +189,6 @@ export default async function init(
 	// put some space between discoveries and errors
 	console.log()
 
-	if (framework === 'sapper') {
-		console.log(
-			'❌  Sorry, Houdini no longer supports Sapper. Please downgrade to v0.15.x or migrate to SvelteKit.'
-		)
-		process.exit(1)
-	}
-
 	// the source directory
 	const sourceDir = path.join(targetPath, 'src')
 	// the config file path
@@ -203,7 +200,7 @@ export default async function init(
 
 	console.log('🚧 Generating project files...')
 
-	await updatePackageJSON(targetPath)
+	await updatePackageJSON(targetPath, frameworkInfo)
 
 	// let's pull the schema only when we are using a remote endpoint
 	if (is_remote_endpoint) {
@@ -224,13 +221,14 @@ export default async function init(
 	// - kit only
 	// - svelte only
 	// - both (with small variants)
-	if (framework === 'kit') {
-		await updateSvelteConfig(targetPath, typescript)
-	} else if (framework === 'svelte') {
+	if (frameworkInfo.framework === 'svelte') {
 		await updateSvelteMainJs(targetPath, typescript)
+	} else if (frameworkInfo.framework === 'kit') {
+		await updateSvelteConfig(targetPath, typescript)
 	}
-	await updateViteConfig(targetPath, framework, typescript)
-	await tjsConfig(targetPath, framework)
+
+	await updateViteConfig(targetPath, frameworkInfo, typescript)
+	await tjsConfig(targetPath, frameworkInfo)
 
 	// we're done!
 	console.log()
@@ -331,7 +329,7 @@ module.exports = config
 	return false
 }
 
-async function tjsConfig(targetPath: string, framework: 'kit' | 'svelte') {
+async function tjsConfig(targetPath: string, frameworkInfo: HoudiniFrameworkInfo) {
 	// if there is no tsconfig.json, there could be a jsconfig.json
 	let configFile = path.join(targetPath, 'tsconfig.json')
 	try {
@@ -355,20 +353,21 @@ async function tjsConfig(targetPath: string, framework: 'kit' | 'svelte') {
 		}
 
 		// new rootDirs (will overwrite the one in "extends": "./.svelte-kit/tsconfig.json")
-		if (framework === 'kit') {
-			tjsConfig.compilerOptions.rootDirs = ['.', './.svelte-kit/types', './$houdini/types']
-		} else {
+		if (frameworkInfo.framework === 'svelte') {
 			tjsConfig.compilerOptions.rootDirs = ['.', './$houdini/types']
+		} else if (frameworkInfo.framework === 'kit') {
+			tjsConfig.compilerOptions.rootDirs = ['.', './.svelte-kit/types', './$houdini/types']
 		}
 
 		// In kit, no need to add manually the path. Why? Because:
 		//   The config [svelte.config.js => kit => alias => $houdini]
 		//   will make this automatically in "extends": "./.svelte-kit/tsconfig.json"
 		// In svelte, we need to add the path manually
-		if (framework === 'svelte') {
+		if (frameworkInfo.framework === 'svelte' || frameworkInfo.framework === 'react') {
 			tjsConfig.compilerOptions.paths = {
 				...tjsConfig.compilerOptions.paths,
-				$houdini: ['./$houdini/'],
+				$houdini: ['./$houdini'],
+				'$houdini/*': ['./$houdini/*'],
 			}
 		}
 
@@ -380,21 +379,14 @@ async function tjsConfig(targetPath: string, framework: 'kit' | 'svelte') {
 
 async function updateViteConfig(
 	targetPath: string,
-	framework: 'kit' | 'svelte',
+	frameworkInfo: HoudiniFrameworkInfo,
 	typescript: boolean
 ) {
 	const viteConfigPath = path.join(targetPath, typescript ? 'vite.config.ts' : 'vite.config.js')
 
-	const viteConfigKit = `import { sveltekit } from '@sveltejs/kit/vite'
-import houdini from 'houdini/vite'
-import { defineConfig } from 'vite'
-
-export default defineConfig({
-	plugins: [houdini(), sveltekit()]
-});
-`
-
-	const viteConfigSvelte = `import { svelte } from '@sveltejs/vite-plugin-svelte'
+	let content = 'NO_CONTENT_THIS_SHOULD_NEVER_BE_SEEN'
+	if (frameworkInfo.framework === 'svelte') {
+		content = `import { svelte } from '@sveltejs/vite-plugin-svelte'
 import houdini from 'houdini/vite'
 import * as path from 'path'
 import { defineConfig } from 'vite'
@@ -408,21 +400,44 @@ export default defineConfig({
 		},
 	},
 })	
-`
+	`
+	} else if (frameworkInfo.framework === 'kit') {
+		content = `import { sveltekit } from '@sveltejs/kit/vite'
+import houdini from 'houdini/vite'
+import { defineConfig } from 'vite'
 
-	let content
-	if (framework === 'kit') {
-		content = viteConfigKit
-	} else if (framework === 'svelte') {
-		content = viteConfigSvelte
+export default defineConfig({
+	plugins: [houdini(), sveltekit()]
+});
+`
+	} else if (frameworkInfo.framework === 'react') {
+		let reactImport = '@vitejs/plugin-react'
+		if (frameworkInfo.framework_specific === 'react-swc') {
+			reactImport = '@vitejs/plugin-react-swc'
+		}
+
+		content = `import react from '${reactImport}'
+import { path } from 'houdini'
+import houdini from 'houdini/vite'
+import { defineConfig } from 'vite'
+
+// https://vitejs.dev/config/
+export default defineConfig({
+	plugins: [houdini(), react()],
+	// TODO: the vite plugin should do this
+	resolve: {
+		alias: {
+			$houdini: path.resolve('.', '/$houdini'),
+			'$houdini/*': path.resolve('.', '/$houdini', '*'),
+		},
+	},
+})
+	`
 	} else {
-		throw new Error('Unknown updateViteConfig()')
+		throw new Error(`Unmanaged framework: "${JSON.stringify(frameworkInfo)}"`)
 	}
 
-	await updateFile({
-		filepath: viteConfigPath,
-		content: framework === 'kit' ? viteConfigKit : viteConfigSvelte,
-	})
+	await updateFile({ filepath: viteConfigPath, content })
 }
 
 async function updateSvelteConfig(targetPath: string, typescript: boolean) {
@@ -490,7 +505,7 @@ export default app
 	})
 }
 
-async function updatePackageJSON(targetPath: string) {
+async function updatePackageJSON(targetPath: string, frameworkInfo: HoudiniFrameworkInfo) {
 	let packageJSON: Record<string, any> = {}
 
 	const packagePath = path.join(targetPath, 'package.json')
@@ -499,11 +514,24 @@ async function updatePackageJSON(targetPath: string) {
 		packageJSON = JSON.parse(packageFile)
 	}
 
-	// houdini & graphql should be a dev dependencies
+	// houdini should be a dev dependencies
 	packageJSON.devDependencies = {
 		...packageJSON.devDependencies,
 		houdini: '^PACKAGE_VERSION',
-		'houdini-svelte': '^PACKAGE_VERSION',
+	}
+
+	if (frameworkInfo.framework === 'svelte' || frameworkInfo.framework === 'kit') {
+		packageJSON.devDependencies = {
+			...packageJSON.devDependencies,
+			'houdini-svelte': '^PACKAGE_VERSION',
+		}
+	} else if (frameworkInfo.framework === 'react') {
+		packageJSON.devDependencies = {
+			...packageJSON.devDependencies,
+			'houdini-react': '^PACKAGE_VERSION',
+		}
+	} else {
+		throw new Error(`Unmanaged framework: "${JSON.stringify(frameworkInfo)}"`)
 	}
 
 	await fs.writeFile(packagePath, JSON.stringify(packageJSON, null, 4))
