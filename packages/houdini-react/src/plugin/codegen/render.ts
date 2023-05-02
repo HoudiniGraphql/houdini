@@ -13,14 +13,23 @@ import Shell from '../../../../../src/+index'
 import { Router, router_cache } from '$houdini'
 import { Cache } from '$houdini/runtime/cache/cache'
 
-export default ({ url }) => <Shell><Router intialURL={url} {...router_cache()}/></Shell>
+export default ({ url }) => <Shell><Router intialURL={url} cache={new Cache()} {...router_cache()}/></Shell>
 `
 
 	const render_client = `
-import { hydrateRoot } from 'react-dom/client';
-import App from './App';
+import React from 'react'
+import ReactDOMServer from 'react-dom/server'
+import App from './App'
 
-hydrateRoot(document, <App />);
+export function render_server(request, response) {
+    const { pipe } = ReactDOMServer.renderToPipeableStream(<App url={request.url} />, {
+        bootstrapScripts: ['/main.js'],
+        onShellReady() {
+            response.setHeader('content-type', 'text/html')
+            pipe(response)
+        },
+    })
+}
 `
 
 	const render_server = `
@@ -30,7 +39,6 @@ import App from './App'
 
 export function render_server(request, response) {
     const { pipe } = ReactDOMServer.renderToPipeableStream(<App url={request.url} />, {
-        bootstrapScripts: ['/main.js'],
         onShellReady() {
             response.setHeader('content-type', 'text/html')
             pipe(response)

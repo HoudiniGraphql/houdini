@@ -1,7 +1,7 @@
-import { path, PluginHooks } from 'houdini'
+import { PluginHooks } from 'houdini'
 
 import { ProjectManifest } from './codegen/manifest'
-import { render_server_path, router_index_path } from './conventions'
+import { render_server_path } from './conventions'
 
 const vite_hooks = (get_manifest: () => ProjectManifest) =>
 	({
@@ -12,7 +12,7 @@ const vite_hooks = (get_manifest: () => ProjectManifest) =>
 			server.middlewares.use(async (request, response, next) => {
 				// we only care about requests for pages in the manifest.
 				// TODO: whole manifest
-				if (request.url !== '/') {
+				if (request.url !== '/' && !request.url?.startsWith('/user')) {
 					return next()
 				}
 
