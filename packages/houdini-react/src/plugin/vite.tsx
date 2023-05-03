@@ -98,7 +98,7 @@ export default {
 				artifact +
 				`
 
-if (window.__houdini__nav_caches__.artifact_cache && !window.__houdini__nav_caches__.artifact_cache.has("${arg}")) {
+if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_cache && !window.__houdini__nav_caches__.artifact_cache.has("${arg}")) {
 	window.__houdini__nav_caches__.artifact_cache.set(${arg}, artifact)
 }
 `
@@ -188,6 +188,7 @@ if (window.__houdini__nav_caches__.artifact_cache && !window.__houdini__nav_cach
 					// push a script that hydrates the cache more
 					new_value = `
 <script>
+
 	window.__houdini__cache__.hydrate(${cache.serialize()}, window.__houdini__hydration__layer)
 
 	// every query that we have resolved here can be resolved in the cache
@@ -213,7 +214,6 @@ if (window.__houdini__nav_caches__.artifact_cache && !window.__houdini__nav_cach
 	`
 		)
 		.join('\n')}
-
 
 </script>
 ${Object.keys(loaded_artifacts)

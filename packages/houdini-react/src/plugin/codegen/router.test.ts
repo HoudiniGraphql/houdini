@@ -57,7 +57,7 @@ test('happy path', async function () {
 									}
 						},
 
-						component: () => import(\\"../entries/__\\")
+						component: () => import(\\"../units/entries/__\\")
 					},
 
 					\\"____id__\\": {
@@ -77,7 +77,7 @@ test('happy path', async function () {
 									}
 						},
 
-						component: () => import(\\"../entries/____id__\\")
+						component: () => import(\\"../units/entries/____id__\\")
 					},
 
 					\\"__another\\": {
@@ -101,7 +101,7 @@ test('happy path', async function () {
 									}
 						},
 
-						component: () => import(\\"../entries/__another\\")
+						component: () => import(\\"../units/entries/__another\\")
 					},
 
 					\\"____id____nested\\": {
@@ -121,7 +121,7 @@ test('happy path', async function () {
 									}
 						},
 
-						component: () => import(\\"../entries/____id____nested\\")
+						component: () => import(\\"../units/entries/____id____nested\\")
 					},
 				},
 
@@ -194,7 +194,7 @@ test('loading state at root', async function () {
 									}
 						},
 
-						component: () => import(\\"../entries/__\\")
+						component: () => import(\\"../units/entries/__\\")
 					},
 
 					\\"____id__\\": {
@@ -214,7 +214,7 @@ test('loading state at root', async function () {
 									}
 						},
 
-						component: () => import(\\"../entries/____id__\\")
+						component: () => import(\\"../units/entries/____id__\\")
 					},
 
 					\\"__another\\": {
@@ -238,7 +238,7 @@ test('loading state at root', async function () {
 									}
 						},
 
-						component: () => import(\\"../entries/__another\\")
+						component: () => import(\\"../units/entries/__another\\")
 					},
 
 					\\"____id____nested\\": {
@@ -258,7 +258,7 @@ test('loading state at root', async function () {
 									}
 						},
 
-						component: () => import(\\"../entries/____id____nested\\")
+						component: () => import(\\"../units/entries/____id____nested\\")
 					},
 				},
 

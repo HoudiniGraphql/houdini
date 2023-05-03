@@ -3,7 +3,6 @@ import { Link } from '$houdini'
 export default function ({ HelloRouter, children }) {
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-			<div>{children}</div>
 			message: {HelloRouter.message}
 			<ul>
 				<li>
@@ -19,6 +18,7 @@ export default function ({ HelloRouter, children }) {
 					<Link href="/users/3">Morgan Freeman</Link>
 				</li>
 			</ul>
+			<div>{children}</div>
 		</div>
 	)
 }

@@ -15,29 +15,6 @@ import { Router } from '$houdini'
 export default (props) => <Shell><Router {...props} /></Shell>
 `
 
-	const render_client = `
-import { hydrateRoot } from 'react-dom/client';
-import App from './App'
-import { Cache } from '$houdini/runtime/cache/cache'
-import { router_cache } from '$houdini'
-import client  from '$houdini/plugins/houdini-react/runtime/client'
-
-// attach things to the global scope to synchronize streaming
-window.__houdini__nav_caches__ = router_cache()
-window.__houdini__cache__ = new Cache()
-window.__houdini__hydration__layer__ = window.__houdini__cache__._internal_unstable.storage.createLayer(true)
-
-window.__houdini__client__ = client
-
-window.__houdini__cache__.hydrate(
-	window.__houdini__initial__cache__,
-	window.__houdini__hydration__layer__
-)
-
-// hydrate the application for interactivity
-hydrateRoot(document, <App cache={window.__houdini__cache__} {...window.__houdini__nav_caches__} />)
-`
-
 	const render_server = `
 import React from 'react'
 import ReactDOMServer from 'react-dom/server'
@@ -71,7 +48,6 @@ export async function render_streaming({ url, cache }) {
 `
 
 	await Promise.all([
-		fs.writeFile(render_client_path(config), render_client),
 		fs.writeFile(render_server_path(config), render_server),
 		fs.writeFile(render_app_path(config), app_index),
 	])

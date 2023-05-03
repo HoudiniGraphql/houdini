@@ -14,8 +14,8 @@ export default function ({ UserInfo }) {
 	// render the user information
 	return (
 		<div>
-			<button onClick={() => setCount((c) => c + 1)}>{count}</button>
 			<h1>{user.name}</h1>
+			<button onClick={() => setCount((c) => c + 1)}>{count}</button>
 		</div>
 	)
 }

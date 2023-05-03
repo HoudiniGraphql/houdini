@@ -163,8 +163,9 @@ test('composes layouts and pages', async function () {
 		    return (
 		        (<Suspense
 		            fallback={<Fallback
-		                queries={{
-		                    FinalQuery
+		                required_queries={{}}
+		                loading_queries={{
+		                    FinalQuery: FinalQuery_artifact
 		                }} />}>
 		            {children}
 		        </Suspense>)
@@ -173,19 +174,20 @@ test('composes layouts and pages', async function () {
 
 		const Fallback = (
 		    {
-		        queries
+		        required_queries,
+		        loading_queries
 		    }
 		) => {
 		    const cache = useCache();
 
-		    const props = Object.entries(queries).reduce((prev, [name, artifact]) => ({
+		    let props = Object.entries(loading_queries).reduce((prev, [name, artifact]) => ({
 		        ...prev,
 
 		        [name]: cache.read({
 		            selection: artifact.selection,
 		            loading: true
 		        }).data
-		    }), {});
+		    }), required_queries);
 
 		    return <Component {...props} />;
 		};
@@ -213,7 +215,7 @@ test('composes layouts and pages', async function () {
 		    } = useRouterContext();
 
 		    return (
-		        (<Suspense fallback={<Fallback queries={{}} />}>
+		        (<Suspense fallback={<Fallback required_queries={{}} loading_queries={{}} />}>
 		            {children}
 		        </Suspense>)
 		    );
@@ -221,19 +223,20 @@ test('composes layouts and pages', async function () {
 
 		const Fallback = (
 		    {
-		        queries
+		        required_queries,
+		        loading_queries
 		    }
 		) => {
 		    const cache = useCache();
 
-		    const props = Object.entries(queries).reduce((prev, [name, artifact]) => ({
+		    let props = Object.entries(loading_queries).reduce((prev, [name, artifact]) => ({
 		        ...prev,
 
 		        [name]: cache.read({
 		            selection: artifact.selection,
 		            loading: true
 		        }).data
-		    }), {});
+		    }), required_queries);
 
 		    return <Component {...props} />;
 		};

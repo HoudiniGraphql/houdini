@@ -13,10 +13,48 @@ test('generates render functions', async function () {
 	const render_client = await parseJS((await fs.readFile(render_client_path(config))) ?? '', {
 		plugins: ['jsx'],
 	})
-	expect(render_client).toMatchInlineSnapshot()
+	expect(render_client).toMatchInlineSnapshot('')
 
 	const render_server = await parseJS((await fs.readFile(render_server_path(config))) ?? '', {
 		plugins: ['jsx'],
 	})
-	expect(render_server).toMatchInlineSnapshot()
+	expect(render_server).toMatchInlineSnapshot(`
+		import React from "react";
+		import ReactDOMServer from "react-dom/server";
+		import { renderToStream } from "react-streaming/server";
+		import App from "./App";
+		import { router_cache } from "$houdini";
+
+		export async function render_server(
+		    {
+		        url,
+		        cache,
+		        loaded_queries,
+		        loaded_artifacts,
+		        ...config
+		    }
+		) {
+		    const {
+		        pipe
+		    } = ReactDOMServer.renderToPipeableStream(<App
+		        intialURL={url}
+		        cache={cache}
+		        {...router_cache()}
+		        loaded_queries={loaded_queries}
+		        loaded_artifacts={loaded_artifacts} />, {
+		        ...config,
+
+		        onShellReady() {
+		            config.onShellReady?.(pipe);
+		        }
+		    });
+		}
+
+		export async function render_streaming(
+		    {
+		        url,
+		        cache
+		    }
+		) {}
+	`)
 })
