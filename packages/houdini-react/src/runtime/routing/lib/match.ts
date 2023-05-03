@@ -22,7 +22,18 @@ export interface ParamMatcher {
 // find the matching page given the current path
 export function find_match(
 	manifest: RouterManifest,
-	current: string
+	current: string,
+	allowNull: true
+): [RouterPageManifest | null, GraphQLVariables]
+export function find_match(
+	manifest: RouterManifest,
+	current: string,
+	allowNull?: false
+): [RouterPageManifest, GraphQLVariables]
+export function find_match(
+	manifest: RouterManifest,
+	current: string,
+	allowNull?: boolean
 ): [RouterPageManifest, GraphQLVariables] {
 	// find the matching path (if it exists)
 	let match: RouterPageManifest | null = null
@@ -40,10 +51,11 @@ export function find_match(
 		break
 	}
 
-	if (!match) {
+	if (!match && !allowNull) {
 		throw new Error('404')
 	}
 
+	// @ts-ignore
 	return [match, matchVariables]
 }
 

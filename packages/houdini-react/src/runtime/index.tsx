@@ -21,9 +21,11 @@ export function Router({
 	data_cache,
 	pending_cache,
 	last_variables,
+	completed_queries,
 }: {
 	intialURL: string
 	cache: Cache
+	completed_queries: Record<string, { data: GraphQLObject }>
 } & RouterCache) {
 	return (
 		<RouterContextProvider
@@ -35,7 +37,11 @@ export function Router({
 			pending_cache={pending_cache}
 			last_variables={last_variables}
 		>
-			<RouterImpl intialURL={intialURL} manifest={manifest} />
+			<RouterImpl
+				intialURL={intialURL}
+				manifest={manifest}
+				completed_queries={completed_queries}
+			/>
 		</RouterContextProvider>
 	)
 }
@@ -48,12 +54,38 @@ type RouterCache = {
 	pending_cache: PendingCache
 }
 
-export function router_cache(): RouterCache {
-	return {
+export function router_cache({
+	pending_queries = [],
+}: { pending_queries?: string[] } = {}): RouterCache {
+	const result: RouterCache = {
 		artifact_cache: suspense_cache(),
 		component_cache: suspense_cache(),
 		data_cache: suspense_cache(),
 		pending_cache: suspense_cache(),
 		last_variables: suspense_cache(),
+	}
+
+	// we need to fill each query with an externally resolvable promise
+	for (const query of pending_queries) {
+		result.pending_cache.set(query, signal_promise())
+	}
+
+	return result
+}
+
+// a signal promise is a promise is used to send signals by having listeners attach
+// actions to the then()
+function signal_promise(): Promise<void> & { resolve: () => void; reject: () => void } {
+	let resolve: () => void = () => {}
+	let reject: () => void = () => {}
+	const promise = new Promise<void>((res, rej) => {
+		resolve = res
+		reject = rej
+	})
+
+	return {
+		...promise,
+		resolve,
+		reject,
 	}
 }

@@ -6,6 +6,7 @@
 	"scripts": {
 		"build:": "cd ../../ && ((run build && cd -) || (cd - && exit 1))",
 		"build:dev": "pnpm build: && pnpm dev",
+		"build:web": "pnpm build: && pnpm web",
 		"build:test": "pnpm build: && pnpm test",
 		"build:build": "pnpm build: && pnpm build",
 		"web": "vite ",

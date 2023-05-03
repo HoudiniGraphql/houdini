@@ -45,6 +45,8 @@ export class DocumentStore<
 	// a reference to the earliest resolving open promise that the store has sent
 	pendingPromise: { then: (val: any) => void } | null = null
 
+	serverSideFallback?: boolean
+
 	constructor({
 		artifact,
 		plugins,
@@ -54,6 +56,7 @@ export class DocumentStore<
 		enableCache = true,
 		initialValue,
 		fetching,
+		serverSideFallback,
 	}: {
 		artifact: DocumentArtifact
 		plugins?: ClientHooks[]
@@ -63,6 +66,7 @@ export class DocumentStore<
 		enableCache?: boolean
 		initialValue?: _Data | null
 		fetching?: boolean
+		serverSideFallback?: boolean
 	}) {
 		// if fetching is set, respect the value
 		// if fetching is not set, we should default fetching on queries and not on the rest.

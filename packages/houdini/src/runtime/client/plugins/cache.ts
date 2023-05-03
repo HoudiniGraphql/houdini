@@ -18,6 +18,11 @@ export const cachePolicy =
 		serverSideFallback?: boolean
 	}): ClientPlugin =>
 	() => {
+		// if we were given a cha
+		if (cache) {
+			serverSideFallback = false
+		}
+
 		return {
 			network(ctx, { initialValue, next, resolve, marshalVariables }) {
 				const { policy, artifact } = ctx

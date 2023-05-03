@@ -194,6 +194,14 @@ export class Cache {
 	config(): ConfigFile {
 		return this._internal_unstable.config
 	}
+
+	serialize() {
+		return this._internal_unstable.storage.serialize()
+	}
+
+	hydrate(...args: Parameters<InMemoryStorage['hydrate']>) {
+		return this._internal_unstable.storage.hydrate(...args)
+	}
 }
 
 class CacheInternal {

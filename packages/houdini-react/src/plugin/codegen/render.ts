@@ -10,40 +10,54 @@ export async function generate_renders(config: Config) {
 	const app_index = `
 import React from 'react'
 import Shell from '../../../../../src/+index'
-import { Router, router_cache } from '$houdini'
-import { Cache } from '$houdini/runtime/cache/cache'
+import { Router } from '$houdini'
 
-export default ({ url }) => <Shell><Router intialURL={url} cache={new Cache()} {...router_cache()}/></Shell>
+export default (props) => <Shell><Router {...props} /></Shell>
 `
 
 	const render_client = `
-import React from 'react'
-import ReactDOMServer from 'react-dom/server'
+import { hydrateRoot } from 'react-dom/client';
 import App from './App'
+import { Cache } from '$houdini/runtime/cache/cache'
+import { router_cache } from '$houdini'
+import client  from '$houdini/plugins/houdini-react/runtime/client'
 
-export function render_server(request, response) {
-    const { pipe } = ReactDOMServer.renderToPipeableStream(<App url={request.url} />, {
-        bootstrapScripts: ['/main.js'],
-        onShellReady() {
-            response.setHeader('content-type', 'text/html')
-            pipe(response)
-        },
-    })
-}
+// attach things to the global scope to synchronize streaming
+window.__houdini__nav_caches__ = router_cache()
+window.__houdini__cache__ = new Cache()
+window.__houdini__hydration__layer__ = window.__houdini__cache__._internal_unstable.storage.createLayer(true)
+
+console.log({client})
+window.__houdini__client__ = client
+
+window.__houdini__cache__.hydrate(
+	window.__houdini__initial__cache__,
+	window.__houdini__hydration__layer__
+)
+
+// hydrate the application for interactivity
+hydrateRoot(document, <App cache={window.__houdini__cache__} {...window.__houdini__nav_caches__} />)
 `
 
 	const render_server = `
 import React from 'react'
 import ReactDOMServer from 'react-dom/server'
-import App from './App'
+import { renderToStream } from 'react-streaming/server'
 
-export function render_server(request, response) {
-    const { pipe } = ReactDOMServer.renderToPipeableStream(<App url={request.url} />, {
+import App from './App'
+import { router_cache } from '$houdini'
+
+export async function render_server({url, cache, completed_queries, ...config}) {
+    const { pipe } = ReactDOMServer.renderToPipeableStream(<App intialURL={url} cache={cache} {...router_cache()} completed_queries={completed_queries} />, {
+        ...config,
         onShellReady() {
-            response.setHeader('content-type', 'text/html')
-            pipe(response)
+			config.onShellReady?.(pipe)
         },
     })
+}
+
+export async function render_streaming({ url, cache }) {
+
 }
 `
 

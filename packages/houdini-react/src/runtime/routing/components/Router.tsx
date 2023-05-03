@@ -28,7 +28,15 @@ const NavContext = React.createContext<NavigationContext>({
 // don't want network waterfalls. So we need to send the request for everything all
 // at once and then wrap the children in the necessary context so that when they render
 // they can grab what they need if its ready and suspend if not.
-export function Router({ manifest, intialURL }: { manifest: RouterManifest; intialURL?: string }) {
+export function Router({
+	manifest,
+	intialURL,
+	completed_queries,
+}: {
+	manifest: RouterManifest
+	intialURL?: string
+	completed_queries?: Record<string, { data: GraphQLObject }>
+}) {
 	// the current route is just a string in state.
 	const [current, setCurrent] = React.useState(() => {
 		return intialURL || window.location.pathname
@@ -43,7 +51,7 @@ export function Router({ manifest, intialURL }: { manifest: RouterManifest; inti
 
 	// load the page assets (source, artifacts, data). this will suspend if the component is not available yet
 	// this hook embeds pending requests in context so that the component can suspend if necessary14
-	useLoadPage({ page, variables })
+	useLoadPage({ page, variables, completed_queries })
 
 	// if we get this far, it's safe to load the component
 	const { component_cache, last_variables, data_cache } = useRouterContext()
@@ -102,9 +110,11 @@ export function Router({ manifest, intialURL }: { manifest: RouterManifest; inti
 function useLoadPage({
 	page,
 	variables,
+	completed_queries,
 }: {
 	page: RouterPageManifest
 	variables: GraphQLVariables
+	completed_queries?: Record<string, { data: GraphQLObject }>
 }) {
 	// grab context values
 	const {
@@ -133,27 +143,35 @@ function useLoadPage({
 		// send the request
 		const observer = client.observe({ artifact, cache })
 
-		// add it to the pending cache
-		pending_cache.set(
-			id,
-			new Promise<void>((resolve, reject) => {
-				observer
-					.send({
-						variables: variables,
-						cacheParams: { disableSubscriptions: true },
-					})
-					.then(() => {
-						data_cache.set(id, observer)
+		let resolve: () => void = () => {}
+		let reject: () => void = () => {}
+		const promise = new Promise<void>((res, rej) => {
+			resolve = res
+			reject = rej
 
-						resolve()
-					})
-					.catch(reject)
-					// we're done processing
-					.finally(() => {
-						pending_cache.delete(id)
-					})
-			})
-		)
+			observer
+				.send({
+					variables: variables,
+					cacheParams: { disableSubscriptions: true },
+				})
+				.then(() => {
+					data_cache.set(id, observer)
+					if (completed_queries) {
+						completed_queries[artifact.name] = {
+							data: observer.state.data!,
+						}
+					}
+					resolve()
+				})
+				.catch(reject)
+				// we're done processing
+				.finally(() => {
+					pending_cache.delete(id)
+				})
+		})
+
+		// add it to the pending cache
+		pending_cache.set(id, { ...promise, resolve, reject })
 
 		// this promise is also what we want to do with the main invocation
 		return pending_cache.get(id)!
@@ -287,7 +305,9 @@ type RouterContext = {
 	last_variables: LRUCache<GraphQLVariables>
 }
 
-export type PendingCache = SuspenseCache<Promise<void>>
+export type PendingCache = SuspenseCache<
+	Promise<void> & { resolve: () => void; reject: () => void }
+>
 
 const Context = React.createContext<RouterContext | null>(null)
 

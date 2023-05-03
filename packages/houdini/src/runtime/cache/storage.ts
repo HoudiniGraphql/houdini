@@ -257,6 +257,37 @@ export class InMemoryStorage {
 		// the top layer is safe to write to (its non-null and guaranteed not optimistic)
 		return this.data[this.data.length - 1]
 	}
+
+	// return a string representation of all of the data and necessary state to
+	// recreate the information stored
+	serialize() {
+		// TODO: read all layers, not just top one
+		return JSON.stringify({
+			rank: this.rank,
+			fields: this.topLayer.fields,
+			links: this.topLayer.links,
+		})
+	}
+
+	hydrate(
+		{
+			rank,
+			fields,
+			links,
+		}: {
+			rank: number
+			fields: EntityFieldMap
+			links: LinkMap
+		},
+		layer?: Layer
+	) {
+		this.rank = rank
+
+		// a hydration layer is always standlone. treat it as an optimistic layer that never resolves
+		layer ??= this.createLayer(true)
+		layer.fields = fields
+		layer.links = links
+	}
 }
 
 export class Layer {
