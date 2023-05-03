@@ -27,7 +27,6 @@ window.__houdini__nav_caches__ = router_cache()
 window.__houdini__cache__ = new Cache()
 window.__houdini__hydration__layer__ = window.__houdini__cache__._internal_unstable.storage.createLayer(true)
 
-console.log({client})
 window.__houdini__client__ = client
 
 window.__houdini__cache__.hydrate(
