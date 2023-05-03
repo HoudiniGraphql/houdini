@@ -31,11 +31,13 @@ const NavContext = React.createContext<NavigationContext>({
 export function Router({
 	manifest,
 	intialURL,
-	completed_queries,
+	loaded_queries,
+	loaded_artifacts,
 }: {
 	manifest: RouterManifest
 	intialURL?: string
-	completed_queries?: Record<string, { data: GraphQLObject }>
+	loaded_queries?: Record<string, { data: GraphQLObject }>
+	loaded_artifacts?: Record<string, QueryArtifact>
 }) {
 	// the current route is just a string in state.
 	const [current, setCurrent] = React.useState(() => {
@@ -51,7 +53,7 @@ export function Router({
 
 	// load the page assets (source, artifacts, data). this will suspend if the component is not available yet
 	// this hook embeds pending requests in context so that the component can suspend if necessary14
-	useLoadPage({ page, variables, completed_queries })
+	useLoadPage({ page, variables, loaded_queries, loaded_artifacts })
 
 	// if we get this far, it's safe to load the component
 	const { component_cache, last_variables, data_cache } = useRouterContext()
@@ -110,11 +112,13 @@ export function Router({
 function useLoadPage({
 	page,
 	variables,
-	completed_queries,
+	loaded_queries,
+	loaded_artifacts,
 }: {
 	page: RouterPageManifest
 	variables: GraphQLVariables
-	completed_queries?: Record<string, { data: GraphQLObject }>
+	loaded_queries?: Record<string, { data: GraphQLObject }>
+	loaded_artifacts?: Record<string, QueryArtifact>
 }) {
 	// grab context values
 	const {
@@ -156,8 +160,8 @@ function useLoadPage({
 				})
 				.then(() => {
 					data_cache.set(id, observer)
-					if (completed_queries) {
-						completed_queries[artifact.name] = {
+					if (loaded_queries) {
+						loaded_queries[artifact.name] = {
 							data: observer.state.data!,
 						}
 					}
@@ -207,6 +211,9 @@ function useLoadPage({
 
 				// save the artifact in the cache
 				artifact_cache.set(artifact_id, artifact)
+				if (loaded_artifacts) {
+					loaded_artifacts[artifact.name] = artifact
+				}
 
 				// now that we have the artifact, we can load the query too
 				load_query({ id: artifact.name, artifact })

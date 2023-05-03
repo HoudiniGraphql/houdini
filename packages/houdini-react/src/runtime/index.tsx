@@ -21,11 +21,13 @@ export function Router({
 	data_cache,
 	pending_cache,
 	last_variables,
-	completed_queries,
+	loaded_queries,
+	loaded_artifacts,
 }: {
 	intialURL: string
 	cache: Cache
-	completed_queries: Record<string, { data: GraphQLObject }>
+	loaded_queries?: Record<string, { data: GraphQLObject }>
+	loaded_artifacts?: Record<string, QueryArtifact>
 } & RouterCache) {
 	return (
 		<RouterContextProvider
@@ -40,7 +42,8 @@ export function Router({
 			<RouterImpl
 				intialURL={intialURL}
 				manifest={manifest}
-				completed_queries={completed_queries}
+				loaded_queries={loaded_queries}
+				loaded_artifacts={loaded_artifacts}
 			/>
 		</RouterContextProvider>
 	)
@@ -56,7 +59,13 @@ type RouterCache = {
 
 export function router_cache({
 	pending_queries = [],
-}: { pending_queries?: string[] } = {}): RouterCache {
+	artifacts = {},
+	components = {},
+}: {
+	pending_queries?: string[]
+	artifacts?: Record<string, QueryArtifact>
+	components?: Record<string, (props: any) => React.ReactElement>
+} = {}): RouterCache {
 	const result: RouterCache = {
 		artifact_cache: suspense_cache(),
 		component_cache: suspense_cache(),
@@ -68,6 +77,14 @@ export function router_cache({
 	// we need to fill each query with an externally resolvable promise
 	for (const query of pending_queries) {
 		result.pending_cache.set(query, signal_promise())
+	}
+
+	for (const [name, artifact] of Object.entries(artifacts)) {
+		result.artifact_cache.set(name, artifact)
+	}
+
+	for (const [name, component] of Object.entries(components)) {
+		result.component_cache.set(name, component)
 	}
 
 	return result

@@ -1,4 +1,4 @@
-import { PluginHooks, Config, Cache, path } from 'houdini'
+import { PluginHooks, Config, Cache, path, QueryArtifact, fs } from 'houdini'
 import ReactDOMServer, { RenderToPipeableStreamOptions } from 'react-dom/server'
 import { Transform } from 'stream'
 import type { ViteDevServer } from 'vite'
@@ -7,39 +7,75 @@ import { RouterManifest } from '../runtime'
 import { find_match } from '../runtime/routing/lib/match'
 import { render_server_path } from './conventions'
 
+// in order to coordinate the client and server, the client's pending request cache
+// needs to start with a value for every query that we are sending on the server.
+// While values resolve, chunks are sent, etc, the pending cache will be resolved
+// and components will be allowed to render assume their data cache is sufficiently full
+
+// We need to generate all sorts of files and in development, we want to rely heavily on
+// Vite's dev server for loading things so that we can make sure we always integrate
+// well with their hmr. This means using virtual modules in place of the statically generated
+// files.
+
+// A potentially incomplete list of things that are mocked / need to be generated:
+// @@houdini/page/[query_names.join(',')] - An entry for every page that starts the pending cache with the correct values
+// @@houdini/artifact/[name] - An entry for loading an artifact and notifying the artifact cache
+
 export default {
 	resolveId(id) {
 		// we only care about the virtual modules that generate
-		if (!id.includes('/@@houdini')) {
+		if (!id.includes('@@houdini')) {
 			return
 		}
 
-		return id
+		// let them all through as is but strip anything that comes before the marker
+		return id.substring(id.indexOf('@@houdini'))
 	},
-	load(id) {
+	async load(id, { config }) {
 		// we only care about the virtual modules that generate
-		if (!id.includes('/@@houdini')) {
+		if (!id.startsWith('@@houdini')) {
 			return
 		}
 
-		// the filename is the list of queries that will start pending
-		const parsedPath = path.parse(id)
-		const queries = parsedPath.name.split(',')
+		// pull out the relevant pa
+		let [, which, arg] = id.split('/')
 
-		return `
+		// the filename is the true arg. the extension just tells vite how to transfrom.
+		const parsedPath = path.parse(arg)
+		arg = parsedPath.name
+
+		// if we are rendering the virtual page
+		if (which === 'page') {
+			const [id, query_names, artifact_names] = arg.split('@')
+			const queries = query_names.split(',')
+			const artifacts = artifact_names.split(',')
+
+			return `
 				import { hydrateRoot } from 'react-dom/client';
 				import App from '$houdini/plugins/houdini-react/units/render/App'
 				import { Cache } from '$houdini/runtime/cache/cache'
 				import { router_cache } from '$houdini'
-				import client  from '$houdini/plugins/houdini-react/runtime/client'
+				import client from '$houdini/plugins/houdini-react/runtime/client'
+				import Component from '$houdini/plugins/houdini-react/units/entries/${id}.jsx'
+
+				${artifacts
+					.map(
+						(artifact) => `import ${artifact} from "$houdini/artifacts/${artifact}.js"`
+					)
+					.join('\n')}
 
 				// attach things to the global scope to synchronize streaming
 				window.__houdini__nav_caches__ = router_cache({
-					pending_queries: ${JSON.stringify(queries)}
+					pending_queries: ${JSON.stringify(queries)},
+					artifacts: { ${artifacts.join(',')} },
+					components: {
+						'${id}': Component
+					}
 				})
 				window.__houdini__cache__ = new Cache()
 				window.__houdini__hydration__layer__ = window.__houdini__cache__._internal_unstable.storage.createLayer(true)
 				window.__houdini__client__ = client
+
 
 				// hydrate the cache with the information from the initial payload
 				window.__houdini__cache__.hydrate(
@@ -50,6 +86,22 @@ export default {
 				// hydrate the application for interactivity
 				hydrateRoot(document, <App cache={window.__houdini__cache__} {...window.__houdini__nav_caches__} />)
 			`
+		}
+
+		if (which === 'artifact') {
+			// the arg is the name of the artifact
+			const artifact = (await fs.readFile(
+				path.join(config.artifactDirectory, arg + '.js')
+			))!.replace('export default', 'const artifact = ')
+
+			return (
+				artifact +
+				`
+
+console.log(artifact)
+`
+			)
+		}
 	},
 
 	// when running the dev server, we want to use the same streaming
@@ -88,10 +140,15 @@ export default {
 			// our cache hydration as the initial response streams to the client.
 			let chunkNumber = 0
 
+			// in order to stream values to the client we need to track what we load
+			const loaded_queries: Record<string, { data: any }> = {}
+			const loaded_artifacts: Record<string, QueryArtifact> = {}
+
+			// our pending cache needs to start with signals that we can alert
+			// for every query that we will send as part of the initial request
 			const pending_queries = Object.keys(match.documents)
-			const completed_queries: Record<string, { data: any }> = {}
 			const pending_query_names = pending_queries
-				.filter((q) => !(q in completed_queries))
+				.filter((q) => !(q in loaded_queries))
 				.join(',')
 
 			// in order to be able to hydrate the cache with the data
@@ -111,7 +168,9 @@ export default {
 </script>
 <script type="module" src="/@vite/client" async=""></script>
 <!-- add a virtual module that loads the client and sets up the initial pending cache -->
-<script type="module" src="/@@houdini/client/${pending_query_names}.jsx" async=""></script>`
+<script type="module" src="@@houdini/page/${match.id}@${pending_query_names}@${Object.keys(
+							loaded_artifacts
+						).join(',')}.jsx" async=""></script>`
 
 						// we're done
 						next(null, new_value)
@@ -126,7 +185,7 @@ export default {
 	window.__houdini__cache__.hydrate(${cache.serialize()}, window.__houdini__hydration__layer)
 
 	// every query that we have resolved here can be resolved in the cache
-	${Object.keys(completed_queries)
+	${Object.keys(loaded_queries)
 		.map(
 			(query) => `
 			if (window.__houdini__nav_caches__.pending_cache.has("${query}")) {
@@ -137,7 +196,7 @@ export default {
 					window.__houdini__client__.observe({
 						artifact: window.__houdini__nav_caches__.artifact_cache.get("${query}"),
 						cache: window.__houdini__cache__,
-						initialValue: ${JSON.stringify(completed_queries[query].data)}
+						initialValue: ${JSON.stringify(loaded_queries[query].data)}
 					})
 				)
 
@@ -151,6 +210,9 @@ export default {
 
 
 </script>
+${Object.keys(loaded_artifacts)
+	.map((name) => `<script type="module" src="@@houdini/artifact/${name}.js" async=""></script>`)
+	.join('\n')}
 
 ${new_value}
 `
@@ -162,7 +224,8 @@ ${new_value}
 
 			// render the response
 			render_server({
-				completed_queries,
+				loaded_queries,
+				loaded_artifacts,
 				url: request.url,
 				cache,
 				onError() {
@@ -185,7 +248,8 @@ async function load_render(server: ViteDevServer & { houdiniConfig: Config }) {
 	)) as {
 		render_server: (
 			config: Omit<RenderToPipeableStreamOptions, 'onShellReady' | 'url'> & {
-				completed_queries: Record<string, { data: any }>
+				loaded_queries: Record<string, { data: any }>
+				loaded_artifacts: Record<string, QueryArtifact>
 				cache: Cache
 				url: string
 				onShellReady: (

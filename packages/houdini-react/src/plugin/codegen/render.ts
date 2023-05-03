@@ -46,13 +46,23 @@ import { renderToStream } from 'react-streaming/server'
 import App from './App'
 import { router_cache } from '$houdini'
 
-export async function render_server({url, cache, completed_queries, ...config}) {
-    const { pipe } = ReactDOMServer.renderToPipeableStream(<App intialURL={url} cache={cache} {...router_cache()} completed_queries={completed_queries} />, {
-        ...config,
-        onShellReady() {
-			config.onShellReady?.(pipe)
-        },
-    })
+export async function render_server({url, cache, loaded_queries, loaded_artifacts, ...config}) {
+    const { pipe } = ReactDOMServer.renderToPipeableStream(
+			<App
+				intialURL={url}
+				cache={cache}
+				{...router_cache()}
+				loaded_queries={loaded_queries}
+				loaded_artifacts={loaded_artifacts}
+			/>
+		,
+		{
+			...config,
+			onShellReady() {
+				config.onShellReady?.(pipe)
+			},
+		}
+	)
 }
 
 export async function render_streaming({ url, cache }) {
