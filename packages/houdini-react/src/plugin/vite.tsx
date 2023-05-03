@@ -98,7 +98,9 @@ export default {
 				artifact +
 				`
 
-console.log(artifact)
+if (window.__houdini__nav_caches__.artifact_cache && !window.__houdini__nav_caches__.artifact_cache.has("${arg}")) {
+	window.__houdini__nav_caches__.artifact_cache.set(${arg}, artifact)
+}
 `
 			)
 		}
@@ -160,15 +162,19 @@ console.log(artifact)
 					// version of the caches data
 					let new_value = chunk.toString()
 
+					// TODO: clean up the loaded lists so we don't add the same thing multple time
+
 					// if we don't have the initialization scripts yet, add it
 					if (!chunkNumber++) {
 						new_value += `
-<script>
-	window.__houdini__initial__cache__ = ${cache.serialize()};
-</script>
-<script type="module" src="/@vite/client" async=""></script>
-<!-- add a virtual module that loads the client and sets up the initial pending cache -->
-<script type="module" src="@@houdini/page/${match.id}@${pending_query_names}@${Object.keys(
+						<script>
+							window.__houdini__initial__cache__ = ${cache.serialize()};
+						</script>
+
+						<script type="module" src="/@vite/client" async=""></script>
+
+						<!-- add a virtual module that loads the client and sets up the initial pending cache -->
+						<script type="module" src="@@houdini/page/${match.id}@${pending_query_names}@${Object.keys(
 							loaded_artifacts
 						).join(',')}.jsx" async=""></script>`
 
