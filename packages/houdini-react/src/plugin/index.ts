@@ -29,7 +29,7 @@ export const hooks: Plugin = async () => ({
 		commonjs: '../runtime-cjs',
 	},
 
-	vite: vite_plugin(() => manifest),
+	vite: vite_plugin,
 
 	// we need to add overloaded definitions for every hook that
 	// returns the appropriate type for each document

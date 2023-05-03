@@ -1,34 +1,32 @@
-import { PluginHooks, Config, Cache, path, GraphQLObject } from 'houdini'
+import { PluginHooks, Config, Cache, path } from 'houdini'
 import ReactDOMServer, { RenderToPipeableStreamOptions } from 'react-dom/server'
 import { Transform } from 'stream'
 import type { ViteDevServer } from 'vite'
 
 import { RouterManifest } from '../runtime'
 import { find_match } from '../runtime/routing/lib/match'
-import { ProjectManifest } from './codegen/manifest'
 import { render_server_path } from './conventions'
 
-const vite_hooks = (get_manifest: () => ProjectManifest) =>
-	({
-		resolveId(id) {
-			// we only care about the virtual modules that generate
-			if (!id.includes('/@@houdini')) {
-				return
-			}
+export default {
+	resolveId(id) {
+		// we only care about the virtual modules that generate
+		if (!id.includes('/@@houdini')) {
+			return
+		}
 
-			return id
-		},
-		load(id) {
-			// we only care about the virtual modules that generate
-			if (!id.includes('/@@houdini')) {
-				return
-			}
+		return id
+	},
+	load(id) {
+		// we only care about the virtual modules that generate
+		if (!id.includes('/@@houdini')) {
+			return
+		}
 
-			// the filename is the list of queries that will start pending
-			const parsedPath = path.parse(id)
-			const queries = parsedPath.name.split(',')
+		// the filename is the list of queries that will start pending
+		const parsedPath = path.parse(id)
+		const queries = parsedPath.name.split(',')
 
-			return `
+		return `
 				import { hydrateRoot } from 'react-dom/client';
 				import App from '$houdini/plugins/houdini-react/units/render/App'
 				import { Cache } from '$houdini/runtime/cache/cache'
@@ -52,62 +50,62 @@ const vite_hooks = (get_manifest: () => ProjectManifest) =>
 				// hydrate the application for interactivity
 				hydrateRoot(document, <App cache={window.__houdini__cache__} {...window.__houdini__nav_caches__} />)
 			`
-		},
+	},
 
-		// when running the dev server, we want to use the same streaming
-		// render that we will use in production. This means that we need to
-		// capture the request before vite's dev server processes it.
-		configureServer(server) {
-			server.middlewares.use(async (request, response, next) => {
-				if (!request.url) {
-					return next()
-				}
+	// when running the dev server, we want to use the same streaming
+	// render that we will use in production. This means that we need to
+	// capture the request before vite's dev server processes it.
+	configureServer(server) {
+		server.middlewares.use(async (request, response, next) => {
+			if (!request.url) {
+				return next()
+			}
 
-				// pull in the project's manifest
-				const { default: manifest } = (await server.ssrLoadModule(
-					path.join(
-						server.houdiniConfig.pluginRuntimeDirectory('houdini-react'),
-						'manifest.js'
-					)
-				)) as { default: RouterManifest }
+			// pull in the project's manifest
+			const { default: manifest } = (await server.ssrLoadModule(
+				path.join(
+					server.houdiniConfig.pluginRuntimeDirectory('houdini-react'),
+					'manifest.js'
+				)
+			)) as { default: RouterManifest }
 
-				// find the matching url
-				const [match, matchVariables] = find_match(manifest, request.url, true)
-				if (!match) {
-					return next()
-				}
+			// find the matching url
+			const [match] = find_match(manifest, request.url, true)
+			if (!match) {
+				return next()
+			}
 
-				// get the function that we can call to render the response
-				// on the server
-				const render_server = await load_render(server)
+			// get the function that we can call to render the response
+			// on the server
+			const render_server = await load_render(server)
 
-				// instanitate a cache we can use
-				const cache = new Cache({ disabled: false })
+			// instanitate a cache we can use
+			const cache = new Cache({ disabled: false })
 
-				// The way we push logic down to the client is by appending values
-				// to the stream. Each new chunk is executed so if we push <script> tags
-				// we can interact with the global scope. we're going to use this to coordinate
-				// our cache hydration as the initial response streams to the client.
-				let chunkNumber = 0
+			// The way we push logic down to the client is by appending values
+			// to the stream. Each new chunk is executed so if we push <script> tags
+			// we can interact with the global scope. we're going to use this to coordinate
+			// our cache hydration as the initial response streams to the client.
+			let chunkNumber = 0
 
-				const pending_queries = Object.keys(match.documents)
-				const completed_queries: Record<string, { data: any }> = {}
-				const pending_query_names = pending_queries
-					.filter((q) => !(q in completed_queries))
-					.join(',')
+			const pending_queries = Object.keys(match.documents)
+			const completed_queries: Record<string, { data: any }> = {}
+			const pending_query_names = pending_queries
+				.filter((q) => !(q in completed_queries))
+				.join(',')
 
-				// in order to be able to hydrate the cache with the data
-				// we grabbed from the server, we need to inject some information in the stream
-				const modifyStream = new Transform({
-					// the transform function receives the incoming data and a callback
-					transform(chunk, _, next) {
-						// in render call below, we added an string that we need to replace with a serialized
-						// version of the caches data
-						let new_value = chunk.toString()
+			// in order to be able to hydrate the cache with the data
+			// we grabbed from the server, we need to inject some information in the stream
+			const modifyStream = new Transform({
+				// the transform function receives the incoming data and a callback
+				transform(chunk, _, next) {
+					// in render call below, we added an string that we need to replace with a serialized
+					// version of the caches data
+					let new_value = chunk.toString()
 
-						// if we don't have the initialization scripts yet, add it
-						if (!chunkNumber++) {
-							new_value += `
+					// if we don't have the initialization scripts yet, add it
+					if (!chunkNumber++) {
+						new_value += `
 <script>
 	window.__houdini__initial__cache__ = ${cache.serialize()};
 </script>
@@ -115,16 +113,15 @@ const vite_hooks = (get_manifest: () => ProjectManifest) =>
 <!-- add a virtual module that loads the client and sets up the initial pending cache -->
 <script type="module" src="/@@houdini/client/${pending_query_names}.jsx" async=""></script>`
 
-							// we're done
-							next(null, new_value)
-							return
-						}
+						// we're done
+						next(null, new_value)
+						return
+					}
 
-						// we're sending a chunk after the first
+					// we're sending a chunk after the first
 
-						// push a script that hydrates the cache more
-						new_value =
-							`
+					// push a script that hydrates the cache more
+					new_value = `
 <script>
 	window.__houdini__cache__.hydrate(${cache.serialize()}, window.__houdini__hydration__layer)
 
@@ -154,31 +151,31 @@ const vite_hooks = (get_manifest: () => ProjectManifest) =>
 
 
 </script>
-` + new_value
 
-						// pass the modified data to the next stream in the pipeline
-						next(null, new_value)
-					},
-				})
+${new_value}
+`
 
-				// render the response
-				render_server({
-					completed_queries,
-					url: request.url,
-					cache,
-					onError() {
-						// TODO
-					},
-					onShellReady(pipe) {
-						response.setHeader('content-type', 'text/html')
-						pipe(modifyStream).pipe(response)
-					},
-				})
+					// pass the modified data to the next stream in the pipeline
+					next(null, new_value)
+				},
 			})
-		},
-	} as PluginHooks['vite'])
 
-export default vite_hooks
+			// render the response
+			render_server({
+				completed_queries,
+				url: request.url,
+				cache,
+				onError() {
+					// TODO
+				},
+				onShellReady(pipe) {
+					response.setHeader('content-type', 'text/html')
+					pipe(modifyStream).pipe(response)
+				},
+			})
+		})
+	},
+} as PluginHooks['vite']
 
 async function load_render(server: ViteDevServer & { houdiniConfig: Config }) {
 	// load the function to rener the response from the generated output
