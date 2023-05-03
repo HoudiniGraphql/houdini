@@ -228,8 +228,9 @@ ${new_value}
 				loaded_artifacts,
 				url: request.url,
 				cache,
-				onError() {
+				onError(err) {
 					// TODO
+					console.log(err)
 				},
 				onShellReady(pipe) {
 					response.setHeader('content-type', 'text/html')

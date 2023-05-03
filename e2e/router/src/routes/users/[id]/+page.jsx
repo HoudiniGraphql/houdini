@@ -1,11 +1,11 @@
-import { PendingValue } from '$houdini'
+import { PendingValue, isPending } from '$houdini'
 import React from 'react'
 
 export default function ({ UserInfo }) {
 	const { user } = UserInfo
 
 	// if we are loading the user render the loading state
-	if (!user || user === PendingValue) {
+	if (isPending(user)) {
 		return 'loading user...'
 	}
 
