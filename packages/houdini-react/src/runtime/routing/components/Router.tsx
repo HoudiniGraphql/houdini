@@ -6,6 +6,7 @@ import { GraphQLObject, GraphQLVariables } from '$houdini/runtime/lib/types'
 import { QueryArtifact } from '$houdini/runtime/lib/types'
 import React from 'react'
 
+import { useDocumentStore } from '../../hooks/useDocumentStore'
 import { SuspenseCache } from '../lib/cache'
 import { find_match } from '../lib/match'
 import type { NavigationContext, RouterManifest, RouterPageManifest } from '../lib/types'
@@ -36,7 +37,7 @@ export function Router({
 }: {
 	manifest: RouterManifest
 	intialURL?: string
-	loaded_queries?: Record<string, { data: GraphQLObject }>
+	loaded_queries?: Record<string, { data: GraphQLObject; variables: GraphQLVariables }>
 	loaded_artifacts?: Record<string, QueryArtifact>
 }) {
 	// the current route is just a string in state.
@@ -117,7 +118,7 @@ function useLoadPage({
 }: {
 	page: RouterPageManifest
 	variables: GraphQLVariables
-	loaded_queries?: Record<string, { data: GraphQLObject }>
+	loaded_queries?: Record<string, { data: GraphQLObject; variables: GraphQLVariables }>
 	loaded_artifacts?: Record<string, QueryArtifact>
 }) {
 	// grab context values
@@ -163,6 +164,7 @@ function useLoadPage({
 					if (loaded_queries) {
 						loaded_queries[artifact.name] = {
 							data: observer.state.data!,
+							variables,
 						}
 					}
 					resolve()
@@ -335,11 +337,19 @@ export function useCache() {
 	return useRouterContext().cache
 }
 
-export function useDocumentStore<_Data extends GraphQLObject, _Input extends GraphQLVariables>(
+export function useQueryResult<_Data extends GraphQLObject, _Input extends GraphQLVariables>(
 	name: string
-): [_Data, DocumentStore<_Data, _Input>] {
-	const store = useRouterContext().data_cache.get(name)!
+): [_Data | null, DocumentStore<_Data, _Input>] {
+	const store_ref = useRouterContext().data_cache.get(name)! as unknown as DocumentStore<
+		_Data,
+		_Input
+	>
 
-	// @ts-ignore
-	return [store.state.data!, store]
+	// get the live data from the store
+	const [{ data }, observer] = useDocumentStore<_Data, _Input>({
+		artifact: store_ref.artifact,
+		observer: store_ref,
+	})
+
+	return [data, observer]
 }

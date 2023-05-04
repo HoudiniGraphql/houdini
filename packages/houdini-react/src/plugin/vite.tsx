@@ -143,7 +143,7 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 			let chunkNumber = 0
 
 			// in order to stream values to the client we need to track what we load
-			const loaded_queries: Record<string, { data: any }> = {}
+			const loaded_queries: Record<string, { data: any; variables: any }> = {}
 			const loaded_artifacts: Record<string, QueryArtifact> = {}
 
 			// our pending cache needs to start with signals that we can alert
@@ -207,14 +207,19 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 									if (window.__houdini__nav_caches__?.pending_cache.has("${query}")) {
 										// before we resolve the pending signals,
 										// fill the data cache with values we got on the server
-										window.__houdini__nav_caches__.data_cache.set(
-											"${query}",
-											window.__houdini__client__.observe({
-												artifact: window.__houdini__nav_caches__.artifact_cache.get("${query}"),
-												cache: window.__houdini__cache__,
-												initialValue: ${JSON.stringify(loaded_queries[query].data)}
-											})
-										)
+										const new_store = window.__houdini__client__.observe({
+											artifact: window.__houdini__nav_caches__.artifact_cache.get("${query}"),
+											cache: window.__houdini__cache__,
+											initialValue: ${JSON.stringify(loaded_queries[query].data)}
+										})
+
+										window.__houdini__nav_caches__.data_cache.set("${query}", new_store)
+
+										// we're pushing this store onto the client, it should be initialized
+										new_store.send({
+											setup: true,
+											variables: ${JSON.stringify(loaded_queries[query].variables)}
+										})
 
 										// notify anyone waiting on the pending cache
 										window.__houdini__nav_caches__.pending_cache.get("${query}").resolve()

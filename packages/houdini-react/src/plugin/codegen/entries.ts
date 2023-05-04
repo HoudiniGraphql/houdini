@@ -65,14 +65,14 @@ async function generate_routing_units(args: PageBundleInput) {
 
 	// build up the file source as a string
 	let source: string[] = [
-		"import { useDocumentStore } from '$houdini/plugins/houdini-react/runtime/routing/components/Router'",
+		"import { useQueryResult } from '$houdini/plugins/houdini-react/runtime/routing/components/Router'",
 		`import ${component_name} from "${relative_path}"`,
 	]
 
 	source.push(`export default ({ children }) => {
 		${/* Grab references to every query we need*/ ''}
 		${page.queries
-			.map((query) => `const [${query}$data, ${query}$handle] = useDocumentStore("${query}")`)
+			.map((query) => `const [${query}$data, ${query}$handle] = useQueryResult("${query}")`)
 			.join('\n')}
 
 		return (
@@ -249,7 +249,7 @@ async function generate_fallbacks({
 
 		// build up the file source as a string
 		let source: string[] = [
-			"import { useRouterContext, useCache, useDocumentStore } from '$houdini/plugins/houdini-react/runtime/routing/components/Router'",
+			"import { useRouterContext, useCache, useQueryResult } from '$houdini/plugins/houdini-react/runtime/routing/components/Router'",
 			`import Component from '${page_path}'`,
 			"import { Suspense } from 'react'",
 		]
@@ -270,7 +270,7 @@ async function generate_fallbacks({
 				${required_queries
 					.map(
 						(query) =>
-							`const [${query}_data, ${query}_handle] = useDocumentStore("${query}")`
+							`const [${query}_data, ${query}_handle] = useQueryResult("${query}")`
 					)
 					.join('\n')}
 

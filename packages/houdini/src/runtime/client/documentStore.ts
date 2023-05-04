@@ -28,7 +28,7 @@ export class DocumentStore<
 	_Data extends GraphQLObject,
 	_Input extends GraphQLVariables
 > extends Writable<QueryResult<_Data, _Input>> {
-	#artifact: DocumentArtifact
+	readonly artifact: DocumentArtifact
 	#client: HoudiniClient | null
 	#configFile: ConfigFile
 
@@ -91,7 +91,7 @@ export class DocumentStore<
 				this.cleanup()
 			}
 		})
-		this.#artifact = artifact
+		this.artifact = artifact
 		this.#client = client
 		this.#lastVariables = null
 		this.#configFile = getCurrentConfig()
@@ -134,9 +134,9 @@ export class DocumentStore<
 		// start off with the initial context
 		let context = new ClientPluginContextWrapper({
 			config: this.#configFile!,
-			text: this.#artifact.raw,
-			hash: this.#artifact.hash,
-			policy: policy ?? (this.#artifact as QueryArtifact).policy,
+			text: this.artifact.raw,
+			hash: this.artifact.hash,
+			policy: policy ?? (this.artifact as QueryArtifact).policy,
 			variables: null,
 			metadata,
 			session,
@@ -149,7 +149,7 @@ export class DocumentStore<
 				},
 				...stuff,
 			},
-			artifact: this.#artifact,
+			artifact: this.artifact,
 			lastVariables: this.#lastVariables,
 			cacheParams,
 		})
