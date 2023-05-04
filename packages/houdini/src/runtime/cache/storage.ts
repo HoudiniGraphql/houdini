@@ -270,17 +270,18 @@ export class InMemoryStorage {
 	}
 
 	hydrate(
-		{
-			rank,
-			fields,
-			links,
-		}: {
+		args?: {
 			rank: number
 			fields: EntityFieldMap
 			links: LinkMap
 		},
 		layer?: Layer
 	) {
+		if (!args) {
+			return
+		}
+		const { rank, fields, links } = args
+
 		this.rank = rank
 
 		// a hydration layer is always standlone. treat it as an optimistic layer that never resolves

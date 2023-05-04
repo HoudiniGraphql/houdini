@@ -18,7 +18,6 @@ export default (props) => <Shell><Router {...props} /></Shell>
 	const render_server = `
 import React from 'react'
 import ReactDOMServer from 'react-dom/server'
-import { renderToStream } from 'react-streaming/server'
 
 import App from './App'
 import { router_cache } from '$houdini'
@@ -40,10 +39,6 @@ export async function render_server({url, cache, loaded_queries, loaded_artifact
 			},
 		}
 	)
-}
-
-export async function render_streaming({ url, cache }) {
-
 }
 `
 

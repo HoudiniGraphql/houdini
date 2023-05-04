@@ -78,7 +78,7 @@ export default {
 
 
 				// hydrate the cache with the information from the initial payload
-				window.__houdini__cache__.hydrate(
+				window.__houdini__cache__?.hydrate(
 					window.__houdini__initial__cache__,
 					window.__houdini__hydration__layer__
 				)
@@ -160,13 +160,29 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 				transform(chunk, _, next) {
 					// in render call below, we added an string that we need to replace with a serialized
 					// version of the caches data
-					let new_value = chunk.toString()
+					let str_value = chunk.toString()
 
 					// TODO: clean up the loaded lists so we don't add the same thing multple time
 
+					// the chunk does not necessarily cleanly line up with a place we can inject a script
+					// in order to find the right place, we're going to look for an existing closing
+					// script
+					let insert_index = str_value.indexOf('</head>')
+					if (insert_index === -1) {
+						insert_index = str_value.indexOf('<script>')
+					}
+					if (insert_index === -1) {
+						insert_index = str_value.indexOf('<div')
+					}
+					if (insert_index === -1) {
+						insert_index = 0
+					}
+
+					let to_insert = ''
+
 					// if we don't have the initialization scripts yet, add it
 					if (!chunkNumber++) {
-						new_value += `
+						to_insert = `
 						<script>
 							window.__houdini__initial__cache__ = ${cache.serialize()};
 						</script>
@@ -177,51 +193,49 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 						<script type="module" src="@@houdini/page/${match.id}@${pending_query_names}@${Object.keys(
 							loaded_artifacts
 						).join(',')}.jsx" async=""></script>`
+					} else {
+						to_insert = `
+						<script>
 
-						// we're done
-						next(null, new_value)
-						return
+							window.__houdini__cache__?.hydrate(${cache.serialize()}, window.__houdini__hydration__layer)
+
+							// every query that we have resolved here can be resolved in the cache
+							${Object.keys(loaded_queries)
+								.map(
+									(query) => `
+									if (window.__houdini__nav_caches__?.pending_cache.has("${query}")) {
+										// before we resolve the pending signals,
+										// fill the data cache with values we got on the server
+										window.__houdini__nav_caches__.data_cache.set(
+											"${query}",
+											window.__houdini__client__.observe({
+												artifact: window.__houdini__nav_caches__.artifact_cache.get("${query}"),
+												cache: window.__houdini__cache__,
+												initialValue: ${JSON.stringify(loaded_queries[query].data)}
+											})
+										)
+
+										// notify anyone waiting on the pending cache
+										window.__houdini__nav_caches__.pending_cache.get("${query}").resolve()
+										window.__houdini__nav_caches__.pending_cache.delete("${query}")
+									}
+							`
+								)
+								.join('\n')}
+
+						</script>
+						${Object.keys(loaded_artifacts)
+							.map(
+								(name) =>
+									`<script type="module" src="@@houdini/artifact/${name}.js" async=""></script>`
+							)
+							.join('\n')}
+
+						`
 					}
 
-					// we're sending a chunk after the first
-
-					// push a script that hydrates the cache more
-					new_value = `
-<script>
-
-	window.__houdini__cache__.hydrate(${cache.serialize()}, window.__houdini__hydration__layer)
-
-	// every query that we have resolved here can be resolved in the cache
-	${Object.keys(loaded_queries)
-		.map(
-			(query) => `
-			if (window.__houdini__nav_caches__.pending_cache.has("${query}")) {
-				// before we resolve the pending signals,
-				// fill the data cache with values we got on the server
-				window.__houdini__nav_caches__.data_cache.set(
-					"${query}",
-					window.__houdini__client__.observe({
-						artifact: window.__houdini__nav_caches__.artifact_cache.get("${query}"),
-						cache: window.__houdini__cache__,
-						initialValue: ${JSON.stringify(loaded_queries[query].data)}
-					})
-				)
-
-				// notify anyone waiting on the pending cache
-				window.__houdini__nav_caches__.pending_cache.get("${query}").resolve()
-				window.__houdini__nav_caches__.pending_cache.delete("${query}")
-			}
-	`
-		)
-		.join('\n')}
-
-</script>
-${Object.keys(loaded_artifacts)
-	.map((name) => `<script type="module" src="@@houdini/artifact/${name}.js" async=""></script>`)
-	.join('\n')}
-
-${new_value}
-`
+					const new_value =
+						str_value.slice(0, insert_index) + to_insert + str_value.slice(insert_index)
 
 					// pass the modified data to the next stream in the pipeline
 					next(null, new_value)
