@@ -171,11 +171,12 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 					if (insert_index === -1) {
 						insert_index = str_value.indexOf('<script>')
 					}
+
+					// we can't get in the way of the the html content or else react
+					// will get a different root than it expects. if we dont have a
+					// safe place to inject values, just wait.
 					if (insert_index === -1) {
-						insert_index = str_value.indexOf('<div')
-					}
-					if (insert_index === -1) {
-						insert_index = 0
+						return next(null, str_value)
 					}
 
 					let to_insert = ''
