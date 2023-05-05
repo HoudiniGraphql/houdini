@@ -10,14 +10,14 @@ import { render_server_path } from './conventions'
 // in order to coordinate the client and server, the client's pending request cache
 // needs to start with a value for every query that we are sending on the server.
 // While values resolve, chunks are sent, etc, the pending cache will be resolved
-// and components will be allowed to render assume their data cache is sufficiently full
+// and components will be allowed to render if their data cache is sufficiently full
 
-// We need to generate all sorts of files and in development, we want to rely heavily on
-// Vite's dev server for loading things so that we can make sure we always integrate
-// well with their hmr. This means using virtual modules in place of the statically generated
-// files.
+// We need to generate all sorts of files to make this work and in development, we want
+// to rely heavily on Vite's dev server for loading things so that we can make sure we always
+// integrate well with hmr. We're going to use virtual modules in place of the statically
+// generated files.
 
-// A potentially incomplete list of things that are mocked / need to be generated:
+// Here is a potentially incomplete list of things that are mocked / need to be generated:
 // @@houdini/page/[query_names.join(',')] - An entry for every page that starts the pending cache with the correct values
 // @@houdini/artifact/[name] - An entry for loading an artifact and notifying the artifact cache
 
