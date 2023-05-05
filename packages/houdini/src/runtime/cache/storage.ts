@@ -8,7 +8,7 @@ import type { GraphQLValue } from '../lib/types'
 
 export class InMemoryStorage {
 	private data: Layer[]
-	private idCount = 0
+	private idCount = 1
 	private rank = 0
 
 	constructor() {
@@ -40,12 +40,12 @@ export class InMemoryStorage {
 		return this.topLayer.insert(id, field, location, target)
 	}
 
-	remove(id: string, field: string, target: string) {
-		return this.topLayer.remove(id, field, target)
+	remove(id: string, field: string, target: string, layerToUser = this.topLayer) {
+		return layerToUser.remove(id, field, target)
 	}
 
-	delete(id: string) {
-		return this.topLayer.delete(id)
+	delete(id: string, layerToUser = this.topLayer) {
+		return layerToUser.delete(id)
 	}
 
 	deleteField(id: string, field: string) {
@@ -385,8 +385,6 @@ export class Layer {
 	}
 
 	clear() {
-		// before we clear the data of the layer, look for any subscribers that need to be updated
-
 		// now that everything has been notified we can reset the data
 		this.links = {}
 		this.fields = {}

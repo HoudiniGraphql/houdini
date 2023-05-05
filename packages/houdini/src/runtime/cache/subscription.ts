@@ -30,6 +30,10 @@ export class InMemorySubscriptions {
 	} = {}
 	private keyVersions: { [key: string]: Set<string> } = {}
 
+	activeFields(parent: string): string[] {
+		return Object.keys(this.subscribers[parent] || {})
+	}
+
 	add({
 		parent,
 		spec,

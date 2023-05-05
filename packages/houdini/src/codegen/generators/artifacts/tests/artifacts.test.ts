@@ -2079,6 +2079,209 @@ describe('mutation artifacts', function () {
 		`)
 	})
 
+	test('remove operation allList', async function () {
+		// the config to use in tests
+		const config = testConfig()
+		const docs = [
+			mockCollectedDoc(
+				`mutation A {
+					addFriend {
+						friend {
+							...All_Users_remove @allLists
+						}
+					}
+				}`
+			),
+			mockCollectedDoc(
+				`query TestQuery {
+					users(stringValue: "foo") @list(name: "All_Users") {
+						firstName
+					}
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, docs)
+
+		expect(docs[0]).toMatchInlineSnapshot(`
+			export default {
+			    "name": "A",
+			    "kind": "HoudiniMutation",
+			    "hash": "1687548d0889d73e5d143c8e295e0abe989939d22869a86b86d70488209d73d5",
+
+			    "raw": \`mutation A {
+			  addFriend {
+			    friend {
+			      ...All_Users_remove
+			      id
+			    }
+			  }
+			}
+
+			fragment All_Users_remove on User {
+			  id
+			}
+			\`,
+
+			    "rootType": "Mutation",
+
+			    "selection": {
+			        "fields": {
+			            "addFriend": {
+			                "type": "AddFriendOutput",
+			                "keyRaw": "addFriend",
+
+			                "selection": {
+			                    "fields": {
+			                        "friend": {
+			                            "type": "User",
+			                            "keyRaw": "friend",
+
+			                            "operations": [{
+			                                "action": "remove",
+			                                "list": "All_Users",
+			                                "target": "all"
+			                            }],
+
+			                            "selection": {
+			                                "fields": {
+			                                    "id": {
+			                                        "type": "ID",
+			                                        "keyRaw": "id",
+			                                        "visible": true
+			                                    }
+			                                },
+
+			                                "fragments": {
+			                                    "All_Users_remove": {
+			                                        "arguments": {}
+			                                    }
+			                                }
+			                            },
+
+			                            "visible": true
+			                        }
+			                    }
+			                },
+
+			                "visible": true
+			            }
+			        }
+			    },
+
+			    "pluginData": {}
+			};
+
+			"HoudiniHash=1687548d0889d73e5d143c8e295e0abe989939d22869a86b86d70488209d73d5";
+		`)
+	})
+
+	test('toggle operation allList', async function () {
+		// the config to use in tests
+		const config = testConfig()
+		const docs = [
+			mockCollectedDoc(
+				`mutation A {
+					addFriend {
+						friend {
+							...All_Users_toggle @allLists @prepend
+						}
+					}
+				}`
+			),
+			mockCollectedDoc(
+				`query TestQuery {
+					users(stringValue: "foo") @list(name: "All_Users") {
+						firstName
+					}
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, docs)
+
+		expect(docs[0]).toMatchInlineSnapshot(`
+			export default {
+			    "name": "A",
+			    "kind": "HoudiniMutation",
+			    "hash": "18243e748112d965c35ee2f2b0e29d430a9c472e30c96f253449296ae3fe636a",
+
+			    "raw": \`mutation A {
+			  addFriend {
+			    friend {
+			      ...All_Users_toggle
+			      id
+			    }
+			  }
+			}
+
+			fragment All_Users_toggle on User {
+			  firstName
+			  id
+			}
+			\`,
+
+			    "rootType": "Mutation",
+
+			    "selection": {
+			        "fields": {
+			            "addFriend": {
+			                "type": "AddFriendOutput",
+			                "keyRaw": "addFriend",
+
+			                "selection": {
+			                    "fields": {
+			                        "friend": {
+			                            "type": "User",
+			                            "keyRaw": "friend",
+
+			                            "operations": [{
+			                                "action": "toggle",
+			                                "list": "All_Users",
+			                                "position": "first",
+			                                "target": "all"
+			                            }],
+
+			                            "selection": {
+			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
+			                                    "id": {
+			                                        "type": "ID",
+			                                        "keyRaw": "id",
+			                                        "visible": true
+			                                    }
+			                                },
+
+			                                "fragments": {
+			                                    "All_Users_toggle": {
+			                                        "arguments": {}
+			                                    }
+			                                }
+			                            },
+
+			                            "visible": true
+			                        }
+			                    }
+			                },
+
+			                "visible": true
+			            }
+			        }
+			    },
+
+			    "pluginData": {}
+			};
+
+			"HoudiniHash=18243e748112d965c35ee2f2b0e29d430a9c472e30c96f253449296ae3fe636a";
+		`)
+	})
+
 	test('insert operation allList by default in config', async function () {
 		// the config to use in tests
 		const docs = [

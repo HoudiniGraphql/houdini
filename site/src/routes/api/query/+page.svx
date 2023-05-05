@@ -117,7 +117,7 @@ name of a query's input, it will attempt to parse the value and pass it to your 
 
 Sometimes your query variables cannot be directly pulled from your route's path. In those cases, you can export a function
 named after your query from `+page.js` files to perform whatever logic you need. This function takes the same arguments passed to the `load` function
-described in the [SvelteKit](https://kit.svelte.dev/docs#Loading) docs. To return an error, or force a redirect, you can
+described in the [SvelteKit](https://kit.svelte.dev/docs/load) docs. To return an error, or force a redirect, you can
 use the same utilities exported from `@sveltejs/kit`. Here is a modified example
 [from the source repository](https://github.com/HoudiniGraphql/houdini/tree/main/example):
 
@@ -188,7 +188,7 @@ export function _houdini_beforeLoad({ page, session }: BeforeLoadEvent) {
 #### `_houdini_afterLoad`
 
 Called after Houdini executes load queries against the server. You can expect the same
-arguments as SvelteKit's [`load`](https://kit.svelte.dev/docs#loading) function, plus an additional
+arguments as SvelteKit's [`load`](https://kit.svelte.dev/docs/load) function, plus an additional
 `data` property referencing query result data. Keep in mind that if you define this hook, Houdini
 will have to block requests to the route in order to wait for the result. For more information about
 blocking during navigation, check out the deep dive in [this section](/api/query#manual-loading) of the query store

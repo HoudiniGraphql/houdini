@@ -230,8 +230,8 @@ function operationObject({
 		operation.position = position
 	}
 
-	// only add the position argument if we are inserting something
-	if (operationKind === 'insert' && allLists) {
+	// add target
+	if (allLists && operationKind !== 'delete') {
 		operation.target = 'all'
 	}
 

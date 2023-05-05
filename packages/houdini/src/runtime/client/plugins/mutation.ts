@@ -13,7 +13,7 @@ export const mutation = documentPlugin(ArtifactKind.Mutation, () => {
 			//
 			// as far as I can tell, this is an arbitrary decision but it does give a
 			// well-defined ordering to a subtle situation so that seems like a win
-			const layer = cache._internal_unstable.storage.createLayer(true)
+			const layerOptimistic = cache._internal_unstable.storage.createLayer(true)
 
 			// the optimistic response gets passed in the context's stuff bag
 			const optimisticResponse = ctx.stuff.optimisticResponse
@@ -32,15 +32,15 @@ export const mutation = documentPlugin(ArtifactKind.Mutation, () => {
 						data: optimisticResponse,
 					}))!,
 					variables: marshalVariables(ctx),
-					layer: layer.id,
+					layer: layerOptimistic.id,
 				})
 			}
 
-			// write to the layer
+			// update cacheParams
 			ctx.cacheParams = {
 				...ctx.cacheParams,
 				// write to the mutation's layer
-				layer: layer,
+				layer: layerOptimistic,
 				// notify any subscribers that we updated with the optimistic response
 				// in order to address situations where the optimistic update was wrong
 				notifySubscribers: toNotify,
@@ -54,7 +54,9 @@ export const mutation = documentPlugin(ArtifactKind.Mutation, () => {
 		},
 		afterNetwork(ctx, { resolve }) {
 			// before the cache sees the data, we need to clear the layer
-			ctx.cacheParams?.layer?.clear()
+			if (ctx.cacheParams?.layer) {
+				cache.clearLayer(ctx.cacheParams.layer.id)
+			}
 
 			// we're done
 			resolve(ctx)
@@ -64,7 +66,9 @@ export const mutation = documentPlugin(ArtifactKind.Mutation, () => {
 			// if there are errors, we need to clear the layer before resolving
 			if (hasErrors) {
 				// if the mutation failed, roll the layer back and delete it
-				ctx.cacheParams?.layer?.clear()
+				if (ctx.cacheParams?.layer) {
+					cache.clearLayer(ctx.cacheParams.layer.id)
+				}
 			}
 
 			// merge the layer back into the cache
@@ -81,7 +85,7 @@ export const mutation = documentPlugin(ArtifactKind.Mutation, () => {
 				const { layer } = ctx.cacheParams
 
 				// if the mutation failed, roll the layer back and delete it
-				layer.clear()
+				cache.clearLayer(layer.id)
 				cache._internal_unstable.storage.resolveLayer(layer.id)
 			}
 
