@@ -6,6 +6,7 @@ import { GraphQLObject, GraphQLVariables } from '$houdini/runtime/lib/types'
 import { QueryArtifact } from '$houdini/runtime/lib/types'
 import React from 'react'
 
+import { useDocumentStore } from '../../hooks/useDocumentStore'
 import { SuspenseCache } from '../lib/cache'
 import { find_match } from '../lib/match'
 import type { NavigationContext, RouterManifest, RouterPageManifest } from '../lib/types'
@@ -28,7 +29,17 @@ const NavContext = React.createContext<NavigationContext>({
 // don't want network waterfalls. So we need to send the request for everything all
 // at once and then wrap the children in the necessary context so that when they render
 // they can grab what they need if its ready and suspend if not.
-export function Router({ manifest, intialURL }: { manifest: RouterManifest; intialURL?: string }) {
+export function Router({
+	manifest,
+	intialURL,
+	loaded_queries,
+	loaded_artifacts,
+}: {
+	manifest: RouterManifest
+	intialURL?: string
+	loaded_queries?: Record<string, { data: GraphQLObject; variables: GraphQLVariables }>
+	loaded_artifacts?: Record<string, QueryArtifact>
+}) {
 	// the current route is just a string in state.
 	const [current, setCurrent] = React.useState(() => {
 		return intialURL || window.location.pathname
@@ -43,7 +54,7 @@ export function Router({ manifest, intialURL }: { manifest: RouterManifest; inti
 
 	// load the page assets (source, artifacts, data). this will suspend if the component is not available yet
 	// this hook embeds pending requests in context so that the component can suspend if necessary14
-	useLoadPage({ page, variables })
+	useLoadPage({ page, variables, loaded_queries, loaded_artifacts })
 
 	// if we get this far, it's safe to load the component
 	const { component_cache, last_variables, data_cache } = useRouterContext()
@@ -102,9 +113,13 @@ export function Router({ manifest, intialURL }: { manifest: RouterManifest; inti
 function useLoadPage({
 	page,
 	variables,
+	loaded_queries,
+	loaded_artifacts,
 }: {
 	page: RouterPageManifest
 	variables: GraphQLVariables
+	loaded_queries?: Record<string, { data: GraphQLObject; variables: GraphQLVariables }>
+	loaded_artifacts?: Record<string, QueryArtifact>
 }) {
 	// grab context values
 	const {
@@ -133,27 +148,36 @@ function useLoadPage({
 		// send the request
 		const observer = client.observe({ artifact, cache })
 
-		// add it to the pending cache
-		pending_cache.set(
-			id,
-			new Promise<void>((resolve, reject) => {
-				observer
-					.send({
-						variables: variables,
-						cacheParams: { disableSubscriptions: true },
-					})
-					.then(() => {
-						data_cache.set(id, observer)
+		let resolve: () => void = () => {}
+		let reject: () => void = () => {}
+		const promise = new Promise<void>((res, rej) => {
+			resolve = res
+			reject = rej
 
-						resolve()
-					})
-					.catch(reject)
-					// we're done processing
-					.finally(() => {
-						pending_cache.delete(id)
-					})
-			})
-		)
+			observer
+				.send({
+					variables: variables,
+					cacheParams: { disableSubscriptions: true },
+				})
+				.then(() => {
+					data_cache.set(id, observer)
+					if (loaded_queries) {
+						loaded_queries[artifact.name] = {
+							data: observer.state.data!,
+							variables,
+						}
+					}
+					resolve()
+				})
+				.catch(reject)
+				// we're done processing
+				.finally(() => {
+					pending_cache.delete(id)
+				})
+		})
+
+		// add it to the pending cache
+		pending_cache.set(id, { ...promise, resolve, reject })
 
 		// this promise is also what we want to do with the main invocation
 		return pending_cache.get(id)!
@@ -189,6 +213,9 @@ function useLoadPage({
 
 				// save the artifact in the cache
 				artifact_cache.set(artifact_id, artifact)
+				if (loaded_artifacts) {
+					loaded_artifacts[artifact.name] = artifact
+				}
 
 				// now that we have the artifact, we can load the query too
 				load_query({ id: artifact.name, artifact })
@@ -287,7 +314,9 @@ type RouterContext = {
 	last_variables: LRUCache<GraphQLVariables>
 }
 
-export type PendingCache = SuspenseCache<Promise<void>>
+export type PendingCache = SuspenseCache<
+	Promise<void> & { resolve: () => void; reject: () => void }
+>
 
 const Context = React.createContext<RouterContext | null>(null)
 
@@ -308,11 +337,19 @@ export function useCache() {
 	return useRouterContext().cache
 }
 
-export function useDocumentStore<_Data extends GraphQLObject, _Input extends GraphQLVariables>(
+export function useQueryResult<_Data extends GraphQLObject, _Input extends GraphQLVariables>(
 	name: string
-): [_Data, DocumentStore<_Data, _Input>] {
-	const store = useRouterContext().data_cache.get(name)!
+): [_Data | null, DocumentStore<_Data, _Input>] {
+	const store_ref = useRouterContext().data_cache.get(name)! as unknown as DocumentStore<
+		_Data,
+		_Input
+	>
 
-	// @ts-ignore
-	return [store.state.data!, store]
+	// get the live data from the store
+	const [{ data }, observer] = useDocumentStore<_Data, _Input>({
+		artifact: store_ref.artifact,
+		observer: store_ref,
+	})
+
+	return [data, observer]
 }

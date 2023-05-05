@@ -1,5 +1,5 @@
 import type { HoudiniClient } from '.'
-import { Cache } from '../cache/cache'
+import type { Cache } from '../cache/cache'
 import type { Layer } from '../cache/storage'
 import type { ConfigFile } from '../lib/config'
 import { getCurrentConfig } from '../lib/config'
@@ -28,7 +28,7 @@ export class DocumentStore<
 	_Data extends GraphQLObject,
 	_Input extends GraphQLVariables
 > extends Writable<QueryResult<_Data, _Input>> {
-	#artifact: DocumentArtifact
+	readonly artifact: DocumentArtifact
 	#client: HoudiniClient | null
 	#configFile: ConfigFile
 
@@ -45,6 +45,8 @@ export class DocumentStore<
 	// a reference to the earliest resolving open promise that the store has sent
 	pendingPromise: { then: (val: any) => void } | null = null
 
+	serverSideFallback?: boolean
+
 	constructor({
 		artifact,
 		plugins,
@@ -54,6 +56,7 @@ export class DocumentStore<
 		enableCache = true,
 		initialValue,
 		fetching,
+		serverSideFallback,
 	}: {
 		artifact: DocumentArtifact
 		plugins?: ClientHooks[]
@@ -63,6 +66,7 @@ export class DocumentStore<
 		enableCache?: boolean
 		initialValue?: _Data | null
 		fetching?: boolean
+		serverSideFallback?: boolean
 	}) {
 		// if fetching is set, respect the value
 		// if fetching is not set, we should default fetching on queries and not on the rest.
@@ -87,7 +91,7 @@ export class DocumentStore<
 				this.cleanup()
 			}
 		})
-		this.#artifact = artifact
+		this.artifact = artifact
 		this.#client = client
 		this.#lastVariables = null
 		this.#configFile = getCurrentConfig()
@@ -130,9 +134,9 @@ export class DocumentStore<
 		// start off with the initial context
 		let context = new ClientPluginContextWrapper({
 			config: this.#configFile!,
-			text: this.#artifact.raw,
-			hash: this.#artifact.hash,
-			policy: policy ?? (this.#artifact as QueryArtifact).policy,
+			text: this.artifact.raw,
+			hash: this.artifact.hash,
+			policy: policy ?? (this.artifact as QueryArtifact).policy,
 			variables: null,
 			metadata,
 			session,
@@ -145,7 +149,7 @@ export class DocumentStore<
 				},
 				...stuff,
 			},
-			artifact: this.#artifact,
+			artifact: this.artifact,
 			lastVariables: this.#lastVariables,
 			cacheParams,
 		})
@@ -577,6 +581,7 @@ export type ClientPluginContext = {
 		disableRead?: boolean
 		disableSubscriptions?: boolean
 		applyUpdates?: string[]
+		serverSideFallback?: boolean
 	}
 	stuff: App.Stuff
 }

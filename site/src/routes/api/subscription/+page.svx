@@ -31,7 +31,7 @@ Listen for real-time updates from your server using GraphQL Subscriptions.
   $: updates.listen({ id: itemID })
 </script>
 
-latest value: {$updates.itemUpdate.item.text}
+latest value: {$updates.data.itemUpdate.item.text}
 ```
 
 Subscriptions can be defined like any other document and are triggered using the subscription store's `listen` method:

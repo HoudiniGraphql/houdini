@@ -5,7 +5,7 @@ import { defineConfig } from 'vite'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-	plugins: [houdini(), react()],
+	plugins: [houdini(), react({ fastRefresh: false })],
 	// TODO: the vite plugin should do this
 	resolve: {
 		alias: {

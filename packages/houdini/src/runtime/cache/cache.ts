@@ -178,6 +178,14 @@ export class Cache {
 		return this._internal_unstable.config
 	}
 
+	serialize() {
+		return this._internal_unstable.storage.serialize()
+	}
+
+	hydrate(...args: Parameters<InMemoryStorage['hydrate']>) {
+		return this._internal_unstable.storage.hydrate(...args)
+	}
+
 	clearLayer(layerID: Layer['id']) {
 		// before we clear the layer we need to look at every field/link and see if it is
 		// the display layer. If it is the display layer than we need to notify

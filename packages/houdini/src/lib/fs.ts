@@ -1,7 +1,7 @@
-import type { Dirent } from 'fs'
 import fsExtra from 'fs-extra'
 import { glob as G } from 'glob'
 import { fs as memfs, vol } from 'memfs'
+import type { Dirent } from 'node:fs'
 import fs from 'node:fs/promises'
 import { promisify } from 'node:util'
 

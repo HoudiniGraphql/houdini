@@ -2,7 +2,7 @@ import { Link } from '$houdini'
 
 export default function ({ HelloRouter, children }) {
 	return (
-		<div style={{ display: 'flex', flexDirection: 'row' }}>
+		<div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 			message: {HelloRouter.message}
 			<ul>
 				<li>

@@ -1,6 +1,6 @@
 import type { QueryArtifact } from '$houdini/runtime/lib/types'
 
-import { RouteParam } from './match'
+import type { RouteParam } from './match'
 
 // to decide what bundle to load and render for a given url
 export type RouterManifest = {

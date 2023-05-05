@@ -1,4 +1,4 @@
-import { Config, fs, parseJS, printJS, path } from 'houdini'
+import { type Config, fs, parseJS, printJS, path } from 'houdini'
 
 import {
 	page_entry_path,
@@ -65,14 +65,14 @@ async function generate_routing_units(args: PageBundleInput) {
 
 	// build up the file source as a string
 	let source: string[] = [
-		"import { useDocumentStore } from '$houdini/plugins/houdini-react/runtime/routing/components/Router'",
+		"import { useQueryResult } from '$houdini/plugins/houdini-react/runtime/routing/components/Router'",
 		`import ${component_name} from "${relative_path}"`,
 	]
 
 	source.push(`export default ({ children }) => {
 		${/* Grab references to every query we need*/ ''}
 		${page.queries
-			.map((query) => `const [${query}$data, ${query}$handle] = useDocumentStore("${query}")`)
+			.map((query) => `const [${query}$data, ${query}$handle] = useQueryResult("${query}")`)
 			.join('\n')}
 
 		return (
@@ -249,7 +249,7 @@ async function generate_fallbacks({
 
 		// build up the file source as a string
 		let source: string[] = [
-			"import { useRouterContext, useCache, useDocumentStore } from '$houdini/plugins/houdini-react/runtime/routing/components/Router'",
+			"import { useRouterContext, useCache, useQueryResult } from '$houdini/plugins/houdini-react/runtime/routing/components/Router'",
 			`import Component from '${page_path}'`,
 			"import { Suspense } from 'react'",
 		]
@@ -257,7 +257,8 @@ async function generate_fallbacks({
 		// the default export for the fallback suspends while it waits for the necessary
 		// artifacts and then wraps the children in a suspense boundary with a fallback
 		// that renders the component with its loading state
-		source.push(`
+		source.push(
+			`
 			export default ({ children }) => {
 				const { artifact_cache } = useRouterContext()
 
@@ -270,7 +271,7 @@ async function generate_fallbacks({
 				${required_queries
 					.map(
 						(query) =>
-							`const [${query}_data, ${query}_handle] = useDocumentStore("${query}")`
+							`const [${query}_data, ${query}_handle] = useQueryResult("${query}")`
 					)
 					.join('\n')}
 
@@ -285,11 +286,10 @@ async function generate_fallbacks({
 					</Suspense>
 				)
 			}
-		`)
-
-		// in order to avoid necessarily computing the loading state, we're going to do that in
-		// a separate function so that the computation only triggers when it mounts
-		source.push(`
+		`,
+			// in order to avoid necessarily computing the loading state, we're going to do that in
+			// a separate function so that the computation only triggers when it mounts
+			`
 			const Fallback = ({ required_queries, loading_queries }) => {
 				const cache = useCache()
 
@@ -303,7 +303,8 @@ async function generate_fallbacks({
 
 				return <Component {...props} />
 			}
-		`)
+		`
+		)
 
 		// format the source so we don't embarrass ourselves
 		const formatted = (await printJS(await parseJS(source.join('\n'), { plugins: ['jsx'] })))

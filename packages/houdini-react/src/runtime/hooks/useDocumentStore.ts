@@ -8,9 +8,11 @@ import { useIsMountedRef } from './useIsMounted'
 
 export type UseDocumentStoreParams<
 	_Artifact extends DocumentArtifact,
-	_Data extends GraphQLObject
+	_Data extends GraphQLObject,
+	_Input extends GraphQLVariables
 > = {
 	artifact: _Artifact
+	observer?: DocumentStore<_Data, _Input>
 } & Partial<ObserveParams<_Data>>
 
 export function useDocumentStore<
@@ -19,8 +21,9 @@ export function useDocumentStore<
 	_Artifact extends DocumentArtifact = DocumentArtifact
 >({
 	artifact,
+	observer: obs,
 	...observeParams
-}: UseDocumentStoreParams<_Artifact, _Data>): [
+}: UseDocumentStoreParams<_Artifact, _Data, _Input>): [
 	QueryResult<_Data, _Input>,
 	DocumentStore<_Data, _Input>,
 	(store: DocumentStore<_Data, _Input>) => void
@@ -29,11 +32,13 @@ export function useDocumentStore<
 	const isMountedRef = useIsMountedRef()
 
 	// hold onto an observer we'll use
-	let [observer, setObserver] = React.useState(() =>
-		client.observe<_Data, _Input>({
-			artifact,
-			...observeParams,
-		})
+	let [observer, setObserver] = React.useState(
+		() =>
+			obs ??
+			client.observe<_Data, _Input>({
+				artifact,
+				...observeParams,
+			})
 	)
 
 	const box = React.useRef(observer.state)
@@ -51,7 +56,11 @@ export function useDocumentStore<
 	)
 
 	// get a safe reference to the cache
-	const storeValue = React.useSyncExternalStore(subscribe, () => box.current)
+	const storeValue = React.useSyncExternalStore(
+		subscribe,
+		() => box.current,
+		() => box.current
+	)
 
 	return [storeValue!, observer, setObserver]
 }

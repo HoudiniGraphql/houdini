@@ -8,7 +8,7 @@ import type {
 	ResolveIdResult,
 	SourceMapInput,
 } from 'rollup'
-import type { ServerHook, ViteDevServer } from 'vite'
+import type { ViteDevServer } from 'vite'
 
 import type { ConfigFile } from '../runtime/lib/config'
 import type {

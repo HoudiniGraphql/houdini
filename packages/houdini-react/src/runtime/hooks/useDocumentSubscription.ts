@@ -15,7 +15,7 @@ export function useDocumentSubscription<
 	send,
 	disabled,
 	...observeParams
-}: UseDocumentStoreParams<_Artifact, _Data> & {
+}: UseDocumentStoreParams<_Artifact, _Data, _Input> & {
 	variables: _Input
 	disabled?: boolean
 	send?: Partial<SendParams>

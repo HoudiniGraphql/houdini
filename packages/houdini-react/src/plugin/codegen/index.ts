@@ -1,7 +1,7 @@
 import type { GenerateHookInput } from 'houdini'
 
 import { generate_entries } from './entries'
-import { ProjectManifest } from './manifest'
+import type { ProjectManifest } from './manifest'
 import { generate_renders } from './render'
 
 /**

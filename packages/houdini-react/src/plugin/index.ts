@@ -1,5 +1,12 @@
-import { ArtifactKind, plugin, Plugin, fragmentKey } from 'houdini'
-import type { ArtifactKinds, Document, Config } from 'houdini'
+import {
+	type ArtifactKinds,
+	type Document,
+	type Config,
+	type Plugin,
+	ArtifactKind,
+	plugin,
+	fragmentKey,
+} from 'houdini'
 import path from 'node:path'
 
 import generate from './codegen'
@@ -29,7 +36,11 @@ export const hooks: Plugin = async () => ({
 		commonjs: '../runtime-cjs',
 	},
 
-	vite: vite_plugin(() => manifest),
+	clientPlugins: {
+		'$houdini/plugins/houdini-react/runtime/clientPlugin': null,
+	},
+
+	vite: vite_plugin,
 
 	// we need to add overloaded definitions for every hook that
 	// returns the appropriate type for each document

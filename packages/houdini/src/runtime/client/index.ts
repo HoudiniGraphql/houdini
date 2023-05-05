@@ -1,5 +1,5 @@
 /// <reference path="../../../../../houdini.d.ts" />
-import { Cache } from '../cache/cache'
+import type { Cache } from '../cache/cache'
 import { flatten } from '../lib/flatten'
 import type { DocumentArtifact, GraphQLVariables, GraphQLObject, NestedList } from '../lib/types'
 import type { ClientHooks, ClientPlugin } from './documentStore'
@@ -97,20 +97,16 @@ export class HoudiniClient {
 	}
 
 	observe<_Data extends GraphQLObject, _Input extends GraphQLVariables>({
-		artifact,
 		enableCache = true,
-		initialValue,
 		fetching = false,
-		cache,
+		...rest
 	}: ObserveParams<_Data>): DocumentStore<_Data, _Input> {
 		return new DocumentStore({
 			client: this,
-			artifact,
 			plugins: createPluginHooks(this.plugins),
-			cache,
-			enableCache,
-			initialValue,
 			fetching,
+			enableCache,
+			...rest,
 		})
 	}
 }

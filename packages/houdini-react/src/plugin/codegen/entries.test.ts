@@ -65,7 +65,7 @@ test('composes layouts and pages', async function () {
 		}
 	)
 	expect(page_unit).toMatchInlineSnapshot(`
-		import { useDocumentStore } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
+		import { useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
 		import Component___subRoute__nested from "../../../../../src/routes/subRoute/nested/+page";
 
 		export default (
@@ -73,7 +73,7 @@ test('composes layouts and pages', async function () {
 		        children
 		    }
 		) => {
-		    const [FinalQuery$data, FinalQuery$handle] = useDocumentStore("FinalQuery");
+		    const [FinalQuery$data, FinalQuery$handle] = useQueryResult("FinalQuery");
 
 		    return (
 		        (<Component___subRoute__nested FinalQuery={FinalQuery$data} FinalQuery$handle={FinalQuery$handle}>
@@ -90,7 +90,7 @@ test('composes layouts and pages', async function () {
 		}
 	)
 	expect(root_layout_unit).toMatchInlineSnapshot(`
-		import { useDocumentStore } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
+		import { useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
 		import Component___ from "../../../../../src/routes/+layout";
 
 		export default (
@@ -113,7 +113,7 @@ test('composes layouts and pages', async function () {
 		}
 	)
 	expect(deep_layout_unit).toMatchInlineSnapshot(`
-		import { useDocumentStore } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
+		import { useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
 		import Component___subRoute from "../../../../../src/routes/subRoute/+layout";
 
 		export default (
@@ -121,8 +121,8 @@ test('composes layouts and pages', async function () {
 		        children
 		    }
 		) => {
-		    const [RootQuery$data, RootQuery$handle] = useDocumentStore("RootQuery");
-		    const [SubQuery$data, SubQuery$handle] = useDocumentStore("SubQuery");
+		    const [RootQuery$data, RootQuery$handle] = useQueryResult("RootQuery");
+		    const [SubQuery$data, SubQuery$handle] = useQueryResult("SubQuery");
 
 		    return (
 		        (<Component___subRoute
@@ -145,7 +145,7 @@ test('composes layouts and pages', async function () {
 		}
 	)
 	expect(page_fallback).toMatchInlineSnapshot(`
-		import { useRouterContext, useCache, useDocumentStore } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
+		import { useRouterContext, useCache, useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
 		import Component from "../../../../../src/routes/subRoute/nested/+page";
 		import { Suspense } from "react";
 
@@ -163,8 +163,9 @@ test('composes layouts and pages', async function () {
 		    return (
 		        (<Suspense
 		            fallback={<Fallback
-		                queries={{
-		                    FinalQuery
+		                required_queries={{}}
+		                loading_queries={{
+		                    FinalQuery: FinalQuery_artifact
 		                }} />}>
 		            {children}
 		        </Suspense>)
@@ -173,19 +174,20 @@ test('composes layouts and pages', async function () {
 
 		const Fallback = (
 		    {
-		        queries
+		        required_queries,
+		        loading_queries
 		    }
 		) => {
 		    const cache = useCache();
 
-		    const props = Object.entries(queries).reduce((prev, [name, artifact]) => ({
+		    let props = Object.entries(loading_queries).reduce((prev, [name, artifact]) => ({
 		        ...prev,
 
 		        [name]: cache.read({
 		            selection: artifact.selection,
 		            loading: true
 		        }).data
-		    }), {});
+		    }), required_queries);
 
 		    return <Component {...props} />;
 		};
@@ -199,7 +201,7 @@ test('composes layouts and pages', async function () {
 		}
 	)
 	expect(layout_fallback).toMatchInlineSnapshot(`
-		import { useRouterContext, useCache, useDocumentStore } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
+		import { useRouterContext, useCache, useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
 		import Component from "../../../../../src/routes/+layout";
 		import { Suspense } from "react";
 
@@ -213,7 +215,7 @@ test('composes layouts and pages', async function () {
 		    } = useRouterContext();
 
 		    return (
-		        (<Suspense fallback={<Fallback queries={{}} />}>
+		        (<Suspense fallback={<Fallback required_queries={{}} loading_queries={{}} />}>
 		            {children}
 		        </Suspense>)
 		    );
@@ -221,19 +223,20 @@ test('composes layouts and pages', async function () {
 
 		const Fallback = (
 		    {
-		        queries
+		        required_queries,
+		        loading_queries
 		    }
 		) => {
 		    const cache = useCache();
 
-		    const props = Object.entries(queries).reduce((prev, [name, artifact]) => ({
+		    let props = Object.entries(loading_queries).reduce((prev, [name, artifact]) => ({
 		        ...prev,
 
 		        [name]: cache.read({
 		            selection: artifact.selection,
 		            loading: true
 		        }).data
-		    }), {});
+		    }), required_queries);
 
 		    return <Component {...props} />;
 		};
