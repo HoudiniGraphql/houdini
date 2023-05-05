@@ -2,8 +2,8 @@ import {
 	type ArtifactKinds,
 	type Document,
 	type Config,
-	type ArtifactKind,
 	type Plugin,
+	ArtifactKind,
 	plugin,
 	fragmentKey,
 } from 'houdini'
