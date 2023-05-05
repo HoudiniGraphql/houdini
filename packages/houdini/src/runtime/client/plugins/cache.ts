@@ -1,6 +1,6 @@
 import cache from '../../cache'
 import { Cache } from '../../cache/cache'
-import { ArtifactKind, CachePolicy, DataSource, GraphQLObject } from '../../lib/types'
+import { ArtifactKind, CachePolicy, DataSource, type GraphQLObject } from '../../lib/types'
 import type { ClientPlugin } from '../documentStore'
 
 const serverSide = typeof globalThis.window === 'undefined'
