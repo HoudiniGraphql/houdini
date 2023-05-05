@@ -1,5 +1,6 @@
 import { PluginHooks, Config, Cache, path, QueryArtifact, fs } from 'houdini'
 import ReactDOMServer, { RenderToPipeableStreamOptions } from 'react-dom/server'
+import type { renderToStream as streamingRender } from 'react-streaming/server'
 import { Transform } from 'stream'
 import type { ViteDevServer } from 'vite'
 
@@ -46,9 +47,8 @@ export default {
 
 		// if we are rendering the virtual page
 		if (which === 'page') {
-			const [id, query_names, artifact_names] = arg.split('@')
+			const [id, query_names] = arg.split('@')
 			const queries = query_names.split(',')
-			const artifacts = artifact_names.split(',')
 
 			return `
 				import { hydrateRoot } from 'react-dom/client';
@@ -58,16 +58,10 @@ export default {
 				import client from '$houdini/plugins/houdini-react/runtime/client'
 				import Component from '$houdini/plugins/houdini-react/units/entries/${id}.jsx'
 
-				${artifacts
-					.map(
-						(artifact) => `import ${artifact} from "$houdini/artifacts/${artifact}.js"`
-					)
-					.join('\n')}
 
 				// attach things to the global scope to synchronize streaming
 				window.__houdini__nav_caches__ = router_cache({
 					pending_queries: ${JSON.stringify(queries)},
-					artifacts: { ${artifacts.join(',')} },
 					components: {
 						'${id}': Component
 					}
@@ -136,15 +130,18 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 			// instanitate a cache we can use
 			const cache = new Cache({ disabled: false })
 
-			// The way we push logic down to the client is by appending values
-			// to the stream. Each new chunk is executed so if we push <script> tags
-			// we can interact with the global scope. we're going to use this to coordinate
-			// our cache hydration as the initial response streams to the client.
-			let chunkNumber = 0
-
 			// in order to stream values to the client we need to track what we load
 			const loaded_queries: Record<string, { data: any; variables: any }> = {}
 			const loaded_artifacts: Record<string, QueryArtifact> = {}
+
+			// build up the pipe to render the response
+			const { pipe, injectToStream } = await render_server.renderToStream({
+				loaded_queries,
+				loaded_artifacts,
+				url: request.url,
+				cache,
+				userAgent: 'Vite',
+			})
 
 			// our pending cache needs to start with signals that we can alert
 			// for every query that we will send as part of the initial request
@@ -153,116 +150,20 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 				.filter((q) => !(q in loaded_queries))
 				.join(',')
 
-			// in order to be able to hydrate the cache with the data
-			// we grabbed from the server, we need to inject some information in the stream
-			const modifyStream = new Transform({
-				// the transform function receives the incoming data and a callback
-				transform(chunk, _, next) {
-					// in render call below, we added an string that we need to replace with a serialized
-					// version of the caches data
-					let str_value = chunk.toString()
+			// start strreaming the response to the user
+			pipe?.(response)
 
-					// TODO: clean up the loaded lists so we don't add the same thing multple time
+			// add the initial scripts to the page
+			injectToStream(`
+				<script>
+					window.__houdini__initial__cache__ = ${cache.serialize()};
+				</script>
 
-					// the chunk does not necessarily cleanly line up with a place we can inject a script
-					// in order to find the right place, we're going to look for an existing closing
-					// script
-					let insert_index = str_value.indexOf('</head>')
-					if (insert_index === -1) {
-						insert_index = str_value.indexOf('<script>')
-					}
+				<script type="module" src="/@vite/client" async=""></script>
 
-					// we can't get in the way of the the html content or else react
-					// will get a different root than it expects. if we dont have a
-					// safe place to inject values, just wait.
-					if (insert_index === -1) {
-						return next(null, str_value)
-					}
-
-					let to_insert = ''
-
-					// if we don't have the initialization scripts yet, add it
-					if (!chunkNumber++) {
-						to_insert = `
-						<script>
-							window.__houdini__initial__cache__ = ${cache.serialize()};
-						</script>
-
-						<script type="module" src="/@vite/client" async=""></script>
-
-						<!-- add a virtual module that loads the client and sets up the initial pending cache -->
-						<script type="module" src="@@houdini/page/${match.id}@${pending_query_names}@${Object.keys(
-							loaded_artifacts
-						).join(',')}.jsx" async=""></script>`
-					} else {
-						to_insert = `
-						<script>
-
-							window.__houdini__cache__?.hydrate(${cache.serialize()}, window.__houdini__hydration__layer)
-
-							// every query that we have resolved here can be resolved in the cache
-							${Object.keys(loaded_queries)
-								.map(
-									(query) => `
-									if (window.__houdini__nav_caches__?.pending_cache.has("${query}")) {
-										// before we resolve the pending signals,
-										// fill the data cache with values we got on the server
-										const new_store = window.__houdini__client__.observe({
-											artifact: window.__houdini__nav_caches__.artifact_cache.get("${query}"),
-											cache: window.__houdini__cache__,
-											initialValue: ${JSON.stringify(loaded_queries[query].data)}
-										})
-
-										window.__houdini__nav_caches__.data_cache.set("${query}", new_store)
-
-										// we're pushing this store onto the client, it should be initialized
-										new_store.send({
-											setup: true,
-											variables: ${JSON.stringify(loaded_queries[query].variables)}
-										})
-
-										// notify anyone waiting on the pending cache
-										window.__houdini__nav_caches__.pending_cache.get("${query}").resolve()
-										window.__houdini__nav_caches__.pending_cache.delete("${query}")
-									}
-							`
-								)
-								.join('\n')}
-
-						</script>
-						${Object.keys(loaded_artifacts)
-							.map(
-								(name) =>
-									`<script type="module" src="@@houdini/artifact/${name}.js" async=""></script>`
-							)
-							.join('\n')}
-
-						`
-					}
-
-					const new_value =
-						str_value.slice(0, insert_index) + to_insert + str_value.slice(insert_index)
-
-					// pass the modified data to the next stream in the pipeline
-					next(null, new_value)
-				},
-			})
-
-			// render the response
-			render_server({
-				loaded_queries,
-				loaded_artifacts,
-				url: request.url,
-				cache,
-				onError(err) {
-					// TODO
-					console.log(err)
-				},
-				onShellReady(pipe) {
-					response.setHeader('content-type', 'text/html')
-					pipe(modifyStream).pipe(response)
-				},
-			})
+				<!-- add a virtual module that loads the client and sets up the initial pending cache -->
+				<script type="module" src="@@houdini/page/${match.id}@${pending_query_names}.jsx" async=""></script>
+			`)
 		})
 	},
 } as PluginHooks['vite']
@@ -270,12 +171,12 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 async function load_render(server: ViteDevServer & { houdiniConfig: Config }) {
 	// load the function to rener the response from the generated output
 	// this is a hack to avoid a dependency issue with pnpm (i think)
-	const { render_server } = (await server.ssrLoadModule(
+	return (await server.ssrLoadModule(
 		render_server_path(server.houdiniConfig) + '?t=' + new Date().getTime()
 	)) as {
 		render_server: (
 			config: Omit<RenderToPipeableStreamOptions, 'onShellReady' | 'url'> & {
-				loaded_queries: Record<string, { data: any }>
+				loaded_queries: Record<string, { data: any; variables: any }>
 				loaded_artifacts: Record<string, QueryArtifact>
 				cache: Cache
 				url: string
@@ -284,7 +185,13 @@ async function load_render(server: ViteDevServer & { houdiniConfig: Config }) {
 				) => void
 			}
 		) => void
+		renderToStream: (
+			args: {
+				loaded_queries: Record<string, { data: any; variables: any }>
+				loaded_artifacts: Record<string, QueryArtifact>
+				cache: Cache
+				url: string
+			} & Parameters<typeof streamingRender>[1]
+		) => ReturnType<typeof streamingRender>
 	}
-
-	return render_server
 }

@@ -168,11 +168,6 @@ async function generate_page_entries(args: PageBundleInput) {
 				)}"`
 			)
 
-			// make sure to pass the right props to the component
-			const props = `Component={} queries={${JSON.stringify(
-				args.project.layouts[layout].queries
-			)}}`
-
 			content = `
 				<${LayoutFallback}>
 					${content}
@@ -184,9 +179,11 @@ async function generate_page_entries(args: PageBundleInput) {
 	// a page's entrypoint should take every query needed by a layout or
 	// page and passes it through
 	source.push(`
-		export default () => (
-			${content}
-		)
+		export default () => {
+			return (
+				${content}
+			)
+		}
 	`)
 
 	// format the source so we don't embarrass ourselves

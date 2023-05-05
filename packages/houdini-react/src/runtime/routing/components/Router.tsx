@@ -5,6 +5,7 @@ import { LRUCache } from '$houdini/runtime/lib/lru'
 import { GraphQLObject, GraphQLVariables } from '$houdini/runtime/lib/types'
 import { QueryArtifact } from '$houdini/runtime/lib/types'
 import React from 'react'
+import { useStream } from 'react-streaming'
 
 import { useDocumentStore } from '../../hooks/useDocumentStore'
 import { SuspenseCache } from '../lib/cache'
@@ -57,7 +58,7 @@ export function Router({
 	useLoadPage({ page, variables, loaded_queries, loaded_artifacts })
 
 	// if we get this far, it's safe to load the component
-	const { component_cache, last_variables, data_cache } = useRouterContext()
+	const { component_cache } = useRouterContext()
 	const PageComponent = component_cache.get(page.id)!
 
 	//
@@ -82,14 +83,7 @@ export function Router({
 		}
 	}, [])
 
-	// TODO: cleanup navigation caches!!
-	// make sure that we clear up navigation caches
-	// React.useEffect(() => {
-	// 	return () => {
-	// 		last_variables.delete(page.id)
-	// 		data_cache.delete(page.id)
-	// 	}
-	// }, [page.id])
+	// TODO: cleanup navigation caches
 
 	// render the component embedded in the necessary context so it can orchestrate
 	// its needs
@@ -132,6 +126,9 @@ function useLoadPage({
 		last_variables,
 	} = useRouterContext()
 
+	// get a reference to the current stream
+	const stream = useStream()
+
 	// the function to load a query using the cache references
 	function load_query({ id, artifact }: { id: string; artifact: QueryArtifact }): Promise<void> {
 		// track the new variables
@@ -161,12 +158,45 @@ function useLoadPage({
 				})
 				.then(() => {
 					data_cache.set(id, observer)
+
 					if (loaded_queries) {
 						loaded_queries[artifact.name] = {
 							data: observer.state.data!,
 							variables,
 						}
 					}
+
+					// if we are building up a stream, we want to add something
+					// to the client that resolves the pending request with the
+					// data that we just got
+					stream?.injectToStream(`
+						<script>
+							window.__houdini__cache__?.hydrate(${cache.serialize()}, window.__houdini__hydration__layer)
+
+							if (window.__houdini__nav_caches__?.pending_cache.has("${artifact.name}")) {
+								// before we resolve the pending signals,
+								// fill the data cache with values we got on the server
+								const new_store = window.__houdini__client__.observe({
+									artifact: window.__houdini__nav_caches__.artifact_cache.get("${artifact.name}"),
+									cache: window.__houdini__cache__,
+									initialValue: ${JSON.stringify(observer.state.data)}
+								})
+
+								window.__houdini__nav_caches__.data_cache.set("${artifact.name}", new_store)
+
+								// we're pushing this store onto the client, it should be initialized
+								new_store.send({
+									setup: true,
+									variables: ${JSON.stringify(variables)}
+								})
+
+								// notify anyone waiting on the pending cache
+								window.__houdini__nav_caches__.pending_cache.get("${artifact.name}").resolve()
+								window.__houdini__nav_caches__.pending_cache.delete("${artifact.name}")
+							}
+						</script>
+					`)
+
 					resolve()
 				})
 				.catch(reject)
@@ -216,6 +246,11 @@ function useLoadPage({
 				if (loaded_artifacts) {
 					loaded_artifacts[artifact.name] = artifact
 				}
+
+				// add a script to load the artifact
+				stream?.injectToStream(`
+					<script type="module" src="@@houdini/artifact/${artifact.name}.js" async=""></script>
+				`)
 
 				// now that we have the artifact, we can load the query too
 				load_query({ id: artifact.name, artifact })

@@ -20,7 +20,7 @@
 		"houdini-react": "workspace:^",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
-		"react-streaming": "^0.3.9"
+		"react-streaming": "^0.3.10"
 	},
 	"devDependencies": {
 		"@types/react": "^18.0.27",
