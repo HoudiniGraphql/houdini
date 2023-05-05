@@ -1,5 +1,12 @@
-import { ArtifactKind, plugin, type Plugin, fragmentKey } from 'houdini'
-import type { ArtifactKinds, Document, Config } from 'houdini'
+import {
+	type ArtifactKinds,
+	type Document,
+	type Config,
+	type ArtifactKind,
+	type Plugin,
+	plugin,
+	fragmentKey,
+} from 'houdini'
 import path from 'node:path'
 
 import generate from './codegen'

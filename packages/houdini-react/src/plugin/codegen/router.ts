@@ -1,4 +1,4 @@
-import { Config, path } from 'houdini'
+import { type Config, path } from 'houdini'
 
 import { parse_page_pattern } from '../../runtime/routing/lib/match'
 import { page_entry_path } from '../conventions'
