@@ -26,7 +26,7 @@ export function Router({
 }: {
 	intialURL: string
 	cache: Cache
-	loaded_queries?: Record<string, { data: GraphQLObject }>
+	loaded_queries?: Record<string, { data: GraphQLObject; variables: GraphQLVariables }>
 	loaded_artifacts?: Record<string, QueryArtifact>
 } & RouterCache) {
 	return (
