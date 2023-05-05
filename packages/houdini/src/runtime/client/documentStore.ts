@@ -1,5 +1,5 @@
 import type { HoudiniClient } from '.'
-import { Cache } from '../cache/cache'
+import type { Cache } from '../cache/cache'
 import type { Layer } from '../cache/storage'
 import type { ConfigFile } from '../lib/config'
 import { getCurrentConfig } from '../lib/config'

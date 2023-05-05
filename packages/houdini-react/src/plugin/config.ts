@@ -1,4 +1,4 @@
-import type { Config, ConfigFile } from 'houdini'
+import type { Config } from 'houdini'
 import { path } from 'houdini'
 import { testConfig } from 'houdini/test'
 

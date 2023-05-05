@@ -3,8 +3,7 @@ import { clearMock } from 'houdini/test'
 import { test, expect, describe } from 'vitest'
 
 import { test_config } from '../config'
-import { load_manifest } from './manifest'
-import { extractQueries } from './manifest'
+import { load_manifest, extractQueries } from './manifest'
 
 test('empty routes dir generates empty manifest', async function () {
 	const config = await test_config()

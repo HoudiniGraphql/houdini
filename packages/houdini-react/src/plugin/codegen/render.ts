@@ -1,4 +1,4 @@
-import { Config, fs, path } from 'houdini'
+import { type Config, fs, path } from 'houdini'
 
 import { render_client_path, render_server_path, render_app_path } from '../conventions'
 

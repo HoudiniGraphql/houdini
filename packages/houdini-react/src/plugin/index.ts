@@ -1,4 +1,4 @@
-import { ArtifactKind, plugin, Plugin, fragmentKey } from 'houdini'
+import { ArtifactKind, plugin, type Plugin, fragmentKey } from 'houdini'
 import type { ArtifactKinds, Document, Config } from 'houdini'
 import path from 'node:path'
 

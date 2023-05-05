@@ -1,4 +1,4 @@
-import { path, fs, Config } from 'houdini'
+import { path, fs, type Config } from 'houdini'
 
 /** The location of the project's router */
 export function router_path(config: Config) {

@@ -3,7 +3,7 @@ import { Config, path } from 'houdini'
 import { parse_page_pattern } from '../../runtime/routing/lib/match'
 import { page_entry_path } from '../conventions'
 import { dedent } from '../dedent'
-import { ProjectManifest, QueryManifest } from './manifest'
+import type { ProjectManifest, QueryManifest } from './manifest'
 
 export function format_router_manifest({
 	config,

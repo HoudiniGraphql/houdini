@@ -1,5 +1,5 @@
 /// <reference path="../../../../../houdini.d.ts" />
-import { Cache } from '../cache/cache'
+import type { Cache } from '../cache/cache'
 import { flatten } from '../lib/flatten'
 import type { DocumentArtifact, GraphQLVariables, GraphQLObject, NestedList } from '../lib/types'
 import type { ClientHooks, ClientPlugin } from './documentStore'

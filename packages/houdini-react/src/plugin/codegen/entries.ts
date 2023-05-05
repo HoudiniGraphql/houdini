@@ -1,4 +1,4 @@
-import { Config, fs, parseJS, printJS, path } from 'houdini'
+import { type Config, fs, parseJS, printJS, path } from 'houdini'
 
 import {
 	page_entry_path,
@@ -257,7 +257,8 @@ async function generate_fallbacks({
 		// the default export for the fallback suspends while it waits for the necessary
 		// artifacts and then wraps the children in a suspense boundary with a fallback
 		// that renders the component with its loading state
-		source.push(`
+		source.push(
+			`
 			export default ({ children }) => {
 				const { artifact_cache } = useRouterContext()
 
@@ -285,11 +286,10 @@ async function generate_fallbacks({
 					</Suspense>
 				)
 			}
-		`)
-
-		// in order to avoid necessarily computing the loading state, we're going to do that in
-		// a separate function so that the computation only triggers when it mounts
-		source.push(`
+		`,
+			// in order to avoid necessarily computing the loading state, we're going to do that in
+			// a separate function so that the computation only triggers when it mounts
+			`
 			const Fallback = ({ required_queries, loading_queries }) => {
 				const cache = useCache()
 
@@ -303,7 +303,8 @@ async function generate_fallbacks({
 
 				return <Component {...props} />
 			}
-		`)
+		`
+		)
 
 		// format the source so we don't embarrass ourselves
 		const formatted = (await printJS(await parseJS(source.join('\n'), { plugins: ['jsx'] })))

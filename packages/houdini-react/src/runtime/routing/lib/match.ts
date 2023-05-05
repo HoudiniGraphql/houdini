@@ -1,6 +1,6 @@
-import { GraphQLVariables } from '$houdini/runtime/lib/types'
+import type { GraphQLVariables } from '$houdini/runtime/lib/types'
 
-import { RouterManifest, RouterPageManifest } from './types'
+import type { RouterManifest, RouterPageManifest } from './types'
 
 /**
  * This file is copied from the SvelteKit source code under the MIT license found at the bottom of the file
