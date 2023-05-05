@@ -21,7 +21,6 @@ test('generates render functions', async function () {
 	expect(render_server).toMatchInlineSnapshot(`
 		import React from "react";
 		import ReactDOMServer from "react-dom/server";
-		import { renderToStream } from "react-streaming/server";
 		import App from "./App";
 		import { router_cache } from "$houdini";
 
@@ -49,12 +48,5 @@ test('generates render functions', async function () {
 		        }
 		    });
 		}
-
-		export async function render_streaming(
-		    {
-		        url,
-		        cache
-		    }
-		) {}
 	`)
 })
