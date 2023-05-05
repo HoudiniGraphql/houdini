@@ -1,6 +1,6 @@
 import cache from '../../cache'
 import { Cache } from '../../cache/cache'
-import { ArtifactKind, CachePolicy, DataSource } from '../../lib/types'
+import { ArtifactKind, CachePolicy, DataSource, GraphQLObject } from '../../lib/types'
 import type { ClientPlugin } from '../documentStore'
 
 const serverSide = typeof globalThis.window === 'undefined'
@@ -18,11 +18,6 @@ export const cachePolicy =
 		serverSideFallback?: boolean
 	}): ClientPlugin =>
 	() => {
-		// if we were given a cha
-		if (cache) {
-			serverSideFallback = false
-		}
-
 		return {
 			network(ctx, { initialValue, next, resolve, marshalVariables }) {
 				const { policy, artifact } = ctx
@@ -106,7 +101,7 @@ export const cachePolicy =
 				// dont set the fetching state to true if we accepted a cache value
 				if (!ctx.stuff?.silenceLoading) {
 					// don't set the fetching state to true if we accepted a cache value
-					let fetchingState = null
+					let fetchingState: GraphQLObject | null = null
 					if (
 						!useCache &&
 						'enableLoadingState' in artifact &&
@@ -131,6 +126,12 @@ export const cachePolicy =
 					value.data &&
 					!ctx.cacheParams?.disableWrite
 				) {
+					// if the cache params specify a fallback behavior, use that
+					if (ctx.cacheParams && 'serverSideFallback' in ctx.cacheParams) {
+						serverSideFallback =
+							ctx.cacheParams?.serverSideFallback ?? serverSideFallback
+					}
+
 					const targetCache =
 						serverSide && serverSideFallback
 							? new Cache({ disabled: false })

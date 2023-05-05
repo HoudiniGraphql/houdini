@@ -581,6 +581,7 @@ export type ClientPluginContext = {
 		disableRead?: boolean
 		disableSubscriptions?: boolean
 		applyUpdates?: string[]
+		serverSideFallback?: boolean
 	}
 	stuff: App.Stuff
 }

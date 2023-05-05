@@ -29,6 +29,10 @@ export const hooks: Plugin = async () => ({
 		commonjs: '../runtime-cjs',
 	},
 
+	clientPlugins: {
+		'$houdini/plugins/houdini-react/runtime/clientPlugin': null,
+	},
+
 	vite: vite_plugin,
 
 	// we need to add overloaded definitions for every hook that
