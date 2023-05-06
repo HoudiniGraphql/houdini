@@ -90,13 +90,14 @@ export function normalize_path(path: string) {
 	if (path.endsWith('/') && path.length > 1) {
 		path = path.substring(0, path.length - 1)
 	}
-	const special_chars = ['/', ']', '[']
-	const mask = '__'
+	const special_chars = ['/', ']', '[', '(', ')']
+	const mask = '_'
 
 	let copy = ''
 	for (const char of path) {
-		if (special_chars.includes(char)) {
-			copy += mask
+		const match = special_chars.indexOf(char)
+		if (match !== -1) {
+			copy += mask + match.toString()
 		} else {
 			copy += char
 		}

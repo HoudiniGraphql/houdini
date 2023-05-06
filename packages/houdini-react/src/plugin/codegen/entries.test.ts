@@ -41,11 +41,11 @@ test('composes layouts and pages', async function () {
 		{ plugins: ['jsx'] }
 	)
 	expect(page_entry).toMatchInlineSnapshot(`
-		import Layout___ from "../layouts/__.jsx";
-		import Layout___subRoute from "../layouts/__subRoute.jsx";
-		import Page___subRoute__nested from "../pages/__subRoute__nested.jsx";
-		import PageFallback___subRoute__nested from "../fallbacks/page/__subRoute__nested.jsx";
-		import LayoutFallback___subRoute__nested from "../../fallbacks/layout";
+		import Layout__0 from "../layouts/_0.jsx";
+		import Layout__0subRoute from "../layouts/_0subRoute.jsx";
+		import Page__0subRoute_0nested from "../pages/_0subRoute_0nested.jsx";
+		import PageFallback__0subRoute_0nested from "../fallbacks/page/_0subRoute_0nested.jsx";
+		import LayoutFallback__0subRoute_0nested from "../../fallbacks/layout";
 
 		export default (
 		    {
@@ -53,15 +53,15 @@ test('composes layouts and pages', async function () {
 		    }
 		) => {
 		    return (
-		        (<LayoutFallback___subRoute__nested key={url}>
-		            <Layout___ key={url}>
-		                <Layout___subRoute key={url}>
-		                    <PageFallback___subRoute__nested key={url}>
-		                        <Page___subRoute__nested />
-		                    </PageFallback___subRoute__nested>
-		                </Layout___subRoute>
-		            </Layout___>
-		        </LayoutFallback___subRoute__nested>)
+		        (<LayoutFallback__0subRoute_0nested key={url}>
+		            <Layout__0 key={url}>
+		                <Layout__0subRoute key={url}>
+		                    <PageFallback__0subRoute_0nested key={url}>
+		                        <Page__0subRoute_0nested />
+		                    </PageFallback__0subRoute_0nested>
+		                </Layout__0subRoute>
+		            </Layout__0>
+		        </LayoutFallback__0subRoute_0nested>)
 		    );
 		};
 	`)
@@ -74,7 +74,7 @@ test('composes layouts and pages', async function () {
 	)
 	expect(page_unit).toMatchInlineSnapshot(`
 		import { useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
-		import Component___subRoute__nested from "../../../../../src/routes/subRoute/nested/+page";
+		import Component__0subRoute_0nested from "../../../../../src/routes/subRoute/nested/+page";
 
 		export default (
 		    {
@@ -84,9 +84,9 @@ test('composes layouts and pages', async function () {
 		    const [FinalQuery$data, FinalQuery$handle] = useQueryResult("FinalQuery");
 
 		    return (
-		        (<Component___subRoute__nested FinalQuery={FinalQuery$data} FinalQuery$handle={FinalQuery$handle}>
+		        (<Component__0subRoute_0nested FinalQuery={FinalQuery$data} FinalQuery$handle={FinalQuery$handle}>
 		            {children}
-		        </Component___subRoute__nested>)
+		        </Component__0subRoute_0nested>)
 		    );
 		};
 	`)
@@ -99,7 +99,7 @@ test('composes layouts and pages', async function () {
 	)
 	expect(root_layout_unit).toMatchInlineSnapshot(`
 		import { useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
-		import Component___ from "../../../../../src/routes/+layout";
+		import Component__0 from "../../../../../src/routes/+layout";
 
 		export default (
 		    {
@@ -107,9 +107,9 @@ test('composes layouts and pages', async function () {
 		    }
 		) => {
 		    return (
-		        (<Component___>
+		        (<Component__0>
 		            {children}
-		        </Component___>)
+		        </Component__0>)
 		    );
 		};
 	`)
@@ -122,7 +122,7 @@ test('composes layouts and pages', async function () {
 	)
 	expect(deep_layout_unit).toMatchInlineSnapshot(`
 		import { useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
-		import Component___subRoute from "../../../../../src/routes/subRoute/+layout";
+		import Component__0subRoute from "../../../../../src/routes/subRoute/+layout";
 
 		export default (
 		    {
@@ -133,13 +133,13 @@ test('composes layouts and pages', async function () {
 		    const [SubQuery$data, SubQuery$handle] = useQueryResult("SubQuery");
 
 		    return (
-		        (<Component___subRoute
+		        (<Component__0subRoute
 		            RootQuery={RootQuery$data}
 		            RootQuery$handle={RootQuery$handle}
 		            SubQuery={SubQuery$data}
 		            SubQuery$handle={SubQuery$handle}>
 		            {children}
-		        </Component___subRoute>)
+		        </Component__0subRoute>)
 		    );
 		};
 	`)
