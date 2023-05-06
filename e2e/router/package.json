@@ -1,5 +1,5 @@
 {
-	"name": "e2e-houdini-router",
+	"name": "e2e-router",
 	"private": true,
 	"version": "0.0.0",
 	"type": "module",
