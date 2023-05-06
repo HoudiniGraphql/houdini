@@ -460,12 +460,16 @@ class ErrorBoundary extends React.Component {
 
 	await fs.writeFile(indexPath, indexContent)
 
+	// create routes directory
+	await fs.mkdir(path.join(targetPath, 'routes'))
+
 	// demo layout page
 	await fs.writeFile(
 		path.join(targetPath, 'routes', `+layout.gql`),
-		`query HelloRouter {
-	message: hello
-}
+		`# Layout query
+# query LayoutQuery {
+# 	...
+# }		
 `
 	)
 
@@ -473,10 +477,15 @@ class ErrorBoundary extends React.Component {
 		path.join(targetPath, 'routes', `+layout.${typescript ? 't' : 'j'}sx`),
 		`import { Link } from '$houdini'
 
-export default function ({ HelloRouter, children }) {
+export default function ({
+	children,
+	// Query from +layout.gql
+	// LayoutQuery
+}) {
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-			message: {HelloRouter.message}
+			{/* Using the query of +layout.gql
+			{JSON.stringify(LayoutQuery, null, 2)} */}
 			<div>{children}</div>
 		</div>
 	)
@@ -486,11 +495,16 @@ export default function ({ HelloRouter, children }) {
 
 	await fs.writeFile(
 		path.join(targetPath, 'routes', `+page.${typescript ? 't' : 'j'}sx`),
-		`export default function ({ HelloRouter }) {
-	return <div>{HelloRouter.message}!</div>
-}
+		`export default function ({}) {
+	return <div>My Page</div>
+}		
 `
 	)
+
+	await fs.remove(path.join(targetPath, 'App.css'))
+	await fs.remove(path.join(targetPath, `App.${typescript ? 't' : 'j'}sx`))
+	await fs.remove(path.join(targetPath, `index.css`))
+	await fs.remove(path.join(targetPath, `main.${typescript ? 't' : 'j'}sx`))
 }
 
 /******************************/
@@ -655,6 +669,10 @@ async function packageJSON(targetPath: string, frameworkInfo: HoudiniFrameworkIn
 			'houdini-svelte': '^PACKAGE_VERSION',
 		}
 	} else if (frameworkInfo.framework === 'react') {
+		packageJSON.dependencies = {
+			...packageJSON.dependencies,
+			'react-streaming': '^0.3.10',
+		}
 		packageJSON.devDependencies = {
 			...packageJSON.devDependencies,
 			'houdini-react': '^PACKAGE_VERSION',
