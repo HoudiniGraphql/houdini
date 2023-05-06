@@ -47,15 +47,23 @@ test('composes layouts and pages', async function () {
 		import PageFallback___subRoute__nested from "../fallbacks/page/__subRoute__nested.jsx";
 		import LayoutFallback___subRoute__nested from "../../fallbacks/layout";
 
-		export default () => (<LayoutFallback___subRoute__nested>
-		    <Layout___>
-		        <Layout___subRoute>
-		            <PageFallback___subRoute__nested>
-		                <Page___subRoute__nested />
-		            </PageFallback___subRoute__nested>
-		        </Layout___subRoute>
-		    </Layout___>
-		</LayoutFallback___subRoute__nested>);
+		export default (
+		    {
+		        url
+		    }
+		) => {
+		    return (
+		        (<LayoutFallback___subRoute__nested key={url}>
+		            <Layout___ key={url}>
+		                <Layout___subRoute key={url}>
+		                    <PageFallback___subRoute__nested key={url}>
+		                        <Page___subRoute__nested />
+		                    </PageFallback___subRoute__nested>
+		                </Layout___subRoute>
+		            </Layout___>
+		        </LayoutFallback___subRoute__nested>)
+		    );
+		};
 	`)
 
 	const page_unit = await parseJS(

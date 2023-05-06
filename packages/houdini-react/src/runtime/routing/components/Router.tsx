@@ -95,7 +95,7 @@ export function Router({
 			}}
 		>
 			<VariableContext.Provider value={variables}>
-				<PageComponent />
+				<PageComponent url={current} />
 			</VariableContext.Provider>
 		</NavContext.Provider>
 	)

@@ -20,11 +20,11 @@ test('generates render functions', async function () {
 	})
 	expect(render_server).toMatchInlineSnapshot(`
 		import React from "react";
-		import ReactDOMServer from "react-dom/server";
+		import { renderToStream } from "react-streaming/server";
 		import App from "./App";
 		import { router_cache } from "$houdini";
 
-		export async function render_server(
+		export function render_to_stream(
 		    {
 		        url,
 		        cache,
@@ -33,20 +33,12 @@ test('generates render functions', async function () {
 		        ...config
 		    }
 		) {
-		    const {
-		        pipe
-		    } = ReactDOMServer.renderToPipeableStream(<App
+		    return renderToStream(<App
 		        intialURL={url}
 		        cache={cache}
 		        {...router_cache()}
 		        loaded_queries={loaded_queries}
-		        loaded_artifacts={loaded_artifacts} />, {
-		        ...config,
-
-		        onShellReady() {
-		            config.onShellReady?.(pipe);
-		        }
-		    });
+		        loaded_artifacts={loaded_artifacts} />, config);
 		}
 	`)
 })

@@ -142,7 +142,7 @@ async function generate_page_entries(args: PageBundleInput) {
 		)
 
 		content = `
-			<${PageFallback}>
+			<${PageFallback} key={url}>
 				${content}
 			</${PageFallback}>
 		`
@@ -152,7 +152,7 @@ async function generate_page_entries(args: PageBundleInput) {
 		// wrap the content in an instance of the correct component
 		const Layout = layout_components[layout]
 		content = `
-			<${Layout}>
+			<${Layout} key={url}>
 				${content}
 			</${Layout}>
 		`
@@ -169,7 +169,7 @@ async function generate_page_entries(args: PageBundleInput) {
 			)
 
 			content = `
-				<${LayoutFallback}>
+				<${LayoutFallback} key={url}>
 					${content}
 				</${LayoutFallback}>
 			`
@@ -179,7 +179,7 @@ async function generate_page_entries(args: PageBundleInput) {
 	// a page's entrypoint should take every query needed by a layout or
 	// page and passes it through
 	source.push(`
-		export default () => {
+		export default ({ url }) => {
 			return (
 				${content}
 			)
