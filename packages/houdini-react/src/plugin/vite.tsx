@@ -1,7 +1,5 @@
 import { PluginHooks, Config, Cache, path, QueryArtifact, fs } from 'houdini'
-import ReactDOMServer, { RenderToPipeableStreamOptions } from 'react-dom/server'
 import type { renderToStream as streamingRender } from 'react-streaming/server'
-import { Transform } from 'stream'
 import type { ViteDevServer } from 'vite'
 
 import { RouterManifest } from '../runtime'
@@ -124,7 +122,7 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 
 			// get the function that we can call to render the response
 			// on the server
-			const render_server = await load_render(server)
+			const { render_to_stream } = await load_render(server)
 
 			// instanitate a cache we can use
 			const cache = new Cache({ disabled: false })
@@ -134,7 +132,7 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 			const loaded_artifacts: Record<string, QueryArtifact> = {}
 
 			// build up the pipe to render the response
-			const { pipe, injectToStream } = await render_server.renderToStream({
+			const { pipe, injectToStream } = await render_to_stream({
 				loaded_queries,
 				loaded_artifacts,
 				url: request.url,
@@ -149,7 +147,7 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 				.filter((q) => !(q in loaded_queries))
 				.join(',')
 
-			// start strreaming the response to the user
+			// start streaming the response to the user
 			pipe?.(response)
 
 			// add the initial scripts to the page
@@ -173,18 +171,7 @@ async function load_render(server: ViteDevServer & { houdiniConfig: Config }) {
 	return (await server.ssrLoadModule(
 		render_server_path(server.houdiniConfig) + '?t=' + new Date().getTime()
 	)) as {
-		render_server: (
-			config: Omit<RenderToPipeableStreamOptions, 'onShellReady' | 'url'> & {
-				loaded_queries: Record<string, { data: any; variables: any }>
-				loaded_artifacts: Record<string, QueryArtifact>
-				cache: Cache
-				url: string
-				onShellReady: (
-					pipe: ReturnType<(typeof ReactDOMServer)['renderToPipeableStream']>['pipe']
-				) => void
-			}
-		) => void
-		renderToStream: (
+		render_to_stream: (
 			args: {
 				loaded_queries: Record<string, { data: any; variables: any }>
 				loaded_artifacts: Record<string, QueryArtifact>
