@@ -91,7 +91,6 @@ export default {
 			return (
 				artifact +
 				`
-
 if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_cache && !window.__houdini__nav_caches__.artifact_cache.has("${arg}")) {
 	window.__houdini__nav_caches__.artifact_cache.set(${arg}, artifact)
 }

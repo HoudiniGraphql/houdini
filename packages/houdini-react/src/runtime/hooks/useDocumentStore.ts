@@ -13,7 +13,7 @@ export type UseDocumentStoreParams<
 > = {
 	artifact: _Artifact
 	observer?: DocumentStore<_Data, _Input>
-} & Partial<ObserveParams<_Data>>
+} & Partial<ObserveParams<_Data, DocumentArtifact, _Input>>
 
 export function useDocumentStore<
 	_Data extends GraphQLObject = GraphQLObject,

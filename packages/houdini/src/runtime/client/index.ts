@@ -29,12 +29,14 @@ export type HoudiniClientConstructorArgs = {
 
 export type ObserveParams<
 	_Data extends GraphQLObject,
-	_Artifact extends DocumentArtifact = DocumentArtifact
+	_Artifact extends DocumentArtifact = DocumentArtifact,
+	_Input extends GraphQLVariables = GraphQLVariables
 > = {
 	artifact: _Artifact
 	enableCache?: boolean
 	cache?: Cache
 	initialValue?: _Data | null
+	initialVariables?: _Input
 	fetching?: boolean
 }
 
@@ -100,8 +102,8 @@ export class HoudiniClient {
 		enableCache = true,
 		fetching = false,
 		...rest
-	}: ObserveParams<_Data>): DocumentStore<_Data, _Input> {
-		return new DocumentStore({
+	}: ObserveParams<_Data, DocumentArtifact, _Input>): DocumentStore<_Data, _Input> {
+		return new DocumentStore<_Data, _Input>({
 			client: this,
 			plugins: createPluginHooks(this.plugins),
 			fetching,

@@ -94,7 +94,9 @@ export function Router({
 				goto: setCurrent,
 			}}
 		>
-			<PageComponent />
+			<VariableContext.Provider value={variables}>
+				<PageComponent />
+			</VariableContext.Provider>
 		</NavContext.Provider>
 	)
 }
@@ -371,6 +373,12 @@ export function useClient() {
 export function useCache() {
 	return useRouterContext().cache
 }
+
+export function useCurrentVariables(): GraphQLVariables {
+	return React.useContext(VariableContext)
+}
+
+const VariableContext = React.createContext<GraphQLVariables>(null)
 
 export function useQueryResult<_Data extends GraphQLObject, _Input extends GraphQLVariables>(
 	name: string

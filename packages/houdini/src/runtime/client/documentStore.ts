@@ -55,8 +55,8 @@ export class DocumentStore<
 		cache,
 		enableCache = true,
 		initialValue,
+		initialVariables,
 		fetching,
-		serverSideFallback,
 	}: {
 		artifact: DocumentArtifact
 		plugins?: ClientHooks[]
@@ -67,6 +67,7 @@ export class DocumentStore<
 		initialValue?: _Data | null
 		fetching?: boolean
 		serverSideFallback?: boolean
+		initialVariables?: _Input
 	}) {
 		// if fetching is set, respect the value
 		// if fetching is not set, we should default fetching on queries and not on the rest.
@@ -80,7 +81,7 @@ export class DocumentStore<
 			stale: false,
 			source: null,
 			fetching,
-			variables: null,
+			variables: initialVariables ?? null,
 		}
 
 		super(initialState, () => {

@@ -91,6 +91,7 @@ export class FragmentStoreCursor<
 		const paginationStore = getClient().observe<_Data, _Input>({
 			artifact: this.paginationArtifact,
 			initialValue: store.initialValue,
+			initialVariables: store.variables,
 		})
 
 		const handlers = this.storeHandlers(
@@ -192,6 +193,7 @@ export class FragmentStoreOffset<
 		const paginationStore = getClient().observe<_Data, _Input>({
 			artifact: this.paginationArtifact,
 			initialValue: store.initialValue,
+			initialVariables: store.variables,
 		})
 
 		const getState = () => get(store)

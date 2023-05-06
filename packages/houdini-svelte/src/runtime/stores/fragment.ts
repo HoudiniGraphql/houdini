@@ -74,6 +74,7 @@ Please ensure that you have passed a record that has ${this.artifact.name} mixed
 		const store = new BaseStore<_Data, _Input>({
 			artifact: this.artifact,
 			initialValue: data,
+			initialVariables: variables,
 		})
 		if (!loading && parent) {
 			store.observer.send({ variables, setup: true, stuff: { parentID: parent } })
