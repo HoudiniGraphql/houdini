@@ -194,43 +194,39 @@ export default async function init(
 	const sourceDir = path.join(targetPath, 'src')
 	// the config file path
 	const configPath = path.join(targetPath, 'houdini.config.js')
-	// where we put the houdiniClient
-	const houdiniClientPath = typescript
-		? path.join(sourceDir, 'client.ts')
-		: path.join(sourceDir, 'client.js')
 
 	console.log('🚧 Generating project files...')
-
-	await updatePackageJSON(targetPath, frameworkInfo)
 
 	// let's pull the schema only when we are using a remote endpoint
 	if (is_remote_endpoint) {
 		await pullSchema(url, path.join(targetPath, schemaPath), headers)
 	}
 
-	await writeConfigFile({
+	// Houdini's files
+	await houdiniConfig(
 		configPath,
 		schemaPath,
 		module,
 		frameworkInfo,
-		url: is_remote_endpoint ? url : null,
-	})
-	await fs.writeFile(houdiniClientPath, networkFile(url))
-	await graphqlRCFile(targetPath)
-	await gitIgnore(targetPath)
+		is_remote_endpoint ? url : null
+	)
+	await houdiniClient(sourceDir, typescript, frameworkInfo, url)
 
-	// Config files for:
-	// - kit only
-	// - svelte only
-	// - both (with small variants)
+	// Framework specific files
 	if (frameworkInfo.framework === 'svelte') {
-		await updateSvelteMainJs(targetPath, typescript)
+		await svelteKitConfig(targetPath, typescript)
 	} else if (frameworkInfo.framework === 'kit') {
-		await updateSvelteConfig(targetPath, typescript)
+		await svelteConfig(targetPath, typescript)
+	} else if (frameworkInfo.framework === 'react') {
+		await reactRouter(sourceDir, typescript)
 	}
 
-	await updateViteConfig(targetPath, frameworkInfo, typescript)
+	// Global files
+	await gitIgnore(targetPath)
+	await graphqlRC(targetPath)
+	await viteConfig(targetPath, frameworkInfo, typescript)
 	await tjsConfig(targetPath, frameworkInfo)
+	await packageJSON(targetPath, frameworkInfo)
 
 	// we're done!
 	console.log()
@@ -251,36 +247,16 @@ export default async function init(
 `)
 }
 
-const networkFile = (url: string) => `import { HoudiniClient } from '$houdini';
-
-export default new HoudiniClient({
-    url: '${url}'
-
-    // uncomment this to configure the network call (for things like authentication)
-    // for more information, please visit here: https://www.houdinigraphql.com/guides/authentication
-    // fetchParams({ session }) { 
-    //     return { 
-    //         headers: {
-    //             Authentication: \`Bearer \${session.token}\`,
-    //         }
-    //     }
-    // }
-})
-`
-
-const writeConfigFile = async ({
-	configPath,
-	schemaPath,
-	module,
-	frameworkInfo,
-	url,
-}: {
-	configPath: string
-	schemaPath: string
-	module: 'esm' | 'commonjs'
-	frameworkInfo: HoudiniFrameworkInfo
+/******************************/
+/*  Houdini's files           */
+/******************************/
+const houdiniConfig = async (
+	configPath: string,
+	schemaPath: string,
+	module: 'esm' | 'commonjs',
+	frameworkInfo: HoudiniFrameworkInfo,
 	url: string | null
-}): Promise<boolean> => {
+): Promise<boolean> => {
 	const config: ConfigFile = {}
 
 	// if we have no url, we are using a local schema
@@ -337,63 +313,217 @@ export default config
 module.exports = config
 `
 
-	await updateFile({
-		filepath: configPath,
-		content,
-	})
+	await fs.writeFile(configPath, content)
 
 	return false
 }
 
-async function tjsConfig(targetPath: string, frameworkInfo: HoudiniFrameworkInfo) {
-	// if there is no tsconfig.json, there could be a jsconfig.json
-	let configFile = path.join(targetPath, 'tsconfig.json')
-	try {
-		await fs.stat(configFile)
-	} catch {
-		configFile = path.join(targetPath, 'jsconfig.json')
-		try {
-			await fs.stat(configFile)
+const houdiniClient = async (
+	targetPath: string,
+	typescript: boolean,
+	frameworkInfo: HoudiniFrameworkInfo,
+	url: string
+) => {
+	// where we put the houdiniClient
+	const houdiniClientPrefix = frameworkInfo.framework === 'react' ? `+` : ``
+	const houdiniClientExt = typescript ? `ts` : `js`
+	const houdiniClientPath = path.join(
+		targetPath,
+		`${houdiniClientPrefix}client.${houdiniClientExt}`
+	)
 
-			// there isn't either a .tsconfig.json or a jsconfig.json, there's nothing to update
-		} catch {
-			return false
+	const content = `import { HoudiniClient } from '$houdini';
+
+export default new HoudiniClient({
+    url: '${url}'
+
+    // uncomment this to configure the network call (for things like authentication)
+    // for more information, please visit here: https://www.houdinigraphql.com/guides/authentication
+    // fetchParams({ session }) { 
+    //     return { 
+    //         headers: {
+    //             Authentication: \`Bearer \${session.token}\`,
+    //         }
+    //     }
+    // }
+})
+`
+
+	await fs.writeFile(houdiniClientPath, content)
+}
+
+/******************************/
+/*  Framework specific files  */
+/******************************/
+async function svelteKitConfig(targetPath: string, typescript: boolean) {
+	const svelteMainJsPath = path.join(targetPath, 'src', typescript ? 'main.ts' : 'main.js')
+
+	const newContent = `import client from "./client";
+import './app.css'
+import App from './App.svelte'
+
+const app = new App({
+	target: document.getElementById('app')
+})
+
+export default app
+`
+
+	await fs.writeFile(svelteMainJsPath, newContent)
+}
+
+async function svelteConfig(targetPath: string, typescript: boolean) {
+	const svelteConfigPath = path.join(targetPath, 'svelte.config.js')
+
+	const newContentTs = `import adapter from '@sveltejs/adapter-auto';
+import { vitePreprocess } from '@sveltejs/kit/vite';
+
+/** @type {import('@sveltejs/kit').Config} */
+const config = {
+	// Consult https://kit.svelte.dev/docs/integrations#preprocessors
+	// for more information about preprocessors
+	preprocess: vitePreprocess(),
+
+	kit: {
+		adapter: adapter(),
+		alias: {
+			$houdini: './$houdini',
 		}
 	}
+};
 
-	// check if the tsconfig.json file exists
-	try {
-		let tjsConfigFile = await fs.readFile(configFile)
-		if (tjsConfigFile) {
-			var tjsConfig = parseJSON(tjsConfigFile)
+export default config;
+`
+
+	const newContentJs = `import adapter from '@sveltejs/adapter-auto';
+
+/** @type {import('@sveltejs/kit').Config} */
+const config = {
+	kit: {
+		adapter: adapter(),
+		alias: {
+			$houdini: './$houdini',
 		}
+	}
+};
 
-		// new rootDirs (will overwrite the one in "extends": "./.svelte-kit/tsconfig.json")
-		if (frameworkInfo.framework === 'svelte') {
-			tjsConfig.compilerOptions.rootDirs = ['.', './$houdini/types']
-		} else if (frameworkInfo.framework === 'kit') {
-			tjsConfig.compilerOptions.rootDirs = ['.', './.svelte-kit/types', './$houdini/types']
-		}
+export default config;
+`
 
-		// In kit, no need to add manually the path. Why? Because:
-		//   The config [svelte.config.js => kit => alias => $houdini]
-		//   will make this automatically in "extends": "./.svelte-kit/tsconfig.json"
-		// In svelte, we need to add the path manually
-		if (frameworkInfo.framework === 'svelte' || frameworkInfo.framework === 'react') {
-			tjsConfig.compilerOptions.paths = {
-				...tjsConfig.compilerOptions.paths,
-				$houdini: ['./$houdini'],
-				'$houdini/*': ['./$houdini/*'],
-			}
-		}
-
-		await fs.writeFile(configFile, JSON.stringify(tjsConfig, null, 4))
-	} catch {}
-
-	return false
+	// write the svelte config file
+	await fs.writeFile(svelteConfigPath, typescript ? newContentTs : newContentJs)
 }
 
-async function updateViteConfig(
+async function reactRouter(targetPath: string, typescript: boolean) {
+	// index file
+	const indexPath = path.join(targetPath, `+index.${typescript ? 't' : 'j'}sx`)
+
+	const indexContent = `import React from 'react'
+
+export default function App({ children }) {
+	return (
+		<html>
+			<head>
+				<meta charSet="utf-8" />
+				<meta name="viewport" content="width=device-width, initial-scale=1" />
+				<title>My App</title>
+			</head>
+			<body>
+				<ErrorBoundary>{children}</ErrorBoundary>
+			</body>
+		</html>
+	)
+}
+
+class ErrorBoundary extends React.Component {
+	constructor(props) {
+		super(props)
+		this.state = { hasError: false }
+	}
+
+	static getDerivedStateFromError(error) {
+		return { hasError: true }
+	}
+
+	componentDidCatch(error, info) {
+		console.error('ErrorBoundary caught an error:', error, info)
+	}
+
+	render() {
+		if (this.state.hasError) {
+			return <h1>Something went wrong.</h1>
+		}
+		return this.props.children
+	}
+}
+`
+
+	await fs.writeFile(indexPath, indexContent)
+
+	// demo layout page
+	await fs.writeFile(
+		path.join(targetPath, 'routes', `+layout.gql`),
+		`query HelloRouter {
+	message: hello
+}
+`
+	)
+
+	await fs.writeFile(
+		path.join(targetPath, 'routes', `+layout.${typescript ? 't' : 'j'}sx`),
+		`import { Link } from '$houdini'
+
+export default function ({ HelloRouter, children }) {
+	return (
+		<div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+			message: {HelloRouter.message}
+			<div>{children}</div>
+		</div>
+	)
+}
+`
+	)
+
+	await fs.writeFile(
+		path.join(targetPath, 'routes', `+page.${typescript ? 't' : 'j'}sx`),
+		`export default function ({ HelloRouter }) {
+	return <div>{HelloRouter.message}!</div>
+}
+`
+	)
+}
+
+/******************************/
+/*  Global files              */
+/******************************/
+async function gitIgnore(targetPath: string) {
+	const filepath = path.join(targetPath, '.gitignore')
+	const existing = (await fs.readFile(filepath)) || ''
+
+	if (!existing.includes('\n$houdini\n')) {
+		await fs.writeFile(filepath, existing + '\n$houdini\n')
+	}
+}
+
+async function graphqlRC(targetPath: string) {
+	// the filepath for the rcfile
+	const target = path.join(targetPath, '.graphqlrc.yaml')
+
+	const content = `projects:
+	default:
+		schema:
+			- ./schema.graphql
+			- ./$houdini/graphql/schema.graphql
+		documents:
+			- '**/*.gql'
+			- '**/*.svelte'
+			- ./$houdini/graphql/documents.gql
+`
+
+	await fs.writeFile(target, content)
+}
+
+async function viteConfig(
 	targetPath: string,
 	frameworkInfo: HoudiniFrameworkInfo,
 	typescript: boolean
@@ -453,75 +583,58 @@ export default defineConfig({
 		throw new Error(`Unmanaged framework: "${JSON.stringify(frameworkInfo)}"`)
 	}
 
-	await updateFile({ filepath: viteConfigPath, content })
+	await fs.writeFile(viteConfigPath, content)
 }
 
-async function updateSvelteConfig(targetPath: string, typescript: boolean) {
-	const svelteConfigPath = path.join(targetPath, 'svelte.config.js')
+async function tjsConfig(targetPath: string, frameworkInfo: HoudiniFrameworkInfo) {
+	// if there is no tsconfig.json, there could be a jsconfig.json
+	let configFile = path.join(targetPath, 'tsconfig.json')
+	try {
+		await fs.stat(configFile)
+	} catch {
+		configFile = path.join(targetPath, 'jsconfig.json')
+		try {
+			await fs.stat(configFile)
 
-	const newContentTs = `import adapter from '@sveltejs/adapter-auto';
-import { vitePreprocess } from '@sveltejs/kit/vite';
-
-/** @type {import('@sveltejs/kit').Config} */
-const config = {
-	// Consult https://kit.svelte.dev/docs/integrations#preprocessors
-	// for more information about preprocessors
-	preprocess: vitePreprocess(),
-
-	kit: {
-		adapter: adapter(),
-		alias: {
-			$houdini: './$houdini',
+			// there isn't either a .tsconfig.json or a jsconfig.json, there's nothing to update
+		} catch {
+			return false
 		}
 	}
-};
 
-export default config;
-`
-
-	const newContentJs = `import adapter from '@sveltejs/adapter-auto';
-
-/** @type {import('@sveltejs/kit').Config} */
-const config = {
-	kit: {
-		adapter: adapter(),
-		alias: {
-			$houdini: './$houdini',
+	// check if the tsconfig.json file exists
+	try {
+		let tjsConfigFile = await fs.readFile(configFile)
+		if (tjsConfigFile) {
+			var tjsConfig = parseJSON(tjsConfigFile)
 		}
-	}
-};
 
-export default config;
-`
+		// new rootDirs (will overwrite the one in "extends": "./.svelte-kit/tsconfig.json")
+		if (frameworkInfo.framework === 'svelte') {
+			tjsConfig.compilerOptions.rootDirs = ['.', './$houdini/types']
+		} else if (frameworkInfo.framework === 'kit') {
+			tjsConfig.compilerOptions.rootDirs = ['.', './.svelte-kit/types', './$houdini/types']
+		}
 
-	// write the svelte config file
-	await updateFile({
-		filepath: svelteConfigPath,
-		content: typescript ? newContentTs : newContentJs,
-	})
+		// In kit, no need to add manually the path. Why? Because:
+		//   The config [svelte.config.js => kit => alias => $houdini]
+		//   will make this automatically in "extends": "./.svelte-kit/tsconfig.json"
+		// In svelte, we need to add the path manually
+		if (frameworkInfo.framework === 'svelte' || frameworkInfo.framework === 'react') {
+			tjsConfig.compilerOptions.paths = {
+				...tjsConfig.compilerOptions.paths,
+				$houdini: ['./$houdini'],
+				'$houdini/*': ['./$houdini/*'],
+			}
+		}
+
+		await fs.writeFile(configFile, JSON.stringify(tjsConfig, null, 4))
+	} catch {}
+
+	return false
 }
 
-async function updateSvelteMainJs(targetPath: string, typescript: boolean) {
-	const svelteMainJsPath = path.join(targetPath, 'src', typescript ? 'main.ts' : 'main.js')
-
-	const newContent = `import client from "./client";
-import './app.css'
-import App from './App.svelte'
-
-const app = new App({
-	target: document.getElementById('app')
-})
-
-export default app
-`
-
-	await updateFile({
-		filepath: svelteMainJsPath,
-		content: newContent,
-	})
-}
-
-async function updatePackageJSON(targetPath: string, frameworkInfo: HoudiniFrameworkInfo) {
+async function packageJSON(targetPath: string, frameworkInfo: HoudiniFrameworkInfo) {
 	let packageJSON: Record<string, any> = {}
 
 	const packagePath = path.join(targetPath, 'package.json')
@@ -551,38 +664,4 @@ async function updatePackageJSON(targetPath: string, frameworkInfo: HoudiniFrame
 	}
 
 	await fs.writeFile(packagePath, JSON.stringify(packageJSON, null, 4))
-}
-
-async function graphqlRCFile(targetPath: string) {
-	// the filepath for the rcfile
-	const target = path.join(targetPath, '.graphqlrc.yaml')
-
-	const content = `projects:
-  default:
-    schema:
-      - ./schema.graphql
-      - ./$houdini/graphql/schema.graphql
-    documents:
-      - '**/*.gql'
-      - '**/*.svelte'
-      - ./$houdini/graphql/documents.gql
-`
-
-	await updateFile({
-		filepath: target,
-		content,
-	})
-}
-
-async function gitIgnore(targetPath: string) {
-	const filepath = path.join(targetPath, '.gitignore')
-	const existing = (await fs.readFile(filepath)) || ''
-
-	if (!existing.includes('\n$houdini\n')) {
-		await fs.writeFile(filepath, existing + '\n$houdini\n')
-	}
-}
-
-async function updateFile({ filepath, content }: { filepath: string; content: string }) {
-	await fs.writeFile(filepath, content)
 }
