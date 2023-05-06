@@ -296,7 +296,7 @@ export async function extractQueries(source: string): Promise<string[]> {
 			throw new Error('Props should be specified as an object pattern.')
 		}
 	} else {
-		throw new Error('Default export function has no arguments.')
+		return []
 	}
 
 	return props.filter((p) => p !== 'children')

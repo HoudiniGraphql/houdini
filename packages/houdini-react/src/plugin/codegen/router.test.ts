@@ -44,8 +44,8 @@ test('happy path', async function () {
 		.toMatchInlineSnapshot(`
 			"export default {
 						pages: {
-					\\"__\\": {
-						id: \\"__\\",
+					\\"_0\\": {
+						id: \\"_0\\",
 						pattern: /^\\\\/$/,
 						params: [],
 
@@ -57,11 +57,11 @@ test('happy path', async function () {
 									}
 						},
 
-						component: () => import(\\"../units/entries/__\\")
+						component: () => import(\\"../units/entries/_0\\")
 					},
 
-					\\"____id__\\": {
-						id: \\"____id__\\",
+					\\"_0_2id_1\\": {
+						id: \\"_0_2id_1\\",
 						pattern: /^\\\\/([^/]+?)\\\\/?$/,
 						params: [{\\"name\\":\\"id\\",\\"optional\\":false,\\"rest\\":false,\\"chained\\":false}],
 
@@ -77,11 +77,11 @@ test('happy path', async function () {
 									}
 						},
 
-						component: () => import(\\"../units/entries/____id__\\")
+						component: () => import(\\"../units/entries/_0_2id_1\\")
 					},
 
-					\\"__another\\": {
-						id: \\"__another\\",
+					\\"_0another\\": {
+						id: \\"_0another\\",
 						pattern: /^\\\\/another\\\\/?$/,
 						params: [],
 
@@ -101,11 +101,11 @@ test('happy path', async function () {
 									}
 						},
 
-						component: () => import(\\"../units/entries/__another\\")
+						component: () => import(\\"../units/entries/_0another\\")
 					},
 
-					\\"____id____nested\\": {
-						id: \\"____id____nested\\",
+					\\"_0_2id_1_0nested\\": {
+						id: \\"_0_2id_1_0nested\\",
 						pattern: /^\\\\/([^/]+?)\\\\/nested\\\\/?$/,
 						params: [{\\"name\\":\\"id\\",\\"optional\\":false,\\"rest\\":false,\\"chained\\":false}],
 
@@ -121,23 +121,23 @@ test('happy path', async function () {
 									}
 						},
 
-						component: () => import(\\"../units/entries/____id____nested\\")
+						component: () => import(\\"../units/entries/_0_2id_1_0nested\\")
 					},
 				},
 
 				layouts: {
-					\\"__\\": {
-						id: \\"__\\",
+					\\"_0\\": {
+						id: \\"_0\\",
 
 						queries: [],
 					},
-					\\"____id__\\": {
-						id: \\"____id__\\",
+					\\"_0_2id_1\\": {
+						id: \\"_0_2id_1\\",
 
 						queries: [\\"RootQuery\\"],
 					},
-					\\"__another\\": {
-						id: \\"__another\\",
+					\\"_0another\\": {
+						id: \\"_0another\\",
 
 						queries: [\\"RootQuery\\"],
 					}
@@ -181,8 +181,8 @@ test('loading state at root', async function () {
 		.toMatchInlineSnapshot(`
 			"export default {
 						pages: {
-					\\"__\\": {
-						id: \\"__\\",
+					\\"_0\\": {
+						id: \\"_0\\",
 						pattern: /^\\\\/$/,
 						params: [],
 
@@ -194,11 +194,11 @@ test('loading state at root', async function () {
 									}
 						},
 
-						component: () => import(\\"../units/entries/__\\")
+						component: () => import(\\"../units/entries/_0\\")
 					},
 
-					\\"____id__\\": {
-						id: \\"____id__\\",
+					\\"_0_2id_1\\": {
+						id: \\"_0_2id_1\\",
 						pattern: /^\\\\/([^/]+?)\\\\/?$/,
 						params: [{\\"name\\":\\"id\\",\\"optional\\":false,\\"rest\\":false,\\"chained\\":false}],
 
@@ -214,11 +214,11 @@ test('loading state at root', async function () {
 									}
 						},
 
-						component: () => import(\\"../units/entries/____id__\\")
+						component: () => import(\\"../units/entries/_0_2id_1\\")
 					},
 
-					\\"__another\\": {
-						id: \\"__another\\",
+					\\"_0another\\": {
+						id: \\"_0another\\",
 						pattern: /^\\\\/another\\\\/?$/,
 						params: [],
 
@@ -238,11 +238,11 @@ test('loading state at root', async function () {
 									}
 						},
 
-						component: () => import(\\"../units/entries/__another\\")
+						component: () => import(\\"../units/entries/_0another\\")
 					},
 
-					\\"____id____nested\\": {
-						id: \\"____id____nested\\",
+					\\"_0_2id_1_0nested\\": {
+						id: \\"_0_2id_1_0nested\\",
 						pattern: /^\\\\/([^/]+?)\\\\/nested\\\\/?$/,
 						params: [{\\"name\\":\\"id\\",\\"optional\\":false,\\"rest\\":false,\\"chained\\":false}],
 
@@ -258,23 +258,23 @@ test('loading state at root', async function () {
 									}
 						},
 
-						component: () => import(\\"../units/entries/____id____nested\\")
+						component: () => import(\\"../units/entries/_0_2id_1_0nested\\")
 					},
 				},
 
 				layouts: {
-					\\"__\\": {
-						id: \\"__\\",
+					\\"_0\\": {
+						id: \\"_0\\",
 
 						queries: [],
 					},
-					\\"____id__\\": {
-						id: \\"____id__\\",
+					\\"_0_2id_1\\": {
+						id: \\"_0_2id_1\\",
 
 						queries: [\\"RootQuery\\"],
 					},
-					\\"__another\\": {
-						id: \\"__another\\",
+					\\"_0another\\": {
+						id: \\"_0another\\",
 
 						queries: [\\"RootQuery\\"],
 					}
