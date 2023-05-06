@@ -17,7 +17,7 @@ export class BaseStore<
 	_Artifact extends DocumentArtifact = DocumentArtifact
 > {
 	// the underlying data
-	#params: ObserveParams<_Data, _Artifact> & { initialize?: boolean }
+	#params: ObserveParams<_Data, _Artifact, _Input> & { initialize?: boolean }
 	get artifact() {
 		return this.#params.artifact
 	}
@@ -31,7 +31,7 @@ export class BaseStore<
 	#store: DocumentStore<_Data, _Input>
 	#unsubscribe: (() => void) | null = null
 
-	constructor(params: ObserveParams<_Data, _Artifact> & { initialize?: boolean }) {
+	constructor(params: ObserveParams<_Data, _Artifact, _Input> & { initialize?: boolean }) {
 		// if we weren't given an initialization state, set it to true
 		if (typeof params.initialize === 'undefined') {
 			params.initialize = true

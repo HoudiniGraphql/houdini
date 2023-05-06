@@ -1,4 +1,4 @@
-import type { GenerateHookInput, Config } from 'houdini'
+import type { GenerateHookInput } from 'houdini'
 import { fs } from 'houdini'
 
 import { stores_directory, type_route_dir } from '../kit'
@@ -23,7 +23,6 @@ export default async function (input: PluginGenerateInput) {
 	])
 }
 
-export type PluginGenerateInput = Omit<GenerateHookInput, 'config'> & {
-	config: Config
+export type PluginGenerateInput = GenerateHookInput & {
 	framework: 'kit' | 'svelte'
 }

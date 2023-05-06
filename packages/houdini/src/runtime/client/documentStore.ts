@@ -1,4 +1,5 @@
 import type { HoudiniClient } from '.'
+import type { Cache } from '../cache/cache'
 import type { Layer } from '../cache/storage'
 import type { ConfigFile } from '../lib/config'
 import { getCurrentConfig } from '../lib/config'
@@ -27,7 +28,7 @@ export class DocumentStore<
 	_Data extends GraphQLObject,
 	_Input extends GraphQLVariables
 > extends Writable<QueryResult<_Data, _Input>> {
-	#artifact: DocumentArtifact
+	readonly artifact: DocumentArtifact
 	#client: HoudiniClient | null
 	#configFile: ConfigFile
 
@@ -44,22 +45,29 @@ export class DocumentStore<
 	// a reference to the earliest resolving open promise that the store has sent
 	pendingPromise: { then: (val: any) => void } | null = null
 
+	serverSideFallback?: boolean
+
 	constructor({
 		artifact,
 		plugins,
 		pipeline,
 		client,
-		cache = true,
+		cache,
+		enableCache = true,
 		initialValue,
+		initialVariables,
 		fetching,
 	}: {
 		artifact: DocumentArtifact
 		plugins?: ClientHooks[]
 		pipeline?: ClientHooks[]
 		client: HoudiniClient | null
-		cache?: boolean
+		cache?: Cache
+		enableCache?: boolean
 		initialValue?: _Data | null
 		fetching?: boolean
+		serverSideFallback?: boolean
+		initialVariables?: _Input
 	}) {
 		// if fetching is set, respect the value
 		// if fetching is not set, we should default fetching on queries and not on the rest.
@@ -73,7 +81,7 @@ export class DocumentStore<
 			stale: false,
 			source: null,
 			fetching,
-			variables: null,
+			variables: initialVariables ?? null,
 		}
 
 		super(initialState, () => {
@@ -84,7 +92,7 @@ export class DocumentStore<
 				this.cleanup()
 			}
 		})
-		this.#artifact = artifact
+		this.artifact = artifact
 		this.#client = client
 		this.#lastVariables = null
 		this.#configFile = getCurrentConfig()
@@ -92,7 +100,8 @@ export class DocumentStore<
 		this.#plugins = pipeline ?? [
 			// cache policy needs to always come first so that it can be the first fetch_enter to fire
 			cachePolicy({
-				enabled: cache,
+				cache,
+				enabled: enableCache,
 				setFetching: (fetching, data) => {
 					this.update((state) => {
 						const newState = { ...state, fetching }
@@ -126,9 +135,9 @@ export class DocumentStore<
 		// start off with the initial context
 		let context = new ClientPluginContextWrapper({
 			config: this.#configFile!,
-			text: this.#artifact.raw,
-			hash: this.#artifact.hash,
-			policy: policy ?? (this.#artifact as QueryArtifact).policy,
+			text: this.artifact.raw,
+			hash: this.artifact.hash,
+			policy: policy ?? (this.artifact as QueryArtifact).policy,
 			variables: null,
 			metadata,
 			session,
@@ -141,7 +150,7 @@ export class DocumentStore<
 				},
 				...stuff,
 			},
-			artifact: this.#artifact,
+			artifact: this.artifact,
 			lastVariables: this.#lastVariables,
 			cacheParams,
 		})
@@ -573,6 +582,7 @@ export type ClientPluginContext = {
 		disableRead?: boolean
 		disableSubscriptions?: boolean
 		applyUpdates?: string[]
+		serverSideFallback?: boolean
 	}
 	stuff: App.Stuff
 }

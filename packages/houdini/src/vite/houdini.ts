@@ -39,6 +39,19 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			}
 		},
 
+		configureServer(server) {
+			for (const plugin of config.plugins) {
+				if (typeof plugin.vite?.configureServer !== 'function') {
+					continue
+				}
+
+				const result = plugin.vite!.configureServer.call(this, {
+					...server,
+					houdiniConfig: config,
+				})
+			}
+		},
+
 		// transform the user's code
 		async transform(code, filepath) {
 			// everything internal to houdini should assume posix paths
