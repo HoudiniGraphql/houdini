@@ -176,6 +176,7 @@ describe('blocking', () => {
 
 			    "pluginData": {
 			        "test": {
+			            "isManualLoad": true,
 			            "set_blocking": true
 			        }
 			    },
@@ -220,6 +221,7 @@ describe('blocking', () => {
 
 			    "pluginData": {
 			        "test": {
+			            "isManualLoad": true,
 			            "set_blocking": false
 			        }
 			    },

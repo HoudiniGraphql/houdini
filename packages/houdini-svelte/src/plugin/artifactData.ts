@@ -13,8 +13,13 @@ export function artifactData({
 	config: Config
 	document: Document
 }): PluginArtifactData {
-	// only documents in svelte files require opting into a load
-	let isManualLoad = document.filename.endsWith('.svelte')
+	// all documents are manual load by default
+	// except for:
+	// - queries that have the load directive (to store in artifact)
+	// - routes situations (handle later)
+	let isManualLoad = true
+
+	// no flag by default
 	let set_blocking: boolean | undefined = undefined
 
 	graphql.visit(document.document, {
