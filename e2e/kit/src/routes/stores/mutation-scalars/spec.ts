@@ -12,7 +12,7 @@ test.describe('mutation store', function () {
     // make sure that the result updated with unmarshaled data
     await expect_to_be(
       page,
-      '{"updateUser":{"id":"update-user-mutation:6","name":"Harrison Ford","birthDate":"1986-11-07T00:00:00.000Z"}}'
+      '{"updateUser":{"id":"MutationScalars_UpdateUser:6","name":"Harrison Ford","birthDate":"1986-11-07T00:00:00.000Z"}}'
     );
   });
 });

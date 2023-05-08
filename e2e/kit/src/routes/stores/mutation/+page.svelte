@@ -1,22 +1,38 @@
 <script lang="ts">
-  import { graphql, GQL_UpdateUser } from '$houdini';
+  import { graphql } from '$houdini';
   import { stry } from '@kitql/helper';
 
   $: query = graphql(`
     query OptimisticUserQuery @load {
-      user(id: "1", snapshot: "update-user-mutation") {
+      user(id: "1", snapshot: "Mutation_UpdateUser") {
         name
       }
     }
   `);
 
+  const mutation = graphql(`
+    mutation Mutation_UpdateUser($id: ID!, $name: String, $birthDate: DateTime) {
+      updateUser(
+        id: $id
+        name: $name
+        birthDate: $birthDate
+        snapshot: "Mutation_UpdateUser"
+        delay: 1000
+      ) {
+        id
+        name
+        birthDate
+      }
+    }
+  `);
+
   async function add() {
-    await GQL_UpdateUser.mutate(
+    await mutation.mutate(
       { id: '1', name: 'JYC', birthDate: new Date('1986-11-07') },
       {
         optimisticResponse: {
           updateUser: {
-            id: 'update-user-mutation:1',
+            id: 'Mutation_UpdateUser:1',
             name: '...optimisticResponse... I could have guessed JYC!'
           }
         }
@@ -34,5 +50,5 @@
 </div>
 
 <div id="store-value">
-  {stry($GQL_UpdateUser)}
+  {stry($mutation)}
 </div>
