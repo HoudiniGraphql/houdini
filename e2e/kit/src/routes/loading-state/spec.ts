@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
 import { routes } from '../../lib/utils/routes.js';
 import { clientSideNavigation, expect_to_be, goto } from '../../lib/utils/testsHelper.js';
 

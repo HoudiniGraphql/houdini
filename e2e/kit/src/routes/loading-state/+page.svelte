@@ -5,6 +5,7 @@
   import CityInfoWithLoadingState from './CityInfoWithLoadingState.svelte';
 
   $: ({ LoadingStateTestQuery } = data);
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   $: city = $LoadingStateTestQuery.data!.city!;
 </script>
 
