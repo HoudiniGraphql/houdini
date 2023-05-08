@@ -43,15 +43,15 @@ export class QueryStore<
 	protected storeName: string
 
 	constructor({ artifact, storeName, variables }: StoreConfig<_Data, _Input, QueryArtifact>) {
-		// all queries should be with fetching: true by default (because auto fetching)
-		// except for manual queries, which should be false, it will be manualy triggered
-		const fetching = artifact.pluginData['houdini-svelte']?.isManualLoad !== true
+		const explicite_isManualLoad = artifact.pluginData['houdini-svelte'].isManualLoad === true
 
 		super({
 			artifact,
-			fetching,
+			// all queries should be with fetching: true by default (because auto fetching)
+			// except for manual queries, which should be false, it will be manualy triggered
+			fetching: !explicite_isManualLoad,
 			// only initialize the store if it was automatically loaded
-			initialize: !artifact.pluginData['houdini-svelte'].isManualLoad,
+			initialize: !explicite_isManualLoad,
 		})
 
 		this.storeName = storeName
