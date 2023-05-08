@@ -56,9 +56,9 @@ export const cachePolicy =
 								variables: ctx.variables ?? null,
 								data: allowed ? value.data : initialValue.data,
 								errors: null,
-								source: DataSource.Cache,
 								partial: allowed ? value.partial : false,
 								stale: value.stale,
+								source: DataSource.Cache,
 							})
 						}
 
@@ -70,9 +70,9 @@ export const cachePolicy =
 								variables: ctx.variables ?? null,
 								data: value.data,
 								errors: null,
-								source: DataSource.Cache,
 								partial: value.partial,
 								stale: value.stale,
+								source: DataSource.Cache,
 							})
 						}
 

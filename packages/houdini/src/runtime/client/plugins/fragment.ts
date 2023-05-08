@@ -49,13 +49,13 @@ export const fragment: ClientPlugin = documentPlugin(ArtifactKind.Fragment, func
 					parentID: ctx.stuff.parentID,
 					set: (newValue) => {
 						resolve(ctx, {
+							fetching: false,
+							variables,
 							data: newValue,
 							errors: null,
-							fetching: false,
 							partial: false,
 							stale: false,
 							source: DataSource.Cache,
-							variables,
 						})
 					},
 				}

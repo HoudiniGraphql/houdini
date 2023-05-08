@@ -75,13 +75,13 @@ export class DocumentStore<
 
 		// the initial store state
 		const initialState: QueryResult<_Data, _Input> = {
+			fetching,
+			variables: initialVariables ?? null,
 			data: initialValue ?? null,
 			errors: null,
 			partial: false,
 			stale: false,
 			source: null,
-			fetching,
-			variables: initialVariables ?? null,
 		}
 
 		super(initialState, () => {

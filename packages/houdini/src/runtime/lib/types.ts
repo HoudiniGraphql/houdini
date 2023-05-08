@@ -233,13 +233,13 @@ export type FetchQueryResult<_Data> = {
 }
 
 export type QueryResult<_Data = GraphQLObject, _Input = GraphQLVariables> = {
+	fetching: boolean
+	variables: _Input | null
 	data: _Data | null
 	errors: { message: string }[] | null
-	fetching: boolean
 	partial: boolean
 	stale: boolean
 	source: DataSources | null
-	variables: _Input | null
 }
 
 export type RequestPayload<GraphQLObject = any> = {

@@ -43,13 +43,13 @@ export const query: ClientPlugin = documentPlugin(ArtifactKind.Query, function (
 					variables: () => variables,
 					set: (newValue) => {
 						resolve(ctx, {
+							fetching: false,
+							variables: ctx.variables ?? {},
 							data: newValue,
 							errors: null,
-							fetching: false,
 							partial: false,
 							stale: false,
 							source: DataSource.Cache,
-							variables: ctx.variables ?? {},
 						})
 					},
 				}

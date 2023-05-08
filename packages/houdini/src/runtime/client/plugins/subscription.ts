@@ -64,25 +64,25 @@ export function subscription(factory: SubscriptionHandler) {
 					{
 						next: ({ data, errors }) => {
 							resolve(ctx, {
+								fetching: false,
+								variables: ctx.variables ?? {},
 								data: data ?? null,
 								errors: [...(errors ?? [])],
-								fetching: false,
 								partial: true,
 								stale: false,
 								source: DataSource.Network,
-								variables: ctx.variables ?? {},
 							})
 						},
 						error(data) {
 							clearSubscription?.()
 							resolve(ctx, {
+								fetching: false,
+								variables: ctx.variables ?? {},
+								data: null,
+								errors: [data as Error],
 								partial: true,
 								stale: false,
 								source: DataSource.Network,
-								data: null,
-								errors: [data as Error],
-								fetching: false,
-								variables: ctx.variables ?? {},
 							})
 						},
 						complete() {},

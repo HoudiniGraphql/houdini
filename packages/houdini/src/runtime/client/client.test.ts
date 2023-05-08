@@ -64,13 +64,13 @@ test('createPluginHooks', async function () {
 								start(ctx, { resolve }) {
 									enter(8)
 									resolve(ctx, {
+										fetching: false,
+										variables: {},
 										data: null,
 										errors: [],
-										fetching: false,
 										partial: false,
-										source: DataSource.Cache,
 										stale: false,
-										variables: {},
+										source: DataSource.Cache,
 									})
 								},
 							},
