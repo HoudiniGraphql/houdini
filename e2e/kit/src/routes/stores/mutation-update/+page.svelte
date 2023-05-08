@@ -6,7 +6,7 @@
   export let data: PageData;
 
   // leave this awkward pattern to make sure this doesn't come back: https://github.com/HoudiniGraphql/houdini/issues/543
-  // let { TestMutationUpdateUsersList } = data;
+  let { TestMutationUpdateUsersList } = data;
   $: ({ TestMutationUpdateUsersList } = data);
 
   const mutation = graphql(`
