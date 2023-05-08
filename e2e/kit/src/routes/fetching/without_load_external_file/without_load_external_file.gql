@@ -1,0 +1,6 @@
+query without_load_external_file {
+  user(id: 1, snapshot: "without_load_external_file", delay: 200) {
+    id
+    name
+  }
+}
