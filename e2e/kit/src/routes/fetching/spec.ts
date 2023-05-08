@@ -59,6 +59,21 @@ test.describe('fetching', () => {
     expect(msg4.text()).toBe('without_load - fetching: false');
   });
 
+  test('+page.gql CSR', async ({ page }) => {
+    await goto(page, routes.Home);
+
+    // Switch page and check the first console log
+    const [msg1] = await Promise.all([
+      waitForConsole(page),
+      clientSideNavigation(page, routes.fetching_page_gql)
+    ]);
+    expect(msg1.text()).toBe('fetching_page_gql - fetching: true');
+
+    // wait for the fetching false
+    const msg2 = await waitForConsole(page);
+    expect(msg2.text()).toBe('fetching_page_gql - fetching: false');
+  });
+
   test('without_load_external_file CSR', async ({ page }) => {
     await goto(page, routes.Home);
 

@@ -1,0 +1,6 @@
+query fetching_page_gql @blocking_disable {
+  user(id: 1, snapshot: "fetching_page_gql", delay: 500) {
+    id
+    name
+  }
+}
