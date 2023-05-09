@@ -1,4 +1,8 @@
 import { redirect } from '@sveltejs/kit'
+import { sequence } from '@sveltejs/kit/hooks'
+import { webhookHandle } from './handles/webhookHandle'
+
+export const handle = sequence(webhookHandle)
 
 /** @type {import('@sveltejs/kit').HandleServerError} */
 export function handleError({ error, event }) {
