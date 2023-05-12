@@ -14,9 +14,19 @@ const logMetadata: ClientPlugin = () => ({
   }
 });
 
+// to switch modes...
+// 1/ this file with this variable 'persisted_queries_mode'
+// 2/ e2e/kit/src/hooks.server.ts => handlePersistedQueries to add in kit mode. (anyway, will be called only on '/houdini/graphql')
+// 3/ in full mode, e2e/_api/server.mjs usePersistedOperations plugin has to be uncommented
+// 4/ Don't forget to generate the operations.json file with pnpm houdini generate -o ./operations.json
+// All this to say that it's the begining, let's improve the dX now ;) (env to switch mode? houdini.config.js? Auto add things in hooks.config.js? position in sequence?...)
+let persisted_queries_mode: 'clear' | 'kit' | 'full' = 'kit';
+
 // Export the Houdini client
 export default new HoudiniClient({
-  url: 'http://localhost:4000/graphql',
+  // let's use the local kit url if we're in kit mode
+  // @ts-ignore
+  url: persisted_queries_mode === 'kit' ? '/houdini/graphql' : 'http://localhost:4000/graphql',
   fetchParams({ session, metadata, hash, variables }) {
     // if we're ever unauthenticated, a request was sent that didn't thread
     // the session through so let's error
@@ -29,13 +39,15 @@ export default new HoudiniClient({
       headers: {
         Authorization: `Bearer ${session.user.token}`,
         ...(metadata?.allowNonPersistedQuery && { 'x-allow-arbitrary-operations': 'true' })
-      }
+      },
 
-      // uncomment this to use persisted queries
-      // body: JSON.stringify({
-      //   doc_id: hash,
-      //   variables: variables
-      // })
+      // let's add the body only if we are in kit or full mode
+      ...(persisted_queries_mode !== 'clear' && {
+        body: JSON.stringify({
+          doc_id: hash,
+          variables
+        })
+      })
     };
   },
   throwOnError: {
