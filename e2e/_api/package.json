@@ -11,6 +11,7 @@
 		"start": "node ./server.mjs"
 	},
 	"dependencies": {
+		"@graphql-yoga/plugin-persisted-operations": "^1.9.1",
 		"@kitql/helper": "^0.5.0",
 		"fs-extra": "^10.1.0",
 		"graphql": "^15.8.0",

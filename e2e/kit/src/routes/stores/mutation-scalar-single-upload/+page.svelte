@@ -6,7 +6,7 @@
       type: 'text/plain'
     });
 
-    await GQL_singleUpload.mutate({ file: file });
+    await GQL_singleUpload.mutate({ file: file }, { metadata: { allowNonPersistedQuery: true } });
   }
 </script>
 

@@ -1,10 +1,20 @@
+import { usePersistedOperations } from '@graphql-yoga/plugin-persisted-operations'
 import { logGreen } from '@kitql/helper'
+import fs from 'fs-extra'
 import { useServer } from 'graphql-ws/lib/use/ws'
 import { createYoga, createSchema } from 'graphql-yoga'
 import { createServer } from 'node:http'
+import path from 'path'
+import url from 'url'
 import { WebSocketServer } from 'ws'
 
 import { resolvers, typeDefs } from './graphql.mjs'
+
+const operationsFilePath = path.join(
+	path.dirname(url.fileURLToPath(import.meta.url)),
+	'../kit/operations.json'
+)
+const store = JSON.parse(fs.readFileSync(operationsFilePath, 'utf-8'))
 
 async function main() {
 	const yogaApp = createYoga({
@@ -34,6 +44,21 @@ mutation AddUser {
 }
 			`,
 		},
+
+		// uncomment this to use persisted queries
+		// plugins: [
+		// 	usePersistedOperations({
+		// 		getPersistedOperation(hash) {
+		// 			return store[hash]
+		// 		},
+		// 		extractPersistedOperationId(params) {
+		// 			return params.doc_id
+		// 		},
+		// 		allowArbitraryOperations: (request) => {
+		// 			request.headers.get('x-allow-arbitrary-operations') === 'true'
+		// 		},
+		// 	}),
+		// ],
 	})
 
 	// Get NodeJS Server from Yoga
