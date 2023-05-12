@@ -126,11 +126,18 @@ function handleMultipart(
 	params: FetchParams,
 	args: RequestInit | undefined
 ): RequestInit | undefined {
+	let body = null
+	try {
+		JSON.parse(args?.body?.toString() ?? '{}')
+	} catch (error) {
+		body = {
+			query: params.text,
+			variables: params.variables,
+		}
+	}
+
 	// process any files that could be included
-	const { clone, files } = extractFiles({
-		query: params.text,
-		variables: params.variables,
-	})
+	const { clone, files } = extractFiles(body)
 
 	// if there are files in the request
 	if (files.size) {

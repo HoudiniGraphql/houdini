@@ -121,7 +121,7 @@ export default function artifactGenerator(stats: {
 				// and an artifact for every document
 				docs.map(async (doc) => {
 					// pull out the info we need from the collected doc
-					const { document, name, generateArtifact, originalParsed, originalString } = doc
+					const { document, name, generateArtifact, originalParsed } = doc
 					// if the document is generated, don't write it to disk - it's use is to provide definitions
 					// for the other transforms
 					if (!generateArtifact) {
@@ -270,12 +270,12 @@ export default function artifactGenerator(stats: {
 						)
 					}
 
-					// generate a hash of the document that we can use to detect changes
 					// start building up the artifact
+
 					let artifact: DocumentArtifact = {
 						name,
 						kind: docKind,
-						hash: hash({ config, document: doc }),
+						hash: 'NOT_YET',
 						refetch: doc.refetch,
 						raw: rawString,
 						rootType,
@@ -305,6 +305,10 @@ export default function artifactGenerator(stats: {
 						}),
 						pluginData: {},
 					}
+					// generate a hash of the document that we can use to detect changes
+					// we write the hash only at this stage, because we want the row document value (with paginated frags)
+					const hash_value = hash({ config, document: { ...doc, artifact } })
+					artifact.hash = hash_value
 
 					// apply the visibility mask to the artifact so that only
 					// fields in the direct selection are visible
@@ -410,9 +414,7 @@ export default function artifactGenerator(stats: {
 					// the artifact should be the default export of the file
 					const file = AST.program([
 						moduleExport(config, 'default', serializeValue(artifact)),
-						AST.expressionStatement(
-							AST.stringLiteral(`HoudiniHash=${hash({ config, document: doc })}`)
-						),
+						AST.expressionStatement(AST.stringLiteral(`HoudiniHash=${hash_value}`)),
 					])
 
 					const artifactPath = config.artifactPath(document)

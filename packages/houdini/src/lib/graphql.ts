@@ -27,7 +27,7 @@ export function hashDocument({
 	document: string | Document
 }): string {
 	// if we were given an AST document, print it first
-	const docString = typeof document === 'string' ? document : document.originalString
+	const docString = typeof document === 'string' ? document : document.artifact?.raw
 
 	// hash the string
 	return crypto

@@ -16,38 +16,37 @@ export default async function persistOutputGenerator(config: Config, docs: Docum
 		return
 	}
 
-	const queryMap = docs.reduce<Record<string, string>>(
-		(acc, { document, generateArtifact: generateArtifact }) => {
-			// if the document is generated, just return early since there is no operation
-			if (!generateArtifact) {
-				return acc
-			}
-
-			// Strip all references to internal directives
-			let rawString = graphql.print(
-				graphql.visit(document, {
-					Directive(node) {
-						// if the directive is one of the internal ones, remove it
-						if (config.isInternalDirective(node.name.value)) {
-							return null
-						}
-					},
-				})
-			)
-
-			const operations = document.definitions.filter(
-				({ kind }) => kind === graphql.Kind.OPERATION_DEFINITION
-			) as graphql.OperationDefinitionNode[]
-
-			// if there are operations in the document
-			if (operations.length > 0 && operations[0].kind === 'OperationDefinition') {
-				acc[hashDocument({ config, document: rawString })] = rawString
-			}
-
+	const queryMap = docs.reduce<Record<string, string>>((acc, doc) => {
+		const { document, generateArtifact, artifact } = doc
+		// if the document is generated, just return early since there is no operation
+		if (!generateArtifact) {
 			return acc
-		},
-		{}
-	)
+		}
+
+		// Strip all references to internal directives
+		let rawString = graphql.print(
+			graphql.visit(document, {
+				Directive(node) {
+					// if the directive is one of the internal ones, remove it
+					if (config.isInternalDirective(node.name.value)) {
+						return null
+					}
+				},
+			})
+		)
+
+		const operations = document.definitions.filter(
+			({ kind }) => kind === graphql.Kind.OPERATION_DEFINITION
+		) as graphql.OperationDefinitionNode[]
+
+		// if there are operations in the document
+		if (operations.length > 0 && operations[0].kind === 'OperationDefinition') {
+			// use the hash in the artifact (in case plugins customized the hash logic)
+			acc[artifact?.hash!] = rawString
+		}
+
+		return acc
+	}, {})
 
 	if (Object.keys(queryMap).length === 0) return
 
