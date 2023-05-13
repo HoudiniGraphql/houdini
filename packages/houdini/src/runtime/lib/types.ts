@@ -98,6 +98,7 @@ export type BaseCompiledDocument<_Kind extends ArtifactKinds> = {
 	name: string
 	kind: _Kind
 	raw: string
+	persistedQuery?: boolean
 	hash: string
 	selection: SubscriptionSelection
 	rootType: string

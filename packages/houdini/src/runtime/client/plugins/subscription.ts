@@ -57,8 +57,8 @@ export function subscription(factory: SubscriptionHandler) {
 				// start listening for the new subscription
 				clearSubscription = client.subscribe(
 					{
-						operationName: ctx.artifact.name,
-						query: ctx.artifact.raw,
+						operationName: ctx.name,
+						query: ctx.text, // TODO how to manage in pesisted?
 						variables: marshalVariables(ctx),
 					},
 					{

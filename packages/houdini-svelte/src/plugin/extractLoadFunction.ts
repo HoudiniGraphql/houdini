@@ -259,7 +259,6 @@ function identifyQueryReference(
 	if (!value) {
 		return null
 	}
-
 	// check the cases
 	if (value.type === 'Identifier' && value.name in imports) {
 		return { local, query: imports[value.name] }

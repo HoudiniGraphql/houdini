@@ -309,6 +309,11 @@ export default function artifactGenerator(stats: {
 					const hash_value = hash({ config, document: { ...doc, artifact } })
 					artifact.hash = hash_value
 
+					const persistedQuery = await config.isPersistedQueriesEnable()
+					if (persistedQuery) {
+						artifact.persistedQuery = true
+					}
+
 					// apply the visibility mask to the artifact so that only
 					// fields in the direct selection are visible
 					applyMask(
@@ -398,9 +403,6 @@ export default function artifactGenerator(stats: {
 							artifact.partial = config.defaultPartial
 						}
 					}
-
-					// if pesisted queries, let's remove the raw
-					artifact.raw = ''
 
 					// assign the artifact
 					doc.artifact = artifact
