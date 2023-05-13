@@ -8,8 +8,9 @@ import { hashDocument, fs } from '../../../lib'
 // the persist output generator is responsible for generating a queryMap.json
 // to the provided path with the `hash` as key and the raw query as value.
 export default async function persistOutputGenerator(config: Config, docs: Document[]) {
-	if (typeof config.persistedQueryPath !== 'string' || config.persistedQueryPath.length === 0)
+	if (typeof config.persistedQueryPath !== 'string' || config.persistedQueryPath.length === 0) {
 		return
+	}
 
 	if (!config.persistedQueryPath.endsWith('.json')) {
 		console.log('Can only write the queryMap to a json file')

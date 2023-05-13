@@ -74,11 +74,19 @@ const defaultFetch = (
 		)
 	}
 
-	return async ({ fetch, name, text, variables }) => {
+	return async ({ fetch, name, text, variables, hash }) => {
+		// if we have no text, we want to use persisted query
+		const defaultBody = JSON.stringify({
+			...(text && { operationName: name }),
+			...(text && { query: text }),
+			...(text === '' && { doc_id: hash }),
+			variables,
+		})
+
 		// regular fetch (Server & Client)
 		const result = await fetch(url, {
 			method: 'POST',
-			body: JSON.stringify({ operationName: name, query: text, variables }),
+			body: defaultBody,
 			...params,
 			headers: {
 				Accept: 'application/graphql+json, application/json',

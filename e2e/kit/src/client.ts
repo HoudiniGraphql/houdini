@@ -15,11 +15,11 @@ const logMetadata: ClientPlugin = () => ({
 });
 
 // to switch modes...
-// 1/ this file with this variable 'persisted_queries_mode'
-// 2/ e2e/kit/src/hooks.server.ts => handlePersistedQueries to add in kit mode. (anyway, will be called only on '/houdini/graphql')
-// 3/ in full mode, e2e/_api/server.mjs usePersistedOperations plugin has to be uncommented
-// 4/ Don't forget to generate the operations.json file with pnpm houdini generate -o ./operations.json
-// All this to say that it's the begining, let's improve the dX now ;) (env to switch mode? houdini.config.js? Auto add things in hooks.config.js? position in sequence?...)
+// 1/ TO REMOVE // this file with this variable 'persisted_queries_mode'
+// 2/ TO DOCUMENT // TO FIND A NAME // e2e/kit/src/hooks.server.ts => handlePersistedQueries to add in kit mode. (anyway, will be called only on '/houdini/graphql')
+// 3/ TO DOCUMENT // in full mode, e2e/_api/server.mjs usePersistedOperations plugin has to be uncommented
+// 4/ TO DOCUMENT (pesistedd Query enabled in config) Don't forget to generate the operations.json file with pnpm houdini generate -o ./$houdini/persisted_queries.json
+// All this to say that it's the begining, let's improve the dX now ;) from plugin add in sequence?
 let persisted_queries_mode: 'clear' | 'kit' | 'full' = 'kit';
 
 // Export the Houdini client

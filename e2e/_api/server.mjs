@@ -10,11 +10,39 @@ import { WebSocketServer } from 'ws'
 
 import { resolvers, typeDefs } from './graphql.mjs'
 
-const operationsFilePath = path.join(
-	path.dirname(url.fileURLToPath(import.meta.url)),
-	'../kit/operations.json'
-)
-const store = JSON.parse(fs.readFileSync(operationsFilePath, 'utf-8'))
+const plugins = []
+
+// let persisted_queries_mode = 'clear'
+let persisted_queries_mode = 'full'
+
+if (persisted_queries_mode === 'full') {
+	const operationsFilePath = path.join(
+		path.dirname(url.fileURLToPath(import.meta.url)),
+		'../kit/$houdini/persisted_queries.json'
+	)
+	let store = {}
+	try {
+		store = JSON.parse(fs.readFileSync(operationsFilePath, 'utf-8'))
+		console.log(`✅ persisted queries loaded`)
+	} catch (error) {
+		console.log(
+			`❌ No persisted queries file "${operationsFilePath}" found (need to start frontend first)`
+		)
+	}
+	plugins.push(
+		usePersistedOperations({
+			getPersistedOperation(hash) {
+				return store[hash]
+			},
+			extractPersistedOperationId(params) {
+				return params.doc_id
+			},
+			allowArbitraryOperations: (request) => {
+				request.headers.get('x-allow-arbitrary-operations') === 'true'
+			},
+		})
+	)
+}
 
 async function main() {
 	const yogaApp = createYoga({
@@ -45,20 +73,7 @@ mutation AddUser {
 			`,
 		},
 
-		// uncomment this to use persisted queries
-		// plugins: [
-		// 	usePersistedOperations({
-		// 		getPersistedOperation(hash) {
-		// 			return store[hash]
-		// 		},
-		// 		extractPersistedOperationId(params) {
-		// 			return params.doc_id
-		// 		},
-		// 		allowArbitraryOperations: (request) => {
-		// 			request.headers.get('x-allow-arbitrary-operations') === 'true'
-		// 		},
-		// 	}),
-		// ],
+		plugins,
 	})
 
 	// Get NodeJS Server from Yoga

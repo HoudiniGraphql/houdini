@@ -14,7 +14,7 @@ export type PersistedQueriesOptions = {
   localUrl?: string;
 
   /**
-   * Path of the file holding all operations  (default: `./operations.json`)
+   * Path of the file holding all operations  (default: `./$houdini/persisted_queries.json`)
    */
   operationsPath?: string;
 };
@@ -35,7 +35,7 @@ export type PersistedQueriesOptions = {
 export const handlePersistedQueries = (options: PersistedQueriesOptions): Handle => {
   const { localUrl, operationsPath } = {
     localUrl: '/houdini/graphql',
-    operationsPath: './operations.json',
+    operationsPath: './$houdini/persisted_queries.json',
     ...options
   };
 

@@ -31,6 +31,7 @@ export class Config {
 	schema: graphql.GraphQLSchema
 	schemaPath?: string
 	persistedQueryPath?: string
+	PersistedQueryPathUser?: string
 	exclude: string[]
 	scalars?: ConfigFile['scalars']
 	module: 'commonjs' | 'esm' = 'esm'
@@ -133,6 +134,7 @@ export class Config {
 		this.schemaPollHeaders = watchSchema?.headers ?? {}
 		this.rootDir = path.join(this.projectRoot, '$houdini')
 		this.#fragmentVariableMaps = {}
+		this.PersistedQueryPathUser = this.configFile.persistedQueries?.path
 
 		// hold onto the key config
 		if (defaultKeys) {
@@ -263,6 +265,19 @@ export class Config {
 					})
 			),
 		]
+	}
+
+	async isPersistedQueriesEnable() {
+		if (this.configFile.persistedQueries?.enabled === undefined) {
+			return false
+		}
+		if (typeof this.configFile.persistedQueries?.enabled === 'boolean') {
+			return this.configFile.persistedQueries?.enabled
+		}
+
+		const env = await this.getEnv()
+		const value = this.processEnvValues(env, this.configFile.persistedQueries?.enabled)
+		return value?.toLocaleLowerCase() === 'true'
 	}
 
 	#newSchemaInstance: graphql.GraphQLSchema | null = null
@@ -892,7 +907,7 @@ export async function getConfig({
 		reject = rej
 	})
 
-	// wrap the rest of the function so that errors resolve the promise aswell
+	// wrap the rest of the function so that errors resolve the promise as well
 	try {
 		// look up the current config file
 		let configFile = await readConfigFile(configPath)
@@ -992,6 +1007,11 @@ export async function getConfig({
 				_config.schema = await loadSchemaFile(_config.schemaPath)
 			}
 		}
+
+		// if enabled, set the persisted query path
+		_config.persistedQueryPath = (await _config.isPersistedQueriesEnable())
+			? _config.PersistedQueryPathUser ?? `./$houdini/persisted_queries.json`
+			: undefined
 
 		// order the list of plugins
 		_config.plugins = orderedPlugins(plugins)
