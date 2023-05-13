@@ -40,7 +40,7 @@ describe('load', () => {
 			export default {
 			    "name": "FragmentUpdateTestQuery",
 			    "kind": "HoudiniQuery",
-			    "hash": "57e4f75a0ab4e90b69c877a6b842f213362dc5c050227faf7635d8641b4da434",
+			    "hash": "bf9b4819b5a3f31b73640acb3da7f0b5abc29e07a1292a2fe307415b619716e3",
 
 			    "raw": \`query FragmentUpdateTestQuery($id: ID!) {
 			  node(id: $id) {
@@ -138,7 +138,7 @@ describe('load', () => {
 			    "partial": false
 			};
 
-			"HoudiniHash=57e4f75a0ab4e90b69c877a6b842f213362dc5c050227faf7635d8641b4da434";
+			"HoudiniHash=bf9b4819b5a3f31b73640acb3da7f0b5abc29e07a1292a2fe307415b619716e3";
 		`)
 	})
 })
@@ -155,7 +155,7 @@ describe('blocking', () => {
 			export default {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
-			    "hash": "32aa2f538b4b885a895cb9fd057e2de52359d2bbbbc32d949fd24b35bf34ea81",
+			    "hash": "8e483259f3d69f416c01b6106c0440fa0f916abb4cadb75273f8226a1ff0a5e2",
 
 			    "raw": \`query TestQuery {
 			  version
@@ -184,7 +184,7 @@ describe('blocking', () => {
 			    "partial": false
 			};
 
-			"HoudiniHash=32aa2f538b4b885a895cb9fd057e2de52359d2bbbbc32d949fd24b35bf34ea81";
+			"HoudiniHash=8e483259f3d69f416c01b6106c0440fa0f916abb4cadb75273f8226a1ff0a5e2";
 		`)
 	})
 
@@ -199,7 +199,7 @@ describe('blocking', () => {
 			export default {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
-			    "hash": "f43358172e30b6289cdf3fdfaaa1b20932ad7905f472fd6f6cb5337991ccf6df",
+			    "hash": "8e483259f3d69f416c01b6106c0440fa0f916abb4cadb75273f8226a1ff0a5e2",
 
 			    "raw": \`query TestQuery {
 			  version
@@ -228,7 +228,7 @@ describe('blocking', () => {
 			    "partial": false
 			};
 
-			"HoudiniHash=f43358172e30b6289cdf3fdfaaa1b20932ad7905f472fd6f6cb5337991ccf6df";
+			"HoudiniHash=8e483259f3d69f416c01b6106c0440fa0f916abb4cadb75273f8226a1ff0a5e2";
 		`)
 	})
 })
