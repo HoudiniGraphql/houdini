@@ -126,7 +126,37 @@ test('fragments in lists', async function () {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
 		    "hash": "91b23604b402b84e2d83099ca8afc0953ce7e9abdad65e7ea3fb20ba5893e4ce",
-		    "raw": "",
+
+		    "raw": \`query TestQuery {
+		  usersByCursor {
+		    edges {
+		      node {
+		        ...UserTest
+		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
+		        __typename
+		      }
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
+		}
+
+		fragment UserTest on User {
+		  firstName
+		  id
+		  __typename
+		}
+		\`,
+
 		    "rootType": "Query",
 
 		    "selection": {
@@ -300,7 +330,32 @@ test('concrete selection applies mask over abstract selection', async function (
 		    "name": "MonkeyListQuery",
 		    "kind": "HoudiniQuery",
 		    "hash": "5e86edd84280f328c6e368f75bb1f19cfd2eff5876bc240cf98cca13daae05ad",
-		    "raw": "",
+
+		    "raw": \`query MonkeyListQuery {
+		  monkeys {
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		    ...AnimalsList
+		  }
+		}
+
+		fragment AnimalsList on AnimalConnection {
+		  edges {
+		    node {
+		      id
+		      name
+		      __typename
+		    }
+		    __typename
+		  }
+		  __typename
+		}
+		\`,
+
 		    "rootType": "Query",
 
 		    "selection": {

@@ -43,7 +43,37 @@ test('pagination arguments stripped from key', async function () {
 		        "mode": "Infinite"
 		    },
 
-		    "raw": "",
+		    "raw": \`fragment PaginatedFragment on User {
+		  friendsByCursor(
+		    first: $first
+		    filter: "hello"
+		    after: $after
+		    last: $last
+		    before: $before
+		  ) {
+		    edges {
+		      node {
+		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
+		        __typename
+		      }
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
+		  id
+		  __typename
+		}
+		\`,
+
 		    "rootType": "User",
 
 		    "selection": {
@@ -214,7 +244,37 @@ test('pagination arguments stays in key as it s a SinglePage Mode', async functi
 		        "mode": "SinglePage"
 		    },
 
-		    "raw": "",
+		    "raw": \`fragment PaginatedFragment on User {
+		  friendsByCursor(
+		    first: $first
+		    filter: "hello"
+		    after: $after
+		    last: $last
+		    before: $before
+		  ) {
+		    edges {
+		      node {
+		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
+		        __typename
+		      }
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
+		  id
+		  __typename
+		}
+		\`,
+
 		    "rootType": "User",
 
 		    "selection": {
@@ -387,7 +447,15 @@ test('offset based pagination marks appropriate field', async function () {
 		        "mode": "Infinite"
 		    },
 
-		    "raw": "",
+		    "raw": \`fragment PaginatedFragment on User {
+		  friendsByOffset(limit: $limit, filter: "hello", offset: $offset) {
+		    id
+		  }
+		  id
+		  __typename
+		}
+		\`,
+
 		    "rootType": "User",
 
 		    "selection": {
@@ -491,7 +559,45 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		        "mode": "Infinite"
 		    },
 
-		    "raw": "",
+		    "raw": \`query ScalarPagination($first: Int = 10, $after: Cursor, $last: Int, $before: Cursor) {
+		  user {
+		    friendsByCursorScalar(
+		      first: $first
+		      filter: "hello"
+		      after: $after
+		      last: $last
+		      before: $before
+		    ) {
+		      edges {
+		        node {
+		          friendsByCursor {
+		            edges {
+		              node {
+		                id
+		              }
+		            }
+		          }
+		          id
+		        }
+		      }
+		      edges {
+		        cursor
+		        node {
+		          __typename
+		        }
+		      }
+		      pageInfo {
+		        hasPreviousPage
+		        hasNextPage
+		        startCursor
+		        endCursor
+		      }
+		    }
+		    id
+		  }
+		}
+		\`,
+
 		    "rootType": "Query",
 
 		    "selection": {
@@ -729,7 +835,58 @@ test("sibling aliases don't get marked", async function () {
 		        "mode": "Infinite"
 		    },
 
-		    "raw": "",
+		    "raw": \`fragment PaginatedFragment on User {
+		  friendsByCursor(
+		    first: $first
+		    filter: "hello"
+		    after: $after
+		    last: $last
+		    before: $before
+		  ) {
+		    edges {
+		      node {
+		        friendsByCursor {
+		          edges {
+		            node {
+		              id
+		            }
+		          }
+		        }
+		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
+		        __typename
+		      }
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
+		  friends: friendsByCursor(first: 10, filter: "hello") {
+		    edges {
+		      node {
+		        friendsByCursor {
+		          edges {
+		            node {
+		              id
+		            }
+		          }
+		        }
+		        id
+		      }
+		    }
+		  }
+		  id
+		  __typename
+		}
+		\`,
+
 		    "rootType": "User",
 
 		    "selection": {

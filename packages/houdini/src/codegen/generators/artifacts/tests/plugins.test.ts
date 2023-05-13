@@ -33,7 +33,14 @@ test("doesn't include directives defined in plugins", async function () {
 		    "name": "MyQuery",
 		    "kind": "HoudiniQuery",
 		    "hash": "93f2f73a7b5bc8ec643024414471b0b955d2916b1edd8f3d94109020078bf106",
-		    "raw": "",
+
+		    "raw": \`query MyQuery {
+		  users(stringValue: "asdf") {
+		    id
+		  }
+		}
+		\`,
+
 		    "rootType": "Query",
 
 		    "selection": {
@@ -93,7 +100,14 @@ test('plugins can customize the hash', async function () {
 		    "name": "MyQuery",
 		    "kind": "HoudiniQuery",
 		    "hash": "MyQuery",
-		    "raw": "",
+
+		    "raw": \`query MyQuery {
+		  users(stringValue: "asdf") {
+		    id
+		  }
+		}
+		\`,
+
 		    "rootType": "Query",
 
 		    "selection": {

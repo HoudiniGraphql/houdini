@@ -46,7 +46,19 @@ test('pass argument values to generated fragments', async function () {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
 		    "hash": "63b95bca0542c187f64fef9cb34e6b242608469f6a7baffd959791c8cda019f8",
-		    "raw": "",
+
+		    "raw": \`query AllUsers {
+		  ...QueryFragment_10b3uv
+		}
+
+		fragment QueryFragment_10b3uv on Query {
+		  users(stringValue: "Hello") {
+		    id
+		  }
+		  __typename
+		}
+		\`,
+
 		    "rootType": "Query",
 
 		    "selection": {
@@ -130,7 +142,19 @@ test("nullable arguments with no values don't show up in the query", async funct
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
 		    "hash": "ab2d1ea10cd570b2b0601c94918f5f6790f90da88447d312ebc4138cc99b8e7c",
-		    "raw": "",
+
+		    "raw": \`query AllUsers {
+		  ...QueryFragment
+		}
+
+		fragment QueryFragment on Query {
+		  users {
+		    id
+		  }
+		  __typename
+		}
+		\`,
+
 		    "rootType": "Query",
 
 		    "selection": {
@@ -209,7 +233,19 @@ test("fragment arguments with default values don't rename the fragment", async f
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
 		    "hash": "e1f9f94024736db98349817f3675dc3b2a7c73871ca98761721f4b9849926471",
-		    "raw": "",
+
+		    "raw": \`query AllUsers {
+		  ...QueryFragment
+		}
+
+		fragment QueryFragment on Query {
+		  users(stringValue: "Hello") {
+		    id
+		  }
+		  __typename
+		}
+		\`,
+
 		    "rootType": "Query",
 
 		    "selection": {
@@ -296,7 +332,24 @@ test('thread query variables to inner fragments', async function () {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
 		    "hash": "b47b265965f007004f2afa343be60b957aad287780ff0bfce23285a78b5c0e63",
-		    "raw": "",
+
+		    "raw": \`query AllUsers($name: String!) {
+		  ...QueryFragment_VDHGm
+		}
+
+		fragment QueryFragment_VDHGm on Query {
+		  ...InnerFragment_VDHGm
+		  __typename
+		}
+
+		fragment InnerFragment_VDHGm on Query {
+		  users(stringValue: $name) {
+		    id
+		  }
+		  __typename
+		}
+		\`,
+
 		    "rootType": "Query",
 
 		    "selection": {
@@ -401,7 +454,24 @@ test('inner fragment with intermediate default value', async function () {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
 		    "hash": "09adc383071454f2de0a177990907e7616f1c69516611a283dd4bb5231ace3d0",
-		    "raw": "",
+
+		    "raw": \`query AllUsers {
+		  ...QueryFragment
+		}
+
+		fragment QueryFragment on Query {
+		  ...InnerFragment_10b3uv
+		  __typename
+		}
+
+		fragment InnerFragment_10b3uv on Query {
+		  users(stringValue: "Hello", intValue: 2) {
+		    id
+		  }
+		  __typename
+		}
+		\`,
+
 		    "rootType": "Query",
 
 		    "selection": {
@@ -488,7 +558,24 @@ test("default values don't overwrite unless explicitly passed", async function (
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
 		    "hash": "802f77faf17be02863ece90662db7e157c6911bbc9c7b49f191d0de332048543",
-		    "raw": "",
+
+		    "raw": \`query AllUsers {
+		  ...QueryFragment
+		}
+
+		fragment QueryFragment on Query {
+		  ...InnerFragment_2geNXY
+		  __typename
+		}
+
+		fragment InnerFragment_2geNXY on Query {
+		  users(stringValue: "Goodbye", intValue: 10) {
+		    id
+		  }
+		  __typename
+		}
+		\`,
+
 		    "rootType": "Query",
 
 		    "selection": {
@@ -567,7 +654,19 @@ test('default arguments', async function () {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
 		    "hash": "bce1104854002aaa0befe5045ad6b3780783d6488d2c91a132449918c5c61228",
-		    "raw": "",
+
+		    "raw": \`query AllUsers {
+		  ...QueryFragment
+		}
+
+		fragment QueryFragment on Query {
+		  users(boolValue: true, stringValue: "Hello") {
+		    id
+		  }
+		  __typename
+		}
+		\`,
+
 		    "rootType": "Query",
 
 		    "selection": {
@@ -646,7 +745,20 @@ test('list arguments', async function () {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
 		    "hash": "32c6a8a189da923b8c68c54909f2aa28063a7752a0bb2b3601834899de4dd3a7",
-		    "raw": "",
+
+		    "raw": \`query AllUsers {
+		  ...QueryFragment_4AWlIw
+		}
+
+		fragment QueryFragment_4AWlIw on Query {
+		  nodes(ids: ["1"]) {
+		    id
+		    __typename
+		  }
+		  __typename
+		}
+		\`,
+
 		    "rootType": "Query",
 
 		    "selection": {
@@ -728,7 +840,15 @@ test('persists fragment variables in artifact', async function () {
 		    "name": "QueryFragment",
 		    "kind": "HoudiniFragment",
 		    "hash": "695bc5e3268ac222dca193dd7daee95d4d0b773268624c45e521a69bbda62185",
-		    "raw": "",
+
+		    "raw": \`fragment QueryFragment on Query {
+		  users(boolValue: $cool, stringValue: $name) {
+		    id
+		  }
+		  __typename
+		}
+		\`,
+
 		    "rootType": "Query",
 
 		    "selection": {
@@ -895,7 +1015,15 @@ test('variables referenced deeply in objects', async function () {
 		    "name": "QueryFragment",
 		    "kind": "HoudiniFragment",
 		    "hash": "2ec5f34429b6e7e9240f8d051c53f10d627f195d9ba5a2400d2d01c783fb9c23",
-		    "raw": "",
+
+		    "raw": \`fragment QueryFragment on Query {
+		  usersByOffset(filter: {name: $name}) {
+		    id
+		  }
+		  __typename
+		}
+		\`,
+
 		    "rootType": "Query",
 
 		    "selection": {
@@ -944,7 +1072,19 @@ test('variables referenced deeply in objects', async function () {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
 		    "hash": "bad1595ed3acc420a0e94eb73222c0e9c24e185d0d14b2b56ad4e20dec83adc9",
-		    "raw": "",
+
+		    "raw": \`query TestQuery {
+		  ...QueryFragment_32RKor
+		}
+
+		fragment QueryFragment_32RKor on Query {
+		  usersByOffset(filter: {name: $name}) {
+		    id
+		  }
+		  __typename
+		}
+		\`,
+
 		    "rootType": "Query",
 
 		    "selection": {
@@ -1028,7 +1168,19 @@ test('can use the same fragment/argument combo multiple times', async function (
 		    "name": "TestQuery1",
 		    "kind": "HoudiniQuery",
 		    "hash": "9817b0d4cb3b3abe9d7e3b23cba8fdf0f604ffb1e1e9577e242e114ae637b2b5",
-		    "raw": "",
+
+		    "raw": \`query TestQuery1 {
+		  ...QueryFragment_32RKor
+		}
+
+		fragment QueryFragment_32RKor on Query {
+		  usersByOffset(filter: {name: $name}) {
+		    id
+		  }
+		  __typename
+		}
+		\`,
+
 		    "rootType": "Query",
 
 		    "selection": {
@@ -1078,7 +1230,19 @@ test('can use the same fragment/argument combo multiple times', async function (
 		    "name": "TestQuery2",
 		    "kind": "HoudiniQuery",
 		    "hash": "cafbad3ef5bf66ccfe44f75d4a382e7e29f055c4670ddd97fc2a2e1cf296a0c9",
-		    "raw": "",
+
+		    "raw": \`query TestQuery2 {
+		  ...QueryFragment_32RKor
+		}
+
+		fragment QueryFragment_32RKor on Query {
+		  usersByOffset(filter: {name: $name}) {
+		    id
+		  }
+		  __typename
+		}
+		\`,
+
 		    "rootType": "Query",
 
 		    "selection": {
