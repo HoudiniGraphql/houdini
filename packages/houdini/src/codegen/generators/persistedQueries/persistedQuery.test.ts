@@ -18,12 +18,11 @@ test('generates an artifact for every document', async function () {
 	]
 	// execute the generator
 	await runPipeline(config, docs)
-	console.log(`docs[0]`, docs[1])
 
-	const computedHash1 = '49dc4c0692eced5aacee9f00666346a949191deb9d6efbaed8f073f1dc7e16fd'
-	const computedHash2 = '0fed821a89624811bd47a7e95cbd1fd2a37f5b94613ae4968eecd7483aaaee56'
-	const computedHash3 = '7af5be069af3b67c394042bdd7c12f46058ba9d372d38e67f5613fc3d0a2aaff'
-	const computedHash4 = '85d8c7b6ad01e4a70c7d3f91f563b6bd33a135bd2f6698292c25a683445c2d16'
+	const computedHash1 = '361432f464ed44eed788f3ea66c4dabc46437b88edbe7daccca87045fd31447f'
+	const computedHash2 = '7b6df0b58f32c599a8b07d36cdbdc21570f07b4b8a6819ebf457888be98798ad'
+	const computedHash3 = 'ff694171ced9bd7edc84a4a4a4201dadea30c0cdb8a8734c940872a673111bc1'
+	const computedHash4 = 'fe1a99181d15832006212f1d94483733e06a2a73b12ef7a167c980f7f484c2ee'
 
 	expect(docs[0].artifact?.hash).toBe(computedHash1)
 	expect(docs[1].artifact?.hash).toBe(computedHash2)

@@ -271,7 +271,6 @@ export default function artifactGenerator(stats: {
 					}
 
 					// start building up the artifact
-
 					let artifact: DocumentArtifact = {
 						name,
 						kind: docKind,
@@ -306,7 +305,7 @@ export default function artifactGenerator(stats: {
 						pluginData: {},
 					}
 					// generate a hash of the document that we can use to detect changes
-					// we write the hash only at this stage, because we want the row document value (with paginated frags)
+					// we write the hash only at this stage, because plugins can take adventage of artifacts to write the hash.
 					const hash_value = hash({ config, document: { ...doc, artifact } })
 					artifact.hash = hash_value
 
