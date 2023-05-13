@@ -26,7 +26,7 @@ const logMetadata: ClientPlugin = () => ({
 // Nah! it's not important! Anyway the selection is present. So it's the same to have the raw or not.
 // (recap this in github at some point)
 // in artifact, what atout multiple export const instead of one export default? (like this, in presisted & with code split, raw will never be loaded?)
-let persisted_queries_mode: 'clear' | 'kit' | 'full' = 'kit';
+let persisted_queries_mode: 'clear' | 'kit' | 'full' = 'clear';
 
 // Export the Houdini client
 export default new HoudiniClient({

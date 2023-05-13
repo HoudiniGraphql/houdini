@@ -74,7 +74,15 @@ export async function expect_n_gql(
   }
 
   // Listen
-  // page.on('request', fnReq);
+  // page.on('request', (request) => {
+  //   if (request.url().endsWith(routes.GraphQL)) {
+  //     try {
+  //       const tt = request.postData();
+
+  //       console.log(`Size`, tt?.length, 'byte');
+  //     } catch (error) {}
+  //   }
+  // });
   page.on('response', fnRes);
 
   // Trigger the action

@@ -12,8 +12,8 @@ import { resolvers, typeDefs } from './graphql.mjs'
 
 const plugins = []
 
-// let persisted_queries_mode = 'clear'
-let persisted_queries_mode = 'full'
+let persisted_queries_mode = 'clear'
+// let persisted_queries_mode = 'full'
 
 if (persisted_queries_mode === 'full') {
 	const operationsFilePath = path.join(

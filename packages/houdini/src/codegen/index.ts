@@ -36,6 +36,8 @@ export async function runPipeline(config: Config, docs: Document[]) {
 		changed: [],
 		new: [],
 		deleted: [],
+		hashSize: [],
+		querySize: [],
 	}
 
 	// collect any plugins that need to do something after generating
@@ -66,7 +68,11 @@ export async function runPipeline(config: Config, docs: Document[]) {
 				})
 		)
 
-	// run the generate command before we print "🎩 Generating runtime..." because we don't know upfront artifactStats.
+	// Let's log that we start... And if there is 0 docs, it will be written at the end.
+	if (!config.pluginMode) {
+		console.log('🎩 Generating runtime...')
+	}
+
 	let error: Error | null = null
 	try {
 		await run(
@@ -141,10 +147,6 @@ export async function runPipeline(config: Config, docs: Document[]) {
 		return
 	}
 
-	if (!config.pluginMode) {
-		console.log('🎩 Generating runtime...')
-	}
-
 	if (error) {
 		throw error
 	}
@@ -180,6 +182,16 @@ export async function runPipeline(config: Config, docs: Document[]) {
 			// log the name
 			console.log(`${emoji} ${artifact}`)
 		}
+		console.log(`🪄  Total: ${artifactStats.total.length}`)
+
+		// log some size information
+		const hashSize = (artifactStats.hashSize.reduce((acc, val) => acc + val, 0) / 1024).toFixed(
+			1
+		)
+		const querySize = (
+			artifactStats.querySize.reduce((acc, val) => acc + val, 0) / 1024
+		).toFixed(1)
+		console.log(`🪶  Network request size: ${querySize} kb (pesisted: ${hashSize} kb)`)
 	}
 }
 

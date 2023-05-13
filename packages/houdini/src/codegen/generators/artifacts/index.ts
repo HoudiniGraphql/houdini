@@ -37,6 +37,8 @@ export default function artifactGenerator(stats: {
 	new: string[]
 	changed: string[]
 	deleted: string[]
+	hashSize: number[]
+	querySize: number[]
 }) {
 	return async function (config: Config, docs: Document[]) {
 		// put together the type information for the filter for every list
@@ -451,6 +453,10 @@ export default function artifactGenerator(stats: {
 
 					// regardless of whether it was changed or not, we need to track the total list of artifacts
 					stats.total.push(artifact.name)
+
+					// let's count only this as varaibles will need to be passed anyway.
+					stats.hashSize.push(artifact.hash.length)
+					stats.querySize.push(artifact.raw.length)
 				})
 			)
 		)
