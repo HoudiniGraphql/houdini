@@ -41,25 +41,7 @@ describe('load', () => {
 			    "name": "FragmentUpdateTestQuery",
 			    "kind": "HoudiniQuery",
 			    "hash": "bf9b4819b5a3f31b73640acb3da7f0b5abc29e07a1292a2fe307415b619716e3",
-
-			    "raw": \`query FragmentUpdateTestQuery($id: ID!) {
-			  node(id: $id) {
-			    ... on User {
-			      ...UserFragmentTestFragment
-			      id
-			    }
-			    id
-			    __typename
-			  }
-			}
-
-			fragment UserFragmentTestFragment on User {
-			  name
-			  id
-			  __typename
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Query",
 
 			    "selection": {
@@ -156,12 +138,7 @@ describe('blocking', () => {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
 			    "hash": "8e483259f3d69f416c01b6106c0440fa0f916abb4cadb75273f8226a1ff0a5e2",
-
-			    "raw": \`query TestQuery {
-			  version
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Query",
 
 			    "selection": {
@@ -200,12 +177,7 @@ describe('blocking', () => {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
 			    "hash": "8e483259f3d69f416c01b6106c0440fa0f916abb4cadb75273f8226a1ff0a5e2",
-
-			    "raw": \`query TestQuery {
-			  version
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Query",
 
 			    "selection": {

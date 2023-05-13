@@ -399,6 +399,9 @@ export default function artifactGenerator(stats: {
 						}
 					}
 
+					// if pesisted queries, let's remove the raw
+					artifact.raw = ''
+
 					// assign the artifact
 					doc.artifact = artifact
 

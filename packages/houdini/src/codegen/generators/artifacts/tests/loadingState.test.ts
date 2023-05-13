@@ -40,32 +40,7 @@ test('persists loading behavior in selection', async function () {
 		    "name": "MonkeyListQuery",
 		    "kind": "HoudiniQuery",
 		    "hash": "5e86edd84280f328c6e368f75bb1f19cfd2eff5876bc240cf98cca13daae05ad",
-
-		    "raw": \`query MonkeyListQuery {
-		  monkeys {
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
-		    ...AnimalsList
-		  }
-		}
-
-		fragment AnimalsList on AnimalConnection {
-		  edges {
-		    node {
-		      id
-		      name
-		      __typename
-		    }
-		    __typename
-		  }
-		  __typename
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -281,21 +256,7 @@ test('loading state on mixed abstract type', async function () {
 		    "name": "Query",
 		    "kind": "HoudiniQuery",
 		    "hash": "b673be99e3b55f079434a8e24acb3afe9e3a278d99e4e258a433eec0b21e6e39",
-
-		    "raw": \`query Query {
-		  catOwners {
-		    cats {
-		      id
-		    }
-		    ... on User {
-		      firstName
-		      id
-		    }
-		    __typename
-		  }
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -490,22 +451,7 @@ test('loading state on multiple branches of an abstract selection', async functi
 		    "name": "Query",
 		    "kind": "HoudiniQuery",
 		    "hash": "567fd887397a9072784a6320f8609a66bdb69a3d3cbb791428c8cd342dccd67f",
-
-		    "raw": \`query Query {
-		  entities {
-		    ... on User {
-		      firstName
-		      id
-		    }
-		    ... on Cat {
-		      name
-		      id
-		    }
-		    __typename
-		  }
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -650,23 +596,7 @@ test('loading state on inline fragments', async function () {
 		    "name": "Query",
 		    "kind": "HoudiniQuery",
 		    "hash": "ed0970b3886e2211f38a0a3d328601407380f13907c5a69a5bd462f7aca6741b",
-
-		    "raw": \`query Query {
-		  entity {
-		    ...Info
-		    __typename
-		  }
-		}
-
-		fragment Info on Entity {
-		  ... on User {
-		    firstName
-		    id
-		  }
-		  __typename
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -779,22 +709,7 @@ test('persist count in loading spec', async function () {
 		    "name": "Query",
 		    "kind": "HoudiniQuery",
 		    "hash": "567fd887397a9072784a6320f8609a66bdb69a3d3cbb791428c8cd342dccd67f",
-
-		    "raw": \`query Query {
-		  entities {
-		    ... on User {
-		      firstName
-		      id
-		    }
-		    ... on Cat {
-		      name
-		      id
-		    }
-		    __typename
-		  }
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -933,22 +848,7 @@ test('loading state on definitions', async function () {
 		    "name": "Query",
 		    "kind": "HoudiniQuery",
 		    "hash": "567fd887397a9072784a6320f8609a66bdb69a3d3cbb791428c8cd342dccd67f",
-
-		    "raw": \`query Query {
-		  entities {
-		    ... on User {
-		      firstName
-		      id
-		    }
-		    ... on Cat {
-		      name
-		      id
-		    }
-		    __typename
-		  }
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -1103,29 +1003,7 @@ test('loading cascade', async function () {
 		    "name": "Query",
 		    "kind": "HoudiniQuery",
 		    "hash": "10f12e15c7975a8f61f8d519aaf69dea273054da2d8feaf27803aceb7e4f3e1d",
-
-		    "raw": \`query Query {
-		  entities {
-		    ... on User {
-		      firstName
-		      id
-		    }
-		    ... on Cat {
-		      name
-		      id
-		    }
-		    __typename
-		  }
-		  b: entities {
-		    ... on User {
-		      firstName
-		      id
-		    }
-		    __typename
-		  }
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {

@@ -42,12 +42,7 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
 		    "hash": "8e483259f3d69f416c01b6106c0440fa0f916abb4cadb75273f8226a1ff0a5e2",
-
-		    "raw": \`query TestQuery {
-		  version
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -73,14 +68,7 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		    "name": "TestFragment",
 		    "kind": "HoudiniFragment",
 		    "hash": "ff694171ced9bd7edc84a4a4a4201dadea30c0cdb8a8734c940872a673111bc1",
-
-		    "raw": \`fragment TestFragment on User {
-		  firstName
-		  id
-		  __typename
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "User",
 
 		    "selection": {
@@ -130,21 +118,7 @@ test('selection includes fragments', async function () {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
 		    "hash": "890fc6dbeb79ac80cb60bef98a20cb51a59b209e3d015a48a027b3db4e6624bd",
-
-		    "raw": \`query TestQuery {
-		  user {
-		    ...TestFragment
-		    id
-		  }
-		}
-
-		fragment TestFragment on User {
-		  firstName
-		  id
-		  __typename
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -197,14 +171,7 @@ test('selection includes fragments', async function () {
 		    "name": "TestFragment",
 		    "kind": "HoudiniFragment",
 		    "hash": "ff694171ced9bd7edc84a4a4a4201dadea30c0cdb8a8734c940872a673111bc1",
-
-		    "raw": \`fragment TestFragment on User {
-		  firstName
-		  id
-		  __typename
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "User",
 
 		    "selection": {
@@ -253,21 +220,7 @@ test('internal directives are scrubbed', async function () {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
 		    "hash": "9d58041683e24088d4bab3f04c2a319aa675013b1eedc19e3a5714743bbb20f1",
-
-		    "raw": \`query TestQuery {
-		  user {
-		    ...A
-		    id
-		  }
-		}
-
-		fragment A on User {
-		  firstName
-		  id
-		  __typename
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -339,21 +292,7 @@ test('variables only used by internal directives are scrubbed', async function (
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
 		    "hash": "9d58041683e24088d4bab3f04c2a319aa675013b1eedc19e3a5714743bbb20f1",
-
-		    "raw": \`query TestQuery {
-		  user {
-		    ...A
-		    id
-		  }
-		}
-
-		fragment A on User {
-		  firstName
-		  id
-		  __typename
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -428,22 +367,7 @@ test('overlapping query and fragment selection', async function () {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
 		    "hash": "873d00120214b1dd16765e67c42314ec06468b8f3fa85812412147a5dc943367",
-
-		    "raw": \`query TestQuery {
-		  user {
-		    firstName
-		    ...A
-		    id
-		  }
-		}
-
-		fragment A on User {
-		  firstName
-		  id
-		  __typename
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -513,18 +437,7 @@ test('interface to interface inline fragment', async function () {
 		    "name": "MyQuery",
 		    "kind": "HoudiniQuery",
 		    "hash": "1523b7370764395a57e1a2434ea2e40290ac99d80a27c92438f8f053c0055998",
-
-		    "raw": \`query MyQuery($id: ID!) {
-		  node(id: $id) {
-		    ... on Friend {
-		      name
-		    }
-		    id
-		    __typename
-		  }
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -642,33 +555,7 @@ test('paginate over unions', async function () {
 		        "mode": "Infinite"
 		    },
 
-		    "raw": \`query TestQuery($first: Int = 10, $after: String, $last: Int, $before: String) {
-		  entitiesByCursor(first: $first, after: $after, last: $last, before: $before) {
-		    edges {
-		      node {
-		        ... on User {
-		          firstName
-		          id
-		        }
-		        __typename
-		      }
-		    }
-		    edges {
-		      cursor
-		      node {
-		        __typename
-		      }
-		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
-		  }
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -870,30 +757,7 @@ test('overlapping query and fragment nested selection', async function () {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
 		    "hash": "25298a9f5705b2f18c259a596d2c2b00003e9234712537af9b254589c6b36626",
-
-		    "raw": \`query TestQuery {
-		  friends {
-		    ... on User {
-		      firstName
-		      id
-		    }
-		    ...A
-		    __typename
-		  }
-		}
-
-		fragment A on User {
-		  friends {
-		    ... on User {
-		      id
-		    }
-		    id
-		  }
-		  id
-		  __typename
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -1004,25 +868,7 @@ test('selections with interfaces', async function () {
 		    "name": "Friends",
 		    "kind": "HoudiniQuery",
 		    "hash": "8181fa3d03ae23a9e754dc7942f43979a196e69cb694d40e13edece1d5712d0e",
-
-		    "raw": \`query Friends {
-		  friends {
-		    ... on Cat {
-		      id
-		      owner {
-		        firstName
-		        id
-		      }
-		    }
-		    ... on Ghost {
-		      name
-		      aka
-		    }
-		    __typename
-		  }
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -1149,25 +995,7 @@ test('selections with unions', async function () {
 		    "name": "Friends",
 		    "kind": "HoudiniQuery",
 		    "hash": "6177321339bc293d1e89ab4aa31893cbfddce34bfd8a26af1a1878df17659ce4",
-
-		    "raw": \`query Friends {
-		  entities {
-		    ... on Cat {
-		      id
-		      owner {
-		        firstName
-		        id
-		      }
-		    }
-		    ... on Ghost {
-		      name
-		      aka
-		    }
-		    __typename
-		  }
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -1295,26 +1123,7 @@ test('selections with overlapping unions', async function () {
 		    "name": "Friends",
 		    "kind": "HoudiniQuery",
 		    "hash": "b97290b311e5555f225e6ce7281b2904531e6b0194fb70083b617835bacc3a61",
-
-		    "raw": \`query Friends {
-		  friends {
-		    name
-		    ... on Cat {
-		      id
-		      owner {
-		        firstName
-		        id
-		      }
-		    }
-		    ... on Ghost {
-		      name
-		      aka
-		    }
-		    __typename
-		  }
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -1456,28 +1265,7 @@ test('selections with unions of abstract types', async function () {
 		    "name": "Friends",
 		    "kind": "HoudiniQuery",
 		    "hash": "0c20b2d8114b50a67eb9bd23410ce7d8811b50c402d95665ccd48e3682af4175",
-
-		    "raw": \`query Friends {
-		  friends {
-		    ... on Node {
-		      id
-		      ... on Cat {
-		        owner {
-		          firstName
-		          id
-		        }
-		        id
-		      }
-		    }
-		    ... on Ghost {
-		      name
-		      aka
-		    }
-		    __typename
-		  }
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -1622,27 +1410,7 @@ test('selections with concrete types matching multiple abstract types', async fu
 		    "name": "Friends",
 		    "kind": "HoudiniQuery",
 		    "hash": "9ff85816b8980faa4ce2ff9540f1eb290312e3272b03984422282845f7627895",
-
-		    "raw": \`query Friends {
-		  friends {
-		    ... on CatOwner {
-		      cats {
-		        name
-		        id
-		      }
-		    }
-		    ... on Node {
-		      id
-		    }
-		    ... on Ghost {
-		      aka
-		      name
-		    }
-		    __typename
-		  }
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -1811,17 +1579,7 @@ describe('mutation artifacts', function () {
 			    "name": "B",
 			    "kind": "HoudiniMutation",
 			    "hash": "38005b47351eb4e6e14e3c13a8d0d206dac09bf80d6fa3c103a060a3990edd37",
-
-			    "raw": \`mutation B {
-			  addFriend {
-			    friend {
-			      firstName
-			      id
-			    }
-			  }
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Mutation",
 
 			    "selection": {
@@ -1900,22 +1658,7 @@ describe('mutation artifacts', function () {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
 			    "hash": "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
-
-			    "raw": \`mutation A {
-			  addFriend {
-			    friend {
-			      ...All_Users_insert
-			      id
-			    }
-			  }
-			}
-
-			fragment All_Users_insert on User {
-			  firstName
-			  id
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Mutation",
 
 			    "selection": {
@@ -2004,22 +1747,7 @@ describe('mutation artifacts', function () {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
 			    "hash": "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
-
-			    "raw": \`mutation A {
-			  addFriend {
-			    friend {
-			      ...All_Users_insert
-			      id
-			    }
-			  }
-			}
-
-			fragment All_Users_insert on User {
-			  firstName
-			  id
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Mutation",
 
 			    "selection": {
@@ -2109,21 +1837,7 @@ describe('mutation artifacts', function () {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
 			    "hash": "9dc41329a7176f813b623958a68c2752d391151a4f3b1f9b8198f6c487e931a4",
-
-			    "raw": \`mutation A {
-			  addFriend {
-			    friend {
-			      ...All_Users_remove
-			      id
-			    }
-			  }
-			}
-
-			fragment All_Users_remove on User {
-			  id
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Mutation",
 
 			    "selection": {
@@ -2207,22 +1921,7 @@ describe('mutation artifacts', function () {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
 			    "hash": "e01f8a23cc33c10c4ee3745c041ee97f428b3b4676a5d8d681124f75b09306da",
-
-			    "raw": \`mutation A {
-			  addFriend {
-			    friend {
-			      ...All_Users_toggle
-			      id
-			    }
-			  }
-			}
-
-			fragment All_Users_toggle on User {
-			  firstName
-			  id
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Mutation",
 
 			    "selection": {
@@ -2315,22 +2014,7 @@ describe('mutation artifacts', function () {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
 			    "hash": "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
-
-			    "raw": \`mutation A {
-			  addFriend {
-			    friend {
-			      ...All_Users_insert
-			      id
-			    }
-			  }
-			}
-
-			fragment All_Users_insert on User {
-			  firstName
-			  id
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Mutation",
 
 			    "selection": {
@@ -2423,22 +2107,7 @@ describe('mutation artifacts', function () {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
 			    "hash": "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
-
-			    "raw": \`mutation A {
-			  addFriend {
-			    friend {
-			      ...All_Users_insert
-			      id
-			    }
-			  }
-			}
-
-			fragment All_Users_insert on User {
-			  firstName
-			  id
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Mutation",
 
 			    "selection": {
@@ -2528,22 +2197,7 @@ describe('mutation artifacts', function () {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
 			    "hash": "e01f8a23cc33c10c4ee3745c041ee97f428b3b4676a5d8d681124f75b09306da",
-
-			    "raw": \`mutation A {
-			  addFriend {
-			    friend {
-			      ...All_Users_toggle
-			      id
-			    }
-			  }
-			}
-
-			fragment All_Users_toggle on User {
-			  firstName
-			  id
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Mutation",
 
 			    "selection": {
@@ -2633,21 +2287,7 @@ describe('mutation artifacts', function () {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
 			    "hash": "9dc41329a7176f813b623958a68c2752d391151a4f3b1f9b8198f6c487e931a4",
-
-			    "raw": \`mutation A {
-			  addFriend {
-			    friend {
-			      ...All_Users_remove
-			      id
-			    }
-			  }
-			}
-
-			fragment All_Users_remove on User {
-			  id
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Mutation",
 
 			    "selection": {
@@ -2729,14 +2369,7 @@ describe('mutation artifacts', function () {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
 			    "hash": "b9e1e926be309c06c868dc2472c082b6829f93ae55e000317a1066378590a85d",
-
-			    "raw": \`mutation A {
-			  deleteUser(id: "1234") {
-			    userID
-			  }
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Mutation",
 
 			    "selection": {
@@ -2807,14 +2440,7 @@ describe('mutation artifacts', function () {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
 			    "hash": "b9e1e926be309c06c868dc2472c082b6829f93ae55e000317a1066378590a85d",
-
-			    "raw": \`mutation A {
-			  deleteUser(id: "1234") {
-			    userID
-			  }
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Mutation",
 
 			    "selection": {
@@ -2902,22 +2528,7 @@ describe('mutation artifacts', function () {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
 			    "hash": "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
-
-			    "raw": \`mutation A {
-			  addFriend {
-			    friend {
-			      ...All_Users_insert
-			      id
-			    }
-			  }
-			}
-
-			fragment All_Users_insert on User {
-			  firstName
-			  id
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Mutation",
 
 			    "selection": {
@@ -3012,22 +2623,7 @@ describe('mutation artifacts', function () {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
 			    "hash": "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
-
-			    "raw": \`mutation A {
-			  addFriend {
-			    friend {
-			      ...All_Users_insert
-			      id
-			    }
-			  }
-			}
-
-			fragment All_Users_insert on User {
-			  firstName
-			  id
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Mutation",
 
 			    "selection": {
@@ -3122,22 +2718,7 @@ describe('mutation artifacts', function () {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
 			    "hash": "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
-
-			    "raw": \`mutation A {
-			  addFriend {
-			    friend {
-			      ...All_Users_insert
-			      id
-			    }
-			  }
-			}
-
-			fragment All_Users_insert on User {
-			  firstName
-			  id
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Mutation",
 
 			    "selection": {
@@ -3232,22 +2813,7 @@ describe('mutation artifacts', function () {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
 			    "hash": "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
-
-			    "raw": \`mutation A {
-			  addFriend {
-			    friend {
-			      ...All_Users_insert
-			      id
-			    }
-			  }
-			}
-
-			fragment All_Users_insert on User {
-			  firstName
-			  id
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Mutation",
 
 			    "selection": {
@@ -3343,22 +2909,7 @@ describe('mutation artifacts', function () {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
 			    "hash": "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
-
-			    "raw": \`mutation A {
-			  addFriend {
-			    friend {
-			      ...All_Users_insert
-			      id
-			    }
-			  }
-			}
-
-			fragment All_Users_insert on User {
-			  firstName
-			  id
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Mutation",
 
 			    "selection": {
@@ -3454,22 +3005,7 @@ describe('mutation artifacts', function () {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
 			    "hash": "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
-
-			    "raw": \`mutation A {
-			  addFriend {
-			    friend {
-			      ...All_Users_insert
-			      id
-			    }
-			  }
-			}
-
-			fragment All_Users_insert on User {
-			  firstName
-			  id
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Mutation",
 
 			    "selection": {
@@ -3565,22 +3101,7 @@ describe('mutation artifacts', function () {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
 			    "hash": "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
-
-			    "raw": \`mutation A {
-			  addFriend {
-			    friend {
-			      ...All_Users_insert
-			      id
-			    }
-			  }
-			}
-
-			fragment All_Users_insert on User {
-			  firstName
-			  id
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Mutation",
 
 			    "selection": {
@@ -3676,22 +3197,7 @@ describe('mutation artifacts', function () {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
 			    "hash": "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
-
-			    "raw": \`mutation A {
-			  addFriend {
-			    friend {
-			      ...All_Users_insert
-			      id
-			    }
-			  }
-			}
-
-			fragment All_Users_insert on User {
-			  firstName
-			  id
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Mutation",
 
 			    "selection": {
@@ -3792,15 +3298,7 @@ describe('mutation artifacts', function () {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
 			    "hash": "d773bead4120baa620dc05347fba277faaa5bb555e10943507a393eaa3399c52",
-
-			    "raw": \`query TestQuery($value: String!) {
-			  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
-			    firstName
-			    id
-			  }
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Query",
 
 			    "selection": {
@@ -3918,22 +3416,7 @@ describe('mutation artifacts', function () {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
 			    "hash": "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
-
-			    "raw": \`mutation A {
-			  addFriend {
-			    friend {
-			      ...All_Users_insert
-			      id
-			    }
-			  }
-			}
-
-			fragment All_Users_insert on User {
-			  firstName
-			  id
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Mutation",
 
 			    "selection": {
@@ -4029,15 +3512,7 @@ describe('mutation artifacts', function () {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
 			    "hash": "2997353b3d1f04e02b9d211bb4f4069b63f8536b7f1eb686fc74fd8b3dab8dbd",
-
-			    "raw": \`query TestQuery {
-			  users(stringValue: "foo") {
-			    firstName
-			    id
-			  }
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Query",
 
 			    "selection": {
@@ -4147,30 +3622,7 @@ describe('mutation artifacts', function () {
 			        "mode": "Infinite"
 			    },
 
-			    "raw": \`query TestQuery($first: Int = 10, $after: String, $last: Int, $before: String) {
-			  usersByCursor(first: $first, after: $after, last: $last, before: $before) {
-			    edges {
-			      node {
-			        firstName
-			        id
-			      }
-			    }
-			    edges {
-			      cursor
-			      node {
-			        __typename
-			      }
-			    }
-			    pageInfo {
-			      hasPreviousPage
-			      hasNextPage
-			      startCursor
-			      endCursor
-			    }
-			  }
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Query",
 
 			    "selection": {
@@ -4387,30 +3839,7 @@ describe('mutation artifacts', function () {
 			        "mode": "SinglePage"
 			    },
 
-			    "raw": \`query TestQuery($first: Int = 10, $after: String, $last: Int, $before: String) {
-			  usersByCursor(first: $first, after: $after, last: $last, before: $before) {
-			    edges {
-			      node {
-			        firstName
-			        id
-			      }
-			    }
-			    edges {
-			      cursor
-			      node {
-			        __typename
-			      }
-			    }
-			    pageInfo {
-			      hasPreviousPage
-			      hasNextPage
-			      startCursor
-			      endCursor
-			    }
-			  }
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Query",
 
 			    "selection": {
@@ -4612,15 +4041,7 @@ describe('mutation artifacts', function () {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
 			    "hash": "d773bead4120baa620dc05347fba277faaa5bb555e10943507a393eaa3399c52",
-
-			    "raw": \`query TestQuery($value: String!) {
-			  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
-			    firstName
-			    id
-			  }
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Query",
 
 			    "selection": {
@@ -4735,15 +4156,7 @@ describe('mutation artifacts', function () {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
 			    "hash": "d773bead4120baa620dc05347fba277faaa5bb555e10943507a393eaa3399c52",
-
-			    "raw": \`query TestQuery($value: String!) {
-			  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
-			    firstName
-			    id
-			  }
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Query",
 
 			    "selection": {
@@ -4872,14 +4285,7 @@ test('custom scalar shows up in artifact', async function () {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
 		    "hash": "b8314df1f7d924f76e6dfe6e7e3c8efd593db931c67c892311e97a9ec1d429b4",
-
-		    "raw": \`query TestQuery {
-		  allItems {
-		    createdAt
-		  }
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -4981,14 +4387,7 @@ test('operation inputs', async function () {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
 		    "hash": "f39d9c24c97c9c3cdcd916272e7ffb9d79cb4ad08ec294c829d647d4238c7e6b",
-
-		    "raw": \`query TestQuery($id: ID, $filter: UserFilter, $filterList: [UserFilter!], $enumArg: MyEnum) {
-		  user(id: $id, filter: $filter, filterList: $filterList, enumArg: $enumArg) {
-		    id
-		  }
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -5075,17 +4474,7 @@ describe('subscription artifacts', function () {
 			    "name": "B",
 			    "kind": "HoudiniSubscription",
 			    "hash": "755fb65bebc83835db68921b7e193809246fb6f9ee2e37cc66d7314b91a501e7",
-
-			    "raw": \`subscription B {
-			  newUser {
-			    user {
-			      firstName
-			      id
-			    }
-			  }
-			}
-			\`,
-
+			    "raw": "",
 			    "rootType": "Subscription",
 
 			    "selection": {
@@ -5167,12 +4556,7 @@ test('some artifactData added to artifact specific to plugins', async function (
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
 		    "hash": "8e483259f3d69f416c01b6106c0440fa0f916abb4cadb75273f8226a1ff0a5e2",
-
-		    "raw": \`query TestQuery {
-		  version
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -5245,35 +4629,7 @@ test('nested recursive fragments', async function () {
 		    "name": "MyAnimalQuery",
 		    "kind": "HoudiniQuery",
 		    "hash": "bef32f9431c60063291fea8375de73b98c703421a89721d8b03a9e5e0ae373bd",
-
-		    "raw": \`query MyAnimalQuery {
-		  node(id: "some_id") {
-		    id
-		    ...NodeDetails
-		    ... on User {
-		      ...UserThings
-		      id
-		    }
-		    __typename
-		  }
-		}
-
-		fragment NodeDetails on Node {
-		  id
-		  ... on User {
-		    id
-		  }
-		  __typename
-		}
-
-		fragment UserThings on User {
-		  id
-		  name
-		  ...NodeDetails
-		  __typename
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -5381,24 +4737,7 @@ test('leave @include and @skip alone', async function () {
 		    "name": "MyAnimalQuery",
 		    "kind": "HoudiniQuery",
 		    "hash": "ece1546c435cde03fdfb659b202fba2393b0b9828e8efbbe24f803a0707f3e02",
-
-		    "raw": \`query MyAnimalQuery {
-		  node(id: "some_id") {
-		    id @skip(if: true)
-		    ...NodeDetails @include(if: true)
-		    __typename
-		  }
-		}
-
-		fragment NodeDetails on Node {
-		  id
-		  ... on User {
-		    id
-		  }
-		  __typename
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -5520,24 +4859,7 @@ test('fragment references are embedded in artifact', async function () {
 		    "name": "MyAnimalQuery",
 		    "kind": "HoudiniQuery",
 		    "hash": "d5c8c7b13dddb230796354b42cd0a86ac0beed1d3a40e8b9288545908f96370d",
-
-		    "raw": \`query MyAnimalQuery {
-		  node(id: "some_id") {
-		    id
-		    ...NodeDetails
-		    __typename
-		  }
-		}
-
-		fragment NodeDetails on Node {
-		  id
-		  ... on User {
-		    id
-		  }
-		  __typename
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -5634,25 +4956,7 @@ test('fragment variables are embedded in artifact', async function () {
 		    "name": "MyAnimalQuery",
 		    "kind": "HoudiniQuery",
 		    "hash": "4b37690e134a34ea1c717ee69ed60772d979a81120bfbed99b20a68e9c8ea738",
-
-		    "raw": \`query MyAnimalQuery {
-		  node(id: "some_id") {
-		    id
-		    ...NodeDetails_32RKor
-		    __typename
-		  }
-		}
-
-		fragment NodeDetails_32RKor on Node {
-		  ... on User {
-		    field(filter: "Foo")
-		    id
-		  }
-		  id
-		  __typename
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -5757,21 +5061,7 @@ test('fragment nested in root', async function () {
 		    "name": "UserBase",
 		    "kind": "HoudiniFragment",
 		    "hash": "15225d2e5cba866e1a588cd399a03d5b2124156ac7003d3510544f22b7b9262c",
-
-		    "raw": \`fragment UserBase on User {
-		  id
-		  firstName
-		  ...UserMore
-		  __typename
-		}
-
-		fragment UserMore on User {
-		  id
-		  firstName
-		  __typename
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "User",
 
 		    "selection": {
@@ -5852,41 +5142,7 @@ test('client nullability', async function () {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
 		    "hash": "af247d6de9dde7a1cab76049b4590fcf075346eec4bc7fc4a8937f2d71e4aade",
-
-		    "raw": \`query TestQuery($id: ID!) {
-		  node(id: $id) {
-		    ...LegendWithRequiredName
-		    ...GhostWithRequiredLegendName
-		    ...GhostWithRequiredLegendAndLegendName
-		    id
-		    __typename
-		  }
-		}
-
-		fragment LegendWithRequiredName on Legend {
-		  name
-		  __typename
-		}
-
-		fragment GhostWithRequiredLegendName on Ghost {
-		  legends {
-		    name
-		  }
-		  name
-		  aka
-		  __typename
-		}
-
-		fragment GhostWithRequiredLegendAndLegendName on Ghost {
-		  legends {
-		    name
-		  }
-		  name
-		  aka
-		  __typename
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -6086,50 +5342,7 @@ test('nested abstract fragment on connection', async function () {
 		    "name": "AnimalQuery",
 		    "kind": "HoudiniQuery",
 		    "hash": "2f4654d4b23645ef3f39803cee2f770aea08e3b1716b5d4fa5efcbdf98a7ad08",
-
-		    "raw": \`query AnimalQuery {
-		  animals {
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
-		    ...MonkeyList
-		    __typename
-		  }
-		}
-
-		fragment MonkeyList on MonkeyConnection {
-		  edges {
-		    node {
-		      hasBanana
-		      id
-		    }
-		  }
-		  ...AnimalList
-		  __typename
-		}
-
-		fragment AnimalList on AnimalConnection {
-		  edges {
-		    node {
-		      id
-		      ...AnimalProps
-		      __typename
-		    }
-		    __typename
-		  }
-		  __typename
-		}
-
-		fragment AnimalProps on Animal {
-		  name
-		  id
-		  __typename
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -6386,37 +5599,7 @@ test('nested abstract fragments', async function () {
 		    "name": "AnimalsOverview",
 		    "kind": "HoudiniQuery",
 		    "hash": "f8b2873db25ee257e57d33dce2ad02ea97ff20d623594812593a9fc75fe54527",
-
-		    "raw": \`query AnimalsOverview {
-		  animals {
-		    ...AnimalsOverviewList
-		    __typename
-		  }
-		}
-
-		fragment AnimalsOverviewList on AnimalConnection {
-		  edges {
-		    node {
-		      ... on Monkey {
-		        ...MonkeyFragment
-		        id
-		      }
-		      id
-		      __typename
-		    }
-		    __typename
-		  }
-		  __typename
-		}
-
-		fragment MonkeyFragment on Monkey {
-		  id
-		  name
-		  hasBanana
-		  __typename
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -6529,30 +5712,7 @@ test('nested abstract fragments', async function () {
 		    "name": "AnimalsOverviewList",
 		    "kind": "HoudiniFragment",
 		    "hash": "80b0907b53d8a2fc39aa5fb018a75c8fc8d647ab741e3f4c4eea6a15ac5239cd",
-
-		    "raw": \`fragment AnimalsOverviewList on AnimalConnection {
-		  edges {
-		    node {
-		      ... on Monkey {
-		        ...MonkeyFragment
-		        id
-		      }
-		      id
-		      __typename
-		    }
-		    __typename
-		  }
-		  __typename
-		}
-
-		fragment MonkeyFragment on Monkey {
-		  id
-		  name
-		  hasBanana
-		  __typename
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "AnimalConnection",
 
 		    "selection": {

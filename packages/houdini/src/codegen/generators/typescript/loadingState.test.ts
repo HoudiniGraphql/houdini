@@ -79,18 +79,7 @@ test('@loading on fragment - happy path', async function () {
 		    "name": "UserBase";
 		    "kind": "HoudiniFragment";
 		    "hash": "f3b27ed1e597b43045a4a70e3c163b01b4e73a9049714ae12cfe72f49356a3ca";
-		    "raw": \`fragment UserBase on User {
-		  id
-		  firstName
-		  parent {
-		    id
-		    parent {
-		      id
-		    }
-		  }
-		  __typename
-		}
-		\`;
+		    "raw": "";
 		    "rootType": "User";
 		    "selection": {
 		        "fields": {
@@ -236,19 +225,7 @@ test('@loading on query - happy path', async function () {
 		    "name": "UserQuery";
 		    "kind": "HoudiniQuery";
 		    "hash": "b006074a693174db5ac944de421fa6d91c93eecbd0182757b87f761a8f136d3e";
-		    "raw": \`query UserQuery {
-		  user {
-		    firstName
-		    parent {
-		      id
-		      parent {
-		        id
-		      }
-		    }
-		    id
-		  }
-		}
-		\`;
+		    "raw": "";
 		    "rootType": "Query";
 		    "selection": {
 		        "fields": {
@@ -390,12 +367,7 @@ test('@loading on list', async function () {
 		    "name": "UserQuery";
 		    "kind": "HoudiniQuery";
 		    "hash": "bed2ad01e11cc58eae893e8866fc2e7c895e4f99f71a4b627989c0d983ec436e";
-		    "raw": \`query UserQuery {
-		  users {
-		    id
-		  }
-		}
-		\`;
+		    "raw": "";
 		    "rootType": "Query";
 		    "selection": {
 		        "fields": {
@@ -488,19 +460,7 @@ test('generated types include fragment loading state', async function () {
 		    "name": "UserQuery";
 		    "kind": "HoudiniQuery";
 		    "hash": "86082adf511d5a5985928ef1ca367422c3a9ce6d89e3c40f190635366c1e0cb7";
-		    "raw": \`query UserQuery {
-		  users {
-		    ...UserBase
-		    id
-		  }
-		}
-
-		fragment UserBase on User {
-		  firstName
-		  id
-		  __typename
-		}
-		\`;
+		    "raw": "";
 		    "rootType": "Query";
 		    "selection": {
 		        "fields": {
@@ -610,19 +570,7 @@ test('global @loading on fragment', async function () {
 		    "name": "UserQuery";
 		    "kind": "HoudiniQuery";
 		    "hash": "86082adf511d5a5985928ef1ca367422c3a9ce6d89e3c40f190635366c1e0cb7";
-		    "raw": \`query UserQuery {
-		  users {
-		    ...UserBase
-		    id
-		  }
-		}
-
-		fragment UserBase on User {
-		  firstName
-		  id
-		  __typename
-		}
-		\`;
+		    "raw": "";
 		    "rootType": "Query";
 		    "selection": {
 		        "fields": {

@@ -463,39 +463,7 @@ test('embeds node pagination query as a separate document', async function () {
 		        "mode": "Infinite"
 		    },
 
-		    "raw": \`query UserFriends_Pagination_Query($first: Int = 10, $after: String, $id: ID!) {
-		  node(id: $id) {
-		    __typename
-		    id
-		    ...UserFriends_jrGTj
-		  }
-		}
-
-		fragment UserFriends_jrGTj on User {
-		  friendsByForwardsCursor(first: $first, after: $after) {
-		    edges {
-		      node {
-		        id
-		      }
-		    }
-		    edges {
-		      cursor
-		      node {
-		        __typename
-		      }
-		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
-		  }
-		  id
-		  __typename
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -740,42 +708,7 @@ test('embeds custom pagination query as a separate document', async function () 
 		        "mode": "Infinite"
 		    },
 
-		    "raw": \`query UserGhost_Pagination_Query($first: Int = 10, $after: String, $name: String!, $aka: String!) {
-		  ghost(name: $name, aka: $aka) {
-		    __typename
-		    name
-		    aka
-		    ...UserGhost_jrGTj
-		  }
-		}
-
-		fragment UserGhost_jrGTj on Ghost {
-		  friendsConnection(first: $first, after: $after) {
-		    edges {
-		      node {
-		        name
-		        aka
-		      }
-		    }
-		    edges {
-		      cursor
-		      node {
-		        __typename
-		      }
-		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
-		  }
-		  name
-		  aka
-		  __typename
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -1543,34 +1476,7 @@ test('generated query has same refetch spec', async function () {
 		        "mode": "Infinite"
 		    },
 
-		    "raw": \`query UserFriends_Pagination_Query($first: Int = 10, $after: String = "1234", $last: Int, $before: String) {
-		  ...UserFriends_2Bf0M6
-		}
-
-		fragment UserFriends_2Bf0M6 on Query {
-		  usersByCursor(first: $first, after: $after, last: $last, before: $before) {
-		    edges {
-		      node {
-		        id
-		      }
-		    }
-		    edges {
-		      cursor
-		      node {
-		        __typename
-		      }
-		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
-		  }
-		  __typename
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
@@ -1848,30 +1754,7 @@ test('default defaultPaginateMode to SinglePage', async function () {
 		        "mode": "SinglePage"
 		    },
 
-		    "raw": \`fragment UserFriends on Query {
-		  usersByCursor(first: $first, after: $after, last: $last, before: $before) {
-		    edges {
-		      node {
-		        id
-		      }
-		    }
-		    edges {
-		      cursor
-		      node {
-		        __typename
-		      }
-		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
-		  }
-		  __typename
-		}
-		\`,
-
+		    "raw": "",
 		    "rootType": "Query",
 
 		    "selection": {
