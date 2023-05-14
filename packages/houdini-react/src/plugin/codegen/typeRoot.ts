@@ -120,7 +120,7 @@ async function tsconfig(config: Config) {
 						$houdini: ['.'],
 						'$houdini/*': ['./*'],
 						'~': ['../src'],
-						'~/*': ['../~/src'],
+						'~/*': ['../src/*'],
 					},
 					rootDirs: ['..', './types'],
 					target: 'ESNext',
