@@ -60,7 +60,11 @@ test('route groups', async function () {
 		                "_0",
 		                "_0_3subRoute_4"
 		            ],
-		            "path": "(subRoute)/nested/+page.tsx"
+		            "path": "src/routes/(subRoute)/nested/+page.tsx",
+		            "query_options": [
+		                "RootQuery",
+		                "FinalQuery"
+		            ]
 		        }
 		    },
 		    "layouts": {
@@ -69,7 +73,8 @@ test('route groups', async function () {
 		            "queries": [],
 		            "url": "/",
 		            "layouts": [],
-		            "path": "+layout.tsx"
+		            "path": "src/routes/+layout.tsx",
+		            "query_options": []
 		        },
 		        "_0_3subRoute_4": {
 		            "id": "_0_3subRoute_4",
@@ -80,7 +85,10 @@ test('route groups', async function () {
 		            "layouts": [
 		                "_0"
 		            ],
-		            "path": "(subRoute)/+layout.tsx"
+		            "path": "src/routes/(subRoute)/+layout.tsx",
+		            "query_options": [
+		                "RootQuery"
+		            ]
 		        }
 		    },
 		    "page_queries": {
@@ -146,7 +154,10 @@ test('nested route structure happy path', async function () {
 		            "layouts": [
 		                "_0"
 		            ],
-		            "path": "+page.tsx"
+		            "path": "src/routes/+page.tsx",
+		            "query_options": [
+		                "RootQuery"
+		            ]
 		        },
 		        "_0subRoute": {
 		            "id": "_0subRoute",
@@ -159,7 +170,11 @@ test('nested route structure happy path', async function () {
 		                "_0",
 		                "_0subRoute"
 		            ],
-		            "path": "subRoute/+page.jsx"
+		            "path": "src/routes/subRoute/+page.jsx",
+		            "query_options": [
+		                "RootQuery",
+		                "SubQuery"
+		            ]
 		        },
 		        "_0another": {
 		            "id": "_0another",
@@ -172,7 +187,12 @@ test('nested route structure happy path', async function () {
 		                "_0",
 		                "_0another"
 		            ],
-		            "path": "another/+page.tsx"
+		            "path": "src/routes/another/+page.tsx",
+		            "query_options": [
+		                "RootQuery",
+		                "MyLayoutQuery",
+		                "MyQuery"
+		            ]
 		        },
 		        "_0subRoute_0nested": {
 		            "id": "_0subRoute_0nested",
@@ -184,7 +204,12 @@ test('nested route structure happy path', async function () {
 		                "_0",
 		                "_0subRoute"
 		            ],
-		            "path": "subRoute/nested/+page.tsx"
+		            "path": "src/routes/subRoute/nested/+page.tsx",
+		            "query_options": [
+		                "RootQuery",
+		                "SubQuery",
+		                "FinalQuery"
+		            ]
 		        }
 		    },
 		    "layouts": {
@@ -193,7 +218,10 @@ test('nested route structure happy path', async function () {
 		            "queries": [],
 		            "url": "/",
 		            "layouts": [],
-		            "path": "+layout.tsx"
+		            "path": "src/routes/+layout.tsx",
+		            "query_options": [
+		                "RootQuery"
+		            ]
 		        },
 		        "_0another": {
 		            "id": "_0another",
@@ -204,7 +232,11 @@ test('nested route structure happy path', async function () {
 		            "layouts": [
 		                "_0"
 		            ],
-		            "path": "another/+layout.tsx"
+		            "path": "src/routes/another/+layout.tsx",
+		            "query_options": [
+		                "RootQuery",
+		                "MyLayoutQuery"
+		            ]
 		        },
 		        "_0subRoute": {
 		            "id": "_0subRoute",
@@ -215,7 +247,11 @@ test('nested route structure happy path', async function () {
 		            "layouts": [
 		                "_0"
 		            ],
-		            "path": "subRoute/+layout.tsx"
+		            "path": "src/routes/subRoute/+layout.tsx",
+		            "query_options": [
+		                "RootQuery",
+		                "SubQuery"
+		            ]
 		        }
 		    },
 		    "page_queries": {

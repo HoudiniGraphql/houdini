@@ -9,7 +9,7 @@ export type ParsedFile = Maybe<{ script: Script; start: number; end: number }>
 
 // we can't use the recast parser because it normalizes template strings which break the graphql function
 // overload definitions
-export async function parseJS(str: string, config?: Partial<ParserOptions>): Promise<Script> {
+export function parseJS(str: string, config?: Partial<ParserOptions>): Script {
 	const defaultConfig: ParserOptions = {
 		plugins: ['typescript', 'importAssertions'],
 		sourceType: 'module',
