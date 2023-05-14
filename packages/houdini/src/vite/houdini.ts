@@ -2,8 +2,8 @@ import type { SourceMapInput } from 'rollup'
 import type { Plugin as VitePlugin, UserConfig } from 'vite'
 
 import generate from '../codegen'
-import { Config, deepMerge, PluginConfig } from '../lib'
-import { path, getConfig, formatErrors } from '../lib'
+import type { Config, PluginConfig } from '../lib'
+import { path, getConfig, formatErrors, deepMerge } from '../lib'
 
 let config: Config
 
