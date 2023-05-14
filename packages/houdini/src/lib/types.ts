@@ -8,7 +8,7 @@ import type {
 	ResolveIdResult,
 	SourceMapInput,
 } from 'rollup'
-import type { ViteDevServer } from 'vite'
+import type { UserConfig, ViteDevServer } from 'vite'
 
 import type { ConfigFile } from '../runtime/lib/config'
 import type {
@@ -275,6 +275,8 @@ export type PluginHooks = {
 		| { code: string; map?: SourceMapInput | string }
 
 	vite?: {
+		config?: (config: Config) => UserConfig
+
 		// these type definitions are copy and pasted from the vite ones
 		// with config added to the appropriate options object
 		resolveId?: ObjectHook<

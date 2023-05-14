@@ -1,6 +1,8 @@
 import { Link } from '$houdini'
 
-export default function ({ HelloRouter, children }) {
+import type { LayoutProps } from './$types'
+
+export default function ({ HelloRouter, children }: LayoutProps) {
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 			message: {HelloRouter.message}

@@ -1,8 +1,8 @@
 import type { SourceMapInput } from 'rollup'
-import type { Plugin as VitePlugin } from 'vite'
+import type { Plugin as VitePlugin, UserConfig } from 'vite'
 
 import generate from '../codegen'
-import type { Config, PluginConfig } from '../lib'
+import { Config, deepMerge, PluginConfig } from '../lib'
 import { path, getConfig, formatErrors } from '../lib'
 
 let config: Config
@@ -19,7 +19,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		async config(viteConfig) {
 			config = await getConfig(opts)
 
-			return {
+			let result: UserConfig = {
 				server: {
 					...viteConfig.server,
 					fs: {
@@ -28,6 +28,16 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 					},
 				},
 			}
+
+			// plugins might want to override values
+			for (const plugin of config.plugins) {
+				if (typeof plugin.vite?.config !== 'function') {
+					continue
+				}
+				result = deepMerge('', result, plugin.vite!.config.call(this, config))
+			}
+
+			return result
 		},
 
 		// when the build starts, we need to make sure to generate

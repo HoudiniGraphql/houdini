@@ -22,25 +22,26 @@ export async function generate_type_root({
 
 	const pages: Record<string, { page?: PageManifest; layout?: PageManifest }> = {}
 	for (const page of Object.values(manifest.layouts)) {
-		const page_path = path.relative(config.projectRoot, page.path)
+		const page_path = path.relative(config.projectRoot, path.dirname(page.path))
 		pages[page_path] = {
 			...pages[page_path],
 			layout: page,
 		}
 	}
 	for (const page of Object.values(manifest.pages)) {
-		const page_path = path.relative(config.projectRoot, page.path)
+		const page_path = path.relative(config.projectRoot, path.dirname(page.path))
 		pages[page_path] = {
 			...pages[page_path],
 			page: page,
 		}
 	}
 
-	await Promise.all(
-		Object.entries(pages).map(async ([relative_path, { page, layout }]) => {
+	await Promise.all([
+		tsconfig(config),
+		...Object.entries(pages).map(async ([relative_path, { page, layout }]) => {
 			// the type root must mirror the source tree
-			const target_path = path.join(config.typeRootDir, relative_path)
-			const target_dir = path.dirname(target_path)
+			const target_dir = path.join(config.typeRootDir, relative_path)
+
 			// make sure the necessary directories exist
 			await fs.mkdirp(target_dir)
 
@@ -52,6 +53,7 @@ export async function generate_type_root({
 			// build up the type definitions
 			const definition = `
 import { DocumentHandle } from '${relative}/plugins/houdini-react/runtime'
+import React from 'react'
 
 ${
 	/* every dependent query needs to be imported */
@@ -90,6 +92,7 @@ ${
 		? ''
 		: `
 export type LayoutProps = {
+	children: React.ReactNode,
 ${layout.query_options
 	.map(
 		(query) =>
@@ -100,11 +103,55 @@ ${layout.query_options
 }
 `
 }
-
-
 `
 
 			await fs.writeFile(path.join(target_dir, '$types.d.ts'), definition)
-		})
+		}),
+	])
+}
+
+async function tsconfig(config: Config) {
+	await fs.writeFile(
+		path.join(config.rootDir, 'tsconfig.json'),
+		JSON.stringify(
+			{
+				compilerOptions: {
+					paths: {
+						$houdini: ['.'],
+						'$houdini/*': ['./*'],
+						'~': ['../src'],
+						'~/*': ['../~/src'],
+					},
+					rootDirs: ['..', './types'],
+					target: 'ESNext',
+					useDefineForClassFields: true,
+					lib: ['DOM', 'DOM.Iterable', 'ESNext'],
+					allowJs: false,
+					skipLibCheck: true,
+					esModuleInterop: false,
+					allowSyntheticDefaultImports: true,
+					strict: true,
+					forceConsistentCasingInFileNames: true,
+					module: 'ESNext',
+					moduleResolution: 'Node',
+					resolveJsonModule: true,
+					isolatedModules: true,
+					noEmit: true,
+					jsx: 'react-jsx',
+				},
+				include: [
+					'ambient.d.ts',
+					'./types/**/$types.d.ts',
+					'../vite.config.ts',
+					'../src/**/*.js',
+					'../src/**/*.ts',
+					'../src/**/*.jsx',
+					'../src/**/*.tsx',
+				],
+				exclude: ['../node_modules/**', './[!ambient.d.ts]**'],
+			},
+			null,
+			4
+		)
 	)
 }
