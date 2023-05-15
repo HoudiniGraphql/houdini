@@ -173,7 +173,8 @@ async function add_view(args: {
 		queries,
 		url: args.url,
 		layouts: args.layouts,
-		path: path.relative(args.config.routesDir, args.path),
+		path: path.relative(args.config.projectRoot, args.path),
+		query_options: args.queries,
 	}
 
 	return target[id]
@@ -219,7 +220,7 @@ async function add_query(args: {
 }
 
 export async function extractQueries(source: string): Promise<string[]> {
-	const ast = await parseJS(source, { plugins: ['jsx'] })
+	const ast = parseJS(source, { plugins: ['jsx'] })
 
 	let defaultExportNode: t.Node | null = null
 	let defaultExportIdentifier: string | null = null
@@ -319,6 +320,8 @@ export type PageManifest = {
 	id: string
 	/** the name of every query that the page depends on */
 	queries: string[]
+	/** the list of queries that this page could potentially ask for */
+	query_options: string[]
 	/** the full url pattern of the page */
 	url: string
 	/** the ids of layouts that wrap this page */

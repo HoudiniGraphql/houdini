@@ -299,6 +299,14 @@ export async function recursiveCopy(
 	}
 }
 
+export function snapshot(base?: string) {
+	return Object.fromEntries(
+		Object.entries(vol.toJSON())
+			.filter(([key]) => !base || key.startsWith(base))
+			.map(([key, value]) => [!base ? key : key.substring(base.length), value])
+	)
+}
+
 // wrap glob in a promise and enforce that the paths are always posix-style
 export async function glob(pattern: string) {
 	return await promisify(G)(path.posixify(pattern))
