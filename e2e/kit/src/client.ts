@@ -14,26 +14,18 @@ const logMetadata: ClientPlugin = () => ({
   }
 });
 
-// to switch modes...
-// 1/ TO REMOVE // this file with this variable 'persisted_queries_mode'
-// 2/ TO DOCUMENT // TO FIND A NAME // e2e/kit/src/hooks.server.ts => handlePersistedQueries to add in kit mode. (anyway, will be called only on '/houdini/graphql')
-// 3/ TO DOCUMENT // in full mode, e2e/_api/server.mjs usePersistedOperations plugin has to be uncommented
-// 4/ TO DOCUMENT (pesistedd Query enabled in config) Don't forget to generate the operations.json file with pnpm houdini generate -o ./$houdini/persisted_queries.json
-// All this to say that it's the begining, let's improve the dX now ;) from plugin add in sequence?
+// Persisted Queries (3 Modes)
+// 1/ Nothing
+// 2/ Endpoint (houdini_config & server)
+// 3/ Proxied (houdini_config & url & handler) => No Subscription!
 
-// How to remove "raw" from Artifacts?
-// (maybe the best is to have a function getRow() looking into the arfitact.row or to the persisted_queries.json file to get the data)
-// Nah! it's not important! Anyway the selection is present. So it's the same to have the raw or not.
-// (recap this in github at some point)
-// in artifact, what atout multiple export const instead of one export default? (like this, in presisted & with code split, raw will never be loaded?)
-let persisted_queries_mode: 'clear' | 'kit' | 'full' = 'clear';
+// TODO: rmv x-allow-arbitrary-operations & allowNonPersistedQuery
 
 // Export the Houdini client
 export default new HoudiniClient({
-  // let's use the local kit url if we're in kit mode
-  // @ts-ignore
-  url: persisted_queries_mode === 'kit' ? '/houdini/graphql' : 'http://localhost:4000/graphql',
-  fetchParams({ session, metadata }) {
+  url: 'http://localhost:4000/graphql',
+  // url: '/houdini/graphql', // move to /api/houdini/graphql
+  fetchParams({ session }) {
     // if we're ever unauthenticated, a request was sent that didn't thread
     // the session through so let's error
     if (!session?.user?.token) {
@@ -43,8 +35,8 @@ export default new HoudiniClient({
 
     return {
       headers: {
-        Authorization: `Bearer ${session.user.token}`,
-        ...(metadata?.allowNonPersistedQuery && { 'x-allow-arbitrary-operations': 'true' })
+        Authorization: `Bearer ${session.user.token}`
+        // ...(metadata?.allowNonPersistedQuery && { 'x-allow-arbitrary-operations': 'true' })
       }
     };
   },

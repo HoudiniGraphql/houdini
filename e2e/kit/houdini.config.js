@@ -8,7 +8,7 @@ const config = {
   acceptImperativeInstability: true,
   // logLevel: 'Full',
   persistedQueries: {
-    // enabled: true
+    enabled: true
   },
   scalars: {
     DateTime: {

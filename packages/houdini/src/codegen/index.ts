@@ -69,7 +69,7 @@ export async function runPipeline(config: Config, docs: Document[]) {
 		)
 
 	// Let's log that we start... And if there is 0 docs, it will be written at the end.
-	if (!config.pluginMode) {
+	if (!config.pluginMode && process.env.HOUDINI_TEST !== 'true') {
 		console.log('🎩 Generating runtime...')
 	}
 

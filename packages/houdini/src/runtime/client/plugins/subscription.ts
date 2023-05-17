@@ -58,7 +58,14 @@ export function subscription(factory: SubscriptionHandler) {
 				clearSubscription = client.subscribe(
 					{
 						operationName: ctx.name,
-						query: ctx.text, // TODO how to manage in pesisted?
+						query: ctx.text,
+
+						// Add the hash if we have no text (that meams we're using persisted queries)
+						...(ctx.text === '' && {
+							extensions: {
+								persistedQuery: ctx.hash,
+							},
+						}),
 						variables: marshalVariables(ctx),
 					},
 					{
@@ -102,7 +109,12 @@ export type SubscriptionHandler = (ctx: ClientPluginContext) => SubscriptionClie
 
 export type SubscriptionClient = {
 	subscribe: (
-		payload: { operationName: string; query: string; variables?: {} },
+		payload: {
+			operationName?: string
+			query: string
+			variables?: Record<string, unknown> | null
+			extensions?: Record<'persistedQuery', string> | Record<string, unknown> | null
+		},
 		handlers: {
 			next: (payload: { data?: {} | null; errors?: readonly { message: string }[] }) => void
 			error: (data: {}) => void

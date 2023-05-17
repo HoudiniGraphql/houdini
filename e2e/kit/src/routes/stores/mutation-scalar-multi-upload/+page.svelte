@@ -6,10 +6,11 @@
       type: 'text/plain'
     });
 
-    await GQL_multipleUpload.mutate(
-      { files: [file, file] },
-      { metadata: { allowNonPersistedQuery: true } }
-    );
+    // await GQL_multipleUpload.mutate(
+    //   { files: [file, file] },
+    //   { metadata: { allowNonPersistedQuery: true } }
+    // );
+    await GQL_multipleUpload.mutate({ files: [file, file] });
   }
 </script>
 

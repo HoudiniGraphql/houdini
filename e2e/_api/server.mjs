@@ -12,15 +12,15 @@ import { resolvers, typeDefs } from './graphql.mjs'
 
 const plugins = []
 
-let persisted_queries_mode = 'clear'
-// let persisted_queries_mode = 'full'
+// let with_persisted_queries = false
+let with_persisted_queries = true
 
-if (persisted_queries_mode === 'full') {
+let store = {}
+if (with_persisted_queries) {
 	const operationsFilePath = path.join(
 		path.dirname(url.fileURLToPath(import.meta.url)),
 		'../kit/$houdini/persisted_queries.json'
 	)
-	let store = {}
 	try {
 		store = JSON.parse(fs.readFileSync(operationsFilePath, 'utf-8'))
 		console.log(`✅ persisted queries loaded`)
@@ -37,9 +37,9 @@ if (persisted_queries_mode === 'full') {
 			extractPersistedOperationId(params) {
 				return params.doc_id
 			},
-			allowArbitraryOperations: (request) => {
-				request.headers.get('x-allow-arbitrary-operations') === 'true'
-			},
+			// allowArbitraryOperations: (request) => {
+			// 	request.headers.get('x-allow-arbitrary-operations') === 'true'
+			// },
 		})
 	)
 }
@@ -91,6 +91,15 @@ mutation AddUser {
 			execute: (args) => args.rootValue.execute(args),
 			subscribe: (args) => args.rootValue.subscribe(args),
 			onSubscribe: async (ctx, msg) => {
+				// if it's a persisted query, use the stored document instead
+				if (with_persisted_queries) {
+					msg.payload.query = store[msg.payload.extensions.persistedQuery]
+					msg.payload.operationName = msg.payload.query
+						.split(`{`)[0]
+						.replace('subscription', '')
+						.trim()
+				}
+
 				const { schema, execute, subscribe, contextFactory, parse, validate } =
 					yogaApp.getEnveloped({
 						...ctx,

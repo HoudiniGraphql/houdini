@@ -45,12 +45,12 @@ export const handlePersistedQueries = (options: PersistedQueriesOptions): Handle
   return async ({ event, resolve }) => {
     if (event.url.pathname === localUrl) {
       // bypass the handler if the request is allowed to be arbitrary
-      if (event.request.headers.get('x-allow-arbitrary-operations') === 'true') {
-        return event.fetch(new Request(options.endpointUrl, event.request)).catch((err) => {
-          console.log('handlePersistedQueries ERROR', err);
-          throw err;
-        });
-      }
+      // if (event.request.headers.get('x-allow-arbitrary-operations') === 'true') {
+      //   return event.fetch(new Request(options.endpointUrl, event.request)).catch((err) => {
+      //     console.log('handlePersistedQueries ERROR', err);
+      //     throw err;
+      //   });
+      // }
 
       // get the hash data
       const bodyJson = await event.request.json();
