@@ -2,8 +2,7 @@ import { setSession } from '$houdini';
 import type { Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 
-// JYC TODO: move the Houdini
-import { handlePersistedQueries } from './hooks/handlePersistedQueries';
+// import { handlePersistedQueries } from 'houdini-svelte/hooks';
 
 const handleTests: Handle = async ({ event, resolve }) => {
   // set the session information for this event
@@ -14,9 +13,9 @@ const handleTests: Handle = async ({ event, resolve }) => {
 };
 
 export const handle = sequence(
-  handleTests,
+  handleTests
   // Proxy requests through kit
-  handlePersistedQueries({
-    endpointUrl: 'http://localhost:4000/graphql'
-  })
+  // handlePersistedQueries({
+  //   endpointUrl: 'http://localhost:4000/graphql'
+  // })
 );

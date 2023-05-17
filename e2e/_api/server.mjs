@@ -16,19 +16,25 @@ const plugins = []
 let with_persisted_queries = true
 
 let store = {}
-if (with_persisted_queries) {
+
+// Let's load the persisted queries file directly, in case subscription want to use it.
+try {
 	const operationsFilePath = path.join(
 		path.dirname(url.fileURLToPath(import.meta.url)),
 		'../kit/$houdini/persisted_queries.json'
 	)
-	try {
-		store = JSON.parse(fs.readFileSync(operationsFilePath, 'utf-8'))
-		console.log(`✅ persisted queries loaded`)
-	} catch (error) {
+	store = JSON.parse(fs.readFileSync(operationsFilePath, 'utf-8'))
+} catch (error) {}
+
+if (with_persisted_queries) {
+	if (Object.keys(store).length === 0) {
 		console.log(
 			`❌ No persisted queries file "${operationsFilePath}" found (need to start frontend first)`
 		)
+	} else {
+		console.log(`✅ persisted queries loaded`)
 	}
+
 	plugins.push(
 		usePersistedOperations({
 			getPersistedOperation(hash) {
@@ -89,7 +95,7 @@ mutation AddUser {
 			subscribe: (args) => args.rootValue.subscribe(args),
 			onSubscribe: async (ctx, msg) => {
 				// if it's a persisted query, use the stored document instead
-				if (with_persisted_queries) {
+				if (msg.payload.query === '') {
 					msg.payload.query = store[msg.payload.extensions.persistedQuery]
 					msg.payload.operationName = msg.payload.query
 						.split(`{`)[0]
