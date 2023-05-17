@@ -14,12 +14,11 @@ const logMetadata: ClientPlugin = () => ({
   }
 });
 
+// TODO => DOC :)
 // Persisted Queries (3 Modes)
 // 1/ Nothing
 // 2/ Endpoint (houdini_config & server)
 // 3/ Proxied (houdini_config & url & handler) => No Subscription!
-
-// TODO: rmv x-allow-arbitrary-operations & allowNonPersistedQuery
 
 // Export the Houdini client
 export default new HoudiniClient({
@@ -36,7 +35,6 @@ export default new HoudiniClient({
     return {
       headers: {
         Authorization: `Bearer ${session.user.token}`
-        // ...(metadata?.allowNonPersistedQuery && { 'x-allow-arbitrary-operations': 'true' })
       }
     };
   },

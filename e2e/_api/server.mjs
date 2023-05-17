@@ -37,9 +37,6 @@ if (with_persisted_queries) {
 			extractPersistedOperationId(params) {
 				return params.doc_id
 			},
-			// allowArbitraryOperations: (request) => {
-			// 	request.headers.get('x-allow-arbitrary-operations') === 'true'
-			// },
 		})
 	)
 }

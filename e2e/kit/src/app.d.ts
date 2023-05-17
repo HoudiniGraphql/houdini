@@ -15,6 +15,5 @@ declare namespace App {
 
   interface Metadata {
     logResult?: boolean | null;
-    // allowNonPersistedQuery?: boolean | null;
   }
 }
