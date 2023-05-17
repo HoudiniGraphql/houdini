@@ -63,6 +63,17 @@ export const fetch = (target?: RequestHandler | string): ClientPlugin => {
 	}
 }
 
+const buildBody = (fetchParams: FetchParams) => {
+	// This will take care about formating the body with or without persisted query
+	return JSON.stringify({
+		...(fetchParams.text && { operationName: fetchParams.name }),
+		...(fetchParams.text && { query: fetchParams.text }),
+		// if we have no text, we want to use persisted query
+		...(fetchParams.text === '' && { doc_id: fetchParams.hash }),
+		variables: fetchParams.variables,
+	})
+}
+
 const defaultFetch = (
 	url: string,
 	params?: Required<ClientPluginContext>['fetchParams']
@@ -74,19 +85,11 @@ const defaultFetch = (
 		)
 	}
 
-	return async ({ fetch, name, text, variables, hash }) => {
-		// if we have no text, we want to use persisted query
-		const defaultBody = JSON.stringify({
-			...(text && { operationName: name }),
-			...(text && { query: text }),
-			...(text === '' && { doc_id: hash }),
-			variables,
-		})
-
+	return async ({ fetch, ...fetchParams }) => {
 		// regular fetch (Server & Client)
 		const result = await fetch(url, {
 			method: 'POST',
-			body: defaultBody,
+			body: buildBody(fetchParams),
 			...params,
 			headers: {
 				Accept: 'application/graphql+json, application/json',
@@ -135,8 +138,7 @@ function handleMultipart(
 	args: RequestInit | undefined
 ): RequestInit | undefined {
 	// process any files that could be included
-	const { clone, files } = extractFiles({
-		query: params.text,
+	const { files } = extractFiles({
 		variables: params.variables,
 	})
 
@@ -158,7 +160,7 @@ function handleMultipart(
 		// See the GraphQL multipart request spec:
 		// https://github.com/jaydenseric/graphql-multipart-request-spec
 		const form = new FormData()
-		const operationJSON = JSON.stringify(clone)
+		const operationJSON = buildBody(params)
 
 		form.set('operations', operationJSON)
 
