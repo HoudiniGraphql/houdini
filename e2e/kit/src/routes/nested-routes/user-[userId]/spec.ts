@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { routes } from '../../../lib/utils/routes.js';
-import { expect_to_be, expect_n_gql, goto, navSelector } from '../../../lib/utils/testsHelper.js';
+import { expect_n_gql, goto, navSelector } from '../../../lib/utils/testsHelper.js';
 
 test.describe('+Layout.gql', () => {
   test('No GraphQL request & response happen (SSR)', async ({ page }) => {
