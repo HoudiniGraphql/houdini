@@ -3,7 +3,7 @@ import * as graphql from 'graphql'
 
 // internals
 import type { Config, Document } from '../../../lib'
-import { hashDocument, fs } from '../../../lib'
+import { fs } from '../../../lib'
 
 // the persist output generator is responsible for generating a queryMap.json
 // to the provided path with the `hash` as key and the raw query as value.
@@ -43,7 +43,9 @@ export default async function persistOutputGenerator(config: Config, docs: Docum
 		// if there are operations in the document
 		if (operations.length > 0 && operations[0].kind === 'OperationDefinition') {
 			// use the hash in the artifact (in case plugins customized the hash logic)
-			acc[artifact?.hash!] = rawString
+			if (artifact) {
+				acc[artifact.hash] = rawString
+			}
 		}
 
 		return acc
