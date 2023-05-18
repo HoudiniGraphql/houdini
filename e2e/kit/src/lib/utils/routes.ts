@@ -1,8 +1,6 @@
 export const routes = {
   Home: '/',
   GraphQL: 'http://localhost:4000/graphql',
-  // GraphQL: 'http://localhost:3017/api/houdini/graphql', // (DEV)
-  // GraphQL: 'http://localhost:3007/api/houdini/graphql', // (PREVIEW)
 
   // edge cases
   nested_routes: '/nested-routes',

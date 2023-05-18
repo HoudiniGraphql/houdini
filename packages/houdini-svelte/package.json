@@ -44,11 +44,6 @@
     ],
     "exports": {
         "./package.json": "./package.json",
-        "./hooks": {
-            "types": "./build/hooks/index.d.ts",
-            "import": "./build/hooks-esm/index.js",
-            "require": "./build/hooks-cjs/index.js"
-        },
         ".": {
             "types": "./build/plugin/index.d.ts",
             "import": "./build/plugin-esm/index.js",
@@ -67,9 +62,6 @@
     },
     "typesVersions": {
         "*": {
-            "hooks": [
-                "build/hooks/index.d.ts"
-            ],
             "preprocess": [
                 "build/preprocess/index.d.ts"
             ],

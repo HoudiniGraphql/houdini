@@ -2,7 +2,7 @@ import { setSession } from '$houdini';
 import type { Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 
-// import { handlePersistedQueries } from 'houdini-svelte/hooks';
+
 
 const handleTests: Handle = async ({ event, resolve }) => {
   // set the session information for this event
@@ -14,8 +14,4 @@ const handleTests: Handle = async ({ event, resolve }) => {
 
 export const handle = sequence(
   handleTests
-  // Proxy requests through kit
-  // handlePersistedQueries({
-  //   endpointUrl: 'http://localhost:4000/graphql'
-  // })
 );

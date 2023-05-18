@@ -276,7 +276,7 @@ export default function artifactGenerator(stats: {
 					let artifact: DocumentArtifact = {
 						name,
 						kind: docKind,
-						hash: 'NOT_YET',
+						hash: 'NOT_YET', // it will be set just after on purpose.
 						refetch: doc.refetch,
 						raw: rawString,
 						rootType,

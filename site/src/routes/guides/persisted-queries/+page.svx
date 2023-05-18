@@ -12,11 +12,31 @@ your motivation, the approach involves associating a known string with a particu
 and sending that string to the server instead of the full query body. To support this,
 houdini provides a query's hash to the fetch function for you to use.
 
-## Fixed List
+## Fully managed way
 
-The simplest solution for persisted queries it to generate a fixed mapping of hash to
-query for every document that your client will send. If that is good enough for your situation,
-pass the `--output` flag to the `generate` command and provide a path to save the map:
+The easiest way to use persisted queries is to let houdini manage most of the things for you.
+First, you will to `enable` by config the usage of persisted queries:
+```javascript:title=houdini.config.js
+export default {
+    // ...
+    persistedQueries: {
+        enabled: true
+    },
+}
+```
+_If you want to know all options, see the [config section](/api/config#persisted-queries)_
+
+That's it!
+
+You want to know more? Ok, let's go deeper. It will:
+1. Generate a file in `./$houini/persisted_queries.json` with all 
+the hashes of your queries. _(you will need this file on your server to match hashes & queries)_
+2. Tune houdini fetch to use hashes instead of the query text.
+
+## Do things manually
+
+You can generate the file manually by running the `generate` command with the `--output` flag 
+and provide a path to save the map:
 
 ```bash
 npx houdini generate --output ./queries.json
