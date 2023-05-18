@@ -2808,7 +2808,7 @@ describe('typescript', function () {
 			    "partial": false
 			};
 
-			"HoudiniHash=4434920e89b1bfe99299f1c866e3cdc8ef90d336e7e0f2127ab281d0795ebc1f";
+			"HoudiniHash=af4a3a796a91fef5a4625b3b886bedeeef1e1698a1aa9a22bdbf2d65c9c0d4f5";
 		`)
 	})
 

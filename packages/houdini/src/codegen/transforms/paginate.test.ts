@@ -684,7 +684,7 @@ test('embeds node pagination query as a separate document', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=21597bdb8e302eee972c328a43fcf8e2f95bfbefa428ee4ecfe1cb06e2b23a36";
+		"HoudiniHash=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 	`)
 })
 
@@ -955,7 +955,7 @@ test('embeds custom pagination query as a separate document', async function () 
 		    "partial": false
 		};
 
-		"HoudiniHash=8c2b9403592ff399ab2b2033a5244a7f3ff8f887edd6fd514b8ca67aa97b038a";
+		"HoudiniHash=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 	`)
 })
 
@@ -1739,7 +1739,7 @@ test('generated query has same refetch spec', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=cbb05d7edec775450f7062e8daa0637bd08190d89de5ff600ec2e091cbe02952";
+		"HoudiniHash=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 	`)
 })
 
@@ -1995,6 +1995,6 @@ test('default defaultPaginateMode to SinglePage', async function () {
 		    }
 		};
 
-		"HoudiniHash=b20e0ad5f66a7bc7454144f370b46c9000dbf9b73df620c693ca7a9bcc965842";
+		"HoudiniHash=c0276291ccf0e89ecf3e2c0fd68314703c62c8dca06915e602f931297be94c3c";
 	`)
 })

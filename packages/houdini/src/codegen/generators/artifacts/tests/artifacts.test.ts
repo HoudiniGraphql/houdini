@@ -65,7 +65,7 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=8e483259f3d69f416c01b6106c0440fa0f916abb4cadb75273f8226a1ff0a5e2";
+		"HoudiniHash=4e7afee5e8aa689ee7f58f61f60955769c29fe630b05a32ca2a5d8f61620afe3";
 	`)
 
 	expect(docs[1]).toMatchInlineSnapshot(`
@@ -108,7 +108,7 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		    "pluginData": {}
 		};
 
-		"HoudiniHash=ff694171ced9bd7edc84a4a4a4201dadea30c0cdb8a8734c940872a673111bc1";
+		"HoudiniHash=7af5be069af3b67c394042bdd7c12f46058ba9d372d38e67f5613fc3d0a2aaff";
 	`)
 })
 
@@ -189,7 +189,7 @@ test('selection includes fragments', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=890fc6dbeb79ac80cb60bef98a20cb51a59b209e3d015a48a027b3db4e6624bd";
+		"HoudiniHash=c8c8290bb733a727894c836300cd22e8ece993f2b7c2108998f1d63a595e6b5f";
 	`)
 
 	expect(selectionDocs[1]).toMatchInlineSnapshot(`
@@ -232,7 +232,7 @@ test('selection includes fragments', async function () {
 		    "pluginData": {}
 		};
 
-		"HoudiniHash=ff694171ced9bd7edc84a4a4a4201dadea30c0cdb8a8734c940872a673111bc1";
+		"HoudiniHash=7af5be069af3b67c394042bdd7c12f46058ba9d372d38e67f5613fc3d0a2aaff";
 	`)
 })
 
@@ -312,7 +312,7 @@ test('internal directives are scrubbed', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=9d58041683e24088d4bab3f04c2a319aa675013b1eedc19e3a5714743bbb20f1";
+		"HoudiniHash=44c6f321536709f2a75b34d7bf4a4db2387bed848fd2956e592a13817d1399ff";
 	`)
 })
 
@@ -407,7 +407,7 @@ test('variables only used by internal directives are scrubbed', async function (
 		    "partial": false
 		};
 
-		"HoudiniHash=9d58041683e24088d4bab3f04c2a319aa675013b1eedc19e3a5714743bbb20f1";
+		"HoudiniHash=718f5256e7eb831d556ed5b26e0afdccb6db8e63715b04f60314483808d3b697";
 	`)
 })
 
@@ -489,7 +489,7 @@ test('overlapping query and fragment selection', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=873d00120214b1dd16765e67c42314ec06468b8f3fa85812412147a5dc943367";
+		"HoudiniHash=234b7407fd0adcee65c73e0a206119449dee083c784bddff5bf4a9ef726a1dba";
 	`)
 })
 test('interface to interface inline fragment', async function () {
@@ -599,7 +599,7 @@ test('interface to interface inline fragment', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=1523b7370764395a57e1a2434ea2e40290ac99d80a27c92438f8f053c0055998";
+		"HoudiniHash=cdea6608b2807ec242d9a2deb5fbde0f907ab04a23b8f3f8bbf5ced2ec6c70c6";
 	`)
 })
 
@@ -849,7 +849,7 @@ test('paginate over unions', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=1d660603f2610ac59b38fd74f0b429f0c9c2cec3c64459cb222e7e26c7905e66";
+		"HoudiniHash=98c1fdc2506e4a951db5819b1c2a712c376e5190ec86b3cc3020babcbf667a63";
 	`)
 })
 
@@ -970,7 +970,7 @@ test('overlapping query and fragment nested selection', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=25298a9f5705b2f18c259a596d2c2b00003e9234712537af9b254589c6b36626";
+		"HoudiniHash=a113625cc6bf3d5421dc494d07095ea185f1f089c20ede8dfae7fd7e9c37ad4c";
 	`)
 })
 
@@ -1115,7 +1115,7 @@ test('selections with interfaces', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=8181fa3d03ae23a9e754dc7942f43979a196e69cb694d40e13edece1d5712d0e";
+		"HoudiniHash=09afcd76aca08a3f81221edfb55d165b5241ae8fae5fc1dd42f54f5dec35eb25";
 	`)
 })
 
@@ -1260,7 +1260,7 @@ test('selections with unions', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=6177321339bc293d1e89ab4aa31893cbfddce34bfd8a26af1a1878df17659ce4";
+		"HoudiniHash=f11d375eb2ec0b5373b2e717f97a1464c3c2ec470f9b17ad5693c1ff98c9c121";
 	`)
 })
 
@@ -1419,7 +1419,7 @@ test('selections with overlapping unions', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=b97290b311e5555f225e6ce7281b2904531e6b0194fb70083b617835bacc3a61";
+		"HoudiniHash=945820a74a8893f4e526f32809f73f5a1a8cd00e971f9f7ad8c628fa448d1013";
 	`)
 })
 
@@ -1586,7 +1586,7 @@ test('selections with unions of abstract types', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=0c20b2d8114b50a67eb9bd23410ce7d8811b50c402d95665ccd48e3682af4175";
+		"HoudiniHash=80fbad4ae54c0751df3f4036149ac742a7ea00f1a75e3dba813e002de8929902";
 	`)
 })
 
@@ -1774,7 +1774,7 @@ test('selections with concrete types matching multiple abstract types', async fu
 		    "partial": false
 		};
 
-		"HoudiniHash=9ff85816b8980faa4ce2ff9540f1eb290312e3272b03984422282845f7627895";
+		"HoudiniHash=290263aea02506fe45d2723cf759797c873acb2a577fc1073170f6257b88ad75";
 	`)
 })
 
@@ -1865,7 +1865,7 @@ describe('mutation artifacts', function () {
 			    "pluginData": {}
 			};
 
-			"HoudiniHash=38005b47351eb4e6e14e3c13a8d0d206dac09bf80d6fa3c103a060a3990edd37";
+			"HoudiniHash=2203fdd50e58f77227a36975144992028bedf3cb08264335f5b3af73913f0b2f";
 		`)
 	})
 
@@ -1970,7 +1970,7 @@ describe('mutation artifacts', function () {
 			    "pluginData": {}
 			};
 
-			"HoudiniHash=7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2";
+			"HoudiniHash=c2cee63cc2dfd5eabad47ed394b64c91f6e19378bbf018b80c6e3391c3a56e5b";
 		`)
 	})
 
@@ -2075,7 +2075,7 @@ describe('mutation artifacts', function () {
 			    "pluginData": {}
 			};
 
-			"HoudiniHash=7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2";
+			"HoudiniHash=90d93ca64a69bec0880925b8af471b0da1cf76964df0b6b6c3af30b6fd877217";
 		`)
 	})
 
@@ -2173,7 +2173,7 @@ describe('mutation artifacts', function () {
 			    "pluginData": {}
 			};
 
-			"HoudiniHash=9dc41329a7176f813b623958a68c2752d391151a4f3b1f9b8198f6c487e931a4";
+			"HoudiniHash=1687548d0889d73e5d143c8e295e0abe989939d22869a86b86d70488209d73d5";
 		`)
 	})
 
@@ -2278,7 +2278,7 @@ describe('mutation artifacts', function () {
 			    "pluginData": {}
 			};
 
-			"HoudiniHash=e01f8a23cc33c10c4ee3745c041ee97f428b3b4676a5d8d681124f75b09306da";
+			"HoudiniHash=18243e748112d965c35ee2f2b0e29d430a9c472e30c96f253449296ae3fe636a";
 		`)
 	})
 
@@ -2386,7 +2386,7 @@ describe('mutation artifacts', function () {
 			    "pluginData": {}
 			};
 
-			"HoudiniHash=7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2";
+			"HoudiniHash=c2cee63cc2dfd5eabad47ed394b64c91f6e19378bbf018b80c6e3391c3a56e5b";
 		`)
 	})
 
@@ -2493,7 +2493,7 @@ describe('mutation artifacts', function () {
 			    "pluginData": {}
 			};
 
-			"HoudiniHash=7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2";
+			"HoudiniHash=c2cee63cc2dfd5eabad47ed394b64c91f6e19378bbf018b80c6e3391c3a56e5b";
 		`)
 	})
 
@@ -2598,7 +2598,7 @@ describe('mutation artifacts', function () {
 			    "pluginData": {}
 			};
 
-			"HoudiniHash=e01f8a23cc33c10c4ee3745c041ee97f428b3b4676a5d8d681124f75b09306da";
+			"HoudiniHash=cc9a6fb32e9b6a79e2a3c46885d07b11078f84dcb8c52555fb96e3ff6f87f8b2";
 		`)
 	})
 
@@ -2696,7 +2696,7 @@ describe('mutation artifacts', function () {
 			    "pluginData": {}
 			};
 
-			"HoudiniHash=9dc41329a7176f813b623958a68c2752d391151a4f3b1f9b8198f6c487e931a4";
+			"HoudiniHash=a33810e6e3850879918dc77009577f72a2cab24664911bb0a1e57b47c6b7d104";
 		`)
 	})
 
@@ -2774,7 +2774,7 @@ describe('mutation artifacts', function () {
 			    "pluginData": {}
 			};
 
-			"HoudiniHash=b9e1e926be309c06c868dc2472c082b6829f93ae55e000317a1066378590a85d";
+			"HoudiniHash=02916c12509a82eb42926c996cc383fde93bc550a72887cd6cf259a1164543da";
 		`)
 	})
 
@@ -2867,7 +2867,7 @@ describe('mutation artifacts', function () {
 			    "pluginData": {}
 			};
 
-			"HoudiniHash=b9e1e926be309c06c868dc2472c082b6829f93ae55e000317a1066378590a85d";
+			"HoudiniHash=da85d1acef7d12c0a3185f625a7f77a22a4d2ec90fc91d1a919aefd9209db113";
 		`)
 	})
 
@@ -2977,7 +2977,7 @@ describe('mutation artifacts', function () {
 			    "pluginData": {}
 			};
 
-			"HoudiniHash=7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2";
+			"HoudiniHash=3bea2bec5d5cac795d941051dbacf5941a18716579f1f63aefb7b898372252d5";
 		`)
 	})
 
@@ -3087,7 +3087,7 @@ describe('mutation artifacts', function () {
 			    "pluginData": {}
 			};
 
-			"HoudiniHash=7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2";
+			"HoudiniHash=db83e4480bab1a728042e1da417a3bb1c3acdbe52658847b508d00cf88aa7065";
 		`)
 	})
 
@@ -3197,7 +3197,7 @@ describe('mutation artifacts', function () {
 			    "pluginData": {}
 			};
 
-			"HoudiniHash=7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2";
+			"HoudiniHash=269dd0acb58d7a44b0df6d6a53ed1beaeb5aca5cc216d8011b29425d2eed6584";
 		`)
 	})
 
@@ -3308,7 +3308,7 @@ describe('mutation artifacts', function () {
 			    "pluginData": {}
 			};
 
-			"HoudiniHash=7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2";
+			"HoudiniHash=5bbd672c18c5febf61cf8335145d6f837b1e711ec3f1a1d5b81241767444c8ed";
 		`)
 	})
 
@@ -3419,7 +3419,7 @@ describe('mutation artifacts', function () {
 			    "pluginData": {}
 			};
 
-			"HoudiniHash=7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2";
+			"HoudiniHash=8b57b4d6231aeadc73661b6096f815d1f59fa9bb44e62b363d72c7dfcd78048f";
 		`)
 	})
 
@@ -3530,7 +3530,7 @@ describe('mutation artifacts', function () {
 			    "pluginData": {}
 			};
 
-			"HoudiniHash=7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2";
+			"HoudiniHash=c6990945263aa9f52111e9cc0d89b6ccad2a258ca5356f6cf23a7e9424354aa7";
 		`)
 	})
 
@@ -3641,7 +3641,7 @@ describe('mutation artifacts', function () {
 			    "pluginData": {}
 			};
 
-			"HoudiniHash=7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2";
+			"HoudiniHash=d7fca173168e1a7c842115c468d62ff9d347724c0a8fa20a3408771eef5c7cf9";
 		`)
 	})
 
@@ -3752,7 +3752,7 @@ describe('mutation artifacts', function () {
 			    "pluginData": {}
 			};
 
-			"HoudiniHash=7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2";
+			"HoudiniHash=cc5ca165e8418fe5ac352c3067402d6aca3c1e76c25efdad5d076dbf294e2554";
 		`)
 	})
 
@@ -3883,7 +3883,7 @@ describe('mutation artifacts', function () {
 			    "partial": false
 			};
 
-			"HoudiniHash=d773bead4120baa620dc05347fba277faaa5bb555e10943507a393eaa3399c52";
+			"HoudiniHash=f0b0082b38e66bc9fcefcd11741b874cacb74a1a939221c1618b499df139b356";
 		`)
 	})
 
@@ -3994,7 +3994,7 @@ describe('mutation artifacts', function () {
 			    "pluginData": {}
 			};
 
-			"HoudiniHash=7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2";
+			"HoudiniHash=a29794de026215f4e9266358741cf0ab3876640e1230e3dc190907d5cc7c1c37";
 		`)
 	})
 
@@ -4096,7 +4096,7 @@ describe('mutation artifacts', function () {
 			    "partial": false
 			};
 
-			"HoudiniHash=2997353b3d1f04e02b9d211bb4f4069b63f8536b7f1eb686fc74fd8b3dab8dbd";
+			"HoudiniHash=85351c80364eb41f7eae70628dd67dedfc2057a39ef3967c9e9b739e568b0f42";
 		`)
 	})
 
@@ -4336,7 +4336,7 @@ describe('mutation artifacts', function () {
 			    "partial": false
 			};
 
-			"HoudiniHash=6fe0aeaa708161553cd04645834b38c4ce625fce10c46056efcff9a97988d358";
+			"HoudiniHash=9aec53bb0325a811ba8adfc41b04524f0ed859aa1b0f9d5e04d4bc02f639e52f";
 		`)
 	})
 
@@ -4581,7 +4581,7 @@ describe('mutation artifacts', function () {
 			    "partial": false
 			};
 
-			"HoudiniHash=6fe0aeaa708161553cd04645834b38c4ce625fce10c46056efcff9a97988d358";
+			"HoudiniHash=930593f99a19ddef0943d66ce3c4539f18938a25410028bfd4cf68554552f1d0";
 		`)
 	})
 
@@ -4703,7 +4703,7 @@ describe('mutation artifacts', function () {
 			    "partial": false
 			};
 
-			"HoudiniHash=d773bead4120baa620dc05347fba277faaa5bb555e10943507a393eaa3399c52";
+			"HoudiniHash=f0b0082b38e66bc9fcefcd11741b874cacb74a1a939221c1618b499df139b356";
 		`)
 	})
 
@@ -4826,7 +4826,7 @@ describe('mutation artifacts', function () {
 			    "partial": false
 			};
 
-			"HoudiniHash=d773bead4120baa620dc05347fba277faaa5bb555e10943507a393eaa3399c52";
+			"HoudiniHash=f0b0082b38e66bc9fcefcd11741b874cacb74a1a939221c1618b499df139b356";
 		`)
 	})
 })
@@ -4908,7 +4908,7 @@ test('custom scalar shows up in artifact', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=b8314df1f7d924f76e6dfe6e7e3c8efd593db931c67c892311e97a9ec1d429b4";
+		"HoudiniHash=5eb3e999f486aba5c66170642f3d99537b7c17d793a9d8553533e3d949860213";
 	`)
 })
 
@@ -5046,7 +5046,7 @@ test('operation inputs', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=f39d9c24c97c9c3cdcd916272e7ffb9d79cb4ad08ec294c829d647d4238c7e6b";
+		"HoudiniHash=88c4ba560cbbe391ebfa655630a896a1a9933408dd8d20be26cf6685a2089a5a";
 	`)
 })
 
@@ -5129,7 +5129,7 @@ describe('subscription artifacts', function () {
 			    "pluginData": {}
 			};
 
-			"HoudiniHash=755fb65bebc83835db68921b7e193809246fb6f9ee2e37cc66d7314b91a501e7";
+			"HoudiniHash=df5bc6be33a8a16e9353ff30c07e45d5e54531ab53157208255fdfec52c7b168";
 		`)
 	})
 })
@@ -5197,7 +5197,7 @@ test('some artifactData added to artifact specific to plugins', async function (
 		    "partial": false
 		};
 
-		"HoudiniHash=8e483259f3d69f416c01b6106c0440fa0f916abb4cadb75273f8226a1ff0a5e2";
+		"HoudiniHash=4e7afee5e8aa689ee7f58f61f60955769c29fe630b05a32ca2a5d8f61620afe3";
 	`)
 })
 
@@ -5345,7 +5345,7 @@ test('nested recursive fragments', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=bef32f9431c60063291fea8375de73b98c703421a89721d8b03a9e5e0ae373bd";
+		"HoudiniHash=5bffb5d88b4646c49637e5f92f601ee632823009b7bf5fdfafb1f107b5fc35cd";
 	`)
 })
 
@@ -5483,7 +5483,7 @@ test('leave @include and @skip alone', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=ece1546c435cde03fdfb659b202fba2393b0b9828e8efbbe24f803a0707f3e02";
+		"HoudiniHash=45c8890ba76a34c30028cbaa75e8ba78ca8884a3651a5c1f77d103969eff5855";
 	`)
 })
 
@@ -5600,7 +5600,7 @@ test('fragment references are embedded in artifact', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=d5c8c7b13dddb230796354b42cd0a86ac0beed1d3a40e8b9288545908f96370d";
+		"HoudiniHash=3756d5c29fa6c05ef3636a9ccaf165e6f7800cc5d91d7faf40f51c8bb1a73f57";
 	`)
 })
 
@@ -5726,7 +5726,7 @@ test('fragment variables are embedded in artifact', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=4b37690e134a34ea1c717ee69ed60772d979a81120bfbed99b20a68e9c8ea738";
+		"HoudiniHash=444c42cc7214c06f0976b8a252e4f1c1fcba074d1afc1543acf0fc88f56e4f31";
 	`)
 })
 
@@ -5805,7 +5805,7 @@ test('fragment nested in root', async function () {
 		    "pluginData": {}
 		};
 
-		"HoudiniHash=15225d2e5cba866e1a588cd399a03d5b2124156ac7003d3510544f22b7b9262c";
+		"HoudiniHash=05ec5090d31f77c3f2bdcbd26aff116588f63d4b3789ae752759dd172974a628";
 	`)
 })
 
@@ -6030,7 +6030,7 @@ test('client nullability', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=af247d6de9dde7a1cab76049b4590fcf075346eec4bc7fc4a8937f2d71e4aade";
+		"HoudiniHash=23216f6c7d045549667f3a1d5b156fe3924abc3cd1bbce9cfdcbc3394da6065c";
 	`)
 })
 
@@ -6343,7 +6343,7 @@ test('nested abstract fragment on connection', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=2f4654d4b23645ef3f39803cee2f770aea08e3b1716b5d4fa5efcbdf98a7ad08";
+		"HoudiniHash=5ffbbc9f49c89384d57cfdc0eda0fe097d251b216c6958707226dfa1090c454f";
 	`)
 })
 
@@ -6521,7 +6521,7 @@ test('nested abstract fragments', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=f8b2873db25ee257e57d33dce2ad02ea97ff20d623594812593a9fc75fe54527";
+		"HoudiniHash=cf84a5195b5f72f4db2238369ff8189487b82b4703d4f4c32a8e86a3bcc6260b";
 	`)
 
 	expect(docs[1]).toMatchInlineSnapshot(`
@@ -6637,6 +6637,6 @@ test('nested abstract fragments', async function () {
 		    "pluginData": {}
 		};
 
-		"HoudiniHash=80b0907b53d8a2fc39aa5fb018a75c8fc8d647ab741e3f4c4eea6a15ac5239cd";
+		"HoudiniHash=72091e952cf94a18193cee6cda1caf256f6439e4e202b319d876e9b3365ac319";
 	`)
 })

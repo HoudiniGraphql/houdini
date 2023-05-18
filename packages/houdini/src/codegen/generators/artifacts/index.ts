@@ -1,13 +1,15 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import type {
+import {
 	Config,
 	Document,
 	DocumentArtifact,
 	CachePolicies,
 	SubscriptionSelection,
 	QueryArtifact,
+	hashOriginal,
+	hashRaw,
 } from '../../../lib'
 import {
 	printJS,
@@ -15,7 +17,6 @@ import {
 	cleanupFiles,
 	fs,
 	getRootType,
-	hashDocument,
 	HoudiniError,
 	parentTypeFromAncestors,
 } from '../../../lib'
@@ -112,7 +113,7 @@ export default function artifactGenerator(stats: {
 		const listOfArtifacts: string[] = []
 
 		// figure out the function we'll use to hash
-		const hash = config.plugins?.find((plugin) => plugin.hash)?.hash ?? hashDocument
+		const hashPluginBaseRaw = config.plugins?.find((plugin) => plugin.hash)?.hash ?? hashRaw
 
 		// we have everything we need to generate the artifacts
 		await Promise.all(
@@ -308,7 +309,7 @@ export default function artifactGenerator(stats: {
 					}
 					// generate a hash of the document that we can use to detect changes
 					// we write the hash only at this stage, because plugins can take adventage of artifacts to write the hash.
-					const hash_value = hash({ config, document: { ...doc, artifact } })
+					const hash_value = hashPluginBaseRaw({ config, document: { ...doc, artifact } })
 					artifact.hash = hash_value
 
 					const persistedQuery = await config.isPersistedQueriesEnable()
@@ -420,7 +421,9 @@ export default function artifactGenerator(stats: {
 					// the artifact should be the default export of the file
 					const file = AST.program([
 						moduleExport(config, 'default', serializeValue(artifact)),
-						AST.expressionStatement(AST.stringLiteral(`HoudiniHash=${hash_value}`)),
+						AST.expressionStatement(
+							AST.stringLiteral(`HoudiniHash=${hashOriginal({ document: doc })}`)
+						),
 					])
 
 					const artifactPath = config.artifactPath(document)

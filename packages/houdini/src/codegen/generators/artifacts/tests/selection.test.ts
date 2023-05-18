@@ -288,7 +288,7 @@ test('fragments in lists', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=91b23604b402b84e2d83099ca8afc0953ce7e9abdad65e7ea3fb20ba5893e4ce";
+		"HoudiniHash=6c2ec570ec75b009aae97355f5b36acae92039a0bf1750fc62fe144f0898f403";
 	`)
 })
 
@@ -513,6 +513,6 @@ test('concrete selection applies mask over abstract selection', async function (
 		    "partial": false
 		};
 
-		"HoudiniHash=5e86edd84280f328c6e368f75bb1f19cfd2eff5876bc240cf98cca13daae05ad";
+		"HoudiniHash=89c94f9d620d10fccfc1015a29590d05b9fb2adee3a0b895f00c14b62d279ce9";
 	`)
 })
