@@ -14,7 +14,6 @@ const logMetadata: ClientPlugin = () => ({
   }
 });
 
-
 // Export the Houdini client
 export default new HoudiniClient({
   url: 'http://localhost:4000/graphql',
@@ -42,6 +41,6 @@ export default new HoudiniClient({
       createClient({
         url: 'ws://localhost:4000/graphql'
       })
-    ),
+    )
   ]
 });
