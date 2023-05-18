@@ -1,24 +1,24 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import {
+import type {
+	CachePolicies,
 	Config,
 	Document,
 	DocumentArtifact,
-	CachePolicies,
-	SubscriptionSelection,
 	QueryArtifact,
-	hashOriginal,
-	hashRaw,
+	SubscriptionSelection,
 } from '../../../lib'
 import {
-	printJS,
 	ArtifactKind,
+	HoudiniError,
 	cleanupFiles,
 	fs,
 	getRootType,
-	HoudiniError,
+	hashOriginal,
+	hashRaw,
 	parentTypeFromAncestors,
+	printJS,
 } from '../../../lib'
 import { flattenSelections, moduleExport } from '../../utils'
 import { fragmentArgumentsDefinitions } from '.././../transforms/fragmentVariables'
