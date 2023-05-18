@@ -12,8 +12,8 @@ import { resolvers, typeDefs } from './graphql.mjs'
 
 const plugins = []
 
-// let with_persisted_queries = false
-let with_persisted_queries = true
+let with_persisted_queries = false
+// let with_persisted_queries = true
 
 let store = {}
 
