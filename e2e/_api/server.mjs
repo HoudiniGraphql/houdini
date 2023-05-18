@@ -97,10 +97,6 @@ mutation AddUser {
 				// if it's a persisted query, use the stored document instead
 				if (msg.payload.query === '') {
 					msg.payload.query = store[msg.payload.extensions.persistedQuery]
-					msg.payload.operationName = msg.payload.query
-						.split(`{`)[0]
-						.replace('subscription', '')
-						.trim()
 				}
 
 				const { schema, execute, subscribe, contextFactory, parse, validate } =
