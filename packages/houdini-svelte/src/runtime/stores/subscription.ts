@@ -7,6 +7,7 @@ import { CompiledSubscriptionKind } from '$houdini/runtime/lib/types'
 import type { GraphQLObject } from 'houdini'
 import { derived, writable, type Subscriber, type Writable } from 'svelte/store'
 
+import { isBrowser } from '../adapter'
 import { initClient } from '../client'
 import { getSession } from '../session'
 import { BaseStore } from './base'
@@ -24,6 +25,9 @@ export class SubscriptionStore<
 	}
 
 	async listen(variables?: _Input, args?: { metadata: App.Metadata }) {
+		if (!isBrowser) {
+			return
+		}
 		this.fetchingStore.set(true)
 		await initClient()
 		this.observer.send({
