@@ -14,16 +14,10 @@ const logMetadata: ClientPlugin = () => ({
   }
 });
 
-// TODO => DOC :)
-// Persisted Queries (3 Modes)
-// 1/ Nothing
-// 2/ Endpoint (houdini_config & server)
-// 3/ Proxied (houdini_config & server & url & handler & lib/utils/routes GraphQL path) => No Subscription!
 
 // Export the Houdini client
 export default new HoudiniClient({
   url: 'http://localhost:4000/graphql',
-  // url: '/api/houdini/graphql',
   fetchParams({ session }) {
     // if we're ever unauthenticated, a request was sent that didn't thread
     // the session through so let's error
@@ -48,6 +42,6 @@ export default new HoudiniClient({
       createClient({
         url: 'ws://localhost:4000/graphql'
       })
-    )
+    ),
   ]
 });

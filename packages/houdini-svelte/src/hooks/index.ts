@@ -1,1 +1,0 @@
-export { handlePersistedQueries } from './handlePersistedQueries'
