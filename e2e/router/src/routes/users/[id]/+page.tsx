@@ -1,7 +1,9 @@
-import { PendingValue, isPending } from '$houdini'
+import { isPending } from '$houdini'
 import React from 'react'
 
-export default function ({ UserInfo }) {
+import type { PageProps } from './$types'
+
+export default function ({ UserInfo }: PageProps) {
 	const { user } = UserInfo
 
 	// if we are loading the user render the loading state

@@ -21,6 +21,20 @@ import { render_server_path } from './conventions'
 // @@houdini/artifact/[name] - An entry for loading an artifact and notifying the artifact cache
 
 export default {
+	// we want to set up some vite aliases by default
+	config(config) {
+		return {
+			resolve: {
+				alias: {
+					$houdini: config.rootDir,
+					'$houdini/*': path.join(config.rootDir, '*'),
+					'~': path.join(config.projectRoot, 'src'),
+					'~/*': path.join(config.projectRoot, 'src', '*'),
+				},
+			},
+		}
+	},
+
 	resolveId(id) {
 		// we only care about the virtual modules that generate
 		if (!id.includes('@@houdini')) {
@@ -30,6 +44,7 @@ export default {
 		// let them all through as is but strip anything that comes before the marker
 		return id.substring(id.indexOf('@@houdini'))
 	},
+
 	async load(id, { config }) {
 		// we only care about the virtual modules that generate
 		if (!id.startsWith('@@houdini')) {

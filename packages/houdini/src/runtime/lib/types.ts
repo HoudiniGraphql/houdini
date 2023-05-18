@@ -380,6 +380,11 @@ interface VariableNode {
 	readonly kind: 'Variable'
 	readonly name: NameNode
 }
+
 export const PendingValue = Symbol('houdini_loading')
 
 export type LoadingType = typeof PendingValue
+
+export function isPending(value: any): value is LoadingType {
+	return typeof value === 'symbol'
+}
