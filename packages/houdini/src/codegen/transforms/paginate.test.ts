@@ -1998,3 +1998,106 @@ test('default defaultPaginateMode to SinglePage', async function () {
 		"HoudiniHash=c0276291ccf0e89ecf3e2c0fd68314703c62c8dca06915e602f931297be94c3c";
 	`)
 })
+
+const nodeSchema = `
+interface Node {
+	mySuperId: ID!
+}
+
+type Query {
+	node(mySuperId: ID!): Node
+	friends(first: Int, after: String, last: Int, before: String): UserConnection!
+}
+
+type UserConnection {
+	edges: [UserEdge!]!
+	pageInfo: PageInfo!
+}
+
+type UserEdge {
+	node: User
+	cursor: String!
+}
+
+type PageInfo {
+	hasPreviousPage: Boolean!
+	hasNextPage: Boolean!
+	startCursor: String
+	endCursor: String
+}
+
+type User implements Node {
+	id: ID!
+	mySuperId: ID!
+	name: String!
+	friends(first: Int, after: String, last: Int, before: String): UserConnection!
+}
+`
+
+test('paginate with a wrong node interface should throw', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`fragment UserFriends on User {
+				friends(first: 1) @paginate {
+					edges {
+						node {
+							name
+						}
+					}
+				}
+			}
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig({
+		schema: nodeSchema,
+		// logLevel: 'full',
+	})
+
+	try {
+		await runPipeline(config, docs)
+		expect('We should').toBe('never be here')
+	} catch (error) {
+		if (error instanceof Error) {
+			expect(error.message).toMatchInlineSnapshot(
+				'"Error getting the node interface on type User, check the console for more info."'
+			)
+		}
+	}
+})
+
+test('paginate with a strange node interface, but well configured', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`fragment UserFriends on User {
+				friends(first: 1) @paginate {
+					edges {
+						node {
+							name
+						}
+					}
+				}
+			}
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig({
+		schema: nodeSchema,
+		types: {
+			User: {
+				keys: ['mySuperId'],
+			},
+		},
+		logLevel: 'full',
+	})
+
+	try {
+		await runPipeline(config, docs)
+	} catch (error) {
+		expect('We should').toBe('never be here')
+	}
+})
