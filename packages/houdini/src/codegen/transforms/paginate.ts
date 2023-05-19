@@ -3,6 +3,7 @@ import * as graphql from 'graphql'
 import type { Config, Document } from '../../lib'
 import { HoudiniError, parentTypeFromAncestors, unwrapType, wrapType } from '../../lib'
 import { ArtifactKind, type PaginateModes } from '../../runtime/lib/types'
+import { getAndVerifyNodeInterface } from '../validators/typeCheck'
 
 // the paginate transform is responsible for preparing a fragment marked for pagination
 // to be embedded in the query that will be used to fetch additional data. That means it
@@ -294,21 +295,15 @@ export default async function paginate(config: Config, documents: Document[]): P
 			// figure out the 'target' type of the refetch
 			let targetType = config.schema.getQueryType()?.name || ''
 			if (fragment) {
-				const nodeInterface = config.schema.getType('Node') as graphql.GraphQLInterfaceType
-				if (nodeInterface) {
-					const { objects, interfaces } = config.schema.getImplementations(nodeInterface)
-
-					if (
-						objects.find((obj) => obj.name === fragment) ||
-						interfaces.find((int) => int.name === fragment)
-					) {
-						targetType = 'Node'
-					} else {
-						targetType = fragment
-					}
-				} else {
-					targetType = fragment
+				const { isFocusImplementingNode: isImplementingNode, hadError } =
+					getAndVerifyNodeInterface(config, false, fragment)
+				if (hadError) {
+					throw new HoudiniError({
+						filepath: doc.filename,
+						message: `Error getting the node interface on type ${fragment}, check the console for more info.`,
+					})
 				}
+				targetType = isImplementingNode ? 'Node' : fragment
 			}
 
 			// figure out some of the refetch values early

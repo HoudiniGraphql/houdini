@@ -255,8 +255,8 @@ test('generates type definitions for the imperative API', async function () {
 		        };
 		        Ghost: {
 		            idFields: {
-		                name: string;
 		                aka: string;
+		                name: string;
 		            };
 		            fields: {
 		                id: {

@@ -1,16 +1,15 @@
-import { logGreen, logYellow } from '@kitql/helper'
+import { logCyan, logGreen, logYellow } from '@kitql/helper'
 import * as graphql from 'graphql'
 
+import type { Config, Document, PaginateModes } from '../../lib'
 import {
-	parentField,
-	definitionFromAncestors,
-	LogLevel,
-	parentTypeFromAncestors,
 	HoudiniError,
+	definitionFromAncestors,
+	parentField,
+	parentTypeFromAncestors,
 	siteURL,
 	unwrapType,
 } from '../../lib'
-import type { Config, Document, LogLevels, PaginateModes } from '../../lib'
 import type { FragmentArgument } from '../transforms/fragmentVariables'
 import {
 	fragmentArguments as collectFragmentArguments,
@@ -1019,14 +1018,14 @@ function nodeDirectives(config: Config, directives: string[]) {
 	const customTypes = Object.keys(config.typeConfig || {})
 
 	// check if there's a node interface
-	const nodeInterface = getAndVerifyNodeInterface(config)
+	const { nodeInterface, objects, interfaces } = getAndVerifyNodeInterface(config, true)
 	if (nodeInterface) {
-		const { objects, interfaces } = config.schema.getImplementations(nodeInterface)
 		possibleNodes.push(
 			...objects.map((object) => object.name),
 			...interfaces.map((object) => object.name)
 		)
 	}
+
 	if (customTypes.length > 1) {
 		possibleNodes.push(...customTypes)
 	}
@@ -1222,100 +1221,184 @@ function validateLoadingDirective(config: Config) {
 	}
 }
 
-export function getAndVerifyNodeInterface(config: Config): graphql.GraphQLInterfaceType | null {
-	const { schema } = config
+export function getAndVerifyNodeInterface(
+	config: Config,
+	quiteLightLogs: boolean,
+	focusOnType?: string
+) {
+	const { schema, logLevel } = config
+
+	let displayWarning: 'no' | 'light' | 'full' =
+		logLevel === 'full' ? 'full' : quiteLightLogs ? 'no' : 'light'
+
+	// The object to return that will be filled during the function
+	let toReturn: {
+		nodeInterface: graphql.GraphQLInterfaceType | null
+		objects: readonly graphql.GraphQLObjectType<any, any>[]
+		interfaces: readonly graphql.GraphQLInterfaceType[]
+		isFocusImplementingNode: boolean
+		hadError: boolean
+	} = {
+		nodeInterface: null,
+		objects: [],
+		interfaces: [],
+		isFocusImplementingNode: false,
+		hadError: true,
+	}
 
 	// look for Node
 	const nodeInterface = schema.getType('Node')
 
 	// if there is no node interface don't do anything else
 	if (!nodeInterface) {
-		return null
+		return toReturn
 	}
+	toReturn.nodeInterface = nodeInterface as graphql.GraphQLInterfaceType
 
 	// make sure its an interface
 	if (!graphql.isInterfaceType(nodeInterface)) {
-		displayInvalidNodeFieldMessage(config.logLevel)
-		return null
+		displayInvalidNodeFieldMessage(displayWarning)
+		return toReturn
 	}
 
 	// look for a field on the query type to look up a node by id
 	const queryType = schema.getQueryType()
 	if (!queryType) {
-		displayInvalidNodeFieldMessage(config.logLevel)
-		return null
+		displayInvalidNodeFieldMessage(displayWarning)
+		return toReturn
 	}
 
 	// look for a node field
 	const nodeField = queryType.getFields()['node']
 	if (!nodeField) {
-		displayInvalidNodeFieldMessage(config.logLevel)
-		return null
+		displayInvalidNodeFieldMessage(displayWarning)
+		return toReturn
 	}
 
-	// there needs to be an arg on the field called id
+	// there needs to be an arg on the field
 	const args = nodeField.args
 	if (args.length === 0) {
-		displayInvalidNodeFieldMessage(config.logLevel)
-		return null
+		displayInvalidNodeFieldMessage(displayWarning)
+		return toReturn
 	}
 
-	// look for the id arg
-	const idArg = args.find((arg) => arg.name === 'id')
-	if (!idArg) {
-		displayInvalidNodeFieldMessage(config.logLevel)
-		return null
+	// there needs to be some args of type ID
+	const args_identifier = args
+		.filter((arg) => unwrapType(config, arg.type).type.name === 'ID')
+		.map((c) => c.name)
+	if (args_identifier.length === 0) {
+		displayInvalidNodeFieldMessage(displayWarning)
+		return toReturn
 	}
 
-	// make sure that the id arg takes an ID
-	const idType = unwrapType(config, idArg.type)
-	// make sure its an ID
-	if (idType.type.name !== 'ID') {
-		displayInvalidNodeFieldMessage(config.logLevel)
-		return null
+	let isImplementingNode = false
+	const { objects, interfaces } = config.schema.getImplementations(nodeInterface)
+	toReturn.objects = objects
+	toReturn.interfaces = interfaces
+	const typeKeysWarning: { type: string; keys: string[] }[] = []
+	for (const type of [...objects, ...interfaces]) {
+		if (type.name === focusOnType) {
+			isImplementingNode = true
+		}
+		if (focusOnType && type.name !== focusOnType) {
+			// skip this type as we are focusing on a specific one (implementingNode)
+		} else {
+			const keys = config.keyFieldsForType(type.name)
+			// If they don't contain the same thing, we have a problem!
+			if (keys.sort().join(',') !== args_identifier.sort().join(',')) {
+				typeKeysWarning.push({ type: type.name, keys })
+			}
+		}
+	}
+	toReturn.isFocusImplementingNode = isImplementingNode
+
+	if (typeKeysWarning.length > 0) {
+		displayInvalidNodeFieldMessage(
+			displayWarning,
+			config.defaultKeys,
+			args_identifier,
+			typeKeysWarning
+		)
+		return toReturn
 	}
 
 	// make sure that the node field returns a Node
 	const fieldReturnType = unwrapType(config, nodeField.type)
 	if (fieldReturnType.type.name !== 'Node') {
-		displayInvalidNodeFieldMessage(config.logLevel)
-		return null
+		displayInvalidNodeFieldMessage(displayWarning)
+		return toReturn
 	}
 
-	return nodeInterface as graphql.GraphQLInterfaceType
+	// We managed until here... We are all good!
+	toReturn.hadError = false
+	return toReturn
 }
 
 let nbInvalidNodeFieldMessageDisplayed = 0
-function displayInvalidNodeFieldMessage(logLevel: LogLevels) {
+function displayInvalidNodeFieldMessage(
+	displayWarning: 'no' | 'light' | 'full',
+	defaultKeys: string[] = ['id'],
+	nodeArg_identifier: string[] = ['id'],
+	typeKeysWarning: { type: string; keys: string[] }[] = []
+) {
 	// We want to display the message only once.
 	if (nbInvalidNodeFieldMessageDisplayed === 0) {
-		if (logLevel === LogLevel.Full) {
-			console.warn(invalidNodeFieldMessage)
-		} else {
-			console.warn(invalidNodeFieldMessageLight)
+		if (displayWarning === 'full') {
+			console.warn(`⚠️  Your Node interface is not inlined with your configuration.
+
+Detailed explanations:
+  ${logCyan(`----- endpoint schema        -----`)}
+    interface Node {
+${nodeArg_identifier.map((arg) => `      ${logYellow(arg)}: ID!`).join(`
+`)}
+    }
+    
+    extend type Query {
+      node(${nodeArg_identifier.map((arg) => `${logYellow(arg)}: ID!`).join(`, `)}): Node
+    }
+  ${logCyan(`----- your types config      -----`)}
+${typeKeysWarning.map(
+	({ type, keys }) =>
+		`    Type: ${type}, Keys: [${keys.map((key) => logYellow(`"${key}"`)).join(`, `)}]`
+).join(`
+`)}
+  ${logCyan(`----- your houdini.config.js -----`)}
+    {
+      // ..
+      defaultKeys: [${defaultKeys.map((key) => logYellow(`"${key}"`)).join(`,`)}]${
+				defaultKeys.length === 1 && defaultKeys[0] === 'id'
+					? ` // It's the default one`
+					: ``
+			}
+    }
+  ${logCyan(`----------------------------------`)}
+
+=> Global Identification doesn't match!
+
+Two solutions:
+  a/ (recommended) Comply with the Global Object Identification spec by ${logGreen(
+		'updating the endpoint schema'
+  )}.
+     -> https://graphql.org/learn/global-object-identification
+
+  b/ update your ${logGreen('houdini.config.js')} with ${logYellow(
+				`{ defaultKeys: ["${nodeArg_identifier}"] }`
+			)} to match your schema.
+     And/or type by type with ${logYellow(`{ types: { xxx: { keys: yyy } } }`)}.
+     -> ${siteURL}/guides/caching-data#custom-ids
+`)
+		} else if (displayWarning === 'light') {
+			console.warn(
+				`⚠️  Your Node interface is not inlined with your configuration. (For more info, add flag "${logYellow(
+					`-l full`
+				)}" or add ${logYellow(`{ logLevel: 'full' }`)} in your ${logGreen(
+					'houdini.config.js'
+				)})`
+			)
 		}
 	}
 	nbInvalidNodeFieldMessageDisplayed++
 }
-
-const invalidNodeFieldMessageLight = `⚠️  Your Node interface is not properly defined, please fix your schema to be able to use this interface. (For more info, add flag "-l full")`
-
-const invalidNodeFieldMessage = `⚠️  Your project defines a Node interface but it does not conform to the Global Identification Spec.
-
-If you are trying to provide the Node interface and its field, they must look like the following:
-
-interface Node {
-	id: ID!
-}
-
-extend type Query {
-	node(id: ID!): Node
-}
-
-For more information, please visit these links:
-- https://graphql.org/learn/global-object-identification/
-- ${siteURL}/guides/caching-data#custom-ids
-`
 
 const paginateOnNonNodeMessage = (config: Config, directiveName: string) =>
 	`It looks like you are trying to use @${directiveName} on a document that does not have a valid type resolver.
