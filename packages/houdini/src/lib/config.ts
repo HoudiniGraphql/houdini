@@ -389,10 +389,17 @@ export class Config {
 	}
 
 	keyFieldsForType(type: string) {
+		// TODO JYC: any special reason for this? (in postegraphile, there is a node interface on query)
+		// """
+		// Exposes the root query type nested one level down. This is helpful for Relay
+		// which can only query top level fields if they are in a particular form.
+		// """
+		// query: Query!
+
 		// the only type that doesn't have a well defined ID is the root query type
-		return this.schema.getQueryType()?.name === type
-			? []
-			: keyFieldsForType(this.configFile, type)
+		return keyFieldsForType(this.configFile, type)
+		// return this.schema.getQueryType()?.name === type
+		// 	? []
 	}
 
 	computeID(type: string, data: any): string {
