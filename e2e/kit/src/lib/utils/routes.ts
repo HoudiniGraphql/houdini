@@ -4,8 +4,10 @@ export const routes = {
 
   // edge cases
   nested_routes: '/nested-routes',
+  fetching_page_gql: '/fetching/page_gql',
   fetching_with_load: '/fetching/with_load',
   fetching_without_load: '/fetching/without_load',
+  fetching_without_load_external_file: '/fetching/without_load_external_file',
   fetching_route_1: '/fetching/route_1',
   union_result: '/union-result',
   customIDs: '/customIDs',
