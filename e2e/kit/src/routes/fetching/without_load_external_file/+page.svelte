@@ -1,6 +1,6 @@
 <script lang="ts">
   import { without_load_external_fileStore } from '$houdini';
-  $: store = new without_load_external_fileStore();
+  $: store = new without_load_external_fileStore({ fetching: false });
   const getData = () => {
     store.fetch();
   };

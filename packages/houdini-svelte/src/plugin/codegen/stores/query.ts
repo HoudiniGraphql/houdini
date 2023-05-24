@@ -39,11 +39,12 @@ import artifact from '$houdini/artifacts/${artifactName}'
 import { initClient } from '$houdini/plugins/houdini-svelte/runtime/client'
 
 export class ${storeName} extends ${store_class} {
-	constructor() {
+	constructor(args) {
 		super({
 			artifact,
 			storeName: ${JSON.stringify(storeName)},
 			variables: ${JSON.stringify(variables)},
+			...args,
 		})
 	}
 }
