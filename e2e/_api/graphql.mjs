@@ -21,6 +21,7 @@ export const typeDefs = sourceFiles.map((filepath) => {
 let cityId = 1
 let libraryId = 1
 let bookId = 1
+let animalId = 1
 
 const dataBooks = [
 	{ id: bookId++, title: 'Callimachus Pinakes' },
@@ -62,8 +63,8 @@ let cities = [
 ]
 
 let monkeys = [
-	{ id: '1', name: 'Terk', hasBanana: true, __typename: 'Monkey' },
-	{ id: '2', name: 'King Louie', hasBanana: false, __typename: 'Monkey' },
+	{ id: animalId++, name: 'Terk', hasBanana: true, __typename: 'Monkey' },
+	{ id: animalId++, name: 'King Louie', hasBanana: false, __typename: 'Monkey' },
 ]
 
 // example data
@@ -215,6 +216,12 @@ export const resolvers = {
 				await sleep(delay)
 			}
 			return cities.find((c) => c.id.toString() === id)
+		},
+		animals(_, args) {
+			const connection = connectionFromArray(monkeys, args);
+			connection.__typename = "MonkeyConnection";
+
+			return connection;
 		},
 		monkeys(_, args) {
 			return connectionFromArray(monkeys, args)
@@ -429,6 +436,27 @@ export const resolvers = {
 
 			throw new GraphQLError('RentedBook not found', { code: 403 })
 		},
+		addMonkey: (_, args) => {
+			const { name } = args;
+			const monkey = {
+				id: animalId++,
+				name,
+				hasBanana: false,
+				__typename: "Monkey",
+			};
+
+			monkeys.push(monkey);
+			return monkey;
+		},
+		deleteMonkey: (_, args) => {
+			const monkeyId = Number.parseInt(args.monkeyId)
+			const monkey = monkeys.find((monkey) => monkey.id === monkeyId);
+			if (!monkey) {
+				throw new GraphQLError('Monkey not found', { code: 404 })
+			}
+			monkeys = monkeys.filter(monkey => monkey.id !== monkeyId);
+			return monkey;
+		}
 	},
 
 	DateTime: new GraphQLScalarType({

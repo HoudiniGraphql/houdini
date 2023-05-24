@@ -49,6 +49,8 @@ type Mutation {
 	deleteLibrary(library: ID!): Library!
 	deleteBook(book: ID!, delay: Int, force: ForceReturn): Book
 	updateRentedBook(userId: String!, bookId: Int!, rate: Int!): RentedBook
+	addMonkey(name: String!): Monkey!
+	deleteMonkey(monkeyId: ID!): Monkey!
 }
 
 interface Node {
