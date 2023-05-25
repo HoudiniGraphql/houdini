@@ -1,4 +1,4 @@
-import { logGreen, logYellow } from '@kitql/helper'
+import { logGreen } from '@kitql/helper'
 import * as graphql from 'graphql'
 
 import {
