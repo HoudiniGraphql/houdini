@@ -2,9 +2,9 @@
 
 ## 1.2.4
 
-### Patch Changes
+### 🐛 Fixes
 
--   [#1096](https://github.com/HoudiniGraphql/houdini/pull/1096) [`5daf4c4`](https://github.com/HoudiniGraphql/houdini/commit/5daf4c407123a08f81bd20c6b963df94ee26e2c3) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug when inserting data into abstract list
+-   [#1096](https://github.com/HoudiniGraphql/houdini/pull/1096) @AlecAivazis - Fix bug when inserting data into abstract list
 
 ## 1.2.3
 
