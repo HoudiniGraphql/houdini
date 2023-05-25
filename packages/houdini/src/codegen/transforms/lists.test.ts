@@ -479,9 +479,7 @@ test('cannot use list directive if id is not a valid field', async function () {
 	} catch (error: unknown) {
 		nbError++
 		// @ts-ignore
-		expect(error[0].description).toMatchInlineSnapshot(
-			'null'
-		)
+		expect(error[0].description).toMatchInlineSnapshot('null')
 	}
 	expect(nbError).toBe(1)
 	// expect(docs[0]).toMatchInlineSnapshot(``)
