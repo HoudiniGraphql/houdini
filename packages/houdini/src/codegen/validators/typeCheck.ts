@@ -263,16 +263,15 @@ export default async function typeCheck(config: Config, docs: Document[]): Promi
 						.filter((fieldName) => !targetType.getFields()[fieldName])
 
 					if (missingIDFields.length > 0) {
-						const message = `@${config.listDirective} on ${logGreen(
-							targetType.name
-						)} as a configuration issue. Object identification missing: ${missingIDFields
-							.map((c) => `"${logYellow(c)}"`)
-							.join(', ')}. Check 'Custom IDs' if needed.`
 						errors.push(
 							new HoudiniError({
 								filepath: filename,
-								message,
-								description: message,
+								message:
+									`@${config.listDirective} on ${logGreen(
+										targetType.name
+									)} has a configuration issue: ` +
+									`${targetType} dos not have a valid key. ` +
+									`Please check this link for more information: https://houdinigraphql.com/guides/caching-data#custom-ids`,
 							})
 						)
 						return

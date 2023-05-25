@@ -2,8 +2,8 @@
   import { graphql } from '$houdini';
 
   $: store = graphql(`
-    query AbstractInsert_AnimalsList @load {
-      animals @list(name: "AbstractAnimalsList") {
+    query AbstractInsert_UsersList @load {
+      usersConnection(first: 1, snapshot: "abstract-insert") @list(name: "AbstractUsersList") {
         edges {
           node {
             id
@@ -14,48 +14,29 @@
     }
   `);
 
-  const addMonkeyMutation = graphql(`
-    mutation AddMonkey($name: String!) {
-      addMonkey(name: $name) {
-        ...AbstractAnimalsList_insert
+  const addUser = graphql(`
+    mutation AbstractInsertAddUser($name: String!) {
+      addUser(name: $name, snapshot: "abstract-insert", birthDate: 531747620000) {
+        ...AbstractUsersList_insert
       }
     }
   `);
 
-  const deleteMonkeyMutation = graphql(`
-    mutation DeleteMonkey($id: ID!) {
-      deleteMonkey(monkeyId: $id) {
-        id
-        name
-      }
-    }
-  `);
-
-  let newMonkeyName = '';
+  let id = 0;
 
   const createMonkey = () => {
-    addMonkeyMutation.mutate({ name: newMonkeyName });
-  };
-
-  const deleteMonkey = (id: string) => {
-    deleteMonkeyMutation.mutate({ id });
+    addUser.mutate({ name: (id++).toString() });
   };
 </script>
 
 <div style="display:flex; flex-gap: 2rem;">
-  <input type="text" bind:value={newMonkeyName} />
-  <button on:click={createMonkey}>Create monkey</button>
+  <button id="insert" on:click={createMonkey}>Add User</button>
 </div>
 
 {#if $store.data}
-  <ul>
-    {#each $store.data.animals.edges as animalEdge}
-      {#if animalEdge.node}
-        <li>
-          {animalEdge.node.id} - {animalEdge.node.name}
-          <button style="margin-left: .5rem;" on:click={() => deleteMonkey(animalEdge.node?.id ?? "")}>Delete</button>
-        </li>
-      {/if}
+  <div id="result">
+    {#each $store.data.usersConnection.edges as animalEdge}
+      {animalEdge.node?.name}
     {/each}
-  </ul>
+  </div>
 {/if}

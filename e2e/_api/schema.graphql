@@ -88,7 +88,7 @@ type Query {
 	userNodesResult(snapshot: String!, forceMessage: Boolean!): UserNodesResult!
 	userResult(id: ID!, snapshot: String!, forceMessage: Boolean!): UserResult!
 	rentedBooks: [RentedBook!]!
-	animals: AnimalConnection!
+	animals(after: String, before: String, first: Int, last: Int): AnimalConnection!
 	monkeys: MonkeyConnection!
 	monkey(id: ID!): Monkey
 }
