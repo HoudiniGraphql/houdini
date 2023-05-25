@@ -10,7 +10,7 @@ test.describe('abstract insert', () => {
     // click on the insert button
     await page.click('#insert');
 
-    await sleep(500);
+    await sleep(1000);
 
     await expect_to_be(page, 'Bruce Willis0');
   });
