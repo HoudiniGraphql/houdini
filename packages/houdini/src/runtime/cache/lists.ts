@@ -260,6 +260,10 @@ export class List {
 									updates: ['append', 'prepend'],
 									selection: {
 										fields: {
+											__typename: {
+												keyRaw: '__typename',
+												type: 'String',
+											},
 											node: {
 												type: listType,
 												keyRaw: 'node',
@@ -284,7 +288,15 @@ export class List {
 			}
 			insertData = {
 				newEntry: {
-					edges: [{ node: { ...data, __typename: listType } }],
+					edges: [
+						{
+							__typename: listType + 'Edge',
+							node: {
+								...data,
+								__typename: listType,
+							},
+						},
+					],
 				},
 			}
 		} else {
