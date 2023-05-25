@@ -49,8 +49,6 @@ type Mutation {
 	deleteLibrary(library: ID!): Library!
 	deleteBook(book: ID!, delay: Int, force: ForceReturn): Book
 	updateRentedBook(userId: String!, bookId: Int!, rate: Int!): RentedBook
-	addMonkey(name: String!): Monkey!
-	deleteMonkey(monkeyId: ID!): Monkey!
 }
 
 interface Node {
@@ -88,7 +86,7 @@ type Query {
 	userNodesResult(snapshot: String!, forceMessage: Boolean!): UserNodesResult!
 	userResult(id: ID!, snapshot: String!, forceMessage: Boolean!): UserResult!
 	rentedBooks: [RentedBook!]!
-	animals(after: String, before: String, first: Int, last: Int): AnimalConnection!
+	animals: AnimalConnection!
 	monkeys: MonkeyConnection!
 	monkey(id: ID!): Monkey
 }

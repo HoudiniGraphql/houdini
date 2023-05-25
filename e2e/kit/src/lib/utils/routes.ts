@@ -11,7 +11,6 @@ export const routes = {
   customIDs: '/customIDs',
   subscriptions_happyPath: '/subscriptions/happyPath',
   abstractFragments: '/abstract-fragments',
-  abstractInsert: '/abstract-insert',
   abstractFragments_nestedConnection: '/abstract-fragments/nested-connection',
   fragment_masking_partial: '/fragment-masking-partial',
   loading_state: '/loading-state',
