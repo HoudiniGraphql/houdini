@@ -473,6 +473,11 @@ export class Config {
 		return false
 	}
 
+	private pathRmvQueryString(filepath: string) {
+		const parsed = path.parse(filepath)
+		return `${parsed.dir}/${parsed.name}${parsed.ext.split('?')[0]}`
+	}
+
 	includeFile(
 		filepath: string,
 		{
@@ -480,6 +485,8 @@ export class Config {
 			ignore_plugins = false,
 		}: { root?: string; ignore_plugins?: boolean } = {}
 	) {
+		filepath = this.pathRmvQueryString(filepath)
+
 		let included = false
 		// plugins might define custom include logic
 		for (const plugin of ignore_plugins ? [] : this.plugins) {
