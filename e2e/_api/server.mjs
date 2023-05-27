@@ -95,7 +95,7 @@ mutation AddUser {
 			subscribe: (args) => args.rootValue.subscribe(args),
 			onSubscribe: async (ctx, msg) => {
 				// if it's a persisted query, use the stored document instead
-				if (msg.payload.query === '') {
+				if (with_persisted_queries) {
 					msg.payload.query = store[msg.payload.extensions.persistedQuery]
 				}
 
