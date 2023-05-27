@@ -2,4 +2,4 @@
 'houdini': patch
 ---
 
-feat: enable Persisted Queries by config (generate file + tune fetch)
+feat: Persisted Queries File can be generated on each changes via `PersistedQueriesPath` param in the config file.

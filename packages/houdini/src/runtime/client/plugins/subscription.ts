@@ -59,13 +59,6 @@ export function subscription(factory: SubscriptionHandler) {
 					{
 						operationName: ctx.name,
 						query: ctx.text,
-
-						// Add the hash if we have no text (that meams we're using persisted queries)
-						...(ctx.text === '' && {
-							extensions: {
-								persistedQuery: ctx.hash,
-							},
-						}),
 						variables: marshalVariables(ctx),
 					},
 					{

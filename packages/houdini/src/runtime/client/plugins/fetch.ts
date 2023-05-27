@@ -74,15 +74,11 @@ const defaultFetch = (
 		)
 	}
 
-	return async ({ fetch, ...fetchParams }) => {
+	return async ({ fetch, name, text, variables }) => {
 		// regular fetch (Server & Client)
 		const result = await fetch(url, {
 			method: 'POST',
-			body: JSON.stringify({
-				operationName: fetchParams.name,
-				query: fetchParams.text,
-				variables: fetchParams.variables,
-			}),
+			body: JSON.stringify({ operationName: name, query: text, variables }),
 			...params,
 			headers: {
 				Accept: 'application/graphql+json, application/json',
