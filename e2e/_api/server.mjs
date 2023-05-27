@@ -12,8 +12,8 @@ import { resolvers, typeDefs } from './graphql.mjs'
 
 const plugins = []
 
+// Turn on and off (to link with 'with_persisted_queries' of "houdini/e2e/kit/src/client.ts")
 let with_persisted_queries = false
-// let with_persisted_queries = true
 
 let store = {}
 

@@ -63,14 +63,6 @@ export const fetch = (target?: RequestHandler | string): ClientPlugin => {
 	}
 }
 
-const buildBody = (fetchParams: FetchParams) => {
-	return JSON.stringify({
-		operationName: fetchParams.name,
-		query: fetchParams.text,
-		variables: fetchParams.variables,
-	})
-}
-
 const defaultFetch = (
 	url: string,
 	params?: Required<ClientPluginContext>['fetchParams']
@@ -86,7 +78,11 @@ const defaultFetch = (
 		// regular fetch (Server & Client)
 		const result = await fetch(url, {
 			method: 'POST',
-			body: buildBody(fetchParams),
+			body: JSON.stringify({
+				operationName: fetchParams.name,
+				query: fetchParams.text,
+				variables: fetchParams.variables,
+			}),
 			...params,
 			headers: {
 				Accept: 'application/graphql+json, application/json',
@@ -157,9 +153,20 @@ function handleMultipart(
 		// See the GraphQL multipart request spec:
 		// https://github.com/jaydenseric/graphql-multipart-request-spec
 		const form = new FormData()
-		const operationJSON = buildBody(params)
 
-		form.set('operations', operationJSON)
+		// if we have a body, just use it.
+		if (args && args?.body) {
+			form.set('operations', args?.body as string)
+		} else {
+			form.set(
+				'operations',
+				JSON.stringify({
+					operationName: params.name,
+					query: params.text,
+					variables: params.variables,
+				})
+			)
+		}
 
 		const map: Record<string, Array<string>> = {}
 
