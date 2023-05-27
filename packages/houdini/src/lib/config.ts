@@ -30,8 +30,7 @@ export class Config {
 	projectRoot: string
 	schema: graphql.GraphQLSchema
 	schemaPath?: string
-	persistedQueryPath?: string
-	PersistedQueryPathUser?: string
+	internalPersistedQueryPath?: string
 	exclude: string[]
 	scalars?: ConfigFile['scalars']
 	module: 'commonjs' | 'esm' = 'esm'
@@ -92,6 +91,7 @@ export class Config {
 			defaultFragmentMasking = 'enable',
 			watchSchema,
 			projectDir,
+			persistedQueryPath,
 		} = this.configFile
 
 		// if we're given a schema string
@@ -134,7 +134,12 @@ export class Config {
 		this.schemaPollHeaders = watchSchema?.headers ?? {}
 		this.rootDir = path.join(this.projectRoot, '$houdini')
 		this.#fragmentVariableMaps = {}
-		this.PersistedQueryPathUser = this.configFile.persistedQueries?.path
+
+		if (persistedQueryPath === true) {
+			this.internalPersistedQueryPath = `./$houdini/persisted_queries.json`
+		} else if (typeof persistedQueryPath === 'string') {
+			this.internalPersistedQueryPath = persistedQueryPath
+		}
 
 		// hold onto the key config
 		if (defaultKeys) {
@@ -265,19 +270,6 @@ export class Config {
 					})
 			),
 		]
-	}
-
-	async isPersistedQueriesEnable() {
-		if (this.configFile.persistedQueries?.enabled === undefined) {
-			return false
-		}
-		if (typeof this.configFile.persistedQueries?.enabled === 'boolean') {
-			return this.configFile.persistedQueries?.enabled
-		}
-
-		const env = await this.getEnv()
-		const value = this.processEnvValues(env, this.configFile.persistedQueries?.enabled)
-		return value?.toLocaleLowerCase() === 'true'
 	}
 
 	#newSchemaInstance: graphql.GraphQLSchema | null = null
@@ -1007,11 +999,6 @@ export async function getConfig({
 				_config.schema = await loadSchemaFile(_config.schemaPath)
 			}
 		}
-
-		// if enabled, set the persisted query path
-		_config.persistedQueryPath = (await _config.isPersistedQueriesEnable())
-			? _config.PersistedQueryPathUser ?? `./$houdini/persisted_queries.json`
-			: undefined
 
 		// order the list of plugins
 		_config.plugins = orderedPlugins(plugins)

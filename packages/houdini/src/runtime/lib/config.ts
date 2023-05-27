@@ -181,9 +181,11 @@ export type ConfigFile = {
 	watchSchema?: WatchSchemaConfig
 
 	/**
-	 * Configure if you want to make use of persisted queries
+	 * Configure the path of the persisted queries file.
+	 * setting `true` will use the default path `./$houdini/persisted_queries.json`
+	 * setting a string will define the path for the file.
 	 */
-	persistedQueries?: PersistedQueryConfig
+	persistedQueryPath?: boolean | string
 
 	/**
 	 * An object describing the plugins enabled for the project
@@ -237,23 +239,6 @@ export type WatchSchemaConfig = {
 	headers?:
 		| Record<string, string | ((env: Record<string, string | undefined>) => string)>
 		| ((env: Record<string, string | undefined>) => Record<string, string>)
-}
-
-export type PersistedQueryConfig = {
-	/**
-	 * A flag to enable or disable persisted queries (default: `false`)
-	 *
-	 * Usage:
-	 *   - true / false
-	 *   - env:HOUDINI_PERSISTED_QUERIES    (checking for the string "true")
-	 *   - (env) => env.HOUDINI_PERSISTED_QUERIES === 'true'
-	 */
-	enabled?: boolean | string | ((env: any) => string) | undefined
-
-	/**
-	 * Path of the file holding all persisted queries  (default: `./$houdini/persisted_queries.json`)
-	 */
-	path?: string
 }
 
 export type ScalarSpec = {

@@ -136,7 +136,7 @@ export class DocumentStore<
 		let context = new ClientPluginContextWrapper({
 			config: this.#configFile!,
 			name: this.artifact.name,
-			text: this.artifact.persistedQuery ? '' : this.artifact.raw,
+			text: this.artifact.raw,
 			hash: this.artifact.hash,
 			policy: policy ?? (this.artifact as QueryArtifact).policy,
 			variables: null,

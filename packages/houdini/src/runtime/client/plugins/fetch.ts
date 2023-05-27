@@ -64,14 +64,9 @@ export const fetch = (target?: RequestHandler | string): ClientPlugin => {
 }
 
 const buildBody = (fetchParams: FetchParams) => {
-	// This will take care about formating the body with or without persisted query
 	return JSON.stringify({
-		// let's always send the operation name
 		operationName: fetchParams.name,
-		// is we have a text, let's use it in query
-		...(fetchParams.text && { query: fetchParams.text }),
-		// if we have no text, we want to use persisted query
-		...(fetchParams.text === '' && { doc_id: fetchParams.hash }),
+		query: fetchParams.text,
 		variables: fetchParams.variables,
 	})
 }
