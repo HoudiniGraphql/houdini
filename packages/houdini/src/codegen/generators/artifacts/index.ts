@@ -414,11 +414,10 @@ export default function artifactGenerator(stats: {
 					}
 
 					// the artifact should be the default export of the file
+					const _houdiniHash = hashOriginal({ document: doc })
 					const file = AST.program([
 						moduleExport(config, 'default', serializeValue(artifact)),
-						AST.expressionStatement(
-							AST.stringLiteral(`HoudiniHash=${hashOriginal({ document: doc })}`)
-						),
+						AST.expressionStatement(AST.stringLiteral(`HoudiniHash=${_houdiniHash}`)),
 					])
 
 					const artifactPath = config.artifactPath(document)
@@ -445,7 +444,7 @@ export default function artifactGenerator(stats: {
 
 					// check if the artifact exists
 					const match = existingArtifact && existingArtifact.match(/"HoudiniHash=(\w+)"/)
-					if (match && match[1] !== artifact.hash) {
+					if (match && match[1] !== _houdiniHash) {
 						stats.changed.push(artifact.name)
 					}
 
