@@ -1300,6 +1300,11 @@ test('append in connection', function () {
 										keyRaw: 'edges',
 										selection: {
 											fields: {
+												__typename: {
+													type: 'String',
+													visible: true,
+													keyRaw: '__typename',
+												},
 												node: {
 													type: 'Node',
 													visible: true,
@@ -1346,6 +1351,7 @@ test('append in connection', function () {
 				friends: {
 					edges: [
 						{
+							__typename: 'UserEdge',
 							node: {
 								__typename: 'User',
 								id: '2',
@@ -1389,6 +1395,7 @@ test('append in connection', function () {
 			friends: {
 				edges: [
 					{
+						__typename: 'UserEdge',
 						node: {
 							__typename: 'User',
 							id: '2',
@@ -1396,6 +1403,7 @@ test('append in connection', function () {
 						},
 					},
 					{
+						__typename: 'UserEdge',
 						node: {
 							__typename: 'User',
 							id: '3',
@@ -1405,6 +1413,41 @@ test('append in connection', function () {
 				],
 			},
 		},
+	})
+
+	// make sure we set an typename on the edge (so it has a value when we read back)
+	expect(
+		cache.read({
+			selection,
+		})
+	).toEqual({
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							__typename: 'UserEdge',
+							node: {
+								__typename: 'User',
+								id: '2',
+								firstName: 'jane',
+							},
+						},
+						{
+							__typename: 'UserEdge',
+							node: {
+								__typename: 'User',
+								id: '3',
+								firstName: 'mary',
+							},
+						},
+					],
+				},
+			},
+		},
+		partial: false,
+		stale: false,
 	})
 })
 

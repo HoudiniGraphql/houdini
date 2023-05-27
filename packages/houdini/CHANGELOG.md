@@ -1,5 +1,11 @@
 # houdini
 
+## 1.2.4
+
+### 🐛 Fixes
+
+-   [#1096](https://github.com/HoudiniGraphql/houdini/pull/1096) @AlecAivazis - Fix bug when inserting data into abstract list
+
 ## 1.2.3
 
 ### ✨ Features
