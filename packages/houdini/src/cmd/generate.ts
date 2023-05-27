@@ -30,7 +30,7 @@ export async function generate(
 		// load config
 		config = await getConfig(extraConfig)
 		if (args.output) {
-			config.internalPersistedQueryPath = args.output
+			config.internalPersistedQueriesPath = args.output
 		}
 
 		// Pull the newest schema if the flag is set

@@ -30,7 +30,7 @@ export class Config {
 	projectRoot: string
 	schema: graphql.GraphQLSchema
 	schemaPath?: string
-	internalPersistedQueryPath?: string
+	internalPersistedQueriesPath?: string
 	exclude: string[]
 	scalars?: ConfigFile['scalars']
 	module: 'commonjs' | 'esm' = 'esm'
@@ -91,7 +91,7 @@ export class Config {
 			defaultFragmentMasking = 'enable',
 			watchSchema,
 			projectDir,
-			persistedQueryPath,
+			persistedQueriesPath,
 		} = this.configFile
 
 		// if we're given a schema string
@@ -135,10 +135,10 @@ export class Config {
 		this.rootDir = path.join(this.projectRoot, '$houdini')
 		this.#fragmentVariableMaps = {}
 
-		if (persistedQueryPath === true) {
-			this.internalPersistedQueryPath = `./$houdini/persisted_queries.json`
-		} else if (typeof persistedQueryPath === 'string') {
-			this.internalPersistedQueryPath = persistedQueryPath
+		if (persistedQueriesPath === true) {
+			this.internalPersistedQueriesPath = `./$houdini/persisted_queries.json`
+		} else if (typeof persistedQueriesPath === 'string') {
+			this.internalPersistedQueriesPath = persistedQueriesPath
 		}
 
 		// hold onto the key config

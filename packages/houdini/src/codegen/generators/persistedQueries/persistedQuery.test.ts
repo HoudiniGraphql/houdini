@@ -7,7 +7,7 @@ import { mockCollectedDoc, testConfig } from '../../../test'
 
 test('generates an artifact for every document', async function () {
 	const config = testConfig()
-	config.internalPersistedQueryPath = path.join(config.rootDir, 'hash.json')
+	config.internalPersistedQueriesPath = path.join(config.rootDir, 'hash.json')
 
 	// the documents to test
 	const docs: Document[] = [
@@ -40,7 +40,7 @@ test('generates an artifact for every document', async function () {
 	)
 
 	const operations: Record<string, string> = JSON.parse(
-		(await fs.readFile(config.internalPersistedQueryPath))!
+		(await fs.readFile(config.internalPersistedQueriesPath))!
 	)
 
 	// we should have only 3 operations (2 queries and 1 mutation)
