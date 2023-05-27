@@ -182,16 +182,20 @@ export async function runPipeline(config: Config, docs: Document[]) {
 			// log the name
 			console.log(`${emoji} ${artifact}`)
 		}
+		console.log(``)
 		console.log(`🪄  Total: ${artifactStats.total.length}`)
 
-		// log some size information
-		const hashSize = (artifactStats.hashSize.reduce((acc, val) => acc + val, 0) / 1024).toFixed(
-			1
-		)
-		const querySize = (
-			artifactStats.querySize.reduce((acc, val) => acc + val, 0) / 1024
-		).toFixed(1)
-		console.log(`🪶  Network request size: ${querySize} kb (pesisted: ${hashSize} kb)`)
+		// log some size information only if opt-in persisted queries.
+		if (config.internalPersistedQueriesPath) {
+			const hashSize = (
+				artifactStats.hashSize.reduce((acc, val) => acc + val, 0) / 1024
+			).toFixed(1)
+			const querySize = (
+				artifactStats.querySize.reduce((acc, val) => acc + val, 0) / 1024
+			).toFixed(1)
+			// not gzipped!
+			console.log(`🪶  Network request size: ${querySize} kb (pesisted: ${hashSize} kb)`)
+		}
 	}
 }
 
