@@ -480,6 +480,9 @@ export class Config {
 			ignore_plugins = false,
 		}: { root?: string; ignore_plugins?: boolean } = {}
 	) {
+		const parsed = path.parse(filepath)
+		filepath = `${parsed.dir}/${parsed.name}${parsed.ext.split('?')[0]}`
+
 		let included = false
 		// plugins might define custom include logic
 		for (const plugin of ignore_plugins ? [] : this.plugins) {
