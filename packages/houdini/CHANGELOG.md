@@ -2,11 +2,11 @@
 
 ## 1.2.5
 
-### Patch Changes
+### 🐛 Fixes
 
--   [#1100](https://github.com/HoudiniGraphql/houdini/pull/1100) [`bc96dfb`](https://github.com/HoudiniGraphql/houdini/commit/bc96dfb78e8df7e57c2cca7aee88a32d38c7565e) Thanks [@jycouet](https://github.com/jycouet)! - Support projects using `experimentalDecorators: true` flag in there tsconfig.json
+-   [#1100](https://github.com/HoudiniGraphql/houdini/pull/1100) [`bc96dfb`](https://github.com/HoudiniGraphql/houdini/commit/bc96dfb78e8df7e57c2cca7aee88a32d38c7565e) Thanks @jycouet! - Support projects using `experimentalDecorators: true` flag in there tsconfig.json
 
--   [#1098](https://github.com/HoudiniGraphql/houdini/pull/1098) [`cb0310c`](https://github.com/HoudiniGraphql/houdini/commit/cb0310c3467d170a9a0cf012787bd59272b1e8bb) Thanks [@jycouet](https://github.com/jycouet)! - fix: config.include now checks against files ignoring QueryString
+-   [#1098](https://github.com/HoudiniGraphql/houdini/pull/1098) [`cb0310c`](https://github.com/HoudiniGraphql/houdini/commit/cb0310c3467d170a9a0cf012787bd59272b1e8bb) Thanks @jycouet! - fix: config.include now checks against files ignoring QueryString
 
 ## 1.2.4
 
