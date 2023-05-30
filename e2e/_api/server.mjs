@@ -1,4 +1,4 @@
-import { usePersistedOperations } from '@graphql-yoga/plugin-persisted-operations'
+// import { usePersistedOperations } from '@graphql-yoga/plugin-persisted-operations'
 import { logGreen } from '@kitql/helper'
 import fs from 'fs-extra'
 import { useServer } from 'graphql-ws/lib/use/ws'
@@ -35,16 +35,17 @@ if (with_persisted_queries) {
 		console.log(`✅ persisted queries loaded`)
 	}
 
-	plugins.push(
-		usePersistedOperations({
-			getPersistedOperation(hash) {
-				return store[hash]
-			},
-			extractPersistedOperationId(params) {
-				return params.doc_id
-			},
-		})
-	)
+	plugins
+		.push
+		// usePersistedOperations({
+		// 	getPersistedOperation(hash) {
+		// 		return store[hash]
+		// 	},
+		// 	extractPersistedOperationId(params) {
+		// 		return params.doc_id
+		// 	},
+		// })
+		()
 }
 
 async function main() {
