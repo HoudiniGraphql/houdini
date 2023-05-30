@@ -1,5 +1,7 @@
 import { describe, expect, test } from 'vitest'
 
+import { path } from '.'
+import { testConfig } from '../test'
 import type { PluginMeta } from './config'
 import { orderedPlugins, readConfigFile } from './config'
 
@@ -78,4 +80,29 @@ test(`orderedPlugins - per group then keeping the order of plugings`, async () =
 test(`orderedPlugins - empty => empty`, async () => {
 	const o = orderedPlugins([]).map((p) => p.name)
 	expect(o).toMatchInlineSnapshot('[]')
+})
+
+test(`Files that should be included`, async () => {
+	const config = testConfig()
+
+	// defaults
+	expect(config.includeFile(path.join(process.cwd(), 'src/routes/page.ts'))).toBe(true)
+	expect(config.includeFile(path.join(process.cwd(), 'src/routes/page.js'))).toBe(true)
+	expect(config.includeFile(path.join(process.cwd(), 'src/routes/page.gql'))).toBe(true)
+	expect(config.includeFile(path.join(process.cwd(), 'src/routes/page.graphql'))).toBe(true)
+
+	// with some "?"
+	expect(config.includeFile(path.join(process.cwd(), 'src/routes/page.ts?sentry'))).toBe(true)
+	expect(config.includeFile(path.join(process.cwd(), 'src/rou?tes/page.ts?sentry'))).toBe(true)
+	expect(config.includeFile(path.join(process.cwd(), 'src/page.ts?s?e?n?t?r?y'))).toBe(true)
+})
+
+test(`Files that should not be included`, async () => {
+	const config = testConfig()
+
+	expect(config.includeFile(path.join(process.cwd(), 'src/routes/test'))).toBe(false)
+	expect(config.includeFile(path.join(process.cwd(), 'src/routes/test.'))).toBe(false)
+	expect(config.includeFile(path.join(process.cwd(), 'src/routes/test.jts'))).toBe(false)
+	expect(config.includeFile(path.join(process.cwd(), 'src/routes/test?'))).toBe(false)
+	expect(config.includeFile(path.join(process.cwd(), 'src/rou?tes/page.nop?s?e'))).toBe(false)
 })
