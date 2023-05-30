@@ -1,4 +1,4 @@
-// import { usePersistedOperations } from '@graphql-yoga/plugin-persisted-operations'
+import { usePersistedOperations } from '@graphql-yoga/plugin-persisted-operations'
 import { logGreen } from '@kitql/helper'
 import fs from 'fs-extra'
 import { useServer } from 'graphql-ws/lib/use/ws'
@@ -12,7 +12,7 @@ import { resolvers, typeDefs } from './graphql.mjs'
 
 const plugins = []
 
-// Turn on and off (to link with 'with_persisted_queries' of "houdini/e2e/kit/src/client.ts")
+// Turn on and off (to link with 'with_persisted_queries' of "./e2e/kit/src/client.ts")
 let with_persisted_queries = false
 
 let store = {}
@@ -35,17 +35,16 @@ if (with_persisted_queries) {
 		console.log(`✅ persisted queries loaded`)
 	}
 
-	plugins
-		.push
-		// usePersistedOperations({
-		// 	getPersistedOperation(hash) {
-		// 		return store[hash]
-		// 	},
-		// 	extractPersistedOperationId(params) {
-		// 		return params.doc_id
-		// 	},
-		// })
-		()
+	plugins.push(
+		usePersistedOperations({
+			getPersistedOperation(hash) {
+				return store[hash]
+			},
+			extractPersistedOperationId(params) {
+				return params.doc_id
+			},
+		})
+	)
 }
 
 async function main() {

@@ -25,7 +25,7 @@ export default new HoudiniClient({
       throw new Error('Did not encounter session');
     }
 
-    // Turn on and off (to link with 'with_persisted_queries' of "houdini/e2e/_api/server.mjs")
+    // Turn on and off (to link with 'with_persisted_queries' of "./e2e/_api/server.mjs")
     const with_persisted_queries = false;
     if (with_persisted_queries) {
       return {
