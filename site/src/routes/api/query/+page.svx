@@ -80,7 +80,7 @@ query MyProfileInfo {
 {$MyProfileInfo.data.viewer.firstName}
 ```
 
-This example takes advantage of Houdini's powerful [load generator](#generating-loaders) and
+This example takes advantage of Houdini's powerful [load generator](#automatic-loading) and
 is just one of many ways to get access to a store that can drive your server-side rendered routes.
 For more information, check out the [Working with GraphQL](/guides/working-with-graphql) guide.
 
@@ -89,9 +89,10 @@ For more information, check out the [Working with GraphQL](/guides/working-with-
 A query store holds an object with the following fields that accessed like `$store.data`:
 
 - `data` contains the result of the query. It's value will update as mutations, subscriptions, and other queries provide more recent information.
-- `loading` contains the loading state (`true` or `false`) for a query found outside of a route component (ie, not defined in `src/routes`)
+- `fetching` contains the loading state (`true` or `false`). See the [Loading States](#loading-states) section for more info for fine-grained loading states.
 - `errors` contains any error values that occur for a query found outside of a route component (ie, not defined in `src/routes`). If you want to use this for managing your errors, you should enable the [quietQueryError](/api/config) configuration option.
 - `partial` contains a boolean that indicates if the result has a partial match
+- `variables` contains the variables that were sent in the last query, mutation or subscription request.
 
 ### Methods
 
@@ -394,7 +395,7 @@ look at the `fetching` value in the response:
 	$: ({ MyQuery } = data)
 </script>
 
-{#if MyQuery.fetching}
+{#if $MyQuery.fetching}
 	loading...
 {:else}
 	{$MyQuery.data....}
