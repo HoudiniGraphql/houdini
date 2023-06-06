@@ -112,6 +112,12 @@ export const resolvers = {
 		hello: () => {
 			return 'Hello World! // From Houdini!'
 		},
+		aOrB: () => {
+			return [
+				{ __typename: 'A', id: '1', a: 'a' },
+				{ __typename: 'B', id: '2', b: 'b' },
+			]
+		},
 		usersList: (_, args) => {
 			return [...getUserSnapshot(args.snapshot)].splice(args.offset || 0, args.limit)
 		},
