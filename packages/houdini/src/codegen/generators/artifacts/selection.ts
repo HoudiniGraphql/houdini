@@ -189,6 +189,10 @@ function prepareSelection({
 			let nullable = false
 			if (field.name.value === '__typename') {
 				fieldType = config.schema.getType('String')!
+			}
+			// if it's an union, we are already looking at the correct type
+			else if (graphql.isUnionType(type)) {
+				fieldType = type
 			} else {
 				let typeRef = type.getFields()[field.name.value].type
 				fieldType = getRootType(typeRef)
