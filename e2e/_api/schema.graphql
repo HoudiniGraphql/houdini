@@ -21,7 +21,6 @@ enum ForceReturn {
 }
 
 type Mutation {
-	createA(a: String!): A!
 	addUser(
 		birthDate: DateTime!
 		name: String!
@@ -50,6 +49,8 @@ type Mutation {
 	deleteLibrary(library: ID!): Library!
 	deleteBook(book: ID!, delay: Int, force: ForceReturn): Book
 	updateRentedBook(userId: String!, bookId: Int!, rate: Int!): RentedBook
+	createA(a: String!): A!
+	createB(b: String!): B!
 }
 
 interface Node {

@@ -1,5 +1,0 @@
-mutation CreateA($a: String!) {
-  createA(a: $a) {
-    ... All_AorB_insert
-  }
-}
