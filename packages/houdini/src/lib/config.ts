@@ -30,7 +30,7 @@ export class Config {
 	projectRoot: string
 	schema: graphql.GraphQLSchema
 	schemaPath?: string
-	persistedQueriesPath: string = "./$houdini/persisted_queries.json"
+	persistedQueriesPath: string = './$houdini/persisted_queries.json'
 	exclude: string[]
 	scalars?: ConfigFile['scalars']
 	module: 'commonjs' | 'esm' = 'esm'
@@ -135,7 +135,7 @@ export class Config {
 		this.rootDir = path.join(this.projectRoot, '$houdini')
 		this.#fragmentVariableMaps = {}
 
-		if(persistedQueriesPath) {
+		if (persistedQueriesPath) {
 			this.persistedQueriesPath = persistedQueriesPath
 		}
 

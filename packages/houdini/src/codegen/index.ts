@@ -1,4 +1,5 @@
 import * as graphql from 'graphql'
+import { format } from 'node:path'
 
 import type { Config, PluginHooks, Document, LogLevels } from '../lib'
 import { runPipeline as run, LogLevel, find_graphql, parseJS, HoudiniError, fs, path } from '../lib'
@@ -185,11 +186,16 @@ export async function runPipeline(config: Config, docs: Document[]) {
 		console.log(``)
 		console.log(`🪄  Total: ${artifactStats.total.length}`)
 
-		// log some size information only in full mode		
-		const hashSize = (artifactStats.hashSize.reduce((acc, val) => acc + val, 0) / 1024).toFixed(1)
-		const querySize = (artifactStats.querySize.reduce((acc, val) => acc + val, 0) / 1024).toFixed(1)
+		// local function to format the size
+		const format = (val: number) => {
+			return `${(val / 1024).toFixed(1)} kb`
+		}
+
+		// log some size information only in full mode
+		const hashSize = format(artifactStats.hashSize.reduce((acc, val) => acc + val, 0))
+		const querySize = format(artifactStats.querySize.reduce((acc, val) => acc + val, 0))
 		// not gzipped!
-		console.log(`🪶  Network request size: ${querySize} kb (pesisted: ${hashSize} kb)`)		
+		console.log(`🪶  Network request size: ${querySize} (pesisted: ${hashSize})`)
 	}
 }
 
