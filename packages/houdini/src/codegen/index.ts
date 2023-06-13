@@ -1,5 +1,4 @@
 import * as graphql from 'graphql'
-import { format } from 'node:path'
 
 import type { Config, PluginHooks, Document, LogLevels } from '../lib'
 import { runPipeline as run, LogLevel, find_graphql, parseJS, HoudiniError, fs, path } from '../lib'

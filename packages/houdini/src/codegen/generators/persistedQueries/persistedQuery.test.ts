@@ -54,14 +54,14 @@ test('Hash in generated file are found and has a good values', async function ()
 
 	// Let's look add the hashes and make sure they match the expected values
 	// And make sure hashs in the file are the same as in artifacts
-	expect(operations[docs[0].artifact?.hash!]).toMatchInlineSnapshot(`
+	expect(operations[docs[0].artifact?.hash ?? 'NOT GOOD']).toMatchInlineSnapshot(`
 		"query TestQuery1 {
 		  version
 		}
 		"
 	`)
 
-	expect(operations[docs[1].artifact?.hash!]).toMatchInlineSnapshot(`
+	expect(operations[docs[1].artifact?.hash ?? 'NOT GOOD']).toMatchInlineSnapshot(`
 			"query TestQuery2 {
 			  user {
 			    ...TestFragment
@@ -77,7 +77,7 @@ test('Hash in generated file are found and has a good values', async function ()
 			"
 		`)
 
-	expect(operations[docs[3].artifact?.hash!]).toMatchInlineSnapshot(`
+	expect(operations[docs[3].artifact?.hash ?? 'NOT GOOD']).toMatchInlineSnapshot(`
 		"mutation Add {
 		  addFriend {
 		    friend {
