@@ -8,16 +8,8 @@ import { fs } from '../../../lib'
 // the persist output generator is responsible for generating a queryMap.json
 // to the provided path with the `hash` as key and the raw query as value.
 export default async function persistOutputGenerator(config: Config, docs: Document[]) {
-	if (
-		typeof config.internalPersistedQueriesPath !== 'string' ||
-		config.internalPersistedQueriesPath.length === 0
-	) {
-		return
-	}
-
-	if (!config.internalPersistedQueriesPath.endsWith('.json')) {
-		console.log('Can only write the queryMap to a json file')
-		return
+	if (!config.persistedQueriesPath.endsWith('.json')) {
+		throw new Error('Can write Persisted Queries only in a ".json" file.')
 	}
 
 	const queryMap = docs.reduce<Record<string, string>>((acc, doc) => {
@@ -57,5 +49,5 @@ export default async function persistOutputGenerator(config: Config, docs: Docum
 	if (Object.keys(queryMap).length === 0) return
 
 	// Write the queryMap to the provided path
-	await fs.writeFile(config.internalPersistedQueriesPath, JSON.stringify(queryMap, null, 4))
+	await fs.writeFile(config.persistedQueriesPath, JSON.stringify(queryMap, null, 4))
 }

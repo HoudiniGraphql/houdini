@@ -35,7 +35,7 @@ By default, your config file can contain the following values:
 - `exclude` (optional): a pattern (or list of patterns) that filters out files that match the include pattern
 - `schemaPath` (optional, default: `"./schema.graphql"`): the path to the static representation of your schema, can be a glob pointing to multiple files
 - `watchSchema` (optional, an object): configure the development server to poll a remote url for changes in the schema. When a change is detected, the dev server will automatically regenerate your runtime. For more information see [Schema Polling](#schema-polling).
-- `persistedQueriesPath` (optional, default: `false`): Configure the path of the persisted queries file. Setting `true` will use the default path `./$houdini/persisted_queries.json`, setting a string will define the path to the file.
+- `persistedQueriesPath` (optional, default: `./$houdini/persisted_queries.json`): Configure the path of the persisted queries file.
 - `module` (optional, default: `"esm"`): One of `"esm"` or `"commonjs"`. Used to tell the artifact generator what kind of modules to create.
 - `definitionsPath` (optional, default: `"$houdini/graphql"`): a path that the generator will use to write `schema.graphql` and `documents.gql` files containing all of the internal fragment and directive definitions used in the project.
 - `scalars` (optional): An object describing custom scalars for your project (see below).

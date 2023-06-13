@@ -181,11 +181,9 @@ export type ConfigFile = {
 	watchSchema?: WatchSchemaConfig
 
 	/**
-	 * Configure the path of the persisted queries file.
-	 * setting `true` will use the default path `./$houdini/persisted_queries.json`
-	 * setting a string will define the path for the file.
+	 * Specifies the the persisted queries path and file. (default: `./$houdini/persisted_queries.json`)
 	 */
-	persistedQueriesPath?: boolean | string
+	persistedQueriesPath?: string
 
 	/**
 	 * An object describing the plugins enabled for the project

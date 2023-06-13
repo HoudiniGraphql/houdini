@@ -7,7 +7,6 @@ const config = {
   defaultPartial: true,
   acceptImperativeInstability: true,
   // logLevel: 'Full',
-  // persistedQueriesPath: true,
   scalars: {
     DateTime: {
       type: 'Date',
