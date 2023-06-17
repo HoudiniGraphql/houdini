@@ -144,6 +144,11 @@ export class ListManager {
 		// delete the lists by field lookups
 		this.listsByField.get(parentID)!.delete(field)
 	}
+
+	reset() {
+		this.lists.clear()
+		this.listsByField.clear()
+	}
 }
 
 export class List {

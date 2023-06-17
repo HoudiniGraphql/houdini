@@ -6,7 +6,7 @@ import type {
 	SubscriptionSpec,
 	NestedList,
 } from '../lib/types'
-import type { Cache } from './cache'
+import { rootID, type Cache } from './cache'
 import { evaluateKey } from './stuff'
 
 export type FieldSelection = [
@@ -342,6 +342,25 @@ export class InMemorySubscriptions {
 		for (const [linkedRecordID, linkFields] of linkedIDs) {
 			this.remove(linkedRecordID, linkFields, targets, visited)
 		}
+	}
+
+	reset() {
+		//Get all subscriptions that do not start with the rootID
+		const subscribers = Object.entries(this.subscribers).filter(
+			([id]) => !id.startsWith(rootID)
+		)
+
+		//Remove those subcribers from this.subscribers
+		for (const [id, _fields] of subscribers) {
+			delete this.subscribers[id]
+		}
+
+		//Get list of all SubscriptionSpecs of subscribers
+		const subscriptionSpecs = subscribers.flatMap(([_id, fields]) =>
+			Object.values(fields).flatMap((field) => field.map(([spec]) => spec))
+		)
+
+		return subscriptionSpecs
 	}
 
 	private removeSubscribers(id: string, fieldName: string, specs: SubscriptionSpec[]) {
