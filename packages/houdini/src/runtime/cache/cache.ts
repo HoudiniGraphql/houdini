@@ -279,6 +279,12 @@ export class Cache {
 		//Reset Subscriptions
 		const subSpecs = this._internal_unstable.subscriptions.reset()
 
+		//Reset StaleManager
+		this._internal_unstable.staleManager.reset()
+
+		//Reset GarbageCollector
+		this._internal_unstable.lifetimes.reset()
+
 		//Reset Lists
 		this._internal_unstable.lists.reset()
 
