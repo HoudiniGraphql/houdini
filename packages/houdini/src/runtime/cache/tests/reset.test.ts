@@ -182,7 +182,20 @@ test('make sure the cache subscribers were reset', function () {
 		},
 	}
 
+	// subscribe to the cache
+	const set = vi.fn()
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection,
+	})
+
+	// reset the cache
+	cache.reset()
+
+	// write the data again
 	cache.write({
+		parent: 'User:1',
 		selection,
 		data: {
 			viewer: {
@@ -203,14 +216,30 @@ test('make sure the cache subscribers were reset', function () {
 		applyUpdates: [RefetchUpdateMode.append],
 	})
 
-	// subscribe to the cache
-	const set = vi.fn()
-	cache.subscribe({
-		rootType: 'Query',
-		set,
+	// make sure the subscriber was not called
+	expect(set).not.toHaveBeenCalled()
+
+	cache.write({
 		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [
+					{
+						id: '4',
+						firstName: 'mary',
+					},
+					{
+						id: '5',
+						firstName: 'jill',
+					},
+				],
+			},
+		},
+		applyUpdates: [RefetchUpdateMode.append],
 	})
 
-	// reset the cache
-	cache.reset()
+	// make sure the root subscriber was called because parent was not defined
+	expect(set).toHaveBeenCalled()
 })
