@@ -89,6 +89,7 @@ type Query {
 	animals: AnimalConnection!
 	monkeys: MonkeyConnection!
 	monkey(id: ID!): Monkey
+	articles: ArticleConnection!
 }
 
 type Subscription {
@@ -154,10 +155,45 @@ type UserNodes {
 	totalCount: Int
 	nodes: [User!]!
 }
-
-type Book {
+interface ArticleInterface {
 	id: ID!
 	title: String!
+}
+
+interface CustomArticleInterface {
+	id: ID!
+	isCustom: Boolean!
+}
+
+type Book implements ArticleInterface {
+	id: ID!
+	title: String!
+}
+
+type CustomBook implements ArticleInterface & CustomArticleInterface {
+	id: ID!
+	title: String!
+	isCustom: Boolean!
+	something: Boolean!
+}
+
+type CustomBlueRay implements ArticleInterface & CustomArticleInterface {
+	id: ID!
+	title: String!
+	isCustom: Boolean!
+	else: Boolean!
+}
+
+union Article = Book | CustomBook | CustomBlueRay
+
+type ArticleEdge {
+  cursor: ID!
+  node: Article!
+}
+ 
+type ArticleConnection {
+  edges: [ArticleEdge!]!
+  pageInfo: PageInfo!
 }
 
 type Library {
