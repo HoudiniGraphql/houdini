@@ -258,25 +258,25 @@ export const resolvers = {
 				[
 					{
 						__typename: 'Book',
-						id: '1',
-						title: 'Book 1',
-					},
-					{
-						__typename: 'Book',
 						id: '2',
 						title: 'Book 2',
 					},
 					{
-						__typename: 'CustomBook',
+						__typename: 'Book',
 						id: '3',
-						title: 'CustomBook',
-						isCustom: true,
-						something: true,
+						title: 'Book 3',
 					},
 					{
 						__typename: 'CustomBlueRay',
 						id: '4',
 						title: 'CustomBlueRay',
+						isCustom: true,
+						else: false,
+					},
+					{
+						__typename: 'CustomBlueRay',
+						id: '5',
+						title: 'CustomBlueRay 5',
 						isCustom: true,
 						else: false,
 					},
