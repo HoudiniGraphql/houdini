@@ -249,6 +249,20 @@ export const resolvers = {
 						isCustom: true,
 						else: false,
 					},
+					{
+						__typename: 'CustomBlueRay',
+						id: '6',
+						title: 'CustomBlueRay 6',
+						isCustom: true,
+						else: false,
+					},
+					{
+						__typename: 'CustomBlueRay',
+						id: '7',
+						title: 'CustomBlueRay 7',
+						isCustom: true,
+						else: false,
+					},
 				],
 				args
 			)
@@ -277,6 +291,13 @@ export const resolvers = {
 						__typename: 'CustomBlueRay',
 						id: '5',
 						title: 'CustomBlueRay 5',
+						isCustom: true,
+						else: false,
+					},
+					{
+						__typename: 'CustomBlueRay',
+						id: '8',
+						title: 'CustomBlueRay 8',
 						isCustom: true,
 						else: false,
 					},
