@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { PageData } from './$houdini';
-  import TestAnimal from './ArticlesList.svelte';
+  import ArticlesList from './ArticlesList.svelte';
+  import OthersList from './OthersList.svelte';
 
   export let data: PageData;
   $: ({ Articles } = data);
@@ -9,8 +10,9 @@
 data:
 <pre>{JSON.stringify($Articles, undefined, 2)}</pre>
 
-{#if $Articles.data?.articles}
+{#if $Articles.data?.articles && $Articles.data?.others}
   <div id="result">
-    <TestAnimal articles={$Articles.data?.articles} />
+    <ArticlesList articles={$Articles.data?.articles} />
+    <OthersList others={$Articles.data?.others} />
   </div>
 {/if}

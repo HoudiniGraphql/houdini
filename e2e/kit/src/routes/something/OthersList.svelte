@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { fragment, graphql, type The_articles } from '$houdini';
+  import { fragment, graphql, type The_others } from '$houdini';
 
-  export let articles: The_articles;
-  $: articlesStore = fragment(
-    articles,
+  export let others: The_others;
+  $: othersStore = fragment(
+    others,
     graphql`
-      fragment The_articles on ArticleConnection {
+      fragment The_others on ArticleConnection {
         edges {
           node {
             ... on Book {
@@ -23,7 +23,7 @@
     `
   );
 
-  $: console.log({ articles: $articlesStore });
+  $: console.log({ others: $othersStore });
 </script>
 
-{JSON.stringify(articlesStore, undefined, 2)}
+{JSON.stringify(othersStore, undefined, 2)}

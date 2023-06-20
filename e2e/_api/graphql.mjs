@@ -253,6 +253,37 @@ export const resolvers = {
 				args
 			)
 		},
+		others(_, args) {
+			return connectionFromArray(
+				[
+					{
+						__typename: 'Book',
+						id: '1',
+						title: 'Book 1',
+					},
+					{
+						__typename: 'Book',
+						id: '2',
+						title: 'Book 2',
+					},
+					{
+						__typename: 'CustomBook',
+						id: '3',
+						title: 'CustomBook',
+						isCustom: true,
+						something: true,
+					},
+					{
+						__typename: 'CustomBlueRay',
+						id: '4',
+						title: 'CustomBlueRay',
+						isCustom: true,
+						else: false,
+					},
+				],
+				args
+			)
+		},
 	},
 	Subscription: {
 		userUpdate: {

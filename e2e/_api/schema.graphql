@@ -90,6 +90,7 @@ type Query {
 	monkeys: MonkeyConnection!
 	monkey(id: ID!): Monkey
 	articles: ArticleConnection!
+	others: ArticleConnection!
 }
 
 type Subscription {

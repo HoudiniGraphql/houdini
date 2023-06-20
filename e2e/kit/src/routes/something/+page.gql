@@ -2,4 +2,7 @@ query Articles {
   articles {
     ...The_articles
   }
+  others {
+    ...The_others
+  }
 }
