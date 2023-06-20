@@ -90,7 +90,7 @@ type Query {
 	monkeys: MonkeyConnection!
 	monkey(id: ID!): Monkey
 	articles: ArticleConnection!
-	others: ArticleConnection!
+	others: OtherConnection!
 }
 
 type Subscription {
@@ -194,6 +194,17 @@ type ArticleEdge {
  
 type ArticleConnection {
   edges: [ArticleEdge!]!
+  pageInfo: PageInfo!
+}
+
+
+type OtherEdge {
+  cursor: ID!
+  node: Article!
+}
+ 
+type OtherConnection {
+  edges: [OtherEdge!]!
   pageInfo: PageInfo!
 }
 

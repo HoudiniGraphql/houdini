@@ -5,7 +5,7 @@
   $: othersStore = fragment(
     others,
     graphql`
-      fragment The_others on ArticleConnection {
+      fragment The_others on OtherConnection {
         edges {
           node {
             ... on Book {
