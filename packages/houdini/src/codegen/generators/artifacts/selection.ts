@@ -129,6 +129,10 @@ function prepareSelection({
 							possibleTypes.push(possible.name)
 						}
 					}
+
+					if (filepath.includes('something/+page.gql')) {
+						console.log('double abstract!', parentType, typeCondition, possibleTypes)
+					}
 				}
 				// the parent type is always an instance of the type condition so we don't need to do
 				// anything fancy. just add an entry in the type map that points the parent to the
