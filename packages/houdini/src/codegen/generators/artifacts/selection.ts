@@ -415,9 +415,6 @@ function mergeSelection({
 	// the goal here is to make sure there is a single, well defined selection for
 	// every type so the runtime doesn't have to do any kind of merges. this means
 	// that there shouldn't be any overlap between abstract types.
-
-	// we need to visit every selection in the artifact and make sure that concrete
-	// values are always applied on the abstract selections
 	if (
 		Object.keys(object.fields || {}).length > 0 &&
 		object.abstractFields &&
@@ -437,8 +434,6 @@ function mergeSelection({
 		// a mapping from abstract types that are present in the selection
 		// to the list of concrete types that implement the abstract type
 		const possibleSelectionTypes: Record<string, string[]> = {}
-
-		// any types that are present in the abstract selection get entries in the final result
 		for (const [typeName, typeSelection] of Object.entries(object.abstractFields.fields)) {
 			// grab the type with the matching name from the schema
 			const gqlType = config.schema.getType(typeName)
@@ -463,8 +458,6 @@ function mergeSelection({
 			}
 		}
 
-		// if there is overlap between multiple abstract types in the selection
-		// then we need to add an entry for the concrete one.
 		// we need to build up a map from concrete types to the abstract types they implement
 		// so we can look for entries with more than 1 abstract type
 		const concreteSelectionImplements: Record<string, string[]> = {}
@@ -486,11 +479,10 @@ function mergeSelection({
 			}
 		}
 
-		// the selection criteria define the possible branches of a selection
+		// if the possible type has already been included as an explicit selection
+		// then we need to add the abstract types selection to the concrete one
 		for (const [typeName, possibles] of Object.entries(possibleSelectionTypes)) {
 			for (const possible of possibles) {
-				// if the possible type has already been included as an explicit selection
-				// then we need to add the abstract types selection to the concrete one
 				if (abstractSelection.fields[possible]) {
 					abstractSelection.fields[possible] = deepMerge(
 						filepath,
