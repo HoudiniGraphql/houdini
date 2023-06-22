@@ -121,22 +121,50 @@ function prepareSelection({
 			// look up the field
 			const type = config.schema.getType(rootType) as graphql.GraphQLObjectType
 			if (!type) {
-				throw new HoudiniError({ filepath, message: 'Could not find type' })
+				throw new HoudiniError({
+					filepath,
+					message: 'Could not find type. Looking for ' + JSON.stringify(rootType),
+				})
 			}
 
 			const attributeName = field.alias?.value || field.name.value
-			// if we are looking at __typename, its a string (not defined in the schema)
-			let fieldType: graphql.GraphQLType
+			let fieldType: graphql.GraphQLType | null = null
 			let nullable = false
+
+			// if we are looking at __typename, its a string (not defined in the schema)
 			if (field.name.value === '__typename') {
 				fieldType = config.schema.getType('String')!
-			} else {
+			}
+			// if the type is something that has definite fields then we can look up the field
+			// type in the schema
+			else if ('getFields' in type) {
 				let typeRef = type.getFields()[field.name.value].type
 				fieldType = getRootType(typeRef)
 				nullable = !graphql.isNonNullType(typeRef)
 			}
+			// if we are looking at an abstract type that doesn't have well-defined fields (ie a union)
+			// then we are safe to look at any possible type (i think)
+			else if (graphql.isAbstractType(type)) {
+				for (const possible of config.schema.getPossibleTypes(type)) {
+					if (graphql.isObjectType(possible)) {
+						if (possible.getFields()[field.name.value]) {
+							fieldType = possible.getFields()[field.name.value].type
+							nullable = !graphql.isNonNullType(fieldType)
+							break
+						}
+					}
+				}
+			}
 
-			const typeName = fieldType.toString()
+			// make sure we identified a type
+			if (!fieldType) {
+				throw {
+					message: "Could not identify field's type",
+					description: `Missing definition for ${field.name.value} in ${type.name}`,
+				}
+			}
+
+			const typeName = (getRootType(fieldType) as graphql.GraphQLObjectType).name
 
 			// make sure we include the attribute in the path
 			const pathSoFar = path.concat(attributeName)

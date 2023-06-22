@@ -95,6 +95,151 @@ test('fragments of unions inject correctly', function () {
 	`)
 })
 
+test('list of fragment unions', async function () {
+	// the config to use in tests
+	const config = testConfig()
+	const docs = [
+		mockCollectedDoc(
+			`query Entities {
+				entities @list(name: "list_entities") {
+					... on User {
+						name
+					}
+					... on Cat {
+						name
+					}
+				}
+			}`
+		),
+		mockCollectedDoc(
+			`mutation CatMutation {
+				catMutation {
+					...list_entities_insert
+				}
+			}`
+		),
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
+
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "Entities",
+		    "kind": "HoudiniQuery",
+		    "hash": "d7db6b92dac1893d8640c0f9d3535d1f75cdb1017cf4c8960c0bdaefbe119229",
+
+		    "raw": \`query Entities {
+		  entities {
+		    ... on User {
+		      name
+		      id
+		    }
+		    ... on Cat {
+		      name
+		      id
+		    }
+		    __typename
+		  }
+		}
+		\`,
+
+		    "rootType": "Query",
+
+		    "selection": {
+		        "fields": {
+		            "entities": {
+		                "type": "Entity",
+		                "keyRaw": "entities",
+
+		                "directives": [{
+		                    "name": "list",
+
+		                    "arguments": {
+		                        "name": {
+		                            "kind": "StringValue",
+		                            "value": "list_entities"
+		                        }
+		                    }
+		                }],
+
+		                "list": {
+		                    "name": "list_entities",
+		                    "connection": false,
+		                    "type": "Entity"
+		                },
+
+		                "selection": {
+		                    "abstractFields": {
+		                        "fields": {
+		                            "User": {
+		                                "name": {
+		                                    "type": "String",
+		                                    "keyRaw": "name",
+		                                    "visible": true
+		                                },
+
+		                                "id": {
+		                                    "type": "ID",
+		                                    "keyRaw": "id",
+		                                    "visible": true
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
+		                                }
+		                            },
+
+		                            "Cat": {
+		                                "name": {
+		                                    "type": "String",
+		                                    "keyRaw": "name",
+		                                    "visible": true
+		                                },
+
+		                                "id": {
+		                                    "type": "ID",
+		                                    "keyRaw": "id",
+		                                    "visible": true
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
+		                                }
+		                            }
+		                        },
+
+		                        "typeMap": {}
+		                    },
+
+		                    "fields": {
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename",
+		                            "visible": true
+		                        }
+		                    }
+		                },
+
+		                "abstract": true,
+		                "visible": true
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+		    "policy": "CacheOrNetwork",
+		    "partial": false
+		};
+
+		"HoudiniHash=d7db6b92dac1893d8640c0f9d3535d1f75cdb1017cf4c8960c0bdaefbe119229";
+	`)
+})
+
 test('fragments in lists', async function () {
 	// the config to use in tests
 	const config = testConfig()
