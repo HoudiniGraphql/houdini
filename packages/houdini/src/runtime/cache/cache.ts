@@ -594,7 +594,9 @@ class CacheInternal {
 			else if (
 				Array.isArray(value) &&
 				// make typescript happy
-				(typeof previousValue === 'undefined' || Array.isArray(previousValue))
+				(typeof previousValue === 'undefined' ||
+					previousValue === null ||
+					Array.isArray(previousValue))
 			) {
 				// make a shallow copy of the previous value we can  mutate
 				let oldIDs = [...(previousValue || [])] as (string | null)[]
@@ -732,7 +734,7 @@ class CacheInternal {
 				// or we got content for a new list which could already be known. If we just look at
 				// whether the IDs are the same, situations where we have old data that
 				// is still valid would not be triggered
-				const contentChanged = !deepEquals(linkedIDs, oldIDs)
+				const contentChanged = !deepEquals(linkedIDs, oldIDs) || previousValue === null
 
 				// we need to look at the last time we saw each subscriber to check if they need to be added to the spec
 				if (contentChanged || forceNotify) {
