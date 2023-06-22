@@ -726,25 +726,7 @@ test("multiple abstract selections don't conflict", async function () {
 		                                                        }
 		                                                    },
 
-		                                                    "CustomBook": {
-		                                                        "__typename": {
-		                                                            "type": "String",
-		                                                            "keyRaw": "__typename"
-		                                                        },
-
-		                                                        "id": {
-		                                                            "type": "ID",
-		                                                            "keyRaw": "id",
-		                                                            "visible": true
-		                                                        },
-
-		                                                        "isCustom": {
-		                                                            "type": "Boolean",
-		                                                            "keyRaw": "isCustom"
-		                                                        }
-		                                                    },
-
-		                                                    "CustomBlueRay": {
+		                                                    "CustomArticleInterface": {
 		                                                        "__typename": {
 		                                                            "type": "String",
 		                                                            "keyRaw": "__typename"
@@ -763,7 +745,10 @@ test("multiple abstract selections don't conflict", async function () {
 		                                                    }
 		                                                },
 
-		                                                "typeMap": {}
+		                                                "typeMap": {
+		                                                    "CustomBlueRay": "CustomArticleInterface",
+		                                                    "CustomBook": "CustomArticleInterface"
+		                                                }
 		                                            },
 
 		                                            "fields": {
@@ -826,10 +811,31 @@ test("multiple abstract selections don't conflict", async function () {
 		                                                            "keyRaw": "id",
 		                                                            "visible": true
 		                                                        }
+		                                                    },
+
+		                                                    "CustomArticleInterface": {
+		                                                        "__typename": {
+		                                                            "type": "String",
+		                                                            "keyRaw": "__typename"
+		                                                        },
+
+		                                                        "id": {
+		                                                            "type": "ID",
+		                                                            "keyRaw": "id",
+		                                                            "visible": true
+		                                                        },
+
+		                                                        "isCustom": {
+		                                                            "type": "Boolean",
+		                                                            "keyRaw": "isCustom"
+		                                                        }
 		                                                    }
 		                                                },
 
-		                                                "typeMap": {}
+		                                                "typeMap": {
+		                                                    "CustomBlueRay": "CustomArticleInterface",
+		                                                    "CustomBook": "CustomArticleInterface"
+		                                                }
 		                                            },
 
 		                                            "fields": {

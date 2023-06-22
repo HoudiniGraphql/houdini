@@ -946,8 +946,8 @@ describe('typescript', function () {
 			                            };
 			                        };
 			                        "typeMap": {
-			                            "Cat": "Node";
 			                            "User": "Node";
+			                            "Cat": "Node";
 			                        };
 			                    };
 			                    "fields": {
@@ -2034,6 +2034,18 @@ describe('typescript', function () {
 			                "selection": {
 			                    "abstractFields": {
 			                        "fields": {
+			                            "Animal": {
+			                                "isAnimal": {
+			                                    "type": "Boolean";
+			                                    "keyRaw": "isAnimal";
+			                                    "visible": true;
+			                                };
+			                                "__typename": {
+			                                    "type": "String";
+			                                    "keyRaw": "__typename";
+			                                    "visible": true;
+			                                };
+			                            };
 			                            "User": {
 			                                "firstName": {
 			                                    "type": "String";
@@ -2052,6 +2064,11 @@ describe('typescript', function () {
 			                                };
 			                            };
 			                            "Cat": {
+			                                "isAnimal": {
+			                                    "type": "Boolean";
+			                                    "keyRaw": "isAnimal";
+			                                    "visible": true;
+			                                };
 			                                "kitty": {
 			                                    "type": "Boolean";
 			                                    "keyRaw": "kitty";
@@ -2060,11 +2077,6 @@ describe('typescript', function () {
 			                                "id": {
 			                                    "type": "ID";
 			                                    "keyRaw": "id";
-			                                    "visible": true;
-			                                };
-			                                "isAnimal": {
-			                                    "type": "Boolean";
-			                                    "keyRaw": "isAnimal";
 			                                    "visible": true;
 			                                };
 			                                "__typename": {

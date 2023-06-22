@@ -13,20 +13,16 @@ import { connectionSelection } from '../../transforms/list'
 import fieldKey from './fieldKey'
 import { convertValue } from './utils'
 
-const AST = recast.types.builders
-
 // we're going to generate the selection in two passes. the first will create the various field selections
 // and then the second will map the concrete selections onto the abstract ones
 export default function (
 	args: Omit<Parameters<typeof prepareSelection>[0], 'typeMap' | 'abstractTypes'>
 ) {
-	const typeMap: Record<string, string[]> = {}
-	const abstractTypes: string[] = []
 	return mergeSelection({
-		object: prepareSelection({ ...args, typeMap, abstractTypes }),
+		config: args.config,
+		rootType: args.rootType,
+		object: prepareSelection(args),
 		filepath: args.filepath,
-		typeMap,
-		abstractTypes,
 	})
 }
 
@@ -39,8 +35,6 @@ function prepareSelection({
 	path = [],
 	document,
 	inConnection,
-	typeMap,
-	abstractTypes,
 	globalLoading,
 	includeFragments,
 }: {
@@ -52,8 +46,6 @@ function prepareSelection({
 	path?: string[]
 	document: Document
 	inConnection?: boolean
-	typeMap: Record<string, string[]>
-	abstractTypes: string[]
 	globalLoading?: boolean
 	includeFragments?: boolean
 }): SubscriptionSelection {
@@ -82,8 +74,6 @@ function prepareSelection({
 						selections: field.selectionSet.selections,
 						path,
 						document,
-						typeMap,
-						abstractTypes,
 						globalLoading,
 						includeFragments,
 					}).fields || {}
@@ -102,57 +92,7 @@ function prepareSelection({
 				// in order to map the concrete __typename to the inline fragment
 				// we need to look for the intersection between the parent type and the
 				// type condition on the fragment
-				const parentType = config.schema.getType(rootType)!
 				const typeConditionName = field.typeCondition!.name.value
-				const typeCondition = config.schema.getType(typeConditionName)!
-
-				// build up the list of types that we need to map to the type condition's abstract selection
-				const possibleTypes: string[] = []
-
-				// if the type condition is not an interface or union then there's no need to map
-				// to an abstract type. The __typename will always match
-				if (!graphql.isAbstractType(typeCondition)) {
-					// don't do anything
-				}
-				// if the both the parent type and the type condition are abstract, we need to
-				// compute the intersection to map the concrete __typename to
-				else if (graphql.isAbstractType(parentType)) {
-					// get the possible types that the parent could be
-					const possibleParentTypes = config.schema
-						.getPossibleTypes(parentType)
-						.map((type) => type.name)
-
-					// we need to make sure that every possible match has an entry in the typeMap
-					// that maps the concrete __typename to the abstract selection
-					for (const possible of config.schema.getPossibleTypes(typeCondition)) {
-						if (possibleParentTypes.includes(possible.name)) {
-							possibleTypes.push(possible.name)
-						}
-					}
-
-					if (filepath.includes('something/+page.gql')) {
-						console.log('double abstract!', parentType, typeCondition, possibleTypes)
-					}
-				}
-				// the parent type is always an instance of the type condition so we don't need to do
-				// anything fancy. just add an entry in the type map that points the parent to the
-				// abstract version
-				else {
-					possibleTypes.push(rootType)
-				}
-
-				// if we have to map parent type to abstract selection
-				if (possibleTypes.length > 0) {
-					for (const type of possibleTypes) {
-						const existing = typeMap[type]
-						if (!existing || !existing.includes(type)) {
-							typeMap[type] = [typeConditionName].concat(existing || [])
-						}
-						if (!abstractTypes.includes(typeConditionName)) {
-							abstractTypes.push(typeConditionName)
-						}
-					}
-				}
 
 				// add the type specific selection to the abstract collection so the runtime
 				// can compare its concrete __typename
@@ -166,8 +106,6 @@ function prepareSelection({
 						selections: field.selectionSet.selections,
 						path,
 						document,
-						typeMap,
-						abstractTypes,
 						globalLoading,
 						includeFragments,
 					}).fields,
@@ -338,8 +276,6 @@ function prepareSelection({
 					path: pathSoFar,
 					document,
 					inConnection: connectionState,
-					typeMap,
-					abstractTypes,
 					// the global loading flag could be enabled for our children if there is a @loading with cascade set to true
 					globalLoading: forceLoading,
 					includeFragments,
@@ -467,19 +403,18 @@ function prepareSelection({
 }
 
 function mergeSelection({
+	config,
 	filepath,
 	object,
-	typeMap,
-	abstractTypes,
+	rootType,
 }: {
+	config: Config
 	filepath: string
 	object: SubscriptionSelection
-	typeMap: Record<string, string[]>
-	abstractTypes: string[]
+	rootType: string
 }): SubscriptionSelection {
-	// we need to visit every selection in the artifact and
-	// make sure that concrete values are always applied on the
-	// abstract selections
+	// we need to visit every selection in the artifact and make sure that concrete
+	// values are always applied on the abstract selections
 	if (
 		Object.keys(object.fields || {}).length > 0 &&
 		object.abstractFields &&
@@ -489,73 +424,126 @@ function mergeSelection({
 		// every type so the runtime doesn't have to do any kind of merges. this means
 		// that there shouldn't be any overlap between abstract types.
 
-		// if there _is_ overlap, we need to merge them so there's only one selection
-		// to walk down
-		for (const [typeName, possibles] of Object.entries(typeMap)) {
-			// if there is an overlap, we want to delete the entry in the typemap
-			let overlap = false
+		// the final entry in the abstract selection should have fields that are either
+		// concrete types or are abstract type which the parent is mapped to with typeMap
+		const abstractSelection: SubscriptionSelection['abstractFields'] = {
+			fields: {},
+			typeMap: {},
+		}
 
-			// if the typeName in the map also has its own abstract selection then
-			// we need to merge every mapped type into the abstract selection
+		// as we are looking for overlaps between concrete selections and abstract selections
+		// we could run into a single type that falls within multiple abstract types.
+		// those types need to have a single entry in the abstract selection that merges them.
+
+		// a mapping from abstract types that are present in the selection
+		// to the list of concrete types that implement the abstract type
+		const possibleTypes: Record<string, string[]> = {}
+
+		// any concrete types that are present in the abstract selection get
+		// entries in the final result
+		for (const [typeName, typeSelection] of Object.entries(object.abstractFields.fields)) {
+			// grab the type with the matching name from the schema
+			const gqlType = config.schema.getType(typeName)
+
+			// concrete types get their selection copied directly
+			abstractSelection.fields[typeName] = deepMerge(
+				filepath,
+				typeSelection,
+				abstractSelection.fields[typeName] ?? {}
+			)
+
+			// if there is an abstract
+			if (graphql.isAbstractType(gqlType)) {
+				for (const possible of config.schema.getPossibleTypes(gqlType)) {
+					possibleTypes[typeName] = [possible.name, ...(possibleTypes[typeName] ?? [])]
+				}
+			}
+		}
+
+		// if a concrete version of an abstract type is present we need to copy the
+		// abstract selection there too
+		for (const [typename, possibles] of Object.entries(possibleTypes)) {
 			for (const possible of possibles) {
-				if (object.abstractFields.fields[typeName]) {
-					object.abstractFields!.fields[typeName] = deepMerge(
+				if (abstractSelection.fields[possible]) {
+					abstractSelection.fields[possible] = deepMerge(
+						filepath,
+						abstractSelection.fields[typename] ?? {},
+						abstractSelection.fields[possible] ?? {}
+					)
+				}
+			}
+		}
+
+		// there could be overlap between the concrete types of multiple abstract selections
+
+		// a mapping of every concrete implementation of one of the abstract types to the list of abstract
+		// types it implements
+		const targetSelections: Record<string, string[]> = {}
+		for (const [typeName, possibles] of Object.entries(possibleTypes)) {
+			for (const possible of possibles) {
+				targetSelections[possible] = [...(targetSelections[possible] || []), typeName]
+			}
+		}
+
+		// process the overlap
+		for (const [typeName, possibles] of Object.entries(targetSelections)) {
+			// if the possible type already has a selection then we need to merge
+			// the abstract selection into the concrete one
+
+			// not sure how this would happen but it makes the logic cleaner
+			if (possibles.length === 0) {
+				continue
+			}
+			// if there is only one entry in the possible list then we just need
+			// to map it to the concrete selection
+			else if (possibles.length === 1) {
+				abstractSelection.typeMap[typeName] = possibles[0]
+			}
+			// if there are multiple abstract types that a particular type implements
+			// then we need to add an entry for the concrete type that merges them
+			else {
+				for (const possible of possibles) {
+					abstractSelection.fields[possible] = deepMerge(
 						filepath,
 						object.abstractFields.fields[typeName] ?? {},
 						object.abstractFields.fields[possible] ?? {}
 					)
-
-					// there was in fact overlap between the mapped type and another abstract selection
-					overlap = true
 				}
 			}
+		}
 
-			// delete the overlapping key if there was overlap
-			if (overlap) {
-				delete typeMap[typeName]
+		// now that we have the final type map, we don't need to include any entries
+		// that are not possible given the parent type
+		const parentType = config.schema.getType(rootType)
+		const possibleParents = graphql.isAbstractType(parentType)
+			? config.schema.getPossibleTypes(parentType)?.map((t) => t.name)
+			: []
+		for (const key of Object.keys(abstractSelection.typeMap)) {
+			if (
+				(!possibleParents.includes(key) && rootType !== key) ||
+				abstractSelection.fields[key]
+			) {
+				delete abstractSelection.typeMap[key]
 			}
 		}
 
-		// if there is more than one selection for the concrete type, and we got this far,
-		// we need to create a new entry in the abstract selection that merges them together
-		for (const [type, options] of Object.entries(typeMap)) {
-			if (options.length > 1) {
-				object.abstractFields!.fields[type] = deepMerge(
-					filepath,
-					...options.map((opt) => object.abstractFields!.fields[opt] || {})
-				)
-
-				delete typeMap[type]
-			}
-		}
 		// make sure that every abstract type is also processing the concrete selection
-		for (const [type, sel] of Object.entries(object.abstractFields?.fields || {})) {
-			object.abstractFields!.fields[type] = deepMerge(filepath, sel || {}, object.fields!)
+		for (const [type, sel] of Object.entries(abstractSelection.fields || {})) {
+			abstractSelection.fields[type] = deepMerge(filepath, sel || {}, object.fields!)
 		}
 
-		// if we got this far, the typeMap should only have elements pointing to lists of one
-		for (const [type, options] of Object.entries(typeMap)) {
-			object.abstractFields.typeMap[type] = options[0]
-		}
-
-		// clean up the abstract types that got merged away
-		const usedTypes = Object.values(object.abstractFields.typeMap)
-		for (const type of abstractTypes) {
-			// if there is no entry in the type map for them, it can be delete
-			if (!usedTypes.includes(type)) {
-				delete object.abstractFields.fields[type]
-			}
-		}
+		// use the cleaned up selection
+		object.abstractFields = abstractSelection
 	}
 
 	// now that we've cleaned up this local node, we need to walk down and do the same
-	for (const [key, value] of Object.entries(object.fields ?? {})) {
+	for (const value of Object.values(object.fields ?? {})) {
 		const selection = value.selection
 		if (selection) {
 			mergeSelection({
+				config,
+				rootType: value.type,
 				filepath,
-				typeMap,
-				abstractTypes,
 				object: selection,
 			})
 		}
@@ -563,13 +551,13 @@ function mergeSelection({
 
 	// and walk down the abstract selections too
 	for (const [type, selection] of Object.entries(object.abstractFields?.fields ?? {})) {
-		for (const [key, value] of Object.entries(selection ?? {})) {
+		for (const value of Object.values(selection ?? {})) {
 			const selection = value.selection
 			if (selection) {
 				mergeSelection({
+					config,
+					rootType: value.type,
 					filepath,
-					typeMap,
-					abstractTypes,
 					object: selection,
 				})
 			}
