@@ -274,24 +274,24 @@ export class Cache {
 		this.#notifySubscribers(toNotify)
 	}
 
-	//reset the whole cache
+	// reset the whole cache
 	reset() {
-		//Reset Subscriptions
+		// Reset Subscriptions
 		const subSpecs = this._internal_unstable.subscriptions.reset()
 
-		//Reset StaleManager
+		// Reset StaleManager
 		this._internal_unstable.staleManager.reset()
 
-		//Reset GarbageCollector
+		// Reset GarbageCollector
 		this._internal_unstable.lifetimes.reset()
 
-		//Reset Lists
+		// Reset Lists
 		this._internal_unstable.lists.reset()
 
-		//Reset InMemory Storage
+		// Reset InMemory Storage
 		this._internal_unstable.storage.reset()
 
-		//Notify Subscribers
+		// Notify Subscribers
 		this.#notifySubscribers(subSpecs)
 	}
 

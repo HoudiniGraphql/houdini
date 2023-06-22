@@ -324,3 +324,14 @@ user.markStale('name')
 const user = cache.get('User', { id: '1' })
 user.markStale('name' { when: { pattern: 'capitalize' } })
 ```
+
+## Resetting the Cache
+
+In some situations, it is necessary to reset the cache to a totally blank state. To do this, you
+should use the `reset` method:
+
+```typescript
+import { cache } from '$houdini'
+
+cache.reset()
+```
