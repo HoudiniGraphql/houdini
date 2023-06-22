@@ -1504,6 +1504,12 @@ test('selections with unions of abstract types', async function () {
 		                            },
 
 		                            "Cat": {
+		                                "id": {
+		                                    "type": "ID",
+		                                    "keyRaw": "id",
+		                                    "visible": true
+		                                },
+
 		                                "owner": {
 		                                    "type": "User",
 		                                    "keyRaw": "owner",
@@ -1524,12 +1530,6 @@ test('selections with unions of abstract types', async function () {
 		                                        }
 		                                    },
 
-		                                    "visible": true
-		                                },
-
-		                                "id": {
-		                                    "type": "ID",
-		                                    "keyRaw": "id",
 		                                    "visible": true
 		                                },
 
@@ -1669,18 +1669,6 @@ test('selections with concrete types matching multiple abstract types', async fu
 		                            },
 
 		                            "Ghost": {
-		                                "aka": {
-		                                    "type": "String",
-		                                    "keyRaw": "aka",
-		                                    "visible": true
-		                                },
-
-		                                "name": {
-		                                    "type": "String",
-		                                    "keyRaw": "name",
-		                                    "visible": true
-		                                },
-
 		                                "cats": {
 		                                    "type": "Cat",
 		                                    "keyRaw": "cats",
@@ -1701,6 +1689,18 @@ test('selections with concrete types matching multiple abstract types', async fu
 		                                        }
 		                                    },
 
+		                                    "visible": true
+		                                },
+
+		                                "aka": {
+		                                    "type": "String",
+		                                    "keyRaw": "aka",
+		                                    "visible": true
+		                                },
+
+		                                "name": {
+		                                    "type": "String",
+		                                    "keyRaw": "name",
 		                                    "visible": true
 		                                },
 
@@ -6355,7 +6355,7 @@ test('nested abstract fragments', async function () {
 	const docs: Document[] = [
 		mockCollectedDoc(`
 			query AnimalsOverview {
-				animals { 
+				animals {
 					...AnimalsOverviewList
 				}
 			}
@@ -6385,7 +6385,7 @@ test('nested abstract fragments', async function () {
 		export default {
 		    "name": "AnimalsOverview",
 		    "kind": "HoudiniQuery",
-		    "hash": "cf84a5195b5f72f4db2238369ff8189487b82b4703d4f4c32a8e86a3bcc6260b",
+		    "hash": "76b03979f7da0a69d5fbf2aa80f2ff7610168ec74b7545b16344b1e37deca9d2",
 
 		    "raw": \`query AnimalsOverview {
 		  animals {
@@ -6521,7 +6521,7 @@ test('nested abstract fragments', async function () {
 		    "partial": false
 		};
 
-		"HoudiniHash=cf84a5195b5f72f4db2238369ff8189487b82b4703d4f4c32a8e86a3bcc6260b";
+		"HoudiniHash=76b03979f7da0a69d5fbf2aa80f2ff7610168ec74b7545b16344b1e37deca9d2";
 	`)
 
 	expect(docs[1]).toMatchInlineSnapshot(`
