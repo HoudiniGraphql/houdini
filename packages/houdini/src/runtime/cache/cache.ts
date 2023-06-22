@@ -596,7 +596,6 @@ class CacheInternal {
 				// make typescript happy
 				(typeof previousValue === 'undefined' ||
 					previousValue === null ||
-					previousValue === null ||
 					Array.isArray(previousValue))
 			) {
 				// make a shallow copy of the previous value we can  mutate
