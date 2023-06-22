@@ -108,4 +108,8 @@ export class StaleManager {
 			}
 		}
 	}
+
+	reset() {
+		this.fieldsTime.clear()
+	}
 }
