@@ -2034,18 +2034,6 @@ describe('typescript', function () {
 			                "selection": {
 			                    "abstractFields": {
 			                        "fields": {
-			                            "Animal": {
-			                                "isAnimal": {
-			                                    "type": "Boolean";
-			                                    "keyRaw": "isAnimal";
-			                                    "visible": true;
-			                                };
-			                                "__typename": {
-			                                    "type": "String";
-			                                    "keyRaw": "__typename";
-			                                    "visible": true;
-			                                };
-			                            };
 			                            "User": {
 			                                "firstName": {
 			                                    "type": "String";

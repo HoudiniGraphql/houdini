@@ -532,6 +532,14 @@ function mergeSelection({
 			abstractSelection.fields[type] = deepMerge(filepath, sel || {}, object.fields!)
 		}
 
+		// if every possible type of an abstract selection is present then we can remove
+		// the abstract entry
+		for (const [typename, possibles] of Object.entries(possibleTypes)) {
+			if (possibles.every((p) => abstractSelection.fields[p])) {
+				delete abstractSelection.fields[typename]
+			}
+		}
+
 		// use the cleaned up selection
 		object.abstractFields = abstractSelection
 	}
