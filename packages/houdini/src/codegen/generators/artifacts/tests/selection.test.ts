@@ -746,8 +746,8 @@ test("multiple abstract selections don't conflict", async function () {
 		                                                },
 
 		                                                "typeMap": {
-		                                                    "CustomBlueRay": "CustomArticleInterface",
-		                                                    "CustomBook": "CustomArticleInterface"
+		                                                    "CustomBook": "CustomArticleInterface",
+		                                                    "CustomBlueRay": "CustomArticleInterface"
 		                                                }
 		                                            },
 
@@ -833,8 +833,8 @@ test("multiple abstract selections don't conflict", async function () {
 		                                                },
 
 		                                                "typeMap": {
-		                                                    "CustomBlueRay": "CustomArticleInterface",
-		                                                    "CustomBook": "CustomArticleInterface"
+		                                                    "CustomBook": "CustomArticleInterface",
+		                                                    "CustomBlueRay": "CustomArticleInterface"
 		                                                }
 		                                            },
 

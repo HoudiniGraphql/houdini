@@ -559,8 +559,8 @@ test('interface to interface inline fragment', async function () {
 		                        },
 
 		                        "typeMap": {
-		                            "Cat": "Friend",
-		                            "User": "Friend"
+		                            "User": "Friend",
+		                            "Cat": "Friend"
 		                        }
 		                    },
 
@@ -1654,37 +1654,6 @@ test('selections with concrete types matching multiple abstract types', async fu
 		                "selection": {
 		                    "abstractFields": {
 		                        "fields": {
-		                            "CatOwner": {
-		                                "cats": {
-		                                    "type": "Cat",
-		                                    "keyRaw": "cats",
-
-		                                    "selection": {
-		                                        "fields": {
-		                                            "name": {
-		                                                "type": "String",
-		                                                "keyRaw": "name",
-		                                                "visible": true
-		                                            },
-
-		                                            "id": {
-		                                                "type": "ID",
-		                                                "keyRaw": "id",
-		                                                "visible": true
-		                                            }
-		                                        }
-		                                    },
-
-		                                    "visible": true
-		                                },
-
-		                                "__typename": {
-		                                    "type": "String",
-		                                    "keyRaw": "__typename",
-		                                    "visible": true
-		                                }
-		                            },
-
 		                            "Node": {
 		                                "id": {
 		                                    "type": "ID",
@@ -1732,6 +1701,43 @@ test('selections with concrete types matching multiple abstract types', async fu
 		                                "name": {
 		                                    "type": "String",
 		                                    "keyRaw": "name",
+		                                    "visible": true
+		                                },
+
+		                                "__typename": {
+		                                    "type": "String",
+		                                    "keyRaw": "__typename",
+		                                    "visible": true
+		                                }
+		                            },
+
+		                            "User": {
+		                                "id": {
+		                                    "type": "ID",
+		                                    "keyRaw": "id",
+		                                    "visible": true
+		                                },
+
+		                                "cats": {
+		                                    "type": "Cat",
+		                                    "keyRaw": "cats",
+
+		                                    "selection": {
+		                                        "fields": {
+		                                            "name": {
+		                                                "type": "String",
+		                                                "keyRaw": "name",
+		                                                "visible": true
+		                                            },
+
+		                                            "id": {
+		                                                "type": "ID",
+		                                                "keyRaw": "id",
+		                                                "visible": true
+		                                            }
+		                                        }
+		                                    },
+
 		                                    "visible": true
 		                                },
 
