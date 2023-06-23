@@ -21,6 +21,7 @@ const config = testConfig({
 			entity: Entity!
 			listOfLists: [[User]]!
 			node(id: ID!): Node
+			pets: [Pet!]!
 		}
 
 		type Mutation {
@@ -62,10 +63,18 @@ const config = testConfig({
 			isAnimal: Boolean!
 		}
 
+		type Dog implements Node & Animal {
+			id: ID!
+			nickname: String
+			pup: Boolean!
+			isAnimal: Boolean!
+		}
 
 		interface Animal {
 			isAnimal: Boolean!
 		}
+
+		union Pet = Cat | Dog | User
 
 		union Entity = User | Cat
 
@@ -94,6 +103,135 @@ const config = testConfig({
 })
 
 describe('typescript', function () {
+	test.only('canastro', async function () {
+		// the document to test
+		const doc = mockCollectedDoc(`
+			fragment TestFragment on Pet {
+				... on Animal {
+					isAnimal
+				}
+			}
+		`)
+
+		// const doc = mockCollectedDoc(
+		// 	`fragment TestFragment on User { firstName nickname enumValue }`
+		// )
+
+		// execute the generator
+		await runPipeline(config, [doc])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document))
+
+		console.log(recast.parse(fileContents!, {
+			parser: typeScriptParser,
+		}).toString())
+
+
+		/**
+			THIS TEST WILL OUTPUT
+
+			export type TestFragment$data = {} & (({
+			    readonly isAnimal: boolean;
+			    readonly __typename: "Cat";
+			}) | ({
+			    readonly isAnimal: boolean;
+			    readonly __typename: "Dog";
+			}) | ({
+			    readonly __typename: "non-exhaustive; don't match this";
+			}));
+
+			BUT I WOULD EXPECT SOMETHING LIKE
+
+			export type TestFragment$data = {
+				readonly isAnimal: boolean;
+			} & (({
+			    readonly isAnimal: boolean;
+			    readonly __typename: "Cat";
+			}) | ({
+			    readonly isAnimal: boolean;
+			    readonly __typename: "Dog";
+			}) | ({
+			    readonly __typename: "non-exhaustive; don't match this";
+			}));
+
+			AS, AT COMPILE TIME WE ARE SURE THAT ALL TYPES HAVE A COMMON INTERFACE, WE SHOULD BE ABLE 
+			TO USE THAT INTERFACE TO EXTRACT THE COMMON TYPES AND VOID DOING _typename === 'xxx' TO
+			BE ABLE TO USE THE COMMON PROPS
+		**/
+		
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents!, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+			export type TestFragment$input = {};
+
+			export type TestFragment = {
+			    readonly "shape"?: TestFragment$data;
+			    readonly " $fragments": {
+			        "TestFragment": any;
+			    };
+			};
+
+			export type TestFragment$data = {} & (({
+			    readonly isAnimal: boolean;
+			    readonly __typename: "Cat";
+			}) | ({
+			    readonly isAnimal: boolean;
+			    readonly __typename: "Dog";
+			}) | ({
+			    readonly __typename: "non-exhaustive; don't match this";
+			}));
+
+			export type TestFragment$artifact = {
+			    "name": "TestFragment";
+			    "kind": "HoudiniFragment";
+			    "hash": "4bb09fad39a0983ebd2b4ebbdabb5f7ee944bdb89b1af4dbc40a6290390df70d";
+			    "raw": \`fragment TestFragment on Pet {
+			  ... on Animal {
+			    isAnimal
+			  }
+			  __typename
+			}
+			\`;
+			    "rootType": "Pet";
+			    "selection": {
+			        "abstractFields": {
+			            "fields": {
+			                "Animal": {
+			                    "isAnimal": {
+			                        "type": "Boolean";
+			                        "keyRaw": "isAnimal";
+			                        "visible": true;
+			                    };
+			                    "__typename": {
+			                        "type": "String";
+			                        "keyRaw": "__typename";
+			                        "visible": true;
+			                    };
+			                };
+			            };
+			            "typeMap": {
+			                "Cat": "Animal";
+			                "Dog": "Animal";
+			            };
+			        };
+			        "fields": {
+			            "__typename": {
+			                "type": "String";
+			                "keyRaw": "__typename";
+			                "visible": true;
+			            };
+			        };
+			    };
+			    "pluginData": {};
+			};
+	`)
+	})
+
 	test('fragment types', async function () {
 		// the document to test
 		const doc = mockCollectedDoc(
