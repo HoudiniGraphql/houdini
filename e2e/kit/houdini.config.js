@@ -27,7 +27,7 @@ const config = {
     RentedBook: {
       keys: ['userId', 'bookId']
     },
-    UnionAorB: {
+    AorB: {
       keys: []
     }
   },

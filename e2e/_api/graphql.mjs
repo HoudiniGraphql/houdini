@@ -115,7 +115,7 @@ export const resolvers = {
 		hello: () => {
 			return 'Hello World! // From Houdini!'
 		},
-		aOrB: () => {
+		aOrB: (_, args) => {
 			const toRet = []
 
 			toRet.push(
@@ -130,7 +130,7 @@ export const resolvers = {
 				})
 			)
 
-			return toRet
+			return connectionFromArray(toRet, args)
 		},
 		usersList: (_, args) => {
 			return [...getUserSnapshot(args.snapshot)].splice(args.offset || 0, args.limit)
@@ -450,12 +450,12 @@ export const resolvers = {
 			throw new GraphQLError('RentedBook not found', { code: 403 })
 		},
 		createA: (_, args) => {
-			const a = { id: listA.length + 1, a: args.a }
+			const a = { __typename: 'A', id: listA.length + 1, a: args.a }
 			listA.push(a)
 			return a
 		},
 		createB: (_, args) => {
-			const b = { id: listB.length + 1, b: args.b }
+			const b = { __typename: 'B', id: listB.length + 1, b: args.b }
 			listB.push(b)
 			return b
 		},
