@@ -567,7 +567,7 @@ class CacheInternal {
 				let linkedID: string | null = null
 				if (value !== null) {
 					// if the value is embedded then the id needs to be keyed by the field
-					linkedID = !this.isEmbeded(linkedType, value)
+					linkedID = !this.isEmbedded(linkedType, value)
 						? this.id(linkedType, value)
 						: `${parent}.${key}`
 				}
@@ -1049,10 +1049,10 @@ class CacheInternal {
 			// if we run into a null cursor that is inside of a connection then
 			// we know its a generated value and should not force us to mark the whole parent as
 			// null (prevent the null cascade) or be treated as partial data
-			const embededCursor = key === 'cursor' && stepsFromConnection === 1
+			const embeddedCursor = key === 'cursor' && stepsFromConnection === 1
 
 			// if we dont have a value, we know this result is going to be partial
-			if (typeof value === 'undefined' && !embededCursor) {
+			if (typeof value === 'undefined' && !embeddedCursor) {
 				partial = true
 			}
 
@@ -1167,7 +1167,7 @@ class CacheInternal {
 
 			// regardless of how the field was processed, if we got a null value assigned
 			// and the field is not nullable, we need to cascade up
-			if (fieldTarget[attributeName] === null && !nullable && !embededCursor) {
+			if (fieldTarget[attributeName] === null && !nullable && !embeddedCursor) {
 				// if we got a null value assigned and the field is not nullable, we need to cascade up
 				// except when it's an abstract type with @required children - then we return a dummy object
 				if (abstractHasRequired) {
@@ -1216,6 +1216,14 @@ class CacheInternal {
 
 	computeID(type: string, data: any): string {
 		return computeID(this.config, type, data)
+	}
+
+	isEmbedded(linkedType: string, value: GraphQLObject) {
+		const idFields = this.idFields(linkedType)
+		return (
+			idFields.length === 0 ||
+			idFields.filter((field) => typeof value[field] === 'undefined').length > 0
+		)
 	}
 
 	hydrateNestedList({
@@ -1385,7 +1393,7 @@ class CacheInternal {
 			}
 
 			// if this isn't an embedded reference, use the entry's id in the link list
-			if (!this.isEmbeded(linkedType, entry as GraphQLObject)) {
+			if (!this.isEmbedded(linkedType, entry as GraphQLObject)) {
 				const id = this.id(innerType, entry as {})
 				if (id) {
 					linkedID = id
@@ -1422,14 +1430,6 @@ class CacheInternal {
 		if (this.storage.layerCount === 1) {
 			this.storage.topLayer.removeUndefinedFields()
 		}
-	}
-
-	isEmbeded(linkedType: string, value: GraphQLObject) {
-		const idFields = this.idFields(linkedType)
-		return (
-			idFields.length === 0 ||
-			idFields.filter((field) => typeof value[field] === 'undefined').length > 0
-		)
 	}
 }
 
