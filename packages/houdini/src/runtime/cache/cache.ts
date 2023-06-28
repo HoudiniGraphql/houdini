@@ -562,10 +562,10 @@ class CacheInternal {
 
 				// figure out if this is an embedded object or a linked one by looking for all of the fields marked as
 				// required to compute the entity's id
+				const idFields = this.idFields(linkedType)
 				const embedded =
-					this.idFields(linkedType)?.filter(
-						(field) => typeof value[field] === 'undefined'
-					).length > 0
+					idFields.length === 0 ||
+					idFields.filter((field) => typeof value[field] === 'undefined').length > 0
 
 				// figure out the new target of the object link
 				let linkedID: string | null = null
@@ -1378,10 +1378,11 @@ class CacheInternal {
 
 			// figure out if this is an embedded list or a linked one by looking for all of the fields marked as
 			// required to compute the entity's id
+			const idFields = this.idFields(linkedType)
 			const embedded =
-				this.idFields(linkedType)?.filter(
-					(field) => typeof (entry as GraphQLObject)[field] === 'undefined'
-				).length > 0
+				idFields.length === 0 ||
+				idFields.filter((field) => typeof (entry as GraphQLObject)[field] === 'undefined')
+					.length > 0
 
 			let innerType = linkedType
 
