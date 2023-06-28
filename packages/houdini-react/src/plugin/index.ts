@@ -259,4 +259,18 @@ ${
 
 export default plugin('houdini-react', hooks)
 
-export type HoudiniReactPluginConfig = {}
+export type HoudiniReactPluginConfig = {
+	auth?: HoudiniReactAuthStrategy
+}
+
+type HoudiniReactAuthStrategy =
+	| {
+			redirect: string
+			sessionKeys: string[]
+			url: string
+	  }
+	| {
+			mutation: string
+			sessionKeys: string[]
+			url: string
+	  }
