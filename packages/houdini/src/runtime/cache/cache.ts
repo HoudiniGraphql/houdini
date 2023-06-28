@@ -560,9 +560,6 @@ class CacheInternal {
 					}
 				}
 
-				// figure out if this is an embedded object or a linked one by looking for all of the fields marked as
-				// required to compute the entity's id
-
 				// figure out the new target of the object link
 				let linkedID: string | null = null
 				if (value !== null) {
