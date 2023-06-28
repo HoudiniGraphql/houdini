@@ -1078,7 +1078,7 @@ test('variables referenced deeply in objects', async function () {
 		}
 
 		fragment QueryFragment_32RKor on Query {
-		  usersByOffset(filter: {name: $name}) {
+		  usersByOffset(filter: {name: "Foo"}) {
 		    id
 		  }
 		  __typename
@@ -1153,7 +1153,7 @@ test('can use the same fragment/argument combo multiple times', async function (
 		mockCollectedDoc(
 			`
 				query TestQuery2 {
-					...QueryFragment @with(name: "Foo")
+					...QueryFragment @with(name: "Bar")
 				}
 			`
 		),
@@ -1174,7 +1174,7 @@ test('can use the same fragment/argument combo multiple times', async function (
 		}
 
 		fragment QueryFragment_32RKor on Query {
-		  usersByOffset(filter: {name: $name}) {
+		  usersByOffset(filter: {name: "Foo}) {
 		    id
 		  }
 		  __typename
@@ -1236,7 +1236,7 @@ test('can use the same fragment/argument combo multiple times', async function (
 		}
 
 		fragment QueryFragment_32RKor on Query {
-		  usersByOffset(filter: {name: $name}) {
+		  usersByOffset(filter: {name: "Bar}) {
 		    id
 		  }
 		  __typename
@@ -1273,7 +1273,7 @@ test('can use the same fragment/argument combo multiple times', async function (
 		                "arguments": {
 		                    "name": {
 		                        "kind": "StringValue",
-		                        "value": "Foo"
+		                        "value": "Bar"
 		                    }
 		                }
 		            }
