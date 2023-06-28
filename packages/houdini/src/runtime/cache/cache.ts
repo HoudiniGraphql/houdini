@@ -562,15 +562,14 @@ class CacheInternal {
 
 				// figure out if this is an embedded object or a linked one by looking for all of the fields marked as
 				// required to compute the entity's id
-				const idFields = this.idFields(linkedType)
-				const embedded =
-					idFields.length === 0 ||
-					idFields.filter((field) => typeof value[field] === 'undefined').length > 0
 
 				// figure out the new target of the object link
 				let linkedID: string | null = null
 				if (value !== null) {
-					linkedID = !embedded ? this.id(linkedType, value) : `${parent}.${key}`
+					// if the value is embedded then the id needs to be keyed by the field
+					linkedID = !this.isEmbeded(linkedType, value)
+						? this.id(linkedType, value)
+						: `${parent}.${key}`
 				}
 				let linkChange = linkedID !== previousValue
 
@@ -1050,10 +1049,10 @@ class CacheInternal {
 			// if we run into a null cursor that is inside of a connection then
 			// we know its a generated value and should not force us to mark the whole parent as
 			// null (prevent the null cascade) or be treated as partial data
-			const embeddedCursor = key === 'cursor' && stepsFromConnection === 1
+			const embededCursor = key === 'cursor' && stepsFromConnection === 1
 
 			// if we dont have a value, we know this result is going to be partial
-			if (typeof value === 'undefined' && !embeddedCursor) {
+			if (typeof value === 'undefined' && !embededCursor) {
 				partial = true
 			}
 
@@ -1168,7 +1167,7 @@ class CacheInternal {
 
 			// regardless of how the field was processed, if we got a null value assigned
 			// and the field is not nullable, we need to cascade up
-			if (fieldTarget[attributeName] === null && !nullable && !embeddedCursor) {
+			if (fieldTarget[attributeName] === null && !nullable && !embededCursor) {
 				// if we got a null value assigned and the field is not nullable, we need to cascade up
 				// except when it's an abstract type with @required children - then we return a dummy object
 				if (abstractHasRequired) {
@@ -1375,15 +1374,6 @@ class CacheInternal {
 			// start off building up the embedded id
 			// @ts-ignore
 			let linkedID = `${recordID}.${key}[${this.storage.nextRank}]`
-
-			// figure out if this is an embedded list or a linked one by looking for all of the fields marked as
-			// required to compute the entity's id
-			const idFields = this.idFields(linkedType)
-			const embedded =
-				idFields.length === 0 ||
-				idFields.filter((field) => typeof (entry as GraphQLObject)[field] === 'undefined')
-					.length > 0
-
 			let innerType = linkedType
 
 			const typename = entryObj.__typename as string | undefined
@@ -1395,7 +1385,7 @@ class CacheInternal {
 			}
 
 			// if this isn't an embedded reference, use the entry's id in the link list
-			if (!embedded) {
+			if (!this.isEmbeded(linkedType, entry as GraphQLObject)) {
 				const id = this.id(innerType, entry as {})
 				if (id) {
 					linkedID = id
@@ -1432,6 +1422,14 @@ class CacheInternal {
 		if (this.storage.layerCount === 1) {
 			this.storage.topLayer.removeUndefinedFields()
 		}
+	}
+
+	isEmbeded(linkedType: string, value: GraphQLObject) {
+		const idFields = this.idFields(linkedType)
+		return (
+			idFields.length === 0 ||
+			idFields.filter((field) => typeof value[field] === 'undefined').length > 0
+		)
 	}
 }
 

@@ -362,12 +362,12 @@ export class List {
 			if (!embeddedConnection) {
 				return
 			}
-			const embeddedConnectionID = embeddedConnection as string
+			const embededConnectionID = embeddedConnection as string
 
 			// look at every embedded edge for the one with a node corresponding to the element
 			// we want to delete
 			const { value: edges } = this.cache._internal_unstable.storage.get(
-				embeddedConnectionID,
+				embededConnectionID,
 				'edges'
 			)
 			for (const edge of flatten(edges as NestedList) || []) {
@@ -388,7 +388,7 @@ export class List {
 					targetID = edgeID
 				}
 			}
-			parentID = embeddedConnectionID
+			parentID = embededConnectionID
 			targetKey = 'edges'
 		}
 
