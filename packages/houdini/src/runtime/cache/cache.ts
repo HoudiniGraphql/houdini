@@ -560,17 +560,13 @@ class CacheInternal {
 					}
 				}
 
-				// figure out if this is an embedded object or a linked one by looking for all of the fields marked as
-				// required to compute the entity's id
-				const embedded =
-					this.idFields(linkedType)?.filter(
-						(field) => typeof value[field] === 'undefined'
-					).length > 0
-
 				// figure out the new target of the object link
 				let linkedID: string | null = null
 				if (value !== null) {
-					linkedID = !embedded ? this.id(linkedType, value) : `${parent}.${key}`
+					// if the value is embedded then the id needs to be keyed by the field
+					linkedID = !this.isEmbedded(linkedType, value)
+						? this.id(linkedType, value)
+						: `${parent}.${key}`
 				}
 				let linkChange = linkedID !== previousValue
 
@@ -1219,6 +1215,16 @@ class CacheInternal {
 		return computeID(this.config, type, data)
 	}
 
+	// figure out if this is an embedded object or a linked one by looking for all of the fields marked as
+	// required to compute the entity's id
+	isEmbedded(linkedType: string, value: GraphQLObject) {
+		const idFields = this.idFields(linkedType)
+		return (
+			idFields.length === 0 ||
+			idFields.filter((field) => typeof value[field] === 'undefined').length > 0
+		)
+	}
+
 	hydrateNestedList({
 		fields,
 		variables,
@@ -1375,14 +1381,6 @@ class CacheInternal {
 			// start off building up the embedded id
 			// @ts-ignore
 			let linkedID = `${recordID}.${key}[${this.storage.nextRank}]`
-
-			// figure out if this is an embedded list or a linked one by looking for all of the fields marked as
-			// required to compute the entity's id
-			const embedded =
-				this.idFields(linkedType)?.filter(
-					(field) => typeof (entry as GraphQLObject)[field] === 'undefined'
-				).length > 0
-
 			let innerType = linkedType
 
 			const typename = entryObj.__typename as string | undefined
@@ -1394,7 +1392,7 @@ class CacheInternal {
 			}
 
 			// if this isn't an embedded reference, use the entry's id in the link list
-			if (!embedded) {
+			if (!this.isEmbedded(linkedType, entry as GraphQLObject)) {
 				const id = this.id(innerType, entry as {})
 				if (id) {
 					linkedID = id
