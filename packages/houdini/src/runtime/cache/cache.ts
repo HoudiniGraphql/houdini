@@ -1215,6 +1215,8 @@ class CacheInternal {
 		return computeID(this.config, type, data)
 	}
 
+	// figure out if this is an embedded object or a linked one by looking for all of the fields marked as
+	// required to compute the entity's id
 	isEmbedded(linkedType: string, value: GraphQLObject) {
 		const idFields = this.idFields(linkedType)
 		return (
