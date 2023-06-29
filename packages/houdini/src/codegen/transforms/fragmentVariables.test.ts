@@ -1091,7 +1091,7 @@ test('variables referenced deeply in objects', async function () {
 		        "fields": {
 		            "usersByOffset": {
 		                "type": "User",
-		                "keyRaw": "usersByOffset(filter: {name: $name})",
+		                "keyRaw": "usersByOffset(filter: {name: \\"Foo\\"})",
 
 		                "selection": {
 		                    "fields": {
@@ -1174,7 +1174,7 @@ test('can use the same fragment/argument combo multiple times', async function (
 		}
 
 		fragment QueryFragment_32RKor on Query {
-		  usersByOffset(filter: {name: "Foo}) {
+		  usersByOffset(filter: {name: "Foo"}) {
 		    id
 		  }
 		  __typename
@@ -1187,7 +1187,7 @@ test('can use the same fragment/argument combo multiple times', async function (
 		        "fields": {
 		            "usersByOffset": {
 		                "type": "User",
-		                "keyRaw": "usersByOffset(filter: {name: $name})",
+		                "keyRaw": "usersByOffset(filter: {name: \\"Foo\\"})",
 
 		                "selection": {
 		                    "fields": {
@@ -1229,14 +1229,14 @@ test('can use the same fragment/argument combo multiple times', async function (
 		export default {
 		    "name": "TestQuery2",
 		    "kind": "HoudiniQuery",
-		    "hash": "88dfe4925ce4af6de269e625e7c4577b1b92296c9f75746100943ed5f5281e18",
+		    "hash": "2af53e6fb40c9a4c8773e53112355a003e6bedb3d504a95d8e1369fe963f0322",
 
 		    "raw": \`query TestQuery2 {
-		  ...QueryFragment_32RKor
+		  ...QueryFragment_2wUXVX
 		}
 
-		fragment QueryFragment_32RKor on Query {
-		  usersByOffset(filter: {name: "Bar}) {
+		fragment QueryFragment_2wUXVX on Query {
+		  usersByOffset(filter: {name: "Bar"}) {
 		    id
 		  }
 		  __typename
@@ -1249,7 +1249,7 @@ test('can use the same fragment/argument combo multiple times', async function (
 		        "fields": {
 		            "usersByOffset": {
 		                "type": "User",
-		                "keyRaw": "usersByOffset(filter: {name: $name})",
+		                "keyRaw": "usersByOffset(filter: {name: \\"Bar\\"})",
 
 		                "selection": {
 		                    "fields": {
@@ -1285,6 +1285,6 @@ test('can use the same fragment/argument combo multiple times', async function (
 		    "partial": false
 		};
 
-		"HoudiniHash=88dfe4925ce4af6de269e625e7c4577b1b92296c9f75746100943ed5f5281e18";
+		"HoudiniHash=2af53e6fb40c9a4c8773e53112355a003e6bedb3d504a95d8e1369fe963f0322";
 	`)
 })
