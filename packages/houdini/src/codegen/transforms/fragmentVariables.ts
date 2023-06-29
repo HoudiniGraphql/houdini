@@ -107,6 +107,73 @@ function inlineFragmentArgs({
 		document as graphql.FragmentDefinitionNode
 	).reduce<Record<string, FragmentArgument>>((acc, arg) => ({ ...acc, [arg.name]: arg }), {})
 
+	/**
+	 * Explores a ValueNode deeply and searches for Variable Nodes.
+	 * Could be the first node or any node in an ObjectValueNode.
+	 * E.g. if your using deep fragment arguments:
+	 * ```graphql
+	 *  users(filter: {name: $name}, filter2: {data: {age: $age}})
+	 * ```
+	 *
+	 * It replaced every VariableNode with its explicit value. If there is not argument provided,
+	 * error if the argument is required or delete the node if the argument is optional.
+	 *
+	 * @param node any ValueNode
+	 * @returns the node where all variable nodes get replaced with their explicit values. And null if the argument is optional and not set
+	 */
+	const modifyValue = <T extends graphql.ValueNode>(node: T): T | graphql.ValueNode | null => {
+		// if the node is an ObjectValueNode explore the fields. => Checks if any field contains a variable
+		if (node.kind == 'ObjectValue') {
+			return {
+				...node,
+				fields: node.fields.map((field) => {
+					// Delete the field if the argument is optional and not set in parent
+					const modifiedValue = modifyValue(field.value)
+					if (!modifiedValue) return null
+					return {
+						...field,
+						value: modifyValue(field.value),
+					}
+				}),
+			}
+		}
+
+		// if the node is not a variable node, keep it in case you explore a ObjectValueNode
+		if (node.kind !== 'Variable') {
+			return node
+		}
+
+		// if there's no scope we can't evaluate it
+		if (!scope) {
+			throw new HoudiniError({
+				filepath,
+				message:
+					node.name.value +
+					' is not defined in the current scope: ' +
+					JSON.stringify(scope),
+			})
+		}
+
+		// is the variable in scope
+		const newValue = scope[node.name.value]
+
+		// The value was found in scope
+		if (newValue) {
+			return newValue
+		}
+
+		// if the argument is required
+		if (definitionArgs[node.name.value] && definitionArgs[node.name.value].required) {
+			throw new HoudiniError({
+				filepath,
+				message: 'Missing value for required arg: ' + node.name.value,
+			})
+		}
+
+		// The argument is optional and not set in parent => delete the node.
+		return null
+	}
+
 	const result = structuredClone(
 		graphql.visit(document, {
 			// every time we run into a fragment spread we might need to replace it
@@ -214,38 +281,19 @@ function inlineFragmentArgs({
 			},
 			// look at every time something is used as an argument
 			Argument(node) {
-				// if the argument is a variable we need to expand it to its value (passed from the parent)
-				const value = node.value
-				if (value.kind !== 'Variable') {
-					return
-				}
+				let value = node.value
 
-				// if there's no scope we can't evaluate it
-				if (!scope) {
-					throw new HoudiniError({
-						filepath,
-						message:
-							node.name.value +
-							' is not defined in the current scope: ' +
-							JSON.stringify(scope),
-					})
-				}
+				// Explore the node deeply and check for Variable nodes.
+				// Replace any variable node the the explicit value
+				const newValue = modifyValue(value)
 
-				// is the variable in scope
-				const newValue = scope[value.name.value]
-				// if it is just use it
+				// Replace the value. Will only be null if node is a VariableNode
+				// and no arguments are provided for an optional argument.
 				if (newValue) {
 					return {
 						...node,
 						value: newValue,
 					}
-				}
-				// if the argument is required
-				if (definitionArgs[value.name.value] && definitionArgs[value.name.value].required) {
-					throw new HoudiniError({
-						filepath,
-						message: 'Missing value for required arg: ' + value.name.value,
-					})
 				}
 
 				// if we got this far, theres no value for a non-required arg, remove the node
