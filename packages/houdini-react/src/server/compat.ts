@@ -5,14 +5,8 @@ import { Connect } from 'vite'
 
 import type { Server, ServerMiddleware } from '.'
 
-// and the server that we use in production
-export function connect_server({
-	server,
-	config,
-}: {
-	server: Connect.Server
-	config: Config
-}): Server {
+// wrap vite's dev server in something our handlers can integrate with
+export function dev_server({ server, config }: { server: Connect.Server; config: Config }): Server {
 	return {
 		use(fn: ServerMiddleware) {
 			server.use((req, res, next) => {
@@ -32,7 +26,7 @@ export function connect_server({
 							// dont call next
 							return res.end()
 						},
-						set_cookie(name: string, value: string) {},
+						set_header: res.setHeader,
 					},
 					next
 				)

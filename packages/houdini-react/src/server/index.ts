@@ -40,7 +40,7 @@ const redirect_auth: ServerMiddleware = (req, res, next) => {
 	const { redirectTo, ...session } = Object.fromEntries(searchParams.entries())
 
 	// encode the session information as a cookie in the response
-	res.set_cookie('session', JSON.stringify(session))
+	set_session(res, session)
 
 	// if there is a url to redirect to, do it
 	if (redirectTo) {
@@ -64,5 +64,21 @@ type IncomingRequest = {
 
 type ServerResponse = {
 	redirect(url: string, status?: number): void
-	set_cookie(name: string, value: string): void
+	set_header(name: string, value: string): void
+}
+
+const session_cookie_name = '__houdini__'
+
+function set_session(res: ServerResponse, value: Record<string, string>) {
+	const today = new Date()
+	const expires = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000) // Add 7 days in milliseconds
+
+	// serialize the value
+	const serialized = JSON.stringify(value)
+
+	// set the cookie with a header
+	res.set_header(
+		'Set-Cookie',
+		`${session_cookie_name}=${serialized}; Path=/; HttpOnly; Secure; SameSite=Strict; Expires=${expires.toUTCString()} `
+	)
 }

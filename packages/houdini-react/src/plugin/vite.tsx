@@ -5,7 +5,7 @@ import type { Connect, ViteDevServer } from 'vite'
 import { RouterManifest } from '../runtime'
 import { find_match } from '../runtime/routing/lib/match'
 import { configure_server } from '../server'
-import { connect_server } from '../server/connect'
+import { dev_server } from '../server/compat'
 import { render_server_path } from './conventions'
 
 // in order to coordinate the client and server, the client's pending request cache
@@ -118,12 +118,15 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 	// render that we will use in production. This means that we need to
 	// capture the request before vite's dev server processes it.
 	configureServer(server) {
+		// wrap vite's server into the generic server interface
+		const houdini_server = dev_server({
+			server: server.middlewares,
+			config: server.houdiniConfig,
+		})
+
 		// inject the necessary routes into vite's internal connect server
 		configure_server({
-			server: connect_server({
-				server: server.middlewares,
-				config: server.houdiniConfig,
-			}),
+			server: houdini_server,
 			config: server.houdiniConfig,
 		})
 
