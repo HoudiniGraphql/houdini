@@ -13,7 +13,7 @@ export function dev_server({ server, config }: { server: Connect.Server; config:
 				fn(
 					{
 						url: req.url,
-						headers: req.headers as Record<string, string>,
+						headers: new Headers(req.headers as Record<string, string>),
 					},
 					{
 						...res,
@@ -26,7 +26,7 @@ export function dev_server({ server, config }: { server: Connect.Server; config:
 							// dont call next
 							return res.end()
 						},
-						set_header: res.setHeader,
+						set_header: res.setHeader.bind(res),
 					},
 					next
 				)

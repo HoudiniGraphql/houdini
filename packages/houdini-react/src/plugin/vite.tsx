@@ -6,6 +6,8 @@ import { RouterManifest } from '../runtime'
 import { find_match } from '../runtime/routing/lib/match'
 import { configure_server } from '../server'
 import { dev_server } from '../server/compat'
+import { get_session } from '../server/session'
+import { plugin_config } from './config'
 import { render_server_path } from './conventions'
 
 // in order to coordinate the client and server, the client's pending request cache
@@ -93,7 +95,7 @@ export default {
 				)
 
 				// hydrate the application for interactivity
-				hydrateRoot(document, <App cache={window.__houdini__cache__} {...window.__houdini__nav_caches__} />)
+				hydrateRoot(document, <App cache={window.__houdini__cache__} session={window.__houdini__initial__session__} {...window.__houdini__nav_caches__} />)
 			`
 		}
 
@@ -157,6 +159,13 @@ const render_stream =
 			return next()
 		}
 
+		// load the session information
+		const config = plugin_config(server.houdiniConfig)
+		const session = get_session(
+			new Headers(request.headers as Record<string, string>),
+			config.auth?.sessionKeys ?? []
+		)
+
 		// get the function that we can call to render the response
 		// on the server
 		const { render_to_stream } = await load_render(server)
@@ -174,6 +183,7 @@ const render_stream =
 			loaded_artifacts,
 			url: request.url,
 			cache,
+			session,
 			userAgent: 'Vite',
 		})
 
@@ -189,6 +199,7 @@ const render_stream =
 		injectToStream(`
 		<script>
 			window.__houdini__initial__cache__ = ${cache.serialize()};
+			window.__houdini__initial__session__ = ${JSON.stringify(session)};
 		</script>
 
 		<script type="module" src="/@vite/client" async=""></script>
@@ -210,6 +221,7 @@ async function load_render(server: ViteDevServer & { houdiniConfig: Config }) {
 				loaded_artifacts: Record<string, QueryArtifact>
 				cache: Cache
 				url: string
+				session: App.Session
 			} & Parameters<typeof streamingRender>[1]
 		) => ReturnType<typeof streamingRender>
 	}

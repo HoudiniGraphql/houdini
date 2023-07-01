@@ -22,13 +22,14 @@ import { renderToStream } from 'react-streaming/server'
 import App from './App'
 import { router_cache } from '$houdini'
 
-export function render_to_stream({url, cache, loaded_queries, loaded_artifacts, ...config}) {
+export function render_to_stream({url, cache, loaded_queries, loaded_artifacts, session, ...config}) {
 	return renderToStream(
 		<App
 			intialURL={url}
 			cache={cache}
 			{...router_cache()}
 			loaded_queries={loaded_queries}
+			session={session}
 			loaded_artifacts={loaded_artifacts}
 		/>
 		, config

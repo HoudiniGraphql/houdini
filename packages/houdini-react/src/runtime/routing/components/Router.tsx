@@ -302,6 +302,7 @@ export function RouterContextProvider({
 	data_cache,
 	pending_cache,
 	last_variables,
+	session: ssrSession = {},
 }: {
 	children: React.ReactElement
 	client: HoudiniClient
@@ -311,7 +312,11 @@ export function RouterContextProvider({
 	data_cache: SuspenseCache<DocumentStore<GraphQLObject, GraphQLVariables>>
 	pending_cache: PendingCache
 	last_variables: LRUCache<GraphQLVariables>
+	session?: App.Session
 }) {
+	// the session is top level state
+	const [session, setSession] = React.useState<App.Session>(ssrSession)
+
 	return (
 		<Context.Provider
 			value={{
@@ -322,6 +327,7 @@ export function RouterContextProvider({
 				data_cache,
 				pending_cache,
 				last_variables,
+				session,
 			}}
 		>
 			{children}
@@ -349,6 +355,9 @@ type RouterContext = {
 
 	// A way to track the last known good variables
 	last_variables: LRUCache<GraphQLVariables>
+
+	// The current session
+	session: App.Session
 }
 
 export type PendingCache = SuspenseCache<
@@ -372,6 +381,10 @@ export function useClient() {
 
 export function useCache() {
 	return useRouterContext().cache
+}
+
+export function useSession() {
+	return useRouterContext().session
 }
 
 export function useCurrentVariables(): GraphQLVariables {
