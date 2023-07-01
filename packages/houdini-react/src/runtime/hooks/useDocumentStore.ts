@@ -4,6 +4,7 @@ import type { GraphQLObject } from 'houdini'
 import * as React from 'react'
 
 import { useClient } from '../routing'
+import { useSession } from '../routing/components/Router'
 import { useIsMountedRef } from './useIsMounted'
 
 export type UseDocumentStoreParams<

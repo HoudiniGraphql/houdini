@@ -131,6 +131,9 @@ function useLoadPage({
 	// get a reference to the current stream
 	const stream = useStream()
 
+	// grab the current session value
+	const session = useSession()
+
 	// the function to load a query using the cache references
 	function load_query({ id, artifact }: { id: string; artifact: QueryArtifact }): Promise<void> {
 		// track the new variables
@@ -157,6 +160,7 @@ function useLoadPage({
 				.send({
 					variables: variables,
 					cacheParams: { disableSubscriptions: true },
+					session,
 				})
 				.then(() => {
 					data_cache.set(id, observer)
@@ -315,7 +319,24 @@ export function RouterContextProvider({
 	session?: App.Session
 }) {
 	// the session is top level state
+	// on the server, we can just use
 	const [session, setSession] = React.useState<App.Session>(ssrSession)
+
+	// if we detect an event that contains a new session value
+	const handleNewSession = React.useCallback((event: CustomEvent<App.Session>) => {
+		setSession(event.detail)
+	}, [])
+
+	React.useEffect(() => {
+		// @ts-ignore
+		window.addEventListener('_houdini_session_', handleNewSession)
+
+		// cleanup this component
+		return () => {
+			// @ts-ignore
+			window.removeEventListener('_houdini_session_', handleNewSession)
+		}
+	}, [])
 
 	return (
 		<Context.Provider
@@ -381,6 +402,15 @@ export function useClient() {
 
 export function useCache() {
 	return useRouterContext().cache
+}
+
+export function updateLocalSession(session: App.Session) {
+	window.dispatchEvent(
+		new CustomEvent<App.Session>('_houdini_session_', {
+			bubbles: true,
+			detail: session,
+		})
+	)
 }
 
 export function useSession() {
