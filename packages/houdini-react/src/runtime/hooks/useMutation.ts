@@ -5,6 +5,7 @@ import type {
 	GraphQLVariables,
 } from '$houdini/runtime/lib/types'
 
+import { useSession } from '../routing/components/Router'
 import { useDocumentStore } from './useDocumentStore'
 
 export type MutationHandler<_Result, _Input, _Optimistic extends GraphQLObject> = (args: {
@@ -30,6 +31,9 @@ export function useMutation<
 	// grab the pending state from the document store
 	const pending = storeValue.fetching
 
+	// grab the current session value
+	const session = useSession()
+
 	//  sending the mutation just means invoking the observer's send method
 	const mutate: MutationHandler<_Result, _Input, _Optimistic> = ({
 		metadata,
@@ -40,8 +44,7 @@ export function useMutation<
 		observer.send({
 			variables,
 			metadata,
-			// TODO: session/metadata
-			session: {},
+			session,
 			stuff: {
 				...mutationConfig,
 			},

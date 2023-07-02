@@ -2,6 +2,7 @@ import type { DocumentArtifact, GraphQLVariables, QueryResult } from '$houdini/l
 import type { DocumentStore, SendParams } from '$houdini/runtime/client'
 import type { GraphQLObject } from 'houdini'
 
+import { useSession } from '../routing/components/Router'
 import useDeepCompareEffect from './useDeepCompareEffect'
 import { useDocumentStore, type UseDocumentStoreParams } from './useDocumentStore'
 
@@ -29,13 +30,16 @@ export function useDocumentSubscription<
 		...observeParams,
 	})
 
+	// grab the current session value
+	const session = useSession()
+
 	// whenever the variables change, we need to retrigger the query
 	useDeepCompareEffect(() => {
 		if (!disabled) {
 			observer.send({
 				variables,
-				// TODO: session/metadata
-				session: {},
+				session,
+				// TODO: metadata
 				metadata: {},
 				...send,
 			})
@@ -46,7 +50,7 @@ export function useDocumentSubscription<
 				observer.cleanup()
 			}
 		}
-	}, [disabled, observer, variables ?? {}, send ?? {}])
+	}, [disabled, session, observer, variables ?? {}, send ?? {}])
 
 	return [
 		{

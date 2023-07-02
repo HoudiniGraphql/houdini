@@ -23,11 +23,13 @@ export function Router({
 	last_variables,
 	loaded_queries,
 	loaded_artifacts,
+	session,
 }: {
 	intialURL: string
 	cache: Cache
 	loaded_queries?: Record<string, { data: GraphQLObject; variables: GraphQLVariables }>
 	loaded_artifacts?: Record<string, QueryArtifact>
+	session?: App.Session
 } & RouterCache) {
 	return (
 		<RouterContextProvider
@@ -38,6 +40,7 @@ export function Router({
 			data_cache={data_cache}
 			pending_cache={pending_cache}
 			last_variables={last_variables}
+			session={session}
 		>
 			<RouterImpl
 				intialURL={intialURL}

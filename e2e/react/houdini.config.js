@@ -1,6 +1,5 @@
 /// <references types="houdini-react">
 /// <references types="houdini-router">
-
 /** @type {import('houdini').ConfigFile} */
 const config = {
 	schemaPath: '../_api/*.graphql',
@@ -29,7 +28,12 @@ const config = {
 	},
 
 	plugins: {
-		'houdini-react': {},
+		'houdini-react': {
+			auth: {
+				redirect: '/auth/token',
+				sessionKeys: ['supersecret'],
+			},
+		},
 	},
 }
 
