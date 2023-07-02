@@ -1,7 +1,7 @@
 // this file defines the compatibility layer between the vite dev server and houdini's
 // server infrastrcture
-import { Config } from 'houdini'
-import { Connect } from 'vite'
+import type { Config } from 'houdini'
+import type { Connect } from 'vite'
 
 import type { Server, ServerMiddleware } from '.'
 

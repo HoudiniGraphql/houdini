@@ -1,6 +1,6 @@
 import cookieParser from 'cookie-parser'
 
-import { IncomingRequest, ServerResponse } from '.'
+import type { ServerResponse } from '.'
 
 const session_cookie_name = '__houdini__'
 
