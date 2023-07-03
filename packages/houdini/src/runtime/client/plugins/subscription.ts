@@ -9,6 +9,7 @@ let check: {
 	fetchParams: RequestInit
 	session: App.Session
 	metadata: App.Metadata
+	subscription: string
 } | null = null
 
 export function subscription(factory: SubscriptionHandler) {
@@ -32,6 +33,7 @@ export function subscription(factory: SubscriptionHandler) {
 					fetchParams: ctx.fetchParams ?? {},
 					session: ctx.session ?? {},
 					metadata: ctx.metadata ?? {},
+					subscription: ctx.artifact.name ?? {},
 				}
 				// if the variables havent changed since the last time we ran this,
 				// there's nothing to do
