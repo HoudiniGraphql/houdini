@@ -274,6 +274,27 @@ export class Cache {
 		this.#notifySubscribers(toNotify)
 	}
 
+	// reset the whole cache
+	reset() {
+		// Reset Subscriptions
+		const subSpecs = this._internal_unstable.subscriptions.reset()
+
+		// Reset StaleManager
+		this._internal_unstable.staleManager.reset()
+
+		// Reset GarbageCollector
+		this._internal_unstable.lifetimes.reset()
+
+		// Reset Lists
+		this._internal_unstable.lists.reset()
+
+		// Reset InMemory Storage
+		this._internal_unstable.storage.reset()
+
+		// Notify Subscribers
+		this.#notifySubscribers(subSpecs)
+	}
+
 	#notifySubscribers(subs: SubscriptionSpec[]) {
 		// if there's no one to notify, its a no-op
 		if (subs.length === 0) {
@@ -539,17 +560,13 @@ class CacheInternal {
 					}
 				}
 
-				// figure out if this is an embedded object or a linked one by looking for all of the fields marked as
-				// required to compute the entity's id
-				const embedded =
-					this.idFields(linkedType)?.filter(
-						(field) => typeof value[field] === 'undefined'
-					).length > 0
-
 				// figure out the new target of the object link
 				let linkedID: string | null = null
 				if (value !== null) {
-					linkedID = !embedded ? this.id(linkedType, value) : `${parent}.${key}`
+					// if the value is embedded then the id needs to be keyed by the field
+					linkedID = !this.isEmbedded(linkedType, value)
+						? this.id(linkedType, value)
+						: `${parent}.${key}`
 				}
 				let linkChange = linkedID !== previousValue
 
@@ -594,7 +611,9 @@ class CacheInternal {
 			else if (
 				Array.isArray(value) &&
 				// make typescript happy
-				(typeof previousValue === 'undefined' || Array.isArray(previousValue))
+				(typeof previousValue === 'undefined' ||
+					previousValue === null ||
+					Array.isArray(previousValue))
 			) {
 				// make a shallow copy of the previous value we can  mutate
 				let oldIDs = [...(previousValue || [])] as (string | null)[]
@@ -732,7 +751,7 @@ class CacheInternal {
 				// or we got content for a new list which could already be known. If we just look at
 				// whether the IDs are the same, situations where we have old data that
 				// is still valid would not be triggered
-				const contentChanged = !deepEquals(linkedIDs, oldIDs)
+				const contentChanged = !deepEquals(linkedIDs, oldIDs) || previousValue === null
 
 				// we need to look at the last time we saw each subscriber to check if they need to be added to the spec
 				if (contentChanged || forceNotify) {
@@ -1196,6 +1215,16 @@ class CacheInternal {
 		return computeID(this.config, type, data)
 	}
 
+	// figure out if this is an embedded object or a linked one by looking for all of the fields marked as
+	// required to compute the entity's id
+	isEmbedded(linkedType: string, value: GraphQLObject) {
+		const idFields = this.idFields(linkedType)
+		return (
+			idFields.length === 0 ||
+			idFields.filter((field) => typeof value[field] === 'undefined').length > 0
+		)
+	}
+
 	hydrateNestedList({
 		fields,
 		variables,
@@ -1352,14 +1381,6 @@ class CacheInternal {
 			// start off building up the embedded id
 			// @ts-ignore
 			let linkedID = `${recordID}.${key}[${this.storage.nextRank}]`
-
-			// figure out if this is an embedded list or a linked one by looking for all of the fields marked as
-			// required to compute the entity's id
-			const embedded =
-				this.idFields(linkedType)?.filter(
-					(field) => typeof (entry as GraphQLObject)[field] === 'undefined'
-				).length > 0
-
 			let innerType = linkedType
 
 			const typename = entryObj.__typename as string | undefined
@@ -1371,7 +1392,7 @@ class CacheInternal {
 			}
 
 			// if this isn't an embedded reference, use the entry's id in the link list
-			if (!embedded) {
+			if (!this.isEmbedded(linkedType, entry as GraphQLObject)) {
 				const id = this.id(innerType, entry as {})
 				if (id) {
 					linkedID = id

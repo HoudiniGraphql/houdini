@@ -15,6 +15,8 @@ import type {
 } from '$houdini/runtime/lib/types'
 import React from 'react'
 
+import { useSession } from '../routing/components/Router'
+
 export function useDocumentHandle<
 	_Artifact extends QueryArtifact,
 	_Data extends GraphQLObject,
@@ -31,6 +33,9 @@ export function useDocumentHandle<
 	const [forwardPending, setForwardPending] = React.useState(false)
 	const [backwardPending, setBackwardPending] = React.useState(false)
 
+	// grab the current session value
+	const session = useSession()
+
 	// @ts-expect-error: avoiding an as DocumentHandle<_Artifact, _Data, _Input>
 	return React.useMemo<DocumentHandle<_Artifact, _Data, _Input>>(() => {
 		const wrapLoad = <_Result>(
@@ -45,7 +50,12 @@ export function useDocumentHandle<
 			}
 		}
 
-		const fetchQuery: FetchFn<_Data, _Input> = (args) => observer.send(args)
+		// add the session value to the
+		const fetchQuery: FetchFn<_Data, _Input> = (args) =>
+			observer.send({
+				...args,
+				session,
+			})
 
 		// only consider paginated queries
 		if (artifact.kind !== ArtifactKind.Query || !artifact.refetch?.paginated) {
@@ -55,9 +65,6 @@ export function useDocumentHandle<
 				partial: storeValue.partial,
 			}
 		}
-
-		// TODO: session
-		const getSession = async () => ({} as App.Session)
 
 		// if the artifact supports cursor pagination, then add the cursor handlers
 		if (artifact.refetch.method === 'cursor') {
@@ -74,9 +81,10 @@ export function useDocumentHandle<
 							applyUpdates: updates,
 							...args?.cacheParams,
 						},
+						session,
 					})
 				},
-				getSession,
+				getSession: async () => session,
 			})
 
 			return {
@@ -108,9 +116,7 @@ export function useDocumentHandle<
 						},
 					})
 				},
-
-				// TODO: session
-				getSession: async () => ({} as App.Session),
+				getSession: async () => session,
 			})
 
 			return {
@@ -129,7 +135,7 @@ export function useDocumentHandle<
 			refetch: fetchQuery,
 			partial: storeValue.partial,
 		}
-	}, [artifact, observer, storeValue, true, true])
+	}, [artifact, observer, session, storeValue, true, true])
 }
 
 export type DocumentHandle<

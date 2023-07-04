@@ -30,6 +30,7 @@ test('generates render functions', async function () {
 		        cache,
 		        loaded_queries,
 		        loaded_artifacts,
+		        session,
 		        ...config
 		    }
 		) {
@@ -38,6 +39,7 @@ test('generates render functions', async function () {
 		        cache={cache}
 		        {...router_cache()}
 		        loaded_queries={loaded_queries}
+		        session={session}
 		        loaded_artifacts={loaded_artifacts} />, config);
 		}
 	`)

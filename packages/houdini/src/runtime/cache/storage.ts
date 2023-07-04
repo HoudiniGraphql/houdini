@@ -289,6 +289,10 @@ export class InMemoryStorage {
 		layer.fields = fields
 		layer.links = links
 	}
+
+	reset() {
+		this.data = []
+	}
 }
 
 export class Layer {

@@ -2880,3 +2880,62 @@ test('reverting optimistic remove notifies subscribers', function () {
 test.todo('can write to and resolve layers')
 
 test.todo("resolving a layer with the same value as the most recent doesn't notify subscribers")
+
+test('overwrite null value with list', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			friends: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'friends',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							visible: true,
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							visible: true,
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			friends: null,
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = vi.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		selection: selection,
+		set: set,
+	})
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			friends: [],
+		},
+	})
+
+	expect(set).toHaveBeenCalledWith({
+		friends: [],
+	})
+})

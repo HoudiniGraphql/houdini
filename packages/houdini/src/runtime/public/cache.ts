@@ -124,4 +124,12 @@ Please acknowledge this by setting acceptImperativeInstability to true in your c
 	): void {
 		return this._internal_unstable.markTypeStale(type ? { ...options, type } : undefined)
 	}
+
+	/**
+	 * Reset the entire cache by clearing all records and lists
+	 */
+
+	reset(): void {
+		return this._internal_unstable.reset()
+	}
 }
