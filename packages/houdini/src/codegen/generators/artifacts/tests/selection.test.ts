@@ -127,7 +127,7 @@ test('list of fragment unions', async function () {
 		export default {
 		    "name": "Entities",
 		    "kind": "HoudiniQuery",
-		    "hash": "d7db6b92dac1893d8640c0f9d3535d1f75cdb1017cf4c8960c0bdaefbe119229",
+		    "hash": "4087fc510c6a4252213315a4c4a4d9c915ac81619f1210683e5e7c980cc3390f",
 
 		    "raw": \`query Entities {
 		  entities {
@@ -787,7 +787,7 @@ test("multiple abstract selections don't conflict", async function () {
 		export default {
 		    "name": "Articles",
 		    "kind": "HoudiniQuery",
-		    "hash": "bd13373d03a3df9c1dfd11905a885a9acea3fd081833ffd9800e48761d00c583",
+		    "hash": "aaa0127313b60910b437b95e7f37ea6bf01d5fbf426a5aa51da48916a91812de",
 
 		    "raw": \`query Articles {
 		  articles {
