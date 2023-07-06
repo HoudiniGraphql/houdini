@@ -6,6 +6,7 @@ const config = {
   schemaPath: '../_api/*.graphql',
   defaultPartial: true,
   acceptImperativeInstability: true,
+  // logLevel: 'Full',
   scalars: {
     DateTime: {
       type: 'Date',

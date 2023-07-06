@@ -16,7 +16,7 @@ export const fetch = (target?: RequestHandler | string): ClientPlugin => {
 
 				// build up the params object
 				const fetchParams: FetchParams = {
-					name: ctx.artifact.name,
+					name: ctx.name,
 					text: ctx.text,
 					hash: ctx.hash,
 					variables: marshalVariables(ctx),
@@ -127,8 +127,7 @@ function handleMultipart(
 	args: RequestInit | undefined
 ): RequestInit | undefined {
 	// process any files that could be included
-	const { clone, files } = extractFiles({
-		query: params.text,
+	const { files } = extractFiles({
 		variables: params.variables,
 	})
 
@@ -150,9 +149,20 @@ function handleMultipart(
 		// See the GraphQL multipart request spec:
 		// https://github.com/jaydenseric/graphql-multipart-request-spec
 		const form = new FormData()
-		const operationJSON = JSON.stringify(clone)
 
-		form.set('operations', operationJSON)
+		// if we have a body, just use it.
+		if (args && args?.body) {
+			form.set('operations', args?.body as string)
+		} else {
+			form.set(
+				'operations',
+				JSON.stringify({
+					operationName: params.name,
+					query: params.text,
+					variables: params.variables,
+				})
+			)
+		}
 
 		const map: Record<string, Array<string>> = {}
 

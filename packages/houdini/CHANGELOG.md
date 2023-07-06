@@ -1,16 +1,20 @@
 # houdini
 
-## 1.2.6-next.0
+## 1.2.6
 
-### Patch Changes
+### ✨ Features
 
--   [#1109](https://github.com/HoudiniGraphql/houdini/pull/1109) [`1fc47b8`](https://github.com/HoudiniGraphql/houdini/commit/1fc47b8f1528aa9f24f3604a8fb3794f95d9754e) Thanks [@canastro](https://github.com/canastro)! - Fix issue with duplicate abstract selections
+-   [#1107](https://github.com/HoudiniGraphql/houdini/pull/1107) [`743d85d`](https://github.com/HoudiniGraphql/houdini/commit/743d85d1490128dd3d9c7a419efdc4b65f996418) @m4tr1k - Add method to reset cache state
 
--   [#1103](https://github.com/HoudiniGraphql/houdini/pull/1103) [`891a8c7`](https://github.com/HoudiniGraphql/houdini/commit/891a8c72b89af39f17b402485cea642946375278) Thanks [@canastro](https://github.com/canastro)! - fix: insert in list works for list of union
+-   [#1120](https://github.com/HoudiniGraphql/houdini/pull/1120) [`91b445f`](https://github.com/HoudiniGraphql/houdini/commit/91b445f0c1d9e35608e9f3c76ad5cbf51ff93217) @AlecAivazis - Users can specify that a type is always embedded by setting keys to []
 
--   [#1107](https://github.com/HoudiniGraphql/houdini/pull/1107) [`743d85d`](https://github.com/HoudiniGraphql/houdini/commit/743d85d1490128dd3d9c7a419efdc4b65f996418) Thanks [@m4tr1k](https://github.com/m4tr1k)! - Add method to reset cache state
+### 🐛 Fixes
 
--   [#1111](https://github.com/HoudiniGraphql/houdini/pull/1111) [`35cc897`](https://github.com/HoudiniGraphql/houdini/commit/35cc897cb98d3952139d9f06fb6bcba40c249ccd) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix issue when writing oevr previously null value
+-   [#1109](https://github.com/HoudiniGraphql/houdini/pull/1109) [`1fc47b8`](https://github.com/HoudiniGraphql/houdini/commit/1fc47b8f1528aa9f24f3604a8fb3794f95d9754e) @canastro @AlecAivazis - Fix issue with duplicate abstract selections
+
+-   [#1103](https://github.com/HoudiniGraphql/houdini/pull/1103) [`891a8c7`](https://github.com/HoudiniGraphql/houdini/commit/891a8c72b89af39f17b402485cea642946375278) @canastro @AlecAivazis - Fix issue with inserts in lists of union
+
+-   [#1111](https://github.com/HoudiniGraphql/houdini/pull/1111) [`35cc897`](https://github.com/HoudiniGraphql/houdini/commit/35cc897cb98d3952139d9f06fb6bcba40c249ccd) @AlecAivazis - Fix issue when writing over previously null value
 
 ## 1.2.5
 

@@ -3,18 +3,18 @@ import { ArtifactKind, DataSource } from '../../lib/types'
 import type { ClientPluginContext } from '../documentStore'
 import { documentPlugin } from '../utils'
 
-// we need to re-run the subscription if the following object has changed.
-// this is only safe because this plugin only operates on the client
-let check: {
-	fetchParams: RequestInit
-	session: App.Session
-	metadata: App.Metadata
-} | null = null
-
 export function subscription(factory: SubscriptionHandler) {
 	return documentPlugin(ArtifactKind.Subscription, () => {
 		// the unsubscribe hook for the active subscription
 		let clearSubscription: null | (() => void) = null
+
+		// we need to re-run the subscription if the following object has changed.
+		// this is only safe because this plugin only operates on the client
+		let check: {
+			fetchParams: RequestInit
+			session: App.Session
+			metadata: App.Metadata
+		} | null = null
 
 		return {
 			start(ctx, { resolve, next, initialValue }) {
@@ -57,8 +57,8 @@ export function subscription(factory: SubscriptionHandler) {
 				// start listening for the new subscription
 				clearSubscription = client.subscribe(
 					{
-						operationName: ctx.artifact.name,
-						query: ctx.artifact.raw,
+						operationName: ctx.name,
+						query: ctx.text,
 						variables: marshalVariables(ctx),
 					},
 					{
@@ -102,7 +102,12 @@ export type SubscriptionHandler = (ctx: ClientPluginContext) => SubscriptionClie
 
 export type SubscriptionClient = {
 	subscribe: (
-		payload: { operationName: string; query: string; variables?: {} },
+		payload: {
+			operationName?: string
+			query: string
+			variables?: Record<string, unknown> | null
+			extensions?: Record<'persistedQuery', string> | Record<string, unknown> | null
+		},
 		handlers: {
 			next: (payload: { data?: {} | null; errors?: readonly { message: string }[] }) => void
 			error: (data: {}) => void

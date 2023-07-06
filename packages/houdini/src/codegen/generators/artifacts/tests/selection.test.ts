@@ -127,7 +127,7 @@ test('list of fragment unions', async function () {
 		export default {
 		    "name": "Entities",
 		    "kind": "HoudiniQuery",
-		    "hash": "d7db6b92dac1893d8640c0f9d3535d1f75cdb1017cf4c8960c0bdaefbe119229",
+		    "hash": "4087fc510c6a4252213315a4c4a4d9c915ac81619f1210683e5e7c980cc3390f",
 
 		    "raw": \`query Entities {
 		  entities {
@@ -270,7 +270,7 @@ test('fragments in lists', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "6c2ec570ec75b009aae97355f5b36acae92039a0bf1750fc62fe144f0898f403",
+		    "hash": "91b23604b402b84e2d83099ca8afc0953ce7e9abdad65e7ea3fb20ba5893e4ce",
 
 		    "raw": \`query TestQuery {
 		  usersByCursor {
@@ -474,7 +474,7 @@ test('concrete selection applies mask over abstract selection', async function (
 		export default {
 		    "name": "MonkeyListQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "89c94f9d620d10fccfc1015a29590d05b9fb2adee3a0b895f00c14b62d279ce9",
+		    "hash": "5e86edd84280f328c6e368f75bb1f19cfd2eff5876bc240cf98cca13daae05ad",
 
 		    "raw": \`query MonkeyListQuery {
 		  monkeys {
@@ -787,7 +787,7 @@ test("multiple abstract selections don't conflict", async function () {
 		export default {
 		    "name": "Articles",
 		    "kind": "HoudiniQuery",
-		    "hash": "bd13373d03a3df9c1dfd11905a885a9acea3fd081833ffd9800e48761d00c583",
+		    "hash": "aaa0127313b60910b437b95e7f37ea6bf01d5fbf426a5aa51da48916a91812de",
 
 		    "raw": \`query Articles {
 		  articles {

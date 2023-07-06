@@ -74,7 +74,6 @@ export async function expect_n_gql(
   }
 
   // Listen
-  // page.on('request', fnReq);
   page.on('response', fnRes);
 
   // Trigger the action

@@ -2,22 +2,23 @@ import * as graphql from 'graphql'
 import * as recast from 'recast'
 
 import type {
+	CachePolicies,
 	Config,
 	Document,
 	DocumentArtifact,
-	CachePolicies,
-	SubscriptionSelection,
 	QueryArtifact,
+	SubscriptionSelection,
 } from '../../../lib'
 import {
-	printJS,
 	ArtifactKind,
+	HoudiniError,
 	cleanupFiles,
 	fs,
 	getRootType,
-	hashDocument,
-	HoudiniError,
+	hashOriginal,
+	hashRaw,
 	parentTypeFromAncestors,
+	printJS,
 } from '../../../lib'
 import { flattenSelections, moduleExport } from '../../utils'
 import { fragmentArgumentsDefinitions } from '.././../transforms/fragmentVariables'
@@ -37,6 +38,8 @@ export default function artifactGenerator(stats: {
 	new: string[]
 	changed: string[]
 	deleted: string[]
+	hashSize: number[]
+	querySize: number[]
 }) {
 	return async function (config: Config, docs: Document[]) {
 		// put together the type information for the filter for every list
@@ -110,7 +113,7 @@ export default function artifactGenerator(stats: {
 		const listOfArtifacts: string[] = []
 
 		// figure out the function we'll use to hash
-		const hash = config.plugins?.find((plugin) => plugin.hash)?.hash ?? hashDocument
+		const hashPluginBaseRaw = config.plugins?.find((plugin) => plugin.hash)?.hash ?? hashRaw
 
 		// we have everything we need to generate the artifacts
 		await Promise.all(
@@ -121,7 +124,7 @@ export default function artifactGenerator(stats: {
 				// and an artifact for every document
 				docs.map(async (doc) => {
 					// pull out the info we need from the collected doc
-					const { document, name, generateArtifact, originalParsed, originalString } = doc
+					const { document, name, generateArtifact, originalParsed } = doc
 					// if the document is generated, don't write it to disk - it's use is to provide definitions
 					// for the other transforms
 					if (!generateArtifact) {
@@ -270,12 +273,11 @@ export default function artifactGenerator(stats: {
 						)
 					}
 
-					// generate a hash of the document that we can use to detect changes
 					// start building up the artifact
 					let artifact: DocumentArtifact = {
 						name,
 						kind: docKind,
-						hash: hash({ config, document: doc }),
+						hash: 'NOT_YET', // it will be set just after on purpose.
 						refetch: doc.refetch,
 						raw: rawString,
 						rootType,
@@ -305,6 +307,10 @@ export default function artifactGenerator(stats: {
 						}),
 						pluginData: {},
 					}
+					// generate a hash of the document that we can use to detect changes
+					// we write the hash only at this stage, because plugins can take adventage of artifacts to write the hash.
+					const hash_value = hashPluginBaseRaw({ config, document: { ...doc, artifact } })
+					artifact.hash = hash_value
 
 					// apply the visibility mask to the artifact so that only
 					// fields in the direct selection are visible
@@ -408,11 +414,10 @@ export default function artifactGenerator(stats: {
 					}
 
 					// the artifact should be the default export of the file
+					const _houdiniHash = hashOriginal({ document: doc })
 					const file = AST.program([
 						moduleExport(config, 'default', serializeValue(artifact)),
-						AST.expressionStatement(
-							AST.stringLiteral(`HoudiniHash=${hash({ config, document: doc })}`)
-						),
+						AST.expressionStatement(AST.stringLiteral(`HoudiniHash=${_houdiniHash}`)),
 					])
 
 					const artifactPath = config.artifactPath(document)
@@ -439,12 +444,16 @@ export default function artifactGenerator(stats: {
 
 					// check if the artifact exists
 					const match = existingArtifact && existingArtifact.match(/"HoudiniHash=(\w+)"/)
-					if (match && match[1] !== artifact.hash) {
+					if (match && match[1] !== _houdiniHash) {
 						stats.changed.push(artifact.name)
 					}
 
 					// regardless of whether it was changed or not, we need to track the total list of artifacts
 					stats.total.push(artifact.name)
+
+					// let's count only this as varaibles will need to be passed anyway.
+					stats.hashSize.push(artifact.hash.length)
+					stats.querySize.push(artifact.raw.length)
 				})
 			)
 		)
