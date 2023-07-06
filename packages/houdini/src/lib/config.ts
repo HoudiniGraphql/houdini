@@ -30,7 +30,7 @@ export class Config {
 	projectRoot: string
 	schema: graphql.GraphQLSchema
 	schemaPath?: string
-	persistedQueryPath?: string
+	persistedQueriesPath: string = './$houdini/persisted_queries.json'
 	exclude: string[]
 	scalars?: ConfigFile['scalars']
 	module: 'commonjs' | 'esm' = 'esm'
@@ -91,6 +91,7 @@ export class Config {
 			defaultFragmentMasking = 'enable',
 			watchSchema,
 			projectDir,
+			persistedQueriesPath,
 		} = this.configFile
 
 		// if we're given a schema string
@@ -133,6 +134,10 @@ export class Config {
 		this.schemaPollHeaders = watchSchema?.headers ?? {}
 		this.rootDir = path.join(this.projectRoot, '$houdini')
 		this.#fragmentVariableMaps = {}
+
+		if (persistedQueriesPath) {
+			this.persistedQueriesPath = persistedQueriesPath
+		}
 
 		// hold onto the key config
 		if (defaultKeys) {
@@ -895,7 +900,7 @@ export async function getConfig({
 		reject = rej
 	})
 
-	// wrap the rest of the function so that errors resolve the promise aswell
+	// wrap the rest of the function so that errors resolve the promise as well
 	try {
 		// look up the current config file
 		let configFile = await readConfigFile(configPath)

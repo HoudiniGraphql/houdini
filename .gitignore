@@ -24,3 +24,4 @@ coverage
 vite.config.*.timestamp-*
 
 .vercel
+.netlify

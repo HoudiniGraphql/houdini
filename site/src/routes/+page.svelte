@@ -90,16 +90,20 @@
 			<h2>Used in Production By</h2>
 			<div class="logos">
 				<a href="https://www.se.com" target="_blank" rel="noreferrer">
-					<img src="/images/users/schneider-electric.svg" height="60px" />
+					<img
+						src="/images/users/schneider-electric.svg"
+						alt="Logo Schneider-Electric"
+						height="60px"
+					/>
 				</a>
 				<a href="https://tryhussle.com/" target="_blank" rel="noreferrer">
-					<img src="/images/users/hussle.svg" height="60px" />
+					<img src="/images/users/hussle.svg" alt="Logo hussle" height="60px" />
 				</a>
 				<a href="https://punchup.com" target="_blank" rel="noreferrer">
-					<img src="/images/users/punchup.png" height="60px" />
+					<img src="/images/users/punchup.png" alt="Logo Punchup" height="60px" />
 				</a>
 				<a href="https://dynamicprocess.io/" target="_blank" rel="noreferrer">
-					<img src="/images/users/dynamic-process.svg" height="60px" />
+					<img src="/images/users/dynamic-process.svg" alt="Logo Dynamic-Process" height="60px" />
 				</a>
 			</div>
 		</div>

@@ -20,19 +20,19 @@ export function getRootType(type: graphql.GraphQLType): graphql.GraphQLType {
 	return type
 }
 
-export function hashDocument({
-	document,
-}: {
-	config: Config
-	document: string | Document
-}): string {
-	// if we were given an AST document, print it first
-	const docString = typeof document === 'string' ? document : document.originalString
+export function hashOriginal({ document }: { document: Document }): string {
+	return hashDocument(document.originalString)
+}
 
+export function hashRaw({ document }: { document: Document }): string {
+	return hashDocument(document.artifact?.raw)
+}
+
+function hashDocument(str?: string): string {
 	// hash the string
 	return crypto
 		.createHash('sha256')
-		.update(docString ?? '')
+		.update(str || '')
 		.digest('hex')
 }
 

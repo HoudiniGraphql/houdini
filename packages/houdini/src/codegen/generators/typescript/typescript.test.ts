@@ -132,7 +132,7 @@ describe('typescript', function () {
 			export type TestFragment$artifact = {
 			    "name": "TestFragment";
 			    "kind": "HoudiniFragment";
-			    "hash": "fec5e49042a021e67a5f04a339f3729793fedbf7df83c2119a6ad932f91727f8";
+			    "hash": "fceff6ae64f8fee7acbac56b4832696e9d3c126241ffbe70e47d4ac5cd74a3de";
 			    "raw": \`fragment TestFragment on User {
 			  firstName
 			  nickname
@@ -216,7 +216,7 @@ describe('typescript', function () {
 			export type TestFragment$artifact = {
 			    "name": "TestFragment";
 			    "kind": "HoudiniFragment";
-			    "hash": "03f5a3344390dfa1b642c7038bbdb5f6bfadbb645886b0d1ce658fc77e90668e";
+			    "hash": "a78cd6407bf767a7a049685ac6d33ff81a49a349895c87e2cd796ff47802c339";
 			    "raw": \`fragment TestFragment on Query {
 			  user(id: $name) {
 			    age
@@ -305,7 +305,7 @@ describe('typescript', function () {
 			export type TestFragment$artifact = {
 			    "name": "TestFragment";
 			    "kind": "HoudiniFragment";
-			    "hash": "9c72207c02a37626ffd0f6397ab2a573d88486792caad6f52c785555a6a6343b";
+			    "hash": "a78cd6407bf767a7a049685ac6d33ff81a49a349895c87e2cd796ff47802c339";
 			    "raw": \`fragment TestFragment on Query {
 			  user(id: $name) {
 			    age
@@ -393,7 +393,7 @@ describe('typescript', function () {
 			export type TestFragment$artifact = {
 			    "name": "TestFragment";
 			    "kind": "HoudiniFragment";
-			    "hash": "c05ae5e22dd26c00fbc088277ca96ded6e01a0a6c540eb040ee91d10655b4575";
+			    "hash": "5d680d18e72a984f24a8ef0d2703ef8ce34ca0ee7abe3d171a31f3565c47f236";
 			    "raw": \`fragment TestFragment on User {
 			  firstName
 			  parent {
@@ -487,7 +487,7 @@ describe('typescript', function () {
 			export type TestFragment$artifact = {
 			    "name": "TestFragment";
 			    "kind": "HoudiniFragment";
-			    "hash": "268c6ce8de2ed68662e4da519dc541b6aae4232671449895e23cee88b25120cd";
+			    "hash": "1a2c7e3a724ee77d1d482d538bb55515044050ab8d95e6e555d427e197e00132";
 			    "raw": \`fragment TestFragment on User {
 			  firstName
 			  admin
@@ -577,7 +577,7 @@ describe('typescript', function () {
 			export type TestFragment$artifact = {
 			    "name": "TestFragment";
 			    "kind": "HoudiniFragment";
-			    "hash": "60afdef644bced9aae26a086b7dbf33dc7b8b51c45ddc2fc4571a0bb72f2d660";
+			    "hash": "684384697e73211447233755a41be7ac8628045b117eba9629f9ca71ab27c233";
 			    "raw": \`fragment TestFragment on User {
 			  firstName
 			  friends {
@@ -665,7 +665,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "75599daf9b89690cac0df70674158875f4908fd3405b0a12510bb0803161dd01";
+			    "hash": "625c21946a71940431e5e1d11e48ea22ecb230839628cb66903198444a2f707d";
 			    "raw": \`query MyQuery {
 			  user {
 			    firstName
@@ -742,7 +742,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "802f49d218bd0db35a4f4eec151e9db62490086a3e61818659f7a283548427b6";
+			    "hash": "6e6ba167260c6f741547299697b6d32fd3b071e1c2cab13adbb7e08c60c1c175";
 			    "raw": \`query MyQuery {
 			  users {
 			    firstName
@@ -822,7 +822,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "d4c90d48b80c460939fd7dca6b99122fdd276812c20176b37679cfaf08c2efcf";
+			    "hash": "41cbf2714e1b1f0786226f6d9b68be0873e46fe5ffd7d3c08ad7fd338feeacbd";
 			    "raw": \`query MyQuery($id: ID!, $enum: MyEnum) {
 			  user(id: $id, enumArg: $enum) {
 			    firstName
@@ -913,7 +913,7 @@ describe('typescript', function () {
 			export type MyTestQuery$artifact = {
 			    "name": "MyTestQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "a628c9dfeecde5337a5439aee8f7c4d0111783f9fd456841a54f485db49f756d";
+			    "hash": "dab188c31e4d7e6f47afd6ddf9b0d38cbe4ff49d830c994e5ddcbb315520c59d";
 			    "raw": \`query MyTestQuery {
 			  entity {
 			    ... on Node {
@@ -1056,7 +1056,7 @@ describe('typescript', function () {
 			export type MyMutation$artifact = {
 			    "name": "MyMutation";
 			    "kind": "HoudiniMutation";
-			    "hash": "ca24beb22d7dfdbf5e50bc7ca446037f0812deeca00c13d3ce745a9f492f69b7";
+			    "hash": "26def2427df939fd86e8dc0c4b0ebb0904e32dd27a559eac7774dbe5f6a4de7b";
 			    "raw": \`mutation MyMutation($filter: UserFilter, $filterList: [UserFilter!]!, $id: ID!, $firstName: String!, $admin: Boolean, $age: Int, $weight: Float) {
 			  doThing(
 			    filter: $filter
@@ -1188,7 +1188,7 @@ describe('typescript', function () {
 			export type MyMutation$artifact = {
 			    "name": "MyMutation";
 			    "kind": "HoudiniMutation";
-			    "hash": "32e4d8c37e92a71ccb13fe49e001735829f33af4f42687fb138c6547c4cc4749";
+			    "hash": "6afad439e9a1f5609430b141c04e5d6a0cf91b6360d5f240d83a0d8667b521b6";
 			    "raw": \`mutation MyMutation {
 			  doThing(list: [], id: "1", firstName: "hello") {
 			    firstName
@@ -1297,7 +1297,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "3db625201d1054e50b978a3a87dc954aef3b8284070cdd0c1f667a2ccada232f";
+			    "hash": "fe11f3b4897f5da3f4cdc38cfe353c575d071d694e78ccbd26a10b1e6eb3a8e1";
 			    "raw": \`query MyQuery($filter: UserFilter!) {
 			  user(filter: $filter) {
 			    firstName
@@ -1418,7 +1418,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "e07594825d2da2a5eaae6efa277dc4dfd0f3416a08827dfc505c88a0c5650068";
+			    "hash": "2cc1c9e7df7c0a7fadb2f81f23bbc78211e7ae0adc217320b5fb47a66449fa09";
 			    "raw": \`query MyQuery {
 			  user {
 			    ...Foo
@@ -1512,7 +1512,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "e07594825d2da2a5eaae6efa277dc4dfd0f3416a08827dfc505c88a0c5650068";
+			    "hash": "2cc1c9e7df7c0a7fadb2f81f23bbc78211e7ae0adc217320b5fb47a66449fa09";
 			    "raw": \`query MyQuery {
 			  user {
 			    ...Foo
@@ -1618,7 +1618,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "07886277853f6b1ef2d195030db19d20fc69006937a247cfebe208017c289335";
+			    "hash": "f05dbc7de056c210dcd036ad418cd8ce1060b1c4d4600a96110773ee6b61eb3d";
 			    "raw": \`query MyQuery {
 			  nodes {
 			    ... on User {
@@ -1742,7 +1742,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "b5705e689c230262aea65553c5366ca16aa85ffb6be532a5a83fe0c29319b632";
+			    "hash": "0bd8237c10df755d9ea5dbc3ed500e19ead68f43d13d50444439ac3bbb17bba4";
 			    "raw": \`query MyQuery {
 			  entities {
 			    ... on User {
@@ -1866,7 +1866,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "21a52db58ea979321a735e60ac37878e5675cc15589e1f54cd6ea8ad51a9c359";
+			    "hash": "5ae658318d3b5025d17399231eec2b74785200f653dd4101ae36c019d025dab0";
 			    "raw": \`query MyQuery {
 			  nodes {
 			    id
@@ -2006,7 +2006,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "c25bd32ae0bce403ccc8003f26d309858560a9a931b3994b25ea90a5e78f12e3";
+			    "hash": "05e98237e913172753be67c393d1b8c1257f7442f5a29935232ce1dfed733c4c";
 			    "raw": \`query MyQuery {
 			  entities {
 			    ... on Animal {
@@ -2155,7 +2155,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "87075eb7baf6814d4d50014581034fbdaa8ba700214a568670261e5b428597a0";
+			    "hash": "5a9bbd198f3c6a0f203b79d3fa07af7a395e82a03cd2046e1da740ff4eb1356a";
 			    "raw": \`query MyQuery {
 			  allItems {
 			    createdAt
@@ -2251,7 +2251,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "dabe70c216f3d5d1c8acddccf9e2d8b14257649861747f941b9c64cfd6311022";
+			    "hash": "c833b9ebd6847037d2435dcb03ebd7439d8e3a1e749ac242a530d589e9e2e0a1";
 			    "raw": \`query MyQuery($date: DateTime!) {
 			  allItems(createdAt: $date) {
 			    createdAt
@@ -2332,7 +2332,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "a173496c64d9d074e03787939bc79e046f8362a606857fa387447c5f3a250ab7";
+			    "hash": "4cb15eb98773616237ea21f31c9e29a714169520863e6e6b1357577418105323";
 			    "raw": \`query MyQuery {
 			  listOfLists {
 			    firstName
@@ -2423,7 +2423,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "38d331a2d7f0611a5ed00d57a0f3b4ef5c5cde865f69cb1b09559db85211ea2e";
+			    "hash": "5e605fac9ecffb118de5ff29e5c16c7c5ea2864ad69847c83131701bc311fb3c";
 			    "raw": \`query MyQuery {
 			  user {
 			    parent {
@@ -2598,7 +2598,7 @@ describe('typescript', function () {
 			export type MyMutation$artifact = {
 			    "name": "MyMutation";
 			    "kind": "HoudiniMutation";
-			    "hash": "609440bd4c48c2082cadf4d900ab6f3636c576ce469a14c00383896c0a093d36";
+			    "hash": "2e9d4fb27d8810e3df6f6841fb5c62795a29ab597bd9b72a48bf23bdc24254ba";
 			    "raw": \`mutation MyMutation($filter: UserFilter, $filterList: [UserFilter!]!, $id: ID!, $firstName: String!, $admin: Boolean, $age: Int, $weight: Float) {
 			  doThing(
 			    filter: $filter
@@ -2714,7 +2714,7 @@ describe('typescript', function () {
 			export default {
 			    "name": "FragmentUpdateTestQuery",
 			    "kind": "HoudiniQuery",
-			    "hash": "af4a3a796a91fef5a4625b3b886bedeeef1e1698a1aa9a22bdbf2d65c9c0d4f5",
+			    "hash": "4434920e89b1bfe99299f1c866e3cdc8ef90d336e7e0f2127ab281d0795ebc1f",
 
 			    "raw": \`query FragmentUpdateTestQuery($id: ID!) {
 			  node(id: $id) {
@@ -2884,7 +2884,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "53a8f654096f13904d5dc6300ce727748bf3ed0388e19984ef8ac7dc17515385";
+			    "hash": "a94ed9848e2dd8e4333e0c8a18758754b34f70f5a81a041637ab0f290e4842f3";
 			    "raw": \`query MyQuery {
 			  user {
 			    ...UserBase
@@ -3049,7 +3049,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "c387cedf90314a9b3fb48a4d2f47ed1ba1c4e12e3da2eb9ac6fc1220adfa2e8d";
+			    "hash": "a94ed9848e2dd8e4333e0c8a18758754b34f70f5a81a041637ab0f290e4842f3";
 			    "raw": \`query MyQuery {
 			  user {
 			    ...UserBase
@@ -3164,7 +3164,7 @@ describe('typescript', function () {
 			export type UserMore$artifact = {
 			    "name": "UserMore";
 			    "kind": "HoudiniFragment";
-			    "hash": "dd15a529e927b628fe52e5479f698a5b3a65bae59380ff08e767cfb8bdf1c745";
+			    "hash": "05f8f02e7cfe5214be392f0710ecb2e4c214dbae2c496078888bb8ed7770bdb3";
 			    "raw": \`fragment UserMore on User {
 			  friends {
 			    ...UserBase
@@ -3291,7 +3291,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "ec1246bc6b1083a74cefb176a260fbc3171a820cffd8e9cd747cdce7488d3665";
+			    "hash": "a94ed9848e2dd8e4333e0c8a18758754b34f70f5a81a041637ab0f290e4842f3";
 			    "raw": \`query MyQuery {
 			  user {
 			    ...UserBase
@@ -3415,7 +3415,7 @@ describe('typescript', function () {
 			export type UserMore$artifact = {
 			    "name": "UserMore";
 			    "kind": "HoudiniFragment";
-			    "hash": "dd15a529e927b628fe52e5479f698a5b3a65bae59380ff08e767cfb8bdf1c745";
+			    "hash": "05f8f02e7cfe5214be392f0710ecb2e4c214dbae2c496078888bb8ed7770bdb3";
 			    "raw": \`fragment UserMore on User {
 			  friends {
 			    ...UserBase
@@ -3519,7 +3519,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "2d7de7172ca60367f8319c3e20c939584616da3953e8723a9c5bf55117a24897";
+			    "hash": "43bc5d57ac3149cf1e85cd1ad9892f10c9439e8678898408a348cec3214facc3";
 			    "raw": \`query MyQuery {
 			  user {
 			    id
@@ -3622,7 +3622,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "05f293c4f36a9af1871b49f3384c5d4b3df8adbdd5606f7b644732ef98332643";
+			    "hash": "64aadd5da34f840d6aebd47dd935f24cf375b3cc0ae56cda9ed3f32a0c771513";
 			    "raw": \`query MyQuery {
 			  user {
 			    id
@@ -3716,7 +3716,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "f4dd7e1b48b761fb27453140bad46af3456e492f5915919ec1fd526e5ee33522";
+			    "hash": "751e176aa2e6cd8e49b1fa3ad513a73fddef99bfff04217f42cd30b72430ee8f";
 			    "raw": \`query MyQuery {
 			  user {
 			    parent {
@@ -3828,7 +3828,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "a6373f8f571b82b59909f99fa18e310c36f3cc4f89a7b6432fafba72c9a82ebf";
+			    "hash": "751e176aa2e6cd8e49b1fa3ad513a73fddef99bfff04217f42cd30b72430ee8f";
 			    "raw": \`query MyQuery {
 			  user {
 			    parent {
@@ -3945,7 +3945,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "82e367b10d22e01e8dbee48f6864a06a3dc692730b3cf770c7d9abbe4d6f67e6";
+			    "hash": "26993fab9f8e30de38fd328bd3914ce7688f0e795ce1c9d692146660cf5ae2cb";
 			    "raw": \`query MyQuery {
 			  user {
 			    parentRequired {
@@ -4075,7 +4075,7 @@ describe('typescript', function () {
 			export type MyFragment$artifact = {
 			    "name": "MyFragment";
 			    "kind": "HoudiniFragment";
-			    "hash": "1c4a5110bb2d7ade3b3a143798ea3c9d3d1a7ed27008bfb784fd9b686db6b777";
+			    "hash": "6d0215530b0d99ef798e31dc8bc1e2a250de5c197868027f1452b5cf22410b0a";
 			    "raw": \`fragment MyFragment on User {
 			  id
 			  firstName
@@ -4302,7 +4302,7 @@ describe('typescript', function () {
 			export type MyFragmentInterfaceA$artifact = {
 			    "name": "MyFragmentInterfaceA";
 			    "kind": "HoudiniFragment";
-			    "hash": "bc60a9949f88173f4043cb5ddcaf15f2c8952c567061ae43d784c307711e3023";
+			    "hash": "c62ecd0fa51af5f2bc2dc73b2a60a2c58a2b6ac417e2f6ceda865ac0642b522c";
 			    "raw": \`fragment MyFragmentInterfaceA on Node {
 			  ... on User {
 			    nickname
@@ -4405,7 +4405,7 @@ describe('typescript', function () {
 			export type MyFragmentA$artifact = {
 			    "name": "MyFragmentA";
 			    "kind": "HoudiniFragment";
-			    "hash": "d09a04381ac3bb81f8476fba9fad5f9a73ee66c4824a7b267d8f3215e4aa0e91";
+			    "hash": "e9d884df80d3f9867417dfb64d809dbed3d47b9a63928d1352db47aeff24898f";
 			    "raw": \`fragment MyFragmentA on Entity {
 			  ... on User {
 			    id
@@ -4508,7 +4508,7 @@ describe('typescript', function () {
 			export type MyFragmentA$artifact = {
 			    "name": "MyFragmentA";
 			    "kind": "HoudiniFragment";
-			    "hash": "aa3aa32f06fd5591ec03eb0038052b86910b7fab015978193a2f1117c5959496";
+			    "hash": "ddfa83368ff067f75465fa482f1b76293ddfc22024fd6e992fd5b9cb73bbf69f";
 			    "raw": \`fragment MyFragmentA on Entity {
 			  ... on User {
 			    nickname
@@ -4630,7 +4630,7 @@ describe('typescript', function () {
 			export type MyFragmentA$artifact = {
 			    "name": "MyFragmentA";
 			    "kind": "HoudiniFragment";
-			    "hash": "596e52f0588fe87da259217ec508ba4da62be7f9e09aeabc6d89b8a372860cc8";
+			    "hash": "36d5feb08afa95a2fb6784486f3fec8c92dfbeb2cf8602d365f55700c2a3ebec";
 			    "raw": \`fragment MyFragmentA on Entity {
 			  ... on User {
 			    id
@@ -4733,7 +4733,7 @@ test('overlapping fragments', async function () {
 		export type UserBase$artifact = {
 		    "name": "UserBase";
 		    "kind": "HoudiniFragment";
-		    "hash": "05ec5090d31f77c3f2bdcbd26aff116588f63d4b3789ae752759dd172974a628";
+		    "hash": "15225d2e5cba866e1a588cd399a03d5b2124156ac7003d3510544f22b7b9262c";
 		    "raw": \`fragment UserBase on User {
 		  id
 		  firstName

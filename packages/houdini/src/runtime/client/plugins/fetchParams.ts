@@ -19,8 +19,8 @@ export const fetchParams: (fn?: FetchParamFn) => ClientPlugin =
 					// a few fields are renamed or modified
 					document: ctx.artifact,
 					variables: marshalVariables(ctx),
-					text: ctx.artifact.raw,
-					hash: ctx.artifact.hash,
+					text: ctx.text,
+					hash: ctx.hash,
 				}),
 			})
 		},

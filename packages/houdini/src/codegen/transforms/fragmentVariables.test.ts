@@ -45,7 +45,7 @@ test('pass argument values to generated fragments', async function () {
 		export default {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
-		    "hash": "fb97ee7e3f483801de403f425fcd2b4ed5c1357ffc3d73394e34c23b278552b1",
+		    "hash": "63b95bca0542c187f64fef9cb34e6b242608469f6a7baffd959791c8cda019f8",
 
 		    "raw": \`query AllUsers {
 		  ...QueryFragment_10b3uv
@@ -141,7 +141,7 @@ test("nullable arguments with no values don't show up in the query", async funct
 		export default {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
-		    "hash": "774e85c1a749388df97ed5768006535072408ceea2a7bba3c835553e2d65e5bd",
+		    "hash": "ab2d1ea10cd570b2b0601c94918f5f6790f90da88447d312ebc4138cc99b8e7c",
 
 		    "raw": \`query AllUsers {
 		  ...QueryFragment
@@ -232,7 +232,7 @@ test("fragment arguments with default values don't rename the fragment", async f
 		export default {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
-		    "hash": "774e85c1a749388df97ed5768006535072408ceea2a7bba3c835553e2d65e5bd",
+		    "hash": "e1f9f94024736db98349817f3675dc3b2a7c73871ca98761721f4b9849926471",
 
 		    "raw": \`query AllUsers {
 		  ...QueryFragment
@@ -331,7 +331,7 @@ test('thread query variables to inner fragments', async function () {
 		export default {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
-		    "hash": "7add8faa7fad1d3ba59adacc533e8e1ab6f92b4805a48b14665eb35591e96bb0",
+		    "hash": "b47b265965f007004f2afa343be60b957aad287780ff0bfce23285a78b5c0e63",
 
 		    "raw": \`query AllUsers($name: String!) {
 		  ...QueryFragment_VDHGm
@@ -453,7 +453,7 @@ test('inner fragment with intermediate default value', async function () {
 		export default {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
-		    "hash": "774e85c1a749388df97ed5768006535072408ceea2a7bba3c835553e2d65e5bd",
+		    "hash": "09adc383071454f2de0a177990907e7616f1c69516611a283dd4bb5231ace3d0",
 
 		    "raw": \`query AllUsers {
 		  ...QueryFragment
@@ -557,7 +557,7 @@ test("default values don't overwrite unless explicitly passed", async function (
 		export default {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
-		    "hash": "774e85c1a749388df97ed5768006535072408ceea2a7bba3c835553e2d65e5bd",
+		    "hash": "802f77faf17be02863ece90662db7e157c6911bbc9c7b49f191d0de332048543",
 
 		    "raw": \`query AllUsers {
 		  ...QueryFragment
@@ -653,7 +653,7 @@ test('default arguments', async function () {
 		export default {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
-		    "hash": "774e85c1a749388df97ed5768006535072408ceea2a7bba3c835553e2d65e5bd",
+		    "hash": "bce1104854002aaa0befe5045ad6b3780783d6488d2c91a132449918c5c61228",
 
 		    "raw": \`query AllUsers {
 		  ...QueryFragment
@@ -744,7 +744,7 @@ test('list arguments', async function () {
 		export default {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
-		    "hash": "f67cc1c3f5ad8a2d241316a5a1e163616f79db7d2396d7a76750a34038b48fef",
+		    "hash": "32c6a8a189da923b8c68c54909f2aa28063a7752a0bb2b3601834899de4dd3a7",
 
 		    "raw": \`query AllUsers {
 		  ...QueryFragment_4AWlIw
@@ -839,7 +839,7 @@ test('persists fragment variables in artifact', async function () {
 		export default {
 		    "name": "QueryFragment",
 		    "kind": "HoudiniFragment",
-		    "hash": "6c327bb344ded7bcdfa0cb250d5139bb8e18d5618335b4e621a06576cb10a67f",
+		    "hash": "695bc5e3268ac222dca193dd7daee95d4d0b773268624c45e521a69bbda62185",
 
 		    "raw": \`fragment QueryFragment on Query {
 		  users(boolValue: $cool, stringValue: $name) {
@@ -1014,7 +1014,7 @@ test('variables referenced deeply in objects', async function () {
 		export default {
 		    "name": "QueryFragment",
 		    "kind": "HoudiniFragment",
-		    "hash": "f21383b76145c5c42b10436ccde99cb9f0a7156d4209149b2d94a01c8445e88c",
+		    "hash": "2ec5f34429b6e7e9240f8d051c53f10d627f195d9ba5a2400d2d01c783fb9c23",
 
 		    "raw": \`fragment QueryFragment on Query {
 		  usersByOffset(filter: {name: $name}) {
@@ -1071,7 +1071,7 @@ test('variables referenced deeply in objects', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "bfcbae34fee98e0c32493bd3445ab074fdccff7c7b3721245047202887a842e9",
+		    "hash": "bad1595ed3acc420a0e94eb73222c0e9c24e185d0d14b2b56ad4e20dec83adc9",
 
 		    "raw": \`query TestQuery {
 		  ...QueryFragment_32RKor
@@ -1167,7 +1167,7 @@ test('can use the same fragment/argument combo multiple times', async function (
 		export default {
 		    "name": "TestQuery1",
 		    "kind": "HoudiniQuery",
-		    "hash": "d4956b482f8e85d80c01de2bd906ea4f9e7d5f190280f7a8c5dc88d0ac3ecf36",
+		    "hash": "9817b0d4cb3b3abe9d7e3b23cba8fdf0f604ffb1e1e9577e242e114ae637b2b5",
 
 		    "raw": \`query TestQuery1 {
 		  ...QueryFragment_32RKor
@@ -1229,7 +1229,7 @@ test('can use the same fragment/argument combo multiple times', async function (
 		export default {
 		    "name": "TestQuery2",
 		    "kind": "HoudiniQuery",
-		    "hash": "88dfe4925ce4af6de269e625e7c4577b1b92296c9f75746100943ed5f5281e18",
+		    "hash": "cafbad3ef5bf66ccfe44f75d4a382e7e29f055c4670ddd97fc2a2e1cf296a0c9",
 
 		    "raw": \`query TestQuery2 {
 		  ...QueryFragment_32RKor

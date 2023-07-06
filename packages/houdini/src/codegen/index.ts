@@ -36,6 +36,8 @@ export async function runPipeline(config: Config, docs: Document[]) {
 		changed: [],
 		new: [],
 		deleted: [],
+		hashSize: [],
+		querySize: [],
 	}
 
 	// collect any plugins that need to do something after generating
@@ -66,7 +68,11 @@ export async function runPipeline(config: Config, docs: Document[]) {
 				})
 		)
 
-	// run the generate command before we print "🎩 Generating runtime..." because we don't know upfront artifactStats.
+	// Let's log that we start... And if there is 0 docs, it will be written at the end.
+	if (!config.pluginMode && process.env.HOUDINI_TEST !== 'true') {
+		console.log('🎩 Generating runtime...')
+	}
+
 	let error: Error | null = null
 	try {
 		await run(
@@ -141,10 +147,6 @@ export async function runPipeline(config: Config, docs: Document[]) {
 		return
 	}
 
-	if (!config.pluginMode) {
-		console.log('🎩 Generating runtime...')
-	}
-
 	if (error) {
 		throw error
 	}
@@ -180,6 +182,19 @@ export async function runPipeline(config: Config, docs: Document[]) {
 			// log the name
 			console.log(`${emoji} ${artifact}`)
 		}
+		console.log(``)
+		console.log(`🪄  Total: ${artifactStats.total.length}`)
+
+		// local function to format the size
+		const format = (val: number) => {
+			return `${(val / 1024).toFixed(1)} kb`
+		}
+
+		// log some size information only in full mode
+		const hashSize = format(artifactStats.hashSize.reduce((acc, val) => acc + val, 0))
+		const querySize = format(artifactStats.querySize.reduce((acc, val) => acc + val, 0))
+		// not gzipped!
+		console.log(`🪶  Network request size: ${querySize} (pesisted: ${hashSize})`)
 	}
 }
 

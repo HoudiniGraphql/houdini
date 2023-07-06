@@ -15,8 +15,13 @@ houdini provides a query's hash to the fetch function for you to use.
 ## Fixed List
 
 The simplest solution for persisted queries it to generate a fixed mapping of hash to
-query for every document that your client will send. If that is good enough for your situation,
-pass the `--output` flag to the `generate` command and provide a path to save the map:
+query for every document that your client will send.
+
+Two ways to generate this list:
+1. Configuring the `persistedQueriesPath` option in your
+`houdini.config.js` file. More info in the [config section](/api/config#fields).
+2. Running the `generate` command with the `--output` flag 
+and provide a path to save the map:
 
 ```bash
 npx houdini generate --output ./queries.json

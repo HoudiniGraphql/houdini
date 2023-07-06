@@ -1,10 +1,51 @@
+import { usePersistedOperations } from '@graphql-yoga/plugin-persisted-operations'
 import { logGreen } from '@kitql/helper'
+import fs from 'fs-extra'
 import { useServer } from 'graphql-ws/lib/use/ws'
 import { createYoga, createSchema } from 'graphql-yoga'
 import { createServer } from 'node:http'
+import path from 'path'
+import url from 'url'
 import { WebSocketServer } from 'ws'
 
 import { resolvers, typeDefs } from './graphql.mjs'
+
+const plugins = []
+
+// Turn on and off (to link with 'with_persisted_queries' of "./e2e/kit/src/client.ts")
+let with_persisted_queries = false
+
+let store = {}
+
+// Let's load the persisted queries file directly, in case subscription want to use it.
+try {
+	const operationsFilePath = path.join(
+		path.dirname(url.fileURLToPath(import.meta.url)),
+		'../kit/$houdini/persisted_queries.json'
+	)
+	store = JSON.parse(fs.readFileSync(operationsFilePath, 'utf-8'))
+} catch (error) {}
+
+if (with_persisted_queries) {
+	if (Object.keys(store).length === 0) {
+		console.log(
+			`❌ No persisted queries file "${operationsFilePath}" found (need to start frontend first)`
+		)
+	} else {
+		console.log(`✅ persisted queries loaded`)
+	}
+
+	plugins.push(
+		usePersistedOperations({
+			getPersistedOperation(hash) {
+				return store[hash]
+			},
+			extractPersistedOperationId(params) {
+				return params.doc_id
+			},
+		})
+	)
+}
 
 async function main() {
 	const yogaApp = createYoga({
@@ -34,6 +75,8 @@ mutation AddUser {
 }
 			`,
 		},
+
+		plugins,
 	})
 
 	// Get NodeJS Server from Yoga
@@ -51,6 +94,11 @@ mutation AddUser {
 			execute: (args) => args.rootValue.execute(args),
 			subscribe: (args) => args.rootValue.subscribe(args),
 			onSubscribe: async (ctx, msg) => {
+				// if it's a persisted query, use the stored document instead
+				if (with_persisted_queries) {
+					msg.payload.query = store[msg.payload.extensions.persistedQuery]
+				}
+
 				const { schema, execute, subscribe, contextFactory, parse, validate } =
 					yogaApp.getEnveloped({
 						...ctx,
