@@ -24,27 +24,25 @@
   `);
 </script>
 
-<button id="listen" on:click={() => updates.listen()}>listen to 1st sub</button>
-<button id="listen" on:click={() => updates2.listen()}>listen to 2nd sub</button>
-<button id="unlisten" on:click={() => updates.unlisten()}>unlisten 1st sub</button>
-<button id="unlisten" on:click={() => updates2.unlisten()}>unlisten 2nd sub</button>
+<button id="listen-1" on:click={() => updates.listen()}>listen to 1st sub</button>
+<button id="listen-2" on:click={() => updates2.listen()}>listen to 2nd sub</button>
+<button id="unlisten-1" on:click={() => updates.unlisten()}>unlisten 1st sub</button>
+<button id="unlisten-2" on:click={() => updates2.unlisten()}>unlisten 2nd sub</button>
 
 <button id="mutate-foo" on:click={() => update.mutate({ name: 'foo' })}>foo</button>
 <button id="mutate-bar" on:click={() => update.mutate({ name: 'bar' })}>bar</button>
 
-<div id="fetching">
+<div>
   Fetching 1st sub:
   {$updates.fetching}
 </div>
-<div id="fetching">
+<div>
   Fetching 2nd sub:
   {$updates2.fetching}
 </div>
 
-<div>
-  {JSON.stringify($updates.data)}
-</div>
-
-<div>
-  {JSON.stringify($updates2.data)}
+<div id="result">
+  {JSON.stringify($updates.data?.userUpdate?.name)},{JSON.stringify(
+    $updates2.data?.userUpdate?.name
+  )}
 </div>

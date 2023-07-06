@@ -2,4 +2,4 @@
 'houdini': patch
 ---
 
-FIX for using multiple subscriptions on the same page
+Fix bug when multiple subscriptions are present on the same page
