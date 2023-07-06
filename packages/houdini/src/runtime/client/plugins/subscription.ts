@@ -3,18 +3,18 @@ import { ArtifactKind, DataSource } from '../../lib/types'
 import type { ClientPluginContext } from '../documentStore'
 import { documentPlugin } from '../utils'
 
-// we need to re-run the subscription if the following object has changed.
-// this is only safe because this plugin only operates on the client
-let check: {
-	fetchParams: RequestInit
-	session: App.Session
-	metadata: App.Metadata
-} | null = null
-
 export function subscription(factory: SubscriptionHandler) {
 	return documentPlugin(ArtifactKind.Subscription, () => {
 		// the unsubscribe hook for the active subscription
 		let clearSubscription: null | (() => void) = null
+
+		// we need to re-run the subscription if the following object has changed.
+		// this is only safe because this plugin only operates on the client
+		let check: {
+			fetchParams: RequestInit
+			session: App.Session
+			metadata: App.Metadata
+		} | null = null
 
 		return {
 			start(ctx, { resolve, next, initialValue }) {
