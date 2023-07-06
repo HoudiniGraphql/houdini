@@ -3,6 +3,7 @@ export const routes = {
   GraphQL: 'http://localhost:4000/graphql',
 
   // edge cases
+
   nested_routes: '/nested-routes',
   fetching_with_load: '/fetching/with_load',
   fetching_without_load: '/fetching/without_load',
@@ -95,6 +96,8 @@ export const routes = {
   Pagination_fragment_backwards_cursor: '/pagination/fragment/backwards-cursor',
   Pagination_fragment_bidirectional_cursor: '/pagination/fragment/bidirectional-cursor',
   Pagination_fragment_offset: '/pagination/fragment/offset',
+
+  nested_argument_fragments: '/nested-argument-fragments',
 
   Stores_Nested_List: '/stores/nested-list',
 

@@ -1071,14 +1071,14 @@ test('variables referenced deeply in objects', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "bad1595ed3acc420a0e94eb73222c0e9c24e185d0d14b2b56ad4e20dec83adc9",
+		    "hash": "3732c2ad47dee53626f380d850a8f8ef511e892287b94b901e05de4ca549ff40",
 
 		    "raw": \`query TestQuery {
 		  ...QueryFragment_32RKor
 		}
 
 		fragment QueryFragment_32RKor on Query {
-		  usersByOffset(filter: {name: $name}) {
+		  usersByOffset(filter: {name: "Foo"}) {
 		    id
 		  }
 		  __typename
@@ -1091,7 +1091,7 @@ test('variables referenced deeply in objects', async function () {
 		        "fields": {
 		            "usersByOffset": {
 		                "type": "User",
-		                "keyRaw": "usersByOffset(filter: {name: $name})",
+		                "keyRaw": "usersByOffset(filter: {name: \\"Foo\\"})",
 
 		                "selection": {
 		                    "fields": {
@@ -1153,7 +1153,7 @@ test('can use the same fragment/argument combo multiple times', async function (
 		mockCollectedDoc(
 			`
 				query TestQuery2 {
-					...QueryFragment @with(name: "Foo")
+					...QueryFragment @with(name: "Bar")
 				}
 			`
 		),
@@ -1167,14 +1167,14 @@ test('can use the same fragment/argument combo multiple times', async function (
 		export default {
 		    "name": "TestQuery1",
 		    "kind": "HoudiniQuery",
-		    "hash": "9817b0d4cb3b3abe9d7e3b23cba8fdf0f604ffb1e1e9577e242e114ae637b2b5",
+		    "hash": "a686b6492a07c32752ba286df91f4e84058324c0d64e96c6b5e6f399c9719f32",
 
 		    "raw": \`query TestQuery1 {
 		  ...QueryFragment_32RKor
 		}
 
 		fragment QueryFragment_32RKor on Query {
-		  usersByOffset(filter: {name: $name}) {
+		  usersByOffset(filter: {name: "Foo"}) {
 		    id
 		  }
 		  __typename
@@ -1187,7 +1187,7 @@ test('can use the same fragment/argument combo multiple times', async function (
 		        "fields": {
 		            "usersByOffset": {
 		                "type": "User",
-		                "keyRaw": "usersByOffset(filter: {name: $name})",
+		                "keyRaw": "usersByOffset(filter: {name: \\"Foo\\"})",
 
 		                "selection": {
 		                    "fields": {
@@ -1229,14 +1229,14 @@ test('can use the same fragment/argument combo multiple times', async function (
 		export default {
 		    "name": "TestQuery2",
 		    "kind": "HoudiniQuery",
-		    "hash": "cafbad3ef5bf66ccfe44f75d4a382e7e29f055c4670ddd97fc2a2e1cf296a0c9",
+		    "hash": "487e32683c414ded5a9941e98fba099deaae6e497899bb8bf24d3b8c3de1aa8a",
 
 		    "raw": \`query TestQuery2 {
-		  ...QueryFragment_32RKor
+		  ...QueryFragment_2wUXVX
 		}
 
-		fragment QueryFragment_32RKor on Query {
-		  usersByOffset(filter: {name: $name}) {
+		fragment QueryFragment_2wUXVX on Query {
+		  usersByOffset(filter: {name: "Bar"}) {
 		    id
 		  }
 		  __typename
@@ -1249,7 +1249,7 @@ test('can use the same fragment/argument combo multiple times', async function (
 		        "fields": {
 		            "usersByOffset": {
 		                "type": "User",
-		                "keyRaw": "usersByOffset(filter: {name: $name})",
+		                "keyRaw": "usersByOffset(filter: {name: \\"Bar\\"})",
 
 		                "selection": {
 		                    "fields": {
@@ -1273,7 +1273,7 @@ test('can use the same fragment/argument combo multiple times', async function (
 		                "arguments": {
 		                    "name": {
 		                        "kind": "StringValue",
-		                        "value": "Foo"
+		                        "value": "Bar"
 		                    }
 		                }
 		            }
@@ -1285,6 +1285,6 @@ test('can use the same fragment/argument combo multiple times', async function (
 		    "partial": false
 		};
 
-		"HoudiniHash=88dfe4925ce4af6de269e625e7c4577b1b92296c9f75746100943ed5f5281e18";
+		"HoudiniHash=2af53e6fb40c9a4c8773e53112355a003e6bedb3d504a95d8e1369fe963f0322";
 	`)
 })
