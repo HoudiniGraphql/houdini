@@ -1,5 +1,19 @@
 # houdini
 
+## 1.2.7
+
+### ✨ Features
+
+-   [#1090](https://github.com/HoudiniGraphql/houdini/pull/1090) [`18571f8`](https://github.com/HoudiniGraphql/houdini/commit/18571f81faffeda311c6f6125c2b2ad17f6cc66e) @jycouet! - Persisted Queries File can be generated on each changes via `PersistedQueriesPath` param in the config file.
+
+### 🐛 Fixes
+
+-   [#1090](https://github.com/HoudiniGraphql/houdini/pull/1090) [`18571f8`](https://github.com/HoudiniGraphql/houdini/commit/18571f81faffeda311c6f6125c2b2ad17f6cc66e) @jycouet! - Artifact Hash and Hashes in the generated file are now matching
+
+-   [#1123](https://github.com/HoudiniGraphql/houdini/pull/1123) [`2d2d6c7`](https://github.com/HoudiniGraphql/houdini/commit/2d2d6c779aca76af375f57644027954e89886d7d) @Morstis - Fix bug when multiple subscriptions are present on the same page
+
+-   [#1121](https://github.com/HoudiniGraphql/houdini/pull/1121) [`8618b66`](https://github.com/HoudiniGraphql/houdini/commit/8618b6631a8f51f6c4f6724199e25a5f8e05d0b5) @Morstis - Fix bug when fragment arguments are deeply nested in object values
+
 ## 1.2.6
 
 ### ✨ Features
