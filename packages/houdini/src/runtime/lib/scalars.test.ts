@@ -19,6 +19,15 @@ const config = defaultConfigValues({
 				return JSON.stringify(array)
 			},
 		},
+		MultiDimStringArray: {
+			type: 'string[][][]',
+			unmarshal(value): string[] {
+				return JSON.parse(value) ?? []
+			},
+			marshal(array: string[]): string {
+				return JSON.stringify(array)
+			},
+		},
 		GenericArray: {
 			type: 'Array<string>',
 			unmarshal(value): string[] {
@@ -111,6 +120,7 @@ const artifact: QueryArtifact = {
 			Array: {
 				stringArray: 'StringArray',
 				genericArray: 'GenericArray',
+				multiDimArray: 'MultiDimStringArray',
 			},
 			NestedDate: {
 				date: 'DateTime',
@@ -197,7 +207,8 @@ describe('marshal inputs', function () {
 
 	test('marshal intentional arrays', async function () {
 		// some dates to check against
-		const array1 = ['foo', 'bar']
+		const array1: string[] = ['foo', 'bar']
+		const multiDim: string[][][] = [[], [array1, array1], [array1]]
 
 		// compute the inputs
 		const inputs = marshalInputs({
@@ -208,6 +219,7 @@ describe('marshal inputs', function () {
 					{
 						stringArray: array1,
 						genericArray: array1,
+						multiDimArray: multiDim,
 					},
 				],
 			},
@@ -219,6 +231,7 @@ describe('marshal inputs', function () {
 				{
 					stringArray: JSON.stringify(array1),
 					genericArray: JSON.stringify(array1),
+					multiDimArray: JSON.stringify(multiDim),
 				},
 			],
 		})
@@ -228,6 +241,7 @@ describe('marshal inputs', function () {
 
 		const array1 = ['foo', 'bar']
 		const array2 = ['oof', 'rab']
+		const multiDim: string[][][] = [[], [array1, array1], [array1]]
 
 		// compute the inputs
 		const inputs = marshalInputs({
@@ -237,6 +251,7 @@ describe('marshal inputs', function () {
 				array: [
 					{
 						stringArray: [array1, array2],
+						multiDimArray: [multiDim, [array1], []],
 					},
 				],
 			},
@@ -247,6 +262,11 @@ describe('marshal inputs', function () {
 			array: [
 				{
 					stringArray: [JSON.stringify(array1), JSON.stringify(array2)],
+					multiDimArray: [
+						JSON.stringify(multiDim),
+						JSON.stringify([array1]),
+						JSON.stringify([]),
+					],
 				},
 			],
 		})

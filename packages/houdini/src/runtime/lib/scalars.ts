@@ -112,11 +112,25 @@ export function marshalInputs<T>({
 			const marshalFn = config.scalars?.[type]?.marshal
 			const scalarType = config.scalars?.[type]?.type
 			if (marshalFn) {
-				const shouldBeArray =
-					scalarType?.endsWith('[]') || scalarType?.match(/Array<.*>/) || false
-				// if we are looking at a list of scalars that should not be arrays
-				if (Array.isArray(value) && !shouldBeArray) {
-					return [fieldName, value.map(marshalFn)]
+				// if we are looking at a list of scalars
+				if (Array.isArray(value)) {
+					// Check if the type is intentional an array
+
+					// Count the number of "Array" or "[]" appearances in the scalarType. To Check if the scalarType
+					// should be an array. And then calculate the dimension to check if it is a list of arrays
+					const scalarArrayDim = scalarType!.match(/Array|\[\]/g)?.length ?? 0
+
+					// Return if it is not intentionally an array to skip the value dim calc
+					if (scalarArrayDim === 0) return [fieldName, value.map(marshalFn)]
+
+					// deeply calculate the depth of the array. Explores every entry -> very slow
+					const getArrayDepth = (x: unknown): number => {
+						return Array.isArray(x) ? 1 + Math.max(0, ...x.map(getArrayDepth)) : 0
+					}
+					const valueArrayDimension = getArrayDepth(value)
+
+					if (scalarArrayDim != valueArrayDimension)
+						return [fieldName, value.map(marshalFn)]
 				}
 				return [fieldName, marshalFn(value)]
 			}
