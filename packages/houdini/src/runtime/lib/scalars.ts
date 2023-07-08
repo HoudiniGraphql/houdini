@@ -110,9 +110,12 @@ export function marshalInputs<T>({
 
 			// is the type something that requires marshaling
 			const marshalFn = config.scalars?.[type]?.marshal
+			const scalarType = config.scalars?.[type]?.type
 			if (marshalFn) {
-				// if we are looking at a list of scalars
-				if (Array.isArray(value)) {
+				const shouldBeArray =
+					scalarType?.endsWith('[]') || scalarType?.match(/Array<.*>/) || false
+				// if we are looking at a list of scalars that should not be arrays
+				if (Array.isArray(value) && !shouldBeArray) {
 					return [fieldName, value.map(marshalFn)]
 				}
 				return [fieldName, marshalFn(value)]

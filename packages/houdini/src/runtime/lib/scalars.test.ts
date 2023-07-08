@@ -8,6 +8,26 @@ import { ArtifactKind } from './types'
 
 const config = defaultConfigValues({
 	scalars: {
+		StringArray: {
+			type: 'string[]',
+			unmarshal(value): string[] {
+				return JSON.parse(value) ?? []
+			},
+			marshal(array: string[]): string {
+				console.log(array)
+
+				return JSON.stringify(array)
+			},
+		},
+		GenericArray: {
+			type: 'Array<string>',
+			unmarshal(value): string[] {
+				return JSON.parse(value) ?? []
+			},
+			marshal(array: string[]): string {
+				return JSON.stringify(array)
+			},
+		},
 		DateTime: {
 			type: 'Date',
 			unmarshal(val: number): Date {
@@ -45,6 +65,10 @@ const artifact: QueryArtifact = {
 							type: 'DateTime',
 							keyRaw: 'dates',
 						},
+						stringArray: {
+							type: 'StringArray',
+							keyRaw: 'stringArray',
+						},
 						creator: {
 							type: 'User',
 							keyRaw: 'creator',
@@ -79,10 +103,15 @@ const artifact: QueryArtifact = {
 	input: {
 		fields: {
 			date: 'NestedDate',
+			array: 'Array',
 			booleanValue: 'Boolean',
 			enumValue: 'EnumValue',
 		},
 		types: {
+			Array: {
+				stringArray: 'StringArray',
+				genericArray: 'GenericArray',
+			},
 			NestedDate: {
 				date: 'DateTime',
 				dates: 'DateTime',
@@ -161,6 +190,63 @@ describe('marshal inputs', function () {
 			date: [
 				{
 					dates: [date1.getTime(), date2.getTime()],
+				},
+			],
+		})
+	})
+
+	test('marshal intentional arrays', async function () {
+		// some dates to check against
+		const array1 = ['foo', 'bar']
+
+		// compute the inputs
+		const inputs = marshalInputs({
+			artifact,
+			config,
+			input: {
+				array: [
+					{
+						stringArray: array1,
+						genericArray: array1,
+					},
+				],
+			},
+		})
+
+		// make sure we got the expected value
+		expect(inputs).toEqual({
+			array: [
+				{
+					stringArray: JSON.stringify(array1),
+					genericArray: JSON.stringify(array1),
+				},
+			],
+		})
+	})
+	test('list of intentional arrays', async function () {
+		// some dates to check against
+
+		const array1 = ['foo', 'bar']
+		const array2 = ['oof', 'rab']
+
+		// compute the inputs
+		const inputs = marshalInputs({
+			artifact,
+			config,
+			input: {
+				array: [
+					{
+						stringArray: [array1, array2],
+					},
+				],
+			},
+		})
+
+		// make sure we got the expected value
+		expect(inputs).toEqual({
+			array: [
+				{
+					stringArray: [JSON.stringify(array1), JSON.stringify(array2)],
 				},
 			],
 		})
