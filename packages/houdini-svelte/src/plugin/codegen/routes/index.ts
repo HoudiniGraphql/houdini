@@ -57,7 +57,10 @@ export default async function svelteKitGenerator(
 			}
 
 			const componentNames: string[] = []
-			const uniqueComponentQueries: { query: OperationDefinitionNode, componentPath: string }[] = []
+			const uniqueComponentQueries: {
+				query: OperationDefinitionNode
+				componentPath: string
+			}[] = []
 			for (const component of componentQueries) {
 				if (!componentNames.includes(component.query.name!.value)) {
 					componentNames.push(component.query.name!.value)
@@ -93,7 +96,11 @@ export default async function svelteKitGenerator(
 					config,
 					uniqueLayoutQueries
 				)
-				const componentQueryTypeImports = getComponentTypeImports(dirpath, config, uniqueComponentQueries)
+				const componentQueryTypeImports = getComponentTypeImports(
+					dirpath,
+					config,
+					uniqueComponentQueries
+				)
 
 				// Util bools for ensuring no unnecessary types
 				const beforePageLoad = pageExports.includes(houdini_before_load_fn)
@@ -301,27 +308,30 @@ function getTypeImports(
 function getComponentTypeImports(
 	dirpath: string,
 	config: Config,
-	queries: { query: OperationDefinitionNode, componentPath: string }[]
+	queries: { query: OperationDefinitionNode; componentPath: string }[]
 ) {
 	// Don't output anything if we don't have any component queries
 	if (queries.length === 0) {
-		return "";
+		return ''
 	}
 
 	let typeFile = "\nimport type { ComponentProps } from 'svelte'\n"
-	return typeFile + queries
-		.map((query) => {
-			const no_ext = path.parse(query.componentPath).name;
-			const file = path.parse(query.componentPath);
+	return (
+		typeFile +
+		queries
+			.map((query) => {
+				const no_ext = path.parse(query.componentPath).name
+				const file = path.parse(query.componentPath)
 
-			return `
+				return `
 import ${no_ext} from './${file.base}'
 import type { ${query.query.name!.value}$input } from '${path
 					.relative(dirpath, path.join(config.artifactDirectory, query.query.name!.value))
 					.replace('/$houdini', '')}'
-`;
-		})
-		.join("\n")
+`
+			})
+			.join('\n')
+	)
 }
 
 function append_VariablesFunction(
@@ -368,19 +378,21 @@ function append_VariablesFunction(
 function append_ComponentVariablesFunction(
 	filepath: string,
 	config: Config,
-	queries: { query: OperationDefinitionNode, componentPath: string }[]
+	queries: { query: OperationDefinitionNode; componentPath: string }[]
 ) {
 	return queries
 		.map((query) => {
-			const no_ext = path.parse(query.componentPath).name;
+			const no_ext = path.parse(query.componentPath).name
 			const prop_type = no_ext + 'Props'
 
 			return `
 type ${prop_type} = ComponentProps<${no_ext}>
 export type ${config.variableFunctionName(
 				query.query.name!.value
-			)} = <_Props extends ${prop_type}>(args: { props: _Props }) => ${query.query.name!.value}$input
-`;
+			)} = <_Props extends ${prop_type}>(args: { props: _Props }) => ${
+				query.query.name!.value
+			}$input
+`
 		})
 		.join('\n')
 }

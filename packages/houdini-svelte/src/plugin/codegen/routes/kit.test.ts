@@ -435,7 +435,6 @@ test('generates types for component queries defined in a route', async function 
 	// execute the generator
 	await generate({ config, documents: [], framework: 'kit', pluginRoot })
 
-
 	// load the contents of the file
 	const queryContents = await fs.readFile(
 		path.join(path.join(type_route_dir(config), 'myProfile', '$houdini.d.ts'))
