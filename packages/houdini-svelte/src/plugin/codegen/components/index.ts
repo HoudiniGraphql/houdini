@@ -27,7 +27,7 @@ export default async function componentTypesGenerator(
 	}
 	let matches = Object.keys(queries).filter((filepath) => filepath.endsWith('.svelte'))
 
-	// if we are in kit, don't consider the source directory
+	// if we are in kit, don't consider the routes directory
 	if (framework === 'kit') {
 		matches = matches.filter((match) => !match.startsWith(config.routesDir))
 	}

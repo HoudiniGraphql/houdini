@@ -4,7 +4,7 @@
 
   export let userId: string;
 
-  export let _ComponentInRoute_ComponentVariables: ComponentInRoute_ComponentVariables = ({
+  export const _ComponentInRoute_ComponentVariables: ComponentInRoute_ComponentVariables = ({
     props
   }) => {
     return {

@@ -9,7 +9,9 @@
 {#if $ComponentInRoute_Route.data}
   <ul>
     {#each $ComponentInRoute_Route.data.usersList as user}
-      <UserDetails userId={user.id} />
+      <li>
+        <UserDetails userId={user.id.replace('ComponentInRoute:', '')} />
+      </li>
     {/each}
   </ul>
 {/if}
