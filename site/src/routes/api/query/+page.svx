@@ -159,7 +159,7 @@ Houdini will look for hook functions defined in your `+page.js` files.
 #### `_houdini_beforeLoad`
 
 Called before Houdini executes load queries against the server. You can expect the same
-arguments as SvelteKit's [`load`](https://kit.svelte.dev/docs#loading) function.
+arguments as SvelteKit's [`load`](https://kit.svelte.dev/docs/load#universal-vs-server-input) function.
 
 ```typescript:title=src/routes/myRoute/+page.ts&typescriptToggle=true
 import { graphql } from '$houdini'
