@@ -8,8 +8,8 @@
 
 {#if $ComponentInRoute_Route.data}
   <ul>
-    {#each $ComponentInRoute_Route.data.usersList as user}
-      <li>
+    {#each $ComponentInRoute_Route.data.usersList as user, idx}
+      <li id="result-{idx}">
         <UserDetails userId={user.id.replace('ComponentInRoute:', '')} />
       </li>
     {/each}
