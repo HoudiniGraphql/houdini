@@ -27,7 +27,7 @@ export default async function componentTypesGenerator(
 	}
 	let matches = Object.keys(queries).filter((filepath) => filepath.endsWith('.svelte'))
 
-	// if we are in kit, don't consider the source directory
+	// if we are in kit, don't consider the routes directory
 	if (framework === 'kit') {
 		matches = matches.filter((match) => !match.startsWith(config.routesDir))
 	}
@@ -72,6 +72,8 @@ export default async function componentTypesGenerator(
 	await walk_project(config, files, queries, config.projectRoot)
 }
 
+// The code for generating the types is copied into packages\houdini-svelte\src\plugin\codegen\routes\index.ts
+// In case of a bug in here, make sure to fix it in there as well.
 async function walk_project(
 	config: Config,
 	dirs: ProjectDirs,

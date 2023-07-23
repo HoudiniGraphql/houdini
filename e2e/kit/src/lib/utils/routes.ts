@@ -61,6 +61,7 @@ export const routes = {
   Plugin_query_multiple: '/plugin/query/multiple',
   Plugin_query_scalars: '/plugin/query/scalars',
   Plugin_query_component: '/plugin/query/component',
+  Plugin_query_componentInRoute: '/plugin/query/component-in-route',
   Plugin_query_beforeLoad: '/plugin/query/beforeLoad',
   Plugin_query_afterLoad: '/plugin/query/afterLoad',
   Plugin_query_onError: '/plugin/query/onError',

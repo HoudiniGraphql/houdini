@@ -381,6 +381,116 @@ query MyPageQuery {
 	`)
 })
 
+test('generates types for component queries defined in a route', async function () {
+	await fs.mock({
+		[config.routesDir]: {
+			myProfile: {
+				'UserCard.svelte': `
+<script lang="ts">
+	import { graphql } from '$houdini';
+	import type { UserCardVariables } from './$houdini';
+
+	export let id: string;
+
+	export const _UserCardVariables: UserCardVariables = ({ props }) => {
+		return {
+			userId: props.id
+		};
+	};
+
+	$: data = graphql(\`
+		query UserCard($userId: ID!) {
+			user(id: $userId, snapshot: "UserCard") {
+				name
+			}
+		}
+	\`);
+</script>
+`,
+				'+page.svelte': `
+<script lang="ts">
+	import UserCard from './UserCard.svelte';
+</script>
+
+<UserCard id="1" />
+`,
+			},
+		},
+	})
+
+	await fs.mock({
+		[path.join(config.projectRoot, '.svelte-kit')]: {
+			types: {
+				src: {
+					routes: {
+						myProfile: {
+							'$types.d.ts': default_page_types,
+						},
+					},
+				},
+			},
+		},
+	})
+
+	// execute the generator
+	await generate({ config, documents: [], framework: 'kit', pluginRoot })
+
+	// load the contents of the file
+	const queryContents = await fs.readFile(
+		path.join(path.join(type_route_dir(config), 'myProfile', '$houdini.d.ts'))
+	)
+
+	expect(queryContents).toBeTruthy()
+
+	const parsedQuery = await parseJS(queryContents!)
+
+	//verify contents
+	expect(parsedQuery).toMatchInlineSnapshot(`
+		import type * as Kit from "@sveltejs/kit";
+		import type { ComponentProps } from "svelte";
+		import UserCard from "./UserCard.svelte";
+		import type { UserCard$input } from "../../../artifacts/UserCard";
+
+		type Expand<T> = T extends infer O ? {
+		    [K in keyof O]: O[K];
+		} : never;
+
+		type RouteParams = {};
+		type MaybeWithVoid<T> = {} extends T ? T | void : T;
+
+		export type RequiredKeys<T> = {
+		    [K in keyof T]?: {} extends {
+		        [P in K]: T[K];
+		    } ? never : K;
+		}[keyof T];
+
+		type OutputDataShape<T> = MaybeWithVoid<Omit<App.PageData, RequiredKeys<T>> & Partial<Pick<App.PageData, keyof T & keyof App.PageData>> & Record<string, any>>;
+		type EnsureDefined<T> = T extends null | undefined ? {} : T;
+
+		type OptionalUnion<U extends Record<string, any>, A extends keyof U = U extends U ? keyof U : never> = U extends unknown ? {
+		    [P in Exclude<A, keyof U>]?: never;
+		} & U : never;
+
+		type PageParentData = EnsureDefined<import("../$houdini").LayoutData>;
+
+		type MakeOptional<Target, Keys extends keyof Target> = Omit<Target, Keys> & {
+		    [Key in Keys]?: Target[Key] | undefined | null;
+		};
+
+		export type PageServerData = null;
+		export type PageLoad<OutputData extends OutputDataShape<PageParentData> = OutputDataShape<PageParentData>> = Kit.Load<RouteParams, PageServerData, PageParentData, OutputData>;
+		export type PageLoadEvent = Parameters<PageLoad>[0];
+		export type PageData = Expand<Expand<Omit<PageParentData, keyof PageParentData & EnsureDefined<PageServerData>> & OptionalUnion<EnsureDefined<PageParentData & EnsureDefined<PageServerData>>>> & {}>;
+		type UserCardProps = ComponentProps<UserCard>;
+
+		export type UserCardVariables = <_Props extends UserCardProps>(
+		    args: {
+		        props: _Props;
+		    }
+		) => UserCard$input;
+	`)
+})
+
 test('generates types for layout onError', async function () {
 	// create the mock filesystem
 	await fs.mock({
