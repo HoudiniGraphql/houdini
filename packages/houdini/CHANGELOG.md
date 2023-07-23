@@ -2,9 +2,9 @@
 
 ## 1.2.8
 
-### Patch Changes
+### 🐛 Fixes
 
--   [#1133](https://github.com/HoudiniGraphql/houdini/pull/1133) [`4618271`](https://github.com/HoudiniGraphql/houdini/commit/46182715a61042b43d1433f3f620c71632550f98) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Fix cache read and write input param types being generated incorrectly
+-   [#1133](https://github.com/HoudiniGraphql/houdini/pull/1133) @SeppahBaws - Fix cache read and write input param types being generated incorrectly
 
 ## 1.2.7
 

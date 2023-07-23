@@ -2,9 +2,11 @@
 
 ## 1.2.8
 
-### Patch Changes
+### 🐛 Fixes
 
--   [#1132](https://github.com/HoudiniGraphql/houdini/pull/1132) [`a19ccdf`](https://github.com/HoudiniGraphql/houdini/commit/a19ccdf4a45b586f2db5c0adc6bfae3795d229fa) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Fix typegen for component queries inside a route
+-   [#1132](https://github.com/HoudiniGraphql/houdini/pull/1132) @SeppahBaws - Fix typegen for component queries inside a route
+
+### Dependency Changes
 
 -   Updated dependencies [[`4618271`](https://github.com/HoudiniGraphql/houdini/commit/46182715a61042b43d1433f3f620c71632550f98)]:
     -   houdini@1.2.8
