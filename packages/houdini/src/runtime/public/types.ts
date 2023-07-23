@@ -103,10 +103,31 @@ export type ListType<Def extends CacheTypeDef, Name extends ValidLists<Def>> = P
 // then typescript wasn't responding on every change... Having the duplication makes
 // it very responsive.
 
+/**
+ * Note on the `_Key extends _Target && _Target extends _Key` check:
+ * Sometimes two queries might have a similar shape/inputs, e.g.:
+ *
+ * query Query1($userId: ID!) {    |    query Query2($userId: ID!) {
+ *   user(id: $userId) {           |      user($id: $userId) {
+ *     id                          |        id
+ *     name                        |        name
+ *   }                             |        birthDate
+ * }                               |      }
+ *                                 |    }
+ *
+ * To TypeScript, it would look like Query2's result would extend Query1's result.
+ * But if Query2 was listed in front of Query1 in the queries array above, `_Key extends _Target` will evaluate to true,
+ * causing it to return Query2's input/result types, while you were looking for Query1's input/result types.
+ * The additional `_Target extends _Key` ensures that the two objects have exactly the same shape, at least prompting the
+ * user for the correct fields.
+ */
+
 export type FragmentVariables<_List, _Target> = _List extends [infer Head, ...infer Rest]
 	? Head extends [infer _Key, infer _Value, infer _Input]
 		? _Key extends _Target
-			? _Input
+			? _Target extends _Key
+				? _Input
+				: FragmentValue<Rest, _Target>
 			: FragmentValue<Rest, _Target>
 		: 'Encountered unknown fragment. Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
 	: 'Encountered unknown fragment. Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
@@ -114,7 +135,9 @@ export type FragmentVariables<_List, _Target> = _List extends [infer Head, ...in
 export type FragmentValue<List, _Target> = List extends [infer Head, ...infer Rest]
 	? Head extends [infer _Key, infer _Value, infer _Input]
 		? _Key extends _Target
-			? _Value
+			? _Target extends _Key
+				? _Value
+				: FragmentValue<Rest, _Target>
 			: FragmentValue<Rest, _Target>
 		: 'Encountered unknown fragment. Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
 	: 'Encountered unknown fragment. Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
@@ -122,7 +145,9 @@ export type FragmentValue<List, _Target> = List extends [infer Head, ...infer Re
 export type QueryValue<List, _Target> = List extends [infer Head, ...infer Rest]
 	? Head extends [infer _Key, infer _Value, infer _Input]
 		? _Key extends _Target
-			? _Value
+			? _Target extends _Key
+				? _Value
+				: QueryValue<Rest, _Target>
 			: QueryValue<Rest, _Target>
 		: 'Encountered unknown query.Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
 	: 'Encountered unknown query.Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
@@ -130,7 +155,9 @@ export type QueryValue<List, _Target> = List extends [infer Head, ...infer Rest]
 export type QueryInput<List, _Target> = List extends [infer Head, ...infer Rest]
 	? Head extends [infer _Key, infer _Value, infer _Input]
 		? _Key extends _Target
-			? _Input
-			: QueryValue<Rest, _Target>
+			? _Target extends _Key
+				? _Input
+				: QueryInput<Rest, _Target>
+			: QueryInput<Rest, _Target>
 		: 'Encountered unknown query.Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
 	: 'Encountered unknown query.Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
