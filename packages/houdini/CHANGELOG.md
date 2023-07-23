@@ -1,5 +1,11 @@
 # houdini
 
+## 1.2.8
+
+### 🐛 Fixes
+
+-   [#1133](https://github.com/HoudiniGraphql/houdini/pull/1133) @SeppahBaws - Fix cache read and write input param types being generated incorrectly
+
 ## 1.2.7
 
 ### ✨ Features

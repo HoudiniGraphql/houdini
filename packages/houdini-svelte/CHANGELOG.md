@@ -1,5 +1,16 @@
 # houdini-svelte
 
+## 1.2.8
+
+### 🐛 Fixes
+
+-   [#1132](https://github.com/HoudiniGraphql/houdini/pull/1132) @SeppahBaws - Fix typegen for component queries inside a route
+
+### Dependency Changes
+
+-   Updated dependencies [[`4618271`](https://github.com/HoudiniGraphql/houdini/commit/46182715a61042b43d1433f3f620c71632550f98)]:
+    -   houdini@1.2.8
+
 ## 1.2.7
 
 ### Dependency Changes
