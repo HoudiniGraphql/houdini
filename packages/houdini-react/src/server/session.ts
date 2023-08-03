@@ -31,6 +31,11 @@ export function get_session(req: Headers, secrets: string[]): App.Session {
 		return {}
 	}
 
+	// From cookieParser.signedCookie(str, secret) doc: If the value was not signed, the original value is returned
+	if (parsed === cookie) {
+		return {}
+	}
+
 	// the value is an object with session information
 	return JSON.parse(parsed.split('=')[1])
 }
