@@ -1,3 +1,4 @@
+import { logCyan } from '@kitql/helper'
 import * as graphql from 'graphql'
 import fetch from 'node-fetch'
 
@@ -8,6 +9,7 @@ export async function pullSchema(
 	schemaPath: string,
 	headers?: Record<string, string>
 ): Promise<boolean> {
+	let content = ''
 	try {
 		// send the request
 		const resp = await fetch(url, {
@@ -17,7 +19,7 @@ export async function pullSchema(
 			}),
 			headers: { 'Content-Type': 'application/json', ...headers },
 		})
-		const content = await resp.text()
+		content = await resp.text()
 
 		const jsonSchema = JSON.parse(content).data
 		const schema = graphql.buildClientSchema(jsonSchema)
@@ -33,7 +35,41 @@ export async function pullSchema(
 
 		return true
 	} catch (e) {
-		console.warn(`⚠️  Couldn't pull your latest schema: ` + (e as Error).message)
+		if (content) {
+			console.warn(
+				`⚠️  Couldn't pull your schema.
+${logCyan('   Reponse:')} ${content}
+${logCyan('   Error  :')} ${(e as Error).message}`
+			)
+		} else {
+			console.warn(`⚠️  Couldn't pull your schema: ${(e as Error).message}`)
+		}
 	}
 	return false
+}
+
+export function extractHeadersStr(str: string | undefined) {
+	const regex = /(\w+)=("[^"]*"|[^ ]*)/g
+	const obj: Record<string, string> = {}
+
+	let match
+	while ((match = regex.exec(str ?? '')) !== null) {
+		obj[match[1]] = match[2].replaceAll('"', '')
+	}
+
+	return obj
+}
+
+export function extractHeaders(headers?: string[] | undefined) {
+	if ((headers ?? []).length > 0) {
+		return headers!.reduce((total, header) => {
+			const [key, value] = header.split(/=(.*)/s)
+
+			return {
+				...total,
+				[key]: value.replaceAll('"', ''),
+			}
+		}, {})
+	}
+	return {}
 }

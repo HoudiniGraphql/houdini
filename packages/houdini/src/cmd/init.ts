@@ -1,46 +1,67 @@
-import { logGreen } from '@kitql/helper'
-import { getIntrospectionQuery } from 'graphql'
-import fetch from 'node-fetch'
+import * as p from '@clack/prompts'
+import { bold, cyan, gray, green, italic } from 'kleur/colors'
 import { execSync } from 'node:child_process'
-import prompts from 'prompts'
 
 import type { HoudiniFrameworkInfo } from '../lib'
-import { detectTools, fs, parseJSON, path, pullSchema } from '../lib'
+import {
+	detectTools,
+	extractHeaders,
+	extractHeadersStr,
+	fs,
+	parseJSON,
+	path,
+	pullSchema,
+} from '../lib'
 import type { ConfigFile } from '../runtime/lib/config'
+
+function pCancel(cancelText = 'Operation cancelled.') {
+	p.cancel(cancelText)
+	process.exit(1)
+}
 
 // the init command is responsible for scaffolding a few files
 // as well as pulling down the initial schema representation
 export default async function init(
 	_path: string | undefined,
-	args: { headers?: string[]; force_remote_endpoint?: boolean }
+	args: {
+		headers?: string[]
+		with_intro?: boolean
+		check_is_in_project?: boolean
+		check_is_git_clean?: boolean
+		with_found_info?: boolean
+		with_outro?: boolean
+		with_finale_logs?: boolean
+	}
 ): Promise<void> {
-	const force_remote_endpoint = args.force_remote_endpoint || false
+	const with_intro = args.with_intro || true
+	const check_is_in_project = args.check_is_in_project || true
+	const check_is_git_clean = args.check_is_git_clean || true
+	const with_found_info = args.with_found_info || true
+	const with_outro = args.with_outro || true
+	const with_finale_logs = args.with_finale_logs || true
 
-	// before we start anything, let's make sure they have initialized their project
-	try {
-		await fs.stat(path.resolve('./src'))
-	} catch {
-		throw new Error(
-			'Please initialize your project first before running init. For svelte projects, you should follow the instructions here: https://kit.svelte.dev/'
-		)
+	if (with_intro) {
+		p.intro('🎩 Welcome to Houdini!')
 	}
 
-	let headers = {}
-	if ((args.headers ?? []).length > 0) {
-		headers = args.headers!.reduce((total, header) => {
-			const [key, value] = header.split(/=(.*)/s)
-			return {
-				...total,
-				[key]: value,
-			}
-		}, {})
+	if (check_is_in_project) {
+		// before we start anything, let's make sure they have initialized their project
+		try {
+			await fs.stat(path.resolve('./src'))
+		} catch {
+			throw new Error(
+				'Please initialize your project first before running init. For svelte projects, you should follow the instructions here: https://kit.svelte.dev/'
+			)
+		}
 	}
+
+	let headers = extractHeaders(args.headers)
 
 	// if no path was given, we'll use cwd
 	const targetPath = _path ? path.resolve(_path) : process.cwd()
 
 	// git check
-	if (!force_remote_endpoint) {
+	if (check_is_git_clean) {
 		// from https://github.com/sveltejs/kit/blob/master/packages/migrate/migrations/routes/index.js#L60
 		let use_git = false
 
@@ -56,19 +77,25 @@ export default async function init(
 			const status = execSync('git status --porcelain', { stdio: 'pipe' }).toString()
 
 			if (status) {
-				const message =
-					'Your git working directory is dirty — we recommend committing your changes before running this migration.\n'
-				console.error(message)
+				const { confirm } = await p.group(
+					{
+						confirm: () => {
+							p.log.warning(
+								`Your git working directory is dirty — we recommend committing your changes before running this migration.`
+							)
+							return p.confirm({
+								message: `Continue anyway?`,
+								initialValue: false,
+							})
+						},
+					},
+					{
+						onCancel: () => pCancel(),
+					}
+				)
 
-				const { confirm } = await prompts({
-					message: 'Continue anyway?',
-					name: 'confirm',
-					type: 'confirm',
-					initial: false,
-				})
-
-				if (!confirm) {
-					process.exit(1)
+				if (confirm !== true) {
+					pCancel()
 				}
 			}
 		}
@@ -76,79 +103,101 @@ export default async function init(
 
 	// Questions...
 	let url = 'http://localhost:5173/api/graphql'
-	const { is_remote_endpoint } = force_remote_endpoint
-		? { is_remote_endpoint: true }
-		: await prompts(
-				{
+	const { is_remote_endpoint } = await p.group(
+		{
+			is_remote_endpoint: () =>
+				p.confirm({
 					message: 'Will you use a remote GraphQL API?',
-					name: 'is_remote_endpoint',
-					type: 'confirm',
-					initial: true,
-				},
-				{
-					onCancel() {
-						process.exit(1)
-					},
-				}
-		  )
+					initialValue: true,
+				}),
+		},
+		{
+			onCancel: () => pCancel(),
+		}
+	)
 
-	let schemaPath = is_remote_endpoint ? './schema.graphql' : 'path/to/src/lib/**/*.graphql'
+	let schemaPath = is_remote_endpoint
+		? path.join(targetPath, 'schema.graphql')
+		: 'path/to/src/lib/**/*.graphql'
 
 	if (is_remote_endpoint) {
-		const { url_remote } = await prompts(
-			{
-				message: "What's the URL for your api?",
-				name: 'url_remote',
-				type: 'text',
-				initial: 'http://localhost:4000/graphql',
-			},
-			{
-				onCancel() {
-					process.exit(1)
+		let pullSchema_state = false
+		let number_of_round = 0
+		let url_and_headers = ''
+		while (pullSchema_state === false && number_of_round < 10) {
+			number_of_round++
+			const answer = await p.group(
+				{
+					url_and_headers: async () =>
+						p.text({
+							message: `What's the URL for your api? ${
+								number_of_round === 1 ? '' : `(attempt ${number_of_round})`
+							}`,
+							placeholder: `http://localhost:4000/graphql ${
+								number_of_round === 1 ? '' : 'Authorization=Bearer MyToken'
+							}`,
+							// initialValue: url_and_headers,
+							validate: (value) => {
+								// If empty, let's assume the placeholder value
+								if (value === '') {
+									return
+								}
+
+								if (!value.startsWith('http')) {
+									return 'Please enter a valid URL'
+								}
+							},
+						}),
 				},
+				{
+					onCancel: () => pCancel(),
+				}
+			)
+
+			url_and_headers = answer.url_and_headers
+			const value_splited = url_and_headers.split(' ')
+			const local_url = value_splited[0]
+
+			const local_headers =
+				value_splited.length > 1
+					? // remove the url and app all the headers
+					  extractHeadersStr(value_splited.slice(1).join(' '))
+					: headers
+
+			pullSchema_state = await pullSchema(local_url, schemaPath, local_headers)
+
+			if (pullSchema_state === false) {
+				const msg = `If you need to pass headers, add them after the URL (eg: '${green(
+					`http://myurl.com/graphql Authorization=Bearer MyToken`
+				)}')`
+				p.log.error(msg)
 			}
-		)
 
-		// set the url for later
-		url = url_remote
-		try {
-			// verify we can send graphql queries to the server
-			const response = await fetch(url, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					...headers,
-				},
-				body: JSON.stringify({
-					query: getIntrospectionQuery(),
-				}),
-			})
+			// set the url for later
+			url = url_and_headers === '' ? 'http://localhost:4000/graphql' : local_url
+		}
 
-			// if the response was not a 200, we have a problem
-			if (response.status !== 200) {
-				console.log('❌ That URL is not accepting GraphQL queries. Please try again.')
-				return await init(_path, { ...args, force_remote_endpoint: true })
-			}
-
-			// make sure we can parse the response as json
-			await response.json()
-		} catch (e) {
-			console.log('❌ Something went wrong: ' + (e as Error).message)
-			return await init(_path, { ...args, force_remote_endpoint: true })
+		// if we are here... it means that we have tried x times to pull the schema and it failed
+		if (pullSchema_state === false) {
+			pCancel("We couldn't pull the schema. Please check your URL/headers and try again.")
 		}
 	} else {
 		// the schema is local so ask them for the path
-		const answers = await prompts(
+		const answers = await p.group(
 			{
-				message: 'Where is your schema located?',
-				name: 'schema_path',
-				type: 'text',
-				initial: schemaPath,
+				schema_path: () =>
+					p.text({
+						message: 'Where is your schema located?',
+						placeholder: schemaPath,
+						validate: (value) => {
+							if (value === '') {
+								return 'Please enter a valid schemaPath'
+							}
+						},
+					}),
 			},
 			{
-				onCancel() {
-					process.exit(1)
-				},
+				onCancel: () => pCancel(),
 			}
 		)
 
@@ -159,48 +208,43 @@ export default async function init(
 	const { frameworkInfo, typescript, module, package_manager } = await detectTools(targetPath)
 
 	// notify the users of what we detected
-	console.log()
-	console.log("🔎 Here's what we found:")
+	if (with_found_info) {
+		const found_to_log = []
+		// framework
+		if (frameworkInfo.framework === 'svelte') {
+			found_to_log.push('✨ Svelte')
+		} else if (frameworkInfo.framework === 'kit') {
+			found_to_log.push('✨ SvelteKit')
+		} else if (frameworkInfo.framework === 'react') {
+			found_to_log.push('✨ React')
+		} else {
+			throw new Error(`Unmanaged framework: "${JSON.stringify(frameworkInfo)}"`)
+		}
 
-	// framework
-	if (frameworkInfo.framework === 'svelte') {
-		console.log('✨ Svelte')
-	} else if (frameworkInfo.framework === 'kit') {
-		console.log('✨ SvelteKit')
-	} else if (frameworkInfo.framework === 'react') {
-		console.log('✨ React')
-	} else {
-		throw new Error(`Unmanaged framework: "${JSON.stringify(frameworkInfo)}"`)
+		// module
+		if (module === 'esm') {
+			found_to_log.push('📦 ES Modules')
+		} else {
+			found_to_log.push('📦 CommonJS')
+		}
+
+		// typescript
+		if (typescript) {
+			found_to_log.push('🟦 TypeScript')
+		} else {
+			found_to_log.push('🟨 JavaScript')
+		}
+
+		p.log.info(`Here's what we found: ${found_to_log.join(', ')}`)
 	}
-
-	// module
-	if (module === 'esm') {
-		console.log('📦 ES Modules')
-	} else {
-		console.log('📦 CommonJS')
-	}
-
-	// typescript
-	if (typescript) {
-		console.log('🟦 TypeScript')
-	} else {
-		console.log('🟨 JavaScript')
-	}
-
-	// put some space between discoveries and errors
-	console.log()
 
 	// the source directory
 	const sourceDir = path.join(targetPath, 'src')
 	// the config file path
 	const configPath = path.join(targetPath, 'houdini.config.js')
 
-	console.log('🚧 Generating project files...')
-
-	// let's pull the schema only when we are using a remote endpoint
-	if (is_remote_endpoint) {
-		await pullSchema(url, path.join(targetPath, schemaPath), headers)
-	}
+	const s = p.spinner()
+	s.start(`🚧 Generating houdini's files...`)
 
 	// Houdini's files
 	await houdiniConfig(
@@ -228,9 +272,19 @@ export default async function init(
 	await tjsConfig(targetPath, frameworkInfo)
 	await packageJSON(targetPath, frameworkInfo)
 
+	s.stop(`Houdini's files generated ${green('✓')}`)
+
 	// we're done!
-	console.log()
-	console.log('🎩 Welcome to Houdini!')
+	if (with_outro) {
+		p.outro('🎉 Everything is ready!')
+	}
+
+	if (with_finale_logs) {
+		finale_logs(package_manager)
+	}
+}
+
+export function finale_logs(package_manager: 'npm' | 'yarn' | 'pnpm') {
 	let cmd_install = 'npm i'
 	let cmd_run = 'npm run dev'
 	if (package_manager === 'pnpm') {
@@ -240,11 +294,21 @@ export default async function init(
 		cmd_install = 'yarn'
 		cmd_run = 'yarn dev'
 	}
-	console.log(`
-👉 Next Steps
-1️⃣  Finalize your installation: ${logGreen(cmd_install)}
-2️⃣  Start your application:     ${logGreen(cmd_run)}
+	console.log(`👉 Next Steps
+1️⃣  Finalize your installation: ${green(cmd_install)}
+2️⃣  Start your application:     ${green(cmd_run)}
 `)
+
+	console.log(
+		gray(
+			italic(
+				`${bold('❔ More help')} at ${cyan(
+					'https://houdinigraphql.com'
+				)} (📄 Docs, ⭐ Github, 📣 Discord, ...)
+`
+			)
+		)
+	)
 }
 
 /******************************/
