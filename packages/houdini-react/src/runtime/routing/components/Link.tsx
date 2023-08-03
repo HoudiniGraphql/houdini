@@ -10,8 +10,7 @@ export function Link({
 }: {
 	href: string
 	children: React.ReactNode
-	style?: React.CSSProperties
-}) {
+} & React.AnchorHTMLAttributes<HTMLAnchorElement>) {
 	// grab the router context
 	const { goto } = useNavigationContext()
 

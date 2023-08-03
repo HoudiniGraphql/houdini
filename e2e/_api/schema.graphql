@@ -49,6 +49,8 @@ type Mutation {
 	deleteLibrary(library: ID!): Library!
 	deleteBook(book: ID!, delay: Int, force: ForceReturn): Book
 	updateRentedBook(userId: String!, bookId: Int!, rate: Int!): RentedBook
+	createA(a: String!): A!
+	createB(b: String!): B!
 }
 
 interface Node {
@@ -66,7 +68,10 @@ input UserNameFilter {
 	name: String!
 }
 
+union UnionAorB = A | B
+
 type Query {
+	aOrB: [UnionAorB!]!
 	avgYearsBirthDate: Float!
 	node(id: ID!): Node
 	user(id: ID!, snapshot: String!, tmp: Boolean, delay: Int, forceNullDate: Boolean): User!
@@ -176,6 +181,16 @@ type RentedBook {
 	userId: String!
 	bookId: Int!
 	rate: Int!
+}
+
+type A {
+	id: ID!
+	a: String!
+}
+
+type B {
+	id: ID!
+	b: String!
 }
 
 union UserNodesResult = UserNodes | Message1

@@ -78,7 +78,7 @@ test('@loading on fragment - happy path', async function () {
 		export type UserBase$artifact = {
 		    "name": "UserBase";
 		    "kind": "HoudiniFragment";
-		    "hash": "816b288a1c0d7aebceb496f0b6dd5177dc3509d3b3ad220ddd99ed73fca6b7b9";
+		    "hash": "f3b27ed1e597b43045a4a70e3c163b01b4e73a9049714ae12cfe72f49356a3ca";
 		    "raw": \`fragment UserBase on User {
 		  id
 		  firstName
@@ -235,7 +235,7 @@ test('@loading on query - happy path', async function () {
 		export type UserQuery$artifact = {
 		    "name": "UserQuery";
 		    "kind": "HoudiniQuery";
-		    "hash": "251fe62c21d1e54da09c7f58540ba37ac3b6734faedc4758a133b21605afb7d6";
+		    "hash": "b006074a693174db5ac944de421fa6d91c93eecbd0182757b87f761a8f136d3e";
 		    "raw": \`query UserQuery {
 		  user {
 		    firstName
@@ -389,7 +389,7 @@ test('@loading on list', async function () {
 		export type UserQuery$artifact = {
 		    "name": "UserQuery";
 		    "kind": "HoudiniQuery";
-		    "hash": "cb4e1e2d8139730eea3407cecd6f2af01d55ced6376c72dd038cc3a084d08eae";
+		    "hash": "bed2ad01e11cc58eae893e8866fc2e7c895e4f99f71a4b627989c0d983ec436e";
 		    "raw": \`query UserQuery {
 		  users {
 		    id
@@ -487,7 +487,7 @@ test('generated types include fragment loading state', async function () {
 		export type UserQuery$artifact = {
 		    "name": "UserQuery";
 		    "kind": "HoudiniQuery";
-		    "hash": "67d2da76e8db669876d7cdb832336d5dcfed3c4964ab8baabd2763dfb68c58e8";
+		    "hash": "86082adf511d5a5985928ef1ca367422c3a9ce6d89e3c40f190635366c1e0cb7";
 		    "raw": \`query UserQuery {
 		  users {
 		    ...UserBase
@@ -609,7 +609,7 @@ test('global @loading on fragment', async function () {
 		export type UserQuery$artifact = {
 		    "name": "UserQuery";
 		    "kind": "HoudiniQuery";
-		    "hash": "4284db1bb3496493232d8c5cce722f3ff87845a633ea2e6a01791f130da715b7";
+		    "hash": "86082adf511d5a5985928ef1ca367422c3a9ce6d89e3c40f190635366c1e0cb7";
 		    "raw": \`query UserQuery {
 		  users {
 		    ...UserBase

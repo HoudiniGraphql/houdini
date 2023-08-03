@@ -84,6 +84,9 @@ let dataRentedBooks = [
 	{ userId: '1', bookId: 1, rate: 9 },
 ]
 
+const listA = []
+const listB = []
+
 const userSnapshots = {}
 function getUserSnapshot(snapshot) {
 	if (!userSnapshots[snapshot]) {
@@ -111,6 +114,23 @@ export const resolvers = {
 	Query: {
 		hello: () => {
 			return 'Hello World! // From Houdini!'
+		},
+		aOrB: () => {
+			const toRet = []
+
+			toRet.push(
+				...listA.map((a) => {
+					return { __typename: 'A', ...a }
+				})
+			)
+
+			toRet.push(
+				...listB.map((b) => {
+					return { __typename: 'B', ...b }
+				})
+			)
+
+			return toRet
 		},
 		usersList: (_, args) => {
 			return [...getUserSnapshot(args.snapshot)].splice(args.offset || 0, args.limit)
@@ -428,6 +448,16 @@ export const resolvers = {
 			}
 
 			throw new GraphQLError('RentedBook not found', { code: 403 })
+		},
+		createA: (_, args) => {
+			const a = { id: listA.length + 1, a: args.a }
+			listA.push(a)
+			return a
+		},
+		createB: (_, args) => {
+			const b = { id: listB.length + 1, b: args.b }
+			listB.push(b)
+			return b
 		},
 	},
 

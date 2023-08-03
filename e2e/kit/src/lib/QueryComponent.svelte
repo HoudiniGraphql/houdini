@@ -1,11 +1,12 @@
 <script lang="ts">
   import { graphql } from '$houdini';
+  import type { ComponentQueryTestVariables } from './$houdini';
 
-  export function _ComponentQueryTestVariables({ props }: { props: { id?: string } }) {
+  export const _ComponentQueryTestVariables: ComponentQueryTestVariables = ({ props }) => {
     return {
       id: props.id || '3'
     };
-  }
+  };
 
   // svelte-ignore unused-export-let
   export let id = '';

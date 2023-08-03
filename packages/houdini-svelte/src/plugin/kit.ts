@@ -77,6 +77,10 @@ export function is_layout_component(framework: Framework, filename: string) {
 	return framework === 'kit' && filename.endsWith('+layout.svelte')
 }
 
+export function is_page_component(framework: Framework, filename: string) {
+	return framework === 'kit' && filename.endsWith('+page.svelte')
+}
+
 export function is_layout(framework: Framework, filename: string) {
 	return is_layout_script(framework, filename) || is_layout_component(framework, filename)
 }
@@ -125,6 +129,10 @@ export async function walk_routes(
 	let layoutExports: string[] = []
 	let pageQueries: graphql.OperationDefinitionNode[] = []
 	let layoutQueries: graphql.OperationDefinitionNode[] = []
+	let componentQueries: {
+		query: graphql.OperationDefinitionNode
+		componentPath: string
+	}[] = []
 
 	let validRoute = false
 
@@ -195,7 +203,7 @@ export async function walk_routes(
 					layoutQueries.push(definition)
 				},
 			})
-		} else if (is_component(config, framework, child)) {
+		} else if (is_page_component(framework, childPath)) {
 			validRoute = true
 			const contents = await fs.readFile(childPath)
 			if (!contents) {
@@ -223,6 +231,36 @@ export async function walk_routes(
 					await visitor.inlinePageQueries?.(definition, childPath)
 					// We push this to pageQueries since it will be the same in the type file anyway
 					pageQueries.push(definition)
+				},
+			})
+		} else if (is_component(config, framework, childPath)) {
+			validRoute = true
+			const contents = await fs.readFile(childPath)
+			if (!contents) {
+				continue
+			}
+			const parsed = await parseSvelte(contents)
+			if (!parsed) {
+				continue
+			}
+
+			const { script } = parsed
+
+			// look for any graphql tags and push into queries.
+			await find_graphql(config, script, {
+				where: (tag) => {
+					try {
+						return !!config.extractQueryDefinition(tag)
+					} catch {
+						return false
+					}
+				},
+				tag: async ({ parsedDocument }) => {
+					let definition = config.extractQueryDefinition(parsedDocument)
+					// mutate with optional inlinePageQuery. Takes an OperationDefinitionNode
+					await visitor.routeComponentQuery?.(definition, childPath)
+					// we need to push this to a separate array as we need to generate different types for this
+					componentQueries.push({ query: definition, componentPath: childPath })
 				},
 			})
 		} else if (child === plugin_config(config).layoutQueryFilename) {
@@ -292,6 +330,7 @@ export async function walk_routes(
 				svelteTypeFilePath,
 				layoutQueries,
 				pageQueries,
+				componentQueries,
 				layoutExports,
 				pageExports,
 			},
@@ -305,6 +344,7 @@ export type RouteVisitor = {
 	inlineLayoutQueries?: RouteVisitorHandler<graphql.OperationDefinitionNode>
 	routePageQuery?: RouteVisitorHandler<graphql.OperationDefinitionNode>
 	routeLayoutQuery?: RouteVisitorHandler<graphql.OperationDefinitionNode>
+	routeComponentQuery?: RouteVisitorHandler<graphql.OperationDefinitionNode>
 	layoutQueries?: RouteVisitorHandler<graphql.OperationDefinitionNode[]>
 	pageQueries?: RouteVisitorHandler<graphql.OperationDefinitionNode[]>
 	layoutExports?: RouteVisitorHandler<string[]>
@@ -314,6 +354,10 @@ export type RouteVisitor = {
 		svelteTypeFilePath: string
 		layoutQueries: graphql.OperationDefinitionNode[]
 		pageQueries: graphql.OperationDefinitionNode[]
+		componentQueries: {
+			query: graphql.OperationDefinitionNode
+			componentPath: string
+		}[]
 		layoutExports: string[]
 		pageExports: string[]
 	}>

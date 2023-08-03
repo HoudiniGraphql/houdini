@@ -1,5 +1,55 @@
 # houdini
 
+## 1.2.8
+
+### 🐛 Fixes
+
+-   [#1133](https://github.com/HoudiniGraphql/houdini/pull/1133) @SeppahBaws - Fix cache read and write input param types being generated incorrectly
+
+## 1.2.7
+
+### ✨ Features
+
+-   [#1090](https://github.com/HoudiniGraphql/houdini/pull/1090) [`18571f8`](https://github.com/HoudiniGraphql/houdini/commit/18571f81faffeda311c6f6125c2b2ad17f6cc66e) @jycouet! - Persisted Queries File can be generated on each changes via `PersistedQueriesPath` param in the config file.
+
+### 🐛 Fixes
+
+-   [#1090](https://github.com/HoudiniGraphql/houdini/pull/1090) [`18571f8`](https://github.com/HoudiniGraphql/houdini/commit/18571f81faffeda311c6f6125c2b2ad17f6cc66e) @jycouet! - Artifact Hash and Hashes in the generated file are now matching
+
+-   [#1123](https://github.com/HoudiniGraphql/houdini/pull/1123) [`2d2d6c7`](https://github.com/HoudiniGraphql/houdini/commit/2d2d6c779aca76af375f57644027954e89886d7d) @Morstis - Fix bug when multiple subscriptions are present on the same page
+
+-   [#1121](https://github.com/HoudiniGraphql/houdini/pull/1121) [`8618b66`](https://github.com/HoudiniGraphql/houdini/commit/8618b6631a8f51f6c4f6724199e25a5f8e05d0b5) @Morstis - Fix bug when fragment arguments are deeply nested in object values
+
+## 1.2.6
+
+### ✨ Features
+
+-   [#1107](https://github.com/HoudiniGraphql/houdini/pull/1107) [`743d85d`](https://github.com/HoudiniGraphql/houdini/commit/743d85d1490128dd3d9c7a419efdc4b65f996418) @m4tr1k - Add method to reset cache state
+
+-   [#1120](https://github.com/HoudiniGraphql/houdini/pull/1120) [`91b445f`](https://github.com/HoudiniGraphql/houdini/commit/91b445f0c1d9e35608e9f3c76ad5cbf51ff93217) @AlecAivazis - Users can specify that a type is always embedded by setting keys to []
+
+### 🐛 Fixes
+
+-   [#1109](https://github.com/HoudiniGraphql/houdini/pull/1109) [`1fc47b8`](https://github.com/HoudiniGraphql/houdini/commit/1fc47b8f1528aa9f24f3604a8fb3794f95d9754e) @canastro @AlecAivazis - Fix issue with duplicate abstract selections
+
+-   [#1103](https://github.com/HoudiniGraphql/houdini/pull/1103) [`891a8c7`](https://github.com/HoudiniGraphql/houdini/commit/891a8c72b89af39f17b402485cea642946375278) @canastro @AlecAivazis - Fix issue with inserts in lists of union
+
+-   [#1111](https://github.com/HoudiniGraphql/houdini/pull/1111) [`35cc897`](https://github.com/HoudiniGraphql/houdini/commit/35cc897cb98d3952139d9f06fb6bcba40c249ccd) @AlecAivazis - Fix issue when writing over previously null value
+
+## 1.2.5
+
+### 🐛 Fixes
+
+-   [#1100](https://github.com/HoudiniGraphql/houdini/pull/1100) [`bc96dfb`](https://github.com/HoudiniGraphql/houdini/commit/bc96dfb78e8df7e57c2cca7aee88a32d38c7565e) Thanks @jycouet! - Support projects using `experimentalDecorators: true` flag in there tsconfig.json
+
+-   [#1098](https://github.com/HoudiniGraphql/houdini/pull/1098) [`cb0310c`](https://github.com/HoudiniGraphql/houdini/commit/cb0310c3467d170a9a0cf012787bd59272b1e8bb) Thanks @jycouet! - fix: config.include now checks against files ignoring QueryString
+
+## 1.2.4
+
+### 🐛 Fixes
+
+-   [#1096](https://github.com/HoudiniGraphql/houdini/pull/1096) @AlecAivazis - Fix bug when inserting data into abstract list
+
 ## 1.2.3
 
 ### ✨ Features

@@ -144,6 +144,11 @@ export class ListManager {
 		// delete the lists by field lookups
 		this.listsByField.get(parentID)!.delete(field)
 	}
+
+	reset() {
+		this.lists.clear()
+		this.listsByField.clear()
+	}
 }
 
 export class List {
@@ -260,6 +265,10 @@ export class List {
 									updates: ['append', 'prepend'],
 									selection: {
 										fields: {
+											__typename: {
+												keyRaw: '__typename',
+												type: 'String',
+											},
 											node: {
 												type: listType,
 												keyRaw: 'node',
@@ -284,7 +293,15 @@ export class List {
 			}
 			insertData = {
 				newEntry: {
-					edges: [{ node: { ...data, __typename: listType } }],
+					edges: [
+						{
+							__typename: listType + 'Edge',
+							node: {
+								...data,
+								__typename: listType,
+							},
+						},
+					],
 				},
 			}
 		} else {

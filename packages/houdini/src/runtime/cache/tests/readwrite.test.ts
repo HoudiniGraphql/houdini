@@ -2330,3 +2330,91 @@ test('can perform full query check while retrieving masked value', function () {
 		},
 	})
 })
+
+test('embedded types can be configured with an empty list', function () {
+	// instantiate the cache
+	const cache = new Cache({
+		...config,
+		types: {
+			Embedded: {
+				keys: [],
+			},
+		},
+	})
+
+	const selection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						embedded: {
+							type: 'Embedded',
+							keyRaw: 'embedded',
+							visible: true,
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										visible: true,
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										visible: true,
+										keyRaw: 'firstName',
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// write the user data without the nested value
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				embedded: [
+					{
+						id: '1',
+						firstName: 'John',
+					},
+					{
+						id: '1',
+						firstName: 'Jacob',
+					},
+				],
+			},
+		},
+	})
+
+	expect(
+		cache.read({
+			selection,
+			fullCheck: true,
+		})
+	).toEqual({
+		partial: false,
+		stale: false,
+		data: {
+			viewer: {
+				embedded: [
+					{
+						id: '1',
+						firstName: 'John',
+					},
+					{
+						id: '1',
+						firstName: 'Jacob',
+					},
+				],
+			},
+		},
+	})
+})

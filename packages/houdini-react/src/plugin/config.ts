@@ -5,13 +5,11 @@ import { testConfig } from 'houdini/test'
 import type { HoudiniReactPluginConfig } from '.'
 import { hooks } from '.'
 
-export function plugin_config(config: Config): Required<HoudiniReactPluginConfig> {
+export function plugin_config(config: Config): HoudiniReactPluginConfig {
 	return config.pluginConfig<HoudiniReactPluginConfig>('houdini-react')
 }
-export async function test_config(
-	extraConfig: Partial<HoudiniReactPluginConfig> = {}
-): Promise<Config> {
-	const config = testConfig(extraConfig)
+export async function test_config(): Promise<Config> {
+	const config = testConfig()
 	const plugin = await hooks()
 	// @ts-ignore
 	config.plugins.push({

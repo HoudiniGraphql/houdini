@@ -3,6 +3,7 @@ import type { GenerateHookInput } from 'houdini'
 import { generate_entries } from './entries'
 import type { ProjectManifest } from './manifest'
 import { generate_renders } from './render'
+import { generate_type_root } from './typeRoot'
 
 /**
  * The router is fundamentally a component that knows how to render
@@ -18,5 +19,9 @@ export default async function routerCodegen({
 	manifest,
 }: GenerateHookInput & { manifest: ProjectManifest }) {
 	// use the manifest to generate all of the necessary project files
-	await Promise.all([generate_entries({ config, manifest }), generate_renders(config)])
+	await Promise.all([
+		generate_entries({ config, manifest }),
+		generate_renders(config),
+		generate_type_root({ config, manifest }),
+	])
 }

@@ -3,6 +3,7 @@ export const routes = {
   GraphQL: 'http://localhost:4000/graphql',
 
   // edge cases
+
   nested_routes: '/nested-routes',
   fetching_with_load: '/fetching/with_load',
   fetching_without_load: '/fetching/without_load',
@@ -10,6 +11,7 @@ export const routes = {
   union_result: '/union-result',
   customIDs: '/customIDs',
   subscriptions_happyPath: '/subscriptions/happyPath',
+  subscriptions_two_subscriptions: '/subscriptions/two',
   abstractFragments: '/abstract-fragments',
   abstractFragments_nestedConnection: '/abstract-fragments/nested-connection',
   fragment_masking_partial: '/fragment-masking-partial',
@@ -50,6 +52,8 @@ export const routes = {
   Stores_Pagination_query_forward_cursor: '/stores/pagination/query/forward-cursor',
   Stores_Directives: '/stores/directives',
 
+  union_insert: 'union-insert',
+
   Plugin_query_simple: '/plugin/query/simple',
   Plugin_query_variable_1: '/plugin/query/variable-1',
   Plugin_query_variable_2: '/plugin/query/variable-2',
@@ -57,6 +61,7 @@ export const routes = {
   Plugin_query_multiple: '/plugin/query/multiple',
   Plugin_query_scalars: '/plugin/query/scalars',
   Plugin_query_component: '/plugin/query/component',
+  Plugin_query_componentInRoute: '/plugin/query/component-in-route',
   Plugin_query_beforeLoad: '/plugin/query/beforeLoad',
   Plugin_query_afterLoad: '/plugin/query/afterLoad',
   Plugin_query_onError: '/plugin/query/onError',
@@ -92,6 +97,8 @@ export const routes = {
   Pagination_fragment_backwards_cursor: '/pagination/fragment/backwards-cursor',
   Pagination_fragment_bidirectional_cursor: '/pagination/fragment/bidirectional-cursor',
   Pagination_fragment_offset: '/pagination/fragment/offset',
+
+  nested_argument_fragments: '/nested-argument-fragments',
 
   Stores_Nested_List: '/stores/nested-list',
 

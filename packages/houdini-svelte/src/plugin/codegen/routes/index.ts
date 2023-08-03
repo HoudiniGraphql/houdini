@@ -29,6 +29,7 @@ export default async function svelteKitGenerator(
 			svelteTypeFilePath,
 			layoutQueries,
 			pageQueries,
+			componentQueries,
 			layoutExports,
 			pageExports,
 		}) {
@@ -52,6 +53,18 @@ export default async function svelteKitGenerator(
 				if (!layoutNames.includes(layout.name!.value)) {
 					layoutNames.push(layout.name!.value)
 					uniqueLayoutQueries.push(layout)
+				}
+			}
+
+			const componentNames: string[] = []
+			const uniqueComponentQueries: {
+				query: OperationDefinitionNode
+				componentPath: string
+			}[] = []
+			for (const component of componentQueries) {
+				if (!componentNames.includes(component.query.name!.value)) {
+					componentNames.push(component.query.name!.value)
+					uniqueComponentQueries.push(component)
 				}
 			}
 
@@ -83,6 +96,11 @@ export default async function svelteKitGenerator(
 					config,
 					uniqueLayoutQueries
 				)
+				const componentQueryTypeImports = getComponentTypeImports(
+					dirpath,
+					config,
+					uniqueComponentQueries
+				)
 
 				// Util bools for ensuring no unnecessary types
 				const beforePageLoad = pageExports.includes(houdini_before_load_fn)
@@ -104,6 +122,12 @@ export default async function svelteKitGenerator(
 					dirpath,
 					config,
 					uniquePageQueries
+				)
+
+				const component_append_VariablesFunction = append_ComponentVariablesFunction(
+					dirpath,
+					config,
+					uniqueComponentQueries
 				)
 
 				const layout_append_beforeLoad = append_beforeLoad(beforeLayoutLoad, 'Layout')
@@ -172,6 +196,7 @@ export default async function svelteKitGenerator(
 					.concat(functionImports)
 					.concat(layoutTypeImports)
 					.concat(pageTypeImports)
+					.concat(componentQueryTypeImports)
 
 				// if we need Page/LayoutParams, generate this type.
 				// verify if necessary. might not be.
@@ -209,6 +234,7 @@ export default async function svelteKitGenerator(
 					.concat(page_append_onError)
 					.concat(layout_append_VariablesFunction)
 					.concat(page_append_VariablesFunction)
+					.concat(component_append_VariablesFunction)
 					//match all between 'LayoutData =' and ';' and combine additional types
 					.replace(
 						//regex to append our generated stores to the existing
@@ -278,6 +304,36 @@ function getTypeImports(
 		.join('\n')
 }
 
+// Copied and adapted from packages\houdini-svelte\src\plugin\codegen\components\index.ts
+function getComponentTypeImports(
+	dirpath: string,
+	config: Config,
+	queries: { query: OperationDefinitionNode; componentPath: string }[]
+) {
+	// Don't output anything if we don't have any component queries
+	if (queries.length === 0) {
+		return ''
+	}
+
+	let typeFile = "\nimport type { ComponentProps } from 'svelte'\n"
+	return (
+		typeFile +
+		queries
+			.map((query) => {
+				const no_ext = path.parse(query.componentPath).name
+				const file = path.parse(query.componentPath)
+
+				return `
+import ${no_ext} from './${file.base}'
+import type { ${query.query.name!.value}$input } from '${path
+					.relative(dirpath, path.join(config.artifactDirectory, query.query.name!.value))
+					.replace('/$houdini', '')}'
+`
+			})
+			.join('\n')
+	)
+}
+
 function append_VariablesFunction(
 	type: `Page` | `Layout`,
 	filepath: string,
@@ -314,6 +370,29 @@ function append_VariablesFunction(
 			return `\nexport type ${config.variableFunctionName(
 				name
 			)} = VariableFunction<${type}Params, ${input_type}>;`
+		})
+		.join('\n')
+}
+
+// Copied and adapted from packages\houdini-svelte\src\plugin\codegen\components\index.ts
+function append_ComponentVariablesFunction(
+	filepath: string,
+	config: Config,
+	queries: { query: OperationDefinitionNode; componentPath: string }[]
+) {
+	return queries
+		.map((query) => {
+			const no_ext = path.parse(query.componentPath).name
+			const prop_type = no_ext + 'Props'
+
+			return `
+type ${prop_type} = ComponentProps<${no_ext}>
+export type ${config.variableFunctionName(
+				query.query.name!.value
+			)} = <_Props extends ${prop_type}>(args: { props: _Props }) => ${
+				query.query.name!.value
+			}$input
+`
 		})
 		.join('\n')
 }

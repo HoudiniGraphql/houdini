@@ -1,6 +1,6 @@
 import { test, expect, describe } from 'vitest'
 
-import { parseJSON } from './parse'
+import { parseJS, parseJSON } from './parse'
 
 describe('parse', function () {
 	test('parseJSON without comments', async function () {
@@ -71,5 +71,22 @@ describe('parse', function () {
 				noImplicitAny: true,
 			},
 		})
+	})
+
+	test('parseJS with decorators', async function () {
+		const parsed = parseJS(`
+			const a = 1
+			const b = 2
+
+			@annotation
+			class Test {}
+		`)
+		expect(parsed).toMatchInlineSnapshot(`
+			const a = 1;
+			const b = 2;
+
+			@annotation
+			class Test {}
+		`)
 	})
 })

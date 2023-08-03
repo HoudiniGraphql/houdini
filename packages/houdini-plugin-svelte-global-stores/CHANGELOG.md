@@ -1,5 +1,45 @@
 # houdini-plugin-svelte-global-stores
 
+## 1.2.8
+
+### Dependency Changes
+
+-   Updated dependencies [[`4618271`](https://github.com/HoudiniGraphql/houdini/commit/46182715a61042b43d1433f3f620c71632550f98), [`a19ccdf`](https://github.com/HoudiniGraphql/houdini/commit/a19ccdf4a45b586f2db5c0adc6bfae3795d229fa)]:
+    -   houdini@1.2.8
+    -   houdini-svelte@1.2.8
+
+## 1.2.7
+
+### Dependency Changes
+
+-   Updated dependencies [[`18571f8`](https://github.com/HoudiniGraphql/houdini/commit/18571f81faffeda311c6f6125c2b2ad17f6cc66e), [`18571f8`](https://github.com/HoudiniGraphql/houdini/commit/18571f81faffeda311c6f6125c2b2ad17f6cc66e), [`2d2d6c7`](https://github.com/HoudiniGraphql/houdini/commit/2d2d6c779aca76af375f57644027954e89886d7d), [`8618b66`](https://github.com/HoudiniGraphql/houdini/commit/8618b6631a8f51f6c4f6724199e25a5f8e05d0b5)]:
+    -   houdini@1.2.7
+    -   houdini-svelte@1.2.7
+
+## 1.2.6
+
+### Dependency Changes
+
+-   Updated dependencies [[`6f9eeb6`](https://github.com/HoudiniGraphql/houdini/commit/6f9eeb693fd6223b9b4c4af8cdb93a57c8e5b777), [`1fc47b8`](https://github.com/HoudiniGraphql/houdini/commit/1fc47b8f1528aa9f24f3604a8fb3794f95d9754e), [`891a8c7`](https://github.com/HoudiniGraphql/houdini/commit/891a8c72b89af39f17b402485cea642946375278), [`743d85d`](https://github.com/HoudiniGraphql/houdini/commit/743d85d1490128dd3d9c7a419efdc4b65f996418), [`35cc897`](https://github.com/HoudiniGraphql/houdini/commit/35cc897cb98d3952139d9f06fb6bcba40c249ccd), [`91b445f`](https://github.com/HoudiniGraphql/houdini/commit/91b445f0c1d9e35608e9f3c76ad5cbf51ff93217)]:
+    -   houdini-svelte@1.2.6
+    -   houdini@1.2.6
+
+## 1.2.5
+
+### Dependency Changes
+
+-   Updated dependencies [[`bc96dfb`](https://github.com/HoudiniGraphql/houdini/commit/bc96dfb78e8df7e57c2cca7aee88a32d38c7565e), [`cb0310c`](https://github.com/HoudiniGraphql/houdini/commit/cb0310c3467d170a9a0cf012787bd59272b1e8bb)]:
+    -   houdini@1.2.5
+    -   houdini-svelte@1.2.5
+
+## 1.2.4
+
+### Dependency Changes
+
+-   Updated dependencies [[`5daf4c4`](https://github.com/HoudiniGraphql/houdini/commit/5daf4c407123a08f81bd20c6b963df94ee26e2c3)]:
+    -   houdini@1.2.4
+    -   houdini-svelte@1.2.4
+
 ## 1.2.3
 
 ### Dependency Changes
