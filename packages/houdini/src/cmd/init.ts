@@ -486,7 +486,7 @@ ${
 export default function ({ children, LayoutQuery }${typescript ? ': LayoutProps' : ''}) {
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-			+layout: <pre>{JSON.stringify(LayoutQuery, null, 2)}</pre>
+			<pre>+layout:{JSON.stringify(LayoutQuery)}</pre>
 			<div>{children}</div>
 		</div>
 	)
@@ -503,7 +503,12 @@ export default function ({ children, LayoutQuery }${typescript ? ': LayoutProps'
 				: ''
 		}		
 export default function ({ LayoutQuery }${typescript ? ': PageProps' : ''}) {
-	return <div>My Page</div>
+	return (
+		<div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+			<div>My Page</div>
+			<pre>+page:{JSON.stringify(LayoutQuery)}</pre>
+		</div>
+	)
 }		
 `
 	)
@@ -630,22 +635,33 @@ async function tjsConfig(targetPath: string, frameworkInfo: HoudiniFrameworkInfo
 			var tjsConfig = parseJSON(tjsConfigFile)
 		}
 
-		// new rootDirs (will overwrite the one in "extends": "./.svelte-kit/tsconfig.json")
-		if (frameworkInfo.framework === 'svelte') {
-			tjsConfig.compilerOptions.rootDirs = ['.', './$houdini/types']
-		} else if (frameworkInfo.framework === 'kit') {
-			tjsConfig.compilerOptions.rootDirs = ['.', './.svelte-kit/types', './$houdini/types']
-		}
+		// in react, let's overwrite completly the config like this:
+		if (frameworkInfo.framework === 'react') {
+			tjsConfig = {
+				extends: './$houdini/tsconfig.json',
+			}
+		} else {
+			// new rootDirs (will overwrite the one in "extends": "./.svelte-kit/tsconfig.json")
+			if (frameworkInfo.framework === 'svelte') {
+				tjsConfig.compilerOptions.rootDirs = ['.', './$houdini/types']
+			} else if (frameworkInfo.framework === 'kit') {
+				tjsConfig.compilerOptions.rootDirs = [
+					'.',
+					'./.svelte-kit/types',
+					'./$houdini/types',
+				]
+			}
 
-		// In kit, no need to add manually the path. Why? Because:
-		//   The config [svelte.config.js => kit => alias => $houdini]
-		//   will make this automatically in "extends": "./.svelte-kit/tsconfig.json"
-		// In svelte, we need to add the path manually
-		if (frameworkInfo.framework === 'svelte' || frameworkInfo.framework === 'react') {
-			tjsConfig.compilerOptions.paths = {
-				...tjsConfig.compilerOptions.paths,
-				$houdini: ['./$houdini'],
-				'$houdini/*': ['./$houdini/*'],
+			// In kit, no need to add manually the path. Why? Because:
+			//   The config [svelte.config.js => kit => alias => $houdini]
+			//   will make this automatically in "extends": "./.svelte-kit/tsconfig.json"
+			// In svelte, we need to add the path manually
+			if (frameworkInfo.framework === 'svelte') {
+				tjsConfig.compilerOptions.paths = {
+					...tjsConfig.compilerOptions.paths,
+					$houdini: ['./$houdini'],
+					'$houdini/*': ['./$houdini/*'],
+				}
 			}
 		}
 
