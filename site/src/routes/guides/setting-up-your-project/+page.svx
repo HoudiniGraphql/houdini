@@ -11,7 +11,10 @@ all of the necessary steps.
 
 ## Init Script
 
-Once you have a SvelteKit Project (either an existing one or by following [these instructions](https://kit.svelte.dev/docs/creating-a-project),
+Once you have a project
+- SvelteKit (existing or [creating a new one](https://kit.svelte.dev/docs/creating-a-project)),
+- React (existing or [creating a new one](https://vitejs.dev/guide/#scaffolding-your-first-vite-project)),
+
 you can run the following command to add Houdini to your project. Just follow questions and the tool will
 configure everything for you (setup url, get schema, prepare project files, etc).
 
