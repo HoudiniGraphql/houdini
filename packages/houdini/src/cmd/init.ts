@@ -466,10 +466,10 @@ class ErrorBoundary extends React.Component {
 	// demo layout page
 	await fs.writeFile(
 		path.join(targetPath, 'routes', `+layout.gql`),
-		`# Layout query
-# query LayoutQuery {
-# 	...
-# }		
+		`# Layout query (just as example, you can delete it)
+query LayoutQuery {
+	__typename
+}
 `
 	)
 
@@ -477,15 +477,16 @@ class ErrorBoundary extends React.Component {
 		path.join(targetPath, 'routes', `+layout.${typescript ? 't' : 'j'}sx`),
 		`import { Link } from '$houdini'
 
-export default function ({
-	children,
-	// Query from +layout.gql
-	// LayoutQuery
-}) {
+${
+	typescript
+		? `import type { LayoutProps } from './$types'
+`
+		: ''
+}
+export default function ({ children, LayoutQuery }${typescript ? ': LayoutProps' : ''}) {
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-			{/* Using the query of +layout.gql
-			{JSON.stringify(LayoutQuery, null, 2)} */}
+			+layout: <pre>{JSON.stringify(LayoutQuery, null, 2)}</pre>
 			<div>{children}</div>
 		</div>
 	)
@@ -495,7 +496,13 @@ export default function ({
 
 	await fs.writeFile(
 		path.join(targetPath, 'routes', `+page.${typescript ? 't' : 'j'}sx`),
-		`export default function ({}) {
+		`${
+			typescript
+				? `import type { PageProps } from './$types'
+`
+				: ''
+		}		
+export default function ({ LayoutQuery }${typescript ? ': PageProps' : ''}) {
 	return <div>My Page</div>
 }		
 `
