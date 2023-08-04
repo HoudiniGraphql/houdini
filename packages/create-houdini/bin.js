@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import * as p from '@clack/prompts'
-import { execSync, spawn, spawnSync } from 'child_process'
+import { execSync } from 'child_process'
 import { create as create_svelte } from 'create-svelte'
+import { detectTools, finale_logs, init as houdini_init } from 'houdini'
 import { bold, cyan, gray, green, grey, italic } from 'kleur/colors'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -9,8 +10,7 @@ import path from 'node:path'
 const { version } = JSON.parse(fs.readFileSync(new URL('package.json', import.meta.url), 'utf-8'))
 let cwd = process.argv[2] || '.'
 
-console.log(`
-${grey(`create-houdini version ${version}`)}
+console.log(`${grey(`create-houdini version ${version}`)}
 `)
 
 p.intro('🎩 Welcome to Houdini!')
@@ -26,6 +26,8 @@ if (cwd === '.') {
 
 	if (dir) {
 		cwd = /** @type {string} */ (dir)
+		// create the path
+		fs.mkdirSync(cwd, { recursive: true })
 	}
 }
 
@@ -63,39 +65,39 @@ const framework = await p.select({
 
 const project_name = path.basename(path.resolve(cwd))
 
-const s = p.spinner()
-s.start('Preparing project')
-if (framework === 'react') {
-	execSync(`npm create vite@4.4.1 ${project_name} -- --template react-swc-ts`)
-} else if (framework === 'svelte') {
-	await create_svelte(cwd, {
-		name: project_name,
-		template: 'skeleton',
-		types: 'typescript',
-		prettier: true,
-		eslint: true,
-		playwright: true,
-		vitest: true,
-	})
-} else {
-	p.cancel('Unmanaged framework, sorry!')
-}
-s.stop(`Project created ${green('✓')}`)
+await houdini_init(cwd, {
+	check_is_git_clean: false,
+	check_is_in_project: false,
+	with_intro: false,
+	after_questions: async () => {
+		const s = p.spinner()
+		s.start('Preparing project')
+		if (framework === 'react') {
+			execSync(`npm create vite@4.4.1 ${project_name} -- --template react-swc-ts`)
+		} else if (framework === 'svelte') {
+			await create_svelte(cwd, {
+				name: project_name,
+				template: 'skeleton',
+				types: 'typescript',
+				prettier: true,
+				eslint: true,
+				playwright: true,
+				vitest: true,
+			})
+		} else {
+			p.cancel('Unmanaged framework, sorry!')
+		}
+
+		fs.writeFileSync(path.join(cwd, 'pnpm-lock.yaml'), '')
+
+		s.stop(`Project created ${green('✓')}`)
+	},
+	with_found_info: false,
+	with_outro: false,
+	with_finale_logs: false,
+})
 
 p.outro('🎉 Everything is ready!')
 
-console.log(`${bold('👉 Next Steps')}
-1️⃣  Finalize your installation: ${green('cmd_install')}
-2️⃣  Start your application:     ${green('cmd_run')}
-`)
-
-console.log(
-	gray(
-		italic(
-			`${bold('❔ More help')} at ${cyan(
-				'https://houdinigraphql.com'
-			)} (📄 Doc, ⭐ Github, 📣 Discord, ...)
-`
-		)
-	)
-)
+const { package_manager } = await detectTools(cwd)
+finale_logs(package_manager)

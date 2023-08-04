@@ -22,16 +22,17 @@ export async function pullSchema(
 		content = await resp.text()
 
 		const jsonSchema = JSON.parse(content).data
-		const schema = graphql.buildClientSchema(jsonSchema)
+		let fileData = ''
 
 		// Check if the schemapath ends with .gql or .graphql - if so write the schema as string
 		// Otherwise write the json/introspection
 		if (schemaPath!.endsWith('gql') || schemaPath!.endsWith('graphql')) {
-			const schemaAsString = graphql.printSchema(graphql.lexicographicSortSchema(schema))
-			await fs.writeFile(schemaPath, schemaAsString)
+			const schema = graphql.buildClientSchema(jsonSchema)
+			fileData = graphql.printSchema(graphql.lexicographicSortSchema(schema))
 		} else {
-			await fs.writeFile(schemaPath, JSON.stringify(jsonSchema))
+			fileData = JSON.stringify(jsonSchema)
 		}
+		await fs.writeFile(schemaPath, fileData)
 
 		return true
 	} catch (e) {

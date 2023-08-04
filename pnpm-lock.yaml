@@ -210,10 +210,12 @@ importers:
       '@clack/prompts': ^0.6.3
       '@types/node': ^18.7.23
       create-svelte: ^5.0.4
+      houdini: workspace:^
       kleur: ^4.1.5
     dependencies:
       '@clack/prompts': 0.6.3
       create-svelte: 5.0.4
+      houdini: link:../houdini
       kleur: 4.1.5
     devDependencies:
       '@types/node': 18.11.15

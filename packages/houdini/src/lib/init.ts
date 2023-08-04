@@ -2,16 +2,8 @@ import * as p from '@clack/prompts'
 import { bold, cyan, gray, green, italic } from 'kleur/colors'
 import { execSync } from 'node:child_process'
 
-import type { HoudiniFrameworkInfo } from '../lib'
-import {
-	detectTools,
-	extractHeaders,
-	extractHeadersStr,
-	fs,
-	parseJSON,
-	path,
-	pullSchema,
-} from '../lib'
+import type { HoudiniFrameworkInfo } from '.'
+import { detectTools, extractHeaders, extractHeadersStr, fs, parseJSON, path, pullSchema } from '.'
 import type { ConfigFile } from '../runtime/lib/config'
 
 function pCancel(cancelText = 'Operation cancelled.') {
@@ -21,24 +13,25 @@ function pCancel(cancelText = 'Operation cancelled.') {
 
 // the init command is responsible for scaffolding a few files
 // as well as pulling down the initial schema representation
-export default async function init(
+export async function init(
 	_path: string | undefined,
 	args: {
 		headers?: string[]
 		with_intro?: boolean
 		check_is_in_project?: boolean
 		check_is_git_clean?: boolean
+		after_questions?: () => Promise<void>
 		with_found_info?: boolean
 		with_outro?: boolean
 		with_finale_logs?: boolean
 	}
 ): Promise<void> {
-	const with_intro = args.with_intro || true
-	const check_is_in_project = args.check_is_in_project || true
-	const check_is_git_clean = args.check_is_git_clean || true
-	const with_found_info = args.with_found_info || true
-	const with_outro = args.with_outro || true
-	const with_finale_logs = args.with_finale_logs || true
+	const with_intro = args.with_intro ?? true
+	const check_is_in_project = args.check_is_in_project ?? true
+	const check_is_git_clean = args.check_is_git_clean ?? true
+	const with_found_info = args.with_found_info ?? true
+	const with_outro = args.with_outro ?? true
+	const with_finale_logs = args.with_finale_logs ?? true
 
 	if (with_intro) {
 		p.intro('🎩 Welcome to Houdini!')
@@ -202,6 +195,10 @@ export default async function init(
 		)
 
 		schemaPath = answers.schema_path
+	}
+
+	if (args.after_questions) {
+		args.after_questions()
 	}
 
 	// try to detect which tools they are using

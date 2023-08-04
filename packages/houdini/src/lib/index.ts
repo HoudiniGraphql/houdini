@@ -12,6 +12,7 @@ export * from './cleanupFiles'
 export * from './deepMerge'
 export * from './plugin'
 export * from './detectTools'
+export * from './init'
 
 export * from './walk'
 export type { EmbeddedGraphqlDocument } from './walk'

@@ -1,9 +1,8 @@
 import { Command } from 'commander'
 
 import type { HoudiniError } from '../lib'
-import { LogLevel } from '../lib'
+import { LogLevel, init } from '../lib'
 import { generate } from './generate'
-import init from './init'
 import pullSchema from './pullSchema'
 
 // build up the cli
