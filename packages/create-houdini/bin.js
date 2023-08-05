@@ -3,7 +3,7 @@ import * as p from '@clack/prompts'
 import { execSync } from 'child_process'
 import { create as create_svelte } from 'create-svelte'
 import { detectTools, finale_logs, init as houdini_init } from 'houdini'
-import { bold, cyan, gray, green, grey, italic } from 'kleur/colors'
+import { green, grey } from 'kleur/colors'
 import fs from 'node:fs'
 import path from 'node:path'
 
@@ -18,16 +18,23 @@ p.intro('🎩 Welcome to Houdini!')
 // project location
 if (cwd === '.') {
 	const dir = await p.text({
-		message: 'Where should we create your project?',
-		placeholder: '  (hit Enter to use current directory)',
+		message: `What's the project name?`,
+		placeholder: '  (a folder with this name will be created)',
+		validate: (value) => {
+			if (value.length === 0) {
+				return 'Please enter a project name'
+			}
+			if (fs.existsSync(value)) {
+				return 'A folder with this name already exists'
+			}
+			return
+		},
 	})
 
 	if (p.isCancel(dir)) process.exit(1)
 
 	if (dir) {
 		cwd = /** @type {string} */ (dir)
-		// create the path
-		fs.mkdirSync(cwd, { recursive: true })
 	}
 }
 
@@ -73,7 +80,10 @@ await houdini_init(cwd, {
 		const s = p.spinner()
 		s.start('Preparing project')
 		if (framework === 'react') {
-			execSync(`npm create vite@4.4.1 ${project_name} -- --template react-swc-ts`)
+			// rely on network npm create...
+			// execSync(`npm create vite@4.4.1 ${project_name} -- --template react-swc-ts`)
+			// rely on local npm create...
+			execSync(`npm exec create-vite ${project_name} -- --template react-swc-ts`)
 		} else if (framework === 'svelte') {
 			await create_svelte(cwd, {
 				name: project_name,
@@ -88,14 +98,15 @@ await houdini_init(cwd, {
 			p.cancel('Unmanaged framework, sorry!')
 		}
 
-		fs.writeFileSync(path.join(cwd, 'pnpm-lock.yaml'), '')
-
 		s.stop(`Project created ${green('✓')}`)
 	},
 	with_found_info: false,
 	with_outro: false,
 	with_finale_logs: false,
 })
+
+// Some extra stuff
+fs.writeFileSync(path.join(cwd, 'pnpm-lock.yaml'), '')
 
 p.outro('🎉 Everything is ready!')
 

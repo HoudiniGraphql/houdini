@@ -7,8 +7,9 @@ import * as fs from './fs'
 export async function pullSchema(
 	url: string,
 	schemaPath: string,
-	headers?: Record<string, string>
-): Promise<boolean> {
+	headers?: Record<string, string>,
+	skipWriting?: boolean
+): Promise<string | null> {
 	let content = ''
 	try {
 		// send the request
@@ -32,9 +33,11 @@ export async function pullSchema(
 		} else {
 			fileData = JSON.stringify(jsonSchema)
 		}
-		await fs.writeFile(schemaPath, fileData)
+		if (!skipWriting) {
+			await fs.writeFile(schemaPath, fileData)
+		}
 
-		return true
+		return fileData
 	} catch (e) {
 		if (content) {
 			console.warn(
@@ -46,7 +49,7 @@ ${logCyan('   Error  :')} ${(e as Error).message}`
 			console.warn(`⚠️  Couldn't pull your schema: ${(e as Error).message}`)
 		}
 	}
-	return false
+	return null
 }
 
 export function extractHeadersStr(str: string | undefined) {

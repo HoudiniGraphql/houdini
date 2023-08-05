@@ -210,15 +210,21 @@ importers:
       '@clack/prompts': ^0.6.3
       '@types/node': ^18.7.23
       create-svelte: ^5.0.4
+      create-vite: ^4.4.1
       houdini: workspace:^
       kleur: ^4.1.5
+      prettier: ^2.8.3
+      prettier-plugin-svelte: ^2.9.0
     dependencies:
       '@clack/prompts': 0.6.3
       create-svelte: 5.0.4
+      create-vite: 4.4.1
       houdini: link:../houdini
       kleur: 4.1.5
     devDependencies:
       '@types/node': 18.11.15
+      prettier: 2.8.3
+      prettier-plugin-svelte: 2.9.0_duz2vlilla6qnf7wkn4dqotijm
 
   packages/houdini:
     specifiers:
@@ -233,7 +239,6 @@ importers:
       '@types/micromatch': ^4.0.2
       '@types/minimatch': ^5.1.2
       '@types/node': ^18.7.23
-      '@types/prompts': ^2.0.14
       '@types/ungap__structured-clone': ^0.3.0
       '@ungap/structured-clone': ^1.0.2
       ast-types: ^0.16.1
@@ -250,7 +255,6 @@ importers:
       node-fetch: ^3.2.10
       npx-import: ^1.1.3
       prettier: ^2.8.3
-      prompts: ^2.4.2
       recast: ^0.23.1
       rollup: ^3.7.4
       scripts: workspace:^
@@ -265,7 +269,6 @@ importers:
       '@types/estree': 1.0.0
       '@types/fs-extra': 9.0.13
       '@types/micromatch': 4.0.2
-      '@types/prompts': 2.4.2
       '@ungap/structured-clone': 1.0.2
       ast-types: 0.16.1
       commander: 9.4.1
@@ -279,7 +282,6 @@ importers:
       minimatch: 5.1.2
       node-fetch: 3.3.0
       npx-import: 1.1.4
-      prompts: 2.4.2
       recast: 0.23.1
       vite-plugin-watch-and-run: 1.1.0
     devDependencies:
@@ -2629,13 +2631,6 @@ packages:
     resolution: {integrity: sha512-KufADq8uQqo1pYKVIYzfKbJfBAc0sOeXqGbFaSpv8MRmC/zXgowNZmFcbngndGk922QDmOASEXUZCaY48gs4cg==}
     dev: false
 
-  /@types/prompts/2.4.2:
-    resolution: {integrity: sha512-TwNx7qsjvRIUv/BCx583tqF5IINEVjCNqg9ofKHRlSoUHE62WBHrem4B1HGXcIrG511v29d1kJ9a/t2Esz7MIg==}
-    dependencies:
-      '@types/node': 18.11.15
-      kleur: 3.0.3
-    dev: false
-
   /@types/prop-types/15.7.5:
     resolution: {integrity: sha512-JCB8C6SnDoQf0cNycqd/35A7MjcnK+ZTqE7judS6o7utxUCg6imJg3QK2qzHKszlTjcj2cn+NwMB2i96ubpj7w==}
 
@@ -3959,6 +3954,12 @@ packages:
     dependencies:
       '@clack/prompts': 0.6.3
       kleur: 4.1.5
+    dev: false
+
+  /create-vite/4.4.1:
+    resolution: {integrity: sha512-VbE5lc4aO7gterlwTDPxfnEhp/e0xAJui7NydmQiLpKq2yBLTQGcfMXeZeyoIH+E/Di2MQpE4o0K3lZNjlFL+A==}
+    engines: {node: ^14.18.0 || >=16.0.0}
+    hasBin: true
     dev: false
 
   /cross-env/7.0.3:
@@ -6897,11 +6898,6 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /kleur/3.0.3:
-    resolution: {integrity: sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w==}
-    engines: {node: '>=6'}
-    dev: false
-
   /kleur/4.1.5:
     resolution: {integrity: sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ==}
     engines: {node: '>=6'}
@@ -8295,14 +8291,6 @@ packages:
     resolution: {integrity: sha512-7PiHtLll5LdnKIMw100I+8xJXR5gW2QwWYkT6iJva0bXitZKa/XMrSbdmg3r2Xnaidz9Qumd0VPaMrZlF9V9sA==}
     engines: {node: '>=0.4.0'}
     dev: true
-
-  /prompts/2.4.2:
-    resolution: {integrity: sha512-NxNv/kLguCA7p3jE8oL2aEBsrJWgAakBpgmgK6lpPWV+WuOmY6r2/zbAVnP+T8bQlA0nzHXSJSJW0Hq7ylaD2Q==}
-    engines: {node: '>= 6'}
-    dependencies:
-      kleur: 3.0.3
-      sisteransi: 1.0.5
-    dev: false
 
   /prop-types/15.8.1:
     resolution: {integrity: sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==}

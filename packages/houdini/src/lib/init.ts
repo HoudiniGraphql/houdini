@@ -113,11 +113,11 @@ export async function init(
 		? path.join(targetPath, 'schema.graphql')
 		: 'path/to/src/lib/**/*.graphql'
 
+	let pullSchema_content: string | null = null
 	if (is_remote_endpoint) {
-		let pullSchema_state = false
 		let number_of_round = 0
 		let url_and_headers = ''
-		while (pullSchema_state === false && number_of_round < 10) {
+		while (pullSchema_content === null && number_of_round < 10) {
 			number_of_round++
 			const answer = await p.group(
 				{
@@ -157,9 +157,9 @@ export async function init(
 					  extractHeadersStr(value_splited.slice(1).join(' '))
 					: headers
 
-			pullSchema_state = await pullSchema(local_url, schemaPath, local_headers)
+			pullSchema_content = await pullSchema(local_url, schemaPath, local_headers, true)
 
-			if (pullSchema_state === false) {
+			if (pullSchema_content === null) {
 				const msg = `If you need to pass headers, add them after the URL (eg: '${green(
 					`http://myurl.com/graphql Authorization=Bearer MyToken`
 				)}')`
@@ -171,7 +171,7 @@ export async function init(
 		}
 
 		// if we are here... it means that we have tried x times to pull the schema and it failed
-		if (pullSchema_state === false) {
+		if (pullSchema_content === null) {
 			pCancel("We couldn't pull the schema. Please check your URL/headers and try again.")
 		}
 	} else {
@@ -199,6 +199,11 @@ export async function init(
 
 	if (args.after_questions) {
 		args.after_questions()
+	}
+
+	// Let's write the schema only now (after the function "after_questions" where the project has been created)
+	if (is_remote_endpoint && pullSchema_content) {
+		await fs.writeFile(schemaPath, pullSchema_content)
 	}
 
 	// try to detect which tools they are using

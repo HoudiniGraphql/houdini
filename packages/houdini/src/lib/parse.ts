@@ -11,7 +11,7 @@ export type ParsedFile = Maybe<{ script: Script; start: number; end: number }>
 // overload definitions
 export function parseJS(str: string, config?: Partial<ParserOptions>): Script {
 	const defaultConfig: ParserOptions = {
-		plugins: ['typescript', 'importAssertions', 'decorators'],
+		plugins: ['typescript', 'importAssertions', 'decorators', 'decorators-legacy'],
 		sourceType: 'module',
 	}
 	// @ts-ignore: babel doesn't perfectly match recast's types (the comments don't line up)
