@@ -94,6 +94,7 @@ export const routes = {
   Pagination_query_offset_variable: '/pagination/query/offset-variable',
 
   Pagination_fragment_forward_cursor: '/pagination/fragment/forward-cursor',
+  Pagination_fragment_forward_cursor_single_page: '/pagination/fragment/forward-cursor-single-page',
   Pagination_fragment_backwards_cursor: '/pagination/fragment/backwards-cursor',
   Pagination_fragment_bidirectional_cursor: '/pagination/fragment/bidirectional-cursor',
   Pagination_fragment_offset: '/pagination/fragment/offset',
