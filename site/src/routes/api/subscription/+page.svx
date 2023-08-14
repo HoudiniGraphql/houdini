@@ -107,31 +107,13 @@ export default new HoudiniClient({
 If your server supports the latest Server-Side events, you can use them to power your subscriptions:
 
 ```typescript:title=src/client.ts&typescriptToggle=true
-import { SubscriptionClient } from 'subscriptions-transport-ws'
-import { browser } from '$app/environment'
+import { createClient } from 'graphql-sse'
 import { subscription } from '$houdini/plugins'
-
-  // prettier-ignore
-function sseSockets() {
-  return {
-    subscribe(payload, handlers) {
-      const url = new URL('/api/graphql', location.href)
-      url.searchParams.append('query', payload.query)
-      url.searchParams.append('variables', JSON.stringify(payload.variables))
-
-      const eventSource = new EventSource(url)
-
-      eventSource.addEventListener('message', (ev) => handlers.next(JSON.parse(ev.data)))
-
-      return () => eventSource.close()
-    },
-  }
-}
 
 export default new HoudiniClient({
   url: "...",
   plugins: [
-    subscription(sseSockets)
+    subscription(() => createClient({url: '...'}))
   ]
 })
 ```
