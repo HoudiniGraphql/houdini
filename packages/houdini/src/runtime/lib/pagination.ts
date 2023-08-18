@@ -11,6 +11,7 @@ import type {
 	QueryArtifact,
 	QueryResult,
 	FetchParams,
+	RefetchUpdateModes,
 } from './types'
 
 export function cursorHandlers<_Data extends GraphQLObject, _Input extends GraphQLVariables>({
@@ -26,7 +27,10 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Graph
 	getVariables: () => NonNullable<_Input>
 	getSession: () => Promise<App.Session>
 	fetch: FetchFn<_Data, _Input>
-	fetchUpdate: (arg: SendParams, updates: string[]) => ReturnType<FetchFn<_Data, _Input>>
+	fetchUpdate: (
+		arg: SendParams,
+		updates: RefetchUpdateModes[]
+	) => ReturnType<FetchFn<_Data, _Input>>
 }): CursorHandlers<_Data, _Input> {
 	// dry up the page-loading logic
 	const loadPage = async ({
@@ -236,7 +240,10 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends Graph
 }: {
 	artifact: QueryArtifact
 	fetch: FetchFn<_Data, _Input>
-	fetchUpdate: (arg: SendParams) => ReturnType<FetchFn<_Data, _Input>>
+	fetchUpdate: (
+		arg: SendParams,
+		updates: RefetchUpdateModes[]
+	) => ReturnType<FetchFn<_Data, _Input>>
 	storeName: string
 	getState: () => _Data | null
 	getVariables: () => _Input
@@ -282,13 +289,16 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends Graph
 
 			// send the query
 			const targetFetch = isSinglePage ? parentFetch : parentFetchUpdate
-			await targetFetch({
-				variables: queryVariables as _Input,
-				fetch,
-				metadata,
-				policy: isSinglePage ? artifact.policy : CachePolicy.NetworkOnly,
-				session: await getSession(),
-			})
+			await targetFetch(
+				{
+					variables: queryVariables as _Input,
+					fetch,
+					metadata,
+					policy: isSinglePage ? artifact.policy : CachePolicy.NetworkOnly,
+					session: await getSession(),
+				},
+				['append']
+			)
 
 			// add the page size to the offset so we load the next page next time
 			const pageSize = queryVariables.limit || artifact.refetch!.pageSize
