@@ -14,7 +14,7 @@
     $queryResult.data?.user ?? null,
     graphql(`
       fragment ForwardsCursorSinglePageFragment on User {
-        friendsConnection(first: 2) @paginate(mode:SinglePage) {
+        friendsConnection(first: 2) @paginate(mode: SinglePage) {
           edges {
             node {
               name
