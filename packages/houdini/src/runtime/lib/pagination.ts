@@ -65,16 +65,24 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Graph
 		let isSinglePage = artifact.refetch?.mode === 'SinglePage'
 
 		// send the query
-		await (isSinglePage ? parentFetch : parentFetchUpdate)(
-			{
+		if (isSinglePage) {
+			await parentFetch({
 				variables: loadVariables,
-				fetch,
 				metadata,
-				policy: isSinglePage ? artifact.policy : CachePolicy.NetworkOnly,
-				session: await getSession(),
-			},
-			isSinglePage ? [] : [where === 'start' ? 'prepend' : 'append']
-		)
+				policy: artifact.policy,
+			})
+		} else {
+			await parentFetchUpdate(
+				{
+					variables: loadVariables,
+					fetch,
+					metadata,
+					policy: CachePolicy.NetworkOnly,
+					session: await getSession(),
+				},
+				[where === 'start' ? 'prepend' : 'append']
+			)
+		}
 	}
 
 	const getPageInfo = () => {
@@ -288,17 +296,24 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends Graph
 			let isSinglePage = artifact.refetch?.mode === 'SinglePage'
 
 			// send the query
-			const targetFetch = isSinglePage ? parentFetch : parentFetchUpdate
-			await targetFetch(
-				{
+			if (isSinglePage) {
+				await parentFetch({
 					variables: queryVariables as _Input,
-					fetch,
 					metadata,
-					policy: isSinglePage ? artifact.policy : CachePolicy.NetworkOnly,
-					session: await getSession(),
-				},
-				['append']
-			)
+					policy: artifact.policy,
+				})
+			} else {
+				await parentFetchUpdate(
+					{
+						variables: queryVariables as _Input,
+						fetch,
+						metadata,
+						policy: CachePolicy.NetworkOnly,
+						session: await getSession(),
+					},
+					['append']
+				)
+			}
 
 			// add the page size to the offset so we load the next page next time
 			const pageSize = queryVariables.limit || artifact.refetch!.pageSize
