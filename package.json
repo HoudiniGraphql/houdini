@@ -48,5 +48,6 @@
 		"jest-snapshot": "^29.4.1",
 		"memfs": "^3.4.7",
 		"recast": "^0.23.1"
-	}
+	},
+	"packageManager": "pnpm@8.6.7"
 }
