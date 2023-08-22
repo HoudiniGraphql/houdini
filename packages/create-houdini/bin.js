@@ -24,9 +24,6 @@ if (cwd === '.') {
 			if (value.length === 0) {
 				return 'Please enter a project name'
 			}
-			if (fs.existsSync(value)) {
-				return 'A folder with this name already exists'
-			}
 			return
 		},
 	})
@@ -111,4 +108,4 @@ fs.writeFileSync(path.join(cwd, 'pnpm-lock.yaml'), '')
 p.outro('🎉 Everything is ready!')
 
 const { package_manager } = await detectTools(cwd)
-finale_logs(package_manager)
+finale_logs(package_manager, cwd)

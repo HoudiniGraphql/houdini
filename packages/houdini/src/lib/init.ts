@@ -24,6 +24,7 @@ export async function init(
 		with_found_info?: boolean
 		with_outro?: boolean
 		with_finale_logs?: boolean
+		directory?: string
 	}
 ): Promise<void> {
 	const with_intro = args.with_intro ?? true
@@ -32,6 +33,7 @@ export async function init(
 	const with_found_info = args.with_found_info ?? true
 	const with_outro = args.with_outro ?? true
 	const with_finale_logs = args.with_finale_logs ?? true
+	const directory = args.directory ?? '.'
 
 	if (with_intro) {
 		p.intro('🎩 Welcome to Houdini!')
@@ -109,9 +111,7 @@ export async function init(
 		}
 	)
 
-	let schemaPath = is_remote_endpoint
-		? path.join(targetPath, 'schema.graphql')
-		: 'path/to/src/lib/**/*.graphql'
+	let schemaPath = is_remote_endpoint ? './schema.graphql' : 'path/to/src/lib/**/*.graphql'
 
 	let pullSchema_content: string | null = null
 	if (is_remote_endpoint) {
@@ -203,7 +203,7 @@ export async function init(
 
 	// Let's write the schema only now (after the function "after_questions" where the project has been created)
 	if (is_remote_endpoint && pullSchema_content) {
-		await fs.writeFile(schemaPath, pullSchema_content)
+		await fs.writeFile(path.join(targetPath, schemaPath), pullSchema_content)
 	}
 
 	// try to detect which tools they are using
@@ -282,11 +282,11 @@ export async function init(
 	}
 
 	if (with_finale_logs) {
-		finale_logs(package_manager)
+		finale_logs(package_manager, directory)
 	}
 }
 
-export function finale_logs(package_manager: 'npm' | 'yarn' | 'pnpm') {
+export function finale_logs(package_manager: 'npm' | 'yarn' | 'pnpm', directory: string) {
 	let cmd_install = 'npm i'
 	let cmd_run = 'npm run dev'
 	if (package_manager === 'pnpm') {
@@ -296,8 +296,11 @@ export function finale_logs(package_manager: 'npm' | 'yarn' | 'pnpm') {
 		cmd_install = 'yarn'
 		cmd_run = 'yarn dev'
 	}
-	console.log(`👉 Next Steps
-1️⃣  Finalize your installation: ${green(cmd_install)}
+	console.log(`👉 Next Steps`)
+	if (directory !== '.') {
+		console.log(`0️⃣  Go to your folder:          ${green(`cd ${directory}`)}`)
+	}
+	console.log(`1️⃣  Finalize your installation: ${green(cmd_install)}
 2️⃣  Start your application:     ${green(cmd_run)}
 `)
 
