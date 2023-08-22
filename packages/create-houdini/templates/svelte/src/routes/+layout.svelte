@@ -1,7 +1,7 @@
 <svelte:head>
 	<link rel="icon" type="image/png" href="https://houdinigraphql.com/images/logo.png" />
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/dark.css" />
-	<title>Houdini & SvelteKit</title>
+	<title>Houdini • SvelteKit</title>
 </svelte:head>
 
 <h1>Welcome to Houdini & SvelteKit</h1>
@@ -16,7 +16,9 @@
 
 <footer>
 	<i
-		>//Made with 🧡 - Join us on&nbsp;<a href="https://github.com/HoudiniGraphql/houdini">GitHub</a>
+		>//Made with 🧡 - Join us on&nbsp;<a href="https://github.com/HoudiniGraphql/houdini"
+			>GitHub</a
+		>
 		⭐</i
 	>
 </footer>

@@ -532,50 +532,12 @@ class ErrorBoundary extends React.Component {
 	// create routes directory
 	await fs.mkdir(path.join(targetPath, 'routes'))
 
-	// demo layout page
-	await fs.writeFile(
-		path.join(targetPath, 'routes', `+layout.gql`),
-		`# Layout query (just as example, you can delete it)
-query LayoutQuery {
-	__typename
-}
-`
-	)
-
-	await fs.writeFile(
-		path.join(targetPath, 'routes', `+layout.${typescript ? 't' : 'j'}sx`),
-		`import { Link } from '$houdini'
-
-${
-	typescript
-		? `import type { LayoutProps } from './$types'
-`
-		: ''
-}
-export default function ({ children, LayoutQuery }${typescript ? ': LayoutProps' : ''}) {
-	return (
-		<div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-			<pre>+layout:{JSON.stringify(LayoutQuery)}</pre>
-			<div>{children}</div>
-		</div>
-	)
-}
-`
-	)
-
 	await fs.writeFile(
 		path.join(targetPath, 'routes', `+page.${typescript ? 't' : 'j'}sx`),
-		`${
-			typescript
-				? `import type { PageProps } from './$types'
-`
-				: ''
-		}		
-export default function ({ LayoutQuery }${typescript ? ': PageProps' : ''}) {
+		`export default function () {
 	return (
-		<div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-			<div>My Page</div>
-			<pre>+page:{JSON.stringify(LayoutQuery)}</pre>
+		<div>
+			<div>Welcome</div>
 		</div>
 	)
 }		
