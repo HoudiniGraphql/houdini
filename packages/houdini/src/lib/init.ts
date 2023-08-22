@@ -605,14 +605,14 @@ async function graphqlRC(targetPath: string) {
 	const target = path.join(targetPath, '.graphqlrc.yaml')
 
 	const content = `projects:
-	default:
-		schema:
-			- ./schema.graphql
-			- ./$houdini/graphql/schema.graphql
-		documents:
-			- '**/*.gql'
-			- '**/*.svelte'
-			- ./$houdini/graphql/documents.gql
+default:
+  schema:
+    - ./schema.graphql
+    - ./$houdini/graphql/schema.graphql
+  documents:
+    - '**/*.gql'
+    - '**/*.svelte'
+    - ./$houdini/graphql/documents.gql
 `
 
 	await fs.writeFile(target, content)
