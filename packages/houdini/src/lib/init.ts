@@ -265,6 +265,14 @@ export async function init(
 		await svelteConfig(targetPath, typescript)
 	} else if (frameworkInfo.framework === 'react') {
 		await reactRouter(sourceDir, typescript)
+		// in react, we need to use spaces instead of tabs! (TODO)
+		await fs.writeFile(
+			path.join(targetPath, '.prettierrc'),
+			`{
+  "useTabs": false
+}
+`
+		)
 	}
 
 	// Global files
