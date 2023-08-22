@@ -103,7 +103,30 @@ await houdini_init(cwd, {
 })
 
 // Some extra stuff
+// .) force a pnpm project
 fs.writeFileSync(path.join(cwd, 'pnpm-lock.yaml'), '')
+
+// .) add some default files (to have a basic layout)
+// Function to copy files recursively
+function copyFilesRecursively(/** @type {string} */ sourceDir, /** @type {string} */ destDir) {
+	if (!fs.existsSync(destDir)) {
+		fs.mkdirSync(destDir)
+	}
+
+	const files = fs.readdirSync(sourceDir)
+	for (const file of files) {
+		const sourceFilePath = path.join(sourceDir, file)
+		const destFilePath = path.join(destDir, file)
+
+		const stats = fs.statSync(sourceFilePath)
+		if (stats.isFile()) {
+			fs.copyFileSync(sourceFilePath, destFilePath)
+		} else if (stats.isDirectory()) {
+			copyFilesRecursively(sourceFilePath, destFilePath)
+		}
+	}
+}
+copyFilesRecursively(`./templates/${String(framework)}`, cwd)
 
 p.outro('🎉 Everything is ready!')
 

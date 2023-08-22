@@ -1,0 +1,4 @@
+# query of page 1
+query Page_1 {
+	__typename
+}

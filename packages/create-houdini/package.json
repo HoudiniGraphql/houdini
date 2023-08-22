@@ -13,7 +13,7 @@
 	"scripts": {
 		"dev": "node bin.js",
 		"build:": "cd ../../ && ((pnpm run build && cd -) || (cd - && exit 1))",
-    "build:dev": "pnpm build: && pnpm dev",
+		"build:dev": "pnpm build: && pnpm dev",
 		"check": "tsc",
 		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore --plugin prettier-plugin-svelte --plugin-search-dir=.",
 		"format": "pnpm lint --write"
@@ -31,9 +31,8 @@
 		"prettier-plugin-svelte": "^2.9.0"
 	},
 	"files": [
-		"dist",
-		"bin.js",
-		"utils.js"
+		"templates",
+		"bin.js"
 	],
 	"types": "types/index.d.ts",
 	"type": "module"
