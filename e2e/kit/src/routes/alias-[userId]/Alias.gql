@@ -1,0 +1,13 @@
+query Alias($limit: Int, $first: Int) {
+  subscriptions: usersList(limit: $limit, snapshot: "alias") {
+    id
+    name
+    subscriptions: friendsConnection(first: $first) {
+      edges {
+        node {
+          name
+        }
+      }
+    }
+  }
+}
