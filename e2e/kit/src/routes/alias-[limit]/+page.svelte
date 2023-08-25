@@ -6,10 +6,10 @@
 
   const store = new AliasStore();
 
-  $: browser && store.fetch({ variables: { limit: Number($page.params.userId), first: 1 } });
+  $: browser && store.fetch({ variables: { limit: Number($page.params.limit), first: 1 } });
 </script>
 
-<h1>alias - [userId: {$page.params.userId}]</h1>
+<h1>alias - [limit: {$page.params.limit}]</h1>
 
 <a id="previous" href="/alias-1">limit 1</a>
 <a id="current" href="/alias-2">limit 2</a>
