@@ -70,6 +70,10 @@ const template = await p.select({
 	initialValue: 'react-typescript',
 	options: [
 		{
+			label: 'React',
+			value: 'react',
+		},
+		{
 			label: 'React w/ TypeScript',
 			value: 'react-typescript',
 		},
@@ -135,7 +139,7 @@ async function pullSchema() {
 	try {
 		apiUrl = await p.text({
 			message: "What's the URL for your api?",
-			placeholder: '  (http://localhost:4000/graphql)',
+			placeholder: 'http://localhost:4000/graphql',
 			defaultValue: 'http://localhost:4000/graphql',
 		})
 
