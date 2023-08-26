@@ -1,18 +1,21 @@
 #!/usr/bin/env node
 import * as p from '@clack/prompts'
 import { execSync } from 'child_process'
+import * as graphql from 'graphql'
 import { green, grey } from 'kleur/colors'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-// load the version of create-houdini that this was run with by looking at the packge's package.json
-const { version } = JSON.parse(fs.readFileSync(new URL('package.json', import.meta.url), 'utf-8'))
-
 // the first argument is the name of the project
 let projectDir = process.argv[2]
 let projectName = projectDir
+let apiUrl = ''
 
+const schemaPath = './schema.graphql'
+
+// log the version of create-houdini that this was run with by looking at the packge's package.json
+const { version } = JSON.parse(fs.readFileSync(new URL('package.json', import.meta.url), 'utf-8'))
 console.log(`${grey(`create-houdini version ${version}`)}
 `)
 
@@ -57,6 +60,9 @@ if (fs.existsSync(projectDir)) {
 			process.exit(1)
 		}
 	}
+} else {
+	// create the directory
+	fs.mkdirSync(projectDir)
 }
 
 const template = await p.select({
@@ -69,9 +75,19 @@ const template = await p.select({
 		},
 	],
 })
+if (p.isCancel(template)) {
+	process.exit(1)
+}
+
 const templateDir = sourcePath(`./templates/${template}`)
 
-copy(templateDir, projectDir, {})
+await pullSchema()
+
+copy(templateDir, projectDir, {
+	'src/+client.tsx': (val) => val.replace(/API_URL/g, apiUrl),
+	'src/+client.jsx': (val) => val.replace(/API_URL/g, apiUrl),
+	'package.json': (val) => val.replace(/PROJECT_NAME/g, projectName),
+})
 
 p.outro('🎉 Everything is ready!')
 
@@ -111,6 +127,49 @@ function copy(
 	}
 }
 
-export function sourcePath(/** @type {string} */ path) {
+function sourcePath(/** @type {string} */ path) {
 	return fileURLToPath(new URL(path, import.meta.url).href)
+}
+
+async function pullSchema() {
+	try {
+		apiUrl = await p.text({
+			message: "What's the URL for your api?",
+			placeholder: '  (http://localhost:4000/graphql)',
+			defaultValue: 'http://localhost:4000/graphql',
+		})
+
+		if (p.isCancel(apiUrl)) {
+			process.exit(1)
+		}
+
+		// verify we can send graphql queries to the server
+		const response = await fetch(apiUrl, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({
+				query: graphql.getIntrospectionQuery(),
+			}),
+		})
+
+		// if the response was not a 200, we have a problem
+		if (response.status !== 200) {
+			console.log('❌ That URL is not accepting GraphQL queries. Please try again.')
+			return await pullSchema()
+		}
+
+		// make sure we can parse the response as json
+		const content = await response.text()
+		const jsonSchema = JSON.parse(content).data
+		const schema = graphql.buildClientSchema(jsonSchema)
+
+		// write the schema to disk
+		await fs.writeFileSync(path.join(projectDir, schemaPath), JSON.stringify(jsonSchema))
+	} catch (e) {
+		console.log('❌ Something went wrong: ' + e.message)
+		console.log(e)
+		return await pullSchema()
+	}
 }
