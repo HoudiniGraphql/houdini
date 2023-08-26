@@ -87,9 +87,8 @@ const templateDir = sourcePath(`./templates/${template}`)
 await pullSchema()
 
 copy(templateDir, projectDir, {
-	'src/+client.tsx': (val) => val.replace(/API_URL/g, apiUrl),
-	'src/+client.jsx': (val) => val.replace(/API_URL/g, apiUrl),
-	'package.json': (val) => val.replace(/PROJECT_NAME/g, projectName),
+	API_URL: apiUrl,
+	PROJECT_NAME: projectName,
 })
 
 p.outro(`🎉 Everything is ready!
@@ -104,7 +103,7 @@ p.outro(`🎉 Everything is ready!
 function copy(
 	/** @type {string} */ sourceDir,
 	/** @type {string} */ destDir,
-	/** @type {Record<string, (val: string) => string>} */ transformMap
+	/** @type {Record<string, string>} */ transformMap
 ) {
 	if (!fs.existsSync(destDir)) {
 		fs.mkdirSync(destDir)
@@ -124,7 +123,10 @@ function copy(
 			const source = fs.readFileSync(sourceFilePath)
 
 			// apply any transformations if necessary
-			const transformed = transformMap[sourceRelative]?.(source.toString()) ?? source
+			const transformed = Object.entries(transformMap).reduce((prev, [pattern, value]) => {
+				return prev.replaceAll(pattern, value)
+			}, source.toString())
+
 			// write the result
 			fs.writeFileSync(destFilePath, transformed)
 		}
