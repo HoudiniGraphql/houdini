@@ -1,9 +1,8 @@
 # create-houdini
 
-A CLI for creating new [Houdini](https://houdinigraphql.com/) projects. Just run...
+A CLI for creating new [Houdini](https://houdinigraphql.com/) projects. 
 
 ```bash
-npm create houdini@latest
+npm create houdini@latest hello-houdini
 ```
 
-...and follow the prompts.
