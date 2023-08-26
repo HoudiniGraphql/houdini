@@ -92,7 +92,12 @@ copy(templateDir, projectDir, {
 	'package.json': (val) => val.replace(/PROJECT_NAME/g, projectName),
 })
 
-p.outro('🎉 Everything is ready!')
+p.outro(`🎉 Everything is ready!
+
+👉 Next Steps
+1️⃣  Install dependencies:       npm i | pnpm i | yarn
+2️⃣  Start your application:     npm run dev | pnpm run dev | yarn dev
+`)
 
 // .) add some default files (to have a basic layout)
 // Function to copy files recursively
