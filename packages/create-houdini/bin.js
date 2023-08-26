@@ -16,8 +16,7 @@ const schemaPath = './schema.graphql'
 
 // log the version of create-houdini that this was run with by looking at the packge's package.json
 const { version } = JSON.parse(fs.readFileSync(new URL('package.json', import.meta.url), 'utf-8'))
-console.log(`${grey(`create-houdini version ${version}`)}
-`)
+console.log(`${grey(`create-houdini version ${version}`)}\n`)
 
 p.intro('🎩 Welcome to Houdini!')
 
