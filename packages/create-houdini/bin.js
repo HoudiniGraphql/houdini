@@ -89,6 +89,7 @@ await pullSchema()
 copy(templateDir, projectDir, {
 	API_URL: apiUrl,
 	PROJECT_NAME: projectName,
+	HOUDINI_VERSION: version,
 })
 
 p.outro(`🎉 Everything is ready!
@@ -98,7 +99,6 @@ p.outro(`🎉 Everything is ready!
 2️⃣  Start your application:     npm run dev | pnpm run dev | yarn dev
 `)
 
-// .) add some default files (to have a basic layout)
 // Function to copy files recursively
 function copy(
 	/** @type {string} */ sourceDir,
