@@ -1,5 +1,14 @@
 # houdini-react
 
+## 1.2.9
+
+### Patch Changes
+
+-   [#1147](https://github.com/HoudiniGraphql/houdini/pull/1147) [`2c5082c`](https://github.com/HoudiniGraphql/houdini/commit/2c5082ce9e1f9ed996edc6cc869869bfb010f9de) Thanks [@jycouet](https://github.com/jycouet)! - fix - if cookie name not found don't return session
+
+-   Updated dependencies []:
+    -   houdini@1.2.9
+
 ## 1.2.8
 
 ### Dependency Changes
