@@ -13,7 +13,7 @@ export default async function writeIndexFile(config: Config, docs: Document[]) {
 	const artifactDir = relative(config.artifactDirectory)
 	const definitionsDir = relative(config.definitionsDirectory)
 
-	// if we are rendering an index file for sapper we need to compile it for commonjs
+	// commonjs body
 	const cjs = config.module === 'commonjs'
 	let body = cjs ? cjsIndexFilePreamble : ''
 

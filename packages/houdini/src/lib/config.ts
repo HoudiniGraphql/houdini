@@ -991,7 +991,7 @@ export async function getConfig({
 				// we might have to create the file
 				else if (!(await fs.readFile(_config.schemaPath))) {
 					console.log('⌛ Pulling schema from api')
-					schemaOk = await pullSchema(apiURL, _config.schemaPath)
+					schemaOk = (await pullSchema(apiURL, _config.schemaPath)) !== null
 				}
 			}
 

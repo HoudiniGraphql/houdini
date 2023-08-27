@@ -1,5 +1,5 @@
 import type { Config, PluginHooks } from 'houdini'
-import { detectFromPackageJSON, fs, HoudiniError, path, plugin } from 'houdini'
+import { HoudiniError, detectFromPackageJSON, fs, path, plugin } from 'houdini'
 import * as url from 'node:url'
 import { loadEnv } from 'vite'
 
@@ -10,9 +10,9 @@ import fs_patch from './fsPatch'
 import {
 	plugin_config,
 	resolve_relative,
-	stores_directory,
 	store_import_path,
 	store_name,
+	stores_directory,
 	type Framework,
 } from './kit'
 import apply_transforms from './transforms'
@@ -198,7 +198,7 @@ directive @${config.blockingDisableDirective} on QUERY
 		} else {
 			// detect if we are in a svelte or sveltekit project
 			const detected = await detectFromPackageJSON(cfg.projectRoot)
-			framework = detected.framework === 'kit' ? 'kit' : 'svelte'
+			framework = detected.frameworkInfo.framework === 'kit' ? 'kit' : 'svelte'
 		}
 	},
 

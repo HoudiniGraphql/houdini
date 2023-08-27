@@ -39,7 +39,7 @@ jobs:
               name: Install pnpm
               id: pnpm-install
               with:
-                version: 7
+                version: 8
 
             - name: Install dependencies
               run: pnpm install
@@ -69,7 +69,7 @@ jobs:
               name: Install pnpm
               id: pnpm-install
               with:
-                version: 7
+                version: 8
 
             - name: Get pnpm store directory
               id: pnpm-cache
@@ -116,7 +116,7 @@ jobs:
               name: Install pnpm
               id: pnpm-install
               with:
-                version: 7
+                version: 8
 
             - name: Get pnpm store directory
               id: pnpm-cache
@@ -179,7 +179,7 @@ jobs:
               name: Install pnpm
               id: pnpm-install
               with:
-                version: 7
+                version: 8
 
             - name: Get pnpm store directory
               id: pnpm-cache
