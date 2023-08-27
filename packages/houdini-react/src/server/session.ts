@@ -31,6 +31,15 @@ export function get_session(req: Headers, secrets: string[]): App.Session {
 		return {}
 	}
 
+	const houdini_session_cookie = parsed
+		.split(';')
+		.map((s) => s.trim().split('='))
+		.filter((s) => s[0] === session_cookie_name)
+
 	// the value is an object with session information
-	return JSON.parse(parsed.split('=')[1])
+	if (houdini_session_cookie.length === 1) {
+		return JSON.parse(houdini_session_cookie[0][1])
+	}
+
+	return {}
 }
