@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import * as p from '@clack/prompts'
-import { execSync } from 'child_process'
 import * as graphql from 'graphql'
 import { green, grey } from 'kleur/colors'
 import fs from 'node:fs'
