@@ -1,3 +1,4 @@
+import { logCyan } from '@kitql/helper'
 import * as graphql from 'graphql'
 import fetch from 'node-fetch'
 
@@ -6,8 +7,10 @@ import * as fs from './fs'
 export async function pullSchema(
 	url: string,
 	schemaPath: string,
-	headers?: Record<string, string>
-): Promise<boolean> {
+	headers?: Record<string, string>,
+	skipWriting?: boolean
+): Promise<string | null> {
+	let content = ''
 	try {
 		// send the request
 		const resp = await fetch(url, {
@@ -17,23 +20,60 @@ export async function pullSchema(
 			}),
 			headers: { 'Content-Type': 'application/json', ...headers },
 		})
-		const content = await resp.text()
+		content = await resp.text()
 
 		const jsonSchema = JSON.parse(content).data
-		const schema = graphql.buildClientSchema(jsonSchema)
+		let fileData = ''
 
 		// Check if the schemapath ends with .gql or .graphql - if so write the schema as string
 		// Otherwise write the json/introspection
 		if (schemaPath!.endsWith('gql') || schemaPath!.endsWith('graphql')) {
-			const schemaAsString = graphql.printSchema(graphql.lexicographicSortSchema(schema))
-			await fs.writeFile(schemaPath, schemaAsString)
+			const schema = graphql.buildClientSchema(jsonSchema)
+			fileData = graphql.printSchema(graphql.lexicographicSortSchema(schema))
 		} else {
-			await fs.writeFile(schemaPath, JSON.stringify(jsonSchema))
+			fileData = JSON.stringify(jsonSchema)
+		}
+		if (!skipWriting) {
+			await fs.writeFile(schemaPath, fileData)
 		}
 
-		return true
+		return fileData
 	} catch (e) {
-		console.warn(`⚠️  Couldn't pull your latest schema: ` + (e as Error).message)
+		if (content) {
+			console.warn(
+				`⚠️  Couldn't pull your schema.
+${logCyan('   Reponse:')} ${content}
+${logCyan('   Error  :')} ${(e as Error).message}`
+			)
+		} else {
+			console.warn(`⚠️  Couldn't pull your schema: ${(e as Error).message}`)
+		}
 	}
-	return false
+	return null
+}
+
+export function extractHeadersStr(str: string | undefined) {
+	const regex = /(\w+)=("[^"]*"|[^ ]*)/g
+	const obj: Record<string, string> = {}
+
+	let match
+	while ((match = regex.exec(str ?? '')) !== null) {
+		obj[match[1]] = match[2].replaceAll('"', '')
+	}
+
+	return obj
+}
+
+export function extractHeaders(headers?: string[] | undefined) {
+	if ((headers ?? []).length > 0) {
+		return headers!.reduce((total, header) => {
+			const [key, value] = header.split(/=(.*)/s)
+
+			return {
+				...total,
+				[key]: value.replaceAll('"', ''),
+			}
+		}, {})
+	}
+	return {}
 }

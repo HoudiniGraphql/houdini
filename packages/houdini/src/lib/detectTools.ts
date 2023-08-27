@@ -1,8 +1,16 @@
 import { fs, path } from '.'
 
+export type HoudiniFrameworkInfo =
+	| {
+			framework: 'kit'
+	  }
+	| {
+			framework: 'svelte'
+	  }
+
 type DetectedFromPackageTools = {
-	framework: 'kit' | 'sapper' | 'svelte'
 	module: 'esm' | 'commonjs'
+	frameworkInfo: HoudiniFrameworkInfo
 }
 
 export type DetectedTools = {
@@ -30,12 +38,13 @@ export async function detectFromPackageJSON(cwd: string): Promise<DetectedFromPa
 
 	const hasDependency = (dep: string) => Boolean(devDependencies?.[dep] || dependencies?.[dep])
 
-	let framework: 'svelte' | 'kit' = 'svelte'
+	let frameworkInfo: HoudiniFrameworkInfo = { framework: 'svelte' }
 	if (hasDependency('@sveltejs/kit')) {
-		framework = 'kit'
+		frameworkInfo = { framework: 'kit' }
 	}
+
 	return {
-		framework,
+		frameworkInfo,
 		module: packageJSON['type'] === 'module' ? 'esm' : 'commonjs',
 	}
 }
