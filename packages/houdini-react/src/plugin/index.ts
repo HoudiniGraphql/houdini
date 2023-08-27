@@ -8,6 +8,7 @@ import {
 	fragmentKey,
 } from 'houdini'
 import path from 'node:path'
+import { loadEnv } from 'vite'
 
 import generate from './codegen'
 import { load_manifest, type ProjectManifest } from './codegen/manifest'
@@ -205,7 +206,20 @@ export function useFragmentHandle(reference: { readonly "${fragmentKey}": { ${do
 			manifest,
 		})
 	},
+
+	async env({ config }) {
+		if (_env) {
+			return _env
+		}
+
+		// load the vite config
+		_env = loadEnv('dev', config.projectRoot || '.', '')
+
+		return _env
+	},
 })
+
+let _env: Record<string, string>
 
 function addOverload({
 	config,
