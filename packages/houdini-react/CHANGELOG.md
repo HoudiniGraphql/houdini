@@ -2,9 +2,11 @@
 
 ## 1.2.9
 
-### Patch Changes
+### 🐛 Fixes
 
--   [#1147](https://github.com/HoudiniGraphql/houdini/pull/1147) [`2c5082c`](https://github.com/HoudiniGraphql/houdini/commit/2c5082ce9e1f9ed996edc6cc869869bfb010f9de) Thanks [@jycouet](https://github.com/jycouet)! - fix - if cookie name not found don't return session
+-   [#1147](https://github.com/HoudiniGraphql/houdini/pull/1147) @jycouet - if cookie name not found don't return session
+
+### Dependency Changes
 
 -   Updated dependencies []:
     -   houdini@1.2.9
