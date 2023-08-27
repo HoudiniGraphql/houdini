@@ -22,5 +22,5 @@
 </script>
 
 {#if $details.data}
-  {$details.data.user.name}
+  {$details.data.user.name} - ({userId})
 {/if}
