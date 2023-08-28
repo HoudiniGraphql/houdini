@@ -12,8 +12,8 @@ const yogaApp = createYoga<RequestEvent>({
 		typeDefs: `
 			type Query {
 				welcome: String!
-				links: [Link]!
-				sponsors: [Sponsor]!
+				links: [Link!]!
+				sponsors: [Sponsor!]!
 				giveMeAnError: String
 			}
 			type Mutation {
@@ -24,6 +24,7 @@ const yogaApp = createYoga<RequestEvent>({
 				url: String
 			}
 			type Sponsor {
+				login: String!
 				name: String!
 				avatarUrl: String!
 				websiteUrl: String
@@ -32,7 +33,7 @@ const yogaApp = createYoga<RequestEvent>({
 		`,
 		resolvers: {
 			Query: {
-				welcome: () => 'Welcome on Houdini 🎩',
+				welcome: () => 'Welcome to Houdini 🎩',
 				links: () => [
 					{ name: 'GitHub', url: 'https://github.com/HoudiniGraphql/houdini' },
 					{ name: 'Documentation', url: 'https://houdinigraphql.com/' },
@@ -62,6 +63,7 @@ const yogaApp = createYoga<RequestEvent>({
 
 					return jsonData.map((c) => {
 						return {
+							login: c.sponsor.login,
 							name: c.sponsor.name,
 							avatarUrl: c.sponsor.avatarUrl,
 							websiteUrl: c.sponsor.websiteUrl,
