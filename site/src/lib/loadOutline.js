@@ -60,7 +60,7 @@ export async function loadOutline() {
 					if (!(await fs.lstat(categoryDir)).isDirectory()) {
 						return null
 					}
-					if (category.startsWith('_')) {
+					if (category.startsWith('_') || category === 'graphql') {
 						return null
 					}
 
