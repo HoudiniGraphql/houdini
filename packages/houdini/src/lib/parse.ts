@@ -1,6 +1,6 @@
 import { parse as parseJavascript, type ParserOptions } from '@babel/parser'
 import type { Options } from 'recast'
-import { print, prettyPrint } from 'recast'
+import { prettyPrint, print } from 'recast'
 
 import { deepMerge } from './deepMerge'
 import type { Maybe, Script } from './types'
@@ -11,7 +11,11 @@ export type ParsedFile = Maybe<{ script: Script; start: number; end: number }>
 // overload definitions
 export function parseJS(str: string, config?: Partial<ParserOptions>): Script {
 	const defaultConfig: ParserOptions = {
-		plugins: ['typescript', 'importAssertions', 'decorators-legacy'],
+		plugins: [
+			'typescript',
+			'importAssertions',
+			['decorators', { decoratorsBeforeExport: true }],
+		],
 		sourceType: 'module',
 	}
 	// @ts-ignore: babel doesn't perfectly match recast's types (the comments don't line up)

@@ -79,14 +79,14 @@ describe('parse', function () {
 			const b = 2
 
 			@annotation
-			class Test {}
+			export class Test {}
 		`)
 		expect(parsed).toMatchInlineSnapshot(`
 			const a = 1;
 			const b = 2;
 
 			@annotation
-			class Test {}
+			export class Test {}
 		`)
 	})
 })
