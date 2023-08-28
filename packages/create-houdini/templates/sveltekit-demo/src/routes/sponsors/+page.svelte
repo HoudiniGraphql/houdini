@@ -1,8 +1,7 @@
 <script lang="ts">
 	import type { SponsorInfo } from '$houdini';
-	import Link from '$lib/Link.svelte';
-	import Sponsors from '$lib/Sponsors.svelte';
 	import type { PageData } from './$houdini';
+	import Sponsors from './Sponsors.svelte';
 
 	export let data: PageData;
 
@@ -18,10 +17,31 @@
 
 <h2>Sponsors</h2>
 <center>
-	{#each Object.entries(grouped) as [key, sponsors]}
-		<h3>{key}</h3>
-		{#each sponsors as sponsor}
-			<Sponsors {sponsor} />
+	{#if $PageSponsors.fetching}
+		Loading...
+	{:else if $PageSponsors.errors}
+		{#each $PageSponsors.errors as error}
+			{error.message}
 		{/each}
-	{/each}
+	{:else}
+		{#each Object.entries(grouped) as [key, sponsors], i}
+			{@const size = 0.8 + (Object.entries(grouped).length - i) / 5}
+			<h3 style="font-size: {size}rem;">{key}</h3>
+			<div class="list">
+				{#each sponsors as sponsor}
+					<Sponsors {sponsor} {size} />
+				{/each}
+			</div>
+		{/each}
+	{/if}
 </center>
+
+<style>
+	.list {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-evenly;
+		gap: 1rem;
+		margin-bottom: 3rem;
+	}
+</style>

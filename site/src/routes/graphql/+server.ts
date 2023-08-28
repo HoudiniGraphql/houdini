@@ -1,5 +1,5 @@
-import { createSchema, createYoga } from 'graphql-yoga'
 import type { RequestEvent } from '@sveltejs/kit'
+import { createSchema, createYoga } from 'graphql-yoga'
 
 import { GraphQLError } from 'graphql'
 
@@ -10,16 +10,16 @@ const yogaApp = createYoga<RequestEvent>({
 	},
 	schema: createSchema({
 		typeDefs: `
-			type Query {
-				welcome: String!
-				links: [Link!]!
-				sponsors: [Sponsor!]!
-				giveMeAnError: String
-			}
-			type Mutation {
-				hello(name: String!): String!
-			}
-			type Link {
+		type Query {
+			welcome: String!
+			links(delai: Int): [Link!]!
+			sponsors: [Sponsor!]!
+			giveMeAnError: String
+		}
+		type Mutation {
+			hello(name: String!): String!
+		}
+		type Link {
 				name: String
 				url: String
 			}
@@ -34,11 +34,16 @@ const yogaApp = createYoga<RequestEvent>({
 		resolvers: {
 			Query: {
 				welcome: () => 'Welcome to Houdini 🎩',
-				links: () => [
-					{ name: 'GitHub', url: 'https://github.com/HoudiniGraphql/houdini' },
-					{ name: 'Documentation', url: 'https://houdinigraphql.com/' },
-					{ name: 'Discord', url: 'https://discord.gg/Gd8vfvxpsD' }
-				],
+				links: async (_, args) => {
+					if (args.delai) {
+						await new Promise((resolve) => setTimeout(resolve, args.delai))
+					}
+					return [
+						{ name: 'GitHub', url: 'https://github.com/HoudiniGraphql/houdini' },
+						{ name: 'Documentation', url: 'https://houdinigraphql.com/' },
+						{ name: 'Discord', url: 'https://discord.gg/Gd8vfvxpsD' }
+					]
+				},
 				sponsors: async () => {
 					const res = await fetch(
 						'https://raw.githubusercontent.com/HoudiniGraphql/sponsors/main/generated/sponsors.json'
@@ -87,4 +92,4 @@ const yogaApp = createYoga<RequestEvent>({
 	fetchAPI: globalThis
 })
 
-export { yogaApp as GET, yogaApp as POST }
+export { yogaApp as GET, yogaApp as OPTIONS, yogaApp as POST }

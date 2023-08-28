@@ -1,5 +1,0 @@
-query PageHome {
-	links {
-		...LinkInfo
-	}
-}
