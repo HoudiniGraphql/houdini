@@ -1,6 +1,5 @@
 {
 	"label": "SvelteKit - Demo",
-	"value": "sveltekit-demo",
 	"hint": "Light demo with a few pages, layout, queries. TypeScript",
 	"apiUrl": "http://localhost:3077/graphql"
 }

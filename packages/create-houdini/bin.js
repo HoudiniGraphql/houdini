@@ -4,6 +4,7 @@ import * as graphql from 'graphql'
 import { grey } from 'kleur/colors'
 import fs, { readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
+import { exit } from 'node:process'
 import { fileURLToPath } from 'node:url'
 
 // the first argument is the name of the project
@@ -16,16 +17,15 @@ console.log(`${grey(`create-houdini version ${version}`)}\n`)
 
 // prepare options
 const templatesDir = sourcePath(`./templates`)
-const options = fs.readdirSync(templatesDir).map((template) => {
-	const metaPath = path.join(templatesDir, template, '.meta.json')
-	if (!fs.existsSync(metaPath)) {
-		// this message will be for developers only when we add a template and forget to add the .meta.json
-		p.cancel(
-			`❌ Template "${template}" is missing a ".meta.json" file to describe options (value!, label, hint, apiUrl)`
-		)
-		process.exit(1)
+const options = fs.readdirSync(templatesDir).map((templateDir) => {
+	// in .meta.json you can find:
+	/** @type {{label?: string, hint?: string, apiUrl?: string}} */
+	let data = {}
+	const metaPath = path.join(templatesDir, templateDir, '.meta.json')
+	if (fs.existsSync(metaPath)) {
+		data = JSON.parse(readFileSync(metaPath, 'utf-8'))
 	}
-	return JSON.parse(readFileSync(metaPath, 'utf-8'))
+	return { ...data, value: templateDir }
 })
 
 p.intro('🎩 Welcome to Houdini!')
@@ -82,6 +82,10 @@ if (p.isCancel(template)) {
 	process.exit(1)
 }
 const templateMeta = options.find((option) => option.value === template)
+if (!templateMeta) {
+	// this will never happen, but it helps to types later
+	exit(1)
+}
 const templateDir = sourcePath(path.join(templatesDir, template))
 
 let apiUrl = templateMeta.apiUrl ?? ''
