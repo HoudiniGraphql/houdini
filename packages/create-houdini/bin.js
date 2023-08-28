@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import * as p from '@clack/prompts'
 import * as graphql from 'graphql'
-import { grey } from 'kleur/colors'
+import { bold, cyan, gray, green, grey, italic } from 'kleur/colors'
 import fs, { readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { exit } from 'node:process'
@@ -127,9 +127,20 @@ copy(
 p.outro(`🎉 Everything is ready!
 
 👉 Next Steps
-1️⃣  Install dependencies   :  npm i       | pnpm i   | yarn
-2️⃣  Start your application :  npm run dev | pnpm dev | yarn dev
-`)
+0️⃣  Go to your project     :  ${green(`cd ${projectDir}`)}
+1️⃣  Install dependencies   :  ${green(`npm i`)}       | ${gray(`pnpm i`)}   | ${gray(`yarn`)}
+2️⃣  Start your application :  ${green(`npm run dev`)} | ${gray(`pnpm dev`)} | ${gray(`yarn dev`)}`)
+
+console.log(
+	gray(
+		italic(
+			`${bold('❔ More help')} ` +
+				`at ${cyan('https://houdinigraphql.com')} ` +
+				`(📄 Docs, ⭐ Github, 📣 Discord, ...)
+`
+		)
+	)
+)
 
 // Function to copy files recursively
 function copy(
