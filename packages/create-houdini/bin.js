@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import * as p from '@clack/prompts'
 import * as graphql from 'graphql'
-import { bold, cyan, gray, green, grey, italic } from 'kleur/colors'
+import { bold, cyan, gray, green, grey, italic, white } from 'kleur/colors'
 import fs, { readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { exit } from 'node:process'
@@ -124,6 +124,13 @@ copy(
 	['.meta.json']
 )
 
+// If anything goes wrong, we don't want to block the user
+let sponsor_msg = ''
+try {
+	const selected = await getSponsors()
+	sponsor_msg = `🙏 Special thanks to the ${bold(white(selected))} for supporting Houdini!`
+} catch (error) {}
+
 p.outro(`🎉 Everything is ready!
 
 👉 Next Steps
@@ -136,8 +143,8 @@ console.log(
 		italic(
 			`${bold('❔ More help')} ` +
 				`at ${cyan('https://houdinigraphql.com')} ` +
-				`(📄 Docs, ⭐ Github, 📣 Discord, ...)
-`
+				`(📄 Docs, ⭐ Github, 📣 Discord, ...) ` +
+				`${sponsor_msg ? `\n${sponsor_msg}` : ``}\n`
 		)
 	)
 )
@@ -304,4 +311,44 @@ function extractHeadersStr(/** @type {string} */ str) {
 function pCancel(cancelText = 'Operation cancelled.') {
 	p.cancel(cancelText)
 	process.exit(1)
+}
+
+async function getSponsors() {
+	const res = await fetch(
+		'https://raw.githubusercontent.com/HoudiniGraphql/sponsors/main/generated/sponsors.json'
+	)
+	const /**@type {any[]} */ jsonData = await res.json()
+
+	/** @returns {[number, string]} */
+	function getTier(/**@type {number}*/ value) {
+		if (value >= 1500) {
+			return [10, 'Wizard']
+		}
+		if (value >= 500) {
+			return [5, 'Mage']
+		}
+		if (value >= 25) {
+			return [2, "Magician's Apprentice"]
+		}
+		if (value >= 10) {
+			return [1, 'Supportive Muggle']
+		}
+		// don't display the past sponsors
+		return [0, 'Past Sponsors']
+	}
+
+	const list = jsonData.flatMap(
+		(/** @type {{sponsor: {name: string}, monthlyDollars: number}} */ c) => {
+			const [coef, title] = getTier(c.monthlyDollars)
+			const names = []
+			for (let i = 0; i < coef; i++) {
+				names.push(`${title}, ${c.sponsor.name}`)
+			}
+			return names
+		}
+	)
+
+	const selected_to_display = list[Math.floor(Math.random() * list.length)]
+
+	return selected_to_display
 }
