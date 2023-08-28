@@ -27,7 +27,7 @@ const yogaApp = createYoga<RequestEvent>({
 				name: String!
 				avatarUrl: String!
 				websiteUrl: String
-				tiersTitle: String
+				tiersTitle: String!
 			}
 		`,
 		resolvers: {
@@ -80,8 +80,6 @@ const yogaApp = createYoga<RequestEvent>({
 			}
 		}
 	}),
-	// Needed to be defined explicitly because our endpoint lives at a different path other than `/graphql`
-	graphqlEndpoint: '/api/graphql',
 
 	// Needed to let Yoga use sveltekit's Response object
 	fetchAPI: globalThis
