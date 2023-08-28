@@ -14,6 +14,20 @@ let projectName = projectDir
 const { version } = JSON.parse(fs.readFileSync(new URL('package.json', import.meta.url), 'utf-8'))
 console.log(`${grey(`create-houdini version ${version}`)}\n`)
 
+// prepare options
+const templatesDir = sourcePath(`./templates`)
+const options = fs.readdirSync(templatesDir).map((template) => {
+	const metaPath = path.join(templatesDir, template, '.meta.json')
+	if (!fs.existsSync(metaPath)) {
+		// this message will be for developers only when we add a template and forget to add the .meta.json
+		p.cancel(
+			`❌ Template "${template}" is missing a ".meta.json" file to describe options (value!, label, hint, apiUrl)`
+		)
+		process.exit(1)
+	}
+	return JSON.parse(readFileSync(metaPath, 'utf-8'))
+})
+
 p.intro('🎩 Welcome to Houdini!')
 
 // if we weren't given a directory, then we should ask
@@ -58,18 +72,6 @@ if (fs.existsSync(projectDir)) {
 		}
 	}
 }
-
-const templatesDir = sourcePath(`./templates`)
-const options = fs.readdirSync(templatesDir).map((template) => {
-	const metaPath = path.join(templatesDir, template, '.meta.json')
-	if (!fs.existsSync(metaPath)) {
-		p.cancel(
-			`❌ Template "${template}" is missing a ".meta.json" file to describe options (value!, label, hint, apiUrl)`
-		)
-		process.exit(1)
-	}
-	return JSON.parse(readFileSync(metaPath, 'utf-8'))
-})
 
 const template = await p.select({
 	message: 'Which template do you want to use?',
