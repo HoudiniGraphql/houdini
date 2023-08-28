@@ -89,4 +89,17 @@ describe('parse', function () {
 			export class Test {}
 		`)
 	})
+
+	test('parseJS with jsx (tabs)', async function () {
+		const parsed = parseJS(
+			`export default function () {
+			return (<>Hello\tWorld</>)
+		}`
+		)
+		expect(parsed).toMatchInlineSnapshot(`
+			export default function() {
+			    return (<>Hello	World</>);
+			}
+		`)
+	})
 })

@@ -15,6 +15,7 @@ export function parseJS(str: string, config?: Partial<ParserOptions>): Script {
 			'typescript',
 			'importAssertions',
 			['decorators', { decoratorsBeforeExport: true }],
+			'jsx',
 		],
 		sourceType: 'module',
 	}
