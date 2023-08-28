@@ -246,6 +246,9 @@ async function pullSchema(
 	/** @type {Record<string, string>} */ headers
 ) {
 	let content = ''
+	const spinnerPullSchema = p.spinner()
+	spinnerPullSchema.start('Pulling your schema...')
+	let fileData = null
 	try {
 		// send the request
 		const resp = await fetch(url, {
@@ -258,12 +261,8 @@ async function pullSchema(
 		content = await resp.text()
 
 		const jsonSchema = JSON.parse(content).data
-		let fileData = ''
-
 		const schema = graphql.buildClientSchema(jsonSchema)
 		fileData = graphql.printSchema(graphql.lexicographicSortSchema(schema))
-
-		return fileData
 	} catch (/** @type {any} */ e) {
 		if (content) {
 			console.warn(
@@ -275,7 +274,8 @@ ${'   Error  :'} ${e.message}`
 			console.warn(`⚠️  Couldn't pull your schema: ${e.message}`)
 		}
 	}
-	return null
+	spinnerPullSchema.stop(fileData ? 'Schema pulled 🪄' : 'Failed to pull schema!')
+	return fileData
 }
 
 function extractHeadersStr(/** @type {string} */ str) {
