@@ -10,8 +10,6 @@ import { fileURLToPath } from 'node:url'
 let projectDir = process.argv[2]
 let projectName = projectDir
 
-const schemaPath = './schema.graphql'
-
 // log the version of create-houdini that this was run with by looking at the packge's package.json
 const { version } = JSON.parse(fs.readFileSync(new URL('package.json', import.meta.url), 'utf-8'))
 console.log(`${grey(`create-houdini version ${version}`)}\n`)
@@ -82,17 +80,32 @@ if (p.isCancel(template)) {
 	process.exit(1)
 }
 const templateMeta = options.find((option) => option.value === template)
+const templateDir = sourcePath(path.join(templatesDir, template))
 
 let apiUrl = templateMeta.apiUrl ?? ''
+let pullSchema_content = ''
 if (apiUrl === '') {
-	apiUrl = await pullSchemaCli()
+	const { apiUrl: apiUrlCli, pullSchema_content: pullSchema_content_cli } = await pullSchemaCli()
+	apiUrl = apiUrlCli
+	if (pullSchema_content_cli === null) {
+		pCancel('We could not pull the schema. Please try again.')
+	} else {
+		pullSchema_content = pullSchema_content_cli
+	}
+} else {
+	const pullSchema_content_local = await pullSchema(apiUrl, {})
+	if (pullSchema_content_local === null) {
+		pCancel('We could not pull the schema. Please report this on Discord.')
+	} else {
+		pullSchema_content = pullSchema_content_local
+	}
 }
 
-const templateDir = sourcePath(path.join(templatesDir, template))
 // create the project directory if necessary
 if (dirToCreate) {
 	fs.mkdirSync(projectDir)
 }
+writeFileSync(path.join(projectDir, 'schema.graphql'), pullSchema_content)
 
 copy(
 	templateDir,
@@ -173,7 +186,7 @@ async function pullSchemaCli() {
 				url_and_headers: async () =>
 					p.text({
 						message: `What's the URL for your api? ${
-							number_of_round === 1 ? '' : `(attempt ${number_of_round})`
+							number_of_round === 1 ? '' : `(attempt ${number_of_round}/10)`
 						}`,
 						placeholder: `http://localhost:4000/graphql ${
 							number_of_round === 1 ? '' : 'Authorization=Bearer MyToken'
@@ -182,7 +195,7 @@ async function pullSchemaCli() {
 						validate: (value) => {
 							// If empty, let's assume the placeholder value
 							if (value === '') {
-								return
+								return 'Please enter something'
 							}
 
 							if (!value.startsWith('http')) {
@@ -206,7 +219,7 @@ async function pullSchemaCli() {
 				  extractHeadersStr(value_splited.slice(1).join(' '))
 				: {}
 
-		pullSchema_content = await pullSchema(apiUrl, schemaPath, local_headers)
+		pullSchema_content = await pullSchema(apiUrl, local_headers)
 
 		if (pullSchema_content === null) {
 			const msg = `If you need to pass headers, add them after the URL (eg: '${`${apiUrl} Authorization=Bearer MyToken`}')`
@@ -219,12 +232,11 @@ async function pullSchemaCli() {
 		pCancel("We couldn't pull the schema. Please check your URL/headers and try again.")
 	}
 
-	return apiUrl
+	return { apiUrl, pullSchema_content }
 }
 
 async function pullSchema(
 	/** @type {string} */ url,
-	/** @type {string} */ schemaPath,
 	/** @type {Record<string, string>} */ headers
 ) {
 	let content = ''
@@ -242,9 +254,8 @@ async function pullSchema(
 		const jsonSchema = JSON.parse(content).data
 		let fileData = ''
 
-		fileData = JSON.stringify(jsonSchema)
-
-		await writeFileSync(schemaPath, fileData)
+		const schema = graphql.buildClientSchema(jsonSchema)
+		fileData = graphql.printSchema(graphql.lexicographicSortSchema(schema))
 
 		return fileData
 	} catch (/** @type {any} */ e) {
