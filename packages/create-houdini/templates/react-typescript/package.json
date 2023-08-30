@@ -12,7 +12,8 @@
 		"houdini": "^HOUDINI_VERSION",
 		"houdini-react": "^HOUDINI_VERSION",
 		"react": "^18.2.0",
-		"react-dom": "^18.2.0"
+		"react-dom": "^18.2.0",
+		"react-streaming": "^0.3.14"
 	},
 	"devDependencies": {
 		"@types/react": "^18.0.27",

@@ -209,6 +209,7 @@ async function pullSchemaCli() {
 			{
 				url_and_headers: async () =>
 					p.text({
+						defaultValue: 'http://localhost:4000/graphql',
 						message: `What's the URL for your api? ${
 							number_of_round === 1 ? '' : `(attempt ${number_of_round}/10)`
 						}`,
@@ -219,7 +220,7 @@ async function pullSchemaCli() {
 						validate: (value) => {
 							// If empty, let's assume the placeholder value
 							if (value === '') {
-								return 'Please enter something'
+								value = 'http://localhost:4000/graphql'
 							}
 
 							if (!value.startsWith('http')) {
