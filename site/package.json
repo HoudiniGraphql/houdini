@@ -44,6 +44,8 @@
 		"@sveltejs/adapter-netlify": "^2.0.5",
 		"feather-icons": "^4.29.0",
 		"flexsearch": "^0.7.31",
+		"graphql": "^15.8.0",
+		"graphql-yoga": "^3.9.1",
 		"lodash": "^4.17.21",
 		"mdsvex": "^0.10.6",
 		"node-html-parser": "^5.4.1",

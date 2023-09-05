@@ -1,0 +1,8 @@
+query PageHome {
+	links(
+		# The delai here is just to simulate a slow response from the server
+		delai: 3000
+	) @loading(count: 5) {
+		...LinkInfo
+	}
+}

@@ -63,21 +63,21 @@
 					<p>Dive in:</p>
 					<nav class="framework-links">
 						<a data-sveltekit-preload-data href="/intro">
-							<img src="/images/svelte.svg" width="20px" aria-hidden="true" />
+							<img src="/images/svelte.svg" alt="svelte" width="20px" aria-hidden="true" />
 							SvelteKit
 						</a>
 						<a data-sveltekit-preload-data href="#disabled" disabled>
-							<img src="/images/react.svg" width="20px" aria-hidden="true" />
+							<img src="/images/react.svg" alt="react" width="20px" aria-hidden="true" />
 							Next
 							<div class="coming-soon">Coming Soon</div>
 						</a>
 						<a data-sveltekit-preload-data href="#disabled" disabled>
-							<img src="/images/vue.svg" width="20px" aria-hidden="true" />
+							<img src="/images/vue.svg" alt="vue" width="20px" aria-hidden="true" />
 							Nuxt
 							<div class="coming-soon">Coming Soon</div>
 						</a>
 						<a data-sveltekit-preload-data href="#disabled" disabled>
-							<img src="/images/solid.svg" width="20px" aria-hidden="true" />
+							<img src="/images/solid.svg" alt="solid" width="20px" aria-hidden="true" />
 							SolidStart
 							<div class="coming-soon">Coming Soon</div>
 						</a>
