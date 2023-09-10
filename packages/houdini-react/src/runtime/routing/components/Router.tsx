@@ -460,6 +460,7 @@ function useAnchorIntercept({ goto }: { goto: (url: string) => void }) {
 				// its a link we want to handle so don't navigate like normal
 				e.preventDefault()
 
+				// go to the next route as a low priority update
 				startTransition(() => {
 					goto(target)
 				})
