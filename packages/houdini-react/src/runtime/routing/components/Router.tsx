@@ -436,6 +436,7 @@ function useAnchorIntercept({ goto }: { goto: (url: string) => void }) {
 
 			// we only want to capture a "normal click" ie something that indicates a route transition
 			// in the current tab
+			// courtesy of: https://gist.github.com/devongovett/919dc0f06585bd88af053562fd7c41b7
 			if (
 				link &&
 				link instanceof HTMLAnchorElement &&
