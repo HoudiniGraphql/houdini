@@ -453,7 +453,7 @@ function useAnchorIntercept({ goto }: { goto: (url: string) => void }) {
 				// we need to figure out the target url by looking at the href attribute
 				const target = link.attributes.getNamedItem('href')?.value
 				// make sure its a link we recognize
-				if (!target) {
+				if (!target || !target.startsWith('/')) {
 					return
 				}
 
