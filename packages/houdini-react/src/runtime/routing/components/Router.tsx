@@ -4,20 +4,13 @@ import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import { LRUCache } from '$houdini/runtime/lib/lru'
 import { GraphQLObject, GraphQLVariables } from '$houdini/runtime/lib/types'
 import { QueryArtifact } from '$houdini/runtime/lib/types'
-import React from 'react'
+import React, { SyntheticEvent } from 'react'
 import { useStream } from 'react-streaming'
 
 import { useDocumentStore } from '../../hooks/useDocumentStore'
 import { SuspenseCache } from '../lib/cache'
 import { find_match } from '../lib/match'
-import type { NavigationContext, RouterManifest, RouterPageManifest } from '../lib/types'
-
-const NavContext = React.createContext<NavigationContext>({
-	currentRoute: '/',
-	goto: () => {
-		throw new Error('NOT FOUND')
-	},
-})
+import type { RouterManifest, RouterPageManifest } from '../lib/types'
 
 /**
  * Router is the top level entry point for the filesystem-based router.
@@ -55,7 +48,7 @@ export function Router({
 
 	// load the page assets (source, artifacts, data). this will suspend if the component is not available yet
 	// this hook embeds pending requests in context so that the component can suspend if necessary14
-	useLoadPage({ page, variables, loaded_queries, loaded_artifacts })
+	usePageData({ page, variables, loaded_queries, loaded_artifacts })
 
 	// if we get this far, it's safe to load the component
 	const { component_cache } = useRouterContext()
@@ -83,30 +76,27 @@ export function Router({
 		}
 	}, [])
 
+	// links are powered using anchor tags that we intercept and handle ourselves
+	useAnchorIntercept({ goto: setCurrent })
+
 	// TODO: cleanup navigation caches
 
 	// render the component embedded in the necessary context so it can orchestrate
 	// its needs
 	return (
-		<NavContext.Provider
-			value={{
-				currentRoute: current,
-				goto: setCurrent,
-			}}
-		>
-			<VariableContext.Provider value={variables}>
-				<PageComponent url={current} />
-			</VariableContext.Provider>
-		</NavContext.Provider>
+		<VariableContext.Provider value={variables}>
+			<PageComponent url={current} />
+		</VariableContext.Provider>
 	)
 }
 
 /**
- * useLoadPage is responsible for kicking off the network requests necessary to render the page.
+ * usePageData is responsible for kicking off the network requests necessary to render the page.
  * This includes loading the artifact, the component source, and any query results. This hook
- * suspends if the component source is not available.
+ * only suspends if the component source is not available. The other cases are handled by the specific
+ * page that is being rendered so that nested suspense boundaries are properly wired up.
  */
-function useLoadPage({
+function usePageData({
 	page,
 	variables,
 	loaded_queries,
@@ -172,7 +162,7 @@ function useLoadPage({
 						}
 					}
 
-					// if we are building up a stream, we want to add something
+					// if we are building up a stream (on the server), we want to add something
 					// to the client that resolves the pending request with the
 					// data that we just got
 					stream?.injectToStream(`
@@ -291,10 +281,6 @@ function useLoadPage({
 				.catch(reject)
 		})
 	}
-}
-
-export function useNavigationContext() {
-	return React.useContext(NavContext)
 }
 
 export function RouterContextProvider({
@@ -438,4 +424,51 @@ export function useQueryResult<_Data extends GraphQLObject, _Input extends Graph
 	})
 
 	return [data, observer]
+}
+
+function useAnchorIntercept({ goto }: { goto: (url: string) => void }) {
+	// navigations need to be registered as transitions
+	const [pending, startTransition] = React.useTransition()
+
+	React.useEffect(() => {
+		let onClick: HTMLAnchorElement['onclick'] = (e) => {
+			let link = (e.target as HTMLElement | null | undefined)?.closest('a')
+
+			// we only want to capture a "normal click" ie something that indicates a route transition
+			// in the current tab
+			if (
+				link &&
+				link instanceof HTMLAnchorElement &&
+				link.href &&
+				(!link.target || link.target === '_self') &&
+				link.origin === location.origin &&
+				!link.hasAttribute('download') &&
+				e.button === 0 && // left clicks only
+				!e.metaKey && // open in new tab (mac)
+				!e.ctrlKey && // open in new tab (windows)
+				!e.altKey && // download
+				!e.shiftKey &&
+				!e.defaultPrevented
+			) {
+				// we need to figure out the target url by looking at the href attribute
+				const target = link.attributes.getNamedItem('href')?.value
+				// make sure its a link we recognize
+				if (!target) {
+					return
+				}
+
+				// its a link we want to handle so don't navigate like normal
+				e.preventDefault()
+
+				startTransition(() => {
+					goto(target)
+				})
+			}
+		}
+
+		document.addEventListener('click', onClick)
+		return () => {
+			document.removeEventListener('click', onClick!)
+		}
+	}, [goto])
 }

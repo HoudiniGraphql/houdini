@@ -1,5 +1,3 @@
-import { Link } from '$houdini'
-
 import type { LayoutProps } from './$types'
 
 export default function ({ HelloRouter, children }: LayoutProps) {
@@ -8,16 +6,16 @@ export default function ({ HelloRouter, children }: LayoutProps) {
 			message: {HelloRouter.message}
 			<ul>
 				<li>
-					<Link href="/">Home</Link>
+					<a href="/">Home</a>
 				</li>
 				<li>
-					<Link href="/users/1">Bruce Willis</Link>
+					<a href="/users/1">Bruce Willis</a>
 				</li>
 				<li>
-					<Link href="/users/2">Samuel Jackson</Link>
+					<a href="/users/2">Samuel Jackson</a>
 				</li>
 				<li>
-					<Link href="/users/3">Morgan Freeman</Link>
+					<a href="/users/3">Morgan Freeman</a>
 				</li>
 			</ul>
 			<div>{children}</div>
