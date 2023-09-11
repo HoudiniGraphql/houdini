@@ -34,19 +34,49 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				if (typeof plugin.vite?.config !== 'function') {
 					continue
 				}
-				result = deepMerge('', result, plugin.vite!.config.call(this, config))
+				result = deepMerge('', result, await plugin.vite!.config.call(this, config))
 			}
 
 			return result
 		},
 
 		// when the build starts, we need to make sure to generate
-		async buildStart() {
+		async buildStart(args) {
 			try {
 				await generate(config)
 			} catch (e) {
 				formatErrors(e)
 			}
+
+			for (const plugin of config.plugins) {
+				if (typeof plugin.vite?.buildStart !== 'function') {
+					continue
+				}
+
+				// @ts-expect-error
+				plugin.vite!.buildStart.call(this, {
+					...args,
+					houdiniConfig: config,
+				})
+			}
+		},
+
+		options(options) {
+			for (const plugin of config.plugins) {
+				if (typeof plugin.vite?.options !== 'function') {
+					continue
+				}
+
+				// @ts-expect-error
+				options = plugin.vite!.options.call(this, {
+					...options,
+					houdiniConfig: config,
+				})
+			}
+
+			return Object.fromEntries(
+				Object.entries(options).filter(([key]) => key !== 'houdiniConfig')
+			)
 		},
 
 		configureServer(server) {

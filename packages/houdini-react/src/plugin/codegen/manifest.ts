@@ -9,6 +9,7 @@ import {
 	read_pageView,
 	read_pageQuery,
 	normalize_path,
+	serialized_manifest_path,
 } from '../conventions'
 
 /**
@@ -301,6 +302,19 @@ export async function extractQueries(source: string): Promise<string[]> {
 	}
 
 	return props.filter((p) => p !== 'children')
+}
+
+// a serialized version of the manifest is used during the build process to configure
+// vite to see every entry point
+export async function write_manifest({
+	config,
+	manifest,
+}: {
+	config: Config
+	manifest: ProjectManifest
+}): Promise<void> {
+	// all we need to do is stringify and write the manifest to the correct location
+	await fs.writeFile(serialized_manifest_path(config), JSON.stringify(manifest, null, 4))
 }
 
 // The manifest is a tree of routes that the router will use to render

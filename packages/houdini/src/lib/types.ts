@@ -2,7 +2,11 @@ import type graphql from 'graphql'
 import type * as recast from 'recast'
 import type {
 	CustomPluginOptions,
+	InputOptions,
 	LoadResult,
+	MinimalPluginContext,
+	NormalizedInputOptions,
+	NullValue,
 	ObjectHook,
 	PluginContext,
 	ResolveIdResult,
@@ -275,7 +279,17 @@ export type PluginHooks = {
 		| { code: string; map?: SourceMapInput | string }
 
 	vite?: {
-		config?: (config: Config) => UserConfig
+		config?: (config: Config) => UserConfig | Promise<UserConfig>
+
+		buildStart?: (
+			this: PluginContext,
+			options: NormalizedInputOptions & { houdiniConfig: Config }
+		) => void
+
+		options?: (
+			this: MinimalPluginContext,
+			options: InputOptions & { houdiniConfig: Config }
+		) => InputOptions | NullValue
 
 		// these type definitions are copy and pasted from the vite ones
 		// with config added to the appropriate options object

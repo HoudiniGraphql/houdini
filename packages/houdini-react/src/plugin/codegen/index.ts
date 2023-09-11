@@ -2,6 +2,7 @@ import type { GenerateHookInput } from 'houdini'
 
 import { generate_entries } from './entries'
 import type { ProjectManifest } from './manifest'
+import { write_manifest } from './manifest'
 import { generate_renders } from './render'
 import { generate_type_root } from './typeRoot'
 
@@ -23,5 +24,6 @@ export default async function routerCodegen({
 		generate_entries({ config, manifest }),
 		generate_renders(config),
 		generate_type_root({ config, manifest }),
+		write_manifest({ config, manifest }),
 	])
 }

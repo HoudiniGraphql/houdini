@@ -4,7 +4,7 @@ import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import { LRUCache } from '$houdini/runtime/lib/lru'
 import { GraphQLObject, GraphQLVariables } from '$houdini/runtime/lib/types'
 import { QueryArtifact } from '$houdini/runtime/lib/types'
-import React, { SyntheticEvent } from 'react'
+import React from 'react'
 import { useStream } from 'react-streaming'
 
 import { useDocumentStore } from '../../hooks/useDocumentStore'

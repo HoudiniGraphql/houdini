@@ -2,31 +2,37 @@ import { PluginHooks, Config, Cache, path, QueryArtifact, fs } from 'houdini'
 import type { renderToStream as streamingRender } from 'react-streaming/server'
 import type { Connect, ViteDevServer } from 'vite'
 
+import { setManifest } from '.'
+// in order to coordinate the client and server, the client's pending request cache
+// needs to start with a value for every query that we are sending on the server.
+// While values resolve, chunks are sent, etc, the pending cache will be resolved
+// and components will be allowed to render if their data cache is sufficiently full
+// We need to generate all sorts of files to make this work and in development, we want
+// to rely heavily on Vite's dev server for loading things so that we can make sure we always
+// integrate well with hmr. We're going to use virtual modules in place of the statically
+// generated files.
+// Here is a potentially incomplete list of things that are mocked / need to be generated:
+// @@houdini/page/[query_names.join(',')] - An entry for every page that starts the pending cache with the correct values
+// @@houdini/artifact/[name] - An entry for loading an artifact and notifying the artifact cache
 import { RouterManifest } from '../runtime'
 import { find_match } from '../runtime/routing/lib/match'
 import { configure_server } from '../server'
 import { dev_server } from '../server/compat'
 import { get_session } from '../server/session'
+import { type ProjectManifest, load_manifest } from './codegen/manifest'
 import { plugin_config } from './config'
 import { render_server_path } from './conventions'
 
-// in order to coordinate the client and server, the client's pending request cache
-// needs to start with a value for every query that we are sending on the server.
-// While values resolve, chunks are sent, etc, the pending cache will be resolved
-// and components will be allowed to render if their data cache is sufficiently full
-
-// We need to generate all sorts of files to make this work and in development, we want
-// to rely heavily on Vite's dev server for loading things so that we can make sure we always
-// integrate well with hmr. We're going to use virtual modules in place of the statically
-// generated files.
-
-// Here is a potentially incomplete list of things that are mocked / need to be generated:
-// @@houdini/page/[query_names.join(',')] - An entry for every page that starts the pending cache with the correct values
-// @@houdini/artifact/[name] - An entry for loading an artifact and notifying the artifact cache
+let manifest: ProjectManifest
 
 export default {
 	// we want to set up some vite aliases by default
-	config(config) {
+	async config(config) {
+		manifest = await load_manifest({ config })
+		setManifest(manifest)
+
+		// every page in the manifest is a new entry point for vite
+
 		return {
 			resolve: {
 				alias: {
@@ -34,6 +40,19 @@ export default {
 					'$houdini/*': path.join(config.rootDir, '*'),
 					'~': path.join(config.projectRoot, 'src'),
 					'~/*': path.join(config.projectRoot, 'src', '*'),
+				},
+			},
+			build: {
+				rollupOptions: {
+					input: Object.fromEntries(
+						Object.entries(manifest.pages).map(([id, page]) => {
+							// our pending cache needs to start with signals that we can alert
+							// for every query that we will send as part of the initial request
+							const pending_queries = page.queries
+
+							return [id, `@@houdini/page/${page.id}@${pending_queries}.jsx`]
+						})
+					),
 				},
 			},
 		}

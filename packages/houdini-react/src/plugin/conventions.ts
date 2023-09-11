@@ -128,3 +128,7 @@ function units_dir(config: Config, base: string = base_dir(config)) {
 function base_dir(config: Config) {
 	return config.pluginDirectory('houdini-react')
 }
+
+export function serialized_manifest_path(config: Config, base: string = base_dir(config)): string {
+	return path.join(base, 'manifest.json')
+}
