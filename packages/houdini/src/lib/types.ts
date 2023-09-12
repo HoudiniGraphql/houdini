@@ -12,7 +12,7 @@ import type {
 	ResolveIdResult,
 	SourceMapInput,
 } from 'rollup'
-import type { UserConfig, ViteDevServer } from 'vite'
+import type { ConfigEnv, UserConfig, ViteDevServer } from 'vite'
 
 import type { ConfigFile } from '../runtime/lib/config'
 import type {
@@ -279,7 +279,7 @@ export type PluginHooks = {
 		| { code: string; map?: SourceMapInput | string }
 
 	vite?: {
-		config?: (config: Config) => UserConfig | Promise<UserConfig>
+		config?: (config: Config, env: ConfigEnv) => UserConfig | Promise<UserConfig>
 
 		buildStart?: (
 			this: PluginContext,

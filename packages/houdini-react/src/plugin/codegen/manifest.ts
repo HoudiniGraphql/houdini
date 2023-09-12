@@ -8,7 +8,7 @@ import {
 	read_layoutView,
 	read_pageView,
 	read_pageQuery,
-	normalize_path,
+	page_id,
 	serialized_manifest_path,
 } from '../conventions'
 
@@ -16,9 +16,12 @@ import {
  * Walk down the routes directory and build a normalized description of the project's
  * filesystem.
  */
-export async function load_manifest(args: { config: Config }) {
+export async function load_manifest(args: {
+	config: Config
+	includeArtifacts?: boolean
+}): Promise<ProjectManifest> {
 	// we'll start at the route directory and start building it up
-	return await walk_routes({
+	const manifest = await walk_routes({
 		config: args.config,
 		url: '/',
 		filepath: args.config.routesDir,
@@ -27,10 +30,26 @@ export async function load_manifest(args: { config: Config }) {
 			layouts: {},
 			page_queries: {},
 			layout_queries: {},
+			artifacts: [],
 		},
 		queries: [],
 		layouts: [],
 	})
+
+	if (args.includeArtifacts) {
+		// look at the artifact directory for every artifact
+		for (const artifactPath of await fs.readdir(args.config.artifactDirectory)) {
+			// only consider the js files
+			if (!artifactPath.endsWith('.js') || artifactPath === 'index.js') {
+				continue
+			}
+
+			// push the artifact path without the extension
+			manifest.artifacts.push(artifactPath.substring(0, artifactPath.length - 3))
+		}
+	}
+
+	return manifest
 }
 
 async function walk_routes(args: {
@@ -97,7 +116,7 @@ async function walk_routes(args: {
 			queries: newLayoutQueries,
 			config: args.config,
 		})
-		newLayouts = [...args.layouts, normalize_path(layout.url)]
+		newLayouts = [...args.layouts, page_id(layout.url)]
 	}
 
 	// if we have a page query, add it
@@ -167,7 +186,7 @@ async function add_view(args: {
 		}
 	}
 
-	const id = normalize_path(args.url)
+	const id = page_id(args.url)
 
 	target[id] = {
 		id,
@@ -210,14 +229,14 @@ async function add_query(args: {
 	})
 
 	const target = args.type === 'page' ? args.project.page_queries : args.project.layout_queries
-	target[normalize_path(args.url)] = {
+	target[page_id(args.url)] = {
 		path: path.relative(args.config.routesDir, args.path),
 		name: query.name.value,
 		url: args.url,
 		loading,
 	}
 
-	return target[normalize_path(args.url)]
+	return target[page_id(args.url)]
 }
 
 export async function extractQueries(source: string): Promise<string[]> {
@@ -328,6 +347,8 @@ export type ProjectManifest = {
 	page_queries: Record<string, QueryManifest>
 	/** All of the layout queries in the project */
 	layout_queries: Record<string, QueryManifest>
+	/** All of the artifacts in the project */
+	artifacts: string[]
 }
 
 export type PageManifest = {

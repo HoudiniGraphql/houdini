@@ -1,5 +1,6 @@
 import { PluginHooks, Config, Cache, path, QueryArtifact, fs } from 'houdini'
 import type { renderToStream as streamingRender } from 'react-streaming/server'
+import { InputOption } from 'rollup'
 import type { Connect, ViteDevServer } from 'vite'
 
 import { setManifest } from '.'
@@ -27,11 +28,22 @@ let manifest: ProjectManifest
 
 export default {
 	// we want to set up some vite aliases by default
-	async config(config) {
-		manifest = await load_manifest({ config })
+	async config(config, env) {
+		manifest = await load_manifest({ config, includeArtifacts: env.mode === 'production' })
 		setManifest(manifest)
 
+		// build up the list of entries that we need vite to bundle
+		const entries: InputOption = {}
+
 		// every page in the manifest is a new entry point for vite
+		for (const [id, page] of Object.entries(manifest.pages)) {
+			entries[`pages/${id}`] = `@@houdini/page/${page.id}@${page.queries}.jsx`
+		}
+
+		// every artifact asset needs to be bundled individually
+		for (const artifact of manifest.artifacts) {
+			entries[`artifacts/${artifact}`] = `@@houdini/artifact/${artifact}.js`
+		}
 
 		return {
 			resolve: {
@@ -44,15 +56,7 @@ export default {
 			},
 			build: {
 				rollupOptions: {
-					input: Object.fromEntries(
-						Object.entries(manifest.pages).map(([id, page]) => {
-							// our pending cache needs to start with signals that we can alert
-							// for every query that we will send as part of the initial request
-							const pending_queries = page.queries
-
-							return [id, `@@houdini/page/${page.id}@${pending_queries}.jsx`]
-						})
-					),
+					input: entries,
 				},
 			},
 		}

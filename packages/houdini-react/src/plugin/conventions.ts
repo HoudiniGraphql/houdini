@@ -86,7 +86,7 @@ export function is_layout(path: string) {
 }
 
 /** Transforms paths to ids */
-export function normalize_path(path: string) {
+export function page_id(path: string) {
 	if (path.endsWith('/') && path.length > 1) {
 		path = path.substring(0, path.length - 1)
 	}
@@ -97,11 +97,12 @@ export function normalize_path(path: string) {
 	for (const char of path) {
 		const match = special_chars.indexOf(char)
 		if (match !== -1) {
-			copy += mask + match.toString()
+			copy += mask
 		} else {
 			copy += char
 		}
 	}
+
 	return copy
 }
 

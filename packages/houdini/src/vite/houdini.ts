@@ -16,7 +16,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		enforce: 'pre',
 
 		// add watch-and-run to their vite config
-		async config(viteConfig) {
+		async config(viteConfig, ...rest) {
 			config = await getConfig(opts)
 
 			let result: UserConfig = {
@@ -34,7 +34,11 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				if (typeof plugin.vite?.config !== 'function') {
 					continue
 				}
-				result = deepMerge('', result, await plugin.vite!.config.call(this, config))
+				result = deepMerge(
+					'',
+					result,
+					await plugin.vite!.config.call(this, config, ...rest)
+				)
 			}
 
 			return result
