@@ -91,6 +91,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				config,
 				conventions: routerConventions,
 				sourceDir: viteConfig.build.outDir,
+				publicBase: viteConfig.base,
 			})
 		},
 
