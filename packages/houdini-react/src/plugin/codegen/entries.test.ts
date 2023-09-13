@@ -1,15 +1,8 @@
-import { fs, parseJS } from 'houdini'
+import { fs, parseJS, routerConventions, load_manifest } from 'houdini'
 import { test, expect } from 'vitest'
 
 import { test_config } from '../config'
-import {
-	page_entry_path,
-	page_unit_path,
-	layout_unit_path,
-	fallback_unit_path,
-} from '../conventions'
 import { generate_entries } from './entries'
-import { load_manifest } from './manifest'
 
 test('composes layouts and pages', async function () {
 	const config = await test_config()
@@ -37,7 +30,9 @@ test('composes layouts and pages', async function () {
 	await generate_entries({ config, manifest })
 
 	const page_entry = await parseJS(
-		(await fs.readFile(page_entry_path(config, Object.keys(manifest.pages)[0]))) ?? '',
+		(await fs.readFile(
+			routerConventions.page_entry_path(config, Object.keys(manifest.pages)[0])
+		)) ?? '',
 		{ plugins: ['jsx'] }
 	)
 	expect(page_entry).toMatchInlineSnapshot(`
@@ -67,7 +62,9 @@ test('composes layouts and pages', async function () {
 	`)
 
 	const page_unit = await parseJS(
-		(await fs.readFile(page_unit_path(config, Object.keys(manifest.pages)[0]))) ?? '',
+		(await fs.readFile(
+			routerConventions.page_unit_path(config, Object.keys(manifest.pages)[0])
+		)) ?? '',
 		{
 			plugins: ['jsx'],
 		}
@@ -92,7 +89,9 @@ test('composes layouts and pages', async function () {
 	`)
 
 	const root_layout_unit = await parseJS(
-		(await fs.readFile(layout_unit_path(config, Object.keys(manifest.layouts)[0]))) ?? '',
+		(await fs.readFile(
+			routerConventions.layout_unit_path(config, Object.keys(manifest.layouts)[0])
+		)) ?? '',
 		{
 			plugins: ['jsx'],
 		}
@@ -115,7 +114,9 @@ test('composes layouts and pages', async function () {
 	`)
 
 	const deep_layout_unit = await parseJS(
-		(await fs.readFile(layout_unit_path(config, Object.keys(manifest.layouts)[1]))) ?? '',
+		(await fs.readFile(
+			routerConventions.layout_unit_path(config, Object.keys(manifest.layouts)[1])
+		)) ?? '',
 		{
 			plugins: ['jsx'],
 		}
@@ -146,8 +147,9 @@ test('composes layouts and pages', async function () {
 
 	// make sure we generated the fallback units
 	const page_fallback = await parseJS(
-		(await fs.readFile(fallback_unit_path(config, 'page', Object.keys(manifest.pages)[0]))) ??
-			'',
+		(await fs.readFile(
+			routerConventions.fallback_unit_path(config, 'page', Object.keys(manifest.pages)[0])
+		)) ?? '',
 		{
 			plugins: ['jsx'],
 		}
@@ -202,7 +204,7 @@ test('composes layouts and pages', async function () {
 	`)
 	const layout_fallback = await parseJS(
 		(await fs.readFile(
-			fallback_unit_path(config, 'layout', Object.keys(manifest.layouts)[0])
+			routerConventions.fallback_unit_path(config, 'layout', Object.keys(manifest.layouts)[0])
 		)) ?? '',
 		{
 			plugins: ['jsx'],

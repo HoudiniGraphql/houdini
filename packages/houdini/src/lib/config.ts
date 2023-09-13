@@ -448,7 +448,7 @@ export class Config {
 	}
 
 	get compiledAssetsDir() {
-		return path.join(this.rootDir, '.build')
+		return path.join(this.rootDir, 'build')
 	}
 
 	compiledAssetPath(filepath: string) {

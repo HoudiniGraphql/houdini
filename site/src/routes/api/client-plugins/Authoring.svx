@@ -80,7 +80,7 @@ const retry: ClientPlugin = () => {
 ```
 
 This time we have to use `resolve` instead of `next`. At a high level, `resolve` sends the
-send the information back to the server (instead of to the server using `next`).  While this does sound kind of
+send the information back to the user (instead of to the server using `next`).  While this does sound kind of
 complicated, having this distinction allows us to replay the request if we run into an error relatively easily:
 
 ```typescript:title=src/client.ts&typescriptToggle=true

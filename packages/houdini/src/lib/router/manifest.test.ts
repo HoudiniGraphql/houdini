@@ -1,12 +1,11 @@
-import { fs } from 'houdini'
-import { clearMock } from 'houdini/test'
 import { test, expect, describe } from 'vitest'
 
-import { test_config } from '../config'
+import { fs } from '..'
+import { testConfig, clearMock } from '../../test'
 import { load_manifest, extractQueries } from './manifest'
 
 test('empty routes dir generates empty manifest', async function () {
-	const config = await test_config()
+	const config = testConfig()
 
 	// create the mock filesystem
 	await fs.mock({})
@@ -26,7 +25,7 @@ test('empty routes dir generates empty manifest', async function () {
 })
 
 test('route groups', async function () {
-	const config = await test_config()
+	const config = testConfig()
 
 	// create the mock filesystem
 	await fs.mock({
@@ -112,7 +111,7 @@ test('route groups', async function () {
 })
 
 test('nested route structure happy path', async function () {
-	const config = await test_config()
+	const config = testConfig()
 
 	// create the mock filesystem
 	await fs.mock({
@@ -293,7 +292,7 @@ test('nested route structure happy path', async function () {
 })
 
 describe('validate filesystem', async () => {
-	const config = await test_config()
+	const config = testConfig()
 
 	const testCases: {
 		name: string

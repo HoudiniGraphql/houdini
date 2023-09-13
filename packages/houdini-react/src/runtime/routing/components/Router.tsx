@@ -245,7 +245,7 @@ function usePageData({
 
 				// add a script to load the artifact
 				stream?.injectToStream(`
-					<script type="module" src="@@houdini/artifact/${artifact.name}.js" async=""></script>
+					<script type="module" src="virtual:houdini/artifact/${artifact.name}.js" async=""></script>
 				`)
 
 				// now that we have the artifact, we can load the query too

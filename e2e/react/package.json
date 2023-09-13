@@ -18,6 +18,7 @@
 	"dependencies": {
 		"houdini": "workspace:^",
 		"houdini-react": "workspace:^",
+		"houdini-adapter-cloudflare-workers": "workspace:^",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"react-streaming": "^0.3.10"

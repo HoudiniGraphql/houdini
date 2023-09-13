@@ -1,4 +1,14 @@
-import { PluginHooks, Config, Cache, path, QueryArtifact, fs } from 'houdini'
+import {
+	PluginHooks,
+	Config,
+	Cache,
+	path,
+	QueryArtifact,
+	fs,
+	type ProjectManifest,
+	load_manifest,
+	routerConventions,
+} from 'houdini'
 import type { renderToStream as streamingRender } from 'react-streaming/server'
 import { InputOption } from 'rollup'
 import type { Connect, ViteDevServer } from 'vite'
@@ -13,16 +23,14 @@ import { setManifest } from '.'
 // integrate well with hmr. We're going to use virtual modules in place of the statically
 // generated files.
 // Here is a potentially incomplete list of things that are mocked / need to be generated:
-// @@houdini/page/[query_names.join(',')] - An entry for every page that starts the pending cache with the correct values
-// @@houdini/artifact/[name] - An entry for loading an artifact and notifying the artifact cache
+// virtual:houdini/page/[query_names.join(',')] - An entry for every page that starts the pending cache with the correct values
+// virtual:houdini/artifact/[name] - An entry for loading an artifact and notifying the artifact cache
 import { RouterManifest } from '../runtime'
 import { find_match } from '../runtime/routing/lib/match'
 import { configure_server } from '../server'
 import { dev_server } from '../server/compat'
 import { get_session } from '../server/session'
-import { type ProjectManifest, load_manifest } from './codegen/manifest'
 import { plugin_config } from './config'
-import { render_server_path } from './conventions'
 
 let manifest: ProjectManifest
 
@@ -37,12 +45,20 @@ export default {
 
 		// every page in the manifest is a new entry point for vite
 		for (const [id, page] of Object.entries(manifest.pages)) {
-			entries[`pages/${id}`] = `@@houdini/page/${page.id}@${page.queries}.jsx`
+			entries[`pages/${id}`] = `virtual:houdini/page/${page.id}@${page.queries}.jsx`
 		}
 
 		// every artifact asset needs to be bundled individually
 		for (const artifact of manifest.artifacts) {
-			entries[`artifacts/${artifact}`] = `@@houdini/artifact/${artifact}.js`
+			entries[`artifacts/${artifact}`] = `virtual:houdini/artifact/${artifact}.js`
+		}
+
+		// in production we also need a bundled version of the server-side renderer
+		if (env.mode === 'production') {
+			entries['server/render.js'] = path.join(
+				path.dirname(routerConventions.render_client_path(config)),
+				'App.jsx'
+			)
 		}
 
 		return {
@@ -55,6 +71,7 @@ export default {
 				},
 			},
 			build: {
+				outDir: config.compiledAssetsDir,
 				rollupOptions: {
 					input: entries,
 				},
@@ -64,17 +81,17 @@ export default {
 
 	resolveId(id) {
 		// we only care about the virtual modules that generate
-		if (!id.includes('@@houdini')) {
+		if (!id.includes('virtual:houdini')) {
 			return
 		}
 
 		// let them all through as is but strip anything that comes before the marker
-		return id.substring(id.indexOf('@@houdini'))
+		return id.substring(id.indexOf('virtual:houdini'))
 	},
 
 	async load(id, { config }) {
 		// we only care about the virtual modules that generate
-		if (!id.startsWith('@@houdini')) {
+		if (!id.startsWith('virtual:houdini')) {
 			return
 		}
 
@@ -228,15 +245,17 @@ const render_stream =
 		<script type="module" src="/@vite/client" async=""></script>
 
 		<!-- add a virtual module that loads the client and sets up the initial pending cache -->
-		<script type="module" src="@@houdini/page/${match.id}@${pending_query_names}.jsx" async=""></script>
+		<script type="module" src="virtual:houdini/page/${
+			match.id
+		}@${pending_query_names}.jsx" async=""></script>
 	`)
 	}
 
 async function load_render(server: ViteDevServer & { houdiniConfig: Config }) {
-	// load the function to rener the response from the generated output
+	// load the function to redner the response from the generated output
 	// this is a hack to avoid a dependency issue with pnpm (i think)
 	return (await server.ssrLoadModule(
-		render_server_path(server.houdiniConfig) + '?t=' + new Date().getTime()
+		routerConventions.render_server_path(server.houdiniConfig) + '?t=' + new Date().getTime()
 	)) as {
 		render_to_stream: (
 			args: {

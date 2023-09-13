@@ -1,0 +1,44 @@
+{
+    "name": "houdini-adapter-cloudflare-workers",
+    "version": "1.2.9",
+    "description": "The adapter for deploying your Houdini application to Cloudflare Workers",
+    "keywords": [
+        "houdini",
+        "adpter",
+        "cloudflare",
+        "workers"
+    ],
+    "homepage": "https://github.com/HoudiniGraphql/houdini",
+    "funding": "https://github.com/sponsors/HoudiniGraphql",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/HoudiniGraphql/houdini.git"
+    },
+    "license": "MIT",
+    "type": "module",
+    "devDependencies": {
+        "scripts": "workspace:^",
+        "tsup": "^7.2.0",
+        "vitest": "^0.28.3"
+    },
+    "scripts": {
+        "build": "tsup src/index.ts --format esm,cjs --minify --dts-resolve --dts --clean --out-dir build",
+		"build:": "cd ../../ && ((run build && cd -) || (cd - && exit 1))",
+		"build:build": "pnpm build: && pnpm build"
+    },
+    "dependencies": {
+        "houdini": "workspace:^"
+    },
+    "files": [
+        "src"
+    ],
+    "exports": {
+        "./package.json": "./package.json",
+        ".": {
+            "import": "./build/index.js",
+            "require": "./build/index.cjs"
+        }
+    },
+    "main": "./build/index.cjs",
+    "types": "./build/index.d.ts"
+}

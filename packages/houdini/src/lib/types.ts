@@ -12,7 +12,7 @@ import type {
 	ResolveIdResult,
 	SourceMapInput,
 } from 'rollup'
-import type { ConfigEnv, UserConfig, ViteDevServer } from 'vite'
+import type { ConfigEnv, ResolvedConfig, UserConfig, ViteDevServer } from 'vite'
 
 import type { ConfigFile } from '../runtime/lib/config'
 import type {
@@ -23,6 +23,7 @@ import type {
 } from '../runtime/lib/types'
 import type { TransformPage } from '../vite/houdini'
 import type { Config } from './config'
+import { Adapter } from './router'
 
 type Program = recast.types.namedTypes.Program
 
@@ -286,6 +287,16 @@ export type PluginHooks = {
 			options: NormalizedInputOptions & { houdiniConfig: Config }
 		) => void
 
+		buildEnd?: (
+			this: PluginContext,
+			error?: Error,
+			houdiniConfig?: Config
+		) => void | Promise<void>
+
+		closeBundle?: (this: PluginContext) => void | Promise<void>
+
+		configResolved?: ObjectHook<(this: void, config: ResolvedConfig) => void | Promise<void>>
+
 		options?: (
 			this: MinimalPluginContext,
 			options: InputOptions & { houdiniConfig: Config }
@@ -347,7 +358,7 @@ export type GenerateHookInput = {
 	pluginRoot: string
 }
 
-export type PluginConfig = { configPath?: string } & Partial<ConfigFile>
+export type PluginConfig = { configPath?: string; adapter?: Adapter } & Partial<ConfigFile>
 
 export * from '../runtime/lib/types'
 export * from '../runtime/lib/config'

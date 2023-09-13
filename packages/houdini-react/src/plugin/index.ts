@@ -6,12 +6,13 @@ import {
 	ArtifactKind,
 	plugin,
 	fragmentKey,
+	load_manifest,
+	type ProjectManifest,
 } from 'houdini'
 import path from 'node:path'
 import { loadEnv } from 'vite'
 
 import generate from './codegen'
-import { load_manifest, type ProjectManifest } from './codegen/manifest'
 import { format_router_manifest } from './codegen/router'
 import { extractDocuments } from './extract'
 import { transformFile } from './transform'
