@@ -23,8 +23,8 @@ import { setManifest } from '.'
 // integrate well with hmr. We're going to use virtual modules in place of the statically
 // generated files.
 // Here is a potentially incomplete list of things that are mocked / need to be generated:
-// virtual:houdini/page/[query_names.join(',')] - An entry for every page that starts the pending cache with the correct values
-// virtual:houdini/artifact/[name] - An entry for loading an artifact and notifying the artifact cache
+// virtual:houdini/pages/[query_names.join(',')] - An entry for every page that starts the pending cache with the correct values
+// virtual:houdini/artifacts/[name] - An entry for loading an artifact and notifying the artifact cache
 import { RouterManifest } from '../runtime'
 import { find_match } from '../runtime/routing/lib/match'
 import { configure_server } from '../runtime/server'
@@ -45,12 +45,12 @@ export default {
 
 		// every page in the manifest is a new entry point for vite
 		for (const [id, page] of Object.entries(manifest.pages)) {
-			entries[`pages/${id}`] = `virtual:houdini/page/${page.id}@${page.queries}.jsx`
+			entries[`pages/${id}`] = `virtual:houdini/pages/${page.id}@${page.queries}.jsx`
 		}
 
 		// every artifact asset needs to be bundled individually
 		for (const artifact of manifest.artifacts) {
-			entries[`artifacts/${artifact}`] = `virtual:houdini/artifact/${artifact}.js`
+			entries[`artifacts/${artifact}`] = `virtual:houdini/artifacts/${artifact}.js`
 		}
 
 		return {
@@ -98,7 +98,7 @@ export default {
 		arg = parsedPath.name
 
 		// if we are rendering the virtual page
-		if (which === 'page') {
+		if (which === 'pages') {
 			const [id, query_names] = arg.split('@')
 			const queries = query_names.split(',')
 
@@ -134,7 +134,7 @@ export default {
 			`
 		}
 
-		if (which === 'artifact') {
+		if (which === 'artifacts') {
 			// the arg is the name of the artifact
 			const artifact = (await fs.readFile(
 				path.join(config.artifactDirectory, arg + '.js')
@@ -144,7 +144,7 @@ export default {
 				artifact +
 				`
 if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_cache && !window.__houdini__nav_caches__.artifact_cache.has("${arg}")) {
-	window.__houdini__nav_caches__.artifact_cache.set(${arg}, artifact)
+	window.__houdini__nav_caches__.artifact_cache.set(${JSON.stringify(arg)}, artifact)
 }
 `
 			)
@@ -241,7 +241,7 @@ const render_stream =
 		<script type="module" src="/@vite/client" async=""></script>
 
 		<!-- add a virtual module that hydrates the client and sets up the initial pending cache -->
-		<script type="module" src="/virtual:houdini/page/${
+		<script type="module" src="/virtual:houdini/pages/${
 			match.id
 		}@${pending_query_names}.jsx" async=""></script>
 	`)

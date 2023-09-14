@@ -33,6 +33,7 @@ const handlers: ExportedHandler = {
 
 		// we are handling an asset
 		if (url.startsWith('/assets/') || url === '/favicon.ico') {
+			console.log('fetching asset', url)
 			return await env.ASSETS.fetch(req)
 		}
 
