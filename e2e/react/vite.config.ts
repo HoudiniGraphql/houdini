@@ -1,5 +1,5 @@
 import react from '@vitejs/plugin-react'
-import adapter from 'houdini-adapter-cloudflare-workers'
+import adapter from 'houdini-adapter-cloudflare'
 import houdini from 'houdini/vite'
 import { defineConfig } from 'vite'
 

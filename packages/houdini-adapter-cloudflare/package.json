@@ -1,7 +1,7 @@
 {
-    "name": "houdini-adapter-cloudflare-workers",
+    "name": "houdini-adapter-cloudflare",
     "version": "1.2.9",
-    "description": "The adapter for deploying your Houdini application to Cloudflare Workers",
+    "description": "The adapter for deploying your Houdini application to Cloudflare Pages",
     "keywords": [
         "houdini",
         "adpter",

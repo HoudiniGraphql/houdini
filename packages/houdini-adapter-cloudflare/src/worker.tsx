@@ -3,6 +3,11 @@ import { parse } from 'cookie'
 import type { QueryArtifact } from 'houdini'
 import { renderToStream } from 'react-streaming/server'
 
+// The following imports local assets from the generated runtime
+// This is not the desired API. just the easiest way to get this working
+// and validate the rendering strategy
+//
+//
 // @ts-expect-error
 import { router_cache } from '../$houdini'
 // @ts-expect-error

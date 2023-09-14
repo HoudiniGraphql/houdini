@@ -193,9 +193,9 @@ importers:
       houdini:
         specifier: workspace:^
         version: link:../../packages/houdini
-      houdini-adapter-cloudflare-workers:
+      houdini-adapter-cloudflare:
         specifier: workspace:^
-        version: link:../../packages/houdini-adapter-cloudflare-workers
+        version: link:../../packages/houdini-adapter-cloudflare
       houdini-react:
         specifier: workspace:^
         version: link:../../packages/houdini-react
@@ -440,7 +440,7 @@ importers:
         specifier: ^0.28.3
         version: 0.28.3(@vitest/ui@0.28.3)
 
-  packages/houdini-adapter-cloudflare-workers:
+  packages/houdini-adapter-cloudflare:
     dependencies:
       '@cloudflare/kv-asset-handler':
         specifier: ^0.3.0
