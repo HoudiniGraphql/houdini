@@ -6,9 +6,9 @@ const adapter: Adapter = async ({ config, conventions, publicBase, outDir, sourc
 	await fs.recursiveCopy(sourceDir, outDir)
 
 	// read the contents of the worker file
-	const workerContents = await fs.readFile(sourcePath('./app.js'))
+	const workerContents = await fs.readFile(sourcePath('./worker.js'))
 
-	await fs.writeFile(path.join(outDir, 'index.js'), workerContents!)
+	await fs.writeFile(path.join(outDir, '_worker.js'), workerContents!)
 }
 
 export default adapter

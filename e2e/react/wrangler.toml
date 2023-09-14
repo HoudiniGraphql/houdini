@@ -1,7 +1,6 @@
 name = "houdini-cloudflare-test"
 main = "./dist/index.js"
 compatibility_date = "2023-09-04"
-bucket = "./dist/assets/"
 
 # Variable bindings. These are arbitrary, plaintext strings (similar to environment variables)
 # Note: Use secrets to store sensitive data.

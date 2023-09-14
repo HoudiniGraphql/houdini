@@ -1,8 +1,6 @@
-import { getAssetFromKV } from '@cloudflare/kv-asset-handler'
 import { ExportedHandler } from '@cloudflare/workers-types'
 import { parse } from 'cookie'
 import type { QueryArtifact } from 'houdini'
-import { Router } from 'itty-router'
 import { renderToStream } from 'react-streaming/server'
 
 // @ts-expect-error
@@ -18,14 +16,27 @@ import { Cache } from '../$houdini/runtime/cache/cache.js'
 // @ts-expect-error
 import { getCurrentConfig as current_config } from '../$houdini/runtime/lib/config'
 
-const app = Router()
-
 const config_file = current_config()
-const framework_config = config_file.plugins?.['houdini-react'] ?? {}
 
+const framework_config = config_file.plugins?.['houdini-react'] ?? {}
 const jwt_secret = 'secret'
 
-app.all('/', async (request, next) => {
+const handlers: ExportedHandler = {
+	async fetch(req, env: any, ctx) {
+		// if we aren't loading an asset, push the request through our router
+		const url = new URL(req.url).pathname
+
+		// we are handling an asset
+		if (!url.startsWith('/assets/')) {
+			return await env.ASSETS.fetch(req)
+		}
+
+		// otherwise we just need to render the application
+		return render_app(req)
+	},
+}
+
+async function render_app(request: Parameters<Required<ExportedHandler>['fetch']>[0]) {
 	// pull out the desired url
 	const url = new URL(request.url).pathname
 
@@ -40,7 +51,7 @@ app.all('/', async (request, next) => {
 	// find the matching url
 	const [match] = find_match(manifest, url, true)
 	if (!match) {
-		return next()
+		throw new Error('no match')
 	}
 
 	// instanitate a cache we can use
@@ -73,19 +84,6 @@ app.all('/', async (request, next) => {
 
 	// and deliver our Response while that’s running.
 	return new Response(readable)
-})
-
-const handlers: ExportedHandler = {
-	async fetch(req, env: any, ctx) {
-		// if we aren't loading an asset, push the request through our router
-		const url = new URL(req.url).pathname
-		if (!url.startsWith('/assets/')) {
-			return app.handle(req)
-		}
-
-		// we are handling an asset
-		return await env.ASSETS.fetch(req)
-	},
 }
 
 export default handlers
