@@ -1,0 +1,23 @@
+type Link {
+  name: String
+  url: String
+}
+
+type Mutation {
+  hello(name: String!): String!
+}
+
+type Query {
+  giveMeAnError: String
+  links(delai: Int): [Link!]!
+  sponsors: [Sponsor!]!
+  welcome: String!
+}
+
+type Sponsor {
+  avatarUrl: String!
+  login: String!
+  name: String!
+  tiersTitle: String!
+  websiteUrl: String
+}

@@ -1,6 +1,0 @@
-query UserInfo($id: ID!) {
-	user(id: $id, snapshot: "hello", delay: 250) @loading {
-		id
-		name
-	}
-}

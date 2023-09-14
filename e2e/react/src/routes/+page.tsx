@@ -1,5 +1,5 @@
 import type { PageProps } from './$types'
 
-export default function ({ HelloRouter }: PageProps) {
-	return <div>{HelloRouter.message}!</div>
+export default function ({ SponsorList }: PageProps) {
+	return <div>{JSON.stringify(SponsorList)}</div>
 }

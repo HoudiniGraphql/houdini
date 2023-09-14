@@ -67,7 +67,7 @@ export default {
 				rollupOptions: {
 					input: entries,
 					output: {
-						entryFileNames: 'assets/[name]',
+						entryFileNames: 'assets/[name].js',
 					},
 				},
 			},
@@ -220,6 +220,7 @@ const render_stream =
 			cache,
 			session,
 			userAgent: 'Vite',
+			assetPrefix: '/virtual:houdini',
 		})
 
 		// our pending cache needs to start with signals that we can alert
@@ -240,7 +241,7 @@ const render_stream =
 		<script type="module" src="/@vite/client" async=""></script>
 
 		<!-- add a virtual module that hydrates the client and sets up the initial pending cache -->
-		<script type="module" src="virtual:houdini/page/${
+		<script type="module" src="/virtual:houdini/page/${
 			match.id
 		}@${pending_query_names}.jsx" async=""></script>
 	`)
@@ -259,6 +260,7 @@ async function load_render(server: ViteDevServer & { houdiniConfig: Config }) {
 				cache: Cache
 				url: string
 				session: App.Session
+				assetPrefix: '/virtual:houdini'
 			} & Parameters<typeof streamingRender>[1]
 		) => ReturnType<typeof streamingRender>
 	}

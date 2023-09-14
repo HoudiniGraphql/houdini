@@ -20,15 +20,16 @@ import { renderToStream } from 'react-streaming/server'
 import App from './App'
 import { router_cache } from '$houdini'
 
-export function render_to_stream({url, cache, loaded_queries, loaded_artifacts, session, ...config}) {
+export function render_to_stream({url, cache, loaded_queries, loaded_artifacts, session, assetPrefix, ...config}) {
 	return renderToStream(
 		React.createElement(App, {
-			intialURL: url,
+			initialURL: url,
 			cache,
 			...router_cache(),
 			loaded_queries,
 			session,
 			loaded_artifacts,
+			assetPrefix,
 		}), config
 	)
 }

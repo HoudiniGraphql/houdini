@@ -1,0 +1,5 @@
+query SponsorList {
+	sponsors {
+		name
+	}
+}

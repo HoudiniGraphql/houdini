@@ -24,12 +24,14 @@ export function Router({
 	loaded_queries,
 	loaded_artifacts,
 	session,
+	assetPrefix,
 }: {
 	initialURL: string
 	cache: Cache
 	loaded_queries?: Record<string, { data: GraphQLObject; variables: GraphQLVariables }>
 	loaded_artifacts?: Record<string, QueryArtifact>
 	session?: App.Session
+	assetPrefix: string
 } & RouterCache) {
 	return (
 		<RouterContextProvider
@@ -47,6 +49,7 @@ export function Router({
 				manifest={manifest}
 				loaded_queries={loaded_queries}
 				loaded_artifacts={loaded_artifacts}
+				assetPrefix={assetPrefix}
 			/>
 		</RouterContextProvider>
 	)

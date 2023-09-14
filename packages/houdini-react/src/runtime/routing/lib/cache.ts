@@ -20,12 +20,9 @@ export class SuspenseCache<_Data> extends LRUCache<_Data> {
 
 		// we don't have a value, so we need to throw a promise
 		// that resolves when a value is passed to set()
-		const pms = new Promise<void>((resolve, reject) => {
+		throw new Promise<void>((resolve, reject) => {
 			this.#subscribe(key, resolve, reject)
 		})
-
-		console.log('suspending for', key)
-		throw pms
 	}
 
 	// TODO: reject?
