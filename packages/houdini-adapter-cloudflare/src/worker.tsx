@@ -31,6 +31,8 @@ const handlers: ExportedHandler = {
 		// if we aren't loading an asset, push the request through our router
 		const url = new URL(req.url).pathname
 
+		console.log(url)
+
 		// we are handling an asset
 		if (!url.startsWith('/assets/')) {
 			return await env.ASSETS.fetch(req)
@@ -55,6 +57,7 @@ async function render_app(request: Parameters<Required<ExportedHandler>['fetch']
 
 	// find the matching url
 	const [match] = find_match(manifest, url, true)
+	console.log({ match })
 	if (!match) {
 		throw new Error('no match')
 	}
