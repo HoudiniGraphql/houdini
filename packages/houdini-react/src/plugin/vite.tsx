@@ -27,9 +27,9 @@ import { setManifest } from '.'
 // virtual:houdini/artifact/[name] - An entry for loading an artifact and notifying the artifact cache
 import { RouterManifest } from '../runtime'
 import { find_match } from '../runtime/routing/lib/match'
-import { configure_server } from '../server'
-import { dev_server } from '../server/compat'
-import { get_session } from '../server/session'
+import { configure_server } from '../runtime/server'
+import { dev_server } from '../runtime/server/compat'
+import { get_session } from '../runtime/server/session'
 import { plugin_config } from './config'
 
 let manifest: ProjectManifest
@@ -53,14 +53,6 @@ export default {
 			entries[`artifacts/${artifact}`] = `virtual:houdini/artifact/${artifact}.js`
 		}
 
-		// in production we also need a bundled version of the server-side renderer
-		if (env.mode === 'production') {
-			entries['server/render.js'] = path.join(
-				path.dirname(routerConventions.render_client_path(config)),
-				'App.jsx'
-			)
-		}
-
 		return {
 			resolve: {
 				alias: {
@@ -74,6 +66,9 @@ export default {
 				outDir: config.compiledAssetsDir,
 				rollupOptions: {
 					input: entries,
+					output: {
+						entryFileNames: 'assets/[name]',
+					},
 				},
 			},
 		}
@@ -244,7 +239,7 @@ const render_stream =
 
 		<script type="module" src="/@vite/client" async=""></script>
 
-		<!-- add a virtual module that loads the client and sets up the initial pending cache -->
+		<!-- add a virtual module that hydrates the client and sets up the initial pending cache -->
 		<script type="module" src="virtual:houdini/page/${
 			match.id
 		}@${pending_query_names}.jsx" async=""></script>

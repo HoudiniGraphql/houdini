@@ -6,4 +6,5 @@ export type Adapter = (args: {
 	conventions: typeof routerConventions
 	sourceDir: string
 	publicBase: string
+	outDir: string
 }) => void | Promise<void>

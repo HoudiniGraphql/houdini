@@ -55,19 +55,10 @@
             "types": "./build/plugin/index.d.ts",
             "import": "./build/plugin-esm/index.js",
             "require": "./build/plugin-cjs/index.js"
-        },
-        "./server": {
-            "types": "./build/server/index.d.ts",
-            "import": "./build/server-esm/index.js",
-            "require": "./build/server-cjs/index.js"
         }
     },
     "typesVersions": {
-        "*": {
-            "server": [
-                "build/server/index.d.ts"
-            ]
-        }
+        "*": {}
     },
     "main": "./build/plugin-cjs/index.js",
     "types": "./build/plugin/index.d.ts"

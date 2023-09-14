@@ -17,28 +17,48 @@
     "license": "MIT",
     "type": "module",
     "devDependencies": {
+        "@cloudflare/workers-types": "^4.20230904.0",
+        "@types/cookie": "^0.5.2",
         "scripts": "workspace:^",
         "tsup": "^7.2.0",
         "vitest": "^0.28.3"
     },
     "scripts": {
-        "build": "tsup src/index.ts --format esm,cjs --minify --dts-resolve --dts --clean --out-dir build",
-		"build:": "cd ../../ && ((run build && cd -) || (cd - && exit 1))",
-		"build:build": "pnpm build: && pnpm build"
+        "build": "tsup src/index.ts src/app.tsx --format esm,cjs --external ../\\$houdini --external __STATIC_CONTENT_MANIFEST --minify --dts --clean --out-dir build",
+        "build:": "cd ../../ && ((run build && cd -) || (cd - && exit 1))",
+        "build:build": "pnpm build: && pnpm build"
     },
     "dependencies": {
-        "houdini": "workspace:^"
+        "@cloudflare/kv-asset-handler": "^0.3.0",
+        "@types/react": "^18.2.21",
+        "@types/react-dom": "^18.0.10",
+        "cookie": "^0.5.0",
+        "houdini": "workspace:^",
+        "itty-router": "^4.0.23",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "react-streaming": "^0.3.14"
     },
     "files": [
-        "src"
+        "build"
     ],
     "exports": {
         "./package.json": "./package.json",
         ".": {
             "import": "./build/index.js",
             "require": "./build/index.cjs"
+        },
+        "./app": {
+            "import": "./build/app.js",
+            "require": "./build/app.cjs"
         }
     },
-    "main": "./build/index.cjs",
-    "types": "./build/index.d.ts"
+    "types": "./build/index.d.ts",
+    "typesVersions": {
+        "*": {
+            "app": [
+                "build/app.d.ts"
+            ]
+        }
+    }
 }

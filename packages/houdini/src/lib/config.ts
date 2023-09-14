@@ -329,6 +329,10 @@ export class Config {
 		return path.join(this.definitionsDirectory, 'schema.graphql')
 	}
 
+	get routerBuildDirectory() {
+		return path.join(this.projectRoot, 'dist')
+	}
+
 	get definitionsDocumentsPath() {
 		return path.join(this.definitionsDirectory, 'documents.gql')
 	}

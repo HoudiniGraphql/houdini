@@ -1,7 +1,7 @@
 // This function defines the primary entrypoint for requests
 import type { Config } from 'houdini'
 
-import { plugin_config as get_plugin_config } from '../plugin/config'
+import { plugin_config as get_plugin_config } from '../../plugin/config'
 import { set_session } from './session'
 
 export function configure_server({ server, config }: { server: Server; config: Config }) {

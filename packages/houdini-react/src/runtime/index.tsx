@@ -15,7 +15,7 @@ export * from './routing'
 
 export function Router({
 	cache,
-	intialURL,
+	initialURL,
 	artifact_cache,
 	component_cache,
 	data_cache,
@@ -25,7 +25,7 @@ export function Router({
 	loaded_artifacts,
 	session,
 }: {
-	intialURL: string
+	initialURL: string
 	cache: Cache
 	loaded_queries?: Record<string, { data: GraphQLObject; variables: GraphQLVariables }>
 	loaded_artifacts?: Record<string, QueryArtifact>
@@ -43,7 +43,7 @@ export function Router({
 			session={session}
 		>
 			<RouterImpl
-				intialURL={intialURL}
+				initialURL={initialURL}
 				manifest={manifest}
 				loaded_queries={loaded_queries}
 				loaded_artifacts={loaded_artifacts}

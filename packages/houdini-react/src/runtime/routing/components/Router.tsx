@@ -25,18 +25,18 @@ import type { RouterManifest, RouterPageManifest } from '../lib/types'
 // they can grab what they need if its ready and suspend if not.
 export function Router({
 	manifest,
-	intialURL,
+	initialURL,
 	loaded_queries,
 	loaded_artifacts,
 }: {
 	manifest: RouterManifest
-	intialURL?: string
+	initialURL?: string
 	loaded_queries?: Record<string, { data: GraphQLObject; variables: GraphQLVariables }>
 	loaded_artifacts?: Record<string, QueryArtifact>
 }) {
 	// the current route is just a string in state.
 	const [current, setCurrent] = React.useState(() => {
-		return intialURL || window.location.pathname
+		return initialURL || window.location.pathname
 	})
 
 	// find the matching page for the current route
@@ -49,7 +49,6 @@ export function Router({
 	// load the page assets (source, artifacts, data). this will suspend if the component is not available yet
 	// this hook embeds pending requests in context so that the component can suspend if necessary14
 	usePageData({ page, variables, loaded_queries, loaded_artifacts })
-
 	// if we get this far, it's safe to load the component
 	const { component_cache } = useRouterContext()
 	const PageComponent = component_cache.get(page.id)!
@@ -80,7 +79,6 @@ export function Router({
 	useAnchorIntercept({ goto: setCurrent })
 
 	// TODO: cleanup navigation caches
-
 	// render the component embedded in the necessary context so it can orchestrate
 	// its needs
 	return (
@@ -153,6 +151,7 @@ function usePageData({
 					session,
 				})
 				.then(() => {
+					console.log('done loading query', artifact.name)
 					data_cache.set(id, observer)
 
 					if (loaded_queries) {
@@ -244,9 +243,9 @@ function usePageData({
 				}
 
 				// add a script to load the artifact
-				stream?.injectToStream(`
-					<script type="module" src="virtual:houdini/artifact/${artifact.name}.js" async=""></script>
-				`)
+				// stream?.injectToStream(`
+				// 	<script type="module" src="virtual:houdini/artifact/${artifact.name}.js" async=""></script>
+				// `)
 
 				// now that we have the artifact, we can load the query too
 				load_query({ id: artifact.name, artifact })
@@ -262,6 +261,7 @@ function usePageData({
 	for (const artifact of Object.values(found_artifacts)) {
 		// if we don't have the query, load it
 		if (!data_cache.has(artifact.name)) {
+			console.log('loading query', artifact.name)
 			load_query({ id: artifact.name, artifact })
 		}
 	}
@@ -416,6 +416,8 @@ export function useQueryResult<_Data extends GraphQLObject, _Input extends Graph
 		_Data,
 		_Input
 	>
+
+	console.log('after data cache', name)
 
 	// get the live data from the store
 	const [{ data }, observer] = useDocumentStore<_Data, _Input>({
