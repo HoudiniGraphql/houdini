@@ -47,8 +47,9 @@
 					It’s finally here: a fully-featured GraphQL framework that actually saves you time
 				</p>
 				<p class="hero-subtext">
-					Houdini is a web application framework built from the ground up for GraphQL. Stop worrying
-					about waterfalls, code-splitting, you name it. Fully automatic and totally customizable.
+					Houdini is a web application framework built from the ground up for GraphQL. It blends
+					GraphQL client and router so you can stop worrying about waterfalls, code-splitting, and
+					so much more. Fully automatic and totally customizable.
 					<b>Declarative</b>, <b>Composable</b>, <b>Typesafe</b>. First-class support for
 					<a data-sveltekit-preload-data href="/api/fragments">Fragments</a>,
 					<a data-sveltekit-preload-data href="/api/subscription">Subscriptions</a>,
@@ -56,18 +57,18 @@
 					<a data-sveltekit-preload-data href="/api/mutation#lists">List Mutations</a>,
 					<a data-sveltekit-preload-data href="/api/mutation#optimistic-responses"
 						>Optimistic Responses</a
-					>, and so much more. You didn’t know you needed this.
+					>. You didn’t know you needed this.
 				</p>
 				<div class="hero-dive-in">
 					<p>Dive in:</p>
 					<nav class="framework-links">
-						<a data-sveltekit-preload-data href="#disabled">
-							<img src="/images/react.svg" alt="react" width="20px" aria-hidden="true" />
-							React
-						</a>
 						<a data-sveltekit-preload-data href="/intro">
 							<img src="/images/svelte.svg" alt="svelte" width="20px" aria-hidden="true" />
 							SvelteKit
+						</a>
+						<a data-sveltekit-preload-data href="/api/react">
+							<img src="/images/react.svg" alt="react" width="20px" aria-hidden="true" />
+							React
 						</a>
 					</nav>
 				</div>
