@@ -1,13 +1,14 @@
-import { type Config, fs, parseJS, printJS, path } from 'houdini'
-
 import {
-	page_entry_path,
-	page_unit_path,
-	layout_unit_path,
-	is_layout,
-	fallback_unit_path,
-} from '../conventions'
-import type { ProjectManifest, PageManifest, QueryManifest } from './manifest'
+	type Config,
+	fs,
+	parseJS,
+	printJS,
+	path,
+	routerConventions,
+	type ProjectManifest,
+	type PageManifest,
+	type QueryManifest,
+} from 'houdini'
 
 export async function generate_entries({
 	config,
@@ -37,12 +38,12 @@ type PageBundleInput = {
 /** Generates the component that passes query data to the actual component on the filesystem  */
 async function generate_routing_units(args: PageBundleInput) {
 	// look up the page manifest
-	const layout = is_layout(args.page.path)
+	const layout = routerConventions.is_layout(args.page.path)
 	const page = layout ? args.project.layouts[args.id] : args.project.pages[args.id]
 
 	const unit_path = layout
-		? layout_unit_path(args.config, args.id)
-		: page_unit_path(args.config, args.id)
+		? routerConventions.layout_unit_path(args.config, args.id)
+		: routerConventions.page_unit_path(args.config, args.id)
 
 	// the first thing we need to do is make sure that the page has a bundle directory
 	await fs.mkdirp(path.dirname(unit_path))
@@ -95,7 +96,7 @@ async function generate_routing_units(args: PageBundleInput) {
 }
 
 async function generate_page_entries(args: PageBundleInput) {
-	const component_path = page_entry_path(args.config, args.id)
+	const component_path = routerConventions.page_entry_path(args.config, args.id)
 
 	// the first thing we need to do is make sure that the page has a bundle directory
 	await fs.mkdirp(path.dirname(component_path))
@@ -108,7 +109,7 @@ async function generate_page_entries(args: PageBundleInput) {
 	for (const layout_id of args.page.layouts) {
 		// generate the relative filepath from the component file
 		// to the layout
-		const layout_path = layout_unit_path(args.config, layout_id)
+		const layout_path = routerConventions.layout_unit_path(args.config, layout_id)
 		const relative_path = path.relative(path.dirname(component_path), layout_path)
 
 		// generate the local name for the layout component
@@ -121,7 +122,7 @@ async function generate_page_entries(args: PageBundleInput) {
 
 	// generate the relative filepath from the component file
 	// to the page
-	const page_path = page_unit_path(args.config, args.page.id)
+	const page_path = routerConventions.page_unit_path(args.config, args.page.id)
 
 	// generate the local import for the page component
 	const relative_path = path.relative(path.dirname(component_path), page_path)
@@ -133,7 +134,11 @@ async function generate_page_entries(args: PageBundleInput) {
 	let content = `<${Component} />`
 	// if the layout has a loading state then wrap it in a fallback
 	if (args.project.page_queries[args.page.id]?.loading) {
-		const fallback_path = fallback_unit_path(args.config, 'page', args.page.id)
+		const fallback_path = routerConventions.fallback_unit_path(
+			args.config,
+			'page',
+			args.page.id
+		)
 		source.push(
 			`import ${PageFallback}  from "${path.relative(
 				path.dirname(page_path),
@@ -160,7 +165,11 @@ async function generate_page_entries(args: PageBundleInput) {
 		// if the layout has a loading state then wrap it in a fallback
 		if (args.project.layout_queries[layout]?.loading) {
 			const LayoutFallback = 'LayoutFallback_' + args.page.id
-			const fallback_path = fallback_unit_path(args.config, 'layout', args.page.id)
+			const fallback_path = routerConventions.fallback_unit_path(
+				args.config,
+				'layout',
+				args.page.id
+			)
 			source.push(
 				`import ${LayoutFallback}  from "${path.relative(
 					page_path,
@@ -210,7 +219,7 @@ async function generate_fallbacks({
 	for (const [id, page] of Object.entries(project.layouts).concat(
 		Object.entries(project.pages)
 	)) {
-		const layout = is_layout(page.path)
+		const layout = routerConventions.is_layout(page.path)
 		const which = layout ? 'layout' : 'page'
 
 		// in order to generate the fallback, we need to know which queries are
@@ -229,7 +238,7 @@ async function generate_fallbacks({
 			{ required_queries: [] as string[], loading_queries: [] as string[] }
 		)
 
-		const fallback_path = fallback_unit_path(config, which, id)
+		const fallback_path = routerConventions.fallback_unit_path(config, which, id)
 		const page_path = path.join(
 			config.pluginDirectory('houdini-router'),
 			'..',

@@ -4,7 +4,7 @@ import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import { LRUCache } from '$houdini/runtime/lib/lru'
 import { GraphQLObject, GraphQLVariables } from '$houdini/runtime/lib/types'
 import { QueryArtifact } from '$houdini/runtime/lib/types'
-import React, { SyntheticEvent } from 'react'
+import React from 'react'
 import { useStream } from 'react-streaming'
 
 import { useDocumentStore } from '../../hooks/useDocumentStore'
@@ -25,18 +25,20 @@ import type { RouterManifest, RouterPageManifest } from '../lib/types'
 // they can grab what they need if its ready and suspend if not.
 export function Router({
 	manifest,
-	intialURL,
+	initialURL,
 	loaded_queries,
 	loaded_artifacts,
+	assetPrefix,
 }: {
 	manifest: RouterManifest
-	intialURL?: string
+	initialURL?: string
 	loaded_queries?: Record<string, { data: GraphQLObject; variables: GraphQLVariables }>
 	loaded_artifacts?: Record<string, QueryArtifact>
+	assetPrefix: string
 }) {
 	// the current route is just a string in state.
 	const [current, setCurrent] = React.useState(() => {
-		return intialURL || window.location.pathname
+		return initialURL || window.location.pathname
 	})
 
 	// find the matching page for the current route
@@ -48,8 +50,7 @@ export function Router({
 
 	// load the page assets (source, artifacts, data). this will suspend if the component is not available yet
 	// this hook embeds pending requests in context so that the component can suspend if necessary14
-	usePageData({ page, variables, loaded_queries, loaded_artifacts })
-
+	usePageData({ page, variables, loaded_queries, loaded_artifacts, assetPrefix })
 	// if we get this far, it's safe to load the component
 	const { component_cache } = useRouterContext()
 	const PageComponent = component_cache.get(page.id)!
@@ -60,13 +61,16 @@ export function Router({
 
 	// whenever the route changes, we need to make sure the browser's stack is up to date
 	React.useEffect(() => {
-		if (window.location.pathname !== current) {
+		if (globalThis.window && window.location.pathname !== current) {
 			window.history.pushState({}, '', current)
 		}
 	}, [current])
 
 	// when we first mount we should start listening to the back button
 	React.useEffect(() => {
+		if (!globalThis.window) {
+			return
+		}
 		const onChange = (evt: PopStateEvent) => {
 			setCurrent(window.location.pathname)
 		}
@@ -80,7 +84,6 @@ export function Router({
 	useAnchorIntercept({ goto: setCurrent })
 
 	// TODO: cleanup navigation caches
-
 	// render the component embedded in the necessary context so it can orchestrate
 	// its needs
 	return (
@@ -101,11 +104,13 @@ function usePageData({
 	variables,
 	loaded_queries,
 	loaded_artifacts,
+	assetPrefix,
 }: {
 	page: RouterPageManifest
 	variables: GraphQLVariables
 	loaded_queries?: Record<string, { data: GraphQLObject; variables: GraphQLVariables }>
 	loaded_artifacts?: Record<string, QueryArtifact>
+	assetPrefix: string
 }) {
 	// grab context values
 	const {
@@ -169,17 +174,38 @@ function usePageData({
 						<script>
 							window.__houdini__cache__?.hydrate(${cache.serialize()}, window.__houdini__hydration__layer)
 
-							if (window.__houdini__nav_caches__?.pending_cache.has("${artifact.name}")) {
+							const artifactName = "${artifact.name}"
+							const value = ${JSON.stringify(observer.state.data)}
+
+							// if the data is pending, we need to resolve it
+							if (window.__houdini__nav_caches__?.data_cache.has(artifactName)) {
 								// before we resolve the pending signals,
 								// fill the data cache with values we got on the server
 								const new_store = window.__houdini__client__.observe({
-									artifact: window.__houdini__nav_caches__.artifact_cache.get("${artifact.name}"),
+									artifact: window.__houdini__nav_caches__.artifact_cache.get(artifactName),
 									cache: window.__houdini__cache__,
-									initialValue: ${JSON.stringify(observer.state.data)}
+									initialValue: value
 								})
 
-								window.__houdini__nav_caches__.data_cache.set("${artifact.name}", new_store)
+								window.__houdini__nav_caches__?.data_cache.set(artifactName, new_store)
+							}
 
+
+							// if there are no data caches available we need to populate the pending one instead
+							if (!window.__houdini__nav_caches__) {
+								if (!window.__houdini__pending_data__) {
+									window.__houdini__pending_data__ = {}
+								}
+
+								if (!window.__houdini__pending_artifacts__) {
+									window.__houdini__pending_artifacts__ = {}
+								}
+
+								window.__houdini__pending_data__[artifactName] = value
+								window.__houdini__pending_artifacts__[artifactName] = ${JSON.stringify(artifact)}
+							}
+
+							if (window.__houdini__nav_caches__?.pending_cache.has(artifactName)) {
 								// we're pushing this store onto the client, it should be initialized
 								new_store.send({
 									setup: true,
@@ -187,8 +213,8 @@ function usePageData({
 								})
 
 								// notify anyone waiting on the pending cache
-								window.__houdini__nav_caches__.pending_cache.get("${artifact.name}").resolve()
-								window.__houdini__nav_caches__.pending_cache.delete("${artifact.name}")
+								window.__houdini__nav_caches__.pending_cache.get(artifactName).resolve()
+								window.__houdini__nav_caches__.pending_cache.delete(artifactName)
 							}
 						</script>
 					`)
@@ -245,7 +271,7 @@ function usePageData({
 
 				// add a script to load the artifact
 				stream?.injectToStream(`
-					<script type="module" src="@@houdini/artifact/${artifact.name}.js" async=""></script>
+					<script type="module" src="${assetPrefix}/artifacts/${artifact.name}.js" async=""></script>
 				`)
 
 				// now that we have the artifact, we can load the query too
@@ -357,7 +383,7 @@ type RouterContext = {
 	// Pages need a way to wait for data
 	data_cache: SuspenseCache<DocumentStore<GraphQLObject, GraphQLVariables>>
 
-	// A way to track pending requests for an artifact
+	// A way to dedupe requests for a query
 	pending_cache: PendingCache
 
 	// A way to track the last known good variables
@@ -472,5 +498,5 @@ function useAnchorIntercept({ goto }: { goto: (url: string) => void }) {
 		return () => {
 			document.removeEventListener('click', onClick!)
 		}
-	}, [goto])
+	}, [])
 }

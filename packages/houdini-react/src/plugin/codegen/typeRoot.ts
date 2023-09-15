@@ -1,7 +1,6 @@
-import { type Config, path, fs } from 'houdini'
+import { path, fs, type Config, type PageManifest, type ProjectManifest } from 'houdini'
 
 import { dedent } from '../dedent'
-import type { PageManifest, ProjectManifest } from './manifest'
 
 export async function generate_type_root({
 	config,

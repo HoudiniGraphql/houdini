@@ -2,7 +2,9 @@
 /// <references types="houdini-router">
 /** @type {import('houdini').ConfigFile} */
 const config = {
-	schemaPath: '../_api/*.graphql',
+	watchSchema: {
+		url: 'https://houdinigraphql.com/graphql',
+	},
 	defaultPartial: true,
 	scalars: {
 		DateTime: {

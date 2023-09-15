@@ -20,6 +20,7 @@
         "typedefs": "scripts typedefs"
     },
     "devDependencies": {
+        "@babel/types": "^7.21.5",
         "@trivago/prettier-plugin-sort-imports": "^4.0.0",
         "@types/glob": "^8.0.0",
         "@types/minimatch": "^5.1.2",

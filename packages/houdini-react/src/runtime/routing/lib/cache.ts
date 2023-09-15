@@ -3,8 +3,14 @@
 // is thrown that resolves when a value is passed to set()
 import { LRUCache } from '$houdini/runtime/lib/lru'
 
-export function suspense_cache<T>(): SuspenseCache<T> {
-	return new SuspenseCache<T>()
+export function suspense_cache<T>(initialData?: Record<string, T>): SuspenseCache<T> {
+	const cache = new SuspenseCache<T>()
+
+	for (const [key, value] of Object.entries(initialData ?? {})) {
+		cache.set(key, value)
+	}
+
+	return cache
 }
 
 export class SuspenseCache<_Data> extends LRUCache<_Data> {

@@ -1,4 +1,4 @@
-import { path, fs, type Config } from 'houdini'
+import { path, fs, type Config } from '../'
 
 /** The location of the project's router */
 export function router_path(config: Config) {
@@ -15,7 +15,7 @@ export function render_client_path(config: Config, base?: string) {
 }
 
 export function render_server_path(config: Config, base?: string) {
-	return path.join(units_dir(config, base), 'render', 'server.jsx')
+	return path.join(units_dir(config, base), 'render', 'server.js')
 }
 
 export function render_app_path(config: Config, base?: string) {
@@ -86,7 +86,7 @@ export function is_layout(path: string) {
 }
 
 /** Transforms paths to ids */
-export function normalize_path(path: string) {
+export function page_id(path: string) {
 	if (path.endsWith('/') && path.length > 1) {
 		path = path.substring(0, path.length - 1)
 	}
@@ -97,11 +97,12 @@ export function normalize_path(path: string) {
 	for (const char of path) {
 		const match = special_chars.indexOf(char)
 		if (match !== -1) {
-			copy += mask + match.toString()
+			copy += mask
 		} else {
 			copy += char
 		}
 	}
+
 	return copy
 }
 
@@ -127,4 +128,8 @@ function units_dir(config: Config, base: string = base_dir(config)) {
 
 function base_dir(config: Config) {
 	return config.pluginDirectory('houdini-react')
+}
+
+export function serialized_manifest_path(config: Config, base: string = base_dir(config)): string {
+	return path.join(base, 'manifest.json')
 }

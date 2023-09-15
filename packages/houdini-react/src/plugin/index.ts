@@ -6,18 +6,19 @@ import {
 	ArtifactKind,
 	plugin,
 	fragmentKey,
+	load_manifest,
+	type ProjectManifest,
 } from 'houdini'
 import path from 'node:path'
 import { loadEnv } from 'vite'
 
 import generate from './codegen'
-import { load_manifest, type ProjectManifest } from './codegen/manifest'
 import { format_router_manifest } from './codegen/router'
 import { extractDocuments } from './extract'
 import { transformFile } from './transform'
 import vite_plugin from './vite'
 
-let manifest: ProjectManifest
+export let manifest: ProjectManifest
 
 export const hooks: Plugin = async () => ({
 	order: 'core',
@@ -28,7 +29,9 @@ export const hooks: Plugin = async () => ({
 	// always make sure our definition of the manifest is up to date before
 	// we generate anything
 	async beforeGenerate({ config }) {
-		manifest = await load_manifest({ config })
+		if (!manifest) {
+			manifest = await load_manifest({ config })
+		}
 	},
 
 	// include the runtime
@@ -288,3 +291,7 @@ type HoudiniReactAuthStrategy =
 			sessionKeys: string[]
 			url: string
 	  }
+
+export function setManifest(newManifest: ProjectManifest): void {
+	manifest = newManifest
+}

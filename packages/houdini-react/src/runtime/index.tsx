@@ -15,7 +15,7 @@ export * from './routing'
 
 export function Router({
 	cache,
-	intialURL,
+	initialURL,
 	artifact_cache,
 	component_cache,
 	data_cache,
@@ -24,12 +24,14 @@ export function Router({
 	loaded_queries,
 	loaded_artifacts,
 	session,
+	assetPrefix,
 }: {
-	intialURL: string
+	initialURL: string
 	cache: Cache
 	loaded_queries?: Record<string, { data: GraphQLObject; variables: GraphQLVariables }>
 	loaded_artifacts?: Record<string, QueryArtifact>
 	session?: App.Session
+	assetPrefix: string
 } & RouterCache) {
 	return (
 		<RouterContextProvider
@@ -43,10 +45,11 @@ export function Router({
 			session={session}
 		>
 			<RouterImpl
-				intialURL={intialURL}
+				initialURL={initialURL}
 				manifest={manifest}
 				loaded_queries={loaded_queries}
 				loaded_artifacts={loaded_artifacts}
+				assetPrefix={assetPrefix}
 			/>
 		</RouterContextProvider>
 	)
@@ -64,15 +67,19 @@ export function router_cache({
 	pending_queries = [],
 	artifacts = {},
 	components = {},
+	initialData = {},
+	initialArtifacts = {},
 }: {
 	pending_queries?: string[]
 	artifacts?: Record<string, QueryArtifact>
 	components?: Record<string, (props: any) => React.ReactElement>
+	initialData?: Record<string, DocumentStore<GraphQLObject, GraphQLVariables>>
+	initialArtifacts?: Record<string, QueryArtifact>
 } = {}): RouterCache {
 	const result: RouterCache = {
-		artifact_cache: suspense_cache(),
+		artifact_cache: suspense_cache(initialArtifacts),
 		component_cache: suspense_cache(),
-		data_cache: suspense_cache(),
+		data_cache: suspense_cache(initialData),
 		pending_cache: suspense_cache(),
 		last_variables: suspense_cache(),
 	}

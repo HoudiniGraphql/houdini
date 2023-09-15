@@ -23,6 +23,6 @@
 			"$houdini": ["../houdini/src"],
 			"$houdini/*": ["../houdini/src/*"]
 		},
-		"jsx": "react"
+		"jsx": "react-jsx"
 	}
 }

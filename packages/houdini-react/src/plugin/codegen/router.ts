@@ -1,9 +1,13 @@
-import { type Config, path } from 'houdini'
+import {
+	path,
+	routerConventions,
+	type Config,
+	type ProjectManifest,
+	type QueryManifest,
+} from 'houdini'
 
 import { parse_page_pattern } from '../../runtime/routing/lib/match'
-import { page_entry_path } from '../conventions'
 import { dedent } from '../dedent'
-import type { ProjectManifest, QueryManifest } from './manifest'
 
 export function format_router_manifest({
 	config,
@@ -32,7 +36,7 @@ ${Object.entries(manifest.pages)
 		// parse the url pattern
 		const pattern_parsed = parse_page_pattern(page.url)
 
-		let component_path = path.join(page_entry_path(config, page.id, '..'))
+		let component_path = path.join(routerConventions.page_entry_path(config, page.id, '..'))
 		const path_parsed = path.parse(component_path)
 		component_path = path.join(path_parsed.dir, path_parsed.name)
 

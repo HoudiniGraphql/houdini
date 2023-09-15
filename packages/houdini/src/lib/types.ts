@@ -2,13 +2,17 @@ import type graphql from 'graphql'
 import type * as recast from 'recast'
 import type {
 	CustomPluginOptions,
+	InputOptions,
 	LoadResult,
+	MinimalPluginContext,
+	NormalizedInputOptions,
+	NullValue,
 	ObjectHook,
 	PluginContext,
 	ResolveIdResult,
 	SourceMapInput,
 } from 'rollup'
-import type { UserConfig, ViteDevServer } from 'vite'
+import type { ConfigEnv, ResolvedConfig, UserConfig, ViteDevServer } from 'vite'
 
 import type { ConfigFile } from '../runtime/lib/config'
 import type {
@@ -19,6 +23,7 @@ import type {
 } from '../runtime/lib/types'
 import type { TransformPage } from '../vite/houdini'
 import type { Config } from './config'
+import type { Adapter } from './router'
 
 type Program = recast.types.namedTypes.Program
 
@@ -275,7 +280,27 @@ export type PluginHooks = {
 		| { code: string; map?: SourceMapInput | string }
 
 	vite?: {
-		config?: (config: Config) => UserConfig
+		config?: (config: Config, env: ConfigEnv) => UserConfig | Promise<UserConfig>
+
+		buildStart?: (
+			this: PluginContext,
+			options: NormalizedInputOptions & { houdiniConfig: Config }
+		) => void
+
+		buildEnd?: (
+			this: PluginContext,
+			error?: Error,
+			houdiniConfig?: Config
+		) => void | Promise<void>
+
+		closeBundle?: (this: PluginContext) => void | Promise<void>
+
+		configResolved?: ObjectHook<(this: void, config: ResolvedConfig) => void | Promise<void>>
+
+		options?: (
+			this: MinimalPluginContext,
+			options: InputOptions & { houdiniConfig: Config }
+		) => InputOptions | NullValue
 
 		// these type definitions are copy and pasted from the vite ones
 		// with config added to the appropriate options object
@@ -333,7 +358,7 @@ export type GenerateHookInput = {
 	pluginRoot: string
 }
 
-export type PluginConfig = { configPath?: string } & Partial<ConfigFile>
+export type PluginConfig = { configPath?: string; adapter?: Adapter } & Partial<ConfigFile>
 
 export * from '../runtime/lib/types'
 export * from '../runtime/lib/config'
