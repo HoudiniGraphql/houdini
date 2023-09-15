@@ -1,5 +1,13 @@
 # houdini
 
+## 1.2.10
+
+### Patch Changes
+
+-   [#1155](https://github.com/HoudiniGraphql/houdini/pull/1155) [`adf90d3`](https://github.com/HoudiniGraphql/houdini/commit/adf90d3c3406c79c9b07060c764bf41289bf2a38) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add adapter infrastructure when building for production
+
+-   [#1155](https://github.com/HoudiniGraphql/houdini/pull/1155) [`adf90d3`](https://github.com/HoudiniGraphql/houdini/commit/adf90d3c3406c79c9b07060c764bf41289bf2a38) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add cloudflare adapter
+
 ## 1.2.9
 
 ## 1.2.8

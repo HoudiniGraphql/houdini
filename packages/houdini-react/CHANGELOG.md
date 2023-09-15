@@ -1,5 +1,16 @@
 # houdini-react
 
+## 1.2.10
+
+### Patch Changes
+
+-   [#1155](https://github.com/HoudiniGraphql/houdini/pull/1155) [`adf90d3`](https://github.com/HoudiniGraphql/houdini/commit/adf90d3c3406c79c9b07060c764bf41289bf2a38) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add cloudflare adapter
+
+-   [#1152](https://github.com/HoudiniGraphql/houdini/pull/1152) [`6b9fbb7`](https://github.com/HoudiniGraphql/houdini/commit/6b9fbb7a9ce3e0fdf45637e76f2e5c9a2bc58e98) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Remove Link component in favor of event delegation
+
+-   Updated dependencies [[`adf90d3`](https://github.com/HoudiniGraphql/houdini/commit/adf90d3c3406c79c9b07060c764bf41289bf2a38), [`adf90d3`](https://github.com/HoudiniGraphql/houdini/commit/adf90d3c3406c79c9b07060c764bf41289bf2a38)]:
+    -   houdini@1.2.10
+
 ## 1.2.9
 
 ### 🐛 Fixes
