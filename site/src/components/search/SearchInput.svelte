@@ -47,11 +47,11 @@
 		}
 	}
 
-    @media (max-width: 480px) {
-        #search-keycombo {
-            display: none;
-        }
-    }
+	@media (max-width: 480px) {
+		#search-keycombo {
+			display: none;
+		}
+	}
 
 	span {
 		margin-left: 10px;

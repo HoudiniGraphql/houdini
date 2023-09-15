@@ -7,7 +7,7 @@
 	export let stroke = undefined
 	export let width = '1em'
 	export let height = '1em'
-    export let fill = ""
+	export let fill = ''
 
 	$: icon = feather.icons[name]
 	$: rotation = directions.indexOf(direction) * 45
@@ -17,8 +17,8 @@
 		if (fill) icon.attrs['fill'] = fill
 	}
 
-    // prioritize the specied fill over the icon attrs
-    $: diagramFill = fill || icon.attrs?.fill
+	// prioritize the specied fill over the icon attrs
+	$: diagramFill = fill || icon.attrs?.fill
 </script>
 
 {#if icon}
@@ -26,7 +26,7 @@
 		{...icon.attrs}
 		style="width: {width}; height: {height}; transform: rotate({rotation}deg);"
 		class={$$props.class}
-        id={$$props.id}
+		id={$$props.id}
 	>
 		<g>
 			{@html icon.contents}

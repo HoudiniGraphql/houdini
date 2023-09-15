@@ -5,6 +5,7 @@
 		"fragment",
 		"mutation",
 		"subscription",
+		"react",
 		"graphql-magic",
 		"client",
 		"cache",

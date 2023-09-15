@@ -1,0 +1,290 @@
+---
+title: React Framework
+description: Documentation for Houdini's application framework
+---
+
+<script>
+    import { Warning, DeepDive } from '~/components'
+</script>
+
+# React Framework
+
+This page is currently the best place to go for documentation on Houdini's React framework. While most of the
+[guides](/guides) apply to both React and SvelteKit, the API section is very much gear towards SvelteKit users.
+Eventually this content will be merged in with the rest of this site but that will take time. Until then, use
+this document as the initial place in your search before looking at other options. Also keep in mind this document
+is not organized as an introduction but more of a reference. Don't worry - there will be a more guided introduction soon.
+
+<Warning>
+
+Houdini's React binding are still considered unstable and are subject to change with every patch update (the third number).
+If you are building stuff with it, please check the changelog for any updates or pin to a specific version.
+
+</Warning>
+
+## What is Houdini?
+
+Houdini is a web application framework built from the ground up for GraphQL. It provides everything you need to build
+state-of-the-art apps. Not only does that include basic features like routing and SSR'd queries but also
+advanced graphql patterns like paginated fragments and even optimizations for your application's bundle.
+
+## Getting Started
+
+The easiest way to start a new project is to run the following command and answer the prompts:
+
+```bash
+npm create houdini@latest
+```
+
+Once that's completed, navigate into the newly created directory, install the dependencies using your favorite package manager and then run `dev`:
+
+```bash
+cd <project name> && npm i && npm run dev
+```
+
+## Routing
+
+At the core of a Houdini application is a filesystem-based located at `src/routes`. You will use it to encode your applications
+visual skeleton as well as its data requirements. Routes in houdini are directory-based. That is to say:
+
+- `src/routes` is the root route
+- `src/routes/shows` corresponds to a route at `/shows`
+- `src/routes/show/[id]` defines a route with a paramter, `id`, that matches a pattern such as `/show/1234`
+
+Each route is defined by the presence of any number of magic files (all of which are conventionally prefixed with `+`).
+
+### Page Views
+
+Page views (defined by `+page.jsx`) are components that are unique to just that route and in many ways _define_ a route. For example, to
+define a view at the root of your application you just need to define a component at `src/routes/+page.jsx`:
+
+```jsx:title=src/routes/+page.tsx&typescriptToggle=true
+export default () => {
+    return <div> Hello Houdini! </div>
+}
+```
+
+### Layout Views
+
+Layout views (defined by `+layout.jsx`) are components that are shared across multiple routes and are designed to _wrap_
+a page view. They are defined very similiarly to pages except they accept a `children` prop and "apply" to all child routes
+and a sibling page if the appropriate `+page.jsx` is defined.
+
+```jsx:title=src/routes/+layout.tsx&typescriptToggle=true
+export default ({ children }) => {
+    return (
+        <>
+            <NavBar />
+            {children}
+        </>
+    )
+}
+```
+
+### Links
+
+Links between pages are defined using standard `<a>` tags.
+
+### Route Parameters
+
+Dynamic portions of a route can be labeled using square brackets. For example `src/routes/show/[id]/+page`
+creates a page that matches `/shows/1` or `/show/abc`.
+
+<DeepDive title="Rest Paramters">
+
+If the length of a path segment is unknown, you can match multiple segments using the rest syntax. For example:
+`src/routes/assets/[...filepath]`.
+</DeepDive>
+
+<DeepDive title="Optional Parameters">
+
+Optional parameters are denoted with double brackets, ie `/[[lang]]/home/`.
+
+<Warning>
+
+Optional route parameter cannot follow a rest parameter ([...rest]/[[optional]]),
+since parameters are matched 'greedily' and the optional parameter would always be unused.
+
+</Warning>
+
+</DeepDive>
+
+### Route Groups
+
+docs TBD
+
+## Loading data
+
+Just like views are defined in page and layout variants, your applications queries
+are defined in `+page.gql` and `+layout.gql` files. Queries must have a unique name:
+
+```graphql:title=src/routes/shows/+page.gql
+query ShowList {
+    shows {
+        title
+    }
+}
+```
+
+Just like their equivalent view component, layout queries are designed to "wrap" child routes and are
+accessible by any child (or sibling) page or layout component.
+
+To access the value of a query, your component just needs to accept a prop with the appropriate name.
+This could be one query or as many as you have defined. Keep in mind that since this works off of very
+simple static analysis, your component props must be spread out from the
+argument like so:
+
+```jsx:title=src/routes/shows/+page.tsx&typescriptToggle=true
+export default function ({ ShowList }) {
+    return (
+        <>
+            {ShowList.shows.map(show => (
+                <div>
+                    {show.title}
+                </div>
+            ))}
+        </>
+    )
+}
+```
+
+An arrow function would have also worked as long as it had `{ ShowList }` or `{ ShowList, AnotherQuery }`
+
+### Query Variables
+
+If your query contains variables with the same name as a [route parameter](#route-parameters), Houdini will wire the two up.
+
+For example, all you need to do is define this query at `src/routes/show/[id]/+page.gql` and you can visit `/show/123` or `/show/abc`:
+
+```graphql:title=src/routes/show/[id]/+page.gql
+query ShowInfo($id: ID!) {
+    show(id: $id) {
+        name
+    }
+}
+```
+
+### Imperative Handles
+
+Sometimes you need to perform some imperative task on a query (refetching, loading the next page, etc). For these
+situations, you should use the `$handle` variant on the query prop. For example:
+
+```jsx:title=src/routes/shows/+page.tsx&typescriptToggle=true
+export default function ({ ShowList$handle }) {
+    return (
+        <>
+            <button onClick={ShowList$handle.loadNextPage}>
+                Load Next
+            </button>
+            {ShowList.shows.map(show => (
+                <div>
+                    {show.title}
+                </div>
+            ))}
+        </>
+    )
+}
+```
+
+### Loading States
+
+Loading states are one of Houdini's most powerful features. Apart from one important difference, all of the information in the
+[guide on loading states](/guides/loading-states) applies to the react framework. Hopefully you didn't just click that link because
+it's important to remember that you have to use `isPending` from the `$houdini` package when identifying a pending value. What you
+see in that guide (checking if `=== PendingValue`) won't work with React 18.2.
+
+Another thing to keep in mind is that for the React framework, the presence of `@loading` implies the existence of a suspense boundary
+in your component hierarchy. I know that last sentence might not be totally clear but explaining it more thoroughly will take time so
+please be patient.
+
+## Mutations
+
+Mutations are defined by simply wrapping the result of `graphql` in `useMutation`:
+
+```tsx:title=src/routes/shows/[id]/edit/+page.jsx
+import { graphql, useMutation } from "$houdini";
+
+export default function EditShow({ AllShows }) {
+  const [one, setOne] = React.useState("");
+  const [two, setTwo] = React.useState("");
+
+  const mutate = useMutation(graphql(`
+      mutation OneTwo($one: String!, $two: String!) {
+        do(one: $one, two: $two)
+      }
+  `))
+
+  return (
+    <form onSubmit={() => mutate({one, two})}>
+      <input value={one} onChange={(e) => setOne(e.target.value)} />
+      <input value={two} onChange={(e) => setTwo(e.target.value)} />
+      <button type=“submit">submit</button>
+    </form>
+  )
+}
+```
+
+## Fragments
+
+Fragments are defined inside of the `useFragment` hook:
+
+```tsx:title=src/components/ShowCard.tsx
+import { graphql, useMutation } from "$houdini";
+
+export  function ShowCard(props: { show: ShowCardInfo }) {
+  const data = useFragment(props.show, graphql(`
+    fragment ShowCardInfo on Show {
+        name
+    }
+  `))
+
+  return (
+    <div>
+        {data.name}
+    </div>
+  )
+}
+```
+
+And then can be passed to your graphql query:
+
+```graphql:title=src/routes/show/[id]/+page.gql
+query ShowInfo($id: ID!) {
+    show(id: $id) {
+        ...ShowCardInfo
+    }
+}
+```
+
+And then threaded through to the component:
+
+```tsx:title=src/routes/show/[id]/+page.tsx
+export default function ShowInfoView({ ShowInfo }) {
+    return (
+        <ShowCard show={ShowInfo.show} />
+    )
+}
+```
+
+## Deployment
+
+Deployment of your application is handled by an "adapter" - a simple function that
+prepares your project for deployment. Adapters are passed to your application through
+the vite plugin:
+
+```javascript:title=vite.config.js
+import { sveltekit } from '@sveltejs/kit/vite'
+import houdini from 'houdini/vite'
+import adapter from 'houdini-adapter-cloudflare'
+
+/** @type {import('vite').UserConfig} */
+const config = {
+    plugins: [houdini( { adapter } ), ... ]
+}
+
+export default config
+```
+
+Here is a list of the available adapters:
+
+- `houdini-adapter-cloudflare`: builds your application to run on Cloudflare Pages

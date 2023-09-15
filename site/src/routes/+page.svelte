@@ -42,22 +42,22 @@
 			<Emoji name="exploding-head" height={75} fallback="🤯" />
 		</h1>
 		<section class="hero">
-			<div>
+			<div class="hero-text-container">
 				<p class="hero-text">
-					It’s here. A <em>fully-featured</em> GraphQL client that seamlessly integrates with the framework
-					of your choice.
+					It’s finally here: a fully-featured GraphQL framework that actually saves you time
 				</p>
 				<p class="hero-subtext">
-					Start with a schema. Write queries and let Houdini take care of the rest. Fully automatic
-					and totally customizable. <b>Declarative</b>, <b>Composable</b>, <b>Typesafe</b>.
-					First-class support for
+					Houdini is a web application framework built from the ground up for GraphQL. It unifies
+					your GraphQL client and application router so you can stop worrying about waterfalls,
+					code-splitting, and so much more. Fully automatic and totally customizable.
+					<b>Declarative</b>, <b>Composable</b>, <b>Typesafe</b>. First-class support for
 					<a data-sveltekit-preload-data href="/api/fragments">Fragments</a>,
 					<a data-sveltekit-preload-data href="/api/subscription">Subscriptions</a>,
 					<a data-sveltekit-preload-data href="/guides/pagination">Pagination</a>,
 					<a data-sveltekit-preload-data href="/api/mutation#lists">List Mutations</a>,
 					<a data-sveltekit-preload-data href="/api/mutation#optimistic-responses"
 						>Optimistic Responses</a
-					>, and so much more. You didn’t know you needed this.
+					>. You didn’t know you needed this.
 				</p>
 				<div class="hero-dive-in">
 					<p>Dive in:</p>
@@ -66,20 +66,9 @@
 							<img src="/images/svelte.svg" alt="svelte" width="20px" aria-hidden="true" />
 							SvelteKit
 						</a>
-						<a data-sveltekit-preload-data href="#disabled" disabled>
+						<a data-sveltekit-preload-data href="/api/react">
 							<img src="/images/react.svg" alt="react" width="20px" aria-hidden="true" />
-							Next
-							<div class="coming-soon">Coming Soon</div>
-						</a>
-						<a data-sveltekit-preload-data href="#disabled" disabled>
-							<img src="/images/vue.svg" alt="vue" width="20px" aria-hidden="true" />
-							Nuxt
-							<div class="coming-soon">Coming Soon</div>
-						</a>
-						<a data-sveltekit-preload-data href="#disabled" disabled>
-							<img src="/images/solid.svg" alt="solid" width="20px" aria-hidden="true" />
-							SolidStart
-							<div class="coming-soon">Coming Soon</div>
+							React
 						</a>
 					</nav>
 				</div>
@@ -112,8 +101,16 @@
 				<h2>GraphQL, simplified</h2>
 				<p>
 					GraphQL makes a lot of promises but the other clients expect you to go though a silly
-					amount of ceremony to see the benefits. Houdini integrates tightly in your existing tool
-					chain to remove as much of the complexity as possible without compromising on features.
+					amount of ceremony to see the benefits. By unifying your GraphQL client and application
+					router, Houdini removes as much of the complexity as possible without compromising on
+					features.
+				</p>
+			</Block>
+			<Block class="splash-block">
+				<h2>Declarative</h2>
+				<p>
+					Updates to your application cache are made with a set of declarative fragments that avoid
+					the surgical logic necessary to keep your application up to date.
 				</p>
 			</Block>
 			<Block class="splash-block">
@@ -131,13 +128,6 @@
 					Houdini generates types for every document in your application. If you are a TypeScript
 					person, you won't have to juggle any generic parameters or mess with complicated paths. If
 					you prefer JSDocs, eveything just works.
-				</p>
-			</Block>
-			<Block class="splash-block">
-				<h2>Declarative</h2>
-				<p>
-					Updates to your application cache are made with a set of declarative fragments that avoid
-					the surgical logic necessary to keep your application up to date.
 				</p>
 			</Block>
 		</div>
@@ -298,17 +288,17 @@
 		gap: 94px;
 	}
 
-	.hero > div {
-		display: flex;
-		flex-direction: column;
-		width: 10px;
-		justify-content: space-between;
-	}
-
 	.hero > *:first-child {
 		flex-grow: 5;
 		padding-bottom: 35px;
 		width: 10px;
+	}
+
+	.hero-text-container {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		gap: 40px;
 	}
 
 	:global(.splash-code-sample) {

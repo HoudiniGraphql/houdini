@@ -2,27 +2,28 @@
 	import { Highlight } from '~/components'
 	import Block from './Block.svelte'
 
-	const codeExample = `<script lang=”ts”>
-  import { graphql } from '$houdini'
+	const codeExample = `export default function({ AllItems }) {
+    return (
+      <>
+        {AllItems.items.map(item => (
+          <div>{item.text}</div>
+        ))}
+      </>
+    )
+  }
+`
 
-  const allItems = graphql(\`
-    query AllTodoItems @load {
-      items {
-        text
-      }
-    }
-  \`)
-\<\/script>
-
-{#each $allItems.data.items as item}
-  <div>{item.text}</div>
-{/each}`
+	const queryExample = `query AllItems {
+  items {
+    text
+  }
+}`
 </script>
 
 <div class={`container ${$$props.class}`}>
 	<Block class="code-example block">
 		<div class="header">
-			<div class="filename">+page.svelte</div>
+			<div class="filename">+page.gql</div>
 			<div class="location">
 				src
 				<span class="location-chevron">></span>
@@ -30,7 +31,33 @@
 				<span class="location-chevron">></span>
 				items
 				<span class="location-chevron">></span>
-				+page.svelte
+				+page.gql
+			</div>
+		</div>
+		<div class="body">
+			<div class="numbers">
+				<div>1</div>
+				<div>2</div>
+				<div>3</div>
+				<div>4</div>
+				<div>5</div>
+			</div>
+			<code>
+				<Highlight code={queryExample} class="code" language="graphql" />
+			</code>
+		</div>
+	</Block>
+	<Block class="code-example block">
+		<div class="header">
+			<div class="filename">+page.jsx</div>
+			<div class="location">
+				src
+				<span class="location-chevron">></span>
+				routes
+				<span class="location-chevron">></span>
+				items
+				<span class="location-chevron">></span>
+				+page.jsx
 			</div>
 		</div>
 		<div class="body">
@@ -44,19 +71,13 @@
 				<div>7</div>
 				<div>8</div>
 				<div>9</div>
-				<div>10</div>
-				<div>11</div>
-				<div>12</div>
-				<div>13</div>
-				<div>14</div>
-				<div>15</div>
 			</div>
 			<code>
-				<Highlight code={codeExample} class="code" />
+				<Highlight code={codeExample} class="code" language="javascript" />
 			</code>
 		</div>
 	</Block>
-	<p class="subtext">This is all you need to get going with SSR.&nbsp;&nbsp;&nbsp;🚀</p>
+	<p class="subtext">Streaming SSR, automatic code-splitting, and so much more 🚀</p>
 </div>
 
 <style>
