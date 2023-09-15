@@ -1,8 +1,7 @@
-import { fs } from 'houdini'
+import { fs, load_manifest } from 'houdini'
 import { test, expect } from 'vitest'
 
 import { test_config } from '../config'
-import { load_manifest } from './manifest'
 import { generate_type_root } from './typeRoot'
 
 test('generates type files for pages', async function () {
