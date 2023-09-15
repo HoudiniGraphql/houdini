@@ -1,8 +1,7 @@
-import { fs } from 'houdini'
+import { fs, load_manifest } from 'houdini'
 import { test, expect } from 'vitest'
 
 import { test_config } from '../config'
-import { load_manifest } from './manifest'
 import { format_router_manifest } from './router'
 
 const importStatement = (where: string, as: string) => `import ${as} from '${where}'`
@@ -44,8 +43,8 @@ test('happy path', async function () {
 		.toMatchInlineSnapshot(`
 			"export default {
 						pages: {
-					\\"_0\\": {
-						id: \\"_0\\",
+					\\"_\\": {
+						id: \\"_\\",
 						pattern: /^\\\\/$/,
 						params: [],
 
@@ -57,11 +56,11 @@ test('happy path', async function () {
 									}
 						},
 
-						component: () => import(\\"../units/entries/_0\\")
+						component: () => import(\\"../units/entries/_\\")
 					},
 
-					\\"_0_2id_1\\": {
-						id: \\"_0_2id_1\\",
+					\\"__id_\\": {
+						id: \\"__id_\\",
 						pattern: /^\\\\/([^/]+?)\\\\/?$/,
 						params: [{\\"name\\":\\"id\\",\\"optional\\":false,\\"rest\\":false,\\"chained\\":false}],
 
@@ -77,11 +76,11 @@ test('happy path', async function () {
 									}
 						},
 
-						component: () => import(\\"../units/entries/_0_2id_1\\")
+						component: () => import(\\"../units/entries/__id_\\")
 					},
 
-					\\"_0another\\": {
-						id: \\"_0another\\",
+					\\"_another\\": {
+						id: \\"_another\\",
 						pattern: /^\\\\/another\\\\/?$/,
 						params: [],
 
@@ -101,11 +100,11 @@ test('happy path', async function () {
 									}
 						},
 
-						component: () => import(\\"../units/entries/_0another\\")
+						component: () => import(\\"../units/entries/_another\\")
 					},
 
-					\\"_0_2id_1_0nested\\": {
-						id: \\"_0_2id_1_0nested\\",
+					\\"__id__nested\\": {
+						id: \\"__id__nested\\",
 						pattern: /^\\\\/([^/]+?)\\\\/nested\\\\/?$/,
 						params: [{\\"name\\":\\"id\\",\\"optional\\":false,\\"rest\\":false,\\"chained\\":false}],
 
@@ -121,23 +120,23 @@ test('happy path', async function () {
 									}
 						},
 
-						component: () => import(\\"../units/entries/_0_2id_1_0nested\\")
+						component: () => import(\\"../units/entries/__id__nested\\")
 					},
 				},
 
 				layouts: {
-					\\"_0\\": {
-						id: \\"_0\\",
+					\\"_\\": {
+						id: \\"_\\",
 
 						queries: [],
 					},
-					\\"_0_2id_1\\": {
-						id: \\"_0_2id_1\\",
+					\\"__id_\\": {
+						id: \\"__id_\\",
 
 						queries: [\\"RootQuery\\"],
 					},
-					\\"_0another\\": {
-						id: \\"_0another\\",
+					\\"_another\\": {
+						id: \\"_another\\",
 
 						queries: [\\"RootQuery\\"],
 					}
@@ -181,8 +180,8 @@ test('loading state at root', async function () {
 		.toMatchInlineSnapshot(`
 			"export default {
 						pages: {
-					\\"_0\\": {
-						id: \\"_0\\",
+					\\"_\\": {
+						id: \\"_\\",
 						pattern: /^\\\\/$/,
 						params: [],
 
@@ -194,11 +193,11 @@ test('loading state at root', async function () {
 									}
 						},
 
-						component: () => import(\\"../units/entries/_0\\")
+						component: () => import(\\"../units/entries/_\\")
 					},
 
-					\\"_0_2id_1\\": {
-						id: \\"_0_2id_1\\",
+					\\"__id_\\": {
+						id: \\"__id_\\",
 						pattern: /^\\\\/([^/]+?)\\\\/?$/,
 						params: [{\\"name\\":\\"id\\",\\"optional\\":false,\\"rest\\":false,\\"chained\\":false}],
 
@@ -214,11 +213,11 @@ test('loading state at root', async function () {
 									}
 						},
 
-						component: () => import(\\"../units/entries/_0_2id_1\\")
+						component: () => import(\\"../units/entries/__id_\\")
 					},
 
-					\\"_0another\\": {
-						id: \\"_0another\\",
+					\\"_another\\": {
+						id: \\"_another\\",
 						pattern: /^\\\\/another\\\\/?$/,
 						params: [],
 
@@ -238,11 +237,11 @@ test('loading state at root', async function () {
 									}
 						},
 
-						component: () => import(\\"../units/entries/_0another\\")
+						component: () => import(\\"../units/entries/_another\\")
 					},
 
-					\\"_0_2id_1_0nested\\": {
-						id: \\"_0_2id_1_0nested\\",
+					\\"__id__nested\\": {
+						id: \\"__id__nested\\",
 						pattern: /^\\\\/([^/]+?)\\\\/nested\\\\/?$/,
 						params: [{\\"name\\":\\"id\\",\\"optional\\":false,\\"rest\\":false,\\"chained\\":false}],
 
@@ -258,23 +257,23 @@ test('loading state at root', async function () {
 									}
 						},
 
-						component: () => import(\\"../units/entries/_0_2id_1_0nested\\")
+						component: () => import(\\"../units/entries/__id__nested\\")
 					},
 				},
 
 				layouts: {
-					\\"_0\\": {
-						id: \\"_0\\",
+					\\"_\\": {
+						id: \\"_\\",
 
 						queries: [],
 					},
-					\\"_0_2id_1\\": {
-						id: \\"_0_2id_1\\",
+					\\"__id_\\": {
+						id: \\"__id_\\",
 
 						queries: [\\"RootQuery\\"],
 					},
-					\\"_0another\\": {
-						id: \\"_0another\\",
+					\\"_another\\": {
+						id: \\"_another\\",
 
 						queries: [\\"RootQuery\\"],
 					}

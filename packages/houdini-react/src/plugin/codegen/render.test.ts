@@ -36,16 +36,19 @@ test('generates render functions', async function () {
 		        loaded_queries,
 		        loaded_artifacts,
 		        session,
+		        assetPrefix,
 		        ...config
 		    }
 		) {
-		    return renderToStream(<App
-		        intialURL={url}
-		        cache={cache}
-		        {...router_cache()}
-		        loaded_queries={loaded_queries}
-		        session={session}
-		        loaded_artifacts={loaded_artifacts} />, config);
+		    return renderToStream(React.createElement(App, {
+		        initialURL: url,
+		        cache,
+		        ...router_cache(),
+		        loaded_queries,
+		        session,
+		        loaded_artifacts,
+		        assetPrefix
+		    }), config);
 		}
 	`)
 })

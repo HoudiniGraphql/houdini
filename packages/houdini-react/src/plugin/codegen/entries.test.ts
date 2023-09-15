@@ -36,11 +36,11 @@ test('composes layouts and pages', async function () {
 		{ plugins: ['jsx'] }
 	)
 	expect(page_entry).toMatchInlineSnapshot(`
-		import Layout__0 from "../layouts/_0.jsx";
-		import Layout__0subRoute from "../layouts/_0subRoute.jsx";
-		import Page__0subRoute_0nested from "../pages/_0subRoute_0nested.jsx";
-		import PageFallback__0subRoute_0nested from "../fallbacks/page/_0subRoute_0nested.jsx";
-		import LayoutFallback__0subRoute_0nested from "../../fallbacks/layout";
+		import Layout__ from "../layouts/_.jsx";
+		import Layout__subRoute from "../layouts/_subRoute.jsx";
+		import Page__subRoute_nested from "../pages/_subRoute_nested.jsx";
+		import PageFallback__subRoute_nested from "../fallbacks/page/_subRoute_nested.jsx";
+		import LayoutFallback__subRoute_nested from "../../fallbacks/layout";
 
 		export default (
 		    {
@@ -48,15 +48,15 @@ test('composes layouts and pages', async function () {
 		    }
 		) => {
 		    return (
-		        (<LayoutFallback__0subRoute_0nested key={url}>
-		            <Layout__0 key={url}>
-		                <Layout__0subRoute key={url}>
-		                    <PageFallback__0subRoute_0nested key={url}>
-		                        <Page__0subRoute_0nested />
-		                    </PageFallback__0subRoute_0nested>
-		                </Layout__0subRoute>
-		            </Layout__0>
-		        </LayoutFallback__0subRoute_0nested>)
+		        (<LayoutFallback__subRoute_nested key={url}>
+		            <Layout__ key={url}>
+		                <Layout__subRoute key={url}>
+		                    <PageFallback__subRoute_nested key={url}>
+		                        <Page__subRoute_nested />
+		                    </PageFallback__subRoute_nested>
+		                </Layout__subRoute>
+		            </Layout__>
+		        </LayoutFallback__subRoute_nested>)
 		    );
 		};
 	`)
@@ -71,7 +71,7 @@ test('composes layouts and pages', async function () {
 	)
 	expect(page_unit).toMatchInlineSnapshot(`
 		import { useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
-		import Component__0subRoute_0nested from "../../../../../src/routes/subRoute/nested/+page";
+		import Component__subRoute_nested from "../../../../../src/routes/subRoute/nested/+page";
 
 		export default (
 		    {
@@ -81,9 +81,9 @@ test('composes layouts and pages', async function () {
 		    const [FinalQuery$data, FinalQuery$handle] = useQueryResult("FinalQuery");
 
 		    return (
-		        (<Component__0subRoute_0nested FinalQuery={FinalQuery$data} FinalQuery$handle={FinalQuery$handle}>
+		        (<Component__subRoute_nested FinalQuery={FinalQuery$data} FinalQuery$handle={FinalQuery$handle}>
 		            {children}
-		        </Component__0subRoute_0nested>)
+		        </Component__subRoute_nested>)
 		    );
 		};
 	`)
@@ -98,7 +98,7 @@ test('composes layouts and pages', async function () {
 	)
 	expect(root_layout_unit).toMatchInlineSnapshot(`
 		import { useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
-		import Component__0 from "../../../../../src/routes/+layout";
+		import Component__ from "../../../../../src/routes/+layout";
 
 		export default (
 		    {
@@ -106,9 +106,9 @@ test('composes layouts and pages', async function () {
 		    }
 		) => {
 		    return (
-		        (<Component__0>
+		        (<Component__>
 		            {children}
-		        </Component__0>)
+		        </Component__>)
 		    );
 		};
 	`)
@@ -123,7 +123,7 @@ test('composes layouts and pages', async function () {
 	)
 	expect(deep_layout_unit).toMatchInlineSnapshot(`
 		import { useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
-		import Component__0subRoute from "../../../../../src/routes/subRoute/+layout";
+		import Component__subRoute from "../../../../../src/routes/subRoute/+layout";
 
 		export default (
 		    {
@@ -134,13 +134,13 @@ test('composes layouts and pages', async function () {
 		    const [SubQuery$data, SubQuery$handle] = useQueryResult("SubQuery");
 
 		    return (
-		        (<Component__0subRoute
+		        (<Component__subRoute
 		            RootQuery={RootQuery$data}
 		            RootQuery$handle={RootQuery$handle}
 		            SubQuery={SubQuery$data}
 		            SubQuery$handle={SubQuery$handle}>
 		            {children}
-		        </Component__0subRoute>)
+		        </Component__subRoute>)
 		    );
 		};
 	`)
