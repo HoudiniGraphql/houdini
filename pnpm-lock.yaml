@@ -203,14 +203,14 @@ importers:
         specifier: ^4.0.23
         version: 4.0.23
       react:
-        specifier: ^18.2.0
-        version: 18.2.0
+        specifier: ^18.3.0-canary-d6dcad6a8-20230914
+        version: 18.3.0-canary-d7a98a5e9-20230517
       react-dom:
-        specifier: ^18.2.0
-        version: 18.2.0(react@18.2.0)
+        specifier: ^18.3.0-canary-d6dcad6a8-20230914
+        version: 18.3.0-canary-d6dcad6a8-20230914(react@18.3.0-canary-d7a98a5e9-20230517)
       react-streaming:
         specifier: ^0.3.10
-        version: 0.3.10(react-dom@18.2.0)(react@18.2.0)
+        version: 0.3.10(react-dom@18.3.0-canary-d6dcad6a8-20230914)(react@18.3.0-canary-d7a98a5e9-20230517)
     devDependencies:
       '@types/react':
         specifier: ^18.0.27
@@ -9282,6 +9282,16 @@ packages:
       react: 18.2.0
       scheduler: 0.23.0
 
+  /react-dom@18.3.0-canary-d6dcad6a8-20230914(react@18.3.0-canary-d7a98a5e9-20230517):
+    resolution: {integrity: sha512-KzS+Jy/WXC6I9bi9PtBU0+iMPHPNvNLdyIDJqgX91AiBP9IDDMjaDbgW0QKphi1qIOesYMeJz0uZkajhlfS8lg==}
+    peerDependencies:
+      react: 18.3.0-canary-d6dcad6a8-20230914
+    dependencies:
+      loose-envify: 1.4.0
+      react: 18.3.0-canary-d7a98a5e9-20230517
+      scheduler: 0.24.0-canary-d6dcad6a8-20230914
+    dev: false
+
   /react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
     dev: true
@@ -9299,7 +9309,7 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /react-streaming@0.3.10(react-dom@18.2.0)(react@18.2.0):
+  /react-streaming@0.3.10(react-dom@18.3.0-canary-d6dcad6a8-20230914)(react@18.3.0-canary-d7a98a5e9-20230517):
     resolution: {integrity: sha512-Cf/aritzKGDUEBo+jpsNKlzkNBTmBM5gYM9jArPuoBqmckBikALYu7YvQbTHSG4kbpSitnoBIUH2005LAxknBQ==}
     peerDependencies:
       react: '>=18'
@@ -9307,8 +9317,8 @@ packages:
     dependencies:
       '@brillout/json-serializer': 0.5.3
       isbot-fast: 1.2.0
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
+      react: 18.3.0-canary-d7a98a5e9-20230517
+      react-dom: 18.3.0-canary-d6dcad6a8-20230914(react@18.3.0-canary-d7a98a5e9-20230517)
     dev: false
 
   /react-streaming@0.3.14(react-dom@18.2.0)(react@18.2.0):
@@ -9350,6 +9360,13 @@ packages:
     engines: {node: '>=0.10.0'}
     dependencies:
       loose-envify: 1.4.0
+
+  /react@18.3.0-canary-d7a98a5e9-20230517:
+    resolution: {integrity: sha512-WCoMOYGg0OR7IoQ9YhubaJ4j7743LBTx4OOcaRuI4wZkshvPIOuVWrZNOarMuKRj8bm/5DKuAV/p2kd74AbQmg==}
+    engines: {node: '>=0.10.0'}
+    dependencies:
+      loose-envify: 1.4.0
+    dev: false
 
   /read-pkg-up@7.0.1:
     resolution: {integrity: sha512-zK0TB7Xd6JpCLmlLmufqykGE+/TlOePD6qKClNW7hHDKFh/J7/7gCWGR7joEQEW1bKq3a3yUZSObOoWLFQ4ohg==}
@@ -9719,6 +9736,12 @@ packages:
     resolution: {integrity: sha512-CtuThmgHNg7zIZWAXi3AsyIzA3n4xx7aNyjwC2VJldO2LMVDhFK+63xGqq6CsJH4rTAt6/M+N4GhZiDYPx9eUw==}
     dependencies:
       loose-envify: 1.4.0
+
+  /scheduler@0.24.0-canary-d6dcad6a8-20230914:
+    resolution: {integrity: sha512-tC/9jHWGULTtIk39bb16jrDYyqwz0BHlQlNa3kZYyyFx8JsxioqzT/WoaInIrbkwRaY/zjYzm8IUzE3zH2wKqg==}
+    dependencies:
+      loose-envify: 1.4.0
+    dev: false
 
   /selfsigned@2.1.1:
     resolution: {integrity: sha512-GSL3aowiF7wa/WtSFwnUrludWFoNhftq8bUkH9pkzjpN2XSPOAYEgg6e0sS9s0rZwgJzJiQRPU18A6clnoW5wQ==}

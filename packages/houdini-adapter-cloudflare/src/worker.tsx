@@ -18,13 +18,6 @@ import { find_match } from '../$houdini/plugins/houdini-react/runtime/routing/li
 import App from '../$houdini/plugins/houdini-react/units/render/App'
 // @ts-expect-error
 import { Cache } from '../$houdini/runtime/cache/cache.js'
-// @ts-expect-error
-import { getCurrentConfig as current_config } from '../$houdini/runtime/lib/config'
-
-const config_file = current_config()
-
-const framework_config = config_file.plugins?.['houdini-react'] ?? {}
-const jwt_secret = 'secret'
 
 const handlers: ExportedHandler = {
 	async fetch(req, env: any, ctx) {
@@ -33,7 +26,6 @@ const handlers: ExportedHandler = {
 
 		// we are handling an asset
 		if (url.startsWith('/assets/') || url === '/favicon.ico') {
-			console.log('fetching asset', url)
 			return await env.ASSETS.fetch(req)
 		}
 
@@ -50,10 +42,6 @@ async function render_app(request: Parameters<Required<ExportedHandler>['fetch']
 	const cookie = parse(request.headers.get('Cookie') || '')['houdini-session']
 	const session = cookie ? JSON.parse(cookie) : null
 
-	// in order to stream values to the client we need to track what we load
-	const loaded_queries: Record<string, { data: any; variables: any }> = {}
-	const loaded_artifacts: Record<string, QueryArtifact> = {}
-
 	// find the matching url
 	const [match] = find_match(manifest, url, true)
 	if (!match) {
@@ -65,8 +53,8 @@ async function render_app(request: Parameters<Required<ExportedHandler>['fetch']
 
 	const { readable, injectToStream } = await renderToStream(
 		<App
-			loaded_queries={loaded_queries}
-			loaded_artifacts={loaded_artifacts}
+			loaded_queries={{}}
+			loaded_artifacts={{}}
 			initialURL={url}
 			cache={cache}
 			session={session}

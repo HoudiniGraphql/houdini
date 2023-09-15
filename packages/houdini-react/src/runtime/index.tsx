@@ -67,15 +67,19 @@ export function router_cache({
 	pending_queries = [],
 	artifacts = {},
 	components = {},
+	initialData = {},
+	initialArtifacts = {},
 }: {
 	pending_queries?: string[]
 	artifacts?: Record<string, QueryArtifact>
 	components?: Record<string, (props: any) => React.ReactElement>
+	initialData?: Record<string, DocumentStore<GraphQLObject, GraphQLVariables>>
+	initialArtifacts?: Record<string, QueryArtifact>
 } = {}): RouterCache {
 	const result: RouterCache = {
-		artifact_cache: suspense_cache(),
+		artifact_cache: suspense_cache(initialArtifacts),
 		component_cache: suspense_cache(),
-		data_cache: suspense_cache(),
+		data_cache: suspense_cache(initialData),
 		pending_cache: suspense_cache(),
 		last_variables: suspense_cache(),
 	}

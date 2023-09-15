@@ -110,17 +110,44 @@ export default {
 				import client from '$houdini/plugins/houdini-react/runtime/client'
 				import Component from '$houdini/plugins/houdini-react/units/entries/${id}.jsx'
 
+				// if there is pending data (or artifacts) then we should prime the caches
+				let initialData = {}
+				let initialArtifacts = {}
+
+				if (!window.__houdini__cache__) {
+					window.__houdini__cache__ = new Cache()
+					window.__houdini__hydration__layer__ = window.__houdini__cache__._internal_unstable.storage.createLayer(true)
+					window.__houdini__client__ = client
+				}
+
+				// the artifacts are the source of the zip (without them, we can't prime either cache)
+				for (const [artifactName, artifact] of Object.entries(window.__houdini__pending_artifacts__ ?? {})) {
+					// save the value in the initial artifact cache
+					initialArtifacts[artifactName] = artifact
+
+					// if we also have data for the artifact, save it in the initial data cache
+					if (window.__houdini__pending_data__?.[artifactName]) {
+						// create the store we'll put in the cache
+						const observer = client.observe({ artifact, cache: window.__houdini__cache__, initialValue: window.__houdini__pending_data__[artifactName] })
+
+						// save it in the cache
+						initialData[artifactName] = observer
+					}
+
+				}
 
 				// attach things to the global scope to synchronize streaming
-				window.__houdini__nav_caches__ = router_cache({
-					pending_queries: ${JSON.stringify(queries)},
-					components: {
-						'${id}': Component
-					}
-				})
-				window.__houdini__cache__ = new Cache()
-				window.__houdini__hydration__layer__ = window.__houdini__cache__._internal_unstable.storage.createLayer(true)
-				window.__houdini__client__ = client
+				if (!window.__houdini__nav_caches__) {
+					window.__houdini__nav_caches__ = router_cache({
+						pending_queries: ${JSON.stringify(queries)},
+						initialData,
+						initialArtifacts,
+						components: {
+							'${id}': Component
+						}
+					})
+				}
+
 
 
 				// hydrate the cache with the information from the initial payload
@@ -231,20 +258,21 @@ const render_stream =
 		// start streaming the response to the user
 		pipe?.(response)
 
+		// the entry point for the page will start the pending cache with the correct values
+		const entry = `/virtual:houdini/pages/${match.id}@${pending_query_names}.jsx`
+
 		// add the initial scripts to the page
 		injectToStream(`
-		<script>
-			window.__houdini__initial__cache__ = ${cache.serialize()};
-			window.__houdini__initial__session__ = ${JSON.stringify(session)};
-		</script>
+			<script>
+				window.__houdini__initial__cache__ = ${cache.serialize()};
+				window.__houdini__initial__session__ = ${JSON.stringify(session)};
+			</script>
 
-		<script type="module" src="/@vite/client" async=""></script>
+			<script type="module" src="/@vite/client" async=""></script>
 
-		<!-- add a virtual module that hydrates the client and sets up the initial pending cache -->
-		<script type="module" src="/virtual:houdini/pages/${
-			match.id
-		}@${pending_query_names}.jsx" async=""></script>
-	`)
+			<!-- add a virtual module that hydrates the client and sets up the initial pending cache -->
+			<script type="module" src="${entry}" async=""></script>
+		`)
 	}
 
 async function load_render(server: ViteDevServer & { houdiniConfig: Config }) {

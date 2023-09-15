@@ -174,17 +174,38 @@ function usePageData({
 						<script>
 							window.__houdini__cache__?.hydrate(${cache.serialize()}, window.__houdini__hydration__layer)
 
-							if (window.__houdini__nav_caches__?.pending_cache.has("${artifact.name}")) {
+							const artifactName = "${artifact.name}"
+							const value = ${JSON.stringify(observer.state.data)}
+
+							// if the data is pending, we need to resolve it
+							if (window.__houdini__nav_caches__?.data_cache.has(artifactName)) {
 								// before we resolve the pending signals,
 								// fill the data cache with values we got on the server
 								const new_store = window.__houdini__client__.observe({
-									artifact: window.__houdini__nav_caches__.artifact_cache.get("${artifact.name}"),
+									artifact: window.__houdini__nav_caches__.artifact_cache.get(artifactName),
 									cache: window.__houdini__cache__,
-									initialValue: ${JSON.stringify(observer.state.data)}
+									initialValue: value
 								})
 
-								window.__houdini__nav_caches__.data_cache.set("${artifact.name}", new_store)
+								window.__houdini__nav_caches__?.data_cache.set(artifactName, new_store)
+							}
 
+
+							// if there are no data caches available we need to populate the pending one instead
+							if (!window.__houdini__nav_caches__) {
+								if (!window.__houdini__pending_data__) {
+									window.__houdini__pending_data__ = {}
+								}
+
+								if (!window.__houdini__pending_artifacts__) {
+									window.__houdini__pending_artifacts__ = {}
+								}
+
+								window.__houdini__pending_data__[artifactName] = value
+								window.__houdini__pending_artifacts__[artifactName] = ${JSON.stringify(artifact)}
+							}
+
+							if (window.__houdini__nav_caches__?.pending_cache.has(artifactName)) {
 								// we're pushing this store onto the client, it should be initialized
 								new_store.send({
 									setup: true,
@@ -192,8 +213,8 @@ function usePageData({
 								})
 
 								// notify anyone waiting on the pending cache
-								window.__houdini__nav_caches__.pending_cache.get("${artifact.name}").resolve()
-								window.__houdini__nav_caches__.pending_cache.delete("${artifact.name}")
+								window.__houdini__nav_caches__.pending_cache.get(artifactName).resolve()
+								window.__houdini__nav_caches__.pending_cache.delete(artifactName)
 							}
 						</script>
 					`)
@@ -362,7 +383,7 @@ type RouterContext = {
 	// Pages need a way to wait for data
 	data_cache: SuspenseCache<DocumentStore<GraphQLObject, GraphQLVariables>>
 
-	// A way to track pending requests for an artifact
+	// A way to dedupe requests for a query
 	pending_cache: PendingCache
 
 	// A way to track the last known good variables
@@ -477,5 +498,5 @@ function useAnchorIntercept({ goto }: { goto: (url: string) => void }) {
 		return () => {
 			document.removeEventListener('click', onClick!)
 		}
-	}, [goto])
+	}, [])
 }

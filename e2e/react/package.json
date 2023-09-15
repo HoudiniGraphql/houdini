@@ -9,9 +9,7 @@
 		"build:web": "pnpm build: && pnpm web",
 		"build:test": "pnpm build: && pnpm test",
 		"build:build": "pnpm build: && pnpm build",
-		"web": "vite ",
-		"api": "cross-env TZ=utc e2e-api",
-		"dev": "concurrently \"pnpm run web\" \"pnpm run api\" -n \"web,api\" -c \"green,magenta\"",
+		"dev": "vite",
 		"build": "tsc && vite build",
 		"preview": "vite preview"
 	},
@@ -23,8 +21,8 @@
 		"houdini-adapter-cloudflare": "workspace:^",
 		"houdini-react": "workspace:^",
 		"itty-router": "^4.0.23",
-		"react": "^18.2.0",
-		"react-dom": "^18.2.0",
+		"react": "^18.3.0-canary-d6dcad6a8-20230914",
+		"react-dom": "^18.3.0-canary-d6dcad6a8-20230914",
 		"react-streaming": "^0.3.10"
 	},
 	"devDependencies": {
