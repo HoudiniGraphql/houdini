@@ -1,5 +1,6 @@
 <svg
 	aria-roledescription="flowchart-v2"
+	role="graphics-document document"
 	viewBox="-8 -8 418.046875 55"
 	style="max-width: 418.046875px;"
 	xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -11,14 +12,14 @@
 		#mermaid-2 {
 			font-family: 'trebuchet ms', verdana, arial, sans-serif;
 			font-size: 16px;
-			fill: var(--diagram-text-color);
+			fill: #333;
 		}
 		#mermaid-2 .error-icon {
-			fill: hsl(120, 100%, 30.0980392157%);
+			fill: #552222;
 		}
 		#mermaid-2 .error-text {
-			fill: rgb(255, 101.4999999999, 255);
-			stroke: rgb(255, 101.4999999999, 255);
+			fill: #552222;
+			stroke: #552222;
 		}
 		#mermaid-2 .edge-thickness-normal {
 			stroke-width: 2px;
@@ -36,11 +37,11 @@
 			stroke-dasharray: 2;
 		}
 		#mermaid-2 .marker {
-			fill: var(--diagram-line-color);
-			stroke: var(--diagram-line-color);
+			fill: #333333;
+			stroke: #333333;
 		}
 		#mermaid-2 .marker.cross {
-			stroke: var(--diagram-line-color);
+			stroke: #333333;
 		}
 		#mermaid-2 svg {
 			font-family: 'trebuchet ms', verdana, arial, sans-serif;
@@ -48,27 +49,32 @@
 		}
 		#mermaid-2 .label {
 			font-family: 'trebuchet ms', verdana, arial, sans-serif;
-			color: var(--diagram-text-color);
+			color: #333;
 		}
 		#mermaid-2 .cluster-label text {
-			fill: rgb(255, 101.4999999999, 255);
+			fill: #333;
 		}
-		#mermaid-2 .cluster-label span {
-			color: rgb(255, 101.4999999999, 255);
+		#mermaid-2 .cluster-label span,
+		#mermaid-2 p {
+			color: #333;
 		}
 		#mermaid-2 .label text,
-		#mermaid-2 span {
-			fill: var(--diagram-text-color);
-			color: var(--diagram-text-color);
+		#mermaid-2 span,
+		#mermaid-2 p {
+			fill: #333;
+			color: #333;
 		}
 		#mermaid-2 .node rect,
 		#mermaid-2 .node circle,
 		#mermaid-2 .node ellipse,
 		#mermaid-2 .node polygon,
 		#mermaid-2 .node path {
-			fill: var(--diagram-background-color);
-			stroke: var(--diagram-border-color);
+			fill: #ececff;
+			stroke: #9370db;
 			stroke-width: 1px;
+		}
+		#mermaid-2 .flowchart-label text {
+			text-anchor: middle;
 		}
 		#mermaid-2 .node .label {
 			text-align: center;
@@ -77,35 +83,36 @@
 			cursor: pointer;
 		}
 		#mermaid-2 .arrowheadPath {
-			fill: undefined;
+			fill: #333333;
 		}
 		#mermaid-2 .edgePath .path {
-			stroke: var(--diagram-line-color);
+			stroke: #333333;
 			stroke-width: 2px;
 		}
 		#mermaid-2 .flowchart-link {
-			stroke: var(--diagram-line-color);
+			stroke: #333333;
 			fill: none;
 		}
 		#mermaid-2 .edgeLabel {
-			background-color: var(--diagram-canvas-color);
+			background-color: #e8e8e8;
 			text-align: center;
 		}
 		#mermaid-2 .edgeLabel rect {
 			opacity: 0.5;
-			background-color: var(--diagram-canvas-color);
-			fill: var(--diagram-canvas-color);
+			background-color: #e8e8e8;
+			fill: #e8e8e8;
 		}
 		#mermaid-2 .cluster rect {
-			fill: var(--diagram-subgraph-color);
-			stroke: var(--diagram-border-color);
+			fill: #ffffde;
+			stroke: #aaaa33;
 			stroke-width: 1px;
 		}
 		#mermaid-2 .cluster text {
-			fill: rgb(255, 101.4999999999, 255);
+			fill: #333;
 		}
-		#mermaid-2 .cluster span {
-			color: rgb(255, 101.4999999999, 255);
+		#mermaid-2 .cluster span,
+		#mermaid-2 p {
+			color: #333;
 		}
 		#mermaid-2 div.mermaidTooltip {
 			position: absolute;
@@ -114,8 +121,8 @@
 			padding: 2px;
 			font-family: 'trebuchet ms', verdana, arial, sans-serif;
 			font-size: 12px;
-			background: hsl(120, 100%, 30.0980392157%);
-			border: 1px solid undefined;
+			background: hsl(80, 100%, 96.2745098039%);
+			border: 1px solid #aaaa33;
 			border-radius: 2px;
 			pointer-events: none;
 			z-index: 100;
@@ -123,7 +130,7 @@
 		#mermaid-2 .flowchartTitleText {
 			text-anchor: middle;
 			font-size: 18px;
-			fill: var(--diagram-text-color);
+			fill: #333;
 		}
 		#mermaid-2 :root {
 			--mermaid-font-family: 'trebuchet ms', verdana, arial, sans-serif;
@@ -136,7 +143,7 @@
 			markerUnits="userSpaceOnUse"
 			refY="5"
 			refX="10"
-			viewBox="0 0 10 10"
+			viewBox="0 0 12 20"
 			class="marker flowchart"
 			id="flowchart-pointEnd"
 			><path
@@ -267,7 +274,7 @@
 					><g
 						title="beforeValidate hook"
 						id="flowchart-t_before_v-64"
-						class="node default clickable"
+						class="node default clickable flowchart-label"
 						><rect
 							height="39"
 							width="120.3046875"
@@ -278,7 +285,7 @@
 							style=""
 							class="basic label-container"
 						/><g transform="translate(-52.65234375, -12)" style="" class="label"
-							><foreignObject height="24" width="105.3046875"
+							><rect /><foreignObject height="24" width="105.3046875"
 								><div
 									style="display: inline-block; white-space: nowrap;"
 									xmlns="http://www.w3.org/1999/xhtml"
@@ -289,7 +296,10 @@
 						></g
 					></a
 				><a transform="translate(206.76171875, 19.5)" xlink:href="#validate"
-					><g title="validate hook" id="flowchart-validate-65" class="node default clickable"
+					><g
+						title="validate hook"
+						id="flowchart-validate-65"
+						class="node default clickable flowchart-label"
 						><rect
 							height="39"
 							width="72.9140625"
@@ -300,7 +310,7 @@
 							style=""
 							class="basic label-container"
 						/><g transform="translate(-28.95703125, -12)" style="" class="label"
-							><foreignObject height="24" width="57.9140625"
+							><rect /><foreignObject height="24" width="57.9140625"
 								><div
 									style="display: inline-block; white-space: nowrap;"
 									xmlns="http://www.w3.org/1999/xhtml"
@@ -311,7 +321,10 @@
 						></g
 					></a
 				><a transform="translate(347.6328125, 19.5)" xlink:href="#aftervalidate"
-					><g title="afterValidate hook" id="flowchart-t_after_v-67" class="node default clickable"
+					><g
+						title="afterValidate hook"
+						id="flowchart-t_after_v-67"
+						class="node default clickable flowchart-label"
 						><rect
 							height="39"
 							width="108.828125"
@@ -322,7 +335,7 @@
 							style=""
 							class="basic label-container"
 						/><g transform="translate(-46.9140625, -12)" style="" class="label"
-							><foreignObject height="24" width="93.828125"
+							><rect /><foreignObject height="24" width="93.828125"
 								><div
 									style="display: inline-block; white-space: nowrap;"
 									xmlns="http://www.w3.org/1999/xhtml"

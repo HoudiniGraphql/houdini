@@ -1,5 +1,6 @@
 <svg
 	aria-roledescription="flowchart-v2"
+	role="graphics-document document"
 	viewBox="-8 -8 748.1953125 639"
 	style="max-width: 748.1953125px;"
 	xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -11,14 +12,14 @@
 		#mermaid-3 {
 			font-family: 'trebuchet ms', verdana, arial, sans-serif;
 			font-size: 16px;
-			fill: var(--diagram-text-color);
+			fill: #333;
 		}
 		#mermaid-3 .error-icon {
-			fill: hsl(120, 100%, 30.0980392157%);
+			fill: #552222;
 		}
 		#mermaid-3 .error-text {
-			fill: rgb(255, 101.4999999999, 255);
-			stroke: rgb(255, 101.4999999999, 255);
+			fill: #552222;
+			stroke: #552222;
 		}
 		#mermaid-3 .edge-thickness-normal {
 			stroke-width: 2px;
@@ -36,11 +37,11 @@
 			stroke-dasharray: 2;
 		}
 		#mermaid-3 .marker {
-			fill: var(--diagram-line-color);
-			stroke: var(--diagram-line-color);
+			fill: #333333;
+			stroke: #333333;
 		}
 		#mermaid-3 .marker.cross {
-			stroke: var(--diagram-line-color);
+			stroke: #333333;
 		}
 		#mermaid-3 svg {
 			font-family: 'trebuchet ms', verdana, arial, sans-serif;
@@ -48,27 +49,32 @@
 		}
 		#mermaid-3 .label {
 			font-family: 'trebuchet ms', verdana, arial, sans-serif;
-			color: var(--diagram-text-color);
+			color: #333;
 		}
 		#mermaid-3 .cluster-label text {
-			fill: rgb(255, 101.4999999999, 255);
+			fill: #333;
 		}
-		#mermaid-3 .cluster-label span {
-			color: rgb(255, 101.4999999999, 255);
+		#mermaid-3 .cluster-label span,
+		#mermaid-3 p {
+			color: #333;
 		}
 		#mermaid-3 .label text,
-		#mermaid-3 span {
-			fill: var(--diagram-text-color);
-			color: var(--diagram-text-color);
+		#mermaid-3 span,
+		#mermaid-3 p {
+			fill: #333;
+			color: #333;
 		}
 		#mermaid-3 .node rect,
 		#mermaid-3 .node circle,
 		#mermaid-3 .node ellipse,
 		#mermaid-3 .node polygon,
 		#mermaid-3 .node path {
-			fill: var(--diagram-background-color);
-			stroke: var(--diagram-border-color);
+			fill: #ececff;
+			stroke: #9370db;
 			stroke-width: 1px;
+		}
+		#mermaid-3 .flowchart-label text {
+			text-anchor: middle;
 		}
 		#mermaid-3 .node .label {
 			text-align: center;
@@ -77,35 +83,36 @@
 			cursor: pointer;
 		}
 		#mermaid-3 .arrowheadPath {
-			fill: undefined;
+			fill: #333333;
 		}
 		#mermaid-3 .edgePath .path {
-			stroke: var(--diagram-line-color);
+			stroke: #333333;
 			stroke-width: 2px;
 		}
 		#mermaid-3 .flowchart-link {
-			stroke: var(--diagram-line-color);
+			stroke: #333333;
 			fill: none;
 		}
 		#mermaid-3 .edgeLabel {
-			background-color: var(--diagram-canvas-color);
+			background-color: #e8e8e8;
 			text-align: center;
 		}
 		#mermaid-3 .edgeLabel rect {
 			opacity: 0.5;
-			background-color: var(--diagram-canvas-color);
-			fill: var(--diagram-canvas-color);
+			background-color: #e8e8e8;
+			fill: #e8e8e8;
 		}
 		#mermaid-3 .cluster rect {
-			fill: var(--diagram-subgraph-color);
-			stroke: var(--diagram-border-color);
+			fill: #ffffde;
+			stroke: #aaaa33;
 			stroke-width: 1px;
 		}
 		#mermaid-3 .cluster text {
-			fill: rgb(255, 101.4999999999, 255);
+			fill: #333;
 		}
-		#mermaid-3 .cluster span {
-			color: rgb(255, 101.4999999999, 255);
+		#mermaid-3 .cluster span,
+		#mermaid-3 p {
+			color: #333;
 		}
 		#mermaid-3 div.mermaidTooltip {
 			position: absolute;
@@ -114,8 +121,8 @@
 			padding: 2px;
 			font-family: 'trebuchet ms', verdana, arial, sans-serif;
 			font-size: 12px;
-			background: hsl(120, 100%, 30.0980392157%);
-			border: 1px solid undefined;
+			background: hsl(80, 100%, 96.2745098039%);
+			border: 1px solid #aaaa33;
 			border-radius: 2px;
 			pointer-events: none;
 			z-index: 100;
@@ -123,7 +130,7 @@
 		#mermaid-3 .flowchartTitleText {
 			text-anchor: middle;
 			font-size: 18px;
-			fill: var(--diagram-text-color);
+			fill: #333;
 		}
 		#mermaid-3 :root {
 			--mermaid-font-family: 'trebuchet ms', verdana, arial, sans-serif;
@@ -136,7 +143,7 @@
 			markerUnits="userSpaceOnUse"
 			refY="5"
 			refX="10"
-			viewBox="0 0 10 10"
+			viewBox="0 0 12 20"
 			class="marker flowchart"
 			id="flowchart-pointEnd"
 			><path
@@ -225,7 +232,7 @@
 			/></marker
 		><g class="root"
 			><g class="clusters"
-				><g id="subGraph0" class="cluster default"
+				><g id="subGraph0" class="cluster default flowchart-label"
 					><rect height="267" width="172.0859375" y="113" x="259.640625" ry="0" rx="0" style="" /><g
 						transform="translate(345.68359375, 113)"
 						class="cluster-label"
@@ -415,7 +422,10 @@
 				></g
 			><g class="nodes"
 				><a transform="translate(345.68359375, 246.5)" xlink:href="#hash"
-					><g title="hash hook" id="flowchart-artifact_hash-128" class="node default clickable"
+					><g
+						title="hash hook"
+						id="flowchart-artifact_hash-128"
+						class="node default clickable flowchart-label"
 						><rect
 							height="39"
 							width="47.3671875"
@@ -426,7 +436,7 @@
 							style=""
 							class="basic label-container"
 						/><g transform="translate(-16.18359375, -12)" style="" class="label"
-							><foreignObject height="24" width="32.3671875"
+							><rect /><foreignObject height="24" width="32.3671875"
 								><div
 									style="display: inline-block; white-space: nowrap;"
 									xmlns="http://www.w3.org/1999/xhtml"
@@ -440,7 +450,7 @@
 					><g
 						title="artifactData hook"
 						id="flowchart-artifactData-127"
-						class="node default clickable"
+						class="node default clickable flowchart-label"
 						><rect
 							height="39"
 							width="102.0859375"
@@ -451,7 +461,7 @@
 							style=""
 							class="basic label-container"
 						/><g transform="translate(-43.54296875, -12)" style="" class="label"
-							><foreignObject height="24" width="87.0859375"
+							><rect /><foreignObject height="24" width="87.0859375"
 								><div
 									style="display: inline-block; white-space: nowrap;"
 									xmlns="http://www.w3.org/1999/xhtml"
@@ -462,7 +472,10 @@
 						></g
 					></a
 				><a transform="translate(345.68359375, 335.5)" xlink:href="#artifactend"
-					><g title="artifactEnd hook" id="flowchart-artifact_e-130" class="node default clickable"
+					><g
+						title="artifactEnd hook"
+						id="flowchart-artifact_e-130"
+						class="node default clickable flowchart-label"
 						><rect
 							height="39"
 							width="95.34375"
@@ -473,7 +486,7 @@
 							style=""
 							class="basic label-container"
 						/><g transform="translate(-40.171875, -12)" style="" class="label"
-							><foreignObject height="24" width="80.34375"
+							><rect /><foreignObject height="24" width="80.34375"
 								><div
 									style="display: inline-block; white-space: nowrap;"
 									xmlns="http://www.w3.org/1999/xhtml"
@@ -487,7 +500,7 @@
 					><g
 						title="beforeGenerate hook"
 						id="flowchart-t_before_g-132"
-						class="node default clickable"
+						class="node default clickable flowchart-label"
 						><rect
 							height="39"
 							width="128.796875"
@@ -498,7 +511,7 @@
 							style=""
 							class="basic label-container"
 						/><g transform="translate(-56.8984375, -12)" style="" class="label"
-							><foreignObject height="24" width="113.796875"
+							><rect /><foreignObject height="24" width="113.796875"
 								><div
 									style="display: inline-block; white-space: nowrap;"
 									xmlns="http://www.w3.org/1999/xhtml"
@@ -511,7 +524,7 @@
 				><g
 					transform="translate(345.68359375, 437.5)"
 					id="flowchart-sq-133"
-					class="node default default"
+					class="node default default flowchart-label"
 					><rect
 						height="15"
 						width="15"
@@ -522,7 +535,7 @@
 						style=""
 						class="basic label-container"
 					/><g transform="translate(0, 0)" style="" class="label"
-						><foreignObject height="0" width="0"
+						><rect /><foreignObject height="0" width="0"
 							><div
 								style="display: inline-block; white-space: nowrap;"
 								xmlns="http://www.w3.org/1999/xhtml"
@@ -532,7 +545,10 @@
 						></g
 					></g
 				><a transform="translate(39.4609375, 514.5)" xlink:href="#generate"
-					><g title="generate hook" id="flowchart-generate-134" class="node default clickable"
+					><g
+						title="generate hook"
+						id="flowchart-generate-134"
+						class="node default clickable flowchart-label"
 						><rect
 							height="39"
 							width="78.921875"
@@ -543,7 +559,7 @@
 							style=""
 							class="basic label-container"
 						/><g transform="translate(-31.9609375, -12)" style="" class="label"
-							><foreignObject height="24" width="63.921875"
+							><rect /><foreignObject height="24" width="63.921875"
 								><div
 									style="display: inline-block; white-space: nowrap;"
 									xmlns="http://www.w3.org/1999/xhtml"
@@ -557,7 +573,7 @@
 					><g
 						title="includeRuntime hook"
 						id="flowchart-includeRuntime-135"
-						class="node default clickable"
+						class="node default clickable flowchart-label"
 						><rect
 							height="39"
 							width="126.578125"
@@ -568,7 +584,7 @@
 							style=""
 							class="basic label-container"
 						/><g transform="translate(-55.7890625, -12)" style="" class="label"
-							><foreignObject height="24" width="111.578125"
+							><rect /><foreignObject height="24" width="111.578125"
 								><div
 									style="display: inline-block; white-space: nowrap;"
 									xmlns="http://www.w3.org/1999/xhtml"
@@ -582,7 +598,7 @@
 					><g
 						title="transformRuntime hook"
 						id="flowchart-transformRuntime-136"
-						class="node default clickable"
+						class="node default clickable flowchart-label"
 						><rect
 							height="39"
 							width="144.4375"
@@ -593,7 +609,7 @@
 							style=""
 							class="basic label-container"
 						/><g transform="translate(-64.71875, -12)" style="" class="label"
-							><foreignObject height="24" width="129.4375"
+							><rect /><foreignObject height="24" width="129.4375"
 								><div
 									style="display: inline-block; white-space: nowrap;"
 									xmlns="http://www.w3.org/1999/xhtml"
@@ -604,7 +620,10 @@
 						></g
 					></a
 				><a transform="translate(345.68359375, 514.5)" xlink:href="#indexFile"
-					><g title="indexfile hook" id="flowchart-indexFile-137" class="node default clickable"
+					><g
+						title="indexfile hook"
+						id="flowchart-indexFile-137"
+						class="node default clickable flowchart-label"
 						><rect
 							height="39"
 							width="80.3671875"
@@ -615,7 +634,7 @@
 							style=""
 							class="basic label-container"
 						/><g transform="translate(-32.68359375, -12)" style="" class="label"
-							><foreignObject height="24" width="65.3671875"
+							><rect /><foreignObject height="24" width="65.3671875"
 								><div
 									style="display: inline-block; white-space: nowrap;"
 									xmlns="http://www.w3.org/1999/xhtml"
@@ -629,7 +648,7 @@
 					><g
 						title="graphqlTagReturn hook"
 						id="flowchart-graphqlTagReturn-138"
-						class="node default clickable"
+						class="node default clickable flowchart-label"
 						><rect
 							height="39"
 							width="140.1171875"
@@ -640,7 +659,7 @@
 							style=""
 							class="basic label-container"
 						/><g transform="translate(-62.55859375, -12)" style="" class="label"
-							><foreignObject height="24" width="125.1171875"
+							><rect /><foreignObject height="24" width="125.1171875"
 								><div
 									style="display: inline-block; white-space: nowrap;"
 									xmlns="http://www.w3.org/1999/xhtml"
@@ -654,7 +673,7 @@
 					><g
 						title="clientPlugins hook"
 						id="flowchart-clientPlugins-139"
-						class="node default clickable"
+						class="node default clickable flowchart-label"
 						><rect
 							height="39"
 							width="106.2109375"
@@ -665,7 +684,7 @@
 							style=""
 							class="basic label-container"
 						/><g transform="translate(-45.60546875, -12)" style="" class="label"
-							><foreignObject height="24" width="91.2109375"
+							><rect /><foreignObject height="24" width="91.2109375"
 								><div
 									style="display: inline-block; white-space: nowrap;"
 									xmlns="http://www.w3.org/1999/xhtml"
