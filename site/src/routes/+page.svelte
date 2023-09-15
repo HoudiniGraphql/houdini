@@ -42,15 +42,14 @@
 			<Emoji name="exploding-head" height={75} fallback="🤯" />
 		</h1>
 		<section class="hero">
-			<div>
+			<div class="hero-text-container">
 				<p class="hero-text">
-					It’s here. A <em>fully-featured</em> GraphQL client that seamlessly integrates with the framework
-					of your choice.
+					It’s finally here: a fully-featured GraphQL framework that actually saves you time
 				</p>
 				<p class="hero-subtext">
-					Start with a schema. Write queries and let Houdini take care of the rest. Fully automatic
-					and totally customizable. <b>Declarative</b>, <b>Composable</b>, <b>Typesafe</b>.
-					First-class support for
+					Houdini is a web application framework built from the ground up for GraphQL. Stop worrying
+					about waterfalls, code-splitting, you name it. Fully automatic and totally customizable.
+					<b>Declarative</b>, <b>Composable</b>, <b>Typesafe</b>. First-class support for
 					<a data-sveltekit-preload-data href="/api/fragments">Fragments</a>,
 					<a data-sveltekit-preload-data href="/api/subscription">Subscriptions</a>,
 					<a data-sveltekit-preload-data href="/guides/pagination">Pagination</a>,
@@ -62,24 +61,13 @@
 				<div class="hero-dive-in">
 					<p>Dive in:</p>
 					<nav class="framework-links">
+						<a data-sveltekit-preload-data href="#disabled">
+							<img src="/images/react.svg" alt="react" width="20px" aria-hidden="true" />
+							React
+						</a>
 						<a data-sveltekit-preload-data href="/intro">
 							<img src="/images/svelte.svg" alt="svelte" width="20px" aria-hidden="true" />
 							SvelteKit
-						</a>
-						<a data-sveltekit-preload-data href="#disabled" disabled>
-							<img src="/images/react.svg" alt="react" width="20px" aria-hidden="true" />
-							Next
-							<div class="coming-soon">Coming Soon</div>
-						</a>
-						<a data-sveltekit-preload-data href="#disabled" disabled>
-							<img src="/images/vue.svg" alt="vue" width="20px" aria-hidden="true" />
-							Nuxt
-							<div class="coming-soon">Coming Soon</div>
-						</a>
-						<a data-sveltekit-preload-data href="#disabled" disabled>
-							<img src="/images/solid.svg" alt="solid" width="20px" aria-hidden="true" />
-							SolidStart
-							<div class="coming-soon">Coming Soon</div>
 						</a>
 					</nav>
 				</div>
@@ -298,17 +286,17 @@
 		gap: 94px;
 	}
 
-	.hero > div {
-		display: flex;
-		flex-direction: column;
-		width: 10px;
-		justify-content: space-between;
-	}
-
 	.hero > *:first-child {
 		flex-grow: 5;
 		padding-bottom: 35px;
 		width: 10px;
+	}
+
+	.hero-text-container {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		gap: 40px;
 	}
 
 	:global(.splash-code-sample) {
