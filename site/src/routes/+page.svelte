@@ -47,9 +47,9 @@
 					It’s finally here: a fully-featured GraphQL framework that actually saves you time
 				</p>
 				<p class="hero-subtext">
-					Houdini is a web application framework built from the ground up for GraphQL. It blends
-					GraphQL client and router so you can stop worrying about waterfalls, code-splitting, and
-					so much more. Fully automatic and totally customizable.
+					Houdini is a web application framework built from the ground up for GraphQL. It unifies
+					your GraphQL client and application router so you can stop worrying about waterfalls,
+					code-splitting, and so much more. Fully automatic and totally customizable.
 					<b>Declarative</b>, <b>Composable</b>, <b>Typesafe</b>. First-class support for
 					<a data-sveltekit-preload-data href="/api/fragments">Fragments</a>,
 					<a data-sveltekit-preload-data href="/api/subscription">Subscriptions</a>,
@@ -101,8 +101,16 @@
 				<h2>GraphQL, simplified</h2>
 				<p>
 					GraphQL makes a lot of promises but the other clients expect you to go though a silly
-					amount of ceremony to see the benefits. Houdini integrates tightly in your existing tool
-					chain to remove as much of the complexity as possible without compromising on features.
+					amount of ceremony to see the benefits. By unifying your GraphQL client and application
+					router, Houdini removes as much of the complexity as possible without compromising on
+					features.
+				</p>
+			</Block>
+			<Block class="splash-block">
+				<h2>Declarative</h2>
+				<p>
+					Updates to your application cache are made with a set of declarative fragments that avoid
+					the surgical logic necessary to keep your application up to date.
 				</p>
 			</Block>
 			<Block class="splash-block">
@@ -120,13 +128,6 @@
 					Houdini generates types for every document in your application. If you are a TypeScript
 					person, you won't have to juggle any generic parameters or mess with complicated paths. If
 					you prefer JSDocs, eveything just works.
-				</p>
-			</Block>
-			<Block class="splash-block">
-				<h2>Declarative</h2>
-				<p>
-					Updates to your application cache are made with a set of declarative fragments that avoid
-					the surgical logic necessary to keep your application up to date.
 				</p>
 			</Block>
 		</div>

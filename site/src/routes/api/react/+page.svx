@@ -9,9 +9,11 @@ description: Documentation for Houdini's application framework
 
 # React Framework
 
-This page is currently the best place to go for documentation on Houdini's React framework.
-Eventually this content will be merged in with the rest of this site but that will take time. If you
-want to help with that effort, please reach out!
+This page is currently the best place to go for documentation on Houdini's React framework. While most of the
+[guides](/guides) apply to both React and SvelteKit, the API section is very much gear towards SvelteKit users.
+Eventually this content will be merged in with the rest of this site but that will take time. Until then, use
+this document as the initial place in your search before looking at other options. Also keep in mind this document
+is not organized as an introduction but more of a reference. Don't worry - there will be a more guided introduction soon.
 
 <Warning>
 
@@ -107,6 +109,10 @@ since parameters are matched 'greedily' and the optional parameter would always 
 
 </DeepDive>
 
+### Route Groups
+
+docs TBD
+
 ## Loading data
 
 Just like views are defined in page and layout variants, your applications queries
@@ -124,14 +130,15 @@ Just like their equivalent view component, layout queries are designed to "wrap"
 accessible by any child (or sibling) page or layout component.
 
 To access the value of a query, your component just needs to accept a prop with the appropriate name.
-Since this works off of very simple static analysis, your component props must be spread out from the
+This could be one query or as many as you have defined. Keep in mind that since this works off of very
+simple static analysis, your component props must be spread out from the
 argument like so:
 
 ```jsx:title=src/routes/shows/+page.tsx&typescriptToggle=true
 export default function ({ ShowList }) {
     return (
         <>
-            {ShowList.map(show => (
+            {ShowList.shows.map(show => (
                 <div>
                     {show.title}
                 </div>
@@ -141,10 +148,143 @@ export default function ({ ShowList }) {
 }
 ```
 
-An arrow function would have also worked as long as it had `{ ShowList }`
+An arrow function would have also worked as long as it had `{ ShowList }` or `{ ShowList, AnotherQuery }`
 
+### Query Variables
 
-## Special Thanks
+If your query contains variables with the same name as a [route parameter](#route-parameters), Houdini will wire the two up.
 
-Special thanks to the whole Svelte team for being a constant source of inspiration. Houdini would not have been possible
-without their tireless effort on SvelteKit and its documentation (which inspired a lot of the content in this site)
+For example, all you need to do is define this query at `src/routes/show/[id]/+page.gql` and you can visit `/show/123` or `/show/abc`:
+
+```graphql:title=src/routes/show/[id]/+page.gql
+query ShowInfo($id: ID!) {
+    show(id: $id) {
+        name
+    }
+}
+```
+
+### Imperative Handles
+
+Sometimes you need to perform some imperative task on a query (refetching, loading the next page, etc). For these
+situations, you should use the `$handle` variant on the query prop. For example:
+
+```jsx:title=src/routes/shows/+page.tsx&typescriptToggle=true
+export default function ({ ShowList$handle }) {
+    return (
+        <>
+            <button onClick={ShowList$handle.loadNextPage}>
+                Load Next
+            </button>
+            {ShowList.shows.map(show => (
+                <div>
+                    {show.title}
+                </div>
+            ))}
+        </>
+    )
+}
+```
+
+### Loading States
+
+Loading states are one of Houdini's most powerful features. Apart from one important difference, all of the information in the
+[guide on loading states](/guides/loading-states) applies to the react framework. Hopefully you didn't just click that link because
+it's important to remember that you have to use `isPending` from the `$houdini` package when identifying a pending value. What you
+see in that guide (checking if `=== PendingValue`) won't work with React 18.2.
+
+Another thing to keep in mind is that for the React framework, the presence of `@loading` implies the existence of a suspense boundary
+in your component hierarchy. I know that last sentence might not be totally clear but explaining it more thoroughly will take time so
+please be patient.
+
+## Mutations
+
+Mutations are defined by simply wrapping the result of `graphql` in `useMutation`:
+
+```tsx:title=src/routes/shows/[id]/edit/+page.jsx
+import { graphql, useMutation } from "$houdini";
+
+export default function EditShow({ AllShows }) {
+  const [one, setOne] = React.useState("");
+  const [two, setTwo] = React.useState("");
+
+  const mutate = useMutation(graphql(`
+      mutation OneTwo($one: String!, $two: String!) {
+        do(one: $one, two: $two)
+      }
+  `))
+
+  return (
+    <form onSubmit={() => mutate({one, two})}>
+      <input value={one} onChange={(e) => setOne(e.target.value)} />
+      <input value={two} onChange={(e) => setTwo(e.target.value)} />
+      <button type=“submit">submit</button>
+    </form>
+  )
+}
+```
+
+## Fragments
+
+Fragments are defined inside of the `useFragment` hook:
+
+```tsx:title=src/components/ShowCard.tsx
+import { graphql, useMutation } from "$houdini";
+
+export  function ShowCard(props: { show: ShowCardInfo }) {
+  const data = useFragment(props.show, graphql(`
+    fragment ShowCardInfo on Show {
+        name
+    }
+  `))
+
+  return (
+    <div>
+        {data.name}
+    </div>
+  )
+}
+```
+
+And then can be passed to your graphql query:
+
+```graphql:title=src/routes/show/[id]/+page.gql
+query ShowInfo($id: ID!) {
+    show(id: $id) {
+        ...ShowCardInfo
+    }
+}
+```
+
+And then threaded through to the component:
+
+```tsx:title=src/routes/show/[id]/+page.tsx
+export default function ShowInfoView({ ShowInfo }) {
+    return (
+        <ShowCard show={ShowInfo.show} />
+    )
+}
+```
+
+## Deployment
+
+Deployment of your application is handled by an "adapter" - a simple function that
+prepares your project for deployment. Adapters are passed to your application through
+the vite plugin:
+
+```javascript:title=vite.config.js
+import { sveltekit } from '@sveltejs/kit/vite'
+import houdini from 'houdini/vite'
+import adapter from 'houdini-adapter-cloudflare'
+
+/** @type {import('vite').UserConfig} */
+const config = {
+    plugins: [houdini( { adapter } ), ... ]
+}
+
+export default config
+```
+
+Here is a list of the available adapters:
+
+- `houdini-adapter-cloudflare`: builds your application to run on Cloudflare Pages
