@@ -1,4 +1,10 @@
-import { type Config, path, routerConventions, ProjectManifest, QueryManifest } from 'houdini'
+import {
+	path,
+	routerConventions,
+	type Config,
+	type ProjectManifest,
+	type QueryManifest,
+} from 'houdini'
 
 import { parse_page_pattern } from '../../runtime/routing/lib/match'
 import { dedent } from '../dedent'

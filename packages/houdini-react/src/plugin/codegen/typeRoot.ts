@@ -1,4 +1,4 @@
-import { type Config, path, fs, PageManifest, ProjectManifest } from 'houdini'
+import { path, fs, type Config, type PageManifest, type ProjectManifest } from 'houdini'
 
 import { dedent } from '../dedent'
 

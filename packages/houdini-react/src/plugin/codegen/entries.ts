@@ -5,9 +5,9 @@ import {
 	printJS,
 	path,
 	routerConventions,
-	ProjectManifest,
-	PageManifest,
-	QueryManifest,
+	type ProjectManifest,
+	type PageManifest,
+	type QueryManifest,
 } from 'houdini'
 
 export async function generate_entries({

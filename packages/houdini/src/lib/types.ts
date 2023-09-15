@@ -23,7 +23,7 @@ import type {
 } from '../runtime/lib/types'
 import type { TransformPage } from '../vite/houdini'
 import type { Config } from './config'
-import { Adapter } from './router'
+import type { Adapter } from './router'
 
 type Program = recast.types.namedTypes.Program
 

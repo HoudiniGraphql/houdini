@@ -8,7 +8,6 @@ import {
 	read_pageView,
 	read_pageQuery,
 	page_id,
-	serialized_manifest_path,
 } from './conventions'
 
 /**

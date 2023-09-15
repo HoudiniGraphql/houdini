@@ -1,5 +1,5 @@
 // a serialized version of the manifest is used during the build process to configure
-import { Config, ProjectManifest, fs, routerConventions } from 'houdini'
+import { type Config, type ProjectManifest, fs, routerConventions } from 'houdini'
 
 // vite to see every entry point
 export async function write_manifest({

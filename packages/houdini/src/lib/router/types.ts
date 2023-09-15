@@ -1,5 +1,5 @@
-import { routerConventions } from '.'
-import { Config } from '../config'
+import type { routerConventions } from '.'
+import type { Config } from '../config'
 
 export type Adapter = (args: {
 	config: Config
