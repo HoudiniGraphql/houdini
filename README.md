@@ -59,7 +59,7 @@
 -   Pagination (cursors **and** offsets)
 
 At its core, houdini seeks to enable a high quality developer experience
-without compromising bundle size. Like Svelte, houdini shifts what is
+without compromising bundle size. Houdini shifts what is
 traditionally handled by a bloated runtime into a compile step that allows
 for the generation of an incredibly lean GraphQL abstraction for your application.
 
