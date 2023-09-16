@@ -94,26 +94,26 @@ export function Router({
 		}
 	}, [])
 
-	// the function to call to load the data for the given url without actually navigating
-	function preload(url: string, which: PreloadWhichValue) {
-		// there are 2 things that we could preload: the page component and the data
-
-		// look for the matching route information
-		const [page, variables] = find_match(manifest, url)
-
-		// load the page component if necessary
-		if (['both', 'component'].includes(which)) {
-			loadComponent(page)
-		}
-
-		// load the page component if necessary
-		if (['both', 'data'].includes(which)) {
-			loadData(page, variables)
-		}
-	}
-
 	// links are powered using anchor tags that we intercept and handle ourselves
-	useLinkBehavior({ goto: setCurrent, preload })
+	useLinkBehavior({
+		goto: setCurrent,
+		preload(url: string, which: PreloadWhichValue) {
+			// there are 2 things that we could preload: the page component and the data
+
+			// look for the matching route information
+			const [page, variables] = find_match(manifest, url)
+
+			// load the page component if necessary
+			if (['both', 'component'].includes(which)) {
+				loadComponent(page)
+			}
+
+			// load the page component if necessary
+			if (['both', 'data'].includes(which)) {
+				loadData(page, variables)
+			}
+		},
+	})
 
 	// TODO: cleanup navigation caches
 	// render the component embedded in the necessary context so it can orchestrate
