@@ -85,6 +85,30 @@ export default ({ children }) => {
 
 Links between pages are defined using standard `<a>` tags.
 
+#### Preloading
+
+You can opt-into preloading links on a case by case basis by adding `data-houdini-preload`:
+
+```html
+<a href="/shows" data-houdini-preload>
+```
+
+Houdini will detect when the user hovers over this element and fetch whatever is necessary to
+render the page before they click on the link. By default, this means loading both the page component
+source as well sending the actual query.
+
+You can customize this by setting the prop to one of 3 values:
+
+- `"data"`: only request the page's data
+- `"component"`: only request the page's component source
+- `"both"`: request both values. This is the default.
+
+For example,
+
+```html
+<a href="/shows" data-houdini-preload="data">
+```
+
 ### Route Parameters
 
 Dynamic portions of a route can be labeled using square brackets. For example `src/routes/show/[id]/+page`
