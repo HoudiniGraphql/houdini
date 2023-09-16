@@ -101,7 +101,7 @@ You can customize this by setting the prop to one of 3 values:
 
 - `"data"`: only request the page's data
 - `"component"`: only request the page's component source
-- `"both"`: request both values. This is the default.
+- `"page"`: request all of the assets for the page. This is the default.
 
 For example,
 

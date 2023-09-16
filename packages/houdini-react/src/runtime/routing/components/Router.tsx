@@ -15,7 +15,7 @@ import type { RouterManifest, RouterPageManifest } from '../lib/types'
 const PreloadWhich = {
 	component: 'component',
 	data: 'data',
-	both: 'both',
+	page: 'page',
 } as const
 
 type PreloadWhichValue = (typeof PreloadWhich)[keyof typeof PreloadWhich]
@@ -589,13 +589,13 @@ function usePreload({ preload }: { preload: (url: string, which: PreloadWhichVal
 			let preloadWhichRaw = target.attributes.getNamedItem('data-houdini-preload')?.value
 			let preloadWhich: PreloadWhichValue =
 				!preloadWhichRaw || preloadWhichRaw === 'true'
-					? 'both'
+					? 'page'
 					: (preloadWhichRaw as PreloadWhichValue)
 
 			// validate the preload option
 			if (!PreloadWhich[preloadWhich]) {
 				console.log(
-					`invalid preload value "${preloadWhich}" must be "${PreloadWhich.component}", "${PreloadWhich.data}", or "${PreloadWhich.both}"`
+					`invalid preload value "${preloadWhich}" must be "${PreloadWhich.component}", "${PreloadWhich.data}", or "${PreloadWhich.page}"`
 				)
 				return
 			}
