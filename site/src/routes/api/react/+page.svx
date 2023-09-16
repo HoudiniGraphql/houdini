@@ -10,14 +10,14 @@ description: Documentation for Houdini's application framework
 # React Framework
 
 This page is currently the best place to go for documentation on Houdini's React framework. While most of the
-[guides](/guides) apply to both React and SvelteKit, the API section is very much gear towards SvelteKit users.
+[guides](/guides) apply to both React and SvelteKit, the API section is very much geared towards SvelteKit users.
 Eventually this content will be merged in with the rest of this site but that will take time. Until then, use
 this document as the initial place in your search before looking at other options. Also keep in mind this document
 is not organized as an introduction but more of a reference. Don't worry - there will be a more guided introduction soon.
 
 <Warning>
 
-Houdini's React binding are still considered unstable and are subject to change with every patch update (the third number).
+Houdini's React bindings are still considered unstable and are subject to change with every patch update (the third number).
 If you are building stuff with it, please check the changelog for any updates or pin to a specific version.
 
 </Warning>
@@ -44,12 +44,12 @@ cd <project name> && npm i && npm run dev
 
 ## Routing
 
-At the core of a Houdini application is a filesystem-based located at `src/routes`. You will use it to encode your applications
+At the core of a Houdini application is a filesystem-based router located at `src/routes`. You will use it to encode your applications
 visual skeleton as well as its data requirements. Routes in houdini are directory-based. That is to say:
 
 - `src/routes` is the root route
 - `src/routes/shows` corresponds to a route at `/shows`
-- `src/routes/show/[id]` defines a route with a paramter, `id`, that matches a pattern such as `/show/1234`
+- `src/routes/show/[id]` defines a route with a parameter, `id`, that matches a pattern such as `/show/1234`
 
 Each route is defined by the presence of any number of magic files (all of which are conventionally prefixed with `+`).
 
