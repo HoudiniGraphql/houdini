@@ -5,8 +5,12 @@ export default function ({ children }: LayoutProps) {
 		<div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 			Layout!
 			<div>
-				<a href="/">Sponsors</a>
-				<a href="/links">Links</a>
+				<a href="/" data-houdini-preload>
+					Sponsors
+				</a>
+				<a href="/links" data-houdini-preload>
+					Links
+				</a>
 			</div>
 			<div>{children}</div>
 		</div>
