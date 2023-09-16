@@ -290,6 +290,47 @@ export default function ShowInfoView({ ShowInfo }) {
 }
 ```
 
+## Authenticating Users / User Sessions
+
+The challenge when building user sessions in a modern app is how to share that information between
+the server and client. Really, there is only one answer once security starts mattering: `httpOnly` cookies. While traditionally
+apps could use local storage for this, the initial request (the one that gets rendered on the server) doesn't have access to
+the client's local storage and so we must rely on something that's automatically included in the initial response.
+
+Wiring up everything up by hand _is_ possible in Houdini but it can be cumbersome and error prone. In order to help, Houdini
+provides a few strategies out of the box that we hope covers most situations. Once you have configured your strategy, you
+can use the session in your client as shown [here](/api/client).
+
+- [Redirect Based Authentication](#redirect-based-authentication) - Users authorize with a third party provider which then redirects the user back to
+the Houdini application with any number of query parameters that define the session
+- Mutation Based Authentication (not yet implemented) - Users authorize by sending a mutation to the api. The session is
+defined by one of the fields in the response
+
+### Redirect Based Authentication
+
+To configure your application to use a redirect-based strategy, you must set the `auth` field of the plugin to an object
+like so:
+
+```javascript:title=vite.config.js
+/// <references types="houdini-react">
+/** @type {import('houdini').ConfigFile} */
+const config = {
+	plugins: {
+		'houdini-react': {
+			auth: {
+                // the URL that the user will be redirected to by the third-party provider
+				redirect: '/auth/token',
+                // the secret to use for signing/unsigning the session
+				sessionKeys: ['supersecret'],
+			},
+		},
+	},
+}
+
+export default config
+```
+
+
 ## Deployment
 
 Deployment of your application is handled by an "adapter" - a simple function that
