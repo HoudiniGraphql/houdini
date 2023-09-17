@@ -1,5 +1,6 @@
 // This function defines the primary entrypoint for requests
 import type { ConfigFile } from '../lib'
+import { parse } from './cookies'
 import { decode, encode, verify } from './jwt'
 
 type ServerHandlerArgs = {
@@ -85,7 +86,11 @@ async function set_session(req: ServerHandlerArgs, value: App.Session) {
 
 export async function get_session(req: Headers, secrets: string[]): Promise<App.Session> {
 	// get the cookie header
-	const cookie = req.get('cookie')
+	const cookies = req.get('cookie')
+	if (!cookies) {
+		return {}
+	}
+	const cookie = parse(cookies)[session_cookie_name]
 	if (!cookie) {
 		return {}
 	}

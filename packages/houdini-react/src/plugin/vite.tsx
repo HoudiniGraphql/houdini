@@ -8,8 +8,9 @@ import {
 	type ProjectManifest,
 	load_manifest,
 	routerConventions,
+	get_session,
+	handle_request,
 } from 'houdini'
-import { get_session, handle_request } from 'houdini/router'
 import type { renderToStream as streamingRender } from 'react-streaming/server'
 import { InputOption } from 'rollup'
 import type { Connect, ViteDevServer } from 'vite'
