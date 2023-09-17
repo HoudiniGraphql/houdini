@@ -4,8 +4,6 @@
 
 type SubtleCryptoImportKeyAlgorithm = any
 
-if (typeof crypto === 'undefined' || !crypto.subtle) throw new Error('SubtleCrypto not supported!')
-
 /**
  * @typedef JwtAlgorithm
  * @type {'ES256'|'ES384'|'ES512'|'HS256'|'HS384'|'HS512'|'RS256'|'RS384'|'RS512'}
