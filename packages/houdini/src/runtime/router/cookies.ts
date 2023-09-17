@@ -22,6 +22,7 @@ let __toString = Object.prototype.toString
  * obs-text      = %x80-FF
  */
 
+// eslint-disable-next-line no-control-regex
 let fieldContentRegExp = /^[\u0009\u0020-\u007e\u0080-\u00ff]+$/
 
 /**
@@ -132,10 +133,10 @@ export function serialize(
 
 	let str = name + '=' + value
 
-	if (null != opt.maxAge) {
+	if (opt.maxAge !== null) {
 		let maxAge = opt.maxAge - 0
 
-		if (isNaN(maxAge) || !isFinite(maxAge)) {
+		if (Number.isNaN(maxAge) || !isFinite(maxAge)) {
 			throw new TypeError('option maxAge is invalid')
 		}
 
@@ -161,7 +162,7 @@ export function serialize(
 	if (opt.expires) {
 		let expires = opt.expires
 
-		if (!isDate(expires) || isNaN(expires.valueOf())) {
+		if (!isDate(expires) || Number.isNaN(expires.valueOf())) {
 			throw new TypeError('option expires is invalid')
 		}
 
