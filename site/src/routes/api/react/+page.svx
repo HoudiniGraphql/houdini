@@ -85,6 +85,30 @@ export default ({ children }) => {
 
 Links between pages are defined using standard `<a>` tags.
 
+#### Preloading
+
+You can opt-into preloading links on a case by case basis by adding `data-houdini-preload`:
+
+```html
+<a href="/shows" data-houdini-preload>
+```
+
+Houdini will detect when the user hovers over this element and fetch whatever is necessary to
+render the page before they click on the link. By default, this means loading both the page component
+source as well sending the actual query.
+
+You can customize this by setting the prop to one of 3 values:
+
+- `"data"`: only request the page's data
+- `"component"`: only request the page's component source
+- `"page"`: request all of the assets for the page. This is the default.
+
+For example,
+
+```html
+<a href="/shows" data-houdini-preload="data">
+```
+
 ### Route Parameters
 
 Dynamic portions of a route can be labeled using square brackets. For example `src/routes/show/[id]/+page`
@@ -265,6 +289,47 @@ export default function ShowInfoView({ ShowInfo }) {
     )
 }
 ```
+
+## Authenticating Users / User Sessions
+
+The challenge when building user sessions in a modern app is how to share that information between
+the server and client. Really, there is only one answer once security starts mattering: `httpOnly` cookies. While traditionally
+apps could use local storage for this, the initial request (the one that gets rendered on the server) doesn't have access to
+the client's local storage and so we must rely on something that's automatically included in the initial response.
+
+Wiring up everything up by hand _is_ possible in Houdini but it can be cumbersome and error prone. In order to help, Houdini
+provides a few strategies out of the box that we hope covers most situations. Once you have configured your strategy, you
+can use the session in your client as shown [here](/api/client).
+
+- [Redirect Based Authentication](#redirect-based-authentication) - Users authorize with a third party provider which then redirects the user back to
+the Houdini application with any number of query parameters that define the session
+- Mutation Based Authentication (not yet implemented) - Users authorize by sending a mutation to the api. The session is
+defined by one of the fields in the response
+
+### Redirect Based Authentication
+
+To configure your application to use a redirect-based strategy, you must set the `auth` field of the plugin to an object
+like so:
+
+```javascript:title=vite.config.js
+/// <references types="houdini-react">
+/** @type {import('houdini').ConfigFile} */
+const config = {
+	plugins: {
+		'houdini-react': {
+			auth: {
+                // the URL that the user will be redirected to by the third-party provider
+				redirect: '/auth/token',
+                // the secret to use for signing/unsigning the session
+				sessionKeys: ['supersecret'],
+			},
+		},
+	},
+}
+
+export default config
+```
+
 
 ## Deployment
 

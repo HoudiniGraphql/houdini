@@ -8,6 +8,8 @@ import {
 	type ProjectManifest,
 	load_manifest,
 	routerConventions,
+	get_session,
+	handle_request,
 } from 'houdini'
 import type { renderToStream as streamingRender } from 'react-streaming/server'
 import { InputOption } from 'rollup'
@@ -27,9 +29,6 @@ import { setManifest } from '.'
 // virtual:houdini/artifacts/[name] - An entry for loading an artifact and notifying the artifact cache
 import { RouterManifest } from '../runtime'
 import { find_match } from '../runtime/routing/lib/match'
-import { configure_server } from '../runtime/server'
-import { dev_server } from '../runtime/server/compat'
-import { get_session } from '../runtime/server/session'
 import { plugin_config } from './config'
 
 let manifest: ProjectManifest
@@ -182,22 +181,44 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 	// render that we will use in production. This means that we need to
 	// capture the request before vite's dev server processes it.
 	configureServer(server) {
-		// wrap vite's server into the generic server interface
-		const houdini_server = dev_server({
-			server: server.middlewares,
-			config: server.houdiniConfig,
-		})
-
-		// inject the necessary routes into vite's internal connect server
-		configure_server({
-			server: houdini_server,
-			config: server.houdiniConfig,
-		})
+		server.middlewares.use(houdini_server(server))
 
 		// any routes that aren't auth routes need to be rendered by the streaming handler
 		server.middlewares.use(render_stream(server))
 	},
 } as PluginHooks['vite']
+
+const houdini_server = (
+	server: ViteDevServer & {
+		houdiniConfig: Config
+	}
+): Connect.NextHandleFunction => {
+	return async (req, res, next) => {
+		if (!req.url) {
+			return next()
+		}
+
+		// pass the request onto the reusable hook from houdini
+		handle_request({
+			config: server.houdiniConfig.configFile,
+			session_keys: plugin_config(server.houdiniConfig).auth?.sessionKeys ?? [],
+			next,
+			url: req.url,
+			...res,
+			redirect(status: number = 307, url: string) {
+				// Respond with a redirect
+				res.statusCode = status
+				res.setHeader('location', url)
+				res.setHeader('content-length', '0')
+
+				// dont call next
+				return res.end()
+			},
+			get_header: res.getHeader.bind(res),
+			set_header: res.setHeader.bind(res),
+		})
+	}
+}
 
 const render_stream =
 	(

@@ -1,7 +1,7 @@
 import * as t from '@babel/types'
 import * as graphql from 'graphql'
 
-import { path, fs, parseJS, type Config } from '../'
+import { path, fs, parseJS, type Config } from '../lib'
 import {
 	read_layoutQuery,
 	read_layoutView,

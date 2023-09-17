@@ -12,6 +12,14 @@ import { SuspenseCache } from '../lib/cache'
 import { find_match } from '../lib/match'
 import type { RouterManifest, RouterPageManifest } from '../lib/types'
 
+const PreloadWhich = {
+	component: 'component',
+	data: 'data',
+	page: 'page',
+} as const
+
+type PreloadWhichValue = (typeof PreloadWhich)[keyof typeof PreloadWhich]
+
 /**
  * Router is the top level entry point for the filesystem-based router.
  * It is responsible for loading various page sources (including API fetches) and
@@ -50,7 +58,13 @@ export function Router({
 
 	// load the page assets (source, artifacts, data). this will suspend if the component is not available yet
 	// this hook embeds pending requests in context so that the component can suspend if necessary14
-	usePageData({ page, variables, loaded_queries, loaded_artifacts, assetPrefix })
+	const { loadData, loadComponent } = usePageData({
+		page,
+		variables,
+		loaded_queries,
+		loaded_artifacts,
+		assetPrefix,
+	})
 	// if we get this far, it's safe to load the component
 	const { component_cache } = useRouterContext()
 	const PageComponent = component_cache.get(page.id)!
@@ -81,7 +95,25 @@ export function Router({
 	}, [])
 
 	// links are powered using anchor tags that we intercept and handle ourselves
-	useAnchorIntercept({ goto: setCurrent })
+	useLinkBehavior({
+		goto: setCurrent,
+		preload(url: string, which: PreloadWhichValue) {
+			// there are 2 things that we could preload: the page component and the data
+
+			// look for the matching route information
+			const [page, variables] = find_match(manifest, url)
+
+			// load the page component if necessary
+			if (['both', 'component'].includes(which)) {
+				loadComponent(page)
+			}
+
+			// load the page component if necessary
+			if (['both', 'data'].includes(which)) {
+				loadData(page, variables)
+			}
+		},
+	})
 
 	// TODO: cleanup navigation caches
 	// render the component embedded in the necessary context so it can orchestrate
@@ -111,7 +143,10 @@ function usePageData({
 	loaded_queries?: Record<string, { data: GraphQLObject; variables: GraphQLVariables }>
 	loaded_artifacts?: Record<string, QueryArtifact>
 	assetPrefix: string
-}) {
+}): {
+	loadData: (page: RouterPageManifest, variables: {} | null) => void
+	loadComponent: (page: RouterPageManifest) => void
+} {
 	// grab context values
 	const {
 		client,
@@ -235,77 +270,95 @@ function usePageData({
 		return pending_cache.get(id)!
 	}
 
-	// if the variables have changed then we need to clear the data store (so we fetch again)
-	if (last_variables.has(page.id) && !deepEquals(last_variables.get(page.id), variables)) {
-		data_cache.clear()
-	}
-
-	// in order to avoid waterfalls, we need to kick off APIs requests in parallel
-	// to use loading any missing artifacts or the page component.
-
-	// group the necessary based on wether we have their artifact or not
-	const missing_artifacts: string[] = []
-	const found_artifacts: Record<string, QueryArtifact> = {}
-	for (const key of Object.keys(page.documents)) {
-		if (artifact_cache.has(key)) {
-			found_artifacts[key] = artifact_cache.get(key)!
-		} else {
-			missing_artifacts.push(key)
+	// the function that loads all of the data for a page using the caches
+	function loadData(targetPage: RouterPageManifest, variables: {} | null) {
+		// if the variables have changed then we need to clear the data store (so we fetch again)
+		if (
+			last_variables.has(targetPage.id) &&
+			!deepEquals(last_variables.get(targetPage.id), variables)
+		) {
+			data_cache.clear()
 		}
-	}
 
-	// any missing artifacts need to be loaded and then have their queries loaded
-	for (const artifact_id of missing_artifacts) {
-		// load the artifact
-		page.documents[artifact_id]
-			.artifact()
-			.then((mod) => {
-				// the artifact is the default export
-				const artifact = mod.default
+		// in order to avoid waterfalls, we need to kick off APIs requests in parallel
+		// to use loading any missing artifacts or the page component.
 
-				// save the artifact in the cache
-				artifact_cache.set(artifact_id, artifact)
-				if (loaded_artifacts) {
-					loaded_artifacts[artifact.name] = artifact
-				}
+		// group the necessary based on wether we have their artifact or not
+		const missing_artifacts: string[] = []
+		const found_artifacts: Record<string, QueryArtifact> = {}
+		for (const key of Object.keys(targetPage.documents)) {
+			if (artifact_cache.has(key)) {
+				found_artifacts[key] = artifact_cache.get(key)!
+			} else {
+				missing_artifacts.push(key)
+			}
+		}
 
-				// add a script to load the artifact
-				stream?.injectToStream(`
-					<script type="module" src="${assetPrefix}/artifacts/${artifact.name}.js" async=""></script>
-				`)
+		// any missing artifacts need to be loaded and then have their queries loaded
+		for (const artifact_id of missing_artifacts) {
+			// load the artifact
+			targetPage.documents[artifact_id]
+				.artifact()
+				.then((mod) => {
+					// the artifact is the default export
+					const artifact = mod.default
 
-				// now that we have the artifact, we can load the query too
+					// save the artifact in the cache
+					artifact_cache.set(artifact_id, artifact)
+					if (loaded_artifacts) {
+						loaded_artifacts[artifact.name] = artifact
+					}
+
+					// add a script to load the artifact
+					stream?.injectToStream(`
+						<script type="module" src="${assetPrefix}/artifacts/${artifact.name}.js" async=""></script>
+					`)
+
+					// now that we have the artifact, we can load the query too
+					load_query({ id: artifact.name, artifact })
+				})
+				.catch((err) => {
+					// TODO: handle error
+					console.log(err)
+				})
+		}
+
+		// we need to make sure that every artifact we found is loaded
+		// or else we need to load the query
+		for (const artifact of Object.values(found_artifacts)) {
+			// if we don't have the query, load it
+			if (!data_cache.has(artifact.name)) {
 				load_query({ id: artifact.name, artifact })
-			})
-			.catch((err) => {
-				// TODO: handle error
-				console.log(err)
-			})
-	}
-
-	// we need to make sure that every artifact we found is loaded
-	// or else we need to load the query
-	for (const artifact of Object.values(found_artifacts)) {
-		// if we don't have the query, load it
-		if (!data_cache.has(artifact.name)) {
-			load_query({ id: artifact.name, artifact })
+			}
 		}
 	}
 
 	// if we don't have the component then we need to load it, save it in the cache, and
 	// then suspend with a promise that will resolve once its in cache
-	if (!component_cache.has(page.id)) {
-		throw new Promise<void>((resolve, reject) => {
-			page.component()
-				.then((mod) => {
-					// save the component in the cache
-					component_cache.set(page.id, mod.default)
+	async function loadComponent(targetPage: RouterPageManifest) {
+		// if we already have the component, don't do anything
+		if (component_cache.has(targetPage.id)) {
+			return
+		}
 
-					// we're done
-					resolve()
-				})
-				.catch(reject)
-		})
+		// load the component and then save it in the cache
+		const mod = await targetPage.component()
+
+		// save the component in the cache
+		component_cache.set(targetPage.id, mod.default)
+	}
+
+	// kick off requests for the current page
+	loadData(page, variables)
+
+	// if we haven't loaded the component yet, suspend and do so
+	if (!component_cache.has(page.id)) {
+		throw loadComponent(page)
+	}
+
+	return {
+		loadData,
+		loadComponent,
 	}
 }
 
@@ -452,13 +505,32 @@ export function useQueryResult<_Data extends GraphQLObject, _Input extends Graph
 	return [data, observer]
 }
 
-function useAnchorIntercept({ goto }: { goto: (url: string) => void }) {
+function useLinkBehavior({
+	goto,
+	preload,
+}: {
+	goto: (url: string) => void
+	preload: (url: string, which: PreloadWhichValue) => void
+}) {
+	// always use the click handler
+	useLinkNavigation({ goto })
+
+	// only use the preload handler if the browser hasn't chosen to reduce data usage
+	// this doesn't break the rule of hooks because it will only ever have one value
+	// in the lifetime of the app
+	// @ts-ignore
+	if (!globalThis.navigator?.connection?.saveData) {
+		usePreload({ preload })
+	}
+}
+
+function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 	// navigations need to be registered as transitions
 	const [pending, startTransition] = React.useTransition()
 
 	React.useEffect(() => {
-		let onClick: HTMLAnchorElement['onclick'] = (e) => {
-			let link = (e.target as HTMLElement | null | undefined)?.closest('a')
+		const onClick: HTMLAnchorElement['onclick'] = (e) => {
+			const link = (e.target as HTMLElement | null | undefined)?.closest('a')
 
 			// we only want to capture a "normal click" ie something that indicates a route transition
 			// in the current tab
@@ -497,6 +569,56 @@ function useAnchorIntercept({ goto }: { goto: (url: string) => void }) {
 		document.addEventListener('click', onClick)
 		return () => {
 			document.removeEventListener('click', onClick!)
+		}
+	}, [])
+}
+
+function usePreload({ preload }: { preload: (url: string, which: PreloadWhichValue) => void }) {
+	const timeoutRef: React.MutableRefObject<NodeJS.Timeout | null> = React.useRef(null)
+
+	// if the mouse pauses on an element for 20ms then we register it as a hover
+	// this avoids that annoying double tap on mobile when the click captures the hover
+	React.useEffect(() => {
+		const mouseMove: HTMLAnchorElement['onmousemove'] = (e) => {
+			const target = e.target
+			if (!(target instanceof HTMLAnchorElement)) {
+				return
+			}
+
+			// if the anchor doesn't allow for preloading, don't do anything
+			let preloadWhichRaw = target.attributes.getNamedItem('data-houdini-preload')?.value
+			let preloadWhich: PreloadWhichValue =
+				!preloadWhichRaw || preloadWhichRaw === 'true'
+					? 'page'
+					: (preloadWhichRaw as PreloadWhichValue)
+
+			// validate the preload option
+			if (!PreloadWhich[preloadWhich]) {
+				console.log(
+					`invalid preload value "${preloadWhich}" must be "${PreloadWhich.component}", "${PreloadWhich.data}", or "${PreloadWhich.page}"`
+				)
+				return
+			}
+
+			// if we already have a timeout, remove it
+			if (timeoutRef.current) {
+				clearTimeout(timeoutRef.current)
+			}
+
+			// set the new timeout to track _this_ anchor
+			timeoutRef.current = setTimeout(() => {
+				const url = target.attributes.getNamedItem('href')?.value
+				if (!url) {
+					return
+				}
+				preload(url, preloadWhich)
+			}, 20)
+		}
+
+		// register/cleanup the event handler
+		document.addEventListener('mousemove', mouseMove)
+		return () => {
+			document.removeEventListener('mousemove', mouseMove)
 		}
 	}, [])
 }
