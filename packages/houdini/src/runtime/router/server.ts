@@ -48,7 +48,6 @@ async function redirect_auth(args: ServerHandlerArgs) {
 	}
 
 	// move onto the next thing
-	console.log('calling next in redirect_auth')
 	args.next()
 }
 

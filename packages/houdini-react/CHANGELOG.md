@@ -2,20 +2,24 @@
 
 ## 1.2.11
 
-### Patch Changes
+### ✨ Features
 
 -   [#1158](https://github.com/HoudiniGraphql/houdini/pull/1158) [`daa13c1c`](https://github.com/HoudiniGraphql/houdini/commit/daa13c1cc5f5ead19cff61c37d1b39bd36c4d139) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add ability to opt-into preloading a specific link with data-houdini-preload
+
+### Dependency Changes
 
 -   Updated dependencies []:
     -   houdini@1.2.11
 
 ## 1.2.10
 
-### Patch Changes
+### ✨ Features
 
--   [#1155](https://github.com/HoudiniGraphql/houdini/pull/1155) [`adf90d3`](https://github.com/HoudiniGraphql/houdini/commit/adf90d3c3406c79c9b07060c764bf41289bf2a38) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add cloudflare adapter
+-   [#1155](https://github.com/HoudiniGraphql/houdini/pull/1155) [`adf90d3`](https://github.com/HoudiniGraphql/houdini/commit/adf90d3c3406c79c9b07060c764bf41289bf2a38) @AlecAivazis - Add cloudflare adapter
 
--   [#1152](https://github.com/HoudiniGraphql/houdini/pull/1152) [`6b9fbb7`](https://github.com/HoudiniGraphql/houdini/commit/6b9fbb7a9ce3e0fdf45637e76f2e5c9a2bc58e98) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Remove Link component in favor of event delegation
+-   [#1152](https://github.com/HoudiniGraphql/houdini/pull/1152) [`6b9fbb7`](https://github.com/HoudiniGraphql/houdini/commit/6b9fbb7a9ce3e0fdf45637e76f2e5c9a2bc58e98) @AlecAivazis - Remove Link component in favor of event delegation
+
+### Dependency Changes
 
 -   Updated dependencies [[`adf90d3`](https://github.com/HoudiniGraphql/houdini/commit/adf90d3c3406c79c9b07060c764bf41289bf2a38), [`adf90d3`](https://github.com/HoudiniGraphql/houdini/commit/adf90d3c3406c79c9b07060c764bf41289bf2a38)]:
     -   houdini@1.2.10
