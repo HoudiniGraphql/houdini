@@ -4,7 +4,7 @@
 
 ### ✨ Features
 
--   [#1158](https://github.com/HoudiniGraphql/houdini/pull/1158) [`daa13c1c`](https://github.com/HoudiniGraphql/houdini/commit/daa13c1cc5f5ead19cff61c37d1b39bd36c4d139) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add ability to opt-into preloading a specific link with data-houdini-preload
+-   [#1158](https://github.com/HoudiniGraphql/houdini/pull/1158) [`daa13c1c`](https://github.com/HoudiniGraphql/houdini/commit/daa13c1cc5f5ead19cff61c37d1b39bd36c4d139) @AlecAivazis - Add ability to opt-into preloading a specific link with data-houdini-preload
 
 ### Dependency Changes
 
