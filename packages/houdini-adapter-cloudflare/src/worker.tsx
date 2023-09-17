@@ -1,15 +1,12 @@
-import { ExportedHandler } from '@cloudflare/workers-types'
-import { parse } from 'cookie'
-import type { QueryArtifact } from 'houdini'
+import type { ExportedHandler } from '@cloudflare/workers-types'
 import { renderToStream } from 'react-streaming/server'
 
 // The following imports local assets from the generated runtime
 // This is not the desired API. just the easiest way to get this working
 // and validate the rendering strategy
 //
-//
 // @ts-expect-error
-import { router_cache } from '../$houdini'
+import { router_cache } from '../$houdini/plugins/houdini-react/runtime'
 // @ts-expect-error
 import manifest from '../$houdini/plugins/houdini-react/runtime/manifest'
 // @ts-expect-error
@@ -18,6 +15,19 @@ import { find_match } from '../$houdini/plugins/houdini-react/runtime/routing/li
 import App from '../$houdini/plugins/houdini-react/units/render/App'
 // @ts-expect-error
 import { Cache } from '../$houdini/runtime/cache/cache.js'
+// @ts-expect-error
+import { getCurrentConfig } from '../$houdini/runtime/lib/config'
+import {
+	handle_request,
+	get_session, // @ts-expect-error
+} from '../$houdini/runtime/router/server'
+
+// load the plugin config
+const configFile = getCurrentConfig()
+// @ts-ignore
+const plugin_config = configFile.plugins?.['houdini-react'] ?? {}
+
+const session_keys = plugin_config.auth?.sessionKeys ?? []
 
 const handlers: ExportedHandler = {
 	async fetch(req, env: any, ctx) {
@@ -29,9 +39,50 @@ const handlers: ExportedHandler = {
 			return await env.ASSETS.fetch(req)
 		}
 
+		// we might need to pass the request onto houdini's internal router
+		const server_response = await internal_router(req)
+		if (server_response) {
+			return server_response
+		}
+
 		// otherwise we just need to render the application
 		return await render_app(req)
 	},
+}
+
+async function internal_router(request: Parameters<Required<ExportedHandler>['fetch']>[0]) {
+	// build up the response that wraps houdini's internal logic
+	let response = new Response()
+	let use_response = false
+
+	await handle_request({
+		config: configFile,
+		session_keys,
+		url: new URL(request.url).pathname,
+		redirect: (status: number, location: string) => {
+			const old_headers = response.headers
+
+			// the response is now a redirect
+			response = Response.redirect(location, status)
+
+			// preserve the old headers
+			for (const [key, value] of Object.entries(old_headers)) {
+				response.headers.set(key, value)
+			}
+		},
+		set_header(key: string, value: string) {
+			response.headers.set(key, value.toString())
+		},
+		get_header: (key: string) => request.headers.get(key) ?? undefined,
+		next() {
+			use_response = false
+		},
+	})
+
+	// if no one called next, we need to return the response
+	if (use_response) {
+		return response
+	}
 }
 
 async function render_app(request: Parameters<Required<ExportedHandler>['fetch']>[0]) {
@@ -39,8 +90,7 @@ async function render_app(request: Parameters<Required<ExportedHandler>['fetch']
 	const url = new URL(request.url).pathname
 
 	// load the session cookie
-	const cookie = parse(request.headers.get('Cookie') || '')['houdini-session']
-	const session = cookie ? JSON.parse(cookie) : null
+	const session = await get_session(request.headers, session_keys)
 
 	// find the matching url
 	const [match] = find_match(manifest, url, true)

@@ -87,7 +87,9 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			console.log('🎩 Generating Deployment Assets...')
 
 			// before we can invoke the adpater we need to ensure the build directory is present
-			await fs.rmdir(config.routerBuildDirectory)
+			if ((await fs.stat(config.routerBuildDirectory))?.isDirectory()) {
+				await fs.rmdir(config.routerBuildDirectory)
+			}
 			await fs.mkdirp(config.routerBuildDirectory)
 
 			// invoke the adapter
