@@ -2,7 +2,7 @@ import * as t from '@babel/types'
 import * as graphql from 'graphql'
 
 import { path, fs, parseJS, type Config } from '../lib'
-import { ProjectManifest, PageManifest, QueryManifest } from '../runtime/lib/types'
+import type { ProjectManifest, PageManifest, QueryManifest } from '../runtime/lib/types'
 import {
 	read_layoutQuery,
 	read_layoutView,

@@ -1,5 +1,5 @@
 import type * as graphql from 'graphql'
-import path from 'path'
+import path from 'node:path'
 import { build } from 'vite'
 
 import type { Config } from '../lib/config'

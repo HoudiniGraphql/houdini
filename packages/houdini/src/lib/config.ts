@@ -3,8 +3,7 @@ import * as graphql from 'graphql'
 import minimatch from 'minimatch'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
-import { load_manifest } from '.'
-import type { CachePolicies, ConfigFile, PaginateModes, ProjectManifest } from '../runtime/lib'
+import type { CachePolicies, ConfigFile, PaginateModes } from '../runtime/lib'
 import { CachePolicy, PaginateMode } from '../runtime/lib'
 import {
 	computeID,

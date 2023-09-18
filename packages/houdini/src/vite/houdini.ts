@@ -1,7 +1,6 @@
-import * as graphql from 'graphql'
+import type * as graphql from 'graphql'
 import type { SourceMapInput } from 'rollup'
 import type { Plugin as VitePlugin, UserConfig, ResolvedConfig, ConfigEnv } from 'vite'
-import { build } from 'vite'
 
 import generate from '../codegen'
 import type { Config, PluginConfig } from '../lib'
