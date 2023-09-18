@@ -19,7 +19,7 @@
 		"@cloudflare/workers-types": "^4.20230904.0",
 		"@graphql-tools/schema": "^9.0.4",
 		"cookie": "^0.5.0",
-		"graphql-yoga": "^3.9.1",
+		"graphql-yoga": "^4.0.4",
 		"houdini": "workspace:^",
 		"houdini-adapter-cloudflare": "workspace:^",
 		"houdini-react": "workspace:^",
