@@ -40,16 +40,18 @@ export async function load_manifest(args: {
 
 	// we might need to include the list of aritfacts in the project
 	if (args.includeArtifacts) {
-		// look at the artifact directory for every artifact
-		for (const artifactPath of await fs.readdir(args.config.artifactDirectory)) {
-			// only consider the js files
-			if (!artifactPath.endsWith('.js') || artifactPath === 'index.js') {
-				continue
-			}
+		try {
+			// look at the artifact directory for every artifact
+			for (const artifactPath of await fs.readdir(args.config.artifactDirectory)) {
+				// only consider the js files
+				if (!artifactPath.endsWith('.js') || artifactPath === 'index.js') {
+					continue
+				}
 
-			// push the artifact path without the extension
-			manifest.artifacts.push(artifactPath.substring(0, artifactPath.length - 3))
-		}
+				// push the artifact path without the extension
+				manifest.artifacts.push(artifactPath.substring(0, artifactPath.length - 3))
+			}
+		} catch {}
 	}
 
 	// the schema could be any number of things:

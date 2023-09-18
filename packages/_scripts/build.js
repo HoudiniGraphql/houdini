@@ -68,7 +68,7 @@ export default async function ({ plugin }) {
 
 		// its not a special directory, treat it as a sub module
 		else {
-			await build({ package_json, source: dir, plugin, excludeGraphql: dirname === 'vite' })
+			await build({ package_json, source: dir, plugin })
 			package_json.exports['./' + dirname] = {
 				types: `./build/${dirname}/index.d.ts`,
 				import: `./build/${dirname}-esm/index.js`,
@@ -85,7 +85,7 @@ export default async function ({ plugin }) {
 }
 
 // create esm and cjs builds of the source
-async function build({ package_json, source, bundle = true, plugin, cmd, excludeGraphql }) {
+async function build({ package_json, source, bundle = true, plugin, cmd }) {
 	// if we aren't bundling, look up the entrypoints once
 	const children = bundle
 		? []
@@ -113,9 +113,7 @@ async function build({ package_json, source, bundle = true, plugin, cmd, exclude
 				bundle,
 				platform: 'node',
 				format: which,
-				external: (bundle ? ['vite', 'HOUDINI_CLIENT_PATH'] : []).concat(
-					excludeGraphql ? ['graphql'] : []
-				),
+				external: bundle ? ['vite', 'HOUDINI_CLIENT_PATH', 'graphql'] : [],
 				banner: {
 					js: header,
 				},
