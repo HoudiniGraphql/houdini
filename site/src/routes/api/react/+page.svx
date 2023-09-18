@@ -355,9 +355,7 @@ You can change the endpoint using the `apiEndpoint` configuration value of the `
 /** @type {import('houdini').ConfigFile} */
 const config = {
 	router: {
-        auth: {
-            apiEndpoint: '/_graphql'
-        },
+        apiEndpoint: '/_graphql'
 	},
 }
 
