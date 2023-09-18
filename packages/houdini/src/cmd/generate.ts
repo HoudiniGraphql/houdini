@@ -28,7 +28,7 @@ export async function generate(
 
 	try {
 		// load config
-		config = await getConfig({ ...extraConfig, noSchema: true })
+		config = await getConfig(extraConfig)
 		if (args.output) {
 			config.persistedQueriesPath = args.output
 		}
