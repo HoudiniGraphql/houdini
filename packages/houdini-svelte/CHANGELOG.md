@@ -2,21 +2,21 @@
 
 ## 1.2.12
 
-### Patch Changes
+### Dependency Changes
 
 -   Updated dependencies []:
     -   houdini@1.2.12
 
 ## 1.2.11
 
-### Patch Changes
+### Dependency Changes
 
 -   Updated dependencies []:
     -   houdini@1.2.11
 
 ## 1.2.10
 
-### Patch Changes
+### Dependency Changes
 
 -   Updated dependencies [[`adf90d3`](https://github.com/HoudiniGraphql/houdini/commit/adf90d3c3406c79c9b07060c764bf41289bf2a38), [`adf90d3`](https://github.com/HoudiniGraphql/houdini/commit/adf90d3c3406c79c9b07060c764bf41289bf2a38)]:
     -   houdini@1.2.10
@@ -305,9 +305,11 @@ For a better overview of the changes in this release, please visit the
 
 ## 0.20.4
 
-### Patch Changes
+### 🐛 Fixes
 
 -   [#868](https://github.com/HoudiniGraphql/houdini/pull/868) [`9808b74`](https://github.com/HoudiniGraphql/houdini/commit/9808b74176bc36fd847372ca7973605c725a5e51) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug preventing server.js and page.gql files from coexisting
+
+### Dependency Changes
 
 -   Updated dependencies []:
     -   houdini@0.20.4

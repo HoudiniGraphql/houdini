@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
--   [#1160](https://github.com/HoudiniGraphql/houdini/pull/1160) [`781e12f5`](https://github.com/HoudiniGraphql/houdini/commit/781e12f5ec14f736ec30216ba31d5a1dee21f6c8) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add support for local schemas
+-   [#1160](https://github.com/HoudiniGraphql/houdini/pull/1160) [`781e12f5`](https://github.com/HoudiniGraphql/houdini/commit/781e12f5ec14f736ec30216ba31d5a1dee21f6c8) @AlecAivazis! - Add support for local schemas
 
 -   Updated dependencies []:
     -   houdini@1.2.12
