@@ -126,8 +126,10 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 
 		// when the build starts, we need to make sure to generate
 		async buildStart(args) {
-			if (config.localSchema && !isViteSchemaBuild() && viteEnv.mode === 'production') {
-				config.schema = await loadLocalSchema(config)
+			if (viteEnv.mode === 'production') {
+				if (config.localSchema && !isViteSchemaBuild()) {
+					config.schema = await loadLocalSchema(config)
+				}
 
 				try {
 					await generate(config)
