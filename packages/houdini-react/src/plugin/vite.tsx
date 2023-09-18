@@ -197,31 +197,47 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 					return next()
 				}
 
-				// import the schema
-				const { default: schema } = await server.ssrLoadModule(
-					path.join(server.houdiniConfig.localApiDir, '+schema?t=' + new Date().getTime())
-				)
+				// there are 2 possibilities here:
+				// we either just have a local schema and need to create the default yoga instance
+				// or we have a custom yoga instance
 
-				// import the schema
-				const { default: createYoga } = await server.ssrLoadModule(
-					routerConventions.render_yoga_path(server.houdiniConfig) +
-						'?t=' +
-						new Date().getTime()
-				)
+				let yoga
+				if (manifest.local_yoga) {
+					const yogaPath = path.join(
+						server.houdiniConfig.localApiDir,
+						'+yoga?t=' + new Date().getTime()
+					)
+					yoga = await server.ssrLoadModule(yogaPath)
+				} else {
+					// import the schema
+					const { default: schema } = await server.ssrLoadModule(
+						path.join(
+							server.houdiniConfig.localApiDir,
+							'+schema?t=' + new Date().getTime()
+						)
+					)
 
-				// create the yoga instance
-				const yoga = createYoga({
-					schema,
-					graphqlEndpoint: server.houdiniConfig.localAPIUrl,
-					landingPage: false,
-				})
+					// import the schema
+					const { default: createYoga } = await server.ssrLoadModule(
+						routerConventions.render_yoga_path(server.houdiniConfig) +
+							'?t=' +
+							new Date().getTime()
+					)
+
+					// create the yoga instance
+					yoga = createYoga({
+						schema,
+						graphqlEndpoint: server.houdiniConfig.localAPIUrl,
+						landingPage: false,
+					})
+				}
 
 				// pass the response onto the user
 				return yoga(req, res, next)
 			})
 		}
 
-		server.middlewares.use(houdini_auth_routes(server, manifest))
+		server.middlewares.use(houdini_auth_routes(server))
 
 		// any routes that aren't auth routes need to be rendered by the streaming handler
 		server.middlewares.use(render_stream(server))
@@ -231,8 +247,7 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 const houdini_auth_routes = (
 	server: ViteDevServer & {
 		houdiniConfig: Config
-	},
-	manifest: ProjectManifest
+	}
 ): Connect.NextHandleFunction => {
 	return async (req, res, next) => {
 		if (!req.url) {

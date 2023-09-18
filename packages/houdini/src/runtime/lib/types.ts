@@ -401,8 +401,10 @@ export type ProjectManifest = {
 	layout_queries: Record<string, QueryManifest>
 	/** All of the artifacts in the project */
 	artifacts: string[]
-	/** The path to a local schema if it exists */
+	/** Whether or not there is a local schema defined */
 	local_schema: boolean
+	/** Whether or not there is a custom instance of yoga defined */
+	local_yoga: boolean
 }
 
 export type PageManifest = {

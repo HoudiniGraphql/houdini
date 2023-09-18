@@ -33,6 +33,7 @@ export async function load_manifest(args: {
 			layout_queries: {},
 			artifacts: [],
 			local_schema: false,
+			local_yoga: false,
 		},
 		queries: [],
 		layouts: [],
@@ -64,12 +65,12 @@ export async function load_manifest(args: {
 		await fs.stat(args.config.localApiDir)
 		// look at the contents of the directory
 		for (const child of await fs.readdir(args.config.localApiDir, { withFileTypes: true })) {
-			if (
-				(child.isDirectory() && child.name === '+schema') ||
-				(!child.isDirectory() && path.parse(child.name).name === '+schema')
-			) {
+			const name = child.isDirectory() ? child.name : path.parse(child.name).name
+
+			if (name === '+schema') {
 				manifest.local_schema = true
-				break
+			} else if (name === '+yoga') {
+				manifest.local_yoga = true
 			}
 		}
 	} catch {
