@@ -278,6 +278,7 @@ export default plugin('houdini-react', hooks)
 
 export type HoudiniReactPluginConfig = {
 	auth?: HoudiniReactAuthStrategy
+	apiEndpoint?: string
 }
 
 type HoudiniReactAuthStrategy =

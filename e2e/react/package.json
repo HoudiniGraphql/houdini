@@ -17,13 +17,15 @@
 		"@cloudflare/kv-asset-handler": "^0.3.0",
 		"@cloudflare/workers-types": "^4.20230904.0",
 		"cookie": "^0.5.0",
+		"graphql-yoga": "^3.9.1",
 		"houdini": "workspace:^",
 		"houdini-adapter-cloudflare": "workspace:^",
 		"houdini-react": "workspace:^",
 		"itty-router": "^4.0.23",
 		"react": "^18.3.0-canary-d6dcad6a8-20230914",
 		"react-dom": "^18.3.0-canary-d6dcad6a8-20230914",
-		"react-streaming": "^0.3.10"
+		"react-streaming": "^0.3.10",
+		"yoga": "^0.0.20"
 	},
 	"devDependencies": {
 		"@types/react": "^18.0.27",

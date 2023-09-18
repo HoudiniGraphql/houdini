@@ -1,4 +1,3 @@
-// This function defines the primary entrypoint for requests
 import type { ConfigFile } from '../lib'
 import { parse } from './cookies'
 import { decode, encode, verify } from './jwt'

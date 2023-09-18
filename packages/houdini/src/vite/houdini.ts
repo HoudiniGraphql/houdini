@@ -3,7 +3,15 @@ import type { Plugin as VitePlugin, UserConfig, ResolvedConfig } from 'vite'
 
 import generate from '../codegen'
 import type { Config, PluginConfig } from '../lib'
-import { path, getConfig, formatErrors, fs, deepMerge, routerConventions } from '../lib'
+import {
+	path,
+	getConfig,
+	formatErrors,
+	fs,
+	deepMerge,
+	routerConventions,
+	load_manifest,
+} from '../lib'
 
 let config: Config
 let viteConfig: ResolvedConfig
@@ -87,10 +95,16 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			console.log('🎩 Generating Deployment Assets...')
 
 			// before we can invoke the adpater we need to ensure the build directory is present
-			if ((await fs.stat(config.routerBuildDirectory))?.isDirectory()) {
-				await fs.rmdir(config.routerBuildDirectory)
-			}
+			try {
+				const stat = await fs.stat(config.routerBuildDirectory)
+				if (stat?.isDirectory()) {
+					await fs.rmdir(config.routerBuildDirectory)
+				}
+			} catch {}
 			await fs.mkdirp(config.routerBuildDirectory)
+
+			// load the project manifest
+			const manifest = await load_manifest({ config, includeArtifacts: true })
 
 			// invoke the adapter
 			await opts.adapter({
@@ -99,6 +113,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				sourceDir: viteConfig.build.outDir,
 				publicBase: viteConfig.base,
 				outDir: config.routerBuildDirectory,
+				manifest,
 			})
 		},
 

@@ -181,17 +181,49 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 	// render that we will use in production. This means that we need to
 	// capture the request before vite's dev server processes it.
 	configureServer(server) {
-		server.middlewares.use(houdini_server(server))
+		if (manifest.local_schema) {
+			server.middlewares.use(async (req, res, next) => {
+				// we only want to process requests for the api
+				if (!req.url?.startsWith(server.houdiniConfig.localAPIUrl)) {
+					return next()
+				}
+
+				// import the schema
+				const { default: schema } = await server.ssrLoadModule(
+					path.join(server.houdiniConfig.localApiDir, '+schema?t=' + new Date().getTime())
+				)
+
+				// import the schema
+				const { default: createYoga } = await server.ssrLoadModule(
+					routerConventions.render_yoga_path(server.houdiniConfig) +
+						'?t=' +
+						new Date().getTime()
+				)
+
+				// create the yoga instance
+				const yoga = createYoga({
+					schema,
+					graphqlEndpoint: server.houdiniConfig.localAPIUrl,
+					landingPage: false,
+				})
+
+				// pass the response onto the user
+				return yoga(req, res, next)
+			})
+		}
+
+		server.middlewares.use(houdini_auth_routes(server, manifest))
 
 		// any routes that aren't auth routes need to be rendered by the streaming handler
 		server.middlewares.use(render_stream(server))
 	},
 } as PluginHooks['vite']
 
-const houdini_server = (
+const houdini_auth_routes = (
 	server: ViteDevServer & {
 		houdiniConfig: Config
-	}
+	},
+	manifest: ProjectManifest
 ): Connect.NextHandleFunction => {
 	return async (req, res, next) => {
 		if (!req.url) {

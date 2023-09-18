@@ -300,6 +300,19 @@ export class Config {
 		return 'artifacts'
 	}
 
+	get sourceDir() {
+		return path.join(this.projectRoot, 'src')
+	}
+
+	get localApiDir() {
+		return path.join(this.sourceDir, 'api')
+	}
+
+	get localAPIUrl() {
+		// @ts-ignore
+		return this.configFile.plugins?.['houdini-react']?.apiEndpoint ?? '/_api'
+	}
+
 	// the directory where artifact types live
 	get artifactTypeDirectory() {
 		return this.artifactDirectory

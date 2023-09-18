@@ -20,7 +20,8 @@ test('empty routes dir generates empty manifest', async function () {
 		    "layouts": {},
 		    "page_queries": {},
 		    "layout_queries": {},
-		    "artifacts": []
+		    "artifacts": [],
+		    "local_schema": false
 		}
 	`)
 })
@@ -107,7 +108,8 @@ test('route groups', async function () {
 		            "loading": false
 		        }
 		    },
-		    "artifacts": []
+		    "artifacts": [],
+		    "local_schema": false
 		}
 	`)
 })
@@ -289,7 +291,38 @@ test('nested route structure happy path', async function () {
 		            "loading": false
 		        }
 		    },
-		    "artifacts": []
+		    "artifacts": [],
+		    "local_schema": false
+		}
+	`)
+})
+
+test('local schema', async function () {
+	const config = testConfig()
+
+	// create the mock filesystem
+	await fs.mock({
+		[config.projectRoot]: {
+			'src/api': {
+				'schema.js': `
+					export default 'foo'
+				`,
+			},
+		},
+	})
+
+	await expect(
+		load_manifest({
+			config,
+		})
+	).resolves.toMatchInlineSnapshot(`
+		{
+		    "pages": {},
+		    "layouts": {},
+		    "page_queries": {},
+		    "layout_queries": {},
+		    "artifacts": [],
+		    "local_schema": true
 		}
 	`)
 })

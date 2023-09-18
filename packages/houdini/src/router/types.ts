@@ -1,4 +1,4 @@
-import type { routerConventions } from '.'
+import type { ProjectManifest, routerConventions } from '.'
 import type { Config } from '../lib/config'
 
 export type Adapter = (args: {
@@ -7,4 +7,5 @@ export type Adapter = (args: {
 	sourceDir: string
 	publicBase: string
 	outDir: string
+	manifest: ProjectManifest
 }) => void | Promise<void>

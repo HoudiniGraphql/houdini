@@ -1,4 +1,5 @@
 import type { ExportedHandler } from '@cloudflare/workers-types'
+import { createYoga } from 'graphql-yoga'
 import { renderToStream } from 'react-streaming/server'
 
 // The following imports local assets from the generated runtime
@@ -21,6 +22,14 @@ import {
 	handle_request,
 	get_session, // @ts-expect-error
 } from '../$houdini/runtime/router/server'
+/**
+  the exact fomatting on the next line matters. It needs to be ;('SCHEMA_IMPORT')
+*/
+
+;('SCHEMA_IMPORT')
+
+// @ts-ignore: schema is either created in the import or set to null
+const yoga = schema ? createYoga({ schema }) : null
 
 // load the plugin config
 const configFile = getCurrentConfig()
@@ -43,6 +52,11 @@ const handlers: ExportedHandler = {
 		const server_response = await internal_router(req)
 		if (server_response) {
 			return server_response
+		}
+
+		// if we have a yoga server and the request is for the api, we need to pass it through
+		if (yoga && (url === plugin_config.apiEndpoint ?? '/_api')) {
+			return yoga(req, env, ctx)
 		}
 
 		// otherwise we just need to render the application

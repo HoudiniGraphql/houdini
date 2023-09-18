@@ -2,6 +2,7 @@ import * as t from '@babel/types'
 import * as graphql from 'graphql'
 
 import { path, fs, parseJS, type Config } from '../lib'
+import { ProjectManifest, PageManifest, QueryManifest } from '../runtime/lib/types'
 import {
 	read_layoutQuery,
 	read_layoutView,
@@ -9,6 +10,8 @@ import {
 	read_pageQuery,
 	page_id,
 } from './conventions'
+
+export type { ProjectManifest, PageManifest, QueryManifest }
 
 /**
  * Walk down the routes directory and build a normalized description of the project's
@@ -29,11 +32,13 @@ export async function load_manifest(args: {
 			page_queries: {},
 			layout_queries: {},
 			artifacts: [],
+			local_schema: false,
 		},
 		queries: [],
 		layouts: [],
 	})
 
+	// we might need to include the list of aritfacts in the project
 	if (args.includeArtifacts) {
 		// look at the artifact directory for every artifact
 		for (const artifactPath of await fs.readdir(args.config.artifactDirectory)) {
@@ -45,6 +50,28 @@ export async function load_manifest(args: {
 			// push the artifact path without the extension
 			manifest.artifacts.push(artifactPath.substring(0, artifactPath.length - 3))
 		}
+	}
+
+	// the schema could be any number of things:
+	// a directory (+schema/index.js)
+	// a javascript file
+	// a file that transpiles into javascript
+	// in order to address this, we're going to just look inside of the api directory for
+	// something named schema (regardless of directory or file)
+	try {
+		await fs.stat(args.config.localApiDir)
+		// look at the contents of the directory
+		for (const child of await fs.readdir(args.config.localApiDir, { withFileTypes: true })) {
+			if (
+				(child.isDirectory() && child.name === '+schema') ||
+				(!child.isDirectory() && path.parse(child.name).name === '+schema')
+			) {
+				manifest.local_schema = true
+				break
+			}
+		}
+	} catch {
+		// the so move on
 	}
 
 	return manifest
@@ -319,44 +346,4 @@ export async function extractQueries(source: string): Promise<string[]> {
 	}
 
 	return props.filter((p) => p !== 'children')
-}
-
-// The manifest is a tree of routes that the router will use to render
-// the correct component tree for a given url
-export type ProjectManifest = {
-	/** All of the pages in the project */
-	pages: Record<string, PageManifest>
-	/** All of the layouts in the project */
-	layouts: Record<string, PageManifest>
-	/** All of the page queries in the project */
-	page_queries: Record<string, QueryManifest>
-	/** All of the layout queries in the project */
-	layout_queries: Record<string, QueryManifest>
-	/** All of the artifacts in the project */
-	artifacts: string[]
-}
-
-export type PageManifest = {
-	id: string
-	/** the name of every query that the page depends on */
-	queries: string[]
-	/** the list of queries that this page could potentially ask for */
-	query_options: string[]
-	/** the full url pattern of the page */
-	url: string
-	/** the ids of layouts that wrap this page */
-	layouts: string[]
-	/** The filepath of the unit */
-	path: string
-}
-
-export type QueryManifest = {
-	/** the name of the query */
-	name: string
-	/** the url tied with the query */
-	url: string
-	/** wether the query uses the loading directive (ie, wants a fallback) */
-	loading: boolean
-	/** The filepath of the unit */
-	path: string
 }

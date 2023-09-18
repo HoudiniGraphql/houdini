@@ -18,6 +18,9 @@ export function render_server_path(config: Config, base?: string) {
 	return path.join(units_dir(config, base), 'render', 'server.js')
 }
 
+export function render_yoga_path(config: Config, base?: string) {
+	return path.join(units_dir(config, base), 'render', 'yoga.js')
+}
 export function render_app_path(config: Config, base?: string) {
 	return path.join(units_dir(config, base), 'render', 'App.jsx')
 }

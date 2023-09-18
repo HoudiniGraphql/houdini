@@ -35,8 +35,21 @@ export function render_to_stream({url, cache, loaded_queries, loaded_artifacts, 
 }
 `
 
+	const create_yoga = `
+import { createYoga } from 'graphql-yoga'
+import internalSchema from '../../../../../src/api/+schema'
+
+export default function({ schema = internalSchema, ...opts } = {}) {
+	return createYoga({
+		schema,
+		...opts
+	})
+}
+	`
+
 	await Promise.all([
 		fs.writeFile(routerConventions.render_server_path(config), render_server),
 		fs.writeFile(routerConventions.render_app_path(config), app_index),
+		fs.writeFile(routerConventions.render_yoga_path(config), create_yoga),
 	])
 }
