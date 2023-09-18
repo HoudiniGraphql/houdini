@@ -11,8 +11,9 @@ node_modules
 dist
 dist-ssr
 *.local
-$houdini
-dist
+
+./$houdini
+./dist
 
 # Editor directories and files
 .vscode/*

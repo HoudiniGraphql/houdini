@@ -20,7 +20,6 @@ import {
 let config: Config
 let viteConfig: ResolvedConfig
 let viteEnv: ConfigEnv
-let schemaBuild = false
 
 export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 	return {
@@ -34,14 +33,6 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		async config(userConfig, env) {
 			config = await getConfig(opts)
 			viteEnv = env
-
-			if (
-				// @ts-ignore
-				userConfig.build?.rollupOptions?.input['schema'] ===
-				path.join(config.localApiDir, '+schema')
-			) {
-				schemaBuild = true
-			}
 
 			let result: UserConfig = {
 				server: {
@@ -75,7 +66,9 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		},
 
 		async configResolved(conf) {
-			viteConfig = conf
+			if (!isViteSchemaBuild()) {
+				viteConfig = conf
+			}
 			for (const plugin of config.plugins) {
 				if (typeof plugin.vite?.configResolved !== 'function') {
 					continue
@@ -89,7 +82,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		// we use this to generate the final assets needed for a production build of the server.
 		// this is only called when bundling (ie, not in dev mode)
 		async closeBundle() {
-			if (isViteSchemaBuild() || schemaBuild || viteEnv.mode !== 'production') {
+			if (isViteSchemaBuild() || viteEnv.mode !== 'production') {
 				return
 			}
 
@@ -185,6 +178,8 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 
 				config.schema = schema
 			}
+
+			process.env.HOUDINI_PORT = String(server.config.server.port ?? 5173)
 
 			try {
 				await generate(config)

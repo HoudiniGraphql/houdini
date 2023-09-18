@@ -95,8 +95,13 @@ export class HoudiniClient {
 			)
 		)
 
+		let serverPort = globalThis.process?.env?.HOUDINI_PORT ?? '5173'
+
 		// if there is no url provided then assume we are using the internal local api
-		this.url = url ?? localApiEndpoint(getCurrentConfig())
+		this.url =
+			url ??
+			(globalThis.window ? '' : `https://localhost:${serverPort}`) +
+				localApiEndpoint(getCurrentConfig())
 	}
 
 	observe<_Data extends GraphQLObject, _Input extends GraphQLVariables>({

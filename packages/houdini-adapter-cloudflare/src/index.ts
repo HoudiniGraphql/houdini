@@ -1,4 +1,4 @@
-import { type Adapter, fs, path } from 'houdini'
+import { type Adapter, fs, path, localApiEndpoint } from 'houdini'
 import { fileURLToPath } from 'node:url'
 
 const adapter: Adapter = async ({
@@ -17,9 +17,18 @@ const adapter: Adapter = async ({
 
 	// if the project has a local schema, replace the schema import string with the
 	// import
-	workerContents = workerContents.replace(
-		";('SCHEMA_IMPORT')",
-		manifest.local_schema ? 'import schema from "../src/api/schema"' : 'const schema = null'
+	workerContents = workerContents.replaceAll(
+		'console.log("YOGA_DEF")',
+		manifest.local_schema
+			? `
+import createYoga from '../$houdini/plugins/houdini-react/units/render/yoga'
+
+const yoga = createYoga({
+	graphqlEndpoint: "${localApiEndpoint(config.configFile)}"
+})
+
+`
+			: 'const yoga = null'
 	)
 
 	await fs.writeFile(path.join(outDir, '_worker.js'), workerContents!)

@@ -13,6 +13,7 @@ export async function loadLocalSchema(config: Config): Promise<graphql.GraphQLSc
 
 	// build the schema somewhere we can import from
 	await build({
+		logLevel: 'silent',
 		build: {
 			outDir: path.join(config.rootDir, 'temp'),
 			rollupOptions: {
