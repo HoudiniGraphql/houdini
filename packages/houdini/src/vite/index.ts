@@ -4,7 +4,7 @@ import watch_and_run from 'vite-plugin-watch-and-run'
 
 import generate from '../codegen'
 import type { PluginConfig } from '../lib'
-import { getConfig, formatErrors, path } from '../lib'
+import { getConfig, formatErrors, path, loadLocalSchema } from '../lib'
 import houdini_vite from './houdini'
 import watch_remote_schema from './schema'
 
@@ -42,6 +42,10 @@ export default function (opts?: PluginConfig): Plugin[] {
 				async run() {
 					// load the config file
 					const config = await getConfig(opts)
+					if (config.localSchema) {
+						// reload the schema
+						config.schema = await loadLocalSchema(config)
+					}
 
 					// make sure we behave as if we're generating from inside the plugin (changes logging behavior)
 					config.pluginMode = true

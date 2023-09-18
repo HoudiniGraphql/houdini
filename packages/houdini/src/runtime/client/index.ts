@@ -1,5 +1,6 @@
 /// <reference path="../../../../../houdini.d.ts" />
 import type { Cache } from '../cache/cache'
+import { getCurrentConfig, localApiEndpoint } from '../lib'
 import { flatten } from '../lib/flatten'
 import type { DocumentArtifact, GraphQLVariables, GraphQLObject, NestedList } from '../lib/types'
 import type { ClientHooks, ClientPlugin } from './documentStore'
@@ -20,7 +21,7 @@ export { DocumentStore, type ClientPlugin, type SendParams } from './documentSto
 export { fetch, mutation, query, subscription } from './plugins'
 
 export type HoudiniClientConstructorArgs = {
-	url: string
+	url?: string
 	fetchParams?: FetchParamFn
 	plugins?: NestedList<ClientPlugin>
 	pipeline?: NestedList<ClientPlugin>
@@ -50,13 +51,23 @@ export class HoudiniClient {
 	// expose operations settings
 	readonly throwOnError_operations: ThrowOnErrorOperations[]
 
+	proxies: Record<
+		string,
+		(operation: {
+			query: string
+			variables: any
+			operationName: string
+			session: App.Session | null | undefined
+		}) => Promise<any>
+	> = {}
+
 	constructor({
 		url,
 		fetchParams,
 		plugins,
 		pipeline,
 		throwOnError,
-	}: HoudiniClientConstructorArgs) {
+	}: HoudiniClientConstructorArgs = {}) {
 		// if we were given plugins and pipeline there's an error
 		if (plugins && pipeline) {
 			throw new Error(
@@ -94,8 +105,13 @@ export class HoudiniClient {
 			)
 		)
 
-		// save the state values
-		this.url = url
+		let serverPort = globalThis.process?.env?.HOUDINI_PORT ?? '5173'
+
+		// if there is no url provided then assume we are using the internal local api
+		this.url =
+			url ??
+			(globalThis.window ? '' : `https://localhost:${serverPort}`) +
+				localApiEndpoint(getCurrentConfig())
 	}
 
 	observe<_Data extends GraphQLObject, _Input extends GraphQLVariables>({
@@ -110,6 +126,18 @@ export class HoudiniClient {
 			enableCache,
 			...rest,
 		})
+	}
+
+	registerProxy(
+		url: string,
+		handler: (operation: {
+			query: string
+			variables: any
+			operationName: string
+			session: App.Session | null | undefined
+		}) => Promise<any>
+	) {
+		this.proxies[url] = handler
 	}
 }
 

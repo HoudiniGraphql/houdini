@@ -387,3 +387,47 @@ export type LoadingType = typeof PendingValue
 export function isPending(value: any): value is LoadingType {
 	return typeof value === 'symbol'
 }
+
+// The manifest is a tree of routes that the router will use to render
+// the correct component tree for a given url
+export type ProjectManifest = {
+	/** All of the pages in the project */
+	pages: Record<string, PageManifest>
+	/** All of the layouts in the project */
+	layouts: Record<string, PageManifest>
+	/** All of the page queries in the project */
+	page_queries: Record<string, QueryManifest>
+	/** All of the layout queries in the project */
+	layout_queries: Record<string, QueryManifest>
+	/** All of the artifacts in the project */
+	artifacts: string[]
+	/** Whether or not there is a local schema defined */
+	local_schema: boolean
+	/** Whether or not there is a custom instance of yoga defined */
+	local_yoga: boolean
+}
+
+export type PageManifest = {
+	id: string
+	/** the name of every query that the page depends on */
+	queries: string[]
+	/** the list of queries that this page could potentially ask for */
+	query_options: string[]
+	/** the full url pattern of the page */
+	url: string
+	/** the ids of layouts that wrap this page */
+	layouts: string[]
+	/** The filepath of the unit */
+	path: string
+}
+
+export type QueryManifest = {
+	/** the name of the query */
+	name: string
+	/** the url tied with the query */
+	url: string
+	/** wether the query uses the loading directive (ie, wants a fallback) */
+	loading: boolean
+	/** The filepath of the unit */
+	path: string
+}

@@ -107,6 +107,7 @@ async function generatePluginRuntime({
 	if (transformMap && typeof transformMap === 'function') {
 		transformMap = transformMap(docs)
 	}
+
 	await fs.mkdirp(pluginDir)
 	await fs.recursiveCopy(
 		runtime_path,

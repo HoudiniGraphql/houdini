@@ -73,6 +73,11 @@ if (fs.existsSync(projectDir)) {
 	}
 }
 
+// create the project directory if necessary
+if (dirToCreate && !fs.existsSync(projectDir)) {
+	fs.mkdirSync(projectDir)
+}
+
 const template = await p.select({
 	message: 'Which template do you want to use?',
 	initialValue: 'react-typescript',
@@ -81,48 +86,81 @@ const template = await p.select({
 if (p.isCancel(template)) {
 	process.exit(1)
 }
+const templateDir = path.join(templatesDir, template)
 const templateMeta = options.find((option) => option.value === template)
 if (!templateMeta) {
 	// this will never happen, but it helps to types later
 	exit(1)
 }
-const templateDir = sourcePath(path.join(templatesDir, template))
 
+// ask if the schema is local or remote
+const localSchema =
+	template !== 'sveltekit-demo' &&
+	(await p.confirm({
+		message: 'Is your api going to be defined in this project too?',
+	}))
+
+// if we have a remote schema then we need to introspect it and write the value
 let apiUrl = templateMeta.apiUrl ?? ''
-let pullSchema_content = ''
-if (apiUrl === '') {
-	const { apiUrl: apiUrlCli, pullSchema_content: pullSchema_content_cli } = await pullSchemaCli()
-	apiUrl = apiUrlCli
-	if (pullSchema_content_cli === null) {
-		pCancel('We could not pull the schema. Please try again.')
+if (!localSchema) {
+	let pullSchema_content = ''
+	if (apiUrl === '') {
+		const { apiUrl: apiUrlCli, pullSchema_content: pullSchema_content_cli } =
+			await pullSchemaCli()
+		apiUrl = apiUrlCli
+		if (pullSchema_content_cli === null) {
+			pCancel('We could not pull the schema. Please try again.')
+		} else {
+			pullSchema_content = pullSchema_content_cli
+		}
 	} else {
-		pullSchema_content = pullSchema_content_cli
+		const pullSchema_content_local = await pullSchema(apiUrl, {})
+		if (pullSchema_content_local === null) {
+			pCancel('We could not pull the schema. Please report this on Discord.')
+		} else {
+			pullSchema_content = pullSchema_content_local
+		}
 	}
-} else {
-	const pullSchema_content_local = await pullSchema(apiUrl, {})
-	if (pullSchema_content_local === null) {
-		pCancel('We could not pull the schema. Please report this on Discord.')
-	} else {
-		pullSchema_content = pullSchema_content_local
-	}
+
+	writeFileSync(path.join(projectDir, 'schema.graphql'), pullSchema_content)
 }
 
-// create the project directory if necessary
-if (dirToCreate) {
-	fs.mkdirSync(projectDir)
-}
-writeFileSync(path.join(projectDir, 'schema.graphql'), pullSchema_content)
+// the final client config depends on whether we have a local schema or not
+const clientConfig = localSchema
+	? ``
+	: `{
+	url: '${apiUrl}',
+}`
+
+const configFile = localSchema
+	? ''
+	: `
+	watchSchema: {
+		url: '${apiUrl}',
+	},
+`
 
 copy(
-	templateDir,
+	sourcePath(path.join(templatesDir, template)),
 	projectDir,
 	{
 		API_URL: apiUrl,
 		PROJECT_NAME: projectName,
 		HOUDINI_VERSION: version,
+		["'CLIENT_CONFIG'"]: clientConfig,
+		["'CONFIG_FILE'"]: configFile,
 	},
 	['.meta.json']
 )
+
+// if we have a local schema then we have more fiiles to copy
+if (localSchema) {
+	if (template === 'react') {
+		copy(sourcePath('./fragments/localApi'))
+	} else if (template === 'react-typescript') {
+		copy(sourcePath('./fragments/localApi-typescript'))
+	}
+}
 
 // If anything goes wrong, we don't want to block the user
 let sponsor_msg = ''
@@ -134,9 +172,9 @@ try {
 p.outro(`🎉 Everything is ready!
 
 👉 Next Steps
-0️⃣  Go to your project     :  ${green(`cd ${projectDir}`)}
-1️⃣  Install dependencies   :  ${green(`npm i`)}       | ${gray(`pnpm i`)}   | ${gray(`yarn`)}
-2️⃣  Start your application :  ${green(`npm run dev`)} | ${gray(`pnpm dev`)} | ${gray(`yarn dev`)}`)
+0️⃣  Go to your project     :  cd ${projectDir}
+1️⃣  Install dependencies   :  npm i       | pnpm i   | yarn
+2️⃣  Start your application :  npm run dev | pnpm dev | yarn dev`)
 
 console.log(
 	gray(
@@ -152,9 +190,9 @@ console.log(
 // Function to copy files recursively
 function copy(
 	/** @type {string} */ sourceDir,
-	/** @type {string} */ destDir,
-	/** @type {Record<string, string>} */ transformMap,
-	/** @type {string[]} */ ignoreList
+	/** @type {string} */ destDir = projectDir,
+	/** @type {Record<string, string>} */ transformMap = {},
+	/** @type {string[]} */ ignoreList = []
 ) {
 	if (!fs.existsSync(destDir)) {
 		fs.mkdirSync(destDir)

@@ -124,7 +124,7 @@ export class DocumentStore<
 	async send({
 		metadata,
 		session,
-		fetch = globalThis.fetch,
+		fetch,
 		variables,
 		policy,
 		stuff,
@@ -142,7 +142,7 @@ export class DocumentStore<
 			variables: null,
 			metadata,
 			session,
-			fetch,
+			fetch: fetch ?? this.getFetch(() => session),
 			stuff: {
 				inputs: {
 					changed: false,
@@ -193,6 +193,65 @@ export class DocumentStore<
 	async cleanup() {
 		for (const plugin of this.#plugins) {
 			plugin.cleanup?.(this.#lastContext!)
+		}
+	}
+
+	getFetch(
+		getSession: () => App.Session | null | undefined
+	): (input: RequestInfo | URL, init?: RequestInit | undefined) => Promise<Response> {
+		return async (input, init) => {
+			// we need to check if we have a registered proxy for the request before we pass it
+			// onto the global fetch
+
+			// in order to handle the proxy request we need 3 things:
+			let url: string = ''
+			let queries: { query: string; variables: GraphQLObject; operationName: string }[] = []
+
+			if (typeof input === 'string') {
+				url = input.startsWith('http') ? new URL(input).pathname : input
+			}
+			if (input instanceof URL) {
+				url = input.pathname
+			} else if (input instanceof Request) {
+				url = new URL(input.url).pathname
+			}
+
+			if (input instanceof Request) {
+				// the body of the request contains the query and variables
+				const body = await input.json()
+				if (!Array.isArray(body)) {
+					queries = [body]
+				}
+			} else {
+				const body = JSON.parse(init?.body as string)
+				if (!Array.isArray(body)) {
+					queries = [body]
+				}
+			}
+
+			// if we couldn't find the necessary information to treat this as a local operation
+			// then we should just ignore it
+			if (!url || queries.length === 0) {
+				return await globalThis.fetch(input, init)
+			}
+
+			// if we have a proxy recorded for the url then use it
+			if (this.#client?.proxies[url]) {
+				const result = await Promise.all(
+					queries.map((q) =>
+						this.#client?.proxies[url]({
+							...q,
+							session: getSession(),
+						})
+					)
+				)
+
+				// build up the response
+				return new Response(JSON.stringify(result.length === 1 ? result[0] : result))
+			}
+
+			// we dont have a proxy so just use the default fetch
+			return await globalThis.fetch(input, init)
 		}
 	}
 

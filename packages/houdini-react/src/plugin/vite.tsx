@@ -10,10 +10,12 @@ import {
 	routerConventions,
 	get_session,
 	handle_request,
+	localApiSessionKeys,
+	isViteSchemaBuild,
 } from 'houdini'
 import type { renderToStream as streamingRender } from 'react-streaming/server'
 import { InputOption } from 'rollup'
-import type { Connect, ViteDevServer } from 'vite'
+import type { BuildOptions, Connect, ViteDevServer } from 'vite'
 
 import { setManifest } from '.'
 // in order to coordinate the client and server, the client's pending request cache
@@ -29,7 +31,6 @@ import { setManifest } from '.'
 // virtual:houdini/artifacts/[name] - An entry for loading an artifact and notifying the artifact cache
 import { RouterManifest } from '../runtime'
 import { find_match } from '../runtime/routing/lib/match'
-import { plugin_config } from './config'
 
 let manifest: ProjectManifest
 
@@ -39,17 +40,33 @@ export default {
 		manifest = await load_manifest({ config, includeArtifacts: env.mode === 'production' })
 		setManifest(manifest)
 
-		// build up the list of entries that we need vite to bundle
-		const entries: InputOption = {}
-
-		// every page in the manifest is a new entry point for vite
-		for (const [id, page] of Object.entries(manifest.pages)) {
-			entries[`pages/${id}`] = `virtual:houdini/pages/${page.id}@${page.queries}.jsx`
+		// build up the rollup config
+		const rollupConfig: BuildOptions = {
+			rollupOptions: {
+				output: {
+					entryFileNames: 'assets/[name].js',
+				},
+			},
 		}
 
-		// every artifact asset needs to be bundled individually
-		for (const artifact of manifest.artifacts) {
-			entries[`artifacts/${artifact}`] = `virtual:houdini/artifacts/${artifact}.js`
+		// build up the list of entries that we need vite to bundle
+		if (!isViteSchemaBuild()) {
+			rollupConfig.outDir = config.compiledAssetsDir
+			rollupConfig.rollupOptions!.input = {}
+
+			// every page in the manifest is a new entry point for vite
+			for (const [id, page] of Object.entries(manifest.pages)) {
+				rollupConfig.rollupOptions!.input[
+					`pages/${id}`
+				] = `virtual:houdini/pages/${page.id}@${page.queries}.jsx`
+			}
+
+			// every artifact asset needs to be bundled individually
+			for (const artifact of manifest.artifacts) {
+				rollupConfig.rollupOptions!.input[
+					`artifacts/${artifact}`
+				] = `virtual:houdini/artifacts/${artifact}.js`
+			}
 		}
 
 		return {
@@ -61,15 +78,7 @@ export default {
 					'~/*': path.join(config.projectRoot, 'src', '*'),
 				},
 			},
-			build: {
-				outDir: config.compiledAssetsDir,
-				rollupOptions: {
-					input: entries,
-					output: {
-						entryFileNames: 'assets/[name].js',
-					},
-				},
-			},
+			build: rollupConfig,
 		}
 	},
 
@@ -181,14 +190,61 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 	// render that we will use in production. This means that we need to
 	// capture the request before vite's dev server processes it.
 	configureServer(server) {
-		server.middlewares.use(houdini_server(server))
+		if (manifest.local_schema) {
+			server.middlewares.use(async (req, res, next) => {
+				// we only want to process requests for the api
+				if (!req.url?.startsWith(server.houdiniConfig.localAPIUrl)) {
+					return next()
+				}
+
+				// there are 2 possibilities here:
+				// we either just have a local schema and need to create the default yoga instance
+				// or we have a custom yoga instance
+
+				let yoga
+				if (manifest.local_yoga) {
+					const yogaPath = path.join(
+						server.houdiniConfig.localApiDir,
+						'+yoga?t=' + new Date().getTime()
+					)
+					yoga = await server.ssrLoadModule(yogaPath)
+				} else {
+					// import the schema
+					const { default: schema } = await server.ssrLoadModule(
+						path.join(
+							server.houdiniConfig.localApiDir,
+							'+schema?t=' + new Date().getTime()
+						)
+					)
+
+					// import the schema
+					const { default: createYoga } = await server.ssrLoadModule(
+						routerConventions.render_yoga_path(server.houdiniConfig) +
+							'?t=' +
+							new Date().getTime()
+					)
+
+					// create the yoga instance
+					yoga = createYoga({
+						schema,
+						graphqlEndpoint: server.houdiniConfig.localAPIUrl,
+						landingPage: false,
+					})
+				}
+
+				// pass the response onto the user
+				return yoga(req, res, next)
+			})
+		}
+
+		server.middlewares.use(houdini_auth_routes(server))
 
 		// any routes that aren't auth routes need to be rendered by the streaming handler
 		server.middlewares.use(render_stream(server))
 	},
 } as PluginHooks['vite']
 
-const houdini_server = (
+const houdini_auth_routes = (
 	server: ViteDevServer & {
 		houdiniConfig: Config
 	}
@@ -201,7 +257,7 @@ const houdini_server = (
 		// pass the request onto the reusable hook from houdini
 		handle_request({
 			config: server.houdiniConfig.configFile,
-			session_keys: plugin_config(server.houdiniConfig).auth?.sessionKeys ?? [],
+			session_keys: localApiSessionKeys(server.houdiniConfig.configFile),
 			next,
 			url: req.url,
 			...res,
@@ -243,10 +299,9 @@ const render_stream =
 		}
 
 		// load the session information
-		const config = plugin_config(server.houdiniConfig)
 		const session = get_session(
 			new Headers(request.headers as Record<string, string>),
-			config.auth?.sessionKeys ?? []
+			localApiSessionKeys(server.houdiniConfig.configFile)
 		)
 
 		// get the function that we can call to render the response

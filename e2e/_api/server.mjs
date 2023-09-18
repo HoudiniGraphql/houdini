@@ -55,6 +55,11 @@ async function main() {
 			typeDefs,
 			resolvers,
 		}),
+		cors: {
+			origin: ['*'],
+			credentials: true,
+			methods: ['POST'],
+		},
 		maskedErrors: false,
 		graphiql: {
 			// Use WebSockets in GraphiQL

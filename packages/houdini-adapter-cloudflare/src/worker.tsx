@@ -1,4 +1,5 @@
 import type { ExportedHandler } from '@cloudflare/workers-types'
+import { execute, parse } from 'graphql'
 import { renderToStream } from 'react-streaming/server'
 
 // The following imports local assets from the generated runtime
@@ -15,19 +16,38 @@ import { find_match } from '../$houdini/plugins/houdini-react/runtime/routing/li
 import App from '../$houdini/plugins/houdini-react/units/render/App'
 // @ts-expect-error
 import { Cache } from '../$houdini/runtime/cache/cache.js'
+// @ts-ignore
+import { localApiEndpoint, localApiSessionKeys } from '../$houdini/runtime/lib/config'
 // @ts-expect-error
 import { getCurrentConfig } from '../$houdini/runtime/lib/config'
 import {
 	handle_request,
 	get_session, // @ts-expect-error
 } from '../$houdini/runtime/router/server'
+// @ts-ignore
+import client from '../src/+client'
+
+/**
+  the exact fomatting on the next line matters.
+*/
+
+console.log('DYNAMIC_CONTENT')
+
+// @ts-ignore: schema is defined dynamically
+if (schema) {
+	// @ts-ignore: graphqlEndpoint is defined dynamically
+	client.registerProxy(graphqlEndpoint, async ({ query, variables, session }) => {
+		// get the parsed query
+		const parsed = parse(query)
+
+		// @ts-ignore: schema is defined dynamically
+		return await execute(schema, parsed, null, session, variables)
+	})
+}
 
 // load the plugin config
-const configFile = getCurrentConfig()
-// @ts-ignore
-const plugin_config = configFile.plugins?.['houdini-react'] ?? {}
-
-const session_keys = plugin_config.auth?.sessionKeys ?? []
+const config_file = getCurrentConfig()
+const session_keys = localApiSessionKeys(config_file)
 
 const handlers: ExportedHandler = {
 	async fetch(req, env: any, ctx) {
@@ -45,6 +65,13 @@ const handlers: ExportedHandler = {
 			return server_response
 		}
 
+		// @ts-ignore: yoga isn't defined
+		// if we have a yoga server and the request is for the api, we need to pass it through
+		if (yoga && url === localApiEndpoint(config_file)) {
+			// @ts-ignore: yoga isn't defined
+			return yoga(req, env, ctx)
+		}
+
 		// otherwise we just need to render the application
 		return await render_app(req)
 	},
@@ -56,7 +83,7 @@ async function internal_router(request: Parameters<Required<ExportedHandler>['fe
 	let use_response = false
 
 	await handle_request({
-		config: configFile,
+		config: config_file,
 		session_keys,
 		url: new URL(request.url).pathname,
 		redirect: (status: number, location: string) => {

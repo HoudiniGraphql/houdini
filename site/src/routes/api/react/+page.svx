@@ -290,7 +290,7 @@ export default function ShowInfoView({ ShowInfo }) {
 }
 ```
 
-## Authenticating Users / User Sessions
+## Authentication
 
 The challenge when building user sessions in a modern app is how to share that information between
 the server and client. Really, there is only one answer once security starts mattering: `httpOnly` cookies. While traditionally
@@ -308,28 +308,61 @@ defined by one of the fields in the response
 
 ### Redirect Based Authentication
 
-To configure your application to use a redirect-based strategy, you must set the `auth` field of the plugin to an object
+To configure your application to use a redirect-based strategy, you must set the `auth` field of the router config to an object
 like so:
 
 ```javascript:title=vite.config.js
-/// <references types="houdini-react">
 /** @type {import('houdini').ConfigFile} */
 const config = {
-	plugins: {
-		'houdini-react': {
-			auth: {
-                // the URL that the user will be redirected to by the third-party provider
-				redirect: '/auth/token',
-                // the secret to use for signing/unsigning the session
-				sessionKeys: ['supersecret'],
-			},
-		},
+	router: {
+        auth: {
+            // the URL that the user will be redirected to by the third-party provider
+            redirect: '/auth/token',
+            // the secret to use for signing/unsigning the session
+            sessionKeys: ['supersecret'],
+        },
 	},
 }
 
 export default config
 ```
 
+## Local APIs
+
+For many applications, the API can live in the same codebase as the UI. When that happens, there
+is usually a considerable amount of boilerplate to wire things up (you have to make sure the URLs match, thread
+session values around, etc). When things move to the edge, things get even more complex if you want to ensure that the server-side requests
+don't cause more resources to be spun up.
+
+To streamline this, Houdini lets you export an [executable schema](https://the-guild.dev/graphql/tools/docs/generate-schema)
+from `src/api/+schema` and Houdini takes care of the rest. It wraps up the schema in an instance of [yoga](https://the-guild.dev/graphql/yoga-server),
+makes that server available at a configurable endpoint, and automatically configures your client to use the correct endpoint.
+When making requests from your server, those queries are resolved against the schema in memory instead of sending actual network requests.
+
+If you want to customize the yoga instance, you can define a file at `src/api/+yoga` with a default export of a yoga server and that will get used instead
+
+Some things to keep in mind:
+
+- `src/api/+schema` must return an executable schema (but not necssarily one created from `@graphql-tools/schema`)
+- If you have a `+yoga` file, you still need a `+schema` file so the codegen pipeline uses your schema
+- Make sure you don't pass a value for `url` to your client in `+client`
+- You don't need to watch this schema for changes since vite's file change detection does the trick. This means you shouldn't have `watchSchema` configured in `houdini.config.js`
+- Your schema and yoga files can be written in typescript (they get independently compiled by vite before codegen)
+
+You can change the endpoint using the `apiEndpoint` configuration value of the `router` entry:
+
+```javascript:title=vite.config.js
+/** @type {import('houdini').ConfigFile} */
+const config = {
+	router: {
+        auth: {
+            apiEndpoint: '/_graphql'
+        },
+	},
+}
+
+export default config
+```
 
 ## Deployment
 

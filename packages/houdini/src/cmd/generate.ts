@@ -1,6 +1,6 @@
 import codegen from '../codegen'
 import type { Config, ConfigFile } from '../lib'
-import { formatErrors, getConfig } from '../lib'
+import { formatErrors, getConfig, loadLocalSchema } from '../lib'
 import pullSchema from './pullSchema'
 
 export async function generate(
@@ -33,8 +33,12 @@ export async function generate(
 			config.persistedQueriesPath = args.output
 		}
 
+		// if we have a local schema then we need to load it
+		if (config.localSchema) {
+			config.schema = await loadLocalSchema(config)
+		}
 		// Pull the newest schema if the flag is set
-		if (args.pullSchema && (await config.apiURL())) {
+		else if (args.pullSchema && (await config.apiURL())) {
 			await pullSchema(args)
 		}
 

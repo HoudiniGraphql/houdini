@@ -1,4 +1,3 @@
-// This function defines the primary entrypoint for requests
 import type { ConfigFile } from '../lib'
 import { parse } from './cookies'
 import { decode, encode, verify } from './jwt'
@@ -16,8 +15,7 @@ type ServerHandlerArgs = {
 // the actual server implementation changes from runtime to runtime
 // so we want a single function that can be called to get the server
 export async function handle_request(args: ServerHandlerArgs) {
-	// @ts-expect-error: typescript doesn't know about this property
-	const plugin_config = args.config.plugins?.['houdini-react']
+	const plugin_config = args.config.router ?? {}
 
 	// if the project is configured to authorize users by redirect then
 	// we might need to set the session value

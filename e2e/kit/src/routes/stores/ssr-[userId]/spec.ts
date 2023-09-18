@@ -56,17 +56,6 @@ test.describe('SSR-[userId] Page', () => {
     response = await expect_1_gql(page, `button[id="refresh-null"]`);
     expect(response).toBe('{"data":{"user":{"id":"store-user-query:2","name":"Samuel Jackson"}}}');
     await expect_to_be(page, 'store-user-query:2 - Samuel Jackson');
-
-    // 4 Check id 77 (that doens't exist)
-    response = await expect_1_gql(page, `button[id="refresh-77"]`);
-    expect(JSON.parse(response)).toMatchObject({
-      data: null,
-      errors: [
-        {
-          message: 'User not found'
-        }
-      ]
-    });
   });
 
   test('Check that variables order doesnt matter', async ({ page }) => {

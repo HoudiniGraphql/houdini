@@ -172,7 +172,7 @@ export const resolvers = {
 			}
 
 			if (!user) {
-				throw new GraphQLError('User not found', { code: 404 })
+				throw new Error('User not found', { code: 404 })
 			}
 			return user
 		},

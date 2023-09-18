@@ -1,12 +1,24 @@
+import type * as graphql from 'graphql'
 import type { SourceMapInput } from 'rollup'
-import type { Plugin as VitePlugin, UserConfig, ResolvedConfig } from 'vite'
+import type { Plugin as VitePlugin, UserConfig, ResolvedConfig, ConfigEnv } from 'vite'
 
 import generate from '../codegen'
 import type { Config, PluginConfig } from '../lib'
-import { path, getConfig, formatErrors, fs, deepMerge, routerConventions } from '../lib'
+import {
+	path,
+	getConfig,
+	formatErrors,
+	fs,
+	deepMerge,
+	routerConventions,
+	load_manifest,
+	loadLocalSchema,
+	isViteSchemaBuild,
+} from '../lib'
 
 let config: Config
 let viteConfig: ResolvedConfig
+let viteEnv: ConfigEnv
 
 export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 	return {
@@ -17,8 +29,9 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		enforce: 'pre',
 
 		// add watch-and-run to their vite config
-		async config(userConfig, ...rest) {
+		async config(userConfig, env) {
 			config = await getConfig(opts)
+			viteEnv = env
 
 			let result: UserConfig = {
 				server: {
@@ -35,11 +48,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				if (typeof plugin.vite?.config !== 'function') {
 					continue
 				}
-				result = deepMerge(
-					'',
-					result,
-					await plugin.vite!.config.call(this, config, ...rest)
-				)
+				result = deepMerge('', result, await plugin.vite!.config.call(this, config, env))
 			}
 
 			return result
@@ -56,7 +65,9 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		},
 
 		async configResolved(conf) {
-			viteConfig = conf
+			if (!isViteSchemaBuild()) {
+				viteConfig = conf
+			}
 			for (const plugin of config.plugins) {
 				if (typeof plugin.vite?.configResolved !== 'function') {
 					continue
@@ -70,6 +81,10 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		// we use this to generate the final assets needed for a production build of the server.
 		// this is only called when bundling (ie, not in dev mode)
 		async closeBundle() {
+			if (isViteSchemaBuild() || viteEnv.mode !== 'production') {
+				return
+			}
+
 			for (const plugin of config.plugins) {
 				if (typeof plugin.vite?.closeBundle !== 'function') {
 					continue
@@ -87,10 +102,16 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			console.log('🎩 Generating Deployment Assets...')
 
 			// before we can invoke the adpater we need to ensure the build directory is present
-			if ((await fs.stat(config.routerBuildDirectory))?.isDirectory()) {
-				await fs.rmdir(config.routerBuildDirectory)
-			}
+			try {
+				const stat = await fs.stat(config.routerBuildDirectory)
+				if (stat?.isDirectory()) {
+					await fs.rmdir(config.routerBuildDirectory)
+				}
+			} catch {}
 			await fs.mkdirp(config.routerBuildDirectory)
+
+			// load the project manifest
+			const manifest = await load_manifest({ config, includeArtifacts: true })
 
 			// invoke the adapter
 			await opts.adapter({
@@ -99,15 +120,26 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				sourceDir: viteConfig.build.outDir,
 				publicBase: viteConfig.base,
 				outDir: config.routerBuildDirectory,
+				manifest,
 			})
 		},
 
 		// when the build starts, we need to make sure to generate
 		async buildStart(args) {
-			try {
-				await generate(config)
-			} catch (e) {
-				formatErrors(e)
+			// we need to generate the runtime if we are building in production
+			if (viteEnv.mode === 'production') {
+				// make sure we have an up-to-date schema
+				if (config.localSchema && !isViteSchemaBuild()) {
+					config.schema = await loadLocalSchema(config)
+				}
+
+				// run the codegen
+				try {
+					await generate(config)
+				} catch (e) {
+					formatErrors(e)
+					throw e
+				}
 			}
 
 			for (const plugin of config.plugins) {
@@ -141,13 +173,31 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			)
 		},
 
-		configureServer(server) {
+		async configureServer(server) {
+			// if there is a local schema we need to use that when generating
+			if (config.localSchema) {
+				const { default: schema } = (await server.ssrLoadModule(
+					path.join(config.localApiDir, '+schema')
+				)) as { default: graphql.GraphQLSchema }
+
+				config.schema = schema
+			}
+
+			process.env.HOUDINI_PORT = String(server.config.server.port ?? 5173)
+
+			try {
+				await generate(config)
+			} catch (e) {
+				formatErrors(e)
+				throw e
+			}
+
 			for (const plugin of config.plugins) {
 				if (typeof plugin.vite?.configureServer !== 'function') {
 					continue
 				}
 
-				const result = plugin.vite!.configureServer.call(this, {
+				await plugin.vite!.configureServer.call(this, {
 					...server,
 					houdiniConfig: config,
 				})

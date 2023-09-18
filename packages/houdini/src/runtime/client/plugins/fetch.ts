@@ -39,7 +39,6 @@ export const fetch = (target?: RequestHandler | string): ClientPlugin => {
 					fetch: (url: URL | RequestInfo, args: RequestInit | undefined) => {
 						// figure out if we need to do something special for multipart uploads
 						const newArgs = handleMultipart(fetchParams, args) ?? args
-
 						// use the new args if they exist, otherwise the old ones are good
 						return fetch(url, newArgs)
 					},

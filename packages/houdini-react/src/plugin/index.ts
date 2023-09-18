@@ -276,21 +276,7 @@ ${
 
 export default plugin('houdini-react', hooks)
 
-export type HoudiniReactPluginConfig = {
-	auth?: HoudiniReactAuthStrategy
-}
-
-type HoudiniReactAuthStrategy =
-	| {
-			redirect: string
-			sessionKeys: string[]
-			url: string
-	  }
-	| {
-			mutation: string
-			sessionKeys: string[]
-			url: string
-	  }
+export type HoudiniReactPluginConfig = {}
 
 export function setManifest(newManifest: ProjectManifest): void {
 	manifest = newManifest

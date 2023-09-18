@@ -50,6 +50,15 @@ export function computeID(configFile: ConfigFile, type: string, data: any): stri
 // only compute the config file once
 let _configFile: ConfigFile | null = null
 
+export function localApiEndpoint(configFile: ConfigFile) {
+	// @ts-ignore
+	return configFile.router?.apiEndpoint ?? '/_api'
+}
+
+export function localApiSessionKeys(configFile: ConfigFile) {
+	return configFile.router?.auth?.sessionKeys ?? []
+}
+
 export function getCurrentConfig(): ConfigFile {
 	const mockConfig = getMockConfig()
 	if (mockConfig) {
@@ -201,7 +210,29 @@ export type ConfigFile = {
 	 * you must enable this flag.
 	 */
 	acceptImperativeInstability?: boolean
+
+	/**
+	 * Configure the router
+	 */
+	router?: RouterConfig
 }
+
+type RouterConfig = {
+	auth?: AuthStrategy
+	apiEndpoint?: string
+}
+
+type AuthStrategy =
+	| {
+			redirect: string
+			sessionKeys: string[]
+			url: string
+	  }
+	| {
+			mutation: string
+			sessionKeys: string[]
+			url: string
+	  }
 
 type ScalarMap = { [typeName: string]: ScalarSpec }
 

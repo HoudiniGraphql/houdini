@@ -113,7 +113,7 @@ async function build({ package_json, source, bundle = true, plugin, cmd }) {
 				bundle,
 				platform: 'node',
 				format: which,
-				external: bundle ? ['vite', 'HOUDINI_CLIENT_PATH'] : [],
+				external: bundle ? ['vite', 'HOUDINI_CLIENT_PATH', 'graphql'] : [],
 				banner: {
 					js: header,
 				},

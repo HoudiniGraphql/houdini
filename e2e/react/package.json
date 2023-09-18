@@ -8,6 +8,7 @@
 		"build:dev": "pnpm build: && pnpm dev",
 		"build:web": "pnpm build: && pnpm web",
 		"build:test": "pnpm build: && pnpm test",
+		"build:generate": "pnpm build: && pnpm houdini generate",
 		"build:build": "pnpm build: && pnpm build",
 		"dev": "vite",
 		"build": "tsc && vite build",
@@ -16,14 +17,17 @@
 	"dependencies": {
 		"@cloudflare/kv-asset-handler": "^0.3.0",
 		"@cloudflare/workers-types": "^4.20230904.0",
+		"@graphql-tools/schema": "^9.0.4",
 		"cookie": "^0.5.0",
+		"graphql-yoga": "^4.0.4",
 		"houdini": "workspace:^",
 		"houdini-adapter-cloudflare": "workspace:^",
 		"houdini-react": "workspace:^",
 		"itty-router": "^4.0.23",
 		"react": "^18.3.0-canary-d6dcad6a8-20230914",
 		"react-dom": "^18.3.0-canary-d6dcad6a8-20230914",
-		"react-streaming": "^0.3.10"
+		"react-streaming": "^0.3.10",
+		"yoga": "^0.0.20"
 	},
 	"devDependencies": {
 		"@types/react": "^18.0.27",
