@@ -16,6 +16,8 @@ import { find_match } from '../$houdini/plugins/houdini-react/runtime/routing/li
 import App from '../$houdini/plugins/houdini-react/units/render/App'
 // @ts-expect-error
 import { Cache } from '../$houdini/runtime/cache/cache.js'
+// @ts-ignore
+import { localApiEndpoint, localApiSessionKeys } from '../$houdini/runtime/lib/config'
 // @ts-expect-error
 import { getCurrentConfig } from '../$houdini/runtime/lib/config'
 import {
@@ -32,11 +34,8 @@ import {
 const yoga = schema ? createYoga({ schema }) : null
 
 // load the plugin config
-const configFile = getCurrentConfig()
-// @ts-ignore
-const plugin_config = configFile.plugins?.['houdini-react'] ?? {}
-
-const session_keys = plugin_config.auth?.sessionKeys ?? []
+const config_file = getCurrentConfig()
+const session_keys = localApiSessionKeys(config_file)
 
 const handlers: ExportedHandler = {
 	async fetch(req, env: any, ctx) {
@@ -55,7 +54,7 @@ const handlers: ExportedHandler = {
 		}
 
 		// if we have a yoga server and the request is for the api, we need to pass it through
-		if (yoga && (url === plugin_config.apiEndpoint ?? '/_api')) {
+		if (yoga && url === localApiEndpoint(config_file)) {
 			return yoga(req, env, ctx)
 		}
 
@@ -70,7 +69,7 @@ async function internal_router(request: Parameters<Required<ExportedHandler>['fe
 	let use_response = false
 
 	await handle_request({
-		config: configFile,
+		config: config_file,
 		session_keys,
 		url: new URL(request.url).pathname,
 		redirect: (status: number, location: string) => {

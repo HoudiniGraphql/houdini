@@ -16,6 +16,7 @@
 	"dependencies": {
 		"@cloudflare/kv-asset-handler": "^0.3.0",
 		"@cloudflare/workers-types": "^4.20230904.0",
+		"@graphql-tools/schema": "^9.0.4",
 		"cookie": "^0.5.0",
 		"graphql-yoga": "^3.9.1",
 		"houdini": "workspace:^",

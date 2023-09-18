@@ -10,6 +10,7 @@ import {
 	routerConventions,
 	get_session,
 	handle_request,
+	localApiSessionKeys,
 } from 'houdini'
 import type { renderToStream as streamingRender } from 'react-streaming/server'
 import { InputOption } from 'rollup'
@@ -29,7 +30,6 @@ import { setManifest } from '.'
 // virtual:houdini/artifacts/[name] - An entry for loading an artifact and notifying the artifact cache
 import { RouterManifest } from '../runtime'
 import { find_match } from '../runtime/routing/lib/match'
-import { plugin_config } from './config'
 
 let manifest: ProjectManifest
 
@@ -41,15 +41,16 @@ export default {
 
 		// build up the list of entries that we need vite to bundle
 		const entries: InputOption = {}
+		if (process.env.BUILD_START !== 'true') {
+			// every page in the manifest is a new entry point for vite
+			for (const [id, page] of Object.entries(manifest.pages)) {
+				entries[`pages/${id}`] = `virtual:houdini/pages/${page.id}@${page.queries}.jsx`
+			}
 
-		// every page in the manifest is a new entry point for vite
-		for (const [id, page] of Object.entries(manifest.pages)) {
-			entries[`pages/${id}`] = `virtual:houdini/pages/${page.id}@${page.queries}.jsx`
-		}
-
-		// every artifact asset needs to be bundled individually
-		for (const artifact of manifest.artifacts) {
-			entries[`artifacts/${artifact}`] = `virtual:houdini/artifacts/${artifact}.js`
+			// every artifact asset needs to be bundled individually
+			for (const artifact of manifest.artifacts) {
+				entries[`artifacts/${artifact}`] = `virtual:houdini/artifacts/${artifact}.js`
+			}
 		}
 
 		return {
@@ -62,7 +63,7 @@ export default {
 				},
 			},
 			build: {
-				outDir: config.compiledAssetsDir,
+				outDir: process.env.BUILD_START === 'true' ? undefined : config.compiledAssetsDir,
 				rollupOptions: {
 					input: entries,
 					output: {
@@ -233,7 +234,7 @@ const houdini_auth_routes = (
 		// pass the request onto the reusable hook from houdini
 		handle_request({
 			config: server.houdiniConfig.configFile,
-			session_keys: plugin_config(server.houdiniConfig).auth?.sessionKeys ?? [],
+			session_keys: localApiSessionKeys(server.houdiniConfig.configFile),
 			next,
 			url: req.url,
 			...res,
@@ -275,10 +276,9 @@ const render_stream =
 		}
 
 		// load the session information
-		const config = plugin_config(server.houdiniConfig)
 		const session = get_session(
 			new Headers(request.headers as Record<string, string>),
-			config.auth?.sessionKeys ?? []
+			localApiSessionKeys(server.houdiniConfig.configFile)
 		)
 
 		// get the function that we can call to render the response

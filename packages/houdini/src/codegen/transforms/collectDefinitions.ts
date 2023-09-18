@@ -1,4 +1,4 @@
-import type graphql from 'graphql'
+import type * as graphql from 'graphql'
 import { Kind as GraphqlKinds } from 'graphql'
 
 import type { Config, Document } from '../../lib'

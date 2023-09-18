@@ -1,5 +1,7 @@
+import * as graphql from 'graphql'
 import type { SourceMapInput } from 'rollup'
 import type { Plugin as VitePlugin, UserConfig, ResolvedConfig } from 'vite'
+import { build } from 'vite'
 
 import generate from '../codegen'
 import type { Config, PluginConfig } from '../lib'
@@ -13,6 +15,8 @@ import {
 	load_manifest,
 } from '../lib'
 
+let buildStart = false
+
 let config: Config
 let viteConfig: ResolvedConfig
 
@@ -25,7 +29,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		enforce: 'pre',
 
 		// add watch-and-run to their vite config
-		async config(userConfig, ...rest) {
+		async config(userConfig, env) {
 			config = await getConfig(opts)
 
 			let result: UserConfig = {
@@ -43,11 +47,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				if (typeof plugin.vite?.config !== 'function') {
 					continue
 				}
-				result = deepMerge(
-					'',
-					result,
-					await plugin.vite!.config.call(this, config, ...rest)
-				)
+				result = deepMerge('', result, await plugin.vite!.config.call(this, config, env))
 			}
 
 			return result
@@ -78,6 +78,10 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		// we use this to generate the final assets needed for a production build of the server.
 		// this is only called when bundling (ie, not in dev mode)
 		async closeBundle() {
+			if (buildStart) {
+				return
+			}
+
 			for (const plugin of config.plugins) {
 				if (typeof plugin.vite?.closeBundle !== 'function') {
 					continue
@@ -119,11 +123,29 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 
 		// when the build starts, we need to make sure to generate
 		async buildStart(args) {
-			try {
-				await generate(config)
-			} catch (e) {
-				formatErrors(e)
+			if (config.localSchema && !buildStart) {
+				process.env.BUILD_START = 'true'
+				buildStart = true
+				await build({
+					build: {
+						outDir: path.join(config.rootDir),
+						rollupOptions: {
+							input: {
+								schema: path.join(config.localApiDir, '+schema'),
+							},
+						},
+						target: 'node20',
+					},
+				})
+
+				const { default: schema } = await import(
+					path.join(config.rootDir, 'assets', 'schema.js')
+				)
+				console.log(schema)
 			}
+
+			process.env.BUILD_START = 'false'
+			buildStart = false
 
 			for (const plugin of config.plugins) {
 				if (typeof plugin.vite?.buildStart !== 'function') {
@@ -156,13 +178,29 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			)
 		},
 
-		configureServer(server) {
+		async configureServer(server) {
+			// if there is a local schema we need to use that when generating
+			if (config.localSchema) {
+				const { default: schema } = (await server.ssrLoadModule(
+					path.join(config.localApiDir, '+schema')
+				)) as { default: graphql.GraphQLSchema }
+
+				config.schema = schema
+			}
+
+			try {
+				await generate(config)
+			} catch (e) {
+				formatErrors(e)
+				throw e
+			}
+
 			for (const plugin of config.plugins) {
 				if (typeof plugin.vite?.configureServer !== 'function') {
 					continue
 				}
 
-				const result = plugin.vite!.configureServer.call(this, {
+				await plugin.vite!.configureServer.call(this, {
 					...server,
 					houdiniConfig: config,
 				})

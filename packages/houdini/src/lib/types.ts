@@ -1,4 +1,4 @@
-import type graphql from 'graphql'
+import type * as graphql from 'graphql'
 import type * as recast from 'recast'
 import type {
 	CustomPluginOptions,

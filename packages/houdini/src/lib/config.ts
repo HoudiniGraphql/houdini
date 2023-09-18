@@ -3,9 +3,15 @@ import * as graphql from 'graphql'
 import minimatch from 'minimatch'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
-import type { CachePolicies, ConfigFile, PaginateModes } from '../runtime/lib'
+import { load_manifest } from '.'
+import type { CachePolicies, ConfigFile, PaginateModes, ProjectManifest } from '../runtime/lib'
 import { CachePolicy, PaginateMode } from '../runtime/lib'
-import { computeID, defaultConfigValues, keyFieldsForType } from '../runtime/lib/config'
+import {
+	computeID,
+	defaultConfigValues,
+	keyFieldsForType,
+	localApiEndpoint,
+} from '../runtime/lib/config'
 import { houdini_mode } from './constants'
 import { HoudiniError } from './error'
 import * as fs from './fs'
@@ -27,6 +33,7 @@ export type PluginMeta = PluginHooks & {
 export class Config {
 	filepath: string
 	rootDir: string
+	localSchema: boolean
 	projectRoot: string
 	schema: graphql.GraphQLSchema
 	schemaPath?: string
@@ -62,7 +69,7 @@ export class Config {
 		...configFile
 	}: ConfigFile & { filepath: string; loadFrameworkConfig?: boolean }) {
 		this.configFile = defaultConfigValues(configFile)
-
+		this.localSchema = false
 		// depreciate disableMasking in favor of defaultFragmentMasking
 		// @ts-ignore
 		if (configFile.disableMasking !== undefined) {
@@ -309,8 +316,7 @@ export class Config {
 	}
 
 	get localAPIUrl() {
-		// @ts-ignore
-		return this.configFile.plugins?.['houdini-react']?.apiEndpoint ?? '/_api'
+		return localApiEndpoint(this.configFile)
 	}
 
 	// the directory where artifact types live
@@ -991,10 +997,23 @@ export async function getConfig({
 			filepath: configPath,
 		})
 
+		// if there is a local schema then we need to ignore the schema check
+		let localSchema = false
+		try {
+			let apiDir = _config.localApiDir
+			for (const child of await fs.readdir(apiDir)) {
+				if (path.parse(child).name === '+schema') {
+					localSchema = true
+					break
+				}
+			}
+		} catch {}
+		_config.localSchema = localSchema
+
 		const apiURL = await _config.apiURL()
 
 		// look up the schema if we need to
-		if (_config.schemaPath && !_config.schema) {
+		if (!_config.localSchema && _config.schemaPath && !_config.schema) {
 			let schemaOk = true
 			// we might have to pull the schema first
 			if (apiURL) {
