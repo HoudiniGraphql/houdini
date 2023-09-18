@@ -51,6 +51,16 @@ export class HoudiniClient {
 	// expose operations settings
 	readonly throwOnError_operations: ThrowOnErrorOperations[]
 
+	proxies: Record<
+		string,
+		(operation: {
+			query: string
+			variables: any
+			operationName: string
+			session: App.Session | null | undefined
+		}) => Promise<any>
+	> = {}
+
 	constructor({
 		url,
 		fetchParams,
@@ -116,6 +126,18 @@ export class HoudiniClient {
 			enableCache,
 			...rest,
 		})
+	}
+
+	registerProxy(
+		url: string,
+		handler: (operation: {
+			query: string
+			variables: any
+			operationName: string
+			session: App.Session | null | undefined
+		}) => Promise<any>
+	) {
+		this.proxies[url] = handler
 	}
 }
 

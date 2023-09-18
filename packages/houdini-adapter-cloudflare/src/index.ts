@@ -15,21 +15,25 @@ const adapter: Adapter = async ({
 	// read the contents of the worker file
 	let workerContents = (await fs.readFile(sourcePath('./worker.js')))!
 
+	const dynamicContent = manifest.local_schema
+		? `
+			import createYoga from '../$houdini/plugins/houdini-react/units/render/yoga'
+			import schema from '../src/api/+schema'
+
+			const graphqlEndpoint = ${JSON.stringify(localApiEndpoint(config.configFile))}
+			const yoga = createYoga({
+				graphqlEndpoint
+			})
+		`
+		: `
+			const graphqlEndpoint = ${JSON.stringify(localApiEndpoint(config.configFile))}
+			const schema = null
+			const yoga = null
+		`
+
 	// if the project has a local schema, replace the schema import string with the
 	// import
-	workerContents = workerContents.replaceAll(
-		'console.log("YOGA_DEF")',
-		manifest.local_schema
-			? `
-import createYoga from '../$houdini/plugins/houdini-react/units/render/yoga'
-
-const yoga = createYoga({
-	graphqlEndpoint: "${localApiEndpoint(config.configFile)}"
-})
-
-`
-			: 'const yoga = null'
-	)
+	workerContents = workerContents.replaceAll('console.log("DYNAMIC_CONTENT")', dynamicContent)
 
 	await fs.writeFile(path.join(outDir, '_worker.js'), workerContents!)
 }

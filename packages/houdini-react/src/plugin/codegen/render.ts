@@ -42,6 +42,7 @@ import internalSchema from '../../../../../src/api/+schema'
 export default function({ schema = internalSchema, ...opts } = {}) {
 	return createYoga({
 		schema,
+		landingPage: false,
 		...opts
 	})
 }

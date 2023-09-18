@@ -1190,7 +1190,7 @@ export function createStore(
 			pluginData: {},
 		},
 		// turn off the cache since we aren't pushing actual graphql documents through by default
-		cache: false,
+		cache: undefined,
 		fetching,
 	})
 }
@@ -1223,7 +1223,7 @@ export function createFragmentStore(
 			pluginData: {},
 		},
 		// turn off the cache since we aren't pushing actual graphql documents through by default
-		cache: false,
+		cache: undefined,
 		fetching,
 	})
 }
@@ -1248,6 +1248,6 @@ function createStoreMutation(
 			pluginData: {},
 		},
 		// turn off the cache since we aren't pushing actual graphql documents through by default
-		cache: false,
+		cache: undefined,
 	})
 }

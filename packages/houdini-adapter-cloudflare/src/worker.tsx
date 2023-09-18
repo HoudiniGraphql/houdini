@@ -1,4 +1,5 @@
 import type { ExportedHandler } from '@cloudflare/workers-types'
+import { execute, parse } from 'graphql'
 import { renderToStream } from 'react-streaming/server'
 
 // The following imports local assets from the generated runtime
@@ -23,12 +24,26 @@ import {
 	handle_request,
 	get_session, // @ts-expect-error
 } from '../$houdini/runtime/router/server'
+// @ts-ignore
+import client from '../src/+client'
 
 /**
   the exact fomatting on the next line matters.
 */
 
-console.log('YOGA_DEF')
+console.log('DYNAMIC_CONTENT')
+
+// @ts-ignore: schema is defined dynamically
+if (schema) {
+	// @ts-ignore: graphqlEndpoint is defined dynamically
+	client.registerProxy(graphqlEndpoint, async ({ query, variables, session }) => {
+		// get the parsed query
+		const parsed = parse(query)
+
+		// @ts-ignore: schema is defined dynamically
+		return await execute(schema, parsed, null, session, variables)
+	})
+}
 
 // load the plugin config
 const config_file = getCurrentConfig()
