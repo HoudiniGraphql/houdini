@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
 import type { SourceMapInput } from 'rollup'
-import type { Plugin as VitePlugin, UserConfig, ResolvedConfig } from 'vite'
+import type { Plugin as VitePlugin, UserConfig, ResolvedConfig, ConfigEnv } from 'vite'
 import { build } from 'vite'
 
 import generate from '../codegen'
@@ -19,6 +19,8 @@ let buildStart = false
 
 let config: Config
 let viteConfig: ResolvedConfig
+let viteEnv: ConfigEnv
+let schemaBuild = false
 
 export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 	return {
@@ -31,6 +33,15 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		// add watch-and-run to their vite config
 		async config(userConfig, env) {
 			config = await getConfig(opts)
+			viteEnv = env
+
+			if (
+				// @ts-ignore
+				userConfig.build?.rollupOptions?.input['schema'] ===
+				path.join(config.localApiDir, '+schema')
+			) {
+				schemaBuild = true
+			}
 
 			let result: UserConfig = {
 				server: {
@@ -78,7 +89,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		// we use this to generate the final assets needed for a production build of the server.
 		// this is only called when bundling (ie, not in dev mode)
 		async closeBundle() {
-			if (buildStart) {
+			if (buildStart || schemaBuild || viteEnv.mode !== 'production') {
 				return
 			}
 
@@ -123,9 +134,11 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 
 		// when the build starts, we need to make sure to generate
 		async buildStart(args) {
-			if (config.localSchema && !buildStart) {
+			if (config.localSchema && !buildStart && viteEnv.mode === 'production') {
 				process.env.BUILD_START = 'true'
 				buildStart = true
+
+				// build the schema somewhere we can import from
 				await build({
 					build: {
 						outDir: path.join(config.rootDir),
@@ -133,15 +146,30 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 							input: {
 								schema: path.join(config.localApiDir, '+schema'),
 							},
+							external: ['graphql'],
 						},
-						target: 'node20',
+						lib: {
+							entry: {
+								schema: path.join(config.localApiDir, '+schema'),
+							},
+							formats: ['es'],
+						},
 					},
 				})
 
+				// import the schema we just built
 				const { default: schema } = await import(
-					path.join(config.rootDir, 'assets', 'schema.js')
+					path.join(config.rootDir, 'temp', 'assets', 'schema.js')
 				)
-				console.log(schema)
+
+				config.schema = schema
+
+				try {
+					await generate(config)
+				} catch (e) {
+					formatErrors(e)
+					throw e
+				}
 			}
 
 			process.env.BUILD_START = 'false'

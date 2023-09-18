@@ -63,7 +63,10 @@ export default {
 				},
 			},
 			build: {
-				outDir: process.env.BUILD_START === 'true' ? undefined : config.compiledAssetsDir,
+				outDir:
+					process.env.BUILD_START === 'true'
+						? path.join(config.rootDir, 'temp')
+						: config.compiledAssetsDir,
 				rollupOptions: {
 					input: entries,
 					output: {
