@@ -308,22 +308,19 @@ defined by one of the fields in the response
 
 ### Redirect Based Authentication
 
-To configure your application to use a redirect-based strategy, you must set the `auth` field of the plugin to an object
+To configure your application to use a redirect-based strategy, you must set the `auth` field of the router config to an object
 like so:
 
 ```javascript:title=vite.config.js
-/// <references types="houdini-react">
 /** @type {import('houdini').ConfigFile} */
 const config = {
-	plugins: {
-		'houdini-react': {
-			auth: {
-                // the URL that the user will be redirected to by the third-party provider
-				redirect: '/auth/token',
-                // the secret to use for signing/unsigning the session
-				sessionKeys: ['supersecret'],
-			},
-		},
+	router: {
+        auth: {
+            // the URL that the user will be redirected to by the third-party provider
+            redirect: '/auth/token',
+            // the secret to use for signing/unsigning the session
+            sessionKeys: ['supersecret'],
+        },
 	},
 }
 
@@ -351,6 +348,21 @@ Some things to keep in mind:
 - Make sure you don't pass a value for `url` to your client in `+client`
 - You don't need to watch this schema for changes since vite's file change detection does the trick. This means you shouldn't have `watchSchema` configured in `houdini.config.js`
 - Your schema and yoga files can be written in typescript (they get independently compiled by vite before codegen)
+
+You can change the endpoint using the `apiEndpoint` configuration value of the `router` entry:
+
+```javascript:title=vite.config.js
+/** @type {import('houdini').ConfigFile} */
+const config = {
+	router: {
+        auth: {
+            apiEndpoint: '/_graphql'
+        },
+	},
+}
+
+export default config
+```
 
 ## Deployment
 
