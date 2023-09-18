@@ -126,11 +126,14 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 
 		// when the build starts, we need to make sure to generate
 		async buildStart(args) {
+			// we need to generate the runtime if we are building in production
 			if (viteEnv.mode === 'production') {
+				// make sure we have an up-to-date schema
 				if (config.localSchema && !isViteSchemaBuild()) {
 					config.schema = await loadLocalSchema(config)
 				}
 
+				// run the codegen
 				try {
 					await generate(config)
 				} catch (e) {

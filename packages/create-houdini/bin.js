@@ -156,9 +156,9 @@ copy(
 // if we have a local schema then we have more fiiles to copy
 if (localSchema) {
 	if (template === 'react') {
-		copy(sourcePath('./fragments/localApi'), projectDir)
+		copy(sourcePath('./fragments/localApi'))
 	} else if (template === 'react-typescript') {
-		copy(sourcePath('./fragments/localApi-typescript'), projectDir)
+		copy(sourcePath('./fragments/localApi-typescript'))
 	}
 }
 
@@ -190,7 +190,7 @@ console.log(
 // Function to copy files recursively
 function copy(
 	/** @type {string} */ sourceDir,
-	/** @type {string} */ destDir,
+	/** @type {string} */ destDir = projectDir,
 	/** @type {Record<string, string>} */ transformMap = {},
 	/** @type {string[]} */ ignoreList = []
 ) {
