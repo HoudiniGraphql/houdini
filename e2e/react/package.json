@@ -8,6 +8,7 @@
 		"build:dev": "pnpm build: && pnpm dev",
 		"build:web": "pnpm build: && pnpm web",
 		"build:test": "pnpm build: && pnpm test",
+		"build:generate": "pnpm build: && pnpm houdini generate",
 		"build:build": "pnpm build: && pnpm build",
 		"dev": "vite",
 		"build": "tsc && vite build",

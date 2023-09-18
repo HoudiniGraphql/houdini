@@ -11,10 +11,11 @@ import {
 	get_session,
 	handle_request,
 	localApiSessionKeys,
+	isViteSchemaBuild,
 } from 'houdini'
 import type { renderToStream as streamingRender } from 'react-streaming/server'
 import { InputOption } from 'rollup'
-import type { Connect, ViteDevServer } from 'vite'
+import type { BuildOptions, Connect, ViteDevServer } from 'vite'
 
 import { setManifest } from '.'
 // in order to coordinate the client and server, the client's pending request cache
@@ -39,17 +40,32 @@ export default {
 		manifest = await load_manifest({ config, includeArtifacts: env.mode === 'production' })
 		setManifest(manifest)
 
+		// build up the rollup config
+		const rollupConfig: BuildOptions = {
+			rollupOptions: {
+				output: {
+					entryFileNames: 'assets/[name].js',
+				},
+			},
+		}
+
 		// build up the list of entries that we need vite to bundle
-		const entries: InputOption = {}
-		if (process.env.BUILD_START !== 'true') {
+		if (!isViteSchemaBuild()) {
+			rollupConfig.outDir = config.compiledAssetsDir
+			rollupConfig.rollupOptions!.input = {}
+
 			// every page in the manifest is a new entry point for vite
 			for (const [id, page] of Object.entries(manifest.pages)) {
-				entries[`pages/${id}`] = `virtual:houdini/pages/${page.id}@${page.queries}.jsx`
+				rollupConfig.rollupOptions!.input[
+					`pages/${id}`
+				] = `virtual:houdini/pages/${page.id}@${page.queries}.jsx`
 			}
 
 			// every artifact asset needs to be bundled individually
 			for (const artifact of manifest.artifacts) {
-				entries[`artifacts/${artifact}`] = `virtual:houdini/artifacts/${artifact}.js`
+				rollupConfig.rollupOptions!.input[
+					`artifacts/${artifact}`
+				] = `virtual:houdini/artifacts/${artifact}.js`
 			}
 		}
 
@@ -62,18 +78,7 @@ export default {
 					'~/*': path.join(config.projectRoot, 'src', '*'),
 				},
 			},
-			build: {
-				outDir:
-					process.env.BUILD_START === 'true'
-						? path.join(config.rootDir, 'temp')
-						: config.compiledAssetsDir,
-				rollupOptions: {
-					input: entries,
-					output: {
-						entryFileNames: 'assets/[name].js',
-					},
-				},
-			},
+			build: rollupConfig,
 		}
 	},
 

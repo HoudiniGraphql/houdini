@@ -13,9 +13,9 @@ import {
 	deepMerge,
 	routerConventions,
 	load_manifest,
+	loadLocalSchema,
+	isViteSchemaBuild,
 } from '../lib'
-
-let buildStart = false
 
 let config: Config
 let viteConfig: ResolvedConfig
@@ -89,7 +89,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		// we use this to generate the final assets needed for a production build of the server.
 		// this is only called when bundling (ie, not in dev mode)
 		async closeBundle() {
-			if (buildStart || schemaBuild || viteEnv.mode !== 'production') {
+			if (isViteSchemaBuild() || schemaBuild || viteEnv.mode !== 'production') {
 				return
 			}
 
@@ -134,35 +134,8 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 
 		// when the build starts, we need to make sure to generate
 		async buildStart(args) {
-			if (config.localSchema && !buildStart && viteEnv.mode === 'production') {
-				process.env.BUILD_START = 'true'
-				buildStart = true
-
-				// build the schema somewhere we can import from
-				await build({
-					build: {
-						outDir: path.join(config.rootDir),
-						rollupOptions: {
-							input: {
-								schema: path.join(config.localApiDir, '+schema'),
-							},
-							external: ['graphql'],
-						},
-						lib: {
-							entry: {
-								schema: path.join(config.localApiDir, '+schema'),
-							},
-							formats: ['es'],
-						},
-					},
-				})
-
-				// import the schema we just built
-				const { default: schema } = await import(
-					path.join(config.rootDir, 'temp', 'assets', 'schema.js')
-				)
-
-				config.schema = schema
+			if (config.localSchema && !isViteSchemaBuild() && viteEnv.mode === 'production') {
+				config.schema = await loadLocalSchema(config)
 
 				try {
 					await generate(config)
@@ -171,9 +144,6 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 					throw e
 				}
 			}
-
-			process.env.BUILD_START = 'false'
-			buildStart = false
 
 			for (const plugin of config.plugins) {
 				if (typeof plugin.vite?.buildStart !== 'function') {
