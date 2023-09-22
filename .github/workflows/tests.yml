@@ -91,6 +91,15 @@ jobs:
             - name: Tests
               run: pnpm run tests
 
+    verify_create:
+        name: Verify Create
+        steps:
+          - name: Install create-svelte
+            run: npm install -g create-svelte
+
+          - name: Create Svelte Project
+
+
     e2e_tests:
         name: End-to-End Tests
         strategy:
@@ -135,7 +144,7 @@ jobs:
               run: pnpm install
 
             # Playwright
-            
+
             # Use Playwright version as part of the cache key
             # AFAIK this is a x-platform way to get your installed Playwright version.
             # Be sure to be diligent in specifying ^, ~, or locked versions.

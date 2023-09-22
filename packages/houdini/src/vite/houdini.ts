@@ -13,7 +13,7 @@ import {
 	routerConventions,
 	load_manifest,
 	loadLocalSchema,
-	isViteSchemaBuild,
+	isSecondaryBuild,
 } from '../lib'
 
 let config: Config
@@ -65,7 +65,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		},
 
 		async configResolved(conf) {
-			if (!isViteSchemaBuild()) {
+			if (!isSecondaryBuild()) {
 				viteConfig = conf
 			}
 			for (const plugin of config.plugins) {
@@ -81,7 +81,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		// we use this to generate the final assets needed for a production build of the server.
 		// this is only called when bundling (ie, not in dev mode)
 		async closeBundle() {
-			if (isViteSchemaBuild() || viteEnv.mode !== 'production') {
+			if (isSecondaryBuild() || viteEnv.mode !== 'production') {
 				return
 			}
 
@@ -129,7 +129,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			// we need to generate the runtime if we are building in production
 			if (viteEnv.mode === 'production') {
 				// make sure we have an up-to-date schema
-				if (config.localSchema && !isViteSchemaBuild()) {
+				if (config.localSchema && !isSecondaryBuild()) {
 					config.schema = await loadLocalSchema(config)
 				}
 

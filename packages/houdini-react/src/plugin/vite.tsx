@@ -11,10 +11,9 @@ import {
 	get_session,
 	handle_request,
 	localApiSessionKeys,
-	isViteSchemaBuild,
+	isSecondaryBuild,
 } from 'houdini'
 import type { renderToStream as streamingRender } from 'react-streaming/server'
-import { InputOption } from 'rollup'
 import type { BuildOptions, Connect, ViteDevServer } from 'vite'
 
 import { setManifest } from '.'
@@ -50,7 +49,7 @@ export default {
 		}
 
 		// build up the list of entries that we need vite to bundle
-		if (!isViteSchemaBuild()) {
+		if (!isSecondaryBuild()) {
 			rollupConfig.outDir = config.compiledAssetsDir
 			rollupConfig.rollupOptions!.input = {}
 

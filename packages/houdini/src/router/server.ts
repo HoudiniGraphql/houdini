@@ -4,7 +4,7 @@ import { build } from 'vite'
 
 import type { Config } from '../lib/config'
 
-export function isViteSchemaBuild() {
+export function isSecondaryBuild() {
 	return process.env.HOUDINI_SCHEMA_BUILD === 'true'
 }
 
@@ -40,3 +40,5 @@ export async function loadLocalSchema(config: Config): Promise<graphql.GraphQLSc
 
 	return schema
 }
+
+export async function loadIndexTemplate(config: Config): Promise<string> {}

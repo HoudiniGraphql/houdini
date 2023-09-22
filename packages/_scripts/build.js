@@ -108,12 +108,21 @@ async function build({ package_json, source, bundle = true, plugin, cmd }) {
 				}
 			}
 
+			// compute the appropriate external dependencies based on what we are bundling
+			let external = []
+			if (bundle) {
+				external.push('HOUDINI_CLIENT_PATH', 'graphql')
+				if (!cmd) {
+					external.push('vite')
+				}
+			}
+
 			// the esbuild config
 			const config = {
 				bundle,
 				platform: 'node',
 				format: which,
-				external: bundle ? ['vite', 'HOUDINI_CLIENT_PATH', 'graphql'] : [],
+				external,
 				banner: {
 					js: header,
 				},
