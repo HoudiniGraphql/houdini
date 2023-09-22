@@ -722,7 +722,7 @@ function validateFragmentArguments(
 				if (missing.length > 0) {
 					ctx.reportError(
 						new graphql.GraphQLError(
-							'The following arguments are missing from this fragment: ' +
+							`The following arguments are missing from the "${fragmentName}" fragment: ` +
 								JSON.stringify(missing)
 						)
 					)
