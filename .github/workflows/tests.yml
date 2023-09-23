@@ -95,17 +95,54 @@ jobs:
         name: Verify Create
         runs-on: ubuntu-latest
         steps:
+            - name: Checkout source
+              uses: actions/checkout@v3
+              with:
+                  ref: ${{ github.ref }}
+                  path: houdini
+
+            - name: Navigate into Houdini Directory
+              run: cd houdini
+
+            - name: Install Node.js
+              uses: actions/setup-node@v3
+              with:
+                node-version: 16.17.0
+
+            - uses: pnpm/action-setup@v2.0.1
+              name: Install pnpm
+              id: pnpm-install
+              with:
+                version: 8
+
+            - name: Get pnpm store directory
+              id: pnpm-cache
+              run: |
+                echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
+            - uses: actions/cache@v3
+              name: Setup pnpm cache
+              with:
+                path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+                key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                restore-keys: |
+                  ${{ runner.os }}-pnpm-store-
+            - name: Install dependencies
+              run: pnpm install
+
+            - name: Build packages
+              run: pnpm run compile
+
             - name: Checkout template
               uses: actions/checkout@v4
               with:
                 repository: sveltejs/kit
+                path: kit
 
+            - name: Go into kit directory
+              run: cd ../kit
 
             - name: Install houdini-cli
-              run: npm install -g houdini
-
-            - name: Run Init
-              run: npx houdini init -y
+              run: node ../houdini/packages/houdini/build/cmd.js init -y
 
     e2e_tests:
         name: End-to-End Tests
