@@ -40,5 +40,3 @@ export async function loadLocalSchema(config: Config): Promise<graphql.GraphQLSc
 
 	return schema
 }
-
-export async function loadIndexTemplate(config: Config): Promise<string> {}
