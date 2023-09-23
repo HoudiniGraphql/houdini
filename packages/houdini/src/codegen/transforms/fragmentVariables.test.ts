@@ -105,6 +105,151 @@ test('pass argument values to generated fragments', async function () {
 	`)
 })
 
+test('pass structured values as argument values to generated fragments', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+				query AllUsers {
+                    ...QueryFragment @with(name: { string: "Hello" })
+				}
+			`
+		),
+		mockCollectedDoc(
+			`
+				fragment QueryFragment on Query
+                @arguments(name: {type: "MyInput!"} ) {
+                    users(stringValue: $name) {
+                        id
+                    }
+				}
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	const queryContents = await fs.readFile(path.join(config.artifactPath(docs[0].document)))
+	expect(queryContents).toBeTruthy()
+	// parse the contents
+	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
+		parser: typeScriptParser,
+	}).program
+	// verify contents
+	expect(parsedQuery).toMatchInlineSnapshot(`
+		export default {
+		    "name": "AllUsers",
+		    "kind": "HoudiniQuery",
+		    "hash": "426cd28865d03250e65b5965de2168e17885397635c3924b80c251b24e02aa63",
+
+		    "raw": \`query AllUsers {
+		  ...QueryFragment_NYTzQ
+		}
+
+		fragment QueryFragment_NYTzQ on Query {
+		  users(stringValue: {string: "Hello"}) {
+		    id
+		  }
+		  __typename
+		}
+		\`,
+
+		    "rootType": "Query",
+
+		    "selection": {
+		        "fields": {
+		            "users": {
+		                "type": "User",
+		                "keyRaw": "users(stringValue: {string: \\"Hello\\"})",
+
+		                "selection": {
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id",
+		                            "visible": true
+		                        }
+		                    }
+		                }
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename"
+		            }
+		        },
+
+		        "fragments": {
+		            "QueryFragment": {
+		                "arguments": {
+		                    "name": {
+		                        "kind": "ObjectValue",
+
+		                        "fields": [{
+		                            "name": {
+		                                "kind": "Name",
+		                                "value": "string",
+
+		                                "loc": {
+		                                    "start": 73,
+		                                    "end": 79,
+
+		                                    "startToken": {
+		                                        "kind": "Name",
+		                                        "start": 73,
+		                                        "end": 79,
+		                                        "line": 3,
+		                                        "column": 52,
+		                                        "value": "string"
+		                                    },
+
+		                                    "endToken": {
+		                                        "kind": "Name",
+		                                        "start": 73,
+		                                        "end": 79,
+		                                        "line": 3,
+		                                        "column": 52,
+		                                        "value": "string"
+		                                    },
+
+		                                    "source": {
+		                                        "body": \`
+						query AllUsers {
+		                    ...QueryFragment @with(name: { string: "Hello" })
+						}
+					\`,
+
+		                                        "name": "GraphQL request",
+
+		                                        "locationOffset": {
+		                                            "line": 1,
+		                                            "column": 1
+		                                        }
+		                                    }
+		                                }
+		                            },
+
+		                            "value": {
+		                                "kind": "StringValue",
+		                                "value": "Hello"
+		                            }
+		                        }]
+		                    }
+		                }
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+		    "policy": "CacheOrNetwork",
+		    "partial": false
+		};
+
+		"HoudiniHash=fce39569122174783779ab77a7cfdcf3afec152436b110d717c0c6f4f1c6352b";
+	`)
+})
+
 test("nullable arguments with no values don't show up in the query", async function () {
 	const docs = [
 		mockCollectedDoc(
