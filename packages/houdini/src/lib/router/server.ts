@@ -1,14 +1,16 @@
 import type * as graphql from 'graphql'
 import path from 'node:path'
-import { build } from 'vite'
 
-import type { Config } from '../lib/config'
+import type { Config } from '../config'
 
 export function isSecondaryBuild() {
 	return process.env.HOUDINI_SCHEMA_BUILD === 'true'
 }
 
 export async function loadLocalSchema(config: Config): Promise<graphql.GraphQLSchema> {
+	// load the current version of vite
+	const { build } = await import('vite')
+
 	process.env.HOUDINI_SCHEMA_BUILD = 'true'
 
 	// build the schema somewhere we can import from

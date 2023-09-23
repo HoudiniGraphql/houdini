@@ -14,7 +14,6 @@ import type {
 } from 'rollup'
 import type { ConfigEnv, ResolvedConfig, UserConfig, ViteDevServer } from 'vite'
 
-import type { Adapter } from '../router'
 import type { ConfigFile } from '../runtime/lib/config'
 import type {
 	ArtifactKinds,
@@ -24,6 +23,7 @@ import type {
 } from '../runtime/lib/types'
 import type { TransformPage } from '../vite/houdini'
 import type { Config } from './config'
+import type { Adapter } from './router'
 
 type Program = recast.types.namedTypes.Program
 
