@@ -136,10 +136,10 @@ jobs:
                 path: kit
 
             - name: Extract Template
-              run: mv kit/packages/create-svelte/templates/default project
+              run: mv kit/packages/create-svelte/templates/default ../project
 
             - name: Run init
-              run: cd project && pwd && ls && node ../houdini/packages/houdini/build/cmd-esm/index.js init -y
+              run: cd ../project && pwd && ls && node ../houdini/packages/houdini/build/cmd-esm/index.js init -y
 
     e2e_tests:
         name: End-to-End Tests
