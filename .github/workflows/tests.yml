@@ -127,7 +127,7 @@ jobs:
               run: cd houdini && pnpm install
 
             - name: Build packages
-              run: cd houdini && pnpm run compile
+              run: cd houdini && pnpm run compile && cd ..
 
             - name: Checkout template
               uses: actions/checkout@v4
