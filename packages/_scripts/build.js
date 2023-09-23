@@ -63,7 +63,7 @@ export default async function ({ plugin }) {
 		// cmd needs to be bundled and set as the project's bin
 		else if (dirname === 'cmd') {
 			package_json.bin = './build/cmd-esm/index.js'
-			await build({ package_json, source: dir, plugin, cmd: true })
+			await build({ package_json, source: dir, plugin, bundle: true, cmd: true })
 		}
 
 		// its not a special directory, treat it as a sub module
@@ -108,12 +108,18 @@ async function build({ package_json, source, bundle = true, plugin, cmd }) {
 				}
 			}
 
+			// compute the appropriate external dependencies based on what we are bundling
+			let external = []
+			if (bundle) {
+				external.push('vite', 'graphql', 'HOUDINI_CLIENT_PATH')
+			}
+
 			// the esbuild config
 			const config = {
 				bundle,
 				platform: 'node',
 				format: which,
-				external: bundle ? ['vite', 'HOUDINI_CLIENT_PATH', 'graphql'] : [],
+				external,
 				banner: {
 					js: header,
 				},

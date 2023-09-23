@@ -1,6 +1,6 @@
 **/build/**
 README.md
-.github/**
+.github/
 packages/*/package.json
 
 packages/houdini-svelte/src/runtime/index.ts

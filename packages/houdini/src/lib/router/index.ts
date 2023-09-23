@@ -8,4 +8,4 @@ export * from './manifest'
 export * from './types'
 export * from './server'
 
-export { handle_request, get_session } from '../runtime/router/server'
+export { handle_request, get_session } from '../../runtime/router/server'

@@ -1,5 +1,5 @@
 import type { ProjectManifest, routerConventions } from '.'
-import type { Config } from '../lib/config'
+import type { Config } from '../config'
 
 export type Adapter = (args: {
 	config: Config

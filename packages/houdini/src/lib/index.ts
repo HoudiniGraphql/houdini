@@ -18,6 +18,6 @@ export type { EmbeddedGraphqlDocument } from './walk'
 
 export * as fs from './fs'
 export * as path from './path'
-export * from '../router'
+export * from './router'
 
 export { Cache } from '../runtime/cache/cache'

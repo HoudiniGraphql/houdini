@@ -73,11 +73,6 @@
             "import": "./build/lib-esm/index.js",
             "require": "./build/lib-cjs/index.js"
         },
-        "./router": {
-            "types": "./build/router/index.d.ts",
-            "import": "./build/router-esm/index.js",
-            "require": "./build/router-cjs/index.js"
-        },
         "./test": {
             "types": "./build/test/index.d.ts",
             "import": "./build/test-esm/index.js",
@@ -93,9 +88,6 @@
         "*": {
             "codegen": [
                 "build/codegen/index.d.ts"
-            ],
-            "router": [
-                "build/router/index.d.ts"
             ],
             "test": [
                 "build/test/index.d.ts"
