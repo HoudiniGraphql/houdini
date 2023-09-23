@@ -96,7 +96,10 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout template
-              run: git clone git@github.com:sveltejs/kit.git && mv kit/packages/create-svelte/templates/default .
+              uses: actions/checkout@v4
+              with:
+                repository: sveltejs/kit
+
 
             - name: Install houdini-cli
               run: npm install -g houdini
