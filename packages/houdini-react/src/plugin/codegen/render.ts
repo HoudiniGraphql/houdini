@@ -17,7 +17,7 @@ import Shell from '../../../../../src/+index'
 export default (options) => {
 	return serverAdapterFactory({
 		...options,
-		on_render: async ({url, match, session, pipe }) => {
+		on_render: async ({url, match, session, pipe , manifest }) => {
 			// instanitate a cache we can use for this request
 			const cache = new Cache({ disabled: false })
 
@@ -31,8 +31,8 @@ export default (options) => {
 						initialURL: url,
 						cache: cache,
 						session: session,
-						assetPrefix: options.asset_prefix,
-						manifest: options.manifest,
+						assetPrefix: options.assetPrefix,
+						manifest: manifest,
 						...router_cache()
 					})
 				}),
@@ -48,8 +48,11 @@ export default (options) => {
 					window.__houdini__initial__session__ = \${JSON.stringify(session)};
 				</script>
 
-				<!-- add a virtual module that hydrates the client and sets up the initial pending cache -->
-				<script type="module" src="\${options.asset_prefix}/pages/\${match.id}.jsx" async=""></script>
+				<!--
+					add a virtual module that hydrates the client and sets up the initial pending cache.
+					the dynamic extension is to support dev which sees the raw jsx, and production which sees the bundled asset
+				-->
+				<script type="module" src="\${options.assetPrefix}/pages/\${match.id}.\${options.production ? 'js' : 'jsx'}" async=""></script>
 			\`)
 
 			if (pipe && pipeTo) {

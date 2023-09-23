@@ -26,10 +26,11 @@ export const serverAdapterFactory = <ComponentType>({
 	manifest,
 	on_render,
 	pipe,
+	assetPrefix,
 }: {
 	schema?: GraphQLSchema | null
 	yoga?: ReturnType<typeof createYoga> | null
-	asset_prefix: string
+	assetPrefix: string
 	production?: boolean
 	pipe?: ServerResponse<IncomingMessage>
 	on_render: (args: {
@@ -39,7 +40,7 @@ export const serverAdapterFactory = <ComponentType>({
 		session: App.Session
 		pipe?: ServerResponse<IncomingMessage>
 	}) => Response | Promise<Response>
-	manifest: RouterManifest<ComponentType>
+	manifest: RouterManifest<ComponentType> | null
 } & Omit<YogaServerOptions, 'schema'>): ReturnType<typeof createAdapter> => {
 	if (schema && !yoga) {
 		yoga = createYoga({
@@ -62,6 +63,13 @@ export const serverAdapterFactory = <ComponentType>({
 	}
 
 	return createAdapter(async (request) => {
+		if (!manifest) {
+			return new Response(
+				"Adapter did not provide the project's manifest. Please open an issue on github.",
+				{ status: 500 }
+			)
+		}
+
 		// pull out the desired url
 		const url = new URL(request.url).pathname
 

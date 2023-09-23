@@ -1,10 +1,9 @@
-// @ts-ignore
-import { ExportedHandler } from '@cloudflare/workers-types'
+import type { ExportedHandler } from '@cloudflare/workers-types'
 
-import {
-	createServerAdapter,
-	type ServerAdapter, // @ts-ignore
-} from '../$houdini/plugins/houdini-react/units/render/server'
+// @ts-expect-error
+import manifest from '../$houdini/plugins/houdini-react/runtime/manifest'
+// @ts-ignore
+import createServerAdapter from '../$houdini/plugins/houdini-react/units/render/server'
 
 /**
   the exact fomatting on the next line matters and it has to be the boundary between imports
@@ -14,7 +13,7 @@ import {
 console.log('DYNAMIC_CONTENT')
 
 // create the production server adapter
-const server_adapter: ServerAdapter = createServerAdapter({
+const server_adapter = createServerAdapter({
 	// @ts-ignore: schema is defined dynamically
 	schema,
 	// @ts-ignore: yoga is defined dynamically
@@ -22,6 +21,8 @@ const server_adapter: ServerAdapter = createServerAdapter({
 	// @ts-ignore: graphqlEndpoint is defined dynamically
 	graphqlEndpoint,
 	production: true,
+	manifest,
+	assetPrefix: '/assets',
 })
 
 const handlers: ExportedHandler = {

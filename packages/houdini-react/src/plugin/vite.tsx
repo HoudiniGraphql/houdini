@@ -251,7 +251,7 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 			await serverAdapter({
 				schema,
 				yoga,
-				asset_prefix: '/virtual:houdini',
+				assetPrefix: '/virtual:houdini',
 				production: false,
 				manifest: router_manifest,
 				pipe: res,
