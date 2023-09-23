@@ -6,12 +6,15 @@ import React from 'react'
 
 import client from './client'
 import manifest from './manifest'
-import { Router as RouterImpl, RouterContextProvider } from './routing'
-import { PendingCache } from './routing/components/Router'
-import { SuspenseCache, suspense_cache } from './routing/lib/cache'
+import {
+	SuspenseCache,
+	suspense_cache,
+	Router as RouterImpl,
+	RouterContextProvider,
+	type PendingCache,
+} from './routing'
 
 export * from './hooks'
-export * from './routing'
 
 export function Router({
 	cache,
@@ -21,21 +24,17 @@ export function Router({
 	data_cache,
 	pending_cache,
 	last_variables,
-	loaded_queries,
-	loaded_artifacts,
 	session,
 	assetPrefix,
 }: {
 	initialURL: string
 	cache: Cache
-	loaded_queries?: Record<string, { data: GraphQLObject; variables: GraphQLVariables }>
-	loaded_artifacts?: Record<string, QueryArtifact>
 	session?: App.Session
 	assetPrefix: string
 } & RouterCache) {
 	return (
 		<RouterContextProvider
-			client={client}
+			client={client()}
 			cache={cache}
 			artifact_cache={artifact_cache}
 			component_cache={component_cache}
@@ -44,13 +43,7 @@ export function Router({
 			last_variables={last_variables}
 			session={session}
 		>
-			<RouterImpl
-				initialURL={initialURL}
-				manifest={manifest}
-				loaded_queries={loaded_queries}
-				loaded_artifacts={loaded_artifacts}
-				assetPrefix={assetPrefix}
-			/>
+			<RouterImpl initialURL={initialURL} manifest={manifest} assetPrefix={assetPrefix} />
 		</RouterContextProvider>
 	)
 }

@@ -2,55 +2,62 @@ import { type Config, fs, path, routerConventions } from 'houdini'
 
 export async function generate_renders(config: Config) {
 	// make sure the necessary directories exist
-	await fs.mkdirp(path.dirname(routerConventions.render_client_path(config)))
+	await fs.mkdirp(path.dirname(routerConventions.server_adapter_path(config)))
 
-	// everything is in fixed locations so just generate what we need where we need it
-	const app_index = `
-import React from 'react'
-import Shell from '../../../../../src/+index'
-import { Router } from '$houdini'
-
-export default (props) => <Shell><Router {...props} /></Shell>
-`
-
-	const render_server = `
+	const server_adapter = `
 import React from 'react'
 import { renderToStream } from 'react-streaming/server'
+import { Cache } from '$houdini/runtime/cache/cache'
+import { serverAdapterFactory } from '$houdini/runtime/router/server'
 
-import App from './App'
-import { router_cache } from '$houdini'
+import { Router, router_cache } from '../../runtime'
 
-export function render_to_stream({url, cache, loaded_queries, loaded_artifacts, session, assetPrefix, ...config}) {
-	return renderToStream(
-		React.createElement(App, {
-			initialURL: url,
-			cache,
-			...router_cache(),
-			loaded_queries,
-			session,
-			loaded_artifacts,
-			assetPrefix,
-		}), config
-	)
-}
-`
+import Shell from '../../../../../src/+index'
 
-	const create_yoga = `
-import { createYoga } from 'graphql-yoga'
-import internalSchema from '../../../../../src/api/+schema'
+export default (options) => {
+	return serverAdapterFactory({
+		...options,
+		on_render: async ({url, match, session}) => {
+			// instanitate a cache we can use for this request
+			const cache = new Cache({ disabled: false })
 
-export default function({ schema = internalSchema, ...opts } = {}) {
-	return createYoga({
-		schema,
-		landingPage: false,
-		...opts
+			if (!match) {
+				throw new Error('no match')
+			}
+
+			const { readable } = await renderToStream(
+				React.createElement(Shell, {
+					children: React.createElement(Router, {
+						initialURL: url,
+						cache: cache,
+						session: session,
+						assetPrefix: options.assetPrefix,
+						manifest: options.manifest,
+						...router_cache()
+					})
+				}),
+				{
+					userAgent: 'Vite',
+				}
+			)
+
+			// add the initial scripts to the page
+			injectToStream(\`
+				<script>
+					window.__houdini__initial__cache__ = \${cache.serialize()};
+					window.__houdini__initial__session__ = \${JSON.stringify(session)};
+				</script>
+
+				<!-- add a virtual module that hydrates the client and sets up the initial pending cache -->
+				<script type="module" src="\${options.assetPrefix}/pages/\${match.id}.js'" async=""></script>
+			\`)
+
+			// and deliver our Response while that's running.
+			return new Response(readable)
+		},
 	})
 }
 	`
 
-	await Promise.all([
-		fs.writeFile(routerConventions.render_server_path(config), render_server),
-		fs.writeFile(routerConventions.render_app_path(config), app_index),
-		fs.writeFile(routerConventions.render_yoga_path(config), create_yoga),
-	])
+	await Promise.all([fs.writeFile(routerConventions.server_adapter_path(config), server_adapter)])
 }

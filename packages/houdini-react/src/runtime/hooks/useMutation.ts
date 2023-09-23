@@ -5,7 +5,7 @@ import type {
 	GraphQLVariables,
 } from '$houdini/runtime/lib/types'
 
-import { useSession } from '../routing/components/Router'
+import { useSession } from '../routing/Router'
 import { useDocumentStore } from './useDocumentStore'
 
 export type MutationHandler<_Result, _Input, _Optimistic extends GraphQLObject> = (args: {

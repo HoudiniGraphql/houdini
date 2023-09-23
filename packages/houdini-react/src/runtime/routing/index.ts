@@ -1,3 +1,2 @@
-export * from './components'
-export { suspense_cache } from './lib/cache'
-export type { RouterManifest, RouterPageManifest } from './lib/types'
+export * from './Router'
+export { type SuspenseCache, suspense_cache } from './cache'

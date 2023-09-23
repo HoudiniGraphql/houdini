@@ -17,10 +17,11 @@ const adapter: Adapter = async ({
 
 	// start off with the base case
 	let dynamicContent = `
-	const graphqlEndpoint = ${JSON.stringify(localApiEndpoint(config.configFile))}
-	const schema = null
-	const yoga = null
-`
+		const schema = null
+		const yoga = null
+
+		const graphqlEndpoint = ${JSON.stringify(localApiEndpoint(config.configFile))}
+	`
 
 	// if the wants a custom yoga instance
 	if (manifest.local_yoga) {
@@ -34,13 +35,10 @@ const adapter: Adapter = async ({
 	// we could just have a local schema defined without a custom yoga wrapper
 	else if (manifest.local_schema) {
 		dynamicContent = `
-			import createYoga from '../$houdini/plugins/houdini-react/units/render/yoga'
 			import schema from '../src/api/+schema'
 
 			const graphqlEndpoint = ${JSON.stringify(localApiEndpoint(config.configFile))}
-			const yoga = createYoga({
-				graphqlEndpoint
-			})
+			const yoga = null
 		`
 	}
 

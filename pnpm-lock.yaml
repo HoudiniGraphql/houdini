@@ -193,6 +193,9 @@ importers:
       '@graphql-tools/schema':
         specifier: ^9.0.4
         version: 9.0.19(graphql@15.5.0)
+      '@whatwg-node/server':
+        specifier: ^0.9.14
+        version: 0.9.14
       cookie:
         specifier: ^0.5.0
         version: 0.5.0
@@ -372,6 +375,9 @@ importers:
       '@ungap/structured-clone':
         specifier: ^1.0.2
         version: 1.0.2
+      '@whatwg-node/server':
+        specifier: ^0.9.14
+        version: 0.9.14
       ast-types:
         specifier: ^0.16.1
         version: 0.16.1
@@ -540,6 +546,9 @@ importers:
       '@types/react':
         specifier: ^18.0.28
         version: 18.0.33
+      '@whatwg-node/server':
+        specifier: ^0.9.14
+        version: 0.9.14
       cookie-parser:
         specifier: ^1.4.6
         version: 1.4.6

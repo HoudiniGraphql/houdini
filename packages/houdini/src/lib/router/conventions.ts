@@ -10,19 +10,8 @@ export function page_entry_path(config: Config, id: string, base?: string) {
 	return path.join(page_entries_dir(config, base), `${id}.jsx`)
 }
 
-export function render_client_path(config: Config, base?: string) {
-	return path.join(units_dir(config, base), 'render', 'client.jsx')
-}
-
-export function render_server_path(config: Config, base?: string) {
+export function server_adapter_path(config: Config, base?: string) {
 	return path.join(units_dir(config, base), 'render', 'server.js')
-}
-
-export function render_yoga_path(config: Config, base?: string) {
-	return path.join(units_dir(config, base), 'render', 'yoga.js')
-}
-export function render_app_path(config: Config, base?: string) {
-	return path.join(units_dir(config, base), 'render', 'App.jsx')
 }
 
 export function page_unit_path(config: Config, id: string, base?: string) {
