@@ -12,12 +12,11 @@ on:
         branches:
             - 'main'
 
-
 env:
-  # Playwright uses this env var for the browser install path. See:
-  # https://playwright.dev/docs/ci#directories-to-cache
-  # It makes most sense to default this to something cross-platform
-  PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/ms-playwright
+    # Playwright uses this env var for the browser install path. See:
+    # https://playwright.dev/docs/ci#directories-to-cache
+    # It makes most sense to default this to something cross-platform
+    PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/ms-playwright
 
 jobs:
     format:
@@ -33,13 +32,13 @@ jobs:
             - name: Install Node.js
               uses: actions/setup-node@v3
               with:
-                node-version: 16.17.0
+                  node-version: 16.17.0
 
             - uses: pnpm/action-setup@v2.0.1
               name: Install pnpm
               id: pnpm-install
               with:
-                version: 8
+                  version: 8
 
             - name: Install dependencies
               run: pnpm install
@@ -63,25 +62,25 @@ jobs:
             - name: Install Node.js
               uses: actions/setup-node@v3
               with:
-                node-version: 16.17.0
+                  node-version: 16.17.0
 
             - uses: pnpm/action-setup@v2.0.1
               name: Install pnpm
               id: pnpm-install
               with:
-                version: 8
+                  version: 8
 
             - name: Get pnpm store directory
               id: pnpm-cache
               run: |
-                echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
+                  echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
             - uses: actions/cache@v3
               name: Setup pnpm cache
               with:
-                path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
-                key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                restore-keys: |
-                  ${{ runner.os }}-pnpm-store-
+                  path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
             - name: Install dependencies
               run: pnpm install
 
@@ -95,14 +94,13 @@ jobs:
         name: Verify Create
         steps:
             - name: Checkout template
-                run: git clone git@github.com:sveltejs/kit.git && mv kit/packages/create-svelte/templates/default .
+              run: git clone git@github.com:sveltejs/kit.git && mv kit/packages/create-svelte/templates/default .
 
             - name: Install houdini-cli
-                run: npm install -g houdini
+              run: npm install -g houdini
 
             - name: Run Init
-                run: npx houdini init -y
-
+              run: npx houdini init -y
 
     e2e_tests:
         name: End-to-End Tests
@@ -121,7 +119,7 @@ jobs:
             - name: Install Node.js
               uses: actions/setup-node@v3
               with:
-                node-version: 16.17.0
+                  node-version: 16.17.0
 
             # pnpm
 
@@ -129,20 +127,20 @@ jobs:
               name: Install pnpm
               id: pnpm-install
               with:
-                version: 8
+                  version: 8
 
             - name: Get pnpm store directory
               id: pnpm-cache
               run: |
-                echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
+                  echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
 
             - uses: actions/cache@v3
               name: Setup pnpm cache
               with:
-                path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
-                key: ${{ matrix.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                restore-keys: |
-                  ${{ matrix.os }}-pnpm-store-
+                  path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+                  key: ${{ matrix.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: |
+                      ${{ matrix.os }}-pnpm-store-
 
             - name: Install dependencies
               run: pnpm install
@@ -153,14 +151,14 @@ jobs:
             # AFAIK this is a x-platform way to get your installed Playwright version.
             # Be sure to be diligent in specifying ^, ~, or locked versions.
             - run: |
-                echo "PLAYWRIGHT_VERSION=$(node -e "process.stdout.write(require('@playwright/test/package.json').version)")" >> $GITHUB_OUTPUT
+                  echo "PLAYWRIGHT_VERSION=$(node -e "process.stdout.write(require('@playwright/test/package.json').version)")" >> $GITHUB_OUTPUT
               id: playwright-version
 
             - uses: actions/cache@v3
               id: playwright-cache
               with:
-                key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.PLAYWRIGHT_VERSION }}
-                path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
+                  key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.PLAYWRIGHT_VERSION }}
+                  path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
 
             - run: pnpm playwright install
               if: steps.playwright-cache.outputs.cache-hit != 'true'
@@ -186,25 +184,25 @@ jobs:
             - name: Install Node.js
               uses: actions/setup-node@v3
               with:
-                node-version: 16.17.0
+                  node-version: 16.17.0
 
             - uses: pnpm/action-setup@v2.0.1
               name: Install pnpm
               id: pnpm-install
               with:
-                version: 8
+                  version: 8
 
             - name: Get pnpm store directory
               id: pnpm-cache
               run: |
-                echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
+                  echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
             - uses: actions/cache@v3
               name: Setup pnpm cache
               with:
-                path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
-                key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                restore-keys: |
-                  ${{ runner.os }}-pnpm-store-
+                  path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
             - name: Install dependencies
               run: pnpm install
 
