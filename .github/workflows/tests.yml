@@ -101,9 +101,6 @@ jobs:
                   ref: ${{ github.ref }}
                   path: houdini
 
-            - name: Navigate into Houdini Directory
-              run: cd houdini
-
             - name: Install Node.js
               uses: actions/setup-node@v3
               with:
@@ -127,10 +124,10 @@ jobs:
                 restore-keys: |
                   ${{ runner.os }}-pnpm-store-
             - name: Install dependencies
-              run: pnpm install
+              run: cd houdini && pnpm install
 
             - name: Build packages
-              run: pnpm run compile
+              run: cd houdini && pnpm run compile
 
             - name: Checkout template
               uses: actions/checkout@v4
@@ -138,11 +135,8 @@ jobs:
                 repository: sveltejs/kit
                 path: kit
 
-            - name: Go into kit directory
-              run: cd ../kit
-
             - name: Install houdini-cli
-              run: node ../houdini/packages/houdini/build/cmd.js init -y
+              run: cd kit && node ../houdini/packages/houdini/build/cmd.js init -y
 
     e2e_tests:
         name: End-to-End Tests
