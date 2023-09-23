@@ -1,5 +1,13 @@
 # houdini
 
+## 1.2.13
+
+### Patch Changes
+
+-   [#1169](https://github.com/HoudiniGraphql/houdini/pull/1169) [`41e3bdbf`](https://github.com/HoudiniGraphql/houdini/commit/41e3bdbf9a1bcc029fb8ef56fe91f7116a42a3b1) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fixed a bug when fragment variables were set to structured values
+
+-   [#1167](https://github.com/HoudiniGraphql/houdini/pull/1167) [`8741ff3a`](https://github.com/HoudiniGraphql/houdini/commit/8741ff3a1594c79400a99f102e8d84801d44ae87) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug in init causing it to always crash
+
 ## 1.2.12
 
 ## 1.2.11
