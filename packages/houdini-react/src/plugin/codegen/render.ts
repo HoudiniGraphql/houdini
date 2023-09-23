@@ -11,11 +11,13 @@ import { Cache } from '$houdini/runtime/cache/cache'
 import { serverAdapterFactory } from '$houdini/runtime/router/server'
 
 import { Router, router_cache } from '../../runtime'
+import manifest from '../../runtime/manifest'
 
 import Shell from '../../../../../src/+index'
 
 export default (options) => {
 	return serverAdapterFactory({
+		manifest,
 		...options,
 		on_render: async ({url, match, session, pipe , manifest }) => {
 			// instanitate a cache we can use for this request

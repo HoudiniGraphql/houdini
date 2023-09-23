@@ -1,7 +1,5 @@
 import type { ExportedHandler } from '@cloudflare/workers-types'
 
-// @ts-expect-error
-import manifest from '../$houdini/plugins/houdini-react/runtime/manifest'
 // @ts-ignore
 import createServerAdapter from '../$houdini/plugins/houdini-react/units/render/server'
 
@@ -21,7 +19,6 @@ const server_adapter = createServerAdapter({
 	// @ts-ignore: graphqlEndpoint is defined dynamically
 	graphqlEndpoint,
 	production: true,
-	manifest,
 	assetPrefix: '/assets',
 })
 
