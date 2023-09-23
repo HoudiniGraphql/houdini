@@ -101,6 +101,9 @@ jobs:
                   ref: ${{ github.ref }}
                   path: houdini
 
+            - name: Pwd
+              run: pwd
+
             - name: Install Node.js
               uses: actions/setup-node@v3
               with:
