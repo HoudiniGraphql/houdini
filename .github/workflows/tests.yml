@@ -136,7 +136,7 @@ jobs:
                 path: kit
 
             - name: Run init
-              run: cd kit && node ../houdini/packages/houdini/build/cmd-esm/index.js init -y
+              run: rm -rf node_modules && cd kit && node ../houdini/packages/houdini/build/cmd-esm/index.js init -y
 
     e2e_tests:
         name: End-to-End Tests
