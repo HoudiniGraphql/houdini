@@ -94,14 +94,14 @@ jobs:
     verify_create:
         name: Verify Create
         steps:
-          - name: Checkout template
-            run: git clone git@github.com:sveltejs/kit.git && mv kit/packages/create-svelte/templates/default .
+            - name: Checkout template
+                run: git clone git@github.com:sveltejs/kit.git && mv kit/packages/create-svelte/templates/default .
 
-          - name: Install houdini-cli
-            run: npm install -g houdini
+            - name: Install houdini-cli
+                run: npm install -g houdini
 
-          - name: Run Init
-            run: npx houdini init -y
+            - name: Run Init
+                run: npx houdini init -y
 
 
     e2e_tests:
