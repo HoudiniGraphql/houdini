@@ -6,15 +6,16 @@ import {
 	fs,
 	load_manifest,
 	routerConventions,
-	handle_request,
-	localApiSessionKeys,
 	isSecondaryBuild,
 	type ProjectManifest,
 	type ServerAdapterFactory,
 	type YogaServer,
 	RouterManifest,
+	find_match,
+	localApiEndpoint,
 } from 'houdini'
-import type { BuildOptions, Connect, ViteDevServer } from 'vite'
+import { IncomingMessage, ServerResponse } from 'http'
+import type { BuildOptions } from 'vite'
 
 import { setManifest } from '.'
 
@@ -107,7 +108,7 @@ export default {
 		// if we are rendering the virtual page
 		if (which === 'pages') {
 			const [id, query_names] = arg.split('@')
-			const queries = query_names.split(',')
+			const queries = query_names ? query_names.split(',') : []
 
 			return `
 				import { hydrateRoot } from 'react-dom/client';
@@ -117,6 +118,7 @@ export default {
 				import client from '$houdini/plugins/houdini-react/runtime/client'
 				import Component from '$houdini/plugins/houdini-react/units/entries/${id}.jsx'
 
+
 				// if there is pending data (or artifacts) then we should prime the caches
 				let initialData = {}
 				let initialArtifacts = {}
@@ -124,7 +126,7 @@ export default {
 				if (!window.__houdini__cache__) {
 					window.__houdini__cache__ = new Cache()
 					window.__houdini__hydration__layer__ = window.__houdini__cache__._internal_unstable.storage.createLayer(true)
-					window.__houdini__client__ = client
+					window.__houdini__client__ = client()
 				}
 
 				// the artifacts are the source of the zip (without them, we can't prime either cache)
@@ -135,7 +137,7 @@ export default {
 					// if we also have data for the artifact, save it in the initial data cache
 					if (window.__houdini__pending_data__?.[artifactName]) {
 						// create the store we'll put in the cache
-						const observer = client.observe({ artifact, cache: window.__houdini__cache__, initialValue: window.__houdini__pending_data__[artifactName] })
+						const observer = window.__houdini__client__.observe({ artifact, cache: window.__houdini__cache__, initialValue: window.__houdini__pending_data__[artifactName] })
 
 						// save it in the cache
 						initialData[artifactName] = observer
@@ -188,8 +190,30 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 	// when running the dev server, we want to use the same streaming
 	// render that we will use in production. This means that we need to
 	// capture the request before vite's dev server processes it.
-	configureServer(server) {
+	async configureServer(server) {
 		server.middlewares.use(async (req, res, next) => {
+			// import the router manifest from the runtime
+			// pull in the project's manifest
+			const { default: router_manifest } = (await server.ssrLoadModule(
+				path.join(
+					server.houdiniConfig.pluginRuntimeDirectory('houdini-react'),
+					'manifest.js'
+				)
+			)) as { default: RouterManifest<React.Component> }
+
+			// any requests for things that aren't routes shouldn't be handled
+			try {
+				const [match] = find_match(router_manifest, req.url ?? '/')
+				if (!match) {
+					throw new Error()
+				}
+			} catch {
+				if (req.url !== localApiEndpoint(server.houdiniConfig.configFile)) {
+					return next()
+				}
+			}
+
+			// its worth loading the project manifest
 			const project_manifest = await load_manifest({ config: server.houdiniConfig })
 
 			// import the schema
@@ -204,7 +228,6 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 					)
 				).default
 			}
-
 			// import the schema
 			const serverAdapter: (
 				args: Omit<Parameters<ServerAdapterFactory>[0], 'on_render'>
@@ -215,7 +238,6 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 						new Date().getTime()
 				)
 			).default
-
 			let yoga: YogaServer | null = null
 			if (project_manifest.local_yoga) {
 				const yogaPath = path.join(
@@ -225,25 +247,15 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 				yoga = (await server.ssrLoadModule(yogaPath)) as YogaServer
 			}
 
-			// import the router manifest from the runtime
-			// pull in the project's manifest
-			const { default: router_manifest } = (await server.ssrLoadModule(
-				path.join(
-					server.houdiniConfig.pluginRuntimeDirectory('houdini-react'),
-					'manifest.js'
-				)
-			)) as { default: RouterManifest<React.Component> }
-
-			const adapter = serverAdapter({
+			// call the adapter with the latest information
+			await serverAdapter({
 				schema,
 				yoga,
 				asset_prefix: '/virtual:houdini',
 				production: false,
 				manifest: router_manifest,
-			})
-
-			// pass the response onto the user
-			return adapter(req, res, next)
+				pipe: res,
+			})(req, res)
 		})
 	},
 } as PluginHooks['vite']

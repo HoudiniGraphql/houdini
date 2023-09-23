@@ -383,8 +383,6 @@ export function RouterContextProvider({
 		}
 	}, [])
 
-	console.log('providing context')
-
 	return (
 		<Context.Provider
 			value={{

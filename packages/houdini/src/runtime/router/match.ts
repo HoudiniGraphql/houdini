@@ -33,7 +33,7 @@ export function find_match<_ComponentType>(
 export function find_match<_ComponentType>(
 	manifest: RouterManifest<_ComponentType>,
 	current: string,
-	allowNull?: boolean
+	allowNull: boolean = true
 ): [RouterPageManifest<_ComponentType>, GraphQLVariables] {
 	// find the matching path (if it exists)
 	let match: RouterPageManifest<_ComponentType> | null = null

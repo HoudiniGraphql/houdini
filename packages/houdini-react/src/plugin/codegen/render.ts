@@ -17,21 +17,21 @@ import Shell from '../../../../../src/+index'
 export default (options) => {
 	return serverAdapterFactory({
 		...options,
-		on_render: async ({url, match, session}) => {
+		on_render: async ({url, match, session, pipe }) => {
 			// instanitate a cache we can use for this request
 			const cache = new Cache({ disabled: false })
 
 			if (!match) {
-				throw new Error('no match')
+				return new Response('not found', { status: 404 })
 			}
 
-			const { readable } = await renderToStream(
+			const { readable, injectToStream, pipe: pipeTo } = await renderToStream(
 				React.createElement(Shell, {
 					children: React.createElement(Router, {
 						initialURL: url,
 						cache: cache,
 						session: session,
-						assetPrefix: options.assetPrefix,
+						assetPrefix: options.asset_prefix,
 						manifest: options.manifest,
 						...router_cache()
 					})
@@ -49,11 +49,16 @@ export default (options) => {
 				</script>
 
 				<!-- add a virtual module that hydrates the client and sets up the initial pending cache -->
-				<script type="module" src="\${options.assetPrefix}/pages/\${match.id}.js'" async=""></script>
+				<script type="module" src="\${options.asset_prefix}/pages/\${match.id}.jsx" async=""></script>
 			\`)
 
-			// and deliver our Response while that's running.
-			return new Response(readable)
+			if (pipe && pipeTo) {
+				// pipe the response to the client
+				pipeTo(pipe)
+			} else {
+				// and deliver our Response while that's running.
+				return new Response(readable)
+			}
 		},
 	})
 }

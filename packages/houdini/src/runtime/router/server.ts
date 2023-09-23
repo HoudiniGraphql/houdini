@@ -1,6 +1,7 @@
 import { createServerAdapter as createAdapter } from '@whatwg-node/server'
 import { type GraphQLSchema, parse, execute } from 'graphql'
 import { createYoga } from 'graphql-yoga'
+import { IncomingMessage, ServerResponse } from 'http'
 
 // @ts-ignore
 import client from '../../../src/+client'
@@ -24,16 +25,19 @@ export const serverAdapterFactory = <ComponentType>({
 	production,
 	manifest,
 	on_render,
+	pipe,
 }: {
 	schema?: GraphQLSchema | null
 	yoga?: ReturnType<typeof createYoga> | null
 	asset_prefix: string
-	production: boolean
+	production?: boolean
+	pipe?: ServerResponse<IncomingMessage>
 	on_render: (args: {
 		url: string
 		match: RouterPageManifest<ComponentType> | null
 		manifest: RouterManifest<unknown>
 		session: App.Session
+		pipe?: ServerResponse<IncomingMessage>
 	}) => Response | Promise<Response>
 	manifest: RouterManifest<ComponentType>
 } & Omit<YogaServerOptions, 'schema'>): ReturnType<typeof createAdapter> => {
@@ -41,6 +45,7 @@ export const serverAdapterFactory = <ComponentType>({
 		yoga = createYoga({
 			schema,
 			landingPage: !production,
+			graphqlEndpoint,
 		})
 	}
 
@@ -79,7 +84,7 @@ export const serverAdapterFactory = <ComponentType>({
 		// the request is for a server-side rendered page
 
 		// find the matching url
-		const [match] = find_match(manifest, url, true)
+		const [match] = find_match(manifest, url)
 
 		// call the framework-specific render hook with the latest session
 		const rendered = await on_render({
@@ -87,8 +92,10 @@ export const serverAdapterFactory = <ComponentType>({
 			match,
 			session: await get_session(request.headers, session_keys),
 			manifest,
+			pipe,
 		})
 		if (rendered) {
+			console.log(url, rendered)
 			return rendered
 		}
 

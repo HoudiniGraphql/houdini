@@ -22,3 +22,4 @@ export * as path from './path'
 export * from './router'
 
 export { Cache } from '../runtime/cache/cache'
+export * from '../runtime/router/match'
