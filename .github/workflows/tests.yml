@@ -135,8 +135,11 @@ jobs:
                 repository: sveltejs/kit
                 path: kit
 
+            - name: Extract Template
+              run: mv kit/packages/create-svelte/template/default project
+
             - name: Run init
-              run: rm -rf node_modules && cd kit && node ../houdini/packages/houdini/build/cmd-esm/index.js init -y
+              run: cd project && node ../houdini/packages/houdini/build/cmd-esm/index.js init -y
 
     e2e_tests:
         name: End-to-End Tests
