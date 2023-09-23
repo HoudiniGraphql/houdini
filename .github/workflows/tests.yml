@@ -127,7 +127,7 @@ jobs:
               run: cd houdini && pnpm install
 
             - name: Build packages
-              run: cd houdini && pnpm run compile && cd ..
+              run: cd houdini && pnpm run compile
 
             - name: Checkout template
               uses: actions/checkout@v4
@@ -136,7 +136,7 @@ jobs:
                 path: kit
 
             - name: Run init
-              run: cd kit && pwd && node /home/runner/work/houdini/houdini/packages/houdini/build/cmd-cjs/index.js init -y
+              run: node ../packages/houdini/build/cmd-cjs/index.js init -y
 
     e2e_tests:
         name: End-to-End Tests
