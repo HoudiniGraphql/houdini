@@ -136,7 +136,7 @@ jobs:
                 path: kit
 
             - name: Run init
-              run: node ../packages/houdini/build/cmd-cjs/index.js init -y
+              run: cd kit && node ../houdini/packages/houdini/build/cmd-cjs/index.js init -y
 
     e2e_tests:
         name: End-to-End Tests
