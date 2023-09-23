@@ -95,6 +95,9 @@ jobs:
         name: Verify Create
         runs-on: ubuntu-latest
         steps:
+            - name: Pwd Before
+              run: pwd
+
             - name: Checkout source
               uses: actions/checkout@v3
               with:
