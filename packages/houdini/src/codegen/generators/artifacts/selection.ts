@@ -10,7 +10,7 @@ import {
 } from '../../../runtime/lib/types'
 import { connectionSelection } from '../../transforms/list'
 import fieldKey from './fieldKey'
-import { convertValue, serializeValue } from './utils'
+import { convertValue } from './utils'
 
 // we're going to generate the selection in two passes. the first will create the various field selections
 // and then the second will map the concrete selections onto the abstract ones
