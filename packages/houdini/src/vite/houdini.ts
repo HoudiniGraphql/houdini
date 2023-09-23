@@ -121,6 +121,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				publicBase: viteConfig.base,
 				outDir: config.routerBuildDirectory,
 				manifest,
+				adapterPath: '../$houdini/plugins/houdini-react/units/render/config.js',
 			})
 		},
 

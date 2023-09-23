@@ -8,4 +8,5 @@ export type Adapter = (args: {
 	publicBase: string
 	outDir: string
 	manifest: ProjectManifest
+	adapterPath: string
 }) => void | Promise<void>

@@ -1,9 +1,44 @@
-import { type Config, fs, path, routerConventions } from 'houdini'
+import {
+	type Config,
+	fs,
+	path,
+	routerConventions,
+	type ProjectManifest,
+	localApiEndpoint,
+} from 'houdini'
 
-export async function generate_renders(config: Config) {
+export async function generate_renders({
+	config,
+	manifest,
+}: {
+	config: Config
+	manifest: ProjectManifest
+}) {
 	// make sure the necessary directories exist
 	await fs.mkdirp(path.dirname(routerConventions.server_adapter_path(config)))
 
+	// and a file that adapters can import to get the local configuration
+	let adapter_config = `
+		import createAdapter from './server'
+
+		${
+			manifest.local_schema
+				? `import schema from '../../../../../src/api/+schema'`
+				: ' const schema = null'
+		}
+
+		${manifest.local_yoga ? `import yoga from '.../../../../../src/api/+yoga'` : ' const yoga = null'}
+
+		export function createServerAdapter(options) {
+			return createAdapter({
+				schema,
+				yoga,
+				...options,
+			})
+		}
+	`
+
+	// we need a file in the local runtime that we can use to drive the server-side responses
 	const server_adapter = `
 import React from 'react'
 import { renderToStream } from 'react-streaming/server'
@@ -69,5 +104,8 @@ export default (options) => {
 }
 	`
 
-	await Promise.all([fs.writeFile(routerConventions.server_adapter_path(config), server_adapter)])
+	await Promise.all([
+		fs.writeFile(routerConventions.server_adapter_path(config), server_adapter),
+		fs.writeFile(routerConventions.adapter_config_path(config), adapter_config),
+	])
 }

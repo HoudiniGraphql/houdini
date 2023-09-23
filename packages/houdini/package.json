@@ -64,6 +64,11 @@
     ],
     "exports": {
         "./package.json": "./package.json",
+        "./adapter": {
+            "types": "./build/adapter/index.d.ts",
+            "import": "./build/adapter-esm/index.js",
+            "require": "./build/adapter-cjs/index.js"
+        },
         "./codegen": {
             "types": "./build/codegen/index.d.ts",
             "import": "./build/codegen-esm/index.js",
@@ -87,6 +92,9 @@
     },
     "typesVersions": {
         "*": {
+            "adapter": [
+                "build/adapter/index.d.ts"
+            ],
             "codegen": [
                 "build/codegen/index.d.ts"
             ],

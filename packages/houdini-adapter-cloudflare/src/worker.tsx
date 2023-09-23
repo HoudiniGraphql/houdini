@@ -1,23 +1,8 @@
 import type { ExportedHandler } from '@cloudflare/workers-types'
-
-// @ts-ignore
-import createServerAdapter from '../$houdini/plugins/houdini-react/units/render/server'
-
-/**
-  the exact fomatting on the next line matters and it has to be the boundary between imports
-  and the rest of the code. we replace it at build time with the project-specific configuration.
-*/
-
-console.log('DYNAMIC_CONTENT')
+import { createServerAdapter } from 'houdini/adapter'
 
 // create the production server adapter
 const server_adapter = createServerAdapter({
-	// @ts-ignore: schema is defined dynamically
-	schema,
-	// @ts-ignore: yoga is defined dynamically
-	yoga,
-	// @ts-ignore: graphqlEndpoint is defined dynamically
-	graphqlEndpoint,
 	production: true,
 	assetPrefix: '/assets',
 })

@@ -21,7 +21,7 @@ export default async function routerCodegen({
 	// use the manifest to generate all of the necessary project files
 	await Promise.all([
 		generate_entries({ config, manifest }),
-		generate_renders(config),
+		generate_renders({ config, manifest }),
 		generate_type_root({ config, manifest }),
 		write_manifest({ config, manifest }),
 	])
