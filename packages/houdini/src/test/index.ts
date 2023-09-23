@@ -15,6 +15,10 @@ export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {})
 
 			directive @live on QUERY
 
+			input MyInput {
+				string: String
+			}
+
 			type User implements Node & Friend & CatOwner {
 				id: ID!
 				name: String!

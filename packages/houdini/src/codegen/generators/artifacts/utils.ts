@@ -17,10 +17,13 @@ export function serializeValue(value: any): ExpressionKind {
 	if (typeof value === 'object' && value !== null) {
 		return AST.objectExpression(
 			Object.entries(value)
-				.filter(([, value]) => typeof value !== 'undefined')
-				.map(([key, value]) =>
-					AST.objectProperty(AST.stringLiteral(key), serializeValue(value))
+				.filter(
+					([key, value]) =>
+						typeof value !== 'undefined' && key !== 'prev' && key !== 'next'
 				)
+				.map(([key, val]) => {
+					return AST.objectProperty(AST.stringLiteral(key), serializeValue(val))
+				})
 		)
 	}
 
