@@ -95,17 +95,11 @@ jobs:
         name: Verify Create
         runs-on: ubuntu-latest
         steps:
-            - name: Pwd Before
-              run: pwd
-
             - name: Checkout source
               uses: actions/checkout@v3
               with:
                   ref: ${{ github.ref }}
                   path: houdini
-
-            - name: Pwd
-              run: pwd
 
             - name: Install Node.js
               uses: actions/setup-node@v3
@@ -145,7 +139,7 @@ jobs:
               run: mv kit/packages/create-svelte/templates/default project
 
             - name: Run init
-              run: cd project && pwd && ls && node ../houdini/packages/houdini/build/cmd-esm/index.js init -y
+              run: cd project && node ../houdini/packages/houdini/build/cmd-esm/index.js init -y
 
     e2e_tests:
         name: End-to-End Tests
