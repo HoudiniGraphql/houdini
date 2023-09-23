@@ -36,6 +36,7 @@ program
 		'-h, --headers <headers...>',
 		'header to use when pulling your schema. Should be passed as KEY=VALUE'
 	)
+	.option('-y, --yes', 'dont prompt for input. uses default values or empty strings')
 	.action(init)
 
 // register the pull schema command

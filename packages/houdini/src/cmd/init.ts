@@ -25,6 +25,7 @@ export async function init(
 	_path: string | undefined,
 	args: {
 		headers?: string[]
+		yes?: boolean
 	}
 ): Promise<void> {
 	p.intro('🎩 Welcome to Houdini!')
@@ -84,23 +85,28 @@ export async function init(
 
 	// Questions...
 	let url = 'http://localhost:5173/api/graphql'
-	const { is_remote_endpoint } = await p.group(
-		{
-			is_remote_endpoint: () =>
-				p.confirm({
-					message: 'Will you use a remote GraphQL API?',
-					initialValue: true,
-				}),
-		},
-		{
-			onCancel: () => pCancel(),
-		}
-	)
+	let is_remote_endpoint = true
+	if (!args.yes) {
+		is_remote_endpoint = (
+			await p.group(
+				{
+					is_remote_endpoint: () =>
+						p.confirm({
+							message: 'Will you use a remote GraphQL API?',
+							initialValue: true,
+						}),
+				},
+				{
+					onCancel: () => pCancel(),
+				}
+			)
+		).is_remote_endpoint
+	}
 
 	let schemaPath = is_remote_endpoint ? './schema.graphql' : 'path/to/src/lib/**/*.graphql'
 
 	let pullSchema_content: string | null = null
-	if (is_remote_endpoint) {
+	if (is_remote_endpoint && !args.yes) {
 		let number_of_round = 0
 		let url_and_headers = ''
 		while (pullSchema_content === null && number_of_round < 10) {
@@ -160,7 +166,7 @@ export async function init(
 		if (pullSchema_content === null) {
 			pCancel("We couldn't pull the schema. Please check your URL/headers and try again.")
 		}
-	} else {
+	} else if (!args.yes) {
 		// the schema is local so ask them for the path
 		const answers = await p.group(
 			{
@@ -288,13 +294,13 @@ export function finale_logs(package_manager: 'npm' | 'yarn' | 'pnpm') {
 /******************************/
 /*  Houdini's files           */
 /******************************/
-const houdiniConfig = async (
+async function houdiniConfig(
 	configPath: string,
 	schemaPath: string,
 	module: 'esm' | 'commonjs',
 	frameworkInfo: HoudiniFrameworkInfo,
 	url: string | null
-): Promise<boolean> => {
+): Promise<boolean> {
 	const config: ConfigFile = {}
 
 	// if we have no url, we are using a local schema
@@ -352,12 +358,12 @@ module.exports = config
 	return false
 }
 
-const houdiniClient = async (
+async function houdiniClient(
 	targetPath: string,
 	typescript: boolean,
 	frameworkInfo: HoudiniFrameworkInfo,
 	url: string
-) => {
+) {
 	// where we put the houdiniClient
 	const houdiniClientExt = typescript ? `ts` : `js`
 	const houdiniClientPath = path.join(targetPath, `client.${houdiniClientExt}`)
@@ -369,8 +375,8 @@ export default new HoudiniClient({
 
     // uncomment this to configure the network call (for things like authentication)
     // for more information, please visit here: https://www.houdinigraphql.com/guides/authentication
-    // fetchParams({ session }) { 
-    //     return { 
+    // fetchParams({ session }) {
+    //     return {
     //         headers: {
     //             Authentication: \`Bearer \${session.token}\`,
     //         }
@@ -496,7 +502,7 @@ export default defineConfig({
 			$houdini: path.resolve('$houdini'),
 		},
 	},
-})	
+})
 	`
 	} else if (frameworkInfo.framework === 'kit') {
 		content = `import { sveltekit } from '@sveltejs/kit/vite'
