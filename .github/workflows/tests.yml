@@ -135,8 +135,8 @@ jobs:
                 repository: sveltejs/kit
                 path: kit
 
-            - name: Install houdini-cli
-              run: cd kit && node ../houdini/packages/houdini/build/cmd.js init -y
+            - name: Run init
+              run: cd kit && node /home/runner/work/houdini/houdini/packages/houdini/build/cmd.js init -y
 
     e2e_tests:
         name: End-to-End Tests
