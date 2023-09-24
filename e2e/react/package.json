@@ -20,14 +20,16 @@
 		"@graphql-tools/schema": "^9.0.4",
 		"@whatwg-node/server": "^0.9.14",
 		"cookie": "^0.5.0",
+		"fastify": "4.23.2",
 		"graphql-yoga": "^4.0.4",
 		"houdini": "workspace:^",
 		"houdini-adapter-cloudflare": "workspace:^",
+		"houdini-adapter-node": "workspace:^",
 		"houdini-react": "workspace:^",
-		"itty-router": "^4.0.23",
 		"react": "^18.3.0-canary-d6dcad6a8-20230914",
 		"react-dom": "^18.3.0-canary-d6dcad6a8-20230914",
 		"react-streaming": "^0.3.10",
+		"vite-node": "^0.34.5",
 		"yoga": "^0.0.20"
 	},
 	"devDependencies": {

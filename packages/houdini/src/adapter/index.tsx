@@ -1,5 +1,7 @@
 import type { serverAdapterFactory as createAdapter } from '../runtime/router/server'
 
+export const endpoint: string = ''
+
 export let createServerAdapter: (
 	args: Omit<
 		Parameters<typeof createAdapter>[0],

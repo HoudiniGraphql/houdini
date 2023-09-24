@@ -225,6 +225,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				watch_file: this.addWatchFile,
 				config: config,
 				filepath,
+				// @ts-ignore
 				map: this.getCombinedSourcemap(),
 			}
 

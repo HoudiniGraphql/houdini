@@ -1,7 +1,6 @@
 import { GraphQLSchema } from 'graphql'
 import {
 	PluginHooks,
-	Config,
 	path,
 	fs,
 	load_manifest,
@@ -14,7 +13,6 @@ import {
 	find_match,
 	localApiEndpoint,
 } from 'houdini'
-import { IncomingMessage, ServerResponse } from 'http'
 import type { BuildOptions } from 'vite'
 
 import { setManifest } from '.'

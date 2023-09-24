@@ -103,7 +103,7 @@ async function build({ package_json, source, bundle = true, plugin, cmd }) {
 			if (bundle) {
 				if (plugin) {
 					header += `const require = conflict_free(import.meta.url);`
-				} else {
+				} else if (which === 'esm') {
 					header += `import { createRequire as conflict_free } from 'module'; const require = conflict_free(import.meta.url);`
 				}
 			}

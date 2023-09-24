@@ -21,7 +21,7 @@ import type { LogLevels, PluginConfig, PluginHooks, PluginInit, ValueMap } from 
 import { LogLevel } from './types'
 
 // @ts-ignore
-const currentDir = global.__dirname || path.dirname(fileURLToPath(import.meta.url))
+const currentDir = path.dirname(fileURLToPath(import.meta.url))
 
 export type PluginMeta = PluginHooks & {
 	name: string
