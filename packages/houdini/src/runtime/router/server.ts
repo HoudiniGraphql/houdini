@@ -1,14 +1,12 @@
 import { createServerAdapter as createAdapter } from '@whatwg-node/server'
 import { type GraphQLSchema, parse, execute } from 'graphql'
 import { createYoga } from 'graphql-yoga'
-import { IncomingMessage, ServerResponse } from 'http'
+import type { IncomingMessage, ServerResponse } from 'node:http'
 
 // @ts-ignore
 import client from '../../../src/+client'
 // @ts-ignore
-import { localApiSessionKeys, localApiEndpoint } from '../lib/config'
-// @ts-ignore
-import { getCurrentConfig } from '../lib/config'
+import { localApiSessionKeys, localApiEndpoint, getCurrentConfig } from '../lib/config'
 import { find_match } from './match'
 // @ts-ignore
 import { get_session, handle_request } from './session'
