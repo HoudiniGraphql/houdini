@@ -1062,7 +1062,7 @@ function nodeDirectives(config: Config, directives: string[]) {
 				// if the fragment is not on the query type or an implementor of node
 				if (!possibleNodes.includes(definitionType)) {
 					ctx.reportError(
-						new graphql.GraphQLError(paginateOnNonNodeMessage(config, node.name.value))
+						new graphql.GraphQLError(paginateOnNonNodeMessage(node.name.value))
 					)
 				}
 			},
@@ -1234,35 +1234,35 @@ export function getAndVerifyNodeInterface(config: Config): graphql.GraphQLInterf
 
 	// make sure its an interface
 	if (!graphql.isInterfaceType(nodeInterface)) {
-		displayInvalidNodeFieldMessage(config.logLevel)
+		displayInvalidNodeFieldMessage(config)
 		return null
 	}
 
 	// look for a field on the query type to look up a node by id
 	const queryType = schema.getQueryType()
 	if (!queryType) {
-		displayInvalidNodeFieldMessage(config.logLevel)
+		displayInvalidNodeFieldMessage(config)
 		return null
 	}
 
 	// look for a node field
 	const nodeField = queryType.getFields()['node']
 	if (!nodeField) {
-		displayInvalidNodeFieldMessage(config.logLevel)
+		displayInvalidNodeFieldMessage(config)
 		return null
 	}
 
 	// there needs to be an arg on the field called id
 	const args = nodeField.args
 	if (args.length === 0) {
-		displayInvalidNodeFieldMessage(config.logLevel)
+		displayInvalidNodeFieldMessage(config)
 		return null
 	}
 
 	// look for the id arg
-	const idArg = args.find((arg) => arg.name === 'id')
+	const idArg = args.find((arg) => arg.name === config.defaultKeys[0])
 	if (!idArg) {
-		displayInvalidNodeFieldMessage(config.logLevel)
+		displayInvalidNodeFieldMessage(config)
 		return null
 	}
 
@@ -1270,14 +1270,14 @@ export function getAndVerifyNodeInterface(config: Config): graphql.GraphQLInterf
 	const idType = unwrapType(config, idArg.type)
 	// make sure its an ID
 	if (idType.type.name !== 'ID') {
-		displayInvalidNodeFieldMessage(config.logLevel)
+		displayInvalidNodeFieldMessage(config)
 		return null
 	}
 
 	// make sure that the node field returns a Node
 	const fieldReturnType = unwrapType(config, nodeField.type)
 	if (fieldReturnType.type.name !== 'Node') {
-		displayInvalidNodeFieldMessage(config.logLevel)
+		displayInvalidNodeFieldMessage(config)
 		return null
 	}
 
@@ -1285,10 +1285,10 @@ export function getAndVerifyNodeInterface(config: Config): graphql.GraphQLInterf
 }
 
 let nbInvalidNodeFieldMessageDisplayed = 0
-function displayInvalidNodeFieldMessage(logLevel: LogLevels) {
+function displayInvalidNodeFieldMessage(config: Config) {
 	// We want to display the message only once.
 	if (nbInvalidNodeFieldMessageDisplayed === 0) {
-		if (logLevel === LogLevel.Full) {
+		if (config.logLevel === LogLevel.Full) {
 			console.warn(invalidNodeFieldMessage)
 		} else {
 			console.warn(invalidNodeFieldMessageLight)
@@ -1304,11 +1304,11 @@ const invalidNodeFieldMessage = `⚠️  Your project defines a Node interface b
 If you are trying to provide the Node interface and its field, they must look like the following:
 
 interface Node {
-	id: ID!
+  id: ID!
 }
 
 extend type Query {
-	node(id: ID!): Node
+  node(id: ID!): Node
 }
 
 For more information, please visit these links:
@@ -1316,7 +1316,7 @@ For more information, please visit these links:
 - ${siteURL}/guides/caching-data#custom-ids
 `
 
-const paginateOnNonNodeMessage = (config: Config, directiveName: string) =>
+const paginateOnNonNodeMessage = (directiveName: string) =>
 	`It looks like you are trying to use @${directiveName} on a document that does not have a valid type resolver.
 If this is happening inside of a fragment, make sure that the fragment either implements the Node interface or you
 have defined a resolver entry for the fragment type.

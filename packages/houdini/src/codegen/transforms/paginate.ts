@@ -503,7 +503,9 @@ export default async function paginate(config: Config, documents: Document[]): P
 														},
 													},
 													// make sure every key field is present
-													...(typeConfig?.keys || ['id']).map((key) => ({
+													...(
+														typeConfig?.keys || [config.defaultKeys[0]]
+													).map((key) => ({
 														kind: graphql.Kind.FIELD,
 														name: {
 															kind: graphql.Kind.NAME,

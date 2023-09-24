@@ -1,4 +1,4 @@
-import { test, expect } from 'vitest'
+import { expect, test } from 'vitest'
 
 import { runPipeline } from '../../codegen'
 import { mockCollectedDoc, testConfig } from '../../test'
@@ -1997,4 +1997,148 @@ test('default defaultPaginateMode to SinglePage', async function () {
 
 		"HoudiniHash=c0276291ccf0e89ecf3e2c0fd68314703c62c8dca06915e602f931297be94c3c";
 	`)
+})
+
+const nodeSchema = `
+interface Node {
+	mySuperId: ID!
+}
+
+type Query {
+	node(mySuperId: ID!): Node
+	friends(first: Int, after: String, last: Int, before: String): UserConnection!
+}
+
+type UserConnection {
+	edges: [UserEdge!]!
+	pageInfo: PageInfo!
+}
+
+type UserEdge {
+	node: User
+	cursor: String!
+}
+
+type PageInfo {
+	hasPreviousPage: Boolean!
+	hasNextPage: Boolean!
+	startCursor: String
+	endCursor: String
+}
+
+type User implements Node {
+	id: ID!
+	mySuperId: ID!
+	name: String!
+	friends(first: Int, after: String, last: Int, before: String): UserConnection!
+}
+`
+
+test('paginate with a wrong node interface should throw', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`fragment UserFriends on User {
+				friends(first: 1) @paginate {
+					edges {
+						node {
+							name
+						}
+					}
+				}
+			}
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig({
+		schema: nodeSchema,
+		logLevel: 'full',
+	})
+
+	try {
+		await runPipeline(config, docs)
+		expect('We should').toBe('never be here')
+	} catch (error) {
+		if (Array.isArray(error) && error[0] instanceof Error) {
+			expect(error[0].message).toMatchInlineSnapshot(
+				`
+				"It looks like you are trying to use @paginate on a document that does not have a valid type resolver.
+				If this is happening inside of a fragment, make sure that the fragment either implements the Node interface or you
+				have defined a resolver entry for the fragment type.
+
+				For more information, please visit these links:
+				- https://houdinigraphql.com/guides/pagination#paginated-fragments
+				- https://houdinigraphql.com/guides/caching-data#custom-ids
+				"
+			`
+			)
+		} else {
+			expect('We should').toBe('never be here')
+		}
+	}
+})
+
+test('paginate with a strange node interface, but well configured locally', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`fragment UserFriends on User {
+				friends(first: 1) @paginate {
+					edges {
+						node {
+							name
+						}
+					}
+				}
+			}
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig({
+		schema: nodeSchema,
+		types: {
+			User: {
+				keys: ['mySuperId'],
+			},
+		},
+	})
+
+	try {
+		await runPipeline(config, docs)
+	} catch (error) {
+		expect('We should').toBe('never be here')
+	}
+})
+
+test('paginate with a strange node interface, but well configured globally', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`fragment UserFriends on User {
+				friends(first: 1) @paginate {
+					edges {
+						node {
+							name
+						}
+					}
+				}
+			}
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig({
+		schema: nodeSchema,
+		defaultKeys: ['mySuperId'],
+	})
+
+	try {
+		await runPipeline(config, docs)
+	} catch (error) {
+		console.log(`error`, error)
+
+		expect('We should').toBe('never be here')
+	}
 })
