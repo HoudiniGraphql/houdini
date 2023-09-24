@@ -66,7 +66,7 @@ async function generate_routing_units(args: PageBundleInput) {
 
 	// build up the file source as a string
 	let source: string[] = [
-		"import { useQueryResult } from '$houdini/plugins/houdini-react/runtime/routing/components/Router'",
+		"import { useQueryResult } from '$houdini/plugins/houdini-react/runtime/routing'",
 		`import ${component_name} from "${relative_path}"`,
 	]
 

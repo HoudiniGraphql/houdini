@@ -1,13 +1,19 @@
 import type { QueryArtifact } from '$houdini/runtime/lib/types'
+import type { createYoga } from 'graphql-yoga'
 
 import type { RouteParam } from './match'
 
+export type YogaServer = ReturnType<typeof createYoga>
+export type YogaServerOptions = Parameters<typeof createYoga>[0]
+
 // to decide what bundle to load and render for a given url
-export type RouterManifest = {
-	pages: Record<string, RouterPageManifest>
+export type RouterManifest<_ComponentType> = {
+	pages: Record<string, RouterPageManifest<_ComponentType>>
 }
 
-export type RouterPageManifest = {
+export type { ServerAdapterFactory } from './server'
+
+export type RouterPageManifest<_ComponentType> = {
 	id: string
 
 	// the url pattern to match against. created from './match/parse_page_pattern'
@@ -24,5 +30,5 @@ export type RouterPageManifest = {
 			loading: boolean
 		}
 	>
-	component: () => Promise<{ default: (props: any) => React.ReactElement }>
+	component: () => Promise<{ default: (props: any) => _ComponentType }>
 }

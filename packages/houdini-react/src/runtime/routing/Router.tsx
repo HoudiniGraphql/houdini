@@ -4,13 +4,13 @@ import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import { LRUCache } from '$houdini/runtime/lib/lru'
 import { GraphQLObject, GraphQLVariables } from '$houdini/runtime/lib/types'
 import { QueryArtifact } from '$houdini/runtime/lib/types'
+import { find_match } from '$houdini/runtime/router/match'
+import type { RouterManifest, RouterPageManifest } from '$houdini/runtime/router/types'
 import React from 'react'
 import { useStream } from 'react-streaming'
 
-import { useDocumentStore } from '../../hooks/useDocumentStore'
-import { SuspenseCache } from '../lib/cache'
-import { find_match } from '../lib/match'
-import type { RouterManifest, RouterPageManifest } from '../lib/types'
+import { useDocumentStore } from '../hooks/useDocumentStore'
+import { SuspenseCache } from './cache'
 
 const PreloadWhich = {
 	component: 'component',
@@ -19,7 +19,7 @@ const PreloadWhich = {
 } as const
 
 type PreloadWhichValue = (typeof PreloadWhich)[keyof typeof PreloadWhich]
-
+type ComponentType = any
 /**
  * Router is the top level entry point for the filesystem-based router.
  * It is responsible for loading various page sources (including API fetches) and
@@ -34,14 +34,10 @@ type PreloadWhichValue = (typeof PreloadWhich)[keyof typeof PreloadWhich]
 export function Router({
 	manifest,
 	initialURL,
-	loaded_queries,
-	loaded_artifacts,
 	assetPrefix,
 }: {
-	manifest: RouterManifest
+	manifest: RouterManifest<ComponentType>
 	initialURL?: string
-	loaded_queries?: Record<string, { data: GraphQLObject; variables: GraphQLVariables }>
-	loaded_artifacts?: Record<string, QueryArtifact>
 	assetPrefix: string
 }) {
 	// the current route is just a string in state.
@@ -61,8 +57,6 @@ export function Router({
 	const { loadData, loadComponent } = usePageData({
 		page,
 		variables,
-		loaded_queries,
-		loaded_artifacts,
 		assetPrefix,
 	})
 	// if we get this far, it's safe to load the component
@@ -134,18 +128,14 @@ export function Router({
 function usePageData({
 	page,
 	variables,
-	loaded_queries,
-	loaded_artifacts,
 	assetPrefix,
 }: {
-	page: RouterPageManifest
+	page: RouterPageManifest<ComponentType>
 	variables: GraphQLVariables
-	loaded_queries?: Record<string, { data: GraphQLObject; variables: GraphQLVariables }>
-	loaded_artifacts?: Record<string, QueryArtifact>
 	assetPrefix: string
 }): {
-	loadData: (page: RouterPageManifest, variables: {} | null) => void
-	loadComponent: (page: RouterPageManifest) => void
+	loadData: (page: RouterPageManifest<ComponentType>, variables: {} | null) => void
+	loadComponent: (page: RouterPageManifest<ComponentType>) => void
 } {
 	// grab context values
 	const {
@@ -194,13 +184,6 @@ function usePageData({
 				})
 				.then(() => {
 					data_cache.set(id, observer)
-
-					if (loaded_queries) {
-						loaded_queries[artifact.name] = {
-							data: observer.state.data!,
-							variables,
-						}
-					}
 
 					// if we are building up a stream (on the server), we want to add something
 					// to the client that resolves the pending request with the
@@ -271,7 +254,7 @@ function usePageData({
 	}
 
 	// the function that loads all of the data for a page using the caches
-	function loadData(targetPage: RouterPageManifest, variables: {} | null) {
+	function loadData(targetPage: RouterPageManifest<ComponentType>, variables: {} | null) {
 		// if the variables have changed then we need to clear the data store (so we fetch again)
 		if (
 			last_variables.has(targetPage.id) &&
@@ -305,9 +288,6 @@ function usePageData({
 
 					// save the artifact in the cache
 					artifact_cache.set(artifact_id, artifact)
-					if (loaded_artifacts) {
-						loaded_artifacts[artifact.name] = artifact
-					}
 
 					// add a script to load the artifact
 					stream?.injectToStream(`
@@ -335,7 +315,7 @@ function usePageData({
 
 	// if we don't have the component then we need to load it, save it in the cache, and
 	// then suspend with a promise that will resolve once its in cache
-	async function loadComponent(targetPage: RouterPageManifest) {
+	async function loadComponent(targetPage: RouterPageManifest<ComponentType>) {
 		// if we already have the component, don't do anything
 		if (component_cache.has(targetPage.id)) {
 			return
@@ -454,7 +434,9 @@ const Context = React.createContext<RouterContext | null>(null)
 
 export const useRouterContext = () => {
 	const ctx = React.useContext(Context)
+
 	if (!ctx) {
+		console.log(ctx)
 		throw new Error('Could not find router context')
 	}
 

@@ -1,113 +1,113 @@
-import type { ConfigFile } from '../lib'
-import { parse } from './cookies'
-import { decode, encode, verify } from './jwt'
+import { createServerAdapter as createAdapter } from '@whatwg-node/server'
+import { type GraphQLSchema, parse, execute } from 'graphql'
+import { createYoga } from 'graphql-yoga'
+import type { IncomingMessage, ServerResponse } from 'node:http'
 
-type ServerHandlerArgs = {
-	url: string
-	config: ConfigFile
-	session_keys: string[]
-	set_header: (key: string, value: string | number | string[]) => void
-	get_header: (key: string) => string | number | string[] | undefined
-	redirect: (code: number, url: string) => void
-	next: () => void
-}
+// @ts-ignore
+import client from '../../../src/+client'
+// @ts-ignore
+import { localApiSessionKeys, localApiEndpoint, getCurrentConfig } from '../lib/config'
+import { find_match } from './match'
+// @ts-ignore
+import { get_session, handle_request } from './session'
+import type { RouterManifest, RouterPageManifest, YogaServerOptions } from './types'
 
-// the actual server implementation changes from runtime to runtime
-// so we want a single function that can be called to get the server
-export async function handle_request(args: ServerHandlerArgs) {
-	const plugin_config = args.config.router ?? {}
+// load the plugin config
+const config_file = getCurrentConfig()
+const session_keys = localApiSessionKeys(config_file)
+const graphqlEndpoint = localApiEndpoint(config_file)
 
-	// if the project is configured to authorize users by redirect then
-	// we might need to set the session value
-	if (
-		plugin_config.auth &&
-		'redirect' in plugin_config.auth &&
-		args.url.startsWith(plugin_config.auth.redirect)
-	) {
-		return await redirect_auth(args)
+export const serverAdapterFactory = <ComponentType>({
+	schema,
+	yoga,
+	production,
+	manifest,
+	on_render,
+	pipe,
+	assetPrefix,
+}: {
+	schema?: GraphQLSchema | null
+	yoga?: ReturnType<typeof createYoga> | null
+	assetPrefix: string
+	production?: boolean
+	pipe?: ServerResponse<IncomingMessage>
+	on_render: (args: {
+		url: string
+		match: RouterPageManifest<ComponentType> | null
+		manifest: RouterManifest<unknown>
+		session: App.Session
+		pipe?: ServerResponse<IncomingMessage>
+	}) => Response | Promise<Response>
+	manifest: RouterManifest<ComponentType> | null
+} & Omit<YogaServerOptions, 'schema'>): ReturnType<typeof createAdapter> => {
+	if (schema && !yoga) {
+		yoga = createYoga({
+			schema,
+			landingPage: !production,
+			graphqlEndpoint,
+		})
 	}
 
-	// it's not something we care about
-	args.next()
-}
+	// @ts-ignore: schema is defined dynamically
+	if (schema) {
+		// @ts-ignore: graphqlEndpoint is defined dynamically
+		client.registerProxy(graphqlEndpoint, async ({ query, variables, session }) => {
+			// get the parsed query
+			const parsed = parse(query)
 
-async function redirect_auth(args: ServerHandlerArgs) {
-	// the session and configuration are passed as query parameters in
-	// the url
-	const { searchParams } = new URL(args.url!, `http://${args.get_header('host')}`)
-	const { redirectTo, ...session } = Object.fromEntries(searchParams.entries())
-
-	// encode the session information as a cookie in the response
-	await set_session(args, session)
-
-	// if there is a url to redirect to, do it
-	if (redirectTo) {
-		return args.redirect(302, redirectTo)
+			// @ts-ignore: schema is defined dynamically
+			return await execute(schema, parsed, null, session, variables)
+		})
 	}
 
-	// move onto the next thing
-	args.next()
-}
-
-export type Server = {
-	use(fn: ServerMiddleware): void
-}
-
-export type ServerMiddleware = (req: IncomingRequest, res: ServerResponse, next: () => void) => void
-
-export type IncomingRequest = {
-	url?: string
-	headers: Headers
-}
-
-export type ServerResponse = {
-	redirect(url: string, status?: number): void
-	set_header(name: string, value: string): void
-}
-
-const session_cookie_name = '__houdini__'
-
-async function set_session(req: ServerHandlerArgs, value: App.Session) {
-	const today = new Date()
-	const expires = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000) // Add 7 days in milliseconds
-
-	// serialize the value
-	const serialized = await encode(value, req.session_keys[0])
-
-	// set the cookie with a header
-	req.set_header(
-		'Set-Cookie',
-		`${session_cookie_name}=${serialized}; Path=/; HttpOnly; Secure; SameSite=Lax; Expires=${expires.toUTCString()} `
-	)
-}
-
-export async function get_session(req: Headers, secrets: string[]): Promise<App.Session> {
-	// get the cookie header
-	const cookies = req.get('cookie')
-	if (!cookies) {
-		return {}
-	}
-	const cookie = parse(cookies)[session_cookie_name]
-	if (!cookie) {
-		return {}
-	}
-
-	// decode it with any of the available secrets
-	for (const secret of secrets) {
-		// check if its valid
-		if (!(await verify(cookie, secret))) {
-			continue
+	return createAdapter(async (request) => {
+		if (!manifest) {
+			return new Response(
+				"Adapter did not provide the project's manifest. Please open an issue on github.",
+				{ status: 500 }
+			)
 		}
 
-		// parse the cookie header
-		const parsed = decode(cookie)
-		if (!parsed) {
-			return {}
+		// pull out the desired url
+		const url = new URL(request.url).pathname
+
+		// if its a request we can process with yoga, do it.
+		if (yoga && url === localApiEndpoint(config_file)) {
+			return yoga(request)
 		}
 
-		return parsed.payload
-	}
+		// maybe its a session-related request
+		const authResponse = await handle_request({
+			url,
+			config: config_file,
+			session_keys,
+			headers: request.headers,
+		})
+		if (authResponse) {
+			return authResponse
+		}
 
-	// if we got this far then the cookie value didn't match any of the available secrets
-	return {}
+		// the request is for a server-side rendered page
+
+		// find the matching url
+		const [match] = find_match(manifest, url)
+
+		// call the framework-specific render hook with the latest session
+		const rendered = await on_render({
+			url,
+			match,
+			session: await get_session(request.headers, session_keys),
+			manifest,
+			pipe,
+		})
+		if (rendered) {
+			console.log(url, rendered)
+			return rendered
+		}
+
+		// if we got this far its not a page we recognize
+		return new Response('404', { status: 404 })
+	})
 }
+
+export type ServerAdapterFactory = typeof serverAdapterFactory

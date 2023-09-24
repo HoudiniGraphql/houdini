@@ -121,15 +121,16 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				publicBase: viteConfig.base,
 				outDir: config.routerBuildDirectory,
 				manifest,
+				adapterPath: '../$houdini/plugins/houdini-react/units/render/config.js',
 			})
 		},
 
 		// when the build starts, we need to make sure to generate
 		async buildStart(args) {
 			// we need to generate the runtime if we are building in production
-			if (viteEnv.mode === 'production') {
+			if (viteEnv.mode === 'production' && !isSecondaryBuild()) {
 				// make sure we have an up-to-date schema
-				if (config.localSchema && !isSecondaryBuild()) {
+				if (config.localSchema) {
 					config.schema = await loadLocalSchema(config)
 				}
 
@@ -224,6 +225,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				watch_file: this.addWatchFile,
 				config: config,
 				filepath,
+				// @ts-ignore
 				map: this.getCombinedSourcemap(),
 			}
 

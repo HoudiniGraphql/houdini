@@ -70,7 +70,7 @@ test('composes layouts and pages', async function () {
 		}
 	)
 	expect(page_unit).toMatchInlineSnapshot(`
-		import { useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
+		import { useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing";
 		import Component__subRoute_nested from "../../../../../src/routes/subRoute/nested/+page";
 
 		export default (
@@ -97,7 +97,7 @@ test('composes layouts and pages', async function () {
 		}
 	)
 	expect(root_layout_unit).toMatchInlineSnapshot(`
-		import { useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
+		import { useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing";
 		import Component__ from "../../../../../src/routes/+layout";
 
 		export default (
@@ -122,7 +122,7 @@ test('composes layouts and pages', async function () {
 		}
 	)
 	expect(deep_layout_unit).toMatchInlineSnapshot(`
-		import { useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
+		import { useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing";
 		import Component__subRoute from "../../../../../src/routes/subRoute/+layout";
 
 		export default (

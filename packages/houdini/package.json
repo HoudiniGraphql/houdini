@@ -42,6 +42,7 @@
         "@types/fs-extra": "^9.0.13",
         "@types/micromatch": "^4.0.2",
         "@ungap/structured-clone": "^1.0.2",
+        "@whatwg-node/server": "^0.9.14",
         "ast-types": "^0.16.1",
         "commander": "^9.4.0",
         "deepmerge": "^4.2.2",
@@ -63,6 +64,11 @@
     ],
     "exports": {
         "./package.json": "./package.json",
+        "./adapter": {
+            "types": "./build/adapter/index.d.ts",
+            "import": "./build/adapter-esm/index.js",
+            "require": "./build/adapter-cjs/index.js"
+        },
         "./codegen": {
             "types": "./build/codegen/index.d.ts",
             "import": "./build/codegen-esm/index.js",
@@ -86,6 +92,9 @@
     },
     "typesVersions": {
         "*": {
+            "adapter": [
+                "build/adapter/index.d.ts"
+            ],
             "codegen": [
                 "build/codegen/index.d.ts"
             ],

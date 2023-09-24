@@ -12,6 +12,7 @@ export * from './cleanupFiles'
 export * from './deepMerge'
 export * from './plugin'
 export * from './detectTools'
+export * from '../runtime/router/match'
 
 export * from './walk'
 export type { EmbeddedGraphqlDocument } from './walk'
@@ -21,3 +22,4 @@ export * as path from './path'
 export * from './router'
 
 export { Cache } from '../runtime/cache/cache'
+export * from '../runtime/router/match'

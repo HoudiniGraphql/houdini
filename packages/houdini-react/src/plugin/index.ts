@@ -77,7 +77,7 @@ export const hooks: Plugin = async () => ({
 				)
 
 				return `${importStatement(relativePath, 'client')}
-	${exportDefaultStatement('client')}
+	${exportDefaultStatement('() => client')}
 	`
 			},
 			'manifest.js': ({ config, exportDefaultStatement, importStatement }) => {

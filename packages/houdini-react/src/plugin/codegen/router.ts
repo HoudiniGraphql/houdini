@@ -4,9 +4,9 @@ import {
 	type Config,
 	type ProjectManifest,
 	type QueryManifest,
+	parse_page_pattern,
 } from 'houdini'
 
-import { parse_page_pattern } from '../../runtime/routing/lib/match'
 import { dedent } from '../dedent'
 
 export function format_router_manifest({

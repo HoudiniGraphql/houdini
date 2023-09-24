@@ -33,6 +33,7 @@
         "@babel/parser": "^7.19.3",
         "@babel/types": "^7.21.4",
         "@types/react": "^18.0.28",
+        "@whatwg-node/server": "^0.9.14",
         "cookie-parser": "^1.4.6",
         "cookie-session": "^2.0.0",
         "cookies": "^0.8.0",
