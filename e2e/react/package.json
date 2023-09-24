@@ -18,7 +18,6 @@
 		"@cloudflare/workers-types": "^4.20230904.0",
 		"@whatwg-node/server": "^0.9.14",
 		"cookie": "^0.5.0",
-		"fastify": "4.23.2",
 		"graphql-yoga": "^4.0.4",
 		"houdini": "workspace:^",
 		"houdini-adapter-cloudflare": "workspace:^",
