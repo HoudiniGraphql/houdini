@@ -95,7 +95,7 @@ export async function get_session(req: Headers, secrets: string[]): Promise<App.
 			return {}
 		}
 
-		return parsed.payload
+		return parsed.payload as App.Session
 	}
 
 	// if we got this far then the cookie value didn't match any of the available secrets
