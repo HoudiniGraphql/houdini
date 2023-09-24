@@ -78,7 +78,8 @@ export async function runPipeline(config: Config, docs: Document[]) {
 		await run(
 			config,
 			[
-				// transforms
+				validators.componentFields,
+
 				transforms.internalSchema,
 
 				...wrapHook(beforeValidate),

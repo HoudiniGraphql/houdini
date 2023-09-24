@@ -63,6 +63,10 @@ export class Config {
 	pluginMode: boolean = false
 	plugins: PluginMeta[] = []
 
+	// while processing documents, we might run into componenetFields on fragment
+	// definitions.
+	componentFields: Record<string, Record<string, graphql.DirectiveNode>> = {}
+
 	constructor({
 		filepath,
 		loadFrameworkConfig,

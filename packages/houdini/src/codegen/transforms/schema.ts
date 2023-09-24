@@ -9,6 +9,14 @@ export default async function graphqlExtensions(
 	config: Config,
 	documents: Document[]
 ): Promise<void> {
+	// our internal schema needs to add references for every component field
+	for (const doc of documents) {
+		const def = config.extractDefinition(doc.originalParsed)
+		if (def?.directives?.find((dir) => dir.name.value === config.componentFieldDirective)) {
+			config.componentFields
+		}
+	}
+
 	// the bits to add to the schema
 	let internalSchema = `
 enum CachePolicy {
@@ -101,6 +109,11 @@ directive @${config.loadingDirective}(count: Int, cascade: Boolean) on QUERY | F
 	@${config.requiredDirective} makes a nullable field always non-null by making the parent null when the field is
 """
 directive @${config.requiredDirective} on FIELD
+
+"""
+@${config.componentFieldDirective} marks an inline fragment as the selection for a component field
+"""
+directive @${config.componentFieldDirective}(field: String!, prop: String, export: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT
 `
 
 	// add each custom schema to the internal value
