@@ -30,7 +30,7 @@ test('extracts queries out of graphql templates', async () => {
 
 	expect(extracted).toMatchInlineSnapshot(`
 		[
-		    "fragment __componentField__User_Avatar on User @componentField(field: \\"Avatar\\") {\\n  firstName\\n}"
+		    "fragment __componentField__User_Avatar on User @componentField(field: \\"Avatar\\", prop: \\"user\\") {\\n  firstName\\n}"
 		]
 	`)
 })
@@ -94,8 +94,8 @@ test('extracts multiple queries out of graphql templates', async () => {
 
 	expect(extracted).toMatchInlineSnapshot(`
 		[
-		    "fragment __componentField__User_Avatar on User @componentField(field: \\"Avatar\\") {\\n  firstName\\n}",
-		    "fragment __componentField__AnotherType_Avatar on AnotherType @componentField(field: \\"Avatar\\") {\\n  firstName\\n}"
+		    "fragment __componentField__User_Avatar on User @componentField(field: \\"Avatar\\", prop: \\"user\\") {\\n  firstName\\n}",
+		    "fragment __componentField__AnotherType_Avatar on AnotherType @componentField(field: \\"Avatar\\", prop: \\"user\\") {\\n  firstName\\n}"
 		]
 	`)
 })
