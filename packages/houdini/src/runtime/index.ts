@@ -9,7 +9,7 @@ export * from './lib'
 // this template tag gets removed by the preprocessor so it should never be invoked.
 // this function must return any so that we can assign it a type in a variable declaration (ie an inline store)
 // ideally we would be able to parse the input for values but typescript does not yet support that kind of matches in template args
-export function graphql<_Payload>(str: TemplateStringsArray): _Payload
+export function graphql<_Payload, _Result = _Payload>(str: TemplateStringsArray): _Result
 export function graphql(str: string | TemplateStringsArray): never {
 	// if we are executing this function as part of the plugin, we need to return
 	// the query instead of throwing an error. We don't want to bundle the graphql

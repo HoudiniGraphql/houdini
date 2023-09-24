@@ -1,3 +1,4 @@
+import { directive } from '@babel/types'
 import { mergeSchemas } from '@graphql-tools/schema'
 import * as graphql from 'graphql'
 import minimatch from 'minimatch'
@@ -723,6 +724,21 @@ export class Config {
 			!defaultDirectives.includes(name) &&
 			(internalDirectives.includes(name) || this.isDeleteDirective(name))
 		)
+	}
+
+	get componentFieldDirective() {
+		return 'componentField'
+	}
+
+	componentFieldFragmentName(args: { type: string; directive: graphql.DirectiveNode }): string {
+		// look at the directive for the field name
+		const field = args.directive.arguments?.find((arg) => arg.name.value === 'field')?.value
+		let fieldValue = field?.kind === 'StringValue' ? field.value : null
+		if (!fieldValue) {
+			return ''
+		}
+
+		return `__componentField__${args.type}_${fieldValue}`
 	}
 
 	// we need a function that walks down a graphql query and detects the use of a directive config.paginateDirective

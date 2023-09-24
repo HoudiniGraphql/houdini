@@ -34,6 +34,15 @@ export const hooks: Plugin = async () => ({
 		}
 	},
 
+	schema({ config }) {
+		return `
+			"""
+				@${config.componentFieldDirective} marks an inline fragment as the selection for a component field
+			"""
+			@${config.componentFieldDirective} on FRAGMENT_DEFINITION | INLINE_FRAGMENT
+		`
+	},
+
 	// include the runtime
 	includeRuntime: {
 		esm: '../runtime-esm',
