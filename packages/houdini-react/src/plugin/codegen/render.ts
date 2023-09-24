@@ -21,6 +21,8 @@ export async function generate_renders({
 	let adapter_config = `
 		import createAdapter from './server'
 
+		export const endpoint = ${JSON.stringify(localApiEndpoint(config.configFile))}
+
 		${
 			manifest.local_schema
 				? `import schema from '../../../../../src/api/+schema'`
@@ -33,6 +35,7 @@ export async function generate_renders({
 			return createAdapter({
 				schema,
 				yoga,
+				graphqlEndpoint: endpoint,
 				...options,
 			})
 		}
