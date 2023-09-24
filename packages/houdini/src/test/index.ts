@@ -326,7 +326,6 @@ export function pipelineTest(
 			// only bubble the error up if we're supposed to pass the test
 			if (shouldPass) {
 				// console.error(docs)
-				console.error(e)
 				throw 'pipeline failed when it should have passed. ' + e
 			}
 			error = e as Error[]

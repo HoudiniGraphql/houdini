@@ -62,7 +62,10 @@ export function scalarPropertyValue(
 				return AST.tsTypeReference(AST.identifier(config.scalars?.[target.name].type))
 			}
 
-			missingScalars.add(target.name)
+			// don't ever consider the Component scalar missing
+			if (target.name !== config.componentScalar) {
+				missingScalars.add(target.name)
+			}
 
 			return AST.tsAnyKeyword()
 		}

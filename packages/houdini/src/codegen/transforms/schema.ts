@@ -26,6 +26,11 @@ enum CachePolicy {
 	${CachePolicy.NetworkOnly}
 }
 
+"""
+	The ${config.componentScalar} scalar is only defined if the user has any component fields
+"""
+${Object.keys(config.componentFields).length > 0 ? `scalar ${config.componentScalar}` : ''}
+
 enum PaginateMode {
 	${PaginateMode.Infinite}
 	${PaginateMode.SinglePage}
@@ -35,13 +40,17 @@ enum PaginateMode {
 	@${config.listDirective} is used to mark a field for the runtime as a place to add or remove
 	entities in mutations
 """
-directive @${config.listDirective}(${config.listOrPaginateNameArg}: String!, connection: Boolean) on FIELD
+directive @${config.listDirective}(${
+		config.listOrPaginateNameArg
+	}: String!, connection: Boolean) on FIELD
 
 """
 	@${config.paginateDirective} is used to to mark a field for pagination.
 	More info in the [doc](${siteURL}/guides/pagination).
 """
-directive @${config.paginateDirective}(${config.listOrPaginateNameArg}: String, ${config.paginateModeArg}: PaginateMode) on FIELD
+directive @${config.paginateDirective}(${config.listOrPaginateNameArg}: String, ${
+		config.paginateModeArg
+	}: PaginateMode) on FIELD
 
 """
 	@${config.listPrependDirective} is used to tell the runtime to add the result to the end of the list
@@ -49,7 +58,9 @@ directive @${config.paginateDirective}(${config.listOrPaginateNameArg}: String, 
 directive @${config.listPrependDirective} on FRAGMENT_SPREAD
 
 """
-	@${config.listAppendDirective} is used to tell the runtime to add the result to the start of the list
+	@${
+		config.listAppendDirective
+	} is used to tell the runtime to add the result to the start of the list
 """
 directive @${config.listAppendDirective} on FRAGMENT_SPREAD
 
@@ -59,19 +70,25 @@ directive @${config.listAppendDirective} on FRAGMENT_SPREAD
 directive @${config.listAllListsDirective} on FRAGMENT_SPREAD
 
 """
-	@${config.listParentDirective} is used to provide a parentID without specifying position or in situations
+	@${
+		config.listParentDirective
+	} is used to provide a parentID without specifying position or in situations
 	where it doesn't make sense (eg when deleting a node.)
 """
 directive @${config.listParentDirective}(value: ID!) on FRAGMENT_SPREAD
 
 
 """
-	@${config.whenDirective} is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
+	@${
+		config.whenDirective
+	} is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
 """
 directive @${config.whenDirective} on FRAGMENT_SPREAD
 
 """
-	@${config.whenNotDirective} is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
+	@${
+		config.whenNotDirective
+	} is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
 """
 directive @${config.whenNotDirective} on FRAGMENT_SPREAD
 
@@ -81,14 +98,18 @@ directive @${config.whenNotDirective} on FRAGMENT_SPREAD
 directive @${config.argumentsDirective} on FRAGMENT_DEFINITION
 
 """
-	@${config.withDirective} is used to provide arguments to fragments that have been marked with @${config.argumentsDirective}
+	@${config.withDirective} is used to provide arguments to fragments that have been marked with @${
+		config.argumentsDirective
+	}
 """
 directive @${config.withDirective} on FRAGMENT_SPREAD
 
 """
 	@${config.cacheDirective} is used to specify cache rules for a query
 """
-directive @${config.cacheDirective}(${config.cachePolicyArg}: CachePolicy, ${config.cachePartialArg}: Boolean) on QUERY
+directive @${config.cacheDirective}(${config.cachePolicyArg}: CachePolicy, ${
+		config.cachePartialArg
+	}: Boolean) on QUERY
 
 """
 	@${config.maskEnableDirective} to enable masking on fragment (overwriting the global conf)
@@ -103,18 +124,39 @@ directive @${config.maskDisableDirective} on FRAGMENT_SPREAD
 """
 	@${config.loadingDirective} is used to shape the value of your documents while they are loading
 """
-directive @${config.loadingDirective}(count: Int, cascade: Boolean) on QUERY | FRAGMENT_DEFINITION | FIELD | FRAGMENT_SPREAD
+directive @${
+		config.loadingDirective
+	}(count: Int, cascade: Boolean) on QUERY | FRAGMENT_DEFINITION | FIELD | FRAGMENT_SPREAD
 
 """
-	@${config.requiredDirective} makes a nullable field always non-null by making the parent null when the field is
+	@${
+		config.requiredDirective
+	} makes a nullable field always non-null by making the parent null when the field is
 """
 directive @${config.requiredDirective} on FIELD
 
 """
 @${config.componentFieldDirective} marks an inline fragment as the selection for a component field
 """
-directive @${config.componentFieldDirective}(field: String!, prop: String, export: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT
+directive @${
+		config.componentFieldDirective
+	}(field: String!, prop: String, export: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT
 `
+
+	// Every componentField needs to be added to the appropriate parent
+	const extensions = Object.entries(config.componentFields).map(([parent, fields]) => {
+		return `
+		extend type ${parent} {
+			${Object.keys(fields)
+				.map((field) => `${field}: ${config.componentScalar}!`)
+				.join('\n')}
+		}
+	`
+	})
+
+	// the comment identifies the split point. we need to remove all of the extends to
+	// create the extra bits as a valid subgraph
+	internalSchema += '### extensions \n' + extensions.join('\n')
 
 	// add each custom schema to the internal value
 	for (const plugin of config.plugins) {

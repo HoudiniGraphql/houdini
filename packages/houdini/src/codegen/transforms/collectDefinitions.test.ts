@@ -4,29 +4,28 @@ import { expect, test } from 'vitest'
 import type { Document } from '../../lib'
 import { pipelineTest, testConfig } from '../../test'
 
-const start = [
-	`
-        query Foo {
-            version
-            ...A
-        }
-    `,
-	`
-        fragment A on User {
-            firstName
-            ...B
-        }
-    `,
-	`
-        fragment B on User {
-            firstName
-        }
-    `,
-]
+test('include fragment definitions', async function () {
+	const start = [
+		`
+			query Foo {
+				version
+				...A
+			}
+		`,
+		`
+			fragment A on User {
+				firstName
+				...B
+			}
+		`,
+		`
+			fragment B on User {
+				firstName
+			}
+		`,
+	]
 
-test(
-	'include fragment definitions',
-	pipelineTest(testConfig(), start, true, function (docs: Document[]) {
+	return await pipelineTest(testConfig(), start, true, function (docs: Document[]) {
 		// we only care about the Foo document
 		const fooDoc = docs.find((doc) => doc.name === 'Foo')!
 
@@ -46,5 +45,32 @@ test(
 		)
 		expect(fragmentADef).toBeDefined()
 		expect(fragmentBDef).toBeDefined()
-	})
-)
+	})()
+})
+
+test('componentField fragments are included', async function () {
+	const target = [
+		`fragment UserAvatar on User @componentField(field: "Avatar", prop: "user") {
+			firstName
+		}`,
+		`query UserInfo { user { Avatar } }`,
+	]
+
+	return await pipelineTest(testConfig(), target, true, function (docs: Document[]) {
+		expect(docs[1].artifact?.raw).toMatchInlineSnapshot(`
+			"query UserInfo {
+			  user {
+			    ...UserAvatar
+			    id
+			  }
+			}
+
+			fragment UserAvatar on User {
+			  firstName
+			  id
+			  __typename
+			}
+			"
+		`)
+	})()
+})

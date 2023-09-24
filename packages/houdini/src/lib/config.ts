@@ -65,7 +65,10 @@ export class Config {
 
 	// while processing documents, we might run into componenetFields on fragment
 	// definitions.
-	componentFields: Record<string, Record<string, graphql.DirectiveNode>> = {}
+	componentFields: Record<
+		string,
+		Record<string, { fragment: string; directive: graphql.DirectiveNode }>
+	> = {}
 
 	constructor({
 		filepath,
@@ -281,12 +284,17 @@ export class Config {
 		]
 	}
 
+	get componentScalar() {
+		return 'Component'
+	}
+
 	#newSchemaInstance: graphql.GraphQLSchema | null = null
 	#schemaString: string = ''
 	set newSchema(value: string) {
 		this.#schemaString = value
 		if (value) {
-			this.#newSchemaInstance = graphql.buildSchema(value)
+			const trimmed = value.substring(0, value.indexOf('### extensions \n'))
+			this.#newSchemaInstance = graphql.buildSchema(trimmed)
 		} else {
 			this.#newSchemaInstance = null
 		}

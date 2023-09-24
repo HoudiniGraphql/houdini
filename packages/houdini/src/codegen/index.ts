@@ -47,9 +47,6 @@ export async function runPipeline(config: Config, docs: Document[]) {
 	const afterValidate = config.plugins
 		.filter((plugin) => plugin.afterValidate)
 		.map((plugin) => plugin.afterValidate!)
-	const validate = config.plugins
-		.filter((plugin) => plugin.validate)
-		.map((plugin) => plugin.validate!)
 	const beforeValidate = config.plugins
 		.filter((plugin) => plugin.beforeValidate)
 		.map((plugin) => plugin.beforeValidate!)

@@ -86,6 +86,9 @@ test('adds internal documents to schema', async function () {
 
 			"""@required makes a nullable field always non-null by making the parent null when the field is"""
 			directive @required on FIELD
+
+			"""@componentField marks an inline fragment as the selection for a component field"""
+			directive @componentField(field: String!, prop: String, export: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT
 		`)
 })
 
@@ -168,6 +171,9 @@ test('list operations are included', async function () {
 
 			"""@required makes a nullable field always non-null by making the parent null when the field is"""
 			directive @required on FIELD
+
+			"""@componentField marks an inline fragment as the selection for a component field"""
+			directive @componentField(field: String!, prop: String, export: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT
 
 			directive @User_delete repeatable on FIELD
 		`)
@@ -269,6 +275,9 @@ test('list operations are included but delete directive should not be in when we
 
 			"""@required makes a nullable field always non-null by making the parent null when the field is"""
 			directive @required on FIELD
+
+			"""@componentField marks an inline fragment as the selection for a component field"""
+			directive @componentField(field: String!, prop: String, export: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT
 
 			directive @User_delete repeatable on FIELD
 		`)

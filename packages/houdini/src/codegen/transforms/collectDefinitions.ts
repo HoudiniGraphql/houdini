@@ -1,4 +1,4 @@
-import type * as graphql from 'graphql'
+import * as graphql from 'graphql'
 import { Kind as GraphqlKinds } from 'graphql'
 
 import type { Config, Document } from '../../lib'
@@ -35,7 +35,12 @@ export default async function includeFragmentDefinitions(
 		// grab the full list of required fragments
 		const allFragments = flattenFragments(
 			filename,
-			{ requiredFragments: findRequiredFragments(operation.selectionSet) },
+			{
+				requiredFragments: findRequiredFragments(
+					config,
+					operation as graphql.FragmentDefinitionNode
+				),
+			},
 			fragments
 		)
 
@@ -58,20 +63,18 @@ export function collectDefinitions(
 ): Record<string, FragmentDependency> {
 	return docs.reduce<{ [name: string]: FragmentDependency }>((acc, doc) => {
 		// look for any definitions in this document
-		const definitions = doc.document.definitions.reduce(
-			(prev, definition) =>
-				definition.kind !== 'FragmentDefinition'
-					? prev
-					: {
-							...prev,
-							[definition.name.value]: {
-								definition,
-								requiredFragments: findRequiredFragments(definition.selectionSet),
-								document: doc,
-							},
-					  },
-			{}
-		)
+		const definitions = doc.document.definitions.reduce((prev, definition) => {
+			return definition.kind !== 'FragmentDefinition'
+				? prev
+				: {
+						...prev,
+						[definition.name.value]: {
+							definition,
+							requiredFragments: findRequiredFragments(config, definition),
+							document: doc,
+						},
+				  }
+		}, {})
 
 		// add any definitions we found in this document
 		return {
@@ -81,25 +84,51 @@ export function collectDefinitions(
 	}, {})
 }
 
-function findRequiredFragments(selectionSet: graphql.SelectionSetNode): Array<string> {
-	// if there are no selections in this set
-	if (selectionSet.selections.length === 0) {
-		return []
-	}
-
+function findRequiredFragments(
+	config: Config,
+	definition: graphql.FragmentDefinitionNode
+): Array<string> {
 	// build up a list of referenced fragments in this selection
 	const referencedFragments: string[] = []
-	for (const selection of selectionSet.selections) {
-		// if this selection is a fragment spread
-		if (selection.kind === GraphqlKinds.FRAGMENT_SPREAD) {
-			// add the name of the referenced fragment
-			referencedFragments.push(selection.name.value)
-			// if this is something with a subselection
-		} else if (selection.selectionSet) {
-			// add the referenced fragments in the selection
-			referencedFragments.push(...findRequiredFragments(selection.selectionSet))
-		}
-	}
+
+	// instantiate a typeInfo tracker
+	const typeInfo = new graphql.TypeInfo(config.schema)
+
+	// @ts-ignore
+	definition.selectionSet = graphql.visit(
+		definition,
+		graphql.visitWithTypeInfo(typeInfo, {
+			Field(node) {
+				// if the user refers to a field that's actually a component field
+				// we need to include the associated fragment
+				const parentType = typeInfo.getParentType()
+				if (!parentType) {
+					return
+				}
+
+				// if the field is a component field then we need to replace it with the appropriate
+				// fragment
+				const fieldName = node.name.value
+				const { fragment } = config.componentFields[parentType.name]?.[fieldName] ?? {}
+				if (fragment) {
+					referencedFragments.push(fragment)
+
+					return {
+						kind: 'FragmentSpread',
+						name: {
+							kind: 'Name',
+							value: fragment,
+						},
+					} as graphql.FragmentSpreadNode
+				}
+			},
+			// if this selection is a fragment spread
+			FragmentSpread(node) {
+				// add the name of the referenced fragment
+				referencedFragments.push(node.name.value)
+			},
+		})
+	).selectionSet
 
 	// we're done
 	return referencedFragments

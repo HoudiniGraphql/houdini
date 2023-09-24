@@ -1,7 +1,6 @@
 import * as graphql from 'graphql'
 
 import type { Config, Document } from '../../lib'
-import { parentTypeFromAncestors, HoudiniError } from '../../lib'
 
 // componentFields verifies that no two @componentFields overlap with each other
 // or the schema
@@ -73,7 +72,10 @@ export default async function componentFields(config: Config, docs: Document[]):
 				if (fieldValue) {
 					config.componentFields[parent] = {
 						...config.componentFields[parent],
-						[fieldValue]: componentFieldDirective,
+						[fieldValue]: {
+							directive: componentFieldDirective,
+							fragment: node.name.value,
+						},
 					}
 				}
 			},
