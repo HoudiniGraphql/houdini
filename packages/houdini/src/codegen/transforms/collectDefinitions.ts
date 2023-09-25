@@ -109,7 +109,8 @@ function findRequiredFragments(
 				// if the field is a component field then we need to replace it with the appropriate
 				// fragment
 				const fieldName = node.name.value
-				const { fragment } = config.componentFields[parentType.name]?.[fieldName] ?? {}
+				const { fragment, directive } =
+					config.componentFields[parentType.name]?.[fieldName] ?? {}
 				if (fragment) {
 					referencedFragments.push(fragment)
 
@@ -119,6 +120,7 @@ function findRequiredFragments(
 							kind: 'Name',
 							value: fragment,
 						},
+						directives: [directive],
 					} as graphql.FragmentSpreadNode
 				}
 			},

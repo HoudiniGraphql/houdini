@@ -179,6 +179,7 @@ export type LoadingSpec =
 export type SubscriptionSelection = {
 	loadingTypes?: string[]
 	fragments?: Record<string, { arguments: ValueMap; loading?: boolean }>
+	components?: Record<string, { prop: string }>
 	fields?: {
 		[fieldName: string]: {
 			type: string

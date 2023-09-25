@@ -418,6 +418,26 @@ function prepareSelection({
 			) {
 				object.fragments[fragment].loading = true
 			}
+
+			// if the fragment spread is marked as a component field we should also register it
+			const fieldDirective = field.directives?.find(
+				(directive) => directive.name.value === config.componentFieldDirective
+			)
+			if (fieldDirective) {
+				const fieldArg = fieldDirective.arguments?.find((arg) => arg.name.value === 'field')
+				const propArg = fieldDirective.arguments?.find((arg) => arg.name.value === 'prop')
+				if (
+					fieldArg?.value.kind === 'StringValue' &&
+					propArg?.value.kind === 'StringValue'
+				) {
+					object.components = {
+						...object.components,
+						[`${rootType}.${fieldArg.value.value}`]: {
+							prop: propArg.value.value,
+						},
+					}
+				}
+			}
 		}
 	}
 

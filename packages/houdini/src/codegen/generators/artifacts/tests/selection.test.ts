@@ -1023,3 +1023,98 @@ test("multiple abstract selections don't conflict", async function () {
 		"HoudiniHash=bd13373d03a3df9c1dfd11905a885a9acea3fd081833ffd9800e48761d00c583";
 	`)
 })
+
+test('componentFields get embedded in the selection', async function () {
+	// the config to use in tests
+	const config = testConfig()
+	const docs = [
+		mockCollectedDoc(
+			`query UserWithAvatar {
+			user {
+				Avatar
+			}
+		}`
+		),
+		mockCollectedDoc(
+			`fragment UserAvatar on User @componentField(field: "Avatar", prop: "user") {
+			firstName
+		}`
+		),
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
+
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "UserWithAvatar",
+		    "kind": "HoudiniQuery",
+		    "hash": "815dcaea994a091a7eb75e170f83c8b8606618ef8889ee448de12973a1af4e0e",
+
+		    "raw": \`query UserWithAvatar {
+		  user {
+		    ...UserAvatar
+		    id
+		  }
+		}
+
+		fragment UserAvatar on User {
+		  firstName
+		  id
+		  __typename
+		}
+		\`,
+
+		    "rootType": "Query",
+
+		    "selection": {
+		        "fields": {
+		            "user": {
+		                "type": "User",
+		                "keyRaw": "user",
+
+		                "selection": {
+		                    "fields": {
+		                        "firstName": {
+		                            "type": "String",
+		                            "keyRaw": "firstName"
+		                        },
+
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id",
+		                            "visible": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename"
+		                        }
+		                    },
+
+		                    "fragments": {
+		                        "UserAvatar": {
+		                            "arguments": {}
+		                        }
+		                    },
+
+		                    "components": {
+		                        "User.Avatar": {
+		                            "prop": "user"
+		                        }
+		                    }
+		                },
+
+		                "visible": true
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+		    "policy": "CacheOrNetwork",
+		    "partial": false
+		};
+
+		"HoudiniHash=bb8055518b549496d9673bb3a0ff9091e20fbe760670c589f689a1dc416211dd";
+	`)
+})
