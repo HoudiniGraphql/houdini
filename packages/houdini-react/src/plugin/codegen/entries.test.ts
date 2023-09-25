@@ -1,4 +1,5 @@
 import { fs, parseJS, routerConventions, load_manifest, path } from 'houdini'
+import { mockCollectedDoc } from 'houdini/test'
 import { test, expect } from 'vitest'
 
 import { test_config } from '../config'
@@ -27,7 +28,7 @@ test('composes layouts and pages', async function () {
 	const manifest = await load_manifest({ config })
 
 	// generate the bundle for the nested page
-	await generate_entries({ config, manifest })
+	await generate_entries({ config, manifest, documents: [] })
 
 	const page_entry = await parseJS(
 		(await fs.readFile(

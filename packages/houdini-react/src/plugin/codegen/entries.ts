@@ -1,3 +1,4 @@
+import * as graphql from 'graphql'
 import {
 	type Config,
 	fs,
@@ -8,22 +9,27 @@ import {
 	type ProjectManifest,
 	type PageManifest,
 	type QueryManifest,
+	type Document,
 } from 'houdini'
 
 export async function generate_entries({
 	config,
 	manifest,
+	documents,
 }: {
 	config: Config
 	manifest: ProjectManifest
+	documents: Document[]
 }) {
 	await Promise.all([
 		...Object.entries(manifest.pages).map(([id, page]) =>
-			generate_page_entries({ id, page, config, project: manifest })
+			generate_page_entries({ id, page, config, project: manifest, documents })
 		),
 		...Object.entries(manifest.pages)
 			.concat(Object.entries(manifest.layouts))
-			.map(([id, page]) => generate_routing_units({ id, page, config, project: manifest })),
+			.map(([id, page]) =>
+				generate_routing_units({ id, page, config, project: manifest, documents })
+			),
 		generate_fallbacks({ config, project: manifest }),
 	])
 }
@@ -33,6 +39,7 @@ type PageBundleInput = {
 	page: PageManifest
 	project: ProjectManifest
 	config: Config
+	documents: Document[]
 }
 
 /** Generates the component that passes query data to the actual component on the filesystem  */
@@ -129,6 +136,9 @@ async function generate_page_entries(args: PageBundleInput) {
 	const Component = 'Page_' + args.page.id
 	const PageFallback = 'PageFallback_' + args.page.id
 	source.push(`import ${Component} from "${relative_path}"`)
+
+	// this needs to go at the boundary between the imports and the rest of the content
+	source.push(componentFieldImports(args))
 
 	// in order to wrap up the layouts we're going to iterate over the list and build them up
 	let content = `<${Component} />`
@@ -318,4 +328,44 @@ async function generate_fallbacks({
 
 		await fs.writeFile(fallback_path, formatted)
 	}
+}
+
+function componentFieldImports(args: PageBundleInput) {
+	// in order to find all of the components that we need to import and register for component fields
+	let componentFields = []
+
+	// we need to get the flat list of every query that's used in the page and its layouts
+	const queries = args.page.queries.concat(
+		args.page.layouts.flatMap((layout) => args.project.layouts[layout].queries)
+	)
+
+	// go through the documents once, looking for the ones we care about
+	for (const document of args.documents) {
+		// if the document isn't one of the queries we used, skip it
+		if (!queries.includes(document.name)) {
+			continue
+		}
+
+		// if the document doesn't have components skip it
+		if (!document.artifact?.hasComponents) {
+			continue
+		}
+
+		// we know the document has components so we need to look at every field
+		const typeInfo = new graphql.TypeInfo(args.config.schema)
+		graphql.visit(
+			document.document,
+			graphql.visitWithTypeInfo(typeInfo, {
+				FragmentSpread(node) {
+					console.log(node)
+				},
+			})
+		)
+	}
+
+	// now
+
+	console.log(queries)
+
+	return ''
 }

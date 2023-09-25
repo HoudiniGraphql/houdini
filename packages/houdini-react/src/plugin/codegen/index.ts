@@ -17,10 +17,11 @@ import { generate_type_root } from './typeRoot'
 export default async function routerCodegen({
 	config,
 	manifest,
+	documents,
 }: GenerateHookInput & { manifest: ProjectManifest }) {
 	// use the manifest to generate all of the necessary project files
 	await Promise.all([
-		generate_entries({ config, manifest }),
+		generate_entries({ config, documents, manifest }),
 		generate_renders({ config, manifest }),
 		generate_type_root({ config, manifest }),
 		write_manifest({ config, manifest }),
