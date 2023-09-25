@@ -5,7 +5,7 @@
 			"dependsOn": ["^compile"]
 		},
 		"typedefs": {
-			"dependsOn": ["^typedefs"]
+			"dependsOn": ["^typedefs", "^compile"]
 		},
 		"build": {
 			"dependsOn": ["typedefs", "compile"]
