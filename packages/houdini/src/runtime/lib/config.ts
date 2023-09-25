@@ -215,6 +215,13 @@ export type ConfigFile = {
 	 * Configure the router
 	 */
 	router?: RouterConfig
+
+	/**
+	 * A collection of flags to opt-into experimental features that might break unexpectedly
+	 */
+	features?: {
+		componentFields?: boolean
+	}
 }
 
 type RouterConfig = {

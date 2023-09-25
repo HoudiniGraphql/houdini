@@ -135,12 +135,18 @@ directive @${
 """
 directive @${config.requiredDirective} on FIELD
 
+${
+	config.configFile.features?.componentFields
+		? `
 """
 @${config.componentFieldDirective} marks an inline fragment as the selection for a component field
 """
-directive @${
-		config.componentFieldDirective
-	}(field: String!, prop: String, export: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT
+directive @${config.componentFieldDirective}(field: String!, prop: String, export: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT
+
+`
+		: ''
+}
+
 `
 
 	// Every componentField needs to be added to the appropriate parent

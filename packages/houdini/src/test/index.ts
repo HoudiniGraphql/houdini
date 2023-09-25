@@ -290,6 +290,9 @@ export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {})
 			},
 			...plugins,
 		},
+		features: {
+			componentFields: true,
+		},
 		acceptImperativeInstability: true,
 		...config,
 	}
