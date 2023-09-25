@@ -273,6 +273,8 @@ export default function artifactGenerator(stats: {
 						)
 					}
 
+					let hasComponents = false
+
 					// start building up the artifact
 					let artifact: DocumentArtifact = {
 						name,
@@ -281,6 +283,7 @@ export default function artifactGenerator(stats: {
 						refetch: doc.refetch,
 						raw: rawString,
 						rootType,
+						hasComponents: false,
 						selection: selection({
 							config,
 							filepath: doc.filename,
@@ -304,6 +307,7 @@ export default function artifactGenerator(stats: {
 								operations[0],
 								filterTypes
 							),
+							hasComponents: () => (hasComponents = true),
 						}),
 						pluginData: {},
 					}
@@ -329,8 +333,11 @@ export default function artifactGenerator(stats: {
 								selections: selectionSet.selections,
 								fragmentDefinitions,
 							}),
+							hasComponents: () => (hasComponents = true),
 						})
 					)
+
+					artifact.hasComponents = hasComponents
 
 					// if we are looking at a query or fragment then we need to add
 					// the loading state flag

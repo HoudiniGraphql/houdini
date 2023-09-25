@@ -48,7 +48,7 @@ test('fragments of unions inject correctly', function () {
 		operations: {},
 		selections: flat,
 		includeFragments: true,
-
+		hasComponents: () => {},
 		document: mockCollectedDoc(`
 			query Query {
 				entities {
@@ -145,6 +145,7 @@ test('list of fragment unions', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "hasComponents": false,
 
 		    "selection": {
 		        "fields": {
@@ -303,6 +304,7 @@ test('fragments in lists', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "hasComponents": false,
 
 		    "selection": {
 		        "fields": {
@@ -502,6 +504,7 @@ test('concrete selection applies mask over abstract selection', async function (
 		\`,
 
 		    "rootType": "Query",
+		    "hasComponents": false,
 
 		    "selection": {
 		        "fields": {
@@ -836,6 +839,7 @@ test("multiple abstract selections don't conflict", async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "hasComponents": false,
 
 		    "selection": {
 		        "fields": {
@@ -1037,8 +1041,14 @@ test('componentFields get embedded in the selection', async function () {
 		),
 		mockCollectedDoc(
 			`fragment UserAvatar on User @componentField(field: "Avatar", prop: "user") {
-			firstName
-		}`
+				firstName
+				FriendList
+			}`
+		),
+		mockCollectedDoc(
+			`fragment FriendList on User @componentField(field: "FriendList", prop: "user") {
+				firstName
+			}`
 		),
 	]
 
@@ -1049,7 +1059,7 @@ test('componentFields get embedded in the selection', async function () {
 		export default {
 		    "name": "UserWithAvatar",
 		    "kind": "HoudiniQuery",
-		    "hash": "815dcaea994a091a7eb75e170f83c8b8606618ef8889ee448de12973a1af4e0e",
+		    "hash": "30e4c52e63f8d5ce74e8b8545a099d29e877df195141d1c67221b480f0840014",
 
 		    "raw": \`query UserWithAvatar {
 		  user {
@@ -1060,12 +1070,20 @@ test('componentFields get embedded in the selection', async function () {
 
 		fragment UserAvatar on User {
 		  firstName
+		  ...FriendList
+		  id
+		  __typename
+		}
+
+		fragment FriendList on User {
+		  firstName
 		  id
 		  __typename
 		}
 		\`,
 
 		    "rootType": "Query",
+		    "hasComponents": true,
 
 		    "selection": {
 		        "fields": {
@@ -1116,5 +1134,68 @@ test('componentFields get embedded in the selection', async function () {
 		};
 
 		"HoudiniHash=bb8055518b549496d9673bb3a0ff9091e20fbe760670c589f689a1dc416211dd";
+	`)
+
+	expect(docs[1]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "UserAvatar",
+		    "kind": "HoudiniFragment",
+		    "hash": "f5f2155463f80756d17e9e3294cd9f922bbe56ce135a0a39c84bb34b49a13f7e",
+
+		    "raw": \`fragment UserAvatar on User {
+		  firstName
+		  ...FriendList
+		  id
+		  __typename
+		}
+
+		fragment FriendList on User {
+		  firstName
+		  id
+		  __typename
+		}
+		\`,
+
+		    "rootType": "User",
+		    "hasComponents": true,
+
+		    "selection": {
+		        "fields": {
+		            "firstName": {
+		                "type": "String",
+		                "keyRaw": "firstName",
+		                "visible": true
+		            },
+
+		            "id": {
+		                "type": "ID",
+		                "keyRaw": "id",
+		                "visible": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename",
+		                "visible": true
+		            }
+		        },
+
+		        "fragments": {
+		            "FriendList": {
+		                "arguments": {}
+		            }
+		        },
+
+		        "components": {
+		            "User.FriendList": {
+		                "prop": "user"
+		            }
+		        }
+		    },
+
+		    "pluginData": {}
+		};
+
+		"HoudiniHash=06be0ac4bd68cba33a2211d36d7235ecf1631722d830c88e0f39ae9896a25f85";
 	`)
 })

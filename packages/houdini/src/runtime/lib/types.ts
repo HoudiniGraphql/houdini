@@ -115,6 +115,7 @@ export type BaseCompiledDocument<_Kind extends ArtifactKinds> = {
 		direction: 'forward' | 'backward' | 'both'
 		mode: PaginateModes
 	}
+	hasComponents: boolean
 	pluginData: Record<string, any>
 }
 
