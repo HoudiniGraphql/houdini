@@ -1,9 +1,9 @@
-import cache from '$houdini/runtime/cache'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import { fragmentKey } from '$houdini/runtime/lib/types'
 import type { GraphQLObject, GraphQLVariables, FragmentArtifact } from '$houdini/runtime/lib/types'
 import * as React from 'react'
 
+import { useRouterContext } from '../routing'
 import { useDeepCompareMemoize } from './useDeepCompareEffect'
 import { useDocumentSubscription } from './useDocumentSubscription'
 
@@ -15,6 +15,8 @@ export function useFragment<
 	reference: _Data | { [fragmentKey]: _ReferenceType } | null,
 	document: { artifact: FragmentArtifact }
 ) {
+	const { cache } = useRouterContext()
+
 	// get the fragment reference info
 	const { parent, variables, loading } = fragmentReference<_Data, _Input, _ReferenceType>(
 		reference,
@@ -46,10 +48,7 @@ export function useFragment<
 			stuff: {
 				parentID: parent,
 			},
-			// setup = true?
-			// we don't need to do the first read because we
-			// have an initial value...
-			// does Boolean(initialValue) === { setup: true }
+			setup: true,
 		},
 	})
 
