@@ -53,12 +53,20 @@
             "types": "./build/preprocess/index.d.ts",
             "import": "./build/preprocess-esm/index.js",
             "require": "./build/preprocess-cjs/index.js"
+        },
+        "./test": {
+            "types": "./build/test/index.d.ts",
+            "import": "./build/test-esm/index.js",
+            "require": "./build/test-cjs/index.js"
         }
     },
     "typesVersions": {
         "*": {
             "preprocess": [
                 "build/preprocess/index.d.ts"
+            ],
+            "test": [
+                "build/test/index.d.ts"
             ]
         }
     },
