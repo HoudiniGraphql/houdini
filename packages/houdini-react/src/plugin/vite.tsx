@@ -115,17 +115,15 @@ export default {
 				import { router_cache } from '$houdini'
 				import client from '$houdini/plugins/houdini-react/runtime/client'
 				import Component from '$houdini/plugins/houdini-react/units/entries/${id}.jsx'
-
+				import { injectComponents } from '$houdini/plugins/houdini-react/runtime/clientPlugin'
 
 				// if there is pending data (or artifacts) then we should prime the caches
 				let initialData = {}
 				let initialArtifacts = {}
 
-				if (!window.__houdini__cache__) {
-					window.__houdini__cache__ = new Cache()
-					window.__houdini__hydration__layer__ = window.__houdini__cache__._internal_unstable.storage.createLayer(true)
-					window.__houdini__client__ = client()
-				}
+				window.__houdini__cache__ ??= new Cache()
+				window.__houdini__hydration__layer__ ??= window.__houdini__cache__._internal_unstable.storage.createLayer(true)
+				window.__houdini__client__ ??= client()
 
 				// the artifacts are the source of the zip (without them, we can't prime either cache)
 				for (const [artifactName, artifact] of Object.entries(window.__houdini__pending_artifacts__ ?? {})) {
@@ -134,6 +132,13 @@ export default {
 
 					// if we also have data for the artifact, save it in the initial data cache
 					if (window.__houdini__pending_data__?.[artifactName]) {
+
+						// if the artifact has component fields we need to
+						if (artifact.hasComponents) {
+							// we need to walk down the artifacts selection and instantiate any component fields
+							injectComponents(window.__houdini__client__.componentCache, artifact.selection, window.__houdini__pending_data__[artifactName])
+						}
+
 						// create the store we'll put in the cache
 						const observer = window.__houdini__client__.observe({ artifact, cache: window.__houdini__cache__, initialValue: window.__houdini__pending_data__[artifactName] })
 
@@ -154,8 +159,6 @@ export default {
 						}
 					})
 				}
-
-
 
 				// hydrate the cache with the information from the initial payload
 				window.__houdini__cache__?.hydrate(

@@ -1,5 +1,5 @@
 import { getFieldsForType } from '$houdini/runtime/lib/selection'
-import type { ClientPlugin, DocumentArtifact, GraphQLValue, HoudiniClient } from 'houdini'
+import type { ClientPlugin, DocumentArtifact, GraphQLValue } from 'houdini'
 import React from 'react'
 
 const plugin: () => ClientPlugin = () => () => {
@@ -18,7 +18,7 @@ const plugin: () => ClientPlugin = () => () => {
 			// if the artifact has component fields we need to
 			if (ctx.artifact.hasComponents) {
 				// we need to walk down the artifacts selection and instantiate any component fields
-				injectComponents(client, ctx.artifact.selection, result.data)
+				injectComponents(client.componentCache, ctx.artifact.selection, result.data)
 			}
 
 			// keep going
@@ -27,8 +27,8 @@ const plugin: () => ClientPlugin = () => () => {
 	}
 }
 
-function injectComponents(
-	client: HoudiniClient,
+export function injectComponents(
+	cache: Record<string, any>,
 	selection: DocumentArtifact['selection'],
 	data: GraphQLValue | null
 ) {
@@ -44,7 +44,7 @@ function injectComponents(
 
 	// if the value is an array we need to instantiate each item
 	if (Array.isArray(data)) {
-		data.forEach((item) => injectComponents(client, selection, item))
+		data.forEach((item) => injectComponents(cache, selection, item))
 		return
 	}
 
@@ -60,7 +60,7 @@ function injectComponents(
 		// add every component we need to
 		for (const [key, componentRef] of Object.entries(selection.components)) {
 			if (data && typeof data === 'object') {
-				const componentFn = client.componentCache[key]
+				const componentFn = cache[key]
 
 				// @ts-ignore
 				data[componentRef.attribute] = (props: any) => {
@@ -78,7 +78,7 @@ function injectComponents(
 		// if there is a selection, we need to walk down
 		const dataValue = data[field]
 		if (subSelection.selection) {
-			injectComponents(client, subSelection.selection, dataValue)
+			injectComponents(cache, subSelection.selection, dataValue)
 		}
 	}
 }

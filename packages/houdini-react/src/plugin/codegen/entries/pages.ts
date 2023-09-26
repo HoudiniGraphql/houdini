@@ -1,13 +1,4 @@
-import * as graphql from 'graphql'
-import {
-	fs,
-	parseJS,
-	printJS,
-	path,
-	routerConventions,
-	processComponentFieldDirective,
-	Config,
-} from 'houdini'
+import { fs, parseJS, printJS, path, routerConventions, Config } from 'houdini'
 
 import { PageBundleInput } from '.'
 
@@ -45,6 +36,7 @@ export async function generate_page_entries(args: PageBundleInput) {
 	const Component = 'Page_' + args.page.id
 	const PageFallback = 'PageFallback_' + args.page.id
 	source.push(`import ${Component} from "${relative_path}"`)
+	source.push(`import client from '$houdini/plugins/houdini-react/runtime/client'`)
 
 	// in order to wrap up the layouts we're going to iterate over the list and build them up
 	let content = `<${Component} />`
@@ -140,13 +132,18 @@ function componentFieldImports(config: Config, targetPath: string, args: PageBun
 			})
 			.join('\n') +
 		`
-if (globalThis.window && globalThis.window.__houdini__client__) {
-${args.componentFields
-	.map(
-		(field) =>
-			`    globalThis.window.__houdini__client__.componentCache["${field.type}.${field.field}"] = ${field.fragment}`
-	)
-	.join('\n')}
+
+if (globalThis.window) {
+	if (!globalThis.window.__houdini__client__) {
+		globalThis.window.__houdini__client__ = client()
+	}
+
+	${args.componentFields
+		.map(
+			(field) =>
+				`    globalThis.window.__houdini__client__.componentCache["${field.type}.${field.field}"] = ${field.fragment}`
+		)
+		.join('\n')}
 }
 `
 	)

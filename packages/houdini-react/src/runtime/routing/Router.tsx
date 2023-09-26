@@ -195,6 +195,8 @@ function usePageData({
 							const artifactName = "${artifact.name}"
 							const value = ${JSON.stringify(observer.state.data)}
 
+							console.log(value)
+
 							// if the data is pending, we need to resolve it
 							if (window.__houdini__nav_caches__?.data_cache.has(artifactName)) {
 								// before we resolve the pending signals,
@@ -202,7 +204,7 @@ function usePageData({
 								const new_store = window.__houdini__client__.observe({
 									artifact: window.__houdini__nav_caches__.artifact_cache.get(artifactName),
 									cache: window.__houdini__cache__,
-									initialValue: value
+									initialValue: value,
 								})
 
 								window.__houdini__nav_caches__?.data_cache.set(artifactName, new_store)
