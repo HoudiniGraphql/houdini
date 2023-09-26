@@ -13,21 +13,17 @@ export async function generate_entries({
 	manifest: ProjectManifest
 	documents: Document[]
 }) {
+	// we need a mapping of every document in the project
+	const document_map = documents.reduce(
+		(prev, doc) => ({ ...prev, [doc.name]: doc }),
+		{} as Record<string, Document>
+	)
+
 	await Promise.all([
 		...Object.entries(manifest.pages).map(([id, page]) =>
-			generate_page_entries({ id, page, config, project: manifest, documents })
+			generate_page_entries({ id, page, config, project: manifest, documents: document_map })
 		),
-		...Object.entries(manifest.pages)
-			.concat(Object.entries(manifest.layouts))
-			.map(([id, page]) =>
-				generate_routing_document_wrappers({
-					id,
-					page,
-					config,
-					project: manifest,
-					documents,
-				})
-			),
+		generate_routing_document_wrappers({ config, manifest, documents: document_map }),
 		generate_fallbacks({ config, project: manifest }),
 	])
 }
@@ -37,5 +33,5 @@ export type PageBundleInput = {
 	page: PageManifest
 	project: ProjectManifest
 	config: Config
-	documents: Document[]
+	documents: Record<string, Document>
 }

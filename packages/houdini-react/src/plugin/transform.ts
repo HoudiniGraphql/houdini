@@ -29,6 +29,9 @@ export async function transformFile(
 				AST.objectProperty(AST.stringLiteral('artifact'), AST.identifier(artifactID)),
 			]
 
+			// NOTE: this structure is duplicated for componentFields (fragments). if any changes are made here
+			// please make sure they are copied there too
+
 			// if the query is paginated or refetchable then we need to add a reference to the refetch artifact
 			if (page.config.needsRefetchArtifact(parsedDocument)) {
 				// if the document is a query then we should use it as the refetch artifact

@@ -26,6 +26,10 @@ export function layout_unit_path(config: Config, id: string, base?: string) {
 	return path.join(layout_units_dir(config, base), `${id}.jsx`)
 }
 
+export function componentField_unit_path(config: Config, id: string, base?: string) {
+	return path.join(units_dir(config, base), 'componentFields', `${id}.jsx`)
+}
+
 export function fallback_unit_path(
 	config: Config,
 	which: 'page' | 'layout',

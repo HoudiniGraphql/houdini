@@ -102,7 +102,7 @@ export async function generate_page_entries(args: PageBundleInput) {
 	}
 
 	// this needs to go at the boundary between the imports and the rest of the content
-	source.push(componentFieldImports(component_path, args))
+	source.push(componentFieldImports(args.config, component_path, args))
 
 	// a page's entrypoint should take every query needed by a layout or
 	// page and passes it through
@@ -120,7 +120,7 @@ export async function generate_page_entries(args: PageBundleInput) {
 	await fs.writeFile(component_path, formatted)
 }
 
-function componentFieldImports(targetPath: string, args: PageBundleInput) {
+function componentFieldImports(config: Config, targetPath: string, args: PageBundleInput) {
 	// we need to find the list of component fields that
 	let componentFields: (ReturnType<typeof processComponentFieldDirective> &
 		Config['componentFields'][string][string] & {
@@ -133,7 +133,7 @@ function componentFieldImports(targetPath: string, args: PageBundleInput) {
 	)
 
 	// go through the documents once, looking for the ones we care about
-	for (const document of args.documents) {
+	for (const document of Object.values(args.documents)) {
 		// if the document isn't one of the queries we used, skip it
 		if (!queries.includes(document.name)) {
 			continue
@@ -175,20 +175,17 @@ function componentFieldImports(targetPath: string, args: PageBundleInput) {
 	return (
 		componentFields
 			.map((field) => {
-				// if the component is a named export, use that
-				// otherwise just use the default export
-				const importStatment = field.export
-					? `{ ${field.export} as ${field.fragment} }`
-					: field.fragment
-
 				// the path to import from is the path from the entry to the component source
 				let componentPathParsed = path.parse(
-					path.relative(path.dirname(targetPath), field.filepath)
+					path.relative(
+						path.dirname(targetPath),
+						routerConventions.componentField_unit_path(config, field.fragment)
+					)
 				)
 				let componentPath = path.join(componentPathParsed.dir, componentPathParsed.name)
 
 				// import the component into the local scope
-				return `import ${importStatment} from '${componentPath}'`
+				return `import ${field.fragment} from '${componentPath}'`
 			})
 			.join('\n') +
 		`
