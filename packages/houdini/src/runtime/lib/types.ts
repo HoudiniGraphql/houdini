@@ -180,7 +180,7 @@ export type LoadingSpec =
 export type SubscriptionSelection = {
 	loadingTypes?: string[]
 	fragments?: Record<string, { arguments: ValueMap; loading?: boolean }>
-	components?: Record<string, { prop: string }>
+	components?: Record<string, { prop: string; attribute: string }>
 	fields?: {
 		[fieldName: string]: {
 			type: string
@@ -409,6 +409,8 @@ export type ProjectManifest = {
 	local_schema: boolean
 	/** Whether or not there is a custom instance of yoga defined */
 	local_yoga: boolean
+	/** Information about componentFields defined in the project */
+	component_fields: Record<string, { filepath: string }>
 }
 
 export type PageManifest = {

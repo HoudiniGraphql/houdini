@@ -121,59 +121,10 @@ export async function generate_page_entries(args: PageBundleInput) {
 }
 
 function componentFieldImports(config: Config, targetPath: string, args: PageBundleInput) {
-	// we need to find the list of component fields that
-	let componentFields: (ReturnType<typeof processComponentFieldDirective> &
-		Config['componentFields'][string][string] & {
-			type: string
-		})[] = []
-
-	// we need to get the flat list of every query that's used in the page and its layouts
-	const queries = args.page.queries.concat(
-		args.page.layouts.flatMap((layout) => args.project.layouts[layout].queries)
-	)
-
-	// go through the documents once, looking for the ones we care about
-	for (const document of Object.values(args.documents)) {
-		// if the document isn't one of the queries we used, skip it
-		if (!queries.includes(document.name)) {
-			continue
-		}
-
-		// we know the document has components so we need to look at every field
-		const typeInfo = new graphql.TypeInfo(args.config.schema)
-		graphql.visit(
-			document.document,
-			graphql.visitWithTypeInfo(typeInfo, {
-				FragmentSpread(node) {
-					// if the spread is marked as a component field then
-					// add it to the list
-					const directive = node.directives?.find(
-						(directive) => directive.name.value === args.config.componentFieldDirective
-					)
-					if (directive) {
-						// find the args we care about
-						const { field } = processComponentFieldDirective(directive)
-						const type = typeInfo.getParentType()?.name
-						if (!field || !type || !args.config.componentFields[type]?.[field]) {
-							return
-						}
-
-						// add the component field metadata to the list
-						componentFields.push({
-							type,
-							...args.config.componentFields[type][field],
-							...processComponentFieldDirective(directive),
-						})
-					}
-				},
-			})
-		)
-	}
-
 	// now that we have every component field requested by the page, we need to
 	// add the necssary imports so that vite bundles everything together
 	return (
-		componentFields
+		args.componentFields
 			.map((field) => {
 				// the path to import from is the path from the entry to the component source
 				let componentPathParsed = path.parse(
@@ -189,17 +140,11 @@ function componentFieldImports(config: Config, targetPath: string, args: PageBun
 			})
 			.join('\n') +
 		`
-if (!globalThis.window?.__houdini__component_cache__) {
-	if (globalThis.window) {
-		globalThis.window.__houdini__component_cache__ = {}
-	}
-}
-
-if (globalThis.window) {
-${componentFields
+if (globalThis.window && globalThis.window.__houdini__client__) {
+${args.componentFields
 	.map(
 		(field) =>
-			`    globalThis.window.__houdini__component_cache__["${field.type}.${field.field}"] = ${field.fragment}`
+			`    globalThis.window.__houdini__client__.componentCache["${field.type}.${field.field}"] = ${field.fragment}`
 	)
 	.join('\n')}
 }

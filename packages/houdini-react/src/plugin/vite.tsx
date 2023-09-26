@@ -125,7 +125,6 @@ export default {
 					window.__houdini__cache__ = new Cache()
 					window.__houdini__hydration__layer__ = window.__houdini__cache__._internal_unstable.storage.createLayer(true)
 					window.__houdini__client__ = client()
-					window.__houdini__component_cache__ = {}
 				}
 
 				// the artifacts are the source of the zip (without them, we can't prime either cache)
@@ -246,6 +245,12 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 				yoga = (await server.ssrLoadModule(yogaPath)) as YogaServer
 			}
 
+			const mod = await server.ssrLoadModule(
+				routerConventions.adapter_config_path(server.houdiniConfig) +
+					'?t=' +
+					new Date().getTime()
+			)
+
 			// call the adapter with the latest information
 			await serverAdapter({
 				schema,
@@ -254,6 +259,7 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 				production: false,
 				manifest: router_manifest,
 				pipe: res,
+				componentCache: mod.componentCache,
 			})(req, res)
 		})
 	},

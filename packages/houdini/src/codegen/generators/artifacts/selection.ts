@@ -440,6 +440,7 @@ function prepareSelection({
 						...object.components,
 						[`${rootType}.${fieldArg.value.value}`]: {
 							prop: propArg.value.value,
+							attribute: fieldArg.value.value,
 						},
 					}
 				}

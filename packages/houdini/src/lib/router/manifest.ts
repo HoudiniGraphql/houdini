@@ -1,7 +1,7 @@
 import * as t from '@babel/types'
 import * as graphql from 'graphql'
 
-import { path, fs, parseJS, type Config } from '..'
+import { path, fs, parseJS, type Config, processComponentFieldDirective } from '..'
 import type { ProjectManifest, PageManifest, QueryManifest } from '../../runtime/lib/types'
 import {
 	read_layoutQuery,
@@ -27,6 +27,7 @@ export async function load_manifest(args: {
 		url: '/',
 		filepath: args.config.routesDir,
 		project: {
+			component_fields: {},
 			pages: {},
 			layouts: {},
 			page_queries: {},

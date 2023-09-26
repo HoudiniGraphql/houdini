@@ -1,5 +1,6 @@
 import { getFieldsForType } from '$houdini/runtime/lib/selection'
-import type { ClientPlugin, DocumentArtifact, GraphQLValue } from 'houdini'
+import type { ClientPlugin, DocumentArtifact, GraphQLValue, HoudiniClient } from 'houdini'
+import React from 'react'
 
 const plugin: () => ClientPlugin = () => () => {
 	return {
@@ -12,13 +13,12 @@ const plugin: () => ClientPlugin = () => () => {
 				},
 			})
 		},
-		end(ctx, { resolve, value }) {
+		end(ctx, { client, resolve, value }) {
 			let result = { ...value }
 			// if the artifact has component fields we need to
 			if (ctx.artifact.hasComponents) {
-				console.log(ctx.artifact.name, 'has components')
 				// we need to walk down the artifacts selection and instantiate any component fields
-				instantiateComponentFields(ctx.artifact.selection, result.data)
+				injectComponents(client, ctx.artifact.selection, result.data)
 			}
 
 			// keep going
@@ -27,7 +27,8 @@ const plugin: () => ClientPlugin = () => () => {
 	}
 }
 
-function instantiateComponentFields(
+function injectComponents(
+	client: HoudiniClient,
 	selection: DocumentArtifact['selection'],
 	data: GraphQLValue | null
 ) {
@@ -43,7 +44,7 @@ function instantiateComponentFields(
 
 	// if the value is an array we need to instantiate each item
 	if (Array.isArray(data)) {
-		data.forEach((item) => instantiateComponentFields(selection, item))
+		data.forEach((item) => injectComponents(client, selection, item))
 		return
 	}
 
@@ -54,17 +55,30 @@ function instantiateComponentFields(
 		return
 	}
 
+	// if the object has a component, we need to instantiate it
+	if (selection?.components) {
+		// add every component we need to
+		for (const [key, componentRef] of Object.entries(selection.components)) {
+			if (data && typeof data === 'object') {
+				const componentFn = client.componentCache[key]
+
+				// @ts-ignore
+				data[componentRef.attribute] = (props: any) => {
+					return React.createElement(componentFn, {
+						...props,
+						[componentRef.prop]: data,
+					})
+				}
+			}
+		}
+	}
+
 	// walk down each field
 	for (const [field, subSelection] of Object.entries(fields)) {
-		// if the object has a component, we need to instantiate it
-		if (subSelection.selection?.components) {
-			console.log('adding component to', subSelection.selection?.components)
-		}
-
 		// if there is a selection, we need to walk down
 		const dataValue = data[field]
-		if (subSelection.selection && dataValue && typeof dataValue === 'object') {
-			instantiateComponentFields(subSelection.selection, dataValue)
+		if (subSelection.selection) {
+			injectComponents(client, subSelection.selection, dataValue)
 		}
 	}
 }

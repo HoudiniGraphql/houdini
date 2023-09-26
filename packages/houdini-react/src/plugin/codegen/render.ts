@@ -1,40 +1,65 @@
 import {
-	type Config,
 	fs,
 	path,
 	routerConventions,
-	type ProjectManifest,
 	localApiEndpoint,
+	type Config,
+	type ProjectManifest,
 } from 'houdini'
 
+import type { ComponentFieldData } from '.'
+
 export async function generate_renders({
+	componentFields,
 	config,
 	manifest,
 }: {
+	componentFields: ComponentFieldData[]
 	config: Config
 	manifest: ProjectManifest
 }) {
 	// make sure the necessary directories exist
 	await fs.mkdirp(path.dirname(routerConventions.server_adapter_path(config)))
 
+	const adapter_config_path = routerConventions.adapter_config_path(config)
+	const server_adapter_path = routerConventions.server_adapter_path(config)
+
 	// and a file that adapters can import to get the local configuration
 	let adapter_config = `
 		import createAdapter from './server'
 
-		export const endpoint = ${JSON.stringify(localApiEndpoint(config.configFile))}
+		// add local imports for every component field
+		${componentFields
+			.map((field) => {
+				return `import ${field.fragment} from ${JSON.stringify(
+					path.relative(path.dirname(server_adapter_path), field.filepath)
+				)}`
+			})
+			.join('\n')}
 
 		${
 			manifest.local_schema
 				? `import schema from '../../../../../src/api/+schema'`
 				: ' const schema = null'
 		}
-
 		${manifest.local_yoga ? `import yoga from '.../../../../../src/api/+yoga'` : ' const yoga = null'}
+
+		export const endpoint = ${JSON.stringify(localApiEndpoint(config.configFile))}
+
+		// we need to export the component cache so the server can render the client
+		export const componentCache = {
+			${componentFields
+				.map((field) => {
+					return `${JSON.stringify(`${field.type}.${field.field}`)}: ${field.fragment}`
+				})
+				.join(',\n')}
+		}
 
 		export function createServerAdapter(options) {
 			return createAdapter({
 				schema,
 				yoga,
+				componentCache,
 				graphqlEndpoint: endpoint,
 				...options,
 			})
@@ -108,7 +133,7 @@ export default (options) => {
 	`
 
 	await Promise.all([
-		fs.writeFile(routerConventions.server_adapter_path(config), server_adapter),
-		fs.writeFile(routerConventions.adapter_config_path(config), adapter_config),
+		fs.writeFile(server_adapter_path, server_adapter),
+		fs.writeFile(adapter_config_path, adapter_config),
 	])
 }

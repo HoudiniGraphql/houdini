@@ -25,6 +25,7 @@ export const serverAdapterFactory = <ComponentType>({
 	on_render,
 	pipe,
 	assetPrefix,
+	componentCache,
 }: {
 	schema?: GraphQLSchema | null
 	yoga?: ReturnType<typeof createYoga> | null
@@ -39,6 +40,7 @@ export const serverAdapterFactory = <ComponentType>({
 		pipe?: ServerResponse<IncomingMessage>
 	}) => Response | Promise<Response>
 	manifest: RouterManifest<ComponentType> | null
+	componentCache: Record<string, any>
 } & Omit<YogaServerOptions, 'schema'>): ReturnType<typeof createAdapter> => {
 	if (schema && !yoga) {
 		yoga = createYoga({
@@ -47,6 +49,8 @@ export const serverAdapterFactory = <ComponentType>({
 			graphqlEndpoint,
 		})
 	}
+
+	client.componentCache = componentCache
 
 	// @ts-ignore: schema is defined dynamically
 	if (schema) {

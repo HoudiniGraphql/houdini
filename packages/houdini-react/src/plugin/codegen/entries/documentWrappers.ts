@@ -42,6 +42,7 @@ export function generate_routing_document_wrappers({
 					page,
 					config,
 					project: manifest,
+					componentFields: [],
 					documents,
 				})
 			)

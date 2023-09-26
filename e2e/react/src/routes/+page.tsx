@@ -1,5 +1,4 @@
 import { cache } from '$houdini/runtime'
-import SponsorInfo from '~/components/SponsorInfo'
 
 import type { PageProps } from './$types'
 
@@ -13,7 +12,7 @@ export default function ({ SponsorList }: PageProps) {
 		<div>
 			{SponsorList.sponsors.map((sponsor) => (
 				<div key={sponsor.name}>
-					{sponsor.name} {sponsor.Avatar}
+					{sponsor.name} <sponsor.Avatar />
 				</div>
 			))}
 		</div>
