@@ -13,7 +13,7 @@ export default function ({ SponsorList }: PageProps) {
 		<div>
 			{SponsorList.sponsors.map((sponsor) => (
 				<div key={sponsor.name}>
-					<SponsorInfo sponsor={sponsor} />
+					{sponsor.name} {sponsor.Avatar}
 				</div>
 			))}
 		</div>

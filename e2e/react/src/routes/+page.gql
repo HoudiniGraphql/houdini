@@ -1,6 +1,6 @@
 query SponsorList {
 	sponsors {
 		name
-		...SponsorInfo
+		Avatar
 	}
 }

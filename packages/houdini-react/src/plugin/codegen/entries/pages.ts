@@ -189,17 +189,17 @@ function componentFieldImports(config: Config, targetPath: string, args: PageBun
 			})
 			.join('\n') +
 		`
-if (!window?.__houdini__component_cache__) {
-	if (window) {
-		window.__houdini__component_cache__ = {}
+if (!globalThis.window?.__houdini__component_cache__) {
+	if (globalThis.window) {
+		globalThis.window.__houdini__component_cache__ = {}
 	}
 }
 
-if (window) {
+if (globalThis.window) {
 ${componentFields
 	.map(
 		(field) =>
-			`    window.__houdini__component_cache__["${field.type}.${field.field}"] = ${field.fragment}`
+			`    globalThis.window.__houdini__component_cache__["${field.type}.${field.field}"] = ${field.fragment}`
 	)
 	.join('\n')}
 }

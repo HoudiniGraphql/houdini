@@ -1,4 +1,4 @@
-import { GraphQL } from '$houdini'
+import type { GraphQL } from '$houdini'
 
 type Props = {
 	sponsor: GraphQL<`{

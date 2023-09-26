@@ -2,8 +2,8 @@ import { fs, parseJS, routerConventions, load_manifest, path } from 'houdini'
 import { mockCollectedDoc } from 'houdini/test'
 import { test, expect } from 'vitest'
 
-import { test_config } from '../config'
-import { generate_entries } from './entries'
+import { test_config } from '../../config'
+import { generate_entries } from '../entries'
 
 test('composes layouts and pages', async function () {
 	const config = await test_config()

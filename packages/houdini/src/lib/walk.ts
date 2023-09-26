@@ -32,6 +32,7 @@ export type EmbeddedGraphqlDocument = {
 }
 
 type GraphqlTagWalker = {
+	skipGraphqlType?: boolean
 	where?: (tag: graphql.DocumentNode, ast: { node: BaseNode; parent: BaseNode }) => boolean
 	dependency?: (fp: string) => void
 	tag: (tag: EmbeddedGraphqlDocument) => void | Promise<void>
@@ -92,7 +93,7 @@ export async function find_graphql(
 				} else {
 					return
 				}
-			} else if (node.type === 'TSPropertySignature') {
+			} else if (node.type === 'TSPropertySignature' && !walker.skipGraphqlType) {
 				const signature = node as TSPropertySignatureKind
 				// we only care about properties whose type is the graphql template
 				if (signature.typeAnnotation?.typeAnnotation?.type !== 'TSTypeReference') {

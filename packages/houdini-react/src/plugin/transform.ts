@@ -13,11 +13,12 @@ export async function transformFile(
 		return { code: page.content, map: page.map }
 	}
 	// parse the content and look for an invocation of the graphql function
-	const script = await parseJS(page.content, { plugins: ['jsx'] })
+	const script = parseJS(page.content, { plugins: ['jsx'] })
 
 	// for now, just replace them with a string
 	await find_graphql(page.config, script, {
-		tag({ node, artifact, parsedDocument }) {
+		skipGraphqlType: true,
+		tag({ node, artifact, parsedDocument, parent }) {
 			const artifactID = ensureArtifactImport({
 				config: page.config,
 				artifact,
