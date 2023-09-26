@@ -393,7 +393,10 @@ function componentFieldImports(targetPath: string, args: PageBundleInput) {
 					: field.fragment
 
 				// the path to import from is the path from the entry to the component source
-				const componentPath = path.relative(path.dirname(targetPath), field.filepath)
+				let componentPathParsed = path.parse(
+					path.relative(path.dirname(targetPath), field.filepath)
+				)
+				let componentPath = path.join(componentPathParsed.dir, componentPathParsed.name)
 
 				// import the component into the local scope
 				return `import ${importStatment} from '${componentPath}'`
