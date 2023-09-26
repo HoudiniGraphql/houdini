@@ -6,6 +6,7 @@ import {
 	printJS,
 	path,
 	routerConventions,
+	processComponentFieldDirective,
 	type ProjectManifest,
 	type PageManifest,
 	type QueryManifest,
@@ -137,9 +138,6 @@ async function generate_page_entries(args: PageBundleInput) {
 	const PageFallback = 'PageFallback_' + args.page.id
 	source.push(`import ${Component} from "${relative_path}"`)
 
-	// this needs to go at the boundary between the imports and the rest of the content
-	source.push(componentFieldImports(args))
-
 	// in order to wrap up the layouts we're going to iterate over the list and build them up
 	let content = `<${Component} />`
 	// if the layout has a loading state then wrap it in a fallback
@@ -194,6 +192,9 @@ async function generate_page_entries(args: PageBundleInput) {
 			`
 		}
 	}
+
+	// this needs to go at the boundary between the imports and the rest of the content
+	source.push(componentFieldImports(component_path, args))
 
 	// a page's entrypoint should take every query needed by a layout or
 	// page and passes it through
@@ -330,9 +331,12 @@ async function generate_fallbacks({
 	}
 }
 
-function componentFieldImports(args: PageBundleInput) {
-	// in order to find all of the components that we need to import and register for component fields
-	let componentFields = []
+function componentFieldImports(targetPath: string, args: PageBundleInput) {
+	// we need to find the list of component fields that
+	let componentFields: (ReturnType<typeof processComponentFieldDirective> &
+		Config['componentFields'][string][string] & {
+			type: string
+		})[] = []
 
 	// we need to get the flat list of every query that's used in the page and its layouts
 	const queries = args.page.queries.concat(
@@ -346,26 +350,70 @@ function componentFieldImports(args: PageBundleInput) {
 			continue
 		}
 
-		// if the document doesn't have components skip it
-		if (!document.artifact?.hasComponents) {
-			continue
-		}
-
 		// we know the document has components so we need to look at every field
 		const typeInfo = new graphql.TypeInfo(args.config.schema)
 		graphql.visit(
 			document.document,
 			graphql.visitWithTypeInfo(typeInfo, {
 				FragmentSpread(node) {
-					console.log(node)
+					// if the spread is marked as a component field then
+					// add it to the list
+					const directive = node.directives?.find(
+						(directive) => directive.name.value === args.config.componentFieldDirective
+					)
+					if (directive) {
+						// find the args we care about
+						const { field } = processComponentFieldDirective(directive)
+						const type = typeInfo.getParentType()?.name
+						if (!field || !type || !args.config.componentFields[type]?.[field]) {
+							return
+						}
+
+						// add the component field metadata to the list
+						componentFields.push({
+							type,
+							...args.config.componentFields[type][field],
+							...processComponentFieldDirective(directive),
+						})
+					}
 				},
 			})
 		)
 	}
 
-	// now
+	// now that we have every component field requested by the page, we need to
+	// add the necssary imports so that vite bundles everything together
+	return (
+		componentFields
+			.map((field) => {
+				// if the component is a named export, use that
+				// otherwise just use the default export
+				const importStatment = field.export
+					? `{ ${field.export} as ${field.fragment} }`
+					: field.fragment
 
-	console.log(queries)
+				// the path to import from is the path from the entry to the component source
+				const componentPath = path.relative(path.dirname(targetPath), field.filepath)
 
-	return ''
+				// import the component into the local scope
+				return `import ${importStatment} from '${componentPath}'`
+			})
+			.join('\n') +
+		`
+if (!window?.__houdini__component_cache__) {
+	if (window) {
+		window.__houdini__component_cache__ = {}
+	}
+}
+
+if (window) {
+${componentFields
+	.map(
+		(field) =>
+			`    window.__houdini__component_cache__["${field.type}.${field.field}"] = ${field.fragment}`
+	)
+	.join('\n')}
+}
+`
+	)
 }

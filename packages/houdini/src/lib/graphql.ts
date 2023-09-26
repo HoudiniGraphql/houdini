@@ -20,6 +20,50 @@ export function getRootType(type: graphql.GraphQLType): graphql.GraphQLType {
 	return type
 }
 
+export function processComponentFieldDirective(directive: graphql.DirectiveNode): {
+	field: string
+	export?: string
+	prop: string
+} {
+	let field: string | undefined
+	let exportValue: string | undefined
+	let prop: string | undefined
+
+	for (const arg of directive.arguments ?? []) {
+		// if we are looking at the field argument
+		if (arg.name.value === 'field' && arg.value.kind === 'StringValue') {
+			field = arg.value.value
+		}
+		// if we are looking at the export argument
+		else if (arg.name.value === 'export' && arg.value.kind === 'StringValue') {
+			exportValue = arg.value.value
+		}
+		// if we are looking at the prop argument
+		else if (arg.name.value === 'prop' && arg.value.kind === 'StringValue') {
+			prop = arg.value.value
+		}
+	}
+
+	// make sure we have the required args
+	const missing = []
+	if (!field) {
+		missing.push('field')
+	}
+	if (!prop) {
+		missing.push('prop')
+	}
+	if (missing.length > 0) {
+		throw new Error(`missing arguments to @componentField: ${missing.join(', ')}`)
+	}
+
+	// we're done
+	return {
+		prop: prop!,
+		field: field!,
+		export: exportValue,
+	}
+}
+
 export function hashOriginal({ document }: { document: Document }): string {
 	return hashDocument(document.originalString)
 }

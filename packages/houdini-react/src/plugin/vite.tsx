@@ -125,6 +125,7 @@ export default {
 					window.__houdini__cache__ = new Cache()
 					window.__houdini__hydration__layer__ = window.__houdini__cache__._internal_unstable.storage.createLayer(true)
 					window.__houdini__client__ = client()
+					window.__houdini__component_cache__ = {}
 				}
 
 				// the artifacts are the source of the zip (without them, we can't prime either cache)

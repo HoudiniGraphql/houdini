@@ -105,8 +105,8 @@ export async function find_graphql(
 					return
 				}
 
-				// we only want references to `graphql`
-				if (annotation.typeName.name !== 'graphql') {
+				// we only want references to `GraphQL`
+				if (annotation.typeName.name !== 'GraphQL') {
 					return
 				}
 

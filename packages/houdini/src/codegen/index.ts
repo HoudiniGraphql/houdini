@@ -30,6 +30,9 @@ export async function runPipeline(config: Config, docs: Document[]) {
 	// reset the newDocuments accumulator
 	config.newDocuments = ''
 
+	// reset the component fields
+	config.componentFields = {}
+
 	// we need to hold onto some stats for the generated artifacts
 	const artifactStats = {
 		total: [],

@@ -34,6 +34,10 @@ const config = {
 			},
 		},
 	},
+
+	features: {
+		componentFields: true,
+	},
 }
 
 export default config

@@ -11,7 +11,7 @@ test('extracts queries out of graphql templates', async () => {
 		filepath: 'myQuery.tsx',
 		content: `
             type Props = {
-                user: graphql<\`{
+                user: GraphQL<\`{
                     ... on User @componentField(field: "Avatar") {
                     firstName
                     }
@@ -43,7 +43,7 @@ test('require name if non-inline fragment is present', async () => {
 		filepath: 'myQuery.tsx',
 		content: `
             type Props = {
-                user: graphql<\`{
+                user: GraphQL<\`{
                     viewer { id }
                     ... on User @componentField(field: "Avatar") {
                         firstName
@@ -72,7 +72,7 @@ test('extracts multiple queries out of graphql templates', async () => {
 		filepath: 'myQuery.tsx',
 		content: `
             type Props = {
-                user: graphql<\`{
+                user: GraphQL<\`{
                     ... on User @componentField(field: "Avatar") {
                         firstName
                     }

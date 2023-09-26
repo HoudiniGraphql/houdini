@@ -307,7 +307,9 @@ export default function artifactGenerator(stats: {
 								operations[0],
 								filterTypes
 							),
-							hasComponents: () => (hasComponents = true),
+							hasComponents: () => {
+								hasComponents = true
+							},
 						}),
 						pluginData: {},
 					}
@@ -333,7 +335,9 @@ export default function artifactGenerator(stats: {
 								selections: selectionSet.selections,
 								fragmentDefinitions,
 							}),
-							hasComponents: () => (hasComponents = true),
+							hasComponents: () => {
+								hasComponents = true
+							},
 						})
 					)
 

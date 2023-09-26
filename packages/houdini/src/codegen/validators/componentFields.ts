@@ -8,7 +8,7 @@ export default async function componentFields(config: Config, docs: Document[]):
 	// collect the errors
 	const errors: { message: string; filepath: string; description?: string }[] = []
 
-	for (const { filename, document } of docs) {
+	for (const { filename: filepath, document } of docs) {
 		graphql.visit(document, {
 			FragmentDefinition(node, _, __, ___, ancestors) {
 				const componentFieldDirective = node.directives?.find(
@@ -34,7 +34,7 @@ export default async function componentFields(config: Config, docs: Document[]):
 				if (!fieldArg) {
 					errors.push({
 						message: `Missing field argument on @${config.componentFieldDirective} directive`,
-						filepath: filename,
+						filepath,
 					})
 					return
 				}
@@ -43,7 +43,7 @@ export default async function componentFields(config: Config, docs: Document[]):
 				if (!propArg) {
 					errors.push({
 						message: `Missing prop argument on @${config.componentFieldDirective} directive`,
-						filepath: filename,
+						filepath,
 					})
 					return
 				}
@@ -64,7 +64,7 @@ export default async function componentFields(config: Config, docs: Document[]):
 				) {
 					errors.push({
 						message: `Duplicate component field definition for ${parent}.${fieldValue}`,
-						filepath: filename,
+						filepath,
 					})
 				}
 
@@ -75,6 +75,7 @@ export default async function componentFields(config: Config, docs: Document[]):
 						[fieldValue]: {
 							directive: componentFieldDirective,
 							fragment: node.name.value,
+							filepath,
 						},
 					}
 				}

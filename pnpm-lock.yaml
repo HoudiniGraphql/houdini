@@ -42,6 +42,9 @@ importers:
       '@trivago/prettier-plugin-sort-imports':
         specifier: ^4.0.0
         version: 4.0.0(@vue/compiler-sfc@3.2.47)(prettier@2.8.3)
+      '@types/react':
+        specifier: ^18.2.22
+        version: 18.2.22
       '@vitest/coverage-c8':
         specifier: ^0.28.3
         version: 0.28.3(@vitest/ui@0.28.3)
@@ -2537,7 +2540,7 @@ packages:
       react: 16.14.0
       react-dom: 16.14.0
     dependencies:
-      '@types/react': 18.2.21
+      '@types/react': 18.2.22
       react: 16.14.0
       react-dom: 16.14.0(react@16.14.0)
     dev: true
@@ -3205,7 +3208,7 @@ packages:
   /@types/react-dom@18.0.11:
     resolution: {integrity: sha512-O38bPbI2CWtgw/OoQoY+BRelw7uysmXbWvw3nLWO21H1HSh+GOlqPuXshJfjmpNlKiiSDG9cc1JZAaMmVdcTlw==}
     dependencies:
-      '@types/react': 18.2.21
+      '@types/react': 18.2.22
 
   /@types/react@18.0.33:
     resolution: {integrity: sha512-sHxzVxeanvQyQ1lr8NSHaj0kDzcNiGpILEVt69g9S31/7PfMvNCKLKcsHw4lYKjs3cGNJjXSP4mYzX43QlnjNA==}
@@ -3225,6 +3228,14 @@ packages:
 
   /@types/react@18.2.21:
     resolution: {integrity: sha512-neFKG/sBAwGxHgXiIxnbm3/AAVQ/cMRS93hvBpg8xYRbeQSPVABp9U2bRnPf0iI4+Ucdv3plSxKK+3CW2ENJxA==}
+    dependencies:
+      '@types/prop-types': 15.7.5
+      '@types/scheduler': 0.16.2
+      csstype: 3.1.1
+    dev: false
+
+  /@types/react@18.2.22:
+    resolution: {integrity: sha512-60fLTOLqzarLED2O3UQImc/lsNRgG0jE/a1mPW9KjMemY0LMITWEsbS4VvZ4p6rorEHd5YKxxmMKSDK505GHpA==}
     dependencies:
       '@types/prop-types': 15.7.5
       '@types/scheduler': 0.16.2

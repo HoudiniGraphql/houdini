@@ -10,10 +10,14 @@ export default function SponsorSummary(props: Props) {
 		graphql(`
 			fragment SponsorInfo on Sponsor {
 				name
-				avatarUrl
+				Avatar
 			}
 		`)
 	)
 
-	return <div>{data?.name}</div>
+	return (
+		<div>
+			{data?.name}: {data?.Avatar}
+		</div>
+	)
 }

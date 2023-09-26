@@ -67,7 +67,14 @@ export class Config {
 	// definitions.
 	componentFields: Record<
 		string,
-		Record<string, { fragment: string; directive: graphql.DirectiveNode }>
+		Record<
+			string,
+			{
+				fragment: string
+				directive: graphql.DirectiveNode
+				filepath: string
+			}
+		>
 	> = {}
 
 	constructor({
@@ -1268,7 +1275,7 @@ async function loadSchemaFile(schemaPath: string): Promise<graphql.GraphQLSchema
 
 		return mergeSchemas({
 			typeDefs: await Promise.all(
-				sourceFiles.map(async (filepath) => (await fs.readFile(filepath))!)
+				sourceFiles.map(async (filepath: string) => (await fs.readFile(filepath))!)
 			),
 		})
 	}
