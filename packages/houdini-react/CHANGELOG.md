@@ -1,5 +1,14 @@
 # houdini-react
 
+## 1.2.14
+
+### Patch Changes
+
+-   [#1170](https://github.com/HoudiniGraphql/houdini/pull/1170) [`76b3c28a`](https://github.com/HoudiniGraphql/houdini/commit/76b3c28abe2e5252f883b2468b31c3880c0356b5) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Streamline adapter codegen api
+
+-   Updated dependencies [[`386fc4c5`](https://github.com/HoudiniGraphql/houdini/commit/386fc4c5b604a40586aba47533f83a1f5a3723d9)]:
+    -   houdini@1.2.14
+
 ## 1.2.13
 
 ### Dependency Changes
