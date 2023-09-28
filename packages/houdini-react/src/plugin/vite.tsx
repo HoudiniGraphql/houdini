@@ -93,9 +93,7 @@ export default {
 	},
 
 	async buildStart({ houdiniConfig }) {
-		if (!isSecondaryBuild()) {
-			await writeTsconfig(houdiniConfig)
-		}
+		await writeTsconfig(houdiniConfig)
 	},
 
 	async load(id, { config }) {

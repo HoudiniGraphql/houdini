@@ -1,5 +1,11 @@
 # create-houdini
 
+## 1.2.18
+
+### Patch Changes
+
+-   [`7f6432a6`](https://github.com/HoudiniGraphql/houdini/commit/7f6432a6be5bd7bb7831f21ebe134698f1e2f072) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Get all packages at same version
+
 ## 1.2.10
 
 ### Patch Changes
