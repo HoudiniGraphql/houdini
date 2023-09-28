@@ -1,5 +1,14 @@
 # houdini-react
 
+## 1.2.20
+
+### Patch Changes
+
+-   [#1186](https://github.com/HoudiniGraphql/houdini/pull/1186) [`36e60ee0`](https://github.com/HoudiniGraphql/houdini/commit/36e60ee001f5943443cbd1b84b45e20f8f43b5e0) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Build and dev can both run on a fresh project
+
+-   Updated dependencies []:
+    -   houdini@1.2.20
+
 ## 1.2.19
 
 ### Patch Changes
