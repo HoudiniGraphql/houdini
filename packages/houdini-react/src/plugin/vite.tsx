@@ -12,6 +12,7 @@ import {
 	RouterManifest,
 	find_match,
 	localApiEndpoint,
+	loadLocalSchema,
 } from 'houdini'
 import type { BuildOptions } from 'vite'
 
@@ -39,17 +40,18 @@ export default {
 		manifest = await load_manifest({ config, includeArtifacts: env.mode === 'production' })
 		setManifest(manifest)
 
-		// build up the rollup config
-		const rollupConfig: BuildOptions = {
-			rollupOptions: {
-				output: {
-					entryFileNames: 'assets/[name].js',
-				},
-			},
-		}
-
+		// secondary builds have their own rollup config
+		let rollupConfig: BuildOptions | undefined
 		// build up the list of entries that we need vite to bundle
 		if (!isSecondaryBuild()) {
+			rollupConfig = {
+				rollupOptions: {
+					output: {
+						entryFileNames: 'assets/[name].js',
+					},
+				},
+			}
+
 			await fs.mkdirp(config.compiledAssetsDir)
 			rollupConfig.outDir = config.compiledAssetsDir
 			rollupConfig.rollupOptions!.input = {}
@@ -195,6 +197,8 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 	// render that we will use in production. This means that we need to
 	// capture the request before vite's dev server processes it.
 	async configureServer(server) {
+		await writeTsconfig(server.houdiniConfig)
+
 		server.middlewares.use(async (req, res, next) => {
 			// import the router manifest from the runtime
 			// pull in the project's manifest
@@ -223,14 +227,7 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 			// import the schema
 			let schema: GraphQLSchema | null = null
 			if (project_manifest.local_schema) {
-				schema = (
-					await server.ssrLoadModule(
-						path.join(
-							server.houdiniConfig.localApiDir,
-							'+schema?t=' + new Date().getTime()
-						)
-					)
-				).default
+				schema = await loadLocalSchema(server.houdiniConfig)
 			}
 			// import the schema
 			const serverAdapter: (

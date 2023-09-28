@@ -1,4 +1,3 @@
-import type * as graphql from 'graphql'
 import type { SourceMapInput } from 'rollup'
 import type { Plugin as VitePlugin, UserConfig, ResolvedConfig, ConfigEnv } from 'vite'
 
@@ -175,24 +174,6 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		},
 
 		async configureServer(server) {
-			// if there is a local schema we need to use that when generating
-			if (config.localSchema) {
-				const { default: schema } = (await server.ssrLoadModule(
-					path.join(config.localApiDir, '+schema')
-				)) as { default: graphql.GraphQLSchema }
-
-				config.schema = schema
-			}
-
-			process.env.HOUDINI_PORT = String(server.config.server.port ?? 5173)
-
-			try {
-				await generate(config)
-			} catch (e) {
-				formatErrors(e)
-				throw e
-			}
-
 			for (const plugin of config.plugins) {
 				if (typeof plugin.vite?.configureServer !== 'function') {
 					continue
@@ -202,6 +183,20 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 					...server,
 					houdiniConfig: config,
 				})
+			}
+
+			// if there is a local schema we need to use that when generating
+			if (config.localSchema) {
+				config.schema = await loadLocalSchema(config)
+			}
+
+			process.env.HOUDINI_PORT = String(server.config.server.port ?? 5173)
+
+			try {
+				await generate(config)
+			} catch (e) {
+				formatErrors(e)
+				throw e
 			}
 		},
 
