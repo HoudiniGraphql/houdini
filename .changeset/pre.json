@@ -7,7 +7,7 @@
 		"e2e-router": "0.0.0",
 		"e2e-svelte": "0.0.1",
 		"scripts": "1.0.0",
-		"create-houdini": "1.2.19",
+		"create-houdini": "1.2.18",
 		"houdini": "1.2.18",
 		"houdini-adapter-cloudflare": "1.2.18",
 		"houdini-plugin-svelte-global-stores": "1.2.18",
