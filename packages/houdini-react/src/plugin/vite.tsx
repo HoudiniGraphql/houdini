@@ -12,7 +12,7 @@ import {
 	RouterManifest,
 	find_match,
 	localApiEndpoint,
-	buildLocalSchema,
+	loadLocalSchema,
 } from 'houdini'
 import type { BuildOptions } from 'vite'
 
@@ -227,12 +227,7 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 			// import the schema
 			let schema: GraphQLSchema | null = null
 			if (project_manifest.local_schema) {
-				await buildLocalSchema(server.houdiniConfig)
-				schema = (
-					await server.ssrLoadModule(
-						path.join(server.houdiniConfig.rootDir, 'temp', 'assets', 'schema.js')
-					)
-				).default
+				schema = await loadLocalSchema(server.houdiniConfig)
 			}
 			// import the schema
 			const serverAdapter: (

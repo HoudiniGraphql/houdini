@@ -189,13 +189,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 
 			// if there is a local schema we need to use that when generating
 			if (config.localSchema) {
-				await buildLocalSchema(config)
-				const { default: schema } = (await server.ssrLoadModule(
-					path.join(config.rootDir, 'temp', 'assets', 'schema.js')
-				),
-				{}) as { default: graphql.GraphQLSchema }
-
-				config.schema = schema
+				config.schema = await loadLocalSchema(config)
 			}
 
 			process.env.HOUDINI_PORT = String(server.config.server.port ?? 5173)
