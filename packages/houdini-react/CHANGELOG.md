@@ -1,5 +1,14 @@
 # houdini-react
 
+## 1.2.16
+
+### Patch Changes
+
+-   [#1179](https://github.com/HoudiniGraphql/houdini/pull/1179) [`20702a9c`](https://github.com/HoudiniGraphql/houdini/commit/20702a9c3bb1cd87a54976dd3b686e4e715df263) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix another bug when deploying a fresh installation
+
+-   Updated dependencies []:
+    -   houdini@1.2.16
+
 ## 1.2.15
 
 ### Patch Changes
