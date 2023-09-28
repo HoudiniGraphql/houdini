@@ -1,5 +1,14 @@
 # houdini-react
 
+## 1.2.17
+
+### Patch Changes
+
+-   [`245c8a23`](https://github.com/HoudiniGraphql/houdini/commit/245c8a23ef9cb46609e1f052eabb67a95ee4d3cd) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix generated path in fallbacks
+
+-   Updated dependencies []:
+    -   houdini@1.2.17
+
 ## 1.2.16
 
 ### Patch Changes

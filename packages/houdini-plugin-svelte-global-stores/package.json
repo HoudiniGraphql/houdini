@@ -1,6 +1,6 @@
 {
     "name": "houdini-plugin-svelte-global-stores",
-    "version": "1.2.16",
+    "version": "1.2.17",
     "description": "The svelte global store plugin for houdini",
     "keywords": [
         "typescript",
