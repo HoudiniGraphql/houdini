@@ -70,8 +70,6 @@ export default {
 			}
 		}
 
-		console.log(rollupConfig)
-
 		return {
 			resolve: {
 				alias: {

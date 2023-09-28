@@ -13,6 +13,7 @@ import {
 	routerConventions,
 	load_manifest,
 	loadLocalSchema,
+	buildLocalSchema,
 	isSecondaryBuild,
 } from '../lib'
 
@@ -175,11 +176,24 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		},
 
 		async configureServer(server) {
+			for (const plugin of config.plugins) {
+				if (typeof plugin.vite?.configureServer !== 'function') {
+					continue
+				}
+
+				await plugin.vite!.configureServer.call(this, {
+					...server,
+					houdiniConfig: config,
+				})
+			}
+
 			// if there is a local schema we need to use that when generating
 			if (config.localSchema) {
+				await buildLocalSchema(config)
 				const { default: schema } = (await server.ssrLoadModule(
-					path.join(config.localApiDir, '+schema')
-				)) as { default: graphql.GraphQLSchema }
+					path.join(config.rootDir, 'temp', 'assets', 'schema.js')
+				),
+				{}) as { default: graphql.GraphQLSchema }
 
 				config.schema = schema
 			}
@@ -191,17 +205,6 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			} catch (e) {
 				formatErrors(e)
 				throw e
-			}
-
-			for (const plugin of config.plugins) {
-				if (typeof plugin.vite?.configureServer !== 'function') {
-					continue
-				}
-
-				await plugin.vite!.configureServer.call(this, {
-					...server,
-					houdiniConfig: config,
-				})
 			}
 		},
 
