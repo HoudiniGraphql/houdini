@@ -11,7 +11,7 @@
 		"build:generate": "pnpm build: && pnpm houdini generate",
 		"build:build": "pnpm build: && pnpm build",
 		"dev": "vite",
-		"build": "tsc && vite build",
+		"build": "vite build",
 		"preview": "vite preview"
 	},
 	"dependencies": {
