@@ -127,6 +127,18 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 
 		// when the build starts, we need to make sure to generate
 		async buildStart(args) {
+			for (const plugin of config.plugins) {
+				if (typeof plugin.vite?.buildStart !== 'function') {
+					continue
+				}
+
+				// @ts-expect-error
+				plugin.vite!.buildStart.call(this, {
+					...args,
+					houdiniConfig: config,
+				})
+			}
+
 			// we need to generate the runtime if we are building in production
 			if (viteEnv.mode === 'production' && !isSecondaryBuild()) {
 				// make sure we have an up-to-date schema
@@ -141,18 +153,6 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 					formatErrors(e)
 					throw e
 				}
-			}
-
-			for (const plugin of config.plugins) {
-				if (typeof plugin.vite?.buildStart !== 'function') {
-					continue
-				}
-
-				// @ts-expect-error
-				plugin.vite!.buildStart.call(this, {
-					...args,
-					houdiniConfig: config,
-				})
 			}
 		},
 
