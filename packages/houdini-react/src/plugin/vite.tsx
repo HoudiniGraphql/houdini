@@ -49,6 +49,7 @@ export default {
 
 		// build up the list of entries that we need vite to bundle
 		if (!isSecondaryBuild()) {
+			await fs.mkdirp(config.compiledAssetsDir)
 			rollupConfig.outDir = config.compiledAssetsDir
 			rollupConfig.rollupOptions!.input = {}
 
