@@ -1,4 +1,3 @@
-import type * as graphql from 'graphql'
 import type { SourceMapInput } from 'rollup'
 import type { Plugin as VitePlugin, UserConfig, ResolvedConfig, ConfigEnv } from 'vite'
 
@@ -13,7 +12,6 @@ import {
 	routerConventions,
 	load_manifest,
 	loadLocalSchema,
-	buildLocalSchema,
 	isSecondaryBuild,
 } from '../lib'
 
