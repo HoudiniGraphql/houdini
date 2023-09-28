@@ -16,6 +16,7 @@ import {
 import type { BuildOptions } from 'vite'
 
 import { setManifest } from '.'
+import { writeTsconfig } from './codegen/typeRoot'
 
 // in order to coordinate the client and server, the client's pending request cache
 // needs to start with a value for every query that we are sending on the server.
@@ -89,6 +90,12 @@ export default {
 
 		// let them all through as is but strip anything that comes before the marker
 		return id.substring(id.indexOf('virtual:houdini'))
+	},
+
+	async buildStart({ houdiniConfig }) {
+		if (!isSecondaryBuild()) {
+			await writeTsconfig(houdiniConfig)
+		}
 	},
 
 	async load(id, { config }) {
