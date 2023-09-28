@@ -1,5 +1,14 @@
 # houdini-react
 
+## 1.2.15
+
+### Patch Changes
+
+-   [#1177](https://github.com/HoudiniGraphql/houdini/pull/1177) [`8831c147`](https://github.com/HoudiniGraphql/houdini/commit/8831c14752920d868bab0f6e7ccbe34c85a3067b) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix error preventing succesfull build
+
+-   Updated dependencies []:
+    -   houdini@1.2.15
+
 ## 1.2.14
 
 ### ✨ Features
