@@ -16,6 +16,7 @@
     "site": "0.0.1"
   },
   "changesets": [
-    "curly-seahorses-remain"
+    "curly-seahorses-remain",
+    "light-elephants-appear"
   ]
 }
