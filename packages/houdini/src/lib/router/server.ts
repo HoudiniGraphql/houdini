@@ -23,6 +23,9 @@ export async function loadLocalSchema(config: Config): Promise<graphql.GraphQLSc
 					schema: path.join(config.localApiDir, '+schema'),
 				},
 				external: ['graphql'],
+				output: {
+					entryFileNames: 'assets/[name].js',
+				},
 			},
 			lib: {
 				entry: {

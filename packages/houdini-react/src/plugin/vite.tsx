@@ -39,17 +39,18 @@ export default {
 		manifest = await load_manifest({ config, includeArtifacts: env.mode === 'production' })
 		setManifest(manifest)
 
-		// build up the rollup config
-		const rollupConfig: BuildOptions = {
-			rollupOptions: {
-				output: {
-					entryFileNames: 'assets/[name].js',
-				},
-			},
-		}
-
+		// secondary builds have their own rollup config
+		let rollupConfig: BuildOptions | undefined
 		// build up the list of entries that we need vite to bundle
 		if (!isSecondaryBuild()) {
+			rollupConfig = {
+				rollupOptions: {
+					output: {
+						entryFileNames: 'assets/[name].js',
+					},
+				},
+			}
+
 			await fs.mkdirp(config.compiledAssetsDir)
 			rollupConfig.outDir = config.compiledAssetsDir
 			rollupConfig.rollupOptions!.input = {}
@@ -68,6 +69,8 @@ export default {
 				] = `virtual:houdini/artifacts/${artifact}.js`
 			}
 		}
+
+		console.log(rollupConfig)
 
 		return {
 			resolve: {
@@ -195,6 +198,8 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 	// render that we will use in production. This means that we need to
 	// capture the request before vite's dev server processes it.
 	async configureServer(server) {
+		await writeTsconfig(server.houdiniConfig)
+
 		server.middlewares.use(async (req, res, next) => {
 			// import the router manifest from the runtime
 			// pull in the project's manifest
