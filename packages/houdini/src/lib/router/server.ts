@@ -13,7 +13,6 @@ export async function buildLocalSchema(config: Config): Promise<void> {
 
 	process.env.HOUDINI_SCHEMA_BUILD = 'true'
 
-	console.log(path.join(config.localApiDir, '+schema'))
 	// build the schema somewhere we can import from
 	await build({
 		logLevel: 'silent',
