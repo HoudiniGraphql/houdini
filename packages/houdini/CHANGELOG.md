@@ -2,9 +2,9 @@
 
 ## 1.2.14
 
-### Patch Changes
+### ✨ Features
 
--   [#1172](https://github.com/HoudiniGraphql/houdini/pull/1172) [`386fc4c5`](https://github.com/HoudiniGraphql/houdini/commit/386fc4c5b604a40586aba47533f83a1f5a3723d9) Thanks [@jycouet](https://github.com/jycouet)! - Node interface arg can be customized with the first defaultKeys defined in houdini.config.js (this allows "nodeId" for instance.)
+-   [#1172](https://github.com/HoudiniGraphql/houdini/pull/1172) [`386fc4c5`](https://github.com/HoudiniGraphql/houdini/commit/386fc4c5b604a40586aba47533f83a1f5a3723d9) @jycouet - Node interface arg can be customized with the first defaultKeys defined in houdini.config.js
 
 ## 1.2.13
 
