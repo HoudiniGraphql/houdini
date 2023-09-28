@@ -2,4 +2,4 @@
 'houdini-react': patch
 ---
 
-test
+Build and dev can both run on a fresh project

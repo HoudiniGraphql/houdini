@@ -1,8 +1,6 @@
 # houdini
 
-## 1.2.20-next.1
-
-## 1.2.20-next.0
+## 1.2.19
 
 ### Patch Changes
 

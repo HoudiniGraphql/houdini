@@ -1,18 +1,11 @@
 # houdini-svelte
 
-## 1.2.20-next.1
-
-### Patch Changes
-
--   Updated dependencies []:
-    -   houdini@1.2.20-next.1
-
-## 1.2.20-next.0
+## 1.2.19
 
 ### Patch Changes
 
 -   Updated dependencies [[`65c703c6`](https://github.com/HoudiniGraphql/houdini/commit/65c703c6c97e3ae4cdc8c676594a36f40ac70844)]:
-    -   houdini@1.2.20-next.0
+    -   houdini@1.2.19
 
 ## 1.2.18
 
