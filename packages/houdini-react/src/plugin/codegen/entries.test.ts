@@ -155,7 +155,7 @@ test('composes layouts and pages', async function () {
 		}
 	)
 	expect(page_fallback).toMatchInlineSnapshot(`
-		import { useRouterContext, useCache, useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
+		import { useRouterContext, useCache, useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing/Router";
 		import Component from "../../../../../src/routes/subRoute/nested/+page";
 		import { Suspense } from "react";
 
@@ -211,7 +211,7 @@ test('composes layouts and pages', async function () {
 		}
 	)
 	expect(layout_fallback).toMatchInlineSnapshot(`
-		import { useRouterContext, useCache, useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
+		import { useRouterContext, useCache, useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing/Router";
 		import Component from "../../../../../src/routes/+layout";
 		import { Suspense } from "react";
 
