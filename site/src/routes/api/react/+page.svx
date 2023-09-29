@@ -253,7 +253,7 @@ export default function EditShow({ AllShows }) {
 Fragments are defined inside of the `useFragment` hook:
 
 ```tsx:title=src/components/ShowCard.tsx
-import { graphql, useMutation } from "$houdini";
+import { graphql, useFragment } from "$houdini";
 
 export  function ShowCard(props: { show: ShowCardInfo }) {
   const data = useFragment(props.show, graphql(`
