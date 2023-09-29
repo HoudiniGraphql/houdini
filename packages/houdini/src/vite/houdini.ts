@@ -122,6 +122,15 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				manifest,
 				adapterPath: '../$houdini/plugins/houdini-react/units/render/config.js',
 			})
+
+			// if there is a public directory at the root of the project,
+			if (fs.existsSync(path.join(config.projectRoot, 'public'))) {
+				// copy the contents of the directory into the build directory
+				await fs.recursiveCopy(
+					path.join(config.projectRoot, 'public'),
+					viteConfig.build.outDir
+				)
+			}
 		},
 
 		// when the build starts, we need to make sure to generate
