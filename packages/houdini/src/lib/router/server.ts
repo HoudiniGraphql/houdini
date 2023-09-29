@@ -7,7 +7,7 @@ export function isSecondaryBuild() {
 	return process.env.HOUDINI_SCHEMA_BUILD === 'true'
 }
 
-export async function loadLocalSchema(config: Config): Promise<graphql.GraphQLSchema> {
+export async function buildLocalSchema(config: Config): Promise<void> {
 	// load the current version of vite
 	const { build } = await import('vite')
 
@@ -23,6 +23,9 @@ export async function loadLocalSchema(config: Config): Promise<graphql.GraphQLSc
 					schema: path.join(config.localApiDir, '+schema'),
 				},
 				external: ['graphql'],
+				output: {
+					entryFileNames: 'assets/[name].js',
+				},
 			},
 			lib: {
 				entry: {
@@ -34,6 +37,10 @@ export async function loadLocalSchema(config: Config): Promise<graphql.GraphQLSc
 	})
 
 	process.env.HOUDINI_SCHEMA_BUILD = 'false'
+}
+
+export async function loadLocalSchema(config: Config): Promise<graphql.GraphQLSchema> {
+	await buildLocalSchema(config)
 
 	// import the schema we just built
 	const { default: schema } = await import(

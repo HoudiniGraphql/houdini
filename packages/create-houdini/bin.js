@@ -109,14 +109,14 @@ if (!localSchema) {
 			await pullSchemaCli()
 		apiUrl = apiUrlCli
 		if (pullSchema_content_cli === null) {
-			pCancel('We could not pull the schema. Please try again.')
+			pCancel('There was a problem pulling your shema. Please try again.')
 		} else {
 			pullSchema_content = pullSchema_content_cli
 		}
 	} else {
 		const pullSchema_content_local = await pullSchema(apiUrl, {})
 		if (pullSchema_content_local === null) {
-			pCancel('We could not pull the schema. Please report this on Discord.')
+			pCancel('There was a problem pulling your shema. Please report this on Discord.')
 		} else {
 			pullSchema_content = pullSchema_content_local
 		}
@@ -292,7 +292,9 @@ async function pullSchemaCli() {
 
 	// if we are here... it means that we have tried x times to pull the schema and it failed
 	if (pullSchema_content === null) {
-		pCancel("We couldn't pull the schema. Please check your URL/headers and try again.")
+		pCancel(
+			'There was a problem pulling your schema. Please check your URL/headers and try again.'
+		)
 	}
 
 	return { apiUrl, pullSchema_content }

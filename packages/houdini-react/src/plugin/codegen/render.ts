@@ -18,11 +18,18 @@ export async function generate_renders({
 	config: Config
 	manifest: ProjectManifest
 }) {
-	// make sure the necessary directories exist
-	await fs.mkdirp(path.dirname(routerConventions.server_adapter_path(config)))
-
-	const adapter_config_path = routerConventions.adapter_config_path(config)
 	const server_adapter_path = routerConventions.server_adapter_path(config)
+
+	// make sure the necessary directories exist
+	await fs.mkdirp(path.dirname(server_adapter_path))
+
+	const app_index = `
+import React from 'react'
+import Shell from '../../../../../src/+index'
+import { Router } from '$houdini'
+
+export default (props) => <Shell><Router {...props} /></Shell>
+`
 
 	// and a file that adapters can import to get the local configuration
 	let adapter_config = `
@@ -75,6 +82,7 @@ import { serverAdapterFactory } from '$houdini/runtime/router/server'
 
 import { Router, router_cache } from '../../runtime'
 import manifest from '../../runtime/manifest'
+import App from './App'
 
 import Shell from '../../../../../src/+index'
 
@@ -91,15 +99,13 @@ export default (options) => {
 			}
 
 			const { readable, injectToStream, pipe: pipeTo } = await renderToStream(
-				React.createElement(Shell, {
-					children: React.createElement(Router, {
-						initialURL: url,
-						cache: cache,
-						session: session,
-						assetPrefix: options.assetPrefix,
-						manifest: manifest,
-						...router_cache()
-					})
+				React.createElement(App, {
+					initialURL: url,
+					cache: cache,
+					session: session,
+					assetPrefix: options.assetPrefix,
+					manifest: manifest,
+					...router_cache()
 				}),
 				{
 					userAgent: 'Vite',
@@ -133,7 +139,8 @@ export default (options) => {
 	`
 
 	await Promise.all([
-		fs.writeFile(server_adapter_path, server_adapter),
-		fs.writeFile(adapter_config_path, adapter_config),
+		fs.writeFile(routerConventions.server_adapter_path(config), server_adapter),
+		fs.writeFile(routerConventions.adapter_config_path(config), adapter_config),
+		fs.writeFile(routerConventions.app_component_path(config), app_index),
 	])
 }

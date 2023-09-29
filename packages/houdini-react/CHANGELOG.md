@@ -1,5 +1,59 @@
 # houdini-react
 
+## 1.2.19
+
+### Patch Changes
+
+-   Updated dependencies [[`65c703c6`](https://github.com/HoudiniGraphql/houdini/commit/65c703c6c97e3ae4cdc8c676594a36f40ac70844)]:
+    -   houdini@1.2.19
+
+## 1.2.18
+
+### Patch Changes
+
+-   [`7f6432a6`](https://github.com/HoudiniGraphql/houdini/commit/7f6432a6be5bd7bb7831f21ebe134698f1e2f072) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Get all packages at same version
+
+-   Updated dependencies [[`7f6432a6`](https://github.com/HoudiniGraphql/houdini/commit/7f6432a6be5bd7bb7831f21ebe134698f1e2f072)]:
+    -   houdini@1.2.18
+
+## 1.2.17
+
+### Patch Changes
+
+-   [`245c8a23`](https://github.com/HoudiniGraphql/houdini/commit/245c8a23ef9cb46609e1f052eabb67a95ee4d3cd) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix generated path in fallbacks
+
+-   Updated dependencies []:
+    -   houdini@1.2.17
+
+## 1.2.16
+
+### Patch Changes
+
+-   [#1179](https://github.com/HoudiniGraphql/houdini/pull/1179) [`20702a9c`](https://github.com/HoudiniGraphql/houdini/commit/20702a9c3bb1cd87a54976dd3b686e4e715df263) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix another bug when deploying a fresh installation
+
+-   Updated dependencies []:
+    -   houdini@1.2.16
+
+## 1.2.15
+
+### Patch Changes
+
+-   [#1177](https://github.com/HoudiniGraphql/houdini/pull/1177) [`8831c147`](https://github.com/HoudiniGraphql/houdini/commit/8831c14752920d868bab0f6e7ccbe34c85a3067b) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix error preventing succesfull build
+
+-   Updated dependencies []:
+    -   houdini@1.2.15
+
+## 1.2.14
+
+### ✨ Features
+
+-   [#1170](https://github.com/HoudiniGraphql/houdini/pull/1170) [`76b3c28a`](https://github.com/HoudiniGraphql/houdini/commit/76b3c28abe2e5252f883b2468b31c3880c0356b5) @AlecAivazis - Streamline adapter codegen api
+
+### Dependency Changes
+
+-   Updated dependencies [[`386fc4c5`](https://github.com/HoudiniGraphql/houdini/commit/386fc4c5b604a40586aba47533f83a1f5a3723d9)]:
+    -   houdini@1.2.14
+
 ## 1.2.13
 
 ### Dependency Changes

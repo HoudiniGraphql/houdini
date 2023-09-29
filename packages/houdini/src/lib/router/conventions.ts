@@ -18,6 +18,10 @@ export function adapter_config_path(config: Config, base?: string) {
 	return path.join(units_dir(config, base), 'render', 'config.js')
 }
 
+export function app_component_path(config: Config, base?: string) {
+	return path.join(units_dir(config, base), 'render', 'App.jsx')
+}
+
 export function page_unit_path(config: Config, id: string, base?: string) {
 	return path.join(page_units_dir(config, base), `${id}.jsx`)
 }

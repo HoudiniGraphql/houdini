@@ -105,7 +105,6 @@ export const serverAdapterFactory = <ComponentType>({
 			pipe,
 		})
 		if (rendered) {
-			console.log(url, rendered)
 			return rendered
 		}
 

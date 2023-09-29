@@ -36,7 +36,6 @@ export async function generate_type_root({
 	}
 
 	await Promise.all([
-		tsconfig(config),
 		...Object.entries(pages).map(async ([relative_path, { page, layout }]) => {
 			// the type root must mirror the source tree
 			const target_dir = path.join(config.typeRootDir, relative_path)
@@ -109,7 +108,7 @@ ${layout.query_options
 	])
 }
 
-async function tsconfig(config: Config) {
+export async function writeTsconfig(config: Config) {
 	await fs.writeFile(
 		path.join(config.rootDir, 'tsconfig.json'),
 		JSON.stringify(
