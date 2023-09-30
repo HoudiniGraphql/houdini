@@ -17,6 +17,12 @@ export async function generate_renders({
 	// make sure the necessary directories exist
 	await fs.mkdirp(path.dirname(routerConventions.server_adapter_path(config)))
 
+	const vite_render = `
+import { renderToStream as render }  from 'react-streaming/server'
+
+export const renderToStream = render
+`
+
 	const app_index = `
 import React from 'react'
 import Shell from '../../../../../src/+index'
@@ -118,5 +124,6 @@ export default (options) => {
 		fs.writeFile(routerConventions.server_adapter_path(config), server_adapter),
 		fs.writeFile(routerConventions.adapter_config_path(config), adapter_config),
 		fs.writeFile(routerConventions.app_component_path(config), app_index),
+		fs.writeFile(routerConventions.vite_render_path(config), vite_render),
 	])
 }
