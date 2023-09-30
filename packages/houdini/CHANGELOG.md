@@ -1,5 +1,11 @@
 # houdini
 
+## 1.2.21
+
+### Patch Changes
+
+-   [#1190](https://github.com/HoudiniGraphql/houdini/pull/1190) [`2cc489dd`](https://github.com/HoudiniGraphql/houdini/commit/2cc489dd266e5670cc54975b3720498b3fffbe50) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Few random deployment fixes
+
 ## 1.2.20
 
 ## 1.2.19
