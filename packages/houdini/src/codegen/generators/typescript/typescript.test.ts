@@ -4811,7 +4811,7 @@ test('componentField scalars', async function () {
 			parser: typeScriptParser,
 		})
 	).toMatchInlineSnapshot(`
-		import type __component__UserBase from "~/../UserBase";
+		import __component__UserBase from "~/../UserBase";
 
 		export type UserList = {
 		    readonly "input": UserList$input;
@@ -4820,7 +4820,7 @@ test('componentField scalars', async function () {
 
 		export type UserList$result = {
 		    readonly users: ({
-		        readonly Avatar: (props: Omit<Parameters<__component__UserBase>, "user">) => ReturnType<__component__UserBase>;
+		        readonly Avatar: (props: Omit<Parameters<typeof __component__UserBase>[0], "user">) => ReturnType<typeof __component__UserBase>;
 		    } | null)[] | null;
 		};
 
