@@ -2,15 +2,15 @@
 
 ## 1.2.22
 
-### Patch Changes
+### 🐛 Fixes
 
--   [#1193](https://github.com/HoudiniGraphql/houdini/pull/1193) [`c0fef15f`](https://github.com/HoudiniGraphql/houdini/commit/c0fef15f892d7398f2cae3deac82f0801d04e3bb) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug causing prev and next keys to be dropped from artifact
+-   [#1193](https://github.com/HoudiniGraphql/houdini/pull/1193) [`c0fef15f`](https://github.com/HoudiniGraphql/houdini/commit/c0fef15f892d7398f2cae3deac82f0801d04e3bb) @AlecAivazis- Fix bug causing prev and next keys to be dropped from artifact
 
 ## 1.2.21
 
-### Patch Changes
+### 🐛 Fixes
 
--   [#1190](https://github.com/HoudiniGraphql/houdini/pull/1190) [`2cc489dd`](https://github.com/HoudiniGraphql/houdini/commit/2cc489dd266e5670cc54975b3720498b3fffbe50) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Few random deployment fixes
+-   [#1190](https://github.com/HoudiniGraphql/houdini/pull/1190) [`2cc489dd`](https://github.com/HoudiniGraphql/houdini/commit/2cc489dd266e5670cc54975b3720498b3fffbe50) @AlecAivazis- Few random deployment fixes
 
 ## 1.2.20
 
