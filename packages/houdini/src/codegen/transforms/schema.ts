@@ -167,14 +167,17 @@ directive @${config.componentFieldDirective}(field: String!, prop: String, expor
 		})
 		.join('\n')
 
-	let currentSchema = mergeTypeDefs([
-		graphql.printSchema(config.schema),
-		internalSchema,
-		extensions,
-	])
+	// newSchema holds the schema elements that we need to remove from queries (eg added by plugins)
+	config.newSchema = graphql.print(mergeTypeDefs([internalSchema, config.newSchema]))
 
-	config.newSchema += internalSchema
+	// schemaString is the value that gets printed to disk to extend the user's schema
+	// it gets updated when newSchema is set so we just need to add the extensions
+	config.schemaString += extensions
 
-	// add the static extra bits that will be used by other transforms
-	config.schema = graphql.buildSchema(graphql.print(currentSchema))
+	// build up the full schema by mixing everything together
+	config.schema = graphql.buildSchema(
+		graphql.print(
+			mergeTypeDefs([graphql.printSchema(config.schema), internalSchema, extensions])
+		)
+	)
 }

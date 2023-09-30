@@ -6,7 +6,7 @@ export default function ({ SponsorList }: PageProps) {
 			{SponsorList.sponsors.map((sponsor) => {
 				return (
 					<div key={sponsor.name}>
-						{sponsor.name} <sponsor.Avatar />
+						{sponsor.name} <sponsor.Avatar size={10} />
 					</div>
 				)
 			})}

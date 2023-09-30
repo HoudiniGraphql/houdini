@@ -21,19 +21,6 @@ test('adds internal documents to schema', async function () {
 	// read the schema file and make sure it got the internal documents
 	expect(graphql.parse((await fs.readFile(config.definitionsSchemaPath))!))
 		.toMatchInlineSnapshot(`
-			enum CachePolicy {
-			  CacheAndNetwork
-			  CacheOnly
-			  CacheOrNetwork
-			  NetworkOnly
-			}
-
-			"""The Component scalar is only defined if the user has any component fields"""
-			enum PaginateMode {
-			  Infinite
-			  SinglePage
-			}
-
 			"""
 			@list is used to mark a field for the runtime as a place to add or remove
 			entities in mutations
@@ -90,6 +77,19 @@ test('adds internal documents to schema', async function () {
 
 			"""@componentField marks an inline fragment as the selection for a component field"""
 			directive @componentField(field: String!, prop: String, export: String, raw: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT
+
+			enum CachePolicy {
+			  CacheAndNetwork
+			  CacheOnly
+			  CacheOrNetwork
+			  NetworkOnly
+			}
+
+			"""The Component scalar is only defined if the user has any component fields"""
+			enum PaginateMode {
+			  Infinite
+			  SinglePage
+			}
 		`)
 })
 
@@ -107,19 +107,6 @@ test('list operations are included', async function () {
 	// read the schema file
 	expect(graphql.parse((await fs.readFile(config.definitionsSchemaPath))!))
 		.toMatchInlineSnapshot(`
-			enum CachePolicy {
-			  CacheAndNetwork
-			  CacheOnly
-			  CacheOrNetwork
-			  NetworkOnly
-			}
-
-			"""The Component scalar is only defined if the user has any component fields"""
-			enum PaginateMode {
-			  Infinite
-			  SinglePage
-			}
-
 			"""
 			@list is used to mark a field for the runtime as a place to add or remove
 			entities in mutations
@@ -176,6 +163,19 @@ test('list operations are included', async function () {
 
 			"""@componentField marks an inline fragment as the selection for a component field"""
 			directive @componentField(field: String!, prop: String, export: String, raw: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT
+
+			enum CachePolicy {
+			  CacheAndNetwork
+			  CacheOnly
+			  CacheOrNetwork
+			  NetworkOnly
+			}
+
+			"""The Component scalar is only defined if the user has any component fields"""
+			enum PaginateMode {
+			  Infinite
+			  SinglePage
+			}
 
 			directive @User_delete repeatable on FIELD
 		`)
@@ -212,19 +212,6 @@ test('list operations are included but delete directive should not be in when we
 	// read the schema file
 	expect(graphql.parse((await fs.readFile(config.definitionsSchemaPath))!))
 		.toMatchInlineSnapshot(`
-			enum CachePolicy {
-			  CacheAndNetwork
-			  CacheOnly
-			  CacheOrNetwork
-			  NetworkOnly
-			}
-
-			"""The Component scalar is only defined if the user has any component fields"""
-			enum PaginateMode {
-			  Infinite
-			  SinglePage
-			}
-
 			"""
 			@list is used to mark a field for the runtime as a place to add or remove
 			entities in mutations
@@ -281,6 +268,19 @@ test('list operations are included but delete directive should not be in when we
 
 			"""@componentField marks an inline fragment as the selection for a component field"""
 			directive @componentField(field: String!, prop: String, export: String, raw: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT
+
+			enum CachePolicy {
+			  CacheAndNetwork
+			  CacheOnly
+			  CacheOrNetwork
+			  NetworkOnly
+			}
+
+			"""The Component scalar is only defined if the user has any component fields"""
+			enum PaginateMode {
+			  Infinite
+			  SinglePage
+			}
 
 			directive @User_delete repeatable on FIELD
 		`)
@@ -330,19 +330,6 @@ test("writing twice doesn't duplicate definitions", async function () {
 	// read the schema file and make sure it got the internal documents
 	expect(graphql.parse((await fs.readFile(config.definitionsSchemaPath))!))
 		.toMatchInlineSnapshot(`
-			enum CachePolicy {
-			  CacheAndNetwork
-			  CacheOnly
-			  CacheOrNetwork
-			  NetworkOnly
-			}
-
-			"""The Component scalar is only defined if the user has any component fields"""
-			enum PaginateMode {
-			  Infinite
-			  SinglePage
-			}
-
 			"""
 			@list is used to mark a field for the runtime as a place to add or remove
 			entities in mutations
@@ -399,5 +386,18 @@ test("writing twice doesn't duplicate definitions", async function () {
 
 			"""@componentField marks an inline fragment as the selection for a component field"""
 			directive @componentField(field: String!, prop: String, export: String, raw: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT
+
+			enum CachePolicy {
+			  CacheAndNetwork
+			  CacheOnly
+			  CacheOrNetwork
+			  NetworkOnly
+			}
+
+			"""The Component scalar is only defined if the user has any component fields"""
+			enum PaginateMode {
+			  Infinite
+			  SinglePage
+			}
 		`)
 })

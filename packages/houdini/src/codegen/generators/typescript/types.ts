@@ -28,6 +28,7 @@ export function nullableField(inner: TSTypeKind, input = false) {
 
 export function scalarPropertyValue(
 	config: Config,
+	filepath: string,
 	missingScalars: Set<string>,
 	target: graphql.GraphQLNamedType,
 	body: StatementKind[],
@@ -56,7 +57,11 @@ export function scalarPropertyValue(
 			config,
 			body,
 			import: '__component__' + component.fragment,
-			sourceModule: '~/' + sourcePath,
+			sourceModule: path.join(
+				path.relative(path.dirname(filepath), config.projectRoot),
+				'src',
+				sourcePath
+			),
 		})
 
 		// build up the AST for the parameter type
@@ -109,6 +114,7 @@ export function scalarPropertyValue(
 			if (graphql.isNonNullType(target) && 'ofType' in target) {
 				return scalarPropertyValue(
 					config,
+					filepath,
 					missingScalars,
 					target.ofType as graphql.GraphQLNamedType,
 					body,

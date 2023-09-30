@@ -49,6 +49,7 @@ export function inlineType({
 	if (graphql.isScalarType(type)) {
 		result = scalarPropertyValue(
 			config,
+			filepath,
 			missingScalars,
 			type as graphql.GraphQLNamedType,
 			body,

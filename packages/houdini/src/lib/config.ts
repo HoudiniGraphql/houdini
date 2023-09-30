@@ -296,9 +296,9 @@ export class Config {
 	}
 
 	#newSchemaInstance: graphql.GraphQLSchema | null = null
-	#schemaString: string = ''
+	schemaString: string = ''
 	set newSchema(value: string) {
-		this.#schemaString = value
+		this.schemaString = value
 		if (value) {
 			this.#newSchemaInstance = graphql.buildSchema(value)
 		} else {
@@ -307,7 +307,7 @@ export class Config {
 	}
 
 	get newSchema() {
-		return this.#schemaString
+		return this.schemaString
 	}
 
 	/*

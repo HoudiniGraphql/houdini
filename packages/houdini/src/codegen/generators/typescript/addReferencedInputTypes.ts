@@ -67,7 +67,9 @@ export function addReferencedInputTypes(
 		members.push(
 			AST.tsPropertySignature(
 				AST.identifier(field.name),
-				AST.tsTypeAnnotation(tsTypeReference(config, missingScalars, field, body)),
+				AST.tsTypeAnnotation(
+					tsTypeReference(config, filepath, missingScalars, field, body)
+				),
 				graphql.isNullableType(field.type)
 			)
 		)

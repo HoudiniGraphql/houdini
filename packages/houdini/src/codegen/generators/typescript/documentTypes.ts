@@ -78,7 +78,7 @@ export async function generateDocumentTypes(config: Config, docs: Document[]) {
 				// treat it as an operation document
 				await generateOperationTypeDefs(
 					config,
-					filename,
+					typeDefPath,
 					document,
 					program.body,
 					definition,
@@ -91,7 +91,7 @@ export async function generateDocumentTypes(config: Config, docs: Document[]) {
 				// treat it as a fragment document
 				await generateFragmentTypeDefs(
 					config,
-					filename,
+					typeDefPath,
 					program.body,
 					selections,
 					originalDocument.definitions,
@@ -365,7 +365,13 @@ async function generateOperationTypeDefs(
 								return AST.tsPropertySignature(
 									AST.identifier(definition.variable.name.value),
 									AST.tsTypeAnnotation(
-										tsTypeReference(config, missingScalars, definition, body)
+										tsTypeReference(
+											config,
+											filepath,
+											missingScalars,
+											definition,
+											body
+										)
 									),
 									definition.type.kind !== 'NonNullType'
 								)
@@ -452,7 +458,13 @@ async function generateFragmentTypeDefs(
 							return AST.tsPropertySignature(
 								AST.identifier(definition.variable.name.value),
 								AST.tsTypeAnnotation(
-									tsTypeReference(config, missingScalars, definition, body)
+									tsTypeReference(
+										config,
+										filepath,
+										missingScalars,
+										definition,
+										body
+									)
 								),
 								definition.type.kind !== 'NonNullType'
 							)
