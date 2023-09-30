@@ -22,12 +22,14 @@ export function getRootType(type: graphql.GraphQLType): graphql.GraphQLType {
 
 export function processComponentFieldDirective(directive: graphql.DirectiveNode): {
 	field: string
-	export?: string
 	prop: string
+	export?: string
+	raw?: string
 } {
 	let field: string | undefined
 	let exportValue: string | undefined
 	let prop: string | undefined
+	let raw: string | undefined
 
 	for (const arg of directive.arguments ?? []) {
 		// if we are looking at the field argument
@@ -41,6 +43,10 @@ export function processComponentFieldDirective(directive: graphql.DirectiveNode)
 		// if we are looking at the prop argument
 		else if (arg.name.value === 'prop' && arg.value.kind === 'StringValue') {
 			prop = arg.value.value
+		}
+		// if we are looking at the raw argument
+		else if (arg.name.value === 'raw' && arg.value.kind === 'StringValue') {
+			raw = arg.value.value
 		}
 	}
 
@@ -60,6 +66,7 @@ export function processComponentFieldDirective(directive: graphql.DirectiveNode)
 	return {
 		prop: prop!,
 		field: field!,
+		raw,
 		export: exportValue,
 	}
 }

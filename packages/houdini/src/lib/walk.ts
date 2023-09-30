@@ -184,6 +184,7 @@ export async function find_graphql(
 				} else {
 					definitions = extractAnonymousQuery(
 						config,
+						definitions[0].raw,
 						definitions[0].parsed as graphql.OperationDefinitionNode,
 						propName
 					)
@@ -227,6 +228,7 @@ export async function find_graphql(
 
 function extractAnonymousQuery(
 	config: Config,
+	raw: string,
 	expr: graphql.OperationDefinitionNode,
 	propName: string
 ): ExtractedDefinition[] {
@@ -246,6 +248,25 @@ function extractAnonymousQuery(
 			type: selection.typeCondition!.name.value,
 			directive: componentField!,
 		})
+
+		// embed the raw string as an argument so we can get it back
+		if (componentField) {
+			// @ts-expect-error: ignore that its technically read
+			componentField.arguments = [
+				...(componentField?.arguments ?? []),
+				{
+					kind: 'Argument',
+					name: {
+						kind: 'Name',
+						value: 'raw',
+					},
+					value: {
+						kind: 'StringValue',
+						value: raw,
+					},
+				} as graphql.ArgumentNode,
+			]
+		}
 
 		// if there is no field argument, we we to infer it from key of the type literal
 		if (

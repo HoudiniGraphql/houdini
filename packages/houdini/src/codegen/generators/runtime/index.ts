@@ -105,7 +105,7 @@ async function generatePluginRuntime({
 	const pluginDir = config.pluginRuntimeDirectory(plugin.name)
 	let transformMap = plugin.transformRuntime ?? {}
 	if (transformMap && typeof transformMap === 'function') {
-		transformMap = transformMap(docs)
+		transformMap = transformMap(docs, { config })
 	}
 
 	await fs.mkdirp(pluginDir)

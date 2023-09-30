@@ -133,7 +133,7 @@ ${
 """
 @${config.componentFieldDirective} marks an inline fragment as the selection for a component field
 """
-directive @${config.componentFieldDirective}(field: String!, prop: String, export: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT
+directive @${config.componentFieldDirective}(field: String!, prop: String, export: String, raw: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT
 
 `
 		: ''

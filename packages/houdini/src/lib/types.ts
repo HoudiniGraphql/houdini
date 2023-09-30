@@ -153,7 +153,8 @@ export type PluginHooks = {
 				}) => string
 		  >
 		| ((
-				docs: Document[]
+				docs: Document[],
+				opts: { config: Config }
 		  ) => Record<
 				string,
 				(args: {
