@@ -1,4 +1,4 @@
-import { mergeTypeDefs, printTypeNode } from '@graphql-tools/merge'
+import { mergeTypeDefs } from '@graphql-tools/merge'
 import * as graphql from 'graphql'
 
 import type { Config, Document } from '../../lib'

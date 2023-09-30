@@ -1,4 +1,4 @@
-import { FragmentDefinitionNode } from 'graphql'
+import type { FragmentDefinitionNode } from 'graphql'
 import {
 	type ArtifactKinds,
 	type Document,
