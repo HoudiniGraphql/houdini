@@ -25,6 +25,7 @@
         "@types/cookies": "^0.7.7",
         "@types/estraverse": "^5.1.2",
         "@types/express": "^4.17.17",
+        "@types/react": "^18.0.33",
         "@types/react-dom": "^18.0.10",
         "next": "^13.0.1",
         "scripts": "workspace:^"
@@ -32,7 +33,6 @@
     "dependencies": {
         "@babel/parser": "^7.19.3",
         "@babel/types": "^7.21.4",
-        "@types/react": "^18.0.28",
         "@whatwg-node/server": "^0.9.14",
         "cookie-parser": "^1.4.6",
         "cookie-session": "^2.0.0",

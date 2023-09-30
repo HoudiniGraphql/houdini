@@ -1108,7 +1108,9 @@ test('componentFields get embedded in the selection', async function () {
 		                            "type": "Component",
 
 		                            "component": {
-		                                "prop": "user"
+		                                "prop": "user",
+		                                "key": "User.Avatar",
+		                                "fragment": "UserAvatar"
 		                            },
 
 		                            "visible": true
@@ -1182,7 +1184,9 @@ test('componentFields get embedded in the selection', async function () {
 		                "type": "Component",
 
 		                "component": {
-		                    "prop": "user"
+		                    "prop": "user",
+		                    "key": "User.FriendList",
+		                    "fragment": "FriendList"
 		                },
 
 		                "visible": true
