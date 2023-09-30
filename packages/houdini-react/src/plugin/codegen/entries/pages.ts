@@ -1,6 +1,6 @@
-import { fs, parseJS, printJS, path, routerConventions, Config } from 'houdini'
+import { fs, parseJS, printJS, path, routerConventions, type Config } from 'houdini'
 
-import { PageBundleInput } from '.'
+import type { PageBundleInput } from '.'
 
 export async function generate_page_entries(args: PageBundleInput) {
 	const component_path = routerConventions.page_entry_path(args.config, args.id)
@@ -35,8 +35,10 @@ export async function generate_page_entries(args: PageBundleInput) {
 	const relative_path = path.relative(path.dirname(component_path), page_path)
 	const Component = 'Page_' + args.page.id
 	const PageFallback = 'PageFallback_' + args.page.id
-	source.push(`import ${Component} from "${relative_path}"`)
-	source.push(`import client from '$houdini/plugins/houdini-react/runtime/client'`)
+	source.push(
+		`import ${Component} from "${relative_path}"`,
+		`import client from '$houdini/plugins/houdini-react/runtime/client'`
+	)
 
 	// in order to wrap up the layouts we're going to iterate over the list and build them up
 	let content = `<${Component} />`
@@ -93,18 +95,19 @@ export async function generate_page_entries(args: PageBundleInput) {
 		}
 	}
 
-	// this needs to go at the boundary between the imports and the rest of the content
-	source.push(componentFieldImports(args.config, component_path, args))
-
-	// a page's entrypoint should take every query needed by a layout or
-	// page and passes it through
-	source.push(`
+	source.push(
+		// this needs to go at the boundary between the imports and the rest of the content
+		componentFieldImports(args.config, component_path, args),
+		// a page's entrypoint should take every query needed by a layout or
+		// page and passes it through
+		`
 		export default ({ url }) => {
 			return (
 				${content}
 			)
 		}
-	`)
+	`
+	)
 
 	// format the source so we don't embarrass ourselves
 	const formatted = (await printJS(await parseJS(source.join('\n'), { plugins: ['jsx'] }))).code

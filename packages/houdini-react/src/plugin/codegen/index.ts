@@ -1,5 +1,6 @@
 import * as graphql from 'graphql'
-import { Config, GenerateHookInput, ProjectManifest, processComponentFieldDirective } from 'houdini'
+import type { Config, GenerateHookInput, ProjectManifest } from 'houdini'
+import { processComponentFieldDirective } from 'houdini'
 
 import { generate_entries } from './entries'
 import { write_manifest } from './manifest'

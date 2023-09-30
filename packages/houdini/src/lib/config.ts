@@ -1,4 +1,3 @@
-import { directive } from '@babel/types'
 import { mergeSchemas } from '@graphql-tools/schema'
 import * as graphql from 'graphql'
 import minimatch from 'minimatch'

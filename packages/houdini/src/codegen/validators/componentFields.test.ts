@@ -1,9 +1,7 @@
-import type * as graphql from 'graphql'
 import { describe, expect, test } from 'vitest'
 
 import type { Row } from '../../test'
 import { pipelineTest, testConfig } from '../../test'
-import { valueIsType } from './typeCheck'
 
 // since generation will catch a lot of these errors for us, the goal of these tests is to make sure
 // errors are caught __before__ we get to the generation stage. This means that our failure tests

@@ -1,5 +1,4 @@
-import { fs, parseJS, routerConventions, load_manifest, path } from 'houdini'
-import { mockCollectedDoc } from 'houdini/test'
+import { fs, parseJS, routerConventions, load_manifest } from 'houdini'
 import { test, expect } from 'vitest'
 
 import { test_config } from '../../config'

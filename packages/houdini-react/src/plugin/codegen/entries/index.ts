@@ -1,6 +1,6 @@
 import type { Config, ProjectManifest, PageManifest, Document } from 'houdini'
 
-import { ComponentFieldData } from '..'
+import type { ComponentFieldData } from '..'
 import { generate_routing_document_wrappers } from './documentWrappers'
 import { generate_fallbacks } from './fallbacks'
 import { generate_page_entries } from './pages'

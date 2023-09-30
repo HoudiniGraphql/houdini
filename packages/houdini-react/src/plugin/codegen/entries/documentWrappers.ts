@@ -10,7 +10,7 @@ import {
 	type Document,
 } from 'houdini'
 
-import { PageBundleInput } from '.'
+import type { PageBundleInput } from '.'
 
 export function generate_routing_document_wrappers({
 	manifest,

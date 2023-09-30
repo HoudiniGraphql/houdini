@@ -53,10 +53,10 @@
 	},
 	"packageManager": "pnpm@8.6.7",
 	"lint-staged": {
-		"*.ts": "prettier -w",
-		"*.tsx": "prettier -w",
-		"*.js": "prettier -w",
-		"*.json": "prettier -w"
+		"*.ts": "prettier -w ",
+		"*.tsx": "prettier -w ",
+		"*.js": "prettier -w ",
+		"*.json": "prettier -w "
 	},
 	"resolutions": {
 		"graphql": "15.5.0"
