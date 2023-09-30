@@ -150,14 +150,14 @@ export default {
 					// if we also have data for the artifact, save it in the initial data cache
 					if (window.__houdini__pending_data__?.[artifactName]) {
 						const variables = window.__houdini__pending_variables__[artifactName]
-						// TODO: only do this when we have to
-
-						// we need to walk down the artifacts selection and instantiate any component fields
-						injectComponents({
-							cache: window.__houdini__cache__,
-							selection: artifact.selection,
-							data: window.__houdini__pending_data__[artifactName],
-							variables: window.__houdini__pending_variables__[artifactName],
+						if (artifact.hasComponents) {
+							// we need to walk down the artifacts selection and instantiate any component fields
+							injectComponents({
+								cache: window.__houdini__cache__,
+								selection: artifact.selection,
+								data: window.__houdini__pending_data__[artifactName],
+								variables: window.__houdini__pending_variables__[artifactName],
+							})
 						})
 
 						// create the store we'll put in the cache

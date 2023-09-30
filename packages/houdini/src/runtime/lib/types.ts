@@ -104,6 +104,7 @@ export type BaseCompiledDocument<_Kind extends ArtifactKinds> = {
 	selection: SubscriptionSelection
 	rootType: string
 	input?: InputObject
+	hasComponents?: boolean
 	refetch?: {
 		path: string[]
 		method: 'cursor' | 'offset'

@@ -6,9 +6,8 @@ type Props = {
             avatarUrl
         }
     }`>
-	size: number
 }
 
-export default function SponsorAvatar({ sponsor, size }: Props) {
+export default function SponsorAvatar({ sponsor }: Props) {
 	return <img src={sponsor.avatarUrl} height={50} />
 }

@@ -2,6 +2,7 @@ import * as graphql from 'graphql'
 import type { Config, GenerateHookInput, ProjectManifest } from 'houdini'
 import { processComponentFieldDirective } from 'houdini'
 
+import { generate_componentFieldBundles } from './componentFields'
 import { generate_entries } from './entries'
 import { write_manifest } from './manifest'
 import { generate_renders } from './render'
@@ -66,6 +67,7 @@ export default async function routerCodegen({
 		generate_entries({ componentFields, config, documents, manifest }),
 		generate_renders({ componentFields, config, manifest }),
 		generate_type_root({ config, manifest }),
+		generate_componentFieldBundles({ config, documents }),
 		write_manifest({ config, manifest }),
 	])
 }

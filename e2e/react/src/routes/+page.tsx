@@ -1,3 +1,5 @@
+import SponsorInfo from '~/components/SponsorInfo'
+
 import type { PageProps } from './$types'
 
 export default function ({ SponsorList }: PageProps) {
@@ -6,7 +8,7 @@ export default function ({ SponsorList }: PageProps) {
 			{SponsorList.sponsors.map((sponsor) => {
 				return (
 					<div key={sponsor.name}>
-						{sponsor.name} <sponsor.Avatar size={10} />
+						<SponsorInfo sponsor={sponsor} />
 					</div>
 				)
 			})}

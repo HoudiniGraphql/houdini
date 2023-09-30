@@ -1130,6 +1130,7 @@ test('componentFields get embedded in the selection', async function () {
 		    },
 
 		    "pluginData": {},
+		    "hasComponents": true,
 		    "policy": "CacheOrNetwork",
 		    "partial": false
 		};
@@ -1200,7 +1201,8 @@ test('componentFields get embedded in the selection', async function () {
 		        }
 		    },
 
-		    "pluginData": {}
+		    "pluginData": {},
+		    "hasComponents": true
 		};
 
 		"HoudiniHash=06be0ac4bd68cba33a2211d36d7235ecf1631722d830c88e0f39ae9896a25f85";

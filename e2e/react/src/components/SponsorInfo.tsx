@@ -5,7 +5,7 @@ type Props = {
 }
 
 export default function SponsorSummary(props: Props) {
-	const data = useFragment(
+	const sponsor = useFragment(
 		props.sponsor,
 		graphql(`
 			fragment SponsorInfo on Sponsor {
@@ -17,7 +17,7 @@ export default function SponsorSummary(props: Props) {
 
 	return (
 		<div>
-			{data?.name}: {data?.Avatar}
+			{sponsor?.name}: <sponsor.Avatar />
 		</div>
 	)
 }

@@ -4811,7 +4811,7 @@ test('componentField scalars', async function () {
 			parser: typeScriptParser,
 		})
 	).toMatchInlineSnapshot(`
-		import __component__UserBase from "~/../UserBase";
+		import __component__UserBase from "../../UserBase";
 
 		export type UserList = {
 		    readonly "input": UserList$input;
@@ -4889,6 +4889,7 @@ test('componentField scalars', async function () {
 		        };
 		    };
 		    "pluginData": {};
+		    "hasComponents": true;
 		    "policy": "CacheOrNetwork";
 		    "partial": false;
 		};

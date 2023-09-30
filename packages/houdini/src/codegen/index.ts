@@ -102,6 +102,8 @@ export async function runPipeline(config: Config, docs: Document[]) {
 				transforms.collectDefinitions,
 				...wrapHook(beforeGenerate),
 				// generators
+				// this should be the first generator since it is responsible for creating the
+				// selection and preparing the artifact for the other generators
 				generators.artifacts(artifactStats),
 				generators.runtime,
 				generators.indexFile,

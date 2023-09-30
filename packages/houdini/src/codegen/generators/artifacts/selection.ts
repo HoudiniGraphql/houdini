@@ -36,6 +36,7 @@ function prepareSelection({
 	inConnection,
 	globalLoading,
 	includeFragments,
+	hasComponents,
 }: {
 	config: Config
 	filepath: string
@@ -47,6 +48,7 @@ function prepareSelection({
 	inConnection?: boolean
 	globalLoading?: boolean
 	includeFragments?: boolean
+	hasComponents: () => void
 }): SubscriptionSelection {
 	// we need to build up an object that contains every field in the selection
 	let object: SubscriptionSelection = {}
@@ -75,6 +77,7 @@ function prepareSelection({
 						document,
 						globalLoading,
 						includeFragments,
+						hasComponents,
 					}).fields || {}
 				)
 			}
@@ -107,6 +110,7 @@ function prepareSelection({
 						document,
 						globalLoading,
 						includeFragments,
+						hasComponents,
 					}).fields,
 				}
 
@@ -306,6 +310,7 @@ function prepareSelection({
 					// the global loading flag could be enabled for our children if there is a @loading with cascade set to true
 					globalLoading: forceLoading,
 					includeFragments,
+					hasComponents,
 				})
 
 				// bubble nullability up
@@ -424,6 +429,7 @@ function prepareSelection({
 				(directive) => directive.name.value === config.componentFieldDirective
 			)
 			if (fieldDirective) {
+				hasComponents()
 				const fieldArg = fieldDirective.arguments?.find((arg) => arg.name.value === 'field')
 				const propArg = fieldDirective.arguments?.find((arg) => arg.name.value === 'prop')
 				if (
