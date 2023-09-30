@@ -16,6 +16,7 @@ test('empty routes dir generates empty manifest', async function () {
 		})
 	).resolves.to.toMatchInlineSnapshot(`
 		{
+		    "component_fields": {},
 		    "pages": {},
 		    "layouts": {},
 		    "page_queries": {},
@@ -51,6 +52,7 @@ test('route groups', async function () {
 		})
 	).toMatchInlineSnapshot(`
 		{
+		    "component_fields": {},
 		    "pages": {
 		        "__subRoute__nested": {
 		            "id": "__subRoute__nested",
@@ -149,6 +151,7 @@ test('nested route structure happy path', async function () {
 		})
 	).resolves.toMatchInlineSnapshot(`
 		{
+		    "component_fields": {},
 		    "pages": {
 		        "_": {
 		            "id": "_",
@@ -320,6 +323,7 @@ test('local schema', async function () {
 		})
 	).resolves.toMatchInlineSnapshot(`
 		{
+		    "component_fields": {},
 		    "pages": {},
 		    "layouts": {},
 		    "page_queries": {},
@@ -351,6 +355,7 @@ test('local yoga', async function () {
 		})
 	).resolves.toMatchInlineSnapshot(`
 		{
+		    "component_fields": {},
 		    "pages": {},
 		    "layouts": {},
 		    "page_queries": {},

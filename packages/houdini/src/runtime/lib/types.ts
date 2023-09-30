@@ -115,7 +115,6 @@ export type BaseCompiledDocument<_Kind extends ArtifactKinds> = {
 		direction: 'forward' | 'backward' | 'both'
 		mode: PaginateModes
 	}
-	hasComponents: boolean
 	pluginData: Record<string, any>
 }
 
@@ -184,10 +183,10 @@ export type SubscriptionSelection = {
 	fields?: {
 		[fieldName: string]: {
 			type: string
+			keyRaw: string
 			nullable?: boolean
 			// @required directive (bubbles nullability up)
 			required?: boolean
-			keyRaw: string
 			operations?: MutationOperation[]
 			list?: {
 				name: string
@@ -210,6 +209,9 @@ export type SubscriptionSelection = {
 			// If set, this is an abstract type with at least one abstract field made non-nullable by
 			// @required. This means that it needs to always be non-null even if there is no useful data.
 			abstractHasRequired?: boolean
+			component?: {
+				prop: string
+			}
 		}
 	}
 	abstractFields?: {

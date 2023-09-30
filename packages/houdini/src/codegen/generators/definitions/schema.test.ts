@@ -28,6 +28,7 @@ test('adds internal documents to schema', async function () {
 			  NetworkOnly
 			}
 
+			"""The Component scalar is only defined if the user has any component fields"""
 			enum PaginateMode {
 			  Infinite
 			  SinglePage
@@ -113,6 +114,7 @@ test('list operations are included', async function () {
 			  NetworkOnly
 			}
 
+			"""The Component scalar is only defined if the user has any component fields"""
 			enum PaginateMode {
 			  Infinite
 			  SinglePage
@@ -217,6 +219,7 @@ test('list operations are included but delete directive should not be in when we
 			  NetworkOnly
 			}
 
+			"""The Component scalar is only defined if the user has any component fields"""
 			enum PaginateMode {
 			  Infinite
 			  SinglePage
@@ -334,6 +337,7 @@ test("writing twice doesn't duplicate definitions", async function () {
 			  NetworkOnly
 			}
 
+			"""The Component scalar is only defined if the user has any component fields"""
 			enum PaginateMode {
 			  Infinite
 			  SinglePage
@@ -392,5 +396,8 @@ test("writing twice doesn't duplicate definitions", async function () {
 
 			"""@required makes a nullable field always non-null by making the parent null when the field is"""
 			directive @required on FIELD
+
+			"""@componentField marks an inline fragment as the selection for a component field"""
+			directive @componentField(field: String!, prop: String, export: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT
 		`)
 })

@@ -48,7 +48,6 @@ test('fragments of unions inject correctly', function () {
 		operations: {},
 		selections: flat,
 		includeFragments: true,
-		hasComponents: () => {},
 		document: mockCollectedDoc(`
 			query Query {
 				entities {
@@ -145,7 +144,6 @@ test('list of fragment unions', async function () {
 		\`,
 
 		    "rootType": "Query",
-		    "hasComponents": false,
 
 		    "selection": {
 		        "fields": {
@@ -304,7 +302,6 @@ test('fragments in lists', async function () {
 		\`,
 
 		    "rootType": "Query",
-		    "hasComponents": false,
 
 		    "selection": {
 		        "fields": {
@@ -504,7 +501,6 @@ test('concrete selection applies mask over abstract selection', async function (
 		\`,
 
 		    "rootType": "Query",
-		    "hasComponents": false,
 
 		    "selection": {
 		        "fields": {
@@ -839,7 +835,6 @@ test("multiple abstract selections don't conflict", async function () {
 		\`,
 
 		    "rootType": "Query",
-		    "hasComponents": false,
 
 		    "selection": {
 		        "fields": {
@@ -1083,7 +1078,6 @@ test('componentFields get embedded in the selection', async function () {
 		\`,
 
 		    "rootType": "Query",
-		    "hasComponents": true,
 
 		    "selection": {
 		        "fields": {
@@ -1107,18 +1101,23 @@ test('componentFields get embedded in the selection', async function () {
 		                        "__typename": {
 		                            "type": "String",
 		                            "keyRaw": "__typename"
+		                        },
+
+		                        "Avatar": {
+		                            "keyRaw": "Avatar",
+		                            "type": "Component",
+
+		                            "component": {
+		                                "prop": "user"
+		                            },
+
+		                            "visible": true
 		                        }
 		                    },
 
 		                    "fragments": {
 		                        "UserAvatar": {
 		                            "arguments": {}
-		                        }
-		                    },
-
-		                    "components": {
-		                        "User.Avatar": {
-		                            "prop": "user"
 		                        }
 		                    }
 		                },
@@ -1157,7 +1156,6 @@ test('componentFields get embedded in the selection', async function () {
 		\`,
 
 		    "rootType": "User",
-		    "hasComponents": true,
 
 		    "selection": {
 		        "fields": {
@@ -1177,18 +1175,23 @@ test('componentFields get embedded in the selection', async function () {
 		                "type": "String",
 		                "keyRaw": "__typename",
 		                "visible": true
+		            },
+
+		            "FriendList": {
+		                "keyRaw": "FriendList",
+		                "type": "Component",
+
+		                "component": {
+		                    "prop": "user"
+		                },
+
+		                "visible": true
 		            }
 		        },
 
 		        "fragments": {
 		            "FriendList": {
 		                "arguments": {}
-		            }
-		        },
-
-		        "components": {
-		            "User.FriendList": {
-		                "prop": "user"
 		            }
 		        }
 		    },

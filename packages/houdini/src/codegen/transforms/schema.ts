@@ -9,14 +9,6 @@ export default async function graphqlExtensions(
 	config: Config,
 	documents: Document[]
 ): Promise<void> {
-	// our internal schema needs to add references for every component field
-	for (const doc of documents) {
-		const def = config.extractDefinition(doc.originalParsed)
-		if (def?.directives?.find((dir) => dir.name.value === config.componentFieldDirective)) {
-			config.componentFields
-		}
-	}
-
 	// the bits to add to the schema
 	let internalSchema = `
 enum CachePolicy {
@@ -160,10 +152,6 @@ directive @${config.componentFieldDirective}(field: String!, prop: String, expor
 	`
 	})
 
-	// the comment identifies the split point. we need to remove all of the extends to
-	// create the extra bits as a valid subgraph
-	internalSchema += '### extensions \n' + extensions.join('\n')
-
 	// add each custom schema to the internal value
 	for (const plugin of config.plugins) {
 		// if the plugin doesn't add a schema, ignore it
@@ -174,6 +162,10 @@ directive @${config.componentFieldDirective}(field: String!, prop: String, expor
 		// add the schema value
 		internalSchema += plugin.schema({ config })
 	}
+
+	// the comment identifies the split point. we need to remove all of the extends to
+	// create the extra bits as a valid subgraph
+	internalSchema += '### extensions \n' + extensions.join('\n')
 
 	// if the config does not have the cache directive, then we need to add it
 	let currentSchema = graphql.printSchema(config.schema)
