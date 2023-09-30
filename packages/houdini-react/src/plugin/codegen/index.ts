@@ -27,6 +27,11 @@ export default async function routerCodegen({
 
 	// go through the documents once, looking for the ones we care about
 	for (const document of Object.values(documents)) {
+		// we only care about documents with components
+		if (!document.artifact?.hasComponents) {
+			continue
+		}
+
 		// we know the document has components so we need to look at every field
 		const typeInfo = new graphql.TypeInfo(config.schema)
 		graphql.visit(

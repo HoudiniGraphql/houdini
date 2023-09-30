@@ -9,5 +9,9 @@ type Props = {
 }
 
 export default function SponsorAvatar({ sponsor }: Props) {
-	return <img src={sponsor.avatarUrl} height={50} />
+	return (
+		<>
+			<img src={sponsor.avatarUrl} height={50} />
+		</>
+	)
 }

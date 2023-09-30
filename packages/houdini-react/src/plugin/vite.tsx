@@ -158,7 +158,7 @@ export default {
 								data: window.__houdini__pending_data__[artifactName],
 								variables: window.__houdini__pending_variables__[artifactName],
 							})
-						})
+						}
 
 						// create the store we'll put in the cache
 						const observer = window.__houdini__client__.observe({
