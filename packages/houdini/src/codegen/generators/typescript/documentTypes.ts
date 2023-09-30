@@ -292,6 +292,7 @@ async function generateOperationTypeDefs(
 		body,
 		missingScalars,
 		includeFragments: true,
+		field: null,
 	})
 
 	// if we are looking at a query then we should add the loading state
@@ -400,6 +401,7 @@ async function generateOperationTypeDefs(
 						missingScalars,
 						includeFragments: false,
 						allOptional: true,
+						field: null,
 					})
 				)
 			)
@@ -514,6 +516,7 @@ async function generateFragmentTypeDefs(
 							visitedTypes,
 							missingScalars,
 							includeFragments: true,
+							field: null,
 						}),
 					})
 				)

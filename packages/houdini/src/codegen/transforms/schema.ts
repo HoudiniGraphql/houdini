@@ -1,3 +1,4 @@
+import { mergeTypeDefs, printTypeNode } from '@graphql-tools/merge'
 import * as graphql from 'graphql'
 
 import type { Config, Document } from '../../lib'
@@ -141,17 +142,6 @@ directive @${config.componentFieldDirective}(field: String!, prop: String, expor
 
 `
 
-	// Every componentField needs to be added to the appropriate parent
-	const extensions = Object.entries(config.componentFields).map(([parent, fields]) => {
-		return `
-		extend type ${parent} {
-			${Object.keys(fields)
-				.map((field) => `${field}: ${config.componentScalar}!`)
-				.join('\n')}
-		}
-	`
-	})
-
 	// add each custom schema to the internal value
 	for (const plugin of config.plugins) {
 		// if the plugin doesn't add a schema, ignore it
@@ -163,17 +153,28 @@ directive @${config.componentFieldDirective}(field: String!, prop: String, expor
 		internalSchema += plugin.schema({ config })
 	}
 
-	// the comment identifies the split point. we need to remove all of the extends to
-	// create the extra bits as a valid subgraph
-	internalSchema += '### extensions \n' + extensions.join('\n')
-
 	// if the config does not have the cache directive, then we need to add it
-	let currentSchema = graphql.printSchema(config.schema)
-	if (!currentSchema.includes(`directive @${config.listDirective}`)) {
-		currentSchema += internalSchema
-	}
+
+	const extensions = Object.entries(config.componentFields)
+		.map(([parent, fields]) => {
+			return `
+		extend type ${parent} {
+			${Object.keys(fields)
+				.map((field) => `${field}: ${config.componentScalar}!`)
+				.join('\n')}
+		}
+	`
+		})
+		.join('\n')
+
+	let currentSchema = mergeTypeDefs([
+		graphql.printSchema(config.schema),
+		internalSchema,
+		extensions,
+	])
 
 	config.newSchema += internalSchema
+
 	// add the static extra bits that will be used by other transforms
-	config.schema = graphql.buildSchema(currentSchema)
+	config.schema = graphql.buildSchema(graphql.print(currentSchema))
 }

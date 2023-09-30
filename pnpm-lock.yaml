@@ -347,6 +347,9 @@ importers:
       '@clack/prompts':
         specifier: ^0.6.3
         version: 0.6.3
+      '@graphql-tools/merge':
+        specifier: ^9.0.0
+        version: 9.0.0(graphql@15.5.0)
       '@graphql-tools/schema':
         specifier: ^9.0.4
         version: 9.0.12(graphql@15.5.0)

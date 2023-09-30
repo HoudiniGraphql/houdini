@@ -136,7 +136,16 @@ function typeDefinitions(
 						return AST.tsPropertySignature(
 							AST.identifier(key),
 							AST.tsTypeAnnotation(
-								scalarPropertyValue(config, new Set<string>(), unwrapped.type)
+								scalarPropertyValue(
+									config,
+									new Set<string>(),
+									unwrapped.type,
+									body,
+									{
+										field: key,
+										parent: type.name,
+									}
+								)
 							)
 						)
 					})
@@ -162,7 +171,16 @@ function typeDefinitions(
 							let typeOptions: TSTypeKind = AST.tsUnionType([])
 							if (graphql.isScalarType(unwrapped.type)) {
 								typeOptions.types.push(
-									scalarPropertyValue(config, new Set<string>(), unwrapped.type)
+									scalarPropertyValue(
+										config,
+										new Set<string>(),
+										unwrapped.type,
+										body,
+										{
+											field: key,
+											parent: type.name,
+										}
+									)
 								)
 							}
 							// enums are valid to use directly

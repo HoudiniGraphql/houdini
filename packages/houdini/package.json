@@ -36,6 +36,7 @@
     "dependencies": {
         "@babel/parser": "^7.20.5",
         "@clack/prompts": "^0.6.3",
+        "@graphql-tools/merge": "^9.0.0",
         "@graphql-tools/schema": "^9.0.4",
         "@kitql/helper": "^0.5.0",
         "@types/estree": "^1.0.0",

@@ -4776,3 +4776,121 @@ test('overlapping fragments', async function () {
 		};
 	`)
 })
+
+test('componentField scalars', async function () {
+	const configWithoutMasking = testConfig({
+		defaultFragmentMasking: 'disable',
+		schema: config.schema,
+	})
+
+	const docs = [
+		mockCollectedDoc(`
+			fragment UserBase on User @componentField(field: "Avatar", prop: "user") {
+				id
+				firstName
+			}
+		`),
+		mockCollectedDoc(`
+			query UserList {
+				users {
+					Avatar
+				}
+			}
+		`),
+	]
+
+	// execute the generator
+	await runPipeline(configWithoutMasking, docs)
+
+	// look up the files in the artifact directory
+	const queryFileContents = await fs.readFile(
+		configWithoutMasking.artifactTypePath(docs[1].document)
+	)
+	expect(
+		recast.parse(queryFileContents!, {
+			parser: typeScriptParser,
+		})
+	).toMatchInlineSnapshot(`
+		import type __component__UserBase from "~/../UserBase";
+
+		export type UserList = {
+		    readonly "input": UserList$input;
+		    readonly "result": UserList$result | undefined;
+		};
+
+		export type UserList$result = {
+		    readonly users: ({
+		        readonly Avatar: (props: Omit<Parameters<__component__UserBase>, "user">) => ReturnType<__component__UserBase>;
+		    } | null)[] | null;
+		};
+
+		export type UserList$input = null;
+
+		export type UserList$artifact = {
+		    "name": "UserList";
+		    "kind": "HoudiniQuery";
+		    "hash": "775ef37f0ec8b8fbace7d66b5e5f3d01bada17c0930e4dc2f54c1eda379ca8dd";
+		    "raw": \`query UserList {
+		  users {
+		    ...UserBase
+		    id
+		  }
+		}
+
+		fragment UserBase on User {
+		  id
+		  firstName
+		  __typename
+		}
+		\`;
+		    "rootType": "Query";
+		    "selection": {
+		        "fields": {
+		            "users": {
+		                "type": "User";
+		                "keyRaw": "users";
+		                "nullable": true;
+		                "selection": {
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID";
+		                            "keyRaw": "id";
+		                            "visible": true;
+		                        };
+		                        "firstName": {
+		                            "type": "String";
+		                            "keyRaw": "firstName";
+		                            "visible": true;
+		                        };
+		                        "__typename": {
+		                            "type": "String";
+		                            "keyRaw": "__typename";
+		                            "visible": true;
+		                        };
+		                        "Avatar": {
+		                            "keyRaw": "Avatar";
+		                            "type": "Component";
+		                            "component": {
+		                                "prop": "user";
+		                                "key": "User.Avatar";
+		                                "fragment": "UserBase";
+		                            };
+		                            "visible": true;
+		                        };
+		                    };
+		                    "fragments": {
+		                        "UserBase": {
+		                            "arguments": {};
+		                        };
+		                    };
+		                };
+		                "visible": true;
+		            };
+		        };
+		    };
+		    "pluginData": {};
+		    "policy": "CacheOrNetwork";
+		    "partial": false;
+		};
+	`)
+})

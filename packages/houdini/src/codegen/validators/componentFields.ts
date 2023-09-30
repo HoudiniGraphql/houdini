@@ -53,6 +53,8 @@ export default async function componentFields(config: Config, docs: Document[]):
 				// get the value of the 2 props
 				const fieldValue =
 					fieldArg!.value?.kind === 'StringValue' ? fieldArg.value.value : undefined
+				const propValue =
+					propArg!.value?.kind === 'StringValue' ? propArg.value.value : undefined
 
 				// look up the type of the parent
 				const parentType = config.schema.getType(parent)
@@ -69,13 +71,14 @@ export default async function componentFields(config: Config, docs: Document[]):
 				}
 
 				// save the reference to the directive
-				if (fieldValue) {
+				if (fieldValue && propValue) {
 					config.componentFields[parent] = {
 						...config.componentFields[parent],
 						[fieldValue]: {
 							directive: componentFieldDirective,
 							fragment: node.name.value,
 							filepath,
+							prop: propValue,
 						},
 					}
 				}

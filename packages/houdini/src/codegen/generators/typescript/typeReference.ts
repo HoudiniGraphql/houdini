@@ -27,7 +27,7 @@ export function tsTypeReference(
 	let result
 	// if we're looking at a scalar
 	if (graphql.isScalarType(type)) {
-		result = scalarPropertyValue(config, missingScalars, type)
+		result = scalarPropertyValue(config, missingScalars, type, body, null)
 	}
 	//  enums need to be passed to ValueOf
 	else if (graphql.isEnumType(type)) {

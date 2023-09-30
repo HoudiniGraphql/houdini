@@ -24,6 +24,7 @@ export function inlineType({
 	includeFragments,
 	allOptional,
 	forceNonNull,
+	field,
 }: {
 	config: Config
 	filepath: string
@@ -35,6 +36,7 @@ export function inlineType({
 	visitedTypes: Set<string>
 	missingScalars: Set<string>
 	includeFragments: boolean
+	field: { parent: string; field: string } | null
 	allOptional?: boolean
 	forceNonNull?: boolean
 }): TSTypeKind {
@@ -45,7 +47,13 @@ export function inlineType({
 	let forceNullable = false
 	// if we are looking at a scalar field
 	if (graphql.isScalarType(type)) {
-		result = scalarPropertyValue(config, missingScalars, type as graphql.GraphQLNamedType)
+		result = scalarPropertyValue(
+			config,
+			missingScalars,
+			type as graphql.GraphQLNamedType,
+			body,
+			field
+		)
 	}
 	// we could have encountered an enum
 	else if (graphql.isEnumType(type)) {
@@ -226,6 +234,10 @@ export function inlineType({
 					includeFragments,
 					allOptional,
 					forceNonNull: hasRequiredDirective,
+					field: {
+						field: attributeName,
+						parent: type.name,
+					},
 				})
 
 				// check if we have an @include or @skip directive
@@ -310,6 +322,7 @@ export function inlineType({
 				missingScalars,
 				includeFragments,
 				allOptional,
+				field: null,
 			})
 
 			// we need to handle __typename in the generated type. this means removing

@@ -72,6 +72,7 @@ export class Config {
 				fragment: string
 				directive: graphql.DirectiveNode
 				filepath: string
+				prop: string
 			}
 		>
 	> = {}
@@ -299,8 +300,7 @@ export class Config {
 	set newSchema(value: string) {
 		this.#schemaString = value
 		if (value) {
-			const trimmed = value.substring(0, value.indexOf('### extensions \n'))
-			this.#newSchemaInstance = graphql.buildSchema(trimmed)
+			this.#newSchemaInstance = graphql.buildSchema(value)
 		} else {
 			this.#newSchemaInstance = null
 		}
