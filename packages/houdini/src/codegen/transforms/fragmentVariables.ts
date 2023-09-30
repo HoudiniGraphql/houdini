@@ -1,8 +1,14 @@
 import structuredClone from '@ungap/structured-clone'
 import * as graphql from 'graphql'
 
-import type { Config, Document, ValueMap } from '../../lib'
-import { HoudiniError, ArtifactKind } from '../../lib'
+import {
+	type GraphQLValue,
+	type Config,
+	type Document,
+	type ValueMap,
+	HoudiniError,
+	ArtifactKind,
+} from '../../lib'
 import { murmurHash } from '../utils'
 import type { FragmentDependency } from './collectDefinitions'
 import { collectDefinitions } from './collectDefinitions'
@@ -328,7 +334,31 @@ export function withArguments(
 	}
 
 	// flatten all of the arguments passed to every @with
-	return withDirectives.flatMap((directive) => directive.arguments || [])
+	return withDirectives.flatMap((directive) => removeLocKey(directive.arguments) || [])
+}
+
+function removeLocKey<
+	T extends GraphQLValue | readonly graphql.ArgumentNode[] | graphql.ArgumentNode
+>(value: T): T {
+	if (typeof value !== 'object' || value === null) {
+		return value
+	}
+
+	if (Array.isArray(value)) {
+		// @ts-expect-error
+		return value.map(removeLocKey)
+	}
+
+	// if the value is an object, remove the loc key
+	return Object.fromEntries(
+		Object.entries(value).map(([key, fieldValue]) => {
+			if (key === 'loc') {
+				return []
+			}
+
+			return [key, removeLocKey(fieldValue)]
+		})
+	)
 }
 
 export type FragmentArgument = {
@@ -475,6 +505,9 @@ export function collectWithArguments(
 			// use the value pulled from scope
 			value = scope[value.name.value]
 		}
+
+		// @ts-ignore
+		value.loc = undefined
 
 		args[arg.name.value] = {
 			...value,

@@ -141,13 +141,13 @@ test('pass structured values as argument values to generated fragments', async f
 		export default {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
-		    "hash": "426cd28865d03250e65b5965de2168e17885397635c3924b80c251b24e02aa63",
+		    "hash": "10e652d668e97235806b7a3561475103741455c9a6bb1357113860758b865b29",
 
 		    "raw": \`query AllUsers {
-		  ...QueryFragment_NYTzQ
+		  ...QueryFragment_2jlKVi
 		}
 
-		fragment QueryFragment_NYTzQ on Query {
+		fragment QueryFragment_2jlKVi on Query {
 		  users(stringValue: {string: "Hello"}) {
 		    id
 		  }
@@ -189,45 +189,7 @@ test('pass structured values as argument values to generated fragments', async f
 		                        "fields": [{
 		                            "name": {
 		                                "kind": "Name",
-		                                "value": "string",
-
-		                                "loc": {
-		                                    "start": 73,
-		                                    "end": 79,
-
-		                                    "startToken": {
-		                                        "kind": "Name",
-		                                        "start": 73,
-		                                        "end": 79,
-		                                        "line": 3,
-		                                        "column": 52,
-		                                        "value": "string"
-		                                    },
-
-		                                    "endToken": {
-		                                        "kind": "Name",
-		                                        "start": 73,
-		                                        "end": 79,
-		                                        "line": 3,
-		                                        "column": 52,
-		                                        "value": "string"
-		                                    },
-
-		                                    "source": {
-		                                        "body": \`
-						query AllUsers {
-		                    ...QueryFragment @with(name: { string: "Hello" })
-						}
-					\`,
-
-		                                        "name": "GraphQL request",
-
-		                                        "locationOffset": {
-		                                            "line": 1,
-		                                            "column": 1
-		                                        }
-		                                    }
-		                                }
+		                                "value": "string"
 		                            },
 
 		                            "value": {
@@ -889,13 +851,13 @@ test('list arguments', async function () {
 		export default {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
-		    "hash": "32c6a8a189da923b8c68c54909f2aa28063a7752a0bb2b3601834899de4dd3a7",
+		    "hash": "6f21b47d8e490e6df8692e5b322344e5853042c6bab027dd7b357f7bd6c291a9",
 
 		    "raw": \`query AllUsers {
-		  ...QueryFragment_4AWlIw
+		  ...QueryFragment_3CgeGL
 		}
 
-		fragment QueryFragment_4AWlIw on Query {
+		fragment QueryFragment_3CgeGL on Query {
 		  nodes(ids: ["1"]) {
 		    id
 		    __typename
