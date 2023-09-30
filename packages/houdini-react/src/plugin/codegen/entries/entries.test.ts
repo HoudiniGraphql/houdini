@@ -27,7 +27,7 @@ test('composes layouts and pages', async function () {
 	const manifest = await load_manifest({ config })
 
 	// generate the bundle for the nested page
-	await generate_entries({ config, manifest, documents: [] })
+	await generate_entries({ config, manifest, documents: [], componentFields: [] })
 
 	const page_entry = await parseJS(
 		(await fs.readFile(
@@ -39,8 +39,21 @@ test('composes layouts and pages', async function () {
 		import Layout__ from "../layouts/_.jsx";
 		import Layout__subRoute from "../layouts/_subRoute.jsx";
 		import Page__subRoute_nested from "../pages/_subRoute_nested.jsx";
+		import client from "$houdini/plugins/houdini-react/runtime/client";
 		import PageFallback__subRoute_nested from "../fallbacks/page/_subRoute_nested.jsx";
 		import LayoutFallback__subRoute_nested from "../../fallbacks/layout";
+
+		if (globalThis.window) {
+		    let target = globalThis.window.__houdini__client__ ? globalThis.window.__houdini__client__.componentCache : null;
+
+		    if (!globalThis.window.__houdini__client__) {
+		        if (!window.__houdini__pending_components__) {
+		            window.__houdini__pending_components__ = {};
+		        }
+
+		        target = window.__houdini__pending_components__;
+		    }
+		}
 
 		export default (
 		    {
@@ -155,7 +168,7 @@ test('composes layouts and pages', async function () {
 		}
 	)
 	expect(page_fallback).toMatchInlineSnapshot(`
-		import { useRouterContext, useCache, useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing/Router";
+		import { useRouterContext, useCache, useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
 		import Component from "../../../../../src/routes/subRoute/nested/+page";
 		import { Suspense } from "react";
 
@@ -211,7 +224,7 @@ test('composes layouts and pages', async function () {
 		}
 	)
 	expect(layout_fallback).toMatchInlineSnapshot(`
-		import { useRouterContext, useCache, useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing/Router";
+		import { useRouterContext, useCache, useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing/components/Router";
 		import Component from "../../../../../src/routes/+layout";
 		import { Suspense } from "react";
 
