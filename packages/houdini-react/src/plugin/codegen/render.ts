@@ -39,7 +39,10 @@ export default (props) => <Shell><Router {...props} /></Shell>
 		${componentFields
 			.map((field) => {
 				return `import ${field.fragment} from ${JSON.stringify(
-					path.relative(path.dirname(server_adapter_path), field.filepath)
+					path.relative(
+						path.dirname(server_adapter_path),
+						routerConventions.componentField_unit_path(config, field.fragment)
+					)
 				)}`
 			})
 			.join('\n')}
@@ -92,7 +95,11 @@ export default (options) => {
 		...options,
 		on_render: async ({url, match, session, pipe , manifest }) => {
 			// instanitate a cache we can use for this request
-			const cache = new Cache({ disabled: false })
+			const cache = new Cache({
+				disabled: false,
+				componentCache: options.componentCache,
+				createComponent: (fn, props) => React.createElement(fn, props),
+			})
 
 			if (!match) {
 				return new Response('not found', { status: 404 })

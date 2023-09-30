@@ -1,6 +1,4 @@
-import { getFieldsForType } from '$houdini/runtime/lib/selection'
-import type { ClientPlugin, DocumentArtifact, GraphQLValue } from 'houdini'
-import React from 'react'
+import type { ClientPlugin } from 'houdini'
 
 const plugin: () => ClientPlugin = () => () => {
 	return {

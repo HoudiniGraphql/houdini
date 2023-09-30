@@ -29,7 +29,16 @@ export class Cache {
 	// label accomplishes this but would not prevent someone using vanilla js
 	_internal_unstable: CacheInternal
 
-	constructor({ disabled, ...config }: ConfigFile & { disabled?: boolean } = {}) {
+	constructor({
+		disabled,
+		componentCache,
+		createComponent,
+		...config
+	}: ConfigFile & {
+		disabled?: boolean
+		componentCache?: Record<string, any>
+		createComponent?: (comp: any, prop: Record<string, any>) => any
+	} = {}) {
 		this._internal_unstable = new CacheInternal({
 			cache: this,
 			storage: new InMemoryStorage(),
@@ -38,6 +47,8 @@ export class Cache {
 			lifetimes: new GarbageCollector(this),
 			staleManager: new StaleManager(this),
 			disabled: disabled ?? typeof globalThis.window === 'undefined',
+			componentCache,
+			createComponent,
 		})
 
 		if (Object.keys(config).length > 0) {
@@ -332,6 +343,8 @@ class CacheInternal {
 	cache: Cache
 	lifetimes: GarbageCollector
 	staleManager: StaleManager
+	componentCache: Record<string, any>
+	createComponent: (component: any, props: Record<string, any>) => any
 
 	constructor({
 		storage,
@@ -342,6 +355,8 @@ class CacheInternal {
 		staleManager,
 		disabled,
 		config,
+		componentCache,
+		createComponent,
 	}: {
 		storage: InMemoryStorage
 		subscriptions: InMemorySubscriptions
@@ -351,6 +366,8 @@ class CacheInternal {
 		staleManager: StaleManager
 		disabled: boolean
 		config?: ConfigFile
+		componentCache?: Record<string, any>
+		createComponent: undefined | ((component: any, props: Record<string, any>) => any)
 	}) {
 		this.storage = storage
 		this.subscriptions = subscriptions
@@ -359,6 +376,8 @@ class CacheInternal {
 		this.lifetimes = lifetimes
 		this.staleManager = staleManager
 		this._config = config
+		this.componentCache = componentCache ?? {}
+		this.createComponent = createComponent ?? (() => ({}))
 
 		// the cache should always be disabled on the server, unless we're testing
 		this._disabled = disabled
@@ -919,6 +938,7 @@ class CacheInternal {
 
 		const target = {} as GraphQLObject
 		if (selection.fragments) {
+			// this structure needs to be duplicated in defaultComponentField
 			target[fragmentKey] = {
 				loading: Boolean(generateLoading),
 				values: Object.fromEntries(
@@ -970,6 +990,7 @@ class CacheInternal {
 				directives,
 				loading: fieldLoading,
 				abstractHasRequired,
+				component,
 			},
 		] of Object.entries(targetSelection)) {
 			// skip masked fields when reading values
@@ -1009,8 +1030,19 @@ class CacheInternal {
 				continue
 			}
 
+			// if the field is a component then the storage system should return (and persist)
+			// a componoent that gets the fragment's data
+			const defaultValue = !component
+				? undefined
+				: defaultComponentField({
+						cache: this.cache,
+						component,
+						variables,
+						parent,
+				  })
+
 			// look up the value in our store
-			let { value } = this.storage.get(parent, key)
+			let { value } = this.storage.get(parent, key, defaultValue)
 
 			// If we have an explicite null, that mean that it's stale and the we should do a network call
 			const dt_field = this.staleManager.getFieldTime(parent, key)
@@ -1486,3 +1518,47 @@ function fragmentVariableValue(value: ValueNode, args: GraphQLObject): GraphQLVa
 export const rootID = '_ROOT_'
 
 type DisplaySummary = { id: string; field: string; value?: any }
+
+export function fragmentReference({
+	component,
+	prop,
+}: {
+	component: { name: string }
+	prop: string
+}): any {
+	return `${component.name}.${prop}`
+}
+
+export function defaultComponentField({
+	cache,
+	component,
+	loading,
+	variables,
+	parent,
+}: {
+	cache: Cache
+	component: Required<Required<SubscriptionSelection>['fields'][string]>['component']
+	loading?: boolean
+	variables: Record<string, GraphQLValue> | undefined | null
+	parent: string
+}) {
+	return (props: any) => {
+		// look up the component in the store
+		const componentFn = cache._internal_unstable.componentCache[component.key]
+		// return the instantiated component with the appropriate prop
+		return cache._internal_unstable.createComponent(componentFn, {
+			...props,
+			[component.prop]: {
+				[fragmentKey]: {
+					loading,
+					values: {
+						[component.fragment]: {
+							variables,
+							parent,
+						},
+					},
+				},
+			},
+		})
+	}
+}

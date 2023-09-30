@@ -211,6 +211,8 @@ export type SubscriptionSelection = {
 			abstractHasRequired?: boolean
 			component?: {
 				prop: string
+				key: string
+				fragment: string
 			}
 		}
 	}

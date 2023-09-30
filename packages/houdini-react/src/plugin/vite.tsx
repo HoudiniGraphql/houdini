@@ -117,20 +117,30 @@ export default {
 			const queries = query_names ? query_names.split(',') : []
 
 			return `
+				import React from 'react'
 				import { hydrateRoot } from 'react-dom/client';
 				import App from '$houdini/plugins/houdini-react/units/render/App'
 				import { Cache } from '$houdini/runtime/cache/cache'
 				import { router_cache } from '$houdini'
 				import client from '$houdini/plugins/houdini-react/runtime/client'
 				import Component from '$houdini/plugins/houdini-react/units/entries/${id}.jsx'
+				import { injectComponents } from '$houdini/plugins/houdini-react/runtime/componentFields'
 
 				// if there is pending data (or artifacts) then we should prime the caches
 				let initialData = {}
 				let initialArtifacts = {}
 
-				window.__houdini__cache__ ??= new Cache()
-				window.__houdini__hydration__layer__ ??= window.__houdini__cache__._internal_unstable.storage.createLayer(true)
+				// hydrate the client with the component cache
 				window.__houdini__client__ ??= client()
+				if (window.__houdini__pending_components__) {
+					window.__houdini__client__.componentCache = window.__houdini__pending_components__
+				}
+
+				window.__houdini__cache__ ??= new Cache({
+					componentCache: window.__houdini__client__.componentCache,
+					createComponent: (fn, props) => React.createElement(fn, props)
+				})
+				window.__houdini__hydration__layer__ ??= window.__houdini__cache__._internal_unstable.storage.createLayer(true)
 
 				// the artifacts are the source of the zip (without them, we can't prime either cache)
 				for (const [artifactName, artifact] of Object.entries(window.__houdini__pending_artifacts__ ?? {})) {
@@ -139,8 +149,24 @@ export default {
 
 					// if we also have data for the artifact, save it in the initial data cache
 					if (window.__houdini__pending_data__?.[artifactName]) {
+						const variables = window.__houdini__pending_variables__[artifactName]
+						// TODO: only do this when we have to
+
+						// we need to walk down the artifacts selection and instantiate any component fields
+						injectComponents({
+							cache: window.__houdini__cache__,
+							selection: artifact.selection,
+							data: window.__houdini__pending_data__[artifactName],
+							variables: window.__houdini__pending_variables__[artifactName],
+						})
+
 						// create the store we'll put in the cache
-						const observer = window.__houdini__client__.observe({ artifact, cache: window.__houdini__cache__, initialValue: window.__houdini__pending_data__[artifactName] })
+						const observer = window.__houdini__client__.observe({
+							artifact,
+							cache: window.__houdini__cache__,
+							initialValue: window.__houdini__pending_data__[artifactName],
+							initialVariables: variables,
+						})
 
 						// save it in the cache
 						initialData[artifactName] = observer

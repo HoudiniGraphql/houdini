@@ -439,6 +439,8 @@ function prepareSelection({
 							type: config.componentScalar,
 							component: {
 								prop: propArg.value.value,
+								key: `${rootType}.${attributeName}`,
+								fragment: field.name.value,
 							},
 						},
 					}

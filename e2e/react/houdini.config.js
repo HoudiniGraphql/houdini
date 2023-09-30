@@ -24,6 +24,9 @@ const config = {
 		RentedBook: {
 			keys: ['userId', 'bookId'],
 		},
+		Sponsor: {
+			keys: ['name'],
+		},
 	},
 
 	plugins: {

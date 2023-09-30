@@ -195,8 +195,6 @@ function usePageData({
 							const artifactName = "${artifact.name}"
 							const value = ${JSON.stringify(observer.state.data)}
 
-							console.log(value)
-
 							// if the data is pending, we need to resolve it
 							if (window.__houdini__nav_caches__?.data_cache.has(artifactName)) {
 								// before we resolve the pending signals,
@@ -217,10 +215,15 @@ function usePageData({
 									window.__houdini__pending_data__ = {}
 								}
 
+								if (!window.__houdini__pending_variables__) {
+									window.__houdini__pending_variables__ = {}
+								}
+
 								if (!window.__houdini__pending_artifacts__) {
 									window.__houdini__pending_artifacts__ = {}
 								}
 
+								window.__houdini__pending_variables__[artifactName] = ${JSON.stringify(variables)}
 								window.__houdini__pending_data__[artifactName] = value
 								window.__houdini__pending_artifacts__[artifactName] = ${JSON.stringify(artifact)}
 							}
