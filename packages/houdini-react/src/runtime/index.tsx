@@ -5,7 +5,6 @@ import { GraphQLObject, GraphQLVariables, QueryArtifact } from '$houdini/runtime
 import React from 'react'
 
 import client from './client'
-import { injectComponents } from './clientPlugin'
 import manifest from './manifest'
 import {
 	SuspenseCache,
