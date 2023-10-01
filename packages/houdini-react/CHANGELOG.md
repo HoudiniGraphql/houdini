@@ -1,5 +1,14 @@
 # houdini-react
 
+## 1.2.24
+
+### Patch Changes
+
+-   [`d5559503`](https://github.com/HoudiniGraphql/houdini/commit/d55595038b95ccef3e19860e10af63a014a039fa) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix base url in dev mod
+
+-   Updated dependencies []:
+    -   houdini@1.2.24
+
 ## 1.2.23
 
 ### 🐛 Fixes
