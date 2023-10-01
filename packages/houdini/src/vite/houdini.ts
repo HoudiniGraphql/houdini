@@ -18,6 +18,7 @@ import {
 let config: Config
 let viteConfig: ResolvedConfig
 let viteEnv: ConfigEnv
+let devServer = false
 
 export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 	return {
@@ -93,7 +94,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			}
 
 			// if we dont' have an adapter, we don't need to do anything
-			if (!opts.adapter) {
+			if (!opts.adapter || devServer) {
 				return
 			}
 
@@ -120,7 +121,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				publicBase: viteConfig.base,
 				outDir: config.routerBuildDirectory,
 				manifest,
-				adapterPath: '../$houdini/plugins/houdini-react/units/render/config.js',
+				adapterPath: '../$houdini/plugins/houdini-react/units/render/server.js',
 			})
 
 			// if there is a public directory at the root of the project,
@@ -183,6 +184,8 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		},
 
 		async configureServer(server) {
+			devServer = true
+
 			for (const plugin of config.plugins) {
 				if (typeof plugin.vite?.configureServer !== 'function') {
 					continue

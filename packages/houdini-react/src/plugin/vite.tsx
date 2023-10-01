@@ -1,31 +1,23 @@
-import * as graphql from 'graphql'
 import { GraphQLSchema } from 'graphql'
-import { createYoga } from 'graphql-yoga'
 import {
 	PluginHooks,
 	path,
 	fs,
 	load_manifest,
-	routerConventions,
 	isSecondaryBuild,
 	type ProjectManifest,
-	type ServerAdapterFactory,
 	type YogaServer,
 	type RouterManifest,
-	find_match,
 	localApiEndpoint,
 	loadLocalSchema,
-	handle_request,
-	localApiSessionKeys,
-	get_session,
-	Cache,
-	HoudiniClient,
+	routerConventions,
+	find_match,
+	internalRoutes,
 } from 'houdini'
 import React from 'react'
-import type { BuildOptions } from 'vite'
+import type { BuildOptions, Connect } from 'vite'
 
 import { setManifest } from '.'
-import { router_cache } from '../runtime'
 import { writeTsconfig } from './codegen/typeRoot'
 
 // in order to coordinate the client and server, the client's pending request cache
@@ -172,8 +164,6 @@ export default {
 					})
 				}
 
-
-
 				// hydrate the cache with the information from the initial payload
 				window.__houdini__cache__?.hydrate(
 					window.__houdini__initial__cache__,
@@ -209,6 +199,11 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 		await writeTsconfig(server.houdiniConfig)
 
 		server.middlewares.use(async (req, res, next) => {
+			if (!req.url) {
+				next()
+				return
+			}
+
 			// import the router manifest from the runtime
 			// pull in the project's manifest
 			const { default: router_manifest } = (await server.ssrLoadModule(
@@ -218,19 +213,16 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 				)
 			)) as { default: RouterManifest<React.Component> }
 
-			const graphqlEndpoint = localApiEndpoint(server.houdiniConfig.configFile)
+			const [match] = find_match(router_manifest, req.url)
 
-			// any requests for things that aren't routes shouldn't be handled
-			try {
-				const [match] = find_match(router_manifest, req.url ?? '/')
-				if (!match) {
-					throw new Error()
-				}
-			} catch {
-				if (req.url !== graphqlEndpoint) {
-					console.log('skipping', req.url)
-					return next()
-				}
+			if (
+				!match &&
+				!internalRoutes(server.houdiniConfig.configFile).find((route) =>
+					req.url?.startsWith(route)
+				)
+			) {
+				next()
+				return
 			}
 
 			// its worth loading the project manifest
@@ -241,6 +233,7 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 			if (project_manifest.local_schema) {
 				schema = await loadLocalSchema(server.houdiniConfig)
 			}
+
 			// import the yoga server
 			let yoga: YogaServer | null = null
 			if (project_manifest.local_yoga) {
@@ -249,112 +242,77 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 					'+yoga?t=' + new Date().getTime()
 				)
 				yoga = (await server.ssrLoadModule(yogaPath)) as YogaServer
-			} else if (project_manifest.local_schema) {
-				yoga = createYoga({
-					schema: schema!,
-					landingPage: true,
-					graphqlEndpoint,
-				})
 			}
 
-			if (!req.url) {
-				next()
-				return
-			}
-
-			// pull out the desired url
-			const url = req.url
-
-			console.log(yoga, url)
-			// if its a req we can process with yoga, do it.
-			if (yoga && url === localApiEndpoint(server.houdiniConfig.configFile)) {
-				console.log('yoga response')
-				return yoga(req, res)
-			}
-
-			const headers = new Headers(req.headers as Record<string, string>)
-			const session_keys = localApiSessionKeys(server.houdiniConfig.configFile)
-			// load the session information
-			const session = get_session(
-				headers,
-				localApiSessionKeys(server.houdiniConfig.configFile)
-			)
-
-			// maybe its a session-related req
-			const authResponse = await handle_request({
-				url,
-				config: server.houdiniConfig.configFile,
-				session_keys,
-				headers: new Headers(Object.entries(headers)),
-			})
-			if (authResponse) {
-				return authResponse
-			}
-
-			// the req is for a server-side rendered page
-
-			// find the matching url
-			const [match] = find_match(router_manifest, url)
-			// instanitate a cache we can use for this request
-			const cache = new Cache({ disabled: false })
-
-			if (!match) {
-				return new Response('not found', { status: 404 })
-			}
-
-			const { default: client } = (await server.ssrLoadModule(
-				path.join(server.houdiniConfig.projectRoot, 'src', '+client')
-			)) as { default: HoudiniClient }
-			const { renderToStream } = await server.ssrLoadModule(
-				routerConventions.vite_render_path(server.houdiniConfig)
-			)
-			const { default: App } = (await server.ssrLoadModule(
-				routerConventions.app_component_path(server.houdiniConfig) +
+			// load the render factory
+			const { reactServerHandler: serverHandler } = (await server.ssrLoadModule(
+				routerConventions.server_adapter_path(server.houdiniConfig) +
 					'?t=' +
 					new Date().getTime()
-			)) as { default: () => React.ReactElement }
+			)) as { reactServerHandler: any }
 
-			if (schema) {
-				const graphqlEndpoint = localApiEndpoint(server.houdiniConfig.configFile)
-				client.registerProxy(graphqlEndpoint, async ({ query, variables, session }) => {
-					// get the parsed query
-					const parsed = graphql.parse(query)
-
-					return await graphql.execute(schema!, parsed, null, session, variables)
-				})
+			const requestHeaders = new Headers()
+			for (const header of Object.entries(req.headers ?? {})) {
+				requestHeaders.set(header[0], header[1] as string)
 			}
 
-			const { injectToStream, pipe } = await renderToStream(
-				React.createElement(App, {
-					initialURL: url,
-					cache: cache,
-					session: session,
-					assetPrefix: '/virtual:houdini',
-					manifest: manifest,
-					...router_cache(),
-				}),
-				{
-					userAgent: 'Vite',
-				}
+			// wrap the vite request in a proper on
+			const request = new Request(
+				'https://localhost:5173' + req.url,
+				req.method === 'POST'
+					? {
+							method: req.method,
+							headers: requestHeaders,
+							body: await getBody(req),
+					  }
+					: undefined
 			)
 
-			// add the initial scripts to the page
-			injectToStream(`
-	<script>
-		window.__houdini__initial__cache__ = ${cache.serialize()};
-		window.__houdini__initial__session__ = ${JSON.stringify(session)};
-	</script>
+			for (const [key, value] of Object.entries(req.headers)) {
+				request.headers.set(key, value as string)
+			}
 
-	<!--
-		add a virtual module that hydrates the client and sets up the initial pending cache.
-		the dynamic extension is to support dev which sees the raw jsx, and production which sees the bundled asset
-	-->
-	<script type="module" src="/virtual:houdini/pages/${match.id}.jsx" async=""></script>
-	<!-- // <script type="module" src="\${options.assetPrefix}/pages/\${match.id}.\${options.production ? 'js' : 'jsx'}" async=""></script> ->
-`)
-
-			// start streaming the response to the user
-			pipe?.(res)
+			// instantiate the handler and invoke it with a mocked response
+			const result: Response = await serverHandler({
+				schema,
+				yoga,
+				production: false,
+				manifest: router_manifest,
+				graphqlEndpoint: localApiEndpoint(server.houdiniConfig.configFile),
+				assetPrefix: '/virtual:houdini',
+				pipe: res,
+				documentPremable: `<script type="module" src="/@vite/client" async=""></script>`,
+			})(request)
+			if (result && result.status === 404) {
+				next()
+			}
+			// if we got here but we didn't pipe a response then we have to send the result to the end
+			if (result && typeof result !== 'boolean') {
+				if (res.closed) {
+					return
+				}
+				for (const header of Object.entries(result.headers ?? {})) {
+					res.setHeader(header[0], header[1])
+				}
+				res.write(await result.text())
+				res.end()
+			}
 		})
 	},
 } as PluginHooks['vite']
+
+// function:
+function getBody(request: Connect.IncomingMessage): Promise<string> {
+	return new Promise((resolve) => {
+		const bodyParts: Uint8Array[] = []
+		let body
+		request
+			.on('data', (chunk: Uint8Array) => {
+				bodyParts.push(chunk)
+			})
+			.on('end', () => {
+				body = Buffer.concat(bodyParts).toString()
+				resolve(body)
+			})
+	})
+}

@@ -2,9 +2,19 @@ import type * as graphql from 'graphql'
 import path from 'node:path'
 
 import type { Config } from '../config'
+import { ConfigFile, localApiEndpoint } from '../types'
 
 export function isSecondaryBuild() {
 	return process.env.HOUDINI_SCHEMA_BUILD === 'true'
+}
+
+export function internalRoutes(config: ConfigFile): string[] {
+	const routes = [localApiEndpoint(config)]
+	if (config.router?.auth && 'redirect' in config.router.auth) {
+		routes.push(config.router.auth.redirect)
+	}
+
+	return routes
 }
 
 export async function buildLocalSchema(config: Config): Promise<void> {
