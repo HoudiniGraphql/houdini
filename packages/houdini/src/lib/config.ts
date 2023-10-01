@@ -347,6 +347,10 @@ export class Config {
 		return path.join(this.definitionsDirectory, 'schema.graphql')
 	}
 
+	get definitionsLocalSchemaPath() {
+		return path.join(this.definitionsDirectory, 'local.schema.graphql')
+	}
+
 	get routerBuildDirectory() {
 		return path.join(this.projectRoot, 'dist', 'assets')
 	}
