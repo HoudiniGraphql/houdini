@@ -50,7 +50,7 @@ export default {
 		}
 		// build up the list of entries that we need vite to bundle
 		if (!isSecondaryBuild() || process.env.HOUDINI_SECONDARY_BUILD === 'ssr') {
-			if (!devServer) {
+			if (env.command === 'build') {
 				conf.base = '/assets'
 			}
 
