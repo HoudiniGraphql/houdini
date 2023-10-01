@@ -198,7 +198,7 @@ jobs:
                 path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
 
             - run: pnpm playwright install
-              if: steps.playwright-cache.outputs.cache-hit != 'true' && matrix.template == 'sveltekit-demo'
+              if: steps.playwright-cache.outputs.cache-hit != 'true' & matrix.template == 'sveltekit-demo'
 
             - name: e2e install
               if: matrix.template == 'sveltekit-demo'
