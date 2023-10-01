@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import * as p from '@clack/prompts'
 import * as graphql from 'graphql'
-import { bold, cyan, gray, green, grey, italic, white } from 'kleur/colors'
+import { bold, cyan, gray, grey, italic, white } from 'kleur/colors'
 import fs, { readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { exit } from 'node:process'
@@ -10,6 +10,8 @@ import { fileURLToPath } from 'node:url'
 // the first argument is the name of the project
 let projectDir = process.argv[2]
 let projectName = projectDir
+let template_cli = process.argv.length >= 3 ? process.argv[3] : undefined
+let schema_cli = process.argv.length >= 4 ? process.argv[4] : undefined
 
 // log the version of create-houdini that this was run with by looking at the packge's package.json
 const { version } = JSON.parse(fs.readFileSync(new URL('package.json', import.meta.url), 'utf-8'))
@@ -78,11 +80,13 @@ if (dirToCreate && !fs.existsSync(projectDir)) {
 	fs.mkdirSync(projectDir)
 }
 
-const template = await p.select({
-	message: 'Which template do you want to use?',
-	initialValue: 'react-typescript',
-	options,
-})
+const template = template_cli
+	? template_cli
+	: await p.select({
+			message: 'Which template do you want to use?',
+			initialValue: 'react-typescript',
+			options,
+	  })
 if (p.isCancel(template)) {
 	process.exit(1)
 }
@@ -95,13 +99,17 @@ if (!templateMeta) {
 
 // ask if the schema is local or remote
 const localSchema =
-	template !== 'sveltekit-demo' &&
-	(await p.confirm({
-		message: 'Is your api going to be defined in this project too?',
-	}))
+	schema_cli === 'local'
+		? true
+		: schema_cli?.startsWith('http:')
+		? false
+		: !templateMeta.apiUrl &&
+		  (await p.confirm({
+				message: 'Is your api going to be defined in this project too?',
+		  }))
 
 // if we have a remote schema then we need to introspect it and write the value
-let apiUrl = templateMeta.apiUrl ?? ''
+let apiUrl = schema_cli?.startsWith('http:') ? schema_cli : templateMeta.apiUrl ?? ''
 if (!localSchema) {
 	let pullSchema_content = ''
 	if (apiUrl === '') {
@@ -153,13 +161,9 @@ copy(
 	['.meta.json']
 )
 
-// if we have a local schema then we have more fiiles to copy
+// if we have a local schema then we have more files to copy
 if (localSchema) {
-	if (template === 'react') {
-		copy(sourcePath('./fragments/localApi'))
-	} else if (template === 'react-typescript') {
-		copy(sourcePath('./fragments/localApi-typescript'))
-	}
+	copy(sourcePath('./fragments/localSchema/' + template))
 }
 
 // If anything goes wrong, we don't want to block the user
