@@ -5,6 +5,6 @@ export const endpoint: string = ''
 export let createServerAdapter: (
 	args: Omit<
 		Parameters<typeof createAdapter>[0],
-		'on_render' | 'manifest' | 'yoga' | 'schema' | 'graphqlEndpoint'
+		'on_render' | 'manifest' | 'yoga' | 'schema' | 'graphqlEndpoint' | 'client'
 	>
 ) => ReturnType<typeof createAdapter>

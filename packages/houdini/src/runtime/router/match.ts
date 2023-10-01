@@ -182,7 +182,7 @@ export function exec(match: RegExpMatchArray, params: RouteParam[]) {
 
 	let buffered = ''
 
-	for (let i = 0; i < params.length; i += 1) {
+	for (let i = 0; i < (params || []).length; i += 1) {
 		const param = params[i]
 		let value = values[i]
 

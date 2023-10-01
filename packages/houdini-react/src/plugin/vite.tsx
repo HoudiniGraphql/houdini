@@ -4,17 +4,18 @@ import {
 	path,
 	fs,
 	load_manifest,
-	routerConventions,
 	isSecondaryBuild,
 	type ProjectManifest,
-	type ServerAdapterFactory,
 	type YogaServer,
-	RouterManifest,
-	find_match,
+	type RouterManifest,
 	localApiEndpoint,
 	loadLocalSchema,
+	routerConventions,
+	find_match,
+	internalRoutes,
 } from 'houdini'
-import type { BuildOptions } from 'vite'
+import React from 'react'
+import { build, type BuildOptions, type Connect } from 'vite'
 
 import { setManifest } from '.'
 import { writeTsconfig } from './codegen/typeRoot'
@@ -33,6 +34,7 @@ import { writeTsconfig } from './codegen/typeRoot'
 // virtual:houdini/artifacts/[name] - An entry for loading an artifact and notifying the artifact cache
 
 let manifest: ProjectManifest
+let devServer: boolean = false
 
 export default {
 	// we want to set up some vite aliases by default
@@ -41,33 +43,51 @@ export default {
 		setManifest(manifest)
 
 		// secondary builds have their own rollup config
-		let rollupConfig: BuildOptions | undefined
+		let conf: { build?: BuildOptions; base?: string } = {
+			build: {
+				rollupOptions: {},
+			},
+		}
 		// build up the list of entries that we need vite to bundle
-		if (!isSecondaryBuild()) {
-			rollupConfig = {
+		if (!isSecondaryBuild() || process.env.HOUDINI_SECONDARY_BUILD === 'ssr') {
+			if (!devServer) {
+				conf.base = '/assets'
+			}
+
+			conf.build = {
 				rollupOptions: {
 					output: {
-						entryFileNames: 'assets/[name].js',
+						assetFileNames: 'assets/[name].js',
+						entryFileNames: '[name].js',
 					},
+					external: ['react-streaming/server'],
 				},
 			}
 
 			await fs.mkdirp(config.compiledAssetsDir)
-			rollupConfig.outDir = config.compiledAssetsDir
-			rollupConfig.rollupOptions!.input = {}
+			conf.build!.rollupOptions!.input = {
+				'entries/app': routerConventions.app_component_path(config),
+				'entries/adapter': routerConventions.adapter_config_path(config),
+			}
 
 			// every page in the manifest is a new entry point for vite
 			for (const [id, page] of Object.entries(manifest.pages)) {
-				rollupConfig.rollupOptions!.input[
+				console.log(page.id, page.queries)
+				conf.build!.rollupOptions!.input[
 					`pages/${id}`
 				] = `virtual:houdini/pages/${page.id}@${page.queries}.jsx`
 			}
 
 			// every artifact asset needs to be bundled individually
 			for (const artifact of manifest.artifacts) {
-				rollupConfig.rollupOptions!.input[
+				conf.build!.rollupOptions!.input[
 					`artifacts/${artifact}`
 				] = `virtual:houdini/artifacts/${artifact}.js`
+			}
+
+			// the SSR build has a different output
+			if (process.env.HOUDINI_SECONDARY_BUILD !== 'ssr') {
+				conf.build!.outDir = config.compiledAssetsDir
 			}
 		}
 
@@ -80,7 +100,7 @@ export default {
 					'~/*': path.join(config.projectRoot, 'src', '*'),
 				},
 			},
-			build: rollupConfig,
+			...conf,
 		}
 	},
 
@@ -96,6 +116,27 @@ export default {
 
 	async buildStart({ houdiniConfig }) {
 		await writeTsconfig(houdiniConfig)
+	},
+
+	async closeBundle(this, config) {
+		// only build in production one
+		if (isSecondaryBuild() || devServer) {
+			return
+		}
+
+		// tell the user what we're doing
+		console.log('🎩 Generating Server Assets...')
+
+		process.env.HOUDINI_SECONDARY_BUILD = 'ssr'
+		// in order to build the server-side of the application, we need to
+		// treat every file as an independent entry point and disable
+		await build({
+			build: {
+				ssr: true,
+				outDir: path.join(config.rootDir, 'build', 'ssr'),
+			},
+		})
+		process.env.HOUDINI_SECONDARY_BUILD = 'false'
 	},
 
 	async load(id, { config }) {
@@ -115,7 +156,6 @@ export default {
 		if (which === 'pages') {
 			const [id, query_names] = arg.split('@')
 			const queries = query_names ? query_names.split(',') : []
-
 			return `
 				import { hydrateRoot } from 'react-dom/client';
 				import App from '$houdini/plugins/houdini-react/units/render/App'
@@ -128,7 +168,6 @@ export default {
 				// if there is pending data (or artifacts) then we should prime the caches
 				let initialData = {}
 				let initialArtifacts = {}
-
 				if (!window.__houdini__cache__) {
 					window.__houdini__cache__ = new Cache()
 					window.__houdini__hydration__layer__ = window.__houdini__cache__._internal_unstable.storage.createLayer(true)
@@ -163,16 +202,24 @@ export default {
 					})
 				}
 
-
-
 				// hydrate the cache with the information from the initial payload
 				window.__houdini__cache__?.hydrate(
 					window.__houdini__initial__cache__,
 					window.__houdini__hydration__layer__
 				)
 
+				// get the initial url from the window
+				const url = window.location.pathname
+
+				const app = <App
+					initialURL={url}
+					cache={window.__houdini__cache__}
+					session={window.__houdini__initial__session__}
+					{...window.__houdini__nav_caches__}
+				/>
+
 				// hydrate the application for interactivity
-				hydrateRoot(document, <App cache={window.__houdini__cache__} session={window.__houdini__initial__session__} {...window.__houdini__nav_caches__} />)
+				hydrateRoot(document, app)
 			`
 		}
 
@@ -197,9 +244,15 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 	// render that we will use in production. This means that we need to
 	// capture the request before vite's dev server processes it.
 	async configureServer(server) {
+		devServer = true
 		await writeTsconfig(server.houdiniConfig)
 
 		server.middlewares.use(async (req, res, next) => {
+			if (!req.url) {
+				next()
+				return
+			}
+
 			// import the router manifest from the runtime
 			// pull in the project's manifest
 			const { default: router_manifest } = (await server.ssrLoadModule(
@@ -209,16 +262,16 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 				)
 			)) as { default: RouterManifest<React.Component> }
 
-			// any requests for things that aren't routes shouldn't be handled
-			try {
-				const [match] = find_match(router_manifest, req.url ?? '/')
-				if (!match) {
-					throw new Error()
-				}
-			} catch {
-				if (req.url !== localApiEndpoint(server.houdiniConfig.configFile)) {
-					return next()
-				}
+			const [match] = find_match(router_manifest, req.url)
+
+			if (
+				!match &&
+				!internalRoutes(server.houdiniConfig.configFile).find((route) =>
+					req.url?.startsWith(route)
+				)
+			) {
+				next()
+				return
 			}
 
 			// its worth loading the project manifest
@@ -229,34 +282,81 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 			if (project_manifest.local_schema) {
 				schema = await loadLocalSchema(server.houdiniConfig)
 			}
-			// import the schema
-			const serverAdapter: (
-				args: Omit<Parameters<ServerAdapterFactory>[0], 'on_render'>
-			) => ReturnType<ServerAdapterFactory> = (
-				await server.ssrLoadModule(
-					routerConventions.server_adapter_path(server.houdiniConfig) +
-						'?t=' +
-						new Date().getTime()
-				)
-			).default
+
+			// import the yoga server
 			let yoga: YogaServer | null = null
 			if (project_manifest.local_yoga) {
-				const yogaPath = path.join(
-					server.houdiniConfig.localApiDir,
-					'+yoga?t=' + new Date().getTime()
-				)
+				const yogaPath = path.join(server.houdiniConfig.localApiDir, '+yoga')
 				yoga = (await server.ssrLoadModule(yogaPath)) as YogaServer
 			}
 
-			// call the adapter with the latest information
-			await serverAdapter({
+			// load the render factory
+			const { createServerAdapter } = (await server.ssrLoadModule(
+				routerConventions.server_adapter_path(server.houdiniConfig)
+			)) as { createServerAdapter: any }
+
+			const requestHeaders = new Headers()
+			for (const header of Object.entries(req.headers ?? {})) {
+				requestHeaders.set(header[0], header[1] as string)
+			}
+
+			// wrap the vite request in a proper on
+			const request = new Request(
+				'https://localhost:5173' + req.url,
+				req.method === 'POST'
+					? {
+							method: req.method,
+							headers: requestHeaders,
+							body: await getBody(req),
+					  }
+					: undefined
+			)
+
+			for (const [key, value] of Object.entries(req.headers)) {
+				request.headers.set(key, value as string)
+			}
+
+			// instantiate the handler and invoke it with a mocked response
+			const result: Response = await createServerAdapter({
 				schema,
 				yoga,
-				assetPrefix: '/virtual:houdini',
 				production: false,
 				manifest: router_manifest,
+				graphqlEndpoint: localApiEndpoint(server.houdiniConfig.configFile),
+				assetPrefix: '/virtual:houdini',
 				pipe: res,
-			})(req, res)
+				documentPremable: `<script type="module" src="/@vite/client" async=""></script>`,
+			})(request)
+			if (result && result.status === 404) {
+				next()
+			}
+			// if we got here but we didn't pipe a response then we have to send the result to the end
+			if (result && typeof result !== 'boolean') {
+				if (res.closed) {
+					return
+				}
+				for (const header of Object.entries(result.headers ?? {})) {
+					res.setHeader(header[0], header[1])
+				}
+				res.write(await result.text())
+				res.end()
+			}
 		})
 	},
 } as PluginHooks['vite']
+
+// function:
+function getBody(request: Connect.IncomingMessage): Promise<string> {
+	return new Promise((resolve) => {
+		const bodyParts: Uint8Array[] = []
+		let body
+		request
+			.on('data', (chunk: Uint8Array) => {
+				bodyParts.push(chunk)
+			})
+			.on('end', () => {
+				body = Buffer.concat(bodyParts).toString()
+				resolve(body)
+			})
+	})
+}
