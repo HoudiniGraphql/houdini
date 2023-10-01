@@ -1545,6 +1545,7 @@ export function defaultComponentField({
 	return (props: any) => {
 		// look up the component in the store
 		const componentFn = cache._internal_unstable.componentCache[component.key]
+
 		// return the instantiated component with the appropriate prop
 		return cache._internal_unstable.createComponent(componentFn, {
 			...props,

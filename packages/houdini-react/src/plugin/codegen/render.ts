@@ -60,7 +60,11 @@ export const on_render =
 		componentCache,
 	}) => {
 		// instanitate a cache we can use for this request
-		const cache = new Cache({ disabled: false, componentCache })
+		const cache = new Cache({
+			disabled: false,
+			componentCache,
+			createComponent: React.createElement
+		})
 
 		if (!match) {
 			return new Response('not found', { status: 404 })
