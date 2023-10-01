@@ -14,14 +14,10 @@ export async function generate_renders({
 	config: Config
 	manifest: ProjectManifest
 }) {
+	const adapter_path = routerConventions.server_adapter_path(config)
+
 	// make sure the necessary directories exist
 	await fs.mkdirp(path.dirname(routerConventions.server_adapter_path(config)))
-
-	const vite_render = `
-import { renderToStream as render }  from 'react-streaming/server'
-
-export const renderToStream = render
-`
 
 	const app_index = `
 import { Router } from '$houdini/plugins/houdini-react/runtime'
@@ -47,7 +43,8 @@ import { router_cache } from '../../runtime/routing'
 // @ts-expect-error
 import client from '../../../../../src/+client'
 // @ts-expect-error
-import App from './App'
+import App from "./App"
+import router_manifest from '$houdini/plugins/houdini-react/manifest'
 
 export const on_render =
 	({ assetPrefix, pipe, production, documentPremable }) =>
@@ -106,27 +103,20 @@ export const on_render =
 		}
 	}
 
-export function reactServerHandler(options) {
-	return _serverHandler({
-		...options,
-		client,
-		on_render: on_render({ assetPrefix: options.assetPrefix, pipe: options.pipe, documentPremable: options.documentPremable }),
-	})
-}
-
-export default function createServerAdapter(options) {
+export function createServerAdapter(options) {
 	return serverAdapterFactory({
 		client,
 		production: true,
+		manifest: router_manifest,
+		on_render: on_render({ assetPrefix: options.assetPrefix, pipe: options.pipe, documentPremable: options.documentPremable }),
 		...options,
-		on_render: on_render({ assetPrefix: options.assetPrefix }),
 	})
 }
 `
 
 	// and a file that adapters can import to get the local configuration
 	let adapter_config = `
-		import createAdapter from './server'
+		import { createServerAdapter as createAdapter } from './server'
 
 		export const endpoint = ${JSON.stringify(localApiEndpoint(config.configFile))}
 
@@ -150,8 +140,7 @@ export default function createServerAdapter(options) {
 
 	await Promise.all([
 		fs.writeFile(routerConventions.adapter_config_path(config), adapter_config),
-		fs.writeFile(routerConventions.server_adapter_path(config), renderer),
+		fs.writeFile(adapter_path, renderer),
 		fs.writeFile(routerConventions.app_component_path(config), app_index),
-		fs.writeFile(routerConventions.vite_render_path(config), vite_render),
 	])
 }

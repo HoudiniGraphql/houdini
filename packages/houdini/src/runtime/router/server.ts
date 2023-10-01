@@ -5,7 +5,7 @@ import { createYoga } from 'graphql-yoga'
 // @ts-ignore
 import type { HoudiniClient } from '../client'
 // @ts-ignore
-import { localApiSessionKeys, localApiEndpoint, getCurrentConfig, ConfigFile } from '../lib/config'
+import { localApiSessionKeys, localApiEndpoint, getCurrentConfig } from '../lib/config'
 import { find_match } from './match'
 // @ts-ignore
 import { get_session, handle_request } from './session'

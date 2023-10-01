@@ -81,16 +81,16 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		// we use this to generate the final assets needed for a production build of the server.
 		// this is only called when bundling (ie, not in dev mode)
 		async closeBundle() {
-			if (isSecondaryBuild() || viteEnv.mode !== 'production') {
-				return
-			}
-
 			for (const plugin of config.plugins) {
 				if (typeof plugin.vite?.closeBundle !== 'function') {
 					continue
 				}
 
 				await plugin.vite!.closeBundle.call(this)
+			}
+
+			if (isSecondaryBuild() || viteEnv.mode !== 'production') {
+				return
 			}
 
 			// if we dont' have an adapter, we don't need to do anything
@@ -121,7 +121,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				publicBase: viteConfig.base,
 				outDir: config.routerBuildDirectory,
 				manifest,
-				adapterPath: '../$houdini/plugins/houdini-react/units/render/server.js',
+				adapterPath: './entry/app',
 			})
 
 			// if there is a public directory at the root of the project,

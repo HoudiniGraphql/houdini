@@ -68,45 +68,13 @@
             "types": "./build/adapter/index.d.ts",
             "import": "./build/adapter-esm/index.js",
             "require": "./build/adapter-cjs/index.js"
-        },
-        "./codegen": {
-            "types": "./build/codegen/index.d.ts",
-            "import": "./build/codegen-esm/index.js",
-            "require": "./build/codegen-cjs/index.js"
-        },
-        ".": {
-            "types": "./build/lib/index.d.ts",
-            "import": "./build/lib-esm/index.js",
-            "require": "./build/lib-cjs/index.js"
-        },
-        "./test": {
-            "types": "./build/test/index.d.ts",
-            "import": "./build/test-esm/index.js",
-            "require": "./build/test-cjs/index.js"
-        },
-        "./vite": {
-            "types": "./build/vite/index.d.ts",
-            "import": "./build/vite-esm/index.js",
-            "require": "./build/vite-cjs/index.js"
         }
     },
     "typesVersions": {
         "*": {
             "adapter": [
                 "build/adapter/index.d.ts"
-            ],
-            "codegen": [
-                "build/codegen/index.d.ts"
-            ],
-            "test": [
-                "build/test/index.d.ts"
-            ],
-            "vite": [
-                "build/vite/index.d.ts"
             ]
         }
-    },
-    "bin": "./build/cmd-esm/index.js",
-    "main": "./build/lib-cjs/index.js",
-    "types": "./build/lib/index.d.ts"
+    }
 }

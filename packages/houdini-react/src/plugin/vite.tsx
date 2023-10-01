@@ -42,31 +42,39 @@ export default {
 		setManifest(manifest)
 
 		// secondary builds have their own rollup config
-		let rollupConfig: BuildOptions | undefined
+		let conf: { build?: BuildOptions } = {
+			build: {
+				rollupOptions: {},
+			},
+		}
 		// build up the list of entries that we need vite to bundle
 		if (!isSecondaryBuild()) {
-			rollupConfig = {
+			conf.build = {
 				rollupOptions: {
 					output: {
-						entryFileNames: 'assets/[name].js',
+						assetFileNames: 'assets/[name].js',
+						entryFileNames: '[name].js',
 					},
+					external: ['react-streaming/server'],
 				},
 			}
 
 			await fs.mkdirp(config.compiledAssetsDir)
-			rollupConfig.outDir = config.compiledAssetsDir
-			rollupConfig.rollupOptions!.input = {}
+			conf.build!.outDir = config.compiledAssetsDir
+			conf.build!.rollupOptions!.input = {
+				'entry/app': routerConventions.app_component_path(config),
+			}
 
 			// every page in the manifest is a new entry point for vite
 			for (const [id, page] of Object.entries(manifest.pages)) {
-				rollupConfig.rollupOptions!.input[
+				conf.build!.rollupOptions!.input[
 					`pages/${id}`
 				] = `virtual:houdini/pages/${page.id}@${page.queries}.jsx`
 			}
 
 			// every artifact asset needs to be bundled individually
 			for (const artifact of manifest.artifacts) {
-				rollupConfig.rollupOptions!.input[
+				conf.build!.rollupOptions!.input[
 					`artifacts/${artifact}`
 				] = `virtual:houdini/artifacts/${artifact}.js`
 			}
@@ -81,7 +89,7 @@ export default {
 					'~/*': path.join(config.projectRoot, 'src', '*'),
 				},
 			},
-			build: rollupConfig,
+			...conf,
 		}
 	},
 
@@ -245,11 +253,11 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 			}
 
 			// load the render factory
-			const { reactServerHandler: serverHandler } = (await server.ssrLoadModule(
+			const { createServerAdapter } = (await server.ssrLoadModule(
 				routerConventions.server_adapter_path(server.houdiniConfig) +
 					'?t=' +
 					new Date().getTime()
-			)) as { reactServerHandler: any }
+			)) as { createServerAdapter: any }
 
 			const requestHeaders = new Headers()
 			for (const header of Object.entries(req.headers ?? {})) {
@@ -273,7 +281,7 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 			}
 
 			// instantiate the handler and invoke it with a mocked response
-			const result: Response = await serverHandler({
+			const result: Response = await createServerAdapter({
 				schema,
 				yoga,
 				production: false,
