@@ -86,7 +86,7 @@ export const on_render =
 			window.__houdini__initial__session__ = \${JSON.stringify(session)};
 		</script>
 
-		\${documentPremable}
+		\${documentPremable ?? ''}
 
 		<!--
 			add a virtual module that hydrates the client and sets up the initial pending cache.
@@ -108,7 +108,7 @@ export function createServerAdapter(options) {
 		client,
 		production: true,
 		manifest: router_manifest,
-		on_render: on_render({ assetPrefix: options.assetPrefix, pipe: options.pipe, documentPremable: options.documentPremable }),
+		on_render: on_render(options),
 		...options,
 	})
 }

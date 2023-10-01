@@ -5,7 +5,7 @@ import type { Config } from '../config'
 import { ConfigFile, localApiEndpoint } from '../types'
 
 export function isSecondaryBuild() {
-	return process.env.HOUDINI_SCHEMA_BUILD === 'true'
+	return process.env.HOUDINI_SECONDARY_BUILD && process.env.HOUDINI_SECONDARY_BUILD !== 'false'
 }
 
 export function internalRoutes(config: ConfigFile): string[] {
@@ -21,7 +21,7 @@ export async function buildLocalSchema(config: Config): Promise<void> {
 	// load the current version of vite
 	const { build } = await import('vite')
 
-	process.env.HOUDINI_SCHEMA_BUILD = 'true'
+	process.env.HOUDINI_SECONDARY_BUILD = 'true'
 
 	// build the schema somewhere we can import from
 	await build({
@@ -46,7 +46,7 @@ export async function buildLocalSchema(config: Config): Promise<void> {
 		},
 	})
 
-	process.env.HOUDINI_SCHEMA_BUILD = 'false'
+	process.env.HOUDINI_SECONDARY_BUILD = 'false'
 }
 
 export async function loadLocalSchema(config: Config): Promise<graphql.GraphQLSchema> {

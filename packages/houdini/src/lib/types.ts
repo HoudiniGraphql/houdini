@@ -293,7 +293,7 @@ export type PluginHooks = {
 			houdiniConfig?: Config
 		) => void | Promise<void>
 
-		closeBundle?: (this: PluginContext) => void | Promise<void>
+		closeBundle?: (this: PluginContext, config: Config) => void | Promise<void>
 
 		configResolved?: ObjectHook<(this: void, config: ResolvedConfig) => void | Promise<void>>
 

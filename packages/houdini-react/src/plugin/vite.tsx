@@ -15,7 +15,7 @@ import {
 	internalRoutes,
 } from 'houdini'
 import React from 'react'
-import type { BuildOptions, Connect } from 'vite'
+import { build, type BuildOptions, type Connect } from 'vite'
 
 import { setManifest } from '.'
 import { writeTsconfig } from './codegen/typeRoot'
@@ -34,6 +34,7 @@ import { writeTsconfig } from './codegen/typeRoot'
 // virtual:houdini/artifacts/[name] - An entry for loading an artifact and notifying the artifact cache
 
 let manifest: ProjectManifest
+let devServer: boolean = false
 
 export default {
 	// we want to set up some vite aliases by default
@@ -42,13 +43,17 @@ export default {
 		setManifest(manifest)
 
 		// secondary builds have their own rollup config
-		let conf: { build?: BuildOptions } = {
+		let conf: { build?: BuildOptions; base?: string } = {
 			build: {
 				rollupOptions: {},
 			},
 		}
 		// build up the list of entries that we need vite to bundle
-		if (!isSecondaryBuild()) {
+		if (!isSecondaryBuild() || process.env.HOUDINI_SECONDARY_BUILD === 'ssr') {
+			if (!devServer) {
+				conf.base = '/assets'
+			}
+
 			conf.build = {
 				rollupOptions: {
 					output: {
@@ -60,9 +65,9 @@ export default {
 			}
 
 			await fs.mkdirp(config.compiledAssetsDir)
-			conf.build!.outDir = config.compiledAssetsDir
 			conf.build!.rollupOptions!.input = {
-				'entry/app': routerConventions.app_component_path(config),
+				'entries/app': routerConventions.app_component_path(config),
+				'entries/adapter': routerConventions.adapter_config_path(config),
 			}
 
 			// every page in the manifest is a new entry point for vite
@@ -77,6 +82,11 @@ export default {
 				conf.build!.rollupOptions!.input[
 					`artifacts/${artifact}`
 				] = `virtual:houdini/artifacts/${artifact}.js`
+			}
+
+			// the SSR build has a different output
+			if (process.env.HOUDINI_SECONDARY_BUILD !== 'ssr') {
+				conf.build!.outDir = config.compiledAssetsDir
 			}
 		}
 
@@ -105,6 +115,27 @@ export default {
 
 	async buildStart({ houdiniConfig }) {
 		await writeTsconfig(houdiniConfig)
+	},
+
+	async closeBundle(this, config) {
+		// only build in production one
+		if (isSecondaryBuild() || devServer) {
+			return
+		}
+
+		// tell the user what we're doing
+		console.log('🎩 Generating Server Assets...')
+
+		process.env.HOUDINI_SECONDARY_BUILD = 'ssr'
+		// in order to build the server-side of the application, we need to
+		// treat every file as an independent entry point and disable
+		await build({
+			build: {
+				ssr: true,
+				outDir: path.join(config.rootDir, 'build', 'ssr'),
+			},
+		})
+		process.env.HOUDINI_SECONDARY_BUILD = 'false'
 	},
 
 	async load(id, { config }) {
@@ -204,6 +235,7 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 	// render that we will use in production. This means that we need to
 	// capture the request before vite's dev server processes it.
 	async configureServer(server) {
+		devServer = true
 		await writeTsconfig(server.houdiniConfig)
 
 		server.middlewares.use(async (req, res, next) => {
@@ -245,18 +277,13 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 			// import the yoga server
 			let yoga: YogaServer | null = null
 			if (project_manifest.local_yoga) {
-				const yogaPath = path.join(
-					server.houdiniConfig.localApiDir,
-					'+yoga?t=' + new Date().getTime()
-				)
+				const yogaPath = path.join(server.houdiniConfig.localApiDir, '+yoga')
 				yoga = (await server.ssrLoadModule(yogaPath)) as YogaServer
 			}
 
 			// load the render factory
 			const { createServerAdapter } = (await server.ssrLoadModule(
-				routerConventions.server_adapter_path(server.houdiniConfig) +
-					'?t=' +
-					new Date().getTime()
+				routerConventions.server_adapter_path(server.houdiniConfig)
 			)) as { createServerAdapter: any }
 
 			const requestHeaders = new Headers()

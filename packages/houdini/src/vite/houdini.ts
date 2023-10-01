@@ -86,15 +86,19 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 					continue
 				}
 
-				await plugin.vite!.closeBundle.call(this)
+				await plugin.vite!.closeBundle.call(this, config)
 			}
 
-			if (isSecondaryBuild() || viteEnv.mode !== 'production') {
+			if (isSecondaryBuild() || viteEnv.mode !== 'production' || devServer) {
 				return
 			}
 
 			// if we dont' have an adapter, we don't need to do anything
-			if (!opts.adapter || devServer) {
+			if (!opts.adapter) {
+				console.log(
+					'You do not have an adapter configured. Please configure on in order to produce your assets'
+				)
+
 				return
 			}
 
@@ -121,7 +125,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				publicBase: viteConfig.base,
 				outDir: config.routerBuildDirectory,
 				manifest,
-				adapterPath: './entry/app',
+				adapterPath: './ssr/entries/adapter',
 			})
 
 			// if there is a public directory at the root of the project,
@@ -149,9 +153,9 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			}
 
 			// we need to generate the runtime if we are building in production
-			if (viteEnv.mode === 'production' && !isSecondaryBuild()) {
+			if (!devServer && !isSecondaryBuild()) {
 				// make sure we have an up-to-date schema
-				if (config.localSchema) {
+				if (config.localSchema && !config.schema) {
 					config.schema = await loadLocalSchema(config)
 				}
 
@@ -198,7 +202,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			}
 
 			// if there is a local schema we need to use that when generating
-			if (config.localSchema) {
+			if (config.localSchema && !config.schema) {
 				config.schema = await loadLocalSchema(config)
 			}
 
