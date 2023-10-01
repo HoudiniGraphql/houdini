@@ -98,15 +98,15 @@ if (!templateMeta) {
 }
 
 // ask if the schema is local or remote
-const localSchema =
-	schema_cli === 'local'
-		? true
-		: schema_cli?.startsWith('http:')
-		? false
-		: !templateMeta.apiUrl &&
-		  (await p.confirm({
-				message: 'Is your api going to be defined in this project too?',
-		  }))
+const localSchema = templateMeta.apiUrl
+	? false
+	: schema_cli === 'local'
+	? true
+	: schema_cli?.startsWith('http:')
+	? false
+	: await p.confirm({
+			message: 'Is your api going to be defined in this project too?',
+	  })
 
 // if we have a remote schema then we need to introspect it and write the value
 let apiUrl = schema_cli?.startsWith('http:') ? schema_cli : templateMeta.apiUrl ?? ''
