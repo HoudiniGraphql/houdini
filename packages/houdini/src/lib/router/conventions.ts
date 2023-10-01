@@ -18,6 +18,10 @@ export function adapter_config_path(config: Config, base?: string) {
 	return path.join(units_dir(config, base), 'render', 'config.js')
 }
 
+export function vite_render_path(config: Config, base?: string) {
+	return path.join(units_dir(config, base), 'render', 'vite.js')
+}
+
 export function app_component_path(config: Config, base?: string) {
 	return path.join(units_dir(config, base), 'render', 'App.jsx')
 }

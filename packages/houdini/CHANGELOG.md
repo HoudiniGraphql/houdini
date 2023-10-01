@@ -1,16 +1,28 @@
 # houdini
 
+## 1.2.23
+
+## 1.2.22
+
+### 🐛 Fixes
+
+-   [#1193](https://github.com/HoudiniGraphql/houdini/pull/1193) [`c0fef15f`](https://github.com/HoudiniGraphql/houdini/commit/c0fef15f892d7398f2cae3deac82f0801d04e3bb) @AlecAivazis- Fix bug causing prev and next keys to be dropped from artifact
+
+## 1.2.21
+
+### 🐛 Fixes
+
+-   [#1190](https://github.com/HoudiniGraphql/houdini/pull/1190) [`2cc489dd`](https://github.com/HoudiniGraphql/houdini/commit/2cc489dd266e5670cc54975b3720498b3fffbe50) @AlecAivazis- Few random deployment fixes
+
+## 1.2.20
+
 ## 1.2.19
-
-### Patch Changes
-
--   [`65c703c6`](https://github.com/HoudiniGraphql/houdini/commit/65c703c6c97e3ae4cdc8c676594a36f40ac70844) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix invalid package.json config for create-houdini
 
 ## 1.2.18
 
 ### Patch Changes
 
--   [`7f6432a6`](https://github.com/HoudiniGraphql/houdini/commit/7f6432a6be5bd7bb7831f21ebe134698f1e2f072) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Get all packages at same version
+-   [`7f6432a6`](https://github.com/HoudiniGraphql/houdini/commit/7f6432a6be5bd7bb7831f21ebe134698f1e2f072) @AlecAivazis - Get all packages at same version
 
 ## 1.2.17
 

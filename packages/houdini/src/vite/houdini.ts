@@ -18,6 +18,7 @@ import {
 let config: Config
 let viteConfig: ResolvedConfig
 let viteEnv: ConfigEnv
+let devServer = false
 
 export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 	return {
@@ -80,16 +81,16 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		// we use this to generate the final assets needed for a production build of the server.
 		// this is only called when bundling (ie, not in dev mode)
 		async closeBundle() {
-			if (isSecondaryBuild() || viteEnv.mode !== 'production') {
-				return
-			}
-
 			for (const plugin of config.plugins) {
 				if (typeof plugin.vite?.closeBundle !== 'function') {
 					continue
 				}
 
-				await plugin.vite!.closeBundle.call(this)
+				await plugin.vite!.closeBundle.call(this, config)
+			}
+
+			if (isSecondaryBuild() || viteEnv.mode !== 'production' || devServer) {
+				return
 			}
 
 			// if we dont' have an adapter, we don't need to do anything
@@ -120,8 +121,17 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				publicBase: viteConfig.base,
 				outDir: config.routerBuildDirectory,
 				manifest,
-				adapterPath: '../$houdini/plugins/houdini-react/units/render/config.js',
+				adapterPath: './assets/ssr/entries/adapter',
 			})
+
+			// if there is a public directory at the root of the project,
+			if (fs.existsSync(path.join(config.projectRoot, 'public'))) {
+				// copy the contents of the directory into the build directory
+				await fs.recursiveCopy(
+					path.join(config.projectRoot, 'public'),
+					viteConfig.build.outDir
+				)
+			}
 		},
 
 		// when the build starts, we need to make sure to generate
@@ -139,9 +149,9 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			}
 
 			// we need to generate the runtime if we are building in production
-			if (viteEnv.mode === 'production' && !isSecondaryBuild()) {
+			if (!devServer && !isSecondaryBuild()) {
 				// make sure we have an up-to-date schema
-				if (config.localSchema) {
+				if (config.localSchema && !config.schema) {
 					config.schema = await loadLocalSchema(config)
 				}
 
@@ -174,6 +184,8 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		},
 
 		async configureServer(server) {
+			devServer = true
+
 			for (const plugin of config.plugins) {
 				if (typeof plugin.vite?.configureServer !== 'function') {
 					continue
@@ -186,7 +198,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			}
 
 			// if there is a local schema we need to use that when generating
-			if (config.localSchema) {
+			if (config.localSchema && !config.schema) {
 				config.schema = await loadLocalSchema(config)
 			}
 

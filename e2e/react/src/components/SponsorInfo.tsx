@@ -1,4 +1,4 @@
-import { graphql, useFragment, type SponsorInfo } from '$houdini'
+import { graphql, type SponsorInfo, useFragment } from '$houdini'
 
 type Props = {
 	sponsor: SponsorInfo
