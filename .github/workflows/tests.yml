@@ -185,25 +185,25 @@ jobs:
             - name: Create template
               run: cd packages/create-houdini && pnpm dev test-${{ matrix.template }} ${{ matrix.template }} local
 
-            - run: |
-                echo "PLAYWRIGHT_VERSION=$(node -e "process.stdout.write(require('@playwright/test/package.json').version)")" >> $GITHUB_OUTPUT
-              id: playwright-version
+            # - run: |
+            #     echo "PLAYWRIGHT_VERSION=$(node -e "process.stdout.write(require('@playwright/test/package.json').version)")" >> $GITHUB_OUTPUT
+            #   id: playwright-version
 
-            - uses: actions/cache@v3
-              id: playwright-cache
-              with:
-                key: ubuntu-latest-playwright-${{ steps.playwright-version.outputs.PLAYWRIGHT_VERSION }}
-                path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
+            # - uses: actions/cache@v3
+            #   id: playwright-cache
+            #   with:
+            #     key: ubuntu-latest-playwright-${{ steps.playwright-version.outputs.PLAYWRIGHT_VERSION }}
+            #     path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
 
-            - run: pnpm playwright install
+            - run: npx playwright install
               if: steps.playwright-cache.outputs.cache-hit != 'true'
 
             - name: e2e install
-              run: cd packages/create-houdini/test-${{ matrix.template }} && pnpm i
+              run: cd packages/create-houdini/test-${{ matrix.template }} && npm i
 
             - name: e2e tests
               if: matrix.template == 'sveltekit-demo'
-              run: cd packages/create-houdini/test-${{ matrix.template }} && pnpm run test:integration
+              run: cd packages/create-houdini/test-${{ matrix.template }} && npm run test:integration
 
     e2e_tests:
         name: End-to-End Tests
