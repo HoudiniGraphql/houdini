@@ -1,0 +1,19 @@
+{
+	"mode": "pre",
+	"tag": "next",
+	"initialVersions": {
+		"e2e-api": "0.0.1",
+		"e2e-kit": "0.0.1",
+		"e2e-router": "0.0.0",
+		"e2e-svelte": "0.0.1",
+		"scripts": "1.0.0",
+		"create-houdini": "1.2.22",
+		"houdini": "1.2.22",
+		"houdini-adapter-cloudflare": "1.2.22",
+		"houdini-plugin-svelte-global-stores": "1.2.22",
+		"houdini-react": "1.2.22",
+		"houdini-svelte": "1.2.22",
+		"site": "0.0.1"
+	},
+	"changesets": []
+}
