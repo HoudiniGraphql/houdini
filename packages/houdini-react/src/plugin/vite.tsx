@@ -72,7 +72,6 @@ export default {
 
 			// every page in the manifest is a new entry point for vite
 			for (const [id, page] of Object.entries(manifest.pages)) {
-				console.log(page.id, page.queries)
 				conf.build!.rollupOptions!.input[
 					`pages/${id}`
 				] = `virtual:houdini/pages/${page.id}@${page.queries}.jsx`
