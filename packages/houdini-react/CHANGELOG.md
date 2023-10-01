@@ -1,5 +1,14 @@
 # houdini-react
 
+## 1.2.23
+
+### Patch Changes
+
+-   [#1196](https://github.com/HoudiniGraphql/houdini/pull/1196) [`a967765f`](https://github.com/HoudiniGraphql/houdini/commit/a967765f954a65376dbd2fc331c891be76878936) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix hot module reloading
+
+-   Updated dependencies []:
+    -   houdini@1.2.23
+
 ## 1.2.23-next.0
 
 ### Patch Changes
