@@ -1,6 +1,6 @@
 {
     "name": "houdini-react",
-    "version": "1.2.24",
+    "version": "1.2.25",
     "description": "The React plugin for houdini",
     "keywords": [
         "typescript",
