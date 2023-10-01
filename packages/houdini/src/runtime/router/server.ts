@@ -6,7 +6,7 @@ import type { HoudiniClient } from '../client'
 import { localApiSessionKeys, localApiEndpoint, getCurrentConfig } from '../lib/config'
 import { find_match } from './match'
 import { get_session, handle_request } from './session'
-import type { RouterPageManifest, YogaServerOptions } from './types'
+import type { RouterManifest, RouterPageManifest, YogaServerOptions } from './types'
 
 // load the plugin config
 const config_file = getCurrentConfig()
