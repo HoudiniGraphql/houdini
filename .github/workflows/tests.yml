@@ -199,11 +199,11 @@ jobs:
               if: steps.playwright-cache.outputs.cache-hit != 'true'
 
             - name: e2e install
-              run: cd packages/create-houdini/test-${{ matrix.template }} && npm i
+              run: cd packages/create-houdini/test-${{ matrix.template }} && pnpm i
 
             - name: e2e tests
               if: matrix.template == 'sveltekit-demo'
-              run: cd packages/create-houdini/test-${{ matrix.template }} && npm run test:integration
+              run: cd packages/create-houdini/test-${{ matrix.template }} && pnpm run test:integration
 
     e2e_tests:
         name: End-to-End Tests
