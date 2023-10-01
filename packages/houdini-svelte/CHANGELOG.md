@@ -2,7 +2,7 @@
 
 ## 1.2.23
 
-### Patch Changes
+### Dependency Changes
 
 -   Updated dependencies []:
     -   houdini@1.2.23
