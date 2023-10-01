@@ -261,37 +261,9 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 				)
 			)) as { default: RouterManifest<React.Component> }
 
-			const [match] = find_match(router_manifest, req.url)
-
-			if (
-				!match &&
-				!internalRoutes(server.houdiniConfig.configFile).find((route) =>
-					req.url?.startsWith(route)
-				)
-			) {
-				next()
-				return
-			}
-
-			// its worth loading the project manifest
-			const project_manifest = await load_manifest({ config: server.houdiniConfig })
-
-			// import the schema
-			let schema: GraphQLSchema | null = null
-			if (project_manifest.local_schema) {
-				schema = await loadLocalSchema(server.houdiniConfig)
-			}
-
-			// import the yoga server
-			let yoga: YogaServer | null = null
-			if (project_manifest.local_yoga) {
-				const yogaPath = path.join(server.houdiniConfig.localApiDir, '+yoga')
-				yoga = (await server.ssrLoadModule(yogaPath)) as YogaServer
-			}
-
 			// load the render factory
 			const { createServerAdapter } = (await server.ssrLoadModule(
-				routerConventions.server_adapter_path(server.houdiniConfig)
+				routerConventions.adapter_config_path(server.houdiniConfig)
 			)) as { createServerAdapter: any }
 
 			const requestHeaders = new Headers()
@@ -317,17 +289,14 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 
 			// instantiate the handler and invoke it with a mocked response
 			const result: Response = await createServerAdapter({
-				schema,
-				yoga,
 				production: false,
 				manifest: router_manifest,
-				graphqlEndpoint: localApiEndpoint(server.houdiniConfig.configFile),
 				assetPrefix: '/virtual:houdini',
 				pipe: res,
 				documentPremable: `<script type="module" src="/@vite/client" async=""></script>`,
 			})(request)
 			if (result && result.status === 404) {
-				next()
+				return next()
 			}
 			// if we got here but we didn't pipe a response then we have to send the result to the end
 			if (result && typeof result !== 'boolean') {
