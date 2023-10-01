@@ -195,7 +195,7 @@ jobs:
             #     key: ubuntu-latest-playwright-${{ steps.playwright-version.outputs.PLAYWRIGHT_VERSION }}
             #     path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
 
-            - run: cd packages/create-houdini/test-${{ matrix.template }} && npx playwright install@1.30.0
+            - run: cd packages/create-houdini/test-${{ matrix.template }} && npx playwright install
               # if: steps.playwright-cache.outputs.cache-hit != 'true'
 
             - name: e2e install
