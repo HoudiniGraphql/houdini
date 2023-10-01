@@ -95,10 +95,6 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 
 			// if we dont' have an adapter, we don't need to do anything
 			if (!opts.adapter) {
-				console.log(
-					'You do not have an adapter configured. Please configure on in order to produce your assets'
-				)
-
 				return
 			}
 
@@ -125,7 +121,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				publicBase: viteConfig.base,
 				outDir: config.routerBuildDirectory,
 				manifest,
-				adapterPath: './ssr/entries/adapter',
+				adapterPath: './assets/ssr/entries/adapter',
 			})
 
 			// if there is a public directory at the root of the project,
