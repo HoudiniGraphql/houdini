@@ -2,10 +2,9 @@ import { createServerAdapter as createAdapter } from '@whatwg-node/server'
 import { type GraphQLSchema, parse, execute } from 'graphql'
 import { createYoga } from 'graphql-yoga'
 
-import type { ProjectManifest, RouterManifest } from '../'
 import type { HoudiniClient } from '../client'
 import { localApiSessionKeys, localApiEndpoint, getCurrentConfig } from '../lib/config'
-import { find_match, parse_page_pattern } from './match'
+import { find_match } from './match'
 import { get_session, handle_request } from './session'
 import type { RouterPageManifest, YogaServerOptions } from './types'
 

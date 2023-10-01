@@ -2,7 +2,7 @@ import type * as graphql from 'graphql'
 import path from 'node:path'
 
 import type { Config } from '../config'
-import { ConfigFile, localApiEndpoint } from '../types'
+import { type ConfigFile, localApiEndpoint } from '../types'
 
 export function isSecondaryBuild() {
 	return process.env.HOUDINI_SECONDARY_BUILD && process.env.HOUDINI_SECONDARY_BUILD !== 'false'
