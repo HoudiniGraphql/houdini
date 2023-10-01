@@ -44,7 +44,7 @@ import { router_cache } from '../../runtime/routing'
 import client from '../../../../../src/+client'
 // @ts-expect-error
 import App from "./App"
-import router_manifest from '$houdini/plugins/houdini-react/manifest'
+import router_manifest from '$houdini/plugins/houdini-react/runtime/manifest'
 
 export const on_render =
 	({ assetPrefix, pipe, production, documentPremable }) =>

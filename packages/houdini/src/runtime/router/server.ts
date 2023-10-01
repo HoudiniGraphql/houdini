@@ -2,14 +2,12 @@ import { createServerAdapter as createAdapter } from '@whatwg-node/server'
 import { type GraphQLSchema, parse, execute } from 'graphql'
 import { createYoga } from 'graphql-yoga'
 
-// @ts-ignore
+import type { ProjectManifest, RouterManifest } from '../'
 import type { HoudiniClient } from '../client'
-// @ts-ignore
 import { localApiSessionKeys, localApiEndpoint, getCurrentConfig } from '../lib/config'
-import { find_match } from './match'
-// @ts-ignore
+import { find_match, parse_page_pattern } from './match'
 import { get_session, handle_request } from './session'
-import type { RouterManifest, RouterPageManifest, YogaServerOptions } from './types'
+import type { RouterPageManifest, YogaServerOptions } from './types'
 
 // load the plugin config
 const config_file = getCurrentConfig()
@@ -34,7 +32,7 @@ export function _serverHandler<ComponentType = unknown>({
 	on_render: (args: {
 		url: string
 		match: RouterPageManifest<ComponentType> | null
-		manifest: RouterManifest<ComponentType>
+		manifest: RouterManifest<unknown>
 		session: App.Session
 	}) => Response | Promise<Response | undefined> | undefined
 } & Omit<YogaServerOptions, 'schema'>) {

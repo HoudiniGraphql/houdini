@@ -1,6 +1,7 @@
 import { test, expect, describe } from 'vitest'
 
-import { exec, parse_page_pattern } from './match'
+import { exec, find_match, parse_page_pattern } from './match'
+import { RouterManifest } from './types'
 
 describe('route_params', () => {
 	const testCases = [
@@ -103,4 +104,42 @@ describe('route_params', () => {
 			expect(exec(url.match(result.pattern)!, result.params)).toEqual(expected.variables)
 		})
 	})
+})
+
+describe('find_match parse and match', async function () {
+	// every test case needs to be an collection of urls and the expected match
+	const table = [
+		{
+			name: 'root match is last',
+			urls: ['/foo', '/'],
+			expected: '/foo',
+		},
+	]
+
+	for (const { name, urls, expected } of table) {
+		test(name, async function () {
+			// build up the list of patterns
+			const patterns = urls.map((url) => parse_page_pattern(url))
+
+			// wrap the patterns in a mocked manifest
+			const manifest: RouterManifest<any> = {
+				pages: patterns.reduce(
+					(pages, pattern) => ({
+						...pages,
+						[pattern.page_id]: {
+							id: pattern.page_id,
+							pattern: pattern.pattern,
+							// the params used to execute the pattern and extract the variables
+							params: pattern.params,
+						},
+					}),
+					{}
+				),
+			}
+
+			// find the match
+			const [match] = find_match(manifest, expected)
+			expect(match?.id).toEqual(expected)
+		})
+	}
 })

@@ -72,6 +72,7 @@ export default {
 
 			// every page in the manifest is a new entry point for vite
 			for (const [id, page] of Object.entries(manifest.pages)) {
+				console.log(page.id, page.queries)
 				conf.build!.rollupOptions!.input[
 					`pages/${id}`
 				] = `virtual:houdini/pages/${page.id}@${page.queries}.jsx`
@@ -155,7 +156,7 @@ export default {
 		if (which === 'pages') {
 			const [id, query_names] = arg.split('@')
 			const queries = query_names ? query_names.split(',') : []
-
+			console.log({ queries })
 			return `
 				import { hydrateRoot } from 'react-dom/client';
 				import App from '$houdini/plugins/houdini-react/units/render/App'
@@ -168,7 +169,7 @@ export default {
 				// if there is pending data (or artifacts) then we should prime the caches
 				let initialData = {}
 				let initialArtifacts = {}
-
+				console.log(${JSON.stringify(queries)})
 				if (!window.__houdini__cache__) {
 					window.__houdini__cache__ = new Cache()
 					window.__houdini__hydration__layer__ = window.__houdini__cache__._internal_unstable.storage.createLayer(true)
@@ -209,8 +210,18 @@ export default {
 					window.__houdini__hydration__layer__
 				)
 
+				// get the initial url from the window
+				const url = window.location.pathname
+
+				const app = <App
+					initialURL={url}
+					cache={window.__houdini__cache__}
+					session={window.__houdini__initial__session__}
+					{...window.__houdini__nav_caches__}
+				/>
+
 				// hydrate the application for interactivity
-				hydrateRoot(document, <App cache={window.__houdini__cache__} session={window.__houdini__initial__session__} {...window.__houdini__nav_caches__} />)
+				hydrateRoot(document, app)
 			`
 		}
 
