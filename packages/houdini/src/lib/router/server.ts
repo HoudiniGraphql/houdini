@@ -2,7 +2,7 @@ import type * as graphql from 'graphql'
 import path from 'node:path'
 
 import type { Config } from '../config'
-import { type ConfigFile, localApiEndpoint } from '../types'
+import { localApiEndpoint, type ConfigFile } from '../types'
 
 export function isSecondaryBuild() {
 	return process.env.HOUDINI_SECONDARY_BUILD && process.env.HOUDINI_SECONDARY_BUILD !== 'false'
@@ -23,6 +23,8 @@ export async function buildLocalSchema(config: Config): Promise<void> {
 
 	process.env.HOUDINI_SECONDARY_BUILD = 'true'
 
+	const schema = path.join(config.localApiDir, '+schema')
+
 	// build the schema somewhere we can import from
 	await build({
 		logLevel: 'silent',
@@ -30,7 +32,7 @@ export async function buildLocalSchema(config: Config): Promise<void> {
 			outDir: path.join(config.rootDir, 'temp'),
 			rollupOptions: {
 				input: {
-					schema: path.join(config.localApiDir, '+schema'),
+					schema,
 				},
 				external: ['graphql'],
 				output: {
@@ -39,7 +41,7 @@ export async function buildLocalSchema(config: Config): Promise<void> {
 			},
 			lib: {
 				entry: {
-					schema: path.join(config.localApiDir, '+schema'),
+					schema,
 				},
 				formats: ['es'],
 			},
