@@ -1,8 +1,7 @@
-import * as graphql from 'graphql'
+import type * as graphql from 'graphql'
 import path from 'node:path'
 
 import type { Config } from '../config'
-import { writeFile } from '../fs'
 import { localApiEndpoint, type ConfigFile } from '../types'
 
 export function isSecondaryBuild() {
