@@ -182,8 +182,13 @@ jobs:
             - name: Install dependencies
               run: cd packages/create-houdini && pnpm install
 
-            - name: Create template
-              run: cd packages/create-houdini && pnpm dev test-${{ matrix.template }} ${{ matrix.template }} local
+            - name: Create template (local)
+              if: matrix.template != 'sveltekit-demo'
+              run: cd packages/create-houdini && pnpm dev test-${{ matrix.template }} -t ${{ matrix.template }} -s local
+
+            - name: Create template (not local)
+              if: matrix.template == 'sveltekit-demo'
+              run: cd packages/create-houdini && pnpm dev test-${{ matrix.template }} -t ${{ matrix.template }}
 
             - run: cd packages/create-houdini/test-${{ matrix.template }} && npx playwright install
 
