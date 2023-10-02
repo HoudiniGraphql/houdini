@@ -118,38 +118,19 @@ export async function generate_page_entries(args: PageBundleInput) {
 function componentFieldImports(config: Config, targetPath: string, args: PageBundleInput) {
 	// now that we have every component field requested by the page, we need to
 	// add the necssary imports so that vite bundles everything together
-	return (
-		args.componentFields
-			.map((field) => {
-				// the path to import from is the path from the entry to the component source
-				let componentPathParsed = path.parse(
-					path.relative(
-						path.dirname(targetPath),
-						routerConventions.componentField_unit_path(config, field.fragment)
-					)
+	return args.componentFields
+		.map((field) => {
+			// the path to import from is the path from the entry to the component source
+			let componentPathParsed = path.parse(
+				path.relative(
+					path.dirname(targetPath),
+					routerConventions.componentField_unit_path(config, field.fragment)
 				)
-				let componentPath = path.join(componentPathParsed.dir, componentPathParsed.name)
+			)
+			let componentPath = path.join(componentPathParsed.dir, componentPathParsed.name)
 
-				// import the component into the local scope
-				return `import ${field.fragment} from '${componentPath}'`
-			})
-			.join('\n') +
-		`
-
-if (globalThis.window) {
-	let target = globalThis.window.__houdini__client__? globalThis.window.__houdini__client__.componentCache : null
-	if (!globalThis.window.__houdini__client__) {
-		if (!window.__houdini__pending_components__) {
-			window.__houdini__pending_components__ = {}
-		}
-
-		target = window.__houdini__pending_components__
-	}
-
-	${args.componentFields
-		.map((field) => `    target["${field.type}.${field.field}"] = ${field.fragment}`)
-		.join('\n')}
-}
-`
-	)
+			// import the component into the local scope
+			return `import '${componentPath}'`
+		})
+		.join('\n')
 }

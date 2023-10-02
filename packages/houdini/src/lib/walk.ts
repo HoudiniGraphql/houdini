@@ -246,7 +246,7 @@ function extractAnonymousQuery(
 		)
 		const fragmentName = config.componentFieldFragmentName({
 			type: selection.typeCondition!.name.value,
-			directive: componentField!,
+			entry: componentField!,
 		})
 
 		// embed the raw string as an argument so we can get it back

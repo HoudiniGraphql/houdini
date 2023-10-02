@@ -35,6 +35,7 @@ export function _serverHandler<ComponentType = unknown>({
 		match: RouterPageManifest<ComponentType> | null
 		manifest: RouterManifest<unknown>
 		session: App.Session
+		componentCache: Record<string, any>
 	}) => Response | Promise<Response | undefined> | undefined
 } & Omit<YogaServerOptions, 'schema'>) {
 	if (schema && !yoga) {
@@ -95,6 +96,7 @@ export function _serverHandler<ComponentType = unknown>({
 			match,
 			session: await get_session(request.headers, session_keys),
 			manifest,
+			componentCache,
 		})
 		if (rendered) {
 			return rendered

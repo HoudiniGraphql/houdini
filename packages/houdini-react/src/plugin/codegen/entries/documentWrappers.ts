@@ -161,7 +161,9 @@ async function generate_component_field_wrapper({
 	if (!fragmentDocument) {
 		return
 	}
-	if (config.needsRefetchArtifact(fragmentDocument.document)) {
+
+	// extract the local document data
+	if (config.localDocumentData(fragmentDocument.document).paginated) {
 		tagValue += `
 		refetchArtifact,`
 
@@ -176,18 +178,36 @@ async function generate_component_field_wrapper({
 
 	// a component field wrapper is responsible for calling the appropriate fragment hook
 	// and passing the result to the component as the correct prop
-	let content = `import { useFragment } from '$houdini'
+	const componentName = `${field.type}${field.field}`
+	await fs.writeFile(
+		targetPath,
+		`
+import { useFragment } from '$houdini'
+import client from '$houdini/plugins/houdini-react/runtime/client'
 import ${importStatment} from '${componentPath}'
+
 ${Object.entries(imports)
 	.map(([key, path]) => `import ${key} from '${path}'`)
 	.join('\n')}
 
-export default ({ ${field.prop}, ...props }) => {
+const ${componentName} = ({ ${field.prop}, ...props }) => {
 	const value = useFragment(${field.prop}, ${tagValue})
 
 	return <${localName} ${field.prop}={value} {...props} />
 }
-`
 
-	await fs.writeFile(targetPath, content)
+// if we import this file on the browser then we need to register the component with the client's component map
+if (globalThis.window) {
+	let window = globalThis.window
+
+	if (!window.__houdini__client__) {
+		window.__houdini__client__ = client()
+	}
+
+	window.__houdini__client__.componentCache['${field.type}.${field.field}'] = ${componentName}
+}
+
+export default ${componentName}
+`
+	)
 }

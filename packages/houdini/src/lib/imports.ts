@@ -37,10 +37,37 @@ export function ensureImports<_Count extends string[] | string>({
 }: {
 	config: Config
 	body: Statement[]
-	import: _Count
+	import: _Count | null
 	sourceModule: string
 	importKind?: 'value' | 'type'
 }): _Count {
+	// if import is null then we just need to make sure there is an import for the module
+	if (!importID) {
+		// if there is already an import for the module then we are done
+		if (
+			body.find(
+				(statement) =>
+					statement.type === 'ImportDeclaration' &&
+					(statement as ImportDeclaration).source.value === sourceModule
+			)
+		) {
+			return null as any
+		}
+
+		// add the import
+		body.unshift({
+			type: 'ImportDeclaration',
+			// @ts-ignore
+			source: AST.stringLiteral(sourceModule),
+			specifiers: [],
+			importKind,
+		})
+
+		// we're done
+		return null as any
+	}
+
+	// we need to find
 	const idList = Array.isArray(importID) ? importID : [importID]
 
 	// figure out the list of things to import

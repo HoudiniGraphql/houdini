@@ -748,10 +748,16 @@ export class Config {
 		return 'componentField'
 	}
 
-	componentFieldFragmentName(args: { type: string; directive: graphql.DirectiveNode }): string {
-		// look at the directive for the field name
-		const field = args.directive.arguments?.find((arg) => arg.name.value === 'field')?.value
-		let fieldValue = field?.kind === 'StringValue' ? field.value : null
+	componentFieldFragmentName(args: {
+		type: string
+		entry: graphql.DirectiveNode | string
+	}): string {
+		let fieldValue = args.entry
+		if (typeof fieldValue !== 'string') {
+			// look at the directive for the field name
+			const field = fieldValue.arguments?.find((arg) => arg.name.value === 'field')?.value
+			fieldValue = field?.kind === 'StringValue' ? field.value : ''
+		}
 		if (!fieldValue) {
 			return ''
 		}
@@ -760,18 +766,39 @@ export class Config {
 	}
 
 	// we need a function that walks down a graphql query and detects the use of a directive config.paginateDirective
-	needsRefetchArtifact(document: graphql.DocumentNode) {
-		let needsArtifact = false
+	localDocumentData(document: graphql.DocumentNode): {
+		paginated: boolean
+		componentFields: { type: string; field: string }[]
+	} {
+		let paginated = false
+		let componentFields: { type: string; field: string }[] = []
 
-		graphql.visit(document, {
-			Directive: (node) => {
-				if ([this.paginateDirective].includes(node.name.value)) {
-					needsArtifact = true
-				}
-			},
-		})
+		// walk the document and look for features
+		const typeInfo = new graphql.TypeInfo(this.schema)
+		graphql.visit(
+			document,
+			graphql.visitWithTypeInfo(typeInfo, {
+				Directive: (node) => {
+					if ([this.paginateDirective].includes(node.name.value)) {
+						paginated = true
+					}
+				},
+				Field: (node) => {
+					const parentType = typeInfo.getParentType()
+					// if the field is a component field then we need to record it
+					if (
+						this.componentFields[parentType?.name ?? '']?.[node.name.value] &&
+						parentType?.name
+					) {
+						// add the field to the list
+						componentFields.push({ type: parentType?.name, field: node.name.value })
+					}
+				},
+			})
+		)
 
-		return needsArtifact
+		// we're done
+		return { paginated, componentFields }
 	}
 
 	#fragmentVariableMaps: Record<string, { args: ValueMap | null; fragment: string }>

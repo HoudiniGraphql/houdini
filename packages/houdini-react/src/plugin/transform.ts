@@ -1,4 +1,13 @@
-import { ArtifactKind, ensureArtifactImport, find_graphql, parseJS, printJS } from 'houdini'
+import {
+	ArtifactKind,
+	ensureArtifactImport,
+	ensureImports,
+	find_graphql,
+	parseJS,
+	path,
+	printJS,
+	routerConventions,
+} from 'houdini'
 import type { TransformPage } from 'houdini/vite'
 import * as recast from 'recast'
 import type { SourceMapInput } from 'rollup'
@@ -31,10 +40,13 @@ export async function transformFile(
 			]
 
 			// NOTE: this structure is duplicated for componentFields (fragments). if any changes are made here
-			// please make sure they are copied there too
+			// please make sure they are copied there too if appropriate
+
+			// extract the document metadata
+			const { paginated, componentFields } = page.config.localDocumentData(parsedDocument)
 
 			// if the query is paginated or refetchable then we need to add a reference to the refetch artifact
-			if (page.config.needsRefetchArtifact(parsedDocument)) {
+			if (paginated) {
 				// if the document is a query then we should use it as the refetch artifact
 				let refetchArtifactName = artifactID
 				if (artifact.kind !== ArtifactKind.Query) {
@@ -55,6 +67,28 @@ export async function transformFile(
 						AST.identifier(refetchArtifactName)
 					)
 				)
+			}
+
+			// if the document refers to component fields then we need to make sure we import
+			// each component field entry point
+			for (const field of componentFields) {
+				// the path of the entry point
+				const entryPointPath = routerConventions.componentField_unit_path(
+					page.config,
+					page.config.componentFieldFragmentName({
+						type: field.type,
+						entry: field.field,
+					})
+				)
+
+				// import the entry point
+				ensureImports({
+					config: page.config,
+					body: script.body,
+					sourceModule: path.relative(page.config.projectRoot, entryPointPath),
+					// we just want the side effects of the import so we don't need to assign it to a variable
+					import: null,
+				})
 			}
 
 			// replace the graphql function with the object

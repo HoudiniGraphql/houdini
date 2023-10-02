@@ -43,18 +43,6 @@ test('composes layouts and pages', async function () {
 		import PageFallback__subRoute_nested from "../fallbacks/page/_subRoute_nested.jsx";
 		import LayoutFallback__subRoute_nested from "../../fallbacks/layout";
 
-		if (globalThis.window) {
-		    let target = globalThis.window.__houdini__client__ ? globalThis.window.__houdini__client__.componentCache : null;
-
-		    if (!globalThis.window.__houdini__client__) {
-		        if (!window.__houdini__pending_components__) {
-		            window.__houdini__pending_components__ = {};
-		        }
-
-		        target = window.__houdini__pending_components__;
-		    }
-		}
-
 		export default (
 		    {
 		        url
