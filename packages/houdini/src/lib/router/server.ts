@@ -1,8 +1,7 @@
-import * as graphql from 'graphql'
+import type * as graphql from 'graphql'
 import path from 'node:path'
 
 import type { Config } from '../config'
-import { writeFile } from '../fs'
 import { localApiEndpoint, type ConfigFile } from '../types'
 
 export function isSecondaryBuild() {
@@ -59,8 +58,6 @@ export async function loadLocalSchema(config: Config): Promise<graphql.GraphQLSc
 	const { default: schema } = await import(
 		path.join(config.rootDir, 'temp', 'assets', 'schema.js')
 	)
-
-	await writeFile(config.definitionsLocalSchemaPath, graphql.printSchema(schema))
 
 	return schema
 }
