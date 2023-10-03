@@ -332,7 +332,7 @@ export default function UserAvatar({ user } : Props) {
     return <img src={user.avatarURL} />
 }
 ```
-```jsx:title=src/components/UserAvatar.jsx&javascriptExample=true
+```jsx:title=src/components/UserAvatar.jsx
 import { graphql } from '$houdini'
 
 graphql(`{
@@ -356,7 +356,8 @@ query Profile {
 }
 ```
 
-Which can be used directly as a component in your page source:
+Which can be used directly as a component in your page source. Notice there's no need
+to import the component or remember the name of the prop that needs to be passed:
 
 ```tsx:title=src/routes/profile/+page.tsx
 import type { PageProps } from './$types'
@@ -425,6 +426,41 @@ query Profile {
     }
 }
 ```
+
+#### Named Exports
+
+If your file exports the component by a specific name (instead of a default export) then you must
+tell houdini which export it should use:
+
+```tsx:title=src/components/UserAvatar.tsx
+import { GraphQL } from '$houdini'
+
+type Props = {
+    user: GraphQL<`
+        ... on User @componentFields(field: "Avatar", export: "UserAvatar" ) {
+            avatarURL(size: $size)
+        }
+    `>
+}
+
+export function UserAvatar({ user } : Props) {
+    return <img src={user.avatarURL} />
+}
+```
+```jsx:title=src/components/UserAvatar.jsx&javascriptExample=true
+import { graphql } from '$houdini'
+
+graphql(`{
+    ... on User @componentFields(field: "Avatar", export: "UserAvatar" ) {
+        avatarURL(size: $size)
+    }
+}`)
+
+export function UserAvatar({ user } : Props) {
+    return <img src={user.avatarURL} />
+}
+```
+
 
 ## Authentication
 
