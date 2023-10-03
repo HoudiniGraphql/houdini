@@ -70,6 +70,15 @@ export default async function componentFields(config: Config, docs: Document[]):
 					})
 				}
 
+				// if the type is abstract there's a problem
+				if (parentType && graphql.isAbstractType(parentType)) {
+					errors.push({
+						message: `Cannot add component field ${parent}.${fieldValue} because ${parent} is an abstract type`,
+						filepath,
+					})
+					return
+				}
+
 				// save the reference to the directive
 				if (fieldValue && propValue) {
 					config.componentFields[parent] = {

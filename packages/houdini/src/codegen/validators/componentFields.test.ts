@@ -54,6 +54,18 @@ const table: Row[] = [
 			}`,
 		],
 	},
+	{
+		title: 'componentFields on abstract types',
+		pass: false,
+		documents: [
+			`fragment MyFragmentOne on Friend  @componentField(field: "firstName", prop: "user") {
+				firstName
+			}`,
+			`fragment MyFragmentTwo on Friend  @componentField(field: "anotherName", prop: "user") {
+				firstName
+			}`,
+		],
+	},
 ]
 
 describe('componentField tests', function () {
