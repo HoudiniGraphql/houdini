@@ -21,7 +21,7 @@ export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {})
 
 			type User implements Node & Friend & CatOwner {
 				id: ID!
-				name: String!
+				name(arg: Int): String!
 				birthday: DateTime!
 				firstName: String!
 				friends: [User!]!

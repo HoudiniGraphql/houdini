@@ -99,3 +99,35 @@ test('extracts multiple queries out of graphql templates', async () => {
 		]
 	`)
 })
+
+test('retains directives on inline fragments', async () => {
+	const config = await test_config()
+
+	const extracted = await extractDocuments({
+		config,
+		filepath: 'myQuery.tsx',
+		content: `
+            type Props = {
+                user: GraphQL<\`{
+                    ... on User @componentField(field: "Avatar") @arguments(name: { type: "String" })  {
+                        firstName(name: $name)
+                    }
+                }\`>
+            }
+
+            export default function UserInfo({ user }: Props) {
+                return (
+                    <div>
+                        {user.firstName}
+                    </div>
+                )
+            }
+        `,
+	})
+
+	expect(extracted).toMatchInlineSnapshot(`
+		[
+		    "fragment __componentField__User_Avatar on User @componentField(field: \\"Avatar\\", raw: \\"{\\\\n                    ... on User @componentField(field: \\\\\\"Avatar\\\\\\") @arguments(name: { type: \\\\\\"String\\\\\\" })  {\\\\n                        firstName(name: $name)\\\\n                    }\\\\n                }\\", prop: \\"user\\") @arguments(name: {type: \\"String\\"}) {\\n  firstName(name: $name)\\n}"
+		]
+	`)
+})

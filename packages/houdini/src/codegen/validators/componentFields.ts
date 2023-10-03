@@ -79,6 +79,7 @@ export default async function componentFields(config: Config, docs: Document[]):
 							fragment: node.name.value,
 							filepath,
 							prop: propValue,
+							parent: node,
 						},
 					}
 				}

@@ -73,6 +73,7 @@ export class Config {
 				directive: graphql.DirectiveNode
 				filepath: string
 				prop: string
+				parent: graphql.FragmentDefinitionNode | graphql.FragmentSpreadNode
 			}
 		>
 	> = {}

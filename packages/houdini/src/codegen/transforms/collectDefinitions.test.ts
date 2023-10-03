@@ -47,30 +47,3 @@ test('include fragment definitions', async function () {
 		expect(fragmentBDef).toBeDefined()
 	})()
 })
-
-test('componentField fragments are included', async function () {
-	const target = [
-		`fragment UserAvatar on User @componentField(field: "Avatar", prop: "user") {
-			firstName
-		}`,
-		`query UserInfo { user { Avatar } }`,
-	]
-
-	return await pipelineTest(testConfig(), target, true, function (docs: Document[]) {
-		expect(docs[1].artifact?.raw).toMatchInlineSnapshot(`
-			"query UserInfo {
-			  user {
-			    ...UserAvatar
-			    id
-			  }
-			}
-
-			fragment UserAvatar on User {
-			  firstName
-			  id
-			  __typename
-			}
-			"
-		`)
-	})()
-})

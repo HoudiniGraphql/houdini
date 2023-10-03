@@ -4,6 +4,7 @@ import * as graphql from 'graphql'
 import type { Config, Document } from '../../lib'
 import { siteURL } from '../../lib'
 import { CachePolicy, PaginateMode } from '../../runtime/lib/types'
+import { fragmentArguments } from './fragmentVariables'
 
 // graphqlExtensions adds a few different things to the graphql schema
 export default async function graphqlExtensions(
@@ -153,14 +154,33 @@ directive @${config.componentFieldDirective}(field: String!, prop: String, expor
 		internalSchema += plugin.schema({ config })
 	}
 
-	// if the config does not have the cache directive, then we need to add it
-
 	const extensions = Object.entries(config.componentFields)
 		.map(([parent, fields]) => {
 			return `
 		extend type ${parent} {
-			${Object.keys(fields)
-				.map((field) => `${field}: ${config.componentScalar}!`)
+			${Object.entries(fields)
+				.map(([fieldName, field]) => {
+					// figure out the arguments to the field
+					let argString = ''
+					// look for a @arguments directive on the same node that was tagged as a componentField
+					const args = fragmentArguments(config, '', field.parent)
+					if (args.length > 0) {
+						argString =
+							'(' +
+							args
+								.map((arg) => {
+									// figure out the name of the type
+									const typeName = graphql.print(arg.type)
+
+									// add the ! if its required
+									return `${arg.name}:${typeName}${arg.required ? '!' : ''}`
+								})
+								.join('\n') +
+							')'
+					}
+
+					return `${fieldName}${argString}: ${config.componentScalar}!`
+				})
 				.join('\n')}
 		}
 	`

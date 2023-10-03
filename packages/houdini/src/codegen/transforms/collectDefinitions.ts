@@ -98,32 +98,6 @@ function findRequiredFragments(
 	definition.selectionSet = graphql.visit(
 		definition,
 		graphql.visitWithTypeInfo(typeInfo, {
-			Field(node) {
-				// if the user refers to a field that's actually a component field
-				// we need to include the associated fragment
-				const parentType = typeInfo.getParentType()
-				if (!parentType) {
-					return
-				}
-
-				// if the field is a component field then we need to replace it with the appropriate
-				// fragment
-				const fieldName = node.name.value
-				const { fragment, directive } =
-					config.componentFields[parentType.name]?.[fieldName] ?? {}
-				if (fragment) {
-					referencedFragments.push(fragment)
-
-					return {
-						kind: 'FragmentSpread',
-						name: {
-							kind: 'Name',
-							value: fragment,
-						},
-						directives: [directive],
-					} as graphql.FragmentSpreadNode
-				}
-			},
 			// if this selection is a fragment spread
 			FragmentSpread(node) {
 				// add the name of the referenced fragment
