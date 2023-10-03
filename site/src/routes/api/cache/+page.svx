@@ -21,12 +21,14 @@ to break its API on any minor version. We understand this is not technically sem
 but ultimately it will let us refine the API against real applications and lead to a better solution
 faster.
 
-In order to acknowledge this, you will need to enable the `acceptImperativeInstability` flag in your config file:
+In order to acknowledge this, you will need to enable the `imperativeCache` flag in your config file:
 
 ```javascript:title=houdini.config.js
 export default {
     // ...
-    acceptImperativeInstability: true
+	features: {
+		imperativeCache: true,
+	}
 }
 ```
 

@@ -208,6 +208,8 @@ export type ConfigFile = {
 	/**
 	 * For now, the cache's imperative API is considered unstable. In order to suppress the warning,
 	 * you must enable this flag.
+	 *
+	 * @deprecated set features.imperativeCache instead
 	 */
 	acceptImperativeInstability?: boolean
 
@@ -221,6 +223,7 @@ export type ConfigFile = {
 	 */
 	features?: {
 		componentFields?: boolean
+		imperativeCache?: boolean
 	}
 }
 
