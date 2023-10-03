@@ -75,6 +75,7 @@ jobs:
               id: pnpm-cache
               run: |
                 echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
+
             - uses: actions/cache@v3
               name: Setup pnpm cache
               with:
@@ -82,6 +83,7 @@ jobs:
                 key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
                 restore-keys: |
                   ${{ runner.os }}-pnpm-store-
+
             - name: Install dependencies
               run: pnpm install
 
@@ -91,8 +93,8 @@ jobs:
             - name: Tests
               run: pnpm run tests
 
-    verify_create:
-        name: Verify Create
+    verify_init:
+        name: Verify Init
         runs-on: ubuntu-latest
         steps:
             - name: Checkout source
@@ -140,6 +142,62 @@ jobs:
 
             - name: Run init
               run: cd project && node ../houdini/packages/houdini/build/cmd-esm/index.js init -y
+    
+    verify_create:
+        name: Verify Create
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                template: [react, react-typescript, sveltekit-demo]
+        steps:
+            - name: Checkout source
+              uses: actions/checkout@v3
+              with:
+                  ref: ${{ github.ref }}
+
+            - name: Install Node.js
+              uses: actions/setup-node@v3
+              with:
+                node-version: 18.17.1
+
+            - uses: pnpm/action-setup@v2.0.1
+              name: Install pnpm
+              id: pnpm-install
+              with:
+                version: 8
+
+            - name: Get pnpm store directory
+              id: pnpm-cache
+              run: |
+                echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
+
+            - uses: actions/cache@v3
+              name: Setup pnpm cache
+              with:
+                path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+                key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                restore-keys: |
+                  ${{ runner.os }}-pnpm-store-
+
+            - name: Install dependencies
+              run: cd packages/create-houdini && pnpm install
+
+            - name: Create template (local)
+              if: matrix.template != 'sveltekit-demo'
+              run: cd packages/create-houdini && pnpm dev test-${{ matrix.template }} -t ${{ matrix.template }} -s local
+
+            - name: Create template (not local)
+              if: matrix.template == 'sveltekit-demo'
+              run: cd packages/create-houdini && pnpm dev test-${{ matrix.template }} -t ${{ matrix.template }}
+
+            - run: cd packages/create-houdini/test-${{ matrix.template }} && npx playwright install
+
+            - name: e2e install
+              run: cd packages/create-houdini/test-${{ matrix.template }} && npm i
+
+            - name: e2e tests
+              if: matrix.template == 'sveltekit-demo'
+              run: cd packages/create-houdini/test-${{ matrix.template }} && npm run test:integration
 
     e2e_tests:
         name: End-to-End Tests
