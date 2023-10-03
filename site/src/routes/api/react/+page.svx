@@ -250,7 +250,8 @@ export default function EditShow({ AllShows }) {
 
 ## Fragments
 
-Fragments are defined inside of the `useFragment` hook:
+There are two ways to use fragments in Houdini. The first is defining it inside of the `useFragment` hook and this
+approach will always work in all situations:
 
 ```tsx:title=src/components/ShowCard.tsx
 import { graphql, useFragment } from "$houdini";
@@ -282,11 +283,146 @@ query ShowInfo($id: ID!) {
 
 And then threaded through to the component:
 
-```tsx:title=src/routes/show/[id]/+page.tsx
-export default function ShowInfoView({ ShowInfo }) {
+```tsx:title=src/routes/show/[id]/+page.tsx&typescriptToggle=true
+import { ShowCard } from '...'
+import type { PageProps } from './$types'
+
+export default function ShowInfoView({ ShowInfo }:PageProps) {
     return (
         <ShowCard show={ShowInfo.show} />
     )
+}
+```
+
+### Component Fields
+
+When building reusable components, it is very common to find yourself repeatedly importing
+the same component and mixing in the same fragment over and over. This can get really tedious
+and so Houdini tries to address this by blurring the lines between your queries and your component
+library.
+
+The idea is pretty simple on the surface: components can register themselves as fields on a type. But
+before we can use this feature, we need to enable the feature flag in `houdini.config.js`. Keep in mind this
+means that this API might change with any minor version. We understand this isn't semantic versioning by the book
+but hopefully you understand.
+
+```javascript:title=houdini.config.js
+export default {
+    // ...
+    features: {
+        componentFields: true
+    }
+}
+```
+
+With that enabled, your components can define fragments using a slightly different API:
+
+```tsx:title=src/components/UserAvatar.tsx
+import { GraphQL } from '$houdini'
+
+type Props = {
+    user: GraphQL<`
+        ... on User @componentFields(field: "Avatar") {
+            avatarURL
+        }
+    `>
+}
+
+export default function UserAvatar({ user } : Props) {
+    return <img src={user.avatarURL} />
+}
+```
+```jsx:title=src/components/UserAvatar.jsx&javascriptExample=true
+import { graphql } from '$houdini'
+
+graphql(`{
+    ... on User @componentFields(field: "Avatar", prop: "user") {
+        avatarURL
+    }
+}`)
+
+export default function UserAvatar({ user } : Props) {
+    return <img src={user.avatarURL} />
+}
+```
+
+This example registers the `Avatar` field on the `User` type:
+
+```graphql:title=src/routes/profile/+page.gql
+query Profile {
+    currentUser {
+        Avatar
+    }
+}
+```
+
+Which can be used directly as a component in your page source:
+
+```tsx:title=src/routes/profile/+page.tsx
+import type { PageProps } from './$types'
+
+export default function ShowInfoView({ Profile }: PageProps) {
+    return (
+        <div>
+            <Profile.currentUser.Avatar />
+        </div>
+    )
+}
+```
+```jsx:title=src/routes/profile/+page.jsx
+export default function ShowInfoView({ Profile }) {
+    return (
+        <div>
+            <Profile.currentUser.Avatar />
+        </div>
+    )
+}
+```
+
+#### Component Field Arguments
+
+`@componentField` can be mixed with `@arguments` to define arguments on the field added for the component:
+
+```tsx:title=src/components/UserAvatar.tsx
+import { GraphQL } from '$houdini'
+
+type Props = {
+    user: GraphQL<`
+        ... on User
+            @componentFields(field: "Avatar")
+            @arguments(size: { type: "Int" })
+        {
+            avatarURL(size: $size)
+        }
+    `>
+}
+
+export default function UserAvatar({ user } : Props) {
+    return <img src={user.avatarURL} />
+}
+```
+```jsx:title=src/components/UserAvatar.jsx&javascriptExample=true
+import { graphql } from '$houdini'
+
+graphql(`{
+    ... on User
+            @componentFields(field: "Avatar")
+            @arguments(size: { type: "Int" })
+        {
+            avatarURL(size: $size)
+    }
+}`)
+
+export default function UserAvatar({ user } : Props) {
+    return <img src={user.avatarURL} />
+}
+```
+
+```graphql:title=src/routes/profile/+page.gql
+query Profile {
+    currentUser {
+        Avatar(size: 150)
+    }
 }
 ```
 

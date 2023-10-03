@@ -687,3 +687,28 @@ Prism.languages.insertBefore(
 	},
 	Prism.languages.jsx.tag
 )
+
+var typescript = Prism.util.clone(Prism.languages.typescript)
+
+Prism.languages.tsx = Prism.languages.extend('markup', typescript)
+Prism.languages.tsx.tag.pattern =
+	/<\/?[\w:-]+\s*(?:\s+[\w:-]+(?:=(?:("|')(\\?[\w\W])*?\1|[^\s'">=]+|(\{[\w\W]*?\})))?\s*)*\/?>/gi
+
+Prism.languages.tsx.tag.inside['attr-value'].pattern = /=[^\{](?:('|")[\w\W]*?(\1)|[^\s>]+)/gi
+
+Prism.languages.insertBefore(
+	'inside',
+	'attr-value',
+	{
+		script: {
+			pattern: /=(\{[\w\W]*?\})/gi,
+			inside: {
+				function: Prism.languages.typescript.function,
+				punctuation: /[={}[\];(),.:]/,
+				keyword: Prism.languages.typescript.keyword
+			},
+			alias: 'typescript'
+		}
+	},
+	Prism.languages.jsx.tag
+)

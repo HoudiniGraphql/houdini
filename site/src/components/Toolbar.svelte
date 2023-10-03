@@ -36,10 +36,22 @@
 			.code-title.example-typescript + :is(pre.language-svelte, pre.language-typescript) {
 				display: block;
 			}
+			.code-title.tsx {
+				display: flex;
+			}
+			.code-title.jsx {
+				display: none;
+			}
 			.code-title.example-javascript {
 				display: none;
 			}
 			.code-title.example-javascript + :is(pre.language-svelte, pre.language-javascript) {
+				display: none;
+			}
+			.language-tsx {
+				display: block;
+			}
+			.language-jsx {
 				display: none;
 			}
 		</style>
@@ -57,10 +69,38 @@
 			.code-title.example-javascript + :is(pre.language-svelte, pre.language-javascript) {
 				display: block;
 			}
+			.code-title.tsx {
+				display: none;
+			}
+			.code-title.jsx {
+				display: flex;
+			}
+			.language-tsx {
+				display: none;
+			}
+			.language-jsx {
+				display: block;
+			}
 		</style>
 	{/if}
 
 	{#if ui_theme === 1}
+		<!-- light mode -->
+		<!-- light mode -->
+		<!-- light mode -->
+		<!-- light mode -->
+		<!-- light mode -->
+		<!-- light mode -->
+		<!-- light mode -->
+		<!-- light mode -->
+		<!-- light mode -->
+		<!-- light mode -->
+		<!-- light mode -->
+		<!-- light mode -->
+		<!-- light mode -->
+		<!-- light mode -->
+		<!-- light mode -->
+		<!-- light mode -->
 		<!-- light mode -->
 		<style>
 			:root {
@@ -102,6 +142,22 @@
 			}
 		</style>
 	{:else}
+		<!-- dark mode -->
+		<!-- dark mode -->
+		<!-- dark mode -->
+		<!-- dark mode -->
+		<!-- dark mode -->
+		<!-- dark mode -->
+		<!-- dark mode -->
+		<!-- dark mode -->
+		<!-- dark mode -->
+		<!-- dark mode -->
+		<!-- dark mode -->
+		<!-- dark mode -->
+		<!-- dark mode -->
+		<!-- dark mode -->
+		<!-- dark mode -->
+		<!-- dark mode -->
 		<!-- dark mode -->
 		<style>
 			:root {
