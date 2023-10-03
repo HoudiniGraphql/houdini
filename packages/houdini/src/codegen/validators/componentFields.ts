@@ -18,6 +18,17 @@ export default async function componentFields(config: Config, docs: Document[]):
 					return
 				}
 
+				// make sure the feature flag is on
+				if (!config.configFile.features?.componentFields) {
+					errors.push({
+						filepath,
+						message: `⚠️  You must enable the componentFields feature flag to use the @${config.componentFieldDirective} directive`,
+						description:
+							'For more information, visit: https://houdinigraphql.com/api/react#component-fields',
+					})
+					return
+				}
+
 				// get the raw component field info
 				const parent = node.typeCondition.name.value
 				let fieldArg: graphql.ArgumentNode | null = null
