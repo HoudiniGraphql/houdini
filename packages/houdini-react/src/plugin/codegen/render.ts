@@ -40,7 +40,7 @@ export default (props) => (
 	import { Cache } from '$houdini/runtime/cache/cache'
 import { serverAdapterFactory, _serverHandler } from '$houdini/runtime/router/server'
 import { HoudiniClient } from '$houdini/runtime/client'
-import { renderToStream } from 'react-streaming/server'
+import { renderToStream } from '$houdini/plugins/houdini-react/runtime/server'
 import React from 'react'
 
 import { router_cache } from '../../runtime/routing'

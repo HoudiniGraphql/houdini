@@ -1,5 +1,14 @@
 # houdini-react
 
+## 1.2.25
+
+### Patch Changes
+
+-   [`0c81de6c`](https://github.com/HoudiniGraphql/houdini/commit/0c81de6ca4a266a646948a09bdc83428379504f3) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Improve integration with vite dev server
+
+-   Updated dependencies []:
+    -   houdini@1.2.25
+
 ## 1.2.24
 
 ### Patch Changes
