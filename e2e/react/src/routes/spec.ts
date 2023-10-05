@@ -10,5 +10,5 @@ test('Integration has the right title, we can start 🚀', async ({ page }) => {
 
 	// await expect_to_be(page, "Houdini's SvelteKit Interation tests", 'h1')
 	const result = await page.locator('h1').textContent({ timeout: 2998 })
-	expect(result, "Houdini's SvelteKit Interation tests")
+	expect(result).toBe("Houdini's React Interation tests")
 })
