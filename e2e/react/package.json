@@ -10,9 +10,11 @@
 		"build:test": "pnpm build: && pnpm test",
 		"build:generate": "pnpm build: && pnpm houdini generate",
 		"build:build": "pnpm build: && pnpm build",
-		"dev": "vite",
+		"dev": "vite --port 3018",
 		"build": "vite build",
-		"preview": "vite preview"
+		"tests": "playwright test ",
+		"test": "npm run tests",
+		"preview": "vite dev --port 3008"
 	},
 	"dependencies": {
 		"@cloudflare/workers-types": "^4.20230904.0",
@@ -27,6 +29,7 @@
 		"react-dom": "^18.3.0-canary-d6dcad6a8-20230914"
 	},
 	"devDependencies": {
+		"@playwright/test": "1.30.0",
 		"@types/react": "^18.0.27",
 		"@types/react-dom": "^18.0.10",
 		"@vitejs/plugin-react": "^3.1.0",

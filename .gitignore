@@ -25,3 +25,5 @@ vite.config.*.timestamp-*
 
 .vercel
 .netlify
+
+test-results

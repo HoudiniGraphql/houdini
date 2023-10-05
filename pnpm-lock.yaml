@@ -1,5 +1,9 @@
 lockfileVersion: '6.0'
 
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
 overrides:
   graphql: 15.5.0
 
@@ -214,6 +218,9 @@ importers:
         specifier: ^18.3.0-canary-d6dcad6a8-20230914
         version: 18.3.0-canary-d6dcad6a8-20230914(react@18.3.0-canary-d7a98a5e9-20230517)
     devDependencies:
+      '@playwright/test':
+        specifier: 1.30.0
+        version: 1.30.0
       '@types/react':
         specifier: ^18.0.27
         version: 18.0.37
@@ -11722,7 +11729,3 @@ packages:
   /zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
     dev: true
-
-settings:
-  autoInstallPeers: true
-  excludeLinksFromLockfile: false
