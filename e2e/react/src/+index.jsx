@@ -12,7 +12,7 @@ export default function App({ children }) {
 					href="https://cdn.jsdelivr.net/npm/water.css@2/out/dark.css"
 				/>
 			</head>
-			<body>
+			<body style={{ maxWidth: '100%' }}>
 				<ErrorBoundary>{children}</ErrorBoundary>
 			</body>
 		</html>
