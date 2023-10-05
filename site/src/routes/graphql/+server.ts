@@ -26,7 +26,7 @@ const yogaApp = createYoga<RequestEvent>({
 			type Sponsor {
 				login: String!
 				name: String!
-				avatarUrl: String!
+				avatarUrl(size: Int): String!
 				websiteUrl: String
 				tiersTitle: String!
 			}
@@ -78,6 +78,11 @@ const yogaApp = createYoga<RequestEvent>({
 				},
 				giveMeAnError: () => {
 					throw new GraphQLError(`Yes, I'm an error!`)
+				}
+			},
+			Sponsor: {
+				avatarUrl: (root: { avatarUrl: string }, args: { size?: number }) => {
+					return `${root.avatarUrl}${args.size ? `&size=${args.size}` : ''}`
 				}
 			},
 			Mutation: {

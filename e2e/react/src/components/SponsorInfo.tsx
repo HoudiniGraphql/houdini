@@ -10,7 +10,7 @@ export default function SponsorSummary(props: Props) {
 		graphql(`
 			fragment SponsorInfo on Sponsor {
 				name
-				Avatar
+				Avatar(size: 50)
 			}
 		`)
 	)

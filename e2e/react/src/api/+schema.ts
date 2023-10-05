@@ -20,7 +20,7 @@ const typeDefs = /* GraphQL */ `
 	type Sponsor {
 		login: String!
 		name: String!
-		avatarUrl: String!
+		avatarUrl(size: Int): String!
 		websiteUrl: String
 		tiersTitle: String!
 	}
@@ -83,6 +83,11 @@ const resolvers = {
 		},
 		giveMeAnError: () => {
 			throw new Error(`Yes, I'm an error!`)
+		},
+	},
+	Sponsor: {
+		avatarUrl: (root: { avatarUrl: string }, args: { size?: number }) => {
+			return `${root.avatarUrl}${args.size ? `&size=${args.size}` : ''}`
 		},
 	},
 	Mutation: {

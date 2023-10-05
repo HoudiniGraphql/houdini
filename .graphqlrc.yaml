@@ -8,3 +8,11 @@ projects:
             - e2e/kit/src/**/*.gql
             - e2e/kit/src/**/*.svelte
             - e2e/kit/$houdini/graphql/documents.gql
+    router:
+        # 👇 For vscode-graphql and intellisense
+        schema:
+            - e2e/react/$houdini/graphql/schema.graphql
+        documents:
+            - e2e/react/src/**/*.gql
+            - e2e/react/src/**/*.tsx
+            - e2e/react/$houdini/graphql/documents.gql

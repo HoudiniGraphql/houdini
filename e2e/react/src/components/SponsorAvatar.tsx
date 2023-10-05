@@ -2,8 +2,11 @@ import type { GraphQL } from '$houdini'
 
 type Props = {
 	sponsor: GraphQL<`{
-        ... on Sponsor @componentField(field: "Avatar") {
-            avatarUrl
+        ... on Sponsor 
+						@componentField(field: "Avatar")
+						@arguments(size: { type: "Int" })
+				{
+            avatarUrl(size: $size)
         }
     }`>
 }
