@@ -4,20 +4,20 @@ type Props = {
 	sponsor: SponsorInfo
 }
 
-export default function SponsorSummary(props: Props) {
+export default function CF_A_SponsorInfo(props: Props) {
 	const sponsor = useFragment(
 		props.sponsor,
 		graphql(`
-			fragment SponsorInfo on Sponsor {
+			fragment CF_A_SponsorInfo on Sponsor {
 				name
-				Avatar
+				CF_A_SponsorAvatar(size: 50)
 			}
 		`)
 	)
 
 	return (
 		<div>
-			{sponsor?.name}: <sponsor.Avatar />
+			{sponsor?.name}: <sponsor.CF_A_SponsorAvatar />
 		</div>
 	)
 }
