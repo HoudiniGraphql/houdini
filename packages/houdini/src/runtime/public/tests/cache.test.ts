@@ -1,6 +1,6 @@
 import { test, expect } from 'vitest'
 
-import { testCache, testQuery } from './test'
+import { testCache, testQuery } from './helper.test'
 
 test('can read values', function () {
 	const cache = testCache()

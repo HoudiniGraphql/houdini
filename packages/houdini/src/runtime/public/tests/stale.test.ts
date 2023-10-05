@@ -2,7 +2,7 @@ import { test, expect } from 'vitest'
 
 import { ArtifactKind, type FragmentArtifact } from '../../lib'
 import type { Cache } from '../cache'
-import { type CacheTypeDefTest, testCache } from './test'
+import { type CacheTypeDefTest, testCache } from './helper.test'
 
 /**   1/ Helpers  */
 const h_SetUserInCache = (cache: Cache<CacheTypeDefTest>, id: string) => {

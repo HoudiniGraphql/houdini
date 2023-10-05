@@ -1,7 +1,7 @@
 import { test, expect, vi } from 'vitest'
 
 import { type SubscriptionSelection } from '../../lib'
-import { testCache, testFragment } from './test'
+import { testCache, testFragment } from './helper.test'
 
 test('list.append accepts record proxies', function () {
 	const cache = testCache()
