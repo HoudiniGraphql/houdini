@@ -1,5 +1,14 @@
 # houdini-react
 
+## 1.2.26
+
+### Patch Changes
+
+-   [#1205](https://github.com/HoudiniGraphql/houdini/pull/1205) [`e05f1c25`](https://github.com/HoudiniGraphql/houdini/commit/e05f1c250edb48722ee45c2a62de72f4a19d3357) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix invalid import during dev
+
+-   Updated dependencies []:
+    -   houdini@1.2.26
+
 ## 1.2.25
 
 ### Patch Changes
