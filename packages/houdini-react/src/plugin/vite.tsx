@@ -60,7 +60,6 @@ export default {
 						assetFileNames: 'assets/[name].js',
 						entryFileNames: '[name].js',
 					},
-					external: ['react-streaming/server'],
 				},
 			}
 

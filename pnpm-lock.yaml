@@ -213,9 +213,6 @@ importers:
       react-dom:
         specifier: ^18.3.0-canary-d6dcad6a8-20230914
         version: 18.3.0-canary-d6dcad6a8-20230914(react@18.3.0-canary-d7a98a5e9-20230517)
-      react-streaming:
-        specifier: ^0.3.10
-        version: 0.3.10(react-dom@18.3.0-canary-d6dcad6a8-20230914)(react@18.3.0-canary-d7a98a5e9-20230517)
     devDependencies:
       '@types/react':
         specifier: ^18.0.27
@@ -325,6 +322,9 @@ importers:
       '@clack/prompts':
         specifier: ^0.6.3
         version: 0.6.3
+      commander:
+        specifier: ^9.4.0
+        version: 9.4.1
       graphql:
         specifier: 15.5.0
         version: 15.5.0
@@ -483,9 +483,6 @@ importers:
       react-dom:
         specifier: ^18.2.0
         version: 18.2.0(react@18.2.0)
-      react-streaming:
-        specifier: ^0.3.14
-        version: 0.3.14(react-dom@18.2.0)(react@18.2.0)
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20230904.0
@@ -566,9 +563,9 @@ importers:
       react:
         specifier: ^18.2.0
         version: 18.2.0
-      react-streaming:
-        specifier: ^0.3.9
-        version: 0.3.9(react-dom@18.2.0)(react@18.2.0)
+      react-dom:
+        specifier: ^18.2.0
+        version: 18.2.0(react@18.2.0)
       recast:
         specifier: ^0.23.1
         version: 0.23.1
@@ -598,7 +595,7 @@ importers:
         specifier: ^18.0.33
         version: 18.0.33
       '@types/react-dom':
-        specifier: ^18.0.10
+        specifier: ^18.0.11
         version: 18.0.11
       next:
         specifier: ^13.0.1
@@ -1283,14 +1280,6 @@ packages:
   /@braintree/sanitize-url@6.0.2:
     resolution: {integrity: sha512-Tbsj02wXCbqGmzdnXNk0SOF19ChhRU70BsroIi4Pm6Ehp56in6vch94mfbdQ17DozxkL3BAVjbZ4Qc1a0HFRAg==}
     dev: true
-
-  /@brillout/import@0.2.3:
-    resolution: {integrity: sha512-1T8WlD75eeFSMrptGy8jiLHmfHgMmSjWvLOIUvHmSVZt+6k0eQqYUoK4KbmE4T9pVLIfxvZSOm2D68VEqKRHRw==}
-    dev: false
-
-  /@brillout/json-serializer@0.5.3:
-    resolution: {integrity: sha512-IxlOMD5gOM0WfFGdeR98jHKiC82Ad1tUnSjvLS5jnRkfMEKBI+YzHA32Umw8W3Ccp5N4fNEX229BW6RaRpxRWQ==}
-    dev: false
 
   /@changesets/apply-release-plan@6.1.3:
     resolution: {integrity: sha512-ECDNeoc3nfeAe1jqJb5aFQX7CqzQhD2klXRez2JDb/aVpGUbX673HgKrnrgJRuQR/9f2TtLoYIzrGB9qwD77mg==}
@@ -7458,11 +7447,6 @@ packages:
     resolution: {integrity: sha512-xHjhDr3cNBK0BzdUJSPXZntQUx/mwMS5Rw4A7lPJ90XGAO6ISP/ePDNuo0vhqOZU+UD5JoodwCAAoZQd3FeAKw==}
     dev: true
 
-  /isbot-fast@1.2.0:
-    resolution: {integrity: sha512-twjuQzy2gKMDVfKGQyQqrx6Uy4opu/fiVUTTpdqtFsd7OQijIp5oXvb27n5EemYXaijh5fomndJt/SPRLsEdSg==}
-    engines: {node: '>=6.0.0'}
-    dev: false
-
   /isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
 
@@ -9416,43 +9400,6 @@ packages:
     resolution: {integrity: sha512-wViHqhAd8OHeLS/IRMJjTSDHF3U9eWi62F/MledQGPdJGDhodXJ9PBLNGr6WWL7qlH12Mt3TyTpbS+hGXMjCzQ==}
     engines: {node: '>=0.10.0'}
     dev: true
-
-  /react-streaming@0.3.10(react-dom@18.3.0-canary-d6dcad6a8-20230914)(react@18.3.0-canary-d7a98a5e9-20230517):
-    resolution: {integrity: sha512-Cf/aritzKGDUEBo+jpsNKlzkNBTmBM5gYM9jArPuoBqmckBikALYu7YvQbTHSG4kbpSitnoBIUH2005LAxknBQ==}
-    peerDependencies:
-      react: '>=18'
-      react-dom: '>=18'
-    dependencies:
-      '@brillout/json-serializer': 0.5.3
-      isbot-fast: 1.2.0
-      react: 18.3.0-canary-d7a98a5e9-20230517
-      react-dom: 18.3.0-canary-d6dcad6a8-20230914(react@18.3.0-canary-d7a98a5e9-20230517)
-    dev: false
-
-  /react-streaming@0.3.14(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-nYTYNp1NjJbEDFiiN/NpuUOhDm94GszLD/aGxXRtbYO2z2GlvL3S/OHjku17+qFfP91IQTF1fcHcvjCKEd3Ong==}
-    peerDependencies:
-      react: '>=18'
-      react-dom: '>=18'
-    dependencies:
-      '@brillout/import': 0.2.3
-      '@brillout/json-serializer': 0.5.3
-      isbot-fast: 1.2.0
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
-    dev: false
-
-  /react-streaming@0.3.9(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-P0sn1dXtJfKkJMZZoPAu3YaNi6008a8sUg58XvYb21nDepysKWC7YzZCQdEhw/dp0r5s3nxDcrUmXFHFiGaf7w==}
-    peerDependencies:
-      react: '>=18'
-      react-dom: '>=18'
-    dependencies:
-      '@brillout/json-serializer': 0.5.3
-      isbot-fast: 1.2.0
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
-    dev: false
 
   /react@16.14.0:
     resolution: {integrity: sha512-0X2CImDkJGApiAlcf0ODKIneSwBPhqJawOa5wCtKbu7ZECrmS26NvtSILynQ66cgkT/RJ4LidJOc3bUESwmU8g==}

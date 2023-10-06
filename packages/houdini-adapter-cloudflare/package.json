@@ -1,6 +1,6 @@
 {
     "name": "houdini-adapter-cloudflare",
-    "version": "1.2.24",
+    "version": "1.2.25",
     "description": "The adapter for deploying your Houdini application to Cloudflare Pages",
     "keywords": [
         "houdini",
@@ -37,8 +37,7 @@
         "houdini": "workspace:^",
         "itty-router": "^4.0.23",
         "react": "^18.2.0",
-        "react-dom": "^18.2.0",
-        "react-streaming": "^0.3.14"
+        "react-dom": "^18.2.0"
     },
     "files": [
         "build"

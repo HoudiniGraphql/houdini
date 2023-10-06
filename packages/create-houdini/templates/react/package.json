@@ -13,7 +13,6 @@
 		"houdini-react": "HOUDINI_VERSION",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
-		"react-streaming": "^0.3.14",
 		"graphql-yoga": "4.0.4",
 		"graphql": "15.8.0",
 		"@whatwg-node/server": "^0.9.14"
