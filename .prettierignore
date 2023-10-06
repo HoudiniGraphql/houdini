@@ -5,3 +5,4 @@ packages/*/package.json
 
 packages/houdini-svelte/src/runtime/index.ts
 packages/create-houdini/**/houdini.config.js
+packages/houdini-react/src/runtime/server/**/*
