@@ -7,9 +7,7 @@
   $: ({ Hello } = data);
 
   const checkTypes = () => {
-    return (
-      `${data.Hello instanceof HelloStore}`
-    );
+    return `${data.Hello instanceof HelloStore}`;
   };
 </script>
 
