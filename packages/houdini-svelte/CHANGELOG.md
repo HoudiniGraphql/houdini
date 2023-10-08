@@ -1,5 +1,14 @@
 # houdini-svelte
 
+## 1.2.27
+
+### Patch Changes
+
+-   [#1209](https://github.com/HoudiniGraphql/houdini/pull/1209) [`392bd248`](https://github.com/HoudiniGraphql/houdini/commit/392bd2480132430bdf5c52197be956ea29858c50) Thanks [@tschortsch](https://github.com/tschortsch)! - Fix typings of loadAll() function
+
+-   Updated dependencies []:
+    -   houdini@1.2.27
+
 ## 1.2.26
 
 ### Patch Changes
