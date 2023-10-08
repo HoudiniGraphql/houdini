@@ -2,30 +2,32 @@
 
 ## 1.2.27
 
-### Patch Changes
+### 🐛 Fixes
 
--   [#1209](https://github.com/HoudiniGraphql/houdini/pull/1209) [`392bd248`](https://github.com/HoudiniGraphql/houdini/commit/392bd2480132430bdf5c52197be956ea29858c50) Thanks [@tschortsch](https://github.com/tschortsch)! - Fix typings of loadAll() function
+-   [#1209](https://github.com/HoudiniGraphql/houdini/pull/1209) [`392bd248`](https://github.com/HoudiniGraphql/houdini/commit/392bd2480132430bdf5c52197be956ea29858c50) @tschortsch - Fix typings of loadAll() function
+
+### Dependency Changes
 
 -   Updated dependencies []:
     -   houdini@1.2.27
 
 ## 1.2.26
 
-### Patch Changes
+### Dependency Changes
 
 -   Updated dependencies []:
     -   houdini@1.2.26
 
 ## 1.2.25
 
-### Patch Changes
+### Dependency Changes
 
 -   Updated dependencies []:
     -   houdini@1.2.25
 
 ## 1.2.24
 
-### Patch Changes
+### Dependency Changes
 
 -   Updated dependencies []:
     -   houdini@1.2.24
