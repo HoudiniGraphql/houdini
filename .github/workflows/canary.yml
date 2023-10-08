@@ -57,10 +57,6 @@ jobs:
               run: |
                   pnpm changeset version --snapshot
                   pnpm run build
-<<<<<<< Updated upstream:.github/workflows/nightly.yml
-                  pnpm changeset publish --no-git-tag --snapshot --tag nightly
-=======
                   pnpm changeset publish --no-git-tag --snapshot --tag canary-${GITHUB_BASE_REF}
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
->>>>>>> Stashed changes:.github/workflows/canary.yml
