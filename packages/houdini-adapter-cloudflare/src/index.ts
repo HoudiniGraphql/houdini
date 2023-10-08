@@ -12,6 +12,8 @@ const adapter: Adapter = async ({ adapterPath, outDir, sourceDir }) => {
 	// import
 	workerContents = workerContents.replaceAll('houdini/adapter', adapterPath)
 
+	console.log({ outDir })
+
 	await fs.writeFile(path.join(outDir, '_worker.js'), workerContents!)
 }
 
