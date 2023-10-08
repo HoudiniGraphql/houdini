@@ -1,4 +1,4 @@
-name: Nightly Release
+name: Canary Release
 
 # on every commit to main, we want to publish a snapshot release:
 # for more info: https://github.com/changesets/changesets/blob/main/docs/snapshot-releases.md
@@ -11,7 +11,7 @@ env:
     CI: true
 jobs:
     publish:
-        name: Publish Nightly Version
+        name: Publish Canary Version
         runs-on: ubuntu-22.04
         steps:
             - name: Creating .npmrc
@@ -57,4 +57,10 @@ jobs:
               run: |
                   pnpm changeset version --snapshot
                   pnpm run build
+<<<<<<< Updated upstream:.github/workflows/nightly.yml
                   pnpm changeset publish --no-git-tag --snapshot --tag nightly
+=======
+                  pnpm changeset publish --no-git-tag --snapshot --tag canary-${GITHUB_BASE_REF}
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+>>>>>>> Stashed changes:.github/workflows/canary.yml
