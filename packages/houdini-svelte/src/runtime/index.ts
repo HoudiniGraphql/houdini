@@ -1,3 +1,4 @@
+import type { GraphQLVariables } from '$houdini/runtime/lib/types'
 import type { QueryStore } from './stores'
 
 export * from './adapter'
@@ -6,7 +7,7 @@ export * from './fragments'
 export * from './session'
 export * from './types'
 
-type LoadResult = Promise<{ [key: string]: QueryStore<any, {}> }>
+type LoadResult = Promise<{ [key: string]: QueryStore<any, GraphQLVariables> }>
 type LoadAllInput = LoadResult | Record<string, LoadResult>
 
 // gets all the values from an object
