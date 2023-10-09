@@ -295,7 +295,8 @@ async function pullSchemaCli() {
 
 		url_and_headers = answer.url_and_headers
 		const value_splited = url_and_headers.split(' ')
-		const apiUrl = value_splited[0]
+
+		apiUrl = value_splited[0]
 
 		const local_headers =
 			value_splited.length > 1
