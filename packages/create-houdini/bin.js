@@ -62,7 +62,7 @@ if (!projectDir) {
 
 	if (dir) {
 		projectDir = dir
-		projectName = 'hello-houdini'
+		projectName = dir
 	} else {
 		projectDir = '.'
 	}
