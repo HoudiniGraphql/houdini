@@ -94,8 +94,7 @@ export function watch_local_schema(): Plugin {
 		apply: 'build',
 		async moduleParsed(module) {
 			if (module.id.endsWith('+schema.ts')) {
-				depOfSchema.push(module.id)
-				depOfSchema.push(...module.importedIdResolutions.map((c) => c.id))
+				depOfSchema.push(module.id, ...module.importedIdResolutions.map((c) => c.id))
 			}
 			if (depOfSchema.includes(module.id)) {
 				depOfSchema.push(...module.importedIdResolutions.map((c) => c.id))
