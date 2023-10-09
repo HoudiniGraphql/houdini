@@ -175,6 +175,7 @@ copy(
 		["'CLIENT_CONFIG'"]: clientConfig,
 		["'CONFIG_FILE'"]: configFile,
 	},
+	{ '.meta.gitignore': '.gitignore' },
 	['.meta.json']
 )
 
@@ -213,6 +214,7 @@ function copy(
 	/** @type {string} */ sourceDir,
 	/** @type {string} */ destDir = projectDir,
 	/** @type {Record<string, string>} */ transformMap = {},
+	/** @type {Record<string, string>} */ transformFileMap = {},
 	/** @type {string[]} */ ignoreList = []
 ) {
 	if (!fs.existsSync(destDir)) {
@@ -220,12 +222,16 @@ function copy(
 	}
 
 	const files = fs.readdirSync(sourceDir)
-	for (const file of files) {
-		const sourceFilePath = path.join(sourceDir, file)
+	for (const fileSource of files) {
+		const fileDest = Object.entries(transformFileMap).reduce((acc, [key, value]) => {
+			return acc.replace(key, value)
+		}, fileSource)
+		// const file = fileSource.replace(".meta.gitignore", ".gitignore")
+		const sourceFilePath = path.join(sourceDir, fileSource)
 		const sourceRelative = path.relative(templateDir, sourceFilePath)
 		// skip the ignore list
 		if (!ignoreList.includes(sourceRelative)) {
-			const destFilePath = path.join(destDir, file)
+			const destFilePath = path.join(destDir, fileDest)
 
 			const stats = fs.statSync(sourceFilePath)
 
@@ -247,7 +253,7 @@ function copy(
 			}
 			// if we run into a directory then we should keep going
 			else if (stats.isDirectory()) {
-				copy(sourceFilePath, destFilePath, transformMap, ignoreList)
+				copy(sourceFilePath, destFilePath, transformMap, transformFileMap, ignoreList)
 			}
 		}
 	}
