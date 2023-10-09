@@ -34,6 +34,7 @@ export const routes = {
   Stores_Mutation_Scalar_Multi_Upload: '/stores/mutation-scalar-multi-upload',
   Stores_Mutation_Enums: '/stores/mutation-enums',
   Stores_Network_One_Store_Multivariables: '/stores/network-one-store-multivariables',
+  Stores_SSR_LoadAll_Store_Without_Variables: '/stores/ssr-loadall-store-without-variables',
   Stores_SSR_One_Store_Multivariables: '/stores/ssr-one-store-multivariables',
   Stores_Fragment_Null: '/stores/fragment-null',
   Stores_Metadata: '/stores/metadata',

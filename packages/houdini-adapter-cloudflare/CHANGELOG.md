@@ -1,15 +1,29 @@
 # houdini-adapter-cloudflare
 
+## 1.2.27
+
+### Dependency Changes
+
+-   Updated dependencies []:
+    -   houdini@1.2.27
+
+## 1.2.26
+
+### Dependency Changes
+
+-   Updated dependencies []:
+    -   houdini@1.2.26
+
 ## 1.2.25
 
-### Patch Changes
+### Dependency Changes
 
 -   Updated dependencies []:
     -   houdini@1.2.25
 
 ## 1.2.24
 
-### Patch Changes
+### Dependency Changes
 
 -   Updated dependencies []:
     -   houdini@1.2.24
@@ -60,21 +74,21 @@
 
 ## 1.2.17
 
-### Patch Changes
+### Dependency Changes
 
 -   Updated dependencies []:
     -   houdini@1.2.17
 
 ## 1.2.16
 
-### Patch Changes
+### Dependency Changes
 
 -   Updated dependencies []:
     -   houdini@1.2.16
 
 ## 1.2.15
 
-### Patch Changes
+### Dependency Changes
 
 -   Updated dependencies []:
     -   houdini@1.2.15

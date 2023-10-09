@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import * as p from '@clack/prompts'
+import { program, Option, InvalidArgumentError } from 'commander'
 import * as graphql from 'graphql'
-import { bold, cyan, gray, green, grey, italic, white } from 'kleur/colors'
+import { bold, cyan, gray, grey, italic, white } from 'kleur/colors'
 import fs, { readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { exit } from 'node:process'
@@ -27,6 +28,24 @@ const options = fs.readdirSync(templatesDir).map((templateDir) => {
 	}
 	return { ...data, value: templateDir }
 })
+
+program.argument('[project_name]', 'optional project name')
+program.addOption(
+	new Option('-t, --template <template>', 'template you want to use').choices(
+		options.map((c) => c.value)
+	)
+)
+program.addOption(
+	new Option('-s, --schema <schema>', '"local" or "http..."').argParser((value) => {
+		if (value === 'local' || value.startsWith('http')) {
+			return value
+		}
+		throw new InvalidArgumentError('Should be "local" or "http..." or do not set it!')
+	})
+)
+
+program.parse(process.argv)
+const options_cli = program.opts()
 
 p.intro('🎩 Welcome to Houdini!')
 
@@ -78,11 +97,13 @@ if (dirToCreate && !fs.existsSync(projectDir)) {
 	fs.mkdirSync(projectDir)
 }
 
-const template = await p.select({
-	message: 'Which template do you want to use?',
-	initialValue: 'react-typescript',
-	options,
-})
+const template = options_cli.template
+	? options_cli.template
+	: await p.select({
+			message: 'Which template do you want to use?',
+			initialValue: 'react-typescript',
+			options,
+	  })
 if (p.isCancel(template)) {
 	process.exit(1)
 }
@@ -94,14 +115,18 @@ if (!templateMeta) {
 }
 
 // ask if the schema is local or remote
-const localSchema =
-	template !== 'sveltekit-demo' &&
-	(await p.confirm({
-		message: 'Is your api going to be defined in this project too?',
-	}))
+const localSchema = templateMeta.apiUrl
+	? false
+	: options_cli.schema === 'local'
+	? true
+	: options_cli.schema?.startsWith('http')
+	? false
+	: await p.confirm({
+			message: 'Is your api going to be defined in this project too?',
+	  })
 
 // if we have a remote schema then we need to introspect it and write the value
-let apiUrl = templateMeta.apiUrl ?? ''
+let apiUrl = options_cli.schema?.startsWith('http') ? options_cli.schema : templateMeta.apiUrl ?? ''
 if (!localSchema) {
 	let pullSchema_content = ''
 	if (apiUrl === '') {
@@ -153,13 +178,9 @@ copy(
 	['.meta.json']
 )
 
-// if we have a local schema then we have more fiiles to copy
+// if we have a local schema then we have more files to copy
 if (localSchema) {
-	if (template === 'react') {
-		copy(sourcePath('./fragments/localApi'))
-	} else if (template === 'react-typescript') {
-		copy(sourcePath('./fragments/localApi-typescript'))
-	}
+	copy(sourcePath('./fragments/localSchema/' + template))
 }
 
 // If anything goes wrong, we don't want to block the user
