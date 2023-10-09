@@ -6,7 +6,7 @@ import generate from '../codegen'
 import type { PluginConfig } from '../lib'
 import { getConfig, formatErrors, path, loadLocalSchema } from '../lib'
 import houdini_vite from './houdini'
-import watch_remote_schema from './schema'
+import { watch_local_schema, watch_remote_schema } from './schema'
 
 export * from './ast'
 export * from './imports'
@@ -21,6 +21,7 @@ export default function (opts?: PluginConfig): Plugin[] {
 	return [
 		houdini_vite(opts),
 		watch_remote_schema(opts),
+		watch_local_schema(),
 		watch_and_run([
 			{
 				name: 'Houdini',
@@ -31,7 +32,8 @@ export default function (opts?: PluginConfig): Plugin[] {
 
 					// we need to watch some specific files
 					if (config.localSchema) {
-						if (filepath.includes('+schema')) {
+						const toWatch = process.env.WATCH_FOR_LOCAL_SCHEMA?.split(',') ?? []
+						if (toWatch.includes(filepath)) {
 							// if it's a schema change, let's reload the config
 							await getConfig({ ...opts, forceReload: true })
 							return true
