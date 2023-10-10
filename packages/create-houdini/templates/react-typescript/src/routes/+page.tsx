@@ -1,7 +1,6 @@
-// import type { PageProps } from "./$types";
+import type { PageProps } from './$types'
 
-// export default function ({}: PageProps) {
-export default function () {
+export default function ({}: PageProps) {
 	return (
 		<div>
 			<h2>Home</h2>
