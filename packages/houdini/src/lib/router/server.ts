@@ -41,12 +41,7 @@ export async function buildLocalSchema(config: Config): Promise<void> {
 					entryFileNames: 'assets/[name].js',
 				},
 			},
-			lib: {
-				entry: {
-					schema: path.join(config.localApiDir, '+schema'),
-				},
-				formats: ['es'],
-			},
+			ssr: true,
 		},
 	})
 
