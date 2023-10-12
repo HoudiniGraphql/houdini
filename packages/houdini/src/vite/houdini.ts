@@ -148,6 +148,8 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				})
 			}
 
+			console.log('build start', devServer, isSecondaryBuild())
+
 			// we need to generate the runtime if we are building in production
 			if (!devServer && !isSecondaryBuild()) {
 				// make sure we have an up-to-date schema
