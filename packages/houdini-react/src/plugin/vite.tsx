@@ -117,6 +117,7 @@ export default {
 	},
 
 	async closeBundle(this, config) {
+		console.log('closing build')
 		// only build in production one
 		if (isSecondaryBuild() || devServer) {
 			return
