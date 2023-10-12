@@ -25,7 +25,7 @@ export async function buildLocalSchema(config: Config): Promise<void> {
 	// load the current version of vite
 	const { build } = await import('vite')
 
-	process.env.HOUDINI_SECONDARY_BUILD = 'ssr'
+	process.env.HOUDINI_SECONDARY_BUILD = 'true'
 
 	// build the schema somewhere we can import from
 	await build({
