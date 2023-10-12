@@ -1,4 +1,3 @@
-import { GraphQLSchema } from 'graphql'
 import {
 	PluginHooks,
 	path,
@@ -6,13 +5,8 @@ import {
 	load_manifest,
 	isSecondaryBuild,
 	type ProjectManifest,
-	type YogaServer,
 	type RouterManifest,
-	localApiEndpoint,
-	loadLocalSchema,
 	routerConventions,
-	find_match,
-	internalRoutes,
 } from 'houdini'
 import React from 'react'
 import { build, type BuildOptions, type Connect } from 'vite'

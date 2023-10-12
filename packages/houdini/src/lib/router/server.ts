@@ -25,7 +25,7 @@ export async function buildLocalSchema(config: Config): Promise<void> {
 	// load the current version of vite
 	const { build } = await import('vite')
 
-	process.env.HOUDINI_SECONDARY_BUILD = 'true'
+	process.env.HOUDINI_SECONDARY_BUILD = 'ssr'
 
 	// build the schema somewhere we can import from
 	await build({
@@ -36,7 +36,6 @@ export async function buildLocalSchema(config: Config): Promise<void> {
 				input: {
 					schema: path.join(config.localApiDir, '+schema'),
 				},
-				external: ['graphql'],
 				output: {
 					entryFileNames: 'assets/[name].js',
 				},
