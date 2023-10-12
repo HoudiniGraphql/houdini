@@ -122,6 +122,8 @@ export default {
 			return
 		}
 
+		console.log('isSecondary', isSecondaryBuild())
+
 		// tell the user what we're doing
 		console.log('🎩 Generating Server Assets...')
 
