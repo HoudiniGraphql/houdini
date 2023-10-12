@@ -13,7 +13,6 @@ type ServerHandlerArgs = {
 // so we want a single function that can be called to get the server
 export async function handle_request(args: ServerHandlerArgs): Promise<Response | undefined> {
 	const plugin_config = args.config.router ?? {}
-
 	// if the project is configured to authorize users by redirect then
 	// we might need to set the session value
 	if (
@@ -25,18 +24,22 @@ export async function handle_request(args: ServerHandlerArgs): Promise<Response 
 	}
 }
 
-async function redirect_auth(args: ServerHandlerArgs): Promise<Response | undefined> {
+async function redirect_auth(args: ServerHandlerArgs): Promise<Response> {
 	// the session and configuration are passed as query parameters in
 	// the url
-	const { searchParams } = new URL(args.url!, `http://${args.headers.get('host')}`)
+	const { searchParams, host } = new URL(args.url!, `http://${args.headers.get('host')}`)
 	const { redirectTo, ...session } = Object.fromEntries(searchParams.entries())
 
 	// encode the session information as a cookie in the response and redirect the user
-	if (redirectTo) {
-		const response = Response.redirect(redirectTo, 302)
-		await set_session(args, response, session)
-		return response
-	}
+	const response = new Response('ok', {
+		status: 302,
+		headers: {
+			Location: redirectTo ?? '/',
+		},
+	})
+	await set_session(args, response, session)
+
+	return response
 }
 
 export type Server = {

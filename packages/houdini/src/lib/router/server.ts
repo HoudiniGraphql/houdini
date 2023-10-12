@@ -18,6 +18,9 @@ export function internalRoutes(config: ConfigFile): string[] {
 }
 
 export async function buildLocalSchema(config: Config): Promise<void> {
+	// before we build the local schcema, we need to generate the typescript config file
+	// so that we can resolve all of the necessary imports
+
 	// load the current version of vite
 	const { build } = await import('vite')
 
@@ -32,15 +35,13 @@ export async function buildLocalSchema(config: Config): Promise<void> {
 				input: {
 					schema: path.join(config.localApiDir, '+schema'),
 				},
-				external: ['graphql'],
 				output: {
 					entryFileNames: 'assets/[name].js',
 				},
 			},
+			ssr: true,
 			lib: {
-				entry: {
-					schema: path.join(config.localApiDir, '+schema'),
-				},
+				entry: path.join(config.localApiDir, '+schema'),
 				formats: ['es'],
 			},
 		},
