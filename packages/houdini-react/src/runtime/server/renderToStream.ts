@@ -6,7 +6,6 @@ import {
 
 import { createPipeWrapper, Pipe } from './renderToStream/createPipeWrapper'
 import { createReadableWrapper } from './renderToStream/createReadableWrapper'
-import { nodeStreamModuleIsAvailable } from './renderToStream/loadNodeStreamModule'
 import { resolveSeoStrategy, SeoStrategy } from './renderToStream/resolveSeoStrategy'
 import { createDebugger } from './utils'
 
