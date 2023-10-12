@@ -148,18 +148,13 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				})
 			}
 
-			console.log('build start', { devServer, isSecondaryBuild: isSecondaryBuild() })
-
 			// we need to generate the runtime if we are building in production
 			if (!devServer && !isSecondaryBuild()) {
 				// make sure we have an up-to-date schema
 				if (config.localSchema && !config.schema) {
-					console.log('loading here')
 					config.schema = await loadLocalSchema(config)
-					console.log('after schema load')
 				}
 
-				console.log('generating runtime')
 				// run the codegen
 				try {
 					await generate(config)

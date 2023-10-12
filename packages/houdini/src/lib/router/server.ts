@@ -20,7 +20,6 @@ export function internalRoutes(config: ConfigFile): string[] {
 export async function buildLocalSchema(config: Config): Promise<void> {
 	// before we build the local schcema, we need to generate the typescript config file
 	// so that we can resolve all of the necessary imports
-	console.log('building local schema')
 
 	// load the current version of vite
 	const { build } = await import('vite')
@@ -47,26 +46,16 @@ export async function buildLocalSchema(config: Config): Promise<void> {
 		},
 	})
 
-	console.log('done building local schema')
-
 	process.env.HOUDINI_SECONDARY_BUILD = 'false'
 }
 
 export async function loadLocalSchema(config: Config): Promise<graphql.GraphQLSchema> {
 	await buildLocalSchema(config)
 
-	console.log('after schema build')
-
 	// import the schema we just built
-	try {
-		const { default: schema } = await import(
-			path.join(config.rootDir, 'temp', 'assets', 'schema.js')
-		)
-		console.log('after schema import')
+	const { default: schema } = await import(
+		path.join(config.rootDir, 'temp', 'assets', 'schema.js')
+	)
 
-		return schema
-	} catch (e) {
-		console.log(e)
-		throw e
-	}
+	return schema
 }
