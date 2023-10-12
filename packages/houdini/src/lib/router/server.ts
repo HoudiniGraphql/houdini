@@ -18,6 +18,10 @@ export function internalRoutes(config: ConfigFile): string[] {
 }
 
 export async function buildLocalSchema(config: Config): Promise<void> {
+	// before we build the local schcema, we need to generate the typescript config file
+	// so that we can resolve all of the necessary imports
+	console.log('building local schema')
+
 	// load the current version of vite
 	const { build } = await import('vite')
 

@@ -7,13 +7,16 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+.env.local
+.env.production.local
+.env.*.local
+
+
 node_modules
 dist
 dist-ssr
 *.local
-
-./$houdini
-./dist
+$houdini
 
 # Editor directories and files
 .vscode/*
