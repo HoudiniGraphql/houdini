@@ -2,4 +2,4 @@
 'houdini-adapter-cloudflare': patch
 ---
 
-bump
+Stabilize react deployments
