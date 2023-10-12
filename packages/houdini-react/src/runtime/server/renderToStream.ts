@@ -1,7 +1,7 @@
 import React from 'react'
 import {
-	renderToPipeableStream as RenderToPipeableStream,
-	renderToReadableStream as RenderToReadableStream,
+	renderToPipeableStream,
+	renderToReadableStream,
 } from 'react-dom/server'
 
 import { createPipeWrapper, Pipe } from './renderToStream/createPipeWrapper'
@@ -21,8 +21,8 @@ type Options = {
 	seoStrategy?: SeoStrategy
 	userAgent?: string
 	onBoundaryError?: (err: unknown) => void
-	renderToReadableStream?: typeof RenderToReadableStream
-	renderToPipeableStream?: typeof RenderToPipeableStream
+	renderToReadableStream?: typeof renderToReadableStream
+	renderToPipeableStream?: typeof renderToPipeableStream
 }
 type Result = (
 	| {
@@ -80,7 +80,7 @@ async function renderToNodeStream(
 	options: {
 		debug?: boolean
 		onBoundaryError?: (err: unknown) => void
-		renderToPipeableStream?: typeof RenderToPipeableStream
+		renderToPipeableStream?: typeof renderToPipeableStream
 	}
 ) {
 	debug('creating Node.js Stream Pipe')
@@ -109,12 +109,6 @@ async function renderToNodeStream(
 			}
 		})
 	}
-	const renderToPipeableStream =
-		options.renderToPipeableStream ??
-		// @ts-ignore
-		// We don't directly use import() because it shouldn't be bundled for Cloudflare Workers: the module react-dom/server.node contains a require('stream') which fails on Cloudflare Workers
-		((await import('react-dom/server.node'))
-			.renderToPipeableStream as typeof RenderToPipeableStream)
 
 	console.log("THIS ->", renderToPipeableStream)
 
@@ -162,7 +156,7 @@ async function renderToWebStream(
 	options: {
 		debug?: boolean
 		onBoundaryError?: (err: unknown) => void
-		renderToReadableStream?: typeof RenderToReadableStream
+		renderToReadableStream?: typeof renderToReadableStream
 	}
 ) {
 	debug('creating Web Stream Pipe')
@@ -180,11 +174,6 @@ async function renderToWebStream(
 			}
 		})
 	}
-	const renderToReadableStream =
-		options.renderToReadableStream ??
-		// We directly use import() because it needs to be bundled for Cloudflare Workers
-		((await import('react-dom/server.browser' as string))
-			.renderToReadableStream as typeof RenderToReadableStream)
 
 	const readableOriginal = await renderToReadableStream(element, { onError })
 	const { allReady } = readableOriginal
