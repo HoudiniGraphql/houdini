@@ -148,7 +148,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				})
 			}
 
-			console.log('build start', devServer, isSecondaryBuild())
+			console.log('build start', { devServer, isSecondaryBuild: isSecondaryBuild() })
 
 			// we need to generate the runtime if we are building in production
 			if (!devServer && !isSecondaryBuild()) {
@@ -157,6 +157,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 					config.schema = await loadLocalSchema(config)
 				}
 
+				console.log('generating runtime')
 				// run the codegen
 				try {
 					await generate(config)
