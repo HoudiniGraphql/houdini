@@ -116,6 +116,8 @@ async function renderToNodeStream(
 		((await import('react-dom/server.node'))
 			.renderToPipeableStream as typeof RenderToPipeableStream)
 
+	console.log("THIS ->", renderToPipeableStream)
+
 	const { pipe: pipeOriginal } = renderToPipeableStream(element, {
 		onShellReady() {
 			debug('[react] onShellReady()')
