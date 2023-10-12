@@ -50,11 +50,15 @@ export async function buildLocalSchema(config: Config): Promise<void> {
 		},
 	})
 
+	console.log('done building local schema')
+
 	process.env.HOUDINI_SECONDARY_BUILD = 'false'
 }
 
 export async function loadLocalSchema(config: Config): Promise<graphql.GraphQLSchema> {
 	await buildLocalSchema(config)
+
+	console.log('after schema build')
 
 	// import the schema we just built
 	const { default: schema } = await import(
