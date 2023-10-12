@@ -1,5 +1,5 @@
 import React from 'react'
-import type {
+import {
 	renderToPipeableStream as RenderToPipeableStream,
 	renderToReadableStream as RenderToReadableStream,
 } from 'react-dom/server'
