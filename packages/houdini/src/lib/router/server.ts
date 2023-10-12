@@ -64,6 +64,7 @@ export async function loadLocalSchema(config: Config): Promise<graphql.GraphQLSc
 	const { default: schema } = await import(
 		path.join(config.rootDir, 'temp', 'assets', 'schema.js')
 	)
+	console.log('after schema import')
 
 	return schema
 }
