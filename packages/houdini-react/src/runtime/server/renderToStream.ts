@@ -55,7 +55,7 @@ async function renderToStream(element: React.ReactNode, options: Options = {}): 
 
 	const disable =
 		globalConfig.disable || (options.disable ?? resolveSeoStrategy(options).disableStream)
-	const webStream = options.webStream ?? !(await nodeStreamModuleIsAvailable())
+	const webStream = true
 	debug(`disable === ${disable} && webStream === ${webStream}`)
 
 	let result: Result
