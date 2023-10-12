@@ -81,16 +81,16 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		// we use this to generate the final assets needed for a production build of the server.
 		// this is only called when bundling (ie, not in dev mode)
 		async closeBundle() {
+			if (isSecondaryBuild() || viteEnv.mode !== 'production' || devServer) {
+				return
+			}
+
 			for (const plugin of config.plugins) {
 				if (typeof plugin.vite?.closeBundle !== 'function') {
 					continue
 				}
 
 				await plugin.vite!.closeBundle.call(this, config)
-			}
-
-			if (isSecondaryBuild() || viteEnv.mode !== 'production' || devServer) {
-				return
 			}
 
 			// if we dont' have an adapter, we don't need to do anything
@@ -154,7 +154,9 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			if (!devServer && !isSecondaryBuild()) {
 				// make sure we have an up-to-date schema
 				if (config.localSchema && !config.schema) {
+					console.log('loading here')
 					config.schema = await loadLocalSchema(config)
+					console.log('after schema load')
 				}
 
 				console.log('generating runtime')

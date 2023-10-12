@@ -117,14 +117,6 @@ export default {
 	},
 
 	async closeBundle(this, config) {
-		console.log('closing build')
-		// only build in production one
-		if (isSecondaryBuild() || devServer) {
-			return
-		}
-
-		console.log('isSecondary', isSecondaryBuild())
-
 		// tell the user what we're doing
 		console.log('🎩 Generating Server Assets...')
 
