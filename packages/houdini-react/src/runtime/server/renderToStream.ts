@@ -109,8 +109,6 @@ async function renderToNodeStream(
 		})
 	}
 
-	console.log("THIS ->", renderToPipeableStream)
-
 	const { pipe: pipeOriginal } = renderToPipeableStream(element, {
 		onShellReady() {
 			debug('[react] onShellReady()')
