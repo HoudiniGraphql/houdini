@@ -20,6 +20,9 @@ is not organized as an introduction but more of a reference. Don't worry - there
 Houdini's React bindings are still considered unstable and are subject to change with every patch update (the third number).
 If you are building stuff with it, please check the changelog for any updates or pin to a specific version.
 
+We recommend installing the `@canary` tag which will give you the latest version merged to `main` and might include fixes that
+haven't yet been deployed.
+
 </Warning>
 
 ## What is Houdini?
