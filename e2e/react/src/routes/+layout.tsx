@@ -1,17 +1,18 @@
-import { routes } from '~/utils/routes'
+import manifest from '$houdini/plugins/houdini-react/manifest.json'
 
 import type { LayoutProps } from './$types'
 
 export default function ({ children }: LayoutProps) {
-	let routesKvp = Object.keys(routes).map((key: string) => {
-		return { key, value: (routes as Record<string, string>)[key] }
-	})
+	let routesKvp = Object.values(manifest.pages).map((page) => ({
+		key: page.url,
+		value: page.url,
+	}))
 
 	return (
 		<>
 			<div>{children}</div>
 			<hr />
-			<ul>
+			<ul style={{ listStyle: 'none' }}>
 				{routesKvp.map((route) => {
 					return (
 						<li key={route.value}>
