@@ -198,9 +198,9 @@ importers:
       houdini:
         specifier: workspace:^
         version: link:../../packages/houdini
-      houdini-adapter-auto:
+      houdini-adapter-cloudflare:
         specifier: workspace:^
-        version: link:../../packages/adapter-auto
+        version: link:../../packages/adapter-cloudflare
       houdini-react:
         specifier: workspace:^
         version: link:../../packages/houdini-react

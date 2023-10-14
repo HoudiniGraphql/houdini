@@ -21,7 +21,7 @@
 		"cookie": "^0.5.0",
 		"graphql-yoga": "^4.0.4",
 		"houdini": "workspace:^",
-		"houdini-adapter-auto": "workspace:^",
+		"houdini-adapter-cloudflare": "workspace:^",
 		"houdini-react": "workspace:^",
 		"react": "^18.3.0-canary-d6dcad6a8-20230914",
 		"react-dom": "^18.3.0-canary-d6dcad6a8-20230914"

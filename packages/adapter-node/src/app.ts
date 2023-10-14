@@ -1,5 +1,5 @@
 import { createServerAdapter } from 'houdini/adapter'
-import { createServer } from 'http'
+import { createServer } from 'node:http'
 
 // create the production server adapter
 const serverAdapter = createServerAdapter({
