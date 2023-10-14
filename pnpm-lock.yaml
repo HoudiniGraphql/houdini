@@ -314,51 +314,34 @@ importers:
         specifier: ^4.9
         version: 4.9.4
 
-  packages/adapter-cloudflare:
+  packages/adapter-auto:
     dependencies:
-      '@cloudflare/kv-asset-handler':
-        specifier: ^0.3.0
-        version: 0.3.0
-      '@types/react':
-        specifier: ^18.2.21
-        version: 18.2.21
-      '@types/react-dom':
-        specifier: ^18.0.10
-        version: 18.0.11
-      cookie:
-        specifier: ^0.5.0
-        version: 0.5.0
-      graphql-yoga:
-        specifier: ^4.0.4
-        version: 4.0.4(graphql@15.5.0)
       houdini:
         specifier: workspace:^
         version: link:../houdini
-      itty-router:
-        specifier: ^4.0.23
-        version: 4.0.23
-      react:
-        specifier: ^18.2.0
-        version: 18.2.0
-      react-dom:
-        specifier: ^18.2.0
-        version: 18.2.0(react@18.2.0)
     devDependencies:
-      '@cloudflare/workers-types':
-        specifier: ^4.20230904.0
-        version: 4.20230904.0
-      '@types/cookie':
-        specifier: ^0.5.2
-        version: 0.5.2
       scripts:
         specifier: workspace:^
         version: link:../_scripts
       tsup:
         specifier: ^7.2.0
         version: 7.2.0(typescript@4.9.4)
-      vitest:
-        specifier: ^0.28.3
-        version: 0.28.3(@vitest/ui@0.28.3)
+
+  packages/adapter-cloudflare:
+    dependencies:
+      houdini:
+        specifier: workspace:^
+        version: link:../houdini
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20230904.0
+        version: 4.20230904.0
+      scripts:
+        specifier: workspace:^
+        version: link:../_scripts
+      tsup:
+        specifier: ^7.2.0
+        version: 7.2.0(typescript@4.9.4)
 
   packages/adapter-node:
     dependencies:
@@ -1513,12 +1496,6 @@ packages:
     dependencies:
       mime: 3.0.0
     dev: true
-
-  /@cloudflare/kv-asset-handler@0.3.0:
-    resolution: {integrity: sha512-9CB/MKf/wdvbfkUdfrj+OkEwZ5b7rws0eogJ4293h+7b6KX5toPwym+VQKmILafNB9YiehqY0DlNrDcDhdWHSQ==}
-    dependencies:
-      mime: 3.0.0
-    dev: false
 
   /@cloudflare/workerd-darwin-64@1.20230904.0:
     resolution: {integrity: sha512-/GDlmxAFbDtrQwP4zOXFbqOfaPvkDxdsCoEa+KEBcAl5uR98+7WW5/b8naBHX+t26uS7p4bLlImM8J5F1ienRQ==}
@@ -3200,6 +3177,7 @@ packages:
     resolution: {integrity: sha512-O38bPbI2CWtgw/OoQoY+BRelw7uysmXbWvw3nLWO21H1HSh+GOlqPuXshJfjmpNlKiiSDG9cc1JZAaMmVdcTlw==}
     dependencies:
       '@types/react': 18.2.21
+    dev: true
 
   /@types/react@18.0.33:
     resolution: {integrity: sha512-sHxzVxeanvQyQ1lr8NSHaj0kDzcNiGpILEVt69g9S31/7PfMvNCKLKcsHw4lYKjs3cGNJjXSP4mYzX43QlnjNA==}
@@ -3223,6 +3201,7 @@ packages:
       '@types/prop-types': 15.7.5
       '@types/scheduler': 0.16.2
       csstype: 3.1.1
+    dev: true
 
   /@types/sass@1.43.1:
     resolution: {integrity: sha512-BPdoIt1lfJ6B7rw35ncdwBZrAssjcwzI5LByIrYs+tpXlj/CAkuVdRsgZDdP4lq5EjyWzwxZCqAoFyHKFwp32g==}
@@ -7472,10 +7451,6 @@ packages:
       html-escaper: 2.0.2
       istanbul-lib-report: 3.0.0
     dev: true
-
-  /itty-router@4.0.23:
-    resolution: {integrity: sha512-tP1NI8PVK43vWlBnIPqj47ni5FDSczFviA4wgBznscndo8lEvBA+pO3DD1rNbIQPcZhprr775iUTunyGvQMcBw==}
-    dev: false
 
   /javascript-natural-sort@0.7.1:
     resolution: {integrity: sha512-nO6jcEfZWQXDhOiBtG2KvKyEptz7RVbpGP4vTD2hLBdmNQSsCiicO2Ioinv6UI4y9ukqnBpy+XZ9H6uLNgJTlw==}

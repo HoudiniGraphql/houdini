@@ -1,12 +1,13 @@
 {
-    "name": "houdini-adapter-cloudflare",
+    "name": "houdini-adapter-auto",
     "version": "1.2.27",
-    "description": "The adapter for deploying your Houdini application to Cloudflare Pages",
+    "description": "An adapter for deploying your Houdini application according to the build environment ",
     "keywords": [
         "houdini",
         "adpter",
         "cloudflare",
-        "workers"
+        "workers",
+        "node"
     ],
     "homepage": "https://github.com/HoudiniGraphql/houdini",
     "funding": "https://github.com/sponsors/HoudiniGraphql",
@@ -16,15 +17,14 @@
     },
     "license": "MIT",
     "type": "module",
-    "devDependencies": {
-        "@cloudflare/workers-types": "^4.20230904.0",
-        "scripts": "workspace:^",
-        "tsup": "^7.2.0"
-    },
     "scripts": {
         "build": "tsup src/index.ts src/worker.ts --format esm,cjs  --external vite --external ../\\$houdini --external ../src --external graphql --minify --dts --clean --out-dir build",
         "build:": "cd ../../ && ((run build && cd -) || (cd - && exit 1))",
         "build:build": "pnpm build: && pnpm build"
+    },
+    "devDependencies": {
+        "scripts": "workspace:^",
+        "tsup": "^7.2.0"
     },
     "dependencies": {
         "houdini": "workspace:^"
