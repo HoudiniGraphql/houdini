@@ -2,4 +2,4 @@
 'houdini-react': patch
 ---
 
-Fix invalid import during dev
+Stabilize react deployments

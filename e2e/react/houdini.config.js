@@ -30,11 +30,13 @@ const config = {
 	},
 
 	plugins: {
-		'houdini-react': {
-			auth: {
-				redirect: '/auth/token',
-				sessionKeys: ['supersecret'],
-			},
+		'houdini-react': {},
+	},
+
+	router: {
+		auth: {
+			redirect: '/auth/token',
+			sessionKeys: ['supersecret'],
 		},
 	},
 

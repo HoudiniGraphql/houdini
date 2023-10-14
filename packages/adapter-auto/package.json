@@ -1,12 +1,13 @@
 {
-    "name": "houdini-adapter-cloudflare",
-    "version": "1.2.25",
-    "description": "The adapter for deploying your Houdini application to Cloudflare Pages",
+    "name": "houdini-adapter-auto",
+    "version": "1.2.27",
+    "description": "An adapter for deploying your Houdini application according to the build environment ",
     "keywords": [
         "houdini",
         "adpter",
         "cloudflare",
-        "workers"
+        "workers",
+        "node"
     ],
     "homepage": "https://github.com/HoudiniGraphql/houdini",
     "funding": "https://github.com/sponsors/HoudiniGraphql",
@@ -16,28 +17,18 @@
     },
     "license": "MIT",
     "type": "module",
-    "devDependencies": {
-        "@cloudflare/workers-types": "^4.20230904.0",
-        "@types/cookie": "^0.5.2",
-        "scripts": "workspace:^",
-        "tsup": "^7.2.0",
-        "vitest": "^0.28.3"
-    },
     "scripts": {
-        "build": "tsup src/index.ts src/worker.ts --format esm,cjs  --external vite --external ../\\$houdini --external ../src --external graphql --minify --dts --clean --out-dir build",
+        "build": "tsup src/* --format esm,cjs  --external vite --minify --dts --clean --out-dir build",
         "build:": "cd ../../ && ((run build && cd -) || (cd - && exit 1))",
         "build:build": "pnpm build: && pnpm build"
     },
+    "devDependencies": {
+        "scripts": "workspace:^",
+        "tsup": "^7.2.0"
+    },
     "dependencies": {
-        "@cloudflare/kv-asset-handler": "^0.3.0",
-        "@types/react": "^18.2.21",
-        "@types/react-dom": "^18.0.10",
-        "cookie": "^0.5.0",
-        "graphql-yoga": "^4.0.4",
         "houdini": "workspace:^",
-        "itty-router": "^4.0.23",
-        "react": "^18.2.0",
-        "react-dom": "^18.2.0"
+        "import-meta-resolve": "^3.0.0"
     },
     "files": [
         "build"

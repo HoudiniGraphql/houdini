@@ -1,16 +1,18 @@
-name: Release
+name: Canary Release
 
-# keep the changelog up to date on every commit to main
+# on every commit to main, we want to publish a snapshot release:
+# for more info: https://github.com/changesets/changesets/blob/main/docs/snapshot-releases.md
 on:
     push:
         branches:
             - main
+            - next
 
 env:
     CI: true
 jobs:
     publish:
-        name: Publish
+        name: Publish Canary Version
         runs-on: ubuntu-22.04
         steps:
             - name: Creating .npmrc
@@ -52,13 +54,10 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Create Release Pull Request or Deploy
-              uses: changesets/action@v1
-              with:
-                  version: pnpm run version
-                  publish: pnpm run release
-                  title: '📦 Version Update'
-                  commit: '📦 v{VERSION}'
+            - name: Apply and publish the snapshot release
+              run: |
+                  pnpm changeset version --snapshot
+                  pnpm run build
+                  pnpm changeset publish --no-git-tag --snapshot --tag canary
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

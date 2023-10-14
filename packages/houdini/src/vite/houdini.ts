@@ -81,6 +81,10 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		// we use this to generate the final assets needed for a production build of the server.
 		// this is only called when bundling (ie, not in dev mode)
 		async closeBundle() {
+			if (isSecondaryBuild() || viteEnv.mode !== 'production' || devServer) {
+				return
+			}
+
 			for (const plugin of config.plugins) {
 				if (typeof plugin.vite?.closeBundle !== 'function') {
 					continue
@@ -89,14 +93,14 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				await plugin.vite!.closeBundle.call(this, config)
 			}
 
-			if (isSecondaryBuild() || viteEnv.mode !== 'production' || devServer) {
-				return
-			}
-
 			// if we dont' have an adapter, we don't need to do anything
 			if (!opts.adapter) {
 				return
 			}
+
+			// dry
+			const outDir = config.routerBuildDirectory
+			const sourceDir = viteConfig.build.outDir
 
 			// tell the user what we're doing
 			console.log('🎩 Generating Deployment Assets...')
@@ -113,15 +117,23 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			// load the project manifest
 			const manifest = await load_manifest({ config, includeArtifacts: true })
 
+			// before we load the adapter we want to do some manual prep on the directories
+			// pull the ssr directory out of assets
+			await fs.recursiveCopy(path.join(sourceDir, 'ssr'), path.join(outDir, 'ssr'))
+			await fs.rmdir(path.join(sourceDir, 'ssr'))
+
+			// copy the asset directory into the build directory
+			await fs.recursiveCopy(sourceDir, path.join(outDir, 'assets'))
+
 			// invoke the adapter
 			await opts.adapter({
 				config,
 				conventions: routerConventions,
-				sourceDir: viteConfig.build.outDir,
+				sourceDir,
 				publicBase: viteConfig.base,
-				outDir: config.routerBuildDirectory,
+				outDir,
 				manifest,
-				adapterPath: './assets/ssr/entries/adapter',
+				adapterPath: './ssr/entries/adapter',
 			})
 
 			// if there is a public directory at the root of the project,
@@ -142,7 +154,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				}
 
 				// @ts-expect-error
-				plugin.vite!.buildStart.call(this, {
+				await plugin.vite!.buildStart.call(this, {
 					...args,
 					houdiniConfig: config,
 				})

@@ -368,7 +368,7 @@ export class Config {
 	}
 
 	get routerBuildDirectory() {
-		return path.join(this.projectRoot, 'dist', 'assets')
+		return path.join(this.projectRoot, 'dist')
 	}
 
 	get definitionsDocumentsPath() {

@@ -20,6 +20,9 @@ is not organized as an introduction but more of a reference. Don't worry - there
 Houdini's React bindings are still considered unstable and are subject to change with every patch update (the third number).
 If you are building stuff with it, please check the changelog for any updates or pin to a specific version.
 
+We recommend installing the `@canary` tag which will give you the latest version merged to `main` and might include fixes that
+haven't yet been deployed.
+
 </Warning>
 
 ## What is Houdini?
@@ -556,3 +559,5 @@ export default config
 Here is a list of the available adapters:
 
 - `houdini-adapter-cloudflare`: builds your application to run on Cloudflare Pages
+- `houdini-adapter-node`: builds your application to run as a standalone node process
+- `houdini-adapter-auto`: tries to install the appropriate adapter for the current situation

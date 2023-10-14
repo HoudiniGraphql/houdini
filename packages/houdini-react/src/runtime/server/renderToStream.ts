@@ -1,13 +1,13 @@
 import React from 'react'
-import type {
-	renderToPipeableStream as RenderToPipeableStream,
-	renderToReadableStream as RenderToReadableStream,
+import {
+	renderToPipeableStream,
+	renderToReadableStream,
 } from 'react-dom/server'
 
 import { createPipeWrapper, Pipe } from './renderToStream/createPipeWrapper'
 import { createReadableWrapper } from './renderToStream/createReadableWrapper'
-import { nodeStreamModuleIsAvailable } from './renderToStream/loadNodeStreamModule'
 import { resolveSeoStrategy, SeoStrategy } from './renderToStream/resolveSeoStrategy'
+import { nodeStreamModuleIsAvailable } from './renderToStream/loadNodeStreamModule'
 import { createDebugger } from './utils'
 
 export { renderToStream }
@@ -21,8 +21,8 @@ type Options = {
 	seoStrategy?: SeoStrategy
 	userAgent?: string
 	onBoundaryError?: (err: unknown) => void
-	renderToReadableStream?: typeof RenderToReadableStream
-	renderToPipeableStream?: typeof RenderToPipeableStream
+	renderToReadableStream?: typeof renderToReadableStream
+	renderToPipeableStream?: typeof renderToPipeableStream
 }
 type Result = (
 	| {
@@ -55,7 +55,9 @@ async function renderToStream(element: React.ReactNode, options: Options = {}): 
 
 	const disable =
 		globalConfig.disable || (options.disable ?? resolveSeoStrategy(options).disableStream)
-	const webStream = options.webStream ?? !(await nodeStreamModuleIsAvailable())
+
+	const webStream = process.env.NODE_ENV === 'production' || (options.webStream ?? !(await nodeStreamModuleIsAvailable()))
+
 	debug(`disable === ${disable} && webStream === ${webStream}`)
 
 	let result: Result
@@ -80,7 +82,7 @@ async function renderToNodeStream(
 	options: {
 		debug?: boolean
 		onBoundaryError?: (err: unknown) => void
-		renderToPipeableStream?: typeof RenderToPipeableStream
+		renderToPipeableStream?: typeof renderToPipeableStream
 	}
 ) {
 	debug('creating Node.js Stream Pipe')
@@ -109,12 +111,6 @@ async function renderToNodeStream(
 			}
 		})
 	}
-	const renderToPipeableStream =
-		options.renderToPipeableStream ??
-		// @ts-ignore
-		// We don't directly use import() because it shouldn't be bundled for Cloudflare Workers: the module react-dom/server.node contains a require('stream') which fails on Cloudflare Workers
-		((await import('react-dom/server.node'))
-			.renderToPipeableStream as typeof RenderToPipeableStream)
 
 	const { pipe: pipeOriginal } = renderToPipeableStream(element, {
 		onShellReady() {
@@ -160,7 +156,7 @@ async function renderToWebStream(
 	options: {
 		debug?: boolean
 		onBoundaryError?: (err: unknown) => void
-		renderToReadableStream?: typeof RenderToReadableStream
+		renderToReadableStream?: typeof renderToReadableStream
 	}
 ) {
 	debug('creating Web Stream Pipe')
@@ -178,11 +174,6 @@ async function renderToWebStream(
 			}
 		})
 	}
-	const renderToReadableStream =
-		options.renderToReadableStream ??
-		// We directly use import() because it needs to be bundled for Cloudflare Workers
-		((await import('react-dom/server.browser' as string))
-			.renderToReadableStream as typeof RenderToReadableStream)
 
 	const readableOriginal = await renderToReadableStream(element, { onError })
 	const { allReady } = readableOriginal
