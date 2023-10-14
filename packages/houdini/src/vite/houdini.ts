@@ -122,6 +122,9 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			await fs.recursiveCopy(path.join(sourceDir, 'ssr'), path.join(outDir, 'ssr'))
 			await fs.rmdir(path.join(sourceDir, 'ssr'))
 
+			// copy the asset directory into the build directory
+			await fs.recursiveCopy(sourceDir, path.join(outDir, 'assets'))
+
 			// invoke the adapter
 			await opts.adapter({
 				config,

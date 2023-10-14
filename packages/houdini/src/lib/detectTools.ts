@@ -49,7 +49,7 @@ export async function detectFromPackageJSON(cwd: string): Promise<DetectedFromPa
 	}
 }
 
-export async function detectTools(cwd: string): Promise<DetectedTools> {
+export async function detectTools(cwd: string = process.cwd()): Promise<DetectedTools> {
 	let typescript = false
 	try {
 		await fs.stat(path.join(cwd, 'tsconfig.json'))
