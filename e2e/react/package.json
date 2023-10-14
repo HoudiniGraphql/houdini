@@ -21,7 +21,7 @@
 		"cookie": "^0.5.0",
 		"graphql-yoga": "^4.0.4",
 		"houdini": "workspace:^",
-		"houdini-adapter-cloudflare": "workspace:^",
+		"houdini-adapter-auto": "workspace:^",
 		"houdini-react": "workspace:^",
 		"react": "^18.3.0-canary-d6dcad6a8-20230914",
 		"react-dom": "^18.3.0-canary-d6dcad6a8-20230914"
@@ -34,6 +34,7 @@
 		"cross-env": "^7.0.3",
 		"e2e-api": "workspace:^",
 		"hono": "^3.6.0",
+		"houdini-adapter-node": "workspace:^",
 		"typescript": "^4.9.3",
 		"vite": "^4.1.0",
 		"wrangler": "^3.7.0"

@@ -198,9 +198,9 @@ importers:
       houdini:
         specifier: workspace:^
         version: link:../../packages/houdini
-      houdini-adapter-cloudflare:
+      houdini-adapter-auto:
         specifier: workspace:^
-        version: link:../../packages/adapter-cloudflare
+        version: link:../../packages/adapter-auto
       houdini-react:
         specifier: workspace:^
         version: link:../../packages/houdini-react
@@ -232,6 +232,9 @@ importers:
       hono:
         specifier: ^3.6.0
         version: 3.6.0
+      houdini-adapter-node:
+        specifier: workspace:^
+        version: link:../../packages/adapter-node
       typescript:
         specifier: ^4.9.3
         version: 4.9.4
@@ -319,6 +322,9 @@ importers:
       houdini:
         specifier: workspace:^
         version: link:../houdini
+      import-meta-resolve:
+        specifier: ^3.0.0
+        version: 3.0.0
     devDependencies:
       scripts:
         specifier: workspace:^
@@ -7104,6 +7110,10 @@ packages:
 
   /import-meta-resolve@2.2.0:
     resolution: {integrity: sha512-CpPOtiCHxP9HdtDM5F45tNiAe66Cqlv3f5uHoJjt+KlaLrUh9/Wz9vepADZ78SlqEo62aDWZtj9ydMGXV+CPnw==}
+
+  /import-meta-resolve@3.0.0:
+    resolution: {integrity: sha512-4IwhLhNNA8yy445rPjD/lWh++7hMDOml2eHtd58eG7h+qK3EryMuuRbsHGPikCoAgIkkDnckKfWSk2iDla/ejg==}
+    dev: false
 
   /imurmurhash@0.1.4:
     resolution: {integrity: sha512-JmXMZ6wuvDmLiHEml9ykzqO6lwFbof0GG4IkcGaENdCRDDmMVnny7s5HsIgHCbaq0w2MyPhDqkhTUgS2LU2PHA==}
