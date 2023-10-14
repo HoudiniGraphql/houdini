@@ -1,6 +1,6 @@
 import type { PageProps } from './$types'
 
-export default function ({ SponsorList }: PageProps) {
+export default function ({}: PageProps) {
 	return (
 		<>
 			<h1>Houdini's React Interation tests</h1>
