@@ -7,6 +7,7 @@ import {
 import { createPipeWrapper, Pipe } from './renderToStream/createPipeWrapper'
 import { createReadableWrapper } from './renderToStream/createReadableWrapper'
 import { resolveSeoStrategy, SeoStrategy } from './renderToStream/resolveSeoStrategy'
+import { nodeStreamModuleIsAvailable } from './renderToStream/loadNodeStreamModule'
 import { createDebugger } from './utils'
 
 export { renderToStream }
@@ -54,7 +55,9 @@ async function renderToStream(element: React.ReactNode, options: Options = {}): 
 
 	const disable =
 		globalConfig.disable || (options.disable ?? resolveSeoStrategy(options).disableStream)
-	const webStream = true
+
+	const webStream = process.env.NODE_ENV === 'proudction' || (options.webStream ?? !(await nodeStreamModuleIsAvailable()))
+
 	debug(`disable === ${disable} && webStream === ${webStream}`)
 
 	let result: Result
