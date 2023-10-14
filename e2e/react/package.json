@@ -34,6 +34,7 @@
 		"cross-env": "^7.0.3",
 		"e2e-api": "workspace:^",
 		"hono": "^3.6.0",
+		"houdini-adapter-node": "workspace:^",
 		"typescript": "^4.9.3",
 		"vite": "^4.1.0",
 		"wrangler": "^3.7.0"

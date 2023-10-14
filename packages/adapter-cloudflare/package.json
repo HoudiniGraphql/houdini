@@ -1,0 +1,54 @@
+{
+    "name": "houdini-adapter-cloudflare",
+    "version": "1.2.27",
+    "description": "The adapter for deploying your Houdini application to Cloudflare Pages",
+    "keywords": [
+        "houdini",
+        "adpter",
+        "cloudflare",
+        "workers"
+    ],
+    "homepage": "https://github.com/HoudiniGraphql/houdini",
+    "funding": "https://github.com/sponsors/HoudiniGraphql",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/HoudiniGraphql/houdini.git"
+    },
+    "license": "MIT",
+    "type": "module",
+    "scripts": {
+        "build": "tsup src/index.ts src/worker.ts --format esm,cjs  --minify --dts --clean --out-dir build",
+        "build:": "cd ../../ && ((run build && cd -) || (cd - && exit 1))",
+        "build:build": "pnpm build: && pnpm build"
+    },
+    "devDependencies": {
+        "@cloudflare/workers-types": "^4.20230904.0",
+        "scripts": "workspace:^",
+        "tsup": "^7.2.0"
+    },
+    "dependencies": {
+        "houdini": "workspace:^"
+    },
+    "files": [
+        "build"
+    ],
+    "exports": {
+        "./package.json": "./package.json",
+        ".": {
+            "import": "./build/index.js",
+            "require": "./build/index.cjs"
+        },
+        "./app": {
+            "import": "./build/app.js",
+            "require": "./build/app.cjs"
+        }
+    },
+    "types": "./build/index.d.ts",
+    "typesVersions": {
+        "*": {
+            "app": [
+                "build/app.d.ts"
+            ]
+        }
+    }
+}
