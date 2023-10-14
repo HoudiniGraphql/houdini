@@ -85,9 +85,8 @@ export function watch_remote_schema(opts: PluginConfig = {}): Plugin {
 	}
 }
 
-export function watch_local_schema(): Plugin {
+export function watch_local_schema(ref: { list: string[] }): Plugin {
 	let depOfSchema: string[] = []
-	process.env.WATCH_FOR_LOCAL_SCHEMA = ''
 
 	return {
 		name: 'houdini-watch-local-schema',
@@ -101,11 +100,11 @@ export function watch_local_schema(): Plugin {
 			}
 		},
 		async closeBundle() {
-			process.env.WATCH_FOR_LOCAL_SCHEMA = [
+			ref.list = [
 				...new Set(
 					depOfSchema.filter((c) => !c.includes('node_modules') && c !== 'graphql')
 				),
-			].join(',')
+			]
 			depOfSchema = []
 		},
 	}

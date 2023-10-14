@@ -18,10 +18,13 @@ export default function (opts?: PluginConfig): Plugin[] {
 	// so we don't get an error when importing.
 	process.env.HOUDINI_PLUGIN = 'true'
 
+	// a container of a list
+	const watchSchemaListref = { list: [] as string[] }
+
 	return [
 		houdini_vite(opts),
 		watch_remote_schema(opts),
-		watch_local_schema(),
+		watch_local_schema(watchSchemaListref),
 		watch_and_run([
 			{
 				name: 'Houdini',
@@ -32,7 +35,7 @@ export default function (opts?: PluginConfig): Plugin[] {
 
 					// we need to watch some specific files
 					if (config.localSchema) {
-						const toWatch = process.env.WATCH_FOR_LOCAL_SCHEMA?.split(',') ?? []
+						const toWatch = watchSchemaListref.list
 						if (toWatch.includes(filepath)) {
 							// if it's a schema change, let's reload the config
 							await getConfig({ ...opts, forceReload: true })
