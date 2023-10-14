@@ -7,7 +7,6 @@ import { QueryArtifact } from '$houdini/runtime/lib/types'
 import { find_match } from '$houdini/runtime/router/match'
 import type { RouterManifest, RouterPageManifest } from '$houdini/runtime/router/types'
 import React from 'react'
-import { useStream } from 'react-streaming'
 
 import { useDocumentStore } from '../hooks/useDocumentStore'
 import { SuspenseCache, suspense_cache } from './cache'
@@ -35,10 +34,12 @@ export function Router({
 	manifest,
 	initialURL,
 	assetPrefix,
+	injectToStream,
 }: {
 	manifest: RouterManifest<ComponentType>
 	initialURL?: string
 	assetPrefix: string
+	injectToStream?: undefined | ((chunk: string) => void)
 }) {
 	// the current route is just a string in state.
 	const [current, setCurrent] = React.useState(() => {
@@ -58,6 +59,7 @@ export function Router({
 		page,
 		variables,
 		assetPrefix,
+		injectToStream,
 	})
 	// if we get this far, it's safe to load the component
 	const { component_cache } = useRouterContext()
@@ -129,10 +131,12 @@ function usePageData({
 	page,
 	variables,
 	assetPrefix,
+	injectToStream,
 }: {
 	page: RouterPageManifest<ComponentType>
 	variables: GraphQLVariables
 	assetPrefix: string
+	injectToStream: undefined | ((chunk: string) => void)
 }): {
 	loadData: (page: RouterPageManifest<ComponentType>, variables: {} | null) => void
 	loadComponent: (page: RouterPageManifest<ComponentType>) => void
@@ -147,9 +151,6 @@ function usePageData({
 		pending_cache,
 		last_variables,
 	} = useRouterContext()
-
-	// get a reference to the current stream
-	const stream = useStream()
 
 	// grab the current session value
 	const session = useSession()
@@ -188,7 +189,7 @@ function usePageData({
 					// if we are building up a stream (on the server), we want to add something
 					// to the client that resolves the pending request with the
 					// data that we just got
-					stream?.injectToStream(`
+					injectToStream?.(`
 						<script>
 							window.__houdini__cache__?.hydrate(${cache.serialize()}, window.__houdini__hydration__layer)
 
@@ -295,7 +296,7 @@ function usePageData({
 					artifact_cache.set(artifact_id, artifact)
 
 					// add a script to load the artifact
-					stream?.injectToStream(`
+					injectToStream?.(`
 						<script type="module" src="${assetPrefix}/artifacts/${artifact.name}.js" async=""></script>
 					`)
 

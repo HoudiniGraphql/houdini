@@ -17,11 +17,13 @@ export function Router({
 	last_variables,
 	session,
 	assetPrefix,
+	injectToStream,
 }: {
 	initialURL: string
 	cache: Cache
 	session?: App.Session
 	assetPrefix: string
+	injectToStream?: (chunk: string) => void
 } & RouterCache) {
 	return (
 		<RouterContextProvider
@@ -34,7 +36,12 @@ export function Router({
 			last_variables={last_variables}
 			session={session}
 		>
-			<RouterImpl initialURL={initialURL} manifest={manifest} assetPrefix={assetPrefix} />
+			<RouterImpl
+				initialURL={initialURL}
+				manifest={manifest}
+				assetPrefix={assetPrefix}
+				injectToStream={injectToStream}
+			/>
 		</RouterContextProvider>
 	)
 }

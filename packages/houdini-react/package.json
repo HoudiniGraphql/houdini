@@ -1,6 +1,6 @@
 {
     "name": "houdini-react",
-    "version": "1.2.24",
+    "version": "1.2.27",
     "description": "The React plugin for houdini",
     "keywords": [
         "typescript",
@@ -43,7 +43,7 @@
         "graphql-yoga": "^4.0.4",
         "houdini": "workspace:^",
         "react": "^18.2.0",
-        "react-streaming": "^0.3.9",
+        "react-dom": "^18.2.0",
         "recast": "^0.23.1",
         "rollup": "^3.7.4",
         "use-deep-compare-effect": "^1.8.1"

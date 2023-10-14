@@ -9,7 +9,6 @@ const server_adapter = createServerAdapter({
 
 const handlers: ExportedHandler = {
 	async fetch(req, env: any, ctx) {
-		// if we aren't loading an asset, push the request through our router
 		const url = new URL(req.url).pathname
 
 		// we are handling an asset

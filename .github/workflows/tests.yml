@@ -75,6 +75,7 @@ jobs:
               id: pnpm-cache
               run: |
                 echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
+
             - uses: actions/cache@v3
               name: Setup pnpm cache
               with:
@@ -82,6 +83,7 @@ jobs:
                 key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
                 restore-keys: |
                   ${{ runner.os }}-pnpm-store-
+
             - name: Install dependencies
               run: pnpm install
 
@@ -91,8 +93,8 @@ jobs:
             - name: Tests
               run: pnpm run tests
 
-    verify_create:
-        name: Verify Create
+    verify_init:
+        name: Verify Init
         runs-on: ubuntu-latest
         steps:
             - name: Checkout source

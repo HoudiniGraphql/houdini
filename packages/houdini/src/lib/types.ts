@@ -286,7 +286,7 @@ export type PluginHooks = {
 		buildStart?: (
 			this: PluginContext,
 			options: NormalizedInputOptions & { houdiniConfig: Config }
-		) => void
+		) => void | Promise<void>
 
 		buildEnd?: (
 			this: PluginContext,
