@@ -1,18 +1,27 @@
+import { routes } from '~/utils/routes'
+
 import type { LayoutProps } from './$types'
 
 export default function ({ children }: LayoutProps) {
+	let routesKvp = Object.keys(routes).map((key: string) => {
+		return { key, value: (routes as Record<string, string>)[key] }
+	})
+
 	return (
-		<div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-			Layout!
-			<div>
-				<a href="/" data-houdini-preload>
-					Sponsors
-				</a>
-				<a href="/links" data-houdini-preload>
-					Links
-				</a>
-			</div>
+		<>
 			<div>{children}</div>
-		</div>
+			<hr />
+			<ul>
+				{routesKvp.map((route) => {
+					return (
+						<li key={route.value}>
+							<a href={route.value} data-houdini-preload>
+								{route.key}
+							</a>
+						</li>
+					)
+				})}
+			</ul>
+		</>
 	)
 }
