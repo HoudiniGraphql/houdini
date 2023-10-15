@@ -10,11 +10,11 @@
 		"build:test": "pnpm build: && pnpm test",
 		"build:generate": "pnpm build: && pnpm houdini generate",
 		"build:build": "pnpm build: && pnpm build",
-		"dev": "vite --port 3018",
+		"dev": "vite",
 		"build": "vite build",
 		"tests": "playwright test ",
 		"test": "npm run tests",
-		"preview": "vite dev --port 3008"
+		"preview": "vite dev"
 	},
 	"dependencies": {
 		"@cloudflare/workers-types": "^4.20230904.0",
