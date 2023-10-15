@@ -1,5 +1,5 @@
 import { routes } from './routes.js';
-import { sleep, stry } from '@kitql/helper';
+import { sleep, stry } from '@kitql/helpers';
 import type { Page, Response } from '@playwright/test';
 import { expect } from '@playwright/test';
 

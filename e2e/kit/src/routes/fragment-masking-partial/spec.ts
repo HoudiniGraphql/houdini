@@ -1,4 +1,4 @@
-import { sleep } from '@kitql/helper';
+import { sleep } from '@kitql/helpers';
 import { test } from '@playwright/test';
 import { routes } from '../../lib/utils/routes.js';
 import { expect_to_be, goto_expect_n_gql } from '../../lib/utils/testsHelper.js';

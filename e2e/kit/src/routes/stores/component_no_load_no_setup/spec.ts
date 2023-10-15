@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
 import { routes } from '../../../lib/utils/routes.js';
 import { expect_to_be, goto } from '../../../lib/utils/testsHelper.js';
-import { sleep } from '@kitql/helper';
+import { sleep } from '@kitql/helpers';
 
 test("Components without load shouldn't subscribe to the cache", async ({ page }) => {
   await goto(page, routes.Stores_Component_no_load_no_setup);

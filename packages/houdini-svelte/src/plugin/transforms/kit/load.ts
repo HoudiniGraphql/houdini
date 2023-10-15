@@ -1,4 +1,4 @@
-import { logYellow } from '@kitql/helper'
+import { yellow } from '@kitql/helpers'
 import type { IdentifierKind, StatementKind } from 'ast-types/lib/gen/kinds'
 import type { namedTypes } from 'ast-types/lib/gen/namedTypes'
 import * as graphql from 'graphql'
@@ -550,7 +550,7 @@ function variable_function_for_query(
 	if (missing_args.length > 0 && !has_local) {
 		throw {
 			filepath: page.filepath,
-			message: `Could not find required variable function: ${logYellow(
+			message: `Could not find required variable function: ${yellow(
 				query_variable_fn(query.name!.value)
 			)}. maybe its not exported?`,
 		}

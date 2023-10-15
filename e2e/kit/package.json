@@ -23,7 +23,7 @@
     "format": "prettier --ignore-path .gitignore --write --plugin-search-dir=. ."
   },
   "devDependencies": {
-    "@kitql/helper": "^0.5.0",
+    "@kitql/helpers": "^0.8.0",
     "@playwright/test": "1.30.0",
     "@sveltejs/adapter-auto": "2.0.0",
     "@sveltejs/kit": "1.9.3",

@@ -1,5 +1,5 @@
 import { usePersistedOperations } from '@graphql-yoga/plugin-persisted-operations'
-import { logGreen } from '@kitql/helper'
+import { green } from '@kitql/helpers'
 import fs from 'fs-extra'
 import { useServer } from 'graphql-ws/lib/use/ws'
 import { createYoga, createSchema } from 'graphql-yoga'
@@ -137,8 +137,8 @@ mutation AddUser {
 
 	httpServer.prependOnceListener('error', (err) => {
 		if (err.code === 'EADDRINUSE') {
-			console.info(logGreen(` 🧐 Port 4000 is already in use.`))
-			console.info(logGreen(` ✅ API probably started by another e2e test, It's all good.`))
+			console.info(green(` 🧐 Port 4000 is already in use.`))
+			console.info(green(` ✅ API probably started by another e2e test, It's all good.`))
 			process.exit(0)
 		}
 	})

@@ -1,4 +1,4 @@
-import { logGreen } from '@kitql/helper'
+import { green } from '@kitql/helpers'
 import * as graphql from 'graphql'
 
 import type { Config, Document, PaginateModes } from '../../lib'
@@ -267,7 +267,7 @@ export default async function typeCheck(config: Config, docs: Document[]): Promi
 							new HoudiniError({
 								filepath: filename,
 								message:
-									`@${config.listDirective} on ${logGreen(
+									`@${config.listDirective} on ${green(
 										targetType.name
 									)} has a configuration issue: ` +
 									`${targetType} dos not have a valid key. ` +

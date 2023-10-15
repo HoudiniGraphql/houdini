@@ -1,4 +1,4 @@
-import { logGreen, logYellow } from '@kitql/helper'
+import { green, yellow } from '@kitql/helpers'
 import * as graphql from 'graphql'
 
 import type { Config, Document } from '../../lib'
@@ -427,37 +427,37 @@ export function connectionSelection(
 
 const missingPaginationArgMessage = (
 	config: Config
-) => `Looks like you are trying to use the ${logGreen(
+) => `Looks like you are trying to use the ${green(
 	`@${config.paginateDirective}`
-)} directive on a field but have not provided a ${logYellow('first')}, ${logYellow(
-	'last'
-)}, or ${logYellow('limit')} argument. Please add one and try again.
+)} directive on a field but have not provided a ${yellow('first')}, ${yellow('last')}, or ${yellow(
+	'limit'
+)} argument. Please add one and try again.
 For more information, visit this link: ${siteURL}/guides/pagination`
 
 const missingEdgeSelectionMessage = (
 	config: Config
-) => `Looks like you are trying to use the ${logGreen(
+) => `Looks like you are trying to use the ${green(
 	`@${config.paginateDirective}`
-)} directive on a field but your selection does not contain an ${logYellow(
+)} directive on a field but your selection does not contain an ${yellow(
 	'edges'
 )} field. Please add one and try again.
 For more information, visit this link: ${siteURL}/guides/pagination`
 
 const missingNodeSelectionMessage = (
 	config: Config
-) => `Looks like you are trying to use the ${logGreen(
+) => `Looks like you are trying to use the ${green(
 	`@${config.paginateDirective}`
-)} directive on a field but your selection does not contain a ${logYellow(
+)} directive on a field but your selection does not contain a ${yellow(
 	'node'
 )} field. Please add one and try again.
 For more information, visit this link: ${siteURL}/guides/pagination`
 
-const edgeInvalidTypeMessage = (config: Config) => `Looks like you are trying to use the ${logGreen(
+const edgeInvalidTypeMessage = (config: Config) => `Looks like you are trying to use the ${green(
 	`@${config.paginateDirective}`
 )} directive on a field but your field does not conform to the connection spec: your edges field seems strange.
 For more information, visit this link: ${siteURL}/guides/pagination`
 
-const nodeNotDefinedMessage = (config: Config) => `Looks like you are trying to use the ${logGreen(
+const nodeNotDefinedMessage = (config: Config) => `Looks like you are trying to use the ${green(
 	`@${config.paginateDirective}`
 )} directive on a field but your field does not conform to the connection spec: your edge type does not have node as a field.
 For more information, visit this link: ${siteURL}/guides/pagination`

@@ -1,4 +1,4 @@
-import { logYellow } from '@kitql/helper'
+import { yellow } from '@kitql/helpers'
 import type { ExpressionKind } from 'ast-types/lib/gen/kinds'
 import * as graphql from 'graphql'
 import type { Config } from 'houdini'
@@ -176,8 +176,8 @@ async function processScript(
 				load.push(result)
 				if (!result) {
 					throw new Error(
-						`Could not find ${logYellow(element.name)} ` +
-							`for computing ${logYellow(houdini_load_fn)}. ` +
+						`Could not find ${yellow(element.name)} ` +
+							`for computing ${yellow(houdini_load_fn)}. ` +
 							`(if it was a global store, you need to instantiate the store manually.)` +
 							`\nfilepath: ${filepath}`
 					)

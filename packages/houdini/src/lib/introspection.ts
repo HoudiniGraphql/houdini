@@ -1,4 +1,4 @@
-import { logCyan } from '@kitql/helper'
+import { cyan } from '@kitql/helpers'
 import * as graphql from 'graphql'
 import fetch from 'node-fetch'
 
@@ -42,8 +42,8 @@ export async function pullSchema(
 		if (content) {
 			console.warn(
 				`⚠️  Couldn't pull your schema.
-${logCyan('   Reponse:')} ${content}
-${logCyan('   Error  :')} ${(e as Error).message}`
+${cyan('   Reponse:')} ${content}
+${cyan('   Error  :')} ${(e as Error).message}`
 			)
 		} else {
 			console.warn(`⚠️  Couldn't pull your schema: ${(e as Error).message}`)
