@@ -27,21 +27,21 @@ test.describe('forwards cursor paginatedQuery', () => {
     // wait for the api response
     let response = await expect_1_gql(page, 'button[id=next]');
     expect(response).not.toContain(
-      '"name":"Bruce Willis","id":"pagination-query-forwards-cursor:1"'
+      '"id":"pagination-query-forwards-cursor:1","name":"Bruce Willis"'
     );
     expect(response).not.toContain(
-      '"name":"Samuel Jackson","id":"pagination-query-forwards-cursor:2"'
+      '"id":"pagination-query-forwards-cursor:2","name":"Samuel Jackson"'
     );
-    expect(response).toContain('"name":"Morgan Freeman","id":"pagination-query-forwards-cursor:3"');
-    expect(response).toContain('"name":"Tom Hanks","id":"pagination-query-forwards-cursor:4"');
+    expect(response).toContain('"id":"pagination-query-forwards-cursor:3","name":"Morgan Freeman"');
+    expect(response).toContain('"id":"pagination-query-forwards-cursor:4","name":"Tom Hanks"');
 
     // wait for the api response
     response = await expect_1_gql(page, 'button[id=refetch]');
 
-    expect(response).toContain('"name":"Bruce Willis","id":"pagination-query-forwards-cursor:1"');
-    expect(response).toContain('"name":"Samuel Jackson","id":"pagination-query-forwards-cursor:2"');
-    expect(response).toContain('"name":"Morgan Freeman","id":"pagination-query-forwards-cursor:3"');
-    expect(response).toContain('"name":"Tom Hanks","id":"pagination-query-forwards-cursor:4"');
+    expect(response).toContain('"id":"pagination-query-forwards-cursor:1","name":"Bruce Willis"');
+    expect(response).toContain('"id":"pagination-query-forwards-cursor:2","name":"Samuel Jackson"');
+    expect(response).toContain('"id":"pagination-query-forwards-cursor:3","name":"Morgan Freeman"');
+    expect(response).toContain('"id":"pagination-query-forwards-cursor:4","name":"Tom Hanks"');
   });
 
   test('page info tracks connection state', async ({ page }) => {

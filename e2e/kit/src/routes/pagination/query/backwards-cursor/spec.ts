@@ -30,7 +30,7 @@ test.describe('backwards cursor paginatedQuery', () => {
     // wait for the api response
     const response = await expect_1_gql(page, 'button[id=refetch]');
     expect(response).toBe(
-      '{"data":{"usersConnection":{"edges":[{"node":{"name":"Will Smith","id":"pagination-query-backwards-cursor:5","__typename":"User"},"cursor":"YXJyYXljb25uZWN0aW9uOjQ="},{"node":{"name":"Harrison Ford","id":"pagination-query-backwards-cursor:6","__typename":"User"},"cursor":"YXJyYXljb25uZWN0aW9uOjU="},{"node":{"name":"Eddie Murphy","id":"pagination-query-backwards-cursor:7","__typename":"User"},"cursor":"YXJyYXljb25uZWN0aW9uOjY="},{"node":{"name":"Clint Eastwood","id":"pagination-query-backwards-cursor:8","__typename":"User"},"cursor":"YXJyYXljb25uZWN0aW9uOjc="}],"pageInfo":{"endCursor":"YXJyYXljb25uZWN0aW9uOjc=","hasNextPage":false,"hasPreviousPage":true,"startCursor":"YXJyYXljb25uZWN0aW9uOjQ="}}}}'
+      '{"data":{"usersConnection":{"edges":[{"cursor":"YXJyYXljb25uZWN0aW9uOjQ=","node":{"__typename":"User","id":"pagination-query-backwards-cursor:5","name":"Will Smith"}},{"cursor":"YXJyYXljb25uZWN0aW9uOjU=","node":{"__typename":"User","id":"pagination-query-backwards-cursor:6","name":"Harrison Ford"}},{"cursor":"YXJyYXljb25uZWN0aW9uOjY=","node":{"__typename":"User","id":"pagination-query-backwards-cursor:7","name":"Eddie Murphy"}},{"cursor":"YXJyYXljb25uZWN0aW9uOjc=","node":{"__typename":"User","id":"pagination-query-backwards-cursor:8","name":"Clint Eastwood"}}],"pageInfo":{"endCursor":"YXJyYXljb25uZWN0aW9uOjc=","hasNextPage":false,"hasPreviousPage":true,"startCursor":"YXJyYXljb25uZWN0aW9uOjQ="}}}}'
     );
   });
 
