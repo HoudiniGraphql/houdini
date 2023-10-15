@@ -4874,6 +4874,7 @@ test('componentField scalars', async function () {
 		                                "prop": "user";
 		                                "key": "User.Avatar";
 		                                "fragment": "UserBase";
+		                                "variables": {};
 		                            };
 		                            "visible": true;
 		                        };
