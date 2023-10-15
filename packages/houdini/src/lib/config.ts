@@ -976,6 +976,7 @@ export async function getConfig({
 			return await pendingConfigPromise
 		}
 	}
+
 	// there isn't a pending config so let's make one to claim
 	let resolve: (cfg: Config | PromiseLike<Config>) => void = () => {}
 	let reject = (message?: any) => {}
@@ -992,9 +993,19 @@ export async function getConfig({
 		// we need to process the plugins before we instantiate the config object
 		// so that we can compute the final configFile
 
+		// the list of plugins comes from two places:
+		// - the config file
+		// - the value of the HOUDINI_CODEGEN_PLUGIN environment variable
+		const pluginConfigs = Object.entries(configFile.plugins ?? {})
+
+		// if the environment variable is defined, add it to the list
+		if (process.env.HOUDINI_CODEGEN_PLUGIN) {
+			pluginConfigs.push([process.env.HOUDINI_CODEGEN_PLUGIN, {}])
+		}
+
 		// build up the list of plugins
 		const pluginsNested: (PluginMeta | PluginMeta[])[] = []
-		for (const [pluginName, plugin_config] of Object.entries(configFile.plugins ?? {})) {
+		for (const [pluginName, plugin_config] of pluginConfigs) {
 			// we need to find the file containing the plugin
 			// if the name is a relative path, we're done
 			let pluginFile = path.join(path.dirname(configPath), pluginName)
