@@ -59,6 +59,11 @@ export const resolvers = {
 			throw new Error(`Yes, I'm an error!`)
 		},
 	},
+	Sponsor: {
+		avatarUrl: (root: { avatarUrl: string }, args: { size?: number }) => {
+			return `${root.avatarUrl}${args.size ? `&size=${args.size}` : ''}`
+		},
+	},
 	Mutation: {
 		hello: (_: any, args: { name: string }) => {
 			return `${dico.HELLO} ${args.name}!`

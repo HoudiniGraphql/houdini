@@ -18,7 +18,7 @@ export const typeDefs = /* GraphQL */ `
 	type Sponsor {
 		login: String!
 		name: String!
-		avatarUrl: String!
+		avatarUrl(size: Int): String!
 		websiteUrl: String
 		tiersTitle: String!
 	}
