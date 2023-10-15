@@ -28,7 +28,7 @@
         "vitest": "^0.28.3"
     },
     "dependencies": {
-        "@kitql/helpers": "^0.8.0",
+        "@kitql/helpers": "^0.8.2",
         "@sveltejs/kit": "^1.9.3",
         "ast-types": "^0.16.1",
         "estree-walker": "^3.0.1",

@@ -13,7 +13,7 @@
 	"dependencies": {
 		"@graphql-yoga/plugin-persisted-operations": "^1.9.1",
 		"@envelop/core": "^3.0.6",
-		"@kitql/helpers": "^0.8.0",
+		"@kitql/helpers": "^0.8.2",
 		"fs-extra": "^10.1.0",
 		"graphql": "^15.8.0",
 		"graphql-relay": "^0.10.0",

@@ -20,7 +20,7 @@
 		"check": "svelte-check --tsconfig ./tsconfig.json"
 	},
 	"devDependencies": {
-		"@kitql/helpers": "^0.8.0",
+		"@kitql/helpers": "^0.8.2",
 		"@playwright/test": "1.30.0",
 		"@sveltejs/vite-plugin-svelte": "^2.0.2",
 		"@tsconfig/svelte": "^3.0.0",
