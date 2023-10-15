@@ -1,9 +1,9 @@
 import {
 	PluginHooks,
-	path,
 	fs,
-	load_manifest,
 	isSecondaryBuild,
+	load_manifest,
+	path,
 	type ProjectManifest,
 	type RouterManifest,
 	routerConventions,
