@@ -63,7 +63,7 @@ export async function generate_fallbacks({
 
 		// build up the file source as a string
 		let source: string[] = [
-			"import { useRouterContext, useCache, useQueryResult } from '$houdini/plugins/houdini-react/runtime/routing/components/Router'",
+			"import { useRouterContext, useCache, useQueryResult } from '$houdini/plugins/houdini-react/runtime/routing/Router'",
 			`import Component from '${page_path}'`,
 			"import { Suspense } from 'react'",
 		]
