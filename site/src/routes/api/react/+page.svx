@@ -559,5 +559,4 @@ export default config
 Here is a list of the available adapters:
 
 - `houdini-adapter-cloudflare`: builds your application to run on Cloudflare Pages
-- `houdini-adapter-node`: builds your application to run as a standalone node process
 - `houdini-adapter-auto`: tries to install the appropriate adapter for the current situation
