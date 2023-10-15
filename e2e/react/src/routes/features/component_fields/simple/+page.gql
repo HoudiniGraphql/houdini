@@ -1,4 +1,4 @@
-query SponsorList {
+query features__component_fields__simple {
 	sponsors {
 		name
 		...SponsorInfo

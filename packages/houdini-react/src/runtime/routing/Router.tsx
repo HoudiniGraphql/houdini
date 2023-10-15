@@ -92,7 +92,9 @@ export function Router({
 
 	// links are powered using anchor tags that we intercept and handle ourselves
 	useLinkBehavior({
-		goto: setCurrent,
+		goto: (val: string) => {
+			setCurrent(val)
+		},
 		preload(url: string, which: PreloadWhichValue) {
 			// there are 2 things that we could preload: the page component and the data
 
@@ -442,7 +444,6 @@ export const useRouterContext = () => {
 	const ctx = React.useContext(Context)
 
 	if (!ctx) {
-		console.log(ctx)
 		throw new Error('Could not find router context')
 	}
 
@@ -524,34 +525,38 @@ function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 			// in the current tab
 			// courtesy of: https://gist.github.com/devongovett/919dc0f06585bd88af053562fd7c41b7
 			if (
-				link &&
-				link instanceof HTMLAnchorElement &&
-				link.href &&
-				(!link.target || link.target === '_self') &&
-				link.origin === location.origin &&
-				!link.hasAttribute('download') &&
-				e.button === 0 && // left clicks only
-				!e.metaKey && // open in new tab (mac)
-				!e.ctrlKey && // open in new tab (windows)
-				!e.altKey && // download
-				!e.shiftKey &&
-				!e.defaultPrevented
+				!(
+					link &&
+					link instanceof HTMLAnchorElement &&
+					link.href &&
+					(!link.target || link.target === '_self') &&
+					link.origin === location.origin &&
+					!link.hasAttribute('download') &&
+					e.button === 0 && // left clicks only
+					!e.metaKey && // open in new tab (mac)
+					!e.ctrlKey && // open in new tab (windows)
+					!e.altKey && // download
+					!e.shiftKey &&
+					!e.defaultPrevented
+				)
 			) {
-				// we need to figure out the target url by looking at the href attribute
-				const target = link.attributes.getNamedItem('href')?.value
-				// make sure its a link we recognize
-				if (!target || !target.startsWith('/')) {
-					return
-				}
-
-				// its a link we want to handle so don't navigate like normal
-				e.preventDefault()
-
-				// go to the next route as a low priority update
-				startTransition(() => {
-					goto(target)
-				})
+				return
 			}
+
+			// we need to figure out the target url by looking at the href attribute
+			const target = link.attributes.getNamedItem('href')?.value
+			// make sure its a link we recognize
+			if (!target || !target.startsWith('/')) {
+				return
+			}
+
+			// its a link we want to handle so don't navigate like normal
+			e.preventDefault()
+
+			// go to the next route as a low priority update
+			startTransition(() => {
+				goto(target)
+			})
 		}
 
 		document.addEventListener('click', onClick)

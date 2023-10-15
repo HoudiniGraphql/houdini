@@ -323,7 +323,7 @@ export async function extractQueries(source: string): Promise<string[]> {
 		}
 	}
 	if (!defaultExportNode) {
-		throw new Error('No default export found.')
+		return []
 	}
 
 	let props: string[] = []

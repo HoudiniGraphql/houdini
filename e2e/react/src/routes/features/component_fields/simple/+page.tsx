@@ -1,9 +1,10 @@
+import { PageProps } from './$types'
 import SponsorInfo from './SponsorInfo'
 
-export default ({ SponsorList }) => {
+export default ({ features__component_fields__simple }: PageProps) => {
 	return (
 		<div>
-			{SponsorList.sponsors.map((sponsor) => {
+			{features__component_fields__simple.sponsors.map((sponsor) => {
 				return (
 					<div key={sponsor.name}>
 						<SponsorInfo sponsor={sponsor} />

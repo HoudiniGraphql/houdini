@@ -1136,6 +1136,7 @@ class CacheInternal {
 					ignoreMasking: !!ignoreMasking,
 					fullCheck,
 					loading: generateLoading,
+					nullable: !!nullable,
 				})
 
 				// save the hydrated list
@@ -1144,6 +1145,10 @@ class CacheInternal {
 				// the linked value could have partial results
 				if (listValue.partial) {
 					partial = true
+				}
+
+				if (listValue.cascadeNull) {
+					cascadeNull = true
 				}
 
 				if (listValue.stale) {
@@ -1265,15 +1270,23 @@ class CacheInternal {
 		ignoreMasking,
 		fullCheck,
 		loading,
+		nullable,
 	}: {
 		fields: SubscriptionSelection
+		nullable: boolean
 		variables?: {} | null
 		linkedList: NestedList
 		stepsFromConnection: number | null
 		ignoreMasking: boolean
 		fullCheck?: boolean
 		loading?: boolean
-	}): { data: NestedList<GraphQLValue>; partial: boolean; stale: boolean; hasData: boolean } {
+	}): {
+		data: NestedList<GraphQLValue>
+		partial: boolean
+		stale: boolean
+		hasData: boolean
+		cascadeNull: boolean
+	} {
 		// the linked list could be a deeply nested thing, we need to call getData for each record
 		// we can't mutate the lists because that would change the id references in the listLinks map
 		// to the corresponding record. can't have that now, can we?
@@ -1281,12 +1294,14 @@ class CacheInternal {
 		let partialData = false
 		let stale = false
 		let hasValues = false
+		let cascadeNull = false
 
 		for (const entry of linkedList) {
 			// if the entry is an array, keep going
 			if (Array.isArray(entry)) {
 				const nestedValue = this.hydrateNestedList({
 					fields,
+					nullable,
 					variables,
 					linkedList: entry,
 					stepsFromConnection,
@@ -1298,11 +1313,15 @@ class CacheInternal {
 				if (nestedValue.partial) {
 					partialData = true
 				}
+				if (nestedValue.cascadeNull) {
+					cascadeNull = true
+				}
 				continue
 			}
 
 			// the entry could be null
 			if (entry === null) {
+				// if we don't allow nullable fields we have to cascade
 				result.push(entry)
 				continue
 			}
@@ -1322,6 +1341,11 @@ class CacheInternal {
 				fullCheck,
 				loading,
 			})
+
+			// if the value is null and we don't allow that we need to cascade
+			if (data === null && !nullable) {
+				cascadeNull = true
+			}
 
 			result.push(data)
 
@@ -1343,6 +1367,7 @@ class CacheInternal {
 			partial: partialData,
 			stale,
 			hasData: hasValues,
+			cascadeNull,
 		}
 	}
 

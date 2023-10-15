@@ -9,6 +9,7 @@ export default function SponsorSummary(props: Props) {
 		props.sponsor,
 		graphql(`
 			fragment SponsorInfo on Sponsor {
+				name
 				Avatar
 			}
 		`)

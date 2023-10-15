@@ -2455,6 +2455,8 @@ test('reading a component field produces a function and serializing it does not'
 							component: {
 								prop: 'user',
 								key: 'User.Avatar',
+								variables: {},
+								fragment: 'User_Avatar',
 							},
 							nullable: true,
 						},
@@ -2495,4 +2497,141 @@ test('reading a component field produces a function and serializing it does not'
 		}
 	`
 	)
+})
+
+test('cascade null through null', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	// write the user data without the nested value
+	cache.write({
+		selection: {
+			fields: {
+				viewer: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: {
+								keyRaw: 'id',
+								type: 'String',
+								visible: true,
+							},
+							friends: {
+								keyRaw: 'friends',
+								type: 'String',
+								visible: true,
+								selection: {
+									fields: {
+										id: {
+											keyRaw: 'id',
+											type: 'String',
+											visible: true,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		data: {
+			viewer: {
+				id: '1',
+				friends: [{ id: '2' }],
+			},
+		},
+	})
+
+	// read the data as if the nested value is required
+	expect(
+		cache.read({
+			selection: {
+				fields: {
+					viewer: {
+						type: 'User',
+						visible: true,
+						keyRaw: 'viewer',
+						nullable: true,
+						selection: {
+							fields: {
+								id: {
+									keyRaw: 'id',
+									type: 'String',
+									visible: true,
+								},
+								friends: {
+									keyRaw: 'friends',
+									type: 'String',
+									visible: true,
+									selection: {
+										fields: {
+											id: {
+												keyRaw: 'id',
+												type: 'String',
+												visible: true,
+											},
+											firstName: {
+												keyRaw: 'firstName',
+												type: 'String',
+												visible: true,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		})
+	).toEqual({
+		partial: true,
+		stale: false,
+		data: {
+			viewer: null,
+		},
+	})
+
+	// read the data as if the nested value is not required (parent should be null)
+	expect(
+		cache.read({
+			selection: {
+				fields: {
+					viewer: {
+						type: 'User',
+						visible: true,
+						keyRaw: 'viewer',
+						nullable: true,
+						selection: {
+							fields: {
+								id: {
+									keyRaw: 'id',
+									type: 'String',
+									visible: true,
+								},
+								parent: {
+									keyRaw: 'parent',
+									type: 'User',
+									visible: true,
+									nullable: true,
+								},
+							},
+						},
+					},
+				},
+			},
+		})
+	).toEqual({
+		partial: true,
+		stale: false,
+		data: {
+			viewer: {
+				id: '1',
+				parent: null,
+			},
+		},
+	})
 })
