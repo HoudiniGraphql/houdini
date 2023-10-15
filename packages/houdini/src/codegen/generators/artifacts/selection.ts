@@ -437,6 +437,10 @@ function prepareSelection({
 					propArg?.value.kind === 'StringValue'
 				) {
 					const attributeName = fieldArg.value.value
+
+					// the fragment might be a variable hash
+					const { fragment, args } = config.getFragmentVariablesHash(field.name.value)
+
 					// add the field data we computed
 					object.fields = {
 						...object.fields,
@@ -446,7 +450,8 @@ function prepareSelection({
 							component: {
 								prop: propArg.value.value,
 								key: `${rootType}.${attributeName}`,
-								fragment: field.name.value,
+								fragment,
+								variables: args ?? {},
 							},
 						},
 					}

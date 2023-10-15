@@ -1,10 +1,10 @@
-import { graphql, type SponsorInfo, useFragment } from '$houdini'
+import { graphql, type CF_A_SponsorInfo, useFragment } from '$houdini'
 
 type Props = {
-	sponsor: SponsorInfo
+	sponsor: CF_A_SponsorInfo
 }
 
-export default function CF_A_SponsorInfo(props: Props) {
+export default function SponsorInfo(props: Props) {
 	const sponsor = useFragment(
 		props.sponsor,
 		graphql(`

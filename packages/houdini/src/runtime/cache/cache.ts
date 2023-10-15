@@ -1546,6 +1546,8 @@ export function defaultComponentField({
 		// look up the component in the store
 		const componentFn = cache._internal_unstable.componentCache[component.key]
 
+		const args = evaluateFragmentVariables(component.variables ?? {}, variables ?? {})
+
 		// return the instantiated component with the appropriate prop
 		return cache._internal_unstable.createComponent(componentFn, {
 			...props,
@@ -1554,7 +1556,7 @@ export function defaultComponentField({
 					loading,
 					values: {
 						[component.fragment]: {
-							variables,
+							variables: args,
 							parent,
 						},
 					},

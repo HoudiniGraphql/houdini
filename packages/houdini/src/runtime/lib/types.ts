@@ -214,6 +214,7 @@ export type SubscriptionSelection = {
 				prop: string
 				key: string
 				fragment: string
+				variables: ValueMap | null
 			}
 		}
 	}

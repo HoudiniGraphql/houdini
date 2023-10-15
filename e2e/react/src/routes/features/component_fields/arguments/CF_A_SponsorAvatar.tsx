@@ -2,7 +2,7 @@ import type { GraphQL } from '$houdini'
 
 type Props = {
 	sponsor: GraphQL<`{
-        ... on Sponsor 
+        ... on Sponsor
 						@componentField(field: "CF_A_SponsorAvatar")
 						@arguments(size: { type: "Int" })
 				{
@@ -14,7 +14,7 @@ type Props = {
 export default function CF_A_SponsorAvatar({ sponsor }: Props) {
 	return (
 		<>
-			<img src={sponsor.avatarUrl} height={50} />
+			<img src={sponsor?.avatarUrl} height={50} />
 		</>
 	)
 }
