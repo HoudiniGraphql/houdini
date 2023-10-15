@@ -18,6 +18,7 @@
     "license": "MIT",
     "type": "module",
     "scripts": {
+        "compile": "pnpm run build",
         "build": "tsup src/* --format esm,cjs  --external vite --minify --dts --clean --out-dir build",
         "build:": "cd ../../ && ((run build && cd -) || (cd - && exit 1))",
         "build:build": "pnpm build: && pnpm build"
