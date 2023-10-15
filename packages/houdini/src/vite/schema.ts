@@ -4,11 +4,11 @@ import type { Plugin } from 'vite'
 import type { PluginConfig } from '../lib'
 import { formatErrors, getConfig, pullSchema, path, fs } from '../lib'
 
-export default function HoudiniWatchSchemaPlugin(opts: PluginConfig = {}): Plugin {
+export function watch_remote_schema(opts: PluginConfig = {}): Plugin {
 	let go = true
 
 	return {
-		name: 'houdini-watch-schema',
+		name: 'houdini-watch-remote-schema',
 		apply: 'serve',
 		async buildStart() {
 			const config = await getConfig(opts)
@@ -81,6 +81,31 @@ export default function HoudiniWatchSchemaPlugin(opts: PluginConfig = {}): Plugi
 		},
 		buildEnd() {
 			go = false
+		},
+	}
+}
+
+export function watch_local_schema(ref: { list: string[] }): Plugin {
+	let depOfSchema: string[] = []
+
+	return {
+		name: 'houdini-watch-local-schema',
+		apply: 'build',
+		async moduleParsed(module) {
+			if (module.id.endsWith('+schema.ts')) {
+				depOfSchema.push(module.id, ...module.importedIdResolutions.map((c) => c.id))
+			}
+			if (depOfSchema.includes(module.id)) {
+				depOfSchema.push(...module.importedIdResolutions.map((c) => c.id))
+			}
+		},
+		async closeBundle() {
+			ref.list = [
+				...new Set(
+					depOfSchema.filter((c) => !c.includes('node_modules') && c !== 'graphql')
+				),
+			]
+			depOfSchema = []
 		},
 	}
 }

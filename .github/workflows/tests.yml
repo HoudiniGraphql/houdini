@@ -207,7 +207,7 @@ jobs:
             # Run tests
 
             - name: Build packages
-              run: pnpm run compile
+              run: pnpm run build
 
             - name: End-to-End Tests ${{ matrix.framework }}
               run: pnpm run --filter ${{ matrix.framework }} build && pnpm --filter ${{ matrix.framework }} tests

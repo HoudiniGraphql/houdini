@@ -1,12 +1,12 @@
 import {
-	type ArtifactKinds,
-	type Document,
-	type Config,
-	type Plugin,
 	ArtifactKind,
 	plugin,
 	fragmentKey,
 	load_manifest,
+	type ArtifactKinds,
+	type Document,
+	type Config,
+	type Plugin,
 	type ProjectManifest,
 } from 'houdini'
 import path from 'node:path'

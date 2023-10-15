@@ -4,7 +4,7 @@
 	"version": "0.0.0",
 	"type": "module",
 	"scripts": {
-		"build:": "cd ../../ && ((run build && cd -) || (cd - && exit 1))",
+		"build:": "cd ../../ && ((pnpm run build && cd -) || (cd - && exit 1))",
 		"build:dev": "pnpm build: && pnpm dev",
 		"build:web": "pnpm build: && pnpm web",
 		"build:test": "pnpm build: && pnpm test",

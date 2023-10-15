@@ -6,7 +6,7 @@ import generate from '../codegen'
 import type { PluginConfig } from '../lib'
 import { getConfig, formatErrors, path, loadLocalSchema } from '../lib'
 import houdini_vite from './houdini'
-import watch_remote_schema from './schema'
+import { watch_local_schema, watch_remote_schema } from './schema'
 
 export * from './ast'
 export * from './imports'
@@ -18,23 +18,39 @@ export default function (opts?: PluginConfig): Plugin[] {
 	// so we don't get an error when importing.
 	process.env.HOUDINI_PLUGIN = 'true'
 
+	// a container of a list
+	const watchSchemaListref = { list: [] as string[] }
+
 	return [
 		houdini_vite(opts),
 		watch_remote_schema(opts),
+		watch_local_schema(watchSchemaListref),
 		watch_and_run([
 			{
 				name: 'Houdini',
 				quiet: true,
 				async watchFile(filepath: string) {
 					// load the config file
-					let config = await getConfig(opts)
+					const config = await getConfig(opts)
 
 					// we need to watch some specific files
-					const schemaPath = path.join(path.dirname(config.filepath), config.schemaPath!)
-					if (minimatch(filepath, schemaPath)) {
-						// if it's a schema change, let's reload the config
-						config = await getConfig({ ...opts, forceReload: true })
-						return true
+					if (config.localSchema) {
+						const toWatch = watchSchemaListref.list
+						if (toWatch.includes(filepath)) {
+							// if it's a schema change, let's reload the config
+							await getConfig({ ...opts, forceReload: true })
+							return true
+						}
+					} else {
+						const schemaPath = path.join(
+							path.dirname(config.filepath),
+							config.schemaPath!
+						)
+						if (minimatch(filepath, schemaPath)) {
+							// if it's a schema change, let's reload the config
+							await getConfig({ ...opts, forceReload: true })
+							return true
+						}
 					}
 
 					return config.includeFile(filepath, { root: process.cwd() })
