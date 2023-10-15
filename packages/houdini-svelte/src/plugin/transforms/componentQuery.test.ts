@@ -257,7 +257,7 @@ test('missing variables', async function () {
 		        "❌ Encountered error in src/lib/component.svelte"
 		    ],
 		    [
-		        "Could not find required variable function: \\u001b[33m_TestQueryVariables\\u001b[37m\\u001b[0m. maybe its not exported? "
+		        "Could not find required variable function: \\u001b[33m_TestQueryVariables\\u001b[39m. maybe its not exported? "
 		    ]
 		]
 	`

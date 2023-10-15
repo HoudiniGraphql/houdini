@@ -1,4 +1,4 @@
-import { sleep } from '@kitql/helper'
+import { sleep } from '@kitql/helpers'
 import { expect, test } from '@playwright/test'
 
 test('1 query on the home page', async ({ page }) => {

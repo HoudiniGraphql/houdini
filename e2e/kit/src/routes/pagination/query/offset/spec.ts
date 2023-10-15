@@ -24,7 +24,7 @@ test.describe('offset paginatedQuery', () => {
     // wait for the api response
     const response = await expect_1_gql(page, 'button[id=refetch]');
     expect(response).toBe(
-      '{"data":{"usersList":[{"name":"Bruce Willis","id":"pagination-query-offset:1"},{"name":"Samuel Jackson","id":"pagination-query-offset:2"},{"name":"Morgan Freeman","id":"pagination-query-offset:3"},{"name":"Tom Hanks","id":"pagination-query-offset:4"}]}}'
+      '{"data":{"usersList":[{"id":"pagination-query-offset:1","name":"Bruce Willis"},{"id":"pagination-query-offset:2","name":"Samuel Jackson"},{"id":"pagination-query-offset:3","name":"Morgan Freeman"},{"id":"pagination-query-offset:4","name":"Tom Hanks"}]}}'
     );
   });
 });

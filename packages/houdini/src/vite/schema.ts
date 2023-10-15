@@ -1,4 +1,4 @@
-import { sleep } from '@kitql/helper'
+import { sleep } from '@kitql/helpers'
 import type { Plugin } from 'vite'
 
 import type { PluginConfig } from '../lib'

@@ -1,4 +1,4 @@
-import { logCyan, logGreen } from '@kitql/helper'
+import { cyan, green } from '@kitql/helpers'
 import type { ExpressionKind, StatementKind, TSTypeKind } from 'ast-types/lib/gen/kinds'
 import type * as graphql from 'graphql'
 import * as recast from 'recast'
@@ -183,12 +183,12 @@ type in your config file:
 
 {
   scalars: {
-    ${logCyan(`/* in your case, something like */`)}
+    ${cyan(`/* in your case, something like */`)}
 ${[...missingScalars]
 	.map(
 		(c) =>
-			`    ${c}: {                  ${logGreen(`// <- The GraphQL Scalar`)}
-      type: "${logCyan(`YourType_${c}`)}"  ${logGreen(`// <-  The TypeScript type`)}
+			`    ${c}: {                  ${green(`// <- The GraphQL Scalar`)}
+      type: "${cyan(`YourType_${c}`)}"  ${green(`// <-  The TypeScript type`)}
     }`
 	)
 	.join(

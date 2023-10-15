@@ -1,4 +1,4 @@
-import { logYellow } from '@kitql/helper'
+import { yellow } from '@kitql/helpers'
 import type { ExpressionKind } from 'ast-types/lib/gen/kinds'
 import type * as graphql from 'graphql'
 import type { Config, Script } from 'houdini'
@@ -114,7 +114,7 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 			) {
 				formatErrors({
 					filepath: page.filepath,
-					message: `Could not find required variable function: ${logYellow(
+					message: `Could not find required variable function: ${yellow(
 						variable_fn
 					)}. maybe its not exported? `,
 				})

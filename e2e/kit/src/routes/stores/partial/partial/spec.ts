@@ -5,7 +5,7 @@ import {
   goto,
   locator_click
 } from '../../../../lib/utils/testsHelper.js';
-import { sleep } from '@kitql/helper';
+import { sleep } from '@kitql/helpers';
 import { test } from '@playwright/test';
 
 test.describe('Partial Pages', () => {
