@@ -161,7 +161,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			}
 
 			// we need to generate the runtime if we are building in production
-			if (!devServer && !isSecondaryBuild()) {
+			if (!devServer && !isSecondaryBuild() && !process.env.HOUDINI_SKIP_GENERATE) {
 				// make sure we have an up-to-date schema
 				if (config.localSchema && !config.schema) {
 					config.schema = await loadLocalSchema(config)

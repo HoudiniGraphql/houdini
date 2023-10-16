@@ -28,7 +28,6 @@ import { writeTsconfig } from './codegen/typeRoot'
 // virtual:houdini/artifacts/[name] - An entry for loading an artifact and notifying the artifact cache
 
 let manifest: ProjectManifest
-let devServer: boolean = false
 
 export default {
 	// we want to set up some vite aliases by default
@@ -38,8 +37,6 @@ export default {
 			includeArtifacts: env.command === 'build' || env.mode === 'production',
 		})
 		setManifest(manifest)
-
-		console.log(manifest.artifacts)
 
 		// secondary builds have their own rollup config
 		let conf: { build?: BuildOptions; base?: string } = {
@@ -129,6 +126,7 @@ export default {
 				outDir: path.join(config.rootDir, 'build', 'ssr'),
 			},
 		})
+
 		process.env.HOUDINI_SECONDARY_BUILD = 'false'
 	},
 
@@ -261,7 +259,6 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 	// render that we will use in production. This means that we need to
 	// capture the request before vite's dev server processes it.
 	async configureServer(server) {
-		devServer = true
 		await writeTsconfig(server.houdiniConfig)
 
 		server.middlewares.use(async (req, res, next) => {
