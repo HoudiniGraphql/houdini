@@ -33,8 +33,13 @@ let devServer: boolean = false
 export default {
 	// we want to set up some vite aliases by default
 	async config(config, env) {
-		manifest = await load_manifest({ config, includeArtifacts: env.command === 'build' })
+		manifest = await load_manifest({
+			config,
+			includeArtifacts: env.command === 'build' || env.mode === 'production',
+		})
 		setManifest(manifest)
+
+		console.log(manifest.artifacts)
 
 		// secondary builds have their own rollup config
 		let conf: { build?: BuildOptions; base?: string } = {
