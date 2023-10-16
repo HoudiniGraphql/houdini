@@ -44,6 +44,7 @@
         "houdini": "workspace:^",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
+        "react-streaming-compat": "^0.3.17",
         "recast": "^0.23.1",
         "rollup": "^3.7.4",
         "use-deep-compare-effect": "^1.8.1"
@@ -57,10 +58,19 @@
             "types": "./build/plugin/index.d.ts",
             "import": "./build/plugin-esm/index.js",
             "require": "./build/plugin-cjs/index.js"
+        },
+        "./server": {
+            "types": "./build/server/index.d.ts",
+            "import": "./build/server-esm/index.js",
+            "require": "./build/server-cjs/index.js"
         }
     },
     "typesVersions": {
-        "*": {}
+        "*": {
+            "server": [
+                "build/server/index.d.ts"
+            ]
+        }
     },
     "main": "./build/plugin-cjs/index.js",
     "types": "./build/plugin/index.d.ts"
