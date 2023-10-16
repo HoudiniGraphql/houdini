@@ -33,7 +33,7 @@ let devServer: boolean = false
 export default {
 	// we want to set up some vite aliases by default
 	async config(config, env) {
-		manifest = await load_manifest({ config, includeArtifacts: env.mode === 'production' })
+		manifest = await load_manifest({ config, includeArtifacts: env.command === 'build' })
 		setManifest(manifest)
 
 		// secondary builds have their own rollup config
@@ -42,12 +42,6 @@ export default {
 				rollupOptions: {},
 			},
 		}
-
-		console.log({
-			isSecondaryBuild: isSecondaryBuild(),
-			env: process.env.HOUDINI_SECONDARY_BUILD,
-			artifacts: manifest.artifacts,
-		})
 
 		// build up the list of entries that we need vite to bundle
 		if (!isSecondaryBuild() || process.env.HOUDINI_SECONDARY_BUILD === 'ssr') {
@@ -77,7 +71,6 @@ export default {
 				] = `virtual:houdini/pages/${page.id}@${page.queries}.jsx`
 			}
 
-			console.log(manifest.artifacts)
 			// every artifact asset needs to be bundled individually
 			for (const artifact of manifest.artifacts) {
 				conf.build!.rollupOptions!.input[
