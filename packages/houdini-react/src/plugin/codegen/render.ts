@@ -85,7 +85,7 @@ export const on_render =
 				...router_cache()
 			}),
 			{
-				webStream production,
+				webStream: production,
 				userAgent: 'Vite',
 			}
 		)
