@@ -214,8 +214,8 @@ importers:
         specifier: ^18.3.0-canary-d6dcad6a8-20230914
         version: 18.3.0-canary-d6dcad6a8-20230914(react@18.3.0-canary-d7a98a5e9-20230517)
       react-streaming-compat:
-        specifier: ^0.3.16
-        version: 0.3.16(react-dom@18.3.0-canary-d6dcad6a8-20230914)(react@18.3.0-canary-d7a98a5e9-20230517)
+        specifier: ^0.3.18
+        version: 0.3.18(react-dom@18.3.0-canary-d6dcad6a8-20230914)(react@18.3.0-canary-d7a98a5e9-20230517)
     devDependencies:
       '@playwright/test':
         specifier: 1.30.0
@@ -9408,19 +9408,6 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /react-streaming-compat@0.3.16(react-dom@18.3.0-canary-d6dcad6a8-20230914)(react@18.3.0-canary-d7a98a5e9-20230517):
-    resolution: {integrity: sha512-+6owu63n2jk0lcC2xO+iBRrQhkQ9y3zYkg16rVeNokOW993Zp1C2x3ionLRYwffWevdfo1BiBjFxY27NecA06g==}
-    peerDependencies:
-      react: '>=18'
-      react-dom: '>=18'
-    dependencies:
-      '@brillout/import': 0.2.3
-      '@brillout/json-serializer': 0.5.6
-      isbot-fast: 1.2.0
-      react: 18.3.0-canary-d7a98a5e9-20230517
-      react-dom: 18.3.0-canary-d6dcad6a8-20230914(react@18.3.0-canary-d7a98a5e9-20230517)
-    dev: false
-
   /react-streaming-compat@0.3.18(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-KyvJHZ3JLQyNQSU/Rg+FYPaU/LGjSrdByE1zHS5DP/I6hxEmDUJYXf9eWdZZMi3lq+sUEwy1P7ije4blb0wF/A==}
     peerDependencies:
@@ -9432,6 +9419,19 @@ packages:
       isbot-fast: 1.2.0
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
+    dev: false
+
+  /react-streaming-compat@0.3.18(react-dom@18.3.0-canary-d6dcad6a8-20230914)(react@18.3.0-canary-d7a98a5e9-20230517):
+    resolution: {integrity: sha512-KyvJHZ3JLQyNQSU/Rg+FYPaU/LGjSrdByE1zHS5DP/I6hxEmDUJYXf9eWdZZMi3lq+sUEwy1P7ije4blb0wF/A==}
+    peerDependencies:
+      react: '>=18'
+      react-dom: '>=18'
+    dependencies:
+      '@brillout/import': 0.2.3
+      '@brillout/json-serializer': 0.5.6
+      isbot-fast: 1.2.0
+      react: 18.3.0-canary-d7a98a5e9-20230517
+      react-dom: 18.3.0-canary-d6dcad6a8-20230914(react@18.3.0-canary-d7a98a5e9-20230517)
     dev: false
 
   /react@16.14.0:
