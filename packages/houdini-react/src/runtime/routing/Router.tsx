@@ -193,54 +193,56 @@ function usePageData({
 					// data that we just got
 					injectToStream?.(`
 						<script>
-							window.__houdini__cache__?.hydrate(${cache.serialize()}, window.__houdini__hydration__layer)
+						{
+								window.__houdini__cache__?.hydrate(${cache.serialize()}, window.__houdini__hydration__layer)
 
-							const artifactName = "${artifact.name}"
-							const value = ${JSON.stringify(observer.state.data)}
+								const artifactName = "${artifact.name}"
+								const value = ${JSON.stringify(observer.state.data)}
 
-							// if the data is pending, we need to resolve it
-							if (window.__houdini__nav_caches__?.data_cache.has(artifactName)) {
-								// before we resolve the pending signals,
-								// fill the data cache with values we got on the server
-								const new_store = window.__houdini__client__.observe({
-									artifact: window.__houdini__nav_caches__.artifact_cache.get(artifactName),
-									cache: window.__houdini__cache__,
-									initialValue: value,
-								})
+								// if the data is pending, we need to resolve it
+								if (window.__houdini__nav_caches__?.data_cache.has(artifactName)) {
+									// before we resolve the pending signals,
+									// fill the data cache with values we got on the server
+									const new_store = window.__houdini__client__.observe({
+										artifact: window.__houdini__nav_caches__.artifact_cache.get(artifactName),
+										cache: window.__houdini__cache__,
+										initialValue: value,
+									})
 
-								window.__houdini__nav_caches__?.data_cache.set(artifactName, new_store)
-							}
-
-
-							// if there are no data caches available we need to populate the pending one instead
-							if (!window.__houdini__nav_caches__) {
-								if (!window.__houdini__pending_data__) {
-									window.__houdini__pending_data__ = {}
+									window.__houdini__nav_caches__?.data_cache.set(artifactName, new_store)
 								}
 
-								if (!window.__houdini__pending_variables__) {
-									window.__houdini__pending_variables__ = {}
+
+								// if there are no data caches available we need to populate the pending one instead
+								if (!window.__houdini__nav_caches__) {
+									if (!window.__houdini__pending_data__) {
+										window.__houdini__pending_data__ = {}
+									}
+
+									if (!window.__houdini__pending_variables__) {
+										window.__houdini__pending_variables__ = {}
+									}
+
+									if (!window.__houdini__pending_artifacts__) {
+										window.__houdini__pending_artifacts__ = {}
+									}
+
+									window.__houdini__pending_variables__[artifactName] = ${JSON.stringify(variables)}
+									window.__houdini__pending_data__[artifactName] = value
+									window.__houdini__pending_artifacts__[artifactName] = ${JSON.stringify(artifact)}
 								}
 
-								if (!window.__houdini__pending_artifacts__) {
-									window.__houdini__pending_artifacts__ = {}
+								if (window.__houdini__nav_caches__?.pending_cache.has(artifactName)) {
+									// we're pushing this store onto the client, it should be initialized
+									new_store.send({
+										setup: true,
+										variables: ${JSON.stringify(variables)}
+									})
+
+									// notify anyone waiting on the pending cache
+									window.__houdini__nav_caches__.pending_cache.get(artifactName).resolve()
+									window.__houdini__nav_caches__.pending_cache.delete(artifactName)
 								}
-
-								window.__houdini__pending_variables__[artifactName] = ${JSON.stringify(variables)}
-								window.__houdini__pending_data__[artifactName] = value
-								window.__houdini__pending_artifacts__[artifactName] = ${JSON.stringify(artifact)}
-							}
-
-							if (window.__houdini__nav_caches__?.pending_cache.has(artifactName)) {
-								// we're pushing this store onto the client, it should be initialized
-								new_store.send({
-									setup: true,
-									variables: ${JSON.stringify(variables)}
-								})
-
-								// notify anyone waiting on the pending cache
-								window.__houdini__nav_caches__.pending_cache.get(artifactName).resolve()
-								window.__houdini__nav_caches__.pending_cache.delete(artifactName)
 							}
 						</script>
 					`)
