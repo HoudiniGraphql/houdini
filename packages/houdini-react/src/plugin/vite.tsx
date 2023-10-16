@@ -9,10 +9,13 @@ import {
 	routerConventions,
 } from 'houdini'
 import React from 'react'
-import { build, type BuildOptions, type Connect } from 'vite'
+import { build, ConfigEnv, type BuildOptions, type Connect } from 'vite'
 
 import { setManifest } from '.'
 import { writeTsconfig } from './codegen/typeRoot'
+
+let viteEnv: ConfigEnv
+let devServer = false
 
 // in order to coordinate the client and server, the client's pending request cache
 // needs to start with a value for every query that we are sending on the server.
@@ -32,9 +35,9 @@ let manifest: ProjectManifest
 export default {
 	// we want to set up some vite aliases by default
 	async config(config, env) {
+		viteEnv = env
 		manifest = await load_manifest({
 			config,
-			includeArtifacts: env.command === 'build' || env.mode === 'production',
 		})
 		setManifest(manifest)
 
@@ -73,13 +76,6 @@ export default {
 				] = `virtual:houdini/pages/${page.id}@${page.queries}.jsx`
 			}
 
-			// every artifact asset needs to be bundled individually
-			for (const artifact of manifest.artifacts) {
-				conf.build!.rollupOptions!.input[
-					`artifacts/${artifact}`
-				] = `virtual:houdini/artifacts/${artifact}.js`
-			}
-
 			// the SSR build has a different output
 			if (process.env.HOUDINI_SECONDARY_BUILD !== 'ssr') {
 				conf.build!.outDir = config.compiledAssetsDir
@@ -113,7 +109,12 @@ export default {
 		await writeTsconfig(houdiniConfig)
 	},
 
-	async closeBundle(this, config) {
+	async closeBundle(config) {
+		// skip close bundles during dev mode
+		if (isSecondaryBuild() || viteEnv.mode !== 'production' || devServer) {
+			return
+		}
+
 		// tell the user what we're doing
 		console.log('🎩 Generating Server Assets...')
 
@@ -124,6 +125,43 @@ export default {
 			build: {
 				ssr: true,
 				outDir: path.join(config.rootDir, 'build', 'ssr'),
+			},
+		})
+
+		process.env.HOUDINI_SECONDARY_BUILD = 'false'
+
+		process.env.HOUDINI_SECONDARY_BUILD = 'true'
+
+		const artifacts: string[] = []
+
+		try {
+			// look at the artifact directory for every artifact
+			for (const artifactPath of await fs.readdir(config.artifactDirectory)) {
+				// only consider the js files
+				if (!artifactPath.endsWith('.js') || artifactPath === 'index.js') {
+					continue
+				}
+
+				// push the artifact path without the extension
+				artifacts.push(artifactPath.substring(0, artifactPath.length - 3))
+			}
+		} catch {}
+
+		// we need to build entry points for every artifact
+		await build({
+			build: {
+				outDir: path.join(config.rootDir, 'build', 'artifacts'),
+				rollupOptions: {
+					input: artifacts.reduce((input, artifact) => {
+						return {
+							...input,
+							[`${artifact}`]: `virtual:houdini/artifacts/${artifact}.js`,
+						}
+					}, {}),
+					output: {
+						entryFileNames: '[name].js',
+					},
+				},
 			},
 		})
 
@@ -259,6 +297,7 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 	// render that we will use in production. This means that we need to
 	// capture the request before vite's dev server processes it.
 	async configureServer(server) {
+		devServer = true
 		await writeTsconfig(server.houdiniConfig)
 
 		server.middlewares.use(async (req, res, next) => {
