@@ -233,7 +233,7 @@ function usePageData({
 								}
 
 								if (window.__houdini__nav_caches__?.pending_cache.has(artifactName)) {
-									if (window.__houdini__nav_caches__.data_cache.has(articleName)) {
+									if (window.__houdini__nav_caches__.data_cache.has(artifactName)) {
 										// we're pushing this store onto the client, it should be initialized
 										window.__houdini__nav_caches__.data_cache.get(artifactName).send({
 											setup: true,
