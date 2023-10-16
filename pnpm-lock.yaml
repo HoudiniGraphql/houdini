@@ -550,8 +550,8 @@ importers:
         specifier: ^18.2.0
         version: 18.2.0(react@18.2.0)
       react-streaming-compat:
-        specifier: ^0.3.17
-        version: 0.3.17(react-dom@18.2.0)(react@18.2.0)
+        specifier: ^0.3.18
+        version: 0.3.18(react-dom@18.2.0)(react@18.2.0)
       recast:
         specifier: ^0.23.1
         version: 0.23.1
@@ -9421,8 +9421,8 @@ packages:
       react-dom: 18.3.0-canary-d6dcad6a8-20230914(react@18.3.0-canary-d7a98a5e9-20230517)
     dev: false
 
-  /react-streaming-compat@0.3.17(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-WDJfhuyP4oh/pJTE+Akw8qbqCGJKm+EyS7Lit8jUnInGNSIvBw2jiv0a0jIKpyuauSx8wB5PuCtDuR3G/1+kOA==}
+  /react-streaming-compat@0.3.18(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-KyvJHZ3JLQyNQSU/Rg+FYPaU/LGjSrdByE1zHS5DP/I6hxEmDUJYXf9eWdZZMi3lq+sUEwy1P7ije4blb0wF/A==}
     peerDependencies:
       react: '>=18'
       react-dom: '>=18'

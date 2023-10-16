@@ -69,7 +69,12 @@ export default async function ({ plugin }) {
 
 		// its not a special directory, treat it as a sub module
 		else {
-			await build({ package_json, source: dir, plugin, bundle: dirname !== 'server' })
+			await build({
+				package_json,
+				source: dir,
+				plugin,
+				bundle: dirname !== 'server' && dirname !== 'streaming',
+			})
 
 			package_json.exports['./' + dirname] = {
 				types: `./build/${dirname}/index.d.ts`,

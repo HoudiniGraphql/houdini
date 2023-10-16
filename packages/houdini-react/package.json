@@ -44,7 +44,7 @@
         "houdini": "workspace:^",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
-        "react-streaming-compat": "^0.3.17",
+        "react-streaming-compat": "^0.3.18",
         "recast": "^0.23.1",
         "rollup": "^3.7.4",
         "use-deep-compare-effect": "^1.8.1"
