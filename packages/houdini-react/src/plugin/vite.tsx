@@ -43,6 +43,12 @@ export default {
 			},
 		}
 
+		console.log({
+			isSecondaryBuild: isSecondaryBuild(),
+			env: process.env.HOUDINI_SECONDARY_BUILD,
+			artifacts: manifest.artifacts,
+		})
+
 		// build up the list of entries that we need vite to bundle
 		if (!isSecondaryBuild() || process.env.HOUDINI_SECONDARY_BUILD === 'ssr') {
 			if (env.command === 'build') {
@@ -71,6 +77,7 @@ export default {
 				] = `virtual:houdini/pages/${page.id}@${page.queries}.jsx`
 			}
 
+			console.log(manifest.artifacts)
 			// every artifact asset needs to be bundled individually
 			for (const artifact of manifest.artifacts) {
 				conf.build!.rollupOptions!.input[
