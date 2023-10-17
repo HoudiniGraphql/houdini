@@ -188,6 +188,11 @@ function usePageData({
 				.then(() => {
 					data_cache.set(id, observer)
 
+					if (pending_cache.has(id)) {
+						pending_cache.get(id).resolve()
+						pending_cache.delete(id)
+					}
+
 					// if we are building up a stream (on the server), we want to add something
 					// to the client that resolves the pending request with the
 					// data that we just got
