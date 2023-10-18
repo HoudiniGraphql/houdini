@@ -533,6 +533,7 @@ function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 			// its a link we want to handle so don't navigate like normal
 			e.preventDefault()
 			e.stopPropagation()
+			console.log('link', link)
 
 			// we only want to capture a "normal click" ie something that indicates a route transition
 			// in the current tab
@@ -579,6 +580,7 @@ function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 		console.log('registering click handler')
 		document.addEventListener('click', onClick)
 		return () => {
+			console.log('unregistering click handler')
 			document.removeEventListener('click', onClick!)
 		}
 	}, [])
