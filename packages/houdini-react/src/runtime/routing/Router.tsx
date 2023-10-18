@@ -553,6 +553,10 @@ function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 					!e.defaultPrevented
 				)
 			) {
+				// its a link we want to handle so don't navigate like normal
+				e.preventDefault()
+				e.stopPropagation()
+				console.log('link', link)
 				return
 			}
 
