@@ -13,7 +13,7 @@ export function Router({
 	artifact_cache,
 	component_cache,
 	data_cache,
-	pending_cache,
+	ssr_signals,
 	last_variables,
 	session,
 	assetPrefix,
@@ -32,7 +32,7 @@ export function Router({
 			artifact_cache={artifact_cache}
 			component_cache={component_cache}
 			data_cache={data_cache}
-			pending_cache={pending_cache}
+			ssr_signals={ssr_signals}
 			last_variables={last_variables}
 			session={session}
 		>

@@ -152,7 +152,7 @@ function usePageData({
 		data_cache,
 		component_cache,
 		artifact_cache,
-		pending_cache,
+		ssr_signals,
 		last_variables,
 	} = useRouterContext()
 
@@ -168,10 +168,10 @@ function usePageData({
 		// TODO: we can read from cache here before making an asynchronous network call
 
 		// if there is a pending request and we were asked to load, don't do anything
-		console.log('no more pending cache')
-		// if (pending_cache.has(id)) {
-		// 	return pending_cache.get(id)!
-		// }
+		if (ssr_signals.has(id)) {
+			console.log('using ssr signal instead of loading the query on the client', id)
+			return ssr_signals.get(id)!
+		}
 
 		// send the request
 		const observer = client.observe({ artifact, cache })
@@ -190,12 +190,6 @@ function usePageData({
 				})
 				.then(() => {
 					data_cache.set(id, observer)
-
-					// clear/update the pending cache
-					// if (pending_cache.has(id)) {
-					// 	pending_cache.get(id).resolve()
-					// 	pending_cache.delete(id)
-					// }
 
 					// if we are building up a stream (on the server), we want to add something
 					// to the client that resolves the pending request with the
@@ -241,7 +235,10 @@ function usePageData({
 									window.__houdini__pending_artifacts__[artifactName] = ${JSON.stringify(artifact)}
 								}
 
-								if (window.__houdini__nav_caches__?.pending_cache.has(artifactName)) {
+								// if this payload finishes off an ssr request, we need to resolve the signal
+								if (window.__houdini__nav_caches__?.ssr_signals.has(artifactName)) {
+
+									// if the data showed up on the client before
 									if (window.__houdini__nav_caches__.data_cache.has(artifactName)) {
 										// we're pushing this store onto the client, it should be initialized
 										window.__houdini__nav_caches__.data_cache.get(artifactName).send({
@@ -250,9 +247,10 @@ function usePageData({
 										})
 									}
 
-									// notify anyone waiting on the pending cache
-									// window.__houdini__nav_caches__.pending_cache.get(artifactName).resolve()
-									// window.__houdini__nav_caches__.pending_cache.delete(artifactName)
+									console.log('clearing ssr signal', artifactName)
+									// trigger the signal
+									window.__houdini__nav_caches__.ssr_signals.get(artifactName).resolve()
+									window.__houdini__nav_caches__.ssr_signals.delete(artifactName)
 								}
 							}
 						</script>
@@ -261,17 +259,13 @@ function usePageData({
 					resolve()
 				})
 				.catch(reject)
-				// we're done processing
-				.finally(() => {
-					pending_cache.delete(id)
-				})
 		})
 
 		// add it to the pending cache
-		pending_cache.set(id, { ...promise, resolve, reject })
+		ssr_signals.set(id, { ...promise, resolve, reject })
 
 		// this promise is also what we want to do with the main invocation
-		return pending_cache.get(id)!
+		return ssr_signals.get(id)!
 	}
 
 	// the function that loads all of the data for a page using the caches
@@ -281,6 +275,7 @@ function usePageData({
 			last_variables.has(targetPage.id) &&
 			!deepEquals(last_variables.get(targetPage.id), variables)
 		) {
+			console.log('variables have changed. clearing data cache')
 			data_cache.clear()
 		}
 
@@ -370,7 +365,7 @@ export function RouterContextProvider({
 	artifact_cache,
 	component_cache,
 	data_cache,
-	pending_cache,
+	ssr_signals,
 	last_variables,
 	session: ssrSession = {},
 }: {
@@ -380,7 +375,7 @@ export function RouterContextProvider({
 	artifact_cache: SuspenseCache<QueryArtifact>
 	component_cache: SuspenseCache<(props: any) => React.ReactElement>
 	data_cache: SuspenseCache<DocumentStore<GraphQLObject, GraphQLVariables>>
-	pending_cache: PendingCache
+	ssr_signals: PendingCache
 	last_variables: LRUCache<GraphQLVariables>
 	session?: App.Session
 }) {
@@ -412,7 +407,7 @@ export function RouterContextProvider({
 				artifact_cache,
 				component_cache,
 				data_cache,
-				pending_cache,
+				ssr_signals: ssr_signals,
 				last_variables,
 				session,
 			}}
@@ -438,7 +433,7 @@ type RouterContext = {
 	data_cache: SuspenseCache<DocumentStore<GraphQLObject, GraphQLVariables>>
 
 	// A way to dedupe requests for a query
-	pending_cache: PendingCache
+	ssr_signals: PendingCache
 
 	// A way to track the last known good variables
 	last_variables: LRUCache<GraphQLVariables>
@@ -634,7 +629,7 @@ export type RouterCache = {
 	component_cache: SuspenseCache<(props: any) => React.ReactElement>
 	data_cache: SuspenseCache<DocumentStore<GraphQLObject, GraphQLVariables>>
 	last_variables: LRUCache<GraphQLVariables>
-	pending_cache: PendingCache
+	ssr_signals: PendingCache
 }
 
 export function router_cache({
@@ -654,13 +649,13 @@ export function router_cache({
 		artifact_cache: suspense_cache(initialArtifacts),
 		component_cache: suspense_cache(),
 		data_cache: suspense_cache(initialData),
-		pending_cache: suspense_cache(),
+		ssr_signals: suspense_cache(),
 		last_variables: suspense_cache(),
 	}
 
 	// we need to fill each query with an externally resolvable promise
 	for (const query of pending_queries) {
-		result.pending_cache.set(query, signal_promise())
+		result.ssr_signals.set(query, signal_promise())
 	}
 
 	for (const [name, artifact] of Object.entries(artifacts)) {
