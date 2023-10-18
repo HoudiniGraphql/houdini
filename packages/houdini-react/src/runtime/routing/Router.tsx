@@ -534,7 +534,7 @@ function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 				return
 			}
 
-			const link = findAnchor(e.target as HTMLElement, document.body)
+			const link = (e.target as HTMLElement | null | undefined)?.closest('a')
 			// its a link we want to handle so don't navigate like normal
 			console.log('link', link)
 
@@ -563,22 +563,22 @@ function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 
 			// we need to figure out the target url by looking at the href attribute
 			const target = link.attributes.getNamedItem('href')?.value
-			console.log("target link'", target)
+			console.log('target link', target)
 			// make sure its a link we recognize
 			if (!target || !target.startsWith('/')) {
 				return
 			}
 
-			console.log("processing link'", target)
+			console.log('processing link', target)
 
 			// its a link we want to handle so don't navigate like normal
 			e.preventDefault()
 			e.stopPropagation()
 
 			// go to the next route as a low priority update
-			// startTransition(() => {
-			// 	goto(target)
-			// })
+			startTransition(() => {
+				goto(target)
+			})
 		}
 
 		console.log('registering click handler')
