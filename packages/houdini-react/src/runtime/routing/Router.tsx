@@ -511,6 +511,7 @@ function useLinkBehavior({
 	goto: (url: string) => void
 	preload: (url: string, which: PreloadWhichValue) => void
 }) {
+	console.log('registering link behavior')
 	// always use the click handler
 	useLinkNavigation({ goto })
 
@@ -531,8 +532,6 @@ function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 		const onClick: HTMLAnchorElement['onclick'] = (e) => {
 			const link = (e.target as HTMLElement | null | undefined)?.closest('a')
 			// its a link we want to handle so don't navigate like normal
-			e.preventDefault()
-			e.stopPropagation()
 			console.log('link', link)
 
 			// we only want to capture a "normal click" ie something that indicates a route transition
