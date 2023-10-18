@@ -46,6 +46,8 @@ export function Router({
 		return initialURL || window.location.pathname
 	})
 
+	console.log('currentURL', current)
+
 	// find the matching page for the current route
 	const [page, variables] = find_match(manifest, current)
 
@@ -166,9 +168,10 @@ function usePageData({
 		// TODO: we can read from cache here before making an asynchronous network call
 
 		// if there is a pending request and we were asked to load, don't do anything
-		if (pending_cache.has(id)) {
-			return pending_cache.get(id)!
-		}
+		console.log('no more pending cache')
+		// if (pending_cache.has(id)) {
+		// 	return pending_cache.get(id)!
+		// }
 
 		// send the request
 		const observer = client.observe({ artifact, cache })
@@ -188,10 +191,11 @@ function usePageData({
 				.then(() => {
 					data_cache.set(id, observer)
 
-					if (pending_cache.has(id)) {
-						pending_cache.get(id).resolve()
-						pending_cache.delete(id)
-					}
+					// clear/update the pending cache
+					// if (pending_cache.has(id)) {
+					// 	pending_cache.get(id).resolve()
+					// 	pending_cache.delete(id)
+					// }
 
 					// if we are building up a stream (on the server), we want to add something
 					// to the client that resolves the pending request with the
@@ -247,8 +251,8 @@ function usePageData({
 									}
 
 									// notify anyone waiting on the pending cache
-									window.__houdini__nav_caches__.pending_cache.get(artifactName).resolve()
-									window.__houdini__nav_caches__.pending_cache.delete(artifactName)
+									// window.__houdini__nav_caches__.pending_cache.get(artifactName).resolve()
+									// window.__houdini__nav_caches__.pending_cache.delete(artifactName)
 								}
 							}
 						</script>
