@@ -582,10 +582,10 @@ function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 		}
 
 		console.log('registering MouseDown handler')
-		window.addEventListener('mouseDown', onMouseDown)
+		window.addEventListener('mousedown', onMouseDown)
 		return () => {
 			console.log('unregistering MouseDown handler')
-			window.removeEventListener('mouseDown', onMouseDown!)
+			window.removeEventListener('mousedown', onMouseDown!)
 		}
 	}, [])
 }
