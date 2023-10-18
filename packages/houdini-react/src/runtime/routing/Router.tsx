@@ -555,14 +555,16 @@ function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 
 			// we need to figure out the target url by looking at the href attribute
 			const target = link.attributes.getNamedItem('href')?.value
-			console.log('link target', target)
 			// make sure its a link we recognize
 			if (!target || !target.startsWith('/')) {
 				return
 			}
 
+			console.log("processing link'", target)
+
 			// its a link we want to handle so don't navigate like normal
 			e.preventDefault()
+			e.stopPropagation()
 
 			// go to the next route as a low priority update
 			startTransition(() => {
