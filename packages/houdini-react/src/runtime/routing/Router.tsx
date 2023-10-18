@@ -511,7 +511,6 @@ function useLinkBehavior({
 	goto: (url: string) => void
 	preload: (url: string, which: PreloadWhichValue) => void
 }) {
-	console.log('registering link behavior')
 	// always use the click handler
 	useLinkNavigation({ goto })
 
@@ -561,10 +560,6 @@ function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 				return
 			}
 
-			// its a link we want to handle so don't navigate like normal
-			e.preventDefault()
-			e.stopPropagation()
-
 			// we need to figure out the target url by looking at the href attribute
 			const target = link.attributes.getNamedItem('href')?.value
 			console.log("target link'", target)
@@ -580,9 +575,9 @@ function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 			e.stopPropagation()
 
 			// go to the next route as a low priority update
-			startTransition(() => {
-				goto(target)
-			})
+			// startTransition(() => {
+			// 	goto(target)
+			// })
 		}
 
 		console.log('registering click handler')
