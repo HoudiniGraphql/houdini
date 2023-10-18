@@ -68,7 +68,6 @@ export function Router({
 	const PageComponent = component_cache.get(page.id)!
 
 	// if we got this far then we're past the suspense
-	console.log('survived suspense!')
 
 	//
 	// Now that we know we aren't going to throw, let's set up the event listeners
@@ -512,7 +511,6 @@ function useLinkBehavior({
 	goto: (url: string) => void
 	preload: (url: string, which: PreloadWhichValue) => void
 }) {
-	console.log('using link behavior')
 	// always use the click handler
 	useLinkNavigation({ goto })
 
@@ -557,6 +555,7 @@ function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 
 			// we need to figure out the target url by looking at the href attribute
 			const target = link.attributes.getNamedItem('href')?.value
+			console.log('link target', target)
 			// make sure its a link we recognize
 			if (!target || !target.startsWith('/')) {
 				return
