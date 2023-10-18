@@ -529,7 +529,7 @@ function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 	const [pending, startTransition] = React.useTransition()
 
 	React.useEffect(() => {
-		const onClick: HTMLAnchorElement['onclick'] = (e) => {
+		const onMouseDown: HTMLAnchorElement['onclick'] = (e) => {
 			const link = (e.target as HTMLElement | null | undefined)?.closest('a')
 			// its a link we want to handle so don't navigate like normal
 			console.log('link', link)
@@ -581,11 +581,11 @@ function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 			})
 		}
 
-		console.log('registering click handler')
-		window.addEventListener('click', onClick)
+		console.log('registering MouseDown handler')
+		window.addEventListener('mouseDown', onMouseDown)
 		return () => {
-			console.log('unregistering click handler')
-			window.removeEventListener('click', onClick!)
+			console.log('unregistering MouseDown handler')
+			window.removeEventListener('mouseDown', onMouseDown!)
 		}
 	}, [])
 }
