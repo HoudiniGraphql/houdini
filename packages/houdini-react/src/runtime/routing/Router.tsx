@@ -529,6 +529,7 @@ function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 
 	React.useEffect(() => {
 		const onClick: HTMLAnchorElement['onclick'] = (e) => {
+			console.log('target', e.target)
 			if (!e.target) {
 				return
 			}
