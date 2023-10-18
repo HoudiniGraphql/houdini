@@ -555,6 +555,7 @@ function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 
 			// we need to figure out the target url by looking at the href attribute
 			const target = link.attributes.getNamedItem('href')?.value
+			console.log("target link'", target)
 			// make sure its a link we recognize
 			if (!target || !target.startsWith('/')) {
 				return
