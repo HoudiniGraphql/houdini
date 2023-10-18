@@ -529,8 +529,12 @@ function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 	const [pending, startTransition] = React.useTransition()
 
 	React.useEffect(() => {
-		const onMouseDown: HTMLAnchorElement['onclick'] = (e) => {
-			const link = (e.target as HTMLElement | null | undefined)?.closest('a')
+		const onClick: HTMLAnchorElement['onclick'] = (e) => {
+			if (!e.target) {
+				return
+			}
+
+			const link = findAnchor(e.target as HTMLElement, document.body)
 			// its a link we want to handle so don't navigate like normal
 			console.log('link', link)
 
@@ -581,11 +585,11 @@ function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 			})
 		}
 
-		console.log('registering MouseDown handler')
-		window.addEventListener('mousedown', onMouseDown)
+		console.log('registering click handler')
+		document.documentElement.addEventListener('click', onClick)
 		return () => {
-			console.log('unregistering MouseDown handler')
-			window.removeEventListener('mousedown', onMouseDown!)
+			console.log('unregistering click handler')
+			document.documentElement.removeEventListener('click', onClick!)
 		}
 	}, [])
 }
@@ -700,4 +704,29 @@ function signal_promise(): Promise<void> & { resolve: () => void; reject: () => 
 		resolve,
 		reject,
 	}
+}
+
+export function findAnchor(
+	element: HTMLElement,
+	target: HTMLElement
+): HTMLAnchorElement | SVGAElement | null {
+	let ele: HTMLElement | null = element
+	while (ele && ele !== target) {
+		if (ele.nodeName.toUpperCase() === 'A' && ele.hasAttribute('href')) {
+			return ele as HTMLAnchorElement
+		}
+
+		ele = parent_element(element)
+	}
+
+	return null
+}
+
+function parent_element(element: HTMLElement): HTMLElement | null {
+	let parent = element.assignedSlot ?? element.parentNode
+
+	// @ts-expect-error handle shadow roots
+	if (parent?.nodeType === 11) parent = parent.host
+
+	return parent as HTMLElement | null
 }
