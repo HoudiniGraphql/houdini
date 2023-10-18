@@ -1,5 +1,9 @@
 lockfileVersion: '6.0'
 
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
 overrides:
   graphql: 15.5.0
 
@@ -544,14 +548,14 @@ importers:
         specifier: workspace:^
         version: link:../houdini
       react:
-        specifier: ^18.2.0
-        version: 18.2.0
+        specifier: 18.3.0-canary-09fbee89d-20231013
+        version: 18.3.0-canary-09fbee89d-20231013
       react-dom:
-        specifier: ^18.2.0
-        version: 18.2.0(react@18.2.0)
+        specifier: 18.3.0-canary-09fbee89d-20231013
+        version: 18.3.0-canary-09fbee89d-20231013(react@18.3.0-canary-09fbee89d-20231013)
       react-streaming-compat:
         specifier: ^0.3.18
-        version: 0.3.18(react-dom@18.2.0)(react@18.2.0)
+        version: 0.3.18(react-dom@18.3.0-canary-09fbee89d-20231013)(react@18.3.0-canary-09fbee89d-20231013)
       recast:
         specifier: ^0.23.1
         version: 0.23.1
@@ -560,7 +564,7 @@ importers:
         version: 3.14.0
       use-deep-compare-effect:
         specifier: ^1.8.1
-        version: 1.8.1(react@18.2.0)
+        version: 1.8.1(react@18.3.0-canary-09fbee89d-20231013)
     devDependencies:
       '@types/cookie-parser':
         specifier: ^1.4.3
@@ -585,7 +589,7 @@ importers:
         version: 18.0.11
       next:
         specifier: ^13.0.1
-        version: 13.1.1(@babel/core@7.20.7)(react-dom@18.2.0)(react@18.2.0)
+        version: 13.1.1(@babel/core@7.20.7)(react-dom@18.3.0-canary-09fbee89d-20231013)(react@18.3.0-canary-09fbee89d-20231013)
       scripts:
         specifier: workspace:^
         version: link:../_scripts
@@ -2273,7 +2277,7 @@ packages:
     resolution: {integrity: sha512-SKlIcMA71Dha5JnEWlw4XxcaJ+YupuXg0QCZgl2TOLFz4SkGCwU/geAsJvUJFwK2RbVLpQv/UMq67lOaBuwDtg==}
     engines: {node: '>=16.0.0'}
     peerDependencies:
-      graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
+      graphql: 15.5.0
     dependencies:
       '@graphql-tools/utils': 10.0.6(graphql@15.5.0)
       '@graphql-typed-document-node/core': 3.2.0(graphql@15.5.0)
@@ -2286,7 +2290,7 @@ packages:
   /@graphql-tools/merge@8.3.14(graphql@15.5.0):
     resolution: {integrity: sha512-zV0MU1DnxJLIB0wpL4N3u21agEiYFsjm6DI130jqHpwF0pR9HkF+Ni65BNfts4zQelP0GjkHltG+opaozAJ1NA==}
     peerDependencies:
-      graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
+      graphql: 15.5.0
     dependencies:
       '@graphql-tools/utils': 9.1.3(graphql@15.5.0)
       graphql: 15.5.0
@@ -2297,7 +2301,7 @@ packages:
     resolution: {integrity: sha512-J7/xqjkGTTwOJmaJQJ2C+VDBDOWJL3lKrHJN4yMaRLAJH3PosB7GiPRaSDZdErs0+F77sH2MKs2haMMkywzx7Q==}
     engines: {node: '>=16.0.0'}
     peerDependencies:
-      graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
+      graphql: 15.5.0
     dependencies:
       '@graphql-tools/utils': 10.0.6(graphql@15.5.0)
       graphql: 15.5.0
@@ -2308,7 +2312,7 @@ packages:
     resolution: {integrity: sha512-kf3qOXMFcMs2f/S8Y3A8fm/2w+GaHAkfr3Gnhh2LOug/JgpY/ywgFVxO3jOeSpSEdoYcDKLcXVjMigNbY4AdQg==}
     engines: {node: '>=16.0.0'}
     peerDependencies:
-      graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
+      graphql: 15.5.0
     dependencies:
       '@graphql-tools/merge': 9.0.0(graphql@15.5.0)
       '@graphql-tools/utils': 10.0.6(graphql@15.5.0)
@@ -2320,7 +2324,7 @@ packages:
   /@graphql-tools/schema@9.0.12(graphql@15.5.0):
     resolution: {integrity: sha512-DmezcEltQai0V1y96nwm0Kg11FDS/INEFekD4nnVgzBqawvznWqK6D6bujn+cw6kivoIr3Uq//QmU/hBlBzUlQ==}
     peerDependencies:
-      graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
+      graphql: 15.5.0
     dependencies:
       '@graphql-tools/merge': 8.3.14(graphql@15.5.0)
       '@graphql-tools/utils': 9.1.3(graphql@15.5.0)
@@ -2333,7 +2337,7 @@ packages:
     resolution: {integrity: sha512-hZMjl/BbX10iagovakgf3IiqArx8TPsotq5pwBld37uIX1JiZoSbgbCIFol7u55bh32o6cfDEiiJgfAD5fbeyQ==}
     engines: {node: '>=16.0.0'}
     peerDependencies:
-      graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
+      graphql: 15.5.0
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@15.5.0)
       dset: 3.1.2
@@ -2344,7 +2348,7 @@ packages:
   /@graphql-tools/utils@9.1.3(graphql@15.5.0):
     resolution: {integrity: sha512-bbJyKhs6awp1/OmP+WKA1GOyu9UbgZGkhIj5srmiMGLHohEOKMjW784Sk0BZil1w2x95UPu0WHw6/d/HVCACCg==}
     peerDependencies:
-      graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
+      graphql: 15.5.0
     dependencies:
       graphql: 15.5.0
       tslib: 2.6.2
@@ -2353,7 +2357,7 @@ packages:
   /@graphql-tools/utils@9.2.1(graphql@15.5.0):
     resolution: {integrity: sha512-WUw506Ql6xzmOORlriNrD6Ugx+HjVgYxt9KCXD9mHAak+eaXSwuGGPyE60hy9xaDEoXKBsG7SkG69ybitaVl6A==}
     peerDependencies:
-      graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
+      graphql: 15.5.0
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@15.5.0)
       graphql: 15.5.0
@@ -2363,7 +2367,7 @@ packages:
   /@graphql-typed-document-node/core@3.2.0(graphql@15.5.0):
     resolution: {integrity: sha512-mB9oAsNCm9aM3/SOv4YtBMqZbYj10R7dkq8byBqxGY/ncFwhf2oQzMV+LCRlWoDSEBJ3COiR1yeDvMtsoOsuFQ==}
     peerDependencies:
-      graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
+      graphql: 15.5.0
     dependencies:
       graphql: 15.5.0
     dev: false
@@ -2379,7 +2383,7 @@ packages:
     resolution: {integrity: sha512-pjA7xLIYVCugxyM/FwG7SlbPVPxn8cr5AFT0I4EsgwK2z6D0oM+fN6guPam7twTVKr0BmA/EtVm2RWkik114Mw==}
     peerDependencies:
       '@graphql-tools/utils': ^9.2.1
-      graphql: ^15.2.0 || ^16.0.0
+      graphql: 15.5.0
       graphql-yoga: ^3.9.1
     dependencies:
       '@graphql-tools/utils': 9.2.1(graphql@15.5.0)
@@ -6931,7 +6935,7 @@ packages:
     resolution: {integrity: sha512-44yBuw2/DLNEiMypbNZBt1yMDbBmyVPVesPywnteGGALiBmdyy1JP8jSg8ClLePg8ZZxk0O4BLhd1a6U/1jDOQ==}
     engines: {node: ^12.20.0 || ^14.15.0 || >= 15.9.0}
     peerDependencies:
-      graphql: ^16.2.0
+      graphql: 15.5.0
     dependencies:
       graphql: 15.5.0
     dev: false
@@ -6940,7 +6944,7 @@ packages:
     resolution: {integrity: sha512-4EiZ3/UXYcjm+xFGP544/yW1+DVI8ZpKASFbzrV5EDTFWJp0ZvLl4Dy2fSZAzz9imKp5pZMIcjB0x/H69Pv/6w==}
     engines: {node: '>=10'}
     peerDependencies:
-      graphql: '>=0.11 <=16'
+      graphql: 15.5.0
     dependencies:
       graphql: 15.5.0
     dev: false
@@ -6949,7 +6953,7 @@ packages:
     resolution: {integrity: sha512-MvCLhFecYNIKuxAZisPjpIL9lxRYbpgPSNKENDO/8CV3oiFlsLJHZb5dp2sVAeLafXHeZ9TgkijLthUBc1+Jag==}
     engines: {node: '>=16.0.0'}
     peerDependencies:
-      graphql: ^15.2.0 || ^16.0.0
+      graphql: 15.5.0
     dependencies:
       '@envelop/core': 4.0.1
       '@graphql-tools/executor': 1.2.0(graphql@15.5.0)
@@ -8617,7 +8621,7 @@ packages:
     engines: {node: '>= 0.6'}
     dev: false
 
-  /next@13.1.1(@babel/core@7.20.7)(react-dom@18.2.0)(react@18.2.0):
+  /next@13.1.1(@babel/core@7.20.7)(react-dom@18.3.0-canary-09fbee89d-20231013)(react@18.3.0-canary-09fbee89d-20231013):
     resolution: {integrity: sha512-R5eBAaIa3X7LJeYvv1bMdGnAVF4fVToEjim7MkflceFPuANY3YyvFxXee/A+acrSYwYPvOvf7f6v/BM/48ea5w==}
     engines: {node: '>=14.6.0'}
     hasBin: true
@@ -8639,9 +8643,9 @@ packages:
       '@swc/helpers': 0.4.14
       caniuse-lite: 1.0.30001441
       postcss: 8.4.14
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
-      styled-jsx: 5.1.1(@babel/core@7.20.7)(react@18.2.0)
+      react: 18.3.0-canary-09fbee89d-20231013
+      react-dom: 18.3.0-canary-09fbee89d-20231013(react@18.3.0-canary-09fbee89d-20231013)
+      styled-jsx: 5.1.1(@babel/core@7.20.7)(react@18.3.0-canary-09fbee89d-20231013)
     optionalDependencies:
       '@next/swc-android-arm-eabi': 13.1.1
       '@next/swc-android-arm64': 13.1.1
@@ -9372,14 +9376,14 @@ packages:
       scheduler: 0.19.1
     dev: true
 
-  /react-dom@18.2.0(react@18.2.0):
-    resolution: {integrity: sha512-6IMTriUmvsjHUjNtEDudZfuDQUoWXVxKHhlEGSk81n4YFS+r/Kl99wXiwlVXtPBtJenozv2P+hxDsw9eA7Xo6g==}
+  /react-dom@18.3.0-canary-09fbee89d-20231013(react@18.3.0-canary-09fbee89d-20231013):
+    resolution: {integrity: sha512-whQiynFSqI6eQ2KuiQm0lxM10XmMfHzEGN+Z4qGzyQ+hUz8d53rPN2EfmHjQc5GUvqL7z6et7W5d3BeWX69vog==}
     peerDependencies:
-      react: ^18.2.0
+      react: 18.3.0-canary-09fbee89d-20231013
     dependencies:
       loose-envify: 1.4.0
-      react: 18.2.0
-      scheduler: 0.23.0
+      react: 18.3.0-canary-09fbee89d-20231013
+      scheduler: 0.24.0-canary-09fbee89d-20231013
 
   /react-dom@18.3.0-canary-d6dcad6a8-20230914(react@18.3.0-canary-d7a98a5e9-20230517):
     resolution: {integrity: sha512-KzS+Jy/WXC6I9bi9PtBU0+iMPHPNvNLdyIDJqgX91AiBP9IDDMjaDbgW0QKphi1qIOesYMeJz0uZkajhlfS8lg==}
@@ -9408,7 +9412,7 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /react-streaming-compat@0.3.18(react-dom@18.2.0)(react@18.2.0):
+  /react-streaming-compat@0.3.18(react-dom@18.3.0-canary-09fbee89d-20231013)(react@18.3.0-canary-09fbee89d-20231013):
     resolution: {integrity: sha512-KyvJHZ3JLQyNQSU/Rg+FYPaU/LGjSrdByE1zHS5DP/I6hxEmDUJYXf9eWdZZMi3lq+sUEwy1P7ije4blb0wF/A==}
     peerDependencies:
       react: '>=18'
@@ -9417,8 +9421,8 @@ packages:
       '@brillout/import': 0.2.3
       '@brillout/json-serializer': 0.5.6
       isbot-fast: 1.2.0
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
+      react: 18.3.0-canary-09fbee89d-20231013
+      react-dom: 18.3.0-canary-09fbee89d-20231013(react@18.3.0-canary-09fbee89d-20231013)
     dev: false
 
   /react-streaming-compat@0.3.18(react-dom@18.3.0-canary-d6dcad6a8-20230914)(react@18.3.0-canary-d7a98a5e9-20230517):
@@ -9443,8 +9447,8 @@ packages:
       prop-types: 15.8.1
     dev: true
 
-  /react@18.2.0:
-    resolution: {integrity: sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==}
+  /react@18.3.0-canary-09fbee89d-20231013:
+    resolution: {integrity: sha512-MV2EqcBD9pAt8IfI5XkPj+/mQwIDPG3CSqbzir8kzjUeETuoMAOTbUl34CH4sS02JBq79jhvrY9L5rmL83OPWg==}
     engines: {node: '>=0.10.0'}
     dependencies:
       loose-envify: 1.4.0
@@ -9839,8 +9843,8 @@ packages:
       object-assign: 4.1.1
     dev: true
 
-  /scheduler@0.23.0:
-    resolution: {integrity: sha512-CtuThmgHNg7zIZWAXi3AsyIzA3n4xx7aNyjwC2VJldO2LMVDhFK+63xGqq6CsJH4rTAt6/M+N4GhZiDYPx9eUw==}
+  /scheduler@0.24.0-canary-09fbee89d-20231013:
+    resolution: {integrity: sha512-EJY9WbhIa1tGdFCDtDmWU/FwwcPrmglpFkQp9IHu5tDjFpbNHMRxO+dles31SPOCIPR6wkRisoLA2/GuNs2niA==}
     dependencies:
       loose-envify: 1.4.0
 
@@ -10305,7 +10309,7 @@ packages:
       acorn: 8.10.0
     dev: true
 
-  /styled-jsx@5.1.1(@babel/core@7.20.7)(react@18.2.0):
+  /styled-jsx@5.1.1(@babel/core@7.20.7)(react@18.3.0-canary-09fbee89d-20231013):
     resolution: {integrity: sha512-pW7uC1l4mBZ8ugbiZrcIsiIvVx1UmTfw7UkC3Um2tmfUq9Bhk8IiyEIPl6F8agHgjzku6j0xQEZbfA5uSgSaCw==}
     engines: {node: '>= 12.0.0'}
     peerDependencies:
@@ -10320,7 +10324,7 @@ packages:
     dependencies:
       '@babel/core': 7.20.7
       client-only: 0.0.1
-      react: 18.2.0
+      react: 18.3.0-canary-09fbee89d-20231013
     dev: true
 
   /stylis@4.1.3:
@@ -11067,7 +11071,7 @@ packages:
     resolution: {integrity: sha512-WHN8KDQblxd32odxeIgo83rdVDE2bvdkb86it7bMhYZwWKJz0+O0RK/eZiHYnM+zgt/U7hAHOlCQGfjjvSkw2g==}
     dev: false
 
-  /use-deep-compare-effect@1.8.1(react@18.2.0):
+  /use-deep-compare-effect@1.8.1(react@18.3.0-canary-09fbee89d-20231013):
     resolution: {integrity: sha512-kbeNVZ9Zkc0RFGpfMN3MNfaKNvcLNyxOAAd9O4CBZ+kCBXXscn9s/4I+8ytUER4RDpEYs5+O6Rs4PqiZ+rHr5Q==}
     engines: {node: '>=10', npm: '>=6'}
     peerDependencies:
@@ -11075,7 +11079,7 @@ packages:
     dependencies:
       '@babel/runtime': 7.20.7
       dequal: 2.0.3
-      react: 18.2.0
+      react: 18.3.0-canary-09fbee89d-20231013
     dev: false
 
   /util-deprecate@1.0.2:

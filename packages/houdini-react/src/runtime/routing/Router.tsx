@@ -701,28 +701,3 @@ function signal_promise(): Promise<void> & { resolve: () => void; reject: () => 
 		reject,
 	}
 }
-
-export function findAnchor(
-	element: HTMLElement,
-	target: HTMLElement
-): HTMLAnchorElement | SVGAElement | null {
-	let ele: HTMLElement | null = element
-	while (ele && ele !== target) {
-		if (ele.nodeName.toUpperCase() === 'A' && ele.hasAttribute('href')) {
-			return ele as HTMLAnchorElement
-		}
-
-		ele = parent_element(element)
-	}
-
-	return null
-}
-
-function parent_element(element: HTMLElement): HTMLElement | null {
-	let parent = element.assignedSlot ?? element.parentNode
-
-	// @ts-expect-error handle shadow roots
-	if (parent?.nodeType === 11) parent = parent.host
-
-	return parent as HTMLElement | null
-}
