@@ -582,10 +582,10 @@ function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 		}
 
 		console.log('registering click handler')
-		document.addEventListener('click', onClick)
+		window.addEventListener('click', onClick)
 		return () => {
 			console.log('unregistering click handler')
-			document.removeEventListener('click', onClick!)
+			window.removeEventListener('click', onClick!)
 		}
 	}, [])
 }
