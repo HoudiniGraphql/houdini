@@ -538,10 +538,6 @@ function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 			// its a link we want to handle so don't navigate like normal
 			console.log('link', link)
 
-			// its a link we want to handle so don't navigate like normal
-			e.preventDefault()
-			e.stopPropagation()
-
 			// we only want to capture a "normal click" ie something that indicates a route transition
 			// in the current tab
 			// courtesy of: https://gist.github.com/devongovett/919dc0f06585bd88af053562fd7c41b7
@@ -565,6 +561,10 @@ function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 				return
 			}
 
+			// its a link we want to handle so don't navigate like normal
+			e.preventDefault()
+			e.stopPropagation()
+
 			// we need to figure out the target url by looking at the href attribute
 			const target = link.attributes.getNamedItem('href')?.value
 			console.log("target link'", target)
@@ -586,10 +586,10 @@ function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 		}
 
 		console.log('registering click handler')
-		document.documentElement.addEventListener('click', onClick)
+		window.addEventListener('click', onClick)
 		return () => {
 			console.log('unregistering click handler')
-			document.documentElement.removeEventListener('click', onClick!)
+			window.removeEventListener('click', onClick!)
 		}
 	}, [])
 }
