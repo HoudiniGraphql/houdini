@@ -169,6 +169,7 @@ function usePageData({
 
 		// if there is a pending request and we were asked to load, don't do anything
 		if (ssr_signals.has(id)) {
+			console.log('using ssr signal')
 			return ssr_signals.get(id)!
 		}
 
@@ -268,9 +269,6 @@ function usePageData({
 
 		// we're done
 		return resolvable
-
-		// this promise is also what we want to do with the main invocation
-		return ssr_signals.get(id)!
 	}
 
 	// the function that loads all of the data for a page using the caches
@@ -531,14 +529,12 @@ function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 
 	React.useEffect(() => {
 		const onClick: HTMLAnchorElement['onclick'] = (e) => {
-			console.log('target', e.target)
 			if (!e.target) {
 				return
 			}
 
 			const link = (e.target as HTMLElement | null | undefined)?.closest('a')
 			// its a link we want to handle so don't navigate like normal
-			console.log('link', link)
 
 			// we only want to capture a "normal click" ie something that indicates a route transition
 			// in the current tab
@@ -559,19 +555,15 @@ function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 					!e.defaultPrevented
 				)
 			) {
-				console.log('link', link)
 				return
 			}
 
 			// we need to figure out the target url by looking at the href attribute
 			const target = link.attributes.getNamedItem('href')?.value
-			console.log('target link', target)
 			// make sure its a link we recognize
 			if (!target || !target.startsWith('/')) {
 				return
 			}
-
-			console.log('processing link', target)
 
 			// its a link we want to handle so don't navigate like normal
 			e.preventDefault()
@@ -583,10 +575,8 @@ function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 			})
 		}
 
-		console.log('registering click handler')
 		window.addEventListener('click', onClick)
 		return () => {
-			console.log('unregistering click handler')
 			window.removeEventListener('click', onClick!)
 		}
 	}, [])
