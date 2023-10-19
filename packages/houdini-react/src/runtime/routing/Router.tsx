@@ -272,7 +272,7 @@ function usePageData({
 		// if we are on the server, we need to save a signal that we can use to
 		// communicate with the client when we're done
 		const resolvable = { ...promise, resolve, reject }
-		if (!globalThis.window && artifact.enableLoadingState) {
+		if (!globalThis.window) {
 			console.log('setting ssr signal')
 			ssr_signals.set(id, resolvable)
 		}
