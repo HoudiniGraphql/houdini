@@ -300,6 +300,7 @@ function usePageData({
 
 			// before we can compare we need to only look at the variables that the artifact cares about
 			if (Object.keys(last ?? {}).length > 0 && !deepEquals(last, usedVariables)) {
+				console.log('clearing cache', artifact, last, usedVariables)
 				data_cache.delete(artifact)
 			}
 		}
