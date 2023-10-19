@@ -1,3 +1,4 @@
+import type { GraphQLObject } from '$houdini/lib/types'
 import type { Cache } from '$houdini/runtime/cache/cache'
 
 import client from './client'
@@ -20,6 +21,7 @@ export function Router({
 	injectToStream,
 }: {
 	initialURL: string
+	initialVariables: GraphQLObject
 	cache: Cache
 	session?: App.Session
 	assetPrefix: string

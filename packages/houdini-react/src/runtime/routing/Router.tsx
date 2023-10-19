@@ -161,9 +161,11 @@ function usePageData({
 
 	// the function to load a query using the cache references
 	function load_query({ id, artifact }: { id: string; artifact: QueryArtifact }): Promise<void> {
+		// TODO: better tracking - only register the variables that were used
 		// track the new variables
-		last_variables.set(page.id, variables)
-		console.log('registering variables', page.id, variables)
+		for (const artifact of Object.keys(page.documents)) {
+			last_variables.set(artifact, variables)
+		}
 
 		// TODO: AbortController on send()
 		// TODO: we can read from cache here before making an asynchronous network call
@@ -273,12 +275,14 @@ function usePageData({
 
 	// the function that loads all of the data for a page using the caches
 	function loadData(targetPage: RouterPageManifest<ComponentType>, variables: {} | null) {
-		// if the variables have changed then we need to clear the data store (so we fetch again)
-		if (
-			last_variables.has(targetPage.id) &&
-			!deepEquals(last_variables.get(targetPage.id), variables)
-		) {
-			data_cache.clear()
+		// if any of the artifacts that this page on have new variables, we need to clear the data cache
+		for (const artifact of Object.keys(targetPage.documents)) {
+			if (
+				last_variables.has(artifact) &&
+				!deepEquals(last_variables.get(artifact), variables)
+			) {
+				data_cache.delete(artifact)
+			}
 		}
 
 		// in order to avoid waterfalls, we need to kick off APIs requests in parallel
@@ -645,12 +649,14 @@ export function router_cache({
 	artifacts = {},
 	components = {},
 	initialData = {},
+	initialVariables = {},
 	initialArtifacts = {},
 }: {
 	pending_queries?: string[]
 	artifacts?: Record<string, QueryArtifact>
 	components?: Record<string, (props: any) => React.ReactElement>
 	initialData?: Record<string, DocumentStore<GraphQLObject, GraphQLVariables>>
+	initialVariables?: Record<string, GraphQLVariables>
 	initialArtifacts?: Record<string, QueryArtifact>
 } = {}): RouterCache {
 	const result: RouterCache = {
@@ -672,6 +678,10 @@ export function router_cache({
 
 	for (const [name, component] of Object.entries(components)) {
 		result.component_cache.set(name, component)
+	}
+
+	for (const [name, variables] of Object.entries(initialVariables)) {
+		result.last_variables.set(name, variables)
 	}
 
 	return result

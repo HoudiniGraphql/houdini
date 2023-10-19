@@ -202,6 +202,7 @@ export default {
 
 				// if there is pending data (or artifacts) then we should prime the caches
 				let initialData = {}
+				let initialVariables = {}
 				let initialArtifacts = {}
 
 				// hydrate the client with the component cache
@@ -244,6 +245,7 @@ export default {
 
 						// save it in the cache
 						initialData[artifactName] = observer
+						initialVariables[artifactName] = variables
 					}
 
 				}
@@ -253,6 +255,7 @@ export default {
 					window.__houdini__nav_caches__ = router_cache({
 						pending_queries: ${JSON.stringify(queries)},
 						initialData,
+						initialVariables: window.__houdini__pending_variables__,
 						initialArtifacts,
 						components: {
 							'${id}': Component
