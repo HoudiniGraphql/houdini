@@ -27,7 +27,7 @@ let devServer = false
 // generated files.
 
 // Here is a potentially incomplete list of things that are mocked / need to be generated:
-// virtual:houdini/pages/[query_names.join(',')] - An entry for every page that starts the pending cache with the correct values
+// virtual:houdini/pages/[name] - An entry for every page
 // virtual:houdini/artifacts/[name] - An entry for loading an artifact and notifying the artifact cache
 
 let manifest: ProjectManifest
@@ -76,19 +76,9 @@ export default {
 
 			// every page in the manifest is a new entry point for vite
 			for (const [id, page] of Object.entries(manifest.pages)) {
-				// we need the list of queries that have loading states (and therefore create ssr signals)
-				const pendingQueries = page.queries.filter((query) => {
-					const page = Object.values(manifest.page_queries).find((q) => q.name === query)
-					const layout = Object.values(manifest.layout_queries).find(
-						(q) => q.name === query
-					)
-
-					return (page || layout)?.loading
-				})
-
 				conf.build!.rollupOptions!.input[
 					`pages/${id}`
-				] = `virtual:houdini/pages/${page.id}@${page.queries}.jsx`
+				] = `virtual:houdini/pages/${page.id}.jsx`
 			}
 
 			// the SSR build has a different output
@@ -198,8 +188,16 @@ export default {
 
 		// if we are rendering the virtual page
 		if (which === 'pages') {
-			const [id, query_names] = arg.split('@')
-			const queries = query_names ? query_names.split(',') : []
+			const page = manifest.pages[arg]
+
+			// we need the list of queries that have loading states (and therefore create ssr signals)
+			const pendingQueries = page.queries.filter((query) => {
+				const page = Object.values(manifest.page_queries).find((q) => q.name === query)
+				const layout = Object.values(manifest.layout_queries).find((q) => q.name === query)
+
+				return (page || layout)?.loading
+			})
+
 			return `
 				import React from 'react'
 				import { hydrateRoot } from 'react-dom/client';
@@ -263,7 +261,7 @@ export default {
 				// attach things to the global scope to synchronize streaming
 				if (!window.__houdini__nav_caches__) {
 					window.__houdini__nav_caches__ = router_cache({
-						pending_queries: ${JSON.stringify(queries)},
+						pending_queries: ${JSON.stringify(pendingQueries)},
 						initialData,
 						initialVariables: window.__houdini__pending_variables__,
 						initialArtifacts,
