@@ -276,7 +276,6 @@ function usePageData({
 
 	// the function that loads all of the data for a page using the caches
 	function loadData(targetPage: RouterPageManifest<ComponentType>, variables: {} | null) {
-		console.log('loading page', targetPage)
 		// if any of the artifacts that this page on have new variables, we need to clear the data cache
 		for (const artifact of Object.keys(targetPage.documents)) {
 			// if there are no last variables, there's nothing to do
@@ -286,7 +285,7 @@ function usePageData({
 
 			const vars = last_variables.get(artifact)
 			if (Object.keys(vars ?? {}).length > 0 && !deepEquals(vars, variables)) {
-				console.log('clearing cache for', artifact)
+				console.log('clearing cache for', artifact, vars, variables)
 				data_cache.delete(artifact)
 			}
 		}
