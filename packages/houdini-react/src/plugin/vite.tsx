@@ -81,6 +81,8 @@ export default {
 					return (manifest.page_queries[query] || manifest.layout_queries[query])?.loading
 				})
 
+				console.log(page.id, { pendingQueries })
+
 				conf.build!.rollupOptions!.input[
 					`pages/${id}`
 				] = `virtual:houdini/pages/${page.id}@${pendingQueries}.jsx`
