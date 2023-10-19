@@ -497,11 +497,12 @@ const VariableContext = React.createContext<GraphQLVariables>(null)
 export function useQueryResult<_Data extends GraphQLObject, _Input extends GraphQLVariables>(
 	name: string
 ): [_Data | null, DocumentStore<_Data, _Input>] {
+	console.log('waiting for', name)
 	const store_ref = useRouterContext().data_cache.get(name)! as unknown as DocumentStore<
 		_Data,
 		_Input
 	>
-
+	console.log('store ref', name, store_ref)
 	// get the live data from the store
 	const [{ data }, observer] = useDocumentStore<_Data, _Input>({
 		artifact: store_ref.artifact,
