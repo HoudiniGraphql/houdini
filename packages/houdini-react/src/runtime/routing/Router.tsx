@@ -272,7 +272,7 @@ function usePageData({
 		// if we are on the server, we need to save a signal that we can use to
 		// communicate with the client when we're done
 		const resolvable = { ...promise, resolve, reject }
-		if (!globalThis.window) {
+		if (!globalThis.window && artifact.enableLoadingState) {
 			console.log('setting ssr signal')
 			ssr_signals.set(id, resolvable)
 		}
@@ -690,6 +690,8 @@ export function router_cache({
 		ssr_signals: suspense_cache(),
 		last_variables: suspense_cache(),
 	}
+
+	console.log({ pending_queries })
 
 	// we need to fill each query with an externally resolvable promise
 	for (const query of pending_queries) {
