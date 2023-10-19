@@ -86,11 +86,9 @@ export default {
 					return (page || layout)?.loading
 				})
 
-				console.log(page.id, { pendingQueries })
-
 				conf.build!.rollupOptions!.input[
 					`pages/${id}`
-				] = `virtual:houdini/pages/${page.id}@${pendingQueries}.jsx`
+				] = `virtual:houdini/pages/${page.id}@${page.queries}.jsx`
 			}
 
 			// the SSR build has a different output
