@@ -691,8 +691,6 @@ export function router_cache({
 		last_variables: suspense_cache(),
 	}
 
-	console.log({ pending_queries })
-
 	// we need to fill each query with an externally resolvable promise
 	for (const query of pending_queries) {
 		result.ssr_signals.set(query, signal_promise())

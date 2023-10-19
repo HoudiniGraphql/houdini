@@ -76,9 +76,14 @@ export default {
 
 			// every page in the manifest is a new entry point for vite
 			for (const [id, page] of Object.entries(manifest.pages)) {
+				// we need the list of queries that have loading states (and therefore create ssr signals)
+				const pendingQueries = page.queries.filter((query) => {
+					return (manifest.page_queries[query] || manifest.layout_queries[query])?.loading
+				})
+
 				conf.build!.rollupOptions!.input[
 					`pages/${id}`
-				] = `virtual:houdini/pages/${page.id}@${page.queries}.jsx`
+				] = `virtual:houdini/pages/${page.id}@${pendingQueries}.jsx`
 			}
 
 			// the SSR build has a different output
