@@ -1,8 +1,9 @@
-import manifest from '$houdini/plugins/houdini-react/manifest.json'
 import { useCache } from '$houdini/plugins/houdini-react/runtime/routing'
 import React from 'react'
+import { routes } from '~/utils/routes'
 
 import type { LayoutProps } from './$types'
+import './index.css'
 
 export default function ({ children }: LayoutProps) {
 	// save the cache reference on the window
@@ -17,11 +18,11 @@ export default function ({ children }: LayoutProps) {
 	return (
 		<>
 			<ul style={{ listStyle: 'none' }}>
-				{Object.values(manifest.pages).map((route) => {
+				{Object.entries(routes).map(([route, url]) => {
 					return (
-						<li key={route.url}>
-							<a href={route.url} data-houdini-preload>
-								{route.url}
+						<li key={url}>
+							<a href={url} data-houdini-preload>
+								{route}
 							</a>
 						</li>
 					)
