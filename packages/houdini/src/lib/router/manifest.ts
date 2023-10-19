@@ -262,6 +262,7 @@ async function add_query(args: {
 		name: query.name.value,
 		url: args.url,
 		loading,
+		variables: query.variableDefinitions?.map((variable) => variable.variable.name.value) ?? [],
 	}
 
 	return target[page_id(args.url)]

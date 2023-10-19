@@ -442,4 +442,6 @@ export type QueryManifest = {
 	loading: boolean
 	/** The filepath of the unit */
 	path: string
+	/** The list of variables that this query cares about */
+	variables: string[]
 }

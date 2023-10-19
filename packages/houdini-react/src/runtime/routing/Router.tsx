@@ -275,17 +275,31 @@ function usePageData({
 	}
 
 	// the function that loads all of the data for a page using the caches
-	function loadData(targetPage: RouterPageManifest<ComponentType>, variables: {} | null) {
+	function loadData(
+		targetPage: RouterPageManifest<ComponentType>,
+		variables: GraphQLVariables | null
+	) {
 		// if any of the artifacts that this page on have new variables, we need to clear the data cache
-		for (const artifact of Object.keys(targetPage.documents)) {
+		for (const [artifact, { variables: pageVariables }] of Object.entries(
+			targetPage.documents
+		)) {
 			// if there are no last variables, there's nothing to do
 			if (!last_variables.has(artifact)) {
 				continue
 			}
 
-			const vars = last_variables.get(artifact)
-			if (Object.keys(vars ?? {}).length > 0 && !deepEquals(vars, variables)) {
-				console.log('clearing cache for', artifact, vars, variables)
+			// compare the last known variables with the current set
+			const last = last_variables.get(artifact)
+			const usedVariables = pageVariables.reduce(
+				(vars, key) => ({
+					...vars,
+					[key]: (variables ?? {})[key],
+				}),
+				{}
+			)
+
+			// before we can compare we need to only look at the variables that the artifact cares about
+			if (Object.keys(last ?? {}).length > 0 && !deepEquals(last, usedVariables)) {
 				data_cache.delete(artifact)
 			}
 		}
@@ -336,8 +350,6 @@ function usePageData({
 			// if we don't have the query, load it
 			if (!data_cache.has(artifact.name)) {
 				load_query({ id: artifact.name, artifact })
-			} else {
-				console.log('skipping over', artifact.name)
 			}
 		}
 
