@@ -174,7 +174,7 @@ function usePageData({
 
 		// if there is a pending request and we were asked to load, don't do anything
 		if (ssr_signals.has(id)) {
-			console.log('using ssr signal')
+			console.log('using ssr signal', id)
 			return ssr_signals.get(id)!
 		}
 
@@ -254,6 +254,8 @@ function usePageData({
 										})
 									}
 
+
+									console.log('clearing ssr signal', artifactName)
 									// trigger the signal
 									window.__houdini__nav_caches__.ssr_signals.get(artifactName).resolve()
 									window.__houdini__nav_caches__.ssr_signals.delete(artifactName)
@@ -271,6 +273,7 @@ function usePageData({
 		// communicate with the client when we're done
 		const resolvable = { ...promise, resolve, reject }
 		if (!globalThis.window) {
+			console.log('setting ssr signal')
 			ssr_signals.set(id, resolvable)
 		}
 
