@@ -46,6 +46,8 @@ export function Router({
 		return initialURL || window.location.pathname
 	})
 
+	console.log({ current })
+
 	// find the matching page for the current route
 	const [page, variables] = find_match(manifest, current)
 
