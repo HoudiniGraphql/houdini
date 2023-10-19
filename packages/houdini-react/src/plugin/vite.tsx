@@ -184,18 +184,20 @@ export default {
 
 		// the filename is the true arg. the extension just tells vite how to transfrom.
 		const parsedPath = path.parse(arg)
-		arg = parsedPath.name
+		const queryName = parsedPath.name
 
 		// if we are rendering the virtual page
 		if (which === 'pages') {
-			const page = manifest.pages[arg]
+			const page = manifest.pages[queryName]
 
 			// we need the list of queries that have loading states (and therefore create ssr signals)
 			const pendingQueries = page.queries.filter((query) => {
 				const page = Object.values(manifest.page_queries).find((q) => q.name === query)
+				if (page) {
+					return page.loading
+				}
 				const layout = Object.values(manifest.layout_queries).find((q) => q.name === query)
-
-				return (page || layout)?.loading
+				return layout?.loading
 			})
 
 			return `
@@ -205,7 +207,7 @@ export default {
 				import { Cache } from '$houdini/runtime/cache/cache'
 				import { router_cache } from '$houdini'
 				import client from '$houdini/plugins/houdini-react/runtime/client'
-				import Component from '$houdini/plugins/houdini-react/units/entries/${id}.jsx'
+				import Component from '$houdini/plugins/houdini-react/units/entries/${queryName}.jsx'
 				import { injectComponents } from '$houdini/plugins/houdini-react/runtime/componentFields'
 
 				// if there is pending data (or artifacts) then we should prime the caches
@@ -266,7 +268,7 @@ export default {
 						initialVariables: window.__houdini__pending_variables__,
 						initialArtifacts,
 						components: {
-							'${id}': Component
+							'${queryName}': Component
 						}
 					})
 				}
@@ -295,14 +297,14 @@ export default {
 		if (which === 'artifacts') {
 			// the arg is the name of the artifact
 			const artifact = (await fs.readFile(
-				path.join(config.artifactDirectory, arg + '.js')
+				path.join(config.artifactDirectory, queryName + '.js')
 			))!.replace('export default', 'const artifact = ')
 
 			return (
 				artifact +
 				`
-if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_cache && !window.__houdini__nav_caches__.artifact_cache.has("${arg}")) {
-	window.__houdini__nav_caches__.artifact_cache.set(${JSON.stringify(arg)}, artifact)
+if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_cache && !window.__houdini__nav_caches__.artifact_cache.has("${queryName}")) {
+	window.__houdini__nav_caches__.artifact_cache.set(${JSON.stringify(queryName)}, artifact)
 }
 `
 			)
@@ -368,7 +370,9 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 			if (result && result.status === 404) {
 				return next()
 			}
+			// TODO: this is so awkward....
 			// if we got here but we didn't pipe a response then we have to send the result to the end
+			// by default result is a Response
 			if (result && typeof result !== 'boolean') {
 				if (res.closed) {
 					return
