@@ -1,6 +1,0 @@
-query features__component_fields__arguments {
-	sponsors {
-		name
-		...CF_A_SponsorInfo
-	}
-}

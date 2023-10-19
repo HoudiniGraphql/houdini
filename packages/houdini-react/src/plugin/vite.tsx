@@ -36,9 +36,14 @@ export default {
 	// we want to set up some vite aliases by default
 	async config(config, env) {
 		viteEnv = env
-		manifest = await load_manifest({
-			config,
-		})
+		try {
+			manifest = await load_manifest({
+				config,
+			})
+		} catch (e) {
+			console.log('something went wrong. please try again. \n error: ' + (e as Error).message)
+			throw e
+		}
 		setManifest(manifest)
 
 		// secondary builds have their own rollup config

@@ -1,0 +1,6 @@
+query features__component_fields__simple {
+	users(snapshot: "componentFields_simple") {
+		name
+		...UserInfo
+	}
+}

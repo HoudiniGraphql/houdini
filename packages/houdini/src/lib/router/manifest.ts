@@ -210,8 +210,7 @@ async function add_view(args: {
 	const missing_queries = queries.filter((query) => !args.queries.includes(query))
 	if (missing_queries.length > 0) {
 		throw {
-			message: 'Missing Queries',
-			description: JSON.stringify(missing_queries),
+			message: `Unknown queries in ${args.path}: ${missing_queries.join(', ')}`,
 		}
 	}
 

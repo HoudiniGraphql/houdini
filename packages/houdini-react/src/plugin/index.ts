@@ -32,7 +32,12 @@ export const hooks: Plugin = async () => ({
 	// we generate anything
 	async beforeGenerate({ config }) {
 		if (!manifest) {
-			manifest = await load_manifest({ config })
+			try {
+				manifest = await load_manifest({ config })
+			} catch (e) {
+				console.log('something went wrong: ' + (e as Error).message)
+				return
+			}
 		}
 	},
 

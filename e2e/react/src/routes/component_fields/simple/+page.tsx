@@ -1,13 +1,13 @@
 import { PageProps } from './$types'
-import SponsorInfo from './SponsorInfo'
+import UserInfo from './UserInfo'
 
 export default ({ features__component_fields__simple }: PageProps) => {
 	return (
 		<div>
-			{features__component_fields__simple.sponsors.map((sponsor) => {
+			{features__component_fields__simple.users.map((user) => {
 				return (
-					<div key={sponsor.name}>
-						<SponsorInfo sponsor={sponsor} />
+					<div key={user.name}>
+						<UserInfo user={user} />
 					</div>
 				)
 			})}

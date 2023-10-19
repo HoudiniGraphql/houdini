@@ -19,6 +19,9 @@
 	"dependencies": {
 		"@cloudflare/workers-types": "^4.20230904.0",
 		"@graphql-tools/schema": "^9.0.4",
+		"@pothos/core": "^3.38.0",
+		"@pothos/plugin-relay": "^3.44.0",
+		"@pothos/plugin-simple-objects": "^3.7.0",
 		"@whatwg-node/server": "^0.9.14",
 		"cookie": "^0.5.0",
 		"graphql-yoga": "^4.0.4",

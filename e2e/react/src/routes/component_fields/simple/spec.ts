@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { goto } from '~/utils/testsHelper.js'
 
 test('Component field happy path', async ({ page }) => {
-	await goto(page, '/features/component_fields/simple')
+	await goto(page, '/component_fields/simple')
 
 	// find all of the images
 	const images = await page.locator('img').all()

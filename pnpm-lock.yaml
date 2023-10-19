@@ -193,6 +193,15 @@ importers:
       '@graphql-tools/schema':
         specifier: ^9.0.4
         version: 9.0.12(graphql@15.5.0)
+      '@pothos/core':
+        specifier: ^3.38.0
+        version: 3.38.0(graphql@15.5.0)
+      '@pothos/plugin-relay':
+        specifier: ^3.44.0
+        version: 3.44.0(@pothos/core@3.38.0)(graphql@15.5.0)
+      '@pothos/plugin-simple-objects':
+        specifier: ^3.7.0
+        version: 3.7.0(@pothos/core@3.38.0)(graphql@15.5.0)
       '@whatwg-node/server':
         specifier: ^0.9.14
         version: 0.9.14
@@ -2743,6 +2752,34 @@ packages:
 
   /@polka/url@1.0.0-next.21:
     resolution: {integrity: sha512-a5Sab1C4/icpTZVzZc5Ghpz88yQtGOyNqYXcZgOssB2uuAr+wF/MvN6bgtW32q7HHrvBki+BsZ0OuNv6EV3K9g==}
+
+  /@pothos/core@3.38.0(graphql@15.5.0):
+    resolution: {integrity: sha512-2jlnvkrCmbrHxK269745TXxl185LwJtC5oMz4nbFP40LmVV9zbDV3WKqbG7D+3rg9hvxBe0RmmwWrOjNcGpICA==}
+    peerDependencies:
+      graphql: 15.5.0
+    dependencies:
+      graphql: 15.5.0
+    dev: false
+
+  /@pothos/plugin-relay@3.44.0(@pothos/core@3.38.0)(graphql@15.5.0):
+    resolution: {integrity: sha512-7eOsgKL2qCQ+/hHpye4sNNbR2mYogDXPWpQboqniYvUdOjez3VDYjAuOn8Ntw73kZQF0N1iloZPikhCxvY7xuw==}
+    peerDependencies:
+      '@pothos/core': '*'
+      graphql: 15.5.0
+    dependencies:
+      '@pothos/core': 3.38.0(graphql@15.5.0)
+      graphql: 15.5.0
+    dev: false
+
+  /@pothos/plugin-simple-objects@3.7.0(@pothos/core@3.38.0)(graphql@15.5.0):
+    resolution: {integrity: sha512-CgZJLaHLt1Q30j+XCiWV6qVJcae1ksiUFdi8kz4sEsOhCNfdVwz64s8rx7SSqsdmPbjb68dJIDKpq2Qg9VZb8g==}
+    peerDependencies:
+      '@pothos/core': '*'
+      graphql: 15.5.0
+    dependencies:
+      '@pothos/core': 3.38.0(graphql@15.5.0)
+      graphql: 15.5.0
+    dev: false
 
   /@repeaterjs/repeater@3.0.4:
     resolution: {integrity: sha512-AW8PKd6iX3vAZ0vA43nOUOnbq/X5ihgU+mSXXqunMkeQADGiqw/PY0JNeYtD5sr0PAy51YPgAPbDoeapv9r8WA==}

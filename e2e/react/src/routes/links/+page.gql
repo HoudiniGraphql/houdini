@@ -1,5 +1,0 @@
-query LinkList {
-	links {
-		url
-	}
-}
