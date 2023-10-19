@@ -276,12 +276,14 @@ function usePageData({
 
 	// the function that loads all of the data for a page using the caches
 	function loadData(targetPage: RouterPageManifest<ComponentType>, variables: {} | null) {
+		console.log('loading page', targetPage)
 		// if any of the artifacts that this page on have new variables, we need to clear the data cache
 		for (const artifact of Object.keys(targetPage.documents)) {
 			if (
 				last_variables.has(artifact) &&
 				!deepEquals(last_variables.get(artifact), variables)
 			) {
+				console.log('clearing cache for', artifact)
 				data_cache.delete(artifact)
 			}
 		}
@@ -336,6 +338,8 @@ function usePageData({
 				console.log('skipping over', artifact.name)
 			}
 		}
+
+		console.log('data cache', data_cache)
 	}
 
 	// if we don't have the component then we need to load it, save it in the cache, and
