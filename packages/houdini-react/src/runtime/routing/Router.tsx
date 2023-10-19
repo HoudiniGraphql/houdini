@@ -279,10 +279,13 @@ function usePageData({
 		console.log('loading page', targetPage)
 		// if any of the artifacts that this page on have new variables, we need to clear the data cache
 		for (const artifact of Object.keys(targetPage.documents)) {
-			if (
-				last_variables.has(artifact) &&
-				!deepEquals(last_variables.get(artifact), variables)
-			) {
+			// if there are no last variables, there's nothing to do
+			if (!last_variables.has(artifact)) {
+				continue
+			}
+
+			const vars = last_variables.get(artifact)
+			if (Object.keys(vars ?? {}).length > 0 && !deepEquals(vars, variables)) {
 				console.log('clearing cache for', artifact)
 				data_cache.delete(artifact)
 			}
