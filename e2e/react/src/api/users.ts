@@ -1,5 +1,6 @@
+import { sleep } from '~/utils/sleep'
+
 import { builder } from './builder'
-import { connectionFromArray } from './utils'
 
 export type User = {
 	id: string
@@ -137,7 +138,4 @@ function getUserSnapshot(snapshot: string) {
 	}
 
 	return userSnapshots[snapshot]
-}
-export async function sleep(duration: number) {
-	return new Promise((resolve) => setTimeout(resolve, duration))
 }

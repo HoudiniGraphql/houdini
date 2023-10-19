@@ -1,8 +1,9 @@
 import { expect, test } from '@playwright/test'
+import { routes } from '~/utils/routes'
 import { goto } from '~/utils/testsHelper.js'
 
 test('Component fields with correct argument value', async ({ page }) => {
-	await goto(page, '/component_fields/arguments')
+	await goto(page, routes.componentFields_arguments)
 
 	// find all of the images
 	const images = await page.locator('img').all()
