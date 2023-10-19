@@ -46,8 +46,6 @@ export function Router({
 		return initialURL || window.location.pathname
 	})
 
-	console.log({ currentURL })
-
 	// find the matching page for the current route
 	const [page, variables] = find_match(manifest, currentURL)
 
@@ -116,8 +114,6 @@ export function Router({
 			}
 		},
 	})
-
-	console.log('rendering page', page)
 
 	// TODO: cleanup navigation caches
 	// render the component embedded in the necessary context so it can orchestrate
@@ -195,6 +191,7 @@ function usePageData({
 					session,
 				})
 				.then(() => {
+					console.log('resolved query', id, variables)
 					data_cache.set(id, observer)
 
 					// if we are building up a stream (on the server), we want to add something
@@ -335,6 +332,8 @@ function usePageData({
 			// if we don't have the query, load it
 			if (!data_cache.has(artifact.name)) {
 				load_query({ id: artifact.name, artifact })
+			} else {
+				console.log('skipping over', artifact.name)
 			}
 		}
 	}
@@ -498,13 +497,11 @@ const VariableContext = React.createContext<GraphQLVariables>(null)
 export function useQueryResult<_Data extends GraphQLObject, _Input extends GraphQLVariables>(
 	name: string
 ): [_Data | null, DocumentStore<_Data, _Input>] {
-	console.log('grabbing query result', name)
 	const store_ref = useRouterContext().data_cache.get(name)! as unknown as DocumentStore<
 		_Data,
 		_Input
 	>
 
-	console.log(name, 'store ref', store_ref)
 	// get the live data from the store
 	const [{ data }, observer] = useDocumentStore<_Data, _Input>({
 		artifact: store_ref.artifact,
