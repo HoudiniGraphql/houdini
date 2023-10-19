@@ -42,12 +42,14 @@ export function Router({
 	injectToStream?: undefined | ((chunk: string) => void)
 }) {
 	// the current route is just a string in state.
-	const [current, setCurrent] = React.useState(() => {
+	const [currentURL, setCurrentURL] = React.useState(() => {
 		return initialURL || window.location.pathname
 	})
 
+	console.log({ currentURL })
+
 	// find the matching page for the current route
-	const [page, variables] = find_match(manifest, current)
+	const [page, variables] = find_match(manifest, currentURL)
 
 	// the only time this component will directly suspend (instead of one of its children)
 	// is if we don't have the component source. Dependencies on query results or artifacts
@@ -73,10 +75,10 @@ export function Router({
 
 	// whenever the route changes, we need to make sure the browser's stack is up to date
 	React.useEffect(() => {
-		if (globalThis.window && window.location.pathname !== current) {
-			window.history.pushState({}, '', current)
+		if (globalThis.window && window.location.pathname !== currentURL) {
+			window.history.pushState({}, '', currentURL)
 		}
-	}, [current])
+	}, [currentURL])
 
 	// when we first mount we should start listening to the back button
 	React.useEffect(() => {
@@ -84,7 +86,7 @@ export function Router({
 			return
 		}
 		const onChange = (evt: PopStateEvent) => {
-			setCurrent(window.location.pathname)
+			setCurrentURL(window.location.pathname)
 		}
 		window.addEventListener('popstate', onChange)
 		return () => {
@@ -95,7 +97,7 @@ export function Router({
 	// links are powered using anchor tags that we intercept and handle ourselves
 	useLinkBehavior({
 		goto: (val: string) => {
-			setCurrent(val)
+			setCurrentURL(val)
 		},
 		preload(url: string, which: PreloadWhichValue) {
 			// there are 2 things that we could preload: the page component and the data
@@ -120,7 +122,7 @@ export function Router({
 	// its needs
 	return (
 		<VariableContext.Provider value={variables}>
-			<PageComponent url={current} key={page.id} />
+			<PageComponent url={currentURL} key={page.id} />
 		</VariableContext.Provider>
 	)
 }
@@ -275,12 +277,14 @@ function usePageData({
 
 	// the function that loads all of the data for a page using the caches
 	function loadData(targetPage: RouterPageManifest<ComponentType>, variables: {} | null) {
+		console.log('loading page', { page: targetPage, last_variables })
 		// if any of the artifacts that this page on have new variables, we need to clear the data cache
 		for (const artifact of Object.keys(targetPage.documents)) {
 			if (
 				last_variables.has(artifact) &&
 				!deepEquals(last_variables.get(artifact), variables)
 			) {
+				console.log('variables changed', artifact)
 				data_cache.delete(artifact)
 			}
 		}
