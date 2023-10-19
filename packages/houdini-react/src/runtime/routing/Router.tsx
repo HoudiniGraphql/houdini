@@ -46,8 +46,6 @@ export function Router({
 		return initialURL || window.location.pathname
 	})
 
-	console.log({ current })
-
 	// find the matching page for the current route
 	const [page, variables] = find_match(manifest, current)
 
@@ -122,7 +120,7 @@ export function Router({
 	// its needs
 	return (
 		<VariableContext.Provider value={variables}>
-			<PageComponent url={current} />
+			<PageComponent url={current} key={page.id} />
 		</VariableContext.Provider>
 	)
 }
@@ -261,8 +259,15 @@ function usePageData({
 				.catch(reject)
 		})
 
-		// add it to the pending cache
-		ssr_signals.set(id, { ...promise, resolve, reject })
+		// if we are on the server, we need to save a signal that we can use to
+		// communicate with the client when we're done
+		const resolvable = { ...promise, resolve, reject }
+		if (!globalThis.window) {
+			ssr_signals.set(id, resolvable)
+		}
+
+		// we're done
+		return resolvable
 
 		// this promise is also what we want to do with the main invocation
 		return ssr_signals.get(id)!
