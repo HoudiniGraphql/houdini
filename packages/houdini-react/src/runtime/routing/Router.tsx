@@ -289,14 +289,13 @@ function usePageData({
 			}
 
 			// compare the last known variables with the current set
-			const last = last_variables.get(artifact)
-			const usedVariables = pageVariables.reduce(
-				(vars, key) => ({
-					...vars,
-					[key]: (variables ?? {})[key],
-				}),
-				{}
-			)
+			// const last = last_variables.get(artifact)
+			let last: GraphQLVariables = {}
+			let usedVariables: GraphQLVariables = {}
+			for (const variable of pageVariables) {
+				last[variable] = last_variables.get(artifact)![variable]
+				usedVariables[variable] = (variables ?? {})[variable]
+			}
 
 			// before we can compare we need to only look at the variables that the artifact cares about
 			if (Object.keys(usedVariables ?? {}).length > 0 && !deepEquals(last, usedVariables)) {
