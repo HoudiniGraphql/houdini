@@ -78,7 +78,12 @@ export default {
 			for (const [id, page] of Object.entries(manifest.pages)) {
 				// we need the list of queries that have loading states (and therefore create ssr signals)
 				const pendingQueries = page.queries.filter((query) => {
-					return (manifest.page_queries[query] || manifest.layout_queries[query])?.loading
+					const page = Object.values(manifest.page_queries).find((q) => q.name === query)
+					const layout = Object.values(manifest.layout_queries).find(
+						(q) => q.name === query
+					)
+
+					return (page || layout)?.loading
 				})
 
 				console.log(page.id, { pendingQueries })
