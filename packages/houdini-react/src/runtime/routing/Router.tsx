@@ -163,13 +163,13 @@ function usePageData({
 	function load_query({ id, artifact }: { id: string; artifact: QueryArtifact }): Promise<void> {
 		// track the new variables
 		last_variables.set(page.id, variables)
+		console.log('registering variables', page.id, variables)
 
 		// TODO: AbortController on send()
 		// TODO: we can read from cache here before making an asynchronous network call
 
 		// if there is a pending request and we were asked to load, don't do anything
 		if (ssr_signals.has(id)) {
-			console.log('using ssr signal')
 			return ssr_signals.get(id)!
 		}
 
