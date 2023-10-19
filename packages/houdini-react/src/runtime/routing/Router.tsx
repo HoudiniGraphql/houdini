@@ -117,6 +117,8 @@ export function Router({
 		},
 	})
 
+	console.log('rendering page', page)
+
 	// TODO: cleanup navigation caches
 	// render the component embedded in the necessary context so it can orchestrate
 	// its needs
@@ -277,14 +279,12 @@ function usePageData({
 
 	// the function that loads all of the data for a page using the caches
 	function loadData(targetPage: RouterPageManifest<ComponentType>, variables: {} | null) {
-		console.log('loading page', { page: targetPage, last_variables })
 		// if any of the artifacts that this page on have new variables, we need to clear the data cache
 		for (const artifact of Object.keys(targetPage.documents)) {
 			if (
 				last_variables.has(artifact) &&
 				!deepEquals(last_variables.get(artifact), variables)
 			) {
-				console.log('variables changed', artifact)
 				data_cache.delete(artifact)
 			}
 		}
@@ -498,6 +498,7 @@ const VariableContext = React.createContext<GraphQLVariables>(null)
 export function useQueryResult<_Data extends GraphQLObject, _Input extends GraphQLVariables>(
 	name: string
 ): [_Data | null, DocumentStore<_Data, _Input>] {
+	console.log('grabbing query result')
 	const store_ref = useRouterContext().data_cache.get(name)! as unknown as DocumentStore<
 		_Data,
 		_Input
