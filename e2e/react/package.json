@@ -1,5 +1,5 @@
 {
-	"name": "e2e-router",
+	"name": "e2e-react",
 	"private": true,
 	"version": "0.0.0",
 	"type": "module",
@@ -12,11 +12,16 @@
 		"build:build": "pnpm build: && pnpm build",
 		"dev": "vite",
 		"build": "vite build",
-		"preview": "vite preview"
+		"tests": "playwright test ",
+		"test": "npm run tests",
+		"preview": "vite dev"
 	},
 	"dependencies": {
 		"@cloudflare/workers-types": "^4.20230904.0",
 		"@graphql-tools/schema": "^9.0.4",
+		"@pothos/core": "^3.38.0",
+		"@pothos/plugin-relay": "^3.44.0",
+		"@pothos/plugin-simple-objects": "^3.7.0",
 		"@whatwg-node/server": "^0.9.14",
 		"cookie": "^0.5.0",
 		"graphql-yoga": "^4.0.4",
@@ -24,17 +29,22 @@
 		"houdini-adapter-cloudflare": "workspace:^",
 		"houdini-react": "workspace:^",
 		"react": "^18.3.0-canary-d6dcad6a8-20230914",
-		"react-dom": "^18.3.0-canary-d6dcad6a8-20230914"
+		"react-dom": "^18.3.0-canary-d6dcad6a8-20230914",
+		"react-streaming-compat": "^0.3.18"
 	},
 	"devDependencies": {
+		"@playwright/test": "1.30.0",
 		"@types/react": "^18.0.27",
 		"@types/react-dom": "^18.0.10",
 		"@vitejs/plugin-react": "^3.1.0",
+		"autoprefixer": "^10.4.16",
 		"concurrently": "7.1.0",
 		"cross-env": "^7.0.3",
 		"e2e-api": "workspace:^",
 		"hono": "^3.6.0",
 		"houdini-adapter-node": "workspace:^",
+		"postcss": "^8.4.31",
+		"tailwindcss": "^3.3.3",
 		"typescript": "^4.9.3",
 		"vite": "^4.1.0",
 		"wrangler": "^3.7.0"

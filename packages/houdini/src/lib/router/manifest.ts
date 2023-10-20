@@ -27,6 +27,7 @@ export async function load_manifest(args: {
 		url: '/',
 		filepath: args.config.routesDir,
 		project: {
+			component_fields: {},
 			pages: {},
 			layouts: {},
 			page_queries: {},
@@ -209,8 +210,7 @@ async function add_view(args: {
 	const missing_queries = queries.filter((query) => !args.queries.includes(query))
 	if (missing_queries.length > 0) {
 		throw {
-			message: 'Missing Queries',
-			description: JSON.stringify(missing_queries),
+			message: `Unknown queries in ${args.path}: ${missing_queries.join(', ')}`,
 		}
 	}
 
@@ -262,6 +262,7 @@ async function add_query(args: {
 		name: query.name.value,
 		url: args.url,
 		loading,
+		variables: query.variableDefinitions?.map((variable) => variable.variable.name.value) ?? [],
 	}
 
 	return target[page_id(args.url)]
@@ -322,7 +323,7 @@ export async function extractQueries(source: string): Promise<string[]> {
 		}
 	}
 	if (!defaultExportNode) {
-		throw new Error('No default export found.')
+		return []
 	}
 
 	let props: string[] = []

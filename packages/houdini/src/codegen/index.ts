@@ -30,6 +30,9 @@ export async function runPipeline(config: Config, docs: Document[]) {
 	// reset the newDocuments accumulator
 	config.newDocuments = ''
 
+	// reset the component fields
+	config.componentFields = {}
+
 	// we need to hold onto some stats for the generated artifacts
 	const artifactStats = {
 		total: [],
@@ -47,9 +50,6 @@ export async function runPipeline(config: Config, docs: Document[]) {
 	const afterValidate = config.plugins
 		.filter((plugin) => plugin.afterValidate)
 		.map((plugin) => plugin.afterValidate!)
-	const validate = config.plugins
-		.filter((plugin) => plugin.validate)
-		.map((plugin) => plugin.validate!)
 	const beforeValidate = config.plugins
 		.filter((plugin) => plugin.beforeValidate)
 		.map((plugin) => plugin.beforeValidate!)
@@ -78,7 +78,8 @@ export async function runPipeline(config: Config, docs: Document[]) {
 		await run(
 			config,
 			[
-				// transforms
+				validators.componentFields,
+
 				transforms.internalSchema,
 
 				...wrapHook(beforeValidate),
@@ -91,6 +92,7 @@ export async function runPipeline(config: Config, docs: Document[]) {
 				...wrapHook(afterValidate),
 				transforms.addID,
 				transforms.typename,
+				transforms.componentFields,
 				// list transform must go before fragment variables
 				// so that the mutation fragments are defined before they get mixed in
 				transforms.list,
@@ -101,6 +103,8 @@ export async function runPipeline(config: Config, docs: Document[]) {
 				transforms.collectDefinitions,
 				...wrapHook(beforeGenerate),
 				// generators
+				// this should be the first generator since it is responsible for creating the
+				// selection and preparing the artifact for the other generators
 				generators.artifacts(artifactStats),
 				generators.runtime,
 				generators.indexFile,

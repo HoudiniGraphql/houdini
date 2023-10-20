@@ -71,7 +71,8 @@ export class InMemoryStorage {
 
 	get(
 		id: string,
-		field: string
+		field: string,
+		defaultValue?: any
 	): {
 		value: GraphQLField
 		kind: 'link' | 'scalar' | 'unknown'
@@ -92,7 +93,7 @@ export class InMemoryStorage {
 		// go through the list of layers in reverse
 		for (let i = this.data.length - 1; i >= 0; i--) {
 			const layer = this.data[i]
-			const [layerValue, kind] = layer.get(id, field)
+			let [layerValue, kind] = layer.get(id, field)
 			const layerOperations = layer.getOperations(id, field) || []
 			layer.deletedIDs.forEach((v) => {
 				// if the layer wants to undo a delete for the id
@@ -101,6 +102,14 @@ export class InMemoryStorage {
 				}
 				operations.remove.add(v)
 			})
+
+			// if we don't have a value to return, we're done
+			if (typeof layerValue === 'undefined' && defaultValue) {
+				const targetLayer = this.topLayer
+				const layerID = targetLayer.id
+				targetLayer.writeField(id, field, defaultValue)
+				layerValue = defaultValue
+			}
 
 			// if the layer does not contain a value for the field, move on
 			if (typeof layerValue === 'undefined' && layerOperations.length === 0) {
@@ -264,7 +273,14 @@ export class InMemoryStorage {
 		// TODO: read all layers, not just top one
 		return JSON.stringify({
 			rank: this.rank,
-			fields: this.topLayer.fields,
+			fields: Object.fromEntries(
+				Object.entries(this.topLayer.fields).map(([id, fieldMap]) => [
+					id,
+					Object.fromEntries(
+						Object.entries(fieldMap).filter(([_, value]) => typeof value !== 'function')
+					),
+				])
+			),
 			links: this.topLayer.links,
 		})
 	}

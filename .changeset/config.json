@@ -7,5 +7,5 @@
 	"access": "public",
 	"baseBranch": "main",
 	"updateInternalDependencies": "patch",
-	"ignore": ["e2e-api", "e2e-router", "e2e-kit", "e2e-svelte", "site"]
+	"ignore": ["e2e-api", "e2e-react", "e2e-kit", "e2e-svelte", "site"]
 }

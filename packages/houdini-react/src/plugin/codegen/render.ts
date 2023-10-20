@@ -1,23 +1,27 @@
 import {
-	type Config,
 	fs,
 	path,
 	routerConventions,
-	type ProjectManifest,
 	localApiEndpoint,
+	type Config,
+	type ProjectManifest,
 } from 'houdini'
 
+import type { ComponentFieldData } from '.'
+
 export async function generate_renders({
+	componentFields,
 	config,
 	manifest,
 }: {
+	componentFields: ComponentFieldData[]
 	config: Config
 	manifest: ProjectManifest
 }) {
 	const adapter_path = routerConventions.server_adapter_path(config)
 
 	// make sure the necessary directories exist
-	await fs.mkdirp(path.dirname(routerConventions.server_adapter_path(config)))
+	await fs.mkdirp(path.dirname(adapter_path))
 
 	const app_index = `
 import { Router } from '$houdini/plugins/houdini-react/runtime'
@@ -36,7 +40,7 @@ export default (props) => (
 	import { Cache } from '$houdini/runtime/cache/cache'
 import { serverAdapterFactory, _serverHandler } from '$houdini/runtime/router/server'
 import { HoudiniClient } from '$houdini/runtime/client'
-import { renderToStream } from '$houdini/plugins/houdini-react/runtime/server'
+import { renderToStream } from 'houdini-react/server'
 import React from 'react'
 
 import { router_cache } from '../../runtime/routing'
@@ -53,9 +57,14 @@ export const on_render =
 		match,
 		session,
 		manifest,
+		componentCache,
 	}) => {
 		// instanitate a cache we can use for this request
-		const cache = new Cache({ disabled: false })
+		const cache = new Cache({
+			disabled: false,
+			componentCache,
+			createComponent: React.createElement
+		})
 
 		if (!match) {
 			return new Response('not found', { status: 404 })
@@ -72,9 +81,11 @@ export const on_render =
 				session: session,
 				assetPrefix: assetPrefix,
 				manifest: manifest,
+
 				...router_cache()
 			}),
 			{
+				webStream: production,
 				userAgent: 'Vite',
 			}
 		)
@@ -118,20 +129,41 @@ export function createServerAdapter(options) {
 	let adapter_config = `
 		import { createServerAdapter as createAdapter } from './server'
 
-		export const endpoint = ${JSON.stringify(localApiEndpoint(config.configFile))}
+		// add local imports for every component field
+		${componentFields
+			.map((field) => {
+				return `import ${field.fragment} from ${JSON.stringify(
+					path.relative(
+						path.dirname(adapter_path),
+						routerConventions.componentField_unit_path(config, field.fragment)
+					)
+				)}`
+			})
+			.join('\n')}
 
 		${
 			manifest.local_schema
 				? `import schema from '../../../../../src/api/+schema'`
 				: ' const schema = null'
 		}
-
 		${manifest.local_yoga ? `import yoga from '.../../../../../src/api/+yoga'` : ' const yoga = null'}
+
+		export const endpoint = ${JSON.stringify(localApiEndpoint(config.configFile))}
+
+		// we need to export the component cache so the server can render the client
+		export const componentCache = {
+			${componentFields
+				.map((field) => {
+					return `${JSON.stringify(`${field.type}.${field.field}`)}: ${field.fragment}`
+				})
+				.join(',\n')}
+		}
 
 		export function createServerAdapter(options) {
 			return createAdapter({
 				schema,
 				yoga,
+				componentCache,
 				graphqlEndpoint: endpoint,
 				...options,
 			})

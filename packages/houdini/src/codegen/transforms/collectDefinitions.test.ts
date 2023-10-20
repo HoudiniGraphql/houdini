@@ -4,29 +4,28 @@ import { expect, test } from 'vitest'
 import type { Document } from '../../lib'
 import { pipelineTest, testConfig } from '../../test'
 
-const start = [
-	`
-        query Foo {
-            version
-            ...A
-        }
-    `,
-	`
-        fragment A on User {
-            firstName
-            ...B
-        }
-    `,
-	`
-        fragment B on User {
-            firstName
-        }
-    `,
-]
+test('include fragment definitions', async function () {
+	const start = [
+		`
+			query Foo {
+				version
+				...A
+			}
+		`,
+		`
+			fragment A on User {
+				firstName
+				...B
+			}
+		`,
+		`
+			fragment B on User {
+				firstName
+			}
+		`,
+	]
 
-test(
-	'include fragment definitions',
-	pipelineTest(testConfig(), start, true, function (docs: Document[]) {
+	return await pipelineTest(testConfig(), start, true, function (docs: Document[]) {
 		// we only care about the Foo document
 		const fooDoc = docs.find((doc) => doc.name === 'Foo')!
 
@@ -46,5 +45,5 @@ test(
 		)
 		expect(fragmentADef).toBeDefined()
 		expect(fragmentBDef).toBeDefined()
-	})
-)
+	})()
+})

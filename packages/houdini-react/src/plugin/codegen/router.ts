@@ -77,7 +77,8 @@ ${Object.entries(manifest.pages)
 
 					return `${query}: {
 						artifact: () => import("${path.relative(from, artifact_path)}"),
-						loading: ${JSON.stringify(query_name_map[query]?.loading)}
+						loading: ${JSON.stringify(query_name_map[query]?.loading)},
+						variables: ${JSON.stringify(query_name_map[query]?.variables)}
 					}`
 				})
 				.join(',\n			')}

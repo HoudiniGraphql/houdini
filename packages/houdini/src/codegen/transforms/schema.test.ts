@@ -128,6 +128,20 @@ describe('schema transform', function () {
 			],
 			pass: true,
 		},
+		{
+			title: 'componentFields register on the correct type',
+			pass: true,
+			documents: [
+				`fragment UserAvatar on User @componentField(field: "Avatar", prop: "user") {
+					firstName
+				}`,
+				`query UserWithAvatar {
+					user {
+						Avatar
+					}
+				}`,
+			],
+		},
 	]
 
 	for (const row of table) {

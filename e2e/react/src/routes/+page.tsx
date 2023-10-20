@@ -1,21 +1,10 @@
-import { cache } from '$houdini/runtime'
-import SponsorInfo from '~/components/SponsorInfo'
-
 import type { PageProps } from './$types'
 
-if (globalThis.window) {
-	// @ts-ignore
-	window.cache = cache
-}
-
-export default function ({ SponsorList }: PageProps) {
+export default function ({}: PageProps) {
 	return (
-		<div>
-			{SponsorList.sponsors.map((sponsor) => (
-				<div key={sponsor.name}>
-					<SponsorInfo sponsor={sponsor} />
-				</div>
-			))}
-		</div>
+		<>
+			<h1>Houdini's React Interation tests</h1>
+			<p>This is the HOME page. 🫵 can navigate with links 👇</p>
+		</>
 	)
 }

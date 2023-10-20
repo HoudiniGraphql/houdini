@@ -112,3 +112,45 @@ test('passing null as client plugin config serializes correctly', async function
 		export default plugins
 	`)
 })
+
+test('passing null as client plugin config serializes correctly', async function () {
+	const config = testConfig({
+		module: 'esm',
+	})
+	config.plugins = [
+		{
+			name: 'pluginWithClientPlugin',
+			filepath: '',
+			clientPlugins: {
+				testPlugin1: null,
+				testPlugin2: null,
+			},
+		},
+	]
+
+	// execute the generator
+	await runPipeline(config, [])
+
+	// open up the index file
+	const fileContents = await fs.readFile(
+		path.join(config.runtimeDirectory, 'client', 'plugins', 'injectedPlugins.js')
+	)
+	expect(fileContents).toBeTruthy()
+
+	// parse the contents
+	const parsedQuery: ProgramKind = recast.parse(fileContents!, {
+		parser: typeScriptParser,
+	}).program
+	// verify contents
+	expect(parsedQuery).toMatchInlineSnapshot(`
+		import plugin0 from 'testPlugin1'
+		import plugin1 from 'testPlugin2'
+
+		const plugins = [
+			plugin0(null),
+		plugin1(null)
+		]
+
+		export default plugins
+	`)
+})

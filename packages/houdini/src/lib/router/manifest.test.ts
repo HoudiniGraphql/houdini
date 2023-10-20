@@ -16,6 +16,7 @@ test('empty routes dir generates empty manifest', async function () {
 		})
 	).resolves.to.toMatchInlineSnapshot(`
 		{
+		    "component_fields": {},
 		    "pages": {},
 		    "layouts": {},
 		    "page_queries": {},
@@ -51,6 +52,7 @@ test('route groups', async function () {
 		})
 	).toMatchInlineSnapshot(`
 		{
+		    "component_fields": {},
 		    "pages": {
 		        "__subRoute__nested": {
 		            "id": "__subRoute__nested",
@@ -98,7 +100,8 @@ test('route groups', async function () {
 		            "path": "(subRoute)/nested/+page.gql",
 		            "name": "FinalQuery",
 		            "url": "/(subRoute)/nested/",
-		            "loading": true
+		            "loading": true,
+		            "variables": []
 		        }
 		    },
 		    "layout_queries": {
@@ -106,7 +109,8 @@ test('route groups', async function () {
 		            "path": "(subRoute)/+layout.gql",
 		            "name": "RootQuery",
 		            "url": "/(subRoute)/",
-		            "loading": false
+		            "loading": false,
+		            "variables": []
 		        }
 		    },
 		    "artifacts": [],
@@ -149,6 +153,7 @@ test('nested route structure happy path', async function () {
 		})
 	).resolves.toMatchInlineSnapshot(`
 		{
+		    "component_fields": {},
 		    "pages": {
 		        "_": {
 		            "id": "_",
@@ -264,13 +269,15 @@ test('nested route structure happy path', async function () {
 		            "path": "another/+page.gql",
 		            "name": "MyQuery",
 		            "url": "/another/",
-		            "loading": false
+		            "loading": false,
+		            "variables": []
 		        },
 		        "_subRoute_nested": {
 		            "path": "subRoute/nested/+page.gql",
 		            "name": "FinalQuery",
 		            "url": "/subRoute/nested/",
-		            "loading": true
+		            "loading": true,
+		            "variables": []
 		        }
 		    },
 		    "layout_queries": {
@@ -278,19 +285,22 @@ test('nested route structure happy path', async function () {
 		            "path": "+layout.gql",
 		            "name": "RootQuery",
 		            "url": "/",
-		            "loading": true
+		            "loading": true,
+		            "variables": []
 		        },
 		        "_another": {
 		            "path": "another/+layout.gql",
 		            "name": "MyLayoutQuery",
 		            "url": "/another/",
-		            "loading": false
+		            "loading": false,
+		            "variables": []
 		        },
 		        "_subRoute": {
 		            "path": "subRoute/+layout.gql",
 		            "name": "SubQuery",
 		            "url": "/subRoute/",
-		            "loading": false
+		            "loading": false,
+		            "variables": []
 		        }
 		    },
 		    "artifacts": [],
@@ -320,6 +330,7 @@ test('local schema', async function () {
 		})
 	).resolves.toMatchInlineSnapshot(`
 		{
+		    "component_fields": {},
 		    "pages": {},
 		    "layouts": {},
 		    "page_queries": {},
@@ -351,6 +362,7 @@ test('local yoga', async function () {
 		})
 	).resolves.toMatchInlineSnapshot(`
 		{
+		    "component_fields": {},
 		    "pages": {},
 		    "layouts": {},
 		    "page_queries": {},

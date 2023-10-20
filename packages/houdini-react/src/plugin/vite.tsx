@@ -9,10 +9,13 @@ import {
 	routerConventions,
 } from 'houdini'
 import React from 'react'
-import { build, type BuildOptions, type Connect } from 'vite'
+import { build, ConfigEnv, type BuildOptions, type Connect } from 'vite'
 
 import { setManifest } from '.'
 import { writeTsconfig } from './codegen/typeRoot'
+
+let viteEnv: ConfigEnv
+let devServer = false
 
 // in order to coordinate the client and server, the client's pending request cache
 // needs to start with a value for every query that we are sending on the server.
@@ -24,16 +27,23 @@ import { writeTsconfig } from './codegen/typeRoot'
 // generated files.
 
 // Here is a potentially incomplete list of things that are mocked / need to be generated:
-// virtual:houdini/pages/[query_names.join(',')] - An entry for every page that starts the pending cache with the correct values
+// virtual:houdini/pages/[name] - An entry for every page
 // virtual:houdini/artifacts/[name] - An entry for loading an artifact and notifying the artifact cache
 
 let manifest: ProjectManifest
-let devServer: boolean = false
 
 export default {
 	// we want to set up some vite aliases by default
 	async config(config, env) {
-		manifest = await load_manifest({ config, includeArtifacts: env.mode === 'production' })
+		viteEnv = env
+		try {
+			manifest = await load_manifest({
+				config,
+			})
+		} catch (e) {
+			console.log('something went wrong. please try again. \n error: ' + (e as Error).message)
+			throw e
+		}
 		setManifest(manifest)
 
 		// secondary builds have their own rollup config
@@ -42,6 +52,7 @@ export default {
 				rollupOptions: {},
 			},
 		}
+
 		// build up the list of entries that we need vite to bundle
 		if (!isSecondaryBuild() || process.env.HOUDINI_SECONDARY_BUILD === 'ssr') {
 			if (env.command === 'build') {
@@ -67,14 +78,7 @@ export default {
 			for (const [id, page] of Object.entries(manifest.pages)) {
 				conf.build!.rollupOptions!.input[
 					`pages/${id}`
-				] = `virtual:houdini/pages/${page.id}@${page.queries}.jsx`
-			}
-
-			// every artifact asset needs to be bundled individually
-			for (const artifact of manifest.artifacts) {
-				conf.build!.rollupOptions!.input[
-					`artifacts/${artifact}`
-				] = `virtual:houdini/artifacts/${artifact}.js`
+				] = `virtual:houdini/pages/${page.id}.jsx`
 			}
 
 			// the SSR build has a different output
@@ -110,7 +114,12 @@ export default {
 		await writeTsconfig(houdiniConfig)
 	},
 
-	async closeBundle(this, config) {
+	async closeBundle(config) {
+		// skip close bundles during dev mode
+		if (isSecondaryBuild() || viteEnv.mode !== 'production' || devServer) {
+			return
+		}
+
 		// tell the user what we're doing
 		console.log('🎩 Generating Server Assets...')
 
@@ -123,6 +132,44 @@ export default {
 				outDir: path.join(config.rootDir, 'build', 'ssr'),
 			},
 		})
+
+		process.env.HOUDINI_SECONDARY_BUILD = 'false'
+
+		process.env.HOUDINI_SECONDARY_BUILD = 'true'
+
+		const artifacts: string[] = []
+
+		try {
+			// look at the artifact directory for every artifact
+			for (const artifactPath of await fs.readdir(config.artifactDirectory)) {
+				// only consider the js files
+				if (!artifactPath.endsWith('.js') || artifactPath === 'index.js') {
+					continue
+				}
+
+				// push the artifact path without the extension
+				artifacts.push(artifactPath.substring(0, artifactPath.length - 3))
+			}
+		} catch {}
+
+		// we need to build entry points for every artifact
+		await build({
+			build: {
+				outDir: path.join(config.rootDir, 'build', 'artifacts'),
+				rollupOptions: {
+					input: artifacts.reduce((input, artifact) => {
+						return {
+							...input,
+							[`${artifact}`]: `virtual:houdini/artifacts/${artifact}.js`,
+						}
+					}, {}),
+					output: {
+						entryFileNames: '[name].js',
+					},
+				},
+			},
+		})
+
 		process.env.HOUDINI_SECONDARY_BUILD = 'false'
 	},
 
@@ -137,29 +184,48 @@ export default {
 
 		// the filename is the true arg. the extension just tells vite how to transfrom.
 		const parsedPath = path.parse(arg)
-		arg = parsedPath.name
+		const queryName = parsedPath.name
 
 		// if we are rendering the virtual page
 		if (which === 'pages') {
-			const [id, query_names] = arg.split('@')
-			const queries = query_names ? query_names.split(',') : []
+			const page = manifest.pages[queryName]
+
+			// we need the list of queries that have loading states (and therefore create ssr signals)
+			const pendingQueries = page.queries.filter((query) => {
+				const page = Object.values(manifest.page_queries).find((q) => q.name === query)
+				if (page) {
+					return page.loading
+				}
+				const layout = Object.values(manifest.layout_queries).find((q) => q.name === query)
+				return layout?.loading
+			})
+
 			return `
+				import React from 'react'
 				import { hydrateRoot } from 'react-dom/client';
 				import App from '$houdini/plugins/houdini-react/units/render/App'
 				import { Cache } from '$houdini/runtime/cache/cache'
 				import { router_cache } from '$houdini'
 				import client from '$houdini/plugins/houdini-react/runtime/client'
-				import Component from '$houdini/plugins/houdini-react/units/entries/${id}.jsx'
-
+				import Component from '$houdini/plugins/houdini-react/units/entries/${queryName}.jsx'
+				import { injectComponents } from '$houdini/plugins/houdini-react/runtime/componentFields'
 
 				// if there is pending data (or artifacts) then we should prime the caches
 				let initialData = {}
+				let initialVariables = {}
 				let initialArtifacts = {}
-				if (!window.__houdini__cache__) {
-					window.__houdini__cache__ = new Cache()
-					window.__houdini__hydration__layer__ = window.__houdini__cache__._internal_unstable.storage.createLayer(true)
-					window.__houdini__client__ = client()
+
+				// hydrate the client with the component cache
+				window.__houdini__client__ ??= client()
+				if (window.__houdini__pending_components__) {
+					window.__houdini__client__.componentCache = window.__houdini__pending_components__
 				}
+
+				window.__houdini__cache__ ??= new Cache({
+					componentCache: window.__houdini__client__.componentCache,
+					createComponent: (fn, props) => React.createElement(fn, props)
+				})
+				window.__houdini__hydration__layer__ ??= window.__houdini__cache__._internal_unstable.storage.createLayer(true)
 
 				// the artifacts are the source of the zip (without them, we can't prime either cache)
 				for (const [artifactName, artifact] of Object.entries(window.__houdini__pending_artifacts__ ?? {})) {
@@ -168,11 +234,28 @@ export default {
 
 					// if we also have data for the artifact, save it in the initial data cache
 					if (window.__houdini__pending_data__?.[artifactName]) {
+						const variables = window.__houdini__pending_variables__[artifactName]
+						if (artifact.hasComponents) {
+							// we need to walk down the artifacts selection and instantiate any component fields
+							injectComponents({
+								cache: window.__houdini__cache__,
+								selection: artifact.selection,
+								data: window.__houdini__pending_data__[artifactName],
+								variables: window.__houdini__pending_variables__[artifactName],
+							})
+						}
+
 						// create the store we'll put in the cache
-						const observer = window.__houdini__client__.observe({ artifact, cache: window.__houdini__cache__, initialValue: window.__houdini__pending_data__[artifactName] })
+						const observer = window.__houdini__client__.observe({
+							artifact,
+							cache: window.__houdini__cache__,
+							initialValue: window.__houdini__pending_data__[artifactName],
+							initialVariables: variables,
+						})
 
 						// save it in the cache
 						initialData[artifactName] = observer
+						initialVariables[artifactName] = variables
 					}
 
 				}
@@ -180,11 +263,12 @@ export default {
 				// attach things to the global scope to synchronize streaming
 				if (!window.__houdini__nav_caches__) {
 					window.__houdini__nav_caches__ = router_cache({
-						pending_queries: ${JSON.stringify(queries)},
+						pending_queries: ${JSON.stringify(pendingQueries)},
 						initialData,
+						initialVariables: window.__houdini__pending_variables__,
 						initialArtifacts,
 						components: {
-							'${id}': Component
+							'${queryName}': Component
 						}
 					})
 				}
@@ -213,14 +297,14 @@ export default {
 		if (which === 'artifacts') {
 			// the arg is the name of the artifact
 			const artifact = (await fs.readFile(
-				path.join(config.artifactDirectory, arg + '.js')
+				path.join(config.artifactDirectory, queryName + '.js')
 			))!.replace('export default', 'const artifact = ')
 
 			return (
 				artifact +
 				`
-if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_cache && !window.__houdini__nav_caches__.artifact_cache.has("${arg}")) {
-	window.__houdini__nav_caches__.artifact_cache.set(${JSON.stringify(arg)}, artifact)
+if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_cache && !window.__houdini__nav_caches__.artifact_cache.has("${queryName}")) {
+	window.__houdini__nav_caches__.artifact_cache.set(${JSON.stringify(queryName)}, artifact)
 }
 `
 			)
@@ -286,7 +370,9 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 			if (result && result.status === 404) {
 				return next()
 			}
+			// TODO: this is so awkward....
 			// if we got here but we didn't pipe a response then we have to send the result to the end
+			// by default result is a Response
 			if (result && typeof result !== 'boolean') {
 				if (res.closed) {
 					return

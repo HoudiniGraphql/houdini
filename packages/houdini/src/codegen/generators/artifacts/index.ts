@@ -274,6 +274,7 @@ export default function artifactGenerator(stats: {
 					}
 
 					// start building up the artifact
+					let hasComponents = false
 					let artifact: DocumentArtifact = {
 						name,
 						kind: docKind,
@@ -288,6 +289,9 @@ export default function artifactGenerator(stats: {
 							rootType,
 							globalLoading,
 							includeFragments: doc.kind !== ArtifactKind.Fragment,
+							hasComponents: () => {
+								hasComponents = true
+							},
 
 							// in order to simplify the selection generation, we want to merge fragments together
 							selections: flattenSelections({
@@ -323,6 +327,9 @@ export default function artifactGenerator(stats: {
 							rootType,
 							operations: {},
 							document: doc,
+							hasComponents: () => {
+								hasComponents = true
+							},
 							selections: flattenSelections({
 								config,
 								filepath: doc.filename,
@@ -331,6 +338,12 @@ export default function artifactGenerator(stats: {
 							}),
 						})
 					)
+
+					// if we ran into component fields while generating the selection then
+					// we should add the flag on the artifact
+					if (hasComponents) {
+						artifact.hasComponents = true
+					}
 
 					// if we are looking at a query or fragment then we need to add
 					// the loading state flag

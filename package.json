@@ -33,6 +33,7 @@
 		"@playwright/test": "1.30.0",
 		"@theguild/eslint-config": "^0.8.0",
 		"@trivago/prettier-plugin-sort-imports": "^4.0.0",
+		"@types/react": "^18.2.22",
 		"@vitest/coverage-c8": "^0.28.3",
 		"@vitest/ui": "^0.28.3",
 		"eslint-plugin-unused-imports": "^2.0.0",
@@ -52,10 +53,10 @@
 	},
 	"packageManager": "pnpm@8.6.7",
 	"lint-staged": {
-		"*.ts": "prettier -w",
-		"*.tsx": "prettier -w",
-		"*.js": "prettier -w",
-		"*.json": "prettier -w"
+		"*.ts": "prettier -w ",
+		"*.tsx": "prettier -w ",
+		"*.js": "prettier -w ",
+		"*.json": "prettier -w "
 	},
 	"resolutions": {
 		"graphql": "15.5.0"

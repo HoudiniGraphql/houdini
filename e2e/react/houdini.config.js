@@ -24,6 +24,9 @@ const config = {
 		RentedBook: {
 			keys: ['userId', 'bookId'],
 		},
+		Sponsor: {
+			keys: ['name'],
+		},
 	},
 
 	plugins: {
@@ -35,6 +38,10 @@ const config = {
 			redirect: '/auth/token',
 			sessionKeys: ['supersecret'],
 		},
+	},
+
+	features: {
+		componentFields: true,
 	},
 }
 

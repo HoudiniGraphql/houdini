@@ -208,6 +208,8 @@ export type ConfigFile = {
 	/**
 	 * For now, the cache's imperative API is considered unstable. In order to suppress the warning,
 	 * you must enable this flag.
+	 *
+	 * @deprecated set features.imperativeCache instead
 	 */
 	acceptImperativeInstability?: boolean
 
@@ -215,6 +217,14 @@ export type ConfigFile = {
 	 * Configure the router
 	 */
 	router?: RouterConfig
+
+	/**
+	 * A collection of flags to opt-into experimental features that might break unexpectedly
+	 */
+	features?: {
+		componentFields?: boolean
+		imperativeCache?: boolean
+	}
 }
 
 type RouterConfig = {

@@ -61,6 +61,9 @@ export class HoudiniClient {
 		}) => Promise<any>
 	> = {}
 
+	// this is modified by page entries when they load in order to register the components source
+	componentCache: Record<string, any> = {}
+
 	constructor({
 		url,
 		fetchParams,

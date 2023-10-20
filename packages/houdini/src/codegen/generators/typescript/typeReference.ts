@@ -11,6 +11,7 @@ const AST = recast.types.builders
 // return the property
 export function tsTypeReference(
 	config: Config,
+	filepath: string,
 	missingScalars: Set<string>,
 	definition: {
 		type:
@@ -27,7 +28,7 @@ export function tsTypeReference(
 	let result
 	// if we're looking at a scalar
 	if (graphql.isScalarType(type)) {
-		result = scalarPropertyValue(config, missingScalars, type)
+		result = scalarPropertyValue(config, filepath, missingScalars, type, body, null)
 	}
 	//  enums need to be passed to ValueOf
 	else if (graphql.isEnumType(type)) {

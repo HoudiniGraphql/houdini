@@ -147,7 +147,7 @@ jobs:
         name: End-to-End Tests
         strategy:
             matrix:
-                os: [ubuntu-latest, windows-latest]
+                os: [ubuntu-latest]
                 framework: [e2e-svelte, e2e-kit]
         runs-on: ${{ matrix.os }}
 

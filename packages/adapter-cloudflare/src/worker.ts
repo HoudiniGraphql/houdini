@@ -11,8 +11,14 @@ const handlers: ExportedHandler = {
 	async fetch(req, env: any, ctx) {
 		const url = new URL(req.url).pathname
 
+		const accept = req.headers.get('Accept') ?? ''
+
+		// our server is responsible for serving
+		// html, json, and json, graphql
+		const patterns = ['text/html', 'application/json', 'application/graphql']
+
 		// we are handling an asset
-		if (url.startsWith('/assets/') || url === '/favicon.ico') {
+		if (!patterns.some((pattern) => accept.includes(pattern))) {
 			return await env.ASSETS.fetch(req)
 		}
 

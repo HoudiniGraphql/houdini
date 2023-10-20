@@ -27,7 +27,7 @@ export default async function injectPlugins({
 
 	return clientPlugins.length > 0
 		? `
-${clientPlugins.map((plugin, i) => importStatement(plugin[0], `plugin${i}`))}
+${clientPlugins.map((plugin, i) => importStatement(plugin[0], `plugin${i}`)).join('\n')}
 
 const plugins = [
 	${clientPlugins

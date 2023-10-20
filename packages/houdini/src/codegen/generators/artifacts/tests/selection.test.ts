@@ -48,7 +48,6 @@ test('fragments of unions inject correctly', function () {
 		operations: {},
 		selections: flat,
 		includeFragments: true,
-
 		document: mockCollectedDoc(`
 			query Query {
 				entities {
@@ -1021,5 +1020,193 @@ test("multiple abstract selections don't conflict", async function () {
 		};
 
 		"HoudiniHash=bd13373d03a3df9c1dfd11905a885a9acea3fd081833ffd9800e48761d00c583";
+	`)
+})
+
+test('componentFields get embedded in the selection', async function () {
+	// the config to use in tests
+	const config = testConfig()
+	const docs = [
+		mockCollectedDoc(
+			`query UserWithAvatar {
+			user {
+				Avatar
+			}
+		}`
+		),
+		mockCollectedDoc(
+			`fragment UserAvatar on User @componentField(field: "Avatar", prop: "user") {
+				firstName
+				FriendList
+			}`
+		),
+		mockCollectedDoc(
+			`fragment FriendList on User @componentField(field: "FriendList", prop: "user") {
+				firstName
+			}`
+		),
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
+
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "UserWithAvatar",
+		    "kind": "HoudiniQuery",
+		    "hash": "30e4c52e63f8d5ce74e8b8545a099d29e877df195141d1c67221b480f0840014",
+
+		    "raw": \`query UserWithAvatar {
+		  user {
+		    ...UserAvatar
+		    id
+		  }
+		}
+
+		fragment UserAvatar on User {
+		  firstName
+		  ...FriendList
+		  id
+		  __typename
+		}
+
+		fragment FriendList on User {
+		  firstName
+		  id
+		  __typename
+		}
+		\`,
+
+		    "rootType": "Query",
+
+		    "selection": {
+		        "fields": {
+		            "user": {
+		                "type": "User",
+		                "keyRaw": "user",
+
+		                "selection": {
+		                    "fields": {
+		                        "firstName": {
+		                            "type": "String",
+		                            "keyRaw": "firstName"
+		                        },
+
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id",
+		                            "visible": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename"
+		                        },
+
+		                        "Avatar": {
+		                            "keyRaw": "Avatar",
+		                            "type": "Component",
+
+		                            "component": {
+		                                "prop": "user",
+		                                "key": "User.Avatar",
+		                                "fragment": "UserAvatar",
+		                                "variables": {}
+		                            },
+
+		                            "visible": true
+		                        }
+		                    },
+
+		                    "fragments": {
+		                        "UserAvatar": {
+		                            "arguments": {}
+		                        }
+		                    }
+		                },
+
+		                "visible": true
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+		    "hasComponents": true,
+		    "policy": "CacheOrNetwork",
+		    "partial": false
+		};
+
+		"HoudiniHash=bb8055518b549496d9673bb3a0ff9091e20fbe760670c589f689a1dc416211dd";
+	`)
+
+	expect(docs[1]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "UserAvatar",
+		    "kind": "HoudiniFragment",
+		    "hash": "f5f2155463f80756d17e9e3294cd9f922bbe56ce135a0a39c84bb34b49a13f7e",
+
+		    "raw": \`fragment UserAvatar on User {
+		  firstName
+		  ...FriendList
+		  id
+		  __typename
+		}
+
+		fragment FriendList on User {
+		  firstName
+		  id
+		  __typename
+		}
+		\`,
+
+		    "rootType": "User",
+
+		    "selection": {
+		        "fields": {
+		            "firstName": {
+		                "type": "String",
+		                "keyRaw": "firstName",
+		                "visible": true
+		            },
+
+		            "id": {
+		                "type": "ID",
+		                "keyRaw": "id",
+		                "visible": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename",
+		                "visible": true
+		            },
+
+		            "FriendList": {
+		                "keyRaw": "FriendList",
+		                "type": "Component",
+
+		                "component": {
+		                    "prop": "user",
+		                    "key": "User.FriendList",
+		                    "fragment": "FriendList",
+		                    "variables": {}
+		                },
+
+		                "visible": true
+		            }
+		        },
+
+		        "fragments": {
+		            "FriendList": {
+		                "arguments": {}
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+		    "hasComponents": true
+		};
+
+		"HoudiniHash=06be0ac4bd68cba33a2211d36d7235ecf1631722d830c88e0f39ae9896a25f85";
 	`)
 })

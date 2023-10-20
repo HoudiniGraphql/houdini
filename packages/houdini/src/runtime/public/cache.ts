@@ -25,9 +25,10 @@ export class Cache<Def extends CacheTypeDef> {
 	// with any minor version. In order to do this, we require them to accept this contract
 	// through their config file
 	validateInstabilityWarning() {
-		if (!this.config.acceptImperativeInstability) {
+		if (!this.config.acceptImperativeInstability && !this.config.features?.imperativeCache) {
 			console.warn(`⚠️  The imperative cache API is considered unstable and will change in any minor version release
-Please acknowledge this by setting acceptImperativeInstability to true in your config file.`)
+Please acknowledge this by enabling the imperative cache feature flage in your config file.
+For more information: https://houdinigraphql.com/api/cache`)
 		}
 	}
 

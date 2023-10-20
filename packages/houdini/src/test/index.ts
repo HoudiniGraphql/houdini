@@ -21,7 +21,7 @@ export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {})
 
 			type User implements Node & Friend & CatOwner {
 				id: ID!
-				name: String!
+				name(arg: Int): String!
 				birthday: DateTime!
 				firstName: String!
 				friends: [User!]!
@@ -290,6 +290,9 @@ export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {})
 			},
 			...plugins,
 		},
+		features: {
+			componentFields: true,
+		},
 		acceptImperativeInstability: true,
 		...config,
 	}
@@ -326,7 +329,6 @@ export function pipelineTest(
 			// only bubble the error up if we're supposed to pass the test
 			if (shouldPass) {
 				// console.error(docs)
-				console.error(e)
 				throw 'pipeline failed when it should have passed. ' + e
 			}
 			error = e as Error[]

@@ -48,11 +48,11 @@ export default async function imperativeCacheTypef(config: Config, docs: Documen
 		AST.tsTypeLiteral([
 			AST.tsPropertySignature(
 				AST.identifier('types'),
-				AST.tsTypeAnnotation(typeDefinitions(config, body, docs, returnType))
+				AST.tsTypeAnnotation(typeDefinitions(config, target, body, docs, returnType))
 			),
 			AST.tsPropertySignature(
 				AST.identifier('lists'),
-				AST.tsTypeAnnotation(listDefinitions(config, body, docs))
+				AST.tsTypeAnnotation(listDefinitions(config, target, body, docs))
 			),
 			AST.tsPropertySignature(
 				AST.identifier('queries'),
@@ -80,6 +80,7 @@ export default async function imperativeCacheTypef(config: Config, docs: Documen
 
 function typeDefinitions(
 	config: Config,
+	filepath: string,
 	body: StatementKind[],
 	docs: Document[],
 	returnType: (doc: Document) => string
@@ -136,7 +137,17 @@ function typeDefinitions(
 						return AST.tsPropertySignature(
 							AST.identifier(key),
 							AST.tsTypeAnnotation(
-								scalarPropertyValue(config, new Set<string>(), unwrapped.type)
+								scalarPropertyValue(
+									config,
+									filepath,
+									new Set<string>(),
+									unwrapped.type,
+									body,
+									{
+										field: key,
+										parent: type.name,
+									}
+								)
 							)
 						)
 					})
@@ -162,7 +173,17 @@ function typeDefinitions(
 							let typeOptions: TSTypeKind = AST.tsUnionType([])
 							if (graphql.isScalarType(unwrapped.type)) {
 								typeOptions.types.push(
-									scalarPropertyValue(config, new Set<string>(), unwrapped.type)
+									scalarPropertyValue(
+										config,
+										filepath,
+										new Set<string>(),
+										unwrapped.type,
+										body,
+										{
+											field: key,
+											parent: type.name,
+										}
+									)
 								)
 							}
 							// enums are valid to use directly
@@ -222,7 +243,13 @@ function typeDefinitions(
 										const prop = AST.tsPropertySignature(
 											AST.identifier(arg.name),
 											AST.tsTypeAnnotation(
-												tsTypeReference(config, new Set(), arg, body)
+												tsTypeReference(
+													config,
+													filepath,
+													new Set(),
+													arg,
+													body
+												)
 											)
 										)
 
@@ -281,6 +308,7 @@ function typeDefinitions(
 
 function listDefinitions(
 	config: Config,
+	filepath: string,
 	body: StatementKind[],
 	docs: Document[]
 ): recast.types.namedTypes.TSTypeLiteral | recast.types.namedTypes.TSNeverKeyword {
@@ -366,6 +394,7 @@ function listDefinitions(
 															AST.tsTypeAnnotation(
 																tsTypeReference(
 																	config,
+																	filepath,
 																	new Set(),
 																	arg,
 																	body

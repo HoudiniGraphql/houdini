@@ -20,6 +20,7 @@ export function _serverHandler<ComponentType = unknown>({
 	manifest,
 	graphqlEndpoint,
 	on_render,
+	componentCache,
 }: {
 	schema?: GraphQLSchema | null
 	yoga?: ReturnType<typeof createYoga> | null
@@ -28,11 +29,13 @@ export function _serverHandler<ComponentType = unknown>({
 	manifest: RouterManifest<ComponentType> | null
 	assetPrefix: string
 	graphqlEndpoint: string
+	componentCache: Record<string, any>
 	on_render: (args: {
 		url: string
 		match: RouterPageManifest<ComponentType> | null
 		manifest: RouterManifest<unknown>
 		session: App.Session
+		componentCache: Record<string, any>
 	}) => Response | Promise<Response | undefined> | undefined
 } & Omit<YogaServerOptions, 'schema'>) {
 	if (schema && !yoga) {
@@ -43,6 +46,9 @@ export function _serverHandler<ComponentType = unknown>({
 		})
 	}
 
+	client.componentCache = componentCache
+
+	// @ts-ignore: schema is defined dynamically
 	if (schema) {
 		client.registerProxy(graphqlEndpoint, async ({ query, variables, session }) => {
 			// get the parsed query
@@ -90,6 +96,7 @@ export function _serverHandler<ComponentType = unknown>({
 			match,
 			session: await get_session(request.headers, session_keys),
 			manifest,
+			componentCache,
 		})
 		if (rendered) {
 			return rendered

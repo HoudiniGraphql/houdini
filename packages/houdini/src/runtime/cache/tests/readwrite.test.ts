@@ -2418,3 +2418,220 @@ test('embedded types can be configured with an empty list', function () {
 		},
 	})
 })
+
+test('reading a component field produces a function and serializing it does not', function () {
+	// instantiate a cache we'll test against
+	const cache = new Cache(config)
+
+	// save the data
+	const data = {
+		viewer: {
+			id: '1',
+			firstName: 'bob',
+		},
+	}
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							visible: true,
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							visible: true,
+							keyRaw: 'firstName',
+						},
+						Avatar: {
+							type: 'Component',
+							visible: true,
+							keyRaw: 'Avatar',
+							component: {
+								prop: 'user',
+								key: 'User.Avatar',
+								variables: {},
+								fragment: 'User_Avatar',
+							},
+							nullable: true,
+						},
+					},
+				},
+			},
+		},
+	}
+	cache.write({
+		selection,
+		data,
+	})
+
+	// make sure we can get back what we wrote
+	const result = cache.read({
+		selection,
+	}).data
+
+	// @ts-ignore
+	expect(typeof result?.viewer?.Avatar).toBe('function')
+
+	// should still be able to serialize
+	expect(JSON.parse(cache.serialize())).toMatchInlineSnapshot(
+		`
+		{
+		    "rank": 0,
+		    "fields": {
+		        "User:1": {
+		            "id": "1",
+		            "firstName": "bob"
+		        }
+		    },
+		    "links": {
+		        "_ROOT_": {
+		            "viewer": "User:1"
+		        }
+		    }
+		}
+	`
+	)
+})
+
+test('cascade null through null', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	// write the user data without the nested value
+	cache.write({
+		selection: {
+			fields: {
+				viewer: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: {
+								keyRaw: 'id',
+								type: 'String',
+								visible: true,
+							},
+							friends: {
+								keyRaw: 'friends',
+								type: 'String',
+								visible: true,
+								selection: {
+									fields: {
+										id: {
+											keyRaw: 'id',
+											type: 'String',
+											visible: true,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		data: {
+			viewer: {
+				id: '1',
+				friends: [{ id: '2' }],
+			},
+		},
+	})
+
+	// read the data as if the nested value is required
+	expect(
+		cache.read({
+			selection: {
+				fields: {
+					viewer: {
+						type: 'User',
+						visible: true,
+						keyRaw: 'viewer',
+						nullable: true,
+						selection: {
+							fields: {
+								id: {
+									keyRaw: 'id',
+									type: 'String',
+									visible: true,
+								},
+								friends: {
+									keyRaw: 'friends',
+									type: 'String',
+									visible: true,
+									selection: {
+										fields: {
+											id: {
+												keyRaw: 'id',
+												type: 'String',
+												visible: true,
+											},
+											firstName: {
+												keyRaw: 'firstName',
+												type: 'String',
+												visible: true,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		})
+	).toEqual({
+		partial: true,
+		stale: false,
+		data: {
+			viewer: null,
+		},
+	})
+
+	// read the data as if the nested value is not required (parent should be null)
+	expect(
+		cache.read({
+			selection: {
+				fields: {
+					viewer: {
+						type: 'User',
+						visible: true,
+						keyRaw: 'viewer',
+						nullable: true,
+						selection: {
+							fields: {
+								id: {
+									keyRaw: 'id',
+									type: 'String',
+									visible: true,
+								},
+								parent: {
+									keyRaw: 'parent',
+									type: 'User',
+									visible: true,
+									nullable: true,
+								},
+							},
+						},
+					},
+				},
+			},
+		})
+	).toEqual({
+		partial: true,
+		stale: false,
+		data: {
+			viewer: {
+				id: '1',
+				parent: null,
+			},
+		},
+	})
+})

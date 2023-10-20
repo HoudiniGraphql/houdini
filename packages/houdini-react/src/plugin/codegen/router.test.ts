@@ -22,14 +22,14 @@ test('happy path', async function () {
 				'+layout.gql': mockQuery('SubQuery'),
 				'+page.tsx': mockView(['SubQuery', 'RootQuery']),
 				nested: {
-					'+page.gql': mockQuery('FinalQuery', true),
+					'+page.gql': mockQuery('FinalQuery', { loading: true, variables: ['foo'] }),
 					'+page.tsx': mockView(['FinalQuery']),
 				},
 			},
 			another: {
 				'+layout.tsx': mockView(['RootQuery']),
 				'+page.gql': mockQuery('MyQuery'),
-				'+layout.gql': mockQuery('MyLayoutQuery', true),
+				'+layout.gql': mockQuery('MyLayoutQuery', { loading: true }),
 				'+page.tsx': mockView(['MyQuery', 'MyLayoutQuery']),
 			},
 		},
@@ -52,7 +52,8 @@ test('happy path', async function () {
 						documents: {
 							RootQuery: {
 										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
-										loading: false
+										loading: false,
+										variables: []
 									}
 						},
 
@@ -68,11 +69,13 @@ test('happy path', async function () {
 						documents: {
 							SubQuery: {
 										artifact: () => import(\\"../../../artifacts/SubQuery\\"),
-										loading: false
+										loading: false,
+										variables: []
 									},
 							RootQuery: {
 										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
-										loading: false
+										loading: false,
+										variables: []
 									}
 						},
 
@@ -88,15 +91,18 @@ test('happy path', async function () {
 						documents: {
 							MyQuery: {
 										artifact: () => import(\\"../../../artifacts/MyQuery\\"),
-										loading: false
+										loading: false,
+										variables: []
 									},
 							MyLayoutQuery: {
 										artifact: () => import(\\"../../../artifacts/MyLayoutQuery\\"),
-										loading: true
+										loading: true,
+										variables: []
 									},
 							RootQuery: {
 										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
-										loading: false
+										loading: false,
+										variables: []
 									}
 						},
 
@@ -112,11 +118,13 @@ test('happy path', async function () {
 						documents: {
 							FinalQuery: {
 										artifact: () => import(\\"../../../artifacts/FinalQuery\\"),
-										loading: true
+										loading: true,
+										variables: [\\"foo\\"]
 									},
 							RootQuery: {
 										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
-										loading: false
+										loading: false,
+										variables: []
 									}
 						},
 
@@ -152,7 +160,7 @@ test('loading state at root', async function () {
 	await fs.mock({
 		[config.routesDir]: {
 			'+layout.tsx': 'export default ({children}) => <div>{children}</div>',
-			'+layout.gql': mockQuery('RootQuery', true),
+			'+layout.gql': mockQuery('RootQuery', { loading: true }),
 			'+page.tsx': mockView(['RootQuery']),
 			'[id]': {
 				'+layout.tsx': mockView(['RootQuery']),
@@ -189,7 +197,8 @@ test('loading state at root', async function () {
 						documents: {
 							RootQuery: {
 										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
-										loading: true
+										loading: true,
+										variables: []
 									}
 						},
 
@@ -205,11 +214,13 @@ test('loading state at root', async function () {
 						documents: {
 							SubQuery: {
 										artifact: () => import(\\"../../../artifacts/SubQuery\\"),
-										loading: false
+										loading: false,
+										variables: []
 									},
 							RootQuery: {
 										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
-										loading: true
+										loading: true,
+										variables: []
 									}
 						},
 
@@ -225,15 +236,18 @@ test('loading state at root', async function () {
 						documents: {
 							MyQuery: {
 										artifact: () => import(\\"../../../artifacts/MyQuery\\"),
-										loading: false
+										loading: false,
+										variables: []
 									},
 							MyLayoutQuery: {
 										artifact: () => import(\\"../../../artifacts/MyLayoutQuery\\"),
-										loading: false
+										loading: false,
+										variables: []
 									},
 							RootQuery: {
 										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
-										loading: true
+										loading: true,
+										variables: []
 									}
 						},
 
@@ -249,11 +263,13 @@ test('loading state at root', async function () {
 						documents: {
 							FinalQuery: {
 										artifact: () => import(\\"../../../artifacts/FinalQuery\\"),
-										loading: false
+										loading: false,
+										variables: []
 									},
 							RootQuery: {
 										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
-										loading: true
+										loading: true,
+										variables: []
 									}
 						},
 
@@ -286,9 +302,14 @@ function mockView(deps: string[]) {
 	return `export default ({ ${deps.join(', ')} }) => <div>hello</div>`
 }
 
-function mockQuery(name: string, loading?: boolean) {
+function mockQuery(
+	name: string,
+	{ loading, variables }: { loading?: boolean; variables?: string[] } = {}
+) {
 	return `
-query ${name} ${loading ? '@loading' : ''} {
+query ${name} ${!variables ? '' : `(${variables.map((name) => `$${name}: Int`).join(', ')})`}${
+		loading ? '@loading' : ''
+	} {
 	id
 }
 	`

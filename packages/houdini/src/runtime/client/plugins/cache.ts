@@ -64,6 +64,7 @@ export const cachePolicy =
 
 						// if we have data, use that unless its partial data and we dont allow that
 						useCache = !!(value.data !== null && allowed)
+
 						if (useCache) {
 							resolve(ctx, {
 								fetching: false,

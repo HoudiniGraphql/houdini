@@ -44,6 +44,7 @@ export default async function ({ plugin }) {
 			}
 			package_json.types = './build/plugin/index.d.ts'
 		}
+
 		// lib defines the main entry point
 		else if (dirname === 'lib') {
 			await build({ package_json, source: dir, plugin })
@@ -68,7 +69,13 @@ export default async function ({ plugin }) {
 
 		// its not a special directory, treat it as a sub module
 		else {
-			await build({ package_json, source: dir, plugin })
+			await build({
+				package_json,
+				source: dir,
+				plugin,
+				bundle: dirname !== 'server' && dirname !== 'streaming',
+			})
+
 			package_json.exports['./' + dirname] = {
 				types: `./build/${dirname}/index.d.ts`,
 				import: `./build/${dirname}-esm/index.js`,

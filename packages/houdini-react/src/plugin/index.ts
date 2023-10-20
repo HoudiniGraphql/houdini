@@ -1,3 +1,4 @@
+import type { FragmentDefinitionNode } from 'graphql'
 import {
 	ArtifactKind,
 	plugin,
@@ -8,6 +9,7 @@ import {
 	type Config,
 	type Plugin,
 	type ProjectManifest,
+	processComponentFieldDirective,
 } from 'houdini'
 import path from 'node:path'
 import { loadEnv } from 'vite'
@@ -30,7 +32,12 @@ export const hooks: Plugin = async () => ({
 	// we generate anything
 	async beforeGenerate({ config }) {
 		if (!manifest) {
-			manifest = await load_manifest({ config })
+			try {
+				manifest = await load_manifest({ config })
+			} catch (e) {
+				console.log('something went wrong: ' + (e as Error).message)
+				return
+			}
 		}
 	},
 
@@ -48,7 +55,7 @@ export const hooks: Plugin = async () => ({
 
 	// we need to add overloaded definitions for every hook that
 	// returns the appropriate type for each document
-	transformRuntime: (docs) => {
+	transformRuntime: (docs, { config }) => {
 		// we need to group every document by type
 		const documents: { [Kind in ArtifactKinds]?: Document[] } = {}
 		for (const doc of docs) {
@@ -59,6 +66,29 @@ export const hooks: Plugin = async () => ({
 				documents[doc.kind] = []
 			}
 			documents[doc.kind]!.push(doc)
+		}
+
+		// fragment definitions that are tagged with the component field directive
+		// indicate a componentField inline fragment
+		const componentFields: Record<string, string> = {}
+		for (const { document } of Object.values(documents[ArtifactKind.Fragment] ?? {})) {
+			for (const def of document.definitions) {
+				const definition = def as FragmentDefinitionNode
+				// if the fragment doesn't have the component field directive then skip it
+				const directive = definition.directives?.find(
+					(d) => d.name.value === config.componentFieldDirective
+				)
+				if (!directive) {
+					continue
+				}
+
+				const { raw } = processComponentFieldDirective(directive)
+				if (!raw) {
+					continue
+				}
+
+				componentFields[definition.name.value] = raw
+			}
 		}
 
 		return {
@@ -176,6 +206,28 @@ export function useFragmentHandle(reference: { readonly "${fragmentKey}": { ${do
 					signature: (doc) =>
 						`export function useSubscriptionHandle(document: { artifact: { name : "${doc.name}" } }, variables?: ${doc.name}$input): SubscriptionHandle<${doc.name}$result, ${doc.name}$input>`,
 				}),
+			'index.d.ts': ({ content, importStatement }) => {
+				// we're just going to add the GraphQL type to the end of the file
+
+				// but we need to import the fragment types for every component field
+				// from the generated runtime
+
+				let preamble = ''
+				let fields = ''
+				for (const [fragmentName, document] of Object.entries(componentFields)) {
+					preamble += `import type { ${fragmentName} } from '$houdini'\n`
+					fields += `_Document extends \`${document}\` ? Required<${fragmentName}>['shape']`
+				}
+
+				return (
+					preamble +
+					content +
+					`
+	export type GraphQL<_Document extends string> = ` +
+					fields +
+					': never\n'
+				)
+			},
 		}
 	},
 

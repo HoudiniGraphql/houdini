@@ -371,7 +371,7 @@ export type FragmentArgument = {
 export function fragmentArguments(
 	config: Config,
 	filepath: string,
-	definition: graphql.FragmentDefinitionNode
+	definition: graphql.FragmentDefinitionNode | graphql.FragmentSpreadNode
 ): FragmentArgument[] {
 	const directives = definition.directives?.filter(
 		(directive) => directive.name.value === config.argumentsDirective

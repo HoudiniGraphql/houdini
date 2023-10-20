@@ -81,16 +81,16 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		// we use this to generate the final assets needed for a production build of the server.
 		// this is only called when bundling (ie, not in dev mode)
 		async closeBundle() {
-			if (isSecondaryBuild() || viteEnv.mode !== 'production' || devServer) {
-				return
-			}
-
 			for (const plugin of config.plugins) {
 				if (typeof plugin.vite?.closeBundle !== 'function') {
 					continue
 				}
 
 				await plugin.vite!.closeBundle.call(this, config)
+			}
+
+			if (isSecondaryBuild() || viteEnv.mode !== 'production' || devServer) {
+				return
 			}
 
 			// if we dont' have an adapter, we don't need to do anything
@@ -139,10 +139,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			// if there is a public directory at the root of the project,
 			if (fs.existsSync(path.join(config.projectRoot, 'public'))) {
 				// copy the contents of the directory into the build directory
-				await fs.recursiveCopy(
-					path.join(config.projectRoot, 'public'),
-					viteConfig.build.outDir
-				)
+				await fs.recursiveCopy(path.join(config.projectRoot, 'public'), outDir)
 			}
 		},
 
@@ -161,7 +158,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			}
 
 			// we need to generate the runtime if we are building in production
-			if (!devServer && !isSecondaryBuild()) {
+			if (!devServer && !isSecondaryBuild() && !process.env.HOUDINI_SKIP_GENERATE) {
 				// make sure we have an up-to-date schema
 				if (config.localSchema && !config.schema) {
 					config.schema = await loadLocalSchema(config)

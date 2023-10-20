@@ -1,4 +1,8 @@
-import type { TaggedTemplateExpressionKind, CallExpressionKind } from 'ast-types/lib/gen/kinds'
+import type {
+	TaggedTemplateExpressionKind,
+	CallExpressionKind,
+	TSPropertySignatureKind,
+} from 'ast-types/lib/gen/kinds'
 import type { BaseNode } from 'estree-walker'
 import { asyncWalk } from 'estree-walker'
 import * as graphql from 'graphql'
@@ -28,6 +32,7 @@ export type EmbeddedGraphqlDocument = {
 }
 
 type GraphqlTagWalker = {
+	skipGraphqlType?: boolean
 	where?: (tag: graphql.DocumentNode, ast: { node: BaseNode; parent: BaseNode }) => boolean
 	dependency?: (fp: string) => void
 	tag: (tag: EmbeddedGraphqlDocument) => void | Promise<void>
@@ -44,11 +49,16 @@ export async function find_graphql(
 			// graphql documents come in a few forms:
 			// - graphql template tags
 			// - strings passed to graphql function
-			if (node.type !== 'TaggedTemplateExpression' && node.type !== 'CallExpression') {
+			if (
+				node.type !== 'TaggedTemplateExpression' &&
+				node.type !== 'CallExpression' &&
+				node.type !== 'TSPropertySignature'
+			) {
 				return
 			}
 
-			let documentString: string
+			let documentString: string = ''
+			let propName: string = ''
 
 			// process template tags
 			if (node.type === 'TaggedTemplateExpression') {
@@ -83,7 +93,41 @@ export async function find_graphql(
 				} else {
 					return
 				}
-			} else {
+			} else if (node.type === 'TSPropertySignature' && !walker.skipGraphqlType) {
+				const signature = node as TSPropertySignatureKind
+				// we only care about properties whose type is the graphql template
+				if (signature.typeAnnotation?.typeAnnotation?.type !== 'TSTypeReference') {
+					return
+				}
+
+				// grab the actual type annotation
+				const annotation = signature.typeAnnotation?.typeAnnotation
+				if (annotation.typeName.type !== 'Identifier') {
+					return
+				}
+
+				// we only want references to `GraphQL`
+				if (annotation.typeName.name !== 'GraphQL') {
+					return
+				}
+
+				if (annotation.typeParameters?.params[0].type !== 'TSLiteralType') {
+					return
+				}
+
+				const literal = annotation.typeParameters?.params[0]
+
+				// if we have a raw string or template literal, use its value
+				if (literal.literal.type === 'StringLiteral') {
+					documentString = literal.literal.value
+				} else if (literal.literal.type === 'TemplateLiteral') {
+					documentString = literal.literal.quasis[0].value.raw
+				}
+
+				if (signature.key.type === 'Identifier') {
+					propName = signature.key.name
+				}
+			} else if (!documentString) {
 				return
 			}
 
@@ -96,46 +140,198 @@ export async function find_graphql(
 				return
 			}
 
+			// there are two kinds of things we could run into: operation definitions and
+			// fragment definitions. In most cases, we require a name for the definition.
+			// but if we run into an anonymous query, it might define a component query
+			// in which care we don't want to require a name
+			let anonOkay = false
+
 			// pull out the name of the thing
-			const definition = config.extractDefinition(parsedTag) as
-				| graphql.OperationDefinitionNode
-				| graphql.FragmentDefinitionNode
-			const name = definition.name?.value
-			if (!name) {
-				throw new Error('Could not find definition name')
-			}
+			let definitions = [
+				{ raw: documentString, parsed: config.extractDefinition(parsedTag) },
+			] as ExtractedDefinition[]
+			const name = definitions[0].parsed.name?.value
 			let kind: CompiledDocumentKind
-			if (definition.kind === 'FragmentDefinition') {
+			if (definitions[0].parsed.kind === 'FragmentDefinition') {
 				kind = CompiledFragmentKind
 			} else {
-				if (definition.operation === 'query') {
+				if (definitions[0].parsed.operation === 'query') {
 					kind = CompiledQueryKind
-				} else if (definition.operation === 'mutation') {
+				} else if (definitions[0].parsed.operation === 'mutation') {
 					kind = CompiledMutationKind
 				} else {
 					kind = CompiledSubscriptionKind
 				}
 			}
 
+			// build up the list of documents in this file
+
+			// if we are looking at a query and it doesn't have a name
+			// each of its children must be an inline fragment tagged with
+			// the component query directive. Each of them should be treated
+			// as their own fragment definition
+			if (kind === CompiledQueryKind) {
+				anonOkay = definitions[0].parsed.selectionSet.selections.every(
+					(selection) =>
+						selection.kind === 'InlineFragment' &&
+						selection.directives?.find(
+							(directive) => directive.name.value === config.componentFieldDirective
+						)
+				)
+
+				if (name) {
+					definitions = [{ parsed: definitions[0].parsed, raw: definitions[0].raw }]
+				} else if (config.configFile.features?.componentFields) {
+					definitions = extractAnonymousQuery(
+						config,
+						definitions[0].raw,
+						definitions[0].parsed as graphql.OperationDefinitionNode,
+						propName
+					)
+				}
+			}
+
+			if (!name && !anonOkay) {
+				throw new Error('Could not find definition name')
+			}
+
 			// tell the walk there was a dependency
 			walker.dependency?.(config.artifactPath(parsedTag))
 
-			// invoker the walker's callback with the right context
-			await walker.tag({
-				parsedDocument: parsedTag,
-				node: {
-					...node,
-					...this,
-					remove: this.remove,
-					replaceWith: this.replace,
-				},
-				artifact: {
-					name,
-					kind,
-				},
-				parent,
-				tagContent: documentString,
-			})
+			// loop over every definition that we ran into
+			for (const definition of definitions) {
+				const name = definition.parsed.name?.value
+				if (!name) {
+					continue
+				}
+
+				// invoker the walker's callback with the right context
+				await walker.tag({
+					parsedDocument: { kind: 'Document', definitions: [definition.parsed] },
+					node: {
+						...node,
+						...this,
+						remove: this.remove,
+						replaceWith: this.replace,
+					},
+					artifact: {
+						name,
+						kind,
+					},
+					parent,
+					tagContent: definition.raw,
+				})
+			}
 		},
 	})
+}
+
+function extractAnonymousQuery(
+	config: Config,
+	raw: string,
+	expr: graphql.OperationDefinitionNode,
+	propName: string
+): ExtractedDefinition[] {
+	// if we are handling a component field (when anonIsOkay)
+	// then we are turning the query into multiple documents
+	const definitions = expr.selectionSet.selections.reduce<ExtractedDefinition[]>(
+		(defs, selection) => {
+			// again, we only care about inline fragments
+			if (selection.kind !== 'InlineFragment') {
+				return defs
+			}
+
+			// make sure we have the component field directive
+			const componentField = selection.directives!.find(
+				(dir) => dir.name.value === config.componentFieldDirective
+			)
+			const fragmentName = config.componentFieldFragmentName({
+				type: selection.typeCondition!.name.value,
+				entry: componentField!,
+			})
+
+			// embed the raw string as an argument so we can get it back
+			if (componentField) {
+				// @ts-expect-error: ignore that its technically read
+				componentField.arguments = [
+					...(componentField?.arguments ?? []),
+					{
+						kind: 'Argument',
+						name: {
+							kind: 'Name',
+							value: 'raw',
+						},
+						value: {
+							kind: 'StringValue',
+							value: raw,
+						},
+					} as graphql.ArgumentNode,
+				]
+			}
+
+			// if there is no field argument, we we to infer it from key of the type literal
+			if (
+				componentField &&
+				propName &&
+				!componentField!.arguments?.find((arg) => arg.name.value === 'prop')
+			) {
+				// @ts-expect-error: ignore that its technically read
+				componentField.arguments = [
+					...(componentField?.arguments ?? []),
+					{
+						kind: 'Argument',
+						name: {
+							kind: 'Name',
+							value: 'prop',
+						},
+						value: {
+							kind: 'StringValue',
+							value: propName,
+						},
+					} as graphql.ArgumentNode,
+				]
+			}
+
+			const parsed: graphql.FragmentDefinitionNode = {
+				kind: 'FragmentDefinition',
+				typeCondition: {
+					kind: 'NamedType',
+					name: {
+						kind: 'Name',
+						value: selection.typeCondition?.name.value || '',
+					},
+				},
+				name: {
+					kind: 'Name',
+					value: fragmentName,
+				},
+				selectionSet: {
+					kind: 'SelectionSet',
+					selections: selection.selectionSet.selections,
+				},
+				directives: selection.directives,
+			}
+
+			// add the fragment definition
+			return defs.concat([
+				{
+					raw: graphql.print(parsed),
+					parsed,
+				},
+			])
+		},
+		[]
+	)
+
+	if (definitions.length > 1) {
+		throw new Error('Anonymous queries can only contain a single inline fragment')
+	}
+
+	return definitions
+}
+
+type ExtractedDefinition = {
+	prop?: string
+	raw: string
+	parsed: graphql.OperationDefinitionNode | graphql.FragmentDefinitionNode
 }

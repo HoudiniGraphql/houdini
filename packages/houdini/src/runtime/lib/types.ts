@@ -104,6 +104,7 @@ export type BaseCompiledDocument<_Kind extends ArtifactKinds> = {
 	selection: SubscriptionSelection
 	rootType: string
 	input?: InputObject
+	hasComponents?: boolean
 	refetch?: {
 		path: string[]
 		method: 'cursor' | 'offset'
@@ -179,13 +180,14 @@ export type LoadingSpec =
 export type SubscriptionSelection = {
 	loadingTypes?: string[]
 	fragments?: Record<string, { arguments: ValueMap; loading?: boolean }>
+	components?: Record<string, { prop: string; attribute: string }>
 	fields?: {
 		[fieldName: string]: {
 			type: string
+			keyRaw: string
 			nullable?: boolean
 			// @required directive (bubbles nullability up)
 			required?: boolean
-			keyRaw: string
 			operations?: MutationOperation[]
 			list?: {
 				name: string
@@ -208,6 +210,12 @@ export type SubscriptionSelection = {
 			// If set, this is an abstract type with at least one abstract field made non-nullable by
 			// @required. This means that it needs to always be non-null even if there is no useful data.
 			abstractHasRequired?: boolean
+			component?: {
+				prop: string
+				key: string
+				fragment: string
+				variables: ValueMap | null
+			}
 		}
 	}
 	abstractFields?: {
@@ -407,6 +415,8 @@ export type ProjectManifest = {
 	local_schema: boolean
 	/** Whether or not there is a custom instance of yoga defined */
 	local_yoga: boolean
+	/** Information about componentFields defined in the project */
+	component_fields: Record<string, { filepath: string }>
 }
 
 export type PageManifest = {
@@ -432,4 +442,6 @@ export type QueryManifest = {
 	loading: boolean
 	/** The filepath of the unit */
 	path: string
+	/** The list of variables that this query cares about */
+	variables: string[]
 }

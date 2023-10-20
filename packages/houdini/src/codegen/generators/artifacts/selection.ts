@@ -36,6 +36,7 @@ function prepareSelection({
 	inConnection,
 	globalLoading,
 	includeFragments,
+	hasComponents,
 }: {
 	config: Config
 	filepath: string
@@ -47,6 +48,7 @@ function prepareSelection({
 	inConnection?: boolean
 	globalLoading?: boolean
 	includeFragments?: boolean
+	hasComponents: () => void
 }): SubscriptionSelection {
 	// we need to build up an object that contains every field in the selection
 	let object: SubscriptionSelection = {}
@@ -75,6 +77,7 @@ function prepareSelection({
 						document,
 						globalLoading,
 						includeFragments,
+						hasComponents,
 					}).fields || {}
 				)
 			}
@@ -107,6 +110,7 @@ function prepareSelection({
 						document,
 						globalLoading,
 						includeFragments,
+						hasComponents,
 					}).fields,
 				}
 
@@ -306,6 +310,7 @@ function prepareSelection({
 					// the global loading flag could be enabled for our children if there is a @loading with cascade set to true
 					globalLoading: forceLoading,
 					includeFragments,
+					hasComponents,
 				})
 
 				// bubble nullability up
@@ -417,6 +422,40 @@ function prepareSelection({
 				field.directives?.find((d) => d.name.value === config.loadingDirective)
 			) {
 				object.fragments[fragment].loading = true
+			}
+
+			// if the fragment spread is marked as a component field we should also register it
+			const fieldDirective = field.directives?.find(
+				(directive) => directive.name.value === config.componentFieldDirective
+			)
+			if (fieldDirective) {
+				hasComponents()
+				const fieldArg = fieldDirective.arguments?.find((arg) => arg.name.value === 'field')
+				const propArg = fieldDirective.arguments?.find((arg) => arg.name.value === 'prop')
+				if (
+					fieldArg?.value.kind === 'StringValue' &&
+					propArg?.value.kind === 'StringValue'
+				) {
+					const attributeName = fieldArg.value.value
+
+					// the fragment might be a variable hash
+					const { fragment, args } = config.getFragmentVariablesHash(field.name.value)
+
+					// add the field data we computed
+					object.fields = {
+						...object.fields,
+						[attributeName]: {
+							keyRaw: attributeName,
+							type: config.componentScalar,
+							component: {
+								prop: propArg.value.value,
+								key: `${rootType}.${attributeName}`,
+								fragment,
+								variables: args ?? {},
+							},
+						},
+					}
+				}
 			}
 		}
 	}

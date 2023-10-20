@@ -42,12 +42,12 @@ export function Router({
 	injectToStream?: undefined | ((chunk: string) => void)
 }) {
 	// the current route is just a string in state.
-	const [current, setCurrent] = React.useState(() => {
+	const [currentURL, setCurrentURL] = React.useState(() => {
 		return initialURL || window.location.pathname
 	})
 
 	// find the matching page for the current route
-	const [page, variables] = find_match(manifest, current)
+	const [page, variables] = find_match(manifest, currentURL)
 
 	// the only time this component will directly suspend (instead of one of its children)
 	// is if we don't have the component source. Dependencies on query results or artifacts
@@ -65,16 +65,18 @@ export function Router({
 	const { component_cache } = useRouterContext()
 	const PageComponent = component_cache.get(page.id)!
 
+	// if we got this far then we're past the suspense
+
 	//
 	// Now that we know we aren't going to throw, let's set up the event listeners
 	//
 
 	// whenever the route changes, we need to make sure the browser's stack is up to date
 	React.useEffect(() => {
-		if (globalThis.window && window.location.pathname !== current) {
-			window.history.pushState({}, '', current)
+		if (globalThis.window && window.location.pathname !== currentURL) {
+			window.history.pushState({}, '', currentURL)
 		}
-	}, [current])
+	}, [currentURL])
 
 	// when we first mount we should start listening to the back button
 	React.useEffect(() => {
@@ -82,7 +84,7 @@ export function Router({
 			return
 		}
 		const onChange = (evt: PopStateEvent) => {
-			setCurrent(window.location.pathname)
+			setCurrentURL(window.location.pathname)
 		}
 		window.addEventListener('popstate', onChange)
 		return () => {
@@ -92,7 +94,9 @@ export function Router({
 
 	// links are powered using anchor tags that we intercept and handle ourselves
 	useLinkBehavior({
-		goto: setCurrent,
+		goto: (val: string) => {
+			setCurrentURL(val)
+		},
 		preload(url: string, which: PreloadWhichValue) {
 			// there are 2 things that we could preload: the page component and the data
 
@@ -116,7 +120,7 @@ export function Router({
 	// its needs
 	return (
 		<VariableContext.Provider value={variables}>
-			<PageComponent url={current} />
+			<PageComponent url={currentURL} key={page.id} />
 		</VariableContext.Provider>
 	)
 }
@@ -148,7 +152,7 @@ function usePageData({
 		data_cache,
 		component_cache,
 		artifact_cache,
-		pending_cache,
+		ssr_signals,
 		last_variables,
 	} = useRouterContext()
 
@@ -157,15 +161,21 @@ function usePageData({
 
 	// the function to load a query using the cache references
 	function load_query({ id, artifact }: { id: string; artifact: QueryArtifact }): Promise<void> {
+		// TODO: better tracking - only register the variables that were used
 		// track the new variables
-		last_variables.set(page.id, variables)
+		for (const artifact of Object.keys(page.documents)) {
+			last_variables.set(artifact, variables)
+		}
+
+		console.log('loading query', artifact.name)
 
 		// TODO: AbortController on send()
 		// TODO: we can read from cache here before making an asynchronous network call
 
 		// if there is a pending request and we were asked to load, don't do anything
-		if (pending_cache.has(id)) {
-			return pending_cache.get(id)!
+		if (ssr_signals.has(id)) {
+			console.log('using ssr signal', id)
+			return ssr_signals.get(id)!
 		}
 
 		// send the request
@@ -177,6 +187,7 @@ function usePageData({
 			resolve = res
 			reject = rej
 
+			console.log('sending query', id, variables)
 			observer
 				.send({
 					variables: variables,
@@ -184,6 +195,7 @@ function usePageData({
 					session,
 				})
 				.then(() => {
+					console.log('resolved query', id, variables)
 					data_cache.set(id, observer)
 
 					// if we are building up a stream (on the server), we want to add something
@@ -191,49 +203,63 @@ function usePageData({
 					// data that we just got
 					injectToStream?.(`
 						<script>
-							window.__houdini__cache__?.hydrate(${cache.serialize()}, window.__houdini__hydration__layer)
+						{
+								window.__houdini__cache__?.hydrate(${cache.serialize()}, window.__houdini__hydration__layer)
 
-							const artifactName = "${artifact.name}"
-							const value = ${JSON.stringify(observer.state.data)}
+								const artifactName = "${artifact.name}"
+								const value = ${JSON.stringify(observer.state.data)}
 
-							// if the data is pending, we need to resolve it
-							if (window.__houdini__nav_caches__?.data_cache.has(artifactName)) {
-								// before we resolve the pending signals,
-								// fill the data cache with values we got on the server
-								const new_store = window.__houdini__client__.observe({
-									artifact: window.__houdini__nav_caches__.artifact_cache.get(artifactName),
-									cache: window.__houdini__cache__,
-									initialValue: value
-								})
+								// if the data is pending, we need to resolve it
+								if (window.__houdini__nav_caches__?.data_cache.has(artifactName)) {
+									// before we resolve the pending signals,
+									// fill the data cache with values we got on the server
+									const new_store = window.__houdini__client__.observe({
+										artifact: window.__houdini__nav_caches__.artifact_cache.get(artifactName),
+										cache: window.__houdini__cache__,
+										initialValue: value,
+									})
 
-								window.__houdini__nav_caches__?.data_cache.set(artifactName, new_store)
-							}
-
-
-							// if there are no data caches available we need to populate the pending one instead
-							if (!window.__houdini__nav_caches__) {
-								if (!window.__houdini__pending_data__) {
-									window.__houdini__pending_data__ = {}
+									window.__houdini__nav_caches__?.data_cache.set(artifactName, new_store)
 								}
 
-								if (!window.__houdini__pending_artifacts__) {
-									window.__houdini__pending_artifacts__ = {}
+
+								// if there are no data caches available we need to populate the pending one instead
+								if (!window.__houdini__nav_caches__) {
+									if (!window.__houdini__pending_data__) {
+										window.__houdini__pending_data__ = {}
+									}
+
+									if (!window.__houdini__pending_variables__) {
+										window.__houdini__pending_variables__ = {}
+									}
+
+									if (!window.__houdini__pending_artifacts__) {
+										window.__houdini__pending_artifacts__ = {}
+									}
+
+									window.__houdini__pending_variables__[artifactName] = ${JSON.stringify(variables)}
+									window.__houdini__pending_data__[artifactName] = value
+									window.__houdini__pending_artifacts__[artifactName] = ${JSON.stringify(artifact)}
 								}
 
-								window.__houdini__pending_data__[artifactName] = value
-								window.__houdini__pending_artifacts__[artifactName] = ${JSON.stringify(artifact)}
-							}
+								// if this payload finishes off an ssr request, we need to resolve the signal
+								if (window.__houdini__nav_caches__?.ssr_signals.has(artifactName)) {
 
-							if (window.__houdini__nav_caches__?.pending_cache.has(artifactName)) {
-								// we're pushing this store onto the client, it should be initialized
-								new_store.send({
-									setup: true,
-									variables: ${JSON.stringify(variables)}
-								})
+									// if the data showed up on the client before
+									if (window.__houdini__nav_caches__.data_cache.has(artifactName)) {
+										// we're pushing this store onto the client, it should be initialized
+										window.__houdini__nav_caches__.data_cache.get(artifactName).send({
+											setup: true,
+											variables: ${JSON.stringify(variables)}
+										})
+									}
 
-								// notify anyone waiting on the pending cache
-								window.__houdini__nav_caches__.pending_cache.get(artifactName).resolve()
-								window.__houdini__nav_caches__.pending_cache.delete(artifactName)
+
+									console.log('clearing ssr signal', artifactName)
+									// trigger the signal
+									window.__houdini__nav_caches__.ssr_signals.get(artifactName).resolve()
+									window.__houdini__nav_caches__.ssr_signals.delete(artifactName)
+								}
 							}
 						</script>
 					`)
@@ -241,27 +267,47 @@ function usePageData({
 					resolve()
 				})
 				.catch(reject)
-				// we're done processing
-				.finally(() => {
-					pending_cache.delete(id)
-				})
 		})
 
-		// add it to the pending cache
-		pending_cache.set(id, { ...promise, resolve, reject })
+		// if we are on the server, we need to save a signal that we can use to
+		// communicate with the client when we're done
+		const resolvable = { ...promise, resolve, reject }
+		if (!globalThis.window) {
+			console.log('setting ssr signal')
+			ssr_signals.set(id, resolvable)
+		}
 
-		// this promise is also what we want to do with the main invocation
-		return pending_cache.get(id)!
+		// we're done
+		return resolvable
 	}
 
 	// the function that loads all of the data for a page using the caches
-	function loadData(targetPage: RouterPageManifest<ComponentType>, variables: {} | null) {
-		// if the variables have changed then we need to clear the data store (so we fetch again)
-		if (
-			last_variables.has(targetPage.id) &&
-			!deepEquals(last_variables.get(targetPage.id), variables)
-		) {
-			data_cache.clear()
+	function loadData(
+		targetPage: RouterPageManifest<ComponentType>,
+		variables: GraphQLVariables | null
+	) {
+		// if any of the artifacts that this page on have new variables, we need to clear the data cache
+		for (const [artifact, { variables: pageVariables }] of Object.entries(
+			targetPage.documents
+		)) {
+			// if there are no last variables, there's nothing to do
+			if (!last_variables.has(artifact)) {
+				continue
+			}
+
+			// compare the last known variables with the current set
+			// const last = last_variables.get(artifact)
+			let last: GraphQLVariables = {}
+			let usedVariables: GraphQLVariables = {}
+			for (const variable of pageVariables) {
+				last[variable] = last_variables.get(artifact)![variable]
+				usedVariables[variable] = (variables ?? {})[variable]
+			}
+
+			// before we can compare we need to only look at the variables that the artifact cares about
+			if (Object.keys(usedVariables ?? {}).length > 0 && !deepEquals(last, usedVariables)) {
+				data_cache.delete(artifact)
+			}
 		}
 
 		// in order to avoid waterfalls, we need to kick off APIs requests in parallel
@@ -350,7 +396,7 @@ export function RouterContextProvider({
 	artifact_cache,
 	component_cache,
 	data_cache,
-	pending_cache,
+	ssr_signals,
 	last_variables,
 	session: ssrSession = {},
 }: {
@@ -360,7 +406,7 @@ export function RouterContextProvider({
 	artifact_cache: SuspenseCache<QueryArtifact>
 	component_cache: SuspenseCache<(props: any) => React.ReactElement>
 	data_cache: SuspenseCache<DocumentStore<GraphQLObject, GraphQLVariables>>
-	pending_cache: PendingCache
+	ssr_signals: PendingCache
 	last_variables: LRUCache<GraphQLVariables>
 	session?: App.Session
 }) {
@@ -392,7 +438,7 @@ export function RouterContextProvider({
 				artifact_cache,
 				component_cache,
 				data_cache,
-				pending_cache,
+				ssr_signals: ssr_signals,
 				last_variables,
 				session,
 			}}
@@ -418,7 +464,7 @@ type RouterContext = {
 	data_cache: SuspenseCache<DocumentStore<GraphQLObject, GraphQLVariables>>
 
 	// A way to dedupe requests for a query
-	pending_cache: PendingCache
+	ssr_signals: PendingCache
 
 	// A way to track the last known good variables
 	last_variables: LRUCache<GraphQLVariables>
@@ -437,7 +483,6 @@ export const useRouterContext = () => {
 	const ctx = React.useContext(Context)
 
 	if (!ctx) {
-		console.log(ctx)
 		throw new Error('Could not find router context')
 	}
 
@@ -478,7 +523,6 @@ export function useQueryResult<_Data extends GraphQLObject, _Input extends Graph
 		_Data,
 		_Input
 	>
-
 	// get the live data from the store
 	const [{ data }, observer] = useDocumentStore<_Data, _Input>({
 		artifact: store_ref.artifact,
@@ -513,45 +557,55 @@ function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 
 	React.useEffect(() => {
 		const onClick: HTMLAnchorElement['onclick'] = (e) => {
+			if (!e.target) {
+				return
+			}
+
 			const link = (e.target as HTMLElement | null | undefined)?.closest('a')
+			// its a link we want to handle so don't navigate like normal
 
 			// we only want to capture a "normal click" ie something that indicates a route transition
 			// in the current tab
 			// courtesy of: https://gist.github.com/devongovett/919dc0f06585bd88af053562fd7c41b7
 			if (
-				link &&
-				link instanceof HTMLAnchorElement &&
-				link.href &&
-				(!link.target || link.target === '_self') &&
-				link.origin === location.origin &&
-				!link.hasAttribute('download') &&
-				e.button === 0 && // left clicks only
-				!e.metaKey && // open in new tab (mac)
-				!e.ctrlKey && // open in new tab (windows)
-				!e.altKey && // download
-				!e.shiftKey &&
-				!e.defaultPrevented
+				!(
+					link &&
+					link instanceof HTMLAnchorElement &&
+					link.href &&
+					(!link.target || link.target === '_self') &&
+					link.origin === location.origin &&
+					!link.hasAttribute('download') &&
+					e.button === 0 && // left clicks only
+					!e.metaKey && // open in new tab (mac)
+					!e.ctrlKey && // open in new tab (windows)
+					!e.altKey && // download
+					!e.shiftKey &&
+					!e.defaultPrevented
+				)
 			) {
-				// we need to figure out the target url by looking at the href attribute
-				const target = link.attributes.getNamedItem('href')?.value
-				// make sure its a link we recognize
-				if (!target || !target.startsWith('/')) {
-					return
-				}
-
-				// its a link we want to handle so don't navigate like normal
-				e.preventDefault()
-
-				// go to the next route as a low priority update
-				startTransition(() => {
-					goto(target)
-				})
+				return
 			}
+
+			// we need to figure out the target url by looking at the href attribute
+			const target = link.attributes.getNamedItem('href')?.value
+			// make sure its a link we recognize
+			if (!target || !target.startsWith('/')) {
+				return
+			}
+
+			// its a link we want to handle so don't navigate like normal
+			e.preventDefault()
+			e.stopPropagation()
+
+			// go to the next route as a low priority update
+			startTransition(() => {
+				goto(target)
+			})
 		}
 
-		document.addEventListener('click', onClick)
+		window.addEventListener('click', onClick)
 		return () => {
-			document.removeEventListener('click', onClick!)
+			window.removeEventListener('click', onClick!)
 		}
 	}, [])
 }
@@ -611,7 +665,7 @@ export type RouterCache = {
 	component_cache: SuspenseCache<(props: any) => React.ReactElement>
 	data_cache: SuspenseCache<DocumentStore<GraphQLObject, GraphQLVariables>>
 	last_variables: LRUCache<GraphQLVariables>
-	pending_cache: PendingCache
+	ssr_signals: PendingCache
 }
 
 export function router_cache({
@@ -619,25 +673,27 @@ export function router_cache({
 	artifacts = {},
 	components = {},
 	initialData = {},
+	initialVariables = {},
 	initialArtifacts = {},
 }: {
 	pending_queries?: string[]
 	artifacts?: Record<string, QueryArtifact>
 	components?: Record<string, (props: any) => React.ReactElement>
 	initialData?: Record<string, DocumentStore<GraphQLObject, GraphQLVariables>>
+	initialVariables?: Record<string, GraphQLVariables>
 	initialArtifacts?: Record<string, QueryArtifact>
 } = {}): RouterCache {
 	const result: RouterCache = {
 		artifact_cache: suspense_cache(initialArtifacts),
 		component_cache: suspense_cache(),
 		data_cache: suspense_cache(initialData),
-		pending_cache: suspense_cache(),
+		ssr_signals: suspense_cache(),
 		last_variables: suspense_cache(),
 	}
 
 	// we need to fill each query with an externally resolvable promise
 	for (const query of pending_queries) {
-		result.pending_cache.set(query, signal_promise())
+		result.ssr_signals.set(query, signal_promise())
 	}
 
 	for (const [name, artifact] of Object.entries(artifacts)) {
@@ -646,6 +702,10 @@ export function router_cache({
 
 	for (const [name, component] of Object.entries(components)) {
 		result.component_cache.set(name, component)
+	}
+
+	for (const [name, variables] of Object.entries(initialVariables)) {
+		result.last_variables.set(name, variables)
 	}
 
 	return result
