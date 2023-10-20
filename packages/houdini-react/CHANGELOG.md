@@ -1,5 +1,18 @@
 # houdini-react
 
+## 1.2.28
+
+### Patch Changes
+
+-   [#1216](https://github.com/HoudiniGraphql/houdini/pull/1216) [`d7fe2be4`](https://github.com/HoudiniGraphql/houdini/commit/d7fe2be4087d7da37d454d0da3071a521f8e84e6) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Stabilize react deployments
+
+-   [#1176](https://github.com/HoudiniGraphql/houdini/pull/1176) [`a5d6a842`](https://github.com/HoudiniGraphql/houdini/commit/a5d6a8428142e1848bea28dcf88484a5a9aa2660) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Added experimental support for componentFields
+
+-   [#1216](https://github.com/HoudiniGraphql/houdini/pull/1216) [`d7fe2be4`](https://github.com/HoudiniGraphql/houdini/commit/d7fe2be4087d7da37d454d0da3071a521f8e84e6) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix session redirects
+
+-   Updated dependencies []:
+    -   houdini@1.2.28
+
 ## 1.2.27
 
 ### Dependency Changes
