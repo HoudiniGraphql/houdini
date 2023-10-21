@@ -1,5 +1,11 @@
 # create-houdini
 
+## 1.2.29
+
+### Patch Changes
+
+-   [#1220](https://github.com/HoudiniGraphql/houdini/pull/1220) [`4388b76f`](https://github.com/HoudiniGraphql/houdini/commit/4388b76fdaa356b9ff23250016c7f0932562d08e) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Bring in sync with other packages
+
 ## 1.2.28
 
 ## 1.2.27
