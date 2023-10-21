@@ -1,5 +1,12 @@
 # houdini-adapter-auto
 
+## 1.2.29
+
+### Patch Changes
+
+-   Updated dependencies []:
+    -   houdini@1.2.29
+
 ## 1.2.28
 
 ### Patch Changes
