@@ -1,6 +1,6 @@
 # create-houdini
 
-## 1.2.29
+## 1.2.30
 
 ### Patch Changes
 

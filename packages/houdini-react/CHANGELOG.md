@@ -1,11 +1,11 @@
 # houdini-react
 
-## 1.2.29
+## 1.2.30
 
 ### Patch Changes
 
 -   Updated dependencies []:
-    -   houdini@1.2.29
+    -   houdini@1.2.30
 
 ## 1.2.28
 
