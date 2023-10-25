@@ -67,6 +67,11 @@ export function find_exported_fn(
 				init = init.expression
 			}
 
+			//if the value is a CallExpression the actual FunctionExpression can reside inside the arguments array, see https://github.com/HoudiniGraphql/houdini/issues/1137
+			if (init.type === "CallExpression") {
+				init = init.arguments[0];
+		      	}
+
 			if (init.type === 'FunctionExpression' || init.type === 'ArrowFunctionExpression') {
 				return init
 			}
