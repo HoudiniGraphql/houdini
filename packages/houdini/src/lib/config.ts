@@ -196,8 +196,25 @@ export class Config {
 			this.plugins.flatMap((plugin) => plugin.extensions ?? [])
 		)
 
-		// any file of a valid extension in src is good enough
-		return [`src/**/*{${extensions.join(',')}}`]
+		// by default, any file of a valid extension in src is good enough
+		const include = [`src/**/*{${extensions.join(',')}}`]
+
+		// if any of the plugins specify included runtimes then their paths might have
+		// documents
+		for (const plugin of this.plugins) {
+			// skip plugins that dont' include runtimes
+			if (!plugin.includeRuntime) {
+				continue
+			}
+
+			// the include path is relative to root of the vite project
+			const includePath = path.relative(this.projectRoot, this.pluginDirectory(plugin.name))
+
+			// add the plugin's directory to the include pile
+			include.push(`${includePath}/**/*{${extensions.join(',')}}`)
+		}
+
+		return include
 	}
 
 	pluginConfig<ConfigType extends {}>(name: string): ConfigType {
