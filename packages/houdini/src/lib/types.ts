@@ -138,6 +138,13 @@ export type PluginHooks = {
 	includeRuntime?: string | { esm: string; commonjs: string }
 
 	/**
+	 * A relative path from the file exporting your plugin to a runtime that can be
+	 * added to the project before generating artifacts. This is useful for plugins
+	 * that want to add third-party documents to the user's application.
+	 */
+	staticRuntime?: string | { esm: string; commonjs: string }
+
+	/**
 	 * Transform the plugin's runtime while houdini is copying it .
 	 * You must have passed a value to includeRuntime for this hook to matter.
 	 */

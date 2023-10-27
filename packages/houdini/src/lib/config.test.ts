@@ -106,3 +106,19 @@ test(`Files that should not be included`, async () => {
 	expect(config.includeFile(path.join(process.cwd(), 'src/routes/test?'))).toBe(false)
 	expect(config.includeFile(path.join(process.cwd(), 'src/rou?tes/page.nop?s?e'))).toBe(false)
 })
+
+test('Config.include includes plugin runtimes', () => {
+	const config = testConfig()
+
+	config.plugins = [
+		{
+			name: 'test-plugin',
+			filepath: '',
+			includeRuntime: 'foo',
+		},
+	]
+
+	// make sure we are including the plugin runtime
+	const includePath = path.relative(config.projectRoot, config.pluginDirectory('test-plugin'))
+	expect(config.include.some((path) => path.includes(includePath))).toBeTruthy()
+})

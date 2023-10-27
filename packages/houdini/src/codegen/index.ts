@@ -4,11 +4,16 @@ import type { Config, PluginHooks, Document, LogLevels } from '../lib'
 import { runPipeline as run, LogLevel, find_graphql, parseJS, HoudiniError, fs, path } from '../lib'
 import { ArtifactKind, type ArtifactKinds } from '../runtime/lib/types'
 import * as generators from './generators'
+import { generatePluginRuntimes } from './generators/runtime'
 import * as transforms from './transforms'
 import * as validators from './validators'
 
 // the main entry point of the compile script
 export default async function compile(config: Config) {
+	// before we collect the documents, we need to generate the plugin runtimes
+	// so that they can include documents in the user's project
+	await generatePluginRuntimes({ config })
+
 	// grab the graphql documents
 	const documents = await collectDocuments(config)
 
