@@ -1,5 +1,11 @@
 # houdini
 
+## 1.2.32
+
+### Patch Changes
+
+-   [#1223](https://github.com/HoudiniGraphql/houdini/pull/1223) [`ae73932d`](https://github.com/HoudiniGraphql/houdini/commit/ae73932da26e9e960dfeb916536048ab99701e98) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Plugin runtimes are now generated before documents are collected
+
 ## 1.2.31
 
 ## 1.2.28
