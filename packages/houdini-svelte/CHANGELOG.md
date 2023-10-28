@@ -4,21 +4,25 @@
 
 ### Patch Changes
 
--   [#1222](https://github.com/HoudiniGraphql/houdini/pull/1222) [`7ae3abc5`](https://github.com/HoudiniGraphql/houdini/commit/7ae3abc527a9c19d27ab97a26bfd06e1310c859e) Thanks [@eikaramba](https://github.com/eikaramba)! - Fix bug extending load functions that are wrapped by a utility
+### 🐛 Fixes
+
+-   [#1222](https://github.com/HoudiniGraphql/houdini/pull/1222) [`7ae3abc5`](https://github.com/HoudiniGraphql/houdini/commit/7ae3abc527a9c19d27ab97a26bfd06e1310c859e) @eikaramba - Fix bug extending load functions that are wrapped by a utility
+
+### Dependency Changes
 
 -   Updated dependencies [[`ae73932d`](https://github.com/HoudiniGraphql/houdini/commit/ae73932da26e9e960dfeb916536048ab99701e98)]:
     -   houdini@1.2.32
 
 ## 1.2.31
 
-### Patch Changes
+### Dependency Changes
 
 -   Updated dependencies []:
     -   houdini@1.2.31
 
 ## 1.2.28
 
-### Patch Changes
+### Dependency Changes
 
 -   Updated dependencies []:
     -   houdini@1.2.28
