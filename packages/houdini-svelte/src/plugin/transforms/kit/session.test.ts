@@ -27,6 +27,31 @@ test('modifies root +layout.svelte with data prop', async function () {
 	`)
 })
 
+test('export const load', async function () {
+	const result = await test_transform_js(
+		'src/routes/+layout.server.js',
+		`
+		export const load = loadFlash(async () => {
+				"some random stuff that's valid javascript"
+			})
+		`
+	)
+
+	expect(result).toMatchInlineSnapshot(`
+		import { buildSessionObject } from "$houdini/plugins/houdini-svelte/runtime/session";
+
+		export const load = loadFlash(async event => {
+		    "some random stuff that's valid javascript";
+		    const __houdini__vite__plugin__return__value__ = {};
+
+		    return {
+		        ...buildSessionObject(event),
+		        ...__houdini__vite__plugin__return__value__
+		    };
+		});
+	`)
+})
+
 test('modifies root +layout.svelte without data prop', async function () {
 	// run the test
 	const result = await test_transform_svelte('src/routes/+layout.svelte', ``)
