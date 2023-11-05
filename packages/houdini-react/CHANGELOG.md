@@ -2,14 +2,14 @@
 
 ## 1.2.33
 
-### Patch Changes
+### Dependency Changes
 
 -   Updated dependencies [[`1a736fc2`](https://github.com/HoudiniGraphql/houdini/commit/1a736fc23aefbfcc7b003d5d1d194ee37c8a8ecb)]:
     -   houdini@1.2.33
 
 ## 1.2.32
 
-### Patch Changes
+### Dependency Changes
 
 -   Updated dependencies [[`ae73932d`](https://github.com/HoudiniGraphql/houdini/commit/ae73932da26e9e960dfeb916536048ab99701e98)]:
     -   houdini@1.2.32
@@ -23,13 +23,17 @@
 
 ## 1.2.28
 
-### Patch Changes
+### ✨ Features
 
--   [#1216](https://github.com/HoudiniGraphql/houdini/pull/1216) [`d7fe2be4`](https://github.com/HoudiniGraphql/houdini/commit/d7fe2be4087d7da37d454d0da3071a521f8e84e6) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Stabilize react deployments
+-   [#1216](https://github.com/HoudiniGraphql/houdini/pull/1216) [`d7fe2be4`](https://github.com/HoudiniGraphql/houdini/commit/d7fe2be4087d7da37d454d0da3071a521f8e84e6) @AlecAivazis - Stabilize react deployments
 
--   [#1176](https://github.com/HoudiniGraphql/houdini/pull/1176) [`a5d6a842`](https://github.com/HoudiniGraphql/houdini/commit/a5d6a8428142e1848bea28dcf88484a5a9aa2660) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Added experimental support for componentFields
+-   [#1176](https://github.com/HoudiniGraphql/houdini/pull/1176) [`a5d6a842`](https://github.com/HoudiniGraphql/houdini/commit/a5d6a8428142e1848bea28dcf88484a5a9aa2660) @AlecAivazis - Added experimental support for componentFields
 
--   [#1216](https://github.com/HoudiniGraphql/houdini/pull/1216) [`d7fe2be4`](https://github.com/HoudiniGraphql/houdini/commit/d7fe2be4087d7da37d454d0da3071a521f8e84e6) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix session redirects
+### 🐛 Fixes
+
+-   [#1216](https://github.com/HoudiniGraphql/houdini/pull/1216) [`d7fe2be4`](https://github.com/HoudiniGraphql/houdini/commit/d7fe2be4087d7da37d454d0da3071a521f8e84e6) @AlecAivazis - Fix session redirects
+
+### Dependency Changes
 
 -   Updated dependencies []:
     -   houdini@1.2.28
@@ -45,7 +49,7 @@
 
 ### 🐛 Fixes
 
--   [#1205](https://github.com/HoudiniGraphql/houdini/pull/1205) [`e05f1c25`](https://github.com/HoudiniGraphql/houdini/commit/e05f1c250edb48722ee45c2a62de72f4a19d3357) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix invalid import during dev
+-   [#1205](https://github.com/HoudiniGraphql/houdini/pull/1205) [`e05f1c25`](https://github.com/HoudiniGraphql/houdini/commit/e05f1c250edb48722ee45c2a62de72f4a19d3357) @AlecAivazis - Fix invalid import during dev
 
 ### Dependency Changes
 
@@ -56,7 +60,7 @@
 
 ### Dependency Changes
 
--   [`0c81de6c`](https://github.com/HoudiniGraphql/houdini/commit/0c81de6ca4a266a646948a09bdc83428379504f3) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Improve integration with vite dev server
+-   [`0c81de6c`](https://github.com/HoudiniGraphql/houdini/commit/0c81de6ca4a266a646948a09bdc83428379504f3) @AlecAivazis - Improve integration with vite dev server
 
 -   Updated dependencies []:
     -   houdini@1.2.25
@@ -65,7 +69,7 @@
 
 ### Dependency Changes
 
--   [`d5559503`](https://github.com/HoudiniGraphql/houdini/commit/d55595038b95ccef3e19860e10af63a014a039fa) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix base url in dev mod
+-   [`d5559503`](https://github.com/HoudiniGraphql/houdini/commit/d55595038b95ccef3e19860e10af63a014a039fa) @AlecAivazis - Fix base url in dev mod
 
 -   Updated dependencies []:
     -   houdini@1.2.24
@@ -74,7 +78,7 @@
 
 ### 🐛 Fixes
 
--   [#1196](https://github.com/HoudiniGraphql/houdini/pull/1196) [`e92ea8fd`](https://github.com/HoudiniGraphql/houdini/commit/e92ea8fd7322789fccb124ccd9e1d8bb2149059e) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix hot module reloading
+-   [#1196](https://github.com/HoudiniGraphql/houdini/pull/1196) [`e92ea8fd`](https://github.com/HoudiniGraphql/houdini/commit/e92ea8fd7322789fccb124ccd9e1d8bb2149059e) @AlecAivazis - Fix hot module reloading
 
 ### Dependency Changes
 
@@ -99,7 +103,7 @@
 
 ### 🐛 Fixes
 
--   [#1186](https://github.com/HoudiniGraphql/houdini/pull/1186) [`bcc8b969`](https://github.com/HoudiniGraphql/houdini/commit/bcc8b969df9d26f140be034b2390487328762f74) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Build and dev can both run on a fresh project
+-   [#1186](https://github.com/HoudiniGraphql/houdini/pull/1186) [`bcc8b969`](https://github.com/HoudiniGraphql/houdini/commit/bcc8b969df9d26f140be034b2390487328762f74) @AlecAivazis - Build and dev can both run on a fresh project
 
 ### Dependency Changes
 
@@ -117,7 +121,7 @@
 
 ### 🐛 Fixes
 
--   [`7f6432a6`](https://github.com/HoudiniGraphql/houdini/commit/7f6432a6be5bd7bb7831f21ebe134698f1e2f072) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Get all packages at same version
+-   [`7f6432a6`](https://github.com/HoudiniGraphql/houdini/commit/7f6432a6be5bd7bb7831f21ebe134698f1e2f072) @AlecAivazis - Get all packages at same version
 
 ### Dependency Changes
 
@@ -128,7 +132,7 @@
 
 ### 🐛 Fixes
 
--   [`245c8a23`](https://github.com/HoudiniGraphql/houdini/commit/245c8a23ef9cb46609e1f052eabb67a95ee4d3cd) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix generated path in fallbacks
+-   [`245c8a23`](https://github.com/HoudiniGraphql/houdini/commit/245c8a23ef9cb46609e1f052eabb67a95ee4d3cd) @AlecAivazis - Fix generated path in fallbacks
 
 ### Dependency Changes
 
@@ -139,7 +143,7 @@
 
 ### 🐛 Fixes
 
--   [#1179](https://github.com/HoudiniGraphql/houdini/pull/1179) [`20702a9c`](https://github.com/HoudiniGraphql/houdini/commit/20702a9c3bb1cd87a54976dd3b686e4e715df263) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix another bug when deploying a fresh installation
+-   [#1179](https://github.com/HoudiniGraphql/houdini/pull/1179) [`20702a9c`](https://github.com/HoudiniGraphql/houdini/commit/20702a9c3bb1cd87a54976dd3b686e4e715df263) @AlecAivazis - Fix another bug when deploying a fresh installation
 
 ### Dependency Changes
 
@@ -150,7 +154,7 @@
 
 ### 🐛 Fixes
 
--   [#1177](https://github.com/HoudiniGraphql/houdini/pull/1177) [`8831c147`](https://github.com/HoudiniGraphql/houdini/commit/8831c14752920d868bab0f6e7ccbe34c85a3067b) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix error preventing succesfull build
+-   [#1177](https://github.com/HoudiniGraphql/houdini/pull/1177) [`8831c147`](https://github.com/HoudiniGraphql/houdini/commit/8831c14752920d868bab0f6e7ccbe34c85a3067b) @AlecAivazis - Fix error preventing succesfull build
 
 ### Dependency Changes
 
@@ -288,7 +292,7 @@
 
 ### ✨ Features
 
--   [#1044](https://github.com/HoudiniGraphql/houdini/pull/1044) [`987a6f2`](https://github.com/HoudiniGraphql/houdini/commit/987a6f24b3fd453dafdbc03ae2de610a8c4cd257) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add suspense integration
+-   [#1044](https://github.com/HoudiniGraphql/houdini/pull/1044) [`987a6f2`](https://github.com/HoudiniGraphql/houdini/commit/987a6f24b3fd453dafdbc03ae2de610a8c4cd257) @AlecAivazis - Add suspense integration
 
 ### Dependency Changes
 
