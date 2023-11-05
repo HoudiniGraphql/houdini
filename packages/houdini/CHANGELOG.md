@@ -1,5 +1,11 @@
 # houdini
 
+## 1.2.33
+
+### Patch Changes
+
+-   [#1226](https://github.com/HoudiniGraphql/houdini/pull/1226) [`1a736fc2`](https://github.com/HoudiniGraphql/houdini/commit/1a736fc23aefbfcc7b003d5d1d194ee37c8a8ecb) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug causing inifinite loops in vite dev server
+
 ## 1.2.32
 
 ### ✨ Features
