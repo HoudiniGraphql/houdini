@@ -1,9 +1,10 @@
 import { exportDefault, exportStarFrom, importDefaultFrom } from '../../../codegen/utils'
 import type { Config, Document } from '../../../lib'
-import { siteURL as SITE_URL, fs, HoudiniError, path, houdini_mode } from '../../../lib'
+import { siteURL as SITE_URL, fs, path } from '../../../lib'
 import generateGraphqlReturnTypes from './graphqlFunction'
 import injectPlugins from './injectPlugins'
 import { generatePluginIndex } from './pluginIndex'
+import { generatePluginRuntimes } from './pluginRuntime'
 import { injectConfig } from './runtimeConfig'
 
 export default async function runtimeGenerator(config: Config, docs: Document[]) {
@@ -40,89 +41,18 @@ ${exportStatement('config')}
 				content
 			) => injectPlugins({ config, content, importStatement, exportStatement }),
 		}),
-		transformPluginRuntimes({ config, docs }),
+
+		generatePluginRuntimes({
+			config,
+			docs,
+		}),
 		generatePluginIndex({ config, exportStatement: exportStar }),
 	])
 
 	await generateGraphqlReturnTypes(config, docs)
 }
 
-export async function generatePluginRuntimes({ config }: { config: Config }) {
-	await Promise.all(
-		config.plugins
-			.filter((plugin) => plugin.includeRuntime)
-			.map(async (plugin) => {
-				if (houdini_mode.is_testing || !plugin.includeRuntime) {
-					return
-				}
-
-				// a plugin has told us to include a runtime then the path is relative to the plugin file
-				const runtime_path = path.join(
-					path.dirname(plugin.filepath),
-					typeof plugin.includeRuntime === 'string'
-						? plugin.includeRuntime
-						: plugin.includeRuntime[config.module]
-				)
-
-				try {
-					await fs.stat(runtime_path)
-				} catch {
-					throw new HoudiniError({
-						message: 'Cannot find runtime to generate for ' + plugin.name,
-						description: 'Maybe it was bundled?',
-					})
-				}
-
-				// copy the runtime
-				const pluginDir = config.pluginRuntimeDirectory(plugin.name)
-
-				await fs.mkdirp(pluginDir)
-				await fs.recursiveCopy(runtime_path, pluginDir)
-			})
-	)
-}
-
-async function transformPluginRuntimes({ config, docs }: { config: Config; docs: Document[] }) {
-	const { importStatement, exportDefaultStatement, exportStarStatement } = moduleStatments(config)
-
-	await Promise.all(
-		config.plugins
-			.filter((plugin) => plugin.includeRuntime)
-			.map(async (plugin) => {
-				// the transform map holds a map of files to transform functions
-				let transformMap = plugin.transformRuntime ?? {}
-				if (transformMap && typeof transformMap === 'function') {
-					transformMap = transformMap(docs, { config })
-				}
-
-				// the keys of the transform map are the files we have to transform
-				for (const [target, transform] of Object.entries(transformMap)) {
-					// the path to the file we're transforming
-					const targetPath = path.join(config.pluginRuntimeDirectory(plugin.name), target)
-
-					// read the file
-					const content = await fs.readFile(targetPath)
-					if (!content) {
-						return
-					}
-
-					// transform the file
-					const transformed = transform({
-						config,
-						content,
-						importStatement,
-						exportDefaultStatement: exportDefaultStatement,
-						exportStarStatement: exportStarStatement,
-					})
-
-					// write the file back out
-					await fs.writeFile(targetPath, transformed)
-				}
-			})
-	)
-}
-
-function moduleStatments(config: Config) {
+export function moduleStatments(config: Config) {
 	const importStatement =
 		config.module === 'commonjs'
 			? importDefaultFrom

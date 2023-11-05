@@ -202,13 +202,15 @@ export class Config {
 		// if any of the plugins specify included runtimes then their paths might have
 		// documents
 		for (const plugin of this.plugins) {
+			const runtimeDir = this.pluginRuntimeSource(plugin)
+
 			// skip plugins that dont' include runtimes
-			if (!plugin.includeRuntime) {
+			if (!runtimeDir) {
 				continue
 			}
 
 			// the include path is relative to root of the vite project
-			const includePath = path.relative(this.projectRoot, this.pluginDirectory(plugin.name))
+			const includePath = path.relative(this.projectRoot, runtimeDir)
 
 			// add the plugin's directory to the include pile
 			include.push(`${includePath}/**/*{${extensions.join(',')}}`)
@@ -278,6 +280,19 @@ export class Config {
 
 		// we're done
 		return headers
+	}
+
+	pluginRuntimeSource(plugin: PluginMeta) {
+		if (!plugin.includeRuntime) {
+			return null
+		}
+
+		return path.join(
+			path.dirname(plugin.filepath),
+			typeof plugin.includeRuntime === 'string'
+				? plugin.includeRuntime
+				: plugin.includeRuntime?.[this.module]
+		)
 	}
 
 	async sourceFiles() {

@@ -119,6 +119,9 @@ test('Config.include includes plugin runtimes', () => {
 	]
 
 	// make sure we are including the plugin runtime
-	const includePath = path.relative(config.projectRoot, config.pluginDirectory('test-plugin'))
+	const includePath = path.relative(
+		config.projectRoot,
+		config.pluginRuntimeSource(config.plugins[0])!
+	)
 	expect(config.include.some((path) => path.includes(includePath))).toBeTruthy()
 })

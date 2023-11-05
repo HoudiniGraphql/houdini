@@ -167,14 +167,11 @@ function usePageData({
 			last_variables.set(artifact, variables)
 		}
 
-		console.log('loading query', artifact.name)
-
 		// TODO: AbortController on send()
 		// TODO: we can read from cache here before making an asynchronous network call
 
 		// if there is a pending request and we were asked to load, don't do anything
 		if (ssr_signals.has(id)) {
-			console.log('using ssr signal', id)
 			return ssr_signals.get(id)!
 		}
 
@@ -187,7 +184,6 @@ function usePageData({
 			resolve = res
 			reject = rej
 
-			console.log('sending query', id, variables)
 			observer
 				.send({
 					variables: variables,
@@ -195,7 +191,6 @@ function usePageData({
 					session,
 				})
 				.then(() => {
-					console.log('resolved query', id, variables)
 					data_cache.set(id, observer)
 
 					// if we are building up a stream (on the server), we want to add something
@@ -255,7 +250,6 @@ function usePageData({
 									}
 
 
-									console.log('clearing ssr signal', artifactName)
 									// trigger the signal
 									window.__houdini__nav_caches__.ssr_signals.get(artifactName).resolve()
 									window.__houdini__nav_caches__.ssr_signals.delete(artifactName)
