@@ -459,6 +459,18 @@ export const resolvers = {
 			listB.push(b)
 			return b
 		},
+		signIn: (_, args) => {
+			// 1/ Check the database
+			// 2/ Generate / get the token
+			const token = args.login + '-' + args.password[0]
+
+			// fake wrong login...
+			if (args.login === 'admin') {
+				throw new GraphQLError('No authorization found', { code: 403 })
+			}
+
+			return token
+		},
 	},
 
 	DateTime: new GraphQLScalarType({

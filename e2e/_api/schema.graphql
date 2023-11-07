@@ -51,6 +51,7 @@ type Mutation {
 	updateRentedBook(userId: String!, bookId: Int!, rate: Int!): RentedBook
 	createA(a: String!): A!
 	createB(b: String!): B!
+	signIn(login: String!, password: String!): String!
 }
 
 interface Node {
