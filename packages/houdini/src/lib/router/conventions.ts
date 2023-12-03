@@ -98,7 +98,7 @@ export function page_id(path: string) {
 	if (path.endsWith('/') && path.length > 1) {
 		path = path.substring(0, path.length - 1)
 	}
-	const special_chars = ['/', ']', '[', '(', ')']
+	const special_chars = ['/', ']', '[', '(', ')', '-']
 	const mask = '_'
 
 	let copy = ''
