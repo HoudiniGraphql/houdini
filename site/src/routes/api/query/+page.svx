@@ -97,7 +97,7 @@ A query store holds an object with the following fields that accessed like `$sto
 ### Methods
 
 A query store has the following methods that invoked without the $, ie `store.fetch(...)`:
-
+- `fetch` expects `store.fetch({ variables: {/* variables */} });`
 - `fetch` is a function that can be used to load the most recent data from your API (subject to its [Cache Policy](/guides/caching-data)). If you want to force the request to always resolve against the API, set `policy: 'NetworkOnly'`.
 
 ## Automatic Loading
