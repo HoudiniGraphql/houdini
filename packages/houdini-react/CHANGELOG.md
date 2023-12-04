@@ -2,9 +2,11 @@
 
 ## 1.2.34
 
-### Patch Changes
+### 🐛 Fixes
 
 -   [#1236](https://github.com/HoudiniGraphql/houdini/pull/1236) [`1ff715bd`](https://github.com/HoudiniGraphql/houdini/commit/1ff715bd8810c6d934a68bc47b581b2317582c9f) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug when dash present in route name
+
+### Dependency Changes
 
 -   Updated dependencies []:
     -   houdini@1.2.34
