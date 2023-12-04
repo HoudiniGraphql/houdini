@@ -1,5 +1,12 @@
 # houdini-adapter-auto
 
+## 1.2.34
+
+### Dependency Changes
+
+-   Updated dependencies []:
+    -   houdini@1.2.34
+
 ## 1.2.33
 
 ### Dependency Changes
