@@ -3,6 +3,7 @@ import { load_ListAll } from '$houdini';
 
 export const load: PageLoad = async (event) => {
   const limit = parseInt(event.url.searchParams.get('limit') ?? '1', 10);
+  console.log(`limit`, limit);
 
   return {
     ...(await load_ListAll({ event, variables: { limit } }))

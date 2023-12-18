@@ -7,5 +7,5 @@ export const load: PageServerLoad = async (event) => {
   }
 
   // fallback to a default TAB if not set
-  throw redirect(307, event.url.pathname + '/birth');
+  redirect(307, event.url.pathname + '/birth');
 };
