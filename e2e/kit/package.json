@@ -35,7 +35,7 @@
     "e2e-api": "workspace:^",
     "eslint": "^8.3.0",
     "eslint-config-prettier": "^8.6.0",
-    "eslint-plugin-svelte3": "^4.0.0",
+    "eslint-plugin-svelte": "^2.35.0",
     "houdini": "workspace:^",
     "houdini-plugin-svelte-global-stores": "workspace:^",
     "houdini-svelte": "workspace:^",
