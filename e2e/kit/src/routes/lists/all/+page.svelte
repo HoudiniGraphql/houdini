@@ -15,8 +15,7 @@
   async function updateQS() {
     $page.url.searchParams.set('limit', limit.toString());
     const newUrl = $page.url.href;
-    await invalidate(newUrl);
-    await goto(newUrl, { replaceState: true, keepFocus: true });
+    await goto(newUrl, { keepFocus: true, invalidateAll: true });
   }
 
   const add = async () => {
