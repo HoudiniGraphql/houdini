@@ -112,6 +112,7 @@ type User implements Node {
 	name: String!
 	enumValue: MyEnum
 	types: [TypeOfUser!]!
+	testField(someParam: Boolean!): String
 }
 
 interface Animal implements Node {
