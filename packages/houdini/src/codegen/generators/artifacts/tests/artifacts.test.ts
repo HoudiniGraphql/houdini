@@ -6176,6 +6176,12 @@ test('nested abstract fragment on connection', async function () {
 		                                                            "type": "String",
 		                                                            "keyRaw": "__typename"
 		                                                        }
+		                                                    },
+
+		                                                    "fragments": {
+		                                                        "AnimalProps": {
+		                                                            "arguments": {}
+		                                                        }
 		                                                    }
 		                                                },
 
@@ -6267,6 +6273,12 @@ test('nested abstract fragment on connection', async function () {
 		                                                    "type": "String",
 		                                                    "keyRaw": "__typename"
 		                                                }
+		                                            },
+
+		                                            "fragments": {
+		                                                "AnimalProps": {
+		                                                    "arguments": {}
+		                                                }
 		                                            }
 		                                        },
 
@@ -6327,6 +6339,10 @@ test('nested abstract fragment on connection', async function () {
 
 		                    "fragments": {
 		                        "MonkeyList": {
+		                            "arguments": {}
+		                        },
+
+		                        "AnimalList": {
 		                            "arguments": {}
 		                        }
 		                    }
@@ -6479,6 +6495,12 @@ test('nested abstract fragments', async function () {
 		                                                "__typename": {
 		                                                    "type": "String",
 		                                                    "keyRaw": "__typename"
+		                                                }
+		                                            },
+
+		                                            "fragments": {
+		                                                "MonkeyFragment": {
+		                                                    "arguments": {}
 		                                                }
 		                                            }
 		                                        },

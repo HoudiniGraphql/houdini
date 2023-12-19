@@ -55,6 +55,7 @@ test('fragments of unions inject correctly', function () {
 				}
 			}
 		`),
+		hasComponents: () => {},
 	})
 
 	expect(artifactSelection).toMatchInlineSnapshot(`
@@ -1115,11 +1116,27 @@ test('componentFields get embedded in the selection', async function () {
 		                            },
 
 		                            "visible": true
+		                        },
+
+		                        "FriendList": {
+		                            "keyRaw": "FriendList",
+		                            "type": "Component",
+
+		                            "component": {
+		                                "prop": "user",
+		                                "key": "User.FriendList",
+		                                "fragment": "FriendList",
+		                                "variables": {}
+		                            }
 		                        }
 		                    },
 
 		                    "fragments": {
 		                        "UserAvatar": {
+		                            "arguments": {}
+		                        },
+
+		                        "FriendList": {
 		                            "arguments": {}
 		                        }
 		                    }

@@ -494,6 +494,19 @@ test('thread query variables to inner fragments', async function () {
 		                        }
 		                    }
 		                }
+		            },
+
+		            "InnerFragment": {
+		                "arguments": {
+		                    "name": {
+		                        "kind": "Variable",
+
+		                        "name": {
+		                            "kind": "Name",
+		                            "value": "name"
+		                        }
+		                    }
+		                }
 		            }
 		        }
 		    },
@@ -607,6 +620,15 @@ test('inner fragment with intermediate default value', async function () {
 		        "fragments": {
 		            "QueryFragment": {
 		                "arguments": {}
+		            },
+
+		            "InnerFragment": {
+		                "arguments": {
+		                    "name": {
+		                        "kind": "StringValue",
+		                        "value": "Hello"
+		                    }
+		                }
 		            }
 		        }
 		    },
@@ -711,6 +733,15 @@ test("default values don't overwrite unless explicitly passed", async function (
 		        "fragments": {
 		            "QueryFragment": {
 		                "arguments": {}
+		            },
+
+		            "InnerFragment": {
+		                "arguments": {
+		                    "other": {
+		                        "kind": "IntValue",
+		                        "value": "10"
+		                    }
+		                }
 		            }
 		        }
 		    },

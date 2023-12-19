@@ -3117,6 +3117,11 @@ describe('typescript', function () {
 			                                        "keyRaw": "__typename";
 			                                    };
 			                                };
+			                                "fragments": {
+			                                    "UserBase": {
+			                                        "arguments": {};
+			                                    };
+			                                };
 			                            };
 			                        };
 			                    };

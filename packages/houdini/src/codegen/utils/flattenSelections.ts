@@ -74,7 +74,7 @@ class FieldCollection {
 		// the final result.
 
 		// the default behavior depends on wether masking is enabled or disabled
-		let include = this.config.defaultFragmentMasking === 'disable'
+		let include = this.applyFragments || this.config.defaultFragmentMasking === 'disable'
 
 		// Check if locally enable
 		const maskEnableDirective = selection.directives?.find(
