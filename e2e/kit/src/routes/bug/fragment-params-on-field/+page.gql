@@ -1,0 +1,9 @@
+query Bug_UsersList($someParam: Boolean!) {
+  usersConnection(snapshot: "test") {
+    edges {
+      node {
+        ...UserDetails @with(someParam: $someParam)
+      }
+    }
+  }
+}
