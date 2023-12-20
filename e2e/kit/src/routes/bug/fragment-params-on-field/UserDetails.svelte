@@ -10,7 +10,7 @@
       fragment UserDetails on User @arguments(someParam: { type: "Boolean!" }) {
         id
         name
-        friendsConnection {
+        friendsConnection(first: 2) {
           edges {
             node {
               ...FriendInfo @with(someParam: $someParam)

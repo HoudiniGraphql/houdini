@@ -1,5 +1,5 @@
 query Bug_UsersList($someParam: Boolean!) {
-  usersConnection(snapshot: "test") {
+  usersConnection(snapshot: "test", first: 2) {
     edges {
       node {
         ...UserDetails @with(someParam: $someParam)
