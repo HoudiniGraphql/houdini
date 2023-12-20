@@ -6600,6 +6600,16 @@ test('nested abstract fragments', async function () {
 		                                                "visible": true
 		                                            },
 
+		                                            "name": {
+		                                                "type": "String",
+		                                                "keyRaw": "name"
+		                                            },
+
+		                                            "hasBanana": {
+		                                                "type": "Boolean",
+		                                                "keyRaw": "hasBanana"
+		                                            },
+
 		                                            "__typename": {
 		                                                "type": "String",
 		                                                "keyRaw": "__typename",

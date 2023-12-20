@@ -3199,6 +3199,14 @@ describe('typescript', function () {
 			                            "keyRaw": "id";
 			                            "visible": true;
 			                        };
+			                        "firstName": {
+			                            "type": "String";
+			                            "keyRaw": "firstName";
+			                        };
+			                        "__typename": {
+			                            "type": "String";
+			                            "keyRaw": "__typename";
+			                        };
 			                    };
 			                    "fragments": {
 			                        "UserBase": {
