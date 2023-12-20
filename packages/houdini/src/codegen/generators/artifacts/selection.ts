@@ -8,6 +8,7 @@ import {
 	type SubscriptionSelection,
 	type LoadingSpec,
 } from '../../../runtime/lib/types'
+import { withArguments } from '../../transforms/fragmentVariables'
 import { connectionSelection } from '../../transforms/list'
 import fieldKey from './fieldKey'
 import { convertValue } from './utils'
@@ -412,7 +413,15 @@ function prepareSelection({
 			object.fragments = {
 				...object.fragments,
 				[fragment]: {
-					arguments: args ?? {},
+					arguments:
+						args && Object.keys(args ?? {}).length > 0
+							? args
+							: Object.fromEntries(
+									withArguments(config, field).map((arg) => [
+										arg.name.value,
+										arg.value,
+									])
+							  ),
 				},
 			}
 

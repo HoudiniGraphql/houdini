@@ -540,16 +540,14 @@ test('inner fragment with intermediate default value', async function () {
 		),
 		mockCollectedDoc(
 			`
-				fragment QueryFragment on Query
-                @arguments(name: {type: "String", default: "Hello"}) {
+				fragment QueryFragment on Query@arguments(name: {type: "String", default: "Hello"}) {
                     ...InnerFragment @with(name: $name)
 				}
 			`
 		),
 		mockCollectedDoc(
 			`
-				fragment InnerFragment on Query
-                @arguments(name: {type: "String", default: "Goodbye"}, age: {type: "Int", default: 2}) {
+				fragment InnerFragment on Query @arguments(name: {type: "String", default: "Goodbye"}, age: {type: "Int", default: 2}) {
                     users(stringValue: $name, intValue: $age) {
                         id
                     }
