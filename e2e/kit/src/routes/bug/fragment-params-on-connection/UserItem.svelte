@@ -6,7 +6,7 @@
   $: data = fragment(
     user,
     graphql(`
-      fragment UserItem on User @arguments(someParam: {type: "Boolean!"}) {
+      fragment UserItem on User @arguments(someParam: { type: "Boolean!" }) {
         id
         name
         testField(someParam: $someParam)
