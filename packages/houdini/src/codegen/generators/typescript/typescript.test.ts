@@ -3117,6 +3117,11 @@ describe('typescript', function () {
 			                                        "keyRaw": "__typename";
 			                                    };
 			                                };
+			                                "fragments": {
+			                                    "UserBase": {
+			                                        "arguments": {};
+			                                    };
+			                                };
 			                            };
 			                        };
 			                    };
@@ -3193,6 +3198,14 @@ describe('typescript', function () {
 			                            "type": "ID";
 			                            "keyRaw": "id";
 			                            "visible": true;
+			                        };
+			                        "firstName": {
+			                            "type": "String";
+			                            "keyRaw": "firstName";
+			                        };
+			                        "__typename": {
+			                            "type": "String";
+			                            "keyRaw": "__typename";
 			                        };
 			                    };
 			                    "fragments": {

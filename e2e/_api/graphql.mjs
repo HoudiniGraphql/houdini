@@ -268,6 +268,13 @@ export const resolvers = {
 			)
 		},
 		enumValue: () => 'Value1',
+		testField: (user, args) => {
+			if (args.someParam) {
+				return "Hello world";
+			}
+
+			return null;
+		}
 	},
 
 	Mutation: {

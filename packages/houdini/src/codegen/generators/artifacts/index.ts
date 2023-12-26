@@ -288,7 +288,7 @@ export default function artifactGenerator(stats: {
 							document: doc,
 							rootType,
 							globalLoading,
-							includeFragments: doc.kind !== ArtifactKind.Fragment,
+							includeFragments: true,
 							hasComponents: () => {
 								hasComponents = true
 							},
@@ -299,7 +299,7 @@ export default function artifactGenerator(stats: {
 								filepath: doc.filename,
 								selections: selectionSet.selections,
 								fragmentDefinitions,
-								applyFragments: doc.kind !== ArtifactKind.Fragment,
+								applyFragments: true,
 							}),
 
 							operations: operationsByPath(

@@ -100,6 +100,7 @@ export const routes = {
   Pagination_fragment_offset: '/pagination/fragment/offset',
 
   nested_argument_fragments: '/nested-argument-fragments',
+  nested_argument_fragments_masking: '/nested-argument-fragments-masking',
 
   Stores_Nested_List: '/stores/nested-list',
 

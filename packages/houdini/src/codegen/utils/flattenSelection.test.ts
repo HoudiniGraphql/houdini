@@ -11,6 +11,27 @@ const fragmentDefinitions = (
 	fragment Foo on User {
 		id
 	}
+
+	fragment UserDetails_2YMH5n on User @arguments(someParam: {type: "Boolean!"}) {
+		id
+		name
+		friendsConnection {
+			edges {
+				node {
+					...FriendInfo_2YMH5n @with(someParam: $someParam)
+					id
+				}
+			}
+		}
+		__typename
+	}
+
+	fragment FriendInfo_2YMH5n on User @arguments(someParam: {type: "Boolean!"}) {
+		id
+		name
+		testField(someParam: $someParam)
+		__typename
+	}
 `).definitions as graphql.FragmentDefinitionNode[]
 ).reduce(
 	(acc, defn) => ({
@@ -24,18 +45,13 @@ function getSelections(doc: string): readonly graphql.SelectionNode[] {
 	return (graphql.parse(doc).definitions[0] as graphql.OperationDefinitionNode).selectionSet
 		.selections
 }
-function testFlatten(
-	doc: string,
-	applyFragments: boolean = true,
-	hoistFragments: boolean = true
-): graphql.OperationDefinitionNode {
+function testFlatten(doc: string, applyFragments: boolean = true): graphql.OperationDefinitionNode {
 	const flat = flattenSelections({
 		config,
 		filepath: '',
 		fragmentDefinitions,
 		selections: getSelections(doc),
 		applyFragments,
-		hoistFragments,
 	})
 
 	return {
@@ -157,6 +173,55 @@ describe('flattenSelection', function () {
 			      id
 			    }
 			    ...Foo
+			  }
+			}
+		`)
+	})
+
+	test('nested fragments', function () {
+		expect(
+			testFlatten(
+				`
+				{
+					usersConnection(snapshot: "test") {
+						edges {
+					       	node {
+								...UserDetails_2YMH5n @with(someParam: $someParam)
+								id
+					       	}
+						}
+					}
+				}
+			`
+			)
+		).toMatchInlineSnapshot(`
+			{
+			  usersConnection(snapshot: "test") {
+			    edges {
+			      node {
+			        ... on User {
+			          id
+			          name
+			          friendsConnection {
+			            edges {
+			              node {
+			                ... on User {
+			                  id
+			                  name
+			                  testField(someParam: $someParam)
+			                  __typename
+			                }
+			                id
+			                ...FriendInfo_2YMH5n @with(someParam: $someParam)
+			              }
+			            }
+			          }
+			          __typename
+			        }
+			        id
+			        ...UserDetails_2YMH5n @with(someParam: $someParam)
+			      }
+			    }
 			  }
 			}
 		`)

@@ -6176,6 +6176,12 @@ test('nested abstract fragment on connection', async function () {
 		                                                            "type": "String",
 		                                                            "keyRaw": "__typename"
 		                                                        }
+		                                                    },
+
+		                                                    "fragments": {
+		                                                        "AnimalProps": {
+		                                                            "arguments": {}
+		                                                        }
 		                                                    }
 		                                                },
 
@@ -6267,6 +6273,12 @@ test('nested abstract fragment on connection', async function () {
 		                                                    "type": "String",
 		                                                    "keyRaw": "__typename"
 		                                                }
+		                                            },
+
+		                                            "fragments": {
+		                                                "AnimalProps": {
+		                                                    "arguments": {}
+		                                                }
 		                                            }
 		                                        },
 
@@ -6327,6 +6339,10 @@ test('nested abstract fragment on connection', async function () {
 
 		                    "fragments": {
 		                        "MonkeyList": {
+		                            "arguments": {}
+		                        },
+
+		                        "AnimalList": {
 		                            "arguments": {}
 		                        }
 		                    }
@@ -6480,6 +6496,12 @@ test('nested abstract fragments', async function () {
 		                                                    "type": "String",
 		                                                    "keyRaw": "__typename"
 		                                                }
+		                                            },
+
+		                                            "fragments": {
+		                                                "MonkeyFragment": {
+		                                                    "arguments": {}
+		                                                }
 		                                            }
 		                                        },
 
@@ -6576,6 +6598,16 @@ test('nested abstract fragments', async function () {
 		                                                "type": "ID",
 		                                                "keyRaw": "id",
 		                                                "visible": true
+		                                            },
+
+		                                            "name": {
+		                                                "type": "String",
+		                                                "keyRaw": "name"
+		                                            },
+
+		                                            "hasBanana": {
+		                                                "type": "Boolean",
+		                                                "keyRaw": "hasBanana"
 		                                            },
 
 		                                            "__typename": {
