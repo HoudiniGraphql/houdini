@@ -16,6 +16,6 @@
 </script>
 
 <li>
-  <p>{$data.id} - {$data.name}</p>
+  <p>{$data?.id} - {$data?.name}</p>
   <p>Test field: {$data?.testField}</p>
 </li>
