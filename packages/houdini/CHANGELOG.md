@@ -1,5 +1,11 @@
 # houdini
 
+## 1.2.35
+
+### Patch Changes
+
+-   [#1244](https://github.com/HoudiniGraphql/houdini/pull/1244) [`c86501ae`](https://github.com/HoudiniGraphql/houdini/commit/c86501ae87b8d2a64946711ba842459d941eccf9) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Fix nested fragment fields getting masked out when using fragment arguments
+
 ## 1.2.34
 
 ## 1.2.33
