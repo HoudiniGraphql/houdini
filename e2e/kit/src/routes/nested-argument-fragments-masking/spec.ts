@@ -9,5 +9,7 @@ test('Nested fragment argument masking', async ({ page }) => {
   // wait a bit for the client to hydrate
   await sleep(1000);
 
-  expect(await page.locator('#result').textContent({ timeout: 2997 })).toMatchSnapshot();
+  expect(await page.locator('#result').textContent({ timeout: 2997 })).toEqual(
+    'Bruce Willis friends: Bruce Willis Test field: Hello worldSamuel Jackson Test field: Hello worldSamuel Jackson friends: Bruce Willis Test field: Hello worldSamuel Jackson Test field: Hello world'
+  );
 });
