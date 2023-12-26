@@ -1,7 +1,7 @@
 <script lang="ts">
   import { fragment, graphql, type UserItem } from '$houdini';
 
-  export let user: UserItem;
+  export let user: UserItem | null;
 
   $: data = fragment(
     user,
