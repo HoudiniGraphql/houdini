@@ -17,5 +17,5 @@
 
 <li>
   <p>{$data.id} - {$data.name}</p>
-  <p>Test field: {$data.testField}</p>
+  <p>Test field: {$data?.testField}</p>
 </li>
