@@ -354,9 +354,7 @@ export class InMemorySubscriptions {
 
 	reset() {
 		// Get all subscriptions that do not start with the rootID
-		const subscribers = [...this.subscribers.entries()].filter(
-			([id]) => !id.startsWith(rootID)
-		)
+		const subscribers = [...this.subscribers.entries()].filter(([id]) => !id.startsWith(rootID))
 
 		// Remove those subcribers from this.subscribers
 		for (const [id, _fields] of subscribers) {
