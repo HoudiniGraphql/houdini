@@ -22,16 +22,21 @@ export class InMemorySubscriptions {
 		this.cache = cache
 	}
 
-	private subscribers: {
-		[id: string]: { [fieldName: string]: FieldSelection[] }
-	} = {}
-	private referenceCounts: {
-		[id: string]: { [fieldName: string]: Map<SubscriptionSpec['set'], number> }
-	} = {}
+	private subscribers = new Map<
+		string,
+		Map<
+			string,
+			{
+				selections: FieldSelection[]
+				referenceCounts: Map<SubscriptionSpec['set'], number>
+			}
+		>
+	>()
+
 	private keyVersions: { [key: string]: Set<string> } = {}
 
 	activeFields(parent: string): string[] {
-		return Object.keys(this.subscribers[parent] || {})
+		return Object.keys(this.subscribers.get(parent) || {})
 	}
 
 	add({
@@ -137,13 +142,22 @@ export class InMemorySubscriptions {
 		type: string
 	}) {
 		const spec = selection[0]
+
 		// if we haven't seen the id or field before, create a list we can add to
-		if (!this.subscribers[id]) {
-			this.subscribers[id] = {}
+		if (!this.subscribers.has(id)) {
+			this.subscribers.set(id, new Map())
 		}
-		if (!this.subscribers[id][key]) {
-			this.subscribers[id][key] = []
+
+		const subscriber = this.subscribers.get(id)!
+
+		if (!subscriber.has(key)) {
+			subscriber.set(key, {
+				selections: [],
+				referenceCounts: new Map(),
+			})
 		}
+
+		const subscriberField = subscriber.get(key)!
 
 		// if this is the first time we've seen the raw key
 		if (!this.keyVersions[key]) {
@@ -153,21 +167,15 @@ export class InMemorySubscriptions {
 		// add this version of the key if we need to
 		this.keyVersions[key].add(key)
 
-		if (!this.subscribers[id][key].map(([{ set }]) => set).includes(spec.set)) {
-			this.subscribers[id][key].push([spec, selection[1]])
+		if (!subscriberField.selections.some(([{ set }]) => set === spec.set)) {
+			subscriberField.selections.push([spec, selection[1]])
 		}
-
-		// if this is the first time we've seen this key
-		if (!this.referenceCounts[id]) {
-			this.referenceCounts[id] = {}
-		}
-		if (!this.referenceCounts[id][key]) {
-			this.referenceCounts[id][key] = new Map()
-		}
-		const counts = this.referenceCounts[id][key]
 
 		// we're going to increment the current value by one
-		counts.set(spec.set, (counts.get(spec.set) || 0) + 1)
+		subscriberField.referenceCounts.set(
+			spec.set,
+			(subscriberField.referenceCounts.get(spec.set) || 0) + 1
+		)
 
 		// reset the lifetime for the key
 		this.cache._internal_unstable.lifetimes.resetLifetime(id, key)
@@ -293,7 +301,7 @@ export class InMemorySubscriptions {
 	}
 
 	get(id: string, field: string): FieldSelection[] {
-		return this.subscribers[id]?.[field] || []
+		return this.subscribers.get(id)?.get(field)?.selections || []
 	}
 
 	remove(
@@ -346,18 +354,18 @@ export class InMemorySubscriptions {
 
 	reset() {
 		// Get all subscriptions that do not start with the rootID
-		const subscribers = Object.entries(this.subscribers).filter(
+		const subscribers = [...this.subscribers.entries()].filter(
 			([id]) => !id.startsWith(rootID)
 		)
 
 		// Remove those subcribers from this.subscribers
 		for (const [id, _fields] of subscribers) {
-			delete this.subscribers[id]
+			this.subscribers.delete(id)
 		}
 
 		// Get list of all SubscriptionSpecs of subscribers
 		const subscriptionSpecs = subscribers.flatMap(([_id, fields]) =>
-			Object.values(fields).flatMap((field) => field.map(([spec]) => spec))
+			[...fields.values()].flatMap((field) => field.selections.map(([spec]) => spec))
 		)
 
 		return subscriptionSpecs
@@ -368,12 +376,16 @@ export class InMemorySubscriptions {
 		// checking reference counts
 		let targets: SubscriptionSpec['set'][] = []
 
+		const subscriber = this.subscribers.get(id)
+		const subscriberField = subscriber?.get(fieldName)
+
 		for (const spec of specs) {
+			const counts = subscriber?.get(fieldName)?.referenceCounts
+
 			// if we dont know this field/set combo, there's nothing to do (probably a bug somewhere)
-			if (!this.referenceCounts[id]?.[fieldName]?.has(spec.set)) {
+			if (!counts?.has(spec.set)) {
 				continue
 			}
-			const counts = this.referenceCounts[id][fieldName]
 			const newVal = (counts.get(spec.set) || 0) - 1
 
 			// decrement the reference of every field
@@ -387,8 +399,8 @@ export class InMemorySubscriptions {
 		}
 
 		// we do need to remove the set from the list
-		if (this.subscribers[id]) {
-			this.subscribers[id][fieldName] = this.get(id, fieldName).filter(
+		if (subscriberField) {
+			subscriberField.selections = this.get(id, fieldName).filter(
 				([{ set }]) => !targets.includes(set)
 			)
 		}
@@ -397,17 +409,18 @@ export class InMemorySubscriptions {
 	removeAllSubscribers(id: string, targets?: SubscriptionSpec[], visited: string[] = []) {
 		visited.push(id)
 
+		const subscriber = this.subscribers.get(id)
 		// every field that currently being subscribed to needs to be cleaned up
-		for (const field of Object.keys(this.subscribers[id] || [])) {
+		for (const [key, val] of subscriber?.entries() ?? []) {
 			// grab the current set of subscribers
-			const subscribers = targets || this.subscribers[id][field].map(([spec]) => spec)
+			const subscribers = targets || val.selections.map(([spec]) => spec)
 
 			// delete the subscriber for the field
-			this.removeSubscribers(id, field, subscribers)
+			this.removeSubscribers(id, key, subscribers)
 
 			// look up the value for the field so we can remove any subscribers that existed because of a
 			// subscriber to this record
-			const { value, kind } = this.cache._internal_unstable.storage.get(id, field)
+			const { value, kind } = this.cache._internal_unstable.storage.get(id, key)
 
 			// if the field is a scalar, there's nothing more to do
 			if (kind === 'scalar') {
