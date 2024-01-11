@@ -1,5 +1,11 @@
 # houdini
 
+## 1.2.36
+
+### Patch Changes
+
+-   [#1249](https://github.com/HoudiniGraphql/houdini/pull/1249) [`ffa2b2a6`](https://github.com/HoudiniGraphql/houdini/commit/ffa2b2a6af6c06281923e14bd3d53bf54ec33792) Thanks [@llJochemll](https://github.com/llJochemll)! - Optimize cache subscriptions
+
 ## 1.2.35
 
 ### Patch Changes
