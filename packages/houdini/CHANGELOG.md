@@ -1,10 +1,16 @@
 # houdini
 
+## 1.2.36
+
+### ✨ Features
+
+-   [#1249](https://github.com/HoudiniGraphql/houdini/pull/1249) [`ffa2b2a6`](https://github.com/HoudiniGraphql/houdini/commit/ffa2b2a6af6c06281923e14bd3d53bf54ec33792) @llJochemll - Optimize cache subscriptions
+
 ## 1.2.35
 
-### Patch Changes
+### 🐛 Fixes
 
--   [#1244](https://github.com/HoudiniGraphql/houdini/pull/1244) [`c86501ae`](https://github.com/HoudiniGraphql/houdini/commit/c86501ae87b8d2a64946711ba842459d941eccf9) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Fix nested fragment fields getting masked out when using fragment arguments
+-   [#1244](https://github.com/HoudiniGraphql/houdini/pull/1244) [`c86501ae`](https://github.com/HoudiniGraphql/houdini/commit/c86501ae87b8d2a64946711ba842459d941eccf9) @SeppahBaws - Fix nested fragment fields getting masked out when using fragment arguments
 
 ## 1.2.34
 
@@ -12,13 +18,13 @@
 
 ### 🐛 Fixes
 
--   [#1226](https://github.com/HoudiniGraphql/houdini/pull/1226) [`1a736fc2`](https://github.com/HoudiniGraphql/houdini/commit/1a736fc23aefbfcc7b003d5d1d194ee37c8a8ecb) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug causing inifinite loops in vite dev server
+-   [#1226](https://github.com/HoudiniGraphql/houdini/pull/1226) [`1a736fc2`](https://github.com/HoudiniGraphql/houdini/commit/1a736fc23aefbfcc7b003d5d1d194ee37c8a8ecb) @AlecAivazis - Fix bug causing inifinite loops in vite dev server
 
 ## 1.2.32
 
 ### ✨ Features
 
--   [#1223](https://github.com/HoudiniGraphql/houdini/pull/1223) [`ae73932d`](https://github.com/HoudiniGraphql/houdini/commit/ae73932da26e9e960dfeb916536048ab99701e98) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Plugin runtimes are now generated before documents are collected
+-   [#1223](https://github.com/HoudiniGraphql/houdini/pull/1223) [`ae73932d`](https://github.com/HoudiniGraphql/houdini/commit/ae73932da26e9e960dfeb916536048ab99701e98) @AlecAivazis - Plugin runtimes are now generated before documents are collected
 
 ## 1.2.31
 
