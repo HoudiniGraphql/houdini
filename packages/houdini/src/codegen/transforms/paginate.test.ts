@@ -323,6 +323,71 @@ test('paginate adds backwards cursor args to the fragment', async function () {
 	`)
 })
 
+test('adds required fragment args to pagination query', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+                fragment PaginatedFragment on User @arguments(snapshot: { type: "String!" }) {
+                    friendsByCursorSnapshot(first: 2, snapshot: $snapshot) @paginate {
+                        edges {
+                            node {
+                                id
+                                name
+                            }
+                        }
+                    }
+                }
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	// load the contents of the file
+	expect(docs[1]?.document).toMatchInlineSnapshot(`
+		query PaginatedFragment_Pagination_Query($snapshot: String!, $first: Int = 2, $after: String, $last: Int, $before: String, $id: ID!) {
+		  node(id: $id) {
+		    __typename
+		    id
+		    ...PaginatedFragment_2XQ2zF @with(snapshot: $snapshot, first: $first, after: $after, last: $last, before: $before) @mask_disable
+		  }
+		}
+
+		fragment PaginatedFragment_2XQ2zF on User @arguments(snapshot: {type: "String!"}, first: {type: "Int", default: 2}, after: {type: "String"}, last: {type: "Int"}, before: {type: "String"}) {
+		  friendsByCursorSnapshot(
+		    first: $first
+		    snapshot: $snapshot
+		    after: $after
+		    last: $last
+		    before: $before
+		  ) @paginate {
+		    edges {
+		      node {
+		        id
+		        name
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
+		        __typename
+		      }
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
+		  id
+		  __typename
+		}
+	`)
+})
+
 test('sets before with default value', async function () {
 	const docs = [
 		mockCollectedDoc(

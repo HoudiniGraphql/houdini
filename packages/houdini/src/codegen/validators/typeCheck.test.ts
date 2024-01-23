@@ -779,8 +779,8 @@ const table: Row[] = [
 		],
 	},
 	{
-		title: "@paginate can't show up in a document with required args",
-		pass: false,
+		title: "@paginate can show up in a document with required args",
+		pass: true,
 		documents: [
 			`
 			fragment UserPaginatedA on User @arguments(foo: { type: "String!" }) {

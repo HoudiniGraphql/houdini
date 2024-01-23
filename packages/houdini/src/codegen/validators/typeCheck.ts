@@ -860,27 +860,6 @@ function paginateArgs(config: Config, filepath: string) {
 				// make sure we fail if we see another paginated field
 				alreadyPaginated = true
 
-				// find the definition containing the directive
-				const { definition } = definitionFromAncestors(ancestors)
-
-				// look at the fragment arguments
-				const definitionArgs = collectFragmentArguments(
-					config,
-					filepath,
-					definition as graphql.FragmentDefinitionNode
-				)
-
-				// a fragment marked for pagination can't have required args
-				const hasRequiredArgs = definitionArgs.find((arg) => arg.required)
-				if (hasRequiredArgs) {
-					ctx.reportError(
-						new graphql.GraphQLError(
-							'@paginate cannot appear on a document with required args'
-						)
-					)
-					return
-				}
-
 				// look at the field the directive is applied to
 				const targetFieldType = parentTypeFromAncestors(
 					config.schema,

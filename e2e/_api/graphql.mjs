@@ -260,6 +260,9 @@ export const resolvers = {
 		usersConnection: (user, args) => {
 			return connectionFromArray(getUserSnapshot(user.snapshot), args)
 		},
+		usersConnectionSnapshot: (user, args) => {
+			return connectionFromArray(getUserSnapshot(args.snapshot), args)
+		},
 		userSearch: (_, args) => {
 			const allUsers = [...getUserSnapshot(args.snapshot)]
 
@@ -270,11 +273,11 @@ export const resolvers = {
 		enumValue: () => 'Value1',
 		testField: (user, args) => {
 			if (args.someParam) {
-				return "Hello world";
+				return 'Hello world'
 			}
 
-			return null;
-		}
+			return null
+		},
 	},
 
 	Mutation: {

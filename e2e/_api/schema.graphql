@@ -105,6 +105,7 @@ type User implements Node {
 	friendsConnection(after: String, before: String, first: Int, last: Int): UserConnection!
 	"This is the same list as what's used globally. its here to tests fragments"
 	usersConnection(after: String, before: String, first: Int, last: Int): UserConnection!
+    usersConnectionSnapshot(after: String, before: String, first: Int, last: Int, snapshot: String!): UserConnection!
 	"This is the same list as what's used globally. its here to tests fragments"
 	userSearch(filter: UserNameFilter!, snapshot: String!): [User!]!
 	friendsList(limit: Int, offset: Int): [User!]!

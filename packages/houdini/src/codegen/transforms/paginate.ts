@@ -3,6 +3,10 @@ import * as graphql from 'graphql'
 import type { Config, Document } from '../../lib'
 import { HoudiniError, parentTypeFromAncestors, unwrapType, wrapType } from '../../lib'
 import { ArtifactKind, type PaginateModes } from '../../runtime/lib/types'
+import {
+	fragmentArguments as collectFragmentArguments,
+	type FragmentArgument,
+} from '../transforms/fragmentVariables'
 
 // the paginate transform is responsible for preparing a fragment marked for pagination
 // to be embedded in the query that will be used to fetch additional data. That means it
@@ -163,6 +167,8 @@ export default async function paginate(config: Config, documents: Document[]): P
 
 			let paginateMode: PaginateModes = config.defaultPaginateMode
 
+			const requiredArgs: FragmentArgument[] = []
+
 			doc.document = graphql.visit(doc.document, {
 				// if we are dealing with a query, we'll need to add the variables to the definition
 				OperationDefinition(node) {
@@ -234,6 +240,13 @@ export default async function paginate(config: Config, documents: Document[]): P
 					// look at the fragment definition for an arguments directive
 					const argDirective = node.directives?.find(
 						(directive) => directive.name.value === config.argumentsDirective
+					)
+
+					// keep track of all the required arguments on the fragment
+					requiredArgs.push(
+						...collectFragmentArguments(config, doc.filename, node).filter(
+							(arg) => arg.required
+						)
 					)
 
 					// if there isn't an arguments directive, add it and we'll add arguments to it when
@@ -365,9 +378,9 @@ export default async function paginate(config: Config, documents: Document[]): P
 								kind: graphql.Kind.NAME,
 								value: config.withDirective,
 							},
-							['arguments']: paginationArgs.map(({ name }) =>
-								variableAsArgument(name)
-							),
+							['arguments']: requiredArgs
+								.map((arg) => variableAsArgument(arg.name))
+								.concat(paginationArgs.map(({ name }) => variableAsArgument(name))),
 						},
 						{
 							kind: graphql.Kind.DIRECTIVE,
@@ -419,18 +432,12 @@ export default async function paginate(config: Config, documents: Document[]): P
 							value: refetchQueryName,
 						},
 						operation: 'query',
-						variableDefinitions: paginationArgs
+						variableDefinitions: requiredArgs
 							.map(
 								(arg) =>
 									({
 										kind: graphql.Kind.VARIABLE_DEFINITION,
-										type: {
-											kind: graphql.Kind.NAMED_TYPE,
-											name: {
-												kind: graphql.Kind.NAME,
-												value: arg.type,
-											},
-										},
+										type: arg.type,
 										variable: {
 											kind: graphql.Kind.VARIABLE,
 											name: {
@@ -438,33 +445,56 @@ export default async function paginate(config: Config, documents: Document[]): P
 												value: arg.name,
 											},
 										},
-										defaultValue: !flags[arg.name].defaultValue
-											? undefined
-											: {
-													kind: (arg.type + 'Value') as
-														| 'IntValue'
-														| 'StringValue',
-													value: flags[arg.name].defaultValue,
-											  },
 									} as graphql.VariableDefinitionNode)
 							)
 							.concat(
-								!nodeQuery
-									? []
-									: keys.map(
-											(key) =>
-												({
-													kind: graphql.Kind.VARIABLE_DEFINITION,
-													type: key.type,
-													variable: {
-														kind: graphql.Kind.VARIABLE,
-														name: {
-															kind: graphql.Kind.NAME,
-															value: key.name,
-														},
+								paginationArgs
+									.map(
+										(arg) =>
+											({
+												kind: graphql.Kind.VARIABLE_DEFINITION,
+												type: {
+													kind: graphql.Kind.NAMED_TYPE,
+													name: {
+														kind: graphql.Kind.NAME,
+														value: arg.type,
 													},
-												} as graphql.VariableDefinitionNode)
-									  )
+												},
+												variable: {
+													kind: graphql.Kind.VARIABLE,
+													name: {
+														kind: graphql.Kind.NAME,
+														value: arg.name,
+													},
+												},
+												defaultValue: !flags[arg.name].defaultValue
+													? undefined
+													: {
+															kind: (arg.type + 'Value') as
+																| 'IntValue'
+																| 'StringValue',
+															value: flags[arg.name].defaultValue,
+													  },
+											} as graphql.VariableDefinitionNode)
+									)
+									.concat(
+										!nodeQuery
+											? []
+											: keys.map(
+													(key) =>
+														({
+															kind: graphql.Kind.VARIABLE_DEFINITION,
+															type: key.type,
+															variable: {
+																kind: graphql.Kind.VARIABLE,
+																name: {
+																	kind: graphql.Kind.NAME,
+																	value: key.name,
+																},
+															},
+														} as graphql.VariableDefinitionNode)
+											  )
+									)
 							),
 						selectionSet: {
 							kind: graphql.Kind.SELECTION_SET,
