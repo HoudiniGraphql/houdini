@@ -779,7 +779,7 @@ const table: Row[] = [
 		],
 	},
 	{
-		title: "@paginate can show up in a document with required args",
+		title: '@paginate can show up in a document with required args',
 		pass: true,
 		documents: [
 			`
