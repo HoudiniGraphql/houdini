@@ -35,4 +35,8 @@
   {$fragmentResult.data?.usersConnectionSnapshot.edges.map(({ node }) => node?.name).join(', ')}
 </div>
 
+<div id="pageInfo">
+  {JSON.stringify($fragmentResult.pageInfo)}
+</div>
+
 <button id="next" on:click={() => fragmentResult.loadNextPage()}>next</button>
